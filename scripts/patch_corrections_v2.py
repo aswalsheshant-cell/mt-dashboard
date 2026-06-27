@@ -66,6 +66,23 @@ def fix1(root,slideno):
     if n: log.append(f"Slide {slideno}: recoloured {n} header/section bar(s) to teal {TEAL}")
     return n
 
+# header bars that aren't standalone shapes: table header/total-row cells and
+# tall title bars that the shape-based pass above misses. Scoped to fills on
+# table cells (tcPr) and shapes (spPr) only -- never text-run colours (rPr).
+HEADER_FILLS={'0E3150','1F5A89','1E2761'}
+def fix1b(root,slideno):
+    parent={c:p for p in root.iter() for c in p}
+    n=0
+    for el in root.iter(q('a:srgbClr')):
+        if el.get('val','').upper() not in HEADER_FILLS: continue
+        p1=parent.get(el)
+        if p1 is None or p1.tag!=q('a:solidFill'): continue
+        p2=parent.get(p1)
+        if p2 is not None and p2.tag in (q('a:tcPr'), q('p:spPr')):
+            el.set('val',TEAL); n+=1
+    if n: log.append(f"Slide {slideno}: recoloured {n} table-header/title-bar fill(s) to teal {TEAL}")
+    return n
+
 # ---------------- Fix #3: table vs heading overlap ----------------
 def collect(spTree):
     items=[]
@@ -288,6 +305,7 @@ def process_slide(n):
     p=f'{V2}/ppt/slides/slide{n}.xml'
     tree=ET.parse(p); root=tree.getroot()
     fix1(root,n)
+    fix1b(root,n)
     fix3(root,n)
     if n==4: fix5(root)
     tree.write(p,xml_declaration=True,encoding='UTF-8')
