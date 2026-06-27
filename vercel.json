@@ -2,9 +2,6 @@
   "framework": null,
   "buildCommand": "exit 0",
   "installCommand": "exit 0",
-  "outputDirectory": ".",
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/", "destination": "/dashboard/index.html" }
-  ]
+  "outputDirectory": "dashboard",
+  "cleanUrls": true
 }
