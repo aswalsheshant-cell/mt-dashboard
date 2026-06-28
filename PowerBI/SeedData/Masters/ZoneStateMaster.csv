@@ -1,0 +1,23 @@
+Zone,Zone Sort Order,State,Region
+East,1,West Bengal,East
+East,1,Bihar,East
+East,1,Odisha,East
+East,1,Assam,East
+East,1,Jharkhand,East
+North,2,Delhi,North
+North,2,Uttar Pradesh,North
+North,2,Punjab,North
+North,2,Haryana,North
+North,2,Rajasthan,North
+North,2,Uttarakhand,North
+North,2,Chandigarh,North
+South-1,3,Telangana,South
+South-1,3,Andhra Pradesh,South
+South-1,3,Tamil Nadu,South
+South-2,4,Karnataka,South
+South-2,4,Kerala,South
+West,5,Maharashtra,West
+West,5,Gujarat,West
+West,5,Madhya Pradesh,West
+West,5,Goa,West
+Pan India,6,Pan India,Pan India

@@ -1,0 +1,73 @@
+// =====================================================================
+// FORECAST MEASURES  (forecast NEVER overwrites actuals)
+// Statistical base = L3M / L6M / MoM trend / YoY, with a manual override
+// from 'Forecast Override'. Final Forecast = manual if present else stat.
+// =====================================================================
+
+// Is the selected month an actual (has offtake) or a future month?
+Has Actual = IF ( [Total Offtake NSV] > 0, TRUE (), FALSE () )
+
+Actual NSV = [Total Offtake NSV]
+
+// ---- Statistical components (anchored to last actual month) ----
+L3M Avg NSV = [L3M Average Sales]
+L6M Avg NSV = [L6M Average Sales]
+
+TY MoM Growth % =
+// average MoM growth over the last 3 actual months
+VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
+VAR g1 = CALCULATE ( [MoM Growth %], 'Date Table'[MonthStart] = EOMONTH ( _curMonth, -1 ) + 1 )
+VAR g2 = CALCULATE ( [MoM Growth %], 'Date Table'[MonthStart] = EOMONTH ( _curMonth, -2 ) + 1 )
+VAR g3 = CALCULATE ( [MoM Growth %], 'Date Table'[MonthStart] = EOMONTH ( _curMonth, -3 ) + 1 )
+RETURN AVERAGEX ( { g1, g2, g3 }, [Value] )
+
+// Statistical forecast NSV for a future month = last actual * (1 + blended growth)
+// Blended growth = average of (MoM trend, YoY trend), bounded for sanity.
+Forecast NSV =
+VAR _lastActualMonth =
+    CALCULATE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), ALL ( 'Date Table' ) )
+VAR _selMonth = MAX ( 'Date Table'[MonthStart] )
+VAR _monthsAhead = DATEDIFF ( _lastActualMonth, _selMonth, MONTH )
+VAR _base = CALCULATE ( [NSV], 'Date Table'[MonthStart] = _lastActualMonth )
+VAR _l3m = CALCULATE ( [L3M Average Sales], 'Date Table'[MonthStart] = _lastActualMonth )
+VAR _momTrend = CALCULATE ( [TY MoM Growth %], 'Date Table'[MonthStart] = _lastActualMonth )
+VAR _growth = MIN ( MAX ( COALESCE ( _momTrend, 0 ), -0.15 ), 0.20 )  // clamp -15%..+20%
+VAR _stat = COALESCE ( _base, _l3m ) * POWER ( 1 + _growth, _monthsAhead )
+RETURN IF ( _monthsAhead > 0, _stat, BLANK () )
+
+// ---- Manual override (from Forecast Override table, ALL-fallback) ----
+Manual Forecast =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+CALCULATE ( MAX ( 'Forecast Override'[Manual Forecast NSV] ),
+    FILTER ( ALL ( 'Forecast Override' ), 'Forecast Override'[Month] = _m ) )
+
+Forecast Growth Assumption % =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+COALESCE (
+    CALCULATE ( MAX ( 'Forecast Override'[Growth Assumption %] ),
+        FILTER ( ALL ( 'Forecast Override' ), 'Forecast Override'[Month] = _m ) ), BLANK () )
+
+// ---- Final Forecast: manual > assumption-growth > statistical ----
+Final Forecast =
+VAR _manual = [Manual Forecast]
+VAR _stat = [Forecast NSV]
+RETURN COALESCE ( _manual, _stat )
+
+// ---- Compare to target & accuracy (only where actual exists) ----
+Target NSV M = CALCULATE ( SUM ( Targets[Target NSV] ) )
+Gap vs Target = [Actual NSV] - [Target NSV M]
+Gap vs Target % = DIVIDE ( [Actual NSV] - [Target NSV M], [Target NSV M] )
+
+Forecast vs Actual = [Actual NSV] - [Final Forecast]
+Forecast vs Actual % = DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )
+
+Forecast Accuracy % =
+IF ( [Has Actual],
+    1 - DIVIDE ( ABS ( [Actual NSV] - [Final Forecast] ), [Actual NSV] ),
+    BLANK () )
+
+// Combined line for the Actual-vs-Forecast chart (actual where known, else forecast)
+Actual or Forecast =
+IF ( [Has Actual], [Actual NSV], [Final Forecast] )
