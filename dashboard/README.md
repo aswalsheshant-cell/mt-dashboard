@@ -20,7 +20,12 @@ so the dashboard works fully offline.
 | **P&L** | Chain-wise gross MRP → net NSV bridge, trade-discount intensity, and promo activity |
 | **Forecast** | Seasonally-indexed FY26-27 offtake projection with the method stated |
 | **Market Share** | Distribution footprint (store universe) and share-of-business across MT chains |
+| **Category & Pack** | Top-95% category contribution (Pareto) and pack-size mix (basis: July'26 plan) |
+| **Q1 Promo (FY26-27)** | Consolidated Apr–Jun consumer-promo calendar: offers by chain, category, pack, brand, depth |
+| **Distribution** | GAP (planned portfolio) vs non-GAP article distribution across all chains and categories |
 | **Insights & Way Forward** | Auto-generated risks/opportunities plus prioritised leadership actions |
+
+The Forecast tab also carries the leadership-shared **July'26 plan** (regional + chain-wise allocation, category/brand split, FC vs Consensus).
 
 ## Data sources
 
@@ -45,6 +50,18 @@ python scripts/build_dashboard_data.py --src <src> --out dashboard/data.js
 `scripts/build_dashboard_data.py` normalises chain/brand/zone spellings across the four
 files onto a common key, aggregates every view, derives the P&L bridge and forecast, and
 emits `window.DASH` into `data.js`.
+
+The Q1 FY26-27 layer (`data_q1.js`, `window.DASHQ`) is built separately from the
+leadership planning files (MT Forecast July'26 + Apr/May/Jun promo calendars):
+
+```bash
+python scripts/build_q1_data.py --src <src> --main dashboard/data.js --out dashboard/data_q1.js
+```
+
+It produces the category/pack Pareto, the regional + chain-wise forecast, the Q1 promo
+analytics, and the GAP-vs-non-GAP distribution. **GAP** is defined here as the actively
+forecasted (planned) portfolio, matched to Q1 promo lines by EAN — swap in an official
+GAP/must-stock master to refine.
 
 ## Assumptions & caveats
 

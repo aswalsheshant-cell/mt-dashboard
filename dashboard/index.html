@@ -68,7 +68,7 @@
 <body>
 <header>
   <h1 id="hTitle">Modern Trade Leadership Dashboard</h1>
-  <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Forecast · Market Share</p>
+  <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Category &amp; Pack · Forecast · Q1 Promo · Market Share · Distribution</p>
   <span class="badge" id="hPeriod"></span>
 </header>
 <nav id="nav"></nav>
@@ -77,15 +77,22 @@
   <section id="tab-primary"></section>
   <section id="tab-offtake"></section>
   <section id="tab-pnl"></section>
+  <section id="tab-category"></section>
   <section id="tab-forecast"></section>
+  <section id="tab-q1promo"></section>
   <section id="tab-share"></section>
+  <section id="tab-distribution"></section>
   <section id="tab-insights"></section>
 </div>
 <footer id="foot"></footer>
 
 <script src="data.js"></script>
+<script src="data_q1.js"></script>
 <script>
 const D = window.DASH;
+const Q = window.DASHQ || {};
+const u0 = v => v==null?'–':Math.round(v).toLocaleString('en-IN');     // units
+const uk = v => v==null?'–':(v/1000).toLocaleString('en-IN',{maximumFractionDigits:1})+'K'; // units in K
 const C = {teal:'#2D9B7F',teald:'#1f7a63',blue:'#2b6cb0',amber:'#C77D17',red:'#C0392B',
            green:'#1E8E3E',grey:'#9aa4ad',purple:'#6b5b95',sand:'#cbb994'};
 const PAL=[C.teal,C.blue,C.amber,C.purple,C.green,C.red,C.sand,C.grey];
@@ -136,6 +143,30 @@ function mkDonut(id,labels,data,money=true){
     options:{cutout:'58%',plugins:{legend:{position:'right'},
       tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
         return `${c.label}: ${money?crc(c.parsed):num(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}}}));
+}
+
+// Pareto: bars (value) + cumulative % line on a second axis; mark 95% line.
+function mkPareto(id,labels,vals,cum,fmt){
+  charts.push(new Chart(document.getElementById(id),{
+    data:{labels,datasets:[
+      {type:'bar',label:'Contribution',data:vals,backgroundColor:C.teal,borderRadius:4,yAxisID:'y',order:2},
+      {type:'line',label:'Cumulative %',data:cum,borderColor:C.amber,backgroundColor:C.amber,
+       tension:.25,borderWidth:2.4,pointRadius:3,yAxisID:'y1',order:1}]},
+    options:{plugins:{legend:{position:'top'},
+      tooltip:{callbacks:{label:c=>c.dataset.type==='line'?`Cumulative: ${c.parsed.y}%`:`${(fmt||u0)(c.parsed.y)}`}}},
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>(fmt||u0)(v)}},
+        y1:{position:'right',beginAtZero:true,max:105,grid:{display:false},ticks:{callback:v=>v+'%'}},
+        x:{grid:{display:false}}}}}));
+}
+// stacked horizontal bar for two series (counts)
+function mkStackH(id,labels,a,b,la,lb){
+  charts.push(new Chart(document.getElementById(id),{type:'bar',
+    data:{labels,datasets:[
+      {label:la,data:a,backgroundColor:C.teal,borderRadius:3,stack:'s'},
+      {label:lb,data:b,backgroundColor:C.sand,borderRadius:3,stack:'s'}]},
+    options:{indexAxis:'y',plugins:{legend:{position:'top'},
+      tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${u0(c.parsed.x)}`}}},
+      scales:{x:{stacked:true,beginAtZero:true,grid:{color:'#eee'}},y:{stacked:true,grid:{display:false}}}}}));
 }
 
 /* ---------------- OVERVIEW ---------------- */
@@ -271,20 +302,127 @@ function buildPnl(){
 
 /* ---------------- FORECAST ---------------- */
 function buildForecast(){
-  const f=D.forecast,s=document.getElementById('tab-forecast');
+  const f=D.forecast,qf=Q.forecast,s=document.getElementById('tab-forecast');
+  const skuRows=(qf?qf.top_skus:[]).map(r=>`<tr><td>${r.name}</td><td>${r.brand}</td><td>${r.cat}</td>
+     <td>${u0(r.fc)}</td><td>${u0(r.cons)}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Forecast</h2>
-   <p class="lead">Forward offtake projection for FY26-27.</p>
+   <p class="lead">Trend-based offtake projection (FY26-27) plus the leadership-shared July'26 plan with regional &amp; chain-wise allocation.</p>
    <div class="kpis">
-     ${kpi('FY26 Actual (offtake)',crc(f.fy26_actual),'trailing 12m')}
+     ${kpi('FY26 Actual (offtake)',crc(f.fy26_actual),'trailing 12m, ₹Cr')}
      ${kpi('FY27 Forecast',crc(f.fy27_forecast),`@ ${f.growth_assumption_pct}% growth`)}
-     ${kpi('Implied uplift',crc(f.fy27_forecast-f.fy26_actual),pct((f.fy27_forecast/f.fy26_actual-1)*100))}
+     ${qf?kpi("July'26 Plan (units)",uk(qf.total),`Consensus ${uk(qf.total_cons)}`):''}
+     ${qf?kpi('FC vs Consensus',pct((qf.total/qf.total_cons-1)*100),'plan vs consensus'):''}
    </div>
-   ${card('Offtake — actuals &amp; FY26-27 forecast','',cv('fcChart'))}
-   ${card('Method',f.method,'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}`;
+   ${card('Offtake — actuals &amp; FY26-27 forecast (₹ Cr)','',cv('fcChart'))}
+   ${qf?`<div class="grid g2">
+     ${card("July'26 plan — regional allocation (units)",'Shared MT forecast with regional split.',cv('fcRegion',true))}
+     ${card("July'26 plan — chain-wise allocation (units)",'Plan distributed to chains on trailing offtake share (indicative).',cv('fcChain'))}
+   </div>
+   <div class="grid g2">
+     ${card("July'26 plan by category (units)",'',cv('fcCat',true))}
+     ${card("July'26 plan by brand (units)",'',cv('fcBrand',true))}
+   </div>
+   ${card("Top forecast SKUs — FC vs Consensus (July'26, units)",'',`<div class="tablewrap"><table>
+     <thead><tr><th>SKU</th><th>Brand</th><th>Category</th><th>FC</th><th>Consensus</th></tr></thead><tbody>${skuRows}</tbody></table></div>`)}`:''}
+   ${card('Method',f.method,`<p class="note" style="margin:0">Trend forecast is directional. The July'26 plan is the leadership-shared regional file; chain-wise split applies each chain's trailing offtake share. ${qf?qf.unit_note:''}</p>`)}`;
   const histLen=f.hist.length;
   mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
     {label:'Actual offtake',data:[...f.hist,...Array(f.fc.length).fill(null)],borderColor:C.teal,backgroundColor:C.teal+'22',fill:true},
     {label:'Forecast FY26-27',data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
+  if(qf){
+    mkDonut('fcRegion',qf.by_region.map(x=>x.name),qf.by_region.map(x=>x.fc),false);
+    mkBarH('fcChain',qf.by_chain.map(x=>x.name),qf.by_chain.map(x=>x.fc),C.teal,false);
+    mkBarH('fcCat',qf.by_category.map(x=>x.name),qf.by_category.map(x=>x.fc),C.purple,false);
+    mkDonut('fcBrand',qf.by_brand.map(x=>x.name),qf.by_brand.map(x=>x.fc),false);
+  }
+}
+
+/* ---------------- CATEGORY & PACK ---------------- */
+function buildCategory(){
+  const c=Q.category,s=document.getElementById('tab-category');
+  if(!c){s.innerHTML='<p class="lead">Category data not loaded.</p>';return;}
+  const catRows=c.categories.map(x=>`<tr><td>${x.name}</td><td>${u0(x.fc)}</td><td>${x.share}%</td>
+     <td>${x.cum}%</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Category &amp; Pack Contribution</h2>
+   <p class="lead">Top contributing categories (Pareto, 95% cut) and pack-size mix. Basis: ${c.basis}.</p>
+   <div class="kpis">
+     ${kpi('Categories',c.n_categories,'in plan')}
+     ${kpi('Drive 95%',c.pareto95_count+' categories',`account for 95% of volume`)}
+     ${kpi('#1 Category',c.categories[0].name,`${c.categories[0].share}% of volume`)}
+     ${kpi('Top Pack',c.top_pack,`${c.packs[0].share}% of volume`)}
+   </div>
+   ${card('Category contribution — Pareto (top 95%)','Bars = category volume; line = cumulative %. The 95% mark shows the vital few categories.',cv('catPareto'))}
+   <div class="grid g2">
+     ${card('Pack-wise contribution (top packs)','',cv('packBar',true))}
+     ${card('Volume by pack-size band','',cv('packBand',true))}
+   </div>
+   ${card('Category contribution table','',`<div class="tablewrap"><table>
+     <thead><tr><th>Category</th><th>Volume (units)</th><th>Share</th><th>Cumulative</th></tr></thead><tbody>${catRows}</tbody></table></div>`)}`;
+  mkPareto('catPareto',c.categories.map(x=>x.name),c.categories.map(x=>x.fc),c.categories.map(x=>x.cum),u0);
+  mkBarH('packBar',c.packs.map(x=>x.name),c.packs.map(x=>x.fc),C.blue,false);
+  mkDonut('packBand',c.bands.map(x=>x.name),c.bands.map(x=>x.fc),false);
+}
+
+/* ---------------- Q1 PROMO ---------------- */
+function buildQ1Promo(){
+  const p=Q.promo,s=document.getElementById('tab-q1promo');
+  if(!p){s.innerHTML='<p class="lead">Promo data not loaded.</p>';return;}
+  const chRows=p.by_chain.map(x=>`<tr><td>${x.name}</td><td>${x.n}</td><td>${x.depth==null?'–':x.depth+'%'}</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Q1 FY26-27 Promotions (Apr–Jun)</h2>
+   <p class="lead">Consolidated consumer-promo calendar across MT chains for Q1 FY26-27.</p>
+   <div class="kpis">
+     ${kpi('Promo Offers',u0(p.total),'Apr + May + Jun')}
+     ${kpi('Avg Consumer Depth',p.avg_depth+'%','blended')}
+     ${kpi('Chains Running Promos',p.n_chains,'in Q1')}
+     ${kpi('Peak Month','Jun',`${(p.by_month.find(m=>m.name==='Jun')||{}).n} offers`)}
+   </div>
+   <div class="grid g2">
+     ${card('Offers by month','',cv('prMonth2',true))}
+     ${card('Offer depth distribution','How deep the consumer offers are.',cv('prDepth',true))}
+   </div>
+   <div class="grid g2">
+     ${card('Offers by category','',cv('prCat',true))}
+     ${card('Offers by pack (top)','',cv('prPack',true))}
+   </div>
+   <div class="grid g2">
+     ${card('Offers by brand','',cv('prBrand2',true))}
+     ${card('Top chains by promo intensity','',cv('prChain2',true))}
+   </div>
+   ${card('Promo intensity by chain (Q1)','Offer count and average consumer depth per chain.',`<div class="tablewrap"><table>
+     <thead><tr><th>Chain</th><th>Offers</th><th>Avg depth</th></tr></thead><tbody>${chRows}</tbody></table></div>`)}`;
+  mkBar('prMonth2',p.by_month.map(x=>x.name),[{label:'Offers',data:p.by_month.map(x=>x.n),backgroundColor:C.teal,borderRadius:4}],{money:false});
+  mkBar('prDepth',p.depth_bands.map(x=>x.name),[{label:'Offers',data:p.depth_bands.map(x=>x.n),backgroundColor:C.amber,borderRadius:4}],{money:false});
+  mkBarH('prCat',p.by_category.map(x=>x.name),p.by_category.map(x=>x.n),C.purple,false);
+  mkBarH('prPack',p.by_pack.map(x=>x.name),p.by_pack.map(x=>x.n),C.blue,false);
+  mkDonut('prBrand2',p.by_brand.map(x=>x.name),p.by_brand.map(x=>x.n),false);
+  mkBarH('prChain2',p.by_chain.map(x=>x.name),p.by_chain.map(x=>x.n),C.teal,false);
+}
+
+/* ---------------- DISTRIBUTION (GAP / non-GAP) ---------------- */
+function buildDistribution(){
+  const d=Q.distribution,s=document.getElementById('tab-distribution');
+  if(!d){s.innerHTML='<p class="lead">Distribution data not loaded.</p>';return;}
+  const rows=d.by_chain.map(x=>`<tr><td>${x.name}</td><td>${x.gap}</td><td>${x.nongap}</td>
+     <td>${x.gap_pct==null?'–':x.gap_pct+'%'}</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Distribution — GAP vs Non-GAP Portfolio</h2>
+   <p class="lead">Article distribution across all chains, split into GAP (planned) portfolio vs non-GAP.
+     <b>Note:</b> ${d.note}</p>
+   <div class="kpis">
+     ${kpi('GAP Articles (plan)',u0(d.gap_articles),'actively forecasted')}
+     ${kpi('Promo Lines Matched',u0(d.matched_lines),'by EAN')}
+     ${kpi('GAP Coverage',Math.round(d.gap_lines/d.matched_lines*100)+'%','of matched lines')}
+     ${kpi('Non-GAP Lines',u0(d.nongap_lines),'outside the plan')}
+   </div>
+   <div class="grid g2">
+     ${card('GAP vs non-GAP by chain','Article lines per chain, split GAP vs non-GAP.',cv('distChain'))}
+     ${card('GAP vs non-GAP split','',cv('distSplit',true))}
+   </div>
+   ${card('GAP vs non-GAP by category','',cv('distCat'))}
+   ${card('Distribution by chain (table)','',`<div class="tablewrap"><table>
+     <thead><tr><th>Chain</th><th>GAP</th><th>Non-GAP</th><th>GAP %</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
+  mkStackH('distChain',d.by_chain.map(x=>x.name),d.by_chain.map(x=>x.gap),d.by_chain.map(x=>x.nongap),'GAP','Non-GAP');
+  mkDonut('distSplit',['GAP','Non-GAP'],[d.gap_lines,d.nongap_lines],false);
+  mkStackH('distCat',d.by_category.map(x=>x.name),d.by_category.map(x=>x.gap),d.by_category.map(x=>x.nongap),'GAP','Non-GAP');
 }
 
 /* ---------------- MARKET SHARE ---------------- */
@@ -340,9 +478,12 @@ function buildInsights(){
 
 /* ---------------- nav ---------------- */
 const TABS=[['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
-  ['pnl','P&L'],['forecast','Forecast'],['share','Market Share'],['insights','Insights & Way Forward']];
+  ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],
+  ['q1promo','Q1 Promo (FY26-27)'],['share','Market Share'],
+  ['distribution','Distribution'],['insights','Insights & Way Forward']];
 const BUILD={overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
-  pnl:buildPnl,forecast:buildForecast,share:buildShare,insights:buildInsights};
+  pnl:buildPnl,category:buildCategory,forecast:buildForecast,q1promo:buildQ1Promo,
+  share:buildShare,distribution:buildDistribution,insights:buildInsights};
 const built={};
 function show(id){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
