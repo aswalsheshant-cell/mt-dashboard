@@ -1,0 +1,132 @@
+// =====================================================================
+// SHIP-TO PRIMARY ALLOCATION MEASURES
+// Primary is driven onto Chains by the secondary/offtake contribution %,
+// month-on-month, via 'Primary Allocation Map' (+ optional manual
+// 'Primary Allocation Override'). Nothing is hardcoded in the measures.
+//
+// Two modes are supported:
+//  (A) Feed already pre-split to chain (today's data): the allocated NSV is
+//      in 'Fact Primary ShipTo'[Primary NSV] -> use [Ship-to Primary NSV].
+//  (B) Feed arrives un-split at Ship-To x Brand total: multiply that total by
+//      the chain Cont% -> use [Allocated Primary (via Cont%)].
+// =====================================================================
+
+// ---------- (A) Already-allocated primary ----------
+Ship-to Primary NSV = SUM ( 'Fact Primary ShipTo'[Primary NSV] )
+Ship-to Primary MRP = SUM ( 'Fact Primary ShipTo'[MRP Value] )
+
+// ---------- Allocation contribution % (dynamic, month-wise) ----------
+// Override wins; else the secondary-derived map value; weighted by primary so
+// it aggregates sensibly above a single Ship-To x Chain x Brand cell.
+Primary Allocation Cont% =
+VAR _override =
+    CALCULATE (
+        MAX ( 'Primary Allocation Override'[Override Cont%] ),
+        FILTER (
+            'Primary Allocation Override',
+            ( 'Primary Allocation Override'[Month] = SELECTEDVALUE ( 'Date Table'[Month] )
+                || 'Primary Allocation Override'[Month] = "ALL" )
+                && ( 'Primary Allocation Override'[Ship To Name] = SELECTEDVALUE ( 'Ship-To Master'[Ship To Name] )
+                    || 'Primary Allocation Override'[Ship To Name] = "ALL" )
+                && ( 'Primary Allocation Override'[Chain] = SELECTEDVALUE ( 'Chain Master'[Chain] )
+                    || 'Primary Allocation Override'[Chain] = "ALL" )
+                && ( 'Primary Allocation Override'[Brand] = SELECTEDVALUE ( 'Brand Master'[Brand] )
+                    || 'Primary Allocation Override'[Brand] = "ALL" )
+        )
+    )
+VAR _mapWeighted =
+    DIVIDE (
+        SUMX ( 'Primary Allocation Map', 'Primary Allocation Map'[Cont%] ),
+        COUNTROWS ( 'Primary Allocation Map' )
+    )
+RETURN
+    IF ( NOT ISBLANK ( _override ), DIVIDE ( _override, 100 ), _mapWeighted )
+
+// ---------- (B) Compute allocation from an un-split raw primary ----------
+// Point [Raw ShipTo Primary] at your un-split feed if/when one exists.
+// By default it falls back to the already-allocated NSV so the measure is safe.
+Raw ShipTo Primary =
+COALESCE (
+    // <-- replace with SUM('Raw Primary'[Primary NSV]) when an un-split feed is added
+    BLANK (),
+    [Ship-to Primary NSV]
+)
+
+Allocated Primary (via Cont%) =
+SUMX (
+    SUMMARIZE (
+        'Primary Allocation Map',
+        'Primary Allocation Map'[Ship To Name],
+        'Primary Allocation Map'[Chain],
+        'Primary Allocation Map'[Brand]
+    ),
+    VAR _cont = [Primary Allocation Cont%]
+    VAR _raw =
+        CALCULATE (
+            [Raw ShipTo Primary],
+            ALL ( 'Chain Master'[Chain] )   // raw is at ship-to x brand (chain-agnostic)
+        )
+    RETURN _raw * _cont
+)
+
+// ---------- Secondary / Offtake at the same grain ----------
+Secondary Offtake NSV = [Total Offtake NSV]
+Secondary Offtake Qty = [Total Offtake Qty]
+
+// ---------- Article inclusion: offtake this month OR previous month ----------
+// Primary can lead/lag secondary by a month, so an article counts as "active"
+// if it had offtake in the selected month or the one before.
+Article Has Offtake (Curr or Prev) =
+VAR _curr = [Total Offtake NSV]
+VAR _prev = CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ( COALESCE ( _curr, 0 ) <> 0 ) || ( COALESCE ( _prev, 0 ) <> 0 ), 1, 0 )
+
+// Primary restricted to active articles (current or previous-month offtake).
+Ship-to Primary NSV (Active Articles) =
+CALCULATE (
+    [Ship-to Primary NSV],
+    FILTER (
+        VALUES ( 'Article Master'[Article Code] ),
+        [Article Has Offtake (Curr or Prev)] = 1
+    )
+)
+
+// ---------- Primary vs Offtake on the allocated basis ----------
+Allocated Primary vs Offtake Gap = [Ship-to Primary NSV] - [Secondary Offtake NSV]
+Allocated Primary vs Offtake Gap % =
+DIVIDE ( [Ship-to Primary NSV] - [Secondary Offtake NSV], [Secondary Offtake NSV] )
+Primary to Offtake Ratio = DIVIDE ( [Ship-to Primary NSV], [Secondary Offtake NSV] )
+
+// ---------- MoM movement on allocated primary ----------
+Ship-to Primary Prev Month = CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+Ship-to Primary MoM % =
+DIVIDE ( [Ship-to Primary NSV] - [Ship-to Primary Prev Month], [Ship-to Primary Prev Month] )
+Ship-to Primary YoY % =
+DIVIDE (
+    [Ship-to Primary NSV] - CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) ),
+    CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+)
+
+// ---------- Display helpers ----------
+Ship-to Primary NSV Label =
+VAR v = [Ship-to Primary NSV]
+RETURN IF ( ABS ( v ) >= 10000000,
+    FORMAT ( DIVIDE ( v, 10000000 ), "0.00" ) & " Cr",
+    FORMAT ( DIVIDE ( v, 100000 ), "0.0" ) & " L" )
+
+Allocation Health Check =
+// distributor rows whose Cont% across chains does not sum to ~100% in a month
+VAR _bad =
+    COUNTROWS (
+        FILTER (
+            SUMMARIZE (
+                'Primary Allocation Map',
+                'Primary Allocation Map'[Month],
+                'Primary Allocation Map'[Ship To Name],
+                'Primary Allocation Map'[Brand],
+                "tot", SUM ( 'Primary Allocation Map'[Cont%] )
+            ),
+            [tot] < 0.99 || [tot] > 1.01
+        )
+    )
+RETURN COALESCE ( _bad, 0 )

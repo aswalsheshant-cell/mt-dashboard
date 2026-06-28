@@ -1,0 +1,66 @@
+// =====================================================================
+// FORECAST QC MEASURES  (Forecast page reconciliation block)
+// Proves the dashboard forecast ties to the TY target source and surfaces
+// mapping gaps. Variance must be ~0; coverage shows how much of FY26 offtake
+// is mapped to masters / sales team.
+// =====================================================================
+
+// ---- Reconciliation ----
+QC TY Target Total = [TY Target]
+QC Dashboard Forecast Total =
+CALCULATE ( [FY27 Forecast],
+    ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Brand Master'[Brand] ),
+    ALLSELECTED ( 'Category Master'[Category] ), ALLSELECTED ( 'Zone State Master'[Zone] ),
+    ALLSELECTED ( 'Sales Team Mapping'[Sales Person] ) )
+QC Variance = [QC Dashboard Forecast Total] - [QC TY Target Total]
+QC Variance % = DIVIDE ( [QC Variance], [QC TY Target Total] )
+QC Tie-Out =
+IF ( ABS ( [QC Variance] ) < 1, "OK - Matches TY Target", "Variance - investigate" )
+
+// ---- Mapping coverage (FY26 offtake basis) ----
+QC Mapped Offtake =
+[FY26 Actual Offtake] - [_FY26 Offtake Unmapped]
+QC Mapping Coverage % =
+DIVIDE ( [QC Mapped Offtake], [FY26 Actual Offtake] )
+
+// SO coverage = offtake from stores that have a sales-person mapping
+QC SO Mapped Offtake =
+CALCULATE ( [FY26 Actual Offtake],
+    FILTER ( 'Fact Offtake Sales',
+        'Fact Offtake Sales'[Store Code] IN VALUES ( 'Sales Team Mapping'[Store Code] ) ) )
+QC SO Coverage % = DIVIDE ( [QC SO Mapped Offtake], [FY26 Actual Offtake] )
+
+// ---- Unmapped counts / lists ----
+QC Unmapped Chains =
+CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Chain] ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Chain Master'[Chain] ) ) ) )
+QC Unmapped Chain Names =
+CALCULATE ( CONCATENATEX ( VALUES ( 'Fact Offtake Sales'[Chain] ), 'Fact Offtake Sales'[Chain], ", " ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Chain Master'[Chain] ) ) ) )
+
+// Stores with offtake but no sales-team owner -> "unmapped sales team"
+QC Unmapped SO Stores =
+CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Store Code] ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Store Code] IN VALUES ( 'Sales Team Mapping'[Store Code] ) ) ) )
+// Sales-person names present in mapping but with no FY26 offtake match (orphan owners)
+QC Orphan Sales Persons =
+CALCULATE ( CONCATENATEX ( VALUES ( 'Sales Team Mapping'[Sales Person] ), 'Sales Team Mapping'[Sales Person], ", " ),
+    FILTER ( 'Sales Team Mapping',
+        NOT ( 'Sales Team Mapping'[Store Code] IN VALUES ( 'Fact Offtake Sales'[Store Code] ) ) ) )
+
+// ---- Missing dimension mapping (months / brand / category) ----
+QC Missing Month Mapping =
+VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = "26-27" )
+VAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = "26-27" )
+RETURN _dateMonths - _tgtMonths
+QC Missing Brand Mapping =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Brand] IN VALUES ( 'Brand Master'[Brand] ) ) ) )
+QC Missing Category Mapping =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) ) ) )

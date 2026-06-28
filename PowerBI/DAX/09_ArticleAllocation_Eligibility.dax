@@ -1,0 +1,159 @@
+// =====================================================================
+// ARTICLE-LEVEL ALLOCATION — OFFTAKE ELIGIBILITY GATE
+// =====================================================================
+// Rule: do NOT allocate distributor primary to a Chain x Brand x Article x
+// Month unless that exact Chain x Brand x Article shows SECONDARY OFFTAKE in
+// the same month (M) or the next month (M+1, distributor->chain TAT).
+// Otherwise BLOCK it as an exception. Never force allocation to an unsupported
+// chain/article just to make the distributor total reach 100%.
+//
+// Reconciliation under the gate (per Month x Distributor x Brand):
+//     Original Primary = Allocated (eligible) + Blocked (no offtake evidence)
+// The ALLOCATED portion ties to the eligible-supported primary exactly; the
+// BLOCKED portion is reported separately (not hidden, not forced).
+//
+// Tables used:
+//   'Fact Offtake Sales'   = secondary/offtake (validation base)  [present]
+//   'Fact Primary Article' = File 2 distributor article-wise primary [PENDING]
+// Article key priority: EAN -> Article Code -> cleaned Article Description.
+// Grain of these measures: Month x Distributor x Chain x Brand x Article.
+// =====================================================================
+
+// ---------- Secondary evidence at the Chain x Brand x Article grain ----------
+Offtake NSV (CBA, M) = [Total Offtake NSV]   // current month, current C/B/A context
+
+Offtake NSV (CBA, M+1) =
+CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], 1, MONTH ) )
+
+// brand-level evidence at the chain (to tell "brand not listed" from "article not listed")
+Offtake NSV (Chain-Brand, M or M+1) =
+CALCULATE (
+    [Total Offtake NSV] + [Offtake NSV (CBA, M+1)],
+    ALL ( 'Article Master'[Article Code] ), ALL ( 'Article Master'[EAN Code] )
+)
+
+// first month this Chain x Brand x Article ever shows offtake (for new-article logic)
+First Offtake Month (CBA) =
+CALCULATE (
+    MIN ( 'Fact Offtake Sales'[MonthStart] ),
+    ALLEXCEPT ( 'Fact Offtake Sales',
+        'Fact Offtake Sales'[Chain], 'Fact Offtake Sales'[Brand], 'Fact Offtake Sales'[Article Code] )
+)
+
+// ---------- Eligibility ----------
+Article Eligible =
+VAR _m   = COALESCE ( [Offtake NSV (CBA, M)], 0 )
+VAR _m1  = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )
+RETURN IF ( _m <> 0 || _m1 <> 0, 1, 0 )
+
+Eligibility Status =
+VAR _m   = COALESCE ( [Offtake NSV (CBA, M)], 0 )
+VAR _m1  = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )
+VAR _brand = COALESCE ( [Offtake NSV (Chain-Brand, M or M+1)], 0 )
+RETURN
+    SWITCH ( TRUE (),
+        _m  <> 0, "Eligible",                    // offtake in same month
+        _m1 <> 0, "Eligible due to TAT",         // offtake only next month
+        _brand = 0, "Brand not listed",          // chain has no offtake for this brand
+        "Article not listed"                     // brand listed at chain, this article not
+    )
+
+// New-article one-month-prior flag: offtake first appears in M+1 (so primary
+// allowed in M). True when current month has no offtake but M+1 does and M+1 is
+// the first offtake month.
+New Article Flag =
+VAR _m  = COALESCE ( [Offtake NSV (CBA, M)], 0 )
+VAR _m1 = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )
+VAR _first = [First Offtake Month (CBA)]
+VAR _nextMonth = EOMONTH ( MAX ( 'Date Table'[MonthStart] ), 1 ) + 1
+RETURN IF ( _m = 0 && _m1 <> 0 && _first = _nextMonth, "New Article - primary held 1 month prior", "" )
+
+Primary Month Maintained =
+IF ( [New Article Flag] <> "", FORMAT ( MAX ( 'Date Table'[MonthStart] ), "mmm'yy" ), "" )
+
+// ---------- Chain-allocated primary (Step 2 result, from Cont%) ----------
+// Distributor-brand primary split to chain by the secondary Cont% (built earlier).
+Chain Allocated Primary NSV = [Ship-to Primary NSV]   // already chain-split in File 1
+
+// ---------- Article ratio among ELIGIBLE articles only ----------
+// Denominator = secondary of eligible articles in this Chain x Dist x Brand x Month,
+// so eligible articles absorb the chain primary; blocked ones get nothing.
+_Eligible Article Secondary (Chain-Brand) =
+CALCULATE (
+    [Total Offtake NSV] + [Offtake NSV (CBA, M+1)],
+    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ),
+    VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Brand Master'[Brand] )
+)
+Article Allocation Ratio % =
+IF ( [Article Eligible] = 1,
+    DIVIDE ( COALESCE ( [Offtake NSV (CBA, M)], 0 ) + COALESCE ( [Offtake NSV (CBA, M+1)], 0 ),
+             [_Eligible Article Secondary (Chain-Brand)] ),
+    0 )
+
+// ---------- Allocation outputs ----------
+Allocated Article Primary NSV =
+IF ( [Article Eligible] = 1,
+    [Chain Allocated Primary NSV] * [Article Allocation Ratio %],
+    0 )
+
+// Allocated Qty / MRP follow the same ratio (need File 2 Qty/MRP)
+Allocated Article Primary Qty =
+IF ( [Article Eligible] = 1,
+    CALCULATE ( SUM ( 'Fact Primary Article'[Primary Qty] ) ) * [Article Allocation Ratio %],
+    0 )
+
+// Primary that is NOT allocated because there is no offtake evidence at all
+// for the brand/article in this chain (the legitimate blocked bucket).
+Blocked Primary NSV =
+VAR _hasEligible = [_Eligible Article Secondary (Chain-Brand)]
+RETURN IF ( COALESCE ( _hasEligible, 0 ) = 0, [Chain Allocated Primary NSV], 0 )
+
+Allocation Status =
+SWITCH ( TRUE (),
+    [Article Eligible] = 1, "Allocated",
+    [Eligibility Status] = "Brand not listed",   "Blocked - Brand Not Listed",
+    [Eligibility Status] = "Article not listed", "Blocked - Article Not Listed",
+    "Blocked - No Offtake Evidence" )
+
+Exception Reason =
+SWITCH ( TRUE (),
+    [Article Eligible] = 1, "",
+    [Eligibility Status] = "Brand not listed",   "Brand has no offtake in this chain (M or M+1)",
+    [Eligibility Status] = "Article not listed", "Article has no offtake in this chain (M or M+1)",
+    "No secondary offtake found in M or M+1" )
+
+// =====================================================================
+// QC — reconciliation separates VALID allocation from BLOCKED/UNALLOCATED
+// =====================================================================
+QC Orig Primary (Dist-Brand) =
+CALCULATE ( [Ship-to Primary NSV],
+    ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Article Master'[Article Code] ) )
+QC Allocated Primary Total = [Allocated Article Primary NSV]
+QC Blocked Primary Total   = [Blocked Primary NSV]
+QC Reconciliation Variance =
+[QC Orig Primary (Dist-Brand)] - ( [QC Allocated Primary Total] + [QC Blocked Primary Total] )
+// ^ MUST be 0:  Original = Allocated + Blocked  (no value lost, none forced)
+
+QC Blocked Article Count =
+CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
+    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 0 ) )
+QC Allocated Article Count =
+CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
+    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ) )
+QC Mapping Coverage % =
+DIVIDE ( [QC Allocated Primary Total], [QC Orig Primary (Dist-Brand)] )
+QC Blocked Coverage % =
+DIVIDE ( [QC Blocked Primary Total], [QC Orig Primary (Dist-Brand)] )
+
+// ---------- Helpers for the New Article Tracker export ----------
+Allowed Primary Month (date) = EOMONTH ( [First Offtake Month (CBA)], -1 ) + 1
+
+First Offtake NSV =
+CALCULATE ( [Total Offtake NSV],
+    FILTER ( ALL ( 'Date Table' ),
+        'Date Table'[MonthStart] = [First Offtake Month (CBA)] ) )
+
+Primary NSV in Allowed Month =
+CALCULATE ( [Chain Allocated Primary NSV],
+    FILTER ( ALL ( 'Date Table' ),
+        'Date Table'[MonthStart] = [Allowed Primary Month (date)] ) )
