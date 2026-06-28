@@ -11,9 +11,9 @@
 //   Total MRP sales, Cust-SAP Code, Zone, State, Chain name, Store Code,
 //   Format, Channel   (+ many invoice columns kept out of the model)
 //
-// Units: "Inv. Net value(LOC)" is in rupees (local currency) -> Primary NSV.
-//        (The file also has "sale in lac"; LOC is used to match the model's
-//         absolute-rupee convention. Flip in the marked step if you prefer lac.)
+// Units: Primary NSV = "Inv. Net value(LOC)" — actual invoice net value in
+//        rupees. CONFIRMED basis for allocation; do NOT switch to "sale in lac".
+//        Lacs/Cr conversion is handled later in reporting measures only.
 // Article key priority: EAN -> Article Code -> cleaned Description.
 // =====================================================================
 let

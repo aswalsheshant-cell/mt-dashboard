@@ -270,7 +270,7 @@ Confirmed from the File 2 header row (SAP invoice export). No assumptions.
 | Sub-category | `sub_category` |
 | Range | `range` |
 | Primary Qty | `Inv Qty` |
-| Primary NSV | `Inv. Net value(LOC)` *(rupees; `sale in lac` is the lac version — switch via `NsvIsLac`)* |
+| Primary NSV | `Inv. Net value(LOC)` — **CONFIRMED** actual invoice net value (rupees); do **not** use `sale in lac` (Lac/Cr only in reporting measures) |
 | Primary MRP | `Total MRP sales` |
 | Customer Code | `Cust-SAP Code` (first occurrence) |
 | Store Code | `Store Code` |
