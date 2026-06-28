@@ -136,6 +136,87 @@ Measures: `DAX/09_ArticleAllocation_Eligibility.dax`. Eligibility runs against
 `Fact Offtake Sales` (present); article primary needs `Fact Primary Article`
 (File 2, pending).
 
+---
+
+## Export-ready QC / exception table specs
+> **Status: QC / export tables only.** These are NOT the final allocation output
+> and must NOT be merged/finalized until File 2 + article-level secondary offtake
+> are loaded and validated. Build each as a Power BI **table visual** (totals off,
+> word-wrap off) so it is click-to-export to Excel/CSV. Reconciliation stays
+> **Original Primary = Allocated + Blocked, variance 0** — blocked value is NEVER
+> pushed into eligible articles.
+
+### Export Table A — "Primary Exists but No Offtake Evidence"
+Grain: Month × Distributor × Ship-to × Chain × Brand × Article.
+**Filter:** `Allocation Status` starts with "Blocked" (i.e. `Article Eligible = 0`)
+— rows where distributor primary exists but the Chain×Brand×Article has no
+secondary offtake in M or M+1.
+
+| Column | Source / measure |
+|---|---|
+| Month | `Date Table[Month]` |
+| Distributor | `Ship-To Master[... Distributor]` (Direct/Distributor = Dist.) |
+| Ship-to Party Name | `Fact Primary ShipTo[Ship To Name]` |
+| Chain | `Chain Master[Chain]` |
+| Brand | `Brand Master[Brand]` |
+| Article Code | `Article Master[Article Code]` |
+| EAN | `Article Master[EAN Code]` |
+| Article Description | `Article Master[Article Description]` |
+| Primary NSV | `Chain Allocated Primary NSV` |
+| Primary Qty | `SUM('Fact Primary Article'[Primary Qty])` *(File 2)* |
+| Secondary Offtake NSV Same Month | `Offtake NSV (CBA, M)` |
+| Secondary Offtake NSV Next Month | `Offtake NSV (CBA, M+1)` |
+| Eligibility Status | `Eligibility Status` |
+| Allocation Status | `Allocation Status` |
+| Exception Reason | `Exception Reason` |
+
+Purpose: the QC "list 6" — every Chain×Brand×Article carrying primary with **no
+offtake evidence**, so the team can confirm whether the article is genuinely not
+listed in that chain (block) or an offtake-data gap (fix), before finalizing.
+
+### Export Table B — "New Article Tracker"
+Grain: Chain × Brand × Article.
+**Filter:** `New Article Flag` ≠ blank — articles whose **first offtake** appears in
+M+1, so primary is allowed **one month prior** (M).
+
+| Column | Source / measure |
+|---|---|
+| Chain | `Chain Master[Chain]` |
+| Brand | `Brand Master[Brand]` |
+| Article Code | `Article Master[Article Code]` |
+| EAN | `Article Master[EAN Code]` |
+| Article Description | `Article Master[Article Description]` |
+| First Offtake Month | `First Offtake Month (CBA)` (format `mmm'yy`) |
+| Allowed Primary Month | `Primary Month Maintained` (= First Offtake Month − 1) |
+| First Offtake NSV | `CALCULATE([Total Offtake NSV], 'Date Table'[MonthStart] = [First Offtake Month (CBA)])` |
+| Primary NSV in Allowed Month | `CALCULATE([Chain Allocated Primary NSV], 'Date Table'[MonthStart] = Allowed Primary Month)` |
+| Eligibility Status | `Eligibility Status` (= "Eligible due to TAT") |
+| Remarks | `New Article Flag` text ("New Article - primary held 1 month prior") |
+
+Purpose: the QC "list 7" — auditable record of the one-month-prior rule (which
+article, where first seen, and the prior month its primary is permitted in).
+
+### Export Table C — "Allocation QC Summary"
+Grain: Month × Distributor × Brand (add Chain as an optional drill row).
+
+| Column | Measure |
+|---|---|
+| Month | `Date Table[Month]` |
+| Distributor | Ship-to (Dist.) |
+| Brand | `Brand Master[Brand]` |
+| Original Primary NSV | `QC Orig Primary (Dist-Brand)` |
+| Allocated Primary NSV | `QC Allocated Primary Total` |
+| Blocked Primary NSV | `QC Blocked Primary Total` |
+| Variance | `QC Reconciliation Variance` *(must = 0)* |
+| Coverage % | `QC Mapping Coverage %` |
+| Blocked % | `QC Blocked Coverage %` |
+| Blocked Article Count | `QC Blocked Article Count` |
+
+Reconciliation identity enforced: **Original = Allocated + Blocked**,
+`Variance = 0`, `Coverage % + Blocked % = 100%`. Conditional-format `Variance` red
+when ≠ 0. All three tables are **QC/export only** until File 2 + article-level
+offtake arrive and are signed off.
+
 ## To finalize (what I need from you)
 1. **File 2 — Distributor Article-wise Primary Billing** (with Article Code / EAN /
    Article Description / Qty).

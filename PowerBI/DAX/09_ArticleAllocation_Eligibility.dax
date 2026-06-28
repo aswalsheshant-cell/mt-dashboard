@@ -144,3 +144,16 @@ QC Mapping Coverage % =
 DIVIDE ( [QC Allocated Primary Total], [QC Orig Primary (Dist-Brand)] )
 QC Blocked Coverage % =
 DIVIDE ( [QC Blocked Primary Total], [QC Orig Primary (Dist-Brand)] )
+
+// ---------- Helpers for the New Article Tracker export ----------
+Allowed Primary Month (date) = EOMONTH ( [First Offtake Month (CBA)], -1 ) + 1
+
+First Offtake NSV =
+CALCULATE ( [Total Offtake NSV],
+    FILTER ( ALL ( 'Date Table' ),
+        'Date Table'[MonthStart] = [First Offtake Month (CBA)] ) )
+
+Primary NSV in Allowed Month =
+CALCULATE ( [Chain Allocated Primary NSV],
+    FILTER ( ALL ( 'Date Table' ),
+        'Date Table'[MonthStart] = [Allowed Primary Month (date)] ) )
