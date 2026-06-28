@@ -217,11 +217,34 @@ Reconciliation identity enforced: **Original = Allocated + Blocked**,
 when ≠ 0. All three tables are **QC/export only** until File 2 + article-level
 offtake arrive and are signed off.
 
+## Input files located (Google Drive `…/P&L DATA`)
+| Role | File | Size | Maps to |
+|---|---|---|---|
+| **File 2 — article-wise primary** | `MT, Eb2B & SIS primary April_23 to May_26.xlsb` | ~175 MB | `Fact Primary Article` (query 16) → folder `Primary_Article_Monthly` |
+| **Article-level secondary (store×article)** | `FY-24-26 Chain offtake Store Wise File till May.xlsb` | ~185 MB | `Fact Offtake Sales` (query 11) → folder `Offtake_Monthly` |
+| Offtake (compiled) | `May Chain Offtake Compiled Data.xlsx` | ~140 MB | optional cross-check |
+| Offtake (zone/state) | `FY-2024-26 Updated Zone & State wise offtake file.xlsx` | ~83 MB | zone/state validation |
+| Offtake (zone) | `FY-2024-26 Updated Zone Wise Offtake File (4).xlsx` | ~20 MB | zone validation |
+
+### Where the live reconciliation runs (important constraint)
+These files are **140–185 MB**. The numeric live validation (variance, coverage %,
+blocked list) must run in **Power BI Desktop on a real machine** via the folder
+refresh — it cannot be ingested in a lightweight/cloud sandbox, and `.xlsb` is not
+readable by text connectors. The model + DAX 09 are built to produce the three QC
+tables automatically on refresh. **To get the live numbers from me directly,**
+share a **trimmed extract** (e.g. one month — May'26 — or one distributor, as CSV
+with: Month, Distributor/Ship-to, Chain, Brand, Article Code, EAN, Article Desc,
+Primary NSV, Primary Qty for File 2; and Month, Chain, Brand, Article Code, EAN,
+Offtake NSV for the article-level offtake). I will run the full reconciliation on
+the sample and confirm `Original = Allocated + Blocked, variance 0` before anything
+is finalized.
+
 ## To finalize (what I need from you)
-1. **File 2 — Distributor Article-wise Primary Billing** (with Article Code / EAN /
-   Article Description / Qty).
-2. **Article-level secondary/offtake** (article × chain × distributor × brand ×
-   month) for Step 3 ratio and Step 4 new-article logic.
-3. Fix/confirm the **R.C. Trade Link H&G / Aqualogica / Dec'25** Cont% (→ sum 100%).
-4. Confirm: **Primary Qty** is unavailable in File 1 — should Qty come from File 2,
-   or be derived (NSV ÷ ASP)?
+1. **Confirm File 2's actual column headers** (so query 16 `Renamed` mapping is
+   exact) — I can't read the `.xlsb` schema here.
+2. Load File 2 → `Primary_Article_Monthly\`, and the store×article offtake →
+   `Offtake_Monthly\`, then **Refresh** in Power BI Desktop.
+3. Keep **`Dec'25 | R.C. Trade Link H&G | Aqualogica`** as an **open exception**
+   (Cont% 100% pending source correction) — do not auto-fix.
+4. Confirm **Primary Qty** comes from File 2 (it does carry article qty) — used for
+   `Allocated Article Primary Qty`.
