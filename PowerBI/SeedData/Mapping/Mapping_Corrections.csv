@@ -1,0 +1,3 @@
+Date,Type,Month,Ship To / Distributor,Chain,Brand,Field,Original Value,Corrected Value,Remarks
+2026-06-28,Cont% correction,Dec'25,R.C. Trade Link H&G,Health & Glow,Aqualogica,Cont%,1.0,0.0,"Closed loophole: 3 same-chain rows summed to 300%; zero-NSV rows set to 0%, return row to 100% so chain total = 100%. Negative return value preserved."
+2026-06-28,Cont% correction,Dec'25,R.C. Trade Link H&G,Health & Glow,Aqualogica,Cont%,1.0,0.0,"Closed loophole: 3 same-chain rows summed to 300%; zero-NSV rows set to 0%, return row to 100% so chain total = 100%. Negative return value preserved."

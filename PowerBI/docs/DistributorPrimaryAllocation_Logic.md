@@ -61,11 +61,13 @@ File 1 columns: Ship To Name, Direct/Distributor, Chain, State, Zone, **NSV** (p
 - Groups (Month+Distributor+Brand): **9,878**; involving a distributor: **818**.
 - **Variance = 0 by construction** for every distributor group where ΣCont% = 100%
   (allocated = original primary, since File 1 is already the chain split).
-- ❗ **1 group fails** ΣCont% = 100%: **`Dec'25 | R.C. Trade Link H&G | Aqualogica`**
-  → ΣCont% = **300%** across 3 chain rows (each ~100%). → **Variance ≠ 0 here.**
-  **Action:** correct the Cont% for this distributor-brand-month so the 3 chains
-  sum to 100%, then re-run. Per the "do not finalize unless variance is zero" rule,
-  the final files are held until this is fixed/confirmed.
+- ✅ **CLOSED** — the only failing group, **`Dec'25 | R.C. Trade Link H&G |
+  Aqualogica`**, was 3 rows all for **one chain (Health & Glow)** — two zero-NSV
+  rows + one negative return (−₹10,524.79), each wrongly carrying Cont% 100% →
+  ΣCont% 300%. **Corrected:** zero-NSV rows → 0%, return row → 100% (chain total =
+  100%; negative return value preserved per the no-delete rule). Logged in
+  `SeedData/Mapping/Mapping_Corrections.csv`. **Now 0 distributor groups have
+  ΣCont% ≠ 100%** — chain-level variance is 0 across the board.
 - Coverage: 14 months (Apr'25–May'26), 42 distributors, 9 brands, 47 chains.
 
 ## Step 3.5 — OFFTAKE ELIGIBILITY GATE (added; validation base = secondary offtake)
