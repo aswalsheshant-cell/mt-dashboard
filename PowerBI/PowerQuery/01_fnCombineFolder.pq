@@ -7,15 +7,16 @@
 // - Files whose name starts with "_" are ignored (so _TEMPLATE_*.csv and
 //   _archive files never get loaded).
 // - Adds [Data Source File] and [Refresh Date] audit columns automatically.
-// - First row of each file is treated as the header.
+// - The header row is configurable; default is row 0.
 //
 // Usage in another query:
-//   = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly")
+//   = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly", 1)
 // =====================================================================
 let
-    fnCombineFolder = (FolderPath as text) as table =>
+    fnCombineFolder = (FolderPath as text, optional HeaderRow as nullable number) as table =>
         let
             Source = Folder.Files(FolderPath),
+            HeaderIndex = if HeaderRow = null then 0 else Number.RoundDown(Number.From(HeaderRow)),
 
             // keep only real data files, skip templates / hidden / archive
             OnlyData = Table.SelectRows(
@@ -43,7 +44,15 @@ let
                                 wb = Excel.Workbook(bin, null, true),
                                 firstSheet = wb{0}[Data]
                             in firstSheet,
-                    promoted = Table.PromoteHeaders(asTable, [PromoteAllScalars=true])
+                    promoted =
+                        if HeaderIndex = 0 then
+                            Table.PromoteHeaders(asTable, [PromoteAllScalars=true])
+                        else
+                            let
+                                skipped = Table.Skip(asTable, HeaderIndex),
+                                promotedHeaders = Table.PromoteHeaders(skipped, [PromoteAllScalars=true])
+                            in
+                                promotedHeaders
                 in
                     promoted
             ),

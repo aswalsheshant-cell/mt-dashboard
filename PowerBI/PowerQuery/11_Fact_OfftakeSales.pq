@@ -4,7 +4,8 @@
 // Offtake is maintained on a MONTHLY basis.
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly"),
+    // Offtake workbooks include a blank first row, so the actual headers begin on row 1.
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly", 1),
 
     Typed = Table.TransformColumnTypes(Source, {
         {"Month", type text},
