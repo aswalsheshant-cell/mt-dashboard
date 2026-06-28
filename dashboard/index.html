@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MT Leadership Dashboard — Honasa / Mamaearth</title>
+<script src="chart.umd.js"></script>
+<style>
+  :root{
+    --teal:#2D9B7F; --teal-d:#1f7a63; --bg:#F4F1EC; --card:#ffffff;
+    --ink:#1F2933; --muted:#6b7682; --line:#e4e0d8;
+    --green:#1E8E3E; --red:#C0392B; --amber:#C77D17; --blue:#2b6cb0;
+    --shadow:0 1px 3px rgba(31,41,51,.08),0 1px 2px rgba(31,41,51,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Aptos','Segoe UI',Calibri,system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(120deg,var(--teal),var(--teal-d));color:#fff;padding:18px 26px}
+  header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:.2px}
+  header p{margin:3px 0 0;font-size:13px;opacity:.92}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 18px 60px}
+  nav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);
+      display:flex;gap:2px;overflow-x:auto;padding:0 10px;box-shadow:var(--shadow)}
+  nav button{background:none;border:0;padding:14px 16px;font-size:14px;font-weight:600;color:var(--muted);
+      cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  nav button:hover{color:var(--ink)}
+  nav button.active{color:var(--teal-d);border-bottom-color:var(--teal)}
+  section{display:none;padding-top:22px}
+  section.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+  h2.sec{font-size:17px;margin:6px 0 4px}
+  .lead{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow)}
+  .kpi .lab{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .kpi .val{font-size:26px;font-weight:800;margin-top:5px;line-height:1.1}
+  .kpi .sub{font-size:12px;margin-top:4px;color:var(--muted)}
+  .up{color:var(--green);font-weight:700}.down{color:var(--red);font-weight:700}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:880px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+  .card h3{margin:0 0 2px;font-size:14px}
+  .card .note{margin:0 0 12px;font-size:12px;color:var(--muted)}
+  .chartbox{position:relative;height:300px}
+  .chartbox.sm{height:240px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{background:var(--teal);color:#fff;font-weight:600;position:sticky;top:0}
+  tbody tr:hover{background:#faf8f4}
+  .tablewrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  .pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11px;font-weight:700}
+  .pill.g{background:#e6f4ea;color:var(--green)}.pill.r{background:#fce8e6;color:var(--red)}
+  .ins{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .icard{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--teal);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+  .icard.risk{border-left-color:var(--red)}.icard.win{border-left-color:var(--green)}.icard.watch{border-left-color:var(--amber)}
+  .icard .tag{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .icard.risk .tag{color:var(--red)}.icard.win .tag{color:var(--green)}.icard.watch .tag{color:var(--amber)}
+  .icard h4{margin:4px 0 6px;font-size:14.5px}
+  .icard p{margin:0;font-size:13px;color:#374151;line-height:1.5}
+  .wf{counter-reset:wf}
+  .wf li{margin:0 0 10px;font-size:13.5px;line-height:1.5;padding-left:6px}
+  .wf li b{color:var(--teal-d)}
+  footer{color:var(--muted);font-size:11.5px;text-align:center;padding:24px}
+  .badge{display:inline-block;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:20px;font-size:11.5px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="hTitle">Modern Trade Leadership Dashboard</h1>
+  <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Forecast · Market Share</p>
+  <span class="badge" id="hPeriod"></span>
+</header>
+<nav id="nav"></nav>
+<div class="wrap">
+  <section id="tab-overview"></section>
+  <section id="tab-primary"></section>
+  <section id="tab-offtake"></section>
+  <section id="tab-pnl"></section>
+  <section id="tab-forecast"></section>
+  <section id="tab-share"></section>
+  <section id="tab-insights"></section>
+</div>
+<footer id="foot"></footer>
+
+<script src="data.js"></script>
+<script>
+const D = window.DASH;
+const C = {teal:'#2D9B7F',teald:'#1f7a63',blue:'#2b6cb0',amber:'#C77D17',red:'#C0392B',
+           green:'#1E8E3E',grey:'#9aa4ad',purple:'#6b5b95',sand:'#cbb994'};
+const PAL=[C.teal,C.blue,C.amber,C.purple,C.green,C.red,C.sand,C.grey];
+Chart.defaults.font.family="'Aptos','Segoe UI',Calibri,sans-serif";
+Chart.defaults.font.size=12; Chart.defaults.color='#475467';
+Chart.defaults.plugins.legend.labels.boxWidth=12;
+Chart.defaults.plugins.legend.labels.usePointStyle=true;
+Chart.defaults.maintainAspectRatio=false;
+
+const cr = v => v==null?'–':(v/100).toLocaleString('en-IN',{maximumFractionDigits:1});
+const crc = v => '₹'+cr(v)+' Cr';
+const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
+const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
+const cls = v => v==null?'':(v>=0?'up':'down');
+const arrow = v => v==null?'':(v>=0?'▲':'▼');
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+
+function kpi(lab,val,sub){return `<div class="kpi"><div class="lab">${lab}</div><div class="val">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
+function card(title,note,inner,extraCls){return `<div class="card"><h3>${title}</h3>${note?`<p class="note">${note}</p>`:''}${inner}</div>`;}
+function cv(id,sm){return `<div class="chartbox${sm?' sm':''}"><canvas id="${id}"></canvas></div>`;}
+
+const charts=[];
+function mkBar(id,labels,datasets,opts={}){
+  charts.push(new Chart(document.getElementById(id),{type:'bar',
+    data:{labels,datasets},
+    options:Object.assign({plugins:{legend:{display:datasets.length>1,position:'top'},
+      tooltip:{callbacks:{label:c=>`${c.dataset.label?c.dataset.label+': ':''}${opts.money===false?num(c.parsed.y??c.parsed.x):crc(c.parsed.y??c.parsed.x)}`}}},
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>opts.money===false?num(v):'₹'+cr(v)}},
+              x:{grid:{display:false}}}},opts.cfg||{})}));
+}
+function mkBarH(id,labels,data,color,money=true){
+  charts.push(new Chart(document.getElementById(id),{type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:color||C.teal,borderRadius:4}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>money?crc(c.parsed.x):num(c.parsed.x)}}},
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>money?'₹'+cr(v):num(v)}},y:{grid:{display:false}}}}}));
+}
+function mkLine(id,labels,datasets){
+  charts.push(new Chart(document.getElementById(id),{type:'line',
+    data:{labels,datasets:datasets.map((d,i)=>Object.assign({borderColor:PAL[i],backgroundColor:PAL[i]+'22',
+      tension:.32,borderWidth:2.4,pointRadius:2,fill:d.fill??false,borderDash:d.dash||[]},d))},
+    options:{plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}},x:{grid:{display:false}}}}}));
+}
+function mkDonut(id,labels,data,money=true){
+  charts.push(new Chart(document.getElementById(id),{type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
+    options:{cutout:'58%',plugins:{legend:{position:'right'},
+      tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
+        return `${c.label}: ${money?crc(c.parsed):num(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}}}));
+}
+
+/* ---------------- OVERVIEW ---------------- */
+function buildOverview(){
+  const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
+  const s=document.getElementById('tab-overview');
+  s.innerHTML = `<h2 class="sec">Executive Overview</h2>
+   <p class="lead">${D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
+   <div class="kpis">
+     ${kpi('Primary NSV (FY26)',crc(p.nsv_fy26),`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)}
+     ${kpi('Offtake (FY26)',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)}
+     ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
+     ${kpi('Chains Tracked',p.n_chains,`${p.n_brands} brands · ${D.meta.period.split(' vs ')[1]}`)}
+     ${kpi('FY27 Forecast',crc(f.fy27_forecast),`@ ${f.growth_assumption_pct}% planning growth`)}
+   </div>
+   <div class="grid g2">
+     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY25-26)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need.',cv('ovTrend'))}
+     ${card('Channel split (FY26 primary)','MT is the core; EB2B &amp; SIS are emerging.',cv('ovChannel',true))}
+   </div>
+   <div class="grid g2">
+     ${card('Top chains by primary NSV (FY26)','',cv('ovChains'))}
+     ${card('Brand portfolio mix (FY26 primary)','',cv('ovBrand',true))}
+   </div>`;
+  mkLine('ovTrend',o.months,[
+    {label:'Offtake (sell-out)',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22'},
+    {label:'Primary FY25-26',data:[...Array(12).fill(null),...p.monthly_fy26],borderColor:C.teal,backgroundColor:C.teal+'22'},
+    {label:'Primary FY24-25',data:[...p.monthly_fy25,...Array(12).fill(null)],borderColor:C.blue,dash:[5,4]},
+  ]);
+  mkDonut('ovChannel',p.by_channel.map(c=>c.name),p.by_channel.map(c=>c.fy26));
+  const tc=p.by_chain.slice(0,8);
+  mkBarH('ovChains',tc.map(c=>c.name),tc.map(c=>c.fy26),C.teal);
+  const bb=p.by_brand.filter(b=>b.fy26>1);
+  mkDonut('ovBrand',bb.map(b=>b.name),bb.map(b=>b.fy26));
+}
+
+/* ---------------- PRIMARY ---------------- */
+function buildPrimary(){
+  const p=D.primary,s=document.getElementById('tab-primary');
+  const rows=p.by_chain.filter(c=>c.fy26>0).map(c=>`<tr><td>${c.name}</td><td>${cr(c.fy25)}</td><td>${cr(c.fy26)}</td>
+     <td><span class="pill ${c.yoy>=0?'g':'r'}">${pct(c.yoy)}</span></td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
+   <p class="lead">Billed NSV from Honasa to MT chains. FY24-25 vs FY25-26, ₹ Crore.</p>
+   <div class="kpis">
+     ${kpi('Primary NSV FY26',crc(p.nsv_fy26),`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)}</span> YoY`)}
+     ${kpi('Primary NSV FY25',crc(p.nsv_fy25),'base year')}
+     ${kpi('Gross MRP Value FY26',crc(p.mrp_fy26),'at MRP basis')}
+     ${kpi('Active Chains',p.by_chain.filter(c=>c.fy26>0).length,`${p.n_brands} brands`)}
+   </div>
+   <div class="grid g2">
+     ${card('Monthly NSV — FY24-25 vs FY25-26','Calendar-aligned Apr→Mar.',cv('prMonth'))}
+     ${card('By zone (FY25 vs FY26)','',cv('prZone',true))}
+   </div>
+   <div class="grid g2">
+     ${card('By channel','',cv('prChan',true))}
+     ${card('By brand (FY26)','',cv('prBrand',true))}
+   </div>
+   ${card('Chain-wise primary &amp; YoY (FY26)','Sorted by FY26 NSV.',`<div class="tablewrap"><table>
+     <thead><tr><th>Chain</th><th>FY25 (₹Cr)</th><th>FY26 (₹Cr)</th><th>YoY</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
+  mkLine('prMonth',p.month_labels,[
+    {label:'FY24-25',data:p.monthly_fy25,borderColor:C.blue,dash:[5,4]},
+    {label:'FY25-26',data:p.monthly_fy26,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}]);
+  mkBar('prZone',p.by_zone.map(z=>z.name),[
+    {label:'FY25',data:p.by_zone.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
+    {label:'FY26',data:p.by_zone.map(z=>z.fy26),backgroundColor:C.teal,borderRadius:4}]);
+  mkDonut('prChan',p.by_channel.map(c=>c.name),p.by_channel.map(c=>c.fy26));
+  const bb=p.by_brand.filter(b=>b.fy26>0.5);
+  mkBarH('prBrand',bb.map(b=>b.name),bb.map(b=>b.fy26),C.purple);
+}
+
+/* ---------------- OFFTAKE ---------------- */
+function buildOfftake(){
+  const o=D.offtake,p=D.primary,s=document.getElementById('tab-offtake');
+  const pc={};p.by_chain.forEach(c=>pc[c.name]=c.fy26);
+  const cmp=o.by_chain.filter(c=>c.fy26>50).slice(0,10);
+  const strows=o.by_state.map(r=>`<tr><td>${r.state}</td><td>${r.zone}</td><td>${cr(r.fy25)}</td><td>${cr(r.fy26)}</td>
+     <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
+   <p class="lead">Consumer offtake from MT stores. FY24-25 vs FY25-26, ₹ Crore.</p>
+   <div class="kpis">
+     ${kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
+     ${kpi('Offtake FY25',crc(o.total_fy25),'base year')}
+     ${kpi('Chains Tracked',o.n_chains,'in offtake master')}
+     ${kpi('Sell-through',((o.total_fy26/p.nsv_fy26)*100).toFixed(0)+'%','offtake ÷ primary FY26')}
+   </div>
+   <div class="grid g2">
+     ${card('Monthly offtake trend','24 months, Apr-24 → Mar-26.',cv('ofTrend'))}
+     ${card('Offtake by zone (YoY)','',cv('ofZone'))}
+   </div>
+   ${card('Primary vs Offtake by chain (FY26) — inventory health','Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill).',cv('ofCmp'))}
+   ${card('State-wise offtake YoY','Quarterly pivot rolled to annual.',`<div class="tablewrap"><table>
+     <thead><tr><th>State</th><th>Zone</th><th>FY25 (₹Cr)</th><th>FY26 (₹Cr)</th><th>YoY</th></tr></thead><tbody>${strows}</tbody></table></div>`)}`;
+  mkLine('ofTrend',o.months,[{label:'Offtake',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22',fill:true}]);
+  mkBar('ofZone',o.by_zone.map(z=>z.name),[
+    {label:'FY25',data:o.by_zone.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
+    {label:'FY26',data:o.by_zone.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}]);
+  mkBar('ofCmp',cmp.map(c=>c.name),[
+    {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
+    {label:'Offtake (sell-out)',data:cmp.map(c=>c.fy26),backgroundColor:C.amber,borderRadius:4}]);
+}
+
+/* ---------------- P&L ---------------- */
+function buildPnl(){
+  const pl=D.pnl,s=document.getElementById('tab-pnl');
+  const top=pl.by_chain.filter(c=>c.nsv>50).slice(0,12);
+  const rows=pl.by_chain.filter(c=>c.nsv>0).map(c=>`<tr><td>${c.name}</td><td>${cr(c.mrp)}</td><td>${cr(c.nsv)}</td>
+     <td>${cr(c.discount)}</td><td>${c.discount_pct==null?'–':c.discount_pct+'%'}</td>
+     <td>${c.promos||0}</td><td>${c.promo_depth==null?'–':c.promo_depth+'%'}</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
+   <p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
+     <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
+   <div class="kpis">
+     ${kpi('Gross MRP Value',crc(pl.total_mrp),'FY26, all chains')}
+     ${kpi('Net NSV',crc(pl.total_nsv),'realised revenue')}
+     ${kpi('MRP→NSV Gap',crc(pl.total_discount),`${pl.blended_discount_pct}% blended`)}
+     ${kpi('Promo Lines',D.promo.n_promos,`${D.promo.avg_depth}% avg consumer depth`)}
+   </div>
+   <div class="grid g2">
+     ${card('Gross-to-net by chain (FY26)','Net NSV vs the MRP→NSV gap (margin + taxes + trade).',cv('plBridge'))}
+     ${card('Trade-discount intensity (%) by chain','Higher = deeper gross-to-net gap — review spend ROI.',cv('plDisc'))}
+   </div>
+   ${card('Chain-wise trade P&amp;L','MRP value, net NSV, the gap, and promo activity per chain (FY26).',`<div class="tablewrap"><table>
+     <thead><tr><th>Chain</th><th>MRP (₹Cr)</th><th>NSV (₹Cr)</th><th>Gap (₹Cr)</th><th>Gap %</th><th>Promos</th><th>Avg depth</th></tr></thead>
+     <tbody>${rows}</tbody></table></div>`)}`;
+  mkBar('plBridge',top.map(c=>c.name),[
+    {label:'Net NSV',data:top.map(c=>c.nsv),backgroundColor:C.teal,borderRadius:4,stack:'s'},
+    {label:'MRP→NSV gap',data:top.map(c=>c.discount),backgroundColor:C.sand,borderRadius:4,stack:'s'}],
+    {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}}}}});
+  mkBarH('plDisc',top.map(c=>c.name),top.map(c=>c.discount_pct),C.red,false);
+  // override tick formatting for percent chart
+  const ch=charts[charts.length-1];ch.options.scales.x.ticks.callback=v=>v+'%';
+  ch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';ch.update();
+}
+
+/* ---------------- FORECAST ---------------- */
+function buildForecast(){
+  const f=D.forecast,s=document.getElementById('tab-forecast');
+  s.innerHTML=`<h2 class="sec">Forecast</h2>
+   <p class="lead">Forward offtake projection for FY26-27.</p>
+   <div class="kpis">
+     ${kpi('FY26 Actual (offtake)',crc(f.fy26_actual),'trailing 12m')}
+     ${kpi('FY27 Forecast',crc(f.fy27_forecast),`@ ${f.growth_assumption_pct}% growth`)}
+     ${kpi('Implied uplift',crc(f.fy27_forecast-f.fy26_actual),pct((f.fy27_forecast/f.fy26_actual-1)*100))}
+   </div>
+   ${card('Offtake — actuals &amp; FY26-27 forecast','',cv('fcChart'))}
+   ${card('Method',f.method,'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}`;
+  const histLen=f.hist.length;
+  mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
+    {label:'Actual offtake',data:[...f.hist,...Array(f.fc.length).fill(null)],borderColor:C.teal,backgroundColor:C.teal+'22',fill:true},
+    {label:'Forecast FY26-27',data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
+}
+
+/* ---------------- MARKET SHARE ---------------- */
+function buildShare(){
+  const u=D.universe,p=D.primary,o=D.offtake,s=document.getElementById('tab-share');
+  const tot=p.nsv_fy26;
+  const sob=p.by_chain.filter(c=>c.fy26>0).slice(0,10).map(c=>({name:c.name,share:c.fy26/tot*100,v:c.fy26}));
+  const sobRows=sob.map(c=>`<tr><td>${c.name}</td><td>${cr(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Market Share &amp; Distribution</h2>
+   <p class="lead">Distribution footprint (store universe) and share-of-business across MT chains.
+     <b>Note:</b> external category share vs competitors is not in the source data; this view shows internal share-of-business and distribution reach.</p>
+   <div class="kpis">
+     ${kpi('Active Stores',num(u.active_stores),'MT universe')}
+     ${kpi('Chains',u.by_chain.length+'+','with active doors')}
+     ${kpi('Metro Coverage',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro stores')}
+     ${kpi('Top-2 Chain Share',(sob[0].share+sob[1].share).toFixed(0)+'%','of FY26 primary')}
+   </div>
+   <div class="grid g2">
+     ${card('Distribution by zone (active stores)','',cv('shZone',true))}
+     ${card('Share of business by chain (FY26 primary)','',cv('shSob'))}
+   </div>
+   <div class="grid g2">
+     ${card('Stores by city category','',cv('shCity',true))}
+     ${card('Stores by chain (top)','',cv('shChain',true))}
+   </div>
+   ${card('Share-of-business league table (FY26 primary)','',`<div class="tablewrap"><table>
+     <thead><tr><th>Chain</th><th>NSV (₹Cr)</th><th>Share</th></tr></thead><tbody>${sobRows}</tbody></table></div>`)}`;
+  mkBarH('shZone',u.by_zone.map(z=>z.name),u.by_zone.map(z=>z.stores),C.teal,false);
+  mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v));
+  mkDonut('shCity',u.by_citycat.map(c=>c.name),u.by_citycat.map(c=>c.stores),false);
+  mkBarH('shChain',u.by_chain.slice(0,10).map(c=>c.name),u.by_chain.slice(0,10).map(c=>c.stores),C.blue,false);
+}
+
+/* ---------------- INSIGHTS / WAY FORWARD ---------------- */
+function buildInsights(){
+  const s=document.getElementById('tab-insights');
+  const cards=D.insights.map(i=>`<div class="icard ${i.type}">
+     <div class="tag">${i.type==='win'?'Opportunity':i.type==='risk'?'Risk':'Watch'}</div>
+     <h4>${i.title}</h4><p>${i.text}</p></div>`).join('');
+  const wf=[
+    `<b>Defend the core, grow the mid-tier:</b> protect Dmart &amp; Reliance with assured fill-rate and visibility while pushing Apollo, Nykaa and Wellness Forever to reduce top-2 concentration.`,
+    `<b>Sell-in to sell-out discipline:</b> use the Primary-vs-Offtake gap as a monthly control — tighten ordering where primary &gt; offtake, accelerate refills where offtake &gt; primary.`,
+    `<b>Broaden the portfolio:</b> Mamaearth is ~83% of MT primary — set explicit MT targets for Aqualogica &amp; The Derma Co to de-risk single-brand dependence.`,
+    `<b>Trade-spend ROI:</b> review the deepest gross-to-net chains and promo-heavy accounts against offtake lift; redeploy from low-ROI promos to high-velocity SKUs.`,
+    `<b>Activate distribution:</b> 12,000+ active stores — lift throughput per door in under-productive chains via assortment and planogram compliance before adding new doors.`,
+    `<b>Zone playbook:</b> back the fastest-growing zones (East/North offtake) with targeted JBPs while arresting any declining scaled accounts.`,
+  ].map(x=>`<li>${x}</li>`).join('');
+  s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2>
+   <p class="lead">Auto-generated from the underlying data, with leadership actions.</p>
+   <div class="ins">${cards}</div>
+   ${card('Way forward — recommended actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
+}
+
+/* ---------------- nav ---------------- */
+const TABS=[['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
+  ['pnl','P&L'],['forecast','Forecast'],['share','Market Share'],['insights','Insights & Way Forward']];
+const BUILD={overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
+  pnl:buildPnl,forecast:buildForecast,share:buildShare,insights:buildInsights};
+const built={};
+function show(id){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
+  document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id==='tab-'+id));
+  if(!built[id]){BUILD[id]();built[id]=true;}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+(function init(){
+  document.getElementById('hTitle').textContent=D.meta.title;
+  document.getElementById('hPeriod').textContent=D.meta.period;
+  document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`;
+  const nav=document.getElementById('nav');
+  TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
+  show('overview');
+})();
+</script>
+</body>
+</html>
