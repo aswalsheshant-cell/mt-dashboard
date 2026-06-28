@@ -135,24 +135,40 @@ current **or previous** month.)
 
 ---
 
-## Page 5 — Forecast Dashboard
-**Slicers:** Forecast level toggle (Chain/Brand/Category/Zone/Article via a
+## Page 5 — Forecast Dashboard  *(TY-target driven)*
+**Slicers:** Forecast level toggle (Chain/Zone/Brand/Category/Sales Person via a
 field-parameter), Month range.
-> Forecast never overwrites actuals; future months use stat base + manual override.
+> **FY27 Forecast = the TY target file** (`Targets`, FY 26-27), NOT an FY26 uplift.
+> Each month's target is allocated to Chain/Zone/Brand/Category/Sales Person by
+> that dimension's **FY26 actual-offtake share**, so every breakdown sums exactly
+> to the TY target total (₹441.33 Cr). Unmapped records are **shown as "Unmapped",
+> never dropped.** Measures: `03_Forecast_Measures.dax`, `08_ForecastQC_Measures.dax`.
+
+**KPI cards:** `FY26 Actual Offtake (Cr)`, `TY Target (Cr)` (= `FY27 Forecast (Cr)`),
+`Gap vs FY26`, `Required Growth %`, `QC Mapping Coverage %`, `QC Tie-Out`.
 
 **Visuals:**
-- **Actual vs Forecast trend** (line): Axis `Month`, `Actual NSV` (solid),
-  `Final Forecast` (dashed), `Actual or Forecast` (combined), `Target NSV M`.
-- **Forecast by Chain / Brand / Category** (bars): dimension × `Final Forecast`.
-- **Forecast vs Target** (combo): `Final Forecast` column + `Target NSV M` line,
-  label `Gap vs Target %`.
-- **Forecast vs L3M Average** (bar): `Final Forecast` vs `L3M Avg NSV`.
-- **Forecast accuracy** (card + bar where actual exists): `Forecast Accuracy %`.
+- **Monthly forecast trend** (line/combo): Axis `Month`, `FY27 Forecast`
+  (= TY target) vs `FY26 Actual Offtake`; add `Actual or Forecast` once FY27
+  actuals land.
+- **Chain-wise forecast** (bar): Axis fact `Chain` × `FY27 Forecast`, with an
+  **Unmapped** bar driven by `Forecast - Unmapped`.
+- **Zone-wise forecast** (bar): Axis `Zone` (Zone Sort Order) × `FY27 Forecast`.
+- **Sales person ownership** (bar/table): Axis `Sales Person` ×
+  `SO Forecast (Owned Target)`, with stores lacking an owner rolled into
+  **Unmapped** (`QC Unmapped SO Stores`).
+- **Gap vs FY26** (bar): dimension × `Gap vs FY26`, label `Required Growth %`.
 
-**Forecast table:** `Month`, `Chain`, `Brand`, `Category`, `Article Code`,
-`Actual NSV`, `L3M Avg NSV`, `L6M Avg NSV`, `TY MoM Growth %`, `Forecast NSV`,
-`Manual Forecast`, `Final Forecast`, `Target NSV M`, `Gap vs Target`,
-`Forecast Accuracy %`.
+**Forecast table:** `Month`, `Chain`, `Zone`, `Brand`, `Category`, `Sales Person`,
+`FY26 Actual Offtake`, `FY27 Forecast`, `Gap vs FY26`, `Required Growth %`,
+`Forecast Accuracy %` (blank until FY27 actuals exist).
+
+**Forecast QC block** (table/cards, `08_ForecastQC_Measures.dax`):
+`QC TY Target Total`, `QC Dashboard Forecast Total`, `QC Variance`,
+`QC Variance %`, `QC Tie-Out`, `QC Mapping Coverage %`, `QC SO Coverage %`,
+`QC Unmapped Chains` + `QC Unmapped Chain Names`, `QC Unmapped SO Stores` +
+`QC Orphan Sales Persons`, `QC Missing Month Mapping`, `QC Missing Brand Mapping`,
+`QC Missing Category Mapping`. **Variance must read ~0** (forecast ties to TY target).
 
 ---
 

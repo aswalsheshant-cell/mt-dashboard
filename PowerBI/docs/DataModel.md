@@ -38,6 +38,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Forecast Override` | manual forecast / growth assumption. Disconnected — read by DAX. |
 | `Targets` | monthly FY target NSV. Joined on `Date Table[MonthStart]`. |
 | `Store SO Mapping` | store → sales officer + split. Join `Store Code` → `Store Master[Store Code]` (or to facts). |
+| `Sales Team Mapping` | unpivoted store × sales-person × Cont% (from Store SO Mapping). Used by the Forecast page for sales-person target ownership. Relate `Store Code` → `Fact Offtake Sales[Store Code]` (single, or keep disconnected and resolve in DAX). |
 | `_Measures` | holds all measures, no data. |
 
 ## Relationships (create exactly these)

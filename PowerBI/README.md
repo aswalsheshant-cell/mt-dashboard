@@ -35,12 +35,12 @@ PowerBI/
 │  ├─ 10..15_Fact_*.pq        ← Primary, Offtake, P&L, Nielsen, TDP, Primary-ShipTo facts
 │  ├─ 20_Dim_Masters.pq       ← Chain/Brand/Category/Article/Zone/Store/Nielsen masters
 │  ├─ 21_ShipToMaster.pq      ← Ship-to party master
-│  └─ 30..35_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
-│                               Primary Allocation Map + Override
+│  └─ 30..36_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
+│                               Primary Allocation Map + Override, Sales Team Mapping
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
-│  └─ 01..07_*.dax            ← Core, P&L, Forecast, Nielsen, TDP, Data-Quality,
-│                               Ship-to Primary Allocation measures
+│  └─ 01..08_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
+│                               TDP, Data-Quality, Ship-to Allocation, Forecast-QC
 ├─ SeedData/                  ← reference tables + targets + mapping (edit by hand)
 │  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable, ForecastOverride
 │  ├─ Targets/FY2627_Targets.csv

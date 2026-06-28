@@ -1,73 +1,93 @@
 // =====================================================================
-// FORECAST MEASURES  (forecast NEVER overwrites actuals)
-// Statistical base = L3M / L6M / MoM trend / YoY, with a manual override
-// from 'Forecast Override'. Final Forecast = manual if present else stat.
+// FORECAST MEASURES  —  TY-TARGET DRIVEN  (replaces FY26 uplift logic)
+// =====================================================================
+// FY27 Forecast IS the TY target shared by the sales team (table 'Targets').
+// The monthly target is allocated down to Chain / Zone / Brand / Category /
+// Sales Person using each dimension's FY26 actual-offtake share, so EVERY
+// breakdown still sums EXACTLY to the TY target total. Records with no
+// mapping are NOT dropped — they bucket into "Unmapped".
+//
+// Allocation identity:  Σ(all dims) Forecast = TY Target  (variance = 0).
 // =====================================================================
 
-// Is the selected month an actual (has offtake) or a future month?
+// ---------- Authoritative totals ----------
+TY Target = CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = "26-27" )
+TY Target (Cr) = DIVIDE ( [TY Target], 10000000 )
+
+FY26 Actual Offtake = CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = "25-26" )
+FY26 Actual Offtake (Cr) = DIVIDE ( [FY26 Actual Offtake], 10000000 )
+
+// ---------- Allocation key = dimension share of FY26 offtake ----------
+// Denominator is the FY26 offtake of the *whole* visible selection, so the
+// shares across the axis sum to 1 and the target is fully distributed.
+_FY26 Total Offtake (All Dims) =
+CALCULATE (
+    [FY26 Actual Offtake],
+    ALLSELECTED ( 'Chain Master'[Chain] ),
+    ALLSELECTED ( 'Brand Master'[Brand] ),
+    ALLSELECTED ( 'Category Master'[Category] ),
+    ALLSELECTED ( 'Zone State Master'[Zone] ),
+    ALLSELECTED ( 'Sales Team Mapping'[Sales Person] )
+)
+
+FY26 Allocation Share = DIVIDE ( [FY26 Actual Offtake], [_FY26 Total Offtake (All Dims)] )
+
+// ---------- FY27 Forecast (= allocated TY target) ----------
+// At grand total the share = 1 so Forecast = TY Target exactly.
+FY27 Forecast =
+SUMX (
+    VALUES ( 'Date Table'[MonthStart] ),
+    VAR _monthTarget = [TY Target]
+    VAR _share = [FY26 Allocation Share]
+    RETURN _monthTarget * _share
+)
+FY27 Forecast (Cr) = DIVIDE ( [FY27 Forecast], 10000000 )
+
+// Final Forecast keeps the old name used elsewhere, now target-driven.
+Final Forecast = [FY27 Forecast]
+
+// ---------- Unmapped bucket (do NOT exclude) ----------
+// FY26 offtake whose Chain / Brand / Category is absent from the masters,
+// expressed as a share, so the target portion it represents shows as Unmapped.
+_FY26 Offtake Unmapped =
+CALCULATE (
+    [FY26 Actual Offtake],
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Chain]    IN VALUES ( 'Chain Master'[Chain] ) )
+        || NOT ( 'Fact Offtake Sales'[Brand]    IN VALUES ( 'Brand Master'[Brand] ) )
+        || NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) )
+    )
+)
+Forecast - Unmapped =
+[TY Target] * DIVIDE ( [_FY26 Offtake Unmapped], [_FY26 Total Offtake (All Dims)] )
+
+// ---------- Sales-person ownership (via Sales Team Mapping x store offtake) ----------
+// SO FY26 offtake = Σ over their stores of store offtake × Cont%.
+SO FY26 Offtake =
+SUMX (
+    'Sales Team Mapping',
+    VAR _store = 'Sales Team Mapping'[Store Code]
+    VAR _w = 'Sales Team Mapping'[Cont%]
+    RETURN _w * CALCULATE ( [FY26 Actual Offtake],
+        'Fact Offtake Sales'[Store Code] = _store )
+)
+SO Forecast (Owned Target) =
+[TY Target] * DIVIDE ( [SO FY26 Offtake],
+    CALCULATE ( [SO FY26 Offtake], ALLSELECTED ( 'Sales Team Mapping'[Sales Person] ) ) )
+
+// ---------- Gap vs FY26 & required growth ----------
+Gap vs FY26 = [FY27 Forecast] - [FY26 Actual Offtake]
+Required Growth % = DIVIDE ( [FY27 Forecast] - [FY26 Actual Offtake], [FY26 Actual Offtake] )
+
+// ---------- Accuracy (once FY27 actuals start landing) ----------
 Has Actual = IF ( [Total Offtake NSV] > 0, TRUE (), FALSE () )
-
 Actual NSV = [Total Offtake NSV]
-
-// ---- Statistical components (anchored to last actual month) ----
-L3M Avg NSV = [L3M Average Sales]
-L6M Avg NSV = [L6M Average Sales]
-
-TY MoM Growth % =
-// average MoM growth over the last 3 actual months
-VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
-VAR g1 = CALCULATE ( [MoM Growth %], 'Date Table'[MonthStart] = EOMONTH ( _curMonth, -1 ) + 1 )
-VAR g2 = CALCULATE ( [MoM Growth %], 'Date Table'[MonthStart] = EOMONTH ( _curMonth, -2 ) + 1 )
-VAR g3 = CALCULATE ( [MoM Growth %], 'Date Table'[MonthStart] = EOMONTH ( _curMonth, -3 ) + 1 )
-RETURN AVERAGEX ( { g1, g2, g3 }, [Value] )
-
-// Statistical forecast NSV for a future month = last actual * (1 + blended growth)
-// Blended growth = average of (MoM trend, YoY trend), bounded for sanity.
-Forecast NSV =
-VAR _lastActualMonth =
-    CALCULATE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), ALL ( 'Date Table' ) )
-VAR _selMonth = MAX ( 'Date Table'[MonthStart] )
-VAR _monthsAhead = DATEDIFF ( _lastActualMonth, _selMonth, MONTH )
-VAR _base = CALCULATE ( [NSV], 'Date Table'[MonthStart] = _lastActualMonth )
-VAR _l3m = CALCULATE ( [L3M Average Sales], 'Date Table'[MonthStart] = _lastActualMonth )
-VAR _momTrend = CALCULATE ( [TY MoM Growth %], 'Date Table'[MonthStart] = _lastActualMonth )
-VAR _growth = MIN ( MAX ( COALESCE ( _momTrend, 0 ), -0.15 ), 0.20 )  // clamp -15%..+20%
-VAR _stat = COALESCE ( _base, _l3m ) * POWER ( 1 + _growth, _monthsAhead )
-RETURN IF ( _monthsAhead > 0, _stat, BLANK () )
-
-// ---- Manual override (from Forecast Override table, ALL-fallback) ----
-Manual Forecast =
-VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
-RETURN
-CALCULATE ( MAX ( 'Forecast Override'[Manual Forecast NSV] ),
-    FILTER ( ALL ( 'Forecast Override' ), 'Forecast Override'[Month] = _m ) )
-
-Forecast Growth Assumption % =
-VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
-RETURN
-COALESCE (
-    CALCULATE ( MAX ( 'Forecast Override'[Growth Assumption %] ),
-        FILTER ( ALL ( 'Forecast Override' ), 'Forecast Override'[Month] = _m ) ), BLANK () )
-
-// ---- Final Forecast: manual > assumption-growth > statistical ----
-Final Forecast =
-VAR _manual = [Manual Forecast]
-VAR _stat = [Forecast NSV]
-RETURN COALESCE ( _manual, _stat )
-
-// ---- Compare to target & accuracy (only where actual exists) ----
-Target NSV M = CALCULATE ( SUM ( Targets[Target NSV] ) )
-Gap vs Target = [Actual NSV] - [Target NSV M]
-Gap vs Target % = DIVIDE ( [Actual NSV] - [Target NSV M], [Target NSV M] )
-
 Forecast vs Actual = [Actual NSV] - [Final Forecast]
 Forecast vs Actual % = DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )
-
 Forecast Accuracy % =
 IF ( [Has Actual],
     1 - DIVIDE ( ABS ( [Actual NSV] - [Final Forecast] ), [Actual NSV] ),
     BLANK () )
 
-// Combined line for the Actual-vs-Forecast chart (actual where known, else forecast)
-Actual or Forecast =
-IF ( [Has Actual], [Actual NSV], [Final Forecast] )
+// combined actual-or-forecast line for the trend chart
+Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
