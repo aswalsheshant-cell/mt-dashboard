@@ -17,6 +17,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Zone State Master` | `Zone` / `State` | Zone Sort Order enforces East→…→Pan India |
 | `Store Master` | `Store Code` | Store→Chain→Zone→State→City |
 | `Nielsen Competitor Master` | `Nielsen Category` + `Brand` | competitor list, Is Honasa flag |
+| `Ship-To Master` | `Ship To Name` | Ship-to party → Direct/Distributor, primary chain, zone, state, chains served |
 
 ### Facts (the "*" side)
 | Table | Grain | Date join |
@@ -26,10 +27,13 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact P&L` | Month × Chain × Brand × Category (derived) | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact TDP` | Month × Chain × Article | `Date Table[MonthStart]` → `[MonthStart]` |
+| `Fact Primary ShipTo` | Month × Ship-To × Chain × Brand | `Date Table[MonthStart]` → `[MonthStartCalc]` |
 
 ### Helper / input tables
 | Table | Role |
 |---|---|
+| `Primary Allocation Map` | secondary-derived Cont% by Month×Ship-To×Chain×Brand. Disconnected — read by DAX. Drives primary onto chains. |
+| `Primary Allocation Override` | manual Cont% override (optional, ALL-wildcards). Disconnected — DAX prefers it. |
 | `Assumption Table` | P&L inputs (margin %, spends) by Month×Chain×Brand×Category. Disconnected — read by DAX with ALL-fallback. |
 | `Forecast Override` | manual forecast / growth assumption. Disconnected — read by DAX. |
 | `Targets` | monthly FY target NSV. Joined on `Date Table[MonthStart]`. |
@@ -72,7 +76,21 @@ Store Master[Store Code] 1 ─→ * Fact Primary Sales[Store Code]
 Store Master[Store Code] 1 ─→ * Store SO Mapping[Store Code]
 
 Zone State Master[Zone]  1 ─→ * Fact Offtake Sales[Zone]   (or model zone via Store Master only)
+
+Date Table[MonthStart]   1 ─→ * Fact Primary ShipTo[MonthStartCalc]
+Chain Master[Chain]      1 ─→ * Fact Primary ShipTo[Chain]
+Brand Master[Brand]      1 ─→ * Fact Primary ShipTo[Brand]
+Ship-To Master[Ship To Name] 1 ─→ * Fact Primary ShipTo[Ship To Name]
 ```
+
+### Ship-to primary allocation (new)
+- `Fact Primary ShipTo` carries primary NSV **already allocated to Chain** by the
+  secondary-derived `Cont%` (Direct = 100% to one chain; Distributor = split).
+- `Primary Allocation Map` and `Primary Allocation Override` stay **disconnected**
+  (no relationship) — they're read by the `07_PrimaryAllocation` measures, so the
+  Cont% is dynamic and month-wise, never hardcoded in a measure.
+- `Ship-To Master` is a normal dimension on `Ship To Name`. A distributor serves
+  several chains, so the Ship-To↔Chain link lives in the fact, not the dimension.
 
 ### Modelling notes
 - **Zone/State:** the cleanest design is to keep Zone/State on `Store Master`

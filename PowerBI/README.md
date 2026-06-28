@@ -32,12 +32,15 @@ PowerBI/
 ├─ PowerQuery/                ← paste each .pq into a new Blank Query (Advanced Editor)
 │  ├─ 00_Parameters.pq        ← pRootFolder (the ONE thing each machine sets)
 │  ├─ 01_fnCombineFolder.pq   ← folder-combine function (the refresh engine)
-│  ├─ 10..14_Fact_*.pq        ← Primary, Offtake, P&L, Nielsen, TDP fact tables
+│  ├─ 10..15_Fact_*.pq        ← Primary, Offtake, P&L, Nielsen, TDP, Primary-ShipTo facts
 │  ├─ 20_Dim_Masters.pq       ← Chain/Brand/Category/Article/Zone/Store/Nielsen masters
-│  └─ 30..33_*.pq             ← Assumption, Targets, Store-SO mapping, Forecast override
+│  ├─ 21_ShipToMaster.pq      ← Ship-to party master
+│  └─ 30..35_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
+│                               Primary Allocation Map + Override
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
-│  └─ 01..06_*.dax            ← Core, P&L, Forecast, Nielsen, TDP, Data-Quality measures
+│  └─ 01..07_*.dax            ← Core, P&L, Forecast, Nielsen, TDP, Data-Quality,
+│                               Ship-to Primary Allocation measures
 ├─ SeedData/                  ← reference tables + targets + mapping (edit by hand)
 │  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable, ForecastOverride
 │  ├─ Targets/FY2627_Targets.csv
@@ -123,3 +126,23 @@ data, is in `docs/RefreshGuide.md` (and is reproduced as a page inside the repor
 - **Masters change rarely** — edit the CSVs in `SeedData/Masters/` to add a new
   chain, brand, SKU, or to update P&L assumptions / forecast overrides. No
   dashboard rebuild needed.
+
+## Ship-to party primary allocation (secondary-driven)
+
+Primary is driven onto **Chains** using each ship-to party's **secondary /
+offtake contribution %**, month-on-month — never a flat split.
+
+- **Source:** `RawDataFolders/Primary_ShipTo_Monthly/` (history file seeded from
+  Apr'25→May'26). Each row is Month × Ship-To × Chain × Brand with the primary
+  NSV already allocated by `Cont%` (Direct = 100% to one chain; Distributor =
+  split across the chains it serves).
+- **Dynamic mapping table:** `Primary Allocation Map` (query 34) projects the
+  month-wise `Cont%` so it updates itself every refresh. To override a split by
+  hand, add a row to `SeedData/Masters/PrimaryAllocationOverride.csv` — DAX
+  prefers the override. Nothing is hardcoded in any measure.
+- **Article lead/lag:** `Ship-to Primary NSV (Active Articles)` keeps only
+  articles with offtake in the **current or previous** month, so primary that
+  moves a month before/after the secondary sale isn't dropped.
+- **Page 2B — Ship-to Primary Allocation** visualises allocated primary vs
+  offtake, the distributor→chain split, Direct/Distributor mix, and MoM movement.
+- See `DAX/07_PrimaryAllocation_Measures.dax` and `docs/PageLayouts.md` (Page 2B).

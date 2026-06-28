@@ -14,6 +14,7 @@ Copy the new raw file into the matching folder under your root
 | Data | Folder | How often | Grain |
 |---|---|---|---|
 | Primary sales | `RawDataFolders\Primary_Weekly\` | **Weekly** | Week × Store × Article |
+| Ship-to primary (chain-allocated) | `RawDataFolders\Primary_ShipTo_Monthly\` | **Monthly** | Month × Ship-To × Chain × Brand |
 | Offtake sales | `RawDataFolders\Offtake_Monthly\` | **Monthly** | Month × Store × Article |
 | Nielsen market share | `RawDataFolders\Nielsen_Monthly\` | Monthly | Month × Category × Brand × Zone |
 | TDP / ACV | `RawDataFolders\TDP_Monthly\` | Monthly | Month × Chain × Article |
@@ -44,6 +45,10 @@ MRP Sales, Data Source Name`
 
 **Offtake (monthly):** same as above but `Offtake NSV, Offtake Qty` instead of
 the Primary measures, and no `Week Start Date`.
+
+**Ship-to primary:** `Month, MonthStart, FY Year, Ship To Name,
+Direct/Distributor, Chain, Zone, State, Brand, Primary NSV, MRP Value, Cont%`
+(NSV already allocated to Chain by `Cont%`; `Cont%` 0–100 or blank=Direct).
 
 **Nielsen:** `Month, FY Year, Nielsen Category, Brand, Zone, Market Value Sales,
 Our Brand Sales, Value Market Share %, Volume Market Share %, Data Source Name`

@@ -15,10 +15,20 @@ Column → table → type → meaning.
 | Refresh Date | datetime | Stamped automatically on every loaded row. |
 | 🔒 Data Source Name | text | e.g. `Chain POS`, `SAP Primary`, `Nielsen MS Val Urban`. |
 
+## Ship-to / primary allocation
+| Column | Type | Meaning |
+|---|---|---|
+| 🔒 Ship To Name | text | Ship-to party (Direct customer or Distributor). Mapping base for primary. |
+| 🔒 Direct/Distributor | text | `Direct` (one chain, 100%) or `Dist.` (split across chains). |
+| 🔒 Cont% | number | Secondary-derived allocation share of a ship-to's primary to a chain. Raw file 0–100; stored as decimal (0–1). Blank → Direct → 1.0. |
+| Primary Chain | text | Dominant chain for a ship-to (Ship-To Master). |
+| Chains Served | text | `;`-separated list of chains a distributor supplies (Ship-To Master). |
+| MRP Value | number | Primary at MRP (ship-to feed). |
+
 ## Geography & account
 | Column | Type | Meaning |
 |---|---|---|
-| 🔒 Chain | text | Retail chain (Reliance Retail, Lulu, Wellness Forever, More, Apollo…). |
+| 🔒 Chain | text | Retail chain (Reliance Retail, Lulu, Wellness Forever, More, Apollo, D-Mart, Health & Glow, Metro CNC…). |
 | Account | text | Parent account / group. |
 | 🔒 Zone | text | East, North, South-1, South-2, West, Pan India. |
 | 🔒 State | text | Indian state. |

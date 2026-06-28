@@ -60,6 +60,39 @@ Sales per TDP (`Sales per TDP`).
 
 ---
 
+## Page 2B — Ship-to Primary Allocation
+**Slicers:** Month, Chain, Brand, Zone, State, Ship To Name, Direct/Distributor.
+> Primary is driven onto chains by the **secondary/offtake contribution %**,
+> month-on-month, from `Primary Allocation Map` (+ optional manual override).
+> Measures in `07_PrimaryAllocation_Measures.dax`.
+
+**KPI cards:** `Ship-to Primary NSV` (`Ship-to Primary NSV Label`),
+`Secondary Offtake NSV`, `Allocated Primary vs Offtake Gap`,
+`Primary to Offtake Ratio`, `Ship-to Primary MoM %`, `Ship-to Primary YoY %`,
+`Allocation Health Check` (should be 0).
+
+**Visuals:**
+- **Primary (allocated) vs Offtake trend** (line): Axis `Month`,
+  `Ship-to Primary NSV` + `Secondary Offtake NSV`.
+- **Chain-wise allocated primary** (bar): Axis `Chain` × `Ship-to Primary NSV`,
+  data label `Primary to Offtake Ratio`.
+- **Distributor split** (stacked bar / sankey-style matrix): rows `Ship To Name`
+  (Distributors), columns `Chain`, value `Ship-to Primary NSV`, with
+  `Primary Allocation Cont%` as a tooltip — shows how each distributor's primary
+  splits across chains.
+- **Direct vs Distributor mix** (donut): Legend `Direct/Distributor` × primary NSV.
+- **Brand × Chain allocated primary** (matrix): rows `Brand`, cols `Chain`.
+
+**Allocation table** (Month × Ship To Name × Chain × Brand):
+`Month`, `Ship To Name`, `Direct/Distributor`, `Chain`, `Brand`,
+`Ship-to Primary NSV`, `Secondary Offtake NSV`, `Primary Allocation Cont%`,
+`Allocated Primary vs Offtake Gap`, `Ship-to Primary MoM %`. (Add `Article Code`,
+`EAN Code`, Qty once the feed carries them — measures already support it via
+`Ship-to Primary NSV (Active Articles)`, which keeps articles with offtake in the
+current **or previous** month.)
+
+---
+
 ## Page 3 — Chain Performance
 **Slicers:** Month, Zone, Brand, Category.
 
@@ -250,7 +283,9 @@ Missing Month, Missing Chain, Missing Zone, Missing State, Missing Brand,
 Missing Category, Missing Article Code, Missing EAN, Duplicate Store Count,
 Duplicate Article Count, Blank NSV Values, Negative Sales Values, Unmapped Chain,
 Unmapped Brand, Unmapped Category, Unmapped Zone, Missing TDP,
-Missing Market Share, Missing PnL Assumptions.
+Missing Market Share, Missing PnL Assumptions, Allocation Health Check
+(distributor Cont% not summing to 100% in a month → fix the ship-to file or
+add a Primary Allocation Override row).
 
 Top cards: `Data Health %` (KPI, green ≥99%), `Total DQ Issues`.
 Conditional format Impacted Rows: 0 → green, >0 → red.
