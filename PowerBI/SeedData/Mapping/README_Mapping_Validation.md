@@ -51,3 +51,17 @@ primary feed and sign off on this mapping.
 3. `Pri: Multi-Chain Distributor` (239) — confirm each distributor→chain split.
 4. Remaining `Pri: Medium Confidence`.
 5. High-confidence rows can be bulk-set `Validation Status = Confirmed`.
+
+---
+
+## Customer-Code Zone/State Mapping (primary geography reference)
+- **`CustomerCode_Zone_State_Mapping.csv`** — 1,512 unique Cust-SAP codes →
+  Zone, true State, City/Location, **Business Region/Sub-region** (Maharashtra →
+  Mumbai/Pune/Vidarbha; UP → UPW/Lucknow-UPE; etc.), Chain, Account, Channel,
+  Validation Status, Remarks. **Use this FIRST for zone/state wherever a Customer
+  Code is available** (resolution: Customer Code → Ship-to+City → Needs Check).
+  Does **not** overwrite the inferred chain-account mapping.
+- **`CustomerCode_Zone_State_Exceptions.csv`** — 58 rows: 33 duplicate codes,
+  2 missing region/state, 2 Status=Incorrect, 21 Status=Inactive. Resolve here.
+- 493 codes carry a sub-state business region (State ≠ Business Region) — flagged
+  in Remarks so one state isn't wrongly treated as a single bucket.
