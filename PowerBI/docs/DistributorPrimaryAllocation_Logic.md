@@ -253,6 +253,44 @@ is finalized.
   `RawDataFolders/Primary_Article_Monthly/`. Paste the printed header line back
   to lock the query-16 `RenameColumns` mapping with zero guessing.
 
+## File 2 header mapping — LOCKED (query 16)
+Confirmed from the File 2 header row (SAP invoice export). No assumptions.
+
+| Canonical (model) | File 2 source header |
+|---|---|
+| Month / MonthStart | `Month` |
+| FY Year | `FY` |
+| Ship To Name (distributor) | `Ship To Name` |
+| Chain | `Chain name` |
+| Brand | `brand` |
+| Article Code | `Article Code` |
+| EAN Code | `EAN No.` |
+| Article Description | `Description` |
+| Category | `category` |
+| Sub-category | `sub_category` |
+| Range | `range` |
+| Primary Qty | `Inv Qty` |
+| Primary NSV | `Inv. Net value(LOC)` *(rupees; `sale in lac` is the lac version — switch via `NsvIsLac`)* |
+| Primary MRP | `Total MRP sales` |
+| Customer Code | `Cust-SAP Code` (first occurrence) |
+| Store Code | `Store Code` |
+| Zone / State / Format / Channel | `Zone` / `State` / `Format` / `Channel` |
+
+Article key = EAN → Article Code → cleaned Description. All other invoice columns
+(PO no., Inv no./date, tax, plant, addresses, duplicate Customer Name/Cust-SAP,
+etc.) are intentionally not loaded. **Direct/Distributor** is not in File 2 — it is
+sourced from `Ship-To Master` / File 1 by `Ship To Name`.
+
+## Offtake-side mapping — still need the STORE × ARTICLE headers
+The offtake headers shared (`Bill to customer, Direct/Distributor, Chain Name,
+State, Zone, NSV, MRP value, Brand, Revised month, Month, FY, Channel`) are the
+**bill-to × chain × brand secondary** schema (same shape as File 1, NSV =
+secondary value). It has **no Article / EAN / Store columns**, so it can validate
+the gate only at **Chain × Brand**, not Article. The **article-level** eligibility
+gate needs the store×article offtake headers — run:
+`python scripts/split_offtake_store_article_xlsb.py "FY-24-26 Chain offtake Store Wise File till May.xlsb" --headers-only`
+and paste that header line so the offtake query (11) mapping is locked too.
+
 ## To finalize (what I need from you)
 1. **Confirm File 2's actual column headers** (so query 16 `Renamed` mapping is
    exact) — I can't read the `.xlsb` schema here.
