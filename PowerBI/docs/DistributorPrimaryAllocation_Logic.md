@@ -44,8 +44,11 @@ File 1 columns: Ship To Name, Direct/Distributor, Chain, State, Zone, **NSV** (p
   Chain Ratio % (Cont%), Allocated Primary NSV/MRP, Mapping Status, Remarks.
   → **Pending File 2:** Article Code/EAN/Desc, Category/Sub-cat, Qty, Article Ratio,
   Allocated Article Primary, New Article Flag, Primary Month Maintained.
-- **Step 7 — QC reconciliation:** see below. Rule: per Month+Distributor+Brand,
-  allocated total **must equal** original distributor-brand primary (variance 0).
+- **Step 7 — QC reconciliation:** see below. **Updated by the eligibility gate
+  (Step 3.5):** at *chain* level the split still ties to variance 0, but at
+  *article* level allocation is offtake-gated, so the rule becomes
+  `Original = Allocated + Blocked` (the blocked bucket is reported separately,
+  never forced to 100%).
 - **Step 8 — Missing data:** secondary missing → "Secondary Missing - Allocation
   Pending"; article mapping missing but chain ratio present → allocate at chain,
   mark "Article Mapping Pending"; inconsistent names → correction sheet
@@ -64,6 +67,74 @@ File 1 columns: Ship To Name, Direct/Distributor, Chain, State, Zone, **NSV** (p
   sum to 100%, then re-run. Per the "do not finalize unless variance is zero" rule,
   the final files are held until this is fixed/confirmed.
 - Coverage: 14 months (Apr'25–May'26), 42 distributors, 9 brands, 47 chains.
+
+## Step 3.5 — OFFTAKE ELIGIBILITY GATE (added; validation base = secondary offtake)
+Before any Chain × Brand × Article × Month primary is allocated, it must be
+**proven by secondary offtake**. This prevents inflating contribution for a
+brand/article that the chain does not actually list.
+
+**Eligibility rule** — for primary month **M**, allow allocation only if the same
+**Chain × Brand × Article** has secondary offtake in **M** or **M+1**
+(M+1 covers distributor→chain billing/offtake TAT; e.g. an article first seen in
+offtake in May'26 may legitimately carry primary in Apr'26). If there is no
+offtake in M or M+1 → **block, do not allocate** (keep as exception).
+
+**Eligibility Status** (`Eligibility Status` measure):
+| Status | Condition |
+|---|---|
+| `Eligible` | offtake found in same month M |
+| `Eligible due to TAT` | offtake found only in next month M+1 |
+| `Brand not listed` | chain has **no** offtake for this brand in M or M+1 |
+| `Article not listed` | chain has the brand's offtake but **not this article** in M or M+1 |
+| `Not Eligible` | no offtake found in M or M+1 |
+
+**Allocation Status** (`Allocation Status` measure): `Allocated` only for eligible
+records; otherwise `Blocked - Brand Not Listed` / `Blocked - Article Not Listed` /
+`Blocked - No Offtake Evidence`. **Distributor primary is never force-fitted to
+unsupported chains/articles to reach 100%.**
+
+**Article ratio is over ELIGIBLE articles only** — `Article Allocation Ratio % =
+article secondary (M+M+1) ÷ Σ secondary of *eligible* articles` in that
+Chain×Dist×Brand×Month; blocked articles get 0. Where a Chain×Brand has primary
+(via Cont%) but **no** eligible article, that chain-allocated primary becomes the
+**Blocked** bucket.
+
+### Revised reconciliation (replaces "force variance 0")
+Per **Month × Distributor × Brand**:
+```
+Original Primary  =  Allocated (eligible)  +  Blocked (no offtake evidence)
+QC Reconciliation Variance = Original − (Allocated + Blocked)  →  MUST be 0
+```
+Allocated no longer equals Original by force — the **Blocked** portion is reported
+separately. Reconciliation is exact: nothing lost, nothing forced.
+
+### New-article one-month-prior
+`New Article Flag` = offtake first appears in M+1 (and M is empty) → primary is
+**allowed in M** (held one month prior). `Primary Month Maintained` records that
+month. Implemented via `First Offtake Month (CBA)`.
+
+### Required validation columns (output)
+Month · Distributor · Ship-to Party Name · Chain · Brand · Article Code · EAN ·
+Primary NSV · Primary Qty · **Secondary Offtake NSV (same month)** ·
+**Secondary Offtake NSV (next month)** · **First Offtake Month** ·
+**Eligibility Status** · **Allocation Status** · **Exception Reason**.
+
+### QC outputs (eligibility-aware)
+1. Distributor × Month × Brand **Original Primary** (`QC Orig Primary (Dist-Brand)`)
+2. **Allocated Primary** (`QC Allocated Primary Total`)
+3. **Blocked / Unallocated Primary** (`QC Blocked Primary Total`)
+4. **Variance** (`QC Reconciliation Variance`, must be 0)
+5. **Blocked article count** (`QC Blocked Article Count`)
+6. **List: Chain × Brand × Article where primary exists but offtake missing**
+   (filter `Allocation Status` starts with "Blocked")
+7. **List: new articles (first offtake) where primary allowed only one month prior**
+   (filter `New Article Flag` ≠ blank)
+8. **Final reconciliation separates valid allocation vs exception/unallocated**
+   (`QC Mapping Coverage %` + `QC Blocked Coverage %` = 100%)
+
+Measures: `DAX/09_ArticleAllocation_Eligibility.dax`. Eligibility runs against
+`Fact Offtake Sales` (present); article primary needs `Fact Primary Article`
+(File 2, pending).
 
 ## To finalize (what I need from you)
 1. **File 2 — Distributor Article-wise Primary Billing** (with Article Code / EAN /
