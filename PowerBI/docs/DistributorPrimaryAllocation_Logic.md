@@ -239,6 +239,18 @@ Offtake NSV for the article-level offtake). I will run the full reconciliation o
 the sample and confirm `Original = Allocated + Blocked, variance 0` before anything
 is finalized.
 
+
+### Drive-route status (cloud session) — BLOCKED, use local route
+- The session's egress proxy **denies Google Drive (403 policy denial)** for direct
+  download, and the Drive MCP returns the whole ~175 MB `.xlsb` inline (infeasible)
+  and cannot text-read `.xlsb`. So File 2 **cannot be read or split inside the
+  cloud session.** Headers are therefore **not assumed**.
+- Local route (where the file lives): run
+  `scripts/split_primary_article_xlsb.py` — it prints the exact header row and
+  writes month-wise CSVs (`primary_article_<MON><YY>.csv`) into
+  `RawDataFolders/Primary_Article_Monthly/`. Paste the printed header line back
+  to lock the query-16 `RenameColumns` mapping with zero guessing.
+
 ## To finalize (what I need from you)
 1. **Confirm File 2's actual column headers** (so query 16 `Renamed` mapping is
    exact) — I can't read the `.xlsb` schema here.
