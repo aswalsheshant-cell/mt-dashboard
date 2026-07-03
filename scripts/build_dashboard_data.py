@@ -496,7 +496,15 @@ def insights_block(primary, offtake, pnl, universe, promo):
 # --------------------------------------------------------------------------
 _ORDER = ["April","May","June","July","Aug","Sept","Oct","Nov","Dec","Jan","Feb","March"]
 
+_MNUM = {4:"April",5:"May",6:"June",7:"July",8:"Aug",9:"Sept",10:"Oct",11:"Nov",12:"Dec",1:"Jan",2:"Feb",3:"March"}
+
 def _mlabel(m):
+    # datetime / Timestamp / date -> month name
+    if hasattr(m, "month") and not isinstance(m, str):
+        try:
+            return _MNUM.get(int(m.month))
+        except Exception:
+            pass
     m = str(m).strip().lower()
     for o in _ORDER:
         if m.startswith(o.lower()[:3]):
@@ -505,8 +513,10 @@ def _mlabel(m):
 
 def _fylabel(fy):
     s = str(fy).strip().upper().replace(" ", "")
+    if "23-24" in s: return "FY24"
     if "24-25" in s: return "FY25"
     if "25-26" in s: return "FY26"
+    if "26-27" in s: return "FY27"
     return None
 
 # brand -> [(Category, SubCategory, Range, [packs], article_stem)] for the representative fallback
@@ -540,8 +550,24 @@ def detail_records_real(src, threshold=0.25):
     if f is None:
         return None
     eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else None
-    df = pd.read_excel(f, sheet_name=0, header=0, engine=eng)
+    # auto-detect the header row (source workbooks often have a blank first row)
+    probe = pd.read_excel(f, sheet_name=0, header=None, nrows=8, engine=eng)
+    hdr = 0
+    for i in range(len(probe)):
+        vals = {str(v).strip() for v in probe.iloc[i].tolist()}
+        if {"Month", "FY", "Article Code"} <= vals:
+            hdr = i
+            break
+    print(f"detail source: {f.name} (header row {hdr})")
+    df = pd.read_excel(f, sheet_name=0, header=hdr, engine=eng)
     df.columns = [str(c).strip() for c in df.columns]
+    missing = [c for c in ("Month","FY","Chain name","brand","Zone","Channel",
+                           "Inv. Net value(LOC)","Total MRP sales","Inv Qty",
+                           "category","sub_category","net_content","Description","EAN No.")
+               if c not in df.columns]
+    if missing:
+        raise SystemExit(f"File 2 is missing expected columns: {missing}. "
+                         f"Found: {list(df.columns)[:25]} ...")
     df["_M"] = df["Month"].map(_mlabel)
     df["_FY"] = df["FY"].map(_fylabel)
     df = df[df["_M"].notna() & df["_FY"].notna()]
@@ -553,7 +579,7 @@ def detail_records_real(src, threshold=0.25):
     df["_MRP"] = pd.to_numeric(df["Total MRP sales"], errors="coerce").fillna(0.0) / 1e5
     df["_Qty"] = pd.to_numeric(df["Inv Qty"], errors="coerce").fillna(0.0)
     for c in ("category", "sub_category", "net_content", "Description", "EAN No."):
-        df["_" + c] = df[c].astype(str).str.strip()
+        df["_" + c] = df[c].astype(str).str.strip().replace({"nan": "", "None": ""})
     g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
                      "_category","_sub_category","_net_content","_Description","_EAN No."],
                     dropna=False)
