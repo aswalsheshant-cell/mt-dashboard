@@ -86,6 +86,77 @@ re-split. Coverage (how much Distributor primary has a matching allocation
 entry, vs falling back to its original single-chain tag) is reported in
 `DASH.chain_allocation_qc` and shown as a note on the Primary tab.
 
+## Export & download
+
+Every page, chart and table can be downloaded — all client-side, no server
+round-trip, so it works fully offline just like the rest of the dashboard
+(html2canvas, jsPDF and SheetJS/xlsx are vendored locally: `html2canvas.min.js`,
+`jspdf.umd.min.js`, `xlsx.core.min.js`).
+
+### Export the full page (PDF or PNG)
+Click **⭳ Download Page** in the filter bar (top-right, next to Reset
+filters) ▸ choose **PDF** or **PNG Image**. The export captures the tab
+you're currently on, exactly as filtered:
+- A header with the dashboard title, tab name, active-filter summary, and
+  the FY24-25 vs FY25-26 period note.
+- Every KPI card and chart, with their current data labels.
+- A footer: `Source: MT Dashboard | Exported on <date/time> | <data.js build note>`.
+- **Long tables (>8 rows) are excluded from the page image** and replaced
+  with a short note pointing at that card's own **Export Table** button —
+  a table that size gets cut across PDF pages or squeezed unreadably
+  otherwise, so it's exported to Excel separately instead (see below).
+- PDF export auto-paginates across as many A4 pages as the content needs.
+
+### Export one chart (PNG / CSV / Excel)
+Every chart has a small **⭳** download icon in its top-right corner. Click
+it ▸ choose:
+- **PNG Image** — just that chart, as currently drawn (labels included).
+- **CSV Data** — the chart's own labels + values (and a Share % column for
+  single-series charts).
+- **Excel Data** — same data as CSV, in `.xlsx`, with a header block (chart
+  title, active filters, export timestamp, data.js build note) above the
+  data rows. Falls back to CSV automatically if the xlsx library can't load.
+
+Filenames follow `MT_Dashboard_<Tab>_<Chart>_<Month/FY>_<timestamp>` —e.g.
+`MT_Dashboard_Category_Pack_TopRanges_May26_20260703_2054.xlsx` — so exports
+from different tabs, charts or points in time never collide or overwrite
+each other.
+
+### Export a table
+Every card containing a table gets an **⭳ Export Table** button above it.
+This exports exactly what's on screen — same rows, same filters, same
+column order — as `.xlsx` (falls back to `.csv`). The **Data Explorer**'s
+own **⭳ Export ALL filtered records (CSV)** button is separate: it exports
+every row-level record matching the active filters, not just what's
+paginated/visible in a summary table.
+
+### Drill-down-aware exports
+Chart and table exports always read whatever the chart/table itself is
+currently showing — so if you've clicked into a Category → Sub-category
+drill, or filtered down to one Chain, the export reflects that scoped view,
+not the full unfiltered dataset. Nothing needs re-selecting before exporting.
+
+### Value & quantity formatting (consistent across every export)
+- **₹ values:** below ₹100 L → shown as `₹75.5 L`; ₹100 L and above → shown
+  as `₹2.50 Cr` (e.g. ₹250.17 L = `₹2.50 Cr`). This threshold and rounding
+  is identical on-screen, in chart data labels, and in every CSV/Excel/PDF
+  export.
+- **Quantity:** always shown as `Qty Cr` (e.g. 1,25,00,000 units = `1.25 Cr
+  Qty`) unless the quantity is small enough that Cr would round to ~0, in
+  which case it falls back to `Qty L` (e.g. 12,50,000 units ≈ `0.13 Cr Qty`,
+  right at that boundary). **Quantity units are never mixed with value
+  Cr/L** — a Qty column will never say "₹" and a value column will never
+  say "Qty".
+
+### Power BI exports
+The Power BI build kit has the same three export levels wherever Power BI
+supports them natively — full-page PDF export, per-visual "Export data" to
+Excel/CSV, and matching ₹ L/Cr / Qty Cr/L display-label DAX measures
+(`PowerBI/DAX/11_ExportDisplay_Measures.dax`). Power BI has no per-chart
+PNG export and no client-side filename templating, and per-visual export
+data is subject to license row caps — full walkthrough and the complete
+list of limitations are in `PowerBI/docs/ExportAndVisualSettings.md`.
+
 ## Data sources
 
 Built from the Honasa MT working files (FY24-26), kept in Google Drive (not committed):

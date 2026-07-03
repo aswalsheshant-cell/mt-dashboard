@@ -10,6 +10,13 @@ measures for conditional formatting. Numbers in **Lacs / Cr** (use `NSV Label`).
 Global slicer row (reuse on most pages, sync via View ▸ Sync slicers):
 `Month` · `Chain` · `Zone` · `State` · `Brand` · `Category` · `Sub-category` · `Article` · `Data Source Name`
 
+**Export & data labels:** every page should get a small text box (bottom-right,
+matches the filter-summary convention above) reading *"Use File ▸ Export ▸ PDF
+to download this page with current filters applied."* Turn on data labels for
+every bar/column/line/donut visual and use the `*_Value Label` / `*_Qty Label`
+measures from `DAX/11_ExportDisplay_Measures.dax` for ₹ L/Cr and Qty Cr/L text
+— full walkthrough in `docs/ExportAndVisualSettings.md`.
+
 ---
 
 ## Page 1 — Executive Summary

@@ -26,7 +26,9 @@ PowerBI/
 │  ├─ RefreshGuide.md         ← the monthly refresh SOP (also becomes a report page)
 │  ├─ DataModel.md            ← star schema, tables, relationships
 │  ├─ DataDictionary.md       ← every standard column + which ones must not be renamed
-│  └─ PageLayouts.md          ← all 18 pages: visuals, fields, slicers, positions
+│  ├─ PageLayouts.md          ← all 18 pages: visuals, fields, slicers, positions
+│  └─ ExportAndVisualSettings.md ← PDF/Excel export how-to, data labels, ₹L/Cr
+│                               display units, known export limitations
 ├─ theme/
 │  └─ HonasaMT_Theme.json     ← View ▸ Themes ▸ Browse for themes (import this)
 ├─ PowerQuery/                ← paste each .pq into a new Blank Query (Advanced Editor)
@@ -39,9 +41,10 @@ PowerBI/
 │                               Primary Allocation Map + Override, Sales Team Mapping
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
-│  └─ 01..10_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
+│  └─ 01..11_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
 │                               TDP, Data-Quality, Ship-to Allocation, Forecast-QC,
-│                               Article-Allocation Eligibility, SIS Reconciliation
+│                               Article-Allocation Eligibility, SIS Reconciliation,
+│                               Export Display (₹ L/Cr, Qty Cr/L label measures)
 ├─ SeedData/                  ← reference tables + targets + mapping (edit by hand)
 │  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable, ForecastOverride
 │  ├─ Targets/FY2627_Targets.csv
