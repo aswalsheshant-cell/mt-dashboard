@@ -8,12 +8,12 @@ window.DASH = {
  },
  "primary": {
   "nsv_fy25": 23331.97,
-  "nsv_fy26": 32886.2,
-  "yoy": 40.95,
+  "nsv_fy26": 32900.36,
+  "yoy": 41.01,
   "mrp_fy25": 52878.34,
-  "mrp_fy26": 84089.89,
+  "mrp_fy26": 84114.62,
   "n_chains": 48,
-  "n_brands": 7,
+  "n_brands": 8,
   "month_labels": [
    "April",
    "May",
@@ -53,8 +53,8 @@ window.DASH = {
    3329.34,
    2820.61,
    3665.41,
-   2920.28,
-   2892.5
+   2924.94,
+   2902.0
   ],
   "by_channel": [
    {
@@ -77,64 +77,69 @@ window.DASH = {
    {
     "name": "West",
     "fy25": 7077.44,
-    "fy26": 8842.28
+    "fy26": 8859.78
    },
    {
     "name": "North",
     "fy25": 5037.19,
-    "fy26": 7837.17
+    "fy26": 7840.21
    },
    {
     "name": "South 1",
     "fy25": 5042.1,
-    "fy26": 7394.19
+    "fy26": 7382.04
    },
    {
     "name": "South 2",
     "fy25": 3211.21,
-    "fy26": 4761.68
+    "fy26": 4762.45
    },
    {
     "name": "East",
     "fy25": 2964.02,
-    "fy26": 4050.88
+    "fy26": 4055.87
    }
   ],
   "by_brand": [
    {
     "name": "Mamaearth",
     "fy25": 20638.47,
-    "fy26": 27175.83
+    "fy26": 27179.45
    },
    {
     "name": "The Derma Co",
     "fy25": 1887.66,
-    "fy26": 4932.5
+    "fy26": 4938.41
    },
    {
     "name": "Aqualogica",
     "fy25": 608.77,
-    "fy26": 630.79
+    "fy26": 634.43
    },
    {
     "name": "BBlunt",
     "fy25": 193.15,
-    "fy26": 103.82
+    "fy26": 104.38
    },
    {
     "name": "Dr. Sheth's",
     "fy25": 0.0,
-    "fy26": 31.31
+    "fy26": 31.45
    },
    {
     "name": "Staze",
     "fy25": 0.0,
-    "fy26": 7.41
+    "fy26": 7.69
    },
    {
     "name": "Pure Origin",
     "fy25": 3.93,
     "fy26": 4.55
+   },
+   {
+    "name": "Lumineve",
+    "fy25": 0.0,
+    "fy26": 0.0
    }
   ],
   "by_chain": [
@@ -217,15 +222,21 @@ window.DASH = {
     "yoy": -35.72
    },
    {
+    "name": "Shoppers Stop",
+    "fy25": 0.0,
+    "fy26": 121.19,
+    "yoy": null
+   },
+   {
     "name": "V-Mart",
     "fy25": 72.61,
     "fy26": 116.74,
     "yoy": 60.78
    },
    {
-    "name": "Shoppers Stop",
+    "name": "Azorte",
     "fy25": 0.0,
-    "fy26": 114.1,
+    "fy26": 68.09,
     "yoy": null
    },
    {
@@ -239,12 +250,6 @@ window.DASH = {
     "fy25": 67.97,
     "fy26": 62.64,
     "yoy": -7.84
-   },
-   {
-    "name": "Azorte",
-    "fy25": 0.0,
-    "fy26": 62.18,
-    "yoy": null
    },
    {
     "name": "Trent",
@@ -267,7 +272,7 @@ window.DASH = {
    {
     "name": "Lifestyle",
     "fy25": 0.0,
-    "fy26": 33.96,
+    "fy26": 32.79,
     "yoy": null
    },
    {
@@ -277,9 +282,9 @@ window.DASH = {
     "yoy": -57.69
    },
    {
-    "name": "Think9",
+    "name": "Broadway",
     "fy25": 0.0,
-    "fy26": 23.53,
+    "fy26": 24.69,
     "yoy": null
    },
    {
@@ -302,9 +307,9 @@ window.DASH = {
    },
    {
     "name": "B&N",
-    "fy25": 25.32,
+    "fy25": -3.8,
     "fy26": 11.98,
-    "yoy": -52.69
+    "yoy": -414.84
    },
    {
     "name": "Deal Share",
@@ -355,7 +360,7 @@ window.DASH = {
     "yoy": null
    },
    {
-    "name": "Todays basket",
+    "name": "Today's Basket",
     "fy25": 0.0,
     "fy26": 2.24,
     "yoy": null
@@ -371,6 +376,12 @@ window.DASH = {
     "fy25": 4.23,
     "fy26": 1.22,
     "yoy": -71.06
+   },
+   {
+    "name": "Lifestyle Babyshop",
+    "fy25": 0.0,
+    "fy26": 1.17,
+    "yoy": null
    },
    {
     "name": "Sohum Shoppe",
@@ -389,12 +400,6 @@ window.DASH = {
     "fy25": 0.96,
     "fy26": 0.09,
     "yoy": -90.94
-   },
-   {
-    "name": "Dabur New U",
-    "fy25": -29.12,
-    "fy26": 0.0,
-    "yoy": -100.0
    },
    {
     "name": "Hyper Grocer",
@@ -940,9 +945,9 @@ window.DASH = {
    },
    {
     "name": "Apollo",
-    "mrp": 14886.34,
+    "mrp": 14885.91,
     "nsv": 5262.76,
-    "discount": 9623.57,
+    "discount": 9623.14,
     "discount_pct": 64.6,
     "promos": 231,
     "promo_depth": 28.0
@@ -967,18 +972,18 @@ window.DASH = {
    },
    {
     "name": "H&G",
-    "mrp": 1647.28,
+    "mrp": 1648.67,
     "nsv": 851.77,
-    "discount": 795.51,
+    "discount": 796.9,
     "discount_pct": 48.3,
     "promos": 152,
     "promo_depth": 22.1
    },
    {
     "name": "Lulu",
-    "mrp": 1667.11,
+    "mrp": 1666.99,
     "nsv": 828.62,
-    "discount": 838.5,
+    "discount": 838.37,
     "discount_pct": 50.3,
     "promos": 240,
     "promo_depth": 37.9
@@ -994,9 +999,9 @@ window.DASH = {
    },
    {
     "name": "More Retail",
-    "mrp": 893.51,
+    "mrp": 892.68,
     "nsv": 457.45,
-    "discount": 436.06,
+    "discount": 435.23,
     "discount_pct": 48.8,
     "promos": 106,
     "promo_depth": 19.2
@@ -1038,6 +1043,15 @@ window.DASH = {
     "promo_depth": 24.0
    },
    {
+    "name": "Shoppers Stop",
+    "mrp": 233.76,
+    "nsv": 121.19,
+    "discount": 112.56,
+    "discount_pct": 48.2,
+    "promos": 0,
+    "promo_depth": null
+   },
+   {
     "name": "V-Mart",
     "mrp": 410.26,
     "nsv": 116.74,
@@ -1047,11 +1061,11 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Shoppers Stop",
-    "mrp": 220.61,
-    "nsv": 114.1,
-    "discount": 106.51,
-    "discount_pct": 48.3,
+    "name": "Azorte",
+    "mrp": 111.41,
+    "nsv": 68.09,
+    "discount": 43.32,
+    "discount_pct": 38.9,
     "promos": 0,
     "promo_depth": null
    },
@@ -1074,15 +1088,6 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Azorte",
-    "mrp": 101.95,
-    "nsv": 62.18,
-    "discount": 39.76,
-    "discount_pct": 39.0,
-    "promos": 0,
-    "promo_depth": null
-   },
-   {
     "name": "Trent",
     "mrp": 125.64,
     "nsv": 56.24,
@@ -1093,9 +1098,9 @@ window.DASH = {
    },
    {
     "name": "Frankross",
-    "mrp": 94.46,
+    "mrp": 94.43,
     "nsv": 46.27,
-    "discount": 48.18,
+    "discount": 48.16,
     "discount_pct": 51.0,
     "promos": 40,
     "promo_depth": 13.0
@@ -1111,10 +1116,10 @@ window.DASH = {
    },
    {
     "name": "Lifestyle",
-    "mrp": 80.97,
-    "nsv": 33.96,
-    "discount": 47.01,
-    "discount_pct": 58.1,
+    "mrp": 78.93,
+    "nsv": 32.79,
+    "discount": 46.14,
+    "discount_pct": 58.5,
     "promos": 0,
     "promo_depth": null
    },
@@ -1128,11 +1133,11 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Think9",
-    "mrp": 42.88,
-    "nsv": 23.53,
-    "discount": 19.35,
-    "discount_pct": 45.1,
+    "name": "Broadway",
+    "mrp": 44.91,
+    "nsv": 24.69,
+    "discount": 20.22,
+    "discount_pct": 45.0,
     "promos": 0,
     "promo_depth": null
    },
@@ -1167,7 +1172,7 @@ window.DASH = {
     "name": "B&N",
     "mrp": 21.23,
     "nsv": 11.98,
-    "discount": 9.25,
+    "discount": 9.26,
     "discount_pct": 43.6,
     "promos": 80,
     "promo_depth": 19.1
@@ -1228,10 +1233,10 @@ window.DASH = {
    },
    {
     "name": "Trilife",
-    "mrp": 8.06,
+    "mrp": 8.07,
     "nsv": 3.86,
-    "discount": 4.2,
-    "discount_pct": 52.1,
+    "discount": 4.21,
+    "discount_pct": 52.2,
     "promos": 0,
     "promo_depth": null
    },
@@ -1245,11 +1250,11 @@ window.DASH = {
     "promo_depth": 30.0
    },
    {
-    "name": "Todays basket",
-    "mrp": 3.58,
+    "name": "Today's Basket",
+    "mrp": 3.59,
     "nsv": 2.24,
-    "discount": 1.34,
-    "discount_pct": 37.4,
+    "discount": 1.35,
+    "discount_pct": 37.6,
     "promos": 0,
     "promo_depth": null
    },
@@ -1268,6 +1273,15 @@ window.DASH = {
     "nsv": 1.22,
     "discount": 1.67,
     "discount_pct": 57.6,
+    "promos": 0,
+    "promo_depth": null
+   },
+   {
+    "name": "Lifestyle Babyshop",
+    "mrp": 2.12,
+    "nsv": 1.17,
+    "discount": 0.95,
+    "discount_pct": 45.0,
     "promos": 0,
     "promo_depth": null
    },
@@ -1299,9 +1313,9 @@ window.DASH = {
     "promo_depth": null
    }
   ],
-  "total_mrp": 84091.42,
-  "total_nsv": 32887.11,
-  "total_discount": 51204.31,
+  "total_mrp": 84116.14,
+  "total_nsv": 32901.27,
+  "total_discount": 51214.87,
   "blended_discount_pct": 60.9
  },
  "universe": {
@@ -322727,5 +322741,34 @@ window.DASH = {
    "Vitamin C T 100% N L Balm 2 g (Blister P",
    "Vitamin C Ultra Light Gel Oil-Free Moisturizer 200 ml"
   ]
+ },
+ "chain_allocation_qc": {
+  "method": "Distributor-billed ('Dist.') primary is re-split across the chains a ship-to actually serves, weighted by that chain's share of the ship-to's own secondary/offtake billing that Month x Brand (source: Dist_primary_cont_based_on_secondary_MOM.xlsx, mirrors the Power BI Ship-to allocation model). Direct-billed rows are unambiguous (1 ship-to = 1 chain) and are never re-split. Rows with no matching allocation entry for that Ship-To x Brand x Month (the allocation file does not cover FY24-25) keep their original single Chain Name tag.",
+  "distributor_primary_total": 21927.97,
+  "chain_allocated_total": 13302.28,
+  "raw_tag_fallback_total": 8625.68,
+  "allocated_coverage_pct": 60.7,
+  "by_fy": {
+   "FY_24-25": {
+    "distributor_primary": 8949.27,
+    "chain_allocated": 0.0,
+    "raw_tag_fallback": 8949.27,
+    "allocated_coverage_pct": 0.0
+   },
+   "FY_25-26": {
+    "distributor_primary": 11091.95,
+    "chain_allocated": 11412.0,
+    "raw_tag_fallback": -320.06,
+    "allocated_coverage_pct": 102.9
+   },
+   "FY_26-27": {
+    "distributor_primary": 1886.75,
+    "chain_allocated": 1890.28,
+    "raw_tag_fallback": -3.53,
+    "allocated_coverage_pct": 100.2
+   }
+  },
+  "unit": "INR Lakh",
+  "note": "'raw_tag_fallback' can be negative (pushing coverage % slightly above 100) in a period where the unmatched remainder is dominated by return/credit-note rows (negative NSV) that the secondary-based allocation file doesn't cover -- this is a real property of the data, not a computation error."
  }
 };

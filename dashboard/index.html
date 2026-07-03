@@ -87,7 +87,7 @@
 <body>
 <header>
   <h1 id="hTitle">Modern Trade Leadership Dashboard</h1>
-  <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Forecast · Market Share</p>
+  <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Category &amp; Pack · Forecast · Promo · Market Share · Distribution</p>
   <span class="badge" id="hPeriod"></span>
 </header>
 <div class="topbar">
@@ -100,8 +100,11 @@
   <section id="tab-primary"></section>
   <section id="tab-offtake"></section>
   <section id="tab-pnl"></section>
+  <section id="tab-category"></section>
   <section id="tab-forecast"></section>
+  <section id="tab-promo"></section>
   <section id="tab-share"></section>
+  <section id="tab-distribution"></section>
   <section id="tab-insights"></section>
 </div>
 <footer id="foot"></footer>
@@ -196,11 +199,19 @@ function buildOverview(){
 
 /* ---------------- PRIMARY ---------------- */
 function buildPrimary(){
-  const p=D.primary,s=document.getElementById('tab-primary');
+  const p=D.primary,s=document.getElementById('tab-primary'),qc=D.chain_allocation_qc;
   const rows=p.by_chain.filter(c=>c.fy26>0).map(c=>`<tr><td>${c.name}</td><td>${cr(c.fy25)}</td><td>${cr(c.fy26)}</td>
      <td><span class="pill ${c.yoy>=0?'g':'r'}">${pct(c.yoy)}</span></td></tr>`).join('');
+  const qcNote=qc?`<p class="note" style="margin:0 0 16px">
+     <b>Chain-level, not distributor-level:</b> Distributor-billed primary is split across the
+     chains each ship-to actually serves, weighted by that chain's share of the ship-to's own
+     secondary/offtake billing (same method as the Power BI model's Ship-to allocation) —
+     ${qc.allocated_coverage_pct}% of Distributor primary (${crc(qc.chain_allocated_total)})
+     is allocated this way; the remainder (no matching Ship-To × Brand × Month allocation entry,
+     mainly FY24-25) keeps its original single-chain tag.</p>`:'';
   s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
    <p class="lead">Billed NSV from Honasa to MT chains. FY24-25 vs FY25-26, ₹ Crore.</p>
+   ${qcNote}
    <div class="kpis">
      ${kpi('Primary NSV FY26',crc(p.nsv_fy26),`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)}</span> YoY`)}
      ${kpi('Primary NSV FY25',crc(p.nsv_fy25),'base year')}
@@ -215,7 +226,7 @@ function buildPrimary(){
      ${card('By channel','',cv('prChan',true))}
      ${card('By brand (FY26)','',cv('prBrand',true))}
    </div>
-   ${card('Chain-wise primary &amp; YoY (FY26)','Sorted by FY26 NSV.',`<div class="tablewrap"><table>
+   ${card('Chain-wise primary &amp; YoY (FY26)','Sorted by FY26 NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>FY25 (₹Cr)</th><th>FY26 (₹Cr)</th><th>YoY</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
   mkLine('prMonth',p.month_labels,[
     {label:'FY24-25',data:p.monthly_fy25,borderColor:C.blue,dash:[5,4]},
@@ -312,33 +323,121 @@ function buildForecast(){
 
 /* ---------------- MARKET SHARE ---------------- */
 function buildShare(){
-  const u=D.universe,p=D.primary,o=D.offtake,s=document.getElementById('tab-share');
+  const u=D.universe,p=D.primary,s=document.getElementById('tab-share');
   const tot=p.nsv_fy26;
   const sob=p.by_chain.filter(c=>c.fy26>0).slice(0,10).map(c=>({name:c.name,share:c.fy26/tot*100,v:c.fy26}));
   const sobRows=sob.map(c=>`<tr><td>${c.name}</td><td>${cr(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
-  s.innerHTML=`<h2 class="sec">Market Share &amp; Distribution</h2>
-   <p class="lead">Distribution footprint (store universe) and share-of-business across MT chains.
-     <b>Note:</b> external category share vs competitors is not in the source data; this view shows internal share-of-business and distribution reach.</p>
+  s.innerHTML=`<h2 class="sec">Market Share</h2>
+   <p class="lead">Share-of-business across MT chains (FY26 primary).
+     <b>Note:</b> external category share vs competitors is not in the source data; this view shows internal
+     share-of-business only. Store footprint / distribution reach moved to the <b>Distribution</b> tab.</p>
    <div class="kpis">
-     ${kpi('Active Stores',num(u.active_stores),'MT universe')}
-     ${kpi('Chains',u.by_chain.length+'+','with active doors')}
-     ${kpi('Metro Coverage',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro stores')}
      ${kpi('Top-2 Chain Share',(sob[0].share+sob[1].share).toFixed(0)+'%','of FY26 primary')}
+     ${kpi('Top Chain',sob[0].name,`${sob[0].share.toFixed(0)}% share`)}
+     ${kpi('Active Chains',p.by_chain.filter(c=>c.fy26>0).length,'with FY26 billing')}
+     ${kpi('Chains Tracked (Universe)',u.by_chain.length+'+','with active doors')}
    </div>
-   <div class="grid g2">
-     ${card('Distribution by zone (active stores)','',cv('shZone',true))}
-     ${card('Share of business by chain (FY26 primary)','',cv('shSob'))}
-   </div>
-   <div class="grid g2">
-     ${card('Stores by city category','',cv('shCity',true))}
-     ${card('Stores by chain (top)','',cv('shChain',true))}
-   </div>
+   ${card('Share of business by chain (FY26 primary)','',cv('shSob'))}
    ${card('Share-of-business league table (FY26 primary)','',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>NSV (₹Cr)</th><th>Share</th></tr></thead><tbody>${sobRows}</tbody></table></div>`)}`;
-  mkBarH('shZone',u.by_zone.map(z=>z.name),u.by_zone.map(z=>z.stores),C.teal,false);
   mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v));
-  mkDonut('shCity',u.by_citycat.map(c=>c.name),u.by_citycat.map(c=>c.stores),false);
-  mkBarH('shChain',u.by_chain.slice(0,10).map(c=>c.name),u.by_chain.slice(0,10).map(c=>c.stores),C.blue,false);
+}
+
+/* ---------------- DISTRIBUTION ---------------- */
+function buildDistribution(){
+  const u=D.universe,s=document.getElementById('tab-distribution');
+  const rows=u.by_chain.map(c=>`<tr><td>${c.name}</td><td>${num(c.stores)}</td>
+     <td>${(c.stores/u.active_stores*100).toFixed(1)}%</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Distribution</h2>
+   <p class="lead">MT store universe — distribution footprint by zone, city category, chain and store type.</p>
+   <div class="kpis">
+     ${kpi('Total Stores',num(u.total_stores),'MT universe')}
+     ${kpi('Active Stores',num(u.active_stores),`${(u.active_stores/u.total_stores*100).toFixed(0)}% of universe`)}
+     ${kpi('Chains',u.by_chain.length+'+','with active doors')}
+     ${kpi('Metro Coverage',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro stores')}
+   </div>
+   <div class="grid g2">
+     ${card('Distribution by zone (active stores)','',cv('dZone',true))}
+     ${card('Stores by city category','',cv('dCity',true))}
+   </div>
+   <div class="grid g2">
+     ${card('Stores by chain (top 10)','',cv('dChain',true))}
+     ${card('Stores by store type','',cv('dType',true))}
+   </div>
+   ${card('Store count by chain (all active)','',`<div class="tablewrap"><table>
+     <thead><tr><th>Chain</th><th>Active Stores</th><th>Share</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
+  mkBarH('dZone',u.by_zone.map(z=>z.name),u.by_zone.map(z=>z.stores),C.teal,false);
+  mkDonut('dCity',u.by_citycat.map(c=>c.name),u.by_citycat.map(c=>c.stores),false);
+  mkBarH('dChain',u.by_chain.slice(0,10).map(c=>c.name),u.by_chain.slice(0,10).map(c=>c.stores),C.blue,false);
+  mkBarH('dType',u.by_storetype.map(t=>t.name),u.by_storetype.map(t=>t.stores),C.purple,false);
+}
+
+/* ---------------- CATEGORY & PACK ---------------- */
+function buildCategory(){
+  const s=document.getElementById('tab-category');
+  const rep=(D.detail_meta&&D.detail_meta.representative)
+    ? `<div class="repbanner"><b>Representative data.</b> Category/Sub-category/Pack Size are taxonomy
+       placeholders until the granular source feeds build_dashboard_data.py — see dashboard/README.md.</div>` : '';
+  const byCat=grp(REC,'Category'), bySub=grp(REC,'SubCategory'), byPack=grp(REC,'PackSize');
+  const totNSV=REC.reduce((a,r)=>a+r.NSV,0);
+  const topArt=[...REC].sort((a,b)=>b.NSV-a.NSV).slice(0,20);
+  const artRows=topArt.map(r=>`<tr><td>${r.Article}</td><td>${r.Category}</td><td>${r.SubCategory}</td>
+     <td>${r.PackSize}</td><td>${cr(r.NSV)}</td><td>${num(r.Qty)}</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Category &amp; Pack</h2>
+   <p class="lead">NSV performance by Category, Sub-category and Pack Size, from the article-level primary detail.</p>
+   ${rep}
+   <div class="kpis">
+     ${kpi('NSV Covered',crc(totNSV),`${num(REC.length)} article-level records`)}
+     ${kpi('Top Category',byCat[0]?byCat[0][0]:'–',byCat[0]?crc(byCat[0][1]):'')}
+     ${kpi('Top Sub-category',bySub[0]?bySub[0][0]:'–',bySub[0]?crc(bySub[0][1]):'')}
+     ${kpi('Top Pack Size',byPack[0]?byPack[0][0]:'–',byPack[0]?crc(byPack[0][1]):'')}
+   </div>
+   <div class="grid g2">
+     ${card('NSV by Category','',cv('catCat'))}
+     ${card('NSV by Sub-category','',cv('catSub',true))}
+   </div>
+   ${card('NSV by Pack Size','',cv('catPack',true))}
+   ${card(`Top 20 articles by NSV`,'',`<div class="tablewrap"><table><thead><tr>
+     <th>Article</th><th>Category</th><th>Sub-cat</th><th>Pack</th><th>NSV (₹Cr)</th><th>Qty</th>
+     </tr></thead><tbody>${artRows||'<tr><td colspan="6">No records.</td></tr>'}</tbody></table></div>`)}`;
+  if(REC.length){
+    mkDonut('catCat',byCat.map(x=>x[0]),byCat.map(x=>x[1]));
+    mkBarH('catSub',bySub.slice(0,12).map(x=>x[0]),bySub.slice(0,12).map(x=>x[1]),C.teal);
+    mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue);
+  }
+}
+
+/* ---------------- PROMO & TRADE SPEND ---------------- */
+function buildPromo(){
+  const pr=D.promo,s=document.getElementById('tab-promo');
+  const rows=pr.by_chain.map(c=>`<tr><td>${c.name}</td><td>${num(c.promos)}</td>
+     <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands}</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Promo &amp; Trade Spend</h2>
+   <p class="lead">Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
+   <div class="kpis">
+     ${kpi('Promo Lines',num(pr.n_promos),'total calendar entries')}
+     ${kpi('Avg Consumer Depth',pr.avg_depth+'%','blended discount depth')}
+     ${kpi('Chains Covered',pr.n_chains,'running promos')}
+     ${kpi('Brands Covered',pr.by_brand.length,'in the promo calendar')}
+   </div>
+   <div class="grid g2">
+     ${card('Promo count by chain','',cv('prmChain'))}
+     ${card('Avg consumer depth (%) by chain','',cv('prmDepth',true))}
+   </div>
+   <div class="grid g2">
+     ${card('Promo count by brand','',cv('prmBrand',true))}
+     ${card('Promo count by category','',cv('prmCat',true))}
+   </div>
+   ${card('Chain-wise promo activity','',`<div class="tablewrap"><table><thead><tr>
+     <th>Chain</th><th>Promos</th><th>Avg Depth</th><th>Brands</th></tr></thead>
+     <tbody>${rows}</tbody></table></div>`)}`;
+  const top=pr.by_chain.slice(0,12);
+  mkBar('prmChain',top.map(c=>c.name),[{label:'Promos',data:top.map(c=>c.promos),backgroundColor:C.teal,borderRadius:4}],{money:false});
+  mkBarH('prmDepth',top.map(c=>c.name),top.map(c=>c.avg_depth),C.amber,false);
+  const ch=charts[charts.length-1];ch.options.scales.x.ticks.callback=v=>v+'%';
+  ch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';ch.update();
+  mkBarH('prmBrand',pr.by_brand.map(b=>b.name),pr.by_brand.map(b=>b.promos),C.purple,false);
+  mkBarH('prmCat',pr.by_category.map(c=>c.name),pr.by_category.map(c=>c.promos),C.blue,false);
 }
 
 /* ---------------- INSIGHTS / WAY FORWARD ---------------- */
@@ -505,9 +604,11 @@ function exportCSV(recs){
 }
 /* ---------------- nav ---------------- */
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
-  ['pnl','P&L'],['forecast','Forecast'],['share','Market Share'],['insights','Insights & Way Forward']];
+  ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
+  ['share','Market Share'],['distribution','Distribution'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
-  pnl:buildPnl,forecast:buildForecast,share:buildShare,insights:buildInsights};
+  pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
+  distribution:buildDistribution,insights:buildInsights};
 const built={};
 function show(id){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));

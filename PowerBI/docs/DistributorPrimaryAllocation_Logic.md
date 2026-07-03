@@ -4,6 +4,14 @@ Status: **logic + QC shown for sign-off. NOT finalized.** Article-level steps ar
 **blocked** pending File 2. Do not generate final files until the 1 variance row
 below is corrected/confirmed and File 2 + article-level secondary are supplied.
 
+> **HTML dashboard note (2026-07-03):** this same chain-level, secondary-driven
+> allocation method (Distributor Cont% split, Direct rows unambiguous) is now
+> also implemented for `dashboard/index.html`'s Primary/P&L/Insights tabs — see
+> `apply_chain_allocation()` in `scripts/build_dashboard_data.py` and the
+> `--primary-only` refresh mode in `dashboard/README.md`. It reuses
+> `Dist_primary_cont_based_on_secondary_MOM.xlsx` directly (chain-level, not
+> yet down to article/EAN — that finalization is still tracked below).
+
 ## Inputs — what we have vs need
 | File | Purpose | Status |
 |---|---|---|

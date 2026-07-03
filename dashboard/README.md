@@ -14,13 +14,27 @@ so the dashboard works fully offline.
 
 | Tab | What it shows |
 |-----|---------------|
+| **Data Explorer** | Cascading drill-down/filter across FY, Month, Channel, Zone, Chain, Brand, Category, Sub-category, Pack Size, Article |
 | **Overview** | Headline KPIs, Primary-vs-Offtake monthly trend, channel split, top chains, brand mix |
-| **Primary** | Sell-in NSV (FY24-25 vs FY25-26) by month, zone, channel, brand and chain (with YoY) |
+| **Primary** | Sell-in NSV (FY24-25 vs FY25-26) by month, zone, channel, brand and **chain** (chain-level, secondary-allocated for Distributor primary — see below) |
 | **Offtake** | Sell-out trend, zone & state YoY, and a Primary-vs-Offtake inventory-health view by chain |
-| **P&L** | Chain-wise gross MRP → net NSV bridge, trade-discount intensity, and promo activity |
+| **P&L** | Chain-wise gross MRP → net NSV bridge and trade-discount intensity |
+| **Category & Pack** | NSV by Category, Sub-category and Pack Size, plus a top-20 articles table (from the article-level primary detail) |
 | **Forecast** | Seasonally-indexed FY26-27 offtake projection with the method stated |
-| **Market Share** | Distribution footprint (store universe) and share-of-business across MT chains |
+| **Promo & Trade Spend** | Promo calendar activity — count and average consumer discount depth by chain, brand, category |
+| **Market Share** | Share-of-business across MT chains (FY26 primary) |
+| **Distribution** | Store universe / distribution footprint by zone, city category, chain and store type |
 | **Insights & Way Forward** | Auto-generated risks/opportunities plus prioritised leadership actions |
+
+### Primary is chain-level, not distributor-name-wise
+Distributor-billed ("Dist.") primary rows are re-split across the chains a
+ship-to actually serves, weighted by that chain's share of the ship-to's own
+secondary/offtake billing that Month × Brand — the same method the Power BI
+model uses for its Ship-to allocation (`PowerBI/docs/DistributorPrimaryAllocation_Logic.md`).
+Direct-billed rows are unambiguous (1 ship-to = 1 chain) and are never
+re-split. Coverage (how much Distributor primary has a matching allocation
+entry, vs falling back to its original single-chain tag) is reported in
+`DASH.chain_allocation_qc` and shown as a note on the Primary tab.
 
 ## Data sources
 
@@ -109,7 +123,25 @@ python scripts/build_dashboard_data.py --detail-only \
   --out dashboard/data.js
 ```
 
-### B) Full rebuild (also refreshes KPIs / charts / P&L / forecast)
+### B) Refresh ONLY Primary / P&L / Insights (chain-level allocation)
+Needs **`Primary_FY202426_10.xlsx`** in `--src` (business-confirmed primary
+source; must have a `Dump` sheet with `Bill to customer`, `Direct/Distributor`,
+`Chain Name`, `NSV`, `MRP value`, `Brand`, `Month`, `FY`, `Channel`), plus
+optionally **`Dist_primary_cont_based_on_secondary_MOM.xlsx`** (Sheet2 = the
+secondary-derived Distributor→Chain Cont% split) for proper chain-level
+allocation of Distributor-billed primary. Reuses the Offtake/Universe/Promo
+blocks already in `data.js`, so those source files aren't needed:
+```
+cd <repo-root>
+python scripts/build_dashboard_data.py --primary-only \
+  --src "<your-source-folder>" \
+  --out dashboard/data.js
+```
+Prints the FY25/FY26 primary total and the chain-allocation coverage %
+(how much Distributor primary got a secondary-based chain split vs falling
+back to its raw single-chain tag — see `DASH.chain_allocation_qc`).
+
+### C) Full rebuild (also refreshes KPIs / charts / P&L / forecast)
 Needs ALL sources in `--src` (`primary.xlsx`, offtake, `universe.xlsx`,
 `promo.xlsx`) **plus** `primary_article.xlsb`:
 ```
@@ -118,17 +150,17 @@ python scripts/build_dashboard_data.py \
   --src "<your-source-folder>" \
   --out dashboard/data.js
 ```
+Note: the full rebuild still uses `primary.xlsx` (single Chain Name tag, no
+allocation) for the Primary/P&L/Insights blocks — run **B) afterwards** if you
+want chain-level allocated primary as well.
 
 On success it prints `detail_records: N rows (REAL)` and
 `detail_meta.representative` flips to **false** — the amber banner disappears and
 the SIS card shows the exact Primary SIS total from File 2's own Channel field
 (computed from the full source, independent of the row cap — see
-`detail_meta.channel_totals`). **File 2 real SIS FY26 Primary = ₹250.17 L**
-(verified, authoritative). The earlier **₹236 L is not reproduced from File 2**
-and is shown only as an **unresolved reference/MIS number** — the **~₹14.16 L
-gap is flagged open for reconciliation**, not closed. See
-`PowerBI/docs/SIS_Reconciliation.md` for the investigation and what's needed to
-close it.
+`detail_meta.channel_totals`). **Primary SIS FY26 = ₹250.17 L** (business-confirmed
+2026-07-03; ₹236 L and ₹275.44 L gross are both confirmed NOT correct — see
+`PowerBI/docs/SIS_Reconciliation.md` for the investigation and resolution record).
 
 ### Then
 Open `dashboard/index.html` in any browser to validate, then commit **only**

@@ -87,6 +87,8 @@ CHAIN_ALIASES = [
     ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
     ("Trent/Westside",    ["trends"]),
+    ("Sasta Sundar",      ["sastasundar"]),
+    ("Frankross",         ["frank ross"]),
 ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
@@ -125,6 +127,139 @@ def load_primary(src):
     df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
     df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
     return df
+
+# --------------------------------------------------------------------------
+# PRIMARY — Distributor -> Chain, secondary-driven allocation
+#
+# Raw primary rows tag ONE "Chain Name" per row even for Distributor-billed
+# ("Dist.") ship-to accounts that actually supply SEVERAL chains -- so a
+# naive group-by-Chain-Name on Distributor rows is really distributor-wise,
+# not chain-wise. This mirrors what the Power BI model does explicitly
+# (Ship-To Master -> Fact Primary ShipTo, split by a secondary/offtake-
+# derived Cont%, see PowerBI/docs/DistributorPrimaryAllocation_Logic.md):
+# for each Distributor Ship-To x Brand x Month, re-split its primary NSV
+# across the chains it actually serves, weighted by that chain's share of
+# the ship-to's own secondary (offtake) billing that month. Direct rows are
+# unambiguous (one ship-to = one chain) and are never re-split.
+# --------------------------------------------------------------------------
+def load_primary_v2(src):
+    """Load primary from Primary_FY202426_10.xlsx (business-confirmed
+    2026-07-03 as source-of-truth; see PowerBI/docs/SIS_Reconciliation.md).
+    Same output shape as load_primary() plus the raw Ship-To / Direct-
+    Distributor columns needed for chain-level allocation."""
+    f = src / "Primary_FY202426_10.xlsx"
+    df = pd.read_excel(f, sheet_name="Dump", header=1)
+    df.columns = [str(c).strip() for c in df.columns]
+    df = df.dropna(how="all")
+    df = df[df["NSV"].notna()]
+    df["_ship_to"] = df["Bill to customer"].astype(str).str.strip()
+    df["_dist_flag"] = df["Direct/Distributor"].astype(str).str.strip()
+    df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
+    df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
+    df["Month"] = df["Month"].astype(str).str.strip()
+    return df
+
+def load_chain_allocation_weights(src):
+    """Read the secondary-driven Ship-To -> Chain Cont% allocation
+    (Dist_primary_cont_based_on_secondary_MOM.xlsx, Sheet2 = the already
+    chain-split Distributor rows). Returns {(ship_to_norm, brand_canon,
+    month_norm): [(chain_raw, fraction), ...]} with fractions derived from
+    the sheet's own NSV split (normalised to sum to 1 per key) rather than
+    trusting the printed Cont% column's rounding. Returns None if the file
+    isn't present in --src (allocation step is then skipped, unchanged
+    behaviour)."""
+    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+    if not f.exists():
+        return None
+    s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+    s2.columns = [str(c).strip() for c in s2.columns]
+    s2 = s2.dropna(subset=["NSV"])
+    s2["_key"] = list(zip(
+        s2["Ship To Name"].astype(str).str.strip().str.lower(),
+        s2["Brand"].map(canon_brand),
+        s2["Month"].astype(str).str.strip().str.lower(),
+    ))
+    weights = {}
+    for key, g in s2.groupby("_key"):
+        tot = g["NSV"].sum()
+        if tot <= 0:
+            continue
+        weights[key] = [(row["Chain Name"], row["NSV"] / tot) for _, row in g.iterrows()]
+    return weights
+
+def apply_chain_allocation(df, weights):
+    """Re-split Distributor ('Dist.') rows across the chains they actually
+    serve using `weights` (secondary-derived Cont%, see
+    load_chain_allocation_weights). Direct rows and any Distributor row with
+    no matching weight (no allocation data for that Ship-To x Brand x Month
+    -- e.g. FY24-25, which the allocation file doesn't cover) keep their
+    original single Chain Name tag, unchanged. Returns (new_df, qc) where qc
+    is a by-FY breakdown of how much Distributor value was actually
+    reallocated vs left on the raw tag, for the Chain Allocation QC card."""
+    if weights is None:
+        df["chain"] = df["Chain Name"].map(canon_chain)
+        return df, None
+    is_dist = df["_dist_flag"] == "Dist."
+    df["_key"] = list(zip(
+        df["_ship_to"].str.lower(),
+        df["Brand"].map(canon_brand),
+        df["Month"].str.lower(),
+    ))
+    matched = is_dist & df["_key"].isin(weights)
+    matched_rows = df[matched]
+    unmatched_rows = df[~matched]
+
+    exploded = []
+    for _, r in matched_rows.iterrows():
+        for chain_raw, frac in weights[r["_key"]]:
+            row = r.copy()
+            row["Chain Name"] = chain_raw
+            row["NSV"] = r["NSV"] * frac
+            row["MRP value"] = r["MRP value"] * frac
+            exploded.append(row)
+    exploded_df = pd.DataFrame(exploded) if exploded else df.iloc[0:0].copy()
+
+    out = pd.concat([unmatched_rows, exploded_df], ignore_index=True)
+    out["chain"] = out["Chain Name"].map(canon_chain)
+
+    # QC: how much Distributor primary was actually reallocated via the
+    # secondary-derived Cont% vs left on its raw single-chain tag, by FY.
+    qc_by_fy = {}
+    for fy, g in df[is_dist].groupby("FY"):
+        tot = float(g["NSV"].sum())
+        mval = float(g[matched.loc[g.index]]["NSV"].sum())
+        qc_by_fy[fy] = {
+            "distributor_primary": r2(tot),
+            "chain_allocated": r2(mval),
+            "raw_tag_fallback": r2(tot - mval),
+            "allocated_coverage_pct": r2(mval / tot * 100, 1) if tot else None,
+        }
+    total_dist = float(df[is_dist]["NSV"].sum())
+    total_matched = float(matched_rows["NSV"].sum())
+    qc = {
+        "method": "Distributor-billed ('Dist.') primary is re-split across the chains a "
+                  "ship-to actually serves, weighted by that chain's share of the ship-to's "
+                  "own secondary/offtake billing that Month x Brand (source: "
+                  "Dist_primary_cont_based_on_secondary_MOM.xlsx, mirrors the Power BI Ship-to "
+                  "allocation model). Direct-billed rows are unambiguous (1 ship-to = 1 chain) "
+                  "and are never re-split. Rows with no matching allocation entry for that "
+                  "Ship-To x Brand x Month (the allocation file does not cover FY24-25) keep "
+                  "their original single Chain Name tag.",
+        "distributor_primary_total": r2(total_dist),
+        "chain_allocated_total": r2(total_matched),
+        "raw_tag_fallback_total": r2(total_dist - total_matched),
+        "allocated_coverage_pct": r2(total_matched / total_dist * 100, 1) if total_dist else None,
+        "by_fy": qc_by_fy,
+        "unit": "INR Lakh",
+        "note": "'raw_tag_fallback' can be negative (pushing coverage % slightly above 100) "
+                "in a period where the unmatched remainder is dominated by return/credit-note "
+                "rows (negative NSV) that the secondary-based allocation file doesn't cover -- "
+                "this is a real property of the data, not a computation error.",
+    }
+    out["brand"] = out["Brand"].map(canon_brand)
+    out["zone"] = out["Zone"].map(canon_zone)
+    out["channel"] = out["Channel"].astype(str).str.strip()
+    return out, qc
 
 def primary_block(df):
     out = {}
@@ -820,6 +955,12 @@ def main():
     ap.add_argument("--detail-only", action="store_true",
                     help="only refresh detail_records in an existing data.js (needs File 2 in --src); "
                          "does not require the other source files")
+    ap.add_argument("--primary-only", action="store_true",
+                    help="refresh ONLY primary/pnl/insights in an existing data.js from "
+                         "Primary_FY202426_10.xlsx (+ optional Dist_primary_cont_based_on_"
+                         "secondary_MOM.xlsx for chain-level allocation); reuses the existing "
+                         "offtake/universe/promo blocks already in data.js, does not require "
+                         "those source files")
     a = ap.parse_args()
     src = Path(a.src)
 
@@ -838,6 +979,28 @@ def main():
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"detail-only: wrote {len(detail)} detail_records "
               f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}")
+        return
+
+    # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----
+    if a.primary_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        raw = load_primary_v2(src)
+        weights = load_chain_allocation_weights(src)
+        allocated, qc = apply_chain_allocation(raw, weights)
+        pdf, primary = primary_block(allocated)
+        pnl = pnl_block(pdf, obj["promo"])
+        insights = insights_block(primary, obj["offtake"], pnl, obj["universe"], obj["promo"])
+        obj["primary"] = primary
+        obj["pnl"] = pnl
+        obj["insights"] = insights
+        if qc is not None:
+            obj["chain_allocation_qc"] = qc
+        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        print(f"primary-only: FY25 {primary['nsv_fy25']} / FY26 {primary['nsv_fy26']} (Lakh); "
+              + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
+                 if qc else "no allocation file found -- chain tags left as-is"))
         return
 
     pdf, primary = primary_block(*[load_primary(src)])
