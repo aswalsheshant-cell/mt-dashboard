@@ -89,7 +89,12 @@ def split(path, outdir, sheet=None, month_col=None, header_row=0):
                     fh = open(fpath, "w", newline="", encoding="utf-8")
                     w = csv.writer(fh); w.writerow(header)
                     writers[safe] = w; files[safe] = fh; counts[safe] = 0
-                writers[safe].writerow(vals[:len(header)])
+                out_vals = vals[:len(header)]
+                # write the converted "Mon'YY" label, not the raw Excel serial —
+                # query 16 (Fact_PrimaryArticle.pq) parses Month as "Apr'24" text
+                # and would silently null out MonthStart on a raw numeric serial.
+                out_vals[mc] = label
+                writers[safe].writerow(out_vals)
                 counts[safe] += 1; total += 1
     for fh in files.values():
         fh.close()

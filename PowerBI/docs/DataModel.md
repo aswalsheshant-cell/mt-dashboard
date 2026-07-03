@@ -108,5 +108,42 @@ Ship-To Master[Ship To Name] 1 ─→ * Fact Primary ShipTo[Ship To Name]
   aggregate both to month.
 - Set **Zone** sort by `Zone Sort Order`, **Month** by `Month Year Sort`,
   **Brand** by `Brand Sort Order`, **Category** by `Category Sort Order`.
-```
+
+## Hierarchies (drill-down / drill-up)
+
+Native Power BI drill icons (the ⊙▼ / ⊙▲ chart-corner arrows and right-click
+"Drill down / Expand") only appear when a visual's axis field is an explicit
+**Hierarchy** object (Modeling ribbon → right-click the top field → "Create
+Hierarchy" → drag child levels in) or a manually stacked multi-field axis.
+None of these existed in the model until now — the star-schema tables above
+already carry all the needed columns, so no new relationships are required,
+only hierarchy objects on top of existing fields.
+
+Create these on the dimension tables:
+
+| Hierarchy | Table | Levels (top → bottom) | Used on |
+|---|---|---|---|
+| **Geography** | `Zone State Master` (or `Store Master`) | Zone → State → Chain → Store | Zone & State Performance page, Chain Performance page |
+| **Product** | `Article Master` | Category → Sub-category → Brand → Article | SKU / Article Performance page, TDP Distribution page |
+| **Product (pack)** | `Article Master` | Category → Brand → Pack Size → Article | SKU / Article Performance page (alt. drill path) |
+| **Time** | `Date Table` | FY → Quarter → Month | any trend visual with `Date Table[MonthStart]` on the axis (Date Table is already marked as the model's date table, so Power BI auto-adds a Year/Quarter/Month/Day time hierarchy — this row makes the FY-based version explicit since Honasa's FY is Apr–Mar, not calendar-year) |
+
+**Build steps in Power BI Desktop** (once per hierarchy):
+1. Model view → open the dimension table → right-click the top-level field
+   (e.g. `Zone`) → **Create Hierarchy**.
+2. Drag the remaining levels in, in order (e.g. `State`, then `Chain`, then
+   `Store`).
+3. On each visual that uses the top field on its axis, drop the *hierarchy*
+   object (not the bare field) — the drill arrows appear automatically in the
+   visual's top-right corner.
+4. Set **"Expand all down one level in the hierarchy"** vs **"Drill down"**
+   per visual as preferred (right-click the visual → Drill options), so users
+   can drill down to Store/Article and back up to Zone/Category with one
+   click, mirroring the HTML dashboard's filter-chip drill-up.
+
+This section closes the one confirmed gap found in this pass: the DAX/model
+files already support every level of these hierarchies as flat columns, but
+no `Hierarchy` object was ever defined, so the report-level drill icons would
+not have appeared without this step. See `PageLayouts.md` for the specific
+visuals each hierarchy should be dropped onto.
 ```

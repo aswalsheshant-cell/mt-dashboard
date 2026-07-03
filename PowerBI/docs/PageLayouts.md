@@ -95,6 +95,9 @@ current **or previous** month.)
 
 ## Page 3 — Chain Performance
 **Slicers:** Month, Zone, Brand, Category.
+**Drill:** put the **Geography** hierarchy (Zone → State → Chain → Store,
+`DataModel.md` § Hierarchies) on the treemap/bar axis instead of the bare
+`Chain` field to get native drill-down/up arrows (Zone → State → Chain → Store).
 
 **Visuals:**
 - **Chain NSV contribution** (treemap/bar): `Chain` × `NSV`, label `Contribution %`.
@@ -192,6 +195,10 @@ field-parameter), Month range.
 
 ## Page 7 — SKU / Article Performance
 **Slicers:** Month, Brand, Category, Sub-category, Chain, Pack Size.
+**Drill:** use the **Product** hierarchy (Category → Sub-category → Brand →
+Article, `DataModel.md` § Hierarchies) on the treemap/contribution visuals for
+native drill-down/up; use the **Product (pack)** hierarchy (Category → Brand →
+Pack Size → Article) on the pack-size performance bar.
 
 **Visuals:**
 - **Top 20 articles by NSV** (bar, Top N=20).
@@ -212,6 +219,10 @@ field-parameter), Month range.
 ## Page 8 — Zone & State Performance
 **Slicers:** Month, Brand, Category, Chain.
 **Zone order (enforce sort):** East · North · South-1 · South-2 · West · Pan India.
+**Drill:** put the **Geography** hierarchy (Zone → State → Chain → Store,
+`DataModel.md` § Hierarchies) on the Zone NSV bar and the filled map to enable
+native drill-down/up (Zone → State → Chain → Store) instead of the bare `Zone`
+field.
 
 **Visuals:**
 - **Zone NSV** (bar, sorted by Zone Sort Order) + `Contribution %`.
@@ -251,6 +262,9 @@ field-parameter), Month range.
 ## Page 10 — TDP Distribution Analysis
 **Slicers:** Month, Brand, Category, Sub-category, Chain, Zone, State, Pack Size.
 > TDP = Σ ACV % across SKUs. Available at Brand/Category/Sub-cat/Chain/Zone/State/Article/Pack.
+**Drill:** put the **Product** hierarchy on the Brand/Article/Category-wise TDP
+bars and the **Geography** hierarchy on the Chain-wise TDP bar
+(`DataModel.md` § Hierarchies) for native drill-down/up.
 
 **KPI cards:** `TDP`, `ACV %`, `AIC`, `Numeric Distribution`,
 `Weighted Distribution`, `Sales per TDP`, `Offtake per TDP`, `TDP MoM Growth %`,
