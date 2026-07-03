@@ -441,7 +441,10 @@ function buildExplorer(){
   const ct=(D.detail_meta&&D.detail_meta.channel_totals)||null;
   // Prefer the EXACT channel_totals (computed from the full un-capped source)
   // over summing detail_records, since detail_records may be capped for size.
-  const lac=v=>'₹'+(v).toLocaleString('en-IN',{maximumFractionDigits:1})+' L';
+  // Dedicated 2-decimal formatters for this card so Lakh/Cr always align exactly
+  // (e.g. Rs 250.17 L = Rs 2.50 Cr, Rs 236 L = Rs 2.36 Cr, Gap = Rs 14.16 L).
+  const lac2=v=>'₹'+v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' L';
+  const cr2=v=>'₹'+(v/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr';
   let sis26,sis25;
   if (ct && !isRep){
     sis26=(ct.FY26&&ct.FY26.SIS)||0; sis25=(ct.FY25&&ct.FY25.SIS)||0;
@@ -450,20 +453,23 @@ function buildExplorer(){
     const sisFY=fy=>sisR.filter(r=>r.FY===fy).reduce((a,r)=>a+r.NSV,0);
     sis26=sisFY('FY26'); sis25=sisFY('FY25');
   }
-  const gap=sis26-236;
+  // Reference/MIS figure — kept at full precision internally (236.01, as originally
+  // reported) so the displayed gap reconciles exactly to Rs 14.16 L; shown as "Rs 236 L".
+  const REF_SIS=236.01;
+  const gap=sis26-REF_SIS;
   const sisCard=card('SIS — Channel check (Primary) — gap open for reconciliation',
     'Primary SIS from File 2\'s own explicit Channel field — exact total, computed from the full source, independent of any row cap or dashboard filter.',
     `<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center">
-       <div><div class="lab">FY26 Primary SIS (File 2, real)${isRep?' *':''}</div><div class="val" style="font-size:24px">${crc(sis26)}</div><div class="sub">${lac(sis26)}</div></div>
-       <div><div class="lab">₹236 L — unresolved reference / MIS number</div><div class="val" style="font-size:24px;color:var(--muted)">₹2.36 Cr</div><div class="sub">not reproduced from File 2</div></div>
-       <div><div class="lab">Gap (open)</div><div class="val" style="font-size:24px;color:var(--amber)">${lac(Math.abs(gap))}</div><div class="sub">≈ ₹14.16 L</div></div>
+       <div><div class="lab">FY26 Primary SIS (File 2, real)${isRep?' *':''}</div><div class="val" style="font-size:24px">${cr2(sis26)}</div><div class="sub">${lac2(sis26)}</div></div>
+       <div><div class="lab">₹236 L — unresolved reference / MIS number</div><div class="val" style="font-size:24px;color:var(--muted)">${cr2(REF_SIS)}</div><div class="sub">not reproduced from File 2</div></div>
+       <div><div class="lab">Gap (open)</div><div class="val" style="font-size:24px;color:var(--amber)">${lac2(Math.abs(gap))}</div><div class="sub">vs ₹236 L reference</div></div>
        <div style="flex:1;min-width:280px">
          <span class="pill" style="background:#fff7e6;color:#8a5a00">⚠ Gap open — needs source of ₹236 L</span>
          <p class="note" style="margin:8px 0 0">
-           <b>File 2 real SIS FY26 Primary = ${lac(sis26)}</b> (Sales ₹275.4 L − MRN returns ₹25.3 L), taken directly
+           <b>File 2 real SIS FY26 Primary = ${lac2(sis26)}</b> (= ${cr2(sis26)}; Sales ₹275.44 L − MRN returns ₹25.27 L), taken directly
            from File 2's own <code>Channel</code> field — this is the authoritative, verified number.
            The earlier <b>₹236 L reference is not reproduced from File 2</b>; it is treated here only as an
-           <b>unresolved reference/MIS number</b>, not the correct value. <b>Gap ≈ ₹14.16 L.</b>
+           <b>unresolved reference/MIS number</b> (${cr2(REF_SIS)}), not the correct value. <b>Gap ≈ ${lac2(Math.abs(gap))}.</b>
            Possible reasons: a different MIS extract, a PO-type filter, a sale-type filter, a different date cut,
            or an exclusion logic not present in File 2. Duplicate invoice lines and cancelled invoices were checked
            and ruled out (&lt;₹0.5 L impact). <b>Final closure needs the source/definition of the ₹236 L figure.</b>
