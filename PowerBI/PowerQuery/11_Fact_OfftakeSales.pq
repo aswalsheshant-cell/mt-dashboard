@@ -17,8 +17,9 @@
 // eligibility gate (DAX 09) — no allocation logic changed here.
 // =====================================================================
 let
-    // Offtake workbooks include a blank first row, so the actual headers begin on row 1.
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly", 1),
+    // Workflow A: drop the splitter's month CSVs (clean header on row 0).
+    // (If instead you drop the RAW offtake workbook — blank first row — pass 1.)
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly", 0),
 
     // keep the columns the model needs (renaming only where required to hit the
     // canonical Fact Offtake Sales fields used by relationships & measures)
