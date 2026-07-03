@@ -97,14 +97,35 @@ with `Chain Name`, `Brand`, `Zone`, `Channel`, `FY`, `NSV`), but they are **two
 different extracts**, most likely pulled at different times or with different
 scope/filters, both self-describing as "primary" data.
 
-**`primary.xlsx` was never supplied for this investigation** — it was used only
-in the earlier session that produced the original dashboard build and is not
-available here, so a row-level diff against it has not been done. This is the
-**most concrete, evidenced explanation** for the ₹14.16 L gap: it is very
-likely simply a **different source file/extract**, not a filter or exclusion
-applied to File 2.
+**Update — `primary.xlsx`-equivalent file since supplied and checked:**
+`Primary_FY202426_10.xlsx` was provided and matches this file's shape exactly
+(`Dump` sheet: `Format, Chain Mapping, Bill to customer, Direct/Distributor,
+Chain Name, State, Zone, NSV, MRP value, Brand, Revised month, Month, FY,
+Channel, Chain Name for TGT, KAM` — 18,128 rows). Computed SIS FY26 directly
+from it:
 
-## Other candidate hypotheses (secondary, unverified)
+| Source (within this one file) | SIS FY26 |
+|---|---|
+| `Dump` sheet (raw rows, filtered `FY='FY_25-26'`, `Channel='SIS'`) | **₹250.17 L** |
+| `PVT` sheet, `SIS Total` row (Excel-native PivotTable, independently built) | **₹250.17 L** (month-by-month matches File 2 exactly: May 13.23, Jun 15.45, Jul 35.44, Aug 21.90, Sep 34.33, Oct 16.66 L, …) |
+
+**This is now THREE independent computations — File 2 (invoice-line grain),
+this file's raw `Dump` sheet, and this file's own Excel PivotTable — all
+agreeing exactly on ₹250.17 L.** None reproduce ₹236.01 L.
+
+**Dated evidence for staleness:** this file's metadata (`docProps/core.xml`)
+shows `created: 2026-03-12`, **`modified: 2026-06-29`**. The original dashboard
+build that produced ₹236.01 L is commit `bbeaeab`, dated **2026-06-27** — i.e.
+**two days before** this file was last modified. The most likely explanation:
+the ₹236.01 L figure was computed from an **earlier, staler pull** of this same
+underlying primary data (fewer captured invoices/rows as of ~June 27), and the
+dataset has since been updated/appended (new invoices, corrections) between
+June 27 and June 29, growing the true SIS FY26 total to ₹250.17 L. This is a
+strong hypothesis based on real dated evidence, not a proven fact — the exact
+state of the data as of June 27 was not preserved/version-controlled, so a
+byte-for-byte "before" snapshot is not available to prove it conclusively.
+
+## Other candidate hypotheses (secondary, weaker given the above)
 1. **A filter within `primary.xlsx` itself** — if that file's `Channel` field
    was populated by a different rule than File 2's, or the extract had its own
    date cut-off / PO-type / sale-type filter applied upstream before export.
@@ -114,17 +135,23 @@ applied to File 2.
 3. **A different FY/date boundary** — "last year" may mean a specific 12-month
    window that doesn't align exactly with the Apr'25–Mar'26 split used here.
 
-## What's needed to close this
-To pinpoint the exact ₹14.16 L driver, please share:
-- **`primary.xlsx` / "Primary FY-2024-26.xlsx"** (the file that originally
-  produced ₹236.01 L), so its SIS rows can be diffed row-by-row against File
-  2's 13,277 SIS FY26 rows — this is the fastest path to closure given the
-  traced-source finding above, **or**
-- **The source of the ₹236 L reference** if it's not that file (which
-  report/MIS pack, and its filter logic — e.g. does it exclude specific sale
-  types, chains, or PO types?), **or**
-- **Business sign-off** that ₹250.17 L (File 2, verified) is the source of
-  truth going forward, superseding the earlier ₹236.01 L figure.
+## What's needed to close this (updated)
+`Primary_FY202426_10.xlsx` was supplied and checked (see above) — it does
+**not** reproduce ₹236.01 L; it independently confirms ₹250.17 L three ways.
+So the row-level diff against a "different file" lead is now exhausted without
+finding the ₹236.01 L origin. To close the gap, one of the following is needed:
+- **The exact snapshot/export used for the original ₹236.01 L figure** — if it
+  was pulled before 2026-06-27 and archived anywhere (email attachment, an
+  earlier saved copy of this workbook, a report generated on/before that date),
+  sharing that would let it be diffed directly, **or**
+- **Confirmation of the staleness hypothesis** — if business can confirm the
+  primary dataset was updated with new SIS invoices/corrections between
+  2026-06-27 and 2026-06-29 (matching this file's `modified` timestamp), that
+  would explain the ₹14.16 L gap as a data-freshness difference, not a
+  definitional one, **or**
+- **Business sign-off** that ₹250.17 L (now confirmed by three independent
+  computations) is the source of truth going forward, superseding the earlier
+  ₹236.01 L figure.
 
 ## Model artifacts (unchanged, still useful once the true definition is known)
 - `SeedData/Masters/ChannelMap_Store.csv` / `ChannelMap_Chain.csv` +

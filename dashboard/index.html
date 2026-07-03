@@ -536,10 +536,14 @@ function buildExplorer(){
          <div><h5 style="color:var(--red)">Checked — NOT applied / excluded</h5><ul>${notApplied.map(e=>`<li>${e}</li>`).join('')||'<li>None</li>'}</ul></div>
        </div>
        <div class="repbanner" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3;margin-top:14px">
-         <b>Where ₹236 L likely comes from:</b> traced in the codebase to a <b>different source file</b> —
-         <code>primary.xlsx</code> ("Primary FY-2024-26.xlsx"), used in an earlier dashboard build — not a
-         filter/exclusion applied to File 2. That file was not supplied for this investigation, so a
-         row-level diff against it has not been done. See <code>PowerBI/docs/SIS_Reconciliation.md</code>.
+         <b>Cross-validated, still unresolved:</b> a second, independently-structured source
+         (<code>Primary_FY202426_10.xlsx</code> — its raw data <i>and</i> its own Excel PivotTable) was
+         checked and does <b>not</b> reproduce ₹236.01 L either — both give <b>₹250.17 L</b>, matching
+         File 2 exactly (3 independent computations now agree). That file's metadata shows it was last
+         modified <b>2026-06-29</b>, two days after the 2026-06-27 build that produced ₹236.01 L —
+         suggesting the ₹236.01 L figure came from a <b>staler data pull</b>, not a different definition.
+         Not proven — the pre-June-27 snapshot is not available to confirm directly.
+         See <code>PowerBI/docs/SIS_Reconciliation.md</code>.
        </div>
        <p class="note" style="margin:10px 0 0"><b>${sisGapStatus}</b></p>`)}`;
   } else {
