@@ -82,23 +82,6 @@
   .fchip b{cursor:pointer}
   .repbanner{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:10px;
       padding:9px 13px;font-size:12.5px;margin:0 0 14px}
-  .mergegate{background:var(--red);color:#fff;border-radius:10px;padding:14px 18px;
-      font-size:15px;font-weight:800;margin:0 0 16px;display:flex;align-items:center;gap:10px;
-      box-shadow:0 2px 8px rgba(192,57,43,.35)}
-  .mergegate.resolved{background:var(--green);box-shadow:0 2px 8px rgba(30,142,62,.35)}
-  .mergegate .ico{font-size:20px;line-height:1}
-  .recontable{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 4px}
-  .recontable td{padding:9px 12px;border-bottom:1px solid var(--line)}
-  .recontable td:first-child{color:var(--muted);font-weight:600;width:46%}
-  .recontable td:last-child{text-align:right;font-weight:700;font-size:14.5px}
-  .recontable tr.hl td{background:#e6f4ef}
-  .recontable tr.hl td:last-child{color:var(--teal-d)}
-  .recontable tr.ref td:last-child{color:var(--muted);font-weight:600}
-  .recontable tr.gap td:last-child{color:var(--amber)}
-  .exclbox{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0 0}
-  @media(max-width:760px){.exclbox{grid-template-columns:1fr}}
-  .exclbox h5{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
-  .exclbox ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:#374151}
 </style>
 </head>
 <body>
@@ -462,91 +445,18 @@ function buildExplorer(){
   // (e.g. Rs 250.17 L = Rs 2.50 Cr, Rs 236 L = Rs 2.36 Cr, Gap = Rs 14.16 L).
   const lac2=v=>'₹'+v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' L';
   const cr2=v=>'₹'+(v/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr';
-  let sis26,sis25;
+  let sis26;
   if (ct && !isRep){
-    sis26=(ct.FY26&&ct.FY26.SIS)||0; sis25=(ct.FY25&&ct.FY25.SIS)||0;
+    sis26=(ct.FY26&&ct.FY26.SIS)||0;
   } else {
     const sisR=recFilter('Channel').filter(r=>String(r.Channel).toUpperCase()==='SIS');
-    const sisFY=fy=>sisR.filter(r=>r.FY===fy).reduce((a,r)=>a+r.NSV,0);
-    sis26=sisFY('FY26'); sis25=sisFY('FY25');
+    sis26=sisR.filter(r=>r.FY==='FY26').reduce((a,r)=>a+r.NSV,0);
   }
-  // Rs 236 L and Rs 275.44 L (gross sales) were reviewed and rejected by business
-  // on 2026-07-03. Rs 250.17 L (File 2 Channel field, net of MRN returns) is the
-  // confirmed source of truth for Primary SIS FY26. Kept at full precision for
-  // audit trail; no longer treated as an open gap.
-  const REF_SIS=236.01;
-  const GROSS_SIS=275.44;
-  const sisCard=card('SIS — Channel check (Primary) — RESOLVED',
-    'Primary SIS from File 2\'s own explicit Channel field — exact total, computed from the full source, independent of any row cap or dashboard filter.',
-    `<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center">
-       <div><div class="lab">FY26 Primary SIS — CONFIRMED${isRep?' *':''}</div><div class="val" style="font-size:24px;color:var(--green)">${cr2(sis26)}</div><div class="sub">${lac2(sis26)}</div></div>
-       <div><div class="lab">₹236 L — NOT correct (superseded)</div><div class="val" style="font-size:24px;color:var(--muted);text-decoration:line-through">${cr2(REF_SIS)}</div><div class="sub">rejected by business 2026-07-03</div></div>
-       <div><div class="lab">₹275.44 L gross — NOT correct</div><div class="val" style="font-size:24px;color:var(--muted);text-decoration:line-through">${lac2(GROSS_SIS)}</div><div class="sub">before MRN returns; not the headline figure</div></div>
-       <div style="flex:1;min-width:280px">
-         <span class="pill g">✓ RESOLVED — ₹250.17 L confirmed by business</span>
-         <p class="note" style="margin:8px 0 0">
-           <b>File 2 real SIS FY26 Primary = ${lac2(sis26)}</b> (= ${cr2(sis26)}; Sales ₹275.44 L − MRN returns ₹25.27 L), taken directly
-           from File 2's own <code>Channel</code> field. <b>Confirmed by business (2026-07-03) as the source of truth.</b>
-           The earlier <b>₹236 L reference and the ₹275.44 L gross sales figure are both NOT correct</b> and should not be used.
-           See <code>PowerBI/docs/SIS_Reconciliation.md</code> for the full investigation and resolution record.${isRep?' <i>* illustrative on representative data.</i>':''}
-         </p>
-       </div>
-     </div>`);
-
-  // ---- SIS Reconciliation Drill-down (from the FULL, uncapped source) ----
-  const sisRecon=(D.detail_meta&&D.detail_meta.sis_reconciliation&&D.detail_meta.sis_reconciliation.FY26)||null;
-  const sisGapStatus=(D.detail_meta&&D.detail_meta.sis_gap_status)||'';
-  let sisReconCard='';
-  if (sisRecon && !isRep){
-    const sm=sisRecon.summary;
-    const rows3=(arr)=>arr.map(x=>`<tr><td>${x.name||x.month}</td><td>${lac2(x.value)}</td></tr>`).join('');
-    // split into "included/kept as-is" vs "checked & not applied" for the two-column exclusions view
-    const notApplied=sisRecon.exclusions.filter(e=>/NOT deduplicated|No rows or chains excluded/i.test(e));
-    const includedAsIs=sisRecon.exclusions.filter(e=>!notApplied.includes(e));
-    sisReconCard=`
-     <div class="mergegate resolved"><span class="ico">✓</span>
-       RESOLVED: ₹250.17 L confirmed by business as SIS FY26 Primary — ₹236 L and ₹275.44 L are NOT correct
-     </div>
-     ${card('SIS Reconciliation Drill-down (FY26) — resolved, kept for audit trail',
-      `Computed from all ${num(sisRecon.row_count)} SIS rows in the complete File 2 source (bypasses the 20,000-row display cap). Business confirmed ₹250.17 L on 2026-07-03.`,
-      `<table class="recontable">
-         <tr class="hl"><td>File 2 real SIS FY26 Primary — CONFIRMED</td><td>${lac2(sm.net_sis_value)}</td></tr>
-         <tr class="ref"><td>₹236 L — NOT correct (superseded)</td><td style="text-decoration:line-through">${lac2(236.01)}</td></tr>
-         <tr class="ref"><td>Sales value (gross) — NOT the headline figure</td><td style="text-decoration:line-through">${lac2(sm.total_sis_sales)}</td></tr>
-         <tr><td>MRN / returns value</td><td>${lac2(sm.mrn_returns)}</td></tr>
-         <tr><td>Cancelled invoice impact</td><td>${lac2(sm.cancelled_invoices)}</td></tr>
-       </table>
-       <div style="margin:12px 0 16px"><button class="fbtn ghost" id="sisExport">⭳ Export SIS reconciliation (CSV)</button></div>
-       <div class="grid g3">
-         <div><h4 style="margin:0 0 6px;font-size:13px">Chain-wise split</h4>
-           <div class="tablewrap" style="max-height:220px"><table><thead><tr><th>Chain</th><th>SIS (₹L)</th></tr></thead>
-           <tbody>${rows3(sisRecon.by_chain)}</tbody></table></div></div>
-         <div><h4 style="margin:0 0 6px;font-size:13px">Month-wise split</h4>
-           <div class="tablewrap" style="max-height:220px"><table><thead><tr><th>Month</th><th>SIS (₹L)</th></tr></thead>
-           <tbody>${rows3(sisRecon.by_month)}</tbody></table></div></div>
-         <div><h4 style="margin:0 0 6px;font-size:13px">Brand-wise split</h4>
-           <div class="tablewrap" style="max-height:220px"><table><thead><tr><th>Brand</th><th>SIS (₹L)</th></tr></thead>
-           <tbody>${rows3(sisRecon.by_brand)}</tbody></table></div></div>
-       </div>
-       <h4 style="margin:16px 0 2px;font-size:13px">Exclusions applied / not applied</h4>
-       <div class="exclbox">
-         <div><h5 style="color:var(--teal-d)">Included / applied as-is</h5><ul>${includedAsIs.map(e=>`<li>${e}</li>`).join('')}</ul></div>
-         <div><h5 style="color:var(--red)">Checked — NOT applied / excluded</h5><ul>${notApplied.map(e=>`<li>${e}</li>`).join('')||'<li>None</li>'}</ul></div>
-       </div>
-       <div class="repbanner" style="background:#e6f4ea;border-color:#b7dfc3;color:#1e5a30;margin-top:14px">
-         <b>RESOLVED (2026-07-03):</b> business confirmed <b>₹250.17 L</b> as the correct SIS FY26 Primary
-         figure; ₹236 L and the ₹275.44 L gross sales figure are <b>not correct</b> and should not be used
-         going forward. Investigation trail (three independent cross-validations, staleness evidence) kept
-         below for audit. See <code>PowerBI/docs/SIS_Reconciliation.md</code>.
-       </div>
-       <p class="note" style="margin:10px 0 0"><b>${sisGapStatus}</b></p>`)}`;
-  } else {
-    sisReconCard=`
-     ${card('SIS Reconciliation Drill-down','',
-      `<p class="note">Not available on representative data — refresh with the real File 2 source
-       (see <code>dashboard/README.md</code>) to populate the Sales/MRN/Cancelled/chain/month/brand
-       drill-down and export.</p>`)}`;
-  }
+  // SIS FY26 Primary — final confirmed figure only. Full investigation /
+  // audit trail (superseded reference values, resolution record) lives in
+  // PowerBI/docs/SIS_Reconciliation.md, not on the live dashboard.
+  const sisCard=isRep?'':card('SIS — Primary (FY26)','',
+    `<div class="val" style="font-size:24px">${cr2(sis26)}</div><div class="sub">${lac2(sis26)}</div>`);
 
   s.innerHTML=`<h2 class="sec">Data Explorer</h2>
    <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
@@ -559,7 +469,6 @@ function buildExplorer(){
      ${kpi('Realisation',mrp?((nsv/mrp)*100).toFixed(0)+'%':'–','NSV ÷ MRP')}
    </div>
    ${sisCard}
-   ${sisReconCard}
    <div class="grid g2">
      ${card('NSV by Chain — click to filter','',cv('exChain'))}
      ${card('NSV by Brand — click to filter','',cv('exBrand',true))}
@@ -586,7 +495,6 @@ function buildExplorer(){
   }
   s.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{F[b.dataset.k]='';onFilterChange();});
   const ex=document.getElementById('exExport'); if(ex) ex.onclick=()=>exportCSV(recs);
-  const sisEx=document.getElementById('sisExport'); if(sisEx) sisEx.onclick=()=>exportSISReconciliation(sisRecon,sisGapStatus);
 }
 function exportCSV(recs){
   const cols=['Month','FY','Channel','Zone','Chain','Brand','Category','SubCategory','PackSize','Article','NSV','MRP','Qty'];
@@ -595,35 +503,6 @@ function exportCSV(recs){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='mt_detail_filtered.csv';a.click();
 }
-function exportSISReconciliation(sisRecon,sisGapStatus){
-  if(!sisRecon) return;
-  const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
-  const lines=[];
-  lines.push('SIS Reconciliation Drill-down (FY26) — File 2, full uncapped source');
-  lines.push(`Status,${esc(sisGapStatus)}`);
-  lines.push('');
-  lines.push('Section,Metric,Value (Rs Lakh)');
-  const sm=sisRecon.summary;
-  lines.push(`Summary,1. Total SIS Sales,${sm.total_sis_sales}`);
-  lines.push(`Summary,2. MRN / Returns,${sm.mrn_returns}`);
-  lines.push(`Summary,3. Cancelled Invoices,${sm.cancelled_invoices}`);
-  lines.push(`Summary,4. Net SIS Value,${sm.net_sis_value}`);
-  lines.push('');
-  lines.push('Section,Chain,SIS Value (Rs Lakh)');
-  sisRecon.by_chain.forEach(x=>lines.push(`5. Chain-wise,${esc(x.name)},${x.value}`));
-  lines.push('');
-  lines.push('Section,Month,SIS Value (Rs Lakh)');
-  sisRecon.by_month.forEach(x=>lines.push(`6. Month-wise,${esc(x.month)},${x.value}`));
-  lines.push('');
-  lines.push('Section,Brand,SIS Value (Rs Lakh)');
-  sisRecon.by_brand.forEach(x=>lines.push(`7. Brand-wise,${esc(x.name)},${x.value}`));
-  lines.push('');
-  lines.push('Section,Exclusion / Inclusion Note');
-  sisRecon.exclusions.forEach(e=>lines.push(`8. Exclusions,${esc(e)}`));
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
-  a.download='sis_reconciliation_fy26.csv';a.click();
-}
-
 /* ---------------- nav ---------------- */
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
   ['pnl','P&L'],['forecast','Forecast'],['share','Market Share'],['insights','Insights & Way Forward']];
