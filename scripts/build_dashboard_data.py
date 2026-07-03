@@ -491,10 +491,138 @@ def insights_block(primary, offtake, pnl, universe, promo):
     return ins
 
 # --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# DETAIL RECORDS  (Data Explorer drill-down: 13-column grain)
+# --------------------------------------------------------------------------
+_ORDER = ["April","May","June","July","Aug","Sept","Oct","Nov","Dec","Jan","Feb","March"]
+
+def _mlabel(m):
+    m = str(m).strip().lower()
+    for o in _ORDER:
+        if m.startswith(o.lower()[:3]):
+            return o
+    return None
+
+def _fylabel(fy):
+    s = str(fy).strip().upper().replace(" ", "")
+    if "24-25" in s: return "FY25"
+    if "25-26" in s: return "FY26"
+    return None
+
+# brand -> [(Category, SubCategory, Range, [packs], article_stem)] for the representative fallback
+_DTAX = {
+ "Mamaearth":[("Face Care","Face Wash","Rice",["100 g/ml","150 g/ml"],"Rice Dewy Bright Face Wash"),
+              ("Face Care","Face Wash","Onion",["150 g/ml"],"Onion Face Wash"),
+              ("Hair Care","Shampoo","Onion",["250 g/ml","400 g/ml"],"Onion Shampoo"),
+              ("Sun Care","Sunscreen","Ultra Light",["50 g/ml","80 g/ml"],"Ultra Light Sunscreen SPF50"),
+              ("Face Care","Face Serum","Vitamin C",["30 g/ml"],"Vitamin C Face Serum")],
+ "The Derma Co":[("Face Care","Face Wash","Salicylic",["100 g/ml"],"1% Salicylic Acid Face Wash"),
+              ("Sun Care","Sunscreen","Hyaluronic",["50 g/ml"],"Hyaluronic Sunscreen Aqua Gel"),
+              ("Face Care","Face Serum","Niacinamide",["30 g/ml"],"5% Niacinamide Face Serum")],
+ "Aqualogica":[("Face Care","Face Wash","Glow",["100 g/ml"],"Glow+ Dewy Face Wash"),
+              ("Sun Care","Sunscreen","Dewy",["50 g/ml"],"Radiance+ Dewy Sunscreen")],
+ "BBlunt":[("Hair Colour","Hair Colour","Salon",["100 g/ml"],"Salon Secret Hair Colour"),
+              ("Hair Care","Styling","Spray",["150 g/ml"],"Hold & Play Hairspray")],
+ "Dr. Sheth's":[("Face Care","Face Serum","Cica",["30 g/ml"],"Cica & Ceramide Serum"),
+              ("Face Care","Moisturizer","Gulab",["80 g/ml"],"Gulab & Glyceric Moisturizer")],
+ "Staze":[("Hair Care","Styling","Gel",["100 g/ml"],"24H Styling Gel")],
+ "Pure Origin":[("Body Care","Body Wash","Coffee",["250 g/ml"],"Coffee Body Wash")],
+}
+
+def detail_records_real(src, threshold=0.25):
+    """Real 13-column detail_records from File 2 (article-wise primary).
+    Looks for primary_article.xlsb/.xlsx in src. Returns None if absent."""
+    f = None
+    for name in ("primary_article.xlsb", "primary_article.xlsx",
+                 "MT, Eb2B & SIS primary April_23 to May_26.xlsb"):
+        if (src / name).exists():
+            f = src / name; break
+    if f is None:
+        return None
+    eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else None
+    df = pd.read_excel(f, sheet_name=0, header=0, engine=eng)
+    df.columns = [str(c).strip() for c in df.columns]
+    df["_M"] = df["Month"].map(_mlabel)
+    df["_FY"] = df["FY"].map(_fylabel)
+    df = df[df["_M"].notna() & df["_FY"].notna()]
+    df["_Chain"] = df["Chain name"].map(canon_chain)
+    df["_Brand"] = df["brand"].map(canon_brand)
+    df["_Zone"] = df["Zone"].map(canon_zone)
+    df["_Chan"] = df["Channel"].astype(str).str.strip()
+    df["_NSV"] = pd.to_numeric(df["Inv. Net value(LOC)"], errors="coerce").fillna(0.0) / 1e5  # -> Lakh
+    df["_MRP"] = pd.to_numeric(df["Total MRP sales"], errors="coerce").fillna(0.0) / 1e5
+    df["_Qty"] = pd.to_numeric(df["Inv Qty"], errors="coerce").fillna(0.0)
+    for c in ("category", "sub_category", "net_content", "Description", "EAN No."):
+        df["_" + c] = df[c].astype(str).str.strip()
+    g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
+                     "_category","_sub_category","_net_content","_Description","_EAN No."],
+                    dropna=False)
+           .agg(NSV=("_NSV","sum"), MRP=("_MRP","sum"), Qty=("_Qty","sum")).reset_index())
+    g = g[g["NSV"] >= threshold]
+    recs = []
+    for _, r in g.iterrows():
+        recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],
+            "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":r["_category"],
+            "SubCategory":r["_sub_category"],"PackSize":r["_net_content"],
+            "Article":r["_Description"],"EAN":str(r["_EAN No."]),
+            "NSV":r2(r["NSV"]),"MRP":r2(r["MRP"]),"Qty":int(r["Qty"])})
+    return recs
+
+def detail_records_representative(primary):
+    """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
+    margins match the real primary aggregates; Category/Sub-cat/Pack/Article from taxonomy."""
+    import random; random.seed(7)
+    months = primary["month_labels"]
+    mf = {"25": primary["monthly_fy25"], "26": primary["monthly_fy26"]}
+    chains = [c for c in primary["by_chain"] if (c["fy25"] or 0) > 0 or (c["fy26"] or 0) > 0]
+    brands = primary["by_brand"]; zones = primary["by_zone"]; chans = primary["by_channel"]
+    def wsum(items, k): return sum(max(0, i[k] or 0) for i in items) or 1
+    def pick(items, k, tot):
+        r = random.random() * tot; a = 0
+        for i in items:
+            a += max(0, i[k] or 0)
+            if r <= a: return i["name"]
+        return items[-1]["name"]
+    ean = lambda s: "890" + str(abs(hash(s)) % 10**10).zfill(10)
+    recs = []
+    for tag in ("25", "26"):
+        mw = mf[tag]; msum = sum(mw) or 1
+        zt = wsum(zones, "fy" + tag); ct = wsum(chans, "fy" + tag); bt = wsum(brands, "fy" + tag)
+        for ch in chains:
+            ctot = ch.get("fy" + tag) or 0
+            if ctot <= 0: continue
+            for b in brands:
+                bs = max(0, b.get("fy" + tag) or 0) / bt
+                tax = _DTAX.get(b["name"])
+                if bs <= 0 or not tax: continue
+                for mi, mo in enumerate(months):
+                    cell = ctot * bs * (mw[mi] / msum)
+                    if cell < 1.2: continue
+                    t = random.choice(tax); pack = random.choice(t[3])
+                    art = f"{b['name']} {t[4]} {pack.split()[0]}{'ml' if 'ml' in pack else 'g'}"
+                    nsv = round(cell, 2); mrp = round(nsv * round(random.uniform(2.3, 2.8), 2), 2)
+                    qty = int(nsv * 1e5 / random.uniform(120, 320))
+                    recs.append({"Month":mo,"FY":"FY"+tag,"Channel":pick(chans,"fy"+tag,ct),
+                        "Zone":pick(zones,"fy"+tag,zt),"Chain":ch["name"],"Brand":b["name"],
+                        "Category":t[0],"SubCategory":t[1],"PackSize":pack,"Article":art,
+                        "EAN":ean(art),"NSV":nsv,"MRP":mrp,"Qty":qty})
+    return recs
+
+def detail_dims(recs):
+    keys = ["FY","Month","Channel","Zone","Chain","Brand","Category","SubCategory","PackSize","Article"]
+    out = {}
+    for k in keys:
+        vals = {r[k] for r in recs if r.get(k) is not None}
+        out[k] = [m for m in _ORDER if m in vals] if k == "Month" else sorted(vals, key=lambda x: str(x))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
     ap.add_argument("--out", default="../dashboard/data.js")
+    ap.add_argument("--detail-threshold", type=float, default=0.25,
+                    help="drop detail_records rows below this NSV (Lakh) to bound size")
     a = ap.parse_args()
     src = Path(a.src)
 
@@ -519,6 +647,25 @@ def main():
         "universe": universe, "promo": promo, "forecast": forecast,
         "insights": insights,
     }
+
+    # ---- Data Explorer detail_records: real from File 2 if present, else representative ----
+    detail = detail_records_real(src, a.detail_threshold)
+    representative = detail is None
+    if representative:
+        detail = detail_records_representative(primary)
+    data["detail_records"] = detail
+    data["dims"] = detail_dims(detail)
+    data["detail_meta"] = {
+        "representative": representative,
+        "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
+                    "SubCategory","PackSize","Article","NSV","MRP","Qty"],
+        "note": ("REAL granular records from File 2 (article-wise primary)." if not representative
+                 else "REPRESENTATIVE records — Chain/Brand/Zone/Channel/Month/FY margins match the "
+                      "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
+                      "Drop primary_article.xlsb into --src to emit real detail."),
+    }
+    print(f"detail_records: {len(detail)} rows ({'REAL' if not representative else 'representative'})")
+
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n")

@@ -39,9 +39,9 @@ PowerBI/
 │                               Primary Allocation Map + Override, Sales Team Mapping
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
-│  └─ 01..09_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
+│  └─ 01..10_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
 │                               TDP, Data-Quality, Ship-to Allocation, Forecast-QC,
-│                               Article-Allocation Eligibility (offtake-gated)
+│                               Article-Allocation Eligibility, SIS Reconciliation
 ├─ SeedData/                  ← reference tables + targets + mapping (edit by hand)
 │  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable, ForecastOverride
 │  ├─ Targets/FY2627_Targets.csv

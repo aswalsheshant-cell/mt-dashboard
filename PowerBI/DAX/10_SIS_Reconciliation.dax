@@ -1,0 +1,61 @@
+// =====================================================================
+// CHANNEL TAG + SIS RECONCILIATION
+// Fixes the "primary SIS 250 vs 236" gap by defining Channel consistently:
+//  - Primary (File 2 / Fact Primary Article) has an EXPLICIT Channel column
+//    (MT / EB2B / SIS) -> treated as the source of truth.
+//  - Offtake (store x article) has NO Channel -> derived below via a calc
+//    column: Store Code override -> Chain default -> "Unmapped" (never dropped).
+// Then Primary vs Offtake SIS is reconciled and any gap is located by chain.
+// =====================================================================
+
+// ---------- Calculated COLUMN on 'Fact Offtake Sales' ----------
+// (Modeling > New column, on the Fact Offtake Sales table)
+Offtake Channel =
+VAR _byStore =
+    LOOKUPVALUE ( 'Channel Map Store'[Channel],
+        'Channel Map Store'[Store Code], 'Fact Offtake Sales'[Store Code] )
+VAR _byChain =
+    LOOKUPVALUE ( 'Channel Map Chain'[Channel],
+        'Channel Map Chain'[Chain], 'Fact Offtake Sales'[Chain] )
+RETURN COALESCE ( _byStore, _byChain, "Unmapped" )
+
+// ---------- Channel splits ----------
+// PRIMARY (authoritative — explicit Channel from File 2 / Fact Primary Article)
+Primary NSV (Article) = SUM ( 'Fact Primary Article'[Primary NSV] )
+Primary SIS  = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "SIS" )
+Primary EB2B = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "EB2B" )
+Primary MT   = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "MT" )
+
+// OFFTAKE (derived Channel)
+Offtake SIS  = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "SIS" )
+Offtake EB2B = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "EB2B" )
+Offtake MT   = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "MT" )
+Offtake Unmapped Channel = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "Unmapped" )
+
+// ---------- Display in Cr (Indian) ----------
+Primary SIS (Cr) = DIVIDE ( [Primary SIS], 10000000 )
+Offtake SIS (Cr) = DIVIDE ( [Offtake SIS], 10000000 )
+
+// ---------- SIS reconciliation ----------
+SIS Variance = [Primary SIS] - [Offtake SIS]
+SIS Variance (Cr) = DIVIDE ( [SIS Variance], 10000000 )
+SIS Variance (Lacs) = DIVIDE ( [SIS Variance], 100000 )
+SIS Match =
+IF ( ABS ( [SIS Variance] ) < 100000, "OK (< Rs 1 L)", "Gap - investigate" )
+
+// Channel coverage: how much offtake resolved to a real channel (not Unmapped)
+Offtake Channel Coverage % =
+1 - DIVIDE ( [Offtake Unmapped Channel], [Total Offtake NSV] )
+
+// Sanity note on the "250 vs 236" symptom: Primary SIS must be sourced ONLY
+// from File 2's explicit Channel = "SIS" ([Primary SIS] above). The ship-to
+// primary (File 1) is MT-only and has no Channel, so it must NOT contribute to
+// any SIS total — if a SIS visual reads ~2.50 Cr instead of ~2.36 Cr, it is
+// pulling SIS from a non-File-2 source or double counting. Use [Primary SIS]
+// as the single SIS definition everywhere.
+
+// ---------- Reconciliation table helper ----------
+// Build a table visual: rows = Chain, values = [Primary SIS (Cr)],
+// [Offtake SIS (Cr)], [SIS Variance (Lacs)]. Sort by SIS Variance to see the
+// chains driving the ~Rs 14 L gap. Add 'Offtake Channel' = "Unmapped" as a
+// slicer to list stores whose channel didn't resolve.
