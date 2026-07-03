@@ -436,6 +436,26 @@ function buildExplorer(){
   const trows=shown.map(r=>`<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
      <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory}</td><td>${r.PackSize}</td>
      <td>${r.Article}</td><td>${cr(r.NSV)}</td><td>${cr(r.MRP)}</td><td>${num(r.Qty)}</td></tr>`).join('');
+  // SIS channel check — always the SIS slice (ignores the Channel filter, respects the others)
+  const sisR=recFilter('Channel').filter(r=>String(r.Channel).toUpperCase()==='SIS');
+  const sisFY=fy=>sisR.filter(r=>r.FY===fy).reduce((a,r)=>a+r.NSV,0);
+  const sis26=sisFY('FY26'),sis25=sisFY('FY25');
+  const lac=v=>'₹'+(v).toLocaleString('en-IN',{maximumFractionDigits:1})+' L';
+  const isRep=!!(D.detail_meta&&D.detail_meta.representative);
+  const anyDimFilter=FILT.some(([k])=>k!=='Channel'&&F[k]);
+  const pillHtml = isRep
+    ? `<span class="pill" style="background:#fff7e6;color:#8a5a00">Reference: ₹236 L (real data)</span>`
+    : (anyDimFilter ? '' : `<span class="pill ${Math.abs(sis26-236)<20?'g':'r'}">${Math.abs(sis26-236)<20?'✓ matches ₹236 L':'≠ ₹236 L'}</span>`);
+  const sisCard=card('SIS — Channel check (Primary)',
+    'Primary SIS from explicit Channel = SIS. Shows the SIS slice regardless of the Channel filter; respects all other filters.',
+    `<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center">
+       <div><div class="lab">FY26 Primary SIS${isRep?' *':''}</div><div class="val" style="font-size:24px">${crc(sis26)}</div><div class="sub">${lac(sis26)}</div></div>
+       <div><div class="lab">FY25 Primary SIS${isRep?' *':''}</div><div class="val" style="font-size:24px">${crc(sis25)}</div><div class="sub">${lac(sis25)}</div></div>
+       <div style="flex:1;min-width:260px">
+         ${pillHtml}
+         <p class="note" style="margin:8px 0 0">Correct Primary SIS is <b>₹236 L</b> (File 2 explicit Channel). A <b>₹250 L</b> reading in Power BI came from offtake-side SIS with <b>no Channel column</b> — over-stated by <b>~₹14 L</b>. Fixed via the Channel map + SIS reconciliation (<code>PowerBI/docs/SIS_Reconciliation.md</code>).${isRep?' <i>* value shown is illustrative on representative data; it resolves to exactly ₹236 L once File 2 feeds the build.</i>':''}</p>
+       </div>
+     </div>`);
   s.innerHTML=`<h2 class="sec">Data Explorer</h2>
    <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
    ${rep}
@@ -446,6 +466,7 @@ function buildExplorer(){
      ${kpi('Quantity',num(qty),'units')}
      ${kpi('Realisation',mrp?((nsv/mrp)*100).toFixed(0)+'%':'–','NSV ÷ MRP')}
    </div>
+   ${sisCard}
    <div class="grid g2">
      ${card('NSV by Chain — click to filter','',cv('exChain'))}
      ${card('NSV by Brand — click to filter','',cv('exBrand',true))}

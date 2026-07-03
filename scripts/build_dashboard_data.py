@@ -623,8 +623,33 @@ def main():
     ap.add_argument("--out", default="../dashboard/data.js")
     ap.add_argument("--detail-threshold", type=float, default=0.25,
                     help="drop detail_records rows below this NSV (Lakh) to bound size")
+    ap.add_argument("--detail-only", action="store_true",
+                    help="only refresh detail_records in an existing data.js (needs File 2 in --src); "
+                         "does not require the other source files")
     a = ap.parse_args()
     src = Path(a.src)
+
+    # ---- lightweight path: refresh ONLY detail_records in an existing data.js ----
+    if a.detail_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        detail = detail_records_real(src, a.detail_threshold)
+        representative = detail is None
+        if representative:
+            if "primary" not in obj:
+                raise SystemExit("No File 2 in --src and no primary block in data.js to synthesise from.")
+            detail = detail_records_representative(obj["primary"])
+        obj["detail_records"] = detail
+        obj["dims"] = detail_dims(detail)
+        obj["detail_meta"] = {"representative": representative,
+            "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
+                        "SubCategory","PackSize","Article","NSV","MRP","Qty"],
+            "note": ("REAL granular records from File 2 (article-wise primary)." if not representative
+                     else "REPRESENTATIVE records (File 2 not found in --src).")}
+        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        print(f"detail-only: wrote {len(detail)} detail_records ({'REAL' if not representative else 'representative'}) to {outp}")
+        return
 
     pdf, primary = primary_block(*[load_primary(src)])
     off_chains, off_zs = load_offtake(src)
