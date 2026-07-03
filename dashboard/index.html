@@ -63,6 +63,25 @@
   .wf li b{color:var(--teal-d)}
   footer{color:var(--muted);font-size:11.5px;text-align:center;padding:24px}
   .badge{display:inline-block;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:20px;font-size:11.5px;margin-top:8px}
+  .topbar{position:sticky;top:0;z-index:20;background:#fff;box-shadow:var(--shadow)}
+  nav{position:static;box-shadow:none}
+  .filterbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;
+      padding:10px 14px;border-top:1px solid var(--line);background:#fbfaf7}
+  .filterbar .fl{display:flex;flex-direction:column;gap:2px}
+  .filterbar .fl span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .filterbar select{font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;
+      border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:104px;max-width:180px}
+  .filterbar select:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .fbtn{font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;background:var(--teal);
+      border:0;border-radius:8px;padding:8px 14px;cursor:pointer;align-self:flex-end}
+  .fbtn:hover{background:var(--teal-d)}
+  .fbtn.ghost{background:#fff;color:var(--teal-d);border:1px solid var(--teal)}
+  .fcount{font-size:12px;color:var(--muted);align-self:center;margin-left:auto}
+  .fchip{display:inline-flex;align-items:center;gap:5px;background:#e6f4ef;color:var(--teal-d);
+      border:1px solid #bfe3d6;border-radius:16px;padding:2px 9px;font-size:11.5px;font-weight:600}
+  .fchip b{cursor:pointer}
+  .repbanner{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:10px;
+      padding:9px 13px;font-size:12.5px;margin:0 0 14px}
 </style>
 </head>
 <body>
@@ -71,8 +90,12 @@
   <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Forecast · Market Share</p>
   <span class="badge" id="hPeriod"></span>
 </header>
-<nav id="nav"></nav>
+<div class="topbar">
+  <nav id="nav"></nav>
+  <div id="filterbar" class="filterbar"></div>
+</div>
 <div class="wrap">
+  <section id="tab-explorer"></section>
   <section id="tab-overview"></section>
   <section id="tab-primary"></section>
   <section id="tab-offtake"></section>
@@ -338,16 +361,137 @@ function buildInsights(){
    ${card('Way forward — recommended actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
 }
 
+/* ---------------- DATA EXPLORER (drill-down + cascading filters) ---------------- */
+const REC = D.detail_records||[];
+const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],['Chain','Chain'],
+  ['Brand','Brand'],['Category','Category'],['SubCategory','Sub-category'],['PackSize','Pack Size'],['Article','Article']];
+const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
+const F={}; FILT.forEach(([k])=>F[k]='');
+
+// records passing all active filters (optionally ignoring one key for cascading options)
+function recFilter(except){
+  return REC.filter(r=>FILT.every(([k])=> k===except || !F[k] || String(r[k])===String(F[k]) ));
+}
+function optsFor(key){
+  const vals=[...new Set(recFilter(key).map(r=>r[key]))];
+  if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
+  else vals.sort((a,b)=>String(a).localeCompare(String(b)));
+  return vals;
+}
+function renderFilterBar(){
+  const fb=document.getElementById('filterbar');
+  const anyActive=FILT.some(([k])=>F[k]);
+  fb.innerHTML = FILT.map(([k,lab])=>{
+    const opts=optsFor(k), cur=F[k];
+    return `<label class="fl"><span>${lab}</span><select data-k="${k}">
+      <option value="">All</option>
+      ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');return `<option value="${s}" ${String(v)===String(cur)?'selected':''}>${v}</option>`;}).join('')}
+    </select></label>`;
+  }).join('')
+  + `<button class="fbtn ghost" id="fReset">↺ Reset filters</button>`
+  + `<span class="fcount" id="fCount">${anyActive?'Filtered · ':''}${num(recFilter().length)} records</span>`;
+  fb.querySelectorAll('select').forEach(sel=>sel.onchange=()=>{F[sel.dataset.k]=sel.value;onFilterChange();});
+  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]='');onFilterChange();};
+}
+function onFilterChange(){ renderFilterBar(); buildExplorer(); show('explorer'); }
+
+let expCharts=[];
+function expDestroy(){expCharts.forEach(c=>c.destroy());expCharts=[];}
+function grp(recs,key){const m={};recs.forEach(r=>m[r[key]]=(m[r[key]]||0)+r.NSV);
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
+function expBarH(id,key,entries){
+  const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
+  expCharts.push(new Chart(document.getElementById(id),{type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
+    options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=labels[els[0].index];onFilterChange();}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>crc(c.parsed.x)}}},
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}},y:{grid:{display:false}}}}}));
+}
+function expDonut(id,key,entries){
+  const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
+  expCharts.push(new Chart(document.getElementById(id),{type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
+    options:{cutout:'58%',onClick:(e,els)=>{if(els.length){F[key]=labels[els[0].index];onFilterChange();}},
+      plugins:{legend:{position:'right'},tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
+        return `${c.label}: ${crc(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}}}));
+}
+function expLine(id,recs){
+  const m={};recs.forEach(r=>m[r.Month]=(m[r.Month]||0)+r.NSV);
+  const labels=MORDER.filter(x=>x in m),data=labels.map(x=>m[x]);
+  expCharts.push(new Chart(document.getElementById(id),{type:'line',
+    data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:.32,borderWidth:2.4,pointRadius:2}]},
+    options:{onClick:(e,els)=>{if(els.length){F.Month=labels[els[0].index];onFilterChange();}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>crc(c.parsed.y)}}},
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}},x:{grid:{display:false}}}}}));
+}
+function buildExplorer(){
+  expDestroy();
+  const recs=recFilter();
+  const s=document.getElementById('tab-explorer');
+  const nsv=recs.reduce((a,r)=>a+r.NSV,0),mrp=recs.reduce((a,r)=>a+r.MRP,0),qty=recs.reduce((a,r)=>a+r.Qty,0);
+  const active=FILT.filter(([k])=>F[k]).map(([k,lab])=>`<span class="fchip">${lab}: ${F[k]} <b data-k="${k}" title="clear">✕</b></span>`).join(' ');
+  const rep=(D.detail_meta&&D.detail_meta.representative)
+    ? `<div class="repbanner"><b>Representative data.</b> Drill-down runs on <code>detail_records</code> whose Chain/Brand/Zone/Channel/Month/FY totals match the real primary; Category, Sub-category, Pack Size and Article are taxonomy placeholders until the granular source feeds <code>build_dashboard_data.py</code>.</div>` : '';
+  const cap=400, shown=recs.slice(0,cap);
+  const trows=shown.map(r=>`<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
+     <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory}</td><td>${r.PackSize}</td>
+     <td>${r.Article}</td><td>${cr(r.NSV)}</td><td>${cr(r.MRP)}</td><td>${num(r.Qty)}</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Data Explorer</h2>
+   <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
+   ${rep}
+   ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
+   <div class="kpis">
+     ${kpi('NSV (filtered)',crc(nsv),`${num(recs.length)} records`)}
+     ${kpi('MRP Value',crc(mrp),'gross basis')}
+     ${kpi('Quantity',num(qty),'units')}
+     ${kpi('Realisation',mrp?((nsv/mrp)*100).toFixed(0)+'%':'–','NSV ÷ MRP')}
+   </div>
+   <div class="grid g2">
+     ${card('NSV by Chain — click to filter','',cv('exChain'))}
+     ${card('NSV by Brand — click to filter','',cv('exBrand',true))}
+   </div>
+   <div class="grid g3">
+     ${card('By Category','',cv('exCat',true))}
+     ${card('By Channel','',cv('exChan',true))}
+     ${card('By Zone','',cv('exZone',true))}
+   </div>
+   ${card('NSV by Month (Apr→Mar) — click to filter','',cv('exMonth'))}
+   ${card(`Detail records${recs.length>cap?` — showing first ${cap} of ${num(recs.length)}`:` (${num(recs.length)})`}`,'Reflects all active filters.',
+     `<div style="margin:-4px 0 10px"><button class="fbtn ghost" id="exExport">⭳ Export filtered CSV</button></div>
+      <div class="tablewrap"><table><thead><tr>
+      <th>Month</th><th>FY</th><th>Channel</th><th>Zone</th><th>Chain</th><th>Brand</th><th>Category</th>
+      <th>Sub-cat</th><th>Pack</th><th>Article</th><th>NSV(₹Cr)</th><th>MRP(₹Cr)</th><th>Qty</th>
+      </tr></thead><tbody>${trows||'<tr><td colspan="13">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
+  if(recs.length){
+    expBarH('exChain','Chain',grp(recs,'Chain').slice(0,12));
+    expDonut('exBrand','Brand',grp(recs,'Brand'));
+    expDonut('exCat','Category',grp(recs,'Category'));
+    expDonut('exChan','Channel',grp(recs,'Channel'));
+    expDonut('exZone','Zone',grp(recs,'Zone'));
+    expLine('exMonth',recs);
+  }
+  s.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{F[b.dataset.k]='';onFilterChange();});
+  const ex=document.getElementById('exExport'); if(ex) ex.onclick=()=>exportCSV(recs);
+}
+function exportCSV(recs){
+  const cols=['Month','FY','Channel','Zone','Chain','Brand','Category','SubCategory','PackSize','Article','NSV','MRP','Qty'];
+  const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
+  const csv=[cols.join(',')].concat(recs.map(r=>cols.map(c=>esc(r[c])).join(','))).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='mt_detail_filtered.csv';a.click();
+}
+
 /* ---------------- nav ---------------- */
-const TABS=[['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
+const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
   ['pnl','P&L'],['forecast','Forecast'],['share','Market Share'],['insights','Insights & Way Forward']];
-const BUILD={overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
+const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   pnl:buildPnl,forecast:buildForecast,share:buildShare,insights:buildInsights};
 const built={};
 function show(id){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
   document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id==='tab-'+id));
-  if(!built[id]){BUILD[id]();built[id]=true;}
+  if(id==='explorer'){buildExplorer();}          // always rebuild for live filters
+  else if(!built[id]){BUILD[id]();built[id]=true;}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 (function init(){
@@ -356,6 +500,7 @@ function show(id){
   document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`;
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
+  renderFilterBar();
   show('overview');
 })();
 </script>

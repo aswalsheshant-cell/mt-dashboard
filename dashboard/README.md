@@ -55,3 +55,25 @@ emits `window.DASH` into `data.js`.
   share vs competitors is not in the source data.
 - **Forecast** is directional for planning (seasonally-indexed run-rate at the realised offtake
   YoY rate, clamped to 0-60%), not a financial commitment. Refresh monthly as actuals land.
+
+## Data Explorer (drill-down & filters)
+
+A **Data Explorer** tab plus a global **filter bar** (below the header) provide
+cascading drill-down across: FY · Month (Apr→Mar) · Channel · Zone · Chain ·
+Brand · Category · Sub-category · Pack Size · Article.
+
+- **Cascading:** each dropdown's options recompute from the currently filtered set.
+- **Click-to-filter:** clicking any Explorer chart bar/segment applies that slice.
+- **Reset filters** clears everything; active slices show as removable chips.
+- **Detail table** + **Export filtered CSV** reflect all active filters.
+- KPIs, charts and the table update live.
+
+Data source: `DASH.detail_records` (columns: Month, FY, Channel, Zone, Chain,
+Brand, Category, SubCategory, PackSize, Article, NSV, MRP, Qty).
+
+> The shipped `detail_records` is **representative**: Chain/Brand/Zone/Channel/
+> Month/FY totals are anchored to the real primary aggregates, while Category,
+> Sub-category, Pack Size and Article are Honasa-taxonomy placeholders
+> (`DASH.detail_meta.representative = true`). To make it fully real, have
+> `scripts/build_dashboard_data.py` emit `detail_records` from the granular
+> primary/offtake source at that 13-column grain and replace the array.
