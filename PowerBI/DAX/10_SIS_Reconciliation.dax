@@ -1,11 +1,26 @@
 // =====================================================================
 // CHANNEL TAG + SIS RECONCILIATION
-// Fixes the "primary SIS 250 vs 236" gap by defining Channel consistently:
+//
+// STATUS: investigation OPEN, not resolved. An earlier version of this file
+// assumed Rs 236 L was the correct Primary SIS FY26 figure and that a Rs 250 L
+// reading was an offtake-derivation artifact. That is RULED OUT: File 2's own
+// explicit Channel field (the intended source of truth) independently nets to
+// Rs 250.17 L for SIS FY26 -- confirmed by summing Inv. Net value(LOC) filtered
+// on Channel="SIS" directly from the raw source, with no offtake data involved.
+// Checked and ruled out as drivers of the Rs 14.16 L gap: negative/return lines
+// (-Rs 30.24 L, already netted in), MRN returns and cancelled invoices (netting
+// to the same Rs 250.17 L), and duplicate invoice lines (<Rs 0.5 L impact). See
+// docs/SIS_Reconciliation.md for the full investigation and what's needed to
+// close it (the source/definition of the Rs 236 L reference figure).
+//
+// What these measures still do:
 //  - Primary (File 2 / Fact Primary Article) has an EXPLICIT Channel column
-//    (MT / EB2B / SIS) -> treated as the source of truth.
+//    (MT / EB2B / SIS) -> treated as the source of truth for Primary SIS.
 //  - Offtake (store x article) has NO Channel -> derived below via a calc
 //    column: Store Code override -> Chain default -> "Unmapped" (never dropped).
-// Then Primary vs Offtake SIS is reconciled and any gap is located by chain.
+//  - Primary vs Offtake SIS is reconciled and any gap is located by chain --
+//    useful for tagging offtake by channel, but NOT what explains the Rs 14.16 L
+//    Primary-side gap (that gap exists entirely within File 2 itself).
 // =====================================================================
 
 // ---------- Calculated COLUMN on 'Fact Offtake Sales' ----------
@@ -47,12 +62,12 @@ IF ( ABS ( [SIS Variance] ) < 100000, "OK (< Rs 1 L)", "Gap - investigate" )
 Offtake Channel Coverage % =
 1 - DIVIDE ( [Offtake Unmapped Channel], [Total Offtake NSV] )
 
-// Sanity note on the "250 vs 236" symptom: Primary SIS must be sourced ONLY
-// from File 2's explicit Channel = "SIS" ([Primary SIS] above). The ship-to
-// primary (File 1) is MT-only and has no Channel, so it must NOT contribute to
-// any SIS total — if a SIS visual reads ~2.50 Cr instead of ~2.36 Cr, it is
-// pulling SIS from a non-File-2 source or double counting. Use [Primary SIS]
-// as the single SIS definition everywhere.
+// Sanity note: Primary SIS must be sourced ONLY from File 2's explicit
+// Channel = "SIS" ([Primary SIS] above) — never derived from the ship-to
+// primary (File 1 is MT-only, no Channel). [Primary SIS] correctly nets to
+// ~Rs 2.50 Cr FY26 per the raw source; that reading is NOT the bug (see the
+// header note above) — the open question is what the Rs 2.36 Cr reference
+// figure is actually defined as.
 
 // ---------- Reconciliation table helper ----------
 // Build a table visual: rows = Chain, values = [Primary SIS (Cr)],

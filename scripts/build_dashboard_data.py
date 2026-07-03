@@ -20,7 +20,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
-import argparse, csv, io, json, re, math
+import argparse, csv, io, json, re, math, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -497,12 +497,24 @@ def insights_block(primary, offtake, pnl, universe, promo):
 _ORDER = ["April","May","June","July","Aug","Sept","Oct","Nov","Dec","Jan","Feb","March"]
 
 _MNUM = {4:"April",5:"May",6:"June",7:"July",8:"Aug",9:"Sept",10:"Oct",11:"Nov",12:"Dec",1:"Jan",2:"Feb",3:"March"}
+_EXCEL_EPOCH = datetime.date(1899, 12, 30)
 
 def _mlabel(m):
     # datetime / Timestamp / date -> month name
-    if hasattr(m, "month") and not isinstance(m, str):
+    if hasattr(m, "month") and not isinstance(m, (str, int, float)):
         try:
             return _MNUM.get(int(m.month))
+        except Exception:
+            pass
+    # raw Excel date SERIAL (pandas + engine="pyxlsb" does NOT auto-convert
+    # date-formatted cells to datetime — it returns the underlying number).
+    # Plausible day-serial range for dates in ~2015-2035.
+    if isinstance(m, (int, float)) and not isinstance(m, bool):
+        try:
+            n = float(m)
+            if 40000 <= n <= 55000:
+                d = _EXCEL_EPOCH + datetime.timedelta(days=int(n))
+                return _MNUM.get(d.month)
         except Exception:
             pass
     m = str(m).strip().lower()
@@ -539,9 +551,17 @@ _DTAX = {
  "Pure Origin":[("Body Care","Body Wash","Coffee",["250 g/ml"],"Coffee Body Wash")],
 }
 
-def detail_records_real(src, threshold=0.25):
+def detail_records_real(src, max_rows=20000):
     """Real 13-column detail_records from File 2 (article-wise primary).
-    Looks for primary_article.xlsb/.xlsx in src. Returns None if absent."""
+    Looks for primary_article.xlsb/.xlsx in src. Returns None if absent, else
+    (recs, channel_totals, coverage) where channel_totals is computed from the
+    FULL un-capped data (so headline numbers like SIS are always exact) and
+    recs is capped to the top `max_rows` groups BY ABSOLUTE VALUE (not a flat
+    per-row threshold) to preserve total value coverage while bounding file size.
+    A flat threshold silently guts small-ticket channels (e.g. SIS is made of
+    many small line items) -- top-N-by-value keeps ~98%+ of total value at a
+    fraction of the full row count.
+    """
     f = None
     for name in ("primary_article.xlsb", "primary_article.xlsx",
                  "MT, Eb2B & SIS primary April_23 to May_26.xlsb"):
@@ -570,29 +590,54 @@ def detail_records_real(src, threshold=0.25):
                          f"Found: {list(df.columns)[:25]} ...")
     df["_M"] = df["Month"].map(_mlabel)
     df["_FY"] = df["FY"].map(_fylabel)
+    n_before = len(df)
     df = df[df["_M"].notna() & df["_FY"].notna()]
+    if len(df) == 0:
+        raise SystemExit(
+            "detail_records_real: 0 rows survived Month/FY parsing "
+            f"(source had {n_before} rows). Check that 'Month' and 'FY' columns "
+            "contain recognisable values (text like \"May'25\", a date, or an "
+            "Excel date serial); sample Month values: "
+            f"{df['Month'].head(5).tolist() if 'Month' in df else 'N/A'}")
     df["_Chain"] = df["Chain name"].map(canon_chain)
     df["_Brand"] = df["brand"].map(canon_brand)
     df["_Zone"] = df["Zone"].map(canon_zone)
-    df["_Chan"] = df["Channel"].astype(str).str.strip()
+    _CHAN_MAP = {"mt": "MT", "eb2b": "EB2B", "sis": "SIS"}
+    df["_Chan"] = df["Channel"].astype(str).str.strip().map(
+        lambda x: _CHAN_MAP.get(x.strip().lower(), x.strip()))
     df["_NSV"] = pd.to_numeric(df["Inv. Net value(LOC)"], errors="coerce").fillna(0.0) / 1e5  # -> Lakh
     df["_MRP"] = pd.to_numeric(df["Total MRP sales"], errors="coerce").fillna(0.0) / 1e5
     df["_Qty"] = pd.to_numeric(df["Inv Qty"], errors="coerce").fillna(0.0)
     for c in ("category", "sub_category", "net_content", "Description", "EAN No."):
         df["_" + c] = df[c].astype(str).str.strip().replace({"nan": "", "None": ""})
+
+    # ---- EXACT channel totals from the FULL data, before any row capping ----
+    ct = (df.groupby(["_FY", "_Chan"])["_NSV"].sum().round(2))
+    channel_totals = {}
+    for (fy, chan), v in ct.items():
+        channel_totals.setdefault(fy, {})[chan] = float(v)
+
     g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
                      "_category","_sub_category","_net_content","_Description","_EAN No."],
                     dropna=False)
            .agg(NSV=("_NSV","sum"), MRP=("_MRP","sum"), Qty=("_Qty","sum")).reset_index())
-    g = g[g["NSV"] >= threshold]
+    total_value = g["NSV"].sum()
+    rows_total = len(g)
+    # cap by ROW COUNT, keeping the top-N groups by |NSV| (preserves value fidelity)
+    g = g.reindex(g["NSV"].abs().sort_values(ascending=False).index)
+    kept = g.head(max_rows) if max_rows else g
+    coverage = float(kept["NSV"].sum() / total_value * 100) if total_value else 100.0
     recs = []
-    for _, r in g.iterrows():
+    for _, r in kept.iterrows():
         recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],
             "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":r["_category"],
             "SubCategory":r["_sub_category"],"PackSize":r["_net_content"],
             "Article":r["_Description"],"EAN":str(r["_EAN No."]),
             "NSV":r2(r["NSV"]),"MRP":r2(r["MRP"]),"Qty":int(r["Qty"])})
-    return recs
+    print(f"detail rows: {rows_total} groups total -> kept top {len(recs)} "
+          f"({coverage:.1f}% of total value)")
+    return recs, channel_totals, {"rows_total": rows_total, "rows_kept": len(recs),
+                                   "value_coverage_pct": round(coverage, 1)}
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -643,12 +688,43 @@ def detail_dims(recs):
     return out
 
 
+def _build_detail_meta(src, max_rows, primary_for_fallback):
+    """Shared by both the --detail-only path and the full build: returns
+    (detail_records, dims, detail_meta_dict). Falls back to the representative
+    synthesiser only when File 2 is absent."""
+    result = detail_records_real(src, max_rows)
+    if result is None:
+        detail = detail_records_representative(primary_for_fallback)
+        return detail, detail_dims(detail), {
+            "representative": True,
+            "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
+                        "SubCategory","PackSize","Article","NSV","MRP","Qty"],
+            "note": ("REPRESENTATIVE records — Chain/Brand/Zone/Channel/Month/FY margins match the "
+                     "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
+                     "Drop primary_article.xlsb into --src to emit real detail."),
+        }
+    detail, channel_totals, cov = result
+    meta = {
+        "representative": False,
+        "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
+                    "SubCategory","PackSize","Article","NSV","MRP","Qty"],
+        "note": "REAL granular records from File 2 (article-wise primary).",
+        "channel_totals": channel_totals,   # {FY: {Channel: NSV_Lakh}} — EXACT, computed pre-cap
+        "channel_totals_unit": "INR Lakh",
+        "rows_total_groups": cov["rows_total"],
+        "rows_kept": cov["rows_kept"],
+        "value_coverage_pct": cov["value_coverage_pct"],
+    }
+    return detail, detail_dims(detail), meta
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
     ap.add_argument("--out", default="../dashboard/data.js")
-    ap.add_argument("--detail-threshold", type=float, default=0.25,
-                    help="drop detail_records rows below this NSV (Lakh) to bound size")
+    ap.add_argument("--detail-max-rows", type=int, default=20000,
+                    help="cap detail_records to the top-N groups BY VALUE (preserves total-value "
+                         "fidelity far better than a flat per-row threshold); 0 = no cap")
     ap.add_argument("--detail-only", action="store_true",
                     help="only refresh detail_records in an existing data.js (needs File 2 in --src); "
                          "does not require the other source files")
@@ -660,21 +736,16 @@ def main():
         outp = Path(a.out)
         txt = outp.read_text()
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
-        detail = detail_records_real(src, a.detail_threshold)
-        representative = detail is None
-        if representative:
-            if "primary" not in obj:
-                raise SystemExit("No File 2 in --src and no primary block in data.js to synthesise from.")
-            detail = detail_records_representative(obj["primary"])
+        if "primary" not in obj and not (src / "primary_article.xlsb").exists() \
+                and not (src / "primary_article.xlsx").exists():
+            raise SystemExit("No File 2 in --src and no primary block in data.js to synthesise from.")
+        detail, dims, meta = _build_detail_meta(src, a.detail_max_rows, obj.get("primary"))
         obj["detail_records"] = detail
-        obj["dims"] = detail_dims(detail)
-        obj["detail_meta"] = {"representative": representative,
-            "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
-                        "SubCategory","PackSize","Article","NSV","MRP","Qty"],
-            "note": ("REAL granular records from File 2 (article-wise primary)." if not representative
-                     else "REPRESENTATIVE records (File 2 not found in --src).")}
+        obj["dims"] = dims
+        obj["detail_meta"] = meta
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
-        print(f"detail-only: wrote {len(detail)} detail_records ({'REAL' if not representative else 'representative'}) to {outp}")
+        print(f"detail-only: wrote {len(detail)} detail_records "
+              f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}")
         return
 
     pdf, primary = primary_block(*[load_primary(src)])
@@ -700,22 +771,12 @@ def main():
     }
 
     # ---- Data Explorer detail_records: real from File 2 if present, else representative ----
-    detail = detail_records_real(src, a.detail_threshold)
-    representative = detail is None
-    if representative:
-        detail = detail_records_representative(primary)
+    detail, dims, detail_meta = _build_detail_meta(src, a.detail_max_rows, primary)
     data["detail_records"] = detail
-    data["dims"] = detail_dims(detail)
-    data["detail_meta"] = {
-        "representative": representative,
-        "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
-                    "SubCategory","PackSize","Article","NSV","MRP","Qty"],
-        "note": ("REAL granular records from File 2 (article-wise primary)." if not representative
-                 else "REPRESENTATIVE records — Chain/Brand/Zone/Channel/Month/FY margins match the "
-                      "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
-                      "Drop primary_article.xlsb into --src to emit real detail."),
-    }
-    print(f"detail_records: {len(detail)} rows ({'REAL' if not representative else 'representative'})")
+    data["dims"] = dims
+    data["detail_meta"] = detail_meta
+    print(f"detail_records: {len(detail)} rows "
+          f"({'REAL' if not detail_meta['representative'] else 'representative'})")
 
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)

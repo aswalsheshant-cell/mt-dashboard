@@ -121,7 +121,11 @@ python scripts/build_dashboard_data.py \
 
 On success it prints `detail_records: N rows (REAL)` and
 `detail_meta.representative` flips to **false** — the amber banner disappears and
-the SIS card resolves to exactly ₹236 L.
+the SIS card shows the exact Primary SIS total from File 2's own Channel field
+(computed from the full source, independent of the row cap — see
+`detail_meta.channel_totals`). Note: this resolves to **₹250 L**, not the
+previously-assumed ₹236 L reference; that gap is still under investigation —
+see `PowerBI/docs/SIS_Reconciliation.md`.
 
 ### Then
 Open `dashboard/index.html` in any browser to validate, then commit **only**
