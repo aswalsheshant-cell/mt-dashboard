@@ -123,9 +123,12 @@ On success it prints `detail_records: N rows (REAL)` and
 `detail_meta.representative` flips to **false** — the amber banner disappears and
 the SIS card shows the exact Primary SIS total from File 2's own Channel field
 (computed from the full source, independent of the row cap — see
-`detail_meta.channel_totals`). Note: this resolves to **₹250 L**, not the
-previously-assumed ₹236 L reference; that gap is still under investigation —
-see `PowerBI/docs/SIS_Reconciliation.md`.
+`detail_meta.channel_totals`). **File 2 real SIS FY26 Primary = ₹250.17 L**
+(verified, authoritative). The earlier **₹236 L is not reproduced from File 2**
+and is shown only as an **unresolved reference/MIS number** — the **~₹14.16 L
+gap is flagged open for reconciliation**, not closed. See
+`PowerBI/docs/SIS_Reconciliation.md` for the investigation and what's needed to
+close it.
 
 ### Then
 Open `dashboard/index.html` in any browser to validate, then commit **only**

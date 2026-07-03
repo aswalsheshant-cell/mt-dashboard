@@ -450,14 +450,25 @@ function buildExplorer(){
     const sisFY=fy=>sisR.filter(r=>r.FY===fy).reduce((a,r)=>a+r.NSV,0);
     sis26=sisFY('FY26'); sis25=sisFY('FY25');
   }
-  const sisCard=card('SIS — Channel check (Primary) — investigation open',
-    'Primary SIS from File 2\'s explicit Channel field (exact total, independent of any row cap or dashboard filter).',
+  const gap=sis26-236;
+  const sisCard=card('SIS — Channel check (Primary) — gap open for reconciliation',
+    'Primary SIS from File 2\'s own explicit Channel field — exact total, computed from the full source, independent of any row cap or dashboard filter.',
     `<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center">
-       <div><div class="lab">FY26 Primary SIS${isRep?' *':''}</div><div class="val" style="font-size:24px">${crc(sis26)}</div><div class="sub">${lac(sis26)}</div></div>
-       <div><div class="lab">FY25 Primary SIS${isRep?' *':''}</div><div class="val" style="font-size:24px">${crc(sis25)}</div><div class="sub">${lac(sis25)}</div></div>
-       <div style="flex:1;min-width:260px">
-         <span class="pill" style="background:#fff7e6;color:#8a5a00">⚠ Rs 14.16 L gap vs Rs 236 L reference — unresolved</span>
-         <p class="note" style="margin:8px 0 0">File 2's own Channel=SIS field nets to <b>${lac(sis26)}</b> for FY26 (Sales ₹275.4 L − MRN returns ₹25.3 L). This does <b>not</b> match the ₹236 L reference figure — a correction proposed earlier (missing Channel column on the offtake side) has been <b>ruled out</b>, since this reading comes from primary's own explicit Channel, not a derived one. Duplicate invoice lines and cancelled invoices were checked and are not the driver (&lt;₹0.5 L impact). See <code>PowerBI/docs/SIS_Reconciliation.md</code> for the full investigation and what's needed to close it (source/definition of the ₹236 L reference).${isRep?' <i>* illustrative on representative data.</i>':''}</p>
+       <div><div class="lab">FY26 Primary SIS (File 2, real)${isRep?' *':''}</div><div class="val" style="font-size:24px">${crc(sis26)}</div><div class="sub">${lac(sis26)}</div></div>
+       <div><div class="lab">₹236 L — unresolved reference / MIS number</div><div class="val" style="font-size:24px;color:var(--muted)">₹2.36 Cr</div><div class="sub">not reproduced from File 2</div></div>
+       <div><div class="lab">Gap (open)</div><div class="val" style="font-size:24px;color:var(--amber)">${lac(Math.abs(gap))}</div><div class="sub">≈ ₹14.16 L</div></div>
+       <div style="flex:1;min-width:280px">
+         <span class="pill" style="background:#fff7e6;color:#8a5a00">⚠ Gap open — needs source of ₹236 L</span>
+         <p class="note" style="margin:8px 0 0">
+           <b>File 2 real SIS FY26 Primary = ${lac(sis26)}</b> (Sales ₹275.4 L − MRN returns ₹25.3 L), taken directly
+           from File 2's own <code>Channel</code> field — this is the authoritative, verified number.
+           The earlier <b>₹236 L reference is not reproduced from File 2</b>; it is treated here only as an
+           <b>unresolved reference/MIS number</b>, not the correct value. <b>Gap ≈ ₹14.16 L.</b>
+           Possible reasons: a different MIS extract, a PO-type filter, a sale-type filter, a different date cut,
+           or an exclusion logic not present in File 2. Duplicate invoice lines and cancelled invoices were checked
+           and ruled out (&lt;₹0.5 L impact). <b>Final closure needs the source/definition of the ₹236 L figure.</b>
+           See <code>PowerBI/docs/SIS_Reconciliation.md</code>.${isRep?' <i>* illustrative on representative data.</i>':''}
+         </p>
        </div>
      </div>`);
   s.innerHTML=`<h2 class="sec">Data Explorer</h2>

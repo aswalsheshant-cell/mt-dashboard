@@ -1,17 +1,17 @@
 // =====================================================================
-// CHANNEL TAG + SIS RECONCILIATION
+// CHANNEL TAG + SIS RECONCILIATION  --  gap OPEN, not resolved
 //
-// STATUS: investigation OPEN, not resolved. An earlier version of this file
-// assumed Rs 236 L was the correct Primary SIS FY26 figure and that a Rs 250 L
-// reading was an offtake-derivation artifact. That is RULED OUT: File 2's own
-// explicit Channel field (the intended source of truth) independently nets to
-// Rs 250.17 L for SIS FY26 -- confirmed by summing Inv. Net value(LOC) filtered
-// on Channel="SIS" directly from the raw source, with no offtake data involved.
-// Checked and ruled out as drivers of the Rs 14.16 L gap: negative/return lines
-// (-Rs 30.24 L, already netted in), MRN returns and cancelled invoices (netting
-// to the same Rs 250.17 L), and duplicate invoice lines (<Rs 0.5 L impact). See
-// docs/SIS_Reconciliation.md for the full investigation and what's needed to
-// close it (the source/definition of the Rs 236 L reference figure).
+// - File 2 real SIS FY26 Primary = Rs 250.17 L (from File 2's own Channel
+//   field -- verified, authoritative; no derivation, no offtake data involved).
+// - The earlier Rs 236 L figure is NOT reproduced from File 2. Treat it only
+//   as an unresolved reference / MIS number, not the correct value.
+// - Gap = approx Rs 14.16 L, flagged OPEN for reconciliation.
+// - Possible reasons: a different MIS extract, a PO-type filter, a sale-type
+//   filter, a different date cut, or an exclusion logic not present in File 2.
+// - Final closure needs the source/definition of the Rs 236 L figure.
+// Ruled out as drivers: negative/return lines (-Rs 30.24 L, already netted),
+// MRN returns and cancelled invoices (net unchanged), duplicate invoice lines
+// (<Rs 0.5 L impact). Full investigation: docs/SIS_Reconciliation.md.
 //
 // What these measures still do:
 //  - Primary (File 2 / Fact Primary Article) has an EXPLICIT Channel column

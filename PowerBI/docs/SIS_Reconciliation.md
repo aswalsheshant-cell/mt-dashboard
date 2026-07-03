@@ -1,15 +1,23 @@
-# SIS Reconciliation — "Primary SIS 250 vs 236" (investigation, still OPEN)
+# SIS Reconciliation — gap open for reconciliation (NOT resolved)
 
 > **Correction to an earlier version of this doc:** an earlier pass claimed the
 > ₹250 L reading was caused by the offtake side deriving SIS with no Channel
 > column, and that ₹236 L (from an older, differently-scoped dashboard build)
-> was the correct figure. **That theory is ruled out below** — once the real
-> File 2 (`primary_article.xlsb`, the article-wise primary billing with its own
-> explicit `Channel` field) was actually loaded, it independently nets to
-> **₹250.17 L for SIS FY26**, not ₹236 L. Since File 2's own Channel field is the
-> intended source of truth for Primary SIS, the ₹14.16 L gap is **not** an
-> offtake-derivation artifact. Root cause is still **unresolved** — see
-> "What's needed to close this" below.
+> was the correct figure. **That theory is ruled out below.**
+
+## Summary (current status)
+- **File 2 real SIS FY26 Primary = ₹250.17 L** — computed directly from File 2's
+  own `Channel` field (`primary_article.xlsb`), no derivation, no offtake data
+  involved. This is the **verified, authoritative** number.
+- **The earlier ₹236 L figure is not reproduced from File 2.** It is treated
+  here only as an **unresolved reference / MIS number**, not the correct value.
+- **Gap = approx ₹14.16 L**, and it is **flagged OPEN for reconciliation** — not
+  closed, not explained.
+- **Possible reasons for the gap:** a different MIS extract, a PO-type filter, a
+  sale-type filter, a different date cut, or an exclusion logic not present in
+  File 2 (see the investigation and hypotheses below).
+- **Final closure needs the source/definition of the ₹236 L figure** — see
+  "What's needed to close this."
 
 ## What the real primary source (File 2) shows
 Loaded `primary_article.xlsb` (289,144 invoice lines, FY25-26 + FY26-27) and
