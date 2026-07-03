@@ -281,15 +281,34 @@ Article key = EAN → Article Code → cleaned Description. All other invoice co
 etc.) are intentionally not loaded. **Direct/Distributor** is not in File 2 — it is
 sourced from `Ship-To Master` / File 1 by `Ship To Name`.
 
-## Offtake-side mapping — still need the STORE × ARTICLE headers
-The offtake headers shared (`Bill to customer, Direct/Distributor, Chain Name,
-State, Zone, NSV, MRP value, Brand, Revised month, Month, FY, Channel`) are the
-**bill-to × chain × brand secondary** schema (same shape as File 1, NSV =
-secondary value). It has **no Article / EAN / Store columns**, so it can validate
-the gate only at **Chain × Brand**, not Article. The **article-level** eligibility
-gate needs the store×article offtake headers — run:
-`python scripts/split_offtake_store_article_xlsb.py "FY-24-26 Chain offtake Store Wise File till May.xlsb" --headers-only`
-and paste that header line so the offtake query (11) mapping is locked too.
+## Offtake (store × article) header mapping — LOCKED (query 11)
+Confirmed from the store×article offtake header row. No assumptions.
+
+| Canonical (model) | Offtake source header |
+|---|---|
+| Month / MonthStart | `Month` (`Revised Month` kept as alternate period) |
+| FY Year | `Year` |
+| Chain | `Chain Name` |
+| Zone / State / City | `Zone` / `State` / `City` |
+| Store Code / Store Name | `Site Code` / `Site Name` |
+| Brand | `Brand` |
+| Category / Sub-category / Range | `Category` / `Sub_category` / `Range` |
+| Pack Size | `Net Weight` |
+| Article Code | `Article` (`Article_1` → `Article Code Alt`) |
+| EAN Code | `EAN` |
+| Article Description | `Description as per Fountain` (`Chain Article Description` kept) |
+| Offtake Qty | `Sales Qty` |
+| Offtake NSV | `NSV` |
+| MRP Sales | `MRP Sales Value` (`MRP` → `MRP Rate`) |
+| Sales Person / SO Emp Code | `SO/ASE Name` / `SO/ASE Emp Code` |
+| Store Type / DC Name / Margin / PPT Category | same |
+
+- Article key = **EAN → Article Code → cleaned Description** (identical rule to
+  File 2, so the eligibility gate joins Chain × Brand × Article across both).
+- Only 1 minor judgement: `Article` → Article Code, `Article_1` → alternate.
+  Because EAN is the priority join key, this does not affect eligibility matching.
+- **No allocation logic changed** — this only lands the offtake validation base
+  that DAX 09 already reads.
 
 ## To finalize (what I need from you)
 1. **Confirm File 2's actual column headers** (so query 16 `Renamed` mapping is
