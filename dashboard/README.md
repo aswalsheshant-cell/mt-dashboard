@@ -37,6 +37,18 @@ place, it does not jump you to a different tab. The Data Explorer tab is
 still there whenever you want the raw row-level records for whatever's
 currently filtered — visit it any time, it always reflects the active filter.
 
+### Category → Sub-category drill chart, on every tab
+Every single tab (Overview, Primary, Offtake, P&L, Category & Pack, Forecast,
+Promo, Market Share, Distribution, Performance & Comparison, Insights, Data
+Explorer) carries an **"NSV by Category"** bar chart at the bottom, driven
+off the article-level detail (REC) and respecting whatever filters are
+currently active. Click a Category bar to drill into that category's
+**Sub-categories** in place (chart title becomes `Sub-categories of "X"`); a
+**"← All Categories"** button backs out. This works even on tabs whose own
+native data source (Offtake/P&L/Universe/Promo) has no Category dimension at
+all, since it's powered independently by the article-level detail rather than
+each tab's own aggregates.
+
 Two honest limits, by design, not bugs:
 - **FY26-27 ("FY27") has no actuals** in Primary/Offtake/P&L/Market Share —
   only the article-level detail (partial) and the Forecast tab's TY target
