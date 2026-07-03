@@ -490,20 +490,29 @@ def promo_block(src):
 #
 # TOT% = 1 - (NSV + Tax) / MRP, i.e. the share of MRP given up as on-invoice
 # trade margin once GST is added back on top of NSV. Tax = NSV x applicable
-# GST rate: flat 18% for every transaction before the Nov'25 GST 2.0 rate
-# rationalisation cutover; from Nov'25 onward, rate is looked up per Category
-# from the editable PowerBI/SeedData/Masters/GST_Rate_Table.csv. Several
-# categories in that table are LOW-confidence best-effort mappings (no
-# official HSN-code-level source was available) -- verify against Honasa's
-# Finance/Tax records before treating TOT% as final; the table's Confidence/
-# Note columns and this block's "methodology" string surface that caveat
-# wherever TOT% is displayed.
+# GST rate: Pre_GST_Rate_Pct before that category's cutover date, Post_GST_
+# Rate_Pct on/after it, both from the editable repo seed CSV
+# PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv (a per-category cutover
+# override lives in that CSV's Effective_From column; if blank, the GLOBAL
+# default cutover date from PowerBI/SeedData/Masters/GST_Config.csv is used
+# -- default 2025-09-22, the GST Council's confirmed GST 2.0 effective date;
+# edit that file's single cell if Honasa's internal billing cutover differs).
+# Several categories in the QC table are LOW-confidence best-effort mappings
+# (no official HSN-code-level source was available) and every row starts
+# Finance_Approved=Pending -- verify against Honasa's Finance/Tax records
+# before treating TOT% as final. This block's "methodology" string and the
+# QC table's own columns surface that caveat wherever TOT% is displayed.
 # --------------------------------------------------------------------------
-GST_CUTOVER_MONTH_ORD = 2025 * 12 + 11   # November 2025
 _MONTH_IDX = {"April": 0, "May": 1, "June": 2, "July": 3, "Aug": 4, "Sept": 5,
               "Oct": 6, "Nov": 7, "Dec": 8, "Jan": 9, "Feb": 10, "March": 11}
 _FY_START_YEAR = {"FY25": 2024, "FY26": 2025, "FY27": 2026}
 _CAL_MONTH = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3]   # Apr..Mar, aligned to _MONTH_IDX order
+_GST_MASTERS_DIR = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters"
+_GST_QC_CSV = _GST_MASTERS_DIR / "GST_Rate_QC_Table.csv"
+_GST_CONFIG_CSV = _GST_MASTERS_DIR / "GST_Config.csv"
+_GST_QC_COLUMNS = ["Category", "HSN_Code", "Pre_GST_Rate_Pct", "Post_GST_Rate_Pct",
+                    "Effective_From", "Confidence", "Finance_Approved",
+                    "Impact_on_TOT_pct", "Note"]
 
 def month_ord(month_name, fy_tag):
     """Sortable (calendar_year*12 + calendar_month) for a dashboard Month
@@ -516,39 +525,111 @@ def month_ord(month_name, fy_tag):
     cal_year = y0 + (1 if idx >= 9 else 0)   # Jan/Feb/March roll into the next calendar year
     return cal_year * 12 + _CAL_MONTH[idx]
 
-def load_gst_rate_table():
-    """Category -> post-Nov'25 GST% from the editable repo seed CSV. Missing
-    file or unparsable row falls back to the 18% standard-slab default at
-    lookup time (gst_rate_for), not here, so a partially-edited CSV degrades
-    gracefully."""
-    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "GST_Rate_Table.csv"
-    rates = {}
-    if path.exists():
-        with open(path, newline="", encoding="utf-8") as fh:
+def date_to_month_ord(date_str):
+    """'2025-09-22' -> (2025*12+9). Returns None for blank/unparsable."""
+    if not date_str or not str(date_str).strip():
+        return None
+    try:
+        y, m, _ = str(date_str).strip().split("-")
+        return int(y) * 12 + int(m)
+    except (ValueError, AttributeError):
+        return None
+
+def load_gst_cutover_date():
+    """Global default GST cutover date from the editable GST_Config.csv, as
+    (month_ord, raw_date_str). month_ord is what the row-level cutover
+    comparison actually uses (dashboard Month/FY data has no day-of-month
+    granularity, so the comparison can only resolve to "on/after this
+    calendar month" regardless of which day in that month is configured);
+    raw_date_str is the exact string from the CSV, preserved for display so
+    e.g. "2025-09-22" doesn't get silently rounded down to "2025-09-01" in
+    the UI. Falls back to 2025-09-22 (GST Council's confirmed GST 2.0
+    effective date) if the file is missing or unparsable."""
+    default_str = "2025-09-22"
+    if _GST_CONFIG_CSV.exists():
+        with open(_GST_CONFIG_CSV, newline="", encoding="utf-8") as fh:
             for row in csv.DictReader(fh):
-                try:
-                    rates[row["Category"].strip()] = float(row["GST_Rate_From_Nov25_Pct"])
-                except (KeyError, ValueError, AttributeError):
-                    continue
-    return rates
+                raw = (row.get("GST_Cutover_Date") or "").strip()
+                ordv = date_to_month_ord(raw)
+                if ordv is not None:
+                    return ordv, raw
+    return date_to_month_ord(default_str), default_str
 
-def gst_rate_for(category, month_name, fy_tag, rate_table):
-    ordv = month_ord(month_name, fy_tag)
-    if ordv is None or ordv < GST_CUTOVER_MONTH_ORD:
+def load_gst_qc_table():
+    """Category -> {pre, post, effective_from_ord, ...raw row} from the
+    editable GST_Rate_QC_Table.csv. Returns ({}, []) if the file is missing.
+    Also returns the raw fieldnames + row dicts (in file order) so
+    write_gst_qc_impacts() can update just the Impact_on_TOT_pct column
+    without disturbing any hand-edited columns (HSN_Code, Finance_Approved,
+    Effective_From, Confidence, Note)."""
+    if not _GST_QC_CSV.exists():
+        return {}, []
+    with open(_GST_QC_CSV, newline="", encoding="utf-8") as fh:
+        raw_rows = list(csv.DictReader(fh))
+    table = {}
+    for row in raw_rows:
+        cat = (row.get("Category") or "").strip()
+        if not cat:
+            continue
+        try:
+            pre = float(row.get("Pre_GST_Rate_Pct") or 18)
+        except ValueError:
+            pre = 18.0
+        try:
+            post = float(row.get("Post_GST_Rate_Pct") or 18)
+        except ValueError:
+            post = 18.0
+        table[cat] = {
+            "pre": pre, "post": post,
+            "effective_from_ord": date_to_month_ord(row.get("Effective_From")),
+        }
+    return table, raw_rows
+
+def write_gst_qc_impacts(raw_rows, impacts):
+    """Rewrite GST_Rate_QC_Table.csv with the Impact_on_TOT_pct column
+    refreshed from `impacts` ({category: pp}), leaving every other
+    hand-editable column (HSN_Code, Finance_Approved, Effective_From,
+    Confidence, Note) exactly as Finance/Tax left it. No-op if the file
+    doesn't exist (nothing to update)."""
+    if not raw_rows or not _GST_QC_CSV.exists():
+        return
+    for row in raw_rows:
+        cat = (row.get("Category") or "").strip()
+        v = impacts.get(cat)
+        row["Impact_on_TOT_pct"] = "" if v is None else str(v)
+    with open(_GST_QC_CSV, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=_GST_QC_COLUMNS)
+        w.writeheader()
+        w.writerows(raw_rows)
+
+def gst_rate_for_ord(category, ordv, qc_table, default_cutover_ord):
+    """Applicable GST% for a Category at a given month_ord. Falls back to a
+    flat 18% pre/post (no distinction) for any category not present in the
+    QC table at all."""
+    row = qc_table.get(category)
+    if row is None:
         return 18.0
-    return rate_table.get(category, 18.0)
+    if ordv is None:
+        return row["pre"]
+    cutover = row["effective_from_ord"] if row["effective_from_ord"] is not None else default_cutover_ord
+    return row["pre"] if ordv < cutover else row["post"]
 
-def tot_block(g, rate_table):
+def tot_block(g, qc_table, default_cutover, qc_raw_rows=None):
     """Chain / Category / Pack-Size-wise TOT%, on-invoice margin pass-on
     value, and a monthly series (for MoM TOT Delta pp / Incremental Pass-on
     Impact), computed from the FULL (uncapped) article-level primary groupby
     `g` — columns _M, _FY, _Chain, _category, _net_content, NSV, MRP (Lakh).
     Only FY26/FY27 rows are used (matches the rest of the dashboard's "no
     FY24-25 actuals shown post-cutover" convention and keeps the GST-cutover
-    logic meaningful — FY25 predates the reform entirely)."""
+    logic meaningful — FY25 predates the reform entirely). If qc_raw_rows is
+    given, also computes each category's Impact_on_TOT_pct (blended TOT%
+    delta, in pp, if that category's Post_GST_Rate_Pct were flipped to the
+    alternate common slab) and writes it back into the QC CSV."""
+    default_cutover_ord, default_cutover_str = default_cutover
     gg = g[g["_FY"].isin(["FY26", "FY27"])].copy()
+    gg["_ord"] = gg.apply(lambda r: month_ord(r["_M"], r["_FY"]), axis=1)
     gg["_rate"] = gg.apply(
-        lambda r: gst_rate_for(r["_category"], r["_M"], r["_FY"], rate_table), axis=1)
+        lambda r: gst_rate_for_ord(r["_category"], r["_ord"], qc_table, default_cutover_ord), axis=1)
     gg["_tax"] = gg["NSV"] * gg["_rate"] / 100.0
 
     def weighted(group_col, with_mom=False):
@@ -617,25 +698,79 @@ def tot_block(g, rate_table):
         })
 
     tot_mrp, tot_nsv, tot_tax = gg["MRP"].sum(), gg["NSV"].sum(), gg["_tax"].sum()
+    blended_tot_pct = (1 - (tot_nsv + tot_tax) / tot_mrp) * 100 if tot_mrp else None
+
+    # ---- Impact_on_TOT_pct: for each QC-table category, how much would the
+    # BLENDED TOT% move (pp) if that category's Post_GST_Rate_Pct were flipped
+    # to the alternate common slab (5<->18), holding every other category's
+    # rate fixed. Only that category's OWN post-cutover rows are affected
+    # (pre-cutover rows always use Pre_GST_Rate_Pct, untouched by this swap).
+    # Lets Finance/Tax prioritise which LOW-confidence categories are worth
+    # chasing first (large impact) vs immaterial (small impact either way).
+    category_impacts = {}
+    if blended_tot_pct is not None:
+        for cat, row in qc_table.items():
+            alt_post = 18.0 if row["post"] != 18.0 else 5.0
+            cutover = row["effective_from_ord"] if row["effective_from_ord"] is not None else default_cutover_ord
+            post_rows = gg[(gg["_category"] == cat) & (gg["_ord"].notna()) & (gg["_ord"] >= cutover)]
+            if post_rows.empty:
+                category_impacts[cat] = 0.0
+                continue
+            delta_tax = post_rows["NSV"].sum() * (alt_post - row["post"]) / 100.0
+            alt_blended = (1 - (tot_nsv + tot_tax + delta_tax) / tot_mrp) * 100 if tot_mrp else None
+            category_impacts[cat] = r2(alt_blended - blended_tot_pct, 1) if alt_blended is not None else None
+        if qc_raw_rows:
+            write_gst_qc_impacts(qc_raw_rows, category_impacts)
+
+    finance_approved_n = sum(1 for r in (qc_raw_rows or []) if (r.get("Finance_Approved") or "").strip().lower() == "yes")
+    finance_total_n = len(qc_raw_rows or [])
+
+    # ---- QC table rows for display (dashboard TOT% card + Power BI): the
+    # SAME file Finance/Tax reviews and signs off on, exposed in data.js so
+    # the HTML dashboard doesn't need a second copy of this data.
+    qc_table_rows = [{
+        "category": r.get("Category", ""),
+        "hsn_code": r.get("HSN_Code", ""),
+        "pre_rate_pct": r.get("Pre_GST_Rate_Pct", ""),
+        "post_rate_pct": r.get("Post_GST_Rate_Pct", ""),
+        "effective_from": r.get("Effective_From", ""),
+        "confidence": r.get("Confidence", ""),
+        "finance_approved": r.get("Finance_Approved", ""),
+        "impact_on_tot_pp": r.get("Impact_on_TOT_pct", ""),
+        "note": r.get("Note", ""),
+    } for r in (qc_raw_rows or [])]
+
     return {
         "by_chain": by_chain, "by_category": by_category, "by_packsize": by_packsize,
         "monthly": monthly,
-        "blended_tot_pct": r2((1 - (tot_nsv + tot_tax) / tot_mrp) * 100, 1) if tot_mrp else None,
+        "blended_tot_pct": r2(blended_tot_pct, 1),
         "total_passon_value": r2(tot_mrp - tot_nsv - tot_tax),
-        "gst_cutover": "2025-11-01",
+        "category_impacts_pp": category_impacts,
+        "qc_table": qc_table_rows,
+        "gst_cutover_default": default_cutover_str,
+        "finance_approved_count": finance_approved_n,
+        "finance_approved_total": finance_total_n,
         "unit": "INR Lakh",
         "methodology": (
             "TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) = "
             "1 - (NSV + Tax) / MRP, computed from the full article-level primary "
             "detail (not the row-capped browser export). Tax = NSV x applicable GST "
-            "rate: flat 18% before Nov'25; from Nov'25 onward (GST 2.0 rate "
-            "rationalisation), rate is looked up per Category from "
-            "PowerBI/SeedData/Masters/GST_Rate_Table.csv. Several categories in that "
-            "table are LOW-confidence best-effort assumptions (no official HSN-code "
-            "source was available) -- verify against Finance/Tax records before "
+            "rate: Pre_GST_Rate_Pct before that category's cutover date, Post_GST_Rate_Pct "
+            "on/after it, both from the editable PowerBI/SeedData/Masters/"
+            "GST_Rate_QC_Table.csv. A per-category cutover override lives in that CSV's "
+            "Effective_From column; if blank, the global default cutover date from "
+            "PowerBI/SeedData/Masters/GST_Config.csv is used (editable single cell -- "
+            "default 2025-09-22, the GST Council's confirmed GST 2.0 effective date; "
+            "override it if Honasa's internal billing cutover differs). Several "
+            "categories in the QC table are LOW-confidence best-effort assumptions (no "
+            "official HSN-code source was available) and every row starts "
+            "Finance_Approved=Pending -- verify against Finance/Tax records before "
             "treating TOT% as final. 'On-Invoice Margin Pass-on Value' = "
             "MRP - NSV - Tax (Rs Lakh). 'Incremental Pass-on Impact' = the MoM change "
-            "in that value."
+            "in that value. 'Impact_on_TOT_pct' (in the QC table) = how much blended "
+            "TOT% would move, in pp, if that one category's Post_GST_Rate_Pct were "
+            "flipped to the alternate slab -- use it to prioritise which LOW-confidence "
+            "rows matter most."
         ),
     }
 
@@ -1037,7 +1172,8 @@ def detail_records_real(src, max_rows=20000):
     # ---- TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %): computed
     # from this FULL uncapped groupby, before the top-N-by-value row cap below,
     # so it's exact rather than subject to the browser row cap.
-    tot = tot_block(g, load_gst_rate_table())
+    _qc_table, _qc_raw_rows = load_gst_qc_table()
+    tot = tot_block(g, _qc_table, load_gst_cutover_date(), _qc_raw_rows)
 
     total_value = g["NSV"].sum()
     rows_total = len(g)

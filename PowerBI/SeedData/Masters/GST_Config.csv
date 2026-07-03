@@ -1,0 +1,2 @@
+GST_Cutover_Date,Note
+2025-09-22,Default = GST Council's confirmed effective date for the GST 2.0 rate rationalisation (22-Sep-2025). Override this single cell if Honasa's internal billing/invoicing system actually reflected the new rates on a different date -- TOT% recomputes from whatever date is entered here on the next --detail-only rebuild (HTML) or refresh (Power BI, reads the same file via query 38).

@@ -86,23 +86,38 @@ re-split. Coverage (how much Distributor primary has a matching allocation
 entry, vs falling back to its original single-chain tag) is reported in
 `DASH.chain_allocation_qc` and shown as a note on the Primary tab.
 
-### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — P&L tab
+### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — P&L tab, pending Finance sign-off
 `TOT% = 1 − (NSV + Tax) / MRP`, computed chain/category/pack-size-wise from
 the full (uncapped) article-level primary detail — not the 20k-row browser
-export, so it's exact. `Tax = NSV × applicable GST rate`: flat 18% for every
-transaction before the Nov'25 GST 2.0 rate rationalisation; from Nov'25
-onward, rate is looked up per Category from the editable
-`PowerBI/SeedData/Masters/GST_Rate_Table.csv`.
+export, so it's exact. `Tax = NSV × applicable GST rate`: `Pre_GST_Rate_Pct`
+before that category's cutover date, `Post_GST_Rate_Pct` on/after it, both
+from the editable **QC table**
+`PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv` — columns `Category,
+HSN_Code, Pre_GST_Rate_Pct, Post_GST_Rate_Pct, Effective_From, Confidence,
+Finance_Approved, Impact_on_TOT_pct, Note`. A per-category cutover override
+lives in that table's `Effective_From` column; if blank, the **global,
+editable** default cutover date in `PowerBI/SeedData/Masters/GST_Config.csv`
+applies — default **2025-09-22** (the GST Council's confirmed GST 2.0
+effective date), a single cell to edit if Honasa's internal billing cutover
+turns out to be different.
 
-**This is a best-effort assumption, not an authoritative figure.** Several
-categories in that rate table are marked **LOW confidence** — no official
-HSN-code-level source was available to classify which Honasa/Mamaearth
-categories moved to the 5% merit slab vs stayed at 18% — verify against
-Finance/Tax records before treating TOT% as final. The methodology note and
-GST cutover date are shown directly on the P&L tab's TOT% card, and the rate
-table's `Confidence`/`Note` columns explain each category's reasoning. Edit
-that CSV and re-run `--detail-only` to update TOT% dashboard-wide (and in
-Power BI — `DAX/12_TOT_Measures.dax` reads the same file via query 37).
+**This is a best-effort assumption, not an authoritative figure — every row
+starts `Finance_Approved = Pending`.** Several categories are marked **LOW
+confidence** (no official HSN-code-level source was available to classify
+which Honasa/Mamaearth categories moved to the 5% merit slab vs stayed at
+18%) — verify against Finance/Tax records before treating TOT% as final. The
+P&L tab's TOT% card shows: a provisional-status banner ("N of 12 GST
+categories confirmed"), the full QC table (exportable to Excel via its own
+Export Table button), and the methodology note with the current cutover
+date. `Impact_on_TOT_pct` is auto-computed on every `--detail-only` rebuild —
+how much blended TOT% would move, in percentage points, if that one
+category's rate assumption were wrong — use it to prioritise which
+LOW-confidence rows to chase down first (large impact = validate urgently,
+near-zero = low priority). Fill in `HSN_Code` and flip `Finance_Approved` to
+`Yes` per row as Finance confirms, edit `GST_Config.csv` if the cutover date
+needs correcting, then re-run `--detail-only` to refresh TOT% dashboard-wide
+(and in Power BI — `DAX/12_TOT_Measures.dax` reads the same two files via
+queries 37/38).
 
 `On-Invoice Margin Pass-on Value = MRP − NSV − Tax`. `Incremental Pass-on
 Impact` = the month-over-month change in that value; `MoM TOT Δ pp` = the

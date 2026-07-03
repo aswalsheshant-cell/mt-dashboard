@@ -709,6 +709,13 @@ function buildPnl(){
   const totTop=totChains.slice(0,12);
   const totRows=totChains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.mrp)}</td><td>${crc(c.nsv)}</td>
      <td>${crc(c.tax)}</td><td>${c.tot_pct==null?'–':c.tot_pct+'%'}</td><td>${crc(c.passon_value)}</td></tr>`).join('');
+  const qcRows=(totD&&totD.qc_table||[]).map(r=>{
+    const fa=r.finance_approved||'Pending';
+    const faCls=fa.toLowerCase()==='yes'?'up':(fa.toLowerCase()==='no'?'down':'');
+    const impact=r.impact_on_tot_pp!=null&&r.impact_on_tot_pp!==''?r.impact_on_tot_pp+' pp':'–';
+    return `<tr><td>${r.category}</td><td>${r.hsn_code||'TBD'}</td><td>${r.pre_rate_pct}%</td><td>${r.post_rate_pct}%</td>
+     <td>${r.effective_from||'(uses default)'}</td><td>${r.confidence}</td><td class="${faCls}">${fa}</td><td>${impact}</td></tr>`;
+  }).join('');
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    <p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -729,15 +736,24 @@ function buildPnl(){
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
    <p class="note" style="margin:0 0 10px">FY26-FY27, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
      TOT% = 1 − (NSV + Tax) / MRP. Blended TOT% ${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'} · total pass-on value ${crc(totD.total_passon_value)}.</p>
+   <div class="repbanner"><b>Provisional — pending Finance/Tax sign-off.</b>
+     ${totD.finance_approved_count} of ${totD.finance_approved_total} GST categories confirmed. TOT% uses the best-effort
+     rate assumptions in the QC table below until every category is Finance-approved.</div>
    <div class="grid g2">
      ${card('TOT% by chain','Higher = more on-invoice margin passed to the chain. Click a chain to drill.',cv('totChart'))}
      ${card('Chain-wise TOT% detail','MRP, NSV, GST-adjusted Tax and On-Invoice Margin Pass-on Value per chain.',`<div class="tablewrap"><table>
        <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Tax</th><th>TOT%</th><th>Pass-on Value</th></tr></thead>
        <tbody>${totRows||'<tr><td colspan="6">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    </div>
-   <div class="card"><p class="note" style="margin:0"><b>Methodology &amp; assumptions:</b> ${totD.methodology} GST cutover date: ${totD.gst_cutover}.
-     Rate table: <code>PowerBI/SeedData/Masters/GST_Rate_Table.csv</code> (editable — several categories are LOW-confidence
-     best-effort assumptions pending Finance/Tax confirmation; see that file's Confidence/Note columns).</p></div>`:''}
+   ${card('GST rate QC table — Category, HSN Code, Pre/Post GST%, Effective From, Confidence, Finance Approved, Impact on TOT%',
+     'Impact on TOT% = how much blended TOT% would move (pp) if that category\'s Post-GST% were flipped to the alternate slab — use it to prioritise which LOW-confidence rows to validate first. Edit PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv (Finance sign-off) and PowerBI/SeedData/Masters/GST_Config.csv (cutover date override) then re-run --detail-only to update this table dashboard-wide.',
+     `<div class="tablewrap"><table><thead><tr><th>Category</th><th>HSN Code</th><th>Pre-GST%</th><th>Post-GST%</th>
+       <th>Effective From</th><th>Confidence</th><th>Finance Approved</th><th>Impact on TOT%</th></tr></thead>
+       <tbody>${qcRows||'<tr><td colspan="8">No QC table found.</td></tr>'}</tbody></table></div>`)}
+   <div class="card"><p class="note" style="margin:0"><b>Methodology &amp; assumptions:</b> ${totD.methodology}
+     Default GST cutover date: ${totD.gst_cutover_default} (editable — <code>PowerBI/SeedData/Masters/GST_Config.csv</code>).
+     QC table: <code>PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv</code> (editable — several categories are LOW-confidence
+     best-effort assumptions pending Finance/Tax confirmation; see that file's Confidence/Note/Finance_Approved columns).</p></div>`:''}
    ${catDrillCardHtml('plCatDrill')}`;
   wireDrillLinks(s);
   mkBar('plBridge',top.map(c=>c.name),[

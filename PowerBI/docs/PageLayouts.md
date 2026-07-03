@@ -146,14 +146,26 @@ current **or previous** month.)
 **TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) section** — separate
 source (`Fact Primary Article`, FY26-FY27) from the P&L table above; measures
 in `DAX/12_TOT_Measures.dax`:
+- **Provisional banner** (card/text box): `[Finance Approval Status]` — reads
+  "Provisional — N of 12 GST categories Finance-approved" so the sign-off gap
+  shows on the report itself, not just in docs.
 - **TOT% by chain** (bar): `Chain` × `TOT %`.
 - **TOT% detail table:** `Chain`, `Total Primary Article MRP`, `Total Primary
   Article NSV`, `TOT Tax`, `TOT %`, `On-Invoice Margin Pass-on Value`. Add
   `MoM TOT Delta pp` and `Incremental Pass-on Impact` cards for the latest month.
+- **GST rate QC table** (table visual, bound directly to `GST Rate QC Table`):
+  `Category`, `HSN_Code`, `Pre_GST_Rate_Pct`, `Post_GST_Rate_Pct`,
+  `Effective_From`, `Confidence`, `Finance_Approved`, `Impact_on_TOT_pct` —
+  the same Finance/Tax sign-off sheet shown on the HTML dashboard's P&L tab.
+  Conditional-format `Finance_Approved` (green "Yes" / red "No" / grey
+  "Pending") and sort by `Impact_on_TOT_pct` descending so the highest-
+  materiality LOW-confidence rows surface first.
 - Add a text box with the same methodology/assumption caveat shown on the HTML
-  dashboard's P&L tab: GST cutover = 1-Nov-2025, flat 18% before, Category-based
-  lookup from `GST Rate Table` after (several categories are LOW-confidence
-  assumptions — see that CSV's Confidence/Note columns).
+  dashboard's P&L tab: default GST cutover = `[GST Cutover Date]` (editable,
+  `GST_Config.csv`, default 2025-09-22 = GST Council's confirmed GST 2.0
+  effective date), Pre/Post-GST% per category from `GST Rate QC Table`
+  (several rows are LOW-confidence assumptions pending Finance sign-off — see
+  that table's Confidence/Note/Finance_Approved columns).
 - For Pack Size / Category-level TOT% (matches the HTML dashboard's Pack Size
   export columns), build the same table/matrix on Page 7 with `Pack Size` (or
   `Category`) in place of `Chain` — `TOT %` aggregates correctly at whatever

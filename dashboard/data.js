@@ -342875,25 +342875,25 @@ window.DASH = {
     "name": "Reliance Retail",
     "mrp": 22555.44,
     "nsv": 9369.26,
-    "tax": 974.26,
-    "tot_pct": 54.1,
-    "passon_value": 12211.92
+    "tax": 843.75,
+    "tot_pct": 54.7,
+    "passon_value": 12342.43
    },
    {
     "name": "Dmart",
     "mrp": 21246.49,
     "nsv": 8417.69,
-    "tax": 818.2,
-    "tot_pct": 56.5,
-    "passon_value": 12010.6
+    "tax": 684.86,
+    "tot_pct": 57.2,
+    "passon_value": 12143.94
    },
    {
     "name": "Apollo",
     "mrp": 14168.45,
     "nsv": 5240.22,
-    "tax": 472.12,
-    "tot_pct": 59.7,
-    "passon_value": 8456.11
+    "tax": 382.43,
+    "tot_pct": 60.3,
+    "passon_value": 8545.8
    },
    {
     "name": "JUST MARK-Dmart",
@@ -342915,25 +342915,25 @@ window.DASH = {
     "name": "Nykaa E-Retail Limited",
     "mrp": 4091.58,
     "nsv": 2311.6,
-    "tax": 259.68,
-    "tot_pct": 37.2,
-    "passon_value": 1520.29
+    "tax": 225.62,
+    "tot_pct": 38.0,
+    "passon_value": 1554.36
    },
    {
     "name": "Sri Vijaya Durga Agencies",
     "mrp": 4048.3,
     "nsv": 2205.88,
-    "tax": 240.01,
-    "tot_pct": 39.6,
-    "passon_value": 1602.42
+    "tax": 207.65,
+    "tot_pct": 40.4,
+    "passon_value": 1634.77
    },
    {
     "name": "G.V Enterprises",
     "mrp": 3354.61,
     "nsv": 1788.46,
-    "tax": 176.81,
-    "tot_pct": 41.4,
-    "passon_value": 1389.34
+    "tax": 138.2,
+    "tot_pct": 42.6,
+    "passon_value": 1427.96
    },
    {
     "name": "Vanaja Agencies",
@@ -342955,9 +342955,9 @@ window.DASH = {
     "name": "Wellness Forever",
     "mrp": 1794.47,
     "nsv": 1069.81,
-    "tax": 113.66,
-    "tot_pct": 34.0,
-    "passon_value": 611.01
+    "tax": 99.79,
+    "tot_pct": 34.8,
+    "passon_value": 624.88
    },
    {
     "name": "Sancus Networks Private Limited-RMT",
@@ -342971,25 +342971,25 @@ window.DASH = {
     "name": "D.L. Sales - MT",
     "mrp": 1159.72,
     "nsv": 623.28,
-    "tax": 73.11,
-    "tot_pct": 40.0,
-    "passon_value": 463.32
+    "tax": 59.99,
+    "tot_pct": 41.1,
+    "passon_value": 476.45
    },
    {
     "name": "Metro-CNC",
     "mrp": 1152.48,
     "nsv": 567.11,
-    "tax": 58.46,
-    "tot_pct": 45.7,
-    "passon_value": 526.91
+    "tax": 48.9,
+    "tot_pct": 46.5,
+    "passon_value": 536.48
    },
    {
     "name": "Balaji Associates Distributor MT",
     "mrp": 997.88,
     "nsv": 509.46,
-    "tax": 55.59,
-    "tot_pct": 43.4,
-    "passon_value": 432.83
+    "tax": 50.55,
+    "tot_pct": 43.9,
+    "passon_value": 437.87
    },
    {
     "name": "VENKATESHWARA AGENCIES-TG",
@@ -343003,9 +343003,9 @@ window.DASH = {
     "name": "M/S KOTTARAM BUSINESS",
     "mrp": 889.32,
     "nsv": 472.92,
-    "tax": 44.43,
-    "tot_pct": 41.8,
-    "passon_value": 371.97
+    "tax": 41.06,
+    "tot_pct": 42.2,
+    "passon_value": 375.34
    },
    {
     "name": "VISHAL ENTERPRISES",
@@ -343019,49 +343019,49 @@ window.DASH = {
     "name": "JUST MARK-D-Mart",
     "mrp": 698.1,
     "nsv": 248.78,
-    "tax": 44.78,
-    "tot_pct": 57.9,
-    "passon_value": 404.54
+    "tax": 12.44,
+    "tot_pct": 62.6,
+    "passon_value": 436.88
    },
    {
     "name": "Kiran Trading Company-Solapur-D-Mart",
     "mrp": 663.17,
     "nsv": 235.32,
-    "tax": 42.36,
-    "tot_pct": 58.1,
-    "passon_value": 385.49
+    "tax": 11.77,
+    "tot_pct": 62.7,
+    "passon_value": 416.08
    },
    {
     "name": "PRAGATI SALES-D-MART",
     "mrp": 661.12,
     "nsv": 250.5,
-    "tax": 26.07,
-    "tot_pct": 58.2,
-    "passon_value": 384.56
+    "tax": 21.04,
+    "tot_pct": 58.9,
+    "passon_value": 389.58
    },
    {
     "name": "Walmart-CNC",
     "mrp": 582.87,
     "nsv": 285.41,
-    "tax": 32.7,
-    "tot_pct": 45.4,
-    "passon_value": 264.75
+    "tax": 25.97,
+    "tot_pct": 46.6,
+    "passon_value": 271.48
    },
    {
     "name": "CHHABRA TRADERS",
     "mrp": 557.89,
     "nsv": 298.61,
-    "tax": 27.99,
-    "tot_pct": 41.5,
-    "passon_value": 231.28
+    "tax": 23.65,
+    "tot_pct": 42.2,
+    "passon_value": 235.62
    },
    {
     "name": "Arc Foods And Beverages",
     "mrp": 449.09,
     "nsv": 241.57,
-    "tax": 42.17,
-    "tot_pct": 36.8,
-    "passon_value": 165.36
+    "tax": 32.95,
+    "tot_pct": 38.9,
+    "passon_value": 174.57
    },
    {
     "name": "H&G",
@@ -343075,49 +343075,49 @@ window.DASH = {
     "name": "V-Mart Retail Limited",
     "mrp": 317.25,
     "nsv": 118.14,
-    "tax": 8.15,
-    "tot_pct": 60.2,
-    "passon_value": 190.96
+    "tax": 5.91,
+    "tot_pct": 60.9,
+    "passon_value": 193.2
    },
    {
     "name": "Az Enterprises-MT",
     "mrp": 281.07,
     "nsv": 156.42,
-    "tax": 28.16,
-    "tot_pct": 34.3,
-    "passon_value": 96.49
+    "tax": 8.23,
+    "tot_pct": 41.4,
+    "passon_value": 116.41
    },
    {
     "name": "Shoppers Stop",
     "mrp": 243.85,
     "nsv": 126.4,
-    "tax": 17.43,
-    "tot_pct": 41.0,
-    "passon_value": 100.03
+    "tax": 14.13,
+    "tot_pct": 42.4,
+    "passon_value": 103.32
    },
    {
     "name": "VISHAL ENTERPRISES-D-Mart",
     "mrp": 170.69,
     "nsv": 62.19,
-    "tax": 11.19,
-    "tot_pct": 57.0,
-    "passon_value": 97.31
+    "tax": 3.11,
+    "tot_pct": 61.7,
+    "passon_value": 105.39
    },
    {
     "name": "Eremedium Private Limited",
     "mrp": 148.86,
     "nsv": 80.31,
-    "tax": 8.93,
-    "tot_pct": 40.0,
-    "passon_value": 59.61
+    "tax": 7.1,
+    "tot_pct": 41.3,
+    "passon_value": 61.44
    },
    {
     "name": "Trent Hypermarket",
     "mrp": 144.7,
     "nsv": 78.82,
-    "tax": 8.26,
-    "tot_pct": 39.8,
-    "passon_value": 57.62
+    "tax": 7.02,
+    "tot_pct": 40.7,
+    "passon_value": 58.86
    },
    {
     "name": "MARK ENTERPRISE",
@@ -343139,33 +343139,33 @@ window.DASH = {
     "name": "Azorte",
     "mrp": 115.77,
     "nsv": 70.74,
-    "tax": 7.13,
-    "tot_pct": 32.7,
-    "passon_value": 37.9
+    "tax": 5.51,
+    "tot_pct": 34.1,
+    "passon_value": 39.52
    },
    {
     "name": "Sancus Networks-MT-Reg.",
     "mrp": 91.01,
     "nsv": 38.93,
-    "tax": 7.01,
-    "tot_pct": 49.5,
-    "passon_value": 45.07
+    "tax": 1.56,
+    "tot_pct": 55.5,
+    "passon_value": 50.52
    },
    {
     "name": "Lifestyle",
     "mrp": 78.93,
     "nsv": 32.79,
-    "tax": 2.6,
-    "tot_pct": 55.2,
-    "passon_value": 43.54
+    "tax": 2.23,
+    "tot_pct": 55.6,
+    "passon_value": 43.91
    },
    {
     "name": "SAI SAACHI ASSOCIATES-MT-OR",
     "mrp": 62.98,
     "nsv": 28.7,
-    "tax": 1.98,
-    "tot_pct": 51.3,
-    "passon_value": 32.3
+    "tax": 1.82,
+    "tot_pct": 51.5,
+    "passon_value": 32.46
    },
    {
     "name": "Sathyashree Enterprises",
@@ -343195,9 +343195,9 @@ window.DASH = {
     "name": "Broadway",
     "mrp": 44.91,
     "nsv": 24.69,
-    "tax": 3.92,
-    "tot_pct": 36.3,
-    "passon_value": 16.3
+    "tax": 3.7,
+    "tot_pct": 36.8,
+    "passon_value": 16.51
    },
    {
     "name": "Guardian Healthcare",
@@ -343211,17 +343211,17 @@ window.DASH = {
     "name": "Ascent Wellness",
     "mrp": 43.79,
     "nsv": 25.97,
-    "tax": 4.67,
-    "tot_pct": 30.0,
-    "passon_value": 13.15
+    "tax": 4.71,
+    "tot_pct": 29.9,
+    "passon_value": 13.12
    },
    {
     "name": "Mark Enterprise-Apollo",
     "mrp": 29.48,
     "nsv": 16.16,
-    "tax": 2.91,
-    "tot_pct": 35.3,
-    "passon_value": 10.42
+    "tax": 0.81,
+    "tot_pct": 42.5,
+    "passon_value": 12.52
    },
    {
     "name": "Sehaj Enterprises -MT-JK",
@@ -343235,9 +343235,9 @@ window.DASH = {
     "name": "United Marketing",
     "mrp": 25.04,
     "nsv": 14.33,
-    "tax": 1.79,
-    "tot_pct": 35.6,
-    "passon_value": 8.92
+    "tax": 1.51,
+    "tot_pct": 36.8,
+    "passon_value": 9.21
    },
    {
     "name": "CHOUDHARY ENTERPRISES",
@@ -343275,9 +343275,9 @@ window.DASH = {
     "name": "Travel News Services-Wsmith",
     "mrp": 10.53,
     "nsv": 5.25,
-    "tax": 0.34,
-    "tot_pct": 46.9,
-    "passon_value": 4.94
+    "tax": 0.4,
+    "tot_pct": 46.3,
+    "passon_value": 4.87
    },
    {
     "name": "SC BUSINESS COMBINE_MT",
@@ -343291,17 +343291,17 @@ window.DASH = {
     "name": "SC BUSINESS COMBINE",
     "mrp": 4.96,
     "nsv": 2.46,
-    "tax": 0.44,
-    "tot_pct": 41.4,
-    "passon_value": 2.06
+    "tax": 0.12,
+    "tot_pct": 47.9,
+    "passon_value": 2.38
    },
    {
     "name": "PRAGATI SALES-Apollo",
     "mrp": 4.94,
     "nsv": 2.37,
-    "tax": 0.43,
-    "tot_pct": 43.4,
-    "passon_value": 2.14
+    "tax": 0.25,
+    "tot_pct": 46.9,
+    "passon_value": 2.32
    },
    {
     "name": "Swastik Marketing",
@@ -343315,24 +343315,24 @@ window.DASH = {
     "name": "Today's Basket",
     "mrp": 3.59,
     "nsv": 2.24,
-    "tax": 0.3,
-    "tot_pct": 29.1,
-    "passon_value": 1.04
+    "tax": 0.24,
+    "tot_pct": 31.0,
+    "passon_value": 1.11
    },
    {
     "name": "Travel Retail Services-Relay",
     "mrp": 2.74,
     "nsv": 1.16,
-    "tax": 0.22,
-    "tot_pct": 49.9,
-    "passon_value": 1.37
+    "tax": 0.23,
+    "tot_pct": 49.5,
+    "passon_value": 1.36
    },
    {
     "name": "R.C. Trade Link H&G",
     "mrp": 2.73,
     "nsv": -0.01,
     "tax": -0.0,
-    "tot_pct": 100.5,
+    "tot_pct": 100.4,
     "passon_value": 2.74
    },
    {
@@ -343363,9 +343363,9 @@ window.DASH = {
     "name": "Guardian Healthcare-Delhi",
     "mrp": 0.97,
     "nsv": 0.49,
-    "tax": 0.09,
-    "tot_pct": 40.0,
-    "passon_value": 0.39
+    "tax": 0.02,
+    "tot_pct": 46.6,
+    "passon_value": 0.45
    },
    {
     "name": "Kiran Trading Company-Pune-MT",
@@ -343389,33 +343389,33 @@ window.DASH = {
     "name": "Face",
     "mrp": 60028.18,
     "nsv": 26067.32,
-    "tax": 2567.63,
-    "tot_pct": 52.3,
-    "passon_value": 31393.22
+    "tax": 2236.23,
+    "tot_pct": 52.8,
+    "passon_value": 31724.62
    },
    {
     "name": "Hair",
     "mrp": 23377.32,
     "nsv": 9838.76,
-    "tax": 1077.68,
-    "tot_pct": 53.3,
-    "passon_value": 12460.89
+    "tax": 924.85,
+    "tot_pct": 54.0,
+    "passon_value": 12613.72
    },
    {
     "name": "Body",
     "mrp": 8998.08,
     "nsv": 3445.06,
-    "tax": 363.56,
-    "tot_pct": 57.7,
-    "passon_value": 5189.47
+    "tax": 260.84,
+    "tot_pct": 58.8,
+    "passon_value": 5292.18
    },
    {
     "name": "Baby",
     "mrp": 5694.36,
     "nsv": 2885.8,
-    "tax": 332.17,
-    "tot_pct": 43.5,
-    "passon_value": 2476.38
+    "tax": 284.58,
+    "tot_pct": 44.3,
+    "passon_value": 2523.97
    },
    {
     "name": "Fragrances",
@@ -343429,9 +343429,9 @@ window.DASH = {
     "name": "Hair Care",
     "mrp": 87.72,
     "nsv": 53.22,
-    "tax": 7.49,
-    "tot_pct": 30.8,
-    "passon_value": 27.01
+    "tax": 6.12,
+    "tot_pct": 32.4,
+    "passon_value": 28.38
    },
    {
     "name": "Styling Products",
@@ -343503,9 +343503,9 @@ window.DASH = {
     "name": "150.0",
     "mrp": 25594.88,
     "nsv": 9856.7,
-    "tax": 1059.17,
-    "tot_pct": 57.4,
-    "passon_value": 14679.01,
+    "tax": 913.73,
+    "tot_pct": 57.9,
+    "passon_value": 14824.45,
     "mom_tot_delta_pp": 1.1,
     "incremental_passon_impact": 55.1
    },
@@ -343513,9 +343513,9 @@ window.DASH = {
     "name": "400.0",
     "mrp": 16613.2,
     "nsv": 6407.0,
-    "tax": 676.83,
-    "tot_pct": 57.4,
-    "passon_value": 9529.36,
+    "tax": 537.31,
+    "tot_pct": 58.2,
+    "passon_value": 9668.89,
     "mom_tot_delta_pp": -0.4,
     "incremental_passon_impact": 84.59
    },
@@ -343523,9 +343523,9 @@ window.DASH = {
     "name": "100.0",
     "mrp": 14751.23,
     "nsv": 7025.87,
-    "tax": 705.37,
-    "tot_pct": 47.6,
-    "passon_value": 7019.99,
+    "tax": 614.48,
+    "tot_pct": 48.2,
+    "passon_value": 7110.88,
     "mom_tot_delta_pp": -3.9,
     "incremental_passon_impact": -516.57
    },
@@ -343533,9 +343533,9 @@ window.DASH = {
     "name": "50.0",
     "mrp": 9331.29,
     "nsv": 4775.99,
-    "tax": 445.64,
-    "tot_pct": 44.0,
-    "passon_value": 4109.66,
+    "tax": 398.25,
+    "tot_pct": 44.5,
+    "passon_value": 4157.04,
     "mom_tot_delta_pp": 0.6,
     "incremental_passon_impact": -129.1
    },
@@ -343543,9 +343543,9 @@ window.DASH = {
     "name": "600.0",
     "mrp": 5923.12,
     "nsv": 2421.87,
-    "tax": 266.89,
-    "tot_pct": 54.6,
-    "passon_value": 3234.35,
+    "tax": 225.51,
+    "tot_pct": 55.3,
+    "passon_value": 3275.73,
     "mom_tot_delta_pp": 1.9,
     "incremental_passon_impact": 50.7
    },
@@ -343553,9 +343553,9 @@ window.DASH = {
     "name": "80.0",
     "mrp": 5803.58,
     "nsv": 2633.5,
-    "tax": 220.99,
-    "tot_pct": 50.8,
-    "passon_value": 2949.09,
+    "tax": 203.41,
+    "tot_pct": 51.1,
+    "passon_value": 2966.67,
     "mom_tot_delta_pp": 0.7,
     "incremental_passon_impact": -174.14
    },
@@ -343563,9 +343563,9 @@ window.DASH = {
     "name": "250.0",
     "mrp": 5649.89,
     "nsv": 2789.26,
-    "tax": 329.42,
-    "tot_pct": 44.8,
-    "passon_value": 2531.21,
+    "tax": 281.56,
+    "tot_pct": 45.6,
+    "passon_value": 2579.07,
     "mom_tot_delta_pp": -2.5,
     "incremental_passon_impact": -135.02
    },
@@ -343573,9 +343573,9 @@ window.DASH = {
     "name": "200.0",
     "mrp": 4945.91,
     "nsv": 2032.71,
-    "tax": 187.0,
-    "tot_pct": 55.1,
-    "passon_value": 2726.2,
+    "tax": 150.44,
+    "tot_pct": 55.9,
+    "passon_value": 2762.76,
     "mom_tot_delta_pp": -0.6,
     "incremental_passon_impact": -115.95
    },
@@ -343583,9 +343583,9 @@ window.DASH = {
     "name": "500.0",
     "mrp": 2321.17,
     "nsv": 908.82,
-    "tax": 97.45,
-    "tot_pct": 56.6,
-    "passon_value": 1314.9,
+    "tax": 80.9,
+    "tot_pct": 57.4,
+    "passon_value": 1331.45,
     "mom_tot_delta_pp": 1.3,
     "incremental_passon_impact": 39.45
    },
@@ -343593,9 +343593,9 @@ window.DASH = {
     "name": "30.0",
     "mrp": 1952.12,
     "nsv": 1103.69,
-    "tax": 115.83,
-    "tot_pct": 37.5,
-    "passon_value": 732.6,
+    "tax": 103.75,
+    "tot_pct": 38.1,
+    "passon_value": 744.68,
     "mom_tot_delta_pp": -3.0,
     "incremental_passon_impact": 3.04
    },
@@ -343603,9 +343603,9 @@ window.DASH = {
     "name": "275.0",
     "mrp": 1285.81,
     "nsv": 494.37,
-    "tax": 46.53,
-    "tot_pct": 57.9,
-    "passon_value": 744.91,
+    "tax": 40.25,
+    "tot_pct": 58.4,
+    "passon_value": 751.19,
     "mom_tot_delta_pp": 0.7,
     "incremental_passon_impact": -6.64
    },
@@ -343613,9 +343613,9 @@ window.DASH = {
     "name": "650.0",
     "mrp": 1179.06,
     "nsv": 416.92,
-    "tax": 35.21,
-    "tot_pct": 61.7,
-    "passon_value": 726.93,
+    "tax": 26.86,
+    "tot_pct": 62.4,
+    "passon_value": 735.28,
     "mom_tot_delta_pp": -0.0,
     "incremental_passon_impact": 22.74
    },
@@ -343623,9 +343623,9 @@ window.DASH = {
     "name": "125.0",
     "mrp": 926.84,
     "nsv": 452.67,
-    "tax": 43.35,
-    "tot_pct": 46.5,
-    "passon_value": 430.81,
+    "tax": 38.73,
+    "tot_pct": 47.0,
+    "passon_value": 435.44,
     "mom_tot_delta_pp": -0.5,
     "incremental_passon_impact": -1.86
    },
@@ -343633,9 +343633,9 @@ window.DASH = {
     "name": "300.0",
     "mrp": 599.21,
     "nsv": 273.19,
-    "tax": 40.27,
-    "tot_pct": 47.7,
-    "passon_value": 285.76,
+    "tax": 36.38,
+    "tot_pct": 48.3,
+    "passon_value": 289.65,
     "mom_tot_delta_pp": 1.0,
     "incremental_passon_impact": 1.38
    },
@@ -343643,9 +343643,9 @@ window.DASH = {
     "name": "60.0",
     "mrp": 473.02,
     "nsv": 222.38,
-    "tax": 28.49,
-    "tot_pct": 47.0,
-    "passon_value": 222.15,
+    "tax": 24.17,
+    "tot_pct": 47.9,
+    "passon_value": 226.47,
     "mom_tot_delta_pp": 0.5,
     "incremental_passon_impact": -5.93
    },
@@ -343653,9 +343653,9 @@ window.DASH = {
     "name": "10.0",
     "mrp": 349.75,
     "nsv": 179.78,
-    "tax": 20.35,
-    "tot_pct": 42.8,
-    "passon_value": 149.63,
+    "tax": 16.15,
+    "tot_pct": 44.0,
+    "passon_value": 153.83,
     "mom_tot_delta_pp": 0.2,
     "incremental_passon_impact": -2.58
    },
@@ -343663,9 +343663,9 @@ window.DASH = {
     "name": "24.0",
     "mrp": 174.37,
     "nsv": 99.58,
-    "tax": 13.54,
-    "tot_pct": 35.1,
-    "passon_value": 61.26,
+    "tax": 11.87,
+    "tot_pct": 36.1,
+    "passon_value": 62.93,
     "mom_tot_delta_pp": 0.6,
     "incremental_passon_impact": -1.45
    },
@@ -343673,9 +343673,9 @@ window.DASH = {
     "name": "4.0",
     "mrp": 161.38,
     "nsv": 88.6,
-    "tax": 11.02,
-    "tot_pct": 38.3,
-    "passon_value": 61.76,
+    "tax": 8.1,
+    "tot_pct": 40.1,
+    "passon_value": 64.67,
     "mom_tot_delta_pp": -4.3,
     "incremental_passon_impact": 1.16
    },
@@ -343683,9 +343683,9 @@ window.DASH = {
     "name": "20.0",
     "mrp": 109.14,
     "nsv": 54.46,
-    "tax": 5.98,
-    "tot_pct": 44.6,
-    "passon_value": 48.7,
+    "tax": 5.33,
+    "tot_pct": 45.2,
+    "passon_value": 49.36,
     "mom_tot_delta_pp": 2.1,
     "incremental_passon_impact": 4.05
    },
@@ -343693,9 +343693,9 @@ window.DASH = {
     "name": "4.5",
     "mrp": 62.93,
     "nsv": 36.19,
-    "tax": 4.39,
-    "tot_pct": 35.5,
-    "passon_value": 22.35,
+    "tax": 3.02,
+    "tot_pct": 37.7,
+    "passon_value": 23.72,
     "mom_tot_delta_pp": -2.6,
     "incremental_passon_impact": 0.99
    },
@@ -343703,9 +343703,9 @@ window.DASH = {
     "name": "375.0",
     "mrp": 50.64,
     "nsv": 31.54,
-    "tax": 3.05,
-    "tot_pct": 31.7,
-    "passon_value": 16.05,
+    "tax": 2.52,
+    "tot_pct": 32.7,
+    "passon_value": 16.58,
     "mom_tot_delta_pp": -3.7,
     "incremental_passon_impact": -0.16
    },
@@ -343713,9 +343713,9 @@ window.DASH = {
     "name": "180.0",
     "mrp": 35.69,
     "nsv": 20.85,
-    "tax": 2.22,
-    "tot_pct": 35.4,
-    "passon_value": 12.62,
+    "tax": 1.7,
+    "tot_pct": 36.8,
+    "passon_value": 13.13,
     "mom_tot_delta_pp": 0.4,
     "incremental_passon_impact": 0.22
    },
@@ -343723,9 +343723,9 @@ window.DASH = {
     "name": "15.0",
     "mrp": 33.08,
     "nsv": 18.54,
-    "tax": 1.97,
-    "tot_pct": 38.0,
-    "passon_value": 12.58,
+    "tax": 1.9,
+    "tot_pct": 38.2,
+    "passon_value": 12.65,
     "mom_tot_delta_pp": 5.2,
     "incremental_passon_impact": -0.4
    },
@@ -343733,9 +343733,9 @@ window.DASH = {
     "name": "40.0",
     "mrp": 30.9,
     "nsv": 19.17,
-    "tax": 2.28,
-    "tot_pct": 30.6,
-    "passon_value": 9.45,
+    "tax": 1.95,
+    "tot_pct": 31.7,
+    "passon_value": 9.78,
     "mom_tot_delta_pp": 1.9,
     "incremental_passon_impact": 0.08
    },
@@ -343753,9 +343753,9 @@ window.DASH = {
     "name": "130.0",
     "mrp": 24.05,
     "nsv": 13.4,
-    "tax": 2.46,
+    "tax": 2.47,
     "tot_pct": 34.0,
-    "passon_value": 8.19,
+    "passon_value": 8.18,
     "mom_tot_delta_pp": -3.9,
     "incremental_passon_impact": 0.54
    },
@@ -343773,9 +343773,9 @@ window.DASH = {
     "name": "72.0",
     "mrp": 8.62,
     "nsv": 5.06,
-    "tax": 0.79,
-    "tot_pct": 32.2,
-    "passon_value": 2.77,
+    "tax": 0.64,
+    "tot_pct": 33.9,
+    "passon_value": 2.93,
     "mom_tot_delta_pp": -0.1,
     "incremental_passon_impact": 0.05
    },
@@ -343783,9 +343783,9 @@ window.DASH = {
     "name": "70.0",
     "mrp": 8.05,
     "nsv": 4.68,
-    "tax": 0.67,
-    "tot_pct": 33.5,
-    "passon_value": 2.69,
+    "tax": 0.58,
+    "tot_pct": 34.6,
+    "passon_value": 2.79,
     "mom_tot_delta_pp": 1.5,
     "incremental_passon_impact": -0.02
    },
@@ -343803,9 +343803,9 @@ window.DASH = {
     "name": "1000.0",
     "mrp": 6.26,
     "nsv": 3.24,
-    "tax": 0.54,
-    "tot_pct": 39.5,
-    "passon_value": 2.47,
+    "tax": 0.47,
+    "tot_pct": 40.6,
+    "passon_value": 2.54,
     "mom_tot_delta_pp": -7.5,
     "incremental_passon_impact": -0.3
    },
@@ -343813,9 +343813,9 @@ window.DASH = {
     "name": "8.0",
     "mrp": 4.27,
     "nsv": 2.26,
-    "tax": 0.29,
-    "tot_pct": 40.4,
-    "passon_value": 1.73,
+    "tax": 0.2,
+    "tot_pct": 42.4,
+    "passon_value": 1.81,
     "mom_tot_delta_pp": -4.2,
     "incremental_passon_impact": -0.03
    },
@@ -343823,9 +343823,9 @@ window.DASH = {
     "name": "350.0",
     "mrp": 4.21,
     "nsv": 2.31,
-    "tax": 0.37,
-    "tot_pct": 36.6,
-    "passon_value": 1.54,
+    "tax": 0.24,
+    "tot_pct": 39.5,
+    "passon_value": 1.66,
     "mom_tot_delta_pp": 0.2,
     "incremental_passon_impact": 0.02
    },
@@ -343863,9 +343863,9 @@ window.DASH = {
     "name": "2.0",
     "mrp": 1.84,
     "nsv": 1.1,
-    "tax": -0.34,
-    "tot_pct": 58.9,
-    "passon_value": 1.08,
+    "tax": -0.77,
+    "tot_pct": 82.4,
+    "passon_value": 1.51,
     "mom_tot_delta_pp": 36.9,
     "incremental_passon_impact": 0.29
    },
@@ -343914,7 +343914,7 @@ window.DASH = {
     "mrp": 0.34,
     "nsv": -0.07,
     "tax": -0.0,
-    "tot_pct": 122.7,
+    "tot_pct": 122.5,
     "passon_value": 0.41,
     "mom_tot_delta_pp": -129.2,
     "incremental_passon_impact": -0.16
@@ -343923,11 +343923,11 @@ window.DASH = {
     "name": "7.5",
     "mrp": 0.34,
     "nsv": 0.2,
-    "tax": 0.03,
-    "tot_pct": 32.1,
-    "passon_value": 0.11,
-    "mom_tot_delta_pp": 13.4,
-    "incremental_passon_impact": -0.01
+    "tax": 0.01,
+    "tot_pct": 37.5,
+    "passon_value": 0.13,
+    "mom_tot_delta_pp": 5.7,
+    "incremental_passon_impact": -0.02
    },
    {
     "name": "1.8",
@@ -343994,26 +343994,26 @@ window.DASH = {
    {
     "fy": "FY26",
     "month": "Sept",
-    "tot_pct": 50.4,
-    "passon_value": 2670.68,
-    "mom_tot_delta_pp": 0.0,
-    "incremental_passon_impact": 76.47
+    "tot_pct": 55.9,
+    "passon_value": 2959.92,
+    "mom_tot_delta_pp": 5.5,
+    "incremental_passon_impact": 365.71
    },
    {
     "fy": "FY26",
     "month": "Oct",
-    "tot_pct": 49.5,
-    "passon_value": 3090.85,
-    "mom_tot_delta_pp": -1.0,
-    "incremental_passon_impact": 420.17
+    "tot_pct": 55.0,
+    "passon_value": 3437.52,
+    "mom_tot_delta_pp": -0.9,
+    "incremental_passon_impact": 477.6
    },
    {
     "fy": "FY26",
     "month": "Nov",
     "tot_pct": 55.5,
     "passon_value": 4356.17,
-    "mom_tot_delta_pp": 6.0,
-    "incremental_passon_impact": 1265.32
+    "mom_tot_delta_pp": 0.4,
+    "incremental_passon_impact": 918.65
    },
    {
     "fy": "FY26",
@@ -344064,10 +344064,160 @@ window.DASH = {
     "incremental_passon_impact": -809.33
    }
   ],
-  "blended_tot_pct": 52.5,
-  "total_passon_value": 51658.89,
-  "gst_cutover": "2025-11-01",
+  "blended_tot_pct": 53.1,
+  "total_passon_value": 52294.8,
+  "category_impacts_pp": {
+   "Face": -2.5,
+   "Hair": -0.9,
+   "Hair Care": -0.0,
+   "Body": -0.4,
+   "Baby": -0.2,
+   "Sun Care": 0.0,
+   "Color Care": -0.0,
+   "Hair Colour": 0.0,
+   "Fragrance": 0.0,
+   "Fragrances": -0.0,
+   "Styling Products": 0.0,
+   "Combo": 0.0
+  },
+  "qc_table": [
+   {
+    "category": "Face",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "5",
+    "effective_from": "",
+    "confidence": "Medium",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "-2.5",
+    "note": "Dominated by Face Wash/Cleanser (basic personal-care staple). GST 2.0 rate rationalisation moved daily-use toiletries to the 5% merit slab. Premium face-serum/under-eye-care SKUs within this tag may not match this category-level rate -- verify with Finance/Tax before treating as final."
+   },
+   {
+    "category": "Hair",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "5",
+    "effective_from": "",
+    "confidence": "Medium",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "-0.9",
+    "note": "Dominated by Shampoo/Hair Oil -- moved to the 5% merit slab under GST 2.0."
+   },
+   {
+    "category": "Hair Care",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "5",
+    "effective_from": "",
+    "confidence": "Medium",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "-0.0",
+    "note": "Duplicate taxonomy tag of 'Hair' in the source data -- same treatment."
+   },
+   {
+    "category": "Body",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "5",
+    "effective_from": "",
+    "confidence": "Medium",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "-0.4",
+    "note": "Body Wash/Soap -- basic toiletries; 5% merit slab under GST 2.0."
+   },
+   {
+    "category": "Baby",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "5",
+    "effective_from": "",
+    "confidence": "Medium",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "-0.2",
+    "note": "Baby-care essentials were widely reported as part of the GST 2.0 relief basket."
+   },
+   {
+    "category": "Sun Care",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "18",
+    "effective_from": "",
+    "confidence": "Low",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "0.0",
+    "note": "Sunscreen not confirmed as a merit-rate item -- kept at standard 18% pending confirmation."
+   },
+   {
+    "category": "Color Care",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "18",
+    "effective_from": "",
+    "confidence": "Low",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "-0.0",
+    "note": "Decorative cosmetics (lipstick/foundation/kajal) -- discretionary; likely stayed at 18% (was taxed higher pre-reform)."
+   },
+   {
+    "category": "Hair Colour",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "18",
+    "effective_from": "",
+    "confidence": "Low",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "0.0",
+    "note": "Chemical hair colourants -- historically a higher slab; kept at standard 18% pending confirmation."
+   },
+   {
+    "category": "Fragrance",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "18",
+    "effective_from": "",
+    "confidence": "Low",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "0.0",
+    "note": "Perfumes not treated as a merit/essential good."
+   },
+   {
+    "category": "Fragrances",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "18",
+    "effective_from": "",
+    "confidence": "Low",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "-0.0",
+    "note": "Duplicate taxonomy tag of 'Fragrance' in the source data -- same treatment."
+   },
+   {
+    "category": "Styling Products",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "18",
+    "effective_from": "",
+    "confidence": "Low",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "0.0",
+    "note": "Discretionary styling items (gel/spray) -- kept at standard 18%."
+   },
+   {
+    "category": "Combo",
+    "hsn_code": "",
+    "pre_rate_pct": "18",
+    "post_rate_pct": "18",
+    "effective_from": "",
+    "confidence": "Low",
+    "finance_approved": "Pending",
+    "impact_on_tot_pp": "0.0",
+    "note": "Mixed-SKU bundles cannot be assigned one HSN code -- defaulted to standard 18%."
+   }
+  ],
+  "gst_cutover_default": "2025-09-22",
+  "finance_approved_count": 0,
+  "finance_approved_total": 12,
   "unit": "INR Lakh",
-  "methodology": "TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) = 1 - (NSV + Tax) / MRP, computed from the full article-level primary detail (not the row-capped browser export). Tax = NSV x applicable GST rate: flat 18% before Nov'25; from Nov'25 onward (GST 2.0 rate rationalisation), rate is looked up per Category from PowerBI/SeedData/Masters/GST_Rate_Table.csv. Several categories in that table are LOW-confidence best-effort assumptions (no official HSN-code source was available) -- verify against Finance/Tax records before treating TOT% as final. 'On-Invoice Margin Pass-on Value' = MRP - NSV - Tax (Rs Lakh). 'Incremental Pass-on Impact' = the MoM change in that value."
+  "methodology": "TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) = 1 - (NSV + Tax) / MRP, computed from the full article-level primary detail (not the row-capped browser export). Tax = NSV x applicable GST rate: Pre_GST_Rate_Pct before that category's cutover date, Post_GST_Rate_Pct on/after it, both from the editable PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv. A per-category cutover override lives in that CSV's Effective_From column; if blank, the global default cutover date from PowerBI/SeedData/Masters/GST_Config.csv is used (editable single cell -- default 2025-09-22, the GST Council's confirmed GST 2.0 effective date; override it if Honasa's internal billing cutover differs). Several categories in the QC table are LOW-confidence best-effort assumptions (no official HSN-code source was available) and every row starts Finance_Approved=Pending -- verify against Finance/Tax records before treating TOT% as final. 'On-Invoice Margin Pass-on Value' = MRP - NSV - Tax (Rs Lakh). 'Incremental Pass-on Impact' = the MoM change in that value. 'Impact_on_TOT_pct' (in the QC table) = how much blended TOT% would move, in pp, if that one category's Post_GST_Rate_Pct were flipped to the alternate slab -- use it to prioritise which LOW-confidence rows matter most."
  }
 };

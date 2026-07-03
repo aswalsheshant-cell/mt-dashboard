@@ -40,7 +40,8 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Targets` | monthly FY target NSV. Joined on `Date Table[MonthStart]`. |
 | `Store SO Mapping` | store → sales officer + split. Join `Store Code` → `Store Master[Store Code]` (or to facts). |
 | `Sales Team Mapping` | unpivoted store × sales-person × Cont% (from Store SO Mapping). Used by the Forecast page for sales-person target ownership. Relate `Store Code` → `Fact Offtake Sales[Store Code]` (single, or keep disconnected and resolve in DAX). |
-| `GST Rate Table` | Category → post-Nov'25 GST% (query 37, from `SeedData/Masters/GST_Rate_Table.csv`). Disconnected — read via `LOOKUPVALUE()` by the TOT% measures (`DAX/12_TOT_Measures.dax`). Several rows are LOW-confidence best-effort assumptions — see the CSV's Confidence/Note columns. |
+| `GST Rate QC Table` | Finance/Tax sign-off sheet for TOT%: Category, HSN Code, Pre/Post-GST%, Effective_From override, Confidence, Finance_Approved, auto-computed Impact_on_TOT_pct (query 37, from `SeedData/Masters/GST_Rate_QC_Table.csv`). Disconnected — read via `LOOKUPVALUE()` by the TOT% measures (`DAX/12_TOT_Measures.dax`). Every row starts Finance_Approved=Pending; several are LOW-confidence best-effort assumptions — see the CSV's Confidence/Note columns. |
+| `GST Config` | Single editable cell: the GLOBAL default GST cutover date (query 38, from `SeedData/Masters/GST_Config.csv`) — default 2025-09-22 (GST Council's confirmed GST 2.0 effective date). Used by TOT% whenever a category's own `Effective_From` is blank. Disconnected — read via `MINX()`. |
 | `_Measures` | holds all measures, no data. |
 
 ## Relationships (create exactly these)
@@ -90,7 +91,7 @@ Chain Master[Chain]      1 ─→ * Fact Primary Article[Chain]
 Brand Master[Brand]      1 ─→ * Fact Primary Article[Brand]
 Category Master[Category] 1 ─→ * Fact Primary Article[Category]
 ```
-`GST Rate Table` is intentionally NOT in this list — kept disconnected, read via `LOOKUPVALUE()` (see `DAX/12_TOT_Measures.dax`).
+`GST Rate QC Table` and `GST Config` are intentionally NOT in this list — both kept disconnected, read via `LOOKUPVALUE()` / `MINX()` (see `DAX/12_TOT_Measures.dax`).
 
 ### Ship-to primary allocation (new)
 - `Fact Primary ShipTo` carries primary NSV **already allocated to Chain** by the

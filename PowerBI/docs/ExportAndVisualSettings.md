@@ -163,18 +163,35 @@ Be upfront about these rather than pretending Power BI matches 1:1:
   just the current level. If you see extra rows, switch that specific visual
   to Underlying data and manually filter, or rebuild it as a matrix.
 
-### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — now implemented
+### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — implemented, pending Finance sign-off
 
-TOT% = 1 − (NSV + Tax) / MRP, where Tax = NSV × applicable GST rate (flat 18%
-before Nov'25; Category-based lookup from the editable `GST_Rate_Table.csv`
-from Nov'25 onward, per the GST 2.0 rate rationalisation). Measures live in
-`DAX/12_TOT_Measures.dax`; source is `Fact Primary Article` (query 16/37).
-**This is a best-effort assumption, not an authoritative figure**: several
-categories in `GST_Rate_Table.csv` are marked LOW confidence (no official
-HSN-code-level source was available for the post-cutover rate split) — verify
-against Finance/Tax records before treating TOT% as final. `Weighted TOT%`,
-`On-Invoice Margin Pass-on Value`, `MoM TOT Delta pp`, and `Incremental
-Pass-on Impact` are all covered — see Page 4's TOT% section in `PageLayouts.md`.
+TOT% = 1 − (NSV + Tax) / MRP, where Tax = NSV × applicable GST rate:
+`Pre_GST_Rate_Pct` before that category's cutover date, `Post_GST_Rate_Pct`
+on/after it — both from `GST_Rate_QC_Table.csv` (query 37), Finance/Tax's
+sign-off sheet: `Category, HSN_Code, Pre_GST_Rate_Pct, Post_GST_Rate_Pct,
+Effective_From, Confidence, Finance_Approved, Impact_on_TOT_pct, Note`. A
+per-category cutover override lives in that table's `Effective_From` column;
+if blank, the **global, editable** default cutover date in `GST_Config.csv`
+(query 38) applies — default **2025-09-22** (the GST Council's confirmed GST
+2.0 effective date), a single cell to edit if Honasa's internal billing
+cutover differs. Measures live in `DAX/12_TOT_Measures.dax`; source is
+`Fact Primary Article` (query 16).
+
+**This is a best-effort assumption, not an authoritative figure.** Every row
+in `GST_Rate_QC_Table.csv` starts `Finance_Approved = Pending`, and several
+are marked `Confidence = Low` (no official HSN-code-level source was
+available for the post-cutover rate split) — `[Finance Approved Count]` /
+`[Finance Approved Total]` measures surface how many of the 12 categories are
+still unconfirmed, so this shows as provisional on the report itself, not
+just in this doc. `Impact_on_TOT_pct` is auto-computed on every HTML-side
+`--detail-only` rebuild (how much blended TOT% would move, in pp, if that
+category's rate assumption were wrong) — use it to prioritise which LOW-
+confidence rows to chase down first. Fill in `HSN_Code` and flip
+`Finance_Approved` to `Yes` per row as Finance confirms; TOT% keeps computing
+off whatever's in the table regardless of approval status (it's an audit
+field, not a gate). `Weighted TOT%`, `On-Invoice Margin Pass-on Value`,
+`MoM TOT Delta pp`, and `Incremental Pass-on Impact` are all covered — see
+Page 4's TOT% section in `PageLayouts.md`.
 
 ### One gap still flagged, not silently resolved
 

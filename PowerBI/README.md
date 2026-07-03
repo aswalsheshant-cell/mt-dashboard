@@ -38,19 +38,20 @@ PowerBI/
 │  │                             Primary-Article facts
 │  ├─ 20_Dim_Masters.pq       ← Chain/Brand/Category/Article/Zone/Store/Nielsen masters
 │  ├─ 21_ShipToMaster.pq      ← Ship-to party master
-│  └─ 30..37_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
+│  └─ 30..38_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
 │                               Primary Allocation Map + Override, Sales Team Mapping,
-│                               GST Rate Table
+│                               GST Rate QC Table, GST Config (cutover date)
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
 │  └─ 01..12_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
 │                               TDP, Data-Quality, Ship-to Allocation, Forecast-QC,
 │                               Article-Allocation Eligibility, SIS Reconciliation,
 │                               Export Display (₹ L/Cr, Qty Cr/L label measures),
-│                               TOT% (On-Invoice Margin Pass-on)
+│                               TOT% (On-Invoice Margin Pass-on, Finance sign-off rollup)
 ├─ SeedData/                  ← reference tables + targets + mapping (edit by hand)
 │  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable,
-│  │                             ForecastOverride, GST_Rate_Table
+│  │                             ForecastOverride, GST_Rate_QC_Table (Finance
+│  │                             sign-off sheet), GST_Config (cutover date)
 │  ├─ Targets/FY2627_Targets.csv
 │  └─ Mapping/Store_SO_Mapping.csv
 ├─ RawDataFolders/            ← the watch folders you drop monthly files into

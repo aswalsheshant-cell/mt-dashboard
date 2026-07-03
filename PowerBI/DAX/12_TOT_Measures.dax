@@ -5,13 +5,23 @@
 // trade margin once GST is added back on top of NSV. Source: 'Fact Primary
 // Article' (query 16, has row-level Category + MonthStart + Primary NSV/MRP).
 //
-// Tax = NSV x applicable GST rate: flat 18% for every transaction before the
-// Nov'25 GST 2.0 rate rationalisation cutover; from Nov'25 onward, rate is
-// looked up per Category from 'GST Rate Table' (query 37, reads the editable
-// PowerBI/SeedData/Masters/GST_Rate_Table.csv). Several categories in that
-// table are LOW-confidence best-effort assumptions (no official HSN-code-
-// level source was available) -- verify against Honasa's Finance/Tax records
-// before treating TOT% as final. See that CSV's Confidence/Note columns.
+// Tax = NSV x applicable GST rate: 'GST Rate QC Table'[Pre_GST_Rate_Pct]
+// before that category's cutover date, [Post_GST_Rate_Pct] on/after it (both
+// from query 37, reads the editable PowerBI/SeedData/Masters/
+// GST_Rate_QC_Table.csv -- Finance/Tax's sign-off sheet: Category, HSN Code,
+// Pre/Post GST%, Confidence, Finance_Approved, auto-computed
+// Impact_on_TOT_pct). A per-category cutover override lives in that table's
+// Effective_From column; if blank, the GLOBAL default cutover date from
+// 'GST Config' (query 38, reads GST_Config.csv) is used -- default
+// 2025-09-22, the GST Council's confirmed GST 2.0 effective date; edit that
+// CSV's single cell if Honasa's internal billing cutover differs.
+//
+// EVERY row in the QC table starts Finance_Approved = "Pending" and several
+// are Confidence = "Low" (no official HSN-code-level source was available)
+// -- verify against Honasa's Finance/Tax records before treating TOT% as
+// final. TOT% still computes off whatever is in the QC table regardless of
+// approval status; Finance_Approved is an audit/tracking field, not a
+// computational gate. [Finance Approved Count] below surfaces the rollup.
 //
 // Mirrors dashboard/scripts/build_dashboard_data.py's tot_block() exactly,
 // so a chain/category's TOT% reads the same on the HTML dashboard and here.
@@ -19,9 +29,10 @@
 
 // ---------- SETUP ----------
 // Relationship needed (see docs/DataModel.md): Date Table[MonthStart] -> Fact
-// Primary Article[MonthStart]. 'GST Rate Table' stays DISCONNECTED (read via
-// LOOKUPVALUE, no relationship to wire up).
-GST Cutover Date = DATE ( 2025, 11, 1 )
+// Primary Article[MonthStart]. 'GST Rate QC Table' and 'GST Config' both
+// stay DISCONNECTED (read via LOOKUPVALUE / MINX, no relationship to wire up).
+GST Cutover Date =
+COALESCE ( MINX ( 'GST Config', 'GST Config'[GST_Cutover_Date] ), DATE ( 2025, 9, 22 ) )
 
 // ---------- BASE TOTALS ----------
 Total Primary Article NSV = SUM ( 'Fact Primary Article'[Primary NSV] )
@@ -31,13 +42,16 @@ Total Primary Article MRP = SUM ( 'Fact Primary Article'[Primary MRP] )
 TOT Tax =
 SUMX (
     'Fact Primary Article',
-    VAR _isPost = 'Fact Primary Article'[MonthStart] >= [GST Cutover Date]
-    VAR _catRate =
-        LOOKUPVALUE (
-            'GST Rate Table'[GST_Rate_From_Nov25_Pct],
-            'GST Rate Table'[Category], 'Fact Primary Article'[Category]
-        )
-    VAR _rate = IF ( _isPost, COALESCE ( _catRate, 18 ), 18 )   // 18% default for unmapped categories
+    VAR _cat = 'Fact Primary Article'[Category]
+    VAR _preRate = LOOKUPVALUE ( 'GST Rate QC Table'[Pre_GST_Rate_Pct], 'GST Rate QC Table'[Category], _cat )
+    VAR _postRate = LOOKUPVALUE ( 'GST Rate QC Table'[Post_GST_Rate_Pct], 'GST Rate QC Table'[Category], _cat )
+    VAR _effFromTxt = LOOKUPVALUE ( 'GST Rate QC Table'[Effective_From], 'GST Rate QC Table'[Category], _cat )
+    VAR _effFrom = IF ( TRIM ( COALESCE ( _effFromTxt, "" ) ) = "", BLANK(), DATEVALUE ( _effFromTxt ) )
+    VAR _cutover = COALESCE ( _effFrom, [GST Cutover Date] )
+    VAR _pre = COALESCE ( _preRate, 18 )      // 18% default for unmapped categories
+    VAR _post = COALESCE ( _postRate, 18 )
+    VAR _isPost = 'Fact Primary Article'[MonthStart] >= _cutover
+    VAR _rate = IF ( _isPost, _post, _pre )
     RETURN 'Fact Primary Article'[Primary NSV] * _rate / 100
 )
 
@@ -75,6 +89,18 @@ VAR _cur = [On-Invoice Margin Pass-on Value]
 VAR _prev = CALCULATE ( [On-Invoice Margin Pass-on Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
 RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
 
+// ---------- FINANCE SIGN-OFF ROLLUP (surface provisional status on-report) ----------
+Finance Approved Count =
+COUNTROWS ( FILTER ( 'GST Rate QC Table', 'GST Rate QC Table'[Finance_Approved] = "Yes" ) )
+
+Finance Approved Total = COUNTROWS ( 'GST Rate QC Table' )
+
+Finance Approval Status =
+VAR _n = [Finance Approved Count]
+VAR _tot = [Finance Approved Total]
+RETURN
+    "Provisional — " & _n & " of " & _tot & " GST categories Finance-approved"
+
 // ---------- WEIGHTED TOT% BY DIMENSION (for the Pack Size / Chain / Category export tables) ----------
 // TOT % already aggregates correctly (weighted by MRP, not a simple row
 // average) whenever it's dropped into a Chain/Category/Pack Size matrix or
@@ -84,3 +110,11 @@ RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
 // table/matrix visual. Rename the column header to "Weighted TOT%" in that
 // visual if you want the label to match the HTML dashboard's Pack Size
 // export column name exactly.
+//
+// ---------- IMPACT ON TOT% (materiality, for prioritising QC review) ----------
+// 'GST Rate QC Table'[Impact_on_TOT_pct] is auto-computed by
+// build_dashboard_data.py on every --detail-only rebuild (how much blended
+// TOT% would move, in pp, if that category's Post_GST_Rate_Pct were flipped
+// to the alternate slab). Power BI reads the same CSV, so drop that column
+// straight into the QC table visual (Page 4) -- no separate DAX measure
+// needed; refresh the CSV via the HTML dashboard's Python rebuild to update it.
