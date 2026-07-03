@@ -28,6 +28,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact TDP` | Month × Chain × Article | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Primary ShipTo` | Month × Ship-To × Chain × Brand | `Date Table[MonthStart]` → `[MonthStartCalc]` |
+| `Fact Primary Article` | Month × Ship-To(Distributor) × Chain × Brand × Article | `Date Table[MonthStart]` → `[MonthStart]` |
 
 ### Helper / input tables
 | Table | Role |
@@ -39,6 +40,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Targets` | monthly FY target NSV. Joined on `Date Table[MonthStart]`. |
 | `Store SO Mapping` | store → sales officer + split. Join `Store Code` → `Store Master[Store Code]` (or to facts). |
 | `Sales Team Mapping` | unpivoted store × sales-person × Cont% (from Store SO Mapping). Used by the Forecast page for sales-person target ownership. Relate `Store Code` → `Fact Offtake Sales[Store Code]` (single, or keep disconnected and resolve in DAX). |
+| `GST Rate Table` | Category → post-Nov'25 GST% (query 37, from `SeedData/Masters/GST_Rate_Table.csv`). Disconnected — read via `LOOKUPVALUE()` by the TOT% measures (`DAX/12_TOT_Measures.dax`). Several rows are LOW-confidence best-effort assumptions — see the CSV's Confidence/Note columns. |
 | `_Measures` | holds all measures, no data. |
 
 ## Relationships (create exactly these)
@@ -82,7 +84,13 @@ Date Table[MonthStart]   1 ─→ * Fact Primary ShipTo[MonthStartCalc]
 Chain Master[Chain]      1 ─→ * Fact Primary ShipTo[Chain]
 Brand Master[Brand]      1 ─→ * Fact Primary ShipTo[Brand]
 Ship-To Master[Ship To Name] 1 ─→ * Fact Primary ShipTo[Ship To Name]
+
+Date Table[MonthStart]   1 ─→ * Fact Primary Article[MonthStart]
+Chain Master[Chain]      1 ─→ * Fact Primary Article[Chain]
+Brand Master[Brand]      1 ─→ * Fact Primary Article[Brand]
+Category Master[Category] 1 ─→ * Fact Primary Article[Category]
 ```
+`GST Rate Table` is intentionally NOT in this list — kept disconnected, read via `LOOKUPVALUE()` (see `DAX/12_TOT_Measures.dax`).
 
 ### Ship-to primary allocation (new)
 - `Fact Primary ShipTo` carries primary NSV **already allocated to Chain** by the

@@ -86,6 +86,30 @@ re-split. Coverage (how much Distributor primary has a matching allocation
 entry, vs falling back to its original single-chain tag) is reported in
 `DASH.chain_allocation_qc` and shown as a note on the Primary tab.
 
+### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — P&L tab
+`TOT% = 1 − (NSV + Tax) / MRP`, computed chain/category/pack-size-wise from
+the full (uncapped) article-level primary detail — not the 20k-row browser
+export, so it's exact. `Tax = NSV × applicable GST rate`: flat 18% for every
+transaction before the Nov'25 GST 2.0 rate rationalisation; from Nov'25
+onward, rate is looked up per Category from the editable
+`PowerBI/SeedData/Masters/GST_Rate_Table.csv`.
+
+**This is a best-effort assumption, not an authoritative figure.** Several
+categories in that rate table are marked **LOW confidence** — no official
+HSN-code-level source was available to classify which Honasa/Mamaearth
+categories moved to the 5% merit slab vs stayed at 18% — verify against
+Finance/Tax records before treating TOT% as final. The methodology note and
+GST cutover date are shown directly on the P&L tab's TOT% card, and the rate
+table's `Confidence`/`Note` columns explain each category's reasoning. Edit
+that CSV and re-run `--detail-only` to update TOT% dashboard-wide (and in
+Power BI — `DAX/12_TOT_Measures.dax` reads the same file via query 37).
+
+`On-Invoice Margin Pass-on Value = MRP − NSV − Tax`. `Incremental Pass-on
+Impact` = the month-over-month change in that value; `MoM TOT Δ pp` = the
+month-over-month change in TOT% itself, in percentage points. Both are
+exposed per-chain (P&L tab card) and per-pack-size (Category & Pack tab's
+Pack Size chart export — see below).
+
 ## Export & download
 
 Every page, chart and table can be downloaded — all client-side, no server
@@ -121,6 +145,12 @@ Filenames follow `MT_Dashboard_<Tab>_<Chart>_<Month/FY>_<timestamp>` —e.g.
 `MT_Dashboard_Category_Pack_TopRanges_May26_20260703_2054.xlsx` — so exports
 from different tabs, charts or points in time never collide or overwrite
 each other.
+
+The **Category & Pack** tab's **Pack Size** chart export additionally
+includes `Weighted TOT%`, `On-Invoice Margin Pass-on Value`, `MoM TOT Δ pp`
+and `Incremental Pass-on Impact` columns per pack size (see the TOT%
+methodology note above) — every other chart's export is just its own
+labels/values.
 
 ### Export a table
 Every card containing a table gets an **⭳ Export Table** button above it.

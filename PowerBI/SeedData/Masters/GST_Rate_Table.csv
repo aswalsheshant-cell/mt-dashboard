@@ -1,0 +1,13 @@
+Category,GST_Rate_From_Nov25_Pct,Confidence,Note
+Face,5,Medium,Dominated by Face Wash/Cleanser (basic personal-care staple). GST 2.0 rate rationalisation (effective ~22-Sep-2025) moved daily-use toiletries to the 5% merit slab. Premium face-serum/under-eye-care SKUs within this tag may not match this category-level rate -- verify with Finance/Tax before treating as final.
+Hair,5,Medium,Dominated by Shampoo/Hair Oil -- moved to the 5% merit slab under GST 2.0.
+Hair Care,5,Medium,Duplicate taxonomy tag of 'Hair' in the source data -- same treatment.
+Body,5,Medium,Body Wash/Soap -- basic toiletries; 5% merit slab under GST 2.0.
+Baby,5,Medium,Baby-care essentials were widely reported as part of the GST 2.0 relief basket.
+Sun Care,18,Low,Sunscreen not confirmed as a merit-rate item -- kept at standard 18% pending confirmation.
+Color Care,18,Low,Decorative cosmetics (lipstick/foundation/kajal) -- discretionary; likely stayed at 18% (was taxed higher pre-reform).
+Hair Colour,18,Low,Chemical hair colourants -- historically a higher slab; kept at standard 18% pending confirmation.
+Fragrance,18,Low,Perfumes not treated as a merit/essential good.
+Fragrances,18,Low,Duplicate taxonomy tag of 'Fragrance' in the source data -- same treatment.
+Styling Products,18,Low,Discretionary styling items (gel/spray) -- kept at standard 18%.
+Combo,18,Low,Mixed-SKU bundles cannot be assigned one HSN code -- defaulted to standard 18%.

@@ -486,6 +486,160 @@ def promo_block(src):
     return p, out
 
 # --------------------------------------------------------------------------
+# TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %)
+#
+# TOT% = 1 - (NSV + Tax) / MRP, i.e. the share of MRP given up as on-invoice
+# trade margin once GST is added back on top of NSV. Tax = NSV x applicable
+# GST rate: flat 18% for every transaction before the Nov'25 GST 2.0 rate
+# rationalisation cutover; from Nov'25 onward, rate is looked up per Category
+# from the editable PowerBI/SeedData/Masters/GST_Rate_Table.csv. Several
+# categories in that table are LOW-confidence best-effort mappings (no
+# official HSN-code-level source was available) -- verify against Honasa's
+# Finance/Tax records before treating TOT% as final; the table's Confidence/
+# Note columns and this block's "methodology" string surface that caveat
+# wherever TOT% is displayed.
+# --------------------------------------------------------------------------
+GST_CUTOVER_MONTH_ORD = 2025 * 12 + 11   # November 2025
+_MONTH_IDX = {"April": 0, "May": 1, "June": 2, "July": 3, "Aug": 4, "Sept": 5,
+              "Oct": 6, "Nov": 7, "Dec": 8, "Jan": 9, "Feb": 10, "March": 11}
+_FY_START_YEAR = {"FY25": 2024, "FY26": 2025, "FY27": 2026}
+_CAL_MONTH = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3]   # Apr..Mar, aligned to _MONTH_IDX order
+
+def month_ord(month_name, fy_tag):
+    """Sortable (calendar_year*12 + calendar_month) for a dashboard Month
+    label + FY tag, e.g. ('Nov','FY26') -> Nov 2025. Returns None if either
+    isn't recognised."""
+    y0 = _FY_START_YEAR.get(fy_tag)
+    idx = _MONTH_IDX.get(month_name)
+    if y0 is None or idx is None:
+        return None
+    cal_year = y0 + (1 if idx >= 9 else 0)   # Jan/Feb/March roll into the next calendar year
+    return cal_year * 12 + _CAL_MONTH[idx]
+
+def load_gst_rate_table():
+    """Category -> post-Nov'25 GST% from the editable repo seed CSV. Missing
+    file or unparsable row falls back to the 18% standard-slab default at
+    lookup time (gst_rate_for), not here, so a partially-edited CSV degrades
+    gracefully."""
+    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "GST_Rate_Table.csv"
+    rates = {}
+    if path.exists():
+        with open(path, newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                try:
+                    rates[row["Category"].strip()] = float(row["GST_Rate_From_Nov25_Pct"])
+                except (KeyError, ValueError, AttributeError):
+                    continue
+    return rates
+
+def gst_rate_for(category, month_name, fy_tag, rate_table):
+    ordv = month_ord(month_name, fy_tag)
+    if ordv is None or ordv < GST_CUTOVER_MONTH_ORD:
+        return 18.0
+    return rate_table.get(category, 18.0)
+
+def tot_block(g, rate_table):
+    """Chain / Category / Pack-Size-wise TOT%, on-invoice margin pass-on
+    value, and a monthly series (for MoM TOT Delta pp / Incremental Pass-on
+    Impact), computed from the FULL (uncapped) article-level primary groupby
+    `g` — columns _M, _FY, _Chain, _category, _net_content, NSV, MRP (Lakh).
+    Only FY26/FY27 rows are used (matches the rest of the dashboard's "no
+    FY24-25 actuals shown post-cutover" convention and keeps the GST-cutover
+    logic meaningful — FY25 predates the reform entirely)."""
+    gg = g[g["_FY"].isin(["FY26", "FY27"])].copy()
+    gg["_rate"] = gg.apply(
+        lambda r: gst_rate_for(r["_category"], r["_M"], r["_FY"], rate_table), axis=1)
+    gg["_tax"] = gg["NSV"] * gg["_rate"] / 100.0
+
+    def weighted(group_col, with_mom=False):
+        """Per-group MRP/NSV/Tax/TOT%/pass-on value (weighted, not a simple
+        average across the group's own rows). with_mom=True additionally
+        computes that group's OWN latest month-over-month TOT% delta (pp)
+        and incremental pass-on impact from ITS OWN monthly trend — not the
+        dashboard-wide blended monthly series — so e.g. two pack sizes with
+        different trajectories don't get the same MoM number."""
+        out = []
+        for name, d in gg.groupby(group_col):
+            if not name:
+                continue
+            mrp, nsv, tax = d["MRP"].sum(), d["NSV"].sum(), d["_tax"].sum()
+            if mrp <= 0:
+                continue
+            row = {"name": name, "mrp": r2(mrp), "nsv": r2(nsv), "tax": r2(tax),
+                   "tot_pct": r2((1 - (nsv + tax) / mrp) * 100, 1),
+                   "passon_value": r2(mrp - nsv - tax)}
+            if with_mom:
+                mrow = []
+                for (fy, m), dm in d.groupby(["_FY", "_M"]):
+                    ordv = month_ord(m, fy)
+                    if ordv is None:
+                        continue
+                    mmrp, mnsv, mtax = dm["MRP"].sum(), dm["NSV"].sum(), dm["_tax"].sum()
+                    if mmrp <= 0:
+                        continue
+                    mrow.append({"ord": ordv, "tot_pct": (1 - (mnsv + mtax) / mmrp) * 100,
+                                "passon_value": mmrp - mnsv - mtax})
+                mrow.sort(key=lambda x: x["ord"])
+                if len(mrow) >= 2:
+                    row["mom_tot_delta_pp"] = r2(mrow[-1]["tot_pct"] - mrow[-2]["tot_pct"], 1)
+                    row["incremental_passon_impact"] = r2(mrow[-1]["passon_value"] - mrow[-2]["passon_value"])
+                else:
+                    row["mom_tot_delta_pp"] = None
+                    row["incremental_passon_impact"] = None
+            out.append(row)
+        return sorted(out, key=lambda d: -(d["mrp"] or 0))
+
+    by_chain = weighted("_Chain")
+    by_category = weighted("_category")
+    by_packsize = weighted("_net_content", with_mom=True)
+
+    monthly_raw = []
+    for (fy, m), d in gg.groupby(["_FY", "_M"]):
+        ordv = month_ord(m, fy)
+        if ordv is None:
+            continue
+        mrp, nsv, tax = d["MRP"].sum(), d["NSV"].sum(), d["_tax"].sum()
+        if mrp <= 0:
+            continue
+        monthly_raw.append({"fy": fy, "month": m, "ord": ordv,
+                            "tot_pct": (1 - (nsv + tax) / mrp) * 100,
+                            "passon_value": mrp - nsv - tax})
+    monthly_raw.sort(key=lambda d: d["ord"])
+    monthly = []
+    for i, row in enumerate(monthly_raw):
+        prev = monthly_raw[i - 1] if i > 0 else None
+        monthly.append({
+            "fy": row["fy"], "month": row["month"],
+            "tot_pct": r2(row["tot_pct"], 1),
+            "passon_value": r2(row["passon_value"]),
+            "mom_tot_delta_pp": r2(row["tot_pct"] - prev["tot_pct"], 1) if prev else None,
+            "incremental_passon_impact": r2(row["passon_value"] - prev["passon_value"]) if prev else None,
+        })
+
+    tot_mrp, tot_nsv, tot_tax = gg["MRP"].sum(), gg["NSV"].sum(), gg["_tax"].sum()
+    return {
+        "by_chain": by_chain, "by_category": by_category, "by_packsize": by_packsize,
+        "monthly": monthly,
+        "blended_tot_pct": r2((1 - (tot_nsv + tot_tax) / tot_mrp) * 100, 1) if tot_mrp else None,
+        "total_passon_value": r2(tot_mrp - tot_nsv - tot_tax),
+        "gst_cutover": "2025-11-01",
+        "unit": "INR Lakh",
+        "methodology": (
+            "TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) = "
+            "1 - (NSV + Tax) / MRP, computed from the full article-level primary "
+            "detail (not the row-capped browser export). Tax = NSV x applicable GST "
+            "rate: flat 18% before Nov'25; from Nov'25 onward (GST 2.0 rate "
+            "rationalisation), rate is looked up per Category from "
+            "PowerBI/SeedData/Masters/GST_Rate_Table.csv. Several categories in that "
+            "table are LOW-confidence best-effort assumptions (no official HSN-code "
+            "source was available) -- verify against Finance/Tax records before "
+            "treating TOT% as final. 'On-Invoice Margin Pass-on Value' = "
+            "MRP - NSV - Tax (Rs Lakh). 'Incremental Pass-on Impact' = the MoM change "
+            "in that value."
+        ),
+    }
+
+# --------------------------------------------------------------------------
 # P&L (chain-wise gross-to-net + trade spend)
 # --------------------------------------------------------------------------
 def pnl_block(pdf, promo):
@@ -879,6 +1033,12 @@ def detail_records_real(src, max_rows=20000):
                      "_category","_sub_category","_range","_net_content","_Description","_EAN No."],
                     dropna=False)
            .agg(NSV=("_NSV","sum"), MRP=("_MRP","sum"), Qty=("_Qty","sum")).reset_index())
+
+    # ---- TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %): computed
+    # from this FULL uncapped groupby, before the top-N-by-value row cap below,
+    # so it's exact rather than subject to the browser row cap.
+    tot = tot_block(g, load_gst_rate_table())
+
     total_value = g["NSV"].sum()
     rows_total = len(g)
     # cap by ROW COUNT, keeping the top-N groups by |NSV| (preserves value fidelity)
@@ -896,7 +1056,7 @@ def detail_records_real(src, max_rows=20000):
           f"({coverage:.1f}% of total value)")
     return recs, channel_totals, sis_reconciliation, {
         "rows_total": rows_total, "rows_kept": len(recs),
-        "value_coverage_pct": round(coverage, 1)}
+        "value_coverage_pct": round(coverage, 1)}, tot
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -949,8 +1109,11 @@ def detail_dims(recs):
 
 def _build_detail_meta(src, max_rows, primary_for_fallback):
     """Shared by both the --detail-only path and the full build: returns
-    (detail_records, dims, detail_meta_dict). Falls back to the representative
-    synthesiser only when File 2 is absent."""
+    (detail_records, dims, detail_meta_dict, tot). Falls back to the
+    representative synthesiser only when File 2 is absent -- in that case
+    `tot` is None, since TOT% needs REAL Category tags (GST rate depends on
+    actual product classification, not a randomly-assigned taxonomy
+    placeholder)."""
     result = detail_records_real(src, max_rows)
     if result is None:
         detail = detail_records_representative(primary_for_fallback)
@@ -961,8 +1124,8 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
             "note": ("REPRESENTATIVE records — Chain/Brand/Zone/Channel/Month/FY margins match the "
                      "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
                      "Drop primary_article.xlsb into --src to emit real detail."),
-        }
-    detail, channel_totals, sis_reconciliation, cov = result
+        }, None
+    detail, channel_totals, sis_reconciliation, cov, tot = result
     meta = {
         "representative": False,
         "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
@@ -987,7 +1150,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
                           "Primary SIS FY26. Rs 236 L and Rs 275.44 L (gross) are "
                           "NOT correct.",
     }
-    return detail, detail_dims(detail), meta
+    return detail, detail_dims(detail), meta, tot
 
 
 def main():
@@ -1022,13 +1185,16 @@ def main():
         if "primary" not in obj and not (src / "primary_article.xlsb").exists() \
                 and not (src / "primary_article.xlsx").exists():
             raise SystemExit("No File 2 in --src and no primary block in data.js to synthesise from.")
-        detail, dims, meta = _build_detail_meta(src, a.detail_max_rows, obj.get("primary"))
+        detail, dims, meta, tot = _build_detail_meta(src, a.detail_max_rows, obj.get("primary"))
         obj["detail_records"] = detail
         obj["dims"] = dims
         obj["detail_meta"] = meta
+        if tot is not None:
+            obj["tot"] = tot
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"detail-only: wrote {len(detail)} detail_records "
-              f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}")
+              f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}"
+              + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else ""))
         return
 
     # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----
@@ -1091,12 +1257,15 @@ def main():
     }
 
     # ---- Data Explorer detail_records: real from File 2 if present, else representative ----
-    detail, dims, detail_meta = _build_detail_meta(src, a.detail_max_rows, primary)
+    detail, dims, detail_meta, tot = _build_detail_meta(src, a.detail_max_rows, primary)
     data["detail_records"] = detail
     data["dims"] = dims
     data["detail_meta"] = detail_meta
+    if tot is not None:
+        data["tot"] = tot
     print(f"detail_records: {len(detail)} rows "
-          f"({'REAL' if not detail_meta['representative'] else 'representative'})")
+          f"({'REAL' if not detail_meta['representative'] else 'representative'})"
+          + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else ""))
 
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)

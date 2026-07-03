@@ -34,19 +34,23 @@ PowerBI/
 ├─ PowerQuery/                ← paste each .pq into a new Blank Query (Advanced Editor)
 │  ├─ 00_Parameters.pq        ← pRootFolder (the ONE thing each machine sets)
 │  ├─ 01_fnCombineFolder.pq   ← folder-combine function (the refresh engine)
-│  ├─ 10..15_Fact_*.pq        ← Primary, Offtake, P&L, Nielsen, TDP, Primary-ShipTo facts
+│  ├─ 10..16_Fact_*.pq        ← Primary, Offtake, P&L, Nielsen, TDP, Primary-ShipTo,
+│  │                             Primary-Article facts
 │  ├─ 20_Dim_Masters.pq       ← Chain/Brand/Category/Article/Zone/Store/Nielsen masters
 │  ├─ 21_ShipToMaster.pq      ← Ship-to party master
-│  └─ 30..36_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
-│                               Primary Allocation Map + Override, Sales Team Mapping
+│  └─ 30..37_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
+│                               Primary Allocation Map + Override, Sales Team Mapping,
+│                               GST Rate Table
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
-│  └─ 01..11_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
+│  └─ 01..12_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
 │                               TDP, Data-Quality, Ship-to Allocation, Forecast-QC,
 │                               Article-Allocation Eligibility, SIS Reconciliation,
-│                               Export Display (₹ L/Cr, Qty Cr/L label measures)
+│                               Export Display (₹ L/Cr, Qty Cr/L label measures),
+│                               TOT% (On-Invoice Margin Pass-on)
 ├─ SeedData/                  ← reference tables + targets + mapping (edit by hand)
-│  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable, ForecastOverride
+│  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable,
+│  │                             ForecastOverride, GST_Rate_Table
 │  ├─ Targets/FY2627_Targets.csv
 │  └─ Mapping/Store_SO_Mapping.csv
 ├─ RawDataFolders/            ← the watch folders you drop monthly files into

@@ -342868,5 +342868,1206 @@ window.DASH = {
   },
   "unit": "INR Lakh",
   "note": "'raw_tag_fallback' can be negative (pushing coverage % slightly above 100) in a period where the unmatched remainder is dominated by return/credit-note rows (negative NSV) that the secondary-based allocation file doesn't cover -- this is a real property of the data, not a computation error."
+ },
+ "tot": {
+  "by_chain": [
+   {
+    "name": "Reliance Retail",
+    "mrp": 22555.44,
+    "nsv": 9369.26,
+    "tax": 974.26,
+    "tot_pct": 54.1,
+    "passon_value": 12211.92
+   },
+   {
+    "name": "Dmart",
+    "mrp": 21246.49,
+    "nsv": 8417.69,
+    "tax": 818.2,
+    "tot_pct": 56.5,
+    "passon_value": 12010.6
+   },
+   {
+    "name": "Apollo",
+    "mrp": 14168.45,
+    "nsv": 5240.22,
+    "tax": 472.12,
+    "tot_pct": 59.7,
+    "passon_value": 8456.11
+   },
+   {
+    "name": "JUST MARK-Dmart",
+    "mrp": 4886.68,
+    "nsv": 1834.37,
+    "tax": 167.52,
+    "tot_pct": 59.0,
+    "passon_value": 2884.8
+   },
+   {
+    "name": "Kiran Trading Company",
+    "mrp": 4625.72,
+    "nsv": 1699.78,
+    "tax": 147.11,
+    "tot_pct": 60.1,
+    "passon_value": 2778.83
+   },
+   {
+    "name": "Nykaa E-Retail Limited",
+    "mrp": 4091.58,
+    "nsv": 2311.6,
+    "tax": 259.68,
+    "tot_pct": 37.2,
+    "passon_value": 1520.29
+   },
+   {
+    "name": "Sri Vijaya Durga Agencies",
+    "mrp": 4048.3,
+    "nsv": 2205.88,
+    "tax": 240.01,
+    "tot_pct": 39.6,
+    "passon_value": 1602.42
+   },
+   {
+    "name": "G.V Enterprises",
+    "mrp": 3354.61,
+    "nsv": 1788.46,
+    "tax": 176.81,
+    "tot_pct": 41.4,
+    "passon_value": 1389.34
+   },
+   {
+    "name": "Vanaja Agencies",
+    "mrp": 2031.5,
+    "nsv": 889.21,
+    "tax": 170.34,
+    "tot_pct": 47.8,
+    "passon_value": 971.95
+   },
+   {
+    "name": "Az Enterprises",
+    "mrp": 1920.08,
+    "nsv": 1075.2,
+    "tax": 110.45,
+    "tot_pct": 38.2,
+    "passon_value": 734.43
+   },
+   {
+    "name": "Wellness Forever",
+    "mrp": 1794.47,
+    "nsv": 1069.81,
+    "tax": 113.66,
+    "tot_pct": 34.0,
+    "passon_value": 611.01
+   },
+   {
+    "name": "Sancus Networks Private Limited-RMT",
+    "mrp": 1294.83,
+    "nsv": 598.95,
+    "tax": 57.17,
+    "tot_pct": 49.3,
+    "passon_value": 638.7
+   },
+   {
+    "name": "D.L. Sales - MT",
+    "mrp": 1159.72,
+    "nsv": 623.28,
+    "tax": 73.11,
+    "tot_pct": 40.0,
+    "passon_value": 463.32
+   },
+   {
+    "name": "Metro-CNC",
+    "mrp": 1152.48,
+    "nsv": 567.11,
+    "tax": 58.46,
+    "tot_pct": 45.7,
+    "passon_value": 526.91
+   },
+   {
+    "name": "Balaji Associates Distributor MT",
+    "mrp": 997.88,
+    "nsv": 509.46,
+    "tax": 55.59,
+    "tot_pct": 43.4,
+    "passon_value": 432.83
+   },
+   {
+    "name": "VENKATESHWARA AGENCIES-TG",
+    "mrp": 976.85,
+    "nsv": 544.37,
+    "tax": 28.4,
+    "tot_pct": 41.4,
+    "passon_value": 404.09
+   },
+   {
+    "name": "M/S KOTTARAM BUSINESS",
+    "mrp": 889.32,
+    "nsv": 472.92,
+    "tax": 44.43,
+    "tot_pct": 41.8,
+    "passon_value": 371.97
+   },
+   {
+    "name": "VISHAL ENTERPRISES",
+    "mrp": 849.49,
+    "nsv": 314.14,
+    "tax": 33.73,
+    "tot_pct": 59.0,
+    "passon_value": 501.62
+   },
+   {
+    "name": "JUST MARK-D-Mart",
+    "mrp": 698.1,
+    "nsv": 248.78,
+    "tax": 44.78,
+    "tot_pct": 57.9,
+    "passon_value": 404.54
+   },
+   {
+    "name": "Kiran Trading Company-Solapur-D-Mart",
+    "mrp": 663.17,
+    "nsv": 235.32,
+    "tax": 42.36,
+    "tot_pct": 58.1,
+    "passon_value": 385.49
+   },
+   {
+    "name": "PRAGATI SALES-D-MART",
+    "mrp": 661.12,
+    "nsv": 250.5,
+    "tax": 26.07,
+    "tot_pct": 58.2,
+    "passon_value": 384.56
+   },
+   {
+    "name": "Walmart-CNC",
+    "mrp": 582.87,
+    "nsv": 285.41,
+    "tax": 32.7,
+    "tot_pct": 45.4,
+    "passon_value": 264.75
+   },
+   {
+    "name": "CHHABRA TRADERS",
+    "mrp": 557.89,
+    "nsv": 298.61,
+    "tax": 27.99,
+    "tot_pct": 41.5,
+    "passon_value": 231.28
+   },
+   {
+    "name": "Arc Foods And Beverages",
+    "mrp": 449.09,
+    "nsv": 241.57,
+    "tax": 42.17,
+    "tot_pct": 36.8,
+    "passon_value": 165.36
+   },
+   {
+    "name": "H&G",
+    "mrp": 423.91,
+    "nsv": 167.26,
+    "tax": 9.3,
+    "tot_pct": 58.3,
+    "passon_value": 247.35
+   },
+   {
+    "name": "V-Mart Retail Limited",
+    "mrp": 317.25,
+    "nsv": 118.14,
+    "tax": 8.15,
+    "tot_pct": 60.2,
+    "passon_value": 190.96
+   },
+   {
+    "name": "Az Enterprises-MT",
+    "mrp": 281.07,
+    "nsv": 156.42,
+    "tax": 28.16,
+    "tot_pct": 34.3,
+    "passon_value": 96.49
+   },
+   {
+    "name": "Shoppers Stop",
+    "mrp": 243.85,
+    "nsv": 126.4,
+    "tax": 17.43,
+    "tot_pct": 41.0,
+    "passon_value": 100.03
+   },
+   {
+    "name": "VISHAL ENTERPRISES-D-Mart",
+    "mrp": 170.69,
+    "nsv": 62.19,
+    "tax": 11.19,
+    "tot_pct": 57.0,
+    "passon_value": 97.31
+   },
+   {
+    "name": "Eremedium Private Limited",
+    "mrp": 148.86,
+    "nsv": 80.31,
+    "tax": 8.93,
+    "tot_pct": 40.0,
+    "passon_value": 59.61
+   },
+   {
+    "name": "Trent Hypermarket",
+    "mrp": 144.7,
+    "nsv": 78.82,
+    "tax": 8.26,
+    "tot_pct": 39.8,
+    "passon_value": 57.62
+   },
+   {
+    "name": "MARK ENTERPRISE",
+    "mrp": 144.17,
+    "nsv": 79.39,
+    "tax": 8.32,
+    "tot_pct": 39.2,
+    "passon_value": 56.47
+   },
+   {
+    "name": "RR Traders-MT",
+    "mrp": 131.86,
+    "nsv": 56.44,
+    "tax": 2.98,
+    "tot_pct": 54.9,
+    "passon_value": 72.44
+   },
+   {
+    "name": "Azorte",
+    "mrp": 115.77,
+    "nsv": 70.74,
+    "tax": 7.13,
+    "tot_pct": 32.7,
+    "passon_value": 37.9
+   },
+   {
+    "name": "Sancus Networks-MT-Reg.",
+    "mrp": 91.01,
+    "nsv": 38.93,
+    "tax": 7.01,
+    "tot_pct": 49.5,
+    "passon_value": 45.07
+   },
+   {
+    "name": "Lifestyle",
+    "mrp": 78.93,
+    "nsv": 32.79,
+    "tax": 2.6,
+    "tot_pct": 55.2,
+    "passon_value": 43.54
+   },
+   {
+    "name": "SAI SAACHI ASSOCIATES-MT-OR",
+    "mrp": 62.98,
+    "nsv": 28.7,
+    "tax": 1.98,
+    "tot_pct": 51.3,
+    "passon_value": 32.3
+   },
+   {
+    "name": "Sathyashree Enterprises",
+    "mrp": 48.72,
+    "nsv": 19.16,
+    "tax": 4.22,
+    "tot_pct": 52.0,
+    "passon_value": 25.34
+   },
+   {
+    "name": "Sri Lalitha Enterprises",
+    "mrp": 47.19,
+    "nsv": 26.1,
+    "tax": 6.26,
+    "tot_pct": 31.4,
+    "passon_value": 14.82
+   },
+   {
+    "name": "REAL TIME LOGISTICS_MT_BR",
+    "mrp": 46.49,
+    "nsv": 20.64,
+    "tax": 1.09,
+    "tot_pct": 53.3,
+    "passon_value": 24.76
+   },
+   {
+    "name": "Broadway",
+    "mrp": 44.91,
+    "nsv": 24.69,
+    "tax": 3.92,
+    "tot_pct": 36.3,
+    "passon_value": 16.3
+   },
+   {
+    "name": "Guardian Healthcare",
+    "mrp": 44.13,
+    "nsv": 22.6,
+    "tax": 1.79,
+    "tot_pct": 44.7,
+    "passon_value": 19.74
+   },
+   {
+    "name": "Ascent Wellness",
+    "mrp": 43.79,
+    "nsv": 25.97,
+    "tax": 4.67,
+    "tot_pct": 30.0,
+    "passon_value": 13.15
+   },
+   {
+    "name": "Mark Enterprise-Apollo",
+    "mrp": 29.48,
+    "nsv": 16.16,
+    "tax": 2.91,
+    "tot_pct": 35.3,
+    "passon_value": 10.42
+   },
+   {
+    "name": "Sehaj Enterprises -MT-JK",
+    "mrp": 27.78,
+    "nsv": 11.93,
+    "tax": 0.63,
+    "tot_pct": 54.8,
+    "passon_value": 15.22
+   },
+   {
+    "name": "United Marketing",
+    "mrp": 25.04,
+    "nsv": 14.33,
+    "tax": 1.79,
+    "tot_pct": 35.6,
+    "passon_value": 8.92
+   },
+   {
+    "name": "CHOUDHARY ENTERPRISES",
+    "mrp": 19.26,
+    "nsv": 10.33,
+    "tax": 0.66,
+    "tot_pct": 43.0,
+    "passon_value": 8.28
+   },
+   {
+    "name": "SRIJAN ENTERPRISES-MT-JH",
+    "mrp": 19.06,
+    "nsv": 7.13,
+    "tax": 0.41,
+    "tot_pct": 60.5,
+    "passon_value": 11.52
+   },
+   {
+    "name": "Aggarwal Associates",
+    "mrp": 16.19,
+    "nsv": 6.82,
+    "tax": 1.31,
+    "tot_pct": 49.8,
+    "passon_value": 8.06
+   },
+   {
+    "name": "MANOJ SOAP AGENCY-MT",
+    "mrp": 14.89,
+    "nsv": 7.65,
+    "tax": 0.42,
+    "tot_pct": 45.8,
+    "passon_value": 6.82
+   },
+   {
+    "name": "Travel News Services-Wsmith",
+    "mrp": 10.53,
+    "nsv": 5.25,
+    "tax": 0.34,
+    "tot_pct": 46.9,
+    "passon_value": 4.94
+   },
+   {
+    "name": "SC BUSINESS COMBINE_MT",
+    "mrp": 9.86,
+    "nsv": 4.2,
+    "tax": 1.08,
+    "tot_pct": 46.4,
+    "passon_value": 4.57
+   },
+   {
+    "name": "SC BUSINESS COMBINE",
+    "mrp": 4.96,
+    "nsv": 2.46,
+    "tax": 0.44,
+    "tot_pct": 41.4,
+    "passon_value": 2.06
+   },
+   {
+    "name": "PRAGATI SALES-Apollo",
+    "mrp": 4.94,
+    "nsv": 2.37,
+    "tax": 0.43,
+    "tot_pct": 43.4,
+    "passon_value": 2.14
+   },
+   {
+    "name": "Swastik Marketing",
+    "mrp": 4.07,
+    "nsv": 0.69,
+    "tax": 0.15,
+    "tot_pct": 79.4,
+    "passon_value": 3.23
+   },
+   {
+    "name": "Today's Basket",
+    "mrp": 3.59,
+    "nsv": 2.24,
+    "tax": 0.3,
+    "tot_pct": 29.1,
+    "passon_value": 1.04
+   },
+   {
+    "name": "Travel Retail Services-Relay",
+    "mrp": 2.74,
+    "nsv": 1.16,
+    "tax": 0.22,
+    "tot_pct": 49.9,
+    "passon_value": 1.37
+   },
+   {
+    "name": "R.C. Trade Link H&G",
+    "mrp": 2.73,
+    "nsv": -0.01,
+    "tax": -0.0,
+    "tot_pct": 100.5,
+    "passon_value": 2.74
+   },
+   {
+    "name": "Mittal Enterprises",
+    "mrp": 2.66,
+    "nsv": 1.46,
+    "tax": 0.28,
+    "tot_pct": 34.7,
+    "passon_value": 0.92
+   },
+   {
+    "name": "R.C. Trade Link",
+    "mrp": 2.63,
+    "nsv": -0.53,
+    "tax": 0.24,
+    "tot_pct": 110.9,
+    "passon_value": 2.92
+   },
+   {
+    "name": "Lifestyle Babyshop",
+    "mrp": 2.12,
+    "nsv": 1.17,
+    "tax": 0.21,
+    "tot_pct": 35.1,
+    "passon_value": 0.74
+   },
+   {
+    "name": "Guardian Healthcare-Delhi",
+    "mrp": 0.97,
+    "nsv": 0.49,
+    "tax": 0.09,
+    "tot_pct": 40.0,
+    "passon_value": 0.39
+   },
+   {
+    "name": "Kiran Trading Company-Pune-MT",
+    "mrp": 0.7,
+    "nsv": 0.0,
+    "tax": 0.0,
+    "tot_pct": 100.0,
+    "passon_value": 0.7
+   },
+   {
+    "name": "JB Pharma",
+    "mrp": 0.11,
+    "nsv": 0.0,
+    "tax": 0.0,
+    "tot_pct": 100.0,
+    "passon_value": 0.11
+   }
+  ],
+  "by_category": [
+   {
+    "name": "Face",
+    "mrp": 60028.18,
+    "nsv": 26067.32,
+    "tax": 2567.63,
+    "tot_pct": 52.3,
+    "passon_value": 31393.22
+   },
+   {
+    "name": "Hair",
+    "mrp": 23377.32,
+    "nsv": 9838.76,
+    "tax": 1077.68,
+    "tot_pct": 53.3,
+    "passon_value": 12460.89
+   },
+   {
+    "name": "Body",
+    "mrp": 8998.08,
+    "nsv": 3445.06,
+    "tax": 363.56,
+    "tot_pct": 57.7,
+    "passon_value": 5189.47
+   },
+   {
+    "name": "Baby",
+    "mrp": 5694.36,
+    "nsv": 2885.8,
+    "tax": 332.17,
+    "tot_pct": 43.5,
+    "passon_value": 2476.38
+   },
+   {
+    "name": "Fragrances",
+    "mrp": 114.81,
+    "nsv": 39.0,
+    "tax": 7.02,
+    "tot_pct": 59.9,
+    "passon_value": 68.79
+   },
+   {
+    "name": "Hair Care",
+    "mrp": 87.72,
+    "nsv": 53.22,
+    "tax": 7.49,
+    "tot_pct": 30.8,
+    "passon_value": 27.01
+   },
+   {
+    "name": "Styling Products",
+    "mrp": 63.76,
+    "nsv": 36.59,
+    "tax": 6.59,
+    "tot_pct": 32.3,
+    "passon_value": 20.58
+   },
+   {
+    "name": "Hair Colour",
+    "mrp": 49.32,
+    "nsv": 28.31,
+    "tax": 5.1,
+    "tot_pct": 32.3,
+    "passon_value": 15.91
+   },
+   {
+    "name": "Fragrance",
+    "mrp": 25.14,
+    "nsv": 13.28,
+    "tax": 2.39,
+    "tot_pct": 37.6,
+    "passon_value": 9.46
+   },
+   {
+    "name": "Combo",
+    "mrp": 13.1,
+    "nsv": 7.17,
+    "tax": 1.29,
+    "tot_pct": 35.4,
+    "passon_value": 4.64
+   },
+   {
+    "name": "Lip",
+    "mrp": 11.77,
+    "nsv": 5.78,
+    "tax": 1.04,
+    "tot_pct": 42.1,
+    "passon_value": 4.95
+   },
+   {
+    "name": "Eye",
+    "mrp": 0.81,
+    "nsv": 0.46,
+    "tax": 0.08,
+    "tot_pct": 32.9,
+    "passon_value": 0.27
+   },
+   {
+    "name": "Personal Care",
+    "mrp": 0.48,
+    "nsv": 0.28,
+    "tax": 0.05,
+    "tot_pct": 32.5,
+    "passon_value": 0.16
+   },
+   {
+    "name": "Makeup Combo",
+    "mrp": 0.3,
+    "nsv": 0.17,
+    "tax": 0.03,
+    "tot_pct": 33.1,
+    "passon_value": 0.1
+   }
+  ],
+  "by_packsize": [
+   {
+    "name": "150.0",
+    "mrp": 25594.88,
+    "nsv": 9856.7,
+    "tax": 1059.17,
+    "tot_pct": 57.4,
+    "passon_value": 14679.01,
+    "mom_tot_delta_pp": 1.1,
+    "incremental_passon_impact": 55.1
+   },
+   {
+    "name": "400.0",
+    "mrp": 16613.2,
+    "nsv": 6407.0,
+    "tax": 676.83,
+    "tot_pct": 57.4,
+    "passon_value": 9529.36,
+    "mom_tot_delta_pp": -0.4,
+    "incremental_passon_impact": 84.59
+   },
+   {
+    "name": "100.0",
+    "mrp": 14751.23,
+    "nsv": 7025.87,
+    "tax": 705.37,
+    "tot_pct": 47.6,
+    "passon_value": 7019.99,
+    "mom_tot_delta_pp": -3.9,
+    "incremental_passon_impact": -516.57
+   },
+   {
+    "name": "50.0",
+    "mrp": 9331.29,
+    "nsv": 4775.99,
+    "tax": 445.64,
+    "tot_pct": 44.0,
+    "passon_value": 4109.66,
+    "mom_tot_delta_pp": 0.6,
+    "incremental_passon_impact": -129.1
+   },
+   {
+    "name": "600.0",
+    "mrp": 5923.12,
+    "nsv": 2421.87,
+    "tax": 266.89,
+    "tot_pct": 54.6,
+    "passon_value": 3234.35,
+    "mom_tot_delta_pp": 1.9,
+    "incremental_passon_impact": 50.7
+   },
+   {
+    "name": "80.0",
+    "mrp": 5803.58,
+    "nsv": 2633.5,
+    "tax": 220.99,
+    "tot_pct": 50.8,
+    "passon_value": 2949.09,
+    "mom_tot_delta_pp": 0.7,
+    "incremental_passon_impact": -174.14
+   },
+   {
+    "name": "250.0",
+    "mrp": 5649.89,
+    "nsv": 2789.26,
+    "tax": 329.42,
+    "tot_pct": 44.8,
+    "passon_value": 2531.21,
+    "mom_tot_delta_pp": -2.5,
+    "incremental_passon_impact": -135.02
+   },
+   {
+    "name": "200.0",
+    "mrp": 4945.91,
+    "nsv": 2032.71,
+    "tax": 187.0,
+    "tot_pct": 55.1,
+    "passon_value": 2726.2,
+    "mom_tot_delta_pp": -0.6,
+    "incremental_passon_impact": -115.95
+   },
+   {
+    "name": "500.0",
+    "mrp": 2321.17,
+    "nsv": 908.82,
+    "tax": 97.45,
+    "tot_pct": 56.6,
+    "passon_value": 1314.9,
+    "mom_tot_delta_pp": 1.3,
+    "incremental_passon_impact": 39.45
+   },
+   {
+    "name": "30.0",
+    "mrp": 1952.12,
+    "nsv": 1103.69,
+    "tax": 115.83,
+    "tot_pct": 37.5,
+    "passon_value": 732.6,
+    "mom_tot_delta_pp": -3.0,
+    "incremental_passon_impact": 3.04
+   },
+   {
+    "name": "275.0",
+    "mrp": 1285.81,
+    "nsv": 494.37,
+    "tax": 46.53,
+    "tot_pct": 57.9,
+    "passon_value": 744.91,
+    "mom_tot_delta_pp": 0.7,
+    "incremental_passon_impact": -6.64
+   },
+   {
+    "name": "650.0",
+    "mrp": 1179.06,
+    "nsv": 416.92,
+    "tax": 35.21,
+    "tot_pct": 61.7,
+    "passon_value": 726.93,
+    "mom_tot_delta_pp": -0.0,
+    "incremental_passon_impact": 22.74
+   },
+   {
+    "name": "125.0",
+    "mrp": 926.84,
+    "nsv": 452.67,
+    "tax": 43.35,
+    "tot_pct": 46.5,
+    "passon_value": 430.81,
+    "mom_tot_delta_pp": -0.5,
+    "incremental_passon_impact": -1.86
+   },
+   {
+    "name": "300.0",
+    "mrp": 599.21,
+    "nsv": 273.19,
+    "tax": 40.27,
+    "tot_pct": 47.7,
+    "passon_value": 285.76,
+    "mom_tot_delta_pp": 1.0,
+    "incremental_passon_impact": 1.38
+   },
+   {
+    "name": "60.0",
+    "mrp": 473.02,
+    "nsv": 222.38,
+    "tax": 28.49,
+    "tot_pct": 47.0,
+    "passon_value": 222.15,
+    "mom_tot_delta_pp": 0.5,
+    "incremental_passon_impact": -5.93
+   },
+   {
+    "name": "10.0",
+    "mrp": 349.75,
+    "nsv": 179.78,
+    "tax": 20.35,
+    "tot_pct": 42.8,
+    "passon_value": 149.63,
+    "mom_tot_delta_pp": 0.2,
+    "incremental_passon_impact": -2.58
+   },
+   {
+    "name": "24.0",
+    "mrp": 174.37,
+    "nsv": 99.58,
+    "tax": 13.54,
+    "tot_pct": 35.1,
+    "passon_value": 61.26,
+    "mom_tot_delta_pp": 0.6,
+    "incremental_passon_impact": -1.45
+   },
+   {
+    "name": "4.0",
+    "mrp": 161.38,
+    "nsv": 88.6,
+    "tax": 11.02,
+    "tot_pct": 38.3,
+    "passon_value": 61.76,
+    "mom_tot_delta_pp": -4.3,
+    "incremental_passon_impact": 1.16
+   },
+   {
+    "name": "20.0",
+    "mrp": 109.14,
+    "nsv": 54.46,
+    "tax": 5.98,
+    "tot_pct": 44.6,
+    "passon_value": 48.7,
+    "mom_tot_delta_pp": 2.1,
+    "incremental_passon_impact": 4.05
+   },
+   {
+    "name": "4.5",
+    "mrp": 62.93,
+    "nsv": 36.19,
+    "tax": 4.39,
+    "tot_pct": 35.5,
+    "passon_value": 22.35,
+    "mom_tot_delta_pp": -2.6,
+    "incremental_passon_impact": 0.99
+   },
+   {
+    "name": "375.0",
+    "mrp": 50.64,
+    "nsv": 31.54,
+    "tax": 3.05,
+    "tot_pct": 31.7,
+    "passon_value": 16.05,
+    "mom_tot_delta_pp": -3.7,
+    "incremental_passon_impact": -0.16
+   },
+   {
+    "name": "180.0",
+    "mrp": 35.69,
+    "nsv": 20.85,
+    "tax": 2.22,
+    "tot_pct": 35.4,
+    "passon_value": 12.62,
+    "mom_tot_delta_pp": 0.4,
+    "incremental_passon_impact": 0.22
+   },
+   {
+    "name": "15.0",
+    "mrp": 33.08,
+    "nsv": 18.54,
+    "tax": 1.97,
+    "tot_pct": 38.0,
+    "passon_value": 12.58,
+    "mom_tot_delta_pp": 5.2,
+    "incremental_passon_impact": -0.4
+   },
+   {
+    "name": "40.0",
+    "mrp": 30.9,
+    "nsv": 19.17,
+    "tax": 2.28,
+    "tot_pct": 30.6,
+    "passon_value": 9.45,
+    "mom_tot_delta_pp": 1.9,
+    "incremental_passon_impact": 0.08
+   },
+   {
+    "name": "1.0",
+    "mrp": 28.01,
+    "nsv": 15.34,
+    "tax": 1.73,
+    "tot_pct": 39.1,
+    "passon_value": 10.94,
+    "mom_tot_delta_pp": -9.7,
+    "incremental_passon_impact": 10.77
+   },
+   {
+    "name": "130.0",
+    "mrp": 24.05,
+    "nsv": 13.4,
+    "tax": 2.46,
+    "tot_pct": 34.0,
+    "passon_value": 8.19,
+    "mom_tot_delta_pp": -3.9,
+    "incremental_passon_impact": 0.54
+   },
+   {
+    "name": "0.35",
+    "mrp": 19.82,
+    "nsv": 8.38,
+    "tax": 1.51,
+    "tot_pct": 50.1,
+    "passon_value": 9.93,
+    "mom_tot_delta_pp": -2.3,
+    "incremental_passon_impact": 0.13
+   },
+   {
+    "name": "72.0",
+    "mrp": 8.62,
+    "nsv": 5.06,
+    "tax": 0.79,
+    "tot_pct": 32.2,
+    "passon_value": 2.77,
+    "mom_tot_delta_pp": -0.1,
+    "incremental_passon_impact": 0.05
+   },
+   {
+    "name": "70.0",
+    "mrp": 8.05,
+    "nsv": 4.68,
+    "tax": 0.67,
+    "tot_pct": 33.5,
+    "passon_value": 2.69,
+    "mom_tot_delta_pp": 1.5,
+    "incremental_passon_impact": -0.02
+   },
+   {
+    "name": "108.0",
+    "mrp": 6.9,
+    "nsv": 4.17,
+    "tax": 0.75,
+    "tot_pct": 28.6,
+    "passon_value": 1.97,
+    "mom_tot_delta_pp": 1.0,
+    "incremental_passon_impact": -0.32
+   },
+   {
+    "name": "1000.0",
+    "mrp": 6.26,
+    "nsv": 3.24,
+    "tax": 0.54,
+    "tot_pct": 39.5,
+    "passon_value": 2.47,
+    "mom_tot_delta_pp": -7.5,
+    "incremental_passon_impact": -0.3
+   },
+   {
+    "name": "8.0",
+    "mrp": 4.27,
+    "nsv": 2.26,
+    "tax": 0.29,
+    "tot_pct": 40.4,
+    "passon_value": 1.73,
+    "mom_tot_delta_pp": -4.2,
+    "incremental_passon_impact": -0.03
+   },
+   {
+    "name": "350.0",
+    "mrp": 4.21,
+    "nsv": 2.31,
+    "tax": 0.37,
+    "tot_pct": 36.6,
+    "passon_value": 1.54,
+    "mom_tot_delta_pp": 0.2,
+    "incremental_passon_impact": 0.02
+   },
+   {
+    "name": "7.0",
+    "mrp": 3.41,
+    "nsv": 2.01,
+    "tax": 0.36,
+    "tot_pct": 30.6,
+    "passon_value": 1.04,
+    "mom_tot_delta_pp": 3.3,
+    "incremental_passon_impact": 0.15
+   },
+   {
+    "name": "3.8",
+    "mrp": 2.67,
+    "nsv": 1.17,
+    "tax": 0.21,
+    "tot_pct": 48.1,
+    "passon_value": 1.28,
+    "mom_tot_delta_pp": -10.0,
+    "incremental_passon_impact": 0.08
+   },
+   {
+    "name": "25.0",
+    "mrp": 2.21,
+    "nsv": 0.93,
+    "tax": 0.19,
+    "tot_pct": 49.3,
+    "passon_value": 1.09,
+    "mom_tot_delta_pp": -14.0,
+    "incremental_passon_impact": -0.03
+   },
+   {
+    "name": "2.0",
+    "mrp": 1.84,
+    "nsv": 1.1,
+    "tax": -0.34,
+    "tot_pct": 58.9,
+    "passon_value": 1.08,
+    "mom_tot_delta_pp": 36.9,
+    "incremental_passon_impact": 0.29
+   },
+   {
+    "name": "75.0",
+    "mrp": 1.54,
+    "nsv": -0.82,
+    "tax": -0.08,
+    "tot_pct": 158.5,
+    "passon_value": 2.44,
+    "mom_tot_delta_pp": -13.7,
+    "incremental_passon_impact": -2.18
+   },
+   {
+    "name": "9.0",
+    "mrp": 1.01,
+    "nsv": 0.56,
+    "tax": 0.1,
+    "tot_pct": 34.5,
+    "passon_value": 0.35,
+    "mom_tot_delta_pp": 2.1,
+    "incremental_passon_impact": -0.13
+   },
+   {
+    "name": "8.5",
+    "mrp": 0.6,
+    "nsv": 0.01,
+    "tax": 0.0,
+    "tot_pct": 98.8,
+    "passon_value": 0.59,
+    "mom_tot_delta_pp": 0.0,
+    "incremental_passon_impact": 0.13
+   },
+   {
+    "name": "5.0",
+    "mrp": 0.47,
+    "nsv": 0.28,
+    "tax": 0.05,
+    "tot_pct": 30.5,
+    "passon_value": 0.14,
+    "mom_tot_delta_pp": 5.4,
+    "incremental_passon_impact": -0.01
+   },
+   {
+    "name": "0.0",
+    "mrp": 0.34,
+    "nsv": -0.07,
+    "tax": -0.0,
+    "tot_pct": 122.7,
+    "passon_value": 0.41,
+    "mom_tot_delta_pp": -129.2,
+    "incremental_passon_impact": -0.16
+   },
+   {
+    "name": "7.5",
+    "mrp": 0.34,
+    "nsv": 0.2,
+    "tax": 0.03,
+    "tot_pct": 32.1,
+    "passon_value": 0.11,
+    "mom_tot_delta_pp": 13.4,
+    "incremental_passon_impact": -0.01
+   },
+   {
+    "name": "1.8",
+    "mrp": 0.23,
+    "nsv": 0.14,
+    "tax": 0.02,
+    "tot_pct": 30.0,
+    "passon_value": 0.07,
+    "mom_tot_delta_pp": 0.0,
+    "incremental_passon_impact": 0.0
+   },
+   {
+    "name": "0.3",
+    "mrp": 0.05,
+    "nsv": 0.01,
+    "tax": 0.0,
+    "tot_pct": 69.5,
+    "passon_value": 0.03,
+    "mom_tot_delta_pp": -69.9,
+    "incremental_passon_impact": -0.02
+   }
+  ],
+  "monthly": [
+   {
+    "fy": "FY26",
+    "month": "April",
+    "tot_pct": 48.8,
+    "passon_value": 3572.07,
+    "mom_tot_delta_pp": null,
+    "incremental_passon_impact": null
+   },
+   {
+    "fy": "FY26",
+    "month": "May",
+    "tot_pct": 48.0,
+    "passon_value": 2576.14,
+    "mom_tot_delta_pp": -0.8,
+    "incremental_passon_impact": -995.93
+   },
+   {
+    "fy": "FY26",
+    "month": "June",
+    "tot_pct": 48.3,
+    "passon_value": 2404.02,
+    "mom_tot_delta_pp": 0.3,
+    "incremental_passon_impact": -172.12
+   },
+   {
+    "fy": "FY26",
+    "month": "July",
+    "tot_pct": 49.6,
+    "passon_value": 2875.67,
+    "mom_tot_delta_pp": 1.4,
+    "incremental_passon_impact": 471.65
+   },
+   {
+    "fy": "FY26",
+    "month": "Aug",
+    "tot_pct": 50.4,
+    "passon_value": 2594.21,
+    "mom_tot_delta_pp": 0.8,
+    "incremental_passon_impact": -281.46
+   },
+   {
+    "fy": "FY26",
+    "month": "Sept",
+    "tot_pct": 50.4,
+    "passon_value": 2670.68,
+    "mom_tot_delta_pp": 0.0,
+    "incremental_passon_impact": 76.47
+   },
+   {
+    "fy": "FY26",
+    "month": "Oct",
+    "tot_pct": 49.5,
+    "passon_value": 3090.85,
+    "mom_tot_delta_pp": -1.0,
+    "incremental_passon_impact": 420.17
+   },
+   {
+    "fy": "FY26",
+    "month": "Nov",
+    "tot_pct": 55.5,
+    "passon_value": 4356.17,
+    "mom_tot_delta_pp": 6.0,
+    "incremental_passon_impact": 1265.32
+   },
+   {
+    "fy": "FY26",
+    "month": "Dec",
+    "tot_pct": 55.9,
+    "passon_value": 3749.12,
+    "mom_tot_delta_pp": 0.4,
+    "incremental_passon_impact": -607.05
+   },
+   {
+    "fy": "FY26",
+    "month": "Jan",
+    "tot_pct": 53.8,
+    "passon_value": 4481.41,
+    "mom_tot_delta_pp": -2.1,
+    "incremental_passon_impact": 732.29
+   },
+   {
+    "fy": "FY26",
+    "month": "Feb",
+    "tot_pct": 54.7,
+    "passon_value": 3713.12,
+    "mom_tot_delta_pp": 0.9,
+    "incremental_passon_impact": -768.29
+   },
+   {
+    "fy": "FY26",
+    "month": "March",
+    "tot_pct": 53.4,
+    "passon_value": 3494.74,
+    "mom_tot_delta_pp": -1.3,
+    "incremental_passon_impact": -218.38
+   },
+   {
+    "fy": "FY27",
+    "month": "April",
+    "tot_pct": 54.7,
+    "passon_value": 6445.01,
+    "mom_tot_delta_pp": 1.3,
+    "incremental_passon_impact": 2950.27
+   },
+   {
+    "fy": "FY27",
+    "month": "May",
+    "tot_pct": 54.8,
+    "passon_value": 5635.68,
+    "mom_tot_delta_pp": 0.1,
+    "incremental_passon_impact": -809.33
+   }
+  ],
+  "blended_tot_pct": 52.5,
+  "total_passon_value": 51658.89,
+  "gst_cutover": "2025-11-01",
+  "unit": "INR Lakh",
+  "methodology": "TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) = 1 - (NSV + Tax) / MRP, computed from the full article-level primary detail (not the row-capped browser export). Tax = NSV x applicable GST rate: flat 18% before Nov'25; from Nov'25 onward (GST 2.0 rate rationalisation), rate is looked up per Category from PowerBI/SeedData/Masters/GST_Rate_Table.csv. Several categories in that table are LOW-confidence best-effort assumptions (no official HSN-code source was available) -- verify against Finance/Tax records before treating TOT% as final. 'On-Invoice Margin Pass-on Value' = MRP - NSV - Tax (Rs Lakh). 'Incremental Pass-on Impact' = the MoM change in that value."
  }
 };

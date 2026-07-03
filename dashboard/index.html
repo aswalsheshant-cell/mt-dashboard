@@ -342,12 +342,26 @@ function chartExportRows(chart){
   const labels=chart.data.labels||[];
   const dsets=(chart.data.datasets||[]).filter(d=>d.data&&d.data.length);
   const header=['Label',...dsets.map((d,i)=>d.label||(dsets.length===1?'Value':'Series '+(i+1)))];
+  // Pack Size chart: append Weighted TOT% / On-Invoice Margin Pass-on Value /
+  // MoM TOT Delta pp / Incremental Pass-on Impact per pack size, from D.tot.by_packsize
+  // (a separate computed source, not something the bar chart itself plots).
+  let totFor=null;
+  if(chart.canvas.id==='catPack' && D.tot && D.tot.by_packsize){
+    const byName={}; D.tot.by_packsize.forEach(p=>byName[p.name]=p);
+    totFor=lab=>{
+      const p=byName[lab];
+      return [p&&p.tot_pct!=null?p.tot_pct+'%':'–', p?crc(p.passon_value):'–',
+              p&&p.mom_tot_delta_pp!=null?p.mom_tot_delta_pp+' pp':'–',
+              p&&p.incremental_passon_impact!=null?crc(p.incremental_passon_impact):'–'];
+    };
+    header.push('Weighted TOT%','On-Invoice Margin Pass-on Value','MoM TOT Δ pp','Incremental Pass-on Impact');
+  }
   if(dsets.length===1){
     const tot=dsets[0].data.reduce((a,b)=>a+(Math.abs(b)||0),0)||1;
-    header.push('Share %');
-    return [header,...labels.map((lab,i)=>[lab,dsets[0].data[i]??'',(Math.abs(dsets[0].data[i]||0)/tot*100).toFixed(1)])];
+    header.splice(dsets.length+1,0,'Share %');
+    return [header,...labels.map((lab,i)=>[lab,dsets[0].data[i]??'',(Math.abs(dsets[0].data[i]||0)/tot*100).toFixed(1),...(totFor?totFor(lab):[])])];
   }
-  return [header,...labels.map((lab,i)=>[lab,...dsets.map(d=>d.data[i]??'')])];
+  return [header,...labels.map((lab,i)=>[lab,...dsets.map(d=>d.data[i]??''),...(totFor?totFor(lab):[])])];
 }
 function exportChart(canvasId,format){
   const c=findChartByCanvasId(canvasId);
@@ -686,6 +700,15 @@ function buildPnl(){
      <td>${c.promos||0}</td><td>${c.promo_depth==null?'–':c.promo_depth+'%'}</td></tr>`).join('');
   const totMrp=chains.reduce((a,c)=>a+(c.mrp||0),0), totNsv=chains.reduce((a,c)=>a+(c.nsv||0),0);
   const dimNote=dimUnsupportedNote(['Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the P&L source (chain-level only)');
+  // TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — independent
+  // article-level source (File 2), spans FY26-FY27; not gated by the FY26-only
+  // guard above since its own data genuinely extends past FY26.
+  const totD=D.tot;
+  let totChains=totD?totD.by_chain:[];
+  if(F.Chain) totChains=totChains.filter(c=>c.name===F.Chain);
+  const totTop=totChains.slice(0,12);
+  const totRows=totChains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.mrp)}</td><td>${crc(c.nsv)}</td>
+     <td>${crc(c.tax)}</td><td>${c.tot_pct==null?'–':c.tot_pct+'%'}</td><td>${crc(c.passon_value)}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    <p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -703,6 +726,18 @@ function buildPnl(){
    ${card('Chain-wise trade P&amp;L','MRP value, net NSV, the gap, and promo activity per chain (FY26). Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Gap</th><th>Gap %</th><th>Promos</th><th>Avg depth</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="7">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
+   <p class="note" style="margin:0 0 10px">FY26-FY27, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
+     TOT% = 1 − (NSV + Tax) / MRP. Blended TOT% ${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'} · total pass-on value ${crc(totD.total_passon_value)}.</p>
+   <div class="grid g2">
+     ${card('TOT% by chain','Higher = more on-invoice margin passed to the chain. Click a chain to drill.',cv('totChart'))}
+     ${card('Chain-wise TOT% detail','MRP, NSV, GST-adjusted Tax and On-Invoice Margin Pass-on Value per chain.',`<div class="tablewrap"><table>
+       <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Tax</th><th>TOT%</th><th>Pass-on Value</th></tr></thead>
+       <tbody>${totRows||'<tr><td colspan="6">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   </div>
+   <div class="card"><p class="note" style="margin:0"><b>Methodology &amp; assumptions:</b> ${totD.methodology} GST cutover date: ${totD.gst_cutover}.
+     Rate table: <code>PowerBI/SeedData/Masters/GST_Rate_Table.csv</code> (editable — several categories are LOW-confidence
+     best-effort assumptions pending Finance/Tax confirmation; see that file's Confidence/Note columns).</p></div>`:''}
    ${catDrillCardHtml('plCatDrill')}`;
   wireDrillLinks(s);
   mkBar('plBridge',top.map(c=>c.name),[
@@ -714,6 +749,11 @@ function buildPnl(){
   // override tick formatting for percent chart
   const ch=charts[charts.length-1];ch.options.scales.x.ticks.callback=v=>v+'%';
   ch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';ch.update();
+  if(totD){
+    mkBarH('totChart',totTop.map(c=>c.name),totTop.map(c=>c.tot_pct),C.teal,false,v=>drillTo('Chain',v));
+    const tch=charts[charts.length-1];tch.options.scales.x.ticks.callback=v=>v+'%';
+    tch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';tch.update();
+  }
   renderCatDrillChart('plCatDrill',recFilter());
 }
 

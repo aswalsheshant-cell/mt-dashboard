@@ -84,6 +84,7 @@ exactly this output for any table/matrix/chart bound to the right fields:
 | Pack Size performance | Page 7 — "Pack-size performance" bar + Article table (`Pack Size`, `NSV`, `MoM Growth %` columns) |
 | Sub-category → Range drill-down | Page 7 — build a matrix on `Sub-category` → `Range` (add `Range` next to the existing Product hierarchy, see §3) — drilling in the matrix and then hitting Export data exports **only the currently-drilled level**, matching the HTML dashboard's drill-scoped export behaviour automatically |
 | Article-level table | Page 7 table (full column list in `PageLayouts.md` §Page 7) |
+| Chain-wise TOT% / On-Invoice Margin Pass-on | Page 4 — TOT% section (see `PageLayouts.md` §Page 4). Build the same table/matrix with `Pack Size` or `Category` instead of `Chain` for the Pack Size/Category-level export — `TOT %`, `On-Invoice Margin Pass-on Value`, `MoM TOT Delta pp` and `Incremental Pass-on Impact` are all defined in `DAX/12_TOT_Measures.dax` |
 | SIS reconciliation table | `docs/SIS_Reconciliation.md` — kept as an audit doc, not a live report page (see **Known gaps** below) |
 | Forecast table | Page 5 — Forecast Dashboard |
 | P&L table | Page 4 — Chain-wise P&L |
@@ -162,17 +163,22 @@ Be upfront about these rather than pretending Power BI matches 1:1:
   just the current level. If you see extra rows, switch that specific visual
   to Underlying data and manually filter, or rebuild it as a matrix.
 
-### Two gaps flagged, not silently resolved
+### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — now implemented
 
-1. **"Chain-wise TOT% / On-Invoice Margin Pass-on / Weighted TOT% / MoM TOT Δ
-   pp / Incremental Pass-on Impact"** — these metrics do not exist anywhere in
-   the current data model (checked `DataDictionary.md`, all `DAX/*.dax`,
-   `dashboard/data.js`). There's no TOT% (Trade Offer/Terms?) source column or
-   defined formula to build a measure from. No export table was fabricated
-   for these — flagging so the actual source file / calculation logic can be
-   supplied, at which point the same Label-measure pattern in
-   `DAX/11_ExportDisplay_Measures.dax` extends to them directly.
-2. **SIS Reconciliation Drill-down** — this was removed from the visible HTML
+TOT% = 1 − (NSV + Tax) / MRP, where Tax = NSV × applicable GST rate (flat 18%
+before Nov'25; Category-based lookup from the editable `GST_Rate_Table.csv`
+from Nov'25 onward, per the GST 2.0 rate rationalisation). Measures live in
+`DAX/12_TOT_Measures.dax`; source is `Fact Primary Article` (query 16/37).
+**This is a best-effort assumption, not an authoritative figure**: several
+categories in `GST_Rate_Table.csv` are marked LOW confidence (no official
+HSN-code-level source was available for the post-cutover rate split) — verify
+against Finance/Tax records before treating TOT% as final. `Weighted TOT%`,
+`On-Invoice Margin Pass-on Value`, `MoM TOT Delta pp`, and `Incremental
+Pass-on Impact` are all covered — see Page 4's TOT% section in `PageLayouts.md`.
+
+### One gap still flagged, not silently resolved
+
+1. **SIS Reconciliation Drill-down** — this was removed from the visible HTML
    dashboard UI in an earlier round (kept only in `docs/SIS_Reconciliation.md`
    for audit record, per explicit instruction at the time). It was never a
    live Power BI report page either (only the audit doc exists), so nothing

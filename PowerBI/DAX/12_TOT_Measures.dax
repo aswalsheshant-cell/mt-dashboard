@@ -1,0 +1,86 @@
+// =====================================================================
+// TOT% MEASURES  (Trade Offer Terms % / On-Invoice Margin Pass-on %)
+//
+// TOT% = 1 - (NSV + Tax) / MRP, i.e. the share of MRP given up as on-invoice
+// trade margin once GST is added back on top of NSV. Source: 'Fact Primary
+// Article' (query 16, has row-level Category + MonthStart + Primary NSV/MRP).
+//
+// Tax = NSV x applicable GST rate: flat 18% for every transaction before the
+// Nov'25 GST 2.0 rate rationalisation cutover; from Nov'25 onward, rate is
+// looked up per Category from 'GST Rate Table' (query 37, reads the editable
+// PowerBI/SeedData/Masters/GST_Rate_Table.csv). Several categories in that
+// table are LOW-confidence best-effort assumptions (no official HSN-code-
+// level source was available) -- verify against Honasa's Finance/Tax records
+// before treating TOT% as final. See that CSV's Confidence/Note columns.
+//
+// Mirrors dashboard/scripts/build_dashboard_data.py's tot_block() exactly,
+// so a chain/category's TOT% reads the same on the HTML dashboard and here.
+// =====================================================================
+
+// ---------- SETUP ----------
+// Relationship needed (see docs/DataModel.md): Date Table[MonthStart] -> Fact
+// Primary Article[MonthStart]. 'GST Rate Table' stays DISCONNECTED (read via
+// LOOKUPVALUE, no relationship to wire up).
+GST Cutover Date = DATE ( 2025, 11, 1 )
+
+// ---------- BASE TOTALS ----------
+Total Primary Article NSV = SUM ( 'Fact Primary Article'[Primary NSV] )
+Total Primary Article MRP = SUM ( 'Fact Primary Article'[Primary MRP] )
+
+// ---------- TAX (row-level rate, summed) ----------
+TOT Tax =
+SUMX (
+    'Fact Primary Article',
+    VAR _isPost = 'Fact Primary Article'[MonthStart] >= [GST Cutover Date]
+    VAR _catRate =
+        LOOKUPVALUE (
+            'GST Rate Table'[GST_Rate_From_Nov25_Pct],
+            'GST Rate Table'[Category], 'Fact Primary Article'[Category]
+        )
+    VAR _rate = IF ( _isPost, COALESCE ( _catRate, 18 ), 18 )   // 18% default for unmapped categories
+    RETURN 'Fact Primary Article'[Primary NSV] * _rate / 100
+)
+
+// ---------- TOT% AND PASS-ON VALUE ----------
+TOT % =
+VAR _mrp = [Total Primary Article MRP]
+RETURN
+    IF ( _mrp = 0, BLANK(),
+        DIVIDE ( _mrp - [Total Primary Article NSV] - [TOT Tax], _mrp )
+    )
+
+TOT % Label =
+VAR v = [TOT %]
+RETURN IF ( ISBLANK ( v ), "–", FORMAT ( v, "0.0%" ) )
+
+On-Invoice Margin Pass-on Value =
+[Total Primary Article MRP] - [Total Primary Article NSV] - [TOT Tax]
+
+On-Invoice Margin Pass-on Value Label =
+VAR v = [On-Invoice Margin Pass-on Value]
+RETURN
+    IF ( ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+// ---------- MoM MOVEMENT (needs the Date Table -> Fact Primary Article relationship) ----------
+MoM TOT Delta pp =
+VAR _cur = [TOT %]
+VAR _prev = CALCULATE ( [TOT %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), ( _cur - _prev ) * 100 )
+
+Incremental Pass-on Impact =
+VAR _cur = [On-Invoice Margin Pass-on Value]
+VAR _prev = CALCULATE ( [On-Invoice Margin Pass-on Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+
+// ---------- WEIGHTED TOT% BY DIMENSION (for the Pack Size / Chain / Category export tables) ----------
+// TOT % already aggregates correctly (weighted by MRP, not a simple row
+// average) whenever it's dropped into a Chain/Category/Pack Size matrix or
+// table visual, since DIVIDE(sum,sum) at whatever grain the visual groups by
+// IS the weighted figure -- no separate "Weighted TOT%" measure is needed,
+// just add [TOT %] as a column next to Pack Size / Chain / Category in a
+// table/matrix visual. Rename the column header to "Weighted TOT%" in that
+// visual if you want the label to match the HTML dashboard's Pack Size
+// export column name exactly.

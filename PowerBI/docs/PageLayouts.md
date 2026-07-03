@@ -143,6 +143,22 @@ current **or previous** month.)
   `Total Spend`, `Contribution Margin`, `CM %`, `Spend % of NSV`, `MoM Growth %`,
   `Forecast vs Actual %`, `Profitability Flag`.
 
+**TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) section** — separate
+source (`Fact Primary Article`, FY26-FY27) from the P&L table above; measures
+in `DAX/12_TOT_Measures.dax`:
+- **TOT% by chain** (bar): `Chain` × `TOT %`.
+- **TOT% detail table:** `Chain`, `Total Primary Article MRP`, `Total Primary
+  Article NSV`, `TOT Tax`, `TOT %`, `On-Invoice Margin Pass-on Value`. Add
+  `MoM TOT Delta pp` and `Incremental Pass-on Impact` cards for the latest month.
+- Add a text box with the same methodology/assumption caveat shown on the HTML
+  dashboard's P&L tab: GST cutover = 1-Nov-2025, flat 18% before, Category-based
+  lookup from `GST Rate Table` after (several categories are LOW-confidence
+  assumptions — see that CSV's Confidence/Note columns).
+- For Pack Size / Category-level TOT% (matches the HTML dashboard's Pack Size
+  export columns), build the same table/matrix on Page 7 with `Pack Size` (or
+  `Category`) in place of `Chain` — `TOT %` aggregates correctly at whatever
+  grain the visual groups by (weighted by MRP, not a simple average).
+
 ---
 
 ## Page 5 — Forecast Dashboard  *(TY-target driven)*
