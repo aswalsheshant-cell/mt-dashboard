@@ -17,6 +17,14 @@
   be quoted as "the" SIS number.
 - **Business decision recorded 2026-07-03.** No further action needed to close
   this; the drill-down/export remain available for future audits.
+- **Final confirmation (2026-07-03, same day):** business supplied a freshly
+  re-matched/reconciled copy of `Primary_FY202426_10.xlsx` (file metadata
+  `modified: 2026-07-03T11:38:05Z`), explicitly stated as "sales matched."
+  Recomputed SIS FY26 from it: **₹250.17 L** — identical to File 2 and the
+  earlier cross-validation. This is the **4th independent confirmation** (File
+  2 invoice-level, the earlier `Primary_FY202426_10.xlsx` raw data, its own
+  PivotTable, and now this business-reconciled copy), closing the loop with
+  the business's own matched numbers.
 
 > ## ✅ MERGE GATE — CLEARED
 > Business explicitly confirmed ₹250.17 L (File 2) as the source of truth for
