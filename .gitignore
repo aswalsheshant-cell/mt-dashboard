@@ -1,2 +1,12 @@
+# Python
 __pycache__/
 node_modules/
+
+# Source data — keep OUT of the repo (large; only generated dashboard/data.js is committed)
+*.xlsx
+*.xlsb
+*.xlsm
+*.csv.gz
+primary_article.xlsb
+# but DO track the small committed seed/template/mapping CSVs under PowerBI/
+!PowerBI/**/*.csv
