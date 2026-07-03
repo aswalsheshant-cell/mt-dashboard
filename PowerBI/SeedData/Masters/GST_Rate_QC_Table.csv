@@ -1,13 +1,13 @@
 Category,HSN_Code,Pre_GST_Rate_Pct,Post_GST_Rate_Pct,Effective_From,Confidence,Finance_Approved,Impact_on_TOT_pct,Note
-Face,,18,5,,Medium,Pending,-2.5,Dominated by Face Wash/Cleanser (basic personal-care staple). GST 2.0 rate rationalisation moved daily-use toiletries to the 5% merit slab. Premium face-serum/under-eye-care SKUs within this tag may not match this category-level rate -- verify with Finance/Tax before treating as final.
-Hair,,18,5,,Medium,Pending,-0.9,Dominated by Shampoo/Hair Oil -- moved to the 5% merit slab under GST 2.0.
-Hair Care,,18,5,,Medium,Pending,-0.0,Duplicate taxonomy tag of 'Hair' in the source data -- same treatment.
-Body,,18,5,,Medium,Pending,-0.4,Body Wash/Soap -- basic toiletries; 5% merit slab under GST 2.0.
-Baby,,18,5,,Medium,Pending,-0.2,Baby-care essentials were widely reported as part of the GST 2.0 relief basket.
+Face,,18,5,,Medium,Pending,0.0,Dominated by Face Wash/Cleanser (basic personal-care staple). GST 2.0 rate rationalisation moved daily-use toiletries to the 5% merit slab. Premium face-serum/under-eye-care SKUs within this tag may not match this category-level rate -- verify with Finance/Tax before treating as final.
+Hair,,18,5,,Medium,Pending,0.0,Dominated by Shampoo/Hair Oil -- moved to the 5% merit slab under GST 2.0.
+Hair Care,,18,5,,Medium,Pending,0.0,Duplicate taxonomy tag of 'Hair' in the source data -- same treatment.
+Body,,18,5,,Medium,Pending,0.0,Body Wash/Soap -- basic toiletries; 5% merit slab under GST 2.0.
+Baby,,18,5,,Medium,Pending,0.0,Baby-care essentials were widely reported as part of the GST 2.0 relief basket.
 Sun Care,,18,18,,Low,Pending,0.0,Sunscreen not confirmed as a merit-rate item -- kept at standard 18% pending confirmation.
-Color Care,,18,18,,Low,Pending,-0.0,Decorative cosmetics (lipstick/foundation/kajal) -- discretionary; likely stayed at 18% (was taxed higher pre-reform).
+Color Care,,18,18,,Low,Pending,0.0,Decorative cosmetics (lipstick/foundation/kajal) -- discretionary; likely stayed at 18% (was taxed higher pre-reform).
 Hair Colour,,18,18,,Low,Pending,0.0,Chemical hair colourants -- historically a higher slab; kept at standard 18% pending confirmation.
 Fragrance,,18,18,,Low,Pending,0.0,Perfumes not treated as a merit/essential good.
-Fragrances,,18,18,,Low,Pending,-0.0,Duplicate taxonomy tag of 'Fragrance' in the source data -- same treatment.
+Fragrances,,18,18,,Low,Pending,0.0,Duplicate taxonomy tag of 'Fragrance' in the source data -- same treatment.
 Styling Products,,18,18,,Low,Pending,0.0,Discretionary styling items (gel/spray) -- kept at standard 18%.
 Combo,,18,18,,Low,Pending,0.0,Mixed-SKU bundles cannot be assigned one HSN code -- defaulted to standard 18%.

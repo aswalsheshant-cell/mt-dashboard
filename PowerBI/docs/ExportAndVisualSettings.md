@@ -163,35 +163,58 @@ Be upfront about these rather than pretending Power BI matches 1:1:
   just the current level. If you see extra rows, switch that specific visual
   to Underlying data and manually filter, or rebuild it as a matrix.
 
-### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — implemented, pending Finance sign-off
+### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — sourced from actual Primary file data
 
-TOT% = 1 − (NSV + Tax) / MRP, where Tax = NSV × applicable GST rate:
-`Pre_GST_Rate_Pct` before that category's cutover date, `Post_GST_Rate_Pct`
-on/after it — both from `GST_Rate_QC_Table.csv` (query 37), Finance/Tax's
-sign-off sheet: `Category, HSN_Code, Pre_GST_Rate_Pct, Post_GST_Rate_Pct,
-Effective_From, Confidence, Finance_Approved, Impact_on_TOT_pct, Note`. A
-per-category cutover override lives in that table's `Effective_From` column;
-if blank, the **global, editable** default cutover date in `GST_Config.csv`
-(query 38) applies — default **2025-09-22** (the GST Council's confirmed GST
-2.0 effective date), a single cell to edit if Honasa's internal billing
-cutover differs. Measures live in `DAX/12_TOT_Measures.dax`; source is
-`Fact Primary Article` (query 16).
+TOT% = SUM(Pass-on Value) / SUM(MRP) — never a simple average of row-level
+TOT% percentages. Pass-on Value is sourced per row with a **3-tier
+priority**, mirroring `dashboard/scripts/build_dashboard_data.py`'s
+`tot_block()` exactly so a chain/category's TOT% reads the same on the HTML
+dashboard and here:
 
-**This is a best-effort assumption, not an authoritative figure.** Every row
-in `GST_Rate_QC_Table.csv` starts `Finance_Approved = Pending`, and several
-are marked `Confidence = Low` (no official HSN-code-level source was
-available for the post-cutover rate split) — `[Finance Approved Count]` /
-`[Finance Approved Total]` measures surface how many of the 12 categories are
-still unconfirmed, so this shows as provisional on the report itself, not
-just in this doc. `Impact_on_TOT_pct` is auto-computed on every HTML-side
-`--detail-only` rebuild (how much blended TOT% would move, in pp, if that
-category's rate assumption were wrong) — use it to prioritise which LOW-
-confidence rows to chase down first. Fill in `HSN_Code` and flip
-`Finance_Approved` to `Yes` per row as Finance confirms; TOT% keeps computing
-off whatever's in the table regardless of approval status (it's an audit
-field, not a gate). `Weighted TOT%`, `On-Invoice Margin Pass-on Value`,
-`MoM TOT Delta pp`, and `Incremental Pass-on Impact` are all covered — see
-Page 4's TOT% section in `PageLayouts.md`.
+1. **SOURCE** — `Fact Primary Article[Avg TOT]` (query 16, from the Primary
+   file's own `Avg Tot` column, Customer × Article grain, a 0-1 fraction) —
+   used directly: `Pass-on Value = MRP × Avg TOT`.
+2. **ACTUAL TAX** — if `Avg TOT` is blank/invalid, use the row's actual
+   `Primary Tax Amount` (`Inv. Tax Amount(LOC)`): `Pass-on Value = MRP − NSV − Tax`.
+3. **GST RATE TABLE FALLBACK** — only if *both* are blank/invalid: estimate
+   Tax from Category + cutover date via `GST_Rate_QC_Table.csv` (query 37,
+   Finance/Tax's sign-off sheet: `Category, HSN_Code, Pre_GST_Rate_Pct,
+   Post_GST_Rate_Pct, Effective_From, Confidence, Finance_Approved,
+   Impact_on_TOT_pct, Note`) and `GST_Config.csv` (query 38 — the **global,
+   editable** default cutover date, default **2025-09-22**, the GST
+   Council's confirmed GST 2.0 effective date; a per-category override lives
+   in the QC table's `Effective_From` column).
+
+Measures live in `DAX/12_TOT_Measures.dax`; source is `Fact Primary Article`
+(query 16). **Setup note:** that file's `TOT Method` / `TOT Pass-on Value`
+are calculated **columns** on `Fact Primary Article`, not measures — see
+`README.md` step 8.
+
+**The GST rate table is fallback-only** — it has zero effect on TOT% for any
+row where `Avg TOT` or `Primary Tax Amount` is present. `[TOT Rows Avg Tot]`,
+`[TOT Rows Tax Calc]`, `[TOT Rows GST Fallback]`, `[TOT Fallback Pct of
+MRP]`, and `[TOT Rows Invalid]` (the same 6-metric QC summary shown on the
+HTML dashboard's P&L tab) show exactly how much — in the source data this
+was built against, **100% of MRP is covered by `Avg TOT`/actual Tax, so the
+GST rate table currently has zero bearing on blended TOT%.** `[TOT Status
+Banner]` reflects this dynamically (green "sourced from actual data" vs
+amber "partially provisional").
+
+**Wherever the fallback tier IS used, treat it as a best-effort assumption,
+not an authoritative figure.** Every row in `GST_Rate_QC_Table.csv` starts
+`Finance_Approved = Pending`, and several are marked `Confidence = Low` (no
+official HSN-code-level source was available for the post-cutover rate
+split) — `[Finance Approved Count]` / `[Finance Approved Total]` measures
+surface how many of the 12 categories are still unconfirmed. `Impact_on_
+TOT_pct` is auto-computed on every HTML-side `--detail-only` rebuild (how
+much blended TOT% would move, in pp, if that category's rate assumption
+were wrong, scoped to that category's own fallback-tier rows only) — use it
+to prioritise which LOW-confidence rows to chase down first; a category with
+zero fallback exposure shows `Impact_on_TOT_pct = 0` regardless of its
+Confidence rating, since the rate table simply isn't being used for it.
+`Weighted TOT%`, `On-Invoice Margin Pass-on Value`, `MoM TOT Delta pp`, and
+`Incremental Pass-on Impact` are all covered — see Page 4's TOT% section in
+`PageLayouts.md`.
 
 ### One gap still flagged, not silently resolved
 

@@ -716,6 +716,19 @@ function buildPnl(){
     return `<tr><td>${r.category}</td><td>${r.hsn_code||'TBD'}</td><td>${r.pre_rate_pct}%</td><td>${r.post_rate_pct}%</td>
      <td>${r.effective_from||'(uses default)'}</td><td>${r.confidence}</td><td class="${faCls}">${fa}</td><td>${impact}</td></tr>`;
   }).join('');
+  const mq=(totD&&totD.method_qc)||{};
+  // dynamic banner: green/confirmed when the GST rate table wasn't actually
+  // needed (fallback ~0% of MRP -- TOT% is real source data, not an
+  // assumption), amber/provisional scoped to just the fallback slice otherwise.
+  const fbPct=mq.fallback_pct_of_mrp;
+  const totBanner=!totD?'':(fbPct==null||fbPct<0.05)
+    ?`<div class="repbanner" style="background:#e8f5ec;border-color:#b7e0c4;color:#1c6b3a"><b>TOT% sourced from actual Primary file data</b> —
+        Avg Tot / Inv. Tax Amount(LOC) covered every row; the GST rate table fallback was not needed
+        ${fbPct==null?'':`(${fbPct}% of MRP)`}.</div>`
+    :`<div class="repbanner"><b>Partially provisional.</b> ${fbPct}% of MRP (${num(mq.rows_gst_fallback)} rows) relies on the
+        GST rate table fallback, pending Finance/Tax sign-off (${totD.finance_approved_count} of
+        ${totD.finance_approved_total} categories confirmed). The remaining ${(100-fbPct).toFixed(1)}% uses actual
+        source data (Avg Tot / Inv. Tax Amount).</div>`;
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    <p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -735,18 +748,27 @@ function buildPnl(){
      <tbody>${rows||'<tr><td colspan="7">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
    <p class="note" style="margin:0 0 10px">FY26-FY27, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
-     TOT% = 1 − (NSV + Tax) / MRP. Blended TOT% ${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'} · total pass-on value ${crc(totD.total_passon_value)}.</p>
-   <div class="repbanner"><b>Provisional — pending Finance/Tax sign-off.</b>
-     ${totD.finance_approved_count} of ${totD.finance_approved_total} GST categories confirmed. TOT% uses the best-effort
-     rate assumptions in the QC table below until every category is Finance-approved.</div>
+     TOT% = SUM(Pass-on Value) / SUM(MRP), sourced per row: Primary file's own <b>Avg Tot</b> first, actual
+     <b>Inv. Tax Amount(LOC)</b> second, GST rate table only as a last-resort fallback. Blended TOT%
+     ${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'} · total pass-on value ${crc(totD.total_passon_value)}.</p>
+   ${totBanner}
    <div class="grid g2">
      ${card('TOT% by chain','Higher = more on-invoice margin passed to the chain. Click a chain to drill.',cv('totChart'))}
-     ${card('Chain-wise TOT% detail','MRP, NSV, GST-adjusted Tax and On-Invoice Margin Pass-on Value per chain.',`<div class="tablewrap"><table>
+     ${card('Chain-wise TOT% detail','MRP, NSV, Tax and On-Invoice Margin Pass-on Value per chain.',`<div class="tablewrap"><table>
        <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Tax</th><th>TOT%</th><th>Pass-on Value</th></tr></thead>
        <tbody>${totRows||'<tr><td colspan="6">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    </div>
+   ${card('TOT% source QC summary','Row counts by source across the full FY26-FY27 article-level detail (not the row-capped browser export).',`<div class="tablewrap"><table>
+     <thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+     <tr><td>Rows using Source TOT% (Avg Tot)</td><td>${num(mq.rows_avg_tot)}</td></tr>
+     <tr><td>Rows calculated using Actual Tax Amount</td><td>${num(mq.rows_tax_calc)}</td></tr>
+     <tr><td>Rows using GST Rate Table fallback</td><td>${num(mq.rows_gst_fallback)}</td></tr>
+     <tr><td>Fallback % of total MRP</td><td>${mq.fallback_pct_of_mrp==null?'–':mq.fallback_pct_of_mrp+'%'}</td></tr>
+     <tr><td>Blended TOT%</td><td>${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'}</td></tr>
+     <tr><td>Rows blank/invalid (MRP, NSV, Avg Tot &amp; Inv. Tax Amount all unusable)</td><td>${num(mq.rows_invalid)}</td></tr>
+     </tbody></table></div>`)}
    ${card('GST rate QC table — Category, HSN Code, Pre/Post GST%, Effective From, Confidence, Finance Approved, Impact on TOT%',
-     'Impact on TOT% = how much blended TOT% would move (pp) if that category\'s Post-GST% were flipped to the alternate slab — use it to prioritise which LOW-confidence rows to validate first. Edit PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv (Finance sign-off) and PowerBI/SeedData/Masters/GST_Config.csv (cutover date override) then re-run --detail-only to update this table dashboard-wide.',
+     'Fallback-only: this table drives TOT% ONLY for rows where both Avg Tot and Inv. Tax Amount(LOC) are blank/invalid (see the QC summary above for how many that is). Impact on TOT% = how much blended TOT% would move (pp) if that category\'s Post-GST% were flipped to the alternate slab, scoped to that category\'s own fallback-tier rows only — use it to prioritise which LOW-confidence rows to validate first. Edit PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv (Finance sign-off) and PowerBI/SeedData/Masters/GST_Config.csv (cutover date override) then re-run --detail-only to update this table dashboard-wide.',
      `<div class="tablewrap"><table><thead><tr><th>Category</th><th>HSN Code</th><th>Pre-GST%</th><th>Post-GST%</th>
        <th>Effective From</th><th>Confidence</th><th>Finance Approved</th><th>Impact on TOT%</th></tr></thead>
        <tbody>${qcRows||'<tr><td colspan="8">No QC table found.</td></tr>'}</tbody></table></div>`)}

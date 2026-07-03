@@ -94,8 +94,13 @@ PowerBI/
 7. **Build relationships** per `docs/DataModel.md` (a clean star schema).
 
 8. **Add measures.** Create a `_Measures` table (Enter Data, one dummy column,
-   delete it later) and paste every measure from `DAX/01..06`. Group them into
+   delete it later) and paste every measure from `DAX/01..12`. Group them into
    display folders matching the file names.
+   **Exception:** `DAX/12_TOT_Measures.dax`'s first two blocks (`TOT Method`,
+   `TOT Pass-on Value`) are **calculated columns**, not measures — add them
+   directly on `Fact Primary Article` (select that table ▸ Table tools ▸
+   *New column*), not in `_Measures`. Every other measure in that file
+   depends on those two columns already existing.
 
 9. **Import the theme.** View ▸ Themes ▸ *Browse for themes* ▸
    `theme/HonasaMT_Theme.json`.

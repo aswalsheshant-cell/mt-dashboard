@@ -614,52 +614,144 @@ def gst_rate_for_ord(category, ordv, qc_table, default_cutover_ord):
     cutover = row["effective_from_ord"] if row["effective_from_ord"] is not None else default_cutover_ord
     return row["pre"] if ordv < cutover else row["post"]
 
-def tot_block(g, qc_table, default_cutover, qc_raw_rows=None):
+# ---------------------------------------------------------------------------
+# TOT% 3-TIER SOURCE PRIORITY (row-level, computed BEFORE any groupby so the
+# real per-transaction Avg Tot / Inv. Tax Amount(LOC) values aren't lost to
+# aggregation -- these are Customer x Article-grain fields in the Primary
+# file and can't be recovered from a pre-summed group):
+#   1. "avg_tot"      -- Primary file's own `Avg Tot` column (0-1 fraction),
+#                        already the business's own TOT% for that row.
+#                        Pass-on value = MRP x Avg Tot.
+#   2. "tax_calc"      -- `Avg Tot` blank/invalid: use the row's actual
+#                        `Inv. Tax Amount(LOC)`. Pass-on value = MRP-NSV-Tax.
+#   3. "gst_fallback"  -- both blank/invalid: estimate Tax from the editable
+#                        GST_Rate_QC_Table.csv (Category + cutover date based
+#                        rate). Pass-on value = MRP-NSV-Tax_estimated.
+#   "invalid"          -- MRP blank/zero, or (tier 1 unusable AND NSV blank)
+#                        -- can't compute any tier; excluded from TOT%
+#                        aggregation entirely (not silently included at 0).
+# GST_Rate_QC_Table.csv is FALLBACK ONLY now -- tiers 1/2 use the Primary
+# file's own real Avg Tot / Inv. Tax Amount(LOC), which in practice cover
+# the overwhelming majority of rows (100% in the source file this was built
+# against), so the rate-table assumption typically has ZERO bearing on
+# blended TOT% -- see qc_summary/category_impacts_pp.
+# ---------------------------------------------------------------------------
+_AVG_TOT_VALID_MIN, _AVG_TOT_VALID_MAX = -1.5, 1.5   # sane bound for a 0-1-ish fraction; outside = treat as bad data, fall through
+
+def compute_tot_columns(df, qc_table, default_cutover_ord):
+    """Adds _passon, _tot_mrp, _tot_nsv, _fallback_nsv, _method columns to the
+    ROW-LEVEL (not yet grouped) primary-article dataframe `df`, which must
+    already have _MRP, _NSV, _AvgTot, _TaxLOC, _category, _M, _FY columns.
+    Vectorised for the (expected-dominant) tier-1/tier-2 paths; only the
+    (expected-rare) tier-3/invalid remainder pays for a row-wise category
+    rate lookup. _fallback_nsv = NSV where method=='gst_fallback' else 0 --
+    the ONLY NSV base the rate table's assumptions actually affect, used for
+    the category Impact_on_TOT_pct sensitivity calc."""
+    mrp, nsv = df["_MRP"], df["_NSV"]
+    at, tax = df["_AvgTot"], df["_TaxLOC"]
+
+    mrp_ok = mrp.notna() & (mrp != 0)
+    at_ok = mrp_ok & at.notna() & at.between(_AVG_TOT_VALID_MIN, _AVG_TOT_VALID_MAX)
+    tax_ok = mrp_ok & ~at_ok & nsv.notna() & tax.notna()
+    remainder = mrp_ok & ~at_ok & ~tax_ok   # tier-3 (gst_fallback) candidates, or invalid if NSV is also blank
+
+    passon = pd.Series(float("nan"), index=df.index, dtype="float64")
+    tot_mrp = pd.Series(float("nan"), index=df.index, dtype="float64")
+    tot_nsv = pd.Series(float("nan"), index=df.index, dtype="float64")
+    fallback_nsv = pd.Series(0.0, index=df.index, dtype="float64")
+    method = pd.Series("invalid", index=df.index, dtype="object")
+
+    passon[at_ok] = mrp[at_ok] * at[at_ok]
+    tot_mrp[at_ok] = mrp[at_ok]
+    tot_nsv[at_ok] = nsv[at_ok]
+    method[at_ok] = "avg_tot"
+
+    passon[tax_ok] = mrp[tax_ok] - nsv[tax_ok] - tax[tax_ok]
+    tot_mrp[tax_ok] = mrp[tax_ok]
+    tot_nsv[tax_ok] = nsv[tax_ok]
+    method[tax_ok] = "tax_calc"
+
+    for i in df.index[remainder]:
+        if pd.isna(nsv.loc[i]):
+            continue   # stays "invalid" -- can't compute any tier without NSV
+        ordv = month_ord(df.at[i, "_M"], df.at[i, "_FY"])
+        rate = gst_rate_for_ord(df.at[i, "_category"], ordv, qc_table, default_cutover_ord)
+        tax_est = nsv.loc[i] * rate / 100.0
+        passon.loc[i] = mrp.loc[i] - nsv.loc[i] - tax_est
+        tot_mrp.loc[i] = mrp.loc[i]
+        tot_nsv.loc[i] = nsv.loc[i]
+        fallback_nsv.loc[i] = nsv.loc[i]
+        method.loc[i] = "gst_fallback"
+
+    df["_passon"] = passon
+    df["_tot_mrp"] = tot_mrp
+    df["_tot_nsv"] = tot_nsv
+    df["_fallback_nsv"] = fallback_nsv
+    df["_method"] = method
+    return df
+
+def compute_tot_qc_summary(df_scope):
+    """Row-level (not grouped) method-source counts + fallback materiality,
+    for the QC summary block shown on the dashboard's TOT% card. df_scope
+    should already be filtered to whatever FY window tot_block operates on
+    (FY26/FY27) so the counts match the population blended_tot_pct covers."""
+    n_avg_tot = int((df_scope["_method"] == "avg_tot").sum())
+    n_tax_calc = int((df_scope["_method"] == "tax_calc").sum())
+    n_gst_fallback = int((df_scope["_method"] == "gst_fallback").sum())
+    n_invalid = int((df_scope["_method"] == "invalid").sum())
+    valid_mrp = df_scope.loc[df_scope["_method"] != "invalid", "_tot_mrp"].sum()
+    fallback_mrp = df_scope.loc[df_scope["_method"] == "gst_fallback", "_tot_mrp"].sum()
+    return {
+        "rows_avg_tot": n_avg_tot, "rows_tax_calc": n_tax_calc,
+        "rows_gst_fallback": n_gst_fallback, "rows_invalid": n_invalid,
+        "rows_total": n_avg_tot + n_tax_calc + n_gst_fallback + n_invalid,
+        "fallback_pct_of_mrp": r2(fallback_mrp / valid_mrp * 100, 1) if valid_mrp else None,
+    }
+
+def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
     """Chain / Category / Pack-Size-wise TOT%, on-invoice margin pass-on
     value, and a monthly series (for MoM TOT Delta pp / Incremental Pass-on
     Impact), computed from the FULL (uncapped) article-level primary groupby
-    `g` — columns _M, _FY, _Chain, _category, _net_content, NSV, MRP (Lakh).
-    Only FY26/FY27 rows are used (matches the rest of the dashboard's "no
-    FY24-25 actuals shown post-cutover" convention and keeps the GST-cutover
-    logic meaningful — FY25 predates the reform entirely). If qc_raw_rows is
-    given, also computes each category's Impact_on_TOT_pct (blended TOT%
-    delta, in pp, if that category's Post_GST_Rate_Pct were flipped to the
-    alternate common slab) and writes it back into the QC CSV."""
+    `g` — columns _M, _FY, _Chain, _category, _net_content, TotMRP, TotNSV,
+    Passon, FallbackNSV (Lakh; pre-computed row-level by compute_tot_columns,
+    then summed through the groupby). Only FY26/FY27 rows are used (matches
+    the rest of the dashboard's "no FY24-25 actuals" convention). If
+    qc_raw_rows is given, also computes each category's Impact_on_TOT_pct
+    (blended TOT% delta, in pp, if that category's Post_GST_Rate_Pct were
+    flipped to the alternate common slab) and writes it back into the QC CSV
+    -- scoped ONLY to that category's gst_fallback-tier NSV, since avg_tot/
+    tax_calc rows use real source data and aren't affected by the rate table
+    at all."""
     default_cutover_ord, default_cutover_str = default_cutover
     gg = g[g["_FY"].isin(["FY26", "FY27"])].copy()
-    gg["_ord"] = gg.apply(lambda r: month_ord(r["_M"], r["_FY"]), axis=1)
-    gg["_rate"] = gg.apply(
-        lambda r: gst_rate_for_ord(r["_category"], r["_ord"], qc_table, default_cutover_ord), axis=1)
-    gg["_tax"] = gg["NSV"] * gg["_rate"] / 100.0
 
     def weighted(group_col, with_mom=False):
-        """Per-group MRP/NSV/Tax/TOT%/pass-on value (weighted, not a simple
-        average across the group's own rows). with_mom=True additionally
-        computes that group's OWN latest month-over-month TOT% delta (pp)
-        and incremental pass-on impact from ITS OWN monthly trend — not the
-        dashboard-wide blended monthly series — so e.g. two pack sizes with
-        different trajectories don't get the same MoM number."""
+        """Per-group MRP/NSV/Tax/TOT%/pass-on value -- SUM(passon)/SUM(mrp),
+        never a simple average of row-level TOT% percentages. with_mom=True
+        additionally computes that group's OWN latest month-over-month TOT%
+        delta (pp) and incremental pass-on impact from ITS OWN monthly trend
+        — not the dashboard-wide blended monthly series — so e.g. two pack
+        sizes with different trajectories don't get the same MoM number."""
         out = []
         for name, d in gg.groupby(group_col):
             if not name:
                 continue
-            mrp, nsv, tax = d["MRP"].sum(), d["NSV"].sum(), d["_tax"].sum()
+            mrp, nsv, passon = d["TotMRP"].sum(), d["TotNSV"].sum(), d["Passon"].sum()
             if mrp <= 0:
                 continue
+            tax = mrp - nsv - passon
             row = {"name": name, "mrp": r2(mrp), "nsv": r2(nsv), "tax": r2(tax),
-                   "tot_pct": r2((1 - (nsv + tax) / mrp) * 100, 1),
-                   "passon_value": r2(mrp - nsv - tax)}
+                   "tot_pct": r2(passon / mrp * 100, 1), "passon_value": r2(passon)}
             if with_mom:
                 mrow = []
                 for (fy, m), dm in d.groupby(["_FY", "_M"]):
                     ordv = month_ord(m, fy)
                     if ordv is None:
                         continue
-                    mmrp, mnsv, mtax = dm["MRP"].sum(), dm["NSV"].sum(), dm["_tax"].sum()
+                    mmrp, mpasson = dm["TotMRP"].sum(), dm["Passon"].sum()
                     if mmrp <= 0:
                         continue
-                    mrow.append({"ord": ordv, "tot_pct": (1 - (mnsv + mtax) / mmrp) * 100,
-                                "passon_value": mmrp - mnsv - mtax})
+                    mrow.append({"ord": ordv, "tot_pct": mpasson / mmrp * 100, "passon_value": mpasson})
                 mrow.sort(key=lambda x: x["ord"])
                 if len(mrow) >= 2:
                     row["mom_tot_delta_pp"] = r2(mrow[-1]["tot_pct"] - mrow[-2]["tot_pct"], 1)
@@ -679,12 +771,11 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None):
         ordv = month_ord(m, fy)
         if ordv is None:
             continue
-        mrp, nsv, tax = d["MRP"].sum(), d["NSV"].sum(), d["_tax"].sum()
+        mrp, passon = d["TotMRP"].sum(), d["Passon"].sum()
         if mrp <= 0:
             continue
         monthly_raw.append({"fy": fy, "month": m, "ord": ordv,
-                            "tot_pct": (1 - (nsv + tax) / mrp) * 100,
-                            "passon_value": mrp - nsv - tax})
+                            "tot_pct": passon / mrp * 100, "passon_value": passon})
     monthly_raw.sort(key=lambda d: d["ord"])
     monthly = []
     for i, row in enumerate(monthly_raw):
@@ -697,27 +788,28 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None):
             "incremental_passon_impact": r2(row["passon_value"] - prev["passon_value"]) if prev else None,
         })
 
-    tot_mrp, tot_nsv, tot_tax = gg["MRP"].sum(), gg["NSV"].sum(), gg["_tax"].sum()
-    blended_tot_pct = (1 - (tot_nsv + tot_tax) / tot_mrp) * 100 if tot_mrp else None
+    tot_mrp, tot_nsv, tot_passon = gg["TotMRP"].sum(), gg["TotNSV"].sum(), gg["Passon"].sum()
+    blended_tot_pct = (tot_passon / tot_mrp * 100) if tot_mrp else None
+    tot_tax = tot_mrp - tot_nsv - tot_passon
 
     # ---- Impact_on_TOT_pct: for each QC-table category, how much would the
     # BLENDED TOT% move (pp) if that category's Post_GST_Rate_Pct were flipped
     # to the alternate common slab (5<->18), holding every other category's
-    # rate fixed. Only that category's OWN post-cutover rows are affected
-    # (pre-cutover rows always use Pre_GST_Rate_Pct, untouched by this swap).
-    # Lets Finance/Tax prioritise which LOW-confidence categories are worth
-    # chasing first (large impact) vs immaterial (small impact either way).
+    # rate fixed. Scoped ONLY to that category's gst_fallback-tier NSV (real
+    # avg_tot/tax_calc rows are untouched by the rate table). Lets Finance/Tax
+    # prioritise which LOW-confidence categories are worth chasing first
+    # (large impact) vs immaterial (small/zero impact -- e.g. a category with
+    # 100% Avg Tot coverage has zero fallback exposure regardless of Confidence).
     category_impacts = {}
     if blended_tot_pct is not None:
         for cat, row in qc_table.items():
             alt_post = 18.0 if row["post"] != 18.0 else 5.0
-            cutover = row["effective_from_ord"] if row["effective_from_ord"] is not None else default_cutover_ord
-            post_rows = gg[(gg["_category"] == cat) & (gg["_ord"].notna()) & (gg["_ord"] >= cutover)]
-            if post_rows.empty:
+            fallback_nsv = gg.loc[gg["_category"] == cat, "FallbackNSV"].sum()
+            if not fallback_nsv:
                 category_impacts[cat] = 0.0
                 continue
-            delta_tax = post_rows["NSV"].sum() * (alt_post - row["post"]) / 100.0
-            alt_blended = (1 - (tot_nsv + tot_tax + delta_tax) / tot_mrp) * 100 if tot_mrp else None
+            delta_tax = fallback_nsv * (alt_post - row["post"]) / 100.0
+            alt_blended = ((tot_passon - delta_tax) / tot_mrp) * 100 if tot_mrp else None
             category_impacts[cat] = r2(alt_blended - blended_tot_pct, 1) if alt_blended is not None else None
         if qc_raw_rows:
             write_gst_qc_impacts(qc_raw_rows, category_impacts)
@@ -744,33 +836,42 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None):
         "by_chain": by_chain, "by_category": by_category, "by_packsize": by_packsize,
         "monthly": monthly,
         "blended_tot_pct": r2(blended_tot_pct, 1),
-        "total_passon_value": r2(tot_mrp - tot_nsv - tot_tax),
+        "total_passon_value": r2(tot_passon),
         "category_impacts_pp": category_impacts,
         "qc_table": qc_table_rows,
+        "method_qc": qc_summary or {},
         "gst_cutover_default": default_cutover_str,
         "finance_approved_count": finance_approved_n,
         "finance_approved_total": finance_total_n,
         "unit": "INR Lakh",
         "methodology": (
             "TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) = "
-            "1 - (NSV + Tax) / MRP, computed from the full article-level primary "
-            "detail (not the row-capped browser export). Tax = NSV x applicable GST "
-            "rate: Pre_GST_Rate_Pct before that category's cutover date, Post_GST_Rate_Pct "
-            "on/after it, both from the editable PowerBI/SeedData/Masters/"
-            "GST_Rate_QC_Table.csv. A per-category cutover override lives in that CSV's "
+            "Pass-on Value / MRP, i.e. SUM(Pass-on Value) / SUM(MRP) at whatever grain "
+            "it's shown (never a simple average of row-level TOT% percentages). Pass-on "
+            "Value is sourced per row with a 3-tier priority, computed from the full "
+            "article-level primary detail (not the row-capped browser export): "
+            "1) SOURCE -- the Primary file's own 'Avg Tot' column (Customer x Article "
+            "grain), used directly: Pass-on Value = MRP x Avg Tot. "
+            "2) ACTUAL TAX -- if Avg Tot is blank/invalid, use the row's actual "
+            "'Inv. Tax Amount(LOC)': Pass-on Value = MRP - NSV - Tax. "
+            "3) GST RATE TABLE FALLBACK -- only if BOTH are blank/invalid, estimate Tax "
+            "from Category x cutover-date via the editable PowerBI/SeedData/Masters/"
+            "GST_Rate_QC_Table.csv (a per-category cutover override lives in that CSV's "
             "Effective_From column; if blank, the global default cutover date from "
-            "PowerBI/SeedData/Masters/GST_Config.csv is used (editable single cell -- "
-            "default 2025-09-22, the GST Council's confirmed GST 2.0 effective date; "
-            "override it if Honasa's internal billing cutover differs). Several "
-            "categories in the QC table are LOW-confidence best-effort assumptions (no "
-            "official HSN-code source was available) and every row starts "
-            "Finance_Approved=Pending -- verify against Finance/Tax records before "
-            "treating TOT% as final. 'On-Invoice Margin Pass-on Value' = "
-            "MRP - NSV - Tax (Rs Lakh). 'Incremental Pass-on Impact' = the MoM change "
-            "in that value. 'Impact_on_TOT_pct' (in the QC table) = how much blended "
-            "TOT% would move, in pp, if that one category's Post_GST_Rate_Pct were "
-            "flipped to the alternate slab -- use it to prioritise which LOW-confidence "
-            "rows matter most."
+            "PowerBI/SeedData/Masters/GST_Config.csv applies -- default 2025-09-22, the "
+            "GST Council's confirmed GST 2.0 effective date). The GST rate table is "
+            "FALLBACK ONLY: it has zero effect on TOT% for any row where the Primary "
+            "file's own Avg Tot or Inv. Tax Amount(LOC) is present -- see method_qc for "
+            "exactly how many rows/how much MRP actually rely on it. Several categories "
+            "in the QC table are LOW-confidence best-effort assumptions (no official "
+            "HSN-code source was available) and every row starts Finance_Approved=Pending "
+            "-- verify against Finance/Tax records before treating any fallback-tier TOT% "
+            "as final. 'Incremental Pass-on Impact' = the MoM change in Pass-on Value. "
+            "'Impact_on_TOT_pct' (in the QC table) = how much blended TOT% would move, in "
+            "pp, if that one category's Post_GST_Rate_Pct were flipped to the alternate "
+            "slab -- scoped only to that category's gst_fallback-tier rows, since "
+            "avg_tot/tax_calc rows use real source data and aren't affected by the rate "
+            "table at all."
         ),
     }
 
@@ -1152,6 +1253,18 @@ def detail_records_real(src, max_rows=20000):
     for c in ("category", "sub_category", "range", "net_content", "Description", "EAN No."):
         df["_" + c] = df[c].astype(str).str.strip().replace({"nan": "", "None": ""})
 
+    # ---- TOT% source columns (Priority 1/2 -- see tot_block's docstring):
+    # 'Avg Tot' is the Primary file's own Customer x Article-grain TOT%
+    # (0-1 fraction); 'Inv. Tax Amount(LOC)' is the actual per-row tax.
+    # Kept UN-filled (real NaN, not 0.0) so compute_tot_columns can correctly
+    # tell "blank" apart from "genuinely zero" and fall through tiers.
+    # Gracefully degrades to GST-rate-table-only (old behaviour) if either
+    # column is absent from this particular source file.
+    df["_AvgTot"] = pd.to_numeric(df["Avg Tot"], errors="coerce") if "Avg Tot" in df.columns \
+        else pd.Series(float("nan"), index=df.index)
+    df["_TaxLOC"] = (pd.to_numeric(df["Inv. Tax Amount(LOC)"], errors="coerce") / 1e5) \
+        if "Inv. Tax Amount(LOC)" in df.columns else pd.Series(float("nan"), index=df.index)
+
     # ---- EXACT channel totals from the FULL data, before any row capping ----
     ct = (df.groupby(["_FY", "_Chan"])["_NSV"].sum().round(2))
     channel_totals = {}
@@ -1164,16 +1277,28 @@ def detail_records_real(src, max_rows=20000):
     # it only makes the Rs 250.17 L composition fully transparent/exportable.
     sis_reconciliation = _sis_reconciliation(df)
 
+    # ---- TOT% row-level 3-tier classification (Avg Tot -> actual Tax -> GST
+    # rate table fallback), computed on the FULL un-grouped row-level data so
+    # the Customer x Article-grain Avg Tot/Tax values aren't lost to
+    # aggregation. QC summary (row counts by source, fallback % of MRP) is
+    # computed from this SAME row-level FY26/FY27 population that
+    # blended_tot_pct covers, before it gets collapsed into `g`.
+    _qc_table, _qc_raw_rows = load_gst_qc_table()
+    _cutover = load_gst_cutover_date()
+    df = compute_tot_columns(df, _qc_table, _cutover[0])
+    _qc_summary = compute_tot_qc_summary(df[df["_FY"].isin(["FY26", "FY27"])])
+
     g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
                      "_category","_sub_category","_range","_net_content","_Description","_EAN No."],
                     dropna=False)
-           .agg(NSV=("_NSV","sum"), MRP=("_MRP","sum"), Qty=("_Qty","sum")).reset_index())
+           .agg(NSV=("_NSV","sum"), MRP=("_MRP","sum"), Qty=("_Qty","sum"),
+                TotMRP=("_tot_mrp","sum"), TotNSV=("_tot_nsv","sum"),
+                Passon=("_passon","sum"), FallbackNSV=("_fallback_nsv","sum")).reset_index())
 
     # ---- TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %): computed
     # from this FULL uncapped groupby, before the top-N-by-value row cap below,
     # so it's exact rather than subject to the browser row cap.
-    _qc_table, _qc_raw_rows = load_gst_qc_table()
-    tot = tot_block(g, _qc_table, load_gst_cutover_date(), _qc_raw_rows)
+    tot = tot_block(g, _qc_table, _cutover, _qc_raw_rows, _qc_summary)
 
     total_value = g["NSV"].sum()
     rows_total = len(g)

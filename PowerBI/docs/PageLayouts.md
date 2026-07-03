@@ -145,27 +145,40 @@ current **or previous** month.)
 
 **TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) section** — separate
 source (`Fact Primary Article`, FY26-FY27) from the P&L table above; measures
-in `DAX/12_TOT_Measures.dax`:
-- **Provisional banner** (card/text box): `[Finance Approval Status]` — reads
-  "Provisional — N of 12 GST categories Finance-approved" so the sign-off gap
-  shows on the report itself, not just in docs.
+in `DAX/12_TOT_Measures.dax`. **Setup note:** that file's `TOT Method` /
+`TOT Pass-on Value` are calculated COLUMNS on `Fact Primary Article`, not
+measures — add them via Table tools ▸ New column before adding the rest of
+the file's measures to `_Measures` (see `README.md` step 8).
+- **Status banner** (card/text box): `[TOT Status Banner]` — dynamically
+  reads either "TOT% sourced from actual Primary file data..." (green, when
+  the GST rate table wasn't needed) or "Partially provisional: N% of MRP
+  relies on the GST rate table fallback..." (amber) depending on
+  `[TOT Fallback Pct of MRP]`. Conditional-format the card background off the
+  same measure so it visually matches the HTML dashboard's dynamic banner.
 - **TOT% by chain** (bar): `Chain` × `TOT %`.
 - **TOT% detail table:** `Chain`, `Total Primary Article MRP`, `Total Primary
   Article NSV`, `TOT Tax`, `TOT %`, `On-Invoice Margin Pass-on Value`. Add
   `MoM TOT Delta pp` and `Incremental Pass-on Impact` cards for the latest month.
+- **TOT% source QC summary** (card row or small table, the same 6 metrics as
+  the HTML dashboard's P&L tab QC panel): `[TOT Rows Avg Tot]` (Rows using
+  Source TOT%), `[TOT Rows Tax Calc]` (Rows calculated using Actual Tax
+  Amount), `[TOT Rows GST Fallback]` (Rows using GST Rate Table fallback),
+  `[TOT Fallback Pct of MRP]`, `[TOT %]` (Blended TOT%), `[TOT Rows Invalid]`
+  (Rows blank/invalid).
 - **GST rate QC table** (table visual, bound directly to `GST Rate QC Table`):
   `Category`, `HSN_Code`, `Pre_GST_Rate_Pct`, `Post_GST_Rate_Pct`,
   `Effective_From`, `Confidence`, `Finance_Approved`, `Impact_on_TOT_pct` —
   the same Finance/Tax sign-off sheet shown on the HTML dashboard's P&L tab.
   Conditional-format `Finance_Approved` (green "Yes" / red "No" / grey
   "Pending") and sort by `Impact_on_TOT_pct` descending so the highest-
-  materiality LOW-confidence rows surface first.
+  materiality LOW-confidence rows surface first. Note in a text box that this
+  table is FALLBACK ONLY — it drives TOT% only for the row count shown in
+  `[TOT Rows GST Fallback]` above, not the whole dataset.
 - Add a text box with the same methodology/assumption caveat shown on the HTML
-  dashboard's P&L tab: default GST cutover = `[GST Cutover Date]` (editable,
+  dashboard's P&L tab: 3-tier priority (Avg TOT → Primary Tax Amount → GST
+  rate table), default GST cutover = `[GST Cutover Date]` (editable,
   `GST_Config.csv`, default 2025-09-22 = GST Council's confirmed GST 2.0
-  effective date), Pre/Post-GST% per category from `GST Rate QC Table`
-  (several rows are LOW-confidence assumptions pending Finance sign-off — see
-  that table's Confidence/Note/Finance_Approved columns).
+  effective date).
 - For Pack Size / Category-level TOT% (matches the HTML dashboard's Pack Size
   export columns), build the same table/matrix on Page 7 with `Pack Size` (or
   `Category`) in place of `Chain` — `TOT %` aggregates correctly at whatever

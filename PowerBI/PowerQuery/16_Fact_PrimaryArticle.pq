@@ -8,13 +8,23 @@
 // MAPPING LOCKED to the confirmed File 2 headers (SAP invoice export):
 //   FY, Month, Article Code, Ship To Name, EAN No., brand, category,
 //   sub_category, range, Description, Inv Qty, Inv. Net value(LOC),
-//   Total MRP sales, Cust-SAP Code, Zone, State, Chain name, Store Code,
-//   Format, Channel   (+ many invoice columns kept out of the model)
+//   Inv. Tax Amount(LOC), Total MRP sales, Avg Tot, Cust-SAP Code, Zone,
+//   State, Chain name, Store Code, Format, Channel   (+ many invoice
+//   columns kept out of the model)
 //
 // Units: Primary NSV = "Inv. Net value(LOC)" — actual invoice net value in
 //        rupees. CONFIRMED basis for allocation; do NOT switch to "sale in lac".
 //        Lacs/Cr conversion is handled later in reporting measures only.
 // Article key priority: EAN -> Article Code -> cleaned Description.
+//
+// TOT% source columns (DAX/12_TOT_Measures.dax, 3-tier priority):
+//   "Avg Tot"                -> "Avg TOT" (0-1 fraction, Customer x Article
+//                                grain -- the Primary file's OWN TOT%, used
+//                                directly as first priority).
+//   "Inv. Tax Amount(LOC)"   -> "Primary Tax Amount" (rupees, actual tax --
+//                                second priority when Avg TOT is blank).
+// The GST_Rate_QC_Table.csv fallback (third priority) only fires when BOTH
+// of these are blank/invalid for a row.
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Article_Monthly"),
@@ -26,7 +36,7 @@ let
         "FY", "Month", "Ship To Name", "Chain name", "brand",
         "Article Code", "EAN No.", "Description",
         "category", "sub_category", "range",
-        "Inv Qty", "Inv. Net value(LOC)", "Total MRP sales",
+        "Inv Qty", "Inv. Net value(LOC)", "Inv. Tax Amount(LOC)", "Total MRP sales", "Avg Tot",
         "Cust-SAP Code", "Store Code", "Zone", "State", "Format", "Channel"
     }, MissingField.UseNull),
 
@@ -43,7 +53,9 @@ let
         {"range", "Range"},
         {"Inv Qty", "Primary Qty"},
         {"Inv. Net value(LOC)", "Primary NSV"},
+        {"Inv. Tax Amount(LOC)", "Primary Tax Amount"},
         {"Total MRP sales", "Primary MRP"},
+        {"Avg Tot", "Avg TOT"},
         {"Cust-SAP Code", "Customer Code"},
         {"Store Code", "Store Code"},
         {"Zone", "Zone"},
@@ -57,7 +69,8 @@ let
         {"Ship To Name", type text}, {"Chain", type text}, {"Brand", type text},
         {"Article Code", type text}, {"EAN Code", type text}, {"Article Description", type text},
         {"Category", type text}, {"Sub-category", type text}, {"Range", type text},
-        {"Primary Qty", type number}, {"Primary NSV", type number}, {"Primary MRP", type number},
+        {"Primary Qty", type number}, {"Primary NSV", type number},
+        {"Primary Tax Amount", type number}, {"Primary MRP", type number}, {"Avg TOT", type number},
         {"Customer Code", type text}, {"Store Code", type text},
         {"Zone", type text}, {"State", type text}, {"Format", type text}, {"Channel", type text}
     }),
@@ -71,9 +84,12 @@ let
     }),
 
     // OPTIONAL unit switch: set true only if you mapped Primary NSV to "sale in lac"
+    // (Primary Tax Amount is the same "(LOC)" currency family as Primary NSV,
+    // so it scales the same way -- Avg TOT is a 0-1 fraction, never scaled)
     NsvIsLac = false,
     Scaled = if NsvIsLac
-        then Table.TransformColumns(Trimmed, {{"Primary NSV", each _ * 100000, type number}})
+        then Table.TransformColumns(Trimmed, {{"Primary NSV", each _ * 100000, type number},
+                                               {"Primary Tax Amount", each if _ = null then null else _ * 100000, type number}})
         else Trimmed,
 
     // brand spelling normalisation (keep in sync with Brand Master)
