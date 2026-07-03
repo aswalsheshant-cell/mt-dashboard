@@ -794,14 +794,18 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
         "rows_kept": cov["rows_kept"],
         "value_coverage_pct": cov["value_coverage_pct"],
         # {FY: {summary, by_chain, by_month, by_brand, exclusions, row_count}} —
-        # SIS gap reconciliation drill-down, computed from the FULL uncapped
-        # source. Does NOT resolve the Rs 236 L reference; makes Rs 250.17 L
-        # fully transparent/auditable/exportable. See docs/SIS_Reconciliation.md.
+        # SIS reconciliation drill-down, computed from the FULL uncapped source.
+        # Kept for audit trail. See docs/SIS_Reconciliation.md.
         "sis_reconciliation": sis_reconciliation,
         "sis_reconciliation_unit": "INR Lakh",
-        "sis_gap_status": "OPEN — NOT resolved. Do not merge until the Rs 236 L "
-                          "reference source/definition is confirmed, or business "
-                          "explicitly accepts Rs 250.17 L (File 2) as source of truth.",
+        # RESOLVED 2026-07-03: business confirmed Rs 250.17 L (File 2 Channel
+        # field, net of MRN returns) as the source of truth for Primary SIS
+        # FY26. Rs 236 L (unresolved MIS/reference) and Rs 275.44 L (gross
+        # sales, before returns) are both confirmed NOT correct.
+        "sis_gap_status": "RESOLVED (2026-07-03) — business confirmed Rs 250.17 L "
+                          "(File 2, net of MRN returns) as source of truth for "
+                          "Primary SIS FY26. Rs 236 L and Rs 275.44 L (gross) are "
+                          "NOT correct.",
     }
     return detail, detail_dims(detail), meta
 

@@ -322002,7 +322002,7 @@ window.DASH = {
    }
   },
   "sis_reconciliation_unit": "INR Lakh",
-  "sis_gap_status": "OPEN — NOT resolved. Do not merge until the Rs 236 L reference source/definition is confirmed, or business explicitly accepts Rs 250.17 L (File 2) as source of truth."
+  "sis_gap_status": "RESOLVED (2026-07-03) — business confirmed Rs 250.17 L (File 2, net of MRN returns) as source of truth for Primary SIS FY26. Rs 236 L and Rs 275.44 L (gross) are NOT correct."
  },
  "dims": {
   "FY": [

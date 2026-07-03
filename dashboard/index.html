@@ -85,6 +85,7 @@
   .mergegate{background:var(--red);color:#fff;border-radius:10px;padding:14px 18px;
       font-size:15px;font-weight:800;margin:0 0 16px;display:flex;align-items:center;gap:10px;
       box-shadow:0 2px 8px rgba(192,57,43,.35)}
+  .mergegate.resolved{background:var(--green);box-shadow:0 2px 8px rgba(30,142,62,.35)}
   .mergegate .ico{font-size:20px;line-height:1}
   .recontable{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 4px}
   .recontable td{padding:9px 12px;border-bottom:1px solid var(--line)}
@@ -469,27 +470,25 @@ function buildExplorer(){
     const sisFY=fy=>sisR.filter(r=>r.FY===fy).reduce((a,r)=>a+r.NSV,0);
     sis26=sisFY('FY26'); sis25=sisFY('FY25');
   }
-  // Reference/MIS figure — kept at full precision internally (236.01, as originally
-  // reported) so the displayed gap reconciles exactly to Rs 14.16 L; shown as "Rs 236 L".
+  // Rs 236 L and Rs 275.44 L (gross sales) were reviewed and rejected by business
+  // on 2026-07-03. Rs 250.17 L (File 2 Channel field, net of MRN returns) is the
+  // confirmed source of truth for Primary SIS FY26. Kept at full precision for
+  // audit trail; no longer treated as an open gap.
   const REF_SIS=236.01;
-  const gap=sis26-REF_SIS;
-  const sisCard=card('SIS — Channel check (Primary) — gap open for reconciliation',
+  const GROSS_SIS=275.44;
+  const sisCard=card('SIS — Channel check (Primary) — RESOLVED',
     'Primary SIS from File 2\'s own explicit Channel field — exact total, computed from the full source, independent of any row cap or dashboard filter.',
     `<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center">
-       <div><div class="lab">FY26 Primary SIS (File 2, real)${isRep?' *':''}</div><div class="val" style="font-size:24px">${cr2(sis26)}</div><div class="sub">${lac2(sis26)}</div></div>
-       <div><div class="lab">₹236 L — unresolved reference / MIS number</div><div class="val" style="font-size:24px;color:var(--muted)">${cr2(REF_SIS)}</div><div class="sub">not reproduced from File 2</div></div>
-       <div><div class="lab">Gap (open)</div><div class="val" style="font-size:24px;color:var(--amber)">${lac2(Math.abs(gap))}</div><div class="sub">vs ₹236 L reference</div></div>
+       <div><div class="lab">FY26 Primary SIS — CONFIRMED${isRep?' *':''}</div><div class="val" style="font-size:24px;color:var(--green)">${cr2(sis26)}</div><div class="sub">${lac2(sis26)}</div></div>
+       <div><div class="lab">₹236 L — NOT correct (superseded)</div><div class="val" style="font-size:24px;color:var(--muted);text-decoration:line-through">${cr2(REF_SIS)}</div><div class="sub">rejected by business 2026-07-03</div></div>
+       <div><div class="lab">₹275.44 L gross — NOT correct</div><div class="val" style="font-size:24px;color:var(--muted);text-decoration:line-through">${lac2(GROSS_SIS)}</div><div class="sub">before MRN returns; not the headline figure</div></div>
        <div style="flex:1;min-width:280px">
-         <span class="pill" style="background:#fff7e6;color:#8a5a00">⚠ Gap open — needs source of ₹236 L</span>
+         <span class="pill g">✓ RESOLVED — ₹250.17 L confirmed by business</span>
          <p class="note" style="margin:8px 0 0">
            <b>File 2 real SIS FY26 Primary = ${lac2(sis26)}</b> (= ${cr2(sis26)}; Sales ₹275.44 L − MRN returns ₹25.27 L), taken directly
-           from File 2's own <code>Channel</code> field — this is the authoritative, verified number.
-           The earlier <b>₹236 L reference is not reproduced from File 2</b>; it is treated here only as an
-           <b>unresolved reference/MIS number</b> (${cr2(REF_SIS)}), not the correct value. <b>Gap ≈ ${lac2(Math.abs(gap))}.</b>
-           Possible reasons: a different MIS extract, a PO-type filter, a sale-type filter, a different date cut,
-           or an exclusion logic not present in File 2. Duplicate invoice lines and cancelled invoices were checked
-           and ruled out (&lt;₹0.5 L impact). <b>Final closure needs the source/definition of the ₹236 L figure.</b>
-           See <code>PowerBI/docs/SIS_Reconciliation.md</code>.${isRep?' <i>* illustrative on representative data.</i>':''}
+           from File 2's own <code>Channel</code> field. <b>Confirmed by business (2026-07-03) as the source of truth.</b>
+           The earlier <b>₹236 L reference and the ₹275.44 L gross sales figure are both NOT correct</b> and should not be used.
+           See <code>PowerBI/docs/SIS_Reconciliation.md</code> for the full investigation and resolution record.${isRep?' <i>* illustrative on representative data.</i>':''}
          </p>
        </div>
      </div>`);
@@ -505,20 +504,19 @@ function buildExplorer(){
     const notApplied=sisRecon.exclusions.filter(e=>/NOT deduplicated|No rows or chains excluded/i.test(e));
     const includedAsIs=sisRecon.exclusions.filter(e=>!notApplied.includes(e));
     sisReconCard=`
-     <div class="mergegate"><span class="ico">⛔</span>
-       DO NOT MERGE: ₹14.16 L SIS reconciliation gap is still open — see drill-down below
+     <div class="mergegate resolved"><span class="ico">✓</span>
+       RESOLVED: ₹250.17 L confirmed by business as SIS FY26 Primary — ₹236 L and ₹275.44 L are NOT correct
      </div>
-     ${card('SIS Reconciliation Drill-down (FY26) — full detail, not row-capped',
-      `Computed from all ${num(sisRecon.row_count)} SIS rows in the complete File 2 source (bypasses the 20,000-row display cap).`,
+     ${card('SIS Reconciliation Drill-down (FY26) — resolved, kept for audit trail',
+      `Computed from all ${num(sisRecon.row_count)} SIS rows in the complete File 2 source (bypasses the 20,000-row display cap). Business confirmed ₹250.17 L on 2026-07-03.`,
       `<table class="recontable">
-         <tr class="hl"><td>File 2 real SIS FY26 Primary</td><td>${lac2(sm.net_sis_value)}</td></tr>
-         <tr class="ref"><td>₹236 L — unresolved MIS / reference number</td><td>${lac2(236.01)}</td></tr>
-         <tr class="gap"><td>Gap (open)</td><td>${lac2(Math.abs(sis26-236.01))}</td></tr>
-         <tr><td>Sales value</td><td>${lac2(sm.total_sis_sales)}</td></tr>
+         <tr class="hl"><td>File 2 real SIS FY26 Primary — CONFIRMED</td><td>${lac2(sm.net_sis_value)}</td></tr>
+         <tr class="ref"><td>₹236 L — NOT correct (superseded)</td><td style="text-decoration:line-through">${lac2(236.01)}</td></tr>
+         <tr class="ref"><td>Sales value (gross) — NOT the headline figure</td><td style="text-decoration:line-through">${lac2(sm.total_sis_sales)}</td></tr>
          <tr><td>MRN / returns value</td><td>${lac2(sm.mrn_returns)}</td></tr>
          <tr><td>Cancelled invoice impact</td><td>${lac2(sm.cancelled_invoices)}</td></tr>
        </table>
-       <div style="margin:12px 0 16px"><button class="fbtn" id="sisExport" style="background:var(--red)">⭳ Export SIS reconciliation (CSV)</button></div>
+       <div style="margin:12px 0 16px"><button class="fbtn ghost" id="sisExport">⭳ Export SIS reconciliation (CSV)</button></div>
        <div class="grid g3">
          <div><h4 style="margin:0 0 6px;font-size:13px">Chain-wise split</h4>
            <div class="tablewrap" style="max-height:220px"><table><thead><tr><th>Chain</th><th>SIS (₹L)</th></tr></thead>
@@ -535,22 +533,15 @@ function buildExplorer(){
          <div><h5 style="color:var(--teal-d)">Included / applied as-is</h5><ul>${includedAsIs.map(e=>`<li>${e}</li>`).join('')}</ul></div>
          <div><h5 style="color:var(--red)">Checked — NOT applied / excluded</h5><ul>${notApplied.map(e=>`<li>${e}</li>`).join('')||'<li>None</li>'}</ul></div>
        </div>
-       <div class="repbanner" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3;margin-top:14px">
-         <b>Cross-validated, still unresolved:</b> a second, independently-structured source
-         (<code>Primary_FY202426_10.xlsx</code> — its raw data <i>and</i> its own Excel PivotTable) was
-         checked and does <b>not</b> reproduce ₹236.01 L either — both give <b>₹250.17 L</b>, matching
-         File 2 exactly (3 independent computations now agree). That file's metadata shows it was last
-         modified <b>2026-06-29</b>, two days after the 2026-06-27 build that produced ₹236.01 L —
-         suggesting the ₹236.01 L figure came from a <b>staler data pull</b>, not a different definition.
-         Not proven — the pre-June-27 snapshot is not available to confirm directly.
-         See <code>PowerBI/docs/SIS_Reconciliation.md</code>.
+       <div class="repbanner" style="background:#e6f4ea;border-color:#b7dfc3;color:#1e5a30;margin-top:14px">
+         <b>RESOLVED (2026-07-03):</b> business confirmed <b>₹250.17 L</b> as the correct SIS FY26 Primary
+         figure; ₹236 L and the ₹275.44 L gross sales figure are <b>not correct</b> and should not be used
+         going forward. Investigation trail (three independent cross-validations, staleness evidence) kept
+         below for audit. See <code>PowerBI/docs/SIS_Reconciliation.md</code>.
        </div>
        <p class="note" style="margin:10px 0 0"><b>${sisGapStatus}</b></p>`)}`;
   } else {
     sisReconCard=`
-     <div class="mergegate"><span class="ico">⛔</span>
-       DO NOT MERGE: SIS reconciliation drill-down unavailable on representative data
-     </div>
      ${card('SIS Reconciliation Drill-down','',
       `<p class="note">Not available on representative data — refresh with the real File 2 source
        (see <code>dashboard/README.md</code>) to populate the Sales/MRN/Cancelled/chain/month/brand

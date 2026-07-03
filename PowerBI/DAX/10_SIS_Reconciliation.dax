@@ -1,19 +1,16 @@
 // =====================================================================
-// CHANNEL TAG + SIS RECONCILIATION  --  gap OPEN, not resolved
+// CHANNEL TAG + SIS RECONCILIATION  --  RESOLVED 2026-07-03
 //
 // - File 2 real SIS FY26 Primary = Rs 250.17 L (from File 2's own Channel
-//   field -- verified, authoritative; no derivation, no offtake data involved).
-// - The earlier Rs 236 L figure is NOT reproduced from File 2. Treat it only
-//   as an unresolved reference / MIS number, not the correct value.
-// - Gap = approx Rs 14.16 L, flagged OPEN for reconciliation.
-// - Possible reasons: a different MIS extract, a PO-type filter, a sale-type
-//   filter, a different date cut, or an exclusion logic not present in File 2.
-// - Final closure needs the source/definition of the Rs 236 L figure.
-// Ruled out as drivers: negative/return lines (-Rs 30.24 L, already netted),
-// MRN returns and cancelled invoices (net unchanged), duplicate invoice lines
-// (<Rs 0.5 L impact). Full investigation: docs/SIS_Reconciliation.md.
+//   field). CONFIRMED by business (2026-07-03) as the source of truth.
+// - Rs 236 L and Rs 275.44 L (gross sales, before MRN returns) are BOTH
+//   confirmed NOT correct -- do not use either as the SIS FY26 headline figure.
+// - Cross-validated three independent ways (File 2 invoice-line grain, a
+//   second source file's raw data, and that file's own Excel PivotTable) --
+//   all agree exactly on Rs 250.17 L. Full investigation and resolution
+//   record: docs/SIS_Reconciliation.md.
 //
-// What these measures still do:
+// What these measures do:
 //  - Primary (File 2 / Fact Primary Article) has an EXPLICIT Channel column
 //    (MT / EB2B / SIS) -> treated as the source of truth for Primary SIS.
 //  - Offtake (store x article) has NO Channel -> derived below via a calc
@@ -65,9 +62,8 @@ Offtake Channel Coverage % =
 // Sanity note: Primary SIS must be sourced ONLY from File 2's explicit
 // Channel = "SIS" ([Primary SIS] above) — never derived from the ship-to
 // primary (File 1 is MT-only, no Channel). [Primary SIS] correctly nets to
-// ~Rs 2.50 Cr FY26 per the raw source; that reading is NOT the bug (see the
-// header note above) — the open question is what the Rs 2.36 Cr reference
-// figure is actually defined as.
+// ~Rs 2.50 Cr FY26 per the raw source — CONFIRMED correct by business
+// (2026-07-03). The Rs 2.36 Cr reference figure is confirmed NOT correct.
 
 // ---------- Reconciliation table helper ----------
 // Build a table visual: rows = Chain, values = [Primary SIS (Cr)],

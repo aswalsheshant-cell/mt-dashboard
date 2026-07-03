@@ -1,34 +1,29 @@
-# SIS Reconciliation — gap open for reconciliation (NOT resolved)
+# SIS Reconciliation — RESOLVED (2026-07-03)
 
-> **Correction to an earlier version of this doc:** an earlier pass claimed the
-> ₹250 L reading was caused by the offtake side deriving SIS with no Channel
-> column, and that ₹236 L (from an older, differently-scoped dashboard build)
-> was the correct figure. **That theory is ruled out below.**
+> **✅ RESOLVED:** business confirmed **₹250.17 L** as the correct Primary SIS
+> FY26 figure. **₹236 L and the ₹275.44 L gross-sales figure are both
+> confirmed NOT correct** and must not be used going forward. Merge gate
+> cleared. The investigation trail below is kept for audit purposes.
 
-## Summary (current status)
-- **File 2 real SIS FY26 Primary = ₹250.17 L** — computed directly from File 2's
-  own `Channel` field (`primary_article.xlsb`), no derivation, no offtake data
-  involved. This is the **verified, authoritative** number.
-- **The earlier ₹236 L figure is not reproduced from File 2.** It is treated
-  here only as an **unresolved reference / MIS number**, not the correct value.
-- **Gap = approx ₹14.16 L**, and it is **flagged OPEN for reconciliation** — not
-  closed, not explained.
-- **Possible reasons for the gap:** a different MIS extract, a PO-type filter, a
-  sale-type filter, a different date cut, or an exclusion logic not present in
-  File 2 (see the investigation and hypotheses below).
-- **Final closure needs the source/definition of the ₹236 L figure** — see
-  "What's needed to close this."
+## Summary (resolution)
+- **₹250.17 L is the confirmed source of truth** for Primary SIS FY26 — computed
+  directly from File 2's own `Channel` field (`primary_article.xlsb`, net of
+  MRN returns), and independently cross-validated three ways (see below).
+- **₹236 L — NOT correct.** Never reproduced from any source checked; most
+  likely a stale/older data pull (see dated evidence below). Superseded.
+- **₹275.44 L (gross sales, before MRN returns) — NOT correct** as a headline
+  figure. It is the *pre-returns* component of ₹250.17 L (₹275.44 L sales −
+  ₹25.27 L MRN returns = ₹250.17 L net) — informative for the breakdown, not to
+  be quoted as "the" SIS number.
+- **Business decision recorded 2026-07-03.** No further action needed to close
+  this; the drill-down/export remain available for future audits.
 
-> ## ⛔ MERGE GATE
-> **Do not merge PR #2 until either:**
-> 1. the ₹236 L reference's source/definition is confirmed and diffed against
->    File 2, **or**
-> 2. business explicitly accepts **₹250.17 L (File 2)** as the source of truth
->    for Primary SIS FY26.
->
-> This status is also encoded in `dashboard/data.js` → `detail_meta.sis_gap_status`
-> and surfaced as a red "DO NOT MERGE" banner on the dashboard's SIS
-> Reconciliation Drill-down card (Data Explorer tab) — see below.
+> ## ✅ MERGE GATE — CLEARED
+> Business explicitly confirmed ₹250.17 L (File 2) as the source of truth for
+> Primary SIS FY26 on 2026-07-03. Condition 2 of the original merge gate is
+> satisfied. This status is encoded in `dashboard/data.js` →
+> `detail_meta.sis_gap_status` and surfaced as a green "RESOLVED" banner on the
+> dashboard's SIS Reconciliation Drill-down card (Data Explorer tab).
 
 ## SIS Reconciliation Drill-down (dashboard, exportable)
 The **Data Explorer → SIS Reconciliation Drill-down** card gives the full,
@@ -135,33 +130,25 @@ byte-for-byte "before" snapshot is not available to prove it conclusively.
 3. **A different FY/date boundary** — "last year" may mean a specific 12-month
    window that doesn't align exactly with the Apr'25–Mar'26 split used here.
 
-## What's needed to close this (updated)
-`Primary_FY202426_10.xlsx` was supplied and checked (see above) — it does
-**not** reproduce ₹236.01 L; it independently confirms ₹250.17 L three ways.
-So the row-level diff against a "different file" lead is now exhausted without
-finding the ₹236.01 L origin. To close the gap, one of the following is needed:
-- **The exact snapshot/export used for the original ₹236.01 L figure** — if it
-  was pulled before 2026-06-27 and archived anywhere (email attachment, an
-  earlier saved copy of this workbook, a report generated on/before that date),
-  sharing that would let it be diffed directly, **or**
-- **Confirmation of the staleness hypothesis** — if business can confirm the
-  primary dataset was updated with new SIS invoices/corrections between
-  2026-06-27 and 2026-06-29 (matching this file's `modified` timestamp), that
-  would explain the ₹14.16 L gap as a data-freshness difference, not a
-  definitional one, **or**
-- **Business sign-off** that ₹250.17 L (now confirmed by three independent
-  computations) is the source of truth going forward, superseding the earlier
-  ₹236.01 L figure.
+## Closure record
+`Primary_FY202426_10.xlsx` was supplied and checked — it does **not** reproduce
+₹236.01 L; it independently confirms ₹250.17 L three ways (raw data, its own
+PivotTable). Given that plus the dated staleness evidence (file last modified
+2026-06-29, two days after the 2026-06-27 build that produced ₹236.01 L),
+**business reviewed the evidence and confirmed on 2026-07-03: ₹250.17 L is the
+source of truth; ₹236 L and ₹275.44 L (gross) are both NOT correct.** No
+further row-level diff is needed — closing per business decision.
 
-## Model artifacts (unchanged, still useful once the true definition is known)
+## Model artifacts (post-resolution)
 - `SeedData/Masters/ChannelMap_Store.csv` / `ChannelMap_Chain.csv` +
   `PowerQuery/24_ChannelMap.pq` — resolve Channel on the offtake side (Store
-  override → Chain default → "Unmapped", never dropped). Still valid for
-  tagging offtake by channel; just not the explanation for this particular gap.
-- `DAX/10_SIS_Reconciliation.dax` — `Primary SIS`, `Offtake SIS`, `SIS Variance`,
-  `Offtake Channel Coverage %`. Once the ₹236 L definition is confirmed, add a
-  filter/measure here (e.g. by `MTD-Sale type`, or an excluded sub-chain list)
-  to reproduce it exactly, and the variance measure will then mean something.
-- Dashboard: `dashboard/index.html` Explorer → **SIS — Channel check (Primary)**
-  card shows the exact File 2 channel total (`detail_meta.channel_totals`,
-  computed pre-cap) and states the gap is open, not fixed.
+  override → Chain default → "Unmapped", never dropped). Independently useful
+  for offtake channel tagging; unrelated to this now-closed gap.
+- `DAX/10_SIS_Reconciliation.dax` — `Primary SIS` (₹250.17 L, confirmed),
+  `Offtake SIS`, `Offtake Channel Coverage %`. `SIS Variance`/`SIS Match` remain
+  useful as an ongoing data-quality check against future refreshes, but no
+  longer chase the ₹236 L figure specifically.
+- Dashboard: `dashboard/index.html` Explorer → **SIS — Channel check
+  (Primary) — RESOLVED** card and the **SIS Reconciliation Drill-down —
+  resolved, kept for audit trail** card show the confirmed ₹250.17 L figure,
+  with ₹236 L and ₹275.44 L explicitly marked not correct.
