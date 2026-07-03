@@ -20,7 +20,7 @@ so the dashboard works fully offline.
 | **Offtake** | Sell-out trend, zone & state YoY, and a Primary-vs-Offtake inventory-health view by chain |
 | **P&L** | Chain-wise gross MRP → net NSV bridge and trade-discount intensity |
 | **Category & Pack** | NSV by Category, Sub-category and Pack Size, plus a top-20 articles table (from the article-level primary detail) |
-| **Forecast** | Seasonally-indexed FY26-27 offtake projection with the method stated |
+| **Forecast** | FY26-27 (TY) target — the business's own monthly target once refreshed via `--forecast-only` (falls back to a seasonally-indexed projection if that source isn't supplied) |
 | **Promo & Trade Spend** | Promo calendar activity — count and average consumer discount depth by chain, brand, category |
 | **Market Share** | Share-of-business across MT chains (FY26 primary) |
 | **Distribution** | Store universe / distribution footprint by zone, city category, chain and store type |
@@ -158,7 +158,24 @@ Prints the FY25/FY26 primary total and the chain-allocation coverage %
 (how much Distributor primary got a secondary-based chain split vs falling
 back to its raw single-chain tag — see `DASH.chain_allocation_qc`).
 
-### C) Full rebuild (also refreshes KPIs / charts / P&L / forecast)
+### C) Refresh ONLY the Forecast tab (real TY / FY26-27 target)
+Needs **`FY2627_TGT_and_sales_team_mapping.xlsb`** in `--src` (Sheet1: `FY`,
+`Qtr`, `Month`, `TGT FOR TY` in ₹ Crore). Replaces the seasonally-projected
+FY26-27 estimate with the business's own monthly TY target (same source the
+Power BI Forecast page uses — total ₹441.33 Cr). Reuses the Offtake block
+already in `data.js` for FY24-26 history:
+```
+cd <repo-root>
+python scripts/build_dashboard_data.py --forecast-only \
+  --src "<your-source-folder>" \
+  --out dashboard/data.js
+```
+**Note:** this is the *target*, not offtake *actuals* for FY26-27 — the
+Offtake tab's own FY24-26 history won't extend into FY26-27 until an updated
+offtake source (covering Apr'26 onward) is supplied and a full rebuild
+(option **D** below) is run — there's no dedicated `--offtake-only` mode yet.
+
+### D) Full rebuild (also refreshes KPIs / charts / P&L / forecast)
 Needs ALL sources in `--src` (`primary.xlsx`, offtake, `universe.xlsx`,
 `promo.xlsx`) **plus** `primary_article.xlsb`:
 ```

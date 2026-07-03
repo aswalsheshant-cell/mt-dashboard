@@ -540,6 +540,51 @@ def forecast_block(off):
                       "to a forward base grown at the realised offtake YoY rate (clamped 0-60%)."}
 
 # --------------------------------------------------------------------------
+# FORECAST — TY (FY26-27) target file, when available (authoritative;
+# overrides the seasonally-projected estimate above with the business's own
+# monthly target -- same source the Power BI Forecast page uses,
+# see PowerBI/docs/PageLayouts.md Page 5, "TY Target Total").
+# --------------------------------------------------------------------------
+def load_ty_target(src):
+    """Read FY2627_TGT_and_sales_team_mapping.xlsb (Sheet1: FY, Qtr, Month
+    [Excel serial], 'TGT\\nFOR TY' in Rs Crore). Returns a sorted list of
+    (date, 'Mon-YY' label, value_in_Lakh), or None if the file isn't in
+    --src (forecast then stays the seasonally-projected estimate)."""
+    f = src / "FY2627_TGT_and_sales_team_mapping.xlsb"
+    if not f.exists():
+        return None
+    df = pd.read_excel(f, sheet_name="Sheet1", header=1, engine="pyxlsb")
+    df.columns = [str(c).strip() for c in df.columns]
+    tgt_col = next((c for c in df.columns if "TGT" in c.upper()), None)
+    if tgt_col is None:
+        raise SystemExit(f"FY2627_TGT file: no 'TGT FOR TY' column found. Columns: {list(df.columns)}")
+    df = df.dropna(subset=[tgt_col, "Month"])
+    rows = []
+    for _, r in df.iterrows():
+        n = float(r["Month"])
+        d = datetime.date(1899, 12, 30) + datetime.timedelta(days=int(n))
+        rows.append((d, d.strftime("%b-%y"), float(r[tgt_col]) * 100))  # Cr -> Lakh
+    rows.sort(key=lambda x: x[0])
+    return rows
+
+def forecast_block_ty(off, ty_rows):
+    series = off["monthly"]
+    fy26 = series[12:]
+    flabels = [lbl for _, lbl, _ in ty_rows]
+    fc = [r2(v) for _, _, v in ty_rows]
+    fy26_actual = r2(sum(v or 0 for v in fy26))
+    fy27_target = r2(sum(fc))
+    return {"hist_labels": off["months"], "hist": series,
+            "fc_labels": flabels, "fc": fc,
+            "fy26_actual": fy26_actual,
+            "fy27_forecast": fy27_target,
+            "growth_assumption_pct": r2((fy27_target / fy26_actual - 1) * 100, 1) if fy26_actual else None,
+            "method": "FY26-27 = the business's own TY (This Year) target "
+                      f"(FY2627_TGT_and_sales_team_mapping.xlsx, Sheet1), NOT a seasonally-projected "
+                      f"estimate. Total FY26-27 target = Rs {fy27_target/100:.2f} Cr (Power BI's Forecast "
+                      "page uses this same TY target file -- PowerBI/docs/PageLayouts.md Page 5)."}
+
+# --------------------------------------------------------------------------
 # INSIGHTS  (auto-generated, data-driven)
 # --------------------------------------------------------------------------
 def insights_block(primary, offtake, pnl, universe, promo):
@@ -961,6 +1006,11 @@ def main():
                          "secondary_MOM.xlsx for chain-level allocation); reuses the existing "
                          "offtake/universe/promo blocks already in data.js, does not require "
                          "those source files")
+    ap.add_argument("--forecast-only", action="store_true",
+                    help="refresh ONLY the forecast block in an existing data.js from "
+                         "FY2627_TGT_and_sales_team_mapping.xlsb (real TY/FY26-27 target, replaces "
+                         "the seasonally-projected estimate); reuses the existing offtake block "
+                         "already in data.js for FY24-26 history")
     a = ap.parse_args()
     src = Path(a.src)
 
@@ -1001,6 +1051,21 @@ def main():
         print(f"primary-only: FY25 {primary['nsv_fy25']} / FY26 {primary['nsv_fy26']} (Lakh); "
               + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
                  if qc else "no allocation file found -- chain tags left as-is"))
+        return
+
+    # ---- lightweight path: refresh ONLY the forecast block from the real TY target ----
+    if a.forecast_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        ty_rows = load_ty_target(src)
+        if ty_rows is None:
+            raise SystemExit("No FY2627_TGT_and_sales_team_mapping.xlsb found in --src.")
+        forecast = forecast_block_ty(obj["offtake"], ty_rows)
+        obj["forecast"] = forecast
+        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        print(f"forecast-only: FY26 actual {forecast['fy26_actual']} / FY27 TY target "
+              f"{forecast['fy27_forecast']} (Lakh) = Rs {forecast['fy27_forecast']/100:.2f} Cr")
         return
 
     pdf, primary = primary_block(*[load_primary(src)])

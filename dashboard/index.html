@@ -184,7 +184,8 @@ function buildOverview(){
      ${kpi('Offtake (FY26)',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
      ${kpi('Chains Tracked',p.n_chains,`${p.n_brands} brands · ${D.meta.period.split(' vs ')[1]}`)}
-     ${kpi('FY27 Forecast',crc(f.fy27_forecast),`@ ${f.growth_assumption_pct}% planning growth`)}
+     ${kpi(/TY target/i.test(f.method||'')?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
+       /TY target/i.test(f.method||'')?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
    <div class="grid g2">
      ${card('Primary vs Offtake — monthly trend (FY24-25 → FY25-26)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart to drill into Data Explorer.</span>',cv('ovTrend'))}
@@ -319,19 +320,20 @@ function buildPnl(){
 /* ---------------- FORECAST ---------------- */
 function buildForecast(){
   const f=D.forecast,s=document.getElementById('tab-forecast');
-  s.innerHTML=`<h2 class="sec">Forecast</h2>
-   <p class="lead">Forward offtake projection for FY26-27.</p>
+  const isTY=/TY target/i.test(f.method||'');
+  s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''}</h2>
+   <p class="lead">${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
    <div class="kpis">
      ${kpi('FY26 Actual (offtake)',crc(f.fy26_actual),'trailing 12m')}
-     ${kpi('FY27 Forecast',crc(f.fy27_forecast),`@ ${f.growth_assumption_pct}% growth`)}
+     ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),isTY?'business TY target':`@ ${f.growth_assumption_pct}% growth`)}
      ${kpi('Implied uplift',crc(f.fy27_forecast-f.fy26_actual),pct((f.fy27_forecast/f.fy26_actual-1)*100))}
    </div>
-   ${card('Offtake — actuals &amp; FY26-27 forecast','',cv('fcChart'))}
-   ${card('Method',f.method,'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}`;
+   ${card(`Offtake — actuals &amp; FY26-27 ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
+   ${card('Method',f.method,isTY?'':'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}`;
   const histLen=f.hist.length;
   mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
     {label:'Actual offtake',data:[...f.hist,...Array(f.fc.length).fill(null)],borderColor:C.teal,backgroundColor:C.teal+'22',fill:true},
-    {label:'Forecast FY26-27',data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
+    {label:isTY?'TY Target FY26-27':'Forecast FY26-27',data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
 }
 
 /* ---------------- MARKET SHARE ---------------- */

@@ -1750,23 +1750,23 @@ window.DASH = {
    "Mar-27"
   ],
   "fc": [
-   3233.44,
-   3486.76,
-   3230.59,
-   3125.28,
-   3463.99,
-   2981.54,
-   3768.55,
-   4010.49,
-   4101.57,
-   4316.47,
-   3923.68,
-   4592.56
+   5072.4,
+   3800.52,
+   3627.85,
+   4427.4,
+   3560.4,
+   4008.0,
+   3003.78,
+   3694.92,
+   3096.51,
+   3597.33,
+   2836.75,
+   3407.0
   ],
   "fy26_actual": 31082.0,
-  "fy27_forecast": 44234.92,
-  "growth_assumption_pct": 42.3,
-  "method": "Seasonally-indexed run-rate: FY25-26 monthly seasonality applied to a forward base grown at the realised offtake YoY rate (clamped 0-60%)."
+  "fy27_forecast": 44132.86,
+  "growth_assumption_pct": 42.0,
+  "method": "FY26-27 = the business's own TY (This Year) target (FY2627_TGT_and_sales_team_mapping.xlsx, Sheet1), NOT a seasonally-projected estimate. Total FY26-27 target = Rs 441.33 Cr (Power BI's Forecast page uses this same TY target file -- PowerBI/docs/PageLayouts.md Page 5)."
  },
  "insights": [
   {
