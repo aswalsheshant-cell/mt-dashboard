@@ -82,12 +82,32 @@ partial cause, not a confirmed fix:
 None of these reproduce ₹236 L exactly, so the gap is **not** explained by
 returns, cancellations, duplicate lines, or a single mis-tagged sub-chain alone.
 
-## Candidate hypotheses (unverified — need more info to test)
-1. **₹236 L comes from a different source/definition** — e.g. a certified/
-   finalized MIS extract, a GST-filing figure, or a report with its own filters
-   (specific PO types, excluding certain sub-chains, a different date cut-off).
-   *This is the most likely explanation given nothing in File 2 alone reproduces
-   ₹236 L.*
+## Traced: where ₹236 L came from (evidence, not speculation)
+`git log --all -S "236.01" -- dashboard/data.js` shows the ₹236.01 L figure was
+first introduced in commit `bbeaeab` ("Add interactive MT leadership
+dashboard"), the very first HTML-dashboard build, from a **different, earlier
+session (PR #1)**. That build's `load_primary()` reads:
+```python
+df = pd.read_excel(src / "primary.xlsx", sheet_name="Sheet1", header=1)
+```
+i.e. a file named **`primary.xlsx`** ("Primary FY-2024-26.xlsx" per that
+script's source-file comment) — **not** `primary_article.xlsb` (File 2, used
+for this investigation). Both files have a similar shape (row-level primary
+with `Chain Name`, `Brand`, `Zone`, `Channel`, `FY`, `NSV`), but they are **two
+different extracts**, most likely pulled at different times or with different
+scope/filters, both self-describing as "primary" data.
+
+**`primary.xlsx` was never supplied for this investigation** — it was used only
+in the earlier session that produced the original dashboard build and is not
+available here, so a row-level diff against it has not been done. This is the
+**most concrete, evidenced explanation** for the ₹14.16 L gap: it is very
+likely simply a **different source file/extract**, not a filter or exclusion
+applied to File 2.
+
+## Other candidate hypotheses (secondary, unverified)
+1. **A filter within `primary.xlsx` itself** — if that file's `Channel` field
+   was populated by a different rule than File 2's, or the extract had its own
+   date cut-off / PO-type / sale-type filter applied upstream before export.
 2. **Some SIS-tagged rows are mis-coded** at source (should be MT/EB2B) — e.g.
    `Azorte` (₹68.09 L) is a Reliance-owned beauty retail format that could
    arguably be EB2B depending on the business's channel definition.
@@ -96,10 +116,15 @@ returns, cancellations, duplicate lines, or a single mis-tagged sub-chain alone.
 
 ## What's needed to close this
 To pinpoint the exact ₹14.16 L driver, please share:
-- **The source of the ₹236 L reference** (which report/MIS pack, and its filter
-  logic — e.g. does it exclude specific sale types, chains, or PO types?), or
-- **A row-level extract** of what that ₹236 L figure includes, so it can be
-  diffed directly against File 2's 13,277 SIS FY26 rows.
+- **`primary.xlsx` / "Primary FY-2024-26.xlsx"** (the file that originally
+  produced ₹236.01 L), so its SIS rows can be diffed row-by-row against File
+  2's 13,277 SIS FY26 rows — this is the fastest path to closure given the
+  traced-source finding above, **or**
+- **The source of the ₹236 L reference** if it's not that file (which
+  report/MIS pack, and its filter logic — e.g. does it exclude specific sale
+  types, chains, or PO types?), **or**
+- **Business sign-off** that ₹250.17 L (File 2, verified) is the source of
+  truth going forward, superseding the earlier ₹236.01 L figure.
 
 ## Model artifacts (unchanged, still useful once the true definition is known)
 - `SeedData/Masters/ChannelMap_Store.csv` / `ChannelMap_Chain.csv` +
