@@ -19,12 +19,43 @@ so the dashboard works fully offline.
 | **Primary** | Sell-in NSV (FY24-25 vs FY25-26) by month, zone, channel, brand and **chain** (chain-level, secondary-allocated for Distributor primary — see below) |
 | **Offtake** | Sell-out trend, zone & state YoY, and a Primary-vs-Offtake inventory-health view by chain |
 | **P&L** | Chain-wise gross MRP → net NSV bridge and trade-discount intensity |
-| **Category & Pack** | NSV by Category, Sub-category and Pack Size, plus a top-20 articles table (from the article-level primary detail) |
+| **Category & Pack** | NSV by Sub-category (95%-of-brand rule, see below) and Pack Size, plus a top-20 **unique-article** table (from the article-level primary detail) |
 | **Forecast** | FY26-27 (TY) target — the business's own monthly target once refreshed via `--forecast-only` (falls back to a seasonally-indexed projection if that source isn't supplied) |
 | **Promo & Trade Spend** | Promo calendar activity — count and average consumer discount depth by chain, brand, category |
-| **Market Share** | Share-of-business across MT chains (FY26 primary) |
+| **Market Share** | Share-of-business across MT chains |
 | **Distribution** | Store universe / distribution footprint by zone, city category, chain and store type |
+| **Performance & Comparison** | Rank/compare Chain, Brand, Sub-category or Pack Size side by side (FY-over-FY, YoY, contribution %) in one place |
 | **Insights & Way Forward** | Auto-generated risks/opportunities plus prioritised leadership actions |
+
+### The FY/Month/Chain/... filter bar applies dashboard-wide
+Every tab (not just the Explorer) rebuilds live from the current filter
+state — pick FY26, a Zone, a Chain, whatever, and every tab you visit
+reflects it, not just Explorer/Category & Pack. Two honest limits, by
+design, not bugs:
+- **FY26-27 ("FY27") has no actuals** in Primary/Offtake/P&L/Market Share —
+  only the article-level detail (partial) and the Forecast tab's TY target
+  do. Selecting FY27 on those tabs shows an explicit "no data" message
+  instead of silently falling back to FY26.
+- **Not every dimension applies to every tab** — e.g. Offtake has no
+  Brand/Category breakdown in its source, Distribution's store universe
+  isn't tracked by FY/Month, P&L is chain-level only. Each tab says so
+  inline (small italic note) rather than silently ignoring the filter.
+
+Adjusting a filter dropdown re-renders whatever tab you're currently on in
+place. Clicking a chart bar/table cell (drill) still jumps to the Data
+Explorer's row-level detail, same as before — that's a deliberate "go see
+the raw rows" action, distinct from just narrowing the current tab's scope.
+
+### Category & Pack: unique articles + the 95%-of-brand sub-category rule
+- The **Top 20 articles** table shows each article **once**, summed across
+  every chain/month/etc. in the current filter — not the same article
+  repeated once per chain. Drill into a Chain (a chip, or any chart's
+  click-to-drill) to see that chain's own unique-article ranking.
+- The **NSV by Sub-category** donut applies a per-brand 95% rule: within
+  each brand, keeps the sub-categories that cumulatively cover 95% of that
+  brand's NSV; the combined long tail across all brands is clubbed into
+  **"Other"** — so one brand's rare sub-category doesn't get diluted by
+  another brand's very different assortment mix.
 
 ### Primary is chain-level, not distributor-name-wise
 Distributor-billed ("Dist.") primary rows are re-split across the chains a
