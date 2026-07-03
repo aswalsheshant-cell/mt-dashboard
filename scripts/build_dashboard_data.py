@@ -835,7 +835,7 @@ def detail_records_real(src, max_rows=20000):
     df.columns = [str(c).strip() for c in df.columns]
     missing = [c for c in ("Month","FY","Chain name","brand","Zone","Channel",
                            "Inv. Net value(LOC)","Total MRP sales","Inv Qty",
-                           "category","sub_category","net_content","Description","EAN No.")
+                           "category","sub_category","range","net_content","Description","EAN No.")
                if c not in df.columns]
     if missing:
         raise SystemExit(f"File 2 is missing expected columns: {missing}. "
@@ -860,7 +860,7 @@ def detail_records_real(src, max_rows=20000):
     df["_NSV"] = pd.to_numeric(df["Inv. Net value(LOC)"], errors="coerce").fillna(0.0) / 1e5  # -> Lakh
     df["_MRP"] = pd.to_numeric(df["Total MRP sales"], errors="coerce").fillna(0.0) / 1e5
     df["_Qty"] = pd.to_numeric(df["Inv Qty"], errors="coerce").fillna(0.0)
-    for c in ("category", "sub_category", "net_content", "Description", "EAN No."):
+    for c in ("category", "sub_category", "range", "net_content", "Description", "EAN No."):
         df["_" + c] = df[c].astype(str).str.strip().replace({"nan": "", "None": ""})
 
     # ---- EXACT channel totals from the FULL data, before any row capping ----
@@ -876,7 +876,7 @@ def detail_records_real(src, max_rows=20000):
     sis_reconciliation = _sis_reconciliation(df)
 
     g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
-                     "_category","_sub_category","_net_content","_Description","_EAN No."],
+                     "_category","_sub_category","_range","_net_content","_Description","_EAN No."],
                     dropna=False)
            .agg(NSV=("_NSV","sum"), MRP=("_MRP","sum"), Qty=("_Qty","sum")).reset_index())
     total_value = g["NSV"].sum()
@@ -889,7 +889,7 @@ def detail_records_real(src, max_rows=20000):
     for _, r in kept.iterrows():
         recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],
             "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":r["_category"],
-            "SubCategory":r["_sub_category"],"PackSize":r["_net_content"],
+            "SubCategory":r["_sub_category"],"Range":r["_range"],"PackSize":r["_net_content"],
             "Article":r["_Description"],"EAN":str(r["_EAN No."]),
             "NSV":r2(r["NSV"]),"MRP":r2(r["MRP"]),"Qty":int(r["Qty"])})
     print(f"detail rows: {rows_total} groups total -> kept top {len(recs)} "
@@ -934,12 +934,12 @@ def detail_records_representative(primary):
                     qty = int(nsv * 1e5 / random.uniform(120, 320))
                     recs.append({"Month":mo,"FY":"FY"+tag,"Channel":pick(chans,"fy"+tag,ct),
                         "Zone":pick(zones,"fy"+tag,zt),"Chain":ch["name"],"Brand":b["name"],
-                        "Category":t[0],"SubCategory":t[1],"PackSize":pack,"Article":art,
+                        "Category":t[0],"SubCategory":t[1],"Range":t[2],"PackSize":pack,"Article":art,
                         "EAN":ean(art),"NSV":nsv,"MRP":mrp,"Qty":qty})
     return recs
 
 def detail_dims(recs):
-    keys = ["FY","Month","Channel","Zone","Chain","Brand","Category","SubCategory","PackSize","Article"]
+    keys = ["FY","Month","Channel","Zone","Chain","Brand","Category","SubCategory","Range","PackSize","Article"]
     out = {}
     for k in keys:
         vals = {r[k] for r in recs if r.get(k) is not None}
@@ -957,7 +957,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
         return detail, detail_dims(detail), {
             "representative": True,
             "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
-                        "SubCategory","PackSize","Article","NSV","MRP","Qty"],
+                        "SubCategory","Range","PackSize","Article","NSV","MRP","Qty"],
             "note": ("REPRESENTATIVE records — Chain/Brand/Zone/Channel/Month/FY margins match the "
                      "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
                      "Drop primary_article.xlsb into --src to emit real detail."),
@@ -966,7 +966,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     meta = {
         "representative": False,
         "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
-                    "SubCategory","PackSize","Article","NSV","MRP","Qty"],
+                    "SubCategory","Range","PackSize","Article","NSV","MRP","Qty"],
         "note": "REAL granular records from File 2 (article-wise primary).",
         "channel_totals": channel_totals,   # {FY: {Channel: NSV_Lakh}} — EXACT, computed pre-cap
         "channel_totals_unit": "INR Lakh",

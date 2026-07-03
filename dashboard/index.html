@@ -187,7 +187,7 @@ function buildOverview(){
   if(F.Brand) brands=brands.filter(b=>b.name===F.Brand);
   if(F.Channel) channels=channels.filter(c=>c.name===F.Channel);
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
-  const dimNote=dimUnsupportedNote(['Category','SubCategory','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
+  const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
   s.innerHTML = `<h2 class="sec">Executive Overview</h2>
    <p class="lead">${fy?`${yrLab[fy]||F.FY} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
    ${dimNote}
@@ -202,7 +202,7 @@ function buildOverview(){
        isTY?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
    <div class="grid g2">
-     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY25-26)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart to drill into Data Explorer.</span>',cv('ovTrend'))}
+     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY25-26)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('ovChannel',true))}
    </div>
    <div class="grid g2">
@@ -245,7 +245,7 @@ function buildPrimary(){
      ${qc.allocated_coverage_pct}% of Distributor primary (${crc(qc.chain_allocated_total)})
      is allocated this way; the remainder (no matching Ship-To × Brand × Month allocation entry,
      mainly FY24-25) keeps its original single-chain tag.</p>`:'';
-  const dimNote=dimUnsupportedNote(['Category','SubCategory','PackSize','Article'],'this source (see the Category & Pack tab for those)');
+  const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'this source (see the Category & Pack tab for those)');
   s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
    <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
    ${dimNote}
@@ -313,7 +313,7 @@ function buildOfftake(){
   const pc={}; p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);
   const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${cr(r.fy25)}</td><td>${cr(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
-  const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
+  const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
    <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
    ${dimNote}
@@ -362,7 +362,7 @@ function buildPnl(){
      <td>${cr(c.discount)}</td><td>${c.discount_pct==null?'–':c.discount_pct+'%'}</td>
      <td>${c.promos||0}</td><td>${c.promo_depth==null?'–':c.promo_depth+'%'}</td></tr>`).join('');
   const totMrp=chains.reduce((a,c)=>a+(c.mrp||0),0), totNsv=chains.reduce((a,c)=>a+(c.nsv||0),0);
-  const dimNote=dimUnsupportedNote(['Zone','Brand','Channel','Category','SubCategory','PackSize','Article'],'the P&L source (chain-level only)');
+  const dimNote=dimUnsupportedNote(['Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the P&L source (chain-level only)');
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    <p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -396,7 +396,7 @@ function buildPnl(){
 function buildForecast(){
   const f=D.forecast,s=document.getElementById('tab-forecast');
   const isTY=/TY target/i.test(f.method||'');
-  const dimNote=dimUnsupportedNote(['FY','Month','Chain','Zone','Brand','Channel','Category','SubCategory','PackSize','Article'],
+  const dimNote=dimUnsupportedNote(['FY','Month','Chain','Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],
     'the Forecast series (always shows the full FY24-27 trend — see Overview/Primary/Offtake for filtered totals)');
   s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''}</h2>
    <p class="lead">${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
@@ -423,7 +423,7 @@ function buildShare(){
   let chains=p.by_chain; if(F.Chain) chains=chains.filter(c=>c.name===F.Chain);
   const sob=chains.filter(c=>c[fy]>0).slice(0,10).map(c=>({name:c.name,share:c[fy]/tot*100,v:c[fy]}));
   const sobRows=sob.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${cr(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
-  const dimNote=dimUnsupportedNote(['Zone','Brand','Channel','Category','SubCategory','PackSize','Article','Month'],'the share-of-business view (chain only)');
+  const dimNote=dimUnsupportedNote(['Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article','Month'],'the share-of-business view (chain only)');
   s.innerHTML=`<h2 class="sec">Market Share</h2>
    <p class="lead">Share-of-business across MT chains (${yrLab[fy]} primary).
      <b>Note:</b> external category share vs competitors is not in the source data; this view shows internal
@@ -454,7 +454,7 @@ function buildDistribution(){
      <td>${(c.stores/u.active_stores*100).toFixed(1)}%</td></tr>`).join('');
   const dimNote=(F.FY||F.Month?`<p class="drillhint" style="margin:4px 0 0">${[F.FY&&'FY',F.Month&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the store universe is a point-in-time snapshot, not tracked by FY/Month.</p>`:'')
-    +dimUnsupportedNote(['Brand','Channel','Category','SubCategory','PackSize','Article'],'the store universe (no product-level breakdown)');
+    +dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the store universe (no product-level breakdown)');
   s.innerHTML=`<h2 class="sec">Distribution</h2>
    <p class="lead">MT store universe — distribution footprint by zone, city category, chain and store type.</p>
    ${dimNote}
@@ -489,16 +489,16 @@ function buildCategory(){
   const rep=(D.detail_meta&&D.detail_meta.representative)
     ? `<div class="repbanner"><b>Representative data.</b> Category/Sub-category/Pack Size are taxonomy
        placeholders until the granular source feeds build_dashboard_data.py — see dashboard/README.md.</div>` : '';
-  const bySubPareto=subcatPareto95(recs), bySub=grp(recs,'SubCategory'), byPack=grp(recs,'PackSize');
+  const bySubPareto=subcatPareto95(recs), bySub=grp(recs,'SubCategory'), byPack=grp(recs,'PackSize'), byRange=grp(recs,'Range');
   const totNSV=recs.reduce((a,r)=>a+r.NSV,0);
   // unique articles (summed across every chain/month/etc. in the current filter) --
   // NOT the same article repeated once per chain. Drill into a Chain (chip or any
   // chart's click-to-drill) to see that chain's own unique-article ranking here.
-  const topArt=uniqueBy(recs,'Article',['Category','SubCategory','PackSize']).slice(0,20);
+  const topArt=uniqueBy(recs,'Article',['Category','SubCategory','Range','PackSize']).slice(0,20);
   const artRows=topArt.map(r=>`<tr><td>${drillLink('Article',r.Article)}</td><td>${drillLink('Category',r.Category)}</td><td>${drillLink('SubCategory',r.SubCategory)}</td>
-     <td>${drillLink('PackSize',r.PackSize)}</td><td>${cr(r.NSV)}</td><td>${num(r.Qty)}</td></tr>`).join('');
+     <td>${drillLink('Range',r.Range)}</td><td>${drillLink('PackSize',r.PackSize)}</td><td>${cr(r.NSV)}</td><td>${num(r.Qty)}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Category &amp; Pack</h2>
-   <p class="lead">NSV performance by Sub-category and Pack Size, from the article-level primary detail.
+   <p class="lead">NSV performance by Sub-category, Range and Pack Size, from the article-level primary detail.
      ${active?'Scoped to the active filter below — remove a chip or Reset to see all.':'Click any chart/table cell here (or on another tab) to scope this view — e.g. drill into a Chain to see that chain\'s own unique-article ranking.'}</p>
    ${rep}
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
@@ -506,21 +506,26 @@ function buildCategory(){
      ${kpi('NSV Covered',crc(totNSV),`${num(recs.length)} article-level records`)}
      ${kpi('Unique Articles',num(topArt.length<20?topArt.length:uniqueBy(recs,'Article').length),'in this view')}
      ${kpi('Top Sub-category',bySub[0]?bySub[0][0]:'–',bySub[0]?crc(bySub[0][1]):'')}
+     ${kpi('Top Range',byRange[0]?byRange[0][0]:'–',byRange[0]?crc(byRange[0][1]):'')}
      ${kpi('Top Pack Size',byPack[0]?byPack[0][0]:'–',byPack[0]?crc(byPack[0][1]):'')}
    </div>
    <div class="grid g2">
      ${card('NSV by Sub-category — 95% of each brand\'s NSV, rest → Other','Within each brand, keeps sub-categories that cumulatively cover 95% of that brand\'s NSV; the long tail across all brands is clubbed into "Other". Click a slice to drill.',cv('catSubP'))}
      ${card('Top Sub-categories by NSV (this view)','click a bar to drill',cv('catSub',true))}
    </div>
-   ${card('NSV by Pack Size','click a bar to drill',cv('catPack',true))}
-   ${card(`Top 20 unique articles by NSV${active?' (scoped to active filter)':' (across all chains/months)'}`,'Click Article/Category/Sub-cat/Pack to drill.',`<div class="tablewrap"><table><thead><tr>
-     <th>Article</th><th>Category</th><th>Sub-cat</th><th>Pack</th><th>NSV (₹Cr)</th><th>Qty</th>
-     </tr></thead><tbody>${artRows||'<tr><td colspan="6">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
+   <div class="grid g2">
+     ${card('Top Ranges by NSV (this view)','click a bar to drill',cv('catRange',true))}
+     ${card('NSV by Pack Size','click a bar to drill',cv('catPack',true))}
+   </div>
+   ${card(`Top 20 unique articles by NSV${active?' (scoped to active filter)':' (across all chains/months)'}`,'Click Article/Category/Sub-cat/Range/Pack to drill.',`<div class="tablewrap"><table><thead><tr>
+     <th>Article</th><th>Category</th><th>Sub-cat</th><th>Range</th><th>Pack</th><th>NSV (₹Cr)</th><th>Qty</th>
+     </tr></thead><tbody>${artRows||'<tr><td colspan="7">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
   wireDrillLinks(s);
   wireChips(s,buildCategory);
   if(recs.length){
     mkDonut('catSubP',bySubPareto.map(x=>x[0]),bySubPareto.map(x=>x[1]),true,v=>{ if(v!=='Other') drillTo('SubCategory',v); });
     mkBarH('catSub',bySub.slice(0,12).map(x=>x[0]),bySub.slice(0,12).map(x=>x[1]),C.teal,true,v=>drillTo('SubCategory',v));
+    mkBarH('catRange',byRange.slice(0,12).map(x=>x[0]),byRange.slice(0,12).map(x=>x[1]),C.amber,true,v=>drillTo('Range',v));
     mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
   }
 }
@@ -537,7 +542,7 @@ function buildPromo(){
      <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands}</td></tr>`).join('');
   const dimNote=(F.FY||F.Month?`<p class="drillhint" style="margin:4px 0 0">${[F.FY&&'FY',F.Month&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
-    +dimUnsupportedNote(['Zone','Channel','SubCategory','PackSize','Article'],'the promo calendar');
+    +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
   s.innerHTML=`<h2 class="sec">Promo &amp; Trade Spend</h2>
    <p class="lead">Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
    ${dimNote}
@@ -569,17 +574,18 @@ function buildPromo(){
 }
 
 /* ---------------- PERFORMANCE & COMPARISON ---------------- */
-// One tab to rank/compare Chain, Brand, Sub-category or Pack Size side by
-// side (FY-over-FY, YoY, contribution %) instead of hunting across separate
-// tabs. Chain/Brand come from the chain-allocated Primary source (FY25 vs
-// FY26); Sub-category/Pack Size come from the article-level detail (REC),
-// which only spans FY26/FY27 -- so the year pair shown adapts to whichever
-// two FYs are actually present for that dimension.
+// One tab to rank/compare Chain, Brand, Sub-category, Range, Pack Size or
+// Article side by side (FY-over-FY, YoY, contribution %) instead of hunting
+// across separate tabs. Chain/Brand come from the chain-allocated Primary
+// source (FY25 vs FY26); Sub-category/Range/Pack Size/Article come from the
+// article-level detail (REC), which only spans FY26/FY27 -- so the year
+// pair shown adapts to whichever two FYs are actually present for that
+// dimension.
 let cmpDim='Chain';
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
-  const dims=['Chain','Brand','SubCategory','PackSize'];
-  const dimLab={Chain:'Chain',Brand:'Brand',SubCategory:'Sub-category',PackSize:'Pack Size'};
+  const dims=['Chain','Brand','SubCategory','Range','PackSize','Article'];
+  const dimLab={Chain:'Chain',Brand:'Brand',SubCategory:'Sub-category',Range:'Range',PackSize:'Pack Size',Article:'Article'};
   const btns=dims.map(d=>`<button class="fbtn ${d===cmpDim?'':'ghost'}" data-dim="${d}" style="margin:0 8px 10px 0">${dimLab[d]}</button>`).join('');
   const active=activeChipsHtml();
 
@@ -612,8 +618,12 @@ function buildComparison(){
   const tableRows=top.map(r=>`<tr><td>${drillLink(cmpDim,r.name)}</td><td>${r.a!=null?cr(r.a):'–'}</td><td>${cr(r.b)}</td>
     <td>${r.yoy!=null?`<span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span>`:'–'}</td>
     <td>${(r.b/tot*100).toFixed(1)}%</td></tr>`).join('');
+  const partialNote=(yrPair[1]==='FY27')?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
+     (Apr'26 onward only) — YoY vs a full FY26 will read sharply negative even where the run-rate is flat or
+     growing. Compare monthly averages, not full-year totals, for a fair read.</p>`:'';
   s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2>
    <p class="lead">Rank and compare ${dimLab[cmpDim]} performance. Source: ${source}.</p>
+   ${partialNote}
    <div style="margin:0 0 14px">${btns}</div>
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
    <div class="kpis">
@@ -663,7 +673,8 @@ function buildInsights(){
 /* ---------------- DATA EXPLORER (drill-down + cascading filters) ---------------- */
 const REC = D.detail_records||[];
 const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],['Chain','Chain'],
-  ['Brand','Brand'],['Category','Category'],['SubCategory','Sub-category'],['PackSize','Pack Size'],['Article','Article']];
+  ['Brand','Brand'],['Category','Category'],['SubCategory','Sub-category'],['Range','Range'],
+  ['PackSize','Pack Size'],['Article','Article']];
 const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
 const F={}; FILT.forEach(([k])=>F[k]='');
 
@@ -702,16 +713,17 @@ function renderFilterBar(){
 function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
 
 // cross-tab drill-down: click any chart bar/segment/table-row on ANY tab to
-// set that one filter and jump to the Data Explorer's row-level detail —
-// makes every tab a drill-down entry point, not just the Explorer's own charts.
+// set that one filter and re-render the SAME tab narrowed to it -- drilling
+// into "Dmart" on the Primary tab shows Dmart's own Primary view, not a jump
+// to a different tab. The Data Explorer tab is still there whenever you want
+// the raw row-level records for whatever's currently filtered.
 function drillTo(key,value){
   if(!FILT.some(([k])=>k===key) || value==null) return;
   F[key]=String(value);
-  renderFilterBar();
-  show('explorer');   // drill = jump to row-level detail; distinct from just adjusting a filter dropdown
+  onFilterChange();
 }
 function drillLink(key,label){
-  return `<span class="drill" data-k="${key}" data-v="${String(label).replace(/"/g,'&quot;')}" title="Drill into ${label} in Data Explorer">${label}</span>`;
+  return `<span class="drill" data-k="${key}" data-v="${String(label).replace(/"/g,'&quot;')}" title="Filter this view to ${label}">${label}</span>`;
 }
 function wireDrillLinks(root){
   root.querySelectorAll('.drill').forEach(el=>el.onclick=()=>drillTo(el.dataset.k, el.dataset.v));
@@ -835,7 +847,7 @@ function buildExplorer(){
     ? `<div class="repbanner"><b>Representative data.</b> Drill-down runs on <code>detail_records</code> whose Chain/Brand/Zone/Channel/Month/FY totals match the real primary; Category, Sub-category, Pack Size and Article are taxonomy placeholders until the granular source feeds <code>build_dashboard_data.py</code>.</div>` : '';
   const cap=400, shown=recs.slice(0,cap);
   const trows=shown.map(r=>`<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
-     <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory}</td><td>${r.PackSize}</td>
+     <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory}</td><td>${r.Range}</td><td>${r.PackSize}</td>
      <td>${r.Article}</td><td>${cr(r.NSV)}</td><td>${cr(r.MRP)}</td><td>${num(r.Qty)}</td></tr>`).join('');
   // SIS channel check — always the SIS slice (ignores the Channel filter, respects the others)
   const isRep=!!(D.detail_meta&&D.detail_meta.representative);
@@ -884,8 +896,8 @@ function buildExplorer(){
      `<div style="margin:-4px 0 10px"><button class="fbtn ghost" id="exExport">⭳ Export filtered CSV</button></div>
       <div class="tablewrap"><table><thead><tr>
       <th>Month</th><th>FY</th><th>Channel</th><th>Zone</th><th>Chain</th><th>Brand</th><th>Category</th>
-      <th>Sub-cat</th><th>Pack</th><th>Article</th><th>NSV(₹Cr)</th><th>MRP(₹Cr)</th><th>Qty</th>
-      </tr></thead><tbody>${trows||'<tr><td colspan="13">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
+      <th>Sub-cat</th><th>Range</th><th>Pack</th><th>Article</th><th>NSV(₹Cr)</th><th>MRP(₹Cr)</th><th>Qty</th>
+      </tr></thead><tbody>${trows||'<tr><td colspan="14">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
   if(recs.length){
     expBarH('exChain','Chain',grp(recs,'Chain').slice(0,12));
     expDonut('exBrand','Brand',grp(recs,'Brand'));
@@ -898,7 +910,7 @@ function buildExplorer(){
   const ex=document.getElementById('exExport'); if(ex) ex.onclick=()=>exportCSV(recs);
 }
 function exportCSV(recs){
-  const cols=['Month','FY','Channel','Zone','Chain','Brand','Category','SubCategory','PackSize','Article','NSV','MRP','Qty'];
+  const cols=['Month','FY','Channel','Zone','Chain','Brand','Category','SubCategory','Range','PackSize','Article','NSV','MRP','Qty'];
   const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
   const csv=[cols.join(',')].concat(recs.map(r=>cols.map(c=>esc(r[c])).join(','))).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -919,10 +931,16 @@ function show(id){
   document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id==='tab-'+id));
   // every tab always rebuilds from the CURRENT filter state (no stale cache) --
   // this is what makes the global FY/Month/Chain/... filter bar apply dashboard-wide,
-  // not just on the Data Explorer.
-  destroyCharts();
-  BUILD[id]();
-  window.scrollTo({top:0,behavior:'smooth'});
+  // not just on the Data Explorer. Deferred one tick: drillTo() is invoked from
+  // INSIDE a Chart.js onClick handler, and destroying that same chart synchronously
+  // (before Chart.js finishes its own internal afterEvent/tooltip processing for
+  // this click) throws "Cannot read properties of undefined (reading 'handleEvent')".
+  // Letting the current event loop turn finish first avoids that.
+  setTimeout(()=>{
+    destroyCharts();
+    BUILD[id]();
+    window.scrollTo({top:0,behavior:'smooth'});
+  },0);
 }
 (function init(){
   document.getElementById('hTitle').textContent=D.meta.title;

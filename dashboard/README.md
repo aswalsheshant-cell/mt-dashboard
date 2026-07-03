@@ -14,24 +14,30 @@ so the dashboard works fully offline.
 
 | Tab | What it shows |
 |-----|---------------|
-| **Data Explorer** | Cascading drill-down/filter across FY, Month, Channel, Zone, Chain, Brand, Category, Sub-category, Pack Size, Article |
+| **Data Explorer** | Cascading drill-down/filter across FY, Month, Channel, Zone, Chain, Brand, Category, Sub-category, Range, Pack Size, Article |
 | **Overview** | Headline KPIs, Primary-vs-Offtake monthly trend, channel split, top chains, brand mix |
 | **Primary** | Sell-in NSV (FY24-25 vs FY25-26) by month, zone, channel, brand and **chain** (chain-level, secondary-allocated for Distributor primary — see below) |
 | **Offtake** | Sell-out trend, zone & state YoY, and a Primary-vs-Offtake inventory-health view by chain |
 | **P&L** | Chain-wise gross MRP → net NSV bridge and trade-discount intensity |
-| **Category & Pack** | NSV by Sub-category (95%-of-brand rule, see below) and Pack Size, plus a top-20 **unique-article** table (from the article-level primary detail) |
+| **Category & Pack** | NSV by Sub-category (95%-of-brand rule, see below), Range and Pack Size, plus a top-20 **unique-article** table (from the article-level primary detail) |
 | **Forecast** | FY26-27 (TY) target — the business's own monthly target once refreshed via `--forecast-only` (falls back to a seasonally-indexed projection if that source isn't supplied) |
 | **Promo & Trade Spend** | Promo calendar activity — count and average consumer discount depth by chain, brand, category |
 | **Market Share** | Share-of-business across MT chains |
 | **Distribution** | Store universe / distribution footprint by zone, city category, chain and store type |
-| **Performance & Comparison** | Rank/compare Chain, Brand, Sub-category or Pack Size side by side (FY-over-FY, YoY, contribution %) in one place |
+| **Performance & Comparison** | Rank/compare Chain, Brand, Sub-category, Range, Pack Size or Article side by side (FY-over-FY, YoY, contribution %) in one place |
 | **Insights & Way Forward** | Auto-generated risks/opportunities plus prioritised leadership actions |
 
-### The FY/Month/Chain/... filter bar applies dashboard-wide
+### The FY/Month/Chain/... filter bar applies dashboard-wide — and so does drilling
 Every tab (not just the Explorer) rebuilds live from the current filter
 state — pick FY26, a Zone, a Chain, whatever, and every tab you visit
-reflects it, not just Explorer/Category & Pack. Two honest limits, by
-design, not bugs:
+reflects it. **Clicking a chart bar/segment or a table cell (drill) re-renders
+the tab you're already on, narrowed to what you clicked** — drilling into
+"Dmart" from the Primary tab's chain chart shows Dmart's own Primary view in
+place, it does not jump you to a different tab. The Data Explorer tab is
+still there whenever you want the raw row-level records for whatever's
+currently filtered — visit it any time, it always reflects the active filter.
+
+Two honest limits, by design, not bugs:
 - **FY26-27 ("FY27") has no actuals** in Primary/Offtake/P&L/Market Share —
   only the article-level detail (partial) and the Forecast tab's TY target
   do. Selecting FY27 on those tabs shows an explicit "no data" message
@@ -41,21 +47,22 @@ design, not bugs:
   isn't tracked by FY/Month, P&L is chain-level only. Each tab says so
   inline (small italic note) rather than silently ignoring the filter.
 
-Adjusting a filter dropdown re-renders whatever tab you're currently on in
-place. Clicking a chart bar/table cell (drill) still jumps to the Data
-Explorer's row-level detail, same as before — that's a deliberate "go see
-the raw rows" action, distinct from just narrowing the current tab's scope.
-
-### Category & Pack: unique articles + the 95%-of-brand sub-category rule
+### Category & Pack: unique articles, Range, and the 95%-of-brand sub-category rule
 - The **Top 20 articles** table shows each article **once**, summed across
   every chain/month/etc. in the current filter — not the same article
   repeated once per chain. Drill into a Chain (a chip, or any chart's
-  click-to-drill) to see that chain's own unique-article ranking.
+  click-to-drill) to see that chain's own unique-article ranking. The table
+  and the Explorer's detail table both now include a **Range** column
+  (the product range/variant, e.g. "Onion", "Niacinamide", "Rice Water" —
+  one level more granular than Sub-category, one level up from Article).
 - The **NSV by Sub-category** donut applies a per-brand 95% rule: within
   each brand, keeps the sub-categories that cumulatively cover 95% of that
   brand's NSV; the combined long tail across all brands is clubbed into
   **"Other"** — so one brand's rare sub-category doesn't get diluted by
   another brand's very different assortment mix.
+- **Performance & Comparison** also has Range and Article as comparison
+  dimensions (in addition to Chain/Brand/Sub-category/Pack Size) for a full
+  Article → Pack Size → Range → Sub-category → Category deep-dive hierarchy.
 
 ### Primary is chain-level, not distributor-name-wise
 Distributor-billed ("Dist.") primary rows are re-split across the chains a
