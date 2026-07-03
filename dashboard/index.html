@@ -477,6 +477,50 @@ function buildExplorer(){
          </p>
        </div>
      </div>`);
+
+  // ---- SIS Reconciliation Drill-down (from the FULL, uncapped source) ----
+  const sisRecon=(D.detail_meta&&D.detail_meta.sis_reconciliation&&D.detail_meta.sis_reconciliation.FY26)||null;
+  const sisGapStatus=(D.detail_meta&&D.detail_meta.sis_gap_status)||'';
+  let sisReconCard='';
+  if (sisRecon && !isRep){
+    const sm=sisRecon.summary;
+    const rows3=(arr,keyName)=>arr.map(x=>`<tr><td>${x.name||x.month}</td><td>${lac2(x.value)}</td></tr>`).join('');
+    const exclList=sisRecon.exclusions.map(e=>`<li>${e}</li>`).join('');
+    sisReconCard=card('SIS Reconciliation Drill-down (FY26) — full detail, not row-capped',
+      `Computed from all ${num(sisRecon.row_count)} SIS rows in the complete File 2 source (bypasses the ${num(20000)}-row display cap). Export below for offline audit.`,
+      `<div class="repbanner" style="background:#fce8e6;border-color:#e6b0aa;color:#7a2e24">
+         <b>⛔ DO NOT MERGE</b> until the ₹236 L reference source/definition is confirmed by
+         business, <b>or</b> business explicitly accepts <b>₹250.17 L (File 2)</b> as the source
+         of truth for Primary SIS FY26. Gap status: <b>OPEN</b>.
+       </div>
+       <div class="kpis" style="margin:14px 0">
+         ${kpi('1. Total SIS Sales', lac2(sm.total_sis_sales), 'gross, before returns/cancellations')}
+         ${kpi('2. MRN / Returns', lac2(sm.mrn_returns), 'negative — deducted')}
+         ${kpi('3. Cancelled Invoices', lac2(sm.cancelled_invoices), 'included, near-zero')}
+         ${kpi('4. Net SIS Value', lac2(sm.net_sis_value), 'authoritative — matches File 2 Channel total')}
+       </div>
+       <div style="margin:-4px 0 12px"><button class="fbtn ghost" id="sisExport">⭳ Export SIS reconciliation (CSV)</button></div>
+       <div class="grid g3">
+         <div><h4 style="margin:0 0 6px;font-size:13px">5. Chain-wise SIS value</h4>
+           <div class="tablewrap" style="max-height:260px"><table><thead><tr><th>Chain</th><th>SIS (₹L)</th></tr></thead>
+           <tbody>${rows3(sisRecon.by_chain)}</tbody></table></div></div>
+         <div><h4 style="margin:0 0 6px;font-size:13px">6. Month-wise SIS value</h4>
+           <div class="tablewrap" style="max-height:260px"><table><thead><tr><th>Month</th><th>SIS (₹L)</th></tr></thead>
+           <tbody>${rows3(sisRecon.by_month)}</tbody></table></div></div>
+         <div><h4 style="margin:0 0 6px;font-size:13px">7. Brand-wise SIS value</h4>
+           <div class="tablewrap" style="max-height:260px"><table><thead><tr><th>Brand</th><th>SIS (₹L)</th></tr></thead>
+           <tbody>${rows3(sisRecon.by_brand)}</tbody></table></div></div>
+       </div>
+       <h4 style="margin:14px 0 6px;font-size:13px">8. Exclusions / inclusions applied</h4>
+       <ul class="wf" style="margin:0">${exclList}</ul>
+       <p class="note" style="margin:10px 0 0"><b>${sisGapStatus}</b></p>`);
+  } else {
+    sisReconCard=card('SIS Reconciliation Drill-down',
+      '',
+      `<p class="note">Not available on representative data — refresh with the real File 2 source
+       (see <code>dashboard/README.md</code>) to populate the chain/month/brand-wise SIS drill-down and export.</p>`);
+  }
+
   s.innerHTML=`<h2 class="sec">Data Explorer</h2>
    <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
    ${rep}
@@ -488,6 +532,7 @@ function buildExplorer(){
      ${kpi('Realisation',mrp?((nsv/mrp)*100).toFixed(0)+'%':'–','NSV ÷ MRP')}
    </div>
    ${sisCard}
+   ${sisReconCard}
    <div class="grid g2">
      ${card('NSV by Chain — click to filter','',cv('exChain'))}
      ${card('NSV by Brand — click to filter','',cv('exBrand',true))}
@@ -514,6 +559,7 @@ function buildExplorer(){
   }
   s.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{F[b.dataset.k]='';onFilterChange();});
   const ex=document.getElementById('exExport'); if(ex) ex.onclick=()=>exportCSV(recs);
+  const sisEx=document.getElementById('sisExport'); if(sisEx) sisEx.onclick=()=>exportSISReconciliation(sisRecon,sisGapStatus);
 }
 function exportCSV(recs){
   const cols=['Month','FY','Channel','Zone','Chain','Brand','Category','SubCategory','PackSize','Article','NSV','MRP','Qty'];
@@ -521,6 +567,34 @@ function exportCSV(recs){
   const csv=[cols.join(',')].concat(recs.map(r=>cols.map(c=>esc(r[c])).join(','))).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='mt_detail_filtered.csv';a.click();
+}
+function exportSISReconciliation(sisRecon,sisGapStatus){
+  if(!sisRecon) return;
+  const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
+  const lines=[];
+  lines.push('SIS Reconciliation Drill-down (FY26) — File 2, full uncapped source');
+  lines.push(`Status,${esc(sisGapStatus)}`);
+  lines.push('');
+  lines.push('Section,Metric,Value (Rs Lakh)');
+  const sm=sisRecon.summary;
+  lines.push(`Summary,1. Total SIS Sales,${sm.total_sis_sales}`);
+  lines.push(`Summary,2. MRN / Returns,${sm.mrn_returns}`);
+  lines.push(`Summary,3. Cancelled Invoices,${sm.cancelled_invoices}`);
+  lines.push(`Summary,4. Net SIS Value,${sm.net_sis_value}`);
+  lines.push('');
+  lines.push('Section,Chain,SIS Value (Rs Lakh)');
+  sisRecon.by_chain.forEach(x=>lines.push(`5. Chain-wise,${esc(x.name)},${x.value}`));
+  lines.push('');
+  lines.push('Section,Month,SIS Value (Rs Lakh)');
+  sisRecon.by_month.forEach(x=>lines.push(`6. Month-wise,${esc(x.month)},${x.value}`));
+  lines.push('');
+  lines.push('Section,Brand,SIS Value (Rs Lakh)');
+  sisRecon.by_brand.forEach(x=>lines.push(`7. Brand-wise,${esc(x.name)},${x.value}`));
+  lines.push('');
+  lines.push('Section,Exclusion / Inclusion Note');
+  sisRecon.exclusions.forEach(e=>lines.push(`8. Exclusions,${esc(e)}`));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
+  a.download='sis_reconciliation_fy26.csv';a.click();
 }
 
 /* ---------------- nav ---------------- */

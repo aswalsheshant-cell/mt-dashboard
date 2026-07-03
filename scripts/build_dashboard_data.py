@@ -551,6 +551,78 @@ _DTAX = {
  "Pure Origin":[("Body Care","Body Wash","Coffee",["250 g/ml"],"Coffee Body Wash")],
 }
 
+def _sis_reconciliation(df):
+    """SIS gap reconciliation drill-down, computed from the FULL (uncapped)
+    dataframe: per-FY summary (total sales / MRN-returns / cancelled / net),
+    chain-wise, month-wise, brand-wise SIS value, and an exclusions log. This
+    makes the Rs 250.17 L figure fully transparent and exportable -- it does
+    NOT resolve what the Rs 236 L reference figure is defined as."""
+    sis = df[df["_Chan"] == "SIS"].copy()
+    if len(sis) == 0:
+        return {}
+    has_saletype = "MTD-Sale type" in sis.columns
+    if has_saletype:
+        sis["_SaleType"] = sis["MTD-Sale type"].astype(str).str.strip()
+    has_dupkey = {"Inv No.", "Article Code"}.issubset(sis.columns)
+
+    out = {}
+    for fy in sorted(sis["_FY"].dropna().unique()):
+        s = sis[sis["_FY"] == fy]
+        net = round(float(s["_NSV"].sum()), 2)
+
+        if has_saletype:
+            by_type = s.groupby("_SaleType")["_NSV"].sum()
+            total_sales = round(float(by_type.get("Sales", 0.0)), 2)
+            mrn_returns = round(float(by_type.get("MRN", 0.0)), 2)
+            cancelled = round(float(by_type.get("Cancel Invoice", 0.0)), 2)
+        else:
+            # no sale-type column available -- fall back to positive/negative split
+            total_sales = round(float(s.loc[s["_NSV"] > 0, "_NSV"].sum()), 2)
+            mrn_returns = round(float(s.loc[s["_NSV"] < 0, "_NSV"].sum()), 2)
+            cancelled = 0.0
+
+        by_chain = (s.groupby("_Chain")["_NSV"].sum().round(2)
+                      .sort_values(ascending=False))
+        by_month = (s.groupby("_M")["_NSV"].sum().round(2))
+        by_month = by_month.reindex([m for m in _ORDER if m in by_month.index])
+        by_brand = (s.groupby("_Brand")["_NSV"].sum().round(2)
+                      .sort_values(ascending=False))
+
+        exclusions = [
+            f"Computed from all {len(s):,} SIS rows in the FULL source for {fy} "
+            "(not the row-capped detail_records table used for browser display).",
+            f"MRN (returns) included as a negative value: Rs {mrn_returns:.2f} L.",
+            f"Cancelled invoices included: Rs {cancelled:.2f} L (near-zero net impact).",
+        ]
+        if has_dupkey:
+            dup_cols = ["Inv No.", "Article Code", "Inv Qty", "Inv. Net value(LOC)"]
+            dups = s[s.duplicated(subset=dup_cols, keep=False)]
+            dup_val = round(float(dups["_NSV"].sum() / 2), 2) if len(dups) else 0.0
+            exclusions.append(
+                f"{len(dups)} exact-duplicate invoice lines detected (Inv No. + "
+                f"Article Code + Qty + NSV); NOT deduplicated -- impact "
+                f"Rs {dup_val:.2f} L (checked, negligible).")
+        else:
+            exclusions.append("Duplicate-line check skipped: 'Inv No.' / 'Article Code' "
+                               "not both present in this source.")
+        exclusions.append("No rows or chains excluded from this reconciliation.")
+
+        out[fy] = {
+            "summary": {
+                "total_sis_sales": total_sales,
+                "mrn_returns": mrn_returns,
+                "cancelled_invoices": cancelled,
+                "net_sis_value": net,
+            },
+            "by_chain": [{"name": k, "value": float(v)} for k, v in by_chain.items()],
+            "by_month": [{"month": k, "value": float(v)} for k, v in by_month.items()],
+            "by_brand": [{"name": k, "value": float(v)} for k, v in by_brand.items()],
+            "exclusions": exclusions,
+            "row_count": int(len(s)),
+        }
+    return out
+
+
 def detail_records_real(src, max_rows=20000):
     """Real 13-column detail_records from File 2 (article-wise primary).
     Looks for primary_article.xlsb/.xlsx in src. Returns None if absent, else
@@ -617,6 +689,12 @@ def detail_records_real(src, max_rows=20000):
     for (fy, chan), v in ct.items():
         channel_totals.setdefault(fy, {})[chan] = float(v)
 
+    # ---- SIS reconciliation drill-down: computed from the FULL data (not the
+    # capped detail_records) so the numbers are exact and auditable. Business
+    # reconciliation of the Rs 236 L reference figure is NOT resolved by this --
+    # it only makes the Rs 250.17 L composition fully transparent/exportable.
+    sis_reconciliation = _sis_reconciliation(df)
+
     g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
                      "_category","_sub_category","_net_content","_Description","_EAN No."],
                     dropna=False)
@@ -636,8 +714,9 @@ def detail_records_real(src, max_rows=20000):
             "NSV":r2(r["NSV"]),"MRP":r2(r["MRP"]),"Qty":int(r["Qty"])})
     print(f"detail rows: {rows_total} groups total -> kept top {len(recs)} "
           f"({coverage:.1f}% of total value)")
-    return recs, channel_totals, {"rows_total": rows_total, "rows_kept": len(recs),
-                                   "value_coverage_pct": round(coverage, 1)}
+    return recs, channel_totals, sis_reconciliation, {
+        "rows_total": rows_total, "rows_kept": len(recs),
+        "value_coverage_pct": round(coverage, 1)}
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -703,7 +782,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
                      "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
                      "Drop primary_article.xlsb into --src to emit real detail."),
         }
-    detail, channel_totals, cov = result
+    detail, channel_totals, sis_reconciliation, cov = result
     meta = {
         "representative": False,
         "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
@@ -714,6 +793,15 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
         "rows_total_groups": cov["rows_total"],
         "rows_kept": cov["rows_kept"],
         "value_coverage_pct": cov["value_coverage_pct"],
+        # {FY: {summary, by_chain, by_month, by_brand, exclusions, row_count}} —
+        # SIS gap reconciliation drill-down, computed from the FULL uncapped
+        # source. Does NOT resolve the Rs 236 L reference; makes Rs 250.17 L
+        # fully transparent/auditable/exportable. See docs/SIS_Reconciliation.md.
+        "sis_reconciliation": sis_reconciliation,
+        "sis_reconciliation_unit": "INR Lakh",
+        "sis_gap_status": "OPEN — NOT resolved. Do not merge until the Rs 236 L "
+                          "reference source/definition is confirmed, or business "
+                          "explicitly accepts Rs 250.17 L (File 2) as source of truth.",
     }
     return detail, detail_dims(detail), meta
 

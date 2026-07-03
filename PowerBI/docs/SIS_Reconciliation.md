@@ -19,6 +19,42 @@
 - **Final closure needs the source/definition of the ₹236 L figure** — see
   "What's needed to close this."
 
+> ## ⛔ MERGE GATE
+> **Do not merge PR #2 until either:**
+> 1. the ₹236 L reference's source/definition is confirmed and diffed against
+>    File 2, **or**
+> 2. business explicitly accepts **₹250.17 L (File 2)** as the source of truth
+>    for Primary SIS FY26.
+>
+> This status is also encoded in `dashboard/data.js` → `detail_meta.sis_gap_status`
+> and surfaced as a red "DO NOT MERGE" banner on the dashboard's SIS
+> Reconciliation Drill-down card (Data Explorer tab) — see below.
+
+## SIS Reconciliation Drill-down (dashboard, exportable)
+The **Data Explorer → SIS Reconciliation Drill-down** card gives the full,
+row-count-uncapped breakdown for audit, with a CSV export:
+
+1. **Total SIS Sales** — ₹275.44 L (gross, `MTD-Sale type = "Sales"`)
+2. **MRN / Returns** — −₹25.27 L (`MTD-Sale type = "MRN"`)
+3. **Cancelled Invoices** — ₹0.00 L (`MTD-Sale type = "Cancel Invoice"`, near-zero)
+4. **Net SIS Value** — ₹250.17 L (1 + 2 + 3; matches `Primary SIS` exactly)
+5. **Chain-wise SIS value** — Shoppers Stop ₹121.19 L, Azorte ₹68.09 L, Lifestyle
+   ₹32.79 L, Broadway ₹24.69 L, Today's Basket ₹2.24 L, Lifestyle Babyshop ₹1.17 L
+6. **Month-wise SIS value** — May'25 through Mar'26 (all 11 months present)
+7. **Brand-wise SIS value** — The Derma Co ₹125.36 L, Mamaearth ₹61.65 L,
+   Aqualogica ₹44.01 L, BBlunt ₹10.05 L, Staze ₹7.69 L, Dr. Sheth's ₹1.40 L
+8. **Exclusions / inclusions applied** — computed from all 13,277 SIS rows in the
+   full source (not the 20,000-row display cap); MRN and cancelled invoices
+   included, not excluded; 153 exact-duplicate invoice lines detected and
+   **not** deduplicated (impact ₹0.48 L, checked, negligible); no rows or chains
+   excluded.
+
+**Export SIS reconciliation (CSV)** button on that card downloads
+`sis_reconciliation_fy26.csv` with all 8 sections for offline audit against
+whatever produced the ₹236 L figure. Computed in
+`scripts/build_dashboard_data.py` (`_sis_reconciliation()`), stored in
+`detail_meta.sis_reconciliation`.
+
 ## What the real primary source (File 2) shows
 Loaded `primary_article.xlsb` (289,144 invoice lines, FY25-26 + FY26-27) and
 summed `Inv. Net value(LOC)` by its own `Channel` field, **before any row

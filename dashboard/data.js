@@ -321826,7 +321826,183 @@ window.DASH = {
   "channel_totals_unit": "INR Lakh",
   "rows_total_groups": 57407,
   "rows_kept": 20000,
-  "value_coverage_pct": 96.2
+  "value_coverage_pct": 96.2,
+  "sis_reconciliation": {
+   "FY26": {
+    "summary": {
+     "total_sis_sales": 275.44,
+     "mrn_returns": -25.27,
+     "cancelled_invoices": 0.0,
+     "net_sis_value": 250.17
+    },
+    "by_chain": [
+     {
+      "name": "Shoppers Stop",
+      "value": 121.19
+     },
+     {
+      "name": "Azorte",
+      "value": 68.09
+     },
+     {
+      "name": "Lifestyle",
+      "value": 32.79
+     },
+     {
+      "name": "Broadway",
+      "value": 24.69
+     },
+     {
+      "name": "Today's Basket",
+      "value": 2.24
+     },
+     {
+      "name": "Lifestyle Babyshop",
+      "value": 1.17
+     }
+    ],
+    "by_month": [
+     {
+      "month": "May",
+      "value": 13.23
+     },
+     {
+      "month": "June",
+      "value": 15.45
+     },
+     {
+      "month": "July",
+      "value": 35.44
+     },
+     {
+      "month": "Aug",
+      "value": 21.9
+     },
+     {
+      "month": "Sept",
+      "value": 34.33
+     },
+     {
+      "month": "Oct",
+      "value": 16.66
+     },
+     {
+      "month": "Nov",
+      "value": 26.73
+     },
+     {
+      "month": "Dec",
+      "value": 39.03
+     },
+     {
+      "month": "Jan",
+      "value": 14.06
+     },
+     {
+      "month": "Feb",
+      "value": 23.83
+     },
+     {
+      "month": "March",
+      "value": 9.49
+     }
+    ],
+    "by_brand": [
+     {
+      "name": "The Derma Co",
+      "value": 125.36
+     },
+     {
+      "name": "Mamaearth",
+      "value": 61.65
+     },
+     {
+      "name": "Aqualogica",
+      "value": 44.01
+     },
+     {
+      "name": "BBlunt",
+      "value": 10.05
+     },
+     {
+      "name": "Staze",
+      "value": 7.69
+     },
+     {
+      "name": "Dr. Sheth's",
+      "value": 1.4
+     }
+    ],
+    "exclusions": [
+     "Computed from all 13,277 SIS rows in the FULL source for FY26 (not the row-capped detail_records table used for browser display).",
+     "MRN (returns) included as a negative value: Rs -25.27 L.",
+     "Cancelled invoices included: Rs 0.00 L (near-zero net impact).",
+     "153 exact-duplicate invoice lines detected (Inv No. + Article Code + Qty + NSV); NOT deduplicated -- impact Rs 0.48 L (checked, negligible).",
+     "No rows or chains excluded from this reconciliation."
+    ],
+    "row_count": 13277
+   },
+   "FY27": {
+    "summary": {
+     "total_sis_sales": 8.92,
+     "mrn_returns": -2.49,
+     "cancelled_invoices": 0.0,
+     "net_sis_value": 7.86
+    },
+    "by_chain": [
+     {
+      "name": "Shoppers Stop",
+      "value": 5.2
+     },
+     {
+      "name": "Azorte",
+      "value": 2.65
+     }
+    ],
+    "by_month": [
+     {
+      "month": "April",
+      "value": 6.43
+     },
+     {
+      "month": "May",
+      "value": 1.42
+     }
+    ],
+    "by_brand": [
+     {
+      "name": "Lumineve",
+      "value": 7.69
+     },
+     {
+      "name": "The Derma Co",
+      "value": 0.6
+     },
+     {
+      "name": "Mamaearth",
+      "value": 0.23
+     },
+     {
+      "name": "BBlunt",
+      "value": -0.2
+     },
+     {
+      "name": "Aqualogica",
+      "value": -0.47
+     }
+    ],
+    "exclusions": [
+     "Computed from all 248 SIS rows in the FULL source for FY27 (not the row-capped detail_records table used for browser display).",
+     "MRN (returns) included as a negative value: Rs -2.49 L.",
+     "Cancelled invoices included: Rs 0.00 L (near-zero net impact).",
+     "4 exact-duplicate invoice lines detected (Inv No. + Article Code + Qty + NSV); NOT deduplicated -- impact Rs -0.01 L (checked, negligible).",
+     "No rows or chains excluded from this reconciliation."
+    ],
+    "row_count": 248
+   }
+  },
+  "sis_reconciliation_unit": "INR Lakh",
+  "sis_gap_status": "OPEN — NOT resolved. Do not merge until the Rs 236 L reference source/definition is confirmed, or business explicitly accepts Rs 250.17 L (File 2) as source of truth."
  },
  "dims": {
   "FY": [
