@@ -82,6 +82,9 @@
   .fchip b{cursor:pointer}
   .repbanner{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:10px;
       padding:9px 13px;font-size:12.5px;margin:0 0 14px}
+  .drill{cursor:pointer;border-bottom:1px dashed var(--teal-d)}
+  .drill:hover{color:var(--teal-d);font-weight:700}
+  .drillhint{font-size:11px;color:var(--muted);font-style:italic}
 </style>
 </head>
 <body>
@@ -134,34 +137,40 @@ function card(title,note,inner,extraCls){return `<div class="card"><h3>${title}<
 function cv(id,sm){return `<div class="chartbox${sm?' sm':''}"><canvas id="${id}"></canvas></div>`;}
 
 const charts=[];
-function mkBar(id,labels,datasets,opts={}){
+// shared click-to-drill: any chart passed an onClick(label) callback gets a
+// pointer cursor + a click handler that resolves the clicked label and drills.
+function _drillOpts(onClick){
+  return onClick ? {onClick:(e,els,chart)=>{if(els.length) onClick(chart.data.labels[els[0].index]);},
+    onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';}} : {};
+}
+function mkBar(id,labels,datasets,opts={},onClick){
   charts.push(new Chart(document.getElementById(id),{type:'bar',
     data:{labels,datasets},
     options:Object.assign({plugins:{legend:{display:datasets.length>1,position:'top'},
       tooltip:{callbacks:{label:c=>`${c.dataset.label?c.dataset.label+': ':''}${opts.money===false?num(c.parsed.y??c.parsed.x):crc(c.parsed.y??c.parsed.x)}`}}},
       scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>opts.money===false?num(v):'₹'+cr(v)}},
-              x:{grid:{display:false}}}},opts.cfg||{})}));
+              x:{grid:{display:false}}}},_drillOpts(onClick),opts.cfg||{})}));
 }
-function mkBarH(id,labels,data,color,money=true){
+function mkBarH(id,labels,data,color,money=true,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'bar',
     data:{labels,datasets:[{data,backgroundColor:color||C.teal,borderRadius:4}]},
-    options:{indexAxis:'y',plugins:{legend:{display:false},
+    options:Object.assign({indexAxis:'y',plugins:{legend:{display:false},
       tooltip:{callbacks:{label:c=>money?crc(c.parsed.x):num(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>money?'₹'+cr(v):num(v)}},y:{grid:{display:false}}}}}));
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>money?'₹'+cr(v):num(v)}},y:{grid:{display:false}}}},_drillOpts(onClick))}));
 }
-function mkLine(id,labels,datasets){
+function mkLine(id,labels,datasets,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'line',
     data:{labels,datasets:datasets.map((d,i)=>Object.assign({borderColor:PAL[i],backgroundColor:PAL[i]+'22',
       tension:.32,borderWidth:2.4,pointRadius:2,fill:d.fill??false,borderDash:d.dash||[]},d))},
-    options:{plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}},x:{grid:{display:false}}}}}));
+    options:Object.assign({plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}},x:{grid:{display:false}}}},_drillOpts(onClick))}));
 }
-function mkDonut(id,labels,data,money=true){
+function mkDonut(id,labels,data,money=true,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'doughnut',
     data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
-    options:{cutout:'58%',plugins:{legend:{position:'right'},
+    options:Object.assign({cutout:'58%',plugins:{legend:{position:'right'},
       tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
-        return `${c.label}: ${money?crc(c.parsed):num(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}}}));
+        return `${c.label}: ${money?crc(c.parsed):num(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}},_drillOpts(onClick))}));
 }
 
 /* ---------------- OVERVIEW ---------------- */
@@ -178,29 +187,29 @@ function buildOverview(){
      ${kpi('FY27 Forecast',crc(f.fy27_forecast),`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
    <div class="grid g2">
-     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY25-26)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need.',cv('ovTrend'))}
-     ${card('Channel split (FY26 primary)','MT is the core; EB2B &amp; SIS are emerging.',cv('ovChannel',true))}
+     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY25-26)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart to drill into Data Explorer.</span>',cv('ovTrend'))}
+     ${card('Channel split (FY26 primary)','MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('ovChannel',true))}
    </div>
    <div class="grid g2">
-     ${card('Top chains by primary NSV (FY26)','',cv('ovChains'))}
-     ${card('Brand portfolio mix (FY26 primary)','',cv('ovBrand',true))}
+     ${card('Top chains by primary NSV (FY26)','click a bar to drill',cv('ovChains'))}
+     ${card('Brand portfolio mix (FY26 primary)','click to drill',cv('ovBrand',true))}
    </div>`;
   mkLine('ovTrend',o.months,[
     {label:'Offtake (sell-out)',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22'},
     {label:'Primary FY25-26',data:[...Array(12).fill(null),...p.monthly_fy26],borderColor:C.teal,backgroundColor:C.teal+'22'},
     {label:'Primary FY24-25',data:[...p.monthly_fy25,...Array(12).fill(null)],borderColor:C.blue,dash:[5,4]},
   ]);
-  mkDonut('ovChannel',p.by_channel.map(c=>c.name),p.by_channel.map(c=>c.fy26));
+  mkDonut('ovChannel',p.by_channel.map(c=>c.name),p.by_channel.map(c=>c.fy26),true,v=>drillTo('Channel',v));
   const tc=p.by_chain.slice(0,8);
-  mkBarH('ovChains',tc.map(c=>c.name),tc.map(c=>c.fy26),C.teal);
+  mkBarH('ovChains',tc.map(c=>c.name),tc.map(c=>c.fy26),C.teal,true,v=>drillTo('Chain',v));
   const bb=p.by_brand.filter(b=>b.fy26>1);
-  mkDonut('ovBrand',bb.map(b=>b.name),bb.map(b=>b.fy26));
+  mkDonut('ovBrand',bb.map(b=>b.name),bb.map(b=>b.fy26),true,v=>drillTo('Brand',v));
 }
 
 /* ---------------- PRIMARY ---------------- */
 function buildPrimary(){
   const p=D.primary,s=document.getElementById('tab-primary'),qc=D.chain_allocation_qc;
-  const rows=p.by_chain.filter(c=>c.fy26>0).map(c=>`<tr><td>${c.name}</td><td>${cr(c.fy25)}</td><td>${cr(c.fy26)}</td>
+  const rows=p.by_chain.filter(c=>c.fy26>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${cr(c.fy25)}</td><td>${cr(c.fy26)}</td>
      <td><span class="pill ${c.yoy>=0?'g':'r'}">${pct(c.yoy)}</span></td></tr>`).join('');
   const qcNote=qc?`<p class="note" style="margin:0 0 16px">
      <b>Chain-level, not distributor-level:</b> Distributor-billed primary is split across the
@@ -226,17 +235,18 @@ function buildPrimary(){
      ${card('By channel','',cv('prChan',true))}
      ${card('By brand (FY26)','',cv('prBrand',true))}
    </div>
-   ${card('Chain-wise primary &amp; YoY (FY26)','Sorted by FY26 NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise.',`<div class="tablewrap"><table>
+   ${card('Chain-wise primary &amp; YoY (FY26)','Sorted by FY26 NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise. Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>FY25 (₹Cr)</th><th>FY26 (₹Cr)</th><th>YoY</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
+  wireDrillLinks(s);
   mkLine('prMonth',p.month_labels,[
     {label:'FY24-25',data:p.monthly_fy25,borderColor:C.blue,dash:[5,4]},
-    {label:'FY25-26',data:p.monthly_fy26,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}]);
+    {label:'FY25-26',data:p.monthly_fy26,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>drillTo('Month',v));
   mkBar('prZone',p.by_zone.map(z=>z.name),[
     {label:'FY25',data:p.by_zone.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
-    {label:'FY26',data:p.by_zone.map(z=>z.fy26),backgroundColor:C.teal,borderRadius:4}]);
-  mkDonut('prChan',p.by_channel.map(c=>c.name),p.by_channel.map(c=>c.fy26));
+    {label:'FY26',data:p.by_zone.map(z=>z.fy26),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo('Zone',v));
+  mkDonut('prChan',p.by_channel.map(c=>c.name),p.by_channel.map(c=>c.fy26),true,v=>drillTo('Channel',v));
   const bb=p.by_brand.filter(b=>b.fy26>0.5);
-  mkBarH('prBrand',bb.map(b=>b.name),bb.map(b=>b.fy26),C.purple);
+  mkBarH('prBrand',bb.map(b=>b.name),bb.map(b=>b.fy26),C.purple,true,v=>drillTo('Brand',v));
 }
 
 /* ---------------- OFFTAKE ---------------- */
@@ -244,7 +254,7 @@ function buildOfftake(){
   const o=D.offtake,p=D.primary,s=document.getElementById('tab-offtake');
   const pc={};p.by_chain.forEach(c=>pc[c.name]=c.fy26);
   const cmp=o.by_chain.filter(c=>c.fy26>50).slice(0,10);
-  const strows=o.by_state.map(r=>`<tr><td>${r.state}</td><td>${r.zone}</td><td>${cr(r.fy25)}</td><td>${cr(r.fy26)}</td>
+  const strows=o.by_state.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${cr(r.fy25)}</td><td>${cr(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
    <p class="lead">Consumer offtake from MT stores. FY24-25 vs FY25-26, ₹ Crore.</p>
@@ -256,25 +266,26 @@ function buildOfftake(){
    </div>
    <div class="grid g2">
      ${card('Monthly offtake trend','24 months, Apr-24 → Mar-26.',cv('ofTrend'))}
-     ${card('Offtake by zone (YoY)','',cv('ofZone'))}
+     ${card('Offtake by zone (YoY)','click to drill',cv('ofZone'))}
    </div>
-   ${card('Primary vs Offtake by chain (FY26) — inventory health','Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill).',cv('ofCmp'))}
-   ${card('State-wise offtake YoY','Quarterly pivot rolled to annual.',`<div class="tablewrap"><table>
+   ${card('Primary vs Offtake by chain (FY26) — inventory health','Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill). Click a chain to drill.',cv('ofCmp'))}
+   ${card('State-wise offtake YoY','Quarterly pivot rolled to annual. Click a zone to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>State</th><th>Zone</th><th>FY25 (₹Cr)</th><th>FY26 (₹Cr)</th><th>YoY</th></tr></thead><tbody>${strows}</tbody></table></div>`)}`;
+  wireDrillLinks(s);
   mkLine('ofTrend',o.months,[{label:'Offtake',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22',fill:true}]);
   mkBar('ofZone',o.by_zone.map(z=>z.name),[
     {label:'FY25',data:o.by_zone.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
-    {label:'FY26',data:o.by_zone.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}]);
+    {label:'FY26',data:o.by_zone.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Zone',v));
   mkBar('ofCmp',cmp.map(c=>c.name),[
     {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
-    {label:'Offtake (sell-out)',data:cmp.map(c=>c.fy26),backgroundColor:C.amber,borderRadius:4}]);
+    {label:'Offtake (sell-out)',data:cmp.map(c=>c.fy26),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
 }
 
 /* ---------------- P&L ---------------- */
 function buildPnl(){
   const pl=D.pnl,s=document.getElementById('tab-pnl');
   const top=pl.by_chain.filter(c=>c.nsv>50).slice(0,12);
-  const rows=pl.by_chain.filter(c=>c.nsv>0).map(c=>`<tr><td>${c.name}</td><td>${cr(c.mrp)}</td><td>${cr(c.nsv)}</td>
+  const rows=pl.by_chain.filter(c=>c.nsv>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${cr(c.mrp)}</td><td>${cr(c.nsv)}</td>
      <td>${cr(c.discount)}</td><td>${c.discount_pct==null?'–':c.discount_pct+'%'}</td>
      <td>${c.promos||0}</td><td>${c.promo_depth==null?'–':c.promo_depth+'%'}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
@@ -287,17 +298,19 @@ function buildPnl(){
      ${kpi('Promo Lines',D.promo.n_promos,`${D.promo.avg_depth}% avg consumer depth`)}
    </div>
    <div class="grid g2">
-     ${card('Gross-to-net by chain (FY26)','Net NSV vs the MRP→NSV gap (margin + taxes + trade).',cv('plBridge'))}
-     ${card('Trade-discount intensity (%) by chain','Higher = deeper gross-to-net gap — review spend ROI.',cv('plDisc'))}
+     ${card('Gross-to-net by chain (FY26)','Net NSV vs the MRP→NSV gap (margin + taxes + trade). Click a chain to drill.',cv('plBridge'))}
+     ${card('Trade-discount intensity (%) by chain','Higher = deeper gross-to-net gap — review spend ROI. Click to drill.',cv('plDisc'))}
    </div>
-   ${card('Chain-wise trade P&amp;L','MRP value, net NSV, the gap, and promo activity per chain (FY26).',`<div class="tablewrap"><table>
+   ${card('Chain-wise trade P&amp;L','MRP value, net NSV, the gap, and promo activity per chain (FY26). Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>MRP (₹Cr)</th><th>NSV (₹Cr)</th><th>Gap (₹Cr)</th><th>Gap %</th><th>Promos</th><th>Avg depth</th></tr></thead>
      <tbody>${rows}</tbody></table></div>`)}`;
+  wireDrillLinks(s);
   mkBar('plBridge',top.map(c=>c.name),[
     {label:'Net NSV',data:top.map(c=>c.nsv),backgroundColor:C.teal,borderRadius:4,stack:'s'},
     {label:'MRP→NSV gap',data:top.map(c=>c.discount),backgroundColor:C.sand,borderRadius:4,stack:'s'}],
-    {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}}}}});
-  mkBarH('plDisc',top.map(c=>c.name),top.map(c=>c.discount_pct),C.red,false);
+    {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>'₹'+cr(v)}}}}},
+    v=>drillTo('Chain',v));
+  mkBarH('plDisc',top.map(c=>c.name),top.map(c=>c.discount_pct),C.red,false,v=>drillTo('Chain',v));
   // override tick formatting for percent chart
   const ch=charts[charts.length-1];ch.options.scales.x.ticks.callback=v=>v+'%';
   ch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';ch.update();
@@ -326,7 +339,7 @@ function buildShare(){
   const u=D.universe,p=D.primary,s=document.getElementById('tab-share');
   const tot=p.nsv_fy26;
   const sob=p.by_chain.filter(c=>c.fy26>0).slice(0,10).map(c=>({name:c.name,share:c.fy26/tot*100,v:c.fy26}));
-  const sobRows=sob.map(c=>`<tr><td>${c.name}</td><td>${cr(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
+  const sobRows=sob.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${cr(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Market Share</h2>
    <p class="lead">Share-of-business across MT chains (FY26 primary).
      <b>Note:</b> external category share vs competitors is not in the source data; this view shows internal
@@ -337,16 +350,17 @@ function buildShare(){
      ${kpi('Active Chains',p.by_chain.filter(c=>c.fy26>0).length,'with FY26 billing')}
      ${kpi('Chains Tracked (Universe)',u.by_chain.length+'+','with active doors')}
    </div>
-   ${card('Share of business by chain (FY26 primary)','',cv('shSob'))}
-   ${card('Share-of-business league table (FY26 primary)','',`<div class="tablewrap"><table>
+   ${card('Share of business by chain (FY26 primary)','click a slice to drill',cv('shSob'))}
+   ${card('Share-of-business league table (FY26 primary)','Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>NSV (₹Cr)</th><th>Share</th></tr></thead><tbody>${sobRows}</tbody></table></div>`)}`;
-  mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v));
+  wireDrillLinks(s);
+  mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v),true,v=>drillTo('Chain',v));
 }
 
 /* ---------------- DISTRIBUTION ---------------- */
 function buildDistribution(){
   const u=D.universe,s=document.getElementById('tab-distribution');
-  const rows=u.by_chain.map(c=>`<tr><td>${c.name}</td><td>${num(c.stores)}</td>
+  const rows=u.by_chain.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.stores)}</td>
      <td>${(c.stores/u.active_stores*100).toFixed(1)}%</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Distribution</h2>
    <p class="lead">MT store universe — distribution footprint by zone, city category, chain and store type.</p>
@@ -357,18 +371,19 @@ function buildDistribution(){
      ${kpi('Metro Coverage',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro stores')}
    </div>
    <div class="grid g2">
-     ${card('Distribution by zone (active stores)','',cv('dZone',true))}
+     ${card('Distribution by zone (active stores)','click to drill',cv('dZone',true))}
      ${card('Stores by city category','',cv('dCity',true))}
    </div>
    <div class="grid g2">
-     ${card('Stores by chain (top 10)','',cv('dChain',true))}
+     ${card('Stores by chain (top 10)','click to drill',cv('dChain',true))}
      ${card('Stores by store type','',cv('dType',true))}
    </div>
-   ${card('Store count by chain (all active)','',`<div class="tablewrap"><table>
+   ${card('Store count by chain (all active)','Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>Active Stores</th><th>Share</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
-  mkBarH('dZone',u.by_zone.map(z=>z.name),u.by_zone.map(z=>z.stores),C.teal,false);
+  wireDrillLinks(s);
+  mkBarH('dZone',u.by_zone.map(z=>z.name),u.by_zone.map(z=>z.stores),C.teal,false,v=>drillTo('Zone',v));
   mkDonut('dCity',u.by_citycat.map(c=>c.name),u.by_citycat.map(c=>c.stores),false);
-  mkBarH('dChain',u.by_chain.slice(0,10).map(c=>c.name),u.by_chain.slice(0,10).map(c=>c.stores),C.blue,false);
+  mkBarH('dChain',u.by_chain.slice(0,10).map(c=>c.name),u.by_chain.slice(0,10).map(c=>c.stores),C.blue,false,v=>drillTo('Chain',v));
   mkBarH('dType',u.by_storetype.map(t=>t.name),u.by_storetype.map(t=>t.stores),C.purple,false);
 }
 
@@ -381,8 +396,8 @@ function buildCategory(){
   const byCat=grp(REC,'Category'), bySub=grp(REC,'SubCategory'), byPack=grp(REC,'PackSize');
   const totNSV=REC.reduce((a,r)=>a+r.NSV,0);
   const topArt=[...REC].sort((a,b)=>b.NSV-a.NSV).slice(0,20);
-  const artRows=topArt.map(r=>`<tr><td>${r.Article}</td><td>${r.Category}</td><td>${r.SubCategory}</td>
-     <td>${r.PackSize}</td><td>${cr(r.NSV)}</td><td>${num(r.Qty)}</td></tr>`).join('');
+  const artRows=topArt.map(r=>`<tr><td>${drillLink('Article',r.Article)}</td><td>${drillLink('Category',r.Category)}</td><td>${drillLink('SubCategory',r.SubCategory)}</td>
+     <td>${drillLink('PackSize',r.PackSize)}</td><td>${cr(r.NSV)}</td><td>${num(r.Qty)}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Category &amp; Pack</h2>
    <p class="lead">NSV performance by Category, Sub-category and Pack Size, from the article-level primary detail.</p>
    ${rep}
@@ -393,24 +408,25 @@ function buildCategory(){
      ${kpi('Top Pack Size',byPack[0]?byPack[0][0]:'–',byPack[0]?crc(byPack[0][1]):'')}
    </div>
    <div class="grid g2">
-     ${card('NSV by Category','',cv('catCat'))}
-     ${card('NSV by Sub-category','',cv('catSub',true))}
+     ${card('NSV by Category','click a slice to drill',cv('catCat'))}
+     ${card('NSV by Sub-category','click a bar to drill',cv('catSub',true))}
    </div>
-   ${card('NSV by Pack Size','',cv('catPack',true))}
-   ${card(`Top 20 articles by NSV`,'',`<div class="tablewrap"><table><thead><tr>
+   ${card('NSV by Pack Size','click a bar to drill',cv('catPack',true))}
+   ${card(`Top 20 articles by NSV`,'Click Article/Category/Sub-cat/Pack to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Article</th><th>Category</th><th>Sub-cat</th><th>Pack</th><th>NSV (₹Cr)</th><th>Qty</th>
      </tr></thead><tbody>${artRows||'<tr><td colspan="6">No records.</td></tr>'}</tbody></table></div>`)}`;
+  wireDrillLinks(s);
   if(REC.length){
-    mkDonut('catCat',byCat.map(x=>x[0]),byCat.map(x=>x[1]));
-    mkBarH('catSub',bySub.slice(0,12).map(x=>x[0]),bySub.slice(0,12).map(x=>x[1]),C.teal);
-    mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue);
+    mkDonut('catCat',byCat.map(x=>x[0]),byCat.map(x=>x[1]),true,v=>drillTo('Category',v));
+    mkBarH('catSub',bySub.slice(0,12).map(x=>x[0]),bySub.slice(0,12).map(x=>x[1]),C.teal,true,v=>drillTo('SubCategory',v));
+    mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
   }
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
 function buildPromo(){
   const pr=D.promo,s=document.getElementById('tab-promo');
-  const rows=pr.by_chain.map(c=>`<tr><td>${c.name}</td><td>${num(c.promos)}</td>
+  const rows=pr.by_chain.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.promos)}</td>
      <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Promo &amp; Trade Spend</h2>
    <p class="lead">Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
@@ -421,23 +437,24 @@ function buildPromo(){
      ${kpi('Brands Covered',pr.by_brand.length,'in the promo calendar')}
    </div>
    <div class="grid g2">
-     ${card('Promo count by chain','',cv('prmChain'))}
-     ${card('Avg consumer depth (%) by chain','',cv('prmDepth',true))}
+     ${card('Promo count by chain','click to drill',cv('prmChain'))}
+     ${card('Avg consumer depth (%) by chain','click to drill',cv('prmDepth',true))}
    </div>
    <div class="grid g2">
-     ${card('Promo count by brand','',cv('prmBrand',true))}
-     ${card('Promo count by category','',cv('prmCat',true))}
+     ${card('Promo count by brand','click to drill',cv('prmBrand',true))}
+     ${card('Promo count by category','click to drill',cv('prmCat',true))}
    </div>
-   ${card('Chain-wise promo activity','',`<div class="tablewrap"><table><thead><tr>
+   ${card('Chain-wise promo activity','Click a chain to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Chain</th><th>Promos</th><th>Avg Depth</th><th>Brands</th></tr></thead>
      <tbody>${rows}</tbody></table></div>`)}`;
+  wireDrillLinks(s);
   const top=pr.by_chain.slice(0,12);
-  mkBar('prmChain',top.map(c=>c.name),[{label:'Promos',data:top.map(c=>c.promos),backgroundColor:C.teal,borderRadius:4}],{money:false});
-  mkBarH('prmDepth',top.map(c=>c.name),top.map(c=>c.avg_depth),C.amber,false);
+  mkBar('prmChain',top.map(c=>c.name),[{label:'Promos',data:top.map(c=>c.promos),backgroundColor:C.teal,borderRadius:4}],{money:false},v=>drillTo('Chain',v));
+  mkBarH('prmDepth',top.map(c=>c.name),top.map(c=>c.avg_depth),C.amber,false,v=>drillTo('Chain',v));
   const ch=charts[charts.length-1];ch.options.scales.x.ticks.callback=v=>v+'%';
   ch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';ch.update();
-  mkBarH('prmBrand',pr.by_brand.map(b=>b.name),pr.by_brand.map(b=>b.promos),C.purple,false);
-  mkBarH('prmCat',pr.by_category.map(c=>c.name),pr.by_category.map(c=>c.promos),C.blue,false);
+  mkBarH('prmBrand',pr.by_brand.map(b=>b.name),pr.by_brand.map(b=>b.promos),C.purple,false,v=>drillTo('Brand',v));
+  mkBarH('prmCat',pr.by_category.map(c=>c.name),pr.by_category.map(c=>c.promos),C.blue,false,v=>drillTo('Category',v));
 }
 
 /* ---------------- INSIGHTS / WAY FORWARD ---------------- */
@@ -493,6 +510,21 @@ function renderFilterBar(){
   document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]='');onFilterChange();};
 }
 function onFilterChange(){ renderFilterBar(); buildExplorer(); show('explorer'); }
+
+// cross-tab drill-down: click any chart bar/segment/table-row on ANY tab to
+// set that one filter and jump to the Data Explorer's row-level detail —
+// makes every tab a drill-down entry point, not just the Explorer's own charts.
+function drillTo(key,value){
+  if(!FILT.some(([k])=>k===key) || value==null) return;
+  F[key]=String(value);
+  onFilterChange();
+}
+function drillLink(key,label){
+  return `<span class="drill" data-k="${key}" data-v="${String(label).replace(/"/g,'&quot;')}" title="Drill into ${label} in Data Explorer">${label}</span>`;
+}
+function wireDrillLinks(root){
+  root.querySelectorAll('.drill').forEach(el=>el.onclick=()=>drillTo(el.dataset.k, el.dataset.v));
+}
 
 let expCharts=[];
 function expDestroy(){expCharts.forEach(c=>c.destroy());expCharts=[];}

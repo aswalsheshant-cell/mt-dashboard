@@ -72,9 +72,9 @@ emits `window.DASH` into `data.js`.
 
 ## Data Explorer (drill-down & filters)
 
-A **Data Explorer** tab plus a global **filter bar** (below the header) provide
-cascading drill-down across: FY · Month (Apr→Mar) · Channel · Zone · Chain ·
-Brand · Category · Sub-category · Pack Size · Article.
+A **Data Explorer** tab plus a global **filter bar** (below the header, visible
+on every tab) provide cascading drill-down across: FY · Month (Apr→Mar) ·
+Channel · Zone · Chain · Brand · Category · Sub-category · Pack Size · Article.
 
 - **Cascading:** each dropdown's options recompute from the currently filtered set.
 - **Click-to-filter:** clicking any Explorer chart bar/segment applies that slice.
@@ -84,6 +84,23 @@ Brand · Category · Sub-category · Pack Size · Article.
 
 Data source: `DASH.detail_records` (columns: Month, FY, Channel, Zone, Chain,
 Brand, Category, SubCategory, PackSize, Article, NSV, MRP, Qty).
+
+### Every tab drills down — not just the Explorer
+Every leadership tab (Overview, Primary, Offtake, P&L, Category & Pack, Promo &
+Trade Spend, Market Share, Distribution) has its own **click-to-drill**
+charts and clickable table cells (dashed underline = clickable). Clicking a
+chain bar, brand slice, zone, category, pack size or article — on **any**
+tab — sets that one filter and jumps to the Data Explorer's row-level detail
+for that slice, exactly like clicking a Explorer chart does. Chips in the
+filter bar (or **Reset filters**) drill back up. This makes the whole
+dashboard one connected drill-down surface instead of the Explorer tab being
+a separate, disconnected view.
+
+Two tabs are intentionally **not** wired to this (data limitation, not an
+oversight): **Forecast** (a time projection, not a dimension breakdown) and
+parts of **Distribution**/**Promo** that group by fields the row-level detail
+doesn't carry (City Category, Store Type — those come from the Universe file,
+which has no article-level grain).
 
 > The shipped `detail_records` is **representative**: Chain/Brand/Zone/Channel/
 > Month/FY totals are anchored to the real primary aggregates, while Category,
