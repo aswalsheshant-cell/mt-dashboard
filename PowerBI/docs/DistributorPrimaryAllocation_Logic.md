@@ -367,3 +367,19 @@ Chain Art", dropped into `RawDataFolders\`):**
 - Verified against the real files (Python mirror of the same logic in
   `scripts/build_dashboard_data.py`): **zero variance** on NSV / Total MRP
   sales / Inv Qty / Tax, overall and by Month and by Brand.
+
+### Nearest-month fallback + patch-proposal workflow (2026-07-04)
+
+Keys with primary billing but no cont-sheet entry for that exact month now
+use the **same Ship-To × Brand's split from the nearest month within ±3
+months** (still the business's own secondary data, never an invented mix) —
+QC-tagged `Mapped (nearest YYYY-MM)`, never silently blended. Rows with no
+cont data at all stay `Unmapped Chain`.
+
+Every build regenerates **`SeedData/Mapping/DistCont_Patch_Proposed.csv`** —
+one reviewable row per proposed cont-sheet addition (nearest-month copies at
+Medium confidence; name-inferred single-chain proposals like Guardian(DL) at
+LOW confidence; `<<FILL>>` where business input is required). **Paste the
+approved rows into the cont xlsx** to make the fix permanent: the exact-month
+match then takes over, the fallback stops firing, and Power BI (query 41,
+which reads only the xlsx) picks the fix up too.

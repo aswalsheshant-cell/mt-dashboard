@@ -650,8 +650,11 @@ function allocSectionHtml(){
         Original Dist. primary input equals allocated output on all four measures (NSV, Total MRP sales, Inv Qty, Tax).
         Cont%s are normalised to sum to exactly 100% per Ship-To × Brand × Month, so reconciliation holds at every
         grain by construction — verified overall, by Month and by Brand below.
-        ${al.rows_unmapped?`<b>${num(al.rows_unmapped)} rows (${crc(al.unmapped_nsv)}) have no cont-sheet entry</b> and are kept under
-        "Unmapped Chain" (never dropped, never blank) — see the missing-mapping table.`:''}</div>`
+        ${al.rows_nearest?` <b>${num(al.rows_nearest)} rows (${crc(al.nearest_nsv)}) used the same distributor's split from the
+        nearest month</b> (no cont-sheet entry for that exact month; QC-tagged, and proposed as permanent rows in
+        <code>${al.patch_file}</code> for sign-off).`:''}
+        ${al.rows_unmapped?` <b>${num(al.rows_unmapped)} rows (${crc(al.unmapped_nsv)}) have no cont-sheet data at all</b> and are kept under
+        "Unmapped Chain" (never dropped, never blank) — see the missing-mapping table and the patch file's proposals.`:''}</div>`
     :`<div class="repbanner"><b>Reconciliation variance detected</b> — check the summary below.</div>`;
   return `<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Distributor primary → Chain allocation (Customer × Article)</h3>
    <p class="note" style="margin:0 0 10px">${al.method}</p>
@@ -665,7 +668,9 @@ function allocSectionHtml(){
      ${card('Allocation counters','',`<div class="tablewrap"><table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
        <tr><td>Dist. rows in → out (after chain split)</td><td>${num(al.dist_rows_in)} → ${num(al.dist_rows_out)}</td></tr>
        <tr><td>Chains allocated to</td><td>${num(al.chains_allocated_to)}</td></tr>
-       <tr><td>Rows with no cont-sheet mapping ("Unmapped Chain")</td><td>${num(al.rows_unmapped)} (${crc(al.unmapped_nsv)})</td></tr>
+       <tr><td>Rows allocated via nearest-month split (QC-tagged)</td><td>${num(al.rows_nearest||0)} (${crc(al.nearest_nsv||0)})</td></tr>
+       <tr><td>Rows with no cont-sheet data at all ("Unmapped Chain")</td><td>${num(al.rows_unmapped)} (${crc(al.unmapped_nsv)})</td></tr>
+       <tr><td>Pending cont-sheet patch proposals for sign-off</td><td>${num(al.patch_rows||0)} rows → <code>${al.patch_file||''}</code></td></tr>
        <tr><td>Rows missing Avg Tot / TOT%</td><td>${num(al.missing_avg_tot_rows)}</td></tr>
        <tr><td>Cont% keys not summing to 100 (pre-normalisation)</td><td>${num(contBad)}</td></tr>
        <tr><td>Rows where Chain = Ship To Name (source issue, Direct rows)</td><td>${num(al.rows_chain_equals_shipto)}</td></tr>

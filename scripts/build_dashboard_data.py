@@ -1486,9 +1486,75 @@ def load_dist_cont_weights(src):
                 for k, v in w.groupby(["_st", "_bl", "_pm"])["_pct"].sum().items()}
     w["_frac"] = w["_pct"] / key_sums
     w["_AllocChainRaw"] = w["Chain Name"].astype(str).str.strip()
-    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac"]].copy(), raw_sums
+    # raw-case names carried through for the auto-generated patch-proposal CSV
+    w["_ShipToRaw"] = w["Ship To Name"].astype(str).str.strip()
+    w["_BrandRaw"] = w["Brand"].astype(str).str.strip()
+    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums
 
 _ALLOC_MEASURES = ["_Qty", "_MRP", "_NSV", "_TaxLOC"]   # scaled by cont%; _ArtMRP (per-unit) is NOT
+
+def _infer_chain_from_name(shipto):
+    """LOW-confidence, patch-proposal-ONLY heuristic (never used by the live
+    allocation): if a ship-to's own name contains a known chain alias as a
+    whole word (>=5 chars, so 'more'/'vmm' can't false-positive), propose that
+    chain at 100%. E.g. 'Guardian Healthcare Services Pvt Ltd(DL)' -> Guardian."""
+    s = re.sub(r"[^a-z0-9]+", " ", str(shipto).lower())
+    for canon, aliases in CHAIN_ALIASES:
+        for a in aliases:
+            a = a.strip().lower()
+            if len(a) >= 5 and re.search(r"\b" + re.escape(a) + r"\b", s):
+                return canon
+    return None
+
+def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
+    """Regenerate SeedData/Mapping/DistCont_Patch_Proposed.csv on every build:
+    one reviewable row per proposed cont-sheet addition, in the cont sheet's
+    own column layout plus Confidence/Basis. Two kinds of proposals:
+      * nearest-month keys -- the SAME ship-to x brand's real secondary split
+        copied from the nearest month, re-dated to the missing month (these
+        are what the live nearest-month tier already uses; approving them
+        into the xlsx makes the fix permanent and Power-BI-visible);
+      * fully-unmapped ship-tos -- a 100% single-chain proposal when the
+        ship-to's own name contains a known chain (LOW confidence), else a
+        '<<FILL>>' placeholder requiring business input.
+    Returns (row_count, repo-relative path). The file is PROPOSALS only --
+    edits belong in the cont xlsx, so regenerating this file is always safe;
+    once the xlsx has the rows, the gap disappears and so does the proposal."""
+    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistCont_Patch_Proposed.csv"
+    def fy_of(pm):
+        y, m = int(pm[:4]), int(pm[5:7])
+        yy = y % 100
+        return f"FY_{yy:02d}-{yy+1:02d}" if m >= 4 else f"FY_{yy-1:02d}-{yy:02d}"
+    rows = []
+    for k in sorted(key_tier, key=str):
+        st, bl, pm = k
+        tier = key_tier[k]
+        if tier.startswith("nearest"):
+            near = key_eff[k]
+            src = wdf[(wdf["_st"] == st) & (wdf["_bl"] == bl) & (wdf["_pm"] == near)]
+            # consolidate per chain -- the cont sheet can carry several rows per
+            # chain within one key (state/zone splits); one clean row per chain
+            # is what the business reviews and pastes back
+            for chain, g in src.groupby("_AllocChainRaw"):
+                rows.append([g["_ShipToRaw"].iloc[0], "Dist.", chain, g["_BrandRaw"].iloc[0],
+                             f"{pm}-01", fy_of(pm), "MT", round(float(g["_frac"].sum()) * 100, 4),
+                             "Medium", f"Copied from {near} secondary split (nearest month with data)"])
+        elif tier == "unmapped" and pm is not None:
+            sub = dist[(dist["_st"] == st) & (dist["_bl"] == bl)]
+            ship_raw = sub["_CustName"].iloc[0] if len(sub) else st
+            brand_raw = str(sub["brand"].iloc[0]).strip() if len(sub) else bl
+            guess = _infer_chain_from_name(ship_raw)
+            rows.append([ship_raw, "Dist.", guess or "<<FILL: chain unknown>>", brand_raw,
+                         f"{pm}-01", fy_of(pm), "MT", 100,
+                         "LOW" if guess else "REQUIRED",
+                         ("Name inference: ship-to name contains this chain -- CONFIRM before use"
+                          if guess else "No secondary data for this ship-to in ANY month -- business input required")])
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        wcsv = csv.writer(fh, quoting=csv.QUOTE_MINIMAL)
+        wcsv.writerow(["Ship To Name", "Direct/Distributor", "Chain Name", "Brand", "Revised month",
+                       "FY", "Channel", "Secondary contribution %", "Confidence", "Basis"])
+        wcsv.writerows(rows)
+    return len(rows), "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv"
 
 def allocate_dist_primary(df, wdf, raw_sums):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
@@ -1515,7 +1581,38 @@ def allocate_dist_primary(df, wdf, raw_sums):
     dist["_pm"] = dist["Month"].map(_month_period)
 
     orig = dist.copy()   # pre-allocation snapshot for reconciliation
-    merged = dist.merge(wdf, on=["_st", "_bl", "_pm"], how="left")
+
+    # ---- tiered key resolution (uses ONLY the business's own secondary splits,
+    # never an invented chain mix):
+    #   exact    -- (ShipTo, Brand, Month) present in the cont sheet
+    #   nearest  -- same ShipTo x Brand, NEAREST month within +/-3 months
+    #               (distributor chain mix is a slow-moving ratio; using the
+    #               adjacent month's REAL split beats parking real sales under
+    #               "Unmapped Chain" -- and every such row is QC-tagged
+    #               "Mapped (nearest Mon'YY)", never silently blended in)
+    #   unmapped -- no cont data for that ShipTo x Brand within the window
+    _pm_ord = lambda pm: int(pm[:4]) * 12 + int(pm[5:7])
+    wkeys = set(zip(wdf["_st"], wdf["_bl"], wdf["_pm"]))
+    avail = {}
+    for st, bl, pm in wkeys:
+        avail.setdefault((st, bl), []).append(pm)
+    key_eff, key_tier = {}, {}
+    for k in set(zip(dist["_st"], dist["_bl"], dist["_pm"])):
+        st, bl, pm = k
+        if pm is not None and k in wkeys:
+            key_eff[k], key_tier[k] = pm, "exact"
+        else:
+            months = avail.get((st, bl))
+            near = min(months, key=lambda m: abs(_pm_ord(m) - _pm_ord(pm))) if (months and pm) else None
+            if near is not None and abs(_pm_ord(near) - _pm_ord(pm)) <= 3:
+                key_eff[k], key_tier[k] = near, f"nearest {near}"
+            else:
+                key_eff[k], key_tier[k] = None, "unmapped"
+    kseries = list(zip(dist["_st"], dist["_bl"], dist["_pm"]))
+    dist["_pm_eff"] = [key_eff[k] for k in kseries]
+    dist["_tier"] = [key_tier[k] for k in kseries]
+
+    merged = dist.merge(wdf.rename(columns={"_pm": "_pm_eff"}), on=["_st", "_bl", "_pm_eff"], how="left")
     matched = merged["_frac"].notna()
     for c in _ALLOC_MEASURES:
         merged[c] = merged[c].astype("float64")   # Qty reads back int64; fractional split needs float
@@ -1553,14 +1650,18 @@ def allocate_dist_primary(df, wdf, raw_sums):
     # ---- QC table at Month x Brand x Cust-SAP Code x Ship To Name grain ----
     qkey = ["_FY", "_M", "_Brand", "_CustCode", "_CustName"]
     o_g, a_g = orig.groupby(qkey), merged.groupby(qkey)
-    unmapped_keys = set(map(tuple, merged.loc[~matched, qkey].drop_duplicates().values))
+    tier_by_qkey = {k: d["_tier"].iloc[0] for k, d in merged.groupby(qkey)}
     qc_rows = []
     for row in recon_rows(o_g, a_g,
             lambda k: {"fy": k[0], "month": k[1], "brand": k[2], "cust_code": k[3], "ship_to": k[4]}):
         key = (row["fy"], row["month"], row["brand"], row["cust_code"], row["ship_to"])
-        row["mapping_status"] = "Unmapped Chain" if key in unmapped_keys else "Mapped"
+        t = tier_by_qkey.get(key, "exact")
+        row["mapping_status"] = ("Unmapped Chain" if t == "unmapped"
+                                 else "Mapped" if t == "exact" else f"Mapped ({t})")
         qc_rows.append(row)
-    qc_rows.sort(key=lambda r: (r["mapping_status"] != "Unmapped Chain", -(abs(r["orig_nsv"] or 0))))
+    qc_rows.sort(key=lambda r: (0 if r["mapping_status"] == "Unmapped Chain"
+                                else 1 if r["mapping_status"] != "Mapped" else 2,
+                                -(abs(r["orig_nsv"] or 0))))
 
     # ---- missing-mapping table (per unmapped ShipTo x Brand x Month, with impact) ----
     um = merged[~matched]
@@ -1570,7 +1671,12 @@ def allocate_dist_primary(df, wdf, raw_sums):
     missing.sort(key=lambda r: -(abs(r["nsv"] or 0)))
 
     cont_bad = {" | ".join(map(str, k)): v for k, v in (raw_sums or {}).items() if abs(v - 100) > 0.5}
-    merged.drop(columns=["_st", "_bl", "_pm", "_AllocChainRaw", "_ChainDash", "_frac"], inplace=True)
+    is_near = merged["_tier"].str.startswith("nearest")
+    rows_nearest = int(is_near.sum())
+    nearest_nsv = r2(float(merged.loc[is_near, "_NSV"].sum()))
+    patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist)
+    merged.drop(columns=["_st", "_bl", "_pm", "_pm_eff", "_tier", "_AllocChainRaw",
+                         "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True)
     direct.drop(columns=["_ChainDash"], inplace=True)
     merged["_IsDist"] = True
     direct["_IsDist"] = False
@@ -1580,24 +1686,33 @@ def allocate_dist_primary(df, wdf, raw_sums):
         "dist_rows_in": int(len(orig)), "dist_rows_out": int(len(merged)),
         "rows_unmapped": int((~matched).sum()),
         "unmapped_nsv": r2(float(um["_NSV"].sum())),
+        "rows_nearest": rows_nearest,
+        "nearest_nsv": nearest_nsv,
         "missing_avg_tot_rows": int(orig["_AvgTot"].isna().sum()),
         "chains_allocated_to": int(merged.loc[matched, "_Chain"].nunique()),
         "cont_pct_bad_keys": cont_bad,   # raw cont% sums deviating from 100 (flagged BEFORE normalisation)
         "recon": recon, "qc_table": qc_rows[:400], "qc_table_total_rows": len(qc_rows),
         "missing_mapping": missing,
+        "patch_rows": patch_rows, "patch_file": patch_path,
         "unit": "INR Lakh (values), units (qty)",
         "method": ("PO Type='Dist.' rows (blank \"Chain name for Dashboard\") are exploded across "
                    "chains by the business's own secondary-derived monthly split "
                    "(Dist_primary_cont_based_on_secondary_MOM.xlsx, sheet 'Dist Primary Conv to "
                    "Chain Art'), matched on Ship To Name x Brand x Month (the cont sheet has no "
                    "Cust-SAP Code column; the code<->ship-to bridge lives in the primary file "
-                   "itself and Cust-SAP Code is carried through every QC table). Inv Qty, Total "
-                   "MRP sales, NSV and Tax are scaled by cont% (normalised to sum to exactly "
-                   "100% per key, deviations flagged before normalisation); article MRP is "
-                   "per-unit and is NOT scaled; Avg Tot is a ratio, invariant under the split. "
-                   "Direct rows keep their own \"Chain name for Dashboard\". Dist. rows with no "
-                   "cont-sheet entry get Chain='Unmapped Chain' -- never a blank, never the "
-                   "distributor's Ship To Name."),
+                   "itself and Cust-SAP Code is carried through every QC table). Keys with no "
+                   "entry for that exact month use the SAME ship-to x brand's split from the "
+                   "NEAREST month within 3 months -- still the business's own secondary data, "
+                   "never an invented mix -- and are QC-tagged 'Mapped (nearest ...)', never "
+                   "silently blended. Inv Qty, Total MRP sales, NSV and Tax are scaled by cont% "
+                   "(normalised to sum to exactly 100% per key, deviations flagged before "
+                   "normalisation); article MRP is per-unit and is NOT scaled; Avg Tot is a "
+                   "ratio, invariant under the split. Direct rows keep their own \"Chain name "
+                   "for Dashboard\". Rows with no cont data at all get Chain='Unmapped Chain' -- "
+                   "never a blank, never the distributor's Ship To Name. A reviewable patch "
+                   "proposal (SeedData/Mapping/DistCont_Patch_Proposed.csv) is regenerated on "
+                   "every build: paste approved rows into the cont xlsx to make the fix "
+                   "permanent (this also fixes Power BI, whose query 41 reads only the xlsx)."),
     }
     return out_df, alloc
 
@@ -1965,8 +2080,10 @@ def main():
             print("DIST allocation recon (orig -> alloc, Lakh): "
                   + "; ".join(f"{m}: {ov[m]['original']} -> {ov[m]['allocated']} (var {ov[m]['variance']})"
                               for m in ("nsv", "mrp_sales", "qty", "tax"))
+                  + f"; nearest-month rows {alloc['rows_nearest']} (Rs {alloc['nearest_nsv']} L)"
                   + f"; unmapped rows {alloc['rows_unmapped']} (Rs {alloc['unmapped_nsv']} L)"
-                  + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}")
+                  + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}"
+                  + f"; patch proposals {alloc['patch_rows']} -> {alloc['patch_file']}")
         return
 
     # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----

@@ -1,0 +1,28 @@
+Ship To Name,Direct/Distributor,Chain Name,Brand,Revised month,FY,Channel,Secondary contribution %,Confidence,Basis
+Az Enterprises,Dist.,H&G,BBlunt,2025-10-01,FY_25-26,MT,92.14,Medium,Copied from 2025-11 secondary split (nearest month with data)
+Az Enterprises,Dist.,Trilife,BBlunt,2025-10-01,FY_25-26,MT,7.86,Medium,Copied from 2025-11 secondary split (nearest month with data)
+Az Enterprises,Dist.,H&G,Mamaearth,2025-10-01,FY_25-26,MT,86.1414,Medium,Copied from 2025-11 secondary split (nearest month with data)
+Az Enterprises,Dist.,Lulu,Mamaearth,2025-10-01,FY_25-26,MT,0.37,Medium,Copied from 2025-11 secondary split (nearest month with data)
+Az Enterprises,Dist.,More Retail,Mamaearth,2025-10-01,FY_25-26,MT,13.4887,Medium,Copied from 2025-11 secondary split (nearest month with data)
+Az Enterprises,Dist.,H&G,The Derma Co.,2025-10-01,FY_25-26,MT,95.0,Medium,Copied from 2025-09 secondary split (nearest month with data)
+Az Enterprises,Dist.,Lulu,The Derma Co.,2025-10-01,FY_25-26,MT,3.9,Medium,Copied from 2025-09 secondary split (nearest month with data)
+Az Enterprises,Dist.,More Retail,The Derma Co.,2025-10-01,FY_25-26,MT,1.1,Medium,Copied from 2025-09 secondary split (nearest month with data)
+Az Enterprises,Dist.,Apollo,The Derma Co.,2025-11-01,FY_25-26,MT,53.15,Medium,Copied from 2025-12 secondary split (nearest month with data)
+Az Enterprises,Dist.,B&N,The Derma Co.,2025-11-01,FY_25-26,MT,1.23,Medium,Copied from 2025-12 secondary split (nearest month with data)
+Az Enterprises,Dist.,H&G,The Derma Co.,2025-11-01,FY_25-26,MT,37.28,Medium,Copied from 2025-12 secondary split (nearest month with data)
+Az Enterprises,Dist.,Lulu,The Derma Co.,2025-11-01,FY_25-26,MT,7.77,Medium,Copied from 2025-12 secondary split (nearest month with data)
+Az Enterprises,Dist.,More Retail,The Derma Co.,2025-11-01,FY_25-26,MT,0.36,Medium,Copied from 2025-12 secondary split (nearest month with data)
+Az Enterprises,Dist.,Trilife,The Derma Co.,2025-11-01,FY_25-26,MT,0.21,Medium,Copied from 2025-12 secondary split (nearest month with data)
+Az Enterprises(Apollo/More)Mt,Dist.,More Retail,Aqualogica,2025-11-01,FY_25-26,MT,100.0,Medium,Copied from 2025-12 secondary split (nearest month with data)
+Az Enterprises(Apollo/More)Mt,Dist.,More Retail,Aqualogica,2026-04-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
+Az Enterprises(Apollo/More)Mt,Dist.,Apollo,BBlunt,2026-04-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
+Az Enterprises(Apollo/More)Mt,Dist.,More Retail,Mamaearth,2026-04-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
+Az Enterprises(Apollo/More)Mt,Dist.,H&G,The Derma Co.,2026-04-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
+CHHABRA TRADERS_Ship To,Dist.,Lulu,Mamaearth,2025-10-01,FY_25-26,MT,74.36,Medium,Copied from 2025-09 secondary split (nearest month with data)
+CHHABRA TRADERS_Ship To,Dist.,Spencer,Mamaearth,2025-10-01,FY_25-26,MT,25.64,Medium,Copied from 2025-09 secondary split (nearest month with data)
+CHHABRA TRADERS_Ship To,Dist.,VMM,Mamaearth,2026-04-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
+CHHABRA TRADERS_Ship To,Dist.,VMM,Mamaearth,2026-05-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
+Guardian Healthcare Services Pvt Ltd(DL),Dist.,Guardian,Aqualogica,2025-11-01,FY_25-26,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Guardian Healthcare Services Pvt Ltd(DL),Dist.,Guardian,Mamaearth,2025-11-01,FY_25-26,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Guardian Healthcare Services Pvt Ltd(DL),Dist.,Guardian,The Derma Co.,2025-11-01,FY_25-26,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+SAI SAACHI ASSOCIATES-MT-OR,Dist.,VMM,The Derma Co.,2026-04-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
