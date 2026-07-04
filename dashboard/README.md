@@ -57,10 +57,13 @@ all, since it's powered independently by the article-level detail rather than
 each tab's own aggregates.
 
 Two honest limits, by design, not bugs:
-- **FY26-27 ("FY27") has no actuals** in Primary/Offtake/P&L/Market Share —
-  only the article-level detail (partial) and the Forecast tab's TY target
-  do. Selecting FY27 on those tabs shows an explicit "no data" message
-  instead of silently falling back to FY26.
+- **FY26-27 actuals (Apr'26 onward) come from the article-wise primary
+  only** — the pre-aggregated FY24-26 workbook ends Mar'26. Selecting FY27
+  now renders REAL numbers on Overview / Primary / Market Share (exact,
+  chain-allocated `detail_meta.fy27_primary` aggregates, computed from the
+  FULL uncapped File 2 data) and keeps TOT%/CM2 visible on P&L. **Offtake**
+  genuinely has no FY27 (the sell-out master ends Mar'26) and still shows an
+  explicit "no data" message rather than silently falling back to FY26.
 - **Not every dimension applies to every tab** — e.g. Offtake has no
   Brand/Category breakdown in its source, Distribution's store universe
   isn't tracked by FY/Month, P&L is chain-level only. Each tab says so

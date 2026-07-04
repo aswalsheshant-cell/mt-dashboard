@@ -10,6 +10,15 @@ measures for conditional formatting. Numbers in **Lacs / Cr** (use `NSV Label`).
 Global slicer row (reuse on most pages, sync via View ▸ Sync slicers):
 `Month` · `Chain` · `Zone` · `State` · `Brand` · `Category` · `Sub-category` · `Article` · `Data Source Name`
 
+**Multi-select on every slicer:** Format pane ▸ *Slicer settings ▸ Selection* —
+set **"Multi-select with CTRL" = Off** (so plain clicks add/remove values, no
+Ctrl needed) and **"Show 'Select all'" = On**. This matches the HTML
+dashboard's multi-select filter bar (values within one slicer OR together;
+different slicers AND together). FY26-27 actuals (Apr'26+) flow automatically
+here — `Fact Primary Article` relates to the Date Table at day/month grain,
+so FY27 months appear in slicers/visuals as soon as the monthly CSVs are
+dropped in (no FY gating like the HTML dashboard's pre-aggregated blocks).
+
 **Export & data labels:** every page should get a small text box (bottom-right,
 matches the filter-summary convention above) reading *"Use File ▸ Export ▸ PDF
 to download this page with current filters applied."* Turn on data labels for

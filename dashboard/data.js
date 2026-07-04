@@ -341842,6 +341842,234 @@ window.DASH = {
   "rows_total_groups": 89398,
   "rows_kept": 20000,
   "value_coverage_pct": 95.2,
+  "fy27_primary": {
+   "nsv": 9492.6,
+   "mrp": 22050.21,
+   "months_covered": [
+    "April",
+    "May"
+   ],
+   "monthly": [
+    5076.86,
+    4415.74,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "by_chain": [
+    {
+     "name": "Dmart",
+     "nsv": 3825.23
+    },
+    {
+     "name": "Reliance Retail",
+     "nsv": 2071.02
+    },
+    {
+     "name": "Apollo",
+     "nsv": 1764.21
+    },
+    {
+     "name": "Nykaa E-Retail Limited",
+     "nsv": 438.82
+    },
+    {
+     "name": "Lulu",
+     "nsv": 281.86
+    },
+    {
+     "name": "Wellness Forever",
+     "nsv": 207.83
+    },
+    {
+     "name": "H&G",
+     "nsv": 178.77
+    },
+    {
+     "name": "VMM",
+     "nsv": 166.25
+    },
+    {
+     "name": "RMT-Sancus",
+     "nsv": 137.45
+    },
+    {
+     "name": "More Retail",
+     "nsv": 116.68
+    },
+    {
+     "name": "Metro-CNC",
+     "nsv": 102.73
+    },
+    {
+     "name": "Walmart-CNC",
+     "nsv": 46.88
+    },
+    {
+     "name": "Frankross",
+     "nsv": 25.26
+    },
+    {
+     "name": "V-Mart Retail Limited",
+     "nsv": 22.72
+    },
+    {
+     "name": "Trent Hypermarket",
+     "nsv": 22.58
+    },
+    {
+     "name": "Spencer",
+     "nsv": 14.27
+    },
+    {
+     "name": "Eremedium Private Limited",
+     "nsv": 13.86
+    },
+    {
+     "name": "Arambagh",
+     "nsv": 9.34
+    },
+    {
+     "name": "Ratnadeep",
+     "nsv": 7.14
+    },
+    {
+     "name": "Deal Share",
+     "nsv": 6.59
+    },
+    {
+     "name": "National Mart",
+     "nsv": 5.99
+    },
+    {
+     "name": "Guardian Healthcare",
+     "nsv": 5.6
+    },
+    {
+     "name": "Sumo Save",
+     "nsv": 5.21
+    },
+    {
+     "name": "Shoppers Stop",
+     "nsv": 5.2
+    },
+    {
+     "name": "Apna Mart",
+     "nsv": 4.8
+    },
+    {
+     "name": "Sasta Sundar",
+     "nsv": 3.29
+    },
+    {
+     "name": "Azorte",
+     "nsv": 2.65
+    },
+    {
+     "name": "B&N",
+     "nsv": 1.18
+    },
+    {
+     "name": "Trilife",
+     "nsv": 0.78
+    },
+    {
+     "name": "Travel News Services-Wsmith",
+     "nsv": 0.39
+    },
+    {
+     "name": "Max Hyper",
+     "nsv": 0.32
+    },
+    {
+     "name": "Medanta",
+     "nsv": 0.27
+    },
+    {
+     "name": "Travel Retail Services-Relay",
+     "nsv": -0.07
+    },
+    {
+     "name": "Sohum Shoppe",
+     "nsv": -2.51
+    }
+   ],
+   "by_zone": [
+    {
+     "name": "West",
+     "nsv": 2682.07
+    },
+    {
+     "name": "South 1",
+     "nsv": 2213.13
+    },
+    {
+     "name": "North",
+     "nsv": 2173.92
+    },
+    {
+     "name": "South 2",
+     "nsv": 1319.39
+    },
+    {
+     "name": "East",
+     "nsv": 1104.09
+    }
+   ],
+   "by_channel": [
+    {
+     "name": "MT",
+     "nsv": 9032.06
+    },
+    {
+     "name": "EB2B",
+     "nsv": 452.68
+    },
+    {
+     "name": "SIS",
+     "nsv": 7.86
+    }
+   ],
+   "by_brand": [
+    {
+     "name": "Mamaearth",
+     "nsv": 6196.78
+    },
+    {
+     "name": "The Derma Co",
+     "nsv": 3014.05
+    },
+    {
+     "name": "Aqualogica",
+     "nsv": 251.48
+    },
+    {
+     "name": "BBlunt",
+     "nsv": 13.51
+    },
+    {
+     "name": "Dr. Sheth's",
+     "nsv": 9.4
+    },
+    {
+     "name": "Lumineve",
+     "nsv": 7.69
+    },
+    {
+     "name": "Pure Origin",
+     "nsv": -0.32
+    }
+   ],
+   "unit": "INR Lakh",
+   "note": "EXACT FY26-27 primary actuals from the FULL (uncapped) article-wise primary, chain-allocated (Dist. rows split by secondary cont%). The other report blocks' source workbook ends at Mar'26, so FY27 lives only here. MRP basis = 'Total MRP sales'."
+  },
   "sis_reconciliation": {
    "FY26": {
     "summary": {
@@ -344422,14 +344650,14 @@ window.DASH = {
     "cm2_pct": 100.0
    },
    {
-    "name": "Lumineve",
+    "name": "Staze",
     "nsv": 7.69,
     "expense": 0.0,
     "cm2_value": 7.69,
     "cm2_pct": 100.0
    },
    {
-    "name": "Staze",
+    "name": "Lumineve",
     "nsv": 7.69,
     "expense": 0.0,
     "cm2_value": 7.69,

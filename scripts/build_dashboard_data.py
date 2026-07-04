@@ -1828,6 +1828,33 @@ def detail_records_real(src, max_rows=20000):
     for (fy, chan), v in ct.items():
         channel_totals.setdefault(fy, {})[chan] = float(v)
 
+    # ---- EXACT FY27 primary aggregates from the FULL allocated data: the
+    # pre-aggregated D.primary block comes from a different source workbook
+    # that ends at Mar'26, so FY26-27 actuals (Apr'26 onward) exist ONLY here
+    # in the article-wise primary. These exact (uncapped, chain-allocated)
+    # aggregates let the Overview / Primary / Market Share tabs render real
+    # FY27 numbers instead of an empty state.
+    f27 = df[df["_FY"] == "FY27"]
+    fy27_primary = None
+    if len(f27):
+        def _agg27(col):
+            s = f27.groupby(col)["_NSV"].sum().sort_values(ascending=False)
+            return [{"name": k, "nsv": r2(float(v))} for k, v in s.items() if k]
+        mser = f27.groupby("_M")["_NSV"].sum()
+        fy27_primary = {
+            "nsv": r2(float(f27["_NSV"].sum())),
+            "mrp": r2(float(f27["_MRP"].sum())),
+            "months_covered": [m for m in _ORDER if m in set(f27["_M"])],
+            "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
+            "by_chain": _agg27("_Chain"), "by_zone": _agg27("_Zone"),
+            "by_channel": _agg27("_Chan"), "by_brand": _agg27("_Brand"),
+            "unit": "INR Lakh",
+            "note": ("EXACT FY26-27 primary actuals from the FULL (uncapped) article-wise "
+                     "primary, chain-allocated (Dist. rows split by secondary cont%). The "
+                     "other report blocks' source workbook ends at Mar'26, so FY27 lives "
+                     "only here. MRP basis = 'Total MRP sales'."),
+        }
+
     # ---- SIS reconciliation drill-down: computed from the FULL data (not the
     # capped detail_records) so the numbers are exact and auditable. Business
     # reconciliation of the Rs 236 L reference figure is NOT resolved by this --
@@ -1932,7 +1959,8 @@ def detail_records_real(src, max_rows=20000):
           f"({coverage:.1f}% of total value)")
     return recs, channel_totals, sis_reconciliation, {
         "rows_total": rows_total, "rows_kept": len(recs),
-        "value_coverage_pct": round(coverage, 1)}, tot, cm2, alloc
+        "value_coverage_pct": round(coverage, 1),
+        "fy27_primary": fy27_primary}, tot, cm2, alloc
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -2011,6 +2039,9 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
         "rows_total_groups": cov["rows_total"],
         "rows_kept": cov["rows_kept"],
         "value_coverage_pct": cov["value_coverage_pct"],
+        # EXACT FY26-27 primary actuals (Apr'26+) from the article-wise
+        # primary -- the only source that has them; None if no FY27 rows.
+        "fy27_primary": cov.get("fy27_primary"),
         # {FY: {summary, by_chain, by_month, by_brand, exclusions, row_count}} —
         # SIS reconciliation drill-down, computed from the FULL uncapped source.
         # Kept for audit trail. See docs/SIS_Reconciliation.md.
