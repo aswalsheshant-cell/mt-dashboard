@@ -383,3 +383,15 @@ LOW confidence; `<<FILL>>` where business input is required). **Paste the
 approved rows into the cont xlsx** to make the fix permanent: the exact-month
 match then takes over, the fallback stops firing, and Power BI (query 41,
 which reads only the xlsx) picks the fix up too.
+
+### Applied patch log (do not delete — audit trail)
+
+| Patch ID | Date | Rows | What | Where recorded |
+|---|---|---|---|---|
+| `PATCH-2026-07-04` | 2026-07-04 | 27 | 24 adjacent-month splits (business-approved, Medium confidence) + 3 Guardian(DL) rows → 100% `Guardian Healthcare` (business clarified: Direct chain mis-tagged as Dist. in primary) | Rows tagged `PATCH-2026-07-04\|<ShipTo>\|<Brand>\|<Month>` in the cont xlsx's **Unique code** column; full row detail + approval notes in `SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv` |
+
+To find patched rows later: filter the cont sheet's Unique code column on the
+patch ID, or diff against the approved CSV. Pending upstream corrections tied
+to this patch: (1) Guardian(DL) `PO Type` → `Direct` in the primary file;
+(2) review `Guardian Healthcare-Delhi` vs `Guardian Healthcare` — normalise
+if the same chain.
