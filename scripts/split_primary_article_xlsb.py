@@ -14,6 +14,13 @@ Usage:
         "MT, Eb2B & SIS primary April_23 to May_26.xlsb" \
         "C:/MT-Dashboard/RawDataFolders/Primary_Article_Monthly"
 
+NOTE (current business format, 2026-07): the maintained file carries a
+reference/annotation row ABOVE the real header, so pass --header-row 1.
+The header also includes "Chain name\nfor Dashboard" (one cell with an
+embedded line break), MTD-Sale type, PO Type (Direct/Dist.), MRP and
+Inv. Date -- all preserved as-is by this script; PowerQuery/16 normalises
+the line break on load.
+
 Step 1 (headers only): run with --headers-only to just print the header row(s):
     python scripts/split_primary_article_xlsb.py "<file>.xlsb" --headers-only
 

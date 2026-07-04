@@ -1416,6 +1416,191 @@ def _sis_reconciliation(df):
     return out
 
 
+# --------------------------------------------------------------------------
+# DIST PRIMARY -> CHAIN ALLOCATION (Customer x Article grain)
+#
+# In the article-wise primary file, rows with PO Type = 'Dist.' have a BLANK
+# "Chain name for Dashboard" (the business maintains it only for Direct
+# rows), and the distributor's Ship To Name must NEVER be shown as a Chain.
+# Those rows are allocated to real chains using the business's own
+# secondary-derived monthly split: Dist_primary_cont_based_on_secondary_MOM
+# .xlsx, sheet "Dist Primary Conv to Chain Art", keyed Ship To Name x Brand
+# x Month with a "Secondary contribution %" per chain. NOTE: that sheet has
+# NO Cust-SAP Code column -- the code<->ship-to bridge lives in the primary
+# file itself (every primary row carries both), so matching is on the
+# normalised Ship To Name; Cust-SAP Code is retained through the allocation
+# and reported in every QC table so the code-level audit still works.
+#
+# Allocation is done ROW-LEVEL (before any grouping), so Customer x Article
+# grain is preserved: each Dist. row explodes into one row per chain, with
+# Inv Qty / Total MRP sales / NSV / Tax all scaled by that chain's cont%
+# (normalised to sum to exactly 1 per key, so totals reconcile to the input
+# by construction; keys whose RAW cont% sum deviates from 100 are flagged in
+# QC before normalisation). Article MRP is per-unit and is NOT scaled.
+# Avg Tot is a ratio (pass-on/MRP) and is invariant under proportional
+# scaling, so each exploded row keeps the source row's Avg Tot -- summed
+# aggregation downstream then yields exactly the sales-weighted Avg Tot.
+# Dist. rows with no (ShipTo x Brand x Month) entry in the cont sheet get
+# Chain = "Unmapped Chain" (never silently dropped, never left blank).
+# --------------------------------------------------------------------------
+def _month_period(v):
+    """'YYYY-MM' string from an Excel date serial, a datetime, or "May'25"
+    style text -- the year-qualified month key the cont-sheet join needs
+    (month NAME alone is ambiguous across FYs)."""
+    if hasattr(v, "year") and not isinstance(v, (str, int, float)):
+        return f"{v.year:04d}-{v.month:02d}"
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        n = float(v)
+        if 40000 <= n <= 55000:
+            d = _EXCEL_EPOCH + datetime.timedelta(days=int(n))
+            return f"{d.year:04d}-{d.month:02d}"
+    m = re.match(r"([A-Za-z]+)[''`]?(\d{2,4})", str(v).strip())
+    if m:
+        mon3 = m.group(1)[:3].title()
+        mn = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,
+              "Sep":9,"Oct":10,"Nov":11,"Dec":12}.get(mon3)
+        if mn:
+            yy = int(m.group(2)[-2:])
+            return f"{2000+yy:04d}-{mn:02d}"
+    return None
+
+def load_dist_cont_weights(src):
+    """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the cont
+    sheet, fractions normalised to sum to 1 per (ShipTo, Brand, Month) key,
+    plus {key: raw_pct_sum} for the cont%-sum-=100 QC check. Returns
+    (None, None) if the file isn't in --src (allocation is then skipped and
+    Dist. rows keep whatever chain tag the source gave them -- old behaviour)."""
+    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+    if not f.exists():
+        return None, None
+    w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
+    w.columns = [str(c).strip() for c in w.columns]
+    w = w.dropna(subset=["Ship To Name", "Chain Name", "Secondary contribution %"])
+    w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
+    w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
+    w["_pm"] = w["Revised month"].map(_month_period)
+    w["_pct"] = pd.to_numeric(w["Secondary contribution %"], errors="coerce").fillna(0.0)
+    w = w[w["_pm"].notna() & (w["_pct"] != 0)]
+    key_sums = w.groupby(["_st", "_bl", "_pm"])["_pct"].transform("sum")
+    raw_sums = {k: round(float(v), 2)
+                for k, v in w.groupby(["_st", "_bl", "_pm"])["_pct"].sum().items()}
+    w["_frac"] = w["_pct"] / key_sums
+    w["_AllocChainRaw"] = w["Chain Name"].astype(str).str.strip()
+    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac"]].copy(), raw_sums
+
+_ALLOC_MEASURES = ["_Qty", "_MRP", "_NSV", "_TaxLOC"]   # scaled by cont%; _ArtMRP (per-unit) is NOT
+
+def allocate_dist_primary(df, wdf, raw_sums):
+    """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
+    every row of `df` (Direct rows keep their own "Chain name for Dashboard").
+    Returns (new_df, alloc_block) where alloc_block carries the full
+    reconciliation/QC payload for the dashboard, or (df-with-_Chain, None)
+    when the file has no PO Type column or no cont sheet was found."""
+    chain_col = "Chain name for Dashboard" if "Chain name for Dashboard" in df.columns \
+        else ("Chain name" if "Chain name" in df.columns else None)
+    df["_ChainDash"] = df[chain_col].map(canon_chain) if chain_col else None
+    if "PO Type" not in df.columns or wdf is None:
+        df["_Chain"] = df["_ChainDash"]
+        df.drop(columns=["_ChainDash"], inplace=True)
+        return df, None
+
+    is_dist = df["PO Type"].astype(str).str.strip().str.lower().isin(["dist.", "dist"])
+    direct = df[~is_dist].copy()
+    direct["_Chain"] = direct["_ChainDash"]
+    dist = df[is_dist].copy()
+
+    # join keys (year-qualified month; ship-to + brand case/space-insensitive)
+    dist["_st"] = dist["_CustName"].str.lower()
+    dist["_bl"] = dist["brand"].astype(str).str.strip().str.lower()
+    dist["_pm"] = dist["Month"].map(_month_period)
+
+    orig = dist.copy()   # pre-allocation snapshot for reconciliation
+    merged = dist.merge(wdf, on=["_st", "_bl", "_pm"], how="left")
+    matched = merged["_frac"].notna()
+    for c in _ALLOC_MEASURES:
+        merged[c] = merged[c].astype("float64")   # Qty reads back int64; fractional split needs float
+        merged.loc[matched, c] = merged.loc[matched, c] * merged.loc[matched, "_frac"]
+    merged["_Chain"] = "Unmapped Chain"
+    merged.loc[matched, "_Chain"] = merged.loc[matched, "_AllocChainRaw"].map(canon_chain)
+    merged["_frac"] = merged["_frac"].fillna(1.0)
+
+    # ---- reconciliation: original Dist. input vs allocated output ----
+    def sums(d):
+        return {"qty": float(d["_Qty"].sum()), "mrp_sales": float(d["_MRP"].sum()),
+                "nsv": float(d["_NSV"].sum()), "tax": float(d["_TaxLOC"].fillna(0).sum())}
+    def recon_rows(dim_orig, dim_alloc, labeler):
+        out = []
+        for k in sorted(set(dim_orig.groups) | set(dim_alloc.groups), key=str):
+            o = sums(dim_orig.get_group(k)) if k in dim_orig.groups else {x: 0.0 for x in ("qty","mrp_sales","nsv","tax")}
+            a = sums(dim_alloc.get_group(k)) if k in dim_alloc.groups else {x: 0.0 for x in ("qty","mrp_sales","nsv","tax")}
+            out.append({**labeler(k),
+                        "orig_nsv": r2(o["nsv"]), "alloc_nsv": r2(a["nsv"]), "nsv_var": r2(a["nsv"]-o["nsv"]),
+                        "orig_qty": int(round(o["qty"])), "alloc_qty": int(round(a["qty"])), "qty_var": r2(a["qty"]-o["qty"]),
+                        "orig_mrp": r2(o["mrp_sales"]), "alloc_mrp": r2(a["mrp_sales"]), "mrp_var": r2(a["mrp_sales"]-o["mrp_sales"]),
+                        "orig_tax": r2(o["tax"]), "alloc_tax": r2(a["tax"]), "tax_var": r2(a["tax"]-o["tax"])})
+        return out
+
+    o_tot, a_tot = sums(orig), sums(merged)
+    recon = {
+        "overall": {m: {"original": r2(o_tot[m]), "allocated": r2(a_tot[m]),
+                        "variance": r2(a_tot[m] - o_tot[m])} for m in o_tot},
+        "by_month": recon_rows(orig.groupby(["_FY", "_M"]), merged.groupby(["_FY", "_M"]),
+                               lambda k: {"fy": k[0], "month": k[1]}),
+        "by_brand": recon_rows(orig.groupby("_Brand"), merged.groupby("_Brand"),
+                               lambda k: {"brand": k}),
+    }
+
+    # ---- QC table at Month x Brand x Cust-SAP Code x Ship To Name grain ----
+    qkey = ["_FY", "_M", "_Brand", "_CustCode", "_CustName"]
+    o_g, a_g = orig.groupby(qkey), merged.groupby(qkey)
+    unmapped_keys = set(map(tuple, merged.loc[~matched, qkey].drop_duplicates().values))
+    qc_rows = []
+    for row in recon_rows(o_g, a_g,
+            lambda k: {"fy": k[0], "month": k[1], "brand": k[2], "cust_code": k[3], "ship_to": k[4]}):
+        key = (row["fy"], row["month"], row["brand"], row["cust_code"], row["ship_to"])
+        row["mapping_status"] = "Unmapped Chain" if key in unmapped_keys else "Mapped"
+        qc_rows.append(row)
+    qc_rows.sort(key=lambda r: (r["mapping_status"] != "Unmapped Chain", -(abs(r["orig_nsv"] or 0))))
+
+    # ---- missing-mapping table (per unmapped ShipTo x Brand x Month, with impact) ----
+    um = merged[~matched]
+    missing = [{"fy": k[0], "month": k[1], "brand": k[2], "cust_code": k[3], "ship_to": k[4],
+                "nsv": r2(float(d["_NSV"].sum())), "rows": int(len(d))}
+               for k, d in um.groupby(qkey)]
+    missing.sort(key=lambda r: -(abs(r["nsv"] or 0)))
+
+    cont_bad = {" | ".join(map(str, k)): v for k, v in (raw_sums or {}).items() if abs(v - 100) > 0.5}
+    merged.drop(columns=["_st", "_bl", "_pm", "_AllocChainRaw", "_ChainDash", "_frac"], inplace=True)
+    direct.drop(columns=["_ChainDash"], inplace=True)
+    merged["_IsDist"] = True
+    direct["_IsDist"] = False
+    out_df = pd.concat([direct, merged], ignore_index=True)
+
+    alloc = {
+        "dist_rows_in": int(len(orig)), "dist_rows_out": int(len(merged)),
+        "rows_unmapped": int((~matched).sum()),
+        "unmapped_nsv": r2(float(um["_NSV"].sum())),
+        "missing_avg_tot_rows": int(orig["_AvgTot"].isna().sum()),
+        "chains_allocated_to": int(merged.loc[matched, "_Chain"].nunique()),
+        "cont_pct_bad_keys": cont_bad,   # raw cont% sums deviating from 100 (flagged BEFORE normalisation)
+        "recon": recon, "qc_table": qc_rows[:400], "qc_table_total_rows": len(qc_rows),
+        "missing_mapping": missing,
+        "unit": "INR Lakh (values), units (qty)",
+        "method": ("PO Type='Dist.' rows (blank \"Chain name for Dashboard\") are exploded across "
+                   "chains by the business's own secondary-derived monthly split "
+                   "(Dist_primary_cont_based_on_secondary_MOM.xlsx, sheet 'Dist Primary Conv to "
+                   "Chain Art'), matched on Ship To Name x Brand x Month (the cont sheet has no "
+                   "Cust-SAP Code column; the code<->ship-to bridge lives in the primary file "
+                   "itself and Cust-SAP Code is carried through every QC table). Inv Qty, Total "
+                   "MRP sales, NSV and Tax are scaled by cont% (normalised to sum to exactly "
+                   "100% per key, deviations flagged before normalisation); article MRP is "
+                   "per-unit and is NOT scaled; Avg Tot is a ratio, invariant under the split. "
+                   "Direct rows keep their own \"Chain name for Dashboard\". Dist. rows with no "
+                   "cont-sheet entry get Chain='Unmapped Chain' -- never a blank, never the "
+                   "distributor's Ship To Name."),
+    }
+    return out_df, alloc
+
 def detail_records_real(src, max_rows=20000):
     """Real 13-column detail_records from File 2 (article-wise primary).
     Looks for primary_article.xlsb/.xlsx in src. Returns None if absent, else
@@ -1435,21 +1620,29 @@ def detail_records_real(src, max_rows=20000):
     if f is None:
         return None
     eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else None
-    # auto-detect the header row (source workbooks often have a blank first row)
+    # auto-detect the header row (source workbooks carry a blank first row or
+    # -- in the current business format -- a reference/annotation row ABOVE the
+    # real header, so require the actual data-column signature, not just any
+    # row mentioning Month/FY). Old exports carry "Article Code"; the current
+    # format doesn't, so accept "Ship To Name"+"EAN No." as the alternative.
     probe = pd.read_excel(f, sheet_name=0, header=None, nrows=8, engine=eng)
     hdr = 0
     for i in range(len(probe)):
         vals = {str(v).strip() for v in probe.iloc[i].tolist()}
-        if {"Month", "FY", "Article Code"} <= vals:
+        if {"Month", "FY"} <= vals and ({"Article Code"} <= vals or {"Ship To Name", "EAN No."} <= vals):
             hdr = i
             break
     print(f"detail source: {f.name} (header row {hdr})")
     df = pd.read_excel(f, sheet_name=0, header=hdr, engine=eng)
-    df.columns = [str(c).strip() for c in df.columns]
-    missing = [c for c in ("Month","FY","Chain name","brand","Zone","Channel",
+    # normalise headers: trim + collapse embedded newlines ("Chain name\nfor
+    # Dashboard" is the actual maintained header -- one cell, wrapped text)
+    df.columns = [" ".join(str(c).split()) for c in df.columns]
+    missing = [c for c in ("Month","FY","brand","Zone","Channel",
                            "Inv. Net value(LOC)","Total MRP sales","Inv Qty",
                            "category","sub_category","range","net_content","Description","EAN No.")
                if c not in df.columns]
+    if not ({"Chain name for Dashboard", "Chain name"} & set(df.columns)):
+        missing.append("Chain name for Dashboard (or Chain name)")
     if missing:
         raise SystemExit(f"File 2 is missing expected columns: {missing}. "
                          f"Found: {list(df.columns)[:25]} ...")
@@ -1464,7 +1657,6 @@ def detail_records_real(src, max_rows=20000):
             "contain recognisable values (text like \"May'25\", a date, or an "
             "Excel date serial); sample Month values: "
             f"{df['Month'].head(5).tolist() if 'Month' in df else 'N/A'}")
-    df["_Chain"] = df["Chain name"].map(canon_chain)
     df["_Brand"] = df["brand"].map(canon_brand)
     df["_Zone"] = df["Zone"].map(canon_zone)
     _CHAN_MAP = {"mt": "MT", "eb2b": "EB2B", "sis": "SIS"}
@@ -1473,6 +1665,11 @@ def detail_records_real(src, max_rows=20000):
     df["_NSV"] = pd.to_numeric(df["Inv. Net value(LOC)"], errors="coerce").fillna(0.0) / 1e5  # -> Lakh
     df["_MRP"] = pd.to_numeric(df["Total MRP sales"], errors="coerce").fillna(0.0) / 1e5
     df["_Qty"] = pd.to_numeric(df["Inv Qty"], errors="coerce").fillna(0.0)
+    # article-level (per-unit) MRP -- retained through the DIST allocation
+    # UN-scaled ("MRP" in the current format, "MRP Rate" in older exports)
+    df["_ArtMRP"] = pd.to_numeric(df["MRP"], errors="coerce") if "MRP" in df.columns \
+        else (pd.to_numeric(df["MRP Rate"], errors="coerce") if "MRP Rate" in df.columns
+              else pd.Series(float("nan"), index=df.index))
     for c in ("category", "sub_category", "range", "net_content", "Description", "EAN No."):
         df["_" + c] = df[c].astype(str).str.strip().replace({"nan": "", "None": ""})
 
@@ -1496,6 +1693,19 @@ def detail_records_real(src, max_rows=20000):
         if "Cust-SAP Code" in df.columns else ""
     df["_CustName"] = df["Ship To Name"].astype(str).str.strip().replace({"nan": ""}) \
         if "Ship To Name" in df.columns else ""
+    # Cust-SAP Code often reads back as float ("1101911.0") -- normalise
+    df["_CustCode"] = df["_CustCode"].str.replace(r"\.0$", "", regex=True)
+
+    # ---- DIST -> Chain allocation (sets _Chain on every row; explodes Dist.
+    # rows across chains by the secondary-derived cont%). Row-level, BEFORE
+    # any grouping, so Customer x Article grain survives into everything
+    # downstream (TOT%, CM2, detail_records, the Customer x Article table).
+    _wdf, _raw_sums = load_dist_cont_weights(src)
+    df, alloc = allocate_dist_primary(df, _wdf, _raw_sums)
+    n_shipto_as_chain = int(((df["_Chain"].astype(str).str.strip().str.lower()
+                              == df["_CustName"].str.lower()) & (df["_CustName"] != "")).sum())
+    if alloc is not None:
+        alloc["rows_chain_equals_shipto"] = n_shipto_as_chain   # QC #17 -- must be 0
 
     # ---- EXACT channel totals from the FULL data, before any row capping ----
     ct = (df.groupby(["_FY", "_Chan"])["_NSV"].sum().round(2))
@@ -1519,6 +1729,59 @@ def detail_records_real(src, max_rows=20000):
     _cutover = load_gst_cutover_date()
     df = compute_tot_columns(df, _qc_table, _cutover[0])
     _qc_summary = compute_tot_qc_summary(df[df["_FY"].isin(["FY26", "FY27"])])
+
+    # ---- Customer x Article x Month x Chain allocation detail (Dist.-allocated
+    # rows only -- the allocation OUTPUT at the requested grain), with weighted
+    # Avg Tot = SUM(NSV x Avg Tot)/SUM(NSV), Total-MRP-sales-weighted fallback
+    # where a group's NSV nets to ~0 (returns), per the business's formula.
+    # Never a simple average. Capped top-N by |NSV| for data.js size; the QC
+    # recon above is computed from the FULL uncapped population.
+    if alloc is not None:
+        ad = df[df["_IsDist"] == True].copy()   # noqa: E712 (concat leaves object dtype)
+        m_at = ad["_AvgTot"].notna()
+        ad["_NxA"] = (ad["_NSV"] * ad["_AvgTot"]).where(m_at)
+        ad["_MxA"] = (ad["_MRP"] * ad["_AvgTot"]).where(m_at)
+        ad["_NSVa"] = ad["_NSV"].where(m_at)
+        ad["_MRPa"] = ad["_MRP"].where(m_at)
+        ca = (ad.groupby(["_CustCode","_CustName","_EAN No.","_Description","_ArtMRP","_Brand",
+                          "_category","_sub_category","_range","_net_content","_M","_FY","_Chain"],
+                         dropna=False)
+                .agg(NSV=("_NSV","sum"), MRPS=("_MRP","sum"), Qty=("_Qty","sum"),
+                     Tax=("_TaxLOC","sum"), NxA=("_NxA","sum"), MxA=("_MxA","sum"),
+                     NSVa=("_NSVa","sum"), MRPa=("_MRPa","sum")).reset_index())
+        ca_total_nsv = float(ca["NSV"].abs().sum()) or 1.0
+        ca = ca.reindex(ca["NSV"].abs().sort_values(ascending=False).index)
+        ca_rows_total = len(ca)
+        ca_kept = ca.head(4000)
+        ca_cov = float(ca_kept["NSV"].abs().sum()) / ca_total_nsv * 100
+        cust_article = []
+        for _, r in ca_kept.iterrows():
+            if abs(r["NSVa"]) > 1e-9:
+                wat = r["NxA"] / r["NSVa"]
+            elif abs(r["MRPa"]) > 1e-9:
+                wat = r["MxA"] / r["MRPa"]
+            else:
+                wat = None
+            cust_article.append({
+                "cust_code": r["_CustCode"], "ship_to": r["_CustName"],
+                "ean": str(r["_EAN No."]), "article": r["_Description"],
+                "art_mrp": r2(r["_ArtMRP"]), "brand": r["_Brand"],
+                "category": r["_category"], "sub_category": r["_sub_category"],
+                "range": r["_range"], "pack": r["_net_content"],
+                "month": r["_M"], "fy": r["_FY"], "chain": r["_Chain"],
+                "nsv": r2(r["NSV"]), "mrp_sales": r2(r["MRPS"]),
+                "qty": int(round(r["Qty"])), "tax": r2(r["Tax"]),
+                "w_avg_tot": r2(wat * 100, 1) if wat is not None else None,
+            })
+        alloc["cust_article"] = {
+            "rows": cust_article, "rows_total": ca_rows_total,
+            "value_coverage_pct": round(ca_cov, 1),
+            "note": ("Dist.-allocated output at Customer x Article x Month x Chain grain. "
+                     "Capped to the top 4,000 groups by |NSV| for browser size; the "
+                     "reconciliation above is computed from the FULL uncapped population. "
+                     "Weighted Avg Tot = SUM(NSV x Avg Tot)/SUM(NSV) per group (Total-MRP-"
+                     "sales-weighted fallback where NSV nets to ~0) -- never a simple average."),
+        }
 
     g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
                      "_category","_sub_category","_range","_net_content","_Description","_EAN No."],
@@ -1554,7 +1817,7 @@ def detail_records_real(src, max_rows=20000):
           f"({coverage:.1f}% of total value)")
     return recs, channel_totals, sis_reconciliation, {
         "rows_total": rows_total, "rows_kept": len(recs),
-        "value_coverage_pct": round(coverage, 1)}, tot, cm2
+        "value_coverage_pct": round(coverage, 1)}, tot, cm2, alloc
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -1607,10 +1870,10 @@ def detail_dims(recs):
 
 def _build_detail_meta(src, max_rows, primary_for_fallback):
     """Shared by both the --detail-only path and the full build: returns
-    (detail_records, dims, detail_meta_dict, tot, cm2). Falls back to the
-    representative synthesiser only when File 2 is absent -- in that case
-    `tot`/`cm2` are None, since both need REAL Category/Chain tags (not a
-    randomly-assigned taxonomy placeholder)."""
+    (detail_records, dims, detail_meta_dict, tot, cm2, alloc). Falls back to
+    the representative synthesiser only when File 2 is absent -- in that case
+    `tot`/`cm2`/`alloc` are None, since all need REAL Category/Chain tags
+    (not a randomly-assigned taxonomy placeholder)."""
     result = detail_records_real(src, max_rows)
     if result is None:
         detail = detail_records_representative(primary_for_fallback)
@@ -1621,8 +1884,8 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
             "note": ("REPRESENTATIVE records — Chain/Brand/Zone/Channel/Month/FY margins match the "
                      "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
                      "Drop primary_article.xlsb into --src to emit real detail."),
-        }, None, None
-    detail, channel_totals, sis_reconciliation, cov, tot, cm2 = result
+        }, None, None, None
+    detail, channel_totals, sis_reconciliation, cov, tot, cm2, alloc = result
     meta = {
         "representative": False,
         "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
@@ -1647,7 +1910,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
                           "Primary SIS FY26. Rs 236 L and Rs 275.44 L (gross) are "
                           "NOT correct.",
     }
-    return detail, detail_dims(detail), meta, tot, cm2
+    return detail, detail_dims(detail), meta, tot, cm2, alloc
 
 
 def main():
@@ -1682,7 +1945,7 @@ def main():
         if "primary" not in obj and not (src / "primary_article.xlsb").exists() \
                 and not (src / "primary_article.xlsx").exists():
             raise SystemExit("No File 2 in --src and no primary block in data.js to synthesise from.")
-        detail, dims, meta, tot, cm2 = _build_detail_meta(src, a.detail_max_rows, obj.get("primary"))
+        detail, dims, meta, tot, cm2, alloc = _build_detail_meta(src, a.detail_max_rows, obj.get("primary"))
         obj["detail_records"] = detail
         obj["dims"] = dims
         obj["detail_meta"] = meta
@@ -1690,11 +1953,20 @@ def main():
             obj["tot"] = tot
         if cm2 is not None:
             obj["cm2"] = cm2
+        if alloc is not None:
+            obj["alloc"] = alloc
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"detail-only: wrote {len(detail)} detail_records "
               f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}"
               + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
               + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
+        if alloc:
+            ov = alloc["recon"]["overall"]
+            print("DIST allocation recon (orig -> alloc, Lakh): "
+                  + "; ".join(f"{m}: {ov[m]['original']} -> {ov[m]['allocated']} (var {ov[m]['variance']})"
+                              for m in ("nsv", "mrp_sales", "qty", "tax"))
+                  + f"; unmapped rows {alloc['rows_unmapped']} (Rs {alloc['unmapped_nsv']} L)"
+                  + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}")
         return
 
     # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----
@@ -1757,7 +2029,7 @@ def main():
     }
 
     # ---- Data Explorer detail_records: real from File 2 if present, else representative ----
-    detail, dims, detail_meta, tot, cm2 = _build_detail_meta(src, a.detail_max_rows, primary)
+    detail, dims, detail_meta, tot, cm2, alloc = _build_detail_meta(src, a.detail_max_rows, primary)
     data["detail_records"] = detail
     data["dims"] = dims
     data["detail_meta"] = detail_meta
@@ -1765,6 +2037,8 @@ def main():
         data["tot"] = tot
     if cm2 is not None:
         data["cm2"] = cm2
+    if alloc is not None:
+        data["alloc"] = alloc
     print(f"detail_records: {len(detail)} rows "
           f"({'REAL' if not detail_meta['representative'] else 'representative'})"
           + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")

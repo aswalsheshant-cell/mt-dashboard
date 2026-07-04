@@ -30,7 +30,14 @@ so the dashboard works fully offline.
 ### The FY/Month/Chain/... filter bar applies dashboard-wide — and so does drilling
 Every tab (not just the Explorer) rebuilds live from the current filter
 state — pick FY26, a Zone, a Chain, whatever, and every tab you visit
-reflects it. **Clicking a chart bar/segment or a table cell (drill) re-renders
+reflects it. **Filters are multi-select:** picking a value in a dropdown ADDS
+it to that dimension's selection (✓ marks selected values); picking it again
+removes it; the dropdown's first line ("N selected — clear" / "All") clears
+the dimension. Values within one dimension are OR'd (Chain = Dmart OR
+Apollo); different dimensions are AND'd. Every selected value shows as a
+removable chip under the filter bar. Clicking a chart bar/slice (drill) still
+FOCUSES on the clicked value — it replaces that dimension's selection with
+just that value. **Clicking a chart bar/segment or a table cell (drill) re-renders
 the tab you're already on, narrowed to what you clicked** — drilling into
 "Dmart" from the Primary tab's chain chart shows Dmart's own Primary view in
 place, it does not jump you to a different tab. The Data Explorer tab is
@@ -85,6 +92,34 @@ Direct-billed rows are unambiguous (1 ship-to = 1 chain) and are never
 re-split. Coverage (how much Distributor primary has a matching allocation
 entry, vs falling back to its original single-chain tag) is reported in
 `DASH.chain_allocation_qc` and shown as a note on the Primary tab.
+
+### Article-level DIST → Chain allocation (Customer × Article grain)
+The article-level detail (File 2, everything REC-driven: Explorer, Category &
+Pack, TOT%, CM2) gets its own allocation, done row-level BEFORE any grouping:
+rows with **`PO Type = 'Dist.'`** have a blank **"Chain name for Dashboard"**
+in the source and are exploded across chains using
+`Dist_primary_cont_based_on_secondary_MOM.xlsx` (sheet *"Dist Primary Conv to
+Chain Art"*, keyed Ship To Name × Brand × Month — that sheet has no Cust-SAP
+Code column; the code↔ship-to bridge lives in the primary file itself, and
+Cust-SAP Code is carried through every QC table). `Inv Qty / Total MRP sales /
+NSV / Tax` are scaled by the cont% (normalised to sum to exactly 100% per
+key, so **input totals equal output totals by construction** — deviations are
+flagged before normalisation); article MRP is per-unit and is NOT scaled;
+`Avg Tot` is a ratio, invariant under the split. Direct rows keep their own
+"Chain name for Dashboard". Dist. rows with no cont-sheet entry get
+**"Unmapped Chain"** — never blank, never the distributor's Ship To Name; the
+Chain filter therefore lists only real chains (+ "Unmapped Chain"), and Ship
+To Name remains a customer/distributor field only.
+
+The **Primary tab**'s "Distributor primary → Chain allocation" section shows:
+the zero-variance reconciliation (original vs allocated for NSV, Total MRP
+sales, Inv Qty, Tax — overall, by Month, by Brand), allocation counters
+(unmapped rows/value, rows missing Avg Tot, cont% keys ≠ 100, source rows
+where Chain = Ship To Name), the missing-mapping QC table, the
+Month × Brand × Cust-SAP Code × Ship To QC table (full Excel export), and the
+Customer × Article × Month × Chain allocation table with weighted Avg Tot
+(= SUM(NSV × Avg Tot)/SUM(NSV), Total-MRP-sales-weighted fallback — never a
+simple average; full Excel export). Power BI mirrors this in queries 16 + 41.
 
 ### TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) — P&L tab, sourced from actual Primary file data
 `TOT% = SUM(Pass-on Value) / SUM(MRP)` — never a simple average of row-level

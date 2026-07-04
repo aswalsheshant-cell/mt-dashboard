@@ -38,10 +38,11 @@ PowerBI/
 │  │                             Primary-Article facts
 │  ├─ 20_Dim_Masters.pq       ← Chain/Brand/Category/Article/Zone/Store/Nielsen masters
 │  ├─ 21_ShipToMaster.pq      ← Ship-to party master
-│  └─ 30..40_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
+│  └─ 30..41_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
 │                               Primary Allocation Map + Override, Sales Team Mapping,
 │                               GST Rate QC Table, GST Config (cutover date),
-│                               PL Expense Input (CM2), CustCode Chain Map
+│                               PL Expense Input (CM2), CustCode Chain Map,
+│                               Dist Cont Weights (article-level DIST→Chain split)
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
 │  └─ 01..13_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,

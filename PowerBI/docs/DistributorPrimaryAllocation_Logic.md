@@ -327,3 +327,43 @@ Confirmed from the store×article offtake header row. No assumptions.
    (Cont% 100% pending source correction) — do not auto-fix.
 4. Confirm **Primary Qty** comes from File 2 (it does carry article qty) — used for
    `Allocated Article Primary Qty`.
+
+---
+
+## 2026-07-04 update — article-level DIST allocation from the CONFIRMED headers
+
+File 2's actual headers are now confirmed from the maintained file (ask #1
+above is resolved). Two things changed:
+
+**1. Confirmed column mapping (query 16 is locked to these — the real header
+row is row 2 of the sheet; row 1 is a reference/annotation row):**
+`FY, Month, Channel, Inv. Date, Cust-SAP Code, Ship To Name, EAN No.,
+net_content, brand, PPT Category, category, sub_category, range, Description,
+MRP (article MRP), Inv Qty, Inv. Net value(LOC), Inv. Tax Amount(LOC),
+Total MRP sales, Avg Tot, MTD-Sale type, PO Type, "Chain name for Dashboard"
+(one header cell containing a line break), Zone, State`.
+**The Direct/Dist. flag lives in `PO Type`** (values `Direct` / `Dist.`) —
+NOT in `MTD-Sale type`, which holds `Sales / MRN / Cancel Invoice / FOC`.
+When splitting the .xlsb into monthly CSVs, pass `--header-row 1` to
+`scripts/split_primary_article_xlsb.py`.
+
+**2. Article-level allocation now happens INSIDE `Fact Primary Article`
+(query 16), using `Dist Cont Weights` (query 41, from
+`Dist_primary_cont_based_on_secondary_MOM.xlsx`, sheet "Dist Primary Conv to
+Chain Art", dropped into `RawDataFolders\`):**
+- `PO Type='Dist.'` rows (whose "Chain name for Dashboard" is blank) are
+  exploded across chains by the secondary-derived cont%, joined on
+  **Ship To Name × Brand × Month** — the cont sheet has NO Cust-SAP Code
+  column; the code↔ship-to bridge lives in the primary file itself, and
+  Cust-SAP Code is retained through the allocation for the QC tables.
+- `Inv Qty / Total MRP sales / NSV / Tax` are scaled by the cont% fraction
+  (normalised to sum to exactly 1 per key → totals reconcile to the input by
+  construction; raw sums ≠ 100 are flagged via `[Raw Pct Sum]`).
+- Article MRP is per-unit and is **not** scaled. `Avg Tot` is a ratio,
+  invariant under a proportional split — summed aggregation downstream yields
+  exactly the sales-weighted Avg Tot.
+- Direct rows keep their own "Chain name for Dashboard". Unmatched Dist. rows
+  get **Chain = "Unmapped Chain"** — never blank, never the Ship To Name.
+- Verified against the real files (Python mirror of the same logic in
+  `scripts/build_dashboard_data.py`): **zero variance** on NSV / Total MRP
+  sales / Inv Qty / Tax, overall and by Month and by Brand.

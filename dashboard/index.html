@@ -303,7 +303,7 @@ function mkDonut(id,labels,data,money=true,onClick){
 const DASH_VERSION='MT Dashboard — data.js built '+(D.meta&&D.meta.source||'Honasa MT working files');
 function tabLabel(id){ const t=TABS.find(x=>x[0]===id); return t?t[1]:id; }
 function activeFiltersSummary(){
-  const active=FILT.filter(([k])=>F[k]).map(([k,lab])=>`${lab}: ${F[k]}`);
+  const active=FILT.filter(([k])=>F[k].length).map(([k,lab])=>`${lab}: ${F[k].join(', ')}`);
   return active.length?active.join(' | '):'None (all data)';
 }
 function exportTimestamp(){
@@ -314,7 +314,7 @@ function exportTimestamp(){
 // e.g. MT_Dashboard_Primary_Chain_wise_primary_May26_20260703_1420
 function exportFilename(pageLabel,chartLabel){
   const clean=s=>String(s).replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'x';
-  const scope=[F.Month,F.FY].filter(Boolean).join('_')||'All';
+  const scope=[fLab('Month'),fLab('FY')].filter(Boolean).join('_')||'All';
   return `MT_Dashboard_${clean(pageLabel)}_${clean(chartLabel)}_${clean(scope)}_${exportTimestamp().compact}`;
 }
 function downloadBlob(blob,filename){
@@ -505,13 +505,13 @@ function buildOverview(){
   const yrLab={fy25:'FY25',fy26:'FY26'};
   const primOk=fy!=='fy27', offOk=fy!=='fy27';
   let chains=p.by_chain, brands=p.by_brand, channels=p.by_channel;
-  if(F.Chain) chains=chains.filter(c=>c.name===F.Chain);
-  if(F.Brand) brands=brands.filter(b=>b.name===F.Brand);
-  if(F.Channel) channels=channels.filter(c=>c.name===F.Channel);
+  if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
+  if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
+  if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
   s.innerHTML = `<h2 class="sec">Executive Overview</h2>
-   <p class="lead">${fy?`${yrLab[fy]||F.FY} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
+   <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
    ${dimNote}
    <div class="kpis">
      ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
@@ -519,7 +519,7 @@ function buildOverview(){
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
        : kpi('Offtake','No FY27 actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
-     ${kpi('Chains Tracked',chains.length,`${p.n_brands} brands${F.Chain?' · filtered':''}`)}
+     ${kpi('Chains Tracked',chains.length,`${p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
      ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
        isTY?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
@@ -555,14 +555,14 @@ function buildPrimary(){
   }
   const fy=fyKey(), yrs=fy?[fy]:['fy25','fy26'], last=yrs[yrs.length-1], yrLab={fy25:'FY25',fy26:'FY26'};
   let chains=p.by_chain, zones=p.by_zone, brands=p.by_brand, channels=p.by_channel;
-  if(F.Chain) chains=chains.filter(c=>c.name===F.Chain);
-  if(F.Zone) zones=zones.filter(z=>z.name===F.Zone);
-  if(F.Brand) brands=brands.filter(b=>b.name===F.Brand);
-  if(F.Channel) channels=channels.filter(c=>c.name===F.Channel);
+  if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
+  if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
+  if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
+  if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   let mLabels=p.month_labels, m25=p.monthly_fy25, m26=p.monthly_fy26;
-  if(F.Month){
-    const i=p.month_labels.indexOf(F.Month);
-    if(i>=0){ mLabels=[F.Month]; m25=[p.monthly_fy25[i]]; m26=[p.monthly_fy26[i]]; }
+  if(fOn('Month')){
+    const sel=p.month_labels.map((m,i)=>({m,i})).filter(x=>fHas('Month',x.m));
+    if(sel.length){ mLabels=sel.map(x=>x.m); m25=sel.map(x=>p.monthly_fy25[x.i]); m26=sel.map(x=>p.monthly_fy26[x.i]); }
   }
   const rows=chains.filter(c=>c[last]>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.fy25)}</td><td>${crc(c.fy26)}</td>
      <td><span class="pill ${c.yoy>=0?'g':'r'}">${pct(c.yoy)}</span></td></tr>`).join('');
@@ -579,7 +579,7 @@ function buildPrimary(){
    ${dimNote}
    ${qcNote}
    <div class="kpis">
-     ${fy? kpi(`Primary NSV ${yrLab[fy]}`,crc(chains.reduce((a,c)=>a+(c[fy]||0),0)),F.Chain||F.Zone||F.Brand||F.Channel?'filtered scope':'') :
+     ${fy? kpi(`Primary NSV ${yrLab[fy]}`,crc(chains.reduce((a,c)=>a+(c[fy]||0),0)),fOn('Chain')||fOn('Zone')||fOn('Brand')||fOn('Channel')?'filtered scope':'') :
        kpi('Primary NSV FY26',crc(p.nsv_fy26),`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)}</span> YoY`)}
      ${!fy? kpi('Primary NSV FY25',crc(p.nsv_fy25),'base year') :
        kpi('Gross MRP Value',crc(p.mrp_fy26),'FY26 MRP basis (MRP not split by FY25/27)')}
@@ -587,7 +587,7 @@ function buildPrimary(){
      ${kpi('Active Chains',chains.filter(c=>c[last]>0).length,`${p.n_brands} brands`)}
    </div>
    <div class="grid g2">
-     ${card('Monthly NSV — FY24-25 vs FY25-26'+(F.Month?` (filtered to ${F.Month})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
+     ${card('Monthly NSV — FY24-25 vs FY25-26'+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
      ${card('By zone'+(fy?` (${yrLab[fy]})`:' (FY25 vs FY26)'),'click to drill',cv('prZone',true))}
    </div>
    <div class="grid g2">
@@ -596,8 +596,10 @@ function buildPrimary(){
    </div>
    ${card(`Chain-wise primary &amp; YoY (${yrLab[last]})`,'Sorted by NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise. Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>FY25</th><th>FY26</th><th>YoY</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${allocSectionHtml()}
    ${catDrillCardHtml('prCatDrill')}`;
   wireDrillLinks(s);
+  wireAllocExports(s);
   mkLine('prMonth',mLabels,[
     {label:'FY24-25',data:m25,borderColor:C.blue,dash:[5,4]},
     {label:'FY25-26',data:m26,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>drillTo('Month',v));
@@ -614,6 +616,103 @@ function buildPrimary(){
   renderCatDrillChart('prCatDrill',recFilter());
 }
 
+/* ---------- Distributor primary -> Chain allocation (QC & recon) ---------- */
+// Rendered on the Primary tab from D.alloc (built by allocate_dist_primary in
+// build_dashboard_data.py). Display tables show a compact slice; the "Export
+// ALL" buttons download the FULL stored arrays as Excel, independent of the
+// visible slice.
+function allocSectionHtml(){
+  const al=D.alloc;
+  if(!al) return '';
+  const ov=al.recon.overall;
+  const isZero=m=>Math.abs(ov[m].variance||0)<0.01;
+  const allZero=['qty','mrp_sales','nsv','tax'].every(isZero);
+  const fmtM=(m,v)=>m==='qty'?num(v):crc(v);
+  const reconRows=[['NSV','nsv'],['Total MRP sales','mrp_sales'],['Inv Qty','qty'],['Inv. Tax Amount','tax']]
+    .map(([lab,m])=>`<tr><td>${lab}</td><td>${fmtM(m,ov[m].original)}</td><td>${fmtM(m,ov[m].allocated)}</td>
+      <td class="${isZero(m)?'up':'down'}">${ov[m].variance}</td></tr>`).join('');
+  const monthRows=al.recon.by_month.map(r=>`<tr><td>${r.month} ${r.fy}</td><td>${crc(r.orig_nsv)}</td><td>${crc(r.alloc_nsv)}</td>
+      <td class="${Math.abs(r.nsv_var||0)<0.01?'up':'down'}">${r.nsv_var}</td><td>${num(r.orig_qty)}</td><td>${num(r.alloc_qty)}</td><td>${r.qty_var}</td></tr>`).join('');
+  const brandRows=al.recon.by_brand.map(r=>`<tr><td>${r.brand}</td><td>${crc(r.orig_nsv)}</td><td>${crc(r.alloc_nsv)}</td>
+      <td class="${Math.abs(r.nsv_var||0)<0.01?'up':'down'}">${r.nsv_var}</td><td>${crc(r.orig_mrp)}</td><td>${crc(r.alloc_mrp)}</td><td>${r.mrp_var}</td></tr>`).join('');
+  const missRows=al.missing_mapping.map(r=>`<tr><td>${r.month} ${r.fy}</td><td>${r.brand}</td><td>${r.cust_code}</td>
+      <td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${num(r.rows)}</td></tr>`).join('');
+  const qcSlice=al.qc_table.slice(0,25).map(r=>`<tr><td>${r.month} ${r.fy}</td><td>${r.brand}</td><td>${r.cust_code}</td><td>${r.ship_to}</td>
+      <td>${crc(r.orig_nsv)}</td><td>${crc(r.alloc_nsv)}</td><td>${r.nsv_var}</td>
+      <td class="${r.mapping_status==='Mapped'?'up':'down'}">${r.mapping_status}</td></tr>`).join('');
+  const ca=al.cust_article;
+  const caSlice=ca.rows.slice(0,40).map(r=>`<tr><td>${r.cust_code}</td><td>${r.ship_to}</td><td>${r.article}</td>
+      <td>${r.brand}</td><td>${r.range}</td><td>${r.pack}</td><td>${r.month} ${r.fy}</td><td>${drillLink('Chain',r.chain)}</td>
+      <td>${crc(r.nsv)}</td><td>${num(r.qty)}</td><td>${r.w_avg_tot==null?'–':r.w_avg_tot+'%'}</td></tr>`).join('');
+  const contBad=Object.keys(al.cont_pct_bad_keys||{}).length;
+  const banner=allZero
+    ?`<div class="repbanner" style="background:#e8f5ec;border-color:#b7e0c4;color:#1c6b3a"><b>Reconciled — zero variance.</b>
+        Original Dist. primary input equals allocated output on all four measures (NSV, Total MRP sales, Inv Qty, Tax).
+        Cont%s are normalised to sum to exactly 100% per Ship-To × Brand × Month, so reconciliation holds at every
+        grain by construction — verified overall, by Month and by Brand below.
+        ${al.rows_unmapped?`<b>${num(al.rows_unmapped)} rows (${crc(al.unmapped_nsv)}) have no cont-sheet entry</b> and are kept under
+        "Unmapped Chain" (never dropped, never blank) — see the missing-mapping table.`:''}</div>`
+    :`<div class="repbanner"><b>Reconciliation variance detected</b> — check the summary below.</div>`;
+  return `<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Distributor primary → Chain allocation (Customer × Article)</h3>
+   <p class="note" style="margin:0 0 10px">${al.method}</p>
+   ${banner}
+   ${al.rows_chain_equals_shipto?`<p class="drillhint" style="margin:0 0 10px">QC flag: ${num(al.rows_chain_equals_shipto)} DIRECT rows in the SOURCE file have
+     "Chain name for Dashboard" identical to the Ship To Name (source-data maintenance issue, e.g. SAI SAACHI ASSOCIATES-MT-OR) — fix in the source file; the allocation itself never writes a Ship To Name into Chain.</p>`:''}
+   ${contBad?`<p class="drillhint" style="margin:0 0 10px">⚠ ${contBad} cont% keys deviate from 100% before normalisation — flagged per QC rule 19.</p>`:''}
+   <div class="grid g2">
+     ${card('Reconciliation — original input vs allocated output','Across all Dist. rows (FULL uncapped population).',`<div class="tablewrap"><table>
+       <thead><tr><th>Measure</th><th>Original</th><th>Allocated</th><th>Variance</th></tr></thead><tbody>${reconRows}</tbody></table></div>`)}
+     ${card('Allocation counters','',`<div class="tablewrap"><table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+       <tr><td>Dist. rows in → out (after chain split)</td><td>${num(al.dist_rows_in)} → ${num(al.dist_rows_out)}</td></tr>
+       <tr><td>Chains allocated to</td><td>${num(al.chains_allocated_to)}</td></tr>
+       <tr><td>Rows with no cont-sheet mapping ("Unmapped Chain")</td><td>${num(al.rows_unmapped)} (${crc(al.unmapped_nsv)})</td></tr>
+       <tr><td>Rows missing Avg Tot / TOT%</td><td>${num(al.missing_avg_tot_rows)}</td></tr>
+       <tr><td>Cont% keys not summing to 100 (pre-normalisation)</td><td>${num(contBad)}</td></tr>
+       <tr><td>Rows where Chain = Ship To Name (source issue, Direct rows)</td><td>${num(al.rows_chain_equals_shipto)}</td></tr>
+       </tbody></table></div>`)}
+   </div>
+   <div class="grid g2">
+     ${card('Cross-check by Month','Original vs allocated per month.',`<div class="tablewrap"><table>
+       <thead><tr><th>Month</th><th>Orig NSV</th><th>Alloc NSV</th><th>Var</th><th>Orig Qty</th><th>Alloc Qty</th><th>Var</th></tr></thead>
+       <tbody>${monthRows}</tbody></table></div>`)}
+     ${card('Cross-check by Brand','Original vs allocated per brand.',`<div class="tablewrap"><table>
+       <thead><tr><th>Brand</th><th>Orig NSV</th><th>Alloc NSV</th><th>Var</th><th>Orig MRP Sales</th><th>Alloc MRP Sales</th><th>Var</th></tr></thead>
+       <tbody>${brandRows}</tbody></table></div>`)}
+   </div>
+   ${card('Missing mapping QC — Dist. rows with no cont-sheet entry','These keep their value under "Unmapped Chain". Add the missing Ship-To × Brand × Month rows to Dist_primary_cont_based_on_secondary_MOM.xlsx and rebuild to allocate them.',`<div class="tablewrap"><table>
+     <thead><tr><th>Month</th><th>Brand</th><th>Cust-SAP Code</th><th>Ship To Name</th><th>NSV</th><th>Rows</th></tr></thead>
+     <tbody>${missRows||'<tr><td colspan="6">None — every Dist. row mapped.</td></tr>'}</tbody></table></div>`)}
+   ${card(`Allocation QC — Month × Brand × Cust-SAP Code × Ship To (top 25 of ${num(al.qc_table_total_rows)})`,
+     'Unmapped keys sort first, then by |NSV|.',`<button class="fbtn ghost" id="alExpQc" style="margin:0 0 8px">⭳ Export ALL QC rows (Excel)</button><div class="tablewrap"><table>
+     <thead><tr><th>Month</th><th>Brand</th><th>Cust-SAP Code</th><th>Ship To Name</th><th>Orig NSV</th><th>Alloc NSV</th><th>Var</th><th>Mapping</th></tr></thead>
+     <tbody>${qcSlice}</tbody></table></div>`)}
+   ${card(`Customer × Article × Month × Chain allocation (top 40 shown; ${num(ca.rows.length)} exportable of ${num(ca.rows_total)} total, ${ca.value_coverage_pct}% of |NSV|)`,
+     ca.note+' Click a chain to drill.',`<button class="fbtn ghost" id="alExpCa" style="margin:0 0 8px">⭳ Export ALL Customer × Article rows (Excel)</button><div class="tablewrap"><table>
+     <thead><tr><th>Cust-SAP</th><th>Ship To</th><th>Article</th><th>Brand</th><th>Range</th><th>Pack</th><th>Month</th><th>Chain</th><th>NSV</th><th>Qty</th><th>W.Avg Tot</th></tr></thead>
+     <tbody>${caSlice}</tbody></table></div>`)}`;
+}
+function wireAllocExports(root){
+  const al=D.alloc;
+  if(!al) return;
+  const qb=root.querySelector('#alExpQc');
+  if(qb) qb.onclick=()=>{
+    const rows=[['Month','FY','Brand','Cust-SAP Code','Ship To Name','Original NSV','Allocated NSV','Variance',
+                 'Original Qty','Allocated Qty','Qty Variance','Original MRP Sales','Allocated MRP Sales','MRP Variance',
+                 'Original Tax','Allocated Tax','Tax Variance','Mapping Status'],
+      ...al.qc_table.map(r=>[r.month,r.fy,r.brand,r.cust_code,r.ship_to,r.orig_nsv,r.alloc_nsv,r.nsv_var,
+        r.orig_qty,r.alloc_qty,r.qty_var,r.orig_mrp,r.alloc_mrp,r.mrp_var,r.orig_tax,r.alloc_tax,r.tax_var,r.mapping_status])];
+    downloadRowsXLSX(rows,exportFilename('Primary','Dist_Allocation_QC'),'Dist primary allocation QC (values in INR Lakh)');
+  };
+  const cb=root.querySelector('#alExpCa');
+  if(cb) cb.onclick=()=>{
+    const rows=[['Cust-SAP Code','Ship To Name','EAN No.','Article','Article MRP','Brand','Category','Sub-category','Range','Pack Size',
+                 'Month','FY','Chain','NSV (Lakh)','Total MRP sales (Lakh)','Inv Qty','Tax (Lakh)','Weighted Avg Tot %'],
+      ...al.cust_article.rows.map(r=>[r.cust_code,r.ship_to,r.ean,r.article,r.art_mrp,r.brand,r.category,r.sub_category,
+        r.range,r.pack,r.month,r.fy,r.chain,r.nsv,r.mrp_sales,r.qty,r.tax,r.w_avg_tot])];
+    downloadRowsXLSX(rows,exportFilename('Primary','CustXArticle_Allocation'),'Customer x Article x Month x Chain allocation (values in INR Lakh)');
+  };
+}
+
 /* ---------------- OFFTAKE ---------------- */
 function buildOfftake(){
   const o=D.offtake,p=D.primary,s=document.getElementById('tab-offtake');
@@ -626,15 +725,15 @@ function buildOfftake(){
   const yrs=fy?[fy]:['fy25','fy26'];
   const yrLab={fy25:'FY25',fy26:'FY26'};
   let zones=o.by_zone, states=o.by_state, chains=o.by_chain;
-  if(F.Zone){ zones=zones.filter(z=>z.name===F.Zone); states=states.filter(r=>r.zone===F.Zone); }
-  if(F.Chain){ chains=chains.filter(c=>c.name===F.Chain); }
+  if(fOn('Zone')){ zones=zones.filter(z=>fHas('Zone',z.name)); states=states.filter(r=>fHas('Zone',r.zone)); }
+  if(fOn('Chain')){ chains=chains.filter(c=>fHas('Chain',c.name)); }
   const mAbbr=m=>String(m).slice(0,3).toLowerCase();
   let months=o.months, monthly=o.monthly;
   // o.months are "Apr-24".."Mar-26" (3-letter abbrev + 2-digit year); F.Month
   // is a full month name ("April".."March") from the article-level detail --
   // match on the first 3 letters, and only within whichever FY is selected.
   const mIdx=o.months.map((m,i)=>i).filter(i=>{
-    if(F.Month && mAbbr(o.months[i])!==mAbbr(F.Month)) return false;
+    if(fOn('Month') && !F.Month.some(mm=>mAbbr(o.months[i])===mAbbr(mm))) return false;
     const yy=o.months[i].split('-')[1]; // '24'/'25'/'26'
     if(fy==='fy25') return yy==='24'||yy==='25';
     if(fy==='fy26') return yy==='25'||yy==='26';
@@ -643,7 +742,7 @@ function buildOfftake(){
   months=mIdx.map(i=>o.months[i]); monthly=mIdx.map(i=>o.monthly[i]);
   const totFor=k=>o['total_'+k]||0;
   const primFor=k=>p['nsv_'+k]||0;
-  const cmp=chains.filter(c=>(c[yrs[yrs.length-1]]||0)>50 || F.Chain).slice(0,10);
+  const cmp=chains.filter(c=>(c[yrs[yrs.length-1]]||0)>50 || fOn('Chain')).slice(0,10);
   const pc={}; p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);
   const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
@@ -652,16 +751,16 @@ function buildOfftake(){
    <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
    ${dimNote}
    <div class="kpis">
-     ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),F.Zone||F.Chain?'filtered scope':'') :
+     ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
        kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
      ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') :
-       kpi('Chains Tracked',chains.length,F.Zone||F.Chain?'in this filter':'in offtake master')}
-     ${fy? kpi('Chains Tracked',chains.length,F.Zone||F.Chain?'in this filter':'in offtake master') :
+       kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')}
+     ${fy? kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master') :
        kpi('Chains Tracked',o.n_chains,'in offtake master')}
      ${kpi('Sell-through',primFor(yrs[yrs.length-1])?((totFor(yrs[yrs.length-1])/primFor(yrs[yrs.length-1]))*100).toFixed(0)+'%':'–',`offtake ÷ primary ${yrLab[yrs[yrs.length-1]]}`)}
    </div>
    <div class="grid g2">
-     ${card('Monthly offtake trend',`${months.length} month(s)${F.Month?` — filtered to ${F.Month}`:''}.`,cv('ofTrend'))}
+     ${card('Monthly offtake trend',`${months.length} month(s)${fOn('Month')?` — filtered to ${fLab('Month')}`:''}.`,cv('ofTrend'))}
      ${card('Offtake by zone'+(fy?` (${yrLab[fy]})`:' (YoY)'),'click to drill',cv('ofZone'))}
    </div>
    ${card(`Primary vs Offtake by chain (${yrLab[yrs[yrs.length-1]]}) — inventory health`,'Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill). Click a chain to drill.',cv('ofCmp'))}
@@ -686,15 +785,15 @@ function buildOfftake(){
 /* ---------------- P&L ---------------- */
 function buildPnl(){
   const pl=D.pnl,s=document.getElementById('tab-pnl');
-  if(F.FY && F.FY!=='FY26'){
+  if(fOn('FY') && !fHas('FY','FY26')){
     s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
       ${fyNoDataNote('P&L (computed FY26-only from Primary)')}${catDrillCardHtml('plCatDrill')}`;
     renderCatDrillChart('plCatDrill',recFilter());
     return;
   }
   let chains=pl.by_chain;
-  if(F.Chain) chains=chains.filter(c=>c.name===F.Chain);
-  const top=chains.filter(c=>c.nsv>50 || F.Chain).slice(0,12);
+  if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
+  const top=chains.filter(c=>c.nsv>50 || fOn('Chain')).slice(0,12);
   const rows=chains.filter(c=>c.nsv>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.mrp)}</td><td>${crc(c.nsv)}</td>
      <td>${crc(c.discount)}</td><td>${c.discount_pct==null?'–':c.discount_pct+'%'}</td>
      <td>${c.promos||0}</td><td>${c.promo_depth==null?'–':c.promo_depth+'%'}</td></tr>`).join('');
@@ -705,7 +804,7 @@ function buildPnl(){
   // guard above since its own data genuinely extends past FY26.
   const totD=D.tot;
   let totChains=totD?totD.by_chain:[];
-  if(F.Chain) totChains=totChains.filter(c=>c.name===F.Chain);
+  if(fOn('Chain')) totChains=totChains.filter(c=>fHas('Chain',c.name));
   const totTop=totChains.slice(0,12);
   const totRows=totChains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.mrp)}</td><td>${crc(c.nsv)}</td>
      <td>${crc(c.tax)}</td><td>${c.tot_pct==null?'–':c.tot_pct+'%'}</td><td>${crc(c.passon_value)}</td></tr>`).join('');
@@ -734,7 +833,7 @@ function buildPnl(){
   // PL_Expense_Input.csv (see cm2_block in build_dashboard_data.py).
   const cm2D=D.cm2;
   let cm2Chains=cm2D?cm2D.by_chain:[];
-  if(F.Chain) cm2Chains=cm2Chains.filter(c=>c.name===F.Chain);
+  if(fOn('Chain')) cm2Chains=cm2Chains.filter(c=>fHas('Chain',c.name));
   const cm2Top=cm2Chains.slice(0,12);
   const cm2Rows=cm2Chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
      <td>${crc(c.expense)}</td><td>${crc(c.cm2_value)}</td><td>${c.cm2_pct==null?'–':c.cm2_pct+'%'}</td></tr>`).join('');
@@ -748,7 +847,7 @@ function buildPnl(){
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
    ${dimNote}
    <div class="kpis">
-     ${kpi('Gross MRP Value',crc(totMrp),F.Chain?'filtered scope':'FY26, all chains')}
+     ${kpi('Gross MRP Value',crc(totMrp),fOn('Chain')?'filtered scope':'FY26, all chains')}
      ${kpi('Net NSV',crc(totNsv),'realised revenue')}
      ${kpi('MRP→NSV Gap',crc(totMrp-totNsv),totMrp?`${((totMrp-totNsv)/totMrp*100).toFixed(1)}% blended`:'')}
      ${kpi('Promo Lines',D.promo.n_promos,`${D.promo.avg_depth}% avg consumer depth`)}
@@ -884,7 +983,7 @@ function buildShare(){
   }
   const fy=fyKey()||'fy26', yrLab={fy25:'FY25',fy26:'FY26'};
   const tot=p['nsv_'+fy]||1;
-  let chains=p.by_chain; if(F.Chain) chains=chains.filter(c=>c.name===F.Chain);
+  let chains=p.by_chain; if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   const sob=chains.filter(c=>c[fy]>0).slice(0,10).map(c=>({name:c.name,share:c[fy]/tot*100,v:c[fy]}));
   const sobRows=sob.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
   const dimNote=dimUnsupportedNote(['Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article','Month'],'the share-of-business view (chain only)');
@@ -913,12 +1012,12 @@ function buildShare(){
 function buildDistribution(){
   const u=D.universe,s=document.getElementById('tab-distribution');
   let zones=u.by_zone, chains=u.by_chain;
-  if(F.Zone) zones=zones.filter(z=>z.name===F.Zone);
-  if(F.Chain) chains=chains.filter(c=>c.name===F.Chain);
-  const activeInScope=(F.Zone||F.Chain)?chains.reduce((a,c)=>a+c.stores,0):u.active_stores;
+  if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
+  if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
+  const activeInScope=(fOn('Zone')||fOn('Chain'))?chains.reduce((a,c)=>a+c.stores,0):u.active_stores;
   const rows=chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.stores)}</td>
      <td>${(c.stores/u.active_stores*100).toFixed(1)}%</td></tr>`).join('');
-  const dimNote=(F.FY||F.Month?`<p class="drillhint" style="margin:4px 0 0">${[F.FY&&'FY',F.Month&&'Month'].filter(Boolean).join('/')}
+  const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the store universe is a point-in-time snapshot, not tracked by FY/Month.</p>`:'')
     +dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the store universe (no product-level breakdown)');
   s.innerHTML=`<h2 class="sec">Distribution</h2>
@@ -926,8 +1025,8 @@ function buildDistribution(){
    ${dimNote}
    <div class="kpis">
      ${kpi('Total Stores',num(u.total_stores),'MT universe')}
-     ${kpi(F.Zone||F.Chain?'Active Stores (filtered)':'Active Stores',num(activeInScope),`${(activeInScope/u.total_stores*100).toFixed(0)}% of universe`)}
-     ${kpi('Chains',chains.length+(F.Zone||F.Chain?'':'+'),'with active doors')}
+     ${kpi(fOn('Zone')||fOn('Chain')?'Active Stores (filtered)':'Active Stores',num(activeInScope),`${(activeInScope/u.total_stores*100).toFixed(0)}% of universe`)}
+     ${kpi('Chains',chains.length+(fOn('Zone')||fOn('Chain')?'':'+'),'with active doors')}
      ${kpi('Metro Coverage',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro stores')}
    </div>
    <div class="grid g2">
@@ -1004,20 +1103,20 @@ function buildCategory(){
 function buildPromo(){
   const pr=D.promo,s=document.getElementById('tab-promo');
   let chains=pr.by_chain, brandsArr=pr.by_brand, cats=pr.by_category;
-  if(F.Chain) chains=chains.filter(c=>c.name===F.Chain);
-  if(F.Brand) brandsArr=brandsArr.filter(b=>b.name===F.Brand);
-  if(F.Category) cats=cats.filter(c=>c.name===F.Category);
+  if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
+  if(fOn('Brand')) brandsArr=brandsArr.filter(b=>fHas('Brand',b.name));
+  if(fOn('Category')) cats=cats.filter(c=>fHas('Category',c.name));
   const promosInScope=chains.reduce((a,c)=>a+c.promos,0);
   const rows=chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.promos)}</td>
      <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands}</td></tr>`).join('');
-  const dimNote=(F.FY||F.Month?`<p class="drillhint" style="margin:4px 0 0">${[F.FY&&'FY',F.Month&&'Month'].filter(Boolean).join('/')}
+  const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
     +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
   s.innerHTML=`<h2 class="sec">Promo &amp; Trade Spend</h2>
    <p class="lead">Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
    ${dimNote}
    <div class="kpis">
-     ${kpi(F.Chain||F.Brand||F.Category?'Promo Lines (filtered)':'Promo Lines',num(F.Chain?promosInScope:pr.n_promos),'total calendar entries')}
+     ${kpi(fOn('Chain')||fOn('Brand')||fOn('Category')?'Promo Lines (filtered)':'Promo Lines',num(fOn('Chain')?promosInScope:pr.n_promos),'total calendar entries')}
      ${kpi('Avg Consumer Depth',pr.avg_depth+'%','blended discount depth')}
      ${kpi('Chains Covered',chains.length,'running promos')}
      ${kpi('Brands Covered',brandsArr.length,'in the promo calendar')}
@@ -1152,11 +1251,18 @@ const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],
   ['Brand','Brand'],['Category','Category'],['SubCategory','Sub-category'],['Range','Range'],
   ['PackSize','Pack Size'],['Article','Article']];
 const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
-const F={}; FILT.forEach(([k])=>F[k]='');
+// MULTI-SELECT filter state: each dimension holds an ARRAY of selected values
+// (empty = All). Values in a dimension are OR'd together; dimensions are
+// AND'd, same as before.
+const F={}; FILT.forEach(([k])=>F[k]=[]);
+const fOn =k=>F[k].length>0;                                 // dimension filtered at all?
+const fHas=(k,v)=>!F[k].length||F[k].includes(String(v));    // does value v pass dimension k?
+const fLab=k=>F[k].join(', ');                               // display label ('' when unfiltered)
+const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one selection or null
 
 // records passing all active filters (optionally ignoring one key for cascading options)
 function recFilter(except){
-  return REC.filter(r=>FILT.every(([k])=> k===except || !F[k] || String(r[k])===String(F[k]) ));
+  return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(String(r[k])) ));
 }
 // FY dropdown: fixed at FY25/FY26/FY27, not just whatever REC (File 2's
 // article-level detail, which only carries FY26-27) happens to contain --
@@ -1173,12 +1279,13 @@ function optsFor(key){
 }
 function renderFilterBar(){
   const fb=document.getElementById('filterbar');
-  const anyActive=FILT.some(([k])=>F[k]);
+  const anyActive=FILT.some(([k])=>F[k].length);
   fb.innerHTML = FILT.map(([k,lab])=>{
-    const opts=optsFor(k), cur=F[k];
-    return `<label class="fl"><span>${lab}</span><select data-k="${k}">
-      <option value="">All</option>
-      ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');return `<option value="${s}" ${String(v)===String(cur)?'selected':''}>${v}</option>`;}).join('')}
+    const opts=optsFor(k), sel=F[k];
+    return `<label class="fl"><span>${lab}</span><select data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
+      <option value="">${sel.length?`${sel.length} selected — clear`:'All'}</option>
+      ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');const on=sel.includes(String(v));
+        return `<option value="${s}">${on?'✓ ':''}${v}</option>`;}).join('')}
     </select></label>`;
   }).join('')
   + `<button class="fbtn ghost" id="fReset">↺ Reset filters</button>`
@@ -1187,9 +1294,25 @@ function renderFilterBar(){
          <button data-pagefmt="pdf">📄 PDF</button>
          <button data-pagefmt="png">🖼 PNG Image</button>
        </div></details>`
-  + `<span class="fcount" id="fCount">${anyActive?'Filtered · ':''}${num(recFilter().length)} records</span>`;
-  fb.querySelectorAll('select').forEach(sel=>sel.onchange=()=>{F[sel.dataset.k]=sel.value;onFilterChange();});
-  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]='');catChartDrill=null;onFilterChange();};
+  + `<span class="fcount" id="fCount">${anyActive?'Filtered · ':''}${num(recFilter().length)} records</span>`
+  + (anyActive?`<span style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px">${activeChipsHtml()}</span>`:'');
+  // multi-select via native dropdowns: picking an option TOGGLES it in/out of
+  // the selection (✓ marks selected ones); the first line clears the dimension.
+  fb.querySelectorAll('select').forEach(sel=>{
+    sel.onchange=()=>{
+      const k=sel.dataset.k, v=sel.value;
+      if(v==='') F[k]=[];
+      else{ const i=F[k].indexOf(v); if(i>=0) F[k].splice(i,1); else F[k].push(v); }
+      if(k==='Category'&&!F[k].length) catChartDrill=null;
+      onFilterChange();
+    };
+  });
+  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;onFilterChange();};
+  fb.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
+    F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
+    if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;
+    onFilterChange();
+  });
 }
 function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
 
@@ -1200,7 +1323,7 @@ function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
 // the raw row-level records for whatever's currently filtered.
 function drillTo(key,value){
   if(!FILT.some(([k])=>k===key) || value==null) return;
-  F[key]=String(value);
+  F[key]=[String(value)];   // drill = FOCUS on the clicked value (replaces the dimension's selection)
   onFilterChange();
 }
 function drillLink(key,label){
@@ -1213,13 +1336,13 @@ function wireDrillLinks(root){
 // Category & Pack, Performance & Comparison). rebuildFn re-renders the CURRENT
 // tab in place when a chip is removed, instead of jumping to Explorer.
 function activeChipsHtml(){
-  return FILT.filter(([k])=>F[k]).map(([k,lab])=>
-    `<span class="fchip">${lab}: ${F[k]} <b data-k="${k}" title="clear">✕</b></span>`).join(' ');
+  return FILT.flatMap(([k,lab])=>F[k].map(v=>
+    `<span class="fchip">${lab}: ${v} <b data-k="${k}" data-v="${String(v).replace(/"/g,'&quot;')}" title="remove this value">✕</b></span>`)).join(' ');
 }
 function wireChips(root,rebuildFn){
   root.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
-    F[b.dataset.k]='';
-    if(b.dataset.k==='Category') catChartDrill=null;
+    F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
+    if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;
     renderFilterBar();
     destroyCharts();
     (rebuildFn||buildExplorer)();
@@ -1273,7 +1396,7 @@ function subcatPareto95(recs){
 // straight into that category's sub-categories.
 let catChartDrill=null;
 function catDrillCardHtml(canvasId){
-  const cat=catChartDrill||F.Category;
+  const cat=catChartDrill||fOne('Category');
   const backBtn=cat?`<button class="fbtn ghost" id="${canvasId}Back" style="margin:0 0 10px">← All Categories</button>`:'';
   const title=cat?`Sub-categories of "${cat}"`:'NSV by Category — click a bar to drill into Sub-category';
   const note=cat?'Click a sub-category to filter this view; ← to go back up to Category.':'Click a bar to see that Category\'s Sub-category split.';
@@ -1281,8 +1404,8 @@ function catDrillCardHtml(canvasId){
 }
 function renderCatDrillChart(canvasId,recs){
   const backBtn=document.getElementById(canvasId+'Back');
-  if(backBtn) backBtn.onclick=()=>{ catChartDrill=null; F.Category=''; renderFilterBar(); show(currentTab); };
-  const cat=catChartDrill||F.Category;
+  if(backBtn) backBtn.onclick=()=>{ catChartDrill=null; F.Category=[]; renderFilterBar(); show(currentTab); };
+  const cat=catChartDrill||fOne('Category');
   let labels,data,onClick;
   if(cat){
     const sub=grp(recs.filter(r=>r.Category===cat),'SubCategory');
@@ -1303,22 +1426,22 @@ function renderCatDrillChart(canvasId,recs){
 // the global FY/Month filter instead of always showing both years regardless
 // of what's selected -- and show an honest empty state for FY27 rather than
 // silently ignoring the filter.
-function fyKey(){ return F.FY ? 'fy'+F.FY.slice(2) : null; }  // "FY26" -> "fy26"; "" -> null
-function fyUnsupported(){ return F.FY==='FY27'; }             // no block below has fy27 data
+function fyKey(){ const v=fOne('FY'); return v ? 'fy'+v.slice(2) : null; }  // exactly ONE FY selected -> "fy26"; none/multi -> null
+function fyUnsupported(){ return F.FY.length>0 && F.FY.every(v=>v==='FY27'); }  // FY filter EXCLUSIVELY FY27
 function fyNoDataNote(where){
-  return `<div class="repbanner"><b>No ${F.FY} actuals in ${where}.</b> The FY filter is set to
-    ${F.FY}, but this source only has FY25/FY26 history — FY26-27 actuals aren't loaded yet
+  return `<div class="repbanner"><b>No ${fLab('FY')} actuals in ${where}.</b> The FY filter is set to
+    ${fLab('FY')}, but this source only has FY25/FY26 history — FY26-27 actuals aren't loaded yet
     (see the <b>Forecast</b> tab for the FY26-27 TY target). Showing nothing rather than a
     stale FY26 number.</div>`;
 }
 function monthUnsupportedNote(what){
-  return F.Month ? `<p class="drillhint" style="margin:4px 0 0">Month = ${F.Month} doesn't narrow
+  return fOn('Month') ? `<p class="drillhint" style="margin:4px 0 0">Month = ${fLab('Month')} doesn't narrow
     ${what} (this source isn't cross-tabbed by month × ${what.toLowerCase()}).</p>` : '';
 }
 function dimUnsupportedNote(dims,source){
-  const active=dims.filter(d=>F[d]);
+  const active=dims.filter(d=>fOn(d));
   if(!active.length) return '';
-  return `<p class="drillhint" style="margin:4px 0 0">${active.map(d=>`${d}=${F[d]}`).join(', ')}
+  return `<p class="drillhint" style="margin:4px 0 0">${active.map(d=>`${d}=${fLab(d)}`).join(', ')}
     ${active.length>1?"don't":"doesn't"} apply here — ${source} has no ${active.join('/')} breakdown.</p>`;
 }
 
@@ -1330,7 +1453,7 @@ function expBarH(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
   expCharts.push(new Chart(document.getElementById(id),{type:'bar',
     data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
-    options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=labels[els[0].index];onFilterChange();}},
+    options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=[String(labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.x)}}},
       scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},y:{grid:{display:false}}}}}));
 }
@@ -1338,7 +1461,7 @@ function expDonut(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
   expCharts.push(new Chart(document.getElementById(id),{type:'doughnut',
     data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
-    options:{cutout:'58%',onClick:(e,els)=>{if(els.length){F[key]=labels[els[0].index];onFilterChange();}},
+    options:{cutout:'58%',onClick:(e,els)=>{if(els.length){F[key]=[String(labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{position:'right'},..._labelOpts(true),tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
         return `${c.label}: ${crc(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}}}));
 }
@@ -1347,7 +1470,7 @@ function expLine(id,recs){
   const labels=MORDER.filter(x=>x in m),data=labels.map(x=>m[x]);
   expCharts.push(new Chart(document.getElementById(id),{type:'line',
     data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:.32,borderWidth:2.4,pointRadius:2}]},
-    options:{onClick:(e,els)=>{if(els.length){F.Month=labels[els[0].index];onFilterChange();}},
+    options:{onClick:(e,els)=>{if(els.length){F.Month=[String(labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.y)}}},
       scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},x:{grid:{display:false}}}}}));
 }
@@ -1356,7 +1479,7 @@ function buildExplorer(){
   const recs=recFilter();
   const s=document.getElementById('tab-explorer');
   const nsv=recs.reduce((a,r)=>a+r.NSV,0),mrp=recs.reduce((a,r)=>a+r.MRP,0),qty=recs.reduce((a,r)=>a+r.Qty,0);
-  const active=FILT.filter(([k])=>F[k]).map(([k,lab])=>`<span class="fchip">${lab}: ${F[k]} <b data-k="${k}" title="clear">✕</b></span>`).join(' ');
+  const active=activeChipsHtml();
   const rep=(D.detail_meta&&D.detail_meta.representative)
     ? `<div class="repbanner"><b>Representative data.</b> Drill-down runs on <code>detail_records</code> whose Chain/Brand/Zone/Channel/Month/FY totals match the real primary; Category, Sub-category, Pack Size and Article are taxonomy placeholders until the granular source feeds <code>build_dashboard_data.py</code>.</div>` : '';
   const cap=400, shown=recs.slice(0,cap);

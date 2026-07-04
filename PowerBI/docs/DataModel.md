@@ -28,7 +28,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact TDP` | Month × Chain × Article | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Primary ShipTo` | Month × Ship-To × Chain × Brand | `Date Table[MonthStart]` → `[MonthStartCalc]` |
-| `Fact Primary Article` | Month × Ship-To(Distributor) × Chain × Brand × Article | `Date Table[MonthStart]` → `[MonthStart]` |
+| `Fact Primary Article` | Month × Customer(Ship-to) × Chain × Brand × Article — DIST rows pre-exploded across chains by cont% (query 41); `[Chain]` is the allocated "Chain name for Dashboard", never a Ship To Name; unmatched rows carry "Unmapped Chain" | `Date Table[MonthStart]` → `[MonthStart]` |
 
 ### Helper / input tables
 | Table | Role |
@@ -44,6 +44,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `GST Config` | Single editable cell: the GLOBAL default GST cutover date (query 38, from `SeedData/Masters/GST_Config.csv`) — default 2025-09-22 (GST Council's confirmed GST 2.0 effective date). Used by TOT% whenever a category's own `Effective_From` is blank. Disconnected — read via `MINX()`. |
 | `PL Expense Input` | Month-on-month P&L expense input for CM2 (query 39, from `SeedData/Masters/PL_Expense_Input.csv`), editable by Finance/Ops — never hardcoded. **Related** to `Date Table[MonthStart]` (unlike the other helper tables above, which stay disconnected) so `DAX/13_CM2_Measures.dax`'s MoM Expense/CM2 Change measures work. `Resolved Chain`/`Resolved Brand`/`Resolved Category`/`Bad Brand Or Category` are calculated columns (not measures) — see that DAX file's setup note. |
 | `CustCode Chain Map` | Customer Code → most-common Chain (query 40, derived from `Fact Primary Article` — add it AFTER query 16). Disconnected — read via `LOOKUPVALUE()` by `PL Expense Input[Resolved Chain]`. |
+| `Dist Cont Weights` | Secondary-derived Distributor→Chain monthly split for the article-level DIST allocation (query 41, from `RawDataFolders/Dist_primary_cont_based_on_secondary_MOM.xlsx`, sheet "Dist Primary Conv to Chain Art"). Referenced BY query 16's merge — add it BEFORE re-applying 16. `[Raw Pct Sum]` ≠ 100 flags cont% variance pre-normalisation (QC rule 19). Not loaded to the model page itself (query-time only), so no relationship. |
 | `_Measures` | holds all measures, no data. |
 
 ## Relationships (create exactly these)

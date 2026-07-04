@@ -1,111 +1,91 @@
 // =====================================================================
-// QUERY: Fact Primary Article  (File 2 — Distributor article-wise primary)
+// QUERY: Fact Primary Article  (File 2 — article-wise primary, DIST-allocated)
 // Source: RawDataFolders\Primary_Article_Monthly\
-//   (month-wise CSVs from "MT, Eb2B & SIS primary April_23 to May_26.xlsb",
-//    produced by scripts/split_primary_article_xlsb.py)
-// Grain: Month x Ship-to(Distributor) x Chain x Brand x Article (EAN/Code).
+//   (month-wise CSVs from the article-wise primary .xlsb, produced by
+//    scripts/split_primary_article_xlsb.py — pass --header-row 1: the current
+//    business format has a reference/annotation row ABOVE the real header)
+// Grain: Month x Customer(Ship-to) x Chain x Brand x Article — after the
+//   DIST allocation below, one source Dist. row becomes one row PER CHAIN.
 //
-// MAPPING LOCKED to the confirmed File 2 headers (SAP invoice export):
-//   FY, Month, Article Code, Ship To Name, EAN No., brand, category,
-//   sub_category, range, Description, Inv Qty, Inv. Net value(LOC),
-//   Inv. Tax Amount(LOC), Total MRP sales, Avg Tot, Cust-SAP Code, Zone,
-//   State, Chain name, Store Code, Format, Channel   (+ many invoice
-//   columns kept out of the model)
+// MAPPING LOCKED to the CURRENT business headers (per the maintained file --
+// do not assume old names):
+//   FY, Month, Channel, Inv. Date, Cust-SAP Code, Ship To Name, EAN No.,
+//   net_content, brand, PPT Category, category, sub_category, range,
+//   Description, MRP (article MRP), Inv Qty, Inv. Net value(LOC),
+//   Inv. Tax Amount(LOC), Total MRP sales, Avg Tot, MTD-Sale type, PO Type,
+//   "Chain name for Dashboard" (one header cell containing a line break --
+//   normalised to a single space below), Zone, State
 //
-// Units: Primary NSV = "Inv. Net value(LOC)" — actual invoice net value in
-//        rupees. CONFIRMED basis for allocation; do NOT switch to "sale in lac".
-//        Lacs/Cr conversion is handled later in reporting measures only.
-// Article key priority: EAN -> Article Code -> cleaned Description.
-//
-// TOT% source columns (DAX/12_TOT_Measures.dax, 3-tier priority):
-//   "Avg Tot"                -> "Avg TOT" (0-1 fraction, Customer x Article
-//                                grain -- the Primary file's OWN TOT%, used
-//                                directly as first priority).
-//   "Inv. Tax Amount(LOC)"   -> "Primary Tax Amount" (rupees, actual tax --
-//                                second priority when Avg TOT is blank).
-// The GST_Rate_QC_Table.csv fallback (third priority) only fires when BOTH
-// of these are blank/invalid for a row.
+// DIST ALLOCATION (mirrors allocate_dist_primary() in
+// scripts/build_dashboard_data.py exactly):
+//   * PO Type = 'Dist.' rows have a BLANK "Chain name for Dashboard" -- they
+//     are exploded across chains by 'Dist Cont Weights' (query 41), joined on
+//     Ship To Name x Brand x Month. Inv Qty / Total MRP sales / NSV / Tax are
+//     scaled by the normalised cont% (sums to exactly 1 per key, so totals
+//     reconcile to the input by construction). Article MRP is per-unit and is
+//     NOT scaled. Avg Tot is a ratio, invariant under the split.
+//   * Direct rows keep their own "Chain name for Dashboard".
+//   * Dist. rows with no cont-sheet entry get Chain = "Unmapped Chain" --
+//     never blank, never the distributor's Ship To Name.
+//   * Ship To Name stays a CUSTOMER/distributor field; the dashboard chain
+//     field is always [Chain].
+// NOTE the flag lives in **PO Type** (Direct / Dist.), NOT in MTD-Sale type
+// (which holds Sales / MRN / Cancel Invoice / FOC).
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Article_Monthly"),
 
-    // keep only the columns the model needs (first 'Cust-SAP Code' instance).
-    // duplicate source headers (Customer Name, Cust-SAP Code) are de-duped by
-    // the combine step; we reference the canonical first occurrence here.
-    Picked = Table.SelectColumns(Source, {
-        "FY", "Month", "Ship To Name", "Chain name", "brand",
-        "Article Code", "EAN No.", "Description",
-        "category", "sub_category", "range",
+    // normalise headers: collapse the embedded line break in
+    // "Chain name(lf)for Dashboard" and squeeze doubled spaces
+    FixedNames = Table.TransformColumnNames(Source, each
+        Text.Trim(Text.Replace(Text.Replace(Text.Replace(_, "#(lf)", " "), "#(cr)", " "), "  ", " "))),
+
+    Picked = Table.SelectColumns(FixedNames, {
+        "FY", "Month", "Channel", "Inv. Date", "Cust-SAP Code", "Ship To Name",
+        "EAN No.", "net_content", "brand", "PPT Category",
+        "category", "sub_category", "range", "Description", "MRP",
         "Inv Qty", "Inv. Net value(LOC)", "Inv. Tax Amount(LOC)", "Total MRP sales", "Avg Tot",
-        "Cust-SAP Code", "Store Code", "Zone", "State", "Format", "Channel"
+        "MTD-Sale type", "PO Type", "Chain name for Dashboard", "Zone", "State"
     }, MissingField.UseNull),
 
     Renamed = Table.RenameColumns(Picked, {
         {"FY", "FY Year"},
-        {"Ship To Name", "Ship To Name"},
-        {"Chain name", "Chain"},
-        {"brand", "Brand"},
-        {"Article Code", "Article Code"},
+        {"Cust-SAP Code", "Customer Code"},
         {"EAN No.", "EAN Code"},
         {"Description", "Article Description"},
+        {"brand", "Brand"},
+        {"PPT Category", "PPT Category"},
         {"category", "Category"},
         {"sub_category", "Sub-category"},
         {"range", "Range"},
+        {"MRP", "Article MRP"},
         {"Inv Qty", "Primary Qty"},
         {"Inv. Net value(LOC)", "Primary NSV"},
         {"Inv. Tax Amount(LOC)", "Primary Tax Amount"},
         {"Total MRP sales", "Primary MRP"},
         {"Avg Tot", "Avg TOT"},
-        {"Cust-SAP Code", "Customer Code"},
-        {"Store Code", "Store Code"},
-        {"Zone", "Zone"},
-        {"State", "State"},
-        {"Format", "Format"},
-        {"Channel", "Channel"}
+        {"Chain name for Dashboard", "Chain Dash"}
     }),
 
     Typed = Table.TransformColumnTypes(Renamed, {
-        {"FY Year", type text}, {"Month", type text},
-        {"Ship To Name", type text}, {"Chain", type text}, {"Brand", type text},
-        {"Article Code", type text}, {"EAN Code", type text}, {"Article Description", type text},
-        {"Category", type text}, {"Sub-category", type text}, {"Range", type text},
-        {"Primary Qty", type number}, {"Primary NSV", type number},
-        {"Primary Tax Amount", type number}, {"Primary MRP", type number}, {"Avg TOT", type number},
-        {"Customer Code", type text}, {"Store Code", type text},
-        {"Zone", type text}, {"State", type text}, {"Format", type text}, {"Channel", type text}
+        {"FY Year", type text}, {"Month", type text}, {"Channel", type text},
+        {"Customer Code", type text}, {"Ship To Name", type text},
+        {"EAN Code", type text}, {"net_content", type text}, {"Brand", type text},
+        {"PPT Category", type text}, {"Category", type text}, {"Sub-category", type text},
+        {"Range", type text}, {"Article Description", type text},
+        {"Article MRP", type number}, {"Primary Qty", type number},
+        {"Primary NSV", type number}, {"Primary Tax Amount", type number},
+        {"Primary MRP", type number}, {"Avg TOT", type number},
+        {"MTD-Sale type", type text}, {"PO Type", type text},
+        {"Chain Dash", type text}, {"Zone", type text}, {"State", type text}
     }),
 
-    Trimmed = Table.TransformColumns(Typed, {
-        {"Article Code", each Text.Trim(Text.From(_)), type text},
-        {"EAN Code", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text},
-        {"Customer Code", each Text.Trim(Text.From(_)), type text}
-    }),
-
-    // OPTIONAL unit switch: set true only if you mapped Primary NSV to "sale in lac"
-    // (Primary Tax Amount is the same "(LOC)" currency family as Primary NSV,
-    // so it scales the same way -- Avg TOT is a 0-1 fraction, never scaled)
-    NsvIsLac = false,
-    Scaled = if NsvIsLac
-        then Table.TransformColumns(Trimmed, {{"Primary NSV", each _ * 100000, type number},
-                                               {"Primary Tax Amount", each if _ = null then null else _ * 100000, type number}})
-        else Trimmed,
-
-    // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(Scaled, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
-
-    // article key: EAN -> Article Code -> cleaned Description
-    AddKey = Table.AddColumn(FixBrand, "Article Key", each
-        if [EAN Code] <> null and Text.Trim([EAN Code]) <> "" then "EAN:" & [EAN Code]
-        else if [Article Code] <> null and Text.Trim([Article Code]) <> "" then "CODE:" & [Article Code]
-        else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
-
-    // MonthStart from "April'24" / "Apr'24" text, or from a date value
-    AddMonthStart = Table.AddColumn(AddKey, "MonthStart", each
+    // MonthStart from "April'24"/"Apr'24" text, a date value, or an Excel serial
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
         let v = [Month]
         in  if v = null then null
             else if Value.Is(v, type date) then Date.StartOfMonth(v)
+            else if Value.Is(v, type number) then Date.StartOfMonth(Date.From(v))
             else
                 let m = Text.Start(Text.BeforeDelimiter(Text.From(v), "'"), 3),
                     yy = Text.AfterDelimiter(Text.From(v), "'"),
@@ -113,6 +93,48 @@ let
                 in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null or [Primary Qty] <> null)
+    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null or [Primary Qty] <> null),
+
+    // ---------- DIST -> Chain allocation ----------
+    AddIsDist = Table.AddColumn(Cleaned, "Is Dist", each
+        Text.Lower(Text.Trim(Text.From([PO Type] ?? ""))) = "dist."
+        or Text.Lower(Text.Trim(Text.From([PO Type] ?? ""))) = "dist", type logical),
+
+    DirectRows = Table.SelectRows(AddIsDist, each not [Is Dist]),
+    DirectFinal = Table.AddColumn(DirectRows, "Chain", each [Chain Dash], type text),
+
+    DistRows = Table.SelectRows(AddIsDist, each [Is Dist]),
+    DistKeys1 = Table.AddColumn(DistRows, "ShipTo Key", each Text.Lower(Text.Trim([Ship To Name] ?? "")), type text),
+    DistKeys2 = Table.AddColumn(DistKeys1, "Brand Key", each Text.Lower(Text.Trim([Brand] ?? "")), type text),
+    Merged = Table.NestedJoin(DistKeys2, {"ShipTo Key", "Brand Key", "MonthStart"},
+        #"Dist Cont Weights", {"ShipTo Key", "Brand Key", "MonthStart"},
+        "W", JoinKind.LeftOuter),
+    ExpandedW = Table.ExpandTableColumn(Merged, "W", {"Chain Name", "Frac"}),
+    // scale measures by cont% (unmatched rows keep Frac=1 and go to "Unmapped Chain")
+    FillFrac = Table.ReplaceValue(ExpandedW, null, 1, Replacer.ReplaceValue, {"Frac"}),
+    Alloc1 = Table.AddColumn(FillFrac, "Primary Qty Alloc", each ([Primary Qty] ?? 0) * [Frac], type number),
+    Alloc2 = Table.AddColumn(Alloc1, "Primary NSV Alloc", each ([Primary NSV] ?? 0) * [Frac], type number),
+    Alloc3 = Table.AddColumn(Alloc2, "Primary MRP Alloc", each ([Primary MRP] ?? 0) * [Frac], type number),
+    Alloc4 = Table.AddColumn(Alloc3, "Primary Tax Alloc", each
+        if [Primary Tax Amount] = null then null else [Primary Tax Amount] * [Frac], type number),
+    DistChain = Table.AddColumn(Alloc4, "Chain", each
+        if [Chain Name] <> null then [Chain Name] else "Unmapped Chain", type text),
+    DistSwap = Table.RemoveColumns(
+        Table.RenameColumns(
+            Table.RemoveColumns(DistChain, {"Primary Qty", "Primary NSV", "Primary MRP", "Primary Tax Amount"}),
+            {{"Primary Qty Alloc", "Primary Qty"}, {"Primary NSV Alloc", "Primary NSV"},
+             {"Primary MRP Alloc", "Primary MRP"}, {"Primary Tax Alloc", "Primary Tax Amount"}}),
+        {"ShipTo Key", "Brand Key", "Chain Name", "Frac"}),
+
+    Combined = Table.Combine({Table.RemoveColumns(DirectFinal, {"Is Dist"}),
+                              Table.RemoveColumns(DistSwap, {"Is Dist"})}),
+
+    // article key: EAN -> cleaned Description (the current format has no Article Code)
+    AddKey = Table.AddColumn(Combined, "Article Key", each
+        if [EAN Code] <> null and Text.Trim([EAN Code]) <> "" then "EAN:" & [EAN Code]
+        else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
+
+    // brand spelling normalisation (keep in sync with Brand Master)
+    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"})
 in
-    Cleaned
+    FixBrand

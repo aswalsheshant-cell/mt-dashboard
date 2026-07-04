@@ -86,6 +86,8 @@ exactly this output for any table/matrix/chart bound to the right fields:
 | Article-level table | Page 7 table (full column list in `PageLayouts.md` §Page 7) |
 | Chain-wise TOT% / On-Invoice Margin Pass-on | Page 4 — TOT% section (see `PageLayouts.md` §Page 4). Build the same table/matrix with `Pack Size` or `Category` instead of `Chain` for the Pack Size/Category-level export — `TOT %`, `On-Invoice Margin Pass-on Value`, `MoM TOT Delta pp` and `Incremental Pass-on Impact` are all defined in `DAX/12_TOT_Measures.dax` |
 | P&L / CM2 (Contribution Margin 2) | Page 4 — CM2 section (see `PageLayouts.md` §Page 4). `Chain-wise CM2`, `Brand-wise CM2`, `Category-wise CM2`, `Expense Head Amount`, and the P&L Expense QC summary are all defined in `DAX/13_CM2_Measures.dax`, sourced from the editable `PL_Expense_Input.csv` (query 39) |
+| Customer × Article allocation table | `Fact Primary Article` already IS this grain post-allocation (query 16) — build a table on `Customer Code`, `Ship To Name`, `Article Description`, `Article MRP`, `Brand`, `Range`, `net_content`, `MonthStart`, `Chain` with `Primary NSV`/`Primary Qty`/`[TOT %]` and use per-visual Export data |
+| Allocation / missing-mapping QC tables | Build on `Dist Cont Weights` (query 41): `[Raw Pct Sum]` ≠ 100 flags cont% variance (QC rule 19); rows with `Chain = "Unmapped Chain"` in `Fact Primary Article` are the missing-mapping population — filter a table visual to that value and Export data |
 | SIS reconciliation table | `docs/SIS_Reconciliation.md` — kept as an audit doc, not a live report page (see **Known gaps** below) |
 | Forecast table | Page 5 — Forecast Dashboard |
 | P&L table | Page 4 — Chain-wise P&L |
