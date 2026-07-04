@@ -184,6 +184,35 @@ the file's measures to `_Measures` (see `README.md` step 8).
   `Category`) in place of `Chain` — `TOT %` aggregates correctly at whatever
   grain the visual groups by (weighted by MRP, not a simple average).
 
+**P&L / CM2 (Contribution Margin 2) section** — measures in
+`DAX/13_CM2_Measures.dax`. **Setup note:** that file's `Resolved Chain` /
+`Resolved Brand` / `Resolved Category` / `Bad Brand Or Category` are
+calculated COLUMNS on `PL Expense Input`, not measures — add query
+`40_CustCode_Chain_Map.pq` first, then those columns, before adding the
+rest of the file's measures to `_Measures` (see `README.md` step 8).
+- **KPI cards:** `[Total Primary Article NSV]` (labelled "NSV"), `[On-Invoice
+  Margin Pass-on Value]` (TOT Value), `[TOT %]`, `[Total P&L Expense]`,
+  `[Expense % of NSV]`, `[CM2 Value]`, `[CM2 %]`, `[MoM CM2 Change]`.
+- **No-expense-data note** (conditional text box, e.g. bound to
+  `[Total Expense Amount Loaded] = 0`): "No expense data loaded yet — CM2
+  currently equals NSV. Populate PL_Expense_Input.csv with real monthly P&L
+  expenses to see actual CM2."
+- **Chain-wise CM2** (bar or table): `Chain` × `[Chain-wise CM2]` /
+  `[Chain-wise CM2 %]`.
+- **Brand-wise CM2** / **Category-wise CM2**: same pattern with `Brand` /
+  `Category` from `Fact Primary Article`, using `[Brand-wise CM2]` /
+  `[Category-wise CM2]` respectively.
+- **Expense Head-wise contribution** (table/bar, bound to `PL Expense Input`):
+  `Expense Head` × `[Expense Head Amount]`.
+- **P&L Expense QC summary** (small table, same metrics as the HTML
+  dashboard's P&L tab QC panel): `[Total Expense Amount Loaded]`,
+  `[Total P&L Expense (Mapped)]`, `[Total P&L Expense (Unmapped)]`,
+  `[Unmapped Chain Or Customer Rows]`, `[Unmapped Brand Or Category Rows]`,
+  `[Blank Month Rows]`, `[Blank Expense Head Rows]`, `[Duplicate Expense Rows]`.
+- Add a text box: "Expenses are never hardcoded — maintained month-on-month
+  in `PL_Expense_Input.csv` (Customer Code matched first, Chain name
+  fallback). Edit that file and refresh to update CM2 dashboard-wide."
+
 ---
 
 ## Page 5 — Forecast Dashboard  *(TY-target driven)*

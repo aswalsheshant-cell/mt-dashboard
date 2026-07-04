@@ -344227,5 +344227,777 @@ window.DASH = {
   "finance_approved_total": 12,
   "unit": "INR Lakh",
   "methodology": "TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %) = Pass-on Value / MRP, i.e. SUM(Pass-on Value) / SUM(MRP) at whatever grain it's shown (never a simple average of row-level TOT% percentages). Pass-on Value is sourced per row with a 3-tier priority, computed from the full article-level primary detail (not the row-capped browser export): 1) SOURCE -- the Primary file's own 'Avg Tot' column (Customer x Article grain), used directly: Pass-on Value = MRP x Avg Tot. 2) ACTUAL TAX -- if Avg Tot is blank/invalid, use the row's actual 'Inv. Tax Amount(LOC)': Pass-on Value = MRP - NSV - Tax. 3) GST RATE TABLE FALLBACK -- only if BOTH are blank/invalid, estimate Tax from Category x cutover-date via the editable PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv (a per-category cutover override lives in that CSV's Effective_From column; if blank, the global default cutover date from PowerBI/SeedData/Masters/GST_Config.csv applies -- default 2025-09-22, the GST Council's confirmed GST 2.0 effective date). The GST rate table is FALLBACK ONLY: it has zero effect on TOT% for any row where the Primary file's own Avg Tot or Inv. Tax Amount(LOC) is present -- see method_qc for exactly how many rows/how much MRP actually rely on it. Several categories in the QC table are LOW-confidence best-effort assumptions (no official HSN-code source was available) and every row starts Finance_Approved=Pending -- verify against Finance/Tax records before treating any fallback-tier TOT% as final. 'Incremental Pass-on Impact' = the MoM change in Pass-on Value. 'Impact_on_TOT_pct' (in the QC table) = how much blended TOT% would move, in pp, if that one category's Post_GST_Rate_Pct were flipped to the alternate slab -- scoped only to that category's gst_fallback-tier rows, since avg_tot/tax_calc rows use real source data and aren't affected by the rate table at all."
+ },
+ "cm2": {
+  "total_nsv": 42392.96,
+  "total_expense": 47.65,
+  "expense_pct_of_nsv": 0.1,
+  "cm2_value": 42345.31,
+  "cm2_pct": 99.9,
+  "by_chain": [
+   {
+    "name": "Reliance Retail",
+    "nsv": 9369.26,
+    "expense": 28.4,
+    "cm2_value": 9340.86,
+    "cm2_pct": 99.7
+   },
+   {
+    "name": "Dmart",
+    "nsv": 8417.69,
+    "expense": 12.5,
+    "cm2_value": 8405.19,
+    "cm2_pct": 99.9
+   },
+   {
+    "name": "Apollo",
+    "nsv": 5240.22,
+    "expense": 6.75,
+    "cm2_value": 5233.47,
+    "cm2_pct": 99.9
+   },
+   {
+    "name": "Nykaa E-Retail Limited",
+    "nsv": 2311.6,
+    "expense": 0.0,
+    "cm2_value": 2311.6,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Sri Vijaya Durga Agencies",
+    "nsv": 2205.88,
+    "expense": 0.0,
+    "cm2_value": 2205.88,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "JUST MARK-Dmart",
+    "nsv": 1834.37,
+    "expense": 0.0,
+    "cm2_value": 1834.37,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "G.V Enterprises",
+    "nsv": 1788.46,
+    "expense": 0.0,
+    "cm2_value": 1788.46,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Kiran Trading Company",
+    "nsv": 1699.78,
+    "expense": 0.0,
+    "cm2_value": 1699.78,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Az Enterprises",
+    "nsv": 1075.2,
+    "expense": 0.0,
+    "cm2_value": 1075.2,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Wellness Forever",
+    "nsv": 1069.81,
+    "expense": 0.0,
+    "cm2_value": 1069.81,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Vanaja Agencies",
+    "nsv": 889.21,
+    "expense": 0.0,
+    "cm2_value": 889.21,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "D.L. Sales - MT",
+    "nsv": 623.28,
+    "expense": 0.0,
+    "cm2_value": 623.28,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Sancus Networks Private Limited-RMT",
+    "nsv": 598.95,
+    "expense": 0.0,
+    "cm2_value": 598.95,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Metro-CNC",
+    "nsv": 567.11,
+    "expense": 0.0,
+    "cm2_value": 567.11,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "VENKATESHWARA AGENCIES-TG",
+    "nsv": 544.37,
+    "expense": 0.0,
+    "cm2_value": 544.37,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Balaji Associates Distributor MT",
+    "nsv": 509.46,
+    "expense": 0.0,
+    "cm2_value": 509.46,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "M/S KOTTARAM BUSINESS",
+    "nsv": 472.92,
+    "expense": 0.0,
+    "cm2_value": 472.92,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "VISHAL ENTERPRISES",
+    "nsv": 314.14,
+    "expense": 0.0,
+    "cm2_value": 314.14,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "CHHABRA TRADERS",
+    "nsv": 298.61,
+    "expense": 0.0,
+    "cm2_value": 298.61,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Walmart-CNC",
+    "nsv": 285.41,
+    "expense": 0.0,
+    "cm2_value": 285.41,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "PRAGATI SALES-D-MART",
+    "nsv": 250.5,
+    "expense": 0.0,
+    "cm2_value": 250.5,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "JUST MARK-D-Mart",
+    "nsv": 248.78,
+    "expense": 0.0,
+    "cm2_value": 248.78,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Arc Foods And Beverages",
+    "nsv": 241.57,
+    "expense": 0.0,
+    "cm2_value": 241.57,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Kiran Trading Company-Solapur-D-Mart",
+    "nsv": 235.32,
+    "expense": 0.0,
+    "cm2_value": 235.32,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "H&G",
+    "nsv": 167.26,
+    "expense": 0.0,
+    "cm2_value": 167.26,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Az Enterprises-MT",
+    "nsv": 156.42,
+    "expense": 0.0,
+    "cm2_value": 156.42,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Shoppers Stop",
+    "nsv": 126.4,
+    "expense": 0.0,
+    "cm2_value": 126.4,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "V-Mart Retail Limited",
+    "nsv": 118.14,
+    "expense": 0.0,
+    "cm2_value": 118.14,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Eremedium Private Limited",
+    "nsv": 80.31,
+    "expense": 0.0,
+    "cm2_value": 80.31,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "MARK ENTERPRISE",
+    "nsv": 79.39,
+    "expense": 0.0,
+    "cm2_value": 79.39,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Trent Hypermarket",
+    "nsv": 78.82,
+    "expense": 0.0,
+    "cm2_value": 78.82,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Azorte",
+    "nsv": 70.74,
+    "expense": 0.0,
+    "cm2_value": 70.74,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "VISHAL ENTERPRISES-D-Mart",
+    "nsv": 62.19,
+    "expense": 0.0,
+    "cm2_value": 62.19,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "RR Traders-MT",
+    "nsv": 56.44,
+    "expense": 0.0,
+    "cm2_value": 56.44,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Sancus Networks-MT-Reg.",
+    "nsv": 38.93,
+    "expense": 0.0,
+    "cm2_value": 38.93,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Lifestyle",
+    "nsv": 32.79,
+    "expense": 0.0,
+    "cm2_value": 32.79,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "SAI SAACHI ASSOCIATES-MT-OR",
+    "nsv": 28.7,
+    "expense": 0.0,
+    "cm2_value": 28.7,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Sri Lalitha Enterprises",
+    "nsv": 26.1,
+    "expense": 0.0,
+    "cm2_value": 26.1,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Ascent Wellness",
+    "nsv": 25.97,
+    "expense": 0.0,
+    "cm2_value": 25.97,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Broadway",
+    "nsv": 24.69,
+    "expense": 0.0,
+    "cm2_value": 24.69,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Guardian Healthcare",
+    "nsv": 22.6,
+    "expense": 0.0,
+    "cm2_value": 22.6,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "REAL TIME LOGISTICS_MT_BR",
+    "nsv": 20.64,
+    "expense": 0.0,
+    "cm2_value": 20.64,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Sathyashree Enterprises",
+    "nsv": 19.16,
+    "expense": 0.0,
+    "cm2_value": 19.16,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Mark Enterprise-Apollo",
+    "nsv": 16.16,
+    "expense": 0.0,
+    "cm2_value": 16.16,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "United Marketing",
+    "nsv": 14.33,
+    "expense": 0.0,
+    "cm2_value": 14.33,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Sehaj Enterprises -MT-JK",
+    "nsv": 11.93,
+    "expense": 0.0,
+    "cm2_value": 11.93,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "CHOUDHARY ENTERPRISES",
+    "nsv": 10.33,
+    "expense": 0.0,
+    "cm2_value": 10.33,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "MANOJ SOAP AGENCY-MT",
+    "nsv": 7.65,
+    "expense": 0.0,
+    "cm2_value": 7.65,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "SRIJAN ENTERPRISES-MT-JH",
+    "nsv": 7.13,
+    "expense": 0.0,
+    "cm2_value": 7.13,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Aggarwal Associates",
+    "nsv": 6.82,
+    "expense": 0.0,
+    "cm2_value": 6.82,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Travel News Services-Wsmith",
+    "nsv": 5.25,
+    "expense": 0.0,
+    "cm2_value": 5.25,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "SC BUSINESS COMBINE_MT",
+    "nsv": 4.2,
+    "expense": 0.0,
+    "cm2_value": 4.2,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "SC BUSINESS COMBINE",
+    "nsv": 2.46,
+    "expense": 0.0,
+    "cm2_value": 2.46,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "PRAGATI SALES-Apollo",
+    "nsv": 2.37,
+    "expense": 0.0,
+    "cm2_value": 2.37,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Today's Basket",
+    "nsv": 2.24,
+    "expense": 0.0,
+    "cm2_value": 2.24,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Mittal Enterprises",
+    "nsv": 1.46,
+    "expense": 0.0,
+    "cm2_value": 1.46,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Lifestyle Babyshop",
+    "nsv": 1.17,
+    "expense": 0.0,
+    "cm2_value": 1.17,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Travel Retail Services-Relay",
+    "nsv": 1.16,
+    "expense": 0.0,
+    "cm2_value": 1.16,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Swastik Marketing",
+    "nsv": 0.69,
+    "expense": 0.0,
+    "cm2_value": 0.69,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Guardian Healthcare-Delhi",
+    "nsv": 0.49,
+    "expense": 0.0,
+    "cm2_value": 0.49,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "JB Pharma",
+    "nsv": 0.0,
+    "expense": 0.0,
+    "cm2_value": 0.0,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Kiran Trading Company-Pune-MT",
+    "nsv": 0.0,
+    "expense": 0.0,
+    "cm2_value": 0.0,
+    "cm2_pct": 100.0
+   }
+  ],
+  "by_brand": [
+   {
+    "name": "Mamaearth",
+    "nsv": 33315.06,
+    "expense": 40.9,
+    "cm2_value": 33274.16,
+    "cm2_pct": 99.9
+   },
+   {
+    "name": "The Derma Co",
+    "nsv": 8013.52,
+    "expense": 0.0,
+    "cm2_value": 8013.52,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Aqualogica",
+    "nsv": 886.12,
+    "expense": 0.0,
+    "cm2_value": 886.12,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "BBlunt",
+    "nsv": 117.8,
+    "expense": 0.0,
+    "cm2_value": 117.8,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Dr. Sheth's",
+    "nsv": 40.85,
+    "expense": 0.0,
+    "cm2_value": 40.85,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Staze",
+    "nsv": 7.69,
+    "expense": 0.0,
+    "cm2_value": 7.69,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Lumineve",
+    "nsv": 7.69,
+    "expense": 0.0,
+    "cm2_value": 7.69,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Pure Origin",
+    "nsv": 4.23,
+    "expense": 0.0,
+    "cm2_value": 4.23,
+    "cm2_pct": 100.0
+   }
+  ],
+  "by_category": [
+   {
+    "name": "Face",
+    "nsv": 26067.32,
+    "expense": 12.5,
+    "cm2_value": 26054.82,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Hair",
+    "nsv": 9838.76,
+    "expense": 0.0,
+    "cm2_value": 9838.76,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Body",
+    "nsv": 3445.06,
+    "expense": 0.0,
+    "cm2_value": 3445.06,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Baby",
+    "nsv": 2885.8,
+    "expense": 0.0,
+    "cm2_value": 2885.8,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Hair Care",
+    "nsv": 53.22,
+    "expense": 0.0,
+    "cm2_value": 53.22,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Fragrances",
+    "nsv": 39.0,
+    "expense": 0.0,
+    "cm2_value": 39.0,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Styling Products",
+    "nsv": 36.59,
+    "expense": 0.0,
+    "cm2_value": 36.59,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Hair Colour",
+    "nsv": 28.31,
+    "expense": 0.0,
+    "cm2_value": 28.31,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Fragrance",
+    "nsv": 13.28,
+    "expense": 0.0,
+    "cm2_value": 13.28,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Combo",
+    "nsv": 7.17,
+    "expense": 0.0,
+    "cm2_value": 7.17,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Lip",
+    "nsv": 5.78,
+    "expense": 0.0,
+    "cm2_value": 5.78,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Eye",
+    "nsv": 0.46,
+    "expense": 0.0,
+    "cm2_value": 0.46,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Personal Care",
+    "nsv": 0.28,
+    "expense": 0.0,
+    "cm2_value": 0.28,
+    "cm2_pct": 100.0
+   },
+   {
+    "name": "Makeup Combo",
+    "nsv": 0.17,
+    "expense": 0.0,
+    "cm2_value": 0.17,
+    "cm2_pct": 100.0
+   }
+  ],
+  "by_expense_head": [
+   {
+    "name": "Scheme / Trade Spend",
+    "amount": 28.4
+   },
+   {
+    "name": "Visibility Spend",
+    "amount": 12.5
+   },
+   {
+    "name": "BA Cost",
+    "amount": 6.75
+   }
+  ],
+  "monthly": [
+   {
+    "fy": "FY26",
+    "month": "April",
+    "nsv": 3174.6,
+    "expense": 47.65,
+    "cm2_value": 3126.95,
+    "cm2_pct": 98.5,
+    "mom_expense_change": null,
+    "mom_cm2_change": null
+   },
+   {
+    "fy": "FY26",
+    "month": "May",
+    "nsv": 2366.9,
+    "expense": 0.0,
+    "cm2_value": 2366.9,
+    "cm2_pct": 100.0,
+    "mom_expense_change": -47.65,
+    "mom_cm2_change": -760.05
+   },
+   {
+    "fy": "FY26",
+    "month": "June",
+    "nsv": 2182.64,
+    "expense": 0.0,
+    "cm2_value": 2182.64,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": -184.26
+   },
+   {
+    "fy": "FY26",
+    "month": "July",
+    "nsv": 2472.9,
+    "expense": 0.0,
+    "cm2_value": 2472.9,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": 290.26
+   },
+   {
+    "fy": "FY26",
+    "month": "Aug",
+    "nsv": 2162.39,
+    "expense": 0.0,
+    "cm2_value": 2162.39,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": -310.52
+   },
+   {
+    "fy": "FY26",
+    "month": "Sept",
+    "nsv": 2223.75,
+    "expense": 0.0,
+    "cm2_value": 2223.75,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": 61.36
+   },
+   {
+    "fy": "FY26",
+    "month": "Oct",
+    "nsv": 2674.89,
+    "expense": 0.0,
+    "cm2_value": 2674.89,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": 451.13
+   },
+   {
+    "fy": "FY26",
+    "month": "Nov",
+    "nsv": 3329.34,
+    "expense": 0.0,
+    "cm2_value": 3329.34,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": 654.45
+   },
+   {
+    "fy": "FY26",
+    "month": "Dec",
+    "nsv": 2820.61,
+    "expense": 0.0,
+    "cm2_value": 2820.61,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": -508.73
+   },
+   {
+    "fy": "FY26",
+    "month": "Jan",
+    "nsv": 3665.41,
+    "expense": 0.0,
+    "cm2_value": 3665.41,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": 844.8
+   },
+   {
+    "fy": "FY26",
+    "month": "Feb",
+    "nsv": 2924.94,
+    "expense": 0.0,
+    "cm2_value": 2924.94,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": -740.47
+   },
+   {
+    "fy": "FY26",
+    "month": "March",
+    "nsv": 2902.0,
+    "expense": 0.0,
+    "cm2_value": 2902.0,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": -22.94
+   },
+   {
+    "fy": "FY27",
+    "month": "April",
+    "nsv": 5076.86,
+    "expense": 0.0,
+    "cm2_value": 5076.86,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": 2174.86
+   },
+   {
+    "fy": "FY27",
+    "month": "May",
+    "nsv": 4415.74,
+    "expense": 0.0,
+    "cm2_value": 4415.74,
+    "cm2_pct": 100.0,
+    "mom_expense_change": 0.0,
+    "mom_cm2_change": -661.12
+   }
+  ],
+  "has_expense_data": true,
+  "unit": "INR Lakh",
+  "qc": {
+   "total_expense": 47.65,
+   "mapped_expense": 47.65,
+   "unmapped_expense": 0.0,
+   "unmapped_chain_customer": 0,
+   "unmapped_brand_category": 0,
+   "blank_month": 0,
+   "blank_expense_head": 0,
+   "duplicate_rows": 0,
+   "rows_loaded": 3,
+   "mapped_pct_of_total": 100.0
+  },
+  "methodology": "CM2 = NSV - P&L Expenses. NSV is already net of TOT%/on-invoice-margin pass-on and tax (see the TOT% section above), so no further deduction happens here. Expenses are NEVER hardcoded -- they come entirely from the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv, matched to this same article-level primary detail: Month+FY is always required; Customer Code is tried first (via a Cust-SAP-Code -> Chain lookup built from the primary data itself), Chain name is the fallback. A row matching neither is unmapped -- excluded from chain-wise CM2 but still counted in the QC summary. An expense row only attributes to a Brand/Category bucket if it specifies that dimension itself -- no proportional allocation is invented for rows that don't."
  }
 };

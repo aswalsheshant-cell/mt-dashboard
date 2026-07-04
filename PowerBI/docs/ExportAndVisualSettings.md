@@ -85,6 +85,7 @@ exactly this output for any table/matrix/chart bound to the right fields:
 | Sub-category → Range drill-down | Page 7 — build a matrix on `Sub-category` → `Range` (add `Range` next to the existing Product hierarchy, see §3) — drilling in the matrix and then hitting Export data exports **only the currently-drilled level**, matching the HTML dashboard's drill-scoped export behaviour automatically |
 | Article-level table | Page 7 table (full column list in `PageLayouts.md` §Page 7) |
 | Chain-wise TOT% / On-Invoice Margin Pass-on | Page 4 — TOT% section (see `PageLayouts.md` §Page 4). Build the same table/matrix with `Pack Size` or `Category` instead of `Chain` for the Pack Size/Category-level export — `TOT %`, `On-Invoice Margin Pass-on Value`, `MoM TOT Delta pp` and `Incremental Pass-on Impact` are all defined in `DAX/12_TOT_Measures.dax` |
+| P&L / CM2 (Contribution Margin 2) | Page 4 — CM2 section (see `PageLayouts.md` §Page 4). `Chain-wise CM2`, `Brand-wise CM2`, `Category-wise CM2`, `Expense Head Amount`, and the P&L Expense QC summary are all defined in `DAX/13_CM2_Measures.dax`, sourced from the editable `PL_Expense_Input.csv` (query 39) |
 | SIS reconciliation table | `docs/SIS_Reconciliation.md` — kept as an audit doc, not a live report page (see **Known gaps** below) |
 | Forecast table | Page 5 — Forecast Dashboard |
 | P&L table | Page 4 — Chain-wise P&L |

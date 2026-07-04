@@ -1,0 +1,163 @@
+// =====================================================================
+// CM2 (Contribution Margin 2) MEASURES
+//
+// CM2 = NSV - P&L Expenses. NSV here is [Total Primary Article NSV] from
+// DAX/12_TOT_Measures.dax (already net of TOT%/on-invoice-margin-pass-on
+// and tax), so no further deduction happens in this file.
+//
+// Expenses are NEVER hardcoded: they come entirely from the editable
+// PowerBI/SeedData/Masters/PL_Expense_Input.csv (query 39), matched to
+// 'Fact Primary Article' the same way as the HTML dashboard's cm2_block():
+// Month+FY always required; Customer Code tried first (via query 40's
+// CustCode-Chain map), Chain name is the fallback. An expense row matching
+// neither is unmapped -- excluded from Chain/Brand/Category-wise CM2 and
+// from the headline CM2 KPIs, but still counted (with its amount) in the
+// QC summary below. A row only attributes to a Brand/Category bucket if it
+// specifies that dimension itself -- no proportional allocation is invented.
+//
+// Mirrors dashboard/scripts/build_dashboard_data.py's cm2_block() exactly,
+// so a chain's CM2 reads the same on the HTML dashboard and here.
+// =====================================================================
+
+// ==========================================================================
+// SETUP STEP THAT DIFFERS FROM MOST DAX FILES IN THIS KIT: the next three
+// blocks are CALCULATED COLUMNS, not measures. Add them directly on
+// 'PL Expense Input' -- select that table ▸ Table tools ▸ New column --
+// NOT pasted into the "_Measures" table. Every measure further down in this
+// file depends on these three columns already existing. Add query
+// 40_CustCode_Chain_Map.pq to your Power BI file BEFORE adding these
+// columns (Resolved Chain depends on it).
+// ==========================================================================
+
+// 'PL Expense Input'[Resolved Chain] =
+// VAR _custCode = TRIM ( 'PL Expense Input'[Customer Code] )
+// VAR _chainIn = TRIM ( 'PL Expense Input'[Chain] )
+// VAR _viaCode = IF ( _custCode <> "", LOOKUPVALUE ( 'CustCode Chain Map'[Chain], 'CustCode Chain Map'[Customer Code], _custCode ) )
+// VAR _viaChain = IF ( _chainIn <> "" && CONTAINS ( VALUES ( 'Fact Primary Article'[Chain] ), 'Fact Primary Article'[Chain], _chainIn ), _chainIn )
+// RETURN COALESCE ( _viaCode, _viaChain )
+//
+// 'PL Expense Input'[Resolved Brand] =
+// VAR _brandIn = TRIM ( 'PL Expense Input'[Brand] )
+// RETURN IF ( _brandIn = "", BLANK(),
+//     IF ( CONTAINS ( VALUES ( 'Fact Primary Article'[Brand] ), 'Fact Primary Article'[Brand], _brandIn ), _brandIn, BLANK() ) )
+//
+// 'PL Expense Input'[Resolved Category] =
+// VAR _catIn = TRIM ( 'PL Expense Input'[Category] )
+// RETURN IF ( _catIn = "", BLANK(),
+//     IF ( CONTAINS ( VALUES ( 'Fact Primary Article'[Category] ), 'Fact Primary Article'[Category], _catIn ), _catIn, BLANK() ) )
+//
+// 'PL Expense Input'[Bad Brand Or Category] =   -- QC flag, also a calculated column
+// VAR _brandIn = TRIM ( 'PL Expense Input'[Brand] )
+// VAR _catIn = TRIM ( 'PL Expense Input'[Category] )
+// RETURN ( _brandIn <> "" && ISBLANK ( 'PL Expense Input'[Resolved Brand] ) )
+//     || ( _catIn <> "" && ISBLANK ( 'PL Expense Input'[Resolved Category] ) )
+
+// ---------- RELATIONSHIP NEEDED (see docs/DataModel.md) ----------
+// Date Table[MonthStart] -> PL Expense Input[MonthStart]  (a REAL modelled
+// relationship, unlike GST Rate QC Table / GST Config / CustCode Chain Map
+// which all stay disconnected) -- needed for MoM Expense/CM2 Change below.
+
+// ---------- BASE EXPENSE TOTALS ----------
+Total Expense Amount Loaded =
+SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] )   // everything loaded, mapped or not
+
+Total P&L Expense (Mapped) =
+CALCULATE ( [Total Expense Amount Loaded], NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ) )
+
+Total P&L Expense (Unmapped) =
+[Total Expense Amount Loaded] - [Total P&L Expense (Mapped)]
+
+Total P&L Expense = [Total P&L Expense (Mapped)]   // headline KPI -- matches the HTML dashboard's cm2D.total_expense
+
+// ---------- CM2 (overall / KPI cards) ----------
+// [Total Primary Article NSV] comes from DAX/12_TOT_Measures.dax (already
+// scoped to TOT-valid FY26/FY27 rows).
+Expense % of NSV =
+DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100
+
+CM2 Value =
+[Total Primary Article NSV] - [Total P&L Expense]
+
+CM2 % =
+DIVIDE ( [CM2 Value], [Total Primary Article NSV] ) * 100
+
+// ---------- MoM MOVEMENT (needs the Date Table -> PL Expense Input relationship) ----------
+MoM Expense Change =
+VAR _cur = [Total P&L Expense]
+VAR _prev = CALCULATE ( [Total P&L Expense], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+
+MoM CM2 Change =
+VAR _cur = [CM2 Value]
+VAR _prev = CALCULATE ( [CM2 Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+
+// ---------- CHAIN / BRAND / CATEGORY-WISE CM2 ----------
+// 'PL Expense Input' has NO modelled relationship to 'Fact Primary Article'
+// (the matching is fallback-priority logic, not a clean 1:many key) -- these
+// measures bridge the two tables explicitly via SELECTEDVALUE + FILTER, one
+// per dimension, matching how the request names them as separate items.
+Total P&L Expense (by Chain) =
+VAR _chain = SELECTEDVALUE ( 'Fact Primary Article'[Chain] )
+RETURN
+    IF ( ISBLANK ( _chain ), [Total P&L Expense],
+        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Chain] = _chain ) )
+    )
+
+Chain-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Chain)]
+Chain-wise CM2 % = DIVIDE ( [Chain-wise CM2], [Total Primary Article NSV] ) * 100
+
+Total P&L Expense (by Brand) =
+VAR _brand = SELECTEDVALUE ( 'Fact Primary Article'[Brand] )
+RETURN
+    IF ( ISBLANK ( _brand ), [Total P&L Expense],
+        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Brand] = _brand ) )
+    )
+
+Brand-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Brand)]
+Brand-wise CM2 % = DIVIDE ( [Brand-wise CM2], [Total Primary Article NSV] ) * 100
+
+Total P&L Expense (by Category) =
+VAR _cat = SELECTEDVALUE ( 'Fact Primary Article'[Category] )
+RETURN
+    IF ( ISBLANK ( _cat ), [Total P&L Expense],
+        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Category] = _cat ) )
+    )
+
+Category-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Category)]
+Category-wise CM2 % = DIVIDE ( [Category-wise CM2], [Total Primary Article NSV] ) * 100
+
+// ---------- EXPENSE HEAD-WISE BREAKUP ----------
+// Drop 'PL Expense Input'[Expense Head] on a table/matrix row with this
+// measure -- ordinary row-context filtering on the SAME table applies
+// automatically, no bridging needed (unlike Chain/Brand/Category above,
+// which live on the OTHER table).
+Expense Head Amount =
+SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] )
+
+// ---------- QC SUMMARY (same metrics as the HTML dashboard's P&L tab QC panel) ----------
+Unmapped Chain Or Customer Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input', ISBLANK ( 'PL Expense Input'[Resolved Chain] ) ) )
+
+Unmapped Brand Or Category Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input', 'PL Expense Input'[Bad Brand Or Category] = TRUE() ) )
+
+Blank Month Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input', ISBLANK ( 'PL Expense Input'[MonthStart] ) ) )
+
+Blank Expense Head Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input',
+    ISBLANK ( 'PL Expense Input'[Expense Head] ) || TRIM ( 'PL Expense Input'[Expense Head] ) = "" ) )
+
+Duplicate Expense Rows =
+VAR _grouped =
+    SUMMARIZE (
+        'PL Expense Input',
+        'PL Expense Input'[Month], 'PL Expense Input'[FY], 'PL Expense Input'[Chain],
+        'PL Expense Input'[Customer Code], 'PL Expense Input'[Customer Name],
+        'PL Expense Input'[Brand], 'PL Expense Input'[Category], 'PL Expense Input'[Sub Category],
+        'PL Expense Input'[Expense Head], 'PL Expense Input'[Expense Type],
+        'PL Expense Input'[Expense Amount (INR Lakh)],
+        "RowCount", COUNTROWS ( 'PL Expense Input' )
+    )
+RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )

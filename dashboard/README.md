@@ -142,6 +142,41 @@ change in Pass-on Value; `MoM TOT Δ pp` = the month-over-month change in
 TOT% itself, in percentage points. Both are exposed per-chain (P&L tab card)
 and per-pack-size (Category & Pack tab's Pack Size chart export — see below).
 
+### P&L / CM2 (Contribution Margin 2) — P&L tab
+`CM2 = NSV − P&L Expenses`. NSV here is already net of TOT%/tax (see above),
+so no further deduction happens for CM2 — it's simply whatever's left after
+subtracting matched P&L expenses.
+
+**Expenses are never hardcoded.** They're maintained month-on-month in the
+editable `PowerBI/SeedData/Masters/PL_Expense_Input.csv` — columns `Month,
+FY, Chain, Customer Code, Customer Name, Zone, State, Brand, Category, Sub
+Category, Expense Head, Expense Type, Expense Amount (INR Lakh), Remarks,
+Source, Updated By, Updated Date`. **`FY` must use a format containing
+"yy-yy" (e.g. `FY25-26`) or the dashboard's own short form (e.g. `FY26`)** —
+either works, but a bare number or an unrecognised format will silently land
+the row in the QC panel's "Blank Month" count instead of matching.
+
+**Matching priority:** Customer Code is tried first (resolved to a Chain via
+a lookup built from the primary data itself — a Customer Code doesn't need
+to spell the Chain name correctly, or at all); Chain name is the fallback.
+A row satisfying neither is **unmapped** — its amount is excluded from CM2
+and chain-wise rollups, but tracked in the QC summary below, never silently
+dropped. **An expense row only attributes to a Brand/Category bucket if it
+specifies that dimension itself** — no proportional/estimated allocation is
+invented for rows that don't (e.g. a Chain-only "BA Cost" row reduces that
+chain's CM2 but doesn't appear in any Brand-wise or Category-wise view).
+
+The P&L tab's CM2 section shows: NSV, TOT Value/%, Total P&L Expense,
+Expense % of NSV, CM2 Value/%, MoM CM2 movement, chain-wise CM2 (chart +
+table), Expense Head-wise contribution, and an 8-metric QC summary (total
+expense loaded, mapped/unmapped amount, unmapped chain/customer rows,
+unmapped brand/category rows, blank Month rows, blank Expense Head rows,
+duplicate rows). **If no real expense data has been loaded yet, an explicit
+banner says so** rather than silently showing CM2 == NSV as if it were a
+final number. Edit `PL_Expense_Input.csv` and re-run `--detail-only` to
+refresh CM2 dashboard-wide (and in Power BI — `DAX/13_CM2_Measures.dax`
+reads the same file via query 39).
+
 ## Export & download
 
 Every page, chart and table can be downloaded — all client-side, no server

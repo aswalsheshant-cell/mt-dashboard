@@ -876,6 +876,223 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
     }
 
 # --------------------------------------------------------------------------
+# CM2 (Contribution Margin 2) = NSV - P&L Expenses
+#
+# NSV here is already net of TOT/on-invoice-margin-pass-on AND tax (that's
+# what "Primary NSV" / this pipeline's _NSV already is, per the TOT% block
+# above), so no further TOT/Tax deduction happens in this function -- CM2 is
+# simply NSV minus whatever P&L expenses matched that scope.
+#
+# Expenses are NEVER hardcoded: they come entirely from the editable
+# PowerBI/SeedData/Masters/PL_Expense_Input.csv, matched to the SAME
+# article-level primary detail that TOT% uses. Per row: Month+FY is always
+# required; Customer Code is tried FIRST (via a Cust-SAP-Code -> Chain
+# lookup built from the primary data itself), Chain name is the fallback.
+# A row satisfying neither is "unmapped" -- excluded from chain-wise CM2 but
+# still counted (and its amount tracked) in the QC summary. An expense row
+# only attributes to a Brand/Category bucket if IT specifies that dimension
+# -- no proportional/estimated allocation is invented for rows that don't.
+# --------------------------------------------------------------------------
+_EXPENSE_DEDUP_FIELDS = ["Month", "FY", "Chain", "Customer Code", "Customer Name",
+                         "Brand", "Category", "Sub Category", "Expense Head",
+                         "Expense Type", "Expense Amount (INR Lakh)"]
+
+def load_pl_expense_input():
+    """Row dicts from the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv.
+    Returns [] if the file is missing (no expenses loaded yet -- CM2 then
+    just equals NSV, and the dashboard/Power BI both show an explicit
+    "no expense data loaded" state rather than a fabricated CM2)."""
+    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PL_Expense_Input.csv"
+    if not path.exists():
+        return []
+    with open(path, newline="", encoding="utf-8") as fh:
+        return list(csv.DictReader(fh))
+
+def _build_custcode_chain_lookup(df):
+    """Cust-SAP Code -> most common Chain, built from the primary article
+    data itself, so an expense row that only gives a Customer Code (no
+    Chain) can still resolve for chain-wise CM2."""
+    sub = df[df["_CustCode"] != ""]
+    if sub.empty:
+        return {}
+    return sub.groupby("_CustCode")["_Chain"].agg(lambda s: s.value_counts().idxmax()).to_dict()
+
+def cm2_block(df, expense_rows):
+    """Chain/Brand/Category/Expense-Head CM2 rollups + monthly series, from
+    the row-level article-level primary detail `df` (already carries _NSV,
+    _Chain, _Brand, _category, _CustCode, _method, _FY, _M from the TOT%
+    computation above) and the parsed PL_Expense_Input.csv rows."""
+    known_chains = set(df["_Chain"].dropna().unique())
+    known_brands = set(df["_Brand"].dropna().unique())
+    known_categories = set(x for x in df["_category"].dropna().unique() if x)
+    custcode_chain = _build_custcode_chain_lookup(df)
+
+    seen_keys = set()
+    parsed = []
+    qc = {"total_expense": 0.0, "mapped_expense": 0.0, "unmapped_expense": 0.0,
+          "unmapped_chain_customer": 0, "unmapped_brand_category": 0,
+          "blank_month": 0, "blank_expense_head": 0, "duplicate_rows": 0,
+          "rows_loaded": len(expense_rows)}
+
+    for r in expense_rows:
+        raw_amount = (r.get("Expense Amount (INR Lakh)") or "").strip()
+        try:
+            amount = float(raw_amount) if raw_amount else None
+        except ValueError:
+            amount = None
+        if amount is None:
+            continue   # nothing to attribute -- not counted as loaded/unmapped either
+
+        dedup_key = tuple((r.get(k) or "").strip().lower() for k in _EXPENSE_DEDUP_FIELDS)
+        if dedup_key in seen_keys:
+            qc["duplicate_rows"] += 1
+            continue
+        seen_keys.add(dedup_key)
+
+        qc["total_expense"] += amount
+
+        m = _mlabel(r.get("Month"))
+        fy = _fylabel(r.get("FY"))
+        if m is None or fy is None:
+            qc["blank_month"] += 1
+            qc["unmapped_expense"] += amount
+            continue
+
+        head = (r.get("Expense Head") or "").strip()
+        if not head:
+            qc["blank_expense_head"] += 1
+
+        cust_code = (r.get("Customer Code") or "").strip()
+        chain_in = (r.get("Chain") or "").strip()
+        resolved_chain, match_method = None, None
+        if cust_code and cust_code in custcode_chain:
+            resolved_chain, match_method = custcode_chain[cust_code], "custcode"
+        elif chain_in:
+            cc = canon_chain(chain_in)
+            if cc in known_chains:
+                resolved_chain, match_method = cc, "chain"
+
+        brand_in = (r.get("Brand") or "").strip()
+        cat_in = (r.get("Category") or "").strip()
+        brand_resolved = canon_brand(brand_in) if brand_in else None
+        cat_resolved = cat_in or None   # Category has no alias map elsewhere in this pipeline; used as-given, trimmed
+        bad_dim = (brand_in and brand_resolved not in known_brands) or (cat_in and cat_resolved not in known_categories)
+        if bad_dim:
+            qc["unmapped_brand_category"] += 1
+
+        if resolved_chain is None:
+            qc["unmapped_chain_customer"] += 1
+            qc["unmapped_expense"] += amount
+            continue
+
+        qc["mapped_expense"] += amount
+        parsed.append({
+            "fy": fy, "month": m, "chain": resolved_chain,
+            "brand": brand_resolved if (brand_in and not bad_dim) else None,
+            "category": cat_resolved if (cat_in and not bad_dim) else None,
+            "head": head or "(Unspecified)",
+            "type": (r.get("Expense Type") or "").strip(),
+            "amount": amount, "match_method": match_method,
+        })
+
+    qc["total_expense"] = r2(qc["total_expense"])
+    qc["mapped_expense"] = r2(qc["mapped_expense"])
+    qc["unmapped_expense"] = r2(qc["unmapped_expense"])
+    qc["mapped_pct_of_total"] = r2(qc["mapped_expense"] / qc["total_expense"] * 100, 1) if qc["total_expense"] else None
+
+    # ---- NSV base: same TOT%-valid, FY26/FY27-only population as tot_block ----
+    base = df[df["_FY"].isin(["FY26", "FY27"]) & (df["_method"] != "invalid")]
+
+    def rollup(dim_col, expense_dim_key):
+        nsv_series = base.groupby(dim_col)["_NSV"].sum()
+        exp_by = {}
+        for e in parsed:
+            key = e.get(expense_dim_key)
+            if key is None:
+                continue
+            exp_by[key] = exp_by.get(key, 0.0) + e["amount"]
+        out = []
+        for name in set(nsv_series.index) | set(exp_by.keys()):
+            if not name:
+                continue
+            nsv = float(nsv_series.get(name, 0.0))
+            exp = exp_by.get(name, 0.0)
+            if nsv <= 0 and exp <= 0:
+                continue
+            cm2 = nsv - exp
+            out.append({"name": name, "nsv": r2(nsv), "expense": r2(exp),
+                        "cm2_value": r2(cm2), "cm2_pct": r2(cm2 / nsv * 100, 1) if nsv else None})
+        return sorted(out, key=lambda d: -(d["nsv"] or 0))
+
+    by_chain = rollup("_Chain", "chain")
+    by_brand = rollup("_Brand", "brand")
+    by_category = rollup("_category", "category")
+
+    head_totals = {}
+    for e in parsed:
+        head_totals[e["head"]] = head_totals.get(e["head"], 0.0) + e["amount"]
+    by_expense_head = sorted(
+        [{"name": k, "amount": r2(v)} for k, v in head_totals.items()],
+        key=lambda d: -d["amount"])
+
+    nsv_monthly = base.groupby(["_FY", "_M"])["_NSV"].sum()
+    exp_monthly = {}
+    for e in parsed:
+        k = (e["fy"], e["month"])
+        exp_monthly[k] = exp_monthly.get(k, 0.0) + e["amount"]
+    raw_monthly = []
+    for (fy, m) in set(nsv_monthly.index) | set(exp_monthly.keys()):
+        ordv = month_ord(m, fy)
+        if ordv is None:
+            continue
+        nsv = float(nsv_monthly.get((fy, m), 0.0))
+        exp = exp_monthly.get((fy, m), 0.0)
+        raw_monthly.append({"fy": fy, "month": m, "ord": ordv, "nsv": nsv, "expense": exp,
+                            "cm2_value": nsv - exp, "cm2_pct": (nsv - exp) / nsv * 100 if nsv else None})
+    raw_monthly.sort(key=lambda d: d["ord"])
+    monthly = []
+    for i, row in enumerate(raw_monthly):
+        prev = raw_monthly[i - 1] if i > 0 else None
+        monthly.append({
+            "fy": row["fy"], "month": row["month"],
+            "nsv": r2(row["nsv"]), "expense": r2(row["expense"]),
+            "cm2_value": r2(row["cm2_value"]),
+            "cm2_pct": r2(row["cm2_pct"], 1) if row["cm2_pct"] is not None else None,
+            "mom_expense_change": r2(row["expense"] - prev["expense"]) if prev else None,
+            "mom_cm2_change": r2(row["cm2_value"] - prev["cm2_value"]) if prev else None,
+        })
+
+    total_nsv = base["_NSV"].sum()
+    total_expense = sum(e["amount"] for e in parsed)
+    cm2_value = total_nsv - total_expense
+    return {
+        "total_nsv": r2(total_nsv),
+        "total_expense": r2(total_expense),
+        "expense_pct_of_nsv": r2(total_expense / total_nsv * 100, 1) if total_nsv else None,
+        "cm2_value": r2(cm2_value),
+        "cm2_pct": r2(cm2_value / total_nsv * 100, 1) if total_nsv else None,
+        "by_chain": by_chain, "by_brand": by_brand, "by_category": by_category,
+        "by_expense_head": by_expense_head,
+        "monthly": monthly,
+        "has_expense_data": len(parsed) > 0,
+        "unit": "INR Lakh",
+        "qc": qc,
+        "methodology": (
+            "CM2 = NSV - P&L Expenses. NSV is already net of TOT%/on-invoice-margin "
+            "pass-on and tax (see the TOT% section above), so no further deduction "
+            "happens here. Expenses are NEVER hardcoded -- they come entirely from "
+            "the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv, matched to "
+            "this same article-level primary detail: Month+FY is always required; "
+            "Customer Code is tried first (via a Cust-SAP-Code -> Chain lookup built "
+            "from the primary data itself), Chain name is the fallback. A row "
+            "matching neither is unmapped -- excluded from chain-wise CM2 but still "
+            "counted in the QC summary. An expense row only attributes to a Brand/"
+            "Category bucket if it specifies that dimension itself -- no proportional "
+            "allocation is invented for rows that don't."
+        ),
+    }
+
+# --------------------------------------------------------------------------
 # P&L (chain-wise gross-to-net + trade spend)
 # --------------------------------------------------------------------------
 def pnl_block(pdf, promo):
@@ -1099,6 +1316,12 @@ def _fylabel(fy):
     if "24-25" in s: return "FY25"
     if "25-26" in s: return "FY26"
     if "26-27" in s: return "FY27"
+    # also accept the dashboard's own short form directly (FY26, FY 26) --
+    # manually-typed input (e.g. PL_Expense_Input.csv) is more likely to use
+    # this than the "FYyy-yy" convention the SAP-exported source files use.
+    m = re.match(r"^FY0?(2[4-7])$", s)
+    if m:
+        return "FY" + m.group(1)
     return None
 
 # brand -> [(Category, SubCategory, Range, [packs], article_stem)] for the representative fallback
@@ -1265,6 +1488,15 @@ def detail_records_real(src, max_rows=20000):
     df["_TaxLOC"] = (pd.to_numeric(df["Inv. Tax Amount(LOC)"], errors="coerce") / 1e5) \
         if "Inv. Tax Amount(LOC)" in df.columns else pd.Series(float("nan"), index=df.index)
 
+    # ---- CM2 expense-matching keys (see cm2_block): Customer Code is the
+    # FIRST occurrence only ("Cust-SAP Code" appears twice in the raw file;
+    # pandas auto-suffixes the duplicate as "Cust-SAP Code.1" — same
+    # canonical-first-occurrence convention PowerQuery/16 uses).
+    df["_CustCode"] = df["Cust-SAP Code"].astype(str).str.strip().replace({"nan": ""}) \
+        if "Cust-SAP Code" in df.columns else ""
+    df["_CustName"] = df["Ship To Name"].astype(str).str.strip().replace({"nan": ""}) \
+        if "Ship To Name" in df.columns else ""
+
     # ---- EXACT channel totals from the FULL data, before any row capping ----
     ct = (df.groupby(["_FY", "_Chan"])["_NSV"].sum().round(2))
     channel_totals = {}
@@ -1300,6 +1532,11 @@ def detail_records_real(src, max_rows=20000):
     # so it's exact rather than subject to the browser row cap.
     tot = tot_block(g, _qc_table, _cutover, _qc_raw_rows, _qc_summary)
 
+    # ---- CM2 = NSV - P&L Expenses: computed from the same row-level `df`
+    # (before the groupby/cap above) so Customer Code matching works against
+    # the real per-transaction grain. See cm2_block's docstring.
+    cm2 = cm2_block(df, load_pl_expense_input())
+
     total_value = g["NSV"].sum()
     rows_total = len(g)
     # cap by ROW COUNT, keeping the top-N groups by |NSV| (preserves value fidelity)
@@ -1317,7 +1554,7 @@ def detail_records_real(src, max_rows=20000):
           f"({coverage:.1f}% of total value)")
     return recs, channel_totals, sis_reconciliation, {
         "rows_total": rows_total, "rows_kept": len(recs),
-        "value_coverage_pct": round(coverage, 1)}, tot
+        "value_coverage_pct": round(coverage, 1)}, tot, cm2
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -1370,11 +1607,10 @@ def detail_dims(recs):
 
 def _build_detail_meta(src, max_rows, primary_for_fallback):
     """Shared by both the --detail-only path and the full build: returns
-    (detail_records, dims, detail_meta_dict, tot). Falls back to the
+    (detail_records, dims, detail_meta_dict, tot, cm2). Falls back to the
     representative synthesiser only when File 2 is absent -- in that case
-    `tot` is None, since TOT% needs REAL Category tags (GST rate depends on
-    actual product classification, not a randomly-assigned taxonomy
-    placeholder)."""
+    `tot`/`cm2` are None, since both need REAL Category/Chain tags (not a
+    randomly-assigned taxonomy placeholder)."""
     result = detail_records_real(src, max_rows)
     if result is None:
         detail = detail_records_representative(primary_for_fallback)
@@ -1385,8 +1621,8 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
             "note": ("REPRESENTATIVE records — Chain/Brand/Zone/Channel/Month/FY margins match the "
                      "real primary; Category/Sub-category/Pack/Article are taxonomy placeholders. "
                      "Drop primary_article.xlsb into --src to emit real detail."),
-        }, None
-    detail, channel_totals, sis_reconciliation, cov, tot = result
+        }, None, None
+    detail, channel_totals, sis_reconciliation, cov, tot, cm2 = result
     meta = {
         "representative": False,
         "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
@@ -1411,7 +1647,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
                           "Primary SIS FY26. Rs 236 L and Rs 275.44 L (gross) are "
                           "NOT correct.",
     }
-    return detail, detail_dims(detail), meta, tot
+    return detail, detail_dims(detail), meta, tot, cm2
 
 
 def main():
@@ -1446,16 +1682,19 @@ def main():
         if "primary" not in obj and not (src / "primary_article.xlsb").exists() \
                 and not (src / "primary_article.xlsx").exists():
             raise SystemExit("No File 2 in --src and no primary block in data.js to synthesise from.")
-        detail, dims, meta, tot = _build_detail_meta(src, a.detail_max_rows, obj.get("primary"))
+        detail, dims, meta, tot, cm2 = _build_detail_meta(src, a.detail_max_rows, obj.get("primary"))
         obj["detail_records"] = detail
         obj["dims"] = dims
         obj["detail_meta"] = meta
         if tot is not None:
             obj["tot"] = tot
+        if cm2 is not None:
+            obj["cm2"] = cm2
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"detail-only: wrote {len(detail)} detail_records "
               f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}"
-              + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else ""))
+              + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
+              + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
         return
 
     # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----
@@ -1518,15 +1757,18 @@ def main():
     }
 
     # ---- Data Explorer detail_records: real from File 2 if present, else representative ----
-    detail, dims, detail_meta, tot = _build_detail_meta(src, a.detail_max_rows, primary)
+    detail, dims, detail_meta, tot, cm2 = _build_detail_meta(src, a.detail_max_rows, primary)
     data["detail_records"] = detail
     data["dims"] = dims
     data["detail_meta"] = detail_meta
     if tot is not None:
         data["tot"] = tot
+    if cm2 is not None:
+        data["cm2"] = cm2
     print(f"detail_records: {len(detail)} rows "
           f"({'REAL' if not detail_meta['representative'] else 'representative'})"
-          + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else ""))
+          + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
+          + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
 
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)

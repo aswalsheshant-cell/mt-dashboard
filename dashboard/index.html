@@ -729,6 +729,20 @@ function buildPnl(){
         GST rate table fallback, pending Finance/Tax sign-off (${totD.finance_approved_count} of
         ${totD.finance_approved_total} categories confirmed). The remaining ${(100-fbPct).toFixed(1)}% uses actual
         source data (Avg Tot / Inv. Tax Amount).</div>`;
+  // CM2 (Contribution Margin 2) = NSV - P&L Expenses. Expenses are never
+  // hardcoded -- they come entirely from PowerBI/SeedData/Masters/
+  // PL_Expense_Input.csv (see cm2_block in build_dashboard_data.py).
+  const cm2D=D.cm2;
+  let cm2Chains=cm2D?cm2D.by_chain:[];
+  if(F.Chain) cm2Chains=cm2Chains.filter(c=>c.name===F.Chain);
+  const cm2Top=cm2Chains.slice(0,12);
+  const cm2Rows=cm2Chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
+     <td>${crc(c.expense)}</td><td>${crc(c.cm2_value)}</td><td>${c.cm2_pct==null?'–':c.cm2_pct+'%'}</td></tr>`).join('');
+  const cm2HeadRows=(cm2D&&cm2D.by_expense_head||[]).map(h=>`<tr><td>${h.name}</td><td>${crc(h.amount)}</td></tr>`).join('');
+  const cm2Monthly=(cm2D&&cm2D.monthly||[]);
+  const cm2Latest=cm2Monthly.length?cm2Monthly[cm2Monthly.length-1]:null;
+  const cm2Qc=(cm2D&&cm2D.qc)||{};
+  const cm2NoData=!cm2D||!cm2D.has_expense_data;
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    <p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -776,6 +790,40 @@ function buildPnl(){
      Default GST cutover date: ${totD.gst_cutover_default} (editable — <code>PowerBI/SeedData/Masters/GST_Config.csv</code>).
      QC table: <code>PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv</code> (editable — several categories are LOW-confidence
      best-effort assumptions pending Finance/Tax confirmation; see that file's Confidence/Note/Finance_Approved columns).</p></div>`:''}
+   ${cm2D?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">P&amp;L / CM2 (Contribution Margin 2)</h3>
+   <p class="note" style="margin:0 0 10px">CM2 = NSV − P&amp;L Expenses (NSV is already net of TOT%/tax — see the TOT% section above).
+     Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
+     matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
+     <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).</p>
+   ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
+        Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`:''}
+   <div class="kpis">
+     ${kpi('NSV (TOT%-scope)',crc(cm2D.total_nsv),'FY26-FY27, same population as TOT%')}
+     ${kpi('TOT Value',totD?crc(totD.total_passon_value):'–',totD&&totD.blended_tot_pct!=null?totD.blended_tot_pct+'% of MRP':'')}
+     ${kpi('Total P&L Expense',crc(cm2D.total_expense),cm2D.expense_pct_of_nsv!=null?cm2D.expense_pct_of_nsv+'% of NSV':'')}
+     ${kpi('CM2 Value',crc(cm2D.cm2_value),cm2D.cm2_pct!=null?cm2D.cm2_pct+'% of NSV':'')}
+     ${kpi('MoM CM2 Movement',cm2Latest&&cm2Latest.mom_cm2_change!=null?crc(cm2Latest.mom_cm2_change):'–',cm2Latest?`${cm2Latest.month} ${cm2Latest.fy}`:'')}
+   </div>
+   <div class="grid g2">
+     ${card('Chain-wise CM2','NSV, matched P&L expense and resulting CM2 per chain. Click a chain to drill.',cv('cm2Chart'))}
+     ${card('Chain-wise CM2 detail','',`<div class="tablewrap"><table>
+       <thead><tr><th>Chain</th><th>NSV</th><th>Expense</th><th>CM2 Value</th><th>CM2%</th></tr></thead>
+       <tbody>${cm2Rows||'<tr><td colspan="5">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   </div>
+   ${card('Expense Head-wise contribution','Sum of matched P&L expense by Expense Head (across all chains/months loaded).',`<div class="tablewrap"><table>
+     <thead><tr><th>Expense Head</th><th>Amount</th></tr></thead>
+     <tbody>${cm2HeadRows||'<tr><td colspan="2">No expenses loaded.</td></tr>'}</tbody></table></div>`)}
+   ${card('P&amp;L Expense QC summary','Data-quality check on PL_Expense_Input.csv as loaded.',`<div class="tablewrap"><table>
+     <thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+     <tr><td>Total Expense Amount loaded</td><td>${crc(cm2Qc.total_expense||0)}</td></tr>
+     <tr><td>Expense mapped to Primary/Offtake</td><td>${crc(cm2Qc.mapped_expense||0)} (${cm2Qc.mapped_pct_of_total==null?'–':cm2Qc.mapped_pct_of_total+'%'})</td></tr>
+     <tr><td>Unmapped Expense Amount</td><td>${crc(cm2Qc.unmapped_expense||0)}</td></tr>
+     <tr><td>Unmapped Chain/Customer (rows)</td><td>${num(cm2Qc.unmapped_chain_customer||0)}</td></tr>
+     <tr><td>Unmapped Brand/Category (rows)</td><td>${num(cm2Qc.unmapped_brand_category||0)}</td></tr>
+     <tr><td>Blank Month (rows)</td><td>${num(cm2Qc.blank_month||0)}</td></tr>
+     <tr><td>Blank Expense Head (rows)</td><td>${num(cm2Qc.blank_expense_head||0)}</td></tr>
+     <tr><td>Duplicate expense rows</td><td>${num(cm2Qc.duplicate_rows||0)}</td></tr>
+     </tbody></table></div>`)}`:''}
    ${catDrillCardHtml('plCatDrill')}`;
   wireDrillLinks(s);
   mkBar('plBridge',top.map(c=>c.name),[
@@ -791,6 +839,13 @@ function buildPnl(){
     mkBarH('totChart',totTop.map(c=>c.name),totTop.map(c=>c.tot_pct),C.teal,false,v=>drillTo('Chain',v));
     const tch=charts[charts.length-1];tch.options.scales.x.ticks.callback=v=>v+'%';
     tch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';tch.update();
+  }
+  if(cm2D){
+    mkBar('cm2Chart',cm2Top.map(c=>c.name),[
+      {label:'CM2 Value',data:cm2Top.map(c=>c.cm2_value),backgroundColor:C.teal,borderRadius:4,stack:'s'},
+      {label:'Expense',data:cm2Top.map(c=>c.expense),backgroundColor:C.red,borderRadius:4,stack:'s'}],
+      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}}}}},
+      v=>drillTo('Chain',v));
   }
   renderCatDrillChart('plCatDrill',recFilter());
 }

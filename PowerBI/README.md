@@ -38,20 +38,23 @@ PowerBI/
 │  │                             Primary-Article facts
 │  ├─ 20_Dim_Masters.pq       ← Chain/Brand/Category/Article/Zone/Store/Nielsen masters
 │  ├─ 21_ShipToMaster.pq      ← Ship-to party master
-│  └─ 30..38_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
+│  └─ 30..40_*.pq             ← Assumption, Targets, Store-SO map, Forecast override,
 │                               Primary Allocation Map + Override, Sales Team Mapping,
-│                               GST Rate QC Table, GST Config (cutover date)
+│                               GST Rate QC Table, GST Config (cutover date),
+│                               PL Expense Input (CM2), CustCode Chain Map
 ├─ DAX/
 │  ├─ 00_DateTable.dax        ← calculated Date table (Indian FY)
-│  └─ 01..12_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
+│  └─ 01..13_*.dax            ← Core, P&L, Forecast (TY-target driven), Nielsen,
 │                               TDP, Data-Quality, Ship-to Allocation, Forecast-QC,
 │                               Article-Allocation Eligibility, SIS Reconciliation,
 │                               Export Display (₹ L/Cr, Qty Cr/L label measures),
-│                               TOT% (On-Invoice Margin Pass-on, Finance sign-off rollup)
+│                               TOT% (On-Invoice Margin Pass-on, Finance sign-off rollup),
+│                               CM2 (Contribution Margin 2, P&L expense tracking)
 ├─ SeedData/                  ← reference tables + targets + mapping (edit by hand)
 │  ├─ Masters/*.csv           ← ChainMaster, BrandMaster, …, AssumptionTable,
 │  │                             ForecastOverride, GST_Rate_QC_Table (Finance
-│  │                             sign-off sheet), GST_Config (cutover date)
+│  │                             sign-off sheet), GST_Config (cutover date),
+│  │                             PL_Expense_Input (monthly P&L expenses for CM2)
 │  ├─ Targets/FY2627_Targets.csv
 │  └─ Mapping/Store_SO_Mapping.csv
 ├─ RawDataFolders/            ← the watch folders you drop monthly files into
@@ -94,13 +97,18 @@ PowerBI/
 7. **Build relationships** per `docs/DataModel.md` (a clean star schema).
 
 8. **Add measures.** Create a `_Measures` table (Enter Data, one dummy column,
-   delete it later) and paste every measure from `DAX/01..12`. Group them into
+   delete it later) and paste every measure from `DAX/01..13`. Group them into
    display folders matching the file names.
-   **Exception:** `DAX/12_TOT_Measures.dax`'s first two blocks (`TOT Method`,
-   `TOT Pass-on Value`) are **calculated columns**, not measures — add them
-   directly on `Fact Primary Article` (select that table ▸ Table tools ▸
-   *New column*), not in `_Measures`. Every other measure in that file
-   depends on those two columns already existing.
+   **Exceptions (calculated columns, not measures):**
+   - `DAX/12_TOT_Measures.dax`'s first two blocks (`TOT Method`,
+     `TOT Pass-on Value`) — add directly on `Fact Primary Article` (select
+     that table ▸ Table tools ▸ *New column*), not in `_Measures`.
+   - `DAX/13_CM2_Measures.dax`'s first three blocks (`Resolved Chain`,
+     `Resolved Brand`, `Resolved Category`, `Bad Brand Or Category`) — add
+     directly on `PL Expense Input`. Add query `40_CustCode_Chain_Map.pq`
+     first (it depends on `Fact Primary Article` already existing).
+   Every other measure in each file depends on that file's own columns
+   already existing.
 
 9. **Import the theme.** View ▸ Themes ▸ *Browse for themes* ▸
    `theme/HonasaMT_Theme.json`.
