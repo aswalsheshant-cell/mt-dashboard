@@ -2204,6 +2204,7 @@ def detail_records_real(src, max_rows=20000):
             f"{df['Month'].head(5).tolist() if 'Month' in df else 'N/A'}")
     df["_Brand"] = df["brand"].map(canon_brand)
     df["_Zone"] = df["Zone"].map(canon_zone)
+    df["_State"] = (df["State"].astype(str).str.strip() if "State" in df.columns else "")
     _CHAN_MAP = {"mt": "MT", "eb2b": "EB2B", "sis": "SIS"}
     df["_Chan"] = df["Channel"].astype(str).str.strip().map(
         lambda x: _CHAN_MAP.get(x.strip().lower(), x.strip()))
@@ -2357,7 +2358,7 @@ def detail_records_real(src, max_rows=20000):
                      "sales-weighted fallback where NSV nets to ~0) -- never a simple average."),
         }
 
-    g = (df.groupby(["_M","_FY","_Chan","_Zone","_Chain","_Brand",
+    g = (df.groupby(["_M","_FY","_Chan","_Zone","_State","_Chain","_Brand",
                      "_category","_sub_category","_range","_net_content","_Description","_EAN No."],
                     dropna=False)
            .agg(NSV=("_NSV","sum"), MRP=("_MRP","sum"), Qty=("_Qty","sum"),
@@ -2382,7 +2383,7 @@ def detail_records_real(src, max_rows=20000):
     coverage = float(kept["NSV"].sum() / total_value * 100) if total_value else 100.0
     recs = []
     for _, r in kept.iterrows():
-        recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],
+        recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],"State":r["_State"],
             "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":r["_category"],
             "SubCategory":r["_sub_category"],"Range":r["_range"],"PackSize":r["_net_content"],
             "Article":r["_Description"],"EAN":str(r["_EAN No."]),
@@ -2435,7 +2436,7 @@ def detail_records_representative(primary):
     return recs
 
 def detail_dims(recs):
-    keys = ["FY","Month","Channel","Zone","Chain","Brand","Category","SubCategory","Range","PackSize","Article"]
+    keys = ["FY","Month","Channel","Zone","State","Chain","Brand","Category","SubCategory","Range","PackSize","Article"]
     out = {}
     for k in keys:
         vals = {r[k] for r in recs if r.get(k) is not None}
@@ -2497,9 +2498,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
     ap.add_argument("--out", default="../dashboard/data.js")
-    ap.add_argument("--detail-max-rows", type=int, default=20000,
+    ap.add_argument("--detail-max-rows", type=int, default=40000,
                     help="cap detail_records to the top-N groups BY VALUE (preserves total-value "
-                         "fidelity far better than a flat per-row threshold); 0 = no cap")
+                         "fidelity far better than a flat per-row threshold); 0 = no cap. "
+                         "40k keeps ~95% value coverage now that State is part of the record grain "
+                         "(State splits groups finer than the pre-State 20k/95% cap did)")
     ap.add_argument("--detail-only", action="store_true",
                     help="only refresh detail_records in an existing data.js (needs File 2 in --src); "
                          "does not require the other source files")
