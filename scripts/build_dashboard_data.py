@@ -28,11 +28,64 @@ import pandas as pd
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
 # --------------------------------------------------------------------------
-MONTHS = ["Apr-24","May-24","Jun-24","Jul-24","Aug-24","Sep-24","Oct-24","Nov-24",
-          "Dec-24","Jan-25","Feb-25","Mar-25","Apr-25","May-25","Jun-25","Jul-25",
-          "Aug-25","Sep-25","Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26"]
-FY25 = MONTHS[:12]   # Apr-24 .. Mar-25  == FY_24-25
-FY26 = MONTHS[12:]   # Apr-25 .. Mar-26  == FY_25-26
+# ---------------------------------------------------------------------------
+# THE ONE FY RULE (Indian financial year, Apr..Mar), used by every report:
+#   Apr..Dec of calendar year Y  -> FY(Y+1)      e.g. Apr-26 -> FY27
+#   Jan..Mar of calendar year Y  -> FY(Y)        e.g. Mar-26 -> FY26
+# Nothing below slices by fixed index positions -- month labels/dates are
+# always mapped through these helpers, so FY27/FY28/... work automatically
+# the moment their months appear in a source file.
+# ---------------------------------------------------------------------------
+_MON3_NUM = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,
+             "Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+
+def fy_tag_from_ym(year, month):
+    """Calendar (year, month) -> 'FY27' style tag. Apr-2026 -> FY27; Mar-2026 -> FY26."""
+    return f"FY{(year + 1 if month >= 4 else year) % 100:02d}"
+
+def fy_start_year(tag):
+    """'FY27' -> 2026 (the FY's April calendar year)."""
+    return 2000 + int(str(tag).strip()[2:]) - 1
+
+def fy_source_key(tag):
+    """'FY26' -> 'FY_25-26' (the source workbooks' FY column convention)."""
+    y = fy_start_year(tag) % 100
+    return f"FY_{y:02d}-{y + 1:02d}"
+
+def fy_tag_from_label(lab):
+    """'Apr-24' / 'Sep-25' style month-column label -> FY tag, or None."""
+    m = re.match(r"([A-Za-z]{3})-(\d{2})$", str(lab).strip())
+    if not m:
+        return None
+    mn = _MON3_NUM.get(m.group(1).title())
+    return fy_tag_from_ym(2000 + int(m.group(2)), mn) if mn else None
+
+
+def fy_ge(series, floor="FY26"):
+    """Boolean mask: FY-tag series >= floor FY (e.g. FY26 onward -- the GST/
+    TOT/CM2 analysis window). Works for ANY future tag (FY28, FY29, ...)."""
+    fl = fy_start_year(floor)
+    return series.map(lambda t: t is not None and str(t).startswith("FY") and fy_start_year(t) >= fl)
+
+def month_labels(start_year=2024, n_months=24):
+    """['Apr-24', 'May-24', ...] for n_months from April of start_year."""
+    out = []
+    y, m = start_year, 4
+    mon3 = {v: k for k, v in _MON3_NUM.items()}
+    for _ in range(n_months):
+        out.append(f"{mon3[m]}-{y % 100:02d}")
+        m += 1
+        if m == 13:
+            m, y = 1, y + 1
+    return out
+
+# The chain-offtake flat dump currently carries exactly these 24 month
+# columns (Apr-24..Mar-26). All FY grouping is label-driven via the helpers
+# above, so when the business supplies an updated sell-out master with
+# Apr-26+ columns, bumping n_months here is the ONLY change needed -- FY27
+# offtake keys (total_fy27 / monthly_fy27 / by_chain fy27 ...) then appear
+# automatically.
+MONTHS = month_labels(2024, 24)
 
 BRAND_MAP = {
     "bblunt": "BBlunt", "the derma co.": "The Derma Co", "the derma co": "The Derma Co",
@@ -262,13 +315,38 @@ def apply_chain_allocation(df, weights):
     return out, qc
 
 def primary_block(df):
+    """Aggregates the primary workbook with DYNAMIC FY keys: whatever FY
+    values exist in the source ('FY_24-25', "FY'26-27", ...) are mapped
+    through _fylabel/THE ONE FY RULE and emitted as nsv_fy25/nsv_fy26/
+    nsv_fy27/..., monthly_fyNN, and per-dimension fyNN keys, plus a
+    `fy_tags` list ['fy25','fy26',...] the dashboard iterates instead of
+    hardcoding years. Add FY26-27 rows to the source workbook and FY27
+    columns appear everywhere automatically (FY28 likewise)."""
     out = {}
+    # source-FY column value -> canonical tag ('FY_24-25' -> 'FY25')
+    src_fys = [k for k in df["FY"].dropna().unique()]
+    tag_of = {k: _fylabel(k) for k in src_fys}
+    tags = sorted({t for t in tag_of.values() if t}, key=fy_start_year)
+    keys_of = {t: [k for k, tt in tag_of.items() if tt == t] for t in tags}
+    lo = [t.lower() for t in tags]
+    out["fy_tags"] = lo
+
+    def fy_get(series, t):
+        return float(sum(series.get(k, 0) or 0 for k in keys_of[t]))
     fy = df.groupby("FY")["NSV"].sum()
-    out["nsv_fy25"] = r2(fy.get("FY_24-25", 0))
-    out["nsv_fy26"] = r2(fy.get("FY_25-26", 0))
-    out["yoy"] = r2((out["nsv_fy26"] / out["nsv_fy25"] - 1) * 100) if out["nsv_fy25"] else None
     gross = df.groupby("FY")["MRP value"].sum()
-    out["mrp_fy25"], out["mrp_fy26"] = r2(gross.get("FY_24-25", 0)), r2(gross.get("FY_25-26", 0))
+    for t in tags:
+        out[f"nsv_{t.lower()}"] = r2(fy_get(fy, t))
+        out[f"mrp_{t.lower()}"] = r2(fy_get(gross, t))
+    # YoY = last COMPLETE-ish comparison: second-latest vs the one before it
+    # is meaningless for a 2-FY file, so keep the classic definition: latest
+    # of the first two tags vs the first (fy26 vs fy25 today). If a third FY
+    # exists it gets its own key but doesn't silently redefine the headline YoY.
+    if len(lo) >= 2:
+        a, b = out.get(f"nsv_{lo[0]}"), out.get(f"nsv_{lo[1]}")
+        out["yoy"] = r2((b / a - 1) * 100) if a else None
+    else:
+        out["yoy"] = None
     out["n_chains"] = int(df["chain"].nunique())
     out["n_brands"] = int(df["brand"].nunique())
 
@@ -283,34 +361,31 @@ def primary_block(df):
     df["_mk"] = df["Month"].map(mkey)
     piv = df.pivot_table(index="_mk", columns="FY", values="NSV", aggfunc="sum").reindex(range(12))
     out["month_labels"] = order
-    out["monthly_fy25"] = [r2(piv.get("FY_24-25", pd.Series()).get(i)) for i in range(12)]
-    out["monthly_fy26"] = [r2(piv.get("FY_25-26", pd.Series()).get(i)) for i in range(12)]
+    for t in tags:
+        cols = [k for k in keys_of[t] if k in piv.columns]
+        ser = piv[cols].sum(axis=1, min_count=1) if cols else pd.Series(index=range(12), dtype="float64")
+        out[f"monthly_{t.lower()}"] = [r2(ser.get(i)) for i in range(12)]
 
-    # by channel
-    ch = df.pivot_table(index="channel", columns="FY", values="NSV", aggfunc="sum").fillna(0)
-    out["by_channel"] = [{"name": k, "fy25": r2(ch.loc[k].get("FY_24-25", 0)),
-                          "fy26": r2(ch.loc[k].get("FY_25-26", 0))}
-                         for k in ch.index]
-    # by zone (MT focus but keep all)
-    zn = df.pivot_table(index="zone", columns="FY", values="NSV", aggfunc="sum").fillna(0)
-    out["by_zone"] = sorted([{"name": k, "fy25": r2(zn.loc[k].get("FY_24-25", 0)),
-                              "fy26": r2(zn.loc[k].get("FY_25-26", 0))} for k in zn.index if k],
-                            key=lambda d: -(d["fy26"] or 0))
-    # by brand
-    br = df.pivot_table(index="brand", columns="FY", values="NSV", aggfunc="sum").fillna(0)
-    out["by_brand"] = sorted([{"name": k, "fy25": r2(br.loc[k].get("FY_24-25", 0)),
-                               "fy26": r2(br.loc[k].get("FY_25-26", 0))} for k in br.index if k],
-                             key=lambda d: -(d["fy26"] or 0))
-    # by chain
-    cn = df.pivot_table(index="chain", columns="FY", values="NSV", aggfunc="sum").fillna(0)
-    chains = []
-    for k in cn.index:
-        if not k:
-            continue
-        a, b = cn.loc[k].get("FY_24-25", 0), cn.loc[k].get("FY_25-26", 0)
-        chains.append({"name": k, "fy25": r2(a), "fy26": r2(b),
-                       "yoy": r2((b / a - 1) * 100) if a else None})
-    out["by_chain"] = sorted(chains, key=lambda d: -(d["fy26"] or 0))
+    def dim_rows(index_col, keep_blank=False, sort=True):
+        pv = df.pivot_table(index=index_col, columns="FY", values="NSV", aggfunc="sum").fillna(0)
+        rows = []
+        for k in pv.index:
+            if not k and not keep_blank:
+                continue
+            row = {"name": k}
+            for t in tags:
+                row[t.lower()] = r2(fy_get(pv.loc[k], t))
+            if len(lo) >= 2:
+                a, b = row.get(lo[0]), row.get(lo[1])
+                row["yoy"] = r2((b / a - 1) * 100) if a else None
+            rows.append(row)
+        # sort by the LATEST FY's value so new years take over the ranking
+        return sorted(rows, key=lambda d: -(d.get(lo[-1]) or 0)) if (sort and lo) else rows
+
+    out["by_channel"] = dim_rows("channel", keep_blank=True, sort=False)
+    out["by_zone"] = dim_rows("zone")
+    out["by_brand"] = dim_rows("brand")
+    out["by_chain"] = dim_rows("chain")
     return df, out
 
 # --------------------------------------------------------------------------
@@ -363,19 +438,37 @@ def load_offtake(src):
     return chains, zs
 
 def offtake_block(chains, zs):
+    """Aggregates the sell-out master with DYNAMIC FY keys, grouping month
+    labels ('Apr-24'..'Mar-26', extendable) through THE ONE FY RULE instead
+    of fixed index slices. Emits total_fyNN / monthly_fyNN / by_chain fyNN /
+    by_zone / by_state keys for WHATEVER FYs the month columns cover, plus a
+    `fy_tags` list -- so an updated master carrying Apr-26+ columns produces
+    FY27 offtake automatically (FY28 likewise)."""
     out = {}
-    def fy_sum(mn, fy):
-        return sum(v for k, v in mn.items() if k in fy and v)
+    # month label -> FY tag (label-driven, never positional)
+    fy_of_month = {m: fy_tag_from_label(m) for m in MONTHS}
+    tags = sorted({t for t in fy_of_month.values() if t}, key=fy_start_year)
+    lo = [t.lower() for t in tags]
+    out["fy_tags"] = lo
+    months_of = {t: [m for m in MONTHS if fy_of_month[m] == t] for t in tags}
+
+    def fy_sum(mn, t):
+        return sum(v for k, v in mn.items() if fy_of_month.get(k) == t and v)
     rows = []
     for name, d in chains.items():
         c = canon_chain(name)
-        a, b = fy_sum(d["months"], FY25), fy_sum(d["months"], FY26)
-        rows.append({"name": c, "raw": name, "fy25": r2(a), "fy26": r2(b),
-                     "yoy": r2((b / a - 1) * 100) if a else None, "total": r2(d["total"])})
-    out["by_chain"] = sorted(rows, key=lambda d: -(d["fy26"] or 0))
-    out["total_fy25"] = r2(sum(x["fy25"] or 0 for x in rows))
-    out["total_fy26"] = r2(sum(x["fy26"] or 0 for x in rows))
-    out["yoy"] = r2((out["total_fy26"] / out["total_fy25"] - 1) * 100) if out["total_fy25"] else None
+        row = {"name": c, "raw": name, "total": r2(d["total"])}
+        for t in tags:
+            row[t.lower()] = r2(fy_sum(d["months"], t))
+        a, b = (row.get(lo[0]), row.get(lo[1])) if len(lo) >= 2 else (None, None)
+        row["yoy"] = r2((b / a - 1) * 100) if a else None
+        rows.append(row)
+    out["by_chain"] = sorted(rows, key=lambda d: -(d.get(lo[-1]) or 0))
+    for t in tags:
+        out[f"total_{t.lower()}"] = r2(sum(x[t.lower()] or 0 for x in rows))
+    if len(lo) >= 2:
+        a, b = out.get(f"total_{lo[0]}"), out.get(f"total_{lo[1]}")
+        out["yoy"] = r2((b / a - 1) * 100) if a else None
     out["n_chains"] = len(rows)
     # monthly aggregate trend
     agg = {m: 0.0 for m in MONTHS}
@@ -385,28 +478,43 @@ def offtake_block(chains, zs):
                 agg[m] += v
     out["months"] = MONTHS
     out["monthly"] = [r2(agg[m]) for m in MONTHS]
-    out["monthly_fy25"] = [r2(agg[m]) for m in FY25]
-    out["monthly_fy26"] = [r2(agg[m]) for m in FY26]
-    # zone roll-up YoY (sum quarters per year)
+    for t in tags:
+        out[f"monthly_{t.lower()}"] = [r2(agg[m]) for m in months_of[t]]
+    # zone/state roll-up: quarter labels 'Q1-24' = the FY STARTING Apr of
+    # that calendar year -> FY tag via the same ONE FY RULE
+    def q_tag(qk):
+        return fy_tag_from_ym(2000 + int(qk.split("-")[1]), 4)
+    def q_sums(q):
+        s = {}
+        for k, v in q.items():
+            t = q_tag(k)
+            s[t] = s.get(t, 0.0) + (v or 0)
+        return s
+    ztags = sorted({q_tag(k) for r in zs for k in r["q"]}, key=fy_start_year) or tags
+    zlo = [t.lower() for t in ztags]
     zagg = {}
     for r in zs:
         z = canon_zone(r["zone"])
-        y24 = sum(r["q"][k] or 0 for k in r["q"] if k.endswith("-24"))
-        y25 = sum(r["q"][k] or 0 for k in r["q"] if k.endswith("-25"))
-        d = zagg.setdefault(z, {"y24": 0.0, "y25": 0.0})
-        d["y24"] += y24
-        d["y25"] += y25
-    out["by_zone"] = sorted([{"name": z, "fy25": r2(v["y24"]), "fy26": r2(v["y25"]),
-                              "yoy": r2((v["y25"] / v["y24"] - 1) * 100) if v["y24"] else None}
-                             for z, v in zagg.items()], key=lambda d: -(d["fy26"] or 0))
-    # state YoY detail
+        d = zagg.setdefault(z, {t: 0.0 for t in ztags})
+        for t, v in q_sums(r["q"]).items():
+            d[t] = d.get(t, 0.0) + v
+    def z_row(name, sums):
+        row = {"name": name}
+        for t in ztags:
+            row[t.lower()] = r2(sums.get(t, 0.0))
+        a, b = (row.get(zlo[0]), row.get(zlo[1])) if len(zlo) >= 2 else (None, None)
+        row["yoy"] = r2((b / a - 1) * 100) if a else None
+        return row
+    out["by_zone"] = sorted([z_row(z, v) for z, v in zagg.items()],
+                            key=lambda d: -(d.get(zlo[-1]) or 0))
     st = []
     for r in zs:
-        y24 = sum(r["q"][k] or 0 for k in r["q"] if k.endswith("-24"))
-        y25 = sum(r["q"][k] or 0 for k in r["q"] if k.endswith("-25"))
-        st.append({"zone": canon_zone(r["zone"]), "state": r["state"], "fy25": r2(y24), "fy26": r2(y25),
-                   "yoy": r2((y25 / y24 - 1) * 100) if y24 else None})
-    out["by_state"] = sorted(st, key=lambda d: -(d["fy26"] or 0))
+        sums = q_sums(r["q"])
+        row = z_row(r["state"], sums)
+        row["zone"] = canon_zone(r["zone"])
+        row["state"] = row.pop("name")
+        st.append(row)
+    out["by_state"] = sorted(st, key=lambda d: -(d.get(zlo[-1]) or 0))
     return out
 
 # --------------------------------------------------------------------------
@@ -505,7 +613,6 @@ def promo_block(src):
 # --------------------------------------------------------------------------
 _MONTH_IDX = {"April": 0, "May": 1, "June": 2, "July": 3, "Aug": 4, "Sept": 5,
               "Oct": 6, "Nov": 7, "Dec": 8, "Jan": 9, "Feb": 10, "March": 11}
-_FY_START_YEAR = {"FY25": 2024, "FY26": 2025, "FY27": 2026}
 _CAL_MONTH = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3]   # Apr..Mar, aligned to _MONTH_IDX order
 _GST_MASTERS_DIR = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters"
 _GST_QC_CSV = _GST_MASTERS_DIR / "GST_Rate_QC_Table.csv"
@@ -518,9 +625,12 @@ def month_ord(month_name, fy_tag):
     """Sortable (calendar_year*12 + calendar_month) for a dashboard Month
     label + FY tag, e.g. ('Nov','FY26') -> Nov 2025. Returns None if either
     isn't recognised."""
-    y0 = _FY_START_YEAR.get(fy_tag)
+    try:
+        y0 = fy_start_year(fy_tag)   # ANY 'FYnn' tag -- no enumerated year map
+    except (ValueError, IndexError):
+        return None
     idx = _MONTH_IDX.get(month_name)
-    if y0 is None or idx is None:
+    if idx is None:
         return None
     cal_year = y0 + (1 if idx >= 9 else 0)   # Jan/Feb/March roll into the next calendar year
     return cal_year * 12 + _CAL_MONTH[idx]
@@ -723,7 +833,7 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
     tax_calc rows use real source data and aren't affected by the rate table
     at all."""
     default_cutover_ord, default_cutover_str = default_cutover
-    gg = g[g["_FY"].isin(["FY26", "FY27"])].copy()
+    gg = g[fy_ge(g["_FY"])].copy()   # FY26 onward -- any future FY included automatically
 
     def weighted(group_col, with_mom=False):
         """Per-group MRP/NSV/Tax/TOT%/pass-on value -- SUM(passon)/SUM(mrp),
@@ -1001,7 +1111,7 @@ def cm2_block(df, expense_rows):
     qc["mapped_pct_of_total"] = r2(qc["mapped_expense"] / qc["total_expense"] * 100, 1) if qc["total_expense"] else None
 
     # ---- NSV base: same TOT%-valid, FY26/FY27-only population as tot_block ----
-    base = df[df["_FY"].isin(["FY26", "FY27"]) & (df["_method"] != "invalid")]
+    base = df[fy_ge(df["_FY"]) & (df["_method"] != "invalid")]
 
     def rollup(dim_col, expense_dim_key):
         nsv_series = base.groupby(dim_col)["_NSV"].sum()
@@ -1099,8 +1209,13 @@ def pnl_block(pdf, promo):
     """Per-chain trade P&L bridge from real primary data:
        Gross MRP value  ->  trade discount (MRP-NSV)  ->  Net NSV.
        Plus promo intensity from the promo calendar. COGS is not in source,
-       so this is a gross-to-net trade contribution view, not a full P&L."""
-    g = pdf[pdf["FY"] == "FY_25-26"].groupby("chain").agg(
+       so this is a gross-to-net trade contribution view, not a full P&L.
+       Computed for the LATEST FY present in the source (label-driven via
+       THE ONE FY RULE, not a hardcoded year) -- emitted as pl['fy_tag']."""
+    fy_tags = sorted({t for t in (pdf["FY"].map(_fylabel)).dropna().unique()}, key=fy_start_year)
+    latest = fy_tags[-1] if fy_tags else "FY26"
+    latest_keys = [k for k in pdf["FY"].dropna().unique() if _fylabel(k) == latest]
+    g = pdf[pdf["FY"].isin(latest_keys)].groupby("chain").agg(
         nsv=("NSV", "sum"), mrp=("MRP value", "sum")).reset_index()
     promo_by = {r["name"]: r for r in promo["by_chain"]}
     rows = []
@@ -1117,7 +1232,7 @@ def pnl_block(pdf, promo):
     rows = sorted(rows, key=lambda d: -(d["nsv"] or 0))
     tot_mrp = sum(x["mrp"] or 0 for x in rows)
     tot_nsv = sum(x["nsv"] or 0 for x in rows)
-    return {"by_chain": rows,
+    return {"by_chain": rows, "fy_tag": latest,
             "total_mrp": r2(tot_mrp), "total_nsv": r2(tot_nsv),
             "total_discount": r2(tot_mrp - tot_nsv),
             "blended_discount_pct": r2((tot_mrp - tot_nsv) / tot_mrp * 100, 1) if tot_mrp else None}
@@ -1125,25 +1240,43 @@ def pnl_block(pdf, promo):
 # --------------------------------------------------------------------------
 # FORECAST  (seasonally-adjusted, from offtake monthly history)
 # --------------------------------------------------------------------------
+def _fy_slices(off):
+    """{FY tag: [monthly values]} from the offtake series, label-driven via
+    THE ONE FY RULE (never positional [:12]/[12:] slicing). Also returns the
+    tags sorted chronologically and the latest COMPLETE (12-month) tag."""
+    by_tag = {}
+    for lab, v in zip(off["months"], off["monthly"]):
+        t = fy_tag_from_label(lab)
+        if t:
+            by_tag.setdefault(t, []).append(v)
+    tags = sorted(by_tag, key=fy_start_year)
+    complete = [t for t in tags if len(by_tag[t]) == 12]
+    return by_tag, tags, (complete[-1] if complete else (tags[-1] if tags else None))
+
 def forecast_block(off):
-    series = off["monthly"]  # 24 months Apr-24..Mar-26
-    fy25, fy26 = series[:12], series[12:]
-    # seasonal index from FY26 (latest full year) normalised to its mean
-    mean26 = sum(v or 0 for v in fy26) / 12 or 1
-    seasonal = [(v or 0) / mean26 for v in fy26]
+    by_tag, tags, base_tag = _fy_slices(off)   # base = latest COMPLETE FY
+    base = by_tag.get(base_tag, [])
+    prev_tag = tags[tags.index(base_tag) - 1] if base_tag and tags.index(base_tag) > 0 else None
+    prev = by_tag.get(prev_tag, [])
+    # seasonal index from the latest complete year, normalised to its mean
+    mean_base = sum(v or 0 for v in base) / (len(base) or 1) or 1
+    seasonal = [(v or 0) / mean_base for v in base]
     # YoY growth on the trailing year drives the level
-    g = (sum(v or 0 for v in fy26) / (sum(v or 0 for v in fy25) or 1)) - 1
+    g = (sum(v or 0 for v in base) / (sum(v or 0 for v in prev) or 1)) - 1 if prev else 0.0
     g = max(min(g, 0.6), 0.0)  # clamp to a sane planning band
-    base_month = mean26 * (1 + g)
-    flabels = ["Apr-26","May-26","Jun-26","Jul-26","Aug-26","Sep-26",
-               "Oct-26","Nov-26","Dec-26","Jan-27","Feb-27","Mar-27"]
-    fc = [r2(base_month * seasonal[i]) for i in range(12)]
-    return {"hist_labels": off["months"], "hist": series,
+    base_month = mean_base * (1 + g)
+    # forecast the FY AFTER the base year (label-derived, not hardcoded)
+    tgt_tag = fy_tag_from_ym(fy_start_year(base_tag) + 1, 4) if base_tag else "FY27"
+    y0 = fy_start_year(tgt_tag)
+    flabels = month_labels(y0, 12)
+    fc = [r2(base_month * seasonal[i % 12]) for i in range(12)]
+    return {"hist_labels": off["months"], "hist": off["monthly"],
             "fc_labels": flabels, "fc": fc,
-            "fy26_actual": r2(sum(v or 0 for v in fy26)),
-            "fy27_forecast": r2(sum(fc)),
+            "base_fy_tag": base_tag, "target_fy_tag": tgt_tag,
+            "fy26_actual": r2(sum(v or 0 for v in base)),   # legacy key names kept for the dashboard;
+            "fy27_forecast": r2(sum(fc)),                    # values follow base/target tags above
             "growth_assumption_pct": r2(g * 100, 1),
-            "method": "Seasonally-indexed run-rate: FY25-26 monthly seasonality applied "
+            "method": f"Seasonally-indexed run-rate: {base_tag} monthly seasonality applied "
                       "to a forward base grown at the realised offtake YoY rate (clamped 0-60%)."}
 
 # --------------------------------------------------------------------------
@@ -1175,20 +1308,22 @@ def load_ty_target(src):
     return rows
 
 def forecast_block_ty(off, ty_rows):
-    series = off["monthly"]
-    fy26 = series[12:]
+    by_tag, tags, base_tag = _fy_slices(off)   # latest COMPLETE FY = the actuals baseline
+    base = by_tag.get(base_tag, [])
     flabels = [lbl for _, lbl, _ in ty_rows]
     fc = [r2(v) for _, _, v in ty_rows]
-    fy26_actual = r2(sum(v or 0 for v in fy26))
-    fy27_target = r2(sum(fc))
-    return {"hist_labels": off["months"], "hist": series,
+    tgt_tag = fy_tag_from_ym(ty_rows[0][0].year, ty_rows[0][0].month) if ty_rows else None
+    base_actual = r2(sum(v or 0 for v in base))
+    target_total = r2(sum(fc))
+    return {"hist_labels": off["months"], "hist": off["monthly"],
             "fc_labels": flabels, "fc": fc,
-            "fy26_actual": fy26_actual,
-            "fy27_forecast": fy27_target,
-            "growth_assumption_pct": r2((fy27_target / fy26_actual - 1) * 100, 1) if fy26_actual else None,
-            "method": "FY26-27 = the business's own TY (This Year) target "
+            "base_fy_tag": base_tag, "target_fy_tag": tgt_tag,
+            "fy26_actual": base_actual,      # legacy key names kept for the dashboard;
+            "fy27_forecast": target_total,   # values follow base/target tags above
+            "growth_assumption_pct": r2((target_total / base_actual - 1) * 100, 1) if base_actual else None,
+            "method": f"{tgt_tag or 'FY27'} = the business's own TY (This Year) target "
                       f"(FY2627_TGT_and_sales_team_mapping.xlsx, Sheet1), NOT a seasonally-projected "
-                      f"estimate. Total FY26-27 target = Rs {fy27_target/100:.2f} Cr (Power BI's Forecast "
+                      f"estimate. Total TY target = Rs {target_total/100:.2f} Cr (Power BI's Forecast "
                       "page uses this same TY target file -- PowerBI/docs/PageLayouts.md Page 5)."}
 
 # --------------------------------------------------------------------------
@@ -1311,17 +1446,19 @@ def _mlabel(m):
     return None
 
 def _fylabel(fy):
+    """Any source FY spelling -> canonical 'FYnn' tag, for ANY year (no
+    enumerated list -- FY28+ works automatically). Accepts span forms
+    ("FY'25-26" / "FY_25-26" / "2025-26" -> FY of the END year, per THE ONE
+    FY RULE at the top of this file) and the dashboard's short form
+    ("FY26" / "FY 26") that manually-typed inputs tend to use. None if
+    unrecognisable."""
     s = str(fy).strip().upper().replace(" ", "")
-    if "23-24" in s: return "FY24"
-    if "24-25" in s: return "FY25"
-    if "25-26" in s: return "FY26"
-    if "26-27" in s: return "FY27"
-    # also accept the dashboard's own short form directly (FY26, FY 26) --
-    # manually-typed input (e.g. PL_Expense_Input.csv) is more likely to use
-    # this than the "FYyy-yy" convention the SAP-exported source files use.
-    m = re.match(r"^FY0?(2[4-7])$", s)
+    m = re.search(r"(\d{2})-(\d{2})", s)
+    if m and int(m.group(2)) == (int(m.group(1)) + 1) % 100:
+        return f"FY{int(m.group(2)):02d}"
+    m = re.match(r"^FY0?(\d{2})$", s)
     if m:
-        return "FY" + m.group(1)
+        return f"FY{int(m.group(1)):02d}"
     return None
 
 # brand -> [(Category, SubCategory, Range, [packs], article_stem)] for the representative fallback
@@ -1828,32 +1965,34 @@ def detail_records_real(src, max_rows=20000):
     for (fy, chan), v in ct.items():
         channel_totals.setdefault(fy, {})[chan] = float(v)
 
-    # ---- EXACT FY27 primary aggregates from the FULL allocated data: the
-    # pre-aggregated D.primary block comes from a different source workbook
-    # that ends at Mar'26, so FY26-27 actuals (Apr'26 onward) exist ONLY here
-    # in the article-wise primary. These exact (uncapped, chain-allocated)
-    # aggregates let the Overview / Primary / Market Share tabs render real
-    # FY27 numbers instead of an empty state.
-    f27 = df[df["_FY"] == "FY27"]
-    fy27_primary = None
-    if len(f27):
-        def _agg27(col):
-            s = f27.groupby(col)["_NSV"].sum().sort_values(ascending=False)
+    # ---- EXACT per-FY primary aggregates from the FULL allocated data, for
+    # EVERY FY the article-wise primary carries beyond the pre-aggregated
+    # workbooks' window (that other source ends Mar'26, i.e. covers FY25/26).
+    # FY27 today; FY28 automatically when Apr-27 rows arrive -- one block per
+    # tag, keyed by tag, so the dashboard just looks up the selected FY.
+    _PREAGG_FY_TAGS = {"FY25", "FY26"}   # the FY window the Primary/Offtake workbooks cover
+    fyx_primary = {}
+    for _tag in sorted(set(df["_FY"].dropna().unique()) - _PREAGG_FY_TAGS, key=fy_start_year):
+        fx = df[df["_FY"] == _tag]
+        def _aggx(col, fx=fx):
+            s = fx.groupby(col)["_NSV"].sum().sort_values(ascending=False)
             return [{"name": k, "nsv": r2(float(v))} for k, v in s.items() if k]
-        mser = f27.groupby("_M")["_NSV"].sum()
-        fy27_primary = {
-            "nsv": r2(float(f27["_NSV"].sum())),
-            "mrp": r2(float(f27["_MRP"].sum())),
-            "months_covered": [m for m in _ORDER if m in set(f27["_M"])],
+        mser = fx.groupby("_M")["_NSV"].sum()
+        fyx_primary[_tag] = {
+            "tag": _tag,
+            "nsv": r2(float(fx["_NSV"].sum())),
+            "mrp": r2(float(fx["_MRP"].sum())),
+            "months_covered": [m for m in _ORDER if m in set(fx["_M"])],
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
-            "by_chain": _agg27("_Chain"), "by_zone": _agg27("_Zone"),
-            "by_channel": _agg27("_Chan"), "by_brand": _agg27("_Brand"),
+            "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone"),
+            "by_channel": _aggx("_Chan"), "by_brand": _aggx("_Brand"),
             "unit": "INR Lakh",
-            "note": ("EXACT FY26-27 primary actuals from the FULL (uncapped) article-wise "
+            "note": (f"EXACT {_tag} primary actuals from the FULL (uncapped) article-wise "
                      "primary, chain-allocated (Dist. rows split by secondary cont%). The "
-                     "other report blocks' source workbook ends at Mar'26, so FY27 lives "
+                     "other report blocks' source workbook ends at Mar'26, so this FY lives "
                      "only here. MRP basis = 'Total MRP sales'."),
         }
+    fyx_primary = fyx_primary or None
 
     # ---- SIS reconciliation drill-down: computed from the FULL data (not the
     # capped detail_records) so the numbers are exact and auditable. Business
@@ -1870,7 +2009,7 @@ def detail_records_real(src, max_rows=20000):
     _qc_table, _qc_raw_rows = load_gst_qc_table()
     _cutover = load_gst_cutover_date()
     df = compute_tot_columns(df, _qc_table, _cutover[0])
-    _qc_summary = compute_tot_qc_summary(df[df["_FY"].isin(["FY26", "FY27"])])
+    _qc_summary = compute_tot_qc_summary(df[fy_ge(df["_FY"])])
 
     # ---- Customer x Article x Month x Chain allocation detail (Dist.-allocated
     # rows only -- the allocation OUTPUT at the requested grain), with weighted
@@ -1960,7 +2099,7 @@ def detail_records_real(src, max_rows=20000):
     return recs, channel_totals, sis_reconciliation, {
         "rows_total": rows_total, "rows_kept": len(recs),
         "value_coverage_pct": round(coverage, 1),
-        "fy27_primary": fy27_primary}, tot, cm2, alloc
+        "fyx_primary": fyx_primary}, tot, cm2, alloc
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -2039,9 +2178,11 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
         "rows_total_groups": cov["rows_total"],
         "rows_kept": cov["rows_kept"],
         "value_coverage_pct": cov["value_coverage_pct"],
-        # EXACT FY26-27 primary actuals (Apr'26+) from the article-wise
-        # primary -- the only source that has them; None if no FY27 rows.
-        "fy27_primary": cov.get("fy27_primary"),
+        # EXACT per-FY primary actuals (e.g. Apr'26+ = FY27) from the
+        # article-wise primary -- the only source that has FYs beyond the
+        # pre-aggregated workbooks' window. Dict keyed by FY tag ('FY27',
+        # 'FY28', ...); None if the article primary carries no such FY.
+        "fyx_primary": cov.get("fyx_primary"),
         # {FY: {summary, by_chain, by_month, by_brand, exclusions, row_count}} —
         # SIS reconciliation drill-down, computed from the FULL uncapped source.
         # Kept for audit trail. See docs/SIS_Reconciliation.md.

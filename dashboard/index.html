@@ -503,16 +503,18 @@ function buildOverview(){
   const s=document.getElementById('tab-overview');
   const fy=fyKey(), isTY=/TY target/i.test(f.method||'');
   const yrLab={fy25:'FY25',fy26:'FY26',fy27:'FY27 Apr–May'};
-  // FY27 primary actuals (Apr'26+) exist ONLY in the article-wise primary --
-  // FP27() serves exact chain-allocated aggregates so FY27 renders real
-  // numbers here instead of an empty state. Offtake genuinely has no FY27.
-  const fp27=(fy==='fy27')?FP27():null;
-  const primOk=fy!=='fy27'||!!fp27, offOk=fy!=='fy27';
+  FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });  // backfill future FYs (FY28+)
+  // FYs beyond the pre-agg window (FY27's Apr'26+) exist ONLY in the article-wise
+  // primary -- FPX() serves exact chain-allocated aggregates so the selected FY
+  // renders real numbers here instead of an empty state. Offtake has no such FY.
+  const beyond=!!fy&&fyBeyondPreagg(fyTag());
+  const fp27=beyond?FPX(fyTag()):null;
+  const primOk=!beyond||!!fp27, offOk=!beyond;
   let chains=p.by_chain, brands=p.by_brand, channels=p.by_channel;
   if(fp27){
-    chains=fp27.by_chain.map(c=>({name:c.name,fy27:c.nsv}));
-    brands=fp27.by_brand.map(b=>({name:b.name,fy27:b.nsv}));
-    channels=fp27.by_channel.map(c=>({name:c.name,fy27:c.nsv}));
+    chains=fp27.by_chain.map(c=>({name:c.name,[fy]:c.nsv}));
+    brands=fp27.by_brand.map(b=>({name:b.name,[fy]:b.nsv}));
+    channels=fp27.by_channel.map(c=>({name:c.name,[fy]:c.nsv}));
   }
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
@@ -558,7 +560,7 @@ function buildOverview(){
 function buildPrimary(){
   const p=D.primary,s=document.getElementById('tab-primary'),qc=D.chain_allocation_qc;
   if(fyUnsupported()){
-    const fp=FP27();
+    const fp=FPX(fyTag())||FP27();
     if(fp){
       // FY26-27 actuals (Apr'26+) from the article-wise primary, chain-allocated
       let zones=fp.by_zone, chans=fp.by_channel, brands=fp.by_brand, chains=fp.by_chain;
@@ -1039,7 +1041,7 @@ function buildForecast(){
 function buildShare(){
   const u=D.universe,p=D.primary,s=document.getElementById('tab-share');
   if(fyUnsupported()){
-    const fp=FP27();
+    const fp=FPX(fyTag())||FP27();
     if(fp){
       // FY27 share-of-business from the article-wise primary (chain-allocated)
       let chains27=fp.by_chain.filter(c=>c.nsv>0);
@@ -1353,12 +1355,21 @@ const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one sele
 function recFilter(except){
   return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(String(r[k])) ));
 }
-// FY dropdown: fixed at FY25/FY26/FY27, not just whatever REC (File 2's
-// article-level detail, which only carries FY26-27) happens to contain --
-// FY25 lives in the pre-aggregated Primary/Offtake/P&L blocks, so it must
-// stay selectable even though the Explorer/Category&Pack (REC-driven) view
-// will correctly show 0 records for it.
-const FY_ALL=['FY25','FY26','FY27'];
+// FY dropdown: derived from the data, never hardcoded, so a new FY (FY28+)
+// flows in automatically the moment its rows arrive. The pre-aggregated
+// Primary/Offtake/P&L blocks carry FY25/FY26 (their source workbook ends
+// Mar'26); every FY beyond that window (FY27 today, FY28 tomorrow) lives ONLY
+// in the article-wise primary's detail_meta.fyx_primary. FY25 must stay
+// selectable even though the Explorer/Category&Pack (REC-driven) view will
+// correctly show 0 records for it.
+const FYX=(D.detail_meta&&D.detail_meta.fyx_primary)||{};
+function fyNum(t){ return parseInt(String(t).slice(2),10)||0; }  // 'FY27' -> 27
+const PREAGG_FYS=(function(){
+  const s=new Set();
+  Object.keys(D.primary||{}).forEach(k=>{ const m=/^nsv_(fy\d{2})$/.exec(k); if(m) s.add('FY'+m[1].slice(2)); });
+  return [...s];
+})();
+const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum(a)-fyNum(b));
 function optsFor(key){
   if(key==='FY') return FY_ALL;
   const vals=[...new Set(recFilter(key).map(r=>r[key]))];
@@ -1516,11 +1527,15 @@ function renderCatDrillChart(canvasId,recs){
 // of what's selected -- and show an honest empty state for FY27 rather than
 // silently ignoring the filter.
 function fyKey(){ const v=fOne('FY'); return v ? 'fy'+v.slice(2) : null; }  // exactly ONE FY selected -> "fy26"; none/multi -> null
-// FY26-27 primary actuals (Apr'26 onward) exist ONLY in the article-wise
-// primary (File 2) -- the other report blocks' source workbook ends Mar'26.
-// Returns the exact chain-allocated FY27 aggregates, or null if none loaded.
-function FP27(){ const f=D.detail_meta&&D.detail_meta.fy27_primary; return f&&f.nsv!=null?f:null; }
-function fyUnsupported(){ return F.FY.length>0 && F.FY.every(v=>v==='FY27'); }  // FY filter EXCLUSIVELY FY27
+function fyTag(){ return fOne('FY')||null; }                               // exactly ONE FY selected -> "FY27"; none/multi -> null
+// FYs beyond the pre-aggregated window (FY27's Apr'26+ onward) exist ONLY in
+// the article-wise primary (File 2) -- the other report blocks' source workbook
+// ends Mar'26. FPX(tag) returns the exact chain-allocated aggregates for any
+// such FY ('FY27', 'FY28', ...), or null if that FY isn't loaded.
+function FPX(tag){ const f=FYX[tag]; return f&&f.nsv!=null?f:null; }
+function FP27(){ return FPX('FY27'); }                                     // legacy alias for the current beyond-window FY
+function fyBeyondPreagg(tag){ return PREAGG_FYS.indexOf(tag)<0; }          // this FY lives only in the article primary
+function fyUnsupported(){ return F.FY.length>0 && F.FY.every(fyBeyondPreagg); }  // every selected FY is beyond the pre-agg window
 function fyNoDataNote(where){
   return `<div class="repbanner"><b>No ${fLab('FY')} actuals in ${where}.</b> The FY filter is set to
     ${fLab('FY')}, but this source only has FY25/FY26 history — FY26-27 actuals aren't loaded yet

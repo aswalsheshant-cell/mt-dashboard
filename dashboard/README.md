@@ -60,8 +60,11 @@ Two honest limits, by design, not bugs:
 - **FY26-27 actuals (Apr'26 onward) come from the article-wise primary
   only** — the pre-aggregated FY24-26 workbook ends Mar'26. Selecting FY27
   now renders REAL numbers on Overview / Primary / Market Share (exact,
-  chain-allocated `detail_meta.fy27_primary` aggregates, computed from the
-  FULL uncapped File 2 data) and keeps TOT%/CM2 visible on P&L. **Offtake**
+  chain-allocated `detail_meta.fyx_primary['FY27']` aggregates, computed from
+  the FULL uncapped File 2 data) and keeps TOT%/CM2 visible on P&L. The FY is
+  derived from each row's month+year (Apr–Dec → next FY, Jan–Mar → same FY),
+  never a fixed index, so FY28 flows in automatically once Apr'27 rows arrive.
+  **Offtake**
   genuinely has no FY27 (the sell-out master ends Mar'26) and still shows an
   explicit "no data" message rather than silently falling back to FY26.
 - **Not every dimension applies to every tab** — e.g. Offtake has no
