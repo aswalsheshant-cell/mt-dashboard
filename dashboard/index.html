@@ -1720,6 +1720,81 @@ function expLine(id,recs){
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.y)}}},
       scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},x:{grid:{display:false}}}}}));
 }
+// ---- Configurable Explorer chart gallery: each card has a live METRIC
+// (NSV/MRP/Qty) + CHART-TYPE (Bar/Column/Line/Area/Donut/Pie) dropdown, keeps
+// click-to-filter, and stays sorted high->low. Reuses recFilter()/MORDER/crc/
+// qtyFmt/_labelOpts/PAL and the same expCharts cleanup + chartdl PNG/CSV/Excel
+// menu as the other Explorer charts. Native <select> = no z-index/overlap.
+const GAL_DIMS=[  // [canvasId, record field, title]  -- all fields exist in detail_records
+  ['galChain','Chain','NSV by Chain'],['galBrand','Brand','NSV by Brand'],
+  ['galCat','Category','NSV by Category'],['galSub','SubCategory','NSV by Sub-Category'],
+  ['galPack','PackSize','NSV by Net Weight'],['galRange','Range','NSV by Range'],
+  ['galZone','Zone','NSV by Zone'],['galChan','Channel','NSV by Channel'],
+  ['galArt','Article','Top 15 Products by NSV'],['galMonth','Month','NSV Trend Monthly'],
+];
+const GAL_DIM_OF=Object.fromEntries(GAL_DIMS.map(([id,dim])=>[id,dim]));
+const GAL_METRICS=[['NSV','NSV'],['MRP','MRP Value'],['Qty','Quantity']];
+const GAL_TYPES=[['barh','Bar'],['bar','Column'],['line','Line'],['area','Area'],['doughnut','Donut'],['pie','Pie']];
+const galState={};
+function galDefault(dim){
+  if(dim==='Month') return {metric:'NSV',type:'line'};
+  if(dim==='Category'||dim==='Channel'||dim==='Zone') return {metric:'NSV',type:'doughnut'};
+  return {metric:'NSV',type:'barh'};
+}
+function galGet(id,dim){ return galState[id]||(galState[id]=galDefault(dim)); }
+function galControls(id,dim){
+  const st=galGet(id,dim);
+  const opt=(list,cur)=>list.map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${l}</option>`).join('');
+  return `<span style="display:inline-flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+    <label>Metric <select data-gal="metric" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_METRICS,st.metric)}</select></label>
+    <label>Chart <select data-gal="type" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_TYPES,st.type)}</select></label></span>`;
+}
+function galCardHtml(id,dim,title){ return card(title,galControls(id,dim),cv(id,dim!=='Month'&&dim!=='Chain')); }
+function galAgg(recs,dim,metric){
+  const m={};recs.forEach(r=>{ m[r[dim]]=(m[r[dim]]||0)+(Number(r[metric])||0); });
+  let e=Object.entries(m).filter(x=>x[0]!=='undefined'&&x[0]!=='null'&&x[0]!=='');
+  if(dim==='Month') e.sort((a,b)=>MORDER.indexOf(a[0])-MORDER.indexOf(b[0]));
+  else e.sort((a,b)=>b[1]-a[1]);
+  if(dim==='Article') e=e.slice(0,15);
+  else if(dim!=='Month') e=e.slice(0,15);   // keep categorical charts readable
+  return e;
+}
+function renderGal(id){
+  const dim=GAL_DIM_OF[id]; const st=galGet(id,dim);
+  const e=galAgg(recFilter(),dim,st.metric);
+  const labels=e.map(x=>x[0]),data=e.map(x=>x[1]);
+  const fmt=st.metric==='Qty'?(v=>qtyFmt(v)):(v=>crc(v));
+  const isFilterDim=FILT.some(([k])=>k===dim);
+  const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[String(labels[els[0].index])];onFilterChange();}}:undefined;
+  const t=st.type;
+  let cfg;
+  if(t==='doughnut'||t==='pie'){
+    cfg={type:t,data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
+      options:{cutout:t==='doughnut'?'58%':0,onClick,plugins:{legend:{position:'right'},..._labelOpts(true),
+        tooltip:{callbacks:{label:c=>{const tot=c.dataset.data.reduce((a,b)=>a+b,0);return `${c.label}: ${fmt(c.parsed)} (${tot?(c.parsed/tot*100).toFixed(0):0}%)`;}}}}}};
+  } else if(t==='line'||t==='area'){
+    cfg={type:'line',data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:t==='area',tension:.32,borderWidth:2.4,pointRadius:2}]},
+      options:{onClick,plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}},
+        scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},x:{grid:{display:false}}}}};
+  } else {
+    const horiz=(t==='barh');
+    cfg={type:'bar',data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
+      options:{indexAxis:horiz?'y':'x',onClick,plugins:{legend:{display:false},..._labelOpts(true),
+        tooltip:{callbacks:{label:c=>fmt(horiz?c.parsed.x:c.parsed.y)}}},
+        scales:horiz?{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},y:{grid:{display:false}}}
+                    :{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},x:{grid:{display:false}}}}};
+  }
+  expCharts.push(new Chart(document.getElementById(id),cfg));
+}
+function wireGallery(section){
+  section.addEventListener('change',ev=>{
+    const sel=ev.target.closest('select[data-gal]'); if(!sel) return;
+    const id=sel.dataset.id, dim=GAL_DIM_OF[id];
+    galGet(id,dim)[sel.dataset.gal]=sel.value;
+    const ex=Chart.getChart(id); if(ex){ const i=expCharts.indexOf(ex); if(i>=0) expCharts.splice(i,1); ex.destroy(); }
+    renderGal(id);
+  });
+}
 function buildExplorer(){
   expDestroy();
   const recs=recFilter();
@@ -1765,31 +1840,23 @@ function buildExplorer(){
      ${kpi('Realisation',mrp?((nsv/mrp)*100).toFixed(0)+'%':'–','NSV ÷ MRP')}
    </div>
    ${sisCard}
-   <div class="grid g2">
-     ${card('NSV by Chain — click to filter','',cv('exChain'))}
-     ${card('NSV by Brand — click to filter','',cv('exBrand',true))}
-   </div>
-   <div class="grid g3">
-     ${card('By Category','',cv('exCat',true))}
-     ${card('By Channel','',cv('exChan',true))}
-     ${card('By Zone','',cv('exZone',true))}
-   </div>
+   <p class="lead" style="font-size:13px;margin:6px 0 8px"><b>Custom charts</b> — each card below has its own
+     <b>Metric</b> (NSV / MRP / Qty) and <b>Chart type</b> (Bar / Column / Line / Area / Donut / Pie) picker; bars stay
+     sorted high→low, and clicking a chart still filters the whole view. Use the ⭳ on any card for PNG / CSV / Excel.</p>
+   <div class="grid g2">${GAL_DIMS.slice(0,2).map(([id,dim,t])=>galCardHtml(id,dim,t)).join('')}</div>
+   <div class="grid g3">${GAL_DIMS.slice(2,8).map(([id,dim,t])=>galCardHtml(id,dim,t)).join('')}</div>
+   <div class="grid g2">${GAL_DIMS.slice(8).map(([id,dim,t])=>galCardHtml(id,dim,t)).join('')}</div>
+   <p class="drillhint" style="margin:2px 0 12px">NSV by <b>State</b> isn't shown here yet — <code>detail_records</code>
+     carries Zone but not State; it needs State added to the data build first (the store-level offtake has it).</p>
    ${catDrillCardHtml('exCatDrill')}
-   ${card('NSV by Month (Apr→Mar) — click to filter','',cv('exMonth'))}
    ${card(`Detail records${recs.length>cap?` — showing first ${cap} of ${num(recs.length)}`:` (${num(recs.length)})`}`,'Reflects all active filters.',
      `<div style="margin:-4px 0 10px"><button class="fbtn ghost" id="exExport">⭳ Export ALL filtered records (CSV)</button></div>
       <div class="tablewrap"><table><thead><tr>
       <th>Month</th><th>FY</th><th>Channel</th><th>Zone</th><th>Chain</th><th>Brand</th><th>Category</th>
       <th>Sub-cat</th><th>Range</th><th>Pack</th><th>Article</th><th>NSV</th><th>MRP</th><th>Qty</th>
       </tr></thead><tbody>${trows||'<tr><td colspan="14">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
-  if(recs.length){
-    expBarH('exChain','Chain',grp(recs,'Chain').slice(0,12));
-    expDonut('exBrand','Brand',grp(recs,'Brand'));
-    expDonut('exCat','Category',grp(recs,'Category'));
-    expDonut('exChan','Channel',grp(recs,'Channel'));
-    expDonut('exZone','Zone',grp(recs,'Zone'));
-    expLine('exMonth',recs);
-  }
+  if(recs.length){ GAL_DIMS.forEach(([id])=>renderGal(id)); }
+  wireGallery(s);
   renderCatDrillChart('exCatDrill',recs);
   s.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{F[b.dataset.k]='';if(b.dataset.k==='Category')catChartDrill=null;onFilterChange();});
   const ex=document.getElementById('exExport'); if(ex) ex.onclick=()=>exportCSV(recs);
