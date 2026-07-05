@@ -1200,6 +1200,7 @@ function buildDistribution(){
    </div>
    ${card('Store count by chain (all active)','Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>Active Stores</th><th>Share</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${distGapHtml()}
    ${catDrillCardHtml('dCatDrill')}`;
   wireDrillLinks(s);
   mkBarH('dZone',zones.map(z=>z.name),zones.map(z=>z.stores),C.teal,false,v=>drillTo('Zone',v));
@@ -1207,6 +1208,62 @@ function buildDistribution(){
   mkBarH('dChain',chains.slice(0,10).map(c=>c.name),chains.slice(0,10).map(c=>c.stores),C.blue,false,v=>drillTo('Chain',v));
   mkBarH('dType',u.by_storetype.map(t=>t.name),u.by_storetype.map(t=>t.stores),C.purple,false);
   renderCatDrillChart('dCatDrill',recFilter());
+  distGapChart();
+}
+// Distribution Gap & Add-on Revenue Potential -- reads the D.dist_gap block
+// (real store×article offtake, chain-format-comparable). Respects the global
+// Category/Brand filters (reuses fOn/fHas); other dims (FY/Month/Zone/Chain)
+// don't apply here since the gap is measured across a product's whole
+// comparable-format store base, not a single chain/month.
+function distGapRows(){
+  const dg=D.dist_gap; if(!dg||!dg.rows) return [];
+  let rows=dg.rows;
+  if(fOn('Category')) rows=rows.filter(r=>fHas('Category',r.category));
+  if(fOn('Brand'))    rows=rows.filter(r=>fHas('Brand',r.brand));
+  return rows;
+}
+function distGapHtml(){
+  const dg=D.dist_gap;
+  if(!dg||!dg.rows||!dg.rows.length) return '';
+  const W=dg.window_label||'window';
+  const rows=distGapRows();
+  const totAddon=rows.reduce((a,r)=>a+(r.addon_window||0),0);
+  const totAddonAnn=rows.reduce((a,r)=>a+(r.addon_ann||0),0);
+  const avgPen=rows.length?rows.reduce((a,r)=>a+(r.penetration||0),0)/rows.length:0;
+  const top=rows.slice(0,25);
+  const body=top.map(r=>`<tr>
+     <td>${drillLink('Brand',r.brand)} · ${r.product}</td><td>${r.ean}</td><td>${r.group}</td>
+     <td>${num(r.carrying)} / ${num(r.target)}</td><td>${num(r.missing)}</td>
+     <td>${r.penetration}%</td><td>${crc(r.nsv_avg_ann)}/yr</td><td>${crc(r.nsv_window)}</td>
+     <td>${num(r.latest_tp)}</td><td>${num(r.max_tp)}</td><td><b>${crc(r.addon_window)}</b></td></tr>`).join('');
+  return `<h3 class="sec" style="font-size:15px;margin:22px 0 4px">Distribution Gap &amp; Add-on Revenue Potential</h3>
+   <p class="note" style="margin:0 0 10px">Each product is compared ONLY against <b>comparable stores</b> — sites of its own
+     chain <b>format</b> (Pharmacy / Hypermarket / Supermarket / Beauty Retail…), so a drug-store SKU is measured against
+     drug-store doors, never against Dmart. <b>Target</b> = format-sites selling that product's category; <b>Carrying</b> =
+     format-sites selling this SKU; <b>Add-on</b> = missing sites × NSV per carrying site. Real store×article offtake, window
+     <b>${W}</b>${fOn('Category')||fOn('Brand')?' · filtered':''}. ${dg.n_months<3?'<i>Only '+dg.n_months+' months of store-level data loaded — refreshes to a true L3M once a third month is added.</i>':''}</p>
+   <div class="kpis">
+     ${kpi('Add-on Potential ('+W+')',crc(totAddon),'if gaps closed at current per-store rate')}
+     ${kpi('Add-on Potential (annualised)',crc(totAddonAnn),'monthly avg × 12')}
+     ${kpi('Products with Gap',num(rows.length),fOn('Category')||fOn('Brand')?'in this filter':'across comparable formats')}
+     ${kpi('Avg Penetration',avgPen.toFixed(1)+'%',rows.length+' SKUs')}
+   </div>
+   <div class="grid g2">
+     ${card('Add-on potential by store format ('+W+')','Where the biggest closable distribution gaps sit.',cv('dgGroup'))}
+     ${card('Top 25 SKUs by add-on potential','Product · comparable format · carrying/target doors · penetration · add-on. Full list via ⭳ Export Table.',
+       `<div class="tablewrap"><table>
+       <thead><tr><th>Product</th><th>EAN</th><th>Group</th><th>Carrying / Target</th><th>Missing (${W})</th>
+         <th>Penetration</th><th>NSV Avg</th><th>NSV ${W}</th><th>Latest TP</th><th>Max TP</th><th>Add-on (${W})</th></tr></thead>
+       <tbody>${body||'<tr><td colspan="11">No products for this filter.</td></tr>'}</tbody></table></div>`)}
+   </div>`;
+}
+function distGapChart(){
+  const dg=D.dist_gap; if(!dg||!dg.rows||!dg.rows.length) return;
+  // add-on by format, recomputed from the (filtered) rows so it tracks filters
+  const rows=distGapRows(); const g={};
+  rows.forEach(r=>{ g[r.group]=(g[r.group]||0)+(r.addon_window||0); });
+  const ent=Object.entries(g).sort((a,b)=>b[1]-a[1]);
+  if(ent.length) mkBarH('dgGroup',ent.map(e=>e[0]),ent.map(e=>e[1]),C.amber,true);
 }
 
 /* ---------------- CATEGORY & PACK ---------------- */
