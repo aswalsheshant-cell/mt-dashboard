@@ -519,7 +519,11 @@ function buildOverview(){
   // renders real numbers here instead of an empty state. Offtake has no such FY.
   const beyond=!!fy&&fyBeyondPreagg(fyTag());
   const fp27=beyond?FPX(fyTag()):null;
-  const primOk=!beyond||!!fp27, offOk=!beyond;
+  // Offtake has its OWN FY coverage, independent of the article-wise
+  // primary's fyx_primary window -- gate on Offtake's own total_fyNN, not on
+  // "beyond the pre-agg window" (which is a Primary-only concept), so real
+  // FY27+ offtake actuals render here the moment their source is loaded.
+  const primOk=!beyond||!!fp27, offOk=!fy||o['total_'+fy]!=null;
   let chains=p.by_chain, brands=p.by_brand, channels=p.by_channel;
   if(fp27){
     chains=fp27.by_chain.map(c=>({name:c.name,[fy]:c.nsv}));
@@ -538,7 +542,7 @@ function buildOverview(){
      ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–May actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
-       : kpi('Offtake','No FY27 actuals','use FY26 or see Forecast')}
+       : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
      ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
@@ -788,30 +792,36 @@ function wireAllocExports(root){
 /* ---------------- OFFTAKE ---------------- */
 function buildOfftake(){
   const o=D.offtake,p=D.primary,s=document.getElementById('tab-offtake');
-  if(fyUnsupported()){
+  const fy=fyKey();                       // null = both years, else 'fy25'/'fy26'/'fy27'...
+  // Offtake has its OWN FY coverage, independent of fyUnsupported() (which
+  // is about the article-wise primary's fyx_primary-only tags) -- gate on
+  // whether the Offtake master itself has this FY (total_fyNN present),
+  // so real FY27+ offtake actuals render the moment their source is loaded,
+  // instead of always showing the "no data" state for any beyond-window FY.
+  if(fy && o['total_'+fy]==null){
     s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>${fyNoDataNote('the Offtake master file')}${catDrillCardHtml('ofCatDrill')}`;
     renderCatDrillChart('ofCatDrill',recFilter());
     return;
   }
-  const fy=fyKey();                       // null = both years, else 'fy25'/'fy26'
   const yrs=fy?[fy]:['fy25','fy26'];
   const yrLab={fy25:'FY25',fy26:'FY26'};
+  if(fy && !yrLab[fy]) yrLab[fy]=fy.toUpperCase();   // backfill FY27+ label
   let zones=o.by_zone, states=o.by_state, chains=o.by_chain;
   if(fOn('Zone')){ zones=zones.filter(z=>fHas('Zone',z.name)); states=states.filter(r=>fHas('Zone',r.zone)); }
   if(fOn('Chain')){ chains=chains.filter(c=>fHas('Chain',c.name)); }
   const mAbbr=m=>String(m).slice(0,3).toLowerCase();
-  let months=o.months, monthly=o.monthly;
   // o.months are "Apr-24".."Mar-26" (3-letter abbrev + 2-digit year); F.Month
   // is a full month name ("April".."March") from the article-level detail --
-  // match on the first 3 letters, and only within whichever FY is selected.
-  const mIdx=o.months.map((m,i)=>i).filter(i=>{
-    if(fOn('Month') && !F.Month.some(mm=>mAbbr(o.months[i])===mAbbr(mm))) return false;
-    const yy=o.months[i].split('-')[1]; // '24'/'25'/'26'
-    if(fy==='fy25') return yy==='24'||yy==='25';
-    if(fy==='fy26') return yy==='25'||yy==='26';
-    return true;
-  });
-  months=mIdx.map(i=>o.months[i]); monthly=mIdx.map(i=>o.monthly[i]);
+  // match on the first 3 letters. When a single FY is selected, use the
+  // Python-computed months_fyNN/monthly_fyNN series (correct for ANY FY tag)
+  // instead of re-deriving FY membership from a calendar-year suffix.
+  let months, monthly;
+  if(fy){ months=o['months_'+fy]||[]; monthly=o['monthly_'+fy]||[]; }
+  else { months=o.months; monthly=o.monthly; }
+  if(fOn('Month')){
+    const keep=months.map((m,i)=>i).filter(i=>F.Month.some(mm=>mAbbr(months[i])===mAbbr(mm)));
+    months=keep.map(i=>months[i]); monthly=keep.map(i=>monthly[i]);
+  }
   const totFor=k=>o['total_'+k]||0;
   const primFor=k=>p['nsv_'+k]||0;
   const cmp=chains.filter(c=>(c[yrs[yrs.length-1]]||0)>50 || fOn('Chain')).slice(0,10);

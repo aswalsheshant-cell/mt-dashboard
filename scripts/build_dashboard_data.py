@@ -79,13 +79,30 @@ def month_labels(start_year=2024, n_months=24):
             m, y = 1, y + 1
     return out
 
-# The chain-offtake flat dump currently carries exactly these 24 month
-# columns (Apr-24..Mar-26). All FY grouping is label-driven via the helpers
-# above, so when the business supplies an updated sell-out master with
-# Apr-26+ columns, bumping n_months here is the ONLY change needed -- FY27
-# offtake keys (total_fy27 / monthly_fy27 / by_chain fy27 ...) then appear
-# automatically.
-MONTHS = month_labels(2024, 24)
+def quarter_labels_for(months):
+    """Q-col labels for load_offtake()'s Sheet3 (zone/state) pivot: one
+    Q1..Q4 block per FY that `months` spans, suffixed with that FY's START
+    calendar year -- e.g. FY25 (Apr-24..Mar-25) -> 'Q1-24'..'Q4-24'; FY26
+    (Apr-25..Mar-26) -> 'Q1-25'..'Q4-25' -- matching the pivot's
+    quarter-major, FY-minor column order. This generalizes the original
+    hardcoded 2-FY (FY25,FY26) list to however many FYs `months` spans; NOT
+    verified against a real 3-FY source file yet (only the original 2-FY
+    shape is), so double-check Sheet3's actual column order once one lands."""
+    fy_start_yrs = sorted({fy_start_year(fy_tag_from_label(m)) % 100
+                            for m in months if fy_tag_from_label(m)})
+    return [f"Q{q}-{y:02d}" for q in range(1, 5) for y in fy_start_yrs]
+
+# The chain-offtake flat dump carries exactly these month columns
+# (Apr-24..May-26 = 26 months, once the business's updated sell-out master
+# with Apr-26/May-26 columns is supplied). load_offtake()/offtake_block()
+# derive every column count and month/quarter label purely from len(MONTHS)
+# and quarter_labels_for(MONTHS) -- so when the source grows again (FY28),
+# bumping n_months here is the ONLY change needed; FY27/FY28 offtake keys
+# (total_fyNN / monthly_fyNN / months_fyNN / by_chain fyNN ...) then appear
+# automatically. NOTE: until the actual Apr-26/May-26 offtake_flat.txt is
+# supplied, load_offtake() has no file to read and this constant has no
+# effect on the shipped dashboard.
+MONTHS = month_labels(2024, 26)
 
 BRAND_MAP = {
     "bblunt": "BBlunt", "the derma co.": "The Derma Co", "the derma co": "The Derma Co",
@@ -402,6 +419,7 @@ def _num(x):
 
 def load_offtake(src):
     t = (src / "offtake_flat.txt").read_text()
+    n_m = len(MONTHS)
     # ---- chain-wise monthly (Sheet2) ----
     s2 = t[: t.index("Sheet3")]
     body = s2[s2.index("Grand Total ") + len("Grand Total "):]
@@ -410,31 +428,32 @@ def load_offtake(src):
     for r in rows:
         parts = r.split(",")
         name = parts[0].strip().replace("\\&", "&")
-        if name.lower() == "grand total" or len(parts) < 26:
+        if name.lower() == "grand total" or len(parts) < n_m + 2:
             continue
-        vals = [_num(v) for v in parts[1:26]]
-        chains[name] = {"months": {MONTHS[i]: vals[i] for i in range(24)}, "total": vals[24]}
+        vals = [_num(v) for v in parts[1:n_m + 2]]
+        chains[name] = {"months": {MONTHS[i]: vals[i] for i in range(n_m)}, "total": vals[n_m]}
     # ---- zone/state quarterly (Sheet3) ----
     s3 = t[t.index("Sheet3"):]
-    h = s3.index("Q1-24")
+    qcols = quarter_labels_for(MONTHS)
+    n_q = len(qcols)
+    h = s3.index(qcols[0])
     start = s3.index("Grand Total", h) + len("Grand Total")
     end = s3.index("Brand Counter") if "Brand Counter" in s3 else len(s3)
     rows3 = re.split(r"(?<=\d) (?=[A-Za-z,\"])", s3[start:end])
-    qcols = ["Q1-24","Q1-25","Q2-24","Q2-25","Q3-24","Q3-25","Q4-24","Q4-25"]
     zs, cur = [], None
     for r in rows3:
         r = r.strip()
         if not r:
             continue
         rd = next(csv.reader(io.StringIO(r)))
-        if len(rd) < 11:
+        if len(rd) < n_q + 3:
             continue
         zone = (rd[0].strip() or cur)
         cur = zone
         if rd[1].strip().lower() == "" or zone.lower() == "grand total":
             continue
         zs.append({"zone": zone, "state": rd[1].strip().replace("\\&", "&"),
-                   "q": {qcols[i]: _num(rd[2 + i]) for i in range(8)}, "total": _num(rd[10])})
+                   "q": {qcols[i]: _num(rd[2 + i]) for i in range(n_q)}, "total": _num(rd[2 + n_q])})
     return chains, zs
 
 def offtake_block(chains, zs):
@@ -480,6 +499,10 @@ def offtake_block(chains, zs):
     out["monthly"] = [r2(agg[m]) for m in MONTHS]
     for t in tags:
         out[f"monthly_{t.lower()}"] = [r2(agg[m]) for m in months_of[t]]
+        # month labels for monthly_fyNN above -- lets the dashboard chart a
+        # single FY's trend without re-deriving FY membership from calendar
+        # year suffixes (which only ever covered exactly two hardcoded FYs).
+        out[f"months_{t.lower()}"] = months_of[t]
     # zone/state roll-up: quarter labels 'Q1-24' = the FY STARTING Apr of
     # that calendar year -> FY tag via the same ONE FY RULE
     def q_tag(qk):
