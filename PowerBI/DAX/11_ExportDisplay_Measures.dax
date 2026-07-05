@@ -1,0 +1,99 @@
+// =====================================================================
+// EXPORT & DISPLAY-UNIT MEASURES
+// Mirrors the HTML dashboard's formatting rules exactly (dashboard/index.html
+// crc() and qtyFmt()) so a number reads identically whether it's on the HTML
+// dashboard, a Power BI card, or an exported PDF/Excel.
+//
+// RULE — VALUE (₹):  < ₹100 L  → "₹X.X L"   |   >= ₹100 L (= ₹1 Cr) → "₹Y.YY Cr"
+// RULE — QUANTITY:   always "Qty Cr" unless truly tiny (< 50,000 units),
+//                    then "Qty L". Quantity NEVER borrows the value Cr/L
+//                    thresholds — keep the two unit families separate.
+//
+// All base measures here assume Fact tables in Lakh/units as loaded by the
+// PowerQuery scripts. If your source is already in absolute ₹ (not Lakh),
+// adjust the /10000000 and /100000 divisors accordingly — see DataDictionary.md.
+// =====================================================================
+
+// ---------- VALUE LABELS (₹ Cr / ₹ L, smart-switch at ₹100 L) ----------
+// Pattern re-used for every ₹ measure that needs an export/card label.
+// Duplicate this block per base measure — DAX has no first-class higher-order
+// functions for measure names, so each needs its own small variant.
+
+NSV Value Label =
+VAR v = [NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+Total Primary NSV Value Label =
+VAR v = [Total Primary NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+Total Offtake NSV Value Label =
+VAR v = [Total Offtake NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+Total MRP Sales Value Label =
+VAR v = [Total MRP Sales]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+// P&L, Forecast pages: point this at whichever base measure the card uses
+// (e.g. [Total Trade Spend], [FY27 Forecast NSV]) by copying the pattern above.
+
+// ---------- QUANTITY LABELS (Qty Cr / Qty L — separate family from ₹) ----------
+Total Offtake Qty Label =
+VAR v = [Total Offtake Qty]
+VAR crv = DIVIDE ( v, 10000000 )
+RETURN
+    IF (
+        ABS ( crv ) >= 0.005,
+        FORMAT ( crv, "#,0.00" ) & " Cr Qty",
+        FORMAT ( DIVIDE ( v, 100000 ), "#,0.00" ) & " L Qty"
+    )
+
+Total Primary Qty Label =
+VAR v = [Total Primary Qty]
+VAR crv = DIVIDE ( v, 10000000 )
+RETURN
+    IF (
+        ABS ( crv ) >= 0.005,
+        FORMAT ( crv, "#,0.00" ) & " Cr Qty",
+        FORMAT ( DIVIDE ( v, 100000 ), "#,0.00" ) & " L Qty"
+    )
+
+// ---------- HOW TO USE ----------
+// Card visual: drag the *_Value Label / *_Qty Label measure straight into a
+// Card visual's "Fields" well — Power BI cards render text measures as-is,
+// so the ₹/Cr/L formatting shows exactly as typed, no Format-pane fiddling.
+//
+// Table/Matrix visual: add the Label measure as an extra column alongside the
+// raw numeric measure (keep the numeric one too — it's what "Export data"
+// should carry for anyone re-deriving totals in Excel; the Label column is
+// the human-readable display copy).
+//
+// Chart data labels: Format pane ▸ Data labels ▸ On ▸ "Values" dropdown will
+// only show a *_Value Label measure if that measure is the field actually
+// plotted; Power BI axis "Display units" (Auto/K/M/Bn) does NOT understand
+// Lakh/Crore, so for bar/column/line charts either (a) plot the raw numeric
+// measure and turn Display units OFF (Format ▸ Y-axis ▸ Display units ▸ None)
+// then rely on the tooltip showing the Label measure, or (b) add the Label
+// measure as a second field in the tooltip ("Format ▸ Tooltips ▸ Fields").
+// See docs/ExportAndVisualSettings.md for the full per-visual walkthrough.

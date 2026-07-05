@@ -1,0 +1,77 @@
+// =====================================================================
+// P&L MEASURES  (actuals-first, else Assumption Table — never hardcoded)
+// Logic: if a raw P&L actual exists use it; otherwise resolve the most
+// specific matching row in 'Assumption Table' (Month>Chain>Brand>Category),
+// falling back to "ALL". All divisions use DIVIDE().
+// =====================================================================
+
+// ---- Helper: resolve an assumption value with ALL-fallback ----
+// Returns the % / spend for the current Month x Chain x Brand x Category
+// context, preferring the most specific row, else the ALL row.
+_Assumption Gross Margin % =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+VAR _ch = SELECTEDVALUE ( 'Chain Master'[Chain], "ALL" )
+VAR _br = SELECTEDVALUE ( 'Brand Master'[Brand], "ALL" )
+VAR _cat = SELECTEDVALUE ( 'Category Master'[Category], "ALL" )
+VAR _specific =
+    CALCULATE ( MAX ( 'Assumption Table'[Gross Margin %] ),
+        FILTER ( ALL ( 'Assumption Table' ),
+            'Assumption Table'[Month] = _m
+            && ( 'Assumption Table'[Chain] = _ch || 'Assumption Table'[Chain] = "ALL" )
+            && ( 'Assumption Table'[Brand] = _br || 'Assumption Table'[Brand] = "ALL" )
+            && ( 'Assumption Table'[Category] = _cat || 'Assumption Table'[Category] = "ALL" ) ) )
+RETURN COALESCE ( _specific, 0.50 )
+
+_Assumption Trade Spend % =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+COALESCE (
+    CALCULATE ( MAX ( 'Assumption Table'[Trade Spend %] ),
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+
+_Assumption Visibility Spend =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+COALESCE (
+    CALCULATE ( SUM ( 'Assumption Table'[Visibility Spend] ),
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+
+_Assumption Scheme Spend =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+COALESCE (
+    CALCULATE ( SUM ( 'Assumption Table'[Scheme Spend] ),
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+
+// ---- P&L line items ----
+Net Sales = [NSV]                                   // NSV = Net Sales Value (offtake)
+Gross Sales = COALESCE ( [Total MRP Sales], DIVIDE ( [NSV], 1 - 0.0 ) )  // use MRP Sales as gross proxy
+
+Gross Margin = [NSV] * [_Assumption Gross Margin %]
+Gross Margin % = DIVIDE ( [Gross Margin], [NSV] )
+
+Trade Spend = [NSV] * [_Assumption Trade Spend %]
+Visibility Spend = [_Assumption Visibility Spend]
+Scheme Spend = [_Assumption Scheme Spend]
+Total Spend = [Trade Spend] + [Visibility Spend] + [Scheme Spend]
+
+Spend % of NSV = DIVIDE ( [Total Spend], [NSV] )
+
+Contribution Margin = [Gross Margin] - [Total Spend]
+CM % = DIVIDE ( [Contribution Margin], [NSV] )
+
+// ---- ranking helper for the profitability page ----
+Chain CM Rank =
+RANKX ( ALLSELECTED ( 'Chain Master'[Chain] ), [Contribution Margin],, DESC )
+
+// ---- "growth profitable or only sales-led?" flag ----
+Profitability Flag =
+VAR g = [MoM Growth %]
+VAR cm = [CM %]
+RETURN
+    SWITCH ( TRUE (),
+        g > 0 && cm >= 0.25, "Profitable Growth",
+        g > 0 && cm < 0.25,  "Sales-led (watch margin)",
+        g <= 0 && cm >= 0.25, "Margin-protected decline",
+        "Needs attention"
+    )

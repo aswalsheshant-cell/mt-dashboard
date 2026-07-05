@@ -1,0 +1,72 @@
+// =====================================================================
+// CHANNEL TAG + SIS RECONCILIATION  --  RESOLVED 2026-07-03
+//
+// - File 2 real SIS FY26 Primary = Rs 250.17 L (from File 2's own Channel
+//   field). CONFIRMED by business (2026-07-03) as the source of truth.
+// - Rs 236 L and Rs 275.44 L (gross sales, before MRN returns) are BOTH
+//   confirmed NOT correct -- do not use either as the SIS FY26 headline figure.
+// - Cross-validated three independent ways (File 2 invoice-line grain, a
+//   second source file's raw data, and that file's own Excel PivotTable) --
+//   all agree exactly on Rs 250.17 L. Full investigation and resolution
+//   record: docs/SIS_Reconciliation.md.
+//
+// What these measures do:
+//  - Primary (File 2 / Fact Primary Article) has an EXPLICIT Channel column
+//    (MT / EB2B / SIS) -> treated as the source of truth for Primary SIS.
+//  - Offtake (store x article) has NO Channel -> derived below via a calc
+//    column: Store Code override -> Chain default -> "Unmapped" (never dropped).
+//  - Primary vs Offtake SIS is reconciled and any gap is located by chain --
+//    useful for tagging offtake by channel, but NOT what explains the Rs 14.16 L
+//    Primary-side gap (that gap exists entirely within File 2 itself).
+// =====================================================================
+
+// ---------- Calculated COLUMN on 'Fact Offtake Sales' ----------
+// (Modeling > New column, on the Fact Offtake Sales table)
+Offtake Channel =
+VAR _byStore =
+    LOOKUPVALUE ( 'Channel Map Store'[Channel],
+        'Channel Map Store'[Store Code], 'Fact Offtake Sales'[Store Code] )
+VAR _byChain =
+    LOOKUPVALUE ( 'Channel Map Chain'[Channel],
+        'Channel Map Chain'[Chain], 'Fact Offtake Sales'[Chain] )
+RETURN COALESCE ( _byStore, _byChain, "Unmapped" )
+
+// ---------- Channel splits ----------
+// PRIMARY (authoritative — explicit Channel from File 2 / Fact Primary Article)
+Primary NSV (Article) = SUM ( 'Fact Primary Article'[Primary NSV] )
+Primary SIS  = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "SIS" )
+Primary EB2B = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "EB2B" )
+Primary MT   = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "MT" )
+
+// OFFTAKE (derived Channel)
+Offtake SIS  = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "SIS" )
+Offtake EB2B = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "EB2B" )
+Offtake MT   = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "MT" )
+Offtake Unmapped Channel = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "Unmapped" )
+
+// ---------- Display in Cr (Indian) ----------
+Primary SIS (Cr) = DIVIDE ( [Primary SIS], 10000000 )
+Offtake SIS (Cr) = DIVIDE ( [Offtake SIS], 10000000 )
+
+// ---------- SIS reconciliation ----------
+SIS Variance = [Primary SIS] - [Offtake SIS]
+SIS Variance (Cr) = DIVIDE ( [SIS Variance], 10000000 )
+SIS Variance (Lacs) = DIVIDE ( [SIS Variance], 100000 )
+SIS Match =
+IF ( ABS ( [SIS Variance] ) < 100000, "OK (< Rs 1 L)", "Gap - investigate" )
+
+// Channel coverage: how much offtake resolved to a real channel (not Unmapped)
+Offtake Channel Coverage % =
+1 - DIVIDE ( [Offtake Unmapped Channel], [Total Offtake NSV] )
+
+// Sanity note: Primary SIS must be sourced ONLY from File 2's explicit
+// Channel = "SIS" ([Primary SIS] above) — never derived from the ship-to
+// primary (File 1 is MT-only, no Channel). [Primary SIS] correctly nets to
+// ~Rs 2.50 Cr FY26 per the raw source — CONFIRMED correct by business
+// (2026-07-03). The Rs 2.36 Cr reference figure is confirmed NOT correct.
+
+// ---------- Reconciliation table helper ----------
+// Build a table visual: rows = Chain, values = [Primary SIS (Cr)],
+// [Offtake SIS (Cr)], [SIS Variance (Lacs)]. Sort by SIS Variance to see the
+// chains driving the ~Rs 14 L gap. Add 'Offtake Channel' = "Unmapped" as a
+// slicer to list stores whose channel didn't resolve.

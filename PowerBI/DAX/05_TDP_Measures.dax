@@ -1,0 +1,68 @@
+// =====================================================================
+// TDP / DISTRIBUTION MEASURES  (TDP = Total Distribution Points, CPG sense)
+// TDP = SUM of ACV % across all SKUs in the current grain.
+// Because it is a SUM, it rolls up correctly at Brand / Category / Sub-cat /
+// Chain / Zone / State / Article / Pack-size level automatically.
+// =====================================================================
+
+// Core
+TDP = SUM ( 'Fact TDP'[ACV %] )                 // e.g. 3 SKUs @50% ACV => 150
+ACV % = AVERAGE ( 'Fact TDP'[ACV %] )            // average shelf reach of a SKU
+AIC = AVERAGE ( 'Fact TDP'[AIC] )                // Average Items Carried
+Numeric Distribution = AVERAGE ( 'Fact TDP'[Numeric Distribution] )
+Weighted Distribution = AVERAGE ( 'Fact TDP'[Weighted Distribution] )
+
+// Velocity
+Sales per TDP   = DIVIDE ( [NSV], [TDP] )                 // offtake NSV per distribution point
+Offtake per TDP = DIVIDE ( [Total Offtake NSV], [TDP] )
+Primary per TDP = DIVIDE ( [Total Primary NSV], [TDP] )
+
+// Growth
+Prev Month TDP = CALCULATE ( [TDP], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+Last Year TDP  = CALCULATE ( [TDP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+TDP MoM Growth % = DIVIDE ( [TDP] - [Prev Month TDP], [Prev Month TDP] )
+TDP YoY Growth % = DIVIDE ( [TDP] - [Last Year TDP], [Last Year TDP] )
+
+TDP Contribution % =
+DIVIDE ( [TDP],
+    CALCULATE ( [TDP], ALLSELECTED ( 'Brand Master'[Brand] ), ALLSELECTED ( 'Article Master'[Article Code] ) ) )
+
+// ---- Distribution-led vs Velocity-led diagnosis ----
+// Compares Sales growth vs TDP growth to answer the leadership question:
+// "is growth coming from better distribution or better velocity?"
+Sales Growth vs TDP Growth = [MoM Growth %] - [TDP MoM Growth %]
+
+Growth Driver =
+VAR sg = [MoM Growth %]
+VAR tg = [TDP MoM Growth %]
+RETURN
+    SWITCH ( TRUE (),
+        ISBLANK ( sg ), "",
+        sg > 0 && tg > 0 && tg >= sg, "Distribution-led",
+        sg > 0 && ( ISBLANK ( tg ) || sg > tg ), "Velocity-led",
+        sg > 0, "Mixed",
+        "Declining"
+    )
+
+// ---- Opportunity quadrants (use as a flag column in the article table) ----
+// Benchmarks = median across visible articles.
+_Median Sales per TDP =
+MEDIANX ( ALLSELECTED ( 'Article Master'[Article Code] ), [Sales per TDP] )
+_Median TDP =
+MEDIANX ( ALLSELECTED ( 'Article Master'[Article Code] ), [TDP] )
+
+TDP Opportunity Quadrant =
+VAR spt = [Sales per TDP]
+VAR t = [TDP]
+VAR medSPT = [_Median Sales per TDP]
+VAR medTDP = [_Median TDP]
+RETURN
+    SWITCH ( TRUE (),
+        t < medTDP && spt >= medSPT, "Low TDP / High Velocity — EXPAND",
+        t >= medTDP && spt < medSPT, "High TDP / Low Velocity — FIX PRODUCTIVITY",
+        t >= medTDP && spt >= medSPT, "Strong — PROTECT",
+        "Low / Low — REVIEW"
+    )
+
+// Market share vs TDP link (uses Nielsen share at the matching grain)
+MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )

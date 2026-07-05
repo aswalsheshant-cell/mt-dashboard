@@ -1,0 +1,45 @@
+{
+  "name": "Honasa MT Leadership",
+  "dataColors": [
+    "#2D9B7F", "#1F2933", "#5BC4A6", "#C0392B", "#E1A948",
+    "#7F8C8D", "#3D6B5E", "#9AD9C7", "#A64B3A", "#D7CCB8"
+  ],
+  "background": "#FAF7F2",
+  "foreground": "#1F2933",
+  "tableAccent": "#2D9B7F",
+  "good": "#2D9B7F",
+  "neutral": "#7F8C8D",
+  "bad": "#C0392B",
+  "maximum": "#1F2933",
+  "center": "#E1A948",
+  "minimum": "#FAF7F2",
+  "null": "#D7CCB8",
+  "textClasses": {
+    "title": { "fontFace": "Segoe UI Semibold", "fontSize": 14, "color": "#1F2933" },
+    "header": { "fontFace": "Segoe UI Semibold", "fontSize": 12, "color": "#1F2933" },
+    "label": { "fontFace": "Segoe UI", "fontSize": 10, "color": "#1F2933" },
+    "callout": { "fontFace": "Segoe UI Semibold", "fontSize": 32, "color": "#2D9B7F" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#E7E0D4" } }, "radius": 8 }],
+        "dropShadow": [{ "show": true, "color": { "solid": { "color": "#1F2933" } }, "preset": "Outside", "shadowSpread": 2, "transparency": 92 }],
+        "title": [{ "fontColor": { "solid": { "color": "#1F2933" } }, "fontSize": 12, "fontFamily": "Segoe UI Semibold", "alignment": "left" }]
+      }
+    },
+    "page": {
+      "*": { "background": [{ "color": { "solid": { "color": "#FAF7F2" } }, "transparency": 0 }] }
+    },
+    "card": {
+      "*": {
+        "labels": [{ "color": { "solid": { "color": "#2D9B7F" } }, "fontSize": 28, "fontFamily": "Segoe UI Semibold" }],
+        "categoryLabels": [{ "color": { "solid": { "color": "#7F8C8D" } }, "fontSize": 10 }]
+      }
+    },
+    "slicer": {
+      "*": { "header": [{ "fontColor": { "solid": { "color": "#1F2933" } }, "fontSize": 10 }] }
+    }
+  }
+}

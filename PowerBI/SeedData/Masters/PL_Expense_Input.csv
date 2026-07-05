@@ -1,0 +1,4 @@
+Month,FY,Chain,Customer Code,Customer Name,Zone,State,Brand,Category,Sub Category,Expense Head,Expense Type,Expense Amount (INR Lakh),Remarks,Source,Updated By,Updated Date
+April,FY25-26,Dmart,1101911,Avenue Supermarts Ltd.-DC-1050,North,Haryana,Mamaearth,Face,,Visibility Spend,Fixed,12.5,EXAMPLE ROW -- replace with real data. FY format must be "FYyy-yy" (e.g. FY25-26) so it matches the Primary file's own FY tagging,Trade Marketing MIS,Finance Team,2026-01-05
+April,FY25-26,Reliance Retail,,,West,Maharashtra,Mamaearth,,,Scheme / Trade Spend,Variable,28.4,"EXAMPLE ROW -- Chain-level, no Customer Code available",Sales Ops,Finance Team,2026-01-05
+April,FY25-26,Apollo,,,South,Telangana,,,,BA Cost,Fixed,6.75,"EXAMPLE ROW -- Chain-only, applies across all brands/categories",HR/Trade,Finance Team,2026-01-05

@@ -1,0 +1,63 @@
+// =====================================================================
+// DATA QUALITY MEASURES  (feed the Data Quality Check page)
+// Each returns an impacted-row count. Build a table visual with a manual
+// "Check" column (Enter Data) OR use the disconnected 'DQ Checks' helper
+// table pattern at the bottom. Action text lives in that helper table.
+// =====================================================================
+
+// ---- Missing key fields (blank / null) on Offtake fact ----
+Missing Month    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( [MonthStart] ) ) )
+Missing Chain    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Chain] ) || 'Fact Offtake Sales'[Chain] = "" ) )
+Missing Zone     = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Zone] ) || 'Fact Offtake Sales'[Zone] = "" ) )
+Missing State    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[State] ) || 'Fact Offtake Sales'[State] = "" ) )
+Missing Brand    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Brand] ) || 'Fact Offtake Sales'[Brand] = "" ) )
+Missing Category = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Category] ) || 'Fact Offtake Sales'[Category] = "" ) )
+Missing Article Code = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Article Code] ) || 'Fact Offtake Sales'[Article Code] = "" ) )
+Missing EAN      = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[EAN Code] ) || 'Fact Offtake Sales'[EAN Code] = "" ) )
+
+// ---- Bad values ----
+Blank NSV Values    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Offtake NSV] ) ) )
+Negative Sales Values = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Offtake NSV] < 0 ) )
+
+// ---- Duplicates ----
+Duplicate Store Count =
+SUMX ( FILTER ( SUMMARIZE ( 'Store Master', 'Store Master'[Store Code], "n", COUNTROWS ( 'Store Master' ) ), [n] > 1 ), [n] - 1 )
+Duplicate Article Count =
+SUMX ( FILTER ( SUMMARIZE ( 'Article Master', 'Article Master'[Article Code], "n", COUNTROWS ( 'Article Master' ) ), [n] > 1 ), [n] - 1 )
+
+// ---- Unmapped keys (in fact but missing from master) ----
+Unmapped Chain =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Chain Master'[Chain] ) ) ) )
+Unmapped Brand =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Brand] IN VALUES ( 'Brand Master'[Brand] ) ) ) )
+Unmapped Category =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) ) ) )
+Unmapped Zone =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Zone] IN VALUES ( 'Zone State Master'[Zone] ) ) ) )
+
+// ---- Coverage gaps in supporting facts ----
+Missing TDP =
+VAR _articlesWithSales = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Article Code] ) )
+VAR _articlesWithTDP   = CALCULATE ( DISTINCTCOUNT ( 'Fact TDP'[Article Code] ) )
+RETURN _articlesWithSales - _articlesWithTDP
+Missing Market Share =
+VAR _catsWithSales = CALCULATE ( DISTINCTCOUNT ( 'Category Master'[Nielsen Category] ) )
+VAR _catsWithMS    = CALCULATE ( DISTINCTCOUNT ( 'Fact Nielsen'[Nielsen Category] ) )
+RETURN _catsWithSales - _catsWithMS
+Missing PnL Assumptions =
+VAR _months = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Month] ) )
+VAR _assumMonths = CALCULATE ( DISTINCTCOUNT ( 'Assumption Table'[Month] ) )
+RETURN MAX ( _months - _assumMonths, 0 )
+
+// ---- Overall health score (share of clean rows) ----
+Total Fact Rows = COUNTROWS ( 'Fact Offtake Sales' )
+Total DQ Issues =
+[Missing Chain] + [Missing Zone] + [Missing State] + [Missing Brand]
+    + [Missing Category] + [Missing Article Code] + [Missing EAN]
+    + [Blank NSV Values] + [Negative Sales Values]
+    + [Unmapped Chain] + [Unmapped Brand] + [Unmapped Category] + [Unmapped Zone]
+Data Health % = 1 - DIVIDE ( [Total DQ Issues], [Total Fact Rows] )

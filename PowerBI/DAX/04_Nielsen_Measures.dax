@@ -1,0 +1,45 @@
+// =====================================================================
+// NIELSEN MARKET SHARE MEASURES
+// Source: 'Fact Nielsen'. Share can come pre-computed (Value Market Share %)
+// or be derived from Our Brand Sales / Market Value Sales.
+// =====================================================================
+
+Market Value Sales = SUM ( 'Fact Nielsen'[Market Value Sales] )
+Our Brand Sales    = SUM ( 'Fact Nielsen'[Our Brand Sales] )
+
+// Prefer supplied share %, else derive
+Market Share % =
+VAR _supplied = AVERAGE ( 'Fact Nielsen'[Value Market Share %] )
+RETURN COALESCE ( _supplied, DIVIDE ( [Our Brand Sales], [Market Value Sales] ) )
+
+Market Share Volume % = AVERAGE ( 'Fact Nielsen'[Volume Market Share %] )
+
+Prev Month Market Share % =
+CALCULATE ( [Market Share %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+
+Last Year Market Share % =
+CALCULATE ( [Market Share %], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+Market Share MoM Change = [Market Share %] - [Prev Month Market Share %]
+Market Share YoY Change = [Market Share %] - [Last Year Market Share %]
+
+// basis points (1% = 100 bps)
+Market Share BPS Change = [Market Share MoM Change] * 10000
+Market Share YoY BPS    = [Market Share YoY Change] * 10000
+
+MS BPS Label =
+VAR b = [Market Share BPS Change]
+RETURN IF ( ISBLANK ( b ), "", IF ( b >= 0, "▲ +", "▼ " ) ) & FORMAT ( b, "0" ) & " bps"
+
+// category & competition movement
+Category Value Growth % =
+DIVIDE ( [Market Value Sales] - CALCULATE ( [Market Value Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ),
+         CALCULATE ( [Market Value Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )
+
+Our Brand Growth % =
+DIVIDE ( [Our Brand Sales] - CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ),
+         CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )
+
+// "are we growing faster than the category?" (share gain check)
+Share Gain Flag =
+IF ( [Our Brand Growth %] > [Category Value Growth %], "Gaining Share", "Losing Share" )

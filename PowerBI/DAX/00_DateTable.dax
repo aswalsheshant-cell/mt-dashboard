@@ -1,0 +1,45 @@
+// =====================================================================
+// DATE TABLE  —  create via:  Modeling > New table  (paste this DAX)
+// Marked as the model's date table (Table tools > Mark as date table > [Date]).
+// Covers FY Apr->Mar (Indian financial year). Spans 3 yrs back to next FY so
+// YoY and forecast months always resolve. Adjust the start/end if needed.
+// =====================================================================
+Date Table =
+VAR _Start = DATE(2024, 4, 1)        // first day of earliest FY you report
+VAR _End   = DATE(2028, 3, 31)       // last day of the latest FY you forecast
+RETURN
+ADDCOLUMNS(
+    CALENDAR(_Start, _End),
+    "MonthStart",      EOMONTH([Date], -1) + 1,
+    "Year",            YEAR([Date]),
+    "Month No",        MONTH([Date]),
+    "Month Name",      FORMAT([Date], "mmm"),
+    // Indian FY: Apr=1 ... Mar=12
+    "FY Month No",     IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9),
+    "FY Year",
+        VAR y = YEAR([Date])
+        RETURN IF(MONTH([Date]) >= 4,
+                 FORMAT(y, "00") & "-" & FORMAT(y + 1 - 2000, "00"),
+                 FORMAT(y - 1, "00") & "-" & FORMAT(y - 2000, "00")),
+    "Quarter",
+        VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
+        RETURN "Q" & ROUNDUP(fm / 3, 0),
+    // label used everywhere in the deck, e.g. May'26
+    "Month",           FORMAT([Date], "mmm") & "'" & FORMAT([Date], "yy"),
+    "Month Year Sort", YEAR([Date]) * 100 + MONTH([Date]),
+    "Is Future",       IF([Date] > TODAY(), TRUE(), FALSE())
+)
+
+// -----------------------------------------------------------------
+// AFTER creating: set Sort-by columns
+//   [Month]      sort by [Month Year Sort]
+//   [Month Name] sort by [Month No]
+//   [Quarter]    sort by [FY Month No]
+// Relationships (single direction, 1 -> *):
+//   Date Table[MonthStart] -> Fact Offtake Sales[MonthStart]
+//   Date Table[Date]       -> Fact Primary Sales[Week Start Date]
+//   Date Table[MonthStart] -> Fact P&L[MonthStart]
+//   Date Table[MonthStart] -> Fact Nielsen[MonthStart]
+//   Date Table[MonthStart] -> Fact TDP[MonthStart]
+//   Date Table[MonthStart] -> Targets[MonthStart]
+// -----------------------------------------------------------------

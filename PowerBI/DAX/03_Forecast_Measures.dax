@@ -1,0 +1,93 @@
+// =====================================================================
+// FORECAST MEASURES  —  TY-TARGET DRIVEN  (replaces FY26 uplift logic)
+// =====================================================================
+// FY27 Forecast IS the TY target shared by the sales team (table 'Targets').
+// The monthly target is allocated down to Chain / Zone / Brand / Category /
+// Sales Person using each dimension's FY26 actual-offtake share, so EVERY
+// breakdown still sums EXACTLY to the TY target total. Records with no
+// mapping are NOT dropped — they bucket into "Unmapped".
+//
+// Allocation identity:  Σ(all dims) Forecast = TY Target  (variance = 0).
+// =====================================================================
+
+// ---------- Authoritative totals ----------
+TY Target = CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = "26-27" )
+TY Target (Cr) = DIVIDE ( [TY Target], 10000000 )
+
+FY26 Actual Offtake = CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = "25-26" )
+FY26 Actual Offtake (Cr) = DIVIDE ( [FY26 Actual Offtake], 10000000 )
+
+// ---------- Allocation key = dimension share of FY26 offtake ----------
+// Denominator is the FY26 offtake of the *whole* visible selection, so the
+// shares across the axis sum to 1 and the target is fully distributed.
+_FY26 Total Offtake (All Dims) =
+CALCULATE (
+    [FY26 Actual Offtake],
+    ALLSELECTED ( 'Chain Master'[Chain] ),
+    ALLSELECTED ( 'Brand Master'[Brand] ),
+    ALLSELECTED ( 'Category Master'[Category] ),
+    ALLSELECTED ( 'Zone State Master'[Zone] ),
+    ALLSELECTED ( 'Sales Team Mapping'[Sales Person] )
+)
+
+FY26 Allocation Share = DIVIDE ( [FY26 Actual Offtake], [_FY26 Total Offtake (All Dims)] )
+
+// ---------- FY27 Forecast (= allocated TY target) ----------
+// At grand total the share = 1 so Forecast = TY Target exactly.
+FY27 Forecast =
+SUMX (
+    VALUES ( 'Date Table'[MonthStart] ),
+    VAR _monthTarget = [TY Target]
+    VAR _share = [FY26 Allocation Share]
+    RETURN _monthTarget * _share
+)
+FY27 Forecast (Cr) = DIVIDE ( [FY27 Forecast], 10000000 )
+
+// Final Forecast keeps the old name used elsewhere, now target-driven.
+Final Forecast = [FY27 Forecast]
+
+// ---------- Unmapped bucket (do NOT exclude) ----------
+// FY26 offtake whose Chain / Brand / Category is absent from the masters,
+// expressed as a share, so the target portion it represents shows as Unmapped.
+_FY26 Offtake Unmapped =
+CALCULATE (
+    [FY26 Actual Offtake],
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Chain]    IN VALUES ( 'Chain Master'[Chain] ) )
+        || NOT ( 'Fact Offtake Sales'[Brand]    IN VALUES ( 'Brand Master'[Brand] ) )
+        || NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) )
+    )
+)
+Forecast - Unmapped =
+[TY Target] * DIVIDE ( [_FY26 Offtake Unmapped], [_FY26 Total Offtake (All Dims)] )
+
+// ---------- Sales-person ownership (via Sales Team Mapping x store offtake) ----------
+// SO FY26 offtake = Σ over their stores of store offtake × Cont%.
+SO FY26 Offtake =
+SUMX (
+    'Sales Team Mapping',
+    VAR _store = 'Sales Team Mapping'[Store Code]
+    VAR _w = 'Sales Team Mapping'[Cont%]
+    RETURN _w * CALCULATE ( [FY26 Actual Offtake],
+        'Fact Offtake Sales'[Store Code] = _store )
+)
+SO Forecast (Owned Target) =
+[TY Target] * DIVIDE ( [SO FY26 Offtake],
+    CALCULATE ( [SO FY26 Offtake], ALLSELECTED ( 'Sales Team Mapping'[Sales Person] ) ) )
+
+// ---------- Gap vs FY26 & required growth ----------
+Gap vs FY26 = [FY27 Forecast] - [FY26 Actual Offtake]
+Required Growth % = DIVIDE ( [FY27 Forecast] - [FY26 Actual Offtake], [FY26 Actual Offtake] )
+
+// ---------- Accuracy (once FY27 actuals start landing) ----------
+Has Actual = IF ( [Total Offtake NSV] > 0, TRUE (), FALSE () )
+Actual NSV = [Total Offtake NSV]
+Forecast vs Actual = [Actual NSV] - [Final Forecast]
+Forecast vs Actual % = DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )
+Forecast Accuracy % =
+IF ( [Has Actual],
+    1 - DIVIDE ( ABS ( [Actual NSV] - [Final Forecast] ), [Actual NSV] ),
+    BLANK () )
+
+// combined actual-or-forecast line for the trend chart
+Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )

@@ -1,0 +1,59 @@
+Exception Type,Customer Code,Customer Name / Ship-to Name,Chain Name,Zone(s),State(s),Business Region,Detail,Action
+Status Inactive,1101156,Arc Foods And Beverages_Mt_H&G,Arc Foods And Beverages,South-1,Tamil Nadu,Tamil Nadu,Source flagged Inactive,Confirm if still active
+Status Inactive,1100298,Az Enterprises,Az Enterprises-H&G,South-1,Karnataka,Karnataka,Source flagged Inactive,Confirm if still active
+Status Inactive,1102154,Sanya Pharma -Mt,Sanya Pharma,East,Bihar,Bihar,Source flagged Inactive,Confirm if still active
+Status Inactive,1101656,JB Pharma_MT,JB Pharma,East,Jharkhand,Jharkhand,Source flagged Inactive,Confirm if still active
+Status Inactive,1102289,Sathyashree Enterprises-Mt,Sathyashree Enterprises-D-Mart,South-1,Karnataka,Karnataka,Source flagged Inactive,Confirm if still active
+Status Inactive,1101657,SC BUSINESS COMBINE_MT,SC BUSINESS COMBINE,East,Assam,Northeast-Assam,Source flagged Inactive,Confirm if still active
+Status Inactive,1100992,Sri Vijaya Durga Agencies,Sri Vijaya Durga Agencies,South-2,Andhra Pradesh,Andhra Pradesh,Source flagged Inactive,Confirm if still active
+Status Inactive,1100998,Vanaja Agencies_Mt,Vanaja Agencies-MT,South-2,Telangana,Telangana,Source flagged Inactive,Confirm if still active
+Status Inactive,1101183,Vanaja Agencies_H&G,Vanaja Agencies-H&G,South-2,Telangana,Telangana,Source flagged Inactive,Confirm if still active
+Status Inactive,1102420,Vanaja Agencies MT_Dmart,Vanaja Agencies MT_D-Mart,South-2,Telangana,Telangana,Source flagged Inactive,Confirm if still active
+Status Inactive,1102451,Babys World-H&G-WB,Babys World-H&G,East,West Bengal,West Bengal,Source flagged Inactive,Confirm if still active
+Status Inactive,1101506,S M AGENCIES-MT Tamil Nadu,S M AGENCIES-MT,South-1,Tamil Nadu,Tamil Nadu,Source flagged Inactive,Confirm if still active
+Status Inactive,1102551,S M AGENCIES-TN,S M AGENCIES-MT,South-1,Tamil Nadu,Tamil Nadu,Source flagged Inactive,Confirm if still active
+Status Incorrect,1101561,BALAJI SALES CORPORATION_H&G,BALAJI SALES CORPORATION,West,Maharashtra,Mumbai,Source flagged Incorrect,Review & correct
+Duplicate Code,1101073,"T0SQ- Hubli, Karnataka-(DC33)",Metro-CNC-RRL,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1101009,T0SJ-METRO MYSORE ROAD BENGALURU-(DC27),Metro-CNC-RRL,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1101010,T0SR-METRO NEW MANDIPET TUMAKURU-KA-(DC34),Metro-CNC-RRL,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1100424,"T0SM-Bengaluru,(Karnataka)-DC10",Metro-CNC-RRL,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1100425,T0SL-Kanakapura (Karnataka)-DC11,Metro-CNC-RRL,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1100426,T0QX-Kukatpally (HYDERABAD)-DC12,Metro-CNC-RRL,South-2,Telangana,Telangana,2 identical rows,De-dup; keep one
+Duplicate Code,1101011,T0QY-UPPAL-DC15,Metro-CNC-RRL,South-2,Telangana,Telangana,2 identical rows,De-dup; keep one
+Duplicate Code,1100427,"T0QZ-Shamshabad,(HYDERABAD)-DC16",Metro-CNC-RRL,South-2,Telangana,Telangana,2 identical rows,De-dup; keep one
+Duplicate Code,1100429,T0QT-VIJAYWADA-DC17,Metro-CNC-RRL,South-2,Andhra Pradesh,Andhra Pradesh,2 identical rows,De-dup; keep one
+Duplicate Code,1101007,T0SN-Bangalore-DC18,Metro-CNC-RRL,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1101014,"T0RK-Bhandup(W), Mumbai-DC20",Metro-CNC-RRL,West,Maharashtra,Mumbai,2 identical rows,De-dup; keep one
+Duplicate Code,1100430,T0RL-BORIVALI(E) MUMBAI-DC23,Metro-CNC-RRL,West,Maharashtra,Mumbai,2 identical rows,De-dup; keep one
+Duplicate Code,1100632,T0RJ-INDORE-DC24,Metro-CNC-RRL,North,Madhya Pradesh,Madhya Pradesh,2 identical rows,De-dup; keep one
+Duplicate Code,1101015,T0RB-Surat-DC25,Metro-CNC-RRL,West,Gujarat,Gujarat,2 identical rows,De-dup; keep one
+Duplicate Code,1101008,T0SP-WHITEFIELD-DC26,Metro-CNC-RRL,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1100633,T0RF-AHMEDABAD-DC28,Metro-CNC-RRL,West,Gujarat,Gujarat,2 identical rows,De-dup; keep one
+Duplicate Code,1100428,T0RA-HYDERABAD-DC29,Metro-CNC-RRL,South-2,Telangana,Telangana,2 identical rows,De-dup; keep one
+Duplicate Code,1100634,T0RM-Nashik(Pune)-DC30,Metro-CNC-RRL,West,Maharashtra,Pune,2 identical rows,De-dup; keep one
+Duplicate Code,1100635,T0QU-MEERUT(UPW)-DC32,Metro-CNC-RRL,North,Uttar Pradesh,UPW,2 identical rows,De-dup; keep one
+Duplicate Code,1101012,T0RH-GUNTUR-DC36,Metro-CNC-RRL,South-2,Andhra Pradesh,Andhra Pradesh,2 identical rows,De-dup; keep one
+Duplicate Code,1101013,T0RD-VIZAG-DC37,Metro-CNC-RRL,South-2,Andhra Pradesh,Andhra Pradesh,2 identical rows,De-dup; keep one
+Duplicate Code,1100431,T2YF-ZIRAKPUR(Punjab)-DC43,Metro-CNC-RRL,North,Punjab,Punjab,2 identical rows,De-dup; keep one
+Duplicate Code,1100636,T0RE-JAIPUR-DC45,Metro-CNC-RRL,North,Rajasthan,Rajasthan,2 identical rows,De-dup; keep one
+Duplicate Code,1100423,"T0RC-SHAHDARA, DELHI-DC46",Metro-CNC-RRL,North,Delhi,Delhi,2 identical rows,De-dup; keep one
+Duplicate Code,1100637,T0SI-Punjab (JALANDHAR)-DC47,Metro-CNC-RRL,North,Punjab,Punjab,2 identical rows,De-dup; keep one
+Duplicate Code,1100638,T0SK-AMRITSAR (Punjab)-DC48,Metro-CNC-RRL,North,Punjab,Punjab,2 identical rows,De-dup; keep one
+Duplicate Code,1100639,T0RI-SEELAMPUR (Delhi)-DC52,Metro-CNC-RRL,North,Delhi,Delhi,2 identical rows,De-dup; keep one
+Duplicate Code,1100640,T0QV-LUCKNOW(UPE)-DC53,Metro-CNC-RRL,North,Uttar Pradesh,Lucknow-UPE,2 identical rows,De-dup; keep one
+Duplicate Code,1100641,T0QW-GHAZIABAD(UPW)-DC54,Metro-CNC-RRL,North,Uttar Pradesh,UPW,2 identical rows,De-dup; keep one
+Duplicate Code,1100432,T0QS-JADAVPUR (Kolkata)-DC60,Metro-CNC-RRL,East,West Bengal,West Bengal,2 identical rows,De-dup; keep one
+Status Inactive,1100321,R.D. Enterprises,R.D. Enterprises,North,Uttar Pradesh,Lucknow-UPE,Source flagged Inactive,Confirm if still active
+Status Inactive,1101159,Babys World_Mt,Babys World_Mt,East,West Bengal,West Bengal,Source flagged Inactive,Confirm if still active
+Status Inactive,1101215,M/S Hindustan Agencies,M/S Hindustan Agencies,East,Odisha,Orissa,Source flagged Inactive,Confirm if still active
+Status Inactive,1101537,ISHA TRADING CO-WB,ISHA TRADING CO,East,West Bengal,West Bengal,Source flagged Inactive,Confirm if still active
+Status Inactive,1103032,Ganapati Distributor MT,Ganapati Distribur MT,East,Odisha,Orissa,Source flagged Inactive,Confirm if still active
+Status Inactive,1103067,Aggarwal Associates-Mohali,Aggarwal Associates,North,Punjab,Punjab,Source flagged Inactive,Confirm if still active
+Status Inactive,1103183,Sri Lalitha Enterprises-TN,Sri Lalitha Enterprises,South-1,Tamil Nadu,Tamil Nadu,Source flagged Inactive,Confirm if still active
+Duplicate Code,1103511,FRHL-TILAK WADI-Belgaum-KA,Reliance Retail-Store,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1103512,FR46-HEBBAL-MARUTHI ARCADE-Bengaluru-KA,Reliance Retail-Store,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Duplicate Code,1103513,FR40-ROYAL MEEN-Bengaluru-KA,Reliance Retail-Store,South-1,Karnataka,Karnataka,2 identical rows,De-dup; keep one
+Status Inactive,1101164,Narikulam Private Ltd-#N/A,Narikulam Private Ltd,South-1,Kerala,Kerala,Source flagged Inactive,Confirm if still active
+Missing Region/State,1101534,TEXAS CORPORATION-#N/A,TEXAS CORPORATION,West,,#N/A,Region is #N/A/blank,Fill region/state
+Missing Region/State,1101544,BALAJI SALES CORPORATION-#N/A,BALAJI SALES CORPORATION,West,,#N/A,Region is #N/A/blank,Fill region/state
+Status Incorrect,1101544,BALAJI SALES CORPORATION-#N/A,BALAJI SALES CORPORATION,West,,#N/A,Source flagged Incorrect,Review & correct

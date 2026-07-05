@@ -1,0 +1,123 @@
+// =====================================================================
+// CORE MEASURES  —  create a "_Measures" table (Enter Data, one blank col)
+// and add each measure below to it. Every division uses DIVIDE().
+// Convention: "NSV" headline = Offtake NSV (matches the leadership deck).
+// =====================================================================
+
+// ---------- BASE TOTALS ----------
+Total Offtake NSV = SUM ( 'Fact Offtake Sales'[Offtake NSV] )
+Total Offtake Qty = SUM ( 'Fact Offtake Sales'[Offtake Qty] )
+Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
+Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
+Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
+
+// Headline NSV used by most visuals (Offtake basis). Swap to Primary if needed.
+NSV = [Total Offtake NSV]
+
+// ---------- INDIAN FORMAT HELPERS (display measures) ----------
+NSV (Cr) = DIVIDE ( [NSV], 10000000 )
+NSV (Lacs) = DIVIDE ( [NSV], 100000 )
+// Smart label: Cr if >= 1 Cr else Lacs
+NSV Label =
+VAR v = [NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        FORMAT ( DIVIDE ( v, 10000000 ), "0.00" ) & " Cr",
+        FORMAT ( DIVIDE ( v, 100000 ), "0.0" ) & " L"
+    )
+
+// ---------- TIME INTELLIGENCE (Offtake basis) ----------
+Latest Month Sales =
+VAR _lastDate = MAX ( 'Date Table'[Date] )
+RETURN CALCULATE ( [NSV], 'Date Table'[Date] <= _lastDate )
+// In a month-grain visual [NSV] already = the selected month; the explicit
+// "latest month" KPI for cards:
+Latest Month NSV =
+VAR _lm = CALCULATE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), ALL ( 'Date Table' ) )
+RETURN CALCULATE ( [NSV], 'Date Table'[MonthStart] = _lm )
+
+Previous Month NSV =
+CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+
+MoM Growth % =
+VAR cur = [NSV]
+VAR prev = [Previous Month NSV]
+RETURN DIVIDE ( cur - prev, prev )
+
+Last Year Same Month NSV =
+CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+YoY Growth % =
+DIVIDE ( [NSV] - [Last Year Same Month NSV], [Last Year Same Month NSV] )
+
+// ---------- ROLLING AVERAGES ----------
+L3M Average Sales =
+VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
+RETURN
+    CALCULATE (
+        DIVIDE ( [NSV], 3 ),
+        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -3, MONTH )
+    )
+
+L6M Average Sales =
+VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
+RETURN
+    CALCULATE (
+        DIVIDE ( [NSV], 6 ),
+        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -6, MONTH )
+    )
+
+Growth vs L3M % = DIVIDE ( [NSV] - [L3M Average Sales], [L3M Average Sales] )
+
+// ---------- CONTRIBUTION & RANK ----------
+Contribution % =
+DIVIDE (
+    [NSV],
+    CALCULATE ( [NSV], ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Brand Master'[Brand] ),
+        ALLSELECTED ( 'Category Master'[Category] ) )
+)
+
+Rank by Sales =
+IF ( ISINSCOPE ( 'Chain Master'[Chain] ),
+    RANKX ( ALLSELECTED ( 'Chain Master'[Chain] ), [NSV],, DESC ),
+    RANKX ( ALLSELECTED ( 'Brand Master'[Brand] ), [NSV],, DESC )
+)
+
+// ---------- PRIMARY vs OFFTAKE ----------
+Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]
+Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total Offtake NSV], [Total Offtake NSV] )
+
+// ---------- GROWTH ARROW (for tables / cards) ----------
+MoM Arrow =
+VAR g = [MoM Growth %]
+RETURN IF ( ISBLANK ( g ), "", IF ( g >= 0, "▲ ", "▼ " ) ) & FORMAT ( g, "0.0%" )
+
+YoY Arrow =
+VAR g = [YoY Growth %]
+RETURN IF ( ISBLANK ( g ), "", IF ( g >= 0, "▲ ", "▼ " ) ) & FORMAT ( g, "0.0%" )
+
+// Conditional-format colour (use in "Font color > fx > Field value")
+Growth Colour =
+SWITCH ( TRUE (),
+    [MoM Growth %] > 0, "#2D9B7F",   // teal/green positive
+    [MoM Growth %] < 0, "#C0392B",   // red negative
+    "#7F8C8D"                        // grey neutral
+)
+
+// ---------- TOP / BOTTOM MOVERS (Executive Summary) ----------
+Top Growing Chain =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], DESC )
+RETURN CONCATENATEX ( t, 'Chain Master'[Chain], ", " )
+
+Top Declining Chain =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], ASC )
+RETURN CONCATENATEX ( t, 'Chain Master'[Chain], ", " )
+
+Top Growing Brand =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Brand Master'[Brand] ), [MoM Growth %], DESC )
+RETURN CONCATENATEX ( t, 'Brand Master'[Brand], ", " )
+
+Top Growing Category =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Category Master'[Category] ), [MoM Growth %], DESC )
+RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
