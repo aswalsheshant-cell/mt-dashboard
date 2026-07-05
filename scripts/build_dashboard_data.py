@@ -150,7 +150,7 @@ CHAIN_ALIASES = [
     ("Frankross",         ["frankross", "frankros"]),
     ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
     ("WH-Smith",          ["wh-smith"]),
-    ("B&N",               ["b&n", "beauty & nutire", "b\\&n"]),
+    ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
     ("Apna Mart",         ["apna mart", "apna mart "]),
     ("Sumo Save",         ["sumo save", "sumosave"]),
     ("Deal Share",        ["deal share", "deal share "]),
@@ -539,6 +539,132 @@ def offtake_block(chains, zs):
         st.append(row)
     out["by_state"] = sorted(st, key=lambda d: -(d.get(zlo[-1]) or 0))
     return out
+
+def _offtake_row_month(month_val):
+    """Row-level Month cell -> canonical 'Mon-YY' label (matches MONTHS'
+    format), handling both text ("Apr'26") and Excel-serial-number forms
+    found in the raw store x article offtake extracts (a single workbook's
+    Month column can carry a mix of both -- some rows never got the text
+    label applied upstream)."""
+    if isinstance(month_val, str) and month_val.strip():
+        m = re.match(r"([A-Za-z]{3,})['’]?\s*(\d{2,4})", month_val.strip())
+        if m:
+            mon = m.group(1)[:3].title()
+            if mon in _MON3_NUM:
+                return f"{mon}-{m.group(2)[-2:]}"
+    if isinstance(month_val, (int, float)) and not (isinstance(month_val, float) and math.isnan(month_val)):
+        d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=float(month_val))
+        return f"{d.strftime('%b')}-{d.strftime('%y')}"
+    return None
+
+def load_offtake_article_files(src):
+    """Aggregates NEW monthly store x article offtake extracts (.xlsb, one
+    workbook per calendar month, each carrying a Brand Counter sheet plus a
+    general/non-brand-counter sheet) into chain-month / (zone,state)-month
+    NSV sums -- used by --offtake-patch to add whatever new FY these months
+    fall into (FY27 today, via THE ONE FY RULE) to an EXISTING offtake block,
+    without needing the original FY24-26 pivot dump this file's grain has
+    nothing to do with. NSV in these extracts is already INR Lakh (checked
+    against the existing Lakh-denominated offtake trend -- same order of
+    magnitude, continuing its Oct'25-Mar'26 growth trajectory).
+    Returns (chain_month, zone_state_month); both {} if no .xlsb found."""
+    files = sorted(src.glob("*.xlsb"))
+    chain_month, zsm = {}, {}
+    for fp in files:
+        sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+        for _, df in sheets.items():
+            df.columns = [str(c).strip() for c in df.columns]
+            need = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            if not need <= set(df.columns):
+                continue   # not a row-level extract sheet -- skip
+            df = df[df["Chain Name"].notna()].copy()
+            df["_chain"] = df["Chain Name"].map(canon_chain)
+            df["_zone"] = df["Zone"].map(canon_zone)
+            df["_state"] = df["State"].astype(str).str.strip()
+            df["_month"] = df["Month"].map(_offtake_row_month)
+            df["_nsv"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
+            df = df[df["_month"].notna() & df["_chain"].notna()]
+            for (chain, mo), v in df.groupby(["_chain", "_month"])["_nsv"].sum().items():
+                chain_month.setdefault(chain, {})
+                chain_month[chain][mo] = chain_month[chain].get(mo, 0.0) + float(v)
+            for (zone, state, mo), v in df[df["_zone"].notna()].groupby(["_zone", "_state", "_month"])["_nsv"].sum().items():
+                key = (zone, state)
+                zsm.setdefault(key, {})
+                zsm[key][mo] = zsm[key].get(mo, 0.0) + float(v)
+    return chain_month, zsm
+
+def patch_offtake_new_months(offtake, chain_month, zsm):
+    """Merge chain-month / (zone,state)-month NSV aggregates (from
+    load_offtake_article_files) into an EXISTING offtake_block() output.
+    For every FY tag chain_month's months touch (FY27 today, FY28 once
+    Apr-27 months appear -- via fy_tag_from_label, never a fixed index),
+    FULLY RECOMPUTES (never incrementally adds to) that tag's total_/
+    monthly_/months_ keys and every by_chain/by_zone/by_state row's tag
+    value -- so re-running --offtake-patch with an accumulating --src folder
+    (April, then April+May, then April+May+June, ...) is always idempotent
+    and never double-counts a month twice. Does not touch any FY tag that
+    chain_month has no months for. Mutates and returns `offtake`."""
+    if not chain_month:
+        return offtake
+    if "fy_tags" not in offtake:
+        offtake["fy_tags"] = sorted(
+            {k[len("total_"):] for k in offtake if re.match(r"^total_fy\d{2}$", k)},
+            key=lambda t: fy_start_year(t.upper()))
+    all_months = sorted({mo for mm in chain_month.values() for mo in mm},
+                         key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+    touched_tags = sorted({fy_tag_from_label(mo) for mo in all_months if fy_tag_from_label(mo)},
+                          key=fy_start_year)
+    by_chain_idx = {c["name"]: c for c in offtake["by_chain"]}
+    by_zone_idx = {z["name"]: z for z in offtake["by_zone"]}
+    by_state_idx = {(s.get("zone"), s["state"]): s for s in offtake.get("by_state", [])}
+    for tag in touched_tags:
+        lo = tag.lower()
+        months_of_tag = [mo for mo in all_months if fy_tag_from_label(mo) == tag]
+        monthly_vals = [r2(sum(mm.get(mo, 0.0) for mm in chain_month.values())) for mo in months_of_tag]
+        offtake[f"months_{lo}"] = months_of_tag
+        offtake[f"monthly_{lo}"] = monthly_vals
+        offtake[f"total_{lo}"] = r2(sum(v or 0 for v in monthly_vals))
+        for chain, months in chain_month.items():
+            row = by_chain_idx.get(chain)
+            if row is None:
+                row = {"name": chain, "raw": chain, "total": 0.0}
+                offtake["by_chain"].append(row)
+                by_chain_idx[chain] = row
+            row[lo] = r2(sum(v for mo, v in months.items() if mo in months_of_tag))
+        zone_totals = {}
+        for (zone, state), months in zsm.items():
+            v = r2(sum(v for mo, v in months.items() if mo in months_of_tag)) or 0.0
+            zone_totals[zone] = zone_totals.get(zone, 0.0) + v
+            srow = by_state_idx.get((zone, state))
+            if srow is None:
+                srow = {"state": state, "zone": zone}
+                offtake.setdefault("by_state", []).append(srow)
+                by_state_idx[(zone, state)] = srow
+            srow[lo] = v
+        for zone, v in zone_totals.items():
+            zrow = by_zone_idx.get(zone)
+            if zrow is None:
+                zrow = {"name": zone}
+                offtake["by_zone"].append(zrow)
+                by_zone_idx[zone] = zrow
+            zrow[lo] = r2(v)
+        if lo not in offtake["fy_tags"]:
+            offtake["fy_tags"].append(lo)
+    offtake["fy_tags"] = sorted(offtake["fy_tags"], key=lambda t: fy_start_year(t.upper()))
+    last = offtake["fy_tags"][-1]
+    offtake["by_chain"] = sorted(offtake["by_chain"], key=lambda d: -(d.get(last) or 0))
+    offtake["by_zone"] = sorted(offtake["by_zone"], key=lambda d: -(d.get(last) or 0))
+    if "by_state" in offtake:
+        offtake["by_state"] = sorted(offtake["by_state"], key=lambda d: -(d.get(last) or 0))
+    offtake["n_chains"] = len(offtake["by_chain"])
+    # extend the overall (all-FY) trend series with any months not already in it
+    have = set(offtake.get("months", []))
+    appended = [mo for mo in all_months if mo not in have]
+    if appended:
+        offtake["months"] = list(offtake.get("months", [])) + appended
+        offtake["monthly"] = list(offtake.get("monthly", [])) + [
+            r2(sum(mm.get(mo, 0.0) for mm in chain_month.values())) for mo in appended]
+    return offtake
 
 # --------------------------------------------------------------------------
 # UNIVERSE (distribution footprint)
@@ -2244,6 +2370,12 @@ def main():
                          "FY2627_TGT_and_sales_team_mapping.xlsb (real TY/FY26-27 target, replaces "
                          "the seasonally-projected estimate); reuses the existing offtake block "
                          "already in data.js for FY24-26 history")
+    ap.add_argument("--offtake-patch", action="store_true",
+                    help="merge NEW monthly store x article offtake extracts (.xlsb, one workbook "
+                         "per calendar month -- put ALL months collected so far in --src, not just "
+                         "the newest one) into the EXISTING offtake block in data.js, adding "
+                         "whatever new FY they fall into (FY27 today) without needing the original "
+                         "FY24-26 pivot dump; idempotent, safe to re-run as more months arrive")
     a = ap.parse_args()
     src = Path(a.src)
 
@@ -2316,6 +2448,26 @@ def main():
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"forecast-only: FY26 actual {forecast['fy26_actual']} / FY27 TY target "
               f"{forecast['fy27_forecast']} (Lakh) = Rs {forecast['fy27_forecast']/100:.2f} Cr")
+        return
+
+    # ---- lightweight path: merge new monthly article-level offtake extracts ----
+    if a.offtake_patch:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        chain_month, zsm = load_offtake_article_files(src)
+        if not chain_month:
+            raise SystemExit(f"No .xlsb offtake extracts found in --src ({src}).")
+        months_found = sorted({mo for mm in chain_month.values() for mo in mm},
+                               key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+        print(f"offtake source months found: {months_found}")
+        patched = patch_offtake_new_months(obj["offtake"], chain_month, zsm)
+        obj["offtake"] = patched
+        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        print(f"offtake-patch: fy_tags now {patched['fy_tags']}")
+        for t in patched["fy_tags"]:
+            print(f"  total_{t} = {patched.get('total_'+t)} Lakh"
+                  + (f"  (months: {patched.get('months_'+t)})" if patched.get("months_"+t) else ""))
         return
 
     pdf, primary = primary_block(*[load_primary(src)])
