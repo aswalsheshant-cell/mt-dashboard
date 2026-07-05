@@ -1,0 +1,1502 @@
+==============================================================================
+CONSOLIDATED DAX REFERENCE -- all measures/columns, in the order to add them
+==============================================================================
+
+This file is a READ-ALONG REFERENCE, not something to paste as a whole.
+Power BI's New Measure formula bar holds exactly ONE measure at a time.
+For each measure below: select the _Measures table > New Measure > paste
+ONE 'Name = Expression' block (including any VAR/RETURN lines that belong
+to it) > Enter. Having ONE file open (this one) instead of 14 separate
+files, with the calculated-column exceptions called out up front, is the
+time-saving here.
+
+*** READ THIS FIRST -- 6 blocks below are CALCULATED COLUMNS, not measures:
+    - 'Fact Primary Article'[TOT Method]              (in 12_TOT_Measures)
+    - 'Fact Primary Article'[TOT Pass-on Value]       (in 12_TOT_Measures)
+    - 'PL Expense Input'[Resolved Chain]              (in 13_CM2_Measures)
+    - 'PL Expense Input'[Resolved Brand]              (in 13_CM2_Measures)
+    - 'PL Expense Input'[Resolved Category]           (in 13_CM2_Measures)
+    - 'PL Expense Input'[Bad Brand Or Category]       (in 13_CM2_Measures)
+    They are already commented out (//) in those two files below, exactly
+    so you don't accidentally paste them as measures. Add each one via
+    its OWN table (select the table > New column), not via New Measure.
+    Every other measure in 12/13 IS a normal measure for _Measures.
+
+
+##############################################################################
+# STEP 01/14  --  SOURCE FILE: 00_DateTable.dax
+# TARGET: Date Table (calculated TABLE, not a measure)
+# NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below.
+##############################################################################
+// =====================================================================
+// DATE TABLE  —  create via:  Modeling > New table  (paste this DAX)
+// Marked as the model's date table (Table tools > Mark as date table > [Date]).
+// Covers FY Apr->Mar (Indian financial year). Spans 3 yrs back to next FY so
+// YoY and forecast months always resolve. Adjust the start/end if needed.
+// =====================================================================
+Date Table =
+VAR _Start = DATE(2024, 4, 1)        // first day of earliest FY you report
+VAR _End   = DATE(2028, 3, 31)       // last day of the latest FY you forecast
+RETURN
+ADDCOLUMNS(
+    CALENDAR(_Start, _End),
+    "MonthStart",      EOMONTH([Date], -1) + 1,
+    "Year",            YEAR([Date]),
+    "Month No",        MONTH([Date]),
+    "Month Name",      FORMAT([Date], "mmm"),
+    // Indian FY: Apr=1 ... Mar=12
+    "FY Month No",     IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9),
+    "FY Year",
+        VAR y = YEAR([Date])
+        RETURN IF(MONTH([Date]) >= 4,
+                 FORMAT(y, "00") & "-" & FORMAT(y + 1 - 2000, "00"),
+                 FORMAT(y - 1, "00") & "-" & FORMAT(y - 2000, "00")),
+    "Quarter",
+        VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
+        RETURN "Q" & ROUNDUP(fm / 3, 0),
+    // label used everywhere in the deck, e.g. May'26
+    "Month",           FORMAT([Date], "mmm") & "'" & FORMAT([Date], "yy"),
+    "Month Year Sort", YEAR([Date]) * 100 + MONTH([Date]),
+    "Is Future",       IF([Date] > TODAY(), TRUE(), FALSE())
+)
+
+// -----------------------------------------------------------------
+// AFTER creating: set Sort-by columns
+//   [Month]      sort by [Month Year Sort]
+//   [Month Name] sort by [Month No]
+//   [Quarter]    sort by [FY Month No]
+// Relationships (single direction, 1 -> *):
+//   Date Table[MonthStart] -> Fact Offtake Sales[MonthStart]
+//   Date Table[Date]       -> Fact Primary Sales[Week Start Date]
+//   Date Table[MonthStart] -> Fact P&L[MonthStart]
+//   Date Table[MonthStart] -> Fact Nielsen[MonthStart]
+//   Date Table[MonthStart] -> Fact TDP[MonthStart]
+//   Date Table[MonthStart] -> Targets[MonthStart]
+// -----------------------------------------------------------------
+
+
+##############################################################################
+# STEP 02/14  --  SOURCE FILE: 01_CoreMeasures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// CORE MEASURES  —  create a "_Measures" table (Enter Data, one blank col)
+// and add each measure below to it. Every division uses DIVIDE().
+// Convention: "NSV" headline = Offtake NSV (matches the leadership deck).
+// =====================================================================
+
+// ---------- BASE TOTALS ----------
+Total Offtake NSV = SUM ( 'Fact Offtake Sales'[Offtake NSV] )
+Total Offtake Qty = SUM ( 'Fact Offtake Sales'[Offtake Qty] )
+Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
+Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
+Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
+
+// Headline NSV used by most visuals (Offtake basis). Swap to Primary if needed.
+NSV = [Total Offtake NSV]
+
+// ---------- INDIAN FORMAT HELPERS (display measures) ----------
+NSV (Cr) = DIVIDE ( [NSV], 10000000 )
+NSV (Lacs) = DIVIDE ( [NSV], 100000 )
+// Smart label: Cr if >= 1 Cr else Lacs
+NSV Label =
+VAR v = [NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        FORMAT ( DIVIDE ( v, 10000000 ), "0.00" ) & " Cr",
+        FORMAT ( DIVIDE ( v, 100000 ), "0.0" ) & " L"
+    )
+
+// ---------- TIME INTELLIGENCE (Offtake basis) ----------
+Latest Month Sales =
+VAR _lastDate = MAX ( 'Date Table'[Date] )
+RETURN CALCULATE ( [NSV], 'Date Table'[Date] <= _lastDate )
+// In a month-grain visual [NSV] already = the selected month; the explicit
+// "latest month" KPI for cards:
+Latest Month NSV =
+VAR _lm = CALCULATE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), ALL ( 'Date Table' ) )
+RETURN CALCULATE ( [NSV], 'Date Table'[MonthStart] = _lm )
+
+Previous Month NSV =
+CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+
+MoM Growth % =
+VAR cur = [NSV]
+VAR prev = [Previous Month NSV]
+RETURN DIVIDE ( cur - prev, prev )
+
+Last Year Same Month NSV =
+CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+YoY Growth % =
+DIVIDE ( [NSV] - [Last Year Same Month NSV], [Last Year Same Month NSV] )
+
+// ---------- ROLLING AVERAGES ----------
+L3M Average Sales =
+VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
+RETURN
+    CALCULATE (
+        DIVIDE ( [NSV], 3 ),
+        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -3, MONTH )
+    )
+
+L6M Average Sales =
+VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
+RETURN
+    CALCULATE (
+        DIVIDE ( [NSV], 6 ),
+        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -6, MONTH )
+    )
+
+Growth vs L3M % = DIVIDE ( [NSV] - [L3M Average Sales], [L3M Average Sales] )
+
+// ---------- CONTRIBUTION & RANK ----------
+Contribution % =
+DIVIDE (
+    [NSV],
+    CALCULATE ( [NSV], ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Brand Master'[Brand] ),
+        ALLSELECTED ( 'Category Master'[Category] ) )
+)
+
+Rank by Sales =
+IF ( ISINSCOPE ( 'Chain Master'[Chain] ),
+    RANKX ( ALLSELECTED ( 'Chain Master'[Chain] ), [NSV],, DESC ),
+    RANKX ( ALLSELECTED ( 'Brand Master'[Brand] ), [NSV],, DESC )
+)
+
+// ---------- PRIMARY vs OFFTAKE ----------
+Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]
+Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total Offtake NSV], [Total Offtake NSV] )
+
+// ---------- GROWTH ARROW (for tables / cards) ----------
+MoM Arrow =
+VAR g = [MoM Growth %]
+RETURN IF ( ISBLANK ( g ), "", IF ( g >= 0, "▲ ", "▼ " ) ) & FORMAT ( g, "0.0%" )
+
+YoY Arrow =
+VAR g = [YoY Growth %]
+RETURN IF ( ISBLANK ( g ), "", IF ( g >= 0, "▲ ", "▼ " ) ) & FORMAT ( g, "0.0%" )
+
+// Conditional-format colour (use in "Font color > fx > Field value")
+Growth Colour =
+SWITCH ( TRUE (),
+    [MoM Growth %] > 0, "#2D9B7F",   // teal/green positive
+    [MoM Growth %] < 0, "#C0392B",   // red negative
+    "#7F8C8D"                        // grey neutral
+)
+
+// ---------- TOP / BOTTOM MOVERS (Executive Summary) ----------
+Top Growing Chain =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], DESC )
+RETURN CONCATENATEX ( t, 'Chain Master'[Chain], ", " )
+
+Top Declining Chain =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], ASC )
+RETURN CONCATENATEX ( t, 'Chain Master'[Chain], ", " )
+
+Top Growing Brand =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Brand Master'[Brand] ), [MoM Growth %], DESC )
+RETURN CONCATENATEX ( t, 'Brand Master'[Brand], ", " )
+
+Top Growing Category =
+VAR t = TOPN ( 1, ALLSELECTED ( 'Category Master'[Category] ), [MoM Growth %], DESC )
+RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
+
+
+##############################################################################
+# STEP 03/14  --  SOURCE FILE: 02_PnL_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// P&L MEASURES  (actuals-first, else Assumption Table — never hardcoded)
+// Logic: if a raw P&L actual exists use it; otherwise resolve the most
+// specific matching row in 'Assumption Table' (Month>Chain>Brand>Category),
+// falling back to "ALL". All divisions use DIVIDE().
+// =====================================================================
+
+// ---- Helper: resolve an assumption value with ALL-fallback ----
+// Returns the % / spend for the current Month x Chain x Brand x Category
+// context, preferring the most specific row, else the ALL row.
+_Assumption Gross Margin % =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+VAR _ch = SELECTEDVALUE ( 'Chain Master'[Chain], "ALL" )
+VAR _br = SELECTEDVALUE ( 'Brand Master'[Brand], "ALL" )
+VAR _cat = SELECTEDVALUE ( 'Category Master'[Category], "ALL" )
+VAR _specific =
+    CALCULATE ( MAX ( 'Assumption Table'[Gross Margin %] ),
+        FILTER ( ALL ( 'Assumption Table' ),
+            'Assumption Table'[Month] = _m
+            && ( 'Assumption Table'[Chain] = _ch || 'Assumption Table'[Chain] = "ALL" )
+            && ( 'Assumption Table'[Brand] = _br || 'Assumption Table'[Brand] = "ALL" )
+            && ( 'Assumption Table'[Category] = _cat || 'Assumption Table'[Category] = "ALL" ) ) )
+RETURN COALESCE ( _specific, 0.50 )
+
+_Assumption Trade Spend % =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+COALESCE (
+    CALCULATE ( MAX ( 'Assumption Table'[Trade Spend %] ),
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+
+_Assumption Visibility Spend =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+COALESCE (
+    CALCULATE ( SUM ( 'Assumption Table'[Visibility Spend] ),
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+
+_Assumption Scheme Spend =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+COALESCE (
+    CALCULATE ( SUM ( 'Assumption Table'[Scheme Spend] ),
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+
+// ---- P&L line items ----
+Net Sales = [NSV]                                   // NSV = Net Sales Value (offtake)
+Gross Sales = COALESCE ( [Total MRP Sales], DIVIDE ( [NSV], 1 - 0.0 ) )  // use MRP Sales as gross proxy
+
+Gross Margin = [NSV] * [_Assumption Gross Margin %]
+Gross Margin % = DIVIDE ( [Gross Margin], [NSV] )
+
+Trade Spend = [NSV] * [_Assumption Trade Spend %]
+Visibility Spend = [_Assumption Visibility Spend]
+Scheme Spend = [_Assumption Scheme Spend]
+Total Spend = [Trade Spend] + [Visibility Spend] + [Scheme Spend]
+
+Spend % of NSV = DIVIDE ( [Total Spend], [NSV] )
+
+Contribution Margin = [Gross Margin] - [Total Spend]
+CM % = DIVIDE ( [Contribution Margin], [NSV] )
+
+// ---- ranking helper for the profitability page ----
+Chain CM Rank =
+RANKX ( ALLSELECTED ( 'Chain Master'[Chain] ), [Contribution Margin],, DESC )
+
+// ---- "growth profitable or only sales-led?" flag ----
+Profitability Flag =
+VAR g = [MoM Growth %]
+VAR cm = [CM %]
+RETURN
+    SWITCH ( TRUE (),
+        g > 0 && cm >= 0.25, "Profitable Growth",
+        g > 0 && cm < 0.25,  "Sales-led (watch margin)",
+        g <= 0 && cm >= 0.25, "Margin-protected decline",
+        "Needs attention"
+    )
+
+
+##############################################################################
+# STEP 04/14  --  SOURCE FILE: 03_Forecast_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// FORECAST MEASURES  —  TY-TARGET DRIVEN  (replaces FY26 uplift logic)
+// =====================================================================
+// FY27 Forecast IS the TY target shared by the sales team (table 'Targets').
+// The monthly target is allocated down to Chain / Zone / Brand / Category /
+// Sales Person using each dimension's FY26 actual-offtake share, so EVERY
+// breakdown still sums EXACTLY to the TY target total. Records with no
+// mapping are NOT dropped — they bucket into "Unmapped".
+//
+// Allocation identity:  Σ(all dims) Forecast = TY Target  (variance = 0).
+// =====================================================================
+
+// ---------- Authoritative totals ----------
+TY Target = CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = "26-27" )
+TY Target (Cr) = DIVIDE ( [TY Target], 10000000 )
+
+FY26 Actual Offtake = CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = "25-26" )
+FY26 Actual Offtake (Cr) = DIVIDE ( [FY26 Actual Offtake], 10000000 )
+
+// ---------- Allocation key = dimension share of FY26 offtake ----------
+// Denominator is the FY26 offtake of the *whole* visible selection, so the
+// shares across the axis sum to 1 and the target is fully distributed.
+_FY26 Total Offtake (All Dims) =
+CALCULATE (
+    [FY26 Actual Offtake],
+    ALLSELECTED ( 'Chain Master'[Chain] ),
+    ALLSELECTED ( 'Brand Master'[Brand] ),
+    ALLSELECTED ( 'Category Master'[Category] ),
+    ALLSELECTED ( 'Zone State Master'[Zone] ),
+    ALLSELECTED ( 'Sales Team Mapping'[Sales Person] )
+)
+
+FY26 Allocation Share = DIVIDE ( [FY26 Actual Offtake], [_FY26 Total Offtake (All Dims)] )
+
+// ---------- FY27 Forecast (= allocated TY target) ----------
+// At grand total the share = 1 so Forecast = TY Target exactly.
+FY27 Forecast =
+SUMX (
+    VALUES ( 'Date Table'[MonthStart] ),
+    VAR _monthTarget = [TY Target]
+    VAR _share = [FY26 Allocation Share]
+    RETURN _monthTarget * _share
+)
+FY27 Forecast (Cr) = DIVIDE ( [FY27 Forecast], 10000000 )
+
+// Final Forecast keeps the old name used elsewhere, now target-driven.
+Final Forecast = [FY27 Forecast]
+
+// ---------- Unmapped bucket (do NOT exclude) ----------
+// FY26 offtake whose Chain / Brand / Category is absent from the masters,
+// expressed as a share, so the target portion it represents shows as Unmapped.
+_FY26 Offtake Unmapped =
+CALCULATE (
+    [FY26 Actual Offtake],
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Chain]    IN VALUES ( 'Chain Master'[Chain] ) )
+        || NOT ( 'Fact Offtake Sales'[Brand]    IN VALUES ( 'Brand Master'[Brand] ) )
+        || NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) )
+    )
+)
+Forecast - Unmapped =
+[TY Target] * DIVIDE ( [_FY26 Offtake Unmapped], [_FY26 Total Offtake (All Dims)] )
+
+// ---------- Sales-person ownership (via Sales Team Mapping x store offtake) ----------
+// SO FY26 offtake = Σ over their stores of store offtake × Cont%.
+SO FY26 Offtake =
+SUMX (
+    'Sales Team Mapping',
+    VAR _store = 'Sales Team Mapping'[Store Code]
+    VAR _w = 'Sales Team Mapping'[Cont%]
+    RETURN _w * CALCULATE ( [FY26 Actual Offtake],
+        'Fact Offtake Sales'[Store Code] = _store )
+)
+SO Forecast (Owned Target) =
+[TY Target] * DIVIDE ( [SO FY26 Offtake],
+    CALCULATE ( [SO FY26 Offtake], ALLSELECTED ( 'Sales Team Mapping'[Sales Person] ) ) )
+
+// ---------- Gap vs FY26 & required growth ----------
+Gap vs FY26 = [FY27 Forecast] - [FY26 Actual Offtake]
+Required Growth % = DIVIDE ( [FY27 Forecast] - [FY26 Actual Offtake], [FY26 Actual Offtake] )
+
+// ---------- Accuracy (once FY27 actuals start landing) ----------
+Has Actual = IF ( [Total Offtake NSV] > 0, TRUE (), FALSE () )
+Actual NSV = [Total Offtake NSV]
+Forecast vs Actual = [Actual NSV] - [Final Forecast]
+Forecast vs Actual % = DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )
+Forecast Accuracy % =
+IF ( [Has Actual],
+    1 - DIVIDE ( ABS ( [Actual NSV] - [Final Forecast] ), [Actual NSV] ),
+    BLANK () )
+
+// combined actual-or-forecast line for the trend chart
+Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
+
+
+##############################################################################
+# STEP 05/14  --  SOURCE FILE: 04_Nielsen_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// NIELSEN MARKET SHARE MEASURES
+// Source: 'Fact Nielsen'. Share can come pre-computed (Value Market Share %)
+// or be derived from Our Brand Sales / Market Value Sales.
+// =====================================================================
+
+Market Value Sales = SUM ( 'Fact Nielsen'[Market Value Sales] )
+Our Brand Sales    = SUM ( 'Fact Nielsen'[Our Brand Sales] )
+
+// Prefer supplied share %, else derive
+Market Share % =
+VAR _supplied = AVERAGE ( 'Fact Nielsen'[Value Market Share %] )
+RETURN COALESCE ( _supplied, DIVIDE ( [Our Brand Sales], [Market Value Sales] ) )
+
+Market Share Volume % = AVERAGE ( 'Fact Nielsen'[Volume Market Share %] )
+
+Prev Month Market Share % =
+CALCULATE ( [Market Share %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+
+Last Year Market Share % =
+CALCULATE ( [Market Share %], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+Market Share MoM Change = [Market Share %] - [Prev Month Market Share %]
+Market Share YoY Change = [Market Share %] - [Last Year Market Share %]
+
+// basis points (1% = 100 bps)
+Market Share BPS Change = [Market Share MoM Change] * 10000
+Market Share YoY BPS    = [Market Share YoY Change] * 10000
+
+MS BPS Label =
+VAR b = [Market Share BPS Change]
+RETURN IF ( ISBLANK ( b ), "", IF ( b >= 0, "▲ +", "▼ " ) ) & FORMAT ( b, "0" ) & " bps"
+
+// category & competition movement
+Category Value Growth % =
+DIVIDE ( [Market Value Sales] - CALCULATE ( [Market Value Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ),
+         CALCULATE ( [Market Value Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )
+
+Our Brand Growth % =
+DIVIDE ( [Our Brand Sales] - CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ),
+         CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )
+
+// "are we growing faster than the category?" (share gain check)
+Share Gain Flag =
+IF ( [Our Brand Growth %] > [Category Value Growth %], "Gaining Share", "Losing Share" )
+
+
+##############################################################################
+# STEP 06/14  --  SOURCE FILE: 05_TDP_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// TDP / DISTRIBUTION MEASURES  (TDP = Total Distribution Points, CPG sense)
+// TDP = SUM of ACV % across all SKUs in the current grain.
+// Because it is a SUM, it rolls up correctly at Brand / Category / Sub-cat /
+// Chain / Zone / State / Article / Pack-size level automatically.
+// =====================================================================
+
+// Core
+TDP = SUM ( 'Fact TDP'[ACV %] )                 // e.g. 3 SKUs @50% ACV => 150
+ACV % = AVERAGE ( 'Fact TDP'[ACV %] )            // average shelf reach of a SKU
+AIC = AVERAGE ( 'Fact TDP'[AIC] )                // Average Items Carried
+Numeric Distribution = AVERAGE ( 'Fact TDP'[Numeric Distribution] )
+Weighted Distribution = AVERAGE ( 'Fact TDP'[Weighted Distribution] )
+
+// Velocity
+Sales per TDP   = DIVIDE ( [NSV], [TDP] )                 // offtake NSV per distribution point
+Offtake per TDP = DIVIDE ( [Total Offtake NSV], [TDP] )
+Primary per TDP = DIVIDE ( [Total Primary NSV], [TDP] )
+
+// Growth
+Prev Month TDP = CALCULATE ( [TDP], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+Last Year TDP  = CALCULATE ( [TDP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+TDP MoM Growth % = DIVIDE ( [TDP] - [Prev Month TDP], [Prev Month TDP] )
+TDP YoY Growth % = DIVIDE ( [TDP] - [Last Year TDP], [Last Year TDP] )
+
+TDP Contribution % =
+DIVIDE ( [TDP],
+    CALCULATE ( [TDP], ALLSELECTED ( 'Brand Master'[Brand] ), ALLSELECTED ( 'Article Master'[Article Code] ) ) )
+
+// ---- Distribution-led vs Velocity-led diagnosis ----
+// Compares Sales growth vs TDP growth to answer the leadership question:
+// "is growth coming from better distribution or better velocity?"
+Sales Growth vs TDP Growth = [MoM Growth %] - [TDP MoM Growth %]
+
+Growth Driver =
+VAR sg = [MoM Growth %]
+VAR tg = [TDP MoM Growth %]
+RETURN
+    SWITCH ( TRUE (),
+        ISBLANK ( sg ), "",
+        sg > 0 && tg > 0 && tg >= sg, "Distribution-led",
+        sg > 0 && ( ISBLANK ( tg ) || sg > tg ), "Velocity-led",
+        sg > 0, "Mixed",
+        "Declining"
+    )
+
+// ---- Opportunity quadrants (use as a flag column in the article table) ----
+// Benchmarks = median across visible articles.
+_Median Sales per TDP =
+MEDIANX ( ALLSELECTED ( 'Article Master'[Article Code] ), [Sales per TDP] )
+_Median TDP =
+MEDIANX ( ALLSELECTED ( 'Article Master'[Article Code] ), [TDP] )
+
+TDP Opportunity Quadrant =
+VAR spt = [Sales per TDP]
+VAR t = [TDP]
+VAR medSPT = [_Median Sales per TDP]
+VAR medTDP = [_Median TDP]
+RETURN
+    SWITCH ( TRUE (),
+        t < medTDP && spt >= medSPT, "Low TDP / High Velocity — EXPAND",
+        t >= medTDP && spt < medSPT, "High TDP / Low Velocity — FIX PRODUCTIVITY",
+        t >= medTDP && spt >= medSPT, "Strong — PROTECT",
+        "Low / Low — REVIEW"
+    )
+
+// Market share vs TDP link (uses Nielsen share at the matching grain)
+MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )
+
+
+##############################################################################
+# STEP 07/14  --  SOURCE FILE: 06_DataQuality_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// DATA QUALITY MEASURES  (feed the Data Quality Check page)
+// Each returns an impacted-row count. Build a table visual with a manual
+// "Check" column (Enter Data) OR use the disconnected 'DQ Checks' helper
+// table pattern at the bottom. Action text lives in that helper table.
+// =====================================================================
+
+// ---- Missing key fields (blank / null) on Offtake fact ----
+Missing Month    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( [MonthStart] ) ) )
+Missing Chain    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Chain] ) || 'Fact Offtake Sales'[Chain] = "" ) )
+Missing Zone     = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Zone] ) || 'Fact Offtake Sales'[Zone] = "" ) )
+Missing State    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[State] ) || 'Fact Offtake Sales'[State] = "" ) )
+Missing Brand    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Brand] ) || 'Fact Offtake Sales'[Brand] = "" ) )
+Missing Category = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Category] ) || 'Fact Offtake Sales'[Category] = "" ) )
+Missing Article Code = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Article Code] ) || 'Fact Offtake Sales'[Article Code] = "" ) )
+Missing EAN      = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[EAN Code] ) || 'Fact Offtake Sales'[EAN Code] = "" ) )
+
+// ---- Bad values ----
+Blank NSV Values    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Offtake NSV] ) ) )
+Negative Sales Values = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Offtake NSV] < 0 ) )
+
+// ---- Duplicates ----
+Duplicate Store Count =
+SUMX ( FILTER ( SUMMARIZE ( 'Store Master', 'Store Master'[Store Code], "n", COUNTROWS ( 'Store Master' ) ), [n] > 1 ), [n] - 1 )
+Duplicate Article Count =
+SUMX ( FILTER ( SUMMARIZE ( 'Article Master', 'Article Master'[Article Code], "n", COUNTROWS ( 'Article Master' ) ), [n] > 1 ), [n] - 1 )
+
+// ---- Unmapped keys (in fact but missing from master) ----
+Unmapped Chain =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Chain Master'[Chain] ) ) ) )
+Unmapped Brand =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Brand] IN VALUES ( 'Brand Master'[Brand] ) ) ) )
+Unmapped Category =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) ) ) )
+Unmapped Zone =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Zone] IN VALUES ( 'Zone State Master'[Zone] ) ) ) )
+
+// ---- Coverage gaps in supporting facts ----
+Missing TDP =
+VAR _articlesWithSales = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Article Code] ) )
+VAR _articlesWithTDP   = CALCULATE ( DISTINCTCOUNT ( 'Fact TDP'[Article Code] ) )
+RETURN _articlesWithSales - _articlesWithTDP
+Missing Market Share =
+VAR _catsWithSales = CALCULATE ( DISTINCTCOUNT ( 'Category Master'[Nielsen Category] ) )
+VAR _catsWithMS    = CALCULATE ( DISTINCTCOUNT ( 'Fact Nielsen'[Nielsen Category] ) )
+RETURN _catsWithSales - _catsWithMS
+Missing PnL Assumptions =
+VAR _months = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Month] ) )
+VAR _assumMonths = CALCULATE ( DISTINCTCOUNT ( 'Assumption Table'[Month] ) )
+RETURN MAX ( _months - _assumMonths, 0 )
+
+// ---- Overall health score (share of clean rows) ----
+Total Fact Rows = COUNTROWS ( 'Fact Offtake Sales' )
+Total DQ Issues =
+[Missing Chain] + [Missing Zone] + [Missing State] + [Missing Brand]
+    + [Missing Category] + [Missing Article Code] + [Missing EAN]
+    + [Blank NSV Values] + [Negative Sales Values]
+    + [Unmapped Chain] + [Unmapped Brand] + [Unmapped Category] + [Unmapped Zone]
+Data Health % = 1 - DIVIDE ( [Total DQ Issues], [Total Fact Rows] )
+
+
+##############################################################################
+# STEP 08/14  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// SHIP-TO PRIMARY ALLOCATION MEASURES
+// Primary is driven onto Chains by the secondary/offtake contribution %,
+// month-on-month, via 'Primary Allocation Map' (+ optional manual
+// 'Primary Allocation Override'). Nothing is hardcoded in the measures.
+//
+// Two modes are supported:
+//  (A) Feed already pre-split to chain (today's data): the allocated NSV is
+//      in 'Fact Primary ShipTo'[Primary NSV] -> use [Ship-to Primary NSV].
+//  (B) Feed arrives un-split at Ship-To x Brand total: multiply that total by
+//      the chain Cont% -> use [Allocated Primary (via Cont%)].
+// =====================================================================
+
+// ---------- (A) Already-allocated primary ----------
+Ship-to Primary NSV = SUM ( 'Fact Primary ShipTo'[Primary NSV] )
+Ship-to Primary MRP = SUM ( 'Fact Primary ShipTo'[MRP Value] )
+
+// ---------- Allocation contribution % (dynamic, month-wise) ----------
+// Override wins; else the secondary-derived map value; weighted by primary so
+// it aggregates sensibly above a single Ship-To x Chain x Brand cell.
+Primary Allocation Cont% =
+VAR _override =
+    CALCULATE (
+        MAX ( 'Primary Allocation Override'[Override Cont%] ),
+        FILTER (
+            'Primary Allocation Override',
+            ( 'Primary Allocation Override'[Month] = SELECTEDVALUE ( 'Date Table'[Month] )
+                || 'Primary Allocation Override'[Month] = "ALL" )
+                && ( 'Primary Allocation Override'[Ship To Name] = SELECTEDVALUE ( 'Ship-To Master'[Ship To Name] )
+                    || 'Primary Allocation Override'[Ship To Name] = "ALL" )
+                && ( 'Primary Allocation Override'[Chain] = SELECTEDVALUE ( 'Chain Master'[Chain] )
+                    || 'Primary Allocation Override'[Chain] = "ALL" )
+                && ( 'Primary Allocation Override'[Brand] = SELECTEDVALUE ( 'Brand Master'[Brand] )
+                    || 'Primary Allocation Override'[Brand] = "ALL" )
+        )
+    )
+VAR _mapWeighted =
+    DIVIDE (
+        SUMX ( 'Primary Allocation Map', 'Primary Allocation Map'[Cont%] ),
+        COUNTROWS ( 'Primary Allocation Map' )
+    )
+RETURN
+    IF ( NOT ISBLANK ( _override ), DIVIDE ( _override, 100 ), _mapWeighted )
+
+// ---------- (B) Compute allocation from an un-split raw primary ----------
+// Point [Raw ShipTo Primary] at your un-split feed if/when one exists.
+// By default it falls back to the already-allocated NSV so the measure is safe.
+Raw ShipTo Primary =
+COALESCE (
+    // <-- replace with SUM('Raw Primary'[Primary NSV]) when an un-split feed is added
+    BLANK (),
+    [Ship-to Primary NSV]
+)
+
+Allocated Primary (via Cont%) =
+SUMX (
+    SUMMARIZE (
+        'Primary Allocation Map',
+        'Primary Allocation Map'[Ship To Name],
+        'Primary Allocation Map'[Chain],
+        'Primary Allocation Map'[Brand]
+    ),
+    VAR _cont = [Primary Allocation Cont%]
+    VAR _raw =
+        CALCULATE (
+            [Raw ShipTo Primary],
+            ALL ( 'Chain Master'[Chain] )   // raw is at ship-to x brand (chain-agnostic)
+        )
+    RETURN _raw * _cont
+)
+
+// ---------- Secondary / Offtake at the same grain ----------
+Secondary Offtake NSV = [Total Offtake NSV]
+Secondary Offtake Qty = [Total Offtake Qty]
+
+// ---------- Article inclusion: offtake this month OR previous month ----------
+// Primary can lead/lag secondary by a month, so an article counts as "active"
+// if it had offtake in the selected month or the one before.
+Article Has Offtake (Curr or Prev) =
+VAR _curr = [Total Offtake NSV]
+VAR _prev = CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ( COALESCE ( _curr, 0 ) <> 0 ) || ( COALESCE ( _prev, 0 ) <> 0 ), 1, 0 )
+
+// Primary restricted to active articles (current or previous-month offtake).
+Ship-to Primary NSV (Active Articles) =
+CALCULATE (
+    [Ship-to Primary NSV],
+    FILTER (
+        VALUES ( 'Article Master'[Article Code] ),
+        [Article Has Offtake (Curr or Prev)] = 1
+    )
+)
+
+// ---------- Primary vs Offtake on the allocated basis ----------
+Allocated Primary vs Offtake Gap = [Ship-to Primary NSV] - [Secondary Offtake NSV]
+Allocated Primary vs Offtake Gap % =
+DIVIDE ( [Ship-to Primary NSV] - [Secondary Offtake NSV], [Secondary Offtake NSV] )
+Primary to Offtake Ratio = DIVIDE ( [Ship-to Primary NSV], [Secondary Offtake NSV] )
+
+// ---------- MoM movement on allocated primary ----------
+Ship-to Primary Prev Month = CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+Ship-to Primary MoM % =
+DIVIDE ( [Ship-to Primary NSV] - [Ship-to Primary Prev Month], [Ship-to Primary Prev Month] )
+Ship-to Primary YoY % =
+DIVIDE (
+    [Ship-to Primary NSV] - CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) ),
+    CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+)
+
+// ---------- Display helpers ----------
+Ship-to Primary NSV Label =
+VAR v = [Ship-to Primary NSV]
+RETURN IF ( ABS ( v ) >= 10000000,
+    FORMAT ( DIVIDE ( v, 10000000 ), "0.00" ) & " Cr",
+    FORMAT ( DIVIDE ( v, 100000 ), "0.0" ) & " L" )
+
+Allocation Health Check =
+// distributor rows whose Cont% across chains does not sum to ~100% in a month
+VAR _bad =
+    COUNTROWS (
+        FILTER (
+            SUMMARIZE (
+                'Primary Allocation Map',
+                'Primary Allocation Map'[Month],
+                'Primary Allocation Map'[Ship To Name],
+                'Primary Allocation Map'[Brand],
+                "tot", SUM ( 'Primary Allocation Map'[Cont%] )
+            ),
+            [tot] < 0.99 || [tot] > 1.01
+        )
+    )
+RETURN COALESCE ( _bad, 0 )
+
+
+##############################################################################
+# STEP 09/14  --  SOURCE FILE: 08_ForecastQC_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// FORECAST QC MEASURES  (Forecast page reconciliation block)
+// Proves the dashboard forecast ties to the TY target source and surfaces
+// mapping gaps. Variance must be ~0; coverage shows how much of FY26 offtake
+// is mapped to masters / sales team.
+// =====================================================================
+
+// ---- Reconciliation ----
+QC TY Target Total = [TY Target]
+QC Dashboard Forecast Total =
+CALCULATE ( [FY27 Forecast],
+    ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Brand Master'[Brand] ),
+    ALLSELECTED ( 'Category Master'[Category] ), ALLSELECTED ( 'Zone State Master'[Zone] ),
+    ALLSELECTED ( 'Sales Team Mapping'[Sales Person] ) )
+QC Variance = [QC Dashboard Forecast Total] - [QC TY Target Total]
+QC Variance % = DIVIDE ( [QC Variance], [QC TY Target Total] )
+QC Tie-Out =
+IF ( ABS ( [QC Variance] ) < 1, "OK - Matches TY Target", "Variance - investigate" )
+
+// ---- Mapping coverage (FY26 offtake basis) ----
+QC Mapped Offtake =
+[FY26 Actual Offtake] - [_FY26 Offtake Unmapped]
+QC Mapping Coverage % =
+DIVIDE ( [QC Mapped Offtake], [FY26 Actual Offtake] )
+
+// SO coverage = offtake from stores that have a sales-person mapping
+QC SO Mapped Offtake =
+CALCULATE ( [FY26 Actual Offtake],
+    FILTER ( 'Fact Offtake Sales',
+        'Fact Offtake Sales'[Store Code] IN VALUES ( 'Sales Team Mapping'[Store Code] ) ) )
+QC SO Coverage % = DIVIDE ( [QC SO Mapped Offtake], [FY26 Actual Offtake] )
+
+// ---- Unmapped counts / lists ----
+QC Unmapped Chains =
+CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Chain] ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Chain Master'[Chain] ) ) ) )
+QC Unmapped Chain Names =
+CALCULATE ( CONCATENATEX ( VALUES ( 'Fact Offtake Sales'[Chain] ), 'Fact Offtake Sales'[Chain], ", " ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Chain Master'[Chain] ) ) ) )
+
+// Stores with offtake but no sales-team owner -> "unmapped sales team"
+QC Unmapped SO Stores =
+CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Store Code] ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Store Code] IN VALUES ( 'Sales Team Mapping'[Store Code] ) ) ) )
+// Sales-person names present in mapping but with no FY26 offtake match (orphan owners)
+QC Orphan Sales Persons =
+CALCULATE ( CONCATENATEX ( VALUES ( 'Sales Team Mapping'[Sales Person] ), 'Sales Team Mapping'[Sales Person], ", " ),
+    FILTER ( 'Sales Team Mapping',
+        NOT ( 'Sales Team Mapping'[Store Code] IN VALUES ( 'Fact Offtake Sales'[Store Code] ) ) ) )
+
+// ---- Missing dimension mapping (months / brand / category) ----
+QC Missing Month Mapping =
+VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = "26-27" )
+VAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = "26-27" )
+RETURN _dateMonths - _tgtMonths
+QC Missing Brand Mapping =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Brand] IN VALUES ( 'Brand Master'[Brand] ) ) ) )
+QC Missing Category Mapping =
+CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales',
+        NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) ) ) )
+
+
+##############################################################################
+# STEP 10/14  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// ARTICLE-LEVEL ALLOCATION — OFFTAKE ELIGIBILITY GATE
+// =====================================================================
+// Rule: do NOT allocate distributor primary to a Chain x Brand x Article x
+// Month unless that exact Chain x Brand x Article shows SECONDARY OFFTAKE in
+// the same month (M) or the next month (M+1, distributor->chain TAT).
+// Otherwise BLOCK it as an exception. Never force allocation to an unsupported
+// chain/article just to make the distributor total reach 100%.
+//
+// Reconciliation under the gate (per Month x Distributor x Brand):
+//     Original Primary = Allocated (eligible) + Blocked (no offtake evidence)
+// The ALLOCATED portion ties to the eligible-supported primary exactly; the
+// BLOCKED portion is reported separately (not hidden, not forced).
+//
+// Tables used:
+//   'Fact Offtake Sales'   = secondary/offtake (validation base)  [present]
+//   'Fact Primary Article' = File 2 distributor article-wise primary [PENDING]
+// Article key priority: EAN -> Article Code -> cleaned Article Description.
+// Grain of these measures: Month x Distributor x Chain x Brand x Article.
+// =====================================================================
+
+// ---------- Secondary evidence at the Chain x Brand x Article grain ----------
+Offtake NSV (CBA, M) = [Total Offtake NSV]   // current month, current C/B/A context
+
+Offtake NSV (CBA, M+1) =
+CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], 1, MONTH ) )
+
+// brand-level evidence at the chain (to tell "brand not listed" from "article not listed")
+Offtake NSV (Chain-Brand, M or M+1) =
+CALCULATE (
+    [Total Offtake NSV] + [Offtake NSV (CBA, M+1)],
+    ALL ( 'Article Master'[Article Code] ), ALL ( 'Article Master'[EAN Code] )
+)
+
+// first month this Chain x Brand x Article ever shows offtake (for new-article logic)
+First Offtake Month (CBA) =
+CALCULATE (
+    MIN ( 'Fact Offtake Sales'[MonthStart] ),
+    ALLEXCEPT ( 'Fact Offtake Sales',
+        'Fact Offtake Sales'[Chain], 'Fact Offtake Sales'[Brand], 'Fact Offtake Sales'[Article Code] )
+)
+
+// ---------- Eligibility ----------
+Article Eligible =
+VAR _m   = COALESCE ( [Offtake NSV (CBA, M)], 0 )
+VAR _m1  = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )
+RETURN IF ( _m <> 0 || _m1 <> 0, 1, 0 )
+
+Eligibility Status =
+VAR _m   = COALESCE ( [Offtake NSV (CBA, M)], 0 )
+VAR _m1  = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )
+VAR _brand = COALESCE ( [Offtake NSV (Chain-Brand, M or M+1)], 0 )
+RETURN
+    SWITCH ( TRUE (),
+        _m  <> 0, "Eligible",                    // offtake in same month
+        _m1 <> 0, "Eligible due to TAT",         // offtake only next month
+        _brand = 0, "Brand not listed",          // chain has no offtake for this brand
+        "Article not listed"                     // brand listed at chain, this article not
+    )
+
+// New-article one-month-prior flag: offtake first appears in M+1 (so primary
+// allowed in M). True when current month has no offtake but M+1 does and M+1 is
+// the first offtake month.
+New Article Flag =
+VAR _m  = COALESCE ( [Offtake NSV (CBA, M)], 0 )
+VAR _m1 = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )
+VAR _first = [First Offtake Month (CBA)]
+VAR _nextMonth = EOMONTH ( MAX ( 'Date Table'[MonthStart] ), 1 ) + 1
+RETURN IF ( _m = 0 && _m1 <> 0 && _first = _nextMonth, "New Article - primary held 1 month prior", "" )
+
+Primary Month Maintained =
+IF ( [New Article Flag] <> "", FORMAT ( MAX ( 'Date Table'[MonthStart] ), "mmm'yy" ), "" )
+
+// ---------- Chain-allocated primary (Step 2 result, from Cont%) ----------
+// Distributor-brand primary split to chain by the secondary Cont% (built earlier).
+Chain Allocated Primary NSV = [Ship-to Primary NSV]   // already chain-split in File 1
+
+// ---------- Article ratio among ELIGIBLE articles only ----------
+// Denominator = secondary of eligible articles in this Chain x Dist x Brand x Month,
+// so eligible articles absorb the chain primary; blocked ones get nothing.
+_Eligible Article Secondary (Chain-Brand) =
+CALCULATE (
+    [Total Offtake NSV] + [Offtake NSV (CBA, M+1)],
+    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ),
+    VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Brand Master'[Brand] )
+)
+Article Allocation Ratio % =
+IF ( [Article Eligible] = 1,
+    DIVIDE ( COALESCE ( [Offtake NSV (CBA, M)], 0 ) + COALESCE ( [Offtake NSV (CBA, M+1)], 0 ),
+             [_Eligible Article Secondary (Chain-Brand)] ),
+    0 )
+
+// ---------- Allocation outputs ----------
+Allocated Article Primary NSV =
+IF ( [Article Eligible] = 1,
+    [Chain Allocated Primary NSV] * [Article Allocation Ratio %],
+    0 )
+
+// Allocated Qty / MRP follow the same ratio (need File 2 Qty/MRP)
+Allocated Article Primary Qty =
+IF ( [Article Eligible] = 1,
+    CALCULATE ( SUM ( 'Fact Primary Article'[Primary Qty] ) ) * [Article Allocation Ratio %],
+    0 )
+
+// Primary that is NOT allocated because there is no offtake evidence at all
+// for the brand/article in this chain (the legitimate blocked bucket).
+Blocked Primary NSV =
+VAR _hasEligible = [_Eligible Article Secondary (Chain-Brand)]
+RETURN IF ( COALESCE ( _hasEligible, 0 ) = 0, [Chain Allocated Primary NSV], 0 )
+
+Allocation Status =
+SWITCH ( TRUE (),
+    [Article Eligible] = 1, "Allocated",
+    [Eligibility Status] = "Brand not listed",   "Blocked - Brand Not Listed",
+    [Eligibility Status] = "Article not listed", "Blocked - Article Not Listed",
+    "Blocked - No Offtake Evidence" )
+
+Exception Reason =
+SWITCH ( TRUE (),
+    [Article Eligible] = 1, "",
+    [Eligibility Status] = "Brand not listed",   "Brand has no offtake in this chain (M or M+1)",
+    [Eligibility Status] = "Article not listed", "Article has no offtake in this chain (M or M+1)",
+    "No secondary offtake found in M or M+1" )
+
+// =====================================================================
+// QC — reconciliation separates VALID allocation from BLOCKED/UNALLOCATED
+// =====================================================================
+QC Orig Primary (Dist-Brand) =
+CALCULATE ( [Ship-to Primary NSV],
+    ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Article Master'[Article Code] ) )
+QC Allocated Primary Total = [Allocated Article Primary NSV]
+QC Blocked Primary Total   = [Blocked Primary NSV]
+QC Reconciliation Variance =
+[QC Orig Primary (Dist-Brand)] - ( [QC Allocated Primary Total] + [QC Blocked Primary Total] )
+// ^ MUST be 0:  Original = Allocated + Blocked  (no value lost, none forced)
+
+QC Blocked Article Count =
+CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
+    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 0 ) )
+QC Allocated Article Count =
+CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
+    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ) )
+QC Mapping Coverage % =
+DIVIDE ( [QC Allocated Primary Total], [QC Orig Primary (Dist-Brand)] )
+QC Blocked Coverage % =
+DIVIDE ( [QC Blocked Primary Total], [QC Orig Primary (Dist-Brand)] )
+
+// ---------- Helpers for the New Article Tracker export ----------
+Allowed Primary Month (date) = EOMONTH ( [First Offtake Month (CBA)], -1 ) + 1
+
+First Offtake NSV =
+CALCULATE ( [Total Offtake NSV],
+    FILTER ( ALL ( 'Date Table' ),
+        'Date Table'[MonthStart] = [First Offtake Month (CBA)] ) )
+
+Primary NSV in Allowed Month =
+CALCULATE ( [Chain Allocated Primary NSV],
+    FILTER ( ALL ( 'Date Table' ),
+        'Date Table'[MonthStart] = [Allowed Primary Month (date)] ) )
+
+
+##############################################################################
+# STEP 11/14  --  SOURCE FILE: 10_SIS_Reconciliation.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// CHANNEL TAG + SIS RECONCILIATION  --  RESOLVED 2026-07-03
+//
+// - File 2 real SIS FY26 Primary = Rs 250.17 L (from File 2's own Channel
+//   field). CONFIRMED by business (2026-07-03) as the source of truth.
+// - Rs 236 L and Rs 275.44 L (gross sales, before MRN returns) are BOTH
+//   confirmed NOT correct -- do not use either as the SIS FY26 headline figure.
+// - Cross-validated three independent ways (File 2 invoice-line grain, a
+//   second source file's raw data, and that file's own Excel PivotTable) --
+//   all agree exactly on Rs 250.17 L. Full investigation and resolution
+//   record: docs/SIS_Reconciliation.md.
+//
+// What these measures do:
+//  - Primary (File 2 / Fact Primary Article) has an EXPLICIT Channel column
+//    (MT / EB2B / SIS) -> treated as the source of truth for Primary SIS.
+//  - Offtake (store x article) has NO Channel -> derived below via a calc
+//    column: Store Code override -> Chain default -> "Unmapped" (never dropped).
+//  - Primary vs Offtake SIS is reconciled and any gap is located by chain --
+//    useful for tagging offtake by channel, but NOT what explains the Rs 14.16 L
+//    Primary-side gap (that gap exists entirely within File 2 itself).
+// =====================================================================
+
+// ---------- Calculated COLUMN on 'Fact Offtake Sales' ----------
+// (Modeling > New column, on the Fact Offtake Sales table)
+Offtake Channel =
+VAR _byStore =
+    LOOKUPVALUE ( 'Channel Map Store'[Channel],
+        'Channel Map Store'[Store Code], 'Fact Offtake Sales'[Store Code] )
+VAR _byChain =
+    LOOKUPVALUE ( 'Channel Map Chain'[Channel],
+        'Channel Map Chain'[Chain], 'Fact Offtake Sales'[Chain] )
+RETURN COALESCE ( _byStore, _byChain, "Unmapped" )
+
+// ---------- Channel splits ----------
+// PRIMARY (authoritative — explicit Channel from File 2 / Fact Primary Article)
+Primary NSV (Article) = SUM ( 'Fact Primary Article'[Primary NSV] )
+Primary SIS  = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "SIS" )
+Primary EB2B = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "EB2B" )
+Primary MT   = CALCULATE ( [Primary NSV (Article)], 'Fact Primary Article'[Channel] = "MT" )
+
+// OFFTAKE (derived Channel)
+Offtake SIS  = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "SIS" )
+Offtake EB2B = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "EB2B" )
+Offtake MT   = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "MT" )
+Offtake Unmapped Channel = CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = "Unmapped" )
+
+// ---------- Display in Cr (Indian) ----------
+Primary SIS (Cr) = DIVIDE ( [Primary SIS], 10000000 )
+Offtake SIS (Cr) = DIVIDE ( [Offtake SIS], 10000000 )
+
+// ---------- SIS reconciliation ----------
+SIS Variance = [Primary SIS] - [Offtake SIS]
+SIS Variance (Cr) = DIVIDE ( [SIS Variance], 10000000 )
+SIS Variance (Lacs) = DIVIDE ( [SIS Variance], 100000 )
+SIS Match =
+IF ( ABS ( [SIS Variance] ) < 100000, "OK (< Rs 1 L)", "Gap - investigate" )
+
+// Channel coverage: how much offtake resolved to a real channel (not Unmapped)
+Offtake Channel Coverage % =
+1 - DIVIDE ( [Offtake Unmapped Channel], [Total Offtake NSV] )
+
+// Sanity note: Primary SIS must be sourced ONLY from File 2's explicit
+// Channel = "SIS" ([Primary SIS] above) — never derived from the ship-to
+// primary (File 1 is MT-only, no Channel). [Primary SIS] correctly nets to
+// ~Rs 2.50 Cr FY26 per the raw source — CONFIRMED correct by business
+// (2026-07-03). The Rs 2.36 Cr reference figure is confirmed NOT correct.
+
+// ---------- Reconciliation table helper ----------
+// Build a table visual: rows = Chain, values = [Primary SIS (Cr)],
+// [Offtake SIS (Cr)], [SIS Variance (Lacs)]. Sort by SIS Variance to see the
+// chains driving the ~Rs 14 L gap. Add 'Offtake Channel' = "Unmapped" as a
+// slicer to list stores whose channel didn't resolve.
+
+
+##############################################################################
+# STEP 12/14  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
+# TARGET: _Measures table
+##############################################################################
+// =====================================================================
+// EXPORT & DISPLAY-UNIT MEASURES
+// Mirrors the HTML dashboard's formatting rules exactly (dashboard/index.html
+// crc() and qtyFmt()) so a number reads identically whether it's on the HTML
+// dashboard, a Power BI card, or an exported PDF/Excel.
+//
+// RULE — VALUE (₹):  < ₹100 L  → "₹X.X L"   |   >= ₹100 L (= ₹1 Cr) → "₹Y.YY Cr"
+// RULE — QUANTITY:   always "Qty Cr" unless truly tiny (< 50,000 units),
+//                    then "Qty L". Quantity NEVER borrows the value Cr/L
+//                    thresholds — keep the two unit families separate.
+//
+// All base measures here assume Fact tables in Lakh/units as loaded by the
+// PowerQuery scripts. If your source is already in absolute ₹ (not Lakh),
+// adjust the /10000000 and /100000 divisors accordingly — see DataDictionary.md.
+// =====================================================================
+
+// ---------- VALUE LABELS (₹ Cr / ₹ L, smart-switch at ₹100 L) ----------
+// Pattern re-used for every ₹ measure that needs an export/card label.
+// Duplicate this block per base measure — DAX has no first-class higher-order
+// functions for measure names, so each needs its own small variant.
+
+NSV Value Label =
+VAR v = [NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+Total Primary NSV Value Label =
+VAR v = [Total Primary NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+Total Offtake NSV Value Label =
+VAR v = [Total Offtake NSV]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+Total MRP Sales Value Label =
+VAR v = [Total MRP Sales]
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+// P&L, Forecast pages: point this at whichever base measure the card uses
+// (e.g. [Total Trade Spend], [FY27 Forecast NSV]) by copying the pattern above.
+
+// ---------- QUANTITY LABELS (Qty Cr / Qty L — separate family from ₹) ----------
+Total Offtake Qty Label =
+VAR v = [Total Offtake Qty]
+VAR crv = DIVIDE ( v, 10000000 )
+RETURN
+    IF (
+        ABS ( crv ) >= 0.005,
+        FORMAT ( crv, "#,0.00" ) & " Cr Qty",
+        FORMAT ( DIVIDE ( v, 100000 ), "#,0.00" ) & " L Qty"
+    )
+
+Total Primary Qty Label =
+VAR v = [Total Primary Qty]
+VAR crv = DIVIDE ( v, 10000000 )
+RETURN
+    IF (
+        ABS ( crv ) >= 0.005,
+        FORMAT ( crv, "#,0.00" ) & " Cr Qty",
+        FORMAT ( DIVIDE ( v, 100000 ), "#,0.00" ) & " L Qty"
+    )
+
+// ---------- HOW TO USE ----------
+// Card visual: drag the *_Value Label / *_Qty Label measure straight into a
+// Card visual's "Fields" well — Power BI cards render text measures as-is,
+// so the ₹/Cr/L formatting shows exactly as typed, no Format-pane fiddling.
+//
+// Table/Matrix visual: add the Label measure as an extra column alongside the
+// raw numeric measure (keep the numeric one too — it's what "Export data"
+// should carry for anyone re-deriving totals in Excel; the Label column is
+// the human-readable display copy).
+//
+// Chart data labels: Format pane ▸ Data labels ▸ On ▸ "Values" dropdown will
+// only show a *_Value Label measure if that measure is the field actually
+// plotted; Power BI axis "Display units" (Auto/K/M/Bn) does NOT understand
+// Lakh/Crore, so for bar/column/line charts either (a) plot the raw numeric
+// measure and turn Display units OFF (Format ▸ Y-axis ▸ Display units ▸ None)
+// then rely on the tooltip showing the Label measure, or (b) add the Label
+// measure as a second field in the tooltip ("Format ▸ Tooltips ▸ Fields").
+// See docs/ExportAndVisualSettings.md for the full per-visual walkthrough.
+
+
+##############################################################################
+# STEP 13/14  --  SOURCE FILE: 12_TOT_Measures.dax
+# TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures.
+##############################################################################
+// =====================================================================
+// TOT% MEASURES  (Trade Offer Terms % / On-Invoice Margin Pass-on %)
+//
+// TOT% = SUM(Pass-on Value) / SUM(MRP) -- never a simple average of
+// row-level TOT% percentages. Pass-on Value is sourced per row with a
+// 3-TIER PRIORITY (mirrors dashboard/scripts/build_dashboard_data.py's
+// tot_block() exactly, so a chain/category's TOT% reads the same on the
+// HTML dashboard and here):
+//
+//   1. SOURCE      -- 'Fact Primary Article'[Avg TOT] (query 16 — the
+//                     Primary file's own Customer x Article-grain TOT%, a
+//                     0-1 fraction). Pass-on Value = Primary MRP x Avg TOT.
+//   2. ACTUAL TAX  -- if Avg TOT is blank/invalid, use the row's actual
+//                     [Primary Tax Amount] ("Inv. Tax Amount(LOC)"):
+//                     Pass-on Value = MRP - NSV - Tax.
+//   3. GST FALLBACK -- only if BOTH are blank/invalid: estimate Tax from
+//                     Category + cutover date via 'GST Rate QC Table'
+//                     (query 37, editable PowerBI/SeedData/Masters/
+//                     GST_Rate_QC_Table.csv) and 'GST Config' (query 38,
+//                     GST_Config.csv -- default cutover 2025-09-22, the GST
+//                     Council's confirmed GST 2.0 effective date, editable
+//                     single cell; a per-category override lives in the QC
+//                     table's Effective_From column).
+//
+// GST_Rate_QC_Table.csv is FALLBACK ONLY: it has zero effect on TOT% for any
+// row where Avg TOT or Primary Tax Amount is present -- [TOT Rows GST
+// Fallback] / [TOT Fallback Pct of MRP] below show exactly how much (if
+// any) of the current data actually depends on it. Every row in that CSV
+// starts Finance_Approved = "Pending" and several are Confidence = "Low"
+// (no official HSN-code-level source was available) -- verify against
+// Honasa's Finance/Tax records before treating any fallback-tier TOT% as
+// final; [Finance Approved Count] surfaces the sign-off rollup.
+// =====================================================================
+
+// ---------- SETUP ----------
+// Relationship needed (see docs/DataModel.md): Date Table[MonthStart] -> Fact
+// Primary Article[MonthStart]. 'GST Rate QC Table' and 'GST Config' both
+// stay DISCONNECTED (read via LOOKUPVALUE / MINX, no relationship to wire up).
+GST Cutover Date =
+COALESCE ( MINX ( 'GST Config', 'GST Config'[GST_Cutover_Date] ), DATE ( 2025, 9, 22 ) )
+
+// ==========================================================================
+// SETUP STEP THAT DIFFERS FROM EVERY OTHER DAX FILE IN THIS KIT: the two
+// blocks below are CALCULATED COLUMNS, not measures. Add them directly on
+// 'Fact Primary Article' -- select that table ▸ Table tools ▸ New column --
+// NOT pasted into the "_Measures" table like everything else in DAX/01..12.
+// Every measure further down in this file depends on 'Fact Primary
+// Article'[TOT Method] / [TOT Pass-on Value] already existing as columns.
+// ==========================================================================
+
+// ---------- ROW-LEVEL CLASSIFICATION (calculated columns on Fact Primary Article) ----------
+// The 3-tier decision is a per-row fact, so a calculated column computes it
+// once at refresh instead of re-evaluating on every visual. The GST-rate
+// LOOKUPVALUE only actually runs for the (rare) gst_fallback branch --
+// SWITCH is lazy, so tiers 1/2 never pay for it.
+//
+// 'Fact Primary Article'[TOT Method] =
+// VAR _mrp = 'Fact Primary Article'[Primary MRP]
+// VAR _nsv = 'Fact Primary Article'[Primary NSV]
+// VAR _avgTot = 'Fact Primary Article'[Avg TOT]
+// VAR _tax = 'Fact Primary Article'[Primary Tax Amount]
+// RETURN
+//     IF ( ISBLANK ( _mrp ) || _mrp = 0, "invalid",
+//         IF ( NOT ISBLANK ( _avgTot ) && _avgTot >= -1.5 && _avgTot <= 1.5, "avg_tot",
+//             IF ( ISBLANK ( _nsv ), "invalid",
+//                 IF ( NOT ISBLANK ( _tax ), "tax_calc", "gst_fallback" )
+//             )
+//         )
+//     )
+//
+// 'Fact Primary Article'[TOT Pass-on Value] =
+// VAR _method = 'Fact Primary Article'[TOT Method]
+// VAR _mrp = 'Fact Primary Article'[Primary MRP]
+// VAR _nsv = 'Fact Primary Article'[Primary NSV]
+// VAR _avgTot = 'Fact Primary Article'[Avg TOT]
+// VAR _tax = 'Fact Primary Article'[Primary Tax Amount]
+// VAR _cat = 'Fact Primary Article'[Category]
+// RETURN
+//     SWITCH (
+//         _method,
+//         "avg_tot", _mrp * _avgTot,
+//         "tax_calc", _mrp - _nsv - _tax,
+//         "gst_fallback",
+//             VAR _preRate = LOOKUPVALUE ( 'GST Rate QC Table'[Pre_GST_Rate_Pct], 'GST Rate QC Table'[Category], _cat )
+//             VAR _postRate = LOOKUPVALUE ( 'GST Rate QC Table'[Post_GST_Rate_Pct], 'GST Rate QC Table'[Category], _cat )
+//             VAR _effFromTxt = LOOKUPVALUE ( 'GST Rate QC Table'[Effective_From], 'GST Rate QC Table'[Category], _cat )
+//             VAR _effFrom = IF ( TRIM ( COALESCE ( _effFromTxt, "" ) ) = "", BLANK(), DATEVALUE ( _effFromTxt ) )
+//             VAR _cutover = COALESCE ( _effFrom, [GST Cutover Date] )
+//             VAR _pre = COALESCE ( _preRate, 18 )
+//             VAR _post = COALESCE ( _postRate, 18 )
+//             VAR _rate = IF ( 'Fact Primary Article'[MonthStart] >= _cutover, _post, _pre )
+//             RETURN _mrp - _nsv - ( _nsv * _rate / 100 ),
+//         BLANK()
+//     )
+
+// ---------- BASE TOTALS (TOT-valid rows only -- excludes "invalid" so the
+// denominator never silently includes rows that couldn't be computed) ----------
+Total Primary Article MRP =
+CALCULATE ( SUM ( 'Fact Primary Article'[Primary MRP] ), 'Fact Primary Article'[TOT Method] <> "invalid" )
+
+Total Primary Article NSV =
+CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ), 'Fact Primary Article'[TOT Method] <> "invalid" )
+
+// ---------- TOT% AND PASS-ON VALUE ----------
+On-Invoice Margin Pass-on Value =
+SUM ( 'Fact Primary Article'[TOT Pass-on Value] )   // BLANK() rows (invalid) contribute nothing to SUM
+
+TOT % =
+VAR _mrp = [Total Primary Article MRP]
+RETURN IF ( _mrp = 0, BLANK(), DIVIDE ( [On-Invoice Margin Pass-on Value], _mrp ) )
+
+TOT % Label =
+VAR v = [TOT %]
+RETURN IF ( ISBLANK ( v ), "–", FORMAT ( v, "0.0%" ) )
+
+TOT Tax =   // back-derived, consistent by construction with whichever tier drove Pass-on Value
+[Total Primary Article MRP] - [Total Primary Article NSV] - [On-Invoice Margin Pass-on Value]
+
+On-Invoice Margin Pass-on Value Label =
+VAR v = [On-Invoice Margin Pass-on Value]
+RETURN
+    IF ( ABS ( v ) >= 10000000,
+        "₹" & FORMAT ( DIVIDE ( v, 10000000 ), "#,0.00" ) & " Cr",
+        "₹" & FORMAT ( v, "#,0.0" ) & " L"
+    )
+
+// ---------- MoM MOVEMENT (needs the Date Table -> Fact Primary Article relationship) ----------
+MoM TOT Delta pp =
+VAR _cur = [TOT %]
+VAR _prev = CALCULATE ( [TOT %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), ( _cur - _prev ) * 100 )
+
+Incremental Pass-on Impact =
+VAR _cur = [On-Invoice Margin Pass-on Value]
+VAR _prev = CALCULATE ( [On-Invoice Margin Pass-on Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+
+// ---------- TOT% SOURCE QC SUMMARY (same 6 metrics as the HTML dashboard's
+// P&L tab QC panel — drop these on a card/table on Page 4) ----------
+TOT Rows Avg Tot =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ), 'Fact Primary Article'[TOT Method] = "avg_tot" )
+
+TOT Rows Tax Calc =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ), 'Fact Primary Article'[TOT Method] = "tax_calc" )
+
+TOT Rows GST Fallback =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ), 'Fact Primary Article'[TOT Method] = "gst_fallback" )
+
+TOT Rows Invalid =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ), 'Fact Primary Article'[TOT Method] = "invalid" )
+
+TOT Fallback MRP =
+CALCULATE ( SUM ( 'Fact Primary Article'[Primary MRP] ), 'Fact Primary Article'[TOT Method] = "gst_fallback" )
+
+TOT Fallback Pct of MRP =
+DIVIDE ( [TOT Fallback MRP], [Total Primary Article MRP] ) * 100
+
+// ---------- FINANCE SIGN-OFF ROLLUP (surface provisional status on-report) ----------
+Finance Approved Count =
+COUNTROWS ( FILTER ( 'GST Rate QC Table', 'GST Rate QC Table'[Finance_Approved] = "Yes" ) )
+
+Finance Approved Total = COUNTROWS ( 'GST Rate QC Table' )
+
+TOT Status Banner =
+VAR _fbPct = [TOT Fallback Pct of MRP]
+RETURN
+    IF ( ISBLANK ( _fbPct ) || _fbPct < 0.05,
+        "TOT% sourced from actual Primary file data — the GST rate table fallback was not needed.",
+        "Partially provisional: " & FORMAT ( _fbPct, "0.0" ) & "% of MRP relies on the GST rate table "
+            & "fallback, pending Finance/Tax sign-off (" & [Finance Approved Count] & " of "
+            & [Finance Approved Total] & " categories confirmed)."
+    )
+
+// ---------- WEIGHTED TOT% BY DIMENSION (for the Pack Size / Chain / Category export tables) ----------
+// [TOT %] already aggregates correctly (weighted by MRP, not a simple row
+// average) whenever it's dropped into a Chain/Category/Pack Size matrix or
+// table visual, since DIVIDE(sum,sum) at whatever grain the visual groups by
+// IS the weighted figure -- no separate "Weighted TOT%" measure is needed.
+// Rename the column header to "Weighted TOT%" in that visual if you want the
+// label to match the HTML dashboard's Pack Size export column name exactly.
+
+// ---------- IMPACT ON TOT% (materiality, for prioritising QC review) ----------
+// 'GST Rate QC Table'[Impact_on_TOT_pct] is auto-computed by
+// build_dashboard_data.py on every --detail-only rebuild (how much blended
+// TOT% would move, in pp, if that category's Post_GST_Rate_Pct were flipped
+// to the alternate slab, scoped to that category's OWN gst_fallback-tier
+// rows only). Power BI reads the same CSV, so drop that column straight into
+// the QC table visual (Page 4) -- no separate DAX measure needed; refresh
+// the CSV via the HTML dashboard's Python rebuild to update it.
+
+
+##############################################################################
+# STEP 14/14  --  SOURCE FILE: 13_CM2_Measures.dax
+# TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures.
+##############################################################################
+// =====================================================================
+// CM2 (Contribution Margin 2) MEASURES
+//
+// CM2 = NSV - P&L Expenses. NSV here is [Total Primary Article NSV] from
+// DAX/12_TOT_Measures.dax (already net of TOT%/on-invoice-margin-pass-on
+// and tax), so no further deduction happens in this file.
+//
+// Expenses are NEVER hardcoded: they come entirely from the editable
+// PowerBI/SeedData/Masters/PL_Expense_Input.csv (query 39), matched to
+// 'Fact Primary Article' the same way as the HTML dashboard's cm2_block():
+// Month+FY always required; Customer Code tried first (via query 40's
+// CustCode-Chain map), Chain name is the fallback. An expense row matching
+// neither is unmapped -- excluded from Chain/Brand/Category-wise CM2 and
+// from the headline CM2 KPIs, but still counted (with its amount) in the
+// QC summary below. A row only attributes to a Brand/Category bucket if it
+// specifies that dimension itself -- no proportional allocation is invented.
+//
+// Mirrors dashboard/scripts/build_dashboard_data.py's cm2_block() exactly,
+// so a chain's CM2 reads the same on the HTML dashboard and here.
+// =====================================================================
+
+// ==========================================================================
+// SETUP STEP THAT DIFFERS FROM MOST DAX FILES IN THIS KIT: the next three
+// blocks are CALCULATED COLUMNS, not measures. Add them directly on
+// 'PL Expense Input' -- select that table ▸ Table tools ▸ New column --
+// NOT pasted into the "_Measures" table. Every measure further down in this
+// file depends on these three columns already existing. Add query
+// 40_CustCode_Chain_Map.pq to your Power BI file BEFORE adding these
+// columns (Resolved Chain depends on it).
+// ==========================================================================
+
+// 'PL Expense Input'[Resolved Chain] =
+// VAR _custCode = TRIM ( 'PL Expense Input'[Customer Code] )
+// VAR _chainIn = TRIM ( 'PL Expense Input'[Chain] )
+// VAR _viaCode = IF ( _custCode <> "", LOOKUPVALUE ( 'CustCode Chain Map'[Chain], 'CustCode Chain Map'[Customer Code], _custCode ) )
+// VAR _viaChain = IF ( _chainIn <> "" && CONTAINS ( VALUES ( 'Fact Primary Article'[Chain] ), 'Fact Primary Article'[Chain], _chainIn ), _chainIn )
+// RETURN COALESCE ( _viaCode, _viaChain )
+//
+// 'PL Expense Input'[Resolved Brand] =
+// VAR _brandIn = TRIM ( 'PL Expense Input'[Brand] )
+// RETURN IF ( _brandIn = "", BLANK(),
+//     IF ( CONTAINS ( VALUES ( 'Fact Primary Article'[Brand] ), 'Fact Primary Article'[Brand], _brandIn ), _brandIn, BLANK() ) )
+//
+// 'PL Expense Input'[Resolved Category] =
+// VAR _catIn = TRIM ( 'PL Expense Input'[Category] )
+// RETURN IF ( _catIn = "", BLANK(),
+//     IF ( CONTAINS ( VALUES ( 'Fact Primary Article'[Category] ), 'Fact Primary Article'[Category], _catIn ), _catIn, BLANK() ) )
+//
+// 'PL Expense Input'[Bad Brand Or Category] =   -- QC flag, also a calculated column
+// VAR _brandIn = TRIM ( 'PL Expense Input'[Brand] )
+// VAR _catIn = TRIM ( 'PL Expense Input'[Category] )
+// RETURN ( _brandIn <> "" && ISBLANK ( 'PL Expense Input'[Resolved Brand] ) )
+//     || ( _catIn <> "" && ISBLANK ( 'PL Expense Input'[Resolved Category] ) )
+
+// ---------- RELATIONSHIP NEEDED (see docs/DataModel.md) ----------
+// Date Table[MonthStart] -> PL Expense Input[MonthStart]  (a REAL modelled
+// relationship, unlike GST Rate QC Table / GST Config / CustCode Chain Map
+// which all stay disconnected) -- needed for MoM Expense/CM2 Change below.
+
+// ---------- BASE EXPENSE TOTALS ----------
+Total Expense Amount Loaded =
+SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] )   // everything loaded, mapped or not
+
+Total P&L Expense (Mapped) =
+CALCULATE ( [Total Expense Amount Loaded], NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ) )
+
+Total P&L Expense (Unmapped) =
+[Total Expense Amount Loaded] - [Total P&L Expense (Mapped)]
+
+Total P&L Expense = [Total P&L Expense (Mapped)]   // headline KPI -- matches the HTML dashboard's cm2D.total_expense
+
+// ---------- CM2 (overall / KPI cards) ----------
+// [Total Primary Article NSV] comes from DAX/12_TOT_Measures.dax (already
+// scoped to TOT-valid FY26/FY27 rows).
+Expense % of NSV =
+DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100
+
+CM2 Value =
+[Total Primary Article NSV] - [Total P&L Expense]
+
+CM2 % =
+DIVIDE ( [CM2 Value], [Total Primary Article NSV] ) * 100
+
+// ---------- MoM MOVEMENT (needs the Date Table -> PL Expense Input relationship) ----------
+MoM Expense Change =
+VAR _cur = [Total P&L Expense]
+VAR _prev = CALCULATE ( [Total P&L Expense], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+
+MoM CM2 Change =
+VAR _cur = [CM2 Value]
+VAR _prev = CALCULATE ( [CM2 Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+
+// ---------- CHAIN / BRAND / CATEGORY-WISE CM2 ----------
+// 'PL Expense Input' has NO modelled relationship to 'Fact Primary Article'
+// (the matching is fallback-priority logic, not a clean 1:many key) -- these
+// measures bridge the two tables explicitly via SELECTEDVALUE + FILTER, one
+// per dimension, matching how the request names them as separate items.
+Total P&L Expense (by Chain) =
+VAR _chain = SELECTEDVALUE ( 'Fact Primary Article'[Chain] )
+RETURN
+    IF ( ISBLANK ( _chain ), [Total P&L Expense],
+        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Chain] = _chain ) )
+    )
+
+Chain-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Chain)]
+Chain-wise CM2 % = DIVIDE ( [Chain-wise CM2], [Total Primary Article NSV] ) * 100
+
+Total P&L Expense (by Brand) =
+VAR _brand = SELECTEDVALUE ( 'Fact Primary Article'[Brand] )
+RETURN
+    IF ( ISBLANK ( _brand ), [Total P&L Expense],
+        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Brand] = _brand ) )
+    )
+
+Brand-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Brand)]
+Brand-wise CM2 % = DIVIDE ( [Brand-wise CM2], [Total Primary Article NSV] ) * 100
+
+Total P&L Expense (by Category) =
+VAR _cat = SELECTEDVALUE ( 'Fact Primary Article'[Category] )
+RETURN
+    IF ( ISBLANK ( _cat ), [Total P&L Expense],
+        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Category] = _cat ) )
+    )
+
+Category-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Category)]
+Category-wise CM2 % = DIVIDE ( [Category-wise CM2], [Total Primary Article NSV] ) * 100
+
+// ---------- EXPENSE HEAD-WISE BREAKUP ----------
+// Drop 'PL Expense Input'[Expense Head] on a table/matrix row with this
+// measure -- ordinary row-context filtering on the SAME table applies
+// automatically, no bridging needed (unlike Chain/Brand/Category above,
+// which live on the OTHER table).
+Expense Head Amount =
+SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] )
+
+// ---------- QC SUMMARY (same metrics as the HTML dashboard's P&L tab QC panel) ----------
+Unmapped Chain Or Customer Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input', ISBLANK ( 'PL Expense Input'[Resolved Chain] ) ) )
+
+Unmapped Brand Or Category Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input', 'PL Expense Input'[Bad Brand Or Category] = TRUE() ) )
+
+Blank Month Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input', ISBLANK ( 'PL Expense Input'[MonthStart] ) ) )
+
+Blank Expense Head Rows =
+COUNTROWS ( FILTER ( 'PL Expense Input',
+    ISBLANK ( 'PL Expense Input'[Expense Head] ) || TRIM ( 'PL Expense Input'[Expense Head] ) = "" ) )
+
+Duplicate Expense Rows =
+VAR _grouped =
+    SUMMARIZE (
+        'PL Expense Input',
+        'PL Expense Input'[Month], 'PL Expense Input'[FY], 'PL Expense Input'[Chain],
+        'PL Expense Input'[Customer Code], 'PL Expense Input'[Customer Name],
+        'PL Expense Input'[Brand], 'PL Expense Input'[Category], 'PL Expense Input'[Sub Category],
+        'PL Expense Input'[Expense Head], 'PL Expense Input'[Expense Type],
+        'PL Expense Input'[Expense Amount (INR Lakh)],
+        "RowCount", COUNTROWS ( 'PL Expense Input' )
+    )
+RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
