@@ -106,6 +106,16 @@
   .fchip b{cursor:pointer}
   .repbanner{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:10px;
       padding:9px 13px;font-size:12.5px;margin:0 0 14px}
+  .fynote{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:8px;
+      padding:6px 12px;font-size:12px;line-height:1.5;margin:0 0 12px}
+  .methodbox{background:var(--card);border:1px solid var(--line);border-radius:10px;
+      padding:2px 14px;margin:0 0 14px}
+  .methodbox summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:700;
+      color:var(--teal-d);padding:9px 0}
+  .methodbox summary::-webkit-details-marker{display:none}
+  .methodbox summary::before{content:'▸ ';font-size:10px}
+  .methodbox[open] summary::before{content:'▾ '}
+  .methodbox .note{padding-bottom:10px}
   .drill{cursor:pointer;border-bottom:1px dashed var(--teal-d)}
   .drill:hover{color:var(--teal-d);font-weight:700}
   .drillhint{font-size:11px;color:var(--muted);font-style:italic}
@@ -920,7 +930,8 @@ function buildPnl(){
    ${card('Chain-wise trade P&amp;L','MRP value, net NSV, the gap, and promo activity per chain (FY26). Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Gap</th><th>Gap %</th><th>Promos</th><th>Avg depth</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="7">No chains for this filter.</td></tr>'}</tbody></table></div>`)}`
-   :fyNoDataNote('the FY26 gross-to-net P&L bridge (its source workbook ends Mar-26) — TOT% and CM2 below DO include FY26-27')}
+   :`<div class="fynote"><b>${fLab('FY')} actuals not available</b> — the gross-to-net P&amp;L bridge (source ends Mar-26) —
+      intentionally blank instead of a stale FY26 number. TOT% and CM2 below still cover FY26-27.</div>`}
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
    <p class="note" style="margin:0 0 10px">FY26-FY27, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
      TOT% = SUM(Pass-on Value) / SUM(MRP), sourced per row: Primary file's own <b>Avg Tot</b> first, actual
@@ -947,10 +958,11 @@ function buildPnl(){
      `<div class="tablewrap"><table><thead><tr><th>Category</th><th>HSN Code</th><th>Pre-GST%</th><th>Post-GST%</th>
        <th>Effective From</th><th>Confidence</th><th>Finance Approved</th><th>Impact on TOT%</th></tr></thead>
        <tbody>${qcRows||'<tr><td colspan="8">No QC table found.</td></tr>'}</tbody></table></div>`)}
-   <div class="card"><p class="note" style="margin:0"><b>Methodology &amp; assumptions:</b> ${totD.methodology}
+   <details class="methodbox"><summary>Methodology &amp; assumptions</summary>
+     <p class="note" style="margin:0 0 10px">${totD.methodology}
      Default GST cutover date: ${totD.gst_cutover_default} (editable — <code>PowerBI/SeedData/Masters/GST_Config.csv</code>).
      QC table: <code>PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv</code> (editable — several categories are LOW-confidence
-     best-effort assumptions pending Finance/Tax confirmation; see that file's Confidence/Note/Finance_Approved columns).</p></div>`:''}
+     best-effort assumptions pending Finance/Tax confirmation; see that file's Confidence/Note/Finance_Approved columns).</p></details>`:''}
    ${cm2D?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">P&amp;L / CM2 (Contribution Margin 2)</h3>
    <p class="note" style="margin:0 0 10px">CM2 = NSV − P&amp;L Expenses (NSV is already net of TOT%/tax — see the TOT% section above).
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
@@ -1254,13 +1266,25 @@ function buildComparison(){
   let rows, yrPair, source;
   if(cmpDim==='Chain'||cmpDim==='Brand'){
     if(fyUnsupported()){
-      s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2><div style="margin:0 0 14px">${btns}</div>${fyNoDataNote('the chain/brand Primary source')}${catDrillCardHtml('cmpCatDrill')}`;
-      wireCmpButtons(s); renderCatDrillChart('cmpCatDrill',recFilter()); return;
+      // FYs beyond the pre-agg window (FY27's Apr'26+) still have exact
+      // chain/brand aggregates in the article-wise primary (fyx_primary) --
+      // show those real numbers instead of a blank state when loaded.
+      const fp=FPX(fyTag());
+      if(fp){
+        const arr27=cmpDim==='Chain'?fp.by_chain:fp.by_brand;
+        source=`article-wise primary, chain-allocated (${fyTag()} YTD: ${fp.months_covered.join(' & ')})`;
+        rows=arr27.filter(x=>x.nsv>0).map(x=>({name:x.name,a:null,b:x.nsv,yoy:null}));
+        yrPair=['–',fyTag()];
+      } else {
+        s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2><div style="margin:0 0 14px">${btns}</div>${fyNoDataNote('the chain/brand Primary source')}${catDrillCardHtml('cmpCatDrill')}`;
+        wireCmpButtons(s); renderCatDrillChart('cmpCatDrill',recFilter()); return;
+      }
+    } else {
+      source='Primary (chain-level, secondary-allocated for Distributors)';
+      const arr=cmpDim==='Chain'?D.primary.by_chain:D.primary.by_brand;
+      rows=arr.filter(x=>(x.fy26||0)>0||(x.fy25||0)>0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
+      yrPair=['FY25','FY26'];
     }
-    source='Primary (chain-level, secondary-allocated for Distributors)';
-    const arr=cmpDim==='Chain'?D.primary.by_chain:D.primary.by_brand;
-    rows=arr.filter(x=>(x.fy26||0)>0||(x.fy25||0)>0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
-    yrPair=['FY25','FY26'];
   } else {
     source='article-level primary detail (File 2)';
     const recs=recFilter(cmpDim);   // ignore this dimension's own filter so you can still compare across it
@@ -1537,10 +1561,9 @@ function FP27(){ return FPX('FY27'); }                                     // le
 function fyBeyondPreagg(tag){ return PREAGG_FYS.indexOf(tag)<0; }          // this FY lives only in the article primary
 function fyUnsupported(){ return F.FY.length>0 && F.FY.every(fyBeyondPreagg); }  // every selected FY is beyond the pre-agg window
 function fyNoDataNote(where){
-  return `<div class="repbanner"><b>No ${fLab('FY')} actuals in ${where}.</b> The FY filter is set to
-    ${fLab('FY')}, but this source only has FY25/FY26 history — FY26-27 actuals aren't loaded yet
-    (see the <b>Forecast</b> tab for the FY26-27 TY target). Showing nothing rather than a
-    stale FY26 number.</div>`;
+  return `<div class="fynote"><b>${fLab('FY')} actuals not available</b> — ${where} — source ends Mar'26,
+    so this section is intentionally blank instead of showing stale FY26 numbers.
+    See <b>Forecast</b> for the FY26-27 target.</div>`;
 }
 function monthUnsupportedNote(what){
   return fOn('Month') ? `<p class="drillhint" style="margin:4px 0 0">Month = ${fLab('Month')} doesn't narrow

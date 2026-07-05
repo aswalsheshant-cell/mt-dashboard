@@ -10,6 +10,25 @@ Open `dashboard/index.html` in any modern browser — no server or internet need
 Chart.js is vendored locally (`chart.umd.js`) and all data is baked into `data.js`,
 so the dashboard works fully offline.
 
+## Post-merge validation status
+
+FY refactor validation completed on PR #2's branch (`claude/modern-trade-pbi-dashboard-y963w2`):
+
+- Build compiled successfully
+- FY logic is now month-driven (Apr-Dec -> next FY, Jan-Mar -> same FY; no fixed
+  index/column positions)
+- FY27 Primary rendering is fixed (Overview / Primary / Market Share / Performance
+  & Comparison all show real FY27 chain-allocated numbers)
+- FY25/FY26 numbers remain unchanged
+- 12-tab regression (all tabs x FY25/FY26/FY27) passed with no NaN/undefined/blank
+  sections or JS errors
+- Offtake correctly shows no FY27 data because its source ends Mar'26
+- DIST allocation: zero-variance reconciliation, 0 unmapped rows
+
+**PR #2 is still open, pending merge** — this status reflects branch validation,
+not a completed merge. Next action once merged: a post-merge dashboard view check
+to confirm the deployed build matches this validation.
+
 ## Tabs
 
 | Tab | What it shows |
