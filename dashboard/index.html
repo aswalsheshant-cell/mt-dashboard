@@ -196,7 +196,7 @@ function chartDlHtml(id){
     <div class="chartdl-menu">
       <button data-fmt="png">🖼 PNG Image</button>
       <button data-fmt="csv">⭳ CSV Data</button>
-      <button data-fmt="xlsx">⭳ Excel Data</button>
+      <button data-fmt="xlsx">⭳ Excel (Data + Visual)</button>
     </div></details>`;
 }
 
@@ -347,6 +347,54 @@ function downloadRowsXLSX(rows,filename,title){
   XLSX.utils.book_append_sheet(wb,ws,'Data');
   XLSX.writeFile(wb,filename+'.xlsx');
 }
+// "Visual" sheet AoA: recreates the on-screen chart CARD as an EDITABLE table
+// (never a screenshot) -- title on top, left Label column, a middle
+// proportional bar drawn with block characters (real, editable text cells --
+// the vendored SheetJS community build can't write Excel data-bar conditional
+// formatting, so this is the spec's allowed "formatted cells" fallback), and a
+// right-hand Value column formatted like the card (₹x.xx Cr via crc()) plus a
+// raw numeric column so the value stays editable/re-computable. Row order is
+// exactly the chart's own order (already sorted high→low on the bar charts).
+// Multi-series (grouped/stacked) charts list each series' value with no single
+// bar, since the single-bar card metaphor doesn't map to multiple series.
+function chartVisualAoA(chart,chartLabel){
+  const labels=chart.data.labels||[];
+  const dsets=(chart.data.datasets||[]).filter(d=>d.data&&d.data.length);
+  const ts=exportTimestamp();
+  const head=[[chartLabel||'Chart'],[`Filters: ${activeFiltersSummary()}`],[`Exported: ${ts.human}`],[]];
+  const BAR=40;
+  if(dsets.length===1){
+    const vals=dsets[0].data.map(v=>Number(v)||0);
+    const max=Math.max(1,...vals.map(v=>Math.abs(v)));
+    const body=labels.map((lab,i)=>{
+      const v=vals[i];
+      const n=Math.max(0,Math.round(Math.abs(v)/max*BAR));
+      return [lab,'█'.repeat(n),crc(v),v];
+    });
+    return [...head,['Label','Chart','Value (₹ Cr/L)','Value (raw, editable)'],...body];
+  }
+  const names=dsets.map((d,i)=>d.label||('Series '+(i+1)));
+  const body=labels.map((lab,i)=>[lab,
+    ...dsets.map(d=>crc(Number(d.data[i])||0)),
+    ...dsets.map(d=>Number(d.data[i])||0)]);
+  return [...head,['Label',...names,...names.map(s=>s+' (raw)')],...body];
+}
+// Chart Excel export = TWO sheets: Data (the same table CSV/XLSX already
+// produced) + Visual (the editable card recreation above). Reuses the exact
+// metadata header downloadRowsXLSX writes, so nothing about the Data sheet
+// changes; the Visual sheet is purely additive. Falls back to CSV if the XLSX
+// lib didn't load, same as downloadRowsXLSX.
+function downloadChartXLSX(dataRows,filename,title,chart,chartLabel){
+  if(typeof XLSX==='undefined'||!XLSX.utils){ downloadRowsCSV(dataRows,filename); return; }
+  const ts=exportTimestamp();
+  const meta=[[title||filename],[`Filters: ${activeFiltersSummary()}`],[`Exported: ${ts.human}`],[DASH_VERSION],[]];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([...meta,...dataRows]),'Data');
+  const wsVis=XLSX.utils.aoa_to_sheet(chartVisualAoA(chart,chartLabel));
+  wsVis['!cols']=[{wch:30},{wch:44},{wch:16},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,wsVis,'Visual');
+  XLSX.writeFile(wb,filename+'.xlsx');
+}
 function findChartByCanvasId(id){ return Object.values(Chart.instances).find(c=>c.canvas.id===id); }
 function chartExportRows(chart){
   const labels=chart.data.labels||[];
@@ -386,7 +434,7 @@ function exportChart(canvasId,format){
   const rows=chartExportRows(c);
   if(rows.length<=1){ alert('No data to export for this chart / filter.'); return; }
   if(format==='csv') downloadRowsCSV(rows,filename);
-  else downloadRowsXLSX(rows,filename,`Chart: ${chartLabel} (${tabLabel(currentTab)})`);
+  else downloadChartXLSX(rows,filename,`Chart: ${chartLabel} (${tabLabel(currentTab)})`,c,chartLabel);
 }
 // Table export: scrapes the already-rendered <table> (thead + tbody text),
 // so it's guaranteed to match exactly what's on screen for the current
