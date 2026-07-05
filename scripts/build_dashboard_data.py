@@ -667,6 +667,150 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
     return offtake
 
 # --------------------------------------------------------------------------
+# DISTRIBUTION GAP & ADD-ON REVENUE POTENTIAL
+# Per product (EAN), compares presence only across COMPARABLE stores -- sites
+# of the product's own chain FORMAT (Pharmacy / Hypermarket / Supermarket /
+# Beauty Retail / ...), so a drug-store SKU is measured against drug-store
+# doors, never against Dmart. Built from the REAL store x article offtake
+# extracts (the same *.xlsb the offtake patch reads) + ChainMaster's "Chain
+# Type" column; NO fabricated numbers. Everything is derived from month+site+
+# EAN, so it extends to more months automatically.
+# --------------------------------------------------------------------------
+_CHAIN_FORMAT_BRIDGE = {   # offtake chain (canon) -> ChainMaster spelling, where canon differs
+    "H&G": "Health & Glow", "Spencer": "Spencers", "VMM": "Vishal Mega Mart",
+}
+def load_chain_formats(repo_root):
+    """canon chain name -> format ('Chain Type' from PowerBI ChainMaster.csv)."""
+    f = repo_root / "PowerBI" / "SeedData" / "Masters" / "ChainMaster.csv"
+    if not f.exists():
+        return {}
+    cm = pd.read_csv(f)
+    fmt = {}
+    for _, r in cm.iterrows():
+        c = canon_chain(r.get("Chain"))
+        if c and pd.notna(r.get("Chain Type")):
+            fmt[c] = str(r["Chain Type"]).strip()
+    for canon_name, master_name in _CHAIN_FORMAT_BRIDGE.items():
+        m = canon_chain(master_name)
+        if canon_name not in fmt and m in fmt:
+            fmt[canon_name] = fmt[m]
+    return fmt
+
+def dist_gap_block(src, repo_root, top_n=250, min_target=50):
+    """Distribution gap & add-on revenue potential from store x article offtake.
+
+    For each EAN: its dominant FORMAT = the Chain Type contributing most NSV.
+    Within that format only:
+      target    = distinct sites selling the product's CATEGORY (comparable base)
+      carrying  = distinct sites selling THIS EAN
+      penetration = carrying / target ; missing = target - carrying
+      NSV/store = EAN NSV per carrying site ; add-on = missing * NSV/store
+    'TP' (distribution points) = distinct carrying sites; Latest = latest month,
+    Max = peak across the loaded months. Values in INR Lakh; annualised = monthly
+    average * 12. Returns None if no store x article files are present.
+    """
+    files = sorted(src.glob("*.xlsb"))
+    if not files:
+        return None
+    fmt_map = load_chain_formats(repo_root)
+    cols = ["Chain Name", "Site Code", "EAN", "Category", "Brand",
+            "Description as per Fountain", "NSV", "Month"]
+    frames = []
+    for fp in files:
+        for _, df in pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb").items():
+            df.columns = [str(c).strip() for c in df.columns]
+            if not {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"} <= set(df.columns):
+                continue
+            frames.append(df[[c for c in cols if c in df.columns]].copy())
+    if not frames:
+        return None
+    d = pd.concat(frames, ignore_index=True)
+    d["_chain"] = d["Chain Name"].map(canon_chain)
+    d["_fmt"] = d["_chain"].map(lambda c: fmt_map.get(c, "Unclassified"))
+    d["_site"] = d["_chain"].astype(str) + "|" + d["Site Code"].astype(str)
+    d["_ean"] = d["EAN"].astype(str)
+    d["_nsv"] = pd.to_numeric(d["NSV"], errors="coerce").fillna(0.0)
+    d["_cat"] = d["Category"].astype(str)
+    d["_mon"] = d["Month"].map(_offtake_row_month)
+    months = sorted([m for m in d["_mon"].dropna().unique()],
+                    key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+    n_months = max(1, len(months))
+    latest = months[-1] if months else None
+
+    # dominant format per EAN (by NSV); category + description (first non-blank)
+    dom = (d.groupby(["_ean", "_fmt"])["_nsv"].sum().reset_index()
+             .sort_values("_nsv", ascending=False).drop_duplicates("_ean")
+             .set_index("_ean")["_fmt"].to_dict())
+    def _first(s):
+        s = s.dropna()
+        return str(s.iloc[0]) if len(s) else ""
+    ean_cat = d.groupby("_ean")["_cat"].agg(_first).to_dict()
+    ean_desc = d.groupby("_ean")["Description as per Fountain"].agg(_first).to_dict() \
+        if "Description as per Fountain" in d.columns else {}
+    ean_brand = {k: (canon_brand(v) or v) for k, v in
+                 d.groupby("_ean")["Brand"].agg(_first).to_dict().items()} if "Brand" in d.columns else {}
+    # target universe: distinct sites per (format, category)
+    tgt = d.groupby(["_fmt", "_cat"])["_site"].nunique().to_dict()
+
+    rows = []
+    for ean, g in d.groupby("_ean"):
+        f = dom.get(ean)
+        if not f or f == "Unclassified":
+            continue
+        cat = ean_cat.get(ean, "")
+        target = int(tgt.get((f, cat), 0))
+        if target < min_target:
+            continue
+        gg = g[g["_fmt"] == f]
+        carrying = int(gg["_site"].nunique())
+        if carrying == 0:
+            continue
+        nsv = float(gg["_nsv"].sum())                      # Lakh over loaded months
+        nsv_monthly = nsv / n_months
+        nsv_ann = nsv_monthly * 12                          # Lakh / year
+        per_store_period = nsv / carrying                   # Lakh (loaded window)
+        missing = max(0, target - carrying)
+        addon_period = per_store_period * missing           # Lakh over window
+        addon_ann = (nsv_ann / carrying) * missing          # Lakh / year
+        by_mon = gg.groupby("_mon")["_site"].nunique()
+        rows.append({
+            "product": (ean_desc.get(ean, "") or ean)[:60],
+            "ean": ean, "brand": ean_brand.get(ean, ""), "category": cat,
+            "group": f, "carrying": carrying, "target": target, "missing": missing,
+            "penetration": r2(carrying / target * 100),
+            "nsv_avg_ann": r2(nsv_ann),          # Lakh/yr  (dashboard shows ₹Cr/yr)
+            "nsv_window": r2(nsv),               # Lakh over loaded months
+            "latest_tp": int(by_mon.get(latest, 0)) if latest else carrying,
+            "max_tp": int(by_mon.max()) if len(by_mon) else carrying,
+            "addon_window": r2(addon_period),    # Lakh over window
+            "addon_ann": r2(addon_ann),          # Lakh/yr
+        })
+    rows.sort(key=lambda r: -(r["addon_window"] or 0))
+    groups = {}
+    for r in rows:
+        groups[r["group"]] = groups.get(r["group"], 0.0) + (r["addon_window"] or 0)
+    return {
+        "months_covered": months,
+        "n_months": n_months,
+        "window_label": ("L%dM (%s)" % (n_months, "–".join([months[0], months[-1]]) if months else "")),
+        "unit": "INR Lakh",
+        "rows": rows[:top_n],
+        "row_count": len(rows),
+        "addon_by_group": [{"name": k, "addon": r2(v)} for k, v in
+                           sorted(groups.items(), key=lambda kv: -kv[1])],
+        "total_addon_window": r2(sum(r["addon_window"] or 0 for r in rows)),
+        "total_addon_ann": r2(sum(r["addon_ann"] or 0 for r in rows)),
+        "note": ("Per EAN, compared ONLY across comparable stores = sites of the "
+                 "product's dominant chain FORMAT (Chain Type from ChainMaster), so "
+                 "drug-store SKUs are measured against drug-store doors only. Target "
+                 "= distinct format-sites selling that product's Category; Carrying = "
+                 "format-sites selling this EAN; Add-on = missing sites × NSV per "
+                 "carrying site. Built from real store×article offtake; annualised = "
+                 "monthly avg × 12. Window is whatever store-level months are loaded "
+                 "(currently 2), refreshes to true L3M as more months arrive."),
+    }
+
+# --------------------------------------------------------------------------
 # UNIVERSE (distribution footprint)
 # --------------------------------------------------------------------------
 def universe_block(src):
@@ -2376,8 +2520,14 @@ def main():
                          "the newest one) into the EXISTING offtake block in data.js, adding "
                          "whatever new FY they fall into (FY27 today) without needing the original "
                          "FY24-26 pivot dump; idempotent, safe to re-run as more months arrive")
+    ap.add_argument("--distgap", action="store_true",
+                    help="(re)build the Distribution Gap & Add-on Revenue Potential block "
+                         "(D.dist_gap) in an existing data.js from the store x article offtake "
+                         "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
+                         "untouched. Idempotent; window grows as more months are added to --src")
     a = ap.parse_args()
     src = Path(a.src)
+    _REPO_ROOT = Path(__file__).resolve().parent.parent
 
     # ---- lightweight path: refresh ONLY detail_records in an existing data.js ----
     if a.detail_only:
@@ -2470,6 +2620,22 @@ def main():
                   + (f"  (months: {patched.get('months_'+t)})" if patched.get("months_"+t) else ""))
         return
 
+    # ---- lightweight path: (re)build the Distribution Gap block only ----
+    if a.distgap:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        dg = dist_gap_block(src, _REPO_ROOT)
+        if dg is None:
+            raise SystemExit(f"No .xlsb store x article offtake extracts found in --src ({src}).")
+        obj["dist_gap"] = dg
+        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        print(f"distgap: {dg['row_count']} products, window {dg['window_label']}, "
+              f"total add-on {dg['total_addon_window']} L over window "
+              f"({dg['total_addon_ann']} L/yr); groups "
+              + ", ".join(f"{g['name']}={g['addon']}" for g in dg['addon_by_group']))
+        return
+
     pdf, primary = primary_block(*[load_primary(src)])
     off_chains, off_zs = load_offtake(src)
     offtake = offtake_block(off_chains, off_zs)
@@ -2503,6 +2669,11 @@ def main():
         data["cm2"] = cm2
     if alloc is not None:
         data["alloc"] = alloc
+    dg = dist_gap_block(src, _REPO_ROOT)
+    if dg is not None:
+        data["dist_gap"] = dg
+        print(f"dist_gap: {dg['row_count']} products, window {dg['window_label']}, "
+              f"total add-on {dg['total_addon_window']} L")
     print(f"detail_records: {len(detail)} rows "
           f"({'REAL' if not detail_meta['representative'] else 'representative'})"
           + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
