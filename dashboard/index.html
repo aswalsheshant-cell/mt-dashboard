@@ -1477,7 +1477,7 @@ function buildInsights(){
 
 /* ---------------- DATA EXPLORER (drill-down + cascading filters) ---------------- */
 const REC = D.detail_records||[];
-const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],['Chain','Chain'],
+const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],['State','State'],['Chain','Chain'],
   ['Brand','Brand'],['Category','Category'],['SubCategory','Sub-category'],['Range','Range'],
   ['PackSize','Pack Size'],['Article','Article']];
 const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
@@ -1729,7 +1729,8 @@ const GAL_DIMS=[  // [canvasId, record field, title]  -- all fields exist in det
   ['galChain','Chain','NSV by Chain'],['galBrand','Brand','NSV by Brand'],
   ['galCat','Category','NSV by Category'],['galSub','SubCategory','NSV by Sub-Category'],
   ['galPack','PackSize','NSV by Net Weight'],['galRange','Range','NSV by Range'],
-  ['galZone','Zone','NSV by Zone'],['galChan','Channel','NSV by Channel'],
+  ['galZone','Zone','NSV by Zone'],['galState','State','NSV by State'],
+  ['galChan','Channel','NSV by Channel'],
   ['galArt','Article','Top 15 Products by NSV'],['galMonth','Month','NSV Trend Monthly'],
 ];
 const GAL_DIM_OF=Object.fromEntries(GAL_DIMS.map(([id,dim])=>[id,dim]));
@@ -1845,9 +1846,7 @@ function buildExplorer(){
      sorted high→low, and clicking a chart still filters the whole view. Use the ⭳ on any card for PNG / CSV / Excel.</p>
    <div class="grid g2">${GAL_DIMS.slice(0,2).map(([id,dim,t])=>galCardHtml(id,dim,t)).join('')}</div>
    <div class="grid g3">${GAL_DIMS.slice(2,8).map(([id,dim,t])=>galCardHtml(id,dim,t)).join('')}</div>
-   <div class="grid g2">${GAL_DIMS.slice(8).map(([id,dim,t])=>galCardHtml(id,dim,t)).join('')}</div>
-   <p class="drillhint" style="margin:2px 0 12px">NSV by <b>State</b> isn't shown here yet — <code>detail_records</code>
-     carries Zone but not State; it needs State added to the data build first (the store-level offtake has it).</p>
+   <div class="grid g3">${GAL_DIMS.slice(8).map(([id,dim,t])=>galCardHtml(id,dim,t)).join('')}</div>
    ${catDrillCardHtml('exCatDrill')}
    ${card(`Detail records${recs.length>cap?` — showing first ${cap} of ${num(recs.length)}`:` (${num(recs.length)})`}`,'Reflects all active filters.',
      `<div style="margin:-4px 0 10px"><button class="fbtn ghost" id="exExport">⭳ Export ALL filtered records (CSV)</button></div>
