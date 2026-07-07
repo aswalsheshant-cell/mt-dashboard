@@ -104,10 +104,22 @@ grain as File 1 (7,883 rows; totals reconcile to the existing FY25 Primary NSV t
 within 0.03%). This closes the specific gap `apply_chain_allocation()` in
 `scripts/build_dashboard_data.py` names in its own comment ("e.g. FY24-25, which the
 allocation file doesn't cover") — for the **dashboard build**, the equivalent rows are
-in `PowerBI/SeedData/Mapping/DistPrimary_Sheet2_FY24-25.csv`; paste them into Sheet2 of
-your local `Dist_primary_cont_based_on_secondary_MOM.xlsx` (that source file is
-gitignored, so this can't be wired in automatically) and re-run `--primary-only` to
-extend `load_chain_allocation_weights()` to FY24-25.
+in `PowerBI/SeedData/Mapping/DistPrimary_Sheet1_FY24-25.csv`, built against a real copy
+of `Dist_primary_cont_based_on_secondary_MOM.xlsx` (column order, the `Unique` dedup
+key, and the `Cont%` convention — blank for Direct rows, not `100` — all match that
+file exactly); paste them in as more rows and re-run `--primary-only` to extend
+`load_chain_allocation_weights()` to FY24-25.
+
+**Bug found and fixed against that same real file:** `load_chain_allocation_weights()`
+hardcoded `sheet_name="Sheet2"`, but the actual `Dist_primary_cont_based_on_secondary_MOM.xlsx`
+only has `Sheet1` and `Dist Primary Conv to Chain Art` — no `Sheet2` at all. Running the
+function against the real file threw `ValueError: Worksheet named 'Sheet2' not found`,
+which would have crashed the entire `--primary-only` build (nothing catches that error
+at the call site). Fixed to try `Sheet2` first, then fall back to `Sheet1`, so a rename
+either way doesn't break the build. Re-verified against the real file after the fix:
+9,282 (ship-to, brand, month) weight keys load successfully, and this file's own
+`Cont%` column confirms the existing derivation approach — every Distributor group's
+`Cont%` sums to 100.00 within float rounding (max deviation 0.02 across 818 groups).
 > **FY25 article-level distributor billing is not available, therefore chain × article
 > view is available only from FY25-26 onward.** Chain-level allocation (above) covers
 > FY24-25 in full; article-level does not, and isn't estimated from offtake mix as a

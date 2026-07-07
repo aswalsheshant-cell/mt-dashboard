@@ -231,8 +231,8 @@ def load_primary_v2(src):
 
 def load_chain_allocation_weights(src):
     """Read the secondary-driven Ship-To -> Chain Cont% allocation
-    (Dist_primary_cont_based_on_secondary_MOM.xlsx, Sheet2 = the already
-    chain-split Distributor rows). Returns {(ship_to_norm, brand_canon,
+    (Dist_primary_cont_based_on_secondary_MOM.xlsx, the already chain-split
+    Distributor rows sheet). Returns {(ship_to_norm, brand_canon,
     month_norm): [(chain_raw, fraction), ...]} with fractions derived from
     the sheet's own NSV split (normalised to sum to 1 per key) rather than
     trusting the printed Cont% column's rounding. Returns None if the file
@@ -241,7 +241,13 @@ def load_chain_allocation_weights(src):
     f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
     if not f.exists():
         return None
-    s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+    # Sheet name has varied across real exports of this file ("Sheet2" in
+    # earlier copies, "Sheet1" in the one currently in use) -- try both
+    # rather than hardcoding one and crashing the whole build on a rename.
+    try:
+        s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+    except ValueError:
+        s2 = pd.read_excel(f, sheet_name="Sheet1", header=1)
     s2.columns = [str(c).strip() for c in s2.columns]
     s2 = s2.dropna(subset=["NSV"])
     s2["_key"] = list(zip(
