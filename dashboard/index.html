@@ -1812,7 +1812,7 @@ function catDrillCardHtml(canvasId){
   if(!recFilter().length) return card('Category split','',`<p style="padding:24px 0;text-align:center;color:var(--muted);font-size:13px">No data available for selected filters.</p>`);
   const cat=catChartDrill||fOne('Category');
   const backBtn=cat?`<button class="fbtn ghost" id="${canvasId}Back" style="margin:0 0 10px">← All Categories</button>`:'';
-  const title=cat?`Sub-categories of "${cat}"`:`${metricLabel()} by Category — click a bar to drill into Sub-category`;
+  const title=cat?`Sub-categories of "${cat}"`:`Category → Sub-Category drill-down (${metricLabel()})`;
   const note=cat?'Click a sub-category to filter this view; ← to go back up to Category.':'Click a bar to see that Category\'s Sub-category split.';
   return card(title,note,`${backBtn}${cv(canvasId,true)}`);
 }
