@@ -78,6 +78,26 @@ File 1 columns: Ship To Name, Direct/Distributor, Chain, State, Zone, **NSV** (p
   ΣCont% ≠ 100%** — chain-level variance is 0 across the board.
 - Coverage: 14 months (Apr'25–May'26), 42 distributors, 9 brands, 47 chains.
 
+### QC dry-run result (chain level, File 1) — FY24-25
+Same dry-run repeated on `Primary_ShipTo_FY24-25.csv`, one methodological difference
+called out below.
+- Groups (Month+Ship To Name+Brand): **7,156**; involving a distributor: **626**.
+- **Variance = 0 by construction** for every distributor group with a non-zero total
+  — but for a different reason than Apr'25–May'26. There, `Cont%` is an
+  *independently reported* secondary-derived ratio that can genuinely disagree with
+  the primary split (that's what the R.C. Trade Link case above caught). FY24-25's
+  source has no separate secondary ratio column at all — `Cont%` here is *derived*
+  as `row NSV ÷ group total NSV`, so it reconciles to the input by definition. This
+  file cannot surface a Cont%-disagreement anomaly the way the Apr'25–May'26 one
+  did; it can only surface zero/offsetting-total groups (below).
+- **44 zero-total groups found** (Distributor, Ship-To × Brand × Month, all rows in
+  the group sum to ₹0 Lakh — genuinely no sale that month, not a data error): listed
+  in full in `SeedData/Mapping/QC_ZeroTotalGroups_FY24-25.csv`. `Cont%` is left
+  **blank** for these 51 rows (not fabricated as 0% or split evenly) — same
+  no-invented-numbers rule as the R.C. Trade Link fix. No negative-return-miscoded
+  case like R.C. Trade Link turned up in this file.
+- Coverage: 12 months (Apr'24–Mar'25), 40 distributors, 6 brands, 38 chains.
+
 **FY24-25 coverage added (chain level only):** `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-25.csv`
 now supplies the full Apr'24–Mar'25 year at the same Ship-To x Chain x Brand x Month
 grain as File 1 (7,883 rows; totals reconcile to the existing FY25 Primary NSV to
