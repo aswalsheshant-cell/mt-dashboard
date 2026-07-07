@@ -88,16 +88,24 @@ in `PowerBI/SeedData/Mapping/DistPrimary_Sheet2_FY24-25.csv`; paste them into Sh
 your local `Dist_primary_cont_based_on_secondary_MOM.xlsx` (that source file is
 gitignored, so this can't be wired in automatically) and re-run `--primary-only` to
 extend `load_chain_allocation_weights()` to FY24-25.
-Article-level allocation for FY24-25 is still blocked — "File 2" (article-wise
-distributor billing) does not exist for Apr'24–Mar'25 anywhere in this repo; only
-FY25-26 onward is loaded (`PowerBI/RawDataFolders/Primary_Article_Monthly/`).
+> **FY25 article-level distributor billing is not available, therefore chain × article
+> view is available only from FY25-26 onward.** Chain-level allocation (above) covers
+> FY24-25 in full; article-level does not, and isn't estimated from offtake mix as a
+> substitute — that would mix two different measurement bases (billed primary vs.
+> sold-through secondary) into one number without a documented, signed-off method, so
+> FY24-25 stays at chain/month grain only until a real File 2 extract for that year is
+> supplied.
+
 A `Chain Mapping` rollup (`PowerBI/SeedData/Masters/ChainMapping_Rollup.csv`) buckets
 the long tail of small/regional chains to "Others", keeping D-Mart, Reliance Retail,
 Lulu, More Retail, Apollo Healthco, Wellness Forever, H&G, Sancus, EB2B and CNC as
-their own rows. One chain, **Metro-CNC-RRL** (₹6.96 Cr FY25 NSV), is deliberately left
-unmapped: the existing `CHAIN_ALIASES` table in `build_dashboard_data.py` treats it as
-a Reliance Retail alias, but the naming suggests it may belong in the CNC bucket
-instead — needs a call before it's added to the rollup.
+their own rows. **Metro-CNC-RRL** (₹6.96 Cr FY25 NSV) is mapped to **CNC**, not
+Reliance Retail — overriding the existing `CHAIN_ALIASES` entry in
+`build_dashboard_data.py`, which currently treats `metro-cnc-rrl` as a Reliance Retail
+alias. That alias table is untouched by this change (editing it would silently
+reclassify Metro-CNC-RRL dashboard-wide, beyond just this rollup); if the dashboard's
+own Primary/Chain views should also show it under CNC rather than Reliance Retail,
+that alias needs updating separately as a deliberate follow-up.
 
 ## Step 3.5 — OFFTAKE ELIGIBILITY GATE (added; validation base = secondary offtake)
 Before any Chain × Brand × Article × Month primary is allocated, it must be
