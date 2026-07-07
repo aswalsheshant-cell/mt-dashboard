@@ -78,6 +78,27 @@ File 1 columns: Ship To Name, Direct/Distributor, Chain, State, Zone, **NSV** (p
   ΣCont% ≠ 100%** — chain-level variance is 0 across the board.
 - Coverage: 14 months (Apr'25–May'26), 42 distributors, 9 brands, 47 chains.
 
+**FY24-25 coverage added (chain level only):** `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-25.csv`
+now supplies the full Apr'24–Mar'25 year at the same Ship-To x Chain x Brand x Month
+grain as File 1 (7,883 rows; totals reconcile to the existing FY25 Primary NSV to
+within 0.03%). This closes the specific gap `apply_chain_allocation()` in
+`scripts/build_dashboard_data.py` names in its own comment ("e.g. FY24-25, which the
+allocation file doesn't cover") — for the **dashboard build**, the equivalent rows are
+in `PowerBI/SeedData/Mapping/DistPrimary_Sheet2_FY24-25.csv`; paste them into Sheet2 of
+your local `Dist_primary_cont_based_on_secondary_MOM.xlsx` (that source file is
+gitignored, so this can't be wired in automatically) and re-run `--primary-only` to
+extend `load_chain_allocation_weights()` to FY24-25.
+Article-level allocation for FY24-25 is still blocked — "File 2" (article-wise
+distributor billing) does not exist for Apr'24–Mar'25 anywhere in this repo; only
+FY25-26 onward is loaded (`PowerBI/RawDataFolders/Primary_Article_Monthly/`).
+A `Chain Mapping` rollup (`PowerBI/SeedData/Masters/ChainMapping_Rollup.csv`) buckets
+the long tail of small/regional chains to "Others", keeping D-Mart, Reliance Retail,
+Lulu, More Retail, Apollo Healthco, Wellness Forever, H&G, Sancus, EB2B and CNC as
+their own rows. One chain, **Metro-CNC-RRL** (₹6.96 Cr FY25 NSV), is deliberately left
+unmapped: the existing `CHAIN_ALIASES` table in `build_dashboard_data.py` treats it as
+a Reliance Retail alias, but the naming suggests it may belong in the CNC bucket
+instead — needs a call before it's added to the rollup.
+
 ## Step 3.5 — OFFTAKE ELIGIBILITY GATE (added; validation base = secondary offtake)
 Before any Chain × Brand × Article × Month primary is allocated, it must be
 **proven by secondary offtake**. This prevents inflating contribution for a
