@@ -120,6 +120,53 @@ either way doesn't break the build. Re-verified against the real file after the 
 9,282 (ship-to, brand, month) weight keys load successfully, and this file's own
 `Cont%` column confirms the existing derivation approach — every Distributor group's
 `Cont%` sums to 100.00 within float rounding (max deviation 0.02 across 818 groups).
+
+### FY24-25 Cont% methodology — ship-to total, applied uniformly across brands
+Superseding the per-(Ship-To, **Brand**, Month) derivation described in the QC
+dry-run above. Confirmed against the real Apr'25–May'26 file that its `Cont%` genuinely
+varies by brand within one ship-to/month (e.g. one ship-to's Aqualogica split
+4%/32%/22%/42% across 4 chains, while its BBlunt split only 16%/84% across 2, same
+month) — that's possible there because FY25-26+ has an *independently reported*
+secondary-derived ratio per brand. **FY24-25 has no such independent source.** Per
+explicit instruction, FY24-25 Distributor rows now use a **ship-to total ratio,
+applied uniformly across every brand at that ship-to/month** instead:
+```
+Chain Ratio[chain]  =  SUM(NSV, all brands, that chain)  /  SUM(NSV, all brands, all chains)
+                       -- per (Ship-To, Month)
+New NSV[brand, chain]  =  Brand Total NSV[brand]  x  Chain Ratio[chain]
+Cont%[brand, chain]    =  Chain Ratio[chain] x 100   -- same value for every brand
+```
+Effects, all verified on `DistPrimary_Sheet1_FY24-25.csv`:
+- **Row count grew from 1,351 to 2,237** (Distributor rows) — a brand now gets a row
+  for every chain the *ship-to* touched that month, not just the chains that brand's
+  own original rows happened to list.
+- **Per-(Ship-To, Brand, Month) and per-(Ship-To, Month) NSV totals are unchanged**
+  (max diff 3e-6, float rounding) — this redistributes *where* a brand's total lands
+  across chains, never changes how much of that brand the ship-to billed.
+- **Chain-level rollup totals are mathematically identical to the old per-brand
+  derivation** — `ChainMapping_Rollup.csv`'s FY25 totals per chain (D-Mart ₹85.30 Cr,
+  Reliance Retail ₹64.39 Cr, etc.) don't move at all, because
+  `Σ(brand_total × chain_ratio) over brands = chain_ratio × Σ(brand_total) = chain_total`
+  by construction. Only the brand × chain split *within* each chain changes.
+- **Known artifact, not a bug:** because the ratio now blends every brand's activity
+  (including returns/credits) into one ship-to-level number, a brand with a small
+  positive total at a ship-to/month where another brand posted a return can come out
+  with a **negative `Cont%` or one over 100%** for a specific chain — e.g.
+  `Arc Foods And Beverages_Mt_H&G / Aqualogica / Aug'24` shows -4.44% for Apollo
+  Healthco and 104.44% for H&G. The two still sum to 100% and the brand's total NSV
+  is unchanged; it's the visible cost of not having brand-specific data to keep each
+  brand's own sign/shape intact.
+
+**Flag, as requested: FY24-25's Cont% is derived from the primary split itself, not
+independently cross-checked.** It can validate zero-total/missing groups (the 44
+found above still apply) and confirm every group reconciles to its own input by
+construction. It **cannot** catch a *disagreement* between the primary split and an
+independent secondary-derived ratio, because no such independent source exists for
+FY24-25 — unlike Apr'25–May'26, where that disagreement check is what caught the
+R.C. Trade Link error. **FY25-26+ is untouched by any of this** — it keeps its
+existing brand-specific, independently reported secondary-derived split as the
+source of truth.
+
 > **FY25 article-level distributor billing is not available, therefore chain × article
 > view is available only from FY25-26 onward.** Chain-level allocation (above) covers
 > FY24-25 in full; article-level does not, and isn't estimated from offtake mix as a
