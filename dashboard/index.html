@@ -89,10 +89,11 @@
   .badge{display:inline-block;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:20px;font-size:11.5px;margin-top:8px}
   .topbar{position:sticky;top:0;z-index:20;background:#fff;box-shadow:var(--shadow)}
   nav{position:static;box-shadow:none}
-  .filterbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;
+  .filterbar{display:flex;flex-direction:column;gap:8px;
       padding:10px 14px;border-top:1px solid var(--line);background:#fbfaf7}
-  .filterbar .fl{display:flex;flex-direction:column;gap:2px}
-  .filterbar .fl span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .fbar-row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end}
+  .filterbar .fl{display:flex;flex-direction:column;gap:2px;position:relative}
+  .filterbar .fl>span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
   .filterbar select{font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;
       border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:104px;max-width:180px}
   .filterbar select:focus{outline:2px solid var(--teal);border-color:var(--teal)}
@@ -100,10 +101,42 @@
       border:0;border-radius:8px;padding:8px 14px;cursor:pointer;align-self:flex-end}
   .fbtn:hover{background:var(--teal-d)}
   .fbtn.ghost{background:#fff;color:var(--teal-d);border:1px solid var(--teal)}
-  .fcount{font-size:12px;color:var(--muted);align-self:center;margin-left:auto}
+  .fcount{font-size:12px;color:var(--muted);align-self:center}
+  .fnodata{color:var(--red);font-weight:700}
   .fchip{display:inline-flex;align-items:center;gap:5px;background:#e6f4ef;color:var(--teal-d);
       border:1px solid #bfe3d6;border-radius:16px;padding:2px 9px;font-size:11.5px;font-weight:600}
   .fchip b{cursor:pointer}
+  .tmode{display:inline-flex;gap:2px;background:#eeece5;border-radius:8px;padding:3px}
+  .tmode button{font-family:inherit;border:0;background:none;font-size:11.5px;font-weight:700;
+      color:var(--muted);padding:6px 11px;border-radius:6px;cursor:pointer;white-space:nowrap}
+  .tmode button.active{background:var(--teal);color:#fff}
+  .tmode button:not(.active):hover{color:var(--ink)}
+  .finfo{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;
+      border-radius:50%;border:1px solid var(--muted);color:var(--muted);font-size:9px;
+      font-weight:700;font-style:normal;line-height:1;cursor:help;margin-left:2px}
+  .msel summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;
+      font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;border:1px solid var(--line);
+      border-radius:8px;padding:6px 8px;min-width:104px;max-width:180px;justify-content:space-between}
+  .msel summary::-webkit-details-marker{display:none}
+  .msel summary::after{content:'▾';font-size:9px;color:var(--muted)}
+  .msel[open] summary{border-color:var(--teal);outline:2px solid var(--teal)}
+  .msel-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;
+      border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);width:230px;padding:8px}
+  .msel-actions{display:flex;gap:6px;margin-bottom:6px}
+  .msel-actions button{flex:1;font-family:inherit;font-size:11px;font-weight:700;color:var(--teal-d);
+      background:#f4f1ec;border:1px solid var(--line);border-radius:6px;padding:5px;cursor:pointer}
+  .msel-actions button:hover{background:var(--bg)}
+  .msel-search{width:100%;box-sizing:border-box;font-family:inherit;font-size:12.5px;padding:6px 8px;
+      border:1px solid var(--line);border-radius:6px;margin-bottom:6px}
+  .msel-opts{max-height:220px;overflow:auto}
+  .msel-opts label{display:flex;align-items:center;gap:7px;font-size:12.5px;padding:4px 4px;
+      border-radius:5px;cursor:pointer}
+  .msel-opts label:hover{background:var(--bg)}
+  .msel-opts label input{margin:0}
+  .msel-empty{font-size:12px;color:var(--muted);padding:6px 3px}
+  .gmetric-lab{font-size:12px;font-weight:700;color:var(--ink)}
+  .gmetric{font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;background:var(--ink);
+      border:0;border-radius:8px;padding:7px 10px;cursor:pointer}
   .repbanner{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:10px;
       padding:9px 13px;font-size:12.5px;margin:0 0 14px}
   .fynote{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:8px;
@@ -552,7 +585,9 @@ document.addEventListener('click',e=>{
     det.open=false;
     return;
   }
-  document.querySelectorAll('details.chartdl[open],details.pagedl[open]').forEach(d=>{ if(!d.contains(e.target)) d.open=false; });
+  document.querySelectorAll('details.chartdl[open],details.pagedl[open],details.msel[open]').forEach(d=>{
+    if(!d.contains(e.target)){ d.open=false; if(d.classList.contains('msel') && openMsel===d.dataset.mkey) openMsel=null; }
+  });
 });
 
 /* ---------------- OVERVIEW ---------------- */
@@ -1287,6 +1322,7 @@ function buildCategory(){
      ${active?'Scoped to the active filter below — remove a chip or Reset to see all.':'Click any chart/table cell here (or on another tab) to scope this view — e.g. drill into a Chain to see that chain\'s own unique-article ranking.'}</p>
    ${rep}
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
+   ${!recs.length?`<div class="fynote"><b>No data available for selected filters.</b> Adjust or reset the filter bar above.</div>`:''}
    <div class="kpis">
      ${kpi('NSV Covered',crc(totNSV),`${num(recs.length)} article-level records`)}
      ${kpi('Unique Articles',num(topArt.length<20?topArt.length:uniqueBy(recs,'Article').length),'in this view')}
@@ -1479,7 +1515,7 @@ function buildInsights(){
 const REC = D.detail_records||[];
 const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],['State','State'],['Chain','Chain'],
   ['Brand','Brand'],['Category','Category'],['SubCategory','Sub-category'],['Range','Range'],
-  ['PackSize','Pack Size'],['Article','Article']];
+  ['PackSize','Net Weight'],['Article','Article']];
 const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
 // MULTI-SELECT filter state: each dimension holds an ARRAY of selected values
 // (empty = All). Values in a dimension are OR'd together; dimensions are
@@ -1516,37 +1552,175 @@ function optsFor(key){
   else vals.sort((a,b)=>String(a).localeCompare(String(b)));
   return vals;
 }
+
+// ---- Global metric selector (NSV / MRP Sales / Sales Qty) --------------------
+// Drives the record-driven visuals that are genuinely metric-agnostic: the
+// Category->Sub-category drill chart shared by every tab (catDrillCardHtml /
+// renderCatDrillChart) and the Data Explorer's chart gallery (already had a
+// PER-CARD metric picker; this sets/overrides their shared default). Each
+// tab's own bespoke pre-aggregated KPIs/charts (Primary NSV, Offtake sell-out,
+// P&L margin, Market Share %, Distribution coverage, Forecast target) are left
+// untouched -- those aren't NSV/MRP/Qty-interchangeable, so forcing a swap
+// there would replace correct business logic with a wrong number. TDP isn't a
+// per-record field anywhere in data.js (it only exists as store "carrying"
+// counts inside the separate Distribution-tab dataset), so it isn't offered
+// here rather than fabricating a number.
+const METRIC_OPTS=[['NSV','NSV (₹)'],['MRP','MRP Sales (₹)'],['Qty','Sales QTY']];
+let GMETRIC='NSV';
+function metricLabel(){ return (METRIC_OPTS.find(([v])=>v===GMETRIC)||[])[1]||GMETRIC; }
+function onMetricChange(){
+  Object.keys(galState).forEach(id=>{ galState[id].metric=GMETRIC; });   // global metric wins over any per-card override until changed again
+  show(currentTab||'overview');
+}
+
+// ---- TIME grain (FY / Half / Quarter / Month / Custom) -----------------------
+// FY stays its own always-visible multi-select dropdown (dims below); these
+// buttons pick what ELSE narrows the period. Half/Quarter/Custom are computed
+// from the real Month field (THE ONE FY RULE's month->FY logic already treats
+// April as the FY start), never a separate fabricated dimension.
+let TIME_MODE='FY', halfSel=[], quarterSel=[], customFrom='', customTo='';
+const HALF_MAP={H1:MORDER.slice(0,6),H2:MORDER.slice(6,12)};
+const QUARTER_MAP={Q1:MORDER.slice(0,3),Q2:MORDER.slice(3,6),Q3:MORDER.slice(6,9),Q4:MORDER.slice(9,12)};
+function applyHalf(){ F.Month=halfSel.flatMap(h=>HALF_MAP[h]||[]); onFilterChange(); }
+function applyQuarter(){ F.Month=quarterSel.flatMap(q=>QUARTER_MAP[q]||[]); onFilterChange(); }
+function applyCustom(){
+  if(!customFrom||!customTo){ F.Month=[]; onFilterChange(); return; }
+  const i0=MORDER.indexOf(customFrom), i1=MORDER.indexOf(customTo);
+  F.Month=i0<=i1?MORDER.slice(i0,i1+1):MORDER.slice(i1,i0+1);
+  onFilterChange();
+}
+function setTimeMode(mode){
+  TIME_MODE=mode;
+  if(mode==='FY'){ F.Month=[]; halfSel=[]; quarterSel=[]; customFrom=''; customTo=''; }
+  onFilterChange();
+}
+
+// ---- Checkbox multi-select dropdown widget (search / select all / clear all) --
+// Built on native <details>/<summary> (same idiom as the chart download menus
+// above) so open/close needs no extra JS state machine, and every panel shares
+// one exclusive-open group via name="msel-group". `openMsel` remembers which
+// dropdown was open across the full-bar re-render that follows every checkbox
+// click (renderFilterBar rebuilds the DOM each time, same pattern the old
+// single-select bar already used), so the panel doesn't visibly snap shut.
+let openMsel=null;
+const mselSearch={};
+function mselBacking(key){
+  if(key==='Half') return {get:()=>halfSel, set:a=>{halfSel=a; applyHalf();}, options:()=>['H1','H2']};
+  if(key==='Quarter') return {get:()=>quarterSel, set:a=>{quarterSel=a; applyQuarter();}, options:()=>['Q1','Q2','Q3','Q4']};
+  return {get:()=>F[key], set:a=>{ F[key]=a; if(key==='Category'&&!a.length) catChartDrill=null; onFilterChange(); }, options:()=>optsFor(key)};
+}
+function mselToggle(key,val){
+  const b=mselBacking(key), cur=b.get().slice(), i=cur.indexOf(val);
+  if(i>=0) cur.splice(i,1); else cur.push(val);
+  b.set(cur);
+}
+function mselSelectAll(key){ mselBacking(key).set(mselBacking(key).options().map(String)); }
+function mselClearAll(key){ mselBacking(key).set([]); }
+function mselOptionsHtml(key,options,selected){
+  const q=(mselSearch[key]||'').toLowerCase();
+  const filtered=q?options.filter(v=>String(v).toLowerCase().includes(q)):options;
+  if(!filtered.length) return `<div class="msel-empty">No matches.</div>`;
+  return filtered.map(v=>{
+    const s=String(v).replace(/"/g,'&quot;'), on=selected.includes(String(v));
+    return `<label><input type="checkbox" data-mopt="${s}" ${on?'checked':''}> ${v}</label>`;
+  }).join('');
+}
+function mselHtml(key,label,tooltip,options,selected){
+  const isOpen=openMsel===key;
+  const n=selected.length, tot=options.length;
+  const trigger=!n?'All':(n===tot?'All':`${n} selected`);
+  return `<div class="fl"><span>${label}${tooltip?` <i class="finfo" title="${tooltip.replace(/"/g,'&quot;')}">i</i>`:''}</span>
+    <details class="msel" name="msel-group" data-mkey="${key}"${isOpen?' open':''}>
+      <summary>${trigger}</summary>
+      <div class="msel-panel">
+        <div class="msel-actions"><button type="button" data-mact="all">Select all</button><button type="button" data-mact="none">Clear all</button></div>
+        <input class="msel-search" data-msearch placeholder="Search…" value="${(mselSearch[key]||'').replace(/"/g,'&quot;')}">
+        <div class="msel-opts">${mselOptionsHtml(key,options,selected.map(String))}</div>
+      </div>
+    </details></div>`;
+}
+function customRangeHtml(){
+  const opts=sel=>`<option value="">–</option>${MORDER.map(m=>`<option value="${m}"${m===sel?' selected':''}>${m}</option>`).join('')}`;
+  return `<div class="fl"><span>From</span><select data-crange="from">${opts(customFrom)}</select></div>
+    <div class="fl"><span>To</span><select data-crange="to">${opts(customTo)}</select></div>`;
+}
+const TOPBAR_DIM_LAB={FY:'FY',Brand:'Brand',Category:'Category',SubCategory:'Sub-Category',Range:'Range',
+  PackSize:'Net Weight',Channel:'Channel',Chain:'Chain',Zone:'Zone',State:'State'};
+
 function renderFilterBar(){
   const fb=document.getElementById('filterbar');
   const anyActive=FILT.some(([k])=>F[k].length);
-  fb.innerHTML = FILT.map(([k,lab])=>{
-    const opts=optsFor(k), sel=F[k];
-    return `<label class="fl"><span>${lab}</span><select data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
-      <option value="">${sel.length?`${sel.length} selected — clear`:'All'}</option>
-      ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');const on=sel.includes(String(v));
-        return `<option value="${s}">${on?'✓ ':''}${v}</option>`;}).join('')}
-    </select></label>`;
-  }).join('')
-  + `<button class="fbtn ghost" id="fReset">↺ Reset filters</button>`
-  + `<details class="pagedl"><summary class="fbtn">⭳ Download Page</summary>
-       <div class="chartdl-menu" style="min-width:170px">
-         <button data-pagefmt="pdf">📄 PDF</button>
-         <button data-pagefmt="png">🖼 PNG Image</button>
-       </div></details>`
-  + `<span class="fcount" id="fCount">${anyActive?'Filtered · ':''}${num(recFilter().length)} records</span>`
-  + (anyActive?`<span style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px">${activeChipsHtml()}</span>`:'');
-  // multi-select via native dropdowns: picking an option TOGGLES it in/out of
-  // the selection (✓ marks selected ones); the first line clears the dimension.
-  fb.querySelectorAll('select').forEach(sel=>{
-    sel.onchange=()=>{
-      const k=sel.dataset.k, v=sel.value;
-      if(v==='') F[k]=[];
-      else{ const i=F[k].indexOf(v); if(i>=0) F[k].splice(i,1); else F[k].push(v); }
-      if(k==='Category'&&!F[k].length) catChartDrill=null;
-      onFilterChange();
+  const msel=k=>mselHtml(k,TOPBAR_DIM_LAB[k],'',optsFor(k),F[k]);
+  const timeExtra = TIME_MODE==='Half' ? mselHtml('Half','Half','H1 = Apr–Sep · H2 = Oct–Mar',['H1','H2'],halfSel)
+    : TIME_MODE==='Quarter' ? mselHtml('Quarter','Quarter','Q1 Apr–Jun · Q2 Jul–Sep · Q3 Oct–Dec · Q4 Jan–Mar',['Q1','Q2','Q3','Q4'],quarterSel)
+    : TIME_MODE==='Month' ? mselHtml('Month','Month','',optsFor('Month'),F.Month)
+    : TIME_MODE==='Custom' ? customRangeHtml()
+    : '';
+  const recCount=recFilter().length;
+  fb.innerHTML = `
+    <div class="fbar-row">
+      <div class="fl"><span>Time</span><div class="tmode">${['FY','Half','Quarter','Month','Custom'].map(m=>
+        `<button type="button" data-tmode="${m}" class="${TIME_MODE===m?'active':''}">${m}</button>`).join('')}</div></div>
+      ${timeExtra}
+      ${msel('FY')}${msel('Brand')}${msel('Category')}${msel('SubCategory')}${msel('Range')}${msel('PackSize')}
+    </div>
+    <div class="fbar-row">
+      ${msel('Channel')}${msel('Chain')}${msel('Zone')}${msel('State')}
+      <button class="fbtn ghost" id="fReset" style="margin-left:auto">↺ Reset filters</button>
+    </div>
+    ${anyActive?`<div class="fbar-row" style="gap:6px">
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);align-self:center">Filtered by:</span>
+      ${activeChipsHtml()}</div>`:''}
+    <div class="fbar-row" style="justify-content:space-between">
+      <span class="fcount" id="fCount">${anyActive?'Filtered: ':''}${num(recCount)} record${recCount===1?'':'s'}${!recCount?' — <span class="fnodata">No data available for selected filters.</span>':''}</span>
+    </div>
+    <div class="fbar-row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:8px;margin-top:2px">
+      <label class="fl" style="flex-direction:row;align-items:center;gap:7px">
+        <span class="gmetric-lab">Metric for all cards, graphs &amp; tables:</span>
+        <select class="gmetric" id="gMetricSel">${METRIC_OPTS.map(([v,l])=>`<option value="${v}"${v===GMETRIC?' selected':''}>${l}</option>`).join('')}</select>
+      </label>
+      <details class="pagedl"><summary class="fbtn">⭳ Download Page</summary>
+        <div class="chartdl-menu" style="min-width:170px">
+          <button data-pagefmt="pdf">📄 PDF</button>
+          <button data-pagefmt="png">🖼 PNG Image</button>
+        </div></details>
+    </div>`;
+  wireFilterBarEvents(fb);
+}
+function wireMselCheckboxes(root,key){
+  root.querySelectorAll('input[data-mopt]').forEach(cb=>{ cb.onchange=()=>mselToggle(key,cb.dataset.mopt); });
+}
+function wireFilterBarEvents(fb){
+  fb.querySelectorAll('[data-tmode]').forEach(b=>b.onclick=()=>setTimeMode(b.dataset.tmode));
+  fb.querySelectorAll('details.msel').forEach(det=>{
+    det.addEventListener('toggle',()=>{ if(det.open) openMsel=det.dataset.mkey; else if(openMsel===det.dataset.mkey) openMsel=null; });
+    wireMselCheckboxes(det.querySelector('.msel-opts'),det.dataset.mkey);
+  });
+  fb.querySelectorAll('[data-mact]').forEach(btn=>{
+    btn.onclick=e=>{ e.preventDefault(); const key=btn.closest('details.msel').dataset.mkey;
+      if(btn.dataset.mact==='all') mselSelectAll(key); else mselClearAll(key); };
+  });
+  fb.querySelectorAll('[data-msearch]').forEach(inp=>{
+    const key=inp.closest('details.msel').dataset.mkey;
+    inp.oninput=()=>{
+      mselSearch[key]=inp.value;
+      const optsWrap=inp.closest('.msel-panel').querySelector('.msel-opts');
+      const b=mselBacking(key);
+      optsWrap.innerHTML=mselOptionsHtml(key,b.options(),b.get().map(String));
+      wireMselCheckboxes(optsWrap,key);
     };
   });
-  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;onFilterChange();};
+  fb.querySelectorAll('[data-crange]').forEach(sel=>{
+    sel.onchange=()=>{ if(sel.dataset.crange==='from') customFrom=sel.value; else customTo=sel.value; applyCustom(); };
+  });
+  const gm=fb.querySelector('#gMetricSel');
+  if(gm) gm.onchange=()=>{ GMETRIC=gm.value; onMetricChange(); };
+  const rst=fb.querySelector('#fReset');
+  if(rst) rst.onclick=()=>{
+    FILT.forEach(([k])=>F[k]=[]); catChartDrill=null;
+    TIME_MODE='FY'; halfSel=[]; quarterSel=[]; customFrom=''; customTo=''; openMsel=null;
+    onFilterChange();
+  };
   fb.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
     F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
     if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;
@@ -1635,13 +1809,15 @@ function subcatPareto95(recs){
 // straight into that category's sub-categories.
 let catChartDrill=null;
 function catDrillCardHtml(canvasId){
+  if(!recFilter().length) return card('Category split','',`<p style="padding:24px 0;text-align:center;color:var(--muted);font-size:13px">No data available for selected filters.</p>`);
   const cat=catChartDrill||fOne('Category');
   const backBtn=cat?`<button class="fbtn ghost" id="${canvasId}Back" style="margin:0 0 10px">← All Categories</button>`:'';
-  const title=cat?`Sub-categories of "${cat}"`:'NSV by Category — click a bar to drill into Sub-category';
+  const title=cat?`Sub-categories of "${cat}"`:`${metricLabel()} by Category — click a bar to drill into Sub-category`;
   const note=cat?'Click a sub-category to filter this view; ← to go back up to Category.':'Click a bar to see that Category\'s Sub-category split.';
   return card(title,note,`${backBtn}${cv(canvasId,true)}`);
 }
 function renderCatDrillChart(canvasId,recs){
+  if(!recs.length) return;
   const backBtn=document.getElementById(canvasId+'Back');
   if(backBtn) backBtn.onclick=()=>{ catChartDrill=null; F.Category=[]; renderFilterBar(); show(currentTab); };
   const cat=catChartDrill||fOne('Category');
@@ -1655,7 +1831,7 @@ function renderCatDrillChart(canvasId,recs){
     labels=c.map(x=>x[0]); data=c.map(x=>x[1]);
     onClick=v=>{ catChartDrill=v; show(currentTab); };
   }
-  if(labels.length) mkBarH(canvasId,labels,data,C.teal,true,onClick);
+  if(labels.length) mkBarH(canvasId,labels,data,C.teal,GMETRIC!=='Qty',onClick);
 }
 
 // ---- FY/Month filter-awareness for tabs backed by PRE-AGGREGATED blocks ----
@@ -1693,7 +1869,7 @@ function dimUnsupportedNote(dims,source){
 
 let expCharts=[];
 function expDestroy(){expCharts.forEach(c=>c.destroy());expCharts=[];}
-function grp(recs,key){const m={};recs.forEach(r=>m[r[key]]=(m[r[key]]||0)+r.NSV);
+function grp(recs,key,metric){metric=metric||GMETRIC;const m={};recs.forEach(r=>m[r[key]]=(m[r[key]]||0)+(Number(r[metric])||0));
   return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
 function expBarH(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
@@ -1738,9 +1914,9 @@ const GAL_METRICS=[['NSV','NSV'],['MRP','MRP Value'],['Qty','Quantity']];
 const GAL_TYPES=[['barh','Bar'],['bar','Column'],['line','Line'],['area','Area'],['doughnut','Donut'],['pie','Pie']];
 const galState={};
 function galDefault(dim){
-  if(dim==='Month') return {metric:'NSV',type:'line'};
-  if(dim==='Category'||dim==='Channel'||dim==='Zone') return {metric:'NSV',type:'doughnut'};
-  return {metric:'NSV',type:'barh'};
+  if(dim==='Month') return {metric:GMETRIC,type:'line'};
+  if(dim==='Category'||dim==='Channel'||dim==='Zone') return {metric:GMETRIC,type:'doughnut'};
+  return {metric:GMETRIC,type:'barh'};
 }
 function galGet(id,dim){ return galState[id]||(galState[id]=galDefault(dim)); }
 function galControls(id,dim){
@@ -1750,7 +1926,10 @@ function galControls(id,dim){
     <label>Metric <select data-gal="metric" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_METRICS,st.metric)}</select></label>
     <label>Chart <select data-gal="type" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_TYPES,st.type)}</select></label></span>`;
 }
-function galCardHtml(id,dim,title){ return card(title,galControls(id,dim),cv(id,dim!=='Month'&&dim!=='Chain')); }
+function galCardHtml(id,dim,title){
+  const metLab=(GAL_METRICS.find(([v])=>v===galGet(id,dim).metric)||[])[1]||'NSV';
+  return card(title.replace('NSV',metLab),galControls(id,dim),cv(id,dim!=='Month'&&dim!=='Chain'));
+}
 function galAgg(recs,dim,metric){
   const m={};recs.forEach(r=>{ m[r[dim]]=(m[r[dim]]||0)+(Number(r[metric])||0); });
   let e=Object.entries(m).filter(x=>x[0]!=='undefined'&&x[0]!=='null'&&x[0]!=='');
@@ -1834,6 +2013,7 @@ function buildExplorer(){
    <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
    ${rep}
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
+   ${!recs.length?`<div class="fynote"><b>No data available for selected filters.</b> Adjust or reset the filter bar above.</div>`:''}
    <div class="kpis">
      ${kpi('NSV (filtered)',crc(nsv),`${num(recs.length)} records`)}
      ${kpi('MRP Value',crc(mrp),'gross basis')}
