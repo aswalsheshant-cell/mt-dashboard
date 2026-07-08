@@ -899,7 +899,15 @@ function buildOfftake(){
   // Python-computed months_fyNN/monthly_fyNN series (correct for ANY FY tag)
   // instead of re-deriving FY membership from a calendar-year suffix.
   let months, monthly;
-  if(fy){ months=o['months_'+fy]||[]; monthly=o['monthly_'+fy]||[]; }
+  if(fy){
+    monthly=o['monthly_'+fy]||[];
+    months=o['months_'+fy]||[];
+    // Some FYs carry monthly_fyNN but NOT months_fyNN (e.g. FY25 here) -- that
+    // left the trend chart with data points but no labels, so it drew blank and
+    // read "0 month(s)". Derive the FY's own Apr->Mar labels when they're
+    // missing/mismatched so the chart renders.
+    if(months.length!==monthly.length) months=fyMonthLabelsAbbr(fy,monthly.length);
+  }
   else { months=o.months; monthly=o.monthly; }
   if(fOn('Month')){
     const keep=months.map((m,i)=>i).filter(i=>F.Month.some(mm=>mAbbr(months[i])===mAbbr(mm)));
@@ -916,13 +924,17 @@ function buildOfftake(){
    <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
    ${dimNote}
    <div class="kpis">
-     ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
-       kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
-     ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') :
-       kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')}
-     ${fy? kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master') :
-       kpi('Chains Tracked',o.n_chains,'in offtake master')}
-     ${kpi('Sell-through',primFor(yrs[yrs.length-1])?((totFor(yrs[yrs.length-1])/primFor(yrs[yrs.length-1]))*100).toFixed(0)+'%':'–',`offtake ÷ primary ${yrLab[yrs[yrs.length-1]]}`)}
+     ${fy
+       // single FY selected: 3 DISTINCT cards -- the old code rendered "Chains
+       // Tracked" in BOTH the 2nd and 3rd slots (a visible duplicate).
+       ? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'sell-out')
+         + kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')
+         + kpi('Sell-through',primFor(fy)?((totFor(fy)/primFor(fy))*100).toFixed(0)+'%':'–',`offtake ÷ primary ${yrLab[fy]}`)
+       : kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)
+         + kpi('Offtake FY25',crc(o.total_fy25),'base year')
+         + kpi('Chains Tracked',o.n_chains,'in offtake master')
+         + kpi('Sell-through',primFor('fy26')?((totFor('fy26')/primFor('fy26'))*100).toFixed(0)+'%':'–','offtake ÷ primary FY26')
+     }
    </div>
    <div class="grid g2">
      ${card('Monthly offtake trend',`${months.length} month(s)${fOn('Month')?` — filtered to ${fLab('Month')}`:''}.`,cv('ofTrend'))}
@@ -1306,6 +1318,16 @@ function buildCategory(){
   const s=document.getElementById('tab-category');
   const recs=recFilter();
   const active=activeChipsHtml();
+  // FY with no article-level rows (e.g. FY25): one honest panel, not a grid of
+  // blank chart cards -- this tab is inherently article-level, so there is
+  // nothing to show for an FY the detail records don't cover.
+  if(!recs.length){
+    s.innerHTML=`<h2 class="sec">Category &amp; Pack</h2>
+     <p class="lead">NSV performance by Sub-category, Range and Pack Size, from the article-level primary detail.</p>
+     ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
+     ${recEmptyPanel('Category &amp; Pack')}`;
+    return;
+  }
   const rep=(D.detail_meta&&D.detail_meta.representative)
     ? `<div class="repbanner"><b>Representative data.</b> Category/Sub-category/Pack Size are taxonomy
        placeholders until the granular source feeds build_dashboard_data.py — see dashboard/README.md.</div>` : '';
@@ -1530,6 +1552,41 @@ const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one sele
 function recFilter(except){
   return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(String(r[k])) ));
 }
+// FYs actually present in the article-level detail records. The record-driven
+// tabs (Data Explorer, Category & Pack) can ONLY show these FYs; other FYs
+// (e.g. FY25) exist only in the pre-aggregated Primary/Offtake blocks. Without
+// this, filtering to FY25 renders the whole tab scaffold empty -- ₹0 KPIs and a
+// wall of blank chart cards -- which reads as broken. recEmptyPanel() replaces
+// that scaffold with one honest panel that says WHERE FY25's numbers actually
+// live (the Primary/Offtake tabs, which do carry it) instead of showing zeros.
+const REC_FYS=[...new Set(REC.map(r=>String(r.FY)))].sort();
+function recEmptyPanel(tabName){
+  const missing=F.FY.filter(fy=>!REC_FYS.includes(fy));
+  const scope=REC_FYS.length?REC_FYS.join(' / '):'the loaded months';
+  if(missing.length){
+    const lines=missing.map(fy=>{
+      const k='fy'+fy.slice(2);
+      const prim=(D.primary&&D.primary['nsv_'+k]!=null)?`Primary NSV ${crc(D.primary['nsv_'+k])}`:null;
+      const off =(D.offtake&&D.offtake['total_'+k]!=null)?`Offtake ${crc(D.offtake['total_'+k])}`:null;
+      const parts=[prim,off].filter(Boolean).join(' · ');
+      return `<li><b>${fy}</b>${parts?` — ${parts}`:''}</li>`;
+    }).join('');
+    return `<div class="card" style="border-left:5px solid var(--amber)">
+      <h3>Article-level detail not available for ${missing.join(', ')}</h3>
+      <p class="note" style="margin:0 0 10px">The <b>${tabName}</b> tab drills into article / category /
+        pack-size data, which the source only carries for <b>${scope}</b>.
+        ${missing.join(' and ')} ${missing.length>1?'exist':'exists'} only in the pre-aggregated
+        Primary &amp; Offtake blocks — those totals are shown on the <b>Primary</b> and <b>Offtake</b>
+        tabs (which support ${missing.join('/')}), not here:</p>
+      <ul style="margin:0 0 10px;font-size:13.5px;line-height:1.7">${lines}</ul>
+      <p class="note" style="margin:0">Remove the ${missing.join('/')} chip above (or select ${scope}) to use this tab.</p>
+    </div>`;
+  }
+  return `<div class="card" style="border-left:5px solid var(--amber)">
+    <h3>No data available for selected filters</h3>
+    <p class="note" style="margin:0">No article-level records match the current filter combination.
+      Remove a chip or press <b>Reset filters</b> above.</p></div>`;
+}
 // FY dropdown: derived from the data, never hardcoded, so a new FY (FY28+)
 // flows in automatically the moment its rows arrive. The pre-aggregated
 // Primary/Offtake/P&L blocks carry FY25/FY26 (their source workbook ends
@@ -1672,7 +1729,17 @@ function renderFilterBar(){
       <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);align-self:center">Filtered by:</span>
       ${activeChipsHtml()}</div>`:''}
     <div class="fbar-row" style="justify-content:space-between">
-      <span class="fcount" id="fCount">${anyActive?'Filtered: ':''}${num(recCount)} record${recCount===1?'':'s'}${!recCount?' — <span class="fnodata">No data available for selected filters.</span>':''}</span>
+      <span class="fcount" id="fCount">${anyActive?'Filtered: ':''}${num(recCount)} article-level record${recCount===1?'':'s'}${!recCount?(function(){
+        // This counter is article-level detail only. Some FYs (e.g. FY25) have
+        // no article detail but DO have pre-aggregated Primary/Offtake numbers
+        // shown on those tabs -- so say "article-level" and, when a whole FY is
+        // the reason, point at where its totals live, instead of a flat "no data"
+        // that contradicts the ₹-Cr cards visible right below on those tabs.
+        const missing=F.FY.filter(fy=>!REC_FYS.includes(fy));
+        return missing.length
+          ? ` — <span class="fnodata">no ${missing.join('/')} article detail</span> (its totals are on the Primary &amp; Offtake tabs)`
+          : ' — <span class="fnodata">No data available for selected filters.</span>';
+      })():''}</span>
     </div>
     <div class="fbar-row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:8px;margin-top:2px">
       <label class="fl" style="flex-direction:row;align-items:center;gap:7px">
@@ -1809,7 +1876,17 @@ function subcatPareto95(recs){
 // straight into that category's sub-categories.
 let catChartDrill=null;
 function catDrillCardHtml(canvasId){
-  if(!recFilter().length) return card('Category split','',`<p style="padding:24px 0;text-align:center;color:var(--muted);font-size:13px">No data available for selected filters.</p>`);
+  if(!recFilter().length){
+    // Honest, FY-aware note: on tabs that DO show FY25 pre-agg numbers up top,
+    // this article-level drill is the one thing that can't render for FY25 --
+    // say why, rather than a bare "No data" that looks like an error.
+    const missing=F.FY.filter(fy=>!REC_FYS.includes(fy));
+    const scope=REC_FYS.length?REC_FYS.join(' / '):'the loaded months';
+    const msg=missing.length
+      ? `Article-level category split isn't available for <b>${missing.join(', ')}</b> — the detail source covers ${scope}. FY totals are on the Primary &amp; Offtake tabs.`
+      : `No article-level records match the current filter. Remove a chip or Reset.`;
+    return card('Category split (article-level)','',`<p style="padding:20px 8px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6">${msg}</p>`);
+  }
   const cat=catChartDrill||fOne('Category');
   const backBtn=cat?`<button class="fbtn ghost" id="${canvasId}Back" style="margin:0 0 10px">← All Categories</button>`:'';
   const title=cat?`Sub-categories of "${cat}"`:`Category → Sub-Category drill-down (${metricLabel()})`;
@@ -1843,6 +1920,15 @@ function renderCatDrillChart(canvasId,recs){
 // silently ignoring the filter.
 function fyKey(){ const v=fOne('FY'); return v ? 'fy'+v.slice(2) : null; }  // exactly ONE FY selected -> "fy26"; none/multi -> null
 function fyTag(){ return fOne('FY')||null; }                               // exactly ONE FY selected -> "FY27"; none/multi -> null
+// FY tag ('fy25') -> its own Apr->Mar month labels ['Apr-24'..'Mar-25'], first
+// n only (an FY still mid-year has fewer months). Indian FY: Apr-Dec carry the
+// start calendar year, Jan-Mar the end year -- same ONE FY RULE used everywhere.
+function fyMonthLabelsAbbr(fy,n){
+  const endYY=parseInt(String(fy).slice(2),10), startYY=endYY-1, yy=x=>String(x).padStart(2,'0');
+  const seq=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(m=>`${m}-${yy(startYY)}`)
+    .concat(['Jan','Feb','Mar'].map(m=>`${m}-${yy(endYY)}`));
+  return seq.slice(0, n==null?12:n);
+}
 // FYs beyond the pre-aggregated window (FY27's Apr'26+ onward) exist ONLY in
 // the article-wise primary (File 2) -- the other report blocks' source workbook
 // ends Mar'26. FPX(tag) returns the exact chain-allocated aggregates for any
@@ -1979,8 +2065,17 @@ function buildExplorer(){
   expDestroy();
   const recs=recFilter();
   const s=document.getElementById('tab-explorer');
-  const nsv=recs.reduce((a,r)=>a+r.NSV,0),mrp=recs.reduce((a,r)=>a+r.MRP,0),qty=recs.reduce((a,r)=>a+r.Qty,0);
   const active=activeChipsHtml();
+  // FY with no article-level rows (e.g. FY25): show ONE honest panel, not the
+  // full scaffold of ₹0 KPIs + blank chart cards + empty table below.
+  if(!recs.length){
+    s.innerHTML=`<h2 class="sec">Data Explorer</h2>
+     <p class="lead">Filter, drill down and click any chart to slice. Values ₹ Crore unless noted.</p>
+     ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
+     ${recEmptyPanel('Data Explorer')}`;
+    return;
+  }
+  const nsv=recs.reduce((a,r)=>a+r.NSV,0),mrp=recs.reduce((a,r)=>a+r.MRP,0),qty=recs.reduce((a,r)=>a+r.Qty,0);
   const rep=(D.detail_meta&&D.detail_meta.representative)
     ? `<div class="repbanner"><b>Representative data.</b> Drill-down runs on <code>detail_records</code> whose Chain/Brand/Zone/Channel/Month/FY totals match the real primary; Category, Sub-category, Pack Size and Article are taxonomy placeholders until the granular source feeds <code>build_dashboard_data.py</code>.</div>` : '';
   const cap=400, shown=recs.slice(0,cap);
