@@ -167,13 +167,40 @@ R.C. Trade Link error. **FY25-26+ is untouched by any of this** — it keeps its
 existing brand-specific, independently reported secondary-derived split as the
 source of truth.
 
-> **FY25 article-level distributor billing is not available, therefore chain × article
-> view is available only from FY25-26 onward.** Chain-level allocation (above) covers
-> FY24-25 in full; article-level does not, and isn't estimated from offtake mix as a
-> substitute — that would mix two different measurement bases (billed primary vs.
-> sold-through secondary) into one number without a documented, signed-off method, so
-> FY24-25 stays at chain/month grain only until a real File 2 extract for that year is
-> supplied.
+> **FY25 article-level distributor billing is not available, therefore a *measured*
+> chain × article view is available only from FY25-26 onward.** No article-level data
+> of any kind (primary or offtake) exists for Apr'24–Mar'25 — the earliest article-level
+> month anywhere in the repo is Apr'25.
+
+### FY24-25 category split — ESTIMATED from offtake mix (business-directed, review-only)
+Built on explicit instruction to push FY24-25 distributor primary down to
+Chain × Brand × Category × Sub-Category × Range × Net Weight using the offtake
+article structure. Output: `PowerBI/SeedData/Mapping/DistPrimary_FY24-25_CategorySplit_offtakemix.csv`
+(54,650 rows; summary in `..._summary.csv`).
+
+Method:
+```
+For each Chain × Brand in the offtake store-article files, compute each
+(Category, Sub-Category, Range, Net Weight)'s share of that chain×brand's offtake NSV.
+Split each FY24-25 DISTRIBUTOR primary Chain×Brand×Month NSV/MRP by those shares.
+```
+Properties, all verified:
+- **Chain totals are IDENTICAL** to the chain-level version — max chain NSV diff `0.00`
+  (shares sum to 1 within each chain×brand, so only the *within-chain* category detail
+  is redistributed, never the chain total). Distributor grand total ₹89.48 Cr in = out.
+- **Distributor rows only.** Direct-account rows are untouched (not part of this working).
+- 19 chain×brand combos (₹2.58 Cr) have no offtake listing → kept at brand level, tagged
+  `(no offtake listing)` rather than force-split.
+
+**Two caveats, stated plainly and carried in every row (`Article source` column):**
+1. The only article-level offtake in the repo is **Apr'26 + May'26 (FY27)**, so this
+   uses an **FY27 offtake mix as a proxy** for FY24-25's article structure — a
+   cross-period estimate, not measured FY24-25 category data.
+2. It blends measurement bases (billed primary split by sold-through offtake shares).
+   This is why it's an **estimate**, kept as a review-only working file and **NOT wired
+   into the live dashboard `data.js`** — the dashboard's FY25 tabs continue to show the
+   honest "article-level detail not available for FY25" panel until real FY24-25 article
+   data is supplied.
 
 A `Chain Mapping` rollup (`PowerBI/SeedData/Masters/ChainMapping_Rollup.csv`) buckets
 the long tail of small/regional chains to "Others", keeping D-Mart, Reliance Retail,
