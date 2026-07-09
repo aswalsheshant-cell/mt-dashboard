@@ -583,8 +583,9 @@ function buildOverview(){
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
-  s.innerHTML = `<h2 class="sec">Executive Overview</h2>
-   <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
+  s.innerHTML = `<h2 class="sec">Executive Overview — Situation & Insight</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 1:</strong> Understand the business, market & consumer deeply. ${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">🎯 <strong>Clear problem definition & growth-opportunity statement.</strong> Track Primary (sell-in to chains) vs Offtake (sell-out to consumers); gaps signal inventory imbalance. Identify top-performing channels, chains and brands to concentrate resources.</p>
    ${dimNote}
    <div class="kpis">
      ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–May actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
@@ -693,8 +694,9 @@ function buildPrimary(){
      is allocated this way; the remainder (no matching Ship-To × Brand × Month allocation entry,
      mainly FY24-25) keeps its original single-chain tag.</p>`:'';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'this source (see the Category & Pack tab for those)');
-  s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
-   <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
+  s.innerHTML=`<h2 class="sec">Primary (Sell-in) — Situation & Insight</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 1:</strong> Consumer demand signals from Modern Trade. Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">💡 Analyze primary demand by zone, channel, brand & chain. Compare with Offtake tab to identify inventory gaps and market trends.</p>
    ${dimNote}
    ${qcNote}
    <div class="kpis">
@@ -877,8 +879,9 @@ function buildOfftake(){
   const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
-  s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
-   <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
+  s.innerHTML=`<h2 class="sec">Offtake (Sell-out) — Execution Excellence</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 6:</strong> Perfect store execution — availability, visibility, merchandising. Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">📦 Track sell-through by zone & chain. Compare Offtake vs Primary to identify inventory gaps (overstock/stockouts). Monitor sell-through rates to optimize store execution.</p>
    ${dimNote}
    <div class="kpis">
      ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
@@ -971,9 +974,10 @@ function buildPnl(){
   const cm2Latest=cm2Monthly.length?cm2Monthly[cm2Monthly.length-1]:null;
   const cm2Qc=(cm2D&&cm2D.qc)||{};
   const cm2NoData=!cm2D||!cm2D.has_expense_data;
-  s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
-   ${fy26ok?`<p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
-     <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
+  s.innerHTML=`<h2 class="sec">P&L — Marketing Plan & 4P Excellence (Price)</h2>
+   ${fy26ok?`<p class="lead"><strong>FMCG Playbook Stage 4 & 5:</strong> Pricing strategy, trade spend ROI & profitability. FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
+     <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&L.</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">💰 Analyze MRP-to-NSV gaps by chain. Review trade discount depth & promo ROI. Optimize price ladder & promotion discipline to protect margins.</p>
    ${dimNote}
    <div class="kpis">
      ${kpi('Gross MRP Value',crc(totMrp),fOn('Chain')?'filtered scope':'FY26, all chains')}
@@ -1089,8 +1093,9 @@ function buildForecast(){
   const isTY=/TY target/i.test(f.method||'');
   const dimNote=dimUnsupportedNote(['FY','Month','Chain','Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],
     'the Forecast series (always shows the full FY24-27 trend — see Overview/Primary/Offtake for filtered totals)');
-  s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''}</h2>
-   <p class="lead">${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
+  s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''} — Strategy & Marketing Plan</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 2 & 4:</strong> Growth targets & planning assumptions. ${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">🎯 Track actuals vs. forecast/target. Calibrate growth assumptions. Identify gaps & required actions to close them (penetration, recruitment, retention, premiumization).</p>
    ${dimNote}
    <div class="kpis">
      ${kpi('FY26 Actual (offtake)',crc(f.fy26_actual),'trailing 12m')}
@@ -1148,10 +1153,11 @@ function buildShare(){
   const sob=chains.filter(c=>c[fy]>0).slice(0,10).map(c=>({name:c.name,share:c[fy]/tot*100,v:c[fy]}));
   const sobRows=sob.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
   const dimNote=dimUnsupportedNote(['Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article','Month'],'the share-of-business view (chain only)');
-  s.innerHTML=`<h2 class="sec">Market Share</h2>
-   <p class="lead">Share-of-business across MT chains (${yrLab[fy]} primary).
+  s.innerHTML=`<h2 class="sec">Market Share — Situation & Insight & Growth Levers</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 1 & 9:</strong> Competitive positioning & market penetration. Share-of-business across MT chains (${yrLab[fy]} primary).
      <b>Note:</b> external category share vs competitors is not in the source data; this view shows internal
      share-of-business only. Store footprint / distribution reach moved to the <b>Distribution</b> tab.</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">📊 Monitor share concentration across chains. Identify over-dependence (Top-2 share risk). Plan chain diversification & penetration growth.</p>
    ${dimNote}
    <div class="kpis">
      ${sob.length>1? kpi('Top-2 Chain Share',(sob[0].share+sob[1].share).toFixed(0)+'%',`of ${yrLab[fy]} primary`) :
@@ -1181,8 +1187,9 @@ function buildDistribution(){
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the store universe is a point-in-time snapshot, not tracked by FY/Month.</p>`:'')
     +dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the store universe (no product-level breakdown)');
-  s.innerHTML=`<h2 class="sec">Distribution</h2>
-   <p class="lead">MT store universe — distribution footprint by zone, city category, chain and store type.</p>
+  s.innerHTML=`<h2 class="sec">Distribution — 4P Excellence (Place) & Execution</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 5 & 6:</strong> Channel strategy, distribution coverage, assortment & planogram. MT store universe — distribution footprint by zone, city category, chain and store type.</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">🏪 Monitor store universe expansion. Analyze distribution gaps & add-on revenue potential. Optimize door coverage & throughput per store before adding new doors.</p>
    ${dimNote}
    <div class="kpis">
      ${kpi('Total Stores',num(u.total_stores),'MT universe')}
@@ -1282,9 +1289,10 @@ function buildCategory(){
   const topArt=uniqueBy(recs,'Article',['Category','SubCategory','Range','PackSize']).slice(0,20);
   const artRows=topArt.map(r=>`<tr><td>${drillLink('Article',r.Article)}</td><td>${drillLink('Category',r.Category)}</td><td>${drillLink('SubCategory',r.SubCategory)}</td>
      <td>${drillLink('Range',r.Range)}</td><td>${drillLink('PackSize',r.PackSize)}</td><td>${crc(r.NSV)}</td><td>${qtyFmt(r.Qty)}</td></tr>`).join('');
-  s.innerHTML=`<h2 class="sec">Category &amp; Pack</h2>
-   <p class="lead">NSV performance by Sub-category, Range and Pack Size, from the article-level primary detail.
+  s.innerHTML=`<h2 class="sec">Category & Pack — 4P Excellence (Product)</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 5:</strong> Product portfolio performance, packaging & innovation. NSV performance by Sub-category, Range and Pack Size, from the article-level primary detail.
      ${active?'Scoped to the active filter below — remove a chip or Reset to see all.':'Click any chart/table cell here (or on another tab) to scope this view — e.g. drill into a Chain to see that chain\'s own unique-article ranking.'}</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">📦 Analyze portfolio by category, sub-category, range & pack size. Identify star products & slow-movers. Optimize assortment & packaging mix.</p>
    ${rep}
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
    <div class="kpis">
@@ -1330,8 +1338,9 @@ function buildPromo(){
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
     +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
-  s.innerHTML=`<h2 class="sec">Promo &amp; Trade Spend</h2>
-   <p class="lead">Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
+  s.innerHTML=`<h2 class="sec">Promo & Trade Spend — 4P Excellence (Promotion)</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 5 & 6:</strong> Integrated ATL/BTL/digital, shopper promotions & trade engagement ROI. Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">🎁 Track promotional depth & frequency by chain/brand. Monitor promo ROI (lift vs. cost). Optimize trade-spend allocation for maximum sell-through lift.</p>
    ${dimNote}
    <div class="kpis">
      ${kpi(fOn('Chain')||fOn('Brand')||fOn('Category')?'Promo Lines (filtered)':'Promo Lines',num(fOn('Chain')?promosInScope:pr.n_promos),'total calendar entries')}
@@ -1422,8 +1431,9 @@ function buildComparison(){
   const partialNote=(yrPair[1]==='FY27')?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
      (Apr'26 onward only) — YoY vs a full FY26 will read sharply negative even where the run-rate is flat or
      growing. Compare monthly averages, not full-year totals, for a fair read.</p>`:'';
-  s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2>
-   <p class="lead">Rank and compare ${dimLab[cmpDim]} performance. Source: ${source}.</p>
+  s.innerHTML=`<h2 class="sec">Performance & Comparison — Performance Management</h2>
+   <p class="lead"><strong>FMCG Playbook Stage 7:</strong> Measure, learn & improve continuously. Rank and compare ${dimLab[cmpDim]} performance. Source: ${source}.</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">📈 Track YoY growth, contribution % & ranking shifts. Identify winners to scale, laggards to fix. Compare across dimensions: chains, brands, SKUs.</p>
    ${partialNote}
    <div style="margin:0 0 14px">${btns}</div>
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
@@ -1467,8 +1477,9 @@ function buildInsights(){
     `<b>Activate distribution:</b> 12,000+ active stores — lift throughput per door in under-productive chains via assortment and planogram compliance before adding new doors.`,
     `<b>Zone playbook:</b> back the fastest-growing zones (East/North offtake) with targeted JBPs while arresting any declining scaled accounts.`,
   ].map(x=>`<li>${x}</li>`).join('');
-  s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2>
-   <p class="lead">Auto-generated from the underlying data, with leadership actions.</p>
+  s.innerHTML=`<h2 class="sec">Insights & Way Forward — All Playbook Stages (Synthesis)</h2>
+   <p class="lead"><strong>FMCG Playbook Stages 1–10 Synthesis:</strong> Opportunities, risks & recommended actions across all business functions. Auto-generated from the underlying data, with leadership actions aligned to Situation & Insight, Strategy, Execution, Performance Management & Growth Levers.</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">🎯 <strong>One team · one plan · one goal: win together.</strong> Defend core chains, optimize portfolio, drive penetration & premiumization. Execute with precision, measure continuously, improve relentlessly.</p>
    <div class="ins">${cards}</div>
    ${card('Way forward — recommended actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}
    ${catDrillCardHtml('insCatDrill')}`;
@@ -1830,8 +1841,9 @@ function buildExplorer(){
   const sisCard=isRep?'':card('SIS — Primary (FY26)','',
     `<div class="val" style="font-size:24px">${cr2(sis26)}</div><div class="sub">${lac2(sis26)}</div>`);
 
-  s.innerHTML=`<h2 class="sec">Data Explorer</h2>
-   <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
+  s.innerHTML=`<h2 class="sec">Data Explorer — Meta Layer (All Playbook Stages)</h2>
+   <p class="lead"><strong>Foundation for all playbook stages:</strong> Deep-dive analysis capability. Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
+   <p class="lead" style="font-size:12px;color:#6b7682;margin-top:8px;">🔍 Custom drill-down by any dimension (Month, FY, Channel, Zone, Chain, Brand, Category, Pack Size, Article). Build your own analyses for market research, segment analysis, SKU performance, trade-down effects.</p>
    ${rep}
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
    <div class="kpis">
