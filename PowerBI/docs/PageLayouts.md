@@ -8,16 +8,30 @@ background **#FAF7F2**, text **#1F2933**. Use the `MoM Arrow` / `Growth Colour`
 measures for conditional formatting. Numbers in **Lacs / Cr** (use `NSV Label`).
 
 Global slicer row (reuse on most pages, sync via View ▸ Sync slicers):
-`Month` · `Chain` · `Zone` · `State` · `Brand` · `Category` · `Sub-category` · `Article` · `Data Source Name`
+`Month` · `Chain` · `Zone` · `State` · `Channel` · `Brand` · `Category` · `Sub-category` · `Article` · `Data Source Name`
 
-**Multi-select on every slicer:** Format pane ▸ *Slicer settings ▸ Selection* —
-set **"Multi-select with CTRL" = Off** (so plain clicks add/remove values, no
-Ctrl needed) and **"Show 'Select all'" = On**. This matches the HTML
-dashboard's multi-select filter bar (values within one slicer OR together;
-different slicers AND together). FY26-27 actuals (Apr'26+) flow automatically
-here — `Fact Primary Article` relates to the Date Table at day/month grain,
-so FY27 months appear in slicers/visuals as soon as the monthly CSVs are
-dropped in (no FY gating like the HTML dashboard's pre-aggregated blocks).
+**Multi-select, checkbox-style, on every slicer** — this is the Power BI
+equivalent of the HTML dashboard's tick-box filter dropdowns; set all three
+on every slicer via Format pane ▸ *Slicer settings*:
+- **Selection ▸ "Multi-select with CTRL" = Off** — plain clicks tick/untick a
+  value, no Ctrl needed (each click toggles that value's checkbox on/off).
+- **Selection ▸ "Show 'Select all'" = On** — adds a **Select All** entry at
+  the top of the list (click again to clear all), matching the dashboard's
+  Select All / Clear All buttons.
+- **General ▸ "Search box" = On** for any slicer whose field can carry more
+  than ~7 distinct values (Chain, Article, State, Sub-category, Article Code)
+  — adds a search icon in the slicer header, same threshold and purpose as
+  the dashboard's in-panel search. Short lists (Zone, Channel, FY) can leave
+  it off.
+- **Slicer header ▸ "Clear selections" icon = On** — gives every slicer its
+  own one-click reset (⟲), independent of the page-level Reset/clear-all.
+
+Values within one slicer are OR'd together; different slicers are AND'd —
+identical semantics to the HTML dashboard's filter bar. FY26-27 actuals
+(Apr'26+) flow automatically here — `Fact Primary Article` relates to the
+Date Table at day/month grain, so FY27 months appear in slicers/visuals as
+soon as the monthly CSVs are dropped in (no FY gating like the HTML
+dashboard's pre-aggregated blocks).
 
 **Export & data labels:** every page should get a small text box (bottom-right,
 matches the filter-summary convention above) reading *"Use File ▸ Export ▸ PDF
