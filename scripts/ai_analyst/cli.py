@@ -82,6 +82,16 @@ def main(argv=None):
     p_rep.add_argument("--table", default=None, help="table to profile (default: first)")
     p_rep.add_argument("--ask", action="append", default=[], metavar="Q",
                        help="question to include (repeatable)")
+    sub.add_parser("templates", help="list available report templates")
+    p_tpl = sub.add_parser("template", help="fill a leadership template from source files")
+    p_tpl.add_argument("--format", required=True, help="template key/name (see `templates`)")
+    p_tpl.add_argument("--period", required=True, help="primary period, e.g. \"May'26\"")
+    p_tpl.add_argument("--compare", default=None, help="comparison period, e.g. \"Apr'26\"")
+    p_tpl.add_argument("--source", action="append", nargs=3, default=[],
+                       metavar=("DATASET", "PERIOD", "PATH"),
+                       help="a source file: --source offtake \"May'26\" file.csv (repeatable)")
+    p_tpl.add_argument("--out", action="append", default=[], metavar="PATH",
+                       help="output file(s); format from extension (repeatable)")
 
     args = ap.parse_args(argv)
 
@@ -172,6 +182,37 @@ def main(argv=None):
             print(json.dumps(asdict(prof), indent=2, default=str))
         else:
             print(profile_report(prof))
+        return 0
+
+    if args.cmd == "templates":
+        from ai_analyst.templates import list_templates
+        for t in list_templates():
+            print(f"{t['key']:24} {t['name']:34} datasets: {', '.join(t['datasets'])}")
+        return 0
+
+    if args.cmd == "template":
+        from ai_analyst.template_fill import TemplateFiller
+        sources = {}
+        for ds, per, path in args.source:
+            sources.setdefault(ds, {})[per] = path
+        try:
+            fr = TemplateFiller(engine=args.engine).fill(
+                args.format, sources, period=args.period, compare=args.compare)
+        except Exception as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"Template: {args.format}  | available: {fr.available}  | QC: {fr.qc_headline}")
+        for c in fr.qc_checks:
+            print(f"  [{c.status}] {c.name}: {c.detail}")
+        for out in (args.out or []):
+            try:
+                fr.save(out)
+                print(f"wrote {out}")
+            except Exception as exc:
+                print(f"error writing {out}: {exc}", file=sys.stderr)
+        if not args.out:
+            print("\n(no --out given; markdown preview below)\n")
+            print(fr.report.to_markdown())
         return 0
 
     if args.cmd == "report":

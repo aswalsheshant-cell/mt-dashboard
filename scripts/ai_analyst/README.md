@@ -31,6 +31,12 @@ interaction cleanly separated so it works **with no model installed**.
 - `report.py` — **Phase 5**: assemble findings (text, KPIs, tables, EDA profiles, query
   results) and export to **Markdown/HTML/CSV** (stdlib) or **XLSX/PPTX** (pluggable:
   openpyxl / python-pptx). HTML is self-contained and matches the dashboard palette.
+  Supports a classification banner and green/red growth columns.
+- `templates.py` / `template_fill.py` / `provenance.py` / `qc.py` — **Phase 6**:
+  **Template Fill Mode**. A registry of leadership formats (MT Monthly Offtake, QBR,
+  Nielsen deep dive, …) filled ONLY from user-supplied source files, with an audit
+  (Considered/Not Considered) sheet, per-number source provenance, and a pre-export QC
+  report. Missing sources become "Source data required" — never invented numbers.
 - `agent.py` — orchestrator (`Analyst`).
 - `cli.py` — command line.
 
@@ -72,7 +78,24 @@ python scripts/ai_analyst/cli.py --learn lessons                                
 python scripts/ai_analyst/cli.py --data PowerBI/SeedData/Masters/ArticleMaster.csv \
     report --out report.html --title "MT Analysis" --table articlemaster \
     --ask "how many articles by category" --ask "distinct brand"
+
+# template fill mode (Phase 6): fill a leadership format from source files only
+python scripts/ai_analyst/cli.py templates                       # list formats
+python scripts/ai_analyst/cli.py template --format "MT Monthly Offtake Report" \
+    --period "May'26" --compare "Apr'26" \
+    --source offtake "May'26" .../offtake_store_article_May_26.csv \
+    --source offtake "Apr'26" .../offtake_store_article_Apr_26.csv \
+    --out report.html --out working.xlsx --out deck.pptx
 ```
+
+### Template Fill Mode guarantees
+- **Numbers only from sources.** Missing dataset/period → `Source data required`, never a guess.
+- **Audit sheet** — every file/sheet/rows/columns/filter Considered or Not Considered, with reasons.
+- **Source provenance** for each key number (file, column, filter, calculation).
+- **QC before export** — total, MoM, YoY, contribution %, missing-mapping, duplicate,
+  unmapped chain/article, and MT-vs-GT checks (NA when a source is absent).
+- **'Others' hidden** from visible tables but **included in totals**; growth shown green/red;
+  classification banner (e.g. "Confidential - MT Internal"); fully offline, no external transfer.
 
 `--data` is repeatable (`--data fileA --data dirB`). `--provider` ∈
 `auto|offline|ollama|remote`; `--engine` ∈ `auto|sqlite|duckdb`.
@@ -125,9 +148,11 @@ summarisation. Both run and are tested on the real seed files today.
 reused via cosine similarity (offline path reuses verbatim; a model gets them as few-shot).
 **Done — Phase 5:** offline report export to Markdown/HTML/CSV (stdlib) and XLSX/PPTX
 (pluggable), assembled from EDA profiles and query results.
+**Done — Phase 6:** Template Fill Mode — leadership formats filled only from source files,
+with audit, provenance, QC, 'Others' handling, growth colouring and a classification banner.
 
-**Remaining:** the in-dashboard AI panel (P2, needs a live local model to be useful) and
-an optional FAISS + sentence-transformers upgrade for the learning store at scale.
+**Remaining:** the in-dashboard AI panel (P2, needs a live local model to be useful), an
+optional FAISS + sentence-transformers upgrade at scale, and a later local scheduler.
 
 The offline provider is a deterministic fallback, **not** a substitute for the local
 model — point it at Ollama for real language understanding. PDF/XLSX ingest needs a

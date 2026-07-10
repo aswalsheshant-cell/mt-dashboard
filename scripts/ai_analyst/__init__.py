@@ -46,6 +46,10 @@ from ai_analyst.learning import (
     cosine,
 )
 from ai_analyst.report import Report, ReportDependencyError
+from ai_analyst.templates import TemplateSpec, get_template, list_templates, TEMPLATE_REGISTRY
+from ai_analyst.provenance import Provenance, Metric, ProvenanceLog, SOURCE_REQUIRED
+from ai_analyst.qc import QCContext, QCCheck, run_qc, qc_status
+from ai_analyst.template_fill import TemplateFiller, FilledReport
 from ai_analyst.agent import Analyst
 
 __all__ = [
@@ -56,6 +60,20 @@ __all__ = [
     "cosine",
     "Report",
     "ReportDependencyError",
+    "TemplateSpec",
+    "get_template",
+    "list_templates",
+    "TEMPLATE_REGISTRY",
+    "Provenance",
+    "Metric",
+    "ProvenanceLog",
+    "SOURCE_REQUIRED",
+    "QCContext",
+    "QCCheck",
+    "run_qc",
+    "qc_status",
+    "TemplateFiller",
+    "FilledReport",
     "DataLayer",
     "NL2SQL",
     "SQLValidationError",

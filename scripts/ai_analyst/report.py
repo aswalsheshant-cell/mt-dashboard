@@ -39,6 +39,30 @@ def _num(x: Optional[float]) -> str:
     return f"{x:.2f}"
 
 
+def _growth_value(v) -> Optional[float]:
+    """Parse a possibly-formatted growth cell (e.g. '+12.4%') to a float."""
+    if v is None:
+        return None
+    try:
+        return float(str(v).replace("%", "").replace("+", "").replace(",", "").strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _growth_color(v) -> Optional[str]:
+    n = _growth_value(v)
+    if n is None or n == 0:
+        return None
+    return "#1E8E3E" if n > 0 else "#C0392B"  # dashboard green / red
+
+
+def _growth_marker(v) -> str:
+    n = _growth_value(v)
+    if n is None or n == 0:
+        return ""
+    return "▲ " if n > 0 else "▼ "
+
+
 # dashboard palette (kept in sync with dashboard/index.html :root)
 _TEAL = "#2D9B7F"
 _TEAL_D = "#1f7a63"
@@ -56,12 +80,14 @@ class Section:
     rows: List[Sequence] = field(default_factory=list)
     kpis: List[Tuple[str, str]] = field(default_factory=list)
     note: str = ""
+    growth_col: Optional[int] = None  # index of a column to colour green(+)/red(-)
 
 
 class Report:
-    def __init__(self, title: str, subtitle: str = ""):
+    def __init__(self, title: str, subtitle: str = "", classification: str = ""):
         self.title = title
         self.subtitle = subtitle
+        self.classification = classification  # e.g. "Confidential - MT Internal"
         self.sections: List[Section] = []
 
     # -- builders ----------------------------------------------------------
@@ -74,9 +100,9 @@ class Report:
         return self
 
     def add_table(self, columns: Sequence[str], rows: Sequence[Sequence],
-                  title: str = "", note: str = "") -> "Report":
+                  title: str = "", note: str = "", growth_col: Optional[int] = None) -> "Report":
         self.sections.append(Section("table", title=title, columns=list(columns),
-                                     rows=[list(r) for r in rows], note=note))
+                                     rows=[list(r) for r in rows], note=note, growth_col=growth_col))
         return self
 
     def add_query_result(self, res: QueryResult, title: str = "") -> "Report":
@@ -108,7 +134,11 @@ class Report:
 
     # -- renderers ---------------------------------------------------------
     def to_markdown(self) -> str:
-        out = [f"# {self.title}"]
+        out = []
+        if self.classification:
+            out.append(f"> **{self.classification}**")
+            out.append("")
+        out.append(f"# {self.title}")
         if self.subtitle:
             out.append(f"_{self.subtitle}_")
         for s in self.sections:
@@ -126,7 +156,13 @@ class Report:
                 out.append("| " + " | ".join(str(c) for c in s.columns) + " |")
                 out.append("| " + " | ".join("---" for _ in s.columns) + " |")
                 for r in s.rows:
-                    out.append("| " + " | ".join("" if v is None else str(v) for v in r) + " |")
+                    cells = []
+                    for ci, v in enumerate(r):
+                        txt = "" if v is None else str(v)
+                        if s.growth_col is not None and ci == s.growth_col:
+                            txt = _growth_marker(v) + txt
+                        cells.append(txt)
+                    out.append("| " + " | ".join(cells) + " |")
         return "\n".join(out) + "\n"
 
     def to_html(self) -> str:
@@ -136,6 +172,11 @@ class Report:
             f"max-width:1000px;margin:0 auto;padding:24px;color:{_INK};background:{_BG}\">",
             f"<h1 style='color:{_TEAL_D};margin:0 0 4px'>{e(self.title)}</h1>",
         ]
+        if self.classification:
+            parts.insert(1,
+                "<div style='background:#7a1f1f;color:#fff;font-weight:700;letter-spacing:.5px;"
+                "text-align:center;padding:6px;border-radius:6px;margin:0 0 14px;"
+                f"font-size:12px'>{e(self.classification)}</div>")
         if self.subtitle:
             parts.append(f"<p style='color:#6b7682;margin:0 0 18px'>{e(self.subtitle)}</p>")
         for s in self.sections:
@@ -162,9 +203,15 @@ class Report:
                     f"<th style='background:{_TEAL};color:#fff;text-align:left;padding:8px 10px'>{e(str(c))}</th>"
                     for c in s.columns) + "</tr></thead><tbody>")
                 for r in s.rows:
-                    parts.append("<tr>" + "".join(
-                        f"<td style='padding:8px 10px;border-bottom:1px solid {_LINE}'>"
-                        f"{e('' if v is None else str(v))}</td>" for v in r) + "</tr>")
+                    tds = []
+                    for ci, v in enumerate(r):
+                        style = f"padding:8px 10px;border-bottom:1px solid {_LINE}"
+                        if s.growth_col is not None and ci == s.growth_col:
+                            col = _growth_color(v)
+                            if col:
+                                style += f";color:{col};font-weight:700"
+                        tds.append(f"<td style='{style}'>{e('' if v is None else str(v))}</td>")
+                    parts.append("<tr>" + "".join(tds) + "</tr>")
                 parts.append("</tbody></table>")
             parts.append("</section>")
         parts.append("</main>")
@@ -211,6 +258,12 @@ class Report:
             raise ReportDependencyError("XLSX export needs openpyxl: `pip install openpyxl`.")
         wb = openpyxl.Workbook()
         wb.remove(wb.active)
+        if self.classification:
+            cover = wb.create_sheet("Cover")
+            cover["A1"] = self.classification
+            cover["A2"] = self.title
+            if self.subtitle:
+                cover["A3"] = self.subtitle
         i = 0
         for s in self.sections:
             if s.kind != "table":
@@ -233,8 +286,11 @@ class Report:
         prs = Presentation()
         title_slide = prs.slides.add_slide(prs.slide_layouts[0])
         title_slide.shapes.title.text = self.title
-        if self.subtitle:
-            title_slide.placeholders[1].text = self.subtitle
+        sub = self.subtitle
+        if self.classification:
+            sub = f"{self.classification}\n{sub}" if sub else self.classification
+        if sub:
+            title_slide.placeholders[1].text = sub
         for s in self.sections:
             slide = prs.slides.add_slide(prs.slide_layouts[5])
             slide.shapes.title.text = s.title or s.kind
