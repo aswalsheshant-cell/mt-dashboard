@@ -28,6 +28,9 @@ interaction cleanly separated so it works **with no model installed**.
 - `learning.py` — **Phase 4**: persistent learning — store corrections with a **real**
   embedding (stdlib hashing-TF; sentence-transformers optional) and retrieve by cosine
   similarity to reuse/inject them. SQLite-backed, per-machine, gitignored.
+- `report.py` — **Phase 5**: assemble findings (text, KPIs, tables, EDA profiles, query
+  results) and export to **Markdown/HTML/CSV** (stdlib) or **XLSX/PPTX** (pluggable:
+  openpyxl / python-pptx). HTML is self-contained and matches the dashboard palette.
 - `agent.py` — orchestrator (`Analyst`).
 - `cli.py` — command line.
 
@@ -64,6 +67,11 @@ python scripts/ai_analyst/cli.py --data <csv> --learn \
     learn --question "revenue by category" --sql 'SELECT "category", ... '
 python scripts/ai_analyst/cli.py --data <csv> --learn ask "revenue by category"   # -> (via learned)
 python scripts/ai_analyst/cli.py --learn lessons                                    # store stats
+
+# report export (Phase 5): profile + questions -> .html/.md/.csv/.xlsx/.pptx
+python scripts/ai_analyst/cli.py --data PowerBI/SeedData/Masters/ArticleMaster.csv \
+    report --out report.html --title "MT Analysis" --table articlemaster \
+    --ask "how many articles by category" --ask "distinct brand"
 ```
 
 `--data` is repeatable (`--data fileA --data dirB`). `--provider` ∈
@@ -115,10 +123,11 @@ python scripts/ai_analyst/run_tests.py     # 30 tests
 summarisation. Both run and are tested on the real seed files today.
 **Done — Phase 4:** persistent learning — corrections stored with real embeddings and
 reused via cosine similarity (offline path reuses verbatim; a model gets them as few-shot).
+**Done — Phase 5:** offline report export to Markdown/HTML/CSV (stdlib) and XLSX/PPTX
+(pluggable), assembled from EDA profiles and query results.
 
-**Next phases:** the in-dashboard AI panel (P2, needs a live local model to be useful),
-an optional FAISS index + sentence-transformers upgrade for the learning store at scale,
-and report export (P5).
+**Remaining:** the in-dashboard AI panel (P2, needs a live local model to be useful) and
+an optional FAISS + sentence-transformers upgrade for the learning store at scale.
 
 The offline provider is a deterministic fallback, **not** a substitute for the local
 model — point it at Ollama for real language understanding. PDF/XLSX ingest needs a

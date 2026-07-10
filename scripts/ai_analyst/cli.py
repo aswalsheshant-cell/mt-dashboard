@@ -76,6 +76,12 @@ def main(argv=None):
     p_learn.add_argument("--sql", required=True)
     p_learn.add_argument("--rating", type=int, default=None)
     sub.add_parser("lessons", help="show learning-store stats (implies --learn)")
+    p_rep = sub.add_parser("report", help="build a report (.md/.html/.csv/.xlsx/.pptx)")
+    p_rep.add_argument("--out", required=True, help="output path; format from extension")
+    p_rep.add_argument("--title", default="MT Data Analysis")
+    p_rep.add_argument("--table", default=None, help="table to profile (default: first)")
+    p_rep.add_argument("--ask", action="append", default=[], metavar="Q",
+                       help="question to include (repeatable)")
 
     args = ap.parse_args(argv)
 
@@ -166,6 +172,16 @@ def main(argv=None):
             print(json.dumps(asdict(prof), indent=2, default=str))
         else:
             print(profile_report(prof))
+        return 0
+
+    if args.cmd == "report":
+        try:
+            rep = analyst.build_report(args.title, table=args.table, questions=args.ask)
+            out = rep.save(args.out)
+        except Exception as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"wrote {out}  ({len(rep.sections)} sections)")
         return 0
 
     if args.cmd == "summarize":

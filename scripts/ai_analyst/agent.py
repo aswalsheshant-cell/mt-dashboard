@@ -20,6 +20,7 @@ from ai_analyst.nl2sql import NL2SQL, QueryResult
 from ai_analyst.profiler import TableProfile, profile_table, profile_report, suggest_cleaning
 from ai_analyst.documents import Document, read_document, summarize_text, text_stats
 from ai_analyst.learning import LearningStore
+from ai_analyst.report import Report
 
 
 class Analyst:
@@ -74,6 +75,25 @@ class Analyst:
         s = self.store.stats()
         s["enabled"] = True
         return s
+
+    # -- reporting (Phase 5) ----------------------------------------------
+    def build_report(self, title: str, table: Optional[str] = None,
+                     questions: Optional[List[str]] = None,
+                     subtitle: str = "") -> Report:
+        """Assemble a standard report: an EDA profile plus any asked questions."""
+        rep = Report(title, subtitle=subtitle)
+        tbl = table or (self.data.tables()[0] if self.data.tables() else None)
+        if tbl is not None:
+            prof = self.profile(tbl)
+            rep.add_kpis([
+                ("Rows", str(prof.rows_total)),
+                ("Columns", str(len(prof.columns))),
+                ("Duplicates", str(prof.duplicates)),
+            ])
+            rep.add_profile(prof)
+        for q in (questions or []):
+            rep.add_query_result(self.ask(q))
+        return rep
 
     # -- profiling / EDA (Phase 3) ----------------------------------------
     def profile(self, table: Optional[str] = None, sample: int = 5000) -> TableProfile:

@@ -45,6 +45,7 @@ from ai_analyst.learning import (
     get_embedder,
     cosine,
 )
+from ai_analyst.report import Report, ReportDependencyError
 from ai_analyst.agent import Analyst
 
 __all__ = [
@@ -53,6 +54,8 @@ __all__ = [
     "HashingTfEmbedder",
     "get_embedder",
     "cosine",
+    "Report",
+    "ReportDependencyError",
     "DataLayer",
     "NL2SQL",
     "SQLValidationError",
