@@ -38,9 +38,21 @@ from ai_analyst.documents import (
     summarize_text,
     text_stats,
 )
+from ai_analyst.learning import (
+    LearningStore,
+    Lesson,
+    HashingTfEmbedder,
+    get_embedder,
+    cosine,
+)
 from ai_analyst.agent import Analyst
 
 __all__ = [
+    "LearningStore",
+    "Lesson",
+    "HashingTfEmbedder",
+    "get_embedder",
+    "cosine",
     "DataLayer",
     "NL2SQL",
     "SQLValidationError",

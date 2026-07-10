@@ -81,21 +81,32 @@ class QueryResult:
 class NL2SQL:
     """Translate questions to SQL and (optionally) execute them read-only."""
 
-    def __init__(self, data: DataLayer, provider: LLMProvider, row_limit: int = 1000):
+    def __init__(self, data: DataLayer, provider: LLMProvider, row_limit: int = 1000,
+                 store=None):
         self.data = data
         self.provider = provider
         self.row_limit = row_limit
+        self.store = store  # optional LearningStore (Phase 4)
 
-    def to_sql(self, question: str) -> str:
-        """Question -> validated SQL string (no execution)."""
-        raw = self.provider.translate_to_sql(question, self.data.schema())
-        return validate_sql(raw)
+    def to_sql(self, question: str, domain: str = "general"):
+        """Question -> (validated SQL, source_tag). source_tag records whether a
+        learned correction was reused ('learned') or the provider translated."""
+        source = self.provider.name
+        examples = None
+        if self.store is not None:
+            # high-confidence reuse of a prior correction
+            best = self.store.best_correction(question, domain=domain)
+            if best is not None:
+                return validate_sql(best.sql), "learned"
+            examples = self.store.examples(question, domain=domain) or None
+        raw = self.provider.translate_to_sql(question, self.data.schema(), examples=examples)
+        return validate_sql(raw), source
 
-    def query(self, question: str, execute: bool = True) -> QueryResult:
+    def query(self, question: str, execute: bool = True, domain: str = "general") -> QueryResult:
         """Full pipeline: translate, validate, and (by default) run."""
         result = QueryResult(question=question, sql="", provider=self.provider.name)
         try:
-            result.sql = self.to_sql(question)
+            result.sql, result.provider = self.to_sql(question, domain=domain)
         except Exception as exc:  # translation or validation failure
             result.error = f"{type(exc).__name__}: {exc}"
             return result

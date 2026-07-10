@@ -25,6 +25,9 @@ interaction cleanly separated so it works **with no model installed**.
   (nulls, distincts, numeric stats, top categoricals, duplicates) — pure stdlib via the engine.
 - `documents.py` — **Phase 3**: document ingest (text/markdown stdlib; PDF/XLSX via a
   pluggable backend) + deterministic offline extractive summarisation.
+- `learning.py` — **Phase 4**: persistent learning — store corrections with a **real**
+  embedding (stdlib hashing-TF; sentence-transformers optional) and retrieve by cosine
+  similarity to reuse/inject them. SQLite-backed, per-machine, gitignored.
 - `agent.py` — orchestrator (`Analyst`).
 - `cli.py` — command line.
 
@@ -55,6 +58,12 @@ python scripts/ai_analyst/cli.py summarize path/to/report.txt --sentences 3
 
 # readiness check (engine, provider, live LLM if present)
 python scripts/ai_analyst/cli.py --data PowerBI/SeedData/Masters doctor
+
+# persistent learning (Phase 4): teach a correction, then it's reused
+python scripts/ai_analyst/cli.py --data <csv> --learn \
+    learn --question "revenue by category" --sql 'SELECT "category", ... '
+python scripts/ai_analyst/cli.py --data <csv> --learn ask "revenue by category"   # -> (via learned)
+python scripts/ai_analyst/cli.py --learn lessons                                    # store stats
 ```
 
 `--data` is repeatable (`--data fileA --data dirB`). `--provider` ∈
@@ -104,9 +113,12 @@ python scripts/ai_analyst/run_tests.py     # 30 tests
 **Done — Phase 1:** offline NL→SQL core with a clean model boundary and read-only sandbox.
 **Done — Phase 3:** EDA profiling + cleaning suggestions, and document ingest + offline
 summarisation. Both run and are tested on the real seed files today.
+**Done — Phase 4:** persistent learning — corrections stored with real embeddings and
+reused via cosine similarity (offline path reuses verbatim; a model gets them as few-shot).
 
 **Next phases:** the in-dashboard AI panel (P2, needs a live local model to be useful),
-the sentence-transformers + FAISS learning loop (P4), and report export (P5).
+an optional FAISS index + sentence-transformers upgrade for the learning store at scale,
+and report export (P5).
 
 The offline provider is a deterministic fallback, **not** a substitute for the local
 model — point it at Ollama for real language understanding. PDF/XLSX ingest needs a

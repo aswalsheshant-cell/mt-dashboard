@@ -52,6 +52,10 @@ def main(argv=None):
     ap.add_argument("--provider", default="auto", choices=["auto", "offline", "ollama", "remote"])
     ap.add_argument("--engine", default="auto", choices=["auto", "sqlite", "duckdb"])
     ap.add_argument("--model", default="mistral", help="model name for the ollama provider")
+    ap.add_argument("--learn", action="store_true", help="enable persistent learning store")
+    ap.add_argument("--learning-db", default="scripts/ai_analyst/data/learning.db",
+                    help="path to the learning store (implies --learn)")
+    ap.add_argument("--domain", default="general", help="domain tag for learning")
     ap.add_argument("--json", action="store_true", help="emit JSON")
 
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -67,11 +71,19 @@ def main(argv=None):
     p_sum = sub.add_parser("summarize", help="read a document and summarise it")
     p_sum.add_argument("doc", help="path to a .txt/.md/.pdf/.xlsx document")
     p_sum.add_argument("--sentences", type=int, default=5, help="summary length")
+    p_learn = sub.add_parser("learn", help="teach the correct SQL for a question (implies --learn)")
+    p_learn.add_argument("--question", required=True)
+    p_learn.add_argument("--sql", required=True)
+    p_learn.add_argument("--rating", type=int, default=None)
+    sub.add_parser("lessons", help="show learning-store stats (implies --learn)")
 
     args = ap.parse_args(argv)
 
+    learning_on = args.learn or args.cmd in ("learn", "lessons") \
+        or args.learning_db != "scripts/ai_analyst/data/learning.db"
     pkw = {"model": args.model} if args.provider in ("auto", "ollama") else {}
-    analyst = Analyst(provider=args.provider, engine=args.engine, provider_kwargs=pkw)
+    analyst = Analyst(provider=args.provider, engine=args.engine, provider_kwargs=pkw,
+                      learning=learning_on, learning_path=args.learning_db)
     _load(analyst, args.data)
 
     if args.cmd == "doctor":
@@ -117,12 +129,23 @@ def main(argv=None):
             print(f"error: {exc}", file=sys.stderr)
             return 1
 
+    if args.cmd == "learn":
+        rid = analyst.learn(args.question, args.sql, rating=args.rating, domain=args.domain)
+        print(f"learned #{rid}: {args.question!r} -> {args.sql}")
+        print(f"store: {analyst.learning_stats()}", file=sys.stderr)
+        return 0
+
+    if args.cmd == "lessons":
+        print(json.dumps(analyst.learning_stats(), indent=2, default=str))
+        return 0
+
     if args.cmd == "ask":
-        res = analyst.ask(args.question)
+        res = analyst.ask(args.question, domain=args.domain)
         if args.json:
             print(json.dumps(res.to_dict(), indent=2, default=str))
             return 0 if res.ok else 1
-        print(f"SQL: {res.sql}")
+        via = f"  (via {res.provider})" if res.provider else ""
+        print(f"SQL: {res.sql}{via}")
         if not res.ok:
             print(f"error: {res.error}", file=sys.stderr)
             return 1

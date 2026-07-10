@@ -58,8 +58,17 @@ _FEWSHOT = (
 )
 
 
-def build_sql_prompt(question: str, schema: Dict[str, List[str]]) -> str:
-    lines = [_FEWSHOT, "Now answer for this schema.", "Schema:"]
+def build_sql_prompt(question: str, schema: Dict[str, List[str]],
+                     examples: Optional[List[tuple]] = None) -> str:
+    lines = [_FEWSHOT]
+    # learned few-shot examples (question -> known-good SQL) from past corrections
+    if examples:
+        lines.append("Previously confirmed answers on this data:")
+        for ex_q, ex_sql in examples:
+            lines.append(f"Question: {ex_q}\nSQL: {ex_sql}")
+        lines.append("")
+    lines.append("Now answer for this schema.")
+    lines.append("Schema:")
     for table, cols in schema.items():
         lines.append(f"  {table}({', '.join(cols)})")
     lines.append("")
@@ -104,8 +113,9 @@ class LLMProvider:
     def complete(self, prompt: str, system: Optional[str] = None) -> str:
         raise NotImplementedError
 
-    def translate_to_sql(self, question: str, schema: Dict[str, List[str]]) -> str:
-        prompt = build_sql_prompt(question, schema)
+    def translate_to_sql(self, question: str, schema: Dict[str, List[str]],
+                         examples: Optional[List[tuple]] = None) -> str:
+        prompt = build_sql_prompt(question, schema, examples=examples)
         raw = self.complete(prompt, system=SQL_SYSTEM_PROMPT)
         return extract_sql(raw)
 
@@ -177,7 +187,18 @@ class OfflineDeterministicProvider(LLMProvider):
                 best, best_score = c, score
         return best if best_score > 0 else None
 
-    def translate_to_sql(self, question: str, schema: Dict[str, List[str]]) -> str:
+    def translate_to_sql(self, question: str, schema: Dict[str, List[str]],
+                         examples: Optional[List[tuple]] = None) -> str:
+        # A confirmed example whose question closely matches is reused verbatim —
+        # this is how learning reaches the deterministic (no-model) path.
+        if examples:
+            qtokens = set(self._tokens(question))
+            for ex_q, ex_sql in examples:
+                etokens = set(self._tokens(ex_q))
+                if qtokens and etokens:
+                    overlap = len(qtokens & etokens) / len(qtokens | etokens)
+                    if overlap >= 0.8 and ex_sql:
+                        return ex_sql
         if not schema:
             raise ValueError("No tables loaded; cannot translate.")
         table = self._pick_table(question, schema)

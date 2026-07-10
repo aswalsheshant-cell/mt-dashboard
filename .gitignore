@@ -2,6 +2,9 @@
 __pycache__/
 node_modules/
 
+# AI agent local learning store (per-machine; never commit user data)
+scripts/ai_analyst/data/
+
 # Source data — keep OUT of the repo (large; only generated dashboard/data.js is committed)
 *.xlsx
 *.xlsb
