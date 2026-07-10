@@ -21,6 +21,10 @@ interaction cleanly separated so it works **with no model installed**.
   read-only sandbox (`validate_sql`).
 - `llm_provider.py` — **Module 3**: swappable backends behind one interface —
   `OfflineDeterministicProvider`, `OllamaProvider` (local), `RemoteOptInProvider` (gated).
+- `profiler.py` — **Phase 3**: EDA profiling + cleaning suggestions over any loaded table
+  (nulls, distincts, numeric stats, top categoricals, duplicates) — pure stdlib via the engine.
+- `documents.py` — **Phase 3**: document ingest (text/markdown stdlib; PDF/XLSX via a
+  pluggable backend) + deterministic offline extractive summarisation.
 - `agent.py` — orchestrator (`Analyst`).
 - `cli.py` — command line.
 
@@ -41,6 +45,16 @@ python scripts/ai_analyst/cli.py --data PowerBI/SeedData/Masters/ArticleMaster.c
 # load a whole folder; force backends
 python scripts/ai_analyst/cli.py --data PowerBI/SeedData/Masters \
     --provider offline --engine sqlite ask "articles by sub category"
+
+# EDA profile + cleaning suggestions for a table (Phase 3)
+python scripts/ai_analyst/cli.py --data PowerBI/SeedData/Masters/ArticleMaster.csv \
+    profile --table articlemaster
+
+# summarise a document — text/markdown now; .pdf/.xlsx with a backend installed (Phase 3)
+python scripts/ai_analyst/cli.py summarize path/to/report.txt --sentences 3
+
+# readiness check (engine, provider, live LLM if present)
+python scripts/ai_analyst/cli.py --data PowerBI/SeedData/Masters doctor
 ```
 
 `--data` is repeatable (`--data fileA --data dirB`). `--provider` ∈
@@ -85,12 +99,16 @@ read-only sandbox (DROP/DELETE/PRAGMA/statement-stacking are rejected).
 python scripts/ai_analyst/run_tests.py     # 30 tests
 ```
 
-## What Phase 1 is / isn't
+## Status
 
-**Is:** a working, tested, offline NL→SQL core with a clean model boundary and a
-safety sandbox, runnable on your real files today.
+**Done — Phase 1:** offline NL→SQL core with a clean model boundary and read-only sandbox.
+**Done — Phase 3:** EDA profiling + cleaning suggestions, and document ingest + offline
+summarisation. Both run and are tested on the real seed files today.
 
-**Isn't (next phases):** the in-dashboard AI panel (P2), PDF/EDA ingest (P3), the
-sentence-transformers + FAISS learning loop (P4), and report export (P5). The
-offline provider is a deterministic fallback, **not** a substitute for the local
-model — point it at Ollama for real language understanding.
+**Next phases:** the in-dashboard AI panel (P2, needs a live local model to be useful),
+the sentence-transformers + FAISS learning loop (P4), and report export (P5).
+
+The offline provider is a deterministic fallback, **not** a substitute for the local
+model — point it at Ollama for real language understanding. PDF/XLSX ingest needs a
+backend on your machine (`pip install pdfplumber openpyxl`); text/markdown work with no
+dependencies.

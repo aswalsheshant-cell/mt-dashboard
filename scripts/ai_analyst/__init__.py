@@ -23,6 +23,21 @@ from ai_analyst.llm_provider import (
     RemoteOptInProvider,
     get_provider,
 )
+from ai_analyst.profiler import (
+    TableProfile,
+    ColumnProfile,
+    profile_table,
+    profile_report,
+    suggest_cleaning,
+)
+from ai_analyst.documents import (
+    Document,
+    DocumentError,
+    DocumentDependencyError,
+    read_document,
+    summarize_text,
+    text_stats,
+)
 from ai_analyst.agent import Analyst
 
 __all__ = [
@@ -34,6 +49,17 @@ __all__ = [
     "OllamaProvider",
     "RemoteOptInProvider",
     "get_provider",
+    "TableProfile",
+    "ColumnProfile",
+    "profile_table",
+    "profile_report",
+    "suggest_cleaning",
+    "Document",
+    "DocumentError",
+    "DocumentDependencyError",
+    "read_document",
+    "summarize_text",
+    "text_stats",
     "Analyst",
 ]
 

@@ -17,6 +17,8 @@ from typing import Dict, List, Optional
 from ai_analyst.data_layer import DataLayer
 from ai_analyst.llm_provider import LLMProvider, get_provider
 from ai_analyst.nl2sql import NL2SQL, QueryResult
+from ai_analyst.profiler import TableProfile, profile_table, profile_report, suggest_cleaning
+from ai_analyst.documents import Document, read_document, summarize_text, text_stats
 
 
 class Analyst:
@@ -45,6 +47,35 @@ class Analyst:
 
     def ask(self, question: str, execute: bool = True) -> QueryResult:
         return self.nl2sql.query(question, execute=execute)
+
+    # -- profiling / EDA (Phase 3) ----------------------------------------
+    def profile(self, table: Optional[str] = None, sample: int = 5000) -> TableProfile:
+        if table is None:
+            tables = self.data.tables()
+            if not tables:
+                raise ValueError("No tables loaded to profile.")
+            table = tables[0]
+        return profile_table(self.data, table, sample=sample)
+
+    def cleaning_suggestions(self, table: Optional[str] = None) -> list:
+        return suggest_cleaning(self.profile(table))
+
+    def profile_text(self, table: Optional[str] = None) -> str:
+        return profile_report(self.profile(table))
+
+    # -- documents (Phase 3) ----------------------------------------------
+    def read_document(self, path) -> Document:
+        return read_document(path)
+
+    def summarize_document(self, path, max_sentences: int = 5) -> dict:
+        doc = read_document(path)
+        return {
+            "path": doc.path,
+            "kind": doc.kind,
+            "n_pages": doc.n_pages,
+            "stats": text_stats(doc.text),
+            "summary": summarize_text(doc.text, max_sentences=max_sentences, provider=self.provider),
+        }
 
     def close(self):
         self.data.close()

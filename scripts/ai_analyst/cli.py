@@ -61,6 +61,12 @@ def main(argv=None):
     p_sql.add_argument("question")
     p_ask = sub.add_parser("ask", help="translate and run a question")
     p_ask.add_argument("question")
+    p_prof = sub.add_parser("profile", help="EDA profile + cleaning suggestions for a table")
+    p_prof.add_argument("--table", default=None, help="table name (default: first loaded)")
+    p_prof.add_argument("--sample", type=int, default=5000, help="max rows to profile")
+    p_sum = sub.add_parser("summarize", help="read a document and summarise it")
+    p_sum.add_argument("doc", help="path to a .txt/.md/.pdf/.xlsx document")
+    p_sum.add_argument("--sentences", type=int, default=5, help="summary length")
 
     args = ap.parse_args(argv)
 
@@ -123,6 +129,36 @@ def main(argv=None):
         print(f"({len(res.rows)} rows) columns: {', '.join(res.columns)}")
         for row in res.rows[:50]:
             print("  " + " | ".join("" if v is None else str(v) for v in row))
+        return 0
+
+    if args.cmd == "profile":
+        from ai_analyst.profiler import profile_report
+        try:
+            prof = analyst.profile(table=args.table, sample=args.sample)
+        except Exception as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            from dataclasses import asdict
+            print(json.dumps(asdict(prof), indent=2, default=str))
+        else:
+            print(profile_report(prof))
+        return 0
+
+    if args.cmd == "summarize":
+        try:
+            info = analyst.summarize_document(args.doc, max_sentences=args.sentences)
+        except Exception as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(info, indent=2, default=str))
+        else:
+            s = info["stats"]
+            pg = f", {info['n_pages']} pages" if info.get("n_pages") else ""
+            print(f"{info['path']}  ({info['kind']}{pg})")
+            print(f"  {s['words']} words, {s['sentences']} sentences, {s['unique_words']} unique words")
+            print(f"\nSummary:\n{info['summary']}")
         return 0
 
     return 0
