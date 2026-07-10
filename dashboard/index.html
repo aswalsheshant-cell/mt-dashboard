@@ -104,6 +104,28 @@
   .fchip{display:inline-flex;align-items:center;gap:5px;background:#e6f4ef;color:var(--teal-d);
       border:1px solid #bfe3d6;border-radius:16px;padding:2px 9px;font-size:11.5px;font-weight:600}
   .fchip b{cursor:pointer}
+  .filterbar details.fdd{position:relative}
+  .filterbar details.fdd summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+  .filterbar details.fdd summary::-webkit-details-marker{display:none}
+  .filterbar details.fdd summary>span:first-child{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .fddsum{font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;border:1px solid var(--line);
+      border-radius:8px;padding:6px 8px;min-width:104px;max-width:180px;display:inline-block;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .filterbar details.fdd[open] .fddsum,.filterbar details.fdd summary:hover .fddsum{border-color:var(--teal)}
+  .fdd-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:25;background:#fff;border:1px solid var(--line);
+      border-radius:10px;box-shadow:var(--shadow);padding:8px;min-width:220px;max-width:280px}
+  .fdd-actions{display:flex;gap:6px;margin-bottom:6px}
+  .fdd-actions button{font-family:inherit;font-size:11px;font-weight:700;color:var(--teal-d);background:#fff;
+      border:1px solid var(--teal);border-radius:6px;padding:3px 8px;cursor:pointer}
+  .fdd-actions button:hover{background:var(--teal);color:#fff}
+  .fdd-search{width:100%;font-family:inherit;font-size:12.5px;padding:5px 7px;border:1px solid var(--line);
+      border-radius:6px;margin-bottom:6px;box-sizing:border-box}
+  .fdd-search:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .fdd-list{max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:1px}
+  .fdd-opt{display:flex;align-items:center;gap:7px;font-size:12.5px;padding:4px 5px;border-radius:5px;cursor:pointer}
+  .fdd-opt:hover{background:var(--bg)}
+  .fdd-opt input{margin:0}
+  .fdd-empty{font-size:12px;color:var(--muted);padding:6px 2px}
   .repbanner{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:10px;
       padding:9px 13px;font-size:12.5px;margin:0 0 14px}
   .fynote{background:#fff7e6;border:1px solid #f0d8a8;color:#8a5a00;border-radius:8px;
@@ -552,7 +574,7 @@ document.addEventListener('click',e=>{
     det.open=false;
     return;
   }
-  document.querySelectorAll('details.chartdl[open],details.pagedl[open]').forEach(d=>{ if(!d.contains(e.target)) d.open=false; });
+  document.querySelectorAll('details.chartdl[open],details.pagedl[open],details.fdd[open]').forEach(d=>{ if(!d.contains(e.target)) d.open=false; });
 });
 
 /* ---------------- OVERVIEW ---------------- */
@@ -1485,6 +1507,10 @@ const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','
 // (empty = All). Values in a dimension are OR'd together; dimensions are
 // AND'd, same as before.
 const F={}; FILT.forEach(([k])=>F[k]=[]);
+// checkbox-dropdown UI state: which filter's panel is open, and per-filter search text.
+// Kept outside F so it survives the full filterbar re-render triggered by every change.
+let fddOpen=null;
+const fddSearch={}; FILT.forEach(([k])=>fddSearch[k]='');
 const fOn =k=>F[k].length>0;                                 // dimension filtered at all?
 const fHas=(k,v)=>!F[k].length||F[k].includes(String(v));    // does value v pass dimension k?
 const fLab=k=>F[k].join(', ');                               // display label ('' when unfiltered)
@@ -1520,12 +1546,26 @@ function renderFilterBar(){
   const fb=document.getElementById('filterbar');
   const anyActive=FILT.some(([k])=>F[k].length);
   fb.innerHTML = FILT.map(([k,lab])=>{
-    const opts=optsFor(k), sel=F[k];
-    return `<label class="fl"><span>${lab}</span><select data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
-      <option value="">${sel.length?`${sel.length} selected — clear`:'All'}</option>
-      ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');const on=sel.includes(String(v));
-        return `<option value="${s}">${on?'✓ ':''}${v}</option>`;}).join('')}
-    </select></label>`;
+    const raw=optsFor(k), sel=F[k];
+    const q=(fddSearch[k]||'').trim().toLowerCase();
+    const opts=q?raw.filter(v=>String(v).toLowerCase().includes(q)):raw;
+    const summary=sel.length?`${sel.length} selected`:'All';
+    const rows=opts.length?opts.map(v=>{
+        const s=String(v).replace(/"/g,'&quot;'), on=sel.includes(String(v));
+        const dv=(v===''||v==null)?'(Blank)':v;
+        return `<label class="fdd-opt"><input type="checkbox" data-k="${k}" value="${s}" ${on?'checked':''}> <span>${dv}</span></label>`;
+      }).join('') : `<div class="fdd-empty">No matching values.</div>`;
+    return `<details class="fdd" data-k="${k}" ${fddOpen===k?'open':''}>
+      <summary title="Tick values to select multiple; use search for long lists."><span>${lab}</span><span class="fddsum">${summary}</span></summary>
+      <div class="fdd-panel">
+        <div class="fdd-actions">
+          <button type="button" data-act="all" data-k="${k}">Select All</button>
+          <button type="button" data-act="clear" data-k="${k}">Clear All</button>
+        </div>
+        ${raw.length>7?`<input type="search" class="fdd-search" data-k="${k}" placeholder="Search ${lab}…" value="${(fddSearch[k]||'').replace(/"/g,'&quot;')}">`:''}
+        <div class="fdd-list">${rows}</div>
+      </div>
+    </details>`;
   }).join('')
   + `<button class="fbtn ghost" id="fReset">↺ Reset filters</button>`
   + `<details class="pagedl"><summary class="fbtn">⭳ Download Page</summary>
@@ -1535,18 +1575,53 @@ function renderFilterBar(){
        </div></details>`
   + `<span class="fcount" id="fCount">${anyActive?'Filtered · ':''}${num(recFilter().length)} records</span>`
   + (anyActive?`<span style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px">${activeChipsHtml()}</span>`:'');
-  // multi-select via native dropdowns: picking an option TOGGLES it in/out of
-  // the selection (✓ marks selected ones); the first line clears the dimension.
-  fb.querySelectorAll('select').forEach(sel=>{
-    sel.onchange=()=>{
-      const k=sel.dataset.k, v=sel.value;
-      if(v==='') F[k]=[];
-      else{ const i=F[k].indexOf(v); if(i>=0) F[k].splice(i,1); else F[k].push(v); }
+  // checkbox multi-select: ticking a box toggles it in/out of F[k]; the panel
+  // (native <details>) stays open across the re-render below via fddOpen so
+  // several values can be picked without reopening the dropdown each time.
+  fb.querySelectorAll('details.fdd').forEach(det=>{
+    det.addEventListener('toggle',()=>{ fddOpen=det.open?det.dataset.k:(fddOpen===det.dataset.k?null:fddOpen); });
+  });
+  fb.querySelectorAll('.fdd-list input[type=checkbox]').forEach(cb=>{
+    cb.onchange=()=>{
+      const k=cb.dataset.k, v=cb.value;
+      const i=F[k].indexOf(v); if(i>=0) F[k].splice(i,1); else F[k].push(v);
       if(k==='Category'&&!F[k].length) catChartDrill=null;
       onFilterChange();
     };
   });
-  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;onFilterChange();};
+  // deferred (not synchronous) so the click finishes bubbling to the
+  // document-level outside-click closer BEFORE we tear down this DOM subtree --
+  // otherwise the just-rebuilt (still-open) panel gets closed by that handler.
+  fb.querySelectorAll('.fdd-actions button').forEach(btn=>{
+    btn.onclick=()=>{
+      const k=btn.dataset.k;
+      setTimeout(()=>{
+        if(btn.dataset.act==='all'){
+          const q=(fddSearch[k]||'').trim().toLowerCase();
+          const raw=optsFor(k).map(String);
+          F[k]=q?raw.filter(v=>v.toLowerCase().includes(q)):raw.slice();
+        } else {
+          F[k]=[];
+          if(k==='Category') catChartDrill=null;
+        }
+        onFilterChange();
+      },0);
+    };
+  });
+  fb.querySelectorAll('.fdd-search').forEach(inp=>{
+    inp.oninput=()=>{
+      const k=inp.dataset.k;
+      fddSearch[k]=inp.value;
+      const q=inp.value.trim().toLowerCase();
+      inp.closest('.fdd-panel').querySelectorAll('.fdd-opt').forEach(lab=>{
+        const txt=lab.querySelector('span').textContent.toLowerCase();
+        lab.style.display=(!q||txt.includes(q))?'':'none';
+      });
+    };
+  });
+  document.getElementById('fReset').onclick=()=>{
+    FILT.forEach(([k])=>{F[k]=[];fddSearch[k]='';}); catChartDrill=null; fddOpen=null; onFilterChange();
+  };
   fb.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
     F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
     if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;
@@ -1857,7 +1932,7 @@ function buildExplorer(){
   if(recs.length){ GAL_DIMS.forEach(([id])=>renderGal(id)); }
   wireGallery(s);
   renderCatDrillChart('exCatDrill',recs);
-  s.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{F[b.dataset.k]='';if(b.dataset.k==='Category')catChartDrill=null;onFilterChange();});
+  wireChips(s,buildExplorer);
   const ex=document.getElementById('exExport'); if(ex) ex.onclick=()=>exportCSV(recs);
 }
 function exportCSV(recs){
