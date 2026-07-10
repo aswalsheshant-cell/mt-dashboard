@@ -37,6 +37,11 @@ interaction cleanly separated so it works **with no model installed**.
   Nielsen deep dive, …) filled ONLY from user-supplied source files, with an audit
   (Considered/Not Considered) sheet, per-number source provenance, and a pre-export QC
   report. Missing sources become "Source data required" — never invented numbers.
+- `xlsx_qc.py` — **Phase 7**: stdlib **Workbook QC scanner** for `.xlsx`. Detects formula/
+  `#REF!` errors, hidden sheets, merged cells in data sheets, duplicate keys, blank
+  mappings, mixed date formats, and anomalous/near-duplicate filter labels (e.g. a stray
+  `METock`, or `West`/`WEST`). Emits a `QC_Check` table (Check/Tool/Tab/Source/Status/
+  Remarks/Action); writes it back as a sheet via openpyxl, or renders md/html/csv offline.
 - `agent.py` — orchestrator (`Analyst`).
 - `cli.py` — command line.
 
@@ -86,6 +91,12 @@ python scripts/ai_analyst/cli.py template --format "MT Monthly Offtake Report" \
     --source offtake "May'26" .../offtake_store_article_May_26.csv \
     --source offtake "Apr'26" .../offtake_store_article_Apr_26.csv \
     --out report.html --out working.xlsx --out deck.pptx
+
+# workbook QC (Phase 7): scan an .xlsx and emit a QC_Check (finds 'METock' etc.)
+python scripts/ai_analyst/cli.py qc-workbook --file dashboard.xlsx \
+    --dup Raw_Data StoreKey --date Raw_Data MonthDate \
+    --filter Raw_Data Channel MT,GT,EB2B,SIS \
+    --out QC_Check.html --write-sheet
 ```
 
 ### Template Fill Mode guarantees

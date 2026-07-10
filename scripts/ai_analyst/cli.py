@@ -82,6 +82,20 @@ def main(argv=None):
     p_rep.add_argument("--table", default=None, help="table to profile (default: first)")
     p_rep.add_argument("--ask", action="append", default=[], metavar="Q",
                        help="question to include (repeatable)")
+    p_qc = sub.add_parser("qc-workbook", help="scan an .xlsx for errors/mappings/labels -> QC_Check")
+    p_qc.add_argument("--file", required=True, help="path to the .xlsx workbook")
+    p_qc.add_argument("--out", action="append", default=[], metavar="PATH",
+                      help="QC_Check output(s) .md/.html/.csv (repeatable)")
+    p_qc.add_argument("--dup", action="append", nargs="+", default=[], metavar=("SHEET", "COL"),
+                      help="duplicate-key check: --dup SHEET KEYCOL [KEYCOL ...]")
+    p_qc.add_argument("--filter", action="append", nargs="+", default=[], metavar=("SHEET", "COL"),
+                      help="filter-label check: --filter SHEET COL [allowed,comma,list]")
+    p_qc.add_argument("--date", action="append", nargs=2, default=[], metavar=("SHEET", "COL"),
+                      help="date-consistency check: --date SHEET COL")
+    p_qc.add_argument("--map", action="append", nargs="+", default=[], metavar=("SHEET", "COL"),
+                      help="blank-mapping check: --map SHEET COL [COL ...]")
+    p_qc.add_argument("--write-sheet", action="store_true",
+                      help="write the QC_Check sheet back into the workbook (needs openpyxl)")
     sub.add_parser("templates", help="list available report templates")
     p_tpl = sub.add_parser("template", help="fill a leadership template from source files")
     p_tpl.add_argument("--format", required=True, help="template key/name (see `templates`)")
@@ -182,6 +196,39 @@ def main(argv=None):
             print(json.dumps(asdict(prof), indent=2, default=str))
         else:
             print(profile_report(prof))
+        return 0
+
+    if args.cmd == "qc-workbook":
+        from ai_analyst.xlsx_qc import WorkbookQC, qc_report, write_qc_sheet
+        try:
+            qc = WorkbookQC.open(args.file)
+        except Exception as exc:
+            print(f"error opening {args.file}: {exc}", file=sys.stderr)
+            return 1
+        dup = {a[0]: a[1:] for a in args.dup if len(a) >= 2}
+        mp = {a[0]: a[1:] for a in args.map if len(a) >= 2}
+        dt = {a[0]: a[1] for a in args.date}
+        flt = {}
+        for a in args.filter:
+            allowed = a[2].split(",") if len(a) >= 3 else None
+            flt.setdefault(a[0], {})[a[1]] = allowed
+        rows = qc.run(duplicate_keys=dup, mappings=mp, dates=dt, filters=flt)
+        fails = sum(1 for r in rows if r.status == "Fail")
+        warns = sum(1 for r in rows if r.status == "Warn")
+        print(f"QC_Check: {len(rows)} checks | {fails} Fail | {warns} Warn")
+        for r in rows:
+            if r.status in ("Fail", "Warn"):
+                print(f"  [{r.status}] {r.check} @ {r.tab}: {r.remarks}")
+        rep = qc_report(rows)
+        for out in (args.out or []):
+            rep.save(out); print(f"wrote {out}")
+        if args.write_sheet:
+            try:
+                write_qc_sheet(args.file, rows); print(f"wrote QC_Check sheet into {args.file}")
+            except Exception as exc:
+                print(f"could not write sheet: {exc}", file=sys.stderr)
+        if not args.out and not args.write_sheet:
+            print("\n" + rep.to_markdown())
         return 0
 
     if args.cmd == "templates":
