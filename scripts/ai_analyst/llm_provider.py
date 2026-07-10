@@ -37,13 +37,29 @@ from typing import Dict, List, Optional
 SQL_SYSTEM_PROMPT = (
     "You are a careful analytics engineer. Given a database schema and a "
     "question, return a single valid, read-only SQL SELECT statement that "
-    "answers it. Use only tables and columns that appear in the schema. "
-    "Return ONLY the SQL, with no prose and no code fences."
+    "answers it.\n"
+    "Rules:\n"
+    "- Use ONLY the tables and columns that appear in the schema; never invent names.\n"
+    "- Wrap every table and column name in double quotes exactly as written.\n"
+    "- Cast text columns for numeric work: CAST(NULLIF(\"col\",'') AS REAL).\n"
+    "- Emit exactly ONE statement. No DDL/DML (no INSERT/UPDATE/DROP/etc.).\n"
+    "- Return ONLY the SQL: no prose, no explanation, no code fences, no trailing semicolon."
+)
+
+# A tiny grounded few-shot so smaller local models follow the identifier/quoting
+# and read-only conventions. Kept schema-neutral on purpose.
+_FEWSHOT = (
+    "Example\n"
+    "Schema:\n"
+    "  sales(region, product, units, revenue)\n"
+    "Question: total revenue by region, highest first\n"
+    'SQL: SELECT "region", SUM(CAST(NULLIF("revenue",\'\') AS REAL)) AS total '
+    'FROM "sales" GROUP BY "region" ORDER BY total DESC\n'
 )
 
 
 def build_sql_prompt(question: str, schema: Dict[str, List[str]]) -> str:
-    lines = ["Schema:"]
+    lines = [_FEWSHOT, "Now answer for this schema.", "Schema:"]
     for table, cols in schema.items():
         lines.append(f"  {table}({', '.join(cols)})")
     lines.append("")
@@ -56,15 +72,26 @@ _SQL_FENCE = re.compile(r"```(?:sql)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 
 
 def extract_sql(text: str) -> str:
-    """Pull a bare SQL statement out of a model's raw completion."""
+    """Pull a bare SQL statement out of a model's raw completion.
+
+    Handles the common shapes real models emit: ```sql fences, a "SQL:" label,
+    a leading preamble, and trailing explanation after the statement.
+    """
+    if not text:
+        return ""
     m = _SQL_FENCE.search(text)
     if m:
         text = m.group(1)
     text = text.strip()
+    # drop a leading "SQL:" label if present
+    text = re.sub(r"^\s*sql\s*:\s*", "", text, flags=re.IGNORECASE)
     # keep from the first SELECT/WITH onward if the model added a preamble
     m = re.search(r"\b(SELECT|WITH)\b", text, re.IGNORECASE)
     if m:
         text = text[m.start():]
+    # a statement ends at the first ';' — anything after is prose/extra statements
+    if ";" in text:
+        text = text[: text.index(";")]
     return text.strip().rstrip(";").strip()
 
 

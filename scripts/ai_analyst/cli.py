@@ -56,6 +56,7 @@ def main(argv=None):
 
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("schema", help="print the loaded schema")
+    sub.add_parser("doctor", help="report engine + provider readiness (and a live LLM check)")
     p_sql = sub.add_parser("sql", help="translate a question to SQL (no execution)")
     p_sql.add_argument("question")
     p_ask = sub.add_parser("ask", help="translate and run a question")
@@ -66,6 +67,29 @@ def main(argv=None):
     pkw = {"model": args.model} if args.provider in ("auto", "ollama") else {}
     analyst = Analyst(provider=args.provider, engine=args.engine, provider_kwargs=pkw)
     _load(analyst, args.data)
+
+    if args.cmd == "doctor":
+        from ai_analyst.llm_provider import OllamaProvider
+        print(f"engine (selected):   {analyst.data.engine}")
+        try:
+            import duckdb  # noqa: F401
+            print("duckdb installed:    yes")
+        except Exception:
+            print("duckdb installed:    no (using stdlib sqlite3)")
+        print(f"provider (selected): {analyst.provider.name}")
+        oll = OllamaProvider(model=args.model)
+        up = oll.is_available()
+        print(f"ollama reachable:    {'yes' if up else 'no'} ({oll.endpoint}, model={args.model})")
+        print(f"tables loaded:       {len(analyst.schema())}")
+        if up and analyst.schema():
+            print("\nlive LLM check:")
+            q = "how many rows in the first table"
+            res = analyst.ask(q)
+            print(f"  Q: {q}\n  SQL: {res.sql}\n  ok: {res.ok} rows: {len(res.rows)}"
+                  + ("" if res.ok else f"\n  error: {res.error}"))
+        elif not up:
+            print("\nTo enable a local model:  ollama pull mistral && ollama serve")
+        return 0
 
     if args.cmd == "schema":
         sch = analyst.schema()

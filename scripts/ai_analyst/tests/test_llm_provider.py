@@ -30,6 +30,16 @@ class TestExtractSQL(unittest.TestCase):
     def test_keeps_from_select(self):
         self.assertEqual(extract_sql("SELECT 1"), "SELECT 1")
 
+    def test_strips_sql_label(self):
+        self.assertEqual(extract_sql("SQL: SELECT 1"), "SELECT 1")
+
+    def test_drops_trailing_prose(self):
+        raw = "SELECT count(*) FROM t; This query counts the rows."
+        self.assertEqual(extract_sql(raw), "SELECT count(*) FROM t")
+
+    def test_empty(self):
+        self.assertEqual(extract_sql(""), "")
+
 
 class TestOfflineProvider(unittest.TestCase):
     def setUp(self):
