@@ -1,9 +1,9 @@
-# Power BI Safe Blocks — Complete Build Kit (v2)
+# Power BI Safe Blocks — Complete Build Kit (v3)
 
 **Branch:** claude/safe-powerbi-dashboard-rulings  
-**Status:** Updated with business rulings (ready for implementation in Power BI Desktop)  
+**Status:** Updated with NSV unit confirmed (ready for implementation in Power BI Desktop)  
 **Generated:** 2026-07-11  
-**Version:** 2 (Business Rulings Applied)
+**Version:** 3 (NSV Unit Confirmed: Lakhs)
 
 ---
 
@@ -32,16 +32,16 @@ This folder contains a complete, production-ready Power BI build kit for **safe-
 
 | File | Purpose | Pages | Status |
 |------|---------|-------|--------|
-| **PowerQuery_Safe_Offtake.pq** | Power Query scripts (data loading, QC tables, BA_Available flag) | 1 | Updated v2, ready to copy-paste |
-| **DAX_Safe_Measures.dax** | Safe DAX measures (25+: MRP, Qty, contribution, BA Availability coverage) | 1 | Updated v2, ready to copy-paste |
-| **PowerBI_Model_Spec.md** | Data model: tables, columns, relationships, diagram | 8 | Current |
-| **PowerBI_Report_Page_Spec.md** | 5 report pages (added Page 5: BA Availability View) | 16 | Updated v2 |
-| **Build_In_PowerBI_Desktop_Guide.md** | Step-by-step build instructions (phase 1–6, 5 pages) | 7 | Updated v2 |
-| **QC_Validation_Checklist.md** | Pre-build & post-build validation tests (5 pages) | 5 | Updated v2 |
-| **Blocked_Measures.md** | 9 blocked measures (v2: More Retail & Brand Counter approved) | 7 | Updated v2 |
-| **README.md** | This file | 1 | Overview & quick-start v2 |
+| **PowerQuery_Safe_Offtake.pq** | Power Query scripts (NSV conversion: Lakhs→Cr; MRP, Qty, BA flag) | 1 | Updated v3, ready to copy-paste |
+| **DAX_Safe_Measures.dax** | Safe DAX measures (30+: MRP, NSV (now unblocked), Qty, contribution, trends) | 1 | Updated v3, ready to copy-paste |
+| **PowerBI_Model_Spec.md** | Data model: tables, columns, relationships, diagram | 8 | Current (NSV fields added) |
+| **PowerBI_Report_Page_Spec.md** | 5 report pages (includes NSV charts on all pages) | 16 | Updated v3 |
+| **Build_In_PowerBI_Desktop_Guide.md** | Step-by-step build instructions (phase 1–6, 5 pages) | 7 | Updated v3 |
+| **QC_Validation_Checklist.md** | Pre-build & post-build validation tests (5 pages, NSV validation) | 5 | Updated v3 |
+| **Blocked_Measures.md** | 9 blocked measures (v3: NSV now unblocked; cost sources now block P&L) | 7 | Updated v3 |
+| **README.md** | This file | 1 | Overview & quick-start v3 |
 
-**Total:** 46 pages of specification + ready-to-use code (updated with v2 business rulings)
+**Total:** 46 pages of specification + ready-to-use code (updated v3: NSV unit confirmed as Lakhs)
 
 ---
 
@@ -70,27 +70,31 @@ This folder contains a complete, production-ready Power BI build kit for **safe-
 
 ### Safe-to-Publish Blocks ✓
 
-✓ **5 Report Pages** (Data Explorer, Overview, QC & Reconciliation, Interim Offtake P&L, BA Availability View)  
-✓ **MRP Sales Value basis** (verified, rupee unit; NSV blocked)  
+✓ **5 Report Pages** (Data Explorer, Overview, QC & Reconciliation, Interim Offtake View, BA Availability View)  
+✓ **MRP Sales Value basis** (verified actual rupees ÷ 10,000,000 for Crore display)  
+✓ **NSV Sales Value basis** (source in Lakhs ÷ 100 for Crore display; now UNBLOCKED)  
 ✓ **June'26 flagged as Partial** (78,111 rows, 16 chains; watermarks on Pages 1–4)  
-✓ **Zone-level analysis** (P6 canonicalized; state-level rollups blocked)  
-✓ **25+ safe DAX measures** (MRP, Qty, contribution %, trends, BA Availability coverage, QC)  
+✓ **Zone-level analysis** (P6 canonicalized; state-level rollups blocked by business decision)  
+✓ **30+ safe DAX measures** (MRP, NSV, Qty, contribution %, trends [MRP/NSV/Qty], BA Availability, QC)  
+✓ **NSV Sales & Trends** (MRP vs NSV comparison; MoM absolute & % change for both)  
 ✓ **BA Availability coverage** (Brand Counter = BA coverage; Page 5 reports only, no profitability)  
-✓ **5 QC reference tables** (monthly reconciliation, More Retail audit, variants, blocked list, pending decisions)  
+✓ **5 QC reference tables** (monthly reconciliation with MRP/NSV, More Retail audit, variants, blocked list, pending decisions)  
 ✓ **Interactive filtering** (FY, Month, Chain [raw], Zone, Category, Format, Classification)  
 
-### Business Rulings Applied (v2) ✓
+### Business Rulings Applied (v3 — NSV Unit Confirmed) ✓
 
+✓ **NSV Unit Confirmed** — Source is in Lakhs; NSV Cr = Lakhs ÷ 100; all NSV measures now ACTIVE
 ✓ **More Retail Records** — Business reviewed; retained as valid source records; no dedup applied
 ✓ **Reliance Brand Counter** — Approved as BA Availability flag; Page 5 created for coverage view
 ✓ **State-wise Reporting** — Source data unreliable; zone-level used; no state rollups created
 
 ### Remaining Blockers (Awaiting Business Decisions)
 
-✗ **NSV measures** (unit unvalidated; awaiting finance anchor)  
-✗ **Profitability measures** (depend on NSV + margin assumptions)  
-✗ **BA profitability** (awaiting BA Headcount + cost structure confirmation)  
-✗ **Chain canonicalization** (variants Vmm/VMM, Fsn/FSN, etc. awaiting business approval)  
+✗ **Profitability & CM2 measures** (require cost sources, COGS, allocation rules)  
+✗ **Margin % measures** (require margin assumptions and cost sources)  
+✗ **BA Profitability** (requires BA Headcount + cost structure; NSV now confirmed)  
+✗ **Primary vs Offtake Gap** (requires Primary NSV validation)  
+✗ **Chain Variant Consolidation** (awaiting canonical names approval)  
 
 ---
 

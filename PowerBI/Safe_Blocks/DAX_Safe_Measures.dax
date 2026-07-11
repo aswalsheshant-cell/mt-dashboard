@@ -6,31 +6,59 @@
 // SAFE BASE MEASURES (MRP SALES VALUE BASIS ONLY)
 // ============================================================================
 
-// 1. Total MRP Sales Value (in rupees, verified basis)
+// 1. Total MRP Sales Value (in actual rupees, verified basis)
 [MRP Sales Value] =
 SUMX(
   Fact_Offtake_Safe,
   Fact_Offtake_Safe[MRP_Sales_Value]
 )
 
-// 2. Total Sales Quantity (units)
+// 2. Total MRP Sales Value in Crore (rupees ÷ 10,000,000)
+[MRP Sales Value Cr] =
+DIVIDE(
+  [MRP Sales Value],
+  10000000
+)
+
+// 3. Total Source NSV (in Lakhs, confirmed unit)
+[Source NSV Lacs] =
+SUMX(
+  Fact_Offtake_Safe,
+  Fact_Offtake_Safe[Source_NSV_Lacs]
+)
+
+// 4. Total NSV Actual Value (Lakhs × 100,000 = rupees)
+[NSV Actual Value] =
+SUMX(
+  Fact_Offtake_Safe,
+  Fact_Offtake_Safe[NSV_Actual_Value]
+)
+
+// 5. Total NSV in Crore (Lakhs ÷ 100 = Crores)
+[NSV Cr] =
+DIVIDE(
+  [Source NSV Lacs],
+  100
+)
+
+// 6. Total Sales Quantity (units)
 [Sales Qty] =
 SUMX(
   Fact_Offtake_Safe,
   Fact_Offtake_Safe[Sales_Qty]
 )
 
-// 3. Row Count (number of transactions)
+// 7. Total Sales Qty in Crore (Qty ÷ 10,000,000 for display)
+[Sales Qty Cr] =
+DIVIDE(
+  [Sales Qty],
+  10000000
+)
+
+// 8. Row Count (number of transactions)
 [Row Count] =
 COUNTROWS(
   Fact_Offtake_Safe
-)
-
-// 4. MRP Sales Value in Crore (rupees ÷ 10,000,000)
-[MRP Sales Value Cr] =
-DIVIDE(
-  [MRP Sales Value],
-  10000000
 )
 
 // 5. Average MRP per Month (across selected months)
@@ -54,23 +82,36 @@ IFERROR(
 )
 
 // ============================================================================
-// SAFE CONTRIBUTION & SHARE MEASURES (MRP BASIS ONLY)
+// SAFE CONTRIBUTION & SHARE MEASURES (MRP, NSV, QTY BASIS)
 // ============================================================================
 
-// 7. MRP Contribution % (within current filter context)
+// 9. MRP Contribution % (within current filter context)
 [MRP Contribution %] =
 IFERROR(
   DIVIDE(
-    [MRP Sales Value],
+    [MRP Sales Value Cr],
     CALCULATE(
-      [MRP Sales Value],
+      [MRP Sales Value Cr],
       REMOVEFILTERS(Dim_Chain_Raw, Dim_Zone, Dim_Category)
     )
   ) * 100,
   BLANK()
 )
 
-// 8. Qty Contribution % (within current filter context)
+// 10. NSV Contribution % (within current filter context, Crore basis)
+[NSV Contribution %] =
+IFERROR(
+  DIVIDE(
+    [NSV Cr],
+    CALCULATE(
+      [NSV Cr],
+      REMOVEFILTERS(Dim_Chain_Raw, Dim_Zone, Dim_Category)
+    )
+  ) * 100,
+  BLANK()
+)
+
+// 11. Qty Contribution % (within current filter context)
 [Qty Contribution %] =
 IFERROR(
   DIVIDE(
@@ -83,13 +124,26 @@ IFERROR(
   BLANK()
 )
 
-// 9. MRP Share of Total (all data, ignoring filters)
+// 12. MRP Share of Total (all data, ignoring filters)
 [MRP Share of Total] =
 IFERROR(
   DIVIDE(
-    [MRP Sales Value],
+    [MRP Sales Value Cr],
     CALCULATE(
-      [MRP Sales Value],
+      [MRP Sales Value Cr],
+      REMOVEFILTERS()
+    )
+  ) * 100,
+  BLANK()
+)
+
+// 13. NSV Share of Total (all data, ignoring filters)
+[NSV Share of Total] =
+IFERROR(
+  DIVIDE(
+    [NSV Cr],
+    CALCULATE(
+      [NSV Cr],
       REMOVEFILTERS()
     )
   ) * 100,
@@ -97,40 +151,66 @@ IFERROR(
 )
 
 // ============================================================================
-// SAFE TREND MEASURES (MRP BASIS ONLY)
+// SAFE TREND MEASURES (MRP, NSV, QTY BASIS)
 // ============================================================================
 
-// 10. Previous Month MRP Sales Value (for MoM comparison)
-[Previous Month MRP] =
+// 14. Previous Month MRP Sales Value Cr (for MoM comparison)
+[Previous Month MRP Cr] =
 IFERROR(
   CALCULATE(
-    [MRP Sales Value],
-    PREVIOUSMONTH(Dim_Month[Date])  // Assumes Dim_Month has a Date column
+    [MRP Sales Value Cr],
+    PREVIOUSMONTH(Dim_Month[Date])
   ),
   BLANK()
 )
 
-// 11. MRP MoM Absolute Change (current month vs previous month)
-[MRP MoM Abs Change] =
+// 15. MRP MoM Absolute Change Cr (current month vs previous month)
+[MRP MoM Abs Change Cr] =
 IFERROR(
-  [MRP Sales Value] - [Previous Month MRP],
+  [MRP Sales Value Cr] - [Previous Month MRP Cr],
   BLANK()
 )
 
-// 12. MRP MoM % Change (current month vs previous month, MRP basis only)
+// 16. MRP MoM % Change (current month vs previous month)
 [MRP MoM % Change] =
 IFERROR(
   DIVIDE(
-    [MRP MoM Abs Change],
-    [Previous Month MRP]
+    [MRP MoM Abs Change Cr],
+    [Previous Month MRP Cr]
   ) * 100,
   BLANK()
 )
 
-// 13. Qty MoM Absolute Change (current month vs previous month)
-[Qty MoM Abs Change] =
+// 17. Previous Month NSV Cr (for MoM comparison)
+[Previous Month NSV Cr] =
 IFERROR(
-  [Sales Qty] -
+  CALCULATE(
+    [NSV Cr],
+    PREVIOUSMONTH(Dim_Month[Date])
+  ),
+  BLANK()
+)
+
+// 18. NSV MoM Absolute Change Cr (current month vs previous month)
+[NSV MoM Abs Change Cr] =
+IFERROR(
+  [NSV Cr] - [Previous Month NSV Cr],
+  BLANK()
+)
+
+// 19. NSV MoM % Change (current month vs previous month)
+[NSV MoM % Change] =
+IFERROR(
+  DIVIDE(
+    [NSV MoM Abs Change Cr],
+    [Previous Month NSV Cr]
+  ) * 100,
+  BLANK()
+)
+
+// 20. Previous Month Qty (for MoM comparison)
+[Previous Month Qty] =
+IFERROR(
   CALCULATE(
     [Sales Qty],
     PREVIOUSMONTH(Dim_Month[Date])
@@ -138,7 +218,24 @@ IFERROR(
   BLANK()
 )
 
-// 14. Row Count Trend (current month vs previous month)
+// 21. Qty MoM Absolute Change (current month vs previous month)
+[Qty MoM Abs Change] =
+IFERROR(
+  [Sales Qty] - [Previous Month Qty],
+  BLANK()
+)
+
+// 22. Qty MoM % Change (current month vs previous month)
+[Qty MoM % Change] =
+IFERROR(
+  DIVIDE(
+    [Qty MoM Abs Change],
+    [Previous Month Qty]
+  ) * 100,
+  BLANK()
+)
+
+// 23. Row Count Trend (current month vs previous month)
 [Row Count Prev Month] =
 IFERROR(
   CALCULATE(
@@ -148,6 +245,7 @@ IFERROR(
   BLANK()
 )
 
+// 24. Row Count Change
 [Row Count Change] =
 [Row Count] - [Row Count Prev Month]
 
@@ -155,7 +253,7 @@ IFERROR(
 // SAFE FILTER/FLAG MEASURES
 // ============================================================================
 
-// 15. Is June'26 Partial (TRUE if current selection includes June'26)
+// 25. Is June'26 Partial (TRUE if current selection includes June'26)
 [Has June26 Partial] =
 IFERROR(
   IF(
@@ -171,7 +269,7 @@ IFERROR(
   FALSE()
 )
 
-// 16. June'26 Partial Warning (returns warning text if June'26 is in filter)
+// 26. June'26 Partial Warning (returns warning text if June'26 is in filter)
 [June26 Partial Warning] =
 IF(
   [Has June26 Partial],
@@ -179,9 +277,19 @@ IF(
   ""
 )
 
-// 17. Safe Reporting Flag (all measures in this set are safe)
+// 27. Reporting Basis (updated with NSV unit confirmed)
 [Reporting Basis] =
-"MRP Sales Value (verified basis)"
+"MRP (verified ₹), NSV (converted from Lakhs to ₹Cr), Qty"
+
+// 28. MRP vs NSV Ratio (MRP Cr ÷ NSV Cr; shows relationship)
+[MRP to NSV Ratio] =
+IFERROR(
+  DIVIDE(
+    [MRP Sales Value Cr],
+    [NSV Cr]
+  ),
+  BLANK()
+)
 
 // ============================================================================
 // SAFE BA AVAILABILITY MEASURES (COVERAGE ONLY, NOT PROFITABILITY)
@@ -225,6 +333,83 @@ IFERROR(
 [BA Availability Note] =
 "BA Availability view only. Shows Reliance Brand Counter coverage. BA profitability is blocked until BA cost structure and NSV unit are confirmed."
 
+// 23. BA Available NSV Cr (NSV for Brand Counter rows)
+[BA Available NSV Cr] =
+CALCULATE(
+  [NSV Cr],
+  Fact_Offtake_Safe[BA_Available] = "Yes"
+)
+
+// 24. BA Available Sales Qty (Qty for Brand Counter rows)
+[BA Available Sales Qty] =
+CALCULATE(
+  [Sales Qty],
+  Fact_Offtake_Safe[BA_Available] = "Yes"
+)
+
+// 25. BA Availability Mix % (NSV basis) (BA rows as % of total NSV)
+[BA Availability Mix % NSV] =
+IFERROR(
+  DIVIDE(
+    [BA Available NSV Cr],
+    [NSV Cr]
+  ) * 100,
+  BLANK()
+)
+
+// 26. BA Availability Mix % (Qty basis) (BA rows as % of total Qty)
+[BA Availability Mix % Qty] =
+IFERROR(
+  DIVIDE(
+    [BA Available Sales Qty],
+    [Sales Qty]
+  ) * 100,
+  BLANK()
+)
+
+// ============================================================================
+// QC & VALIDATION MEASURES (FOR QC PAGES)
+// ============================================================================
+
+// 27. Negative MRP Return Row Count (valid returns/credit notes)
+[Negative MRP Return Rows] =
+CALCULATE(
+  [Row Count],
+  Fact_Offtake_Safe[Is_Negative_Return] = TRUE()
+)
+
+// 28. Negative NSV Return Row Count (valid returns/credit notes)
+[Negative NSV Return Rows] =
+CALCULATE(
+  [Row Count],
+  Fact_Offtake_Safe[Is_Negative_NSV] = TRUE()
+)
+
+// 29. June'26 Partial Row Count
+[June26 Partial Row Count] =
+CALCULATE(
+  [Row Count],
+  Fact_Offtake_Safe[Is_June26_Partial] = TRUE()
+)
+
+// 30. Total Distinct Chains
+[Distinct Chains] =
+DISTINCTCOUNT(
+  Fact_Offtake_Safe[Chain_Name]
+)
+
+// 31. Total Distinct Zones
+[Distinct Zones] =
+DISTINCTCOUNT(
+  Fact_Offtake_Safe[Zone]
+)
+
+// 32. Total Distinct Categories
+[Distinct Categories] =
+DISTINCTCOUNT(
+  Fact_Offtake_Safe[Category]
+)
+
 // ============================================================================
 // BLOCKED MEASURES (DOCUMENTED FOR REFERENCE, NOT USED IN ACTIVE VISUALS)
 // ============================================================================
@@ -232,122 +417,92 @@ IFERROR(
 // They are listed here for documentation and future reference only.
 // Do NOT use these measures in active Power BI reports until business approves.
 
-// ✗ BLOCKED: [NSV Total]
-// Reason: NSV unit is unvalidated (grand total 271,801 vs MRP ₹1,443 Cr; unit ambiguous)
-// Action: Finance must provide reference anchor (₹Cr for 1 month)
-// Timeline: 1–2 weeks
-// Stub: -- BLOCKED --
+// ✓ NSV MEASURES NOW UNBLOCKED (NSV Unit Confirmed as Lakhs)
+// [Source NSV Lacs], [NSV Actual Value], [NSV Cr], [NSV Contribution %], [NSV MoM Abs Change Cr], [NSV MoM % Change]
+// All NSV measures are now implemented and active in reports
+// Conversion: NSV Cr = Source NSV Lacs / 100
 
-// ✗ BLOCKED: [NSV Cr], [NSV Lacs], [NSV Label], [NSV Cumulative]
-// Reason: Dependent on NSV unit confirmation
-// Stub: -- BLOCKED --
-
-// ✗ BLOCKED: [MoM/YoY/L3M/L6M % Growth on NSV Basis]
-// Reason: Uses NSV; all growth % on NSV basis are blocked
-// Stub: -- BLOCKED --
-
-// ✗ BLOCKED: [Contribution % (NSV-driven)], [Rank by Sales (NSV-driven)]
-// Reason: All NSV-based contribution measures blocked
-// Stub: -- BLOCKED --
-
-// ✗ BLOCKED: [Primary vs Offtake Gap], [Gap %]
-// Reason: Uses Offtake NSV (unvalidated)
-// Stub: -- BLOCKED --
-
-// ✗ BLOCKED: [P&L], [Provisional Profitability], [CM2], [Gross Margin %]
-// Reason: All profitability measures depend on NSV unit or BA Headcount (business input)
+// ✗ BLOCKED: [CM2], [Gross Margin %], [Profitability]
+// Reason: Requires cost sources, COGS, allocation rules, and margin assumptions (business input pending)
+// Timeline: Pending cost structure confirmation
 // Stub: -- BLOCKED --
 
 // ✗ BLOCKED: [BA Profitability], [BA Cost to Serve], [BA Productivity]
-// Reason: Awaiting BA Headcount business input and NSV unit confirmation
+// Reason: Awaiting BA Headcount + cost structure (NSV unit now confirmed, no longer a blocker)
 // Note: [BA Availability measures] ARE implemented as coverage view only
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [Primary vs Offtake Gap], [Gap %]
+// Reason: Requires Primary NSV validation (separate exercise)
+// Timeline: Pending Primary NSV anchor
 // Stub: -- BLOCKED --
 
 // ✗ BLOCKED: [State-level Rollups], [State Slicer]
 // Reason: Source data lacks reliable state mapping; zone-level reporting available instead
-// Stub: -- BLOCKED --
+// Stub: -- BLOCKED (by business decision)
 
-// ✗ BLOCKED: [More Retail Chain Totals as Deduped]
-// Status: APPROVED CHANGE — More Retail repeated records reviewed and retained as valid
-// Note: All More Retail rows included in [MRP Sales Value] and [Sales Qty]
+// ✓ APPROVED: [More Retail Chain Totals], [More Retail Contribution]
+// Status: More Retail repeated records reviewed and retained as valid
+// Note: All More Retail rows included in [MRP Sales Value], [NSV Cr], and [Sales Qty]
 // Stub: -- NO LONGER BLOCKED --
 
 // ✗ BLOCKED: [Chain-level Reporting for Variants]
-// Reason: Vmm/VMM, Fsn/FSN, Walmart Cnc/CNC, Ratanadeep/Ratanadeep awaiting canonicalization
+// Reason: Vmm/VMM, Fsn/FSN, Walmart Cnc/CNC awaiting canonicalization
+// Timeline: Pending chain canonicalization approval
 // Stub: -- BLOCKED --
-
-// ============================================================================
-// QC & VALIDATION MEASURES (FOR QC PAGES ONLY)
-// ============================================================================
-
-// 18. Negative Return Row Count (valid returns/credit notes)
-[Negative Return Rows] =
-CALCULATE(
-  [Row Count],
-  Fact_Offtake_Safe[Is_Negative_Return] = TRUE()
-)
-
-// 19. June'26 Partial Row Count
-[June26 Partial Row Count] =
-CALCULATE(
-  [Row Count],
-  Fact_Offtake_Safe[Is_June26_Partial] = TRUE()
-)
-
-// 20. Total Distinct Chains
-[Distinct Chains] =
-DISTINCTCOUNT(
-  Fact_Offtake_Safe[Chain_Name]
-)
-
-// 21. Total Distinct Zones
-[Distinct Zones] =
-DISTINCTCOUNT(
-  Fact_Offtake_Safe[Zone]
-)
-
-// 22. Total Distinct Categories
-[Distinct Categories] =
-DISTINCTCOUNT(
-  Fact_Offtake_Safe[Category]
-)
 
 // ============================================================================
 // HELPER MEASURES (INTERNAL USE ONLY, NOT FOR REPORTS)
 // ============================================================================
 
-// 23. Report Watermark: NSV Unit Pending
-[Watermark NSV Pending] =
-"⚠ NSV unit pending | Interim MRP basis only"
+// 33. Report Watermark: NSV Converted from Lakhs
+[Watermark NSV Converted] =
+"NSV converted from source Lakhs to ₹ Crores (÷100). MRP in actual rupees (÷10,000,000 for Cr display)."
 
-// 24. Report Watermark: Interim Only
-[Watermark Interim Only] =
-"Interim only: NSV unit pending. Not for final profitability review."
+// 34. Report Watermark: Interim View
+[Watermark Interim View] =
+"Interim view. NSV converted from Lakhs to ₹Cr. June'26 Partial. Not for final profitability review (cost structure pending)."
 
 // ============================================================================
 // NOTES & IMPLEMENTATION GUIDELINES
 // ============================================================================
 /*
-Safe Measures Summary:
-✓ MRP Sales Value (verified, rupees basis)
+Safe Measures Summary (v3 — NSV Unit Confirmed):
+
+✓ MRP Sales Value (verified actual rupees)
+✓ MRP Sales Value Cr (÷10,000,000)
+✓ NSV in Lakhs (confirmed source unit)
+✓ NSV Cr (÷100 to convert to Crores)
+✓ NSV Actual Value (×100,000 to convert to rupees)
 ✓ Sales Qty (units)
 ✓ Row Count
-✓ MRP-based contribution %
-✓ MRP-based trends (MoM absolute, % change)
+✓ MRP Contribution % (MRP-basis)
+✓ NSV Contribution % (NSV-basis, Crore)
+✓ Qty Contribution %
+✓ MRP Trends (MoM absolute & %)
+✓ NSV Trends (MoM absolute & %, Crore basis)
+✓ Qty Trends (MoM absolute & %)
+✓ BA Availability measures (coverage only, no profitability)
 ✓ QC & validation measures (row counts, distinct counts, flags)
 
 All measures listed above are SAFE to use in active Power BI reports.
-They do NOT depend on:
-  - NSV unit (unvalidated)
-  - State mapping (pending)
-  - BA Headcount (business input pending)
-  - Chain canonicalization (pending)
-  - More Retail deduplication (pending)
+
+They do NOT depend on (or are no longer blocked by):
+  ✓ NSV unit (CONFIRMED: Lakhs)
+  - State mapping (business decision: zone-only approach)
+  - Cost structure (blocks P&L, CM2, margin %, BA profitability)
+  - BA Headcount (blocks BA profitability)
+  - Chain canonicalization (blocks variant consolidation)
+  - More Retail deduplication (business decision: all rows retained)
 
 All measures explicitly flag June'26 as Partial where relevant.
 
 Blocked Measures:
-All NSV-based, profitability, state-level, and BA measures are BLOCKED.
+- P&L, CM2, Margin %, Profitability (awaiting cost sources)
+- BA Profitability (awaiting BA Headcount + cost)
+- State-level rollups (business decision: zone-only)
+- Primary vs Offtake Gap (awaiting Primary NSV validation)
+- Chain variant consolidation (awaiting canonicalization)
 See "BLOCKED MEASURES" section above for full list.
 
 Implementation Notes for Power BI Desktop:

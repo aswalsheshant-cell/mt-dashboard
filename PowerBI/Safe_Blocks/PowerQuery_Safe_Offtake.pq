@@ -132,19 +132,49 @@ let
     [Is_June26_Partial]
   ),
 
-  // 14. Create Safe Value Basis column (MRP Sales Value is the safe basis)
-  SafeValueBasisCalculated = Table.AddColumn(MonthPartialFlagCalculated, "Safe_Value_Basis", each
-    [MRP_Sales_Value]  // MRP Sales Value is verified; NSV is blocked
+  // 14. Rename NSV column to Source NSV Lacs (confirmed unit = Lakhs)
+  SourceNsvRenamed = Table.RenameColumns(MonthPartialFlagCalculated, {
+    {"NSV", "Source_NSV_Lacs"}
+  }),
+
+  // 15. Create NSV Actual Value (Lakhs → Rupees: Lacs * 100,000)
+  NsvActualValueCalculated = Table.AddColumn(SourceNsvRenamed, "NSV_Actual_Value", each
+    [Source_NSV_Lacs] * 100000  // Convert Lakhs to actual rupees
   ),
 
-  // 15. Create Safe Reporting Flag (true = can use in reports; false = blocked pending decision)
+  // 16. Create NSV Cr (Lakhs → Crores: Lacs / 100)
+  NsvCrCalculated = Table.AddColumn(NsvActualValueCalculated, "NSV_Cr", each
+    [Source_NSV_Lacs] / 100  // Convert Lakhs to Crores
+  ),
+
+  // 17. Create MRP Sales Value Cr (Rupees → Crores: Rupees / 10,000,000)
+  MrpCrCalculated = Table.AddColumn(NsvCrCalculated, "MRP_Sales_Value_Cr", each
+    [MRP_Sales_Value] / 10000000  // Convert actual rupees to Crores
+  ),
+
+  // 18. Create Sales Qty Cr (Qty / 10,000,000 for display)
+  QtyCrCalculated = Table.AddColumn(MrpCrCalculated, "Sales_Qty_Cr", each
+    [Sales_Qty] / 10000000  // Convert to Crores for display
+  ),
+
+  // 19. Create Safe Value Basis (MRP is primary; NSV now confirmed and active)
+  SafeValueBasisCalculated = Table.AddColumn(QtyCrCalculated, "Safe_Value_Basis", each
+    [MRP_Sales_Value]  // MRP Sales Value remains primary basis
+  ),
+
+  // 20. Create Safe Reporting Flag (all rows safe; NSV unit now confirmed)
   SafeReportingFlagCalculated = Table.AddColumn(SafeValueBasisCalculated, "Is_Safe_For_Reporting", each
-    true  // All rows are safe for MRP-basis reporting; NSV flagged separately
+    true  // All rows safe for MRP & NSV reporting (NSV unit confirmed as Lakhs)
   ),
 
-  // 16. Flag rows with negative values (valid returns/credit notes)
+  // 21. Flag rows with negative MRP values (valid returns/credit notes)
   NegativeValueFlagCalculated = Table.AddColumn(SafeReportingFlagCalculated, "Is_Negative_Return", each
-    [NSV] < 0  // Negative NSV is valid (returns, credit notes); not an error
+    [MRP_Sales_Value] < 0  // Negative MRP is valid (returns, credit notes); not an error
+  ),
+
+  // 22. Flag rows with negative NSV values (valid returns/credit notes)
+  NegativeNsvFlagCalculated = Table.AddColumn(NegativeValueFlagCalculated, "Is_Negative_NSV", each
+    [Source_NSV_Lacs] < 0  // Negative NSV is valid (returns, credit notes); not an error
   ),
 
   // 17. Create BA Availability flag (Brand Counter = BA coverage for Reliance)
@@ -152,9 +182,9 @@ let
     if [Chain_Name] = "Brand Counter" then "Yes" else "No"
   ),
 
-  // 18. Remove intermediate columns and reorder for clarity
-  ColumnsRemoved = Table.RemoveColumns(BAAvailabilityCalculated,
-    {"Content", "Month_Raw", "Year", "NSV"}),  // NSV removed from report-ready layer
+  // 23. Remove intermediate columns and reorder for clarity
+  ColumnsRemoved = Table.RemoveColumns(NegativeNsvFlagCalculated,
+    {"Content", "Month_Raw", "Year"}),  // All NSV/MRP/Qty columns kept for reporting
 
   // Reorder columns for readability
   ColumnReordered = Table.SelectColumns(ColumnsRemoved, {
@@ -162,8 +192,9 @@ let
     "Format", "Classification",
     "Month", "FY", "Month_Sort", "Month_Num", "Calendar_Year",
     "Is_Month_Partial", "Is_June26_Partial",
-    "Sales_Qty", "MRP_Sales_Value", "Safe_Value_Basis",
-    "Is_Safe_For_Reporting", "Is_Negative_Return", "BA_Available"
+    "Sales_Qty", "Sales_Qty_Cr", "MRP_Sales_Value", "MRP_Sales_Value_Cr",
+    "Source_NSV_Lacs", "NSV_Actual_Value", "NSV_Cr",
+    "Safe_Value_Basis", "Is_Safe_For_Reporting", "Is_Negative_Return", "Is_Negative_NSV", "BA_Available"
   })
 in
   ColumnReordered
@@ -232,17 +263,15 @@ in
 
 let
   BlockedList = {
-    {1, "NSV (unit unvalidated)", "Finance must provide reference anchor (₹Cr for 1 month)"},
-    {2, "NSV (Cr), NSV (Lacs), NSV Label", "Dependent on NSV unit confirmation"},
-    {3, "MoM/YoY/L3M/L6M % growth (NSV basis)", "Uses NSV; blocked until unit confirmed"},
-    {4, "Contribution % (NSV-driven)", "Blocked on NSV unit"},
-    {5, "Rank by Sales (NSV-driven)", "Blocked on NSV unit"},
-    {6, "P&L / Profitability measures", "All depend on NSV unit or BA Headcount (business input)"},
-    {7, "CM2, Gross Margin %", "Require NSV unit + margin assumptions"},
-    {8, "BA Profitability", "Awaiting BA Headcount and cost structure (NSV unit also pending)"},
-    {9, "State-level rollups, State slicer", "Source data lacks reliable state mapping; zone-level reporting available"},
-    {10, "Primary vs Offtake Gap measures", "Requires both Primary and Offtake NSV units validated"},
-    {11, "Chain-level reporting (variants)", "Vmm/VMM, Fsn/FSN, etc. awaiting canonicalization"}
+    {1, "CM2 (Contribution Margin 2)", "Requires CM2 cost source and accounting method (business input pending)"},
+    {2, "Gross Margin %", "Requires margin % assumptions and cost sources (business input pending)"},
+    {3, "Profitability measures", "Requires cost structure, COGS, and allocation rules (business input pending)"},
+    {4, "P&L (complete)", "All P&L measures depend on cost sources (business input pending)"},
+    {5, "BA Profitability", "Requires BA Headcount + cost structure + margin assumptions (business input pending)"},
+    {6, "BA Cost to Serve", "Requires BA cost structure and allocation (business input pending)"},
+    {7, "BA Productivity metrics", "Requires BA Headcount and cost structure (business input pending)"},
+    {8, "Primary vs Offtake Gap %", "Requires Primary NSV validation (separate exercise)"},
+    {9, "Chain-level reporting (variants)", "Vmm/VMM, Fsn/FSN, etc. awaiting canonicalization"}
   },
   ConvertedTable = Table.FromRows(BlockedList, {"Seq", "Measure", "Reason"}),
   TypedTable = Table.TransformColumnTypes(ConvertedTable, {{"Seq", type number}, {"Measure", type text}, {"Reason", type text}})
@@ -257,12 +286,12 @@ in
 
 let
   DecisionsList = {
-    {1, "NSV Unit Validation", "Finance provides ₹Cr anchor for 1 month", "Unblocks P&L, Profitability, %-growth on NSV", "Pending"},
-    {2, "More Retail Records Status", "Business reviewed; retained as valid source records", "APPROVED: No dedup applied. All rows kept.", "COMPLETE"},
-    {3, "Brand Counter = BA Availability", "Flag Brand Counter as BA coverage (Reliance)", "APPROVED: BA Availability view shows Reliance BA coverage only. No BA profitability yet.", "COMPLETE"},
-    {4, "State-wise Reporting", "Source state data unreliable; zone-only approach", "APPROVED: No state-level rollups. Zone-level reporting used instead.", "COMPLETE"},
-    {5, "Chain Master Canonicalization", "Pending business approval of canonical names", "Variant chains (Vmm/VMM, etc.) awaiting merge", "Pending"},
-    {6, "Reliance Schema Completeness", "Accept partial (29 cols) or request full export", "Missing DC Name, Year, SO/DC fields", "Pending"}
+    {1, "NSV Unit Validation", "Confirmed: NSV source is in Lakhs", "✓ COMPLETE: NSV Cr = Lakhs / 100. NSV measures now active and unblocked.", "COMPLETE"},
+    {2, "More Retail Records Status", "Business reviewed; retained as valid source records", "✓ APPROVED: No dedup applied. All rows kept.", "COMPLETE"},
+    {3, "Brand Counter = BA Availability", "Flag Brand Counter as BA coverage (Reliance)", "✓ APPROVED: BA Availability view shows Reliance BA coverage only. No BA profitability yet.", "COMPLETE"},
+    {4, "State-wise Reporting", "Source state data unreliable; zone-only approach", "✓ APPROVED: No state-level rollups. Zone-level reporting used instead.", "COMPLETE"},
+    {5, "Profitability & Cost Structure", "Pending business approval of cost sources and allocation", "Blocks P&L, CM2, Margin %, BA profitability (NSV unit now confirmed)", "Pending"},
+    {6, "Chain Master Canonicalization", "Pending business approval of canonical names", "Variant chains (Vmm/VMM, etc.) awaiting merge", "Pending"}
   },
   ConvertedTable = Table.FromRows(DecisionsList, {"Seq", "Decision", "Action", "Impact", "Timeline"}),
   TypedTable = Table.TransformColumnTypes(ConvertedTable, {
