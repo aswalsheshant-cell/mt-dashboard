@@ -1,0 +1,53 @@
+Page Name,Visual Name,Measure Checked,Expected Logic,Expected Range,Actual Value,Variance,Pass/Fail,Remarks
+Page 1,KPI Card 1,Total NSV Cr,Sum of all NSV (Excl Tax),1200-1500 Cr,,,-,
+Page 1,KPI Card 2,Total MRP Sales Value Cr,Sum of all MRP (Incl Tax),1400-1600 Cr,,,-,
+Page 1,KPI Card 3,Total Sales Qty M,Sum of all Qty divided by millions,150-200 M units,,,-,
+Page 1,KPI Card 4,NSV MoM Growth Pct,Month-over-month NSV growth %,-20% to +30%,,,-,
+Page 1,KPI Card 5,MRP MoM Growth Pct,Month-over-month MRP growth %,-20% to +30%,,,-,
+Page 1,KPI Card 6,Qty MoM Growth Pct,Month-over-month Qty growth %,-20% to +30%,,,-,
+Page 1,Line Chart,Total NSV Cr by Month,NSV trend over time,Upward or stable trend,,,-,Tax basis labeled (Excl Tax)?
+Page 1,Bar Chart,Top 6 Chains,Top 6 chains by NSV,Reliance + Walmart typically top,,,-,Sorted descending?
+Page 1,Text Banner,June'26 Partial Warning,Warns of partial Jun-26 data,Must show: 78111 rows,,,-, Visible?
+Page 2,Matrix,BA Available NSV Cr,NSV for rows with BA_Available=Yes,BA NSV < Total NSV,,,-,Correctly filtered?
+Page 2,Matrix,Drill to Zones,Zone-level breakdown,All zones visible when expanded,,,-,Expand/collapse works?
+Page 2,Bar Chart,Chain Comparison,Chains ranked by NSV,Top 5 visible,,,-,Sorted correctly?
+Page 3,Matrix,Brand × Category,Brand and category breakdown,All brands + categories visible,,,-,Matrix expands?
+Page 3,Bar Chart,Brand Ranking,Top brands by NSV,10 brands visible,,,-,Sorted by NSV desc?
+Page 4,Scatter,NSV vs Qty,NSV (X) vs Qty (Y) bubble size MRP,All categories visible as bubbles,,,-,Bubble size varies?
+Page 5,Heatmap,Zone Comparison,Zones ranked by NSV + growth,All zones visible,,,-,Color gradient visible?
+Page 6,Table,Store NSV Ranking,Top 20 stores by NSV,Highest NSV ≈ 50-100 Cr per store,,,-,Store_Master placeholder noted?
+Page 6,Scatter,Store Growth,Prior vs Current NSV,Scatter shows progression,,,-,Bubble size varies?
+Page 7,KPI 1,BA Available NSV Cr,NSV where BA_Available=Yes,30-50% of Total NSV typically,,,-,Correct measure?
+Page 7,KPI 2,Non_BA Available NSV Cr,NSV where BA_Available=No,50-70% of Total NSV typically,,,-,Correct measure?
+Page 7,KPI 3,BA Coverage Pct,BA NSV / Total NSV,%,0-100%,,,-,
+Page 7,KPI 10,CM2 Cr Provisional,NSV - COGS - Support Costs (Provisional),TBD pending Finance Q2,,,-, Yellow ⚠️ formatting?
+Page 7,KPI 11,CM2 Pct Provisional,CM2 / BA NSV % (Provisional),TBD pending Finance Q2,,,-, Yellow ⚠️ formatting?
+Page 7,Line Chart,BA vs Non-BA Trend,BA NSV vs Non-BA NSV over time,Two lines showing trend,,,-,Legend shows both?
+Page 7,Table,Store Profitability,19-column store detail table,19 columns visible,,,-,CM2 marked PROVISIONAL ⚠️?
+Page 8,KPI,Total BA Cost Cr,Sum of BA salary costs,5-15% of NSV typically,,,-,
+Page 8,KPI,TOT Cost Cr Provisional,TOT costs (Provisional),Awaiting Finance Q4,,,-, Yellow ⚠️ formatting?
+Page 8,KPI,Promotional Cost Cr Provisional,Promo costs (Provisional),Awaiting Finance Q5,,,-, Yellow ⚠️ formatting?
+Page 8,Pie Chart,Cost Breakdown,% distribution of cost types,All cost types visible in pie,,,-,
+Page 9,Text Box,Placeholder,Profitability QC readiness only,Must show Q1-Q2 blocking message,,,-, Red border visible?
+Page 10,Table,Validation Status,Rows where costs are missing,All incomplete rows shown,,,-,Missing cost flag = TRUE?
+Page 10,Table,Monthly Reconciliation,NSV + MRP + Qty by month,Sum of months ≈ Total NSV Cr,,,-,June'26 partial row flagged?
+Page 10,Text Box,QC Alerts,All known QC issues listed,June'26 partial + More Retail + Pending,,,-, All items documented?
+All Pages,Slicers,FY Multi-select,Filter all visuals by FY,FY25 + FY26 + FY27 (if data exists),,,-, All pages updated when clicked?
+All Pages,Slicers,Month Multi-select,Filter all visuals by month,Apr-24 to Jun-26,,,-, All pages updated when clicked?
+All Pages,Slicers,Chain Multi-select,Filter all visuals by chain,34 chains,,,-, All pages updated when clicked?
+All Pages,Slicers,Zone Multi-select,Filter all visuals by zone,37 zones,,,-, All pages updated when clicked?
+All Pages,Slicers,Brand Multi-select,Filter all visuals by brand,100+ brands,,,-, All pages updated when clicked?
+All Pages,Slicers,Category Multi-select,Filter all visuals by category,50+ categories,,,-, All pages updated when clicked?
+All Pages,Data Model,Relationships,5 relationships: Fact → Dim_Month/Chain/Zone/Category,Star schema complete,,,-, Model view shows star?
+All Pages,Data Model,Calculated Columns,NSV_Cr + NSV_Actual_Value + MRP_Cr,All 3 present in Fact table,,,-, All fields exist?
+All Pages,Labels,NSV Labeling,Every NSV must show (Excl Tax),100% compliance,,,-, Spot-check 5 pages
+All Pages,Labels,MRP Labeling,Every MRP must show (Incl Tax),100% compliance,,,-, Spot-check 5 pages
+All Pages,Labels,Tax Basis Warning,NSV + MRP together = warning,100% compliance,,,-, Spot-check 3 pages
+QC Overall,Data Quality,Total Row Count in Page 10,Should show ≈ 4.21M,4.21M,,,-,Exact number?
+QC Overall,Data Quality,June'26 Partial Count in Page 10,Should show ≈ 78111,78111,,,-,Exact number?
+QC Overall,Data Quality,No State Dimension,0 State slicers or rollups,0,,,-,Verified all pages?
+QC Overall,Data Quality,More Retail Retained,13661 rows included (not deduped),Included in all totals,,,-,No dedup applied?
+QC Overall,Performance,Dashboard Load Time,All pages load and render,< 30 seconds,,,-,First-time load
+QC Overall,Performance,Slicer Response,Click slicer → visuals update,< 2 seconds,,,-,Test with all slicers
+QC Overall,Governance,Provisional Labels,All CM2/TOT/Promo marked ⚠️,100% on Pages 7-8,,,-, Spot-check measures
+QC Overall,Governance,Page 9 Status,Readiness QC only (no active CM2 visuals),Page 9 is placeholder,,,-, Confirm no CM2 charts
