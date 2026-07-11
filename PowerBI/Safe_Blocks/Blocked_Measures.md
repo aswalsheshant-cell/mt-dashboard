@@ -1,17 +1,23 @@
-# Blocked Measures — Complete Reference
+# Blocked Measures — Complete Reference (v2)
 
-**Branch:** claude/safe-powerbi-blocks  
+**Branch:** claude/safe-powerbi-dashboard-rulings  
 **Generated:** 2026-07-11  
-**Status:** Reference documentation (measures NOT implemented)
+**Status:** Reference documentation (v2: business rulings applied)
 
 ---
 
 ## Summary
 
-**11 measures are intentionally blocked** awaiting business decisions. They are documented here for completeness and to prevent accidental implementation.
+**9 measures are intentionally blocked** awaiting business decisions (down from 11; More Retail and Brand Counter approved).
 
 **Do NOT create these measures in Power BI Desktop.**  
 **Do NOT use these measures in any report visual.**
+
+### Business Rulings Applied (v2)
+
+✓ **More Retail Records** — Business reviewed and approved. Kept as valid source records. NO dedup applied.
+✓ **Reliance Brand Counter** — Approved as BA Availability flag. Coverage view implemented on Page 5.
+✓ **State-wise Reporting** — Approved no state rollups. Zone-level used instead.
 
 ---
 
@@ -304,54 +310,7 @@ Once business approves City-State Master SEED mapping:
 
 ---
 
-## 11. More Retail Chain Totals & Contribution (Until Dedup Decision)
-
-**Status:** BLOCKED  
-**Blocker:** 13,661 exact-duplicate rows (₹1.36 Cr / 10.3% MRP) not yet deduplicated; decision pending  
-**Timeline:** 1–3 weeks
-
-### Measures (Not Implemented)
-
-- [More Retail Total MRP] — Accurate More Retail total (deduped)
-- [More Retail Contribution %] — Accurate More Retail % contribution
-- [More Retail vs All-MT] — More Retail as % of All-MT total
-
-### Reason
-
-More Retail has:
-- 40,848 rows
-- 13,661 exact duplicates (33.44%)
-- ₹1.36 Cr MRP carried by duplicates (10.3% of More Retail total)
-- Duplicates present in every month (systematic, not random)
-
-If dedup is deferred, More Retail totals are overstated by ~10% MRP.
-
-### Current Approach (Interim)
-
-- **Report** the duplicate count (13,661 rows, ₹1.36 Cr)
-- **Do NOT remove** duplicates yet
-- **Flag** More Retail totals in QC & Reconciliation page: "Pending duplicate review"
-- **Preserve** all raw rows (may be legitimate if further investigation confirms)
-
-### Three Options (For Business Decision)
-
-| Option | Action | Timeline | Note |
-|--------|--------|----------|------|
-| 1 | De-dupe in Power Query via `Table.Distinct` (More Retail only) | 1–2 hours | Reversible, auditable |
-| 2 | Fix at source: Request vendor to provide clean More Retail files | 1–3 weeks | Preferred if double-export confirmed |
-| 3 | Leave as-is + footnote More Retail as inflated | Immediate | Not recommended; misleading |
-
-### Future Implementation
-
-Once business approves Option 1 or 2:
-- Apply dedup in Power Query (if Option 1)
-- Implement accurate More Retail measures
-- Update all-chain aggregates to reflect corrected More Retail total
-- Remove "pending duplicate review" flag
-
----
-
-## 12. Chain-Level Reporting for Variants (Until Canonicalization)
+## 11. Chain-Level Reporting for Variants (Until Canonicalization)
 
 **Status:** BLOCKED (Partial)  
 **Blocker:** Chain name variants not yet canonicalized; decision pending  
@@ -398,37 +357,41 @@ Once business approves Chain Master DRAFT canonicalization:
 
 ---
 
-## Summary Table
+## Summary Table (Updated v2)
 
-| # | Measure / Feature | Blocker | Timeline | Priority |
-|---|---|---|---|---|
-| 1 | NSV (base unit) | Finance anchor | 1–2 wk | P0 — Unblocks most |
-| 2 | NSV Cr/Lacs/Label/Cumulative | NSV unit | 1–2 wk | P0 |
-| 3 | MoM/YoY/L3M/L6M % (NSV basis) | NSV unit | 1–2 wk | P1 |
-| 4 | Contribution % (NSV) | NSV unit | 1–2 wk | P1 |
-| 5 | Rank by Sales (NSV) | NSV unit | 1–2 wk | P2 |
-| 6 | Primary vs Offtake Gap | Offtake NSV | 1–2 wk | P2 |
-| 7 | P&L / Profitability | NSV + margins | 1–4 wk | P1 |
-| 8 | CM2 / Gross Margin % | NSV + margins | 1–4 wk | P2 |
-| 9 | BA Profitability | BA Headcount + NSV | 1–2 wk + 1–4 wk | P1 |
-| 10 | State-level rollups | State mapping | 1–2 wk | P2 |
-| 11 | More Retail totals (accurate) | Dedup decision | 1–3 wk | P2 |
-| 12 | Chain variant consolidation | Chain canonicalization | 1 wk | P2 |
+| # | Measure / Feature | Blocker | Timeline | Priority | Status |
+|---|---|---|---|---|---|
+| 1 | NSV (base unit) | Finance anchor | Pending | P0 — Unblocks most | BLOCKED |
+| 2 | NSV Cr/Lacs/Label/Cumulative | NSV unit | Pending | P0 | BLOCKED |
+| 3 | MoM/YoY/L3M/L6M % (NSV basis) | NSV unit | Pending | P1 | BLOCKED |
+| 4 | Contribution % (NSV) | NSV unit | Pending | P1 | BLOCKED |
+| 5 | Rank by Sales (NSV) | NSV unit | Pending | P2 | BLOCKED |
+| 6 | Primary vs Offtake Gap | Offtake NSV | Pending | P2 | BLOCKED |
+| 7 | P&L / Profitability | NSV + margins | Pending | P1 | BLOCKED |
+| 8 | CM2 / Gross Margin % | NSV + margins | Pending | P2 | BLOCKED |
+| 9 | BA Profitability | BA Headcount + NSV | Pending | P1 | BLOCKED |
+| ~10~ | ~~State-level rollups~~ | ~~State mapping~~ | ~~1–2 wk~~ | ~~P2~~ | ✓ APPROVED (Zone-only) |
+| ~11~ | ~~More Retail dedup~~ | ~~Dedup decision~~ | ~~1–3 wk~~ | ~~P2~~ | ✓ APPROVED (No dedup) |
+| 10 | Chain variant consolidation | Chain canonicalization | Pending | P2 | BLOCKED |
 
 **P0 = Unblocks other items (depends on this)  
 P1 = Important for leadership reporting  
-P2 = Nice-to-have; can defer**
+P2 = Nice-to-have; can defer  
+✓ APPROVED = Business ruling applied; no longer blocked**
 
 ---
 
-## Implementation Order (Recommended)
+## Implementation Order (Recommended v2)
 
+**Approved & Complete:**
+1. ✓ **More Retail Records** — Business approved; kept as valid; no dedup
+2. ✓ **Brand Counter Classification** — Approved as BA Availability; Page 5 created
+3. ✓ **State-wise Reporting** — Approved no state rollups; zone-level used
+
+**Pending Business Decisions:**
 1. **First:** NSV unit validation (unblocks everything that depends on NSV)
-2. **Second:** More Retail dedup decision + implementation
-3. **Third:** Brand Counter classification + BA profitability
-4. **Fourth:** Chain Master canonicalization + state-to-city mapping
-5. **Fifth:** Margin assumptions + P&L/CM2 measures
-6. **Sixth:** Reliance schema confirmation
+2. **Second:** Chain Master canonicalization (allows Vmm/VMM merging)
+3. **Third:** Reliance schema confirmation
 
 ---
 

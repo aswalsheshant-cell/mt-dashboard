@@ -1,8 +1,9 @@
-# Power BI Safe Blocks — Complete Build Kit
+# Power BI Safe Blocks — Complete Build Kit (v2)
 
-**Branch:** claude/safe-powerbi-blocks  
-**Status:** Draft (ready for implementation in Power BI Desktop)  
-**Generated:** 2026-07-11
+**Branch:** claude/safe-powerbi-dashboard-rulings  
+**Status:** Updated with business rulings (ready for implementation in Power BI Desktop)  
+**Generated:** 2026-07-11  
+**Version:** 2 (Business Rulings Applied)
 
 ---
 
@@ -23,7 +24,7 @@ This folder contains a complete, production-ready Power BI build kit for **safe-
 - PBIP/PBIX file (you build this in Power BI Desktop using the guide)
 - CSV seed data (use your existing monthly offtake CSVs)
 
-**Time to build:** 2–3 hours (first-time implementation in Power BI Desktop)
+**Time to build:** 2.5–3.5 hours (first-time implementation in Power BI Desktop with 5 pages)
 
 ---
 
@@ -31,16 +32,16 @@ This folder contains a complete, production-ready Power BI build kit for **safe-
 
 | File | Purpose | Pages | Status |
 |------|---------|-------|--------|
-| **PowerQuery_Safe_Offtake.pq** | Power Query scripts for data loading, transformation, QC tables | 1 | Complete, ready to copy-paste |
-| **DAX_Safe_Measures.dax** | All safe DAX measures (22+) with documentation | 1 | Complete, ready to copy-paste |
-| **PowerBI_Model_Spec.md** | Data model: tables, columns, relationships, diagram | 8 | Complete |
-| **PowerBI_Report_Page_Spec.md** | 4 report pages: visuals, slicers, formatting, interactions | 12 | Complete |
-| **Build_In_PowerBI_Desktop_Guide.md** | Step-by-step build instructions (phase 1–6) | 6 | Complete, tested procedure |
-| **QC_Validation_Checklist.md** | Pre-build & post-build validation tests | 4 | Complete, ready to run |
-| **Blocked_Measures.md** | 11 blocked measures (NOT to implement) + decision logic | 8 | Complete reference |
-| **README.md** | This file | 1 | Overview & quick-start |
+| **PowerQuery_Safe_Offtake.pq** | Power Query scripts (data loading, QC tables, BA_Available flag) | 1 | Updated v2, ready to copy-paste |
+| **DAX_Safe_Measures.dax** | Safe DAX measures (25+: MRP, Qty, contribution, BA Availability coverage) | 1 | Updated v2, ready to copy-paste |
+| **PowerBI_Model_Spec.md** | Data model: tables, columns, relationships, diagram | 8 | Current |
+| **PowerBI_Report_Page_Spec.md** | 5 report pages (added Page 5: BA Availability View) | 16 | Updated v2 |
+| **Build_In_PowerBI_Desktop_Guide.md** | Step-by-step build instructions (phase 1–6, 5 pages) | 7 | Updated v2 |
+| **QC_Validation_Checklist.md** | Pre-build & post-build validation tests (5 pages) | 5 | Updated v2 |
+| **Blocked_Measures.md** | 9 blocked measures (v2: More Retail & Brand Counter approved) | 7 | Updated v2 |
+| **README.md** | This file | 1 | Overview & quick-start v2 |
 
-**Total:** 41 pages of specification + ready-to-use code
+**Total:** 46 pages of specification + ready-to-use code (updated with v2 business rulings)
 
 ---
 
@@ -69,22 +70,27 @@ This folder contains a complete, production-ready Power BI build kit for **safe-
 
 ### Safe-to-Publish Blocks ✓
 
-✓ **4 Report Pages** (Data Explorer, Overview, QC & Reconciliation, Interim Offtake P&L)  
+✓ **5 Report Pages** (Data Explorer, Overview, QC & Reconciliation, Interim Offtake P&L, BA Availability View)  
 ✓ **MRP Sales Value basis** (verified, rupee unit; NSV blocked)  
-✓ **June'26 flagged as Partial** (78,111 rows, 16 chains; watermarks on every page)  
-✓ **Zone-level analysis** (P6 canonicalized, no state-level rollups)  
-✓ **22+ safe DAX measures** (MRP, Qty, contribution %, trends, QC)  
-✓ **5 QC reference tables** (monthly reconciliation, duplicates, variants, blocked list, pending decisions)  
+✓ **June'26 flagged as Partial** (78,111 rows, 16 chains; watermarks on Pages 1–4)  
+✓ **Zone-level analysis** (P6 canonicalized; state-level rollups blocked)  
+✓ **25+ safe DAX measures** (MRP, Qty, contribution %, trends, BA Availability coverage, QC)  
+✓ **BA Availability coverage** (Brand Counter = BA coverage; Page 5 reports only, no profitability)  
+✓ **5 QC reference tables** (monthly reconciliation, More Retail audit, variants, blocked list, pending decisions)  
 ✓ **Interactive filtering** (FY, Month, Chain [raw], Zone, Category, Format, Classification)  
 
-### Intentionally Blocked (NOT Implemented)
+### Business Rulings Applied (v2) ✓
+
+✓ **More Retail Records** — Business reviewed; retained as valid source records; no dedup applied
+✓ **Reliance Brand Counter** — Approved as BA Availability flag; Page 5 created for coverage view
+✓ **State-wise Reporting** — Source data unreliable; zone-level used; no state rollups created
+
+### Remaining Blockers (Awaiting Business Decisions)
 
 ✗ **NSV measures** (unit unvalidated; awaiting finance anchor)  
 ✗ **Profitability measures** (depend on NSV + margin assumptions)  
-✗ **State-level rollups** (247 raw state values include cities; mapping pending)  
-✗ **BA profitability** (awaiting BA Headcount + Brand Counter classification)  
-✗ **More Retail dedup** (13,661 dup rows; duplicate removal decision pending)  
-✗ **Chain canonicalization** (variants Vmm/VMM, Fsn/FSN, etc. awaiting business decision)  
+✗ **BA profitability** (awaiting BA Headcount + cost structure confirmation)  
+✗ **Chain canonicalization** (variants Vmm/VMM, Fsn/FSN, etc. awaiting business approval)  
 
 ---
 

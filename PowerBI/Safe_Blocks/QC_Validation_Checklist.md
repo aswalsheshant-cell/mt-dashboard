@@ -80,14 +80,20 @@
 - [ ] NO [CM2] measure exists
 - [ ] NO [BA Profitability] measure exists
 - [ ] NO [State-level Rollup] measures exist
+- [ ] BA Available measures DO exist (coverage view):
+  - [ ] [BA Available Row Count]
+  - [ ] [BA Available MRP Sales Value]
+  - [ ] [BA Available MRP Sales Value Cr]
+  - [ ] [BA Availability Mix %]
 
 ### Report Pages — General
 
-- [ ] All 4 pages load without errors:
+- [ ] All 5 pages load without errors:
   - [ ] Data Explorer
   - [ ] Overview
   - [ ] QC & Reconciliation
   - [ ] Interim Offtake P&L
+  - [ ] BA Availability View (NEW)
 
 - [ ] Watermarks visible on every page:
   - [ ] "⚠ NSV unit pending"
@@ -162,21 +168,25 @@
   - [ ] Row/MRP counts correct
   - [ ] Note about More Retail duplicates visible
 
-- [ ] Table 3 (Duplicate Report):
-  - [ ] Shows More Retail duplicates only
-  - [ ] Count > 1 for all rows shown
-  - [ ] MRP impact = ~₹1.36 Cr
-  - [ ] Note: "Do NOT interpret as errors; awaiting business decision"
+- [ ] Table 3 (More Retail Audit):
+  - [ ] Shows More Retail rows by month
+  - [ ] Note: "Business reviewed and retained as valid source records"
+  - [ ] No dedup applied (all rows included in MRP totals)
 
 - [ ] Blocked Measures list visible:
-  - [ ] 11 items listed
+  - [ ] 11 items listed (updated per v2 rulings)
   - [ ] All NSV-based items included
-  - [ ] All state-level items included
-  - [ ] All BA profitability items included
+  - [ ] State-level items marked as "pending" (not deferred)
+  - [ ] BA profitability items marked as "blocked pending BA Headcount"
+  - [ ] More Retail NO LONGER listed as dedup blocker
 
 - [ ] Pending Decisions table visible:
-  - [ ] 6 decisions listed (NSV, More Retail, Brand Counter, State, Chain, Reliance)
-  - [ ] Timeline column populated
+  - [ ] More Retail: Status = COMPLETE (Business approved)
+  - [ ] Brand Counter: Status = COMPLETE (BA Availability flag created)
+  - [ ] State: Status = COMPLETE (Zone-level used instead)
+  - [ ] NSV Unit: Status = Pending
+  - [ ] Chain Canonicalization: Status = Pending
+  - [ ] Reliance Schema: Status = Pending
 
 ### Report Pages — Interim Offtake P&L
 
@@ -211,6 +221,27 @@
   - [ ] "NSV-based measures blocked"
   - [ ] "Using MRP Sales Value (verified) interim basis"
 
+### Report Pages — BA Availability View (NEW)
+
+- [ ] Page title: "Reliance BA Availability Coverage"
+- [ ] Watermark visible: "Coverage view only. BA profitability blocked."
+- [ ] KPI cards show:
+  - [ ] BA Available Row Count
+  - [ ] BA Available MRP Sales Value (Cr format)
+  - [ ] BA Availability Mix %
+  - [ ] Total MRP (All) for comparison
+
+- [ ] Charts present:
+  - [ ] BA Available MRP by Zone
+  - [ ] BA Available MRP by Category
+  - [ ] BA Available MRP Trend (Month)
+  - [ ] Total BA Available Rows (card)
+
+- [ ] Detail table loads with BA-available rows only
+- [ ] Info box states: "Brand Counter = BA Availability. Coverage only, not profitability."
+- [ ] NO profitability visuals on this page
+- [ ] NO BA cost/headcount metrics on this page
+
 ### Filtering & Interactions
 
 - [ ] Click filter on chain → all pages update ✓
@@ -231,10 +262,11 @@
 - Confirm chain count = 16 (or close)
 - Result: [ ] PASS / [ ] FAIL
 
-**Test 2: More Retail Duplicates**
+**Test 2: More Retail Records Status (Business Approved)**
 - Navigate to QC & Reconciliation
-- Confirm duplicate count = 13,661 (exact)
-- Confirm duplicate MRP ≈ ₹136 Cr (₹1.36 Cr)
+- Confirm More Retail Audit table present
+- Confirm note: "Business reviewed and retained as valid"
+- Confirm More Retail rows included in all MRP totals (no dedup)
 - Result: [ ] PASS / [ ] FAIL
 
 **Test 3: MRP Sales Value Total**
@@ -255,6 +287,14 @@
 - Confirm no NSV calculation in any report visual
 - Result: [ ] PASS / [ ] FAIL
 
+**Test 6: BA Availability View (NEW)**
+- Navigate to Page 5 (BA Availability View)
+- Confirm [BA Available Row Count] > 0 (should show Brand Counter rows)
+- Confirm [BA Availability Mix %] is between 0–100%
+- Confirm no BA profitability measures present
+- Confirm watermark states "Coverage only"
+- Result: [ ] PASS / [ ] FAIL
+
 ### Performance Testing
 
 - [ ] Initial load time < 30 seconds
@@ -265,13 +305,14 @@
 
 ### Documentation Completeness
 
-- [ ] PowerQuery_Safe_Offtake.pq: Complete and tested ✓
-- [ ] DAX_Safe_Measures.dax: Complete (22+ measures) ✓
+- [ ] PowerQuery_Safe_Offtake.pq: Updated with BA_Available flag ✓
+- [ ] DAX_Safe_Measures.dax: Updated with BA Available measures ✓
 - [ ] PowerBI_Model_Spec.md: Complete with diagram ✓
-- [ ] PowerBI_Report_Page_Spec.md: Complete (all 4 pages) ✓
-- [ ] Build_In_PowerBI_Desktop_Guide.md: Step-by-step, tested ✓
-- [ ] QC_Validation_Checklist.md: Complete (this document) ✓
-- [ ] Blocked_Measures.md: Complete ✓
+- [ ] PowerBI_Report_Page_Spec.md: Updated (5 pages, includes Page 5 BA Availability) ✓
+- [ ] Build_In_PowerBI_Desktop_Guide.md: Updated (5 pages, business rulings v2) ✓
+- [ ] QC_Validation_Checklist.md: Updated (this document, 5 pages) ✓
+- [ ] Blocked_Measures.md: Updated per v2 rulings ✓
+- [ ] BUSINESS_RULINGS_APPLIED.md: New file documenting changes ✓
 
 ---
 

@@ -209,14 +209,15 @@ For each measure in `DAX_Safe_Measures.dax`:
 
 ---
 
-## Phase 4: Build Report Pages (45–60 minutes)
+## Phase 4: Build Report Pages (60–75 minutes)
 
-### Step 4.1: Create 4 Report Pages
+### Step 4.1: Create 5 Report Pages
 
 1. **New Page** → Rename to "Data Explorer"
 2. **New Page** → Rename to "Overview"
 3. **New Page** → Rename to "QC & Reconciliation"
 4. **New Page** → Rename to "Interim Offtake P&L"
+5. **New Page** → Rename to "BA Availability View"
 
 ### Step 4.2: Add Slicers (on every page)
 
@@ -350,7 +351,50 @@ Follow spec:
    - Profitability
    - CM2
    - State-level rollups
-   - BA metrics
+   - BA profitability metrics
+
+### Step 4.7: Page 5 — BA Availability View
+
+**Purpose:** Show Reliance Brand Counter coverage (coverage only, not profitability)
+
+Follow spec in `PowerBI_Report_Page_Spec.md`:
+
+1. **Add Watermark (top, amber):**
+   "Reliance BA Availability Coverage
+   ⚠ Coverage view only. BA profitability is blocked until BA cost structure and NSV unit are confirmed."
+
+2. **Add KPI Cards:**
+   - BA Available Row Count → [BA Available Row Count]
+   - BA Available MRP → [BA Available MRP Sales Value Cr]
+   - BA Availability Mix % → [BA Availability Mix %]
+   - Total MRP (All) → [MRP Sales Value Cr] (for comparison)
+
+3. **Add Charts (2-column grid):**
+   - BA Available MRP by Zone (column)
+   - BA Available MRP by Category (column)
+   - BA Available MRP Trend by Month (line)
+   - Total BA Available Rows (card)
+
+4. **Add Slicers:**
+   - FY (required)
+   - Month (required)
+   - Zone (recommended)
+   - Category (optional)
+
+5. **Add Detail Table:**
+   - Columns: Site_Code, Site_Name, Chain_Name, Zone, Category, Month, FY, Sales_Qty, MRP_Sales_Value
+   - Row limit: 1,000 (show record count)
+   - Filter: BA_Available = "Yes"
+
+6. **Add Info Box:**
+   "Brand Counter represents BA availability. Business decision APPROVED: This is a coverage view only. BA profitability metrics are blocked."
+
+7. **DO NOT include:**
+   - BA Profitability
+   - BA Cost to Serve
+   - BA Productivity
+   - State-level breakdowns
+   - NSV measures
 
 ---
 
@@ -362,15 +406,18 @@ Run through this checklist:
 
 - [ ] No NSV measure appears in any visual
 - [ ] No State dimension visible or filtered
-- [ ] No BA profitability visuals
-- [ ] June'26 flagged as Partial on all pages (visual markers + text)
-- [ ] All 4 pages load without errors
+- [ ] No BA profitability visuals (Page 5 shows coverage only)
+- [ ] June'26 flagged as Partial on Pages 1–4 (visual markers + text)
+- [ ] All 5 pages load without errors
 - [ ] Slicers work correctly (cross-filter behavior)
-- [ ] Watermarks visible and readable
-- [ ] More Retail duplicates reported but NOT deduped
+- [ ] Watermarks visible and readable on all 5 pages
+- [ ] More Retail rows kept; no dedup applied
+- [ ] More Retail note says "Business-approved retained records"
 - [ ] Chain variants shown RAW (not canonicalized)
 - [ ] All charts use MRP Sales Value as value basis
 - [ ] QC & Reconciliation page shows all reference tables
+- [ ] Page 5 watermark clearly states "Coverage only, not profitability"
+- [ ] No BA cost/headcount/productivity metrics on Page 5
 
 ### Step 5.2: Test Filtering
 
@@ -427,20 +474,37 @@ If PBIX is required for sharing with non-PBIP environments:
 
 ---
 
-## Next Steps (After Business Decisions)
+## Business Rulings Applied (v2)
 
-Once business approves the 6 pending decisions, proceed with:
+The following business rulings have been applied:
+- ✓ **More Retail Duplicates:** Business reviewed and retained as valid. No dedup applied.
+- ✓ **Reliance Brand Counter:** Classified as BA Availability (coverage view). Page 5 created.
+- ✓ **State Mapping:** Source data unreliable; no state-level rollups. Zone-level used.
 
-1. **NSV Unit Confirmed** → Implement [NSV Cr] measure; unblock NSV pages
-2. **More Retail Dedup Decided** → Apply dedup in Power Query if approved
-3. **Chain Master Approved** → Add Dim_Chain_Canonical; replace Chain_Name with canonical
-4. **State-to-City Mapping Approved** → Add Dim_State_Canonical; enable state-level slicers
-5. **Brand Counter Classified** → Add Dim_BA_Store; enable BA reporting
-6. **Reliance Schema Finalized** → Ensure all measures work with Reliance data
+## Next Steps (After Remaining Business Decisions)
+
+Pending decisions still awaiting approval:
+
+1. **NSV Unit Validation** → Finance must provide ₹Cr anchor for 1 month
+   - Timeline: Pending
+   - Impact: Unblocks [NSV Cr], [Profitability], all %-growth on NSV
+
+2. **Chain Master Canonicalization** → Business approves canonical names
+   - Timeline: Pending
+   - Impact: Allows Vmm/VMM, Fsn/FSN merging in Dim_Chain_Canonical
+
+3. **Reliance Schema Completeness** → Accept partial (29 cols) or request full
+   - Timeline: Pending
+   - Impact: Affects Reliance field mapping
+
+Once approved, proceed with:
+1. NSV Unit Confirmed → Implement [NSV Cr] measure; unblock NSV-based pages
+2. Chain Master Approved → Add Dim_Chain_Canonical; replace Chain_Name with canonical
+3. Reliance Schema Finalized → Ensure all measures work with Reliance data
 
 ---
 
-**Status:** Safe Blocks build is complete and ready for deployment.
+**Status:** Safe Blocks build updated with business rulings v2. Ready for deployment.
 
-**Estimated Total Build Time:** 2–3 hours (first-time build)
+**Estimated Total Build Time:** 2.5–3.5 hours (first-time build with 5 pages)
 

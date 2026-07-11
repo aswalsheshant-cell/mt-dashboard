@@ -147,8 +147,13 @@ let
     [NSV] < 0  // Negative NSV is valid (returns, credit notes); not an error
   ),
 
-  // 17. Remove intermediate columns and reorder for clarity
-  ColumnsRemoved = Table.RemoveColumns(ExpandedContent,
+  // 17. Create BA Availability flag (Brand Counter = BA coverage for Reliance)
+  BAAvailabilityCalculated = Table.AddColumn(NegativeValueFlagCalculated, "BA_Available", each
+    if [Chain_Name] = "Brand Counter" then "Yes" else "No"
+  ),
+
+  // 18. Remove intermediate columns and reorder for clarity
+  ColumnsRemoved = Table.RemoveColumns(BAAvailabilityCalculated,
     {"Content", "Month_Raw", "Year", "NSV"}),  // NSV removed from report-ready layer
 
   // Reorder columns for readability
@@ -158,7 +163,7 @@ let
     "Month", "FY", "Month_Sort", "Month_Num", "Calendar_Year",
     "Is_Month_Partial", "Is_June26_Partial",
     "Sales_Qty", "MRP_Sales_Value", "Safe_Value_Basis",
-    "Is_Safe_For_Reporting", "Is_Negative_Return"
+    "Is_Safe_For_Reporting", "Is_Negative_Return", "BA_Available"
   })
 in
   ColumnReordered
@@ -183,37 +188,22 @@ in
   Sorted
 
 // ============================================================================
-// QC TABLE 2: DUPLICATE REPORT (More Retail)
+// QC TABLE 2: MORE RETAIL RECORDS AUDIT
 // ============================================================================
-// Query: QC_Duplicate_Report
-// Identifies exact-duplicate rows in More Retail chain (do NOT remove; report only)
+// Query: QC_More_Retail_Audit
+// Lists More Retail row counts and MRP totals
+// NOTE: Business has reviewed repeated records and retained them as valid source data.
+// No deduplication is applied. All More Retail rows are kept.
 
 let
   SourceFact = #"Offtake_Safe",
   MoreRetailRows = Table.SelectRows(SourceFact, each [Chain_Name] = "More Retail"),
-
-  // Create row hash for exact-duplicate detection
-  WithHash = Table.AddColumn(MoreRetailRows, "Row_Hash", each
-    let
-      RowTuple = Text.Combine({
-        Text.From([Site_Code]), "|", Text.From([Chain_Name]), "|",
-        Text.From([Category]), "|", Text.From([Month]), "|",
-        Text.From([MRP_Sales_Value])
-      })
-    in
-      RowTuple),
-
-  // Count occurrences of each hash
-  Grouped = Table.Group(WithHash, {"Row_Hash"},
+  Grouped = Table.Group(MoreRetailRows, {"Month", "FY"},
     {
-      {"Count", each Table.RowCount(_), type number},
-      {"MRP_Total", each List.Sum([MRP_Sales_Value]), type number},
-      {"Sample_Month", each List.First([Month]), type text}
+      {"Row_Count", each Table.RowCount(_), type number},
+      {"MRP_Total", each List.Sum([MRP_Sales_Value]), type number}
     }),
-
-  // Filter to show only duplicates (Count > 1)
-  DuplicatesOnly = Table.SelectRows(Grouped, each [Count] > 1),
-  Sorted = Table.Sort(DuplicatesOnly, {{"Count", Order.Descending}})
+  Sorted = Table.Sort(Grouped, {{"FY", Order.Ascending}, {"Month", Order.Ascending}})
 in
   Sorted
 
@@ -249,9 +239,9 @@ let
     {5, "Rank by Sales (NSV-driven)", "Blocked on NSV unit"},
     {6, "P&L / Profitability measures", "All depend on NSV unit or BA Headcount (business input)"},
     {7, "CM2, Gross Margin %", "Require NSV unit + margin assumptions"},
-    {8, "BA Profitability", "Awaiting BA Headcount + Brand Counter classification"},
-    {9, "State-level rollups, State slicer", "247 raw state values include cities; City-State mapping pending"},
-    {10, "More Retail chain totals", "13,661 exact-dup rows (₹1.36 Cr / 10.3% MRP); pending dedup decision"},
+    {8, "BA Profitability", "Awaiting BA Headcount and cost structure (NSV unit also pending)"},
+    {9, "State-level rollups, State slicer", "Source data lacks reliable state mapping; zone-level reporting available"},
+    {10, "Primary vs Offtake Gap measures", "Requires both Primary and Offtake NSV units validated"},
     {11, "Chain-level reporting (variants)", "Vmm/VMM, Fsn/FSN, etc. awaiting canonicalization"}
   },
   ConvertedTable = Table.FromRows(BlockedList, {"Seq", "Measure", "Reason"}),
@@ -267,12 +257,12 @@ in
 
 let
   DecisionsList = {
-    {1, "NSV Unit Validation", "Confirm unit multiplier via finance anchor", "Blocks P&L, Profitability, all %-growth on NSV", "1–2 weeks"},
-    {2, "More Retail Duplicates", "Choose: (1) de-dupe in PQ, (2) fix at source, (3) footnote as inflated", "More Retail totals inflated ₹1.36 Cr / 10.3% MRP", "1–3 weeks"},
-    {3, "Brand Counter Classification", "Confirm if BA channel, store-type, or chain", "549,617 rows; affects chain & BA reporting", "1 week"},
-    {4, "State-to-City Mapping", "Business approves City-State Master SEED", "Blocks state-level rollups (247 raw values)", "1–2 weeks"},
-    {5, "Chain Master Canonicalization", "Approve canonical spellings + BA support flags", "Variant chains (Vmm/VMM, etc.) block chain-level reporting", "1 week"},
-    {6, "Reliance Schema Completeness", "Accept partial (29 cols) or request full export", "Missing DC Name, Year, SO/DC fields", "1–3 weeks"}
+    {1, "NSV Unit Validation", "Finance provides ₹Cr anchor for 1 month", "Unblocks P&L, Profitability, %-growth on NSV", "Pending"},
+    {2, "More Retail Records Status", "Business reviewed; retained as valid source records", "APPROVED: No dedup applied. All rows kept.", "COMPLETE"},
+    {3, "Brand Counter = BA Availability", "Flag Brand Counter as BA coverage (Reliance)", "APPROVED: BA Availability view shows Reliance BA coverage only. No BA profitability yet.", "COMPLETE"},
+    {4, "State-wise Reporting", "Source state data unreliable; zone-only approach", "APPROVED: No state-level rollups. Zone-level reporting used instead.", "COMPLETE"},
+    {5, "Chain Master Canonicalization", "Pending business approval of canonical names", "Variant chains (Vmm/VMM, etc.) awaiting merge", "Pending"},
+    {6, "Reliance Schema Completeness", "Accept partial (29 cols) or request full export", "Missing DC Name, Year, SO/DC fields", "Pending"}
   },
   ConvertedTable = Table.FromRows(DecisionsList, {"Seq", "Decision", "Action", "Impact", "Timeline"}),
   TypedTable = Table.TransformColumnTypes(ConvertedTable, {

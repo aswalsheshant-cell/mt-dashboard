@@ -184,6 +184,48 @@ IF(
 "MRP Sales Value (verified basis)"
 
 // ============================================================================
+// SAFE BA AVAILABILITY MEASURES (COVERAGE ONLY, NOT PROFITABILITY)
+// ============================================================================
+// Brand Counter = BA Availability for Reliance context
+// These measures show BA coverage, not BA profitability
+// BA profitability remains blocked pending BA Headcount + NSV unit
+
+// 18. BA Available Row Count (transactions where Brand Counter = Yes)
+[BA Available Row Count] =
+CALCULATE(
+  [Row Count],
+  Fact_Offtake_Safe[BA_Available] = "Yes"
+)
+
+// 19. BA Available MRP Sales Value (MRP for Brand Counter rows)
+[BA Available MRP Sales Value] =
+CALCULATE(
+  [MRP Sales Value],
+  Fact_Offtake_Safe[BA_Available] = "Yes"
+)
+
+// 20. BA Available MRP Sales Value in Crore
+[BA Available MRP Sales Value Cr] =
+DIVIDE(
+  [BA Available MRP Sales Value],
+  10000000
+)
+
+// 21. BA Availability Mix % (BA rows as % of total MRP)
+[BA Availability Mix %] =
+IFERROR(
+  DIVIDE(
+    [BA Available MRP Sales Value],
+    [MRP Sales Value]
+  ) * 100,
+  BLANK()
+)
+
+// 22. BA Availability Note (display-only message)
+[BA Availability Note] =
+"BA Availability view only. Shows Reliance Brand Counter coverage. BA profitability is blocked until BA cost structure and NSV unit are confirmed."
+
+// ============================================================================
 // BLOCKED MEASURES (DOCUMENTED FOR REFERENCE, NOT USED IN ACTIVE VISUALS)
 // ============================================================================
 // These measures are INTENTIONALLY NOT IMPLEMENTED in this safe build.
@@ -216,17 +258,19 @@ IF(
 // Reason: All profitability measures depend on NSV unit or BA Headcount (business input)
 // Stub: -- BLOCKED --
 
-// ✗ BLOCKED: [BA Cost to Serve], [BA Productivity], [Provisional Gross Margin (BA)]
-// Reason: Awaiting BA Headcount business input + Brand Counter classification (549,617 rows)
+// ✗ BLOCKED: [BA Profitability], [BA Cost to Serve], [BA Productivity]
+// Reason: Awaiting BA Headcount business input and NSV unit confirmation
+// Note: [BA Availability measures] ARE implemented as coverage view only
 // Stub: -- BLOCKED --
 
 // ✗ BLOCKED: [State-level Rollups], [State Slicer]
-// Reason: 247 raw state values include cities (Mumbai 118.8k, Bangalore 15k, etc.); City-State mapping pending
+// Reason: Source data lacks reliable state mapping; zone-level reporting available instead
 // Stub: -- BLOCKED --
 
-// ✗ BLOCKED: [More Retail Chain Totals], [More Retail Contribution to All-MT]
-// Reason: 13,661 exact-dup rows (₹1.36 Cr / 10.3% MRP) — not deduped; pending business decision
-// Stub: -- BLOCKED --
+// ✗ BLOCKED: [More Retail Chain Totals as Deduped]
+// Status: APPROVED CHANGE — More Retail repeated records reviewed and retained as valid
+// Note: All More Retail rows included in [MRP Sales Value] and [Sales Qty]
+// Stub: -- NO LONGER BLOCKED --
 
 // ✗ BLOCKED: [Chain-level Reporting for Variants]
 // Reason: Vmm/VMM, Fsn/FSN, Walmart Cnc/CNC, Ratanadeep/Ratanadeep awaiting canonicalization

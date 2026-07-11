@@ -8,17 +8,19 @@
 
 ## Overview
 
-Four report pages defined:
+Five report pages defined:
 1. **Data Explorer** — drill-down and QC overview
 2. **Overview** — executive summary (MRP basis, June'26 partial)
 3. **QC & Reconciliation** — data quality and validation
 4. **Interim Offtake P&L** — MRP Sales Value basis only (NSV pending)
+5. **BA Availability View** — Reliance Brand Counter coverage (new)
 
 All pages:
 - Use **MRP Sales Value** as the only value basis
 - Flag **June'26 as Partial** everywhere
 - **Block NSV, state-level, BA profitability** measures
 - Display watermarks: "⚠ NSV unit pending", "⚠ June'26 Partial"
+- Page 5 shows **BA coverage only** (no BA profitability)
 
 ---
 
@@ -346,23 +348,119 @@ Safe Blocks Build | claude/safe-powerbi-blocks
 
 ---
 
+## Page 5: BA Availability View
+
+**Purpose:** Show Reliance Brand Counter coverage (BA availability only, not profitability)
+
+**Title & Watermark (Top):**
+```
+Reliance BA Availability Coverage
+Brand Counter represents places/accounts where our BA is available.
+⚠ Coverage view only. BA profitability is blocked until BA cost structure and NSV unit are confirmed.
+```
+
+**Layout:** KPI section + charts + detail view
+
+### Watermark Text Box
+
+Color: Amber background (#FFF7E6), dark text
+
+Text:
+```
+BA Availability View Only
+This page shows Reliance Brand Counter coverage (BA Available = Yes).
+It does NOT include BA profitability, BA cost, or BA productivity metrics.
+These remain blocked until: (1) BA Headcount is provided, (2) NSV unit is confirmed.
+```
+
+### KPI Cards
+
+| Card | Measure | Format | Notes |
+|------|---------|--------|-------|
+| BA Available Row Count | [BA Available Row Count] | #,##0 | Transactions where Brand Counter = Yes |
+| BA Available MRP | [BA Available MRP Sales Value Cr] | ₹X.XX Cr | MRP for BA-available rows |
+| BA Availability Mix % | [BA Availability Mix %] | X.X% | BA rows as % of total MRP |
+| Total MRP (All) | [MRP Sales Value Cr] | ₹X.XX Cr | For comparison |
+
+### Charts (2-column Grid)
+
+| Position | Chart Type | Title | Measures | Dimensions | Notes |
+|----------|-----------|-------|----------|-----------|-------|
+| Row 1, Col 1 | Column | BA Available MRP by Zone | [BA Available MRP Sales Value] | Zone | MRP Desc; Reliance zones only |
+| Row 1, Col 2 | Column | BA Available MRP by Category | [BA Available MRP Sales Value] | Category | MRP Desc |
+| Row 2, Col 1 | Line | BA Available MRP Trend (Month) | [BA Available MRP Sales Value] | Dim_Month[Month] | Show Reliance BA trend over time |
+| Row 2, Col 2 | Card | Total BA Available Rows | [BA Available Row Count] | Simple count card |
+
+### Slicers
+
+- FY (required)
+- Month (required)
+- Zone (recommended; can filter to Reliance zones)
+- Category (optional)
+
+**NOT included:**
+- State slicer
+- NSV-based slicer
+- BA profitability slicers
+
+### Detail Table
+
+**Title:** "BA Available Records (Reliance Brand Counter)"
+
+**Columns:**
+- Site_Code
+- Site_Name
+- Chain_Name (= "Brand Counter" in this view)
+- Zone
+- Category
+- Month
+- FY
+- Sales_Qty
+- MRP_Sales_Value (₹)
+- BA_Available (should be "Yes" for all rows)
+
+**Sorting:** Month ASC, Zone ASC, Category ASC
+
+**Row Count:** Capped at 1,000 rows on-screen
+
+### Page-Level Notes
+
+- Add text box: "Reliance BA Availability shows Brand Counter coverage. Business decision APPROVED: Brand Counter represents BA availability, not a chain for profit-center allocation."
+- Add conditional text: IF no Brand Counter rows selected THEN "No Brand Counter rows in current filter."
+- Add note: "BA profitability metrics are blocked. Use Overview or Data Explorer pages for full chain analysis."
+
+### Validation
+
+- [ ] [BA Available Row Count] > 0 when data includes Brand Counter
+- [ ] [BA Availability Mix %] is between 0–100%
+- [ ] No NSV measures appear on this page
+- [ ] No State-level breakdowns
+- [ ] No profitability or CM2 measures
+- [ ] Watermark clearly states "Coverage only"
+- [ ] All charts use [BA Available MRP Sales Value] only
+
+---
+
 ## Validation Checklist
 
 Before publishing, confirm:
 
 - [ ] No NSV measure appears in any active visual
 - [ ] No State dimension slicers exist
-- [ ] No BA profitability visuals exist
-- [ ] June'26 flagged as Partial on every page
-- [ ] Watermarks visible on all 4 pages
-- [ ] MRP Sales Value is sole value basis
-- [ ] More Retail duplicates reported but NOT deduped
+- [ ] No BA profitability visuals exist (Page 5 shows coverage only)
+- [ ] June'26 flagged as Partial on Pages 1–4
+- [ ] Watermarks visible on all 5 pages
+- [ ] MRP Sales Value is sole value basis (all pages)
+- [ ] More Retail rows are kept; no dedup applied
 - [ ] Chain variants preserved (not canonicalized)
 - [ ] Slicers: FY, Month, Chain (raw), Zone, Category, Format, Classification only
-- [ ] Blocked measures list visible on QC page
-- [ ] Pending decisions table visible on QC page
-- [ ] June'26 marked distinctly in all month-based visuals (dashed line, different color)
-- [ ] Info boxes explain NSV pending and interim basis on every value-showing page
+- [ ] Blocked measures list visible on QC page (updated with new rulings)
+- [ ] Pending decisions table visible on QC page (updated: More Retail, Brand Counter, State marked COMPLETE)
+- [ ] June'26 marked distinctly on Pages 1–4 (dashed line, different color)
+- [ ] Info boxes explain NSV pending and interim basis on Pages 1–4
+- [ ] Page 5 (BA Availability) clearly marked as "coverage only, not profitability"
+- [ ] More Retail note: "Business-approved retained records"
+- [ ] State note: "Source data unreliable; zone-level reporting used instead"
 
 ---
 
