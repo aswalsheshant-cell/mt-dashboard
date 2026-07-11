@@ -201,18 +201,18 @@ Fact_Offtake_Safe (4.21M rows)
 
 ---
 
-## Business Inputs Needed for Profitability (v3.1 Blocking Items)
+## Business Inputs Needed for Profitability (v3.1 Status Update)
 
 **v3 Complete:** NSV unit confirmed (Lakhs); tax-basis clarified (NSV excl. tax, MRP incl. tax)
 
-**Now Blocking P&L / CM2 / Margin % Implementation:**
+**Profitability Implementation Status (Partially Unblocked):**
 
 | # | Input | Blocks | Status | Timeline |
 |---|-------|--------|--------|----------|
-| 1 | **CM2 Formula (exact)** | P&L / CM2 / Margin % measures | Pending from Finance | 1–2 wk |
-| 2 | **Cost Data (COGS, allocation)** | Profitability calculations | Pending from Ops/Finance | 1–2 wk |
-| 3 | **Tax Handling Rules** | CM2 tax-basis treatment | Pending from Finance | 1 wk |
-| 4 | **BA Headcount & Cost** | BA profitability (BA coverage active on Page 5) | Pending from HR/Finance | 1–2 wk |
+| 1 | **CM2 Formula (exact)** | P&L / CM2 / Margin % measures | **Pending** (CRITICAL) | 1–2 wk |
+| 2 | **Cost Data (COGS, allocation)** | Profitability calculations | **✓ RECEIVED** (All_Expenses_together.xlsx): COGS, BA Salary, BA Supervisor, Dmart BA-Merchandiser, Other Employ, Visibility/Rental | Ready to integrate |
+| 3 | **Tax Handling Rules** | CM2 tax-basis treatment | **Pending** (CRITICAL) | 1 wk |
+| 4 | **BA Headcount & Cost** | BA profitability (BA coverage active on Page 5) | **Partial** (salary data received; headcount mapping pending) | 1 wk |
 | 5 | **Chain Master Canonicalization** | Chain variant consolidation | Pending from Business | 1 wk |
 
 **Approved & Complete:**
