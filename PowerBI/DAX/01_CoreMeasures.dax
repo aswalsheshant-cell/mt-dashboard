@@ -28,7 +28,10 @@ RETURN
     )
 
 // ---------- TIME INTELLIGENCE (Offtake basis) ----------
-Latest Month Sales =
+// S2: renamed from the misleading "Latest Month Sales" — this is a CUMULATIVE
+// running total up to the latest in-context date, NOT a single month. Use
+// [Latest Month NSV] below for the single-month KPI.
+NSV Cumulative To Latest =
 VAR _lastDate = MAX ( 'Date Table'[Date] )
 RETURN CALCULATE ( [NSV], 'Date Table'[Date] <= _lastDate )
 // In a month-grain visual [NSV] already = the selected month; the explicit

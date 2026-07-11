@@ -6,7 +6,10 @@
 // =====================================================================
 Date Table =
 VAR _Start = DATE(2024, 4, 1)        // first day of earliest FY you report
-VAR _End   = DATE(2028, 3, 31)       // last day of the latest FY you forecast
+// S1: derive the end from the data (+12 months headroom for YoY/forecast) so
+// FY29+ appear automatically as months arrive — no annual hand-edit. Falls back
+// to Mar-2028 if the fact is empty on first load.
+VAR _End   = EOMONTH ( COALESCE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), DATE(2028, 3, 31) ), 12 )
 RETURN
 ADDCOLUMNS(
     CALENDAR(_Start, _End),
