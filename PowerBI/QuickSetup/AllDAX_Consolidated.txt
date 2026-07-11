@@ -36,7 +36,10 @@ time-saving here.
 // =====================================================================
 Date Table =
 VAR _Start = DATE(2024, 4, 1)        // first day of earliest FY you report
-VAR _End   = DATE(2028, 3, 31)       // last day of the latest FY you forecast
+// S1: derive the end from the data (+12 months headroom for YoY/forecast) so
+// FY29+ appear automatically as months arrive — no annual hand-edit. Falls back
+// to Mar-2028 if the fact is empty on first load.
+VAR _End   = EOMONTH ( COALESCE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), DATE(2028, 3, 31) ), 12 )
 RETURN
 ADDCOLUMNS(
     CALENDAR(_Start, _End),
@@ -109,7 +112,10 @@ RETURN
     )
 
 // ---------- TIME INTELLIGENCE (Offtake basis) ----------
-Latest Month Sales =
+// S2: renamed from the misleading "Latest Month Sales" — this is a CUMULATIVE
+// running total up to the latest in-context date, NOT a single month. Use
+// [Latest Month NSV] below for the single-month KPI.
+NSV Cumulative To Latest =
 VAR _lastDate = MAX ( 'Date Table'[Date] )
 RETURN CALCULATE ( [NSV], 'Date Table'[Date] <= _lastDate )
 // In a month-grain visual [NSV] already = the selected month; the explicit
@@ -557,27 +563,52 @@ CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
     FILTER ( 'Fact Offtake Sales', NOT ( 'Fact Offtake Sales'[Zone] IN VALUES ( 'Zone State Master'[Zone] ) ) ) )
 
 // ---- Coverage gaps in supporting facts ----
+// D2: true set difference (EXCEPT), not a count subtraction. Counting
+// distinctA - distinctB is wrong whenever B contains items absent from A
+// (it under-counts and can even go negative). EXCEPT returns exactly the
+// keys present in the first table but missing from the second.
 Missing TDP =
-VAR _articlesWithSales = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Article Code] ) )
-VAR _articlesWithTDP   = CALCULATE ( DISTINCTCOUNT ( 'Fact TDP'[Article Code] ) )
-RETURN _articlesWithSales - _articlesWithTDP
+COUNTROWS ( EXCEPT (
+    VALUES ( 'Fact Offtake Sales'[Article Code] ),
+    VALUES ( 'Fact TDP'[Article Code] ) ) )
 Missing Market Share =
-VAR _catsWithSales = CALCULATE ( DISTINCTCOUNT ( 'Category Master'[Nielsen Category] ) )
-VAR _catsWithMS    = CALCULATE ( DISTINCTCOUNT ( 'Fact Nielsen'[Nielsen Category] ) )
-RETURN _catsWithSales - _catsWithMS
+COUNTROWS ( EXCEPT (
+    VALUES ( 'Category Master'[Nielsen Category] ),
+    VALUES ( 'Fact Nielsen'[Nielsen Category] ) ) )
 Missing PnL Assumptions =
-VAR _months = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Month] ) )
-VAR _assumMonths = CALCULATE ( DISTINCTCOUNT ( 'Assumption Table'[Month] ) )
-RETURN MAX ( _months - _assumMonths, 0 )
+COUNTROWS ( EXCEPT (
+    VALUES ( 'Fact Offtake Sales'[Month] ),
+    VALUES ( 'Assumption Table'[Month] ) ) )
 
 // ---- Overall health score (share of clean rows) ----
 Total Fact Rows = COUNTROWS ( 'Fact Offtake Sales' )
+
+// D1: count DISTINCT impacted rows. Adding the per-field miss counts double-
+// counts a row that misses several fields, so the old score could exceed 100%
+// of rows or go negative. Negative NSV is a VALID return / credit note per the
+// business rule and is deliberately NOT treated as an issue here.
+Rows With Any Issue =
+CALCULATE (
+    COUNTROWS ( 'Fact Offtake Sales' ),
+    FILTER ( 'Fact Offtake Sales',
+        ISBLANK ( 'Fact Offtake Sales'[Chain] )        || 'Fact Offtake Sales'[Chain] = ""
+     || ISBLANK ( 'Fact Offtake Sales'[Zone] )         || 'Fact Offtake Sales'[Zone] = ""
+     || ISBLANK ( 'Fact Offtake Sales'[State] )        || 'Fact Offtake Sales'[State] = ""
+     || ISBLANK ( 'Fact Offtake Sales'[Brand] )        || 'Fact Offtake Sales'[Brand] = ""
+     || ISBLANK ( 'Fact Offtake Sales'[Category] )     || 'Fact Offtake Sales'[Category] = ""
+     || ISBLANK ( 'Fact Offtake Sales'[Article Code] ) || 'Fact Offtake Sales'[Article Code] = ""
+     || ISBLANK ( 'Fact Offtake Sales'[EAN Code] )     || 'Fact Offtake Sales'[EAN Code] = ""
+     || ISBLANK ( 'Fact Offtake Sales'[Offtake NSV] ) ) )
+
+// Retained for the detail visual, but NO LONGER the health denominator (it
+// double-counts multi-issue rows). Negative NSV removed per the business rule.
 Total DQ Issues =
 [Missing Chain] + [Missing Zone] + [Missing State] + [Missing Brand]
     + [Missing Category] + [Missing Article Code] + [Missing EAN]
-    + [Blank NSV Values] + [Negative Sales Values]
+    + [Blank NSV Values]
     + [Unmapped Chain] + [Unmapped Brand] + [Unmapped Category] + [Unmapped Zone]
-Data Health % = 1 - DIVIDE ( [Total DQ Issues], [Total Fact Rows] )
+
+Data Health % = 1 - DIVIDE ( [Rows With Any Issue], [Total Fact Rows] )
 
 
 ##############################################################################

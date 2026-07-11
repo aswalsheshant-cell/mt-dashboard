@@ -161,22 +161,38 @@ let
         {"Data Source Name", type text}
     }),
 
-    // trim text keys so joins to masters are clean
+    // P6: trim + strip hidden chars on all text dims; normalise Zone/State case
     Trimmed = Table.TransformColumns(Typed, {
-        {"Store Code", each Text.Trim(Text.From(_)), type text},
-        {"Article Code", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text}
+        {"Store Code",   each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Store Name",   each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Article Code", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"EAN Code",     each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Chain",        each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand",        each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Category",     each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Sub-category", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Range",        each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"City",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",         each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},
+        {"State",        each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
     }),
 
-    // remove fully blank rows (no NSV and no Qty)
-    Cleaned = Table.SelectRows(Trimmed, each [Primary NSV] <> null or [Primary Qty] <> null),
+    // P2: strip a trailing ".0" from numeric-origin keys so they join to masters
+    CleanKeys = Table.TransformColumns(Trimmed, List.Transform(
+        {"EAN Code", "Article Code"},
+        each {_, (v) => let s = if v = null then null else Text.From(v)
+                        in if s <> null and Text.EndsWith(s, ".0")
+                           then Text.Start(s, Text.Length(s) - 2) else s, type text})),
 
     // MonthStart = first day of the month, used to relate to the Date table at month grain
-    AddMonthStart = Table.AddColumn(Cleaned, "MonthStart",
-        each Date.StartOfMonth([Week Start Date]), type date)
+    AddMonthStart = Table.AddColumn(CleanKeys, "MonthStart",
+        each Date.StartOfMonth([Week Start Date]), type date),
+
+    // P3: keep rows with a value AND a parseable period (reconciliation-safe)
+    Cleaned = Table.SelectRows(AddMonthStart,
+        each [MonthStart] <> null and ([Primary NSV] <> null or [Primary Qty] <> null))
 in
-    AddMonthStart
+    Cleaned
 
 
 ##############################################################################
@@ -263,16 +279,34 @@ let
         {"SO Emp Code", type text}, {"Sales Person", type text}, {"PPT Category", type text}
     }),
 
+    // P6: trim + strip hidden chars on every text key/dim; normalise Zone/State
+    // case so West/WEST collapse. (Brand/Chain/Category keep source case — their
+    // spellings are fixed via the Brand/Chain masters, not case-folding.)
     Trimmed = Table.TransformColumns(Typed, {
-        {"Store Code", each Text.Trim(Text.From(_)), type text},
-        {"Article Code", each Text.Trim(Text.From(_)), type text},
-        {"EAN Code", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text}
+        {"Store Code",    each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Store Name",    each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Article Code",  each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"EAN Code",      each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Chain",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Category",      each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Sub-category",  each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Range",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"City",          each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",          each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},
+        {"State",         each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
     }),
 
+    // P2: strip a trailing ".0" left by numeric-origin ID columns (e.g.
+    // "8906087771333.0" / "10100062.0") so keys join to the masters.
+    CleanKeys = Table.TransformColumns(Trimmed, List.Transform(
+        {"EAN Code", "Article Code", "Article Code Alt"},
+        each {_, (v) => let s = if v = null then null else Text.From(v)
+                        in if s <> null and Text.EndsWith(s, ".0")
+                           then Text.Start(s, Text.Length(s) - 2) else s, type text})),
+
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(Trimmed, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+    FixBrand = Table.ReplaceValue(CleanKeys, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
 
     // constant audit column
     AddSource = Table.AddColumn(FixBrand, "Data Source Name", each "Chain Offtake Store Wise", type text),
@@ -296,7 +330,9 @@ let
                 in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null)
+    // P3: keep rows with a value AND a parseable period (reconciliation-safe).
+    Cleaned = Table.SelectRows(AddMonthStart,
+        each [MonthStart] <> null and ([Offtake NSV] <> null or [Offtake Qty] <> null))
 in
     Cleaned
 
@@ -352,16 +388,32 @@ let
         {"Volume Market Share %", type number},
         {"Data Source Name", type text}
     }),
-    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
-        let
-            m = Text.BetweenDelimiters([Month], "", "'"),
-            yy = Text.AfterDelimiter([Month], "'"),
-            monthNum = Record.FieldOrDefault(
-                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
-        type date)
+    // P6: strip hidden chars + trim on text dims; normalise Zone case (West/WEST -> West)
+    CleanText = Table.TransformColumns(Typed, {
+        {"Nielsen Category", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand",            each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",             each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
+    }),
+
+    // P1: robust month parse — handles "April'24" / "Apr'24" / a real date, and
+    // guards a blank/non-numeric year so one bad label nulls a row (not the refresh).
+    AddMonthStart = Table.AddColumn(CleanText, "MonthStart", each
+        let v = [Month] in
+        if v = null then null
+        else if Value.Is(v, type date) then Date.StartOfMonth(v)
+        else
+            let m  = Text.Start(Text.BeforeDelimiter(Text.From(v), "'"), 3),
+                yy = Text.AfterDelimiter(Text.From(v), "'"),
+                mn = Record.FieldOrDefault(
+                     [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+            in if mn = null or yy = "" or (try Number.FromText(yy) otherwise null) = null
+               then null else #date(2000 + Number.FromText(yy), mn, 1),
+        type date),
+
+    // P3: drop rows whose period could not be parsed (would break reconciliation).
+    Cleaned = Table.SelectRows(AddMonthStart, each [MonthStart] <> null)
 in
-    AddMonthStart
+    Cleaned
 
 
 ##############################################################################
@@ -395,21 +447,41 @@ let
         {"Weighted Distribution", type number},
         {"Data Source Name", type text}
     }),
+    // P6: trim + strip hidden chars on all text dims; normalise Zone/State case
     Trimmed = Table.TransformColumns(Typed, {
-        {"Article Code", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text}
+        {"Chain",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Category",      each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Sub-category",  each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",          each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},
+        {"State",         each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
     }),
-    AddMonthStart = Table.AddColumn(Trimmed, "MonthStart", each
-        let
-            m = Text.BetweenDelimiters([Month], "", "'"),
-            yy = Text.AfterDelimiter([Month], "'"),
-            monthNum = Record.FieldOrDefault(
-                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
-        type date)
+
+    // P2: numeric-origin keys arrive as "10100062.0" — strip a trailing ".0".
+    CleanKeys = Table.TransformColumns(Trimmed, {
+        {"Article Code", each let s = if _ = null then null else Text.From(_)
+                              in if s <> null and Text.EndsWith(s, ".0")
+                                 then Text.Start(s, Text.Length(s) - 2) else s, type text}
+    }),
+
+    // P1: robust month parse (see Nielsen/Offtake) with a year guard.
+    AddMonthStart = Table.AddColumn(CleanKeys, "MonthStart", each
+        let v = [Month] in
+        if v = null then null
+        else if Value.Is(v, type date) then Date.StartOfMonth(v)
+        else
+            let m  = Text.Start(Text.BeforeDelimiter(Text.From(v), "'"), 3),
+                yy = Text.AfterDelimiter(Text.From(v), "'"),
+                mn = Record.FieldOrDefault(
+                     [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+            in if mn = null or yy = "" or (try Number.FromText(yy) otherwise null) = null
+               then null else #date(2000 + Number.FromText(yy), mn, 1),
+        type date),
+
+    // P3: exclude rows with an unparseable period.
+    Cleaned = Table.SelectRows(AddMonthStart, each [MonthStart] <> null)
 in
-    AddMonthStart
+    Cleaned
 
 
 ##############################################################################
@@ -452,9 +524,11 @@ let
     }),
 
     Trimmed = Table.TransformColumns(Typed, {
-        {"Ship To Name", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text}
+        {"Ship To Name", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Chain", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",  each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},   // P6
+        {"State", each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}    // P6
     }),
 
     // --- normalise brand spellings (keep in sync with Brand Master) ---
@@ -488,10 +562,12 @@ let
             let m = Text.Start(Text.BeforeDelimiter([Month], "'"), 3),
                 yy = Text.AfterDelimiter([Month], "'"),
                 mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-            in if mn = null then null else #date(2000 + Number.FromText(yy), mn, 1),
+            in if mn = null or yy = "" or (try Number.FromText(yy) otherwise null) = null   // P1 year guard
+               then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null)
+    // P3: require a value AND a parseable period (MonthStartCalc is the resolved period)
+    Cleaned = Table.SelectRows(AddMonthStart, each [MonthStartCalc] <> null and [Primary NSV] <> null)
 in
     Cleaned
 
@@ -582,8 +658,17 @@ let
         {"Chain Dash", type text}, {"Zone", type text}, {"State", type text}
     }),
 
+    // P2 + P6: strip trailing ".0" from the numeric-origin EAN key; normalise Zone/State case
+    CleanKeys = Table.TransformColumns(Typed, {
+        {"EAN Code", each let s = if _ = null then null else Text.From(_)
+                          in if s <> null and Text.EndsWith(s, ".0")
+                             then Text.Start(s, Text.Length(s) - 2) else s, type text},
+        {"Zone",  each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},
+        {"State", each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
+    }),
+
     // MonthStart from "April'24"/"Apr'24" text, a date value, or an Excel serial
-    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+    AddMonthStart = Table.AddColumn(CleanKeys, "MonthStart", each
         let v = [Month]
         in  if v = null then null
             else if Value.Is(v, type date) then Date.StartOfMonth(v)
@@ -595,7 +680,9 @@ let
                 in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null or [Primary Qty] <> null),
+    // P3: require a parseable period so time-view and grand totals reconcile
+    Cleaned = Table.SelectRows(AddMonthStart,
+        each [MonthStart] <> null and ([Primary NSV] <> null or [Primary Qty] <> null)),
 
     // ---------- DIST -> Chain allocation ----------
     AddIsDist = Table.AddColumn(Cleaned, "Is Dist", each
