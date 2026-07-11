@@ -19,6 +19,7 @@ Pick up from here. Nothing below is finalized beyond what's committed to the bra
 | **P5** report export md/html/csv (stdlib) + xlsx/pptx (pluggable) | `report.py` | ✅ |
 | **P6** Template Fill Mode (registry, provenance, QC, audit, watermark) | `templates.py`, `template_fill.py`, `provenance.py`, `qc.py` | ✅ |
 | **P7** stdlib `.xlsx` Workbook QC scanner (finds `METock`) → `QC_Check` | `xlsx_qc.py`, `tests/test_xlsx_qc.py` | ✅ |
+| **Power BI kit hardening** (audit approved; negative NSV = valid, not error) | `PowerBI/PowerQuery/*.pq`, `PowerBI/DAX/*.dax`, `PowerBI/QuickSetup/*` | ✅ text-verified (no live PBI here) |
 
 **Test status:** 95 tests pass, 2 skipped (live Ollama). Run: `python scripts/ai_analyst/run_tests.py`.
 Latest commit at save time: `58eeef3` (Phase 7).
@@ -32,11 +33,23 @@ Latest commit at save time: `58eeef3` (Phase 7).
 
 ---
 
-## NEXT ACTION (blocked on user) — deep workbook QC, then two in-repo increments
+## Power BI kit hardening — DONE (approved, applied, pushed)
 
-User decision (this session): **do the Excel workbook first**, then the repo increments.
-Ordering agreed: **workbook deep-QC & fix → verify clean → THEN** (1) DAX/PQ hardening (2) HTML filter normalization.
-**Do NOT finalize repo changes until the workbook logic is verified clean.**
+Commits: canonical PQ+DAX (`a338ea6`), QuickSetup sync (`4c36344`). Applied audit
+fixes P1,P2,P3,P6 (Power Query) and D1,D2,S1,S2 (DAX) to the canonical files AND
+the QuickSetup consolidated mirror. **Business rule locked: negative NSV = valid
+returns/credit notes, NOT a data-quality error.** Not runnable in this env (no
+Power BI) — verified by reading; user must run the audit §8 validation on refresh.
+
+## NEXT ACTION (blocked on user) — deep workbook QC + HTML filter (still gated)
+
+Remaining, gated on the user sending the `.xlsx`:
+1. **Excel workbook deep-QC** — run `scripts/ai_analyst/xlsx_qc.py` on the file, deliver
+   `QC_Check` + cell-by-cell fix list (stdlib scanner works here; openpyxl needed only to
+   write the sheet back / apply fixes on the user's machine).
+2. **HTML filter normalization** (`dashboard/index.html`) — still gated per user; mirror
+   the P6 canonicalisation rule (trim/clean + Proper-case Zone/State so West/WEST collapse),
+   add a "last updated" stamp. Preserve layout/logic.
 
 ### Blocker
 The `.xlsx` workbook is **not in the repo** (gitignored) and was not attached yet.
