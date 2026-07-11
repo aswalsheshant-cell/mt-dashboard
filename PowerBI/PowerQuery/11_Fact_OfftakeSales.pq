@@ -78,16 +78,34 @@ let
         {"SO Emp Code", type text}, {"Sales Person", type text}, {"PPT Category", type text}
     }),
 
+    // P6: trim + strip hidden chars on every text key/dim; normalise Zone/State
+    // case so West/WEST collapse. (Brand/Chain/Category keep source case — their
+    // spellings are fixed via the Brand/Chain masters, not case-folding.)
     Trimmed = Table.TransformColumns(Typed, {
-        {"Store Code", each Text.Trim(Text.From(_)), type text},
-        {"Article Code", each Text.Trim(Text.From(_)), type text},
-        {"EAN Code", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text}
+        {"Store Code",    each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Store Name",    each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Article Code",  each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"EAN Code",      each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Chain",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Category",      each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Sub-category",  each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Range",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"City",          each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",          each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},
+        {"State",         each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
     }),
 
+    // P2: strip a trailing ".0" left by numeric-origin ID columns (e.g.
+    // "8906087771333.0" / "10100062.0") so keys join to the masters.
+    CleanKeys = Table.TransformColumns(Trimmed, List.Transform(
+        {"EAN Code", "Article Code", "Article Code Alt"},
+        each {_, (v) => let s = if v = null then null else Text.From(v)
+                        in if s <> null and Text.EndsWith(s, ".0")
+                           then Text.Start(s, Text.Length(s) - 2) else s, type text})),
+
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(Trimmed, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+    FixBrand = Table.ReplaceValue(CleanKeys, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
 
     // constant audit column
     AddSource = Table.AddColumn(FixBrand, "Data Source Name", each "Chain Offtake Store Wise", type text),
@@ -111,6 +129,10 @@ let
                 in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null)
+    // P3: keep rows with a value AND a parseable period. Null-MonthStart rows
+    // would drop out of time visuals yet stay in grand totals -> reconciliation
+    // gap; excluding them keeps time and total views consistent.
+    Cleaned = Table.SelectRows(AddMonthStart,
+        each [MonthStart] <> null and ([Offtake NSV] <> null or [Offtake Qty] <> null))
 in
     Cleaned

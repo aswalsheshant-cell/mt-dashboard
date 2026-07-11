@@ -34,9 +34,11 @@ let
     }),
 
     Trimmed = Table.TransformColumns(Typed, {
-        {"Ship To Name", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text}
+        {"Ship To Name", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Chain", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",  each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},   // P6
+        {"State", each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}    // P6
     }),
 
     // --- normalise brand spellings (keep in sync with Brand Master) ---
@@ -70,9 +72,11 @@ let
             let m = Text.Start(Text.BeforeDelimiter([Month], "'"), 3),
                 yy = Text.AfterDelimiter([Month], "'"),
                 mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-            in if mn = null then null else #date(2000 + Number.FromText(yy), mn, 1),
+            in if mn = null or yy = "" or (try Number.FromText(yy) otherwise null) = null   // P1 year guard
+               then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null)
+    // P3: require a value AND a parseable period (MonthStartCalc is the resolved period)
+    Cleaned = Table.SelectRows(AddMonthStart, each [MonthStartCalc] <> null and [Primary NSV] <> null)
 in
     Cleaned

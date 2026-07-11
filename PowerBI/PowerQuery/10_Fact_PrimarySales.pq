@@ -34,19 +34,35 @@ let
         {"Data Source Name", type text}
     }),
 
-    // trim text keys so joins to masters are clean
+    // P6: trim + strip hidden chars on all text dims; normalise Zone/State case
     Trimmed = Table.TransformColumns(Typed, {
-        {"Store Code", each Text.Trim(Text.From(_)), type text},
-        {"Article Code", each Text.Trim(Text.From(_)), type text},
-        {"Chain", each Text.Trim(Text.From(_)), type text},
-        {"Brand", each Text.Trim(Text.From(_)), type text}
+        {"Store Code",   each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Store Name",   each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Article Code", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"EAN Code",     each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Chain",        each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Brand",        each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Category",     each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Sub-category", each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Range",        each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"City",         each Text.Trim(Text.Clean(Text.From(_))), type text},
+        {"Zone",         each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},
+        {"State",        each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
     }),
 
-    // remove fully blank rows (no NSV and no Qty)
-    Cleaned = Table.SelectRows(Trimmed, each [Primary NSV] <> null or [Primary Qty] <> null),
+    // P2: strip a trailing ".0" from numeric-origin keys so they join to masters
+    CleanKeys = Table.TransformColumns(Trimmed, List.Transform(
+        {"EAN Code", "Article Code"},
+        each {_, (v) => let s = if v = null then null else Text.From(v)
+                        in if s <> null and Text.EndsWith(s, ".0")
+                           then Text.Start(s, Text.Length(s) - 2) else s, type text})),
 
     // MonthStart = first day of the month, used to relate to the Date table at month grain
-    AddMonthStart = Table.AddColumn(Cleaned, "MonthStart",
-        each Date.StartOfMonth([Week Start Date]), type date)
+    AddMonthStart = Table.AddColumn(CleanKeys, "MonthStart",
+        each Date.StartOfMonth([Week Start Date]), type date),
+
+    // P3: keep rows with a value AND a parseable period (reconciliation-safe)
+    Cleaned = Table.SelectRows(AddMonthStart,
+        each [MonthStart] <> null and ([Primary NSV] <> null or [Primary Qty] <> null))
 in
-    AddMonthStart
+    Cleaned

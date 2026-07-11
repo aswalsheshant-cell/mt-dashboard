@@ -80,8 +80,17 @@ let
         {"Chain Dash", type text}, {"Zone", type text}, {"State", type text}
     }),
 
+    // P2 + P6: strip trailing ".0" from the numeric-origin EAN key; normalise Zone/State case
+    CleanKeys = Table.TransformColumns(Typed, {
+        {"EAN Code", each let s = if _ = null then null else Text.From(_)
+                          in if s <> null and Text.EndsWith(s, ".0")
+                             then Text.Start(s, Text.Length(s) - 2) else s, type text},
+        {"Zone",  each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text},
+        {"State", each Text.Proper(Text.Trim(Text.Clean(Text.From(_)))), type text}
+    }),
+
     // MonthStart from "April'24"/"Apr'24" text, a date value, or an Excel serial
-    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+    AddMonthStart = Table.AddColumn(CleanKeys, "MonthStart", each
         let v = [Month]
         in  if v = null then null
             else if Value.Is(v, type date) then Date.StartOfMonth(v)
@@ -93,7 +102,9 @@ let
                 in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null or [Primary Qty] <> null),
+    // P3: require a parseable period so time-view and grand totals reconcile
+    Cleaned = Table.SelectRows(AddMonthStart,
+        each [MonthStart] <> null and ([Primary NSV] <> null or [Primary Qty] <> null)),
 
     // ---------- DIST -> Chain allocation ----------
     AddIsDist = Table.AddColumn(Cleaned, "Is Dist", each
