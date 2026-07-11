@@ -1,0 +1,621 @@
+// DAX Measures — BA Stores Profitability & Provisional CM2
+// Branch: claude/safe-powerbi-dashboard-rulings
+// Status: v0 — Provisional, Pending Finance Validation
+// Generated: 2026-07-11
+//
+// ⚠️ CRITICAL: All CM2, profitability, and recommendation measures are PROVISIONAL.
+//    Do NOT use for final decisions until Finance confirms:
+//    - Q1: COGS factor units (%, ratio, per-unit, or other)
+//    - Q2: Exact CM2 formula and tax-basis treatment (NSV-based or MRP-based)
+//    - Q4-Q5: TOT % and Promotional Offer %
+//
+// Dependencies:
+//   - Fact_Offtake_Safe (4.21M rows, NSV excl. tax)
+//   - Expense_Assumptions_Input table (from external Excel, refreshable)
+//   - Dim_Month, Dim_Chain_Raw, Dim_Zone, Dim_Category (existing dimensions)
+
+// ============================================================================
+// SECTION 1: BA STORE NSV & NON-BA STORE NSV
+// ============================================================================
+
+// 1. BA Store NSV (₹ Crore, EXCLUDING TAX)
+// Filter: BA_Available = "Yes" (Brand Counter = Yes from Reliance data)
+[BA_Store_NSV_Cr] =
+DIVIDE(
+  CALCULATE(
+    [NSV Cr],
+    Fact_Offtake_Safe[BA_Available] = "Yes"
+  ),
+  1
+)
+
+// 2. Non-BA Store NSV (₹ Crore, EXCLUDING TAX)
+// Filter: BA_Available = "No"
+[Non_BA_Store_NSV_Cr] =
+DIVIDE(
+  CALCULATE(
+    [NSV Cr],
+    Fact_Offtake_Safe[BA_Available] = "No"
+  ),
+  1
+)
+
+// 3. BA Store Growth % (Month-over-Month)
+[BA_Store_Growth_Pct] =
+IFERROR(
+  DIVIDE(
+    [BA_Store_NSV_Cr] - [Previous_Month_BA_Store_NSV_Cr],
+    [Previous_Month_BA_Store_NSV_Cr]
+  ) * 100,
+  BLANK()
+)
+
+// 4. Previous Month BA Store NSV (for MoM calculation)
+[Previous_Month_BA_Store_NSV_Cr] =
+IFERROR(
+  CALCULATE(
+    [BA_Store_NSV_Cr],
+    PREVIOUSMONTH(Dim_Month[Date])
+  ),
+  BLANK()
+)
+
+// 5. Non-BA Store Growth % (Month-over-Month)
+[Non_BA_Store_Growth_Pct] =
+IFERROR(
+  DIVIDE(
+    [Non_BA_Store_NSV_Cr] - [Previous_Month_Non_BA_Store_NSV_Cr],
+    [Previous_Month_Non_BA_Store_NSV_Cr]
+  ) * 100,
+  BLANK()
+)
+
+// 6. Previous Month Non-BA Store NSV
+[Previous_Month_Non_BA_Store_NSV_Cr] =
+IFERROR(
+  CALCULATE(
+    [Non_BA_Store_NSV_Cr],
+    PREVIOUSMONTH(Dim_Month[Date])
+  ),
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 2: INCREMENTAL SALES & BA ATTRIBUTION
+// ============================================================================
+
+// 7. Incremental Sales (BA-driven) — Provisional
+// Rule: Incremental = (BA NSV Growth × Attribution Factor)
+// Note: Attribution factor TBD by Finance. Using 100% for now (i.e., all BA growth is BA-attributed).
+[Incremental_Sales_Cr] =
+[BA_Store_NSV_Cr] * ([BA_Store_Growth_Pct] / 100) * 1.0  // Attribution multiplier = 1.0 (all growth is BA-attributed, provisional)
+
+// Alternative: If more granular, use Sales Qty change × NSV per unit
+// [Incremental_Sales_Cr] = ([BA_Store_Sales_Qty] - [Previous_Month_BA_Store_Sales_Qty]) × [NSV_Per_Unit]
+
+// ============================================================================
+// SECTION 3: EXPENSE MEASURES (from Expense_Assumptions_Input table)
+// ============================================================================
+// All expenses are read from external Excel file, converted to Crores/Lakhs
+
+// 8. BA Total Cost (Salary + Supervisor + Merchandiser) — ₹ Crore
+// Source: Expense_Assumptions_Input table, Sheets 2, 3, 4
+[BA_Total_Cost_Cr] =
+DIVIDE(
+  SUMX(
+    DISTINCT(Expense_Assumptions_Input),
+    [BA_Salary] + [BA_Supervisor_Cost] + [Dmart_BA_Merchandiser_Cost]
+  ),
+  100  // Convert Lakhs to Crores (assumption: input is in Lakhs)
+)
+
+// 9. BA Salary Cost (₹ Crore)
+[BA_Salary_Cost_Cr] =
+DIVIDE(
+  SUMX(
+    Expense_Assumptions_Input,
+    [BA_Salary]
+  ),
+  100
+)
+
+// 10. BA Supervisor Cost (₹ Crore)
+[BA_Supervisor_Cost_Cr] =
+DIVIDE(
+  SUMX(
+    Expense_Assumptions_Input,
+    [BA_Supervisor_Cost]
+  ),
+  100
+)
+
+// 11. NPI Listing Cost (₹ Crore)
+// Source: Expense_Assumptions_Input[NPI_Listing_Cost]
+[NPI_Listing_Cost_Cr] =
+DIVIDE(
+  SUMX(
+    Expense_Assumptions_Input,
+    [NPI_Listing_Cost]
+  ),
+  10000000  // Convert ₹ to Crores
+)
+
+// 12. TOT Cost (₹ Crore) — PROVISIONAL, Missing Cost Flag Aware
+// Calculation: IF TOT_Percentage is provided, use it; ELSE IF TOT_Value is provided, use it; ELSE blank
+[TOT_Cost_Cr] =
+SUMX(
+  Expense_Assumptions_Input,
+  IF(
+    NOT ISBLANK([TOT_Percentage]),
+    -- Use percentage: NSV × TOT% ÷ 100
+    [BA_Store_NSV_Cr] * [TOT_Percentage] / 100,
+    IF(
+      NOT ISBLANK([TOT_Value]),
+      -- Use fixed value (convert ₹ to Cr)
+      [TOT_Value] / 10000000,
+      -- Else: blank (missing cost)
+      BLANK()
+    )
+  )
+)
+
+// Add warning for missing TOT costs
+[TOT_Cost_Missing_Flag] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    [TOT_Percentage] = BLANK() AND [TOT_Value] = BLANK() AND [Missing_Cost_Flag] = TRUE()
+  )
+) > 0
+
+// 13. Promotional Offer Cost (₹ Crore) — PROVISIONAL
+[Promotional_Cost_Cr] =
+SUMX(
+  Expense_Assumptions_Input,
+  IF(
+    NOT ISBLANK([Promotional_Offer_Percentage]),
+    [BA_Store_NSV_Cr] * [Promotional_Offer_Percentage] / 100,
+    IF(
+      NOT ISBLANK([Promotional_Offer_Value]),
+      [Promotional_Offer_Value] / 10000000,
+      BLANK()
+    )
+  )
+)
+
+[Promotional_Cost_Missing_Flag] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    [Promotional_Offer_Percentage] = BLANK() AND [Promotional_Offer_Value] = BLANK() AND [Missing_Cost_Flag] = TRUE()
+  )
+) > 0
+
+// 14. Visibility & Rental Cost (₹ Crore)
+// Source: Expense_Assumptions_Input[Visibility_Cost] + [Rental_Cost]
+[Visibility_Rental_Cost_Cr] =
+DIVIDE(
+  SUMX(
+    Expense_Assumptions_Input,
+    [Visibility_Cost] + [Rental_Cost]
+  ),
+  10000000  // Convert ₹ to Crores
+)
+
+// 15. Other Employee Cost (₹ Crore)
+// Source: Expense_Assumptions_Input[Other_Employee_Cost] (Sheet 5)
+[Other_Employee_Cost_Cr] =
+DIVIDE(
+  SUMX(
+    Expense_Assumptions_Input,
+    [Other_Employee_Cost]
+  ),
+  10000000
+)
+
+// 16. COGS Cost (₹ Crore) — PROVISIONAL, Unit Unknown
+// Calculation: IF COGS_Rate is provided, use it; ELSE IF COGS_Value is provided, use it; ELSE blank
+// ⚠️ CRITICAL: COGS_Rate interpretation pending Q1 answer (%, ratio, per-unit factor?)
+[COGS_Cost_Cr] =
+SUMX(
+  Expense_Assumptions_Input,
+  IF(
+    NOT ISBLANK([COGS_Rate]),
+    -- Assume COGS_Rate is a factor (e.g., 0.1655); multiply by NSV
+    [BA_Store_NSV_Cr] * [COGS_Rate],
+    IF(
+      NOT ISBLANK([COGS_Value]),
+      [COGS_Value] / 10000000,
+      BLANK()
+    )
+  )
+)
+
+[COGS_Cost_Missing_Flag] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    [COGS_Rate] = BLANK() AND [COGS_Value] = BLANK() AND [Missing_Cost_Flag] = TRUE()
+  )
+) > 0
+
+// 17. Total Support Cost (₹ Crore)
+// Sum of all allocated expense categories
+[Total_Support_Cost_Cr] =
+[BA_Total_Cost_Cr] + [NPI_Listing_Cost_Cr] + [TOT_Cost_Cr] + [Promotional_Cost_Cr]
++ [Visibility_Rental_Cost_Cr] + [Other_Employee_Cost_Cr]
+// NOTE: COGS not included in support cost; it's a separate COGS allocation
+
+// 18. Claims & Reimbursements (₹ Crore)
+[Claims_Reimbursements_Cr] =
+DIVIDE(
+  SUMX(
+    Expense_Assumptions_Input,
+    [Claims_Reimbursements]
+  ),
+  10000000
+)
+
+// ============================================================================
+// SECTION 4: PROVISIONAL CM2 & PROFITABILITY MEASURES (AWAITING FINANCE VALIDATION)
+// ============================================================================
+// ⚠️ WARNING: All CM2 measures are PROVISIONAL. Do NOT use for final decisions.
+//    Blocked until Finance confirms: Q1 (COGS unit), Q2 (CM2 formula & tax-basis)
+
+// 19. Provisional CM2 (₹ Crore) — FORMULA PENDING FINANCE CONFIRMATION
+// Placeholder formula: NSV - Total_Support_Cost (excluding COGS, awaiting clarification)
+// Once Finance confirms Q2 (exact CM2 formula), replace this with final formula
+[Provisional_CM2_Cr] =
+IF(
+  [Total_Support_Cost_Missing_Flag],
+  BLANK(),  -- Do not calculate if critical costs are missing
+  [BA_Store_NSV_Cr] - [Total_Support_Cost_Cr]
+)
+
+// 20. Provisional CM2% — PENDING FINANCE VALIDATION
+[Provisional_CM2_Pct] =
+IF(
+  [Total_Support_Cost_Missing_Flag],
+  BLANK(),
+  DIVIDE(
+    [Provisional_CM2_Cr],
+    [BA_Store_NSV_Cr]
+  ) * 100
+)
+
+// 21. Total Support Cost Missing Flag (checks all critical costs)
+[Total_Support_Cost_Missing_Flag] =
+[TOT_Cost_Missing_Flag] = TRUE() OR [Promotional_Cost_Missing_Flag] = TRUE()
+
+// 22. Break-even Sales (₹ Crore) — PENDING CM2 FORMULA VALIDATION
+// Break-even occurs when CM2% = 0, i.e., NSV = Total_Support_Cost
+// So Break-even Sales = Total_Support_Cost (at which point CM2 = 0)
+[Break_Even_Sales_Cr] =
+IF(
+  [Total_Support_Cost_Missing_Flag],
+  BLANK(),
+  [Total_Support_Cost_Cr]
+)
+
+// 23. Break-even Gap (₹ Crore)
+// Positive = above break-even, Negative = below break-even
+[Break_Even_Gap_Cr] =
+IF(
+  [Total_Support_Cost_Missing_Flag],
+  BLANK(),
+  [BA_Store_NSV_Cr] - [Break_Even_Sales_Cr]
+)
+
+// 24. Break-even Gap % (shows how far above/below break-even)
+[Break_Even_Gap_Pct] =
+IF(
+  [Total_Support_Cost_Missing_Flag],
+  BLANK(),
+  DIVIDE(
+    [Break_Even_Gap_Cr],
+    [Break_Even_Sales_Cr]
+  ) * 100
+)
+
+// ============================================================================
+// SECTION 5: BA EFFICIENCY METRICS
+// ============================================================================
+
+// 25. Cost per BA Store (₹ Lakh)
+// Calculated at BA-store level: Total BA Cost ÷ Count of BA Stores
+[Cost_Per_BA_Store_Lakh] =
+IFERROR(
+  DIVIDE(
+    [BA_Total_Cost_Cr] * 100,  // Convert Cr to Lakh
+    DISTINCTCOUNT(
+      CALCULATETABLE(
+        Expense_Assumptions_Input,
+        Expense_Assumptions_Input[BA_Deployment_Date] <> BLANK()  -- Count only stores with BA deployed
+      )
+    )
+  ),
+  BLANK()
+)
+
+// 26. BA Headcount (count of distinct BA employees in current filter)
+[BA_Headcount] =
+DISTINCTCOUNT(
+  CALCULATETABLE(
+    Expense_Assumptions_Input,
+    Expense_Assumptions_Input[BA_Salary] > 0  -- Count rows where BA salary exists
+  )
+)
+
+// 27. Sales per BA (₹ Crore)
+// NSV per BA employee: BA_Store_NSV ÷ BA_Headcount
+[Sales_Per_BA_Cr] =
+IFERROR(
+  DIVIDE(
+    [BA_Store_NSV_Cr],
+    [BA_Headcount]
+  ),
+  BLANK()
+)
+
+// 28. Sales Qty per BA (units)
+[Sales_Qty_Per_BA] =
+IFERROR(
+  DIVIDE(
+    [BA_Store_Sales_Qty],
+    [BA_Headcount]
+  ),
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 6: BA vs NON-BA ANALYSIS MEASURES
+// ============================================================================
+
+// 29. Pre-BA Growth % (growth before BA was deployed)
+// Filter: BA_Deployment_Date > current month (i.e., data from before deployment)
+[Pre_BA_Growth_Pct] =
+IFERROR(
+  DIVIDE(
+    CALCULATE(
+      [Previous_Month_Non_BA_Store_NSV_Cr],
+      Expense_Assumptions_Input[BA_Deployment_Date] > MAX(Dim_Month[Date])
+    ) - CALCULATE(
+      CALCULATE(
+        [Non_BA_Store_NSV_Cr],
+        PREVIOUSMONTH(Dim_Month[Date])
+      ),
+      Expense_Assumptions_Input[BA_Deployment_Date] > MAX(Dim_Month[Date])
+    ),
+    CALCULATE(
+      [Non_BA_Store_NSV_Cr],
+      PREVIOUSMONTH(Dim_Month[Date]),
+      Expense_Assumptions_Input[BA_Deployment_Date] > MAX(Dim_Month[Date])
+    )
+  ) * 100,
+  BLANK()
+)
+
+// 30. Post-BA Growth % (growth after BA was deployed)
+// Filter: BA_Deployment_Date <= current month
+[Post_BA_Growth_Pct] =
+IFERROR(
+  DIVIDE(
+    [BA_Store_NSV_Cr] - [Previous_Month_BA_Store_NSV_Cr],
+    [Previous_Month_BA_Store_NSV_Cr]
+  ) * 100,
+  BLANK()
+)
+
+// 31. BA Store Count (number of distinct stores with BA deployed)
+[BA_Store_Count] =
+DISTINCTCOUNT(
+  CALCULATETABLE(
+    Expense_Assumptions_Input,
+    Expense_Assumptions_Input[BA_Deployment_Date] <> BLANK()
+  )
+)
+
+// 32. Non-BA Store Count
+[Non_BA_Store_Count] =
+DISTINCTCOUNT(
+  CALCULATETABLE(
+    Expense_Assumptions_Input,
+    Expense_Assumptions_Input[BA_Deployment_Date] = BLANK()
+  )
+)
+
+// ============================================================================
+// SECTION 7: STORE-LEVEL MEASURES (for Store Profitability Table)
+// ============================================================================
+// These measures assume row context includes Store_Code, allowing store-level aggregation
+
+// 33. Store NSV (₹ Crore, EXCLUDING TAX)
+[Store_NSV_Cr] =
+CALCULATE(
+  [NSV Cr],
+  REMOVEFILTERS(Dim_Month, Dim_Chain_Raw, Dim_Zone, Dim_Category)  -- Keep Store_Code filter
+)
+
+// 34. Store Sales Qty
+[Store_Sales_Qty] =
+CALCULATE(
+  [Sales Qty],
+  REMOVEFILTERS(Dim_Month, Dim_Chain_Raw, Dim_Zone, Dim_Category)
+)
+
+// 35. Store Growth % (MoM)
+[Store_Growth_Pct] =
+IFERROR(
+  DIVIDE(
+    [Store_NSV_Cr] - [Store_Prior_Month_NSV_Cr],
+    [Store_Prior_Month_NSV_Cr]
+  ) * 100,
+  BLANK()
+)
+
+// 36. Store Prior Month NSV
+[Store_Prior_Month_NSV_Cr] =
+CALCULATE(
+  [Store_NSV_Cr],
+  PREVIOUSMONTH(Dim_Month[Date])
+)
+
+// ============================================================================
+// SECTION 8: STORE STATUS & CLASSIFICATION (PROVISIONAL ONLY)
+// ============================================================================
+// Status classifications are provisional. No final recommendations until Finance validation.
+
+// 37. Store Status (Provisional Classification)
+[Store_Status] =
+SWITCH(
+  TRUE(),
+
+  -- Check for missing costs first (override all other classifications)
+  [Total_Support_Cost_Missing_Flag] = TRUE() || COUNTROWS(
+    FILTER(
+      Expense_Assumptions_Input,
+      [Data_Status] = "Pending" OR [Missing_Cost_Flag] = TRUE()
+    )
+  ) > 0,
+  "Cost Data Pending",
+
+  -- Check for insufficient history (< 3 months of data)
+  [Row Count] < 3,
+  "Insufficient History",
+
+  -- Below break-even: Gap < -0.1 Cr
+  [Break_Even_Gap_Cr] < -0.1,
+  "Below Break-even",
+
+  -- Improvement required: Gap between -0.1 and 0
+  [Break_Even_Gap_Cr] >= -0.1 && [Break_Even_Gap_Cr] <= 0,
+  "Improvement Required",
+
+  -- Strong performer: CM2% >= 15% AND Growth > 10%
+  [Provisional_CM2_Pct] >= 15 && [Store_Growth_Pct] > 10,
+  "Strong Performer",
+
+  -- Monitor: default for all others with sufficient data
+  [Provisional_CM2_Pct] >= 5,
+  "Monitor",
+
+  -- Default
+  "Monitor"
+)
+
+// 38. Recommendation Status (Blocked, Non-Editable)
+[Recommendation_Status] =
+"Under Review — Provisional"  // All recommendations blocked until Finance validates CM2
+
+// Blocked Recommendation Types (cannot use in reports):
+// ❌ [Store_Withdrawal_Recommended] — blocked until Finance confirms CM2 & 6+ months post-BA data
+// ❌ [Store_Closure_Recommended] — blocked until Finance confirms CM2 & full cost/sales history
+// ❌ [Store_ROI_Months] — blocked until Finance confirms CM2 formula
+// ❌ [Store_Payback_Period] — blocked until Finance confirms CM2 formula
+
+// ============================================================================
+// SECTION 9: DATA QUALITY & VALIDATION FLAGS
+// ============================================================================
+
+// 39. Provisional Cost Flag (checks if any costs awaiting Finance validation)
+[Has_Provisional_Costs] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    [Provisional_Cost_Flag] = TRUE() OR [Finance_Validation_Status] = "Awaiting"
+  )
+) > 0
+
+// 40. Missing Data Warning (checks if critical fields are blank)
+[Missing_Data_Count] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    [Missing_Cost_Flag] = TRUE()
+  )
+)
+
+// 41. Finance Validation Required (for visual filtering)
+[Finance_Validation_Required] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    [Finance_Validation_Status] <> "Confirmed"
+  )
+) > 0
+
+// 42. Last Updated Date (from Expense_Assumptions_Input)
+[Last_Updated_Date] =
+MAX(Expense_Assumptions_Input[Last_Updated_Date])
+
+// ============================================================================
+// SECTION 10: HELPER & DISPLAY MEASURES
+// ============================================================================
+
+// 43. Provisional Warning Message (to display on reports)
+[Provisional_Warning_Message] =
+"⚠️ PROVISIONAL PROFITABILITY: TOT, promotional, listing, and selected expenses are pending Finance validation. Do NOT recommend closure or BA withdrawal until Q1-Q2 confirmed."
+
+// 44. Data Quality Status
+[Data_Quality_Status] =
+IF(
+  [Has_Provisional_Costs] = TRUE(),
+  "Provisional — Pending Finance Validation",
+  "Validated"
+)
+
+// 45. Next Update Expected (placeholder, TBD by Finance)
+[Next_Update_Expected] =
+DATE(YEAR(TODAY()), MONTH(TODAY()) + 1, 1)  // First day of next month
+
+// ============================================================================
+// NOTES FOR POWER BI BUILD & VALIDATION
+// ============================================================================
+/*
+
+IMPLEMENTATION CHECKLIST:
+
+1. ✓ Expense_Assumptions_Input table must be loaded via Power Query (external Excel file)
+2. ✓ All measures use SUMX or CALCULATE with Expense_Assumptions_Input table joins
+3. ✓ Test refresh cycle:
+     a. Update Expense_Assumptions_Input.xlsx in Excel (e.g., add TOT_Percentage)
+     b. Refresh Power BI (Ctrl+Shift+R)
+     c. Verify KPI cards update automatically (no manual Power BI editing needed)
+4. ✓ Conditional formatting:
+     a. KPI cards with [Total_Support_Cost_Missing_Flag] = TRUE → show "⚠️ Pending" (yellow background)
+     b. Store Status = "Cost Data Pending" → gray background
+     c. Store Status = "Below Break-even" → red background
+     d. Store Status = "Strong Performer" → green background
+5. ✓ Global warning banner (at top & bottom of all visuals):
+     a. Use [Provisional_Warning_Message] as static text
+     b. Update [Last_Updated_Date] automatically
+6. ✓ Blocking rules (enforce in Power BI):
+     a. Hide recommendation columns (Withdrawal, Closure, ROI, Payback)
+     b. Show [Recommendation_Status] = "Under Review — Provisional" instead
+     c. Block drill-through to "BA Withdrawal" or "Store Closure" detail pages
+
+FORMULA CHANGES ONCE FINANCE VALIDATES (Q1-Q2):
+
+When Finance answers Q1 & Q2:
+1. Replace [COGS_Cost_Cr] factor interpretation based on Q1 answer
+2. Replace [Provisional_CM2_Cr] formula with exact Q2 answer
+3. Rename measures: "Provisional_*" → remove "Provisional" prefix
+4. Remove ⚠️ yellow highlighting from CM2 KPI cards
+5. Unhide recommendation columns (Withdrawal, Closure, ROI, Payback)
+6. Update [Recommendation_Status] to actual recommendations
+
+CRITICAL MEASURES FOR BLOCKING:
+- [Provisional_CM2_Cr] ← Blocks everything else until confirmed
+- [Break_Even_Sales_Cr] ← Depends on CM2 confirmation
+- [Store_Status] ← Provisional until CM2 confirmed
+- [Recommendation_Status] ← All recommendations blocked
+
+*/
+
+// ============================================================================
+// END OF MEASURES
+// ============================================================================
+// Branch: claude/safe-powerbi-dashboard-rulings
+// Status: v0 — Provisional, awaiting Finance validation Q1-Q2
+// Last review: 2026-07-11
+
