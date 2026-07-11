@@ -1,15 +1,31 @@
-# Power BI Safe Blocks — Complete Build Kit (v3)
+# Power BI Safe Blocks — Complete Build Kit (v3.1)
 
 **Branch:** claude/safe-powerbi-dashboard-rulings  
-**Status:** Updated with NSV unit confirmed (ready for implementation in Power BI Desktop)  
+**Status:** NSV unit confirmed (Lakhs) + tax-basis ruling applied (ready for Power BI Desktop)  
 **Generated:** 2026-07-11  
-**Version:** 3 (NSV Unit Confirmed: Lakhs)
+**Version:** 3.1 (Tax-Basis Clarification: NSV excl. tax, MRP incl. tax)
+
+---
+
+## Critical Update: Tax-Basis Ruling (v3.1)
+
+**NSV and MRP operate on DIFFERENT tax bases:**
+- **NSV** = Net Sales Value **EXCLUDING tax** (unit: Lakhs)
+- **MRP Sales Value** = Gross consumer value **INCLUDING tax** (actual rupees)
+
+**Impact:**
+- ✓ All NSV cards/charts labeled "excluding tax"
+- ✓ All MRP cards/charts labeled "including tax"
+- ✓ MRP vs NSV comparisons marked "QC/realization only" (tax basis differs)
+- ✓ Profitability/CM2 remains blocked (requires cost structure + tax-basis CM2 formula)
+
+**See:** `TAX_BASIS_RULING.md` for complete documentation.
 
 ---
 
 ## Overview
 
-This folder contains a complete, production-ready Power BI build kit for **safe-to-proceed offtake analytics** (MRP basis, June'26 partial, NSV blocked).
+This folder contains a complete, production-ready Power BI build kit for **safe-to-proceed offtake analytics** with **tax-aware NSV (excl. tax) and MRP (incl. tax) reporting**.
 
 **What's included:**
 - Power Query scripts (data loading, QC tables)
@@ -32,16 +48,18 @@ This folder contains a complete, production-ready Power BI build kit for **safe-
 
 | File | Purpose | Pages | Status |
 |------|---------|-------|--------|
-| **PowerQuery_Safe_Offtake.pq** | Power Query scripts (NSV conversion: Lakhs→Cr; MRP, Qty, BA flag) | 1 | Updated v3, ready to copy-paste |
-| **DAX_Safe_Measures.dax** | Safe DAX measures (30+: MRP, NSV (now unblocked), Qty, contribution, trends) | 1 | Updated v3, ready to copy-paste |
-| **PowerBI_Model_Spec.md** | Data model: tables, columns, relationships, diagram | 8 | Current (NSV fields added) |
-| **PowerBI_Report_Page_Spec.md** | 5 report pages (includes NSV charts on all pages) | 16 | Updated v3 |
-| **Build_In_PowerBI_Desktop_Guide.md** | Step-by-step build instructions (phase 1–6, 5 pages) | 7 | Updated v3 |
-| **QC_Validation_Checklist.md** | Pre-build & post-build validation tests (5 pages, NSV validation) | 5 | Updated v3 |
-| **Blocked_Measures.md** | 9 blocked measures (v3: NSV now unblocked; cost sources now block P&L) | 7 | Updated v3 |
-| **README.md** | This file | 1 | Overview & quick-start v3 |
+| **PowerQuery_Safe_Offtake.pq** | Power Query scripts (NSV excl. tax: Lakhs→Cr; MRP incl. tax, Qty, BA flag) | 1 | Updated v3, tax-aware |
+| **DAX_Safe_Measures.dax** | Safe DAX measures (30+: NSV excl. tax, MRP incl. tax, Qty, trends, BA) | 1 | Updated v3, tax-labeled |
+| **PowerBI_Model_Spec.md** | Data model: tables, columns, relationships, diagram | 8 | Current (NSV/MRP tax basis added) |
+| **PowerBI_Report_Page_Spec.md** | 5 report pages (NSV excl. tax, MRP incl. tax charts; tax-basis notes) | 16 | Updated v3.1 |
+| **Build_In_PowerBI_Desktop_Guide.md** | Step-by-step build instructions (phase 1–6, 5 pages, tax-basis aware) | 7 | Updated v3.1 |
+| **QC_Validation_Checklist.md** | Pre-build & post-build validation (NSV excl. tax, MRP incl. tax checks) | 5 | Updated v3.1 |
+| **Blocked_Measures.md** | 9 blocked measures (cost sources now block P&L/CM2; NSV unblocked) | 7 | Updated v3 |
+| **NSV_UNIT_CONFIRMED.md** | v2→v3 update: NSV unit confirmed as Lakhs | 6 | Reference (v3 milestone) |
+| **TAX_BASIS_RULING.md** | **v3.1 NEW:** Tax-basis clarification (NSV excl. tax, MRP incl. tax) | 10 | New (v3.1 critical) |
+| **README.md** | This file | 1 | Overview & quick-start v3.1 |
 
-**Total:** 46 pages of specification + ready-to-use code (updated v3: NSV unit confirmed as Lakhs)
+**Total:** 60+ pages of specification + tax-aware code (v3.1: NSV unit confirmed as Lakhs, tax-basis applied)
 
 ---
 
@@ -71,19 +89,27 @@ This folder contains a complete, production-ready Power BI build kit for **safe-
 ### Safe-to-Publish Blocks ✓
 
 ✓ **5 Report Pages** (Data Explorer, Overview, QC & Reconciliation, Interim Offtake View, BA Availability View)  
-✓ **MRP Sales Value basis** (verified actual rupees ÷ 10,000,000 for Crore display)  
-✓ **NSV Sales Value basis** (source in Lakhs ÷ 100 for Crore display; now UNBLOCKED)  
+✓ **NSV Sales Value basis** (Lakhs ÷ 100 for Crore display; **EXCLUDING tax**)  
+✓ **MRP Sales Value basis** (actual rupees ÷ 10,000,000 for Crore display; **INCLUDING tax**)  
+✓ **Tax-aware labels** (all NSV cards "excl. tax"; all MRP cards "incl. tax"; comparisons marked QC/realization only)  
 ✓ **June'26 flagged as Partial** (78,111 rows, 16 chains; watermarks on Pages 1–4)  
 ✓ **Zone-level analysis** (P6 canonicalized; state-level rollups blocked by business decision)  
-✓ **30+ safe DAX measures** (MRP, NSV, Qty, contribution %, trends [MRP/NSV/Qty], BA Availability, QC)  
-✓ **NSV Sales & Trends** (MRP vs NSV comparison; MoM absolute & % change for both)  
+✓ **30+ safe DAX measures** (NSV excl. tax, MRP incl. tax, Qty, contribution %, trends, BA, QC)  
+✓ **NSV & MRP Trends** (shown separately for net/gross view; comparison marked QC/realization only)  
 ✓ **BA Availability coverage** (Brand Counter = BA coverage; Page 5 reports only, no profitability)  
-✓ **5 QC reference tables** (monthly reconciliation with MRP/NSV, More Retail audit, variants, blocked list, pending decisions)  
+✓ **5 QC reference tables** (monthly reconciliation with tax-basis checks, More Retail audit, variants, blocked list, pending decisions)  
 ✓ **Interactive filtering** (FY, Month, Chain [raw], Zone, Category, Format, Classification)  
 
-### Business Rulings Applied (v3 — NSV Unit Confirmed) ✓
+### Business Rulings Applied ✓
 
+**v3 — NSV Unit Confirmed:**
 ✓ **NSV Unit Confirmed** — Source is in Lakhs; NSV Cr = Lakhs ÷ 100; all NSV measures now ACTIVE
+
+**v3.1 — Tax-Basis Ruling (NEW):**
+✓ **Tax-Basis Clarification** — NSV excludes tax; MRP includes tax; all pages labeled accordingly
+✓ **Comparison Rules** — MRP vs NSV shown for QC/realization only (tax basis differs)
+
+**Earlier Rulings:**
 ✓ **More Retail Records** — Business reviewed; retained as valid source records; no dedup applied
 ✓ **Reliance Brand Counter** — Approved as BA Availability flag; Page 5 created for coverage view
 ✓ **State-wise Reporting** — Source data unreliable; zone-level used; no state rollups created
@@ -109,8 +135,8 @@ Fact_Offtake_Safe (4.21M rows)
   └─ QC Reference Tables (5 tables, no relationships)
 ```
 
-**Measures:** 22+ safe-only (MRP basis)  
-**Blocked:** 11+ (NSV, profitability, state, BA, dedup)
+**Measures:** 30+ safe (NSV excl. tax, MRP incl. tax, Qty, contribution %, trends, BA, QC)  
+**Blocked:** 6 (cost sources block P&L/CM2; NSV now ACTIVE)
 
 ---
 
@@ -120,9 +146,9 @@ Fact_Offtake_Safe (4.21M rows)
 |-------|------|-------|-------------|
 | 1 | 30–45 min | Create queries, load data, transform | Fact_Offtake_Safe + 4 dimensions + 5 QC tables |
 | 2 | 10–15 min | Define relationships | Star schema (fact ↔ 4 dims) |
-| 3 | 20–30 min | Create DAX measures | 22+ safe measures |
-| 4 | 45–60 min | Build 4 report pages | All visuals, slicers, formatting |
-| 5 | 15–20 min | Validate (QC checklist) | Confirm safe-only, no NSV, June'26 flagged |
+| 3 | 20–30 min | Create DAX measures | 30+ safe measures (NSV excl. tax, MRP incl. tax) |
+| 4 | 45–60 min | Build 5 report pages | All visuals, slicers, formatting, tax-basis labels |
+| 5 | 15–20 min | Validate (QC checklist) | Confirm NSV excl. tax, MRP incl. tax, June'26 flagged |
 | 6 | 5 min | Save & export | PBIP or PBIX file |
 
 **Total: 2–3 hours**
@@ -139,13 +165,13 @@ Fact_Offtake_Safe (4.21M rows)
 - **Visual markers** in charts (dashed line, different color, annotation)
 - **Row count** (~78,111 rows, 16 chains only)
 
-### ✓ NSV Unit Blocked (Watermarked)
+### ✓ NSV Unit Active (Tax-Basis Aware)
 
-- **No [NSV] measure** created (will error if attempted)
-- **No NSV in any chart** (all value-based visuals use MRP)
-- **Watermark:** "⚠ NSV unit pending | Interim MRP basis only"
-- **QC page:** Full explanation + pending decisions table
-- **Blocked Measures list:** 11 items documented
+- **NSV Measures ACTIVE** (Source NSV Lacs, NSV Cr, NSV Actual Value, etc.)
+- **All NSV labeled "excluding tax"** (clearly distinguished from MRP)
+- **Tax-basis awareness:** NSV and MRP conversions documented; ratio shown for QC/realization only
+- **Watermark:** "NSV excludes tax. MRP Sales Value includes tax. Use separately for net/gross view."
+- **Blocked Measures list:** 6 items (cost sources, not NSV unit; NSV now ACTIVE)
 
 ### ✓ Safe Filtering (No State, NSV, or BA)
 
@@ -159,35 +185,44 @@ Fact_Offtake_Safe (4.21M rows)
 - Classification (dropdown, multi-select)
 
 **Slicers NOT included (blocked):**
-- State (mapping pending)
-- NSV (unit pending)
-- BA metrics (headcount + classification pending)
+- State (mapping pending; zone-level used instead)
+- BA metrics (headcount + profitability pending; BA coverage on Page 5 only)
 
 ### ✓ QC & Validation Built-In
 
 **On QC & Reconciliation page:**
-- Monthly reconciliation table (27 rows, one per month)
+- Monthly reconciliation table with tax-basis checks (27 rows, NSV excl. tax vs MRP incl. tax)
 - Chain variant summary (34 chains, raw names preserved)
-- More Retail duplicate report (13,661 dup rows, ₹1.36 Cr)
-- Blocked measures list (11 items)
-- Pending decisions table (6 blocking items + timeline)
+- More Retail duplicate report (13,661 dup rows, ₹1.36 Cr; retained per business approval)
+- Realization ratio (MRP to NSV, QC/realization only)
+- Negative value tracking (NSV and MRP separately)
+- Blocked measures list (6 items)
+- Pending decisions table (timeline to cost structure confirmation)
 
 ---
 
-## Blocked Business Decisions (6 Items)
+## Business Inputs Needed for Profitability (v3.1 Blocking Items)
 
-Until these are resolved, the following remain blocked:
+**v3 Complete:** NSV unit confirmed (Lakhs); tax-basis clarified (NSV excl. tax, MRP incl. tax)
 
-| # | Decision | Impact | Timeline |
-|---|----------|--------|----------|
-| 1 | **NSV Unit Validation** | Unblocks all NSV/P&L/profitability measures | 1–2 wk |
-| 2 | **More Retail Duplicates** | 13,661 dup rows = ₹1.36 Cr MRP (10.3% of total) | 1–3 wk |
-| 3 | **Brand Counter Classification** | 549,617 rows; is it BA channel or chain? | 1 wk |
-| 4 | **State-to-City Mapping** | 247 raw state values (include cities) → canonicalization | 1–2 wk |
-| 5 | **Chain Master Canonicalization** | Variants (Vmm/VMM, Fsn/FSN, etc.) awaiting merge | 1 wk |
-| 6 | **Reliance Schema** | 29 cols (vs 40-42 std); accept partial or request full | 1–3 wk |
+**Now Blocking P&L / CM2 / Margin % Implementation:**
 
-See **Blocked_Measures.md** for full details on each.
+| # | Input | Blocks | Status | Timeline |
+|---|-------|--------|--------|----------|
+| 1 | **CM2 Formula (exact)** | P&L / CM2 / Margin % measures | Pending from Finance | 1–2 wk |
+| 2 | **Cost Data (COGS, allocation)** | Profitability calculations | Pending from Ops/Finance | 1–2 wk |
+| 3 | **Tax Handling Rules** | CM2 tax-basis treatment | Pending from Finance | 1 wk |
+| 4 | **BA Headcount & Cost** | BA profitability (BA coverage active on Page 5) | Pending from HR/Finance | 1–2 wk |
+| 5 | **Chain Master Canonicalization** | Chain variant consolidation | Pending from Business | 1 wk |
+
+**Approved & Complete:**
+✓ NSV Unit = Lakhs (unblocks all NSV measures; v3 complete)  
+✓ Tax-Basis = NSV excl. tax, MRP incl. tax (v3.1 complete)  
+✓ More Retail Records = Retained as valid; no dedup  
+✓ Brand Counter = BA Availability flag; Page 5 coverage active  
+✓ State Reporting = Zone-level used; no state rollups
+
+See **TAX_BASIS_RULING.md** and **Blocked_Measures.md** for full details.
 
 ---
 
@@ -214,15 +249,15 @@ See **Blocked_Measures.md** for full details on each.
 4. **Validate** using QC_Validation_Checklist.md
 5. **Save** as PBIP or PBIX
 
-### After Business Decisions:
+### After Cost Structure Confirmation:
 
-Once decisions 1–6 are made:
-1. Add [NSV] measures (if NSV unit confirmed)
-2. Implement P&L / Profitability measures
-3. Add State dimension + state-level rollups
-4. Add BA Store Master + BA profitability
-5. Apply More Retail dedup (if approved)
-6. Merge chain variants in Dim_Chain_Canonical
+Once Finance provides CM2 formula + cost data:
+1. Implement [CM2] / Contribution Margin 2 measures
+2. Implement [Margin %] / [Gross Margin %] measures
+3. Implement P&L block (Gross Profit, EBITDA, Net Profit)
+4. Implement BA Profitability (once BA Headcount confirmed)
+5. (Optional) Merge chain variants in Dim_Chain_Canonical
+6. (Optional) Add State dimension + state-level rollups (if business approves City-State mapping)
 
 ---
 
@@ -241,29 +276,34 @@ Once decisions 1–6 are made:
 **For blocked measures logic:**
 - See Blocked_Measures.md (full reference)
 
+**For tax-basis treatment:**
+- See TAX_BASIS_RULING.md (comprehensive tax-basis documentation)
+
 ---
 
 ## Version & Branch Info
 
-- **Branch:** claude/safe-powerbi-blocks
+- **Branch:** claude/safe-powerbi-dashboard-rulings
 - **Generated:** 2026-07-11
-- **Status:** Draft (ready for implementation)
-- **PR #14:** NOT merged (separate from original PR)
-- **Main branch:** NOT affected
-- **Files in repo:** All in PowerBI/Safe_Blocks/
+- **Version:** 3.1 (Tax-Basis Clarification: NSV excl. tax, MRP incl. tax)
+- **Status:** Ready for implementation (tax-basis aware)
+- **Previous version:** v3 (NSV unit confirmed as Lakhs)
+- **Files in repo:** All in PowerBI/Safe_Blocks/ (9 files, 60+ pages specification + tax-aware code)
 
 ---
 
-## Checklist Before Building
+## Pre-Build Checklist
 
 - [ ] Power BI Desktop 2024.11+ installed
 - [ ] Monthly offtake CSV files available (Apr'24–Jun'26, 582 files)
-- [ ] Read Build_In_PowerBI_Desktop_Guide.md
+- [ ] Read TAX_BASIS_RULING.md (understand NSV excl. tax vs MRP incl. tax)
+- [ ] Read Build_In_PowerBI_Desktop_Guide.md (step-by-step instructions)
 - [ ] Understand data model (PowerBI_Model_Spec.md)
 - [ ] Understand report pages (PowerBI_Report_Page_Spec.md)
 - [ ] Have QC_Validation_Checklist.md open (for final validation)
+- [ ] Confirm understanding: NSV = without tax (Lakhs), MRP = with tax (rupees)
 
 ---
 
-**Ready to build. Follow the guide. Estimated 2–3 hours. Good luck!**
+**Ready to build. Follow the guide. Estimated 2–3 hours. Tax-basis aware. Good luck!**
 

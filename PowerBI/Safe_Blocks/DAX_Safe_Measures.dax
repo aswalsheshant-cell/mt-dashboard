@@ -1,40 +1,52 @@
-// DAX Measures — Safe-to-Build Only (MRP Basis, NSV Blocked)
-// Branch: claude/safe-powerbi-blocks
+// DAX Measures — Tax-Basis Aware (v3.1: NSV excl. tax, MRP incl. tax)
+// Branch: claude/safe-powerbi-dashboard-rulings
 // Generated: 2026-07-11
+// ⚠ IMPORTANT: NSV and MRP operate on DIFFERENT tax bases
+//   NSV = Source Lakhs, EXCLUDING tax
+//   MRP = Actual rupees, INCLUDING tax
+//   Do NOT compare directly as performance metrics without tax-basis context.
 
 // ============================================================================
-// SAFE BASE MEASURES (MRP SALES VALUE BASIS ONLY)
+// SAFE BASE MEASURES (TAX-BASIS AWARE: NSV excl. tax, MRP incl. tax)
 // ============================================================================
 
-// 1. Total MRP Sales Value (in actual rupees, verified basis)
+// 1. Total MRP Sales Value (actual rupees, INCLUDING tax, verified basis)
+// Tax Basis: INCLUDING TAX
 [MRP Sales Value] =
 SUMX(
   Fact_Offtake_Safe,
   Fact_Offtake_Safe[MRP_Sales_Value]
 )
 
-// 2. Total MRP Sales Value in Crore (rupees ÷ 10,000,000)
+// 2. Total MRP Sales Value in Crore (rupees ÷ 10,000,000, INCLUDING tax)
+// Tax Basis: INCLUDING TAX
+// Used for: Consumer value view, market analysis, trend reporting
 [MRP Sales Value Cr] =
 DIVIDE(
   [MRP Sales Value],
   10000000
 )
 
-// 3. Total Source NSV (in Lakhs, confirmed unit)
+// 3. Total Source NSV (in Lakhs, EXCLUDING tax, confirmed unit v3)
+// Tax Basis: EXCLUDING TAX
 [Source NSV Lacs] =
 SUMX(
   Fact_Offtake_Safe,
   Fact_Offtake_Safe[Source_NSV_Lacs]
 )
 
-// 4. Total NSV Actual Value (Lakhs × 100,000 = rupees)
+// 4. Total NSV Actual Value (Lakhs × 100,000 = rupees, EXCLUDING tax)
+// Tax Basis: EXCLUDING TAX
 [NSV Actual Value] =
 SUMX(
   Fact_Offtake_Safe,
   Fact_Offtake_Safe[NSV_Actual_Value]
 )
 
-// 5. Total NSV in Crore (Lakhs ÷ 100 = Crores)
+// 5. Total NSV in Crore (Lakhs ÷ 100 = Crores, EXCLUDING tax, confirmed v3)
+// Tax Basis: EXCLUDING TAX
+// Used for: Net sales view, scheme/margin view, profitability base (when cost data available)
+// NOTE: NSV is net of tax; MRP is gross of tax. Do not compare directly without tax context.
 [NSV Cr] =
 DIVIDE(
   [Source NSV Lacs],
@@ -82,10 +94,12 @@ IFERROR(
 )
 
 // ============================================================================
-// SAFE CONTRIBUTION & SHARE MEASURES (MRP, NSV, QTY BASIS)
+// SAFE CONTRIBUTION & SHARE MEASURES (MRP incl. tax, NSV excl. tax, QTY)
 // ============================================================================
 
-// 9. MRP Contribution % (within current filter context)
+// 9. MRP Contribution % (within current filter context, INCLUDING tax)
+// Tax Basis: INCLUDING TAX
+// Interpretation: MRP contribution % is based on gross consumer value
 [MRP Contribution %] =
 IFERROR(
   DIVIDE(

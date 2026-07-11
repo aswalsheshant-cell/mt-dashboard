@@ -1,9 +1,9 @@
-# QC Validation Checklist — Safe Offtake Blocks
+# QC Validation Checklist — Tax-Basis Aware (v3.1)
 
 **Branch:** claude/safe-powerbi-dashboard-rulings  
 **Generated:** 2026-07-11  
-**Version:** 3 (NSV unit confirmed; all NSV measures now ACTIVE)  
-**Status:** Pre-deployment validation framework (updated for NSV Lakhs → Crore conversion)
+**Version:** 3.1 (NSV EXCLUDING tax, MRP INCLUDING tax; all measures tax-basis aware)  
+**Status:** Pre- & post-deployment validation framework (v3.1: tax-basis clarification applied)
 
 ---
 
@@ -27,12 +27,15 @@
 - [ ] June'26 partial flag set correctly (TRUE for Jun'26; FALSE for others)
 - [ ] Text cleaning applied (trim, proper case for Zone)
 - [ ] Type conversions complete (Qty, MRP as numbers)
-- [ ] **[v3 NEW]** NSV column renamed to Source_NSV_Lacs (confirmed unit = Lakhs)
-- [ ] **[v3 NEW]** NSV_Actual_Value calculated (Source_NSV_Lacs × 100,000 = rupees)
-- [ ] **[v3 NEW]** NSV_Cr calculated (Source_NSV_Lacs ÷ 100 = Crores for display)
-- [ ] **[v3 NEW]** MRP_Sales_Value_Cr calculated (MRP ÷ 10,000,000 = Crores for display)
-- [ ] **[v3 NEW]** Sales_Qty_Cr calculated (Sales_Qty ÷ 10,000,000 = Crores for display)
-- [ ] **[v3 NEW]** Is_Negative_NSV flag set correctly (Source_NSV_Lacs < 0)
+- [ ] **[v3]** NSV column renamed to Source_NSV_Lacs (confirmed unit = Lakhs, EXCLUDING tax)
+- [ ] **[v3]** NSV_Actual_Value calculated (Source_NSV_Lacs × 100,000 = rupees, EXCLUDING tax)
+- [ ] **[v3]** NSV_Cr calculated (Source_NSV_Lacs ÷ 100 = Crores for display, EXCLUDING tax)
+- [ ] **[v3]** MRP_Sales_Value_Cr calculated (MRP ÷ 10,000,000 = Crores for display, INCLUDING tax)
+- [ ] **[v3]** Sales_Qty_Cr calculated (Sales_Qty ÷ 10,000,000 = Crores for display, quantity only)
+- [ ] **[v3]** Is_Negative_NSV flag set correctly (Source_NSV_Lacs < 0; track separately from MRP)
+- [ ] **[v3.1 NEW]** Is_Negative_MRP flag set correctly (MRP_Sales_Value < 0; track separately from NSV)
+- [ ] **[v3.1 NEW]** NSV_Tax_Basis column = "Excl. Tax" (constant flag for all rows)
+- [ ] **[v3.1 NEW]** MRP_Tax_Basis column = "Incl. Tax" (constant flag for all rows)
 - [ ] **[v3 NEW]** BA_Available flag set correctly (Chain_Name = "Brand Counter" → "Yes"; else "No")
 - [ ] No rows dropped during transformation (row count matches source)
 
@@ -64,17 +67,19 @@
 - [ ] No bridge tables needed
 - [ ] QC tables have NO relationships to fact/dimension tables
 
-### DAX Measures
+### DAX Measures (Tax-Basis Aware v3.1)
 
-- [ ] [MRP Sales Value] returns ₹1,443.45 Cr (all data; actual rupees)
-- [ ] [MRP Sales Value Cr] returns 1,443.45 (all data, Crore format; calculated as MRP ÷ 10,000,000)
-- [ ] **[v3 NEW]** [Source NSV Lacs] returns correct NSV total in Lakhs
-- [ ] **[v3 NEW]** [NSV Actual Value] returns NSV in rupees (Source_NSV_Lacs × 100,000)
-- [ ] **[v3 NEW]** [NSV Cr] returns NSV in Crores (Source NSV Lacs ÷ 100) — verify calculation accuracy
-- [ ] **[v3 NEW]** [NSV Contribution %] returns percentage (NSV basis)
-- [ ] **[v3 NEW]** [NSV MoM Abs Change Cr] shows month-over-month change (NSV basis)
-- [ ] **[v3 NEW]** [NSV MoM % Change] shows MoM % growth (NSV basis)
-- [ ] **[v3 NEW]** [MRP to NSV Ratio] shows relationship (MRP Cr ÷ NSV Cr)
+- [ ] [MRP Sales Value] returns ₹1,443.45 Cr (actual rupees, INCLUDING tax)
+- [ ] [MRP Sales Value Cr] returns 1,443.45 (Crore format, INCLUDING tax; calculated as MRP ÷ 10,000,000)
+- [ ] **[v3.1]** [MRP Sales Value Cr] labeled "including tax" in all reports
+- [ ] **[v3]** [Source NSV Lacs] returns correct NSV total in Lakhs (EXCLUDING tax)
+- [ ] **[v3]** [NSV Actual Value] returns NSV in rupees (EXCLUDING tax; Source_NSV_Lacs × 100,000)
+- [ ] **[v3]** [NSV Cr] returns NSV in Crores (EXCLUDING tax; Source NSV Lacs ÷ 100) — verify calculation accuracy
+- [ ] **[v3.1]** [NSV Cr] labeled "excluding tax" in all reports
+- [ ] **[v3]** [NSV Contribution %] returns percentage (NSV excl. tax basis)
+- [ ] **[v3]** [NSV MoM Abs Change Cr] shows month-over-month change (NSV excl. tax basis)
+- [ ] **[v3]** [NSV MoM % Change] shows MoM % growth (NSV excl. tax basis)
+- [ ] **[v3.1 NEW]** [MRP to NSV Ratio] returns relationship (MRP Cr ÷ NSV Cr); labeled "QC/realization only"
 - [ ] [Sales Qty] returns 2,055,065,438 units (all data)
 - [ ] [Sales Qty Cr] returns ~2,055 (Qty ÷ 10,000,000 for display)
 - [ ] [Row Count] returns 4,211,571 (all data)
@@ -82,7 +87,8 @@
 - [ ] [Distinct Zones] returns 37 (at least)
 - [ ] [Has June26 Partial] returns TRUE when June'26 is selected
 - [ ] [Negative Return Rows] returns 12,705 (all data)
-- [ ] **[v3 NEW]** [Negative NSV Return Rows] returns count of negative NSV rows
+- [ ] **[v3.1 NEW]** [Negative NSV Return Rows] returns count of negative NSV rows (excl. tax basis)
+- [ ] **[v3.1 NEW]** [Negative MRP Return Rows] returns count of negative MRP rows (incl. tax basis)
 - [ ] [June26 Partial Row Count] returns ~78,111
 - [ ] **[v3 NEW]** [BA Available NSV Cr] returns NSV for Brand Counter rows (NSV now active)
 - [ ] All measures return numbers (no errors or #DIV/0!)
@@ -125,11 +131,12 @@
   - [ ] Interim Offtake P&L
   - [ ] BA Availability View (NEW)
 
-- [ ] **[v3]** Watermarks visible on every page:
-  - [ ] **[v3 UPDATED]** "NSV converted from Lakhs to ₹ Crore" (NOT "NSV unit pending")
+- [ ] **[v3.1]** Watermarks visible on every page:
+  - [ ] **[v3.1 UPDATED]** "NSV excludes tax. MRP includes tax." (replaces v3 unit-only message)
   - [ ] "⚠ June'26 Partial"
-  - [ ] **[v3 UPDATED]** "Interim MRP & NSV view" (on Page 4, replaces "MRP-basis view")
-  - [ ] **[v3]** "Cost sources pending" (blocks P&L, CM2, Margin %, BA Profitability)
+  - [ ] **[v3.1 UPDATED]** "Use NSV for net sales view. Use MRP for consumer value view."
+  - [ ] **[v3.1 UPDATED]** "Comparison shown for QC/realization only (tax basis differs)"
+  - [ ] **[v3.1]** "Cost structure & CM2 formula pending" (blocks P&L, CM2, Margin %, BA Profitability)
 
 - [ ] Slicers present on all pages:
   - [ ] FY
@@ -141,6 +148,59 @@
 - [ ] Slicers do NOT include:
   - [ ] State (blocked by business decision)
   - [ ] (NSV is now ACTIVE; not a slicer but measure is active on all pages)
+
+### Tax-Basis Consistency Checks (v3.1 NEW)
+
+**Critical:** NSV and MRP operate on different tax bases. Verify consistent labeling & context:
+
+- [ ] **NSV Tax-Basis Label:** "NSV ₹ Cr, excluding tax" (or "net sales value, excl. tax") appears on:
+  - [ ] Data Explorer NSV card
+  - [ ] Data Explorer NSV by Zone chart title
+  - [ ] Data Explorer NSV Trend chart title
+  - [ ] Overview Total NSV card
+  - [ ] Overview NSV Share chart title
+  - [ ] Overview Qty vs NSV chart title
+  - [ ] QC & Reconciliation Grand NSV card
+  - [ ] Interim Offtake View Total NSV card
+  - [ ] Interim Offtake View NSV Trend chart title
+  - [ ] BA Availability Total NSV card
+  - [ ] BA Availability NSV by Category chart title
+  - [ ] BA Availability NSV Trend chart title
+
+- [ ] **MRP Tax-Basis Label:** "MRP Sales Value ₹ Cr, including tax" (or "incl. tax") appears on:
+  - [ ] Data Explorer MRP card
+  - [ ] Data Explorer MRP by Chain chart title
+  - [ ] Data Explorer MRP by Category chart title
+  - [ ] Data Explorer MRP Trend chart title
+  - [ ] Overview Total MRP card
+  - [ ] Overview MRP Trend chart title
+  - [ ] Overview MRP Share chart title
+  - [ ] QC & Reconciliation Grand MRP card
+  - [ ] Interim Offtake View Total MRP card
+  - [ ] Interim Offtake View MRP Trend chart title
+  - [ ] BA Availability Total MRP card
+  - [ ] BA Availability MRP by Zone chart title
+  - [ ] BA Availability MRP Trend chart title
+
+- [ ] **Comparison Disclaimers:** All MRP vs NSV comparisons marked "QC/realization only" with note explaining tax-basis difference:
+  - [ ] Data Explorer Contribution % chart
+  - [ ] Overview MRP vs NSV Trend chart
+  - [ ] Interim Offtake View Contribution % chart
+  - [ ] Interim Offtake View MoM Change chart
+
+- [ ] **Watermarks Updated:** Tax-basis clarity present on all pages:
+  - [ ] "NSV excludes tax. MRP includes tax."
+  - [ ] "Use NSV for net sales view. Use MRP for consumer value view."
+  - [ ] "Comparison shown for QC/realization only (tax basis differs)"
+
+- [ ] **Separate Return Tracking:** Negative values tracked separately by tax basis:
+  - [ ] Negative NSV count displayed (excl. tax basis)
+  - [ ] Negative MRP count displayed (incl. tax basis)
+  - [ ] Monthly reconciliation shows both counts
+
+- [ ] **No Mixed-Basis Calculations:** Verify NO measures use both NSV and MRP in numerator:
+  - [ ] CM2, Margin %, Profitability measures do NOT exist (blocked pending cost sources)
+  - [ ] No unauthorized blended calculations
 
 ### Report Pages — Data Explorer
 
