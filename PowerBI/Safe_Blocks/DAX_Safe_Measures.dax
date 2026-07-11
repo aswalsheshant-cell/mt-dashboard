@@ -1,0 +1,322 @@
+// DAX Measures — Safe-to-Build Only (MRP Basis, NSV Blocked)
+// Branch: claude/safe-powerbi-blocks
+// Generated: 2026-07-11
+
+// ============================================================================
+// SAFE BASE MEASURES (MRP SALES VALUE BASIS ONLY)
+// ============================================================================
+
+// 1. Total MRP Sales Value (in rupees, verified basis)
+[MRP Sales Value] =
+SUMX(
+  Fact_Offtake_Safe,
+  Fact_Offtake_Safe[MRP_Sales_Value]
+)
+
+// 2. Total Sales Quantity (units)
+[Sales Qty] =
+SUMX(
+  Fact_Offtake_Safe,
+  Fact_Offtake_Safe[Sales_Qty]
+)
+
+// 3. Row Count (number of transactions)
+[Row Count] =
+COUNTROWS(
+  Fact_Offtake_Safe
+)
+
+// 4. MRP Sales Value in Crore (rupees ÷ 10,000,000)
+[MRP Sales Value Cr] =
+DIVIDE(
+  [MRP Sales Value],
+  10000000
+)
+
+// 5. Average MRP per Month (across selected months)
+[Avg MRP Per Month] =
+IFERROR(
+  AVERAGEX(
+    VALUES(Dim_Month[Month_Sort]),
+    [MRP Sales Value]
+  ),
+  BLANK()
+)
+
+// 6. Average MRP per Chain (across selected chains)
+[Avg MRP Per Chain] =
+IFERROR(
+  AVERAGEX(
+    VALUES(Dim_Chain_Raw[Chain_Name]),
+    [MRP Sales Value]
+  ),
+  BLANK()
+)
+
+// ============================================================================
+// SAFE CONTRIBUTION & SHARE MEASURES (MRP BASIS ONLY)
+// ============================================================================
+
+// 7. MRP Contribution % (within current filter context)
+[MRP Contribution %] =
+IFERROR(
+  DIVIDE(
+    [MRP Sales Value],
+    CALCULATE(
+      [MRP Sales Value],
+      REMOVEFILTERS(Dim_Chain_Raw, Dim_Zone, Dim_Category)
+    )
+  ) * 100,
+  BLANK()
+)
+
+// 8. Qty Contribution % (within current filter context)
+[Qty Contribution %] =
+IFERROR(
+  DIVIDE(
+    [Sales Qty],
+    CALCULATE(
+      [Sales Qty],
+      REMOVEFILTERS(Dim_Chain_Raw, Dim_Zone, Dim_Category)
+    )
+  ) * 100,
+  BLANK()
+)
+
+// 9. MRP Share of Total (all data, ignoring filters)
+[MRP Share of Total] =
+IFERROR(
+  DIVIDE(
+    [MRP Sales Value],
+    CALCULATE(
+      [MRP Sales Value],
+      REMOVEFILTERS()
+    )
+  ) * 100,
+  BLANK()
+)
+
+// ============================================================================
+// SAFE TREND MEASURES (MRP BASIS ONLY)
+// ============================================================================
+
+// 10. Previous Month MRP Sales Value (for MoM comparison)
+[Previous Month MRP] =
+IFERROR(
+  CALCULATE(
+    [MRP Sales Value],
+    PREVIOUSMONTH(Dim_Month[Date])  // Assumes Dim_Month has a Date column
+  ),
+  BLANK()
+)
+
+// 11. MRP MoM Absolute Change (current month vs previous month)
+[MRP MoM Abs Change] =
+IFERROR(
+  [MRP Sales Value] - [Previous Month MRP],
+  BLANK()
+)
+
+// 12. MRP MoM % Change (current month vs previous month, MRP basis only)
+[MRP MoM % Change] =
+IFERROR(
+  DIVIDE(
+    [MRP MoM Abs Change],
+    [Previous Month MRP]
+  ) * 100,
+  BLANK()
+)
+
+// 13. Qty MoM Absolute Change (current month vs previous month)
+[Qty MoM Abs Change] =
+IFERROR(
+  [Sales Qty] -
+  CALCULATE(
+    [Sales Qty],
+    PREVIOUSMONTH(Dim_Month[Date])
+  ),
+  BLANK()
+)
+
+// 14. Row Count Trend (current month vs previous month)
+[Row Count Prev Month] =
+IFERROR(
+  CALCULATE(
+    [Row Count],
+    PREVIOUSMONTH(Dim_Month[Date])
+  ),
+  BLANK()
+)
+
+[Row Count Change] =
+[Row Count] - [Row Count Prev Month]
+
+// ============================================================================
+// SAFE FILTER/FLAG MEASURES
+// ============================================================================
+
+// 15. Is June'26 Partial (TRUE if current selection includes June'26)
+[Has June26 Partial] =
+IFERROR(
+  IF(
+    COUNTROWS(
+      FILTER(
+        Dim_Month,
+        Dim_Month[Is_June26_Partial] = TRUE()
+      )
+    ) > 0,
+    TRUE(),
+    FALSE()
+  ),
+  FALSE()
+)
+
+// 16. June'26 Partial Warning (returns warning text if June'26 is in filter)
+[June26 Partial Warning] =
+IF(
+  [Has June26 Partial],
+  "⚠ June'26 is PARTIAL: 78,111 rows from 16 chains only. Some accounts pending.",
+  ""
+)
+
+// 17. Safe Reporting Flag (all measures in this set are safe)
+[Reporting Basis] =
+"MRP Sales Value (verified basis)"
+
+// ============================================================================
+// BLOCKED MEASURES (DOCUMENTED FOR REFERENCE, NOT USED IN ACTIVE VISUALS)
+// ============================================================================
+// These measures are INTENTIONALLY NOT IMPLEMENTED in this safe build.
+// They are listed here for documentation and future reference only.
+// Do NOT use these measures in active Power BI reports until business approves.
+
+// ✗ BLOCKED: [NSV Total]
+// Reason: NSV unit is unvalidated (grand total 271,801 vs MRP ₹1,443 Cr; unit ambiguous)
+// Action: Finance must provide reference anchor (₹Cr for 1 month)
+// Timeline: 1–2 weeks
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [NSV Cr], [NSV Lacs], [NSV Label], [NSV Cumulative]
+// Reason: Dependent on NSV unit confirmation
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [MoM/YoY/L3M/L6M % Growth on NSV Basis]
+// Reason: Uses NSV; all growth % on NSV basis are blocked
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [Contribution % (NSV-driven)], [Rank by Sales (NSV-driven)]
+// Reason: All NSV-based contribution measures blocked
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [Primary vs Offtake Gap], [Gap %]
+// Reason: Uses Offtake NSV (unvalidated)
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [P&L], [Provisional Profitability], [CM2], [Gross Margin %]
+// Reason: All profitability measures depend on NSV unit or BA Headcount (business input)
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [BA Cost to Serve], [BA Productivity], [Provisional Gross Margin (BA)]
+// Reason: Awaiting BA Headcount business input + Brand Counter classification (549,617 rows)
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [State-level Rollups], [State Slicer]
+// Reason: 247 raw state values include cities (Mumbai 118.8k, Bangalore 15k, etc.); City-State mapping pending
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [More Retail Chain Totals], [More Retail Contribution to All-MT]
+// Reason: 13,661 exact-dup rows (₹1.36 Cr / 10.3% MRP) — not deduped; pending business decision
+// Stub: -- BLOCKED --
+
+// ✗ BLOCKED: [Chain-level Reporting for Variants]
+// Reason: Vmm/VMM, Fsn/FSN, Walmart Cnc/CNC, Ratanadeep/Ratanadeep awaiting canonicalization
+// Stub: -- BLOCKED --
+
+// ============================================================================
+// QC & VALIDATION MEASURES (FOR QC PAGES ONLY)
+// ============================================================================
+
+// 18. Negative Return Row Count (valid returns/credit notes)
+[Negative Return Rows] =
+CALCULATE(
+  [Row Count],
+  Fact_Offtake_Safe[Is_Negative_Return] = TRUE()
+)
+
+// 19. June'26 Partial Row Count
+[June26 Partial Row Count] =
+CALCULATE(
+  [Row Count],
+  Fact_Offtake_Safe[Is_June26_Partial] = TRUE()
+)
+
+// 20. Total Distinct Chains
+[Distinct Chains] =
+DISTINCTCOUNT(
+  Fact_Offtake_Safe[Chain_Name]
+)
+
+// 21. Total Distinct Zones
+[Distinct Zones] =
+DISTINCTCOUNT(
+  Fact_Offtake_Safe[Zone]
+)
+
+// 22. Total Distinct Categories
+[Distinct Categories] =
+DISTINCTCOUNT(
+  Fact_Offtake_Safe[Category]
+)
+
+// ============================================================================
+// HELPER MEASURES (INTERNAL USE ONLY, NOT FOR REPORTS)
+// ============================================================================
+
+// 23. Report Watermark: NSV Unit Pending
+[Watermark NSV Pending] =
+"⚠ NSV unit pending | Interim MRP basis only"
+
+// 24. Report Watermark: Interim Only
+[Watermark Interim Only] =
+"Interim only: NSV unit pending. Not for final profitability review."
+
+// ============================================================================
+// NOTES & IMPLEMENTATION GUIDELINES
+// ============================================================================
+/*
+Safe Measures Summary:
+✓ MRP Sales Value (verified, rupees basis)
+✓ Sales Qty (units)
+✓ Row Count
+✓ MRP-based contribution %
+✓ MRP-based trends (MoM absolute, % change)
+✓ QC & validation measures (row counts, distinct counts, flags)
+
+All measures listed above are SAFE to use in active Power BI reports.
+They do NOT depend on:
+  - NSV unit (unvalidated)
+  - State mapping (pending)
+  - BA Headcount (business input pending)
+  - Chain canonicalization (pending)
+  - More Retail deduplication (pending)
+
+All measures explicitly flag June'26 as Partial where relevant.
+
+Blocked Measures:
+All NSV-based, profitability, state-level, and BA measures are BLOCKED.
+See "BLOCKED MEASURES" section above for full list.
+
+Implementation Notes for Power BI Desktop:
+1. Create measures EXACTLY as specified (copy-paste from this file)
+2. Ensure Dim_Month table has a Date column for PREVIOUSMONTH() to work
+3. Never create alternate measures that circumvent the blocked list
+4. Add conditional formatting to show watermarks on every report page
+5. Disable slicers for State, NSV, and any profitability dimensions
+6. Tag all pages with June'26 Partial flag warning
+
+Do NOT use these measures to create:
+  - NSV-based visuals (will error)
+  - State-level rollups (will error)
+  - BA profitability visuals (will error)
+  - Deduped More Retail totals (will show wrong numbers)
+*/
