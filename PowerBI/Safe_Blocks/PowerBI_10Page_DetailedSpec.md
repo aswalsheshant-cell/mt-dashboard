@@ -75,6 +75,8 @@
 │                                                                   │
 │  SECTION 4: WARNINGS (if applicable)                             │
 │  ⚠️ June'26 Partial: 78,111 rows (16 chains only)               │
+│  ⚠️ NSV (Excl Tax) vs MRP (Incl Tax): Different tax bases.      │
+│     Shown for summary reference; do NOT use for variance.       │
 │  ⚠️ Provisional Profitability: See Page 9 for details            │
 │                                                                   │
 └─────────────────────────────────────────────────────────────────┘
@@ -113,10 +115,10 @@
 ```
 Slicer: Chain (multi-select) | FY | Month | Zone | Brand
 
-KPI Row: Total NSV | Growth % | Top Zone | Bottom Zone
+KPI Row: Total NSV (Excl Tax) | Growth % | Top Zone | Bottom Zone
 
 TABLE: Chain Drill-down
-  Chain | Total NSV | Growth % | MRP | Qty | Zone (sub-rows)
+  Chain | Total NSV (Excl Tax) | Growth % | MRP (Incl Tax) | Qty | Zone (sub-rows)
     RELIANCE | ₹500 Cr | +12% | ... | (expand → zones below)
       └─ NORTH-1 | ₹100 Cr | +8% | ...
       └─ SOUTH-1 | ₹150 Cr | +15% | ...
@@ -124,14 +126,19 @@ TABLE: Chain Drill-down
       └─ WEST-1 | ...
 
 CHARTS (2):
-  - Chain Comparison (Clustered Bar: Chain vs NSV vs MRP)
+  - Chain Comparison (Clustered Bar: Chain vs NSV (Excl Tax) vs MRP (Incl Tax) — QC/Realization Only)
   - Growth Trend by Chain (Line: Month vs Growth % for top 3 chains)
+
+WARNING BANNER:
+  ⚠️ NSV (Excl Tax) vs MRP (Incl Tax): Shown for QC/realization reference only.
+     Do NOT use for direct variance analysis — different tax bases.
 ```
 
 ### Measures by Visual
 
-- Total NSV Cr, MRP Cr, Qty, Growth %, Contribution %
+- Total NSV Cr (Excl Tax), MRP Cr (Incl Tax), Qty, Growth %, Contribution %
 - Drill-down: Zone detail (sub-table)
+- **NOTE:** NSV excludes tax; MRP includes tax. Not directly comparable for variance.
 
 ---
 
@@ -146,14 +153,18 @@ CHARTS (2):
 ```
 Slicer: Brand | FY | Month | Chain | Zone | Category
 
-KPI Row: Total NSV | Growth % | Qty | NSV per Unit
+KPI Row: Total NSV (Excl Tax) | Growth % | Qty | NSV per Unit
 
 MATRIX/TABLE: Brand × Category
-  Brand | Category | NSV | Growth | Qty | MRP
+  Brand | Category | NSV (Excl Tax) | Growth | Qty | MRP (Incl Tax)
 
 CHARTS (2):
   - Brand Ranking (Bar: sorted by NSV desc)
   - Category Mix by Brand (Stacked Bar)
+
+WARNING BANNER:
+  ⚠️ NSV (Excl Tax) vs MRP (Incl Tax): Shown for QC/realization reference only.
+     Do NOT use for direct variance analysis — different tax bases.
 ```
 
 ---
@@ -169,12 +180,16 @@ CHARTS (2):
 ```
 Slicer: Category | FY | Month | Brand | Chain | Zone
 
-KPI Row: Top Category (NSV) | Category Count | Total NSV | Growth
+KPI Row: Top Category (NSV Excl Tax) | Category Count | Total NSV (Excl Tax) | Growth
 
 CHARTS (3):
   - Category Ranking (Bar)
   - Category Trend (Line)
-  - NSV vs Qty by Category (Scatter, bubble size = MRP)
+  - NSV (Excl Tax) vs Qty by Category (Scatter, bubble size = MRP (Incl Tax) — QC/Realization Only)
+
+WARNING BANNER:
+  ⚠️ NSV (Excl Tax) vs MRP (Incl Tax): Shown for QC/realization reference only.
+     Do NOT use for direct variance analysis — different tax bases.
 ```
 
 ---
@@ -214,18 +229,22 @@ CHARTS (2):
 Slicer: BA Status (BA / Non-BA / All) | FY | Month | Chain | Zone | Brand
 
 TAB 1: Top Stores
-  TABLE: Top 20 stores by NSV
-    Store | Chain | Zone | NSV Cr | Growth % | Qty | MRP
+  TABLE: Top 20 stores by NSV (Excl Tax)
+    Store | Chain | Zone | NSV Cr (Excl Tax) | Growth % | Qty | MRP (Incl Tax)
 
 TAB 2: Bottom Stores
-  TABLE: Bottom 20 stores by NSV
+  TABLE: Bottom 20 stores by NSV (Excl Tax)
 
 TAB 3: Growth Leaders
   TABLE: Highest growth % stores (sorted)
 
 CHARTS (2):
   - Top 10 Stores (Bar)
-  - Growth by Store (Scatter: X=Prior NSV, Y=Current NSV, bubble size=Growth%)
+  - Growth by Store (Scatter: X=Prior NSV (Excl Tax), Y=Current NSV (Excl Tax), bubble size=Growth%)
+
+WARNING BANNER:
+  ⚠️ NSV (Excl Tax) vs MRP (Incl Tax): Shown for QC/realization reference only.
+     Do NOT use for direct variance analysis — different tax bases.
 
 NOTE: Requires Store_Master table (pending Operations)
 ```
@@ -400,8 +419,11 @@ SECTION 2: VALIDATION FLAGS
 
 SECTION 3: MONTHLY RECONCILIATION
   TABLE: Month × Metrics
-    Month | Row Count | Chain Count | Zone Count | NSV Total | MRP Total | Qty Total | Status
+    Month | Row Count | Chain Count | Zone Count | NSV Total (Excl Tax) | MRP Total (Incl Tax) | Qty Total | Status
     (Apr-24, May-24, ..., Jun-26)
+  
+  WARNING: NSV (Excl Tax) vs MRP (Incl Tax) shown for QC/realization reference only.
+           Do NOT use for direct variance analysis — different tax bases.
 
 SECTION 4: QC ALERTS
   TEXT: Lists all known issues:
