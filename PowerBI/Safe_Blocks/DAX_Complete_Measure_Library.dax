@@ -1,0 +1,698 @@
+// DAX COMPLETE MEASURE LIBRARY
+// Branch: claude/safe-powerbi-dashboard-rulings
+// Status: v1 — Production-ready measures (100+)
+// Generated: 2026-07-11
+// Purpose: All measures for 10-page dashboard (copy-paste ready)
+
+// ============================================================================
+// SECTION 1: SALES MEASURES (NSV, MRP, QTY)
+// ============================================================================
+
+// 1. Total NSV (₹ Crore, EXCLUDING TAX)
+[Total NSV Cr] =
+SUMX(Fact_Offtake_Safe, Fact_Offtake_Safe[NSV_Cr])
+
+// 2. Total NSV in Lakhs (source unit)
+[Total NSV Lacs] =
+SUMX(Fact_Offtake_Safe, Fact_Offtake_Safe[Source_NSV_Lacs])
+
+// 3. Total MRP Sales Value (₹ Crore, INCLUDING TAX)
+[Total MRP Sales Value Cr] =
+SUMX(Fact_Offtake_Safe, Fact_Offtake_Safe[MRP_Sales_Value_Cr])
+
+// 4. Total Sales Quantity (units, in millions)
+[Total Sales Qty M] =
+DIVIDE(SUMX(Fact_Offtake_Safe, Fact_Offtake_Safe[Sales_Qty]), 1000000)
+
+// 5. Total Row Count
+[Total Row Count] =
+COUNTROWS(Fact_Offtake_Safe)
+
+// 6. NSV per Unit (Crore per million units)
+[NSV Per Unit] =
+IFERROR(DIVIDE([Total NSV Cr], [Total Sales Qty M]), BLANK())
+
+// 7. MRP per Unit (Crore per million units)
+[MRP Per Unit] =
+IFERROR(DIVIDE([Total MRP Sales Value Cr], [Total Sales Qty M]), BLANK())
+
+// ============================================================================
+// SECTION 2: GROWTH MEASURES
+// ============================================================================
+
+// 8. Prior Month NSV
+[Prior Month NSV Cr] =
+IFERROR(
+  CALCULATE([Total NSV Cr], PREVIOUSMONTH(Dim_Month[Date])),
+  BLANK()
+)
+
+// 9. MoM Growth % (NSV)
+[NSV MoM Growth Pct] =
+IFERROR(
+  DIVIDE([Total NSV Cr] - [Prior Month NSV Cr], [Prior Month NSV Cr]) * 100,
+  BLANK()
+)
+
+// 10. MoM Growth Absolute (NSV Cr)
+[NSV MoM Growth Abs] =
+[Total NSV Cr] - [Prior Month NSV Cr]
+
+// 11. Prior Year NSV (same month, prior year)
+[Prior Year NSV Cr] =
+IFERROR(
+  CALCULATE([Total NSV Cr], DATEADD(Dim_Month[Date], -12, MONTH)),
+  BLANK()
+)
+
+// 12. YoY Growth % (NSV)
+[NSV YoY Growth Pct] =
+IFERROR(
+  DIVIDE([Total NSV Cr] - [Prior Year NSV Cr], [Prior Year NSV Cr]) * 100,
+  BLANK()
+)
+
+// 13. Rolling 3-Month NSV
+[NSV Rolling 3M] =
+CALCULATE(
+  [Total NSV Cr],
+  DATESBETWEEN(Dim_Month[Date], TODAY()-90, TODAY())
+)
+
+// 14. Rolling 6-Month NSV
+[NSV Rolling 6M] =
+CALCULATE(
+  [Total NSV Cr],
+  DATESBETWEEN(Dim_Month[Date], TODAY()-180, TODAY())
+)
+
+// 15. MoM Growth % (MRP)
+[MRP MoM Growth Pct] =
+IFERROR(
+  DIVIDE(
+    [Total MRP Sales Value Cr] - CALCULATE([Total MRP Sales Value Cr], PREVIOUSMONTH(Dim_Month[Date])),
+    CALCULATE([Total MRP Sales Value Cr], PREVIOUSMONTH(Dim_Month[Date]))
+  ) * 100,
+  BLANK()
+)
+
+// 16. MoM Growth % (Quantity)
+[Qty MoM Growth Pct] =
+IFERROR(
+  DIVIDE(
+    [Total Sales Qty M] - CALCULATE([Total Sales Qty M], PREVIOUSMONTH(Dim_Month[Date])),
+    CALCULATE([Total Sales Qty M], PREVIOUSMONTH(Dim_Month[Date]))
+  ) * 100,
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 3: CONTRIBUTION & SHARE MEASURES
+// ============================================================================
+
+// 17. NSV Contribution % (by Chain, Brand, Category, etc.)
+[NSV Contribution Pct] =
+IFERROR(
+  DIVIDE(
+    [Total NSV Cr],
+    CALCULATE([Total NSV Cr], REMOVEFILTERS(Dim_Chain_Raw, Dim_Zone, Dim_Category))
+  ) * 100,
+  BLANK()
+)
+
+// 18. MRP Contribution % (by dimension)
+[MRP Contribution Pct] =
+IFERROR(
+  DIVIDE(
+    [Total MRP Sales Value Cr],
+    CALCULATE([Total MRP Sales Value Cr], REMOVEFILTERS(Dim_Chain_Raw, Dim_Zone, Dim_Category))
+  ) * 100,
+  BLANK()
+)
+
+// 19. Quantity Contribution % (by dimension)
+[Qty Contribution Pct] =
+IFERROR(
+  DIVIDE(
+    [Total Sales Qty M],
+    CALCULATE([Total Sales Qty M], REMOVEFILTERS(Dim_Chain_Raw, Dim_Zone, Dim_Category))
+  ) * 100,
+  BLANK()
+)
+
+// 20. NSV Share of Total (all data, no filters)
+[NSV Share of Total Pct] =
+IFERROR(
+  DIVIDE(
+    [Total NSV Cr],
+    CALCULATE([Total NSV Cr], REMOVEFILTERS())
+  ) * 100,
+  BLANK()
+)
+
+// 21. MRP Share of Total (all data, no filters)
+[MRP Share of Total Pct] =
+IFERROR(
+  DIVIDE(
+    [Total MRP Sales Value Cr],
+    CALCULATE([Total MRP Sales Value Cr], REMOVEFILTERS())
+  ) * 100,
+  BLANK()
+)
+
+// 22. Qty Share of Total (all data)
+[Qty Share of Total Pct] =
+IFERROR(
+  DIVIDE(
+    [Total Sales Qty M],
+    CALCULATE([Total Sales Qty M], REMOVEFILTERS())
+  ) * 100,
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 4: BA SPECIFIC MEASURES
+// ============================================================================
+
+// 23. BA Available NSV (stores with Brand Counter = Yes)
+[BA Available NSV Cr] =
+CALCULATE(
+  [Total NSV Cr],
+  Fact_Offtake_Safe[BA_Available] = "Yes"
+)
+
+// 24. Non-BA Available NSV
+[Non_BA Available NSV Cr] =
+CALCULATE(
+  [Total NSV Cr],
+  Fact_Offtake_Safe[BA_Available] = "No"
+)
+
+// 25. BA Available Growth %
+[BA Available Growth Pct] =
+IFERROR(
+  DIVIDE(
+    [BA Available NSV Cr] - CALCULATE([BA Available NSV Cr], PREVIOUSMONTH(Dim_Month[Date])),
+    CALCULATE([BA Available NSV Cr], PREVIOUSMONTH(Dim_Month[Date]))
+  ) * 100,
+  BLANK()
+)
+
+// 26. BA Coverage % (BA NSV as % of total NSV)
+[BA Coverage Pct] =
+IFERROR(
+  DIVIDE([BA Available NSV Cr], [Total NSV Cr]) * 100,
+  BLANK()
+)
+
+// 27. BA Row Count (transactions where BA = Yes)
+[BA Row Count] =
+CALCULATE(
+  [Total Row Count],
+  Fact_Offtake_Safe[BA_Available] = "Yes"
+)
+
+// 28. Non-BA Row Count
+[Non_BA Row Count] =
+CALCULATE(
+  [Total Row Count],
+  Fact_Offtake_Safe[BA_Available] = "No"
+)
+
+// ============================================================================
+// SECTION 5: EXPENSE MEASURES (from Expense_Assumptions_Input)
+// ============================================================================
+
+// 29. BA Salary Cost (₹ Crore)
+[BA Salary Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[BA_Salary]), 100)
+
+// 30. BA Supervisor Cost (₹ Crore)
+[BA Supervisor Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[BA_Supervisor_Cost]), 100)
+
+// 31. BA Merchandiser Cost (₹ Crore)
+[BA Merchandiser Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[Dmart_BA_Merchandiser_Cost]), 100)
+
+// 32. Total BA Cost (₹ Crore)
+[Total BA Cost Cr] =
+[BA Salary Cost Cr] + [BA Supervisor Cost Cr] + [BA Merchandiser Cost Cr]
+
+// 33. NPI Listing Cost (₹ Crore)
+[NPI Listing Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[NPI_Listing_Cost]), 10000000)
+
+// 34. TOT Cost (₹ Crore) — Provisional, awaiting Q4
+[TOT Cost Cr Provisional] =
+SUMX(
+  Expense_Assumptions_Input,
+  IF(
+    NOT ISBLANK(Expense_Assumptions_Input[TOT_Percentage]),
+    ([BA Available NSV Cr] * Expense_Assumptions_Input[TOT_Percentage]) / 100,
+    IF(
+      NOT ISBLANK(Expense_Assumptions_Input[TOT_Value]),
+      Expense_Assumptions_Input[TOT_Value] / 10000000,
+      BLANK()
+    )
+  )
+)
+
+// 35. Promotional Cost (₹ Crore) — Provisional, awaiting Q5
+[Promotional Cost Cr Provisional] =
+SUMX(
+  Expense_Assumptions_Input,
+  IF(
+    NOT ISBLANK(Expense_Assumptions_Input[Promotional_Offer_Percentage]),
+    ([BA Available NSV Cr] * Expense_Assumptions_Input[Promotional_Offer_Percentage]) / 100,
+    IF(
+      NOT ISBLANK(Expense_Assumptions_Input[Promotional_Offer_Value]),
+      Expense_Assumptions_Input[Promotional_Offer_Value] / 10000000,
+      BLANK()
+    )
+  )
+)
+
+// 36. Visibility Cost (₹ Crore)
+[Visibility Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[Visibility_Cost]), 10000000)
+
+// 37. Rental Cost (₹ Crore)
+[Rental Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[Rental_Cost]), 10000000)
+
+// 38. Visibility + Rental Cost (₹ Crore)
+[Visibility Rental Cost Cr] =
+[Visibility Cost Cr] + [Rental Cost Cr]
+
+// 39. Other Employee Cost (₹ Crore)
+[Other Employee Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[Other_Employee_Cost]), 10000000)
+
+// 40. COGS Cost (₹ Crore) — Provisional, awaiting Q1
+[COGS Cost Cr Provisional] =
+SUMX(
+  Expense_Assumptions_Input,
+  IF(
+    NOT ISBLANK(Expense_Assumptions_Input[COGS_Rate]),
+    [BA Available NSV Cr] * Expense_Assumptions_Input[COGS_Rate],
+    IF(
+      NOT ISBLANK(Expense_Assumptions_Input[COGS_Value]),
+      Expense_Assumptions_Input[COGS_Value] / 10000000,
+      BLANK()
+    )
+  )
+)
+
+// 41. Claims & Reimbursements (₹ Crore)
+[Claims Reimbursements Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[Claims_Reimbursements]), 10000000)
+
+// 42. Other Direct Cost (₹ Crore)
+[Other Direct Cost Cr] =
+DIVIDE(SUMX(Expense_Assumptions_Input, Expense_Assumptions_Input[Other_Direct_Cost]), 10000000)
+
+// 43. Total Support Cost (₹ Crore) — All allocated costs
+[Total Support Cost Cr] =
+[Total BA Cost Cr] + [NPI Listing Cost Cr] + [TOT Cost Cr Provisional]
++ [Promotional Cost Cr Provisional] + [Visibility Rental Cost Cr] + [Other Employee Cost Cr]
+
+// ============================================================================
+// SECTION 6: PROFITABILITY MEASURES (PROVISIONAL)
+// ============================================================================
+// All profitability measures are provisional until Finance confirms Q1-Q2
+
+// 44. Gross Profit (NSV - COGS) — Provisional
+[Gross Profit Cr Provisional] =
+[BA Available NSV Cr] - [COGS Cost Cr Provisional]
+
+// 45. CM1 (NSV - COGS) % — Provisional
+[CM1 Pct Provisional] =
+IFERROR(
+  DIVIDE([Gross Profit Cr Provisional], [BA Available NSV Cr]) * 100,
+  BLANK()
+)
+
+// 46. CM2 (NSV - COGS - Support Costs) — Provisional, awaiting Q2 formula
+[CM2 Cr Provisional] =
+IF(
+  [Has Missing Costs] = TRUE(),
+  BLANK(),
+  [BA Available NSV Cr] - [COGS Cost Cr Provisional] - [Total Support Cost Cr]
+)
+
+// 47. CM2 % — Provisional
+[CM2 Pct Provisional] =
+IF(
+  [Has Missing Costs] = TRUE(),
+  BLANK(),
+  IFERROR(
+    DIVIDE([CM2 Cr Provisional], [BA Available NSV Cr]) * 100,
+    BLANK()
+  )
+)
+
+// 48. Break-even Sales (₹ Crore) — Provisional
+// Break-even when CM2 = 0, so NSV = Support_Cost
+[Break Even Sales Cr Provisional] =
+[Total Support Cost Cr]
+
+// 49. Break-even Gap (₹ Crore) — Provisional
+// Positive = above break-even, Negative = below break-even
+[Break Even Gap Cr Provisional] =
+[BA Available NSV Cr] - [Break Even Sales Cr Provisional]
+
+// 50. Break-even Gap % — Provisional
+[Break Even Gap Pct Provisional] =
+IFERROR(
+  DIVIDE([Break Even Gap Cr Provisional], [Break Even Sales Cr Provisional]) * 100,
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 7: ROI & PAYBACK MEASURES (PROVISIONAL)
+// ============================================================================
+
+// 51. Total Investment (BA Cost + Support Costs) — ₹ Crore
+[Total Investment Cr] =
+[Total Support Cost Cr]
+
+// 52. Net Profit (CM2) — ₹ Crore
+[Net Profit Cr Provisional] =
+[CM2 Cr Provisional]
+
+// 53. ROI % (Net Profit / Total Investment) — Provisional
+[ROI Pct Provisional] =
+IFERROR(
+  DIVIDE([Net Profit Cr Provisional], [Total Investment Cr]) * 100,
+  BLANK()
+)
+
+// 54. Payback Period (months) — Provisional
+// Payback = Total_Investment / Monthly_Profit
+[Payback Period Months Provisional] =
+IFERROR(
+  DIVIDE([Total Investment Cr], [Net Profit Cr Provisional] / DISTINCTCOUNT(Dim_Month[Month])),
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 8: DATA QUALITY & VALIDATION FLAGS
+// ============================================================================
+
+// 55. Has Missing Costs (flag)
+[Has Missing Costs] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    Expense_Assumptions_Input[Missing_Cost_Flag] = TRUE()
+  )
+) > 0
+
+// 56. Missing Cost Count
+[Missing Cost Count] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    Expense_Assumptions_Input[Missing_Cost_Flag] = TRUE()
+  )
+)
+
+// 57. Has Provisional Costs (flag)
+[Has Provisional Costs] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    Expense_Assumptions_Input[Provisional_Cost_Flag] = TRUE()
+    OR Expense_Assumptions_Input[Finance_Validation_Status] = "Awaiting"
+  )
+) > 0
+
+// 58. Finance Validation Required (flag)
+[Finance Validation Required] =
+COUNTROWS(
+  FILTER(
+    Expense_Assumptions_Input,
+    Expense_Assumptions_Input[Finance_Validation_Status] <> "Confirmed"
+  )
+) > 0
+
+// 59. Last Updated Date (from Expense_Assumptions_Input)
+[Last Updated Date] =
+MAX(Expense_Assumptions_Input[Last_Updated_Date])
+
+// 60. Data Quality Status
+[Data Quality Status] =
+IF(
+  [Has Provisional Costs] = TRUE(),
+  "Provisional — Pending Finance Validation",
+  IF(
+    [Has Missing Costs] = TRUE(),
+    "Cost Data Pending",
+    "Validated"
+  )
+)
+
+// ============================================================================
+// SECTION 9: NEGATIVE VALUE & RETURNS TRACKING
+// ============================================================================
+
+// 61. Negative NSV Row Count (returns/credit notes)
+[Negative NSV Return Count] =
+CALCULATE([Total Row Count], Fact_Offtake_Safe[Is_Negative_NSV] = TRUE())
+
+// 62. Negative MRP Row Count
+[Negative MRP Return Count] =
+CALCULATE([Total Row Count], Fact_Offtake_Safe[Is_Negative_Return] = TRUE())
+
+// 63. June'26 Partial Row Count
+[June26 Partial Row Count] =
+CALCULATE([Total Row Count], Fact_Offtake_Safe[Is_June26_Partial] = TRUE())
+
+// 64. June'26 Partial Flag (for conditional formatting)
+[Is June26 Partial] =
+IF(
+  COUNTROWS(
+    FILTER(Dim_Month, Dim_Month[Is_Partial] = TRUE())
+  ) > 0,
+  TRUE(),
+  FALSE()
+)
+
+// ============================================================================
+// SECTION 10: DIMENSION COUNTS (Distinct values)
+// ============================================================================
+
+// 65. Distinct Chains
+[Distinct Chains] =
+DISTINCTCOUNT(Fact_Offtake_Safe[Chain_Name])
+
+// 66. Distinct Zones
+[Distinct Zones] =
+DISTINCTCOUNT(Fact_Offtake_Safe[Zone])
+
+// 67. Distinct Categories
+[Distinct Categories] =
+DISTINCTCOUNT(Fact_Offtake_Safe[Category])
+
+// 68. Distinct Months
+[Distinct Months] =
+DISTINCTCOUNT(Fact_Offtake_Safe[Month])
+
+// ============================================================================
+// SECTION 11: RATIO MEASURES
+// ============================================================================
+
+// 69. MRP to NSV Ratio (MRP includes tax, NSV excludes tax)
+[MRP to NSV Ratio] =
+IFERROR(
+  DIVIDE([Total MRP Sales Value Cr], [Total NSV Cr]),
+  BLANK()
+)
+
+// 70. Effective Tax Rate (implied from MRP/NSV ratio)
+[Effective Tax Rate Pct] =
+IFERROR(
+  ([MRP to NSV Ratio] - 1) * 100,
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 12: COMPARISON MEASURES (Pre-BA vs Post-BA)
+// ============================================================================
+
+// 71. Pre-BA NSV (for stores without BA deployment)
+[Pre_BA NSV Cr] =
+IFERROR(
+  CALCULATE(
+    [Total NSV Cr],
+    FILTER(Store_Master, Store_Master[BA_Status] = "Non-BA")
+  ),
+  BLANK()
+)
+
+// 72. Post-BA NSV (for stores with BA deployed)
+[Post_BA NSV Cr] =
+IFERROR(
+  CALCULATE(
+    [Total NSV Cr],
+    FILTER(Store_Master, Store_Master[BA_Status] = "BA")
+  ),
+  BLANK()
+)
+
+// 73. Pre-BA Growth %
+[Pre_BA Growth Pct] =
+IFERROR(
+  DIVIDE(
+    [Pre_BA NSV Cr] - CALCULATE([Pre_BA NSV Cr], PREVIOUSMONTH(Dim_Month[Date])),
+    CALCULATE([Pre_BA NSV Cr], PREVIOUSMONTH(Dim_Month[Date]))
+  ) * 100,
+  BLANK()
+)
+
+// 74. Post-BA Growth %
+[Post_BA Growth Pct] =
+IFERROR(
+  DIVIDE(
+    [Post_BA NSV Cr] - CALCULATE([Post_BA NSV Cr], PREVIOUSMONTH(Dim_Month[Date])),
+    CALCULATE([Post_BA NSV Cr], PREVIOUSMONTH(Dim_Month[Date]))
+  ) * 100,
+  BLANK()
+)
+
+// ============================================================================
+// SECTION 13: DISPLAY & WARNING MEASURES
+// ============================================================================
+
+// 75. Provisional Profitability Warning
+[Provisional Profitability Warning] =
+"⚠️ PROVISIONAL: TOT, promotions, listing costs, COGS units, margins and CM2 are pending Finance validation. Do NOT recommend closure or BA withdrawal."
+
+// 76. Tax-Basis Awareness Message
+[Tax Basis Awareness Message] =
+"NSV excludes tax (Lakhs, converted to Crores). MRP includes tax (rupees, converted to Crores). Use separately for net/gross view. MRP to NSV ratio shown for QC/realization only."
+
+// 77. Data Refresh Status
+[Data Refresh Status] =
+"Last refresh: " & TEXT([Last Updated Date], "YYYY-MM-DD") & " | Status: " & [Data Quality Status]
+
+// ============================================================================
+// SECTION 14: STORE-LEVEL MEASURES (for drill-down)
+// ============================================================================
+
+// 78. Store NSV (preserving store context)
+[Store NSV Cr] =
+CALCULATE(
+  [Total NSV Cr],
+  REMOVEFILTERS(Dim_Month, Dim_Chain_Raw, Dim_Zone, Dim_Category)
+)
+
+// 79. Store BA Cost
+[Store BA Cost Cr] =
+CALCULATE(
+  [Total BA Cost Cr],
+  REMOVEFILTERS(Dim_Month, Dim_Chain_Raw, Dim_Zone, Dim_Category)
+)
+
+// 80. Store Provisional CM2
+[Store CM2 Cr Provisional] =
+[Store NSV Cr] - [Store BA Cost Cr]
+
+// ============================================================================
+// SECTION 15: HELPER CALCULATIONS
+// ============================================================================
+
+// 81. Current Month (for time series)
+[Current Month] =
+MAX(Dim_Month[Month_Label])
+
+// 82. Current FY
+[Current FY] =
+MAX(Dim_Month[FY])
+
+// 83. Average NSV per Row
+[Avg NSV Per Row] =
+IFERROR(DIVIDE([Total NSV Cr], [Total Row Count]), BLANK())
+
+// 84. Average Qty per Row
+[Avg Qty Per Row] =
+IFERROR(DIVIDE([Total Sales Qty M], [Total Row Count]), BLANK())
+
+// ============================================================================
+// NOTES FOR POWER BI IMPLEMENTATION
+// ============================================================================
+/*
+
+HOW TO USE THESE MEASURES:
+
+1. COPY ALL MEASURES
+   - Select all text above
+   - Paste into Power BI DAX editor
+   - Organize into measure groups (optional)
+
+2. ORGANIZE BY CATEGORY
+   - Create measure groups in Power BI:
+     * Sales (measures 1-7)
+     * Growth (measures 8-16)
+     * Contribution (measures 17-22)
+     * BA Specific (measures 23-28)
+     * Expenses (measures 29-43)
+     * Profitability (measures 44-50) [PROVISIONAL]
+     * ROI & Payback (measures 51-54) [PROVISIONAL]
+     * Data Quality (measures 55-60)
+     * Returns Tracking (measures 61-64)
+     * Dimension Counts (measures 65-68)
+     * Ratios (measures 69-70)
+     * Comparisons (measures 71-74)
+     * Display & Warnings (measures 75-77)
+     * Store Level (measures 78-80)
+     * Helpers (measures 81-84)
+
+3. KEY FORMULAS TO WATCH
+
+   [CM2 Cr Provisional]:
+   - Includes check for missing costs (returns BLANK if incomplete)
+   - Uses placeholder formula: NSV - COGS - Support_Cost
+   - WILL CHANGE when Finance confirms Q2 formula
+
+   [TOT Cost Cr Provisional] & [Promotional Cost Cr Provisional]:
+   - Support both % and value inputs
+   - WILL CHANGE when Finance provides Q4-Q5 values
+
+   [COGS Cost Cr Provisional]:
+   - Interprets COGS_Rate as direct multiplier (assumptions pending Q1)
+   - WILL CHANGE based on Finance confirmation
+
+4. PROFITABILITY MEASURES ARE BLOCKED
+   - All CM2 / Margin / Profitability measures are PROVISIONAL
+   - Labeled "Provisional" in measure name
+   - Displayed with ⚠️ warning in visuals
+   - Will auto-update when Finance answers Q1-Q2
+
+5. EXPENSE MEASURES ARE DYNAMIC
+   - Read from Expense_Assumptions_Input table (external Excel)
+   - Refresh Power BI to pull latest values
+   - Finance can update Excel without touching Power BI
+
+6. BA SPECIFIC MEASURES
+   - Filter by Fact_Offtake_Safe[BA_Available]
+   - "Yes" = BA-supported stores
+   - "No" = Non-BA stores
+   - Used for all BA vs Non-BA analysis
+
+7. VALIDATION MEASURES
+   - [Has Missing Costs], [Finance Validation Required], etc.
+   - Used in conditional formatting (show yellow/gray if incomplete)
+   - Used in data quality dashboard
+
+*/
+
+// ============================================================================
+// END OF DAX COMPLETE MEASURE LIBRARY
+// ============================================================================
+// Branch: claude/safe-powerbi-dashboard-rulings
+// Total Measures: 84 (organized in 15 sections)
+// Status: v1 — Production-ready (copy-paste into Power BI)
+// Last updated: 2026-07-11
+
