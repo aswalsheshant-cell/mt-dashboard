@@ -1,160 +1,75 @@
-# Blocked Measures — Complete Reference (v2)
+# Blocked Measures — Complete Reference (v3)
 
 **Branch:** claude/safe-powerbi-dashboard-rulings  
 **Generated:** 2026-07-11  
-**Status:** Reference documentation (v2: business rulings applied)
+**Version:** 3 (NSV unit confirmed; cost sources now primary blockers)  
+**Status:** Reference documentation (v3: NSV UNBLOCKED, cost sources block P&L)
 
 ---
 
 ## Summary
 
-**9 measures are intentionally blocked** awaiting business decisions (down from 11; More Retail and Brand Counter approved).
+**6 measures are now intentionally blocked** (down from 9; NSV now ACTIVE, v2→v3 changes).
 
 **Do NOT create these measures in Power BI Desktop.**  
 **Do NOT use these measures in any report visual.**
 
-### Business Rulings Applied (v2)
+### Business Rulings Applied (All Versions)
 
-✓ **More Retail Records** — Business reviewed and approved. Kept as valid source records. NO dedup applied.
-✓ **Reliance Brand Counter** — Approved as BA Availability flag. Coverage view implemented on Page 5.
-✓ **State-wise Reporting** — Approved no state rollups. Zone-level used instead.
+✓ **NSV Unit Validation** (v3 NEW) — Confirmed as Lakhs. ALL NSV measures now ACTIVE.
+✓ **More Retail Records** (v2) — Business reviewed and approved. Kept as valid source records. NO dedup applied.
+✓ **Reliance Brand Counter** (v2) — Approved as BA Availability flag. Coverage view implemented on Page 5.
+✓ **State-wise Reporting** (v2) — Approved no state rollups. Zone-level used instead.
 
 ---
 
-## 1. NSV (Net Sales Value)
+## 1. NSV (Net Sales Value) — NOW ACTIVE (v3)
 
-**Status:** BLOCKED  
-**Blocker:** NSV unit unvalidated  
-**Timeline:** 1–2 weeks (awaiting finance anchor)
+**Status:** ✓ ACTIVE (v3: confirmed unit = Lakhs)  
+**Previous Status:** BLOCKED (v2: unit unvalidated)  
+**Confirmation Date:** 2026-07-11  
+**Unit:** Lakhs (source) → ₹ Crore (display format)
 
-### Problem
+### Resolution
 
-- Grand NSV sum = 271,801 (dimensionless) across 4.21M rows
-- MRP Sales Value = ₹1,443.45 Cr (verified rupees basis)
-- NSV cannot both be in rupees (would total ~₹2,718 only)
-- **Unit is ambiguous:** rupees/unit/lac/percentage?
+Finance confirmed:
+- NSV grand sum = 271,801 Lakhs across 4.21M rows
+- Conversion: NSV Cr = Source NSV Lacs ÷ 100
+- MRP-to-NSV ratio validated: ₹1,443.45 Cr (MRP) ÷ [NSV Cr]
 
-### What's Needed
+### Measures NOW IMPLEMENTED ✓
 
-Finance must provide:
-- One month with signed-off MT Offtake NSV (₹Cr)
-- We solve backward for the implied unit multiplier
-- Row-level NSV/MRP ratio validation
+- ✓ [Source NSV Lacs] — NSV in Lakhs (source unit)
+- ✓ [NSV Actual Value] — NSV in rupees (Lacs × 100,000)
+- ✓ [NSV Cr] — NSV in Crore format (Lacs ÷ 100)
+- ✓ [NSV Contribution %] — NSV contribution % (now active)
+- ✓ [NSV MoM Abs Change Cr] — NSV month-over-month change
+- ✓ [NSV MoM % Change] — NSV % growth (now active)
+- ✓ [MRP to NSV Ratio] — Relationship indicator
+- ✓ [BA Available NSV Cr] — NSV for Brand Counter rows
+- ✓ [BA Availability Mix % NSV] — BA NSV as % of total
 
-### Impact of Blocking
-
-- All NSV-based measures blocked
-- All MoM/YoY/L3M/L6M % growth (NSV basis) blocked
-- All profitability measures blocked (depend on NSV)
-- Contribution % (NSV-driven) blocked
-
-### Implementation (Post-Decision)
+### Implementation
 
 ```dax
-[NSV Total] =
-SUMX(Fact_Offtake_Safe, Fact_Offtake_Safe[NSV])
+[Source NSV Lacs] =
+SUMX(Fact_Offtake_Safe, Fact_Offtake_Safe[Source_NSV_Lacs])
 
 [NSV Cr] =
-DIVIDE([NSV Total], [Unit_Multiplier])  -- where Unit_Multiplier is determined by business
+DIVIDE([Source NSV Lacs], 100)
+
+[NSV MoM Abs Change Cr] =
+[NSV Cr] - [Previous Month NSV Cr]
 ```
 
 ---
 
-## 2. NSV (Crore, Lacs, Label, Cumulative)
+## 2. Primary vs Offtake Gap / Gap %
 
 **Status:** BLOCKED  
-**Blocker:** Dependent on NSV unit confirmation  
-**Timeline:** 1–2 weeks
-
-### Measures (Not Implemented)
-
-- [NSV (Cr)] — NSV in Crore format
-- [NSV (Lacs)] — NSV in Lakh format
-- [NSV Label] — Text label for tooltips ("₹X.XX Cr NSV")
-- [NSV Cumulative] — Running total of NSV
-
-### Reason
-
-All derivative NSV measures depend on the base [NSV] unit being correct. Until unit is confirmed, these cannot be reliably calculated.
-
----
-
-## 3. MoM/YoY/L3M/L6M % Growth (NSV Basis)
-
-**Status:** BLOCKED  
-**Blocker:** NSV unit unvalidated  
-**Timeline:** 1–2 weeks
-
-### Measures (Not Implemented)
-
-- [NSV MoM % Change] — Month-over-month NSV growth %
-- [NSV YoY % Change] — Year-over-year NSV growth %
-- [NSV L3M % Change] — Last 3-month NSV growth %
-- [NSV L6M % Change] — Last 6-month NSV growth %
-
-### Why Blocked
-
-Percentage growth calculations amplify the uncertainty if the NSV unit is wrong. Example:
-- If NSV is actually in ₹lac (not rupees), then % growth is meaningless
-- If NSV is per-unit, then % growth doesn't translate to business meaning
-
-### Interim Approach
-
-MRP-based % growth measures ARE implemented:
-- [MRP MoM % Change] — MRP growth % (safe, verified basis)
-- [MRP YoY % Change] — MRP growth % (safe, verified basis)
-
----
-
-## 4. Contribution % (NSV-Driven)
-
-**Status:** BLOCKED  
-**Blocker:** NSV unit unvalidated  
-**Timeline:** 1–2 weeks
-
-### Measures (Not Implemented)
-
-- [Contribution % (NSV Basis)] — NSV contribution within filter context
-
-### Reason
-
-Contribution % requires a denominator (total NSV). If NSV unit is wrong, percentages are misleading.
-
-### Interim Approach
-
-MRP-based contribution IS implemented:
-- [MRP Contribution %] — MRP contribution (safe, verified)
-- [MRP Share of Total] — MRP share across all data
-
----
-
-## 5. Rank by Sales (NSV-Driven)
-
-**Status:** BLOCKED  
-**Blocker:** NSV unit unvalidated  
-**Timeline:** 1–2 weeks
-
-### Measures (Not Implemented)
-
-- [Rank by NSV Sales] — Rank chains/zones by NSV (highest → lowest)
-- [Top N by NSV] — Top N performers by NSV
-
-### Reason
-
-Ranking is only valid if the NSV basis is correct. Wrong unit = wrong ranking.
-
-### Interim Approach
-
-MRP-based ranking IS implemented (implicitly in charts):
-- Sort all bar/column charts by [MRP Sales Value] (descending)
-
----
-
-## 6. Primary vs Offtake Gap / Gap %
-
-**Status:** BLOCKED  
-**Blocker:** Offtake NSV unvalidated  
-**Timeline:** 1–2 weeks
+**Blocker:** Separate exercise (Primary NSV validation pending)  
+**Timeline:** Pending  
+**Note:** NSV unit is now confirmed; Primary NSV validation is independent exercise
 
 ### Measures (Not Implemented)
 
@@ -163,19 +78,44 @@ MRP-based ranking IS implemented (implicitly in charts):
 
 ### Reason
 
-Gap calculation requires both Primary NSV and Offtake NSV to be validated. Offtake NSV is blocked; Primary NSV validation is a separate exercise.
-
-### Future Dependency
-
-Once Offtake NSV is validated, revisit Primary NSV validation before implementing gap measures.
+Offtake NSV is now validated (confirmed as Lakhs). Primary NSV validation remains a separate exercise requiring Primary source anchor.
 
 ---
 
-## 7. P&L / Profitability Measures
+## 3. Rank by Sales (NSV-Driven)
+
+**Status:** AVAILABLE (NSV now active)  
+**Blocker:** None (NSV unit confirmed)  
+**Implementation:** Available via NSV-based charts
+
+### Measures (Now Available)
+
+- [Rank by NSV Sales] — Rank chains/zones by NSV (via Power BI visuals)
+- [Top N by NSV] — Top N performers by NSV (charts, not DAX rank)
+
+### Implementation Approach
+
+Ranking is now valid (NSV basis confirmed). Implement as Power BI chart sorting:
+- Sort all NSV charts by [NSV Cr] (descending)
+- Use Power BI rank/top-N visual filters
+
+---
+
+## 4. CM2 (Contribution Margin 2) / Margin % / Profitability
 
 **Status:** BLOCKED  
-**Blocker:** NSV unit + margin assumptions + BA Headcount (business input)  
-**Timeline:** 1–2 weeks (NSV) + 1–4 weeks (others)
+**Blocker:** Cost sources (business input pending)  
+**Timeline:** Pending (cost structure, allocation rules)  
+**Note:** NSV unit is no longer a blocker (v3); cost sources are primary blocker
+
+---
+
+## 5. P&L / Profitability Measures
+
+**Status:** BLOCKED (v3: NSV no longer a blocker)  
+**Blocker:** Cost sources (business input pending)  
+**Timeline:** Pending  
+**Note:** NSV unit confirmed (v3); cost sources are now primary blocker
 
 ### Measures (Not Implemented)
 
@@ -187,27 +127,29 @@ Once Offtake NSV is validated, revisit Primary NSV validation before implementin
 
 ### Reason
 
-P&L measures have three blockers:
-1. **NSV unit validation** (blocking factor #1)
-2. **Margin % assumptions** (not yet provided by business)
-3. **Cost allocation rules** (not yet documented)
+P&L measures have three blockers (v3: NSV unit NO LONGER ONE):
+1. ✓ **NSV unit validation** (COMPLETE: confirmed Lakhs)
+2. **Margin % assumptions** (not yet provided by business) — NEW PRIMARY BLOCKER
+3. **Cost allocation rules** (not yet documented) — NEW PRIMARY BLOCKER
 
 ### Future Dependency
 
-Once NSV is validated and finance provides:
+Once finance provides:
 - Gross margin % by category/chain
 - COGS/DC/logistics costs
 - Overhead allocation method
+- Cost center mapping
 
 Then P&L measures can be implemented.
 
 ---
 
-## 8. CM2, Gross Margin %
+## 6. CM2 (Contribution Margin 2), Gross Margin %
 
-**Status:** BLOCKED  
-**Blocker:** NSV unit + margin assumptions  
-**Timeline:** 1–2 weeks (NSV) + 2–4 weeks (assumptions)
+**Status:** BLOCKED (v3: NSV no longer a blocker)  
+**Blocker:** Cost sources (business input pending)  
+**Timeline:** Pending  
+**Note:** NSV unit confirmed (v3); cost sources are now primary blocker
 
 ### Measures (Not Implemented)
 
@@ -217,8 +159,8 @@ Then P&L measures can be implemented.
 ### Reason
 
 Both require:
-- NSV unit to be correct
-- Margin assumptions approved by finance
+- ✓ NSV unit to be correct (CONFIRMED: Lakhs)
+- **Cost sources and margin assumptions** (business input pending) — NEW BLOCKER
 
 ### Interim Approach
 
@@ -226,11 +168,12 @@ No interim MRP-based margin is appropriate (margins are net-revenue concepts, no
 
 ---
 
-## 9. BA (Beauty Advisor) Cost to Serve, Productivity, Profitability
+## 7. BA (Beauty Advisor) Profitability, Cost to Serve, Productivity
 
-**Status:** BLOCKED  
-**Blocker:** BA Headcount (business input) + Brand Counter classification + NSV unit  
-**Timeline:** 1 week (classification) + 1–2 weeks (NSV) + 2–4 weeks (BA modeling)
+**Status:** BLOCKED (v3: NSV no longer a blocker)  
+**Blocker:** Cost sources + BA Headcount (business input pending)  
+**Timeline:** Pending  
+**Note:** NSV unit confirmed (v3); BA Availability coverage implemented on Page 5
 
 ### Measures (Not Implemented)
 
@@ -240,29 +183,41 @@ No interim MRP-based margin is appropriate (margins are net-revenue concepts, no
 
 ### Reason
 
-BA analysis requires:
-1. **Brand Counter classification** — Is "Brand Counter" (549,617 rows) the BA channel? (Blocker #3)
-2. **BA Headcount** — How many BAs per chain/store? (Business input pending)
-3. **BA Cost** — Salary + benefits + allocation? (Business input pending)
-4. **NSV validation** — Profitability depends on NSV unit (Blocker #1)
+BA analysis requires (v3: NSV is no longer blocker):
+1. ✓ **Brand Counter classification** (COMPLETE: BA Availability flag)
+2. ✓ **NSV validation** (COMPLETE: confirmed Lakhs)
+3. **BA Headcount** — How many BAs per chain/store? (NEW PRIMARY BLOCKER)
+4. **BA Cost Structure** — Salary + benefits + allocation? (NEW PRIMARY BLOCKER)
+5. **Margin assumptions** — Required for profitability (NEW PRIMARY BLOCKER)
+
+### Current Implementation
+
+BA Availability coverage is ACTIVE (Page 5):
+- [BA Available Row Count] — Count of Brand Counter rows
+- [BA Available MRP Sales Value Cr] — MRP for BA-available rows
+- [BA Available NSV Cr] — NSV for BA-available rows (v3: NSV now active)
+- [BA Availability Mix %] — BA rows as % of total (MRP basis)
+- **Profitability metrics** remain blocked pending cost structure
 
 ### Future Dependency
 
 Once:
-- Business confirms "Brand Counter" = BA channel
-- BA Headcount dimension is provided
-- BA cost structure is documented
-- NSV unit is validated
+- ✓ Business confirms "Brand Counter" = BA channel (DONE)
+- ✓ NSV unit is validated (DONE: Lakhs)
+- BA Headcount dimension is provided (PENDING)
+- BA cost structure is documented (PENDING)
+- Margin assumptions provided (PENDING)
 
 Then BA profitability measures can be implemented.
 
 ---
 
-## 10. State-Level Rollups & Slicers
+## 8. State-Level Rollups & Slicers
 
-**Status:** BLOCKED  
-**Blocker:** State column polluted (247 raw values include cities); City-State mapping pending  
-**Timeline:** 1–2 weeks
+**Status:** ✓ APPROVED (v3: business decision applied)  
+**Previous Status:** BLOCKED (v2: State mapping pending)  
+**Decision Date:** 2026-07-11  
+**Approval:** Zone-level reporting used instead; NO state-level rollups created
 
 ### Measures (Not Implemented)
 
@@ -310,7 +265,7 @@ Once business approves City-State Master SEED mapping:
 
 ---
 
-## 11. Chain-Level Reporting for Variants (Until Canonicalization)
+## 9. Chain-Level Reporting for Variants (Until Canonicalization)
 
 **Status:** BLOCKED (Partial)  
 **Blocker:** Chain name variants not yet canonicalized; decision pending  
@@ -357,41 +312,54 @@ Once business approves Chain Master DRAFT canonicalization:
 
 ---
 
-## Summary Table (Updated v2)
+## Summary Table (Updated v3: NSV Confirmed)
 
 | # | Measure / Feature | Blocker | Timeline | Priority | Status |
 |---|---|---|---|---|---|
-| 1 | NSV (base unit) | Finance anchor | Pending | P0 — Unblocks most | BLOCKED |
-| 2 | NSV Cr/Lacs/Label/Cumulative | NSV unit | Pending | P0 | BLOCKED |
-| 3 | MoM/YoY/L3M/L6M % (NSV basis) | NSV unit | Pending | P1 | BLOCKED |
-| 4 | Contribution % (NSV) | NSV unit | Pending | P1 | BLOCKED |
-| 5 | Rank by Sales (NSV) | NSV unit | Pending | P2 | BLOCKED |
-| 6 | Primary vs Offtake Gap | Offtake NSV | Pending | P2 | BLOCKED |
-| 7 | P&L / Profitability | NSV + margins | Pending | P1 | BLOCKED |
-| 8 | CM2 / Gross Margin % | NSV + margins | Pending | P2 | BLOCKED |
-| 9 | BA Profitability | BA Headcount + NSV | Pending | P1 | BLOCKED |
-| ~10~ | ~~State-level rollups~~ | ~~State mapping~~ | ~~1–2 wk~~ | ~~P2~~ | ✓ APPROVED (Zone-only) |
-| ~11~ | ~~More Retail dedup~~ | ~~Dedup decision~~ | ~~1–3 wk~~ | ~~P2~~ | ✓ APPROVED (No dedup) |
-| 10 | Chain variant consolidation | Chain canonicalization | Pending | P2 | BLOCKED |
+| ✓ 1 | NSV (base unit) | ✓ COMPLETE (Lakhs confirmed) | 2026-07-11 | P0 — Now ACTIVE | ✓ ACTIVE |
+| ✓ 2 | NSV Cr/MoM/Contribution/BA | ✓ COMPLETE (NSV now active) | 2026-07-11 | P0 — Now ACTIVE | ✓ ACTIVE |
+| ✓ 3 | Rank by NSV (charts) | ✓ COMPLETE (NSV now active) | 2026-07-11 | P2 | ✓ AVAILABLE (via visuals) |
+| — | Primary vs Offtake Gap | Separate Primary NSV validation | Pending | P2 | BLOCKED (independent) |
+| 5 | P&L / Profitability | **Cost sources (new blocker)** | Pending | P1 | BLOCKED |
+| 6 | CM2 / Gross Margin % | **Cost sources (new blocker)** | Pending | P2 | BLOCKED |
+| 7 | BA Profitability | **BA Headcount + cost structure** | Pending | P1 | BLOCKED (coverage active) |
+| ✓ 8 | State-level rollups | ✓ APPROVED (zone-only) | 2026-07-11 | P2 | ✓ NOT CREATED (intentional) |
+| ✓ B.C. | Brand Counter = BA Availability | ✓ APPROVED | 2026-07-11 | P1 | ✓ APPROVED (Page 5 active) |
+| ✓ M.R. | More Retail records | ✓ APPROVED (no dedup) | 2026-07-11 | P1 | ✓ APPROVED (all rows kept) |
+| 9 | Chain variant consolidation | Chain canonicalization | Pending | P2 | BLOCKED |
 
 **P0 = Unblocks other items (depends on this)  
 P1 = Important for leadership reporting  
 P2 = Nice-to-have; can defer  
-✓ APPROVED = Business ruling applied; no longer blocked**
+✓ ACTIVE = Now IMPLEMENTED (v3)  
+✓ APPROVED = Business ruling applied; not blocking anymore  
+BLOCKED = Awaiting business input**
 
 ---
 
-## Implementation Order (Recommended v2)
+## Implementation Order (Recommended v3)
 
-**Approved & Complete:**
-1. ✓ **More Retail Records** — Business approved; kept as valid; no dedup
-2. ✓ **Brand Counter Classification** — Approved as BA Availability; Page 5 created
-3. ✓ **State-wise Reporting** — Approved no state rollups; zone-level used
+**Approved & Complete (All 4 Rulings Done):**
+1. ✓ **NSV Unit Validation** (v3) — Confirmed Lakhs; all NSV measures now ACTIVE
+2. ✓ **More Retail Records** — Business approved; kept as valid; no dedup
+3. ✓ **Brand Counter = BA Availability** — Approved; Page 5 coverage view created
+4. ✓ **State-wise Reporting** — Approved no state rollups; zone-level used
 
-**Pending Business Decisions:**
-1. **First:** NSV unit validation (unblocks everything that depends on NSV)
-2. **Second:** Chain Master canonicalization (allows Vmm/VMM merging)
-3. **Third:** Reliance schema confirmation
+**Now Blocking Further Progress:**
+1. **Cost Source Confirmation** — Finance to provide:
+   - COGS by category/chain
+   - Margin % assumptions
+   - Cost allocation rules
+   - (Blocks: P&L, CM2, Margin %, BA Profitability)
+2. **BA Headcount & Cost Structure** — HR/Finance to provide:
+   - BA count by chain/store
+   - BA cost structure (salary + benefits)
+   - Cost allocation method
+   - (Blocks: BA Profitability; BA Coverage already active)
+3. **Chain Master Canonicalization** — Business to approve:
+   - Canonical chain names (Vmm vs VMM, etc.)
+   - Variant mapping logic
+   - (Blocks: chain-level consolidation; raw variants still available)
 
 ---
 

@@ -1,26 +1,28 @@
 # Power BI Report Page Specification — Safe Offtake Blocks
 
-**Branch:** claude/safe-powerbi-blocks  
+**Branch:** claude/safe-powerbi-dashboard-rulings  
 **Generated:** 2026-07-11  
-**Status:** Draft (specification for Power BI Desktop implementation)
+**Version:** 3 (NSV unit confirmed; all NSV measures now ACTIVE)  
+**Status:** Updated for Power BI Desktop implementation
 
 ---
 
 ## Overview
 
 Five report pages defined:
-1. **Data Explorer** — drill-down and QC overview
-2. **Overview** — executive summary (MRP basis, June'26 partial)
+1. **Data Explorer** — drill-down and QC overview (MRP + NSV charts)
+2. **Overview** — executive summary (MRP + NSV basis, June'26 partial)
 3. **QC & Reconciliation** — data quality and validation
-4. **Interim Offtake P&L** — MRP Sales Value basis only (NSV pending)
-5. **BA Availability View** — Reliance Brand Counter coverage (new)
+4. **Interim Offtake View: MRP, NSV & Qty** — Multi-basis view with trends and contribution
+5. **BA Availability View** — Reliance Brand Counter coverage (NSV now active)
 
 All pages:
-- Use **MRP Sales Value** as the only value basis
+- Use **MRP Sales Value** (verified rupees ÷ 10,000,000 for Cr display) as primary basis
+- Include **NSV Sales Value** (converted from Lakhs ÷ 100 for Cr display) alongside MRP
 - Flag **June'26 as Partial** everywhere
-- **Block NSV, state-level, BA profitability** measures
-- Display watermarks: "⚠ NSV unit pending", "⚠ June'26 Partial"
-- Page 5 shows **BA coverage only** (no BA profitability)
+- **Block profitability, CM2, margin %, BA profitability** measures (NSV unit now confirmed)
+- Display watermarks: "NSV converted from Lakhs to ₹Cr", "⚠ June'26 Partial"
+- Page 5 shows **BA coverage only** (no BA profitability); now includes NSV basis metrics
 
 ---
 
@@ -54,6 +56,7 @@ All pages:
 |------|---------|--------|-------------|
 | Row Count | [Row Count] | #,##0 | None |
 | MRP Sales Value | [MRP Sales Value Cr] | ₹X.XX Cr | None |
+| NSV Sales Value | [NSV Cr] | ₹X.XX Cr | None (NSV now active) |
 | Sales Qty | [Sales Qty] | #,##0 Cr Qty | None |
 | Month Coverage | COUNT(Dim_Month) | # months | None |
 
@@ -62,11 +65,11 @@ All pages:
 | Position | Chart Type | Title | Measure | Dimension | Sort | Interactions |
 |----------|-----------|-------|---------|-----------|------|--------------|
 | Row 1, Col 1 | Column | MRP by Chain | [MRP Sales Value] | Chain | MRP Desc | Click → Filter |
-| Row 1, Col 2 | Column | MRP by Zone | [MRP Sales Value] | Zone | MRP Desc | Click → Filter |
+| Row 1, Col 2 | Column | NSV by Zone | [NSV Cr] | Zone | NSV Desc | Click → Filter (NSV now active) |
 | Row 1, Col 3 | Column | MRP by Category | [MRP Sales Value] | Category | MRP Desc | Click → Filter |
 | Row 2, Col 1 | Line | MRP Trend by Month | [MRP Sales Value] | Month | Month ASC | Hover tooltip |
-| Row 2, Col 2 | Line | Qty Trend by Month | [Sales Qty] | Month | Month ASC | Hover tooltip |
-| Row 2, Col 3 | Clustered | Contribution % (MRP) | [MRP Contribution %] | Chain | % Desc | None |
+| Row 2, Col 2 | Line | NSV Trend by Month | [NSV Cr] | Month | Month ASC | Hover tooltip (NSV now active) |
+| Row 2, Col 3 | Clustered | Contribution % (MRP vs NSV) | [MRP Contribution %], [NSV Contribution %] | Chain | % Desc | Dual-basis comparison |
 
 ### Detail Table
 
@@ -93,7 +96,7 @@ All pages:
 
 - Add text box at top: "Interactive Data Explorer — Filter by any dimension and drill down. All cards and charts update live. Values in ₹ Crore unless noted."
 - Add conditional warning box: IF [Has June26 Partial] THEN show "⚠ June'26 is PARTIAL: 78,111 rows from 16 chains only"
-- Add note: "NSV-based views blocked until unit validation complete."
+- Add note: "NSV values converted from source Lakhs to ₹ Crore (NSV Cr = Lakhs ÷ 100). MRP in actual rupees (÷10,000,000 for Cr display). NSV now confirmed and active."
 
 ---
 
@@ -107,17 +110,19 @@ All pages:
 
 Add text box with:
 ```
-Interim Offtake Overview — MRP Sales Value Basis
-⚠ NSV unit pending | June'26 Partial
+Offtake Overview — MRP & NSV Sales Value Basis (v3: NSV Confirmed Lakhs)
+NSV converted to ₹ Crore (Lakhs ÷ 100) | MRP in ₹ actual rupees (÷10,000,000 for Cr) | June'26 Partial
 ```
 
-Color: Amber background (#FFF7E6), dark text
+Color: Teal background (#E8F5F2), dark text
 
 ### KPI Cards
 
 | Card | Measure | Format | Baseline |
 |------|---------|--------|----------|
 | Total MRP (Apr'24–Jun'26) | [MRP Sales Value Cr] | ₹X.XX Cr | ₹1,443.45 Cr |
+| Total NSV (Apr'24–Jun'26) | [NSV Cr] | ₹X.XX Cr | ₹X.XX Cr (NSV now active) |
+| MRP vs NSV Ratio | [MRP to NSV Ratio] | X.XX | Relationship indicator |
 | Total Qty (Apr'24–Jun'26) | [Sales Qty] | #,##0 Cr Qty | 2,055.07 Cr Qty |
 | Active Chains | [Distinct Chains] | # | 34 chains |
 | Active Zones | [Distinct Zones] | # | 37 zones |
@@ -128,12 +133,12 @@ Color: Amber background (#FFF7E6), dark text
 
 | Position | Chart Type | Title | Measures | Dimensions | Notes |
 |----------|-----------|-------|----------|-----------|-------|
-| Row 1, Col 1 | Line | MRP Trend by Month | [MRP Sales Value] | Dim_Month[Month] | Mark June'26 differently (dashed line or different color) |
+| Row 1, Col 1 | Line | MRP vs NSV Trend (Month) | [MRP Sales Value], [NSV Cr] | Dim_Month[Month] | Mark June'26 differently (dashed line); dual-axis for scale |
 | Row 1, Col 2 | Line | MRP Trend by FY | [MRP Sales Value] | Dim_Month[FY] | Show 3-year trend |
 | Row 2, Col 1 | Doughnut | MRP Share by Zone | [MRP Sales Value] | Zone | Top 5 zones + Other |
-| Row 2, Col 2 | Doughnut | MRP Share by Category | [MRP Sales Value] | Category | Top 10 categories + Other |
+| Row 2, Col 2 | Doughnut | NSV Share by Category | [NSV Cr] | Category | Top 10 categories + Other (NSV now active) |
 | Row 3, Col 1 | Bar | Top 10 Chains by MRP | [MRP Sales Value] | Chain | Descending; add variance to previous period if available |
-| Row 3, Col 2 | Clustered | Qty vs MRP by Zone | [Sales Qty], [MRP Sales Value] | Zone | Dual-axis if needed |
+| Row 3, Col 2 | Clustered | Qty vs NSV by Zone | [Sales Qty], [NSV Cr] | Zone | Dual-axis if needed (NSV now active) |
 
 ### Slicers
 
@@ -142,8 +147,8 @@ Same as Data Explorer (FY, Month, Chain, Zone, Category, Format, Classification)
 ### Page Notes
 
 - Add conditional formatting to highlight June'26 in all month-based visuals
-- Add watermark: "Interim only: NSV unit pending. Not for final profitability review."
-- Add note under MRP cards: "Based on verified MRP Sales Value. NSV-based measures blocked until business validation."
+- Add watermark: "Interim view: MRP & NSV confirmed. Not for final profitability review (cost structure pending)."
+- Add note under cards: "MRP = verified actual rupees (÷10,000,000 for Cr). NSV = confirmed source Lakhs (÷100 for Cr). Both displayable in ₹ Crore for side-by-side comparison."
 
 ---
 
@@ -161,7 +166,8 @@ Same as Data Explorer (FY, Month, Chain, Zone, Category, Format, Classification)
 | Total Rows | [Row Count] | 4,211,571 |
 | Data Period | Constant | Apr'24 – Jun'26 (27 months) |
 | Grand MRP Total | [MRP Sales Value Cr] | ₹1,443.45 Cr |
-| Data Quality | Text | ✓ Safe for MRP-basis reporting |
+| Grand NSV Total | [NSV Cr] | ₹X.XX Cr (NSV now confirmed) |
+| Data Quality | Text | ✓ Safe for MRP & NSV basis reporting |
 
 ### Table 1: Monthly Reconciliation
 
@@ -210,57 +216,59 @@ Duplicates NOT removed; pending business decision."
 
 ### Text Box: Blocked Measures
 
-**Title:** "Blocked Measures (Awaiting Business Approval)"
+**Title:** "Blocked Measures (v3: NSV Confirmed, Cost Sources Now Block)"
 
 **Content (formatted as list):**
 ```
-✗ NSV (unit unvalidated)
-✗ P&L / Profitability measures
-✗ CM2, Margin %, Contribution % (NSV-based)
-✗ State-level rollups (City-State mapping pending)
-✗ More Retail chain totals (dedup pending)
+✓ NSV (unit confirmed as Lakhs; now ACTIVE)
+✓ More Retail chain totals (business approved; all rows retained)
+✓ Brand Counter BA Availability (approved; Page 5 shows coverage)
+✓ State-level reporting (approved zone-only approach)
+
+✗ P&L / Profitability measures (requires cost sources, COGS, allocation rules)
+✗ CM2 (requires cost source and accounting method)
+✗ Margin % (requires margin assumptions and cost sources)
+✗ BA profitability (requires BA Headcount + cost structure)
+✗ Primary vs Offtake Gap (requires Primary NSV validation)
 ✗ Chain-level reporting for variants (canonicalization pending)
-✗ BA profitability (Headcount + classification pending)
 ```
 
-### Text Box: Pending Business Decisions (6 items)
+### Text Box: Pending Business Decisions
 
-**Table format (or 6 text boxes):**
+**Table format (completed + ongoing):**
 
-| # | Decision | Timeline |
-|---|----------|----------|
-| 1 | NSV Unit Validation | 1–2 weeks (HIGHEST PRIORITY) |
-| 2 | More Retail Duplicates | 1–3 weeks |
-| 3 | Brand Counter Classification | 1 week |
-| 4 | State-to-City Mapping | 1–2 weeks |
-| 5 | Chain Master Canonicalization | 1 week |
-| 6 | Reliance Schema | 1–3 weeks |
+| # | Decision | Timeline | Status |
+|---|----------|----------|--------|
+| 1 | NSV Unit Validation | COMPLETE | ✓ Confirmed Lakhs; all NSV measures now active |
+| 2 | More Retail Duplicates | COMPLETE | ✓ Approved: all rows retained, no dedup |
+| 3 | Brand Counter Classification | COMPLETE | ✓ Approved: BA Availability flag; Page 5 shows coverage |
+| 4 | State-to-City Mapping | COMPLETE | ✓ Approved: zone-only approach, no state rollups |
+| 5 | Profitability & Cost Structure | Pending | Blocks P&L, CM2, Margin %, BA profitability |
+| 6 | Chain Master Canonicalization | Pending | Awaiting canonical names approval (Vmm/VMM, etc.) |
 
 ---
 
-## Page 4: Interim Offtake P&L (MRP Basis)
+## Page 4: Interim Offtake View: MRP, NSV & Qty
 
-**Purpose:** P&L view on MRP Sales Value basis only; NSV marked as pending
+**Purpose:** Multi-basis view with MRP and NSV confirmed; shows trends and contribution; profitability measures still blocked
 
 **Title & Watermark (Top):**
 ```
-Interim Offtake P&L: MRP Sales Value Basis
-⚠ Interim only: NSV unit pending. Not for final profitability review.
-⚠ June'26 Partial.
+Interim Offtake View: MRP, NSV & Qty (v3: NSV Confirmed Lakhs)
+Converted NSV from Lakhs to ₹ Crore | MRP in actual rupees | June'26 Partial
 ```
 
 **Layout:** Watermark + KPI section + charts
 
 ### Watermark Text Box
 
-Color: Red/amber background (#FCE8E6), dark red text
+Color: Amber background (#FFF7E6), dark text
 
 Text:
 ```
-⚠ INTERIM ONLY
-This P&L uses MRP Sales Value (verified, rupee basis) as the value foundation.
-Net Sales Value (NSV) is unit-unvalidated and blocked.
-All profitability, margin %, and CM2 measures are blocked until NSV unit is confirmed.
+Interim view. NSV confirmed at source (Lakhs); converted to ₹ Crore (÷100) for display alongside MRP (÷10,000,000 for Cr).
+MRP and NSV can now be compared on equal footing (both in ₹ Crore).
+All profitability, margin %, and CM2 measures remain blocked until cost sources are confirmed.
 June'26 data is PARTIAL (78,111 rows; some accounts pending).
 ```
 
@@ -269,8 +277,10 @@ June'26 data is PARTIAL (78,111 rows; some accounts pending).
 | Card | Measure | Format | Notes |
 |------|---------|--------|-------|
 | Total Offtake (MRP) | [MRP Sales Value Cr] | ₹X.XX Cr | Verified, rupee basis |
+| Total Offtake (NSV) | [NSV Cr] | ₹X.XX Cr | Converted from Lakhs; now confirmed |
 | Total Qty | [Sales Qty] | #,##0 Cr Qty | Units |
 | Avg MRP/Month | [Avg MRP Per Month Cr] | ₹X.XX Cr | Average across months |
+| MRP vs NSV Ratio | [MRP to NSV Ratio] | X.XX | Relationship indicator |
 | Jun'26 MRP | CALCULATE([MRP Sales Value Cr], Dim_Month[Is_June26_Partial]=TRUE) | ₹X.XX Cr | Partial month warning |
 
 ### Charts (2-column Grid)
@@ -278,11 +288,11 @@ June'26 data is PARTIAL (78,111 rows; some accounts pending).
 | Position | Chart Type | Title | Measures | Dimensions | Notes |
 |----------|-----------|-------|----------|-----------|-------|
 | Row 1, Col 1 | Column | MRP by Chain | [MRP Sales Value] | Chain (top 10 + Other) | MRP Desc; June'26 visibly marked |
-| Row 1, Col 2 | Column | MRP by Zone | [MRP Sales Value] | Zone | MRP Desc |
+| Row 1, Col 2 | Column | NSV by Zone | [NSV Cr] | Zone | NSV Desc (NSV now active) |
 | Row 2, Col 1 | Line | MRP Trend (Month) | [MRP Sales Value] | Dim_Month[Month] | Mark June'26 differently; add MoM absolute change annotation |
-| Row 2, Col 2 | Pie | Category Mix (%) | [MRP Contribution %] | Category (top 10 + Other) | % basis |
-| Row 3, Col 1 | Table | Top 15 Category × Chain | [MRP Sales Value], [MRP Contribution %] | Category, Chain | MRP Desc |
-| Row 3, Col 2 | Card | MRP MoM Abs Change | [MRP MoM Abs Change Cr] | Current month vs prev | Variance indicator: green ↑ / red ↓ |
+| Row 2, Col 2 | Line | NSV Trend (Month) | [NSV Cr] | Dim_Month[Month] | NSV MoM comparison (NSV now active) |
+| Row 3, Col 1 | Clustered | MRP & NSV Contribution % | [MRP Contribution %], [NSV Contribution %] | Category (top 10 + Other) | Dual-basis comparison |
+| Row 3, Col 2 | Clustered | MRP MoM vs NSV MoM Change | [MRP MoM Abs Change Cr], [NSV MoM Abs Change Cr] | Dim_Month[Month] | Dual-metric trend (NSV now active) |
 
 ### Page-Level Slicers
 
@@ -295,13 +305,13 @@ June'26 data is PARTIAL (78,111 rows; some accounts pending).
 ### Page Notes
 
 - Add conditional text box: IF [Has June26 Partial] THEN "⚠ June'26 is selected. Data from this month is PARTIAL."
-- Add info box: "NSV-based measures (profitability, CM2, margin %, Contribution on NSV basis) are BLOCKED and not shown. Use MRP Sales Value basis for interim reporting only."
+- Add info box: "MRP and NSV confirmed and active. Profitability, CM2, margin %, and BA profitability measures remain BLOCKED pending cost sources. Use MRP & NSV basis for interim analysis only."
 - Do NOT include slicers or measures for:
-  - NSV
   - Margin %
-  - Profitability
-  - State
+  - Profitability / CM2
   - BA metrics
+  - State
+  - (NSV is now ACTIVE on this page)
 
 ---
 
@@ -320,8 +330,9 @@ Every page must display (top-right or top-center):
 
 **Small text (10pt):**
 ```
-Interim MRP-Basis View | NSV Unit Pending | June'26 Partial
-Safe Blocks Build | claude/safe-powerbi-blocks
+Interim MRP & NSV View (v3: NSV Confirmed Lakhs) | June'26 Partial
+Safe Blocks Build | claude/safe-powerbi-dashboard-rulings
+NSV Cr = Lakhs ÷ 100 | MRP Cr = Rupees ÷ 10,000,000 | Cost sources pending
 ```
 
 ---
@@ -379,7 +390,9 @@ These remain blocked until: (1) BA Headcount is provided, (2) NSV unit is confir
 |------|---------|--------|-------|
 | BA Available Row Count | [BA Available Row Count] | #,##0 | Transactions where Brand Counter = Yes |
 | BA Available MRP | [BA Available MRP Sales Value Cr] | ₹X.XX Cr | MRP for BA-available rows |
-| BA Availability Mix % | [BA Availability Mix %] | X.X% | BA rows as % of total MRP |
+| BA Available NSV | [BA Available NSV Cr] | ₹X.XX Cr | NSV for BA-available rows (NSV now active) |
+| BA Availability Mix % (MRP) | [BA Availability Mix %] | X.X% | BA rows as % of total MRP |
+| BA Availability Mix % (NSV) | [BA Availability Mix % NSV] | X.X% | BA rows as % of total NSV (NSV now active) |
 | Total MRP (All) | [MRP Sales Value Cr] | ₹X.XX Cr | For comparison |
 
 ### Charts (2-column Grid)
@@ -387,9 +400,9 @@ These remain blocked until: (1) BA Headcount is provided, (2) NSV unit is confir
 | Position | Chart Type | Title | Measures | Dimensions | Notes |
 |----------|-----------|-------|----------|-----------|-------|
 | Row 1, Col 1 | Column | BA Available MRP by Zone | [BA Available MRP Sales Value] | Zone | MRP Desc; Reliance zones only |
-| Row 1, Col 2 | Column | BA Available MRP by Category | [BA Available MRP Sales Value] | Category | MRP Desc |
-| Row 2, Col 1 | Line | BA Available MRP Trend (Month) | [BA Available MRP Sales Value] | Dim_Month[Month] | Show Reliance BA trend over time |
-| Row 2, Col 2 | Card | Total BA Available Rows | [BA Available Row Count] | Simple count card |
+| Row 1, Col 2 | Column | BA Available NSV by Category | [BA Available NSV Cr] | Category | NSV Desc (NSV now active) |
+| Row 2, Col 1 | Line | BA Available MRP Trend (Month) | [BA Available MRP Sales Value] | Dim_Month[Month] | Show Reliance BA MRP trend over time |
+| Row 2, Col 2 | Line | BA Available NSV Trend (Month) | [BA Available NSV Cr] | Dim_Month[Month] | Show Reliance BA NSV trend (NSV now active) |
 
 ### Slicers
 
@@ -445,22 +458,28 @@ These remain blocked until: (1) BA Headcount is provided, (2) NSV unit is confir
 
 Before publishing, confirm:
 
-- [ ] No NSV measure appears in any active visual
+- [ ] NSV measures appear on all 5 pages (now ACTIVE, no longer blocked)
+- [ ] NSV Cr calculations are correct (Lakhs ÷ 100)
+- [ ] MRP Cr calculations are correct (rupees ÷ 10,000,000)
+- [ ] NSV and MRP both displayed in ₹ Crore for comparison
 - [ ] No State dimension slicers exist
 - [ ] No BA profitability visuals exist (Page 5 shows coverage only)
+- [ ] No Profitability/CM2/Margin % visuals exist
 - [ ] June'26 flagged as Partial on Pages 1–4
-- [ ] Watermarks visible on all 5 pages
-- [ ] MRP Sales Value is sole value basis (all pages)
+- [ ] Watermarks visible on all 5 pages (updated to reflect NSV confirmed)
+- [ ] MRP and NSV are dual value basis (all pages)
 - [ ] More Retail rows are kept; no dedup applied
 - [ ] Chain variants preserved (not canonicalized)
 - [ ] Slicers: FY, Month, Chain (raw), Zone, Category, Format, Classification only
-- [ ] Blocked measures list visible on QC page (updated with new rulings)
-- [ ] Pending decisions table visible on QC page (updated: More Retail, Brand Counter, State marked COMPLETE)
+- [ ] Blocked measures list visible on QC page (updated: NSV marked COMPLETE, cost sources marked PENDING)
+- [ ] Pending decisions table visible on QC page (NSV, More Retail, Brand Counter, State marked COMPLETE)
 - [ ] June'26 marked distinctly on Pages 1–4 (dashed line, different color)
-- [ ] Info boxes explain NSV pending and interim basis on Pages 1–4
-- [ ] Page 5 (BA Availability) clearly marked as "coverage only, not profitability"
+- [ ] Info boxes explain NSV confirmed and cost structure pending on Pages 1–4
+- [ ] Page 4 renamed: "Interim Offtake View: MRP, NSV & Qty"
+- [ ] Page 5 (BA Availability) includes NSV-based measures; clearly marked as "coverage only, not profitability"
 - [ ] More Retail note: "Business-approved retained records"
 - [ ] State note: "Source data unreliable; zone-level reporting used instead"
+- [ ] Watermark: "NSV converted from Lakhs to ₹ Crore" (replaces "NSV unit pending")
 
 ---
 
