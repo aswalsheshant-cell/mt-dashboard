@@ -144,10 +144,13 @@
   <section id="tab-distribution"></section>
   <section id="tab-comparison"></section>
   <section id="tab-insights"></section>
+  <section id="tab-qc"></section>
+  <section id="tab-interim-pnl"></section>
 </div>
 <footer id="foot"></footer>
 
 <script src="data.js?v=20260703-3"></script>
+<script src="qc_data.js?v=20260711-1"></script>
 <script>
 const D = window.DASH;
 const C = {teal:'#2D9B7F',teald:'#1f7a63',blue:'#2b6cb0',amber:'#C77D17',red:'#C0392B',
@@ -1871,10 +1874,11 @@ function exportCSV(recs){
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['insights','Insights & Way Forward']];
+  ['insights','Insights & Way Forward'],['qc','QC & Reconciliation'],['interim-pnl','Interim P&L (MRP Basis)']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights};
+  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights,
+  qc:buildQcReconciliation,'interim-pnl':buildInterimOfftakePnl};
 let currentTab='overview';
 function show(id){
   currentTab=id;
@@ -1907,5 +1911,6 @@ function show(id){
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
+<script src="safe_blocks.js?v=20260711-1"></script>
 </body>
 </html>
