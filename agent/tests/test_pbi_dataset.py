@@ -49,10 +49,19 @@ def _write_masters(masters_dir: Path) -> None:
         w = csv.writer(fh)
         w.writerow(["Chain", "Account", "Chain Type", "Primary Zone", "Active"])
         w.writerow(["D-Mart", "D-Mart", "Hypermarket", "West", "Yes"])
+        w.writerow(["Reliance Retail", "Reliance", "Hypermarket", "Pan India", "Yes"])
     with open(masters_dir / "ArticleMaster.csv", "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["Article Code", "Article Description", "EAN Code", "Brand", "Category", "Sub-category", "Range", "Pack Size"])
         w.writerow(["ME-FW-1", "Mamaearth Rice Face Wash 100ml", "8900000000001", "Mamaearth", "Face", "Face Wash", "Rice", "100 g/ml"])
+
+
+def _write_aliases(masters_dir: Path, rows: list[tuple[str, str]]) -> None:
+    with open(masters_dir / "ChainAliases.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        w.writerow(["Alias", "Canonical Chain", "Note"])
+        for alias, canonical in rows:
+            w.writerow([alias, canonical, "test alias"])
 
 
 class TestDiscoverOfftakeFiles(unittest.TestCase):
@@ -131,14 +140,124 @@ class TestBuildDatasetSyntheticFixture(unittest.TestCase):
             fact_rows = list(csv.DictReader(fh))
         self.assertTrue(any("UNMAPPED" in r["Chain"] for r in fact_rows))
 
-    def test_blank_site_code_row_excluded_and_reported(self):
+    def test_blank_site_code_row_retained_and_reported(self):
         rows = [_row(), _row(**{"Site Code": "", "NSV": "5.0"})]
         _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
         result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
         out_dir = self.cfg.root() / result["output_file"]
         with open(out_dir / "Data_Quality_Report.csv", newline="", encoding="utf-8") as fh:
             dq = {r["metric"]: r for r in csv.DictReader(fh)}
-        self.assertEqual(dq["blank_key_rows_dropped"]["value"], "1")
+        self.assertEqual(dq["blank_key_rows_retained"]["value"], "1")
+        # the blank-site row's NSV stays in the Fact -- never dropped
+        with open(out_dir / "Fact_OfftakeSales.csv", newline="", encoding="utf-8") as fh:
+            fact_rows = list(csv.DictReader(fh))
+        self.assertAlmostEqual(sum(float(r["NSV"]) for r in fact_rows), 20.0, places=4)
+        # blank site must not inflate the store count
+        self.assertEqual(sum(int(r["Store_Count"]) for r in fact_rows), 1)
+        with open(out_dir / "Mapping_Exception_Report.csv", newline="", encoding="utf-8") as fh:
+            exc = list(csv.DictReader(fh))
+        self.assertTrue(any(e["exception_type"] == "blank_site_code" and e["row_count"] == "1" for e in exc))
+
+    def test_blank_site_code_falls_back_to_internal_code(self):
+        rows = [_row(), _row(**{"Site Code": "", "Internal Code": "IC-77", "NSV": "5.0"})]
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        out_dir = self.cfg.root() / result["output_file"]
+        with open(out_dir / "Data_Quality_Report.csv", newline="", encoding="utf-8") as fh:
+            dq = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(dq["site_code_internal_fallbacks"]["value"], "1")
+        self.assertEqual(dq["blank_key_rows_retained"]["value"], "0")
+        with open(out_dir / "Fact_OfftakeSales.csv", newline="", encoding="utf-8") as fh:
+            fact_rows = list(csv.DictReader(fh))
+        # fallback site counts as a real store
+        self.assertEqual(sum(int(r["Store_Count"]) for r in fact_rows), 2)
+
+    def test_bare_corporate_chain_mapped_via_alias(self):
+        _write_aliases(self.masters_dir, [("Reliance", "Reliance Retail")])
+        rows = [_row(**{"Chain Name": "Reliance", "NSV": "7.0"})]
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        self.assertNotIn("unmapped chain", result["warning"])
+        out_dir = self.cfg.root() / result["output_file"]
+        with open(out_dir / "Fact_OfftakeSales.csv", newline="", encoding="utf-8") as fh:
+            fact_rows = list(csv.DictReader(fh))
+        self.assertEqual(fact_rows[0]["Chain"], "Reliance")  # canonical row's Account
+        with open(out_dir / "Mapping_Exception_Report.csv", newline="", encoding="utf-8") as fh:
+            exc = list(csv.DictReader(fh))
+        alias_rows = [e for e in exc if e["exception_type"] == "alias_mapped_chain"]
+        self.assertEqual(len(alias_rows), 1)
+        self.assertEqual(alias_rows[0]["value"], "Reliance")
+        self.assertIn("Reliance Retail", alias_rows[0]["resolution"])
+
+    def test_alias_pointing_at_missing_chain_is_surfaced_not_applied(self):
+        _write_aliases(self.masters_dir, [("Reliance", "No Such Chain")])
+        rows = [_row(**{"Chain Name": "Reliance"})]
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        self.assertIn("unmapped chain", result["warning"])  # alias ignored, chain stays unmapped
+        out_dir = self.cfg.root() / result["output_file"]
+        with open(out_dir / "Mapping_Exception_Report.csv", newline="", encoding="utf-8") as fh:
+            exc = list(csv.DictReader(fh))
+        self.assertTrue(any(e["exception_type"] == "invalid_alias" for e in exc))
+
+    def test_exact_duplicate_rows_dropped_business_key_dups_kept(self):
+        dup = _row(NSV="15.0")
+        rekey = _row(NSV="8.5")  # same (site, ean, month) business key, different values
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", [dup, dup, rekey])
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        out_dir = self.cfg.root() / result["output_file"]
+        with open(out_dir / "Fact_OfftakeSales.csv", newline="", encoding="utf-8") as fh:
+            fact_rows = list(csv.DictReader(fh))
+        # 15.0 counted once (exact dup dropped) + 8.5 re-line kept
+        self.assertAlmostEqual(sum(float(r["NSV"]) for r in fact_rows), 23.5, places=4)
+        with open(out_dir / "Data_Quality_Report.csv", newline="", encoding="utf-8") as fh:
+            dq = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(dq["exact_duplicate_rows_dropped"]["value"], "1")
+        self.assertEqual(dq["duplicate_business_keys"]["value"], "1")
+        # variance vs source is fully explained by the dropped duplicate -> still PASS
+        with open(out_dir / "Source_Reconciliation_Report.csv", newline="", encoding="utf-8") as fh:
+            recon = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(recon["NSV"]["status"], "PASS")
+
+    def test_pivot_and_outlier_reports_written(self):
+        rows = [_row(NSV="15.0"),
+                _row(**{"Site Code": "SITE2", "Category": "Hair", "EAN": "8900000000002",
+                        "Brand": "BBlunt", "NSV": "4.0"})]
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        out_dir = self.cfg.root() / result["output_file"]
+
+        with open(out_dir / "Pivot_Chain_Category_NSV.csv", newline="", encoding="utf-8") as fh:
+            pivot = list(csv.reader(fh))
+        self.assertEqual(pivot[0][0], "Chain")
+        self.assertIn("Face", pivot[0])
+        self.assertIn("Hair", pivot[0])
+        self.assertEqual(pivot[-1][0], "TOTAL")
+        self.assertAlmostEqual(float(pivot[-1][-1]), 19.0, places=4)
+
+        with open(out_dir / "Pivot_Zone_Brand_NSV.csv", newline="", encoding="utf-8") as fh:
+            zb = list(csv.reader(fh))
+        self.assertEqual(zb[0][0], "Zone")
+        self.assertAlmostEqual(float(zb[-1][-1]), 19.0, places=4)
+
+        with open(out_dir / "Outlier_Report.csv", newline="", encoding="utf-8") as fh:
+            outliers = {r["check"]: r for r in csv.DictReader(fh)}
+        for check in ("unmapped_chain_nsv_share", "blank_site_code_nsv_share",
+                      "negative_chain_total_nsv", "negative_nsv_rows",
+                      "sales_qty_without_mrp_value", "article_nsv_zscore"):
+            self.assertIn(check, outliers)
+            self.assertIn(outliers[check]["severity"], ("Critical", "High", "Medium", "Low", "Passed"))
+        # clean fixture -> every check passes
+        self.assertTrue(all(r["severity"] == "Passed" for r in outliers.values()), outliers)
+
+    def test_blank_site_share_severity_escalates(self):
+        rows = [_row(NSV="1.0"), _row(**{"Site Code": "", "NSV": "9.0"})]  # 90% of NSV blank-site
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        out_dir = self.cfg.root() / result["output_file"]
+        with open(out_dir / "Outlier_Report.csv", newline="", encoding="utf-8") as fh:
+            outliers = {r["check"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(outliers["blank_site_code_nsv_share"]["severity"], "High")
 
     def test_never_writes_to_the_source_file(self):
         source_path = self.raw_dir / "offtake_store_article_May_26.csv"

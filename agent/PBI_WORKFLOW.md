@@ -1,4 +1,4 @@
-# Power BI Workflow Controller (Module 2)
+# Power BI Workflow Controller (Module 2) + Excel-Intelligence ingest (Module 1)
 
 Manages the Power BI dashboard build as one persistent, resumable 16-step
 sequence, and separates three kinds of work honestly:
@@ -68,19 +68,47 @@ step when the evidence itself contains words like "error", "failed",
 "broken" or "#error" — fix the underlying problem and resupply clean
 evidence instead.
 
-### `build-dataset` — steps 1–4
+### `build-dataset` — steps 1–4 (the Excel-Intelligence ingest)
 
 Reads the latest `offtake_store_article_*.csv` under
 `PowerBI/RawDataFolders/Offtake_Monthly/` (real, committed data — no
-fabrication), validates required columns, applies `ChainMaster.csv` /
-`ArticleMaster.csv` mappings (TRIM+UPPER+alnum-only normalized key
-matching, so `D-Mart` and `Dmart` match but a genuine gap like `Frankros`
-vs. `Frank Ross` is correctly reported, not silently forced), and writes:
+fabrication), validates required columns, then applies the Module 1
+ingest rules in order:
 
+1. **Exact duplicate rows are dropped at the entry point** (full-row
+   identity) so a re-supplied or double-pasted extract can never
+   double-count. On the real May'26 file this removed 2,466 duplicate
+   lines (₹16.06 L NSV) that the source extract genuinely contains
+   (one Sasta Sundar line appears 52 times identically). Business-key
+   duplicates — `(site, ean, month)` seen more than once with *different*
+   values — are legitimate re-lines: reported, never dropped.
+2. **Blank `Site Code` falls back to `Internal Code`** when the source
+   month has that column (May'26 onward does; Apr'26 doesn't).
+3. **Chain mapping**: `ChainMaster.csv` normalized-key match
+   (TRIM+UPPER+alnum-only, so `D-Mart` ≡ `Dmart`), then
+   **`ChainAliases.csv`** for bare corporate strings (`Reliance` →
+   `Reliance Retail`, `H&G` → `Health & Glow`, `Vmm` → `Vishal Mega
+   Mart`, …). Every alias hit is logged to the exception report for
+   one-time human verification; an alias pointing at a chain missing
+   from ChainMaster is surfaced as `invalid_alias` and ignored, never
+   used to invent a chain.
+4. **No row is ever dropped for a blank/unmapped key.** Blank Site
+   Code / EAN / Chain Name rows are retained in the Fact under explicit
+   `(blank)` / `UNMAPPED:` buckets and routed to
+   `Mapping_Exception_Report.csv`, so Fact NSV reconciles to the source
+   and the cost of each gap stays visible (blank sites are excluded
+   from `Store_Count` so store productivity is not silently inflated).
+
+Outputs, all under `agent/pbi_build/<FY>_<Month>/` (gitignored):
 `Fact_OfftakeSales.csv`, `Dim_Date.csv`, `Dim_Chain.csv`, `Dim_Article.csv`,
 `Mapping_Exception_Report.csv`, `Data_Quality_Report.csv`,
-`Source_Reconciliation_Report.csv`, `Dataset_Build_Log.json` — all under
-`agent/pbi_build/<FY>_<Month>/` (gitignored).
+`Source_Reconciliation_Report.csv`, `Dataset_Build_Log.json`, plus the
+Module 1 analysis outputs: `Pivot_Chain_Category_NSV.csv`,
+`Pivot_Zone_Brand_NSV.csv`, and `Outlier_Report.csv` (every check
+severity-classified `Critical` / `High` / `Medium` / `Low` / `Passed`:
+unmapped-chain NSV share, blank-site NSV share, negative chain totals,
+negative-NSV row volume, qty-without-value pricing gaps, per-category
+article NSV z-score outliers).
 
 A month with fewer than 1,000 rows is treated as incomplete and the prior
 month is used instead (never treats an incomplete month as complete).
@@ -120,9 +148,14 @@ Independently re-derives totals from the **original** source CSV (not
 from `build-dataset`'s own running totals, so a bug in that step's
 aggregation can't silently pass its own check) and compares row count,
 NSV/MRP/Qty totals, distinct chains/articles, and per-chain/per-zone
-totals against the built `Fact_OfftakeSales.csv`. Tolerance is
-configurable (`pbi_reconciliation_tolerance_pct`, default 0.5%). No
-mismatch is ever hidden — every metric gets a row, `PASS`/`FAIL`/`INFO`.
+totals against the built `Fact_OfftakeSales.csv`. It applies the same
+*ingest contract* as the build — exact full-row duplicates excluded
+(reported as an `INFO` metric), chain names compared under their mapped
+ChainMaster/alias Account key so `Dmart` vs `Avenue Supermarts` doesn't
+produce spurious FAILs — while still recomputing every number itself.
+Tolerance is configurable (`pbi_reconciliation_tolerance_pct`, default
+0.5%). No mismatch is ever hidden — every metric gets a row,
+`PASS`/`FAIL`/`INFO`.
 
 ## Sample configuration
 
@@ -147,40 +180,44 @@ FY27,May'26,EAST,Apollo,8904417300659.0,Mamaearth,Baby,Baby Soap,0.0512,8398.0,3
 FY27,May'26,EAST,Apollo,8904417303308.0,Mamaearth,Face,Lip Balm,0.0414,6972.0,28.0,27
 ```
 
-**`Mapping_Exception_Report.csv`** — a real gap this run found: the source
-uses the bare chain label `Reliance`, but `ChainMaster.csv` only has
-`Reliance Retail` / `Azorte` mapping to Account `Reliance` — no exact
-match, so 24,636 rows are correctly flagged rather than silently dropped
-or force-matched:
+**`Mapping_Exception_Report.csv`** — the bare `Reliance` label that an
+earlier build correctly flagged as unmapped now resolves through
+`ChainAliases.csv` (logged for one-time verification, never silent); the
+9,426 blank-site rows (27% of NSV) are retained under the `(blank)`
+bucket instead of dropped; the 2,466 exact duplicate lines are dropped
+at entry:
 ```
-exception_type,value,row_count,nsv_impact
-unmapped_chain,Reliance,24636,508.18
-unmapped_chain,H&G,6735,87.44
-```
-
-**`Source_To_Model_Reconciliation_Report.csv`** (from `reconcile-model`):
-```
-metric,source_value,model_value,absolute_variance,variance_pct,status,likely_cause,recommended_action
-nsv_total,4527.606,3301.0707,1226.5353,27.09,FAIL,"unmapped chain/article rows, blank-key rows dropped, or a build-step aggregation bug",investigate before marking this build step complete
-distinct_chains,24,16,8,33.333,FAIL,chain name not matching ChainMaster.csv after normalization -- check Mapping_Exception_Report,investigate before marking this build step complete
+exception_type,value,row_count,nsv_impact,resolution
+alias_mapped_chain,Reliance,32461,1493.77,auto-mapped to 'Reliance Retail' via ChainAliases.csv -- verify once
+alias_mapped_chain,H&G,6735,87.44,auto-mapped to 'Health & Glow' via ChainAliases.csv -- verify once
+blank_site_code,(blank),9426,1220.13,rows RETAINED in Fact under the (blank) bucket -- fix at source extract
+exact_duplicate_row,(full-row identity),2466,16.06,dropped at entry point (idempotent re-ingest)
 ```
 
-That FAIL is real and expected on this data: `ArticleMaster.csv` is a
-13-row *seed* master (not the production article master), so most
-article-level mapping is expected to miss until the real master is
-supplied via `--masters-dir`. Chain-level mapping (45 chains in
-`ChainMaster.csv`) is representative and the `Reliance` gap above is a
-genuine finding worth fixing in the master, not a bug in the agent.
-
-**`pbi status --json`** (abridged):
-```json
-{
-  "completion_pct": 37.5,
-  "current_phase": "Generate Power Query scripts.",
-  "manual_steps_pending": ["Guide the user through manual Power BI Desktop actions.", "..."],
-  "warnings": ["6 unmapped chain(s), 10376 blank-key row(s) dropped, NSV reconciliation variance 1226.535802"]
-}
+**`Outlier_Report.csv`** — the one genuinely severe issue in the May'26
+extract is the blank-site share:
 ```
+severity,check,entity,value,note
+Passed,unmapped_chain_nsv_share,0 chain(s),0.0% of NSV,...
+High,blank_site_code_nsv_share,9426 row(s),27.04% of NSV,rows retained under the (blank) site bucket; store-level analyses undercount until fixed at source
+Low,article_nsv_zscore,13 article(s) beyond |z|>3.0,...
+```
+
+**`Source_To_Model_Reconciliation_Report.csv`** (from `reconcile-model`)
+is now fully green on the real May'26 data — 37 metrics compared, 0 FAIL:
+```
+metric,source_value,model_value,absolute_variance,variance_pct,status
+source_exact_duplicate_rows,2466,0,2466,0.0,INFO
+nsv_total,4511.5452,4511.5486,-0.0034,0.0,PASS
+distinct_chains,24,24,0,0.0,PASS
+chain_total:Reliance,1493.7701,1493.7705,-0.0004,0.0,PASS
+```
+
+Article-level dimension mapping still mostly misses because
+`ArticleMaster.csv` is a 13-row *seed* master (not the production article
+master) — expected until the real master is supplied via `--masters-dir`;
+the Fact carries the source file's own Brand/Category for those rows, so
+no numbers are lost.
 
 ## Limitations
 

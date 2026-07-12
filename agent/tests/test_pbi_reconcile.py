@@ -97,6 +97,45 @@ class TestReconcileSourceToModel(unittest.TestCase):
         self.assertIn("exceeded", tight_result["warning"])
         self.assertEqual(loose_result["warning"], "")
 
+    def test_source_exact_duplicates_excluded_per_ingest_contract(self):
+        source_path = self.root / "source.csv"
+        dup = ["WEST", "MH", "D-Mart", "DC1", "S1", "E1", "199", "15.0", "10"]
+        _write_source(source_path, [dup, dup])  # exact duplicate line in the source
+        _write_fact(self.build_dir / "Fact_OfftakeSales.csv", [
+            ["FY27", "May'26", "WEST", "D-Mart", "E1", "Mamaearth", "Face", "Face Wash", "15.0", "199", "10", "1"],
+        ])
+        result = reconcile_source_to_model(self.cfg, source_path, self.build_dir)
+        self.assertEqual(result["warning"], "")  # dedup'd source matches the model exactly
+        out_path = self.cfg.root() / result["output_file"]
+        with open(out_path, newline="", encoding="utf-8") as fh:
+            rows = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(rows["nsv_total"]["status"], "PASS")
+        self.assertEqual(rows["source_exact_duplicate_rows"]["source_value"], "1")
+        self.assertEqual(rows["source_exact_duplicate_rows"]["status"], "INFO")
+
+    def test_source_chains_mapped_through_master_and_aliases(self):
+        masters_dir = self.root / "PowerBI" / "SeedData" / "Masters"
+        masters_dir.mkdir(parents=True)
+        with open(masters_dir / "ChainMaster.csv", "w", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh)
+            w.writerow(["Chain", "Account", "Chain Type", "Primary Zone", "Active"])
+            w.writerow(["Reliance Retail", "Reliance", "Hypermarket", "Pan India", "Yes"])
+        with open(masters_dir / "ChainAliases.csv", "w", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh)
+            w.writerow(["Alias", "Canonical Chain", "Note"])
+            w.writerow(["Reliance", "Reliance Retail", "bare corporate string"])
+        source_path = self.root / "source.csv"
+        _write_source(source_path, [["WEST", "MH", "Reliance", "DC1", "S1", "E1", "199", "15.0", "10"]])
+        _write_fact(self.build_dir / "Fact_OfftakeSales.csv", [
+            ["FY27", "May'26", "WEST", "Reliance", "E1", "Mamaearth", "Face", "Face Wash", "15.0", "199", "10", "1"],
+        ])
+        result = reconcile_source_to_model(self.cfg, source_path, self.build_dir)
+        self.assertEqual(result["warning"], "")  # raw 'Reliance' compared under its mapped Account key
+        out_path = self.cfg.root() / result["output_file"]
+        with open(out_path, newline="", encoding="utf-8") as fh:
+            metrics = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(metrics["chain_total:Reliance"]["status"], "PASS")
+
     def test_chain_and_zone_level_breakdown_included(self):
         source_path = self.root / "source.csv"
         _write_source(source_path, [

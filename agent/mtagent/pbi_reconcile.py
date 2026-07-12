@@ -4,7 +4,10 @@ Independently re-derives totals from the ORIGINAL source CSV and compares
 them against the built Fact/Dim outputs from ``pbi_dataset.build_dataset``
 — deliberately not reusing build_dataset's internal running totals, so a
 bug in the build step's own aggregation can't silently pass its own
-reconciliation check.
+reconciliation check. (The chain NAME mapping — ChainMaster + aliases —
+IS shared with the build on purpose: per-chain totals must be compared
+under the same key, raw 'Dmart' vs. mapped 'Avenue Supermarts' would
+otherwise report spurious FAILs. The NUMBERS are still recomputed here.)
 
 Tolerance is configurable (``cfg.pbi_reconciliation_tolerance_pct``). No
 mismatch is ever hidden — every metric is reported, PASS or FAIL.
@@ -16,6 +19,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .config import Config
+from .pbi_dataset import BLANK_BUCKET, _norm_key, load_chain_aliases, load_chain_master
 
 
 def _read_fact(fact_path: Path) -> list[dict]:
@@ -23,7 +27,26 @@ def _read_fact(fact_path: Path) -> list[dict]:
         return list(csv.DictReader(fh))
 
 
-def _source_totals(source_path: Path) -> dict:
+def _chain_mapper(masters_dir: Path):
+    """Return the same raw-name -> Account mapping the build applies.
+    When no ChainMaster is available (standalone runs against arbitrary
+    files), fall back to comparing raw chain names unchanged.
+    """
+    chain_master = load_chain_master(masters_dir / "ChainMaster.csv")
+    if not chain_master:
+        return lambda name: name
+    alias_lookup, _ = load_chain_aliases(masters_dir / "ChainAliases.csv", chain_master)
+
+    def map_chain(name: str) -> str:
+        if not name:
+            return f"UNMAPPED:{BLANK_BUCKET}"
+        row = chain_master.get(_norm_key(name)) or alias_lookup.get(_norm_key(name))
+        return row["Account"] if row else f"UNMAPPED:{name}"
+
+    return map_chain
+
+
+def _source_totals(source_path: Path, map_chain) -> dict:
     with open(source_path, newline="", encoding="utf-8") as fh:
         reader = csv.reader(fh)
         header = next(reader)
@@ -32,8 +55,22 @@ def _source_totals(source_path: Path) -> dict:
         nsv_total = mrp_total = qty_total = 0.0
         chains, articles, stores = set(), set(), set()
         by_chain, by_zone = defaultdict(float), defaultdict(float)
+        seen_hashes: set = set()
+        duplicate_rows = 0
+        duplicate_nsv = 0.0
 
         for row in reader:
+            # apply the same ingest contract as the build: exact full-row
+            # duplicates are dropped at entry (their impact is still reported)
+            row_hash = hash(tuple(row))
+            if row_hash in seen_hashes:
+                duplicate_rows += 1
+                try:
+                    duplicate_nsv += float(row[idx["NSV"]] or 0)
+                except (ValueError, IndexError):
+                    pass
+                continue
+            seen_hashes.add(row_hash)
             row_count += 1
             try:
                 nsv = float(row[idx["NSV"]] or 0)
@@ -44,7 +81,7 @@ def _source_totals(source_path: Path) -> dict:
             nsv_total += nsv
             mrp_total += mrp
             qty_total += qty
-            chain = row[idx["Chain Name"]].strip()
+            chain = map_chain(row[idx["Chain Name"]].strip())
             zone = row[idx["Zone"]].strip().upper()
             ean = row[idx["EAN"]].strip()
             site = row[idx["Site Code"]].strip()
@@ -62,6 +99,7 @@ def _source_totals(source_path: Path) -> dict:
         "row_count": row_count, "nsv_total": nsv_total, "mrp_total": mrp_total, "qty_total": qty_total,
         "distinct_chains": len(chains), "distinct_articles": len(articles), "distinct_stores": len(stores),
         "by_chain": dict(by_chain), "by_zone": dict(by_zone),
+        "duplicate_rows": duplicate_rows, "duplicate_nsv": duplicate_nsv,
     }
 
 
@@ -95,27 +133,36 @@ def _status(source_val: float, model_val: float, tolerance_pct: float) -> tuple[
 
 _LIKELY_CAUSES = {
     "row_count": "aggregation grain difference (Fact is grouped, not 1:1 with source) -- compare NSV, not row count, for correctness",
-    "nsv_total": "unmapped chain/article rows, blank-key rows dropped, or a build-step aggregation bug",
-    "mrp_total": "unmapped chain/article rows, blank-key rows dropped, or a build-step aggregation bug",
-    "qty_total": "unmapped chain/article rows, blank-key rows dropped, or a build-step aggregation bug",
+    "nsv_total": "exact duplicate rows dropped at ingest, invalid-numeric rows skipped, or a build-step aggregation bug",
+    "mrp_total": "exact duplicate rows dropped at ingest, invalid-numeric rows skipped, or a build-step aggregation bug",
+    "qty_total": "exact duplicate rows dropped at ingest, invalid-numeric rows skipped, or a build-step aggregation bug",
     "distinct_chains": "chain name not matching ChainMaster.csv after normalization -- check Mapping_Exception_Report",
     "distinct_articles": "EAN not matching ArticleMaster.csv -- check Mapping_Exception_Report (seed master may be incomplete)",
 }
 
 
-def reconcile_source_to_model(cfg: Config, source_path: Path, build_dir: Path) -> dict:
+def reconcile_source_to_model(cfg: Config, source_path: Path, build_dir: Path,
+                               masters_dir: Path | None = None) -> dict:
     fact_path = build_dir / "Fact_OfftakeSales.csv"
     if not source_path.exists():
         return {"blocked_reason": f"source file not found: {source_path}"}
     if not fact_path.exists():
         return {"blocked_reason": f"Fact_OfftakeSales.csv not found in {build_dir} -- run build_dataset first"}
 
-    src = _source_totals(source_path)
+    masters_dir = masters_dir or (cfg.root() / "PowerBI" / "SeedData" / "Masters")
+    src = _source_totals(source_path, _chain_mapper(masters_dir))
     fact_rows = _read_fact(fact_path)
     mdl = _model_totals(fact_rows)
     tol = cfg.pbi_reconciliation_tolerance_pct
 
-    rows = []
+    rows = [{
+        "metric": "source_exact_duplicate_rows", "source_value": src["duplicate_rows"],
+        "model_value": 0, "absolute_variance": src["duplicate_rows"],
+        "variance_pct": 0.0, "status": "INFO",
+        "likely_cause": f"full-row duplicates in the source extract (NSV impact {round(src['duplicate_nsv'], 4)}) "
+                        "-- excluded from both sides per the ingest contract",
+        "recommended_action": "informational only" if src["duplicate_rows"] else "none",
+    }]
     for metric, source_val, model_val in [
         ("row_count", src["row_count"], mdl["row_count"]),
         ("nsv_total", src["nsv_total"], mdl["nsv_total"]),

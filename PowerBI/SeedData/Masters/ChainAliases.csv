@@ -1,0 +1,9 @@
+Alias,Canonical Chain,Note
+Reliance,Reliance Retail,bare corporate string used in monthly offtake exports
+H&G,Health & Glow,abbreviation used in offtake exports (site names carry HG- prefix)
+Vmm,Vishal Mega Mart,abbreviation used in offtake exports
+Sancus(Rmt),RMT-Sancus,same tokens in reversed order
+Frankros,Frank Ross,spacing collapsed in offtake exports
+Spencer,Spencers,singular form in offtake exports
+FSN,Nykaa SS(fsn),FSN E-Commerce is the Nykaa parent entity
+Beauty & Nutrie,B&N,expanded form of the B&N initialism
