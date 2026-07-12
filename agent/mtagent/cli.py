@@ -461,6 +461,10 @@ def build_parser() -> argparse.ArgumentParser:
     ps = pbi_sub.add_parser("status", help="show dashboard build status")
     ps.add_argument("--json", action="store_true")
 
+    psm = pbi_sub.add_parser("start-manual-step", help="transition the next Ready manual step "
+                                                        "to Manual Action Required with concrete instructions")
+    psm.add_argument("--json", action="store_true")
+
     pn = pbi_sub.add_parser("next-manual-step", help="show only the next manual Power BI step")
     pn.add_argument("--json", action="store_true")
 

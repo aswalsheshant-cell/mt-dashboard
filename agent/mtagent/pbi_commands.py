@@ -15,9 +15,9 @@ from .pbi_dataset import build_dataset
 from .pbi_dax_gap import generate_dax_library
 from .pbi_reconcile import reconcile_source_to_model
 from .pbi_registry import get_command, register_command
-from .pbi_workflow import (AUTOMATED, BLOCKED, COMPLETED_WITH_WARNING, FAILED,
-                            SKIPPED_WITH_APPROVAL, STEP_BY_ID, WorkflowController,
-                            run_automated_step)
+from .pbi_workflow import (AUTOMATED, BLOCKED, COMPLETED_WITH_WARNING, FAILED, MANUAL,
+                            MANUAL_ACTION_REQUIRED, READY, SKIPPED_WITH_APPROVAL, STEP_BY_ID,
+                            WorkflowController, run_automated_step)
 
 
 @register_command(
@@ -180,6 +180,95 @@ def cmd_run_automated(cfg: Config, controller: WorkflowController, **kwargs) -> 
 )
 def cmd_status(cfg: Config, controller: WorkflowController, **kwargs) -> dict:
     return controller.status_summary()
+
+
+def _manual_desktop_instructions(cfg: Config, controller: WorkflowController) -> str:
+    build_dir = controller.state.steps["build_datasets"].get("output_file") or "agent/pbi_build/<build_id>"
+    dax_gap_dir = controller.state.steps["generate_dax"].get("output_file") or "agent/pbi_build/dax_gap_latest"
+    return (
+        f"Open Power BI Desktop and build the model from THIS build's real outputs (never "
+        f"fabricate data):\n"
+        f"1. Get Data > Text/CSV, import from {build_dir}/ in order: Dim_Date.csv, "
+        f"Dim_Chain.csv, Dim_Article.csv, then Fact_OfftakeSales.csv -- the core Fact. Do NOT "
+        f"import Fact_Sandbox_SeedMatched.csv; that is a validation-only preview subset.\n"
+        f"2. Model view: create relationships Fact_OfftakeSales[Chain] -> Dim_Chain[Account], "
+        f"Fact_OfftakeSales[EAN] -> Dim_Article[EAN Code], Fact_OfftakeSales[FY,Month] -> "
+        f"Dim_Date[FY,Month].\n"
+        f"3. The DAX measure library already lives in PowerBI/DAX/ -- import/verify it as-is. "
+        f"For any measure the coverage audit flagged Missing, review each snippet in "
+        f"{dax_gap_dir}/DAX_Gap_Library.dax by hand before pasting it into the model; never "
+        f"bulk-paste an auto-generated file into a live model.\n"
+        f"4. Lay out report pages per PowerBI/docs (Executive Overview, Chain Analysis, "
+        f"Distribution Gaps, etc.) using the theme in PowerBI/theme/.\n"
+        f"5. When done, export a Model View screenshot or metadata export as evidence and run:\n"
+        f"   python -m mtagent pbi mark-complete --step-id manual_desktop_actions "
+        f"--evidence-kind screenshot --evidence <path-to-screenshot-or-export>"
+    )
+
+
+def _review_evidence_instructions(cfg: Config, controller: WorkflowController) -> str:
+    return (
+        "Review the evidence submitted for 'Guide the user through manual Power BI Desktop "
+        "actions': confirm every relationship in Model View is correctly typed with no "
+        "orphan/blank keys, and that DAX measures return non-blank, non-#ERROR values for the "
+        "current FY. Then run:\n"
+        "   python -m mtagent pbi mark-complete --step-id review_evidence "
+        "--evidence-kind metadata_export --evidence <path-to-export>"
+    )
+
+
+def _page_level_qc_instructions(cfg: Config, controller: WorkflowController) -> str:
+    return (
+        "Run the manual page-level QC sweep across every report page (per the QC checklist in "
+        "PowerBI/docs): no blank visuals, correct data types, slicers/filters propagate as "
+        "expected, no broken relationships surfaced on any visual. Then run:\n"
+        "   python -m mtagent pbi mark-complete --step-id page_level_qc "
+        "--evidence-kind screenshot --evidence <path-to-screenshot>"
+    )
+
+
+_MANUAL_STEP_INSTRUCTIONS = {
+    "manual_desktop_actions": _manual_desktop_instructions,
+    "review_evidence": _review_evidence_instructions,
+    "page_level_qc": _page_level_qc_instructions,
+}
+
+
+@register_command(
+    name="start-manual-step",
+    classification=AUTOMATED,
+    step_id="",
+    description="Transition the next Ready manual step to 'Manual Action Required' with "
+                "concrete instructions, so next-manual-step has something to surface.",
+)
+def cmd_start_manual_step(cfg: Config, controller: WorkflowController, **kwargs) -> dict:
+    """Bridges a real gap: ``skip_with_approval``'s ``_advance_ready()`` (used by the
+    steps 5/7/8/9/10 stubs, and ``complete_step`` for real automated steps) only
+    readies the NEXT step in sequence -- it never puts a MANUAL step into
+    'Manual Action Required'. Without this command, ``next-manual-step`` reports
+    "none" even after every automated step has finished, because a Ready manual
+    step and a Manual-Action-Required manual step are different statuses on
+    purpose (becoming actionable, with concrete instructions attached, is a
+    deliberate transition, not an automatic side effect of the prior step).
+    """
+    already = controller.next_manual_step()
+    if already is not None:
+        return {"status": MANUAL_ACTION_REQUIRED, "step": already["name"], "step_id": already["id"],
+                "already_active": True, "required_input": already["required_input"]}
+
+    target = next((s for s in sorted(controller.state.steps.values(), key=lambda r: r["seq"])
+                   if s["classification"] == MANUAL and s["status"] == READY), None)
+    if target is None:
+        return {"message": "no manual step is currently Ready -- either the automated steps "
+                            "aren't finished yet (see `pbi status`), or every manual step is "
+                            "already Manual Action Required or done."}
+
+    build_instructions = _MANUAL_STEP_INSTRUCTIONS.get(target["id"])
+    instructions = (build_instructions(cfg, controller) if build_instructions else
+                    f"{target['name']} has no scripted instructions yet -- see agent/PBI_WORKFLOW.md.")
+    controller.require_manual_action(target["id"], instructions)
+    return {"status": MANUAL_ACTION_REQUIRED, "step": target["name"], "step_id": target["id"],
+            "required_input": instructions}
 
 
 @register_command(

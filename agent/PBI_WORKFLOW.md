@@ -62,6 +62,7 @@ python -m mtagent pbi reconcile-model --source <csv> --build-dir <agent/pbi_buil
 python -m mtagent pbi run-automated [--raw-dir D] [--masters-dir D] [--dax-dir D]
 python -m mtagent pbi generate-power-query | generate-page-blueprint | generate-theme | generate-docs | prepare-build-package
 python -m mtagent pbi status [--json]
+python -m mtagent pbi start-manual-step [--json]
 python -m mtagent pbi next-manual-step [--json]
 python -m mtagent pbi resume [--json]
 python -m mtagent pbi mark-complete --step-id <id> --evidence-kind <kind> --evidence <text-or-path>
@@ -208,6 +209,33 @@ none match the actual May'26 EANs — a genuine gap in the seed fixture
 data, not a code defect. The sandbox will start populating the moment a
 real `ArticleMaster.csv` (even a partial one) is dropped into
 `PowerBI/RawDataFolders/Masters/`.
+
+### `start-manual-step` — bridging automated completion to a real manual gate
+
+A real gap this closes: `_advance_ready()` (used by `complete_step` and by
+the steps 5/7/8/9/10 stubs' `skip_with_approval`) only readies the NEXT
+step in sequence — it never puts a MANUAL step into `Manual Action
+Required`. So after `run-automated` finishes, `next-manual-step` used to
+report "none" even though step 11 (Guide the user through manual Power
+BI Desktop actions) was the obvious next thing to do — misleading, since
+the pipeline was in fact done with everything it *can* automate.
+
+`start-manual-step` finds the earliest `Ready` manual step (11, 12, or
+14), attaches concrete, build-specific instructions (real paths pulled
+from this run's own state — the actual `agent/pbi_build/<build_id>/`
+directory, the actual `dax_gap_latest/DAX_Gap_Library.dax` path, never a
+placeholder), and transitions it to `Manual Action Required`. Calling it
+again while a step is already active is a no-op (`already_active: true`)
+— it never re-logs or resets. Typical flow:
+
+```bash
+python -m mtagent pbi run-automated --dax-dir PowerBI/DAX
+python -m mtagent pbi start-manual-step     # step 11 -> Manual Action Required, real instructions attached
+python -m mtagent pbi next-manual-step      # now surfaces step 11, not "none"
+# ... do the Power BI Desktop work, then:
+python -m mtagent pbi mark-complete --step-id manual_desktop_actions --evidence-kind screenshot --evidence <path>
+python -m mtagent pbi start-manual-step     # advances to step 12 (review_evidence)
+```
 
 ### Production drop-in for masters (no code/config change)
 

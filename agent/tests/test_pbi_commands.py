@@ -23,7 +23,7 @@ class TestRegistry(unittest.TestCase):
             "build-dataset", "generate-dax", "reconcile-model",
             "status", "next-manual-step", "resume", "mark-complete",
             "generate-power-query", "generate-page-blueprint", "generate-theme",
-            "generate-docs", "prepare-build-package", "run-automated",
+            "generate-docs", "prepare-build-package", "run-automated", "start-manual-step",
         })
 
     def test_unknown_command_raises_helpful_error(self):
@@ -181,6 +181,62 @@ class TestEndToEndThroughMain(unittest.TestCase):
             f.unlink()  # no source files -> build-dataset blocks
         rc = main(["--config", str(self.config_path), "pbi", "run-automated"])
         self.assertEqual(rc, 1)
+
+    def test_start_manual_step_noop_before_automated_steps_finish(self):
+        # nothing has run yet -- step 11 isn't Ready (nothing upstream completed it into readiness)
+        rc = main(["--config", str(self.config_path), "pbi", "start-manual-step"])
+        self.assertEqual(rc, 0)
+        cfg = Config(repo_root=str(self.root), index_path="agent/index/index.json")
+        controller = WorkflowController(cfg)
+        self.assertIsNone(controller.next_manual_step())
+
+    def test_start_manual_step_bridges_step_11_after_run_automated(self):
+        (self.root / "PowerBI" / "DAX").mkdir(parents=True)
+        rc = main(["--config", str(self.config_path), "pbi", "run-automated",
+                   "--dax-dir", str(self.root / "PowerBI" / "DAX")])
+        self.assertEqual(rc, 0)
+
+        cfg = Config(repo_root=str(self.root), index_path="agent/index/index.json")
+        controller = WorkflowController(cfg)
+        # exactly the bug being fixed: next-manual-step reports nothing yet,
+        # even though the automated pipeline is fully finished
+        self.assertIsNone(controller.next_manual_step())
+
+        rc = main(["--config", str(self.config_path), "pbi", "start-manual-step"])
+        self.assertEqual(rc, 0)
+
+        controller = WorkflowController(cfg)
+        step = controller.next_manual_step()
+        self.assertIsNotNone(step)
+        self.assertEqual(step["id"], "manual_desktop_actions")
+        # instructions are concrete, not a placeholder -- reference this build's real output dir
+        self.assertIn("agent/pbi_build/", step["required_input"])
+        self.assertIn("Fact_OfftakeSales.csv", step["required_input"])
+        self.assertIn("mark-complete --step-id manual_desktop_actions", step["required_input"])
+
+        # idempotent: calling again doesn't change/duplicate the active step
+        rc = main(["--config", str(self.config_path), "pbi", "start-manual-step"])
+        self.assertEqual(rc, 0)
+        controller = WorkflowController(cfg)
+        self.assertEqual(controller.next_manual_step()["id"], "manual_desktop_actions")
+
+    def test_start_manual_step_advances_to_review_evidence_after_mark_complete(self):
+        (self.root / "PowerBI" / "DAX").mkdir(parents=True)
+        main(["--config", str(self.config_path), "pbi", "run-automated",
+              "--dax-dir", str(self.root / "PowerBI" / "DAX")])
+        main(["--config", str(self.config_path), "pbi", "start-manual-step"])
+        rc = main(["--config", str(self.config_path), "pbi", "mark-complete",
+                   "--step-id", "manual_desktop_actions", "--evidence-kind", "user_confirmation",
+                   "--evidence", "model built and verified in Power BI Desktop"])
+        self.assertEqual(rc, 0)
+
+        rc = main(["--config", str(self.config_path), "pbi", "start-manual-step"])
+        self.assertEqual(rc, 0)
+        cfg = Config(repo_root=str(self.root), index_path="agent/index/index.json")
+        controller = WorkflowController(cfg)
+        step = controller.next_manual_step()
+        self.assertEqual(step["id"], "review_evidence")
+        self.assertIn("mark-complete --step-id review_evidence", step["required_input"])
 
 
 class TestProductionMasterDropIn(unittest.TestCase):
