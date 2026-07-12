@@ -24,26 +24,88 @@ passage output instead of generated answers; **no duckdb** → SQL commands
 explain what to install, everything else still works. The core needs only
 Python 3.10+ stdlib.
 
-## Setup
+## Setup (local machine SOP)
+
+Python 3.10+ required. All pip dependencies are **optional** — the agent
+runs stdlib-only with graceful fallbacks — but for the full experience
+(DuckDB SQL, PDF ingestion, LLM answers) follow all three steps.
+
+### 1. Python dependencies in a virtual environment
+
+**Windows (PowerShell):**
+
+```powershell
+cd <repo-root>
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r agent\requirements.txt
+```
+
+**macOS / Linux:**
 
 ```bash
 cd <repo-root>
-
-# 1. optional deps (see agent/requirements.txt for offline-install steps)
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install -r agent/requirements.txt
+```
 
-# 2. optional local LLM
-ollama pull llama3.1:8b        # chat
-ollama pull nomic-embed-text   # embeddings
+If PyPI is blocked by the corporate network, use an approved internal
+package mirror:
 
-# 3. see what you have
-python -m mtagent doctor       # run from repo root, or: PYTHONPATH=agent
+```bash
+pip install --index-url https://<internal-pypi-mirror>/simple -r agent/requirements.txt
+```
+
+Alternatively, download wheels on an internet-connected machine and
+transfer them across:
+
+```bash
+pip download -r agent/requirements.txt -d wheels
+pip install --no-index --find-links wheels -r agent/requirements.txt
+```
+
+### 2. Ollama (local LLM — optional)
+
+Install Ollama from your approved software channel, then fetch the models:
+
+```bash
+ollama pull llama3.1:8b        # chat model
+ollama pull nomic-embed-text   # embedding model
+ollama serve                   # only if no Ollama service is already running
+                               # (the Windows/macOS desktop app serves automatically)
+```
+
+Verify:
+
+```bash
+ollama list
+```
+
+### 3. Verify and run the tests inside the activated venv
+
+```bash
+cd agent
+python -m mtagent doctor                  # every line should read [ok]
+python -m unittest discover -s tests      # 63 tests; with duckdb installed the
+                                          # 3 DuckDB-execution tests run instead of skipping
+python -m mtagent eval                    # retrieval bar + validators + all 8 SQL
+                                          # templates now EXECUTE against DuckDB
+python -m mtagent check                   # lint + live data-quality sweep
 ```
 
 > All commands are `python -m mtagent …` run from `agent/` (or add `agent/`
 > to `PYTHONPATH`). Config defaults live in `mtagent/config.py`; copy
 > `agent/config.example.json` to `agent/config.json` to override (models,
 > Ollama URL, top-k, paths). `OLLAMA_HOST` is honoured.
+>
+> **Cloud (Claude Code on the web) note:** whether `pip`/`ollama` work in a
+> remote session is governed by the environment's network policy — if
+> `pypi.org` / `files.pythonhosted.org` are denied (HTTP 403), the agent
+> still runs with its stdlib fallbacks; allow those hosts in the
+> environment settings to run the full-dependency suite there.
 
 ## Commands
 
