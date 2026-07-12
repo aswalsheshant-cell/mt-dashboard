@@ -1,4 +1,5 @@
 import csv
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -249,6 +250,42 @@ class TestBuildDatasetSyntheticFixture(unittest.TestCase):
             self.assertIn(outliers[check]["severity"], ("Critical", "High", "Medium", "Low", "Passed"))
         # clean fixture -> every check passes
         self.assertTrue(all(r["severity"] == "Passed" for r in outliers.values()), outliers)
+
+    def test_sandbox_fact_restricted_to_matched_articles_core_fact_untouched(self):
+        matched = _row(NSV="15.0")  # EAN 8900000000001 matches the seed ArticleMaster fixture
+        unmatched = _row(**{"Site Code": "SITE2", "EAN": "9990000000009", "NSV": "6.0"})
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", [matched, unmatched])
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        out_dir = self.cfg.root() / result["output_file"]
+
+        # core Fact keeps BOTH rows -- never filtered or stripped
+        with open(out_dir / "Fact_OfftakeSales.csv", newline="", encoding="utf-8") as fh:
+            core_rows = list(csv.DictReader(fh))
+        self.assertEqual(len(core_rows), 2)
+        self.assertAlmostEqual(sum(float(r["NSV"]) for r in core_rows), 21.0, places=4)
+
+        # sandbox only has the seed-matched row
+        with open(out_dir / "Fact_Sandbox_SeedMatched.csv", newline="", encoding="utf-8") as fh:
+            sandbox_rows = list(csv.DictReader(fh))
+        self.assertEqual(len(sandbox_rows), 1)
+        self.assertEqual(sandbox_rows[0]["EAN"], "8900000000001")
+        self.assertAlmostEqual(float(sandbox_rows[0]["NSV"]), 15.0, places=4)
+
+        with open(out_dir / "Data_Quality_Report.csv", newline="", encoding="utf-8") as fh:
+            dq = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertIn("1/2 fact rows", dq["sandbox_model_coverage"]["value"])
+        self.assertIn("quarantined NSV = 6.0", dq["sandbox_model_coverage"]["note"])
+
+        with open(out_dir / "Dataset_Build_Log.json", encoding="utf-8") as fh:
+            log = json.load(fh)
+        self.assertEqual(log["sandbox_model"]["row_count"], 1)
+        self.assertAlmostEqual(log["sandbox_model"]["nsv_covered"], 15.0, places=4)
+        self.assertAlmostEqual(log["sandbox_model"]["nsv_quarantined"], 6.0, places=4)
+
+        # main reconciliation is unaffected by the sandbox -- still PASS
+        with open(out_dir / "Source_Reconciliation_Report.csv", newline="", encoding="utf-8") as fh:
+            recon = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(recon["NSV"]["status"], "PASS")
 
     def test_blank_site_share_severity_escalates(self):
         rows = [_row(NSV="1.0"), _row(**{"Site Code": "", "NSV": "9.0"})]  # 90% of NSV blank-site

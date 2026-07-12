@@ -187,6 +187,28 @@ or a human, and stay `Manual Action Required` / untouched). This is the
 half of the pipeline — real generators slot in later by being added to
 the registry, no orchestration change required.
 
+### Sandbox model (`Fact_Sandbox_SeedMatched.csv`)
+
+Every build also writes an **additive, validation-only** subset of the
+Fact restricted to rows whose EAN matched the resolved
+`ArticleMaster.csv`. It scales to whichever master was actually resolved
+(seed, or a dropped-in production export) — never hardcoded to "13
+SKUs". Critically, `Fact_OfftakeSales.csv` (the core Fact) is **never**
+filtered or stripped to build it: every row and every rupee of NSV stays
+in the core Fact, which is why `reconcile-model` keeps reconciling
+cleanly regardless of article-master coverage. The quarantined NSV is
+reported in `Data_Quality_Report.csv` (`sandbox_model_coverage`) and
+`Dataset_Build_Log.json` (`sandbox_model`), with the per-EAN breakdown
+already in `Mapping_Exception_Report.csv`.
+
+Real finding on the May'26 data: the sandbox is **0 rows**. The
+committed `ArticleMaster.csv` seed's EANs (`89012345000XX`, sequential)
+are synthetic placeholders, not drawn from any real offtake export, so
+none match the actual May'26 EANs — a genuine gap in the seed fixture
+data, not a code defect. The sandbox will start populating the moment a
+real `ArticleMaster.csv` (even a partial one) is dropped into
+`PowerBI/RawDataFolders/Masters/`.
+
 ### Production drop-in for masters (no code/config change)
 
 `ChainMaster.csv` / `ArticleMaster.csv` / `ChainAliases.csv` are each

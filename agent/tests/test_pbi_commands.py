@@ -252,6 +252,17 @@ class TestProductionMasterDropIn(unittest.TestCase):
         # fall back to the seed for chains (per-file resolution, not directory swap)
         self.assertEqual(dq["unmapped_chains"]["value"], "0")  # D-Mart resolves via seed ChainMaster.csv
 
+    def test_sandbox_fact_scales_to_whichever_master_was_resolved(self):
+        from mtagent.pbi_dataset import build_dataset
+        result = build_dataset(self.cfg, self.raw_dir, masters_dir=None)
+        out_dir = self.cfg.root() / result["output_file"]
+        # the production ArticleMaster.csv (not the 13-row seed) was resolved
+        # and matched the source row's EAN -- sandbox isn't hardcoded to "13 SKUs"
+        with open(out_dir / "Fact_Sandbox_SeedMatched.csv", newline="", encoding="utf-8") as fh:
+            sandbox_rows = list(csv.DictReader(fh))
+        self.assertEqual(len(sandbox_rows), 1)
+        self.assertEqual(sandbox_rows[0]["EAN"], "2222222222222")
+
     def test_explicit_masters_dir_still_wins_over_production_folder(self):
         from mtagent.pbi_dataset import build_dataset
         result = build_dataset(self.cfg, self.raw_dir, masters_dir=self.seed_dir)

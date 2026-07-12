@@ -29,6 +29,15 @@ Excel-Intelligence ingest rules (Module 1):
 - Pivot metrics (``Pivot_Chain_Category_NSV.csv``,
   ``Pivot_Zone_Brand_NSV.csv``) and a severity-classified
   ``Outlier_Report.csv`` are produced on every build.
+- ``Fact_Sandbox_SeedMatched.csv`` is an ADDITIVE, validation-only subset
+  of the Fact restricted to rows whose EAN matched the resolved
+  ArticleMaster.csv. It never replaces or filters
+  ``Fact_OfftakeSales.csv`` -- the core Fact keeps every row so
+  source-to-model reconciliation keeps reconciling to source NSV. The
+  quarantined NSV impact is reported in ``Data_Quality_Report.csv``
+  (``sandbox_model_coverage``) and ``Dataset_Build_Log.json``
+  (``sandbox_model``), with the per-EAN breakdown in
+  ``Mapping_Exception_Report.csv``.
 
 NOTE on master coverage: the committed ``ArticleMaster.csv`` is a small
 SEED file (13 reference SKUs), not the full production article master. A
@@ -344,6 +353,31 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
                         round(v["NSV"], 4), round(v["MRP_Sales_Value"], 2),
                         round(v["Sales_Qty"], 2), len(v["sites"])])
 
+    # --- sandbox model: a VALIDATION-ONLY, additive subset of the Fact
+    # above, restricted to rows whose EAN matched the resolved
+    # ArticleMaster.csv (production drop-in or seed -- whichever was
+    # actually used, never hardcoded to "13 SKUs"). Fact_OfftakeSales.csv
+    # itself is never filtered or stripped; every row and every rupee of
+    # NSV stays in the core Fact so source-to-model reconciliation keeps
+    # passing. This exists purely so a small, fully-mapped mini-model can
+    # be validated end to end (relationships, DAX, visuals) while the real
+    # production article master is still pending.
+    sandbox_path = out_dir / "Fact_Sandbox_SeedMatched.csv"
+    sandbox_rows = 0
+    sandbox_nsv = 0.0
+    with open(sandbox_path, "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        w.writerow(["FY", "Month", "Zone", "Chain", "EAN", "Brand", "Category",
+                    "Sub_Category", "NSV", "MRP_Sales_Value", "Sales_Qty", "Store_Count"])
+        for (fy, mon, zone, chain, ean, brand, cat, subcat), v in sorted(fact.items()):
+            if ean == BLANK_BUCKET or _norm_key(ean) not in article_master:
+                continue
+            w.writerow([fy, mon, zone, chain, ean, brand, cat, subcat,
+                        round(v["NSV"], 4), round(v["MRP_Sales_Value"], 2),
+                        round(v["Sales_Qty"], 2), len(v["sites"])])
+            sandbox_rows += 1
+            sandbox_nsv += v["NSV"]
+
     dim_date_path = out_dir / "Dim_Date.csv"
     with open(dim_date_path, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
@@ -520,6 +554,12 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
                     "not a data-quality defect; supply the production master for full coverage"])
         if invalid_aliases:
             w.writerow(["invalid_aliases", len(invalid_aliases), "; ".join(invalid_aliases)])
+        sandbox_pct = round(100 * sandbox_nsv / fact_nsv_total, 2) if fact_nsv_total else 0.0
+        w.writerow(["sandbox_model_coverage",
+                    f"{sandbox_rows}/{len(fact)} fact rows, NSV {round(sandbox_nsv, 2)}/{round(fact_nsv_total, 2)} ({sandbox_pct}%)",
+                    "Fact_Sandbox_SeedMatched.csv is a VALIDATION-ONLY subset restricted to ArticleMaster-matched "
+                    "rows -- the core Fact_OfftakeSales.csv above is never filtered or stripped; quarantined NSV "
+                    f"= {round(fact_nsv_total - sandbox_nsv, 2)} (see Mapping_Exception_Report for per-EAN detail)"])
 
     recon_path = out_dir / "Source_Reconciliation_Report.csv"
     variance = round(source_nsv_total - fact_nsv_total, 6)
@@ -547,6 +587,13 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
         "unmapped_chains": len(unmapped_chains), "unmapped_articles": len(unmapped_articles),
         "reconciliation_variance": variance,
         "reconciliation_unexplained_variance": unexplained,
+        "sandbox_model": {
+            "output_file": str(sandbox_path.relative_to(root)),
+            "row_count": sandbox_rows,
+            "nsv_covered": round(sandbox_nsv, 4),
+            "nsv_quarantined": round(fact_nsv_total - sandbox_nsv, 4),
+            "pct_nsv_covered": round(100 * sandbox_nsv / fact_nsv_total, 2) if fact_nsv_total else 0.0,
+        },
     }
     log_path = out_dir / "Dataset_Build_Log.json"
     log_path.write_text(json.dumps(build_log, indent=2), encoding="utf-8")
