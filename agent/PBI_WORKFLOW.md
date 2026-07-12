@@ -273,10 +273,15 @@ State column is 100% populated, and per-state anchoring is what the
 account matrix on the Growth Engine's channel page keys on; DC Code, by
 contrast, is only ~5% populated in the real extract, D-Mart rows only,
 so DC is deliberately NOT in the grain):
+`Counter_Type` (the source's Store Type) is also part of the grain: Brand
+Counter rows are a Reliance store-tagged breakout whose sales the broader
+blank-site zone/state report already contains, so downstream measures must
+be able to isolate them (see `PowerBI/docs/GrowthEngine_BuildGuide.md`
+§1b and `DAX/14_GrowthEngine_Measures.dax` §F — headline offtake uses
+`Offtake NSV (Adjusted)`, never raw NSV + BC).
 ```
-FY,Month,Zone,State,Chain,EAN,Brand,Category,Sub_Category,NSV,MRP_Sales_Value,Sales_Qty,Store_Count
-FY27,May'26,EAST,Bihar,Apollo,8904417305258.0,Mamaearth,Face,Sun Care,0.013,2394.0,6.0,2
-FY27,May'26,EAST,Bihar,Apollo,8904417306231.0,The Derma Co.,Face,Sun Care,0.0456,7689.0,11.0,8
+FY,Month,Zone,State,Chain,Counter_Type,EAN,Brand,Category,Sub_Category,NSV,MRP_Sales_Value,Sales_Qty,Store_Count
+FY27,May'26,EAST,Bihar,Apollo,Non Brand Counter,8904417305258.0,Mamaearth,Face,Sun Care,0.013,2394.0,6.0,2
 ```
 
 **`Mapping_Exception_Report.csv`** — the bare `Reliance` label that an

@@ -256,3 +256,110 @@ VAR _campaignNSV = [NSV]
 VAR _baseline = [L3M Average Sales]
 RETURN DIVIDE ( _campaignNSV - _baseline, _baseline )
 // format: +0.0%;-0.0%
+
+// ---------------------------------------------------------------------
+// F. ACCOUNT STRUCTURAL CONSTRAINTS — Reliance & FSN (Nykaa)
+// Display folder: "Growth Engine\Account Constraints"
+//
+// Verified structure of the May'26 extract (per-chain rows in
+// Mapping_Exception_Report.csv):
+//   • Reliance ships TWO report formats merged into one file:
+//     (1) Brand Counter rows — store-tagged, [Counter Type]="Brand Counter",
+//         ₹508.18 L, 24,636 rows, ALL with real site codes;
+//     (2) the broader zone/state report — 7,825 rows, ₹985.59 L, ALL with
+//         blank Site Code (no store grain BY DESIGN — analyze Zone × State).
+//     BUSINESS RULE: (2) already contains (1)'s sales. Brand Counter is a
+//     visibility breakout, NOT incremental revenue — headline offtake must
+//     therefore EXCLUDE Brand Counter rows or Reliance double-counts.
+//   • FSN (account "Nykaa") is article-grain only: 190 rows = 190 distinct
+//     EANs, all blank-site. Zone/State ARE populated; Site never is.
+//     Analyze FSN exceptions at EAN grain.
+//
+// Column note: the fact's [Chain] carries the mapped ACCOUNT ("Reliance",
+// "Nykaa"). Path B rename: agent CSV column Counter_Type → "Counter Type".
+// [NSV] (full retention) stays untouched — it is the reconciliation truth
+// (ties to source ₹4,511.55 L). [Offtake NSV (Adjusted)] is the headline.
+// ---------------------------------------------------------------------
+
+Reliance BC NSV =
+CALCULATE (
+    [NSV],
+    'Fact Offtake Sales'[Chain] = "Reliance",
+    'Fact Offtake Sales'[Counter Type] = "Brand Counter"
+)
+// format: #,##0.00   (May'26: ₹508.18 L — isolated velocity, never additive)
+
+Reliance ZoneState NSV =
+// the broader Reliance report — the ONLY Reliance number that belongs in
+// headline offtake. Slice by Zone/State only; store visuals stay blank by design.
+CALCULATE (
+    [NSV],
+    'Fact Offtake Sales'[Chain] = "Reliance",
+    'Fact Offtake Sales'[Counter Type] <> "Brand Counter"
+)
+// format: #,##0.00   (May'26: ₹985.59 L)
+
+Offtake NSV (Adjusted) =
+// headline offtake with the Reliance Brand Counter breakout removed —
+// use THIS on Page 2's main KPI card, never raw [NSV], per the
+// double-counting rule above.
+[NSV] - [Reliance BC NSV]
+// format: #,##0.00   (May'26: ₹4,003.37 L)
+
+Offtake NSV (Adjusted) Label =
+VAR v = [Offtake NSV (Adjusted)] * 100000    // measures carry Lacs on this model
+RETURN
+    IF (
+        ABS ( v ) >= 10000000,
+        FORMAT ( DIVIDE ( v, 10000000 ), "0.00" ) & " Cr",
+        FORMAT ( DIVIDE ( v, 100000 ), "0.0" ) & " L"
+    )
+
+BC Isolation Check =
+// validation card: adjusted headline + isolated BC must rebuild the full
+// retention total EXACTLY. Anything else means a filter leaked.
+VAR _residual = [NSV] - ( [Offtake NSV (Adjusted)] + [Reliance BC NSV] )
+RETURN
+    IF (
+        ABS ( _residual ) < 0.01,
+        "PASS — Brand Counter isolated, zero double-counting",
+        "FAIL — residual " & FORMAT ( _residual, "#,##0.0000" ) & " — a filter is leaking"
+    )
+
+Reliance Blank-Site NSV =
+// Reliance's share of the (blank) site bucket = its zone/state report by
+// construction. Page 4's Reliance leakage matrix: Rows = Zone → State,
+// value = this measure. (May'26: ₹985.59 L of the ₹1,220.13 L bucket.)
+CALCULATE (
+    [Blank Site NSV],
+    'Fact Offtake Sales'[Chain] = "Reliance"
+)
+// format: #,##0.00
+
+FSN Exception NSV =
+// FSN/Nykaa: article-grain only. Page 4's FSN table: Rows = EAN (+ Brand,
+// Sub_Category), value = this measure. Never place FSN on a store visual.
+CALCULATE (
+    [NSV],
+    'Fact Offtake Sales'[Chain] = "Nykaa"
+)
+// format: #,##0.00   (May'26: ₹207.87 L, 190 EANs, 1 row per EAN)
+
+FSN Exception Articles =
+CALCULATE (
+    DISTINCTCOUNT ( 'Fact Offtake Sales'[EAN] ),
+    'Fact Offtake Sales'[Chain] = "Nykaa"
+)
+// format: #,##0
+
+Blank-Site NSV (Structural) =
+// the part of the blank-site bucket that is a KNOWN reporting format
+// (Reliance zone/state + FSN article-grain), not a fixable data defect
+[Reliance Blank-Site NSV] + CALCULATE ( [Blank Site NSV], 'Fact Offtake Sales'[Chain] = "Nykaa" )
+// format: #,##0.00
+
+Blank-Site NSV (Fixable) =
+// what actually needs a source-system fix: the residual small chains
+// (May'26: ≈ ₹26.7 L across V-Mart, Arambagh, Sancus, Ratnadeep, …)
+[Blank Site NSV] - [Blank-Site NSV (Structural)]
+// format: #,##0.00

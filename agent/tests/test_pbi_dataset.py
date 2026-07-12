@@ -158,7 +158,28 @@ class TestBuildDatasetSyntheticFixture(unittest.TestCase):
         self.assertEqual(sum(int(r["Store_Count"]) for r in fact_rows), 1)
         with open(out_dir / "Mapping_Exception_Report.csv", newline="", encoding="utf-8") as fh:
             exc = list(csv.DictReader(fh))
-        self.assertTrue(any(e["exception_type"] == "blank_site_code" and e["row_count"] == "1" for e in exc))
+        # blank-site exceptions are reported PER CHAIN, so structural
+        # no-store-grain accounts (Reliance zone/state, FSN) are separable
+        # from genuinely fixable extract defects
+        blank_rows = [e for e in exc if e["exception_type"] == "blank_site_code"]
+        self.assertEqual(len(blank_rows), 1)
+        self.assertEqual(blank_rows[0]["value"], "D-Mart")
+        self.assertEqual(blank_rows[0]["row_count"], "1")
+
+    def test_counter_type_in_fact_grain_for_brand_counter_isolation(self):
+        rows = [_row(**{"Store Type": "Brand Counter", "NSV": "5.0"}),
+                _row(**{"Store Type": "Non Brand Counter", "Site Code": "SITE2", "NSV": "9.0"})]
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        out_dir = self.cfg.root() / result["output_file"]
+        with open(out_dir / "Fact_OfftakeSales.csv", newline="", encoding="utf-8") as fh:
+            fact_rows = list(csv.DictReader(fh))
+        # counter type splits the grain so DAX can isolate Brand Counter rows
+        by_type = {r["Counter_Type"]: float(r["NSV"]) for r in fact_rows}
+        self.assertAlmostEqual(by_type["Brand Counter"], 5.0, places=4)
+        self.assertAlmostEqual(by_type["Non Brand Counter"], 9.0, places=4)
+        # full retention: isolated + rest still rebuilds the total exactly
+        self.assertAlmostEqual(sum(by_type.values()), 14.0, places=4)
 
     def test_blank_site_code_falls_back_to_internal_code(self):
         rows = [_row(), _row(**{"Site Code": "", "Internal Code": "IC-77", "NSV": "5.0"})]

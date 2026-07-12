@@ -39,9 +39,23 @@ From the reconciled build (`agent/pbi_build/FY27_May26/`, 228,280 source rows):
 
 The single strategic reading: **the business beat its May target (₹45.1 Cr vs
 ₹38.0 Cr) but 27% of that revenue cannot be steered at store level** — it sits
-in the blank-Site-Code bucket, so store productivity, dark-store tracking, and
-store-level campaign ROI all under-count until the source extract is fixed.
-That is the leakage this dashboard exists to make impossible to ignore.
+in the blank-Site-Code bucket. Decomposing that bucket per chain changes the
+story materially: **97.8% of it is structural, not broken** — see §1b.
+
+### 1b. Account structural constraints — Reliance & FSN (verified per-row)
+
+| Account | Structure in the May'26 extract | Analytical rule |
+|---|---|---|
+| **Reliance — Brand Counters** | 24,636 rows, **₹508.18 L**, `Store Type = "Brand Counter"`, ALL with real site codes | **Isolate, never add.** BC sales are already inside the broader zone/state report — adding both double-counts Reliance. Track BC velocity on its own card; exclude from every headline offtake KPI via `Offtake NSV (Adjusted)` (DAX 14§F). |
+| **Reliance — zone/state report** | 7,825 rows, **₹985.59 L**, ALL blank Site Code | No store grain **by design** — this extract arrives aggregated. Analyze strictly at **Zone × State** (`Reliance ZoneState NSV`, `Reliance Blank-Site NSV`). Never put Reliance on a store-level visual; blanks there are correct, not defects. |
+| **FSN (account "Nykaa")** | 190 rows = **190 distinct EANs** (one row per article), **₹207.87 L**, ALL blank Site Code; Zone/State populated | Purely transactional at SKU grain. Track FSN exceptions strictly at **Article/EAN** level (`FSN Exception NSV`, `FSN Exception Articles`). Zone/State exist and may slice, but store/DC never will. |
+| **Everything else blank-site** | 10 small chains, ≈ **₹26.7 L** total | The genuinely **fixable** residual (`Blank-Site NSV (Fixable)`) — this, not ₹1,220 L, is the number to hand the source-system team. |
+
+Consequence for every headline: **`Offtake NSV (Adjusted)` = ₹4,003.37 L
+(₹40.03 Cr)** is the double-count-free offtake figure (full-retention
+`NSV` ₹4,511.55 L minus the ₹508.18 L BC breakout). Raw `NSV` remains the
+reconciliation truth against source and is never modified — the exclusion
+lives in measures, never in the data.
 
 Leadership parameters quoted in briefs but with **no committed source yet**
 (the dashboard must not display them until the named source lands):
@@ -162,12 +176,31 @@ Base: `PageLayouts.md` Page 3 (Chain Performance) + Page 8 (Zone & State).
 
 **Slicers:** Month, Zone, Account (Chain Master), Category.
 
+**Main aggregate KPI card:** `Offtake NSV (Adjusted)` (14§F) — **not** raw
+`NSV`. This is where the Reliance Brand Counter exclusion is enforced
+(May'26: ₹40.03 Cr adjusted vs ₹45.12 Cr full retention). Tooltip must state
+"excludes ₹5.08 Cr Reliance Brand Counter breakout — see isolation card".
+
 **Account Matrix (main visual):** Rows = `Chain Master[Account]` → drill to
 `Fact[State]`; Columns = `Zone`; Values = `NSV (Lacs)`, `MoM Growth %`,
 `Store Productivity (Lacs)` (14§A), `Active Stores` (14§A). Conditional
 format `MoM Growth %` (diverging) to make regional growth anchors jump out.
 May'26 anchors from the pivot: Avenue Supermarts ₹1,517.5 L (Face-heavy,
-₹1,162.1 L), Reliance ₹1,493.8 L (broadest category spread), Apollo ₹751.2 L.
+₹1,162.1 L), Reliance ₹1,493.8 L raw / **₹985.6 L adjusted** (broadest
+category spread), Apollo ₹751.2 L. Reliance rows in this matrix show
+zone/state numbers only — its store-level cells are blank **by design**
+(§1b), so suppress the "(blank)" store drill for Reliance rather than let
+it read as missing data.
+
+**Reliance Brand Counters — isolated tracking (dedicated card + table):**
+cards `Reliance BC NSV` (₹508.18 L) and `BC Isolation Check` (must read
+"PASS — Brand Counter isolated, zero double-counting"); beneath, a table
+Rows = `Zone` → `State`, Values = `Reliance BC NSV`, `Sales Qty`, and
+`Active Stores` filtered to `Counter Type = "Brand Counter"` (BC rows are
+the one Reliance slice WITH real site codes — 24,636 store-tagged rows —
+so BC store velocity is fully computable). This table monitors independent
+BC velocity; a visual-level filter `Counter Type = "Brand Counter"` +
+`Chain = "Reliance"` keeps it sealed off from every other visual on the page.
 
 **Dark Store Operations — [needs source], build the shell now:** no committed
 file flags dark stores. The offtake `Store Type` column only distinguishes
@@ -232,9 +265,32 @@ sorted by `nsv_impact` desc, showing `exception_type`, `value`, `row_count`,
 exactly which master file or source-system fix closes each row.
 
 **Ownership framing (put in the page subtitle):** "₹12.2 Cr of May revenue
-has no store attribution. This is a source-extract defect (blank Site Code,
-with blank Internal Code fallback) — fix lands in the chain's export, not in
-BI. Every rupee is still counted in totals."
+has no store attribution. ₹11.9 Cr of that is *structural* — Reliance's
+zone/state report and FSN's article-grain feed carry no store field by
+design. The genuinely fixable residual is **₹26.7 L** across 10 small
+chains — that is the number for the source-system team. Every rupee is
+still counted in totals."
+
+**Reliance leakage diagnostic matrix (Zone × State):** Rows = `Zone` →
+`Fact[State]`, Values = `Reliance Blank-Site NSV` (14§F), row count, and
+`% of bucket` (`DIVIDE([Reliance Blank-Site NSV],[Blank Site NSV])`).
+May'26 total: ₹985.59 L across 7,825 rows. This is the *correct* grain for
+Reliance — the matrix is the analysis, not a workaround; do not add a store
+drill here, it will always be empty.
+
+**FSN exception diagnostics table (Article/EAN grain):** Rows =
+`Fact[EAN]` (+ `Brand`, `Sub_Category` from the fact's own columns), Values
+= `FSN Exception NSV`, `Sales Qty`. May'26: 190 EANs, ₹207.87 L, exactly one
+source row per article. Visual-level filter `Chain = "Nykaa"` (the fact
+carries the mapped Account name, not the raw "FSN" label). No store or DC
+column may appear on this visual.
+
+**Brand Counter isolation validation card:** `BC Isolation Check` (14§F) —
+green "PASS — Brand Counter isolated, zero double-counting" when
+`Offtake NSV (Adjusted)` + `Reliance BC NSV` rebuilds full-retention `NSV`
+to the paisa; red FAIL with the residual otherwise. Place it beside the
+leakage cards so the exclusion rule is continuously self-auditing, not a
+one-time setup step.
 
 **Price friction & returns:** scatter X = `MRP Sales` Y = `Offtake NSV` by
 EAN (points far off the pack = pricing anomalies; the pipeline found 0
