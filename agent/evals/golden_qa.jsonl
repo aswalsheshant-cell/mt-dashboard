@@ -1,0 +1,12 @@
+{"q": "How is the financial year derived from a month and year?", "expect_any": ["CLAUDE.md", "docs/DataDictionary.md", "scripts/build_dashboard_data.py"]}
+{"q": "What is the grain of Fact Offtake Sales?", "expect_any": ["docs/DataModel.md"]}
+{"q": "How do I refresh the Power BI data every month?", "expect_any": ["PowerBI/README.md", "docs/RefreshGuide.md"]}
+{"q": "Which relationships should be created in the star schema?", "expect_any": ["docs/DataModel.md"]}
+{"q": "How does the GST cutover date affect TOT percent?", "expect_any": ["DAX/12_TOT_Measures.dax", "docs/DataModel.md", "scripts/build_dashboard_data.py"]}
+{"q": "How are distributor primaries allocated to chains?", "expect_any": ["docs/DistributorPrimaryAllocation_Logic.md", "DAX/07_PrimaryAllocation_Measures.dax", "PowerQuery/34_PrimaryAllocationMap.pq", "PowerQuery/41_DistContWeights.pq", "docs/DataModel.md", "PowerBI/README.md"]}
+{"q": "Where do I drop new monthly offtake files for Power BI?", "expect_any": ["PowerBI/README.md", "docs/RefreshGuide.md", "PowerQuery/00_Parameters.pq", "RawDataFolders/Offtake_Monthly/_README.txt", "PowerQuery/11_Fact_OfftakeSales.pq", "docs/DataDictionary.md"]}
+{"q": "How is SIS reconciliation between offtake and primary done?", "expect_any": ["docs/SIS_Reconciliation.md", "DAX/10_SIS_Reconciliation.dax"]}
+{"q": "What columns does the offtake monthly template require?", "expect_any": ["Template_Offtake_Monthly.csv", "_TEMPLATE_Offtake_Monthly.csv", "docs/DataDictionary.md"]}
+{"q": "How do I rebuild dashboard data.js for only the forecast block?", "expect_any": ["CLAUDE.md", "scripts/build_dashboard_data.py", "dashboard/README.md"]}
+{"q": "Which measure computes month over month growth?", "expect_any": ["DAX/01_CoreMeasures.dax"]}
+{"q": "How is CM2 calculated from the expense input?", "expect_any": ["DAX/13_CM2_Measures.dax", "docs/DataModel.md", "PowerQuery/39_PL_Expense_Input.pq"]}

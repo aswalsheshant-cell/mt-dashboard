@@ -92,6 +92,10 @@ scripts/
 PowerBI/
   PowerQuery/ DAX/ SeedData/ RawDataFolders/ docs/ theme/ templates/  build kit.
   QuickSetup/               consolidated PQ+DAX paste-in references.
+agent/
+  mtagent/                  local offline agent (Ollama + DuckDB + vector index):
+                            ask/RAG, DAX validator, Power Query lint, SQL templates.
+  sql/ tests/ evals/        templates, unittest suite, golden QA. See agent/README.md.
 ```
 
 12 tabs (order): Data Explorer, Overview, Primary, Offtake, P&L, Category & Pack,

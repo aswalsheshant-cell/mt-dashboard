@@ -1,0 +1,10 @@
+{
+  "ollama_url": "http://127.0.0.1:11434",
+  "chat_model": "llama3.1:8b",
+  "embed_model": "nomic-embed-text",
+  "top_k": 5,
+  "index_path": "agent/index/index.json",
+  "db_path": "agent/index/mt.duckdb",
+  "metadata_dir": "agent/metadata",
+  "pdf_dirs": ["agent/metadata"]
+}

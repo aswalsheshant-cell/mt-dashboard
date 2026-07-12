@@ -1,0 +1,13 @@
+# mtagent — ALL dependencies are optional; the core (CLI, validators,
+# retrieval fallback, FY rules) is pure Python 3.10+ stdlib.
+#
+# Online machine:   pip install -r agent/requirements.txt
+# Offline machine:  on any connected machine:
+#                     pip download -r agent/requirements.txt -d wheels/
+#                   copy wheels/ across, then:
+#                     pip install --no-index --find-links wheels/ -r agent/requirements.txt
+
+duckdb>=0.10          # local SQL over the committed CSVs (sql / db-build / check sweep)
+pandas>=2.0           # only needed if you extend the agent to read .xlsx/.xlsb sources
+openpyxl>=3.1         # .xlsx reading for pandas
+pypdf>=4.0            # PDF text extraction for the knowledge index

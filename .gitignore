@@ -10,3 +10,9 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
+
+# Offline agent (agent/) — generated artifacts and local-only metadata exports
+agent/index/
+*.duckdb
+agent/metadata/*
+!agent/metadata/README.md
