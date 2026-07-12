@@ -1,0 +1,235 @@
+"""File & folder catalog — the "where is / where does it go" skill.
+
+Three abilities, all offline and stdlib-only:
+
+  catalog   sweep the repo, classify every tracked file into a business
+            category with a one-line purpose, persist to
+            agent/index/catalog.json and print/emit a grouped summary.
+  find      keyword search over the catalog ("chain master", "offtake
+            template", "GST"), returning paths + purposes ranked.
+  place     given a NEW file's name, say exactly which folder it belongs
+            in, what to check first, and which refresh command to run
+            after dropping it (Power BI watch folders + dashboard partial
+            refresh flags).
+
+Classification is rule-based (deploy layout is fixed by the repo), so it
+never misfiles; anything unmatched lands in 'uncategorised' for review.
+"""
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+from .config import Config
+from .fyrules import fy_tag_from_label
+
+_MONTH_IN_NAME = re.compile(r"_([A-Z][a-z]{2})[_-](\d{2})", re.ASCII)
+
+# (regex on repo-relative posix path, category, purpose)
+RULES: list[tuple[str, str, str]] = [
+    (r"^dashboard/index\.html$", "Dashboard — app",
+     "The offline HTML dashboard (12 tabs). Open directly or serve."),
+    (r"^dashboard/data\.js$", "Dashboard — generated data",
+     "Baked JSON data layer. NEVER hand-edit; rebuild via scripts/build_dashboard_data.py."),
+    (r"^dashboard/.*\.js$", "Dashboard — vendored libs",
+     "Offline third-party library (Chart.js/jsPDF/xlsx)."),   # after data.js rule
+    (r"^dashboard/README\.md$", "Dashboard — docs", "Dashboard usage guide."),
+    (r"^scripts/build_dashboard_data\.py$", "Scripts — data build",
+     "THE generator of dashboard/data.js (full + partial refresh modes)."),
+    (r"^scripts/split_.*\.py$", "Scripts — source splitters",
+     "Splits heavy .xlsb sources into month CSVs for Power BI + patches."),
+    (r"^scripts/.*\.py$", "Scripts — utilities", "Support script."),
+    (r"^PowerBI/DAX/.*\.dax$", "Power BI — DAX measures",
+     "Paste-in measure file for the _Measures table."),
+    (r"^PowerBI/PowerQuery/.*\.pq$", "Power BI — Power Query",
+     "Paste-in M query (Get Data > Blank Query > Advanced Editor)."),
+    (r"^PowerBI/SeedData/Masters/.*\.csv$", "Power BI — seed masters",
+     "Dimension/master seed table (slowly changing, editable)."),
+    (r"^PowerBI/SeedData/Mapping/", "Power BI — mapping seeds",
+     "Mapping/exception table (chain-account, zone-state, dist-cont patches)."),
+    (r"^PowerBI/SeedData/Targets/", "Power BI — targets",
+     "FY target NSV input."),
+    (r"^PowerBI/RawDataFolders/Primary_Weekly/", "Data drops — primary weekly",
+     "Watch folder: weekly primary sell-in files land here."),
+    (r"^PowerBI/RawDataFolders/Primary_Article_Monthly/", "Data drops — primary article monthly",
+     "Watch folder: monthly article-level primary CSVs (also feeds dashboard FY27+)."),
+    (r"^PowerBI/RawDataFolders/Primary_ShipTo_Monthly/", "Data drops — primary ship-to monthly",
+     "Watch folder: ship-to allocated primary."),
+    (r"^PowerBI/RawDataFolders/Offtake_Monthly/", "Data drops — offtake monthly",
+     "Watch folder: monthly store x article offtake (also feeds --offtake-patch)."),
+    (r"^PowerBI/RawDataFolders/Nielsen_Monthly/", "Data drops — Nielsen monthly",
+     "Watch folder: monthly Nielsen market-share files."),
+    (r"^PowerBI/RawDataFolders/TDP_Monthly/", "Data drops — TDP monthly",
+     "Watch folder: monthly TDP / distribution files."),
+    (r"^PowerBI/templates/", "Power BI — file templates",
+     "Column-exact CSV template for the matching monthly drop."),
+    (r"^PowerBI/theme/", "Power BI — theme", "Report theme JSON."),
+    (r"^PowerBI/QuickSetup/", "Power BI — quick setup",
+     "Consolidated PQ+DAX paste-in reference."),
+    (r"^PowerBI/docs/", "Power BI — docs",
+     "Build-kit documentation (model, refresh SOP, layouts, reconciliation)."),
+    (r"^PowerBI/README\.md$", "Power BI — docs", "Build-kit entry point."),
+    (r"^agent/mtagent/", "Agent — code", "mtagent Python module."),
+    (r"^agent/sql/", "Agent — SQL templates", "DuckDB analysis template."),
+    (r"^agent/tests/", "Agent — tests", "Unit/eval test."),
+    (r"^agent/evals/", "Agent — evals", "Golden QA set."),
+    (r"^agent/metadata/", "Agent — metadata drop zone",
+     "Power BI metadata exports land here (model.bim / INFO.* CSVs / PDFs)."),
+    (r"^agent/", "Agent — docs & config", "Agent documentation/config."),
+    (r"^CLAUDE\.md$", "Repo — governance",
+     "Project rules: ONE FY RULE, build commands, validation SOP."),
+    (r"\.pptx$", "Leadership — presentation", "Leadership deck export."),
+    (r"^vercel\.json$", "Repo — deploy config", "Vercel static hosting config."),
+    (r"^\.gitignore$", "Repo — governance", "Git ignore rules."),
+]
+
+# Where should a NEW file go, keyed by filename pattern.
+PLACEMENT: list[tuple[str, str, str, str]] = [
+    (r"(?i)offtake.*\.(csv|xlsb|xlsx)$",
+     "PowerBI/RawDataFolders/Offtake_Monthly/",
+     "name it offtake_store_article_<Mon>_<YY>.csv (match the template's columns)",
+     "Power BI: Refresh. Dashboard: python scripts/build_dashboard_data.py "
+     "--offtake-patch --src <dir> --out dashboard/data.js (idempotent — keep ALL months in --src)"),
+    (r"(?i)primary.*article.*\.(csv|xlsb|xlsx)$",
+     "PowerBI/RawDataFolders/Primary_Article_Monthly/",
+     "name it primary_article_<Mon>_<YY>.csv",
+     "Power BI: Refresh. Dashboard: --detail-only refresh"),
+    (r"(?i)(ship.?to|shipto).*\.(csv|xlsx)$",
+     "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/",
+     "follow Template_Primary_ShipTo.csv columns", "Power BI: Refresh"),
+    (r"(?i)primary.*week|week.*primary",
+     "PowerBI/RawDataFolders/Primary_Weekly/",
+     "follow Template_Primary_Weekly.csv columns", "Power BI: Refresh"),
+    (r"(?i)nielsen", "PowerBI/RawDataFolders/Nielsen_Monthly/",
+     "follow the Nielsen monthly template", "Power BI: Refresh"),
+    (r"(?i)tdp|acv", "PowerBI/RawDataFolders/TDP_Monthly/",
+     "follow the TDP monthly template", "Power BI: Refresh"),
+    (r"(?i)target", "PowerBI/SeedData/Targets/",
+     "FY target NSV per month", "Power BI: Refresh. Dashboard: --forecast-only"),
+    (r"(?i)(gst|hsn)", "PowerBI/SeedData/Masters/",
+     "extend GST_Rate_QC_Table.csv / GST_Config.csv rather than adding new files",
+     "Power BI: Refresh (TOT% measures read these)"),
+    (r"(?i)expense|pl_|p&l", "PowerBI/SeedData/Masters/",
+     "PL_Expense_Input.csv is the editable CM2 expense input",
+     "Power BI: Refresh"),
+    (r"(?i)\.bim$|^info\..*\.csv$|model.*metadata",
+     "agent/metadata/",
+     "Tabular Editor model.bim or DAX Studio INFO.* export",
+     "python -m mtagent index && python -m mtagent check-dax"),
+    (r"(?i)\.pdf$", "agent/metadata/",
+     "PDFs here get parsed into the ask knowledge index (needs pypdf)",
+     "python -m mtagent index"),
+    (r"(?i)\.dax$", "PowerBI/DAX/",
+     "numbered NN_Name.dax; run the lint after",
+     "python -m mtagent check-dax"),
+    (r"(?i)\.pq$", "PowerBI/PowerQuery/",
+     "numbered NN_Name.pq; run the lint after",
+     "python -m mtagent check-pq"),
+    (r"(?i)\.sql$", "agent/sql/",
+     "add the -- name/description/param header and it appears in sql list",
+     "python -m mtagent sql list"),
+]
+
+
+@dataclass
+class Entry:
+    path: str
+    category: str
+    purpose: str
+    month: str | None = None
+    fy: str | None = None
+
+
+def _tracked_files(root: Path) -> list[str]:
+    try:
+        out = subprocess.run(["git", "ls-files"], cwd=root, capture_output=True,
+                             text=True, timeout=30, check=True).stdout
+        return [line for line in out.splitlines() if line.strip()]
+    except Exception:
+        skip = {".git", "node_modules", "__pycache__", ".venv"}
+        return [str(p.relative_to(root)) for p in root.rglob("*")
+                if p.is_file() and not (set(p.relative_to(root).parts) & skip)]
+
+
+def classify(rel: str) -> Entry:
+    for pattern, category, purpose in RULES:
+        if re.search(pattern, rel):
+            e = Entry(rel, category, purpose)
+            m = _MONTH_IN_NAME.search(Path(rel).stem)
+            if m:
+                label = f"{m.group(1)}-{m.group(2)}"
+                e.month, e.fy = label, fy_tag_from_label(label)
+            return e
+    return Entry(rel, "uncategorised", "no rule matched — review and extend "
+                 "RULES in agent/mtagent/catalog.py")
+
+
+def build_catalog(cfg: Config) -> list[Entry]:
+    root = cfg.root()
+    entries = [classify(rel) for rel in sorted(_tracked_files(root))]
+    out = cfg.path(cfg.index_path).parent / "catalog.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps([asdict(e) for e in entries], indent=1),
+                   encoding="utf-8")
+    return entries
+
+
+def load_catalog(cfg: Config) -> list[Entry]:
+    p = cfg.path(cfg.index_path).parent / "catalog.json"
+    if not p.exists():
+        return build_catalog(cfg)
+    return [Entry(**d) for d in json.loads(p.read_text(encoding="utf-8"))]
+
+
+def summarize(entries: list[Entry]) -> str:
+    groups: dict[str, list[Entry]] = {}
+    for e in entries:
+        groups.setdefault(e.category, []).append(e)
+    out = [f"{len(entries)} files in {len(groups)} categories\n"]
+    for cat in sorted(groups):
+        es = groups[cat]
+        out.append(f"## {cat}  ({len(es)})")
+        out.append(f"   {es[0].purpose}")
+        show = es if len(es) <= 6 else es[:5]
+        for e in show:
+            tag = f"  [{e.fy} {e.month}]" if e.fy else ""
+            out.append(f"   - {e.path}{tag}")
+        if len(es) > 6:
+            months = sorted({e.month for e in es if e.month})
+            extra = f" (months {months[0]}..{months[-1]})" if months else ""
+            out.append(f"   … {len(es) - 5} more{extra}")
+        out.append("")
+    return "\n".join(out)
+
+
+def find(cfg: Config, query: str, limit: int = 10) -> list[tuple[float, Entry]]:
+    toks = {t for t in re.findall(r"[a-z0-9]+", query.lower()) if len(t) > 1}
+    scored = []
+    for e in load_catalog(cfg):
+        hay = f"{e.path} {e.category} {e.purpose}".lower()
+        words = set(re.findall(r"[a-z0-9]+", hay))
+        score = sum(1.0 for t in toks if t in words) \
+            + sum(0.5 for t in toks if t not in words and t in hay)
+        if score:
+            scored.append((score, e))
+    scored.sort(key=lambda s: (-s[0], s[1].path))
+    return scored[:limit]
+
+
+def suggest_placement(filename: str) -> dict:
+    name = Path(filename).name
+    for pattern, folder, naming, refresh in PLACEMENT:
+        if re.search(pattern, name):
+            return {"file": name, "folder": folder, "naming": naming,
+                    "then": refresh,
+                    "reminder": "check the template's exact column names first; "
+                                "source .xlsx/.xlsb stay OUT of git (only CSVs "
+                                "under PowerBI/ are tracked)"}
+    return {"file": name, "folder": None,
+            "naming": "no placement rule matched",
+            "then": "ask with more context (python -m mtagent ask), or extend "
+                    "PLACEMENT in agent/mtagent/catalog.py",
+            "reminder": ""}

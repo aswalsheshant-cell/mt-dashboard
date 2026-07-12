@@ -8,7 +8,7 @@ WITH p AS (
            any_value("Month") AS label, sum("sale in lac") AS primary_lakh
     FROM v_primary_article GROUP BY 1, 2
 ), o AS (
-    SELECT fy_from_label("Month") AS fy, mon3_num("Month") AS m,
+    SELECT fy_from_label("Month") AS fy, month_num_any("Month") AS m,
            sum("NSV") AS offtake_lakh
     FROM v_offtake GROUP BY 1, 2
 )

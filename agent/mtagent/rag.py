@@ -10,23 +10,8 @@ from pathlib import Path
 from .config import Config
 from .ingest import build_corpus
 from .llm import Ollama, OllamaUnavailable
+from .persona import system_prompt
 from .vectorstore import VectorIndex
-
-SYSTEM_PROMPT = """\
-You are the offline analytics assistant for the Honasa/Mamaearth Modern Trade
-(MT) leadership dashboard repo. Answer ONLY from the provided context
-passages; if the context does not contain the answer, say so plainly.
-
-Domain rules you must never contradict:
-- Indian financial year (Apr-Mar). THE ONE FY RULE: Apr-Dec of calendar year
-  Y belongs to FY(Y+1); Jan-Mar of year Y belongs to FY(Y). FY is always
-  derived from month+year, never from a fixed column position.
-- Monetary values in sources are INR Lakh; the dashboard shows INR Crore
-  (Lakh / 100) where magnitude warrants.
-- "NSV" headline = Offtake NSV unless stated otherwise.
-
-Cite the source path of each passage you rely on, e.g. (PowerBI/docs/DataModel.md).
-Be concise and concrete."""
 
 
 def ensure_index(cfg: Config, rebuild: bool = False) -> tuple[VectorIndex, list[str]]:
@@ -41,9 +26,14 @@ def ensure_index(cfg: Config, rebuild: bool = False) -> tuple[VectorIndex, list[
     return idx, notices
 
 
-def ask(cfg: Config, question: str, k: int | None = None) -> dict:
-    """Returns {'answer': str|None, 'passages': [...], 'notices': [...]}."""
+def ask(cfg: Config, question: str, k: int | None = None,
+        mode: str = "ask") -> dict:
+    """Returns {'answer': str|None, 'passages': [...], 'notices': [...]}.
+    mode='meeting' retrieves fewer passages and forces the terse
+    leadership-meeting answer shape (see persona.MEETING_SUFFIX)."""
     idx, notices = ensure_index(cfg)
+    if mode == "meeting" and k is None:
+        k = min(cfg.top_k, 4)   # smaller context -> faster local answer
     passages = idx.search(cfg, question, k)
     context = "\n\n---\n\n".join(
         f"[{p['source']} :: {p['section']}]\n{p['text']}" for p in passages)
@@ -51,7 +41,7 @@ def ask(cfg: Config, question: str, k: int | None = None) -> dict:
     client = Ollama(cfg)
     answer = None
     try:
-        answer = client.chat(SYSTEM_PROMPT, user)
+        answer = client.chat(system_prompt(mode), user)
     except OllamaUnavailable as e:
         notices.append(f"{e} — showing retrieved passages only "
                        f"(start Ollama and pull '{cfg.chat_model}' for answers)")

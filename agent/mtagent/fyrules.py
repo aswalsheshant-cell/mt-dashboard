@@ -11,6 +11,7 @@ position. Keep the two copies behaviourally identical; the eval tests in
 """
 from __future__ import annotations
 
+import datetime
 import re
 
 MON3_NUM = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
@@ -19,6 +20,11 @@ NUM_MON3 = {v: k for k, v in MON3_NUM.items()}
 
 # month labels the sources use: 'Apr-24', "Apr'25", 'Apr 2025', 'April-25'
 _LABEL_RE = re.compile(r"^\s*([A-Za-z]{3})[A-Za-z]*[\s\-'](?:20)?(\d{2})\s*$")
+# ... and sometimes a raw Excel date serial ('46113.0' = 2026-04-01): some
+# offtake extracts carry the serial in the Month column; the dashboard build
+# accepts it, so the agent must too.
+_SERIAL_RE = re.compile(r"^\s*\d{5}(?:\.0*)?\s*$")
+_EXCEL_EPOCH = datetime.date(1899, 12, 30)
 
 
 def fy_tag_from_ym(year: int, month: int) -> str:
@@ -37,13 +43,31 @@ def fy_source_key(tag: str) -> str:
     return f"FY_{y:02d}-{y + 1:02d}"
 
 
-def fy_tag_from_label(lab: str) -> str | None:
-    """"Apr-24' / "Sep'25" / 'Apr 2026' style month label -> FY tag, or None."""
-    m = _LABEL_RE.match(str(lab))
-    if not m:
-        return None
-    mn = MON3_NUM.get(m.group(1).title())
-    return fy_tag_from_ym(2000 + int(m.group(2)), mn) if mn else None
+def ym_from_label(lab) -> tuple[int, int] | None:
+    """Month label of ANY source style -> (year, month), or None.
+    Handles 'Apr-24' / "Sep'25" / 'Apr 2026' and raw Excel date serials
+    ('46113' / '46113.0' -> (2026, 4))."""
+    s = str(lab).strip()
+    m = _LABEL_RE.match(s)
+    if m:
+        mn = MON3_NUM.get(m.group(1).title())
+        return (2000 + int(m.group(2)), mn) if mn else None
+    if _SERIAL_RE.match(s):
+        d = _EXCEL_EPOCH + datetime.timedelta(days=int(float(s)))
+        return (d.year, d.month)
+    return None
+
+
+def fy_tag_from_label(lab) -> str | None:
+    """Month label (any style, incl. Excel serial) -> FY tag, or None."""
+    ym = ym_from_label(lab)
+    return fy_tag_from_ym(*ym) if ym else None
+
+
+def norm_month_label(lab) -> str | None:
+    """Any month-label style -> canonical 'Apr-26' form, or None."""
+    ym = ym_from_label(lab)
+    return f"{NUM_MON3[ym[1]]}-{ym[0] % 100:02d}" if ym else None
 
 
 def fy_quarter(month: int) -> int:

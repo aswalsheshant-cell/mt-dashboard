@@ -77,9 +77,12 @@ class TestSqlMacroParity(unittest.TestCase):
             for m in range(1, 13):
                 got = con.execute("SELECT fy_from_ym(?, ?)", [y, m]).fetchone()[0]
                 self.assertEqual(got, fy.fy_tag_from_ym(y, m), f"{y}-{m}")
-        for lab in ("Apr'25", "Mar-26", "Apr-26"):
+        for lab in ("Apr'25", "Mar-26", "Apr-26", "46113.0", "46113",
+                    "Total", "", "garbage"):
             got = con.execute("SELECT fy_from_label(?)", [lab]).fetchone()[0]
             self.assertEqual(got, fy.fy_tag_from_label(lab), lab)
+        got = con.execute("SELECT norm_month_label('46113.0')").fetchone()[0]
+        self.assertEqual(got, fy.norm_month_label("46113.0"))
 
 
 if __name__ == "__main__":

@@ -12,8 +12,7 @@ WHERE "Chain name" IS NULL OR trim("Chain name") = ''
 UNION ALL
 SELECT 'primary: unparsable Month label', count(*)
 FROM v_primary_article
-WHERE mon3_num("Month") IS NULL
-   OR regexp_extract(trim("Month"), '([0-9]{2})$', 1) = ''
+WHERE fy_from_label("Month") IS NULL
 UNION ALL
 SELECT 'primary: FY column disagrees with ONE FY RULE', count(*)
 FROM v_primary_article
@@ -28,8 +27,7 @@ WHERE "Chain Name" IS NULL OR trim("Chain Name") = ''
 UNION ALL
 SELECT 'offtake: unparsable Month label', count(*)
 FROM v_offtake
-WHERE mon3_num("Month") IS NULL
-   OR regexp_extract(trim("Month"), '([0-9]{2})$', 1) = ''
+WHERE fy_from_label("Month") IS NULL
 UNION ALL
 SELECT 'shipto: Cont% outside 0..1', count(*)
 FROM v_primary_shipto WHERE "Cont%" < 0 OR "Cont%" > 1

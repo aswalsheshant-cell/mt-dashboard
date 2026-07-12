@@ -46,12 +46,36 @@ CREATE OR REPLACE MACRO mon3_num(lab) AS
     END;
 
 CREATE OR REPLACE MACRO fy_from_ym(y, m) AS
-    'FY' || lpad(CAST(((CASE WHEN m >= 4 THEN y + 1 ELSE y END) % 100) AS VARCHAR), 2, '0');
+    CASE WHEN y IS NULL OR m IS NULL THEN NULL
+         ELSE 'FY' || lpad(CAST(((CASE WHEN m >= 4 THEN y + 1 ELSE y END) % 100) AS VARCHAR), 2, '0')
+    END;
 
--- "Apr'25" / "Apr-25" / "Apr 2025" style labels
+-- Some offtake extracts carry a raw Excel date serial in the Month column
+-- ('46113.0' = 2026-04-01) instead of "Apr'26"; the dashboard build accepts
+-- both, so these macros do too. NULL = genuinely unparsable.
+CREATE OR REPLACE MACRO excel_serial_date(lab) AS
+    CASE WHEN trim(CAST(lab AS VARCHAR)) SIMILAR TO '[0-9]{5}(\\.0*)?'
+         THEN DATE '1899-12-30'
+              + CAST(TRY_CAST(trim(CAST(lab AS VARCHAR)) AS DOUBLE) AS INTEGER)
+         ELSE NULL END;
+
+CREATE OR REPLACE MACRO month_num_any(lab) AS
+    CASE WHEN excel_serial_date(lab) IS NOT NULL THEN month(excel_serial_date(lab))
+         ELSE mon3_num(CAST(lab AS VARCHAR)) END;
+
+CREATE OR REPLACE MACRO year_any(lab) AS
+    CASE WHEN excel_serial_date(lab) IS NOT NULL THEN year(excel_serial_date(lab))
+         ELSE 2000 + TRY_CAST(regexp_extract(trim(CAST(lab AS VARCHAR)),
+                                             '([0-9]{2})$', 1) AS INTEGER) END;
+
+-- "Apr'25" / "Apr-25" / "Apr 2025" / Excel serial -> 'FY26' (or NULL)
 CREATE OR REPLACE MACRO fy_from_label(lab) AS
-    fy_from_ym(2000 + CAST(regexp_extract(trim(lab), '([0-9]{2})$', 1) AS INTEGER),
-               mon3_num(lab));
+    fy_from_ym(year_any(lab), month_num_any(lab));
+
+-- any style -> canonical 'Apr-26' label (or NULL)
+CREATE OR REPLACE MACRO norm_month_label(lab) AS
+    CASE WHEN year_any(lab) IS NULL OR month_num_any(lab) IS NULL THEN NULL
+         ELSE strftime(make_date(year_any(lab), month_num_any(lab), 1), '%b-%y') END;
 
 CREATE OR REPLACE MACRO fy_quarter(m) AS ((m - 4 + 12) % 12) // 3 + 1;
 """

@@ -113,13 +113,36 @@ python -m mtagent check                   # lint + live data-quality sweep
 |---|---|
 | `doctor` | report which optional deps / Ollama models / artifacts are present |
 | `index [--rebuild]` | build the local vector index over docs, DAX, Power Query, CSV shapes, PDFs, and Power BI metadata exports |
-| `ask "…"` | retrieval-augmented answer from the local model, with sources; without Ollama it prints the retrieved passages |
+| `ask "…"` | retrieval-augmented answer from the local model (analyst persona, sources cited); without Ollama it prints the retrieved passages |
+| `meeting "…"` | **/meeting mode**: terse leadership shape — Answer / Top 3 drivers / Recommended response / Data quality / Next action |
 | `check-dax [--strict]` | lint `PowerBI/DAX/*.dax` (see codes below) |
 | `check-pq [--strict]` | lint `PowerBI/PowerQuery/*.pq` |
 | `check` | both lints + the DuckDB data-quality sweep; non-zero exit on errors |
+| `qc` | **/qc mode**: everything `check` does + a coverage map against the analyst QC charter (what ran automatically, what needs Power BI Desktop) |
+| `reconcile [--tol 0.5]` | **/reconcile mode**: dashboard `data.js` vs the committed source CSVs vs itself — internal totals, article-level blocks (FY27+ primary & offtake, per month), and preagg-vs-article INFO rows; exit 1 on any DIFF |
 | `db-build` | (re)build `agent/index/mt.duckdb` views over the committed CSVs |
 | `sql list` / `sql run <name> --param k=v` / `sql exec "…"` | run the SQL templates in `agent/sql/` or ad-hoc SQL |
+| `catalog [--rebuild]` | categorize every tracked file into business categories with purposes (writes `agent/index/catalog.json`) |
+| `find "…"` | search the catalog: *where is the chain master? where do GST rates live?* |
+| `place <filename>` | *where does this new file go?* — target folder, naming rule, and the exact refresh command to run after dropping it |
+| `log [--tail N]` | audit trail: every command run is logged to `agent/index/worklog.jsonl` (timestamp, args, exit status) |
 | `eval` | golden-QA retrieval eval + validator regression checks + template execution |
+
+### Analyst persona & business rules
+
+`ask`/`meeting` answers are governed by `mtagent/persona.py` — the MT
+Channel Analyst charter (workflow: intent → datasets → data readiness →
+business rules → analysis → QC → insight) plus the approved business rules:
+Apr–Mar FY via THE ONE FY RULE, NSV in Lakh (×100000 = ₹, ÷100 = Cr), NSV
+net of tax vs MRP incl. tax (never compare silently), Others included in
+totals, **Pending ≠ Zero**, the FY27 coverage split, Cont% distributor
+allocation, and the GST 2.0 cutover for TOT%. Edit that file to evolve the
+charter; `tests/test_catalog_reconcile.py::TestPersona` pins the
+load-bearing rules.
+
+Month labels of **any** source style are accepted everywhere (Python rules
+and DuckDB macros alike): `Apr-26`, `Apr'26`, `Apr 2026`, and raw Excel
+date serials (`46113.0` = Apr-2026) that some offtake extracts carry.
 
 ### DAX validator codes
 
