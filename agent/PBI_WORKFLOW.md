@@ -38,12 +38,15 @@ CLI-run log that every `mtagent` command already writes to.
 | 15 | Run final dashboard release QC | approval |
 | 16 | Mark the approved release package as complete | approval |
 
-Steps marked *not yet implemented* exist in the state machine (so
-`status`/`resume` always show the full 16-step picture) but have no
-registered command yet — invoking them isn't possible until a follow-up
-build adds `pbi_powerquery.py` / `pbi_blueprint.py` / `pbi_theme.py` /
-`pbi_docs.py` / `pbi_package.py`, each following the same pattern as
-`pbi_dataset.py`. They are **not silently claimed complete**.
+Steps 5/7/8/9/10 now have a **registered graceful stub** each
+(`generate-power-query`, `generate-page-blueprint`, `generate-theme`,
+`generate-docs`, `prepare-build-package`) so the sequence never stalls or
+crashes on an unbuilt module — see [Graceful stubbing](#graceful-stubbing-for-unbuilt-steps-5-7-8-9-10)
+below. The *real* generator (`pbi_powerquery.py` / `pbi_blueprint.py` /
+`pbi_theme.py` / `pbi_docs.py` / `pbi_package.py`, each following the
+same pattern as `pbi_dataset.py`) is still a follow-up build; until then
+these steps are honestly reported as skipped, **never silently claimed
+complete**.
 
 Statuses: `Not Started` · `Ready` · `Running` · `Completed` ·
 `Completed with Warning` · `Manual Action Required` · `Approval Required` ·
@@ -55,7 +58,9 @@ Statuses: `Not Started` · `Ready` · `Running` · `Completed` ·
 python -m mtagent pbi list                                   # every registered command + classification
 python -m mtagent pbi build-dataset [--raw-dir D] [--masters-dir D]
 python -m mtagent pbi generate-dax [--dax-dir D]
-python -m mtagent pbi reconcile-model --source <csv> --build-dir <agent/pbi_build/...>
+python -m mtagent pbi reconcile-model --source <csv> --build-dir <agent/pbi_build/...> [--masters-dir D]
+python -m mtagent pbi run-automated [--raw-dir D] [--masters-dir D] [--dax-dir D]
+python -m mtagent pbi generate-power-query | generate-page-blueprint | generate-theme | generate-docs | prepare-build-package
 python -m mtagent pbi status [--json]
 python -m mtagent pbi next-manual-step [--json]
 python -m mtagent pbi resume [--json]
@@ -157,6 +162,46 @@ Tolerance is configurable (`pbi_reconciliation_tolerance_pct`, default
 0.5%). No mismatch is ever hidden — every metric gets a row,
 `PASS`/`FAIL`/`INFO`.
 
+### Graceful stubbing for unbuilt steps 5/7/8/9/10
+
+Invoking `generate-power-query` / `generate-page-blueprint` / `generate-theme`
+/ `generate-docs` / `prepare-build-package` today never throws, never
+crashes the CLI, and never leaves the sequence stalled: each stub logs a
+technical notice (which module it stands in for, and that it's scoped
+for a future build) and transitions its step straight to the existing
+`Skipped with Approval` terminal status — deliberately reusing that
+status rather than inventing a new one, since the 10-status vocabulary
+above is fixed. `Skipped with Approval` is a **terminal-OK** status, so
+it counts toward `completion_pct` and immediately readies the next step,
+exactly like a real `Completed` step would. It is never reported as
+`Completed` — anyone reading `status`/`resume`/`pbi list` sees plainly
+that the module itself doesn't exist yet.
+
+### `run-automated` — the full automated chain in one command
+
+Chains `build-dataset` → `generate-dax` → the five stubs above →
+`reconcile-model`, stopping the instant a `Blocked`/`Failed` result
+occurs, and never attempting steps 11/12/14 (those need Power BI Desktop
+or a human, and stay `Manual Action Required` / untouched). This is the
+"one command, PASS/FAIL-style readiness" entry point for the automated
+half of the pipeline — real generators slot in later by being added to
+the registry, no orchestration change required.
+
+### Production drop-in for masters (no code/config change)
+
+`ChainMaster.csv` / `ArticleMaster.csv` / `ChainAliases.csv` are each
+resolved **independently** (`pbi_dataset.resolve_master_file`): if
+`--masters-dir` was passed explicitly, that wins outright; otherwise each
+file is looked up in `PowerBI/RawDataFolders/Masters/<file>` first (the
+same "drop a file in RawDataFolders/<watch>/" convention already used for
+monthly offtake refreshes), falling back to `PowerBI/SeedData/Masters/<file>`
+only if the production file isn't there. Per-file (not whole-directory)
+resolution matters: dropping in just a real `ArticleMaster.csv` upgrades
+article mapping immediately without silently losing `ChainMaster.csv`
+coverage if only one file was supplied. `reconcile-model` applies the
+exact same resolution, so a dropped-in production master upgrades both
+the build and its independent reconciliation together.
+
 ## Sample configuration
 
 `agent/config.example.json` (copy to `agent/config.json` to override):
@@ -215,9 +260,30 @@ chain_total:Reliance,1493.7701,1493.7705,-0.0004,0.0,PASS
 
 Article-level dimension mapping still mostly misses because
 `ArticleMaster.csv` is a 13-row *seed* master (not the production article
-master) — expected until the real master is supplied via `--masters-dir`;
+master) — expected until the real master is supplied (via `--masters-dir`,
+or dropped into `PowerBI/RawDataFolders/Masters/` — see
+[Production drop-in](#production-drop-in-for-masters-no-codeconfig-change));
 the Fact carries the source file's own Brand/Category for those rows, so
 no numbers are lost.
+
+**`pbi run-automated` then `pbi status --json`** (abridged) — real run,
+same May'26 data, every automated step resolved and the sequence stops
+cleanly at the first manual step:
+```json
+{
+  "completion_pct": 68.8,
+  "completed_phases": ["Validate source files.", "...", "Generate Power Query scripts.",
+                        "...", "Prepare the Power BI build package.", "Run source-to-model reconciliation."],
+  "current_phase": "Guide the user through manual Power BI Desktop actions.",
+  "automated_steps_pending": [],
+  "manual_steps_pending": ["Guide the user through manual Power BI Desktop actions.",
+                            "Review screenshots and exported metadata.", "Run page-level QC."],
+  "warnings": ["9426 blank-key row(s) retained under (blank) buckets",
+               "48/55 required measures have no existing match -- see DAX_Gap_Library.dax"]
+}
+```
+`completed_phases` includes the five stubbed steps (5, 7, 8, 9, 10) —
+they resolved via `Skipped with Approval`, not a fabricated `Completed`.
 
 ## Limitations
 

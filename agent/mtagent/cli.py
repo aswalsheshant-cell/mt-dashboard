@@ -438,7 +438,25 @@ def build_parser() -> argparse.ArgumentParser:
     pr = pbi_sub.add_parser("reconcile-model", help="source-to-model reconciliation")
     pr.add_argument("--source", required=True, help="original offtake CSV")
     pr.add_argument("--build-dir", required=True, help="agent/pbi_build/<build_id> from build-dataset")
+    pr.add_argument("--masters-dir", help="override PowerBI/SeedData/Masters")
     pr.add_argument("--json", action="store_true")
+
+    for _name, _hlp in (
+        ("generate-power-query", "[not yet implemented] step 5: generate Power Query scripts"),
+        ("generate-page-blueprint", "[not yet implemented] step 7: generate the page-wise visual blueprint"),
+        ("generate-theme", "[not yet implemented] step 8: generate the Power BI theme JSON"),
+        ("generate-docs", "[not yet implemented] step 9: generate model documentation"),
+        ("prepare-build-package", "[not yet implemented] step 10: prepare the Power BI build package"),
+    ):
+        _p = pbi_sub.add_parser(_name, help=_hlp)
+        _p.add_argument("--json", action="store_true")
+
+    pra = pbi_sub.add_parser("run-automated", help="run every automated step end to end, "
+                                                    "stopping cleanly at the first manual/approval step")
+    pra.add_argument("--raw-dir", help="override PowerBI/RawDataFolders/Offtake_Monthly")
+    pra.add_argument("--masters-dir", help="override PowerBI/SeedData/Masters")
+    pra.add_argument("--dax-dir", help="override PowerBI/DAX")
+    pra.add_argument("--json", action="store_true")
 
     ps = pbi_sub.add_parser("status", help="show dashboard build status")
     ps.add_argument("--json", action="store_true")

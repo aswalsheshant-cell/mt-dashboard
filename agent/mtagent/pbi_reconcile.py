@@ -19,7 +19,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .config import Config
-from .pbi_dataset import BLANK_BUCKET, _norm_key, load_chain_aliases, load_chain_master
+from .pbi_dataset import BLANK_BUCKET, _norm_key, load_chain_aliases, load_chain_master, resolve_master_file
 
 
 def _read_fact(fact_path: Path) -> list[dict]:
@@ -27,15 +27,17 @@ def _read_fact(fact_path: Path) -> list[dict]:
         return list(csv.DictReader(fh))
 
 
-def _chain_mapper(masters_dir: Path):
-    """Return the same raw-name -> Account mapping the build applies.
-    When no ChainMaster is available (standalone runs against arbitrary
-    files), fall back to comparing raw chain names unchanged.
+def _chain_mapper(root: Path, masters_dir: Path | None):
+    """Return the same raw-name -> Account mapping the build applies
+    (including the same per-file production-drop-in resolution -- see
+    ``pbi_dataset.resolve_master_file``). When no ChainMaster is available
+    (standalone runs against arbitrary files), fall back to comparing raw
+    chain names unchanged.
     """
-    chain_master = load_chain_master(masters_dir / "ChainMaster.csv")
+    chain_master = load_chain_master(resolve_master_file(root, masters_dir, "ChainMaster.csv"))
     if not chain_master:
         return lambda name: name
-    alias_lookup, _ = load_chain_aliases(masters_dir / "ChainAliases.csv", chain_master)
+    alias_lookup, _ = load_chain_aliases(resolve_master_file(root, masters_dir, "ChainAliases.csv"), chain_master)
 
     def map_chain(name: str) -> str:
         if not name:
@@ -149,8 +151,7 @@ def reconcile_source_to_model(cfg: Config, source_path: Path, build_dir: Path,
     if not fact_path.exists():
         return {"blocked_reason": f"Fact_OfftakeSales.csv not found in {build_dir} -- run build_dataset first"}
 
-    masters_dir = masters_dir or (cfg.root() / "PowerBI" / "SeedData" / "Masters")
-    src = _source_totals(source_path, _chain_mapper(masters_dir))
+    src = _source_totals(source_path, _chain_mapper(cfg.root(), masters_dir))
     fact_rows = _read_fact(fact_path)
     mdl = _model_totals(fact_rows)
     tol = cfg.pbi_reconciliation_tolerance_pct

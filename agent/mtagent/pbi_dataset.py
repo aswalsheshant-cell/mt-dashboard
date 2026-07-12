@@ -60,6 +60,28 @@ _MIN_COMPLETE_ROWS = 1000   # heuristic: fewer rows than this -> treat month as 
 
 BLANK_BUCKET = "(blank)"
 _ZSCORE_THRESHOLD = 3.0
+PRODUCTION_MASTERS_DIR = Path("PowerBI") / "RawDataFolders" / "Masters"
+
+
+def resolve_master_file(root: Path, masters_dir: Path | None, filename: str) -> Path:
+    """Production drop-in resolution for one master file (per Module 1's
+    "no hardcoded configuration updates" requirement).
+
+    An explicit ``masters_dir`` (``--masters-dir``, or a test fixture) is
+    honored exactly, no magic. Otherwise this prefers
+    ``PowerBI/RawDataFolders/Masters/<filename>`` -- the same "drop a file
+    in RawDataFolders/<watch>/" convention already used for monthly
+    offtake refreshes -- over the small ``SeedData/Masters/`` seed set,
+    resolved PER FILE so dropping in just a real ``ArticleMaster.csv``
+    upgrades article mapping immediately without silently losing
+    ``ChainMaster.csv`` coverage if only one file was supplied.
+    """
+    if masters_dir is not None:
+        return masters_dir / filename
+    prod_path = root / PRODUCTION_MASTERS_DIR / filename
+    if prod_path.exists():
+        return prod_path
+    return root / "PowerBI" / "SeedData" / "Masters" / filename
 
 
 def _norm_key(s: str) -> str:
@@ -152,7 +174,7 @@ def _nsv_share_severity(share_pct: float) -> str:
 def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | None = None) -> dict:
     root = cfg.root()
     raw_dir = raw_dir or (root / "PowerBI" / "RawDataFolders" / "Offtake_Monthly")
-    masters_dir = masters_dir or (root / "PowerBI" / "SeedData" / "Masters")
+    explicit_masters_dir = masters_dir  # None -> per-file production-drop-in resolution
 
     # --- Step 1: validate source files -----------------------------------
     if not raw_dir.exists():
@@ -178,9 +200,10 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
     has_internal_code = "Internal Code" in idx
 
     # --- masters + alias dictionary -----------------------------------
-    chain_master = load_chain_master(masters_dir / "ChainMaster.csv")
-    article_master = load_article_master(masters_dir / "ArticleMaster.csv")
-    alias_lookup, invalid_aliases = load_chain_aliases(masters_dir / "ChainAliases.csv", chain_master)
+    chain_master = load_chain_master(resolve_master_file(root, explicit_masters_dir, "ChainMaster.csv"))
+    article_master = load_article_master(resolve_master_file(root, explicit_masters_dir, "ArticleMaster.csv"))
+    alias_lookup, invalid_aliases = load_chain_aliases(
+        resolve_master_file(root, explicit_masters_dir, "ChainAliases.csv"), chain_master)
 
     # --- Step 2/3: stream-aggregate into fact + detect exceptions -------
     fact = defaultdict(lambda: {"NSV": 0.0, "MRP_Sales_Value": 0.0, "Sales_Qty": 0.0, "sites": set()})

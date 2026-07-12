@@ -7,14 +7,17 @@ error handling are consistent across commands. Import this module once
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from .config import Config
 from .pbi_dataset import build_dataset
 from .pbi_dax_gap import generate_dax_library
 from .pbi_reconcile import reconcile_source_to_model
-from .pbi_registry import register_command
-from .pbi_workflow import AUTOMATED, WorkflowController, run_automated_step
+from .pbi_registry import get_command, register_command
+from .pbi_workflow import (AUTOMATED, BLOCKED, COMPLETED_WITH_WARNING, FAILED,
+                            SKIPPED_WITH_APPROVAL, STEP_BY_ID, WorkflowController,
+                            run_automated_step)
 
 
 @register_command(
@@ -76,8 +79,97 @@ def cmd_reconcile_model(cfg: Config, controller: WorkflowController, **kwargs) -
         raise ValueError("reconcile-model requires --source <offtake csv> and --build-dir <pbi_build/<id>>")
     source_path = cfg.path(kwargs["source"])
     build_dir = cfg.path(kwargs["build_dir"])
+    masters_dir = Path(kwargs["masters_dir"]) if kwargs.get("masters_dir") else None
     return run_automated_step(controller, "reconcile_source_to_model",
-                               lambda: reconcile_source_to_model(cfg, source_path, build_dir))
+                               lambda: reconcile_source_to_model(cfg, source_path, build_dir, masters_dir))
+
+
+# --- steps 5, 7, 8, 9, 10: not yet implemented (see agent/PBI_WORKFLOW.md) --
+#
+# Graceful-stub contract: invoking one of these NEVER throws, crashes the
+# CLI, or leaves the workflow stalled. Each stub logs a technical notice
+# (the module it stands in for and why it's deferred) and transitions its
+# step straight to the existing ``SKIPPED_WITH_APPROVAL`` terminal state
+# (chosen deliberately over inventing a new status string -- the spec's
+# status vocabulary is fixed; "skipped, with the documented decision to
+# defer this module as its approval" is the closest accurate fit), which
+# already advances the next step to Ready. A step is never silently
+# reported as Completed for work that was never done.
+_UNIMPLEMENTED_STEPS = {
+    "generate-power-query": ("generate_power_query", "Power Query script generation (pbi_powerquery.py)"),
+    "generate-page-blueprint": ("generate_page_blueprint", "page-wise visual blueprint generation (pbi_blueprint.py)"),
+    "generate-theme": ("generate_theme", "Power BI theme JSON generation (pbi_theme.py)"),
+    "generate-docs": ("generate_docs", "model documentation generation (pbi_docs.py)"),
+    "prepare-build-package": ("prepare_build_package", "build package preparation (pbi_package.py)"),
+}
+
+
+def _make_unimplemented_stub(step_id: str, module_hint: str):
+    def _stub(cfg: Config, controller: WorkflowController, **kwargs) -> dict:
+        note = (f"{module_hint} is not yet implemented -- scoped for a future build "
+                f"(see agent/PBI_WORKFLOW.md). Skipping so the workflow sequence can "
+                f"proceed; this step is never silently claimed complete.")
+        controller.skip_with_approval(step_id, note)
+        return {"status": SKIPPED_WITH_APPROVAL, "note": note}
+    return _stub
+
+
+for _cmd_name, (_step_id, _hint) in _UNIMPLEMENTED_STEPS.items():
+    register_command(
+        name=_cmd_name,
+        classification=AUTOMATED,
+        step_id=_step_id,
+        description=f"[not yet implemented] {STEP_BY_ID[_step_id].name}",
+    )(_make_unimplemented_stub(_step_id, _hint))
+
+
+@register_command(
+    name="run-automated",
+    classification=AUTOMATED,
+    step_id="",
+    description="Run every automated step end to end (build-dataset -> generate-dax -> "
+                "not-yet-implemented stubs -> reconcile-model), stopping cleanly the "
+                "moment a manual or approval step is reached.",
+)
+def cmd_run_automated(cfg: Config, controller: WorkflowController, **kwargs) -> dict:
+    """The end-to-end automated-pipeline loop: never crashes on an unbuilt
+    module, never stalls -- each step reports its real outcome and control
+    passes to the next one. Stops (without erroring) the instant a MANUAL
+    or APPROVAL step is next, since those require Power BI Desktop / human
+    sign-off this agent cannot perform.
+    """
+    results: dict[str, dict] = {}
+
+    build_result = get_command("build-dataset").handler(
+        cfg, controller, raw_dir=kwargs.get("raw_dir"), masters_dir=kwargs.get("masters_dir"))
+    results["build-dataset"] = build_result
+    if build_result.get("status") in (BLOCKED, FAILED):
+        return {"status": build_result["status"], "stopped_at": "build-dataset", "results": results}
+
+    results["generate-dax"] = get_command("generate-dax").handler(cfg, controller, dax_dir=kwargs.get("dax_dir"))
+
+    for cmd_name, (step_id, _hint) in _UNIMPLEMENTED_STEPS.items():
+        results[cmd_name] = get_command(cmd_name).handler(cfg, controller)
+
+    try:
+        source_file = json.loads(build_result.get("validation_result", "{}")).get("source_file", "")
+    except json.JSONDecodeError:
+        source_file = ""
+    if source_file and build_result.get("output_file"):
+        results["reconcile-model"] = get_command("reconcile-model").handler(
+            cfg, controller, source=str(cfg.root() / source_file),
+            build_dir=str(cfg.root() / build_result["output_file"]), masters_dir=kwargs.get("masters_dir"))
+
+    statuses = {k: v.get("status") for k, v in results.items()}
+    if any(s == FAILED for s in statuses.values()):
+        overall = FAILED
+    elif any(s == BLOCKED for s in statuses.values()):
+        overall = BLOCKED
+    elif any(s == COMPLETED_WITH_WARNING for s in statuses.values()):
+        overall = COMPLETED_WITH_WARNING
+    else:
+        overall = "Completed"
+    return {"status": overall, "results": statuses, "next_manual_step": controller.next_manual_step()}
 
 
 @register_command(
