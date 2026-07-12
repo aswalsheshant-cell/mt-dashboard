@@ -54,9 +54,9 @@ CREATE OR REPLACE MACRO fy_from_ym(y, m) AS
 -- ('46113.0' = 2026-04-01) instead of "Apr'26"; the dashboard build accepts
 -- both, so these macros do too. NULL = genuinely unparsable.
 CREATE OR REPLACE MACRO excel_serial_date(lab) AS
-    CASE WHEN trim(CAST(lab AS VARCHAR)) SIMILAR TO '[0-9]{5}(\\.0*)?'
+    CASE WHEN trim(CAST(lab AS VARCHAR)) SIMILAR TO '[0-9]{5}(\\.[0-9]*)?'
          THEN DATE '1899-12-30'
-              + CAST(TRY_CAST(trim(CAST(lab AS VARCHAR)) AS DOUBLE) AS INTEGER)
+              + CAST(floor(TRY_CAST(trim(CAST(lab AS VARCHAR)) AS DOUBLE)) AS INTEGER)
          ELSE NULL END;
 
 CREATE OR REPLACE MACRO month_num_any(lab) AS
@@ -102,26 +102,40 @@ def build_db(cfg: Config) -> list[str]:
         files = sorted((pbi / rel).parent.glob(Path(rel).name))
         return [str(f) for f in files if not f.name.startswith(exclude_prefix)]
 
-    def make_view(name: str, files: list[str]) -> None:
+    def make_view(name: str, files: list[str],
+                  normalize_cols: list[str] | None = None) -> None:
         if not files:
             log.append(f"{name}: no source files found — skipped")
             return
         lst = ", ".join("'" + f.replace("'", "''") + "'" for f in files)
-        con.execute(f"""
-            CREATE OR REPLACE VIEW {name} AS
-            SELECT * FROM read_csv_auto([{lst}],
-                header=true, union_by_name=true, all_varchar=false,
-                sample_size=-1)
-        """)
+        base = (f"SELECT * FROM read_csv_auto([{lst}], header=true, "
+                "union_by_name=true, all_varchar=false, sample_size=-1)")
+        # DATA CONTRACT: TRIM+UPPER the lookup dimensions at load so casing/
+        # trailing spaces can't create phantom duplicate chains/stores/DCs.
+        if normalize_cols:
+            rep = ", ".join(f'upper(trim("{c}")) AS "{c}"' for c in normalize_cols)
+            try:
+                con.execute(f"CREATE OR REPLACE VIEW {name} AS "
+                            f"SELECT * REPLACE ({rep}) FROM ({base})")
+                n = con.execute(f"SELECT count(*) FROM {name}").fetchone()[0]
+                log.append(f"{name}: {len(files)} file(s), {n} rows "
+                           f"(normalized: {', '.join(normalize_cols)})")
+                return
+            except Exception as e:   # a column missing from this union — fall back
+                log.append(f"{name}: normalization skipped ({e})")
+        con.execute(f"CREATE OR REPLACE VIEW {name} AS {base}")
         n = con.execute(f"SELECT count(*) FROM {name}").fetchone()[0]
         log.append(f"{name}: {len(files)} file(s), {n} rows")
 
     make_view("v_primary_article",
-              csvglob("RawDataFolders/Primary_Article_Monthly/primary_article_*.csv"))
+              csvglob("RawDataFolders/Primary_Article_Monthly/primary_article_*.csv"),
+              normalize_cols=["Chain name", "Ship To Name"])
     make_view("v_offtake",
-              csvglob("RawDataFolders/Offtake_Monthly/offtake_store_article_*.csv"))
+              csvglob("RawDataFolders/Offtake_Monthly/offtake_store_article_*.csv"),
+              normalize_cols=["Chain Name", "Site Name", "DC Code"])
     make_view("v_primary_shipto",
-              csvglob("RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_*.csv"))
+              csvglob("RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_*.csv"),
+              normalize_cols=["Chain", "Ship To Name"])
 
     masters = sorted((pbi / "SeedData" / "Masters").glob("*.csv"))
     for m in masters:
@@ -132,7 +146,68 @@ def build_db(cfg: Config) -> list[str]:
                 header=true, all_varchar=false, sample_size=-1)
         """)
         log.append(f"{tname}: {m.name}")
+
+    log += _build_unmapped_staging(con)
     con.close()
+    return log
+
+
+def _build_unmapped_staging(con) -> list[str]:
+    """DATA CONTRACT missing-mapping guard: rows whose Chain/Store/Article
+    key is absent from the active masters are never dropped — each unmapped
+    value is quarantined into `unmapped_staging` (one row per distinct
+    unmapped entity, with row_count + NSV impact) and a structural warning
+    is emitted. Store/Article guards only engage when the corresponding
+    master looks real (>= 100 rows) — the committed seeds are small samples
+    and would otherwise flag everything."""
+    log: list[str] = []
+    parts = [
+        ("offtake", "chain", "v_offtake", "Chain Name", "NSV",
+         "m_chainmaster", "Chain", 0),
+        ("primary", "chain", "v_primary_article", "Chain name", "sale in lac",
+         "m_chainmaster", "Chain", 0),
+        ("offtake", "store", "v_offtake", "Site Code", "NSV",
+         "m_storemaster", "Store Code", 100),
+        ("offtake", "article", "v_offtake", "Article", "NSV",
+         "m_articlemaster", "Article Code", 100),
+    ]
+    selects = []
+    for feed, kind, view, key, val, master, mkey, min_rows in parts:
+        try:
+            if con.execute(f"SELECT count(*) FROM {master}").fetchone()[0] < min_rows:
+                continue
+            con.execute(f'SELECT "{key}" FROM {view} LIMIT 0')
+            selects.append(f"""
+                SELECT '{feed}' AS source_feed, '{kind}' AS unmapped_kind,
+                       upper(trim(CAST("{key}" AS VARCHAR))) AS unmapped_value,
+                       count(*) AS row_count, round(sum("{val}"), 2) AS nsv_lakh
+                FROM {view}
+                WHERE upper(trim(CAST("{key}" AS VARCHAR))) NOT IN
+                      (SELECT upper(trim(CAST("{mkey}" AS VARCHAR)))
+                       FROM {master} WHERE "{mkey}" IS NOT NULL)
+                GROUP BY 1, 2, 3""")
+        except Exception:
+            continue
+    if not selects:
+        con.execute("CREATE OR REPLACE TABLE unmapped_staging AS "
+                    "SELECT '' AS source_feed, '' AS unmapped_kind, "
+                    "'' AS unmapped_value, 0 AS row_count, 0.0 AS nsv_lakh "
+                    "WHERE false")
+        log.append("unmapped_staging: no mapping checks ran (masters missing)")
+        return log
+    con.execute("CREATE OR REPLACE TABLE unmapped_staging AS "
+                + " UNION ALL ".join(selects))
+    rows = con.execute("""
+        SELECT source_feed, unmapped_kind, count(*) AS entities,
+               sum(row_count) AS rows_hit, round(sum(nsv_lakh), 1) AS nsv
+        FROM unmapped_staging GROUP BY 1, 2 ORDER BY 1, 2""").fetchall()
+    if rows:
+        for feed, kind, ents, hit, nsv in rows:
+            log.append(f"STRUCTURAL WARNING: {ents} unmapped {kind}(s) in "
+                       f"{feed} ({hit} rows, {nsv} Lakh) — rows kept, see "
+                       "unmapped_staging")
+    else:
+        log.append("unmapped_staging: clean — every key maps to the masters")
     return log
 
 

@@ -115,6 +115,7 @@ python -m mtagent check                   # lint + live data-quality sweep
 | `index [--rebuild]` | build the local vector index over docs, DAX, Power Query, CSV shapes, PDFs, and Power BI metadata exports |
 | `ask "…"` | retrieval-augmented answer from the local model (analyst persona, sources cited); without Ollama it prints the retrieved passages |
 | `meeting "…"` | **/meeting mode**: terse leadership shape — Answer / Top 3 drivers / Recommended response / Data quality / Next action |
+| `meeting "…" --drilldown` (or `--verbose`) | lifts the brevity limit and injects **computed** tables: top-N underperforming outlets (MoM NSV), sub-category & pack-size mix deltas, and GST/TOT row confidence (Finance signed-off vs Pending). Without Ollama the computed tables print raw |
 | `check-dax [--strict]` | lint `PowerBI/DAX/*.dax` (see codes below) |
 | `check-pq [--strict]` | lint `PowerBI/PowerQuery/*.pq` |
 | `check` | both lints + the DuckDB data-quality sweep; non-zero exit on errors |
@@ -124,7 +125,7 @@ python -m mtagent check                   # lint + live data-quality sweep
 | `sql list` / `sql run <name> --param k=v` / `sql exec "…"` | run the SQL templates in `agent/sql/` or ad-hoc SQL |
 | `catalog [--rebuild]` | categorize every tracked file into business categories with purposes (writes `agent/index/catalog.json`) |
 | `find "…"` | search the catalog: *where is the chain master? where do GST rates live?* |
-| `place <filename>` | *where does this new file go?* — target folder, naming rule, and the exact refresh command to run after dropping it |
+| `place <filename>` | *where does this new file go?* — target folder, naming rule, the exact refresh command, **plus the Proactive Exception Report**: newest vs prior offtake month — (1) Zone/Chain-DC NSV drops beyond the threshold (default 10% MoM, `mom_drop_threshold_pct`), (2) NPI zero-sales / zero-store-availability tracking (drop `PowerBI/SeedData/Masters/NPI_List.csv` for the real list; a labelled prior-month proxy is used otherwise), (3) operational gaps — stores that billed last cycle but have zero records now, with NSV at risk |
 | `log [--tail N]` | audit trail: every command run is logged to `agent/index/worklog.jsonl` (timestamp, args, exit status) |
 | `eval` | golden-QA retrieval eval + validator regression checks + template execution |
 
@@ -140,9 +141,25 @@ allocation, and the GST 2.0 cutover for TOT%. Edit that file to evolve the
 charter; `tests/test_catalog_reconcile.py::TestPersona` pins the
 load-bearing rules.
 
-Month labels of **any** source style are accepted everywhere (Python rules
-and DuckDB macros alike): `Apr-26`, `Apr'26`, `Apr 2026`, and raw Excel
-date serials (`46113.0` = Apr-2026) that some offtake extracts carry.
+### Data contract (ingestion robustness)
+
+Applied consistently in the DuckDB views, the diff engine, and the FY rules:
+
+- **String standardization** — lookup dimensions (Chain Name, Site/Store
+  Name, DC Code, Ship-To, descriptions) are TRIM+UPPER-normalized at load,
+  so casing/trailing-space variants can never split one chain into two.
+- **Date normalization** — month labels of **any** source style parse
+  everywhere: `Apr-26`, `Apr'26`, `Apr 2026`, and raw Excel date serials
+  incl. floating points (`46113.0`/`46113.5` = Apr-2026, Excel 1900 date
+  system, epoch 1899-12-30 — verified against this repo's own offtake data,
+  where 32k+ real rows carry serials).
+- **Missing-mapping guard** — `db-build` never drops an unmapped row:
+  every Chain/Store/Article value absent from the active masters is
+  quarantined into the **`unmapped_staging`** table (entity, row count, NSV
+  impact) with a `STRUCTURAL WARNING` in the build log, and surfaces in the
+  `data_quality` template. Store/Article guards engage once the
+  corresponding master is real (≥100 rows) — the committed seeds are small
+  samples.
 
 ### DAX validator codes
 

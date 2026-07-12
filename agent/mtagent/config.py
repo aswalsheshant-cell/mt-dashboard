@@ -40,6 +40,10 @@ class Config:
     db_path: str = "agent/index/mt.duckdb"
     metadata_dir: str = "agent/metadata"   # drop model.bim / INFO.* exports here
     pdf_dirs: list = field(default_factory=lambda: ["agent/metadata"])
+    # --- proactive diff engine (place / meeting --drilldown) ---
+    npi_list: str = "PowerBI/SeedData/Masters/NPI_List.csv"  # optional; proxy used if absent
+    mom_drop_threshold_pct: float = 10.0   # Zone/DC MoM drop that triggers an exception
+    drilldown_top_n: int = 5               # underperforming outlets shown in drilldown
 
     def root(self) -> Path:
         return Path(self.repo_root) if self.repo_root else find_repo_root()

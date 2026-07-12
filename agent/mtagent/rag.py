@@ -27,16 +27,19 @@ def ensure_index(cfg: Config, rebuild: bool = False) -> tuple[VectorIndex, list[
 
 
 def ask(cfg: Config, question: str, k: int | None = None,
-        mode: str = "ask") -> dict:
+        mode: str = "ask", extra_context: str | None = None) -> dict:
     """Returns {'answer': str|None, 'passages': [...], 'notices': [...]}.
     mode='meeting' retrieves fewer passages and forces the terse
-    leadership-meeting answer shape (see persona.MEETING_SUFFIX)."""
+    leadership-meeting answer shape; mode='drilldown' lifts the brevity
+    limit and expects computed tables in extra_context (see persona)."""
     idx, notices = ensure_index(cfg)
     if mode == "meeting" and k is None:
         k = min(cfg.top_k, 4)   # smaller context -> faster local answer
     passages = idx.search(cfg, question, k)
     context = "\n\n---\n\n".join(
         f"[{p['source']} :: {p['section']}]\n{p['text']}" for p in passages)
+    if extra_context:
+        context = extra_context + "\n\n---\n\n" + context
     user = f"Context passages:\n\n{context}\n\nQuestion: {question}"
     client = Ollama(cfg)
     answer = None

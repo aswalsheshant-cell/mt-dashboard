@@ -23,7 +23,7 @@ _LABEL_RE = re.compile(r"^\s*([A-Za-z]{3})[A-Za-z]*[\s\-'](?:20)?(\d{2})\s*$")
 # ... and sometimes a raw Excel date serial ('46113.0' = 2026-04-01): some
 # offtake extracts carry the serial in the Month column; the dashboard build
 # accepts it, so the agent must too.
-_SERIAL_RE = re.compile(r"^\s*\d{5}(?:\.0*)?\s*$")
+_SERIAL_RE = re.compile(r"^\s*\d{5}(?:\.\d*)?\s*$")
 _EXCEL_EPOCH = datetime.date(1899, 12, 30)
 
 

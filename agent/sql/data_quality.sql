@@ -31,4 +31,8 @@ WHERE fy_from_label("Month") IS NULL
 UNION ALL
 SELECT 'shipto: Cont% outside 0..1', count(*)
 FROM v_primary_shipto WHERE "Cont%" < 0 OR "Cont%" > 1
+UNION ALL
+SELECT 'mapping: rows with unmapped keys (quarantined in unmapped_staging)',
+       coalesce(sum(row_count), 0)
+FROM unmapped_staging
 ORDER BY bad_rows DESC, check;

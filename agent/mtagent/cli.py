@@ -95,8 +95,20 @@ def cmd_index(cfg: Config, args) -> int:
 
 def cmd_ask(cfg: Config, args) -> int:
     from .rag import ask
-    result = ask(cfg, args.question, k=args.k,
-                 mode=getattr(args, "mode", "ask"))
+    mode = getattr(args, "mode", "ask")
+    extra = None
+    if mode == "meeting" and getattr(args, "drilldown", False):
+        mode = "drilldown"
+        from .diffengine import analyze_offtake, format_drilldown_context
+        report = analyze_offtake(cfg)
+        if report:
+            extra = format_drilldown_context(cfg, report)
+        else:
+            print("[note] drill-down tables unavailable: need at least two "
+                  "months in Offtake_Monthly", file=sys.stderr)
+    result = ask(cfg, args.question, k=args.k, mode=mode, extra_context=extra)
+    if extra and not result["answer"]:
+        print(extra + "\n")   # no local LLM — surface the computed tables raw
     if args.json:
         print(json.dumps(result, indent=2))
         return 0
@@ -218,14 +230,28 @@ def cmd_find(cfg: Config, args) -> int:
 def cmd_place(cfg: Config, args) -> int:
     from .catalog import suggest_placement
     s = suggest_placement(args.filename)
-    if s["folder"]:
-        print(f"file:    {s['file']}\nfolder:  {s['folder']}\n"
-              f"naming:  {s['naming']}\nthen:    {s['then']}")
-        if s["reminder"]:
-            print(f"note:    {s['reminder']}")
-        return 0
-    print(f"no placement rule for {s['file']} — {s['then']}")
-    return 1
+    if not s["folder"]:
+        print(f"no placement rule for {s['file']} — {s['then']}")
+        return 1
+    print(f"file:    {s['file']}\nfolder:  {s['folder']}\n"
+          f"naming:  {s['naming']}\nthen:    {s['then']}")
+    if s["reminder"]:
+        print(f"note:    {s['reminder']}")
+    # Proactive diff engine: newest month vs prior month of the target feed.
+    if "Offtake_Monthly" in s["folder"]:
+        from .diffengine import analyze_offtake, format_exception_report
+        given = Path(args.filename)
+        report = analyze_offtake(cfg, extra_file=given if given.exists() else None)
+        if report:
+            print(format_exception_report(report))
+        else:
+            print("\nProactive Exception Report: skipped — needs at least two "
+                  "monthly files in Offtake_Monthly to compare.")
+    else:
+        print("\nProactive Exception Report: automated MoM comparison currently "
+              "covers the offtake feed; for this feed run the matching SQL "
+              "template after refresh (python -m mtagent sql list).")
+    return 0
 
 
 def cmd_log(cfg: Config, args) -> int:
@@ -305,6 +331,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("question")
     p.add_argument("-k", type=int, default=None)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--drilldown", "--verbose", action="store_true",
+                   dest="drilldown",
+                   help="lift the 120-word limit: top underperforming outlets, "
+                        "sub-category/pack mix deltas, GST/TOT confidence status")
     p.set_defaults(mode="meeting")
 
     for name in ("check-dax", "check-pq"):
