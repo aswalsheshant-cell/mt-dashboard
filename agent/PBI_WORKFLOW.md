@@ -268,11 +268,15 @@ the build and its independent reconciliation together.
 Real output from `pbi build-dataset` against the committed
 `offtake_store_article_May_26.csv` (228,280 rows):
 
-**`Fact_OfftakeSales.csv`**
+**`Fact_OfftakeSales.csv`** (State is part of the grain — the source's
+State column is 100% populated, and per-state anchoring is what the
+account matrix on the Growth Engine's channel page keys on; DC Code, by
+contrast, is only ~5% populated in the real extract, D-Mart rows only,
+so DC is deliberately NOT in the grain):
 ```
-FY,Month,Zone,Chain,EAN,Brand,Category,Sub_Category,NSV,MRP_Sales_Value,Sales_Qty,Store_Count
-FY27,May'26,EAST,Apollo,8904417300659.0,Mamaearth,Baby,Baby Soap,0.0512,8398.0,38.0,34
-FY27,May'26,EAST,Apollo,8904417303308.0,Mamaearth,Face,Lip Balm,0.0414,6972.0,28.0,27
+FY,Month,Zone,State,Chain,EAN,Brand,Category,Sub_Category,NSV,MRP_Sales_Value,Sales_Qty,Store_Count
+FY27,May'26,EAST,Bihar,Apollo,8904417305258.0,Mamaearth,Face,Sun Care,0.013,2394.0,6.0,2
+FY27,May'26,EAST,Bihar,Apollo,8904417306231.0,The Derma Co.,Face,Sun Care,0.0456,7689.0,11.0,8
 ```
 
 **`Mapping_Exception_Report.csv`** — the bare `Reliance` label that an

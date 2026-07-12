@@ -118,9 +118,10 @@ class TestBuildDatasetSyntheticFixture(unittest.TestCase):
         out_dir = self.cfg.root() / result["output_file"]
         with open(out_dir / "Fact_OfftakeSales.csv", newline="", encoding="utf-8") as fh:
             fact_rows = list(csv.DictReader(fh))
-        self.assertEqual(len(fact_rows), 1)  # both rows share (FY, Month, Zone, Chain, EAN, ...)
+        self.assertEqual(len(fact_rows), 1)  # both rows share (FY, Month, Zone, State, Chain, EAN, ...)
         self.assertAlmostEqual(float(fact_rows[0]["NSV"]), 23.5, places=4)
         self.assertEqual(fact_rows[0]["Chain"], "D-Mart")  # mapped via ChainMaster.Account
+        self.assertEqual(fact_rows[0]["State"], "Maharashtra")  # regional anchor for the account matrix
         self.assertEqual(fact_rows[0]["Store_Count"], "2")
 
         with open(out_dir / "Source_Reconciliation_Report.csv", newline="", encoding="utf-8") as fh:

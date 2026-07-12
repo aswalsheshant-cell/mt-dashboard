@@ -1,0 +1,258 @@
+// =====================================================================
+// GROWTH ENGINE MEASURES — add to the same "_Measures" table.
+// Companion to docs/GrowthEngine_BuildGuide.md (4-page executive build).
+// Every division uses DIVIDE(). Nothing here duplicates 00–13 — this file
+// only adds: true store productivity, target achievement, leakage
+// diagnostics, returns/anomaly support, and the GATED NPI / visibility
+// suites (sections D & E need source files that are not committed yet —
+// paste those sections ONLY after loading their tables, see each header).
+//
+// Display folder convention (set in Model view after pasting):
+//   A → "Growth Engine\Store Productivity"
+//   B → "Growth Engine\Target"
+//   C → "Growth Engine\Leakage"
+//   D → "Growth Engine\NPI"        (gated)
+//   E → "Growth Engine\Visibility" (gated)
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// A. TRUE STORE PRODUCTIVITY
+// The ingest pipeline retains rows whose Site Code is blank (May'26:
+// 9,426 rows ≈ 27% of NSV) under an explicit "(blank)" bucket instead of
+// dropping them. These rows keep NSV totals honest but MUST NOT count as
+// stores or inflate per-store productivity — so every store-base measure
+// here excludes both "" and "(blank)".
+// ---------------------------------------------------------------------
+
+Active Stores =
+CALCULATE (
+    DISTINCTCOUNT ( 'Fact Offtake Sales'[Site Code] ),
+    'Fact Offtake Sales'[Site Code] <> "",
+    'Fact Offtake Sales'[Site Code] <> "(blank)"
+)
+// format: #,##0
+
+Assigned NSV =
+// NSV attributable to a real store — the correct productivity numerator.
+CALCULATE (
+    [NSV],
+    'Fact Offtake Sales'[Site Code] <> "",
+    'Fact Offtake Sales'[Site Code] <> "(blank)"
+)
+// format: #,##0.00
+
+Store Productivity =
+// NSV per active selling store. Blank-site NSV is excluded from the
+// numerator too (it cannot be attributed to any store), so this is the
+// honest per-store number, not a diluted or inflated one.
+DIVIDE ( [Assigned NSV], [Active Stores] )
+// format: #,##0.00
+
+Store Productivity (Lacs) =
+DIVIDE ( [Store Productivity], 100000 )
+// format: #,##0.00
+
+Zero-Sale Active Stores =
+// stores present in the month file with qty but no NSV — execution flag
+CALCULATE (
+    DISTINCTCOUNT ( 'Fact Offtake Sales'[Site Code] ),
+    'Fact Offtake Sales'[Site Code] <> "",
+    'Fact Offtake Sales'[Site Code] <> "(blank)",
+    'Fact Offtake Sales'[Offtake NSV] = 0,
+    'Fact Offtake Sales'[Offtake Qty] > 0
+)
+// format: #,##0
+
+// ---------------------------------------------------------------------
+// B. TARGET ACHIEVEMENT (vs SeedData/Targets/FY2627_Targets.csv, loaded
+// as the 'Targets' table — May'26 target = ₹38.0052 Cr. [TY Target] is
+// defined in 03_Forecast_Measures.dax; these build on it, not replace it.)
+// ---------------------------------------------------------------------
+
+Target Achievement % =
+DIVIDE ( [NSV], [TY Target] )
+// format: 0.0%  — in a month-filtered visual this is month achievement;
+// on an unfiltered card it is FY-to-date NSV vs full-FY target, so pair
+// it with [YTD Target Achievement %] below for the honest YTD read.
+
+YTD Target =
+CALCULATE ( [TY Target], DATESYTD ( 'Date Table'[Date], "31/3" ) )
+// format: #,##0
+
+YTD Target Achievement % =
+DIVIDE (
+    CALCULATE ( [NSV], DATESYTD ( 'Date Table'[Date], "31/3" ) ),
+    [YTD Target]
+)
+// format: 0.0%
+
+Target Gap Value =
+[NSV] - [TY Target]
+// format: #,##0;(#,##0)  — negative = shortfall against plan
+
+Target Gap Label =
+VAR _gap = [Target Gap Value]
+RETURN
+    IF (
+        _gap >= 0,
+        "+" & FORMAT ( DIVIDE ( _gap, 10000000 ), "0.00" ) & " Cr ahead of plan",
+        FORMAT ( DIVIDE ( _gap, 10000000 ), "0.00" ) & " Cr behind plan"
+    )
+
+// ---------------------------------------------------------------------
+// C. REVENUE LEAKAGE & EXCEPTION DIAGNOSTICS (Page 4)
+// "Leakage" here = revenue that IS in the total but cannot be acted on
+// at store/account level because the source extract left keys blank or
+// unmapped. It is never hidden and never dropped — these measures put a
+// rupee value on it so the fix lands on the source system, not the BI.
+// ---------------------------------------------------------------------
+
+Blank Site NSV =
+CALCULATE (
+    [NSV],
+    'Fact Offtake Sales'[Site Code] IN { "", "(blank)" }
+)
+// format: #,##0.00   (May'26 actual: ≈ ₹1,220 L — 27.04% of month NSV)
+
+Blank Site NSV % =
+DIVIDE ( [Blank Site NSV], [NSV] )
+// format: 0.0%
+
+Unmapped Chain NSV =
+CALCULATE (
+    [NSV],
+    FILTER (
+        VALUES ( 'Fact Offtake Sales'[Chain] ),
+        LEFT ( 'Fact Offtake Sales'[Chain], 9 ) = "UNMAPPED:"
+    )
+)
+// format: #,##0.00   (May'26 actual: 0 after ChainAliases.csv mapping)
+
+Leakage NSV Total =
+[Blank Site NSV] + [Unmapped Chain NSV]
+// format: #,##0.00
+
+Leakage % of NSV =
+DIVIDE ( [Leakage NSV Total], [NSV] )
+// format: 0.0%
+
+Leakage Severity =
+// mirrors the pipeline's Outlier_Report severity bands for NSV share
+VAR _pct = [Leakage % of NSV] * 100
+RETURN
+    SWITCH (
+        TRUE (),
+        _pct <= 0,  "Passed",
+        _pct > 10,  "High",
+        _pct > 2,   "Medium",
+        "Low"
+    )
+
+Returns NSV =
+CALCULATE ( [NSV], 'Fact Offtake Sales'[Offtake NSV] < 0 )
+// format: #,##0.00;(#,##0.00)   (May'26 actual: 11 rows, ≈ −₹0.02 L)
+
+Returns Rows =
+CALCULATE (
+    COUNTROWS ( 'Fact Offtake Sales' ),
+    'Fact Offtake Sales'[Offtake NSV] < 0
+)
+// format: #,##0
+
+Return Rate % =
+DIVIDE ( ABS ( [Returns NSV] ), [NSV] + ABS ( [Returns NSV] ) )
+// format: 0.00%
+
+// ---------------------------------------------------------------------
+// D. NPI ACCELERATOR — GATED. Requires SeedData/Masters/NPI_List.csv
+// (columns: Article or EAN; the offline agent's diff engine already
+// reads this exact file). That file is NOT committed yet — load it as
+// table 'NPI List' and relate NPI List[EAN] → Dim/Fact EAN (or resolve
+// via TREATAS as below, which needs no relationship). Do NOT paste this
+// section before the table exists. The run-rate threshold is read from
+// a one-cell 'NPI Run Rate Target' table (Enter Data: column
+// [Target NSV Lacs]) — enter the leadership figure there; nothing is
+// hardcoded here because no committed source carries it yet.
+// ---------------------------------------------------------------------
+
+NPI NSV =
+CALCULATE (
+    [NSV],
+    TREATAS ( VALUES ( 'NPI List'[EAN] ), 'Fact Offtake Sales'[EAN] )
+)
+// format: #,##0.00
+
+NPI NSV (Lacs) =
+DIVIDE ( [NPI NSV], 100000 )
+// format: #,##0.00
+
+NPI Contribution % =
+DIVIDE ( [NPI NSV], [NSV] )
+// format: 0.0%
+
+NPI Count Selling =
+// how many listed NPIs actually sold this month
+CALCULATE (
+    DISTINCTCOUNT ( 'Fact Offtake Sales'[EAN] ),
+    TREATAS ( VALUES ( 'NPI List'[EAN] ), 'Fact Offtake Sales'[EAN] ),
+    'Fact Offtake Sales'[Offtake NSV] > 0
+)
+// format: #,##0
+
+NPI Run Rate Target (Lacs) =
+MIN ( 'NPI Run Rate Target'[Target NSV Lacs] )
+// format: #,##0.00
+
+NPI Run Rate Achievement % =
+DIVIDE ( [NPI NSV (Lacs)], [NPI Run Rate Target (Lacs)] )
+// format: 0.0%
+
+NPI Zero-Sale List =
+// names the listed NPIs with no sales in the visible month — the action list
+CONCATENATEX (
+    FILTER (
+        VALUES ( 'NPI List'[EAN] ),
+        CALCULATE (
+            [NSV],
+            TREATAS ( { 'NPI List'[EAN] }, 'Fact Offtake Sales'[EAN] )
+        ) = 0
+    ),
+    'NPI List'[EAN],
+    ", "
+)
+
+// ---------------------------------------------------------------------
+// E. VISIBILITY — SOA / SOS / SOV — GATED. No committed source carries
+// shelf-availability, shelf-share, or voice-share data (TDP/ACV in
+// 05_TDP_Measures.dax and Nielsen in 04_Nielsen_Measures.dax are the
+// closest committed proxies — use them until this lands). Requires a
+// monthly 'Visibility Tracker' table (schema in the Build Guide §6):
+// Month, Chain, Store Code, Metric ∈ {SOA, SOS, SOV}, Numerator,
+// Denominator, Campaign. Do NOT paste before that table exists.
+// ---------------------------------------------------------------------
+
+SOA % =
+VAR _num = CALCULATE ( SUM ( 'Visibility Tracker'[Numerator] ), 'Visibility Tracker'[Metric] = "SOA" )
+VAR _den = CALCULATE ( SUM ( 'Visibility Tracker'[Denominator] ), 'Visibility Tracker'[Metric] = "SOA" )
+RETURN DIVIDE ( _num, _den )
+// format: 0.0%
+
+SOS % =
+VAR _num = CALCULATE ( SUM ( 'Visibility Tracker'[Numerator] ), 'Visibility Tracker'[Metric] = "SOS" )
+VAR _den = CALCULATE ( SUM ( 'Visibility Tracker'[Denominator] ), 'Visibility Tracker'[Metric] = "SOS" )
+RETURN DIVIDE ( _num, _den )
+// format: 0.0%
+
+SOV % =
+VAR _num = CALCULATE ( SUM ( 'Visibility Tracker'[Numerator] ), 'Visibility Tracker'[Metric] = "SOV" )
+VAR _den = CALCULATE ( SUM ( 'Visibility Tracker'[Denominator] ), 'Visibility Tracker'[Metric] = "SOV" )
+RETURN DIVIDE ( _num, _den )
+// format: 0.0%
+
+Campaign NSV Lift % =
+// selected-campaign months vs the L3M baseline immediately before them —
+// slice by 'Visibility Tracker'[Campaign] to read ROI per campaign
+VAR _campaignNSV = [NSV]
+VAR _baseline = [L3M Average Sales]
+RETURN DIVIDE ( _campaignNSV - _baseline, _baseline )
+// format: +0.0%;-0.0%

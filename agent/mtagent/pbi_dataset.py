@@ -266,6 +266,7 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
             ean = row[idx["EAN"]].strip()
             chain_raw = row[idx["Chain Name"]].strip()
             zone = row[idx["Zone"]].strip().upper()
+            state = row[idx["State"]].strip().title() or BLANK_BUCKET
 
             # Retain-and-route: a blank key never drops the row -- it is
             # bucketed explicitly and reported, so Fact still reconciles.
@@ -321,7 +322,7 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
                 category = article_row["Category"]
                 sub_category = article_row["Sub-category"]
 
-            fact_key = (fy_tag, label, zone, chain_out, ean, brand, category, sub_category)
+            fact_key = (fy_tag, label, zone, state, chain_out, ean, brand, category, sub_category)
             f = fact[fact_key]
             f["NSV"] += nsv
             f["MRP_Sales_Value"] += mrp_val
@@ -346,10 +347,10 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
     fact_path = out_dir / "Fact_OfftakeSales.csv"
     with open(fact_path, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["FY", "Month", "Zone", "Chain", "EAN", "Brand", "Category",
+        w.writerow(["FY", "Month", "Zone", "State", "Chain", "EAN", "Brand", "Category",
                     "Sub_Category", "NSV", "MRP_Sales_Value", "Sales_Qty", "Store_Count"])
-        for (fy, mon, zone, chain, ean, brand, cat, subcat), v in sorted(fact.items()):
-            w.writerow([fy, mon, zone, chain, ean, brand, cat, subcat,
+        for (fy, mon, zone, state, chain, ean, brand, cat, subcat), v in sorted(fact.items()):
+            w.writerow([fy, mon, zone, state, chain, ean, brand, cat, subcat,
                         round(v["NSV"], 4), round(v["MRP_Sales_Value"], 2),
                         round(v["Sales_Qty"], 2), len(v["sites"])])
 
@@ -367,12 +368,12 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
     sandbox_nsv = 0.0
     with open(sandbox_path, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["FY", "Month", "Zone", "Chain", "EAN", "Brand", "Category",
+        w.writerow(["FY", "Month", "Zone", "State", "Chain", "EAN", "Brand", "Category",
                     "Sub_Category", "NSV", "MRP_Sales_Value", "Sales_Qty", "Store_Count"])
-        for (fy, mon, zone, chain, ean, brand, cat, subcat), v in sorted(fact.items()):
+        for (fy, mon, zone, state, chain, ean, brand, cat, subcat), v in sorted(fact.items()):
             if ean == BLANK_BUCKET or _norm_key(ean) not in article_master:
                 continue
-            w.writerow([fy, mon, zone, chain, ean, brand, cat, subcat,
+            w.writerow([fy, mon, zone, state, chain, ean, brand, cat, subcat,
                         round(v["NSV"], 4), round(v["MRP_Sales_Value"], 2),
                         round(v["Sales_Qty"], 2), len(v["sites"])])
             sandbox_rows += 1
@@ -436,7 +437,7 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
     article_nsv = defaultdict(float)          # ean -> total NSV
     article_category = {}                     # ean -> category (last seen)
     chain_nsv = defaultdict(float)
-    for (fy, mon, zone, chain, ean, brand, cat, subcat), v in fact.items():
+    for (fy, mon, zone, state, chain, ean, brand, cat, subcat), v in fact.items():
         pivot_chain_cat[chain][cat] += v["NSV"]
         pivot_zone_brand[zone][brand] += v["NSV"]
         chain_nsv[chain] += v["NSV"]
