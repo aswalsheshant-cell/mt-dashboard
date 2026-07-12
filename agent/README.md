@@ -128,6 +128,7 @@ python -m mtagent check                   # lint + live data-quality sweep
 | `place <filename>` | *where does this new file go?* — target folder, naming rule, the exact refresh command, **plus the Proactive Exception Report**: newest vs prior offtake month — (1) Zone/Chain-DC NSV drops beyond the threshold (default 10% MoM, `mom_drop_threshold_pct`), (2) NPI zero-sales / zero-store-availability tracking (drop `PowerBI/SeedData/Masters/NPI_List.csv` for the real list; a labelled prior-month proxy is used otherwise), (3) operational gaps — stores that billed last cycle but have zero records now, with NSV at risk |
 | `log [--tail N]` | audit trail: every command run is logged to `agent/index/worklog.jsonl` (timestamp, args, exit status) |
 | `eval` | golden-QA retrieval eval + validator regression checks + template execution |
+| `pbi <command>` | **Power BI Workflow Controller** (Module 2) — stateful, resumable dashboard-build pipeline. See [`agent/PBI_WORKFLOW.md`](PBI_WORKFLOW.md) for the full command reference, sample config/output, and what remains manual inside Power BI Desktop |
 
 ### Analyst persona & business rules
 
@@ -220,10 +221,15 @@ Two layers, both offline:
    `08_ForecastQC_Measures.dax` and `09_ArticleAllocation_Eligibility.dax`),
    and render/execute of every SQL template.
 2. **`python -m unittest discover -s agent/tests`** (or `pytest agent/tests`)
-   — 63 unit tests: FY-rule pinning (incl. Python↔SQL-macro parity),
-   lexer/balance/definition extraction, each lint code positive+negative,
-   metadata parsers, chunker regressions, index round-trip, golden retrieval
-   bar. DuckDB-execution tests self-skip where duckdb isn't installed.
+   — 146 unit + integration tests: FY-rule pinning (incl. Python↔SQL-macro
+   parity), lexer/balance/definition extraction, each lint code
+   positive+negative, metadata parsers, chunker regressions, index
+   round-trip, golden retrieval bar, and the Power BI Workflow Controller
+   (state machine, evidence validation, dataset build against both
+   synthetic fixtures and the real committed offtake CSV, DAX gap
+   coverage, source-to-model reconciliation, full CLI wiring — see
+   [`agent/PBI_WORKFLOW.md`](PBI_WORKFLOW.md)). DuckDB-execution tests
+   self-skip where duckdb isn't installed.
 
 ## Repo etiquette
 

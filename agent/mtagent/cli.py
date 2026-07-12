@@ -18,6 +18,14 @@
     python -m mtagent place offtake_Jun_26.csv # where does this file go?
     python -m mtagent log [--tail N]           # work-log audit trail
     python -m mtagent eval
+    python -m mtagent pbi list                 # Power BI workflow controller (Module 2)
+    python -m mtagent pbi build-dataset
+    python -m mtagent pbi generate-dax
+    python -m mtagent pbi reconcile-model --source <csv> --build-dir <agent/pbi_build/...>
+    python -m mtagent pbi status
+    python -m mtagent pbi next-manual-step
+    python -m mtagent pbi resume
+    python -m mtagent pbi mark-complete --step-id <id> --evidence-kind screenshot --evidence <path>
 """
 from __future__ import annotations
 
@@ -309,6 +317,35 @@ def cmd_eval(cfg: Config, args) -> int:
     return run_eval(cfg, k=args.k)
 
 
+def cmd_pbi(cfg: Config, args) -> int:
+    from . import pbi_commands  # noqa: F401 -- import populates the registry
+    from .pbi_registry import get_command, list_commands
+    from .pbi_workflow import WorkflowController
+
+    if args.pbi_cmd == "list":
+        for c in list_commands():
+            print(f"{c.name:20s} [{c.classification:9s}] {c.description}")
+        return 0
+
+    controller = WorkflowController(cfg)
+    kwargs = {k: v for k, v in vars(args).items()
+              if k not in ("cmd", "pbi_cmd", "json") and v is not None}
+    try:
+        spec = get_command(args.pbi_cmd)
+        result = spec.handler(cfg, controller, **kwargs)
+    except (KeyError, ValueError) as e:
+        print(f"pbi {args.pbi_cmd}: {e}", file=sys.stderr)
+        return 2
+
+    if getattr(args, "json", False):
+        print(json.dumps(result, indent=2, default=str))
+    else:
+        for k, v in result.items():
+            print(f"{k}: {v}")
+    status = str(result.get("status", ""))
+    return 1 if status in ("Failed", "Blocked") else 0
+
+
 # ---------------------------------------------------------------- parser
 
 def build_parser() -> argparse.ArgumentParser:
@@ -383,6 +420,42 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("eval", help="golden-QA retrieval eval + validator self-checks")
     p.add_argument("--k", type=int, default=3, help="hit@k cutoff")
+
+    p = sub.add_parser("pbi", help="Power BI workflow controller (Module 2)")
+    pbi_sub = p.add_subparsers(dest="pbi_cmd", required=True)
+
+    pbi_sub.add_parser("list", help="list every registered pbi command")
+
+    pb = pbi_sub.add_parser("build-dataset", help="build the PBI-ready dataset from the latest offtake files")
+    pb.add_argument("--raw-dir", help="override PowerBI/RawDataFolders/Offtake_Monthly")
+    pb.add_argument("--masters-dir", help="override PowerBI/SeedData/Masters")
+    pb.add_argument("--json", action="store_true")
+
+    pd = pbi_sub.add_parser("generate-dax", help="audit PowerBI/DAX/ coverage + generate a gap library")
+    pd.add_argument("--dax-dir", help="override PowerBI/DAX")
+    pd.add_argument("--json", action="store_true")
+
+    pr = pbi_sub.add_parser("reconcile-model", help="source-to-model reconciliation")
+    pr.add_argument("--source", required=True, help="original offtake CSV")
+    pr.add_argument("--build-dir", required=True, help="agent/pbi_build/<build_id> from build-dataset")
+    pr.add_argument("--json", action="store_true")
+
+    ps = pbi_sub.add_parser("status", help="show dashboard build status")
+    ps.add_argument("--json", action="store_true")
+
+    pn = pbi_sub.add_parser("next-manual-step", help="show only the next manual Power BI step")
+    pn.add_argument("--json", action="store_true")
+
+    pres = pbi_sub.add_parser("resume", help="resume from the last completed step")
+    pres.add_argument("--json", action="store_true")
+
+    pm = pbi_sub.add_parser("mark-complete", help="mark a step complete (requires evidence)")
+    pm.add_argument("--step-id", required=True)
+    pm.add_argument("--evidence-kind", required=True,
+                     choices=("screenshot", "metadata_export", "query_output", "file_output", "user_confirmation"))
+    pm.add_argument("--evidence", required=True)
+    pm.add_argument("--json", action="store_true")
+
     return ap
 
 
@@ -401,7 +474,7 @@ def main(argv: list | None = None) -> int:
         "check": cmd_check, "qc": cmd_qc, "reconcile": cmd_reconcile,
         "catalog": cmd_catalog, "find": cmd_find, "place": cmd_place,
         "log": cmd_log, "db-build": cmd_db_build, "sql": cmd_sql,
-        "eval": cmd_eval,
+        "eval": cmd_eval, "pbi": cmd_pbi,
     }
     notes: list[str] = []
     try:

@@ -13,6 +13,7 @@ primary_article.xlsb
 
 # Offline agent (agent/) — generated artifacts and local-only metadata exports
 agent/index/
+agent/pbi_build/
 *.duckdb
 agent/metadata/*
 !agent/metadata/README.md
