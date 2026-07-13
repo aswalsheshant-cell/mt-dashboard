@@ -228,11 +228,11 @@ alone — the lift measure compares campaign months to their own L3M baseline.
 Base: `PageLayouts.md` Page 6 (Brand & Category) + Page 7 (SKU/Article).
 
 **Assortment visuals:** Sub-category decomposition tree (`NSV` by Category →
-Sub_Category → Brand); pack-size distribution needs `Dim_Article[Pack Size]`
-— on the 13-SKU seed master this covers almost nothing (529 real articles,
-~0 mapped), so the visual ships dimmed with the caption "awaiting production
-article master" until a real `ArticleMaster.csv` is dropped into
-`RawDataFolders/Masters/` (the pipeline picks it up automatically, per-file).
+Sub_Category → Brand); pack-size distribution uses `Dim_Article[Pack Size]`
+— fully populated now: article mapping is 100% via the data-derived
+`RawDataFolders/Masters/ArticleMaster.csv` (569 EANs consolidated
+cross-chain by `derive-article-master`, zero Brand/Category conflicts; a
+future production export dropped into the same path replaces it per-file).
 SKU velocity: bar of `NSV` by `EAN`, tooltip `Sales Qty`, flag the 13
 z-score hero SKUs from `Outlier_Report.csv` (top: 8904417314298 Face
 z=9.66) — concentration risk, not an error.

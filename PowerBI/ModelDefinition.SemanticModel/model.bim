@@ -525,6 +525,11 @@
             "name": "Active",
             "dataType": "string",
             "sourceColumn": "Active"
+          },
+          {
+            "name": "No Store Grain",
+            "dataType": "string",
+            "sourceColumn": "No Store Grain"
           }
         ],
         "partitions": [

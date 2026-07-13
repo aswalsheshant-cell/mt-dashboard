@@ -399,9 +399,10 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
     dim_chain_path = out_dir / "Dim_Chain.csv"
     with open(dim_chain_path, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["Chain", "Account", "Chain Type", "Primary Zone", "Active"])
+        w.writerow(["Chain", "Account", "Chain Type", "Primary Zone", "Active", "No Store Grain"])
         for row in chain_master.values():
-            w.writerow([row["Chain"], row["Account"], row["Chain Type"], row["Primary Zone"], row["Active"]])
+            w.writerow([row["Chain"], row["Account"], row["Chain Type"], row["Primary Zone"],
+                        row["Active"], row.get("No Store Grain", "")])
 
     dim_article_path = out_dir / "Dim_Article.csv"
     with open(dim_article_path, "w", newline="", encoding="utf-8") as fh:
@@ -421,15 +422,23 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
         for chain, d in sorted(alias_mapped_chains.items(), key=lambda kv: -kv[1]["nsv"]):
             w.writerow(["alias_mapped_chain", chain, d["count"], round(d["nsv"], 2),
                         f"auto-mapped to '{d['canonical']}' via ChainAliases.csv -- verify once"])
-        # blank Site Code is broken down PER CHAIN: the two dominant
-        # contributors have opposite resolutions (Reliance's zone/state
-        # report has no store grain by design -- analyze at Zone x State;
-        # FSN's extract is article-grain only -- analyze at EAN), so an
-        # aggregate row would hide exactly the routing decision that matters.
+        # blank Site Code is broken down PER CHAIN, and each chain's row says
+        # whether its missing store grain is STRUCTURAL (ChainMaster's
+        # "No Store Grain" = Yes, business-confirmed: that chain's extract
+        # never carries store codes -- analyze at the grain it supports) or
+        # a fixable defect to chase at the source system.
+        def _is_structural(chain_raw_name: str) -> bool:
+            key = _norm_key(chain_raw_name)
+            row = chain_master.get(key) or alias_lookup.get(key)
+            return bool(row) and row.get("No Store Grain", "").strip().lower() == "yes"
+
         for chain, d in sorted(blank_site_by_chain.items(), key=lambda kv: -kv[1]["nsv"]):
-            w.writerow(["blank_site_code", chain, d["count"], round(d["nsv"], 2),
-                        "rows RETAINED in Fact under the (blank) site bucket -- store grain "
-                        "missing in this chain's extract; analyze at the grain the chain supports"])
+            resolution = ("STRUCTURAL -- this chain's extract has no store grain by design "
+                          "(ChainMaster: No Store Grain=Yes); analyze at zone/state or EAN, never store"
+                          if _is_structural(chain) else
+                          "rows RETAINED in Fact under the (blank) site bucket -- fixable defect, "
+                          "chase store codes in this chain's source extract")
+            w.writerow(["blank_site_code", chain, d["count"], round(d["nsv"], 2), resolution])
         for field in ("EAN", "Chain Name"):
             d = retained_blank[field]
             if d["count"]:
@@ -488,12 +497,25 @@ def build_dataset(cfg: Config, raw_dir: Path | None = None, masters_dir: Path | 
         "note": "NSV sitting in UNMAPPED buckets -- extend ChainMaster.csv or ChainAliases.csv",
     })
 
-    blank_site_share = 100 * retained_blank["Site Code"]["nsv"] / fact_nsv_total if fact_nsv_total else 0.0
+    structural_nsv = sum(d["nsv"] for c, d in blank_site_by_chain.items() if _is_structural(c))
+    structural_rows = sum(d["count"] for c, d in blank_site_by_chain.items() if _is_structural(c))
+    fixable_nsv = round(retained_blank["Site Code"]["nsv"] - structural_nsv, 6)  # kill float residue
+    fixable_rows = retained_blank["Site Code"]["count"] - structural_rows
+    fixable_share = 100 * fixable_nsv / fact_nsv_total if fact_nsv_total else 0.0
+    structural_share = 100 * structural_nsv / fact_nsv_total if fact_nsv_total else 0.0
     outlier_rows.append({
-        "severity": _nsv_share_severity(blank_site_share), "check": "blank_site_code_nsv_share",
-        "entity": f"{retained_blank['Site Code']['count']} row(s)",
-        "value": f"{round(blank_site_share, 2)}% of NSV",
-        "note": "rows retained under the (blank) site bucket; store-level analyses undercount until fixed at source",
+        "severity": _nsv_share_severity(fixable_share), "check": "blank_site_code_nsv_share",
+        "entity": f"{fixable_rows} row(s)",
+        "value": f"{round(fixable_share, 2)}% of NSV",
+        "note": "FIXABLE blank-site rows (chains without ChainMaster No Store Grain=Yes); "
+                "chase store codes at the source system",
+    })
+    outlier_rows.append({
+        "severity": "Low" if structural_nsv else "Passed", "check": "blank_site_code_nsv_share_structural",
+        "entity": f"{structural_rows} row(s)",
+        "value": f"{round(structural_share, 2)}% of NSV",
+        "note": "STRUCTURAL no-store-grain chains (business-confirmed reporting formats, e.g. "
+                "Reliance zone/state report, FSN article feed); analyzed at zone/state or EAN by design",
     })
 
     neg_chains = sorted((c for c, v in chain_nsv.items() if v < 0), key=lambda c: chain_nsv[c])

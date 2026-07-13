@@ -461,6 +461,11 @@ def build_parser() -> argparse.ArgumentParser:
     ps = pbi_sub.add_parser("status", help="show dashboard build status")
     ps.add_argument("--json", action="store_true")
 
+    pam = pbi_sub.add_parser("derive-article-master", help="derive ArticleMaster.csv from the "
+                                                            "offtake data (cross-chain EAN consolidation)")
+    pam.add_argument("--raw-dir", help="override PowerBI/RawDataFolders/Offtake_Monthly")
+    pam.add_argument("--json", action="store_true")
+
     pcm = pbi_sub.add_parser("compile-model", help="compile the .pbip semantic model "
                                                     "(bindings + relationships + gated DAX) programmatically")
     pcm.add_argument("--build-dir", help="agent/pbi_build/<id> to bind (default: latest)")

@@ -68,7 +68,7 @@ _FACT_COLUMNS = [
 _DIM_DATE_COLUMNS = [("FY", "string"), ("Month", "string"), ("MonthNo", "int64"), ("Quarter", "string")]
 _CHAIN_MASTER_COLUMNS = [("Account", "string"), ("Chain Count", "int64"), ("Chains", "string")]
 _CHAIN_DETAIL_COLUMNS = [("Chain", "string"), ("Account", "string"), ("Chain Type", "string"),
-                          ("Primary Zone", "string"), ("Active", "string")]
+                          ("Primary Zone", "string"), ("Active", "string"), ("No Store Grain", "string")]
 _ARTICLE_COLUMNS = [("Article Code", "string"), ("Article Description", "string"),
                      ("EAN Code", "string"), ("Brand", "string"), ("Category", "string"),
                      ("Sub-category", "string"), ("Range", "string"), ("Pack Size", "string")]

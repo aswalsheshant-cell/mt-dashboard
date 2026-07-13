@@ -316,7 +316,28 @@ class TestBuildDatasetSyntheticFixture(unittest.TestCase):
         out_dir = self.cfg.root() / result["output_file"]
         with open(out_dir / "Outlier_Report.csv", newline="", encoding="utf-8") as fh:
             outliers = {r["check"]: r for r in csv.DictReader(fh)}
+        # D-Mart is NOT flagged No Store Grain -> its blank sites are FIXABLE -> High
         self.assertEqual(outliers["blank_site_code_nsv_share"]["severity"], "High")
+        self.assertEqual(outliers["blank_site_code_nsv_share_structural"]["severity"], "Passed")
+
+    def test_structural_no_store_grain_chain_is_low_not_high(self):
+        # flag D-Mart as a business-confirmed no-store-grain chain -> its blank
+        # sites move to the STRUCTURAL check (Low) and the fixable check passes
+        with open(self.masters_dir / "ChainMaster.csv", "w", newline="", encoding="utf-8") as fh:
+            w = csv.writer(fh)
+            w.writerow(["Chain", "Account", "Chain Type", "Primary Zone", "Active", "No Store Grain"])
+            w.writerow(["D-Mart", "D-Mart", "Hypermarket", "West", "Yes", "Yes"])
+        rows = [_row(NSV="1.0"), _row(**{"Site Code": "", "NSV": "9.0"})]
+        _write_offtake(self.raw_dir / "offtake_store_article_May_26.csv", rows)
+        result = build_dataset(self.cfg, self.raw_dir, self.masters_dir)
+        out_dir = self.cfg.root() / result["output_file"]
+        with open(out_dir / "Outlier_Report.csv", newline="", encoding="utf-8") as fh:
+            outliers = {r["check"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(outliers["blank_site_code_nsv_share"]["severity"], "Passed")
+        self.assertEqual(outliers["blank_site_code_nsv_share_structural"]["severity"], "Low")
+        with open(out_dir / "Mapping_Exception_Report.csv", newline="", encoding="utf-8") as fh:
+            exc = [e for e in csv.DictReader(fh) if e["exception_type"] == "blank_site_code"]
+        self.assertIn("STRUCTURAL", exc[0]["resolution"])
 
     def test_never_writes_to_the_source_file(self):
         source_path = self.raw_dir / "offtake_store_article_May_26.csv"

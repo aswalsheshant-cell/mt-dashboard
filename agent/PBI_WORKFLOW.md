@@ -61,6 +61,7 @@ python -m mtagent pbi generate-dax [--dax-dir D]
 python -m mtagent pbi reconcile-model --source <csv> --build-dir <agent/pbi_build/...> [--masters-dir D]
 python -m mtagent pbi run-automated [--raw-dir D] [--masters-dir D] [--dax-dir D]
 python -m mtagent pbi generate-power-query | generate-page-blueprint | generate-theme | generate-docs | prepare-build-package
+python -m mtagent pbi derive-article-master [--raw-dir D]   # ArticleMaster from the offtake data itself (cross-chain EAN consolidation)
 python -m mtagent pbi compile-model [--build-dir agent/pbi_build/<id>]   # programmatic .pbip -- automates step 11's model half
 python -m mtagent pbi status [--json]
 python -m mtagent pbi start-manual-step [--json]
@@ -357,13 +358,24 @@ distinct_chains,24,24,0,0.0,PASS
 chain_total:Reliance,1493.7701,1493.7705,-0.0004,0.0,PASS
 ```
 
-Article-level dimension mapping still mostly misses because
-`ArticleMaster.csv` is a 13-row *seed* master (not the production article
-master) — expected until the real master is supplied (via `--masters-dir`,
-or dropped into `PowerBI/RawDataFolders/Masters/` — see
-[Production drop-in](#production-drop-in-for-masters-no-codeconfig-change));
-the Fact carries the source file's own Brand/Category for those rows, so
-no numbers are lost.
+Article mapping is now **100%**: `derive-article-master` consolidated 569
+articles from the offtake data itself (cross-chain EAN consolidation across
+Apr'26+May'26, 450,077 rows, ZERO Brand/Category conflicts between chains —
+business-approved rule: the same EAN under different chains is the same
+article) into `PowerBI/RawDataFolders/Masters/ArticleMaster.csv`, which the
+per-file production drop-in resolution picks up automatically. A future real
+production export dropped into the same path simply replaces it. The
+sandbox model consequently covers 100% of NSV. Any cross-chain
+disagreement on a material field (Brand/Category) would have been listed in
+`Article_Conflict_Report.csv` for human adjudication rather than silently
+majority-resolved.
+
+Blank-site severity is likewise now split: chains business-confirmed as
+**structural** no-store-grain formats (`ChainMaster.csv` `No Store Grain`
+= Yes: Reliance zone/state report, FSN article feed, plus 8 small chains)
+report under `blank_site_code_nsv_share_structural` (Low — by design,
+analyzed at zone/state or EAN), while the FIXABLE share — currently **0%**
+— keeps the High/Medium escalation bands.
 
 **`pbi run-automated` then `pbi status --json`** (abridged) — real run,
 same May'26 data, every automated step resolved and the sequence stops
