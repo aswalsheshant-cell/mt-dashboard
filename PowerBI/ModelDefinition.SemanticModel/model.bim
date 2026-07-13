@@ -1,0 +1,782 @@
+{
+  "name": "ModelDefinition",
+  "compatibilityLevel": 1550,
+  "model": {
+    "culture": "en-US",
+    "expressions": [
+      {
+        "name": "BuildDir",
+        "kind": "m",
+        "expression": "\"/home/user/mt-dashboard/agent/pbi_build/FY27_May26/\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      },
+      {
+        "name": "RepoDir",
+        "kind": "m",
+        "expression": "\"/home/user/mt-dashboard/\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Fact Offtake Sales",
+        "columns": [
+          {
+            "name": "FY",
+            "dataType": "string",
+            "sourceColumn": "FY"
+          },
+          {
+            "name": "Month",
+            "dataType": "string",
+            "sourceColumn": "Month"
+          },
+          {
+            "name": "Zone",
+            "dataType": "string",
+            "sourceColumn": "Zone"
+          },
+          {
+            "name": "State",
+            "dataType": "string",
+            "sourceColumn": "State"
+          },
+          {
+            "name": "Chain",
+            "dataType": "string",
+            "sourceColumn": "Chain"
+          },
+          {
+            "name": "Counter Type",
+            "dataType": "string",
+            "sourceColumn": "Counter Type"
+          },
+          {
+            "name": "EAN",
+            "dataType": "string",
+            "sourceColumn": "EAN"
+          },
+          {
+            "name": "Brand",
+            "dataType": "string",
+            "sourceColumn": "Brand"
+          },
+          {
+            "name": "Category",
+            "dataType": "string",
+            "sourceColumn": "Category"
+          },
+          {
+            "name": "Sub_Category",
+            "dataType": "string",
+            "sourceColumn": "Sub_Category"
+          },
+          {
+            "name": "Offtake NSV",
+            "dataType": "double",
+            "sourceColumn": "Offtake NSV"
+          },
+          {
+            "name": "MRP Sales",
+            "dataType": "double",
+            "sourceColumn": "MRP Sales"
+          },
+          {
+            "name": "Offtake Qty",
+            "dataType": "double",
+            "sourceColumn": "Offtake Qty"
+          },
+          {
+            "name": "Store_Count",
+            "dataType": "int64",
+            "sourceColumn": "Store_Count"
+          },
+          {
+            "name": "MonthStart",
+            "dataType": "dateTime",
+            "sourceColumn": "MonthStart"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Fact Offtake Sales",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Csv.Document(File.Contents(BuildDir & \"Fact_OfftakeSales.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Renamed = Table.RenameColumns(Promoted, {{\"NSV\", \"Offtake NSV\"}, {\"Sales_Qty\", \"Offtake Qty\"}, {\"MRP_Sales_Value\", \"MRP Sales\"}, {\"Counter_Type\", \"Counter Type\"}}),\n    Typed = Table.TransformColumnTypes(Renamed, {{\"Offtake NSV\", type number}, {\"MRP Sales\", type number}, {\"Offtake Qty\", type number}, {\"Store_Count\", Int64.Type}}),\n    WithMonthStart = Table.AddColumn(Typed, \"MonthStart\", each let m = Text.BeforeDelimiter([Month], \"'\"), y = 2000 + Number.FromText(Text.AfterDelimiter([Month], \"'\")), n = Record.Field([Jan=1, Feb=2, Mar=3, Apr=4, May=5, Jun=6, Jul=7, Aug=8, Sep=9, Oct=10, Nov=11, Dec=12], m) in #date(y, n, 1), type date)\nin\n    WithMonthStart"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Total Offtake NSV",
+            "expression": "SUM ( 'Fact Offtake Sales'[Offtake NSV] )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Total Offtake Qty",
+            "expression": "SUM ( 'Fact Offtake Sales'[Offtake Qty] )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Total MRP Sales",
+            "expression": "SUM ( 'Fact Offtake Sales'[MRP Sales] )\n\n// Headline NSV used by most visuals (Offtake basis). Swap to Primary if needed.",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "NSV",
+            "expression": "[Total Offtake NSV]\n\n// ---------- INDIAN FORMAT HELPERS (display measures) ----------",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "NSV (Cr)",
+            "expression": "DIVIDE ( [NSV], 10000000 )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "NSV (Lacs)",
+            "expression": "DIVIDE ( [NSV], 100000 )\n// Smart label: Cr if >= 1 Cr else Lacs",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "NSV Label",
+            "expression": "VAR v = [NSV]\nRETURN\n    IF (\n        ABS ( v ) >= 10000000,\n        FORMAT ( DIVIDE ( v, 10000000 ), \"0.00\" ) & \" Cr\",\n        FORMAT ( DIVIDE ( v, 100000 ), \"0.0\" ) & \" L\"\n    )\n\n// ---------- TIME INTELLIGENCE (Offtake basis) ----------",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Latest Month Sales",
+            "expression": "VAR _lastDate = MAX ( 'Date Table'[Date] )\nRETURN CALCULATE ( [NSV], 'Date Table'[Date] <= _lastDate )\n// In a month-grain visual [NSV] already = the selected month; the explicit\n// \"latest month\" KPI for cards:",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Latest Month NSV",
+            "expression": "VAR _lm = CALCULATE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), ALL ( 'Date Table' ) )\nRETURN CALCULATE ( [NSV], 'Date Table'[MonthStart] = _lm )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Previous Month NSV",
+            "expression": "CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "MoM Growth %",
+            "expression": "VAR cur = [NSV]\nVAR prev = [Previous Month NSV]\nRETURN DIVIDE ( cur - prev, prev )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Last Year Same Month NSV",
+            "expression": "CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "YoY Growth %",
+            "expression": "DIVIDE ( [NSV] - [Last Year Same Month NSV], [Last Year Same Month NSV] )\n\n// ---------- ROLLING AVERAGES ----------",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "L3M Average Sales",
+            "expression": "VAR _curMonth = MAX ( 'Date Table'[MonthStart] )\nRETURN\n    CALCULATE (\n        DIVIDE ( [NSV], 3 ),\n        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -3, MONTH )\n    )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "L6M Average Sales",
+            "expression": "VAR _curMonth = MAX ( 'Date Table'[MonthStart] )\nRETURN\n    CALCULATE (\n        DIVIDE ( [NSV], 6 ),\n        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -6, MONTH )\n    )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Growth vs L3M %",
+            "expression": "DIVIDE ( [NSV] - [L3M Average Sales], [L3M Average Sales] )\n\n// ---------- CONTRIBUTION & RANK ----------",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "MoM Arrow",
+            "expression": "VAR g = [MoM Growth %]\nRETURN IF ( ISBLANK ( g ), \"\", IF ( g >= 0, \"▲ \", \"▼ \" ) ) & FORMAT ( g, \"0.0%\" )",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "YoY Arrow",
+            "expression": "VAR g = [YoY Growth %]\nRETURN IF ( ISBLANK ( g ), \"\", IF ( g >= 0, \"▲ \", \"▼ \" ) ) & FORMAT ( g, \"0.0%\" )\n\n// Conditional-format colour (use in \"Font color > fx > Field value\")",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Growth Colour",
+            "expression": "SWITCH ( TRUE (),\n    [MoM Growth %] > 0, \"#2D9B7F\",   // teal/green positive\n    [MoM Growth %] < 0, \"#C0392B\",   // red negative\n    \"#7F8C8D\"                        // grey neutral\n)\n\n// ---------- TOP / BOTTOM MOVERS (Executive Summary) ----------",
+            "displayFolder": "01_CoreMeasures"
+          },
+          {
+            "name": "Net Sales",
+            "expression": "[NSV]                                   // NSV = Net Sales Value (offtake)",
+            "displayFolder": "02_PnL_Measures"
+          },
+          {
+            "name": "Gross Sales",
+            "expression": "COALESCE ( [Total MRP Sales], DIVIDE ( [NSV], 1 - 0.0 ) )  // use MRP Sales as gross proxy",
+            "displayFolder": "02_PnL_Measures"
+          },
+          {
+            "name": "TY Target",
+            "expression": "CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = \"26-27\" )",
+            "displayFolder": "03_Forecast_Measures"
+          },
+          {
+            "name": "TY Target (Cr)",
+            "expression": "DIVIDE ( [TY Target], 10000000 )",
+            "displayFolder": "03_Forecast_Measures"
+          },
+          {
+            "name": "FY26 Actual Offtake",
+            "expression": "CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = \"25-26\" )",
+            "displayFolder": "03_Forecast_Measures"
+          },
+          {
+            "name": "FY26 Actual Offtake (Cr)",
+            "expression": "DIVIDE ( [FY26 Actual Offtake], 10000000 )\n\n// ---------- Allocation key = dimension share of FY26 offtake ----------\n// Denominator is the FY26 offtake of the *whole* visible selection, so the\n// shares across the axis sum to 1 and the target is fully distributed.",
+            "displayFolder": "03_Forecast_Measures"
+          },
+          {
+            "name": "Has Actual",
+            "expression": "IF ( [Total Offtake NSV] > 0, TRUE (), FALSE () )",
+            "displayFolder": "03_Forecast_Measures"
+          },
+          {
+            "name": "Actual NSV",
+            "expression": "[Total Offtake NSV]",
+            "displayFolder": "03_Forecast_Measures"
+          },
+          {
+            "name": "Missing Month",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( [MonthStart] ) ) )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Missing Chain",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Chain] ) || 'Fact Offtake Sales'[Chain] = \"\" ) )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Missing Zone",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Zone] ) || 'Fact Offtake Sales'[Zone] = \"\" ) )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Missing State",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[State] ) || 'Fact Offtake Sales'[State] = \"\" ) )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Missing Brand",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Brand] ) || 'Fact Offtake Sales'[Brand] = \"\" ) )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Missing Category",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Category] ) || 'Fact Offtake Sales'[Category] = \"\" ) )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Blank NSV Values",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Offtake NSV] ) ) )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Negative Sales Values",
+            "expression": "CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Offtake NSV] < 0 ) )\n\n// ---- Duplicates ----",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Total Fact Rows",
+            "expression": "COUNTROWS ( 'Fact Offtake Sales' )",
+            "displayFolder": "06_DataQuality_Measures"
+          },
+          {
+            "name": "Secondary Offtake NSV",
+            "expression": "[Total Offtake NSV]",
+            "displayFolder": "07_PrimaryAllocation_Measures"
+          },
+          {
+            "name": "Secondary Offtake Qty",
+            "expression": "[Total Offtake Qty]\n\n// ---------- Article inclusion: offtake this month OR previous month ----------\n// Primary can lead/lag secondary by a month, so an article counts as \"active\"\n// if it had offtake in the selected month or the one before.",
+            "displayFolder": "07_PrimaryAllocation_Measures"
+          },
+          {
+            "name": "Article Has Offtake (Curr or Prev)",
+            "expression": "VAR _curr = [Total Offtake NSV]\nVAR _prev = CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )\nRETURN IF ( ( COALESCE ( _curr, 0 ) <> 0 ) || ( COALESCE ( _prev, 0 ) <> 0 ), 1, 0 )\n\n// Primary restricted to active articles (current or previous-month offtake).",
+            "displayFolder": "07_PrimaryAllocation_Measures"
+          },
+          {
+            "name": "QC TY Target Total",
+            "expression": "[TY Target]",
+            "displayFolder": "08_ForecastQC_Measures"
+          },
+          {
+            "name": "QC Missing Month Mapping",
+            "expression": "VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = \"26-27\" )\nVAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = \"26-27\" )\nRETURN _dateMonths - _tgtMonths",
+            "displayFolder": "08_ForecastQC_Measures"
+          },
+          {
+            "name": "Offtake NSV (CBA, M)",
+            "expression": "[Total Offtake NSV]   // current month, current C/B/A context",
+            "displayFolder": "09_ArticleAllocation_Eligibility"
+          },
+          {
+            "name": "Offtake NSV (CBA, M+1)",
+            "expression": "CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], 1, MONTH ) )\n\n// brand-level evidence at the chain (to tell \"brand not listed\" from \"article not listed\")",
+            "displayFolder": "09_ArticleAllocation_Eligibility"
+          },
+          {
+            "name": "Article Eligible",
+            "expression": "VAR _m   = COALESCE ( [Offtake NSV (CBA, M)], 0 )\nVAR _m1  = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )\nRETURN IF ( _m <> 0 || _m1 <> 0, 1, 0 )",
+            "displayFolder": "09_ArticleAllocation_Eligibility"
+          },
+          {
+            "name": "NSV Value Label",
+            "expression": "VAR v = [NSV]\nRETURN\n    IF (\n        ABS ( v ) >= 10000000,\n        \"₹\" & FORMAT ( DIVIDE ( v, 10000000 ), \"#,0.00\" ) & \" Cr\",\n        \"₹\" & FORMAT ( v, \"#,0.0\" ) & \" L\"\n    )",
+            "displayFolder": "11_ExportDisplay_Measures"
+          },
+          {
+            "name": "Total Offtake NSV Value Label",
+            "expression": "VAR v = [Total Offtake NSV]\nRETURN\n    IF (\n        ABS ( v ) >= 10000000,\n        \"₹\" & FORMAT ( DIVIDE ( v, 10000000 ), \"#,0.00\" ) & \" Cr\",\n        \"₹\" & FORMAT ( v, \"#,0.0\" ) & \" L\"\n    )",
+            "displayFolder": "11_ExportDisplay_Measures"
+          },
+          {
+            "name": "Total MRP Sales Value Label",
+            "expression": "VAR v = [Total MRP Sales]\nRETURN\n    IF (\n        ABS ( v ) >= 10000000,\n        \"₹\" & FORMAT ( DIVIDE ( v, 10000000 ), \"#,0.00\" ) & \" Cr\",\n        \"₹\" & FORMAT ( v, \"#,0.0\" ) & \" L\"\n    )\n\n// P&L, Forecast pages: point this at whichever base measure the card uses\n// (e.g. [Total Trade Spend], [FY27 Forecast NSV]) by copying the pattern above.\n\n// ---------- QUANTITY LABELS (Qty Cr / Qty L — separate family from ₹) ----------",
+            "displayFolder": "11_ExportDisplay_Measures"
+          },
+          {
+            "name": "Total Offtake Qty Label",
+            "expression": "VAR v = [Total Offtake Qty]\nVAR crv = DIVIDE ( v, 10000000 )\nRETURN\n    IF (\n        ABS ( crv ) >= 0.005,\n        FORMAT ( crv, \"#,0.00\" ) & \" Cr Qty\",\n        FORMAT ( DIVIDE ( v, 100000 ), \"#,0.00\" ) & \" L Qty\"\n    )",
+            "displayFolder": "11_ExportDisplay_Measures"
+          },
+          {
+            "name": "Finance Approved Total",
+            "expression": "COUNTROWS ( 'GST Rate QC Table' )",
+            "displayFolder": "12_TOT_Measures"
+          },
+          {
+            "name": "Target Achievement %",
+            "expression": "DIVIDE ( [NSV], [TY Target] )\n// format: 0.0%  — in a month-filtered visual this is month achievement;\n// on an unfiltered card it is FY-to-date NSV vs full-FY target, so pair\n// it with [YTD Target Achievement %] below for the honest YTD read.",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "YTD Target",
+            "expression": "CALCULATE ( [TY Target], DATESYTD ( 'Date Table'[Date], \"31/3\" ) )\n// format: #,##0",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "YTD Target Achievement %",
+            "expression": "DIVIDE (\n    CALCULATE ( [NSV], DATESYTD ( 'Date Table'[Date], \"31/3\" ) ),\n    [YTD Target]\n)\n// format: 0.0%",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Target Gap Value",
+            "expression": "[NSV] - [TY Target]\n// format: #,##0;(#,##0)  — negative = shortfall against plan",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Target Gap Label",
+            "expression": "VAR _gap = [Target Gap Value]\nRETURN\n    IF (\n        _gap >= 0,\n        \"+\" & FORMAT ( DIVIDE ( _gap, 10000000 ), \"0.00\" ) & \" Cr ahead of plan\",\n        FORMAT ( DIVIDE ( _gap, 10000000 ), \"0.00\" ) & \" Cr behind plan\"\n    )\n\n// ---------------------------------------------------------------------\n// C. REVENUE LEAKAGE & EXCEPTION DIAGNOSTICS (Page 4)\n// \"Leakage\" here = revenue that IS in the total but cannot be acted on\n// at store/account level because the source extract left keys blank or\n// unmapped. It is never hidden and never dropped — these measures put a\n// rupee value on it so the fix lands on the source system, not the BI.\n// ---------------------------------------------------------------------",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Unmapped Chain NSV",
+            "expression": "CALCULATE (\n    [NSV],\n    FILTER (\n        VALUES ( 'Fact Offtake Sales'[Chain] ),\n        LEFT ( 'Fact Offtake Sales'[Chain], 9 ) = \"UNMAPPED:\"\n    )\n)\n// format: #,##0.00   (May'26 actual: 0 after ChainAliases.csv mapping)",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Returns NSV",
+            "expression": "CALCULATE ( [NSV], 'Fact Offtake Sales'[Offtake NSV] < 0 )\n// format: #,##0.00;(#,##0.00)   (May'26 actual: 11 rows, ≈ −₹0.02 L)",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Returns Rows",
+            "expression": "CALCULATE (\n    COUNTROWS ( 'Fact Offtake Sales' ),\n    'Fact Offtake Sales'[Offtake NSV] < 0\n)\n// format: #,##0\n\nReturn Rate % =\nDIVIDE ( ABS ( [Returns NSV] ), [NSV] + ABS ( [Returns NSV] ) )\n// format: 0.00%\n\n// ---------------------------------------------------------------------\n// D. NPI ACCELERATOR — GATED. Requires SeedData/Masters/NPI_List.csv\n// (columns: Article or EAN; the offline agent's diff engine already\n// reads this exact file). That file is NOT committed yet — load it as\n// table 'NPI List' and relate NPI List[EAN] → Dim/Fact EAN (or resolve\n// via TREATAS as below, which needs no relationship). Do NOT paste this\n// section before the table exists. The run-rate threshold is read from\n// a one-cell 'NPI Run Rate Target' table (Enter Data: column\n// [Target NSV Lacs]) — enter the leadership figure there; nothing is\n// hardcoded here because no committed source carries it yet.\n// ---------------------------------------------------------------------",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Campaign NSV Lift %",
+            "expression": "// selected-campaign months vs the L3M baseline immediately before them —\n// slice by 'Visibility Tracker'[Campaign] to read ROI per campaign\nVAR _campaignNSV = [NSV]\nVAR _baseline = [L3M Average Sales]\nRETURN DIVIDE ( _campaignNSV - _baseline, _baseline )\n// format: +0.0%;-0.0%\n\n// ---------------------------------------------------------------------\n// F. ACCOUNT STRUCTURAL CONSTRAINTS — Reliance & FSN (Nykaa)\n// Display folder: \"Growth Engine\\Account Constraints\"\n//\n// Verified structure of the May'26 extract (per-chain rows in\n// Mapping_Exception_Report.csv):\n//   • Reliance ships TWO report formats merged into one file:\n//     (1) Brand Counter rows — store-tagged, [Counter Type]=\"Brand Counter\",\n//         ₹508.18 L, 24,636 rows, ALL with real site codes;\n//     (2) the broader zone/state report — 7,825 rows, ₹985.59 L, ALL with\n//         blank Site Code (no store grain BY DESIGN — analyze Zone × State).\n//     BUSINESS RULE: (2) already contains (1)'s sales. Brand Counter is a\n//     visibility breakout, NOT incremental revenue — headline offtake must\n//     therefore EXCLUDE Brand Counter rows or Reliance double-counts.\n//   • FSN (account \"Nykaa\") is article-grain only: 190 rows = 190 distinct\n//     EANs, all blank-site. Zone/State ARE populated; Site never is.\n//     Analyze FSN exceptions at EAN grain.\n//\n// Column note: the fact's [Chain] carries the mapped ACCOUNT (\"Reliance\",\n// \"Nykaa\"). Path B rename: agent CSV column Counter_Type → \"Counter Type\".\n// [NSV] (full retention) stays untouched — it is the reconciliation truth\n// (ties to source ₹4,511.55 L). [Offtake NSV (Adjusted)] is the headline.\n// ---------------------------------------------------------------------",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Reliance BC NSV",
+            "expression": "CALCULATE (\n    [NSV],\n    'Fact Offtake Sales'[Chain] = \"Reliance\",\n    'Fact Offtake Sales'[Counter Type] = \"Brand Counter\"\n)\n// format: #,##0.00   (May'26: ₹508.18 L — isolated velocity, never additive)",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Reliance ZoneState NSV",
+            "expression": "// the broader Reliance report — the ONLY Reliance number that belongs in\n// headline offtake. Slice by Zone/State only; store visuals stay blank by design.\nCALCULATE (\n    [NSV],\n    'Fact Offtake Sales'[Chain] = \"Reliance\",\n    'Fact Offtake Sales'[Counter Type] <> \"Brand Counter\"\n)\n// format: #,##0.00   (May'26: ₹985.59 L)",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Offtake NSV (Adjusted)",
+            "expression": "// headline offtake with the Reliance Brand Counter breakout removed —\n// use THIS on Page 2's main KPI card, never raw [NSV], per the\n// double-counting rule above.\n[NSV] - [Reliance BC NSV]\n// format: #,##0.00   (May'26: ₹4,003.37 L)",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "Offtake NSV (Adjusted) Label",
+            "expression": "VAR v = [Offtake NSV (Adjusted)] * 100000    // measures carry Lacs on this model\nRETURN\n    IF (\n        ABS ( v ) >= 10000000,\n        FORMAT ( DIVIDE ( v, 10000000 ), \"0.00\" ) & \" Cr\",\n        FORMAT ( DIVIDE ( v, 100000 ), \"0.0\" ) & \" L\"\n    )",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "BC Isolation Check",
+            "expression": "// validation card: adjusted headline + isolated BC must rebuild the full\n// retention total EXACTLY. Anything else means a filter leaked.\nVAR _residual = [NSV] - ( [Offtake NSV (Adjusted)] + [Reliance BC NSV] )\nRETURN\n    IF (\n        ABS ( _residual ) < 0.01,\n        \"PASS — Brand Counter isolated, zero double-counting\",\n        \"FAIL — residual \" & FORMAT ( _residual, \"#,##0.0000\" ) & \" — a filter is leaking\"\n    )",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "FSN Exception NSV",
+            "expression": "// FSN/Nykaa: article-grain only. Page 4's FSN table: Rows = EAN (+ Brand,\n// Sub_Category), value = this measure. Never place FSN on a store visual.\nCALCULATE (\n    [NSV],\n    'Fact Offtake Sales'[Chain] = \"Nykaa\"\n)\n// format: #,##0.00   (May'26: ₹207.87 L, 190 EANs, 1 row per EAN)",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "FSN Exception Articles",
+            "expression": "CALCULATE (\n    DISTINCTCOUNT ( 'Fact Offtake Sales'[EAN] ),\n    'Fact Offtake Sales'[Chain] = \"Nykaa\"\n)\n// format: #,##0",
+            "displayFolder": "14_GrowthEngine_Measures"
+          }
+        ]
+      },
+      {
+        "name": "Dim_Date",
+        "columns": [
+          {
+            "name": "FY",
+            "dataType": "string",
+            "sourceColumn": "FY"
+          },
+          {
+            "name": "Month",
+            "dataType": "string",
+            "sourceColumn": "Month"
+          },
+          {
+            "name": "MonthNo",
+            "dataType": "int64",
+            "sourceColumn": "MonthNo"
+          },
+          {
+            "name": "Quarter",
+            "dataType": "string",
+            "sourceColumn": "Quarter"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Dim_Date",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Csv.Document(File.Contents(BuildDir & \"Dim_Date.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Promoted, {{\"MonthNo\", Int64.Type}})\nin\n    Typed"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Chain Master",
+        "columns": [
+          {
+            "name": "Account",
+            "dataType": "string",
+            "sourceColumn": "Account"
+          },
+          {
+            "name": "Chain Count",
+            "dataType": "int64",
+            "sourceColumn": "Chain Count"
+          },
+          {
+            "name": "Chains",
+            "dataType": "string",
+            "sourceColumn": "Chains"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Chain Master",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Csv.Document(File.Contents(BuildDir & \"Dim_Chain.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Grouped = Table.Group(Promoted, {\"Account\"}, {{\"Chain Count\", each Table.RowCount(_), Int64.Type}, {\"Chains\", each Text.Combine([Chain], \", \"), type text}})\nin\n    Grouped"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Chain Detail",
+        "columns": [
+          {
+            "name": "Chain",
+            "dataType": "string",
+            "sourceColumn": "Chain"
+          },
+          {
+            "name": "Account",
+            "dataType": "string",
+            "sourceColumn": "Account"
+          },
+          {
+            "name": "Chain Type",
+            "dataType": "string",
+            "sourceColumn": "Chain Type"
+          },
+          {
+            "name": "Primary Zone",
+            "dataType": "string",
+            "sourceColumn": "Primary Zone"
+          },
+          {
+            "name": "Active",
+            "dataType": "string",
+            "sourceColumn": "Active"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Chain Detail",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Csv.Document(File.Contents(BuildDir & \"Dim_Chain.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true])\nin\n    Promoted"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Dim_Article",
+        "columns": [
+          {
+            "name": "Article Code",
+            "dataType": "string",
+            "sourceColumn": "Article Code"
+          },
+          {
+            "name": "Article Description",
+            "dataType": "string",
+            "sourceColumn": "Article Description"
+          },
+          {
+            "name": "EAN Code",
+            "dataType": "string",
+            "sourceColumn": "EAN Code"
+          },
+          {
+            "name": "Brand",
+            "dataType": "string",
+            "sourceColumn": "Brand"
+          },
+          {
+            "name": "Category",
+            "dataType": "string",
+            "sourceColumn": "Category"
+          },
+          {
+            "name": "Sub-category",
+            "dataType": "string",
+            "sourceColumn": "Sub-category"
+          },
+          {
+            "name": "Range",
+            "dataType": "string",
+            "sourceColumn": "Range"
+          },
+          {
+            "name": "Pack Size",
+            "dataType": "string",
+            "sourceColumn": "Pack Size"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Dim_Article",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Csv.Document(File.Contents(BuildDir & \"Dim_Article.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true])\nin\n    Promoted"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Targets",
+        "columns": [
+          {
+            "name": "MonthStart",
+            "dataType": "dateTime",
+            "sourceColumn": "MonthStart"
+          },
+          {
+            "name": "Month",
+            "dataType": "string",
+            "sourceColumn": "Month"
+          },
+          {
+            "name": "FY Year",
+            "dataType": "string",
+            "sourceColumn": "FY Year"
+          },
+          {
+            "name": "Quarter",
+            "dataType": "string",
+            "sourceColumn": "Quarter"
+          },
+          {
+            "name": "Target NSV Cr",
+            "dataType": "double",
+            "sourceColumn": "Target NSV Cr"
+          },
+          {
+            "name": "Target NSV",
+            "dataType": "double",
+            "sourceColumn": "Target NSV"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Targets",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Csv.Document(File.Contents(RepoDir & \"PowerBI/SeedData/Targets/FY2627_Targets.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Promoted, {{\"MonthStart\", type date}, {\"Target NSV Cr\", type number}}),\n    WithValue = Table.AddColumn(Typed, \"Target NSV\", each [Target NSV Cr] * 10000000, type number)\nin\n    WithValue"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Date Table",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "Date",
+            "dataType": "dateTime",
+            "isNameInferred": true,
+            "sourceColumn": "[Date]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "MonthStart",
+            "dataType": "dateTime",
+            "isNameInferred": true,
+            "sourceColumn": "[MonthStart]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Year",
+            "dataType": "int64",
+            "isNameInferred": true,
+            "sourceColumn": "[Year]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month No",
+            "dataType": "int64",
+            "isNameInferred": true,
+            "sourceColumn": "[Month No]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month Name",
+            "dataType": "string",
+            "isNameInferred": true,
+            "sourceColumn": "[Month Name]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "FY Month No",
+            "dataType": "int64",
+            "isNameInferred": true,
+            "sourceColumn": "[FY Month No]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "FY Year",
+            "dataType": "string",
+            "isNameInferred": true,
+            "sourceColumn": "[FY Year]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Quarter",
+            "dataType": "string",
+            "isNameInferred": true,
+            "sourceColumn": "[Quarter]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month",
+            "dataType": "string",
+            "isNameInferred": true,
+            "sourceColumn": "[Month]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month Year Sort",
+            "dataType": "int64",
+            "isNameInferred": true,
+            "sourceColumn": "[Month Year Sort]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Is Future",
+            "dataType": "boolean",
+            "isNameInferred": true,
+            "sourceColumn": "[Is Future]"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Date Table",
+            "mode": "import",
+            "source": {
+              "type": "calculated",
+              "expression": "VAR _Start = DATE(2024, 4, 1)        // first day of earliest FY you report\nVAR _End   = DATE(2028, 3, 31)       // last day of the latest FY you forecast\nRETURN\nADDCOLUMNS(\n    CALENDAR(_Start, _End),\n    \"MonthStart\",      EOMONTH([Date], -1) + 1,\n    \"Year\",            YEAR([Date]),\n    \"Month No\",        MONTH([Date]),\n    \"Month Name\",      FORMAT([Date], \"mmm\"),\n    // Indian FY: Apr=1 ... Mar=12\n    \"FY Month No\",     IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9),\n    \"FY Year\",\n        VAR y = YEAR([Date])\n        RETURN IF(MONTH([Date]) >= 4,\n                 FORMAT(y, \"00\") & \"-\" & FORMAT(y + 1 - 2000, \"00\"),\n                 FORMAT(y - 1, \"00\") & \"-\" & FORMAT(y - 2000, \"00\")),\n    \"Quarter\",\n        VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)\n        RETURN \"Q\" & ROUNDUP(fm / 3, 0),\n    // label used everywhere in the deck, e.g. May'26\n    \"Month\",           FORMAT([Date], \"mmm\") & \"'\" & FORMAT([Date], \"yy\"),\n    \"Month Year Sort\", YEAR([Date]) * 100 + MONTH([Date]),\n    \"Is Future\",       IF([Date] > TODAY(), TRUE(), FALSE())\n)"
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Fact_Chain_to_Account",
+        "fromTable": "Fact Offtake Sales",
+        "fromColumn": "Chain",
+        "toTable": "Chain Master",
+        "toColumn": "Account"
+      },
+      {
+        "name": "Fact_EAN_to_Article",
+        "fromTable": "Fact Offtake Sales",
+        "fromColumn": "EAN",
+        "toTable": "Dim_Article",
+        "toColumn": "EAN Code"
+      },
+      {
+        "name": "Fact_Month_to_DimDate",
+        "fromTable": "Fact Offtake Sales",
+        "fromColumn": "Month",
+        "toTable": "Dim_Date",
+        "toColumn": "Month"
+      },
+      {
+        "name": "Fact_MonthStart_to_DateTable",
+        "fromTable": "Fact Offtake Sales",
+        "fromColumn": "MonthStart",
+        "toTable": "Date Table",
+        "toColumn": "MonthStart"
+      },
+      {
+        "name": "Targets_MonthStart_to_DateTable",
+        "fromTable": "Targets",
+        "fromColumn": "MonthStart",
+        "toTable": "Date Table",
+        "toColumn": "MonthStart"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "GeneratedBy",
+        "value": "mtagent pbi compile-model"
+      },
+      {
+        "name": "SourceBuild",
+        "value": "FY27_May26"
+      }
+    ]
+  }
+}

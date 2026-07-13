@@ -1,0 +1,16 @@
+{
+  "config": "{}",
+  "layoutOptimization": 0,
+  "resourcePackages": [],
+  "sections": [
+    {
+      "name": "page1",
+      "displayName": "Executive Growth Engine",
+      "visualContainers": [],
+      "config": "{}",
+      "displayOption": 1,
+      "height": 720,
+      "width": 1280
+    }
+  ]
+}

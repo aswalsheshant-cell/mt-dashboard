@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from .config import Config
+from .pbi_compile import compile_model
 from .pbi_dataset import build_dataset
 from .pbi_dax_gap import generate_dax_library
 from .pbi_reconcile import reconcile_source_to_model
@@ -180,6 +181,29 @@ def cmd_run_automated(cfg: Config, controller: WorkflowController, **kwargs) -> 
 )
 def cmd_status(cfg: Config, controller: WorkflowController, **kwargs) -> dict:
     return controller.status_summary()
+
+
+@register_command(
+    name="compile-model",
+    classification=AUTOMATED,
+    step_id="manual_desktop_actions",
+    description="Compile the .pbip semantic model programmatically (data bindings + "
+                "relationships + dependency-gated DAX injection), auto-completing step 11's "
+                "model-assembly work with the compile report as evidence.",
+)
+def cmd_compile_model(cfg: Config, controller: WorkflowController, **kwargs) -> dict:
+    """Automates step 11's MODEL half end to end: no Manual Action Required
+    stop, no hand-pasting. On success the step goes Ready -> Running ->
+    Completed with the machine-generated Model_Compile_Report.json recorded
+    as evidence in validation_result/output_file — the same audit fields a
+    human mark-complete would fill, so nothing is silently claimed: the
+    report states exactly what was compiled, what was excluded and why, and
+    that DAX was validated statically, not executed (Desktop's first open
+    remains step 12's human verification).
+    """
+    build_dir = Path(kwargs["build_dir"]) if kwargs.get("build_dir") else None
+    return run_automated_step(controller, "manual_desktop_actions",
+                               lambda: compile_model(cfg, build_dir))
 
 
 def _manual_desktop_instructions(cfg: Config, controller: WorkflowController) -> str:

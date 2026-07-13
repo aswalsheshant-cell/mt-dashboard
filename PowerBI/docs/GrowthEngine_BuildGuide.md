@@ -306,13 +306,22 @@ can never hide). Severity chips reuse the pipeline bands via
 
 1. `python -m mtagent pbi run-automated --dax-dir PowerBI/DAX` → all
    automated steps green, reconciliation 0 FAIL.
-2. `python -m mtagent pbi start-manual-step` → step 11 instructions (this
-   guide is the long form of that payload).
-3. Import + rename per §2 Path B (or full kit per Path A).
-4. Paste DAX 00/01/03/06 + 14§A–C. Run `python -m mtagent check-dax` —
-   0 errors expected from file 14 (the known duplicate in 08/09 predates it).
-5. Build pages per §3–§6. Apply theme. Hide gated visuals' hard errors —
-   gated sections show their "awaiting source" caption instead.
+2. **Automated path (default):** `python -m mtagent pbi compile-model` —
+   generates `PowerBI/ModelDefinition.pbip` with the data bindings,
+   corrected star schema, and dependency-gated DAX already compiled in
+   (65 measures on the real May'26 run, incl. the full §B target and §F
+   isolation suites; exclusions itemized in `Model_Compile_Report.json`).
+   Step 11 auto-completes with the compile report as evidence. Open the
+   .pbip in Power BI Desktop → Refresh → confirm `BC Isolation Check`
+   reads PASS — that Desktop open is step 12's verification evidence.
+   *Manual path (fallback):* `pbi start-manual-step`, then §2 Path B
+   imports/renames and paste DAX 00/01/03/06 + 14§A–C by hand.
+3. Either way, `python -m mtagent check-dax` — 0 errors expected from
+   file 14 (the known duplicate in 08/09 predates it, and compile-model
+   dedupes it automatically).
+4. Build pages per §3–§6 in Desktop (report layout is the part that
+   stays human). Apply theme. Hide gated visuals' hard errors — gated
+   sections show their "awaiting source" caption instead.
 6. Validate: every Page-1 card ties to `Source_To_Model_Reconciliation_Report.csv`
    / `Data_Quality_Report.csv` values; `Active Stores` excludes the blank
    bucket (spot-check: filtering Page 2 to a chain with blank-site rows must

@@ -61,6 +61,7 @@ python -m mtagent pbi generate-dax [--dax-dir D]
 python -m mtagent pbi reconcile-model --source <csv> --build-dir <agent/pbi_build/...> [--masters-dir D]
 python -m mtagent pbi run-automated [--raw-dir D] [--masters-dir D] [--dax-dir D]
 python -m mtagent pbi generate-power-query | generate-page-blueprint | generate-theme | generate-docs | prepare-build-package
+python -m mtagent pbi compile-model [--build-dir agent/pbi_build/<id>]   # programmatic .pbip -- automates step 11's model half
 python -m mtagent pbi status [--json]
 python -m mtagent pbi start-manual-step [--json]
 python -m mtagent pbi next-manual-step [--json]
@@ -209,6 +210,45 @@ none match the actual May'26 EANs — a genuine gap in the seed fixture
 data, not a code defect. The sandbox will start populating the moment a
 real `ArticleMaster.csv` (even a partial one) is dropped into
 `PowerBI/RawDataFolders/Masters/`.
+
+### `compile-model` — programmatic .pbip compilation (automates step 11's model half)
+
+Generates `PowerBI/ModelDefinition.pbip` +
+`ModelDefinition.SemanticModel/model.bim` (TMSL) + a minimal
+`ModelDefinition.Report` directly from the latest dataset build — no
+Desktop UI interaction for data loading, relationship drawing, or DAX
+pasting. What it compiles:
+
+- **M partitions** binding the build CSVs (fact columns renamed in M to
+  the names the DAX library expects; `MonthStart` derived from the
+  `May'26` label) plus `SeedData/Targets/FY2627_Targets.csv`, all through
+  `BuildDir`/`RepoDir` M parameters (one edit on a new machine, or just
+  re-run the command).
+- **Relationships**, with two deliberate corrections to the naive spec:
+  the Chain relationship goes through a distinct-Account `Chain Master`
+  derived in M (raw `Dim_Chain[Account]` is NOT unique — Reliance×2,
+  Landmark Group×3 — the Tabular engine would reject it), and the
+  `FY,Month` composite collapses to single-column `Month` (labels carry
+  the year; TMSL has no composite relationships).
+- **Dependency-gated DAX injection**: all `PowerBI/DAX/*.dax` measures
+  are parsed; only those whose every table/column/measure reference
+  resolves against this model are injected (real run: 65 in, 221
+  excluded with per-measure reasons in `Model_Compile_Report.json` —
+  full-kit measures binding to Fact P&L/Nielsen/TDP/Primary, the gated
+  NPI/Visibility suites, and Site-Code measures the aggregated fact
+  genuinely cannot compute). Duplicate definition names are deduped
+  (first wins, rest reported) — the engine rejects duplicates.
+  Compilation **hard-fails** if `NSV` / `Offtake NSV (Adjusted)` /
+  `Reliance BC NSV` / `BC Isolation Check` don't make it in — the
+  double-counting guard is non-negotiable.
+
+On success, step 11 goes `Ready → Running → Completed` with the compile
+metadata recorded as evidence — no `Manual Action Required` stop. Honest
+limit (also stamped in the report): DAX is validated **statically**
+(balance/dependency/lint), not executed — this environment can't run
+Desktop or the Tabular engine, so the first Desktop open remains step
+12's human verification, and report **layout** (pages/visuals per the
+Growth Engine guide) is still authored in Desktop.
 
 ### `start-manual-step` — bridging automated completion to a real manual gate
 

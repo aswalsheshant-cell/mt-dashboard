@@ -461,6 +461,11 @@ def build_parser() -> argparse.ArgumentParser:
     ps = pbi_sub.add_parser("status", help="show dashboard build status")
     ps.add_argument("--json", action="store_true")
 
+    pcm = pbi_sub.add_parser("compile-model", help="compile the .pbip semantic model "
+                                                    "(bindings + relationships + gated DAX) programmatically")
+    pcm.add_argument("--build-dir", help="agent/pbi_build/<id> to bind (default: latest)")
+    pcm.add_argument("--json", action="store_true")
+
     psm = pbi_sub.add_parser("start-manual-step", help="transition the next Ready manual step "
                                                         "to Manual Action Required with concrete instructions")
     psm.add_argument("--json", action="store_true")
