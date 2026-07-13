@@ -202,24 +202,28 @@ so BC store velocity is fully computable). This table monitors independent
 BC velocity; a visual-level filter `Counter Type = "Brand Counter"` +
 `Chain = "Reliance"` keeps it sealed off from every other visual on the page.
 
-**Dark Store Operations — [needs source], build the shell now:** no committed
-file flags dark stores. The offtake `Store Type` column only distinguishes
-Brand/Non-Brand Counter — that is *not* a dark-store flag; do not proxy it as
-one. To activate: add a `Store Format` column (`Dark Store` / `Standard` /
-`Fulfilment`) to `SeedData/Masters/ChannelMap_Store.csv` keyed on
-`Store Code`, relate to the store-grain fact, and the page's format slicer +
-"Dark Store NSV / share / productivity" cards light up using the existing
-§A measures filtered to the format. Until then the slicer shows one value —
-leave it visible with a "format tagging pending" tooltip rather than hiding
-the gap.
+**Dark Store Operations — N/A (business-confirmed 2026-07-13):** there are
+no dark stores in the network today, so this tracking block is
+intentionally NOT built — do not add the slicer, cards, or a placeholder
+visual. If dark stores ever launch, reactivate by adding a `Store Format`
+column (`Dark Store` / `Standard`) to `SeedData/Masters/ChannelMap_Store.csv`
+keyed on `Store Code` and filtering the existing §A measures to it — the
+offtake `Store Type` column (Brand/Non-Brand Counter) is *not* a dark-store
+flag and must never be proxied as one.
 
-**Visibility campaigns vs sales:** until the `Visibility Tracker` (§6)
-lands, the honest committed proxies are TDP/ACV (`05_TDP_Measures.dax`,
-`PageLayouts.md` Page 10) against `NSV` trend. Once the tracker exists,
-overlay `SOA %`/`SOS %` (14§E) and use `Campaign NSV Lift %` sliced by
-`Campaign` to attribute spikes (TDC shelf tray, Bay Breaker, winter) to
-shelf-velocity change. Campaign ROI is *never* claimed from a sales spike
-alone — the lift measure compares campaign months to their own L3M baseline.
+**Visibility campaigns vs sales:** the input format the business fills is
+now committed at `PowerBI/templates/Template_Visibility_Tracker.csv`
+(`Month, Chain, Store Code, Metric ∈ {SOA,SOS,SOV}, Numerator, Denominator,
+Campaign` — e.g. SOA numerator = SKUs available, denominator = SKUs listed;
+SOS = our facings / total facings; SOV = our media units / category media
+units). Until filled sheets land, the honest committed proxies are TDP/ACV
+(`05_TDP_Measures.dax`, `PageLayouts.md` Page 10) against `NSV` trend. Once
+loaded as `Visibility Tracker`, overlay `SOA %`/`SOS %` (14§E), grade
+accounts with `Visibility Grade` (A ≥90% / B ≥75% / C ≥50% / D — editable
+default bands), and use `Campaign NSV Lift %` sliced by `Campaign` to
+attribute spikes (TDC shelf tray, Bay Breaker, winter) to shelf-velocity
+change. Campaign ROI is *never* claimed from a sales spike alone — the lift
+measure compares campaign months to their own L3M baseline.
 
 ---
 
@@ -237,15 +241,18 @@ SKU velocity: bar of `NSV` by `EAN`, tooltip `Sales Qty`, flag the 13
 z-score hero SKUs from `Outlier_Report.csv` (top: 8904417314298 Face
 z=9.66) — concentration risk, not an error.
 
-**NPI Accelerator — [needs source], measures already written:** load
-`NPI_List.csv` → table `NPI List`, create the one-cell `NPI Run Rate Target`
-table with the leadership figure (the quoted ~₹10 L/month), then paste
-`14_GrowthEngine_Measures.dax` §D. Cards: `NPI NSV (Lacs)`,
-`NPI Run Rate Achievement %`, `NPI Count Selling` vs listed count (the quoted
-19 — the list file is the source of truth for the real number), and the
-`NPI Zero-Sale List` action card naming listed NPIs with zero sales. Until
-the list file exists this page section shows the gated-table caption — the
-dashboard never guesses which SKUs are NPIs.
+**NPI Accelerator — LIVE (data-derived list):** `pbi derive-npi-list`
+generates `SeedData/Masters/NPI_List.csv` from the committed 14-month
+primary sell-in history using the business-approved rule *first primary
+appearance in the latest FY = NPI*. Current derivation: **32 NPIs**
+(FY27 window, from 1,023 articles in history) — note this differs from
+the briefed "19"; the CSV is the editable source of truth, prune it if
+the business list is narrower. `compile-model` auto-includes the
+`NPI List` table and the §D measures (`NPI NSV (Lacs)`,
+`NPI Contribution %`, `NPI Count Selling`, `NPI Zero-Sale List`) whenever
+the file exists. Still gated: `NPI Run Rate Achievement %` needs the
+one-cell `NPI Run Rate Target` table (the quoted ~₹10 L/month has no
+committed source — type it into that table to activate).
 
 ---
 

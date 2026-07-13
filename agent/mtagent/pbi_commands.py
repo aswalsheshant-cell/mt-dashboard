@@ -14,6 +14,7 @@ from .config import Config
 from .pbi_article_master import derive_article_master
 from .pbi_compile import compile_model
 from .pbi_dataset import build_dataset
+from .pbi_npi import derive_npi_list
 from .pbi_dax_gap import generate_dax_library
 from .pbi_reconcile import reconcile_source_to_model
 from .pbi_registry import get_command, register_command
@@ -198,6 +199,21 @@ def cmd_derive_article_master(cfg: Config, controller: WorkflowController, **kwa
         return {"status": BLOCKED, **result}
     status = COMPLETED_WITH_WARNING if result.get("warning") else "Completed"
     return {"status": status, **result}
+
+
+@register_command(
+    name="derive-npi-list",
+    classification=AUTOMATED,
+    step_id="",
+    description="Derive the NPI list from the primary sell-in history (first primary "
+                "appearance in the latest FY = NPI; business-approved rule).",
+)
+def cmd_derive_npi_list(cfg: Config, controller: WorkflowController, **kwargs) -> dict:
+    raw_dir = Path(kwargs["raw_dir"]) if kwargs.get("raw_dir") else None
+    result = derive_npi_list(cfg, raw_dir)
+    if result.get("blocked_reason"):
+        return {"status": BLOCKED, **result}
+    return {"status": "Completed", **result}
 
 
 @register_command(

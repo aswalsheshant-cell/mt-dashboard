@@ -74,6 +74,9 @@ _ARTICLE_COLUMNS = [("Article Code", "string"), ("Article Description", "string"
                      ("Sub-category", "string"), ("Range", "string"), ("Pack Size", "string")]
 _TARGETS_COLUMNS = [("MonthStart", "dateTime"), ("Month", "string"), ("FY Year", "string"),
                      ("Quarter", "string"), ("Target NSV Cr", "double"), ("Target NSV", "double")]
+_NPI_COLUMNS = [("EAN", "string"), ("Primary Article Code", "string"), ("Description", "string"),
+                 ("Brand", "string"), ("Category", "string"), ("Sub-category", "string"),
+                 ("First Primary Month", "string"), ("NPI FY", "string")]
 _DATE_TABLE_COLUMNS = [  # calculated table -- names must match 00_DateTable.dax
     ("Date", "dateTime"), ("MonthStart", "dateTime"), ("Year", "int64"),
     ("Month No", "int64"), ("Month Name", "string"), ("FY Month No", "int64"),
@@ -154,6 +157,10 @@ def _chain_detail_m() -> str:
 
 def _article_m() -> str:
     return _csv_m('BuildDir & "Dim_Article.csv"')
+
+
+def _npi_m() -> str:
+    return _csv_m('RepoDir & "PowerBI/SeedData/Masters/NPI_List.csv"')
 
 
 def _table(name: str, columns: list, m_expr: str) -> dict:
@@ -317,6 +324,11 @@ def compile_model(cfg: Config, build_dir: Path | None = None) -> dict:
         "Targets": {c for c, _ in _TARGETS_COLUMNS},
         "Date Table": {c for c, _ in _DATE_TABLE_COLUMNS},
     }
+    # gated tables join the model (and unlock their measures) the moment
+    # their source file exists -- e.g. derive-npi-list writes NPI_List.csv
+    npi_path = root / "PowerBI" / "SeedData" / "Masters" / "NPI_List.csv"
+    if npi_path.exists():
+        model_columns["NPI List"] = {c for c, _ in _NPI_COLUMNS}
 
     measures = _extract_measures(dax_dir)
     # duplicate definition names (the DAX linter flags these as DAX002) would
@@ -357,6 +369,8 @@ def compile_model(cfg: Config, build_dir: Path | None = None) -> dict:
         _table("Targets", _TARGETS_COLUMNS, _targets_m()),
         _calculated_table("Date Table", _DATE_TABLE_COLUMNS, _load_date_table_expression(dax_dir)),
     ]
+    if "NPI List" in model_columns:
+        tables.append(_table("NPI List", _NPI_COLUMNS, _npi_m()))
 
     relationships = [
         {"name": "Fact_Chain_to_Account", "fromTable": "Fact Offtake Sales", "fromColumn": "Chain",

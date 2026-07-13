@@ -392,6 +392,31 @@
             "displayFolder": "14_GrowthEngine_Measures"
           },
           {
+            "name": "NPI NSV",
+            "expression": "CALCULATE (\n    [NSV],\n    TREATAS ( VALUES ( 'NPI List'[EAN] ), 'Fact Offtake Sales'[EAN] )\n)\n// format: #,##0.00",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "NPI NSV (Lacs)",
+            "expression": "DIVIDE ( [NPI NSV], 100000 )\n// format: #,##0.00",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "NPI Contribution %",
+            "expression": "DIVIDE ( [NPI NSV], [NSV] )\n// format: 0.0%",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "NPI Count Selling",
+            "expression": "// how many listed NPIs actually sold this month\nCALCULATE (\n    DISTINCTCOUNT ( 'Fact Offtake Sales'[EAN] ),\n    TREATAS ( VALUES ( 'NPI List'[EAN] ), 'Fact Offtake Sales'[EAN] ),\n    'Fact Offtake Sales'[Offtake NSV] > 0\n)\n// format: #,##0",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
+            "name": "NPI Zero-Sale List",
+            "expression": "// names the listed NPIs with no sales in the visible month — the action list\nCONCATENATEX (\n    FILTER (\n        VALUES ( 'NPI List'[EAN] ),\n        CALCULATE (\n            [NSV],\n            TREATAS ( { 'NPI List'[EAN] }, 'Fact Offtake Sales'[EAN] )\n        ) = 0\n    ),\n    'NPI List'[EAN],\n    \", \"\n)\n\n// ---------------------------------------------------------------------\n// E. VISIBILITY — SOA / SOS / SOV — GATED. No committed source carries\n// shelf-availability, shelf-share, or voice-share data (TDP/ACV in\n// 05_TDP_Measures.dax and Nielsen in 04_Nielsen_Measures.dax are the\n// closest committed proxies — use them until this lands). Requires a\n// monthly 'Visibility Tracker' table (schema in the Build Guide §6):\n// Month, Chain, Store Code, Metric ∈ {SOA, SOS, SOV}, Numerator,\n// Denominator, Campaign. Do NOT paste before that table exists.\n// ---------------------------------------------------------------------",
+            "displayFolder": "14_GrowthEngine_Measures"
+          },
+          {
             "name": "Campaign NSV Lift %",
             "expression": "// selected-campaign months vs the L3M baseline immediately before them —\n// slice by 'Visibility Tracker'[Campaign] to read ROI per campaign\nVAR _campaignNSV = [NSV]\nVAR _baseline = [L3M Average Sales]\nRETURN DIVIDE ( _campaignNSV - _baseline, _baseline )\n// format: +0.0%;-0.0%\n\n// ---------------------------------------------------------------------\n// F. ACCOUNT STRUCTURAL CONSTRAINTS — Reliance & FSN (Nykaa)\n// Display folder: \"Growth Engine\\Account Constraints\"\n//\n// Verified structure of the May'26 extract (per-chain rows in\n// Mapping_Exception_Report.csv):\n//   • Reliance ships TWO report formats merged into one file:\n//     (1) Brand Counter rows — store-tagged, [Counter Type]=\"Brand Counter\",\n//         ₹508.18 L, 24,636 rows, ALL with real site codes;\n//     (2) the broader zone/state report — 7,825 rows, ₹985.59 L, ALL with\n//         blank Site Code (no store grain BY DESIGN — analyze Zone × State).\n//     BUSINESS RULE: (2) already contains (1)'s sales. Brand Counter is a\n//     visibility breakout, NOT incremental revenue — headline offtake must\n//     therefore EXCLUDE Brand Counter rows or Reliance double-counts.\n//   • FSN (account \"Nykaa\") is article-grain only: 190 rows = 190 distinct\n//     EANs, all blank-site. Zone/State ARE populated; Site never is.\n//     Analyze FSN exceptions at EAN grain.\n//\n// Column note: the fact's [Chain] carries the mapped ACCOUNT (\"Reliance\",\n// \"Nykaa\"). Path B rename: agent CSV column Counter_Type → \"Counter Type\".\n// [NSV] (full retention) stays untouched — it is the reconciliation truth\n// (ties to source ₹4,511.55 L). [Offtake NSV (Adjusted)] is the headline.\n// ---------------------------------------------------------------------",
             "displayFolder": "14_GrowthEngine_Measures"
@@ -731,6 +756,61 @@
             "source": {
               "type": "calculated",
               "expression": "VAR _Start = DATE(2024, 4, 1)        // first day of earliest FY you report\nVAR _End   = DATE(2028, 3, 31)       // last day of the latest FY you forecast\nRETURN\nADDCOLUMNS(\n    CALENDAR(_Start, _End),\n    \"MonthStart\",      EOMONTH([Date], -1) + 1,\n    \"Year\",            YEAR([Date]),\n    \"Month No\",        MONTH([Date]),\n    \"Month Name\",      FORMAT([Date], \"mmm\"),\n    // Indian FY: Apr=1 ... Mar=12\n    \"FY Month No\",     IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9),\n    \"FY Year\",\n        VAR y = YEAR([Date])\n        RETURN IF(MONTH([Date]) >= 4,\n                 FORMAT(y, \"00\") & \"-\" & FORMAT(y + 1 - 2000, \"00\"),\n                 FORMAT(y - 1, \"00\") & \"-\" & FORMAT(y - 2000, \"00\")),\n    \"Quarter\",\n        VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)\n        RETURN \"Q\" & ROUNDUP(fm / 3, 0),\n    // label used everywhere in the deck, e.g. May'26\n    \"Month\",           FORMAT([Date], \"mmm\") & \"'\" & FORMAT([Date], \"yy\"),\n    \"Month Year Sort\", YEAR([Date]) * 100 + MONTH([Date]),\n    \"Is Future\",       IF([Date] > TODAY(), TRUE(), FALSE())\n)"
+            }
+          }
+        ]
+      },
+      {
+        "name": "NPI List",
+        "columns": [
+          {
+            "name": "EAN",
+            "dataType": "string",
+            "sourceColumn": "EAN"
+          },
+          {
+            "name": "Primary Article Code",
+            "dataType": "string",
+            "sourceColumn": "Primary Article Code"
+          },
+          {
+            "name": "Description",
+            "dataType": "string",
+            "sourceColumn": "Description"
+          },
+          {
+            "name": "Brand",
+            "dataType": "string",
+            "sourceColumn": "Brand"
+          },
+          {
+            "name": "Category",
+            "dataType": "string",
+            "sourceColumn": "Category"
+          },
+          {
+            "name": "Sub-category",
+            "dataType": "string",
+            "sourceColumn": "Sub-category"
+          },
+          {
+            "name": "First Primary Month",
+            "dataType": "string",
+            "sourceColumn": "First Primary Month"
+          },
+          {
+            "name": "NPI FY",
+            "dataType": "string",
+            "sourceColumn": "NPI FY"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "NPI List",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Csv.Document(File.Contents(RepoDir & \"PowerBI/SeedData/Masters/NPI_List.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars=true])\nin\n    Promoted"
             }
           }
         ]

@@ -24,7 +24,7 @@ class TestRegistry(unittest.TestCase):
             "status", "next-manual-step", "resume", "mark-complete",
             "generate-power-query", "generate-page-blueprint", "generate-theme",
             "generate-docs", "prepare-build-package", "run-automated", "start-manual-step",
-            "compile-model", "derive-article-master",
+            "compile-model", "derive-article-master", "derive-npi-list",
         })
 
     def test_unknown_command_raises_helpful_error(self):

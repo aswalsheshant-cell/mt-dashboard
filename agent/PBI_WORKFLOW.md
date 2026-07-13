@@ -62,6 +62,7 @@ python -m mtagent pbi reconcile-model --source <csv> --build-dir <agent/pbi_buil
 python -m mtagent pbi run-automated [--raw-dir D] [--masters-dir D] [--dax-dir D]
 python -m mtagent pbi generate-power-query | generate-page-blueprint | generate-theme | generate-docs | prepare-build-package
 python -m mtagent pbi derive-article-master [--raw-dir D]   # ArticleMaster from the offtake data itself (cross-chain EAN consolidation)
+python -m mtagent pbi derive-npi-list [--raw-dir D]         # NPI_List.csv from primary history (first sell-in month in latest FY = NPI)
 python -m mtagent pbi compile-model [--build-dir agent/pbi_build/<id>]   # programmatic .pbip -- automates step 11's model half
 python -m mtagent pbi status [--json]
 python -m mtagent pbi start-manual-step [--json]

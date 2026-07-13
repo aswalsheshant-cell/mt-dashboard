@@ -466,6 +466,11 @@ def build_parser() -> argparse.ArgumentParser:
     pam.add_argument("--raw-dir", help="override PowerBI/RawDataFolders/Offtake_Monthly")
     pam.add_argument("--json", action="store_true")
 
+    pnl = pbi_sub.add_parser("derive-npi-list", help="derive NPI_List.csv from the primary "
+                                                      "sell-in history (first appearance in latest FY)")
+    pnl.add_argument("--raw-dir", help="override PowerBI/RawDataFolders/Primary_Article_Monthly")
+    pnl.add_argument("--json", action="store_true")
+
     pcm = pbi_sub.add_parser("compile-model", help="compile the .pbip semantic model "
                                                     "(bindings + relationships + gated DAX) programmatically")
     pcm.add_argument("--build-dir", help="agent/pbi_build/<id> to bind (default: latest)")

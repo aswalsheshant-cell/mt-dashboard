@@ -257,6 +257,23 @@ VAR _baseline = [L3M Average Sales]
 RETURN DIVIDE ( _campaignNSV - _baseline, _baseline )
 // format: +0.0%;-0.0%
 
+Visibility Grade =
+// grading system over whichever visibility metric the visual filters to
+// (SOA/SOS/SOV %). Bands are business-editable DEFAULTS, not gospel —
+// change the thresholds here once leadership fixes the grade boundaries.
+VAR _num = SUM ( 'Visibility Tracker'[Numerator] )
+VAR _den = SUM ( 'Visibility Tracker'[Denominator] )
+VAR _pct = DIVIDE ( _num, _den )
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( _pct ), BLANK (),
+        _pct >= 0.90, "A — best in class",
+        _pct >= 0.75, "B — on standard",
+        _pct >= 0.50, "C — below standard",
+        "D — intervention required"
+    )
+
 // ---------------------------------------------------------------------
 // F. ACCOUNT STRUCTURAL CONSTRAINTS — Reliance & FSN (Nykaa)
 // Display folder: "Growth Engine\Account Constraints"
