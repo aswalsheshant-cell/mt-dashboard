@@ -259,8 +259,8 @@ RETURN DIVIDE ( _campaignNSV - _baseline, _baseline )
 
 Visibility Grade =
 // grading system over whichever visibility metric the visual filters to
-// (SOA/SOS/SOV %). Bands are business-editable DEFAULTS, not gospel —
-// change the thresholds here once leadership fixes the grade boundaries.
+// (SOA/SOS/SOV %). Bands BUSINESS-CONFIRMED 2026-07-13:
+//   A > 50% · B >= 40% · C >= 30% · D >= 20% · E >= 10% · F below 10%
 VAR _num = SUM ( 'Visibility Tracker'[Numerator] )
 VAR _den = SUM ( 'Visibility Tracker'[Denominator] )
 VAR _pct = DIVIDE ( _num, _den )
@@ -268,10 +268,12 @@ RETURN
     SWITCH (
         TRUE (),
         ISBLANK ( _pct ), BLANK (),
-        _pct >= 0.90, "A — best in class",
-        _pct >= 0.75, "B — on standard",
-        _pct >= 0.50, "C — below standard",
-        "D — intervention required"
+        _pct > 0.50, "A — above 50%",
+        _pct >= 0.40, "B — 40–50%",
+        _pct >= 0.30, "C — 30–40%",
+        _pct >= 0.20, "D — 20–30%",
+        _pct >= 0.10, "E — 10–20%",
+        "F — below 10%"
     )
 
 // ---------------------------------------------------------------------

@@ -219,8 +219,9 @@ SOS = our facings / total facings; SOV = our media units / category media
 units). Until filled sheets land, the honest committed proxies are TDP/ACV
 (`05_TDP_Measures.dax`, `PageLayouts.md` Page 10) against `NSV` trend. Once
 loaded as `Visibility Tracker`, overlay `SOA %`/`SOS %` (14§E), grade
-accounts with `Visibility Grade` (A ≥90% / B ≥75% / C ≥50% / D — editable
-default bands), and use `Campaign NSV Lift %` sliced by `Campaign` to
+accounts with `Visibility Grade` (business-confirmed bands: A >50% /
+B ≥40% / C ≥30% / D ≥20% / E ≥10% / F below 10%), and use
+`Campaign NSV Lift %` sliced by `Campaign` to
 attribute spikes (TDC shelf tray, Bay Breaker, winter) to shelf-velocity
 change. Campaign ROI is *never* claimed from a sales spike alone — the lift
 measure compares campaign months to their own L3M baseline.
