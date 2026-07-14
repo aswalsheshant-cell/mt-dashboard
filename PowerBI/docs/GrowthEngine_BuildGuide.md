@@ -62,7 +62,7 @@ Leadership parameters quoted in briefs but with **no committed source yet**
 
 | Parameter | Where it must land first |
 |---|---|
-| "₹16 Cr target baseline" **[needs source]** | a row/column in `SeedData/Targets/` — note the committed FY2627 file already carries different monthly figures (May = ₹38.0 Cr), so reconcile which target this is (quarterly? channel-level?) before adding |
+| "₹16 Cr baseline" — **RESOLVED 2026-07-14**: it is the monthly **distributor-supplied primary** run-rate, not an offtake target. Verified in the DIST allocation reconciliation (`data.js alloc.recon`): FY27 Apr ₹18.9 Cr + May ₹14.0 Cr, avg ≈ ₹16.4 Cr/month. No conflict with the ₹38.0 Cr offtake target. | already sourced — distributor-converted primary (secondary-based MoM conversion); see also `SeedData/Mapping/DistributorRouted_Articles.csv` for the 23 store-selling SKUs whose sell-in flows only via this route (₹9.0 L Apr+May'26) |
 | "19 NPIs" **[needs source]** | `SeedData/Masters/NPI_List.csv` (Article or EAN column — the offline agent already reads this exact file) |
 | "~₹10 L incremental monthly NPI business" **[needs source]** | the one-cell `NPI Run Rate Target` table (§5, Page 3) |
 | Dark-store flags per account **[needs source]** | `Store Format` column via `ChannelMap_Store.csv` (§4, Page 2) |
