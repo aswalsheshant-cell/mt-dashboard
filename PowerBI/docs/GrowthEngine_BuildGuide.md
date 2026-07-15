@@ -63,10 +63,12 @@ Leadership parameters quoted in briefs but with **no committed source yet**
 | Parameter | Where it must land first |
 |---|---|
 | "₹16 Cr baseline" — **RESOLVED 2026-07-14**: it is the monthly **distributor-supplied primary** run-rate, not an offtake target. Verified in the DIST allocation reconciliation (`data.js alloc.recon`): FY27 Apr ₹18.9 Cr + May ₹14.0 Cr, avg ≈ ₹16.4 Cr/month. No conflict with the ₹38.0 Cr offtake target. | already sourced — distributor-converted primary (secondary-based MoM conversion); see also `SeedData/Mapping/DistributorRouted_Articles.csv` for the 23 store-selling SKUs whose sell-in flows only via this route (₹9.0 L Apr+May'26) |
-| "19 NPIs" **[needs source]** | `SeedData/Masters/NPI_List.csv` (Article or EAN column — the offline agent already reads this exact file) |
+| "19 NPIs" — **RESOLVED 2026-07-13**: derived from the 14-month primary history (rule: first primary appearance in the latest FY = NPI). Data says **32**, not 19 — the briefed count and the derived count differ; `NPI_List.csv` is the editable source of truth. | `SeedData/Masters/NPI_List.csv` (`pbi derive-npi-list`) |
 | "~₹10 L incremental monthly NPI business" **[needs source]** | the one-cell `NPI Run Rate Target` table (§5, Page 3) |
-| Dark-store flags per account **[needs source]** | `Store Format` column via `ChannelMap_Store.csv` (§4, Page 2) |
-| Campaign calendar (TDC shelf tray, Bay Breaker, winter) **[needs source]** | `Visibility Tracker` table (§6) |
+| Dark-store flags per account — **RESOLVED 2026-07-13**: business-confirmed none exist in the network. Tracking block intentionally not built (§4). | n/a — reactivation path documented in §4 if dark stores ever launch |
+| Chain-wise Market Share (Gross Sales basis), May'26 — **RESOLVED 2026-07-14**: extracted from the leadership deck's slide 4 (MRL/Lulu/Wellness Forever/Reliance Retail), chain names matched via `ChainAliases.csv` (MRL → More Retail, business-confirmed). This is Share-of-Market, not SOA/SOS shelf-visibility — see the honest distinction in §4. | `SeedData/Mapping/ChainMarketShare_May26.csv` |
+| SOA / SOS / SOV shelf-visibility numerics **[needs source]** — the deck's "SOS/SOA" slide (20) is 4 store-display **photos** (Sumo Save), not numeric data; no tabular SOA/SOS % exists anywhere in the committed repo yet | `Visibility Tracker` table (§4), format at `templates/Template_Visibility_Tracker.csv` |
+| Campaign calendar (TDC shelf tray, Bay Breaker, winter) **[needs source]** | `Visibility Tracker` table (§4) |
 
 ---
 
@@ -210,6 +212,32 @@ column (`Dark Store` / `Standard`) to `SeedData/Masters/ChannelMap_Store.csv`
 keyed on `Store Code` and filtering the existing §A measures to it — the
 offtake `Store Type` column (Brand/Non-Brand Counter) is *not* a dark-store
 flag and must never be proxied as one.
+
+**Chain Market Share (Gross Sales basis) — LIVE, resolved via chain-name
+matching:** the leadership deck (`Final MT Offtake May26 Leadership
+slide_CORRECTED_V2.pptx`, slide 4) carries a real May'26 Share-of-Market
+table for 4 chains. Chain names matched against `ChainMaster.csv` — 3
+matched directly (Lulu, Wellness Forever, Reliance Retail), one needed a
+new alias (`MRL` → More Retail, business-confirmed). Extracted verbatim
+(no numbers invented) to `SeedData/Mapping/ChainMarketShare_May26.csv`:
+
+| Chain | Honasa GS (L) | Total Mkt GS (L) | Share % | MoM (bps) |
+|---|---|---|---|---|
+| More Retail (MRL) | 59.7 | 2,128.7 | 2.80% | +31 |
+| Lulu | 111.5 | 2,848.0 | 3.91% | −21 |
+| Wellness Forever | 137.4 | 977.6 | 14.06% | −35 |
+| Reliance Retail | 2,052.0 | 19,298.6 | 10.63% | −38 |
+
+Load as a disconnected `Chain Market Share` table; add a card/table on
+this page (`Market Share %`, `MoM (bps)`, chain-name resolved through the
+same `Chain Master`/`ChainAliases` join everything else uses). **Honest
+distinction, do not conflate the two:** this is Share-of-**Market**
+(Honasa's Gross Sales ÷ category Gross Sales per chain) — it is NOT
+Share-of-**Availability/Shelf** (SOA/SOS). The deck's dedicated
+"SOS/SOA – Honasa Portfolio Visibility" slide (20) contains 4 store
+**photographs** (Sumo Save shelf displays), not a single numeric SOA/SOS
+value — chain-name matching cannot resolve what isn't tabulated. SOA/SOS/SOV
+numerics genuinely still need the filled `Visibility Tracker` template below.
 
 **Visibility campaigns vs sales:** the input format the business fills is
 now committed at `PowerBI/templates/Template_Visibility_Tracker.csv`
