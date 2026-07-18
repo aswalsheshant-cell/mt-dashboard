@@ -307,6 +307,65 @@ function mkDonut(id,labels,data,money=true,onClick){
         return `${c.label}: ${money?crc(c.parsed):num(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}},_drillOpts(onClick))}));
 }
 
+/* ================= RETAIL AUDIT: MT vs GT (Nielsen/Kantar panel) =================
+   Standalone reference dataset, kept fully separate from D (window.DASH / the
+   Primary-Offtake-P&L pipeline built by scripts/build_dashboard_data.py). Values
+   are Sales Value in Rs Crores (NOT Lakh like the rest of the dashboard), so this
+   block uses its own raC() formatter and never calls crc()/cr(). Do not merge
+   these numbers into D.primary/D.universe or any Primary/Offtake calculation --
+   this is an external retail-audit panel (MT = "AI (U+R) MT", GT = "GT Total"),
+   not Honasa's own DMS/distributor data. */
+const RETAIL_AUDIT = {
+  source:'Nielsen/Kantar retail-audit panel (Urban), MT = "AI (U+R) MT", GT = "GT Total". Data through Jun\'26.',
+  facewash:{
+    label:'Facewash',
+    mt:{ catL12mYA:780.3, catL12m:857.7, mamL12mYA:58.1, mamL12m:90.2,
+         msValFrom:7.5, msValTo:10.5, wdFrom:78.7, wdTo:87.0, pdoFrom:6029.2, pdoTo:7227.5 },
+    gt:{ catL12mYA:2136.8, catL12m:2245.8, mamL12mYA:88.1, mamL12m:99.6,
+         msValFrom:4.1, msValTo:4.4, wdFrom:49.9, wdTo:50.1, pdoFrom:576.1, pdoTo:554.6 }
+  },
+  shampoo:{
+    label:'Shampoo',
+    mt:{ catL12mYA:1736.4, catL12m:1736.4, mamL12mYA:42.8, mamL12m:63.5,
+         msValFrom:2.5, msValTo:3.7, wdFrom:73.5, wdTo:78.3, storesFrom:7572.8, storesTo:8883.3 },
+    gt:{ catL12mYA:1754.9, catL12m:1745.6, mamL12mYA:20.6, mamL12m:15.9,
+         msValFrom:1.2, msValTo:0.9, wdFrom:28.3, wdTo:23.3, storesFrom:73353.4, storesTo:66749.7 }
+  }
+};
+const raC = v => v==null?'–':'₹'+v.toLocaleString('en-IN',{maximumFractionDigits:1})+' Cr'; // Rs Crore formatter, local to this section only
+const raGrowth = (from,to) => from?((to-from)/from*100):null;
+function retailAuditHtml(){
+  const ra=RETAIL_AUDIT;
+  const row=(cat)=>{
+    const c=ra[cat], mtG=raGrowth(c.mt.mamL12mYA,c.mt.mamL12m), gtG=raGrowth(c.gt.mamL12mYA,c.gt.mamL12m);
+    const catMtG=raGrowth(c.mt.catL12mYA,c.mt.catL12m), catGtG=raGrowth(c.gt.catL12mYA,c.gt.catL12m);
+    return `<tr><td><b>${c.label}</b></td>
+      <td>${pct(catMtG)}</td><td>${pct(mtG)}</td><td>${c.mt.msValFrom.toFixed(1)}% → ${c.mt.msValTo.toFixed(1)}%</td><td>${c.mt.wdFrom.toFixed(1)}% → ${c.mt.wdTo.toFixed(1)}%</td>
+      <td>${pct(catGtG)}</td><td class="${gtG<0?'down':'up'}">${pct(gtG)}</td><td>${c.gt.msValFrom.toFixed(1)}% → ${c.gt.msValTo.toFixed(1)}%</td><td>${c.gt.wdFrom.toFixed(1)}% → ${c.gt.wdTo.toFixed(1)}%</td></tr>`;
+  };
+  return `<h3 class="sec" style="font-size:15px;margin:26px 0 4px">Retail Audit: MT vs GT — Facewash &amp; Shampoo (Mamaearth)</h3>
+   <p class="note" style="margin:0 0 10px"><b>Separate external data source</b> — ${ra.source} This is an independent retail-audit
+     panel used for channel benchmarking only; it is <b>not</b> merged with the Primary/Offtake figures above or elsewhere
+     on this dashboard (different methodology: audited retail panel vs Honasa's own primary billing).</p>
+   <div class="grid g2">
+     ${card('Mamaearth value growth (L12M) — MT vs GT',raC(RETAIL_AUDIT.facewash.mt.mamL12m)+' vs '+raC(RETAIL_AUDIT.facewash.gt.mamL12m)+' (Facewash, latest 12 months)',cv('raBar',true))}
+     ${card('MT vs GT — Mamaearth KPI comparison','Sales Value in Rs Crores (Nielsen/Kantar), not Rs Lakh.',`<div class="tablewrap"><table>
+       <thead><tr><th rowspan="2">Category</th><th colspan="4">MT</th><th colspan="4">GT</th></tr>
+       <tr><th>Cat. Val Growth (L12M)</th><th>Mamaearth Val Growth (L12M)</th><th>Mamaearth MS (Val)</th><th>Mamaearth Wtd Dist.</th>
+           <th>Cat. Val Growth (L12M)</th><th>Mamaearth Val Growth (L12M)</th><th>Mamaearth MS (Val)</th><th>Mamaearth Wtd Dist.</th></tr></thead>
+       <tbody>${row('facewash')}${row('shampoo')}</tbody></table></div>`)}
+   </div>`;
+}
+function renderRetailAuditChart(){
+  const labels=['Facewash MT','Facewash GT','Shampoo MT','Shampoo GT'];
+  const vals=[RETAIL_AUDIT.facewash.mt.mamL12m,RETAIL_AUDIT.facewash.gt.mamL12m,RETAIL_AUDIT.shampoo.mt.mamL12m,RETAIL_AUDIT.shampoo.gt.mamL12m];
+  charts.push(new Chart(document.getElementById('raBar'),{type:'bar',
+    data:{labels,datasets:[{data:vals,backgroundColor:[C.teal,C.grey,C.teal,C.grey],borderRadius:4}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>raC(c.parsed.x)}}},
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>raC(v)}},y:{grid:{display:false}}}}}));
+}
+
 /* ================= EXPORT INFRASTRUCTURE (chart / table / page) ================= */
 // dashboard version / source note, embedded in every export (page footer, Excel
 // metadata rows) per the "dashboard version / source note" + "Source: ... | Exported on ..." requirement
@@ -1132,14 +1191,17 @@ function buildShare(){
        ${card('Share of business by chain (FY27 YTD primary)','click a slice to drill',cv('shSob'))}
        ${card('Share-of-business league table (FY27 YTD primary)','Click a chain to drill.',`<div class="tablewrap"><table>
          <thead><tr><th>Chain</th><th>NSV</th><th>Share</th></tr></thead><tbody>${sobRows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-       ${catDrillCardHtml('shCatDrill')}`;
+       ${catDrillCardHtml('shCatDrill')}
+       ${retailAuditHtml()}`;
       wireDrillLinks(s);
       mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v),true,v=>drillTo('Chain',v));
       renderCatDrillChart('shCatDrill',recFilter());
+      renderRetailAuditChart();
       return;
     }
-    s.innerHTML=`<h2 class="sec">Market Share</h2>${fyNoDataNote('the Primary source used for share-of-business')}${catDrillCardHtml('shCatDrill')}`;
+    s.innerHTML=`<h2 class="sec">Market Share</h2>${fyNoDataNote('the Primary source used for share-of-business')}${catDrillCardHtml('shCatDrill')}${retailAuditHtml()}`;
     renderCatDrillChart('shCatDrill',recFilter());
+    renderRetailAuditChart();
     return;
   }
   const fy=fyKey()||'fy26', yrLab={fy25:'FY25',fy26:'FY26'};
@@ -1163,10 +1225,12 @@ function buildShare(){
    ${card(`Share of business by chain (${yrLab[fy]} primary)`,'click a slice to drill',cv('shSob'))}
    ${card(`Share-of-business league table (${yrLab[fy]} primary)`,'Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>NSV</th><th>Share</th></tr></thead><tbody>${sobRows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${catDrillCardHtml('shCatDrill')}`;
+   ${catDrillCardHtml('shCatDrill')}
+   ${retailAuditHtml()}`;
   wireDrillLinks(s);
   mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v),true,v=>drillTo('Chain',v));
   renderCatDrillChart('shCatDrill',recFilter());
+  renderRetailAuditChart();
 }
 
 /* ---------------- DISTRIBUTION ---------------- */
