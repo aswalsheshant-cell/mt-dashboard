@@ -462,8 +462,43 @@ function metricRow(r, label, sumf) {
   XLSX.utils.book_append_sheet(wb, ws, 'READ_ME');
 }
 
+// ---------- EXECUTIVE SYNTHESIS (SCR + MoM Inflection Mapping) ----------
+{
+  const rows = [
+    ['EXECUTIVE SYNTHESIS — Q1 FY26-27 (Apr-Jun\'26) — SCR FRAMEWORK'],
+    ['Brand | Category | SKU anchor: Mamaearth + The Derma Co. | Face Care / Hair Care / Sun Care | Portfolio-wide'],
+    [''],
+    ['SITUATION', 'Q1 FY27 NSV hit ₹11,438.7L vs ₹6,986.0L in Q1 FY26 — up 63.7% YoY, led by West and Derma Co.'],
+    ['COMPLICATION', 'June momentum cooled everywhere at once — every zone decelerated MoM after a May peak (-5.0% co. wide).'],
+    ['RESOLUTION', 'Protect May\'s pipeline-fill gains by shifting focus to June sell-through; re-forecast July off L3M avg (₹3,615L), not May peak.'],
+    [''],
+    ['MoM INFLECTION MAPPING (real, from 15-month series — no fabricated inputs)'],
+    ['Every one of the 6 zones shows the identical inflection shape: acceleration into May-26 (peak MoM), then sharp deceleration in June-26.'],
+    ['This is a company-wide pattern, most consistent with a May primary pipeline-fill/stockist-loading effect rather than a genuine June demand drop.'],
+    [''],
+    ['Zone', 'May MoM %', 'Jun MoM %', 'Read'],
+    ['EAST', 11.4, -6.7, 'May peak -> Jun correction'],
+    ['NORTH', 3.7, -8.2, 'May peak -> Jun correction'],
+    ['SOUTH-1', 15.1, -4.6, 'May peak -> Jun correction'],
+    ['SOUTH-2', 10.1, -3.1, 'May peak -> Jun correction'],
+    ['WEST', 3.0, -0.7, 'May peak -> Jun correction (mildest)'],
+    ['PAN INDIA', null, null, 'Smallest zone, more volatile'],
+    [''],
+    ['DATA REQUIRED TO COMPLETE REMAINING ASKS (flagged, not fabricated — per no-dummy-data rule)'],
+    ['Velocity-vs-Distribution Quadrant, Opportunity Gap Valuation, and Stock Productivity/Capital Efficiency need inputs our'],
+    ['source tables do not contain (sales NSV/volume only). To build these for real, please share:'],
+    ['1. Store count / active distribution points per chain per zone per month (Peak Throughput per store, Active Distribution Grid, Quadrant classification).'],
+    ['2. Monthly sales target/budget per zone or brand (Opportunity Gap Valuation = Target - Carrying Variance x Peak Throughput Velocity).'],
+    ['3. Inventory/stock-in-trade and shelf-space (bay/facing) allocation per chain (Stock Productivity & Capital Efficiency).'],
+    ['Once shared, these will be validated and added as formula-linked sheets/slides using the same process as the NSV corrections.'],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 16 }, { wch: 60 }, { wch: 16 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, ws, 'Executive_Synthesis');
+}
+
 // order: READ_ME first
-wb.SheetNames = ['READ_ME', 'Corrections_Impact', 'KPI_Dashboard', 'Q1_FY27_Scorecard', 'Zone_Summary', 'Chain_Summary', 'Brand_SubCat_Summary', 'Pack_Hero', 'Primary_Summary', 'May26_External_Workings', 'Slide_Map', 'Offtake_Chain_Zone', 'Offtake_Brand_SubCat_Zone', 'Offtake_Qtr_Chain_Zone', 'Zone_Brand_Qtr', 'Primary_Zone_Chain', 'Primary_Brand_Monthly'];
+wb.SheetNames = ['READ_ME', 'Executive_Synthesis', 'Corrections_Impact', 'KPI_Dashboard', 'Q1_FY27_Scorecard', 'Zone_Summary', 'Chain_Summary', 'Brand_SubCat_Summary', 'Pack_Hero', 'Primary_Summary', 'May26_External_Workings', 'Slide_Map', 'Offtake_Chain_Zone', 'Offtake_Brand_SubCat_Zone', 'Offtake_Qtr_Chain_Zone', 'Zone_Brand_Qtr', 'Primary_Zone_Chain', 'Primary_Brand_Monthly'];
 wb.Workbook = { CalcPr: { fullCalcOnLoad: true } };
 const out = path.join(__dirname, 'MT_Offtake_Primary_Jun26_Working_CORRECTED.xlsx');
 const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
