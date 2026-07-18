@@ -1,0 +1,288 @@
+{
+  "chain": {
+    "Dmart": {
+      "primary_jun": 1700.37,
+      "offtake_jun": 1455.9099999999999,
+      "sellout_jun": 85.62312908367002,
+      "primary_q1": 5527.24,
+      "offtake_q1": 4231.67,
+      "sellout_q1": 76.56027239634972
+    },
+    "Reliance": {
+      "primary_jun": 976.25,
+      "offtake_jun": 947.8100000000001,
+      "sellout_jun": 97.08681177976953,
+      "primary_q1": 3047.2700000000004,
+      "offtake_q1": 2805.7500000000005,
+      "sellout_q1": 92.07421725019444
+    },
+    "Apollo": {
+      "primary_jun": 785.38,
+      "offtake_jun": 723.03,
+      "sellout_jun": 92.06116784231837,
+      "primary_q1": 2555.42,
+      "offtake_q1": 2172.92,
+      "sellout_q1": 85.03181473104226
+    },
+    "Metro Cnc": {
+      "primary_jun": 0.0,
+      "offtake_jun": 61.11,
+      "sellout_jun": null,
+      "primary_q1": 102.74,
+      "offtake_q1": 156.53,
+      "sellout_q1": 152.355460385439
+    },
+    "Walmart Cnc": {
+      "primary_jun": -0.41,
+      "offtake_jun": 0.0,
+      "sellout_jun": -0.0,
+      "primary_q1": 46.480000000000004,
+      "offtake_q1": 36.9,
+      "sellout_q1": 79.38898450946643
+    },
+    "Vmm": {
+      "primary_jun": 39.089999999999996,
+      "offtake_jun": 30.66,
+      "sellout_jun": 78.43438219493477,
+      "primary_q1": 172.03,
+      "offtake_q1": 96.10999999999999,
+      "sellout_q1": 55.86816252979131
+    },
+    "Wh-Smith": {
+      "primary_jun": 0.0,
+      "offtake_jun": 0.41,
+      "sellout_jun": null,
+      "primary_q1": 0.39,
+      "offtake_q1": 1.6600000000000004,
+      "sellout_q1": 425.64102564102575
+    },
+    "Ratandeep": {
+      "primary_jun": 2.55,
+      "offtake_jun": 2.76,
+      "sellout_jun": 108.23529411764706,
+      "primary_q1": 9.69,
+      "offtake_q1": 8.28,
+      "sellout_q1": 85.44891640866872
+    },
+    "Sancus(Rmt)": {
+      "primary_jun": 28.1,
+      "offtake_jun": 39.83,
+      "sellout_jun": 141.74377224199287,
+      "primary_q1": 165.55999999999997,
+      "offtake_q1": 143.60000000000002,
+      "sellout_q1": 86.73592655230735
+    },
+    "Sasta Sundar": {
+      "primary_jun": 0.91,
+      "offtake_jun": 0.99,
+      "sellout_jun": 108.79120879120879,
+      "primary_q1": 4.1899999999999995,
+      "offtake_q1": 3.0599999999999996,
+      "sellout_q1": 73.0310262529833
+    },
+    "Sohum": {
+      "primary_jun": 0.0,
+      "offtake_jun": 0,
+      "sellout_jun": null,
+      "primary_q1": -2.51,
+      "offtake_q1": 0,
+      "sellout_q1": -0.0
+    },
+    "Frankros": {
+      "primary_jun": 8.940000000000001,
+      "offtake_jun": 7.409999999999999,
+      "sellout_jun": 82.88590604026844,
+      "primary_q1": 34.230000000000004,
+      "offtake_q1": 21.540000000000003,
+      "sellout_q1": 62.927256792287466
+    },
+    "Fsn": {
+      "primary_jun": 206.66,
+      "offtake_jun": 216.67,
+      "sellout_jun": 104.8437046356334,
+      "primary_q1": 645.4799999999999,
+      "offtake_q1": 653.37,
+      "sellout_q1": 101.22234616099648
+    },
+    "Apna Mart": {
+      "primary_jun": 0.0,
+      "offtake_jun": 0.0,
+      "sellout_jun": null,
+      "primary_q1": 4.8,
+      "offtake_q1": 2.51,
+      "sellout_q1": 52.29166666666667
+    },
+    "Arambagh": {
+      "primary_jun": 3.35,
+      "offtake_jun": 5.19,
+      "sellout_jun": 154.92537313432837,
+      "primary_q1": 12.69,
+      "offtake_q1": 17.11,
+      "sellout_q1": 134.83057525610718
+    },
+    "Guardian": {
+      "primary_jun": 0.91,
+      "offtake_jun": 1.8900000000000003,
+      "sellout_jun": 207.6923076923077,
+      "primary_q1": 6.51,
+      "offtake_q1": 6.260000000000001,
+      "sellout_q1": 96.15975422427037
+    },
+    "H&G": {
+      "primary_jun": 69.87,
+      "offtake_jun": 51.84,
+      "sellout_jun": 74.19493344783169,
+      "primary_q1": 238.92000000000002,
+      "offtake_q1": 201.06,
+      "sellout_q1": 84.15369161225514
+    },
+    "Lulu": {
+      "primary_jun": 187.50000000000003,
+      "offtake_jun": 115.85000000000001,
+      "sellout_jun": 61.786666666666655,
+      "primary_q1": 504.68000000000006,
+      "offtake_q1": 333.17,
+      "sellout_q1": 66.01608940318617
+    },
+    "More Retail": {
+      "primary_jun": 67.25999999999999,
+      "offtake_jun": 43.660000000000004,
+      "sellout_jun": 64.9122807017544,
+      "primary_q1": 176.0,
+      "offtake_q1": 143.41,
+      "sellout_q1": 81.48295454545455
+    },
+    "National Mart": {
+      "primary_jun": 3.72,
+      "offtake_jun": 4.02,
+      "sellout_jun": 108.06451612903226,
+      "primary_q1": 9.71,
+      "offtake_q1": 8.7,
+      "sellout_q1": 89.59835221421214
+    },
+    "Spencer": {
+      "primary_jun": 9.649999999999999,
+      "offtake_jun": 8.49,
+      "sellout_jun": 87.97927461139898,
+      "primary_q1": 31.599999999999998,
+      "offtake_q1": 32.970000000000006,
+      "sellout_q1": 104.33544303797471
+    },
+    "Sumo Save": {
+      "primary_jun": 1.06,
+      "offtake_jun": 1.47,
+      "sellout_jun": 138.67924528301884,
+      "primary_q1": 6.27,
+      "offtake_q1": 4.6499999999999995,
+      "sellout_q1": 74.16267942583733
+    },
+    "Trent": {
+      "primary_jun": 9.02,
+      "offtake_jun": 10.719999999999999,
+      "sellout_jun": 118.8470066518847,
+      "primary_q1": 31.6,
+      "offtake_q1": 26.06,
+      "sellout_q1": 82.46835443037975
+    },
+    "V-Mart": {
+      "primary_jun": -3.56,
+      "offtake_jun": 12.950000000000001,
+      "sellout_jun": -363.76404494382024,
+      "primary_q1": 19.160000000000004,
+      "offtake_q1": 37.6,
+      "sellout_q1": 196.24217118997908
+    },
+    "Vijetha": {
+      "primary_jun": 0.0,
+      "offtake_jun": 0.0,
+      "sellout_jun": null,
+      "primary_q1": 0.0,
+      "offtake_q1": 0.0,
+      "sellout_q1": null
+    },
+    "Wellness Forever": {
+      "primary_jun": 66.66,
+      "offtake_jun": 80.02,
+      "sellout_jun": 120.04200420042004,
+      "primary_q1": 274.49,
+      "offtake_q1": 291.25999999999993,
+      "sellout_q1": 106.10951218623626
+    }
+  },
+  "zone": {
+    "East": {
+      "primary_jun": 428.06000000000006,
+      "offtake_jun": 386.8900000000001,
+      "sellout_jun": 90.38218941269916,
+      "primary_q1": 1532.1399999999999,
+      "offtake_q1": 1173.49,
+      "sellout_q1": 76.59156473951467
+    },
+    "North": {
+      "primary_jun": 938.1600000000002,
+      "offtake_jun": 859.9100000000001,
+      "sellout_jun": 91.65920525283533,
+      "primary_q1": 3119.63,
+      "offtake_q1": 2641.1900000000005,
+      "sellout_q1": 84.66356587159376
+    },
+    "South-1": {
+      "primary_jun": 1085.34,
+      "offtake_jun": 827.2399999999999,
+      "sellout_jun": 76.219433541563,
+      "primary_q1": 3298.47,
+      "offtake_q1": 2489.49,
+      "sellout_q1": 75.4740834386852
+    },
+    "South-2": {
+      "primary_jun": 659.1500000000001,
+      "offtake_jun": 547.7699999999999,
+      "sellout_jun": 83.10248046726842,
+      "primary_q1": 1978.55,
+      "offtake_q1": 1576.3500000000001,
+      "sellout_q1": 79.67198200702535
+    },
+    "West": {
+      "primary_jun": 1056.65,
+      "offtake_jun": 985.3,
+      "sellout_jun": 93.24752756352622,
+      "primary_q1": 3731.1700000000005,
+      "offtake_q1": 2904.83,
+      "sellout_q1": 77.85305949608299
+    }
+  },
+  "exec": {
+    "matched_primary_jun": 4163.28,
+    "matched_offtake_jun": 3822.690000000002,
+    "matched_primary_q1": 13624.639999999998,
+    "matched_offtake_q1": 11436.149999999998,
+    "all_primary_jun": 4167.36,
+    "all_offtake_jun": 3823.7800000000016,
+    "all_primary_q1": 13659.96,
+    "all_offtake_q1": 11438.719999999998,
+    "n_primary_chains": 47,
+    "n_offtake_chains": 26
+  },
+  "unmapped_primary": [
+    "Apna Klub",
+    "Ascent Wellness",
+    "Azorte",
+    "Broadway",
+    "Deal Share",
+    "Eremedium",
+    "G N R C Medishop Pvt Ltd",
+    "Grace Super MKT",
+    "Lifestyle",
+    "Lifestyle Babyshop",
+    "Max Hyper",
+    "Medanta",
+    "Mother Care",
+    "Pothys",
+    "Relay",
+    "Sarvana",
+    "Shoppers Stop",
+    "Today's Basket",
+    "Trilife"
+  ],
+  "unmapped_offtake": []
+}
