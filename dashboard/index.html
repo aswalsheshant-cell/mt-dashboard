@@ -366,6 +366,107 @@ function renderRetailAuditChart(){
       scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>raC(v)}},y:{grid:{display:false}}}}}));
 }
 
+/* ================= NIELSEN COMPETITIVE, PACK & STATE (National Urban) =================
+   ANOTHER standalone reference dataset -- deliberately kept separate from both D
+   (window.DASH) and RETAIL_AUDIT above. Source: Nielsen National Urban MS Val
+   readout, May'26 vintage, transcribed from the leadership deck built on branch
+   claude/retail-channel-performance-hz0q8h ("Final MT Offtake Jun26 Leadership
+   slide_CORRECTED_V2.pptx", slides 6/7/9/10) -- NOT re-derived from the MT/GT
+   panel CSVs above. This is Honasa's total Urban market share vs named
+   competitors (no MT/GT channel cut), one month older (May'26) than the
+   RETAIL_AUDIT block. Do not blend figures between the two blocks or with D. */
+const NIELSEN_COMP = {
+  source:'Nielsen National Urban MS Val readout, May\'26 (transcribed from prior leadership deck, branch claude/retail-channel-performance-hz0q8h). Not a MT/GT channel cut.',
+  facewash:{
+    natMS:{label25:'May\'25',ms25:6,msApr26:7,ms26:7,mom:2,yoy:107,sales25:14.98,salesApr26:17.54,sales26:18.61,salesMom:6.1,salesYoy:24.2},
+    competitors:[
+      {rank:1,brand:'Himalaya',valueCr:17.9,yoyVal:-2,msVal:22,mom:20,yoy:-328,mat:23,wd:100},
+      {rank:2,brand:'Garnier',valueCr:11.8,yoyVal:17,msVal:14,mom:43,yoy:55,mat:14,wd:90},
+      {rank:3,brand:"Pond's",valueCr:11.4,yoyVal:8,msVal:14,mom:-114,yoy:-61,mat:14,wd:98},
+      {rank:4,brand:'Mamaearth',valueCr:9.6,yoyVal:54,msVal:12,mom:0,yoy:311,mat:10,wd:87,us:true},
+      {rank:5,brand:'Clean & Clear',valueCr:6.3,yoyVal:16,msVal:8,mom:3,yoy:22,mat:8,wd:97},
+      {rank:6,brand:'Joy',valueCr:4.9,yoyVal:7,msVal:6,mom:7,yoy:-30,mat:6,wd:76},
+      {rank:7,brand:'Lakme',valueCr:3.1,yoyVal:23,msVal:4,mom:60,yoy:31,mat:3,wd:79},
+      {rank:8,brand:'Nivea Men',valueCr:3.0,yoyVal:-2,msVal:4,mom:-7,yoy:-54,mat:4,wd:86},
+      {rank:9,brand:'Simple',valueCr:1.9,yoyVal:null,msVal:2,mom:36,yoy:223,mat:1,wd:51},
+      {rank:16,brand:'The Derma Co',valueCr:0.606,yoyVal:3940,msVal:0.7,mom:6,yoy:71,mat:0.3,wd:14,us:true}
+    ],
+    packSize:[ // Mamaearth Facewash, MS Val% is of MT category not national; cont% = share of Mamaearth Facewash brand
+      {rank:1,pack:'150ml',contPct:58,mom:-40,yoy:290,valueCr:5.53,yoyGrowth:98},
+      {rank:2,pack:'100ml',contPct:21,mom:-40,yoy:-60,valueCr:1.96,yoyGrowth:-11},
+      {rank:3,pack:'200ml',contPct:11,mom:90,yoy:130,valueCr:1.06,yoyGrowth:null},
+      {rank:4,pack:'50ml',contPct:11,mom:-10,yoy:50,valueCr:1.01,yoyGrowth:80},
+      {rank:5,pack:'250ml',contPct:0,mom:0,yoy:-80,valueCr:0.04,yoyGrowth:-94}
+    ],
+    zone:[{zone:'North',apr26:7,may26:7,mom:-33,topBrand:'Himalaya (20.1%)'},{zone:'South',apr26:6,may26:7,mom:90,topBrand:'Himalaya (28.3%)'},
+      {zone:'East',apr26:5,may26:5,mom:37,topBrand:'Himalaya (23.0%)'},{zone:'West',apr26:7,may26:7,mom:-3,topBrand:'Himalaya (22.1%)'}],
+    states:[{state:'Uttar Pradesh',contrib:15,share:6,mom:-122},{state:'Maharashtra',contrib:14,share:6,mom:16},
+      {state:'West Bengal',contrib:8,share:5,mom:28},{state:'Delhi',contrib:8,share:9,mom:-42},
+      {state:'Haryana',contrib:6,share:8,mom:148},{state:'Madhya Pradesh',contrib:6,share:7,mom:14},
+      {state:'Bihar',contrib:6,share:5,mom:-15},{state:'Gujarat',contrib:5,share:10,mom:-88}]
+  },
+  shampoo:{
+    natMS:{label25:'May\'25',ms25:2,msApr26:3,ms26:3,mom:-2,yoy:75,sales25:5.49,salesApr26:6.94,sales26:7.75,salesMom:11.5,salesYoy:41.1},
+    competitors:[
+      {rank:1,brand:'Dove',valueCr:29.6,yoyVal:7,msVal:18,mom:170,yoy:20,mat:16,wd:99},
+      {rank:2,brand:"L'Oreal Paris",valueCr:22.1,yoyVal:20,msVal:13,mom:70,yoy:130,mat:13,wd:91},
+      {rank:3,brand:'Head & Shoulders',valueCr:19.0,yoyVal:-8,msVal:11,mom:130,yoy:200,mat:13,wd:99},
+      {rank:4,brand:'Tresemme',valueCr:17.3,yoyVal:25,msVal:10,mom:90,yoy:140,mat:9,wd:98},
+      {rank:5,brand:'Clinic Plus',valueCr:16.7,yoyVal:14,msVal:10,mom:30,yoy:50,mat:10,wd:99},
+      {rank:6,brand:'Sunsilk',valueCr:14.8,yoyVal:-7,msVal:9,mom:0,yoy:150,mat:10,wd:99},
+      {rank:7,brand:'Mamaearth',valueCr:6.5,yoyVal:64,msVal:4,mom:30,yoy:130,mat:4,wd:81,us:true},
+      {rank:8,brand:'Pantene',valueCr:6.5,yoyVal:-4,msVal:4,mom:30,yoy:50,mat:4,wd:96},
+      {rank:9,brand:'Himalaya',valueCr:5.7,yoyVal:2,msVal:3,mom:40,yoy:20,mat:4,wd:91}
+    ],
+    zone:[{zone:'North',apr26:2,may26:2,mom:-26,topBrand:'Dove (15.7%)'},{zone:'South',apr26:3,may26:3,mom:8,topBrand:'Head & Shoulders (12.5%)'},
+      {zone:'East',apr26:3,may26:3,mom:37,topBrand:'Dove (13.7%)'},{zone:'West',apr26:2,may26:2,mom:5,topBrand:'Dove (16.8%)'}],
+    states:[{state:'Maharashtra',contrib:15,share:1,mom:11},{state:'Gujarat',contrib:11,share:3,mom:-61},
+      {state:'Uttar Pradesh',contrib:10,share:2,mom:-67},{state:'Delhi',contrib:7,share:2,mom:16},
+      {state:'Karnataka',contrib:6,share:3,mom:42},{state:'West Bengal',contrib:6,share:3,mom:53},
+      {state:'Haryana',contrib:6,share:2,mom:-5},{state:'Punjab',contrib:6,share:1,mom:-33}]
+  }
+};
+function ncPct(v){ return v==null?'–':(v>0?'+':'')+v+'%'; }
+function ncBps(v){ return v==null?'–':(v>0?'▲ +':'▼ ')+v+' bps'; }
+function nielsenCompHtml(){
+  const compRows=(cat)=>NIELSEN_COMP[cat].competitors.map(c=>`<tr class="${c.us?'up':''}">
+      <td>${c.rank}</td><td>${c.us?'<b>'+c.brand+'</b>':c.brand}</td><td>${raC(c.valueCr)}</td><td>${ncPct(c.yoyVal)}</td>
+      <td>${c.msVal}%</td><td>${ncBps(c.mom)}</td><td>${ncBps(c.yoy)}</td><td>${c.wd}%</td></tr>`).join('');
+  const zoneRows=(cat)=>NIELSEN_COMP[cat].zone.map(z=>`<tr><td>${z.zone}</td><td>${z.apr26}%</td><td>${z.may26}%</td><td>${ncBps(z.mom)}</td><td>${z.topBrand}</td></tr>`).join('');
+  const stateRows=(cat)=>NIELSEN_COMP[cat].states.map(s=>`<tr class="${s.contrib>s.share*1.5?'down':''}"><td>${s.state}</td><td>${s.contrib}%</td><td>${s.share}%</td><td>${ncBps(s.mom)}</td></tr>`).join('');
+  const packRows=NIELSEN_COMP.facewash.packSize.map(p=>`<tr><td>${p.pack}</td><td>${p.contPct}% of Mamaearth FW</td><td>${ncBps(p.mom)}</td><td>${ncBps(p.yoy)}</td><td>${raC(p.valueCr)}</td><td>${p.yoyGrowth==null?'–':ncPct(p.yoyGrowth)}</td></tr>`).join('');
+  const nm=(cat)=>{ const n=NIELSEN_COMP[cat].natMS;
+    return `<div class="kpis"><div class="kpi"><div class="lab">National MS Val (${n.label25} → May'26)</div><div class="val">${n.ms25}% → ${n.ms26}%</div><div class="sub">MoM ${ncBps(n.mom)} · YoY ${ncBps(n.yoy)}</div></div>
+      <div class="kpi"><div class="lab">National Sales</div><div class="val">${raC(n.sales26)}</div><div class="sub">MoM ${ncPct(n.salesMom)} · YoY ${ncPct(n.salesYoy)}</div></div></div>`; };
+  return `<h3 class="sec" style="font-size:15px;margin:26px 0 4px">Nielsen Competitive, Pack &amp; State Readout — National Urban (May'26)</h3>
+   <p class="note" style="margin:0 0 10px"><b>Third, separate data source</b> — ${NIELSEN_COMP.source} This is Honasa's total Urban market
+     share vs named competitors (no MT/GT channel split, unlike the block above), and one month older (May'26) than the MT vs GT panel.
+     Kept in its own <code>NIELSEN_COMP</code> object — not merged with <code>D</code> or <code>RETAIL_AUDIT</code>.</p>
+   <div class="grid g2">
+     <div class="card"><h3>Facewash — vs named competitors</h3><p class="note">National Urban Nielsen MS Val, May'26. Row highlighted = Mamaearth / The Derma Co.</p>
+       ${nm('facewash')}<div class="tablewrap"><table><thead><tr><th>Rank</th><th>Brand</th><th>Value</th><th>YoY Val%</th><th>MS Val%</th><th>MoM</th><th>YoY</th><th>Wtd Dist</th></tr></thead>
+       <tbody>${compRows('facewash')}</tbody></table></div></div>
+     <div class="card"><h3>Shampoo — vs named competitors</h3><p class="note">National Urban Nielsen MS Val, May'26. Row highlighted = Mamaearth.</p>
+       ${nm('shampoo')}<div class="tablewrap"><table><thead><tr><th>Rank</th><th>Brand</th><th>Value</th><th>YoY Val%</th><th>MS Val%</th><th>MoM</th><th>YoY</th><th>Wtd Dist</th></tr></thead>
+       <tbody>${compRows('shampoo')}</tbody></table></div></div>
+   </div>
+   <div class="grid g2">
+     <div class="card"><h3>Mamaearth Facewash — pack size (National Urban)</h3><p class="note">150ml is the hero pack; 250ml in sharp YoY decline.</p>
+       <div class="tablewrap"><table><thead><tr><th>Pack</th><th>Contribution</th><th>MoM</th><th>YoY</th><th>Value</th><th>YoY Growth</th></tr></thead><tbody>${packRows}</tbody></table></div></div>
+     <div class="card"><h3>Zone-wise share (May'26)</h3><p class="note">Facewash then Shampoo. Top brand shown is the zone leader, not Mamaearth.</p>
+       <div class="tablewrap"><table><thead><tr><th>Zone</th><th>Apr'26</th><th>May'26</th><th>MoM</th><th>Top Brand</th></tr></thead>
+       <tbody><tr><td colspan="5"><b>Facewash</b></td></tr>${zoneRows('facewash')}<tr><td colspan="5"><b>Shampoo</b></td></tr>${zoneRows('shampoo')}</tbody></table></div></div>
+   </div>
+   <div class="card"><h3>High-contribution, low-share states — distribution white space</h3>
+     <p class="note">Rows highlighted where a state contributes disproportionately more to category size than its Nielsen share — i.e. Honasa is under-indexed there relative to the category opportunity.</p>
+     <div class="tablewrap"><table><thead><tr><th>State</th><th>Contribution to Category</th><th>May'26 Share</th><th>MoM</th></tr></thead>
+     <tbody><tr><td colspan="4"><b>Facewash</b></td></tr>${stateRows('facewash')}<tr><td colspan="4"><b>Shampoo</b></td></tr>${stateRows('shampoo')}</tbody></table></div>
+     <p class="note" style="margin-top:8px"><b>Key insight:</b> Uttar Pradesh and Maharashtra are the two largest under-penetrated states across
+       <i>both</i> categories — the biggest white-space opportunity for distribution/visibility investment, and worth cross-checking against the
+       Distribution tab's store-level gap analysis for these states specifically.</p>
+   </div>`;
+}
+
 /* ================= EXPORT INFRASTRUCTURE (chart / table / page) ================= */
 // dashboard version / source note, embedded in every export (page footer, Excel
 // metadata rows) per the "dashboard version / source note" + "Source: ... | Exported on ..." requirement
@@ -1192,14 +1293,16 @@ function buildShare(){
        ${card('Share-of-business league table (FY27 YTD primary)','Click a chain to drill.',`<div class="tablewrap"><table>
          <thead><tr><th>Chain</th><th>NSV</th><th>Share</th></tr></thead><tbody>${sobRows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
        ${catDrillCardHtml('shCatDrill')}
-       ${retailAuditHtml()}`;
+       ${retailAuditHtml()}
+       ${nielsenCompHtml()}`;
       wireDrillLinks(s);
       mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v),true,v=>drillTo('Chain',v));
       renderCatDrillChart('shCatDrill',recFilter());
       renderRetailAuditChart();
       return;
     }
-    s.innerHTML=`<h2 class="sec">Market Share</h2>${fyNoDataNote('the Primary source used for share-of-business')}${catDrillCardHtml('shCatDrill')}${retailAuditHtml()}`;
+    s.innerHTML=`<h2 class="sec">Market Share</h2>${fyNoDataNote('the Primary source used for share-of-business')}${catDrillCardHtml('shCatDrill')}${retailAuditHtml()}
+       ${nielsenCompHtml()}`;
     renderCatDrillChart('shCatDrill',recFilter());
     renderRetailAuditChart();
     return;
@@ -1226,7 +1329,8 @@ function buildShare(){
    ${card(`Share-of-business league table (${yrLab[fy]} primary)`,'Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>NSV</th><th>Share</th></tr></thead><tbody>${sobRows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    ${catDrillCardHtml('shCatDrill')}
-   ${retailAuditHtml()}`;
+   ${retailAuditHtml()}
+       ${nielsenCompHtml()}`;
   wireDrillLinks(s);
   mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v),true,v=>drillTo('Chain',v));
   renderCatDrillChart('shCatDrill',recFilter());
