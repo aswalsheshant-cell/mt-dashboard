@@ -61,6 +61,22 @@ variants never seen before — `FRANKROSS`, `Sasta Sunder` — resolved via the
 same file re-check, not from memory. This will keep happening; that's why
 the discipline is "always re-check," not "check once and remember.")
 
+## Check the source's own field before escalating a question
+
+Before treating something as needing the user's answer, check whether
+data already supplied already answers it. The Azorte SIS question above
+wasn't resolved by asking again — it was resolved by reading
+`MTD_Primary_Jun_26.csv`'s own `Chanel` column, which already tagged 264
+rows `SIS`, 100% of them Azorte. Same for a distributor's chain split:
+check its own rows in the secondary file before asking what the split
+should be. And don't trust a file's name to tell you what's in it —
+`Sancus_Sale_June_26.xlsx` sounded like it would answer the Sancus
+chain-split question; its actual `Chain Name` column held 15 mostly
+unrelated local-retailer names, none in `ChainMaster.csv`. Caught only
+by checking real distinct values against the master before using the
+file — the same rule below, applied to a filename's promise, not just
+to a column's values.
+
 ## Trust nothing you haven't checked against real distinct values
 
 **This is a hard-won rule, not boilerplate — it's the exact bug this

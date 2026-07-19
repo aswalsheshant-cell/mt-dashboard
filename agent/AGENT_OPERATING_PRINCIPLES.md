@@ -102,11 +102,18 @@ concretely below so it survives past this session's context.
    `agent/mtagent/backlog/environment.check_environment()` before relying
    on any optional-dependency check; it verifies via two independent
    signals (package metadata AND an actual import), not one.
-4. **When a required package can't be installed (no network in this
-   sandbox), build a minimal stdlib-only fallback rather than blocking
-   entirely** — e.g. a raw zip/XML `.xlsx` writer when `openpyxl` isn't
-   available. Disclose the substitution plainly; don't silently degrade
-   quality without saying so.
+4. **When a required package can't be installed, don't just wait on it —
+   check whether the need for it can be removed entirely.** First confirm
+   it's a real block, not a misconfiguration (`curl https://pypi.org`
+   returned HTTP 403 — an organization policy denial, not a fixable
+   technical issue; per the proxy's own rules, that's reported, not
+   retried or routed around). Then: `redaction_scan()`/
+   `formula_error_scan()` in `release_gate.py` no longer need `openpyxl`
+   at all — rewritten to pure stdlib `zipfile`/`ElementTree`
+   (`_xlsx_stdlib.py`), with a matching stdlib xlsx *writer*
+   (`agent/tests/_xlsx_fixture_writer.py`) so the tests don't need it
+   either. Asking the user to install something repeatedly is a weaker
+   answer than removing the dependency, when removing it is possible.
 5. **Default period-status rule (applies to any month, not just June'26):**
    a month is treated as **Provisional/Partial** by default the moment its
    data is loaded, and only becomes **Final/Closed** on an explicit
@@ -125,9 +132,40 @@ concretely below so it survives past this session's context.
    transcribed verbatim to a real file
    (`PowerBI/RawDataFolders/Secondary_Distributor_Monthly/`), validated
    (row counts, chain-name cross-reference), and used to compute a real
-   Cont% table. June'26 **primary** is still missing, so applying that
-   Cont% to allocate primary is still correctly blocked -- a partial
-   unblock does not mean treating the whole gap as closed.
+   Cont% table. Update: June'26 **primary** then arrived too (23,193 SAP
+   invoice rows) and was allocated to chain using that Cont% -- row count,
+   NSV, and Qty all reconciled to exact zero diff. Both halves of "a
+   partial unblock is not the whole gap closed" eventually did close, on
+   their own timeline -- the lesson is about not assuming the second half
+   before it actually arrives, not that it never will.
+7. **Check the source's own field for a direct answer before treating a
+   question as needing to go back to the user.** The Azorte SIS question
+   (lesson 2) wasn't answered by asking -- it was answered by checking
+   `MTD_Primary_Jun_26.csv`'s own `Chanel` column, which already tagged
+   264 rows as `SIS`, 100% of them Azorte. The same applies to the Sancus
+   5-chain split: the answer was sitting in
+   `secondary_distributor_chain_Jun_26.csv`'s own `Chain Name` rows for
+   `Sancus Networks Private Limited-RMT`, not in a separate file the user
+   had to explain. Before elevating "what should this be?" to a question,
+   check whether the data someone already gave you already says so.
+8. **A file's name doesn't guarantee its content answers the question you
+   expect.** `Sancus_Sale_June_26.xlsx` sounded like it would resolve the
+   Sancus chain-split question; its actual `Chain Name` column held 15
+   mostly-unrelated local-retailer names (`Rajmandir`, `Sodhi Supermart`,
+   `KIA Bazaar`...), not one of them in `ChainMaster.csv`. Caught only by
+   checking real distinct values against the master before using the
+   file, the same discipline `mapping-auditor.md` already names for
+   source data -- it applies exactly the same way to a file's title.
+9. **The distinct-value/case-sensitivity discipline applies to code
+   written this session too, not only to source data.** Two real bugs
+   caught and fixed before shipping: (a) `VMM` (all-caps, in real source
+   data) silently failed to match the existing `Vmm` alias because a
+   dict lookup was case-sensitive; (b) `june26_backlog.py`'s own file
+   detection glob'd for lowercase `*jun*26*` while the real files it was
+   supposed to find were named `Jun_26.csv` (capital J), so it kept
+   reporting a real, present file as missing. Both were found by
+   re-running the same "does this distinct value actually show up where
+   I expect" check against my own output, not just against source data.
 
 ## Worklog schema (feedback + repeatability evidence)
 

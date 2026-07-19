@@ -60,7 +60,19 @@ package metadata AND an actual import, not just one signal) before
 relying on any check that needs an optional dependency. If it's not
 available and there's no way to install it here, say so plainly with the
 exact corrective command — don't silently skip the check or claim it
-passed.
+passed. But check first whether the block is even fixable: a 403 from a
+package index is an organization policy denial, not a misconfiguration —
+confirm that distinction (a plain `curl` to the index) before asking
+the human to do anything about it.
+
+If a dependency genuinely can't be installed, check whether the need for
+it can be removed instead of just waiting on it. `release_gate.py`'s
+`redaction_scan()`/`formula_error_scan()` used to require `openpyxl`;
+when installing it kept failing, they were rewritten to read `.xlsx`
+directly via stdlib `zipfile`/`ElementTree` (`_xlsx_stdlib.py`) — the
+same technique already used this project to parse a real 23,193-row
+primary export. Removing a dependency is often a stronger answer than
+repeatedly asking someone to install one.
 
 ## Priorities when they conflict
 
