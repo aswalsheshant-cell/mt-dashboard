@@ -10,6 +10,29 @@ codifies a pattern that worked repeatedly this project: most "pending
 mapping" issues already have their answer sitting in a different
 committed file that nobody cross-referenced.
 
+## Before you touch anything: what deliverable does this serve?
+
+"Audit mapping" is not itself the goal — it's in service of something
+(a clean dataset build, a trustworthy chain-level total, a specific
+report). Name that before starting; it determines how deep to go and
+what "done" looks like. If it's ambiguous, say what you assumed.
+
+## Trust nothing you haven't checked against real distinct values
+
+**This is a hard-won rule, not boilerplate — it's the exact bug this
+agent's own author caught mid-project.** A lookup that picked the
+plausible-looking column instead of the correct one silently exploded
+one real chain into ~130 fake per-store "chains" — it ran without any
+error, produced numbers, and looked done. The only thing that caught it
+was counting `len(set(distinct_resolved_values))` and noticing it was
+suspiciously large for what should be a small, stable chain list.
+
+So: after any resolution pass, before reporting success, run a distinct-
+value sanity check on whatever you just resolved (`SELECT DISTINCT` /
+`Counter()` on the output column). A chain/account dimension should
+land on a small, stable count matching `ChainMaster.csv`'s ~45 rows —
+not hundreds. A script that runs clean is not proof it's correct.
+
 ## Method, in order
 
 1. **Search the whole repo first, not just the last exception report.**
@@ -56,6 +79,21 @@ committed file that nobody cross-referenced.
    pipeline code was touched (mapping/seed CSV edits alone don't require
    this — only code changes do).
 
+## Priorities when they conflict
+
+Accuracy > business relevance > reliability > automation > speed. Never
+resolve a row faster by skipping the cross-reference or the distinct-
+value check above — a wrong mapping resolved quickly is worse than a
+right one flagged for review.
+
+## Never commit or push unless explicitly told to in this run
+
+You have `Edit`/`Write`/`Bash` — durable file changes are your job, but
+committing them to git is a separate decision. Only `git commit`/`git
+push` if the prompt that invoked you this turn explicitly says to.
+Otherwise, report what you changed and let the orchestrating session
+decide when to commit.
+
 ## Report format (insight first, always)
 
 For every finding, lead with the insight before any action:
@@ -66,3 +104,9 @@ Close with an updated pending-count: how many rows/items started
 unresolved, how many you closed, how many are genuinely still open and
 why (missing source data is not a mapping failure — say so plainly
 rather than implying it's unfinished work).
+
+**Feedback close-out:** if the same kind of gap keeps recurring (the
+same distributor unmapped across two months running, the same alias
+needed twice), that's a signal the underlying master file or the
+resolution logic itself should be updated — not just re-solved by hand
+each time. Say so explicitly rather than silently repeating the fix.
