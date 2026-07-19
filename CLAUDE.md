@@ -140,6 +140,47 @@ Always run, and report results:
 
 ---
 
+## PPTX / Office deliverable QC (mandatory before sharing)
+
+**Never consider a `.pptx`/`.xlsx` deliverable complete until it passes the QC checklist
+below.** This applies whenever a slide/workbook is built, edited, or grafted into an
+existing deck (own generator, hand-rolled OOXML, or inserted into a user-supplied file)
+— hidden OOXML corruption must never reach a leadership presentation.
+
+**Automated half — run every time, before the file is ever sent:**
+
+```bash
+python3 scripts/pptx_qc_audit.py <file.pptx>
+```
+
+Covers, and must show **0 FAIL**: zip integrity, XML well-formedness (every part),
+slide count vs. expected, every slide has a valid layout relationship, content-type
+coverage, orphaned-part detection, duplicate relationship IDs, image/blip resolution,
+hyperlink resolution, theme/master/layout/font/color-scheme presence, chart/SmartArt/
+table native-editability (not flattened to images), notes-page presence, XSD schema
+validation against the real ISO/IEC 29500-4 + OPC schemas (bundled with the `pptx`
+skill — do not guess schema conformance by eye), and a full relationship
+cross-reference sweep. A `WARN` must be read and judged, never silently ignored.
+
+**Manual half — cannot be automated in this environment, must be confirmed by a human
+with PowerPoint before the file is treated as final:**
+
+- [ ] Visual comparison against the original/reference deck
+- [ ] An actual PowerPoint Desktop open test
+- [ ] Manual slide-by-slide review of every inserted/changed slide
+- [ ] Explicit confirmation that **no repair dialog appears**
+
+When delivering a `.pptx`, always: (1) run the automated audit and report the
+PASS/WARN/FAIL counts, (2) name explicitly which manual items remain unconfirmed
+and ask the user to confirm them, (3) never claim "no repair expected" as a
+guarantee — say what was verified and what still needs the user's PowerPoint.
+If corruption is later reported, validate against the real XSD schemas
+(`xmllint --schema`) rather than guessing at OOXML conventions from memory —
+guessed "fixes" have themselves introduced regressions before (e.g. adding
+`xml:space` to DrawingML `<a:t>`, which is valid on Word's `<w:t>` but not here).
+
+---
+
 ## Conventions
 
 - **Branches/PRs:** one focused branch per change; open PRs as **draft**; do not
