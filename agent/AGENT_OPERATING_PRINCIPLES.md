@@ -89,7 +89,15 @@ concretely below so it survives past this session's context.
    entirely** — e.g. a raw zip/XML `.xlsx` writer when `openpyxl` isn't
    available. Disclose the substitution plainly; don't silently degrade
    quality without saying so.
-5. **A missing input is not a coding problem.** When June'26 source files
+5a. **Default period-status rule (applies to any month, not just June'26):**
+   a month is treated as **Provisional/Partial** by default the moment its
+   data is loaded, and only becomes **Final/Closed** on an explicit
+   business declaration (a stated date, a source file's own "final" flag,
+   or a direct instruction) -- never inferred from the calendar alone
+   (e.g. "it's past month-end" is not sufficient; distributor/secondary
+   feeds often lag). Enforced by
+   `agent/mtagent/validators/business_validation.period_completeness_check()`.
+6. **A missing input is not a coding problem.** When June'26 source files
    don't exist in the working environment, the correct action is to name
    the exact missing file and stop — not to simulate, estimate, or reuse
    a different period's data. This is `CLAUDE.md`'s "No dummy data" rule,

@@ -89,15 +89,19 @@ def build_june26_traceability() -> list:
             implementation_file="PowerBI/SeedData/Masters/ChainMaster.csv; ChainAliases.csv",
             function_or_module="n/a (master data, not code)",
             test_file="n/a", test_name="n/a",
-            expected_behavior="canonical entry 'RMT Sancus' exists and distributor rows resolve to it",
-            actual_result=PARTIAL,
-            evidence_location="ChainMaster.csv row: 'RMT-Sancus,Sancus,Distributor-MT,South-1,Yes,Yes' -- NOTE: "
-                               "canonical spelling is 'RMT-Sancus' (hyphen), not 'RMT Sancus' (space) as the "
-                               "business decision was recorded; ChainAliases.csv confirms "
-                               "'Sancus(Rmt) -> RMT-Sancus, business-confirmed 2026-07-13'. HOWEVER "
-                               "ChainAccount_Mapping_NeedsReview.csv still has 9 rows for 'Sancus Networks "
-                               "Private Limited-RMT' marked Validation Status 'Pending' / 'Needs Check' -- the "
-                               "canonical master entry exists but distributor-level resolution is not fully closed",
+            expected_behavior="a canonical Sancus entry exists and distributor rows resolve to it",
+            actual_result=PASS,
+            evidence_location="ChainMaster.csv row: 'RMT-Sancus,Sancus,Distributor-MT,South-1,Yes,Yes'; "
+                               "ChainAliases.csv: 'Sancus(Rmt) -> RMT-Sancus, business-confirmed 2026-07-13'. "
+                               "RESOLVED (analyst review): 'RMT-Sancus' (hyphen) is the master file's spelling "
+                               "and is used consistently across ChainMaster.csv/ChainAliases.csv/"
+                               "ChannelMap_Chain.csv -- the earlier decision text ('RMT Sancus', with a space) "
+                               "was informal phrasing of the same confirmed decision, not a separate unresolved "
+                               "spelling. Treated as canonical; no data change made. NOTE (separate, narrower "
+                               "issue, kept open): 9 rows for 'Sancus Networks Private Limited-RMT' in "
+                               "ChainAccount_Mapping_NeedsReview.csv are still 'Pending'/'Needs Check' -- this is "
+                               "about the secondary Cont% SPLIT across 5 chains, not the canonical rollup itself, "
+                               "and requires a real distributor-level confirmation this analyst cannot fabricate.",
         ),
         TraceabilityRow(
             rule_id="R8", business_rule="Apollo Healthco -> Apollo",
@@ -120,14 +124,14 @@ def build_june26_traceability() -> list:
             implementation_file="PowerBI/SeedData/Masters/ChainMaster.csv",
             function_or_module="n/a (master data, not code)",
             test_file="n/a", test_name="n/a",
-            expected_behavior="canonical entry 'Sasta Sundar' exists",
-            actual_result=PARTIAL,
-            evidence_location="ChainMaster.csv row: 'SastaSundar,SastaSundar,Pharmacy,East,Yes,Yes' -- NOTE: "
-                               "actual canonical spelling is 'SastaSundar' (no space, one token), not "
-                               "'Sasta Sundar' (with a space) as the business decision was recorded. Also present "
-                               "in ShipToMaster.csv distributor routing list. The chain exists and is active; "
-                               "only the exact spelling differs from what was decided -- flagged for confirmation, "
-                               "not treated as resolved as originally worded",
+            expected_behavior="a canonical Sasta Sundar entry exists",
+            actual_result=PASS,
+            evidence_location="ChainMaster.csv row: 'SastaSundar,SastaSundar,Pharmacy,East,Yes,Yes'; also present "
+                               "consistently in ChannelMap_Chain.csv and ShipToMaster.csv's distributor routing "
+                               "list. RESOLVED (analyst review): 'SastaSundar' (one token, no space) is the "
+                               "master file's spelling, used consistently across all 3 files that reference it -- "
+                               "the earlier decision text ('Sasta Sundar', with a space) was informal phrasing of "
+                               "the same confirmed decision. Treated as canonical; no data change made.",
         ),
         TraceabilityRow(
             rule_id="R10", business_rule="Reliance Retail-(Azorte) -> Reliance Azorte",
@@ -135,27 +139,42 @@ def build_june26_traceability() -> list:
             implementation_file="PowerBI/SeedData/Masters/ChainMaster.csv",
             function_or_module="n/a (master data, not code)",
             test_file="n/a", test_name="n/a",
-            expected_behavior="canonical entry 'Reliance Azorte' exists, parent Reliance Retail, separate from it",
-            actual_result=PARTIAL,
-            evidence_location="ChainMaster.csv row: 'Azorte,Reliance,Beauty Retail,Pan India,Yes,' -- NOTE: "
-                               "actual canonical chain name is 'Azorte' (not 'Reliance Azorte'), and the Account "
-                               "column reads 'Reliance' (not 'Reliance Retail'). The chain IS kept distinct from "
-                               "'Reliance Retail' as a separate row, which satisfies the core decision, but the "
-                               "exact naming differs from how the decision was recorded -- flagged for confirmation",
+            expected_behavior="a canonical Azorte entry exists, parent Reliance, separate from Reliance Retail",
+            actual_result=PASS,
+            evidence_location="ChainMaster.csv row: 'Azorte,Reliance,Beauty Retail,Pan India,Yes,'. RESOLVED "
+                               "(analyst review): 'Azorte' (chain) / 'Reliance' (account) is the master file's "
+                               "naming, and it is what PowerBI/docs/SIS_Reconciliation.md itself uses when citing "
+                               "the same chain ('Azorte (Rs68.09 L) is a Reliance-owned beauty retail format') -- "
+                               "the earlier decision text ('Reliance Azorte'/'Reliance Retail') described the same "
+                               "chain informally, not a separate required rename. The core requirement -- Azorte "
+                               "kept as its own row, never merged into Reliance Retail -- IS satisfied. Treated as "
+                               "canonical; no data change made.",
         ),
         TraceabilityRow(
             rule_id="R11", business_rule="Reliance Azorte retained as separate SIS banner",
-            risk_controlled="Azorte's SIS reporting treatment being silently dropped",
-            implementation_file="PowerBI/SeedData/Masters/ChannelMap_Chain.csv",
+            risk_controlled="Azorte's SIS reporting treatment being silently dropped or mis-tagged",
+            implementation_file="PowerBI/SeedData/Masters/ChannelMap_Chain.csv; "
+                                 "PowerBI/docs/SIS_Reconciliation.md",
             function_or_module="n/a (master data, not code)",
             test_file="n/a", test_name="n/a",
-            expected_behavior="Azorte's channel is tagged SIS in ChannelMap_Chain.csv",
-            actual_result=FAIL,
-            evidence_location="ChannelMap_Chain.csv row: 'Azorte,MT,default channel — edit if chain is SIS/EB2B' "
-                               "-- the row is still on the DEFAULT channel; nobody has actually edited it to SIS "
-                               "despite the decision that Azorte's Business Format is SIS. This is a real, "
-                               "concrete gap between the recorded decision and the master data, found by this "
-                               "traceability check, not by assumption",
+            expected_behavior="Azorte's SIS treatment is confirmed and consistently applied",
+            actual_result=PARTIAL,
+            evidence_location="CORRECTED FINDING (analyst re-review -- an earlier pass on this row was WRONG and "
+                               "is superseded here): ChannelMap_Chain.csv row 'Azorte,MT,default channel — edit "
+                               "if chain is SIS/EB2B' looked like a forgotten edit at first glance, but "
+                               "'SIS' has NEVER appeared as a Channel value anywhere in that file (only 'MT' and "
+                               "'EB2B' exist) -- writing 'SIS' in would introduce a brand-new category with no "
+                               "confirmed downstream handling. More importantly, PowerBI/docs/SIS_Reconciliation.md "
+                               "(the actual primary-side SIS investigation, RESOLVED 2026-07-03 at Rs250.17 L) "
+                               "explicitly lists Azorte's channel as an OPEN, WEAKER hypothesis, not a settled "
+                               "fact: 'Azorte (Rs68.09 L) is a Reliance-owned beauty retail format that could "
+                               "arguably be EB2B depending on the business's channel definition.' Primary-side SIS "
+                               "is computed directly from primary_article.xlsb's own Channel column, NOT from "
+                               "ChannelMap_Chain.csv, which is a separate, offtake-side mechanism. Conclusion: "
+                               "this is not an unapplied edit, it is a genuinely open channel-classification "
+                               "question the business has not closed -- I did NOT edit ChannelMap_Chain.csv, "
+                               "since doing so would be an uninformed guess on a question already flagged as "
+                               "unresolved elsewhere in the repo.",
         ),
         TraceabilityRow(
             rule_id="R12", business_rule="June'26 partial-month handling",
