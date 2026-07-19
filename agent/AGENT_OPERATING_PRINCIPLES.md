@@ -41,6 +41,20 @@ and the result is recorded. See
 matrix and its evidence artifacts (reconciliation reports, distinct-value
 sanity checks, worklog entries, reproducibility hashes).
 
+## Companion document: judgment and release control
+
+`agent/policies/AI_LEVERAGE_AND_JUDGMENT.md` extends this document with
+rules this one didn't cover: activity vs. outcome, `CLARIFICATION_REQUIRED`
+as a distinct run status, business validation as a precondition for `PASS`,
+materiality filtering, and the `DRAFT` / `VALIDATED` / `APPROVED_FOR_SHARING`
+release gate for anything meant to leave the working team. Enforced by
+`agent/mtagent/controller.py` (outcome gate, `CLARIFICATION_REQUIRED`) and
+`agent/mtagent/validators/` (`outcome_gate.py`, `business_validation.py`,
+`materiality.py`, `release_gate.py`) — see
+`agent/tests/test_outcome_gate.py`, `test_business_validation.py`,
+`test_materiality.py`, `test_final_summary.py`, and `test_release_gate.py`
+for the behavioral proof.
+
 ## Worklog schema (feedback + repeatability evidence)
 
 `agent/mtagent/worklog.py`'s `log_run()` accepts these fields beyond the

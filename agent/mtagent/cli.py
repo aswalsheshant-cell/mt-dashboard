@@ -190,8 +190,12 @@ def cmd_run(cfg: Config, args) -> int:
     from . import controller as ctl
     plan = ctl.interpret(args.instruction)
     plan_text = ctl.format_plan(plan)
+    # execute() handles unrecognized plans itself (CLARIFICATION_REQUIRED,
+    # still logged to the worklog) -- always call it so the CLI's printed
+    # output and audit trail match what execute() actually decided, rather
+    # than the CLI silently short-circuiting before a worklog entry exists.
+    result = ctl.execute(cfg, plan, approved=args.approve)
     if args.json:
-        result = ctl.execute(cfg, plan, approved=args.approve) if plan.recognized else None
         payload = {
             "plan": {
                 "recognized": plan.recognized, "action": plan.action,
@@ -201,24 +205,21 @@ def cmd_run(cfg: Config, args) -> int:
                 "expected_output_files": plan.expected_output_files,
                 "suggestions": plan.suggestions,
             },
-        }
-        if result is not None:
-            payload["result"] = {
+            "result": {
                 "run_status": result.run_status,
                 "stages": [{"name": s.name, "status": s.status, "detail": s.detail} for s in result.stages],
                 "key_results": result.key_results, "files_created": result.files_created,
                 "approval_required": result.approval_required,
-            }
+                "business_outcome_achieved": result.business_outcome_achieved,
+                "checks_passed": result.checks_passed, "checks_failed": result.checks_failed,
+                "remaining_uncertainty": result.remaining_uncertainty,
+            },
+        }
         print(json.dumps(payload, indent=2, default=str))
-        if not plan.recognized:
-            return 1
         return 0 if result.run_status == "PASS" else 1
 
     print(plan_text)
     print()
-    if not plan.recognized:
-        return 1
-    result = ctl.execute(cfg, plan, approved=args.approve)
     print(ctl.format_run_result(result))
     return 0 if result.run_status == "PASS" else 1
 

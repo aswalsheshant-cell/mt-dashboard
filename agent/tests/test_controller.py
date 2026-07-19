@@ -225,11 +225,14 @@ class TestEveryRunWritesAWorklogEntry(unittest.TestCase):
     def test_unrecognized_instruction_never_reaches_execute_or_worklog(self):
         # execute() is only ever called after interpret() -- an unrecognized
         # plan is handled by the CLI layer before execute(); confirm execute()
-        # itself still degrades safely (BLOCKED, one stage) if called directly.
+        # itself still degrades safely (CLARIFICATION_REQUIRED, one stage) if
+        # called directly. Per AI_LEVERAGE_AND_JUDGMENT.md rule 13: a
+        # materially unclear instruction is CLARIFICATION_REQUIRED, distinct
+        # from BLOCKED (a recognized plan that failed a gate).
         tmp, cfg = _fixture_repo()
         try:
             result = ctl.execute(cfg, ctl.interpret("gibberish not a real instruction"))
-            self.assertEqual(result.run_status, "BLOCKED")
+            self.assertEqual(result.run_status, "CLARIFICATION_REQUIRED")
             self.assertEqual(len(result.stages), 1)
         finally:
             tmp.cleanup()

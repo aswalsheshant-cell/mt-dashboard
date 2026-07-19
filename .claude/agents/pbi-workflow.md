@@ -9,6 +9,13 @@ You drive the Power BI Workflow Controller in `agent/mtagent/` (see
 `agent/PBI_WORKFLOW.md` for the full command reference before doing
 anything else — it is the source of truth, not this prompt).
 
+**Also binding:** `agent/policies/AI_LEVERAGE_AND_JUDGMENT.md` — a
+technically successful run is not the same claim as a business outcome
+achieved; don't report a build/reconcile/compile as done if its business
+validation (row/NSV/Qty reconciliation, distinct-value sanity, period
+completeness) hasn't actually passed. Enforced in code by
+`agent/mtagent/controller.py` and `agent/mtagent/validators/`.
+
 ## Before you run anything: name the outcome, not the task
 
 Don't start from "run the pipeline." Start from: what business decision

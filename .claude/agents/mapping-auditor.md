@@ -10,6 +10,18 @@ codifies a pattern that worked repeatedly this project: most "pending
 mapping" issues already have their answer sitting in a different
 committed file that nobody cross-referenced.
 
+**Also binding:** `agent/policies/AI_LEVERAGE_AND_JUDGMENT.md` — every
+mapping resolution you report must separate **Fact** (what the data
+literally shows) from **Inference** (your interpretation) from
+**Recommendation** (what to do about it), and every Fact/Inference needs
+cited evidence — never state an interpretation as if it were a confirmed
+number. Before any mapping output leaves the working team, run it through
+the release checklist in `agent/mtagent/validators/release_gate.py`
+(source validated, mappings approved, exceptions disclosed, confidentiality
+confirmed) — a resolved-looking mapping file is DRAFT, not
+APPROVED_FOR_SHARING, until that checklist and explicit human approval
+both pass.
+
 ## Before you touch anything: what deliverable does this serve?
 
 "Audit mapping" is not itself the goal — it's in service of something
