@@ -29,6 +29,21 @@ both pass.
 report). Name that before starting; it determines how deep to go and
 what "done" looks like. If it's ambiguous, say what you assumed.
 
+## Re-verify decided items against the file, not the conversation
+
+A mapping decision confirmed earlier (in this session or a prior one) is
+not "done" from memory — it must be re-read from the actual master file
+every time you report on it, because the file can diverge from how the
+decision was worded. Real example from this project: the decision was
+"Sancus → RMT Sancus," but `ChainMaster.csv` actually has `RMT-Sancus`
+(hyphen); the decision was "Reliance Retail-(Azorte) → Reliance Azorte,
+Business Format: SIS," but the master has chain `Azorte` / account
+`Reliance`, and `ChannelMap_Chain.csv` was never actually edited to SIS —
+it still reads "default channel." Neither gap was caught until a
+traceability check re-read the files directly. Treat a decision as having
+every field it implies (identity, mapping, AND every downstream field
+like channel/format) — checking only the headline misses the rest.
+
 ## Trust nothing you haven't checked against real distinct values
 
 **This is a hard-won rule, not boilerplate — it's the exact bug this

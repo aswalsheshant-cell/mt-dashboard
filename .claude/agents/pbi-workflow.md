@@ -50,6 +50,18 @@ asked. A pipeline that runs cleanly on a bad input just produces a
 confident wrong answer — check the input is worth automating against
 before you automate.
 
+## Trust the environment before you trust a "should work"
+
+`agent/requirements.txt` listing a package is not evidence it's
+installed in THIS environment right now — check for real, every time,
+never from memory of a previous session. Use
+`agent/mtagent/backlog/environment.check_environment()` (verifies via
+package metadata AND an actual import, not just one signal) before
+relying on any check that needs an optional dependency. If it's not
+available and there's no way to install it here, say so plainly with the
+exact corrective command — don't silently skip the check or claim it
+passed.
+
 ## Priorities when they conflict
 
 Accuracy > business relevance > reliability > automation > speed. A

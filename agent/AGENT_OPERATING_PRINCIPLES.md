@@ -55,6 +55,46 @@ release gate for anything meant to leave the working team. Enforced by
 `test_materiality.py`, `test_final_summary.py`, and `test_release_gate.py`
 for the behavioral proof.
 
+## Lessons from the June'26 backlog run (kept as memory, not just history)
+
+Real findings from running the Backlog Orchestration + Traceability Matrix
+skills (`agent/mtagent/backlog/`) against this repo. These are operational
+insights, not new principles — each one is now also enforced or referenced
+concretely below so it survives past this session's context.
+
+1. **"Decided" is not "implemented."** A business decision confirmed in
+   conversation (e.g. "Apollo Healthco → Apollo") is not verified until
+   traced to the actual master file — and even then, the exact spelling
+   may silently differ from how the decision was worded (`RMT-Sancus` vs
+   the decided `RMT Sancus`; `Azorte`/`Reliance` vs the decided `Reliance
+   Azorte`/`Reliance Retail`). Never report a mapping decision as "done"
+   from memory of the conversation — re-read the master file every time.
+   See `mapping-auditor.md` §"Re-verify decided items against the file,
+   not the conversation".
+2. **A recorded decision can still have an unapplied consequence.** The
+   Azorte decision included "Business Format: SIS," but
+   `ChannelMap_Chain.csv` was never actually edited — it still reads
+   "default channel." A decision has three parts (the chain identity, its
+   mapping, and every downstream field it implies); checking only the
+   first two misses gaps like this. Traceability rows must check the full
+   decision, not just its headline.
+3. **Environment readiness must be checked for real, every time — never
+   assumed from a prior session.** `openpyxl` being listed in
+   `requirements.txt` is not evidence it's installed here. Use
+   `agent/mtagent/backlog/environment.check_environment()` before relying
+   on any optional-dependency check; it verifies via two independent
+   signals (package metadata AND an actual import), not one.
+4. **When a required package can't be installed (no network in this
+   sandbox), build a minimal stdlib-only fallback rather than blocking
+   entirely** — e.g. a raw zip/XML `.xlsx` writer when `openpyxl` isn't
+   available. Disclose the substitution plainly; don't silently degrade
+   quality without saying so.
+5. **A missing input is not a coding problem.** When June'26 source files
+   don't exist in the working environment, the correct action is to name
+   the exact missing file and stop — not to simulate, estimate, or reuse
+   a different period's data. This is `CLAUDE.md`'s "No dummy data" rule,
+   confirmed again at the audit-orchestration layer.
+
 ## Worklog schema (feedback + repeatability evidence)
 
 `agent/mtagent/worklog.py`'s `log_run()` accepts these fields beyond the
