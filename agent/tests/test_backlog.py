@@ -17,20 +17,42 @@ from mtagent.config import Config
 from mtagent.worklog import log_run
 
 
-class TestMissingOpenpyxlIsEnvironmentBlocked(unittest.TestCase):
-    """Proof 1: missing openpyxl returns ENVIRONMENT_BLOCKED."""
+class TestReleaseRequiredDependencyBlocksReadiness(unittest.TestCase):
+    """Proof 1: a package genuinely declared required-for-release, if
+    missing, returns ENVIRONMENT_BLOCKED with a dependency failure class.
+    (openpyxl was this example until 2026-07-19, when redaction_scan()/
+    formula_error_scan() were rewritten to need only the stdlib -- see
+    RELEASE_REQUIRED_PACKAGES's docstring in environment.py. The
+    mechanism is proven here directly rather than via a package that's
+    no longer actually required, so this test doesn't silently go stale
+    the next time a real dependency requirement changes.)"""
 
-    def test_real_check_against_this_repo_is_blocked_or_ready_consistently(self):
+    def test_missing_release_required_package_blocks_readiness(self):
+        # check_environment() only probes a fixed set of real packages
+        # (openpyxl/pandas/duckdb/pypdf); use one of those (pandas, not
+        # installed in this environment) rather than a fake name, so the
+        # dependency actually appears in the checked list.
+        original = environment.RELEASE_REQUIRED_PACKAGES
+        environment.RELEASE_REQUIRED_PACKAGES = ("pandas",)
+        try:
+            blocked_report = environment.check_environment(repo_root=str(Path(__file__).resolve().parents[2]))
+        finally:
+            environment.RELEASE_REQUIRED_PACKAGES = original
+        pandas_dep = next(d for d in blocked_report.dependencies if d.name == "pandas")
+        if pandas_dep.installed:
+            self.skipTest("pandas happens to be installed in this environment -- can't prove the blocked path")
+        self.assertEqual(blocked_report.status, environment.BLOCKED)
+        self.assertEqual(blocked_report.failure_class, environment.DEPENDENCY_FAILURE)
+        self.assertTrue(any("pandas" in m for m in blocked_report.missing))
+
+    def test_no_release_required_packages_currently_declared_missing_does_not_block(self):
+        # real, current state: RELEASE_REQUIRED_PACKAGES is empty, so a
+        # merely-optional package being absent (e.g. openpyxl, pandas)
+        # must never block readiness on its own
         report = environment.check_environment(repo_root=str(Path(__file__).resolve().parents[2]))
-        self.assertIn(report.status, (environment.READY, environment.BLOCKED))
-        openpyxl_dep = next(d for d in report.dependencies if d.name == "openpyxl")
-        if not openpyxl_dep.installed:
-            self.assertEqual(report.status, environment.BLOCKED)
-            self.assertEqual(report.failure_class, environment.DEPENDENCY_FAILURE)
-        else:
-            # if openpyxl IS installed in whatever environment runs this,
-            # it must not be the thing blocking readiness
-            self.assertNotIn("openpyxl", "; ".join(report.missing))
+        self.assertEqual(environment.RELEASE_REQUIRED_PACKAGES, ())
+        dependency_reasons = [m for m in report.missing if any(d.name in m for d in report.dependencies)]
+        self.assertEqual(dependency_reasons, [])
 
     def test_dependency_check_never_assumes_success_from_silence(self):
         # a package that isn't importable is never reported installed,

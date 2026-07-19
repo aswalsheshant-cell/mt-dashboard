@@ -31,7 +31,16 @@ MISSING_TEST_DATA = "missing_test_data"
 # Declared once, matching agent/requirements.txt -- if a release-gate
 # check needs a package to run for real (not degrade), it belongs here,
 # not left as "merely optional".
-RELEASE_REQUIRED_PACKAGES = ("openpyxl",)  # redaction_scan / formula_error_scan need it for real
+#
+# openpyxl was here until 2026-07-19: redaction_scan()/formula_error_scan()
+# used to require it. It was removed as a release-gate dependency because
+# pypi.org returned HTTP 403 (an organization policy denial, not a fixable
+# technical issue) when installation was attempted -- the release-gate
+# scans were rewritten to read .xlsx via stdlib zipfile + ElementTree
+# instead (agent/mtagent/validators/_xlsx_stdlib.py). It remains in
+# agent/requirements.txt as a genuinely optional convenience for anyone
+# who wants pandas-based .xlsx workflows elsewhere.
+RELEASE_REQUIRED_PACKAGES: tuple = ()
 
 
 @dataclass

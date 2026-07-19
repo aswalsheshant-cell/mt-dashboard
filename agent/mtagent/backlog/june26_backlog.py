@@ -88,25 +88,42 @@ def build_june26_backlog(repo_root: str) -> Backlog:
 
     from pathlib import Path
     root = Path(repo_root)
-    june_sources = list((root / "PowerBI" / "RawDataFolders").rglob("*jun*26*")) if (root / "PowerBI" / "RawDataFolders").exists() else []
+    raw_dir = root / "PowerBI" / "RawDataFolders"
+    june_sources = [p for p in raw_dir.rglob("*") if "jun" in p.name.lower() and "26" in p.name] if raw_dir.exists() else []
     june26 = backlog.get("JUN26-V3")
+    reconciliation_report = root / "agent" / "pbi_build" / "FY27_Jun26" / "Reconciliation_Report_Jun26.md"
     if not june_sources:
         june26.status = "BLOCKED"
         june26.blocking_reason = ("no June'26 (2026) primary/secondary source files found under "
                                    "PowerBI/RawDataFolders/ in this environment -- the two files audited "
                                    "in an earlier session are not present here")
+    elif reconciliation_report.exists():
+        june26.status = "TECHNICALLY_COMPLETE"
+        june26.blocking_reason = ("real run completed and reconciled 2026-07-19, see "
+                                   "agent/pbi_build/FY27_Jun26/Reconciliation_Report_Jun26.md -- "
+                                   "still needs business validation (mark_validated) before VALIDATED/CLOSED")
+
+    test_openpyxl = backlog.get("TEST-OPENPYXL")
+    if report.status == env.READY:
+        test_openpyxl.status = "TECHNICALLY_COMPLETE"
+        test_openpyxl.blocking_reason = ("resolved 2026-07-19 -- redaction_scan()/formula_error_scan() "
+                                          "rewritten to pure stdlib, no longer need openpyxl; "
+                                          "test_release_gate.py runs 0 skipped")
 
     backlog.refresh_ready_states()
-    # refresh_ready_states() would otherwise overwrite the two explicit
-    # BLOCKED calls above with a generic dependency-based BLOCKED for
-    # dependents; re-apply the specific reasons for the root-cause tasks
-    # since they have no unmet dependency, only a real-world blocker.
+    # refresh_ready_states() would otherwise overwrite the explicit
+    # statuses above with a generic dependency-based status; re-apply
+    # them for the tasks whose real state isn't just "dependency met".
     if report.status != env.READY:
         env1.status = "BLOCKED"
         env1.blocking_reason = "; ".join(report.missing)
+    else:
+        test_openpyxl.status = "TECHNICALLY_COMPLETE"
     if not june_sources:
         june26.status = "BLOCKED"
         june26.blocking_reason = ("no June'26 (2026) primary/secondary source files found under "
                                    "PowerBI/RawDataFolders/ in this environment -- the two files audited "
                                    "in an earlier session are not present here")
+    elif reconciliation_report.exists():
+        june26.status = "TECHNICALLY_COMPLETE"
     return backlog

@@ -8,12 +8,7 @@ import unittest
 from pathlib import Path
 
 from mtagent.validators import release_gate as rg
-
-try:
-    from openpyxl import Workbook
-    HAVE_OPENPYXL = True
-except ImportError:
-    HAVE_OPENPYXL = False
+from tests._xlsx_fixture_writer import Sheet, write_xlsx
 
 
 def _clean_checklist() -> rg.ReleaseChecklist:
@@ -82,34 +77,38 @@ class TestFactWithoutEvidenceIsRejected(unittest.TestCase):
         self.assertTrue(ok)
 
 
-class TestRedactionScanDegradesGracefullyWithoutOpenpyxl(unittest.TestCase):
-    """openpyxl is an optional dependency (agent/requirements.txt) -- when
-    absent, the scan must never crash and must never silently report
-    'clean' for a file it didn't actually look at."""
+class TestRedactionScanNeverCrashesOnAnUnreadableFile(unittest.TestCase):
+    """The scan is pure stdlib (no openpyxl dependency) -- it must still
+    never crash and never silently report 'clean' for a file it couldn't
+    actually parse (missing file, not a real xlsx zip, etc.)."""
 
-    @unittest.skipIf(HAVE_OPENPYXL, "this proves the no-openpyxl path specifically")
-    def test_missing_openpyxl_returns_explicit_unscanned_result(self):
+    def test_nonexistent_file_returns_explicit_unscanned_result(self):
         clean, issues = rg.redaction_scan("/nonexistent/whatever.xlsx")
         self.assertFalse(clean)
-        self.assertTrue(any("openpyxl not installed" in i for i in issues))
+        self.assertTrue(issues)
+
+    def test_not_a_zip_file_returns_explicit_unscanned_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "not_really_xlsx.xlsx"
+            path.write_text("this is plain text, not a zip", encoding="utf-8")
+            clean, issues = rg.redaction_scan(path)
+            self.assertFalse(clean)
+            self.assertTrue(issues)
 
 
-@unittest.skipUnless(HAVE_OPENPYXL, "openpyxl not installed")
 class TestConfidentialHiddenSheetBlocksSharing(unittest.TestCase):
-    """Proof 4: a confidential hidden sheet blocks sharing -- real xlsx scan."""
+    """Proof 4: a confidential hidden sheet blocks sharing -- real xlsx scan,
+    built with a pure-stdlib fixture writer (no openpyxl needed either way)."""
 
     def test_hidden_sheet_with_confidential_data_is_flagged(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "MT_Leadership_Deck_Data.xlsx"
-            wb = Workbook()
-            visible = wb.active
-            visible.title = "Summary"
-            visible["A1"] = "NSV"
-            visible["B1"] = 12500000
-            hidden = wb.create_sheet("CM2 Assumptions")
-            hidden["A1"] = "Cost price basis"
-            hidden.sheet_state = "hidden"
-            wb.save(path)
+            visible = Sheet("Summary")
+            visible.set("A1", "NSV")
+            visible.set("B1", 12500000)
+            hidden = Sheet("CM2 Assumptions", hidden=True)
+            hidden.set("A1", "Cost price basis")
+            write_xlsx(path, [visible, hidden])
 
             clean, issues = rg.redaction_scan(path)
             self.assertFalse(clean)
@@ -124,12 +123,58 @@ class TestConfidentialHiddenSheetBlocksSharing(unittest.TestCase):
     def test_clean_workbook_scans_clean(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "Clean.xlsx"
-            wb = Workbook()
-            ws = wb.active
-            ws["A1"] = "NSV"
-            ws["B1"] = 100
-            wb.save(path)
+            ws = Sheet("Sheet1")
+            ws.set("A1", "NSV")
+            ws.set("B1", 100)
+            write_xlsx(path, [ws])
             clean, issues = rg.redaction_scan(path)
+            self.assertTrue(clean)
+            self.assertEqual(issues, [])
+
+    def test_suspicious_keyword_in_cell_text_is_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "Notes.xlsx"
+            ws = Sheet("Sheet1")
+            ws.set("A1", "internal only -- do not share externally")
+            write_xlsx(path, [ws])
+            clean, issues = rg.redaction_scan(path)
+            self.assertFalse(clean)
+            self.assertTrue(any("internal only" in i for i in issues))
+
+    def test_cell_comment_is_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "Commented.xlsx"
+            ws = Sheet("Sheet1")
+            ws.set("A1", "NSV")
+            ws.set_comment("A1", "double-check this before sending")
+            write_xlsx(path, [ws])
+            clean, issues = rg.redaction_scan(path)
+            self.assertFalse(clean)
+            self.assertTrue(any("cell comment" in i for i in issues))
+
+
+class TestFormulaErrorScan(unittest.TestCase):
+    """formula_error_scan() -- the automatable subset of visual QC."""
+
+    def test_error_literal_cell_is_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "Broken.xlsx"
+            ws = Sheet("Sheet1")
+            ws.set("A1", "NSV")
+            ws.set("B1", "#REF!")
+            write_xlsx(path, [ws])
+            clean, issues = rg.formula_error_scan(path)
+            self.assertFalse(clean)
+            self.assertTrue(any("#REF!" in i for i in issues))
+
+    def test_clean_workbook_has_no_formula_errors(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "Clean.xlsx"
+            ws = Sheet("Sheet1")
+            ws.set("A1", "NSV")
+            ws.set("B1", 100)
+            write_xlsx(path, [ws])
+            clean, issues = rg.formula_error_scan(path)
             self.assertTrue(clean)
             self.assertEqual(issues, [])
 

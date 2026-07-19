@@ -223,13 +223,19 @@ def build_june26_traceability() -> list:
             implementation_file="agent/mtagent/validators/release_gate.py",
             function_or_module="redaction_scan()",
             test_file="agent/tests/test_release_gate.py",
-            test_name="TestConfidentialHiddenSheetBlocksSharing (2 tests)",
+            test_name="TestConfidentialHiddenSheetBlocksSharing (4 tests)",
             expected_behavior="a hidden sheet with confidential content is named in the scan's issues list",
-            actual_result=NOT_EVALUATED,
-            evidence_location="tests exist and are real (not stubs), but SKIPPED in this environment because "
-                               "openpyxl is not installed and this sandbox has no network access to install it "
-                               "(see ENV-1 in the backlog table). The no-openpyxl degrade path itself IS proven: "
-                               "TestRedactionScanDegradesGracefullyWithoutOpenpyxl passes",
+            actual_result=PASS,
+            evidence_location="RESOLVED 2026-07-19: redaction_scan()/formula_error_scan() rewritten to read "
+                               ".xlsx directly via stdlib zipfile + ElementTree "
+                               "(agent/mtagent/validators/_xlsx_stdlib.py) instead of requiring openpyxl -- "
+                               "pypi.org returned HTTP 403 (an organization policy denial, not a fixable "
+                               "technical issue) when installation was attempted again, so the dependency was "
+                               "removed rather than continuing to wait on it. All 4 tests run and pass for real "
+                               "in this environment (hidden sheet, suspicious keyword, cell comment, clean "
+                               "workbook), using a matching stdlib xlsx fixture writer "
+                               "(agent/tests/_xlsx_fixture_writer.py) so building the test fixtures doesn't need "
+                               "openpyxl either.",
         ),
         TraceabilityRow(
             rule_id="R16", business_rule="Output version and lineage requirement",

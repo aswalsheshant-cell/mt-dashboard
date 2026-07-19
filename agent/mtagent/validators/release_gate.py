@@ -7,14 +7,19 @@ output is DRAFT, VALIDATED, or APPROVED_FOR_SHARING, and separates every
 key conclusion into Fact / Inference / Recommendation with an explicit
 confidence level and cited evidence -- never a bare assertion.
 
-Nothing here requires DuckDB/Ollama. `redaction_scan()` uses `openpyxl`
-(already an optional dependency in agent/requirements.txt) and degrades to
-an explicit "cannot scan" result, never a silent pass, if it isn't
-installed.
+Nothing here requires DuckDB/Ollama/openpyxl. `redaction_scan()` and
+`formula_error_scan()` read .xlsx directly via stdlib zipfile + ElementTree
+(`_xlsx_stdlib.py`) -- this project cannot assume network access to
+install openpyxl (see AGENT_OPERATING_PRINCIPLES.md, lesson 4), so the
+real scan always runs rather than degrading to "cannot check."
 """
 from __future__ import annotations
 
+import zipfile
 from dataclasses import dataclass, field
+from xml.etree.ElementTree import ParseError as ET_ParseError
+
+_XLSX_READ_ERRORS = (KeyError, OSError, ET_ParseError, zipfile.BadZipFile)
 
 # --------------------------------------------------------------------- #
 # 1. Output Release Gate
@@ -215,35 +220,37 @@ _SUSPICIOUS_KEYWORDS = (
 def redaction_scan(xlsx_path) -> tuple:
     """Scans an xlsx for hidden sheets, suspicious keywords in sheet names
     or cell text, and cell comments (often reviewer notes not meant for
-    external eyes). Returns (clean, issues). If openpyxl isn't installed,
-    returns (False, ["openpyxl not installed -- cannot scan, do not treat
-    as clean"]) -- never silently reports a clean scan it didn't do.
+    external eyes). Returns (clean, issues).
+
+    Pure stdlib (zipfile + ElementTree, see _xlsx_stdlib.py) -- does not
+    need openpyxl. This project cannot assume network access to install
+    it (see AGENT_OPERATING_PRINCIPLES.md, lesson 4), so the real scan
+    runs either way rather than degrading to "cannot check."
     """
-    try:
-        from openpyxl import load_workbook
-    except ImportError:
-        return False, ["openpyxl not installed -- cannot scan this file for redaction issues; "
-                        "do not mark APPROVED_FOR_SHARING without a manual check"]
+    from . import _xlsx_stdlib as xs
 
     issues = []
-    wb = load_workbook(xlsx_path, data_only=True)
-    for ws in wb.worksheets:
-        if ws.sheet_state != "visible":
-            issues.append(f"hidden sheet '{ws.title}' present -- must be reviewed before sharing")
-        title_lower = ws.title.lower()
-        for kw in _SUSPICIOUS_KEYWORDS:
-            if kw in title_lower:
-                issues.append(f"sheet name '{ws.title}' matches suspicious keyword '{kw}'")
-        for row in ws.iter_rows():
-            for cell in row:
-                if isinstance(cell.value, str):
-                    val_lower = cell.value.lower()
-                    for kw in _SUSPICIOUS_KEYWORDS:
-                        if kw in val_lower:
-                            issues.append(f"{ws.title}!{cell.coordinate}: cell text matches suspicious keyword '{kw}'")
-                if cell.comment is not None:
-                    issues.append(f"{ws.title}!{cell.coordinate}: has a cell comment -- review before external sharing")
-    wb.close()
+    try:
+        with xs.open_workbook(xlsx_path) as wb:
+            for sheet in wb.sheets:
+                if sheet.state != "visible":
+                    issues.append(f"hidden sheet '{sheet.name}' present -- must be reviewed before sharing")
+                title_lower = sheet.name.lower()
+                for kw in _SUSPICIOUS_KEYWORDS:
+                    if kw in title_lower:
+                        issues.append(f"sheet name '{sheet.name}' matches suspicious keyword '{kw}'")
+                comment_refs = wb.comment_cells(sheet)
+                for ref, val, is_error in wb.iter_cells(sheet):
+                    if isinstance(val, str) and not is_error:
+                        val_lower = val.lower()
+                        for kw in _SUSPICIOUS_KEYWORDS:
+                            if kw in val_lower:
+                                issues.append(f"{sheet.name}!{ref}: cell text matches suspicious keyword '{kw}'")
+                    if ref in comment_refs:
+                        issues.append(f"{sheet.name}!{ref}: has a cell comment -- review before external sharing")
+    except _XLSX_READ_ERRORS as exc:
+        return False, [f"could not parse '{xlsx_path}' as a valid .xlsx ({type(exc).__name__}: {exc}) -- "
+                        f"do not treat as clean"]
     return (len(issues) == 0), issues
 
 
@@ -257,22 +264,20 @@ def formula_error_scan(xlsx_path) -> tuple:
     colors, truncated labels, and axis scale are NOT checked here -- they
     require a human look or a render step, and `output_visually_checked`
     on ReleaseChecklist must reflect that, not be set from this function
-    alone.
+    alone. Pure stdlib, same reasoning as redaction_scan().
     """
-    try:
-        from openpyxl import load_workbook
-    except ImportError:
-        return False, ["openpyxl not installed -- cannot scan for formula errors"]
+    from . import _xlsx_stdlib as xs
 
-    error_literals = ("#REF!", "#N/A", "#VALUE!", "#DIV/0!", "#NAME?", "#NULL!", "#NUM!")
     issues = []
-    wb = load_workbook(xlsx_path, data_only=True)
-    for ws in wb.worksheets:
-        for row in ws.iter_rows():
-            for cell in row:
-                if isinstance(cell.value, str) and cell.value in error_literals:
-                    issues.append(f"{ws.title}!{cell.coordinate}: {cell.value}")
-    wb.close()
+    try:
+        with xs.open_workbook(xlsx_path) as wb:
+            for sheet in wb.sheets:
+                for ref, val, is_error in wb.iter_cells(sheet):
+                    if is_error or (isinstance(val, str) and val in xs.ERROR_LITERALS):
+                        issues.append(f"{sheet.name}!{ref}: {val}")
+    except _XLSX_READ_ERRORS as exc:
+        return False, [f"could not parse '{xlsx_path}' as a valid .xlsx ({type(exc).__name__}: {exc}) -- "
+                        f"do not treat as clean"]
     return (len(issues) == 0), issues
 
 
