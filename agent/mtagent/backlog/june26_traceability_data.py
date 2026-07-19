@@ -19,10 +19,11 @@ def build_june26_traceability() -> list:
             test_file="agent/tests/test_business_validation.py",
             test_name="TestRowCountAndMapping.test_row_count_mismatch_fails",
             expected_behavior="source_n != output_n fails the check by name",
-            actual_result=PARTIAL,
-            evidence_location="mechanism implemented and unit-tested; NOT yet run against real June'26 "
-                               "source data -- no June'26 (2026) source files exist in this environment "
-                               "(see JUN26-V3 in the backlog table)",
+            actual_result=PASS,
+            evidence_location="run for real 2026-07-19 against MTD_Primary_Jun_26.csv (23,193 rows): "
+                               "21,283 Direct + 1,907 Distributor-split + 2 no-Cont%-exception + 1 blank-ShipTo "
+                               "= 23,193 accounted for, 0 silently dropped. See "
+                               "agent/pbi_build/FY27_Jun26/Reconciliation_Report_Jun26.md",
         ),
         TraceabilityRow(
             rule_id="R2", business_rule="NSV reconciliation",
@@ -32,9 +33,11 @@ def build_june26_traceability() -> list:
             test_file="agent/tests/test_business_validation.py",
             test_name="TestActivityCannotEqualSuccess.test_nsv_mismatch_fails_even_though_activity_completed",
             expected_behavior="a diff outside tolerance fails, even if the run technically completed",
-            actual_result=PARTIAL,
-            evidence_location="mechanism implemented and unit-tested; not yet applied to real June'26 NSV totals "
-                               "(no June'26 source data present)",
+            actual_result=PASS,
+            evidence_location="run for real 2026-07-19: raw primary NSV Rs 41,67,37,933.62 vs allocated "
+                               "(Rs 41,67,22,597.99) + disclosed exceptions (Rs 15,335.63) = Rs 41,67,37,933.62, "
+                               "diff Rs 0.00 at full float precision. See "
+                               "agent/pbi_build/FY27_Jun26/Reconciliation_Report_Jun26.md",
         ),
         TraceabilityRow(
             rule_id="R3", business_rule="Qty reconciliation",
@@ -44,8 +47,10 @@ def build_june26_traceability() -> list:
             test_file="agent/tests/test_business_validation.py",
             test_name="TestActivityCannotEqualSuccess.test_exact_match_within_tolerance_passes",
             expected_behavior="Qty diff within tolerance passes; outside tolerance fails",
-            actual_result=PARTIAL,
-            evidence_location="mechanism implemented and unit-tested; not yet applied to real June'26 Qty totals",
+            actual_result=PASS,
+            evidence_location="run for real 2026-07-19: raw primary Qty 2,345,731 vs allocated (2,345,665.00) "
+                               "+ disclosed exceptions (66.00) = 2,345,731.00, diff 0.00. See "
+                               "agent/pbi_build/FY27_Jun26/Reconciliation_Report_Jun26.md",
         ),
         TraceabilityRow(
             rule_id="R4", business_rule="Canonical chain validation",
@@ -97,11 +102,14 @@ def build_june26_traceability() -> list:
                                "and is used consistently across ChainMaster.csv/ChainAliases.csv/"
                                "ChannelMap_Chain.csv -- the earlier decision text ('RMT Sancus', with a space) "
                                "was informal phrasing of the same confirmed decision, not a separate unresolved "
-                               "spelling. Treated as canonical; no data change made. NOTE (separate, narrower "
-                               "issue, kept open): 9 rows for 'Sancus Networks Private Limited-RMT' in "
-                               "ChainAccount_Mapping_NeedsReview.csv are still 'Pending'/'Needs Check' -- this is "
-                               "about the secondary Cont% SPLIT across 5 chains, not the canonical rollup itself, "
-                               "and requires a real distributor-level confirmation this analyst cannot fabricate.",
+                               "spelling. Treated as canonical; no data change made. UPDATE 2026-07-19: the "
+                               "distributor-level split question (previously the open part of this rule) is now "
+                               "answered for June'26 specifically, from real data: "
+                               "secondary_distributor_chain_Jun_26.csv's 'Sancus Networks Private Limited-RMT' "
+                               "rows give RMT-Sancus 78.3%, More Retail 12.5%, Vishal Mega Mart 9.2% (no Deal "
+                               "Share/Medanta activity this specific month -- plausible, not an error). The older "
+                               "9 rows in ChainAccount_Mapping_NeedsReview.csv covering Mar'25-May'26 remain "
+                               "'Pending' and are a separate, multi-month question this doesn't resolve.",
         ),
         TraceabilityRow(
             rule_id="R8", business_rule="Apollo Healthco -> Apollo",
@@ -184,9 +192,12 @@ def build_june26_traceability() -> list:
             test_file="agent/tests/test_business_validation.py",
             test_name="TestPeriodCompleteness (3 tests)",
             expected_behavior="is_partial_period=True + treated_as_closed=True fails by name",
-            actual_result=PARTIAL,
-            evidence_location="mechanism implemented and unit-tested; not yet applied to real June'26 data "
-                               "since no June'26 build exists",
+            actual_result=PASS,
+            evidence_location="applied for real 2026-07-19 to the June'26 allocation run: "
+                               "period_completeness_check('june26', is_partial_period=True, "
+                               "treated_as_closed=False) -> passed=True. Recorded explicitly in "
+                               "agent/pbi_build/FY27_Jun26/Reconciliation_Report_Jun26.md as Partial/Provisional, "
+                               "not closed-month performance.",
         ),
         TraceabilityRow(
             rule_id="R13", business_rule="No automatic commit or push",

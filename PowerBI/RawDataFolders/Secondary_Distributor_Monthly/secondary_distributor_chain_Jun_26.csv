@@ -1,143 +1,713 @@
-Format,customer,Direct/Distributor,Chain Name,State,Zone,NSV,MRP value,Brand,Revised month,Month,FY,Channel,EMP ID,KAM,Secondary Sale,Incentive
-DRUG STORE,Az Enterprises,Dist.,Apollo Healthco,Karnataka,South-1,20.26,36.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,18.5063503,ME
-Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,0.01,0.0,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.005217,ME
-Hyper\Super Market,Az Enterprises,Dist.,VMM,Karnataka,South-1,1.32,2.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.2065556,ME
-Hyper\Super Market,Az Enterprises,Dist.,VMM,Karnataka,South-1,5.50,9.9,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.0269436,ME
-DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,0.78,1.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.7115972,ME
-Regional,Az Enterprises,Dist.,Max Hyper,Karnataka,South-1,2.25,4.0,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.0597232,ME
-Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,2.06,3.7,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.8854246,ME
-Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,0.34,0.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.3072674,ME
-Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,1.69,3.0,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.542414,ME
-Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,1.55,2.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.4151156,ME
-Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,4.35,7.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,3.974916,ME
-Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,2.42,4.3,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.2088096,ME
-Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,0.01,0.0,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.0081084,EB
-Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,0.75,1.2,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.5145636,EB
-Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,0.20,0.3,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.137016,EB
-Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,1.22,2.0,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.8394766,EB
-Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,0.66,1.1,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.456272,EB
-DRUG STORE,Az Enterprises,Dist.,Apollo Healthco,Karnataka,South-1,0.01,0.0,BBlunt,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.0142014,EB
-Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,0.02,0.0,BBlunt,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.0219757,EB
-Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,1.36,2.4,BBlunt,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.9021171,EB
-DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,2.19,3.9,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,2.0009795,ME
-DRUG STORE,Az Enterprises,Dist.,Apollo Healthco,Karnataka,South-1,21.39,35.1,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,13.3863628,EB
-Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,0.09,0.1,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.0541084,EB
-Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,1.38,2.3,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.8613552,EB
-Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,2.97,4.9,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.8578411,EB
-Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,8.31,13.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.1998748,EB
-Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,11.95,19.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,7.479292,EB
-Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,0.25,0.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.1552512,EB
-Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,4.04,6.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.5268488,EB
-DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,0.96,1.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.5991124,EB
-DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,2.06,3.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,1.2872132,EB
-Hyper\Super Market,BALAJI ASSOCIATES Distributor MT,Dist.,Reliance Retail,Northeast-Assam,East,6.99,12.5,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,20.9081029,ME
-Hyper\Super Market,BALAJI ASSOCIATES Distributor MT,Dist.,VMM,Northeast-Assam,East,5.71,10.2,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,17.0992801,ME
-Hyper\Super Market,BALAJI ASSOCIATES Distributor MT,Dist.,Reliance Retail,Northeast-Assam,East,5.11,9.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,6.5445328,EB
-Regional,Chhabra Traders,Dist.,Deal Share,Lucknow-UPE,North,0.72,1.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.0613065,ME
-Hyper\Super Market,Chhabra Traders,Dist.,D-Mart,Lucknow-UPE,North,1.05,2.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.5328409,ME
-Hyper\Super Market,Chhabra Traders,Dist.,Lulu,Lucknow-UPE,North,6.54,16.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,9.5819259,ME
-DRUG STORE,Chhabra Traders,Dist.,Medanta,Lucknow-UPE,North,0.54,1.3,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.7874736,ME
-Hyper\Super Market,Chhabra Traders,Dist.,Spencer,Lucknow-UPE,North,1.37,3.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.0066876,ME
-Hyper\Super Market,Chhabra Traders,Dist.,D-Mart,Lucknow-UPE,North,4.03,7.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.0848768,EB
-Hyper\Super Market,CHHABRA TRADERS_Ship To,Dist.,Lulu,Lucknow-UPE,North,0.07,0.1,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.0913488,EB
-Hyper\Super Market,CHHABRA TRADERS_Ship To,Dist.,VMM,Lucknow-UPE,North,4.40,10.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.4419399,ME
-Hyper\Super Market,CHHABRA TRADERS_Ship To,Dist.,Lulu,Lucknow-UPE,North,20.06,37.1,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,10.389544,EB
-Hyper\Super Market,CHOUDHARY ENTERPRISES-MT-MP,Dist.,VMM,Madhya Pradesh,North,0.73,2.5,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,8.92,ME
-DRUG STORE,D.L. Sales - MT,Dist.,FRANKROSS,West Bengal,East,0.05,0.1,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.0685296,EB
-Hyper\Super Market,D.L. Sales - MT,Dist.,More Retail,West Bengal,East,0.20,0.4,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.28538,EB
-DRUG STORE,D.L. Sales - MT,Dist.,Arambagh,West Bengal,East,3.00,6.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,3.5876585,ME
-DRUG STORE,D.L. Sales - MT,Dist.,Apollo Healthco,West Bengal,East,5.13,11.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,6.1462172,ME
-Hyper\Super Market,D.L. Sales - MT,Dist.,More Retail,West Bengal,East,3.49,7.9,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,4.1776207,ME
-Hyper\Super Market,D.L. Sales - MT,Dist.,Spencer,West Bengal,East,7.81,17.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,9.3530576,ME
-Hyper\Super Market,D.L. Sales - MT,Dist.,VMM,West Bengal,East,1.86,4.2,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.2221261,ME
-Regional,D.L. Sales - MT,Dist.,Sasta Sunder,West Bengal,East,0.91,2.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.0947174,ME
-DRUG STORE,D.L. Sales - MT,Dist.,FRANKROSS,West Bengal,East,1.34,3.0,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,1.6024056,ME
-Regional,D.L. Sales - MT,Dist.,Sumo Save,West Bengal,East,1.06,2.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.2650521,ME
-DRUG STORE,D.L. Sales - MT,Dist.,Arambagh,West Bengal,East,0.36,0.7,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.5664273,EB
-DRUG STORE,D.L. Sales - MT,Dist.,Apollo Healthco,West Bengal,East,2.88,5.5,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,4.5820703,EB
-Hyper\Super Market,D.L. Sales - MT,Dist.,More Retail,West Bengal,East,1.41,2.7,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.2373424,EB
-Hyper\Super Market,D.L. Sales - MT,Dist.,Spencer,West Bengal,East,0.47,0.9,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.7414197,EB
-DRUG STORE,D.L. Sales - MT,Dist.,FRANKROSS,West Bengal,East,1.57,3.0,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,2.4968012,EB
-Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,3.52,6.5,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.045671186,EB
-DRUG STORE,G.V Enterprises,Dist.,Apollo Healthco,Tamil Nadu,South-1,6.70,11.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,5.006809724,ME
-Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,73.31,127.3,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,54.77200381,ME
-Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,56.56,98.2,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,42.25436404,ME
-Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,1.59,2.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.18467845,ME
-Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,14.17,24.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,10.58887643,ME
-DRUG STORE,G.V Enterprises,Dist.,Apollo Healthco,Tamil Nadu,South-1,6.60,12.0,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,5.404750847,EB
-Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,1.85,3.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.515915254,EB
-Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,41.59,75.9,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,34.06173559,EB
-Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,0.80,1.5,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.655954407,EB
-Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,9.97,18.2,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,8.167986065,EB
-Hyper\Super Market,JUST MARK-Dmart_ship to,Dist.,D-Mart,Gujarat,West,180.92,563.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,182.61995,ME
-Hyper\Super Market,JUST MARK-Dmart_ship to,Dist.,D-Mart,Gujarat,West,38.87,102.3,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,72.98182,EB
-Hyper\Super Market,Kiran Trading Co_Shipto (Solapur),Dist.,D-Mart,Pune,West,56.14,181.0,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,156.96685,ME
-Hyper\Super Market,Kiran Trading Co_Shipto (Solapur),Dist.,D-Mart,Pune,West,12.53,30.9,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,94.02229,EB
-Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,1.64,3.0,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.890579068,EB
-Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,5.62,10.3,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,3.062478983,EB
-Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,34.07,61.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,16.7385977,ME
-Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,27.17,48.7,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,13.34675091,ME
-Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,12.43,22.74,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,9.171272712,EB
-Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,20.14,36.84,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,14.85687208,EB
-Hyper\Super Market,MANOJ SOAP AGENCY-MT,Dist.,VMM,Rajasthan,North,1.48,4.5,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.96,ME
-DRUG STORE,MARK ENTERPRISE,Dist.,Apollo Healthco,Gujarat,West,6.28,11.7,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,4.53549,ME
-DRUG STORE,MARK ENTERPRISE,Dist.,Apollo Healthco,Gujarat,West,3.54,6.5,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,3.46454,EB
-DRUG STORE,PRAGATI SALES-D-MART,Dist.,Apollo Healthco,Chattishgarh,West,0.37,1.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.43788,ME
-Hyper\Super Market,PRAGATI SALES-D-MART,Dist.,D-Mart,Chattishgarh,West,13.93,52.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,16.30291,ME
-Hyper\Super Market,PRAGATI SALES-D-MART,Dist.,D-Mart,Chattishgarh,West,0.87,2.0,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,5.47036,EB
-Hyper\Super Market,REAL TIME LOGISTICS_MT_BR,Dist.,VMM,Bihar,East,7.34,18.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,4.6385436,ME
-Hyper\Super Market,RR Traders-MT,Dist.,VMM,Punjab,North,5.78,16.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.05,ME
-Regional,Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Delhi,North,1.05,1.8,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.23,EB
-Regional,Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Delhi,North,16.99,52.5,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,32.24,ME
-Hyper\Super Market,Sancus Networks Private Limited-RMT,Dist.,More Retail,Delhi,North,4.48,13.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,8.5,ME
-Hyper\Super Market,Sancus Networks Private Limited-RMT,Dist.,VMM,Delhi,North,3.30,10.2,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.26,ME
-Regional,Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Delhi,North,10.07,22.8,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.21,EB
-Hyper\Super Market,Sehaj Enterprises -MT-JK,Dist.,VMM,Jammu,North,1.68,4.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.92,ME
-Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,0.01,0.0,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.1354364,EB
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,0.09,0.2,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,1.1555232,EB
-Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,0.15,0.2,BBlunt,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.1017658,EB
-DRUG STORE,Sri Vijaya Durga Agencies_Mt,Dist.,Apollo Healthco,Andhra Pradesh,South-2,42.17,74.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,25.5155613,ME
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,33.33,58.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,20.16684,ME
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,58.68,103.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,35.5108336,ME
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,41.87,73.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,25.335,ME
-Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,0.45,0.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.274146,ME
-Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,0.12,0.2,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.072796,ME
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,More Retail,Andhra Pradesh,South-2,2.40,4.2,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.4547337,ME
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,More Retail,Andhra Pradesh,South-2,0.67,1.2,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.4063295,ME
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,18.68,32.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,11.30079188,ME
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,30.89,54.3,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,18.68981662,ME
-DRUG STORE,Sri Vijaya Durga Agencies_Mt,Dist.,Apollo Healthco,Andhra Pradesh,South-2,3.46,6.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,2.6510993,EB
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,19.92,36.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,15.2516496,EB
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,3.96,7.3,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,3.032064,EB
-Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,1.33,2.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.0194166,EB
-Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,1.36,2.5,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.043483,EB
-Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,1.53,2.8,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,1.1726208,EB
-DRUG STORE,United Marketing_Mt-Ship to,Dist.,Apollo Healthco,Goa,West,0.41,0.8,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,31.5732287,ME
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,0.35,0.7,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.4321892,EB
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,0.07,0.1,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.083383,EB
-Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.73,1.4,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.8998278,EB
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,0.38,0.7,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.4623384,EB
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,0.45,0.8,Aqualogica,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.5540718,EB
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,0.06,0.1,BBlunt,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.2134563,EB
-Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.26,0.5,BBlunt,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.9042706,EB
-Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.15,0.3,Dr. Sheth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.3238299,EB
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,1.08,1.9,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,1.075989827,ME
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,17.33,29.9,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,17.33090245,ME
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,0.07,0.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.071044085,ME
-Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,1.81,3.1,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.809831956,ME
-Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.35,0.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.34680325,ME
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,2.04,3.5,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.043778352,ME
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,5.54,9.6,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.543507481,ME
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,3.71,6.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,3.70524283,ME
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,1.71,3.0,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.713263352,ME
-Regional,VENKATESHWARA AGENCIES-TG,Dist.,National Mart,Telangana,South-2,1.40,2.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.395988953,ME
-Regional,VENKATESHWARA AGENCIES-TG,Dist.,National Mart,Telangana,South-2,2.32,4.0,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.324177687,ME
-Regional,VENKATESHWARA AGENCIES-TG,Dist.,Ratnadeep,Telangana,South-2,2.55,4.4,Mamaearth,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.547717578,ME
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,8.18,14.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,6.4107917,EB
-DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,0.33,0.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.2610694,EB
-Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,6.56,11.7,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,5.1401938,EB
-Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,2.73,4.9,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,2.140375,EB
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,0.91,1.6,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.7150682,EB
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,6.10,10.9,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,4.7787742,EB
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,3.10,5.5,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.4321928,EB
-Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,0.80,1.4,The Derma Co,01-Jun-26,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.6283008,EB
+,Format,Bill to customer,Direct/Distributor,Chain Name,State,Zone,NSV,MRP value,Brand,Revised month,Month,FY,Channel ,EMP ID,KAM,Secondary Sale ,Incentive
+,DRUG STORE,APOLLO HEALTHCO LIMITED_AHMEDABAD,Direct,Apollo Healthco,Gujarat,West,16.938405299999999,54.757740000000027,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,APOLLO HEALTHCO LIMITED_AHMEDABAD,Direct,Apollo Healthco,Gujarat,West,3.9538451000000006,10.383599999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited_Bhiwandi,Direct,Apollo Healthco,Mumbai,West,14.322120199999999,41.474459999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited_Bhiwandi,Direct,Apollo Healthco,Mumbai,West,7.7328294999999958,14.791929999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited_Faridabad,Direct,Apollo Healthco,Haryana,North,0.1704204,0.28727999999999998,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited_Faridabad,Direct,Apollo Healthco,Haryana,North,58.439672299999984,198.90654000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited_Faridabad,Direct,Apollo Healthco,Haryana,North,33.729511400000007,87.431750000000036,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited_Rajasthan,Direct,Apollo Healthco,Rajasthan,North,10.324873100000003,34.657209999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited_Rajasthan,Direct,Apollo Healthco,Rajasthan,North,6.1340482000000005,17.266870000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Assam,Direct,Apollo Healthco,Northeast-Assam,East,5.6923116999999985,17.129580000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Assam,Direct,Apollo Healthco,Northeast-Assam,East,2.2495973000000005,4.7433400000000008,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Bangalore,Direct,Apollo Healthco,Karnataka,South-1,49.233128199999982,137.95684999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Bangalore,Direct,Apollo Healthco,Karnataka,South-1,13.404105999999999,32.124940000000009,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Chennai,Direct,Apollo Healthco,Tamil Nadu,South-1,37.020005399999974,98.51511000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Chennai,Direct,Apollo Healthco,Tamil Nadu,South-1,14.562476000000006,30.187110000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,APOLLO HEALTHCO LIMITED-Chittor,Direct,Apollo Healthco,Andhra Pradesh,South-2,29.042045900000012,88.124380000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,APOLLO HEALTHCO LIMITED-Chittor,Direct,Apollo Healthco,Andhra Pradesh,South-2,9.861946699999999,21.130769999999995,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Goa,Direct,Apollo Healthco,Goa,West,4.4408363,19.155299999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Goa,Direct,Apollo Healthco,Goa,West,1.9352705000000003,4.6976699999999987,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Hubbli,Direct,Apollo Healthco,Karnataka,South-1,67.812471699999989,202.58379999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Hubbli,Direct,Apollo Healthco,Karnataka,South-1,19.017230699999999,49.334229999999998,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,APOLLO HEALTHCO LIMITED-HYD,Direct,Apollo Healthco,Telangana,South-2,28.039252999999995,76.550549999999987,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,APOLLO HEALTHCO LIMITED-HYD,Direct,Apollo Healthco,Telangana,South-2,6.3399603999999998,18.509840000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Kochi,Direct,Apollo Healthco,Kerala,South-1,13.365158899999999,38.664490000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Kochi,Direct,Apollo Healthco,Kerala,South-1,5.5224038999999996,12.39959,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,APOLLO HEALTHCO LIMITED-Madurai,Direct,Apollo Healthco,Tamil Nadu,South-1,40.483728000000013,119.56063000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,APOLLO HEALTHCO LIMITED-Madurai,Direct,Apollo Healthco,Tamil Nadu,South-1,7.4017083000000001,16.124270000000003,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Ore,Direct,Apollo Healthco,Orissa,East,6.5431338999999991,25.339519999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Ore,Direct,Apollo Healthco,Orissa,East,2.6661205000000003,7.4134800000000007,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Limited-Sanath Nagar,Direct,Apollo Healthco,Telangana,South-2,15.0599255,44.584440000000015,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Limited-Sanath Nagar,Direct,Apollo Healthco,Telangana,South-2,6.497704399999999,16.532920000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,APOLLO HEALTHCO LIMITED-Vijayawada,Direct,Apollo Healthco,Andhra Pradesh,South-2,27.444829700000014,79.989770000000021,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,APOLLO HEALTHCO LIMITED-Vijayawada,Direct,Apollo Healthco,Andhra Pradesh,South-2,1.8575680000000001,4.1473500000000003,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,APOLLO HEALTHCO LIMITED-WB-2,Direct,Apollo Healthco,West Bengal,East,56.257620800000005,183.35165000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,APOLLO HEALTHCO LIMITED-WB-2,Direct,Apollo Healthco,West Bengal,East,6.7421444000000008,18.57227,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Apollo Healthco Ltd_Raipur,Direct,Apollo Healthco,Chattishgarh,West,4.8096192999999987,19.492179999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Apollo Healthco Ltd_Raipur,Direct,Apollo Healthco,Chattishgarh,West,3.6349035000000001,10.495849999999995,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,Hyper\Super Market,Avenue E Commerce Ltd -AE00-IFC-Kukse,Direct,D-Mart,Mumbai,West,0.63835949999999997,1.2554399999999999,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue E Commerce Ltd -AE00-IFC-Kukse,Direct,D-Mart,Mumbai,West,3.2838271000000003,9.3400800000000004,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue E Commerce Ltd._Hennur Fc-Ka,Direct,D-Mart,Karnataka,South-1,0.37110669999999996,0.72984000000000004,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue E Commerce Ltd._Hennur Fc-Ka,Direct,D-Mart,Karnataka,South-1,0.50421589999999994,1.06656,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1039,Direct,D-Mart,Mumbai,West,123.21894440000004,330.03805,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1039,Direct,D-Mart,Mumbai,West,59.021912200000003,165.28391999999994,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1049,Direct,D-Mart,Madhya Pradesh,North,1.3089484,3.5920000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1049,Direct,D-Mart,Madhya Pradesh,North,78.384186199999988,261.84120000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1049,Direct,D-Mart,Madhya Pradesh,North,28.482833799999998,79.631039999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1050,Direct,D-Mart,Punjab,North,42.684544199999998,165.59256999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1050,Direct,D-Mart,Punjab,North,37.508161000000001,104.80679999999998,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1054,Direct,D-Mart,Telangana,South-2,124.52279910000003,310.45621000000011,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1054,Direct,D-Mart,Telangana,South-2,23.027400399999998,54.805840000000003,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1068,Direct,D-Mart,Rajasthan,North,41.26971529999998,138.92063999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1068,Direct,D-Mart,Rajasthan,North,36.977877099999994,89.668399999999977,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1091,Direct,D-Mart,Haryana,North,28.082164499999998,95.699889999999954,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-1091,Direct,D-Mart,Haryana,North,13.204097900000001,29.685799999999993,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-8009,Direct,D-Mart,Karnataka,South-1,2.9451356000000004,8.0820000000000007,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-8009,Direct,D-Mart,Karnataka,South-1,149.63991609999997,420.92154000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-8009,Direct,D-Mart,Karnataka,South-1,42.711698900000002,114.99515999999998,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-8012,Direct,D-Mart,Pune,West,2.6635575000000005,6.2860000000000005,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-8012,Direct,D-Mart,Pune,West,37.622277099999991,100.12342999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Avenue Supermarts Ltd.-DC-8012,Direct,D-Mart,Pune,West,13.355096399999999,36.893599999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,DRUG STORE,Az Enterprises,Dist.,Apollo Healthco,Karnataka,South-1,20.25909511272382,36.380362251277454,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,18.506350300000001,ME
+,Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,5.7111044311681583E-3,1.0255741774482378E-2,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.2170000000000003E-3,ME
+,Hyper\Super Market,Az Enterprises,Dist.,VMM,Karnataka,South-1,1.3208290269524174,2.3718847364684037,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.2065556000000011,ME
+,Hyper\Super Market,Az Enterprises,Dist.,VMM,Karnataka,South-1,5.5030477035062972,9.8821229588818724,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.0269435999999894,ME
+,DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,0.7789928928746126,1.3988800327093525,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.71159720000000004,ME
+,Regional,Az Enterprises,Dist.,Max Hyper,Karnataka,South-1,2.2548005164845426,4.0490682894595595,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.0597232000000001,ME
+,Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,2.0639940171925324,3.7064266499629497,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.8854245999999981,ME
+,Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,0.33636883452051347,0.60403586546225541,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.30726739999999997,ME
+,Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,1.6884967280229644,3.0321256839843715,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.5424140000000002,ME
+,Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,1.5491418389448319,2.7818785076944024,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.4151156000000003,ME
+,Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,4.3513820933719023,7.8140141980560482,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,3.9749160000000008,ME
+,Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,2.4180069569037315,4.3421469976227165,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.2088096000000004,ME
+,Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,1.1771963558276458E-2,1.9054756544906661E-2,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,8.1084E-3,EB
+,Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,0.74705539287844025,1.2092255099490326,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.51456360000000001,EB
+,Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,0.1989230130359636,0.32198787957635677,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.137016,EB
+,Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,1.2187716372189097,1.9727717229226438,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.83947659999999857,EB
+,Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,0.66242629330841063,1.0722401310070608,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.45627199999999996,EB
+,DRUG STORE,Az Enterprises,Dist.,Apollo Healthco,Karnataka,South-1,1.018594085231231E-2,1.7982925496036681E-2,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,1.4201400000000001E-2,EB
+,Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,1.5762050247733292E-2,2.7827353347082199E-2,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.1975699999999997E-2,EB
+,Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,1.3642917088999542,2.4086097211568811,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.902117099999999,EB
+,DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,2.1904931740706624,3.9335880866461306,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,2.0009795000000001,ME
+,DRUG STORE,Az Enterprises,Dist.,Apollo Healthco,Karnataka,South-1,21.394022167931109,35.08788953220315,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,13.386362799999999,EB
+,Regional,Az Enterprises,Dist.,Trilife,Karnataka,South-1,8.6475790800416966E-2,0.14182714082456074,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.4108400000000001E-2,EB
+,Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,1.3766138359303051,2.2577556396117364,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.86135519999999999,EB
+,Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,2.9691929220604671,4.8697113815850575,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.8578411000000008,EB
+,Hyper\Super Market,Az Enterprises,Dist.,Lulu,Karnataka,South-1,8.310415488041782,13.629739107600383,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.199874799999999,EB
+,Health & Beauty,Az Enterprises,Dist.,H&G,Karnataka,South-1,11.953369353505776,19.604471759505181,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,7.4792919999999974,EB
+,Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,0.24812173881899471,0.4069392886424667,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.15525120000000001,EB
+,Hyper\Super Market,Az Enterprises,Dist.,More Retail,Karnataka,South-1,4.0383978867067718,6.6232921431787375,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.5268488000000002,EB
+,DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,0.95749862439724209,1.5703735228641131,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.5991124000000001,EB
+,DRUG STORE,Az Enterprises,Dist.,FRANKROSS,Karnataka,South-1,2.0572180918071004,3.3740004839846218,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,1.2872132000000003,EB
+,Hyper\Super Market,BALAJI ASSOCIATES Distributor MT,Dist.,Reliance Retail,Northeast-Assam,East,6.9855143733826974,12.484795737191279,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,20.908102900000003,ME
+,Hyper\Super Market,BALAJI ASSOCIATES Distributor MT,Dist.,VMM,Northeast-Assam,East,5.7129653266173017,10.210444262808728,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,17.099280099999991,ME
+,Hyper\Super Market,BALAJI ASSOCIATES Distributor MT,Dist.,Reliance Retail,Northeast-Assam,East,5.1064247000000007,9.3503599999999985,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,6.5445328000000007,EB
+,Regional,Chhabra Traders,Dist.,Deal Share,Lucknow-UPE,North,0.72474507916110542,1.7856990688701371,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.0613064999999999,ME
+,Hyper\Super Market,Chhabra Traders,Dist.,D-Mart,Lucknow-UPE,North,1.046746533081518,2.5790783038227536,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.5328409000000001,ME
+,Hyper\Super Market,Chhabra Traders,Dist.,Lulu,Lucknow-UPE,North,6.5433064293032652,16.122049716658335,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,9.5819258999999999,ME
+,DRUG STORE,Chhabra Traders,Dist.,Medanta,Lucknow-UPE,North,0.53775004352586242,1.3249620861455338,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.7874736,ME
+,Hyper\Super Market,Chhabra Traders,Dist.,Spencer,Lucknow-UPE,North,1.3703270106360499,3.3763480943848458,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.0066876000000002,ME
+,Hyper\Super Market,Chhabra Traders,Dist.,D-Mart,Lucknow-UPE,North,4.0251734411757658,7.4409774719749686,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.0848768,EB
+,Hyper\Super Market,CHHABRA TRADERS_Ship To,Dist.,Lulu,Lucknow-UPE,North,6.5918699999999997E-2,0.11976000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,9.1348799999999994E-2,EB
+,Hyper\Super Market,CHHABRA TRADERS_Ship To,Dist.,VMM,Lucknow-UPE,North,4.3990725042921941,10.838872730118382,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.4419398999999995,ME
+,Hyper\Super Market,CHHABRA TRADERS_Ship To,Dist.,Lulu,Lucknow-UPE,North,20.058603258824231,37.080542528025013,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,10.389544000000001,EB
+,Hyper\Super Market,CHOUDHARY ENTERPRISES-MT-MP,Dist.,VMM,Madhya Pradesh,North,0.72530590000000006,2.4684000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,8.92,ME
+,DRUG STORE,D.L. Sales - MT,Dist.,FRANKROSS,West Bengal,East,4.8658394623259736E-2,8.6942514133552765E-2,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,6.852960000000001E-2,EB
+,Hyper\Super Market,D.L. Sales - MT,Dist.,More Retail,West Bengal,East,0.20262970537674027,0.36205748586644726,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.28538000000000002,EB
+,DRUG STORE,D.L. Sales - MT,Dist.,Arambagh,West Bengal,East,2.9970639741077423,6.7664115357431633,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,3.5876585000000025,ME
+,DRUG STORE,D.L. Sales - MT,Dist.,Apollo Healthco,West Bengal,East,5.1344368888960163,11.591915719755105,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,6.1462172000000006,ME
+,Hyper\Super Market,D.L. Sales - MT,Dist.,More Retail,West Bengal,East,3.4899075532012751,7.8790946508535882,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,4.1776206999999994,ME
+,Hyper\Super Market,D.L. Sales - MT,Dist.,Spencer,West Bengal,East,7.8133724212364717,17.640095019944134,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,9.3530576000000014,ME
+,Hyper\Super Market,D.L. Sales - MT,Dist.,VMM,West Bengal,East,1.8563233039695781,4.1909840852790126,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.2221261000000023,ME
+,Regional,D.L. Sales - MT,Dist.,Sasta Sunder,West Bengal,East,0.91450679638792065,2.064663747605509,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.0947174,ME
+,DRUG STORE,D.L. Sales - MT,Dist.,FRANKROSS,West Bengal,East,1.3386201879773387,3.0221760897196419,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,1.6024055999999998,ME
+,Regional,D.L. Sales - MT,Dist.,Sumo Save,West Bengal,East,1.0568012742236594,2.3859191510998352,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.2650521000000001,ME
+,DRUG STORE,D.L. Sales - MT,Dist.,Arambagh,West Bengal,East,0.35571540363703874,0.67488540887496251,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.56642730000000008,EB
+,DRUG STORE,D.L. Sales - MT,Dist.,Apollo Healthco,West Bengal,East,2.8775325381700112,5.4594338724657527,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,4.5820702999999989,EB
+,Hyper\Super Market,D.L. Sales - MT,Dist.,More Retail,West Bengal,East,1.4050473112617647,2.6657432302738409,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.2373424000000006,EB
+,Hyper\Super Market,D.L. Sales - MT,Dist.,Spencer,West Bengal,East,0.46561034019714814,0.88338492403606239,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.74141970000000001,EB
+,DRUG STORE,D.L. Sales - MT,Dist.,FRANKROSS,West Bengal,East,1.5679870067340373,2.9748825643493819,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,2.4968012000000002,EB
+,Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,3.5207457999999998,6.4590800000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,4.5671186440677969E-2,EB
+,DRUG STORE,G.V Enterprises,Dist.,Apollo Healthco,Tamil Nadu,South-1,6.701448817831305,11.633570393734157,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,5.0068097239709433,ME
+,Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,73.310511166873994,127.26546384882523,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,54.772003809523802,ME
+,Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,56.55606535482751,98.180107821958728,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,42.254364043583536,ME
+,Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,1.585652828524134,2.7526590595716685,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.1846784503631962,ME
+,Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,14.172860031943088,24.603778875910201,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,10.58887642857143,ME
+,DRUG STORE,G.V Enterprises,Dist.,Apollo Healthco,Tamil Nadu,South-1,6.598939275211138,12.0418445337696,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,5.4047508474576267,EB
+,Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,1.8508591776776713,3.377475915745876,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.5159152542372882,EB
+,Hyper\Super Market,G.V Enterprises,Dist.,D-Mart,Tamil Nadu,South-1,41.587731078055228,75.889922799469346,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,34.061735593220341,EB
+,Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,0.80088859224330133,1.4614736572727223,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.65595440677966088,EB
+,Hyper\Super Market,G.V Enterprises,Dist.,Lulu,Tamil Nadu,South-1,9.9727157768126808,18.198363093742405,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,8.1679860653753025,EB
+,DRUG STORE,Guardian Healthcare Services Pvt Ltd(DL),Direct,Guardian,Delhi,North,0.1095864,0.21551999999999999,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Guardian Healthcare Services Pvt Ltd(DL),Direct,Guardian,Delhi,North,0.42858289999999999,1.0365600000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Guardian Healthcare Services Pvt Ltd(DL),Direct,Guardian,Delhi,North,0.36823729999999999,0.87995999999999996,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-BLR,Direct,H&G,Karnataka,South-1,9.6448321999999997,26.778559999999995,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-CHE,Direct,H&G,Tamil Nadu,South-1,0.89237820000000023,1.62001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-CHE,Direct,H&G,Tamil Nadu,South-1,0.88587060000000017,1.4921500000000001,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-CHE,Direct,H&G,Tamil Nadu,South-1,1.4212371000000001,2.7383399999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,ME
+,Health & Beauty,Health & Glow Private limited-HG-RO-CHE,Direct,H&G,Tamil Nadu,South-1,8.4265263999999966,20.246769999999994,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-HYD,Direct,H&G,Telangana,South-2,6.3698978999999998,17.685839999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-MUM,Direct,H&G,Mumbai,West,0.12887720000000003,0.23396,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-MUM,Direct,H&G,Mumbai,West,7.1974799999999992E-2,0.12020999999999998,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-MUM,Direct,H&G,Mumbai,West,0.19249500000000005,0.35058999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,ME
+,Health & Beauty,Health & Glow Private limited-HG-RO-MUM,Direct,H&G,Mumbai,West,3.5532851000000014,6.6498899999999974,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-WB,Direct,H&G,West Bengal,East,7.1433400000000008E-2,0.12968000000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-WB,Direct,H&G,West Bengal,East,0.2099232,0.35120999999999986,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Health & Beauty,Health & Glow Private limited-HG-RO-WB,Direct,H&G,West Bengal,East,0.31344380000000016,0.61469999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,ME
+,Health & Beauty,Health & Glow Private limited-HG-RO-WB,Direct,H&G,West Bengal,East,1.7505035999999992,4.0620300000000018,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,,EB
+,Hyper\Super Market,JUST MARK-Dmart_ship to,Dist.,D-Mart,Gujarat,West,180.92154240000005,563.75333999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,182.61994999999999,ME
+,Hyper\Super Market,JUST MARK-Dmart_ship to,Dist.,D-Mart,Gujarat,West,38.8732969,102.288,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,72.981819999999999,EB
+,Hyper\Super Market,Kiran Trading Co_Shipto (Solapur),Dist.,D-Mart,Pune,West,56.142916400000004,181.02651000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,156.96684999999999,ME
+,Hyper\Super Market,Kiran Trading Co_Shipto (Solapur),Dist.,D-Mart,Pune,West,12.526327999999999,30.871200000000002,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,94.022289999999998,EB
+,Hyper\Super Market,Kiran Trading Company_Ship to,Dist.,D-Mart,Pune,West,109.26272940000001,358.73320000000007,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Kiran Trading Company_Ship to,Dist.,D-Mart,Pune,West,60.282646400000004,127.31855999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,1.6354556818081707,3.0003693112159353,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.89057906779661034,EB
+,Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,5.6239236181918288,10.317520688784064,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,3.0624789830508483,EB
+,Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,34.069875368442958,61.09570778644342,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,16.738597701372079,ME
+,Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,27.16608333155704,48.715502213556597,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,13.346750907990316,ME
+,Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,12.432416147786119,22.740401608023113,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,9.171272711864404,EB
+,Hyper\Super Market,M/S KOTTARAM BUSINESS CORPORATION-MT,Dist.,Lulu,Kerala,South-1,20.139714752213873,36.837988391976893,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,14.856872078288937,EB
+,Hyper\Super Market,MANOJ SOAP AGENCY-MT,Dist.,VMM,Rajasthan,North,1.4831410000000003,4.5332000000000008,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.96,ME
+,DRUG STORE,MARK ENTERPRISE,Dist.,Apollo Healthco,Gujarat,West,6.2848550000000012,11.683219999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,4.5354900000000002,ME
+,DRUG STORE,MARK ENTERPRISE,Dist.,Apollo Healthco,Gujarat,West,3.5391149,6.4927799999999989,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,3.46454,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd -(DC27)-T0SJ,Direct,More Retail,Karnataka,South-1,0.20547349999999998,0.32328000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd -(DC27)-T0SJ,Direct,More Retail,Karnataka,South-1,1.1998039999999999,2.2677499999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd -(DC27)-T0SJ,Direct,More Retail,Karnataka,South-1,0.2090969,0.32898000000000005,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC10)-T0SM,Direct,More Retail,Karnataka,South-1,7.6971200000000004E-2,0.10775999999999999,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC10)-T0SM,Direct,More Retail,Karnataka,South-1,1.3507821999999998,3.1849199999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC10)-T0SM,Direct,More Retail,Karnataka,South-1,0.91760939999999991,1.4437000000000002,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC11)-T0SL,Direct,More Retail,Karnataka,South-1,0.35008359999999999,0.55079999999999996,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC11)-T0SL,Direct,More Retail,Karnataka,South-1,7.6971100000000001E-2,0.10775999999999999,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC11)-T0SL,Direct,More Retail,Karnataka,South-1,1.4080494999999997,2.9923099999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC11)-T0SL,Direct,More Retail,Karnataka,South-1,0.79531909999999995,1.2513000000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC12)-T0QX,Direct,More Retail,Telangana,South-2,0.58965109999999998,0.92771999999999999,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC12)-T0QX,Direct,More Retail,Telangana,South-2,1.0970481000000001,2.1813099999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC12)-T0QX,Direct,More Retail,Telangana,South-2,0.28514010000000006,0.44862000000000007,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC15)-T0QY,Direct,More Retail,Telangana,South-2,-0.99047979999999991,-1.8604399999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC16)-T0QZ,Direct,More Retail,Telangana,South-2,0.15394240000000001,0.21551999999999999,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC16)-T0QZ,Direct,More Retail,Telangana,South-2,1.5017931,3.0377300000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC17)-T0QT,Direct,More Retail,Andhra Pradesh,South-2,1.5298875000000001,2.8519400000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC18)-T0SN,Direct,More Retail,Karnataka,South-1,0.51368510000000001,0.80820000000000003,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC18)-T0SN,Direct,More Retail,Karnataka,South-1,0.29308580000000001,0.55719000000000007,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC18)-T0SN,Direct,More Retail,Karnataka,South-1,0.18264330000000001,0.28736,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC20)-T0RK,Direct,More Retail,Mumbai,West,7.1345699999999998E-2,0.11225,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC20)-T0RK,Direct,More Retail,Mumbai,West,1.02254,3.5362999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC20)-T0RK,Direct,More Retail,Mumbai,West,0.13637929999999998,0.21457000000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC23)-T0RL,Direct,More Retail,Mumbai,West,0.11525550000000001,0.18131999999999998,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC23)-T0RL,Direct,More Retail,Mumbai,West,7.6972300000000007E-2,0.10775999999999999,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC23)-T0RL,Direct,More Retail,Mumbai,West,0.53047870000000008,1.07958,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC23)-T0RL,Direct,More Retail,Mumbai,West,0.11402609999999999,0.1794,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC24)-T0RJ,Direct,More Retail,Madhya Pradesh,North,0.53973720000000003,0.97983000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC26)-T0SP,Direct,More Retail,Karnataka,South-1,0.58675469999999996,0.92315999999999998,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC26)-T0SP,Direct,More Retail,Karnataka,South-1,0.23091490000000001,0.32328000000000001,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC26)-T0SP,Direct,More Retail,Karnataka,South-1,2.7807803,5.8808799999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC26)-T0SP,Direct,More Retail,Karnataka,South-1,0.1371357,0.21576000000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC29)-T0RA,Direct,More Retail,Telangana,South-2,2.5185096000000002,4.8749099999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC32)-T0QU,Direct,More Retail,UPW,North,1.1127361,2.2625600000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC36)-T0RH,Direct,More Retail,Andhra Pradesh,South-2,1.0942383,2.46468,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC37)-T0RD,Direct,More Retail,Andhra Pradesh,South-2,0.33620860000000002,0.60225000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC43)-T2YF,Direct,More Retail,Punjab,North,0.31022640000000001,0.72960000000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC43)-T2YF,Direct,More Retail,Punjab,North,0.52103809999999995,0.81975999999999993,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC45)-T0RE,Direct,More Retail,Rajasthan,North,0.42085789999999978,1.0385700000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC46)-T0RC,Direct,More Retail,Delhi,North,0.18991520000000001,0.29880000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC46)-T0RC,Direct,More Retail,Delhi,North,3.6993637999999995,9.692770000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC46)-T0RC,Direct,More Retail,Delhi,North,1.2296308,1.9644999999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC47)-T0SI,Direct,More Retail,Punjab,North,0.28732199999999997,0.52160000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC48)-T0SK,Direct,More Retail,Punjab,North,0.1350307,0.26285999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC52)-T0RI,Direct,More Retail,Delhi,North,0.46269539999999992,0.94632000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC53)-T0QV,Direct,More Retail,Lucknow-UPE,North,0.65676699999999999,2.1236799999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC54)-T0QW,Direct,More Retail,UPW,North,1.4446979,3.4237999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC60)-T0QS,Direct,More Retail,West Bengal,East,0.110212,0.1734,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC60)-T0QS,Direct,More Retail,West Bengal,East,1.6384713999999996,4.0594200000000011,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Metro Cash & Carry India Pvt Ltd-(DC60)-T0QS,Direct,More Retail,West Bengal,East,0.17111419999999999,0.26922000000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Eb2b,Nykaa E-Retail Limited.-AP EB2B,Direct,Nykaa SS(fsn),Andhra Pradesh,South-2,1.8294999999999999E-2,2.988E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-AP EB2B,Direct,Nykaa SS(fsn),Andhra Pradesh,South-2,8.5673719999999989,14.911469999999998,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-AP EB2B,Direct,Nykaa SS(fsn),Andhra Pradesh,South-2,0.45689869999999994,0.74621999999999988,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-AS EB2B,Direct,Nykaa SS(fsn),Northeast-Assam,East,0.34354829999999997,0.56108999999999987,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-AS EB2B,Direct,Nykaa SS(fsn),Northeast-Assam,East,0.34283009999999997,0.55991999999999997,Dr. Sheth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-AS EB2B,Direct,Nykaa SS(fsn),Northeast-Assam,East,20.729532999999989,42.348479999999995,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-AS EB2B,Direct,Nykaa SS(fsn),Northeast-Assam,East,3.302059400000001,5.7474299999999978,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-BR EB2B,Direct,Nykaa SS(fsn),Bihar,East,4.9411499999999997E-2,8.0699999999999994E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-BR EB2B,Direct,Nykaa SS(fsn),Bihar,East,19.968224799999984,40.363730000000018,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-BR EB2B,Direct,Nykaa SS(fsn),Bihar,East,1.2125333999999997,2.0375700000000001,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-GJ EB2B,Direct,Nykaa SS(fsn),Gujarat,West,9.9644787000000026,18.901430000000005,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-GJ EB2B,Direct,Nykaa SS(fsn),Gujarat,West,0.99954009999999971,1.6515499999999996,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-HR-Gurhi EB2B,Direct,Nykaa SS(fsn),Haryana,North,2.9316299999999997E-2,4.7879999999999992E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-HR-Gurhi EB2B,Direct,Nykaa SS(fsn),Haryana,North,8.2018156999999974,17.130690000000001,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-HR-Gurhi EB2B,Direct,Nykaa SS(fsn),Haryana,North,2.9705791999999995,5.4330299999999996,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-KA EB2B,Direct,Nykaa SS(fsn),Karnataka,South-1,9.0722499999999998E-2,0.14817,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-KA EB2B,Direct,Nykaa SS(fsn),Karnataka,South-1,14.796520700000004,27.005580000000013,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-KA EB2B,Direct,Nykaa SS(fsn),Karnataka,South-1,3.1812090000000013,5.1956099999999994,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-KL EB2B,Direct,Nykaa SS(fsn),Kerala,South-1,0.39334610000000003,0.64241999999999999,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-KL EB2B,Direct,Nykaa SS(fsn),Kerala,South-1,1.3426953999999998,2.1929100000000004,Dr. Sheth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-KL EB2B,Direct,Nykaa SS(fsn),Kerala,South-1,4.5062223999999986,8.4441400000000009,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-KL EB2B,Direct,Nykaa SS(fsn),Kerala,South-1,3.3151358000000011,5.6419199999999989,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-MP EB2B,Direct,Nykaa SS(fsn),Madhya Pradesh,North,3.6590399999999995E-2,5.9760000000000001E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-MP EB2B,Direct,Nykaa SS(fsn),Madhya Pradesh,North,6.5079499999999998E-2,0.10629,Dr. Sheth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-MP EB2B,Direct,Nykaa SS(fsn),Madhya Pradesh,North,5.778303399999996,10.963069999999995,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-MP EB2B,Direct,Nykaa SS(fsn),Madhya Pradesh,North,1.5462336999999997,2.7113399999999985,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-Mum EB2B,Direct,Nykaa SS(fsn),Mumbai,West,7.3180500000000009E-2,0.11952,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-Mum EB2B,Direct,Nykaa SS(fsn),Mumbai,West,0.10538020000000001,0.17210999999999999,Dr. Sheth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-Mum EB2B,Direct,Nykaa SS(fsn),Mumbai,West,13.893412099999999,26.332740000000012,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-Mum EB2B,Direct,Nykaa SS(fsn),Mumbai,West,6.0959618999999972,10.253239999999998,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-OR EB2B,Direct,Nykaa SS(fsn),Orissa,East,8.2474999999999996E-3,1.3469999999999999E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-OR EB2B,Direct,Nykaa SS(fsn),Orissa,East,12.532954099999991,25.976619999999993,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-OR EB2B,Direct,Nykaa SS(fsn),Orissa,East,0.80868230000000019,1.3697700000000002,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-PB EB2B,Direct,Nykaa SS(fsn),Punjab,North,0.22900940000000006,0.37402000000000007,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-PB EB2B,Direct,Nykaa SS(fsn),Punjab,North,0.24290680000000003,0.39672000000000007,Dr. Sheth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-PB EB2B,Direct,Nykaa SS(fsn),Punjab,North,10.421991399999998,22.099829999999994,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-PB EB2B,Direct,Nykaa SS(fsn),Punjab,North,4.3198166000000002,7.5689199999999976,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-TG EB2B,Direct,Nykaa SS(fsn),Telangana,South-2,3.2016299999999998E-2,5.2290000000000003E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-TG EB2B,Direct,Nykaa SS(fsn),Telangana,South-2,6.249056399999998,10.967129999999997,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-TG EB2B,Direct,Nykaa SS(fsn),Telangana,South-2,0.82526469999999985,1.3478399999999999,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-TN EB2B,Direct,Nykaa SS(fsn),Tamil Nadu,South-1,5.8559399999999998E-2,9.5640000000000003E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-TN EB2B,Direct,Nykaa SS(fsn),Tamil Nadu,South-1,0.1246864,0.20364000000000002,Dr. Sheth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-TN EB2B,Direct,Nykaa SS(fsn),Tamil Nadu,South-1,5.9634810000000016,10.627229999999997,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-TN EB2B,Direct,Nykaa SS(fsn),Tamil Nadu,South-1,1.4506263999999998,2.3691900000000001,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-UP-Hapur EB2B,Direct,Nykaa SS(fsn),UPW,North,5.3031274000000028,10.821540000000001,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-UP-Hapur EB2B,Direct,Nykaa SS(fsn),UPW,North,0.8184167,1.5357000000000005,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-UP-LKW EB2B,Direct,Nykaa SS(fsn),Lucknow-UPE,North,9.1474999999999994E-3,1.494E-2,Aqualogica,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-UP-LKW EB2B,Direct,Nykaa SS(fsn),Lucknow-UPE,North,10.727527699999994,21.632330000000003,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-UP-LKW EB2B,Direct,Nykaa SS(fsn),Lucknow-UPE,North,1.3442877,2.2547100000000007,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,Eb2b,Nykaa E-Retail Limited.-WB EB2B,Direct,Nykaa SS(fsn),West Bengal,East,11.631573999999997,23.044909999999984,Mamaearth,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,ME
+,Eb2b,Nykaa E-Retail Limited.-WB EB2B,Direct,Nykaa SS(fsn),West Bengal,East,1.1910425999999996,2.0469600000000003,The Derma Co,46174,Jun'26,FY_26-27,EB2B,HCPL0311,Rashi Juyal,,EB
+,DRUG STORE,PRAGATI SALES-D-MART,Dist.,Apollo Healthco,Chattishgarh,West,0.37423452196198631,1.4176967220065484,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.43787999999999999,ME
+,Hyper\Super Market,PRAGATI SALES-D-MART,Dist.,D-Mart,Chattishgarh,West,13.933296178038015,52.782913277993465,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,16.302910000000001,ME
+,Hyper\Super Market,PRAGATI SALES-D-MART,Dist.,D-Mart,Chattishgarh,West,0.86579560000000011,2.0032999999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,5.4703600000000003,EB
+,Hyper\Super Market,REAL TIME LOGISTICS_MT_BR,Dist.,VMM,Bihar,East,7.3434407000000004,18.580840000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,4.6385435999999949,ME
+,Hyper\Super Market,Reliance Retail Limited Ce08,Direct,Reliance Retail,Jharkhand,East,1.2333042000000001,1.9935600000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited Ce08,Direct,Reliance Retail,Jharkhand,East,45.768377200000018,156.24888000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited Ce08,Direct,Reliance Retail,Jharkhand,East,4.1054174000000003,7.5572799999999987,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited Cf08,Direct,Reliance Retail,Mumbai,West,8.3261699999999994E-2,0.11976000000000001,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited Cf08,Direct,Reliance Retail,Mumbai,West,13.661205600000008,41.220120000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited Cf08,Direct,Reliance Retail,Mumbai,West,4.8434396,7.8133199999999992,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited Fb08,Direct,Reliance Retail,Punjab,North,1.233304,1.9935600000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited Fb08,Direct,Reliance Retail,Punjab,North,14.295474200000003,46.22480999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited Fb08,Direct,Reliance Retail,Punjab,North,5.2422864000000002,10.030759999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited R701,Direct,Reliance Retail,Gujarat,West,0.2777712,0.44900000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited R701,Direct,Reliance Retail,Gujarat,West,18.064635899999999,50.460269999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited R701,Direct,Reliance Retail,Gujarat,West,4.7998874000000002,7.7587200000000003,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited R703,Direct,Reliance Retail,Tamil Nadu,South-1,1.5625008,4.1251999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited R801,Direct,Reliance Retail,Orissa,East,0.83331409999999995,1.347,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited R801,Direct,Reliance Retail,Orissa,East,27.819982299999989,101.90037999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited R801,Direct,Reliance Retail,Orissa,East,10.0874361,17.457120000000003,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited Sc79,Direct,Reliance Retail,Mumbai,West,6.5060735999999979,21.280129999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited Sc79,Direct,Reliance Retail,Mumbai,West,3.7205754000000004,6.2976799999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_2364,Direct,Reliance Retail,Haryana,North,0.26930560000000003,0.49152999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_2995,Direct,Reliance Retail,Haryana,North,0.11849119999999999,0.21098,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_2996,Direct,Reliance Retail,Punjab,North,3.9737999999998851E-3,-3.7250000000000151E-2,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_3210,Direct,Reliance Retail,Madhya Pradesh,North,0.2152271,0.39025999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_6209,Direct,Reliance Retail,Pune,West,0.3502826,0.77812999999999954,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_6221,Direct,Reliance Retail,Mumbai,West,0.210892,0.50658000000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_6717,Direct,Reliance Retail,Rajasthan,North,0.27848370000000006,0.50202999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_6719,Direct,Reliance Retail,Pune,West,0.14933179999999993,0.37340000000000023,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_6722,Direct,Reliance Retail,Delhi,North,0.79400680000000001,1.4814499999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_6727,Direct,Reliance Retail,Haryana,North,0.62261319999999998,1.0630299999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR00,Direct,Reliance Retail,Mumbai,West,0.22966959999999997,0.49670000000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR03,Direct,Reliance Retail,Mumbai,West,0.32075879999999996,0.74253000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR10,Direct,Reliance Retail,Mumbai,West,0.18858440000000001,0.39039999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR27,Direct,Reliance Retail,Madhya Pradesh,North,1.0156961000000002,2.2090800000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR30,Direct,Reliance Retail,Madhya Pradesh,North,0.1851583,0.3246,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR60,Direct,Reliance Retail,Gujarat,West,0.24528910000000001,0.54767999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR62,Direct,Reliance Retail,Orissa,East,0.24389559999999999,0.51366999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR64,Direct,Reliance Retail,Orissa,East,0.2794066,0.59774000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FR76,Direct,Reliance Retail,West Bengal,East,0.23202820000000002,0.4255000000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_Fr87,Direct,Reliance Retail,Haryana,North,0.95553289999999991,1.5445600000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Fr87,Direct,Reliance Retail,Haryana,North,38.708735600000004,134.94056000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_Fr87,Direct,Reliance Retail,Haryana,North,11.806937899999998,20.812299999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Fr89,Direct,Reliance Retail,UPW,North,0.19999560000000002,0.32328000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Fr89,Direct,Reliance Retail,UPW,North,12.982190899999997,47.652570000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_Fr89,Direct,Reliance Retail,UPW,North,0.30870389999999998,0.499,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_FRAQ,Direct,Reliance Retail,Jharkhand,East,0.27154469999999997,0.61373999999999984,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRAT,Direct,Reliance Retail,Jharkhand,East,0.20577279999999998,0.35183999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_Fraz,Direct,Reliance Retail,Punjab,North,1.1555286,1.8678400000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Fraz,Direct,Reliance Retail,Punjab,North,17.7388102,55.551759999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_Fraz,Direct,Reliance Retail,Punjab,North,3.9588498999999997,7.7834599999999989,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_FRBD,Direct,Reliance Retail,Punjab,North,0.41430810000000001,1.0780499999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRBR,Direct,Reliance Retail,West Bengal,East,0.28459079999999998,0.49192000000000008,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRBS,Direct,Reliance Retail,West Bengal,East,0.25217699999999998,0.44999999999999984,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRBU,Direct,Reliance Retail,West Bengal,East,0.18329059999999997,0.32763999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRBW,Direct,Reliance Retail,West Bengal,East,0.26368900000000001,0.46140999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRCG,Direct,Reliance Retail,West Bengal,East,0.19259999999999999,0.33038000000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRCJ,Direct,Reliance Retail,West Bengal,East,0.27247399999999999,0.47681000000000007,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRCQ,Direct,Reliance Retail,Haryana,North,0.27918440000000005,0.62628000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRCS,Direct,Reliance Retail,Delhi,North,0.20028919999999995,0.35621999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRDA,Direct,Reliance Retail,Delhi,North,0.22446829999999995,0.52035999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRDB,Direct,Reliance Retail,Delhi,North,0.24387490000000001,0.4219,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRDI,Direct,Reliance Retail,UPW,North,0.1270057,0.21177000000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRDK,Direct,Reliance Retail,UPW,North,0.17343720000000001,0.33117000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRDL,Direct,Reliance Retail,UPW,North,0.25790359999999996,0.46156999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRDL,Direct,Reliance Retail,UPW,North,5.5206999999999999E-2,8.924E-2,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_FRDP,Direct,Reliance Retail,Rajasthan,North,0.25056159999999994,0.44285999999999986,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FREM,Direct,Reliance Retail,Rajasthan,North,0.27427719999999994,0.4959900000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRER,Direct,Reliance Retail,Rajasthan,North,0.23186829999999997,0.48759999999999992,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FREX,Direct,Reliance Retail,Lucknow-UPE,North,0.30223619999999995,0.67190000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRFA,Direct,Reliance Retail,Lucknow-UPE,North,0.29603039999999997,0.61160000000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRFD,Direct,Reliance Retail,Orissa,East,0.21586170000000005,0.45567999999999981,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRFK,Direct,Reliance Retail,Lucknow-UPE,North,0.19942669999999998,0.36634999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRFR,Direct,Reliance Retail,Uttarakhand,North,0.26899319999999999,0.46824000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRFU,Direct,Reliance Retail,Bihar,East,0.21375080000000002,0.43339999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRFV,Direct,Reliance Retail,Bihar,East,0.25422709999999998,0.6091700000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRGC,Direct,Reliance Retail,Lucknow-UPE,North,0.1614188,0.28245999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRGF,Direct,Reliance Retail,Lucknow-UPE,North,0.25212009999999996,0.44340999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRGK,Direct,Reliance Retail,Jammu,North,0.20629709999999996,0.37076999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRGM,Direct,Reliance Retail,Chattishgarh,West,0.2089512,0.41234999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRGW,Direct,Reliance Retail,Lucknow-UPE,North,0.45790590000000003,1.0616799999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRHC,Direct,Reliance Retail,Lucknow-UPE,North,0.20643590000000003,0.38099000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRHF,Direct,Reliance Retail,Lucknow-UPE,North,0.22308,0.41378000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRHM,Direct,Reliance Retail,Madhya Pradesh,North,0.23801780000000003,0.42867000000000011,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_FRHR,Direct,Reliance Retail,Lucknow-UPE,North,0.23321719999999996,0.41565000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED_FRIA,Direct,Reliance Retail,Bihar,East,0.55554219999999999,0.89800000000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED_FRIA,Direct,Reliance Retail,Bihar,East,31.946651200000009,101.93731,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED_FRIA,Direct,Reliance Retail,Bihar,East,1.2753478999999999,2.0615199999999998,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_FRLF,Direct,Reliance Retail,West Bengal,East,0.28480759999999999,0.49877000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_S0IX,Direct,Reliance Retail,Pune,West,0.47776669999999999,0.77228000000000008,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_S0IX,Direct,Reliance Retail,Pune,West,14.066962800000006,43.852690000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_S0IX,Direct,Reliance Retail,Pune,West,4.8077849000000006,8.0708799999999972,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_S0XE,Direct,Reliance Retail,Kerala,South-1,1.6332928,2.64012,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_S0XE,Direct,Reliance Retail,Kerala,South-1,14.619408200000002,40.454969999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_S0XE,Direct,Reliance Retail,Kerala,South-1,2.4731173000000002,3.9976400000000005,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_SAHO,Direct,Reliance Retail,Tamil Nadu,South-1,6.0221281999999992,16.036739999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_SAOS,Direct,Reliance Retail,West Bengal,East,0.2777713,0.44900000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_SAOS,Direct,Reliance Retail,West Bengal,East,12.677391,43.731399999999987,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_SAOS,Direct,Reliance Retail,West Bengal,East,1.9506389000000002,3.5560799999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Sb01,Direct,Reliance Retail,Mumbai,West,0.55554340000000002,0.89800000000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Sb01,Direct,Reliance Retail,Mumbai,West,5.6587123000000004,17.979799999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_Sb01,Direct,Reliance Retail,Mumbai,West,0.89391470000000006,1.44496,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Sk8I,Direct,Reliance Retail,Uttarakhand,North,0.19999529999999999,0.32328000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_Sk8I,Direct,Reliance Retail,Uttarakhand,North,5.8428335000000002,18.877500000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_SL6S,Direct,Reliance Retail,Rajasthan,North,1.1555286,1.8678400000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_SL6S,Direct,Reliance Retail,Rajasthan,North,28.903797200000003,99.591220000000021,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_SL6S,Direct,Reliance Retail,Rajasthan,North,9.1358625999999994,15.883419999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_SZ9J,Direct,Reliance Retail,Madhya Pradesh,North,0.47776629999999998,0.77228000000000008,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_SZ9J,Direct,Reliance Retail,Madhya Pradesh,North,10.441585299999998,37.691279999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_SZ9J,Direct,Reliance Retail,Madhya Pradesh,North,2.7002458000000003,5.5187200000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited_T62I,Direct,Reliance Retail,Chattishgarh,West,0.28636119999999987,0.63008999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_T913,Direct,Reliance Retail,UPW,North,0.24696609999999999,0.43788000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_T946,Direct,Reliance Retail,Rajasthan,North,0.23656940000000001,0.44744000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TB15,Direct,Reliance Retail,Madhya Pradesh,North,0.22240759999999998,0.41095000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TDC7,Direct,Reliance Retail,Orissa,East,0.25676329999999997,0.57424999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TE57,Direct,Reliance Retail,Punjab,North,0.31178899999999993,0.56493000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TFY8,Direct,Reliance Retail,Madhya Pradesh,North,0.48512860000000013,1.24749,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TG87,Direct,Reliance Retail,Kerala,South-1,0.35789120000000002,0.64248000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TH94,Direct,Reliance Retail,Rajasthan,North,0.18314139999999998,0.32621999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TI77,Direct,Reliance Retail,UPW,North,0.25145050000000002,0.43662999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TMW7,Direct,Reliance Retail,Mumbai,West,0.25708979999999998,0.56154000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TMZ5,Direct,Reliance Retail,West Bengal,East,0.16502259999999996,0.27653,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TN56,Direct,Reliance Retail,Orissa,East,0.26509229999999995,0.56424999999999981,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TNB7,Direct,Reliance Retail,Chattishgarh,West,0.29790149999999999,0.65570999999999957,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TNC1,Direct,Reliance Retail,Uttarakhand,North,0.30454049999999994,0.55909000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TNC6,Direct,Reliance Retail,Punjab,North,0.29771739999999997,0.53123999999999982,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TNC8,Direct,Reliance Retail,Karnataka,South-1,0.36918300000000004,0.6452699999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TND0,Direct,Reliance Retail,Karnataka,South-1,0.32644119999999999,0.56623999999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TNE3,Direct,Reliance Retail,Uttarakhand,North,0.22020930000000002,0.39795999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TNP8,Direct,Reliance Retail,Pune,West,-0.29420199999999996,-0.42126000000000013,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TO20,Direct,Reliance Retail,Madhya Pradesh,North,0.24934880000000004,0.43643999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TOJ6,Direct,Reliance Retail,Mumbai,West,0.27557579999999998,0.53985000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TP05,Direct,Reliance Retail,Haryana,North,0.3510682,0.81634999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TP75,Direct,Reliance Retail,Madhya Pradesh,North,0.1990355,0.36740999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TP76,Direct,Reliance Retail,Rajasthan,North,0.19465000000000002,0.34978999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TQ22,Direct,Reliance Retail,West Bengal,East,0.22182759999999996,0.39105999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TU21,Direct,Reliance Retail,Delhi,North,0.22904779999999997,0.41615999999999986,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TW60,Direct,Reliance Retail,Orissa,East,0.24053370000000007,0.53717999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited_TY87,Direct,Reliance Retail,Rajasthan,North,0.30044249999999995,0.69845000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-2949,Direct,Reliance Retail,Telangana,South-2,0.23990579999999997,0.42131999999999986,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-2956,Direct,Reliance Retail,Jharkhand,East,0.1869024,0.33374000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-2959,Direct,Reliance Retail,Orissa,East,0.25576560000000004,0.5650599999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-2985,Direct,Reliance Retail,Telangana,South-2,0.36707329999999999,0.64606999999999981,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6202,Direct,Reliance Retail,Gujarat,West,0.27829399999999999,0.61014000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6202,Direct,Reliance Retail,Gujarat,West,-0.30870340000000002,-0.499,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-6205,Direct,Reliance Retail,Haryana,North,0.62626699999999991,1.3897299999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6206,Direct,Reliance Retail,Jharkhand,East,0.24194550000000004,0.55345,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6208,Direct,Reliance Retail,Pune,West,0.44708099999999984,0.95547999999999955,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6210,Direct,Reliance Retail,Mumbai,West,3.3192399999999872E-2,0.16458999999999976,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6214,Direct,Reliance Retail,Tamil Nadu,South-1,0.33025110000000002,0.57123999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6217,Direct,Reliance Retail,Mumbai,West,0.18013480000000001,0.37152000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6219,Direct,Reliance Retail,Pune,West,0.29259560000000001,0.63022999999999973,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6220,Direct,Reliance Retail,Mumbai,West,0.27138679999999993,0.59111000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6220,Direct,Reliance Retail,Mumbai,West,0.18544940000000001,0.29976000000000003,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-6224,Direct,Reliance Retail,Orissa,East,0.13588629999999999,0.27207999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6225,Direct,Reliance Retail,Karnataka,South-1,0.27164160000000004,0.47267999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6239,Direct,Reliance Retail,Delhi,North,0.24821439999999997,0.43438999999999989,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6703,Direct,Reliance Retail,Gujarat,West,0.20403459999999995,0.39853000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6705,Direct,Reliance Retail,Kerala,South-1,0.27570929999999988,0.50461999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6714,Direct,Reliance Retail,Telangana,South-2,0.35144079999999989,0.6205299999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6726,Direct,Reliance Retail,Rajasthan,North,0.27215040000000001,0.47977000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-6728,Direct,Reliance Retail,Telangana,South-2,0.34853509999999999,0.61824999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-Badli,Direct,Reliance Retail,Haryana,North,0.47776629999999998,0.77228000000000008,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-Badli,Direct,Reliance Retail,Haryana,North,11.872766099999996,42.184829999999984,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-Badli,Direct,Reliance Retail,Haryana,North,8.179606999999999,13.624820000000003,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-FOC,Direct,Reliance Retail,Mumbai,West,1.9999999999999999E-6,1.7979999999999999E-2,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FOC,Direct,Reliance Retail,Mumbai,West,1.9999999999999999E-6,1.9980000000000001E-2,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-FR04,Direct,Reliance Retail,Mumbai,West,0.22872439999999999,0.46145999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR08,Direct,Reliance Retail,Mumbai,West,0.2251348,0.47816999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR15,Direct,Reliance Retail,Mumbai,West,0.34587819999999991,0.76149,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR22,Direct,Reliance Retail,Mumbai,West,0.22504979999999999,0.44023999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR23,Direct,Reliance Retail,Pune,West,0.33313620000000005,0.53327999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR40,Direct,Reliance Retail,Karnataka,South-1,0.30127580000000009,0.54199999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR43,Direct,Reliance Retail,Karnataka,South-1,0.33071959999999995,0.59736999999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR45,Direct,Reliance Retail,Karnataka,South-1,0.29175440000000002,0.51872999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR46,Direct,Reliance Retail,Karnataka,South-1,0.3680718,0.65228999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR48,Direct,Reliance Retail,Karnataka,South-1,0.36317119999999997,0.64908999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR57,Direct,Reliance Retail,Karnataka,South-1,0.27878319999999995,0.49152999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR63,Direct,Reliance Retail,Orissa,East,0.21532299999999999,0.47098999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR67,Direct,Reliance Retail,Orissa,East,0.19077500000000003,0.33379000000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR69,Direct,Reliance Retail,Orissa,East,0.22505900000000001,0.48742000000000008,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR73,Direct,Reliance Retail,West Bengal,East,0.23417020000000002,0.42618,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR74,Direct,Reliance Retail,West Bengal,East,0.1621438,0.29437999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR78,Direct,Reliance Retail,West Bengal,East,0.26371480000000003,0.47355999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR94,Direct,Reliance Retail,Kerala,South-1,0.26157039999999998,0.46624999999999989,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR95,Direct,Reliance Retail,Kerala,South-1,0.31665749999999998,0.55123999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FR96,Direct,Reliance Retail,Kerala,South-1,0.29703669999999993,0.51285999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRAR,Direct,Reliance Retail,Jharkhand,East,0.19636669999999995,0.35028000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRAR,Direct,Reliance Retail,Jharkhand,East,3.0593000999999993,4.9451700000000018,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-FRAU,Direct,Reliance Retail,Jharkhand,East,0.32554400000000006,0.77654999999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRAW,Direct,Reliance Retail,Jharkhand,East,0.2453485,0.50334999999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRAY,Direct,Reliance Retail,Jharkhand,East,-4.2675399999999988E-2,0.15373999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRBC,Direct,Reliance Retail,Haryana,North,0.22779360000000004,0.40631999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRBH,Direct,Reliance Retail,Telangana,South-2,0.28646980000000005,0.51613999999999982,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRBK,Direct,Reliance Retail,Telangana,South-2,0.11419189999999993,0.20307000000000011,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRBN,Direct,Reliance Retail,Telangana,South-2,0.29390370000000005,0.52633999999999992,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRBQ,Direct,Reliance Retail,Kerala,South-1,0.36200989999999988,0.64593000000000012,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRBV,Direct,Reliance Retail,West Bengal,East,0.33003819999999995,0.59162999999999988,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCA,Direct,Reliance Retail,West Bengal,East,0.33086059999999995,0.58662999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCB,Direct,Reliance Retail,West Bengal,East,0.30041819999999997,0.51575000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCC,Direct,Reliance Retail,West Bengal,East,0.24529520000000002,0.43598000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCF,Direct,Reliance Retail,West Bengal,East,0.24950479999999997,0.45601999999999987,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCK,Direct,Reliance Retail,West Bengal,East,0.29936019999999997,0.51455000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCL,Direct,Reliance Retail,West Bengal,East,0.2480348,0.45288000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCO,Direct,Reliance Retail,Haryana,North,0.24337539999999999,0.41959999999999992,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRCX,Direct,Reliance Retail,Delhi,North,0.2887537,0.51973999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDE,Direct,Reliance Retail,UPW,North,0.28000040000000004,0.55742999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDF,Direct,Reliance Retail,UPW,North,0.2019012,0.36424000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDH,Direct,Reliance Retail,UPW,North,-7.8061199999999983E-2,-0.14294999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDJ,Direct,Reliance Retail,UPW,North,0.23507310000000003,0.42045999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDM,Direct,Reliance Retail,UPW,North,0.26049199999999995,0.61107,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDU,Direct,Reliance Retail,Gujarat,West,0.3528561999999999,0.71269000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDV,Direct,Reliance Retail,Gujarat,West,0.41104269999999982,0.86332999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRDZ,Direct,Reliance Retail,Gujarat,West,0.27006369999999996,0.55244000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FREB,Direct,Reliance Retail,Gujarat,West,0.31816930000000004,0.66200999999999977,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREC,Direct,Reliance Retail,Karnataka,South-1,0.67776200000000009,1.0955600000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREC,Direct,Reliance Retail,Karnataka,South-1,27.69742840000001,84.667930000000041,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREF,Direct,Reliance Retail,Tamil Nadu,South-1,0.27776800000000001,0.44900000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREF,Direct,Reliance Retail,Tamil Nadu,South-1,1.2508168000000004,2.9348999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREF,Direct,Reliance Retail,Tamil Nadu,South-1,-1.0982278000000001,-1.77522,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREI,Direct,Reliance Retail,Telangana,South-2,0.27777149999999995,0.44900000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREI,Direct,Reliance Retail,Telangana,South-2,8.4726903000000089,23.210229999999992,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-FREI,Direct,Reliance Retail,Telangana,South-2,0.26665670000000002,0.43104000000000026,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-FRFJ,Direct,Reliance Retail,Karnataka,South-1,0.39541259999999995,0.69692999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRFP,Direct,Reliance Retail,Bihar,East,0.91304649999999998,1.7841,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRFQ,Direct,Reliance Retail,Karnataka,South-1,0.40753459999999997,0.71026999999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRGN,Direct,Reliance Retail,Gujarat,West,0.2604378,0.56837999999999977,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRGQ,Direct,Reliance Retail,Uttarakhand,North,0.20634869999999997,0.37123000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRGS,Direct,Reliance Retail,Bihar,East,0.63188650000000024,1.3761900000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRGS,Direct,Reliance Retail,Bihar,East,2.8023992000000004,4.5299099999999992,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-FRGU,Direct,Reliance Retail,Bihar,East,0.32964910000000003,0.75781000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRGX,Direct,Reliance Retail,Karnataka,South-1,0.21335660000000004,0.37722000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRHI,Direct,Reliance Retail,Karnataka,South-1,0.27266259999999998,0.48432999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRHL,Direct,Reliance Retail,Karnataka,South-1,0.32231860000000001,0.55360999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-FRHT,Direct,Reliance Retail,Bihar,East,0.23803050000000003,0.4983200000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-S0GK,Direct,Reliance Retail,Kerala,South-1,0.67776230000000004,1.0955600000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S0GK,Direct,Reliance Retail,Kerala,South-1,8.2536769999999997,23.504520000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-S0GK,Direct,Reliance Retail,Kerala,South-1,3.1130837000000002,5.14724,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S0IL,Direct,Reliance Retail,Telangana,South-2,0.27777099999999999,0.44900000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S0IL,Direct,Reliance Retail,Telangana,South-2,10.081626299999998,25.702719999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-S0IL,Direct,Reliance Retail,Telangana,South-2,0.30530069999999998,0.49349999999999994,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S0KN,Direct,Reliance Retail,Karnataka,South-1,0.67776200000000009,1.0955600000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S0KN,Direct,Reliance Retail,Karnataka,South-1,9.8341859000000014,25.36056,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-S0KN,Direct,Reliance Retail,Karnataka,South-1,0.73517690000000002,1.3610800000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S2BZ,Direct,Reliance Retail,Lucknow-UPE,North,1.9110665,3.0891199999999999,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S2BZ,Direct,Reliance Retail,Lucknow-UPE,North,60.444427999999967,223.8986000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-S2BZ,Direct,Reliance Retail,Lucknow-UPE,North,8.0727477999999984,14.073919999999998,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S4ZK,Direct,Reliance Retail,Northeast-Assam,East,0.59998550000000006,0.96984000000000004,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-S4ZK,Direct,Reliance Retail,Northeast-Assam,East,4.5621311000000002,10.35319,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SAAH,Direct,Reliance Retail,UPW,North,1.1555283000000001,1.8678400000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SAAH,Direct,Reliance Retail,UPW,North,32.641946000000011,120.24140000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SAAH,Direct,Reliance Retail,UPW,North,4.4989334999999997,6.7868199999999979,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SF92,Direct,Reliance Retail,West Bengal,East,0.27777109999999999,0.44900000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SF92,Direct,Reliance Retail,West Bengal,East,24.037336200000002,81.961249999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SF92,Direct,Reliance Retail,West Bengal,East,3.6414676999999998,6.5194799999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH65,Direct,Reliance Retail,Pune,West,0.47776599999999997,0.77228000000000008,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH65,Direct,Reliance Retail,Pune,West,15.598535000000005,47.256699999999974,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH65,Direct,Reliance Retail,Pune,West,3.6564132000000003,6.1939599999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH69,Direct,Reliance Retail,Haryana,North,0.75553870000000001,1.2212800000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH69,Direct,Reliance Retail,Haryana,North,15.079613800000004,48.117460000000015,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH69,Direct,Reliance Retail,Haryana,North,7.7500090999999989,13.73892,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH71,Direct,Reliance Retail,Madhya Pradesh,North,0.55554269999999994,0.89800000000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH71,Direct,Reliance Retail,Madhya Pradesh,North,21.831990500000018,77.851810000000029,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL LIMITED-SH71,Direct,Reliance Retail,Madhya Pradesh,North,9.5007338000000026,16.975639999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SK6I,Direct,Reliance Retail,Gujarat,West,8.6501028999999949,26.054599999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SK6I,Direct,Reliance Retail,Gujarat,West,4.9595164999999994,8.0167600000000014,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SLET,Direct,Reliance Retail,Bihar,East,12.758278899999999,42.97646000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SLET,Direct,Reliance Retail,Bihar,East,0.30870380000000003,0.499,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SLG3,Direct,Reliance Retail,Tamil Nadu,South-1,0.67776239999999999,1.0955600000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SLG3,Direct,Reliance Retail,Tamil Nadu,South-1,11.496790200000005,29.544499999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SLG3,Direct,Reliance Retail,Tamil Nadu,South-1,2.2416956000000003,3.6057999999999999,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SLMP,Direct,Reliance Retail,Gujarat,West,0.29393289999999994,0.64052000000000009,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-Slmr,Direct,Reliance Retail,Orissa,East,4.6478872999999998,13.473720000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SLS1,Direct,Reliance Retail,Tamil Nadu,South-1,1.1555267,1.8678400000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SLS1,Direct,Reliance Retail,Tamil Nadu,South-1,17.252719099999993,44.689979999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SLS1,Direct,Reliance Retail,Tamil Nadu,South-1,2.4168910000000001,4.1370400000000007,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SN1U,Direct,Reliance Retail,West Bengal,East,3.9840577999999995,13.095479999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SP9K,Direct,Reliance Retail,Pune,West,0.27777180000000001,0.44900000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-SP9K,Direct,Reliance Retail,Pune,West,13.235048599999995,45.020530000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-SP9K,Direct,Reliance Retail,Pune,West,1.6938976000000001,2.7380800000000001,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-T0Z9,Direct,Reliance Retail,Gujarat,West,0.31718679999999994,0.65325,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T15Z-OD,Direct,Reliance Retail,Orissa,East,0.21331840000000002,0.45437,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T1CT,Direct,Reliance Retail,West Bengal,East,0.13057839999999998,0.25354000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T1OW,Direct,Reliance Retail,UPW,North,0.13560050000000001,0.24249999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T1OW,Direct,Reliance Retail,UPW,North,3.8250699999999999E-2,6.1829999999999996E-2,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-T1X4,Direct,Reliance Retail,Kerala,South-1,0.27922400000000003,0.49336999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T37T,Direct,Reliance Retail,Lucknow-UPE,North,0.32984829999999998,0.60276999999999981,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T42N,Direct,Reliance Retail,Telangana,South-2,0.15615099999999998,0.29226000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T48P,Direct,Reliance Retail,Haryana,North,0.21218620000000005,0.39758999999999989,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T63A,Direct,Reliance Retail,Orissa,East,0.30611479999999996,0.69034999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T6XJ,Direct,Reliance Retail,Karnataka,South-1,0.35410859999999994,0.62895999999999985,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T84I,Direct,Reliance Retail,Haryana,North,0.23978939999999999,0.49964999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T914,Direct,Reliance Retail,Punjab,North,0.22440980000000002,0.38917999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T915,Direct,Reliance Retail,UPW,North,0.31833330000000004,0.56936999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T971,Direct,Reliance Retail,Haryana,North,0.2394646,0.42488000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-T9SE,Direct,Reliance Retail,Haryana,North,0.19003539999999997,0.33794999999999997,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TA35,Direct,Reliance Retail,Kerala,South-1,0.31093769999999998,0.53010000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TA36,Direct,Reliance Retail,Tamil Nadu,South-1,0.26930560000000003,0.4902999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TA36,Direct,Reliance Retail,Tamil Nadu,South-1,2.8679800000000002E-2,4.6359999999999998E-2,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-TA5I,Direct,Reliance Retail,Bihar,East,0.33597759999999988,0.76880999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TA9N,Direct,Reliance Retail,West Bengal,East,0.33286379999999999,0.59783999999999982,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TAFW,Direct,Reliance Retail,Mumbai,West,0.27651499999999996,0.56786999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TAH3,Direct,Reliance Retail,Lucknow-UPE,North,0.3222005,0.72478999999999982,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TAUX,Direct,Reliance Retail,Gujarat,West,0.26904820000000002,0.58755999999999986,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TB19,Direct,Reliance Retail,Telangana,South-2,0.34063870000000002,0.60653000000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TC74,Direct,Reliance Retail,Haryana,North,0.2029436,0.36275000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TCD6,Direct,Reliance Retail,Tamil Nadu,South-1,0.24166400000000007,0.42583999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TD04,Direct,Reliance Retail,Jharkhand,East,0.26879110000000001,0.61878999999999984,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TDF0,Direct,Reliance Retail,Haryana,North,0.1809124,0.3326400000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TE39,Direct,Reliance Retail,Tamil Nadu,South-1,0.32481900000000002,0.57823999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TEI1,Direct,Reliance Retail,West Bengal,East,0.34310779999999991,0.61682000000000015,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TFY6,Direct,Reliance Retail,Tamil Nadu,South-1,0.27988549999999995,0.49157999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TG2K,Direct,Reliance Retail,Gujarat,West,0.25935049999999998,0.58320000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TGL6,Direct,Reliance Retail,Madhya Pradesh,North,0.15346439999999997,0.27806999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TH93,Direct,Reliance Retail,Orissa,East,0.2533492,0.56044000000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TI67,Direct,Reliance Retail,Telangana,South-2,0.31037689999999996,0.5535699999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TIU6,Direct,Reliance Retail,Jharkhand,East,0.57890770000000003,0.99148999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TL07,Direct,Reliance Retail,Telangana,South-2,0.30047740000000001,0.52264999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TL30,Direct,Reliance Retail,Delhi,North,0.71218439999999994,1.35398,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TM27,Direct,Reliance Retail,Orissa,East,0.23961219999999997,0.51032000000000011,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TMI1,Direct,Reliance Retail,Rajasthan,North,0.2685072,0.45968999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TMI6,Direct,Reliance Retail,Orissa,East,0.3281173,0.74113000000000007,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TMO2,Direct,Reliance Retail,Telangana,South-2,0.32722510000000005,0.58179999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TN54,Direct,Reliance Retail,Chattishgarh,West,0.16373959999999999,0.36973000000000006,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-Tna8,Direct,Reliance Retail,Gujarat,West,0.27288909999999994,0.63997000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TNB5,Direct,Reliance Retail,Gujarat,West,0.36109989999999992,0.75869999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TNC5,Direct,Reliance Retail,Rajasthan,North,0.31065819999999988,0.54275999999999991,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TNC9,Direct,Reliance Retail,Telangana,South-2,0.3974454,0.70186000000000004,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TND1,Direct,Reliance Retail,Gujarat,West,0.52875230000000006,1.0171499999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TND2,Direct,Reliance Retail,Tamil Nadu,South-1,0.32856570000000007,0.58210999999999979,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TND4,Direct,Reliance Retail,West Bengal,East,0.31528480000000003,0.56902999999999992,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-Tnd5,Direct,Reliance Retail,Gujarat,West,2.4708899999999957E-2,-4.3640000000000123E-2,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TND6,Direct,Reliance Retail,Tamil Nadu,South-1,0.33088530000000005,0.58073999999999981,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TND7,Direct,Reliance Retail,Tamil Nadu,South-1,0.29255599999999993,0.50941999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TNE1,Direct,Reliance Retail,Karnataka,South-1,0.35568739999999993,0.62139,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TO19,Direct,Reliance Retail,Kerala,South-1,0.30846759999999995,0.53996999999999995,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TOG3,Direct,Reliance Retail,West Bengal,East,0.16482359999999999,0.28901999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TOM0,Direct,Reliance Retail,Mumbai,West,0.38444539999999999,0.84402999999999972,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TP06,Direct,Reliance Retail,Delhi,North,0.34579779999999999,0.6147100000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TP62,Direct,Reliance Retail,Telangana,South-2,0.34013870000000002,0.60187000000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TQ61,Direct,Reliance Retail,Kerala,South-1,0.25352860000000005,0.44869999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TR28,Direct,Reliance Retail,Karnataka,South-1,0.11979899999999999,0.23929000000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TUM6,Direct,Reliance Retail,Telangana,South-2,0.25394829999999996,0.46851999999999994,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TV60,Direct,Reliance Retail,Telangana,South-2,0.31026609999999988,0.55303999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TW11,Direct,Reliance Retail,Delhi,North,0.18116289999999999,0.32100000000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TZ8R,Direct,Reliance Retail,Uttarakhand,North,0.24387410000000001,0.44021000000000016,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TZL5,Direct,Reliance Retail,Bihar,East,0.66621470000000005,1.2715800000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-TZL5,Direct,Reliance Retail,Bihar,East,2.9682542000000001,4.7980100000000006,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-TZUM,Direct,Reliance Retail,Telangana,South-2,0.23814509999999994,0.41944999999999988,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Limited-ZZI0-B,Direct,Reliance Retail,Kerala,South-1,0.26636310000000002,0.43056,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Limited-ZZI0-B,Direct,Reliance Retail,Kerala,South-1,3.4922260999999999,8.0638099999999966,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,SIS,Reliance Retail Ltd (Azorte)_Shipto,Direct,Reliance Retail-(Azorte),Mumbai,West,4.0896361999999993,6.6106500000000006,Aqualogica,46174,Jun'26,FY_26-27,SIS,HCPL0311,Rashi Juyal,,EB
+,SIS,Reliance Retail Ltd (Azorte)_Shipto,Direct,Reliance Retail-(Azorte),Mumbai,West,4.9561266999999996,8.3546200000000024,Mamaearth,46174,Jun'26,FY_26-27,SIS,HCPL0311,Rashi Juyal,,ME
+,SIS,Reliance Retail Ltd (Azorte)_Shipto,Direct,Reliance Retail-(Azorte),Mumbai,West,10.256046799999998,16.56036000000001,The Derma Co,46174,Jun'26,FY_26-27,SIS,HCPL0311,Rashi Juyal,,EB
+,Hyper\Super Market,Reliance Retail Ltd _Madhavaram- TNB8,Direct,Reliance Retail,Tamil Nadu,South-1,0.35861700000000002,0.62941000000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Ltd _Mysore_2994,Direct,Reliance Retail,Karnataka,South-1,0.32596600000000003,0.57734000000000019,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Ltd _RAJAJI NAGAR- FR49,Direct,Reliance Retail,Karnataka,South-1,0.2421789,0.42807000000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Ltd _RAJAJI NAGAR- FR49,Direct,Reliance Retail,Karnataka,South-1,3.5158099999999998E-2,5.6829999999999999E-2,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,Reliance Retail Ltd_Davanagere- TNC0,Direct,Reliance Retail,Karnataka,South-1,0.35394300000000012,0.63139000000000001,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Ltd_Hubballi_2997,Direct,Reliance Retail,Karnataka,South-1,0.34185220000000005,0.60702999999999996,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,Reliance Retail Ltd_Nagercoil- 3338,Direct,Reliance Retail,Tamil Nadu,South-1,0.40845670000000006,0.72846999999999973,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL Ltd-SLEW,Direct,Reliance Retail,Chattishgarh,West,0.19999540000000002,0.32328000000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RELIANCE RETAIL Ltd-SLEW,Direct,Reliance Retail,Chattishgarh,West,7.6316896999999999,22.142090000000003,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,ME
+,Hyper\Super Market,RELIANCE RETAIL Ltd-SLEW,Direct,Reliance Retail,Chattishgarh,West,1.5086757,2.4386799999999997,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,,EB
+,Hyper\Super Market,RR Traders-MT,Dist.,VMM,Punjab,North,5.7766783000000013,16.119620000000005,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.05,ME
+,Regional,Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Delhi,North,1.0481684,1.8188800000000001,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.23,EB
+,Regional,Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Delhi,North,16.985861517106379,52.50485671489362,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,32.24,ME
+,Hyper\Super Market,Sancus Networks Private Limited-RMT,Dist.,More Retail,Delhi,North,4.478282347872339,13.84278170212766,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,8.5,ME
+,Hyper\Super Market,Sancus Networks Private Limited-RMT,Dist.,VMM,Delhi,North,3.2981232350212757,10.194801582978725,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.26,ME
+,Regional,Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Delhi,North,10.065436399999994,22.795990000000007,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,6.21,EB
+,Hyper\Super Market,Sehaj Enterprises -MT-JK,Dist.,VMM,Jammu,North,1.6820139999999999,4.6350899999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.92,ME
+,Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,1.0272820971004822E-2,1.8846286821059308E-2,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.13543639999999998,EB
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,8.7646179028995172E-2,0.1607937131789407,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,1.1555232,EB
+,Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,0.14793729999999999,0.23946000000000001,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.1017658,EB
+,DRUG STORE,Sri Vijaya Durga Agencies_Mt,Dist.,Apollo Healthco,Andhra Pradesh,South-2,42.166801079828318,74.080478748243422,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,25.515561300000005,ME
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,33.327549438966287,58.551295206632403,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,20.166840000000001,ME
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,58.684903654856441,103.10020316257781,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,35.510833599999998,ME
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,41.868407000611441,73.556246990605956,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,25.335000000000001,ME
+,Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,0.45305136394669926,0.79594043368804679,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.274146,ME
+,Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,0.12030205470757885,0.21135190668751336,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,7.2796E-2,ME
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,More Retail,Andhra Pradesh,South-2,2.4040806247920021,4.2235938955104819,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.4547336999999996,ME
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,More Retail,Andhra Pradesh,South-2,0.67149669952062141,1.1797147448813665,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.40632949999999995,ME
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,18.675593205488244,32.810098232276054,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,11.300791879999993,ME
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,30.88663307728249,54.262986678896866,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,18.689816619999998,ME
+,DRUG STORE,Sri Vijaya Durga Agencies_Mt,Dist.,Apollo Healthco,Andhra Pradesh,South-2,3.463078620653937,6.3532844756235125,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,2.6510992999999998,EB
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,19.922928446876803,36.550146813184085,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,15.2516496,EB
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,Andhra Pradesh,South-2,3.9607252790774221,7.26625560208059,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,3.0320639999999996,EB
+,Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,1.331643757365002,2.443003043670565,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.0194165999999998,EB
+,Health & Beauty,Sri Vijaya Durga Agencies_Mt,Dist.,H&G,Andhra Pradesh,South-2,1.3630812200492952,2.5006774904572797,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.0434829999999999,EB
+,Hyper\Super Market,Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,Andhra Pradesh,South-2,1.5317713759775486,2.8101525749839791,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1769,Janmejay Pandey,1.1726208,EB
+,Hyper\Super Market,Trent Hypermarket Private Limited_Blr,Direct,Trent,Karnataka,South-1,2.4707445000000003,6.0330599999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Trent Hypermarket Private Limited_Blr,Direct,Trent,Karnataka,South-1,0.74187550000000002,1.9453699999999998,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Trent Hypermarket Private Limited_Mah,Direct,Trent,Mumbai,West,2.9741907999999997,8.4245999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Trent Hypermarket Private Limited_Mah,Direct,Trent,Mumbai,West,1.1682414000000001,3.06338,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,Hyper\Super Market,Trent Hypermarket Private Limited-P,Direct,Trent,Pune,West,1.9077953999999999,5.2008900000000002,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,ME
+,Hyper\Super Market,Trent Hypermarket Private Limited-P,Direct,Trent,Pune,West,-0.23750719999999981,-0.62280000000000002,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,,EB
+,DRUG STORE,United Marketing_Mt-Ship to,Dist.,Apollo Healthco,Goa,West,0.41373129999999997,0.83595999999999993,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,31.573228700000001,ME
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,0.35268618144631486,0.65234916591270109,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.4321892,EB
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,6.8044346937725597E-2,0.12585883798414851,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,8.3383000000000013E-2,EB
+,Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.73430069687358868,1.3582058848186433,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.89982780000000118,EB
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,0.37728930947834638,0.69785656284195163,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.46233840000000004,EB
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,0.45214796526402395,0.83631954844255463,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.5540718,EB
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,6.1842953125105855E-2,0.11473501306714534,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.21345629999999996,EB
+,Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.26198694687489404,0.48605498693285476,BBlunt,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.90427060000000126,EB
+,Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.1533563,0.28133999999999998,Dr. Sheth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.32382989999999984,EB
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,1.0759898273936979,1.8548724846980162,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,1.0759898273936979,ME
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,17.330902447999346,29.876317849255312,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,17.330902447999346,ME
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,7.104408460091266E-2,0.12247115574130268,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,7.104408460091266E-2,ME
+,Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,1.8098319563515819,3.1199249400853515,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,1.8098319563515819,ME
+,Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,0.34680324998057538,0.59784562048414847,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,0.34680324998057538,ME
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,2.0437783521047823,3.5232193963424256,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.0437783521047823,ME
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,5.5435074812481497,9.5563166434309572,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,5.5435074812481497,ME
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,3.7052428302266356,6.3873772780542222,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,3.7052428302266356,ME
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,1.7132633515513354,2.9534526897263205,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,1.7132633515513354,ME
+,Regional,VENKATESHWARA AGENCIES-TG,Dist.,National Mart,Telangana,South-2,1.3959889528585865,2.4065111320539927,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,1.3959889528585865,ME
+,Regional,VENKATESHWARA AGENCIES-TG,Dist.,National Mart,Telangana,South-2,2.3241776873549056,4.0065929361675048,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.3241776873549056,ME
+,Regional,VENKATESHWARA AGENCIES-TG,Dist.,Ratnadeep,Telangana,South-2,2.5477175783294723,4.3919478739604294,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,2.5477175783294723,ME
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,8.1804830220599811,14.603882411230479,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,6.4107917000000016,EB
+,DRUG STORE,VENKATESHWARA AGENCIES-TG,Dist.,Apollo Healthco,Telangana,South-2,0.33313729321128693,0.59472012150550646,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,0.2610693999999999,EB
+,Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,6.5591381031765552,11.709440789682185,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,5.1401938000000049,EB
+,Health & Beauty,VENKATESHWARA AGENCIES-TG,Dist.,H&G,Telangana,South-2,2.7312229390235254,4.8758072760244922,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL0311,Rashi Juyal,2.1403749999999997,EB
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,0.91246191476085403,1.6289363931151026,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,0.71506820000000004,EB
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,Lulu,Telangana,South-2,6.0979490582041915,10.886121364171288,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,4.7787741999999991,EB
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,3.103596690994737,5.5405727271783611,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,2.4321928000000002,EB
+,Hyper\Super Market,VENKATESHWARA AGENCIES-TG,Dist.,More Retail,Telangana,South-2,0.80174247856886416,1.4312789170925699,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1770,Shubham Uday Sumbe,0.62830079999999999,EB
+,Hyper\Super Market,V-Mart Retail Limited-148-BIRSA-JH,Direct,V-Mart,Jharkhand,East,-0.15984490000000001,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-478-BARPETA-AS,Direct,V-Mart,Northeast-Assam,East,-0.14621920000000002,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-563-HAZARIBAGH-JH,Direct,V-Mart,Jharkhand,East,-0.15984490000000001,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-567-CUTTACK-OR,Direct,V-Mart,Orissa,East,-0.21338670000000001,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-629-UDAIPUR-TR,Direct,V-Mart,Tripura,East,-0.12645429999999999,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-AR-1,Direct,V-Mart,Northeast-Assam,East,-0.21303560000000005,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-Bardham-WB,Direct,V-Mart,West Bengal,East,-0.14621919999999999,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-Belonia,Direct,V-Mart,Tripura,East,-0.15076119999999998,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-Hooghly-WB,Direct,V-Mart,West Bengal,East,-0.15758360000000002,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-OR,Direct,V-Mart,Orissa,East,-0.30681789999999998,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-Sonitpur-AS,Direct,V-Mart,Northeast-Assam,East,-0.14621920000000002,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-Sualkuchi-AS,Direct,V-Mart,Northeast-Assam,East,-0.1128189,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-TR,Direct,V-Mart,Tripura,East,-0.14621920000000002,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-TR-2,Direct,V-Mart,Tripura,East,-0.32305159999999999,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-Tura-ML,Direct,V-Mart,Meghalaya,East,-0.32305159999999999,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,Hyper\Super Market,V-Mart Retail Limited-WB,Direct,V-Mart,West Bengal,East,-0.72703940000000011,0,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,CNC,Wal-Mart India Private Limited 4703,Direct,Walmart CNC,Punjab,North,-8.2190100000000002E-2,-0.21551999999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,CNC,Wal-Mart India Private Limited 4706,Direct,Walmart CNC,Punjab,North,-0.16961080000000001,-0.32279999999999998,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,CNC,Wal-Mart India Private Limited 4723,Direct,Walmart CNC,Lucknow-UPE,North,-0.16022799999999998,-0.30495,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1836,Nishchay Mehta,,ME
+,DRUG STORE,Wellness Forever Medicare Ltd,Direct,Wellness Forever,Mumbai,West,1.2241358999999998,2.0635400000000002,Aqualogica,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Wellness Forever Medicare Ltd,Direct,Wellness Forever,Mumbai,West,0.63939860000000004,1.0778399999999999,Dr. Sheth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
+,DRUG STORE,Wellness Forever Medicare Ltd,Direct,Wellness Forever,Mumbai,West,21.834176799999998,43.55196999999999,Mamaearth,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,ME
+,DRUG STORE,Wellness Forever Medicare Ltd,Direct,Wellness Forever,Mumbai,West,42.967238299999991,72.966640000000012,The Derma Co,46174,Jun'26,FY_26-27,MT,HCPL1768,Aastha Srivastava,,EB
