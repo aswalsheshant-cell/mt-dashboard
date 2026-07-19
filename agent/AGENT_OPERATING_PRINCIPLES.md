@@ -79,13 +79,23 @@ concretely below so it survives past this session's context.
    just informal phrasing, and you can't tell which without looking."
    See `mapping-auditor.md` §"Re-verify decided items against the file,
    not the conversation".
-2. **A recorded decision can still have an unapplied consequence.** The
-   Azorte decision included "Business Format: SIS," but
-   `ChannelMap_Chain.csv` was never actually edited — it still reads
-   "default channel." A decision has three parts (the chain identity, its
-   mapping, and every downstream field it implies); checking only the
-   first two misses gaps like this. Traceability rows must check the full
-   decision, not just its headline.
+2. **A recorded decision can still have an unapplied consequence — and
+   "genuinely open" can turn out to just mean "not checked against the
+   right source yet."** The Azorte decision included "Business Format:
+   SIS," but `ChannelMap_Chain.csv` read "default channel" for a long
+   stretch of this project. A first re-check (2026-07-19) concluded this
+   was a genuinely unresolved business question, since
+   `SIS_Reconciliation.md` itself called Azorte's channel an open, weaker
+   hypothesis. That conclusion was itself wrong: once the real June'26
+   primary source arrived, its own `Chanel` field showed 100% of the 264
+   SIS-tagged rows belonged to Azorte and no other chain — the same
+   direct-from-source method `SIS_Reconciliation.md` already trusted for
+   the FY26 SIS figure. `ChannelMap_Chain.csv` now reads `SIS`. Lesson:
+   "still open" is itself a finding that needs re-checking once more
+   evidence exists — don't let an earlier "can't tell yet" harden into a
+   permanent conclusion. A decision has three parts (the chain identity,
+   its mapping, and every downstream field it implies); checking only the
+   first two misses gaps like this.
 3. **Environment readiness must be checked for real, every time — never
    assumed from a prior session.** `openpyxl` being listed in
    `requirements.txt` is not evidence it's installed here. Use

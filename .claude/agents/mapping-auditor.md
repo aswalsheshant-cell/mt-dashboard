@@ -42,10 +42,15 @@ different outcomes once actually checked:
   used; the decision text was just informal wording. No fix needed.
 - "Reliance Retail-(Azorte) → Reliance Azorte, Business Format: SIS" vs.
   the master's `Azorte`/`Reliance` naming (also fine, same reasoning) —
-  but `ChannelMap_Chain.csv` **still reads "default channel," never
-  edited to SIS**, and `SIS_Reconciliation.md` itself lists Azorte's
-  channel as an open, unresolved hypothesis. This one is a **real,
-  still-open gap**, not a naming nit.
+  but `ChannelMap_Chain.csv` read "default channel," never edited to SIS,
+  and `SIS_Reconciliation.md` called Azorte's channel an open hypothesis.
+  A first re-check (2026-07-19) concluded this was a real, still-open
+  gap — itself an incomplete answer: once real June'26 primary data
+  arrived, its own `Chanel` field showed 100% of the 264 SIS-tagged rows
+  belonged to Azorte, resolving it cleanly. `ChannelMap_Chain.csv` now
+  reads `SIS`. Lesson inside the lesson: "still open" is a checkpoint,
+  not a conclusion — re-check it again once new evidence exists, don't
+  let it harden into "this one's just unresolved."
 Both looked like the same kind of "spelling drift" at first glance; only
 re-reading the actual files told them apart. Never assume which kind you're
 looking at from memory. Treat a decision as having every field it implies

@@ -64,6 +64,9 @@ RULES: list[tuple[str, str, str]] = [
      "Watch folder: monthly article-level primary CSVs (also feeds dashboard FY27+)."),
     (r"^PowerBI/RawDataFolders/Primary_ShipTo_Monthly/", "Data drops — primary ship-to monthly",
      "Watch folder: ship-to allocated primary."),
+    (r"^PowerBI/RawDataFolders/Primary_MTD_Monthly/", "Data drops — primary MTD (SAP invoice grain)",
+     "Watch folder: raw un-split SAP primary export, one row per invoice line; allocated to chain "
+     "via ShipToMaster.csv (Direct) or Secondary Cont% (Distributor) -- see agent/pbi_build/<FY>_<Month>/."),
     (r"^PowerBI/RawDataFolders/Secondary_Distributor_Monthly/", "Data drops — secondary distributor monthly",
      "Watch folder: monthly distributor-to-chain secondary; drives the Cont% used to allocate primary."),
     (r"^PowerBI/RawDataFolders/Offtake_Monthly/", "Data drops — offtake monthly",

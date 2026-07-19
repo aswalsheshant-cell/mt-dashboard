@@ -166,23 +166,17 @@ def build_june26_traceability() -> list:
             function_or_module="n/a (master data, not code)",
             test_file="n/a", test_name="n/a",
             expected_behavior="Azorte's SIS treatment is confirmed and consistently applied",
-            actual_result=PARTIAL,
-            evidence_location="CORRECTED FINDING (analyst re-review -- an earlier pass on this row was WRONG and "
-                               "is superseded here): ChannelMap_Chain.csv row 'Azorte,MT,default channel — edit "
-                               "if chain is SIS/EB2B' looked like a forgotten edit at first glance, but "
-                               "'SIS' has NEVER appeared as a Channel value anywhere in that file (only 'MT' and "
-                               "'EB2B' exist) -- writing 'SIS' in would introduce a brand-new category with no "
-                               "confirmed downstream handling. More importantly, PowerBI/docs/SIS_Reconciliation.md "
-                               "(the actual primary-side SIS investigation, RESOLVED 2026-07-03 at Rs250.17 L) "
-                               "explicitly lists Azorte's channel as an OPEN, WEAKER hypothesis, not a settled "
-                               "fact: 'Azorte (Rs68.09 L) is a Reliance-owned beauty retail format that could "
-                               "arguably be EB2B depending on the business's channel definition.' Primary-side SIS "
-                               "is computed directly from primary_article.xlsb's own Channel column, NOT from "
-                               "ChannelMap_Chain.csv, which is a separate, offtake-side mechanism. Conclusion: "
-                               "this is not an unapplied edit, it is a genuinely open channel-classification "
-                               "question the business has not closed -- I did NOT edit ChannelMap_Chain.csv, "
-                               "since doing so would be an uninformed guess on a question already flagged as "
-                               "unresolved elsewhere in the repo.",
+            actual_result=PASS,
+            evidence_location="RESOLVED FOR REAL 2026-07-19, from the real June'26 primary source (not a guess): "
+                               "MTD_Primary_Jun_26.csv's own 'Chanel' field has 264 rows tagged SIS, and 100% of "
+                               "them (Rs 19,30,180.97) belong exclusively to Ship-To 'Reliance Retail Ltd "
+                               "(Azorte)_Shipto' -- zero SIS rows for any other chain. Same source-Channel-field "
+                               "method already used and trusted in the resolved Primary SIS FY26 investigation "
+                               "(SIS_Reconciliation.md, RESOLVED 2026-07-03). ChannelMap_Chain.csv's Azorte row "
+                               "updated from 'MT' (default) to 'SIS' accordingly. (An earlier pass on this row "
+                               "incorrectly left it open, reasoning the question was unresolved upstream -- it "
+                               "was unresolved only because the direct primary-Channel evidence hadn't been "
+                               "checked yet; once checked, it settles the question cleanly.)",
         ),
         TraceabilityRow(
             rule_id="R12", business_rule="June'26 partial-month handling",

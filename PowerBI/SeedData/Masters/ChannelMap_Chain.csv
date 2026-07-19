@@ -4,7 +4,7 @@ Apna Mart,MT,default channel — edit if chain is SIS/EB2B
 Apollo,MT,default channel — edit if chain is SIS/EB2B
 Arambagh,MT,default channel — edit if chain is SIS/EB2B
 Ascent Wellness,MT,default channel — edit if chain is SIS/EB2B
-Azorte,MT,default channel — edit if chain is SIS/EB2B
+Azorte,SIS,confirmed from real Jun'26 primary source (MTD_Primary_Jun_26.csv): 100% of 264 Chanel=SIS rows (Rs 19,30,180.97) belong exclusively to Ship-To 'Reliance Retail Ltd (Azorte)_Shipto' -- same source-Channel-field method as the resolved Primary SIS FY26 investigation (SIS_Reconciliation.md); auto-resolved (mtagent) 2026-07-19, not yet business-confirmed
 B&N,MT,default channel — edit if chain is SIS/EB2B
 Broadway,MT,default channel — edit if chain is SIS/EB2B
 D-Mart,MT,default channel — edit if chain is SIS/EB2B
