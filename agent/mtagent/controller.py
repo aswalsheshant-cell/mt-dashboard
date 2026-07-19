@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import csv
 import re
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -373,6 +374,7 @@ def execute(cfg: Config, plan: Plan, approved: bool = False) -> RunResult:
     """
     from .pbi_workflow import WorkflowController
 
+    run_id = uuid.uuid4().hex[:12]
     stages: list[StageResult] = []
     key_results: dict = {}
     files_created: list = []
@@ -392,6 +394,7 @@ def execute(cfg: Config, plan: Plan, approved: bool = False) -> RunResult:
                     break
         log_run(
             cfg, f"controller:{plan.action or 'unrecognized'}", [], 0 if overall == "PASS" else 1, [],
+            run_id=run_id,
             desired_output=plan.desired_output,
             success_criteria=plan.success_criteria,
             stage_results={s.name: s.status for s in stages},

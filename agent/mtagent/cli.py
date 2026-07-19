@@ -426,6 +426,16 @@ def cmd_log(cfg: Config, args) -> int:
     return 0
 
 
+def cmd_resume(cfg: Config, args) -> int:
+    """Recovery and Resume Skill: report the last recorded state for a
+    run_id from the real worklog -- never a separate state file that
+    could drift from it. Read-only; does not repeat or undo anything."""
+    from .backlog.resume import find_run, format_resume_state
+    state = find_run(cfg, args.run_id)
+    print(format_resume_state(state))
+    return 0 if state.found else 1
+
+
 def cmd_db_build(cfg: Config, args) -> int:
     from .duck import build_db
     for line in build_db(cfg):
@@ -572,6 +582,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("log", help="show the work-log audit trail")
     p.add_argument("--tail", type=int, default=20)
 
+    p = sub.add_parser("resume", help="show the last recorded state for a run_id (read-only)")
+    p.add_argument("run_id")
+
     sub.add_parser("db-build", help="build the local DuckDB over the committed CSVs")
 
     p = sub.add_parser("sql", help="list/run SQL templates or exec raw SQL")
@@ -673,7 +686,7 @@ def main(argv: list | None = None) -> int:
         "check-dax": cmd_check_dax, "check-pq": cmd_check_pq,
         "check": cmd_check, "qc": cmd_qc, "reconcile": cmd_reconcile,
         "catalog": cmd_catalog, "find": cmd_find, "place": cmd_place,
-        "log": cmd_log, "db-build": cmd_db_build, "sql": cmd_sql,
+        "log": cmd_log, "resume": cmd_resume, "db-build": cmd_db_build, "sql": cmd_sql,
         "eval": cmd_eval, "pbi": cmd_pbi,
     }
     notes: list[str] = []

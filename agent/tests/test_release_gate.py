@@ -147,7 +147,6 @@ class TestVisuallyBrokenButNumericallyCorrectStaysDraft(unittest.TestCase):
         self.assertIn("output_visually_checked", reasons)
 
 
-@unittest.skipUnless(HAVE_OPENPYXL, "openpyxl not installed")
 class TestNoVersionCannotBeApproved(unittest.TestCase):
     """Proof 6: a file without version and source lineage cannot be approved."""
 
