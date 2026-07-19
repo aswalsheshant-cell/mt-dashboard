@@ -34,15 +34,27 @@ what "done" looks like. If it's ambiguous, say what you assumed.
 A mapping decision confirmed earlier (in this session or a prior one) is
 not "done" from memory — it must be re-read from the actual master file
 every time you report on it, because the file can diverge from how the
-decision was worded. Real example from this project: the decision was
-"Sancus → RMT Sancus," but `ChainMaster.csv` actually has `RMT-Sancus`
-(hyphen); the decision was "Reliance Retail-(Azorte) → Reliance Azorte,
-Business Format: SIS," but the master has chain `Azorte` / account
-`Reliance`, and `ChannelMap_Chain.csv` was never actually edited to SIS —
-it still reads "default channel." Neither gap was caught until a
-traceability check re-read the files directly. Treat a decision as having
-every field it implies (identity, mapping, AND every downstream field
-like channel/format) — checking only the headline misses the rest.
+decision was worded. Two real examples from this project, with two
+different outcomes once actually checked:
+- "Sancus → RMT Sancus" vs. `ChainMaster.csv`'s actual `RMT-Sancus`
+  (hyphen) — checked 2026-07-19 and **closed as fine**: the master
+  spelling is real, consistent, and cross-referenced everywhere it's
+  used; the decision text was just informal wording. No fix needed.
+- "Reliance Retail-(Azorte) → Reliance Azorte, Business Format: SIS" vs.
+  the master's `Azorte`/`Reliance` naming (also fine, same reasoning) —
+  but `ChannelMap_Chain.csv` **still reads "default channel," never
+  edited to SIS**, and `SIS_Reconciliation.md` itself lists Azorte's
+  channel as an open, unresolved hypothesis. This one is a **real,
+  still-open gap**, not a naming nit.
+Both looked like the same kind of "spelling drift" at first glance; only
+re-reading the actual files told them apart. Never assume which kind you're
+looking at from memory. Treat a decision as having every field it implies
+(identity, mapping, AND every downstream field like channel/format) —
+checking only the headline misses gaps like the second one. (Reinforced
+again 2026-07-19: fresh June'26 secondary data surfaced 2 more spelling
+variants never seen before — `FRANKROSS`, `Sasta Sunder` — resolved via the
+same file re-check, not from memory. This will keep happening; that's why
+the discipline is "always re-check," not "check once and remember.")
 
 ## Trust nothing you haven't checked against real distinct values
 
