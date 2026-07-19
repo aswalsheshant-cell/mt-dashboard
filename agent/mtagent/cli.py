@@ -2,7 +2,11 @@
 
     python -m mtagent doctor
     python -m mtagent index [--rebuild]
-    python -m mtagent ask "How is FY derived from a month label?"
+    python -m mtagent ask "How is FY derived from a month label?"      # Q&A only, unchanged
+    python -m mtagent run "rebuild the dataset"                       # plan + controlled execution
+    python -m mtagent run "commit these changes" --approve            # destructive action, explicit approval
+    python -m mtagent chat                                            # interactive: instructions + questions
+    python -m mtagent status                                          # active workflow, blockers, next approval
     python -m mtagent meeting "Why is offtake down vs primary?"   # /meeting mode
     python -m mtagent check            # DAX + PQ + (if duckdb) data quality
     python -m mtagent qc               # /qc mode: full QC battery + coverage map
@@ -102,6 +106,10 @@ def cmd_index(cfg: Config, args) -> int:
 
 
 def cmd_ask(cfg: Config, args) -> int:
+    """Strictly RAG Q&A over the local knowledge base -- unchanged from
+    before the controller existed. Action/instruction requests go through
+    `mtagent run`/`mtagent chat` instead (see cmd_run), so this command's
+    behavior and its golden-QA eval suite stay untouched."""
     from .rag import ask
     mode = getattr(args, "mode", "ask")
     extra = None
@@ -133,6 +141,130 @@ def cmd_ask(cfg: Config, args) -> int:
             text = p["text"]
             print("    " + text[:500].replace("\n", "\n    ")
                   + ("…" if len(text) > 500 else "") + "\n")
+    return 0
+
+
+def cmd_status(cfg: Config, args) -> int:
+    """Top-level status: currently scoped to the PBI workflow, the only
+    subsystem with a real persistent state machine. Does not fabricate
+    status for the other subagents (ingestion/mapping/QC/etc.) -- they
+    show up here once they have their own trackable state, not before.
+    """
+    from .pbi_workflow import WorkflowController
+    controller = WorkflowController(cfg)
+    summary = controller.status_summary()
+    if args.json:
+        print(json.dumps(summary, indent=2, default=str))
+        return 0
+    print(f"Scope: PBI workflow (agent/PBI_WORKFLOW.md) -- "
+          f"{summary['completion_pct']}% complete")
+    print(f"Current phase: {summary['current_phase']} ({summary['current_status']})")
+    if summary["blockers"]:
+        print("Blockers:")
+        for b in summary["blockers"]:
+            print(f"  - {b}")
+    if summary["warnings"]:
+        print("Warnings:")
+        for w in summary["warnings"]:
+            print(f"  - {w}")
+    next_manual = controller.next_manual_step()
+    print(f"Next manual step: {next_manual['name'] if next_manual else 'none pending'}")
+    from .worklog import read_log
+    tail = read_log(cfg, tail=3)
+    if tail:
+        print("\nRecent worklog entries:")
+        for e in tail:
+            print(f"  {e.get('ts', '?')}  {e.get('command', '?')}  status={e.get('status', '?')}")
+    return 0
+
+
+def cmd_run(cfg: Config, args) -> int:
+    """Structured planning and controlled execution -- the ONLY command
+    that turns a natural-language instruction into real pipeline actions.
+    Always shows the plan first (desired output, rules, stages, success
+    criteria, risks, approval boundary, expected files) before executing.
+    Read-only/output-generating actions proceed automatically; destructive
+    actions (commit/push) are shown and BLOCKED unless --approve is passed
+    explicitly on this invocation.
+    """
+    from . import controller as ctl
+    plan = ctl.interpret(args.instruction)
+    plan_text = ctl.format_plan(plan)
+    if args.json:
+        result = ctl.execute(cfg, plan, approved=args.approve) if plan.recognized else None
+        payload = {
+            "plan": {
+                "recognized": plan.recognized, "action": plan.action,
+                "desired_output": plan.desired_output, "business_rules": plan.business_rules,
+                "success_criteria": plan.success_criteria, "risks": plan.risks,
+                "approval_required": plan.approval_required,
+                "expected_output_files": plan.expected_output_files,
+                "suggestions": plan.suggestions,
+            },
+        }
+        if result is not None:
+            payload["result"] = {
+                "run_status": result.run_status,
+                "stages": [{"name": s.name, "status": s.status, "detail": s.detail} for s in result.stages],
+                "key_results": result.key_results, "files_created": result.files_created,
+                "approval_required": result.approval_required,
+            }
+        print(json.dumps(payload, indent=2, default=str))
+        if not plan.recognized:
+            return 1
+        return 0 if result.run_status == "PASS" else 1
+
+    print(plan_text)
+    print()
+    if not plan.recognized:
+        return 1
+    result = ctl.execute(cfg, plan, approved=args.approve)
+    print(ctl.format_run_result(result))
+    return 0 if result.run_status == "PASS" else 1
+
+
+def cmd_chat(cfg: Config, args) -> int:
+    """Interactive session: maintains an in-process transcript and routes
+    each line through the same controller.process_instruction used by
+    `ask` -- recognized actions execute (approval-gated), anything else
+    falls through to the RAG ask path. `exit`/`quit` ends the session.
+    """
+    from . import controller as ctl
+    from .rag import ask as rag_ask
+    print("mtagent chat -- type an instruction or a question. 'exit' to quit.")
+    history: list[dict] = []
+    while True:
+        try:
+            line = input("You: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not line:
+            continue
+        if line.lower() in ("exit", "quit"):
+            break
+        approved = False
+        if line.lower().startswith("approve:"):
+            approved = True
+            line = line[len("approve:"):].strip()
+        plan = ctl.interpret(line)
+        if plan.recognized:
+            print("\nAgent (plan):")
+            print(ctl.format_plan(plan))
+            result = ctl.execute(cfg, plan, approved=approved)
+            print("\nAgent (result):")
+            print(ctl.format_run_result(result))
+        else:
+            r = rag_ask(cfg, line, k=args.k)
+            print("\nAgent:")
+            if r["answer"]:
+                print(r["answer"])
+            else:
+                print("(no local LLM available -- top passages)")
+                for p in r["passages"][:3]:
+                    print(f"  {p['score']:.3f}  {p['source']} :: {p['section']}")
+        history.append({"you": line, "approved": approved})
+        print()
     return 0
 
 
@@ -275,6 +407,21 @@ def cmd_log(cfg: Config, args) -> int:
             argv = argv[1:]
         print(f"{e['ts']}  rc={e['status']}  {e['command']} "
               f"{' '.join(argv)}{notes}")
+        if e.get("schema_version") == 2:
+            if e.get("desired_output"):
+                print(f"    desired_output: {e['desired_output']}")
+            if e.get("stage_results"):
+                stages = ", ".join(f"{k}={v}" for k, v in e["stage_results"].items())
+                print(f"    stages: {stages}")
+            if e.get("reconciliation"):
+                print(f"    reconciliation: {e['reconciliation']}")
+            if e.get("exceptions"):
+                print(f"    exceptions: {'; '.join(e['exceptions'])}")
+            if e.get("decision_required"):
+                print(f"    decision_required: {'; '.join(e['decision_required'])}")
+            if e.get("output_files"):
+                print(f"    output_files: {', '.join(e['output_files'])}")
+            print(f"    approved_by: {e.get('approved_by')}")
     return 0
 
 
@@ -357,11 +504,26 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("doctor", help="show what is installed / reachable")
     sub.add_parser("index", help="(re)build the local vector index")
 
-    p = sub.add_parser("ask", help="ask a question over the local knowledge base")
+    p = sub.add_parser("ask", help="ask a question over the local knowledge base (Q&A only)")
     p.add_argument("question")
     p.add_argument("-k", type=int, default=None, help="passages to retrieve")
     p.add_argument("--json", action="store_true")
     p.set_defaults(mode="ask")
+
+    p = sub.add_parser("run", help="structured planning + controlled execution of an instruction "
+                                   "(build/reconcile/compile/status/apply-alias/commit/push)")
+    p.add_argument("instruction", help="e.g. 'rebuild the dataset' / 'check reconciliation' / "
+                                       "'apply \"X\" to \"Y\" for the secondary file only'")
+    p.add_argument("--approve", action="store_true",
+                   help="explicitly approve a destructive action (commit/push) in this run")
+    p.add_argument("--json", action="store_true")
+
+    p = sub.add_parser("status", help="show the active PBI workflow status, blockers, and next approval")
+    p.add_argument("--json", action="store_true")
+
+    p = sub.add_parser("chat", help="interactive session: instructions execute (approval-gated), "
+                                    "questions get answered, 'exit' to quit")
+    p.add_argument("-k", type=int, default=None, help="passages to retrieve for Q&A turns")
 
     p = sub.add_parser("meeting", help="/meeting mode: terse leadership answer "
                                        "(Answer / drivers / response / DQ / next action)")
@@ -506,7 +668,7 @@ def main(argv: list | None = None) -> int:
         return 2
     handlers = {
         "doctor": cmd_doctor, "index": cmd_index,
-        "ask": cmd_ask, "meeting": cmd_ask,
+        "ask": cmd_ask, "meeting": cmd_ask, "run": cmd_run, "status": cmd_status, "chat": cmd_chat,
         "check-dax": cmd_check_dax, "check-pq": cmd_check_pq,
         "check": cmd_check, "qc": cmd_qc, "reconcile": cmd_reconcile,
         "catalog": cmd_catalog, "find": cmd_find, "place": cmd_place,

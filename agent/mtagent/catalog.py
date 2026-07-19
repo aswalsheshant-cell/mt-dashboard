@@ -42,6 +42,8 @@ RULES: list[tuple[str, str, str]] = [
     (r"^scripts/split_.*\.py$", "Scripts — source splitters",
      "Splits heavy .xlsb sources into month CSVs for Power BI + patches."),
     (r"^scripts/.*\.py$", "Scripts — utilities", "Support script."),
+    (r"^\.claude/agents/.*\.md$", "Claude Code — subagent definitions",
+     "Subagent system prompt (see agent/AGENT_OPERATING_PRINCIPLES.md for the enforced rule set)."),
     (r"^PowerBI/DAX/.*\.dax$", "Power BI — DAX measures",
      "Paste-in measure file for the _Measures table."),
     (r"^PowerBI/PowerQuery/.*\.pq$", "Power BI — Power Query",
