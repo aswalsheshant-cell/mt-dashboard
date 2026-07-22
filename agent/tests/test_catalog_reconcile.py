@@ -37,19 +37,21 @@ class TestExcelSerialLabels(unittest.TestCase):
 
 # Pre-existing, KNOWN drift the reconciliation is EXPECTED to find (same
 # allowlist pattern as evalrun.py's KNOWN_DAX_ERRORS -- named and disclosed,
-# not silently swallowed). primary_article_Jun_26.csv (commit fec6499) was
-# added to the article-level source, correctly extending it past May'26,
+# not silently swallowed). Both entries below share the same root cause:
+# real article-level/offtake source CSVs were correctly extended past
+# May'26 (primary_article_Jun_26.csv, then offtake_store_article_Jun_26.csv),
 # but dashboard/data.js itself cannot be rebuilt to match in this
 # environment: scripts/build_dashboard_data.py imports pandas at module
 # level, and pip/apt both return 403 here under org policy (confirmed
 # against pypi.org, files.pythonhosted.org, and archive.ubuntu.com -- not a
 # local misconfiguration). `mtagent reconcile`/`pbi reconcile-model` still
-# report this DIFF for real to a human running them -- only THIS test
-# allowlists it, so the regression guard stays meaningful for any OTHER,
-# unexpected drift. Remove this entry once data.js is rebuilt with June
-# (on a machine where pandas is installable) and this check reads OK again.
+# report these DIFFs for real to a human running them -- only THIS test
+# allowlists them, so the regression guard stays meaningful for any OTHER,
+# unexpected drift. Remove an entry once data.js is rebuilt to include that
+# source (on a machine where pandas is installable) and its check reads OK.
 KNOWN_RECONCILE_DIFFS = {
     "primary FY27 (detail_meta.fyx_primary) vs Primary_Article_Monthly CSVs",
+    "offtake FY27 total vs Offtake_Monthly CSVs",
 }
 
 

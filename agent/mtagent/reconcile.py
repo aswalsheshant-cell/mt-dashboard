@@ -21,7 +21,23 @@ import json
 from pathlib import Path
 
 from .config import Config
-from .fyrules import fy_tag_from_label, norm_month_label
+from .fyrules import MON3_NUM, fy_tag_from_label, norm_month_label
+
+
+def _combine_month_year(month_val: str, year_val: str) -> str | None:
+    """Some offtake extracts split Month ('Jun') and Year ('2026' / '2026.0')
+    across two separate columns instead of one combined label -- seen for
+    real in June26_compiled_offtake.xlsb, where 212,907 of 229,460 rows
+    (92.8%) carry a bare 'Jun' with no year in that column at all. Rebuild
+    a combined 'Jun-26' label so the existing label parser can still work."""
+    mon = str(month_val).strip()[:3].title()
+    if mon not in MON3_NUM:
+        return None
+    try:
+        yr = int(float(str(year_val).strip()))
+    except (ValueError, TypeError):
+        return None
+    return f"{mon}-{yr % 100:02d}"
 
 
 def load_dash(root: Path) -> dict:
@@ -34,7 +50,11 @@ def _csv_fy_sums(files: list[Path], month_col: str, value_col: str
                  ) -> tuple[dict, dict, list]:
     """Sum value_col by FY tag and by (FY, month-label). Header lookup is by
     FIRST occurrence (the primary CSV has a duplicated 'Cust-SAP Code'
-    column, so DictReader would clobber — use positional access)."""
+    column, so DictReader would clobber — use positional access).
+
+    Falls back to a separate 'Year' column (if present) when the Month
+    column alone has no year in it (bare 'Jun' with Year='2026') -- see
+    _combine_month_year."""
     by_fy: dict[str, float] = {}
     by_month: dict[tuple, float] = {}
     problems: list[str] = []
@@ -49,12 +69,18 @@ def _csv_fy_sums(files: list[Path], month_col: str, value_col: str
                 problems.append(f"{f.name}: missing column "
                                 f"'{month_col}' or '{value_col}'")
                 continue
+            yi = header.index("Year") if "Year" in header else None
             bad = 0
             for row in reader:
                 if len(row) <= max(mi, vi):
                     continue
                 lab = norm_month_label(row[mi])   # 'Apr-26' from any style,
                 fy = fy_tag_from_label(row[mi])   # incl. Excel date serials
+                if not fy and yi is not None and len(row) > yi:
+                    combined = _combine_month_year(row[mi], row[yi])
+                    if combined:
+                        lab = norm_month_label(combined)
+                        fy = fy_tag_from_label(combined)
                 if not fy:
                     bad += 1
                     continue

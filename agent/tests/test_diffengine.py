@@ -51,21 +51,28 @@ class TestDropsGuard(unittest.TestCase):
 
 
 class TestAnalyzeRealData(unittest.TestCase):
-    """Runs against the two committed offtake months (Apr'26 / May'26)."""
+    """Runs against the latest two committed offtake months. Currently
+    May'26 / June'26 -- update these three expectations (and the reconcile
+    numbers they're pinned against) whenever a newer month is added to
+    Offtake_Monthly, same as the last shift from Mar/Apr to Apr/May."""
 
     def test_month_pair(self):
         r = report()
         self.assertIsNotNone(r)
-        self.assertEqual(r["prior"].label, "Apr-26")
-        self.assertEqual(r["cur"].label, "May-26")
+        self.assertEqual(r["prior"].label, "May-26")
+        self.assertEqual(r["cur"].label, "Jun-26")
         self.assertGreater(r["prior"].rows, 100000)
 
     def test_serial_month_rows_included(self):
-        # Apr'26 has 32,494 Excel-serial Month rows; they must be in the sums
-        # (the earlier reconcile fix proved 4024.0 Lakh total incl. serials)
+        # May'26 has no Excel-serial Month rows (unlike Apr'26's 32,494);
+        # serial-format handling itself is covered separately by
+        # TestExcelSerialLabels in test_catalog_reconcile.py. This just
+        # pins the prior month's real total, cross-checked against
+        # mtagent reconcile's own "offtake FY27 month May-26" row (which
+        # reads OK against dashboard/data.js -- both agree at 4527.61L).
         r = report()
         total = sum(r["prior"].zone_nsv.values())
-        self.assertAlmostEqual(total, 4024.0, delta=1.0)
+        self.assertAlmostEqual(total, 4527.61, delta=1.0)
 
     def test_report_sections(self):
         r = report()
@@ -73,7 +80,7 @@ class TestAnalyzeRealData(unittest.TestCase):
         self.assertIn("1) Volume/NSV drops", txt)
         self.assertIn("2) NPI tracking", txt)
         self.assertIn("3) Operational gaps", txt)
-        self.assertIn("Proactive Exception Report — May-26 vs Apr-26", txt)
+        self.assertIn("Proactive Exception Report — Jun-26 vs May-26", txt)
 
     def test_normalization_no_phantom_chains(self):
         # TRIM+UPPER keys: no chain may appear twice differing only by case

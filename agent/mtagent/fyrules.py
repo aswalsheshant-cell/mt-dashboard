@@ -18,8 +18,20 @@ MON3_NUM = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
             "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
 NUM_MON3 = {v: k for k, v in MON3_NUM.items()}
 
-# month labels the sources use: 'Apr-24', "Apr'25", 'Apr 2025', 'April-25'
-_LABEL_RE = re.compile(r"^\s*([A-Za-z]{3})[A-Za-z]*[\s\-'](?:20)?(\d{2})\s*$")
+# month labels the sources use: 'Apr-24', "Apr'25", 'Apr 2025', 'April-25',
+# "Jun '26" (space before the apostrophe -- real, seen in
+# June26_compiled_offtake.xlsb, on 1,063 of its 229,460 rows; the old
+# pattern required the separator immediately after the month letters, so it
+# silently failed every one of them via mtagent reconcile's _csv_fy_sums.
+# build_dataset() itself was unaffected either way -- it derives year/month
+# from the FILENAME, never this per-row text. The optional \s* here absorbs
+# a space before -/' without requiring one (so 'Apr-24' still matches with
+# zero whitespace) and without accepting a bare 'Jun' with no year at all --
+# that stays correctly unparsable here, per test_garbage_is_none. (Most of
+# that same file's rows -- 212,907 of 229,460 -- carry a bare 'Jun' with the
+# year in a SEPARATE 'Year' column instead; that's a different problem,
+# handled by reconcile.py's _combine_month_year fallback, not this regex.)
+_LABEL_RE = re.compile(r"^\s*([A-Za-z]{3})[A-Za-z]*\s*(?:[-']\s*)?(?:20)?(\d{2})\s*$")
 # ... and sometimes a raw Excel date serial ('46113.0' = 2026-04-01): some
 # offtake extracts carry the serial in the Month column; the dashboard build
 # accepts it, so the agent must too.
