@@ -1,3 +1,4 @@
+import csv
 import tempfile
 import unittest
 from pathlib import Path
@@ -5,7 +6,8 @@ from pathlib import Path
 from mtagent import fyrules as fy
 from mtagent.catalog import classify, find, load_catalog, suggest_placement
 from mtagent.config import Config
-from mtagent.reconcile import load_dash, run_reconciliation
+from mtagent.reconcile import (_combine_month_year, _csv_fy_sums, load_dash,
+                                run_reconciliation)
 from mtagent.worklog import log_run, read_log
 
 REPO = Path(__file__).resolve().parents[2]
@@ -33,6 +35,128 @@ class TestExcelSerialLabels(unittest.TestCase):
         self.assertIsNone(fy.fy_tag_from_label("2026"))     # 4 digits
         self.assertIsNone(fy.fy_tag_from_label("123456"))   # 6 digits
         self.assertIsNone(fy.norm_month_label("Total"))
+
+
+class TestCombineMonthYear(unittest.TestCase):
+    """June26_compiled_offtake.xlsb split Month/Year across two columns for
+    212,907 of its 229,460 rows (bare 'Jun' + Year='2026'/'2026.0') -- the
+    dominant real-world case _combine_month_year exists to handle."""
+
+    def test_bare_month_plus_year(self):
+        self.assertEqual(_combine_month_year("Jun", "2026"), "Jun-26")
+
+    def test_bare_month_plus_float_year(self):
+        self.assertEqual(_combine_month_year("Jun", "2026.0"), "Jun-26")
+
+    def test_full_month_name_plus_year(self):
+        self.assertEqual(_combine_month_year("June", "2026"), "Jun-26")
+
+    def test_blank_month_with_valid_year(self):
+        self.assertIsNone(_combine_month_year("", "2026"))
+
+    def test_valid_month_with_blank_year(self):
+        self.assertIsNone(_combine_month_year("Jun", ""))
+
+    def test_invalid_month_and_year(self):
+        self.assertIsNone(_combine_month_year("Foo", "abcd"))
+        self.assertIsNone(_combine_month_year("Jun", "abcd"))
+        self.assertIsNone(_combine_month_year("Foo", "2026"))
+
+
+class TestCsvFySumsMonthYearFallback(unittest.TestCase):
+    """_csv_fy_sums's optional-'Year'-column fallback, exercised against small
+    synthetic CSVs covering every split-column style seen in real sources,
+    plus the styles already handled by the Month column alone."""
+
+    def _run(self, rows, header=("Month", "Year", "NSV")):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "offtake_store_article_test.csv"
+            with open(p, "w", newline="", encoding="utf-8") as fh:
+                w = csv.writer(fh)
+                w.writerow(header)
+                w.writerows(rows)
+            return _csv_fy_sums([p], "Month", "NSV")
+
+    def test_bare_month_with_year_column(self):
+        by_fy, by_month, problems = self._run([("Jun", "2026", "10")])
+        self.assertEqual(by_fy, {"FY27": 10.0})
+        self.assertEqual(by_month, {("FY27", "Jun-26"): 10.0})
+        self.assertEqual(problems, [])
+
+    def test_quoted_apostrophe_style_no_year_column_needed(self):
+        by_fy, _, problems = self._run([("Jun '26", "2026", "5")])
+        self.assertEqual(by_fy, {"FY27": 5.0})
+        self.assertEqual(problems, [])
+
+    def test_month_apostrophe_year_style(self):
+        by_fy, _, problems = self._run([("Jun'26", "2026", "7")])
+        self.assertEqual(by_fy, {"FY27": 7.0})
+        self.assertEqual(problems, [])
+
+    def test_full_month_name_with_year_column(self):
+        by_fy, _, problems = self._run([("June", "2026", "3")])
+        self.assertEqual(by_fy, {"FY27": 3.0})
+        self.assertEqual(problems, [])
+
+    def test_excel_serial_month_column_unaffected_by_year_column(self):
+        # serial already encodes year -- the Year column is irrelevant, and
+        # a WRONG Year column value must not corrupt an already-parseable row
+        by_fy, _, problems = self._run([("46113.0", "1900", "8")])
+        self.assertEqual(by_fy, {"FY27": 8.0})
+        self.assertEqual(problems, [])
+
+    def test_blank_month_with_valid_year_is_unparsable(self):
+        by_fy, _, problems = self._run([("", "2026", "10")])
+        self.assertEqual(by_fy, {})
+        self.assertEqual(len(problems), 1)
+        self.assertIn("1 row(s) with unparsable", problems[0])
+
+    def test_valid_month_with_blank_year_is_unparsable(self):
+        by_fy, _, problems = self._run([("Jun", "", "10")])
+        self.assertEqual(by_fy, {})
+        self.assertEqual(len(problems), 1)
+
+    def test_invalid_month_and_year_is_unparsable(self):
+        by_fy, _, problems = self._run([("Foo", "abcd", "10")])
+        self.assertEqual(by_fy, {})
+        self.assertEqual(len(problems), 1)
+
+    def test_no_year_column_falls_back_to_pure_unparsable(self):
+        # files without a 'Year' column (Apr/May_26) behave exactly as before
+        by_fy, _, problems = self._run([("Jun", "10")], header=("Month", "NSV"))
+        self.assertEqual(by_fy, {})
+        self.assertEqual(len(problems), 1)
+
+    def test_every_real_june_row_is_parsed_or_explicitly_rejected(self):
+        # the true regression this fix targets: no source row may vanish
+        # silently -- every one of the 229,460 rows must land in a parsed
+        # FY-sum or be counted in the 'unparsable' problems tally.
+        real = (REPO / "PowerBI/RawDataFolders/Offtake_Monthly"
+                / "offtake_store_article_Jun_26.csv")
+        by_fy, by_month, problems = _csv_fy_sums([real], "Month", "NSV")
+        with open(real, newline="", encoding="utf-8-sig") as fh:
+            source_rows = sum(1 for _ in fh) - 1   # minus header
+        bad = 0
+        for p in problems:
+            if real.name in p:
+                bad = int(p.split(":")[1].strip().split()[0])
+        # by_fy/by_month only carry sums, not row counts -- recount rows
+        # that actually parsed (fy not None) directly for the row-level proof
+        with open(real, newline="", encoding="utf-8-sig") as fh:
+            reader = csv.reader(fh)
+            header = next(reader)
+            mi = header.index("Month")
+            yi = header.index("Year")
+            good = 0
+            for row in reader:
+                lab_fy = fy.fy_tag_from_label(row[mi])
+                if not lab_fy and len(row) > yi:
+                    combined = _combine_month_year(row[mi], row[yi])
+                    if combined:
+                        lab_fy = fy.fy_tag_from_label(combined)
+                if lab_fy:
+                    good += 1
+        self.assertEqual(good + bad, source_rows)
 
 
 # Pre-existing, KNOWN drift the reconciliation is EXPECTED to find (same

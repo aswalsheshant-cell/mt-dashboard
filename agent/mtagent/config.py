@@ -47,6 +47,10 @@ class Config:
     # --- Power BI workflow controller (Module 2) ---
     pbi_build_dir: str = "agent/pbi_build"           # generated dataset/DAX-gap/QC output root
     pbi_reconciliation_tolerance_pct: float = 0.5    # source-vs-model variance % before FAIL
+    pbi_reconciliation_abs_tolerance_lakh: float = 0.0005  # Rs 50 -- PASS if absolute variance is
+        # at or below this floor, even when % exceeds tolerance (rounding noise on near-zero-value
+        # chains/zones would otherwise FAIL on % alone; this does not weaken the % check for any
+        # metric whose absolute variance exceeds the floor -- see pbi_reconcile.py's _status)
 
     def root(self) -> Path:
         return Path(self.repo_root) if self.repo_root else find_repo_root()

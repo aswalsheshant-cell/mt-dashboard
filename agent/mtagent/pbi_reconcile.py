@@ -125,12 +125,20 @@ def _model_totals(fact_rows: list[dict]) -> dict:
     }
 
 
-def _status(source_val: float, model_val: float, tolerance_pct: float) -> tuple[str, float]:
+def _status(source_val: float, model_val: float, tolerance_pct: float,
+            abs_tolerance: float | None = None) -> tuple[str, float]:
+    """PASS when the % variance is within tolerance_pct, OR (for value-magnitude
+    metrics that pass abs_tolerance, e.g. an INR Lakh floor) the absolute variance
+    is at or below that floor -- this only ever widens a PASS on a near-zero base
+    (rounding noise); it never masks a real absolute variance on a large account,
+    since large accounts fail the abs check and still need the % check to pass."""
     if source_val == 0:
         variance_pct = 0.0 if model_val == 0 else 100.0
     else:
         variance_pct = round(100 * abs(source_val - model_val) / abs(source_val), 3)
-    return ("PASS" if variance_pct <= tolerance_pct else "FAIL"), variance_pct
+    within_pct = variance_pct <= tolerance_pct
+    within_abs = abs_tolerance is not None and abs(source_val - model_val) <= abs_tolerance
+    return ("PASS" if (within_pct or within_abs) else "FAIL"), variance_pct
 
 
 _LIKELY_CAUSES = {
@@ -155,6 +163,10 @@ def reconcile_source_to_model(cfg: Config, source_path: Path, build_dir: Path,
     fact_rows = _read_fact(fact_path)
     mdl = _model_totals(fact_rows)
     tol = cfg.pbi_reconciliation_tolerance_pct
+    abs_tol = cfg.pbi_reconciliation_abs_tolerance_lakh
+    # Rs-value metrics get the absolute-OR-percentage floor; row/distinct counts
+    # have no Lakh meaning and keep the pure-percentage rule.
+    _VALUE_METRICS = {"nsv_total", "mrp_total", "qty_total"}
 
     rows = [{
         "metric": "source_exact_duplicate_rows", "source_value": src["duplicate_rows"],
@@ -172,7 +184,8 @@ def reconcile_source_to_model(cfg: Config, source_path: Path, build_dir: Path,
         ("distinct_chains", src["distinct_chains"], mdl["distinct_chains"]),
         ("distinct_articles", src["distinct_articles"], mdl["distinct_articles"]),
     ]:
-        status, variance_pct = _status(source_val, model_val, tol)
+        status, variance_pct = _status(source_val, model_val, tol,
+                                        abs_tol if metric in _VALUE_METRICS else None)
         # row_count is EXPECTED to differ (fact is aggregated) -- always INFO, never FAIL, and never hidden.
         if metric == "row_count":
             status = "INFO"
@@ -187,22 +200,36 @@ def reconcile_source_to_model(cfg: Config, source_path: Path, build_dir: Path,
 
     for chain in sorted(set(src["by_chain"]) | set(mdl["by_chain"])):
         source_val, model_val = src["by_chain"].get(chain, 0.0), mdl["by_chain"].get(chain, 0.0)
-        status, variance_pct = _status(source_val, model_val, tol)
+        status, variance_pct = _status(source_val, model_val, tol, abs_tol)
+        abs_var = round(source_val - model_val, 4)
+        rounding_pass = status == "PASS" and variance_pct > tol
         rows.append({
             "metric": f"chain_total:{chain}", "source_value": round(source_val, 4), "model_value": round(model_val, 4),
-            "absolute_variance": round(source_val - model_val, 4), "variance_pct": variance_pct, "status": status,
-            "likely_cause": "" if status == "PASS" else "chain name mapped to a different Account/UNMAPPED bucket than expected",
-            "recommended_action": "none -- within tolerance" if status == "PASS" else "check Mapping_Exception_Report for this chain",
+            "absolute_variance": abs_var, "variance_pct": variance_pct,
+            "status": "PASS WITH ROUNDING TOLERANCE" if rounding_pass else status,
+            "likely_cause": "" if status != "FAIL" else "chain name mapped to a different Account/UNMAPPED bucket than expected",
+            "recommended_action": (f"none -- immaterial rounding difference on a low-value base "
+                                    f"(absolute variance Rs {abs(abs_var) * 100000:.0f} <= Rs "
+                                    f"{abs_tol * 100000:.0f} floor)" if rounding_pass else
+                                    "none -- within tolerance" if status == "PASS" else
+                                    "check Mapping_Exception_Report for this chain"),
         })
 
     for zone in sorted(set(src["by_zone"]) | set(mdl["by_zone"])):
         source_val, model_val = src["by_zone"].get(zone, 0.0), mdl["by_zone"].get(zone, 0.0)
-        status, variance_pct = _status(source_val, model_val, tol)
+        status, variance_pct = _status(source_val, model_val, tol, abs_tol)
+        abs_var = round(source_val - model_val, 4)
+        rounding_pass = status == "PASS" and variance_pct > tol
         rows.append({
             "metric": f"zone_total:{zone}", "source_value": round(source_val, 4), "model_value": round(model_val, 4),
-            "absolute_variance": round(source_val - model_val, 4), "variance_pct": variance_pct, "status": status,
-            "likely_cause": "" if status == "PASS" else "zone casing/normalization mismatch",
-            "recommended_action": "none -- within tolerance" if status == "PASS" else "check Zone normalization in build_dataset",
+            "absolute_variance": abs_var, "variance_pct": variance_pct,
+            "status": "PASS WITH ROUNDING TOLERANCE" if rounding_pass else status,
+            "likely_cause": "" if status != "FAIL" else "zone casing/normalization mismatch",
+            "recommended_action": (f"none -- immaterial rounding difference on a low-value base "
+                                    f"(absolute variance Rs {abs(abs_var) * 100000:.0f} <= Rs "
+                                    f"{abs_tol * 100000:.0f} floor)" if rounding_pass else
+                                    "none -- within tolerance" if status == "PASS" else
+                                    "check Zone normalization in build_dataset"),
         })
 
     out_path = build_dir / "Source_To_Model_Reconciliation_Report.csv"

@@ -136,6 +136,53 @@ class TestReconcileSourceToModel(unittest.TestCase):
             metrics = {r["metric"]: r for r in csv.DictReader(fh)}
         self.assertEqual(metrics["chain_total:Reliance"]["status"], "PASS")
 
+    def test_small_value_chain_passes_with_rounding_tolerance(self):
+        # real case this covers: chain_total:Aditya Birla, source 0.0474L,
+        # model 0.0477L -- Rs 30 absolute diff, 0.682% (over the 0.5% tolerance)
+        # but under the Rs 50 absolute floor -- must not FAIL on % alone.
+        source_path = self.root / "source.csv"
+        _write_source(source_path, [["WEST", "MH", "Broadway", "DC1", "S1", "E1", "199", "0.0474", "1"]])
+        _write_fact(self.build_dir / "Fact_OfftakeSales.csv", [
+            ["FY27", "May'26", "WEST", "Broadway", "E1", "Mamaearth", "Face", "Face Wash", "0.0477", "199", "1", "1"],
+        ])
+        result = reconcile_source_to_model(self.cfg, source_path, self.build_dir)
+        out_path = self.cfg.root() / result["output_file"]
+        with open(out_path, newline="", encoding="utf-8") as fh:
+            metrics = {r["metric"]: r for r in csv.DictReader(fh)}
+        row = metrics["chain_total:Broadway"]
+        self.assertEqual(row["status"], "PASS WITH ROUNDING TOLERANCE")
+        self.assertIn("Rs 30", row["recommended_action"])
+        self.assertIn("Rs 50", row["recommended_action"])
+
+    def test_large_base_small_pct_is_plain_pass_not_rounding_tolerance(self):
+        # a variance that's already within % tolerance must stay a plain PASS
+        # -- the rounding-floor label is reserved for the abs-only rescue case
+        source_path = self.root / "source.csv"
+        _write_source(source_path, [["WEST", "MH", "D-Mart", "DC1", "S1", "E1", "199", "1000.0", "10"]])
+        _write_fact(self.build_dir / "Fact_OfftakeSales.csv", [
+            ["FY27", "May'26", "WEST", "D-Mart", "E1", "Mamaearth", "Face", "Face Wash", "1000.0003", "199", "10", "1"],
+        ])
+        result = reconcile_source_to_model(self.cfg, source_path, self.build_dir)
+        out_path = self.cfg.root() / result["output_file"]
+        with open(out_path, newline="", encoding="utf-8") as fh:
+            metrics = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(metrics["chain_total:D-Mart"]["status"], "PASS")
+
+    def test_large_absolute_variance_still_fails_despite_small_pct_headroom(self):
+        # the abs floor must never mask a real variance on a chain whose
+        # absolute gap exceeds it -- only near-zero-base rounding noise
+        # gets rescued.
+        source_path = self.root / "source.csv"
+        _write_source(source_path, [["WEST", "MH", "D-Mart", "DC1", "S1", "E1", "199", "1000.0", "10"]])
+        _write_fact(self.build_dir / "Fact_OfftakeSales.csv", [
+            ["FY27", "May'26", "WEST", "D-Mart", "E1", "Mamaearth", "Face", "Face Wash", "993.0", "199", "10", "1"],
+        ])
+        result = reconcile_source_to_model(self.cfg, source_path, self.build_dir)
+        out_path = self.cfg.root() / result["output_file"]
+        with open(out_path, newline="", encoding="utf-8") as fh:
+            metrics = {r["metric"]: r for r in csv.DictReader(fh)}
+        self.assertEqual(metrics["chain_total:D-Mart"]["status"], "FAIL")
+
     def test_chain_and_zone_level_breakdown_included(self):
         source_path = self.root / "source.csv"
         _write_source(source_path, [
