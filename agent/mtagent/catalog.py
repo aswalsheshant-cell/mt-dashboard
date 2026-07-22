@@ -71,6 +71,15 @@ RULES: list[tuple[str, str, str]] = [
      "Watch folder: monthly distributor-to-chain secondary; drives the Cont% used to allocate primary."),
     (r"^PowerBI/RawDataFolders/Offtake_Monthly/", "Data drops — offtake monthly",
      "Watch folder: monthly store x article offtake (also feeds --offtake-patch)."),
+    (r"^PowerBI/RawDataFolders/Offtake_Monthly_SIS/", "Data drops — SIS-channel offtake (supplemental, not yet wired)",
+     "SIS-channel-only store x article offtake (Shoppers Stop / Reliance Trends / Broadway / Lifestyle / "
+     "Azorte / Lifestyle Babyshop), Apr'25-Jun'26. Deliberately kept OUTSIDE Offtake_Monthly/ and outside "
+     "the offtake_store_article_*.csv naming convention: discover_offtake_files()/build_dataset() picks a "
+     "single latest file per month with no multi-file merge, and diffengine.py's analyze_offtake() globs "
+     "*.csv broadly in Offtake_Monthly/ -- a same-month file there would get silently mis-selected instead "
+     "of merged. Not yet consumed by build_dataset(), reconcile.py, or analyze_offtake(); needs either a "
+     "real multi-file-per-month aggregation enhancement or a manual, column-mapped merge into the FY27 "
+     "months' existing files before it flows into the Fact tables."),
     (r"^PowerBI/RawDataFolders/Nielsen_Monthly/", "Data drops — Nielsen monthly",
      "Watch folder: monthly Nielsen market-share files."),
     (r"^PowerBI/RawDataFolders/TDP_Monthly/", "Data drops — TDP monthly",
