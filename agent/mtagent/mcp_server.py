@@ -82,6 +82,28 @@ def _pbi_controller(cfg: Config):
     return get_command, WorkflowController(cfg)
 
 
+def _normalize_validation_result(result: dict) -> dict:
+    """Thin, MCP-only presentation fix -- not a change to the underlying
+    pipeline. WorkflowController's `validation_result` field is typed str
+    for every step (agent/mtagent/pbi_workflow.py), so build-dataset stores
+    its rich per-run detail as a JSON-dumped STRING inside that string field
+    (agent/mtagent/pbi_dataset.py: "validation_result": json.dumps(build_log)).
+    That's the right call for the workflow state machine (uniform field
+    type across every step, some of which are one-line text summaries, not
+    JSON), but an MCP client sees a JSON string double-encoded inside JSON,
+    which is exactly the kind of "long text blob instead of structured
+    data" a tool result should avoid. Parse it back into a real nested
+    object where it decodes as JSON; leave genuinely plain-text summaries
+    (e.g. reconcile-model's "37 metrics compared, 0 FAIL...") untouched."""
+    vr = result.get("validation_result")
+    if isinstance(vr, str) and vr.strip().startswith("{"):
+        try:
+            result = {**result, "validation_result": json.loads(vr)}
+        except json.JSONDecodeError:
+            pass  # not actually JSON -- leave the original string as-is
+    return result
+
+
 def _tool_pbi_status(cfg: Config, args: dict) -> dict:
     get_command, controller = _pbi_controller(cfg)
     return get_command("status").handler(cfg, controller)
@@ -89,8 +111,9 @@ def _tool_pbi_status(cfg: Config, args: dict) -> dict:
 
 def _tool_pbi_build_dataset(cfg: Config, args: dict) -> dict:
     get_command, controller = _pbi_controller(cfg)
-    return get_command("build-dataset").handler(
+    result = get_command("build-dataset").handler(
         cfg, controller, raw_dir=args.get("raw_dir"), masters_dir=args.get("masters_dir"))
+    return _normalize_validation_result(result)
 
 
 def _tool_pbi_reconcile_model(cfg: Config, args: dict) -> dict:
@@ -101,6 +124,24 @@ def _tool_pbi_reconcile_model(cfg: Config, args: dict) -> dict:
         cfg, controller, source=args["source"], build_dir=args["build_dir"],
         masters_dir=args.get("masters_dir"))
 
+
+# --------------------------------------------------------------------------
+# Safety classification -- checked directly against each handler's real
+# code path (not assumed), per this project's own "trust nothing you
+# haven't checked against real behaviour" discipline. Two layers:
+#   annotations: the MCP-spec-native tool-annotation fields (readOnlyHint,
+#     destructiveHint, idempotentHint, openWorldHint) -- additive JSON, safe
+#     for any client to ignore if it predates them.
+#   category: plain-language classification for humans reading tools/list
+#     or this file -- "read_only" | "local_file_write". No "state_mutation"
+#     or "high_impact_mutation" tools exist yet; that tier starts the first
+#     time a genuinely mutating command (apply-alias, mark-complete,
+#     compile-model, ...) is added -- not before.
+# --------------------------------------------------------------------------
+_READ_ONLY = {"readOnlyHint": True, "destructiveHint": False,
+              "idempotentHint": True, "openWorldHint": False}
+_LOCAL_FILE_WRITE = {"readOnlyHint": False, "destructiveHint": False,
+                     "idempotentHint": True, "openWorldHint": False}
 
 TOOLS = {
     "ask": {
@@ -119,12 +160,20 @@ TOOLS = {
             "required": ["question"],
         },
         "handler": _tool_ask,
+        "category": "read_only",
+        "annotations": _READ_ONLY,
+        "side_effects": "May lazily build/cache agent/index/index.json on first use if it "
+                         "doesn't exist yet (rag.ensure_index) -- a local cache write, not a "
+                         "content mutation; every call after the first is pure read.",
     },
     "status": {
         "description": ("Top-level mtagent/PBI workflow status: current phase, completion %, "
                          "blockers, warnings, next manual step."),
         "inputSchema": {"type": "object", "properties": {}},
         "handler": _tool_status,
+        "category": "read_only",
+        "annotations": _READ_ONLY,
+        "side_effects": "None.",
     },
     "reconcile": {
         "description": ("Reconcile dashboard/data.js against the committed source CSVs "
@@ -136,6 +185,9 @@ TOOLS = {
                                         "description": "Tolerance %% for PASS/DIFF (default 0.5)"}},
         },
         "handler": _tool_reconcile,
+        "category": "read_only",
+        "annotations": _READ_ONLY,
+        "side_effects": "None.",
     },
     "find": {
         "description": "Locate where a concept/file lives in the repo (e.g. 'chain master', 'offtake June').",
@@ -148,6 +200,11 @@ TOOLS = {
             "required": ["query"],
         },
         "handler": _tool_find,
+        "category": "read_only",
+        "annotations": _READ_ONLY,
+        "side_effects": "May lazily build/cache agent/index/catalog.json on first use if it "
+                         "doesn't exist yet (catalog.load_catalog) -- same local-cache-only "
+                         "caveat as ask.",
     },
     "worklog_tail": {
         "description": "Read the most recent mtagent worklog entries (audit trail of commands run).",
@@ -156,18 +213,24 @@ TOOLS = {
             "properties": {"n": {"type": "integer", "description": "Number of entries (default 10)"}},
         },
         "handler": _tool_worklog_tail,
+        "category": "read_only",
+        "annotations": _READ_ONLY,
+        "side_effects": "None.",
     },
     "pbi_status": {
         "description": ("Power BI workflow controller status: build_id, completion %, "
                          "completed/pending phases, blockers, warnings, latest outputs."),
         "inputSchema": {"type": "object", "properties": {}},
         "handler": _tool_pbi_status,
+        "category": "read_only",
+        "annotations": _READ_ONLY,
+        "side_effects": "None.",
     },
     "pbi_build_dataset": {
         "description": ("Run the PBI build-dataset step (ingest PowerBI/RawDataFolders/"
                          "Offtake_Monthly into dimension/fact tables under agent/pbi_build/"
-                         "<build_id>/). Writes local build output files only -- never commits "
-                         "or pushes."),
+                         "<build_id>/). Writes local build output files and updates the "
+                         "workflow state file -- never touches git (no commit/push)."),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -176,11 +239,19 @@ TOOLS = {
             },
         },
         "handler": _tool_pbi_build_dataset,
+        "category": "local_file_write",
+        "annotations": _LOCAL_FILE_WRITE,
+        "side_effects": "Writes agent/pbi_build/<build_id>/*.csv (Dim/Fact tables, Data_Quality_"
+                         "Report.csv, Outlier_Report.csv, ...) and updates the PBI workflow's "
+                         "persisted state file (step statuses). Reversible: re-running overwrites "
+                         "the same build_id deterministically from source CSVs; nothing outside "
+                         "agent/pbi_build/ or the workflow state file is touched. No dry-run mode.",
     },
     "pbi_reconcile_model": {
         "description": ("Run source-to-model reconciliation for a specific PBI build (compares "
-                         "a source offtake CSV against a build directory's Fact tables). "
-                         "Read-only report."),
+                         "a source offtake CSV against a build directory's Fact tables). Writes "
+                         "a reconciliation report file and updates the workflow state file -- "
+                         "not read-only despite being a checking/reporting step."),
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -194,6 +265,11 @@ TOOLS = {
             "required": ["source", "build_dir"],
         },
         "handler": _tool_pbi_reconcile_model,
+        "category": "local_file_write",
+        "annotations": _LOCAL_FILE_WRITE,
+        "side_effects": "Writes <build_dir>/Source_To_Model_Reconciliation_Report.csv and updates "
+                         "the PBI workflow's persisted state file. Reversible: re-running "
+                         "overwrites the same report file deterministically. No dry-run mode.",
     },
 }
 
@@ -217,7 +293,8 @@ def _handle_initialize(msg: dict) -> dict:
 
 
 def _handle_tools_list(msg: dict) -> dict:
-    tools = [{"name": name, "description": spec["description"], "inputSchema": spec["inputSchema"]}
+    tools = [{"name": name, "description": spec["description"], "inputSchema": spec["inputSchema"],
+              "annotations": spec["annotations"]}
              for name, spec in TOOLS.items()]
     return {"jsonrpc": "2.0", "id": msg["id"], "result": {"tools": tools}}
 
@@ -244,8 +321,13 @@ def _handle_tools_call(msg: dict, cfg: Config) -> dict:
 
 def handle_message(msg: dict, cfg: Config) -> dict | None:
     """Dispatch one parsed JSON-RPC message. Returns the response dict, or
-    None for notifications (no 'id' -- no response expected, per spec)."""
+    None for notifications. Per spec, a notification is identified by the
+    'id' KEY being absent -- not by its value being null. A request with an
+    explicit `"id": null` is unusual but valid and still gets a response;
+    conflating the two (checking only `.get('id') is None`) would silently
+    swallow a response a client is waiting for."""
     method = msg.get("method")
+    has_id = "id" in msg
     msg_id = msg.get("id")
     if method == "initialize":
         return _handle_initialize(msg)
@@ -257,15 +339,29 @@ def handle_message(msg: dict, cfg: Config) -> dict | None:
         return _handle_tools_call(msg, cfg)
     if method == "ping":
         return {"jsonrpc": "2.0", "id": msg_id, "result": {}}
-    if msg_id is None:
-        return None  # unrecognised notification -- never error on a notification
+    if not has_id:
+        return None  # true notification -- 'id' key absent entirely
     return _error_response(msg_id, -32601, f"Method not found: {method}")
+
+
+def _write_line(out_stream, obj: dict) -> bool:
+    """Write one JSON-RPC response line. Returns False (instead of raising)
+    if the pipe/stream is gone -- a client that vanished mid-response is
+    normal for a stdio subprocess, not a crash-worthy condition."""
+    try:
+        out_stream.write(json.dumps(obj, default=str) + "\n")
+        out_stream.flush()
+        return True
+    except (BrokenPipeError, OSError, ValueError):
+        return False
 
 
 def serve(cfg: Config, in_stream=None, out_stream=None) -> None:
     """Blocking stdio loop: one JSON-RPC message per line in, one per line
     out. A malformed line is reported as a JSON-RPC parse error and the
-    loop continues -- never crashes the server on bad input."""
+    loop continues -- never crashes the server on bad input. Exits quietly
+    (no traceback) the moment the client disconnects (broken pipe) or
+    closes stdin (falls out of the for-loop naturally)."""
     in_stream = in_stream if in_stream is not None else sys.stdin
     out_stream = out_stream if out_stream is not None else sys.stdout
     for line in in_stream:
@@ -275,8 +371,8 @@ def serve(cfg: Config, in_stream=None, out_stream=None) -> None:
         try:
             msg = json.loads(line)
         except json.JSONDecodeError as e:
-            out_stream.write(json.dumps(_error_response(None, -32700, f"Parse error: {e}")) + "\n")
-            out_stream.flush()
+            if not _write_line(out_stream, _error_response(None, -32700, f"Parse error: {e}")):
+                return
             continue
         try:
             resp = handle_message(msg, cfg)
@@ -284,5 +380,5 @@ def serve(cfg: Config, in_stream=None, out_stream=None) -> None:
             resp = _error_response(msg.get("id") if isinstance(msg, dict) else None,
                                     -32603, f"Internal error: {e}\n{traceback.format_exc()}")
         if resp is not None:
-            out_stream.write(json.dumps(resp, default=str) + "\n")
-            out_stream.flush()
+            if not _write_line(out_stream, resp):
+                return

@@ -139,12 +139,48 @@ it implements the stdio JSON-RPC 2.0 transport directly in stdlib, the same
 "eliminate the dependency" approach used elsewhere in this agent, since
 `pip install mcp` is not obtainable in every environment this runs in.
 
-Tools exposed (v1 — read/analysis plus the two PBI steps `pbi-workflow.md`
-already treats as safe to run freely, i.e. local file output only, never a
-git commit/push): `ask`, `status`, `reconcile`, `find`, `worklog_tail`,
-`pbi_status`, `pbi_build_dataset`, `pbi_reconcile_model`. Each is a thin
-wrapper around the exact function its CLI equivalent calls — no duplicated
-logic, so a fix to one path fixes both.
+Tools exposed (v1), each checked against its real code path and classified
+before any mutating tool gets added:
+
+| Tool | Category | Side effects |
+|---|---|---|
+| `ask` | read_only | may lazily build/cache `agent/index/index.json` on first use |
+| `status` | read_only | none |
+| `reconcile` | read_only | none |
+| `find` | read_only | may lazily build/cache `agent/index/catalog.json` on first use |
+| `worklog_tail` | read_only | none |
+| `pbi_status` | read_only | none |
+| `pbi_build_dataset` | local_file_write | writes `agent/pbi_build/<build_id>/*.csv` + workflow state; never git |
+| `pbi_reconcile_model` | local_file_write | writes a reconciliation report + workflow state; never git |
+
+Every tool also carries the MCP-native `annotations` (`readOnlyHint`,
+`destructiveHint`, `idempotentHint`, `openWorldHint`) in `tools/list`, so a
+client can reason about safety without reading this table. No tool is
+`destructiveHint: true` — the two `local_file_write` tools only add/overwrite
+their own generated output, never touch source data or git. Nothing in the
+`state_mutation` or `high_impact_mutation` tiers (`apply-alias`,
+`mark-complete`, `compile-model`, any git operation) is exposed yet, and a
+test (`TestSafetyClassification.test_no_state_mutation_or_high_impact_tools_
+exist_yet`) pins that boundary so adding one is a deliberate, visible change.
+
+Each tool is a thin wrapper around the exact function its CLI equivalent
+calls — no duplicated logic, so a fix to one path fixes both.
+
+**Validation:** `tests/test_mcp_server.py` (unit-level, protocol edge cases:
+malformed/empty lines, unusual request IDs, non-serializable tool results,
+broken-pipe handling) and `tests/test_mcp_server_integration.py` (a real
+`mcp-serve` subprocess driven over actual stdin/stdout pipes — full
+handshake, all 8 tools, unicode, large-output framing, 10 sequential
+requests, clean shutdown, and a check that stdout carries nothing but
+valid JSON across every tool call). No real MCP client (Claude Desktop,
+the official `@modelcontextprotocol/inspector`) is reachable from this
+environment — Claude Desktop is a desktop GUI app not present in this
+sandbox, and `npx @modelcontextprotocol/inspector` hits the same
+`registry.npmjs.org` 403 that blocks every other package index here. The
+real-subprocess integration suite is the closest available substitute; if
+you have Claude Desktop, adding this server per the config below and
+confirming the 8 tools list/call correctly is the one check that
+substitute can't fully replace.
 
 To add this server to an MCP client config (e.g. Claude Desktop's
 `claude_desktop_config.json`):
