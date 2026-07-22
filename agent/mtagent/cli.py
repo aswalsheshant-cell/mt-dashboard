@@ -30,6 +30,7 @@
     python -m mtagent pbi next-manual-step
     python -m mtagent pbi resume
     python -m mtagent pbi mark-complete --step-id <id> --evidence-kind screenshot --evidence <path>
+    python -m mtagent mcp-serve                # run as an MCP server over stdio (see mcp_server.py)
 """
 from __future__ import annotations
 
@@ -94,6 +95,16 @@ def cmd_doctor(cfg: Config, args) -> int:
     print(f"  [info]    model inventory from {inv.source}: {len(inv.tables)} tables, "
           f"{len(inv.measures)} measures "
           f"(drop model.bim / INFO.*.csv into {cfg.metadata_dir} for exact checks)")
+    return 0
+
+
+def cmd_mcp_serve(cfg: Config, args) -> int:
+    """Run mtagent as an MCP (Model Context Protocol) server over stdio --
+    exposes ask/status/reconcile/find/worklog_tail/pbi_status/
+    pbi_build_dataset/pbi_reconcile_model as MCP tools for any MCP client
+    (Claude Desktop, Claude Code, etc). Blocks until stdin closes."""
+    from .mcp_server import serve
+    serve(cfg)
     return 0
 
 
@@ -597,6 +608,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("eval", help="golden-QA retrieval eval + validator self-checks")
     p.add_argument("--k", type=int, default=3, help="hit@k cutoff")
 
+    sub.add_parser("mcp-serve", help="run mtagent as an MCP server over stdio "
+                                      "(ask/status/reconcile/find/pbi tools)")
+
     p = sub.add_parser("pbi", help="Power BI workflow controller (Module 2)")
     pbi_sub = p.add_subparsers(dest="pbi_cmd", required=True)
 
@@ -687,7 +701,7 @@ def main(argv: list | None = None) -> int:
         "check": cmd_check, "qc": cmd_qc, "reconcile": cmd_reconcile,
         "catalog": cmd_catalog, "find": cmd_find, "place": cmd_place,
         "log": cmd_log, "resume": cmd_resume, "db-build": cmd_db_build, "sql": cmd_sql,
-        "eval": cmd_eval, "pbi": cmd_pbi,
+        "eval": cmd_eval, "pbi": cmd_pbi, "mcp-serve": cmd_mcp_serve,
     }
     notes: list[str] = []
     try:

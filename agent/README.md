@@ -129,6 +129,41 @@ python -m mtagent check                   # lint + live data-quality sweep
 | `log [--tail N]` | audit trail: every command run is logged to `agent/index/worklog.jsonl` (timestamp, args, exit status) |
 | `eval` | golden-QA retrieval eval + validator regression checks + template execution |
 | `pbi <command>` | **Power BI Workflow Controller** (Module 2) — stateful, resumable dashboard-build pipeline. See [`agent/PBI_WORKFLOW.md`](PBI_WORKFLOW.md) for the full command reference, sample config/output, and what remains manual inside Power BI Desktop |
+| `mcp-serve` | run mtagent as an **MCP server** over stdio, for any MCP client (Claude Desktop, Claude Code, etc.) — see below |
+
+### MCP server
+
+`python -m mtagent mcp-serve` exposes a curated set of mtagent commands as
+MCP tools over stdio (`mtagent/mcp_server.py`). No `mcp` SDK dependency —
+it implements the stdio JSON-RPC 2.0 transport directly in stdlib, the same
+"eliminate the dependency" approach used elsewhere in this agent, since
+`pip install mcp` is not obtainable in every environment this runs in.
+
+Tools exposed (v1 — read/analysis plus the two PBI steps `pbi-workflow.md`
+already treats as safe to run freely, i.e. local file output only, never a
+git commit/push): `ask`, `status`, `reconcile`, `find`, `worklog_tail`,
+`pbi_status`, `pbi_build_dataset`, `pbi_reconcile_model`. Each is a thin
+wrapper around the exact function its CLI equivalent calls — no duplicated
+logic, so a fix to one path fixes both.
+
+To add this server to an MCP client config (e.g. Claude Desktop's
+`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "mtagent": {
+      "command": "python3",
+      "args": ["-m", "mtagent", "mcp-serve"],
+      "cwd": "/path/to/mt-dashboard/agent"
+    }
+  }
+}
+```
+
+Mutating commands beyond the two above (`derive-article-master`,
+`apply-alias`, `compile-model`, `mark-complete`, ...) are not exposed yet —
+add them to `TOOLS` in `mcp_server.py` the same way if/when needed.
 
 ### Analyst persona & business rules
 
