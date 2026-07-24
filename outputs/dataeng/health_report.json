@@ -1,10 +1,10 @@
 {
-  "generated_from_commit": "bf0a2bf402f2463154806826cee19ac33074a4ee",
-  "production_readiness_score": 48,
+  "generated_from_commit": "e392f42c3e346462cee362c1f88bc3b4b36ffddb",
+  "production_readiness_score": 50,
   "verdict": "NOT READY \u2014 blocked",
   "counts_by_skill": {
     "repository_scan": {
-      "INFO": 12,
+      "INFO": 13,
       "PASS": 1
     },
     "metric_registry": {
@@ -21,17 +21,17 @@
       "WARN": 6
     },
     "finance_governance": {
-      "WARN": 10,
-      "PASS": 3,
+      "WARN": 9,
+      "PASS": 4,
       "BLOCKED": 1
     }
   },
   "counts_by_severity": {
     "BLOCKED": 1,
     "FAIL": 0,
-    "WARN": 20,
-    "INFO": 12,
-    "PASS": 17
+    "WARN": 19,
+    "INFO": 13,
+    "PASS": 18
   },
   "artifacts": {
     "repository_knowledge_graph": "outputs/dataeng/repository_inventory.csv",

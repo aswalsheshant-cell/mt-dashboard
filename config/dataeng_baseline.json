@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "generated_from_commit": "e392f42c3e346462cee362c1f88bc3b4b36ffddb",
+  "generated_at": "2026-07-24",
+  "description": "Machine-readable accepted-findings baseline. Regenerate: python3 -m scripts.dataeng.cli health --save-baseline",
+  "accepted": {
+    "SCAN-UNCLASSIFIED-001": {
+      "severity": "INFO",
+      "summary": "File has no classification rule: .gitignore",
+      "owner": "",
+      "decision_ref": ""
+    },
+    "SCAN-UNCLASSIFIED-002": {
+      "severity": "INFO",
+      "summary": "File has no classification rule: CLAUDE.md",
+      "owner": "",
+      "decision_ref": ""
+    },
+    "SCAN-UNCLASSIFIED-003": {
+      "severity": "INFO",
+      "summary": "File has no classification rule: Final MT Offtake May26 Leadership slide_CORRECTED_V2.pptx",
+      "owner": "",
+      "decision_ref": ""
+    },
+    "SCAN-UNCLASSIFIED-004": {
+      "severity": "INFO",
+      "summary": "File has no classification rule: vercel.json",
+      "owner": "",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-__init__.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/__init__.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-build_fw_nielsen_slide.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_fw_nielsen_slide.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-build_shampoo_deepdive_slide.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_shampoo_deepdive_slide.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-build_shampoo_nielsen_slide.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_shampoo_nielsen_slide.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-build_stdlib.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_stdlib.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-enhance_v3.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/enhance_v3.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-insert_pack_size_slide.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/insert_pack_size_slide.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-patch_corrections_v2.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/patch_corrections_v2.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "SCAN-ORPHAN-rebuild_mt_offtake_ppt.py": {
+      "severity": "INFO",
+      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/rebuild_mt_offtake_ppt.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "VAL-FY-HARDCODE-build_dashboard_data": {
+      "severity": "WARN",
+      "summary": "14 hardcoded FY literals in build_dashboard_data.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "VAL-FY-HARDCODE-exclude_brands": {
+      "severity": "WARN",
+      "summary": "13 hardcoded FY literals in exclude_brands.py",
+      "owner": "Dashboard team",
+      "decision_ref": ""
+    },
+    "VAL-SRC-MISSING-Jun-26": {
+      "severity": "WARN",
+      "summary": "Jun-26 has NSV in data.js but no article CSV in the repo",
+      "owner": "Sales MIS",
+      "decision_ref": ""
+    },
+    "DQ-CHAINDROP": {
+      "severity": "WARN",
+      "summary": "2 chain(s) in dims.Chain are absent from cm2.by_chain",
+      "owner": "Dashboard team",
+      "decision_ref": "D13"
+    },
+    "RECON-CM2-BY_BRAND-EXPENSE": {
+      "severity": "WARN",
+      "summary": "cm2.by_brand: expense sum differs from total by -6.75 L -- 270.00x the 0.02 L rounding ceiling, so NOT rounding",
+      "owner": "Finance",
+      "decision_ref": "CM2-BRAND-EXPENSE-001"
+    },
+    "RECON-CM2-BY_CHAIN-NSV": {
+      "severity": "WARN",
+      "summary": "cm2.by_chain: nsv sum differs from total by 22.84 L -- 99.30x the 0.23 L rounding ceiling, so NOT rounding",
+      "owner": "Dashboard team",
+      "decision_ref": "D13"
+    },
+    "RECON-FYX_PRIMARY-FY27-BY_ZONE-NSV": {
+      "severity": "WARN",
+      "summary": "fyx_primary.FY27.by_zone: nsv sum differs from total by 7.37 L -- 294.80x the 0.02 L rounding ceiling, so NOT rounding",
+      "owner": "Sales MIS",
+      "decision_ref": ""
+    },
+    "RECON-FYX_PRIMARY-FY27-BY_CHAIN-NSV": {
+      "severity": "WARN",
+      "summary": "fyx_primary.FY27.by_chain: nsv sum differs from total by -33.66 L -- 198.00x the 0.17 L rounding ceiling, so NOT roundin",
+      "owner": "Sales MIS",
+      "decision_ref": ""
+    },
+    "RECON-PRIMARY-FY25-MONTHLY": {
+      "severity": "WARN",
+      "summary": "Primary fy25: monthly sums to FY total (diff 3.94 L)",
+      "owner": "Sales MIS",
+      "decision_ref": ""
+    },
+    "RECON-PRIMARY-FY26-MONTHLY": {
+      "severity": "WARN",
+      "summary": "Primary fy26: monthly sums to FY total (diff 12.25 L)",
+      "owner": "Sales MIS",
+      "decision_ref": ""
+    },
+    "GOV-PENDING-D1": {
+      "severity": "WARN",
+      "summary": "D1 PENDING_APPROVAL: Does CM2 include COGS?",
+      "owner": "Finance",
+      "decision_ref": "D1"
+    },
+    "GOV-PENDING-D2": {
+      "severity": "WARN",
+      "summary": "D2 PENDING_APPROVAL: GST basis for trade claims",
+      "owner": "Finance",
+      "decision_ref": "D2"
+    },
+    "GOV-PENDING-D3": {
+      "severity": "WARN",
+      "summary": "D3 PENDING_APPROVAL: Do provisional claims enter CM2?",
+      "owner": "Finance",
+      "decision_ref": "D3"
+    },
+    "GOV-PENDING-D4": {
+      "severity": "WARN",
+      "summary": "D4 PENDING_APPROVAL: Is balance provision a current-period charge?",
+      "owner": "Finance",
+      "decision_ref": "D4"
+    },
+    "GOV-PENDING-D5": {
+      "severity": "WARN",
+      "summary": "D5 PENDING_APPROVAL: Is Salary-row incentive additive to Incentive-row incentive?",
+      "owner": "Finance + HR",
+      "decision_ref": "D5"
+    },
+    "GOV-PENDING-D6": {
+      "severity": "WARN",
+      "summary": "D6 PENDING_APPROVAL: Does field-force CTC belong in CM2?",
+      "owner": "Finance",
+      "decision_ref": "D6"
+    },
+    "GOV-PENDING-D7": {
+      "severity": "WARN",
+      "summary": "D7 PENDING_APPROVAL: What share of Hybrid/GT supervisor cost is MT?",
+      "owner": "Finance + Sales Ops",
+      "decision_ref": "D7"
+    },
+    "GOV-PENDING-D8": {
+      "severity": "WARN",
+      "summary": "D8 PENDING_APPROVAL: Approve a distributor-to-chain crosswalk?",
+      "owner": "Sales Ops + Finance",
+      "decision_ref": "D8"
+    },
+    "GOV-PENDING-D9": {
+      "severity": "WARN",
+      "summary": "D9 PENDING_APPROVAL: Activate direct allocation rules ALLOC-001/002/003?",
+      "owner": "Finance",
+      "decision_ref": "D9"
+    },
+    "GOV-FORMULA-DRAFT": {
+      "severity": "BLOCKED",
+      "summary": "CM2 formula is DRAFT -- every CM2 figure must be labelled provisional",
+      "owner": "Finance",
+      "decision_ref": "D1"
+    }
+  }
+}

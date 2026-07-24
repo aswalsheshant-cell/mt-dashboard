@@ -11,10 +11,10 @@ Primary NSV FY27,1_source,primary_article_<Mon>_<YY>.csv; Jun-26 via patch_jun26
 Primary NSV FY27,2_transformation,detail_records_real() -> fyx_primary,INR Lakh,NSV
 Primary NSV FY27,3_output,data.js:detail_meta.fyx_primary.FY27.nsv,INR Lakh,NSV
 Primary NSV FY27,4_consumer,"Overview, Primary",INR Lakh,NSV
-Primary MRP FY27,1_source,primary_article CSV column 'Total MRP sales',INR Lakh,GMV_MRP
-Primary MRP FY27,2_transformation,fx['_MRP'].sum() in build_dashboard_data.py,INR Lakh,GMV_MRP
+Primary MRP FY27,1_source,primary_article CSV (Apr/May) + governed seed FY27_Monthly_GMV_MRP.csv (Jun-26),INR Lakh,GMV_MRP
+Primary MRP FY27,2_transformation,fix_d13_mrp.py; build_dashboard_data.py _fx_included['_MRP'].sum(),INR Lakh,GMV_MRP
 Primary MRP FY27,3_output,data.js:detail_meta.fyx_primary.FY27.mrp,INR Lakh,GMV_MRP
-Primary MRP FY27,4_consumer,(not surfaced),INR Lakh,GMV_MRP
+Primary MRP FY27,4_consumer,(not surfaced — used in CM2 COGS calculation),INR Lakh,GMV_MRP
 Offtake NSV FY27,1_source,Monthly store x article offtake extracts,INR Lakh,NSV
 Offtake NSV FY27,2_transformation,offtake_block() + patch_offtake_new_months(),INR Lakh,NSV
 Offtake NSV FY27,3_output,data.js:offtake.total_fy27,INR Lakh,NSV
