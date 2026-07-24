@@ -442,7 +442,7 @@ window.DASH = {
     "fy26": 8303.0,
     "yoy": 50.12,
     "total": 13834.0,
-    "fy27": 2801.62
+    "fy27": 2805.75
    },
    {
     "name": "Dmart",
@@ -451,7 +451,7 @@ window.DASH = {
     "fy26": 10928.0,
     "yoy": 35.11,
     "total": 19015.0,
-    "fy27": 2775.76
+    "fy27": 4231.67
    },
    {
     "name": "Apollo",
@@ -460,7 +460,7 @@ window.DASH = {
     "fy26": 4879.0,
     "yoy": 146.79,
     "total": 6857.0,
-    "fy27": 1449.9
+    "fy27": 2172.92
    },
    {
     "name": "Nykaa (FSN)",
@@ -469,7 +469,7 @@ window.DASH = {
     "fy26": 2040.0,
     "yoy": 12.96,
     "total": 3846.0,
-    "fy27": 436.7
+    "fy27": 653.37
    },
    {
     "name": "Lulu",
@@ -478,7 +478,7 @@ window.DASH = {
     "fy26": 749.0,
     "yoy": 66.08,
     "total": 1199.0,
-    "fy27": 217.31
+    "fy27": 333.17
    },
    {
     "name": "Wellness Forever",
@@ -487,7 +487,7 @@ window.DASH = {
     "fy26": 998.0,
     "yoy": 0.6,
     "total": 1988.0,
-    "fy27": 211.24
+    "fy27": 291.26
    },
    {
     "name": "H&G",
@@ -496,7 +496,7 @@ window.DASH = {
     "fy26": 870.0,
     "yoy": 4.69,
     "total": 1701.0,
-    "fy27": 149.23
+    "fy27": 201.06
    },
    {
     "name": "RMT-Sancus",
@@ -505,7 +505,7 @@ window.DASH = {
     "fy26": 453.0,
     "yoy": 13.82,
     "total": 852.0,
-    "fy27": 103.77
+    "fy27": 143.6
    },
    {
     "name": "More Retail",
@@ -514,7 +514,7 @@ window.DASH = {
     "fy26": 432.0,
     "yoy": 96.36,
     "total": 654.0,
-    "fy27": 99.75
+    "fy27": 143.41
    },
    {
     "name": "Metro C&C",
@@ -523,7 +523,7 @@ window.DASH = {
     "fy26": 596.0,
     "yoy": 1.71,
     "total": 1184.0,
-    "fy27": 95.42
+    "fy27": 156.53
    },
    {
     "name": "VMM",
@@ -532,7 +532,7 @@ window.DASH = {
     "fy26": 146.0,
     "yoy": 5.8,
     "total": 283.0,
-    "fy27": 58.53
+    "fy27": 96.11
    },
    {
     "name": "Walmart",
@@ -550,7 +550,7 @@ window.DASH = {
     "fy26": 98.0,
     "yoy": 157.89,
     "total": 138.0,
-    "fy27": 24.66
+    "fy27": 37.6
    },
    {
     "name": "Spencer",
@@ -559,7 +559,7 @@ window.DASH = {
     "fy26": 164.0,
     "yoy": -31.67,
     "total": 404.0,
-    "fy27": 24.49
+    "fy27": 32.97
    },
    {
     "name": "Trent",
@@ -568,7 +568,7 @@ window.DASH = {
     "fy26": 57.0,
     "yoy": 58.33,
     "total": 94.0,
-    "fy27": 15.34
+    "fy27": 26.06
    },
    {
     "name": "Frankross",
@@ -577,7 +577,7 @@ window.DASH = {
     "fy26": 23.0,
     "yoy": 109.09,
     "total": 35.0,
-    "fy27": 14.12
+    "fy27": 21.54
    },
    {
     "name": "Arambagh",
@@ -586,7 +586,7 @@ window.DASH = {
     "fy26": 21.0,
     "yoy": 61.54,
     "total": 36.0,
-    "fy27": 11.93
+    "fy27": 17.11
    },
    {
     "name": "Ratnadeep",
@@ -595,13 +595,13 @@ window.DASH = {
     "fy26": 48.0,
     "yoy": -60.98,
     "total": 170.0,
-    "fy27": 5.52
+    "fy27": 8.28
    },
    {
     "name": "National Mart",
     "raw": "National Mart",
     "total": 0.0,
-    "fy27": 4.69
+    "fy27": 8.7
    },
    {
     "name": "Guardian",
@@ -610,7 +610,7 @@ window.DASH = {
     "fy26": 16.0,
     "yoy": 23.08,
     "total": 30.0,
-    "fy27": 4.38
+    "fy27": 6.26
    },
    {
     "name": "Sumo Save",
@@ -619,7 +619,7 @@ window.DASH = {
     "fy26": 0.0,
     "yoy": null,
     "total": 0.0,
-    "fy27": 3.18
+    "fy27": 4.65
    },
    {
     "name": "Apna Mart",
@@ -634,13 +634,13 @@ window.DASH = {
     "fy26": 6.0,
     "yoy": null,
     "total": 5.0,
-    "fy27": 2.07
+    "fy27": 3.06
    },
    {
     "name": "B&N",
     "raw": "B&N",
     "total": 0.0,
-    "fy27": 1.35
+    "fy27": 2.57
    },
    {
     "name": "WH-Smith",
@@ -649,7 +649,7 @@ window.DASH = {
     "fy26": 12.0,
     "yoy": 0.0,
     "total": 22.0,
-    "fy27": 1.25
+    "fy27": 1.66
    },
    {
     "name": "Vijetha",
@@ -657,7 +657,8 @@ window.DASH = {
     "fy25": 47.0,
     "fy26": 16.0,
     "yoy": -65.96,
-    "total": 62.0
+    "total": 62.0,
+    "fy27": 0.0
    },
    {
     "name": "H&B",
@@ -778,42 +779,42 @@ window.DASH = {
     "fy25": 4348.0,
     "fy26": 7060.0,
     "yoy": 62.37,
-    "fy27": 2101.81
+    "fy27": 2641.19
    },
    {
     "name": "West",
     "fy25": 6215.0,
     "fy26": 8171.0,
     "yoy": 31.47,
-    "fy27": 2047.0
+    "fy27": 2904.83
    },
    {
     "name": "South 1",
     "fy25": 4102.0,
     "fy26": 6428.0,
     "yoy": 56.7,
-    "fy27": 1784.19
+    "fy27": 2489.49
    },
    {
     "name": "South 2",
     "fy25": 3280.0,
     "fy26": 4163.0,
     "yoy": 26.92,
-    "fy27": 1111.04
+    "fy27": 1576.35
    },
    {
     "name": "East",
     "fy25": 2095.0,
     "fy26": 3223.0,
     "yoy": 53.84,
-    "fy27": 1070.89
+    "fy27": 1173.49
    },
    {
     "name": "Pan India",
     "fy25": 1805.0,
     "fy26": 2040.0,
     "yoy": 13.02,
-    "fy27": 436.7
+    "fy27": 653.37
    }
   ],
   "by_state": [
@@ -1051,13 +1052,15 @@ window.DASH = {
   ],
   "months_fy27": [
    "Apr-26",
-   "May-26"
+   "May-26",
+   "Jun-26"
   ],
   "monthly_fy27": [
-   4024.0,
-   4527.61
+   3589.13,
+   4025.81,
+   3823.78
   ],
-  "total_fy27": 8551.61
+  "total_fy27": 11438.72
  },
  "pnl": {
   "by_chain": [
@@ -721981,16 +721984,17 @@ window.DASH = {
   "fyx_primary": {
    "FY27": {
     "tag": "FY27",
-    "nsv": 9492.6,
+    "nsv": 13659.96,
     "mrp": 22050.21,
     "months_covered": [
      "April",
-     "May"
+     "May",
+     "June"
     ],
     "monthly": [
      5076.86,
      4415.74,
-     0.0,
+     4167.36,
      0.0,
      0.0,
      0.0,
@@ -722004,43 +722008,43 @@ window.DASH = {
     "by_chain": [
      {
       "name": "Dmart",
-      "nsv": 3825.23
+      "nsv": 5525.6
      },
      {
       "name": "Reliance Retail",
-      "nsv": 2071.02
+      "nsv": 3027.97
      },
      {
       "name": "Apollo",
-      "nsv": 1764.21
+      "nsv": 2549.59
      },
      {
       "name": "Nykaa E-Retail Limited",
-      "nsv": 438.82
+      "nsv": 645.48
      },
      {
       "name": "Lulu",
-      "nsv": 281.86
+      "nsv": 469.36
      },
      {
       "name": "Wellness Forever",
-      "nsv": 207.83
+      "nsv": 274.49
      },
      {
       "name": "H&G",
-      "nsv": 178.77
+      "nsv": 248.64
      },
      {
       "name": "VMM",
-      "nsv": 166.25
+      "nsv": 205.34
      },
      {
       "name": "RMT-Sancus",
-      "nsv": 137.45
+      "nsv": 165.55
      },
      {
       "name": "More Retail",
-      "nsv": 116.68
+      "nsv": 183.94
      },
      {
       "name": "Metro-CNC",
@@ -722048,11 +722052,11 @@ window.DASH = {
      },
      {
       "name": "Walmart-CNC",
-      "nsv": 46.88
+      "nsv": 46.47
      },
      {
       "name": "Frankross",
-      "nsv": 25.26
+      "nsv": 34.2
      },
      {
       "name": "V-Mart Retail Limited",
@@ -722064,7 +722068,7 @@ window.DASH = {
      },
      {
       "name": "Spencer",
-      "nsv": 14.27
+      "nsv": 23.92
      },
      {
       "name": "Eremedium Private Limited",
@@ -722142,33 +722146,33 @@ window.DASH = {
     "by_zone": [
      {
       "name": "West",
-      "nsv": 2682.07
+      "nsv": 3738.72
      },
      {
       "name": "South 1",
-      "nsv": 2213.13
+      "nsv": 3298.47
      },
      {
       "name": "North",
-      "nsv": 2173.92
+      "nsv": 3112.08
      },
      {
       "name": "South 2",
-      "nsv": 1319.39
+      "nsv": 1978.54
      },
      {
       "name": "East",
-      "nsv": 1104.09
+      "nsv": 1532.15
      }
     ],
     "by_channel": [
      {
       "name": "MT",
-      "nsv": 9032.06
+      "nsv": 12992.76
      },
      {
       "name": "EB2B",
-      "nsv": 452.68
+      "nsv": 659.34
      },
      {
       "name": "SIS",
@@ -722178,15 +722182,15 @@ window.DASH = {
     "by_brand": [
      {
       "name": "Mamaearth",
-      "nsv": 6196.78
+      "nsv": 9247.12
      },
      {
       "name": "The Derma Co",
-      "nsv": 3014.05
+      "nsv": 4050.47
      },
      {
       "name": "Aqualogica",
-      "nsv": 251.48
+      "nsv": 304.51
      },
      {
       "name": "BBlunt",
@@ -722206,7 +722210,7 @@ window.DASH = {
      }
     ],
     "unit": "INR Lakh",
-    "note": "EXACT FY27 primary actuals from the FULL (uncapped) article-wise primary, chain-allocated (Dist. rows split by secondary cont%). The other report blocks' source workbook ends at Mar'26, so this FY lives only here. MRP basis = 'Total MRP sales'."
+    "note": "EXACT FY27 primary actuals from the FULL (uncapped) article-wise primary, chain-allocated (Dist. rows split by secondary cont%). Apr–May from article CSVs; Jun from official workbook summary (CORRECTED_V4). MRP basis = 'Total MRP sales'."
    }
   },
   "sis_reconciliation": {

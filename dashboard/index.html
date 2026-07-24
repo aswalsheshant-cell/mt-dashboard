@@ -560,7 +560,9 @@ function buildOverview(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
   const s=document.getElementById('tab-overview');
   const fy=fyKey(), isTY=/TY target/i.test(f.method||'');
-  const yrLab={fy25:'FY25',fy26:'FY26',fy27:'FY27 Apr–May'};
+  const fp27base=D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27;
+  const _fy27lbl=fp27base&&fp27base.months_covered&&fp27base.months_covered.length?`FY27 ${fp27base.months_covered[0].slice(0,3)}–${fp27base.months_covered.slice(-1)[0].slice(0,3)}`:'FY27';
+  const yrLab={fy25:'FY25',fy26:'FY26',fy27:_fy27lbl};
   FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });  // backfill future FYs (FY28+)
   // FYs beyond the pre-agg window (FY27's Apr'26+) exist ONLY in the article-wise
   // primary -- FPX() serves exact chain-allocated aggregates so the selected FY
@@ -587,7 +589,7 @@ function buildOverview(){
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
    ${dimNote}
    <div class="kpis">
-     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–May actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
+     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
