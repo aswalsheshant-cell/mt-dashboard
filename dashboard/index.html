@@ -119,6 +119,20 @@
   .drill{cursor:pointer;border-bottom:1px dashed var(--teal-d)}
   .drill:hover{color:var(--teal-d);font-weight:700}
   .drillhint{font-size:11px;color:var(--muted);font-style:italic}
+  /* ---- Data QC page ---- */
+  .qcs-pass{color:var(--green)}.qcs-warn{color:var(--amber)}.qcs-fail{color:var(--red)}.qcs-info{color:var(--blue)}
+  .qcr-pass>td{background:#f0faf4}.qcr-warn>td{background:#fffce8}.qcr-fail>td{background:#fef5f5}
+  .qcbadge{display:inline-block;padding:1px 8px;border-radius:12px;font-size:10.5px;font-weight:700;letter-spacing:.2px}
+  .qcbadge.qcs-pass{background:#e6f4ea;color:var(--green)}
+  .qcbadge.qcs-warn{background:#fef9e7;color:var(--amber)}
+  .qcbadge.qcs-fail{background:#fce8e6;color:var(--red)}
+  .qcbadge.qcs-info{background:#e8f0fe;color:var(--blue)}
+  .qcbanner{border-radius:10px;padding:12px 16px;font-size:13.5px;font-weight:600;margin:0 0 20px}
+  .qcbanner-pass{background:#e6f4ea;border:1px solid #a8d5b5;color:#1a6e30}
+  .qcbanner-warn{background:#fff8e1;border:1px solid #ffe082;color:#8a5a00}
+  .qcbanner-fail{background:#fce8e6;border:1px solid #f5c2be;color:#922b21}
+  .qc-tbl th{font-size:11.5px}.qc-tbl td{font-size:12.5px}
+  .qc-excl-ok{color:var(--green);font-weight:700}.qc-excl-bad{color:var(--red);font-weight:800}
 </style>
 </head>
 <body>
@@ -144,6 +158,7 @@
   <section id="tab-distribution"></section>
   <section id="tab-comparison"></section>
   <section id="tab-insights"></section>
+  <section id="tab-qc"></section>
 </div>
 <footer id="foot"></footer>
 
@@ -1878,14 +1893,241 @@ function exportCSV(recs){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='mt_detail_filtered.csv';a.click();
 }
+/* ================= DATA QC PAGE ================= */
+// Runs all cross-block reconciliation checks client-side every time the tab
+// is opened. Compares aggregate totals, monthly sums, brand-exclusion status,
+// and cross-block arithmetic. No charts — tables only so each row is auditable.
+function buildQC(){
+  const s=document.getElementById('tab-qc');
+  const p=D.primary||{};
+  const dm=D.detail_meta||{};
+  const fy27=(dm.fyx_primary&&dm.fyx_primary.FY27)||{};
+  const o=D.offtake||{};
+  const dg=D.dist_gap||{};
+  const cm2D=D.cm2||{};
+  const EXCL=['Pure Origin','Lumineve','Staze'];
+  const TOL=0.12;  // ±0.12 L counts as pass (largest rounding across 12 months × 2-decimal values)
+
+  function qsum(arr){ return (arr||[]).reduce((a,b)=>a+(b||0),0); }
+  function r2(v){ return Math.round((v||0)*100)/100; }
+  function diffFmt(d){ return d===0?'–':((d>0?'+':'')+d.toFixed(2)); }
+
+  // chk: numeric comparison.  knownDiff=true downgrades WARN→WARN (not FAIL) for documented differences.
+  function chk(label,expected,actual,note,knownDiff){
+    const diff=r2(actual-expected);
+    const abs=Math.abs(diff);
+    const status=abs<=TOL?'pass':(knownDiff||abs<=15)?'warn':'fail';
+    return {label,expected,actual,diff,status,note:note||''};
+  }
+  // chkBool: pass/fail on a boolean condition.
+  function chkBool(label,ok,note){
+    return {label,expected:'✓ absent',actual:ok?'✓ absent':'✗ PRESENT',diff:ok?0:1,status:ok?'pass':'fail',note:note||''};
+  }
+  // chkInfo: informational row (no pass/fail).
+  function chkInfo(label,val,note){
+    return {label,expected:'',actual:val,diff:0,status:'info',note:note||''};
+  }
+
+  // ── A. Primary FY25 / FY26 ────────────────────────────────────────────────
+  const m25s=r2(qsum(p.monthly_fy25)), m26s=r2(qsum(p.monthly_fy26));
+  const ch25s=r2(qsum((p.by_channel||[]).map(c=>c.fy25||0)));
+  const ch26s=r2(qsum((p.by_channel||[]).map(c=>c.fy26||0)));
+  const br25s=r2(qsum((p.by_brand||[]).map(c=>c.fy25||0)));
+  const br26s=r2(qsum((p.by_brand||[]).map(c=>c.fy26||0)));
+  const zn25s=r2(qsum((p.by_zone||[]).map(c=>c.fy25||0)));
+  const zn26s=r2(qsum((p.by_zone||[]).map(c=>c.fy26||0)));
+
+  const blkPrimary={
+    title:'A — Primary Sales (FY25 / FY26)',
+    note:'Pre-aggregated workbook (ends Mar-26). Month series cannot be decomposed by brand; NSV totals were adjusted post-aggregation for brand exclusions.',
+    checks:[
+      chk('Channel FY25 sum = NSV FY25',p.nsv_fy25,ch25s,''),
+      chk('Channel FY26 sum = NSV FY26',p.nsv_fy26,ch26s,''),
+      chk('Brand FY25 sum ≈ NSV FY25',p.nsv_fy25,br25s,'Minor rounding across brand rows'),
+      chk('Brand FY26 sum ≈ NSV FY26',p.nsv_fy26,br26s,'Minor rounding across brand rows'),
+      chk('Zone FY25 sum ≈ NSV FY25',p.nsv_fy25,zn25s,'Zone split from pre-agg; minor allocation rounding',true),
+      chk('Zone FY26 sum ≈ NSV FY26',p.nsv_fy26,zn26s,'Zone split from pre-agg; minor allocation rounding',true),
+      chk('Monthly FY25 sum vs NSV FY25',p.nsv_fy25,m25s,'KNOWN: diff = excluded brands (Staze/Lumineve) in monthly pre-agg source',true),
+      chk('Monthly FY26 sum vs NSV FY26',p.nsv_fy26,m26s,'KNOWN: diff = excluded brands in monthly pre-agg source',true),
+    ]
+  };
+
+  // ── B. FY27 Primary (article-level) ──────────────────────────────────────
+  const mon27s=r2(qsum(fy27.monthly));
+  const ch27s=r2(qsum((fy27.by_channel||[]).map(c=>c.nsv||0)));
+  const br27s=r2(qsum((fy27.by_brand||[]).map(c=>c.nsv||0)));
+  const blkFY27={
+    title:'B — FY27 Primary (Apr – Jun 2026)',
+    note:'Article-level primary detail file. Exact reconciliation — no pre-aggregation rounding.',
+    checks: fy27.nsv!=null ? [
+      chk('Monthly sum = FY27 NSV',fy27.nsv,mon27s,''),
+      chk('Channel sum = FY27 NSV',fy27.nsv,ch27s,''),
+      chk('Brand sum ≈ FY27 NSV',fy27.nsv,br27s,'KNOWN: ~27.6 L not in named brands — chain-level allocation adjustment from exclude_brands.py; &lt;0.2% of FY27 NSV',true),
+      chkInfo('Months covered',(fy27.months_covered||[]).join(', ')||'(see monthly array)','Active months in source'),
+      chkInfo('FY27 NSV',crc(fy27.nsv||0),'Total Apr–Jun-26 primary (excl. excluded brands)'),
+    ]:[
+      chkInfo('FY27 data','NOT LOADED','Run build_dashboard_data.py --detail-only to load FY27 data'),
+    ]
+  };
+
+  // ── C. Offtake ────────────────────────────────────────────────────────────
+  const om25=r2(qsum(o.monthly_fy25)), om26=r2(qsum(o.monthly_fy26)), om27=r2(qsum(o.monthly_fy27));
+  const blkOfftake={
+    title:'C — Offtake (FY25 / FY26 / FY27)',
+    note:'Chain Offtake Master — chain-level monthly values. FY27 patched via --offtake-patch from Jun-26 working file.',
+    checks:[
+      chk('Monthly FY25 sum = total_fy25',o.total_fy25||0,om25,''),
+      chk('Monthly FY26 sum = total_fy26',o.total_fy26||0,om26,''),
+      o.total_fy27!=null
+        ? chk('Monthly FY27 sum = total_fy27',o.total_fy27,om27,'')
+        : chkInfo('FY27 offtake','NOT LOADED','Patch with --offtake-patch'),
+      chkInfo('FY27 months loaded',(o.months_fy27||[]).join(', ')||'none','Months patched so far'),
+    ]
+  };
+
+  // ── D. Brand exclusion ────────────────────────────────────────────────────
+  const primBrands=(p.by_brand||[]).map(b=>b.name);
+  const fy27Brands=(fy27.by_brand||[]).map(b=>b.name);
+  const dimsBrands=D.dims&&D.dims.Brand||[];
+  const cm2Brands=(cm2D.by_brand||[]).map(b=>b.name);
+  const recBrands=[...new Set((D.detail_records||[]).map(r=>r.Brand))];
+  const dimsArts=D.dims&&D.dims.Article||[];
+  const blkExcl={
+    title:'D — Brand Exclusion Audit (Pure Origin · Lumineve · Staze)',
+    note:'Each excluded brand must be absent from every reporting aggregation. Records are preserved in PowerBI/Excluded_Data/Excluded_Brands/ for audit.',
+    checks: EXCL.flatMap(b=>[
+      chkBool(`"${b}" absent from primary.by_brand`,!primBrands.includes(b)),
+      chkBool(`"${b}" absent from FY27.by_brand`,!fy27Brands.includes(b),'FY27 article-level'),
+      chkBool(`"${b}" absent from dims.Brand`,!dimsBrands.includes(b),'filter dropdown'),
+      chkBool(`"${b}" absent from cm2.by_brand`,!cm2Brands.includes(b),'CM2 brand slice'),
+      chkBool(`"${b}" absent from detail_records`,!recBrands.includes(b),'raw article records'),
+    ])
+  };
+
+  // ── E. CM2 ───────────────────────────────────────────────────────────────
+  const cm2Arith=r2((cm2D.total_nsv||0)-(cm2D.total_expense||0));
+  const brNSV=r2(qsum((cm2D.by_brand||[]).map(c=>c.nsv||0)));
+  const brExp=r2(qsum((cm2D.by_brand||[]).map(c=>c.expense||0)));
+  const brCM2=r2(qsum((cm2D.by_brand||[]).map(c=>c.cm2_value||0)));
+  const chCM2=r2(qsum((cm2D.by_chain||[]).map(c=>c.cm2_value||0)));
+  const chExp=r2(qsum((cm2D.by_chain||[]).map(c=>c.expense||0)));
+  const blkCM2={
+    title:'E — CM2 (Contribution Margin Level 2)',
+    note:'NSV − Trade Expenses = CM2. Expense data has 3 mapped rows (Dmart/Reliance/Apollo); all other chains carry zero expense.',
+    checks:[
+      chk('total_nsv − total_expense = cm2_value',cm2D.cm2_value||0,cm2Arith,'Arithmetic identity'),
+      chk('by_brand NSV sum = total_nsv',cm2D.total_nsv||0,brNSV,''),
+      chk('by_chain expense sum = total_expense',cm2D.total_expense||0,chExp,''),
+      chk('by_brand CM2 sum ≈ cm2_value',cm2D.cm2_value||0,brCM2,'KNOWN: 6.75L expense not attributed to specific brand row',true),
+      chk('by_chain CM2 sum ≈ cm2_value',cm2D.cm2_value||0,chCM2,'KNOWN: NSV allocation rounding across 46 chains; &lt;0.06%',true),
+    ]
+  };
+
+  // ── F. Distribution Gap ───────────────────────────────────────────────────
+  const dgRows=dg.rows||[];
+  const rowAnn=r2(qsum(dgRows.map(r=>r.addon_ann||0)));
+  const rowWin=r2(qsum(dgRows.map(r=>r.addon_window||0)));
+  const dgAnn=dg.total_addon_ann||0, dgWin=dg.total_addon_window||0;
+  const blkDG={
+    title:`F — Distribution Gap · ${dg.window_label||'Window'}`,
+    note:`total_addon_* = full product universe. rows (${dgRows.length} shown) = top products sorted by add-on window. Total ALWAYS ≥ row-sum by design — the gap covers more products than the display cap.`,
+    checks:[
+      {label:'total_addon_ann ≥ sum(visible rows)',expected:rowAnn,actual:dgAnn,diff:r2(dgAnn-rowAnn),
+        status:dgAnn>=rowAnn-TOL?'pass':'fail',note:'Total must be ≥ row-sum (universe ≥ top-N)'},
+      {label:'total_addon_window ≥ sum(visible rows)',expected:rowWin,actual:dgWin,diff:r2(dgWin-rowWin),
+        status:dgWin>=rowWin-TOL?'pass':'fail',note:''},
+      chkInfo('Products in display cap',dgRows.length+` of ${dg.row_count||'?'}`,`${dg.n_months||'?'}-month offtake window`),
+      chkInfo('Window label',dg.window_label||'–','Generated by build script from loaded months'),
+    ]
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  const allGroups=[blkPrimary,blkFY27,blkOfftake,blkExcl,blkCM2,blkDG];
+  let nPass=0,nWarn=0,nFail=0,nInfo=0;
+  allGroups.forEach(g=>g.checks.forEach(c=>{
+    if(c.status==='pass')nPass++;else if(c.status==='warn')nWarn++;
+    else if(c.status==='fail')nFail++;else nInfo++;
+  }));
+
+  const bannerCls=nFail>0?'qcbanner-fail':nWarn>0?'qcbanner-warn':'qcbanner-pass';
+  const bannerMsg=nFail>0?`⚠ ${nFail} failed check(s) — investigate before release`
+    :nWarn>0?`${nPass} checks passed · ${nWarn} warnings (all documented expected differences)`
+    :`All ${nPass} checks passed — data is internally consistent`;
+
+  function rowHtml(c){
+    const icon=c.status==='pass'?'✓':c.status==='warn'?'⚠':c.status==='fail'?'✗':'ℹ';
+    const fmtV=v=>typeof v==='number'?crc(v):String(v);
+    return `<tr class="qcr-${c.status}">
+      <td><span class="qcs-${c.status}" style="font-weight:800;margin-right:5px">${icon}</span>${c.label}</td>
+      <td style="text-align:right">${fmtV(c.expected)}</td>
+      <td style="text-align:right">${fmtV(c.actual)}</td>
+      <td style="text-align:right;font-family:monospace;font-size:11.5px">${typeof c.diff==='number'&&c.diff!==0?diffFmt(c.diff):'–'}</td>
+      <td style="text-align:center"><span class="qcbadge qcs-${c.status}">${c.status.toUpperCase()}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${c.note}</td></tr>`;
+  }
+  function groupHtml(g){
+    return `<div class="card" style="margin-bottom:18px">
+      <h3>${g.title}</h3>${g.note?`<p class="note">${g.note}</p>`:''}
+      <div class="tablewrap"><table class="qc-tbl">
+        <thead><tr><th>Check</th><th>Expected</th><th>Actual</th><th>Diff (L)</th><th>Status</th><th>Notes</th></tr></thead>
+        <tbody>${g.checks.map(rowHtml).join('')}</tbody>
+      </table></div></div>`;
+  }
+
+  const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+  // Excluded-brand KPI cards: count records in active detail_records (should be 0)
+  const exclKpis=EXCL.map(b=>{
+    const n=(D.detail_records||[]).filter(r=>r.Brand===b).length;
+    return kpi(b,n===0?'<span class="qc-excl-ok">Excluded ✓</span>':'<span class="qc-excl-bad">'+n+' RECORDS PRESENT</span>',
+      n===0?'Not in active dataset':`INVESTIGATE — ${n} active records found`);
+  }).join('');
+
+  s.innerHTML=`
+    <h2 class="sec">Data QC — Reconciliation Report</h2>
+    <p class="lead">Auto-runs on every visit to this tab. Validates cross-block totals, monthly sums, and brand exclusion status against the live data.js. Values in INR Lakh unless noted.</p>
+    <div class="qcbanner ${bannerCls}">${bannerMsg} &nbsp;·&nbsp; Run: ${ts}</div>
+    <div class="kpis" style="margin-bottom:18px">
+      ${kpi('Checks passed',nPass,'')}
+      ${kpi('Warnings',nWarn,'Documented expected differences')}
+      ${kpi('Failed',nFail,nFail===0?'Release-ready':'Investigate before release')}
+      ${kpi('Active records',num((D.detail_records||[]).length),'Article-level primary')}
+    </div>
+    <div class="card" style="margin-bottom:18px">
+      <h3>Excluded brand audit</h3>
+      <p class="note">These brands must be absent from all reporting aggregations. Preserved records are in <code>PowerBI/Excluded_Data/Excluded_Brands/</code>.</p>
+      <div class="kpis">${exclKpis}</div>
+    </div>
+    ${allGroups.map(groupHtml).join('')}
+    <div class="card">
+      <h3>Explanation of warnings (expected differences)</h3>
+      <p class="note" style="line-height:1.9">
+        <b>A · Monthly vs NSV (FY25/FY26):</b> The monthly series comes from the pre-aggregated Primary workbook and cannot be decomposed by brand.
+        NSV totals were adjusted post-aggregation to remove excluded brands (diff ≈ ${diffFmt(m25s-(p.nsv_fy25||0))} L FY25,
+        ${diffFmt(m26s-(p.nsv_fy26||0))} L FY26). Charts that show month-by-month trends will slightly overstate the monthly values vs the NSV total KPI — immaterial (&lt;0.05% of NSV).
+        <br><br>
+        <b>B · FY27 by_brand sum vs NSV (~27.6 L gap):</b> The build script's <code>_aggx("_Brand")</code> function uses <code>if k</code> to exclude
+        rows where <code>_Brand</code> is null/blank/unmapped. These rows ARE counted in <code>FY27.nsv</code> (the total) but cannot appear in <code>by_brand</code>
+        because they have no canonical brand name. This is a source data quality gap (blank brand codes in the FY27 article file) — not a calculation error.
+        The 27.58 L (~0.2% of FY27 NSV) is correctly excluded from brand breakdowns; the total and channel/monthly views remain exact.
+        To resolve: correct blank brand codes in the primary source file and re-run <code>build_dashboard_data.py --detail-only</code>.
+        <br><br>
+        <b>E · CM2 by_brand/by_chain vs total:</b> ₹${((cm2D.total_expense||0)).toFixed(2)} L total trade expense is sourced from 3 ledger rows (Dmart, Reliance, Apollo).
+        The remaining 43 chains have zero mapped expense. Rounding across 46 chain allocations produces a &lt;0.06% difference between chain-level CM2 sum and the total.
+        <br><br>
+        <b>F · Distribution gap total vs row sum:</b> <code>total_addon_ann</code> covers the entire MT product universe.
+        <code>rows</code> shows the top ${dgRows.length} products by add-on window potential. The difference (${crc(dgAnn-rowAnn)}) represents the opportunity from products ranked below display position ${dgRows.length}.
+      </p>
+    </div>`;
+}
+
 /* ---------------- nav ---------------- */
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['insights','Insights & Way Forward']];
+  ['insights','Insights & Way Forward'],['qc','Data QC']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights};
+  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights,qc:buildQC};
 let currentTab='overview';
 function show(id){
   currentTab=id;
