@@ -2290,6 +2290,7 @@ const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,
   distribution:buildDistribution,comparison:buildComparison,insights:buildInsights,analyst:buildAnalyst};
 let currentTab='overview';
 function show(id){
+  const tabChanged=id!==currentTab;
   currentTab=id;
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
   document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id==='tab-'+id));
@@ -2304,7 +2305,10 @@ function show(id){
     destroyCharts();
     expDestroy();
     BUILD[id]();
-    window.scrollTo({top:0,behavior:'smooth'});
+    // Only scroll to top on tab switch, not on within-tab drill/filter re-renders
+    // (re-renders call show(currentTab) with the same id -- scrolling to top there
+    // would jump the user away from the chart they just clicked).
+    if(tabChanged) window.scrollTo({top:0,behavior:'smooth'});
   },0);
 }
 (function init(){
