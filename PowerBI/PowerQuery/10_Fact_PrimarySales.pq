@@ -4,11 +4,27 @@
 // Primary is maintained WEEKLY (date/week-wise) so MoM is built by rolling
 // the weekly rows up to Month via the Date table.
 // =====================================================================
+// Grain confirmed: one row per Week x Store x Article per source file.
+// To verify uniqueness after load: group by {Week Start Date, Store Code, Article Code}
+// and assert max count = 1.
+// Diagnostic row-count checkpoints (click the named step in Applied Steps):
+//   Source -> RequiredCols -> Typed -> Trimmed -> CleanKeys -> Cleaned
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Weekly"),
 
+    // Fail-fast if any required column is absent — catches header renames before
+    // type errors cascade into cryptic downstream failures.
+    RequiredCols = let
+        required = {"Week Start Date", "Primary NSV", "Primary Qty",
+                    "Brand", "Category", "Chain", "Zone", "State", "Article Code"},
+        missing = List.Select(required, each not List.Contains(Table.ColumnNames(Source), _))
+        in if List.Count(missing) > 0
+           then error Error.Record("Missing required columns",
+                    "Absent from source: " & Text.Combine(missing, ", "), null)
+           else Source,
+
     // enforce types on the standard columns
-    Typed = Table.TransformColumnTypes(Source, {
+    Typed = Table.TransformColumnTypes(RequiredCols, {
         {"Week Start Date", type date},
         {"Month", type text},
         {"FY Year", type text},
@@ -61,7 +77,10 @@ let
     AddMonthStart = Table.AddColumn(CleanKeys, "MonthStart",
         each Date.StartOfMonth([Week Start Date]), type date),
 
-    // P3: keep rows with a value AND a parseable period (reconciliation-safe)
+    // P3: keep rows with a value AND a parseable period (reconciliation-safe).
+    // null-vs-zero: NSV = 0 is kept (promotional/FOC lines); NSV < 0 is kept
+    // (returns and credit notes are VALID business data, not errors). Only true
+    // null (missing value sentinel) is excluded here.
     Cleaned = Table.SelectRows(AddMonthStart,
         each [MonthStart] <> null and ([Primary NSV] <> null or [Primary Qty] <> null))
 in

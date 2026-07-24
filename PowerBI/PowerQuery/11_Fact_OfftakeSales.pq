@@ -16,14 +16,29 @@
 // (rupees). This is the secondary/offtake validation base for the article
 // eligibility gate (DAX 09) — no allocation logic changed here.
 // =====================================================================
+// Grain confirmed: one row per Month x Site(Store) x Article per source file.
+// To verify uniqueness after load: group by {MonthStart, Store Code, EAN Code}
+// and assert max count = 1.
+// Diagnostic row-count checkpoints (click the named step in Applied Steps):
+//   Source -> RequiredCols -> Picked -> Renamed -> Typed -> Trimmed -> CleanKeys -> Cleaned
 let
     // Workflow A: drop the splitter's month CSVs (clean header on row 0).
     // (If instead you drop the RAW offtake workbook — blank first row — pass 1.)
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Offtake_Monthly", 0),
 
+    // Fail-fast if any required column is absent in the source folder files.
+    RequiredCols = let
+        required = {"Month", "Year", "Chain Name", "Zone", "State",
+                    "Site Code", "Site Name", "Brand", "Category", "NSV", "Sales Qty"},
+        missing = List.Select(required, each not List.Contains(Table.ColumnNames(Source), _))
+        in if List.Count(missing) > 0
+           then error Error.Record("Missing required columns",
+                    "Absent from offtake source: " & Text.Combine(missing, ", "), null)
+           else Source,
+
     // keep the columns the model needs (renaming only where required to hit the
     // canonical Fact Offtake Sales fields used by relationships & measures)
-    Picked = Table.SelectColumns(Source, {
+    Picked = Table.SelectColumns(RequiredCols, {
         "Month", "Year", "Revised Month",
         "Chain Name", "Zone", "State", "City",
         "Site Code", "Site Name", "Store Type", "DC Name",
@@ -132,6 +147,8 @@ let
     // P3: keep rows with a value AND a parseable period. Null-MonthStart rows
     // would drop out of time visuals yet stay in grand totals -> reconciliation
     // gap; excluding them keeps time and total views consistent.
+    // null-vs-zero: Offtake NSV = 0 is kept (promotional/scan-based zeroes);
+    // NSV < 0 is kept (return authorisations are VALID, not errors).
     Cleaned = Table.SelectRows(AddMonthStart,
         each [MonthStart] <> null and ([Offtake NSV] <> null or [Offtake Qty] <> null))
 in

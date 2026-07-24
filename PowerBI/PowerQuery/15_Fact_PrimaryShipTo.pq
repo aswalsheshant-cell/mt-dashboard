@@ -15,10 +15,23 @@
 // normalised and NSV (received in Lacs) is converted to absolute rupees so
 // it lines up with Fact Offtake Sales.
 // =====================================================================
+// Grain confirmed: one row per Month x Ship-To x Chain x Brand.
+// Diagnostic row-count checkpoints (click the named step in Applied Steps):
+//   Source -> RequiredCols -> Typed -> Trimmed -> FixBrand -> FixChain7 -> Scaled -> Cleaned
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_ShipTo_Monthly"),
 
-    Typed = Table.TransformColumnTypes(Source, {
+    // Fail-fast if any required column is absent.
+    RequiredCols = let
+        required = {"Month", "Ship To Name", "Chain", "Brand",
+                    "Primary NSV", "Cont%", "Zone", "State"},
+        missing = List.Select(required, each not List.Contains(Table.ColumnNames(Source), _))
+        in if List.Count(missing) > 0
+           then error Error.Record("Missing required columns",
+                    "Absent from Primary ShipTo source: " & Text.Combine(missing, ", "), null)
+           else Source,
+
+    Typed = Table.TransformColumnTypes(RequiredCols, {
         {"Month", type text},
         {"MonthStart", type date},
         {"FY Year", type text},
@@ -76,7 +89,9 @@ let
                then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    // P3: require a value AND a parseable period (MonthStartCalc is the resolved period)
+    // P3: require a value AND a parseable period (MonthStartCalc is the resolved period).
+    // null-vs-zero: NSV = 0 kept (e.g. Cont% allocation producing zero-value row);
+    // NSV < 0 kept (credit notes / returns are VALID business data, not errors).
     Cleaned = Table.SelectRows(AddMonthStart, each [MonthStartCalc] <> null and [Primary NSV] <> null)
 in
     Cleaned

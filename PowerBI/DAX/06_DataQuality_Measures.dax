@@ -17,6 +17,9 @@ Missing EAN      = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fac
 
 // ---- Bad values ----
 Blank NSV Values    = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', ISBLANK ( 'Fact Offtake Sales'[Offtake NSV] ) ) )
+// Informational ONLY — negative NSV = returns / credit notes (valid business data).
+// NOT included in Rows With Any Issue or Data Health %. Review monthly spikes as
+// a reconciliation signal, not as data errors.
 Negative Sales Values = CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ), FILTER ( 'Fact Offtake Sales', 'Fact Offtake Sales'[Offtake NSV] < 0 ) )
 
 // ---- Duplicates ----

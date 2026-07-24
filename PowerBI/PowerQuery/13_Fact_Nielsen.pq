@@ -1,10 +1,24 @@
 // =====================================================================
 // QUERY: Fact Nielsen Market Share  (grain = Month x Nielsen Category x Brand x Zone)
 // Source = RawDataFolders\Nielsen_Monthly
+// Grain confirmed: one row per Month x Nielsen Category x Brand x Zone.
+// Diagnostic row-count checkpoints (click the named step in Applied Steps):
+//   Source -> RequiredCols -> Typed -> CleanText -> AddMonthStart -> Cleaned
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Monthly"),
-    Typed = Table.TransformColumnTypes(Source, {
+
+    // Fail-fast if any required column is absent.
+    RequiredCols = let
+        required = {"Month", "FY Year", "Nielsen Category", "Brand", "Zone",
+                    "Market Value Sales", "Our Brand Sales", "Value Market Share %"},
+        missing = List.Select(required, each not List.Contains(Table.ColumnNames(Source), _))
+        in if List.Count(missing) > 0
+           then error Error.Record("Missing required columns",
+                    "Absent from Nielsen source: " & Text.Combine(missing, ", "), null)
+           else Source,
+
+    Typed = Table.TransformColumnTypes(RequiredCols, {
         {"Month", type text},
         {"FY Year", type text},
         {"Nielsen Category", type text},

@@ -30,6 +30,13 @@ ADDCOLUMNS(
     // label used everywhere in the deck, e.g. May'26
     "Month",           FORMAT([Date], "mmm") & "'" & FORMAT([Date], "yy"),
     "Month Year Sort", YEAR([Date]) * 100 + MONTH([Date]),
+    // D3: numeric FY sort key so [FY Year] (text "25-26") can be sorted correctly
+    // in visuals. Formula: FY_number * 100 + FY_Month_No, where FY_number for
+    // FY27 = 27. This guarantees Apr-FY27 (2701) < Mar-FY27 (2712) < Apr-FY28 (2801).
+    "FY Sort",
+        VAR _fyNum = IF(MONTH([Date]) >= 4, YEAR([Date]) - 1999, YEAR([Date]) - 2000)
+        VAR _fyMo  = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
+        RETURN _fyNum * 100 + _fyMo,
     "Is Future",       IF([Date] > TODAY(), TRUE(), FALSE())
 )
 
@@ -38,6 +45,7 @@ ADDCOLUMNS(
 //   [Month]      sort by [Month Year Sort]
 //   [Month Name] sort by [Month No]
 //   [Quarter]    sort by [FY Month No]
+//   [FY Year]    sort by [FY Sort]
 // Relationships (single direction, 1 -> *):
 //   Date Table[MonthStart] -> Fact Offtake Sales[MonthStart]
 //   Date Table[Date]       -> Fact Primary Sales[Week Start Date]

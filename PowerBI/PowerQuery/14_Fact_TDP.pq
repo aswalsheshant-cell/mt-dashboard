@@ -1,13 +1,27 @@
 // =====================================================================
-// QUERY: Fact TDP / Distribution  (grain = Month x Chain x Article ...)
+// QUERY: Fact TDP / Distribution  (grain = Month x Chain x Article)
 // Source = RawDataFolders\TDP_Monthly
 // TDP (Total Distribution Points) = SUM of ACV % across SKUs. The SUM is
 // done in DAX so it rolls up correctly at Brand / Category / Chain / Zone /
 // Article / Pack-size level. This query just lands the per-SKU ACV %.
+// Grain confirmed: one row per Month x Chain x Article Code.
+// Diagnostic row-count checkpoints (click the named step in Applied Steps):
+//   Source -> RequiredCols -> Typed -> Trimmed -> CleanKeys -> AddMonthStart -> Cleaned
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\TDP_Monthly"),
-    Typed = Table.TransformColumnTypes(Source, {
+
+    // Fail-fast if any required column is absent.
+    RequiredCols = let
+        required = {"Month", "FY Year", "Chain", "Zone", "Brand", "Category",
+                    "Article Code", "Article Description", "ACV %"},
+        missing = List.Select(required, each not List.Contains(Table.ColumnNames(Source), _))
+        in if List.Count(missing) > 0
+           then error Error.Record("Missing required columns",
+                    "Absent from TDP source: " & Text.Combine(missing, ", "), null)
+           else Source,
+
+    Typed = Table.TransformColumnTypes(RequiredCols, {
         {"Month", type text},
         {"FY Year", type text},
         {"Chain", type text},

@@ -32,6 +32,12 @@
 // NOTE the flag lives in **PO Type** (Direct / Dist.), NOT in MTD-Sale type
 // (which holds Sales / MRN / Cancel Invoice / FOC).
 // =====================================================================
+// Grain confirmed: Month x Customer(Ship-to) x Chain x Brand x Article (after DIST allocation
+// each Dist. row becomes one row per Chain). To verify: group by {MonthStart, Chain, EAN Code}
+// and check for unexpected duplicates from the allocation join.
+// Diagnostic row-count checkpoints (click the named step in Applied Steps):
+//   Source -> FixedNames -> RequiredCols -> Picked -> Renamed -> Typed -> CleanKeys -> Cleaned
+//   -> DirectRows / DistRows -> Combined -> FixBrand
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Article_Monthly"),
 
@@ -40,7 +46,18 @@ let
     FixedNames = Table.TransformColumnNames(Source, each
         Text.Trim(Text.Replace(Text.Replace(Text.Replace(_, "#(lf)", " "), "#(cr)", " "), "  ", " "))),
 
-    Picked = Table.SelectColumns(FixedNames, {
+    // Fail-fast if any required column is absent after header normalisation.
+    RequiredCols = let
+        required = {"FY", "Month", "Ship To Name", "EAN No.", "brand",
+                    "Inv Qty", "Inv. Net value(LOC)", "PO Type", "Chain name for Dashboard"},
+        missing = List.Select(required, each not List.Contains(Table.ColumnNames(FixedNames), _))
+        in if List.Count(missing) > 0
+           then error Error.Record("Missing required columns",
+                    "Absent from Primary Article source (after header normalisation): "
+                    & Text.Combine(missing, ", "), null)
+           else FixedNames,
+
+    Picked = Table.SelectColumns(RequiredCols, {
         "FY", "Month", "Channel", "Inv. Date", "Cust-SAP Code", "Ship To Name",
         "EAN No.", "net_content", "brand", "PPT Category",
         "category", "sub_category", "range", "Description", "MRP",
@@ -102,7 +119,9 @@ let
                 in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    // P3: require a parseable period so time-view and grand totals reconcile
+    // P3: require a parseable period so time-view and grand totals reconcile.
+    // null-vs-zero: NSV = 0 kept (FOC / promo lines); NSV < 0 kept (MRN /
+    // Cancel Invoice rows — VALID returns, not data errors).
     Cleaned = Table.SelectRows(AddMonthStart,
         each [MonthStart] <> null and ([Primary NSV] <> null or [Primary Qty] <> null)),
 

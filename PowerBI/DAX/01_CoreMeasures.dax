@@ -55,20 +55,25 @@ YoY Growth % =
 DIVIDE ( [NSV] - [Last Year Same Month NSV], [Last Year Same Month NSV] )
 
 // ---------- ROLLING AVERAGES ----------
+// D3: divide by the count of distinct months with actual data in the rolling
+// window — not by the constant 3 or 6 — so the average is correct at data-start
+// and in sparse periods (e.g. only 2 months available in a 3-month window).
 L3M Average Sales =
 VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
+VAR _window = DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -3, MONTH )
 RETURN
-    CALCULATE (
-        DIVIDE ( [NSV], 3 ),
-        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -3, MONTH )
+    DIVIDE (
+        CALCULATE ( [NSV], _window ),
+        CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[MonthStart] ), _window )
     )
 
 L6M Average Sales =
 VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
+VAR _window = DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -6, MONTH )
 RETURN
-    CALCULATE (
-        DIVIDE ( [NSV], 6 ),
-        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -6, MONTH )
+    DIVIDE (
+        CALCULATE ( [NSV], _window ),
+        CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[MonthStart] ), _window )
     )
 
 Growth vs L3M % = DIVIDE ( [NSV] - [L3M Average Sales], [L3M Average Sales] )
