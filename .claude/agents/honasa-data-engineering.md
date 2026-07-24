@@ -122,6 +122,6 @@ engine writes to `dashboard/`.
 |---|---|---|
 | D1 | Is COGS inside the CM2 definition? | PENDING |
 | D9 | Activate direct allocation rules | PENDING |
-| D13 | `fyx_primary.FY27.mrp` understated ~9,286.58 L — no brand filter, Jun-26 absent | PENDING |
+| D13 | `fyx_primary.FY27.mrp` understated ~9,286.58 L — no brand filter, Jun-26 absent | **RESOLVED 2026-07-24**: corrected to 31,336.79 L via `scripts/fix_d13_mrp.py`; build script fixed at line 2300 |
 | CM2-CHAIN | Net-negative chains dropped from `by_chain` (`build_dashboard_data.py:1434`) | Open |
 | — | `PL_Expense_Input.csv` holds 3 EXAMPLE rows; CM2 expense ratio 0.1% is not real | Open |

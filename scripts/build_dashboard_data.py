@@ -2294,10 +2294,14 @@ def detail_records_real(src, max_rows=20000):
                 named.append({"name": unmapped_label, "nsv": r2(blank_nsv)})
             return named
         mser = fx.groupby("_M")["_NSV"].sum()
+        # D13 fix: exclude rows where _Brand is None (excluded brands: Pure Origin,
+        # Lumineve, Staze) from the MRP aggregate. NSV already excludes them via
+        # _aggx which ignores None-keyed groups when unmapped_label is None.
+        _fx_included = fx.loc[fx["_Brand"].notna()]
         fyx_primary[_tag] = {
             "tag": _tag,
             "nsv": r2(float(fx["_NSV"].sum())),
-            "mrp": r2(float(fx["_MRP"].sum())),
+            "mrp": r2(float(_fx_included["_MRP"].sum())),
             "months_covered": [m for m in _ORDER if m in set(fx["_M"])],
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
             "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone"),
