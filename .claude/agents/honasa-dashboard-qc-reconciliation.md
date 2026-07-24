@@ -72,8 +72,13 @@ EXCEPTIONS / NOT READY.
 - NSV − expense = cm2_value (arithmetic identity)
 - by_brand NSV sum = total_nsv
 - by_chain expense sum = total_expense
-- by_brand CM2 sum ≈ cm2_value (KNOWN: unattributed expense)
-- by_chain CM2 sum ≈ cm2_value (KNOWN: allocation rounding)
+- by_brand CM2 sum ≈ cm2_value (unattributed expense — hand to the CM2 skill, see below)
+- by_chain CM2 sum ≈ cm2_value (**not** rounding — hand to the CM2 skill, see below)
+
+> Do **not** label a CM2 component difference "allocation rounding". Compute the maximum
+> theoretical rounding difference (line count × 0.5 × 10^−precision) and compare. The current
+> `by_chain` difference is 22.84 L against a 0.23 L rounding ceiling — 99× too large to be
+> rounding. Escalate to `honasa-cm2-expense-classification`.
 
 ### F — Distribution Gap
 - total_addon_ann ≥ sum(visible rows)
@@ -85,6 +90,29 @@ EXCEPTIONS / NOT READY.
 - detail_records null Brand/Channel/Zone/Category/SubCategory/Range counts
 - EAN conflict check (same EAN → multiple brands in detail_records)
 - NaN/undefined in NSV/MRP/Qty fields
+
+## CM2 & expense escalation → `honasa-cm2-expense-classification`
+
+This skill owns dashboard-wide QC. It does **not** own expense classification or allocation.
+Invoke the `honasa-cm2-expense-classification` skill — and stop for approval before touching
+production CM2 — whenever any of these is detected:
+
+- a new expense file is supplied (payroll, claims, visibility, trade spend, COGS)
+- an unknown or unmapped expense head appears
+- unallocated expense exists in any bucket
+- a Brand CM2 difference (`by_brand` expense sum ≠ `total_expense`)
+- a Chain CM2 difference (`by_chain` expense or NSV sum ≠ the total)
+- a GST-basis conflict (excl-GST / GST / incl-GST mixed or ambiguous)
+- provisional, accrued or pending claims (e.g. blank `Final Status`)
+- a missing or `DRAFT` / `BLOCKED` allocation rule
+- any CM2 reconciliation WARN
+- a change to the CM2 formula or its version
+
+Governing configs (single source of truth — never hard-code a business rule here):
+`config/cm2_expense_taxonomy.csv`, `config/cm2_allocation_rules.csv`, `config/cm2_formula.csv`.
+
+While `config/cm2_formula.csv` has `Status = DRAFT`, every CM2 figure in this report must be
+labelled **CM2 PROVISIONAL — FORMULA APPROVAL PENDING**.
 
 ## EAN mapping protocol (when source file is available)
 

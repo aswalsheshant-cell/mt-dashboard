@@ -1,0 +1,17 @@
+Source_Expense_Name,Source_File,Source_Sheet,First_Seen_Period,Occurrences,Amount_Excl_GST_L,Proposed_Expense_Group,Proposed_Expense_Head,Status,Raised_On,Owner,Resolution_Notes
+MT,MT_Spend.xlsx,BA ,Apr-26,85,,SHARED OR CORPORATE,Untagged Expense,OPEN,2026-07-24,Trade Marketing,"Chain Name token 'MT' is a channel label, not a retail chain. Cannot map to a dashboard chain. Held in Unallocated Chain Expense."
+SIS,MT_Spend.xlsx,BA ,Apr-26,77,,VISIBILITY AND RENTAL,SIS,OPEN,2026-07-24,Trade Marketing,Shop-in-shop deployment location used as a Chain Name. Needs a parent chain before the cost can be booked.
+BKD,MT_Spend.xlsx,BA ,Apr-26,28,,SHARED OR CORPORATE,Untagged Expense,OPEN,2026-07-24,Trade Marketing,Unrecognised abbreviation. Expansion required from Trade Marketing.
+RAJ MANDIR,MT_Spend.xlsx,BA ,Apr-26,130,,SHARED OR CORPORATE,Untagged Expense,OPEN,2026-07-24,Trade Marketing,Regional chain absent from the dashboard chain dimension. Confirm whether it is in MT scope.
+MANISH AGENCY,MT_Spend.xlsx,BA ,Apr-26,8,,SHARED OR CORPORATE,Untagged Expense,OPEN,2026-07-24,Trade Marketing,Reads as a distributor name rather than a chain.
+SODHI SUPER,MT_Spend.xlsx,BA ,Apr-26,16,,SHARED OR CORPORATE,Untagged Expense,OPEN,2026-07-24,Trade Marketing,Regional chain absent from the dashboard chain dimension.
+KIA BAZAR,MT_Spend.xlsx,BA ,Apr-26,4,,SHARED OR CORPORATE,Untagged Expense,OPEN,2026-07-24,Trade Marketing,Regional chain absent from the dashboard chain dimension.
+MAX BAZAR,MT_Spend.xlsx,BA ,Apr-26,5,,SHARED OR CORPORATE,Untagged Expense,OPEN,2026-07-24,Trade Marketing,Regional chain absent from the dashboard chain dimension. Possibly 'Max Hyper' which does exist in cm2.by_chain.
+FLOATER,MT_Spend.xlsx,BA ,Apr-26,28,,FIELD FORCE COST,Other MT People Cost,OPEN,2026-07-24,HR/Trade,DESIGNATION outside the BA/Supervisor/Merchandiser hierarchy.
+PROMOTER,MT_Spend.xlsx,D-Mart,Apr-26,1489,,FIELD FORCE COST,Other MT People Cost,OPEN,2026-07-24,HR/Trade,Largest designation on the D-Mart sheet (1489 of 1782 rows). Confirm whether promoter cost is merchandiser cost for CM2.
+TEAM LEADER,MT_Spend.xlsx,D-Mart,Apr-26,84,,FIELD FORCE COST,Other MT People Cost,OPEN,2026-07-24,HR/Trade,Supervisory designation on the D-Mart sheet.
+SALES OFFICER,MT_Spend.xlsx,D-Mart,Apr-26,4,,FIELD FORCE COST,Other MT People Cost,OPEN,2026-07-24,HR/Trade,Confirm whether a Sales Officer is MT field-force cost or a GT/company role.
+BUSINESS DEVELOPMENT EXECUTIVE (BDE),MT_Spend.xlsx,Sups,Apr-26,10,,FIELD FORCE COST,Other MT People Cost,OPEN,2026-07-24,HR/Trade,Designation on the supervisor sheet.
+Lead Supervisor,MT_Spend.xlsx,Sups,Apr-26,4,,FIELD FORCE COST,Supervisor CTC,OPEN,2026-07-24,HR/Trade,Likely a Supervisor variant. Confirm before folding into SUPERVISOR.
+SENIOR SUPERVISOR,MT_Spend.xlsx,Sups,Apr-26,6,,FIELD FORCE COST,Supervisor CTC,OPEN,2026-07-24,HR/Trade,Likely a Supervisor variant. Confirm before folding into SUPERVISOR.
+(no Expense Head column),MTIndirect_Claim_April_26_to_June_26.xlsb,Sheet1,Apr-26,58,818.45,TRADE EXPENSE,Indirect Claim Base,OPEN,2026-07-24,Finance,"The file carries no expense-head column at all. Head is inferred from the file itself, which is an assumption Finance must confirm."

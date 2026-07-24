@@ -1,0 +1,32 @@
+Field_Name,Data_Type,Required,Allowed_Values,Description
+Expense_Record_ID,string,YES,sha256 hex (16 chars),Deterministic ID = sha256(Source_File|Source_Sheet|Source_Row|Expense_Head|Period|Amount_Excl_GST_L)[:16]. NEVER Python hash() - PYTHONHASHSEED randomises it per process and breaks build reproducibility.
+Source_File,string,YES,,Originating file name exactly as supplied.
+Source_Sheet,string,NO,,Worksheet or tab name; blank for CSV sources.
+Source_Row,integer,YES,,"1-based row number in the source sheet, for audit trace-back."
+Period,string,YES,Mon-YY,"Canonical month label, e.g. Jun-26."
+Financial_Year,string,YES,FYnn,Derived via THE ONE FY RULE from Period. Apr-Dec Y -> FY(Y+1); Jan-Mar Y -> FY(Y). Never from column position.
+Expense_Group,string,YES,PRODUCT COST;TRADE EXPENSE;FIELD FORCE COST;VISIBILITY AND RENTAL;SHARED OR CORPORATE;TAX,From cm2_expense_taxonomy.csv.
+Expense_Subgroup,string,YES,,From cm2_expense_taxonomy.csv.
+Expense_Head,string,YES,,Normalized_Expense_Head from the taxonomy. Unknown source names land in 'Unmapped Expense Head'.
+Expense_Type,string,NO,FIXED;VARIABLE;SEMI_VARIABLE;UNKNOWN,Cost behaviour.
+Chain_Raw,string,NO,,Chain string exactly as it appeared in the source.
+Chain_Canonical,string,NO,,Result of canon_chain(). Blank when unresolved - blank is meaningful and must never be back-filled by guessing.
+Brand_Raw,string,NO,,Brand string exactly as it appeared in the source.
+Brand_Canonical,string,NO,,"Result of canon_brand(). Excluded brands (Pure Origin, Lumineve, Staze) are routed out, never aggregated."
+Zone,string,NO,,Canonical zone.
+Employee_or_Distributor_ID,string,NO,,MASTER ID for payroll rows; Distributor Code for claim rows.
+Amount_Excl_GST_L,"decimal(18,6)",YES,,"Base amount in INR Lakh, exclusive of GST. Exact Decimal, unrounded."
+GST_Amount_L,"decimal(18,6)",NO,,"GST component in INR Lakh, held separately. Never folded into the base."
+Amount_Incl_GST_L,"decimal(18,6)",NO,,Base + GST. Memo only - never summed into CM2 alongside the base.
+Balance_Provision_L,"decimal(18,6)",NO,,Carry-forward provision in INR Lakh. Never added to current-period claims without approval.
+Accounting_Status,string,YES,ACTUAL;PROVISIONAL;ACCRUED;PENDING;REJECTED;REVERSED,"Provisional and actual are reported separately, never blended."
+CM2_Inclusion_Status,string,YES,INCLUDE;EXCLUDE;PENDING_APPROVAL,Governed by cm2_expense_taxonomy.csv. Never a blank or yes/no flag.
+Included_CM2_Amount_L,"decimal(18,6)",YES,,Amount actually entering CM2. Zero when CM2_Inclusion_Status is EXCLUDE or PENDING_APPROVAL.
+Allocation_Rule_ID,string,YES,ALLOC-nnn,Rule applied. ALLOC-000 means retained unallocated.
+Allocation_Driver_Value,"decimal(18,6)",NO,,"Raw driver value (store count, NSV share numerator) before percentage conversion."
+Allocation_Percentage,"decimal(18,12)",NO,,Share of the source amount sent to this target. Must total exactly 1.0 per source record.
+Allocated_Amount_L,"decimal(18,6)",YES,,Amount landed on the target grain. Sum across targets must equal the source amount exactly.
+Allocation_Status,string,YES,DIRECT;ALLOCATED;UNALLOCATED_BRAND;UNALLOCATED_CHAIN;SHARED_MT;BLOCKED,Visible bucket the amount ended in.
+Mapping_Status,string,YES,MAPPED;UNMAPPED_HEAD;UNMAPPED_CHAIN;UNMAPPED_BRAND;UNMAPPED_MULTI,Which dimensions failed to resolve.
+Approval_Status,string,YES,APPROVED;PENDING_APPROVAL;BLOCKED,Whether every rule touching this row is approved.
+Rule_Version,string,YES,,Version of the taxonomy/allocation config that produced the row.
