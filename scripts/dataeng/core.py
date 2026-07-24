@@ -1,0 +1,214 @@
+"""Shared primitives for the Honasa MT data-engineering skills.
+
+Everything downstream speaks in Findings. A skill never prints a verdict of its
+own -- it returns Findings and lets the reporter decide severity roll-up. That
+keeps every engine independently testable and composable.
+"""
+from __future__ import annotations
+
+import dataclasses
+import hashlib
+import json
+import pathlib
+import re
+import subprocess
+from decimal import Decimal
+from typing import Any, Iterable
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
+DATA_JS = ROOT / "dashboard" / "data.js"
+CONFIG_DIR = ROOT / "config"
+OUT_DIR = ROOT / "outputs" / "dataeng"
+
+# Project-wide reconciliation tolerance, INR Lakh (see the QC skill).
+PASS_TOLERANCE_L = Decimal("0.12")
+
+EXCLUDED_BRANDS = {"pure origin", "lumineve", "staze"}
+
+SEVERITIES = ("PASS", "INFO", "WARN", "FAIL", "BLOCKED")
+_SEV_RANK = {s: i for i, s in enumerate(SEVERITIES)}
+
+MONTHS_FY = ["Apr", "May", "Jun", "Jul", "Aug", "Sep",
+             "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
+_MON_NUM = {m: i for i, m in enumerate(
+    ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], start=1)}
+
+
+# ---------------------------------------------------------------- THE ONE FY RULE
+def fy_tag_from_ym(month: str, year: int) -> str:
+    """Apr-Dec of year Y -> FY(Y+1); Jan-Mar of year Y -> FY(Y).
+
+    Derived from month + year only, never from a column index, so FY28+ appear
+    automatically as their months arrive.
+    """
+    m = _MON_NUM[month[:3].title()]
+    fy_year = year + 1 if m >= 4 else year
+    return f"fy{fy_year % 100:02d}"
+
+
+def fy_tag_from_label(label: str) -> str | None:
+    """'Jun-26' / \"Jun'26\" -> 'fy27'."""
+    m = re.match(r"([A-Za-z]{3,})[-'’\s]*(\d{2,4})", str(label).strip())
+    if not m or m.group(1)[:3].title() not in _MON_NUM:
+        return None
+    yy = int(m.group(2))
+    return fy_tag_from_ym(m.group(1), 2000 + yy if yy < 100 else yy)
+
+
+def parse_month_cell(val: Any) -> str | None:
+    """Row-level month cell -> 'Mon-YY'.
+
+    Mirrors build_dashboard_data.py::_offtake_row_month: a single source column
+    legitimately carries BOTH text labels ("Apr'26") and Excel serial numbers
+    (46113.0), because the text label was never applied upstream on some rows.
+    Treating a serial as unparseable produces false schema-defect reports.
+    """
+    import datetime
+    if val is None:
+        return None
+    s = str(val).strip()
+    if not s:
+        return None
+    m = re.match(r"([A-Za-z]{3,})['’\-\s]*(\d{2,4})", s)
+    if m and m.group(1)[:3].title() in _MON_NUM:
+        return f"{m.group(1)[:3].title()}-{m.group(2)[-2:]}"
+    try:
+        serial = float(s)
+    except ValueError:
+        return None
+    # Excel serial range roughly 1900-01-01 .. 2100
+    if 20000 <= serial <= 80000:
+        d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=serial)
+        return f"{d.strftime('%b')}-{d.strftime('%y')}"
+    return None
+
+
+def fy_months(fy_tag: str) -> list[str]:
+    """Ordered 'Mon-YY' labels for a FY tag, e.g. fy27 -> Apr-26 .. Mar-27."""
+    end = 2000 + int(re.sub(r"\D", "", fy_tag))
+    return [f"{m}-{(end - 1) % 100:02d}" if i < 9 else f"{m}-{end % 100:02d}"
+            for i, m in enumerate(MONTHS_FY)]
+
+
+# ---------------------------------------------------------------- findings
+@dataclasses.dataclass
+class Finding:
+    """One observation. `evidence` must be reproducible by a human."""
+    id: str
+    skill: str
+    category: str
+    severity: str
+    summary: str
+    evidence: str = ""
+    amount_l: str = ""          # Decimal as str, INR Lakh, when quantifiable
+    location: str = ""          # file[:line] or data.js path
+    owner: str = ""
+    decision_ref: str = ""
+    remediation: str = ""
+
+    def __post_init__(self):
+        if self.severity not in SEVERITIES:
+            raise ValueError(f"{self.id}: bad severity {self.severity!r}")
+
+    def as_dict(self) -> dict:
+        return dataclasses.asdict(self)
+
+
+def worst(findings: Iterable[Finding]) -> str:
+    return max((f.severity for f in findings), key=lambda s: _SEV_RANK[s], default="PASS")
+
+
+# ---------------------------------------------------------------- loaders
+_dash_cache: dict | None = None
+
+
+def load_dash(force: bool = False) -> dict:
+    """Parse window.DASH out of data.js. Cached -- it is ~14 MB."""
+    global _dash_cache
+    if _dash_cache is None or force:
+        raw = DATA_JS.read_text(encoding="utf-8")
+        _dash_cache = json.loads(raw[raw.index("{"):].rstrip().rstrip(";"))
+    return _dash_cache
+
+
+def load_config_csv(name: str) -> list[dict]:
+    """Read a governed config CSV. Returns [] when absent so a skill can
+    report the absence as a Finding rather than crashing."""
+    import csv
+    path = CONFIG_DIR / name
+    if not path.exists():
+        return []
+    with open(path, encoding="utf-8") as fh:
+        return list(csv.DictReader(fh))
+
+
+def sha256_file(path: pathlib.Path, limit: int | None = None) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        while chunk := fh.read(1 << 20):
+            h.update(chunk)
+            if limit and h.block_size > limit:
+                break
+    return h.hexdigest()
+
+
+def git(*args: str) -> str:
+    try:
+        return subprocess.run(["git", *args], cwd=ROOT, capture_output=True,
+                              text=True, check=True).stdout.strip()
+    except Exception:
+        return ""
+
+
+def rel(p: pathlib.Path | str) -> str:
+    try:
+        return str(pathlib.Path(p).resolve().relative_to(ROOT))
+    except ValueError:
+        return str(p)
+
+
+def D(v: Any) -> Decimal:
+    """Tolerant Decimal: None/''/NaN -> 0."""
+    if v is None or v == "":
+        return Decimal(0)
+    try:
+        d = Decimal(str(v))
+        return Decimal(0) if d.is_nan() else d
+    except Exception:
+        return Decimal(0)
+
+
+def q2(d: Decimal) -> Decimal:
+    return d.quantize(Decimal("0.01"))
+
+
+def walk_numbers(obj: Any, path: str = "") -> Iterable[tuple[str, Any]]:
+    """Yield (json_path, value) for every scalar in a nested structure."""
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from walk_numbers(v, f"{path}.{k}" if path else str(k))
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            yield from walk_numbers(v, f"{path}[{i}]")
+    else:
+        yield path, obj
+
+
+def write_json(name: str, payload: dict) -> pathlib.Path:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    p = OUT_DIR / name
+    p.write_text(json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8")
+    return p
+
+
+def write_csv(name: str, rows: list[dict], fieldnames: list[str] | None = None) -> pathlib.Path:
+    import csv
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    p = OUT_DIR / name
+    fieldnames = fieldnames or (list(rows[0].keys()) if rows else ["(empty)"])
+    with open(p, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=fieldnames, lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+    return p

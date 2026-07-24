@@ -1,0 +1,41 @@
+Metric,Stage,Node,Unit,Basis
+Primary NSV FY25,1_source,Pre-aggregated Primary workbook (ends Mar-26),INR Lakh,NSV
+Primary NSV FY25,2_transformation,build_dashboard_data.py primary_block(),INR Lakh,NSV
+Primary NSV FY25,3_output,data.js:primary.nsv_fy25,INR Lakh,NSV
+Primary NSV FY25,4_consumer,"Overview, Primary",INR Lakh,NSV
+Primary NSV FY26,1_source,Pre-aggregated Primary workbook,INR Lakh,NSV
+Primary NSV FY26,2_transformation,build_dashboard_data.py primary_block(),INR Lakh,NSV
+Primary NSV FY26,3_output,data.js:primary.nsv_fy26,INR Lakh,NSV
+Primary NSV FY26,4_consumer,"Overview, Primary",INR Lakh,NSV
+Primary NSV FY27,1_source,primary_article_<Mon>_<YY>.csv; Jun-26 via patch_jun26.py,INR Lakh,NSV
+Primary NSV FY27,2_transformation,detail_records_real() -> fyx_primary,INR Lakh,NSV
+Primary NSV FY27,3_output,data.js:detail_meta.fyx_primary.FY27.nsv,INR Lakh,NSV
+Primary NSV FY27,4_consumer,"Overview, Primary",INR Lakh,NSV
+Primary MRP FY27,1_source,primary_article CSV column 'Total MRP sales',INR Lakh,GMV_MRP
+Primary MRP FY27,2_transformation,fx['_MRP'].sum() in build_dashboard_data.py,INR Lakh,GMV_MRP
+Primary MRP FY27,3_output,data.js:detail_meta.fyx_primary.FY27.mrp,INR Lakh,GMV_MRP
+Primary MRP FY27,4_consumer,(not surfaced),INR Lakh,GMV_MRP
+Offtake NSV FY27,1_source,Monthly store x article offtake extracts,INR Lakh,NSV
+Offtake NSV FY27,2_transformation,offtake_block() + patch_offtake_new_months(),INR Lakh,NSV
+Offtake NSV FY27,3_output,data.js:offtake.total_fy27,INR Lakh,NSV
+Offtake NSV FY27,4_consumer,"Offtake, Overview",INR Lakh,NSV
+CM2 value,1_source,PL_Expense_Input.csv,INR Lakh,NSV
+CM2 value,2_transformation,cm2_block(),INR Lakh,NSV
+CM2 value,3_output,data.js:cm2.cm2_value,INR Lakh,NSV
+CM2 value,4_consumer,P&L,INR Lakh,NSV
+CM2 total expense,1_source,PL_Expense_Input.csv,INR Lakh,Absolute
+CM2 total expense,2_transformation,cm2_block(),INR Lakh,Absolute
+CM2 total expense,3_output,data.js:cm2.total_expense,INR Lakh,Absolute
+CM2 total expense,4_consumer,P&L,INR Lakh,Absolute
+P&L blended discount %,1_source,Pre-aggregated P&L workbook,percent,MRP
+P&L blended discount %,2_transformation,pnl_block(),percent,MRP
+P&L blended discount %,3_output,data.js:pnl.blended_discount_pct,percent,MRP
+P&L blended discount %,4_consumer,P&L,percent,MRP
+TOT %,1_source,Article-level primary,percent,NSV
+TOT %,2_transformation,tot_block(),percent,NSV
+TOT %,3_output,data.js:tot.blended_tot_pct,percent,NSV
+TOT %,4_consumer,"P&L, Primary",percent,NSV
+Distribution gap (annualised),1_source,TDP / store universe,INR Lakh,NSV
+Distribution gap (annualised),2_transformation,dist_gap_block(),INR Lakh,NSV
+Distribution gap (annualised),3_output,data.js:dist_gap.total_addon_ann,INR Lakh,NSV
+Distribution gap (annualised),4_consumer,Distribution,INR Lakh,NSV

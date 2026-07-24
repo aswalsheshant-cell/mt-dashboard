@@ -10,3 +10,5 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
+__pycache__/
+*.pyc

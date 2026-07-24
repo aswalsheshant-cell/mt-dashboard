@@ -91,6 +91,22 @@ EXCEPTIONS / NOT READY.
 - EAN conflict check (same EAN → multiple brands in detail_records)
 - NaN/undefined in NSV/MRP/Qty fields
 
+## Run the engines first → `honasa-data-engineering`
+
+Before any manual QC pass, run the automated engines and start from their findings:
+
+```bash
+python3 -m scripts.dataeng.cli health     # all engines + production readiness score
+```
+
+They already cover: repository inventory and lineage, metric-registry drift, schema
+drift, missing months, THE ONE FY RULE violations, NaN/blank/excluded-brand leakage,
+every additivity rollup with an explicit rounding ceiling, and the governance gate.
+Reports land in `outputs/dataeng/` (derived — regenerate, never hand-edit).
+
+Escalate to `honasa-data-engineering` for lineage questions, source forensics
+(a missing month or value), technical debt, or any change to the analytics model.
+
 ## CM2 & expense escalation → `honasa-cm2-expense-classification`
 
 This skill owns dashboard-wide QC. It does **not** own expense classification or allocation.

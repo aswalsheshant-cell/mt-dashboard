@@ -1,0 +1,154 @@
+path,role,rationale,ext,size_bytes,size_h,last_commit
+.claude/agents/honasa-cm2-expense-classification.md,doc,documentation,md,8830,8KB,fc45de4 2026-07-24
+.claude/agents/honasa-dashboard-qc-reconciliation.md,doc,documentation,md,8049,7KB,fc45de4 2026-07-24
+.gitignore,unclassified,no rule matched,,277,0KB,39acb66 2026-07-03
+CLAUDE.md,unclassified,no rule matched,md,7113,6KB,727946e 2026-07-05
+Final MT Offtake May26 Leadership slide_CORRECTED_V2.pptx,unclassified,no rule matched,pptx,14082297,14.1MB,ee6d672 2026-06-28
+PowerBI/DAX/00_DateTable.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,2246,2KB,771adac 2026-06-28
+PowerBI/DAX/01_CoreMeasures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,4490,4KB,771adac 2026-06-28
+PowerBI/DAX/02_PnL_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,3256,3KB,771adac 2026-06-28
+PowerBI/DAX/03_Forecast_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,4188,4KB,771adac 2026-06-28
+PowerBI/DAX/04_Nielsen_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,2018,1KB,771adac 2026-06-28
+PowerBI/DAX/05_TDP_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,2917,2KB,771adac 2026-06-28
+PowerBI/DAX/06_DataQuality_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,4533,4KB,771adac 2026-06-28
+PowerBI/DAX/07_PrimaryAllocation_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,5667,5KB,771adac 2026-06-28
+PowerBI/DAX/08_ForecastQC_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,3381,3KB,771adac 2026-06-28
+PowerBI/DAX/09_ArticleAllocation_Eligibility.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,7527,7KB,47af926 2026-06-28
+PowerBI/DAX/10_SIS_Reconciliation.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,4042,3KB,3a3156c 2026-07-03
+PowerBI/DAX/11_ExportDisplay_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,4060,3KB,23487af 2026-07-03
+PowerBI/DAX/12_TOT_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,9949,9KB,d857c6b 2026-07-03
+PowerBI/DAX/13_CM2_Measures.dax,powerbi,"Power BI build kit -- M queries, DAX measures, templates",dax,8195,8KB,cc58081 2026-07-04
+PowerBI/Excluded_Data/Excluded_Brands/Excluded_Brands_audit_summary.txt,reference,preserved excluded-brand records; must never enter an aggregation,txt,1820,1KB,d334819 2026-07-24
+PowerBI/Excluded_Data/Excluded_Brands/Excluded_Brands_detail_records.csv,reference,preserved excluded-brand records; must never enter an aggregation,csv,10158,9KB,d334819 2026-07-24
+PowerBI/Excluded_Data/Excluded_Brands/RELEASE_GATE_REPORT.md,reference,preserved excluded-brand records; must never enter an aggregation,md,6338,6KB,d334819 2026-07-24
+PowerBI/PowerQuery/00_Parameters.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1376,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/01_fnCombineFolder.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,3458,3KB,a34b910 2026-06-28
+PowerBI/PowerQuery/10_Fact_PrimarySales.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,2101,2KB,771adac 2026-06-28
+PowerBI/PowerQuery/11_Fact_OfftakeSales.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,5984,5KB,76fdf70 2026-07-03
+PowerBI/PowerQuery/12_Fact_PnL.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1043,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/13_Fact_Nielsen.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1266,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/14_Fact_TDP.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1887,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/15_Fact_PrimaryShipTo.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,3988,3KB,771adac 2026-06-28
+PowerBI/PowerQuery/16_Fact_PrimaryArticle.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,8225,8KB,290c3c3 2026-07-04
+PowerBI/PowerQuery/20_Dim_Masters.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,3596,3KB,771adac 2026-06-28
+PowerBI/PowerQuery/21_ShipToMaster.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,999,0KB,771adac 2026-06-28
+PowerBI/PowerQuery/22_CustomerCodeZoneMaster.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1807,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/24_ChannelMap.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1676,1KB,51c7228 2026-07-03
+PowerBI/PowerQuery/30_AssumptionTable.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1159,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/31_Targets.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,827,0KB,771adac 2026-06-28
+PowerBI/PowerQuery/32_StoreSOMapping.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1031,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/33_ForecastOverride.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1080,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/34_PrimaryAllocationMap.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1558,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/35_PrimaryAllocationOverride.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,960,0KB,771adac 2026-06-28
+PowerBI/PowerQuery/36_SalesTeamMapping.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1860,1KB,771adac 2026-06-28
+PowerBI/PowerQuery/37_GST_Rate_QC_Table.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,2253,2KB,080d3e5 2026-07-03
+PowerBI/PowerQuery/38_GST_Config.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1225,1KB,080d3e5 2026-07-03
+PowerBI/PowerQuery/39_PL_Expense_Input.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,4361,4KB,cc58081 2026-07-04
+PowerBI/PowerQuery/40_CustCode_Chain_Map.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,1235,1KB,cc58081 2026-07-04
+PowerBI/PowerQuery/41_DistContWeights.pq,powerbi,"Power BI build kit -- M queries, DAX measures, templates",pq,3070,2KB,290c3c3 2026-07-04
+PowerBI/QuickSetup/AllDAX_Consolidated.txt,powerbi,"Power BI build kit -- M queries, DAX measures, templates",txt,71998,70KB,e2997f9 2026-07-05
+PowerBI/QuickSetup/AllPowerQuery_Consolidated.txt,powerbi,"Power BI build kit -- M queries, DAX measures, templates",txt,65486,63KB,e2997f9 2026-07-05
+PowerBI/QuickSetup/README_QuickSetup.md,powerbi,"Power BI build kit -- M queries, DAX measures, templates",md,3125,3KB,e2997f9 2026-07-05
+PowerBI/README.md,doc,documentation,md,9522,9KB,290c3c3 2026-07-04
+PowerBI/RawDataFolders/Nielsen_Monthly/_README.txt,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,txt,164,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/Nielsen_Monthly/_TEMPLATE_Nielsen_Monthly.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,424,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/Offtake_Monthly/_README.txt,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,txt,653,0KB,1b0cb0d 2026-07-03
+PowerBI/RawDataFolders/Offtake_Monthly/_TEMPLATE_Offtake_Monthly.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,451,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Apr_26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,85754196,85.8MB,27fc581 2026-07-05
+PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,78600192,78.6MB,27fc581 2026-07-05
+PowerBI/RawDataFolders/Primary_Article_Monthly/_README.txt,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,txt,436,0KB,e91e8d6 2026-06-28
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,7286001,7.3MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,11977574,12.0MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,5181616,5.2MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Dec_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,9685384,9.7MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Feb_26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,5800005,5.8MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jan_26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,12912009,12.9MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jul_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,6426381,6.4MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jun_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,5583679,5.6MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Mar_26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,6806333,6.8MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,6425947,6.4MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,7594369,7.6MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Nov_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,10177670,10.2MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Oct_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,10704292,10.7MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,5568033,5.6MB,9e49af0 2026-07-03
+PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,1394718,1.4MB,c863e78 2026-06-28
+PowerBI/RawDataFolders/Primary_ShipTo_Monthly/_README.txt,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,txt,450,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/Primary_ShipTo_Monthly/_TEMPLATE_Primary_ShipTo.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,347,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/Primary_Weekly/_README.txt,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,txt,216,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/Primary_Weekly/_TEMPLATE_Primary_Weekly.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,480,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/TDP_Monthly/_README.txt,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,txt,174,0KB,771adac 2026-06-28
+PowerBI/RawDataFolders/TDP_Monthly/_TEMPLATE_TDP_Monthly.csv,authoritative,raw monthly source extracts -- the ground truth for primary/offtake,csv,344,0KB,771adac 2026-06-28
+PowerBI/SeedData/Mapping/ChainAccount_Mapping_Inferred.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,383335,374KB,771adac 2026-06-28
+PowerBI/SeedData/Mapping/ChainAccount_Mapping_PriorityView.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,85464,83KB,771adac 2026-06-28
+PowerBI/SeedData/Mapping/Chain_Offtake_Primary_Mapping.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,3322,3KB,180b464 2026-07-24
+PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Exceptions.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,7777,7KB,771adac 2026-06-28
+PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,227390,222KB,771adac 2026-06-28
+PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,6082,5KB,088f327 2026-07-04
+PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,117,0KB,088f327 2026-07-04
+PowerBI/SeedData/Mapping/Mapping_Corrections.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,592,0KB,c863e78 2026-06-28
+PowerBI/SeedData/Mapping/README_Mapping_Validation.md,seed,"small governed seed/master tables, hand-maintained under approval",md,3655,3KB,771adac 2026-06-28
+PowerBI/SeedData/Mapping/Store_SO_Mapping.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,54868,53KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/ArticleMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,1568,1KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/AssumptionTable.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,541,0KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/BrandMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,256,0KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/CategoryMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,296,0KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/ChainMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,2094,2KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/ChannelMap_Chain.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,2773,2KB,51c7228 2026-07-03
+PowerBI/SeedData/Masters/ChannelMap_Store.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,27,0KB,51c7228 2026-07-03
+PowerBI/SeedData/Masters/EAN_Product_Master.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,258146,252KB,180b464 2026-07-24
+PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,823,0KB,bf0a2bf 2026-07-24
+PowerBI/SeedData/Masters/ForecastOverride.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,214,0KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/GST_Config.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,411,0KB,080d3e5 2026-07-03
+PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,1692,1KB,d857c6b 2026-07-03
+PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,461,0KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/PL_Expense_Input.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,815,0KB,cc58081 2026-07-04
+PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,54,0KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/ShipToMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,52605,51KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/StoreMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,287,0KB,771adac 2026-06-28
+PowerBI/SeedData/Masters/ZoneStateMaster.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,553,0KB,771adac 2026-06-28
+PowerBI/SeedData/Targets/FY2627_Targets.csv,seed,"small governed seed/master tables, hand-maintained under approval",csv,473,0KB,771adac 2026-06-28
+PowerBI/docs/DataDictionary.md,doc,documentation,md,4611,4KB,771adac 2026-06-28
+PowerBI/docs/DataModel.md,doc,documentation,md,12211,11KB,290c3c3 2026-07-04
+PowerBI/docs/DistributorPrimaryAllocation_Logic.md,doc,documentation,md,23021,22KB,fe004d0 2026-07-04
+PowerBI/docs/ExportAndVisualSettings.md,doc,documentation,md,14134,13KB,290c3c3 2026-07-04
+PowerBI/docs/PageLayouts.md,doc,documentation,md,22510,21KB,944a1d2 2026-07-04
+PowerBI/docs/RefreshGuide.md,doc,documentation,md,5236,5KB,771adac 2026-06-28
+PowerBI/docs/SIS_Reconciliation.md,doc,documentation,md,10244,10KB,858d3e7 2026-07-03
+PowerBI/templates/Template_Nielsen_Monthly.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,424,0KB,771adac 2026-06-28
+PowerBI/templates/Template_Offtake_Monthly.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,451,0KB,771adac 2026-06-28
+PowerBI/templates/Template_Primary_ShipTo.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,347,0KB,771adac 2026-06-28
+PowerBI/templates/Template_Primary_Weekly.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,480,0KB,771adac 2026-06-28
+PowerBI/templates/Template_TDP_Monthly.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,344,0KB,771adac 2026-06-28
+PowerBI/theme/HonasaMT_Theme.json,powerbi,"Power BI build kit -- M queries, DAX measures, templates",json,1817,1KB,771adac 2026-06-28
+config/cm2_allocation_rules.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,4041,3KB,fc45de4 2026-07-24
+config/cm2_decision_register.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,6019,5KB,bf0a2bf 2026-07-24
+config/cm2_expense_taxonomy.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,14162,13KB,13fe0ac 2026-07-24
+config/cm2_formula.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,3331,3KB,acd2099 2026-07-24
+dashboard/README.md,app,offline dashboard app and vendored libs,md,27957,27KB,43b774f 2026-07-05
+dashboard/chart.umd.js,app,offline dashboard app and vendored libs,js,205363,200KB,bbeaeab 2026-06-27
+dashboard/data.js,generated,written by scripts/build_dashboard_data.py; header says DO NOT hand-edit,js,14366420,14.4MB,88a4c92 2026-07-24
+dashboard/html2canvas.min.js,app,offline dashboard app and vendored libs,js,198689,194KB,23487af 2026-07-03
+dashboard/index.html,app,offline dashboard app and vendored libs,html,164998,161KB,180b464 2026-07-24
+dashboard/jspdf.umd.min.js,app,offline dashboard app and vendored libs,js,420165,410KB,23487af 2026-07-03
+dashboard/xlsx.core.min.js,app,offline dashboard app and vendored libs,js,437032,426KB,23487af 2026-07-03
+outputs/cm2/README.md,generated,staging outputs produced by scripts/,md,2531,2KB,fc45de4 2026-07-24
+outputs/cm2/cm2_fy27_cogs_logistics.csv,generated,staging outputs produced by scripts/,csv,1157,1KB,bf0a2bf 2026-07-24
+outputs/cm2/cm2_fy27_cogs_logistics.meta.json,generated,staging outputs produced by scripts/,json,3984,3KB,bf0a2bf 2026-07-24
+outputs/cm2/fact_cm2_expense.schema.csv,generated,staging outputs produced by scripts/,csv,3514,3KB,fc45de4 2026-07-24
+outputs/cm2/unknown_expense_heads.csv,generated,staging outputs produced by scripts/,csv,3215,3KB,fc45de4 2026-07-24
+scripts/build_dashboard_data.py,code,transformation and build code,py,145756,142KB,180b464 2026-07-24
+scripts/build_fw_nielsen_slide.py,code,transformation and build code,py,11982,11KB,901335d 2026-06-28
+scripts/build_shampoo_deepdive_slide.py,code,transformation and build code,py,10647,10KB,ee6d672 2026-06-28
+scripts/build_shampoo_nielsen_slide.py,code,transformation and build code,py,11997,11KB,987a22f 2026-06-28
+scripts/build_stdlib.py,code,transformation and build code,py,15471,15KB,1b76e83 2026-06-27
+scripts/cm2_cogs_logistics_fy27.py,code,transformation and build code,py,18197,17KB,bf0a2bf 2026-07-24
+scripts/enhance_v3.py,code,transformation and build code,py,5337,5KB,ef49ee8 2026-06-27
+scripts/exclude_brands.py,code,transformation and build code,py,15281,14KB,d334819 2026-07-24
+scripts/insert_pack_size_slide.py,code,transformation and build code,py,7347,7KB,ef49ee8 2026-06-27
+scripts/patch_corrections_v2.py,code,transformation and build code,py,16316,15KB,7e9d556 2026-06-27
+scripts/patch_jun26.py,code,transformation and build code,py,21381,20KB,d334819 2026-07-24
+scripts/rebuild_mt_offtake_ppt.py,code,transformation and build code,py,20068,19KB,59bdcde 2026-06-27
+scripts/split_offtake_store_article_xlsb.py,code,transformation and build code,py,4875,4KB,c863e78 2026-06-28
+scripts/split_primary_article_xlsb.py,code,transformation and build code,py,5585,5KB,290c3c3 2026-07-04
+tests/test_cm2_cogs_logistics.py,test,automated tests,py,14727,14KB,bf0a2bf 2026-07-24
+vercel.json,unclassified,no rule matched,json,137,0KB,9ce3654 2026-06-27

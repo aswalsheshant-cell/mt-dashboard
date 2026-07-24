@@ -1,0 +1,14 @@
+Decision_ID,Status,Decision,Owner,Amount_Affected,Approved_By,Approved_At,Evidence
+D1,PENDING_APPROVAL,Does CM2 include COGS?,Finance,"1922.66 L (Q1 FY27, NSV basis)",,,outputs/cm2/cm2_fy27_cogs_logistics.csv
+D2,PENDING_APPROVAL,GST basis for trade claims,Finance,122.36 L (the GST delta),,,MTIndirect_Claim_April_26_to_June_26.xlsb
+D3,PENDING_APPROVAL,Do provisional claims enter CM2?,Finance,818.45 L,,,Final Status blank on all 58 rows
+D4,PENDING_APPROVAL,Is balance provision a current-period charge?,Finance,1034.01 L,,,MTIndirect_Claim Balance Provision column
+D5,PENDING_APPROVAL,Is Salary-row incentive additive to Incentive-row incentive?,Finance + HR,26.01 L max vs ~14.80 L if restated,,,MT_Spend.xlsx sheets BA / Sups
+D6,PENDING_APPROVAL,Does field-force CTC belong in CM2?,Finance,692.94 L,,,MT_Spend.xlsx
+D7,PENDING_APPROVAL,What share of Hybrid/GT supervisor cost is MT?,Finance + Sales Ops,44.46 L CTC + 9.93 L reimb,,,MT_Spend.xlsx sheet Sups Channel column
+D8,PENDING_APPROVAL,Approve a distributor-to-chain crosswalk?,Sales Ops + Finance,818.45 L,,,config/cm2_allocation_rules.csv ALLOC-008
+D9,PENDING_APPROVAL,Activate direct allocation rules ALLOC-001/002/003?,Finance,All allocated expense,,,config/cm2_allocation_rules.csv
+D10,APPROVED,COGS rate applies to GMV/MRP sales; logistics rate applies to NSV. The two are calculated independently on different bas,Finance,COGS 3057.00L on GMV/MRP vs 1339.24L if wrongly on NSV (Apr+May-26),Finance clarification via repository owner,2026-07-24,Finance clarification 2026-07-24; implemented scripts/cm2_cogs_logistics_fy27.py v2.0.0; tests tests/test_cm2_cogs_logistics.py
+D11,APPROVED,COGS and logistics are separate cost components; logistics is calculated separately on NSV and does not sit inside the C,Finance,"445.97L logistics (275.53L Apr+May calculable, 170.45L Jun memo)",Finance clarification via repository owner,2026-07-24,Finance statement 2026-07-24: 'COGS and logistics are separate cost components and must be calculated independently'
+D12,APPROVED,How should Jun-26 GMV/MRP sales be sourced so COGS becomes calculable?,Sales Ops / MIS,Jun-26 GMV/MRP 9300.91L -> COGS 1354.21L; Q1 FY27 CM2 now complete at 3 months,Senior Data Forensics review; source supplied by repository owner 2026-07-24,2026-07-24,"sheet ""MTD-Primary-June'26."" col 'MRP Value'; sha256 b73bf8ff...62ae3; NSV control 4167.38L vs data.js 4167.36L = 0.02L (PASS tol 0.12L); channel scope MT+EB2B+"
+D13,PENDING_APPROVAL,Correct detail_meta.fyx_primary.FY27.mrp in production data.js (currently understated by 9286.58L).,Dashboard team,FY27 MRP 22050.21L published vs 31336.79L true = 9286.58L understated,,,"22050.21 = Apr 11775.46 + May 10274.75 (raw MRP, brand exclusions NOT applied, Jun-26 absent). Proven exact to the paisa."
