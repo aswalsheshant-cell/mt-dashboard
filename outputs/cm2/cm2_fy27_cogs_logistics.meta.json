@@ -1,0 +1,105 @@
+{
+  "calculation_status": "PROVISIONAL",
+  "calculation_version": "2.0.0",
+  "label": "Provisional CM2 after COGS and logistics",
+  "scenario": "CM2 scenario: COGS on GMV/MRP, logistics on NSV",
+  "cogs_basis": "GMV_MRP_SALES",
+  "logistics_basis": "NSV",
+  "cogs_and_logistics_separate": true,
+  "included_expense_layers": [
+    "COGS",
+    "LOGISTICS"
+  ],
+  "excluded_expense_layers": [
+    "TRADE EXPENSE (indirect claims, provisional, D3/D4)",
+    "FIELD FORCE COST (CTC, reimbursement, incentive, D5/D6/D7)",
+    "VISIBILITY AND RENTAL (no real source supplied)",
+    "SHARED OR CORPORATE",
+    "TAX (GST held separately, never deducted from net-of-tax NSV)"
+  ],
+  "pending_decisions": [
+    "D1",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "D8",
+    "D9"
+  ],
+  "approved_decisions": [
+    "D10",
+    "D11"
+  ],
+  "decision_reference": "D10 (bases approved) / D11 (components separate)",
+  "sources": {
+    "nsv": {
+      "field": "detail_meta.fyx_primary.FY27.monthly",
+      "unit": "INR Lakh",
+      "grain": "FY month (Apr..Mar)",
+      "nature": "aggregated from article-level primary; Jun-26 patched from Primary_Summary KPI row",
+      "fy_total": "13652.59",
+      "months_covered": [
+        "April",
+        "May",
+        "June"
+      ]
+    },
+    "gmv_mrp": {
+      "grain": "calendar month, article-level, excluded brands removed",
+      "unit": "INR Lakh",
+      "nature": "raw source column summed",
+      "excluded_brands": [
+        "lumineve",
+        "pure origin",
+        "staze"
+      ],
+      "months_resolved": [
+        "Apr-26",
+        "May-26"
+      ],
+      "per_month": {
+        "Apr-26": {
+          "source_file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
+          "field": "Total MRP sales",
+          "source_unit": "INR",
+          "converted_unit": "INR Lakh",
+          "rows_total": 30757,
+          "rows_after_brand_exclusion": 30691
+        },
+        "May-26": {
+          "source_file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
+          "field": "Total MRP sales",
+          "source_unit": "INR",
+          "converted_unit": "INR Lakh",
+          "rows_total": 19399,
+          "rows_after_brand_exclusion": 19398
+        }
+      }
+    },
+    "rate_card": {
+      "origin": "business screenshot 2026-07-24",
+      "unit": "percent",
+      "grain": "FY month",
+      "nature": "supplied, not derived"
+    }
+  },
+  "source_files": [
+    "dashboard/data.js",
+    "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
+    "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv"
+  ],
+  "source_commit": "13fe0acdf8f2ad3f41704f324fddf8b8f47f60a8",
+  "generated_at": "2026-07-24T19:39:03+00:00",
+  "months_calculated": 2,
+  "totals_lakh": {
+    "gmv": "22035.88",
+    "nsv": "9485.23",
+    "cogs": "3057.00",
+    "log": "275.53",
+    "cost": "3332.52",
+    "cm2": "6152.71"
+  },
+  "production_files_modified": [],
+  "note": "PROVISIONAL. Final CM2 expense definition pending D1 and D9. Do not label this Final CM2 and do not publish into production visuals until those decisions are approved."
+}
