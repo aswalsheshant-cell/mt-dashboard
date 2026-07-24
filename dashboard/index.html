@@ -1761,11 +1761,15 @@ async function _aiOllama(q,result){
   }catch(e){ clearTimeout(tid); return null; }
 }
 
+// HTML-escape helper: prevents XSS when user input or external content
+// (Ollama responses, localStorage entries) flows into innerHTML.
+function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 function _aiRender(q,result,ollama){
   const conf=`<span class="ai-conf ${result.confidence}">${result.confidence}</span>`;
   let body='';
   if(result.type==='unsupported'){
-    body=`<div class="ai-unsup">&#9888; ${result.message}</div>`;
+    body=`<div class="ai-unsup">&#9888; ${_esc(result.message)}</div>`;
   } else if(result.type==='scalar'){
     const disp=result.unit==='count'?num(result.value):result.unit==='lakh'?crc(result.value):String(result.value??'–');
     body=`<div class="ai-scalar-val">${disp}</div>
@@ -1773,7 +1777,7 @@ function _aiRender(q,result,ollama){
       ${result.extra?`<div class="ai-extra-lab">${result.extra}</div>`:''}`;
   } else if(result.type==='table'){
     const fmt=result.colFmt||{};
-    const head=result.cols.map(c=>`<th>${c}</th>`).join('');
+    const head=result.cols.map(c=>`<th>${_esc(c)}</th>`).join('');
     const shown=(result.rows||[]).slice(0,_AI.MAX_ROWS);
     const trs=shown.map(r=>{
       return'<tr>'+result.cols.map(c=>{
@@ -1781,7 +1785,7 @@ function _aiRender(q,result,ollama){
         if(v==null) return'<td>–</td>';
         if(fmt[c]==='crore') return`<td>${crc(v)}</td>`;
         if(fmt[c]==='pct') return`<td>${pct(v)}</td>`;
-        return`<td>${v}</td>`;
+        return`<td>${_esc(v)}</td>`;
       }).join('')+'</tr>';
     }).join('');
     const extra=result.rows&&result.rows.length>_AI.MAX_ROWS?` (showing ${_AI.MAX_ROWS} of ${result.rows.length})`:'';
@@ -1789,13 +1793,14 @@ function _aiRender(q,result,ollama){
       <div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${trs||'<tr><td colspan="10">No data</td></tr>'}</tbody></table></div>
       <button class="tblexport" style="margin-top:8px" onclick="_aiExportCsv(${JSON.stringify(result.cols)},${JSON.stringify(shown)})">&#11015; Export CSV</button>`;
   }
-  const narr=ollama?`<div class="icard watch ai-narr"><div class="tag">AI Narration (Ollama&#x200A;·&#x200A;${_AI.OLLAMA_MODEL})</div><p>${ollama}</p></div>`:'';
+  // Escape Ollama's response — it is external content that could contain HTML.
+  const narr=ollama?`<div class="icard watch ai-narr"><div class="tag">AI Narration (Ollama&#x200A;·&#x200A;${_esc(_AI.OLLAMA_MODEL)})</div><p>${_esc(ollama)}</p></div>`:'';
   const nsv_note=result.type!=='unsupported'?'<span style="margin-left:8px">&#x2022; Negative NSV = valid (returns/credit notes)</span>':'';
-  const plan=result.sql?`<details class="ai-plan"><summary style="cursor:pointer;font-size:12px;color:var(--muted)">&#9654; Query plan / SQL equivalent</summary><pre>${result.sql}</pre></details>`:'';
+  const plan=result.sql?`<details class="ai-plan"><summary style="cursor:pointer;font-size:12px;color:var(--muted)">&#9654; Query plan / SQL equivalent</summary><pre>${_esc(result.sql)}</pre></details>`:'';
   return`<div class="ai-answer-wrap">
-    <div class="ai-q-label">Question: <b>${q}</b></div>
+    <div class="ai-q-label">Question: <b>${_esc(q)}</b></div>
     ${body}${narr}
-    <div class="ai-prov">Source: ${result.provenance||'window.DASH'} &#x2022; Confidence: ${conf}${nsv_note}</div>
+    <div class="ai-prov">Source: ${_esc(result.provenance||'window.DASH')} &#x2022; Confidence: ${conf}${nsv_note}</div>
     ${plan}
   </div>`;
 }
@@ -1828,7 +1833,7 @@ function toggleAiLog(){
       const log=JSON.parse(localStorage.getItem(_AI.LOG_KEY)||'[]').reverse();
       if(!log.length){d.innerHTML='<div class="ai-status-msg">No queries logged yet.</div>';return;}
       d.innerHTML='<div class="card"><div class="tablewrap"><table><thead><tr><th>Time (UTC)</th><th>Question</th><th>Type</th><th>Confidence</th><th>Source</th></tr></thead><tbody>'
-        +log.map(e=>`<tr><td>${(e.ts||'').slice(0,19)}</td><td>${e.q}</td><td>${e.type}</td><td>${e.confidence}</td><td>${e.provenance||''}</td></tr>`).join('')
+        +log.map(e=>`<tr><td>${_esc((e.ts||'').slice(0,19))}</td><td>${_esc(e.q)}</td><td>${_esc(e.type)}</td><td>${_esc(e.confidence)}</td><td>${_esc(e.provenance||'')}</td></tr>`).join('')
         +'</tbody></table></div></div>';
     }catch(e){d.innerHTML='<div class="ai-status-msg">Log unavailable.</div>';}
   } else { d.style.display='none'; }
@@ -1853,7 +1858,7 @@ async function _aiSubmit(){
     }
     ans.innerHTML=_aiRender(q,result,ollama);
   }catch(e){
-    ans.innerHTML=`<div class="ai-unsup">Error: ${e.message}</div>`;
+    ans.innerHTML=`<div class="ai-unsup">Error: ${_esc(e.message)}</div>`;
   }finally{
     btn.disabled=false; btn.textContent='Ask';
   }
@@ -1995,7 +2000,8 @@ function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
 // the raw row-level records for whatever's currently filtered.
 function drillTo(key,value){
   if(!FILT.some(([k])=>k===key) || value==null) return;
-  F[key]=[String(value)];   // drill = FOCUS on the clicked value (replaces the dimension's selection)
+  // normalize so drillTo('Zone','WEST') and the filter bar's 'West' are the same stored value
+  F[key]=[normVal(key,String(value))];
   onFilterChange();
 }
 function drillLink(key,label){
