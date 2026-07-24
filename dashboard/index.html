@@ -2215,21 +2215,21 @@ function buildQC(){
     releaseDisp:'ACCEPTED — bucket is disclosed; NSV is reconciled; brand drill carries caveat'
   });
 
-  // EAN-REGISTER-001 — BLOCKED (cannot produce unresolved-EAN register without source file)
+  // EAN-REGISTER-001 — BLOCKED (EAN master available; Jun-26 article CSV still needed)
   exceptionItems.push({
-    id:'EAN-REGISTER-001',label:'Unresolved-EAN register — primary_article.xlsb not available',status:'BLOCKED',
-    observed:'primary_article.xlsb absent from --src',
-    expected:'Full EAN normalization and historical mapping applied; unresolved-EAN register produced',
+    id:'EAN-REGISTER-001',label:'Unresolved-EAN register — Jun-26 article CSV not available',status:'BLOCKED',
+    observed:'Jun-26 article-level CSV absent from --src (Apr-26 and May-26 CSVs present; 0 blank brands in those months)',
+    expected:'Full EAN normalization + mapping applied to all FY27 months; unresolved-EAN register produced',
     diff:'N/A',pctDiff:'N/A',
-    period:'FY27 (Apr-26 onwards)',grain:'Article-level EAN mapping',
-    rootCause:'EAN normalization workflow (trim whitespace, remove trailing .0, scientific notation, leading-zero preservation, 5-level mapping priority) requires primary_article.xlsb or .xlsx in --src. File not present in this build session.',
-    businessImpact:`Cannot produce unresolved-EAN register. ${crc(unmappedNsv)} L of FY27 NSV (in (Unmapped/Blank Brand)) may reduce once EANs are mapped via historical priority lookup.`,
-    containment:'(Unmapped/Blank Brand) bucket retains all unmapped NSV — no silent exclusion. FY27 NSV reconciled to PASS.',
-    action:'Provide primary_article.xlsb (or .xlsx) in --src and re-run: python scripts/build_dashboard_data.py --detail-only --src &lt;dir&gt; --out dashboard/data.js',
+    period:'FY27 Jun-26 only',grain:'Article-level EAN mapping — Jun-26 rows',
+    rootCause:'The 27.58 L blank-brand NSV is traced to Jun-26 article rows (FY27 total 13,652.59 L = 5,076.85 Apr + 4,415.75 May + 4,167.36 Jun per xlsx summary). Apr-26 and May-26 CSVs have 0 blank brands and 100% EAN coverage against EAN_Product_Master.csv (Fountain_9, 3,494 EANs). Jun-26 article CSV is absent from --src.',
+    businessImpact:`${crc(unmappedNsv)} L of FY27 NSV in (Unmapped/Blank Brand) remains unmapped. Once Jun-26 CSV is available, EAN master (EAN_Product_Master.csv) provides 100% EAN lookup coverage.`,
+    containment:'(Unmapped/Blank Brand) bucket retains all unmapped NSV — no silent exclusion. EAN_Product_Master.csv committed to PowerBI/SeedData/Masters/. Chain_Offtake_Primary_Mapping.csv committed to PowerBI/SeedData/Mapping/.',
+    action:'Provide Jun-26 article CSV (primary_article_Jun_26.csv) in PowerBI/RawDataFolders/Primary_Article_Monthly/ and re-run: python scripts/build_dashboard_data.py --detail-only --src PowerBI/RawDataFolders/Primary_Article_Monthly --out dashboard/data.js',
     owner:'Source Data Team',
-    trigger:'Source file made available in --src directory',
-    closure:'Unresolved-EAN register produced; MAP-BRAND-FY27-001 unmapped NSV reduced toward 0',
-    releaseDisp:'BLOCKED — cannot resolve without source file; release proceeds under MAP-BRAND-FY27-001 accepted caveat'
+    trigger:'Jun-26 article CSV made available',
+    closure:'(Unmapped/Blank Brand).nsv = 0 after rebuild; EAN-REGISTER-001 closes when unresolved-EAN register row count = 0',
+    releaseDisp:'BLOCKED — Jun-26 article CSV needed; EAN master and build script are ready; provide CSV to unblock'
   });
 
   const nBlocked=exceptionItems.filter(e=>e.status==='BLOCKED').length;
@@ -2238,8 +2238,8 @@ function buildQC(){
   const bannerCls=nFail>0?'qcbanner-fail':nBlocked>0?'qcbanner-blocked':nWarn>0?'qcbanner-warn':'qcbanner-pass';
   const bannerMsg=nFail>0
     ?`⛔ NOT READY — ${nFail} failed check(s); investigate before release`
-    :nBlocked>0?`⛔ NOT READY — ${nBlocked} BLOCKED check(s) awaiting source data · ${nWarn} WARN accepted · Provide primary_article.xlsb to unblock`
-    :nWarn>0?`Release decision: <b style="color:${relColor}">${relDecision}</b> — ${nPass} PASS · ${nWarn} WARN (accepted, see Exception Register)`
+    :nBlocked>0?`⛔ NOT READY — ${nBlocked} BLOCKED check(s) awaiting source data · ${nWarn} WARN pending review · Provide Jun-26 article CSV to unblock EAN-REGISTER-001`
+    :nWarn>0?`Release decision: <b style="color:${relColor}">${relDecision}</b> — ${nPass} PASS · ${nWarn} WARN pending review (see Exception Register)`
     :`Release decision: <b style="color:${relColor}">${relDecision}</b> — all ${nPass} checks passed`;
 
   function rowHtml(c){
@@ -2321,7 +2321,7 @@ function buildQC(){
     <div class="qcbanner ${bannerCls}">${bannerMsg} &nbsp;·&nbsp; Run: ${ts}</div>
     <div class="kpis" style="margin-bottom:18px">
       ${kpi('Checks passed',nPass,'')}
-      ${kpi('Warnings',nWarn,'Accepted — see Exception Register')}
+      ${kpi('Warnings',nWarn,'Pending owner review — see Exception Register')}
       ${kpi('Failed',nFail,nFail===0?'Release-ready':'Investigate before release')}
       ${kpi('Blocked',nBlocked,nBlocked===0?'None':'Awaiting source data')}
     </div>

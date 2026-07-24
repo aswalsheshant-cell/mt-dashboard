@@ -2348,7 +2348,13 @@ def detail_records_real(src, max_rows=20000):
                      Tax=("_TaxLOC","sum"), NxA=("_NxA","sum"), MxA=("_MxA","sum"),
                      NSVa=("_NSVa","sum"), MRPa=("_MRPa","sum")).reset_index())
         ca_total_nsv = float(ca["NSV"].abs().sum()) or 1.0
-        ca = ca.reindex(ca["NSV"].abs().sort_values(ascending=False).index)
+        ca["_abs_nsv"] = ca["NSV"].abs()
+        ca["_ean_sort"] = ca["_EAN No."].astype(str).str.strip().str.zfill(15)
+        ca = ca.sort_values(
+            ["_abs_nsv", "_ean_sort", "_Description", "_Chain", "_M"],
+            ascending=[False, True, True, True, True],
+            kind="stable",
+        ).drop(columns=["_abs_nsv", "_ean_sort"])
         ca_rows_total = len(ca)
         ca_kept = ca.head(4000)
         ca_cov = float(ca_kept["NSV"].abs().sum()) / ca_total_nsv * 100
@@ -2400,8 +2406,16 @@ def detail_records_real(src, max_rows=20000):
 
     total_value = g["NSV"].sum()
     rows_total = len(g)
-    # cap by ROW COUNT, keeping the top-N groups by |NSV| (preserves value fidelity)
-    g = g.reindex(g["NSV"].abs().sort_values(ascending=False).index)
+    # cap by ROW COUNT, keeping the top-N groups by |NSV| (preserves value fidelity).
+    # Stable secondary keys eliminate tie-breaking nondeterminism: two consecutive
+    # builds from identical source produce bit-identical detail_records.
+    g["_abs_nsv"] = g["NSV"].abs()
+    g["_ean_sort"] = g["_EAN No."].astype(str).str.strip().str.zfill(15)
+    g = g.sort_values(
+        ["_abs_nsv", "_ean_sort", "_Description", "_Chain", "_M"],
+        ascending=[False, True, True, True, True],
+        kind="stable",
+    ).drop(columns=["_abs_nsv", "_ean_sort"])
     kept = g.head(max_rows) if max_rows else g
     coverage = float(kept["NSV"].sum() / total_value * 100) if total_value else 100.0
     recs = []
@@ -2422,6 +2436,7 @@ def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
     margins match the real primary aggregates; Category/Sub-cat/Pack/Article from taxonomy."""
     import random; random.seed(7)
+    import hashlib as _hl
     months = primary["month_labels"]
     mf = {"25": primary["monthly_fy25"], "26": primary["monthly_fy26"]}
     chains = [c for c in primary["by_chain"] if (c["fy25"] or 0) > 0 or (c["fy26"] or 0) > 0]
@@ -2433,7 +2448,9 @@ def detail_records_representative(primary):
             a += max(0, i[k] or 0)
             if r <= a: return i["name"]
         return items[-1]["name"]
-    ean = lambda s: "890" + str(abs(hash(s)) % 10**10).zfill(10)
+    # Deterministic EAN: use MD5 so two builds from same source produce identical output.
+    # Python's built-in hash() is randomised per process (PYTHONHASHSEED), making it unusable here.
+    ean = lambda s: "890" + str(int(_hl.md5(s.encode("utf-8", "replace")).hexdigest(), 16) % 10**10).zfill(10)
     recs = []
     for tag in ("25", "26"):
         mw = mf[tag]; msum = sum(mw) or 1

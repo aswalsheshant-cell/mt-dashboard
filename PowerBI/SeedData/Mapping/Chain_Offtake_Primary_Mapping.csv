@@ -1,0 +1,56 @@
+Offtake Chain (canonical),Primary Chain Name(s),Confidence,Notes
+Dmart,D-Mart,Confirmed,
+Reliance,Reliance Retail + Reliance Retail-(Azorte),Confirmed,
+Apollo,Apollo Healthco,Confirmed,
+Metro Cnc,Metro-CNC-RRL,Confirmed,
+Walmart Cnc,Walmart CNC,Confirmed,
+Vmm,VMM,Confirmed,
+Wh-Smith,WH-Smith,Confirmed,
+Ratandeep,Ratnadeep,Confirmed,
+Sancus(Rmt),RMT-Sancus,Confirmed,
+Sasta Sundar,Sasta Sunder,Confirmed,
+Sohum,Sohum Shoppe,Confirmed,
+Frankros,Frankross,Confirmed,
+Fsn,Nykaa SS(fsn),Confirmed,
+Apna Mart,Apna Mart,Confirmed,
+Arambagh,Arambagh,Confirmed,
+Guardian,Guardian,Confirmed,
+H&G,H&G,Confirmed,
+Lulu,Lulu,Confirmed,
+More Retail,More Retail,Confirmed,
+National Mart,National Mart,Confirmed,
+Spencer,Spencer,Confirmed,
+Sumo Save,Sumo Save,Confirmed,
+Trent,Trent,Confirmed,
+V-Mart,V-Mart,Confirmed,
+Vijetha,Vijetha,Confirmed,
+Wellness Forever,Wellness Forever,Confirmed,
+BEAUTY & NUTRIE,B&N,Probable,Abbreviation match — verify with MIS before relying on it
+UNMAPPED — Primary-only chains (no Offtake/Nielsen counterpart found; excluded from Sell-Out analysis),,,
+Apna Klub,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Ascent Wellness,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Azorte,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Broadway,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Deal Share,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Eremedium,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+G N R C Medishop Pvt Ltd,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Grace Super MKT,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Lifestyle,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Lifestyle Babyshop,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Max Hyper,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Medanta,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Mother Care,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Pothys,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Relay,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Sarvana,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Shoppers Stop,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Today's Basket,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+Trilife,,Unmapped,No matching Offtake chain — likely outside Nielsen panel coverage
+ZONE MAPPING,,,
+Primary Zone,Offtake Zone,Confidence,Notes
+East,EAST,Confirmed,Case-insensitive match; SUMIFS is case-insensitive
+North,NORTH,Confirmed,Case-insensitive match; SUMIFS is case-insensitive
+South-1,SOUTH-1,Confirmed,Case-insensitive match; SUMIFS is case-insensitive
+South-2,SOUTH-2,Confirmed,Case-insensitive match; SUMIFS is case-insensitive
+West,WEST,Confirmed,Case-insensitive match; SUMIFS is case-insensitive
+(none),PAN INDIA / FSN,Unmapped,No Primary zone equivalent — Pan-India/FSN channel excluded from Zone Sell-Out view
