@@ -2278,9 +2278,21 @@ def detail_records_real(src, max_rows=20000):
     fyx_primary = {}
     for _tag in sorted(set(df["_FY"].dropna().unique()) - _PREAGG_FY_TAGS, key=fy_start_year):
         fx = df[df["_FY"] == _tag]
-        def _aggx(col, fx=fx):
-            s = fx.groupby(col)["_NSV"].sum().sort_values(ascending=False)
-            return [{"name": k, "nsv": r2(float(v))} for k, v in s.items() if k]
+        def _aggx(col, fx=fx, unmapped_label=None):
+            # dropna=False so NaN-keyed groups appear in the series alongside
+            # empty-string groups; both are considered "blank" and are either
+            # silently excluded (unmapped_label=None) or bucketed under the
+            # supplied label (non-zero only, never duplicated).
+            s = fx.groupby(col, dropna=False)["_NSV"].sum().sort_values(ascending=False)
+            named, blank_nsv = [], 0.0
+            for k, v in s.items():
+                if pd.isna(k) or not str(k).strip():
+                    blank_nsv += float(v)
+                else:
+                    named.append({"name": k, "nsv": r2(float(v))})
+            if unmapped_label is not None and abs(blank_nsv) > 0.005:
+                named.append({"name": unmapped_label, "nsv": r2(blank_nsv)})
+            return named
         mser = fx.groupby("_M")["_NSV"].sum()
         fyx_primary[_tag] = {
             "tag": _tag,
@@ -2289,7 +2301,8 @@ def detail_records_real(src, max_rows=20000):
             "months_covered": [m for m in _ORDER if m in set(fx["_M"])],
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
             "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone"),
-            "by_channel": _aggx("_Chan"), "by_brand": _aggx("_Brand"),
+            "by_channel": _aggx("_Chan"),
+            "by_brand": _aggx("_Brand", unmapped_label="(Unmapped/Blank Brand)"),
             "unit": "INR Lakh",
             "note": (f"EXACT {_tag} primary actuals from the FULL (uncapped) article-wise "
                      "primary, chain-allocated (Dist. rows split by secondary cont%). The "

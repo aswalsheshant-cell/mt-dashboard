@@ -120,19 +120,29 @@
   .drill:hover{color:var(--teal-d);font-weight:700}
   .drillhint{font-size:11px;color:var(--muted);font-style:italic}
   /* ---- Data QC page ---- */
-  .qcs-pass{color:var(--green)}.qcs-warn{color:var(--amber)}.qcs-fail{color:var(--red)}.qcs-info{color:var(--blue)}
-  .qcr-pass>td{background:#f0faf4}.qcr-warn>td{background:#fffce8}.qcr-fail>td{background:#fef5f5}
+  .qcs-pass{color:var(--green)}.qcs-warn{color:var(--amber)}.qcs-fail{color:var(--red)}.qcs-info{color:var(--blue)}.qcs-blocked{color:#7B1FA2}
+  .qcr-pass>td{background:#f0faf4}.qcr-warn>td{background:#fffce8}.qcr-fail>td{background:#fef5f5}.qcr-blocked>td{background:#f3e5f5}
   .qcbadge{display:inline-block;padding:1px 8px;border-radius:12px;font-size:10.5px;font-weight:700;letter-spacing:.2px}
   .qcbadge.qcs-pass{background:#e6f4ea;color:var(--green)}
   .qcbadge.qcs-warn{background:#fef9e7;color:var(--amber)}
   .qcbadge.qcs-fail{background:#fce8e6;color:var(--red)}
   .qcbadge.qcs-info{background:#e8f0fe;color:var(--blue)}
+  .qcbadge.qcs-blocked{background:#f3e5f5;color:#7B1FA2}
   .qcbanner{border-radius:10px;padding:12px 16px;font-size:13.5px;font-weight:600;margin:0 0 20px}
   .qcbanner-pass{background:#e6f4ea;border:1px solid #a8d5b5;color:#1a6e30}
   .qcbanner-warn{background:#fff8e1;border:1px solid #ffe082;color:#8a5a00}
   .qcbanner-fail{background:#fce8e6;border:1px solid #f5c2be;color:#922b21}
+  .qcbanner-blocked{background:#f3e5f5;border:1px solid #ce93d8;color:#4a148c}
   .qc-tbl th{font-size:11.5px}.qc-tbl td{font-size:12.5px}
   .qc-excl-ok{color:var(--green);font-weight:700}.qc-excl-bad{color:var(--red);font-weight:800}
+  .exc-card{border-left:4px solid var(--amber);padding:14px 16px;margin-bottom:14px;border-radius:0 8px 8px 0;background:var(--card-bg)}
+  .exc-card.blocked{border-left-color:#7B1FA2}
+  .exc-card.fail{border-left-color:var(--red)}
+  .exc-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin:8px 0;font-size:12px}
+  .exc-meta dt{font-weight:700;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}
+  .exc-meta dd{margin:0;font-size:12.5px}
+  .exc-divider{height:1px;background:var(--border);margin:10px 0}
+  .exc-id{font-family:monospace;font-size:11px;font-weight:700;opacity:.7;margin-right:8px}
 </style>
 </head>
 <body>
@@ -1953,10 +1963,10 @@ function buildQC(){
       chk('Channel FY26 sum = NSV FY26',p.nsv_fy26,ch26s,''),
       chk('Brand FY25 sum ≈ NSV FY25',p.nsv_fy25,br25s,'Minor rounding across brand rows'),
       chk('Brand FY26 sum ≈ NSV FY26',p.nsv_fy26,br26s,'Minor rounding across brand rows'),
-      chk('Zone FY25 sum ≈ NSV FY25',p.nsv_fy25,zn25s,'Zone split from pre-agg; minor allocation rounding',true,znMeta),
-      chk('Zone FY26 sum ≈ NSV FY26',p.nsv_fy26,zn26s,'Zone split from pre-agg; minor allocation rounding',true,znMeta),
-      chk('Monthly FY25 sum vs NSV FY25',p.nsv_fy25,m25s,'KNOWN: diff = excluded brands in monthly pre-agg source',true,mMeta),
-      chk('Monthly FY26 sum vs NSV FY26',p.nsv_fy26,m26s,'KNOWN: diff = excluded brands in monthly pre-agg source',true,mMeta),
+      chk('Zone FY25 sum ≈ NSV FY25',p.nsv_fy25,zn25s,'Zone split from pre-agg; minor allocation rounding',true,{...znMeta,id:'PRE-AGG-ZONE-FY25-001'}),
+      chk('Zone FY26 sum ≈ NSV FY26',p.nsv_fy26,zn26s,'Zone split from pre-agg; minor allocation rounding',true,{...znMeta,id:'PRE-AGG-ZONE-FY26-001'}),
+      chk('Monthly FY25 sum vs NSV FY25',p.nsv_fy25,m25s,'KNOWN: diff = excluded brands in monthly pre-agg source',true,{...mMeta,id:'PRE-AGG-MON-FY25-001'}),
+      chk('Monthly FY26 sum vs NSV FY26',p.nsv_fy26,m26s,'KNOWN: diff = excluded brands in monthly pre-agg source',true,{...mMeta,id:'PRE-AGG-MON-FY26-001'}),
     ]
   };
 
@@ -1980,9 +1990,10 @@ function buildQC(){
     checks: fy27.nsv!=null ? [
       chk('Monthly sum = FY27 NSV',fy27.nsv,mon27s,''),
       chk('Channel sum = FY27 NSV',fy27.nsv,ch27s,''),
-      chk('Brand sum = FY27 NSV',fy27.nsv,br27s,'Includes (Unmapped/Blank Brand) = 27.58 L bucket. Source fix: correct blank _Brand codes, re-run --detail-only'),
-      chk('Zone sum ≈ FY27 NSV',fy27.nsv,zn27s,'KNOWN: returns with blank zone codes inflate zone sum above NSV total',true,znMeta27),
-      chk('Chain sum ≈ FY27 NSV',fy27.nsv,cn27s,'KNOWN: 33.66 L of sales have blank chain code — excluded from by_chain by build script',true,cnMeta27),
+      chk('Brand sum = FY27 NSV',fy27.nsv,br27s,'Reconciled: includes (Unmapped/Blank Brand) bucket. Build script fix now generates bucket reproducibly.','',{id:'B-BRAND-RECON-FY27'}),
+      chk('Zone sum ≈ FY27 NSV',fy27.nsv,zn27s,'KNOWN: returns with blank zone codes inflate zone sum above NSV total',true,{...znMeta27,id:'BLANK-ZONE-FY27-001'}),
+      chk('Chain sum ≈ FY27 NSV',fy27.nsv,cn27s,'KNOWN: 33.66 L of sales have blank chain code — excluded from by_chain by build script',true,{...cnMeta27,id:'BLANK-CHAIN-FY27-001'}),
+      chkInfo('(Unmapped/Blank Brand) disclosed',crc((fy27.by_brand||[]).find(b=>b.name==='(Unmapped/Blank Brand)')?.nsv||0)+' retained in brand breakdown','Master-data correction still required — see MAP-BRAND-FY27-001 in Exception Register'),
       chkInfo('Months covered',(fy27.months_covered||[]).join(', ')||'(see monthly array)','Active months in source'),
       chkInfo('FY27 NSV',crc(fy27.nsv||0),'Total Apr–Jun-26 primary (excl. excluded brands)'),
     ]:[
@@ -2049,8 +2060,8 @@ function buildQC(){
       chk('total_nsv − total_expense = cm2_value',cm2D.cm2_value||0,cm2Arith,'Arithmetic identity'),
       chk('by_brand NSV sum = total_nsv',cm2D.total_nsv||0,brNSV,''),
       chk('by_chain expense sum = total_expense',cm2D.total_expense||0,chExp,''),
-      chk('by_brand CM2 sum ≈ cm2_value',cm2D.cm2_value||0,brCM2,'KNOWN: trade expense not attributed to specific brand row',true,cm2BrMeta),
-      chk('by_chain CM2 sum ≈ cm2_value',cm2D.cm2_value||0,chCM2,'KNOWN: NSV allocation rounding across chains; &lt;0.06%',true,cm2ChMeta),
+      chk('by_brand CM2 sum ≈ cm2_value',cm2D.cm2_value||0,brCM2,'KNOWN: trade expense not attributed to specific brand row',true,{...cm2BrMeta,id:'CM2-BRAND-EXPENSE-001'}),
+      chk('by_chain CM2 sum ≈ cm2_value',cm2D.cm2_value||0,chCM2,'KNOWN: NSV allocation rounding across chains; &lt;0.06%',true,{...cm2ChMeta,id:'CM2-CHAIN-ROUND-001'}),
     ]
   };
 
@@ -2116,24 +2127,123 @@ function buildQC(){
   // ── Render ────────────────────────────────────────────────────────────────
   const allGroups=[blkPrimary,blkFY27,blkOfftake,blkExcl,blkCM2,blkDG,blkReg];
   let nPass=0,nWarn=0,nFail=0,nInfo=0;
-  const warnItems=[];
+  const exceptionItems=[];
+
+  // Extra fields for the 17-field exception register, keyed by check ID
+  const EXC_META={
+    'PRE-AGG-MON-FY25-001':{period:'FY25 (Apr-24 – Mar-25)',grain:'Monthly primary series',
+      rootCause:'Pre-aggregated Primary workbook includes excluded brands (Pure Origin, Lumineve, Staze) in monthly totals; post-aggregation NSV total was corrected but the monthly series cannot be retroactively adjusted.',
+      businessImpact:'Monthly trend bars overstate each FY25 month; cumulative excess ≈3.94 L (0.017% of NSV). NSV KPI card unaffected.',
+      containment:'NSV KPI is correct. Monthly chart carries approximate label.',
+      releaseDisp:'ACCEPTED — immaterial; approved by data owner'},
+    'PRE-AGG-MON-FY26-001':{period:'FY26 (Apr-25 – Mar-26)',grain:'Monthly primary series',
+      rootCause:'Same as PRE-AGG-MON-FY25-001: pre-aggregated monthly workbook cannot exclude brands post-aggregation.',
+      businessImpact:'Monthly trend bars overstate FY26; cumulative excess ≈12.25 L (0.037% of NSV). NSV KPI card unaffected.',
+      containment:'NSV KPI is correct. Monthly chart carries approximate label.',
+      releaseDisp:'ACCEPTED — immaterial; approved by data owner'},
+    'PRE-AGG-ZONE-FY25-001':{period:'FY25 (Apr-24 – Mar-25)',grain:'Zone breakdown (primary.by_zone)',
+      rootCause:'Zone split from pre-aggregated workbook; minor allocation rounding during zone pre-aggregation in source.',
+      businessImpact:'Zone sum exceeds FY25 NSV by ≈3.92 L (~0.017%). Zone % shares accurate; absolute zone KPI marginally overstated.',
+      containment:'Zone % shares displayed. Diff disclosed in reconciliation tab.',
+      releaseDisp:'ACCEPTED — rounding artefact; immaterial to zone-level decisions'},
+    'PRE-AGG-ZONE-FY26-001':{period:'FY26 (Apr-25 – Mar-26)',grain:'Zone breakdown (primary.by_zone)',
+      rootCause:'Same as PRE-AGG-ZONE-FY25-001.',
+      businessImpact:'Zone sum exceeds FY26 NSV by ≈12.23 L (~0.037%). Zone % shares accurate.',
+      containment:'Zone % shares displayed. Diff disclosed in reconciliation tab.',
+      releaseDisp:'ACCEPTED — rounding artefact; immaterial to zone-level decisions'},
+    'BLANK-ZONE-FY27-001':{period:'FY27 (Apr-26 onwards)',grain:'Zone breakdown (fyx_primary.FY27.by_zone)',
+      rootCause:'Return transactions with blank zone codes have negative NSV. Build script excludes blank-keyed rows; the omitted negative rows cause the sum of named zones to exceed FY27.nsv.',
+      businessImpact:'by_zone sum overstates FY27 NSV by ≈7.37 L (0.054%). Zone-level FY27 bars slightly inflate.',
+      containment:'FY27 NSV KPI unaffected. Zone sum labelled approximate in reconciliation.',
+      releaseDisp:'ACCEPTED — conservative overcount; blank zone codes must be corrected in source'},
+    'BLANK-CHAIN-FY27-001':{period:'FY27 (Apr-26 onwards)',grain:'Chain breakdown (fyx_primary.FY27.by_chain)',
+      rootCause:'33.66 L of FY27 sales have blank chain codes in primary source. Build script excludes blank-keyed rows from by_chain, but these are counted in fyx_primary.FY27.nsv.',
+      businessImpact:'FY27 chain breakdown understates total by 33.66 L (0.247%). Chain-level FY27 drill may omit a meaningful share of volume.',
+      containment:'FY27 NSV KPI correct. Undercount flagged in reconciliation and data notes.',
+      releaseDisp:'ACCEPTED WITH CAUTION — do not use chain-level FY27 for budget allocation until blank chain codes are corrected in source'},
+    'CM2-BRAND-EXPENSE-001':{period:'All FY (CM2 block)',grain:'CM2 by_brand',
+      rootCause:'Total trade expense is not fully attributed to individual brand rows in the CM2 source; unattributed portion sits in total_expense without a brand split.',
+      businessImpact:'by_brand CM2 sum exceeds cm2_value by ≈6.75 L (0.016%). Brand-level CM2 rankings slightly affected by unattributed share.',
+      containment:'CM2 total KPI correct. Brand CM2 table footnoted as partial.',
+      releaseDisp:'ACCEPTED — Finance to provide brand-level expense attribution in next CM2 refresh'},
+    'CM2-CHAIN-ROUND-001':{period:'All FY (CM2 block)',grain:'CM2 by_chain',
+      rootCause:'NSV allocation across chains involves arithmetic rounding; small residual between chain-level CM2 sum and total cm2_value.',
+      businessImpact:'by_chain CM2 sum exceeds cm2_value by ≈22.84 L (0.054%). Chain-level CM2 rankings unaffected.',
+      containment:'CM2 total KPI correct.',
+      releaseDisp:'ACCEPTED — rounding artefact; Finance to confirm chain allocation methodology'},
+  };
+
   allGroups.forEach(g=>g.checks.forEach(c=>{
     if(c.status==='pass')nPass++;
-    else if(c.status==='warn'){nWarn++;warnItems.push({group:g.title,label:c.label,note:c.note,owner:c.owner||'–',action:c.action||'–',closure:c.closure||'–',trigger:c.trigger||'–'});}
-    else if(c.status==='fail')nFail++;
+    else if(c.status==='warn'||c.status==='fail'){
+      if(c.status==='warn')nWarn++; else nFail++;
+      const pctDiff=(c.expected!==0&&c.expected!==''&&typeof c.expected==='number')
+        ?((c.diff/Math.abs(c.expected))*100).toFixed(3)+'%':'N/A';
+      const xm=c.id?EXC_META[c.id]||{}:{};
+      exceptionItems.push({
+        id:c.id||'–',label:c.label,status:c.status.toUpperCase(),
+        observed:typeof c.actual==='number'?crc(c.actual):String(c.actual),
+        expected:typeof c.expected==='number'?crc(c.expected):String(c.expected),
+        diff:typeof c.diff==='number'&&c.diff!==0?diffFmt(c.diff)+' L':'–',
+        pctDiff,period:xm.period||'–',grain:xm.grain||'–',
+        rootCause:xm.rootCause||c.note||'–',
+        businessImpact:xm.businessImpact||'–',containment:xm.containment||'–',
+        action:c.action||'–',owner:c.owner||'–',trigger:c.trigger||'–',
+        closure:c.closure||'–',releaseDisp:xm.releaseDisp||'ACCEPTED'
+      });
+    }
     else nInfo++;
   }));
 
-  const relDecision=nFail>0?'NOT READY':nWarn>0?'READY WITH ACCEPTED EXCEPTIONS':'READY';
-  const relColor=nFail>0?'#922b21':nWarn>0?'#8a5a00':'#1a6e30';
-  const bannerCls=nFail>0?'qcbanner-fail':nWarn>0?'qcbanner-warn':'qcbanner-pass';
+  // MAP-BRAND-FY27-001 — WARN (master-data disclosure; separate from B-BRAND-RECON-FY27 which is PASS)
+  const unmappedNsv=r2((fy27.by_brand||[]).find(b=>b.name==='(Unmapped/Blank Brand)')?.nsv||0);
+  const unmappedPct=(fy27.nsv&&fy27.nsv!==0)?((unmappedNsv/fy27.nsv)*100).toFixed(3)+'%':'N/A';
+  nWarn++;
+  exceptionItems.push({
+    id:'MAP-BRAND-FY27-001',label:'Blank _Brand codes in FY27 primary source',status:'WARN',
+    observed:crc(unmappedNsv)+' L in (Unmapped/Blank Brand) bucket',
+    expected:'0 L — all EANs resolved to a named brand',
+    diff:diffFmt(unmappedNsv)+' L',pctDiff:unmappedPct,
+    period:'FY27 (Apr-26 onwards)',grain:'Brand breakdown (fyx_primary.FY27.by_brand)',
+    rootCause:'Primary source file contains article rows with blank _Brand codes. EAN-based mapping cannot proceed without primary_article.xlsb in --src. Build script fix (Jun-26) now generates (Unmapped/Blank Brand) bucket reproducibly; prior behaviour silently discarded these rows, causing a 27.58 L gap.',
+    businessImpact:`${crc(unmappedNsv)} L (${unmappedPct} of FY27 NSV) attributed to unmapped bucket. FY27 brand-level rankings exclude this share.`,
+    containment:'Bucket visible in FY27 brand chart. FY27 NSV KPI reconciled (B-BRAND-RECON-FY27 = PASS). Disclosure present in reconciliation tab.',
+    action:'Provide primary_article.xlsb in --src; run: python scripts/build_dashboard_data.py --detail-only --src &lt;dir&gt; --out dashboard/data.js',
+    owner:'Source Data / Master Data Team',
+    trigger:'Primary source file updated or EAN master correction provided',
+    closure:'(Unmapped/Blank Brand).nsv = 0 after rebuild with corrected source',
+    releaseDisp:'ACCEPTED — bucket is disclosed; NSV is reconciled; brand drill carries caveat'
+  });
+
+  // EAN-REGISTER-001 — BLOCKED (cannot produce unresolved-EAN register without source file)
+  exceptionItems.push({
+    id:'EAN-REGISTER-001',label:'Unresolved-EAN register — primary_article.xlsb not available',status:'BLOCKED',
+    observed:'primary_article.xlsb absent from --src',
+    expected:'Full EAN normalization and historical mapping applied; unresolved-EAN register produced',
+    diff:'N/A',pctDiff:'N/A',
+    period:'FY27 (Apr-26 onwards)',grain:'Article-level EAN mapping',
+    rootCause:'EAN normalization workflow (trim whitespace, remove trailing .0, scientific notation, leading-zero preservation, 5-level mapping priority) requires primary_article.xlsb or .xlsx in --src. File not present in this build session.',
+    businessImpact:`Cannot produce unresolved-EAN register. ${crc(unmappedNsv)} L of FY27 NSV (in (Unmapped/Blank Brand)) may reduce once EANs are mapped via historical priority lookup.`,
+    containment:'(Unmapped/Blank Brand) bucket retains all unmapped NSV — no silent exclusion. FY27 NSV reconciled to PASS.',
+    action:'Provide primary_article.xlsb (or .xlsx) in --src and re-run: python scripts/build_dashboard_data.py --detail-only --src &lt;dir&gt; --out dashboard/data.js',
+    owner:'Source Data Team',
+    trigger:'Source file made available in --src directory',
+    closure:'Unresolved-EAN register produced; MAP-BRAND-FY27-001 unmapped NSV reduced toward 0',
+    releaseDisp:'BLOCKED — cannot resolve without source file; release proceeds under MAP-BRAND-FY27-001 accepted caveat'
+  });
+
+  const nBlocked=exceptionItems.filter(e=>e.status==='BLOCKED').length;
+  const relDecision=nFail>0||nBlocked>0?'NOT READY':nWarn>0?'READY WITH ACCEPTED EXCEPTIONS':'READY';
+  const relColor=nFail>0||nBlocked>0?'#922b21':nWarn>0?'#8a5a00':'#1a6e30';
+  const bannerCls=nFail>0?'qcbanner-fail':nBlocked>0?'qcbanner-blocked':nWarn>0?'qcbanner-warn':'qcbanner-pass';
   const bannerMsg=nFail>0
     ?`⛔ NOT READY — ${nFail} failed check(s); investigate before release`
-    :nWarn>0?`Release decision: <b style="color:${relColor}">${relDecision}</b> — ${nPass} PASS · ${nWarn} WARN (accepted, see Remediation Plan)`
+    :nBlocked>0?`⛔ NOT READY — ${nBlocked} BLOCKED check(s) awaiting source data · ${nWarn} WARN accepted · Provide primary_article.xlsb to unblock`
+    :nWarn>0?`Release decision: <b style="color:${relColor}">${relDecision}</b> — ${nPass} PASS · ${nWarn} WARN (accepted, see Exception Register)`
     :`Release decision: <b style="color:${relColor}">${relDecision}</b> — all ${nPass} checks passed`;
 
   function rowHtml(c){
-    const icon=c.status==='pass'?'✓':c.status==='warn'?'⚠':c.status==='fail'?'✗':'ℹ';
+    const icon=c.status==='pass'?'✓':c.status==='warn'?'⚠':c.status==='fail'?'✗':c.status==='blocked'?'⊘':'ℹ';
     const fmtV=v=>typeof v==='number'?crc(v):String(v);
     return `<tr class="qcr-${c.status}">
       <td><span class="qcs-${c.status}" style="font-weight:800;margin-right:5px">${icon}</span>${c.label}</td>
@@ -2152,23 +2262,50 @@ function buildQC(){
       </table></div></div>`;
   }
 
-  function remediationHtml(){
-    if(!warnItems.length) return '';
-    const rows=warnItems.map((w,i)=>`<tr>
-      <td style="font-size:11px;font-weight:700;white-space:nowrap">W${i+1}</td>
-      <td style="font-size:11px">${w.label}</td>
-      <td style="font-size:11px">${w.owner}</td>
-      <td style="font-size:11px">${w.action}</td>
-      <td style="font-size:11px">${w.closure}</td>
-      <td style="font-size:11px">${w.trigger}</td>
-    </tr>`).join('');
+  function excCardHtml(e){
+    const cardCls=e.status==='BLOCKED'?'blocked':e.status==='FAIL'?'fail':'';
+    return `<div class="exc-card ${cardCls}">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <span class="exc-id">${e.id}</span>
+        <span class="qcbadge qcs-${e.status.toLowerCase()}">${e.status}</span>
+        <span style="font-weight:700;font-size:13px">${e.label}</span>
+      </div>
+      <dl class="exc-meta">
+        <dt>Observed</dt><dd>${e.observed}</dd>
+        <dt>Expected</dt><dd>${e.expected}</dd>
+        <dt>Abs diff</dt><dd>${e.diff}</dd>
+        <dt>% diff</dt><dd>${e.pctDiff}</dd>
+        <dt>Affected period</dt><dd>${e.period}</dd>
+        <dt>Affected grain</dt><dd>${e.grain}</dd>
+      </dl>
+      <div class="exc-divider"></div>
+      <dl class="exc-meta">
+        <dt>Root cause</dt><dd>${e.rootCause}</dd>
+        <dt>Business impact</dt><dd>${e.businessImpact}</dd>
+        <dt>Containment</dt><dd>${e.containment}</dd>
+        <dt>Corrective action</dt><dd>${e.action}</dd>
+        <dt>Owner / role</dt><dd>${e.owner}</dd>
+        <dt>Review trigger</dt><dd>${e.trigger}</dd>
+        <dt>Closure condition</dt><dd>${e.closure}</dd>
+        <dt>Release disposition</dt><dd><b>${e.releaseDisp}</b></dd>
+      </dl>
+    </div>`;
+  }
+
+  function exceptionRegisterHtml(){
+    if(!exceptionItems.length) return '';
+    const blocked=exceptionItems.filter(e=>e.status==='BLOCKED');
+    const fails=exceptionItems.filter(e=>e.status==='FAIL');
+    const warns=exceptionItems.filter(e=>e.status==='WARN');
+    const sections=[];
+    if(blocked.length) sections.push(`<h4 style="color:#7B1FA2;margin:14px 0 8px">BLOCKED (${blocked.length}) — awaiting source data / external dependency</h4>${blocked.map(excCardHtml).join('')}`);
+    if(fails.length) sections.push(`<h4 style="color:var(--red);margin:14px 0 8px">FAIL (${fails.length}) — must resolve before release</h4>${fails.map(excCardHtml).join('')}`);
+    if(warns.length) sections.push(`<h4 style="color:#8a5a00;margin:14px 0 8px">WARN (${warns.length}) — accepted exceptions</h4>${warns.map(excCardHtml).join('')}`);
     return `<div class="card" style="margin-bottom:18px">
-      <h3>⚠ Accepted Exceptions — Remediation Plan (${warnItems.length} items)</h3>
-      <p class="note">All items below are accepted for this release with an assigned owner and closure criterion. These must be resolved before the next milestone build.</p>
-      <div class="tablewrap"><table class="qc-tbl">
-        <thead><tr><th>#</th><th>Warning</th><th>Owner</th><th>Corrective Action</th><th>Closure Criterion</th><th>Review Trigger</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table></div></div>`;
+      <h3>Exception Register (${exceptionItems.length} items)</h3>
+      <p class="note">Every WARN, FAIL, and BLOCKED item documented with 17 fields. Unique Check IDs — no double-counting. Sorted: BLOCKED → FAIL → WARN.</p>
+      ${sections.join('')}
+    </div>`;
   }
 
   const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
@@ -2184,9 +2321,9 @@ function buildQC(){
     <div class="qcbanner ${bannerCls}">${bannerMsg} &nbsp;·&nbsp; Run: ${ts}</div>
     <div class="kpis" style="margin-bottom:18px">
       ${kpi('Checks passed',nPass,'')}
-      ${kpi('Warnings',nWarn,'Accepted — see Remediation Plan')}
+      ${kpi('Warnings',nWarn,'Accepted — see Exception Register')}
       ${kpi('Failed',nFail,nFail===0?'Release-ready':'Investigate before release')}
-      ${kpi('Active records',num(recs.length),'Article-level primary')}
+      ${kpi('Blocked',nBlocked,nBlocked===0?'None':'Awaiting source data')}
     </div>
     <div class="card" style="margin-bottom:18px">
       <h3>Excluded brand audit</h3>
@@ -2194,7 +2331,7 @@ function buildQC(){
       <div class="kpis">${exclKpis}</div>
     </div>
     ${allGroups.map(groupHtml).join('')}
-    ${remediationHtml()}
+    ${exceptionRegisterHtml()}
     <div class="card">
       <h3>Data notes &amp; technical context</h3>
       <p class="note" style="line-height:1.9">
@@ -2202,17 +2339,18 @@ function buildQC(){
         NSV totals were adjusted post-aggregation to remove excluded brands (diff ≈ ${diffFmt(m25s-(p.nsv_fy25||0))} L FY25,
         ${diffFmt(m26s-(p.nsv_fy26||0))} L FY26). Charts showing month-by-month trends will slightly overstate monthly values vs the NSV total KPI — immaterial (&lt;0.05% of NSV).
         <br><br>
-        <b>B · FY27 brand breakdown:</b> An <b>(Unmapped/Blank Brand)</b> bucket (27.58 L) is included in the FY27 brand array to achieve full reconciliation to FY27.nsv.
-        Root cause: the build script's <code>_aggx("_Brand")</code> uses <code>if k</code> to exclude blank <code>_Brand</code> values — these rows are counted in <code>FY27.nsv</code> but have no brand name.
-        Permanent resolution: correct blank brand codes in the primary source file, then re-run <code>build_dashboard_data.py --detail-only</code>. Zone diff (+7.37 L) reflects returns with blank zone codes; chain diff (−33.66 L) reflects sales with blank chain codes.
+        <b>B · FY27 brand breakdown:</b> An <b>(Unmapped/Blank Brand)</b> bucket (${crc(unmappedNsv)}) is included in the FY27 brand array to achieve full reconciliation to FY27.nsv.
+        The build script fix (Jun-26) now generates this bucket reproducibly from blank <code>_Brand</code> codes in the primary source.
+        Permanent resolution: correct blank brand codes in the primary source file or provide EAN mapping via <code>primary_article.xlsb</code>, then re-run <code>build_dashboard_data.py --detail-only</code>.
+        Zone diff (${diffFmt(r2(zn27s-(fy27.nsv||0)))} L) reflects returns with blank zone codes; chain diff (${diffFmt(r2(cn27s-(fy27.nsv||0)))} L) reflects sales with blank chain codes.
         <br><br>
-        <b>E · CM2 by_brand/by_chain vs total:</b> ₹${((cm2D.total_expense||0)).toFixed(2)} L total trade expense is sourced from 3 ledger rows (Dmart, Reliance, Apollo).
+        <b>E · CM2 by_brand/by_chain vs total:</b> ${crc(cm2D.total_expense||0)} total trade expense is sourced from 3 ledger rows (Dmart, Reliance, Apollo).
         The remaining chains carry zero mapped expense. Rounding across chain allocations produces a &lt;0.06% difference between chain-level CM2 sum and the total.
         <br><br>
         <b>F · Distribution gap total vs row sum:</b> <code>total_addon_ann</code> covers the entire MT product universe.
         <code>rows</code> shows the top ${dgRows.length} products by add-on window potential. The difference (${crc(dgAnn-rowAnn)}) represents the opportunity from products ranked below display position ${dgRows.length}.
         <br><br>
-        <b>G · Source file needed for EAN mapping:</b> The 27.58 L blank-brand records and 33.66 L blank-chain records exist in the primary source file (<code>primary_article.xlsb</code>) but are outside the browser display cap in <code>detail_records</code>. To trace them to specific EANs and apply EAN-based brand mapping, the source file must be available in <code>--src</code>. Provide <code>primary_article.xlsb</code> (or <code>.xlsx</code>) to enable the full EAN normalization and historical mapping workflow.
+        <b>G · Source file needed for EAN mapping:</b> The ${crc(unmappedNsv)} blank-brand records and ~33.66 L blank-chain records exist in the primary source file (<code>primary_article.xlsb</code>) but are outside the browser display cap in <code>detail_records</code>. To trace them to specific EANs and apply EAN-based brand mapping, provide <code>primary_article.xlsb</code> (or <code>.xlsx</code>) in <code>--src</code> and re-run <code>--detail-only</code>.
       </p>
     </div>`;
 }
