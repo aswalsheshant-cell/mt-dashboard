@@ -2220,6 +2220,9 @@ function buildExplorer(){
      <td>${r.Article}</td><td>${crc(r.NSV)}</td><td>${crc(r.MRP)}</td><td>${qtyFmt(r.Qty)}</td></tr>`).join('');
   // SIS channel check — always the SIS slice (ignores the Channel filter, respects the others)
   const isRep=!!(D.detail_meta&&D.detail_meta.representative);
+  const dm=D.detail_meta||{};
+  const coverNote=(!isRep&&dm.rows_kept&&dm.rows_total_groups&&dm.rows_kept<dm.rows_total_groups)
+    ?`<p class="note" style="margin:0 0 8px;font-size:12px">Data Explorer shows the top ${num(dm.rows_kept)} article groups of ${num(dm.rows_total_groups)} total (${dm.value_coverage_pct}% of NSV value). Use Overview / Primary / Offtake tabs for complete totals.</p>`:'';
   const ct=(D.detail_meta&&D.detail_meta.channel_totals)||null;
   // Prefer the EXACT channel_totals (computed from the full un-capped source)
   // over summing detail_records, since detail_records may be capped for size.
@@ -2242,7 +2245,7 @@ function buildExplorer(){
 
   s.innerHTML=`<h2 class="sec">Data Explorer</h2>
    <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
-   ${rep}
+   ${rep}${coverNote}
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
    <div class="kpis">
      ${kpi('NSV (filtered)',crc(nsv),`${num(recs.length)} records`)}

@@ -1302,14 +1302,22 @@ _EXPENSE_DEDUP_FIELDS = ["Month", "FY", "Chain", "Customer Code", "Customer Name
 
 def load_pl_expense_input():
     """Row dicts from the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv.
-    Returns [] if the file is missing (no expenses loaded yet -- CM2 then
-    just equals NSV, and the dashboard/Power BI both show an explicit
-    "no expense data loaded" state rather than a fabricated CM2)."""
+    Returns [] if the file is missing or contains only template/example rows (no
+    expenses loaded yet -- CM2 then just equals NSV, and the dashboard/Power BI
+    both show an explicit "no expense data loaded" state rather than a
+    fabricated CM2 based on placeholder values)."""
     path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PL_Expense_Input.csv"
     if not path.exists():
         return []
+    rows = []
     with open(path, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+        for r in csv.DictReader(fh):
+            # Skip template sentinel rows (the CSV ships with EXAMPLE rows so
+            # operators know the expected format; they must not inflate CM2).
+            if str(r.get("Remarks", "")).upper().startswith("EXAMPLE ROW"):
+                continue
+            rows.append(r)
+    return rows
 
 def _build_custcode_chain_lookup(df):
     """Cust-SAP Code -> most common Chain, built from the primary article
@@ -1581,24 +1589,45 @@ def forecast_block(off):
 def load_ty_target(src):
     """Read FY2627_TGT_and_sales_team_mapping.xlsb (Sheet1: FY, Qtr, Month
     [Excel serial], 'TGT\\nFOR TY' in Rs Crore). Returns a sorted list of
-    (date, 'Mon-YY' label, value_in_Lakh), or None if the file isn't in
-    --src (forecast then stays the seasonally-projected estimate)."""
+    (date, 'Mon-YY' label, value_in_Lakh), or None if neither source is found
+    (forecast then stays the seasonally-projected estimate).
+
+    Fallback: when the xlsb is absent (gitignored, not on this machine) the
+    function reads PowerBI/SeedData/Targets/FY2627_Targets.csv instead, which
+    carries the same 12 monthly targets as committed, tracked data.  The two
+    sources have been verified to agree to the nearest rupee."""
     f = src / "FY2627_TGT_and_sales_team_mapping.xlsb"
-    if not f.exists():
+    if f.exists():
+        df = pd.read_excel(f, sheet_name="Sheet1", header=1, engine="pyxlsb")
+        df.columns = [str(c).strip() for c in df.columns]
+        tgt_col = next((c for c in df.columns if "TGT" in c.upper()), None)
+        if tgt_col is None:
+            raise SystemExit(f"FY2627_TGT file: no 'TGT FOR TY' column found. Columns: {list(df.columns)}")
+        df = df.dropna(subset=[tgt_col, "Month"])
+        rows = []
+        for _, r in df.iterrows():
+            n = float(r["Month"])
+            d = datetime.date(1899, 12, 30) + datetime.timedelta(days=int(n))
+            rows.append((d, d.strftime("%b-%y"), float(r[tgt_col]) * 100))  # Cr -> Lakh
+        rows.sort(key=lambda x: x[0])
+        return rows
+
+    # Fallback: use the tracked CSV (MonthStart YYYY-MM-DD, Target NSV Cr).
+    csv_path = (Path(__file__).resolve().parent.parent
+                / "PowerBI" / "SeedData" / "Targets" / "FY2627_Targets.csv")
+    if not csv_path.exists():
         return None
-    df = pd.read_excel(f, sheet_name="Sheet1", header=1, engine="pyxlsb")
-    df.columns = [str(c).strip() for c in df.columns]
-    tgt_col = next((c for c in df.columns if "TGT" in c.upper()), None)
-    if tgt_col is None:
-        raise SystemExit(f"FY2627_TGT file: no 'TGT FOR TY' column found. Columns: {list(df.columns)}")
-    df = df.dropna(subset=[tgt_col, "Month"])
     rows = []
-    for _, r in df.iterrows():
-        n = float(r["Month"])
-        d = datetime.date(1899, 12, 30) + datetime.timedelta(days=int(n))
-        rows.append((d, d.strftime("%b-%y"), float(r[tgt_col]) * 100))  # Cr -> Lakh
+    with open(csv_path, newline="", encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            try:
+                d = datetime.date.fromisoformat(r["MonthStart"].strip())
+                val_lakh = float(r["Target NSV Cr"].strip()) * 100  # Cr -> Lakh
+                rows.append((d, d.strftime("%b-%y"), val_lakh))
+            except (KeyError, ValueError):
+                continue
     rows.sort(key=lambda x: x[0])
-    return rows
+    return rows if rows else None
 
 def forecast_block_ty(off, ty_rows):
     by_tag, tags, base_tag = _fy_slices(off)   # latest COMPLETE FY = the actuals baseline
