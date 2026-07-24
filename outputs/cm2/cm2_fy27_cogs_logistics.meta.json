@@ -1,6 +1,6 @@
 {
   "calculation_status": "PROVISIONAL",
-  "calculation_version": "2.0.0",
+  "calculation_version": "2.1.0",
   "label": "Provisional CM2 after COGS and logistics",
   "scenario": "CM2 scenario: COGS on GMV/MRP, logistics on NSV",
   "cogs_basis": "GMV_MRP_SALES",
@@ -54,8 +54,10 @@
         "pure origin",
         "staze"
       ],
+      "seed_file": "PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv",
       "months_resolved": [
         "Apr-26",
+        "Jun-26",
         "May-26"
       ],
       "per_month": {
@@ -65,7 +67,8 @@
           "source_unit": "INR",
           "converted_unit": "INR Lakh",
           "rows_total": 30757,
-          "rows_after_brand_exclusion": 30691
+          "rows_after_brand_exclusion": 30691,
+          "resolved_via": "article_csv"
         },
         "May-26": {
           "source_file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
@@ -73,7 +76,18 @@
           "source_unit": "INR",
           "converted_unit": "INR Lakh",
           "rows_total": 19399,
-          "rows_after_brand_exclusion": 19398
+          "rows_after_brand_exclusion": 19398,
+          "resolved_via": "article_csv"
+        },
+        "Jun-26": {
+          "source_file": "MT+EB2B-MTD-Primary-June'26. (1).xlsx",
+          "source_sha256": "b73bf8ffa41a96c383ca79e6e3a4e5f4df05e24bf614702ede26658012162ae3",
+          "source_sheet": "MTD-Primary-June'26.",
+          "field": "MRP Value",
+          "unit": "INR Lakh",
+          "nsv_control_l": "4167.38",
+          "extraction_rule": "sum('MRP Value') / 1e5, excluded brands removed (pure origin, lumineve, staze); all channels MT+EB2B+SIS and all MTD-Sale types retained, matching the Apr-26/May-26 article CSV scope exactly",
+          "resolved_via": "seed"
         }
       }
     },
@@ -87,18 +101,19 @@
   "source_files": [
     "dashboard/data.js",
     "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
-    "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv"
+    "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
+    "MT+EB2B-MTD-Primary-June'26. (1).xlsx"
   ],
-  "source_commit": "13fe0acdf8f2ad3f41704f324fddf8b8f47f60a8",
-  "generated_at": "2026-07-24T19:39:03+00:00",
-  "months_calculated": 2,
+  "source_commit": "acd20991fdecc0856a4d4d47ddc1b41d45a0188f",
+  "generated_at": "2026-07-24T19:51:13+00:00",
+  "months_calculated": 3,
   "totals_lakh": {
-    "gmv": "22035.88",
-    "nsv": "9485.23",
-    "cogs": "3057.00",
-    "log": "275.53",
-    "cost": "3332.52",
-    "cm2": "6152.71"
+    "gmv": "31336.79",
+    "nsv": "13652.59",
+    "cogs": "4411.21",
+    "log": "445.97",
+    "cost": "4857.18",
+    "cm2": "8795.41"
   },
   "production_files_modified": [],
   "note": "PROVISIONAL. Final CM2 expense definition pending D1 and D9. Do not label this Final CM2 and do not publish into production visuals until those decisions are approved."

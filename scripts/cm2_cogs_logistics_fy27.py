@@ -18,9 +18,14 @@ AUTHORITATIVE BASES
   GMV/MRP   PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_<Mon>_<YY>.csv
             column 'Total MRP sales' (INR), excluded brands removed, /1e5 -> Lakh
 
+Jun-26 has no article CSV, so its GMV/MRP comes from the governed seed
+PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv -- hash-pinned to the
+authoritative workbook, which is gitignored and never committed.
+
 The FY-total field detail_meta.fyx_primary.FY27.mrp is deliberately NOT used as a
-monthly base: it covers Apr+May only (Jun-26 was patched in as NSV-only by
-scripts/patch_jun26.py), so deriving a month from it would be wrong.
+monthly base. It equals Apr+May MRP WITHOUT the excluded-brand filter
+(11775.46 + 10274.75 = 22050.21) and omits Jun-26 entirely, so it understates
+the true FY27 MRP by ~9286.58L. Tracked as decision D12.
 
 STAGING ONLY. Does not modify dashboard/data.js, dashboard/index.html or
 build_dashboard_data.py, and is not read by the production build.
@@ -43,8 +48,9 @@ DATA_JS = ROOT / "dashboard" / "data.js"
 ARTICLE_DIR = ROOT / "PowerBI" / "RawDataFolders" / "Primary_Article_Monthly"
 OUT_CSV = ROOT / "outputs" / "cm2" / "cm2_fy27_cogs_logistics.csv"
 OUT_META = ROOT / "outputs" / "cm2" / "cm2_fy27_cogs_logistics.meta.json"
+GMV_SEED = ROOT / "PowerBI" / "SeedData" / "Masters" / "FY27_Monthly_GMV_MRP.csv"
 
-CALC_VERSION = "2.0.0"
+CALC_VERSION = "2.1.0"
 DECISION_REF = "D10 (bases approved) / D11 (components separate)"
 
 # Excluded brands must never enter any aggregation.
@@ -135,12 +141,47 @@ def load_nsv_monthly() -> tuple[list[Decimal | None], dict]:
     return vals, meta
 
 
-def load_gmv_mrp_monthly() -> tuple[dict[str, Decimal], dict]:
-    """FY27 monthly GMV/MRP sales in INR Lakh from the article CSVs.
+def load_gmv_mrp_seed() -> tuple[dict[str, Decimal], dict]:
+    """Governed seed of monthly GMV/MRP for months whose only authoritative
+    source is a workbook that must not be committed (gitignored).
 
-    Only months with a tracked article CSV can be resolved. A month with no CSV
-    is absent from the returned mapping -- it is NOT derived from the FY total
-    and NOT estimated from NSV.
+    Each row is hash-pinned to its source workbook and carries an NSV control
+    total, so the value stays auditable without vendoring the source file.
+    Only rows marked AUTHORITATIVE are honoured -- an estimated or pending row
+    is ignored, keeping the month at GMV_MRP_MISSING.
+    """
+    out: dict[str, Decimal] = {}
+    per_month = {}
+    if not GMV_SEED.exists():
+        return out, {"seed_file": None, "rows": 0, "per_month": {}}
+    with open(GMV_SEED, encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            if r.get("Status", "").strip().upper() != "AUTHORITATIVE":
+                continue
+            month = r["Month"].strip()
+            out[month] = Decimal(r["GMV_MRP_Sales_L"].strip())
+            per_month[month] = {
+                "source_file": r["Source_File"].strip(),
+                "source_sha256": r["Source_SHA256"].strip(),
+                "source_sheet": r["Source_Sheet"].strip(),
+                "field": r["Field"].strip(),
+                "unit": "INR Lakh",
+                "nsv_control_l": r["NSV_Control_L"].strip(),
+                "extraction_rule": r["Extraction_Rule"].strip(),
+                "resolved_via": "seed",
+            }
+    return out, {"seed_file": rel(GMV_SEED), "rows": len(out), "per_month": per_month}
+
+
+def load_gmv_mrp_monthly() -> tuple[dict[str, Decimal], dict]:
+    """FY27 monthly GMV/MRP sales in INR Lakh.
+
+    Resolution order per month:
+      1. tracked article CSV  -- fully recomputable from repository contents
+      2. governed seed        -- workbook-derived, hash-pinned, AUTHORITATIVE only
+
+    A month resolved by neither is absent from the returned mapping. It is NOT
+    derived from the FY total and NOT estimated from NSV.
     """
     import pandas as pd
 
@@ -175,13 +216,24 @@ def load_gmv_mrp_monthly() -> tuple[dict[str, Decimal], dict]:
             "converted_unit": "INR Lakh",
             "rows_total": int(len(df)),
             "rows_after_brand_exclusion": int(len(kept)),
+            "resolved_via": "article_csv",
         }
+
+    # Seed fills only months the tracked CSVs could not resolve. A CSV always
+    # wins -- it is recomputable from the repository, the seed is not.
+    seed, seed_meta = load_gmv_mrp_seed()
+    for month, val in seed.items():
+        if month in out:
+            continue
+        out[month] = val
+        per_month[month] = seed_meta["per_month"][month]
 
     meta = {
         "grain": "calendar month, article-level, excluded brands removed",
         "unit": "INR Lakh",
         "nature": "raw source column summed",
         "excluded_brands": sorted(EXCLUDED_BRANDS),
+        "seed_file": seed_meta["seed_file"],
         "months_resolved": sorted(per_month),
         "per_month": per_month,
     }
