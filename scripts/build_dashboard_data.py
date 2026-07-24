@@ -2655,6 +2655,7 @@ def main():
             "period": "FY 2024-25 vs FY 2025-26",
             "unit_note": "Values in INR Lakh in data; displayed in INR Crore where labelled (Cr = Lakh/100).",
             "source": "Primary, Chain Offtake Master, Universe MT, Promo Master (MT, FY24-26).",
+            "built_at": datetime.datetime.now(datetime.timezone.utc).strftime("%d %b %Y %H:%M UTC"),
         },
         "primary": primary, "offtake": offtake, "pnl": pnl,
         "universe": universe, "promo": promo, "forecast": forecast,

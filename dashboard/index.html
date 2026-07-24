@@ -119,6 +119,33 @@
   .drill{cursor:pointer;border-bottom:1px dashed var(--teal-d)}
   .drill:hover{color:var(--teal-d);font-weight:700}
   .drillhint{font-size:11px;color:var(--muted);font-style:italic}
+  /* ---------- AI Analyst tab (P2) ---------- */
+  .ai-input-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+  .ai-row{display:flex;gap:8px;align-items:flex-start}
+  .ai-textarea{width:100%;font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;resize:vertical;color:var(--ink);background:#fff;flex:1;min-height:58px}
+  .ai-textarea:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .ai-btn-ask{background:var(--teal);color:#fff;border:0;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0}
+  .ai-btn-ask:hover{background:var(--teal-d)} .ai-btn-ask:disabled{background:var(--muted);cursor:not-allowed}
+  .ai-examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .ai-ex-btn{background:#f0faf6;border:1px solid #c3e6d8;border-radius:20px;padding:4px 11px;font-size:12px;color:var(--teal-d);cursor:pointer;font-family:inherit}
+  .ai-ex-btn:hover{background:#d4f0e6;border-color:var(--teal)}
+  .ai-filter-ctx{font-size:12px;color:var(--muted);margin-bottom:8px;min-height:18px}
+  .ai-filter-ctx b{color:var(--teal-d)}
+  .ai-status-bar{font-size:11.5px;color:var(--muted);margin-top:8px;padding:6px 10px;background:#f8f9fa;border-radius:6px}
+  .ai-answer-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+  .ai-q-label{font-size:13px;color:var(--muted);margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .ai-q-label b{color:var(--ink)}
+  .ai-scalar-val{font-size:36px;font-weight:800;color:var(--ink);margin:8px 0 4px;line-height:1.1}
+  .ai-scalar-lab{font-size:13px;color:var(--muted)}
+  .ai-extra-lab{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .ai-prov{font-size:11px;color:var(--muted);margin-top:12px;padding-top:8px;border-top:1px solid var(--line)}
+  .ai-conf{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700}
+  .ai-conf.HIGH{background:#e6f4ea;color:var(--green)}.ai-conf.MEDIUM{background:#fff3e0;color:var(--amber)}
+  .ai-conf.LOW,.ai-conf.NONE{background:#f1f3f5;color:var(--muted)}
+  .ai-plan pre{font-family:monospace;font-size:11.5px;background:#f8f9fa;border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 0;white-space:pre-wrap;overflow-x:auto}
+  .ai-status-msg{font-size:12.5px;color:var(--muted);padding:12px 14px;background:#f8f9fa;border-radius:8px}
+  .ai-unsup{color:#7B3F00;font-size:13.5px;padding:14px 16px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;line-height:1.5}
+  .ai-narr{margin-top:12px}
 </style>
 </head>
 <body>
@@ -144,6 +171,7 @@
   <section id="tab-distribution"></section>
   <section id="tab-comparison"></section>
   <section id="tab-insights"></section>
+  <section id="tab-analyst"></section>
 </div>
 <footer id="foot"></footer>
 
@@ -1475,6 +1503,392 @@ function buildInsights(){
   renderCatDrillChart('insCatDrill',recFilter());
 }
 
+/* ======== AI ANALYST TAB — P2 =========================================
+ * Offline-first NL Q&A grounded in window.DASH. No data leaves the machine
+ * by default. Ollama (localhost:11434) is tried optionally for narration.
+ * Read-only: all answers are computed from existing data blocks — no writes.
+ * Negative NSV is treated as a valid business condition (returns/credit notes).
+ * Audit log stored in localStorage[_AI.LOG_KEY], max 100 entries.
+ * ===================================================================== */
+const _AI={
+  LOG_KEY:'AI_ANALYST_LOG',
+  MAX_ROWS:200,
+  TIMEOUT_MS:8000,
+  OLLAMA_URL:'http://localhost:11434/api/generate',
+  OLLAMA_MODEL:'mistral',
+};
+
+function _aiExamples(){
+  const fyOpts=FY_ALL.slice(-2);
+  const fy=fyOpts[fyOpts.length-1]||'FY26';
+  const topChain=((D.primary&&D.primary.by_chain)||[])[0];
+  const ex=[
+    `What is total offtake NSV for ${fy}?`,
+    `Top 5 chains by primary NSV`,
+    `NSV by zone for ${fy}`,
+    `Show offtake by brand`,
+    `Monthly primary NSV trend`,
+    `Primary vs offtake gap for ${fy}`,
+    `How many articles?`,
+    `Which chain had highest YoY growth?`,
+  ];
+  if(topChain) ex.push(`${topChain.name} sales for ${fy}`);
+  return ex;
+}
+
+function _aiSig(q){
+  const t=q.toLowerCase();
+  const n=s=>parseInt((t.match(new RegExp(s+'\\s*(\\d+)'))||['','5'])[1],10)||5;
+  return{
+    isOfftake:/offtake|sell.?out|secondary|sellout/.test(t),
+    isPrimary:/primary|sell.?in|shipment/.test(t),
+    isGrowth:/growth|yoy|year.?on.?year|mom|month.?on.?month/.test(t),
+    isTop:/\btop\b|\bbest\b|highest|biggest/.test(t),
+    isBot:/\bbottom\b|worst|lowest|smallest/.test(t),
+    isCount:/how.?many|count\b|number.?of/.test(t),
+    isTrend:/trend|month(ly)?|over.?time/.test(t),
+    isGap:/\bgap\b|vs\.?\s*offtake|vs\.?\s*primary|primary.?vs/.test(t),
+    byChain:/\bchain\b|retailer|account/.test(t),
+    byBrand:/\bbrand\b/.test(t),
+    byZone:/\bzone\b|region/.test(t),
+    byState:/\bstate\b/.test(t),
+    byCat:/categor/.test(t),
+    byChan:/\bchannel\b/.test(t),
+    byMonth:/\bmonth(ly)?\b/.test(t),
+    byArt:/\barticle\b|\bsku\b/.test(t),
+    fy27:/fy.?27|2026.?27/.test(t),
+    fy26:/fy.?26|2025.?26/.test(t),
+    fy25:/fy.?25|2024.?25/.test(t),
+    topN:n('top'),botN:n('bottom'),
+    chain:_aiMatchName(t,((D.primary&&D.primary.by_chain)||[]).map(c=>c.name)),
+    brand:_aiMatchName(t,((D.primary&&D.primary.by_brand)||[]).map(b=>b.name)),
+  };
+}
+function _aiMatchName(text,names){
+  for(const n of (names||[])) if(n&&text.includes(n.toLowerCase())) return n;
+  return null;
+}
+function _aiFy(sig){ return sig.fy27?'fy27':sig.fy26?'fy26':sig.fy25?'fy25':null; }
+function _aiFilterSql(){
+  const parts=FILT.filter(([k])=>F[k].length).map(([k])=>`${k} IN (${F[k].map(v=>`'${v}'`).join(',')})`);
+  return parts.length?' WHERE '+parts.join(' AND '):'';
+}
+
+function _aiRoute(q){
+  const sig=_aiSig(q);
+  const fy=_aiFy(sig);
+  const fyLab=fy?fy.toUpperCase():'latest';
+  const p=D.primary, o=D.offtake;
+  const recs=recFilter();
+
+  // --- PRIMARY vs OFFTAKE GAP ---
+  if(sig.isGap){
+    const fyKey=fy||'fy26';
+    const pv=p&&(p['nsv_'+fyKey]||p['nsv_fy26']);
+    const ov=o&&(o['total_'+fyKey]||o['total_fy26']);
+    if(pv!=null&&ov!=null){
+      return{type:'scalar',value:pv-ov,unit:'lakh',label:`Primary vs Offtake gap (${fyLab})`,
+        extra:`Primary: ${crc(pv)} · Offtake: ${crc(ov)}`,confidence:'HIGH',
+        sql:`SELECT SUM(Primary_NSV)-SUM(Offtake_NSV) AS Gap FROM fact WHERE FY='${fyLab}'`,
+        provenance:'D.primary + D.offtake'};
+    }
+  }
+
+  // --- COUNTS ---
+  if(sig.isCount){
+    if(sig.byArt){
+      const u=[...new Set(recs.map(r=>r.Article).filter(Boolean))];
+      return{type:'scalar',value:u.length,unit:'count',label:'Unique articles (filtered)',confidence:'HIGH',
+        sql:`SELECT COUNT(DISTINCT Article) FROM detail_records${_aiFilterSql()}`,provenance:'detail_records'};
+    }
+    if(sig.byChain){
+      const u=[...new Set(recs.map(r=>r.Chain).filter(Boolean))];
+      return{type:'scalar',value:u.length,unit:'count',label:'Unique chains (filtered)',confidence:'HIGH',
+        sql:`SELECT COUNT(DISTINCT Chain) FROM detail_records${_aiFilterSql()}`,provenance:'detail_records'};
+    }
+    return{type:'scalar',value:recs.length,unit:'count',label:'Matching records',confidence:'HIGH',
+      sql:`SELECT COUNT(*) FROM detail_records${_aiFilterSql()}`,provenance:'detail_records'};
+  }
+
+  // --- MONTHLY TREND ---
+  if(sig.byMonth||sig.isTrend){
+    const usePri=sig.isPrimary||(!sig.isOfftake&&p&&p.month_labels);
+    if(usePri&&p&&p.month_labels&&p.monthly){
+      const rows=p.month_labels.map((m,i)=>({Month:m,NSV:p.monthly[i]??0}));
+      return{type:'table',rows,cols:['Month','NSV'],colFmt:{NSV:'crore'},
+        summary:`Monthly Primary NSV (${fyLab})`,confidence:'HIGH',
+        sql:`SELECT Month,SUM(Primary_NSV) FROM primary_fact${fy?' WHERE FY=\''+fyLab+'\''  :''} GROUP BY Month`,
+        provenance:'D.primary.monthly'};
+    }
+    const mKey='monthly_'+(fy||'fy26');
+    if(o&&o[mKey]){
+      const labels=(p&&p.month_labels)||MORDER;
+      const rows=labels.map((m,i)=>({Month:m,NSV:o[mKey][i]??0})).filter(r=>r.NSV!=null);
+      return{type:'table',rows,cols:['Month','NSV'],colFmt:{NSV:'crore'},
+        summary:`Monthly Offtake NSV (${fyLab})`,confidence:'HIGH',
+        sql:`SELECT Month,SUM(Offtake_NSV) FROM offtake_fact WHERE FY='${fyLab}' GROUP BY Month`,
+        provenance:`D.offtake.${mKey}`};
+    }
+  }
+
+  // helper: build table from pre-agg array
+  function _preAggTable(arr,dimKey,fyKey,sortSig,topN,summary,sqlDim,sqlFact,prov){
+    const k=fyKey==='fy27'?'nsv':fyKey;
+    let rows=arr.map(x=>({[dimKey]:x.name,NSV:x[k]??x.nsv??0,YoY:x.yoy})).filter(r=>r.NSV!=null);
+    if(sortSig.isGrowth) rows.sort((a,b)=>sortSig.isBot?(a.YoY??0)-(b.YoY??0):(b.YoY??0)-(a.YoY??0));
+    else rows.sort((a,b)=>sortSig.isBot?a.NSV-b.NSV:b.NSV-a.NSV);
+    rows=rows.slice(0,topN);
+    const cols=sortSig.isGrowth?[dimKey,'NSV','YoY']:[dimKey,'NSV'];
+    return{type:'table',rows,cols,colFmt:{NSV:'crore',YoY:'pct'},summary,confidence:'HIGH',
+      sql:`SELECT ${sqlDim},SUM(${sqlFact})${sortSig.isGrowth?',YoY_Growth':''} FROM ${sqlFact.toLowerCase().replace(' ','_')}_fact${fy?' WHERE FY=\''+fyLab+'\''  :''} GROUP BY ${sqlDim} ORDER BY ${sortSig.isGrowth?'YoY_Growth':sqlFact} ${sortSig.isBot?'ASC':'DESC'} LIMIT ${topN}`,
+      provenance:prov};
+  }
+
+  // --- BY ZONE ---
+  if(sig.byZone&&!sig.byChain){
+    const usePri=sig.isPrimary||(!sig.isOfftake&&p&&p.by_zone);
+    if(usePri&&p&&p.by_zone)
+      return _preAggTable(p.by_zone,'Zone',fy||'fy26',sig,sig.isBot?sig.botN:10,
+        `Primary NSV by Zone (${fyLab})`,'Zone','Primary NSV','D.primary.by_zone');
+    if(o&&o.by_zone){
+      const fyK='total_'+(fy||'fy26');
+      let rows=(o.by_zone||[]).map(z=>({Zone:z.name,NSV:z[fyK]??0})).sort((a,b)=>b.NSV-a.NSV);
+      return{type:'table',rows,cols:['Zone','NSV'],colFmt:{NSV:'crore'},
+        summary:`Offtake NSV by Zone (${fyLab})`,confidence:'HIGH',
+        sql:`SELECT Zone,SUM(Offtake_NSV) FROM offtake_fact${fy?' WHERE FY=\''+fyLab+'\''  :''} GROUP BY Zone ORDER BY NSV DESC`,
+        provenance:'D.offtake.by_zone'};
+    }
+  }
+
+  // --- BY BRAND ---
+  if(sig.byBrand||sig.brand){
+    const usePri=sig.isPrimary||(!sig.isOfftake&&p&&p.by_brand);
+    if(usePri&&p&&p.by_brand){
+      const N=sig.isBot?sig.botN:sig.topN;
+      let res=_preAggTable(p.by_brand,'Brand',fy||'fy26',sig,N,
+        `Primary NSV by Brand (${fyLab})`,'Brand','Primary NSV','D.primary.by_brand');
+      if(sig.brand) res.rows=res.rows.filter(r=>r.Brand.toLowerCase()===sig.brand.toLowerCase());
+      return res;
+    }
+  }
+
+  // --- BY CHANNEL ---
+  if(sig.byChan){
+    const usePri=sig.isPrimary||(!sig.isOfftake&&p&&p.by_channel);
+    if(usePri&&p&&p.by_channel)
+      return _preAggTable(p.by_channel,'Channel',fy||'fy26',sig,20,
+        `Primary NSV by Channel (${fyLab})`,'Channel','Primary NSV','D.primary.by_channel');
+  }
+
+  // --- BY CHAIN (or TOP/BOTTOM/specific entity) ---
+  if(sig.byChain||sig.isTop||sig.isBot||sig.chain){
+    const usePri=sig.isPrimary||(!sig.isOfftake&&p&&p.by_chain);
+    const N=sig.isBot?sig.botN:sig.topN;
+    if(usePri&&p&&p.by_chain){
+      let res=_preAggTable(p.by_chain,'Chain',fy||'fy26',sig,N,
+        `${sig.isBot?'Bottom':'Top'} chains by ${sig.isGrowth?'YoY growth':'Primary NSV'} (${fyLab})`,
+        'Chain','Primary NSV','D.primary.by_chain');
+      if(sig.chain) res.rows=res.rows.filter(r=>r.Chain.toLowerCase()===sig.chain.toLowerCase());
+      return res;
+    }
+    if(o&&o.by_chain){
+      const fyK='total_'+(fy||'fy26');
+      let rows=(o.by_chain||[]).map(c=>({Chain:c.name,NSV:c[fyK]??0}));
+      rows.sort((a,b)=>sig.isBot?a.NSV-b.NSV:b.NSV-a.NSV);
+      rows=rows.slice(0,N);
+      return{type:'table',rows,cols:['Chain','NSV'],colFmt:{NSV:'crore'},
+        summary:`${sig.isBot?'Bottom':'Top'} chains by Offtake NSV (${fyLab})`,confidence:'HIGH',
+        sql:`SELECT Chain,SUM(Offtake_NSV) FROM offtake_fact${fy?' WHERE FY=\''+fyLab+'\''  :''} GROUP BY Chain ORDER BY NSV ${sig.isBot?'ASC':'DESC'} LIMIT ${N}`,
+        provenance:'D.offtake.by_chain'};
+    }
+  }
+
+  // --- TOTAL NSV (scalar, pre-aggregated) ---
+  if(sig.isOfftake&&o){
+    const val=o['total_'+(fy||'fy26')];
+    if(val!=null) return{type:'scalar',value:val,unit:'lakh',label:`Offtake NSV (${fyLab})`,confidence:'HIGH',
+      sql:`SELECT SUM(Offtake_NSV) FROM offtake_fact WHERE FY='${fyLab}'`,provenance:'D.offtake'};
+  }
+  if(!sig.isOfftake&&p){
+    const val=p['nsv_'+(fy||'fy26')];
+    if(val!=null) return{type:'scalar',value:val,unit:'lakh',label:`Primary NSV (${fyLab})`,confidence:'HIGH',
+      sql:`SELECT SUM(Primary_NSV) FROM primary_fact WHERE FY='${fyLab}'`,provenance:'D.primary'};
+  }
+
+  // --- FALLBACK: aggregate detail_records by detected dimension ---
+  if(recs.length){
+    const dimKey=sig.byCat?'Category':sig.byState?'State':sig.byZone?'Zone':
+                 sig.byChan?'Channel':sig.byBrand?'Brand':sig.byChain?'Chain':null;
+    if(dimKey){
+      const agg={};
+      recs.forEach(r=>{
+        const k=normVal(dimKey,r[dimKey])||'(blank)';
+        if(!agg[k]) agg[k]={[dimKey]:k,NSV:0};
+        agg[k].NSV+=(r.nsv||r.NSV||0);
+      });
+      let rows=Object.values(agg).sort((a,b)=>b.NSV-a.NSV).slice(0,_AI.MAX_ROWS);
+      return{type:'table',rows,cols:[dimKey,'NSV'],colFmt:{NSV:'crore'},
+        summary:`NSV by ${dimKey} (detail records, filtered)`,confidence:'MEDIUM',
+        sql:`SELECT ${dimKey},SUM(NSV) FROM detail_records${_aiFilterSql()} GROUP BY ${dimKey} ORDER BY NSV DESC`,
+        provenance:'detail_records (filtered)'};
+    }
+    const tot=recs.reduce((a,r)=>a+(r.nsv||r.NSV||0),0);
+    return{type:'scalar',value:tot,unit:'lakh',label:'Total NSV (detail records, filtered)',confidence:'MEDIUM',
+      sql:`SELECT SUM(NSV) FROM detail_records${_aiFilterSql()}`,provenance:'detail_records'};
+  }
+
+  // --- UNSUPPORTED ---
+  return{type:'unsupported',confidence:'NONE',
+    message:`No data found for: "${q}". Try questions about NSV, primary, offtake, chains, brands, zones, categories, or FYs (FY25/FY26/FY27).`};
+}
+
+// optional Ollama narration — non-blocking, 8-second timeout
+async function _aiOllama(q,result){
+  const ctx=result.type==='scalar'
+    ?`Value: ${result.unit==='count'?num(result.value):crc(result.value)} — ${result.label||''}`
+    :`Top rows: ${JSON.stringify((result.rows||[]).slice(0,5))}`;
+  const prompt=`You are a concise FMCG data analyst for Mamaearth Modern Trade. Data:\n${ctx}\n\nAnswer in 1-2 sentences: ${q}\n(Note: negative NSV values are valid returns/credit notes, not errors.)`;
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),_AI.TIMEOUT_MS);
+  try{
+    const resp=await fetch(_AI.OLLAMA_URL,{method:'POST',signal:ctrl.signal,
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:_AI.OLLAMA_MODEL,prompt,stream:false})});
+    clearTimeout(tid);
+    if(!resp.ok) return null;
+    const j=await resp.json();
+    return j.response?.trim()||null;
+  }catch(e){ clearTimeout(tid); return null; }
+}
+
+function _aiRender(q,result,ollama){
+  const conf=`<span class="ai-conf ${result.confidence}">${result.confidence}</span>`;
+  let body='';
+  if(result.type==='unsupported'){
+    body=`<div class="ai-unsup">&#9888; ${result.message}</div>`;
+  } else if(result.type==='scalar'){
+    const disp=result.unit==='count'?num(result.value):result.unit==='lakh'?crc(result.value):String(result.value??'–');
+    body=`<div class="ai-scalar-val">${disp}</div>
+      <div class="ai-scalar-lab">${result.label||''}</div>
+      ${result.extra?`<div class="ai-extra-lab">${result.extra}</div>`:''}`;
+  } else if(result.type==='table'){
+    const fmt=result.colFmt||{};
+    const head=result.cols.map(c=>`<th>${c}</th>`).join('');
+    const shown=(result.rows||[]).slice(0,_AI.MAX_ROWS);
+    const trs=shown.map(r=>{
+      return'<tr>'+result.cols.map(c=>{
+        const v=r[c];
+        if(v==null) return'<td>–</td>';
+        if(fmt[c]==='crore') return`<td>${crc(v)}</td>`;
+        if(fmt[c]==='pct') return`<td>${pct(v)}</td>`;
+        return`<td>${v}</td>`;
+      }).join('')+'</tr>';
+    }).join('');
+    const extra=result.rows&&result.rows.length>_AI.MAX_ROWS?` (showing ${_AI.MAX_ROWS} of ${result.rows.length})`:'';
+    body=`<div class="ai-scalar-lab" style="margin-bottom:8px">${result.summary||''}${extra}</div>
+      <div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${trs||'<tr><td colspan="10">No data</td></tr>'}</tbody></table></div>
+      <button class="tblexport" style="margin-top:8px" onclick="_aiExportCsv(${JSON.stringify(result.cols)},${JSON.stringify(shown)})">&#11015; Export CSV</button>`;
+  }
+  const narr=ollama?`<div class="icard watch ai-narr"><div class="tag">AI Narration (Ollama&#x200A;·&#x200A;${_AI.OLLAMA_MODEL})</div><p>${ollama}</p></div>`:'';
+  const nsv_note=result.type!=='unsupported'?'<span style="margin-left:8px">&#x2022; Negative NSV = valid (returns/credit notes)</span>':'';
+  const plan=result.sql?`<details class="ai-plan"><summary style="cursor:pointer;font-size:12px;color:var(--muted)">&#9654; Query plan / SQL equivalent</summary><pre>${result.sql}</pre></details>`:'';
+  return`<div class="ai-answer-wrap">
+    <div class="ai-q-label">Question: <b>${q}</b></div>
+    ${body}${narr}
+    <div class="ai-prov">Source: ${result.provenance||'window.DASH'} &#x2022; Confidence: ${conf}${nsv_note}</div>
+    ${plan}
+  </div>`;
+}
+
+function _aiExportCsv(cols,rows){
+  const lines=[cols.join(','),...rows.map(r=>cols.map(c=>{
+    const v=r[c];if(v==null)return'';
+    const s=String(v);return s.includes(',')||s.includes('"')?`"${s.replace(/"/g,'""')}"`:s;
+  }).join(','))];
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
+  a.download='ai_analyst_result.csv'; a.click();
+}
+
+function _aiLogEntry(q,result){
+  try{
+    const log=JSON.parse(localStorage.getItem(_AI.LOG_KEY)||'[]');
+    log.push({ts:new Date().toISOString(),q,type:result.type,confidence:result.confidence,
+      provenance:result.provenance||null,rows:result.rows?.length??null});
+    localStorage.setItem(_AI.LOG_KEY,JSON.stringify(log.slice(-100)));
+  }catch(e){}
+}
+
+function toggleAiLog(){
+  const d=document.getElementById('aiLog');
+  if(!d) return;
+  if(d.style.display==='none'){
+    d.style.display='block';
+    try{
+      const log=JSON.parse(localStorage.getItem(_AI.LOG_KEY)||'[]').reverse();
+      if(!log.length){d.innerHTML='<div class="ai-status-msg">No queries logged yet.</div>';return;}
+      d.innerHTML='<div class="card"><div class="tablewrap"><table><thead><tr><th>Time (UTC)</th><th>Question</th><th>Type</th><th>Confidence</th><th>Source</th></tr></thead><tbody>'
+        +log.map(e=>`<tr><td>${(e.ts||'').slice(0,19)}</td><td>${e.q}</td><td>${e.type}</td><td>${e.confidence}</td><td>${e.provenance||''}</td></tr>`).join('')
+        +'</tbody></table></div></div>';
+    }catch(e){d.innerHTML='<div class="ai-status-msg">Log unavailable.</div>';}
+  } else { d.style.display='none'; }
+}
+
+async function _aiSubmit(){
+  const btn=document.getElementById('aiAsk');
+  const inp=document.getElementById('aiQ');
+  const ans=document.getElementById('aiAnswer');
+  if(!btn||!inp||!ans) return;
+  const q=(inp.value||'').trim();
+  if(!q) return;
+  btn.disabled=true; btn.textContent='…';
+  ans.innerHTML='<div class="ai-status-msg">Routing query…</div>';
+  try{
+    const result=_aiRoute(q);
+    _aiLogEntry(q,result);
+    let ollama=null;
+    if(result.type!=='unsupported'){
+      ans.innerHTML='<div class="ai-status-msg">Checking Ollama (optional)…</div>';
+      ollama=await _aiOllama(q,result);
+    }
+    ans.innerHTML=_aiRender(q,result,ollama);
+  }catch(e){
+    ans.innerHTML=`<div class="ai-unsup">Error: ${e.message}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Ask';
+  }
+}
+
+function buildAnalyst(){
+  const s=document.getElementById('tab-analyst');
+  if(!s) return;
+  const fCtx=activeFiltersSummary();
+  const builtAt=D.meta&&D.meta.built_at;
+  const dataNote=builtAt?` &bull; Data built: <b>${builtAt.slice(0,10)}</b>`:'';
+  s.innerHTML=`
+    <h2 class="sec">AI Analyst</h2>
+    <p class="lead">Ask questions in plain English. Answers are grounded in the loaded dashboard data — no invented numbers. Negative NSV = valid business condition (returns/credit notes).</p>
+    <div class="ai-input-card">
+      <div class="ai-filter-ctx" id="aiCtx">${fCtx?`<b>Active filters:</b> ${fCtx}`:'No filters active &mdash; showing all data.'}</div>
+      <div class="ai-row">
+        <textarea id="aiQ" class="ai-textarea" rows="2" placeholder="e.g. Top 5 chains by NSV for FY26 &nbsp;|&nbsp; What is offtake for FY27? &nbsp;|&nbsp; NSV by zone"></textarea>
+        <button id="aiAsk" class="ai-btn-ask">Ask</button>
+      </div>
+      <div class="ai-examples" id="aiExamples">${_aiExamples().map(e=>`<button class="ai-ex-btn" onclick="document.getElementById('aiQ').value=${JSON.stringify(e)}">${e}</button>`).join('')}</div>
+      <div class="ai-status-bar">Offline mode &bull; grounded in window.DASH &bull; Ollama optional (localhost:11434)${dataNote} &bull; read-only sandbox</div>
+    </div>
+    <div id="aiAnswer"></div>
+    <div style="margin-top:14px">
+      <button class="tblexport" onclick="toggleAiLog()">&#9660; Session audit log</button>
+      <div id="aiLog" style="display:none;margin-top:8px"></div>
+    </div>`;
+  document.getElementById('aiAsk').onclick=()=>_aiSubmit();
+  document.getElementById('aiQ').addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();_aiSubmit();}
+  });
+  wireChips(s,buildAnalyst);
+}
+
 /* ---------------- DATA EXPLORER (drill-down + cascading filters) ---------------- */
 const REC = D.detail_records||[];
 const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],['State','State'],['Chain','Chain'],
@@ -1485,14 +1899,27 @@ const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','
 // (empty = All). Values in a dimension are OR'd together; dimensions are
 // AND'd, same as before.
 const F={}; FILT.forEach(([k])=>F[k]=[]);
-const fOn =k=>F[k].length>0;                                 // dimension filtered at all?
-const fHas=(k,v)=>!F[k].length||F[k].includes(String(v));    // does value v pass dimension k?
-const fLab=k=>F[k].join(', ');                               // display label ('' when unfiltered)
-const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one selection or null
+const fOn =k=>F[k].length>0;
+const fLab=k=>F[k].join(', ');
+const fOne=k=>F[k].length===1?F[k][0]:null;
+
+// Stage-5 filter normalization: Zone and State are Proper-cased + trimmed so
+// "West"/"WEST"/"west" collapse to "West" in both the option list and matching.
+// All other dimensions use plain String() conversion (no case fold).
+const _NORM_DIMS=new Set(['Zone','State']);
+function normVal(k,v){
+  if(v==null) return '';
+  const s=String(v).trim().replace(/\s+/g,' ');
+  if(!_NORM_DIMS.has(k)) return s;
+  return s.replace(/\b\w/g,c=>c.toUpperCase());  // Proper-case (matches PQ Text.Proper)
+}
+const fHas=(k,v)=>!F[k].length||F[k].includes(normVal(k,v));
 
 // records passing all active filters (optionally ignoring one key for cascading options)
 function recFilter(except){
-  return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(String(r[k])) ));
+  return REC.filter(r=>FILT.every(([k])=>
+    k===except || !F[k].length || F[k].includes(normVal(k,r[k]))
+  ));
 }
 // FY dropdown: derived from the data, never hardcoded, so a new FY (FY28+)
 // flows in automatically the moment its rows arrive. The pre-aggregated
@@ -1511,7 +1938,13 @@ const PREAGG_FYS=(function(){
 const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum(a)-fyNum(b));
 function optsFor(key){
   if(key==='FY') return FY_ALL;
-  const vals=[...new Set(recFilter(key).map(r=>r[key]))];
+  // Normalize before deduplication: "West" and "WEST" become the same entry.
+  const seen=new Map();
+  recFilter(key).forEach(r=>{
+    const norm=normVal(key,r[key]);
+    if(norm!=='' && !seen.has(norm)) seen.set(norm,norm);
+  });
+  const vals=[...seen.values()];
   if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
   else vals.sort((a,b)=>String(a).localeCompare(String(b)));
   return vals;
@@ -1871,10 +2304,10 @@ function exportCSV(recs){
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['insights','Insights & Way Forward']];
+  ['insights','Insights & Way Forward'],['analyst','AI Analyst']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights};
+  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights,analyst:buildAnalyst};
 let currentTab='overview';
 function show(id){
   currentTab=id;
@@ -1896,7 +2329,7 @@ function show(id){
 (function init(){
   document.getElementById('hTitle').textContent=D.meta.title;
   document.getElementById('hPeriod').textContent=D.meta.period;
-  document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`;
+  document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`+(D.meta.built_at?`&nbsp;·&nbsp;Built&nbsp;${D.meta.built_at}`:'');
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
