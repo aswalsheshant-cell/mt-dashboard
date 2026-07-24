@@ -166,6 +166,14 @@ const cr = v => v==null?'–':(v/100).toLocaleString('en-IN',{maximumFractionDig
 const crc = v => { if(v==null) return '–'; const av=Math.abs(v);
   return av<100 ? '₹'+v.toLocaleString('en-IN',{maximumFractionDigits:1})+' L'
                 : '₹'+(v/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr'; };
+// Compact bar-label formatter: no spaces, abbreviated units to avoid overlap.
+// K = thousands, L = lakhs, Cr = crores (values stored in INR Lakh).
+const crcShort = v => { if(v==null) return '–'; const av=Math.abs(v);
+  if(av>=10000) return '₹'+(v/100).toFixed(0)+'Cr';
+  if(av>=1000)  return '₹'+(v/100).toFixed(1)+'Cr';
+  if(av>=100)   return '₹'+(v/100).toFixed(2)+'Cr';
+  if(av>=1)     return '₹'+v.toFixed(1)+'L';
+  return '₹'+(v*100).toFixed(0)+'K'; };
 const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
 // Quantity formatter (separate unit family from money -- never mix Value Cr with Qty
@@ -219,6 +227,7 @@ Chart.register({
     const opt=chart.options.plugins&&chart.options.plugins.valueLabels;
     if(!opt||opt.display===false) return;
     const ctx=chart.ctx, fmt=opt.money===false?num:crc;
+    const barFmt=opt.money===false?num:crcShort;
     ctx.save();
     ctx.font='11px Aptos, Segoe UI, Calibri, sans-serif';
     ctx.fillStyle='#3a4450';
@@ -241,7 +250,7 @@ Chart.register({
         if(meta.hidden) return;
         meta.data.forEach((bar,i)=>{
           const v=ds.data[i]; if(v==null) return;
-          const label=fmt(v);
+          const label=(horiz?fmt:barFmt)(v);
           if(horiz) ctx.fillText(label, bar.x+(v<0?-4:4), bar.y);
           else ctx.fillText(label, bar.x, bar.y-4);
         });
