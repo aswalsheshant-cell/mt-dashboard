@@ -1,6 +1,8 @@
 """Entry point for the Honasa MT data-engineering skills.
 
     python3 -m scripts.dataeng.cli <skill> [--json]
+    python3 -m scripts.dataeng.cli health --save-baseline
+    python3 -m scripts.dataeng.cli health --regression
 
 Skills: scan | registry | lineage | validate | quality | reconcile |
         governance | health | all
@@ -8,15 +10,22 @@ Skills: scan | registry | lineage | validate | quality | reconcile |
 `health` runs every engine, writes all reports to outputs/dataeng/ and prints a
 Production Readiness Score. Exit code is 0 for PASS/INFO/WARN, 1 for FAIL or
 BLOCKED, so it can gate CI.
+
+`--save-baseline`  write current non-PASS findings to config/dataeng_baseline.json.
+`--regression`     exit 1 only on findings that are NEW (not in the baseline) and
+                   are FAIL or BLOCKED; pre-existing accepted WARNs do not block CI.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import pathlib
 import sys
 
-from . import governance, quality, reconcile, registry, repo_scan, validate
-from .core import Finding, OUT_DIR, git, rel, write_csv, write_json
+from . import governance, quality, reconcile, registry, repo_scan, seed_manager, validate
+from .core import Finding, OUT_DIR, ROOT, git, rel, write_csv, write_json
+
+BASELINE_PATH = ROOT / "config" / "dataeng_baseline.json"
 
 FINDING_COLS = ["id", "skill", "category", "severity", "summary", "evidence",
                 "amount_l", "location", "owner", "decision_ref", "remediation"]
@@ -101,14 +110,66 @@ SKILLS = {
     "quality": quality.run,
     "reconcile": reconcile.run,
     "governance": lambda: governance.run()[1],
+    "seed": seed_manager.validate,
 }
+
+
+def _load_baseline() -> dict:
+    if BASELINE_PATH.exists():
+        return json.loads(BASELINE_PATH.read_text(encoding="utf-8")).get("accepted", {})
+    return {}
+
+
+def _save_baseline(findings: list[Finding]) -> None:
+    accepted = {
+        f.id: {"severity": f.severity, "summary": f.summary[:120],
+               "owner": f.owner or "", "decision_ref": f.decision_ref or ""}
+        for f in findings if f.severity != "PASS"
+    }
+    payload = {
+        "version": 1,
+        "generated_from_commit": git("rev-parse", "HEAD"),
+        "generated_at": __import__("datetime").date.today().isoformat(),
+        "description": (
+            "Machine-readable accepted-findings baseline. "
+            "Regenerate: python3 -m scripts.dataeng.cli health --save-baseline"
+        ),
+        "accepted": accepted,
+    }
+    BASELINE_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print(f"Baseline written → {rel(BASELINE_PATH)}  ({len(accepted)} accepted findings)")
+
+
+def _regression_exit(findings: list[Finding]) -> int:
+    """Return 1 only for NEW FAIL/BLOCKED findings not already in the baseline."""
+    baseline = _load_baseline()
+    new_critical = [
+        f for f in findings
+        if f.severity in ("FAIL", "BLOCKED") and f.id not in baseline
+    ]
+    if new_critical:
+        print("\n=== REGRESSION: NEW CRITICAL FINDINGS ===")
+        for f in new_critical:
+            print(f"  {f.severity:<7} {f.id:<38} {f.summary}")
+        return 1
+    # All FAIL/BLOCKED are pre-existing; WARNs accepted.
+    pre_existing = [f for f in findings if f.severity in ("FAIL", "BLOCKED")]
+    if pre_existing:
+        print(f"\nRegression mode: {len(pre_existing)} pre-existing FAIL/BLOCKED in baseline — not blocking CI.")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("skill", choices=[*SKILLS, "health", "all"])
+    ap.add_argument("skill", choices=[*SKILLS, "health", "all",
+                                       "seed-list", "seed-resolve", "seed-verify-hash"])
     ap.add_argument("--json", action="store_true", help="emit findings as JSON")
+    ap.add_argument("--save-baseline", action="store_true",
+                    help="save current non-PASS findings as the accepted baseline")
+    ap.add_argument("--regression", action="store_true",
+                    help="CI mode: exit 1 only on NEW FAIL/BLOCKED not in baseline")
+    ap.add_argument("args", nargs="*", help="extra arguments for seed-resolve / seed-verify-hash")
     a = ap.parse_args(argv)
 
     if a.skill in ("health", "all"):
@@ -130,6 +191,36 @@ def main(argv: list[str] | None = None) -> int:
             print(f"\nReports written to {rel(OUT_DIR)}/:")
             for k, v in artifacts.items():
                 print(f"  {k:32} {v}")
+        if a.save_baseline:
+            _save_baseline(findings)
+    elif a.skill == "seed-list":
+        rows = seed_manager.list_seeds()
+        if a.json:
+            print(json.dumps(rows, indent=2))
+        else:
+            for r in rows:
+                print(f"  {r['Key']:<10} {r['Status']:<15} {r['Value']:<12} "
+                      f"ctrl={r['Control']:<10} sha={r['SHA256_prefix']}…  {r['Source_File']}")
+        return 0
+    elif a.skill == "seed-resolve":
+        if len(a.args) < 2:
+            print("Usage: seed-resolve <metric> <month>  e.g. seed-resolve GMV Jun-26")
+            return 1
+        val, status = seed_manager.resolve(a.args[0], a.args[1])
+        print(f"  metric={a.args[0]!r}  month={a.args[1]!r}  value={val}  status={status}")
+        return 0 if status == "AUTHORITATIVE" else 1
+    elif a.skill == "seed-verify-hash":
+        if not a.args:
+            print("Usage: seed-verify-hash <path-to-source-file>")
+            return 1
+        sha, matched = seed_manager.verify_hash(a.args[0])
+        if matched is None:
+            print(f"  SHA256={sha}  (no baseline SHA recorded for this file)")
+        elif matched:
+            print(f"  SHA256={sha}  MATCH — file is the recorded authoritative source")
+        else:
+            print(f"  SHA256={sha}  MISMATCH — file differs from the recorded source")
+        return 0 if matched is not False else 1
     else:
         findings = SKILLS[a.skill]()
         if a.json:
@@ -137,6 +228,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             _print(findings, a.skill)
 
+    if a.regression:
+        return _regression_exit(findings)
     return 1 if any(f.severity in ("FAIL", "BLOCKED") for f in findings) else 0
 
 

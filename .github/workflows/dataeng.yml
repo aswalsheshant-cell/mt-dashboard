@@ -1,0 +1,65 @@
+name: Data Engineering Health Gate
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax:
+    name: Python syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check build script compiles
+        run: python -m py_compile scripts/build_dashboard_data.py
+      - name: Check dataeng package compiles
+        run: |
+          python -m py_compile scripts/dataeng/core.py
+          python -m py_compile scripts/dataeng/validate.py
+          python -m py_compile scripts/dataeng/quality.py
+          python -m py_compile scripts/dataeng/reconcile.py
+          python -m py_compile scripts/dataeng/governance.py
+          python -m py_compile scripts/dataeng/registry.py
+          python -m py_compile scripts/dataeng/repo_scan.py
+          python -m py_compile scripts/dataeng/cli.py
+
+  tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: syntax
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install pandas openpyxl
+      - name: Run test suite
+        run: python -m unittest discover -s tests -v
+
+  regression-health:
+    name: Regression health gate
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install pandas openpyxl
+      - name: Run regression health check
+        # Exits 0 if only pre-existing known FAIL/BLOCKED; exits 1 on NEW critical findings.
+        run: python -m scripts.dataeng.cli health --regression
+      - name: Upload health reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dataeng-reports-${{ github.sha }}
+          path: outputs/dataeng/
+          retention-days: 30

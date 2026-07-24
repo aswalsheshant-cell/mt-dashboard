@@ -10,24 +10,32 @@ Charter and rules: `.claude/agents/honasa-data-engineering.md`.
 ## Run
 
 ```bash
-python3 -m scripts.dataeng.cli health      # everything + readiness score; exits 1 on FAIL/BLOCKED
-python3 -m scripts.dataeng.cli reconcile   # or: scan registry lineage validate quality governance
-python3 -m scripts.dataeng.cli health --json
+python3 -m scripts.dataeng.cli health                  # all engines + readiness score; exits 1 on FAIL/BLOCKED
+python3 -m scripts.dataeng.cli health --json           # JSON output
+python3 -m scripts.dataeng.cli health --save-baseline  # write config/dataeng_baseline.json
+python3 -m scripts.dataeng.cli health --regression     # CI mode: exit 1 only on NEW critical findings
+python3 -m scripts.dataeng.cli seed                    # validate governed seeds
+python3 -m scripts.dataeng.cli seed-list               # list all seed rows with status
+python3 -m scripts.dataeng.cli seed-resolve GMV Jun-26 # resolve one metric+month from seed
+python3 -m scripts.dataeng.cli seed-verify-hash <file> # verify a source file's SHA256
+python3 -m scripts.dataeng.cli reconcile               # or: scan registry lineage validate quality governance
 ```
 
 ## Architecture
 
 ```
-core.py        Finding contract, THE ONE FY RULE, month parser, loaders, IO
+core.py           Finding contract, THE ONE FY RULE, month parser, loaders, IO
    │
-   ├── repo_scan.py    file roles, dependency edges, dead-code signal      (Phase 1)
-   ├── registry.py     metric registry + lineage, live-resolved vs data.js (Phases 2,3,7)
-   ├── validate.py     schema drift, FY rule, missing months, config       (Phase 4)
-   ├── quality.py      NaN, excluded brands, blank dims, movement          (Phase 5)
-   ├── reconcile.py    additivity with rounding ceilings                   (Phase 8)
-   └── governance.py   decision register + production gate                 (Phase 6)
-                             │
-                          cli.py  composes findings → reports + readiness score
+   ├── repo_scan.py     file roles, dependency edges, dead-code signal      (Phase 1)
+   ├── registry.py      metric registry + lineage, live-resolved vs data.js (Phases 2,3,7)
+   ├── validate.py      schema drift, FY rule, missing months, config       (Phase 4)
+   ├── quality.py       NaN, excluded brands, blank dims, movement          (Phase 5)
+   ├── reconcile.py     additivity with rounding ceilings                   (Phase 8)
+   ├── governance.py    decision register + production gate                 (Phase 6)
+   └── seed_manager.py  governed seed validation, listing, resolution       (Operationalisation)
+                              │
+                           cli.py  composes findings → reports + readiness score
+                                   + baseline governance + seed commands
 ```
 
 Every engine is a pure function returning `list[Finding]`. No engine prints a verdict;
@@ -74,6 +82,30 @@ Add a check to the engine it belongs to, plus a test that fails without it. New 
 go in `registry.METRICS` with lineage and known limitations — the registry then validates
 itself against `data.js` on every run and reports drift as FAIL.
 
+## Baseline governance
+
+`config/dataeng_baseline.json` records all currently-accepted non-PASS findings.
+CI (`--regression`) exits 1 only when a **new** FAIL or BLOCKED appears that isn't in
+the baseline — so pre-existing known issues do not block every pull request.
+
+To update the baseline after intentionally resolving (or accepting) a finding:
+
 ```bash
-python3 -m unittest discover -s tests    # 62 tests
+python3 -m scripts.dataeng.cli health --save-baseline
+git add config/dataeng_baseline.json
+git commit -m "chore(dataeng): update accepted-findings baseline"
+```
+
+## Seed manager
+
+Governed seeds carry authoritative values from uncommittable source workbooks.
+Pattern: `PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv`.
+
+A seed row is only used in production when `Status = AUTHORITATIVE`. Every row
+must carry a `Source_SHA256` so the workbook can be identified if it reappears.
+The seed manager validates this and reports FAIL/WARN findings if the contract
+is broken.
+
+```bash
+python3 -m unittest discover -s tests    # 104 tests
 ```

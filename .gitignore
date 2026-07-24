@@ -12,3 +12,6 @@ primary_article.xlsb
 !PowerBI/**/*.csv
 __pycache__/
 *.pyc
+# Backup files
+*.bak
+dashboard/data.js.d13.bak
