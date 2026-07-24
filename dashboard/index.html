@@ -1916,7 +1916,7 @@ function normVal(k,v){
   if(v==null) return '';
   const s=String(v).trim().replace(/\s+/g,' ');
   if(!_NORM_DIMS.has(k)) return s;
-  return s.replace(/\b\w/g,c=>c.toUpperCase());  // Proper-case (matches PQ Text.Proper)
+  return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());  // Proper-case (matches PQ Text.Proper)
 }
 const fHas=(k,v)=>!F[k].length||F[k].includes(normVal(k,v));
 
@@ -2119,10 +2119,6 @@ function fyNoDataNote(where){
     so this section is intentionally blank instead of showing stale FY26 numbers.
     See <b>Forecast</b> for the FY26-27 target.</div>`;
 }
-function monthUnsupportedNote(what){
-  return fOn('Month') ? `<p class="drillhint" style="margin:4px 0 0">Month = ${fLab('Month')} doesn't narrow
-    ${what} (this source isn't cross-tabbed by month × ${what.toLowerCase()}).</p>` : '';
-}
 function dimUnsupportedNote(dims,source){
   const active=dims.filter(d=>fOn(d));
   if(!active.length) return '';
@@ -2134,31 +2130,6 @@ let expCharts=[];
 function expDestroy(){expCharts.forEach(c=>c.destroy());expCharts=[];}
 function grp(recs,key){const m={};recs.forEach(r=>m[r[key]]=(m[r[key]]||0)+r.NSV);
   return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
-function expBarH(id,key,entries){
-  const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
-  expCharts.push(new Chart(document.getElementById(id),{type:'bar',
-    data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
-    options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=[String(labels[els[0].index])];onFilterChange();}},
-      plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},y:{grid:{display:false}}}}}));
-}
-function expDonut(id,key,entries){
-  const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
-  expCharts.push(new Chart(document.getElementById(id),{type:'doughnut',
-    data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
-    options:{cutout:'58%',onClick:(e,els)=>{if(els.length){F[key]=[String(labels[els[0].index])];onFilterChange();}},
-      plugins:{legend:{position:'right'},..._labelOpts(true),tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
-        return `${c.label}: ${crc(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}}}));
-}
-function expLine(id,recs){
-  const m={};recs.forEach(r=>m[r.Month]=(m[r.Month]||0)+r.NSV);
-  const labels=MORDER.filter(x=>x in m),data=labels.map(x=>m[x]);
-  expCharts.push(new Chart(document.getElementById(id),{type:'line',
-    data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:.32,borderWidth:2.4,pointRadius:2}]},
-    options:{onClick:(e,els)=>{if(els.length){F.Month=[String(labels[els[0].index])];onFilterChange();}},
-      plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.y)}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},x:{grid:{display:false}}}}}));
-}
 // ---- Configurable Explorer chart gallery: each card has a live METRIC
 // (NSV/MRP/Qty) + CHART-TYPE (Bar/Column/Line/Area/Donut/Pie) dropdown, keeps
 // click-to-filter, and stays sorted high->low. Reuses recFilter()/MORDER/crc/
@@ -2205,7 +2176,7 @@ function renderGal(id){
   const labels=e.map(x=>x[0]),data=e.map(x=>x[1]);
   const fmt=st.metric==='Qty'?(v=>qtyFmt(v)):(v=>crc(v));
   const isFilterDim=FILT.some(([k])=>k===dim);
-  const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[String(labels[els[0].index])];onFilterChange();}}:undefined;
+  const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[normVal(dim,String(labels[els[0].index]))];onFilterChange();}}:undefined;
   const t=st.type;
   let cfg;
   if(t==='doughnut'||t==='pie'){
@@ -2328,6 +2299,7 @@ function show(id){
   // Letting the current event loop turn finish first avoids that.
   setTimeout(()=>{
     destroyCharts();
+    expDestroy();
     BUILD[id]();
     window.scrollTo({top:0,behavior:'smooth'});
   },0);
