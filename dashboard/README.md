@@ -481,3 +481,90 @@ Open `dashboard/index.html` in any browser to validate, then commit **only**
 git add dashboard/data.js
 git commit -m "Refresh dashboard data"
 ```
+
+## AI Analyst tab (13th tab)
+
+The **AI Analyst** tab answers plain-English questions about the loaded dashboard data — entirely in the browser, with no network dependency. All answers are derived from `window.DASH`; no numbers are invented.
+
+### How it works
+
+- Type or paste a question (e.g. *"Top 5 chains by NSV for FY26"*, *"NSV by zone"*, *"What is the offtake for FY27?"*).
+- Press **Ask** or **Enter**. The router classifies the intent and extracts the answer from the pre-aggregated data blocks already in `data.js`.
+- Results are shown as a KPI card (scalar), ranked table, or an unsupported-query notice.
+- A **Source** line and **Confidence** badge (HIGH / MEDIUM / LOW) accompany every answer so users know where the number comes from.
+- A **Session audit log** (toggle at the bottom) records every Q&A pair in `localStorage` (max 100 entries). Clearing the browser's site data clears it.
+
+### Ollama integration (optional narration)
+
+After routing succeeds, the AI Analyst optionally asks a local [Ollama](https://ollama.com) instance to add a one-to-two-sentence commentary.
+
+- Ollama endpoint: `http://localhost:11434/api/generate` (default model: `llama3`).
+- If Ollama is not running, the request times out silently in **8 seconds** and the data answer is shown without commentary — the tab is fully functional offline.
+- To enable: `ollama serve` + `ollama pull llama3` on the same machine that runs the browser.
+
+### Negative NSV
+
+Negative NSV values are **valid business data** (returns / credit notes) and are never flagged as errors, either in the AI Analyst or anywhere else in the dashboard.
+
+## Testing
+
+### Python syntax validation
+
+```bash
+python -m py_compile scripts/build_dashboard_data.py
+```
+
+### AI analyst unit tests (95 tests)
+
+```bash
+python scripts/ai_analyst/run_tests.py
+```
+
+### Browser smoke test (Playwright)
+
+Requires Playwright and Chromium:
+
+```bash
+# install once
+pip install pandas pyxlsb openpyxl
+# serve the dashboard
+python -m http.server 8090 --directory dashboard &
+# run test (Node 18+ required)
+node -e "
+const {chromium}=require('playwright');
+(async()=>{
+  const b=await chromium.launch();
+  const p=await b.newPage();
+  const errs=[];
+  p.on('pageerror',e=>errs.push(e.message));
+  await p.goto('http://localhost:8090/');
+  await p.waitForTimeout(3000);
+  const tabs=await p.\$\$eval('nav button',bs=>bs.length);
+  console.log('tabs:',tabs,'errors:',errs.length);
+  await b.close();
+})();
+"
+```
+
+Expected output: `tabs: 13  errors: 0`
+
+## Rollback
+
+To revert the dashboard to the previous commit:
+
+```bash
+# Safe revert (creates a new commit, does not rewrite history)
+git revert <commit-hash>
+
+# Or restore just index.html from the previous known-good commit
+git checkout <previous-commit> -- dashboard/index.html
+git commit -m "Rollback dashboard/index.html to <previous-commit>"
+```
+
+`data.js` does not need to be restored unless the data itself changed — it is a separate committed file and is not rewritten by dashboard code changes.
+
+To find the previous known-good commit:
+
+```bash
+git log --oneline dashboard/index.html
+```
