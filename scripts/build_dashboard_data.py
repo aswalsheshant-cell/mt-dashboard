@@ -111,11 +111,22 @@ BRAND_MAP = {
     "staze": "Staze",
 }
 
+# Configurable exclusion list — brands excluded from ALL reporting aggregations.
+# Records are NOT deleted from source; run scripts/exclude_brands.py to
+# produce audit files in PowerBI/Excluded_Data/Excluded_Brands/.
+EXCLUDED_BRANDS: list[str] = [
+    "Pure Origin",
+    "Lumineve",
+    "Staze",
+]
+_EXCLUDED_BRANDS_SET: set[str] = set(EXCLUDED_BRANDS)
+
 def canon_brand(b):
     if b is None or (isinstance(b, float) and math.isnan(b)):
         return None
     k = str(b).strip().lower()
-    return BRAND_MAP.get(k, str(b).strip())
+    canonical = BRAND_MAP.get(k, str(b).strip())
+    return None if canonical in _EXCLUDED_BRANDS_SET else canonical
 
 def canon_zone(z):
     if z is None:
@@ -1770,8 +1781,7 @@ _DTAX = {
               ("Hair Care","Styling","Spray",["150 g/ml"],"Hold & Play Hairspray")],
  "Dr. Sheth's":[("Face Care","Face Serum","Cica",["30 g/ml"],"Cica & Ceramide Serum"),
               ("Face Care","Moisturizer","Gulab",["80 g/ml"],"Gulab & Glyceric Moisturizer")],
- "Staze":[("Hair Care","Styling","Gel",["100 g/ml"],"24H Styling Gel")],
- "Pure Origin":[("Body Care","Body Wash","Coffee",["250 g/ml"],"Coffee Body Wash")],
+ # "Staze", "Pure Origin", "Lumineve" removed — in EXCLUDED_BRANDS list
 }
 
 def _sis_reconciliation(df):

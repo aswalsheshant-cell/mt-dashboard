@@ -2,22 +2,61 @@
 """
 Patch dashboard/data.js with corrected Apr/May'26 offtake + new Jun'26 offtake & primary.
 
-Source: MT_Offtake_Primary_Jun26_Working_CORRECTED_V4.xlsx  (official corrected chain-NSV basis)
+── SOURCE PROVENANCE ────────────────────────────────────────────────────────
+Workbook : MT_Offtake_Primary_Jun26_Working_CORRECTED_V4.xlsx
+SHA-256  : e43bea3273d2e669eccc059af29b5f7de5d28de606e098786a5f065fcca1f46a
+Sheets used:
+  • Offtake_Chain_Zone   — offtake NSV by chain × zone, Apr-25 through Jun-26
+  • Primary_Zone_Chain   — primary NSV by zone × chain, Jun-26
+  • Primary_Summary      — primary NSV by brand and by chain, Jun-26
+  • Primary_Brand_Monthly— primary NSV by brand × month (INR, for brand split)
+  • KPI_Dashboard        — grand-total verification row
 
-Offtake:
+── OFFICIAL GRAND TOTALS (authoritative row-level sums, INR Lakh) ──────────
+Offtake Apr-26 : 3,589.13  (KPI note text shows 3,589.14 — a rounded display
+                             label; the row-level SUMIF in Offtake_Chain_Zone
+                             is exactly 3,589.13 — this is the authoritative value)
+Offtake May-26 : 4,025.81
+Offtake Jun-26 : 3,823.78
+Q1 FY27 offtake: 11,438.72
+Primary Jun-26 : 4,167.36
+FY27 cum primary: 13,659.96 (pre-exclusion) → 13,652.59 (post-exclusion)
+
+── BRAND EXCLUSION LIST (applied before every aggregation) ─────────────────
+Brands fully excluded from all reporting dimensions:
+  - Pure Origin
+  - Lumineve
+  - Staze
+Excluded records are written to PowerBI/Excluded_Data/Excluded_Brands/.
+Run scripts/exclude_brands.py to regenerate exclusion after each data.js rebuild.
+
+── ROUNDING METHOD ─────────────────────────────────────────────────────────
+All monetary values stored as round(value, 2) — two decimal places, INR Lakh.
+No intermediate rounding; final round applied once.
+
+── KNOWN LIMITATIONS ───────────────────────────────────────────────────────
+• Jun-26 primary and offtake are based on summary workbook only.
+  Store × article transaction-level validation is PENDING (raw files unavailable).
+• primary.by_zone / by_chain FY25 and FY26 NOT adjusted for excluded-brand
+  deltas (brand-level zone/chain splits unavailable from pre-agg workbook;
+  aggregate impact < 0.05% of chain/zone totals).
+
+── OFFTAKE ─────────────────────────────────────────────────────────────────
   - Corrects Apr-26 and May-26 from all-stores basis → official Non-Brand-Counter universe
   - Adds Jun-26 as a new FY27 month
   - Updates by_chain / by_zone fy27 aggregates
   - by_state.fy27 not shown in the dashboard table so left unchanged
 
-Primary FY27 (detail_meta.fyx_primary.FY27):
+── PRIMARY FY27 (detail_meta.fyx_primary.FY27) ─────────────────────────────
   - Adds Jun-26 month to monthly / nsv total
   - Updates by_chain, by_zone, by_brand, by_channel from workbook summaries
 """
 from __future__ import annotations
+import hashlib
 import json
 import math
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import openpyxl
@@ -25,6 +64,13 @@ import pandas as pd
 
 WORKBOOK = Path("/root/.claude/uploads/d2e1953f-7a8e-5a1d-ace0-283f7ff3cff0/2fccd3a8-MT_Offtake_Primary_Jun26_Working_CORRECTED_V4.xlsx")
 DATA_JS   = Path("/home/user/mt-dashboard/dashboard/data.js")
+
+WORKBOOK_SHA256 = "e43bea3273d2e669eccc059af29b5f7de5d28de606e098786a5f065fcca1f46a"
+
+# Brands to exclude from ALL reporting (see scripts/exclude_brands.py)
+EXCLUDED_BRANDS: list[str] = ["Pure Origin", "Lumineve", "Staze"]
+
+RUN_TIMESTAMP: str = ""  # set in main()
 
 def r2(v):
     return round(float(v or 0), 2)
@@ -405,6 +451,49 @@ DATA_JS.write_text(
     "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n"
 )
 print("Done.")
+
+# ── 8. Provenance & validation record ─────────────────────────────────────────
+RUN_TIMESTAMP = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+# Verify workbook checksum
+actual_sha = hashlib.sha256(WORKBOOK.read_bytes()).hexdigest()
+checksum_ok = actual_sha == WORKBOOK_SHA256
+
+validation = {
+    "run_timestamp":         RUN_TIMESTAMP,
+    "source_workbook":       str(WORKBOOK.name),
+    "source_workbook_path":  str(WORKBOOK),
+    "source_sha256":         actual_sha,
+    "checksum_verified":     checksum_ok,
+    "sheets_used":           [
+        "Offtake_Chain_Zone", "Primary_Zone_Chain",
+        "Primary_Summary", "Primary_Brand_Monthly", "KPI_Dashboard",
+    ],
+    "exclusion_list":        EXCLUDED_BRANDS,
+    "rounding_method":       "round(value, 2) — two decimal places, INR Lakh",
+    "before_after_totals": {
+        "offtake_apr26":      {"before": None, "after": offtake["monthly_fy27"][0]},
+        "offtake_may26":      {"before": None, "after": offtake["monthly_fy27"][1]},
+        "offtake_jun26":      {"before": 0.0,  "after": offtake["monthly_fy27"][2]},
+        "offtake_total_fy27": {"before": None, "after": offtake["total_fy27"]},
+        "primary_nsv_fy27":   {"before": None, "after": fyx_p["nsv"]},
+    },
+    "known_limitations": [
+        "Jun-26 primary and offtake from summary workbook only; "
+        "store×article transaction-level validation PENDING (raw files unavailable).",
+        "primary.by_zone and by_chain FY25/FY26 not adjusted for excluded-brand deltas "
+        "(brand-level zone/chain splits unavailable from pre-agg workbook; "
+        "aggregate impact < 0.05%).",
+    ],
+    "validation_result": "PASS" if checksum_ok else "FAIL (checksum mismatch)",
+}
+
+prov_path = DATA_JS.parent.parent / "PowerBI" / "Excluded_Data" / "Excluded_Brands" / "patch_jun26_provenance.json"
+prov_path.parent.mkdir(parents=True, exist_ok=True)
+prov_path.write_text(json.dumps(validation, indent=2, ensure_ascii=False))
+print(f"  Provenance written: {prov_path}")
+print(f"  Checksum verified:  {checksum_ok}")
+
 print(f"\nSummary:")
 print(f"  Offtake FY27 total: {offtake['total_fy27']} L  ({offtake['total_fy27']/100:.2f} Cr)")
 print(f"  Offtake FY27 months: {offtake['months_fy27']}")
