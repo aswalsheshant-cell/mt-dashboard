@@ -140,6 +140,21 @@ Always run, and report results:
 
 ---
 
+## GitHub Labels
+
+Use these labels when creating issues and pull requests in this repository:
+
+| Label | Purpose |
+|---|---|
+| `platform/windows` | Issue or change is Windows-specific |
+| `s/agent-changes-requested` | Agent's PR has review changes requested |
+| `s/agent-fix-pr-picked` | Agent has picked up a fix PR |
+| `s/agent-gate-failed` | Agent's CI gate failed |
+| `s/agent-reviewed` | Agent has been reviewed |
+| `t/breaking 💥` | Breaking change — consumers must update |
+
+---
+
 ## Conventions
 
 - **Branches/PRs:** one focused branch per change; open PRs as **draft**; do not
