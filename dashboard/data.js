@@ -714,7 +714,8 @@ window.DASH = {
    "Feb-26",
    "Mar-26",
    "Apr-26",
-   "May-26"
+   "May-26",
+   "Jun-26"
   ],
   "monthly": [
    1734.0,
@@ -1051,13 +1052,15 @@ window.DASH = {
   ],
   "months_fy27": [
    "Apr-26",
-   "May-26"
-  ],
+   "May-26",
+   "Jun-26"],
   "monthly_fy27": [
    4024.0,
-   4527.61
-  ],
-  "total_fy27": 8551.61
+   4527.61,
+   {
+    "Jun-26": 4304.76
+   }],
+  "total_fy27": 12856.37
  },
  "pnl": {
   "by_chain": [
