@@ -116,7 +116,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt 2>/dev/null || pip install pandas openpyxl xlrd
+        run: pip install -r requirements.txt 2>/dev/null || pip install pandas openpyxl xlrd pytest
 
       - name: Syntax check
         run: python -m py_compile scripts/build_dashboard_data.py
