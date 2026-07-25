@@ -155,13 +155,30 @@ Use these labels when creating issues and pull requests in this repository:
 
 ---
 
+## Agent & Skill Routing
+
+Use Claude Code's built-in agents and project skills for specialized tasks. Do not
+re-investigate by hand what an agent or skill can answer.
+
+| Task | Agent / Skill |
+|---|---|
+| Repository intelligence, data lineage, schema validation, data quality, production readiness | `honasa-data-engineering` |
+| Dashboard reconciliation, QC, release-readiness checks | `honasa-dashboard-qc-reconciliation` |
+| CM2 expense classification, allocation, provisional governance | `honasa-cm2-expense-classification` |
+| Power BI PBIP/TMDL/PBIR authoring, validation, structure | `pbip` (plugin) |
+| DAX, Power Query, semantic models, naming, refresh, lineage | `semantic-models` (plugin) |
+| Report layout, visuals, themes, accessibility, design review | `reports` (plugin) |
+| Dependencies, SBOM, vulnerabilities, license compliance, vendored libraries | `secure-dependencies` (skill) |
+
+---
+
 ## Conventions
 
 - **Branches/PRs:** one focused branch per change; open PRs as **draft**; do not
   merge without explicit instruction. Never stack new work on already-merged
   history — branch fresh from `main`.
 - **Commit trailers:** end commit messages with
-  `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` and the
+  `Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>` and the
   `Claude-Session:` line. Never put the model identifier in commits/PRs/code.
 - **No dummy data.** If a required real source file is missing, stop and name the
   exact file needed — never fabricate numbers.
