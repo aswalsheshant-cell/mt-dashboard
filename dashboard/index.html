@@ -871,9 +871,20 @@ function buildOfftake(){
     months=keep.map(i=>months[i]); monthly=keep.map(i=>monthly[i]);
   }
   const totFor=k=>o['total_'+k]||0;
-  const primFor=k=>p['nsv_'+k]||0;
+  // For FY27+, primary data lives in detail_meta.fyx_primary, not in p
+  const beyond=!!fy&&fyBeyondPreagg(fyTag());
+  const fp=beyond?FPX(fyTag()):null;
+  const primFor=k=>{
+    if(fp && k===fy) return fp.nsv; // FY27+: use article-level total
+    return p['nsv_'+k]||0;          // FY25-26: use pre-agg structure
+  };
   const cmp=chains.filter(c=>(c[yrs[yrs.length-1]]||0)>50 || fOn('Chain')).slice(0,10);
-  const pc={}; p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);
+  const pc={};
+  if(fp){ // FY27+: use article-level aggregates
+    fp.by_chain.forEach(c=>pc[c.name]=c.nsv);
+  } else { // FY25-26: use pre-agg primary structure
+    p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);
+  }
   const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
