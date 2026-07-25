@@ -170,6 +170,7 @@ re-investigate by hand what an agent or skill can answer.
 | Report layout, visuals, themes, accessibility, design review | `reports` (plugin) |
 | Dependencies, SBOM, vulnerabilities, license compliance, vendored libraries | `secure-dependencies` (skill) |
 | Agent task decomposition, bounded authority, human approval gates, RAG grounding, prompt-injection protection, AI code verification, agent observability, AIOps, incident response | `run-evidence-grounded-agents` (skill) |
+| CI/CD pipeline design, secure build and deployment, application-security testing, risk assessments, least-privilege permissions, DORA metrics, developer experience, AI-assistant adoption | `run-devsecops-productivity` (skill) |
 
 ---
 
