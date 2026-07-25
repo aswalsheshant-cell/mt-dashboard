@@ -1,10 +1,10 @@
 {
-  "generated_from_commit": "e392f42c3e346462cee362c1f88bc3b4b36ffddb",
+  "generated_from_commit": "fb54ba6910744fb767cb8d6aebbc007a187d0929",
   "production_readiness_score": 50,
   "verdict": "NOT READY \u2014 blocked",
   "counts_by_skill": {
     "repository_scan": {
-      "INFO": 13,
+      "INFO": 14,
       "PASS": 1
     },
     "metric_registry": {
@@ -30,7 +30,7 @@
     "BLOCKED": 1,
     "FAIL": 0,
     "WARN": 19,
-    "INFO": 13,
+    "INFO": 14,
     "PASS": 18
   },
   "artifacts": {

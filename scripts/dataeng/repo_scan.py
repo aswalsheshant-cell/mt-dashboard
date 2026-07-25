@@ -10,7 +10,7 @@ from __future__ import annotations
 import pathlib
 import re
 
-from .core import ROOT, Finding, git, rel
+from .core import ROOT, Finding, git, is_derived_artifact, rel
 
 # role  <- (path globs, why). Order matters: first match wins.
 ROLE_RULES: list[tuple[str, tuple[str, ...], str]] = [
@@ -107,10 +107,15 @@ def scan() -> tuple[list[dict], list[dict], list[Finding]]:
             uniq.append(e)
 
     # Dead-code signal: a script nothing references and that writes nothing tracked.
+    # Derived artifacts are excluded from the corpus: they echo every script filename
+    # back (the baseline stores finding ids like SCAN-ORPHAN-<name>), so counting them
+    # would let a baselined orphan suppress its own detection.
     referenced = {e["to"] for e in uniq} | {e["from"] for e in uniq}
     all_text = "\n".join(
         (ROOT / f).read_text(encoding="utf-8", errors="replace")
-        for f in tracked if f.endswith((".py", ".md", ".txt", ".json")) and (ROOT / f).exists())
+        for f in tracked
+        if f.endswith((".py", ".md", ".txt", ".json"))
+        and not is_derived_artifact(f) and (ROOT / f).exists())
     for row in inventory:
         f = row["path"]
         if row["role"] != "code" or not f.endswith(".py"):

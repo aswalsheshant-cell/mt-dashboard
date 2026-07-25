@@ -20,6 +20,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from scripts.dataeng import core, governance, quality, reconcile, registry  # noqa: E402
+from scripts.dataeng import repo_scan  # noqa: E402
 from scripts.dataeng import seed_manager, validate  # noqa: E402
 from scripts.dataeng.cli import main as cli_main, readiness, _load_baseline  # noqa: E402
 
@@ -468,6 +469,48 @@ class TestCIWorkflow(unittest.TestCase):
         self.assertEqual(result.returncode, 0, f"fix_d13_mrp.py --dry-run failed: {result.stdout}")
         self.assertIn("NO CHANGE NEEDED", result.stdout,
                       "After D13 applied, dry-run should say NO CHANGE NEEDED")
+
+
+class TestDerivedArtifactIsolation(unittest.TestCase):
+    """The engines' own output must never become evidence about the repository.
+
+    Committing outputs/dataeng/ and config/dataeng_baseline.json made every script
+    filename appear in a tracked file, which silently killed SCAN-ORPHAN detection:
+    baselining a finding suppressed the finding.
+    """
+
+    def test_DA01_outputs_dir_is_derived(self):
+        self.assertTrue(core.is_derived_artifact("outputs/dataeng/findings.csv"))
+        self.assertTrue(core.is_derived_artifact("outputs/dataeng/health_report.json"))
+
+    def test_DA02_baseline_is_derived(self):
+        self.assertTrue(core.is_derived_artifact("config/dataeng_baseline.json"))
+
+    def test_DA03_real_sources_are_not_derived(self):
+        for p in ("scripts/build_dashboard_data.py", "dashboard/data.js",
+                  "config/cm2_decision_register.csv", "CLAUDE.md"):
+            self.assertFalse(core.is_derived_artifact(p), f"{p} must not be treated as derived")
+
+    def test_DA04_windows_separators_are_handled(self):
+        self.assertTrue(core.is_derived_artifact("outputs\\dataeng\\findings.csv"))
+
+    def test_DA05_baseline_does_not_suppress_orphan_detection(self):
+        """A script named only by the baseline must still be reported as an orphan."""
+        baseline = ROOT / "config" / "dataeng_baseline.json"
+        if not baseline.exists():
+            self.skipTest("no baseline committed")
+        accepted = json.loads(baseline.read_text(encoding="utf-8")).get("accepted", {})
+        orphan_ids = [k for k in accepted if k.startswith("SCAN-ORPHAN-")]
+        if not orphan_ids:
+            self.skipTest("no orphan findings in baseline")
+
+        _inventory, _edges, findings = repo_scan.scan()
+        found = {f.id for f in findings}
+        still_detected = [i for i in orphan_ids if i in found]
+        self.assertEqual(
+            sorted(still_detected), sorted(orphan_ids),
+            "baselined SCAN-ORPHAN findings vanished from the scan -- the engine is "
+            "reading its own derived output as evidence")
 
 
 if __name__ == "__main__":
