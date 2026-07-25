@@ -567,13 +567,14 @@ function buildOverview(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
   const s=document.getElementById('tab-overview');
   const fy=fyKey(), isTY=/TY target/i.test(f.method||'');
-  const yrLab={fy25:'FY25',fy26:'FY26',fy27:'FY27 Apr–May'};
+  const beyond=!!fy&&fyBeyondPreagg(fyTag());
+  const fp27=beyond?FPX(fyTag()):null;
+  const monthsCovered27=fp27?.months_covered||[];
+  const yrLab={fy25:'FY25',fy26:'FY26',fy27:monthsCovered27.length?`FY27 ${monthsCovered27.join('–')}':'FY27'};
   FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });  // backfill future FYs (FY28+)
   // FYs beyond the pre-agg window (FY27's Apr'26+) exist ONLY in the article-wise
   // primary -- FPX() serves exact chain-allocated aggregates so the selected FY
   // renders real numbers here instead of an empty state. Offtake has no such FY.
-  const beyond=!!fy&&fyBeyondPreagg(fyTag());
-  const fp27=beyond?FPX(fyTag()):null;
   // Offtake has its OWN FY coverage, independent of the article-wise
   // primary's fyx_primary window -- gate on Offtake's own total_fyNN, not on
   // "beyond the pre-agg window" (which is a Primary-only concept), so real
@@ -611,6 +612,9 @@ function buildOverview(){
      ${card(`Top chains by primary NSV (${yrLab[primYr]})`,'click a bar to drill',cv('ovChains'))}
      ${card(`Brand portfolio mix (${yrLab[primYr]} primary)`,'click to drill',cv('ovBrand',true))}
    </div>
+   ${fp27&&D.npi_metrics?`<div class="grid g2">
+     ${card('NPI vs Existing Portfolio (FY27 Offtake)','New Product Introduction contribution vs established portfolio',cv('ovNPI',true))}
+   </div>`:``}
    ${catDrillCardHtml('ovCatDrill')}`;
   mkLine('ovTrend',o.months,[
     {label:'Offtake (sell-out)',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22'},
@@ -622,6 +626,10 @@ function buildOverview(){
   mkBarH('ovChains',tc.map(c=>c.name),tc.map(c=>c[primYr]),C.teal,true,v=>drillTo('Chain',v));
   const bb=brands.filter(b=>(b[primYr]||0)>1);
   mkDonut('ovBrand',bb.map(b=>b.name),bb.map(b=>b[primYr]),true,v=>drillTo('Brand',v));
+  if(fp27&&D.npi_metrics){
+    const npiData=[D.npi_metrics.overall.npi_nsv,D.npi_metrics.overall.total_nsv-D.npi_metrics.overall.npi_nsv];
+    mkDonut('ovNPI',['NPI (New Products)','Existing Portfolio'],npiData,false);
+  }
   renderCatDrillChart('ovCatDrill',recFilter());
 }
 
