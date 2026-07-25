@@ -95,6 +95,11 @@
   .filterbar .fl span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
   .filterbar select{font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;
       border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:104px;max-width:180px}
+  @media(max-width:768px){
+    .filterbar{padding:8px 10px;gap:6px 8px}
+    .filterbar select{min-width:70px;max-width:calc(100vw - 40px);font-size:11px}
+    .filterbar .fl span{font-size:9px}
+  }
   .filterbar select:focus{outline:2px solid var(--teal);border-color:var(--teal)}
   .fbtn{font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;background:var(--teal);
       border:0;border-radius:8px;padding:8px 14px;cursor:pointer;align-self:flex-end}
@@ -153,6 +158,7 @@ const D = window.DASH;
 const C = {teal:'#2D9B7F',teald:'#1f7a63',blue:'#2b6cb0',amber:'#C77D17',red:'#C0392B',
            green:'#1E8E3E',grey:'#9aa4ad',purple:'#6b5b95',sand:'#cbb994'};
 const PAL=[C.teal,C.blue,C.amber,C.purple,C.green,C.red,C.sand,C.grey];
+let isRenderingTab=false;
 Chart.defaults.font.family="'Aptos','Segoe UI',Calibri,sans-serif";
 Chart.defaults.font.size=12; Chart.defaults.color='#475467';
 Chart.defaults.plugins.legend.labels.boxWidth=12;
@@ -422,6 +428,7 @@ function chartExportRows(chart){
   return [header,...labels.map((lab,i)=>[lab,...dsets.map(d=>d.data[i]??''),...(totFor?totFor(lab):[])])];
 }
 function exportChart(canvasId,format){
+  if(isRenderingTab){ alert('Tab is updating. Please wait before exporting.'); return; }
   const c=findChartByCanvasId(canvasId);
   if(!c){ alert('Chart not available to export (it may be empty for this filter).'); return; }
   const titleEl=c.canvas.closest('.card')?.querySelector('h3');
@@ -630,7 +637,7 @@ function buildPrimary(){
       if(fOn('Channel')) chans=chans.filter(c=>fHas('Channel',c.name));
       if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
       if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
-      let mSel=p.month_labels.map((m,i)=>({m,v:fp.monthly[i]})).filter(x=>fp.months_covered.includes(x.m));
+      let mSel=fp.months_covered.map(m=>({m,v:fp.monthly[p.month_labels.indexOf(m)]})).filter(x=>x.v!=null);
       if(fOn('Month')) mSel=mSel.filter(x=>fHas('Month',x.m));
       const totNsv=chains.reduce((a,c)=>a+(c.nsv||0),0);
       const rows27=chains.filter(c=>c.nsv>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
@@ -889,8 +896,8 @@ function buildOfftake(){
      ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
        kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
      ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') :
-       kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')}
-     ${fy? kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master') :
+       kpi('Chains Tracked',cmp.length,fOn('Zone')||fOn('Chain')?'shown in chart (top by NSV)':'top by NSV')}
+     ${fy? kpi('Chains Tracked',cmp.length,fOn('Zone')||fOn('Chain')?'shown in chart (top by NSV)':'top by NSV') :
        kpi('Chains Tracked',o.n_chains,'in offtake master')}
      ${kpi('Sell-through',primFor(yrs[yrs.length-1])?((totFor(yrs[yrs.length-1])/primFor(yrs[yrs.length-1]))*100).toFixed(0)+'%':'–',`offtake ÷ primary ${yrLab[yrs[yrs.length-1]]}`)}
    </div>
@@ -912,8 +919,8 @@ function buildOfftake(){
       {label:'FY26',data:zones.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Zone',v));
   }
   mkBar('ofCmp',cmp.map(c=>c.name),[
-    {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
-    {label:'Offtake (sell-out)',data:cmp.map(c=>c[yrs[yrs.length-1]]||0),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
+    {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]??null),backgroundColor:C.teal,borderRadius:4},
+    {label:'Offtake (sell-out)',data:cmp.map(c=>c[yrs[yrs.length-1]]??null),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
   renderCatDrillChart('ofCatDrill',recFilter());
 }
 
@@ -1517,8 +1524,15 @@ const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum
 function optsFor(key){
   if(key==='FY') return FY_ALL;
   const vals=[...new Set(recFilter(key).map(r=>r[key]))];
-  if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
-  else vals.sort((a,b)=>String(a).localeCompare(String(b)));
+  if(key==='Month'){
+    vals.sort((a,b)=>{
+      const idxA=MORDER.indexOf(a);
+      const idxB=MORDER.indexOf(b);
+      if(idxA===-1) return 1;
+      if(idxB===-1) return -1;
+      return idxA-idxB;
+    });
+  } else vals.sort((a,b)=>String(a).localeCompare(String(b)));
   return vals;
 }
 function renderFilterBar(){
@@ -1529,7 +1543,7 @@ function renderFilterBar(){
     return `<label class="fl"><span>${lab}</span><select data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
       <option value="">${sel.length?`${sel.length} selected — clear`:'All'}</option>
       ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');const on=sel.includes(String(v));
-        return `<option value="${s}">${on?'✓ ':''}${v}</option>`;}).join('')}
+        return `<option value="${s}" ${on?'selected':''}>${on?'✓ ':''}${v}</option>`;}).join('')}
     </select></label>`;
   }).join('')
   + `<button class="fbtn ghost" id="fReset">↺ Reset filters</button>`
@@ -1892,9 +1906,11 @@ function show(id){
   // (before Chart.js finishes its own internal afterEvent/tooltip processing for
   // this click) throws "Cannot read properties of undefined (reading 'handleEvent')".
   // Letting the current event loop turn finish first avoids that.
+  isRenderingTab=true;
   setTimeout(()=>{
     destroyCharts();
     BUILD[id]();
+    isRenderingTab=false;
     window.scrollTo({top:0,behavior:'smooth'});
   },0);
 }
