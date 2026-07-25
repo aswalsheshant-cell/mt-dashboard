@@ -201,6 +201,10 @@ const crcShort = v => { if(v==null) return '–'; const av=Math.abs(v);
   return '₹'+(v*100).toFixed(0)+'K'; };
 const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
+// HTML-escape for text injected into template literals. The two `esc` helpers
+// further down are CSV quoters and are not interchangeable with this one.
+const hesc = v => String(v==null?'':v).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Quantity formatter (separate unit family from money -- never mix Value Cr with Qty
 // Cr): shows "Qty Cr" (÷1 crore units) by default, degrading to "Qty L" only when the
 // Cr-rounded figure would read as 0.00, so small quantities stay legible.
@@ -1007,6 +1011,11 @@ function buildPnl(){
   const cm2Latest=cm2Monthly.length?cm2Monthly[cm2Monthly.length-1]:null;
   const cm2Qc=(cm2D&&cm2D.qc)||{};
   const cm2NoData=!cm2D||!cm2D.has_expense_data;
+  // Governance gate: while config/cm2_formula.csv is DRAFT (or every expense row
+  // is an EXAMPLE row) CM2 must be shown as provisional. Driven entirely by flags
+  // baked from tracked config, so the banner clears itself on Finance approval.
+  const cm2Prov=!!(cm2D&&cm2D.provisional);
+  const cm2ProvWhy=(cm2D&&cm2D.provisional_reasons)||[];
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    ${fy26ok?`<p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -1062,6 +1071,10 @@ function buildPnl(){
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
      <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).</p>
+   ${cm2Prov?`<div class="repbanner" style="border-left:4px solid #b45309;background:#fffbeb;color:#7c2d12">
+        <b>${hesc(cm2D.provisional_label||'CM2 PROVISIONAL - FORMULA APPROVAL PENDING')}</b>
+        <div style="margin-top:6px;font-weight:400">Do not publish these figures as final. Reason${cm2ProvWhy.length>1?'s':''}:
+        <ul style="margin:4px 0 0 18px;padding:0">${cm2ProvWhy.map(r=>`<li>${hesc(r)}</li>`).join('')}</ul></div></div>`:''}
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
         Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`:''}
    <div class="kpis">

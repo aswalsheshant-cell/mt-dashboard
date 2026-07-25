@@ -515,3 +515,93 @@ class TestDerivedArtifactIsolation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestCm2ProvisionalGate(unittest.TestCase):
+    """GOV-FORMULA-DRAFT remediation: while config/cm2_formula.csv is DRAFT the
+    published CM2 must be visibly labelled provisional. The BLOCKED finding
+    itself is Finance's to clear (D1); these tests assert the mitigation is
+    actually in force in the product, which it previously was not."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from build_dashboard_data import _cm2_provisional_state
+        cls.state_fn = staticmethod(_cm2_provisional_state)
+        txt = (ROOT / "dashboard" / "data.js").read_text(encoding="utf-8")
+        import re as _re
+        m = _re.match(r"\s*window\.DASH\s*=\s*", txt)
+        cls.dash = json.loads(txt[m.end():].rstrip().rstrip(";"))
+        cls.html = (ROOT / "dashboard" / "index.html").read_text(encoding="utf-8")
+
+    # -- CP01: the shipped data.js actually carries the flag
+    def test_CP01_data_js_marks_cm2_provisional(self):
+        self.assertTrue(self.dash["cm2"]["provisional"],
+                        "CM2 is published without the provisional flag")
+
+    def test_CP02_formula_status_is_draft(self):
+        self.assertEqual(self.dash["cm2"]["formula_status"], "DRAFT")
+
+    def test_CP03_reasons_name_both_causes(self):
+        joined = " ".join(self.dash["cm2"]["provisional_reasons"]).lower()
+        self.assertIn("d1", joined)
+        self.assertIn("example", joined)
+
+    def test_CP04_example_data_only_flag(self):
+        self.assertTrue(self.dash["cm2"]["example_data_only"])
+
+    # -- CP05: flag agrees with the governance engine's own gate
+    def test_CP05_agrees_with_governance_engine(self):
+        _, findings = governance.run()
+        blocked = [f for f in findings if f.id == "GOV-FORMULA-DRAFT"]
+        self.assertEqual(bool(blocked), self.dash["cm2"]["provisional"],
+                         "data.js provisional flag disagrees with GOV-FORMULA-DRAFT")
+
+    # -- CP06: the UI renders it
+    def test_CP06_dashboard_renders_banner(self):
+        self.assertIn("cm2Prov", self.html)
+        self.assertIn("provisional_label", self.html)
+
+    def test_CP07_banner_html_escaped(self):
+        self.assertIn("hesc(r)", self.html, "reasons must be HTML-escaped")
+
+    # -- CP08: derived from config, not hardcoded -- clears on approval
+    def test_CP08_clears_when_formula_approved(self):
+        """The gate must be derived from config, not hardcoded: an APPROVED
+        formula plus real expense rows must clear it with no code change."""
+        with tempfile.TemporaryDirectory() as td:
+            fp = pathlib.Path(td) / "cm2_formula.csv"
+            with open(fp, "w", newline="", encoding="utf-8") as fh:
+                w = csv.DictWriter(fh, fieldnames=["Component", "Status"])
+                w.writeheader()
+                w.writerow({"Component": "NSV", "Status": "APPROVED"})
+                w.writerow({"Component": "COGS", "Status": "APPROVED"})
+
+            approved = self.state_fn([{"Remarks": "real trade spend"}], formula_path=fp)
+            self.assertEqual(approved["formula_status"], "APPROVED")
+            self.assertFalse(approved["provisional"], approved["provisional_reasons"])
+
+            # and one DRAFT component is enough to re-arm it
+            with open(fp, "a", newline="", encoding="utf-8") as fh:
+                csv.DictWriter(fh, fieldnames=["Component", "Status"]).writerow(
+                    {"Component": "Logistics", "Status": "DRAFT"})
+            still = self.state_fn([{"Remarks": "real"}], formula_path=fp)
+            self.assertEqual(still["formula_status"], "DRAFT")
+            self.assertTrue(still["provisional"])
+
+    def test_CP09_example_detection_needs_all_rows(self):
+        mixed = [{"Remarks": "EXAMPLE ROW -- x"}, {"Remarks": "real"}]
+        self.assertFalse(self.state_fn(mixed)["example_data_only"],
+                         "one real row means the data is no longer example-only")
+
+    def test_CP10_patch_script_is_idempotent(self):
+        out = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "patch_cm2_provisional.py"), "--dry-run"],
+            capture_output=True, text=True, cwd=str(ROOT))
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("Already up to date", out.stdout)
+
+    def test_CP11_cm2_amounts_untouched_by_patch(self):
+        c = self.dash["cm2"]
+        self.assertAlmostEqual(c["total_nsv"], 42373.35, places=2)
+        self.assertAlmostEqual(c["cm2_value"], 42325.70, places=2)

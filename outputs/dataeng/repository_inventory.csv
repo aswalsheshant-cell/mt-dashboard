@@ -129,9 +129,9 @@ config/cm2_formula.csv,config,"governed business configuration (taxonomy, rules,
 config/dataeng_baseline.json,config,"governed business configuration (taxonomy, rules, formula, decisions)",json,7450,7KB,a0b8dc5 2026-07-24
 dashboard/README.md,app,offline dashboard app and vendored libs,md,27957,27KB,43b774f 2026-07-05
 dashboard/chart.umd.js,app,offline dashboard app and vendored libs,js,205363,200KB,bbeaeab 2026-06-27
-dashboard/data.js,generated,written by scripts/build_dashboard_data.py; header says DO NOT hand-edit,js,14366421,14.4MB,2d87cc3 2026-07-24
+dashboard/data.js,generated,written by scripts/build_dashboard_data.py; header says DO NOT hand-edit,js,14366764,14.4MB,2d87cc3 2026-07-24
 dashboard/html2canvas.min.js,app,offline dashboard app and vendored libs,js,198689,194KB,23487af 2026-07-03
-dashboard/index.html,app,offline dashboard app and vendored libs,html,164998,161KB,180b464 2026-07-24
+dashboard/index.html,app,offline dashboard app and vendored libs,html,166088,162KB,180b464 2026-07-24
 dashboard/jspdf.umd.min.js,app,offline dashboard app and vendored libs,js,420165,410KB,23487af 2026-07-03
 dashboard/xlsx.core.min.js,app,offline dashboard app and vendored libs,js,437032,426KB,23487af 2026-07-03
 outputs/cm2/README.md,generated,staging outputs produced by scripts/,md,2531,2KB,fc45de4 2026-07-24
@@ -141,13 +141,13 @@ outputs/cm2/fact_cm2_expense.schema.csv,generated,staging outputs produced by sc
 outputs/cm2/unknown_expense_heads.csv,generated,staging outputs produced by scripts/,csv,3215,3KB,fc45de4 2026-07-24
 outputs/dataeng/data_lineage_map.csv,generated,staging outputs produced by scripts/,csv,2858,2KB,a0b8dc5 2026-07-24
 outputs/dataeng/decision_register_view.csv,generated,staging outputs produced by scripts/,csv,2854,2KB,a0b8dc5 2026-07-24
-outputs/dataeng/dependency_edges.csv,generated,staging outputs produced by scripts/,csv,4501,4KB,a0b8dc5 2026-07-24
-outputs/dataeng/findings.csv,generated,staging outputs produced by scripts/,csv,11267,11KB,a0b8dc5 2026-07-24
-outputs/dataeng/health_report.json,generated,staging outputs produced by scripts/,json,1178,1KB,a0b8dc5 2026-07-24
+outputs/dataeng/dependency_edges.csv,generated,staging outputs produced by scripts/,csv,4818,4KB,569effe 2026-07-25
+outputs/dataeng/findings.csv,generated,staging outputs produced by scripts/,csv,14138,13KB,569effe 2026-07-25
+outputs/dataeng/health_report.json,generated,staging outputs produced by scripts/,json,1180,1KB,569effe 2026-07-25
 outputs/dataeng/metric_registry.csv,generated,staging outputs produced by scripts/,csv,2921,2KB,a0b8dc5 2026-07-24
-outputs/dataeng/repository_inventory.csv,generated,staging outputs produced by scripts/,csv,24014,23KB,a0b8dc5 2026-07-24
+outputs/dataeng/repository_inventory.csv,generated,staging outputs produced by scripts/,csv,24014,23KB,569effe 2026-07-25
 scripts/__init__.py,code,transformation and build code,py,0,0KB,e392f42 2026-07-24
-scripts/build_dashboard_data.py,code,transformation and build code,py,146060,142KB,2d87cc3 2026-07-24
+scripts/build_dashboard_data.py,code,transformation and build code,py,148240,144KB,2d87cc3 2026-07-24
 scripts/build_fw_nielsen_slide.py,code,transformation and build code,py,11982,11KB,901335d 2026-06-28
 scripts/build_shampoo_deepdive_slide.py,code,transformation and build code,py,10647,10KB,ee6d672 2026-06-28
 scripts/build_shampoo_nielsen_slide.py,code,transformation and build code,py,11997,11KB,987a22f 2026-06-28
@@ -156,12 +156,12 @@ scripts/cm2_cogs_logistics_fy27.py,code,transformation and build code,py,18197,1
 scripts/dataeng/README.md,code,transformation and build code,md,5235,5KB,b796397 2026-07-24
 scripts/dataeng/__init__.py,code,transformation and build code,py,274,0KB,e392f42 2026-07-24
 scripts/dataeng/cli.py,code,transformation and build code,py,10095,9KB,b796397 2026-07-24
-scripts/dataeng/core.py,code,transformation and build code,py,7609,7KB,e392f42 2026-07-24
+scripts/dataeng/core.py,code,transformation and build code,py,7609,7KB,569effe 2026-07-25
 scripts/dataeng/governance.py,code,transformation and build code,py,4849,4KB,e392f42 2026-07-24
 scripts/dataeng/quality.py,code,transformation and build code,py,6706,6KB,e392f42 2026-07-24
 scripts/dataeng/reconcile.py,code,transformation and build code,py,6469,6KB,e392f42 2026-07-24
 scripts/dataeng/registry.py,code,transformation and build code,py,8005,7KB,2d87cc3 2026-07-24
-scripts/dataeng/repo_scan.py,code,transformation and build code,py,6315,6KB,e392f42 2026-07-24
+scripts/dataeng/repo_scan.py,code,transformation and build code,py,6315,6KB,569effe 2026-07-25
 scripts/dataeng/seed_manager.py,code,transformation and build code,py,8755,8KB,b796397 2026-07-24
 scripts/dataeng/validate.py,code,transformation and build code,py,9700,9KB,e392f42 2026-07-24
 scripts/enhance_v3.py,code,transformation and build code,py,5337,5KB,ef49ee8 2026-06-27
@@ -175,5 +175,5 @@ scripts/split_offtake_store_article_xlsb.py,code,transformation and build code,p
 scripts/split_primary_article_xlsb.py,code,transformation and build code,py,5585,5KB,290c3c3 2026-07-04
 tests/test_cm2_cogs_logistics.py,test,automated tests,py,14727,14KB,bf0a2bf 2026-07-24
 tests/test_dataeng.py,test,automated tests,py,8059,7KB,e392f42 2026-07-24
-tests/test_operationalisation.py,test,automated tests,py,25732,25KB,a0b8dc5 2026-07-24
+tests/test_operationalisation.py,test,automated tests,py,30243,29KB,569effe 2026-07-25
 vercel.json,unclassified,no rule matched,json,137,0KB,9ce3654 2026-06-27

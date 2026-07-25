@@ -7,6 +7,7 @@ PowerBI/SeedData/Masters/PL_Expense_Input.csv,scripts/build_dashboard_data.py,re
 PowerBI/docs/DistributorPrimaryAllocation_Logic.md,scripts/build_dashboard_data.py,read_by
 PowerBI/docs/PageLayouts.md,scripts/build_dashboard_data.py,read_by
 PowerBI/docs/SIS_Reconciliation.md,scripts/build_dashboard_data.py,read_by
+config/cm2_formula.csv,scripts/build_dashboard_data.py,read_by
 dashboard/data.js,scripts/build_dashboard_data.py,read_by
 dashboard/index.html,scripts/build_dashboard_data.py,read_by
 PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv,scripts/cm2_cogs_logistics_fy27.py,read_by
@@ -61,7 +62,9 @@ PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv,tests/
 PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv,tests/test_operationalisation.py,read_by
 PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv,tests/test_operationalisation.py,read_by
 config/cm2_decision_register.csv,tests/test_operationalisation.py,read_by
+config/cm2_formula.csv,tests/test_operationalisation.py,read_by
 config/dataeng_baseline.json,tests/test_operationalisation.py,read_by
 dashboard/data.js,tests/test_operationalisation.py,read_by
+dashboard/index.html,tests/test_operationalisation.py,read_by
 outputs/dataeng/findings.csv,tests/test_operationalisation.py,read_by
 outputs/dataeng/health_report.json,tests/test_operationalisation.py,read_by
