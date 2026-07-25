@@ -17,7 +17,7 @@ from typing import Any, Iterable
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 DATA_JS = ROOT / "dashboard" / "data.js"
-CONFIG_DIR = ROOT / "config"
+CONFIG_DIR = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config"
 OUT_DIR = ROOT / "outputs" / "dataeng"
 
 # Files this package generates itself. They are tracked so health can be diffed

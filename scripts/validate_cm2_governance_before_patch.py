@@ -28,9 +28,9 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DECISION_REGISTER = ROOT / "config" / "cm2_decision_register.csv"
-FORMULA_CONFIG = ROOT / "config" / "cm2_formula.csv"
-ALLOCATION_RULES = ROOT / "config" / "cm2_allocation_rules.csv"
+DECISION_REGISTER = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_decision_register.csv"
+FORMULA_CONFIG = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_formula.csv"
+ALLOCATION_RULES = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_allocation_rules.csv"
 
 
 def load_csv(path: Path) -> dict:

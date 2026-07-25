@@ -22,7 +22,7 @@ class TestProvisionalGovernanceState(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path = ROOT / "config" / "cm2_decision_register.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_decision_register.csv"
         with path.open(encoding="utf-8") as f:
             cls.register = {r["decision_id"]: r for r in csv.DictReader(f)}
 
@@ -130,7 +130,7 @@ class TestProvisionalMeasureBehavior(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path = ROOT / "PowerBI" / "DAX" / "14_CM2_Provisional_Measures.dax"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "DAX" / "14_CM2_Provisional_Measures.dax"
         with path.open(encoding="utf-8") as f:
             cls.dax_content = f.read()
 
@@ -160,13 +160,13 @@ class TestExpenseSourceEditable(unittest.TestCase):
 
     def test_prov_16_provisional_assumptions_table_exists(self):
         """PROV-16: CM2_Provisional_Assumptions.csv exists and is editable"""
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Provisional_Assumptions.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Provisional_Assumptions.csv"
         self.assertTrue(path.exists(),
                        "Provisional assumptions table must exist for Power BI")
 
     def test_prov_17_assumptions_are_all_provisional(self):
         """PROV-17: All assumption rows are tagged Data_Status=PROVISIONAL"""
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Provisional_Assumptions.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Provisional_Assumptions.csv"
         with path.open(encoding="utf-8") as f:
             rows = list(csv.DictReader(f))
 
@@ -177,7 +177,7 @@ class TestExpenseSourceEditable(unittest.TestCase):
 
     def test_prov_18_approved_by_blank_in_assumptions(self):
         """PROV-18: Approved_By is blank in all assumption rows"""
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Provisional_Assumptions.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Provisional_Assumptions.csv"
         with path.open(encoding="utf-8") as f:
             rows = list(csv.DictReader(f))
 
@@ -188,7 +188,7 @@ class TestExpenseSourceEditable(unittest.TestCase):
 
     def test_prov_19_cogs_logistics_present(self):
         """PROV-19: COGS and Logistics assumptions are documented"""
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Provisional_Assumptions.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Provisional_Assumptions.csv"
         with path.open(encoding="utf-8") as f:
             rows = list(csv.DictReader(f))
 
@@ -220,11 +220,11 @@ class TestWorkflowIntegrity(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        register_path = ROOT / "config" / "cm2_decision_register.csv"
+        register_path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_decision_register.csv"
         with register_path.open(encoding="utf-8") as f:
             cls.register = list(csv.DictReader(f))
 
-        pbi_gov_path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Governance_Status.csv"
+        pbi_gov_path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Governance_Status.csv"
         with pbi_gov_path.open(encoding="utf-8") as f:
             cls.pbi_gov = list(csv.DictReader(f))
 

@@ -133,7 +133,7 @@ def _config_integrity(findings: list[Finding]) -> None:
             id="VAL-CFG-MISSING", skill="schema_validator", category="governance",
             severity="FAIL", summary="One or more CM2 governance configs are missing",
             evidence=f"taxonomy={len(tax)} rules={len(rules)} formula={len(formula)}",
-            location="config/", owner="Finance",
+            location="PowerBI/Reference/CM2_Provisional/config/", owner="Finance",
             remediation="Restore the governed configs; the CM2 engine cannot run without them."))
         return
 
@@ -146,7 +146,7 @@ def _config_integrity(findings: list[Finding]) -> None:
                 category="governance", severity="FAIL",
                 summary=f"Taxonomy references unknown allocation rule {rid}",
                 evidence=f"expense head {t.get('Normalized_Expense_Head')!r}",
-                location="config/cm2_expense_taxonomy.csv", owner="Finance",
+                location="PowerBI/Reference/CM2_Provisional/config/cm2_expense_taxonomy.csv", owner="Finance",
                 remediation="Add the rule to cm2_allocation_rules.csv or repoint the head."))
 
     # An INCLUDE head must not depend on a rule that is not APPROVED.
@@ -159,7 +159,7 @@ def _config_integrity(findings: list[Finding]) -> None:
                 skill="schema_validator", category="governance", severity="BLOCKED",
                 summary=f"Head '{t.get('Normalized_Expense_Head')}' is INCLUDE but its rule is not APPROVED",
                 evidence=f"rule {t.get('Allocation_Rule_ID')} status={status.get(t.get('Allocation_Rule_ID'))}",
-                location="config/cm2_expense_taxonomy.csv", owner="Finance",
+                location="PowerBI/Reference/CM2_Provisional/config/cm2_expense_taxonomy.csv", owner="Finance",
                 remediation="Approve the rule or revert the head to PENDING_APPROVAL."))
 
     # No formula component may default silently to NSV.
@@ -169,7 +169,7 @@ def _config_integrity(findings: list[Finding]) -> None:
                 id=f"VAL-CFG-NOBASIS-{f.get('Component','?')[:20]}", skill="schema_validator",
                 category="unit_basis", severity="FAIL",
                 summary=f"Formula component '{f.get('Component')}' has no explicit Calculation_Basis",
-                location="config/cm2_formula.csv", owner="Finance",
+                location="PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv", owner="Finance",
                 remediation="Set an explicit basis; a blank one risks silently defaulting to NSV."))
 
 

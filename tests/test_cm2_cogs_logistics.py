@@ -231,7 +231,7 @@ class TestJun26Reconciliation(unittest.TestCase):
 
     def test_27_fy27_mrp_aggregate_defect_is_documented(self):
         """data.js FY27 mrp is wrong; D13 must track it and CM2 must not use it."""
-        with open(ROOT / "config/cm2_decision_register.csv", encoding="utf-8") as fh:
+        with open(ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_decision_register.csv", encoding="utf-8") as fh:
             reg = {r["decision_id"]: r for r in csv.DictReader(fh)}
         self.assertIn("D13", reg)
         self.assertEqual(reg["D12"]["status"], "APPROVED")
@@ -243,7 +243,7 @@ class TestGovernance(unittest.TestCase):
     """18-19: config must carry explicit bases and record the D10 approval."""
 
     def test_18_formula_config_has_explicit_bases(self):
-        with open(ROOT / "config/cm2_formula.csv", encoding="utf-8") as fh:
+        with open(ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_formula.csv", encoding="utf-8") as fh:
             rows = list(csv.DictReader(fh))
         self.assertTrue(rows)
         for r in rows:
@@ -255,7 +255,7 @@ class TestGovernance(unittest.TestCase):
         self.assertEqual(by_comp["Approved logistics cost"]["Calculation_Basis"], "NSV")
 
     def test_19_d10_approval_recorded(self):
-        with open(ROOT / "config/cm2_decision_register.csv", encoding="utf-8") as fh:
+        with open(ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_decision_register.csv", encoding="utf-8") as fh:
             rows = {r["decision_id"]: r for r in csv.DictReader(fh)}
         self.assertEqual(rows["D10"]["status"], "APPROVED")
         self.assertTrue(rows["D10"]["approved_by"].strip())
@@ -263,18 +263,18 @@ class TestGovernance(unittest.TestCase):
 
     def test_19b_d1_and_d9_remain_pending(self):
         """An approved basis must not leak into an approved inclusion."""
-        with open(ROOT / "config/cm2_decision_register.csv", encoding="utf-8") as fh:
+        with open(ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_decision_register.csv", encoding="utf-8") as fh:
             rows = {r["decision_id"]: r for r in csv.DictReader(fh)}
         self.assertEqual(rows["D1"]["status"], "PENDING_APPROVAL")
         self.assertEqual(rows["D9"]["status"], "PENDING_APPROVAL")
 
     def test_19c_no_taxonomy_row_is_include(self):
-        with open(ROOT / "config/cm2_expense_taxonomy.csv", encoding="utf-8") as fh:
+        with open(ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_expense_taxonomy.csv", encoding="utf-8") as fh:
             rows = list(csv.DictReader(fh))
         self.assertEqual([r for r in rows if r["CM2_Inclusion_Status"] == "INCLUDE"], [])
 
     def test_19d_cogs_and_logistics_are_separate_groups(self):
-        with open(ROOT / "config/cm2_expense_taxonomy.csv", encoding="utf-8") as fh:
+        with open(ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_expense_taxonomy.csv", encoding="utf-8") as fh:
             rows = list(csv.DictReader(fh))
         groups = {r["Expense_Group"] for r in rows}
         self.assertIn("PRODUCT COST", groups)

@@ -6,7 +6,7 @@ These Power Query snippets import the governance decision register and status ta
 
 ## Query 1: Import CM2_Governance_Status
 
-**Source:** `SeedData/Masters/CM2_Governance_Status.csv`
+**Source:** `../SeedData/CM2_Governance_Status.csv` (relative to this QuickSetup folder)
 
 **Steps:**
 
@@ -27,7 +27,7 @@ These Power Query snippets import the governance decision register and status ta
 
 ## Query 2: Import CM2_Provisional_Assumptions (Optional for Scenarios)
 
-**Source:** `SeedData/Masters/CM2_Provisional_Assumptions.csv`
+**Source:** `../SeedData/CM2_Provisional_Assumptions.csv` (relative to this QuickSetup folder)
 
 **Steps:**
 

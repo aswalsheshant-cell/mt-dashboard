@@ -26,13 +26,13 @@ class TestCM2GovernanceStatus(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Governance_Status.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Governance_Status.csv"
         with path.open(encoding="utf-8") as f:
             cls.governance_rows = list(csv.DictReader(f))
 
     def test_pbi_gov_01_table_exists(self):
         """PBI-GOV-01: CM2_Governance_Status.csv exists"""
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Governance_Status.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Governance_Status.csv"
         self.assertTrue(path.exists(), "CM2_Governance_Status.csv not found")
 
     def test_pbi_gov_02_required_columns(self):
@@ -47,7 +47,7 @@ class TestCM2GovernanceStatus(unittest.TestCase):
 
     def test_pbi_gov_03_decision_ids_match_register(self):
         """PBI-GOV-03: Decision IDs match config/cm2_decision_register.csv"""
-        path = ROOT / "config" / "cm2_decision_register.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_decision_register.csv"
         with path.open(encoding="utf-8") as f:
             register_rows = list(csv.DictReader(f))
 
@@ -109,13 +109,13 @@ class TestCM2ProvisionalAssumptions(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Provisional_Assumptions.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Provisional_Assumptions.csv"
         with path.open(encoding="utf-8") as f:
             cls.assumption_rows = list(csv.DictReader(f))
 
     def test_pbi_assum_01_table_exists(self):
         """PBI-ASSUM-01: CM2_Provisional_Assumptions.csv exists"""
-        path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Provisional_Assumptions.csv"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Provisional_Assumptions.csv"
         self.assertTrue(path.exists(), "CM2_Provisional_Assumptions.csv not found")
 
     def test_pbi_assum_02_required_columns(self):
@@ -201,17 +201,17 @@ class TestPowerBIFilesPresent(unittest.TestCase):
 
     def test_pbi_files_01_dax_provisional_measures(self):
         """PBI-FILES-01: DAX/14_CM2_Provisional_Measures.dax exists"""
-        path = ROOT / "PowerBI" / "DAX" / "14_CM2_Provisional_Measures.dax"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "DAX" / "14_CM2_Provisional_Measures.dax"
         self.assertTrue(path.exists(), "14_CM2_Provisional_Measures.dax not found")
 
     def test_pbi_files_02_pq_import_guide(self):
         """PBI-FILES-02: Power Query import guide exists"""
-        path = ROOT / "PowerBI" / "QuickSetup" / "PQ_CM2_Governance_Import.md"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "QuickSetup" / "PQ_CM2_Governance_Import.md"
         self.assertTrue(path.exists(), "PQ_CM2_Governance_Import.md not found")
 
     def test_pbi_files_03_page_blueprint(self):
         """PBI-FILES-03: Page blueprint for CM2 Analysis exists"""
-        path = ROOT / "PowerBI" / "docs" / "PageBlueprint_CM2_Analysis_Provisional.md"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "docs" / "PageBlueprint_CM2_Analysis_Provisional.md"
         self.assertTrue(path.exists(), "PageBlueprint_CM2_Analysis_Provisional.md not found")
 
     def test_pbi_files_04_governance_validation_script(self):
@@ -229,7 +229,7 @@ class TestReconciliation(unittest.TestCase):
         with pl_path.open(encoding="utf-8") as f:
             cls.pl_expense_rows = list(csv.DictReader(f))
 
-        assum_path = ROOT / "PowerBI" / "SeedData" / "Masters" / "CM2_Provisional_Assumptions.csv"
+        assum_path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "SeedData" / "CM2_Provisional_Assumptions.csv"
         with assum_path.open(encoding="utf-8") as f:
             cls.assumption_rows = list(csv.DictReader(f))
 
@@ -298,7 +298,7 @@ class TestDAXMeasureStructure(unittest.TestCase):
 
     def test_pbi_dax_01_provisional_measures_exist(self):
         """PBI-DAX-01: DAX file contains provisional measure definitions"""
-        path = ROOT / "PowerBI" / "DAX" / "14_CM2_Provisional_Measures.dax"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "DAX" / "14_CM2_Provisional_Measures.dax"
         content = path.read_text(encoding="utf-8")
 
         required_measures = {
@@ -315,7 +315,7 @@ class TestDAXMeasureStructure(unittest.TestCase):
 
     def test_pbi_dax_02_lookupvalue_used_for_governance(self):
         """PBI-DAX-02: DAX uses LOOKUPVALUE to query governance table"""
-        path = ROOT / "PowerBI" / "DAX" / "14_CM2_Provisional_Measures.dax"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "DAX" / "14_CM2_Provisional_Measures.dax"
         content = path.read_text(encoding="utf-8")
 
         self.assertIn("LOOKUPVALUE", content,
@@ -325,7 +325,7 @@ class TestDAXMeasureStructure(unittest.TestCase):
 
     def test_pbi_dax_03_approved_cm2_conditionally_blank(self):
         """PBI-DAX-03: Approved CM2 measure returns BLANK when pending"""
-        path = ROOT / "PowerBI" / "DAX" / "14_CM2_Provisional_Measures.dax"
+        path = ROOT / "PowerBI" / "Reference" / "CM2_Provisional" / "DAX" / "14_CM2_Provisional_Measures.dax"
         content = path.read_text(encoding="utf-8")
 
         self.assertIn('IF ( [Formula_Status] = "APPROVED"', content,

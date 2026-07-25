@@ -20,8 +20,8 @@ def run() -> tuple[list[dict], list[Finding]]:
         return [], [Finding(
             id="GOV-NOREGISTER", skill="finance_governance", category="governance",
             severity="BLOCKED", summary="No decision register found",
-            location="config/cm2_decision_register.csv", owner="Finance",
-            remediation="Create config/cm2_decision_register.csv before any CM2 change.")]
+            location="PowerBI/Reference/CM2_Provisional/config/cm2_decision_register.csv", owner="Finance",
+            remediation="Create PowerBI/Reference/CM2_Provisional/config/cm2_decision_register.csv before any CM2 change.")]
 
     for r in reg:
         did = r.get("decision_id", "?")
@@ -32,7 +32,7 @@ def run() -> tuple[list[dict], list[Finding]]:
                 id=f"GOV-BADSTATUS-{did}", skill="finance_governance", category="governance",
                 severity="FAIL", summary=f"{did} has invalid status {status!r}",
                 evidence=f"allowed: {sorted(VALID_STATUS)}",
-                location="config/cm2_decision_register.csv", owner="Finance",
+                location="PowerBI/Reference/CM2_Provisional/config/cm2_decision_register.csv", owner="Finance",
                 remediation="Use one of the allowed status values."))
             continue
 
@@ -44,7 +44,7 @@ def run() -> tuple[list[dict], list[Finding]]:
                     category="governance", severity="FAIL",
                     summary=f"{did} is APPROVED but missing {', '.join(gaps)}",
                     evidence=f"decision: {(r.get('decision') or '')[:90]}",
-                    location="config/cm2_decision_register.csv", owner="Finance",
+                    location="PowerBI/Reference/CM2_Provisional/config/cm2_decision_register.csv", owner="Finance",
                     decision_ref=did,
                     remediation="An approval without approver, date and evidence is not an approval."))
             else:
@@ -73,7 +73,7 @@ def run() -> tuple[list[dict], list[Finding]]:
             summary="CM2 formula is DRAFT -- every CM2 figure must be labelled provisional",
             evidence=f"{sum(1 for f in formula if (f.get('Status') or '').upper()=='DRAFT')}"
                      f"/{len(formula)} components DRAFT",
-            location="config/cm2_formula.csv", owner="Finance", decision_ref="D1",
+            location="PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv", owner="Finance", decision_ref="D1",
             remediation="Display 'CM2 PROVISIONAL — FORMULA APPROVAL PENDING'; do not publish as final."))
 
     rows = [{"Decision_ID": r.get("decision_id"), "Status": r.get("status"),

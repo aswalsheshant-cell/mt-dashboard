@@ -1329,7 +1329,7 @@ def _cm2_provisional_state(expense_rows, formula_path=None):
     the banner clears itself the moment the underlying condition clears -- no
     hardcoded FY, date or flag:
 
-      1. config/cm2_formula.csv still carries DRAFT components (Finance has not
+      1. PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv still carries DRAFT components (Finance has not
          signed the formula -- decision D1). Mirrors the GOV-FORMULA-DRAFT gate
          in scripts/dataeng/governance.py; keep the two in step.
       2. every loaded expense row is an EXAMPLE row, so the expense total -- and
@@ -1340,7 +1340,7 @@ def _cm2_provisional_state(expense_rows, formula_path=None):
     """
     reasons, formula_status = [], "UNKNOWN"
     path = Path(formula_path) if formula_path else (
-        Path(__file__).resolve().parent.parent / "config" / "cm2_formula.csv")
+        Path(__file__).resolve().parent.parent / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_formula.csv")
     if path.exists():
         with open(path, newline="", encoding="utf-8") as fh:
             comps = list(csv.DictReader(fh))

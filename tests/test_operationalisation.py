@@ -488,7 +488,7 @@ class TestDerivedArtifactIsolation(unittest.TestCase):
 
     def test_DA03_real_sources_are_not_derived(self):
         for p in ("scripts/build_dashboard_data.py", "dashboard/data.js",
-                  "config/cm2_decision_register.csv", "CLAUDE.md"):
+                  "PowerBI/Reference/CM2_Provisional/config/cm2_decision_register.csv", "CLAUDE.md"):
             self.assertFalse(core.is_derived_artifact(p), f"{p} must not be treated as derived")
 
     def test_DA04_windows_separators_are_handled(self):

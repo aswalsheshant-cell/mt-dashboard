@@ -2,7 +2,7 @@
 
 **Status:** Development/Testing page — not for production publication.
 
-**Purpose:** Enable scenario testing and Finance decision preview on D1 and D9 while maintaining clear governance barriers. All data shown is tagged PROVISIONAL until approvals are recorded in `config/cm2_decision_register.csv`.
+**Purpose:** Enable scenario testing and Finance decision preview on D1 and D9 while maintaining clear governance barriers. All data shown is tagged PROVISIONAL until approvals are recorded in `../config/cm2_decision_register.csv`.
 
 ---
 
@@ -392,7 +392,7 @@ Last Updated: 2026-07-25
 
 ### Data Quality
 
-- [ ] All decisions in CM2 Governance Status table match config/cm2_decision_register.csv
+- [ ] All decisions in CM2 Governance Status table match ../config/cm2_decision_register.csv
 - [ ] Reconciliation Difference = 0 ± 0.01 L
 - [ ] Unmapped Expense Lacs > 0 (audit rows exist)
 - [ ] Mapped Expense + Unmapped Expense = Source Total ± rounding
