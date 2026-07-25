@@ -445133,5 +445133,325 @@ window.DASH = {
   "total_addon_window": 15292.28,
   "total_addon_ann": 91753.42,
   "note": "Per EAN, compared ONLY across comparable stores = sites of the product's dominant chain FORMAT (Chain Type from ChainMaster), so drug-store SKUs are measured against drug-store doors only. Target = distinct format-sites selling that product's Category; Carrying = format-sites selling this EAN; Add-on = missing sites × NSV per carrying site. Built from real store×article offtake; annualised = monthly avg × 12. Window is whatever store-level months are loaded (currently 2), refreshes to true L3M as more months arrive."
+ },
+  npi_metrics: {
+ "overall": {
+  "npi_nsv": 510155648.89,
+  "total_nsv": 1414641582.21,
+  "npi_contribution_pct": 36.1,
+  "npi_count": 29231
+ },
+ "by_chain": {
+  "Unassigned": {
+   "npi_nsv": 74545728.21,
+   "total_nsv": 979031661.53,
+   "npi_contribution_pct": 7.6,
+   "npi_count": 7304
+  },
+  "Nykaa E-Retail Limited": {
+   "npi_nsv": 20726567.96,
+   "total_nsv": 20726567.96,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 4613
+  },
+  "Reliance Retail-DC": {
+   "npi_nsv": 88527625.96,
+   "total_nsv": 88527625.96,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 3167
+  },
+  "DC-D-Mart-Offline": {
+   "npi_nsv": 92757816.71,
+   "total_nsv": 92757816.71,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 583
+  },
+  "Apollo Healthco": {
+   "npi_nsv": 69616539.54,
+   "total_nsv": 69616539.54,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 2725
+  },
+  "Reliance Retail-(Azorte)": {
+   "npi_nsv": 1930180.97,
+   "total_nsv": 1930180.97,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 264
+  },
+  "Wellness Forever": {
+   "npi_nsv": 6694874.61,
+   "total_nsv": 6694874.61,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 113
+  },
+  "Guardian Healthcare-Delhi": {
+   "npi_nsv": 90640.66,
+   "total_nsv": 90640.66,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 19
+  },
+  "D.L. Sales - MT": {
+   "npi_nsv": 3218754.57,
+   "total_nsv": 3218754.57,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 181
+  },
+  "Reliance Retail-Store": {
+   "npi_nsv": 7899449.04,
+   "total_nsv": 7899449.04,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 7347
+  },
+  "Sri Vijaya Durga Agencies": {
+   "npi_nsv": 26114619.24,
+   "total_nsv": 26114619.24,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 276
+  },
+  "CHHABRA TRADERS": {
+   "npi_nsv": 3880129.73,
+   "total_nsv": 3880129.73,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 81
+  },
+  "RR Traders-MT": {
+   "npi_nsv": 577667.83,
+   "total_nsv": 577667.83,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 26
+  },
+  "REAL TIME LOGISTICS_MT_BR": {
+   "npi_nsv": 734344.07,
+   "total_nsv": 734344.07,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 21
+  },
+  "Metro-CNC-RRL": {
+   "npi_nsv": 3592394.64,
+   "total_nsv": 3592394.64,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 388
+  },
+  "Sehaj Enterprises -MT-JK": {
+   "npi_nsv": 168201.4,
+   "total_nsv": 168201.4,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 26
+  },
+  "Sancus Networks Private Limited-RMT": {
+   "npi_nsv": 3587587.19,
+   "total_nsv": 3587587.19,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 165
+  },
+  "VENKATESHWARA AGENCIES-TG": {
+   "npi_nsv": 7114836.73,
+   "total_nsv": 7114836.73,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 172
+  },
+  "M/S KOTTARAM BUSINESS": {
+   "npi_nsv": 10106746.89,
+   "total_nsv": 10106746.89,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 175
+  },
+  "G.V Enterprises": {
+   "npi_nsv": 21665841.79,
+   "total_nsv": 21665841.79,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 188
+  },
+  "Az Enterprises": {
+   "npi_nsv": 10234087.39,
+   "total_nsv": 10234087.39,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 222
+  },
+  "MARK ENTERPRISE": {
+   "npi_nsv": 982396.99,
+   "total_nsv": 982396.99,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 35
+  },
+  "JUST\u00a0MARK-Dmart": {
+   "npi_nsv": 21979483.93,
+   "total_nsv": 21979483.93,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 69
+  },
+  "": {
+   "npi_nsv": 72530.59,
+   "total_nsv": 72530.59,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 3
+  },
+  "Kiran Trading Company": {
+   "npi_nsv": 23821462.02,
+   "total_nsv": 23821462.02,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 121
+  },
+  "MANOJ SOAP AGENCY-MT": {
+   "npi_nsv": 148314.1,
+   "total_nsv": 148314.1,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 19
+  },
+  "Balaji Associates Distributor MT": {
+   "npi_nsv": 1780490.44,
+   "total_nsv": 1780490.44,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 70
+  },
+  "Health & Glow": {
+   "npi_nsv": 4399798.97,
+   "total_nsv": 4399798.97,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 736
+  },
+  "Trent Hypermarket": {
+   "npi_nsv": 1091017.12,
+   "total_nsv": 1091017.12,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 48
+  },
+  "D-Mart-Store-E-Com": {
+   "npi_nsv": 479750.92,
+   "total_nsv": 479750.92,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 20
+  },
+  "United Marketing": {
+   "npi_nsv": 41373.13,
+   "total_nsv": 41373.13,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 10
+  },
+  "PRAGATI SALES-D-MART": {
+   "npi_nsv": 1574395.15,
+   "total_nsv": 1574395.15,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 41
+  },
+  "RRL-FOC-Sample": {
+   "npi_nsv": 0.4,
+   "total_nsv": 0.4,
+   "npi_contribution_pct": 100.0,
+   "npi_count": 3
+  }
+ },
+ "by_brand": {
+  "Mamaearth": {
+   "npi_nsv": 385464308.7,
+   "total_nsv": 959586534.06,
+   "npi_contribution_pct": 40.2
+  },
+  "The Derma Co.": {
+   "npi_nsv": 114966966.02,
+   "total_nsv": 418125943.95,
+   "npi_contribution_pct": 27.5
+  },
+  "Aqualogica": {
+   "npi_nsv": 6363139.7,
+   "total_nsv": 32170626.29,
+   "npi_contribution_pct": 19.8
+  },
+  "BBLUNT": {
+   "npi_nsv": 1309398.81,
+   "total_nsv": 2706642.25,
+   "npi_contribution_pct": 48.4
+  },
+  "Dr. Sheth's": {
+   "npi_nsv": 1282786.32,
+   "total_nsv": 1282786.32,
+   "npi_contribution_pct": 100.0
+  },
+  "Lumineve": {
+   "npi_nsv": 769049.34,
+   "total_nsv": 769049.34,
+   "npi_contribution_pct": 100.0
+  }
+ },
+ "by_category": {
+  "Hair": {
+   "npi_nsv": 117987596.3,
+   "total_nsv": 288744588.72,
+   "npi_contribution_pct": 40.9
+  },
+  "Face": {
+   "npi_nsv": 334204853.27,
+   "total_nsv": 980033046.35,
+   "npi_contribution_pct": 34.1
+  },
+  "Baby": {
+   "npi_nsv": 28188294.3,
+   "total_nsv": 74457006.74,
+   "npi_contribution_pct": 37.9
+  },
+  "Body": {
+   "npi_nsv": 26628986.42,
+   "total_nsv": 66383886.25,
+   "npi_contribution_pct": 40.1
+  },
+  "Color Care": {
+   "npi_nsv": 119876.16,
+   "total_nsv": 599768.27,
+   "npi_contribution_pct": 20.0
+  },
+  "Hair Colour": {
+   "npi_nsv": 955881.93,
+   "total_nsv": 1085506.72,
+   "npi_contribution_pct": 88.1
+  },
+  "Styling Products": {
+   "npi_nsv": 237444.07,
+   "total_nsv": 1038083.28,
+   "npi_contribution_pct": 22.9
+  },
+  "Hair Care": {
+   "npi_nsv": 116072.81,
+   "total_nsv": 583052.25,
+   "npi_contribution_pct": 19.9
+  },
+  "Fragrance": {
+   "npi_nsv": 694886.65,
+   "total_nsv": 694886.65,
+   "npi_contribution_pct": 100.0
+  },
+  "Combo": {
+   "npi_nsv": 931095.19,
+   "total_nsv": 931095.19,
+   "npi_contribution_pct": 100.0
+  },
+  "Fragrances": {
+   "npi_nsv": 90661.79,
+   "total_nsv": 90661.79,
+   "npi_contribution_pct": 100.0
+  }
+ },
+ "by_month": {
+  "Apr'26": {
+   "npi_nsv": 39835475.12,
+   "total_nsv": 527853027.41,
+   "npi_contribution_pct": 7.5
+  },
+  "May'26": {
+   "npi_nsv": 34710253.09,
+   "total_nsv": 451178634.12,
+   "npi_contribution_pct": 7.7
+  },
+  "Jun'26": {
+   "npi_nsv": 435609920.68,
+   "total_nsv": 435609920.68,
+   "npi_contribution_pct": 100.0
+  }
+ },
+ "classifications": {
+  "npi_confirmed": 368,
+  "npi_provisional": 121,
+  "existing": 477,
+  "excluded": 426
  }
+}
 };
