@@ -169,6 +169,7 @@ re-investigate by hand what an agent or skill can answer.
 | DAX, Power Query, semantic models, naming, refresh, lineage | `semantic-models` (plugin) |
 | Report layout, visuals, themes, accessibility, design review | `reports` (plugin) |
 | Dependencies, SBOM, vulnerabilities, license compliance, vendored libraries | `secure-dependencies` (skill) |
+| Agent task decomposition, bounded authority, human approval gates, RAG grounding, prompt-injection protection, AI code verification, agent observability, AIOps, incident response | `run-evidence-grounded-agents` (skill) |
 
 ---
 
