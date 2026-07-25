@@ -562,6 +562,35 @@ document.addEventListener('click',e=>{
   document.querySelectorAll('details.chartdl[open],details.pagedl[open]').forEach(d=>{ if(!d.contains(e.target)) d.open=false; });
 });
 
+/* DATA-INTEGRITY CONTRACT: Period-alignment guards */
+const DATA_CONTRACT={
+  primary_max_month:'June',primary_max_year:2026,  // Apr–Jun FY27
+  offtake_max_month:'May',offtake_max_year:2026,   // Apr–May FY27
+  get common_max_month(){ return this.offtake_max_month; },  // Comparable period
+  get common_max_year(){ return this.offtake_max_year; }
+};
+
+/* Prevent mixed-period calculations */
+function validateComparablePeriod(isPrimary,isOfftake){
+  if(isPrimary&&!isOfftake) return DATA_CONTRACT.primary_max_month;  // Primary-only: Apr–Jun
+  if(isOfftake&&!isPrimary) return DATA_CONTRACT.offtake_max_month;  // Offtake-only: Apr–May
+  return DATA_CONTRACT.common_max_month;  // Comparable: Apr–May
+}
+
+/* Coverage visibility badge */
+function coverageBadge(){
+  return `<div style="margin:0 0 16px;padding:10px;background:#fef3cd;border-radius:8px;border-left:4px solid #ffc107;font-size:12px;color:#856404;">
+    <b>Data Coverage (FY27):</b> Primary: Apr–Jun · Offtake detail: Apr–May · Comparable period: Apr–May · June Offtake: Pending
+  </div>`;
+}
+
+/* June-only warning for Primary data */
+function juneOfftakePendingNote(){
+  return `<div style="margin:0 0 12px;padding:8px;background:#e7f3ff;border-radius:6px;border-left:3px solid #0066cc;font-size:11px;color:#004085;">
+    <b>Note:</b> June 2026 Primary data is available. June store/article-level Offtake is pending; comparative sell-through and Offtake-based NPI metrics use Apr–May FY27 only.
+  </div>`;
+}
+
 /* ---------------- OVERVIEW ---------------- */
 function buildOverview(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
@@ -591,16 +620,20 @@ function buildOverview(){
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
+  const hasJuneOnlyPrimary=fp27&&monthsCovered27.includes('June')&&!monthsCovered27.includes('July');
   s.innerHTML = `<h2 class="sec">Executive Overview</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
+   ${fy==='fy27'?coverageBadge():''}
    ${dimNote}
+   ${fy==='fy27'&&hasJuneOnlyPrimary?juneOfftakePendingNote():''}
    <div class="kpis">
-     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–May actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
+     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–Jun actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
-     ${fp27&&D.npi_metrics?kpi('NPI Contribution',D.npi_metrics.overall.npi_contribution_pct.toFixed(1)+'%',`₹${crc(D.npi_metrics.overall.npi_nsv)} of FY27 Offtake`):kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
+     ${fp27&&D.npi_metrics?kpi('NPI Contribution (Apr–May)',D.npi_metrics.overall.npi_contribution_pct.toFixed(1)+'%',`₹${crc(D.npi_metrics.overall.npi_nsv)} · Offtake-based, Apr–May only`)
+       :kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
      ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
        isTY?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
@@ -613,7 +646,7 @@ function buildOverview(){
      ${card(`Brand portfolio mix (${yrLab[primYr]} primary)`,'click to drill',cv('ovBrand',true))}
    </div>
    ${fp27&&D.npi_metrics?`<div class="grid g2">
-     ${card('NPI vs Existing Portfolio (FY27 Offtake)','New Product Introduction contribution vs established portfolio',cv('ovNPI',true))}
+     ${card('NPI vs Existing Portfolio (Apr–May Offtake)','New Product Introduction contribution vs established portfolio. Based on comparable period Apr–May FY27 (June Offtake pending).',cv('ovNPI',true))}
    </div>`:``}
    ${catDrillCardHtml('ovCatDrill')}`;
   mkLine('ovTrend',o.months,[
@@ -897,8 +930,13 @@ function buildOfftake(){
   const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
+  const fy27OfftakeLimited=fy==='fy27'&&(!o.months_fy27 || o.months_fy27.length<3);
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
    <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
+   ${fy==='fy27'?coverageBadge():''}
+   ${fy27OfftakeLimited?`<div style="margin:0 0 12px;padding:8px;background:#fff3cd;border-radius:6px;border-left:3px solid #ff9800;font-size:11px;color:#664d03;">
+     <b>Limited Coverage:</b> June 2026 store-level Offtake detail is not yet available. All FY27 Offtake analysis covers Apr–May only.
+   </div>`:''}
    ${dimNote}
    <div class="kpis">
      ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
