@@ -122,16 +122,17 @@ PowerBI/templates/Template_Primary_ShipTo.csv,powerbi,"Power BI build kit -- M q
 PowerBI/templates/Template_Primary_Weekly.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,480,0KB,771adac 2026-06-28
 PowerBI/templates/Template_TDP_Monthly.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,344,0KB,771adac 2026-06-28
 PowerBI/theme/HonasaMT_Theme.json,powerbi,"Power BI build kit -- M queries, DAX measures, templates",json,1817,1KB,771adac 2026-06-28
+config/D1_APPROVAL_REQUEST.md,config,"governed business configuration (taxonomy, rules, formula, decisions)",md,4808,4KB,fc3b1db 2026-07-25
 config/cm2_allocation_rules.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,4041,3KB,fc45de4 2026-07-24
-config/cm2_decision_register.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,6217,6KB,2d87cc3 2026-07-24
+config/cm2_decision_register.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,6578,6KB,2d87cc3 2026-07-24
 config/cm2_expense_taxonomy.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,14162,13KB,13fe0ac 2026-07-24
 config/cm2_formula.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,3331,3KB,acd2099 2026-07-24
 config/dataeng_baseline.json,config,"governed business configuration (taxonomy, rules, formula, decisions)",json,7450,7KB,a0b8dc5 2026-07-24
 dashboard/README.md,app,offline dashboard app and vendored libs,md,27957,27KB,43b774f 2026-07-05
 dashboard/chart.umd.js,app,offline dashboard app and vendored libs,js,205363,200KB,bbeaeab 2026-06-27
-dashboard/data.js,generated,written by scripts/build_dashboard_data.py; header says DO NOT hand-edit,js,14366764,14.4MB,2d87cc3 2026-07-24
+dashboard/data.js,generated,written by scripts/build_dashboard_data.py; header says DO NOT hand-edit,js,14366764,14.4MB,077997a 2026-07-25
 dashboard/html2canvas.min.js,app,offline dashboard app and vendored libs,js,198689,194KB,23487af 2026-07-03
-dashboard/index.html,app,offline dashboard app and vendored libs,html,166088,162KB,180b464 2026-07-24
+dashboard/index.html,app,offline dashboard app and vendored libs,html,166088,162KB,077997a 2026-07-25
 dashboard/jspdf.umd.min.js,app,offline dashboard app and vendored libs,js,420165,410KB,23487af 2026-07-03
 dashboard/xlsx.core.min.js,app,offline dashboard app and vendored libs,js,437032,426KB,23487af 2026-07-03
 outputs/cm2/README.md,generated,staging outputs produced by scripts/,md,2531,2KB,fc45de4 2026-07-24
@@ -141,13 +142,13 @@ outputs/cm2/fact_cm2_expense.schema.csv,generated,staging outputs produced by sc
 outputs/cm2/unknown_expense_heads.csv,generated,staging outputs produced by scripts/,csv,3215,3KB,fc45de4 2026-07-24
 outputs/dataeng/data_lineage_map.csv,generated,staging outputs produced by scripts/,csv,2858,2KB,a0b8dc5 2026-07-24
 outputs/dataeng/decision_register_view.csv,generated,staging outputs produced by scripts/,csv,2854,2KB,a0b8dc5 2026-07-24
-outputs/dataeng/dependency_edges.csv,generated,staging outputs produced by scripts/,csv,4818,4KB,569effe 2026-07-25
-outputs/dataeng/findings.csv,generated,staging outputs produced by scripts/,csv,14138,13KB,569effe 2026-07-25
-outputs/dataeng/health_report.json,generated,staging outputs produced by scripts/,json,1180,1KB,569effe 2026-07-25
+outputs/dataeng/dependency_edges.csv,generated,staging outputs produced by scripts/,csv,5007,4KB,077997a 2026-07-25
+outputs/dataeng/findings.csv,generated,staging outputs produced by scripts/,csv,14138,13KB,077997a 2026-07-25
+outputs/dataeng/health_report.json,generated,staging outputs produced by scripts/,json,1180,1KB,077997a 2026-07-25
 outputs/dataeng/metric_registry.csv,generated,staging outputs produced by scripts/,csv,2921,2KB,a0b8dc5 2026-07-24
-outputs/dataeng/repository_inventory.csv,generated,staging outputs produced by scripts/,csv,24014,23KB,569effe 2026-07-25
+outputs/dataeng/repository_inventory.csv,generated,staging outputs produced by scripts/,csv,24014,23KB,077997a 2026-07-25
 scripts/__init__.py,code,transformation and build code,py,0,0KB,e392f42 2026-07-24
-scripts/build_dashboard_data.py,code,transformation and build code,py,148240,144KB,2d87cc3 2026-07-24
+scripts/build_dashboard_data.py,code,transformation and build code,py,148240,144KB,077997a 2026-07-25
 scripts/build_fw_nielsen_slide.py,code,transformation and build code,py,11982,11KB,901335d 2026-06-28
 scripts/build_shampoo_deepdive_slide.py,code,transformation and build code,py,10647,10KB,ee6d672 2026-06-28
 scripts/build_shampoo_nielsen_slide.py,code,transformation and build code,py,11997,11KB,987a22f 2026-06-28
@@ -168,6 +169,7 @@ scripts/enhance_v3.py,code,transformation and build code,py,5337,5KB,ef49ee8 202
 scripts/exclude_brands.py,code,transformation and build code,py,15281,14KB,d334819 2026-07-24
 scripts/fix_d13_mrp.py,code,transformation and build code,py,7971,7KB,2d87cc3 2026-07-24
 scripts/insert_pack_size_slide.py,code,transformation and build code,py,7347,7KB,ef49ee8 2026-06-27
+scripts/patch_cm2_provisional.py,code,transformation and build code,py,3099,3KB,077997a 2026-07-25
 scripts/patch_corrections_v2.py,code,transformation and build code,py,16316,15KB,7e9d556 2026-06-27
 scripts/patch_jun26.py,code,transformation and build code,py,21381,20KB,d334819 2026-07-24
 scripts/rebuild_mt_offtake_ppt.py,code,transformation and build code,py,20068,19KB,59bdcde 2026-06-27
@@ -175,5 +177,5 @@ scripts/split_offtake_store_article_xlsb.py,code,transformation and build code,p
 scripts/split_primary_article_xlsb.py,code,transformation and build code,py,5585,5KB,290c3c3 2026-07-04
 tests/test_cm2_cogs_logistics.py,test,automated tests,py,14727,14KB,bf0a2bf 2026-07-24
 tests/test_dataeng.py,test,automated tests,py,8059,7KB,e392f42 2026-07-24
-tests/test_operationalisation.py,test,automated tests,py,30243,29KB,569effe 2026-07-25
+tests/test_operationalisation.py,test,automated tests,py,30243,29KB,077997a 2026-07-25
 vercel.json,unclassified,no rule matched,json,137,0KB,9ce3654 2026-06-27

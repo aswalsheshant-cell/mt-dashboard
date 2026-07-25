@@ -46,6 +46,7 @@ PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv,script
 PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv,scripts/fix_d13_mrp.py,read_by
 PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv,scripts/fix_d13_mrp.py,read_by
 dashboard/data.js,scripts/fix_d13_mrp.py,read_by
+dashboard/data.js,scripts/patch_cm2_provisional.py,read_by
 dashboard/data.js,scripts/patch_jun26.py,read_by
 PowerBI/SeedData/Masters/FY27_Monthly_GMV_MRP.csv,tests/test_cm2_cogs_logistics.py,read_by
 config/cm2_decision_register.csv,tests/test_cm2_cogs_logistics.py,read_by

@@ -1,5 +1,5 @@
 {
-  "generated_from_commit": "569effe9301ed25eb5dd2d440c6e1e8dd6684162",
+  "generated_from_commit": "fc3b1db90e503347473fd5570b4f200109909fec",
   "production_readiness_score": 50,
   "verdict": "NOT READY \u2014 blocked",
   "counts_by_skill": {

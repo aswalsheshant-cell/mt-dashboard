@@ -1,5 +1,5 @@
 Decision_ID,Status,Decision,Owner,Amount_Affected,Approved_By,Approved_At,Evidence
-D1,PENDING_APPROVAL,Does CM2 include COGS?,Finance,"1922.66 L (Q1 FY27, NSV basis)",,,outputs/cm2/cm2_fy27_cogs_logistics.csv
+D1,PENDING_APPROVAL,Does CM2 include COGS?,Finance,"4411.21 L (Q1 FY27 COGS, approved GMV/MRP basis per D10)",,,outputs/cm2/cm2_fy27_cogs_logistics.csv
 D2,PENDING_APPROVAL,GST basis for trade claims,Finance,122.36 L (the GST delta),,,MTIndirect_Claim_April_26_to_June_26.xlsb
 D3,PENDING_APPROVAL,Do provisional claims enter CM2?,Finance,818.45 L,,,Final Status blank on all 58 rows
 D4,PENDING_APPROVAL,Is balance provision a current-period charge?,Finance,1034.01 L,,,MTIndirect_Claim Balance Provision column
