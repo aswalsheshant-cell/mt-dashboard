@@ -1,0 +1,23 @@
+{
+  "name": "@mt-dashboard/dashboard-templates",
+  "version": "1.0.0",
+  "description": "Reusable Power BI page layout templates for the Honasa MT Analytics Platform",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mt-dashboard/layout-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

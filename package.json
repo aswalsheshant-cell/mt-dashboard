@@ -1,0 +1,23 @@
+{
+  "name": "mt-dashboard-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Honasa / Mamaearth MT Analytics Platform — monorepo root",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "layout:dev": "pnpm --filter layout-studio dev",
+    "layout:build": "pnpm --filter layout-schema build && pnpm --filter design-tokens build && pnpm --filter dashboard-templates build && pnpm --filter layout-studio build",
+    "layout:test": "pnpm --filter layout-studio test",
+    "layout:lint": "pnpm --filter layout-studio lint",
+    "layout:typecheck": "pnpm --filter layout-studio typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "core-js"]
+  }
+}

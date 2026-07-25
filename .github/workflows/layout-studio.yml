@@ -1,0 +1,126 @@
+name: Layout Studio CI
+
+on:
+  push:
+    branches: [main, 'claude/**', 'feature/**', 'fix/**']
+    paths:
+      - 'apps/layout-studio/**'
+      - 'packages/layout-schema/**'
+      - 'packages/design-tokens/**'
+      - 'packages/dashboard-templates/**'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/layout-studio.yml'
+  pull_request:
+    paths:
+      - 'apps/layout-studio/**'
+      - 'packages/layout-schema/**'
+      - 'packages/design-tokens/**'
+      - 'packages/dashboard-templates/**'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/layout-studio.yml'
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+
+jobs:
+  # ── Lint & Type-check ──────────────────────────────────────────────────────
+  lint-typecheck:
+    name: Lint & Type-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check (layout-studio)
+        run: pnpm --filter layout-studio exec tsc --noEmit
+
+  # ── Unit tests ─────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm --filter layout-studio test --reporter=verbose
+
+  # ── Build ──────────────────────────────────────────────────────────────────
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Layout Studio
+        run: pnpm --filter layout-studio build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: layout-studio-dist
+          path: apps/layout-studio/dist/
+          retention-days: 7
+
+  # ── Python tests (guard against regressions) ──────────────────────────────
+  python-tests:
+    name: Python Tests (regression guard)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt 2>/dev/null || pip install pandas openpyxl xlrd
+
+      - name: Syntax check
+        run: python -m py_compile scripts/build_dashboard_data.py
+
+      - name: Run Python tests
+        run: python -m pytest tests/ -q --tb=short
+        continue-on-error: false
