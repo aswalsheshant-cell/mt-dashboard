@@ -123,8 +123,9 @@ PowerBI/templates/Template_Primary_Weekly.csv,powerbi,"Power BI build kit -- M q
 PowerBI/templates/Template_TDP_Monthly.csv,powerbi,"Power BI build kit -- M queries, DAX measures, templates",csv,344,0KB,771adac 2026-06-28
 PowerBI/theme/HonasaMT_Theme.json,powerbi,"Power BI build kit -- M queries, DAX measures, templates",json,1817,1KB,771adac 2026-06-28
 config/D1_APPROVAL_REQUEST.md,config,"governed business configuration (taxonomy, rules, formula, decisions)",md,4808,4KB,fc3b1db 2026-07-25
+config/D1_FINANCE_VALIDATION_REQUEST.md,config,"governed business configuration (taxonomy, rules, formula, decisions)",md,7167,6KB,b32648e 2026-07-25
 config/cm2_allocation_rules.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,4041,3KB,fc45de4 2026-07-24
-config/cm2_decision_register.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,6578,6KB,2d87cc3 2026-07-24
+config/cm2_decision_register.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,6578,6KB,b32648e 2026-07-25
 config/cm2_expense_taxonomy.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,14162,13KB,13fe0ac 2026-07-24
 config/cm2_formula.csv,config,"governed business configuration (taxonomy, rules, formula, decisions)",csv,3331,3KB,acd2099 2026-07-24
 config/dataeng_baseline.json,config,"governed business configuration (taxonomy, rules, formula, decisions)",json,7450,7KB,a0b8dc5 2026-07-24
@@ -141,12 +142,12 @@ outputs/cm2/cm2_fy27_cogs_logistics.meta.json,generated,staging outputs produced
 outputs/cm2/fact_cm2_expense.schema.csv,generated,staging outputs produced by scripts/,csv,3514,3KB,fc45de4 2026-07-24
 outputs/cm2/unknown_expense_heads.csv,generated,staging outputs produced by scripts/,csv,3215,3KB,fc45de4 2026-07-24
 outputs/dataeng/data_lineage_map.csv,generated,staging outputs produced by scripts/,csv,2858,2KB,a0b8dc5 2026-07-24
-outputs/dataeng/decision_register_view.csv,generated,staging outputs produced by scripts/,csv,2854,2KB,a0b8dc5 2026-07-24
-outputs/dataeng/dependency_edges.csv,generated,staging outputs produced by scripts/,csv,5007,4KB,077997a 2026-07-25
-outputs/dataeng/findings.csv,generated,staging outputs produced by scripts/,csv,14138,13KB,077997a 2026-07-25
-outputs/dataeng/health_report.json,generated,staging outputs produced by scripts/,json,1180,1KB,077997a 2026-07-25
+outputs/dataeng/decision_register_view.csv,generated,staging outputs produced by scripts/,csv,2880,2KB,b32648e 2026-07-25
+outputs/dataeng/dependency_edges.csv,generated,staging outputs produced by scripts/,csv,5066,4KB,b32648e 2026-07-25
+outputs/dataeng/findings.csv,generated,staging outputs produced by scripts/,csv,14138,13KB,b32648e 2026-07-25
+outputs/dataeng/health_report.json,generated,staging outputs produced by scripts/,json,1180,1KB,b32648e 2026-07-25
 outputs/dataeng/metric_registry.csv,generated,staging outputs produced by scripts/,csv,2921,2KB,a0b8dc5 2026-07-24
-outputs/dataeng/repository_inventory.csv,generated,staging outputs produced by scripts/,csv,24014,23KB,077997a 2026-07-25
+outputs/dataeng/repository_inventory.csv,generated,staging outputs produced by scripts/,csv,24253,23KB,b32648e 2026-07-25
 scripts/__init__.py,code,transformation and build code,py,0,0KB,e392f42 2026-07-24
 scripts/build_dashboard_data.py,code,transformation and build code,py,148240,144KB,077997a 2026-07-25
 scripts/build_fw_nielsen_slide.py,code,transformation and build code,py,11982,11KB,901335d 2026-06-28
