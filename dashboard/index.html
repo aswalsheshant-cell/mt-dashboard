@@ -1576,7 +1576,11 @@ function buildInsights(){
 }
 
 /* ---------------- DATA EXPLORER (drill-down + cascading filters) ---------------- */
+// Apply the permanent CHAIN_GRAIN_CONFIG fallbacks once, at load, so every
+// consumer (filters, charts, Explorer, exports) sees the same normalised
+// records. Fills blanks ONLY -- a chain that does ship real geography keeps it.
 const REC = D.detail_records||[];
+if(typeof normalizeGrainRecords==='function') window.GRAIN_NORM=normalizeGrainRecords(REC);
 const FILT=[['FY','FY'],['Month','Month'],['Channel','Channel'],['Zone','Zone'],['State','State'],['Chain','Chain'],
   ['Brand','Brand'],['Category','Category'],['SubCategory','Sub-category'],['Range','Range'],
   ['PackSize','Pack Size'],['Article','Article']];

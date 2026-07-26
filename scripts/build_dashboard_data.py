@@ -836,6 +836,42 @@ def apply_reliance_ba_isolation(offtake, ba):
 # Bucket label for a dimension the SOURCE does not carry. Distinct from
 # "Unmapped Chain" (which means a value arrived but no mapping matched) --
 # NA_GEO means the vendor's export format never had the column at all.
+# ---- PERMANENT CHAIN GRAIN MASTER (mirror of CHAIN_GRAIN_CONFIG in
+# dashboard/utils.js -- keep the two in sync) ----------------------------
+# Declares the FINEST grain each chain's vendor format is expected to deliver,
+# so a missing Site Code / State is treated as the format rather than a defect.
+# Keys are matched case/punctuation-insensitively AFTER canon_chain(), because
+# five of these names change under canonicalisation ("Sancus(Rmt)" ->
+# "RMT-Sancus", "Beauty & Nutrie" -> "B&N", ...) and an exact-string test would
+# silently match none of them.
+CHAIN_GRAIN_CONFIG = {
+    "PAN_INDIA_ONLY": ["FSN", "Nykaa", "Nykaa (FSN)", "Nykaa E-Retail Limited"],
+    "ZONE_STATE_ONLY": [
+        "Arambagh", "Beauty & Nutrie", "Beauty & Nutrition", "B&N",
+        "Frankross", "Frank Ross", "More Retail", "MoreRetail", "National Mart",
+        "Ratanadeep", "Ratnadeep", "Reliance", "Reliance Retail",
+        "Sancus(Rmt)", "Sancus Retail", "RMT-Sancus", "Sumo Save", "SumoSave",
+        "V-Mart", "V-Mart Retail", "V-Mart Retail Limited",
+    ],
+}
+
+def _chain_key(name):
+    return re.sub(r"[^a-z0-9]", "", str(name or "").lower())
+
+_GRAIN_INDEX = {_chain_key(n): g
+                for g, names in CHAIN_GRAIN_CONFIG.items() for n in names}
+
+def chain_grain_group(chain):
+    """'PAN_INDIA_ONLY' | 'ZONE_STATE_ONLY' | 'FULL' for a raw or canonical name."""
+    return (_GRAIN_INDEX.get(_chain_key(chain))
+            or _GRAIN_INDEX.get(_chain_key(canon_chain(chain))) or "FULL")
+
+def grain_allows_missing_store(chain):
+    return chain_grain_group(chain) in ("PAN_INDIA_ONLY", "ZONE_STATE_ONLY")
+
+def grain_allows_missing_geo(chain):
+    return chain_grain_group(chain) == "PAN_INDIA_ONLY"
+
 NA_GEO = "N/A"
 # "Pan India" is NOT a new bucket -- by_zone/by_state already carry it with real
 # FY25/FY26 values from the original pivot. National-grain months must roll into
@@ -971,6 +1007,12 @@ def load_offtake_article_files(src):
             df["_state"] = NA_GEO
         df["_zone"] = df["_zone"].fillna(NA_GEO).replace("", NA_GEO)
         df["_state"] = df["_state"].fillna(NA_GEO).replace("", NA_GEO)
+        # CHAIN_GRAIN_CONFIG: for a chain DECLARED Pan-India-only, an absent
+        # geography is its vendor format, not an unknown -- resolve it to the
+        # national bucket so it joins the existing Pan India series instead of
+        # sitting in an "unknown" pile that looks like a data defect.
+        pan = df["_chain"].map(grain_allows_missing_geo).fillna(False).astype(bool)
+        df.loc[pan & df["_state"].eq(NA_GEO), ["_zone", "_state"]] = NATIONAL_GEO
         df = df[df["_month"].notna() & df["_chain"].notna()]
         if df.empty:
             continue

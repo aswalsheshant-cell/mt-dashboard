@@ -179,10 +179,198 @@ function validateDataset(data, expectedKeys) {
     }
   });
 
+  // ---- per-record grain check, governed by CHAIN_GRAIN_CONFIG ----
+  // A missing Site Code / State is only an INGESTION error when that chain is
+  // EXPECTED to carry it. For a declared macro-reporting chain it is the vendor
+  // format, so it is filled with the declared fallback and reported as WARN --
+  // never BLOCKED, and never as an error that would train readers to ignore
+  // the badge.
+  const recs = Array.isArray(data) ? data
+    : (Array.isArray(data.detail_records) ? data.detail_records : null);
+  const grain = { checked: 0, exempt: 0, filled: 0, violations: [] };
+  if (recs) {
+    // Is this dataset store-grained AT ALL? detail_records is article x chain x
+    // state primary — it carries no store identifier for ANY chain, by design.
+    // Without this guard every Group C chain (Dmart, Apollo, H&G, ...) gets
+    // flagged for "missing" a column the source never had, which is 17 bogus
+    // errors and exactly the noise that makes a status badge worth ignoring.
+    // A grain expectation only applies to a feed that actually carries it.
+    // Must ignore the synthetic 'N/A' this module itself writes at load time --
+    // counting our own fallback as evidence of store grain would make the
+    // detector always say "yes" and re-introduce the false positives.
+    const realStore = r => {
+      const v = r.SiteCode || r.siteCode || r.StoreName || r.storeName;
+      return v && v !== NA_FIELD;
+    };
+    const storeGrained = recs.some(realStore);
+    grain.store_grained_source = storeGrained;
+    if (!storeGrained) {
+      grain.note = 'Dataset carries no store identifier for any chain ' +
+        '(article-level source) — per-chain store checks skipped.';
+    }
+    const missByChain = new Map();
+    recs.forEach(r => {
+      const chain = r.Chain !== undefined ? r.Chain : r.chain;
+      const noStore = storeGrained && !realStore(r);
+      const noGeo = !(r.State || r.state);
+      if (!noStore && !noGeo) { grain.checked++; return; }
+      grain.checked++;
+      const exemptStore = grainAllowsMissingStore(chain);
+      const exemptGeo = grainAllowsMissingGeo(chain);
+      if ((!noStore || exemptStore) && (!noGeo || exemptGeo)) {
+        grain.exempt++;
+        normalizeGrainRecord(r);
+        grain.filled++;
+        return;
+      }
+      const k = String(chain);
+      const m = missByChain.get(k) || { chain: k, store: 0, geo: 0 };
+      if (noStore && !exemptStore) m.store++;
+      if (noGeo && !exemptGeo) m.geo++;
+      missByChain.set(k, m);
+    });
+    missByChain.forEach(m => {
+      if (!m.store && !m.geo) return;
+      grain.violations.push(m);
+      // a chain NOT declared macro-reporting really is missing something
+      dashboardErrors.ingest(
+        `${m.chain}: ${m.store ? m.store + ' record(s) without a store identifier' : ''}` +
+        `${m.store && m.geo ? ', ' : ''}${m.geo ? m.geo + ' record(s) without State' : ''}` +
+        ` — not declared macro-reporting in CHAIN_GRAIN_CONFIG.`,
+        ErrorLayers.INGESTION,
+        { severity: 'WARN', affected_record_count: m.store + m.geo, data_slice: m.chain });
+      errors.push(`${m.chain}: undeclared missing grain`);
+    });
+    if (grain.exempt) {
+      dashboardErrors.ingest(
+        `${grain.exempt} record(s) across declared macro-reporting chains: ` + GRAIN_NOTE,
+        ErrorLayers.INGESTION, { severity: 'WARN', affected_record_count: grain.exempt });
+    }
+  }
+
   return {
     valid: errors.length === 0,
+    status: errors.length ? 'WARN' : 'PASS',
+    note: GRAIN_NOTE,
+    grain,
     errors
   };
+}
+
+/* ===================================================================
+ * PERMANENT CHAIN GRAIN MASTER
+ *
+ * Declares, per chain, the FINEST grain that chain's vendor format is expected
+ * to deliver. This is a POLICY table, not an assertion about today's file: it
+ * says "a missing Site Code here is the format, not a defect", so ingestion
+ * must fall back rather than raise INGESTION/TRANSFORMATION errors or BLOCK.
+ *
+ * Matching is alias-tolerant on purpose. Records carry CANONICAL chain names
+ * (canon_chain in build_dashboard_data.py), and five of the names below change
+ * under canonicalisation -- "Beauty & Nutrie"->"B&N", "Sancus(Rmt)"->
+ * "RMT-Sancus", "Reliance"->"Reliance Retail", "Ratanadeep"->"Ratnadeep",
+ * "FSN"/"Nykaa"->"Nykaa (FSN)". A plain Array.includes(record.chain) would
+ * therefore match NONE of them and the whole table would be a silent no-op, so
+ * every lookup goes through chainKey() (case/punctuation-insensitive) and both
+ * spellings are listed.
+ * =================================================================== */
+const CHAIN_GRAIN_CONFIG = {
+  // Reports at Pan-India / Article level only: no Zone, State, or store.
+  PAN_INDIA_ONLY: ['FSN', 'Nykaa', 'Nykaa (FSN)', 'Nykaa E-Retail Limited'],
+  // Reports to Zone/State but never to an individual store.
+  ZONE_STATE_ONLY: [
+    'Arambagh',
+    'Beauty & Nutrie', 'Beauty & Nutrition', 'B&N',
+    'Frankross', 'Frank Ross',
+    'More Retail', 'MoreRetail',
+    'National Mart',
+    'Ratanadeep', 'Ratnadeep',
+    'Reliance', 'Reliance Retail',          // MACRO offtake stream only
+    'Sancus(Rmt)', 'Sancus Retail', 'RMT-Sancus',
+    'Sumo Save', 'SumoSave',
+    'V-Mart', 'V-Mart Retail', 'V-Mart Retail Limited'
+  ],
+  // Everything else (Dmart, Apollo, Wellness Forever, H&G, Metro C&C, Lulu,
+  // Reliance BA Counters, ...) is expected to report at store level.
+  // Reliance BA is deliberately its OWN entry: the BA counter stream reports at
+  // ~320 real site codes even though the Reliance macro stream above does not.
+  FULL_STORE_LEVEL_EXCEPTIONS: ['Reliance BA', 'Reliance BA Counters', 'Brand Counter']
+};
+if (typeof window !== 'undefined') window.CHAIN_GRAIN_CONFIG = CHAIN_GRAIN_CONFIG;
+
+const NA_FIELD = 'N/A';
+const PAN_INDIA = 'Pan India';
+
+/** Case/punctuation-insensitive chain key, so "Sancus(Rmt)" === "RMT-Sancus"
+ *  never silently fails to match. */
+function chainKey(name) {
+  return String(name == null ? '' : name).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+const _GRAIN_INDEX = (() => {
+  const idx = new Map();
+  Object.entries(CHAIN_GRAIN_CONFIG).forEach(([group, names]) =>
+    names.forEach(n => idx.set(chainKey(n), group)));
+  return idx;
+})();
+
+/** 'PAN_INDIA_ONLY' | 'ZONE_STATE_ONLY' | 'FULL_STORE_LEVEL_EXCEPTIONS' | 'FULL' */
+function chainGrainGroup(chain) {
+  return _GRAIN_INDEX.get(chainKey(chain)) || 'FULL';
+}
+/** Is a missing store/site identifier EXPECTED for this chain? */
+function grainAllowsMissingStore(chain) {
+  const g = chainGrainGroup(chain);
+  return g === 'PAN_INDIA_ONLY' || g === 'ZONE_STATE_ONLY';
+}
+/** Is a missing Zone/State EXPECTED for this chain? */
+function grainAllowsMissingGeo(chain) {
+  return chainGrainGroup(chain) === 'PAN_INDIA_ONLY';
+}
+
+/**
+ * Apply the declared fallback to ONE record, in place.
+ * Only ever FILLS blanks -- never overwrites a value the source provided. That
+ * distinction matters: Nykaa currently ships 17 states in this dataset, so the
+ * Pan-India default must not flatten real geography if the format improves.
+ * Returns the record for chaining.
+ */
+function normalizeGrainRecord(rec) {
+  if (!rec) return rec;
+  const chain = rec.Chain !== undefined ? rec.Chain : rec.chain;
+  const group = chainGrainGroup(chain);
+  const fill = (camel, Pascal, val) => {
+    if (rec[camel] === undefined || rec[camel] === null || rec[camel] === '') {
+      if (rec[Pascal] === undefined || rec[Pascal] === null || rec[Pascal] === '') {
+        rec[camel] = val; rec[Pascal] = val;
+      } else { rec[camel] = rec[Pascal]; }
+    }
+  };
+  if (group === 'PAN_INDIA_ONLY') {
+    fill('zone', 'Zone', PAN_INDIA);
+    fill('state', 'State', PAN_INDIA);
+    fill('siteCode', 'SiteCode', NA_FIELD);
+    fill('storeName', 'StoreName', NA_FIELD);
+  } else if (group === 'ZONE_STATE_ONLY') {
+    fill('siteCode', 'SiteCode', NA_FIELD);
+    fill('storeName', 'StoreName', NA_FIELD);
+  }
+  return rec;
+}
+
+/** Apply normalizeGrainRecord across a record array; returns a small summary. */
+function normalizeGrainRecords(recs) {
+  const summary = { total: 0, pan_india_filled: 0, store_filled: 0, by_group: {} };
+  (recs || []).forEach(r => {
+    summary.total++;
+    const g = chainGrainGroup(r.Chain !== undefined ? r.Chain : r.chain);
+    summary.by_group[g] = (summary.by_group[g] || 0) + 1;
+    const hadGeo = !!(r.State || r.state);
+    const hadStore = !!(r.SiteCode || r.siteCode);
+    normalizeGrainRecord(r);
+    if (!hadGeo && (r.State === PAN_INDIA)) summary.pan_india_filled++;
+    if (!hadStore && (r.SiteCode === NA_FIELD)) summary.store_filled++;
+  });
+  return summary;
 }
 
 /**
