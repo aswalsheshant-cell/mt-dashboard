@@ -585,9 +585,10 @@ function buildOverview(){
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
+  const xNote=xScopeNote('The Overview aggregates',['Chain','Brand','Channel']);
   s.innerHTML = `<h2 class="sec">Executive Overview</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
-   ${dimNote}
+   ${dimNote}${xNote}
    <div class="kpis">
      ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–May actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
@@ -627,23 +628,41 @@ function buildPrimary(){
     const fp=FPX(fyTag())||FP27();
     if(fp){
       // FY26-27 actuals (Apr'26+) from the article-wise primary, chain-allocated
+      // Every series below is answered from the SAME filtered record set as the
+      // KPI cards. Each dimension uses xFilterOn(<its own dim>): a Zone filter
+      // alone can still be served by the by_zone roll-up (it only narrows that
+      // roll-up's own rows), but a Chain/Brand/Channel/Category/... filter
+      // cannot -- those cut ACROSS the roll-up and must come from REC.
+      const recsP=recFilter();
       let zones=fp.by_zone, chans=fp.by_channel, brands=fp.by_brand, chains=fp.by_chain;
-      if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
-      if(fOn('Channel')) chans=chans.filter(c=>fHas('Channel',c.name));
-      if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
-      if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
-      let mSel=p.month_labels.map((m,i)=>({m,v:fp.monthly[i]})).filter(x=>fp.months_covered.includes(x.m));
-      if(fOn('Month')) mSel=mSel.filter(x=>fHas('Month',x.m));
+      if(xFilterOn('Zone')) zones=recAggBy('Zone',recsP);
+      else if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
+      if(xFilterOn('Channel')) chans=recAggBy('Channel',recsP);
+      else if(fOn('Channel')) chans=chans.filter(c=>fHas('Channel',c.name));
+      if(xFilterOn('Brand')) brands=recAggBy('Brand',recsP);
+      else if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
+      if(xFilterOn('Chain')) chains=recAggBy('Chain',recsP);
+      else if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
+      let mSel;
+      if(xFilterOn('Month')) mSel=recMonthly(recsP,fp.months_covered);
+      else {
+        mSel=p.month_labels.map((m,i)=>({m,v:fp.monthly[i]})).filter(x=>fp.months_covered.includes(x.m));
+        if(fOn('Month')) mSel=mSel.filter(x=>fHas('Month',x.m));
+      }
+      const xf=xFilterOn(null);
+      // MRP + the share denominator must follow the same scope as the cards
+      const fpMrp=xf?recSum(recsP,'MRP'):fp.mrp;
       const totNsv=chains.reduce((a,c)=>a+(c.nsv||0),0);
+      const shareBase=xf?totNsv:fp.nsv;
       const rows27=chains.filter(c=>c.nsv>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
-        <td>${crc(c.nsv)}</td><td>${fp.nsv?(c.nsv/fp.nsv*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
+        <td>${crc(c.nsv)}</td><td>${shareBase?(c.nsv/shareBase*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
       s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
        <p class="lead">FY26-27 actuals — ${fp.months_covered.join(' & ')} 2026 (year-to-date), from the article-wise
          primary (chain-allocated: Distributor primary split by secondary cont%). The FY24-26 source workbook ends
          Mar'26, so these months live only in this source.</p>
        <div class="kpis">
          ${kpi('Primary NSV (FY27 YTD)',crc(totNsv),fOn('Chain')?'filtered scope':`${fp.months_covered.join(' + ')} actuals`)}
-         ${kpi('Gross MRP Value',crc(fp.mrp),'Total MRP sales basis')}
+         ${kpi('Gross MRP Value',crc(fpMrp),xf?'filtered scope':'Total MRP sales basis')}
          ${kpi('Active Chains',chains.filter(c=>c.nsv>0).length,`${brands.filter(b=>b.nsv>0).length} brands`)}
          ${kpi('Months Loaded',fp.months_covered.length,fp.months_covered.join(', '))}
        </div>
@@ -695,9 +714,10 @@ function buildPrimary(){
      is allocated this way; the remainder (no matching Ship-To × Brand × Month allocation entry,
      mainly FY24-25) keeps its original single-chain tag.</p>`:'';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'this source (see the Category & Pack tab for those)');
+  const xNote=xScopeNote('The FY24-26 Primary workbook',['Chain','Zone','Brand','Channel']);
   s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
    <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
-   ${dimNote}
+   ${dimNote}${xNote}
    ${qcNote}
    <div class="kpis">
      ${fy? kpi(`Primary NSV ${yrLab[fy]}`,crc(chains.reduce((a,c)=>a+(c[fy]||0),0)),fOn('Chain')||fOn('Zone')||fOn('Brand')||fOn('Channel')?'filtered scope':'') :
@@ -879,16 +899,29 @@ function buildOfftake(){
   const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
+  const xNote=xScopeNote('The Offtake block',['Chain','Zone','State']);
+  // The headline card previously read o['total_'+fy] -- the GLOBAL total -- while
+  // its own subtitle said "filtered scope". Sum whichever filtered breakdown the
+  // block can actually honour instead, and only claim "filtered" when it is.
+  // Chain and Zone cannot BOTH be honoured (no cross-tab), so say which one won.
+  const offScoped = fy ? (
+      fOn('Chain') ? chains.reduce((a,c)=>a+(c[fy]||0),0)
+    : fOn('Zone')  ? zones.reduce((a,z)=>a+(z[fy]||0),0)
+    : totFor(fy)) : totFor(fy);
+  const offScopeSub = !fy ? ''
+    : (fOn('Chain')&&fOn('Zone')) ? 'scoped to Chain only (no Chain×Zone cross-tab)'
+    : fOn('Chain') ? 'filtered to '+fLab('Chain')
+    : fOn('Zone')  ? 'filtered to '+fLab('Zone')
+    : '';
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
    <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
-   ${dimNote}
+   ${dimNote}${xNote}
    <div class="kpis">
-     ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
+     ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(offScoped),offScopeSub) :
        kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
-     ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') :
-       kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')}
-     ${fy? kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master') :
-       kpi('Chains Tracked',o.n_chains,'in offtake master')}
+     ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') : ''}
+     ${kpi('Chains Tracked',fy?chains.length:o.n_chains,
+        fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')}
      ${kpi('Sell-through',primFor(yrs[yrs.length-1])?((totFor(yrs[yrs.length-1])/primFor(yrs[yrs.length-1]))*100).toFixed(0)+'%':'–',`offtake ÷ primary ${yrLab[yrs[yrs.length-1]]}`)}
    </div>
    <div class="grid g2">
@@ -1246,9 +1279,10 @@ function buildDistribution(){
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the store universe is a point-in-time snapshot, not tracked by FY/Month.</p>`:'')
     +dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the store universe (no product-level breakdown)');
+  const xNote=xScopeNote('The store-universe block',['Chain','Zone']);
   s.innerHTML=`<h2 class="sec">Distribution</h2>
    <p class="lead">MT store universe — distribution footprint by zone, city category, chain and store type.</p>
-   ${dimNote}
+   ${dimNote}${xNote}
    <div class="kpis">
      ${kpi('Total Stores',num(u.total_stores),'MT universe')}
      ${kpi(fOn('Zone')||fOn('Chain')?'Active Stores (filtered)':'Active Stores',num(activeInScope),`${(activeInScope/u.total_stores*100).toFixed(0)}% of universe`)}
@@ -1395,9 +1429,10 @@ function buildPromo(){
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
     +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
+  const xNote=xScopeNote('The promo master',['Chain','Brand','Category']);
   s.innerHTML=`<h2 class="sec">Promo &amp; Trade Spend</h2>
    <p class="lead">Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
-   ${dimNote}
+   ${dimNote}${xNote}
    <div class="kpis">
      ${kpi(fOn('Chain')||fOn('Brand')||fOn('Category')?'Promo Lines (filtered)':'Promo Lines',num(fOn('Chain')?promosInScope:pr.n_promos),'total calendar entries')}
      ${kpi('Avg Consumer Depth',pr.avg_depth+'%','blended discount depth')}
@@ -1558,6 +1593,43 @@ const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one sele
 // records passing all active filters (optionally ignoring one key for cascading options)
 function recFilter(except){
   return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(String(r[k])) ));
+}
+// ---- cross-filtered aggregation over the article-level records ----
+// The pre-aggregated blocks (p.by_zone, fp.monthly, o.by_chain, ...) are
+// ONE-DIMENSIONAL roll-ups: by_zone already summed across every chain, so
+// filtering it by Chain is impossible -- `zones.filter(z=>fHas('Zone',...))`
+// only ever narrows it by its OWN dimension. That is why a Chain filter used
+// to move the KPI cards but leave the monthly/zone/channel/brand charts showing
+// all-chain totals. REC (detail_records) is the only source with every
+// dimension on each row, so any CROSS-dimension filter must be answered from
+// recFilter(), not from the roll-ups.
+// xFilterOn(own) = "is a filter other than FY and `own` active?" -- i.e. is
+// this chart being asked a question its own roll-up cannot answer?
+function xFilterOn(own){
+  return FILT.some(([k]) => k !== 'FY' && k !== 'Month' && k !== own && F[k].length > 0);
+}
+// Sum NSV from the filtered records, grouped by one dimension.
+function recAggBy(dim, recs){
+  const m = new Map();
+  (recs || recFilter()).forEach(r => {
+    const k = (r[dim] === undefined || r[dim] === null || r[dim] === '') ? 'N/A' : String(r[dim]);
+    m.set(k, (m.get(k) || 0) + (r.NSV || 0));
+  });
+  return [...m.entries()]
+    .map(([name, nsv]) => ({ name, nsv: Math.round(nsv * 100) / 100 }))
+    .sort((a, b) => b.nsv - a.nsv);
+}
+// Monthly NSV series from the filtered records, in the canonical month order.
+function recMonthly(recs, monthsCovered){
+  const rs = recs || recFilter();
+  const m = new Map();
+  rs.forEach(r => m.set(String(r.Month), (m.get(String(r.Month)) || 0) + (r.NSV || 0)));
+  return (MORDER.filter(mo => !monthsCovered || monthsCovered.includes(mo)))
+    .filter(mo => m.has(mo))
+    .map(mo => ({ m: mo, v: Math.round(m.get(mo) * 100) / 100 }));
+}
+function recSum(recs, field){
+  return Math.round((recs || recFilter()).reduce((a, r) => a + (r[field] || 0), 0) * 100) / 100;
 }
 // FY dropdown: derived from the data, never hardcoded, so a new FY (FY28+)
 // flows in automatically the moment its rows arrive. The pre-aggregated
@@ -1754,6 +1826,30 @@ function dimUnsupportedNote(dims,source){
   if(!active.length) return '';
   return `<p class="drillhint" style="margin:4px 0 0">${active.map(d=>`${d}=${fLab(d)}`).join(', ')}
     ${active.length>1?"don't":"doesn't"} apply here — ${source} has no ${active.join('/')} breakdown.</p>`;
+}
+// Sibling of dimUnsupportedNote for the CROSS-dimension case. The block DOES
+// carry the dimension, but only as a standalone one-dimensional roll-up
+// (by_zone is already summed over every chain), so it cannot answer "Chain X
+// within Zone Y". Without this note a Chain filter moves the chain table while
+// the zone/brand/monthly charts silently stay at full scope and look filtered.
+// `ownDims` = the dimensions this tab's roll-ups CAN legitimately narrow by.
+// `ownDims` = dimensions that have their OWN chart in this block. Each such
+// filter narrows its own chart correctly; what it CANNOT do is narrow the
+// others, because the roll-ups are pre-summed across every other dimension.
+function xScopeNote(source,ownDims){
+  const on=FILT.map(([k])=>k).filter(k=>k!=='FY'&&k!=='Month'&&fOn(k));
+  if(!on.length) return '';
+  const own=on.filter(k=>ownDims.indexOf(k)>=0);
+  const foreign=on.filter(k=>ownDims.indexOf(k)<0);
+  const bits=[];
+  if(own.length) bits.push(`${own.map(d=>`<b>${d}=${fLab(d)}</b>`).join(', ')}
+    narrow${own.length>1?'':'s'} the ${own.join('/')} chart${own.length>1?'s':''} only`);
+  if(foreign.length) bits.push(`${foreign.map(d=>`<b>${d}=${fLab(d)}</b>`).join(', ')}
+    ${foreign.length>1?'do':'does'} not apply at all`);
+  return `<p class="drillhint" style="margin:4px 0 0"><b>Scope:</b> ${bits.join('; ')}.
+    ${source} stores one-dimensional roll-ups (each already summed across every other
+    dimension), so there is no cross-tab to filter and the remaining charts stay at full
+    scope. Use <b>Data Explorer</b> or <b>Category &amp; Pack</b> for a true cross-filtered cut.</p>`;
 }
 
 let expCharts=[];
