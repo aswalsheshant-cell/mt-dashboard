@@ -976,7 +976,7 @@ function buildOfftake(){
 /* ---------------- Reliance BA Counters (Isolated from Macro Offtake) ---------------- */
 function buildRelianceBA(){
   const s=document.getElementById('tab-reliance-ba');
-  s.innerHTML='<h2 class="sec">Reliance Beauty Advisor (BA) Counter Sales</h2>'+
+  s.innerHTML='<h2 class="sec">Reliance Beauty Advisor (BA) Counter Sales<span style="display:inline-block;background:#fce8e6;color:#c0392b;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:700;margin-left:8px">◆ PROVISIONAL</span></h2>'+
     '<p class="lead">Dedicated store-level BA counter sales data (isolated from Macro Offtake to prevent double-counting)</p>'+
     '<div class="repbanner">This tab displays store-level Beauty Advisor counter sales from Reliance Retail, kept separate from the main Offtake tab\'s article × state × zone level data to ensure accurate reconciliation.</div>'+
     '<div class="card"><h3>Status</h3>'+
@@ -988,7 +988,7 @@ function buildRelianceBA(){
     '<li>Implement allocation rules for shared SKUs</li>'+
     '<li>Add charts and performance metrics once data source is confirmed</li>'+
     '</ul>'+
-    '</div>'+renderStatusBadge('PROVISIONAL');
+    '</div>';
 }
 
 /* ---------------- P&L ---------------- */
