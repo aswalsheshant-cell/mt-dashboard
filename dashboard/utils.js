@@ -373,6 +373,125 @@ function normalizeGrainRecords(recs) {
   return summary;
 }
 
+/* ===================================================================
+ * STORE x CHAIN MASTER  —  window.STORE_CHAIN_MASTER / qcStoreChainMaster()
+ *
+ * Built by scripts/build_store_chain_master.py from the raw offtake extracts
+ * and shipped inside data.js as {columns, rows, qc} — a column list plus row
+ * ARRAYS rather than ~11k repeated-key objects, which keeps the payload about
+ * 60% smaller. Materialised to objects here, once, on first use.
+ * =================================================================== */
+let _SCM_CACHE = null;
+function storeChainMaster() {
+  if (_SCM_CACHE) return _SCM_CACHE;
+  const D = (typeof window !== 'undefined' ? window.DASH : null) || {};
+  const blk = D.store_chain_master;
+  if (!blk || !Array.isArray(blk.rows)) { _SCM_CACHE = []; return _SCM_CACHE; }
+  const cols = blk.columns;
+  _SCM_CACHE = blk.rows.map(r => {
+    const o = {};
+    cols.forEach((c, i) => { o[c] = r[i]; });
+    return o;
+  });
+  if (typeof window !== 'undefined') window.STORE_CHAIN_MASTER = _SCM_CACHE;
+  return _SCM_CACHE;
+}
+
+/**
+ * End-to-end QC audit over the Store x Chain Master. Recomputes every check
+ * live from the shipped rows rather than trusting the build-time summary, so
+ * running it in the console verifies the DATA, not the report.
+ * Returns the report; also console.table()s the headline for readability.
+ */
+function qcStoreChainMaster(opts) {
+  const rows = storeChainMaster();
+  const quiet = opts && opts.quiet;
+  const D = (typeof window !== 'undefined' ? window.DASH : null) || {};
+  const shipped = (D.store_chain_master || {}).qc || null;
+
+  if (!rows.length) {
+    dashboardErrors.ingest('Store x Chain Master absent from data.js',
+      ErrorLayers.INGESTION, { severity: 'WARN' });
+    return { status: 'BLOCKED', reason: 'no store_chain_master block', rows: 0 };
+  }
+
+  const count = (arr, f) => arr.reduce((m, r) => {
+    const k = f(r) || 'N/A'; m[k] = (m[k] || 0) + 1; return m;
+  }, {});
+  const real = rows.filter(r => r.Site_Code && r.Site_Code !== NA_FIELD);
+
+  // A. primary-key integrity — a code owned by >1 canonical chain.
+  // Codes are PER-CHAIN sequences in this data, so Site_Code alone is NOT a
+  // global key; the master is keyed (Canonical_Chain, Site_Code) and the
+  // collisions are reported rather than silently merged.
+  const owners = new Map();
+  real.forEach(r => {
+    const s = owners.get(r.Site_Code) || new Set();
+    s.add(r.Canonical_Chain); owners.set(r.Site_Code, s);
+  });
+  const dupes = [...owners.entries()].filter(([, s]) => s.size > 1)
+    .map(([code, s]) => ({ site_code: code, chains: [...s].sort() }));
+
+  // B. grain exceptions — a Group C chain with no code is a real gap; a
+  // declared macro-reporting chain with no code is its format.
+  const missing = rows.filter(r => (!r.Site_Code || r.Site_Code === NA_FIELD));
+  const undeclared = missing.filter(r => !grainAllowsMissingStore(r.Canonical_Chain));
+  const declared = missing.length - undeclared.length;
+
+  const rep = {
+    status: 'PASS',
+    total_store_records: rows.length,
+    with_real_site_code: real.length,
+    site_code_join_coverage_pct: Math.round(real.length / rows.length * 10000) / 100,
+    total_canonical_chains: new Set(rows.map(r => r.Canonical_Chain)).size,
+    by_mapping_status: count(rows, r => r.Mapping_Status),
+    by_channel: count(rows, r => r.Channel),
+    by_store_type: count(rows, r => r.Store_Type),
+    by_grain_group: count(rows, r => chainGrainGroup(r.Canonical_Chain)),
+    duplicate_site_codes_across_chains: dupes.length,
+    duplicate_examples: dupes.slice(0, 10),
+    missing_site_code_total: missing.length,
+    missing_site_code_declared_ok: declared,
+    missing_site_code_undeclared: undeclared.length,
+    undeclared_examples: [...new Set(undeclared.map(r => r.Canonical_Chain))].slice(0, 10),
+    build_time_qc: shipped
+  };
+
+  if (undeclared.length) {
+    rep.status = 'WARN';
+    dashboardErrors.ingest(
+      `${undeclared.length} store record(s) on chains NOT declared macro-reporting ` +
+      `have no Site Code (${rep.undeclared_examples.join(', ')}).`,
+      ErrorLayers.INGESTION, { severity: 'WARN', affected_record_count: undeclared.length });
+  }
+  if (dupes.length) {
+    // not an error: per-chain code sequences legitimately collide
+    rep.note_duplicates = 'Site codes are per-chain sequences and collide across ' +
+      'chains; the master is keyed (Canonical_Chain, Site_Code).';
+  }
+
+  if (!quiet && typeof console !== 'undefined') {
+    console.log('=== STORE x CHAIN MASTER — QC SUMMARY ===');
+    console.log(`  records ${rep.total_store_records}  |  real site codes ` +
+      `${rep.with_real_site_code} (${rep.site_code_join_coverage_pct}%)  |  ` +
+      `chains ${rep.total_canonical_chains}`);
+    console.log('  mapping status :', rep.by_mapping_status);
+    console.log('  channel        :', rep.by_channel);
+    console.log('  store type     :', rep.by_store_type);
+    console.log('  grain group    :', rep.by_grain_group);
+    console.log(`  duplicate codes across chains: ${rep.duplicate_site_codes_across_chains}`);
+    console.log(`  missing site code: ${rep.missing_site_code_total} ` +
+      `(${rep.missing_site_code_declared_ok} declared OK, ` +
+      `${rep.missing_site_code_undeclared} undeclared)`);
+    console.log(`  status: ${rep.status}`);
+  }
+  return rep;
+}
+if (typeof window !== 'undefined') {
+  window.qcStoreChainMaster = qcStoreChainMaster;
+  window.storeChainMaster = storeChainMaster;
+}
+
 /**
  * Grain coverage check.
  *
