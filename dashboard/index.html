@@ -1958,6 +1958,21 @@ function show(id){
     window.scrollTo({top:0,behavior:'smooth'});
   },0);
 }
+/* ---- automation / test surface ----
+   `show`, `fyKey` and friends are function DECLARATIONS, so they already land
+   on window automatically. The filter state is `const F`, which does NOT --
+   const/let live in the global lexical scope, reachable as a bare identifier
+   but never as window.F. Headless runners that poke state through
+   page.evaluate() therefore see `F` but not `window.F`, which is a confusing
+   asymmetry. Bind the pieces an external runner needs explicitly so the
+   contract is stated rather than inferred, and so it survives this script
+   later becoming a module or being wrapped in an IIFE.
+   Read-only for the app itself -- nothing below this line changes behaviour. */
+Object.assign(window,{
+  F, TABS, D,                 // global filter state / tab registry / dataset
+  show, showTab: show,        // showTab = documented alias for show()
+  fyKey, BUILD, drillTo, recFilter
+});
 (function init(){
   document.getElementById('hTitle').textContent=D.meta.title;
   document.getElementById('hPeriod').textContent=D.meta.period;
