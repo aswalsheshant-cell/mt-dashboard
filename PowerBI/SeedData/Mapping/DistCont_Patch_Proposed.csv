@@ -1,1 +1,25 @@
 Ship To Name,Direct/Distributor,Chain Name,Brand,Revised month,FY,Channel,Secondary contribution %,Confidence,Basis
+CHOUDHARY ENTERPRISES-MT-MP,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-05-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+CHOUDHARY ENTERPRISES-MT-MP,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-06-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+MANOJ SOAP AGENCY-MT,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-04-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+MANOJ SOAP AGENCY-MT,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-05-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+MANOJ SOAP AGENCY-MT,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-06-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+MANOJ SOAP AGENCY-MT,Dist.,<<FILL: chain unknown>>,The Derma Co.,2026-04-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+MANOJ SOAP AGENCY-MT,Dist.,<<FILL: chain unknown>>,The Derma Co.,2026-05-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+REAL TIME LOGISTICS_MT_BR,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-04-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+REAL TIME LOGISTICS_MT_BR,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-05-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+REAL TIME LOGISTICS_MT_BR,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-06-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+SAI SAACHI ASSOCIATES-MT-OR,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-04-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+SAI SAACHI ASSOCIATES-MT-OR,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-05-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Aqualogica,2026-04-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Aqualogica,2026-05-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Aqualogica,2026-06-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,BBLUNT,2026-04-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Mamaearth,2026-04-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Mamaearth,2026-05-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Mamaearth,2026-06-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,The Derma Co.,2026-04-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,The Derma Co.,2026-05-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,The Derma Co.,2026-06-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
+SRIJAN ENTERPRISES-MT-JH,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-04-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
+SRIJAN ENTERPRISES-MT-JH,Dist.,<<FILL: chain unknown>>,The Derma Co.,2026-04-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required

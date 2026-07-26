@@ -2159,26 +2159,43 @@ def detail_records_real(src, max_rows=20000):
     """
     f = None
     for name in ("primary_article.xlsb", "primary_article.xlsx",
-                 "MT, Eb2B & SIS primary April_23 to May_26.xlsb"):
+                 "MT, Eb2B & SIS primary April_23 to May_26.xlsb",
+                 "primary_article.csv"):
         if (src / name).exists():
             f = src / name; break
     if f is None:
-        return None
-    eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else None
-    # auto-detect the header row (source workbooks carry a blank first row or
-    # -- in the current business format -- a reference/annotation row ABOVE the
-    # real header, so require the actual data-column signature, not just any
-    # row mentioning Month/FY). Old exports carry "Article Code"; the current
-    # format doesn't, so accept "Ship To Name"+"EAN No." as the alternative.
-    probe = pd.read_excel(f, sheet_name=0, header=None, nrows=8, engine=eng)
-    hdr = 0
-    for i in range(len(probe)):
-        vals = {str(v).strip() for v in probe.iloc[i].tolist()}
-        if {"Month", "FY"} <= vals and ({"Article Code"} <= vals or {"Ship To Name", "EAN No."} <= vals):
-            hdr = i
-            break
-    print(f"detail source: {f.name} (header row {hdr})")
-    df = pd.read_excel(f, sheet_name=0, header=hdr, engine=eng)
+        # also try concatenating monthly CSVs from Primary_Article_Monthly/
+        monthly_dir = src / "Primary_Article_Monthly"
+        monthly_csvs = sorted(monthly_dir.glob("primary_article_*.csv")) if monthly_dir.exists() else []
+        if monthly_csvs:
+            frames = [pd.read_csv(p, low_memory=False) for p in monthly_csvs]
+            df_raw = pd.concat(frames, ignore_index=True)
+            print(f"detail source: {len(monthly_csvs)} monthly CSVs from {monthly_dir.name} "
+                  f"({len(df_raw)} rows)")
+            df_raw.columns = [" ".join(str(c).split()) for c in df_raw.columns]
+        else:
+            return None
+        df = df_raw
+    elif f.suffix.lower() == ".csv":
+        print(f"detail source: {f.name} (CSV)")
+        df = pd.read_csv(f, low_memory=False)
+        df.columns = [" ".join(str(c).split()) for c in df.columns]
+    else:
+        eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else None
+        # auto-detect the header row (source workbooks carry a blank first row or
+        # -- in the current business format -- a reference/annotation row ABOVE the
+        # real header, so require the actual data-column signature, not just any
+        # row mentioning Month/FY). Old exports carry "Article Code"; the current
+        # format doesn't, so accept "Ship To Name"+"EAN No." as the alternative.
+        probe = pd.read_excel(f, sheet_name=0, header=None, nrows=8, engine=eng)
+        hdr = 0
+        for i in range(len(probe)):
+            vals = {str(v).strip() for v in probe.iloc[i].tolist()}
+            if {"Month", "FY"} <= vals and ({"Article Code"} <= vals or {"Ship To Name", "EAN No."} <= vals):
+                hdr = i
+                break
+        print(f"detail source: {f.name} (header row {hdr})")
+        df = pd.read_excel(f, sheet_name=0, header=hdr, engine=eng)
     # normalise headers: trim + collapse embedded newlines ("Chain name\nfor
     # Dashboard" is the actual maintained header -- one cell, wrapped text)
     df.columns = [" ".join(str(c).split()) for c in df.columns]
