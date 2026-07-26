@@ -96,11 +96,6 @@
   .filterbar .fl span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
   .filterbar select{font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;
       border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:104px;max-width:180px}
-  @media(max-width:768px){
-    .filterbar{padding:8px 10px;gap:6px 8px}
-    .filterbar select{min-width:70px;max-width:calc(100vw - 40px);font-size:11px}
-    .filterbar .fl span{font-size:9px}
-  }
   .filterbar select:focus{outline:2px solid var(--teal);border-color:var(--teal)}
   .fbtn{font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;background:var(--teal);
       border:0;border-radius:8px;padding:8px 14px;cursor:pointer;align-self:flex-end}
@@ -132,7 +127,6 @@
   <h1 id="hTitle">Modern Trade Leadership Dashboard</h1>
   <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Category &amp; Pack · Forecast · Promo · Market Share · Distribution</p>
   <span class="badge" id="hPeriod"></span>
-  <span id="dataStatusBadge" style="display:none"></span>
 </header>
 <div class="topbar">
   <nav id="nav"></nav>
@@ -161,7 +155,6 @@ const D = window.DASH;
 const C = {teal:'#2D9B7F',teald:'#1f7a63',blue:'#2b6cb0',amber:'#C77D17',red:'#C0392B',
            green:'#1E8E3E',grey:'#9aa4ad',purple:'#6b5b95',sand:'#cbb994'};
 const PAL=[C.teal,C.blue,C.amber,C.purple,C.green,C.red,C.sand,C.grey];
-let isRenderingTab=false;
 Chart.defaults.font.family="'Aptos','Segoe UI',Calibri,sans-serif";
 Chart.defaults.font.size=12; Chart.defaults.color='#475467';
 Chart.defaults.plugins.legend.labels.boxWidth=12;
@@ -431,7 +424,6 @@ function chartExportRows(chart){
   return [header,...labels.map((lab,i)=>[lab,...dsets.map(d=>d.data[i]??''),...(totFor?totFor(lab):[])])];
 }
 function exportChart(canvasId,format){
-  if(isRenderingTab){ alert('Tab is updating. Please wait before exporting.'); return; }
   const c=findChartByCanvasId(canvasId);
   if(!c){ alert('Chart not available to export (it may be empty for this filter).'); return; }
   const titleEl=c.canvas.closest('.card')?.querySelector('h3');
@@ -565,48 +557,18 @@ document.addEventListener('click',e=>{
   document.querySelectorAll('details.chartdl[open],details.pagedl[open]').forEach(d=>{ if(!d.contains(e.target)) d.open=false; });
 });
 
-/* DATA-INTEGRITY CONTRACT: Period-alignment guards */
-const DATA_CONTRACT={
-  primary_max_month:'June',primary_max_year:2026,  // Apr–Jun FY27
-  offtake_max_month:'May',offtake_max_year:2026,   // Apr–May FY27
-  get common_max_month(){ return this.offtake_max_month; },  // Comparable period
-  get common_max_year(){ return this.offtake_max_year; }
-};
-
-/* Prevent mixed-period calculations */
-function validateComparablePeriod(isPrimary,isOfftake){
-  if(isPrimary&&!isOfftake) return DATA_CONTRACT.primary_max_month;  // Primary-only: Apr–Jun
-  if(isOfftake&&!isPrimary) return DATA_CONTRACT.offtake_max_month;  // Offtake-only: Apr–May
-  return DATA_CONTRACT.common_max_month;  // Comparable: Apr–May
-}
-
-/* Coverage visibility badge */
-function coverageBadge(){
-  return `<div style="margin:0 0 16px;padding:10px;background:#fef3cd;border-radius:8px;border-left:4px solid #ffc107;font-size:12px;color:#856404;">
-    <b>Data Coverage (FY27):</b> Primary: Apr–Jun · Offtake detail: Apr–May · Comparable period: Apr–May · June Offtake: Pending
-  </div>`;
-}
-
-/* June-only warning for Primary data */
-function juneOfftakePendingNote(){
-  return `<div style="margin:0 0 12px;padding:8px;background:#e7f3ff;border-radius:6px;border-left:3px solid #0066cc;font-size:11px;color:#004085;">
-    <b>Note:</b> June 2026 Primary data is available. June store/article-level Offtake is pending; comparative sell-through and Offtake-based NPI metrics use Apr–May FY27 only.
-  </div>`;
-}
-
 /* ---------------- OVERVIEW ---------------- */
 function buildOverview(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
   const s=document.getElementById('tab-overview');
   const fy=fyKey(), isTY=/TY target/i.test(f.method||'');
-  const beyond=!!fy&&fyBeyondPreagg(fyTag());
-  const fp27=beyond?FPX(fyTag()):null;
-  const monthsCovered27=fp27?.months_covered||[];
-  const yrLab={fy25:'FY25',fy26:'FY26',fy27:monthsCovered27.length?`FY27 ${monthsCovered27.join('–')}':'FY27'};
+  const yrLab={fy25:'FY25',fy26:'FY26',fy27:'FY27 Apr–May'};
   FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });  // backfill future FYs (FY28+)
   // FYs beyond the pre-agg window (FY27's Apr'26+) exist ONLY in the article-wise
   // primary -- FPX() serves exact chain-allocated aggregates so the selected FY
   // renders real numbers here instead of an empty state. Offtake has no such FY.
+  const beyond=!!fy&&fyBeyondPreagg(fyTag());
+  const fp27=beyond?FPX(fyTag()):null;
   // Offtake has its OWN FY coverage, independent of the article-wise
   // primary's fyx_primary window -- gate on Offtake's own total_fyNN, not on
   // "beyond the pre-agg window" (which is a Primary-only concept), so real
@@ -623,20 +585,16 @@ function buildOverview(){
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
-  const hasJuneOnlyPrimary=fp27&&monthsCovered27.includes('June')&&!monthsCovered27.includes('July');
   s.innerHTML = `<h2 class="sec">Executive Overview</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
-   ${fy==='fy27'?coverageBadge():''}
    ${dimNote}
-   ${fy==='fy27'&&hasJuneOnlyPrimary?juneOfftakePendingNote():''}
    <div class="kpis">
-     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–Jun actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
+     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–May actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
-     ${fp27&&D.npi_metrics?kpi('NPI Contribution (Apr–May)',D.npi_metrics.overall.npi_contribution_pct.toFixed(1)+'%',`₹${crc(D.npi_metrics.overall.npi_nsv)} · Offtake-based, Apr–May only`)
-       :kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
+     ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
      ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
        isTY?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
@@ -648,9 +606,6 @@ function buildOverview(){
      ${card(`Top chains by primary NSV (${yrLab[primYr]})`,'click a bar to drill',cv('ovChains'))}
      ${card(`Brand portfolio mix (${yrLab[primYr]} primary)`,'click to drill',cv('ovBrand',true))}
    </div>
-   ${fp27&&D.npi_metrics?`<div class="grid g2">
-     ${card('NPI vs Existing Portfolio (Apr–May Offtake)','New Product Introduction contribution vs established portfolio. Based on comparable period Apr–May FY27 (June Offtake pending).',cv('ovNPI',true))}
-   </div>`:``}
    ${catDrillCardHtml('ovCatDrill')}`;
   mkLine('ovTrend',o.months,[
     {label:'Offtake (sell-out)',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22'},
@@ -662,10 +617,6 @@ function buildOverview(){
   mkBarH('ovChains',tc.map(c=>c.name),tc.map(c=>c[primYr]),C.teal,true,v=>drillTo('Chain',v));
   const bb=brands.filter(b=>(b[primYr]||0)>1);
   mkDonut('ovBrand',bb.map(b=>b.name),bb.map(b=>b[primYr]),true,v=>drillTo('Brand',v));
-  if(fp27&&D.npi_metrics){
-    const npiData=[D.npi_metrics.overall.npi_nsv,D.npi_metrics.overall.total_nsv-D.npi_metrics.overall.npi_nsv];
-    mkDonut('ovNPI',['NPI (New Products)','Existing Portfolio'],npiData,false);
-  }
   renderCatDrillChart('ovCatDrill',recFilter());
 }
 
@@ -681,7 +632,7 @@ function buildPrimary(){
       if(fOn('Channel')) chans=chans.filter(c=>fHas('Channel',c.name));
       if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
       if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
-      let mSel=fp.months_covered.map(m=>({m,v:fp.monthly[p.month_labels.indexOf(m)]})).filter(x=>x.v!=null);
+      let mSel=p.month_labels.map((m,i)=>({m,v:fp.monthly[i]})).filter(x=>fp.months_covered.includes(x.m));
       if(fOn('Month')) mSel=mSel.filter(x=>fHas('Month',x.m));
       const totNsv=chains.reduce((a,c)=>a+(c.nsv||0),0);
       const rows27=chains.filter(c=>c.nsv>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
@@ -922,31 +873,21 @@ function buildOfftake(){
     months=keep.map(i=>months[i]); monthly=keep.map(i=>monthly[i]);
   }
   const totFor=k=>o['total_'+k]||0;
-  // FY27+ Primary data lives in detail_meta.fyx_primary; FY25-26 in p.by_chain
-  const selectedFY=yrs[yrs.length-1];
-  const articlePrimary=fy&&fyBeyondPreagg(fyTag())?FPX(fyTag()):null;
-  const primaryChains=articlePrimary?(articlePrimary.by_chain||[]):(p.by_chain||[]);
-  const primFor=k=>(articlePrimary?articlePrimary.nsv:(p['nsv_'+k]||0));
-  const cmp=chains.filter(c=>(c[selectedFY]||0)>50 || fOn('Chain')).slice(0,10);
-  const pc={};
-  primaryChains.forEach(c=>pc[c.name]=articlePrimary?c.nsv:c[selectedFY]);
+  const primFor=k=>p['nsv_'+k]||0;
+  const cmp=chains.filter(c=>(c[yrs[yrs.length-1]]||0)>50 || fOn('Chain')).slice(0,10);
+  const pc={}; p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);
   const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td>
      <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
-  const fy27OfftakeLimited=fy==='fy27'&&(!o.months_fy27 || o.months_fy27.length<3);
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
    <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
-   ${fy==='fy27'?coverageBadge():''}
-   ${fy27OfftakeLimited?`<div style="margin:0 0 12px;padding:8px;background:#fff3cd;border-radius:6px;border-left:3px solid #ff9800;font-size:11px;color:#664d03;">
-     <b>Limited Coverage:</b> June 2026 store-level Offtake detail is not yet available. All FY27 Offtake analysis covers Apr–May only.
-   </div>`:''}
    ${dimNote}
    <div class="kpis">
      ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
        kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
      ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') :
-       kpi('Chains Tracked',cmp.length,fOn('Zone')||fOn('Chain')?'shown in chart (top by NSV)':'top by NSV')}
-     ${fy? kpi('Chains Tracked',cmp.length,fOn('Zone')||fOn('Chain')?'shown in chart (top by NSV)':'top by NSV') :
+       kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')}
+     ${fy? kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master') :
        kpi('Chains Tracked',o.n_chains,'in offtake master')}
      ${kpi('Sell-through',primFor(yrs[yrs.length-1])?((totFor(yrs[yrs.length-1])/primFor(yrs[yrs.length-1]))*100).toFixed(0)+'%':'–',`offtake ÷ primary ${yrLab[yrs[yrs.length-1]]}`)}
    </div>
@@ -968,27 +909,15 @@ function buildOfftake(){
       {label:'FY26',data:zones.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Zone',v));
   }
   mkBar('ofCmp',cmp.map(c=>c.name),[
-    {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]??null),backgroundColor:C.teal,borderRadius:4},
-    {label:'Offtake (sell-out)',data:cmp.map(c=>c[yrs[yrs.length-1]]??null),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
+    {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
+    {label:'Offtake (sell-out)',data:cmp.map(c=>c[yrs[yrs.length-1]]||0),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
   renderCatDrillChart('ofCatDrill',recFilter());
 }
 
-/* ---------------- Reliance BA Counters (Isolated from Macro Offtake) ---------------- */
+/* -------- Reliance BA Counters (Coming Soon) -------- */
 function buildRelianceBA(){
   const s=document.getElementById('tab-reliance-ba');
-  s.innerHTML='<h2 class="sec">Reliance Beauty Advisor (BA) Counter Sales<span style="display:inline-block;background:#fce8e6;color:#c0392b;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:700;margin-left:8px">◆ PROVISIONAL</span></h2>'+
-    '<p class="lead">Dedicated store-level BA counter sales data (isolated from Macro Offtake to prevent double-counting)</p>'+
-    '<div class="repbanner">This tab displays store-level Beauty Advisor counter sales from Reliance Retail, kept separate from the main Offtake tab\'s article × state × zone level data to ensure accurate reconciliation.</div>'+
-    '<div class="card"><h3>Status</h3>'+
-    '<p>BA Counter Sales data ingestion and analysis is planned for the next dashboard update. Currently, store-level BA counter data is maintained separately in source systems and will be integrated with dedicated validation rules.</p>'+
-    '<p><strong>Next Steps:</strong></p>'+
-    '<ul>'+
-    '<li>Source and validate store-level BA counter sales from Reliance Retail systems</li>'+
-    '<li>Establish reconciliation between BA counter NSV and Macro Offtake</li>'+
-    '<li>Implement allocation rules for shared SKUs</li>'+
-    '<li>Add charts and performance metrics once data source is confirmed</li>'+
-    '</ul>'+
-    '</div>';
+  s.innerHTML='<h2>Reliance BA Counters</h2><p>Store-level Reliance BA counter data will be integrated in the next update.</p>';
 }
 
 /* ---------------- P&L ---------------- */
@@ -1591,15 +1520,8 @@ const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum
 function optsFor(key){
   if(key==='FY') return FY_ALL;
   const vals=[...new Set(recFilter(key).map(r=>r[key]))];
-  if(key==='Month'){
-    vals.sort((a,b)=>{
-      const idxA=MORDER.indexOf(a);
-      const idxB=MORDER.indexOf(b);
-      if(idxA===-1) return 1;
-      if(idxB===-1) return -1;
-      return idxA-idxB;
-    });
-  } else vals.sort((a,b)=>String(a).localeCompare(String(b)));
+  if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
+  else vals.sort((a,b)=>String(a).localeCompare(String(b)));
   return vals;
 }
 function renderFilterBar(){
@@ -1610,7 +1532,7 @@ function renderFilterBar(){
     return `<label class="fl"><span>${lab}</span><select data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
       <option value="">${sel.length?`${sel.length} selected — clear`:'All'}</option>
       ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');const on=sel.includes(String(v));
-        return `<option value="${s}" ${on?'selected':''}>${on?'✓ ':''}${v}</option>`;}).join('')}
+        return `<option value="${s}">${on?'✓ ':''}${v}</option>`;}).join('')}
     </select></label>`;
   }).join('')
   + `<button class="fbtn ghost" id="fReset">↺ Reset filters</button>`
@@ -1955,13 +1877,12 @@ function exportCSV(recs){
 }
 /* ---------------- nav ---------------- */
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
-  ['reliance-ba','Reliance BA Counters'],['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],
-  ['promo','Promo & Trade Spend'],['share','Market Share'],['distribution','Distribution'],
-  ['comparison','Performance & Comparison'],['insights','Insights & Way Forward']];
+  ['reliance-ba','Reliance BA'],['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
+  ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
+  ['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
-  'reliance-ba':buildRelianceBA,pnl:buildPnl,category:buildCategory,forecast:buildForecast,
-  promo:buildPromo,share:buildShare,distribution:buildDistribution,comparison:buildComparison,
-  insights:buildInsights};
+  'reliance-ba':buildRelianceBA,pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
+  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights};
 let currentTab='overview';
 function show(id){
   currentTab=id;
@@ -1974,11 +1895,9 @@ function show(id){
   // (before Chart.js finishes its own internal afterEvent/tooltip processing for
   // this click) throws "Cannot read properties of undefined (reading 'handleEvent')".
   // Letting the current event loop turn finish first avoids that.
-  isRenderingTab=true;
   setTimeout(()=>{
     destroyCharts();
     BUILD[id]();
-    isRenderingTab=false;
     window.scrollTo({top:0,behavior:'smooth'});
   },0);
 }
@@ -1986,26 +1905,6 @@ function show(id){
   document.getElementById('hTitle').textContent=D.meta.title;
   document.getElementById('hPeriod').textContent=D.meta.period;
   document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`;
-
-  // Validate data and set status badge
-  if(dashboardErrors && typeof dashboardErrors.getReport==='function'){
-    const report=dashboardErrors.getReport();
-    const statusBadge=document.getElementById('dataStatusBadge');
-    if(report.status!=='PASS'){
-      statusBadge.innerHTML=renderStatusBadge(report.status);
-      statusBadge.style.display='inline-block';
-      console.warn('Data Quality Status:',report.status,report);
-    }
-  }
-
-  // Check for missing months (e.g., June FY27)
-  if(D.offtake && D.offtake.by_chain){
-    const hasJune=D.offtake.by_chain.some(c=>c.fy27&&c.fy27>0);
-    if(!hasJune){
-      dashboardErrors.partial('June FY27 data not found in Offtake');
-    }
-  }
-
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
