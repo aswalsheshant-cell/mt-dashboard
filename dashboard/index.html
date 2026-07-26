@@ -8,6 +8,7 @@
 <script src="html2canvas.min.js"></script>
 <script src="jspdf.umd.min.js"></script>
 <script src="xlsx.core.min.js"></script>
+<script src="utils.js"></script>
 <style>
   :root{
     --teal:#2D9B7F; --teal-d:#1f7a63; --bg:#F4F1EC; --card:#ffffff;
@@ -131,6 +132,7 @@
   <h1 id="hTitle">Modern Trade Leadership Dashboard</h1>
   <p id="hSub">Honasa / Mamaearth — Primary · Offtake · P&amp;L · Category &amp; Pack · Forecast · Promo · Market Share · Distribution</p>
   <span class="badge" id="hPeriod"></span>
+  <span id="dataStatusBadge" style="display:none"></span>
 </header>
 <div class="topbar">
   <nav id="nav"></nav>
@@ -141,6 +143,7 @@
   <section id="tab-overview"></section>
   <section id="tab-primary"></section>
   <section id="tab-offtake"></section>
+  <section id="tab-reliance-ba"></section>
   <section id="tab-pnl"></section>
   <section id="tab-category"></section>
   <section id="tab-forecast"></section>
@@ -968,6 +971,24 @@ function buildOfftake(){
     {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]??null),backgroundColor:C.teal,borderRadius:4},
     {label:'Offtake (sell-out)',data:cmp.map(c=>c[yrs[yrs.length-1]]??null),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
   renderCatDrillChart('ofCatDrill',recFilter());
+}
+
+/* ---------------- Reliance BA Counters (Isolated from Macro Offtake) ---------------- */
+function buildRelianceBA(){
+  const s=document.getElementById('tab-reliance-ba');
+  s.innerHTML='<h2 class="sec">Reliance Beauty Advisor (BA) Counter Sales</h2>'+
+    '<p class="lead">Dedicated store-level BA counter sales data (isolated from Macro Offtake to prevent double-counting)</p>'+
+    '<div class="repbanner">This tab displays store-level Beauty Advisor counter sales from Reliance Retail, kept separate from the main Offtake tab\'s article × state × zone level data to ensure accurate reconciliation.</div>'+
+    '<div class="card"><h3>Status</h3>'+
+    '<p>BA Counter Sales data ingestion and analysis is planned for the next dashboard update. Currently, store-level BA counter data is maintained separately in source systems and will be integrated with dedicated validation rules.</p>'+
+    '<p><strong>Next Steps:</strong></p>'+
+    '<ul>'+
+    '<li>Source and validate store-level BA counter sales from Reliance Retail systems</li>'+
+    '<li>Establish reconciliation between BA counter NSV and Macro Offtake</li>'+
+    '<li>Implement allocation rules for shared SKUs</li>'+
+    '<li>Add charts and performance metrics once data source is confirmed</li>'+
+    '</ul>'+
+    '</div>'+renderStatusBadge('PROVISIONAL');
 }
 
 /* ---------------- P&L ---------------- */
@@ -1934,12 +1955,13 @@ function exportCSV(recs){
 }
 /* ---------------- nav ---------------- */
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
-  ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
-  ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['insights','Insights & Way Forward']];
+  ['reliance-ba','Reliance BA Counters'],['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],
+  ['promo','Promo & Trade Spend'],['share','Market Share'],['distribution','Distribution'],
+  ['comparison','Performance & Comparison'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
-  pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,insights:buildInsights};
+  'reliance-ba':buildRelianceBA,pnl:buildPnl,category:buildCategory,forecast:buildForecast,
+  promo:buildPromo,share:buildShare,distribution:buildDistribution,comparison:buildComparison,
+  insights:buildInsights};
 let currentTab='overview';
 function show(id){
   currentTab=id;
@@ -1964,6 +1986,26 @@ function show(id){
   document.getElementById('hTitle').textContent=D.meta.title;
   document.getElementById('hPeriod').textContent=D.meta.period;
   document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`;
+
+  // Validate data and set status badge
+  if(dashboardErrors && typeof dashboardErrors.getReport==='function'){
+    const report=dashboardErrors.getReport();
+    const statusBadge=document.getElementById('dataStatusBadge');
+    if(report.status!=='PASS'){
+      statusBadge.innerHTML=renderStatusBadge(report.status);
+      statusBadge.style.display='inline-block';
+      console.warn('Data Quality Status:',report.status,report);
+    }
+  }
+
+  // Check for missing months (e.g., June FY27)
+  if(D.offtake && D.offtake.by_chain){
+    const hasJune=D.offtake.by_chain.some(c=>c.fy27&&c.fy27>0);
+    if(!hasJune){
+      dashboardErrors.partial('June FY27 data not found in Offtake');
+    }
+  }
+
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
