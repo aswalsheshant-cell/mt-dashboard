@@ -136,7 +136,11 @@ def canon_zone(z):
 # in this dataset every banner trades in exactly one channel, so Chain x Channel
 # already disambiguates without duplicating the banner.
 CHAIN_ALIASES = [
-    ("Apollo",            ["apollo", "apollo healthco"]),
+    # NOTE: a THIRD naming convention arrives with the Jun-26 export format
+    # ("Apollo Pharmacy", "Lulu Hypermarket", "MoreRetail", "Sancus Retail",
+    # "Vmm", "Ratanadeep", "Metro", "D-Mart"). Folded in below so the same
+    # banner does not fork into a second Chain-filter row per export vintage.
+    ("Apollo",            ["apollo", "apollo healthco", "apollo pharmacy"]),
     ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
                             "reliance", "reliance ", "rrl", "metro-cnc-rrl",
                             # DC / store / FOC-sample splits of the same banner
@@ -148,18 +152,18 @@ CHAIN_ALIASES = [
                             "nykaa e-retail"]),
     ("Wellness Forever",  ["wellness forever"]),
     ("H&G",               ["h&g", "hng", "h\\&g", "health & glow", "health and glow"]),
-    ("Lulu",              ["lulu", "lulu "]),
-    ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl", "metro-cnc"]),
-    ("More Retail",       ["more", "more retail", "more "]),
-    ("RMT-Sancus",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
+    ("Lulu",              ["lulu", "lulu ", "lulu hypermarket"]),
+    ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl", "metro-cnc", "metro"]),
+    ("More Retail",       ["more", "more retail", "more ", "moreretail"]),
+    ("RMT-Sancus",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi", "sancus retail"]),
     ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart", "walmart-cnc"]),
-    ("VMM",               ["vmm", "vmm "]),
+    ("VMM",               ["vmm", "vmm "]),   # canon_chain lowercases, so "Vmm" folds in
     ("Spencer",           ["spencer"]),
     ("Guardian",          ["guardian", "gaurdian ", "guardian healthcare",
                             "guardian healthcare-delhi"]),
     ("Trent",             ["trent", "trent ", "trent hypermarket"]),
     ("V-Mart",            ["v-mart", "v mart east ", "v-mart retail", "v-mart retail limited"]),
-    ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
+    ("Ratnadeep",         ["ratnadeep", "ratandeep", "ratanadeep"]),
     ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl"]),
     ("Frankross",         ["frankross", "frankros"]),
     ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
@@ -560,12 +564,44 @@ def offtake_block(chains, zs):
 
 def _offtake_row_month(month_val):
     """Row-level Month cell -> canonical 'Mon-YY' label (matches MONTHS'
-    format), handling both text ("Apr'26") and Excel-serial-number forms
-    found in the raw store x article offtake extracts (a single workbook's
-    Month column can carry a mix of both -- some rows never got the text
-    label applied upstream)."""
+    format), handling every form seen in the raw store x article offtake
+    extracts. A single workbook's Month column can carry a mix -- some rows
+    never got the text label applied upstream. Recognised:
+        "Apr'26" / "Apr 26" / "Apr-26"   -> Apr-26   (calendar year)
+        "Jun FY27"                       -> Jun-26   (FISCAL year tag)
+        "2026-06" / "2026-06-01"         -> Jun-26
+        45778 (Excel serial)             -> Jun-26
+    The FY form is the important one: it names the FISCAL year, so THE ONE FY
+    RULE has to run BACKWARDS to recover the calendar year -- Apr-Dec of FY(N)
+    are calendar N-1, Jan-Mar are calendar N. Reading "Jun FY27" as calendar
+    2027 would file June in the wrong FY and silently drop it from FY27."""
     if isinstance(month_val, str) and month_val.strip():
-        m = re.match(r"([A-Za-z]{3,})['’]?\s*(\d{2,4})", month_val.strip())
+        s = month_val.strip()
+        # A CSV round-trip turns a mixed Month column into strings, so an Excel
+        # serial can arrive as "46113.0". Reading it as text would drop the row
+        # (32,494 rows / 1,303.24 L in the Apr-26 export alone), so resolve the
+        # numeric form FIRST, before any month-name pattern.
+        if re.fullmatch(r"\d{4,6}(\.0+)?", s):
+            d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=float(s))
+            return f"{d.strftime('%b')}-{d.strftime('%y')}"
+        # "Jun FY27" / "Jun-FY27" / "Jun fy 27" -- fiscal-year tagged
+        m = re.match(r"([A-Za-z]{3,})[\s\-_]*FY[\s]*(\d{2,4})$", s, re.I)
+        if m:
+            mon = m.group(1)[:3].title()
+            if mon in _MON3_NUM:
+                fy = int(m.group(2)[-2:])
+                # FY(N) spans Apr(N-1)..Mar(N) -> invert to the calendar year
+                cal = fy - 1 if _MON3_NUM[mon] >= 4 else fy
+                return f"{mon}-{cal:02d}"
+        # "2026-06" / "2026-06-01" -- ISO-ish
+        m = re.match(r"(\d{4})-(\d{2})", s)
+        if m:
+            mon_i = int(m.group(2))
+            if 1 <= mon_i <= 12:
+                mon = datetime.date(int(m.group(1)), mon_i, 1).strftime("%b")
+                return f"{mon}-{m.group(1)[-2:]}"
+        # "Apr'26" / "Apr 26" / "Apr-26" -- calendar year
+        m = re.match(r"([A-Za-z]{3,})['’\-\s]*(\d{2,4})", s)
         if m:
             mon = m.group(1)[:3].title()
             if mon in _MON3_NUM:
@@ -620,7 +656,7 @@ def _read_offtake_monthly_frames(src):
 def load_reliance_ba(src):
     """Split the Reliance offtake stream into BA-counter vs macro, per month.
     Returns a `reliance_ba` block, or None when no extract carries Store Type."""
-    ba_m, macro_m, sites_m, rows_m = {}, {}, {}, {}
+    ba_m, macro_m, sites_m, rows_m, geo_m = {}, {}, {}, {}, {}
     isolable, not_isolable = [], []
     for fname, df in _read_offtake_monthly_frames(src):
         chain_col = next((c for c in ("Chain Name", "Chain") if c in df.columns), None)
@@ -667,6 +703,21 @@ def load_reliance_ba(src):
         macro_m[lab] = r2(float(macro["_nsv"].sum()))
         rows_m[lab] = {"ba": int(len(ba)), "macro": int(len(macro))}
         sites_m[lab] = int(ba[site_col].dropna().nunique()) if site_col else None
+        # BA split by (zone,state) too -- by_zone/by_state are built from the
+        # SAME source rows, so they need the identical subtraction or they end
+        # up carrying BA while by_chain/total no longer do.
+        if {"Zone", "State"} <= set(ba.columns) and not ba.empty:
+            # An unmapped zone must fall into the NA_GEO bucket, NOT be skipped:
+            # skipping leaves that BA value inside by_zone/by_state after it has
+            # already been removed from by_chain/total, which is precisely the
+            # kind of silent split this isolation exists to prevent.
+            g = ba.assign(_z=ba["Zone"].map(canon_zone).fillna(NA_GEO),
+                          _s=ba["State"].astype(str).str.strip().replace("", NA_GEO))
+            _low = g["_s"].str.lower()
+            g.loc[_low.isin(_NATIONAL_LABELS), ["_z", "_s"]] = NATIONAL_GEO
+            g.loc[_low.isin(_UNKNOWN_LABELS), ["_z", "_s"]] = NA_GEO
+            for (z, s), v in g.groupby(["_z", "_s"])["_nsv"].sum().items():
+                geo_m.setdefault(lab, {})[(z, s)] = r2(float(v))
         isolable.append(lab)
     if not ba_m:
         return None
@@ -683,9 +734,19 @@ def load_reliance_ba(src):
     for f in by_fy.values():
         f["ba"], f["macro"] = r2(f["ba"]), r2(f["macro"])
         f["combined"] = r2((f["ba"] or 0) + (f["macro"] or 0))
+    # BA by (zone,state) rolled to FY, for the by_zone/by_state subtraction
+    geo_by_fy = {}
+    for mo, gm in geo_m.items():
+        tag = fy_tag_from_label(mo)
+        if not tag:
+            continue
+        d = geo_by_fy.setdefault(tag.lower(), {})
+        for (z, st_), v in gm.items():
+            d[f"{z}|{st_}"] = r2(d.get(f"{z}|{st_}", 0.0) + (v or 0.0))
     return {
         "chain": "Reliance Retail",
         "months": order,
+        "ba_by_geo": geo_by_fy,
         "ba_monthly": [ba_m[mo] for mo in order],
         "macro_monthly": [macro_m[mo] for mo in order],
         "ba_stores": {mo: sites_m[mo] for mo in order},
@@ -743,11 +804,110 @@ def apply_reliance_ba_isolation(offtake, ba):
                 r2((base[i] or 0) - (ba_by_mo.get(mo) or 0))
                 if isinstance(base[i], (int, float)) else base[i]
                 for i, mo in enumerate(mos)]
+        # --- same subtraction on by_state, then rebuild by_zone from it ---
+        # by_zone/by_state are derived from the SAME source rows as by_chain, so
+        # skipping them here leaves them silently carrying the BA stream while
+        # by_chain and total no longer do (a by_zone-vs-by_chain gap of exactly
+        # the BA amount). Idempotent via the stashed _ba_before, like the rest.
+        geo = (ba.get("ba_by_geo") or {}).get(lo) or {}
+        if geo:
+            zone_after = {}
+            for srow in offtake.get("by_state", []):
+                key = f"{srow.get('zone')}|{srow.get('state')}"
+                base = srow.get("_ba_before", {}).get(lo, srow.get(lo))
+                if base is None:
+                    continue
+                cut = geo.get(key) or 0.0
+                if cut:
+                    srow.setdefault("_ba_before", {})[lo] = r2(base)
+                srow[lo] = r2(max((base or 0) - cut, 0.0))
+                zone_after[srow.get("zone")] = r2(zone_after.get(srow.get("zone"), 0.0) + (srow[lo] or 0))
+            for zrow in offtake.get("by_zone", []):
+                if zrow.get("name") in zone_after:
+                    zrow.setdefault("_ba_before", {})[lo] = r2(zrow.get(lo))
+                    zrow[lo] = zone_after[zrow["name"]]
         audit[lo] = {"combined_before": r2(before), "ba_removed": f["ba"],
-                     "macro_after": after}
+                     "macro_after": after,
+                     "geo_removed": r2(sum(geo.values())) if geo else 0.0}
     ba["isolation_audit"] = audit
     ba["applied"] = True
     return offtake
+
+# Bucket label for a dimension the SOURCE does not carry. Distinct from
+# "Unmapped Chain" (which means a value arrived but no mapping matched) --
+# NA_GEO means the vendor's export format never had the column at all.
+NA_GEO = "N/A"
+# "Pan India" is NOT a new bucket -- by_zone/by_state already carry it with real
+# FY25/FY26 values from the original pivot. National-grain months must roll into
+# THAT row so the national series stays continuous, instead of forking a second
+# parallel national bucket (which is the same duplication the canonical-chain
+# master exists to prevent).
+NATIONAL_GEO = "Pan India"
+# A stated national roll-up -> NATIONAL_GEO (we know the grain: it's national).
+_NATIONAL_LABELS = {"pan india", "pan-india", "panindia", "national", "all india", "india"}
+# Explicitly-empty / unmappable geography -> NA_GEO (we do NOT know the grain).
+_UNKNOWN_LABELS = {"n/a", "na", "nan", "none", "null", "-", "unmapped", ""}
+
+def _month_token(name):
+    """'offtake_store_article_Jun_26.xlsb.xlsx' -> 'jun_26' (dedup key)."""
+    m = re.search(r"([A-Za-z]{3})[_\-\s]?(\d{2})(?!\d)", name)
+    return f"{m.group(1).lower()}_{m.group(2)}" if m else name.lower()
+
+def _read_offtake_frame(fp, head_only=False):
+    """Read one offtake source into a DataFrame, or None if unreadable.
+    Tolerates the malformed .xlsb in this repo (a mis-named file that is not
+    actually a binary workbook) instead of crashing the whole build."""
+    kw = {"nrows": 0} if head_only else {}
+    try:
+        if fp.suffix.lower() == ".csv":
+            df = pd.read_csv(fp, low_memory=False, **kw)
+        elif fp.suffix.lower() == ".xlsb":
+            df = pd.read_excel(fp, sheet_name=0, header=1, engine="pyxlsb", **kw)
+        else:                                   # .xlsx / .xlsm
+            df = pd.read_excel(fp, sheet_name=0, **kw)
+    except Exception:
+        return None
+    df.columns = [" ".join(str(c).split()) for c in df.columns]
+    return df
+
+def _iter_offtake_source_frames(src):
+    """Yield (path, DataFrame) for ONE source file per calendar month.
+
+    The same month can ship in several formats side by side (Jun-26 exists here
+    as .csv, a corrupt .xlsb, and a .xlsb.xlsx). Reading all of them would
+    double-count, so candidates are grouped by the month token in the filename
+    and exactly one is chosen -- preferring a file that actually carries
+    Zone/State, since that is the only way to keep the geographic split."""
+    seen, groups = set(), {}
+    for d in (src, src / "Offtake_Monthly"):
+        if not d.exists():
+            continue
+        for pat in ("*.xlsx", "*.xlsm", "*.xlsb", "*.csv"):
+            for fp in sorted(d.glob(pat)):
+                if fp.name.startswith(("_TEMPLATE", "~$")) or fp.name in seen:
+                    continue
+                if "offtake" not in fp.name.lower():
+                    continue
+                seen.add(fp.name)
+                groups.setdefault(_month_token(fp.name), []).append(fp)
+    for tok in sorted(groups):
+        best, best_score = None, -1
+        for fp in groups[tok]:
+            head = _read_offtake_frame(fp, head_only=True)
+            if head is None:
+                continue                       # unreadable/corrupt -- skip
+            cols = set(head.columns)
+            if not ({"Chain Name", "Chain"} & cols) or "NSV" not in cols:
+                continue
+            # prefer real geography, then richer schemas
+            score = (2 if {"Zone", "State"} <= cols else 0) + (1 if "Store Type" in cols else 0)
+            if score > best_score:
+                best, best_score = fp, score
+        if best is None:
+            continue
+        df = _read_offtake_frame(best)
+        if df is not None:
+            yield best, df
 
 def load_offtake_article_files(src):
     """Aggregates NEW monthly store x article offtake extracts (.xlsb, one
@@ -759,31 +919,75 @@ def load_offtake_article_files(src):
     nothing to do with. NSV in these extracts is already INR Lakh (checked
     against the existing Lakh-denominated offtake trend -- same order of
     magnitude, continuing its Oct'25-Mar'26 growth trajectory).
-    Returns (chain_month, zone_state_month); both {} if no .xlsb found."""
-    files = sorted(src.glob("*.xlsb"))
-    chain_month, zsm = {}, {}
-    for fp in files:
-        sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
-        for _, df in sheets.items():
-            df.columns = [str(c).strip() for c in df.columns]
-            need = {"Chain Name", "Zone", "State", "Month", "NSV"}
-            if not need <= set(df.columns):
-                continue   # not a row-level extract sheet -- skip
-            df = df[df["Chain Name"].notna()].copy()
-            df["_chain"] = df["Chain Name"].map(canon_chain)
+    GRAIN FLEXIBILITY: only Chain + Month + NSV are REQUIRED. Zone/State are
+    optional, because some accounts and some vendor export formats report at a
+    national grain with no geography at all (Jun-26 arrives tagged "Pan India").
+    A missing or national-only geography is bucketed to NA_GEO rather than
+    dropped -- the previous behaviour required Zone/State and silently skipped
+    the whole file, which is how Jun-26's 4,304.76 L went into total_fy27 but
+    never reached by_chain/by_zone/by_state. Article-grain value is always
+    preserved; only the geographic split degrades.
+
+    Returns (chain_month, zone_state_month, coverage); the first two {} if no
+    usable source found. `coverage` records, per month, whether real geography
+    was available -- surfaced to the dashboard so an N/A bucket is visibly a
+    vendor-format limitation and not a silent hole."""
+    chain_month, zsm, coverage = {}, {}, {}
+    for fp, df in _iter_offtake_source_frames(src):
+        cols = set(df.columns)
+        chain_c = next((c for c in ("Chain Name", "Chain") if c in cols), None)
+        month_c = next((c for c in ("Month", "MonthKey", "MonthStart") if c in cols), None)
+        if not chain_c or not month_c or "NSV" not in cols:
+            continue   # not a row-level extract sheet -- skip
+        df = df[df[chain_c].notna()].copy()
+        df["_chain"] = df[chain_c].map(canon_chain)
+        df["_month"] = df[month_c].map(_offtake_row_month)
+        if df["_month"].isna().all():
+            for alt in ("MonthKey", "MonthStart", "Month"):
+                if alt in cols and alt != month_c:
+                    df["_month"] = df[alt].map(_offtake_row_month)
+                    if df["_month"].notna().any():
+                        break
+        df["_nsv"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
+        # --- geography, degrading gracefully ---
+        has_geo = "Zone" in cols and "State" in cols
+        if has_geo:
             df["_zone"] = df["Zone"].map(canon_zone)
             df["_state"] = df["State"].astype(str).str.strip()
-            df["_month"] = df["Month"].map(_offtake_row_month)
-            df["_nsv"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
-            df = df[df["_month"].notna() & df["_chain"].notna()]
-            for (chain, mo), v in df.groupby(["_chain", "_month"])["_nsv"].sum().items():
-                chain_month.setdefault(chain, {})
-                chain_month[chain][mo] = chain_month[chain].get(mo, 0.0) + float(v)
-            for (zone, state, mo), v in df[df["_zone"].notna()].groupby(["_zone", "_state", "_month"])["_nsv"].sum().items():
-                key = (zone, state)
-                zsm.setdefault(key, {})
-                zsm[key][mo] = zsm[key].get(mo, 0.0) + float(v)
-    return chain_month, zsm
+            low = df["_state"].str.lower()
+            # a stated national roll-up is not per-state detail, but its grain
+            # IS known -- send it to the existing Pan India row
+            nat = low.isin(_NATIONAL_LABELS)
+            df.loc[nat, ["_zone", "_state"]] = NATIONAL_GEO
+            # explicitly empty / unmappable -> grain genuinely unknown
+            unk = low.isin(_UNKNOWN_LABELS) | df["_zone"].isna()
+            df.loc[unk & ~nat, ["_zone", "_state"]] = NA_GEO
+            # a file whose ONLY geography is one national bucket has no split
+            if set(df["_state"].unique()) <= {NATIONAL_GEO, NA_GEO}:
+                has_geo = False
+        else:
+            # no Zone/State columns at all -> grain unknown, not national
+            df["_zone"] = NA_GEO
+            df["_state"] = NA_GEO
+        df["_zone"] = df["_zone"].fillna(NA_GEO).replace("", NA_GEO)
+        df["_state"] = df["_state"].fillna(NA_GEO).replace("", NA_GEO)
+        df = df[df["_month"].notna() & df["_chain"].notna()]
+        if df.empty:
+            continue
+        for mo, sub in df.groupby("_month"):
+            cov = coverage.setdefault(mo, {"geo": False, "value": 0.0, "sources": []})
+            cov["geo"] = cov["geo"] or bool(has_geo)
+            cov["value"] = r2(cov["value"] + float(sub["_nsv"].sum()))
+            if fp.name not in cov["sources"]:
+                cov["sources"].append(fp.name)
+        for (chain, mo), v in df.groupby(["_chain", "_month"])["_nsv"].sum().items():
+            chain_month.setdefault(chain, {})
+            chain_month[chain][mo] = chain_month[chain].get(mo, 0.0) + float(v)
+        for (zone, state, mo), v in df.groupby(["_zone", "_state", "_month"])["_nsv"].sum().items():
+            key = (zone, state)
+            zsm.setdefault(key, {})
+            zsm[key][mo] = zsm[key].get(mo, 0.0) + float(v)
+    return chain_month, zsm, coverage
 
 def patch_offtake_new_months(offtake, chain_month, zsm):
     """Merge chain-month / (zone,state)-month NSV aggregates (from
@@ -811,11 +1015,35 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
     by_state_idx = {(s.get("zone"), s["state"]): s for s in offtake.get("by_state", [])}
     for tag in touched_tags:
         lo = tag.lower()
+        # This patch re-derives the tag's figures from SOURCE, so it is now the
+        # authority on the pre-isolation ("combined") value. Any BA-isolation
+        # baseline stashed by an earlier --reliance-ba run is stale: leaving it
+        # would make the next isolation subtract from the OLD combined figure
+        # and silently discard whatever this patch just added (Jun-26's
+        # Reliance, 1,412.11 L). Clear the stashes; --reliance-ba re-stashes.
+        offtake.pop(f"_ba_total_before_{lo}", None)
+        offtake.pop(f"_ba_monthly_before_{lo}", None)
+        for _r in (offtake.get("by_chain", []) + offtake.get("by_zone", [])
+                   + offtake.get("by_state", [])):
+            for _k in ("_ba_combined_before", "_ba_before"):
+                if isinstance(_r.get(_k), dict):
+                    _r[_k].pop(lo, None)
+                    if not _r[_k]:
+                        _r.pop(_k, None)
         months_of_tag = [mo for mo in all_months if fy_tag_from_label(mo) == tag]
         monthly_vals = [r2(sum(mm.get(mo, 0.0) for mm in chain_month.values())) for mo in months_of_tag]
         offtake[f"months_{lo}"] = months_of_tag
         offtake[f"monthly_{lo}"] = monthly_vals
         offtake[f"total_{lo}"] = r2(sum(v or 0 for v in monthly_vals))
+        # FULL recompute means every existing row must be reset for this tag
+        # first. Writing only the rows the new source mentions leaves rows from
+        # an earlier vintage carrying stale values, so by_chain/by_zone/by_state
+        # over-sum against total_ (436.72 L on FY27 by_state, from chain/geo
+        # names that the older export used and the current one does not).
+        for _r in offtake.get("by_chain", []):
+            _r.pop(lo, None)
+        for _r in offtake.get("by_zone", []) + offtake.get("by_state", []):
+            _r.pop(lo, None)
         for chain, months in chain_month.items():
             row = by_chain_idx.get(chain)
             if row is None:
@@ -2856,13 +3084,26 @@ def main():
         outp = Path(a.out)
         txt = outp.read_text()
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
-        chain_month, zsm = load_offtake_article_files(src)
+        chain_month, zsm, coverage = load_offtake_article_files(src)
         if not chain_month:
-            raise SystemExit(f"No .xlsb offtake extracts found in --src ({src}).")
+            raise SystemExit(
+                f"No usable offtake extracts found in --src ({src}). Expected "
+                f"offtake_store_article_<Mon>_<YY>.{{csv,xlsx,xlsb}} carrying at "
+                f"least Chain + Month + NSV columns.")
         months_found = sorted({mo for mm in chain_month.values() for mo in mm},
                                key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
         print(f"offtake source months found: {months_found}")
+        for mo in months_found:
+            c = coverage.get(mo, {})
+            print(f"  {mo}: {c.get('value')} L from {','.join(c.get('sources', []))}"
+                  f"  geo={'state-level' if c.get('geo') else 'NATIONAL ONLY -> ' + NATIONAL_GEO}")
         patched = patch_offtake_new_months(obj["offtake"], chain_month, zsm)
+        patched["grain_coverage"] = {
+            mo: {"value": c["value"], "geo": bool(c["geo"]), "sources": c["sources"],
+                 "note": ("Offtake ingested at Article level; Store/State "
+                          "granularity N/A by vendor format." if not c["geo"] else "")}
+            for mo, c in sorted(coverage.items(),
+                                key=lambda kv: (int(kv[0].split("-")[1]), _MON3_NUM[kv[0].split("-")[0]]))}
         obj["offtake"] = patched
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"offtake-patch: fy_tags now {patched['fy_tags']}")

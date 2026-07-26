@@ -170,7 +170,7 @@ function validateDataset(data, expectedKeys) {
     return { valid: false, errors };
   }
 
-  expectedKeys.forEach(key => {
+  (expectedKeys || []).forEach(key => {
     if (!(key in data)) {
       dashboardErrors.ingest(`Missing expected key: ${key}`, ErrorLayers.INGESTION, {
         affected_record_count: 1
@@ -183,6 +183,99 @@ function validateDataset(data, expectedKeys) {
     valid: errors.length === 0,
     errors
   };
+}
+
+/**
+ * Grain coverage check.
+ *
+ * Some accounts and some vendor export formats report offtake at a national or
+ * article-only grain with no store/state geography (Jun-26 arrives tagged
+ * "Pan India"). That is a KNOWN FORMAT LIMITATION, not a data defect, so it
+ * must NOT raise an INGESTION/TRANSFORMATION error or mark the load BLOCKED --
+ * doing so would train readers to ignore the badge. It is reported as WARN
+ * with an explicit note, and the value is asserted to still be present in the
+ * totals so a degraded grain never becomes lost money.
+ *
+ * Returns { status, months, note, issues }.
+ */
+const GRAIN_NOTE =
+  'Offtake ingested at Article level; Store/State granularity N/A by vendor format.';
+
+function validateGrainCoverage(dash) {
+  const D = dash || (typeof window !== 'undefined' ? window.DASH : null);
+  const issues = [], months = {};
+  const out = { status: 'PASS', months, note: GRAIN_NOTE, issues };
+  const off = D && D.offtake;
+  if (!off) {
+    dashboardErrors.ingest('No offtake block to check grain coverage against',
+      ErrorLayers.INGESTION, { severity: 'WARN' });
+    issues.push('offtake block absent');
+    out.status = 'WARN';
+    return out;
+  }
+
+  const cov = off.grain_coverage || {};
+  let degraded = 0, degradedValue = 0;
+  Object.entries(cov).forEach(([mo, c]) => {
+    months[mo] = { value: c.value, geo: !!c.geo, sources: c.sources || [] };
+    if (!c.geo) {
+      degraded++;
+      degradedValue += c.value || 0;
+      // WARN, deliberately not an error: the value is present and correct,
+      // only its geographic split is unavailable.
+      dashboardErrors.ingest(`${mo}: ${GRAIN_NOTE}`, ErrorLayers.INGESTION, {
+        severity: 'WARN', data_slice: (c.sources || []).join(','),
+        raw_input: { month: mo, value: c.value }
+      });
+      issues.push(`${mo} national-grain only (${c.value} L)`);
+    }
+  });
+  if (degraded) out.status = 'WARN';
+  out.degraded_months = degraded;
+  out.degraded_value = Number(degradedValue.toFixed(2));
+
+  // The whole point of the N/A bucket: degraded grain must not lose value.
+  // Assert every FY's breakdowns still reconcile to its total.
+  const tags = off.fy_tags || [];
+  out.reconciliation = {};
+  tags.forEach(fy => {
+    const total = off['total_' + fy];
+    if (total == null) return;
+    const sum = arr => (arr || []).reduce((a, r) => a + (r[fy] || 0), 0);
+    const chain = sum(off.by_chain), zone = sum(off.by_zone), state = sum(off.by_state);
+    const worst = Math.max(Math.abs(total - chain), Math.abs(total - zone),
+      Math.abs(total - state));
+    out.reconciliation[fy] = {
+      total, by_chain: Number(chain.toFixed(2)), by_zone: Number(zone.toFixed(2)),
+      by_state: Number(state.toFixed(2)), worst_gap: Number(worst.toFixed(2))
+    };
+    // Tolerance is RELATIVE (0.1% of the FY total, floored at 0.5 L). An
+    // absolute threshold mis-fires here: the pre-aggregated FY25/FY26 pivot is
+    // rounded to whole Lakh at source, so it carries a standing 3-5 L zone/state
+    // gap on 21,840-31,082 L (~0.02%) that no pipeline change can remove.
+    // Failing on that would train readers to ignore the badge. Real defects are
+    // orders of magnitude larger -- the Jun-26 drop was 36% of FY27, the
+    // by_state double-count 3.7% -- so 0.1% separates them cleanly.
+    const tol = Math.max(0.5, Math.abs(total) * 0.001);
+    const pct = total ? (worst / Math.abs(total)) * 100 : 0;
+    out.reconciliation[fy].tolerance = Number(tol.toFixed(2));
+    out.reconciliation[fy].gap_pct = Number(pct.toFixed(4));
+    if (worst > tol) {
+      dashboardErrors.ingest(
+        `${fy.toUpperCase()} breakdowns do not reconcile to total (worst gap ` +
+        `${worst.toFixed(2)} L, ${pct.toFixed(2)}%) — a dimension is dropping ` +
+        `or double-counting value.`,
+        ErrorLayers.TRANSFORMATION,
+        { data_slice: `offtake.total_${fy}`, raw_input: out.reconciliation[fy] });
+      issues.push(`${fy} reconciliation gap ${worst.toFixed(2)} L (${pct.toFixed(2)}%)`);
+      out.status = 'FAIL';
+    } else if (worst > 0.5) {
+      // visible, but correctly framed as source rounding rather than a defect
+      issues.push(`${fy} residual ${worst.toFixed(2)} L (${pct.toFixed(3)}%, ` +
+        `within ${tol.toFixed(2)} L tolerance — source rounded to whole Lakh)`);
+    }
+  });
+  return out;
 }
 
 /**
