@@ -127,29 +127,44 @@ def canon_zone(z):
 
 # Canonical chain key: collapse the many spellings across the four files onto a
 # single business-facing chain name so primary / offtake / universe / promo join.
+# Aliases resolve to the RETAIL BANNER only. Ship-to/DC/store-format suffixes
+# ("-DC", "-Store", "DC-", legal-entity forms like "... Retail Limited") are
+# location/entity qualifiers, NOT distinct chains, and must collapse onto the
+# banner -- otherwise one chain shows up as several rows in the Chain filter and
+# every chain-level total silently splits. Channel (MT / EB2B / SIS) stays a
+# SEPARATE dimension on each record and is never baked into the chain name:
+# in this dataset every banner trades in exactly one channel, so Chain x Channel
+# already disambiguates without duplicating the banner.
 CHAIN_ALIASES = [
     ("Apollo",            ["apollo", "apollo healthco"]),
     ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
-                            "reliance", "reliance ", "rrl", "metro-cnc-rrl"]),
-    ("Dmart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
-    ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
+                            "reliance", "reliance ", "rrl", "metro-cnc-rrl",
+                            # DC / store / FOC-sample splits of the same banner
+                            "reliance retail-dc", "reliance retail-store", "rrl-foc-sample"]),
+    ("Dmart",             ["dmart", "d-mart", "d-mart ", "dmart ",
+                            # DC + e-com store formats of the same banner
+                            "dc-d-mart-offline", "d-mart-offline", "d-mart-store-e-com"]),
+    ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa", "nykaa e-retail limited",
+                            "nykaa e-retail"]),
     ("Wellness Forever",  ["wellness forever"]),
-    ("H&G",               ["h&g", "hng", "h\\&g"]),
+    ("H&G",               ["h&g", "hng", "h\\&g", "health & glow", "health and glow"]),
     ("Lulu",              ["lulu", "lulu "]),
-    ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
+    ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl", "metro-cnc"]),
     ("More Retail",       ["more", "more retail", "more "]),
     ("RMT-Sancus",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
-    ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
+    ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart", "walmart-cnc"]),
     ("VMM",               ["vmm", "vmm "]),
     ("Spencer",           ["spencer"]),
-    ("Guardian",          ["guardian", "gaurdian "]),
-    ("Trent",             ["trent", "trent "]),
-    ("V-Mart",            ["v-mart", "v mart east "]),
+    ("Guardian",          ["guardian", "gaurdian ", "guardian healthcare",
+                            "guardian healthcare-delhi"]),
+    ("Trent",             ["trent", "trent ", "trent hypermarket"]),
+    ("V-Mart",            ["v-mart", "v mart east ", "v-mart retail", "v-mart retail limited"]),
     ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
     ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl"]),
     ("Frankross",         ["frankross", "frankros"]),
     ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
-    ("WH-Smith",          ["wh-smith"]),
+    ("WH-Smith",          ["wh-smith", "travel news services-wsmith", "travel news services"]),
+    ("Relay",             ["relay", "travel retail services-relay", "travel retail services"]),
     ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
     ("Apna Mart",         ["apna mart", "apna mart "]),
     ("Sumo Save",         ["sumo save", "sumosave"]),
@@ -159,6 +174,9 @@ CHAIN_ALIASES = [
     ("Trent/Westside",    ["trends"]),
     ("Sasta Sundar",      ["sastasundar"]),
     ("Frankross",         ["frank ross"]),
+    # Azorte is Reliance's own SIS beauty format -- a distinct trading banner,
+    # deliberately NOT folded into Reliance Retail (it reports as its own account).
+    ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail (azorte)"]),
 ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
@@ -556,6 +574,180 @@ def _offtake_row_month(month_val):
         d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=float(month_val))
         return f"{d.strftime('%b')}-{d.strftime('%y')}"
     return None
+
+# --------------------------------------------------------------------------
+# RELIANCE BA (Beauty Advisor) COUNTER ISOLATION
+#
+# The monthly store x article offtake extracts carry a "Store Type" column with
+# exactly two values:
+#   "Brand Counter"     -- BA-manned counters, reported at real store site codes
+#   "Non Brand Counter" -- the macro//roll-up stream
+# In this dataset EVERY "Brand Counter" row is Reliance, and the Reliance
+# "Non Brand Counter" stream carries a BLANK site code (i.e. it is an aggregate
+# roll-up row, not a store). The two streams share ZERO site codes.
+#
+# Business rule applied here: the macro roll-up is treated as ALREADY containing
+# the BA counter sales, so adding both inflates Reliance. The main Offtake total
+# therefore uses the MACRO stream only, and the BA stream is routed to the
+# dedicated "Reliance BA Counters" view. See `assumption` in the emitted block --
+# this is the one judgement call in the isolation and it is stated in the data.
+# --------------------------------------------------------------------------
+_BA_STORE_TYPE = "brand counter"
+_MACRO_STORE_TYPE = "non brand counter"
+
+def _read_offtake_monthly_frames(src):
+    """Yield (label, DataFrame) for every monthly store x article offtake
+    extract found under --src, normalising the two schema generations:
+      old: 'Chain Name' / 'Site Code' / 'Store Type' / 'Month'   (Apr-26, May-26)
+      new: 'Chain' / 'Store' / <no Store Type> / 'MonthKey'      (Jun-26+)
+    Only frames that expose Store Type can be BA-isolated; the caller reports
+    the rest as un-isolable rather than guessing a split."""
+    seen = set()
+    for d in (src / "Offtake_Monthly", src):
+        if not d.exists():
+            continue
+        for fp in sorted(d.glob("offtake_store_article_*.csv")):
+            if fp.name in seen:
+                continue
+            seen.add(fp.name)
+            try:
+                df = pd.read_csv(fp, low_memory=False)
+            except Exception:
+                continue
+            df.columns = [" ".join(str(c).split()) for c in df.columns]
+            yield fp.name, df
+
+def load_reliance_ba(src):
+    """Split the Reliance offtake stream into BA-counter vs macro, per month.
+    Returns a `reliance_ba` block, or None when no extract carries Store Type."""
+    ba_m, macro_m, sites_m, rows_m = {}, {}, {}, {}
+    isolable, not_isolable = [], []
+    for fname, df in _read_offtake_monthly_frames(src):
+        chain_col = next((c for c in ("Chain Name", "Chain") if c in df.columns), None)
+        if chain_col is None or "NSV" not in df.columns:
+            continue
+        month_col = next((c for c in ("Month", "MonthKey", "Revised Month")
+                          if c in df.columns), None)
+        if month_col is None:
+            continue
+        # month label: prefer whichever column parses to a real 'Mon-YY'
+        lab = None
+        for mc in (month_col, "MonthKey", "MonthStart", "Month"):
+            if mc not in df.columns:
+                continue
+            s = df[mc].dropna()
+            if s.empty:
+                continue
+            cand = _offtake_row_month(s.iloc[0])
+            if cand is None:
+                m = re.match(r"(\d{4})-(\d{2})", str(s.iloc[0]).strip())
+                if m:
+                    cand = (f"{datetime.date(int(m.group(1)), int(m.group(2)), 1):%b}"
+                            f"-{m.group(1)[-2:]}")
+            if cand:
+                lab = cand
+                break
+        if lab is None:
+            continue
+        rel = df[df[chain_col].astype(str).str.contains("reliance", case=False, na=False)
+                 | df[chain_col].astype(str).str.strip().str.lower().eq("rrl")].copy()
+        if rel.empty:
+            continue
+        rel["_nsv"] = pd.to_numeric(rel["NSV"], errors="coerce").fillna(0.0)
+        if "Store Type" not in rel.columns:
+            not_isolable.append({"month": lab, "file": fname,
+                                 "reliance_nsv": r2(float(rel["_nsv"].sum())),
+                                 "reason": "extract has no 'Store Type' column -- "
+                                           "BA vs macro cannot be separated"})
+            continue
+        st = rel["Store Type"].astype(str).str.strip().str.lower()
+        ba, macro = rel[st == _BA_STORE_TYPE], rel[st == _MACRO_STORE_TYPE]
+        site_col = next((c for c in ("Site Code", "Store") if c in rel.columns), None)
+        ba_m[lab] = r2(float(ba["_nsv"].sum()))
+        macro_m[lab] = r2(float(macro["_nsv"].sum()))
+        rows_m[lab] = {"ba": int(len(ba)), "macro": int(len(macro))}
+        sites_m[lab] = int(ba[site_col].dropna().nunique()) if site_col else None
+        isolable.append(lab)
+    if not ba_m:
+        return None
+    order = sorted(ba_m, key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+    by_fy = {}
+    for mo in order:
+        tag = fy_tag_from_label(mo)
+        if not tag:
+            continue
+        f = by_fy.setdefault(tag.lower(), {"ba": 0.0, "macro": 0.0, "months": []})
+        f["ba"] += ba_m[mo] or 0.0
+        f["macro"] += macro_m[mo] or 0.0
+        f["months"].append(mo)
+    for f in by_fy.values():
+        f["ba"], f["macro"] = r2(f["ba"]), r2(f["macro"])
+        f["combined"] = r2((f["ba"] or 0) + (f["macro"] or 0))
+    return {
+        "chain": "Reliance Retail",
+        "months": order,
+        "ba_monthly": [ba_m[mo] for mo in order],
+        "macro_monthly": [macro_m[mo] for mo in order],
+        "ba_stores": {mo: sites_m[mo] for mo in order},
+        "rows": {mo: rows_m[mo] for mo in order},
+        "by_fy": by_fy,
+        "months_not_isolable": not_isolable,
+        "unit": "INR Lakh",
+        "status": "PARTIAL" if not_isolable else "FINAL",
+        "assumption": ("Macro (Non Brand Counter) is treated as ALREADY INCLUSIVE of "
+                       "BA counter sales, so the main Offtake total uses macro only "
+                       "and BA is reported separately. Evidence: the Reliance macro "
+                       "stream carries a BLANK site code (an aggregate roll-up, not a "
+                       "store) while BA is at ~320 real store site codes, and the two "
+                       "share zero site codes. If the business confirms the streams are "
+                       "additive instead, set additive=true and rebuild."),
+        "method": ("Split on the extract's 'Store Type' column: 'Brand Counter' = BA, "
+                   "'Non Brand Counter' = macro. Months whose extract lacks that column "
+                   "are listed in months_not_isolable and are LEFT IN the macro total "
+                   "un-split -- never guessed at."),
+    }
+
+def apply_reliance_ba_isolation(offtake, ba):
+    """Remove the BA-counter stream from the main Offtake aggregates so no total
+    double-counts it, and stash the pre-isolation figures for audit. Idempotent:
+    always recomputes from `combined_before` rather than subtracting again."""
+    if not ba:
+        return offtake
+    row = next((c for c in offtake.get("by_chain", [])
+                if c.get("name") == ba["chain"]), None)
+    audit = {}
+    for lo, f in ba["by_fy"].items():
+        before = None
+        if row is not None:
+            before = row.get("_ba_combined_before", {}).get(lo, row.get(lo))
+        if before is None:
+            continue
+        # macro-only is the isolated value; recompute from `before` every run
+        after = r2(max((before or 0) - (f["ba"] or 0), 0.0))
+        if row is not None:
+            row.setdefault("_ba_combined_before", {})[lo] = r2(before)
+            row[lo] = after
+        tot_k = f"total_{lo}"
+        if tot_k in offtake:
+            t_before = offtake.get(f"_ba_total_before_{lo}", offtake[tot_k])
+            offtake[f"_ba_total_before_{lo}"] = r2(t_before)
+            offtake[tot_k] = r2((t_before or 0) - (f["ba"] or 0))
+        mk = f"monthly_{lo}"
+        mos = offtake.get(f"months_{lo}") or []
+        if mk in offtake and isinstance(offtake[mk], list) and len(offtake[mk]) == len(mos):
+            base = offtake.get(f"_ba_monthly_before_{lo}") or list(offtake[mk])
+            offtake[f"_ba_monthly_before_{lo}"] = [r2(v) if isinstance(v, (int, float)) else v
+                                                   for v in base]
+            ba_by_mo = dict(zip(ba["months"], ba["ba_monthly"]))
+            offtake[mk] = [
+                r2((base[i] or 0) - (ba_by_mo.get(mo) or 0))
+                if isinstance(base[i], (int, float)) else base[i]
+                for i, mo in enumerate(mos)]
+        audit[lo] = {"combined_before": r2(before), "ba_removed": f["ba"],
+                     "macro_after": after}
+    ba["isolation_audit"] = audit
+    ba["applied"] = True
+    return offtake
 
 def load_offtake_article_files(src):
     """Aggregates NEW monthly store x article offtake extracts (.xlsb, one
@@ -2545,9 +2737,48 @@ def main():
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
+    ap.add_argument("--reliance-ba", action="store_true",
+                    help="(re)build D.reliance_ba in an existing data.js from the monthly "
+                         "store x article offtake extracts' 'Store Type' column, and remove "
+                         "the BA-counter stream from the main Offtake aggregates so nothing "
+                         "double-counts it. Leaves all other blocks untouched. Idempotent.")
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
+
+    # ---- lightweight path: Reliance BA counter isolation ----
+    if a.reliance_ba:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        ba = load_reliance_ba(src)
+        if ba is None:
+            raise SystemExit(
+                "No offtake extract in --src carries a 'Store Type' column, so BA "
+                "counters cannot be separated from macro offtake. Needed: monthly "
+                "offtake_store_article_<Mon>_<YY>.csv exports that retain the "
+                "'Store Type' column ('Brand Counter' / 'Non Brand Counter').")
+        off = obj.get("offtake")
+        if off is None:
+            raise SystemExit("data.js has no offtake block to isolate against.")
+        # repair any month slot that was hand-patched to a {label: value} dict --
+        # monthly_* must stay a flat numeric list positionally aligned to months_*
+        for k in [k for k in off if re.match(r"^monthly_fy\d{2}$", k)]:
+            if isinstance(off[k], list):
+                off[k] = [(list(v.values())[0] if isinstance(v, dict) and len(v) == 1 else v)
+                          for v in off[k]]
+        apply_reliance_ba_isolation(off, ba)
+        obj["reliance_ba"] = ba
+        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        print(f"reliance-ba: isolated {len(ba['months'])} month(s) {ba['months']}")
+        for lo, aud in sorted(ba.get("isolation_audit", {}).items()):
+            print(f"  {lo}: combined {aud['combined_before']} -> macro {aud['macro_after']} "
+                  f"(BA {aud['ba_removed']} routed to Reliance BA tab)")
+        for m in ba["months_not_isolable"]:
+            print(f"  NOT ISOLABLE {m['month']} ({m['file']}): {m['reason']} "
+                  f"-- {m['reliance_nsv']} L left in macro")
+        print(f"  status: {ba['status']}")
+        return
 
     # ---- lightweight path: refresh ONLY detail_records in an existing data.js ----
     if a.detail_only:

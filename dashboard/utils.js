@@ -186,28 +186,79 @@ function validateDataset(data, expectedKeys) {
 }
 
 /**
- * Check for Reliance data isolation (no double-counting between Macro and BA)
+ * Assert that Reliance BA-counter sell-out is NOT inside the main Offtake
+ * aggregates. Reads window.DASH directly so it can be run from the console
+ * with no arguments: validateRelianceIsolation().
+ *
+ * The guard: for every FY the isolation covers,
+ *     offtake.by_chain[Reliance].fyNN  ===  combined_before - ba_removed
+ * Any drift means something re-added the BA stream to the macro total, and
+ * that is reported as a TRANSFORMATION_LAYER error (INGESTION_LAYER when the
+ * BA block itself never arrived).
  */
-function validateRelianceIsolation(relianceMacro, relianceBA) {
-  const issues = [];
+function validateRelianceIsolation(dash) {
+  const D = dash || (typeof window !== 'undefined' ? window.DASH : null);
+  const issues = [], TOL = 0.01;
+  const out = { status: 'PASS', by_fy: {}, issues, ba_total: 0, macro_total: 0 };
 
-  // Sum both streams independently
-  const macroTotal = relianceMacro?.nsv_total || 0;
-  const baTotal = relianceBA?.nsv_total || 0;
-
-  // If combined they exceed realistic bounds, flag it
-  const combined = macroTotal + baTotal;
-  if (combined === 0) {
-    dashboardErrors.partial('Reliance data missing or zero - check ingestion');
-    issues.push('No Reliance sales data found');
+  const ba = D && D.reliance_ba;
+  if (!ba) {
+    dashboardErrors.ingest(
+      'Reliance BA block absent — BA counters cannot be proven excluded from Offtake',
+      ErrorLayers.INGESTION, { severity: 'WARN' });
+    issues.push('No reliance_ba block; isolation unverified');
+    out.status = 'BLOCKED';
+    return out;
   }
 
-  return {
-    macro_total: macroTotal,
-    ba_total: baTotal,
-    combined_total: combined,
-    issues
-  };
+  const row = ((D.offtake && D.offtake.by_chain) || [])
+    .find(c => c.name === ba.chain);
+  if (!row) {
+    dashboardErrors.ingest(`Offtake has no "${ba.chain}" chain row to validate`,
+      ErrorLayers.STATE, { severity: 'WARN' });
+    issues.push('Reliance row missing from offtake.by_chain');
+    out.status = 'WARN';
+    return out;
+  }
+
+  Object.entries(ba.isolation_audit || {}).forEach(([fy, a]) => {
+    const expected = (a.combined_before || 0) - (a.ba_removed || 0);
+    const actual = row[fy];
+    const drift = Math.abs((actual || 0) - expected);
+    const ok = drift <= TOL;
+    out.by_fy[fy] = {
+      combined_before: a.combined_before, ba_removed: a.ba_removed,
+      expected_macro: Number(expected.toFixed(2)), actual_macro: actual,
+      drift: Number(drift.toFixed(4)), passes: ok
+    };
+    out.ba_total += a.ba_removed || 0;
+    out.macro_total += actual || 0;
+    if (!ok) {
+      dashboardErrors.ingest(
+        `Reliance ${fy.toUpperCase()} Offtake includes BA counter sales — ` +
+        `expected macro ${expected.toFixed(2)} L, found ${actual} L ` +
+        `(drift ${drift.toFixed(2)} L). BA must live only on the Reliance BA tab.`,
+        ErrorLayers.TRANSFORMATION,
+        { affected_record_count: 1, data_slice: `offtake.by_chain[${ba.chain}].${fy}`,
+          raw_input: a });
+      issues.push(`${fy}: BA leaked into Offtake total (drift ${drift.toFixed(2)} L)`);
+      out.status = 'FAIL';
+    }
+  });
+
+  // months the source could not split are honest gaps, not failures
+  (ba.months_not_isolable || []).forEach(m => {
+    dashboardErrors.ingest(
+      `${m.month}: ${m.reason} — ${m.reliance_nsv} L remains un-isolated in macro`,
+      ErrorLayers.INGESTION, { severity: 'WARN', data_slice: m.file });
+    issues.push(`${m.month} not isolable (${m.reliance_nsv} L)`);
+    if (out.status === 'PASS') out.status = 'PARTIAL';
+  });
+
+  out.ba_total = Number(out.ba_total.toFixed(2));
+  out.macro_total = Number(out.macro_total.toFixed(2));
+  out.combined_total = Number((out.ba_total + out.macro_total).toFixed(2));
+  return out;
 }
 
 /**

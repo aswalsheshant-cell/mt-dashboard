@@ -914,10 +914,67 @@ function buildOfftake(){
   renderCatDrillChart('ofCatDrill',recFilter());
 }
 
-/* -------- Reliance BA Counters (Coming Soon) -------- */
+/* -------- Reliance BA Counters --------
+   Store-level Beauty-Advisor counter sell-out, held DELIBERATELY SEPARATE from
+   the macro Offtake stream so neither tab double-counts the other. The main
+   Offtake tab shows macro only; this tab is the sole home of the BA stream. */
 function buildRelianceBA(){
-  const s=document.getElementById('tab-reliance-ba');
-  s.innerHTML='<h2>Reliance BA Counters</h2><p>Store-level Reliance BA counter data will be integrated in the next update.</p>';
+  const s=document.getElementById('tab-reliance-ba'),ba=D.reliance_ba;
+  if(!ba){
+    s.innerHTML='<h2>Reliance BA Counters</h2>'+card('Not available',null,
+      '<p class="note">No offtake extract carries a <b>Store Type</b> column, so BA counters '+
+      'cannot be separated from macro offtake. Required: monthly '+
+      '<code>offtake_store_article_&lt;Mon&gt;_&lt;YY&gt;.csv</code> exports retaining '+
+      '<b>Store Type</b> (<i>Brand Counter</i> / <i>Non Brand Counter</i>).</p>');
+    return;
+  }
+  const badge=(window.renderStatusBadge?renderStatusBadge(ba.status):'');
+  // respect the global Month filter; FY filter maps through the by_fy block
+  const mAbbr=m=>String(m).slice(0,3).toLowerCase();
+  let mos=ba.months.slice(),vals=ba.ba_monthly.slice(),mac=ba.macro_monthly.slice();
+  const fy=fyKey();
+  if(fy&&ba.by_fy[fy]){
+    const keep=mos.map((m,i)=>i).filter(i=>ba.by_fy[fy].months.includes(mos[i]));
+    mos=keep.map(i=>mos[i]);vals=keep.map(i=>vals[i]);mac=keep.map(i=>mac[i]);
+  }
+  if(fOn('Month')){
+    const keep=mos.map((m,i)=>i).filter(i=>F.Month.some(mm=>mAbbr(mos[i])===mAbbr(mm)));
+    mos=keep.map(i=>mos[i]);vals=keep.map(i=>vals[i]);mac=keep.map(i=>mac[i]);
+  }
+  const baTot=vals.reduce((a,b)=>a+(b||0),0),macTot=mac.reduce((a,b)=>a+(b||0),0);
+  const share=(baTot+macTot)?baTot/(baTot+macTot)*100:0;
+  const stores=mos.length?ba.ba_stores[mos[mos.length-1]]:null;
+  const gap=(ba.months_not_isolable||[]);
+
+  s.innerHTML='<h2>Reliance BA Counters '+badge+'</h2>'
+   +'<div class="kpis">'
+     +kpi('BA Counter Sell-out',crc(baTot),mos.length?mos[0]+' – '+mos[mos.length-1]:'—')
+     +kpi('Macro Offtake (excl. BA)',crc(macTot),'reported on the Offtake tab')
+     +kpi('BA Share of Reliance',share.toFixed(1)+'%','of combined stream')
+     +kpi('BA Counters Live',stores!=null?String(stores):'—','store site codes, latest month')
+   +'</div>'
+   +card('BA vs Macro — monthly split',
+      'Two disjoint streams (zero shared site codes). Only the macro series feeds the '+
+      'Offtake tab totals; the BA series lives here and is never added into them.',
+      cv('relBaTrend'))
+   +card('Isolation reconciliation',
+      'Proof that removing BA from the Offtake aggregates is exact and reversible.',
+      '<table><thead><tr><th>FY</th><th>Combined (before)</th><th>BA removed</th>'
+      +'<th>Macro (Offtake tab)</th></tr></thead><tbody>'
+      +Object.entries(ba.isolation_audit||{}).map(([k,a])=>
+        `<tr><td>${k.toUpperCase()}</td><td>${crc(a.combined_before)}</td>`
+        +`<td>${crc(a.ba_removed)}</td><td>${crc(a.macro_after)}</td></tr>`).join('')
+      +'</tbody></table>')
+   +card('Method &amp; assumption',null,
+      '<p class="note"><b>Method.</b> '+ba.method+'</p>'
+      +'<p class="note"><b>Assumption.</b> '+ba.assumption+'</p>'
+      +(gap.length?'<p class="note"><b>Coverage gap.</b> '
+        +gap.map(g=>`${g.month} (${g.file}): ${g.reason} — ${crc(g.reliance_nsv)} left in macro`).join('; ')
+        +'</p>':''));
+
+  if(mos.length) mkBar('relBaTrend',mos,[
+    {label:'BA counters (this tab)',data:vals,backgroundColor:C.amber,borderRadius:4},
+    {label:'Macro offtake (Offtake tab)',data:mac,backgroundColor:C.teal,borderRadius:4}]);
 }
 
 /* ---------------- P&L ---------------- */
