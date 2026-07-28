@@ -79,6 +79,10 @@ Write a spec JSON (see `reference/spec_schema.md`, full worked example in
 python scripts/build_deck.py spec.json -o "MT Review May26.pptx"
 ```
 
+Add `"page": "portrait"` (or `"a4p"`) at the top of the spec for a single tall
+one-pager instead of a landscape deck — see *Landscape pages or one portrait
+page?* below.
+
 Requires `python-pptx` (`pip install python-pptx`). 16:9, offline, no template
 needed. If the user needs their own corporate template, use the **pptx** skill's
 template workflow instead and carry these layout rules across by hand.
@@ -104,6 +108,48 @@ End with: pages before → after, what was collapsed into what, what moved to th
 appendix, and anything you deliberately dropped.
 
 ---
+
+## Landscape pages or one portrait page?
+
+`"page"` is a **deck-level** setting — PowerPoint stores one page size per file,
+so a portrait one-pager lives in its own `.pptx`, separate from the landscape
+review deck.
+
+| | `"page": "landscape"` (13.33 × 7.5, default) | `"page": "portrait"` (7.5 × 13.33) or `"a4p"` |
+|---|---|---|
+| Use for | The review itself — projected, walked through page by page | One page that carries the *whole* story: pre-read, WhatsApp/mail attachment, printout, notice board |
+| Holds | 4-6 pages × ~6 tiles | ~8 blocks + 6 KPIs on a single page |
+| Reading | Someone presents it | Someone reads it alone, top to bottom |
+
+Use `a4p` (8.27 × 11.69) instead of `portrait` when it will be printed — same
+layout, A4 proportions.
+
+### Portrait recipe
+
+The tall page works exactly like the reference infographics: labelled section
+bands, each holding two blocks side by side. A structure that reliably fits:
+
+1. Header — conclusion + stamp
+2. KPI strip — 6 numbers, auto-wrapped 3 × 2
+3. `band` **Where the growth came from** — one chip grid (zones or chains)
+4. Two tiles side by side — `bars` + `table`
+5. `band` **External validation** — two `table` tiles
+6. `band` **Portfolio / packs** — `bars` + `bullets`
+7. Two `callout` tiles — the risk and the opportunity
+8. `band` **Actions** — one `bullets` tile, owner and date on each
+9. Footer — "So what", auto-wrapped 2 × 2
+
+Portrait specifics:
+
+- Pin each row's height with `"h"` (inches). The engine scales pinned rows down
+  together if they overrun the page and warns on stderr — treat that warning as
+  "cut content", not as a clean pass.
+- Budget ~7.8 in of row height on a `portrait` page after header, KPI strip and
+  footer. Rough starting split: `1.3 / 1.6 / 1.5 / 1.6 / 1.0 / 0.9`.
+- Two tiles per row is the limit at this width. Three is unreadable.
+- Type gets to ~7 pt in the densest tiles. That is fine on a printed or zoomed
+  page and wrong for a projector — which is exactly why this is a *read* format,
+  not a *present* format.
 
 ## Page anatomy
 
@@ -142,7 +188,7 @@ readable at the back of a meeting room:
 | Bullets in a tile | 4, ≤ 16 words each |
 | Bar rows / chips | 7 |
 | Table rows | 6 (+ header), 5 columns |
-| Words on the page | ~350, table cells and labels included |
+| Words on the page | ~350 landscape, ~500 portrait (table cells and labels included) |
 
 If content will not fit, the answer is fewer facts, not smaller type — the
 builder auto-shrinks text, and anything under ~8 pt means the page is overloaded.
@@ -167,7 +213,8 @@ builder auto-shrinks text, and anything under ~8 pt means the page is overloaded
 | `scripts/build_deck.py` | Spec JSON → dense `.pptx` |
 | `scripts/preview.py` | Any `.pptx` → HTML/PNG preview (no PowerPoint needed) |
 | `reference/spec_schema.md` | Every spec field, with snippets |
-| `examples/mt_offtake_may26.json` | Real 24-page review compressed to 3 pages |
+| `examples/mt_offtake_may26.json` | Real 24-page review compressed to 3 landscape pages |
+| `examples/mt_may26_onepager_portrait.json` | The same review as **one portrait page** |
 
 The default palette matches `dashboard/index.html`, so decks and dashboard look
 like one system. Pass `"theme": "slate"` or a `"palette"` override for others.

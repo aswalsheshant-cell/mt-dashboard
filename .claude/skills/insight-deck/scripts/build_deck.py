@@ -45,9 +45,29 @@ THEMES = {
 TONE_KEY = {"good": "good", "risk": "risk", "warn": "warn",
             "info": "info", "neutral": "accent", "accent": "accent"}
 
-SLIDE_W, SLIDE_H = 13.333, 7.5
+# PowerPoint stores ONE page size per file, so this is a deck-level choice.
+PAGES = {
+    "landscape": (13.333, 7.5),     # 16:9, the review-deck default
+    "portrait": (7.5, 13.333),      # 16:9 turned upright — the tall one-pager
+    "a4": (11.69, 8.27),
+    "a4p": (8.27, 11.69),           # A4 upright, best if it will be printed
+    "letterp": (8.5, 11.0),
+}
+
+SLIDE_W, SLIDE_H = PAGES["landscape"]
 MARGIN = 0.30
 GUTTER = 0.14
+PORTRAIT = False
+
+
+def set_page(name):
+    """Set the page size for the whole deck. Returns (width, height)."""
+    global SLIDE_W, SLIDE_H, MARGIN, GUTTER, PORTRAIT
+    SLIDE_W, SLIDE_H = PAGES.get(name, PAGES["landscape"])
+    PORTRAIT = SLIDE_H > SLIDE_W
+    MARGIN = 0.24 if PORTRAIT else 0.30
+    GUTTER = 0.12 if PORTRAIT else 0.14
+    return SLIDE_W, SLIDE_H
 
 
 def C(theme, key):
@@ -135,24 +155,28 @@ def _plain(s):
     return re.sub(r"\*\*", "", str(s))
 
 
-def n_lines(s, w_in, size_pt, cw=0.53):
+def n_lines(s, w_in, size_pt, cw=0.58):
     """Estimated wrapped line count for `s` in a box `w_in` inches wide."""
     per_line = max(1, int(w_in * 96 / (size_pt * 1.333 * cw)))
     return max(1, -(-len(_plain(s)) // per_line))
 
 
-def text_h(lines, w_in, size_pt, lead=1.06):
+CW_CAPS = 0.68          # bold UPPERCASE is much wider than mixed-case body
+
+
+def text_h(lines, w_in, size_pt, lead=1.06, cw=0.58):
     """Estimated height in inches for a list of strings at `size_pt`."""
     if isinstance(lines, str):
         lines = [lines]
-    n = sum(n_lines(x, w_in, size_pt) for x in lines)
+    n = sum(n_lines(x, w_in, size_pt, cw) for x in lines)
     return n * size_pt * 1.333 * lead / 96
 
 
-def fit_size(lines, w_in, h_in, base, floor=7.5, step=0.5):
+def fit_size(lines, w_in, h_in, base, floor=7.5, step=0.5, caps=False):
     """Largest size <= base at which `lines` still fit in the box."""
+    cw = CW_CAPS if caps else 0.58
     size = base
-    while size > floor and text_h(lines, w_in, size) * 1.06 > h_in:
+    while size > floor and text_h(lines, w_in, size, cw=cw) * 1.06 > h_in:
         size -= step
     return max(floor, size)
 
@@ -179,16 +203,18 @@ def draw_header(slide, sp, theme, y):
     tw = SLIDE_W - 2 * MARGIN - (stamp_w + 0.25 if stamp else 0)
 
     hl = sp.get("headline", "")
-    size = 21.0
-    while size > 14 and n_lines(hl, tw, size, cw=0.53) > 2:
+    size, max_lines = (17.0, 4) if PORTRAIT else (21.0, 2)
+    while size > (13 if PORTRAIT else 14) and \
+            n_lines(hl, tw, size, cw=CW_CAPS) > max_lines:
         size -= 0.5
-    hl_h = text_h(hl, tw, size, lead=1.0) * (1.0 if size > 14 else 1.15)
+    hl_h = n_lines(hl, tw, size, cw=CW_CAPS) * size * 1.333 * 1.08 / 96
 
     top_pad, eyebrow_h = 0.11, 0.21 if sp.get("eyebrow") else 0.0
     sub_h = 0.0
     if sp.get("subhead"):
         sub_h = text_h(sp["subhead"], tw, 10) + 0.04
-    h = sp.get("header_h") or max(0.86, top_pad + eyebrow_h + hl_h + sub_h + 0.12)
+    h = sp.get("header_h") or max(0.78, top_pad + eyebrow_h + hl_h + sub_h
+                                  + 0.12)
 
     box(slide, 0, y, SLIDE_W, h, fill=C(theme, "accent_d"))
     box(slide, 0, y + h, SLIDE_W, 0.045, fill=C(theme, "accent"))
@@ -212,13 +238,16 @@ def draw_header(slide, sp, theme, y):
     return y + h + 0.045 + 0.10
 
 
-def draw_kpis(slide, kpis, theme, y):
-    """Evenly spread KPI cards with a coloured left rail."""
+def draw_kpis(slide, kpis, theme, y, cols=None):
+    """KPI cards with a coloured left rail, wrapped over rows if narrow."""
     h = 0.80
     n = len(kpis)
-    w = (SLIDE_W - 2 * MARGIN - GUTTER * (n - 1)) / n
+    cols = cols or min(n, 3 if PORTRAIT else 5)
+    y0 = y
+    w = (SLIDE_W - 2 * MARGIN - GUTTER * (cols - 1)) / cols
     for i, k in enumerate(kpis):
-        x = MARGIN + i * (w + GUTTER)
+        x = MARGIN + (i % cols) * (w + GUTTER)
+        y = y0 + (i // cols) * (h + GUTTER)
         box(slide, x, y, w, h, fill=C(theme, "card"), line=C(theme, "line"),
             radius=0.07)
         box(slide, x, y + 0.08, 0.055, h - 0.16,
@@ -226,7 +255,7 @@ def draw_kpis(slide, kpis, theme, y):
         tx, tw = x + 0.20, w - 0.30
         lab = str(k.get("label", "")).upper()
         label(slide, tx, y + 0.06, tw, 0.20, lab, theme,
-              size=fit_size(lab, tw, 0.20, 8.5, floor=6.5), bold=True,
+              size=fit_size(lab, tw, 0.20, 8.5, floor=6, caps=True), bold=True,
               color=C(theme, "muted"), inset=0)
         val = str(k.get("value", ""))
         label(slide, tx, y + 0.25, tw, 0.32, val, theme,
@@ -237,10 +266,19 @@ def draw_kpis(slide, kpis, theme, y):
             label(slide, tx, y + 0.57, tw, 0.20, d, theme,
                   size=fit_size(d, tw, 0.19, 9.5, floor=7), bold=True,
                   color=delta_color(theme, d, k.get("dir")), inset=0)
-    return y + h + GUTTER
+    return y0 + -(-n // cols) * (h + GUTTER)
 
 
-def draw_footer(slide, items, theme, y, h=0.58, title=None):
+def footer_grid(items, sp):
+    """(cols, rows, height) for the takeaway strip."""
+    n = max(1, len(items))
+    cols = sp.get("footer_cols") or min(n, 2 if PORTRAIT else 3)
+    rows = -(-n // cols)
+    return cols, rows, sp.get("footer_h") or (0.58 if rows == 1 else
+                                              0.30 + 0.34 * rows)
+
+
+def draw_footer(slide, items, theme, y, h, title=None, cols=1):
     """Takeaway / action strip: the 'so what' in one line each."""
     box(slide, 0, y, SLIDE_W, h, fill=C(theme, "ink"))
     x = MARGIN
@@ -251,22 +289,24 @@ def draw_footer(slide, items, theme, y, h=0.58, title=None):
         text(b, title.upper(), theme, size=9.5, bold=True,
              color=C(theme, "band_text"), align="c", anchor="m")
         x += tw + 0.18
-    n = max(1, len(items))
-    w = (SLIDE_W - x - MARGIN - 0.55 - GUTTER * (n - 1)) / n   # 0.55 = page no.
+    rows = -(-max(1, len(items)) // cols)
+    w = (SLIDE_W - x - MARGIN - 0.55 - GUTTER * (cols - 1)) / cols
+    rh = (h - 0.08) / rows
     flat = [(i.get("lead", "") + "  " + i.get("text", "")) if isinstance(i, dict)
             else str(i) for i in items]
-    fsize = min(9.5, fit_size(max(flat, key=len), w - 0.06, h - 0.16, 9.5,
+    fsize = min(9.5, fit_size(max(flat, key=len), w - 0.06, rh - 0.06, 9.5,
                               floor=7))
     for i, it in enumerate(items):
-        cx = x + i * (w + GUTTER)
-        if i:
-            box(slide, cx - GUTTER / 2, y + 0.13, 0.02, h - 0.26,
+        cx = x + (i % cols) * (w + GUTTER)
+        cy = y + 0.04 + (i // cols) * rh
+        if i % cols:
+            box(slide, cx - GUTTER / 2, cy + 0.04, 0.02, rh - 0.12,
                 fill=RGBColor.from_string("4A5560"))
         if isinstance(it, dict):
             lead, body = it.get("lead"), it.get("text", "")
         else:
             lead, body = None, it
-        shp = box(slide, cx, y + 0.04, w, h - 0.08)
+        shp = box(slide, cx, cy, w, rh)
         tf = shp.text_frame
         tf.word_wrap = True
         tf.margin_left = tf.margin_right = Inches(0.03)
@@ -298,7 +338,7 @@ def tile_frame(slide, x, y, w, h, t, theme):
         box(slide, x, y, w, bh, fill=tone, radius=0.08)
         box(slide, x, y + bh - 0.09, w, 0.09, fill=tone)
         title = str(t["title"]).upper()
-        tsize = 10 if len(title) <= int(w * 20) else 8.8
+        tsize = fit_size(title, w - 0.2, bh - 0.04, 10, floor=7.5, caps=True)
         label(slide, x + 0.10, y, w - 0.2, bh, title, theme, size=tsize,
               bold=True, color=C(theme, "band_text"), anchor="m", inset=0)
         return y + bh + 0.07
@@ -403,7 +443,7 @@ def t_metrics(slide, x, y, w, h, t, theme):
         tw = cw - 0.12
         lab = str(it.get("label", "")).upper()
         label(slide, cx + 0.06, ty, tw, 0.17, lab, theme,
-              size=fit_size(lab, tw, 0.17, 8, floor=6), bold=True,
+              size=fit_size(lab, tw, 0.17, 8, floor=6, caps=True), bold=True,
               color=C(theme, "muted"), inset=0)
         val = str(it.get("value", ""))
         label(slide, cx + 0.06, ty + 0.17, tw, 0.30, val, theme,
@@ -462,7 +502,7 @@ def t_table(slide, x, y, w, h, t, theme):
         for j, hd in enumerate(head):
             label(slide, cx + 0.05, ry, widths[j] - 0.1, rowh, str(hd).upper(),
                   theme, size=fit_size(str(hd).upper(), widths[j] - 0.1, rowh,
-                                       size - 0.6, floor=5.5),
+                                       size - 0.6, floor=5.5, caps=True),
                   bold=True, color=C(theme, "muted"),
                   anchor="m", align="l" if j == 0 else "r", inset=0)
             cx += widths[j]
@@ -533,13 +573,28 @@ def draw_rows(slide, rows, theme, y, bottom):
         return
     avail = bottom - y - GUTTER * (len(rows) - 1)
     fixed = sum(float(r["h"]) for r in rows if r.get("h"))
-    flex = max(0.4, avail - fixed)
+    n_flex = sum(1 for r in rows if not r.get("h"))
+    # pinned heights that do not fit get scaled down together, so a page can
+    # never silently run off the bottom
+    room = avail - 0.5 * n_flex
+    squeeze = min(1.0, room / fixed) if fixed > room > 0 else 1.0
+    if squeeze < 0.995:
+        print(f"  note: pinned row heights exceed the page — scaled to "
+              f"{squeeze:.0%}", file=sys.stderr)
+    flex = max(0.4, avail - fixed * squeeze)
     total_w = sum(float(r.get("weight", 1)) for r in rows if not r.get("h")) or 1
     for row in rows:
-        rh = float(row["h"]) if row.get("h") else \
+        rh = float(row["h"]) * squeeze if row.get("h") else \
             flex * float(row.get("weight", 1)) / total_w
         tiles = row.get("tiles", [])
-        if not tiles:
+        if row.get("band"):
+            b = box(slide, MARGIN, y, SLIDE_W - 2 * MARGIN, 0.26,
+                    fill=C(theme, "accent_d"), radius=0.05)
+            text(b, str(row["band"]).upper(), theme, size=9.5, bold=True,
+                 color=C(theme, "band_text"), align="c", anchor="m")
+            y += 0.30
+            rh -= 0.30
+        if not tiles or rh <= 0.1:
             y += rh + GUTTER
             continue
         span = sum(float(t.get("span", 1)) for t in tiles)
@@ -558,14 +613,14 @@ def build_slide(prs, sp, theme, page, pages):
     box(slide, 0, 0, SLIDE_W, SLIDE_H, fill=C(theme, "bg"))
     y = draw_header(slide, sp, theme, 0)
     if sp.get("kpis"):
-        y = draw_kpis(slide, sp["kpis"], theme, y)
+        y = draw_kpis(slide, sp["kpis"], theme, y, sp.get("kpi_cols"))
     foot = sp.get("footer") or sp.get("takeaways")
-    fh = sp.get("footer_h", 0.58) if foot else 0.0
+    fcols, _, fh = footer_grid(foot, sp) if foot else (1, 0, 0.0)
     bottom = SLIDE_H - (fh + 0.10 if foot else 0.30)
     draw_rows(slide, sp.get("rows", []), theme, y, bottom)
     if foot:
         draw_footer(slide, foot, theme, SLIDE_H - fh, fh,
-                    sp.get("footer_title", "SO WHAT"))
+                    sp.get("footer_title", "SO WHAT"), fcols)
     if sp.get("page_numbers", True):
         # sits in the footer bar when there is one, otherwise on the canvas
         py = SLIDE_H - (fh - 0.02 if foot else 0.26)
@@ -578,8 +633,9 @@ def build_slide(prs, sp, theme, page, pages):
 def build(spec, out):
     theme = dict(THEMES.get(spec.get("theme", "honasa"), THEMES["honasa"]))
     theme.update(spec.get("palette", {}))
+    w, h = set_page(spec.get("page", "landscape"))
     prs = Presentation()
-    prs.slide_width, prs.slide_height = Inches(SLIDE_W), Inches(SLIDE_H)
+    prs.slide_width, prs.slide_height = Inches(w), Inches(h)
     slides = spec.get("slides", [])
     for i, sp in enumerate(slides, 1):
         build_slide(prs, sp, theme, i, len(slides))

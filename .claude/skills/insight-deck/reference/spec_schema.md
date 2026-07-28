@@ -1,10 +1,12 @@
 # Spec schema — `build_deck.py`
 
 A spec is one JSON object. Every field below is optional unless marked
-**required**. Sizes are in inches; the page is 13.333 × 7.5 (16:9).
+**required**. Sizes are in inches; the page defaults to 13.333 × 7.5 (16:9) and
+is set for the whole file by `page`.
 
 ```json
 {
+  "page": "landscape",
   "theme": "honasa",
   "palette": {"accent": "2D9B7F"},
   "slides": [ { ...page... } ]
@@ -13,6 +15,7 @@ A spec is one JSON object. Every field below is optional unless marked
 
 | Field | Meaning |
 |---|---|
+| `page` | Page size for the **whole file** — PowerPoint allows only one. `landscape` 13.33 × 7.5 (default), `portrait` 7.5 × 13.33, `a4` 11.69 × 8.27, `a4p` 8.27 × 11.69, `letterp` 8.5 × 11 |
 | `theme` | `honasa` (default, matches the dashboard) or `slate` |
 | `palette` | Overrides individual theme keys: `accent`, `accent_d`, `bg`, `card`, `ink`, `muted`, `line`, `good`, `risk`, `warn`, `info`, `font`, `font_head` |
 | `slides` | **required** — list of pages, rendered in order |
@@ -26,37 +29,50 @@ A spec is one JSON object. Every field below is optional unless marked
   "subhead": "Highest-ever monthly NSV; top-3 chains now 81.1% of offtake",
   "stamp": "HIGHEST EVER",
   "kpis": [ ... ],
+  "kpi_cols": 3,
   "rows": [ ... ],
   "footer_title": "So what",
   "footer": [ ... ],
+  "footer_cols": 2,
   "page_numbers": true
 }
 ```
 
-`headline` carries the conclusion; the band auto-grows to fit up to two lines and
-shrinks the type from 21 pt down to 14 pt as needed. `stamp` is the badge on the
+`headline` carries the conclusion; the band auto-grows to fit it — up to 2 lines
+at 21→14 pt landscape, up to 4 lines at 17→13 pt portrait. `stamp` is the badge on the
 right — use it for a one-word status (`HIGHEST EVER`, `WATCH`, `ON TRACK`).
 
-## KPI strip — `kpis` (≤ 5)
+## KPI strip — `kpis` (≤ 5 landscape, ≤ 6 portrait)
 
 ```json
 {"label": "May'26 NSV", "value": "₹40.19 Cr", "delta": "▲ 12% MoM", "tone": "good"}
 ```
 
 `delta` colours itself from a leading `▲`/`▼`/`+`/`-`; override with
-`"dir": "up" | "down" | "flat"`. `tone` colours the card's left rail.
+`"dir": "up" | "down" | "flat"`. `tone` colours the card's left rail. Cards wrap
+onto extra rows automatically — 5 per row landscape, 3 portrait; set `kpi_cols`
+on the page to force a different split.
 
 ## Rows — `rows`
 
 ```json
-{"weight": 1.25, "tiles": [ ... ]}     // shares the leftover height
-{"h": 1.15,      "tiles": [ ... ]}     // pinned height in inches
+{"weight": 1.25, "tiles": [ ... ]}                  // shares leftover height
+{"h": 1.15,      "tiles": [ ... ]}                  // pinned height in inches
+{"band": "Where the growth came from", "h": 1.3, "tiles": [ ... ]}
 ```
 
 Rows stack top to bottom between the KPI strip and the footer. Rows with `h` take
 exactly that height; the rest split what is left in proportion to `weight`
 (default 1). Within a row, tiles split the width by `span` (default 1). Use `h`
-for a single chip strip so it does not stretch.
+for a single chip strip so it does not stretch, and on portrait pages where
+every row should be pinned.
+
+`band` draws a full-width section label above the row — the grouping device that
+makes a dense portrait page readable. It costs 0.30 in out of the row's height.
+
+If pinned heights add up to more than the page, they are all scaled down
+together and a note is printed on stderr. That note means the page is
+overloaded: cut a block rather than shipping squeezed type.
 
 ## Tiles
 
@@ -125,8 +141,8 @@ left-aligned; the rest right-align. `weights` sets relative column widths.
            "photos/dmart_pune.jpg"]}
 ```
 
-Paths are relative to where you run the script. Images are cropped to fill their
-cell. A missing file draws a grey placeholder and warns — it never crashes the
+Paths are relative to where you run the script. Images keep their aspect ratio
+and are centred in their cell. A missing file draws a grey placeholder and warns — it never crashes the
 build.
 
 ### `text` — free paragraph (use sparingly)
@@ -143,7 +159,8 @@ build.
 ```
 
 Renders as the dark "So what" strip. Rename the chip with `footer_title`, resize
-the band with `footer_h`.
+the band with `footer_h`, and set the column count with `footer_cols` (default 3
+landscape, 2 portrait — extra items wrap onto more rows and the bar grows).
 
 ## Auto-fit behaviour
 

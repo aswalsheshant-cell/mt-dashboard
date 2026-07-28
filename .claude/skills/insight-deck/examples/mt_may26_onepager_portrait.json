@@ -1,0 +1,441 @@
+{
+  "_comment": "The entire 24-page May'26 MT review on ONE portrait page. Same source and same numbers as mt_offtake_may26.json — only the page architecture differs. Section bands group the page the way a printed infographic does. Set \"page\": \"a4p\" instead if it will be printed on A4.",
+  "page": "portrait",
+  "theme": "honasa",
+  "slides": [
+    {
+      "eyebrow": "Honasa Modern Trade  |  MT Offtake Review  |  May'26",
+      "headline": "RECORD ₹40.19 CR OFFTAKE, +63% YoY — EVERY ZONE AT ITS BEST-EVER MONTH, NIELSEN CONFIRMS THE SHARE GAIN",
+      "subhead": "Broad-based growth, not a low base · the one watch-out is chain concentration at 81.1%",
+      "stamp": "HIGHEST EVER",
+      "kpis": [
+        {
+          "label": "May'26 NSV",
+          "value": "₹40.19 Cr",
+          "delta": "▲ 12% MoM",
+          "tone": "good"
+        },
+        {
+          "label": "YoY growth",
+          "value": "63.0%",
+          "delta": "▲ ₹15.54 Cr",
+          "tone": "good"
+        },
+        {
+          "label": "vs L3M avg",
+          "value": "+25.8%",
+          "delta": "L3M ₹31.95 Cr",
+          "dir": "flat",
+          "tone": "good"
+        },
+        {
+          "label": "2-Yr CAGR",
+          "value": "46.5%",
+          "delta": "May'25 was +31.7%",
+          "dir": "flat",
+          "tone": "info"
+        },
+        {
+          "label": "Top-3 chain share",
+          "value": "81.1%",
+          "delta": "▲ from 77.0%",
+          "tone": "warn"
+        },
+        {
+          "label": "Mamaearth share of portfolio",
+          "value": "70.6%",
+          "delta": "TDC fastest-growing",
+          "dir": "flat",
+          "tone": "info"
+        }
+      ],
+      "rows": [
+        {
+          "band": "Where the growth came from",
+          "h": 1.26,
+          "tiles": [
+            {
+              "kind": "metrics",
+              "cols": 6,
+              "items": [
+                {
+                  "label": "West",
+                  "value": "1,016",
+                  "delta": "▲ 56%",
+                  "tone": "good"
+                },
+                {
+                  "label": "North",
+                  "value": "934",
+                  "delta": "▲ 65%",
+                  "tone": "good"
+                },
+                {
+                  "label": "South-1",
+                  "value": "894",
+                  "delta": "▲ 84%",
+                  "tone": "good"
+                },
+                {
+                  "label": "South-2",
+                  "value": "554",
+                  "delta": "▲ 73%",
+                  "tone": "good"
+                },
+                {
+                  "label": "East",
+                  "value": "411",
+                  "delta": "▲ 55%",
+                  "tone": "good"
+                },
+                {
+                  "label": "FSN",
+                  "value": "208",
+                  "delta": "▲ 19%",
+                  "tone": "warn"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 1.62,
+          "tiles": [
+            {
+              "kind": "bars",
+              "title": "Chain mix — May'26 NSV (₹ Lacs)",
+              "span": 1.0,
+              "items": [
+                {
+                  "label": "D-mart",
+                  "value": 1518,
+                  "display": "1,518",
+                  "note": "37.9%"
+                },
+                {
+                  "label": "Reliance",
+                  "value": 990,
+                  "display": "990",
+                  "note": "24.7%"
+                },
+                {
+                  "label": "Apollo",
+                  "value": 751,
+                  "display": "751",
+                  "note": "18.7%"
+                },
+                {
+                  "label": "FSN",
+                  "value": 208,
+                  "display": "208",
+                  "note": "5.2%"
+                },
+                {
+                  "label": "Lulu",
+                  "value": 116,
+                  "display": "116",
+                  "note": "2.9%"
+                },
+                {
+                  "label": "Wellness",
+                  "value": 102,
+                  "display": "102",
+                  "note": "2.5%"
+                }
+              ]
+            },
+            {
+              "kind": "table",
+              "title": "Zone detail",
+              "span": 1.0,
+              "head": [
+                "Zone",
+                "NSV",
+                "Share",
+                "YoY"
+              ],
+              "items": [
+                [
+                  "West",
+                  "1,016",
+                  "25.3%",
+                  "▲ 56%"
+                ],
+                [
+                  "North",
+                  "934",
+                  "23.2%",
+                  "▲ 65%"
+                ],
+                [
+                  "South-1",
+                  "894",
+                  "22.3%",
+                  "▲ 84%"
+                ],
+                [
+                  "South-2",
+                  "554",
+                  "13.8%",
+                  "▲ 73%"
+                ],
+                [
+                  "East",
+                  "411",
+                  "10.3%",
+                  "▲ 55%"
+                ],
+                [
+                  "FSN",
+                  "208",
+                  "5.2%",
+                  "▲ 19%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "External validation — Nielsen MS Val, Urban",
+          "h": 1.5,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "Facewash (Mamaearth 6.68%, ▲+107 bps YoY)",
+              "span": 1.0,
+              "head": [
+                "Brand",
+                "May'25",
+                "May'26",
+                "YoY bps"
+              ],
+              "items": [
+                [
+                  "Himalaya",
+                  "21.51%",
+                  "22.20%",
+                  "▲ +69"
+                ],
+                [
+                  "Garnier",
+                  "14.53%",
+                  "13.41%",
+                  "▼ -112"
+                ],
+                [
+                  "Pond's",
+                  "13.03%",
+                  "12.71%",
+                  "▼ -32"
+                ],
+                [
+                  "Mamaearth",
+                  "5.61%",
+                  "6.68%",
+                  "▲ +107"
+                ],
+                [
+                  "The Derma Co.",
+                  "0.12%",
+                  "0.81%",
+                  "▲ +69"
+                ]
+              ]
+            },
+            {
+              "kind": "table",
+              "title": "Shampoo (Mamaearth 2.50%, ▼-2 bps MoM)",
+              "span": 1.0,
+              "head": [
+                "Brand",
+                "May'25",
+                "May'26",
+                "YoY bps"
+              ],
+              "items": [
+                [
+                  "Dove",
+                  "15.23%",
+                  "14.95%",
+                  "▼ -28"
+                ],
+                [
+                  "H&S",
+                  "12.19%",
+                  "11.12%",
+                  "▼ -106"
+                ],
+                [
+                  "TRESemme",
+                  "6.44%",
+                  "7.43%",
+                  "▲ +99"
+                ],
+                [
+                  "Mamaearth",
+                  "1.75%",
+                  "2.50%",
+                  "▲ +75"
+                ],
+                [
+                  "Patanjali",
+                  "2.17%",
+                  "1.84%",
+                  "▼ -34"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "Portfolio, packs and the read-across",
+          "h": 1.58,
+          "tiles": [
+            {
+              "kind": "bars",
+              "title": "Top packs — May'26 sales (₹ Lacs)",
+              "span": 1.0,
+              "items": [
+                {
+                  "label": "150 g/ml",
+                  "value": 37.2,
+                  "display": "37.2",
+                  "note": "▲ 46%"
+                },
+                {
+                  "label": "50 g/ml",
+                  "value": 35.1,
+                  "display": "35.1",
+                  "note": "▲ 12%"
+                },
+                {
+                  "label": "100 g/ml",
+                  "value": 24.7,
+                  "display": "24.7",
+                  "note": "▲ 6%"
+                },
+                {
+                  "label": "30 g/ml",
+                  "value": 14.7,
+                  "display": "14.7",
+                  "note": "▲ 8%"
+                },
+                {
+                  "label": "200 g/ml",
+                  "value": 13.0,
+                  "display": "13.0",
+                  "note": "▲ 28%"
+                },
+                {
+                  "label": "250 g/ml",
+                  "value": 11.4,
+                  "display": "11.4",
+                  "note": "▲ 41%"
+                }
+              ]
+            },
+            {
+              "kind": "bullets",
+              "title": "What the numbers say",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Real growth",
+                  "text": "2-yr CAGR **46.5%** — May'25 itself grew +31.7%, so this is not a low base.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Share capture",
+                  "text": "Facewash category grew +24% YoY and Honasa still added **+107 bps**.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "One gap",
+                  "text": "Shampoo **-2 bps MoM** against +11.5% category growth — grew slower than its market.",
+                  "tone": "risk"
+                },
+                {
+                  "lead": "Pack mix",
+                  "text": "Large packs lead: 150 g/ml **+46%**, 250 g/ml **+41%** — premiumisation is working.",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 1.0,
+          "tiles": [
+            {
+              "kind": "callout",
+              "title": "Watch-out",
+              "tone": "risk",
+              "span": 1.0,
+              "value": "81.1%",
+              "text": "of offtake sits with D-mart, Reliance and Apollo — up from 77% six months ago."
+            },
+            {
+              "kind": "callout",
+              "title": "Biggest headroom",
+              "tone": "good",
+              "span": 1.0,
+              "value": "MRL 2.80%",
+              "text": "Honasa share of a ₹2,129 Lac market — the biggest headroom of any tracked chain."
+            }
+          ]
+        },
+        {
+          "band": "Actions — owner and date",
+          "h": 0.9,
+          "tiles": [
+            {
+              "kind": "bullets",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Build",
+                  "text": "MRL — expand assortment and visibility vs 2.80% share. NKAM · 15-Jul",
+                  "tone": "info"
+                },
+                {
+                  "lead": "Fix",
+                  "text": "Shampoo — assortment and promo review in North (▼-26 bps). Category · 18-Jul",
+                  "tone": "risk"
+                },
+                {
+                  "lead": "Fix",
+                  "text": "Lulu — close listing gaps in declining sub-categories (▼-21 bps). RKAM West · 10-Jul",
+                  "tone": "risk"
+                },
+                {
+                  "lead": "Protect",
+                  "text": "Wellness Forever 14.06% (▼-35 bps) — monitor pharmacy pressure. NKAM · 20-Jul",
+                  "tone": "warn"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Momentum",
+          "text": "Record month is structural — hold the plan and fund South-1 first."
+        },
+        {
+          "lead": "Risk",
+          "text": "81.1% chain concentration needs a fourth growth chain."
+        },
+        {
+          "lead": "Gap",
+          "text": "Shampoo is the only category losing pace against its market."
+        },
+        {
+          "lead": "Next",
+          "text": "MRL and Lulu assortment fixes are the fastest incremental NSV."
+        }
+      ]
+    }
+  ]
+}
