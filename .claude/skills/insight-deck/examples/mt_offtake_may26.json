@@ -1,0 +1,662 @@
+{
+  "_comment": "Worked example — the May'26 MT offtake review compressed from 24 pages to 3. Every number here is lifted from 'Final MT Offtake May26 Leadership slide_CORRECTED_V2.pptx' in this repo. Slide 1 replaces old p1+p3, slide 2 replaces old p11-16 (six zone clones), slide 3 replaces old p5-8 (four Nielsen pages).",
+  "theme": "honasa",
+  "slides": [
+    {
+      "eyebrow": "MT Offtake Review  |  May'26  |  Honasa Modern Trade",
+      "headline": "MAY'26 OFFTAKE HITS A RECORD ₹40.19 CR, +63% YoY — GROWTH IS BROAD-BASED, NOT A LOW-BASE EFFECT",
+      "subhead": "Highest-ever monthly NSV; top-3 chains now 81.1% of offtake, up from 77% six months ago",
+      "stamp": "HIGHEST EVER",
+      "kpis": [
+        {
+          "label": "May'26 NSV",
+          "value": "₹40.19 Cr",
+          "delta": "▲ 12% MoM",
+          "tone": "good"
+        },
+        {
+          "label": "YoY growth",
+          "value": "63.0%",
+          "delta": "▲ ₹15.54 Cr",
+          "tone": "good"
+        },
+        {
+          "label": "vs L3M avg ₹31.95 Cr",
+          "value": "+25.8%",
+          "delta": "▲ above run-rate",
+          "tone": "good"
+        },
+        {
+          "label": "2-Yr CAGR",
+          "value": "46.5%",
+          "delta": "May'25 itself +31.7%",
+          "dir": "flat",
+          "tone": "info"
+        },
+        {
+          "label": "Top-3 chain share",
+          "value": "81.1%",
+          "delta": "▲ from 77.0%",
+          "tone": "warn"
+        }
+      ],
+      "rows": [
+        {
+          "weight": 1.25,
+          "tiles": [
+            {
+              "kind": "bars",
+              "title": "Chain mix — May'26 NSV (₹ Lacs)",
+              "span": 1.25,
+              "items": [
+                {
+                  "label": "D-mart",
+                  "value": 1518,
+                  "display": "1,518",
+                  "note": "37.9%"
+                },
+                {
+                  "label": "Reliance",
+                  "value": 990,
+                  "display": "990",
+                  "note": "24.7%"
+                },
+                {
+                  "label": "Apollo",
+                  "value": 751,
+                  "display": "751",
+                  "note": "18.7%"
+                },
+                {
+                  "label": "FSN",
+                  "value": 208,
+                  "display": "208",
+                  "note": "5.2%"
+                },
+                {
+                  "label": "Lulu",
+                  "value": 116,
+                  "display": "116",
+                  "note": "2.9%"
+                },
+                {
+                  "label": "Wellness",
+                  "value": 102,
+                  "display": "102",
+                  "note": "2.5%"
+                },
+                {
+                  "label": "H&G",
+                  "value": 87,
+                  "display": "87",
+                  "note": "2.2%"
+                }
+              ]
+            },
+            {
+              "kind": "table",
+              "title": "Total channel NSV trend (₹ Lacs)",
+              "span": 1.0,
+              "head": [
+                "Month",
+                "Total",
+                "D-mart",
+                "Reliance",
+                "Apollo"
+              ],
+              "items": [
+                [
+                  "May-25",
+                  "2,466",
+                  "897",
+                  "715",
+                  "272"
+                ],
+                [
+                  "Jan-26",
+                  "3,039",
+                  "967",
+                  "900",
+                  "534"
+                ],
+                [
+                  "Feb-26",
+                  "2,761",
+                  "928",
+                  "757",
+                  "511"
+                ],
+                [
+                  "Mar-26",
+                  "3,234",
+                  "1,226",
+                  "805",
+                  "570"
+                ],
+                [
+                  "Apr-26",
+                  "3,589",
+                  "1,258",
+                  "868",
+                  "699"
+                ],
+                [
+                  "May-26",
+                  "4,019",
+                  "1,518",
+                  "990",
+                  "751"
+                ]
+              ]
+            },
+            {
+              "kind": "bullets",
+              "title": "Why it moved",
+              "span": 1.15,
+              "items": [
+                {
+                  "lead": "Broad-based",
+                  "text": "2-yr CAGR of **46.5%** rules out a low-base artifact — May'25 itself grew +31.7% YoY.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Concentration",
+                  "text": "D-mart, Reliance and Apollo delivered **81.1%** of offtake, up from 77% six months ago.",
+                  "tone": "warn"
+                },
+                {
+                  "lead": "Portfolio",
+                  "text": "Mamaearth holds **70.6%** portfolio share; The Derma Co. is the fastest-growing brand YoY.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Apollo",
+                  "text": "₹272 → ₹751 Lacs in 12 months — the single biggest incremental chain.",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "weight": 0.72,
+          "tiles": [
+            {
+              "kind": "callout",
+              "title": "Watch-out",
+              "tone": "risk",
+              "span": 1.0,
+              "value": "81.1%",
+              "text": "of offtake now sits with three chains. Any single-chain disruption is now a channel-level risk, not an account-level one."
+            },
+            {
+              "kind": "callout",
+              "title": "Biggest upside",
+              "tone": "good",
+              "span": 1.0,
+              "value": "MRL 2.80%",
+              "text": "Honasa share in a ₹2,129 Lac market — lowest share against the largest headroom of all tracked chains."
+            },
+            {
+              "kind": "bullets",
+              "title": "Actions",
+              "tone": "info",
+              "span": 1.4,
+              "items": [
+                {
+                  "lead": "Build",
+                  "text": "MRL — expand assortment & visibility against 2.80% share (▲+31 bps MoM). Owner: NKAM · 15-Jul",
+                  "tone": "info"
+                },
+                {
+                  "lead": "Fix",
+                  "text": "Lulu — review listing gaps in declining sub-categories (3.91%, ▼-21 bps). Owner: RKAM West · 10-Jul",
+                  "tone": "risk"
+                },
+                {
+                  "lead": "Protect",
+                  "text": "Wellness Forever 14.06% (▼-35 bps) — monitor pharmacy-channel pressure. Owner: NKAM · 20-Jul",
+                  "tone": "warn"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Momentum",
+          "text": "Record month is structural, not base-driven — hold the plan."
+        },
+        {
+          "lead": "Risk",
+          "text": "Chain concentration at 81.1% needs a fourth growth chain."
+        },
+        {
+          "lead": "Next",
+          "text": "MRL + Lulu assortment fixes are the fastest incremental NSV."
+        }
+      ]
+    },
+    {
+      "eyebrow": "Zone performance  |  May'26  |  replaces six zone pages",
+      "headline": "EVERY ZONE POSTED ITS BEST-EVER MONTH — SOUTH-1 LEADS AT +84% YoY, FSN IS THE ONLY LAGGARD AT +19%",
+      "subhead": "West stays the largest zone at 25.3% share; growth is now genuinely national, not West-dependent",
+      "stamp": "ALL-ZONE RECORD",
+      "rows": [
+        {
+          "tiles": [
+            {
+              "kind": "metrics",
+              "title": "May'26 NSV by zone (₹ Lacs) — YoY growth below",
+              "span": 1.0,
+              "cols": 6,
+              "items": [
+                {
+                  "label": "West",
+                  "value": "1,016",
+                  "delta": "▲ 56% YoY",
+                  "tone": "good"
+                },
+                {
+                  "label": "North",
+                  "value": "934",
+                  "delta": "▲ 65% YoY",
+                  "tone": "good"
+                },
+                {
+                  "label": "South-1",
+                  "value": "894",
+                  "delta": "▲ 84% YoY",
+                  "tone": "good"
+                },
+                {
+                  "label": "South-2",
+                  "value": "554",
+                  "delta": "▲ 73% YoY",
+                  "tone": "good"
+                },
+                {
+                  "label": "East",
+                  "value": "411",
+                  "delta": "▲ 55% YoY",
+                  "tone": "good"
+                },
+                {
+                  "label": "FSN",
+                  "value": "208",
+                  "delta": "▲ 19% YoY",
+                  "tone": "warn"
+                }
+              ]
+            }
+          ],
+          "h": 1.15
+        },
+        {
+          "weight": 1.45,
+          "tiles": [
+            {
+              "kind": "bars",
+              "title": "YoY growth ranking",
+              "span": 1.0,
+              "items": [
+                {
+                  "label": "South-1",
+                  "value": 84,
+                  "display": "+84%",
+                  "note": "22.3%",
+                  "tone": "good"
+                },
+                {
+                  "label": "South-2",
+                  "value": 73,
+                  "display": "+73%",
+                  "note": "13.8%",
+                  "tone": "good"
+                },
+                {
+                  "label": "North",
+                  "value": 65,
+                  "display": "+65%",
+                  "note": "23.2%",
+                  "tone": "good"
+                },
+                {
+                  "label": "West",
+                  "value": 56,
+                  "display": "+56%",
+                  "note": "25.3%",
+                  "tone": "good"
+                },
+                {
+                  "label": "East",
+                  "value": 55,
+                  "display": "+55%",
+                  "note": "10.3%",
+                  "tone": "good"
+                },
+                {
+                  "label": "FSN",
+                  "value": 19,
+                  "display": "+19%",
+                  "note": "5.2%",
+                  "tone": "risk"
+                }
+              ]
+            },
+            {
+              "kind": "table",
+              "title": "Zone detail",
+              "span": 1.15,
+              "head": [
+                "Zone",
+                "NSV",
+                "Share",
+                "vs L3M",
+                "vs May-25"
+              ],
+              "items": [
+                [
+                  "West",
+                  "1,016",
+                  "25.3%",
+                  "▲ 21%",
+                  "▲ 56%"
+                ],
+                [
+                  "North",
+                  "934",
+                  "23.2%",
+                  "▲ 25%",
+                  "▲ 65%"
+                ],
+                [
+                  "South-1",
+                  "894",
+                  "22.3%",
+                  "▲ 33%",
+                  "▲ 84%"
+                ],
+                [
+                  "South-2",
+                  "554",
+                  "13.8%",
+                  "▲ 31%",
+                  "▲ 73%"
+                ],
+                [
+                  "East",
+                  "411",
+                  "10.3%",
+                  "▲ 28%",
+                  "▲ 55%"
+                ],
+                [
+                  "FSN",
+                  "208",
+                  "5.2%",
+                  "▲ 9%",
+                  "▲ 19%"
+                ]
+              ]
+            },
+            {
+              "kind": "bullets",
+              "title": "Exceptions only",
+              "span": 1.1,
+              "items": [
+                {
+                  "lead": "Lead",
+                  "text": "**South-1** (Karnataka, TN, Kerala) at +84% YoY and +33% vs L3M — the strongest scale-up base in the channel.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Lag",
+                  "text": "**FSN** at +19% YoY / +9% vs L3M is the only zone growing below channel rate — dilutes the 63% channel growth.",
+                  "tone": "risk"
+                },
+                {
+                  "lead": "Mix",
+                  "text": "Mamaearth anchors every zone; **The Derma Co.** is the fastest-growing brand YoY in all five geographic zones.",
+                  "tone": "info"
+                },
+                {
+                  "lead": "Structure",
+                  "text": "West's share fell to 25.3% while still growing 56% — growth is broadening, which lowers single-zone dependency.",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Scale",
+          "text": "Fund South-1 first — best growth on an already large base."
+        },
+        {
+          "lead": "Fix",
+          "text": "FSN needs a separate plan; it is the only sub-channel diluting growth."
+        },
+        {
+          "lead": "Owner",
+          "text": "Zone plans to RKAMs by 12-Jul; FSN review with NKAM by 15-Jul."
+        }
+      ]
+    },
+    {
+      "eyebrow": "External validation  |  Nielsen MS Val, Urban  |  May'26",
+      "headline": "NIELSEN CONFIRMS THE STORY: MAMAEARTH GAINED SHARE YoY IN BOTH CATEGORIES — BUT SHAMPOO SLIPPED MoM",
+      "subhead": "Facewash 6.68% (▲+107 bps YoY) · Shampoo 2.50% (▲+75 bps YoY, ▼-2 bps MoM against +11.5% category growth)",
+      "kpis": [
+        {
+          "label": "Facewash MS",
+          "value": "6.68%",
+          "delta": "▲ +107 bps YoY",
+          "tone": "good"
+        },
+        {
+          "label": "Facewash sales",
+          "value": "₹18.61 Cr",
+          "delta": "▲ +24.2% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "Shampoo MS",
+          "value": "2.50%",
+          "delta": "▼ -2 bps MoM",
+          "tone": "risk"
+        },
+        {
+          "label": "Shampoo sales",
+          "value": "₹7.75 Cr",
+          "delta": "▲ +41.1% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "The Derma Co. (FW)",
+          "value": "0.81%",
+          "delta": "▲ +69 bps YoY",
+          "tone": "good"
+        }
+      ],
+      "rows": [
+        {
+          "weight": 1.0,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "Facewash — top brands (MS Val %)",
+              "span": 1.0,
+              "head": [
+                "Brand",
+                "May'25",
+                "May'26",
+                "YoY bps"
+              ],
+              "items": [
+                [
+                  "Himalaya",
+                  "21.51%",
+                  "22.20%",
+                  "▲ +69"
+                ],
+                [
+                  "Garnier",
+                  "14.53%",
+                  "13.41%",
+                  "▼ -112"
+                ],
+                [
+                  "Pond's",
+                  "13.03%",
+                  "12.71%",
+                  "▼ -32"
+                ],
+                [
+                  "Mamaearth",
+                  "5.61%",
+                  "6.68%",
+                  "▲ +107"
+                ],
+                [
+                  "The Derma Co.",
+                  "0.12%",
+                  "0.81%",
+                  "▲ +69"
+                ]
+              ]
+            },
+            {
+              "kind": "table",
+              "title": "Shampoo — top brands (MS Val %)",
+              "span": 1.0,
+              "head": [
+                "Brand",
+                "May'25",
+                "May'26",
+                "YoY bps"
+              ],
+              "items": [
+                [
+                  "Dove",
+                  "15.23%",
+                  "14.95%",
+                  "▼ -28"
+                ],
+                [
+                  "H&S",
+                  "12.19%",
+                  "11.12%",
+                  "▼ -106"
+                ],
+                [
+                  "TRESemme",
+                  "6.44%",
+                  "7.43%",
+                  "▲ +99"
+                ],
+                [
+                  "Mamaearth",
+                  "1.75%",
+                  "2.50%",
+                  "▲ +75"
+                ],
+                [
+                  "Patanjali",
+                  "2.17%",
+                  "1.84%",
+                  "▼ -34"
+                ]
+              ]
+            },
+            {
+              "kind": "table",
+              "title": "Zone MoM share move (bps)",
+              "span": 1.0,
+              "head": [
+                "Zone",
+                "Facewash",
+                "Shampoo"
+              ],
+              "items": [
+                [
+                  "North",
+                  "▼ -33",
+                  "▼ -26"
+                ],
+                [
+                  "South",
+                  "▲ +90",
+                  "▲ +8"
+                ],
+                [
+                  "East",
+                  "▲ +37",
+                  "▲ +37"
+                ],
+                [
+                  "West",
+                  "▼ -3",
+                  "▲ +5"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "weight": 0.62,
+          "tiles": [
+            {
+              "kind": "callout",
+              "title": "Facewash — genuine share gain",
+              "tone": "good",
+              "span": 1.0,
+              "text": "Category value grew +24% YoY and Honasa still added +107 bps — this is share capture, not category tailwind. Protect and continue the distribution push."
+            },
+            {
+              "kind": "callout",
+              "title": "Shampoo — grew slower than the category",
+              "tone": "risk",
+              "span": 1.0,
+              "text": "-2 bps MoM against +11.5% category value growth. Flag for assortment and promo review before it turns into a YoY erosion."
+            },
+            {
+              "kind": "bullets",
+              "title": "Actions",
+              "tone": "info",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Shampoo",
+                  "text": "Assortment + promo review in North (▼-26 bps). Owner: Category · 18-Jul",
+                  "tone": "risk"
+                },
+                {
+                  "lead": "Facewash",
+                  "text": "Hold South momentum (▲+90 bps) — replicate the mix in West. Owner: RKAM · 20-Jul",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Validated",
+          "text": "External data agrees with internal offtake — the growth is real."
+        },
+        {
+          "lead": "Gap",
+          "text": "Shampoo is the one category losing pace against its market."
+        }
+      ]
+    }
+  ]
+}

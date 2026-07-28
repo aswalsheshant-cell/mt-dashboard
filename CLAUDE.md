@@ -92,6 +92,9 @@ scripts/
 PowerBI/
   PowerQuery/ DAX/ SeedData/ RawDataFolders/ docs/ theme/ templates/  build kit.
   QuickSetup/               consolidated PQ+DAX paste-in references.
+.claude/skills/
+  insight-deck/             leadership PPT: audit an existing deck for repeated
+                            pages, collapse it, build dense one-pager slides.
 ```
 
 12 tabs (order): Data Explorer, Overview, Primary, Offtake, P&L, Category & Pack,
