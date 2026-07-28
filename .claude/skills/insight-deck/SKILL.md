@@ -20,6 +20,14 @@ Target for a monthly/QBR leadership review: **4-6 main pages + an appendix.**
 
 ### Step 0 — Get the real source
 
+**Reuse the leadership team's own wording.** When the source deck already states
+the insight — "114 Cr offtakes: 27% Sequential & 64% YoY Growth", "TDC @ 30 Cr,
+doubling sequentially in D-mart" — carry that sentence across as the headline
+rather than writing your own. It is how leadership already understands the
+quarter, and it makes the compressed deck recognisable rather than foreign.
+Rewrite only to merge two of their lines into one headline, or to fix a claim the
+source data does not support (and say so when you do).
+
 Never invent numbers. Work from an existing `.pptx`, the dashboard data, or an
 analysis the user supplies. If a figure needed for a page is missing, name the
 exact file or field required and leave the tile out — do not estimate.
@@ -98,7 +106,9 @@ Then look at the PNGs and confirm:
 - [ ] No text overflows its tile, no tile overlaps another.
 - [ ] Every headline states a **conclusion with a number**, not a topic.
 - [ ] Every page has a "So what" footer with an owner and a date where relevant.
-- [ ] No two pages make the same point.
+- [ ] No two pages make the same point. Re-run `audit_deck.py` on your own
+      output — a clean deck should report no clones to collapse.
+- [ ] Headlines are the source's own sentences wherever the source had one.
 - [ ] Every number traces back to the source. Nothing invented.
 - [ ] Page count reported as before → after.
 
@@ -123,6 +133,26 @@ review deck.
 
 Use `a4p` (8.27 × 11.69) instead of `portrait` when it will be printed — same
 layout, A4 proportions.
+
+### Reading it on a phone
+
+`portrait` is 9:16 — exactly a phone screen, so each page fills it with no
+pinching. But a phone cannot read 7 pt. Set a floor and let the page count grow:
+
+```json
+{"page": "portrait", "min_pt": 9.5, "slides": [ ... ]}
+```
+
+`min_pt` stops every auto-fit from shrinking past it. Content that no longer fits
+has to be cut or moved to another page — which is the point. In practice:
+
+- **One theme per page, 5-7 pages.** Cramming the quarter onto one tall page and
+  cramming it onto one slide are the same mistake; on a phone the reader swipes,
+  so pages are cheap and small type is not.
+- **One tile per row** for tables and bars. Two side-by-side tiles are fine on a
+  desktop portrait page and too narrow on a phone.
+- **`kpi_cols: 2`** — two big KPI cards per row read cleanly at arm's length.
+- Sanity check by viewing the PNG at phone width; if you would zoom, cut.
 
 ### Portrait recipe
 
@@ -215,6 +245,7 @@ builder auto-shrinks text, and anything under ~8 pt means the page is overloaded
 | `reference/spec_schema.md` | Every spec field, with snippets |
 | `examples/mt_offtake_may26.json` | Real 24-page review compressed to 3 landscape pages |
 | `examples/mt_may26_onepager_portrait.json` | The same review as **one portrait page** |
+| `examples/mt_q1fy27_mobile_portrait.json` | Q1 FY27 review, **6 phone-readable portrait pages** (`min_pt`) |
 
 The default palette matches `dashboard/index.html`, so decks and dashboard look
 like one system. Pass `"theme": "slate"` or a `"palette"` override for others.

@@ -16,6 +16,7 @@ is set for the whole file by `page`.
 | Field | Meaning |
 |---|---|
 | `page` | Page size for the **whole file** — PowerPoint allows only one. `landscape` 13.33 × 7.5 (default), `portrait` 7.5 × 13.33, `a4` 11.69 × 8.27, `a4p` 8.27 × 11.69, `letterp` 8.5 × 11 |
+| `min_pt` | Smallest point size auto-fit may use, for the whole file. Default 7.0; use **9.5** for pages that will be read on a phone |
 | `theme` | `honasa` (default, matches the dashboard) or `slate` |
 | `palette` | Overrides individual theme keys: `accent`, `accent_d`, `bg`, `card`, `ink`, `muted`, `line`, `good`, `risk`, `warn`, `info`, `font`, `font_head` |
 | `slides` | **required** — list of pages, rendered in order |
@@ -164,7 +165,8 @@ landscape, 2 portrait — extra items wrap onto more rows and the bar grows).
 
 ## Auto-fit behaviour
 
-Text shrinks to fit its box (floor ≈ 7 pt); headlines shrink to 14 pt. Hitting
+Text shrinks to fit its box (floor ≈ 7 pt, or `min_pt` when higher); headlines
+shrink to 14 pt landscape / 13 pt portrait. Hitting
 the floor means the page is overloaded — cut content rather than overriding with
 `size` / `text_size`. Those overrides exist for fine-tuning, not for rescuing an
 overfull page.

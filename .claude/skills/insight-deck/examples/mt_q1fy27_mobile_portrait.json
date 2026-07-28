@@ -1,0 +1,1212 @@
+{
+  "_comment": "Q1 FY27 MT review for phone reading. Sources: 'Q1_FY27.pdf' (34-page leadership deck) and 'Updated_MT_Offtake_June26_20page_executive.pptx' (20-page executive deck). Headlines and bullets reuse the leadership team's own wording. Every fact appears on exactly one page. 9:16 portrait = full-screen on a phone, one swipe per page; min_pt 9.5 keeps everything legible at that size.",
+  "page": "portrait",
+  "min_pt": 9.5,
+  "theme": "honasa",
+  "slides": [
+    {
+      "eyebrow": "Honasa Modern Trade  |  Q1 FY27 (Apr–Jun'26)  |  Leadership review",
+      "headline": "114 CR OFFTAKES: 27% SEQUENTIAL & 64% YoY GROWTH",
+      "subhead": "Q1 FY27 closed at ₹114.39 Cr vs ₹69.92 Cr in Q1 FY26 — every zone grew",
+      "stamp": "BEST EVER Q1",
+      "kpi_cols": 2,
+      "kpis": [
+        {
+          "label": "Q1 FY27 offtake",
+          "value": "₹114.39 Cr",
+          "delta": "▲ 64% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "Sequential",
+          "value": "+27%",
+          "delta": "▲ vs Q4 FY26",
+          "tone": "good"
+        },
+        {
+          "label": "Q1 FY27 primary",
+          "value": "₹136.53 Cr",
+          "delta": "▲ 77% YoY, ▲ 45% seq",
+          "tone": "good"
+        },
+        {
+          "label": "Jun'26 offtake",
+          "value": "₹38.24 Cr",
+          "delta": "▲ 68% YoY",
+          "tone": "good"
+        }
+      ],
+      "rows": [
+        {
+          "h": 2.45,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "Zone view — NSV ₹ Lacs",
+              "span": 1.0,
+              "weights": [
+                1.5,
+                1.1,
+                1.1,
+                1.0,
+                0.8
+              ],
+              "head": [
+                "Zone",
+                "Q1 FY26",
+                "Q1 FY27",
+                "Growth",
+                "Mix"
+              ],
+              "items": [
+                [
+                  "West",
+                  "1,877",
+                  "2,905",
+                  "▲ 55%",
+                  "25%"
+                ],
+                [
+                  "North",
+                  "1,583",
+                  "2,641",
+                  "▲ 67%",
+                  "23%"
+                ],
+                [
+                  "South-1",
+                  "1,356",
+                  "2,489",
+                  "▲ 84%",
+                  "22%"
+                ],
+                [
+                  "South-2",
+                  "952",
+                  "1,576",
+                  "▲ 66%",
+                  "14%"
+                ],
+                [
+                  "East",
+                  "701",
+                  "1,173",
+                  "▲ 67%",
+                  "10%"
+                ],
+                [
+                  "Pan India (FSN)",
+                  "523",
+                  "653",
+                  "▲ 25%",
+                  "6%"
+                ],
+                [
+                  "TOTAL",
+                  "6,992",
+                  "11,439",
+                  "▲ 64%",
+                  "100%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h": 2.25,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "Top chains — NSV ₹ Lacs",
+              "span": 1.0,
+              "weights": [
+                1.5,
+                1.1,
+                1.1,
+                1.0,
+                0.8
+              ],
+              "head": [
+                "Chain",
+                "Q1 FY26",
+                "Q1 FY27",
+                "Growth",
+                "Mix"
+              ],
+              "items": [
+                [
+                  "D-Mart",
+                  "2,600",
+                  "4,232",
+                  "▲ 63%",
+                  "37%"
+                ],
+                [
+                  "Reliance",
+                  "1,908",
+                  "2,806",
+                  "▲ 47%",
+                  "25%"
+                ],
+                [
+                  "Apollo",
+                  "793",
+                  "2,173",
+                  "▲ 174%",
+                  "19%"
+                ],
+                [
+                  "FSN",
+                  "523",
+                  "653",
+                  "▲ 25%",
+                  "6%"
+                ],
+                [
+                  "Lulu",
+                  "124",
+                  "333",
+                  "▲ 169%",
+                  "3%"
+                ],
+                [
+                  "Wellness",
+                  "249",
+                  "291",
+                  "▲ 17%",
+                  "3%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "Brand view — Q1 FY27 offtake",
+          "h": 1.55,
+          "tiles": [
+            {
+              "kind": "metrics",
+              "cols": 3,
+              "items": [
+                {
+                  "label": "Mamaearth",
+                  "value": "₹82.5 Cr",
+                  "delta": "▲ 33%",
+                  "tone": "good"
+                },
+                {
+                  "label": "The Derma Co.",
+                  "value": "₹29.5 Cr",
+                  "delta": "▲ 365%",
+                  "tone": "good"
+                },
+                {
+                  "label": "Aqualogica",
+                  "value": "₹1.96 Cr",
+                  "delta": "▲ 16%",
+                  "tone": "info"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 1.7,
+          "tiles": [
+            {
+              "kind": "bullets",
+              "title": "Leadership takeaway",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Concentration",
+                  "text": "D-Mart, Reliance and Apollo delivered **81.8%** of June offtake.",
+                  "tone": "warn"
+                },
+                {
+                  "lead": "Growth engine",
+                  "text": "The Derma Co. added **₹23.2 Cr** of the ₹44.5 Cr Q1 offtake growth.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Momentum",
+                  "text": "Jun'26 was the best-ever June, ▲68% YoY, despite a seasonal ▼5% MoM off the May record.",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Hold",
+          "text": "Growth is broad-based across every zone and both lead brands."
+        },
+        {
+          "lead": "Watch",
+          "text": "Three chains now carry four-fifths of the channel."
+        }
+      ]
+    },
+    {
+      "eyebrow": "The Derma Co.  |  Q1 FY27  |  Brand engine",
+      "headline": "TDC @ 30 CR, DOUBLING SEQUENTIALLY IN D-MART",
+      "subhead": "Major scale-up in the acne partition, with 80% saliency",
+      "stamp": "365% YoY",
+      "kpi_cols": 2,
+      "kpis": [
+        {
+          "label": "TDC Q1 offtake",
+          "value": "₹29.5 Cr",
+          "delta": "▲ 365% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "TDC in D-Mart",
+          "value": "₹13.66 Cr",
+          "delta": "▲ 98% sequential",
+          "tone": "good"
+        },
+        {
+          "label": "TDC facewash",
+          "value": "₹15.45 Cr",
+          "delta": "▲ 1,091% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "TDC sun care",
+          "value": "₹10.59 Cr",
+          "delta": "▲ 290% YoY",
+          "tone": "good"
+        }
+      ],
+      "rows": [
+        {
+          "h": 2.3,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "TDC account-wise offtake — ₹ Lacs",
+              "span": 1.0,
+              "weights": [
+                1.4,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "head": [
+                "Chain",
+                "Q1 FY26",
+                "Q1 FY27",
+                "Seq QoQ",
+                "YoY"
+              ],
+              "items": [
+                [
+                  "D-Mart",
+                  "57",
+                  "1,366",
+                  "▲ 98%",
+                  "▲ 2,296%"
+                ],
+                [
+                  "Apollo",
+                  "69",
+                  "677",
+                  "▲ 82%",
+                  "▲ 880%"
+                ],
+                [
+                  "Reliance",
+                  "87",
+                  "210",
+                  "▲ 64%",
+                  "▲ 141%"
+                ],
+                [
+                  "Wellness",
+                  "144",
+                  "188",
+                  "▲ 7%",
+                  "▲ 31%"
+                ],
+                [
+                  "H&G",
+                  "133",
+                  "142",
+                  "▲ 33%",
+                  "▲ 7%"
+                ],
+                [
+                  "Lulu",
+                  "23",
+                  "140",
+                  "▲ 49%",
+                  "▲ 510%"
+                ],
+                [
+                  "TOTAL",
+                  "635",
+                  "2,951",
+                  "▲ 70%",
+                  "▲ 365%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "Acne partition — TDC facewash by range",
+          "h": 1.75,
+          "tiles": [
+            {
+              "kind": "table",
+              "span": 1.0,
+              "weights": [
+                1.5,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "head": [
+                "Range",
+                "Q1 FY27",
+                "Seq QoQ",
+                "YoY"
+              ],
+              "items": [
+                [
+                  "Salicylic Acid",
+                  "774",
+                  "▲ 32%",
+                  "▲ 1,234%"
+                ],
+                [
+                  "Sali-Cinamide",
+                  "438",
+                  "▲ 137%",
+                  "▲ 2,217%"
+                ],
+                [
+                  "Kojic Acid",
+                  "306",
+                  "▲ 121%",
+                  "▲ 737%"
+                ],
+                [
+                  "TOTAL",
+                  "1,545",
+                  "▲ 67%",
+                  "▲ 1,091%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "Distribution scale-up, March → June'26",
+          "h": 1.5,
+          "tiles": [
+            {
+              "kind": "metrics",
+              "cols": 2,
+              "items": [
+                {
+                  "label": "2% Sali-Cinamide FW",
+                  "value": "74 → 412",
+                  "note": "D-Mart doors · throughput 81 → 135 units",
+                  "tone": "good"
+                },
+                {
+                  "label": "1% Kojic Acid FW",
+                  "value": "80 → 364",
+                  "note": "D-Mart doors · throughput 57 → 130 units",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 1.75,
+          "tiles": [
+            {
+              "kind": "bullets",
+              "title": "What is driving it",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Share source",
+                  "text": "Gain in acne partition not just from Himalaya and Clean & Clear, but also Men's facewash.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Distribution",
+                  "text": "National focus helped to rapidly scale distribution.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Next chain",
+                  "text": "2% Sali-Cinamide showing green shoots in Reliance @ **35 units** throughput in manned counters.",
+                  "tone": "info"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Scale",
+          "text": "D-Mart proves the model; Reliance and Apollo are the next doors to open."
+        },
+        {
+          "lead": "Guard",
+          "text": "Fill rate on Kojic is the constraint, not demand."
+        }
+      ]
+    },
+    {
+      "eyebrow": "Face wash  |  Q1 FY27  |  Category deep dive",
+      "headline": "BEST EVER QUARTER FOR ME FW AT 33 CR — D-MART HONASA SHARE CROSSES 27% FOR THE FIRST TIME",
+      "subhead": "D-Mart facewash category growing @ 20% YoY; Honasa grew ahead of it",
+      "kpi_cols": 2,
+      "kpis": [
+        {
+          "label": "ME facewash Q1",
+          "value": "₹32.59 Cr",
+          "delta": "▲ 33% YoY, ▲ 25% seq",
+          "tone": "good"
+        },
+        {
+          "label": "D-Mart Honasa share",
+          "value": "27%",
+          "delta": "▲ from 17% LY",
+          "tone": "good"
+        },
+        {
+          "label": "Rice range",
+          "value": "₹15.81 Cr",
+          "delta": "▲ 82% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "Large packs (200+150)",
+          "value": "67%",
+          "delta": "▲ from 54% of value",
+          "tone": "good"
+        }
+      ],
+      "rows": [
+        {
+          "h": 2.1,
+          "tiles": [
+            {
+              "kind": "bars",
+              "title": "ME facewash by range — Q1 FY27 (₹ Lacs)",
+              "span": 1.0,
+              "label_w": 1.3,
+              "items": [
+                {
+                  "label": "Rice",
+                  "value": 1581,
+                  "display": "1,581",
+                  "note": "▲ 82%",
+                  "tone": "good"
+                },
+                {
+                  "label": "Ubtan",
+                  "value": 946,
+                  "display": "946",
+                  "note": "▲ 13%",
+                  "tone": "warn"
+                },
+                {
+                  "label": "Vitamin C",
+                  "value": 473,
+                  "display": "473",
+                  "note": "▲ 7%",
+                  "tone": "warn"
+                },
+                {
+                  "label": "Tea Tree",
+                  "value": 69,
+                  "display": "69",
+                  "note": "▲ 52% seq",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 2.2,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "Pack size mix — ₹ Lacs",
+              "span": 1.0,
+              "weights": [
+                1.2,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "head": [
+                "Pack",
+                "Q1 FY27",
+                "Seq QoQ",
+                "YoY"
+              ],
+              "items": [
+                [
+                  "150 ml",
+                  "1,878",
+                  "▲ 25%",
+                  "▲ 43%"
+                ],
+                [
+                  "100 ml",
+                  "917",
+                  "▲ 19%",
+                  "▲ 0%"
+                ],
+                [
+                  "50 ml",
+                  "205",
+                  "▲ 21%",
+                  "▲ 89%"
+                ],
+                [
+                  "200 ml",
+                  "204",
+                  "▲ 83%",
+                  "new"
+                ],
+                [
+                  "250 ml",
+                  "56",
+                  "▼ 15%",
+                  "▼ 51%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "D-Mart facewash market share",
+          "h": 1.55,
+          "tiles": [
+            {
+              "kind": "metrics",
+              "cols": 3,
+              "items": [
+                {
+                  "label": "Mamaearth",
+                  "value": "15%",
+                  "note": "17% in Q1 FY26",
+                  "tone": "warn"
+                },
+                {
+                  "label": "The Derma Co.",
+                  "value": "12%",
+                  "note": "from ~0% in Q1 FY26",
+                  "tone": "good"
+                },
+                {
+                  "label": "Total Honasa",
+                  "value": "27%",
+                  "delta": "▲ 87% growth",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 1.6,
+          "tiles": [
+            {
+              "kind": "bullets",
+              "title": "The read",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Range",
+                  "text": "Best ever quarter on Rice range, however Ubtan & Vitamin C are flat.",
+                  "tone": "warn"
+                },
+                {
+                  "lead": "Reversal",
+                  "text": "Tea Tree offtake decline reversed — ▲52% sequentially.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Packs",
+                  "text": "Doubling the business on **200 g** packs; sequential growth on 100 g.",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Protect",
+          "text": "Rice is carrying the quarter — availability on 150 ml is the priority."
+        },
+        {
+          "lead": "Fix",
+          "text": "Ubtan and Vitamin C are flat and need a separate plan."
+        }
+      ]
+    },
+    {
+      "eyebrow": "Shampoo & Sun Care  |  Q1 FY27",
+      "headline": "BEST EVER OFFTAKE ON SHAMPOO LED BY RELIANCE, AND A BEST EVER 20 CR+ SUN CARE QUARTER",
+      "subhead": "Power of all three brands together in sun care; large packs lifting shampoo",
+      "kpi_cols": 2,
+      "kpis": [
+        {
+          "label": "Shampoo Q1",
+          "value": "₹22.02 Cr",
+          "delta": "▲ 65% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "Shampoo in Reliance",
+          "value": "₹8.98 Cr",
+          "delta": "▲ 80% YoY",
+          "tone": "good"
+        },
+        {
+          "label": "Sun care Q1 (all brands)",
+          "value": "₹21.75 Cr",
+          "delta": "▲ best ever",
+          "tone": "good"
+        },
+        {
+          "label": "ME shampoo run rate",
+          "value": "₹100 Cr",
+          "delta": "annualised",
+          "tone": "good"
+        }
+      ],
+      "rows": [
+        {
+          "h": 2.05,
+          "tiles": [
+            {
+              "kind": "bars",
+              "title": "Shampoo by range — Q1 FY27 (₹ Lacs)",
+              "span": 1.0,
+              "label_w": 1.3,
+              "items": [
+                {
+                  "label": "Onion",
+                  "value": 1339,
+                  "display": "1,339",
+                  "note": "▲ 46%",
+                  "tone": "good"
+                },
+                {
+                  "label": "Rosemary",
+                  "value": 693,
+                  "display": "693",
+                  "note": "▲ 146%",
+                  "tone": "good"
+                },
+                {
+                  "label": "Rice",
+                  "value": 88,
+                  "display": "88",
+                  "note": "▲ 750%",
+                  "tone": "good"
+                },
+                {
+                  "label": "Lemon",
+                  "value": 70,
+                  "display": "70",
+                  "note": "▼ 15%",
+                  "tone": "risk"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "Sun care — best ever quarter, all three brands",
+          "h": 1.55,
+          "tiles": [
+            {
+              "kind": "metrics",
+              "cols": 3,
+              "items": [
+                {
+                  "label": "The Derma Co.",
+                  "value": "₹10.59 Cr",
+                  "delta": "▲ 290%",
+                  "tone": "good"
+                },
+                {
+                  "label": "Mamaearth",
+                  "value": "₹9.42 Cr",
+                  "delta": "▲ 61%",
+                  "tone": "good"
+                },
+                {
+                  "label": "Aqualogica",
+                  "value": "₹1.74 Cr",
+                  "delta": "▲ 26%",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 2.05,
+          "tiles": [
+            {
+              "kind": "bullets",
+              "title": "Shampoo — what changed",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Revival",
+                  "text": "6 continuous quarters of revival of Onion; Rosemary now at **50%+ of Onion**.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Upsizing",
+                  "text": "600+ ml upsizing in both Reliance & Apollo, not at the expense of 400 ml.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Reliance",
+                  "text": "650 ml contribution increased from 5% in Q2 LY to **19%** in Q1 FY27.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Combo",
+                  "text": "Mera Wala Combo baseline moves to **1 lakh units** monthly; +25K users/month on 400 ml.",
+                  "tone": "good"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 1.45,
+          "tiles": [
+            {
+              "kind": "callout",
+              "title": "Watch-out — Reliance sunscreen",
+              "tone": "risk",
+              "span": 1.0,
+              "value": "MS down to 18%",
+              "text": "Lakme, the biggest sunscreen player in RRL, ran a Golden Event promotion at 50% off in May versus its BAU 33%, moving users to that SKU. Plan: lock summer stock sufficiency by Nov, drive TDC & Aqua trials to scale 80 g next year."
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Scale",
+          "text": "Rosemary is the shampoo growth lever; protect Onion while it scales."
+        },
+        {
+          "lead": "Defend",
+          "text": "Sunscreen share in Reliance is a promo fight, not a demand problem."
+        }
+      ]
+    },
+    {
+      "eyebrow": "Market share, distribution & sell-out  |  MAT Jun-26",
+      "headline": "MAMAEARTH IS GAINING SHARE IN BOTH CATEGORIES, BUT ₹21.9 CR IS BILLED AND NOT YET SOLD",
+      "subhead": "External share from MS insights (MAT Jun-26); sell-out on the 26-chain matched universe",
+      "kpi_cols": 2,
+      "kpis": [
+        {
+          "label": "Facewash share",
+          "value": "10.5%",
+          "delta": "▲ +3.1 pp",
+          "tone": "good"
+        },
+        {
+          "label": "Shampoo share",
+          "value": "3.7%",
+          "delta": "▲ +1.2 pp",
+          "tone": "good"
+        },
+        {
+          "label": "Q1 sell-out",
+          "value": "83.9%",
+          "delta": "▼ ₹21.9 Cr billed-not-sold",
+          "tone": "risk"
+        },
+        {
+          "label": "Jun'26 sell-out",
+          "value": "92%",
+          "delta": "▲ improving",
+          "tone": "good"
+        }
+      ],
+      "rows": [
+        {
+          "h": 1.6,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "Category scorecard — MAT Jun-26",
+              "span": 1.0,
+              "weights": [
+                1.4,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+              ],
+              "head": [
+                "Category",
+                "Share",
+                "Gain",
+                "L3M YoY",
+                "WD"
+              ],
+              "items": [
+                [
+                  "Facewash",
+                  "10.5%",
+                  "▲ +3.1 pp",
+                  "▲ 58%",
+                  "89.0%"
+                ],
+                [
+                  "Shampoo",
+                  "3.7%",
+                  "▲ +1.2 pp",
+                  "▲ 80%",
+                  "81.5%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "h": 1.95,
+          "tiles": [
+            {
+              "kind": "table",
+              "title": "Sell-out by chain — Q1 FY27",
+              "span": 1.0,
+              "weights": [
+                1.3,
+                1.1,
+                1.1,
+                1.0
+              ],
+              "head": [
+                "Chain",
+                "Primary",
+                "Offtake",
+                "Sell-out"
+              ],
+              "items": [
+                [
+                  "D-Mart",
+                  "5,527",
+                  "4,232",
+                  "77%"
+                ],
+                [
+                  "Reliance",
+                  "3,047",
+                  "2,806",
+                  "92%"
+                ],
+                [
+                  "Metro CNC",
+                  "—",
+                  "—",
+                  "152%"
+                ],
+                [
+                  "TOTAL",
+                  "13,625",
+                  "11,436",
+                  "83.9%"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "Share of shelf — Q1 actual vs target",
+          "h": 1.65,
+          "tiles": [
+            {
+              "kind": "bars",
+              "span": 1.0,
+              "label_w": 1.5,
+              "items": [
+                {
+                  "label": "Sunscreen",
+                  "value": 33,
+                  "display": "33%",
+                  "note": "no target",
+                  "tone": "good"
+                },
+                {
+                  "label": "Facewash",
+                  "value": 23,
+                  "display": "23%",
+                  "note": "target 30%+",
+                  "tone": "warn"
+                },
+                {
+                  "label": "Shampoo",
+                  "value": 8,
+                  "display": "8%",
+                  "note": "target 10%+",
+                  "tone": "risk"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "h": 2.05,
+          "tiles": [
+            {
+              "kind": "bullets",
+              "title": "What the market is saying",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Facewash",
+                  "text": "Mamaearth is the fastest-growing large brand: +55% MAT versus category +10% MAT.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Shampoo",
+                  "text": "Mamaearth is scaling faster than every major brand: +48% MAT and +80% L3M.",
+                  "tone": "good"
+                },
+                {
+                  "lead": "Velocity",
+                  "text": "The next leg must come from PDO and shelf productivity, not distribution alone.",
+                  "tone": "info"
+                },
+                {
+                  "lead": "Inventory",
+                  "text": "Trade inventory is building faster than consumer offtake — D-Mart sell-out is the weakest at 77%.",
+                  "tone": "risk"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "footer_title": "So what",
+      "footer": [
+        {
+          "lead": "Correct",
+          "text": "Slow Q2 primary billing pace vs Q1 to let consumer offtake catch up."
+        },
+        {
+          "lead": "Close",
+          "text": "Shampoo SOS at 8% against a 10%+ target is the clearest shelf gap."
+        }
+      ]
+    },
+    {
+      "eyebrow": "Q2 FY27  |  Decisions and owners",
+      "headline": "TURN SHARE GAINS INTO REPEATABLE GROWTH — FOUR MOVES FOR Q2 FY27",
+      "subhead": "The opportunity is clear. Execution now decides whether momentum compounds or fades.",
+      "rows": [
+        {
+          "h": 1.55,
+          "tiles": [
+            {
+              "kind": "callout",
+              "title": "01 · Protect facewash lead",
+              "tone": "good",
+              "span": 1.0,
+              "text": "Hold availability in 150 ml and 100 ml heroes; prioritise South accounts where category growth and Mamaearth momentum are strongest.  KPI: WD ≥90% | Fill rate ≥95%"
+            },
+            {
+              "kind": "callout",
+              "title": "02 · Scale shampoo smartly",
+              "tone": "info",
+              "span": 1.0,
+              "text": "Expand Rosemary as the scale lever while protecting Onion. Review pack mix to prevent volume growth from over-diluting realised price/ml.  KPI: Share >4% | PDO growth > category"
+            }
+          ]
+        },
+        {
+          "h": 1.55,
+          "tiles": [
+            {
+              "kind": "callout",
+              "title": "03 · Win the velocity battle",
+              "tone": "warn",
+              "span": 1.0,
+              "text": "Rank chains by share opportunity using WD × PDO. Fix the largest high-distribution, low-velocity gaps before adding broad new listings.  KPI: Top-10 gap closure weekly"
+            },
+            {
+              "kind": "callout",
+              "title": "04 · Separate the measurement bases",
+              "tone": "info",
+              "span": 1.0,
+              "text": "Use external market share for competitive health and internal NSV for business delivery. Do not compare them as the same sales base.  KPI: One source label on every chart"
+            }
+          ]
+        },
+        {
+          "band": "JTBD Q1 — delta expected vs delivered",
+          "h": 2.3,
+          "tiles": [
+            {
+              "kind": "table",
+              "span": 1.0,
+              "weights": [
+                1.6,
+                1.2,
+                1.2
+              ],
+              "head": [
+                "Driver",
+                "Delta expected",
+                "Result"
+              ],
+              "items": [
+                [
+                  "Face wash distribution",
+                  "₹1.25–1.50 Cr",
+                  "₹1.75 Cr"
+                ],
+                [
+                  "Sunscreen distribution",
+                  "₹1.00–1.25 Cr",
+                  "₹1.10 Cr"
+                ],
+                [
+                  "Shampoo distribution",
+                  "₹0.50–0.75 Cr",
+                  "₹0.75 Cr"
+                ],
+                [
+                  "Proposed Beetroot FW",
+                  "₹0.35–0.40 Cr",
+                  "₹0.60 Cr"
+                ],
+                [
+                  "Baby range",
+                  "₹0.50–0.60 Cr",
+                  "₹0.16 Cr"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "band": "Immediate priorities — owner and timing",
+          "h": 2.55,
+          "tiles": [
+            {
+              "kind": "table",
+              "span": 1.0,
+              "weights": [
+                1.7,
+                1.4,
+                1.3,
+                0.9
+              ],
+              "head": [
+                "Priority",
+                "KPI / target",
+                "Owner",
+                "Timing"
+              ],
+              "items": [
+                [
+                  "Close shampoo WD gaps",
+                  "WD toward 90%",
+                  "NKAM / Sales",
+                  "Sep'26"
+                ],
+                [
+                  "Align shampoo pack range",
+                  "650/180/340/1000",
+                  "RKAM / Category",
+                  "Sep'26"
+                ],
+                [
+                  "Protect MT availability",
+                  "Fill-rate ≥95%",
+                  "NKAM / Supply",
+                  "Ongoing"
+                ],
+                [
+                  "Sustain FW productivity",
+                  "PDO above category",
+                  "Trade Marketing",
+                  "Ongoing"
+                ],
+                [
+                  "Resolve TDC softness",
+                  "Validate stock/phasing",
+                  "Sales Analytics",
+                  "Aug'26"
+                ],
+                [
+                  "Scale winning listings",
+                  "Incremental ROS",
+                  "Brand / Sales",
+                  "Q2 FY27"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "tiles": [
+            {
+              "kind": "bullets",
+              "title": "Non-negotiables",
+              "span": 1.0,
+              "items": [
+                {
+                  "lead": "Availability",
+                  "text": "Maintain fill-rate ≥95% and close chain-level listing gaps before increasing visibility investment.",
+                  "tone": "risk"
+                },
+                {
+                  "lead": "Decision",
+                  "text": "Protect the facewash flywheel; expand shampoo only where distribution, fill-rate and pack demand are proven.",
+                  "tone": "good"
+                }
+              ]
+            }
+          ],
+          "h": 1.25
+        }
+      ],
+      "footer_title": "Leadership ask",
+      "footer": [
+        {
+          "lead": "Approve",
+          "text": "Chain-level WD × PDO review and monthly pack-mix governance for facewash and shampoo."
+        }
+      ]
+    }
+  ]
+}

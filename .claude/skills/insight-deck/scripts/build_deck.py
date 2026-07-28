@@ -58,6 +58,7 @@ SLIDE_W, SLIDE_H = PAGES["landscape"]
 MARGIN = 0.30
 GUTTER = 0.14
 PORTRAIT = False
+MIN_PT = 7.0            # never auto-shrink below this; raise it for phone reading
 
 
 def set_page(name):
@@ -156,9 +157,24 @@ def _plain(s):
 
 
 def n_lines(s, w_in, size_pt, cw=0.58):
-    """Estimated wrapped line count for `s` in a box `w_in` inches wide."""
+    """Estimated wrapped line count for `s` in a box `w_in` inches wide.
+
+    Wraps on word boundaries the way the renderer does — a plain
+    characters/line division under-counts whenever a long word is pushed to
+    the next line, which is exactly how headlines end up clipped.
+    """
     per_line = max(1, int(w_in * 96 / (size_pt * 1.333 * cw)))
-    return max(1, -(-len(_plain(s)) // per_line))
+    lines, cur = 1, 0
+    for word in _plain(s).split():
+        wl = len(word)
+        if cur == 0:
+            cur = wl
+        elif cur + 1 + wl <= per_line:
+            cur += 1 + wl
+        else:
+            lines += 1
+            cur = wl
+    return lines
 
 
 CW_CAPS = 0.68          # bold UPPERCASE is much wider than mixed-case body
@@ -173,8 +189,14 @@ def text_h(lines, w_in, size_pt, lead=1.06, cw=0.58):
 
 
 def fit_size(lines, w_in, h_in, base, floor=7.5, step=0.5, caps=False):
-    """Largest size <= base at which `lines` still fit in the box."""
+    """Largest size <= base at which `lines` still fit in the box.
+
+    Never goes below MIN_PT: on a phone-read page, overflowing type is a
+    signal to cut content, not to shrink it further.
+    """
     cw = CW_CAPS if caps else 0.58
+    floor = max(floor, MIN_PT)
+    base = max(base, floor)
     size = base
     while size > floor and text_h(lines, w_in, size, cw=cw) * 1.06 > h_in:
         size -= step
@@ -212,7 +234,7 @@ def draw_header(slide, sp, theme, y):
     top_pad, eyebrow_h = 0.11, 0.21 if sp.get("eyebrow") else 0.0
     sub_h = 0.0
     if sp.get("subhead"):
-        sub_h = text_h(sp["subhead"], tw, 10) + 0.04
+        sub_h = text_h(sp["subhead"], tw, 10, cw=0.60) + 0.08
     h = sp.get("header_h") or max(0.78, top_pad + eyebrow_h + hl_h + sub_h
                                   + 0.12)
 
@@ -397,8 +419,14 @@ def t_bars(slide, x, y, w, h, t, theme):
     by += max(0.0, (avail - rowh * len(rows)) / 2)      # centre short blocks
     size = 9 if rowh > 0.3 else 8.2
     lab_w = t.get("label_w", max(0.62, min(1.5, w * 0.26)))
-    note_w = 0.72 if any(r.get("note") for r in rows) else 0.0
-    val_w = 0.62
+
+    def _w(texts, lo, hi):                 # column width that fits the longest
+        longest = max((str(x) for x in texts if x is not None), key=len, default="")
+        return min(hi, max(lo, len(longest) * size * 1.333 * 0.58 / 96 + 0.12))
+
+    notes = [r.get("note") for r in rows if r.get("note")]
+    note_w = _w(notes, 0.72, 1.25) if notes else 0.0
+    val_w = _w([r.get("display", r.get("value", "")) for r in rows], 0.62, 1.1)
     bar_x = x + 0.12 + lab_w + 0.06
     bar_w = w - 0.24 - lab_w - 0.06 - val_w - note_w
     for i, r in enumerate(rows):
@@ -463,6 +491,10 @@ def t_callout(slide, x, y, w, h, t, theme):
         radius=0.08)
     box(slide, x, y, 0.075, h, fill=tone)
     ty = y + 0.10
+    if not t.get("value") and t.get("text"):
+        # no big number: centre the title+text block rather than stranding it
+        block = (0.21 if t.get("title") else 0) + text_h(t["text"], w - 0.34, 9.5)
+        ty = y + max(0.10, (h - block) / 2)
     if t.get("title"):
         label(slide, x + 0.20, ty, w - 0.32, 0.20, str(t["title"]).upper(),
               theme, size=8.8, bold=True, color=tone, inset=0)
@@ -493,9 +525,10 @@ def t_table(slide, x, y, w, h, t, theme):
     tot = sum(weights)
     widths = [(w - 0.2) * wt / tot for wt in weights]
     avail = (y + h) - by - 0.06
-    rowh = min(0.34, avail / max(1, len(rows) + (1 if head else 0)))
+    nrow = max(1, len(rows) + (1 if head else 0))
+    rowh = min(0.34, avail / nrow)
     size = 8.8 if rowh > 0.24 else 8
-    ry = by
+    ry = by + max(0.0, (avail - rowh * nrow) / 2)
     if head:
         box(slide, x + 0.10, ry, w - 0.2, rowh, fill=C(theme, "bg"), radius=0.04)
         cx = x + 0.10
@@ -574,10 +607,17 @@ def draw_rows(slide, rows, theme, y, bottom):
     avail = bottom - y - GUTTER * (len(rows) - 1)
     fixed = sum(float(r["h"]) for r in rows if r.get("h"))
     n_flex = sum(1 for r in rows if not r.get("h"))
-    # pinned heights that do not fit get scaled down together, so a page can
-    # never silently run off the bottom
+    # Pinned rows are scaled together to fill the page exactly: down when they
+    # overrun (never silently off the bottom), up when they leave dead space.
+    # With flex rows present they are only ever scaled down — the flex rows
+    # take the slack.
     room = avail - 0.5 * n_flex
-    squeeze = min(1.0, room / fixed) if fixed > room > 0 else 1.0
+    if fixed <= 0 or room <= 0:
+        squeeze = 1.0
+    elif n_flex:
+        squeeze = min(1.0, room / fixed)
+    else:
+        squeeze = room / fixed
     if squeeze < 0.995:
         print(f"  note: pinned row heights exceed the page — scaled to "
               f"{squeeze:.0%}", file=sys.stderr)
@@ -633,7 +673,9 @@ def build_slide(prs, sp, theme, page, pages):
 def build(spec, out):
     theme = dict(THEMES.get(spec.get("theme", "honasa"), THEMES["honasa"]))
     theme.update(spec.get("palette", {}))
+    global MIN_PT
     w, h = set_page(spec.get("page", "landscape"))
+    MIN_PT = float(spec.get("min_pt", 7.0))
     prs = Presentation()
     prs.slide_width, prs.slide_height = Inches(w), Inches(h)
     slides = spec.get("slides", [])
