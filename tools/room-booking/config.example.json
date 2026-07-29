@@ -1,0 +1,38 @@
+{
+  "_comment": "Copy to config.json and edit. The selectors below are STARTING GUESSES - run `python qudify_book.py inspect` and correct them until it lists your real room names and slot states.",
+
+  "login_url": "https://qudify.co/login",
+  "booking_url": "https://qudify.co/employee-access-view?companyId=64cc9651b039c564d80385d0",
+
+  "office": "Capital Cyberscape",
+  "floor": "10th",
+  "date_format": "%Y/%m/%d",
+
+  "selectors": {
+    "office": "select:near(:text('Office')), [class*='office'] [class*='select']",
+    "floor": "select:near(:text('Floor')), [class*='floor'] [class*='select']",
+    "date_input": "input[type='date'], input[class*='date']",
+    "apply_button": "button:has-text('Apply')",
+    "grid": "[class*='calendar'], [class*='grid'], table",
+    "room_header": "[class*='room'][class*='header'], thead th",
+    "slot_cell": "[class*='slot'], td",
+    "title_input": "input[name='title'], input[placeholder*='itle']",
+    "attendees_input": "input[placeholder*='ttendee'], input[placeholder*='mail']",
+    "confirm_button": "button:has-text('Book'), button:has-text('Confirm')"
+  },
+
+  "_palette_comment": "RGB of the on-page legend. `inspect` prints the colours it actually sees - paste the real ones here.",
+  "palette": {
+    "booked": [220, 53, 69],
+    "selected": [34, 165, 91],
+    "unavailable": [196, 196, 196]
+  },
+  "colour_tolerance": 60,
+
+  "settle_ms": 1200,
+  "timeout_ms": 30000,
+  "capture_filter": "api|book|slot|room|meeting",
+
+  "_chromium_comment": "Optional. Only needed if `playwright install chromium` is blocked on your machine - point this at an installed Chrome/Chromium binary instead. e.g. macOS: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "chromium_executable": null
+}

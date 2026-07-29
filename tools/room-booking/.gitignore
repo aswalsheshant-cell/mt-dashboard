@@ -1,0 +1,6 @@
+# Secrets and machine-local state — never commit these.
+config.json
+auth.json
+artifacts/
+cron.log
+__pycache__/
