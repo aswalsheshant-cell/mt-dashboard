@@ -13,7 +13,7 @@ Durable store = an append-only CSV (`repository_history.csv`) holding EVERY
 version ever seen. The "current" view is derived (latest published version per
 article key). Excel outputs are always regenerated, never the source of truth.
 """
-import os, hashlib, uuid, datetime as dt
+import os, hashlib, uuid, datetime as dt, json
 import pandas as pd
 from schema import (REPO_COLS, ARTICLE_KEY_EAN, ARTICLE_KEY_FALLBACK,
                     COMMERCIAL_COMPONENTS, COMMERCIAL_PCT_COLS, NUMERIC_COLS)
@@ -22,6 +22,8 @@ from validation import validate_frame
 HIST_FILE = "repository_history.csv"
 SNAP_DIR = "snapshots"
 CHANGELOG_DIR = "change_logs"
+MANIFEST_DIR = "manifests"
+SCHEMA_VERSION = "1.1.0"
 
 # fields whose change triggers a new version + change-log entries
 TRACKED_FIELDS = COMMERCIAL_PCT_COLS + ["Final Effective Margin %", "MRP", "GST %",
@@ -77,14 +79,41 @@ def derive_final_margin(df):
     return df
 
 
+def file_checksum(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 16), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 class MarginRepository:
     def __init__(self, root):
         self.root = root
         os.makedirs(root, exist_ok=True)
         os.makedirs(os.path.join(root, SNAP_DIR), exist_ok=True)
         os.makedirs(os.path.join(root, CHANGELOG_DIR), exist_ok=True)
+        os.makedirs(os.path.join(root, MANIFEST_DIR), exist_ok=True)
         self.hist_path = os.path.join(root, HIST_FILE)
         self.history = self._load()
+        self._imported_checksums = self._load_checksums()
+
+    def _load_checksums(self):
+        path = os.path.join(self.root, "imported_checksums.json")
+        if os.path.exists(path):
+            with open(path) as f:
+                return json.load(f)
+        return {}
+
+    def _save_checksums(self):
+        path = os.path.join(self.root, "imported_checksums.json")
+        with open(path, "w") as f:
+            json.dump(self._imported_checksums, f, indent=2)
+
+    def check_duplicate_import(self, source_path):
+        cs = file_checksum(source_path)
+        prev = self._imported_checksums.get(cs)
+        return prev, cs
 
     def _load(self):
         if os.path.exists(self.hist_path):
@@ -123,9 +152,15 @@ class MarginRepository:
     # -------------------------------------------------------------------
     # Import a normalized frame -> validate, version, append, change-log.
     # -------------------------------------------------------------------
-    def import_frame(self, df, source_file, today=None):
+    def import_frame(self, df, source_file, today=None, source_path=None,
+                     submitted_by="", business_owner=""):
         batch = dt.datetime.now().strftime("B%Y%m%d%H%M%S-") + uuid.uuid4().hex[:6]
         ts = dt.datetime.now().isoformat(timespec="seconds")
+
+        # backup before import
+        if not self.history.empty:
+            self._snapshot("PRE-IMPORT-" + batch)
+
         df = coerce_numeric(df)
         df = derive_final_margin(df)
         df = validate_frame(df, today=today)
@@ -169,6 +204,8 @@ class MarginRepository:
                 "Article_Key": ak, "Source_File": source_file, "Import_Batch_Id": batch,
                 "Import_Timestamp": ts, "Change_Type": change_type,
                 "Version Number": new_v, "Is_Current": "Y",
+                "Submitted_By": submitted_by, "Submitted_Date": ts,
+                "Business_Owner": business_owner,
             })
             rr["Record_Key"] = record_key(rr)
             if change_type == "UNCHANGED":
@@ -208,14 +245,45 @@ class MarginRepository:
         if not cl.empty:
             cl.to_csv(os.path.join(self.root, CHANGELOG_DIR, batch + "_changelog.csv"), index=False)
 
+        n_new = int((added["Change_Type"] == "NEW").sum()) if not added.empty else 0
+        n_changed = int((added["Change_Type"] == "CHANGED").sum()) if not added.empty else 0
+        n_unchanged = int(len(df) - len(added))
+        n_warning = int((df["QC_Severity"] == "WARNING").sum())
+        n_fail = int((df["QC_Severity"] == "FAIL").sum())
+        n_blocked = int((df["QC_Severity"] == "BLOCKED").sum())
+        n_pass = int((df["QC_Severity"] == "PASS").sum())
+        n_fallback = int(sum(fallbacks))
+        n_published = int((df["Record_Status"] == "PUBLISHED").sum())
+        n_held = int((df["Record_Status"] == "HELD").sum())
+
+        # reconciliation: source rows must equal the sum of outcomes
+        recon_sum = n_new + n_changed + n_unchanged
+        recon_diff = len(df) - recon_sum
+
         summary = {
-            "batch": batch, "source_file": source_file, "rows_in_file": len(df),
-            "new": int((added["Change_Type"] == "NEW").sum()) if not added.empty else 0,
-            "changed": int((added["Change_Type"] == "CHANGED").sum()) if not added.empty else 0,
-            "unchanged": int(len(df) - len(added)),
+            "batch": batch, "source_file": source_file, "schema_version": SCHEMA_VERSION,
+            "rows_in_file": len(df),
+            "new": n_new, "changed": n_changed, "unchanged": n_unchanged,
+            "pass": n_pass, "warning": n_warning, "fail": n_fail, "blocked": n_blocked,
+            "published_forecast_ready": n_published, "held": n_held,
+            "fallback_article_keys": n_fallback,
             "removed_from_file": len(removed),
             "changelog_entries": len(cl),
+            "reconciliation_diff": recon_diff,
         }
+
+        # write import manifest
+        manifest = {**summary, "timestamp": ts, "submitted_by": submitted_by}
+        mpath = os.path.join(self.root, MANIFEST_DIR, batch + "_manifest.json")
+        with open(mpath, "w") as f:
+            json.dump(manifest, f, indent=2)
+
+        # register checksum
+        if source_path and os.path.exists(source_path):
+            cs = file_checksum(source_path)
+            self._imported_checksums[cs] = {"batch": batch, "file": source_file, "ts": ts}
+            self._save_checksums()
+
         return summary, cl, removed
 
     def _detect_removed(self, incoming, source_file):

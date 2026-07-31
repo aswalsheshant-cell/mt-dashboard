@@ -48,6 +48,15 @@ DATE_COLS = [
     "Approval Status", "Approval Date", "Version Number",
 ]
 
+# Approval workflow columns
+APPROVAL_COLS = [
+    "Submitted_By", "Submitted_Date", "Reviewed_By", "Reviewed_Date",
+    "Approval_Remarks", "Business_Owner", "Finance_Approval_Status",
+]
+VALID_APPROVAL_STATUSES = {
+    "DRAFT", "PENDING_REVIEW", "APPROVED", "REJECTED", "SUPERSEDED",
+}
+
 # Repository-internal audit columns (appended, never sourced from files)
 AUDIT_COLS = [
     "Record_Key", "Article_Key", "Source_File", "Import_Batch_Id",
@@ -55,7 +64,7 @@ AUDIT_COLS = [
     "Is_Current", "Change_Type",
 ]
 
-REPO_COLS = ARTICLE_COLS + COMMERCIAL_COLS + CONDITION_COLS + DATE_COLS + AUDIT_COLS
+REPO_COLS = ARTICLE_COLS + COMMERCIAL_COLS + CONDITION_COLS + DATE_COLS + APPROVAL_COLS + AUDIT_COLS
 
 # ---------------------------------------------------------------------------
 # Keys

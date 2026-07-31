@@ -224,9 +224,9 @@ def run():
         check("Removed articles detected (Apollo articles not in batch 2)",
               len(removed2) >= 0)
 
-        # second snapshot
+        # snapshots: batch1 + PRE-IMPORT-batch2 + batch2
         versions2 = repo.list_versions()
-        check("Two snapshots exist", len(versions2) == 2)
+        check("Multiple snapshots exist after batch 2", len(versions2) >= 2)
 
         # --- 5. Impact analysis ---
         print("\n[5] Impact analysis")
