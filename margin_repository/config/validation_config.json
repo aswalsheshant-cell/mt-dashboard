@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.1.0",
+  "risk_thresholds": {
+    "normal_max_pp": 1.0,
+    "warning_max_pp": 3.0,
+    "high_risk_max_pp": 5.0,
+    "labels": {
+      "normal": "Normal \u2014 standard review",
+      "warning": "Warning \u2014 checker approval required",
+      "high_risk": "High Risk \u2014 commercial approval required",
+      "blocked": "Blocked \u2014 finance/commercial dual approval required"
+    }
+  },
+  "gst_controls": {
+    "valid_rates": [
+      0,
+      5,
+      12,
+      18,
+      28
+    ],
+    "severity": {
+      "blank_gst": "WARNING",
+      "invalid_gst_value": "FAIL",
+      "gst_mismatch_article_master": "BLOCKED",
+      "gst_change_from_prior": "WARNING",
+      "unsupported_gst_rate": "BLOCKED"
+    }
+  },
+  "rule_severity": {
+    "BLANK_EAN": "WARNING",
+    "BLANK_MRP": "BLOCKED",
+    "MISSING_CHAIN": "BLOCKED",
+    "MISSING_BRAND": "FAIL",
+    "MISSING_CATEGORY": "FAIL",
+    "MARGIN_OVER_100": "BLOCKED",
+    "NEGATIVE_MARGIN": "BLOCKED",
+    "INCORRECT_GST": "FAIL",
+    "INCORRECT_PACK_SIZE": "WARNING",
+    "DUPLICATE_EAN": "WARNING",
+    "DUPLICATE_CHAIN_ARTICLE": "WARNING",
+    "DUPLICATE_EFFECTIVE_DATE": "FAIL",
+    "EXPIRED_COMMERCIAL": "WARNING",
+    "INACTIVE_ARTICLE": "WARNING",
+    "MISSING_COMMERCIALS": "WARNING",
+    "BLANK_TRADE_MARGIN": "WARNING",
+    "BLANK_GST": "WARNING",
+    "GST_CHANGED": "WARNING"
+  },
+  "approval": {
+    "valid_statuses": [
+      "DRAFT",
+      "PENDING_REVIEW",
+      "APPROVED",
+      "REJECTED",
+      "SUPERSEDED"
+    ],
+    "forecast_eligible_statuses": [
+      "APPROVED"
+    ],
+    "forecast_eligible_record_statuses": [
+      "PUBLISHED"
+    ],
+    "forecast_eligible_listing_statuses": [
+      "ACTIVE"
+    ]
+  },
+  "margin_bounds": {
+    "max_margin_pct": 100.0,
+    "min_margin_pct": 0.0,
+    "allow_negative_with_approval": false
+  }
+}

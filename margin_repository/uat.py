@@ -187,7 +187,8 @@ def run_uat(out_path=None):
         # ---- TC06: Margin change triggers new version ----
         repo3 = MarginRepository(os.path.join(tmpdir, "repo3"))
         b_init = pd.DataFrame(_valid_rows())
-        repo3.import_frame(b_init, "init.xlsx")
+        s3_init, _, _ = repo3.import_frame(b_init, "init.xlsx")
+        batch1_id = s3_init["batch"]
         b_chg = _margin_change_batch()
         s3, cl3, rm3 = repo3.import_frame(b_chg, "change.xlsx")
         uat.check("TC06", "Margin change creates new version",
@@ -267,10 +268,8 @@ def run_uat(out_path=None):
                   "v1 rows=%d" % len(v1_rows))
 
         # ---- TC13: Rollback test ----
-        versions = repo3.list_versions()
         pre_rollback_count = len(repo3.history)
-        first_snap = [v for v in versions if not v.startswith("PRE-")][0]
-        repo3.rollback(first_snap)
+        repo3.rollback(batch1_id)
         uat.check("TC13", "Rollback restores earlier state",
                   "History count after rollback < before",
                   len(repo3.history) < pre_rollback_count,

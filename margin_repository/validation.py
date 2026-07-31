@@ -10,28 +10,12 @@ forecast-ready views until resolved.
 import math
 import pandas as pd
 from schema import VALID_GST
+from config import DEFAULT_CONFIG, get_rule_severity
 
 SEVERITY_ORDER = {"PASS": 0, "WARNING": 1, "FAIL": 2, "BLOCKED": 3}
 
-# rule -> severity
-RULE_SEVERITY = {
-    "BLANK_EAN": "WARNING",           # allowed but flagged (fallback key used)
-    "BLANK_MRP": "BLOCKED",
-    "MISSING_CHAIN": "BLOCKED",
-    "MISSING_BRAND": "FAIL",
-    "MISSING_CATEGORY": "FAIL",
-    "MARGIN_OVER_100": "BLOCKED",
-    "NEGATIVE_MARGIN": "BLOCKED",
-    "INCORRECT_GST": "FAIL",
-    "INCORRECT_PACK_SIZE": "WARNING",
-    "DUPLICATE_EAN": "WARNING",
-    "DUPLICATE_CHAIN_ARTICLE": "WARNING",
-    "DUPLICATE_EFFECTIVE_DATE": "FAIL",
-    "EXPIRED_COMMERCIAL": "WARNING",
-    "INACTIVE_ARTICLE": "WARNING",
-    "MISSING_COMMERCIALS": "WARNING",
-    "BLANK_TRADE_MARGIN": "WARNING",
-}
+# default rule -> severity (used when no config override is provided)
+RULE_SEVERITY = DEFAULT_CONFIG["rule_severity"].copy()
 
 
 def _blank(v):
@@ -51,11 +35,14 @@ def _num(v):
         return None
 
 
-def validate_frame(df, today=None):
+def validate_frame(df, today=None, cfg=None):
     """Return df with Validation_Flags, QC_Severity, Record_Status added.
     Cross-row rules (duplicate EAN / chain+article / effective date) included.
+    cfg: optional config dict from config.load_config(); defaults apply if None.
     """
     today = pd.Timestamp(today) if today is not None else pd.Timestamp.today().normalize()
+    rule_sev = (cfg or DEFAULT_CONFIG).get("rule_severity", RULE_SEVERITY)
+    gst_rates = set((cfg or DEFAULT_CONFIG).get("gst_controls", {}).get("valid_rates", VALID_GST))
     df = df.copy()
     flags = [[] for _ in range(len(df))]
 
@@ -107,7 +94,9 @@ def validate_frame(df, today=None):
             f.append("BLANK_TRADE_MARGIN")
 
         gst = _num(row.get("GST %"))
-        if gst is not None and int(round(gst)) not in VALID_GST:
+        if gst is None:
+            f.append("BLANK_GST")
+        elif int(round(gst)) not in gst_rates:
             f.append("INCORRECT_GST")
 
         if _blank(row.get("Pack Size")):
@@ -144,7 +133,7 @@ def validate_frame(df, today=None):
     dedup = [sorted(set(f)) for f in flags]
     df["Validation_Flags"] = ["; ".join(f) for f in dedup]
     df["QC_Severity"] = [
-        max((RULE_SEVERITY.get(x, "WARNING") for x in f), key=lambda s: SEVERITY_ORDER[s])
+        max((rule_sev.get(x, "WARNING") for x in f), key=lambda s: SEVERITY_ORDER[s])
         if f else "PASS" for f in dedup
     ]
     df["Record_Status"] = df["QC_Severity"].map(

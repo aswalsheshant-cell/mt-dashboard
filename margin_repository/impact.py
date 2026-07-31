@@ -9,12 +9,13 @@ computed; otherwise only the margin delta (in percentage points) is reported
 and the rupee columns are marked 'requires NSV/volume input' - never guessed.
 """
 import pandas as pd
+from config import DEFAULT_CONFIG, classify_margin_risk
 
-# margin-point delta above/below which an article is High Risk
-HIGH_RISK_PP = 2.0
+# margin-point delta above/below which an article is High Risk (default)
+HIGH_RISK_PP = DEFAULT_CONFIG["risk_thresholds"]["warning_max_pp"]
 
 
-def impact_from_changelog(changelog, drivers=None):
+def impact_from_changelog(changelog, drivers=None, cfg=None):
     """changelog: rows with Field/Old Value/New Value/Difference (from repo).
     drivers: optional DataFrame [Article_Key, Monthly_NSV, Monthly_Units].
     Returns an impact table (one row per margin-affecting change)."""
@@ -56,7 +57,9 @@ def impact_from_changelog(changelog, drivers=None):
                 _mark_needs_input(rec)
         else:
             _mark_needs_input(rec)
-        rec["High Risk"] = "YES" if (pd.notna(delta) and abs(delta) >= HIGH_RISK_PP) else "NO"
+        risk_tier = classify_margin_risk(delta, cfg) if pd.notna(delta) else "NORMAL"
+        rec["Risk Tier"] = risk_tier
+        rec["High Risk"] = "YES" if risk_tier in ("HIGH_RISK", "BLOCKED") else "NO"
         out.append(rec)
     df = pd.DataFrame(out)
     return df.sort_values("Margin Delta (pp)", key=lambda s: s.abs(), ascending=False)
