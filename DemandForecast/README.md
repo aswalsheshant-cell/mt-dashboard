@@ -53,6 +53,9 @@ python scripts/verify_demand_forecast.py   # asserts 0 formula errors
 - **Control Panel** — all assumptions, method weights, scenarios, capacities.
 - **Forecast Engine** — per Brand×Category: 7 statistical methods → Statistical →
   Business → AI ensemble → Base/Optimistic/Conservative/Selected, for M/M+1/M+2.
+- **Forecast Plan Article-Chain** — the rolling forecast cascaded to
+  **Article × Brand × Chain × Region** by real contribution % (filterable;
+  reconciles exactly to the engine).
 - **Scenario Summary** — Base/Optimistic/Conservative side by side vs target.
 - **AI Business Insights** / **Demand Planner Workbench** (overrides + audit trail).
 

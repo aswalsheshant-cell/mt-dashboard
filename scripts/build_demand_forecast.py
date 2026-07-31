@@ -88,6 +88,8 @@ def aggregate():
     art_meta = {}
     off_bc = defaultdict(lambda: defaultdict(float))
     off_bc_qty = defaultdict(lambda: defaultdict(float))
+    acr = defaultdict(float)   # (brand,cat,code,chain,zone) -> NSV cr  (Article×Chain×Region plan)
+    code_desc = {}
 
     for path in sorted(glob.glob(os.path.join(PRIM_DIR, "primary_article_*.csv"))):
         with open(path, newline="", encoding="utf-8", errors="replace") as fh:
@@ -108,6 +110,10 @@ def aggregate():
                 state = (row.get("State") or "").strip()
                 dist = (row.get("Ship To Name") or "").strip()
                 code = (row.get("Article Code") or "").strip().replace(".0", "")
+                if chain and zone:
+                    acr[(brand, cat, code, chain, zone)] += nsv
+                    if code and code not in code_desc:
+                        code_desc[code] = (row.get("Description") or "").strip()
                 if chain:
                     chain_tot[chain] += nsv
                     chain_zone.setdefault(chain, zone)
@@ -145,6 +151,7 @@ def aggregate():
         dist_tot=topn(dist_tot, 30), dist_meta=dist_meta,
         art_tot=topn(art_tot, 40), art_meta=art_meta,
         off_bc=off_bc, off_bc_qty=off_bc_qty,
+        acr=dict(acr), code_desc=code_desc,
     )
 
 
@@ -252,6 +259,7 @@ def build(agg, out_path):
     ws_seas = wb.create_sheet("Seasonality Matrix")
     ws_eng = wb.create_sheet("Forecast Engine")
     ws_scn = wb.create_sheet("Scenario Summary")
+    ws_plan = wb.create_sheet("Forecast Plan Article-Chain")
     ws_td = wb.create_sheet("Target Distribution")
     ws_pp = wb.create_sheet("Primary Planning")
     ws_di = wb.create_sheet("Distributor Intelligence")
@@ -290,6 +298,7 @@ def build(agg, out_path):
     build_forecast_engine(ws_eng, series, seas_cats, REF)
     # ---------------------------------------------------------------- Downstream
     build_scenario_summary(ws_scn, series, REF)
+    build_forecast_plan(ws_plan, agg, series, REF)
     build_target_distribution(ws_td, agg, REF)
     build_primary_planning(ws_pp, series, REF)
     build_distributor_intelligence(ws_di, agg, REF)
@@ -312,7 +321,8 @@ def build(agg, out_path):
     build_documentation(ws_doc, REF)
 
     # reorder: Dashboard & Control Panel front
-    order = ["Executive Dashboard", "Control Panel", "Forecast Engine", "Scenario Summary",
+    order = ["Executive Dashboard", "Control Panel", "Forecast Engine",
+             "Forecast Plan Article-Chain", "Scenario Summary",
              "AI Business Insights", "Demand Planner Workbench",
              "Business_Event_Master", "Event Impact Engine", "Event Impact Dashboard",
              "Event AI Recommendations", "Event Calendar", "Event Simulator",
@@ -1126,6 +1136,94 @@ def build_scenario_summary(ws, series, REF):
 
 
 # --------------------------------------------------------------------------
+def build_forecast_plan(ws, agg, series, REF):
+    """Article × Brand × Chain × Region rolling 3-month plan.
+    The Brand×Category rolling forecast (engine Base) is cascaded to each
+    Article×Chain×Region line by its REAL historical contribution % within its
+    Brand×Category, so the granular plan always reconciles to the engine total.
+    A per-Brand×Category 'long-tail' line captures the residual so contributions
+    sum to 100%."""
+    r = title_row(ws, "FORECAST PLAN · Article × Brand × Chain × Region  ·  rolling 3-month (₹ Cr)", 12)
+    r = section(ws, "The Brand×Category forecast is split to each Article×Chain×Region line by real "
+                    "historical contribution % (primary Apr'25–May'26), so it reconciles exactly to the "
+                    "Forecast Engine. Use the column filters (Brand / Chain / Region / Article) to slice. "
+                    "Contribution % is editable — override a line and the plan re-weights within its "
+                    "Brand×Category. The '(long tail)' line per Brand×Category holds the residual so each "
+                    "Brand×Category still sums to 100%.", r, 12)
+    r = header_cells(ws, r, ["Article Code", "Article Description", "Brand", "Category", "Chain",
+                             "Region (Zone)", "Hist NSV (₹Cr)", "Contribution %",
+                             "Fcst M (₹Cr)", "Fcst M+1", "Fcst M+2", "3M Total"])
+    first = r
+    acr = agg["acr"]
+    code_desc = agg.get("code_desc", {})
+    THRESH = 0.25   # ₹Cr over the 14-month window to be a named line
+    series_set = set(series)
+    # group acr rows by (brand,cat) but only for engine series
+    grouped = defaultdict(list)   # (brand,cat) -> list[(nsv, code, chain, zone)]
+    bc_total = defaultdict(float)
+    for (b, c, code, chain, zone), v in acr.items():
+        if (b, c) not in series_set:
+            continue
+        grouped[(b, c)].append((v, code, chain, zone))
+        bc_total[(b, c)] += v
+
+    EB, EC = REF["eng_brand"], REF["eng_cat"]
+    B = {1: REF["eng_Base1"], 2: REF["eng_Base2"], 3: REF["eng_Base3"]}
+    for (b, c) in series:   # keep engine order
+        rows = sorted(grouped.get((b, c), []), key=lambda t: -t[0])
+        named = [t for t in rows if t[0] >= THRESH]
+        residual = bc_total[(b, c)] - sum(t[0] for t in named)
+        lines = [(v, code, chain, zone) for (v, code, chain, zone) in named]
+        if residual > 0.01:
+            lines.append((residual, "(various)", "(all other chains)", "(mixed)"))
+        for v, code, chain, zone in lines:
+            desc = code_desc.get(code, "") if code not in ("(various)",) else "Long-tail articles & chains (residual)"
+            ws.cell(r, 1, code).font = F(8.5); ws.cell(r, 1).alignment = LEFT
+            ws.cell(r, 2, desc[:48]).font = F(8.5); ws.cell(r, 2).alignment = LEFT
+            ws.cell(r, 3, b).font = F(8.5)
+            ws.cell(r, 4, c).font = F(8.5)
+            ws.cell(r, 5, chain[:24]).font = F(8.5); ws.cell(r, 5).alignment = LEFT
+            ws.cell(r, 6, zone).font = F(8.5); ws.cell(r, 6).alignment = CENTER
+            hv = ws.cell(r, 7, round(v, 4)); hv.font = F(8.5, color=C_INPUT); hv.fill = fill(C_INPUT_FILL)
+            hv.number_format = FMT_CR; hv.alignment = RIGHT
+            # contribution % within brand×cat (editable hist drives it)
+            cap = first + 1500   # generous bound; plan is a few hundred rows
+            contrib = (f"=IFERROR(G{r}/SUMIFS($G${first}:$G${cap},$C${first}:$C${cap},$C{r},"
+                       f"$D${first}:$D${cap},$D{r}),0)")
+            ws.cell(r, 8, contrib).number_format = FMT_PCT
+            for t in (1, 2, 3):
+                base = f"SUMIFS({B[t]},{EB},$C{r},{EC},$D{r})"
+                ws.cell(r, 8 + t, f"=$H{r}*{base}").number_format = FMT_CR
+            ws.cell(r, 12, f"=SUM(I{r}:K{r})").number_format = FMT_CR
+            ws.cell(r, 12).font = F(8.5, True)
+            for cc in range(1, 13):
+                ws.cell(r, cc).border = BORDER
+            r += 1
+    last = r - 1
+    # total row
+    ws.cell(r, 1, "GRAND TOTAL").font = F(10, True)
+    for cl in "GIJKL":
+        idx = ord(cl) - 64
+        ws.cell(r, idx, f"=SUM({cl}{first}:{cl}{last})").number_format = FMT_CR
+        ws.cell(r, idx).font = F(9.5, True); ws.cell(r, idx).fill = fill(C_TOTAL)
+    for cc in range(1, 13):
+        ws.cell(r, cc).border = BORDER
+    # reconciliation note vs engine
+    r += 1
+    ws.cell(r, 1, "Reconciles to Forecast Engine Base total (3M):").font = F(9, italic=True)
+    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=5)
+    ws.cell(r, 12, f"={REF['engtot_Base1']}+{REF['engtot_Base2']}+{REF['engtot_Base3']}").number_format = FMT_CR
+    ws.cell(r, 12).font = F(9, True)
+    # autofilter for slicing by Brand/Chain/Region/Article
+    ws.auto_filter.ref = f"A{first-1}:L{last}"
+    widths = [12, 34, 14, 12, 22, 12, 12, 12, 11, 10, 10, 11]
+    for i, w in enumerate(widths):
+        ws.column_dimensions[get_column_letter(1 + i)].width = w
+    ws.freeze_panes = "C4"
+    REF["plan_rows"] = last - first + 1
+
+
+# --------------------------------------------------------------------------
 def build_target_distribution(ws, agg, REF):
     r = title_row(ws, "TARGET DISTRIBUTION  ·  cascade company target down the hierarchy", 8)
     r = section(ws, "If only a company target is given, it distributes by real historical contribution %. "
@@ -1464,9 +1562,10 @@ def build_dashboard(ws, series, agg, REF):
 
     # Warehouse mini + accuracy note handled elsewhere; add Primary vs Offtake note
     r = section(ws, "Quick links", r, 12)
-    links = ["→ Scenario Summary", "→ Business_Event_Master", "→ Event Impact Dashboard",
-             "→ Event Simulator", "→ Target Distribution", "→ Warehouse Optimization",
-             "→ Forecast Accuracy", "→ AI Business Insights", "→ Demand Planner Workbench"]
+    links = ["→ Scenario Summary", "→ Forecast Plan Article-Chain", "→ Business_Event_Master",
+             "→ Event Impact Dashboard", "→ Event Simulator", "→ Target Distribution",
+             "→ Warehouse Optimization", "→ Forecast Accuracy", "→ AI Business Insights",
+             "→ Demand Planner Workbench"]
     for i, lab in enumerate(links):
         c0 = 1 + (i % 3) * 4
         cell = ws.cell(r, c0, lab); cell.font = F(10, color=C_LINK)
@@ -1664,6 +1763,15 @@ def build_documentation(ws, REF):
             "M+1, M+2 and all indices are derived via MATCH on the Calendar; advance Forecast Month by",
             "one each cycle and the entire workbook rolls forward. Add a new month column to Primary Sales",
             "History and update Last Actual Month to bring in a fresh actual.",
+        ]),
+        ("GRANULAR FORECAST PLAN (Article × Brand × Chain × Region)", [
+            "The 'Forecast Plan Article-Chain' tab cascades the Brand×Category rolling forecast down to each",
+            "Article × Chain × Region line by REAL historical contribution % (primary Apr'25–May'26).",
+            "Because contributions within a Brand×Category sum to 100% (a '(long tail)' line holds the",
+            "residual), the granular plan reconciles EXACTLY to the Forecast Engine Base total.",
+            "Use the column filters to slice by Brand / Chain / Region / Article. Contribution % (or the",
+            "historical NSV that drives it) is editable — override a line and the plan re-weights within its",
+            "Brand×Category while still tying back to the engine.",
         ]),
         ("STATISTICAL METHODS (per Brand×Category, ₹ Cr)", [
             "WMA            = w1·M-1 + w2·M-2 + w3·M-3, reseasonalised.",
