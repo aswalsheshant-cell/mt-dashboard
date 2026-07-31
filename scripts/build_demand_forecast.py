@@ -1833,9 +1833,20 @@ def build_event_settings(ws, REF):
         ws.cell(r, 1, cf).font = F(9.5); ws.cell(r, 1).alignment = CENTER; ws.cell(r, 1).border = BORDER
         ws.cell(r, 2, mean).font = F(9.5); ws.cell(r, 2).alignment = LEFT; ws.cell(r, 2).border = BORDER
         r += 1
+    # ---- validation source list (column G) ----
+    # Excel drops inline list-validations longer than 255 chars, so the long
+    # Event-Type dropdown is sourced from this range instead of an inline list.
+    ws.cell(2, 7, "Event Type list").font = F(9, True, "FFFFFF")
+    ws.cell(2, 7).fill = fill(C_SUB); ws.cell(2, 7).alignment = CENTER
+    lf = 3
+    for i, et in enumerate(EVENT_TYPES):
+        c = ws.cell(lf + i, 7, et); c.font = F(9); c.alignment = LEFT
+    ll = lf + len(EVENT_TYPES) - 1
+    REF["evtypes_range"] = qname("Event Settings", f"$G${lf}:$G${ll}")
     ws.column_dimensions["A"].width = 40
     ws.column_dimensions["B"].width = 16
     ws.column_dimensions["C"].width = 52
+    ws.column_dimensions["G"].width = 24
     ws.freeze_panes = "A3"
     return EVENT_TYPES
 
@@ -1869,7 +1880,7 @@ def build_chain_event_library(ws, agg, event_types, REF):
     REF["clib_key"] = qname("Chain Event Library", f"$E${first}:$E${last}")
     for col, w in zip("ABCDE", (20, 22, 16, 14, 30)):
         ws.column_dimensions[col].width = w
-    dv = DataValidation(type="list", formula1=f'"{",".join(event_types)}"', allow_blank=True)
+    dv = DataValidation(type="list", formula1=REF["evtypes_range"], allow_blank=True)
     ws.add_data_validation(dv); dv.add(f"B{first}:B{last}")
     ws.freeze_panes = "A4"
 
@@ -1900,7 +1911,7 @@ def build_article_event_library(ws, event_types, REF):
     REF["alib_key"] = qname("Article Event Library", f"$E${first}:$E${last}")
     for col, w in zip("ABCDE", (16, 22, 12, 20, 30)):
         ws.column_dimensions[col].width = w
-    dv = DataValidation(type="list", formula1=f'"{",".join(event_types)}"', allow_blank=True)
+    dv = DataValidation(type="list", formula1=REF["evtypes_range"], allow_blank=True)
     ws.add_data_validation(dv); dv.add(f"B{first}:B{last}")
     ws.freeze_panes = "A4"
 
@@ -2090,16 +2101,18 @@ def build_event_master(ws, agg, event_types, REF):
         r += 1
     last = r - 1
 
-    # dropdowns
-    def dv(items, colkey, rng_first=first, rng_last=last):
-        d = DataValidation(type="list", formula1=f'"{",".join(items)}"', allow_blank=True)
+    # dropdowns. Inline lists are capped at 255 chars by Excel, so the long
+    # Event-Type list is sourced from a range (Event Settings!G) instead.
+    def dv(colkey, items=None, source=None, rng_first=first, rng_last=last):
+        f1 = source if source is not None else f'"{",".join(items)}"'
+        d = DataValidation(type="list", formula1=f1, allow_blank=True)
         ws.add_data_validation(d)
         cl = get_column_letter(col[colkey])
         d.add(f"{cl}{rng_first}:{cl}{rng_last}")
-    dv(event_types, "type")
-    dv(["Percentage", "Fixed Qty", "Distribution Gain", "Combined"], "method")
-    dv(["Critical", "High", "Medium", "Low"], "prio")
-    dv(["Draft", "Submitted", "Approved", "Rejected"], "status")
+    dv("type", source=REF["evtypes_range"])
+    dv("method", ["Percentage", "Fixed Qty", "Distribution Gain", "Combined"])
+    dv("prio", ["Critical", "High", "Medium", "Low"])
+    dv("status", ["Draft", "Submitted", "Approved", "Rejected"])
 
     # expose refs for impact/calendar/dashboard
     def rng(key):
