@@ -32,6 +32,7 @@ from forecast_engine.forecast_drivers import (
     compute_margin_change_impact, compute_distribution_expansion_impact,
     compute_confidence_interval, score_forecast_driver
 )
+from forecast_engine.data_normalizer import DataNormalizer
 
 
 class ForecastEngine:
@@ -63,6 +64,10 @@ class ForecastEngine:
 
         self.log(f"Loading margin data from {margin_file}")
         df = pd.read_csv(margin_file, dtype=str)
+
+        # Normalize column names and data types
+        df = DataNormalizer.normalize(df, source_type="margin")
+
         return df
 
     def load_historical_demand(
@@ -76,6 +81,12 @@ class ForecastEngine:
 
         primary = pd.read_csv(primary_path, dtype=str) if os.path.exists(primary_path) else pd.DataFrame()
         offtake = pd.read_csv(offtake_path, dtype=str) if os.path.exists(offtake_path) else pd.DataFrame()
+
+        # Normalize column names and data types
+        if not primary.empty:
+            primary = DataNormalizer.normalize(primary, source_type="primary")
+        if not offtake.empty:
+            offtake = DataNormalizer.normalize(offtake, source_type="offtake")
 
         return primary, offtake
 

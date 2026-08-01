@@ -16,6 +16,7 @@ from forecast_engine.forecast_drivers import (
     compute_confidence_interval, score_forecast_driver
 )
 from forecast_engine.scenario_planner import ScenarioPlanner
+from forecast_engine.data_normalizer import DataNormalizer
 
 
 class TestForecastSchema(unittest.TestCase):
@@ -212,6 +213,53 @@ class TestScenarioPlanner(unittest.TestCase):
         self.assertGreater(adjusted_qty, 200)
 
 
+class TestDataNormalizer(unittest.TestCase):
+    """Test data schema normalization."""
+
+    def test_normalize_uppercase_columns(self):
+        """Test normalization of uppercase column names."""
+        df = pd.DataFrame({
+            "EAN": ["123", "456"],
+            "Brand": ["X", "Y"],
+        })
+        normalized = DataNormalizer.normalize(df, source_type="margin")
+        self.assertIn("ean", normalized.columns)
+        self.assertIn("brand", normalized.columns)
+
+    def test_normalize_mixed_case_columns(self):
+        """Test normalization of mixed-case column names."""
+        df = pd.DataFrame({
+            "Chain Name": ["A", "B"],
+            "Article": ["SKU1", "SKU2"],
+            "Offtake_Qty": ["100", "200"],
+        })
+        normalized = DataNormalizer.normalize(df, source_type="offtake")
+        self.assertIn("chain_name", normalized.columns)
+        self.assertIn("article", normalized.columns)
+        self.assertIn("offtake_qty", normalized.columns)
+
+    def test_normalize_numeric_columns(self):
+        """Test conversion of numeric columns."""
+        df = pd.DataFrame({
+            "ean": ["123"],
+            "mrp": ["500"],
+            "quantity": ["1000"],
+        })
+        normalized = DataNormalizer.normalize(df, source_type="margin")
+        self.assertEqual(normalized["mrp"].dtype, "float64")
+        self.assertEqual(normalized["quantity"].dtype, "float64")
+
+    def test_validate_normalized(self):
+        """Test validation of normalized data."""
+        df = pd.DataFrame({
+            "ean": ["123"],
+            "chain": ["A"],
+        })
+        is_valid, missing = DataNormalizer.validate_normalized(df, {"ean", "chain"})
+        self.assertTrue(is_valid)
+        self.assertEqual(len(missing), 0)
+
+
 def run_tests(verbose=True):
     """Run all tests."""
     loader = unittest.TestLoader()
@@ -220,6 +268,7 @@ def run_tests(verbose=True):
     suite.addTests(loader.loadTestsFromTestCase(TestForecastSchema))
     suite.addTests(loader.loadTestsFromTestCase(TestForecastDrivers))
     suite.addTests(loader.loadTestsFromTestCase(TestScenarioPlanner))
+    suite.addTests(loader.loadTestsFromTestCase(TestDataNormalizer))
 
     runner = unittest.TextTestRunner(verbosity=2 if verbose else 1)
     result = runner.run(suite)

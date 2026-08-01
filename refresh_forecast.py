@@ -37,6 +37,7 @@ sys.path.insert(0, PROJECT_ROOT)
 from forecast_engine.cli import run_forecast_pipeline
 from forecast_engine.forecast_schema import validate_forecast_frame, compute_fy_from_date
 from forecast_engine.powerbi_export import build_executive_summary
+from forecast_engine.data_normalizer import DataNormalizer
 
 
 class ProductionForecastRunner:
@@ -95,17 +96,17 @@ class ProductionForecastRunner:
         # Load latest offtake file and extract unique articles
         offtake_df = pd.read_csv(offtake_files[-1], dtype=str)
 
-        # Map offtake columns to margin schema
+        # Normalize column names to handle mixed case
+        offtake_df = DataNormalizer.normalize(offtake_df, source_type="offtake")
+
+        # Extract required columns with normalized names
         articles = offtake_df[[
-            "EAN", "Article", "Chain Name", "Brand", "Category"
+            "ean", "article", "chain_name", "brand", "category"
         ]].drop_duplicates()
 
+        # Rename chain_name to chain for margin schema
         articles.rename(columns={
-            "EAN": "ean",
-            "Article": "article",
-            "Chain Name": "chain",
-            "Brand": "brand",
-            "Category": "category",
+            "chain_name": "chain",
         }, inplace=True)
 
         # Add synthetic margin columns
@@ -147,10 +148,12 @@ class ProductionForecastRunner:
         else:
             try:
                 margin_df = pd.read_csv(margin_file, dtype=str, nrows=10)
+                # Normalize column names to validate
+                margin_df = DataNormalizer.normalize(margin_df, source_type="margin")
                 required_cols = ["ean", "chain", "article", "brand", "category", "mrp"]
                 missing = [c for c in required_cols if c not in margin_df.columns]
                 if missing:
-                    issues.append(f"Margin file missing columns: {missing}")
+                    issues.append(f"Margin file missing columns (after normalization): {missing}")
             except Exception as e:
                 issues.append(f"Error reading margin file: {e}")
 
@@ -215,9 +218,9 @@ class ProductionForecastRunner:
 
         try:
             margin_df = pd.read_csv(self.margin_file_path, dtype=str)
-            # Handle both lowercase and uppercase column names
-            ean_col = "ean" if "ean" in margin_df.columns else "EAN"
-            margin_eans = set(margin_df[ean_col].unique())
+            # Normalize margin data columns
+            margin_df = DataNormalizer.normalize(margin_df, source_type="margin")
+            margin_eans = set(margin_df["ean"].unique())
 
             offtake_dir = os.path.join(
                 self.project_root, "PowerBI", "RawDataFolders", "Offtake_Monthly"
@@ -226,9 +229,9 @@ class ProductionForecastRunner:
 
             if offtake_files:
                 offtake_df = pd.read_csv(offtake_files[0], dtype=str, nrows=10000)
-                # Handle both lowercase and uppercase EAN column
-                offtake_ean_col = "ean" if "ean" in offtake_df.columns else "EAN"
-                offtake_eans = set(offtake_df[offtake_ean_col].unique())
+                # Normalize offtake data columns
+                offtake_df = DataNormalizer.normalize(offtake_df, source_type="offtake")
+                offtake_eans = set(offtake_df["ean"].unique())
                 unmapped = offtake_eans - margin_eans
 
                 if unmapped:
