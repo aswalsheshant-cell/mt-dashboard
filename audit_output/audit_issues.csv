@@ -1,0 +1,6 @@
+type,severity,count,owner,action,details
+Negative quantities in primary_history.primary_qty,WARNING,7925,Business Sponsor,Confirm treatment of 7925 negative values (returns vs. data errors),
+Articles with insufficient history (<6 months),WARNING,342,KAM / Category,Review 342 articles with <6 months data (may be NPI or new listings),Range: 1-5 months
+Insufficient historical depth in offtake_history,WARNING,1,Data Ops,Add historical data prior to April 2025,"Data starts at 2026-04-01 00:00:00, expected April 2025"
+Articles with insufficient history (<6 months),WARNING,565,KAM / Category,Review 565 articles with <6 months data (may be NPI or new listings),Range: 1-2 months
+Insufficient historical depth in fact_margin,WARNING,1,Data Ops,Add historical data prior to April 2025,"Data starts at 2026-04-01 00:00:00, expected April 2025"

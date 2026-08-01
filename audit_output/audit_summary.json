@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-08-01T15:19:04",
+  "total_issues": 5,
+  "summary": {
+    "PASS": 0,
+    "WARNING": 5,
+    "FAIL": 0,
+    "BLOCKED": 0
+  },
+  "blocked_count": 0,
+  "gate_status": "PASS",
+  "issues": [
+    {
+      "type": "Negative quantities in primary_history.primary_qty",
+      "severity": "WARNING",
+      "count": "7925",
+      "owner": "Business Sponsor",
+      "action": "Confirm treatment of 7925 negative values (returns vs. data errors)",
+      "details": null
+    },
+    {
+      "type": "Articles with insufficient history (<6 months)",
+      "severity": "WARNING",
+      "count": 342,
+      "owner": "KAM / Category",
+      "action": "Review 342 articles with <6 months data (may be NPI or new listings)",
+      "details": "Range: 1-5 months"
+    },
+    {
+      "type": "Insufficient historical depth in offtake_history",
+      "severity": "WARNING",
+      "count": 1,
+      "owner": "Data Ops",
+      "action": "Add historical data prior to April 2025",
+      "details": "Data starts at 2026-04-01 00:00:00, expected April 2025"
+    },
+    {
+      "type": "Articles with insufficient history (<6 months)",
+      "severity": "WARNING",
+      "count": 565,
+      "owner": "KAM / Category",
+      "action": "Review 565 articles with <6 months data (may be NPI or new listings)",
+      "details": "Range: 1-2 months"
+    },
+    {
+      "type": "Insufficient historical depth in fact_margin",
+      "severity": "WARNING",
+      "count": 1,
+      "owner": "Data Ops",
+      "action": "Add historical data prior to April 2025",
+      "details": "Data starts at 2026-04-01 00:00:00, expected April 2025"
+    }
+  ]
+}

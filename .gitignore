@@ -2,6 +2,13 @@
 __pycache__/
 node_modules/
 
+# Phase A generated data — real business data, local only
+Phase_A_Input/*.csv
+Phase_A_Input/*.xlsx
+# audit outputs contain no sensitive data; track the JSON/CSV summaries
+# (but Excel may have raw rows — keep it local)
+audit_output/*.xlsx
+
 # Source data — keep OUT of the repo (large; only generated dashboard/data.js is committed)
 *.xlsx
 *.xlsb
