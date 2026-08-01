@@ -1,0 +1,77 @@
+{
+  "report_title": "Margin Repository \u2014 Production Readiness Assessment",
+  "report_date": "2026-08-01",
+  "overall_status": "PASS WITH WARNINGS",
+  "schema_version": "1.1.0",
+  "pilot_summary": {
+    "pilot_date": "2026-08-01",
+    "source_data": "Real ArticleMaster (13 SKUs) \u00d7 ChainMaster (4 chains) + 15 edge cases",
+    "total_articles_tested": 67,
+    "batch_1": {
+      "rows": 67,
+      "new": 67,
+      "changed": 0,
+      "unchanged": 0,
+      "recon_diff": 0
+    },
+    "batch_2": {
+      "rows": 15,
+      "new": 2,
+      "changed": 5,
+      "unchanged": 8,
+      "recon_diff": 0
+    },
+    "edge_cases_tested": 15,
+    "edge_cases_correctly_classified": 15,
+    "qc_severity_distribution": {
+      "PASS": 48,
+      "WARNING": 12,
+      "FAIL": 3,
+      "BLOCKED": 4
+    },
+    "forecast_ready": 60,
+    "held": 7,
+    "pilot_verdict": "PASS WITH WARNINGS"
+  },
+  "automated_tests": {
+    "selftest": "65/65 PASS",
+    "uat": "26/26 PASS"
+  },
+  "business_rules": {
+    "total": 20,
+    "approved_by_pilot": 18,
+    "pending_approval": 2,
+    "pending_rules": [
+      "BR-19: Risk tier thresholds \u2014 awaiting Commercial/Finance confirmation",
+      "BR-20: GST cross-check with Article Master \u2014 awaiting integration"
+    ]
+  },
+  "approval_authority": {
+    "roles_defined": 7,
+    "named_owners": 0,
+    "status": "Roles defined; names pending organizational input"
+  },
+  "configuration": {
+    "risk_thresholds": {
+      "normal": "\u22641pp",
+      "warning": "\u22643pp",
+      "high_risk": "\u22645pp",
+      "blocked": ">5pp"
+    },
+    "gst_valid_rates": [
+      0,
+      5,
+      12,
+      18,
+      28
+    ],
+    "status": "Defaults set; awaiting formal approval"
+  },
+  "release_blockers": [],
+  "pending_items": [
+    "BR-19: Formal approval of risk tier thresholds by Commercial/Finance",
+    "BR-20: GST cross-check integration with Article Master",
+    "Named approval authority owners"
+  ],
+  "recommendation": "Ready for controlled production rollout once the 3 pending business decisions are resolved. No technical blockers remain."
+}
