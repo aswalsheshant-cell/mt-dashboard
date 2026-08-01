@@ -44,6 +44,10 @@ PACK_SIZE_PATTERNS = [
      lambda m: f"{m.group(1)} {m.group(2).lower().replace('gm','g').replace('kg','kg')}"),
     (re.compile(r"(\d+)\s*(sheet|patches|patch|piece|pcs)\b", re.I),
      lambda m: f"{m.group(1)} {m.group(2).lower()}"),
+    (re.compile(r"(\d+)\s*N\b"),
+     lambda m: f"{m.group(1)} count"),
+    (re.compile(r"twin\s*pack", re.I),
+     lambda m: "2 count"),
 ]
 
 

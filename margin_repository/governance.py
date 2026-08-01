@@ -163,6 +163,104 @@ def kpis_vs_targets(kpi_dict, targets=None):
     return pd.DataFrame(rows)
 
 
+def build_exception_register(validated_df, out_path=None,
+                             flag_to_reason=None):
+    """Convert remaining WARNING/FAIL/BLOCKED rows to a documented
+    business-exception register with owner + action + SLA + impact.
+    """
+    flag_to_reason = flag_to_reason or {
+        "INCORRECT_PACK_SIZE": {
+            "justification": "No trusted source has Pack Size (Fountain missing, "
+                             "name has no numeric spec, and MDM has not yet supplied)",
+            "action": "MDM to retrieve Pack Size from SAP article master",
+            "expected_source": "SAP Article Master → Article_Master_Extension.csv",
+            "impact": "Article held out of forecast until Pack Size supplied",
+        },
+        "BLANK_GST": {
+            "justification": "No GST rate on file",
+            "action": "Finance to publish GST_Master.csv entry",
+            "expected_source": "SAP tax classification",
+            "impact": "Cannot compute post-tax landed cost",
+        },
+        "BLANK_MRP": {
+            "justification": "MRP missing at source",
+            "action": "Sales Ops to supply MRP",
+            "expected_source": "SAP pricing / Chain PO",
+            "impact": "Cannot compute rupee margin",
+        },
+        "DUPLICATE_EAN": {
+            "justification": "Same EAN mapped to multiple articles within a chain",
+            "action": "MDM to consolidate",
+            "expected_source": "SAP Article Master",
+            "impact": "Ambiguous margin assignment",
+        },
+    }
+
+    rows = []
+    for _, r in validated_df[validated_df["QC_Severity"].isin(
+            ("WARNING", "FAIL", "BLOCKED"))].iterrows():
+        flags = [f for f in str(r.get("Validation_Flags") or "").split("; ") if f]
+        for f in flags:
+            spec = flag_to_reason.get(f, {
+                "justification": f"Flag '{f}' — see validation.py",
+                "action": "Investigate", "expected_source": "TBD",
+                "impact": "TBD",
+            })
+            dept, team, sla = owner_for(f)
+            rows.append({
+                "EAN": r.get("EAN", ""), "Chain": r.get("Chain", ""),
+                "Brand": r.get("Brand", ""), "Article": str(r.get("Article", ""))[:80],
+                "Flag": f, "Severity": r.get("QC_Severity", ""),
+                "Justification": spec["justification"],
+                "Owner_Dept": dept, "Owner_Team": team,
+                "Required_Action": spec["action"],
+                "Expected_Source": spec["expected_source"],
+                "SLA_Days": sla,
+                "Business_Impact": spec["impact"],
+            })
+    df = pd.DataFrame(rows)
+    if out_path and len(df):
+        df.to_excel(out_path, index=False)
+    return df
+
+
+def quality_gate(validated_df, exception_register_df=None,
+                 require_zero_blocked=True, require_zero_fail=True,
+                 require_documented_warnings=True):
+    """Return (passed: bool, reasons: list[str]) for build-gate enforcement."""
+    reasons = []
+    sev = validated_df["QC_Severity"].value_counts().to_dict()
+    n = len(validated_df)
+
+    if require_zero_blocked and sev.get("BLOCKED", 0) > 0:
+        reasons.append("BLOCKED > 0 (%d records)" % sev["BLOCKED"])
+    if require_zero_fail and sev.get("FAIL", 0) > 0:
+        reasons.append("FAIL > 0 (%d records)" % sev["FAIL"])
+
+    total_sev = sum(sev.values())
+    if total_sev != n:
+        reasons.append("Severity does not reconcile (%d != %d)" % (total_sev, n))
+
+    warning_count = sev.get("WARNING", 0)
+    if require_documented_warnings and warning_count > 0:
+        if exception_register_df is None or exception_register_df.empty:
+            reasons.append("WARNING > 0 without exception register")
+        else:
+            documented_eans = set(exception_register_df["EAN"].astype(str))
+            warned_eans = set(
+                validated_df.loc[validated_df["QC_Severity"] == "WARNING", "EAN"]
+                .astype(str)
+            )
+            undocumented = warned_eans - documented_eans
+            if undocumented:
+                reasons.append(
+                    "%d WARNING EAN(s) undocumented in exception register"
+                    % len(undocumented)
+                )
+
+    return (len(reasons) == 0, reasons)
+
+
 def enrich_from_previous_repo(dms_df, previous_repo_df):
     """Fallback enrichment: fill still-missing fields from a prior repository
     snapshot (last-known-good values). Uses Chain+EAN as key."""

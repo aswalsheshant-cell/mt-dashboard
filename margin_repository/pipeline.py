@@ -16,10 +16,12 @@ def run(dms_path, repo_root, out_dir, action_dir=None, masters_dir=None,
     from dms_adapter import load_dms
     from fountain_enricher import load_fountain_master, enrich
     from merge_responses import (merge_all_responses, apply_gst_master_to_frame,
+                                  apply_article_master_extension_to_frame,
                                   before_after_summary)
     from validation import validate_frame
     from action_files import generate_all_action_files
-    from governance import kpi_snapshot, kpis_vs_targets, append_kpi_history, issue_log
+    from governance import (kpi_snapshot, kpis_vs_targets, append_kpi_history,
+                             issue_log, build_exception_register, quality_gate)
     from repository import MarginRepository
     from powerbi_connector import export_star_schema
 
@@ -40,10 +42,12 @@ def run(dms_path, repo_root, out_dir, action_dir=None, masters_dir=None,
     summary["fountain_source"] = fm_meta["source_file"]
     summary["fountain_match_pct"] = enrich_report["fountain_matched_pct"]
 
-    log(3, "Enrich from persistent GST master (if any)")
-    enriched, gst_fill = apply_gst_master_to_frame(enriched, masters_dir=masters_dir) \
-        if masters_dir else apply_gst_master_to_frame(enriched)
+    log(3, "Enrich from persistent GST + Article Extension masters (if any)")
+    kwargs = {"masters_dir": masters_dir} if masters_dir else {}
+    enriched, gst_fill = apply_gst_master_to_frame(enriched, **kwargs)
+    enriched, art_fill = apply_article_master_extension_to_frame(enriched, **kwargs)
     summary["gst_master_filled"] = gst_fill["filled"]
+    summary["article_extension_filled"] = art_fill["filled"]
 
     validated_before = validate_frame(enriched)
 
@@ -57,6 +61,9 @@ def run(dms_path, repo_root, out_dir, action_dir=None, masters_dir=None,
             k: {"applied": v.get("applied"), "audit_rows": len(v.get("audit", []))}
             for k, v in merge_summary.items() if isinstance(v, dict)
         }
+        # After merge, the Article_Master_Extension gets populated — reapply
+        enriched, art_fill2 = apply_article_master_extension_to_frame(enriched, **kwargs)
+        summary["article_extension_filled_post_merge"] = art_fill2["filled"]
     else:
         summary["merge_summary"] = "no responses supplied"
 
@@ -88,11 +95,26 @@ def run(dms_path, repo_root, out_dir, action_dir=None, masters_dir=None,
     summary["kpi_snapshot"] = kpi
     summary["kpis_vs_targets"] = kpis_vs_targets(kpi).to_dict("records")
 
-    log(10, "Issue log (routed by owner + SLA)")
+    log(10, "Issue log + business exception register + quality gate")
     il = issue_log(validated)
     il_path = os.path.join(out_dir, "Issue_Log.xlsx")
     il.to_excel(il_path, sheet_name="Issues", index=False)
     summary["issue_log_rows"] = len(il)
+
+    exc_path = os.path.join(out_dir, "Business_Exceptions_Register.xlsx")
+    exc = build_exception_register(validated, out_path=exc_path)
+    summary["exceptions_documented"] = len(exc)
+
+    gate_ok, gate_reasons = quality_gate(validated, exc)
+    summary["quality_gate_passed"] = gate_ok
+    summary["quality_gate_reasons"] = gate_reasons
+    if verbose:
+        if gate_ok:
+            print("       QUALITY GATE: PASSED")
+        else:
+            print("       QUALITY GATE: FAILED")
+            for r in gate_reasons:
+                print("         - %s" % r)
 
     log(11, "Leadership summary")
     leadership = _build_leadership_summary(kpi, summary)

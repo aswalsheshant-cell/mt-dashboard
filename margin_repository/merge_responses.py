@@ -272,6 +272,37 @@ def apply_gst_master_to_frame(dms_df, masters_dir=MASTERS_DIR):
     return dms, {"filled": int(fill_mask.sum()), "master_path": gst_path}
 
 
+def apply_article_master_extension_to_frame(dms_df, masters_dir=MASTERS_DIR):
+    """Enrichment step: fill Pack Size / Brand / Category / Sub Category /
+    Range from the persistent Article_Master_Extension.csv (populated when
+    MDM completes the New_EAN_Creation action file).
+    """
+    ext_path = os.path.join(masters_dir, "Article_Master_Extension.csv")
+    if not os.path.exists(ext_path):
+        return dms_df, {"filled": {}}
+    ext = pd.read_csv(ext_path, dtype=str).fillna("")
+    ext["EAN"] = ext["EAN"].map(_clean_ean)
+    ext = ext.drop_duplicates(subset=["EAN"], keep="last")
+
+    fill_cols = ["Pack Size", "Brand", "Category", "Sub Category", "Range", "MRP"]
+    lookups = {c: ext.set_index("EAN")[c].to_dict()
+               for c in fill_cols if c in ext.columns}
+
+    dms = dms_df.copy()
+    dms["_ean"] = dms["EAN"].map(_clean_ean)
+    filled = {}
+    for c, lu in lookups.items():
+        blank = dms[c].astype(str).str.strip().eq("") | dms[c].isna()
+        fill_mask = blank & dms["_ean"].isin(lu)
+        pending = dms.loc[fill_mask, "_ean"].map(lu)
+        pending = pending.where(pending.astype(str).str.strip() != "", other=None)
+        real_fill = fill_mask & pending.reindex(dms.index).notna()
+        dms.loc[real_fill, c] = dms.loc[real_fill, "_ean"].map(lu)
+        filled[c] = int(real_fill.sum())
+    dms = dms.drop(columns=["_ean"])
+    return dms, {"filled": filled, "master_path": ext_path}
+
+
 def before_after_summary(before_validated, after_validated):
     """Compare QC severity + health before and after response merge."""
     def sev_counts(df):
