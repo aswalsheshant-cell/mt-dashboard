@@ -61,19 +61,19 @@ window.DASH = {
     "name": "EB2B",
     "fy25": 1609.01,
     "fy26": 1965.2,
-    "fy27": 452.68
+    "fy27": 659.35
    },
    {
     "name": "MT",
     "fy25": 21722.96,
     "fy26": 30684.99,
-    "fy27": 9032.06
+    "fy27": 12973.47
    },
    {
     "name": "SIS",
     "fy25": 0.0,
     "fy26": 250.17,
-    "fy27": 7.86
+    "fy27": 27.16
    }
   ],
   "by_zone": [
@@ -81,31 +81,31 @@ window.DASH = {
     "name": "West",
     "fy25": 7077.44,
     "fy26": 8859.78,
-    "fy27": 2682.07
+    "fy27": 3738.72
    },
    {
     "name": "North",
     "fy25": 5037.19,
     "fy26": 7840.21,
-    "fy27": 2173.92
+    "fy27": 3112.08
    },
    {
     "name": "South 1",
     "fy25": 5042.1,
     "fy26": 7382.04,
-    "fy27": 2213.13
+    "fy27": 3298.48
    },
    {
     "name": "South 2",
     "fy25": 3211.21,
     "fy26": 4762.45,
-    "fy27": 1319.39
+    "fy27": 1978.55
    },
    {
     "name": "East",
     "fy25": 2964.02,
     "fy26": 4055.87,
-    "fy27": 1104.09
+    "fy27": 1532.15
    }
   ],
   "by_brand": [
@@ -113,31 +113,31 @@ window.DASH = {
     "name": "Mamaearth",
     "fy25": 20638.47,
     "fy26": 27179.45,
-    "fy27": 6196.78
+    "fy27": 9252.07
    },
    {
     "name": "The Derma Co",
     "fy25": 1887.66,
     "fy26": 4938.41,
-    "fy27": 3014.05
+    "fy27": 4060.73
    },
    {
     "name": "Aqualogica",
     "fy25": 608.77,
     "fy26": 634.43,
-    "fy27": 251.48
+    "fy27": 309.97
    },
    {
     "name": "BBlunt",
     "fy25": 193.15,
     "fy26": 104.38,
-    "fy27": 13.51
+    "fy27": 17.41
    },
    {
     "name": "Dr. Sheth's",
     "fy25": 0.0,
     "fy26": 31.45,
-    "fy27": 9.4
+    "fy27": 12.42
    },
    {
     "name": "Staze",
@@ -164,91 +164,91 @@ window.DASH = {
     "fy25": 8530.56,
     "fy26": 12190.3,
     "yoy": 42.9,
-    "fy27": 3825.23
+    "fy27": 3650.56
    },
    {
     "name": "Reliance Retail",
     "fy25": 6443.46,
     "fy26": 8348.9,
     "yoy": 29.57,
-    "fy27": 2071.02
+    "fy27": 2802.88
    },
    {
     "name": "Apollo",
     "fy25": 2147.95,
     "fy26": 5262.76,
     "yoy": 145.01,
-    "fy27": 1764.21
+    "fy27": 2053.22
    },
    {
     "name": "Nykaa (FSN)",
     "fy25": 1503.96,
     "fy26": 1872.78,
     "yoy": 24.52,
-    "fy27": 0.0
+    "fy27": 645.49
    },
    {
     "name": "Wellness Forever",
     "fy25": 952.39,
     "fy26": 861.98,
     "yoy": -9.49,
-    "fy27": 207.83
+    "fy27": 274.49
    },
    {
     "name": "H&G",
     "fy25": 767.75,
     "fy26": 851.77,
     "yoy": 10.94,
-    "fy27": 178.77
+    "fy27": 103.85
    },
    {
     "name": "Lulu",
     "fy25": 457.62,
     "fy26": 828.62,
     "yoy": 81.07,
-    "fy27": 281.86
+    "fy27": 0.0
    },
    {
     "name": "Metro C&C",
     "fy25": 697.03,
     "fy26": 464.37,
     "yoy": -33.38,
-    "fy27": 0.0
+    "fy27": 137.16
    },
    {
     "name": "More Retail",
     "fy25": 260.2,
     "fy26": 457.45,
     "yoy": 75.81,
-    "fy27": 116.68
+    "fy27": 0.0
    },
    {
     "name": "RMT-Sancus",
     "fy25": 334.09,
     "fy26": 427.06,
     "yoy": 27.83,
-    "fy27": 137.45
+    "fy27": 186.35
    },
    {
     "name": "Walmart",
     "fy25": 245.05,
     "fy26": 238.53,
     "yoy": -2.66,
-    "fy27": 0.0
+    "fy27": 46.47
    },
    {
     "name": "VMM",
     "fy25": 179.23,
     "fy26": 182.13,
     "yoy": 1.61,
-    "fy27": 166.25
+    "fy27": 0.0
    },
    {
     "name": "Spencer",
     "fy25": 208.59,
     "fy26": 134.09,
     "yoy": -35.72,
-    "fy27": 14.27
+    "fy27": 0.0
    },
    {
     "name": "Shoppers Stop",
@@ -262,14 +262,14 @@ window.DASH = {
     "fy25": 72.61,
     "fy26": 116.74,
     "yoy": 60.78,
-    "fy27": 0.0
+    "fy27": 22.72
    },
    {
     "name": "Azorte",
     "fy25": 0.0,
     "fy26": 68.09,
     "yoy": null,
-    "fy27": 2.65
+    "fy27": 0.0
    },
    {
     "name": "Eremedium",
@@ -283,28 +283,28 @@ window.DASH = {
     "fy25": 67.97,
     "fy26": 62.64,
     "yoy": -7.84,
-    "fy27": 7.14
+    "fy27": 0.0
    },
    {
     "name": "Trent",
     "fy25": 40.5,
     "fy26": 56.24,
     "yoy": 38.85,
-    "fy27": 0.0
+    "fy27": 31.61
    },
    {
     "name": "Frankross",
     "fy25": 13.57,
     "fy26": 46.27,
     "yoy": 241.12,
-    "fy27": 25.26
+    "fy27": 0.0
    },
    {
     "name": "Arambagh",
     "fy25": 15.69,
     "fy26": 34.95,
     "yoy": 122.73,
-    "fy27": 9.34
+    "fy27": 0.0
    },
    {
     "name": "Lifestyle",
@@ -346,21 +346,21 @@ window.DASH = {
     "fy25": 17.41,
     "fy26": 17.49,
     "yoy": 0.43,
-    "fy27": 0.0
+    "fy27": 6.51
    },
    {
     "name": "B&N",
     "fy25": -3.8,
     "fy26": 11.98,
     "yoy": -414.84,
-    "fy27": 1.18
+    "fy27": 0.0
    },
    {
     "name": "Deal Share",
     "fy25": 0.0,
     "fy26": 10.0,
     "yoy": null,
-    "fy27": 6.59
+    "fy27": 0.0
    },
    {
     "name": "Grace Super MKT",
@@ -381,14 +381,14 @@ window.DASH = {
     "fy25": 0.0,
     "fy26": 6.6,
     "yoy": null,
-    "fy27": 4.8
+    "fy27": 0.0
    },
    {
     "name": "Sasta Sundar",
     "fy25": 0.16,
     "fy26": 6.06,
     "yoy": 3650.33,
-    "fy27": 3.29
+    "fy27": 0.0
    },
    {
     "name": "WH-Smith",
@@ -402,14 +402,14 @@ window.DASH = {
     "fy25": 1.29,
     "fy26": 3.86,
     "yoy": 200.2,
-    "fy27": 0.78
+    "fy27": 0.0
    },
    {
     "name": "Sumo Save",
     "fy25": 0.0,
     "fy26": 3.0,
     "yoy": null,
-    "fy27": 5.21
+    "fy27": 0.0
    },
    {
     "name": "Today's Basket",
@@ -423,7 +423,7 @@ window.DASH = {
     "fy25": 15.93,
     "fy26": 1.3,
     "yoy": -91.85,
-    "fy27": 0.32
+    "fy27": 0.0
    },
    {
     "name": "Relay",
@@ -444,14 +444,14 @@ window.DASH = {
     "fy25": 6.69,
     "fy26": 0.22,
     "yoy": -96.73,
-    "fy27": -2.51
+    "fy27": 0.0
    },
    {
     "name": "National Mart",
     "fy25": 0.0,
     "fy26": 0.18,
     "yoy": null,
-    "fy27": 5.99
+    "fy27": 0.0
    },
    {
     "name": "G N R C Medishop Pvt Ltd",
@@ -499,31 +499,31 @@ window.DASH = {
     "name": "Nykaa E-Retail Limited",
     "fy25": 0.0,
     "fy26": 0.0,
-    "fy27": 438.82
+    "fy27": 0.0
    },
    {
     "name": "Metro-CNC",
     "fy25": 0.0,
     "fy26": 0.0,
-    "fy27": 102.73
+    "fy27": 0.0
    },
    {
     "name": "Walmart-CNC",
     "fy25": 0.0,
     "fy26": 0.0,
-    "fy27": 46.88
+    "fy27": 0.0
    },
    {
     "name": "V-Mart Retail Limited",
     "fy25": 0.0,
     "fy26": 0.0,
-    "fy27": 22.72
+    "fy27": 0.0
    },
    {
     "name": "Trent Hypermarket",
     "fy25": 0.0,
     "fy26": 0.0,
-    "fy27": 22.58
+    "fy27": 0.0
    },
    {
     "name": "Eremedium Private Limited",
@@ -535,7 +535,7 @@ window.DASH = {
     "name": "Guardian Healthcare",
     "fy25": 0.0,
     "fy26": 0.0,
-    "fy27": 5.6
+    "fy27": 0.0
    },
    {
     "name": "Travel News Services-Wsmith",
@@ -547,13 +547,151 @@ window.DASH = {
     "name": "Medanta",
     "fy25": 0.0,
     "fy26": 0.0,
-    "fy27": 0.27
+    "fy27": 0.0
    },
    {
     "name": "Travel Retail Services-Relay",
     "fy25": 0.0,
     "fy26": 0.0,
     "fy27": -0.07
+   },
+   {
+    "name": "Kiran Trading Company",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 833.08
+   },
+   {
+    "name": "G.V Enterprises",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 797.14
+   },
+   {
+    "name": "Sri Vijaya Durga Agencies",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 700.35
+   },
+   {
+    "name": "Az Enterprises",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 321.72
+   },
+   {
+    "name": "VENKATESHWARA AGENCIES-TG",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 259.27
+   },
+   {
+    "name": "M/S KOTTARAM BUSINESS",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 239.4
+   },
+   {
+    "name": "D.L. Sales - MT",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 157.13
+   },
+   {
+    "name": "Balaji Associates Distributor MT",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 151.44
+   },
+   {
+    "name": "CHHABRA TRADERS",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 105.44
+   },
+   {
+    "name": "Health & Glow",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 33.93
+   },
+   {
+    "name": "MARK ENTERPRISE",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 25.99
+   },
+   {
+    "name": "REAL TIME LOGISTICS_MT_BR",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 20.67
+   },
+   {
+    "name": "SAI SAACHI ASSOCIATES-MT-OR",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 10.53
+   },
+   {
+    "name": "CHOUDHARY ENTERPRISES",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 10.33
+   },
+   {
+    "name": "MANOJ SOAP AGENCY-MT",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 9.13
+   },
+   {
+    "name": "Sehaj Enterprises -MT-JK",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 6.39
+   },
+   {
+    "name": "United Marketing",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 2.99
+   },
+   {
+    "name": "SRIJAN ENTERPRISES-MT-JH",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 1.73
+   },
+   {
+    "name": "Unassigned-1104828",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 0.73
+   },
+   {
+    "name": "RRL-FOC-Sample",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 0.0
+   },
+   {
+    "name": "VISHAL ENTERPRISES",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": -0.39
+   },
+   {
+    "name": "Vanaja Agencies",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": -1.64
+   },
+   {
+    "name": "SC BUSINESS COMBINE_MT",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": -2.51
    }
   ],
   "fy_tags": [
@@ -561,12 +699,12 @@ window.DASH = {
    "fy26",
    "fy27"
   ],
-  "nsv_fy27": 9492.6,
-  "mrp_fy27": 22050.21,
+  "nsv_fy27": 13659.98,
+  "mrp_fy27": 31351.12,
   "monthly_fy27": [
    5076.86,
    4415.74,
-   0.0,
+   4167.38,
    0.0,
    0.0,
    0.0,
@@ -578,10 +716,11 @@ window.DASH = {
    0.0
   ],
   "fy27_summary_source": "detail_meta.fyx_primary.FY27",
-  "fy27_data_status": "partial_apr_may_2026",
+  "fy27_data_status": "partial_apr_may_jun_2026",
   "fy27_months_covered": [
    "April",
-   "May"
+   "May",
+   "June"
   ]
  },
  "offtake": {
@@ -722138,16 +722277,17 @@ window.DASH = {
   "fyx_primary": {
    "FY27": {
     "tag": "FY27",
-    "nsv": 9492.6,
-    "mrp": 22050.21,
+    "nsv": 13659.98,
+    "mrp": 31351.12,
     "months_covered": [
      "April",
-     "May"
+     "May",
+     "June"
     ],
     "monthly": [
      5076.86,
      4415.74,
-     0.0,
+     4167.38,
      0.0,
      0.0,
      0.0,
@@ -722161,197 +722301,217 @@ window.DASH = {
     "by_chain": [
      {
       "name": "Dmart",
-      "nsv": 3825.23
+      "nsv": 3650.56
      },
      {
       "name": "Reliance Retail",
-      "nsv": 2071.02
+      "nsv": 2802.88
      },
      {
       "name": "Apollo",
-      "nsv": 1764.21
+      "nsv": 2053.22
      },
      {
-      "name": "Nykaa E-Retail Limited",
-      "nsv": 438.82
+      "name": "Kiran Trading Company",
+      "nsv": 833.08
      },
      {
-      "name": "Lulu",
-      "nsv": 281.86
+      "name": "G.V Enterprises",
+      "nsv": 797.14
+     },
+     {
+      "name": "Sri Vijaya Durga Agencies",
+      "nsv": 700.35
+     },
+     {
+      "name": "Nykaa (FSN)",
+      "nsv": 645.49
+     },
+     {
+      "name": "Az Enterprises",
+      "nsv": 321.72
      },
      {
       "name": "Wellness Forever",
-      "nsv": 207.83
+      "nsv": 274.49
      },
      {
-      "name": "H&G",
-      "nsv": 178.77
+      "name": "VENKATESHWARA AGENCIES-TG",
+      "nsv": 259.27
      },
      {
-      "name": "VMM",
-      "nsv": 166.25
+      "name": "M/S KOTTARAM BUSINESS",
+      "nsv": 239.4
      },
      {
       "name": "RMT-Sancus",
-      "nsv": 137.45
+      "nsv": 186.35
      },
      {
-      "name": "More Retail",
-      "nsv": 116.68
+      "name": "D.L. Sales - MT",
+      "nsv": 157.13
      },
      {
-      "name": "Metro-CNC",
-      "nsv": 102.73
+      "name": "Balaji Associates Distributor MT",
+      "nsv": 151.44
      },
      {
-      "name": "Walmart-CNC",
-      "nsv": 46.88
+      "name": "Metro C&C",
+      "nsv": 137.16
      },
      {
-      "name": "Frankross",
-      "nsv": 25.26
+      "name": "CHHABRA TRADERS",
+      "nsv": 105.44
      },
      {
-      "name": "V-Mart Retail Limited",
+      "name": "H&G",
+      "nsv": 103.85
+     },
+     {
+      "name": "Walmart",
+      "nsv": 46.47
+     },
+     {
+      "name": "Health & Glow",
+      "nsv": 33.93
+     },
+     {
+      "name": "Trent",
+      "nsv": 31.61
+     },
+     {
+      "name": "MARK ENTERPRISE",
+      "nsv": 25.99
+     },
+     {
+      "name": "V-Mart",
       "nsv": 22.72
      },
      {
-      "name": "Trent Hypermarket",
-      "nsv": 22.58
-     },
-     {
-      "name": "Spencer",
-      "nsv": 14.27
+      "name": "REAL TIME LOGISTICS_MT_BR",
+      "nsv": 20.67
      },
      {
       "name": "Eremedium Private Limited",
       "nsv": 13.86
      },
      {
-      "name": "Arambagh",
-      "nsv": 9.34
+      "name": "SAI SAACHI ASSOCIATES-MT-OR",
+      "nsv": 10.53
      },
      {
-      "name": "Ratnadeep",
-      "nsv": 7.14
+      "name": "CHOUDHARY ENTERPRISES",
+      "nsv": 10.33
      },
      {
-      "name": "Deal Share",
-      "nsv": 6.59
+      "name": "MANOJ SOAP AGENCY-MT",
+      "nsv": 9.13
      },
      {
-      "name": "National Mart",
-      "nsv": 5.99
+      "name": "Guardian",
+      "nsv": 6.51
      },
      {
-      "name": "Guardian Healthcare",
-      "nsv": 5.6
-     },
-     {
-      "name": "Sumo Save",
-      "nsv": 5.21
+      "name": "Sehaj Enterprises -MT-JK",
+      "nsv": 6.39
      },
      {
       "name": "Shoppers Stop",
       "nsv": 5.2
      },
      {
-      "name": "Apna Mart",
-      "nsv": 4.8
+      "name": "United Marketing",
+      "nsv": 2.99
      },
      {
-      "name": "Sasta Sundar",
-      "nsv": 3.29
+      "name": "SRIJAN ENTERPRISES-MT-JH",
+      "nsv": 1.73
      },
      {
-      "name": "Azorte",
-      "nsv": 2.65
-     },
-     {
-      "name": "B&N",
-      "nsv": 1.18
-     },
-     {
-      "name": "Trilife",
-      "nsv": 0.78
+      "name": "Unassigned-1104828",
+      "nsv": 0.73
      },
      {
       "name": "Travel News Services-Wsmith",
       "nsv": 0.39
      },
      {
-      "name": "Max Hyper",
-      "nsv": 0.32
-     },
-     {
-      "name": "Medanta",
-      "nsv": 0.27
+      "name": "RRL-FOC-Sample",
+      "nsv": 0.0
      },
      {
       "name": "Travel Retail Services-Relay",
       "nsv": -0.07
      },
      {
-      "name": "Sohum Shoppe",
+      "name": "VISHAL ENTERPRISES",
+      "nsv": -0.39
+     },
+     {
+      "name": "Vanaja Agencies",
+      "nsv": -1.64
+     },
+     {
+      "name": "SC BUSINESS COMBINE_MT",
       "nsv": -2.51
      }
     ],
     "by_zone": [
      {
       "name": "West",
-      "nsv": 2682.07
+      "nsv": 3738.72
      },
      {
       "name": "South 1",
-      "nsv": 2213.13
+      "nsv": 3298.48
      },
      {
       "name": "North",
-      "nsv": 2173.92
+      "nsv": 3112.08
      },
      {
       "name": "South 2",
-      "nsv": 1319.39
+      "nsv": 1978.55
      },
      {
       "name": "East",
-      "nsv": 1104.09
+      "nsv": 1532.15
      }
     ],
     "by_channel": [
      {
       "name": "MT",
-      "nsv": 9032.06
+      "nsv": 12973.47
      },
      {
       "name": "EB2B",
-      "nsv": 452.68
+      "nsv": 659.35
      },
      {
       "name": "SIS",
-      "nsv": 7.86
+      "nsv": 27.16
      }
     ],
     "by_brand": [
      {
       "name": "Mamaearth",
-      "nsv": 6196.78
+      "nsv": 9252.07
      },
      {
       "name": "The Derma Co",
-      "nsv": 3014.05
+      "nsv": 4060.73
      },
      {
       "name": "Aqualogica",
-      "nsv": 251.48
+      "nsv": 309.97
      },
      {
       "name": "BBlunt",
-      "nsv": 13.51
+      "nsv": 17.41
      },
      {
       "name": "Dr. Sheth's",
-      "nsv": 9.4
+      "nsv": 12.42
      },
      {
       "name": "Lumineve",
