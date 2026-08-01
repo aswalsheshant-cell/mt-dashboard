@@ -436,22 +436,22 @@ window.DASH = {
  "offtake": {
   "by_chain": [
    {
-    "name": "Reliance Retail",
-    "raw": "Reliance Retail Limited",
-    "fy25": 5531.0,
-    "fy26": 8303.0,
-    "yoy": 50.12,
-    "total": 13834.0,
-    "fy27": 2801.62
-   },
-   {
     "name": "Dmart",
     "raw": "Dmart",
     "fy25": 8088.0,
     "fy26": 10928.0,
     "yoy": 35.11,
     "total": 19015.0,
-    "fy27": 2775.76
+    "fy27": 10035541.79
+   },
+   {
+    "name": "Reliance Retail",
+    "raw": "Reliance Retail Limited",
+    "fy25": 5531.0,
+    "fy26": 8303.0,
+    "yoy": 50.12,
+    "total": 13834.0,
+    "fy27": 5977138.82
    },
    {
     "name": "Apollo",
@@ -460,7 +460,76 @@ window.DASH = {
     "fy26": 4879.0,
     "yoy": 146.79,
     "total": 6857.0,
-    "fy27": 1449.9
+    "fy27": 4070438.43
+   },
+   {
+    "name": "VMM",
+    "raw": "VMM",
+    "fy25": 138.0,
+    "fy26": 146.0,
+    "yoy": 5.8,
+    "total": 283.0,
+    "fy27": 1651830.62
+   },
+   {
+    "name": "Spencer",
+    "raw": "Spencer",
+    "fy25": 240.0,
+    "fy26": 164.0,
+    "yoy": -31.67,
+    "total": 404.0,
+    "fy27": 1009447.73
+   },
+   {
+    "name": "More Retail",
+    "raw": "More Retail",
+    "fy25": 220.0,
+    "fy26": 432.0,
+    "yoy": 96.36,
+    "total": 654.0,
+    "fy27": 856140.63
+   },
+   {
+    "name": "Frankross",
+    "raw": "Frankros",
+    "fy25": 11.0,
+    "fy26": 23.0,
+    "yoy": 109.09,
+    "total": 35.0,
+    "fy27": 416773.64
+   },
+   {
+    "name": "Arambagh",
+    "raw": "ARAMBAGH",
+    "fy25": 13.0,
+    "fy26": 21.0,
+    "yoy": 61.54,
+    "total": 36.0,
+    "fy27": 415408.58
+   },
+   {
+    "name": "HG",
+    "raw": "HG",
+    "total": 0.0,
+    "fy27": 264704.38
+   },
+   {
+    "name": "Sumo Save",
+    "raw": "Sumo Save",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "yoy": null,
+    "total": 0.0,
+    "fy27": 126505.21
+   },
+   {
+    "name": "Sasta Sundar",
+    "raw": "Sasta Sundar",
+    "fy25": 0.0,
+    "fy26": 6.0,
+    "yoy": null,
+    "total": 5.0,
+    "fy27": 109471.74
    },
    {
     "name": "Nykaa (FSN)",
@@ -508,15 +577,6 @@ window.DASH = {
     "fy27": 103.77
    },
    {
-    "name": "More Retail",
-    "raw": "More Retail",
-    "fy25": 220.0,
-    "fy26": 432.0,
-    "yoy": 96.36,
-    "total": 654.0,
-    "fy27": 99.75
-   },
-   {
     "name": "Metro C&C",
     "raw": "Metro CNC",
     "fy25": 586.0,
@@ -524,15 +584,6 @@ window.DASH = {
     "yoy": 1.71,
     "total": 1184.0,
     "fy27": 95.42
-   },
-   {
-    "name": "VMM",
-    "raw": "VMM",
-    "fy25": 138.0,
-    "fy26": 146.0,
-    "yoy": 5.8,
-    "total": 283.0,
-    "fy27": 58.53
    },
    {
     "name": "Walmart",
@@ -553,15 +604,6 @@ window.DASH = {
     "fy27": 24.66
    },
    {
-    "name": "Spencer",
-    "raw": "Spencer",
-    "fy25": 240.0,
-    "fy26": 164.0,
-    "yoy": -31.67,
-    "total": 404.0,
-    "fy27": 24.49
-   },
-   {
     "name": "Trent",
     "raw": "Trent",
     "fy25": 36.0,
@@ -569,24 +611,6 @@ window.DASH = {
     "yoy": 58.33,
     "total": 94.0,
     "fy27": 15.34
-   },
-   {
-    "name": "Frankross",
-    "raw": "Frankros",
-    "fy25": 11.0,
-    "fy26": 23.0,
-    "yoy": 109.09,
-    "total": 35.0,
-    "fy27": 14.12
-   },
-   {
-    "name": "Arambagh",
-    "raw": "ARAMBAGH",
-    "fy25": 13.0,
-    "fy26": 21.0,
-    "yoy": 61.54,
-    "total": 36.0,
-    "fy27": 11.93
    },
    {
     "name": "Ratnadeep",
@@ -613,28 +637,10 @@ window.DASH = {
     "fy27": 4.38
    },
    {
-    "name": "Sumo Save",
-    "raw": "Sumo Save",
-    "fy25": 0.0,
-    "fy26": 0.0,
-    "yoy": null,
-    "total": 0.0,
-    "fy27": 3.18
-   },
-   {
     "name": "Apna Mart",
     "raw": "Apna Mart",
     "total": 0.0,
     "fy27": 2.51
-   },
-   {
-    "name": "Sasta Sundar",
-    "raw": "Sasta Sundar",
-    "fy25": 0.0,
-    "fy26": 6.0,
-    "yoy": null,
-    "total": 5.0,
-    "fy27": 2.07
    },
    {
     "name": "B&N",
@@ -687,7 +693,7 @@ window.DASH = {
   "total_fy25": 21840.0,
   "total_fy26": 31082.0,
   "yoy": 42.32,
-  "n_chains": 29,
+  "n_chains": 30,
   "months": [
    "Apr-24",
    "May-24",
@@ -1051,16 +1057,12 @@ window.DASH = {
    "fy27"
   ],
   "months_fy27": [
-   "Apr-26",
-   "May-26",
-   "Jun-26"],
+   "Jun-26"
+  ],
   "monthly_fy27": [
-   4024.0,
-   4527.61,
-   {
-    "Jun-26": 4304.76
-   }],
-  "total_fy27": 12856.37
+   24933401.57
+  ],
+  "total_fy27": 24933401.57
  },
  "pnl": {
   "by_chain": [
@@ -445137,5 +445139,443 @@ window.DASH = {
   "total_addon_ann": 91753.42,
   "note": "Per EAN, compared ONLY across comparable stores = sites of the product's dominant chain FORMAT (Chain Type from ChainMaster), so drug-store SKUs are measured against drug-store doors only. Target = distinct format-sites selling that product's Category; Carrying = format-sites selling this EAN; Add-on = missing sites × NSV per carrying site. Built from real store×article offtake; annualised = monthly avg × 12. Window is whatever store-level months are loaded (currently 2), refreshes to true L3M as more months arrive."
  },
-  npi_metrics: {"overall":{"confirmed_npi":12.44,"provisional_npi":9.91,"total_npi":22.35,"existing_portfolio":12834.11,"total_nsv":12856.46,"npi_contribution_pct":0.174,"confirmed_npi_pct":0.097,"provisional_npi_pct":0.077,"period":"Apr–Jun FY27 (Q1)","status":"Complete 3-month analysis, chain-wise and EAN-wise classification"},"by_chain":[{"name":"Reliance","confirmed_npi":0.014148022598869402,"provisional_npi":0.029496949152541304,"existing_portfolio":2801.5795748968662,"total_nsv":2801.6232198686175,"npi_pct":0.1557845874559015,"quantity":1481404},{"name":"Dmart","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":2775.7567271714697,"total_nsv":2775.7567271714697,"npi_pct":0.0,"quantity":1851953},{"name":"D-Mart","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":1455.9144024972782,"total_nsv":1455.9144024972782,"npi_pct":0.0,"quantity":946118},{"name":"Apollo","confirmed_npi":4.323926779660955,"provisional_npi":0.07741830508474419,"existing_portfolio":1445.4960286166115,"total_nsv":1449.8973737013573,"npi_pct":30.356252549859892,"quantity":818948},{"name":"Reliance Retail","confirmed_npi":0.0193940112994345,"provisional_npi":0.5517273446327603,"existing_portfolio":1411.5394076040723,"total_nsv":1412.1105289600046,"npi_pct":4.044452216872966,"quantity":708854},{"name":"Apollo Pharmacy","confirmed_npi":1.253613559322009,"provisional_npi":0.14292610169491207,"existing_portfolio":721.636084137602,"total_nsv":723.0326237986189,"npi_pct":19.315029710276104,"quantity":416882},{"name":"FSN","confirmed_npi":0.0,"provisional_npi":0.2815381355932204,"existing_portfolio":436.4190079178705,"total_nsv":436.7005460534637,"npi_pct":6.446938025095866,"quantity":302119},{"name":"Wellness Forever","confirmed_npi":0.9095101678298343,"provisional_npi":0.1453911460855512,"existing_portfolio":290.2503733171887,"total_nsv":291.30527463110406,"npi_pct":36.212914965280504,"quantity":129750},{"name":"Lulu","confirmed_npi":0.18282076271186432,"provisional_npi":1.2306928466505216,"existing_portfolio":215.89969915819188,"total_nsv":217.31321276755426,"npi_pct":65.04499157510175,"quantity":80412},{"name":"Firstcry","confirmed_npi":0.0,"provisional_npi":0.198424907063197,"existing_portfolio":216.47632592514222,"total_nsv":216.6747508322054,"npi_pct":9.157730944703324,"quantity":157805},{"name":"H&G","confirmed_npi":1.2965775423728636,"provisional_npi":0.15907367635189532,"existing_portfolio":147.77420872881282,"total_nsv":149.2298599475376,"npi_pct":97.54423271833797,"quantity":46663},{"name":"Lulu Hypermarket","confirmed_npi":0.20093813559322032,"provisional_npi":6.145461010492328,"existing_portfolio":109.5016463914447,"total_nsv":115.84804553753024,"npi_pct":547.8209940131931,"quantity":41601},{"name":"More Retail","confirmed_npi":2.558672033898299,"provisional_npi":0.0,"existing_portfolio":97.1885870772394,"total_nsv":99.74725911113771,"npi_pct":256.51552300273676,"quantity":48535},{"name":"Vmm","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":61.66948281476937,"total_nsv":61.66948281476937,"npi_pct":0.0,"quantity":39472},{"name":"Metro","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":61.10497050322835,"total_nsv":61.10497050322835,"npi_pct":0.0,"quantity":40990},{"name":"Sancus(RMT)","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":57.63653440839365,"total_nsv":57.63653440839365,"npi_pct":0.0,"quantity":31827},{"name":"Heritage & Gifts","confirmed_npi":0.4433737288135525,"provisional_npi":0.0,"existing_portfolio":51.399680427764025,"total_nsv":51.84305415657758,"npi_pct":85.52230111182591,"quantity":19205},{"name":"Metro Cnc","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":47.73605931547615,"total_nsv":47.73605931547615,"npi_pct":0.0,"quantity":23343},{"name":"Metro CNC","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":47.68813533339102,"total_nsv":47.68813533339102,"npi_pct":0.0,"quantity":24011},{"name":"Sancus(Rmt)","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":46.12957116545588,"total_nsv":46.12957116545588,"npi_pct":0.0,"quantity":24086},{"name":"MoreRetail","confirmed_npi":0.5207288135593208,"provisional_npi":0.0,"existing_portfolio":43.140206657788426,"total_nsv":43.66093547134775,"npi_pct":119.26652691650325,"quantity":22660},{"name":"Sancus Retail","confirmed_npi":0.0,"provisional_npi":0.0988928523002418,"existing_portfolio":39.72986879580295,"total_nsv":39.82876164810319,"npi_pct":24.829507172224996,"quantity":20602},{"name":"V-Mart","confirmed_npi":0.0,"provisional_npi":0.0207211864406779,"existing_portfolio":37.57592676957211,"total_nsv":37.59664795601279,"npi_pct":5.511445186528652,"quantity":16303},{"name":"Walmart CNC","confirmed_npi":0.0,"provisional_npi":0.0282783050847457,"existing_portfolio":36.87652547538332,"total_nsv":36.904803780468065,"npi_pct":7.6624997799641585,"quantity":23549},{"name":"Spencer","confirmed_npi":0.3933644067796576,"provisional_npi":0.0,"existing_portfolio":32.58715667473753,"total_nsv":32.98052108151719,"npi_pct":119.27173794719252,"quantity":14519},{"name":"VMM","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":27.513134725584926,"total_nsv":27.513134725584926,"npi_pct":0.0,"quantity":15903},{"name":"Trent","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":26.061687481840163,"total_nsv":26.061687481840163,"npi_pct":0.0,"quantity":13630},{"name":"Frankros","confirmed_npi":0.31262754237287993,"provisional_npi":0.0030728813559321,"existing_portfolio":21.230992489910935,"total_nsv":21.54669291363975,"npi_pct":146.51920134294184,"quantity":8945},{"name":"TRENDS","confirmed_npi":0.0,"provisional_npi":0.0172972881355932,"existing_portfolio":13.686506186440402,"total_nsv":13.703803474575995,"npi_pct":12.622253498953064,"quantity":5120},{"name":"Arambagh","confirmed_npi":0.0,"provisional_npi":0.3205237288135593,"existing_portfolio":9.9207480024213,"total_nsv":10.241271731234859,"npi_pct":312.97258507065465,"quantity":3798},{"name":"National Mart","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":8.701579206614179,"total_nsv":8.701579206614179,"npi_pct":0.0,"quantity":4734},{"name":"ARAMBAGH","confirmed_npi":0.0,"provisional_npi":0.0532627118644063,"existing_portfolio":6.822688196125861,"total_nsv":6.875950907990267,"npi_pct":77.4623213241849,"quantity":2384},{"name":"Guardian","confirmed_npi":0.0,"provisional_npi":0.0958271186440662,"existing_portfolio":6.188601307505978,"total_nsv":6.284428426150044,"npi_pct":152.48342752273442,"quantity":3208},{"name":"Ratnadeep","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":5.523176213103906,"total_nsv":5.523176213103906,"npi_pct":0.0,"quantity":3085},{"name":"Sumo Save","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":4.652485242534286,"total_nsv":4.652485242534286,"npi_pct":0.0,"quantity":2719},{"name":"Sasta Sundar","confirmed_npi":0.006324152542372499,"provisional_npi":0.0,"existing_portfolio":3.050607990314728,"total_nsv":3.0569321428571,"npi_pct":20.687906197557123,"quantity":1540},{"name":"Ratanadeep","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":2.761196515353257,"total_nsv":2.761196515353257,"npi_pct":0.0,"quantity":1397},{"name":"SSL","confirmed_npi":0.0,"provisional_npi":0.29478008644067744,"existing_portfolio":2.2496029267957702,"total_nsv":2.5443830132364478,"npi_pct":1158.5523284315518,"quantity":961},{"name":"Apna Mart","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":2.514756146085553,"total_nsv":2.514756146085553,"npi_pct":0.0,"quantity":1243},{"name":"Beauty & Nutrie","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":1.5402052582727763,"total_nsv":1.5402052582727763,"npi_pct":0.0,"quantity":536},{"name":"Wh-Smith","confirmed_npi":0.0,"provisional_npi":0.0020666666666666,"existing_portfolio":0.9803479854721231,"total_nsv":0.9824146521387896,"npi_pct":21.03660264194262,"quantity":676},{"name":"BEAUTY & NUTRIE","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":0.9028365835310562,"total_nsv":0.9028365835310562,"npi_pct":0.0,"quantity":314},{"name":"WH-Smith","confirmed_npi":0.0,"provisional_npi":0.0123999999999996,"existing_portfolio":0.6561180355124894,"total_nsv":0.668518035512489,"npi_pct":185.4848985561579,"quantity":441},{"name":"AZORTE","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":0.3808952542372797,"total_nsv":0.3808952542372797,"npi_pct":0.0,"quantity":138},{"name":"Broadway","confirmed_npi":0.0,"provisional_npi":0.0,"existing_portfolio":0.0675110169491518,"total_nsv":0.0675110169491518,"npi_pct":0.0,"quantity":23}],"classification_summary":{"confirmed_npi":21,"provisional_npi":64,"existing_portfolio":852,"excluded":119,"total_evaluated":1056},"reconciliation":{"confirmed_npi_offtake":12.44,"provisional_npi_offtake":9.91,"existing_portfolio_offtake":12834.11,"total_npi_offtake":22.35,"total_classified_offtake":12856.46,"total_source_offtake":12856.46,"variance_lakh":0.0,"variance_pct":0.0},"business_finding":"Comprehensive Chain × EAN × Month × FY classification (1,056 articles): 21 Confirmed NPI (2.0%), 64 Provisional NPI (6.1%), 852 Existing Portfolio (80.7%), 119 Excluded (11.3%). NPI penetration 0.174% (22.35 Lakh NSV). Complete history scanned Apr-25 through Jun-26 Primary, Apr-26 through Jun-26 Offtake. All reconciliation levels pass. Framework validated and ready for operational deployment."}
+ "npi_metrics": {
+  "overall": {
+   "confirmed_npi": 12.44,
+   "provisional_npi": 9.91,
+   "total_npi": 22.35,
+   "existing_portfolio": 12834.11,
+   "total_nsv": 12856.46,
+   "npi_contribution_pct": 0.174,
+   "confirmed_npi_pct": 0.097,
+   "provisional_npi_pct": 0.077,
+   "period": "Apr–Jun FY27 (Q1)",
+   "status": "Complete 3-month analysis, chain-wise and EAN-wise classification"
+  },
+  "by_chain": [
+   {
+    "name": "Reliance",
+    "confirmed_npi": 0.014148022598869402,
+    "provisional_npi": 0.029496949152541304,
+    "existing_portfolio": 2801.5795748968662,
+    "total_nsv": 2801.6232198686175,
+    "npi_pct": 0.1557845874559015,
+    "quantity": 1481404
+   },
+   {
+    "name": "Dmart",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 2775.7567271714697,
+    "total_nsv": 2775.7567271714697,
+    "npi_pct": 0.0,
+    "quantity": 1851953
+   },
+   {
+    "name": "D-Mart",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 1455.9144024972782,
+    "total_nsv": 1455.9144024972782,
+    "npi_pct": 0.0,
+    "quantity": 946118
+   },
+   {
+    "name": "Apollo",
+    "confirmed_npi": 4.323926779660955,
+    "provisional_npi": 0.07741830508474419,
+    "existing_portfolio": 1445.4960286166115,
+    "total_nsv": 1449.8973737013573,
+    "npi_pct": 30.356252549859892,
+    "quantity": 818948
+   },
+   {
+    "name": "Reliance Retail",
+    "confirmed_npi": 0.0193940112994345,
+    "provisional_npi": 0.5517273446327603,
+    "existing_portfolio": 1411.5394076040723,
+    "total_nsv": 1412.1105289600046,
+    "npi_pct": 4.044452216872966,
+    "quantity": 708854
+   },
+   {
+    "name": "Apollo Pharmacy",
+    "confirmed_npi": 1.253613559322009,
+    "provisional_npi": 0.14292610169491207,
+    "existing_portfolio": 721.636084137602,
+    "total_nsv": 723.0326237986189,
+    "npi_pct": 19.315029710276104,
+    "quantity": 416882
+   },
+   {
+    "name": "FSN",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.2815381355932204,
+    "existing_portfolio": 436.4190079178705,
+    "total_nsv": 436.7005460534637,
+    "npi_pct": 6.446938025095866,
+    "quantity": 302119
+   },
+   {
+    "name": "Wellness Forever",
+    "confirmed_npi": 0.9095101678298343,
+    "provisional_npi": 0.1453911460855512,
+    "existing_portfolio": 290.2503733171887,
+    "total_nsv": 291.30527463110406,
+    "npi_pct": 36.212914965280504,
+    "quantity": 129750
+   },
+   {
+    "name": "Lulu",
+    "confirmed_npi": 0.18282076271186432,
+    "provisional_npi": 1.2306928466505216,
+    "existing_portfolio": 215.89969915819188,
+    "total_nsv": 217.31321276755426,
+    "npi_pct": 65.04499157510175,
+    "quantity": 80412
+   },
+   {
+    "name": "Firstcry",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.198424907063197,
+    "existing_portfolio": 216.47632592514222,
+    "total_nsv": 216.6747508322054,
+    "npi_pct": 9.157730944703324,
+    "quantity": 157805
+   },
+   {
+    "name": "H&G",
+    "confirmed_npi": 1.2965775423728636,
+    "provisional_npi": 0.15907367635189532,
+    "existing_portfolio": 147.77420872881282,
+    "total_nsv": 149.2298599475376,
+    "npi_pct": 97.54423271833797,
+    "quantity": 46663
+   },
+   {
+    "name": "Lulu Hypermarket",
+    "confirmed_npi": 0.20093813559322032,
+    "provisional_npi": 6.145461010492328,
+    "existing_portfolio": 109.5016463914447,
+    "total_nsv": 115.84804553753024,
+    "npi_pct": 547.8209940131931,
+    "quantity": 41601
+   },
+   {
+    "name": "More Retail",
+    "confirmed_npi": 2.558672033898299,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 97.1885870772394,
+    "total_nsv": 99.74725911113771,
+    "npi_pct": 256.51552300273676,
+    "quantity": 48535
+   },
+   {
+    "name": "Vmm",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 61.66948281476937,
+    "total_nsv": 61.66948281476937,
+    "npi_pct": 0.0,
+    "quantity": 39472
+   },
+   {
+    "name": "Metro",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 61.10497050322835,
+    "total_nsv": 61.10497050322835,
+    "npi_pct": 0.0,
+    "quantity": 40990
+   },
+   {
+    "name": "Sancus(RMT)",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 57.63653440839365,
+    "total_nsv": 57.63653440839365,
+    "npi_pct": 0.0,
+    "quantity": 31827
+   },
+   {
+    "name": "Heritage & Gifts",
+    "confirmed_npi": 0.4433737288135525,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 51.399680427764025,
+    "total_nsv": 51.84305415657758,
+    "npi_pct": 85.52230111182591,
+    "quantity": 19205
+   },
+   {
+    "name": "Metro Cnc",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 47.73605931547615,
+    "total_nsv": 47.73605931547615,
+    "npi_pct": 0.0,
+    "quantity": 23343
+   },
+   {
+    "name": "Metro CNC",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 47.68813533339102,
+    "total_nsv": 47.68813533339102,
+    "npi_pct": 0.0,
+    "quantity": 24011
+   },
+   {
+    "name": "Sancus(Rmt)",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 46.12957116545588,
+    "total_nsv": 46.12957116545588,
+    "npi_pct": 0.0,
+    "quantity": 24086
+   },
+   {
+    "name": "MoreRetail",
+    "confirmed_npi": 0.5207288135593208,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 43.140206657788426,
+    "total_nsv": 43.66093547134775,
+    "npi_pct": 119.26652691650325,
+    "quantity": 22660
+   },
+   {
+    "name": "Sancus Retail",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0988928523002418,
+    "existing_portfolio": 39.72986879580295,
+    "total_nsv": 39.82876164810319,
+    "npi_pct": 24.829507172224996,
+    "quantity": 20602
+   },
+   {
+    "name": "V-Mart",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0207211864406779,
+    "existing_portfolio": 37.57592676957211,
+    "total_nsv": 37.59664795601279,
+    "npi_pct": 5.511445186528652,
+    "quantity": 16303
+   },
+   {
+    "name": "Walmart CNC",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0282783050847457,
+    "existing_portfolio": 36.87652547538332,
+    "total_nsv": 36.904803780468065,
+    "npi_pct": 7.6624997799641585,
+    "quantity": 23549
+   },
+   {
+    "name": "Spencer",
+    "confirmed_npi": 0.3933644067796576,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 32.58715667473753,
+    "total_nsv": 32.98052108151719,
+    "npi_pct": 119.27173794719252,
+    "quantity": 14519
+   },
+   {
+    "name": "VMM",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 27.513134725584926,
+    "total_nsv": 27.513134725584926,
+    "npi_pct": 0.0,
+    "quantity": 15903
+   },
+   {
+    "name": "Trent",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 26.061687481840163,
+    "total_nsv": 26.061687481840163,
+    "npi_pct": 0.0,
+    "quantity": 13630
+   },
+   {
+    "name": "Frankros",
+    "confirmed_npi": 0.31262754237287993,
+    "provisional_npi": 0.0030728813559321,
+    "existing_portfolio": 21.230992489910935,
+    "total_nsv": 21.54669291363975,
+    "npi_pct": 146.51920134294184,
+    "quantity": 8945
+   },
+   {
+    "name": "TRENDS",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0172972881355932,
+    "existing_portfolio": 13.686506186440402,
+    "total_nsv": 13.703803474575995,
+    "npi_pct": 12.622253498953064,
+    "quantity": 5120
+   },
+   {
+    "name": "Arambagh",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.3205237288135593,
+    "existing_portfolio": 9.9207480024213,
+    "total_nsv": 10.241271731234859,
+    "npi_pct": 312.97258507065465,
+    "quantity": 3798
+   },
+   {
+    "name": "National Mart",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 8.701579206614179,
+    "total_nsv": 8.701579206614179,
+    "npi_pct": 0.0,
+    "quantity": 4734
+   },
+   {
+    "name": "ARAMBAGH",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0532627118644063,
+    "existing_portfolio": 6.822688196125861,
+    "total_nsv": 6.875950907990267,
+    "npi_pct": 77.4623213241849,
+    "quantity": 2384
+   },
+   {
+    "name": "Guardian",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0958271186440662,
+    "existing_portfolio": 6.188601307505978,
+    "total_nsv": 6.284428426150044,
+    "npi_pct": 152.48342752273442,
+    "quantity": 3208
+   },
+   {
+    "name": "Ratnadeep",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 5.523176213103906,
+    "total_nsv": 5.523176213103906,
+    "npi_pct": 0.0,
+    "quantity": 3085
+   },
+   {
+    "name": "Sumo Save",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 4.652485242534286,
+    "total_nsv": 4.652485242534286,
+    "npi_pct": 0.0,
+    "quantity": 2719
+   },
+   {
+    "name": "Sasta Sundar",
+    "confirmed_npi": 0.006324152542372499,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 3.050607990314728,
+    "total_nsv": 3.0569321428571,
+    "npi_pct": 20.687906197557123,
+    "quantity": 1540
+   },
+   {
+    "name": "Ratanadeep",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 2.761196515353257,
+    "total_nsv": 2.761196515353257,
+    "npi_pct": 0.0,
+    "quantity": 1397
+   },
+   {
+    "name": "SSL",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.29478008644067744,
+    "existing_portfolio": 2.2496029267957702,
+    "total_nsv": 2.5443830132364478,
+    "npi_pct": 1158.5523284315518,
+    "quantity": 961
+   },
+   {
+    "name": "Apna Mart",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 2.514756146085553,
+    "total_nsv": 2.514756146085553,
+    "npi_pct": 0.0,
+    "quantity": 1243
+   },
+   {
+    "name": "Beauty & Nutrie",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 1.5402052582727763,
+    "total_nsv": 1.5402052582727763,
+    "npi_pct": 0.0,
+    "quantity": 536
+   },
+   {
+    "name": "Wh-Smith",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0020666666666666,
+    "existing_portfolio": 0.9803479854721231,
+    "total_nsv": 0.9824146521387896,
+    "npi_pct": 21.03660264194262,
+    "quantity": 676
+   },
+   {
+    "name": "BEAUTY & NUTRIE",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 0.9028365835310562,
+    "total_nsv": 0.9028365835310562,
+    "npi_pct": 0.0,
+    "quantity": 314
+   },
+   {
+    "name": "WH-Smith",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0123999999999996,
+    "existing_portfolio": 0.6561180355124894,
+    "total_nsv": 0.668518035512489,
+    "npi_pct": 185.4848985561579,
+    "quantity": 441
+   },
+   {
+    "name": "AZORTE",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 0.3808952542372797,
+    "total_nsv": 0.3808952542372797,
+    "npi_pct": 0.0,
+    "quantity": 138
+   },
+   {
+    "name": "Broadway",
+    "confirmed_npi": 0.0,
+    "provisional_npi": 0.0,
+    "existing_portfolio": 0.0675110169491518,
+    "total_nsv": 0.0675110169491518,
+    "npi_pct": 0.0,
+    "quantity": 23
+   }
+  ],
+  "classification_summary": {
+   "confirmed_npi": 21,
+   "provisional_npi": 64,
+   "existing_portfolio": 852,
+   "excluded": 119,
+   "total_evaluated": 1056
+  },
+  "reconciliation": {
+   "confirmed_npi_offtake": 12.44,
+   "provisional_npi_offtake": 9.91,
+   "existing_portfolio_offtake": 12834.11,
+   "total_npi_offtake": 22.35,
+   "total_classified_offtake": 12856.46,
+   "total_source_offtake": 12856.46,
+   "variance_lakh": 0.0,
+   "variance_pct": 0.0
+  },
+  "business_finding": "Comprehensive Chain × EAN × Month × FY classification (1,056 articles): 21 Confirmed NPI (2.0%), 64 Provisional NPI (6.1%), 852 Existing Portfolio (80.7%), 119 Excluded (11.3%). NPI penetration 0.174% (22.35 Lakh NSV). Complete history scanned Apr-25 through Jun-26 Primary, Apr-26 through Jun-26 Offtake. All reconciliation levels pass. Framework validated and ready for operational deployment."
+ }
 };

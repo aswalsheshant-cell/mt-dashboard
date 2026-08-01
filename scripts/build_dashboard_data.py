@@ -568,10 +568,11 @@ def load_offtake_article_files(src):
     against the existing Lakh-denominated offtake trend -- same order of
     magnitude, continuing its Oct'25-Mar'26 growth trajectory).
     Returns (chain_month, zone_state_month); both {} if no .xlsb found."""
-    files = sorted(src.glob("*.xlsb"))
+    files = sorted(src.glob("*.xlsb")) + sorted(src.glob("*.xlsx"))
     chain_month, zsm = {}, {}
     for fp in files:
-        sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+        engine = "pyxlsb" if fp.suffix == ".xlsb" else "openpyxl"
+        sheets = pd.read_excel(fp, sheet_name=None, header=1, engine=engine)
         for _, df in sheets.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
