@@ -60,86 +60,102 @@ window.DASH = {
    {
     "name": "EB2B",
     "fy25": 1609.01,
-    "fy26": 1965.2
+    "fy26": 1965.2,
+    "fy27": 452.68
    },
    {
     "name": "MT",
     "fy25": 21722.96,
-    "fy26": 30684.99
+    "fy26": 30684.99,
+    "fy27": 9032.06
    },
    {
     "name": "SIS",
     "fy25": 0.0,
-    "fy26": 250.17
+    "fy26": 250.17,
+    "fy27": 7.86
    }
   ],
   "by_zone": [
    {
     "name": "West",
     "fy25": 7077.44,
-    "fy26": 8859.78
+    "fy26": 8859.78,
+    "fy27": 2682.07
    },
    {
     "name": "North",
     "fy25": 5037.19,
-    "fy26": 7840.21
+    "fy26": 7840.21,
+    "fy27": 2173.92
    },
    {
     "name": "South 1",
     "fy25": 5042.1,
-    "fy26": 7382.04
+    "fy26": 7382.04,
+    "fy27": 2213.13
    },
    {
     "name": "South 2",
     "fy25": 3211.21,
-    "fy26": 4762.45
+    "fy26": 4762.45,
+    "fy27": 1319.39
    },
    {
     "name": "East",
     "fy25": 2964.02,
-    "fy26": 4055.87
+    "fy26": 4055.87,
+    "fy27": 1104.09
    }
   ],
   "by_brand": [
    {
     "name": "Mamaearth",
     "fy25": 20638.47,
-    "fy26": 27179.45
+    "fy26": 27179.45,
+    "fy27": 6196.78
    },
    {
     "name": "The Derma Co",
     "fy25": 1887.66,
-    "fy26": 4938.41
+    "fy26": 4938.41,
+    "fy27": 3014.05
    },
    {
     "name": "Aqualogica",
     "fy25": 608.77,
-    "fy26": 634.43
+    "fy26": 634.43,
+    "fy27": 251.48
    },
    {
     "name": "BBlunt",
     "fy25": 193.15,
-    "fy26": 104.38
+    "fy26": 104.38,
+    "fy27": 13.51
    },
    {
     "name": "Dr. Sheth's",
     "fy25": 0.0,
-    "fy26": 31.45
+    "fy26": 31.45,
+    "fy27": 9.4
    },
    {
     "name": "Staze",
     "fy25": 0.0,
-    "fy26": 7.69
+    "fy26": 7.69,
+    "fy27": 0.0
    },
    {
     "name": "Pure Origin",
     "fy25": 3.93,
-    "fy26": 4.55
+    "fy26": 4.55,
+    "fy27": -0.32
    },
    {
     "name": "Lumineve",
     "fy25": 0.0,
-    "fy26": 0.0
+    "fy26": 0.0,
+    "fy27": 7.69
    }
   ],
   "by_chain": [
@@ -147,290 +163,425 @@ window.DASH = {
     "name": "Dmart",
     "fy25": 8530.56,
     "fy26": 12190.3,
-    "yoy": 42.9
+    "yoy": 42.9,
+    "fy27": 3825.23
    },
    {
     "name": "Reliance Retail",
     "fy25": 6443.46,
     "fy26": 8348.9,
-    "yoy": 29.57
+    "yoy": 29.57,
+    "fy27": 2071.02
    },
    {
     "name": "Apollo",
     "fy25": 2147.95,
     "fy26": 5262.76,
-    "yoy": 145.01
+    "yoy": 145.01,
+    "fy27": 1764.21
    },
    {
     "name": "Nykaa (FSN)",
     "fy25": 1503.96,
     "fy26": 1872.78,
-    "yoy": 24.52
+    "yoy": 24.52,
+    "fy27": 0.0
    },
    {
     "name": "Wellness Forever",
     "fy25": 952.39,
     "fy26": 861.98,
-    "yoy": -9.49
+    "yoy": -9.49,
+    "fy27": 207.83
    },
    {
     "name": "H&G",
     "fy25": 767.75,
     "fy26": 851.77,
-    "yoy": 10.94
+    "yoy": 10.94,
+    "fy27": 178.77
    },
    {
     "name": "Lulu",
     "fy25": 457.62,
     "fy26": 828.62,
-    "yoy": 81.07
+    "yoy": 81.07,
+    "fy27": 281.86
    },
    {
     "name": "Metro C&C",
     "fy25": 697.03,
     "fy26": 464.37,
-    "yoy": -33.38
+    "yoy": -33.38,
+    "fy27": 0.0
    },
    {
     "name": "More Retail",
     "fy25": 260.2,
     "fy26": 457.45,
-    "yoy": 75.81
+    "yoy": 75.81,
+    "fy27": 116.68
    },
    {
     "name": "RMT-Sancus",
     "fy25": 334.09,
     "fy26": 427.06,
-    "yoy": 27.83
+    "yoy": 27.83,
+    "fy27": 137.45
    },
    {
     "name": "Walmart",
     "fy25": 245.05,
     "fy26": 238.53,
-    "yoy": -2.66
+    "yoy": -2.66,
+    "fy27": 0.0
    },
    {
     "name": "VMM",
     "fy25": 179.23,
     "fy26": 182.13,
-    "yoy": 1.61
+    "yoy": 1.61,
+    "fy27": 166.25
    },
    {
     "name": "Spencer",
     "fy25": 208.59,
     "fy26": 134.09,
-    "yoy": -35.72
+    "yoy": -35.72,
+    "fy27": 14.27
    },
    {
     "name": "Shoppers Stop",
     "fy25": 0.0,
     "fy26": 121.19,
-    "yoy": null
+    "yoy": null,
+    "fy27": 5.2
    },
    {
     "name": "V-Mart",
     "fy25": 72.61,
     "fy26": 116.74,
-    "yoy": 60.78
+    "yoy": 60.78,
+    "fy27": 0.0
    },
    {
     "name": "Azorte",
     "fy25": 0.0,
     "fy26": 68.09,
-    "yoy": null
+    "yoy": null,
+    "fy27": 2.65
    },
    {
     "name": "Eremedium",
     "fy25": 43.37,
     "fy26": 66.45,
-    "yoy": 53.21
+    "yoy": 53.21,
+    "fy27": 0.0
    },
    {
     "name": "Ratnadeep",
     "fy25": 67.97,
     "fy26": 62.64,
-    "yoy": -7.84
+    "yoy": -7.84,
+    "fy27": 7.14
    },
    {
     "name": "Trent",
     "fy25": 40.5,
     "fy26": 56.24,
-    "yoy": 38.85
+    "yoy": 38.85,
+    "fy27": 0.0
    },
    {
     "name": "Frankross",
     "fy25": 13.57,
     "fy26": 46.27,
-    "yoy": 241.12
+    "yoy": 241.12,
+    "fy27": 25.26
    },
    {
     "name": "Arambagh",
     "fy25": 15.69,
     "fy26": 34.95,
-    "yoy": 122.73
+    "yoy": 122.73,
+    "fy27": 9.34
    },
    {
     "name": "Lifestyle",
     "fy25": 0.0,
     "fy26": 32.79,
-    "yoy": null
+    "yoy": null,
+    "fy27": 0.0
    },
    {
     "name": "Ascent Wellness",
     "fy25": 61.38,
     "fy26": 25.97,
-    "yoy": -57.69
+    "yoy": -57.69,
+    "fy27": 0.0
    },
    {
     "name": "Broadway",
     "fy25": 0.0,
     "fy26": 24.69,
-    "yoy": null
+    "yoy": null,
+    "fy27": 0.0
    },
    {
     "name": "Pothys",
     "fy25": 70.52,
     "fy26": 19.97,
-    "yoy": -71.69
+    "yoy": -71.69,
+    "fy27": 0.0
    },
    {
     "name": "Vijetha",
     "fy25": 37.52,
     "fy26": 18.44,
-    "yoy": -50.86
+    "yoy": -50.86,
+    "fy27": 0.0
    },
    {
     "name": "Guardian",
     "fy25": 17.41,
     "fy26": 17.49,
-    "yoy": 0.43
+    "yoy": 0.43,
+    "fy27": 0.0
    },
    {
     "name": "B&N",
     "fy25": -3.8,
     "fy26": 11.98,
-    "yoy": -414.84
+    "yoy": -414.84,
+    "fy27": 1.18
    },
    {
     "name": "Deal Share",
     "fy25": 0.0,
     "fy26": 10.0,
-    "yoy": null
+    "yoy": null,
+    "fy27": 6.59
    },
    {
     "name": "Grace Super MKT",
     "fy25": 31.18,
     "fy26": 8.42,
-    "yoy": -72.99
+    "yoy": -72.99,
+    "fy27": 0.0
    },
    {
     "name": "Sarvana",
     "fy25": 82.19,
     "fy26": 7.4,
-    "yoy": -91.0
+    "yoy": -91.0,
+    "fy27": 0.0
    },
    {
     "name": "Apna Mart",
     "fy25": 0.0,
     "fy26": 6.6,
-    "yoy": null
+    "yoy": null,
+    "fy27": 4.8
    },
    {
     "name": "Sasta Sundar",
     "fy25": 0.16,
     "fy26": 6.06,
-    "yoy": 3650.33
+    "yoy": 3650.33,
+    "fy27": 3.29
    },
    {
     "name": "WH-Smith",
     "fy25": 15.15,
     "fy26": 4.87,
-    "yoy": -67.88
+    "yoy": -67.88,
+    "fy27": 0.0
    },
    {
     "name": "Trilife",
     "fy25": 1.29,
     "fy26": 3.86,
-    "yoy": 200.2
+    "yoy": 200.2,
+    "fy27": 0.78
    },
    {
     "name": "Sumo Save",
     "fy25": 0.0,
     "fy26": 3.0,
-    "yoy": null
+    "yoy": null,
+    "fy27": 5.21
    },
    {
     "name": "Today's Basket",
     "fy25": 0.0,
     "fy26": 2.24,
-    "yoy": null
+    "yoy": null,
+    "fy27": 0.0
    },
    {
     "name": "Max Hyper",
     "fy25": 15.93,
     "fy26": 1.3,
-    "yoy": -91.85
+    "yoy": -91.85,
+    "fy27": 0.32
    },
    {
     "name": "Relay",
     "fy25": 4.23,
     "fy26": 1.22,
-    "yoy": -71.06
+    "yoy": -71.06,
+    "fy27": 0.0
    },
    {
     "name": "Lifestyle Babyshop",
     "fy25": 0.0,
     "fy26": 1.17,
-    "yoy": null
+    "yoy": null,
+    "fy27": 0.0
    },
    {
     "name": "Sohum Shoppe",
     "fy25": 6.69,
     "fy26": 0.22,
-    "yoy": -96.73
+    "yoy": -96.73,
+    "fy27": -2.51
    },
    {
     "name": "National Mart",
     "fy25": 0.0,
     "fy26": 0.18,
-    "yoy": null
+    "yoy": null,
+    "fy27": 5.99
    },
    {
     "name": "G N R C Medishop Pvt Ltd",
     "fy25": 0.96,
     "fy26": 0.09,
-    "yoy": -90.94
+    "yoy": -90.94,
+    "fy27": 0.0
    },
    {
     "name": "Hyper Grocer",
     "fy25": 0.29,
     "fy26": 0.0,
-    "yoy": -100.0
+    "yoy": -100.0,
+    "fy27": 0.0
    },
    {
     "name": "Mother Care",
     "fy25": -0.06,
     "fy26": 0.0,
-    "yoy": -100.0
+    "yoy": -100.0,
+    "fy27": 0.0
    },
    {
     "name": "Nao Grocery",
     "fy25": 0.31,
     "fy26": 0.0,
-    "yoy": -100.0
+    "yoy": -100.0,
+    "fy27": 0.0
    },
    {
     "name": "Shubham K Mart",
     "fy25": 1.36,
     "fy26": 0.0,
-    "yoy": -100.0
+    "yoy": -100.0,
+    "fy27": 0.0
    },
    {
     "name": "Apna Klub",
     "fy25": 7.64,
     "fy26": -0.91,
-    "yoy": -111.85
+    "yoy": -111.85,
+    "fy27": 0.0
+   },
+   {
+    "name": "Nykaa E-Retail Limited",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 438.82
+   },
+   {
+    "name": "Metro-CNC",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 102.73
+   },
+   {
+    "name": "Walmart-CNC",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 46.88
+   },
+   {
+    "name": "V-Mart Retail Limited",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 22.72
+   },
+   {
+    "name": "Trent Hypermarket",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 22.58
+   },
+   {
+    "name": "Eremedium Private Limited",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 13.86
+   },
+   {
+    "name": "Guardian Healthcare",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 5.6
+   },
+   {
+    "name": "Travel News Services-Wsmith",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 0.39
+   },
+   {
+    "name": "Medanta",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": 0.27
+   },
+   {
+    "name": "Travel Retail Services-Relay",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "fy27": -0.07
    }
+  ],
+  "fy_tags": [
+   "fy25",
+   "fy26",
+   "fy27"
+  ],
+  "nsv_fy27": 9492.6,
+  "mrp_fy27": 22050.21,
+  "monthly_fy27": [
+   5076.86,
+   4415.74,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "fy27_summary_source": "detail_meta.fyx_primary.FY27",
+  "fy27_data_status": "partial_apr_may_2026",
+  "fy27_months_covered": [
+   "April",
+   "May"
   ]
  },
  "offtake": {
@@ -1452,7 +1603,13 @@ window.DASH = {
   "total_mrp": 84116.14,
   "total_nsv": 32901.27,
   "total_discount": 51214.87,
-  "blended_discount_pct": 60.9
+  "blended_discount_pct": 60.9,
+  "fy_tags": [
+   "fy25",
+   "fy26",
+   "fy27"
+  ],
+  "fy_tag": "FY27"
  },
  "universe": {
   "total_stores": 14975,
