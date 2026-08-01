@@ -159,6 +159,205 @@ def _write(df, path, fmt, sheet_name="Data"):
     return path
 
 
+def export_star_schema(repo, output_dir, fmt="csv"):
+    """Export a proper Power BI star schema (dim + fact tables).
+
+    Fact:  fact_margin (current), fact_margin_history (versioned)
+    Dims:  dim_article, dim_chain, dim_brand, dim_category, dim_date
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    ext = "xlsx" if fmt == "xlsx" else "csv"
+    cur = repo.current(include_held=True)
+    hist = repo.history.copy() if not repo.history.empty else pd.DataFrame()
+
+    paths = {}
+
+    if cur.empty:
+        empty = pd.DataFrame()
+        for t in ("dim_article", "dim_chain", "dim_brand", "dim_category",
+                  "dim_date", "fact_margin", "fact_margin_history"):
+            p = os.path.join(output_dir, "%s.%s" % (t, ext))
+            _write(empty, p, fmt, t)
+            paths[t] = p
+        return paths
+
+    # --- dim_article: one row per EAN (dedup) ---
+    art_cols = ["EAN", "Article", "SKU Code", "Brand", "Category", "Sub Category",
+                "Range", "Pack Size", "MRP", "Launch Status", "Status"]
+    dim_art = cur[[c for c in art_cols if c in cur.columns]].copy()
+    dim_art = dim_art.drop_duplicates(subset=["EAN"], keep="first")
+    dim_art = dim_art.rename(columns={
+        "SKU Code": "SKU_Code", "Sub Category": "Sub_Category",
+        "Pack Size": "Pack_Size", "Launch Status": "Launch_Status",
+    })
+    dim_art["Article_Key"] = dim_art["EAN"].astype(str)
+    p = os.path.join(output_dir, "dim_article.%s" % ext)
+    _write(dim_art, p, fmt, "dim_article")
+    paths["dim_article"] = p
+
+    # --- dim_chain ---
+    dim_ch = pd.DataFrame({"Chain": sorted(cur["Chain"].dropna().unique())})
+    dim_ch["Chain_Key"] = dim_ch["Chain"]
+    p = os.path.join(output_dir, "dim_chain.%s" % ext)
+    _write(dim_ch, p, fmt, "dim_chain")
+    paths["dim_chain"] = p
+
+    # --- dim_brand ---
+    dim_br = pd.DataFrame({"Brand": sorted(cur["Brand"].dropna().unique())})
+    dim_br["Brand_Key"] = dim_br["Brand"]
+    p = os.path.join(output_dir, "dim_brand.%s" % ext)
+    _write(dim_br, p, fmt, "dim_brand")
+    paths["dim_brand"] = p
+
+    # --- dim_category ---
+    dim_cat = cur[[c for c in ["Category", "Sub Category"] if c in cur.columns]].copy()
+    dim_cat = dim_cat.drop_duplicates()
+    dim_cat = dim_cat.rename(columns={"Sub Category": "Sub_Category"})
+    dim_cat["Category_Key"] = dim_cat["Category"].astype(str) + "|" + dim_cat.get("Sub_Category", "").astype(str)
+    p = os.path.join(output_dir, "dim_category.%s" % ext)
+    _write(dim_cat, p, fmt, "dim_category")
+    paths["dim_category"] = p
+
+    # --- dim_date: derived from Effective From ---
+    dates = pd.to_datetime(cur.get("Effective From"), errors="coerce").dropna().unique()
+    if len(dates):
+        dmin, dmax = pd.Timestamp(min(dates)).normalize(), pd.Timestamp(max(dates)).normalize()
+        rng = pd.date_range(dmin, dmax, freq="D")
+        dim_dt = pd.DataFrame({"Date": rng})
+        dim_dt["Date_Key"] = dim_dt["Date"].dt.strftime("%Y-%m-%d")
+        dim_dt["Year"] = dim_dt["Date"].dt.year
+        dim_dt["Month"] = dim_dt["Date"].dt.month
+        dim_dt["Month_Name"] = dim_dt["Date"].dt.strftime("%b")
+        dim_dt["Quarter"] = "Q" + dim_dt["Date"].dt.quarter.astype(str)
+        dim_dt["FY"] = dim_dt.apply(
+            lambda r: "FY%d" % (r["Year"] + 1) if r["Month"] >= 4 else "FY%d" % r["Year"], axis=1
+        )
+    else:
+        dim_dt = pd.DataFrame(columns=["Date", "Date_Key", "Year", "Month",
+                                        "Month_Name", "Quarter", "FY"])
+    p = os.path.join(output_dir, "dim_date.%s" % ext)
+    _write(dim_dt, p, fmt, "dim_date")
+    paths["dim_date"] = p
+
+    # --- fact_margin: current approved margins with FK columns ---
+    fact = _transform(cur)
+    fact["Article_Key"] = fact["EAN"].astype(str)
+    fact["Chain_Key"] = fact["Chain"]
+    fact["Brand_Key"] = fact["Brand"]
+    fact["Category_Key"] = fact["Category"].astype(str) + "|" + fact.get("Sub_Category", "").astype(str)
+    fact["Date_Key"] = pd.to_datetime(fact.get("Effective_From"), errors="coerce").dt.strftime("%Y-%m-%d")
+    p = os.path.join(output_dir, "fact_margin.%s" % ext)
+    _write(fact, p, fmt, "fact_margin")
+    paths["fact_margin"] = p
+
+    # --- fact_margin_history: all versions ---
+    if not hist.empty:
+        hist_pbi = {**_COL_MAP, "Article_Key": "Article_Key",
+                    "Change_Type": "Change_Type",
+                    "Import_Batch_Id": "Import_Batch",
+                    "Import_Timestamp": "Import_Timestamp"}
+        fh = _transform(hist, col_map=hist_pbi)
+    else:
+        fh = pd.DataFrame()
+    p = os.path.join(output_dir, "fact_margin_history.%s" % ext)
+    _write(fh, p, fmt, "fact_margin_history")
+    paths["fact_margin_history"] = p
+
+    dax_path = os.path.join(output_dir, "MEASURES.dax")
+    with open(dax_path, "w") as f:
+        f.write(dax_measures())
+    paths["dax"] = dax_path
+
+    return paths
+
+
+def dax_measures():
+    """Recommended DAX measures for the star schema."""
+    return '''// ---------------------------------------------------------------------------
+// Margin Repository — DAX Measures
+// Place these in a measure table (or on fact_margin) in Power BI.
+// ---------------------------------------------------------------------------
+
+Total Articles =
+COUNTROWS ( fact_margin )
+
+Unique EANs =
+DISTINCTCOUNT ( fact_margin[EAN] )
+
+Avg Trade Margin % =
+AVERAGE ( fact_margin[Trade_Margin_Pct] )
+
+Avg Final Margin % =
+AVERAGE ( fact_margin[Final_Effective_Margin_Pct] )
+
+Min Final Margin % =
+MIN ( fact_margin[Final_Effective_Margin_Pct] )
+
+Max Final Margin % =
+MAX ( fact_margin[Final_Effective_Margin_Pct] )
+
+Repository Health % =
+DIVIDE (
+    CALCULATE ( COUNTROWS ( fact_margin ), fact_margin[Record_Status] = "PUBLISHED" ),
+    COUNTROWS ( fact_margin ),
+    0
+) * 100
+
+PASS Count =
+CALCULATE ( COUNTROWS ( fact_margin ), fact_margin[QC_Severity] = "PASS" )
+
+WARNING Count =
+CALCULATE ( COUNTROWS ( fact_margin ), fact_margin[QC_Severity] = "WARNING" )
+
+FAIL Count =
+CALCULATE ( COUNTROWS ( fact_margin ), fact_margin[QC_Severity] = "FAIL" )
+
+BLOCKED Count =
+CALCULATE ( COUNTROWS ( fact_margin ), fact_margin[QC_Severity] = "BLOCKED" )
+
+Missing GST =
+CALCULATE (
+    COUNTROWS ( fact_margin ),
+    ISBLANK ( fact_margin[GST_Pct] ) || fact_margin[GST_Pct] = 0
+)
+
+Missing Pack Size =
+CALCULATE (
+    COUNTROWS ( fact_margin ),
+    ISBLANK ( RELATED ( dim_article[Pack_Size] ) )
+)
+
+Missing MRP =
+CALCULATE (
+    COUNTROWS ( fact_margin ),
+    ISBLANK ( fact_margin[MRP] )
+)
+
+Latest Version =
+MAX ( fact_margin_history[Version] )
+
+New Articles (This Import) =
+CALCULATE (
+    COUNTROWS ( fact_margin_history ),
+    fact_margin_history[Change_Type] = "NEW",
+    fact_margin_history[Import_Batch] = MAX ( fact_margin_history[Import_Batch] )
+)
+
+Margin Changes (This Import) =
+CALCULATE (
+    COUNTROWS ( fact_margin_history ),
+    fact_margin_history[Change_Type] = "CHANGED",
+    fact_margin_history[Import_Batch] = MAX ( fact_margin_history[Import_Batch] )
+)
+
+Chains Covered =
+DISTINCTCOUNT ( fact_margin[Chain] )
+
+Brands Covered =
+DISTINCTCOUNT ( fact_margin[Brand] )
+'''
+
+
 def generate_power_query_m(csv_folder_path):
     """Generate Power Query M code for connecting to the CSV exports."""
     return '''// Power Query M — Margin Repository Connector

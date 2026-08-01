@@ -3,6 +3,8 @@
 
 Usage:
     python cli.py import <source.xlsx> [--repo-root ./repo_data] [--out outputs.xlsx]
+    python cli.py pipeline <dms.xlsx> [--repo-root ./repo] [--out ./out]
+                          [--responses ./Action_Files_2026_08_01]
     python cli.py search <query> [--repo-root ./repo_data]
     python cli.py versions [--repo-root ./repo_data]
     python cli.py rollback <batch_id> [--repo-root ./repo_data]
@@ -85,6 +87,13 @@ def cmd_import_template(args):
     print("Import template written to: %s" % path)
 
 
+def cmd_pipeline(args):
+    from pipeline import run
+    run(dms_path=args.source, repo_root=args.repo_root, out_dir=args.out,
+        action_dir=args.action_dir, masters_dir=args.masters_dir,
+        merge_responses_from=args.responses, verbose=True)
+
+
 def main():
     p = argparse.ArgumentParser(description="Chain x Article Margin Repository CLI")
     sub = p.add_subparsers(dest="command")
@@ -111,6 +120,17 @@ def main():
     itm = sub.add_parser("import-template", help="Generate blank import template")
     itm.add_argument("--out", default=None)
 
+    pl = sub.add_parser("pipeline", help="One-click end-to-end refresh")
+    pl.add_argument("source", help="DMS file path (.xlsx)")
+    pl.add_argument("--repo-root", default="./repo_data")
+    pl.add_argument("--out", default="./pipeline_out")
+    pl.add_argument("--responses", default=None,
+                    help="Directory containing completed action files to merge")
+    pl.add_argument("--action-dir", default=None,
+                    help="Where to write new action files (defaults to <out>/Action_Files)")
+    pl.add_argument("--masters-dir", default=None,
+                    help="Persistent master files directory")
+
     args = p.parse_args()
     if args.command is None:
         p.print_help()
@@ -118,7 +138,7 @@ def main():
 
     cmds = {"import": cmd_import, "search": cmd_search, "versions": cmd_versions,
             "rollback": cmd_rollback, "template": cmd_template,
-            "import-template": cmd_import_template}
+            "import-template": cmd_import_template, "pipeline": cmd_pipeline}
     cmds[args.command](args)
 
 
