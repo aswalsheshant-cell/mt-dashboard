@@ -1,0 +1,52 @@
+{
+  "release": "v1.0.0-rc1",
+  "date": "2026-08-01 04:27:21",
+  "schema_version": "1.1.0",
+  "config_version": "1.0.0",
+  "git_commit": "92eb2c9",
+  "git_branch": "claude/store-master-qc-duplicates-4pvmmk",
+  "modules": {
+    "core": {
+      "repository.py": "Append-only margin repository engine",
+      "schema.py": "Canonical schema and header aliases",
+      "validation.py": "Validation engine with QC severity ladder",
+      "ingest.py": "File ingestion (xlsx/csv) with header mapping",
+      "config.py": "Externalized business thresholds and controls"
+    },
+    "business_intelligence": {
+      "simulator.py": "Live Margin Impact Simulator",
+      "alerts.py": "Business alerts engine (10 alert types)",
+      "powerbi_connector.py": "Power BI stable-column connector",
+      "forecast_integration.py": "Demand planning / forecast integration",
+      "dashboard_generator.py": "Self-contained HTML Approval Dashboard"
+    },
+    "operations": {
+      "outputs.py": "10-sheet output workbook generator",
+      "impact.py": "Margin change impact analysis",
+      "search.py": "Natural-language article search",
+      "cli.py": "Command-line interface",
+      "pilot.py": "Pilot runner and exception reporting"
+    },
+    "quality": {
+      "selftest.py": "65-check self-test suite",
+      "uat.py": "26-check user acceptance test suite",
+      "release.py": "Release artifact generator"
+    }
+  },
+  "artifacts": [
+    "Business_Rule_Register.xlsx",
+    "Release_Checklist.xlsx",
+    "Known_Limitations_Register.xlsx",
+    "Reconciliation_Report.xlsx",
+    "Margin_Repository_Template.xlsx",
+    "Margin_Import_Template.xlsx",
+    "UAT_Report.xlsx",
+    "Approval_Authority_Matrix.xlsx",
+    "Production_Readiness_Report.json"
+  ],
+  "test_results": {
+    "selftests": "65/65 PASS",
+    "uat": "26/26 PASS"
+  },
+  "status": "RELEASE_CANDIDATE"
+}

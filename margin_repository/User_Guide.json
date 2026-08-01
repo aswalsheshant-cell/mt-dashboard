@@ -1,0 +1,66 @@
+{
+  "title": "Margin Repository \u2014 User Guide",
+  "version": "1.0.0-rc1",
+  "modules": {
+    "Core Repository": {
+      "purpose": "Append-only versioned storage for chain x article margin data",
+      "key_operations": [
+        "import_frame()",
+        "current()",
+        "rollback()",
+        "search()"
+      ],
+      "data_model": "EAN-priority article key: Chain+EAN+PackSize+MRP"
+    },
+    "Validation Engine": {
+      "purpose": "QC severity ladder: PASS < WARNING < FAIL < BLOCKED",
+      "checks": [
+        "Blank/invalid fields",
+        "GST validation",
+        "Margin bounds",
+        "Duplicates",
+        "Effective dates"
+      ]
+    },
+    "Margin Simulator": {
+      "purpose": "Compute cascading impact of proposed margin changes",
+      "outputs": [
+        "Old/new FEM, delta, risk tier",
+        "NSV/unit impact, CM2 impact",
+        "Approval requirement"
+      ]
+    },
+    "Business Alerts": {
+      "purpose": "Scan repository for 10 types of conditions requiring attention",
+      "severity_levels": [
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "INFO"
+      ]
+    },
+    "Power BI Connector": {
+      "purpose": "Stable-schema CSV/Excel exports for Power BI",
+      "exports": [
+        "Current Approved",
+        "Full History",
+        "Chain Summary",
+        "QC Status"
+      ]
+    },
+    "Forecast Integration": {
+      "purpose": "Feed approved margins into demand planning",
+      "key": "Only PUBLISHED records enter forecast"
+    },
+    "HTML Dashboard": {
+      "purpose": "Self-contained offline dashboard with 7 tabs",
+      "features": [
+        "Dark mode",
+        "Stat cards",
+        "Health bars",
+        "No internet required"
+      ]
+    }
+  }
+}
