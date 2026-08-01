@@ -307,6 +307,16 @@ class ProductionForecastRunner:
         # No separate margin override needed — validate_input_schema already picks
         # Phase_A_Input/fact_margin.csv as the margin_file_path fallback above.
 
+        phase_a_dir = os.path.join(self.project_root, "Phase_A_Input")
+        events_path = os.path.join(phase_a_dir, "events_calendar.csv")
+        launch_path = os.path.join(phase_a_dir, "launch_plan.csv")
+        events_calendar_path = events_path if os.path.exists(events_path) else None
+        launch_plan_path = launch_path if os.path.exists(launch_path) else None
+        if events_calendar_path:
+            self.log("INFO", f"Events calendar: {events_path}")
+        if launch_plan_path:
+            self.log("INFO", f"NPI launch plan: {launch_path}")
+
         try:
             summary = run_forecast_pipeline(
                 margin_repo_path=margin_repo,
@@ -314,7 +324,9 @@ class ProductionForecastRunner:
                 offtake_data_path=offtake_pattern,
                 output_dir=os.path.join(self.output_dir, "PowerBI"),
                 forecast_months=num_months,
-                verbose=self.verbose
+                verbose=self.verbose,
+                events_calendar_path=events_calendar_path,
+                launch_plan_path=launch_plan_path,
             )
 
             self.log("INFO", f"✓ Pipeline complete: {summary.get('forecast_rows', 0)} forecast records")

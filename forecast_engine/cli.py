@@ -19,7 +19,9 @@ def run_forecast_pipeline(
     offtake_data_path: str,
     output_dir: str,
     forecast_months: int = 3,
-    verbose: bool = True
+    verbose: bool = True,
+    events_calendar_path: str = None,
+    launch_plan_path: str = None,
 ) -> dict:
     """End-to-end forecast pipeline."""
     import pandas as pd
@@ -65,7 +67,9 @@ def run_forecast_pipeline(
     log(5, f"Run base forecast ({forecast_months} months)")
     forecast_df = engine.run_forecast(
         margin_data, primary_df, offtake_df, article_catalog,
-        num_forecast_months=forecast_months, verbose=verbose
+        num_forecast_months=forecast_months, verbose=verbose,
+        events_calendar_path=events_calendar_path,
+        launch_plan_path=launch_plan_path,
     )
     summary["forecast_rows"] = len(forecast_df)
 

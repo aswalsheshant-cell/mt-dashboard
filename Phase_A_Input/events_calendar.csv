@@ -1,0 +1,14 @@
+event_name,event_type,forecast_month,chain_filter,brand_filter,article_filter,uplift_pct,remarks,status
+Independence_Day,national_holiday,2026-08,ALL,ALL,ALL,10.0,Patriotic buying surge — Aug 15,PLACEHOLDER_TBC
+Raksha_Bandhan,festival,2026-08,ALL,ALL,ALL,15.0,Gifting season — approx Aug 29 2026,PLACEHOLDER_TBC
+Navratri,festival,2026-10,ALL,ALL,ALL,20.0,Nine nights — approx Oct 6-14 2026,PLACEHOLDER_TBC
+Dussehra,festival,2026-10,ALL,ALL,ALL,15.0,Vijayadasami — approx Oct 15 2026,PLACEHOLDER_TBC
+Big_Billion_Days,ecommerce_sale,2026-10,ALL,ALL,ALL,25.0,Flipkart annual sale — approx Oct 7-11 2026,PLACEHOLDER_TBC
+Great_Indian_Festival,ecommerce_sale,2026-10,ALL,ALL,ALL,25.0,Amazon annual sale — approx Oct 7-11 2026,PLACEHOLDER_TBC
+Diwali,festival,2026-11,ALL,ALL,ALL,35.0,Peak festive season — approx Nov 9 2026,PLACEHOLDER_TBC
+Childrens_Day,national_holiday,2026-11,ALL,ALL,ALL,5.0,Minor uplift — Nov 14,PLACEHOLDER_TBC
+Christmas,festival,2026-12,ALL,ALL,ALL,15.0,Year-end gifting — Dec 25,PLACEHOLDER_TBC
+New_Year,festival,2027-01,ALL,ALL,ALL,20.0,New Year celebration — Jan 1 2027,PLACEHOLDER_TBC
+Makar_Sankranti,festival,2027-01,ALL,ALL,ALL,10.0,Harvest festival — Jan 14 2027,PLACEHOLDER_TBC
+Republic_Day,national_holiday,2027-01,ALL,ALL,ALL,8.0,National day — Jan 26 2027,PLACEHOLDER_TBC
+Holi,festival,2027-03,ALL,ALL,ALL,25.0,Spring festival — approx Mar 21 2027,PLACEHOLDER_TBC

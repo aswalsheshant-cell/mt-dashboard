@@ -8,6 +8,10 @@ forecast_outputs/
 # Phase A generated data — real business data, local only
 Phase_A_Input/*.csv
 Phase_A_Input/*.xlsx
+# Track schema templates and configuration files (no real business data)
+!Phase_A_Input/events_calendar.csv
+!Phase_A_Input/launch_plan.csv
+!Phase_A_Input/targets.csv
 # audit outputs contain no sensitive data; track the JSON/CSV summaries
 # (but Excel may have raw rows — keep it local)
 audit_output/*.xlsx

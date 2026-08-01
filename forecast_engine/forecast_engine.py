@@ -143,7 +143,8 @@ class ForecastEngine:
         if "festival_name" in article_key:
             base_forecast_qty, festival_uplift = apply_festival_uplift(
                 base_forecast_qty,
-                festival_name=article_key["festival_name"]
+                festival_name=article_key["festival_name"],
+                uplift_pct=article_key.get("festival_uplift_pct"),
             )
 
         npi_uplift = 0.0
@@ -287,11 +288,24 @@ class ForecastEngine:
         offtake_data: pd.DataFrame,
         article_catalog: List[Dict],
         num_forecast_months: int = 3,
-        verbose: bool = True
+        verbose: bool = True,
+        events_calendar_path: Optional[str] = None,
+        launch_plan_path: Optional[str] = None,
     ) -> pd.DataFrame:
         """Execute end-to-end forecast for all articles."""
         self.verbose = verbose
         self.log(f"Starting forecast for {len(article_catalog)} articles, {num_forecast_months} months")
+
+        events_df = pd.DataFrame()
+        if events_calendar_path and os.path.exists(events_calendar_path):
+            events_df = pd.read_csv(events_calendar_path, dtype=str)
+            self.log(f"Loaded {len(events_df)} events from {events_calendar_path}")
+
+        launch_df = pd.DataFrame()
+        if launch_plan_path and os.path.exists(launch_plan_path):
+            launch_df = pd.read_csv(launch_plan_path, dtype=str)
+            if not launch_df.empty:
+                self.log(f"Loaded {len(launch_df)} NPI launch plans from {launch_plan_path}")
 
         forecasts = []
         forecast_months = get_forecast_months(num_months=num_forecast_months)
@@ -324,6 +338,48 @@ class ForecastEngine:
                 forecast_fy_str = compute_fy_from_date(dt.date(year, month, 1))
                 article["forecast_month"] = forecast_month_str
                 article["forecast_fy"] = forecast_fy_str
+
+                # Apply event uplift from calendar for this forecast month
+                article.pop("festival_name", None)
+                article.pop("festival_uplift_pct", None)
+                if not events_df.empty and "forecast_month" in events_df.columns:
+                    month_events = events_df[
+                        events_df["forecast_month"] == forecast_month_str
+                    ]
+                    if not month_events.empty:
+                        # Filter by chain / brand / article (ALL = applies to everything)
+                        chain_match = (
+                            month_events["chain_filter"].isin(["ALL", chain]) if "chain_filter" in month_events.columns
+                            else pd.Series(True, index=month_events.index)
+                        )
+                        brand_match = (
+                            month_events["brand_filter"].isin(["ALL", article.get("brand", "")]) if "brand_filter" in month_events.columns
+                            else pd.Series(True, index=month_events.index)
+                        )
+                        applicable = month_events[chain_match & brand_match]
+                        if not applicable.empty:
+                            best = applicable.loc[
+                                pd.to_numeric(applicable["uplift_pct"], errors="coerce").fillna(0).idxmax()
+                            ]
+                            article["festival_name"] = best["event_name"]
+                            article["festival_uplift_pct"] = float(best.get("uplift_pct", 0))
+
+                # Apply NPI uplift from launch plan
+                article.pop("days_since_launch", None)
+                if not launch_df.empty and "ean" in launch_df.columns:
+                    npi_rows = launch_df[
+                        (launch_df["ean"] == ean) &
+                        (launch_df["chain_name"].isin(["ALL", chain]))
+                    ]
+                    if not npi_rows.empty:
+                        launch_month_str = npi_rows.iloc[0]["launch_month"]
+                        try:
+                            launch_date = dt.datetime.strptime(launch_month_str, "%Y-%m").date()
+                            days_since = (dt.date(year, month, 1) - launch_date).days
+                            if days_since >= 0:
+                                article["days_since_launch"] = days_since
+                        except (ValueError, TypeError):
+                            pass
 
                 forecast = self.compute_base_forecast(article, historical_demand, margin_data)
                 forecast["forecast_month"] = forecast_month_str
