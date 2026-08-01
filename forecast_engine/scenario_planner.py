@@ -105,7 +105,7 @@ class ScenarioPlanner:
             if col in adjusted.columns:
                 adjusted[col] = adjusted[col].astype(float)
 
-        chain = adjustment.get("chain")
+        chain = adjustment.get("chain_name", adjustment.get("chain"))
         brand = adjustment.get("brand")
         article = adjustment.get("article")
         ean = adjustment.get("ean")
@@ -113,7 +113,7 @@ class ScenarioPlanner:
         adjustment_qty = float(adjustment.get("adjustment_qty", 0))
         adjustment_reason = adjustment.get("adjustment_reason", "")
 
-        mask = (adjusted["chain"] == chain)
+        mask = (adjusted["chain_name"] == chain)
         if brand:
             mask &= (adjusted["brand"] == brand)
         if article:
@@ -176,7 +176,7 @@ class ScenarioPlanner:
     ) -> pd.DataFrame:
         """Compute variance analysis across scenarios."""
         variance = pd.DataFrame({
-            "chain": expected_df["chain"],
+            "chain": expected_df["chain_name"],
             "brand": expected_df["brand"],
             "article": expected_df["article"],
             "ean": expected_df["ean"],

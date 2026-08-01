@@ -47,7 +47,7 @@ class TestForecastSchema(unittest.TestCase):
     def test_forecast_frame_validation(self):
         """Test forecast frame validation."""
         df = pd.DataFrame({
-            "chain": ["A", "B"],
+            "chain_name": ["A", "B"],
             "brand": ["X", "Y"],
             "article": ["SKU1", "SKU2"],
             "ean": ["123", "456"],
@@ -63,7 +63,7 @@ class TestForecastSchema(unittest.TestCase):
     def test_forecast_frame_invalid_confidence(self):
         """Test validation catches invalid confidence pct."""
         df = pd.DataFrame({
-            "chain": ["A"],
+            "chain_name": ["A"],
             "brand": ["X"],
             "article": ["SKU1"],
             "ean": ["123"],
@@ -138,7 +138,7 @@ class TestScenarioPlanner(unittest.TestCase):
     def setUp(self):
         """Create sample forecast."""
         self.forecast = pd.DataFrame({
-            "chain": ["A", "A", "B"],
+            "chain_name": ["A", "A", "B"],
             "brand": ["X", "X", "Y"],
             "article": ["SKU1", "SKU2", "SKU3"],
             "ean": ["111", "222", "333"],
@@ -183,7 +183,7 @@ class TestScenarioPlanner(unittest.TestCase):
         """Test NEW_LISTING adjustment."""
         planner = ScenarioPlanner()
         adjustment = {
-            "chain": "A",
+            "chain_name": "A",
             "brand": "X",
             "article": "SKU1",
             "ean": "111",
@@ -200,7 +200,7 @@ class TestScenarioPlanner(unittest.TestCase):
         """Test PROMOTION adjustment."""
         planner = ScenarioPlanner()
         adjustment = {
-            "chain": "A",
+            "chain_name": "A",
             "brand": "X",
             "article": "SKU2",
             "ean": "222",
@@ -253,9 +253,9 @@ class TestDataNormalizer(unittest.TestCase):
         """Test validation of normalized data."""
         df = pd.DataFrame({
             "ean": ["123"],
-            "chain": ["A"],
+            "chain_name": ["A"],
         })
-        is_valid, missing = DataNormalizer.validate_normalized(df, {"ean", "chain"})
+        is_valid, missing = DataNormalizer.validate_normalized(df, {"ean", "chain_name"})
         self.assertTrue(is_valid)
         self.assertEqual(len(missing), 0)
 
