@@ -20,7 +20,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
-import argparse, csv, io, json, re, math, datetime
+import argparse, copy, csv, io, json, re, math, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -2495,6 +2495,80 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     return detail, detail_dims(detail), meta, tot, cm2, alloc
 
 
+# ---------------------------------------------------------------------------
+# FYX FALLBACK  (populate primary/pnl FY27 summary from detail_meta.fyx_primary
+#               when Primary_FY202426_10.xlsx is unavailable — e.g. after a
+#               fresh clone where source files are gitignored)
+# ---------------------------------------------------------------------------
+
+def _patch_primary_from_fyx(primary, fyx27):
+    """Populate FY27 summary keys in the primary block from
+    detail_meta.fyx_primary.FY27 when the source workbook is unavailable.
+
+    Rules enforced:
+    - Idempotent: no-op if primary.fy_tags already contains 'fy27'.
+    - Never overwrites FY25 or FY26 values.
+    - Never manufactures article-level records.
+    - Never adds June (or later) data: only what fyx27.monthly carries.
+    - Adds explicit source + completeness markers so downstream code and
+      human readers know this is derived, not read directly from the workbook.
+    """
+    if "fy27" in (primary.get("fy_tags") or []):
+        return primary  # already populated — idempotent, do not overwrite
+
+    primary = copy.deepcopy(primary)
+
+    # fy_tags: extend with 'fy27', keep sorted by FY start year.
+    # If fy_tags is empty/missing, infer from existing nsv_fyNN keys so that
+    # a data.js built before fy_tags was introduced still gets the full list.
+    existing = list(primary.get("fy_tags") or [])
+    if not existing:
+        existing = sorted(
+            [k[4:] for k in primary if k.startswith("nsv_fy") and primary[k] is not None],
+            key=fy_start_year,
+        )
+    merged = sorted(set(existing) | {"fy27"}, key=fy_start_year)
+    primary["fy_tags"] = merged
+
+    # Top-level NSV / MRP scalars
+    primary["nsv_fy27"] = r2(fyx27["nsv"])
+    primary["mrp_fy27"] = r2(fyx27["mrp"])
+
+    # Monthly trend: 12-slot Apr..Mar; zeros for months not yet in source
+    primary["monthly_fy27"] = [r2(v) for v in fyx27.get("monthly", [0.0] * 12)]
+
+    # by_chain: add fy27 key; append new chains not in the pre-agg window
+    fyx_chain = {row["name"]: r2(row["nsv"]) for row in fyx27.get("by_chain", [])}
+    seen_chains = {row["name"] for row in primary.get("by_chain", [])}
+    for row in primary.get("by_chain", []):
+        row["fy27"] = fyx_chain.get(row["name"], 0.0)
+    for name, nsv in fyx_chain.items():
+        if name not in seen_chains:
+            primary["by_chain"].append({"name": name, "fy25": 0.0, "fy26": 0.0, "fy27": nsv})
+
+    # by_zone: add fy27 key (zones are a fixed set; no new rows expected)
+    fyx_zone = {row["name"]: r2(row["nsv"]) for row in fyx27.get("by_zone", [])}
+    for row in primary.get("by_zone", []):
+        row["fy27"] = fyx_zone.get(row["name"], 0.0)
+
+    # by_channel: add fy27 key
+    fyx_channel = {row["name"]: r2(row["nsv"]) for row in fyx27.get("by_channel", [])}
+    for row in primary.get("by_channel", []):
+        row["fy27"] = fyx_channel.get(row["name"], 0.0)
+
+    # by_brand: add fy27 key
+    fyx_brand = {row["name"]: r2(row["nsv"]) for row in fyx27.get("by_brand", [])}
+    for row in primary.get("by_brand", []):
+        row["fy27"] = fyx_brand.get(row["name"], 0.0)
+
+    # Provenance markers — make the derived nature and coverage explicit
+    primary["fy27_summary_source"] = "detail_meta.fyx_primary.FY27"
+    primary["fy27_data_status"] = "partial_apr_may_2026"
+    primary["fy27_months_covered"] = list(fyx27.get("months_covered", ["April", "May"]))
+
+    return primary
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -2572,21 +2646,52 @@ def main():
         outp = Path(a.out)
         txt = outp.read_text()
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
-        raw = load_primary_v2(src)
-        weights = load_chain_allocation_weights(src)
-        allocated, qc = apply_chain_allocation(raw, weights)
-        pdf, primary = primary_block(allocated)
-        pnl = pnl_block(pdf, obj["promo"])
-        insights = insights_block(primary, obj["offtake"], pnl, obj["universe"], obj["promo"])
-        obj["primary"] = primary
-        obj["pnl"] = pnl
-        obj["insights"] = insights
-        if qc is not None:
-            obj["chain_allocation_qc"] = qc
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
-        print(f"primary-only: FY25 {primary['nsv_fy25']} / FY26 {primary['nsv_fy26']} (Lakh); "
-              + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
-                 if qc else "no allocation file found -- chain tags left as-is"))
+        src_file = src / "Primary_FY202426_10.xlsx"
+        if src_file.exists():
+            # --- Workbook present: full rebuild from source of truth (normal path) ---
+            raw = load_primary_v2(src)
+            weights = load_chain_allocation_weights(src)
+            allocated, qc = apply_chain_allocation(raw, weights)
+            pdf, primary = primary_block(allocated)
+            pnl = pnl_block(pdf, obj["promo"])
+            insights = insights_block(primary, obj["offtake"], pnl, obj["universe"], obj["promo"])
+            obj["primary"] = primary
+            obj["pnl"] = pnl
+            obj["insights"] = insights
+            if qc is not None:
+                obj["chain_allocation_qc"] = qc
+            outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+            print(f"primary-only: FY25 {primary['nsv_fy25']} / FY26 {primary['nsv_fy26']} (Lakh); "
+                  + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
+                     if qc else "no allocation file found -- chain tags left as-is"))
+        else:
+            # --- Workbook missing: derive FY27 summary from detail_meta.fyx_primary (fallback) ---
+            # Source file is gitignored and only available during an active local session.
+            # fyx_primary is already chain-allocated and validated — safe to use for FY27 metadata.
+            fyx = (obj.get("detail_meta") or {}).get("fyx_primary") or {}
+            fyx27 = fyx.get("FY27")
+            if not fyx27:
+                raise SystemExit(
+                    "Primary_FY202426_10.xlsx not found in --src AND no "
+                    "detail_meta.fyx_primary.FY27 exists in data.js. "
+                    "Supply the source workbook or run --detail-only first to "
+                    "populate the fyx_primary block."
+                )
+            print(f"WARNING: Primary_FY202426_10.xlsx not in --src; "
+                  f"falling back to detail_meta.fyx_primary.FY27 "
+                  f"(nsv={fyx27['nsv']} L, months={fyx27.get('months_covered')}).")
+            primary = _patch_primary_from_fyx(obj["primary"], fyx27)
+            # Patch pnl fy_tags / fy_tag to reflect now-known FY coverage.
+            # PNL by_chain/totals remain unchanged (already computed from real data).
+            pnl = dict(obj.get("pnl") or {})
+            pnl["fy_tags"] = list(primary["fy_tags"])
+            pnl["fy_tag"] = primary["fy_tags"][-1].upper()  # 'fy27' -> 'FY27'
+            obj["primary"] = primary
+            obj["pnl"] = pnl
+            outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+            print(f"primary-only (fyx fallback): fy_tags={primary['fy_tags']} "
+                  f"nsv_fy27={primary.get('nsv_fy27')} L — FY25 {primary['nsv_fy25']} / "
+                  f"FY26 {primary['nsv_fy26']} unchanged")
         return
 
     # ---- lightweight path: refresh ONLY the forecast block from the real TY target ----
