@@ -1525,7 +1525,8 @@ def pnl_block(pdf, promo):
     rows = sorted(rows, key=lambda d: -(d["nsv"] or 0))
     tot_mrp = sum(x["mrp"] or 0 for x in rows)
     tot_nsv = sum(x["nsv"] or 0 for x in rows)
-    return {"by_chain": rows, "fy_tag": latest,
+    lo = [t.lower() for t in fy_tags]
+    return {"by_chain": rows, "fy_tags": lo, "fy_tag": latest,
             "total_mrp": r2(tot_mrp), "total_nsv": r2(tot_nsv),
             "total_discount": r2(tot_mrp - tot_nsv),
             "blended_discount_pct": r2((tot_mrp - tot_nsv) / tot_mrp * 100, 1) if tot_mrp else None}
