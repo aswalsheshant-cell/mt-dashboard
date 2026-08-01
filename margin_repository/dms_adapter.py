@@ -146,3 +146,17 @@ def dms_quality_preview(path, sheet="DB Margin-Updated "):
     validated = validate_frame(df)
     qc = qc_report(validated)
     return validated, qc, meta
+
+
+def dms_enriched_preview(path, sheet="DB Margin-Updated ", fountain_master=None):
+    """Full DMS -> Fountain enrichment -> validation pipeline.
+    Returns (enriched_validated_df, qc_report_df, ingest_meta, enrich_report).
+    """
+    from validation import validate_frame, qc_report
+    from fountain_enricher import enrich
+
+    df, ingest_meta = load_dms(path, sheet)
+    enriched, enrich_report = enrich(df, fountain_master=fountain_master)
+    validated = validate_frame(enriched)
+    qc = qc_report(validated)
+    return validated, qc, ingest_meta, enrich_report
