@@ -1,0 +1,29 @@
+2026-08-01 14:43:36,262 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:43:36,262 - ForecastRunner - INFO - PRODUCTION FORECAST RUN — 2026-08-01_144336
+2026-08-01 14:43:36,262 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:43:36,262 - ForecastRunner - INFO - [GATE 1/5] Validating input schema
+2026-08-01 14:43:36,262 - ForecastRunner - WARNING - Real margin file not found: /home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+2026-08-01 14:43:36,262 - ForecastRunner - WARNING - Generating synthetic margin data for validation testing
+2026-08-01 14:43:36,262 - ForecastRunner - DEBUG - Generating synthetic margin data from offtake
+2026-08-01 14:43:37,657 - ForecastRunner - DEBUG - Synthetic margin data written: 2161 articles
+2026-08-01 14:43:37,675 - ForecastRunner - DEBUG - Found 14 primary files
+2026-08-01 14:43:37,675 - ForecastRunner - DEBUG - Found 2 offtake files
+2026-08-01 14:43:37,675 - ForecastRunner - INFO - ✓ Input schema validation passed
+2026-08-01 14:43:37,675 - ForecastRunner - INFO - [GATE 2/5] Checking for duplicates
+2026-08-01 14:43:37,679 - ForecastRunner - INFO - ✓ No duplicates found
+2026-08-01 14:43:37,680 - ForecastRunner - INFO - [GATE 3/5] Validating master mapping
+2026-08-01 14:43:37,726 - ForecastRunner - INFO - ✓ All demand EANs mapped to margin master
+2026-08-01 14:43:37,727 - ForecastRunner - INFO - [PIPELINE] Starting 11-step forecast pipeline
+2026-08-01 14:43:37,728 - ForecastRunner - ERROR - Forecast pipeline failed: Margin file not found: /home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+2026-08-01 14:43:37,728 - ForecastRunner - ERROR - Traceback (most recent call last):
+  File "/home/user/mt-dashboard/refresh_forecast.py", line 266, in run_forecast_pipeline
+    summary = run_forecast_pipeline(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/mt-dashboard/forecast_engine/cli.py", line 39, in run_forecast_pipeline
+    margin_data = engine.load_margin_repository()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/mt-dashboard/forecast_engine/forecast_engine.py", line 62, in load_margin_repository
+    raise FileNotFoundError(f"Margin file not found: {margin_file}")
+FileNotFoundError: Margin file not found: /home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+
+2026-08-01 14:43:37,728 - ForecastRunner - ERROR - Forecast pipeline failed

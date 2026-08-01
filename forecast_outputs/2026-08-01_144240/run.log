@@ -1,0 +1,27 @@
+2026-08-01 14:42:40,900 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:42:40,900 - ForecastRunner - INFO - PRODUCTION FORECAST RUN — 2026-08-01_144240
+2026-08-01 14:42:40,900 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:42:40,900 - ForecastRunner - INFO - [GATE 1/5] Validating input schema
+2026-08-01 14:42:40,900 - ForecastRunner - WARNING - Real margin file not found: /home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+2026-08-01 14:42:40,900 - ForecastRunner - WARNING - Generating synthetic margin data for validation testing
+2026-08-01 14:42:40,900 - ForecastRunner - DEBUG - Generating synthetic margin data from offtake
+2026-08-01 14:42:41,351 - ForecastRunner - ERROR - Unexpected error: "None of [Index(['ean', 'article', 'chain', 'brand', 'category'], dtype='str')] are in the [columns]"
+2026-08-01 14:42:41,617 - ForecastRunner - ERROR - Traceback (most recent call last):
+  File "/home/user/mt-dashboard/refresh_forecast.py", line 386, in run
+    if not self.validate_input_schema():
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/mt-dashboard/refresh_forecast.py", line 132, in validate_input_schema
+    margin_file = self._generate_synthetic_margin_data()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/mt-dashboard/refresh_forecast.py", line 97, in _generate_synthetic_margin_data
+    articles = offtake_df[["ean", "article", "chain", "brand", "category"]].drop_duplicates()
+               ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/pandas/core/frame.py", line 4384, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/pandas/core/indexes/base.py", line 6302, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/usr/local/lib/python3.11/dist-packages/pandas/core/indexes/base.py", line 6352, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['ean', 'article', 'chain', 'brand', 'category'], dtype='str')] are in the [columns]"
+

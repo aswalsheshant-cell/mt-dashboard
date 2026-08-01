@@ -1,0 +1,14 @@
+2026-08-01 14:42:56,615 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:42:56,615 - ForecastRunner - INFO - PRODUCTION FORECAST RUN — 2026-08-01_144256
+2026-08-01 14:42:56,616 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:42:56,616 - ForecastRunner - INFO - [GATE 1/5] Validating input schema
+2026-08-01 14:42:56,616 - ForecastRunner - WARNING - Real margin file not found: /home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+2026-08-01 14:42:56,616 - ForecastRunner - WARNING - Generating synthetic margin data for validation testing
+2026-08-01 14:42:56,616 - ForecastRunner - DEBUG - Generating synthetic margin data from offtake
+2026-08-01 14:42:59,399 - ForecastRunner - DEBUG - Synthetic margin data written: 2161 articles
+2026-08-01 14:42:59,416 - ForecastRunner - DEBUG - Found 14 primary files
+2026-08-01 14:42:59,416 - ForecastRunner - DEBUG - Found 2 offtake files
+2026-08-01 14:42:59,416 - ForecastRunner - INFO - ✓ Input schema validation passed
+2026-08-01 14:42:59,416 - ForecastRunner - INFO - [GATE 2/5] Checking for duplicates
+2026-08-01 14:42:59,417 - ForecastRunner - ERROR - Error checking duplicates: [Errno 2] No such file or directory: '/home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv'
+2026-08-01 14:42:59,417 - ForecastRunner - ERROR - Duplicate check failed

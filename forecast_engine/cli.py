@@ -6,9 +6,9 @@ import argparse
 import datetime as dt
 import pandas as pd
 
-from forecast_engine import ForecastEngine
-from scenario_planner import ScenarioPlanner
-from powerbi_export import (
+from forecast_engine.forecast_engine import ForecastEngine
+from forecast_engine.scenario_planner import ScenarioPlanner
+from forecast_engine.powerbi_export import (
     export_forecast_tables, export_measures_file, build_executive_summary
 )
 

@@ -1,0 +1,16 @@
+2026-08-01 14:43:28,250 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:43:28,250 - ForecastRunner - INFO - PRODUCTION FORECAST RUN — 2026-08-01_144328
+2026-08-01 14:43:28,250 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:43:28,250 - ForecastRunner - INFO - [GATE 1/5] Validating input schema
+2026-08-01 14:43:28,250 - ForecastRunner - WARNING - Real margin file not found: /home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+2026-08-01 14:43:28,250 - ForecastRunner - WARNING - Generating synthetic margin data for validation testing
+2026-08-01 14:43:28,250 - ForecastRunner - DEBUG - Generating synthetic margin data from offtake
+2026-08-01 14:43:29,442 - ForecastRunner - DEBUG - Synthetic margin data written: 2161 articles
+2026-08-01 14:43:29,459 - ForecastRunner - DEBUG - Found 14 primary files
+2026-08-01 14:43:29,459 - ForecastRunner - DEBUG - Found 2 offtake files
+2026-08-01 14:43:29,459 - ForecastRunner - INFO - ✓ Input schema validation passed
+2026-08-01 14:43:29,459 - ForecastRunner - INFO - [GATE 2/5] Checking for duplicates
+2026-08-01 14:43:29,464 - ForecastRunner - INFO - ✓ No duplicates found
+2026-08-01 14:43:29,464 - ForecastRunner - INFO - [GATE 3/5] Validating master mapping
+2026-08-01 14:43:29,512 - ForecastRunner - ERROR - Error validating master mapping: 'ean'
+2026-08-01 14:43:29,513 - ForecastRunner - ERROR - Master mapping validation failed

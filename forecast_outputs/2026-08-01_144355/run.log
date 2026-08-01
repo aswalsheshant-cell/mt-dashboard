@@ -1,0 +1,36 @@
+2026-08-01 14:43:55,303 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:43:55,303 - ForecastRunner - INFO - PRODUCTION FORECAST RUN — 2026-08-01_144355
+2026-08-01 14:43:55,304 - ForecastRunner - INFO - ======================================================================
+2026-08-01 14:43:55,304 - ForecastRunner - INFO - [GATE 1/5] Validating input schema
+2026-08-01 14:43:55,304 - ForecastRunner - WARNING - Real margin file not found: /home/user/mt-dashboard/margin_repository/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+2026-08-01 14:43:55,304 - ForecastRunner - WARNING - Generating synthetic margin data for validation testing
+2026-08-01 14:43:55,304 - ForecastRunner - DEBUG - Generating synthetic margin data from offtake
+2026-08-01 14:43:56,733 - ForecastRunner - DEBUG - Synthetic margin data written: 2161 articles
+2026-08-01 14:43:56,750 - ForecastRunner - DEBUG - Found 14 primary files
+2026-08-01 14:43:56,751 - ForecastRunner - DEBUG - Found 2 offtake files
+2026-08-01 14:43:56,751 - ForecastRunner - INFO - ✓ Input schema validation passed
+2026-08-01 14:43:56,751 - ForecastRunner - INFO - [GATE 2/5] Checking for duplicates
+2026-08-01 14:43:56,755 - ForecastRunner - INFO - ✓ No duplicates found
+2026-08-01 14:43:56,755 - ForecastRunner - INFO - [GATE 3/5] Validating master mapping
+2026-08-01 14:43:56,806 - ForecastRunner - INFO - ✓ All demand EANs mapped to margin master
+2026-08-01 14:43:56,807 - ForecastRunner - INFO - [PIPELINE] Starting 11-step forecast pipeline
+2026-08-01 14:43:56,809 - ForecastRunner - DEBUG - Copied margin data to /home/user/mt-dashboard/forecast_outputs/2026-08-01_144355/temp_margin_repo/Release_v1.0.0_RC1/04_Business_Outputs/fact_margin.csv
+2026-08-01 14:43:56,935 - ForecastRunner - ERROR - Forecast pipeline failed: 'ean'
+2026-08-01 14:43:56,991 - ForecastRunner - ERROR - Traceback (most recent call last):
+  File "/home/user/mt-dashboard/refresh_forecast.py", line 276, in run_forecast_pipeline
+    summary = run_forecast_pipeline(
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/mt-dashboard/forecast_engine/cli.py", line 66, in run_forecast_pipeline
+    forecast_df = engine.run_forecast(
+                  ^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/mt-dashboard/forecast_engine/forecast_engine.py", line 293, in run_forecast
+    (offtake_data["ean"] == ean) & (offtake_data["chain"] == chain)
+     ~~~~~~~~~~~~^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/pandas/core/frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/pandas/core/indexes/range.py", line 525, in get_loc
+    raise KeyError(key)
+KeyError: 'ean'
+
+2026-08-01 14:43:56,991 - ForecastRunner - ERROR - Forecast pipeline failed
