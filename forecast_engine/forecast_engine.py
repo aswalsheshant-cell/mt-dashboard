@@ -186,22 +186,114 @@ class ForecastEngine:
 
         return forecast
 
+    def _resolve_margin(
+        self,
+        ean: str,
+        chain: str,
+        margin_data: pd.DataFrame,
+        category: Optional[str] = None,
+        brand: Optional[str] = None,
+        tentative_mode: bool = False,
+    ) -> Tuple[Optional[object], str, str, str]:
+        """Resolve margin data using 5-level fallback hierarchy.
+
+        Returns (row_or_series, value_source, fallback_method, confidence_level).
+        row_or_series is None when no margin data is available at any level.
+        """
+        if margin_data.empty:
+            return None, "NO_DATA", "NO_MARGIN_AVAILABLE", "LOW"
+
+        chain_col = "chain_name" if "chain_name" in margin_data.columns else "chain"
+
+        # VMM exclusion in tentative mode
+        if tentative_mode and chain == "VMM":
+            return None, "EXCLUDED_VMM", "VMM_EXCLUDED", "EXCLUDED"
+
+        # Level 1: Finance-approved exact EAN × chain match
+        if "approval_status" in margin_data.columns:
+            lvl1 = margin_data[
+                (margin_data["ean"] == ean) &
+                (margin_data[chain_col] == chain) &
+                (margin_data["approval_status"] == "FINANCE_APPROVED")
+            ]
+            if not lvl1.empty:
+                return lvl1.iloc[0], "FINANCE_APPROVED", "EXACT_MATCH", "HIGH"
+
+        # Level 2: Any non-ESTIMATED exact EAN × chain match
+        qs_col = "quality_status" if "quality_status" in margin_data.columns else None
+        lvl2_mask = (margin_data["ean"] == ean) & (margin_data[chain_col] == chain)
+        if qs_col:
+            lvl2_mask = lvl2_mask & (margin_data[qs_col] != "ESTIMATED")
+        lvl2 = margin_data[lvl2_mask]
+        if not lvl2.empty:
+            qs = lvl2.iloc[0].get(qs_col, "DERIVED") if qs_col else "DERIVED"
+            return lvl2.iloc[0], str(qs), "EAN_CHAIN_EXACT", "HIGH"
+
+        # Level 3: ESTIMATED exact EAN × chain (tentative only — warn, still use)
+        if tentative_mode:
+            lvl3 = margin_data[
+                (margin_data["ean"] == ean) & (margin_data[chain_col] == chain)
+            ]
+            if not lvl3.empty:
+                return lvl3.iloc[0], "ESTIMATED", "EAN_CHAIN_ESTIMATED", "LOW"
+
+        # Level 4: Category × chain average (non-ESTIMATED, non-VMM)
+        if tentative_mode and category and "category" in margin_data.columns:
+            base_mask = (margin_data[chain_col] != "VMM")
+            if qs_col:
+                base_mask = base_mask & (margin_data[qs_col] != "ESTIMATED")
+            lvl4 = margin_data[
+                base_mask &
+                (margin_data["category"] == category) &
+                (margin_data[chain_col] == chain)
+            ]
+            if not lvl4.empty:
+                avg = lvl4[
+                    [c for c in ["mrp", "margin_pct", "cm2_pct", "tot_pct"]
+                     if c in lvl4.columns]
+                ].apply(pd.to_numeric, errors="coerce").mean()
+                return avg, "DERIVED", "CATEGORY_CHAIN_AVG", "MEDIUM"
+
+        # Level 5: Brand × national average (non-ESTIMATED, non-VMM)
+        if tentative_mode and brand and "brand" in margin_data.columns:
+            base_mask = (margin_data[chain_col] != "VMM")
+            if qs_col:
+                base_mask = base_mask & (margin_data[qs_col] != "ESTIMATED")
+            lvl5 = margin_data[base_mask & (margin_data["brand"] == brand)]
+            if not lvl5.empty:
+                avg = lvl5[
+                    [c for c in ["mrp", "margin_pct", "cm2_pct", "tot_pct"]
+                     if c in lvl5.columns]
+                ].apply(pd.to_numeric, errors="coerce").mean()
+                return avg, "DERIVED", "BRAND_NATIONAL_AVG", "MEDIUM"
+
+        return None, "NO_DATA", "NO_MARGIN_AVAILABLE", "LOW"
+
     def compute_nsv_and_trade_spend(
         self,
         forecast: Dict,
         margin_data: pd.DataFrame,
-        mrp: Optional[float] = None
+        mrp: Optional[float] = None,
+        tentative_mode: bool = False,
     ) -> Dict:
         """Compute NSV, Primary, Offtake, Trade Spend, CM2."""
         ean = forecast.get("ean")
         chain = forecast.get("chain_name")
+        category = forecast.get("category")
+        brand = forecast.get("brand")
 
-        margin_col = "chain_name" if "chain_name" in margin_data.columns else "chain"
-        margin_row = margin_data[
-            (margin_data["ean"] == ean) & (margin_data[margin_col] == chain)
-        ]
+        row, value_source, fallback_method, confidence_level = self._resolve_margin(
+            ean, chain, margin_data,
+            category=category, brand=brand,
+            tentative_mode=tentative_mode,
+        )
 
-        if margin_row.empty:
+        # Traceability fields
+        forecast["value_source"] = value_source
+        forecast["fallback_method"] = fallback_method
+        forecast["confidence_level"] = confidence_level
+
+        if row is None:
             forecast["forecast_nsv"] = 0.0
             forecast["forecast_primary_qty"] = 0.0
             forecast["forecast_offtake_qty"] = forecast["forecast_qty"]
@@ -209,7 +301,6 @@ class ForecastEngine:
             forecast["forecast_cm2"] = 0.0
             return forecast
 
-        row = margin_row.iloc[0]
         mrp_val = float(mrp or row.get("mrp", 0))
         # Accept both the legacy synthetic column names and the real fact_margin column names
         margin_pct = float(row.get("final_effective_margin_pct") or row.get("margin_pct") or 0)
@@ -291,10 +382,12 @@ class ForecastEngine:
         verbose: bool = True,
         events_calendar_path: Optional[str] = None,
         launch_plan_path: Optional[str] = None,
+        tentative_mode: bool = False,
     ) -> pd.DataFrame:
         """Execute end-to-end forecast for all articles."""
         self.verbose = verbose
-        self.log(f"Starting forecast for {len(article_catalog)} articles, {num_forecast_months} months")
+        mode_label = "TENTATIVE" if tentative_mode else "FINAL"
+        self.log(f"Starting {mode_label} forecast for {len(article_catalog)} articles, {num_forecast_months} months")
 
         events_df = pd.DataFrame()
         if events_calendar_path and os.path.exists(events_calendar_path):
@@ -340,14 +433,15 @@ class ForecastEngine:
                 article["forecast_fy"] = forecast_fy_str
 
                 # Apply event uplift from calendar for this forecast month
+                # Uses 5-level fallback hierarchy in tentative mode
                 article.pop("festival_name", None)
                 article.pop("festival_uplift_pct", None)
+                article.pop("uplift_value_source", None)
                 if not events_df.empty and "forecast_month" in events_df.columns:
                     month_events = events_df[
                         events_df["forecast_month"] == forecast_month_str
                     ]
                     if not month_events.empty:
-                        # Filter by chain / brand / article (ALL = applies to everything)
                         chain_match = (
                             month_events["chain_filter"].isin(["ALL", chain]) if "chain_filter" in month_events.columns
                             else pd.Series(True, index=month_events.index)
@@ -361,8 +455,31 @@ class ForecastEngine:
                             best = applicable.loc[
                                 pd.to_numeric(applicable["uplift_pct"], errors="coerce").fillna(0).idxmax()
                             ]
-                            article["festival_name"] = best["event_name"]
-                            article["festival_uplift_pct"] = float(best.get("uplift_pct", 0))
+                            event_status = str(best.get("status", "PLACEHOLDER_TBC"))
+                            event_uplift = float(best.get("uplift_pct", 0) or 0)
+
+                            if event_status == "APPROVED" and event_uplift > 0:
+                                # Level 1 (HIGH): APPROVED uplift
+                                article["festival_name"] = best["event_name"]
+                                article["festival_uplift_pct"] = event_uplift
+                                article["uplift_value_source"] = "APPROVED_EVENT"
+                            elif tentative_mode:
+                                # Level 2 (HIGH): Proposed uplift from Proposed_base_pct column
+                                proposed = float(best.get("Proposed_base_pct", 0) or 0)
+                                if proposed > 0:
+                                    article["festival_name"] = best["event_name"]
+                                    article["festival_uplift_pct"] = proposed
+                                    article["uplift_value_source"] = "PROPOSED_UPLIFT"
+                                else:
+                                    # Level 5 (LOW): 0% uplift — conservative baseline
+                                    article["festival_name"] = best["event_name"]
+                                    article["festival_uplift_pct"] = 0.0
+                                    article["uplift_value_source"] = "ZERO_UPLIFT_TENTATIVE"
+                            else:
+                                # Non-tentative: use whatever is in uplift_pct (even placeholder)
+                                article["festival_name"] = best["event_name"]
+                                article["festival_uplift_pct"] = event_uplift
+                                article["uplift_value_source"] = "PLACEHOLDER"
 
                 # Apply NPI uplift from launch plan
                 article.pop("days_since_launch", None)
@@ -384,7 +501,11 @@ class ForecastEngine:
                 forecast = self.compute_base_forecast(article, historical_demand, margin_data)
                 forecast["forecast_month"] = forecast_month_str
                 forecast["forecast_fy"] = forecast_fy_str
-                forecast = self.compute_nsv_and_trade_spend(forecast, margin_data)
+                forecast["is_tentative"] = tentative_mode
+                forecast["uplift_value_source"] = article.pop("uplift_value_source", "")
+                forecast = self.compute_nsv_and_trade_spend(
+                    forecast, margin_data, tentative_mode=tentative_mode
+                )
                 forecast = self.allocate_warehouse(forecast)
                 forecast = self.flag_exceptions(forecast)
 

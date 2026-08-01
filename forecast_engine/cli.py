@@ -22,14 +22,23 @@ def run_forecast_pipeline(
     verbose: bool = True,
     events_calendar_path: str = None,
     launch_plan_path: str = None,
+    tentative_mode: bool = False,
 ) -> dict:
-    """End-to-end forecast pipeline."""
+    """End-to-end forecast pipeline.
+
+    Set tentative_mode=True to run with relaxed approval gates and fallback
+    hierarchies for targets, events, and margins.  All tentative outputs carry
+    is_tentative=True and traceability fields (value_source, fallback_method,
+    confidence_level).  Use the final run (tentative_mode=False) for reporting.
+    """
     import pandas as pd
 
     os.makedirs(output_dir, exist_ok=True)
     log = _stepper(verbose)
+    mode_label = "TENTATIVE" if tentative_mode else "FINAL"
     summary = {
         "started_at": dt.datetime.now().isoformat(timespec="seconds"),
+        "forecast_mode": mode_label,
         "margin_repo_path": margin_repo_path,
         "output_dir": output_dir,
     }
@@ -64,12 +73,13 @@ def run_forecast_pipeline(
 
     summary["articles_in_catalog"] = len(article_catalog)
 
-    log(5, f"Run base forecast ({forecast_months} months)")
+    log(5, f"Run base forecast ({forecast_months} months) — mode: {mode_label}")
     forecast_df = engine.run_forecast(
         margin_data, primary_df, offtake_df, article_catalog,
         num_forecast_months=forecast_months, verbose=verbose,
         events_calendar_path=events_calendar_path,
         launch_plan_path=launch_plan_path,
+        tentative_mode=tentative_mode,
     )
     summary["forecast_rows"] = len(forecast_df)
 
@@ -113,12 +123,17 @@ def run_forecast_pipeline(
 
     if verbose:
         print("\n" + "=" * 68)
-        print(" FORECAST PIPELINE COMPLETE — %s" % summary["finished_at"])
+        print(" FORECAST PIPELINE COMPLETE [%s] — %s" % (mode_label, summary["finished_at"]))
         print("=" * 68)
+        print("  Mode:        %s" % mode_label)
         print("  Output dir:  %s" % output_dir)
         print("  Summary:     %s" % summary_path)
         print("  Workbook:    %s" % workbook_path)
         print("  Report:      %s" % report_path)
+        if tentative_mode:
+            print()
+            print("  ⚠  TENTATIVE OUTPUTS — labeled is_tentative=True.")
+            print("     Not for final reporting. Resolve all approvals, then re-run in FINAL mode.")
 
     return summary
 
@@ -218,6 +233,13 @@ def main():
     parser.add_argument("--out", required=True, help="Output directory")
     parser.add_argument("--months", type=int, default=3, help="Number of forecast months")
     parser.add_argument("--verbose", action="store_true", default=True)
+    parser.add_argument(
+        "--mode",
+        choices=["final", "tentative"],
+        default="final",
+        help=("tentative = planning mode (relaxed gates, fallback hierarchies, "
+              "is_tentative=True on outputs); final = strict production mode (default)"),
+    )
 
     args = parser.parse_args()
 
@@ -228,6 +250,7 @@ def main():
         output_dir=args.out,
         forecast_months=args.months,
         verbose=args.verbose,
+        tentative_mode=(args.mode == "tentative"),
     )
 
     print(json.dumps(summary, indent=2, default=str))
