@@ -73,7 +73,22 @@ Rows where forecast_driver_primary = Festival Uplift: **2,419**
 
 ---
 
-## 6. Known Open Items (Non-Blocking)
+## 6. Data Quality Issues Found by Validator
+
+| Check | File | Issue | Severity | Action Required |
+|---|---|---|---|---|
+| V-01 | targets.csv | 0 rows — no Aug–Oct 2026 targets loaded | BLOCKED | Sales Planning to upload |
+| V-07 | events_calendar.csv | All 13 events PLACEHOLDER_TBC | BLOCKED | Marketing / KAM to approve uplift % |
+| V-14 | fact_margin.csv | 933 ESTIMATED rows (placeholder margins) | BLOCKED | Finance to provide real margin data |
+| V-15 | fact_margin.csv | No approval_status column | FAIL | Add column; Finance to mark FINANCE_APPROVED |
+| V-16 | fact_margin.csv | 2 negative margin_pct: VMM chain, EANs 8904417314298 / 8904417312546, margin_pct = -84.64 | FAIL | Likely credit memo / return — MDM to reclassify or exclude |
+
+**Validator command:** `python validate_business_inputs.py --mode full`
+**Current result:** PASS=13 WARNING=0 FAIL=2 BLOCKED=3 → FORECAST RUN BLOCKED
+
+---
+
+## 7. Known Open Items (Non-Blocking)
 
 | # | Item | Owner | Priority |
 |---|---|---|---|

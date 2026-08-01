@@ -25,3 +25,5 @@ primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
 !margin_repository/*.xlsx
+# Track the business input approval tracker (no sensitive data — schema/status only)
+!BUSINESS_INPUT_APPROVAL_TRACKER.xlsx
