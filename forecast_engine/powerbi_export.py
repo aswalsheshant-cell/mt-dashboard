@@ -18,7 +18,7 @@ def export_forecast_tables(
     paths = {}
 
     keep_cols_forecast = [
-        "forecast_id", "chain", "zone", "state", "brand", "category", "article", "ean",
+        "forecast_id", "chain_name", "zone", "state", "brand", "category", "article", "ean",
         "forecast_month", "forecast_fy",
         "historical_offtake_qty", "historical_primary_qty",
         "mom_trend_pct", "yoy_trend_pct", "weighted_ma_qty",
@@ -42,7 +42,7 @@ def export_forecast_tables(
 
     for scenario_name, scenario_df in scenario_dfs.items():
         keep_cols_scenario = [
-            "chain", "zone", "state", "brand", "category", "article", "ean",
+            "chain_name", "zone", "state", "brand", "category", "article", "ean",
             "forecast_month", "forecast_qty", "forecast_nsv",
             "forecast_primary_qty", "forecast_trade_spend", "forecast_cm2",
             "confidence_pct", "scenario", "scenario_description"
@@ -60,7 +60,7 @@ def export_forecast_tables(
 
     if not exception_df.empty:
         exception_cols = [
-            "chain", "brand", "article", "ean",
+            "chain_name", "brand", "article", "ean",
             "exception_type", "exception_reason", "risk_level", "recommendation"
         ]
 
@@ -82,7 +82,7 @@ def export_forecast_tables(
         dim_article.to_excel(dim_article_path, sheet_name="Article", index=False)
     paths["dim_article"] = dim_article_path
 
-    dim_chain = forecast_df[["chain", "zone", "state"]].drop_duplicates()
+    dim_chain = forecast_df[["chain_name", "zone", "state"]].drop_duplicates()
     dim_chain_path = os.path.join(output_dir, f"dim_chain.{fmt}")
     if fmt == "csv":
         dim_chain.to_csv(dim_chain_path, index=False)
@@ -154,7 +154,7 @@ def build_executive_summary(
         "forecast_rows": len(forecast_df),
         "forecast_months": forecast_df["forecast_month"].nunique(),
         "articles": forecast_df["ean"].nunique(),
-        "chains": forecast_df["chain"].nunique(),
+        "chains": forecast_df["chain_name"].nunique(),
         "brands": forecast_df["brand"].nunique(),
 
         "total_forecast_qty": float(forecast_df["forecast_qty"].sum()),

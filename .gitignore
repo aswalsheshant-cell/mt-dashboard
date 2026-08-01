@@ -2,6 +2,9 @@
 __pycache__/
 node_modules/
 
+# Forecast pipeline run artifacts
+forecast_outputs/
+
 # Phase A generated data — real business data, local only
 Phase_A_Input/*.csv
 Phase_A_Input/*.xlsx

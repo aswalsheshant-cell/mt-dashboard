@@ -38,7 +38,7 @@ FORECAST_HIERARCHY = {
 FORECAST_COLUMNS = {
     "fact_demand_forecast": [
         # Identity
-        "forecast_id", "chain", "zone", "state", "brand", "category", "article", "ean",
+        "forecast_id", "chain_name", "zone", "state", "brand", "category", "article", "ean",
         "forecast_month", "forecast_fy",
         # Inputs
         "historical_offtake_qty", "historical_primary_qty",
@@ -61,7 +61,7 @@ FORECAST_COLUMNS = {
         "forecast_timestamp", "version", "created_by"
     ],
     "fact_business_adjustment": [
-        "adjustment_id", "chain", "brand", "article", "ean",
+        "adjustment_id", "chain_name", "brand", "article", "ean",
         "adjustment_type", "adjustment_qty", "adjustment_reason",
         "planner_name", "adjustment_date", "effective_from",
         "status"  # PENDING, APPROVED, APPLIED, REJECTED
@@ -98,7 +98,7 @@ def validate_forecast_frame(df: pd.DataFrame) -> Tuple[bool, List[str]]:
     errors = []
 
     required_cols = [
-        "chain", "brand", "article", "ean", "forecast_month",
+        "chain_name", "brand", "article", "ean", "forecast_month",
         "forecast_qty", "confidence_pct", "risk_level"
     ]
     for col in required_cols:

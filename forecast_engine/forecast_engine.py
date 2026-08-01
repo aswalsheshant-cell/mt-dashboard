@@ -100,7 +100,7 @@ class ForecastEngine:
         """Compute base forecast for one Chain × Brand × Article."""
         forecast = {
             "forecast_id": str(uuid.uuid4()),
-            "chain": article_key.get("chain"),
+            "chain_name": article_key.get("chain_name"),
             "zone": article_key.get("zone"),
             "state": article_key.get("state"),
             "brand": article_key.get("brand"),
@@ -118,7 +118,8 @@ class ForecastEngine:
             return forecast
 
         forecast["historical_offtake_qty"] = float(historical_demand["quantity"].sum())
-        forecast["historical_primary_qty"] = float(historical_demand.get("primary_qty", 0).sum())
+        primary_col = historical_demand.get("primary_qty") if "primary_qty" in historical_demand.columns else None
+        forecast["historical_primary_qty"] = float(primary_col.sum()) if primary_col is not None else 0.0
 
         mom_trend = compute_mom_trend(historical_demand, str(article_key), months_back=3)
         yoy_trend = compute_yoy_trend(historical_demand, str(article_key))
@@ -192,10 +193,11 @@ class ForecastEngine:
     ) -> Dict:
         """Compute NSV, Primary, Offtake, Trade Spend, CM2."""
         ean = forecast.get("ean")
-        chain = forecast.get("chain")
+        chain = forecast.get("chain_name")
 
+        margin_col = "chain_name" if "chain_name" in margin_data.columns else "chain"
         margin_row = margin_data[
-            (margin_data["ean"] == ean) & (margin_data["chain"] == chain)
+            (margin_data["ean"] == ean) & (margin_data[margin_col] == chain)
         ]
 
         if margin_row.empty:
@@ -208,8 +210,9 @@ class ForecastEngine:
 
         row = margin_row.iloc[0]
         mrp_val = float(mrp or row.get("mrp", 0))
-        margin_pct = float(row.get("final_effective_margin_pct", 0))
-        distribution_pct = float(row.get("distribution_pct", 0))
+        # Accept both the legacy synthetic column names and the real fact_margin column names
+        margin_pct = float(row.get("final_effective_margin_pct") or row.get("margin_pct") or 0)
+        distribution_pct = float(row.get("distribution_pct") or row.get("tot_pct") or 0)
 
         forecast["forecast_nsv"] = round(forecast["forecast_qty"] * mrp_val, 2)
 
@@ -298,16 +301,33 @@ class ForecastEngine:
 
             for article in article_catalog:
                 ean = article.get("ean")
-                chain = article.get("chain")
+                chain = article.get("chain_name")
 
-                historical_demand = offtake_data[
-                    (offtake_data["ean"] == ean) & (offtake_data["chain"] == chain)
-                ]
+                if offtake_data.empty or "ean" not in offtake_data.columns:
+                    historical_demand = pd.DataFrame()
+                else:
+                    offtake_chain_col = "chain_name" if "chain_name" in offtake_data.columns else "chain"
+                    historical_demand = offtake_data[
+                        (offtake_data["ean"] == ean) & (offtake_data[offtake_chain_col] == chain)
+                    ].copy()
+                    # Engine internals expect "quantity" and "date"; alias from offtake columns
+                    if "quantity" not in historical_demand.columns and "offtake_qty" in historical_demand.columns:
+                        historical_demand["quantity"] = pd.to_numeric(
+                            historical_demand["offtake_qty"], errors="coerce"
+                        )
+                    if "date" not in historical_demand.columns and "month" in historical_demand.columns:
+                        historical_demand["date"] = pd.to_datetime(
+                            historical_demand["month"], errors="coerce"
+                        )
 
-                article["forecast_month"] = f"{year}-{month:02d}"
-                article["forecast_fy"] = compute_fy_from_date(dt.date(year, month, 1))
+                forecast_month_str = f"{year}-{month:02d}"
+                forecast_fy_str = compute_fy_from_date(dt.date(year, month, 1))
+                article["forecast_month"] = forecast_month_str
+                article["forecast_fy"] = forecast_fy_str
 
                 forecast = self.compute_base_forecast(article, historical_demand, margin_data)
+                forecast["forecast_month"] = forecast_month_str
+                forecast["forecast_fy"] = forecast_fy_str
                 forecast = self.compute_nsv_and_trade_spend(forecast, margin_data)
                 forecast = self.allocate_warehouse(forecast)
                 forecast = self.flag_exceptions(forecast)

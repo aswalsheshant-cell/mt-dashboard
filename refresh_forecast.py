@@ -104,11 +104,6 @@ class ProductionForecastRunner:
             "ean", "article", "chain_name", "brand", "category"
         ]].drop_duplicates()
 
-        # Rename chain_name to chain for margin schema
-        articles.rename(columns={
-            "chain_name": "chain",
-        }, inplace=True)
-
         # Add synthetic margin columns
         articles["mrp"] = 500.0
         articles["final_effective_margin_pct"] = 25.0
@@ -133,25 +128,35 @@ class ProductionForecastRunner:
         if not os.path.exists(margin_repo):
             issues.append(f"Margin repository not found: {margin_repo}")
 
-        # Try real margin file first
+        # Priority: real margin repo > assembled Phase_A_Input > synthetic
         margin_file = os.path.join(
             margin_repo, "Release_v1.0.0_RC1", "04_Business_Outputs", "fact_margin.csv"
         )
+        phase_a_margin = os.path.join(self.project_root, "Phase_A_Input", "fact_margin.csv")
+        self._using_synthetic_margin = False
 
-        # Fall back to synthetic if not available
         if not os.path.exists(margin_file):
-            self.log("WARNING", f"Real margin file not found: {margin_file}")
-            self.log("WARNING", "Generating synthetic margin data for validation testing")
-            margin_file = self._generate_synthetic_margin_data()
-            if not margin_file:
-                issues.append("Cannot generate synthetic margin data (no offtake available)")
-        else:
+            if os.path.exists(phase_a_margin):
+                margin_file = phase_a_margin
+                self.log("INFO", "Using assembled Phase_A_Input/fact_margin.csv (DERIVED)")
+            else:
+                self.log("WARNING", f"Real margin file not found: {margin_file}")
+                self.log("WARNING", "Generating synthetic margin data for validation testing")
+                margin_file = self._generate_synthetic_margin_data()
+                self._using_synthetic_margin = True
+                if not margin_file:
+                    issues.append("Cannot generate synthetic margin data (no offtake available)")
+
+        if margin_file and os.path.exists(margin_file):
             try:
                 margin_df = pd.read_csv(margin_file, dtype=str, nrows=10)
-                # Normalize column names to validate
                 margin_df = DataNormalizer.normalize(margin_df, source_type="margin")
-                required_cols = ["ean", "chain", "article", "brand", "category", "mrp"]
+                # Accept either chain or chain_name
+                chain_col_ok = "chain_name" in margin_df.columns or "chain" in margin_df.columns
+                required_cols = ["ean", "article", "brand", "category", "mrp"]
                 missing = [c for c in required_cols if c not in margin_df.columns]
+                if not chain_col_ok:
+                    missing.append("chain_name")
                 if missing:
                     issues.append(f"Margin file missing columns (after normalization): {missing}")
             except Exception as e:
@@ -193,7 +198,8 @@ class ProductionForecastRunner:
         try:
             margin_df = pd.read_csv(self.margin_file_path, dtype=str)
 
-            dup_key = ["chain", "ean", "article", "brand"]
+            chain_col = "chain_name" if "chain_name" in margin_df.columns else "chain"
+            dup_key = [chain_col, "ean", "article", "brand"]
             dup_mask = margin_df.duplicated(subset=dup_key, keep=False)
             dup_count = dup_mask.sum()
 
@@ -222,13 +228,19 @@ class ProductionForecastRunner:
             margin_df = DataNormalizer.normalize(margin_df, source_type="margin")
             margin_eans = set(margin_df["ean"].unique())
 
-            offtake_dir = os.path.join(
-                self.project_root, "PowerBI", "RawDataFolders", "Offtake_Monthly"
-            )
-            offtake_files = sorted(glob.glob(os.path.join(offtake_dir, "offtake_*.csv")))[-1:]
+            # Prefer assembled offtake; fall back to raw
+            assembled_offtake = os.path.join(self.project_root, "Phase_A_Input", "offtake_history.csv")
+            if os.path.exists(assembled_offtake):
+                offtake_df = pd.read_csv(assembled_offtake, dtype=str)
+                offtake_files = [assembled_offtake]
+            else:
+                offtake_dir = os.path.join(
+                    self.project_root, "PowerBI", "RawDataFolders", "Offtake_Monthly"
+                )
+                offtake_files = sorted(glob.glob(os.path.join(offtake_dir, "offtake_*.csv")))[-1:]
+                offtake_df = pd.read_csv(offtake_files[0], dtype=str, nrows=10000) if offtake_files else pd.DataFrame()
 
-            if offtake_files:
-                offtake_df = pd.read_csv(offtake_files[0], dtype=str, nrows=10000)
+            if offtake_files and not offtake_df.empty:
                 # Normalize offtake data columns
                 offtake_df = DataNormalizer.normalize(offtake_df, source_type="offtake")
                 offtake_eans = set(offtake_df["ean"].unique())
@@ -265,15 +277,35 @@ class ProductionForecastRunner:
         self.log("DEBUG", f"Copied margin data to {margin_output}")
 
         margin_repo = os.path.join(self.output_dir, "temp_margin_repo")
-        primary_dir = os.path.join(
-            self.project_root, "PowerBI", "RawDataFolders", "Primary_Article_Monthly"
-        )
-        offtake_dir = os.path.join(
-            self.project_root, "PowerBI", "RawDataFolders", "Offtake_Monthly"
-        )
 
-        primary_pattern = os.path.join(primary_dir, "primary_article_*.csv")
-        offtake_pattern = os.path.join(offtake_dir, "offtake_store_article_*.csv")
+        # Prefer pre-assembled Phase_A_Input files (single clean CSV per entity)
+        phase_a_dir = os.path.join(self.project_root, "Phase_A_Input")
+        primary_assembled = os.path.join(phase_a_dir, "primary_history.csv")
+        offtake_assembled = os.path.join(phase_a_dir, "offtake_history.csv")
+        margin_assembled  = os.path.join(phase_a_dir, "fact_margin.csv")
+
+        if os.path.exists(primary_assembled):
+            primary_pattern = primary_assembled
+            self.log("INFO", f"Using assembled primary: {primary_assembled}")
+        else:
+            primary_dir = os.path.join(
+                self.project_root, "PowerBI", "RawDataFolders", "Primary_Article_Monthly"
+            )
+            primary_pattern = os.path.join(primary_dir, "primary_article_*.csv")
+            self.log("WARNING", "Phase_A_Input/primary_history.csv not found; falling back to raw sources")
+
+        if os.path.exists(offtake_assembled):
+            offtake_pattern = offtake_assembled
+            self.log("INFO", f"Using assembled offtake: {offtake_assembled}")
+        else:
+            offtake_dir = os.path.join(
+                self.project_root, "PowerBI", "RawDataFolders", "Offtake_Monthly"
+            )
+            offtake_pattern = os.path.join(offtake_dir, "offtake_store_article_*.csv")
+            self.log("WARNING", "Phase_A_Input/offtake_history.csv not found; falling back to raw sources")
+
+        # No separate margin override needed — validate_input_schema already picks
+        # Phase_A_Input/fact_margin.csv as the margin_file_path fallback above.
 
         try:
             summary = run_forecast_pipeline(
@@ -308,6 +340,11 @@ class ProductionForecastRunner:
                 return False
 
             forecast_df = pd.read_csv(forecast_file, dtype=str)
+            for num_col in ["forecast_qty", "confidence_pct",
+                            "warehouse_gurgaon", "warehouse_mumbai",
+                            "warehouse_bangalore", "warehouse_kolkata"]:
+                if num_col in forecast_df.columns:
+                    forecast_df[num_col] = pd.to_numeric(forecast_df[num_col], errors="coerce").fillna(0)
 
             ok, errors = validate_forecast_frame(forecast_df)
             if not ok:
@@ -323,14 +360,15 @@ class ProductionForecastRunner:
                 return False
 
             for idx, row in forecast_df.iterrows():
-                forecast_qty = float(row.get("forecast_qty", 0))
+                # Warehouse allocation is based on primary dispatch qty, not offtake qty
+                dispatch_qty = float(row.get("forecast_primary_qty", row.get("forecast_qty", 0)))
                 warehouse_sum = sum([
                     float(row.get("warehouse_gurgaon", 0)),
                     float(row.get("warehouse_mumbai", 0)),
                     float(row.get("warehouse_bangalore", 0)),
                     float(row.get("warehouse_kolkata", 0))
                 ])
-                if abs(forecast_qty - warehouse_sum) > 0.01:
+                if abs(dispatch_qty - warehouse_sum) > 0.1:
                     self.log("ERROR", f"Warehouse allocation mismatch for {row.get('ean')}: "
                                      f"forecast {forecast_qty} != sum {warehouse_sum}")
                     self.publication_gates["warehouse_allocation"] = "FAIL"

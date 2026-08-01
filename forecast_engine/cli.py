@@ -54,7 +54,7 @@ def run_forecast_pipeline(
             "article": row.get("article"),
             "brand": row.get("brand"),
             "category": row.get("category"),
-            "chain": row.get("chain"),
+            "chain_name": row.get("chain_name", row.get("chain", "")),
             "zone": row.get("zone", ""),
             "state": row.get("state", ""),
         }
@@ -80,11 +80,11 @@ def run_forecast_pipeline(
     summary["exception_count"] = len(exception_rows)
 
     log(8, "Export to Power BI")
-    pbi_dir = os.path.join(output_dir, "PowerBI")
-    pbi_paths = export_forecast_tables(forecast_df, scenarios, exception_rows, pbi_dir, fmt="csv")
+    # Write CSVs directly into output_dir (caller already set it to .../PowerBI/)
+    pbi_paths = export_forecast_tables(forecast_df, scenarios, exception_rows, output_dir, fmt="csv")
     summary["powerbi_tables"] = {k: os.path.basename(v) for k, v in pbi_paths.items()}
 
-    measures_path = export_measures_file(pbi_dir)
+    measures_path = export_measures_file(output_dir)
     summary["powerbi_measures"] = os.path.basename(measures_path)
 
     log(9, "Build executive summary")
@@ -167,13 +167,21 @@ def _build_forecast_report(forecast_df, scenarios, exec_summary, output_path):
 
 """
 
-    for scenario_name, scenario_data in exec_summary.items():
-        if scenario_name.startswith("scenario_"):
-            clean_name = scenario_name.replace("scenario_", "").replace("_", " ").title()
+    seen_scenarios = set()
+    for key in exec_summary:
+        if key.startswith("scenario_") and key.endswith("_qty"):
+            scenario_name = key[len("scenario_"):-len("_qty")]
+            if scenario_name in seen_scenarios:
+                continue
+            seen_scenarios.add(scenario_name)
+            clean_name = scenario_name.replace("_", " ").title()
+            qty = exec_summary.get(f"scenario_{scenario_name}_qty", 0)
+            nsv = exec_summary.get(f"scenario_{scenario_name}_nsv", 0)
+            cm2 = exec_summary.get(f"scenario_{scenario_name}_cm2", 0)
             report += f"\n### {clean_name}\n"
-            report += f"- **Qty**: {scenario_data.get('qty', 0):,.0f} units\n"
-            report += f"- **NSV**: ₹{scenario_data.get('nsv', 0):,.0f}\n"
-            report += f"- **CM2**: ₹{scenario_data.get('cm2', 0):,.0f}\n"
+            report += f"- **Qty**: {qty:,.0f} units\n"
+            report += f"- **NSV**: ₹{nsv:,.0f}\n"
+            report += f"- **CM2**: ₹{cm2:,.0f}\n"
 
     report += f"""
 

@@ -271,9 +271,9 @@ def build_fact_margin(offtake_df: pd.DataFrame):
     margin["quality_status"] = "DERIVED"
     margin["month"] = "2026-04"  # representative month (most recent offtake)
 
-    # Select final columns
+    # Select final columns (include category for downstream filtering)
     margin = margin[[
-        "month", "chain_name", "brand", "article", "ean",
+        "month", "chain_name", "brand", "category", "article", "ean",
         "mrp", "margin_pct", "tot_pct", "gst_pct", "cm2_pct", "quality_status"
     ]]
 
