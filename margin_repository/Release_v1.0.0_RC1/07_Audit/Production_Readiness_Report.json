@@ -1,0 +1,115 @@
+{
+  "title": "Margin Repository \u2014 Production Readiness Report",
+  "release": "v1.0.0-rc1",
+  "date": "2026-08-01 04:34:11",
+  "git_commit": "92eb2c9",
+  "git_branch": "claude/store-master-qc-duplicates-4pvmmk",
+  "schema_version": "1.1.0",
+  "automated_tests": {
+    "selftests": {
+      "total": 65,
+      "passed": 65,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "uat": {
+      "total": 26,
+      "passed": 26,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "e2e_test": {
+      "batch1": {
+        "rows": 57,
+        "new": 57,
+        "changed": 0,
+        "unchanged": 0,
+        "recon_diff": 0
+      },
+      "batch2": {
+        "rows": 57,
+        "new": 0,
+        "changed": 10,
+        "unchanged": 47,
+        "recon_diff": 0
+      },
+      "reconciliation": "ALL ZERO",
+      "status": "PASS"
+    }
+  },
+  "module_validation": {
+    "core_repository": {
+      "tests": 65,
+      "status": "PASS"
+    },
+    "simulator": {
+      "margin_delta": "PASS",
+      "nsv_impact": "PASS",
+      "missing_driver": "PASS",
+      "risk_tier": "PASS",
+      "scenario_compare": "PASS",
+      "status": "PASS"
+    },
+    "alerts": {
+      "alert_types": 10,
+      "tested": 4,
+      "false_alarms": 0,
+      "priority_meaningful": true,
+      "includes_action": true,
+      "status": "PASS"
+    },
+    "powerbi_connector": {
+      "column_stability": "PASS",
+      "ean_as_text": "PASS (CSV written as text)",
+      "approved_reconcile": "PASS",
+      "status": "PASS"
+    },
+    "forecast_integration": {
+      "approved_only": "PASS",
+      "elasticity_configurable": true,
+      "no_fabricated_data": true,
+      "status": "PASS"
+    },
+    "html_dashboard": {
+      "formatting": "PASS",
+      "dark_mode": "PASS",
+      "offline": "PASS",
+      "percentages": "PASS",
+      "tabs": "PASS",
+      "status": "PASS"
+    }
+  },
+  "business_rules": {
+    "total": 20,
+    "approved_or_default": 6,
+    "pending": 14,
+    "status": "PENDING_BUSINESS_SIGN_OFF"
+  },
+  "configuration": {
+    "status": "PENDING_BUSINESS_SIGN_OFF",
+    "pending_items": 8,
+    "confirmed_items": 1
+  },
+  "release_blockers": [
+    "No real chain margin file tested yet (synthetic data used for E2E)",
+    "14 business rules pending formal sign-off",
+    "8 configuration items pending business confirmation"
+  ],
+  "deliverables": [
+    "Release_Manifest.json",
+    "E2E_Test_Results.json",
+    "Business_UAT_Workbook.xlsx",
+    "Monthly_Operating_SOP.json",
+    "Deployment_Guide.json",
+    "User_Guide.json",
+    "Configuration_Snapshot.json",
+    "Rollback_Guide.json",
+    "Business_Rule_Register.xlsx",
+    "Known_Limitations_Register.xlsx",
+    "Release_Checklist.xlsx",
+    "Reconciliation_Report.xlsx",
+    "Production_Readiness_Report.json"
+  ],
+  "final_status": "PASS WITH WARNINGS",
+  "final_status_reason": "All automated tests pass (65 selftests + 26 UAT + E2E). All 5 business-value modules validated. Reconciliation differences are zero across all stages. Status is PASS WITH WARNINGS because: (1) No real chain margin file tested (synthetic data only), (2) 14 business rules pending formal sign-off, (3) 8 configuration items pending business confirmation. System is technically ready for controlled deployment with business oversight."
+}

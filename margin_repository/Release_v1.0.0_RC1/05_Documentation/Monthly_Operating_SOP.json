@@ -1,0 +1,62 @@
+{
+  "title": "Margin Repository \u2014 Monthly Operating SOP",
+  "version": "1.0.0",
+  "effective_from": "2026-08-01",
+  "owner": "MT Analytics Team",
+  "schedule": {
+    "Day 1": [
+      "Receive chain margin file from Commercial/KAM team",
+      "Verify file format and column headers match expected layout",
+      "Run import via CLI or Python API",
+      "Review reconciliation summary: Source = New + Changed + Unchanged, Diff = 0"
+    ],
+    "Day 1-2": [
+      "Review exception report for FAIL and BLOCKED records",
+      "Share exception report with Commercial and Finance teams",
+      "Resolve FAIL records (fix data issues, resubmit)",
+      "Escalate BLOCKED records for business/finance approval"
+    ],
+    "Day 2": [
+      "Commercial/KAM approve or reject margin changes",
+      "Finance reviews GST and high-risk changes",
+      "Update Approval_Status field for each reviewed record"
+    ],
+    "Day 3": [
+      "Publish approved snapshot (APPROVED + ACTIVE = PUBLISHED)",
+      "Run Power BI refresh (powerbi_connector.refresh_all)",
+      "Generate HTML dashboard (dashboard_generator.generate_dashboard)",
+      "Generate forecast override (forecast_integration.generate_forecast_override)"
+    ],
+    "Day 3-4": [
+      "Review business alerts and share with stakeholders",
+      "Update action tracker for open alert items",
+      "Share Power BI data with analytics team",
+      "Share forecast override with Demand Planning",
+      "Archive monthly output to dated folder: Margin_Run_YYYYMMDD_HHMMSS/"
+    ]
+  },
+  "controls": {
+    "pre_import": [
+      "Backup current repository before import",
+      "Record source file checksum",
+      "Verify file has not been imported before (duplicate check)"
+    ],
+    "post_import": [
+      "Verify reconciliation diff = 0",
+      "Verify no false versions (unchanged rows not re-stored)",
+      "Verify PASS + WARNING + FAIL + BLOCKED = Total",
+      "Save import manifest JSON"
+    ],
+    "output": [
+      "Name output folder: Margin_Run_YYYYMMDD_HHMMSS",
+      "Include: reconciliation report, exception report, Power BI CSVs, dashboard HTML, forecast CSV",
+      "Record run ID, user, timestamp, config version, schema version"
+    ]
+  },
+  "escalation": {
+    "BLOCKED records": "Escalate to Finance + Commercial within 24 hours",
+    "Reconciliation diff != 0": "Stop processing. Investigate before proceeding.",
+    "High-risk margin changes (>3pp)": "Commercial approval required before publishing",
+    "GST validation failures": "Finance team to verify GST rates within 48 hours"
+  }
+}

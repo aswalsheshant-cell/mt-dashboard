@@ -1,0 +1,13 @@
+Margin Repository v1.0.0-rc1 — Quick Start Guide
+==================================================
+
+Prerequisites: Python 3.9+, pandas, openpyxl
+
+1. Install: pip install pandas openpyxl
+2. Verify: cd 01_Application && python ../03_Validation/selftest.py
+3. Import: python cli.py import --file <margin.xlsx> --repo <dir>
+4. Review: Open output workbook in <dir>/
+5. Dashboard: python -c "...dashboard_generator..."
+6. Power BI: python -c "...powerbi_connector..."
+
+See User_Guide.json and Monthly_Operating_SOP.json for full details.

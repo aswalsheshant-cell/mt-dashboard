@@ -1,0 +1,44 @@
+{
+  "title": "Margin Repository \u2014 Deployment Guide",
+  "version": "1.0.0-rc1",
+  "prerequisites": {
+    "python": "3.9+",
+    "packages": [
+      "pandas",
+      "openpyxl"
+    ],
+    "optional": [
+      "pyxlsb (for .xlsb files)"
+    ],
+    "disk": "~50 MB for repository + outputs"
+  },
+  "installation": [
+    "1. Clone the repository",
+    "2. Navigate to margin_repository/",
+    "3. Install dependencies: pip install pandas openpyxl",
+    "4. Verify: python selftest.py (expect 65/65 PASS)",
+    "5. Verify: python uat.py (expect 26/26 PASS)"
+  ],
+  "configuration": {
+    "config_file": "config.json (optional, overrides DEFAULT_CONFIG in config.py)",
+    "key_settings": [
+      "risk_thresholds: normal_max_pp, warning_max_pp, high_risk_max_pp",
+      "gst_controls: valid_rates, severity per rule",
+      "rule_severity: per-validation-flag severity (WARNING/FAIL/BLOCKED)",
+      "margin_bounds: max_margin_pct, min_margin_pct",
+      "approval: forecast_eligible_statuses, forecast_eligible_record_statuses"
+    ]
+  },
+  "first_run": [
+    "1. Prepare a chain margin file (see Margin_Import_Template.xlsx for format)",
+    "2. Import via cli.py or Python API",
+    "3. Review outputs: reconciliation, exceptions, dashboard",
+    "4. Generate Power BI exports and forecast override"
+  ],
+  "rollback": [
+    "1. List snapshots in repo_dir/snapshots/",
+    "2. Call repo.rollback(snapshot_id)",
+    "3. Verify row count matches expected",
+    "4. Re-generate downstream outputs"
+  ]
+}

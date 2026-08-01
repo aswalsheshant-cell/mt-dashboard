@@ -1,0 +1,19 @@
+{
+  "title": "Margin Repository \u2014 Rollback Guide",
+  "when_to_rollback": [
+    "A bad import introduced incorrect data",
+    "Reconciliation diff is non-zero after import",
+    "Business requests reversal of a published batch"
+  ],
+  "how_it_works": [
+    "Every import creates a PRE-IMPORT snapshot automatically",
+    "Snapshots are stored in repo_dir/snapshots/ with batch ID",
+    "Rollback restores the snapshot and archives current state",
+    "Original state can be recovered from the pre-rollback archive"
+  ],
+  "safety_measures": [
+    "Pre-rollback snapshot created automatically",
+    "No data is ever permanently deleted",
+    "Full version history preserved even after rollback"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "title": "Configuration Data Dictionary",
+  "version": "1.0.0-rc1",
+  "parameters": {
+    "risk_thresholds.normal_max_pp": {
+      "type": "float",
+      "default": 1.0,
+      "unit": "percentage points",
+      "description": "Maximum margin change (pp) classified as NORMAL risk"
+    },
+    "risk_thresholds.warning_max_pp": {
+      "type": "float",
+      "default": 3.0,
+      "unit": "percentage points",
+      "description": "Maximum margin change (pp) classified as WARNING risk"
+    },
+    "risk_thresholds.high_risk_max_pp": {
+      "type": "float",
+      "default": 5.0,
+      "unit": "percentage points",
+      "description": "Maximum margin change (pp) classified as HIGH_RISK risk; above this is BLOCKED"
+    },
+    "gst_controls.valid_rates": {
+      "type": "list[int]",
+      "default": "[0, 5, 12, 18, 28]",
+      "description": "Valid GST percentage rates; any other value triggers INCORRECT_GST"
+    },
+    "margin_bounds.max_margin_pct": {
+      "type": "float",
+      "default": 100.0,
+      "unit": "percent",
+      "description": "Maximum allowed Final Effective Margin %; above triggers BLOCKED"
+    },
+    "margin_bounds.min_margin_pct": {
+      "type": "float",
+      "default": 0.0,
+      "unit": "percent",
+      "description": "Minimum allowed margin; below triggers NEGATIVE_MARGIN (BLOCKED)"
+    },
+    "approval.forecast_eligible_statuses": {
+      "type": "list[str]",
+      "default": "[\"APPROVED\"]",
+      "description": "Approval statuses that feed forecast (currently informational)"
+    },
+    "approval.forecast_eligible_record_statuses": {
+      "type": "list[str]",
+      "default": "[\"PUBLISHED\"]",
+      "description": "Record statuses that feed forecast \u2014 PUBLISHED = PASS or WARNING QC"
+    }
+  }
+}
