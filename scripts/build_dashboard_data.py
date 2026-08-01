@@ -130,7 +130,7 @@ def canon_zone(z):
 CHAIN_ALIASES = [
     ("Apollo",            ["apollo", "apollo healthco"]),
     ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
-                            "reliance", "reliance ", "rrl", "metro-cnc-rrl"]),
+                            "reliance", "reliance ", "rrl", "metro-cnc-rrl", "azorte"]),
     ("Dmart",             ["dmart", "d-mart", "d-mart ", "dmart ", "dc-d-mart-offline",
                             "d-mart-store-e-com", "pragati sales-d-mart", "just mark-dmart",
                             "just\xa0mark-dmart"]),
@@ -147,7 +147,7 @@ CHAIN_ALIASES = [
     ("Guardian",          ["guardian", "gaurdian "]),
     ("Trent",             ["trent", "trent "]),
     ("V-Mart",            ["v-mart", "v mart east "]),
-    ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
+    ("Ratnadeep",         ["ratnadeep", "ratandeep", "ratanadeep"]),
     ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl"]),
     ("Frankross",         ["frankross", "frankros"]),
     ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),

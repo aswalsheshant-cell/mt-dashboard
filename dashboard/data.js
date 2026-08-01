@@ -726,22 +726,22 @@ window.DASH = {
  "offtake": {
   "by_chain": [
    {
-    "name": "Reliance Retail",
-    "raw": "Reliance Retail Limited",
-    "fy25": 5531.0,
-    "fy26": 8303.0,
-    "yoy": 50.12,
-    "total": 13834.0,
-    "fy27": 2801.62
-   },
-   {
     "name": "Dmart",
     "raw": "Dmart",
     "fy25": 8088.0,
     "fy26": 10928.0,
     "yoy": 35.11,
     "total": 19015.0,
-    "fy27": 2775.76
+    "fy27": 4231.67
+   },
+   {
+    "name": "Reliance Retail",
+    "raw": "Reliance Retail Limited",
+    "fy25": 5531.0,
+    "fy26": 8303.0,
+    "yoy": 50.12,
+    "total": 13834.0,
+    "fy27": 4214.11
    },
    {
     "name": "Apollo",
@@ -750,7 +750,7 @@ window.DASH = {
     "fy26": 4879.0,
     "yoy": 146.79,
     "total": 6857.0,
-    "fy27": 1449.9
+    "fy27": 2172.93
    },
    {
     "name": "Nykaa (FSN)",
@@ -759,7 +759,7 @@ window.DASH = {
     "fy26": 2040.0,
     "yoy": 12.96,
     "total": 3846.0,
-    "fy27": 436.7
+    "fy27": 653.37
    },
    {
     "name": "Lulu",
@@ -768,7 +768,7 @@ window.DASH = {
     "fy26": 749.0,
     "yoy": 66.08,
     "total": 1199.0,
-    "fy27": 217.31
+    "fy27": 333.16
    },
    {
     "name": "Wellness Forever",
@@ -777,7 +777,7 @@ window.DASH = {
     "fy26": 998.0,
     "yoy": 0.6,
     "total": 1988.0,
-    "fy27": 211.24
+    "fy27": 291.26
    },
    {
     "name": "H&G",
@@ -786,25 +786,7 @@ window.DASH = {
     "fy26": 870.0,
     "yoy": 4.69,
     "total": 1701.0,
-    "fy27": 149.23
-   },
-   {
-    "name": "RMT-Sancus",
-    "raw": "Sancus(RMT)",
-    "fy25": 398.0,
-    "fy26": 453.0,
-    "yoy": 13.82,
-    "total": 852.0,
-    "fy27": 103.77
-   },
-   {
-    "name": "More Retail",
-    "raw": "More Retail",
-    "fy25": 220.0,
-    "fy26": 432.0,
-    "yoy": 96.36,
-    "total": 654.0,
-    "fy27": 99.75
+    "fy27": 201.07
    },
    {
     "name": "Metro C&C",
@@ -813,7 +795,25 @@ window.DASH = {
     "fy26": 596.0,
     "yoy": 1.71,
     "total": 1184.0,
-    "fy27": 95.42
+    "fy27": 156.52
+   },
+   {
+    "name": "RMT-Sancus",
+    "raw": "Sancus(RMT)",
+    "fy25": 398.0,
+    "fy26": 453.0,
+    "yoy": 13.82,
+    "total": 852.0,
+    "fy27": 143.6
+   },
+   {
+    "name": "More Retail",
+    "raw": "More Retail",
+    "fy25": 220.0,
+    "fy26": 432.0,
+    "yoy": 96.36,
+    "total": 654.0,
+    "fy27": 143.41
    },
    {
     "name": "VMM",
@@ -822,7 +822,16 @@ window.DASH = {
     "fy26": 146.0,
     "yoy": 5.8,
     "total": 283.0,
-    "fy27": 58.53
+    "fy27": 89.19
+   },
+   {
+    "name": "V-Mart",
+    "raw": "V-Mart",
+    "fy25": 38.0,
+    "fy26": 98.0,
+    "yoy": 157.89,
+    "total": 138.0,
+    "fy27": 37.6
    },
    {
     "name": "Walmart",
@@ -834,22 +843,13 @@ window.DASH = {
     "fy27": 36.9
    },
    {
-    "name": "V-Mart",
-    "raw": "V-Mart",
-    "fy25": 38.0,
-    "fy26": 98.0,
-    "yoy": 157.89,
-    "total": 138.0,
-    "fy27": 24.66
-   },
-   {
     "name": "Spencer",
     "raw": "Spencer",
     "fy25": 240.0,
     "fy26": 164.0,
     "yoy": -31.67,
     "total": 404.0,
-    "fy27": 24.49
+    "fy27": 32.98
    },
    {
     "name": "Trent",
@@ -858,7 +858,7 @@ window.DASH = {
     "fy26": 57.0,
     "yoy": 58.33,
     "total": 94.0,
-    "fy27": 15.34
+    "fy27": 26.06
    },
    {
     "name": "Frankross",
@@ -867,7 +867,7 @@ window.DASH = {
     "fy26": 23.0,
     "yoy": 109.09,
     "total": 35.0,
-    "fy27": 14.12
+    "fy27": 21.53
    },
    {
     "name": "Arambagh",
@@ -876,7 +876,19 @@ window.DASH = {
     "fy26": 21.0,
     "yoy": 61.54,
     "total": 36.0,
-    "fy27": 11.93
+    "fy27": 17.12
+   },
+   {
+    "name": "Trent/Westside",
+    "raw": "Trent/Westside",
+    "total": 0.0,
+    "fy27": 13.69
+   },
+   {
+    "name": "National Mart",
+    "raw": "National Mart",
+    "total": 0.0,
+    "fy27": 8.71
    },
    {
     "name": "Ratnadeep",
@@ -885,13 +897,7 @@ window.DASH = {
     "fy26": 48.0,
     "yoy": -60.98,
     "total": 170.0,
-    "fy27": 5.52
-   },
-   {
-    "name": "National Mart",
-    "raw": "National Mart",
-    "total": 0.0,
-    "fy27": 4.69
+    "fy27": 8.28
    },
    {
     "name": "Guardian",
@@ -900,22 +906,7 @@ window.DASH = {
     "fy26": 16.0,
     "yoy": 23.08,
     "total": 30.0,
-    "fy27": 4.38
-   },
-   {
-    "name": "Sumo Save",
-    "raw": "Sumo Save",
-    "fy25": 0.0,
-    "fy26": 0.0,
-    "yoy": null,
-    "total": 0.0,
-    "fy27": 3.18
-   },
-   {
-    "name": "Apna Mart",
-    "raw": "Apna Mart",
-    "total": 0.0,
-    "fy27": 2.51
+    "fy27": 6.29
    },
    {
     "name": "Sasta Sundar",
@@ -924,13 +915,28 @@ window.DASH = {
     "fy26": 6.0,
     "yoy": null,
     "total": 5.0,
-    "fy27": 2.07
+    "fy27": 5.6
+   },
+   {
+    "name": "Sumo Save",
+    "raw": "Sumo Save",
+    "fy25": 0.0,
+    "fy26": 0.0,
+    "yoy": null,
+    "total": 0.0,
+    "fy27": 4.65
+   },
+   {
+    "name": "Apna Mart",
+    "raw": "Apna Mart",
+    "total": 0.0,
+    "fy27": 2.51
    },
    {
     "name": "B&N",
     "raw": "B&N",
     "total": 0.0,
-    "fy27": 1.35
+    "fy27": 2.44
    },
    {
     "name": "WH-Smith",
@@ -939,7 +945,13 @@ window.DASH = {
     "fy26": 12.0,
     "yoy": 0.0,
     "total": 22.0,
-    "fy27": 1.25
+    "fy27": 1.65
+   },
+   {
+    "name": "Broadway",
+    "raw": "Broadway",
+    "total": 0.0,
+    "fy27": 0.07
    },
    {
     "name": "Vijetha",
@@ -977,7 +989,7 @@ window.DASH = {
   "total_fy25": 21840.0,
   "total_fy26": 31082.0,
   "yoy": 42.32,
-  "n_chains": 29,
+  "n_chains": 31,
   "months": [
    "Apr-24",
    "May-24",
@@ -1004,7 +1016,8 @@ window.DASH = {
    "Feb-26",
    "Mar-26",
    "Apr-26",
-   "May-26"
+   "May-26",
+   "Jun-26"
   ],
   "monthly": [
    1734.0,
@@ -1032,7 +1045,8 @@ window.DASH = {
    2757.0,
    3227.0,
    4024.0,
-   4527.61
+   4527.61,
+   4304.76
   ],
   "monthly_fy25": [
    1734.0,
@@ -1068,49 +1082,49 @@ window.DASH = {
     "fy25": 4348.0,
     "fy26": 7060.0,
     "yoy": 62.37,
-    "fy27": 2101.81
+    "fy27": 3115.96
    },
    {
     "name": "West",
     "fy25": 6215.0,
     "fy26": 8171.0,
     "yoy": 31.47,
-    "fy27": 2047.0
+    "fy27": 3097.36
    },
    {
     "name": "South 1",
     "fy25": 4102.0,
     "fy26": 6428.0,
     "yoy": 56.7,
-    "fy27": 1784.19
+    "fy27": 2679.13
    },
    {
     "name": "South 2",
     "fy25": 3280.0,
     "fy26": 4163.0,
     "yoy": 26.92,
-    "fy27": 1111.04
+    "fy27": 1708.48
    },
    {
     "name": "East",
     "fy25": 2095.0,
     "fy26": 3223.0,
     "yoy": 53.84,
-    "fy27": 1070.89
+    "fy27": 1602.08
    },
    {
     "name": "Pan India",
     "fy25": 1805.0,
     "fy26": 2040.0,
     "yoy": 13.02,
-    "fy27": 436.7
+    "fy27": 653.37
    }
   ],
   "by_state": [
    {
     "state": "Maharashtra",
     "zone": "West",
-    "fy27": 1265.25
+    "fy27": 1916.7
    },
    {
     "zone": "South 1",
@@ -1118,7 +1132,7 @@ window.DASH = {
     "fy25": 2425.0,
     "fy26": 3705.0,
     "yoy": 52.78,
-    "fy27": 988.51
+    "fy27": 1463.27
    },
    {
     "zone": "South 2",
@@ -1126,12 +1140,12 @@ window.DASH = {
     "fy25": 1855.0,
     "fy26": 2339.0,
     "yoy": 26.09,
-    "fy27": 584.04
+    "fy27": 889.42
    },
    {
     "state": "Delhi/ Ncr",
     "zone": "North",
-    "fy27": 579.46
+    "fy27": 812.91
    },
    {
     "zone": "West",
@@ -1139,7 +1153,7 @@ window.DASH = {
     "fy25": 1716.0,
     "fy26": 2309.0,
     "yoy": 34.56,
-    "fy27": 578.1
+    "fy27": 881.28
    },
    {
     "zone": "South 1",
@@ -1147,7 +1161,7 @@ window.DASH = {
     "fy25": 1171.0,
     "fy26": 1902.0,
     "yoy": 62.43,
-    "fy27": 552.28
+    "fy27": 857.32
    },
    {
     "zone": "South 2",
@@ -1155,7 +1169,7 @@ window.DASH = {
     "fy25": 1425.0,
     "fy26": 1824.0,
     "yoy": 28.0,
-    "fy27": 527.0
+    "fy27": 818.4
    },
    {
     "zone": "Pan India",
@@ -1163,7 +1177,7 @@ window.DASH = {
     "fy25": 1805.0,
     "fy26": 2040.0,
     "yoy": 13.02,
-    "fy27": 436.7
+    "fy27": 653.37
    },
    {
     "zone": "East",
@@ -1171,7 +1185,7 @@ window.DASH = {
     "fy25": 973.0,
     "fy26": 1428.0,
     "yoy": 46.76,
-    "fy27": 419.83
+    "fy27": 635.26
    },
    {
     "zone": "North",
@@ -1179,7 +1193,7 @@ window.DASH = {
     "fy25": 680.0,
     "fy26": 1225.0,
     "yoy": 80.15,
-    "fy27": 368.64
+    "fy27": 549.53
    },
    {
     "zone": "North",
@@ -1187,7 +1201,7 @@ window.DASH = {
     "fy25": 744.0,
     "fy26": 1226.0,
     "yoy": 64.78,
-    "fy27": 358.44
+    "fy27": 534.14
    },
    {
     "zone": "South 1",
@@ -1195,22 +1209,22 @@ window.DASH = {
     "fy25": 506.0,
     "fy26": 821.0,
     "yoy": 62.25,
-    "fy27": 243.4
+    "fy27": 357.56
    },
    {
     "state": "UP/UK",
     "zone": "North",
-    "fy27": 191.51
+    "fy27": 399.94
    },
    {
     "state": "Odisha",
     "zone": "East",
-    "fy27": 179.68
+    "fy27": 269.51
    },
    {
     "state": "Punjab/J&K/Hp",
     "zone": "North",
-    "fy27": 172.95
+    "fy27": 334.56
    },
    {
     "zone": "East",
@@ -1218,7 +1232,7 @@ window.DASH = {
     "fy25": 246.0,
     "fy26": 407.0,
     "yoy": 65.45,
-    "fy27": 170.36
+    "fy27": 257.65
    },
    {
     "zone": "East",
@@ -1226,7 +1240,7 @@ window.DASH = {
     "fy25": 211.0,
     "fy26": 403.0,
     "yoy": 91.0,
-    "fy27": 151.63
+    "fy27": 229.8
    },
    {
     "zone": "East",
@@ -1234,7 +1248,7 @@ window.DASH = {
     "fy25": 298.0,
     "fy26": 518.0,
     "yoy": 73.83,
-    "fy27": 149.34
+    "fy27": 209.75
    },
    {
     "state": "Uttar Pradesh",
@@ -1252,7 +1266,7 @@ window.DASH = {
     "fy25": 262.0,
     "fy26": 473.0,
     "yoy": 80.53,
-    "fy27": 118.98
+    "fy27": 173.3
    },
    {
     "zone": "North",
@@ -1268,7 +1282,7 @@ window.DASH = {
     "fy25": 0.0,
     "fy26": 40.0,
     "yoy": null,
-    "fy27": 63.22
+    "fy27": 104.62
    },
    {
     "state": "Uttarakhand",
@@ -1281,7 +1295,7 @@ window.DASH = {
     "fy25": 113.0,
     "fy26": 173.0,
     "yoy": 53.1,
-    "fy27": 21.45
+    "fy27": 21.47
    },
    {
     "state": "Himachal Pradesh",
@@ -1296,7 +1310,7 @@ window.DASH = {
    {
     "state": "NorthEast",
     "zone": "East",
-    "fy27": 0.05
+    "fy27": 0.09
    },
    {
     "zone": "West",
@@ -1332,6 +1346,46 @@ window.DASH = {
     "fy25": 367.0,
     "fy26": 467.0,
     "yoy": 27.25
+   },
+   {
+    "state": "BIHAR",
+    "zone": "East",
+    "fy27": 0.01
+   },
+   {
+    "state": "Chhattisgarh",
+    "zone": "East",
+    "fy27": 0.02
+   },
+   {
+    "state": "Chandigarh",
+    "zone": "North",
+    "fy27": 1.36
+   },
+   {
+    "state": "Hayana",
+    "zone": "North",
+    "fy27": 52.73
+   },
+   {
+    "state": "KARNATAKA",
+    "zone": "South 1",
+    "fy27": 0.77
+   },
+   {
+    "state": "KERALA",
+    "zone": "South 1",
+    "fy27": 0.12
+   },
+   {
+    "state": "TAMIL NADU",
+    "zone": "South 1",
+    "fy27": 0.08
+   },
+   {
+    "state": "TELANGANA",
+    "zone": "South 2",
+    "fy27": 0.66
    }
   ],
   "fy_tags": [
@@ -1341,13 +1395,15 @@ window.DASH = {
   ],
   "months_fy27": [
    "Apr-26",
-   "May-26"
+   "May-26",
+   "Jun-26"
   ],
   "monthly_fy27": [
    4024.0,
-   4527.61
+   4527.61,
+   4304.76
   ],
-  "total_fy27": 8551.61
+  "total_fy27": 12856.37
  },
  "pnl": {
   "by_chain": [
