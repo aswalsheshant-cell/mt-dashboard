@@ -116,8 +116,9 @@ def enrich(dms_df, fountain_master=None):
         "_fm_category", "_fm_sub_category", "_fm_range",
         "_fm_ppt_category", "_fm_description"]]
 
-    merged = df.merge(fm, on="_ean", how="left")
-    matched = merged["_fm_article_code"].notna()
+    merged = df.merge(fm, on="_ean", how="left", indicator="_match")
+    matched = merged["_match"] == "both"
+    merged = merged.drop(columns=["_match"])
 
     def fill(col_target, col_source, is_blank_fn=None):
         if is_blank_fn is None:

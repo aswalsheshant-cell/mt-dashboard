@@ -1,0 +1,2 @@
+Snapshot_Date,Total_Records,Unique_EANs,Total_Chains,PASS,WARNING,FAIL,BLOCKED,PASS_pct,WARNING_pct,FAIL_pct,BLOCKED_pct,Published_Rows,Repository_Health_pct,Confidence_Score_pct,Blank_GST,Blank_MRP,Blank_Pack_Size,Duplicate_Chain_Article,Negative_Margin,Fountain_Matched_Rows,Fountain_Match_pct,New_EANs_Not_In_Master,Pack_Size_Parsed,Pack_Size_Still_Missing
+2026-08-01,1603,534,20,0,1601,0,2,0.0,99.88,0.0,0.12,1601,99.88,59.93,1603,2,32,0,0,1472,91.8,109,99,32
