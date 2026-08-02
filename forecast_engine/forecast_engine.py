@@ -34,6 +34,10 @@ from forecast_engine.forecast_drivers import (
 )
 from forecast_engine.data_normalizer import DataNormalizer
 
+# unit_nsv above this threshold indicates the margin row stores aggregate (case/shipment) values,
+# not per-consumer-unit values — flag as IMPLAUSIBLE_UNIT_NSV and zero out P&L fields.
+UNIT_NSV_CEILING = 2000.0
+
 
 class ForecastEngine:
     """Production-grade demand forecasting engine."""
@@ -293,31 +297,93 @@ class ForecastEngine:
         forecast["fallback_method"] = fallback_method
         forecast["confidence_level"] = confidence_level
 
+        # Preserve original (gross) quantity before any exclusion zeroing
+        gross_qty = float(forecast.get("forecast_qty", 0))
+
         if row is None:
+            # VMM or no-data exclusion: zero operational qty, keep gross for reconciliation
+            forecast["gross_forecast_qty"] = gross_qty
+            forecast["operational_inclusion_flag"] = False
+            forecast["exclusion_reason"] = (
+                "VMM_EXCLUDED_TENTATIVE" if value_source == "EXCLUDED_VMM"
+                else f"NO_MARGIN_DATA:{fallback_method}"
+            )
+            forecast["forecast_qty"] = 0.0
             forecast["forecast_nsv"] = 0.0
             forecast["forecast_primary_qty"] = 0.0
-            forecast["forecast_offtake_qty"] = forecast["forecast_qty"]
+            forecast["forecast_offtake_qty"] = 0.0
             forecast["forecast_trade_spend"] = 0.0
             forecast["forecast_cm2"] = 0.0
+            forecast["unit_price_status"] = "NO_MARGIN_DATA"
+            forecast["cm2_label"] = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
+            forecast["is_tentative"] = tentative_mode
             return forecast
 
+        # Non-excluded operational row
+        forecast["gross_forecast_qty"] = gross_qty
+        forecast["operational_inclusion_flag"] = True
+        forecast["exclusion_reason"] = ""
+
         mrp_val = float(mrp or row.get("mrp", 0))
-        # Accept both the legacy synthetic column names and the real fact_margin column names
-        margin_pct = float(row.get("final_effective_margin_pct") or row.get("margin_pct") or 0)
-        distribution_pct = float(row.get("distribution_pct") or row.get("tot_pct") or 0)
+        gst_pct = float(row.get("gst_pct", 0) or 0)
+        # margin_pct and tot_pct are identical for all DERIVED rows in fact_margin;
+        # tot_pct is the authoritative ToT% for the NSV formula.
+        tot_pct = float(row.get("tot_pct", 0) or row.get("margin_pct", 0) or 0)
+        cm2_pct = float(row.get("cm2_pct", 0) or 0)
+        quality_status = str(row.get("quality_status", "DERIVED") or "DERIVED")
 
-        forecast["forecast_nsv"] = round(forecast["forecast_qty"] * mrp_val, 2)
+        # Authoritative NSV formula (user-confirmed):
+        # NSV = MRP / ((1 + GST%/100) × (1 + TOT%/100))
+        gst_factor = 1.0 + gst_pct / 100.0
+        tot_factor = 1.0 + tot_pct / 100.0
+        if mrp_val > 0 and gst_factor > 1.0 and tot_factor > 1.0:
+            unit_nsv = mrp_val / (gst_factor * tot_factor)
+        else:
+            unit_nsv = 0.0
 
-        primary_qty = forecast["forecast_qty"] / max(distribution_pct / 100.0, 0.01)
+        if unit_nsv > UNIT_NSV_CEILING:
+            # Aggregate MRP row (Dmart, FSN, Lulu, etc.) — cannot derive per-unit values
+            forecast["unit_price_status"] = "IMPLAUSIBLE_UNIT_NSV"
+            forecast["forecast_nsv"] = 0.0
+            forecast["forecast_trade_spend"] = 0.0
+            forecast["forecast_cm2"] = 0.0
+            forecast["cm2_label"] = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
+            # Preserve primary qty estimate using tot_pct as distribution ratio
+            primary_qty = gross_qty / max(tot_pct / 100.0, 0.01)
+            forecast["forecast_primary_qty"] = round(primary_qty, 2)
+            forecast["forecast_offtake_qty"] = round(gross_qty, 2)
+            forecast["is_tentative"] = tentative_mode
+            return forecast
+
+        # Valid per-unit NSV path
+        forecast["unit_price_status"] = "VALID_UNIT_NSV"
+
+        # Trade spend per unit = MRP_ex_GST − NSV  (complementary to NSV formula)
+        mrp_ex_gst = mrp_val / gst_factor if gst_factor > 0 else 0.0
+        trade_spend_per_unit = max(mrp_ex_gst - unit_nsv, 0.0)
+
+        primary_qty = gross_qty / max(tot_pct / 100.0, 0.01)
         forecast["forecast_primary_qty"] = round(primary_qty, 2)
-        forecast["forecast_offtake_qty"] = round(forecast["forecast_qty"], 2)
+        forecast["forecast_offtake_qty"] = round(gross_qty, 2)
+        forecast["forecast_nsv"] = round(gross_qty * unit_nsv, 2)
+        forecast["forecast_trade_spend"] = round(gross_qty * trade_spend_per_unit, 2)
 
-        trade_spend = primary_qty * (mrp_val * margin_pct / 100.0)
-        forecast["forecast_trade_spend"] = round(trade_spend, 2)
+        # CM2 semantics differ by quality_status:
+        # DERIVED rows: cm2_pct = mrp × 0.12 (₹ per consumer unit, absolute)
+        # ESTIMATED rows: cm2_pct = 15.0 (a rate as % of NSV, not ₹)
+        if quality_status == "ESTIMATED":
+            cm2_per_unit = unit_nsv * cm2_pct / 100.0
+        else:
+            cm2_per_unit = cm2_pct  # already ₹ per unit
 
-        cm2 = (primary_qty * mrp_val * margin_pct / 100.0) - trade_spend
-        forecast["forecast_cm2"] = round(cm2, 2)
+        forecast["forecast_cm2"] = round(gross_qty * cm2_per_unit, 2)
 
+        if tentative_mode or value_source != "FINANCE_APPROVED":
+            forecast["cm2_label"] = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
+        else:
+            forecast["cm2_label"] = "FINANCE_APPROVED_CM2"
+
+        forecast["is_tentative"] = tentative_mode
         return forecast
 
     def allocate_warehouse(self, forecast: Dict, warehouse_map: Optional[Dict] = None) -> Dict:
@@ -401,7 +467,18 @@ class ForecastEngine:
                 self.log(f"Loaded {len(launch_df)} NPI launch plans from {launch_plan_path}")
 
         forecasts = []
-        forecast_months = get_forecast_months(num_months=num_forecast_months)
+        # start_month_offset=1: forecast begins next calendar month, never the current month.
+        forecast_months = get_forecast_months(num_months=num_forecast_months, start_month_offset=1)
+
+        # Horizon guard: the current month must never appear in the forecast output.
+        today = dt.date.today()
+        current_month_tuple = (today.year, today.month)
+        if current_month_tuple in forecast_months:
+            raise ValueError(
+                f"Forecast horizon guard failed: current month {current_month_tuple} "
+                f"must not appear in forecast. Got months: {forecast_months}. "
+                "Check start_month_offset in get_forecast_months()."
+            )
 
         for month_idx, (year, month) in enumerate(forecast_months):
             self.log(f"Processing forecast month {month_idx + 1}/{num_forecast_months}: {year}-{month:02d}")

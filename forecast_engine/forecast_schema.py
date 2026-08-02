@@ -128,18 +128,33 @@ def compute_fy_from_date(date_val: dt.date) -> str:
         return f"FY{year - 2000}"
 
 
-def get_forecast_months(num_months: int = 3, start_date: Optional[dt.date] = None) -> List[Tuple[int, int]]:
-    """Return list of (year, month) tuples for next N months."""
+def get_forecast_months(
+    num_months: int = 3,
+    start_date: Optional[dt.date] = None,
+    start_month_offset: int = 0,
+) -> List[Tuple[int, int]]:
+    """Return list of (year, month) tuples for next N months.
+
+    start_month_offset: advance this many months from start_date before
+    generating the list.  Pass 1 to get "next month onward" behaviour
+    (the standard production call); default 0 preserves the historic API.
+    """
     if start_date is None:
         start_date = dt.date.today()
 
-    months = []
     current_date = start_date.replace(day=1)
+
+    def _advance_one(d: dt.date) -> dt.date:
+        if d.month == 12:
+            return d.replace(year=d.year + 1, month=1)
+        return d.replace(month=d.month + 1)
+
+    for _ in range(start_month_offset):
+        current_date = _advance_one(current_date)
+
+    months = []
     for _ in range(num_months):
         months.append((current_date.year, current_date.month))
-        if current_date.month == 12:
-            current_date = current_date.replace(year=current_date.year + 1, month=1)
-        else:
-            current_date = current_date.replace(month=current_date.month + 1)
+        current_date = _advance_one(current_date)
 
     return months

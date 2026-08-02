@@ -15,6 +15,7 @@ from forecast_engine.forecast_drivers import (
     compute_seasonality_factor, apply_festival_uplift, apply_npi_uplift,
     compute_confidence_interval, score_forecast_driver
 )
+from forecast_engine.forecast_engine import ForecastEngine, UNIT_NSV_CEILING
 from forecast_engine.scenario_planner import ScenarioPlanner
 from forecast_engine.data_normalizer import DataNormalizer
 
@@ -29,16 +30,16 @@ class TestForecastSchema(unittest.TestCase):
         self.assertEqual(compute_fy_from_date(dt.date(2025, 12, 15)), "FY26")
 
     def test_forecast_months(self):
-        """Test forecast month generation."""
-        months = get_forecast_months(num_months=3, start_date=dt.date(2026, 1, 15))
+        """Test forecast month generation with explicit start_date and no offset."""
+        months = get_forecast_months(num_months=3, start_date=dt.date(2026, 1, 15), start_month_offset=0)
         self.assertEqual(len(months), 3)
         self.assertEqual(months[0], (2026, 1))
         self.assertEqual(months[1], (2026, 2))
         self.assertEqual(months[2], (2026, 3))
 
     def test_forecast_months_wraparound(self):
-        """Test forecast month generation across year boundary."""
-        months = get_forecast_months(num_months=3, start_date=dt.date(2026, 11, 15))
+        """Test forecast month generation across year boundary with no offset."""
+        months = get_forecast_months(num_months=3, start_date=dt.date(2026, 11, 15), start_month_offset=0)
         self.assertEqual(len(months), 3)
         self.assertEqual(months[0], (2026, 11))
         self.assertEqual(months[1], (2026, 12))
@@ -260,6 +261,171 @@ class TestDataNormalizer(unittest.TestCase):
         self.assertEqual(len(missing), 0)
 
 
+class TestForecastHorizon(unittest.TestCase):
+    """Verify forecast months never include the current month."""
+
+    def test_offset_advances_start(self):
+        """offset=1 yields months starting one month after start_date."""
+        months = get_forecast_months(num_months=3, start_date=dt.date(2026, 8, 2), start_month_offset=1)
+        self.assertEqual(months[0], (2026, 9))
+        self.assertEqual(months[1], (2026, 10))
+        self.assertEqual(months[2], (2026, 11))
+
+    def test_current_month_absent(self):
+        """With offset=1 the current calendar month must not appear."""
+        today = dt.date.today()
+        months = get_forecast_months(num_months=3, start_month_offset=1)
+        self.assertNotIn((today.year, today.month), months)
+
+    def test_offset_year_boundary(self):
+        """offset=1 wraps correctly across December → January."""
+        months = get_forecast_months(num_months=2, start_date=dt.date(2026, 12, 1), start_month_offset=1)
+        self.assertEqual(months[0], (2027, 1))
+        self.assertEqual(months[1], (2027, 2))
+
+    def test_zero_offset_backward_compat(self):
+        """offset=0 (legacy default) starts from start_date unchanged."""
+        months = get_forecast_months(num_months=1, start_date=dt.date(2026, 8, 2), start_month_offset=0)
+        self.assertEqual(months[0], (2026, 8))
+
+
+class TestNSVFormula(unittest.TestCase):
+    """Verify the authoritative NSV = MRP / ((1+GST/100) × (1+TOT/100)) formula."""
+
+    def _make_engine(self):
+        return ForecastEngine(margin_repo_path=".", verbose=False)
+
+    def _make_margin(self, mrp, gst_pct, tot_pct, cm2_pct, quality_status="DERIVED"):
+        return pd.DataFrame([{
+            "chain_name": "TEST_CHAIN", "ean": "TEST_EAN", "mrp": mrp,
+            "gst_pct": gst_pct, "tot_pct": tot_pct, "cm2_pct": cm2_pct,
+            "quality_status": quality_status, "margin_pct": tot_pct,
+        }])
+
+    def test_nsv_formula_per_unit(self):
+        """ARAMBAGH-like row: NSV = 449 / (1.18 × 1.3644) ≈ 278.88."""
+        engine = self._make_engine()
+        margin = self._make_margin(mrp=449.0, gst_pct=18.0, tot_pct=36.44, cm2_pct=53.88)
+        forecast = {"forecast_qty": 10, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        expected_unit_nsv = 449.0 / (1.18 * 1.3644)
+        self.assertAlmostEqual(result["forecast_nsv"] / 10, expected_unit_nsv, places=1)
+        self.assertEqual(result["unit_price_status"], "VALID_UNIT_NSV")
+
+    def test_implausible_aggregate_chain(self):
+        """Dmart-like row (mrp=7184): unit_nsv > 2000 → NSV and CM2 set to 0."""
+        engine = self._make_engine()
+        margin = self._make_margin(mrp=7184.0, gst_pct=18.0, tot_pct=49.15, cm2_pct=862.08)
+        forecast = {"forecast_qty": 5, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        self.assertEqual(result["forecast_nsv"], 0.0)
+        self.assertEqual(result["forecast_cm2"], 0.0)
+        self.assertEqual(result["unit_price_status"], "IMPLAUSIBLE_UNIT_NSV")
+
+    def test_nsv_positive_for_per_unit_chain(self):
+        """Valid per-unit row must produce forecast_nsv > 0."""
+        engine = self._make_engine()
+        margin = self._make_margin(mrp=349.0, gst_pct=18.0, tot_pct=36.44, cm2_pct=41.88)
+        forecast = {"forecast_qty": 100, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        self.assertGreater(result["forecast_nsv"], 0.0)
+
+    def test_estimated_row_cm2_rate_based(self):
+        """ESTIMATED row: cm2_pct = 15.0 means 15% of NSV, not ₹ per unit."""
+        engine = self._make_engine()
+        margin = self._make_margin(mrp=250.0, gst_pct=18.0, tot_pct=30.0, cm2_pct=15.0,
+                                   quality_status="ESTIMATED")
+        forecast = {"forecast_qty": 100, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        unit_nsv = 250.0 / (1.18 * 1.30)
+        expected_cm2 = 100 * unit_nsv * 0.15
+        self.assertAlmostEqual(result["forecast_cm2"], expected_cm2, places=1)
+
+
+class TestCM2Nonzero(unittest.TestCase):
+    """Confirm CM2 is non-zero and correctly computed for operational DERIVED rows."""
+
+    def _make_engine(self):
+        return ForecastEngine(margin_repo_path=".", verbose=False)
+
+    def test_derived_cm2_nonzero(self):
+        """DERIVED row: CM2 = forecast_qty × cm2_pct (₹ per unit), never 0."""
+        engine = self._make_engine()
+        margin = pd.DataFrame([{
+            "chain_name": "Apollo", "ean": "EAN1", "mrp": 408.0,
+            "gst_pct": 18.0, "tot_pct": 36.44, "cm2_pct": 48.96,
+            "quality_status": "DERIVED", "margin_pct": 36.44,
+        }])
+        forecast = {"forecast_qty": 200, "ean": "EAN1", "chain_name": "Apollo"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        self.assertGreater(result["forecast_cm2"], 0.0)
+        self.assertAlmostEqual(result["forecast_cm2"], 200 * 48.96, places=1)
+
+    def test_cm2_label_provisional_in_tentative_mode(self):
+        """All rows in tentative mode must carry PROVISIONAL label."""
+        engine = self._make_engine()
+        margin = pd.DataFrame([{
+            "chain_name": "Apollo", "ean": "EAN1", "mrp": 408.0,
+            "gst_pct": 18.0, "tot_pct": 36.44, "cm2_pct": 48.96,
+            "quality_status": "DERIVED", "margin_pct": 36.44,
+        }])
+        forecast = {"forecast_qty": 50, "ean": "EAN1", "chain_name": "Apollo"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        self.assertEqual(result["cm2_label"], "PROVISIONAL_CM2_NOT_FINANCE_APPROVED")
+
+
+class TestVMMControl(unittest.TestCase):
+    """VMM rows must be excluded from operational totals."""
+
+    def _make_engine(self):
+        return ForecastEngine(margin_repo_path=".", verbose=False)
+
+    def _make_any_margin(self):
+        return pd.DataFrame([{
+            "chain_name": "Apollo", "ean": "EAN1", "mrp": 408.0,
+            "gst_pct": 18.0, "tot_pct": 36.44, "cm2_pct": 48.96,
+            "quality_status": "DERIVED", "margin_pct": 36.44,
+        }])
+
+    def test_vmm_operational_flag_false(self):
+        """VMM rows must have operational_inclusion_flag=False."""
+        engine = self._make_engine()
+        forecast = {"forecast_qty": 500, "ean": "VMM_EAN", "chain_name": "VMM"}
+        result = engine.compute_nsv_and_trade_spend(
+            forecast, self._make_any_margin(), tentative_mode=True
+        )
+        self.assertFalse(result["operational_inclusion_flag"])
+
+    def test_vmm_forecast_qty_zeroed(self):
+        """VMM rows must have forecast_qty=0 to prevent entering operational totals."""
+        engine = self._make_engine()
+        forecast = {"forecast_qty": 500, "ean": "VMM_EAN", "chain_name": "VMM"}
+        result = engine.compute_nsv_and_trade_spend(
+            forecast, self._make_any_margin(), tentative_mode=True
+        )
+        self.assertEqual(result["forecast_qty"], 0.0)
+
+    def test_vmm_gross_qty_preserved(self):
+        """VMM gross_forecast_qty must equal the original pre-exclusion quantity."""
+        engine = self._make_engine()
+        original_qty = 500.0
+        forecast = {"forecast_qty": original_qty, "ean": "VMM_EAN", "chain_name": "VMM"}
+        result = engine.compute_nsv_and_trade_spend(
+            forecast, self._make_any_margin(), tentative_mode=True
+        )
+        self.assertEqual(result["gross_forecast_qty"], original_qty)
+
+    def test_vmm_nsv_and_cm2_zero(self):
+        """VMM excluded rows must have forecast_nsv=0 and forecast_cm2=0."""
+        engine = self._make_engine()
+        forecast = {"forecast_qty": 500, "ean": "VMM_EAN", "chain_name": "VMM"}
+        result = engine.compute_nsv_and_trade_spend(
+            forecast, self._make_any_margin(), tentative_mode=True
+        )
+        self.assertEqual(result["forecast_nsv"], 0.0)
+        self.assertEqual(result["forecast_cm2"], 0.0)
+
+
 def run_tests(verbose=True):
     """Run all tests."""
     loader = unittest.TestLoader()
@@ -269,6 +435,10 @@ def run_tests(verbose=True):
     suite.addTests(loader.loadTestsFromTestCase(TestForecastDrivers))
     suite.addTests(loader.loadTestsFromTestCase(TestScenarioPlanner))
     suite.addTests(loader.loadTestsFromTestCase(TestDataNormalizer))
+    suite.addTests(loader.loadTestsFromTestCase(TestForecastHorizon))
+    suite.addTests(loader.loadTestsFromTestCase(TestNSVFormula))
+    suite.addTests(loader.loadTestsFromTestCase(TestCM2Nonzero))
+    suite.addTests(loader.loadTestsFromTestCase(TestVMMControl))
 
     runner = unittest.TextTestRunner(verbosity=2 if verbose else 1)
     result = runner.run(suite)

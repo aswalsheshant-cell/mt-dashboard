@@ -23,14 +23,19 @@ def export_forecast_tables(
         "historical_offtake_qty", "historical_primary_qty",
         "mom_trend_pct", "yoy_trend_pct", "weighted_ma_qty",
         "seasonality_factor", "festival_uplift", "npi_uplift",
-        "forecast_qty", "forecast_nsv", "forecast_primary_qty", "forecast_offtake_qty",
+        # Operational quantity (0 for excluded rows) and gross quantity (always original)
+        "forecast_qty", "gross_forecast_qty",
+        "forecast_nsv", "forecast_primary_qty", "forecast_offtake_qty",
         "forecast_trade_spend", "forecast_cm2",
         "warehouse_gurgaon", "warehouse_mumbai", "warehouse_bangalore", "warehouse_kolkata",
         "confidence_pct", "risk_level",
         "forecast_driver_primary", "forecast_driver_secondary",
         "exception_flag", "exception_reason", "version",
-        # Tentative mode traceability fields — present when --mode tentative
+        # Traceability fields
         "is_tentative", "value_source", "fallback_method", "confidence_level", "uplift_value_source",
+        # Exclusion and price-quality fields
+        "operational_inclusion_flag", "exclusion_reason",
+        "unit_price_status", "cm2_label",
     ]
 
     forecast_clean = forecast_df[[c for c in keep_cols_forecast if c in forecast_df.columns]]
@@ -41,6 +46,69 @@ def export_forecast_tables(
     elif fmt == "xlsx":
         forecast_clean.to_excel(forecast_path, sheet_name="Forecast", index=False)
     paths["fact_demand_forecast"] = forecast_path
+
+    # Net operational forecast: excludes VMM and any other excluded rows
+    if "operational_inclusion_flag" in forecast_df.columns:
+        operational_df = forecast_df[forecast_df["operational_inclusion_flag"] == True]
+        net_path = os.path.join(output_dir, f"fact_net_operational_forecast.{fmt}")
+        net_clean = operational_df[[c for c in keep_cols_forecast if c in operational_df.columns]]
+        if fmt == "csv":
+            net_clean.to_csv(net_path, index=False)
+        elif fmt == "xlsx":
+            net_clean.to_excel(net_path, sheet_name="NetOperational", index=False)
+        paths["fact_net_operational_forecast"] = net_path
+
+    # VMM excluded rows: full traceability for reconciliation
+    if "value_source" in forecast_df.columns:
+        vmm_df = forecast_df[forecast_df["value_source"] == "EXCLUDED_VMM"]
+        if not vmm_df.empty:
+            vmm_path = os.path.join(output_dir, f"fact_vmm_excluded.{fmt}")
+            vmm_keep = [
+                "chain_name", "brand", "category", "article", "ean",
+                "forecast_month", "gross_forecast_qty", "forecast_qty",
+                "operational_inclusion_flag", "exclusion_reason",
+                "value_source", "fallback_method", "confidence_level",
+            ]
+            vmm_clean = vmm_df[[c for c in vmm_keep if c in vmm_df.columns]]
+            if fmt == "csv":
+                vmm_clean.to_csv(vmm_path, index=False)
+            elif fmt == "xlsx":
+                vmm_clean.to_excel(vmm_path, sheet_name="VMMExcluded", index=False)
+            paths["fact_vmm_excluded"] = vmm_path
+
+    # Reconciliation summary: gross → exclusions → net operational
+    recon_rows = []
+    for month in sorted(forecast_df["forecast_month"].unique()):
+        month_df = forecast_df[forecast_df["forecast_month"] == month]
+        gross_qty = float(month_df.get("gross_forecast_qty", month_df["forecast_qty"]).sum())
+        vmm_qty = 0.0
+        other_excl_qty = 0.0
+        if "value_source" in month_df.columns:
+            vmm_qty = float(
+                month_df.loc[month_df["value_source"] == "EXCLUDED_VMM", "gross_forecast_qty"].sum()
+                if "gross_forecast_qty" in month_df.columns else 0.0
+            )
+        if "operational_inclusion_flag" in month_df.columns and "gross_forecast_qty" in month_df.columns:
+            excl_mask = month_df["operational_inclusion_flag"] == False
+            all_excl = float(month_df.loc[excl_mask, "gross_forecast_qty"].sum())
+            other_excl_qty = all_excl - vmm_qty
+        net_qty = float(month_df["forecast_qty"].sum())
+        recon_rows.append({
+            "forecast_month": month,
+            "gross_forecast_qty": gross_qty,
+            "vmm_excluded_qty": vmm_qty,
+            "other_excluded_qty": other_excl_qty,
+            "net_operational_qty": net_qty,
+            "check_balance": round(gross_qty - vmm_qty - other_excl_qty - net_qty, 4),
+        })
+    if recon_rows:
+        recon_df = pd.DataFrame(recon_rows)
+        recon_path = os.path.join(output_dir, f"fact_reconciliation_summary.{fmt}")
+        if fmt == "csv":
+            recon_df.to_csv(recon_path, index=False)
+        elif fmt == "xlsx":
+            recon_df.to_excel(recon_path, sheet_name="Reconciliation", index=False)
+        paths["fact_reconciliation_summary"] = recon_path
 
     for scenario_name, scenario_df in scenario_dfs.items():
         keep_cols_scenario = [
