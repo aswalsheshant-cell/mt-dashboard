@@ -582,10 +582,10 @@ def load_offtake_article_files(src):
             # already exist in the Non-Brand Counter totals — including both
             # double-counts Reliance by ~49%.  Exclude BC rows for Reliance.
             if "Data status" in df.columns:
-                _is_rel = df["Chain Name"].astype(str).str.strip().str.lower().isin(
-                    [a for _, al in CHAIN_ALIASES for a in al
-                     if _ALIAS_LOOKUP.get(a) == "Reliance Retail"])
-                _is_bc = df["Data status"].astype(str).str.strip().str.lower() == "brand counter"
+                _chain_c = df["Chain Name"].astype(str).str.strip().str.lower()
+                _ds_c = df["Data status"].astype(str).str.strip().str.lower()
+                _is_rel = _chain_c.str.contains("reliance", na=False)
+                _is_bc = (_ds_c == "brand counter")
                 df = df[~(_is_rel & _is_bc)].copy()
             df["_chain"] = df["Chain Name"].map(canon_chain)
             df["_zone"] = df["Zone"].map(canon_zone)
@@ -752,10 +752,10 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
     # Reliance Brand Counter is a store-level breakout already included in
     # Non-Brand Counter totals — exclude to prevent double-counting.
     if "Data status" in d.columns:
-        _is_rel = d["Chain Name"].astype(str).str.strip().str.lower().isin(
-            [a for _, al in CHAIN_ALIASES for a in al
-             if _ALIAS_LOOKUP.get(a) == "Reliance Retail"])
-        _is_bc = d["Data status"].astype(str).str.strip().str.lower() == "brand counter"
+        _chain_c = d["Chain Name"].astype(str).str.strip().str.lower()
+        _ds_c = d["Data status"].astype(str).str.strip().str.lower()
+        _is_rel = _chain_c.str.contains("reliance", na=False)
+        _is_bc = (_ds_c == "brand counter")
         d = d[~(_is_rel & _is_bc)].copy()
     d["_chain"] = d["Chain Name"].map(canon_chain)
     d["_fmt"] = d["_chain"].map(lambda c: fmt_map.get(c, "Unclassified"))
