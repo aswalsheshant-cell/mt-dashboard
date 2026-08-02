@@ -401,6 +401,7 @@ def compute_proposed_nsv(enriched_df: pd.DataFrame) -> pd.DataFrame:
 def run_finance_gate_tot(
     fact_margin: pd.DataFrame,
     forecast_df: Optional[pd.DataFrame] = None,
+    mode: str = "TENTATIVE",
 ) -> dict:
     """FIN-GATE-TOT-001: detect TOT double-counting in NSV and trade-spend.
 
@@ -411,19 +412,27 @@ def run_finance_gate_tot(
     actual trade terms deducted from MRP, making it post-TOT NSV.
     Applying TOT% again overstates trade spend and understates CM2.
 
-    Scenario A: unit_nsv = primary invoice price (current behaviour)
-                trade_spend = invoice_nsv × stored_TOT%  ← DOUBLE-COUNTS
-    Scenario B: unit_nsv = gross NSV = MRP/(1+GST) before TOT deduction
-                trade_spend = gross_nsv × stored_TOT%    ← SINGLE-COUNT
+    Scenario A: unit_nsv = primary invoice price (TENTATIVE BASE — Finance-confirmed
+                by DAX 13_CM2_Measures.dax: NSV is already post-TOT; no further deduction)
+                CM2 = invoice_nsv − approved_expenses  (no trade_spend deduction in CM2)
+    Scenario B: unit_nsv = gross NSV = MRP/(1+GST) before TOT deduction (sensitivity only)
+                trade_spend = gross_nsv × stored_TOT%
 
     Returns a gate report dict with verdict, impact quantification, and
     recommended action. Verdict values:
-        BLOCKED   – double-counting confirmed, impact ≥ ₹1 L
-        WARNING   – double-counting confirmed, impact < ₹1 L
+        BLOCKED   – FINAL_FINANCIAL mode only; double-counting signal present
+        WARNING   – TENTATIVE mode default when double-counting signal present;
+                    also FINAL_FINANCIAL mode when impact < threshold
         CLEAR     – no double-counting detected
         INCONCLUSIVE – insufficient data to determine
 
-    This gate MUST block FINAL FINANCIAL reporting until Finance resolves.
+    Mode:
+        TENTATIVE       – Scenario A is tentative base (post-TOT); gate = WARNING
+                          (never BLOCKED in tentative mode, per governance)
+        FINAL_FINANCIAL – Gate may BLOCK; Finance sign-off required to clear
+
+    This gate MUST block FINAL FINANCIAL reporting until Finance formally resolves.
+    In TENTATIVE mode it emits WARNING only — Scenario A is the confirmed tentative basis.
     """
     fm = fact_margin.copy()
     fm["mrp_f"] = pd.to_numeric(fm["mrp"], errors="coerce")
@@ -474,15 +483,20 @@ def run_finance_gate_tot(
     verdict = "CLEAR"
     blocking = False
 
-    if negative_delta / total_rows >= 0.50:
-        # >50% of primary rows have Scenario A trade_spend < Scenario B
-        # → primary NSV < formula NSV → effective TOT > stored TOT
-        # → primary already post-TOT at a higher-than-stored rate
-        verdict = "BLOCKED"
-        blocking = True
-    elif negative_delta / total_rows >= 0.20:
+    pct_affected = negative_delta / total_rows if total_rows else 0
+
+    if pct_affected >= 0.50:
+        # >50% of primary rows: effective TOT > stored TOT → NSV is post-TOT
+        if mode == "FINAL_FINANCIAL":
+            verdict = "BLOCKED"
+            blocking = True
+        else:
+            # TENTATIVE mode: cap at WARNING — Scenario A is the confirmed tentative basis
+            verdict = "WARNING"
+            blocking = False
+    elif pct_affected >= 0.20:
         verdict = "WARNING"
-        blocking = True
+        blocking = (mode == "FINAL_FINANCIAL")
 
     # Quantify over an optional forecast dataframe
     impact = {}
@@ -513,15 +527,24 @@ def run_finance_gate_tot(
                 "estimated_overstatement_cr": round(ts_overstatement_estimate / 1e7, 2),
             }
 
+    tentative_note = (
+        " In TENTATIVE mode Scenario A (post-TOT NSV, no second deduction) is the "
+        "confirmed basis per DAX 13_CM2_Measures.dax. Gate will BLOCK in FINAL_FINANCIAL mode."
+        if mode == "TENTATIVE" and verdict == "WARNING"
+        else ""
+    )
+
     return {
         "gate_id": "FIN-GATE-TOT-001",
         "gate_name": "TOT Double-Count Detection",
+        "mode": mode,
         "verdict": verdict,
         "blocking": blocking,
         "reason": (
             "Primary invoice NSV is post-TOT (effective TOT > stored TOT on "
             f"{negative_delta}/{total_rows} rows = {100*negative_delta/total_rows:.1f}%). "
-            "Applying stored TOT% on post-TOT NSV overstates trade spend."
+            "Scenario A basis (no second TOT deduction in CM2) is tentative Finance-aligned default."
+            + tentative_note
             if verdict in ("BLOCKED", "WARNING")
             else "No systematic double-counting detected."
         ),
