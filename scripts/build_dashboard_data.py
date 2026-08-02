@@ -728,7 +728,8 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
         return None
     fmt_map = load_chain_formats(repo_root)
     cols = ["Chain Name", "Site Code", "EAN", "Category", "Brand",
-            "Description as per Fountain", "NSV", "Month"]
+            "Description as per Fountain", "NSV", "Month",
+            "Revised Month", "Year"]
     frames = []
     for fp in files:
         for _, df in pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb").items():
@@ -741,11 +742,30 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
     d = pd.concat(frames, ignore_index=True)
     d["_chain"] = d["Chain Name"].map(canon_chain)
     d["_fmt"] = d["_chain"].map(lambda c: fmt_map.get(c, "Unclassified"))
-    d["_site"] = d["_chain"].astype(str) + "|" + d["Site Code"].astype(str)
+    # Exclude rows with missing/invalid Site Codes (e.g. Non-Brand Counter
+    # Reliance rows where Site Code = 'NA') — they create a single phantom
+    # store that distorts per-store throughput and distribution gap metrics.
+    _sc_valid = d["Site Code"].notna()
+    _sc_str = d["Site Code"].astype(str).str.strip()
+    _sc_valid = _sc_valid & ~_sc_str.isin(["NA", "nan", "None", "none", "", "<NA>"])
+    d = d[_sc_valid].copy()
+    d["_site"] = d["_chain"].astype(str) + "|" + _sc_str[_sc_valid]
     d["_ean"] = d["EAN"].astype(str)
     d["_nsv"] = pd.to_numeric(d["NSV"], errors="coerce").fillna(0.0)
     d["_cat"] = d["Category"].astype(str)
     d["_mon"] = d["Month"].map(_offtake_row_month)
+    if d["_mon"].isna().any():
+        mask = d["_mon"].isna()
+        if "Revised Month" in d.columns:
+            d.loc[mask, "_mon"] = d.loc[mask, "Revised Month"].map(_offtake_row_month)
+            mask = d["_mon"].isna()
+        if mask.any() and "Year" in d.columns:
+            def _month_plus_year_dg(row):
+                m, y = row["Month"], row["Year"]
+                if isinstance(m, str) and m.strip() and y is not None:
+                    return _offtake_row_month(f"{m.strip()}'{int(y) % 100:02d}")
+                return None
+            d.loc[mask, "_mon"] = d.loc[mask].apply(_month_plus_year_dg, axis=1)
     months = sorted([m for m in d["_mon"].dropna().unique()],
                     key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
     n_months = max(1, len(months))
