@@ -28,7 +28,9 @@ def export_forecast_tables(
         "warehouse_gurgaon", "warehouse_mumbai", "warehouse_bangalore", "warehouse_kolkata",
         "confidence_pct", "risk_level",
         "forecast_driver_primary", "forecast_driver_secondary",
-        "exception_flag", "exception_reason", "version"
+        "exception_flag", "exception_reason", "version",
+        # Tentative mode traceability fields — present when --mode tentative
+        "is_tentative", "value_source", "fallback_method", "confidence_level", "uplift_value_source",
     ]
 
     forecast_clean = forecast_df[[c for c in keep_cols_forecast if c in forecast_df.columns]]

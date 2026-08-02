@@ -233,6 +233,11 @@ def main():
     parser.add_argument("--out", required=True, help="Output directory")
     parser.add_argument("--months", type=int, default=3, help="Number of forecast months")
     parser.add_argument("--verbose", action="store_true", default=True)
+    parser.add_argument("--events-calendar", default=None,
+                        help="Path to events_calendar.csv (APPROVED uplifts applied; "
+                             "in tentative mode, Proposed_base_pct used as fallback)")
+    parser.add_argument("--launch-plan", default=None,
+                        help="Path to launch_plan.csv (APPROVED NPI rows only affect forecast)")
     parser.add_argument(
         "--mode",
         choices=["final", "tentative"],
@@ -250,6 +255,8 @@ def main():
         output_dir=args.out,
         forecast_months=args.months,
         verbose=args.verbose,
+        events_calendar_path=args.events_calendar,
+        launch_plan_path=args.launch_plan,
         tentative_mode=(args.mode == "tentative"),
     )
 
