@@ -578,6 +578,15 @@ def load_offtake_article_files(src):
             if not need <= set(df.columns):
                 continue   # not a row-level extract sheet -- skip
             df = df[df["Chain Name"].notna()].copy()
+            # Reliance Brand Counter is a store-level breakout whose articles
+            # already exist in the Non-Brand Counter totals — including both
+            # double-counts Reliance by ~49%.  Exclude BC rows for Reliance.
+            if "Data status" in df.columns:
+                _is_rel = df["Chain Name"].astype(str).str.strip().str.lower().isin(
+                    [a for _, al in CHAIN_ALIASES for a in al
+                     if _ALIAS_LOOKUP.get(a) == "Reliance Retail"])
+                _is_bc = df["Data status"].astype(str).str.strip().str.lower() == "brand counter"
+                df = df[~(_is_rel & _is_bc)].copy()
             df["_chain"] = df["Chain Name"].map(canon_chain)
             df["_zone"] = df["Zone"].map(canon_zone)
             df["_state"] = df["State"].astype(str).str.strip()
@@ -729,7 +738,7 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
     fmt_map = load_chain_formats(repo_root)
     cols = ["Chain Name", "Site Code", "EAN", "Category", "Brand",
             "Description as per Fountain", "NSV", "Month",
-            "Revised Month", "Year"]
+            "Revised Month", "Year", "Data status"]
     frames = []
     for fp in files:
         for _, df in pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb").items():
@@ -740,16 +749,24 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
     if not frames:
         return None
     d = pd.concat(frames, ignore_index=True)
+    # Reliance Brand Counter is a store-level breakout already included in
+    # Non-Brand Counter totals — exclude to prevent double-counting.
+    if "Data status" in d.columns:
+        _is_rel = d["Chain Name"].astype(str).str.strip().str.lower().isin(
+            [a for _, al in CHAIN_ALIASES for a in al
+             if _ALIAS_LOOKUP.get(a) == "Reliance Retail"])
+        _is_bc = d["Data status"].astype(str).str.strip().str.lower() == "brand counter"
+        d = d[~(_is_rel & _is_bc)].copy()
     d["_chain"] = d["Chain Name"].map(canon_chain)
     d["_fmt"] = d["_chain"].map(lambda c: fmt_map.get(c, "Unclassified"))
-    # Exclude rows with missing/invalid Site Codes (e.g. Non-Brand Counter
-    # Reliance rows where Site Code = 'NA') — they create a single phantom
-    # store that distorts per-store throughput and distribution gap metrics.
-    _sc_valid = d["Site Code"].notna()
+    # Fill missing Site Codes with "NA" so chains without store-level detail
+    # (FSN, Arambagh, etc.) still participate; their site key becomes
+    # "ChainName|NA" — a single aggregate placeholder per chain.
     _sc_str = d["Site Code"].astype(str).str.strip()
-    _sc_valid = _sc_valid & ~_sc_str.isin(["NA", "nan", "None", "none", "", "<NA>"])
-    d = d[_sc_valid].copy()
-    d["_site"] = d["_chain"].astype(str) + "|" + _sc_str[_sc_valid]
+    _sc_missing = d["Site Code"].isna() | _sc_str.isin(["nan", "None", "none", "", "<NA>"])
+    _sc_str = _sc_str.copy()
+    _sc_str.loc[_sc_missing] = "NA"
+    d["_site"] = d["_chain"].astype(str) + "|" + _sc_str
     d["_ean"] = d["EAN"].astype(str)
     d["_nsv"] = pd.to_numeric(d["NSV"], errors="coerce").fillna(0.0)
     d["_cat"] = d["Category"].astype(str)
