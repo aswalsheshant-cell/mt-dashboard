@@ -582,6 +582,20 @@ def load_offtake_article_files(src):
             df["_zone"] = df["Zone"].map(canon_zone)
             df["_state"] = df["State"].astype(str).str.strip()
             df["_month"] = df["Month"].map(_offtake_row_month)
+            # Fallback: when Month has no year (e.g. "Jun" instead of "Jun'26"),
+            # try "Revised Month" (Excel serial date) or combine Month + Year.
+            if df["_month"].isna().any():
+                mask = df["_month"].isna()
+                if "Revised Month" in df.columns:
+                    df.loc[mask, "_month"] = df.loc[mask, "Revised Month"].map(_offtake_row_month)
+                    mask = df["_month"].isna()
+                if mask.any() and "Year" in df.columns:
+                    def _month_plus_year(row):
+                        m, y = row["Month"], row["Year"]
+                        if isinstance(m, str) and m.strip() and y is not None:
+                            return _offtake_row_month(f"{m.strip()}'{int(y) % 100:02d}")
+                        return None
+                    df.loc[mask, "_month"] = df.loc[mask].apply(_month_plus_year, axis=1)
             df["_nsv"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
             df = df[df["_month"].notna() & df["_chain"].notna()]
             for (chain, mo), v in df.groupby(["_chain", "_month"])["_nsv"].sum().items():
