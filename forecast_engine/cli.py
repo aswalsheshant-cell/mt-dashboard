@@ -11,6 +11,9 @@ from forecast_engine.scenario_planner import ScenarioPlanner
 from forecast_engine.powerbi_export import (
     export_forecast_tables, export_measures_file, build_executive_summary
 )
+from forecast_engine.india_workbook_format import (
+    apply_india_format_to_workbook, print_acceptance_report
+)
 
 
 def run_forecast_pipeline(
@@ -105,10 +108,22 @@ def run_forecast_pipeline(
     exec_summary = build_executive_summary(forecast_df, scenarios, exception_rows)
     summary["executive_summary"] = exec_summary
 
-    log(10, "Generate planning workbook (Excel)")
+    log(10, "Generate planning workbook (Excel) — India-standard formatting")
     workbook_path = os.path.join(output_dir, "Forecast_Planning_Workbook.xlsx")
     _build_planning_workbook(forecast_df, scenarios, workbook_path)
-    summary["planning_workbook"] = os.path.basename(workbook_path)
+
+    # Apply India-standard formatting, Executive Control Panel, and reconciliation
+    # validation in one idempotent pass (safe to re-run on an existing workbook).
+    india_report = apply_india_format_to_workbook(
+        workbook_path,
+        forecast_df,
+        scenarios,
+        exception_rows,
+        recon_csv_path=pbi_paths.get("fact_reconciliation_summary"),
+        source_version=os.path.basename(margin_repo_path),
+    )
+    summary["planning_workbook"]   = os.path.basename(workbook_path)
+    summary["india_format_report"] = india_report
 
     log(11, "Generate forecast report")
     report_path = os.path.join(output_dir, "Forecast_Report.md")
@@ -130,6 +145,7 @@ def run_forecast_pipeline(
         print("  Summary:     %s" % summary_path)
         print("  Workbook:    %s" % workbook_path)
         print("  Report:      %s" % report_path)
+        print_acceptance_report(india_report)
         if tentative_mode:
             print()
             print("  ⚠  TENTATIVE OUTPUTS — labeled is_tentative=True.")
