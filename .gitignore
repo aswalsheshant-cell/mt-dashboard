@@ -27,3 +27,6 @@ primary_article.xlsb
 !margin_repository/*.xlsx
 # Track the business input approval tracker (no sensitive data — schema/status only)
 !BUSINESS_INPUT_APPROVAL_TRACKER.xlsx
+
+# Release archives — ignore the full pipeline archive (>50 MB); track focused deliverable zips + checksums
+releases/Forecast_Deliverables_*.zip
