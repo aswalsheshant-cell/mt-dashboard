@@ -324,64 +324,129 @@ class ForecastEngine:
         forecast["operational_inclusion_flag"] = True
         forecast["exclusion_reason"] = ""
 
-        mrp_val = float(mrp or row.get("mrp", 0))
-        gst_pct = float(row.get("gst_pct", 0) or 0)
-        # margin_pct and tot_pct are identical for all DERIVED rows in fact_margin;
-        # tot_pct is the authoritative ToT% for the NSV formula.
-        tot_pct = float(row.get("tot_pct", 0) or row.get("margin_pct", 0) or 0)
-        cm2_pct = float(row.get("cm2_pct", 0) or 0)
-        quality_status = str(row.get("quality_status", "DERIVED") or "DERIVED")
+        # ── pull repaired fields from fact_margin ──────────────────────────
+        mrp_val         = float(mrp or row.get("mrp", 0))
+        gst_pct         = float(row.get("gst_pct", 0) or 0)
+        tot_pct         = float(row.get("tot_pct", 0) or row.get("margin_pct", 0) or 0)
+        quality_status  = str(row.get("quality_status", "DERIVED") or "DERIVED")
+        mrp_denomination = str(row.get("mrp_denomination", "") or "")
 
-        # Authoritative NSV formula (user-confirmed):
-        # NSV = MRP / ((1 + GST%/100) × (1 + TOT%/100))
-        gst_factor = 1.0 + gst_pct / 100.0
-        tot_factor = 1.0 + tot_pct / 100.0
-        if mrp_val > 0 and gst_factor > 1.0 and tot_factor > 1.0:
-            unit_nsv = mrp_val / (gst_factor * tot_factor)
-        else:
-            unit_nsv = 0.0
+        # Prefer validated NSV from primary invoice history (brand actual NSV).
+        # Falls back to formula with stored tot_pct for ESTIMATED/UNKNOWN rows.
+        unit_nsv_validated = row.get("unit_nsv_validated")
+        unit_nsv_source    = str(row.get("unit_nsv_source", "") or "UNAVAILABLE")
 
-        if unit_nsv > UNIT_NSV_CEILING:
-            # Aggregate MRP row (Dmart, FSN, Lulu, etc.) — cannot derive per-unit values
-            forecast["unit_price_status"] = "IMPLAUSIBLE_UNIT_NSV"
-            forecast["forecast_nsv"] = 0.0
+        try:
+            unit_nsv_validated = float(unit_nsv_validated) if unit_nsv_validated not in (None, "", "nan") else None
+        except (TypeError, ValueError):
+            unit_nsv_validated = None
+
+        # ── denomination routing ───────────────────────────────────────────
+        # PACK_CASE_LEVEL_MRP and AGGREGATE_DENOMINATION: cannot produce consumer-
+        # unit NSV without validated pack-size conversion factor. Quantity forecast
+        # is retained for operational planning; NSV/CM2 are set to UNAVAILABLE.
+        if mrp_denomination in ("PACK_CASE_LEVEL_MRP", "AGGREGATE_DENOMINATION"):
+            forecast["unit_price_status"] = f"NO_UNIT_NSV_{mrp_denomination}"
+            forecast["forecast_nsv"]       = 0.0
             forecast["forecast_trade_spend"] = 0.0
-            forecast["forecast_cm2"] = 0.0
-            forecast["cm2_label"] = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
-            # Preserve primary qty estimate using tot_pct as distribution ratio
+            forecast["forecast_cm2"]       = 0.0
+            forecast["cm2_label"]          = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
             primary_qty = gross_qty / max(tot_pct / 100.0, 0.01)
-            forecast["forecast_primary_qty"] = round(primary_qty, 2)
-            forecast["forecast_offtake_qty"] = round(gross_qty, 2)
-            forecast["is_tentative"] = tentative_mode
+            forecast["forecast_primary_qty"]  = round(primary_qty, 2)
+            forecast["forecast_offtake_qty"]  = round(gross_qty, 2)
+            forecast["is_tentative"]          = tentative_mode
             return forecast
 
-        # Valid per-unit NSV path
-        forecast["unit_price_status"] = "VALID_UNIT_NSV"
+        # ── compute unit NSV ───────────────────────────────────────────────
+        if unit_nsv_validated is not None and unit_nsv_validated > 0:
+            # PRIMARY_INVOICE_HISTORY — most reliable: actual brand NSV from invoices
+            unit_nsv = unit_nsv_validated
+            price_source = unit_nsv_source
+        else:
+            # Authoritative formula fallback: NSV = MRP / ((1+GST/100) × (1+TOT/100))
+            gst_factor = 1.0 + gst_pct / 100.0
+            tot_factor = 1.0 + tot_pct / 100.0
+            if mrp_val > 0 and gst_factor > 1.0 and tot_factor > 1.0:
+                unit_nsv = mrp_val / (gst_factor * tot_factor)
+            else:
+                unit_nsv = 0.0
+            price_source = "FORMULA_FALLBACK_STORED_TOT"
 
-        # Trade spend per unit = MRP_ex_GST − NSV  (complementary to NSV formula)
-        mrp_ex_gst = mrp_val / gst_factor if gst_factor > 0 else 0.0
-        trade_spend_per_unit = max(mrp_ex_gst - unit_nsv, 0.0)
+        if unit_nsv <= 0:
+            forecast["unit_price_status"] = "ZERO_OR_NEGATIVE_UNIT_NSV"
+            forecast["forecast_nsv"]       = 0.0
+            forecast["forecast_trade_spend"] = 0.0
+            forecast["forecast_cm2"]       = 0.0
+            forecast["cm2_label"]          = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
+            primary_qty = gross_qty / max(tot_pct / 100.0, 0.01)
+            forecast["forecast_primary_qty"]  = round(primary_qty, 2)
+            forecast["forecast_offtake_qty"]  = round(gross_qty, 2)
+            forecast["is_tentative"]          = tentative_mode
+            return forecast
+
+        # Guard: unit_nsv must not exceed MRP
+        if unit_nsv > mrp_val > 0:
+            forecast["unit_price_status"] = "NSV_EXCEEDS_MRP_ERROR"
+            forecast["forecast_nsv"]       = 0.0
+            forecast["forecast_trade_spend"] = 0.0
+            forecast["forecast_cm2"]       = 0.0
+            forecast["cm2_label"]          = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
+            primary_qty = gross_qty / max(tot_pct / 100.0, 0.01)
+            forecast["forecast_primary_qty"]  = round(primary_qty, 2)
+            forecast["forecast_offtake_qty"]  = round(gross_qty, 2)
+            forecast["is_tentative"]          = tentative_mode
+            return forecast
+
+        forecast["unit_price_status"] = f"VALIDATED_NSV:{price_source}"
+
+        # Trade spend = NSV × TOT% / 100
+        # Equivalent to (MRP_ex_gst − NSV) when NSV is formula-derived; yields a
+        # brand-level trade cost that is always ≤ NSV regardless of NSV source.
+        trade_spend_per_unit = unit_nsv * tot_pct / 100.0
 
         primary_qty = gross_qty / max(tot_pct / 100.0, 0.01)
-        forecast["forecast_primary_qty"] = round(primary_qty, 2)
-        forecast["forecast_offtake_qty"] = round(gross_qty, 2)
-        forecast["forecast_nsv"] = round(gross_qty * unit_nsv, 2)
-        forecast["forecast_trade_spend"] = round(gross_qty * trade_spend_per_unit, 2)
+        forecast["forecast_primary_qty"]  = round(primary_qty, 2)
+        forecast["forecast_offtake_qty"]  = round(gross_qty, 2)
+        forecast["forecast_nsv"]          = round(gross_qty * unit_nsv, 2)
+        forecast["forecast_trade_spend"]  = round(gross_qty * trade_spend_per_unit, 2)
 
-        # CM2 semantics differ by quality_status:
-        # DERIVED rows: cm2_pct = mrp × 0.12 (₹ per consumer unit, absolute)
-        # ESTIMATED rows: cm2_pct = 15.0 (a rate as % of NSV, not ₹)
-        if quality_status == "ESTIMATED":
-            cm2_per_unit = unit_nsv * cm2_pct / 100.0
+        # ── CM2 computation — separate paths by cm2_value_type ─────────────
+        # DERIVED rows:   cm2_value_type = PER_UNIT_RUPEES
+        #                 cm2_value_per_unit = mrp × 0.12 (₹/unit absolute, provisional)
+        # ESTIMATED rows: cm2_value_type = PERCENT_OF_NSV
+        #                 cm2_pct_rate = 15.0 (provisional % of NSV)
+        cm2_value_type    = str(row.get("cm2_value_type", "") or "")
+        cm2_value_per_unit = row.get("cm2_value_per_unit")
+        cm2_pct_rate       = row.get("cm2_pct_rate")
+
+        try:
+            cm2_value_per_unit = float(cm2_value_per_unit) if cm2_value_per_unit not in (None, "", "nan") else None
+        except (TypeError, ValueError):
+            cm2_value_per_unit = None
+
+        try:
+            cm2_pct_rate = float(cm2_pct_rate) if cm2_pct_rate not in (None, "", "nan") else None
+        except (TypeError, ValueError):
+            cm2_pct_rate = None
+
+        if cm2_value_type == "PER_UNIT_RUPEES" and cm2_value_per_unit is not None:
+            forecast["forecast_cm2"] = round(gross_qty * cm2_value_per_unit, 2)
+        elif cm2_value_type == "PERCENT_OF_NSV" and cm2_pct_rate is not None:
+            forecast["forecast_cm2"] = round(forecast["forecast_nsv"] * cm2_pct_rate / 100.0, 2)
         else:
-            cm2_per_unit = cm2_pct  # already ₹ per unit
+            # Legacy fallback: DERIVED uses cm2_pct field directly (₹/unit);
+            # ESTIMATED uses cm2_pct as % of NSV (for fact_margin rows not yet repaired)
+            legacy_cm2_pct = float(row.get("cm2_pct", 0) or 0)
+            if quality_status == "ESTIMATED":
+                forecast["forecast_cm2"] = round(forecast["forecast_nsv"] * legacy_cm2_pct / 100.0, 2)
+            else:
+                forecast["forecast_cm2"] = round(gross_qty * legacy_cm2_pct, 2)
 
-        forecast["forecast_cm2"] = round(gross_qty * cm2_per_unit, 2)
-
-        if tentative_mode or value_source != "FINANCE_APPROVED":
-            forecast["cm2_label"] = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
-        else:
+        cm2_approval = str(row.get("cm2_approval_status", "") or "")
+        if cm2_approval == "FINANCE_APPROVED" and value_source == "FINANCE_APPROVED":
             forecast["cm2_label"] = "FINANCE_APPROVED_CM2"
+        else:
+            forecast["cm2_label"] = "PROVISIONAL_CM2_NOT_FINANCE_APPROVED"
 
         forecast["is_tentative"] = tentative_mode
         return forecast

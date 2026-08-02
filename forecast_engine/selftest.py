@@ -295,40 +295,84 @@ class TestNSVFormula(unittest.TestCase):
     def _make_engine(self):
         return ForecastEngine(margin_repo_path=".", verbose=False)
 
-    def _make_margin(self, mrp, gst_pct, tot_pct, cm2_pct, quality_status="DERIVED"):
+    def _make_margin(self, mrp, gst_pct, tot_pct, cm2_pct, quality_status="DERIVED",
+                     mrp_denomination="CONSUMER_UNIT_MRP", unit_nsv_validated=None,
+                     unit_nsv_source="", cm2_value_type="", cm2_value_per_unit=None,
+                     cm2_pct_rate=None):
         return pd.DataFrame([{
             "chain_name": "TEST_CHAIN", "ean": "TEST_EAN", "mrp": mrp,
             "gst_pct": gst_pct, "tot_pct": tot_pct, "cm2_pct": cm2_pct,
             "quality_status": quality_status, "margin_pct": tot_pct,
+            "mrp_denomination": mrp_denomination,
+            "unit_nsv_validated": unit_nsv_validated,
+            "unit_nsv_source": unit_nsv_source,
+            "cm2_value_type": cm2_value_type,
+            "cm2_value_per_unit": cm2_value_per_unit,
+            "cm2_pct_rate": cm2_pct_rate,
+            "cm2_approval_status": "",
         }])
 
     def test_nsv_formula_per_unit(self):
-        """ARAMBAGH-like row: NSV = 449 / (1.18 × 1.3644) ≈ 278.88."""
+        """ARAMBAGH-like CONSUMER_UNIT_MRP row: NSV = 449 / (1.18 × 1.3644) ≈ 278.88."""
         engine = self._make_engine()
-        margin = self._make_margin(mrp=449.0, gst_pct=18.0, tot_pct=36.44, cm2_pct=53.88)
+        margin = self._make_margin(mrp=449.0, gst_pct=18.0, tot_pct=36.44, cm2_pct=53.88,
+                                   mrp_denomination="CONSUMER_UNIT_MRP")
         forecast = {"forecast_qty": 10, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
         result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
         expected_unit_nsv = 449.0 / (1.18 * 1.3644)
         self.assertAlmostEqual(result["forecast_nsv"] / 10, expected_unit_nsv, places=1)
-        self.assertEqual(result["unit_price_status"], "VALID_UNIT_NSV")
+        # Status must reflect a validated/formula NSV was successfully computed
+        self.assertTrue(
+            result["unit_price_status"].startswith("VALIDATED_NSV:"),
+            f"Expected VALIDATED_NSV:... status, got: {result['unit_price_status']}"
+        )
 
     def test_implausible_aggregate_chain(self):
-        """Dmart-like row (mrp=7184): unit_nsv > 2000 → NSV and CM2 set to 0."""
+        """Dmart-like AGGREGATE_DENOMINATION row: NSV and CM2 zeroed; qty retained."""
         engine = self._make_engine()
-        margin = self._make_margin(mrp=7184.0, gst_pct=18.0, tot_pct=49.15, cm2_pct=862.08)
+        margin = self._make_margin(mrp=7184.0, gst_pct=18.0, tot_pct=49.15, cm2_pct=862.08,
+                                   mrp_denomination="AGGREGATE_DENOMINATION")
         forecast = {"forecast_qty": 5, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
         result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
         self.assertEqual(result["forecast_nsv"], 0.0)
         self.assertEqual(result["forecast_cm2"], 0.0)
-        self.assertEqual(result["unit_price_status"], "IMPLAUSIBLE_UNIT_NSV")
+        self.assertEqual(result["unit_price_status"], "NO_UNIT_NSV_AGGREGATE_DENOMINATION")
+        # Quantity must be retained for operational planning
+        self.assertGreater(result.get("forecast_primary_qty", 0), 0)
 
     def test_nsv_positive_for_per_unit_chain(self):
-        """Valid per-unit row must produce forecast_nsv > 0."""
+        """Valid CONSUMER_UNIT_MRP row must produce forecast_nsv > 0."""
         engine = self._make_engine()
-        margin = self._make_margin(mrp=349.0, gst_pct=18.0, tot_pct=36.44, cm2_pct=41.88)
+        margin = self._make_margin(mrp=349.0, gst_pct=18.0, tot_pct=36.44, cm2_pct=41.88,
+                                   mrp_denomination="CONSUMER_UNIT_MRP")
         forecast = {"forecast_qty": 100, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
         result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
         self.assertGreater(result["forecast_nsv"], 0.0)
+
+    def test_pack_case_level_mrp_zeroes_nsv(self):
+        """PACK_CASE_LEVEL_MRP row: NSV=0, CM2=0, forecast_qty retained."""
+        engine = self._make_engine()
+        margin = self._make_margin(mrp=1200.0, gst_pct=18.0, tot_pct=28.0, cm2_pct=144.0,
+                                   mrp_denomination="PACK_CASE_LEVEL_MRP")
+        forecast = {"forecast_qty": 50, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        self.assertEqual(result["forecast_nsv"], 0.0)
+        self.assertEqual(result["forecast_cm2"], 0.0)
+        self.assertEqual(result["unit_price_status"], "NO_UNIT_NSV_PACK_CASE_LEVEL_MRP")
+        self.assertEqual(result["operational_inclusion_flag"], True)
+
+    def test_consumer_unit_mrp_with_validated_nsv_uses_primary(self):
+        """CONSUMER_UNIT_MRP row with unit_nsv_validated uses primary history NSV, not formula."""
+        engine = self._make_engine()
+        validated_nsv = 163.0  # from primary invoices
+        margin = self._make_margin(mrp=449.0, gst_pct=18.0, tot_pct=36.44, cm2_pct=53.88,
+                                   mrp_denomination="CONSUMER_UNIT_MRP",
+                                   unit_nsv_validated=validated_nsv,
+                                   unit_nsv_source="PRIMARY_INVOICE_MEDIAN")
+        forecast = {"forecast_qty": 10, "ean": "TEST_EAN", "chain_name": "TEST_CHAIN"}
+        result = engine.compute_nsv_and_trade_spend(forecast, margin, tentative_mode=True)
+        self.assertAlmostEqual(result["forecast_nsv"], 10 * validated_nsv, places=1)
+        self.assertIn("PRIMARY_INVOICE_MEDIAN", result["unit_price_status"])
 
     def test_estimated_row_cm2_rate_based(self):
         """ESTIMATED row: cm2_pct = 15.0 means 15% of NSV, not ₹ per unit."""

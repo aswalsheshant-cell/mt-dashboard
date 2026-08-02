@@ -36,6 +36,10 @@ def export_forecast_tables(
         # Exclusion and price-quality fields
         "operational_inclusion_flag", "exclusion_reason",
         "unit_price_status", "cm2_label",
+        # MRP denomination and validated NSV (from repair_fact_margin)
+        "mrp_denomination", "unit_nsv_validated", "unit_nsv_source",
+        # CM2 type traceability
+        "cm2_value_type", "cm2_approval_status",
     ]
 
     forecast_clean = forecast_df[[c for c in keep_cols_forecast if c in forecast_df.columns]]
