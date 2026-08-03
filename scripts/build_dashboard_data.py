@@ -584,12 +584,15 @@ def load_offtake_article_files(src):
     nothing to do with. NSV in these extracts is already INR Lakh (checked
     against the existing Lakh-denominated offtake trend -- same order of
     magnitude, continuing its Oct'25-Mar'26 growth trajectory).
-    Returns (chain_month, zone_state_month); both {} if no .xlsb found."""
-    files = sorted(src.glob("*.xlsb"))
+    Returns (chain_month, zone_state_month); both {} if no offtake extracts found."""
+    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
     chain_month, zsm = {}, {}
     for fp in files:
-        sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
-        for _, df in sheets.items():
+        if fp.suffix.lower() == ".csv":
+            _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+        else:
+            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+        for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
             if not need <= set(df.columns):
@@ -598,9 +601,12 @@ def load_offtake_article_files(src):
             # Reliance Brand Counter is a store-level breakout whose articles
             # already exist in the Non-Brand Counter totals — including both
             # double-counts Reliance by ~49%.  Exclude BC rows for Reliance.
-            if "Data status" in df.columns:
+            # Column name varies: "Data status" in .xlsb, "Store Type" in split CSVs.
+            _ds_col = "Data status" if "Data status" in df.columns else \
+                      "Store Type" if "Store Type" in df.columns else None
+            if _ds_col is not None:
                 _chain_c = df["Chain Name"].astype(str).str.strip().str.lower()
-                _ds_c = df["Data status"].astype(str).str.strip().str.lower()
+                _ds_c = df[_ds_col].astype(str).str.strip().str.lower()
                 _is_rel = _chain_c.str.contains("reliance", na=False)
                 _is_bc = (_ds_c == "brand counter")
                 df = df[~(_is_rel & _is_bc)].copy()
@@ -678,9 +684,41 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
     by_state_idx = {(s.get("zone"), s["state"]): s for s in offtake.get("by_state", [])}
     for tag in touched_tags:
         lo = tag.lower()
-        months_of_tag = [mo for mo in all_months if fy_tag_from_label(mo) == tag]
-        monthly_vals = [r2(sum(mm.get(mo, 0.0) for mm in chain_month.values())) for mo in months_of_tag]
-        offtake[f"months_{lo}"] = months_of_tag
+        new_months_of_tag = [mo for mo in all_months if fy_tag_from_label(mo) == tag]
+        # Merge with any existing months for this FY that aren't in the new source.
+        # This allows patching Apr+May onto a data.js that already has Jun without
+        # losing Jun (whose raw source may no longer be on disk).
+        existing_months = offtake.get(f"months_{lo}", [])
+        existing_monthly = offtake.get(f"monthly_{lo}", [])
+        existing_month_vals = dict(zip(existing_months, existing_monthly))
+        # Build per-chain existing values for months we're NOT replacing
+        existing_chain_vals = {}
+        for c in offtake.get("by_chain", []):
+            if lo in c and c[lo]:
+                existing_chain_vals[c["name"]] = c[lo]
+        existing_zone_vals = {}
+        for z in offtake.get("by_zone", []):
+            if lo in z and z[lo]:
+                existing_zone_vals[z["name"]] = z[lo]
+        existing_state_vals = {}
+        for s in offtake.get("by_state", []):
+            if lo in s and s[lo]:
+                existing_state_vals[(s.get("zone"), s["state"])] = s[lo]
+        # Months to keep from existing data (not in new source)
+        kept_months = [m for m in existing_months if m not in new_months_of_tag]
+        # Combined month list: kept existing + new, sorted chronologically
+        combined_months = sorted(
+            kept_months + new_months_of_tag,
+            key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+        # New monthly values: for kept months use existing; for new months compute from source
+        new_month_set = set(new_months_of_tag)
+        monthly_vals = []
+        for mo in combined_months:
+            if mo in new_month_set:
+                monthly_vals.append(r2(sum(mm.get(mo, 0.0) for mm in chain_month.values())))
+            else:
+                monthly_vals.append(existing_month_vals.get(mo, 0.0))
+        offtake[f"months_{lo}"] = combined_months
         offtake[f"monthly_{lo}"] = monthly_vals
         offtake[f"total_{lo}"] = r2(sum(v or 0 for v in monthly_vals))
         for chain, months in chain_month.items():
@@ -689,17 +727,46 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                 row = {"name": chain, "raw": chain, "total": 0.0}
                 offtake["by_chain"].append(row)
                 by_chain_idx[chain] = row
-            row[lo] = r2(sum(v for mo, v in months.items() if mo in months_of_tag))
+            new_val = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag))
+            if kept_months:
+                # Preserve existing value contribution from kept months.
+                # Existing row value covers ALL months of this FY, so we need
+                # to subtract the old value for the months we ARE replacing and
+                # add the new value. But we don't have per-month chain breakdowns
+                # in existing data, so for kept months the old total stands and
+                # we add only the new months' contribution.
+                old_total = existing_chain_vals.get(chain, 0.0)
+                # old_total covered existing_months; new source covers new_months_of_tag.
+                # For months in both, new source wins; for kept months, old value stays.
+                # Since we can't decompose old_total by month, approximate:
+                # if existing had only the kept months' worth, keep it and add new.
+                # But if existing also had the new months, we'd double-count.
+                # Safe approach: if existing_months overlaps new_months_of_tag, just use new.
+                overlap = set(existing_months) & new_month_set
+                if overlap:
+                    row[lo] = new_val
+                else:
+                    row[lo] = r2(old_total + new_val)
+            else:
+                row[lo] = new_val
         zone_totals = {}
         for (zone, state), months in zsm.items():
-            v = r2(sum(v for mo, v in months.items() if mo in months_of_tag)) or 0.0
-            zone_totals[zone] = zone_totals.get(zone, 0.0) + v
+            v = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag)) or 0.0
             srow = by_state_idx.get((zone, state))
             if srow is None:
                 srow = {"state": state, "zone": zone}
                 offtake.setdefault("by_state", []).append(srow)
                 by_state_idx[(zone, state)] = srow
-            srow[lo] = v
+            if kept_months:
+                old_sv = existing_state_vals.get((zone, state), 0.0)
+                overlap = set(existing_months) & new_month_set
+                if overlap:
+                    srow[lo] = v
+                else:
+                    srow[lo] = r2(old_sv + v)
+            else:
+                srow[lo] = v
+            zone_totals[zone] = zone_totals.get(zone, 0.0) + (srow.get(lo) or 0.0)
         for zone, v in zone_totals.items():
             zrow = by_zone_idx.get(zone)
             if zrow is None:
@@ -768,16 +835,20 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
     Max = peak across the loaded months. Values in INR Lakh; annualised = monthly
     average * 12. Returns None if no store x article files are present.
     """
-    files = sorted(src.glob("*.xlsb"))
+    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
     if not files:
         return None
     fmt_map = load_chain_formats(repo_root)
     cols = ["Chain Name", "Site Code", "EAN", "Category", "Brand",
             "Description as per Fountain", "NSV", "Month",
-            "Revised Month", "Year", "Data status"]
+            "Revised Month", "Year", "Data status", "Store Type"]
     frames = []
     for fp in files:
-        for _, df in pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb").items():
+        if fp.suffix.lower() == ".csv":
+            _sheets = {"csv": pd.read_csv(fp, low_memory=False)}
+        else:
+            _sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+        for _, df in _sheets.items():
             df.columns = [str(c).strip() for c in df.columns]
             if not {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"} <= set(df.columns):
                 continue
@@ -787,9 +858,12 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
     d = pd.concat(frames, ignore_index=True)
     # Reliance Brand Counter is a store-level breakout already included in
     # Non-Brand Counter totals — exclude to prevent double-counting.
-    if "Data status" in d.columns:
+    # Column name varies: "Data status" in .xlsb, "Store Type" in split CSVs.
+    _ds_col = "Data status" if "Data status" in d.columns else \
+              "Store Type" if "Store Type" in d.columns else None
+    if _ds_col is not None:
         _chain_c = d["Chain Name"].astype(str).str.strip().str.lower()
-        _ds_c = d["Data status"].astype(str).str.strip().str.lower()
+        _ds_c = d[_ds_col].astype(str).str.strip().str.lower()
         _is_rel = _chain_c.str.contains("reliance", na=False)
         _is_bc = (_ds_c == "brand counter")
         d = d[~(_is_rel & _is_bc)].copy()
