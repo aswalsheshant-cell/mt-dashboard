@@ -125,6 +125,23 @@ def canon_zone(z):
          "north": "North", "west": "West", "east": "East"}
     return m.get(z.lower(), z)
 
+STATE_ALIASES = {
+    "delhi/ ncr": "Delhi/ Ncr", "delhi/ncr": "Delhi/ Ncr", "delhi ncr": "Delhi/ Ncr",
+    "up/uk": "UP/UK", "up / uk": "UP/UK",
+    "punjab/j&k/hp": "Punjab/J&K/Hp", "punjab / j&k / hp": "Punjab/J&K/Hp",
+    "northeast": "Northeast", "north east": "Northeast",
+    "hayana": "Haryana",
+    "mumbai": "Mumbai",
+    "pan india": "Pan India",
+}
+def canon_state(s):
+    if s is None:
+        return None
+    s = str(s).strip()
+    if not s or s.lower() in ("nan", "none"):
+        return None
+    return STATE_ALIASES.get(s.lower(), s.title())
+
 # Canonical chain key: collapse the many spellings across the four files onto a
 # single business-facing chain name so primary / offtake / universe / promo join.
 CHAIN_ALIASES = [
@@ -578,10 +595,33 @@ def load_offtake_article_files(src):
             if not need <= set(df.columns):
                 continue   # not a row-level extract sheet -- skip
             df = df[df["Chain Name"].notna()].copy()
+            # Reliance Brand Counter is a store-level breakout whose articles
+            # already exist in the Non-Brand Counter totals — including both
+            # double-counts Reliance by ~49%.  Exclude BC rows for Reliance.
+            if "Data status" in df.columns:
+                _chain_c = df["Chain Name"].astype(str).str.strip().str.lower()
+                _ds_c = df["Data status"].astype(str).str.strip().str.lower()
+                _is_rel = _chain_c.str.contains("reliance", na=False)
+                _is_bc = (_ds_c == "brand counter")
+                df = df[~(_is_rel & _is_bc)].copy()
             df["_chain"] = df["Chain Name"].map(canon_chain)
             df["_zone"] = df["Zone"].map(canon_zone)
-            df["_state"] = df["State"].astype(str).str.strip()
+            df["_state"] = df["State"].map(canon_state)
             df["_month"] = df["Month"].map(_offtake_row_month)
+            # Fallback: when Month has no year (e.g. "Jun" instead of "Jun'26"),
+            # try "Revised Month" (Excel serial date) or combine Month + Year.
+            if df["_month"].isna().any():
+                mask = df["_month"].isna()
+                if "Revised Month" in df.columns:
+                    df.loc[mask, "_month"] = df.loc[mask, "Revised Month"].map(_offtake_row_month)
+                    mask = df["_month"].isna()
+                if mask.any() and "Year" in df.columns:
+                    def _month_plus_year(row):
+                        m, y = row["Month"], row["Year"]
+                        if isinstance(m, str) and m.strip() and y is not None:
+                            return _offtake_row_month(f"{m.strip()}'{int(y) % 100:02d}")
+                        return None
+                    df.loc[mask, "_month"] = df.loc[mask].apply(_month_plus_year, axis=1)
             df["_nsv"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
             df = df[df["_month"].notna() & df["_chain"].notna()]
             for (chain, mo), v in df.groupby(["_chain", "_month"])["_nsv"].sum().items():
@@ -616,6 +656,25 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                           key=fy_start_year)
     by_chain_idx = {c["name"]: c for c in offtake["by_chain"]}
     by_zone_idx = {z["name"]: z for z in offtake["by_zone"]}
+    # Canonicalize state names in existing by_state entries and merge duplicates
+    _deduped_states = []
+    _seen_state_keys = {}
+    for s in offtake.get("by_state", []):
+        cs = canon_state(s["state"]) or s["state"]
+        cz = canon_zone(s.get("zone"))
+        key = (cz, cs)
+        if key in _seen_state_keys:
+            existing = _seen_state_keys[key]
+            for k, v in s.items():
+                if k not in ("state", "zone") and isinstance(v, (int, float)):
+                    existing[k] = r2((existing.get(k) or 0) + v)
+        else:
+            s["state"] = cs
+            if cz:
+                s["zone"] = cz
+            _seen_state_keys[key] = s
+            _deduped_states.append(s)
+    offtake["by_state"] = _deduped_states
     by_state_idx = {(s.get("zone"), s["state"]): s for s in offtake.get("by_state", [])}
     for tag in touched_tags:
         lo = tag.lower()
@@ -714,7 +773,8 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
         return None
     fmt_map = load_chain_formats(repo_root)
     cols = ["Chain Name", "Site Code", "EAN", "Category", "Brand",
-            "Description as per Fountain", "NSV", "Month"]
+            "Description as per Fountain", "NSV", "Month",
+            "Revised Month", "Year", "Data status"]
     frames = []
     for fp in files:
         for _, df in pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb").items():
@@ -725,13 +785,40 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
     if not frames:
         return None
     d = pd.concat(frames, ignore_index=True)
+    # Reliance Brand Counter is a store-level breakout already included in
+    # Non-Brand Counter totals — exclude to prevent double-counting.
+    if "Data status" in d.columns:
+        _chain_c = d["Chain Name"].astype(str).str.strip().str.lower()
+        _ds_c = d["Data status"].astype(str).str.strip().str.lower()
+        _is_rel = _chain_c.str.contains("reliance", na=False)
+        _is_bc = (_ds_c == "brand counter")
+        d = d[~(_is_rel & _is_bc)].copy()
     d["_chain"] = d["Chain Name"].map(canon_chain)
     d["_fmt"] = d["_chain"].map(lambda c: fmt_map.get(c, "Unclassified"))
-    d["_site"] = d["_chain"].astype(str) + "|" + d["Site Code"].astype(str)
+    # Fill missing Site Codes with "NA" so chains without store-level detail
+    # (FSN, Arambagh, etc.) still participate; their site key becomes
+    # "ChainName|NA" — a single aggregate placeholder per chain.
+    _sc_str = d["Site Code"].astype(str).str.strip()
+    _sc_missing = d["Site Code"].isna() | _sc_str.isin(["nan", "None", "none", "", "<NA>"])
+    _sc_str = _sc_str.copy()
+    _sc_str.loc[_sc_missing] = "NA"
+    d["_site"] = d["_chain"].astype(str) + "|" + _sc_str
     d["_ean"] = d["EAN"].astype(str)
     d["_nsv"] = pd.to_numeric(d["NSV"], errors="coerce").fillna(0.0)
     d["_cat"] = d["Category"].astype(str)
     d["_mon"] = d["Month"].map(_offtake_row_month)
+    if d["_mon"].isna().any():
+        mask = d["_mon"].isna()
+        if "Revised Month" in d.columns:
+            d.loc[mask, "_mon"] = d.loc[mask, "Revised Month"].map(_offtake_row_month)
+            mask = d["_mon"].isna()
+        if mask.any() and "Year" in d.columns:
+            def _month_plus_year_dg(row):
+                m, y = row["Month"], row["Year"]
+                if isinstance(m, str) and m.strip() and y is not None:
+                    return _offtake_row_month(f"{m.strip()}'{int(y) % 100:02d}")
+                return None
+            d.loc[mask, "_mon"] = d.loc[mask].apply(_month_plus_year_dg, axis=1)
     months = sorted([m for m in d["_mon"].dropna().unique()],
                     key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
     n_months = max(1, len(months))
@@ -2204,7 +2291,7 @@ def detail_records_real(src, max_rows=20000):
             f"{df['Month'].head(5).tolist() if 'Month' in df else 'N/A'}")
     df["_Brand"] = df["brand"].map(canon_brand)
     df["_Zone"] = df["Zone"].map(canon_zone)
-    df["_State"] = (df["State"].astype(str).str.strip() if "State" in df.columns else "")
+    df["_State"] = (df["State"].map(canon_state).fillna("") if "State" in df.columns else "")
     _CHAN_MAP = {"mt": "MT", "eb2b": "EB2B", "sis": "SIS"}
     df["_Chan"] = df["Channel"].astype(str).str.strip().map(
         lambda x: _CHAN_MAP.get(x.strip().lower(), x.strip()))

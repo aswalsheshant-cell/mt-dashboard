@@ -874,8 +874,14 @@ function buildOfftake(){
   const primFor=k=>p['nsv_'+k]||0;
   const cmp=chains.filter(c=>(c[yrs[yrs.length-1]]||0)>50 || fOn('Chain')).slice(0,10);
   const pc={}; p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);
-  const strows=states.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td>
-     <td><span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span></td></tr>`).join('');
+  const strows=states.map(r=>{
+    if(fy){ return `<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r[fy])}</td></tr>`; }
+    const prev=yrs.length>=2?yrs[yrs.length-2]:null, cur=yrs[yrs.length-1];
+    const pv=prev!=null?r[prev]:null, cv2=r[cur];
+    const yoyV=pv?((cv2-pv)/pv)*100:null;
+    return `<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td>${prev!=null?`<td>${crc(pv)}</td>`:''}
+     <td>${crc(cv2)}</td><td><span class="pill ${yoyV!=null&&yoyV>=0?'g':'r'}">${yoyV!=null?pct(yoyV):'–'}</span></td></tr>`;
+  }).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
    <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
@@ -894,8 +900,8 @@ function buildOfftake(){
      ${card('Offtake by zone'+(fy?` (${yrLab[fy]})`:' (YoY)'),'click to drill',cv('ofZone'))}
    </div>
    ${card(`Primary vs Offtake by chain (${yrLab[yrs[yrs.length-1]]}) — inventory health`,'Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill). Click a chain to drill.',cv('ofCmp'))}
-   ${card('State-wise offtake YoY','Quarterly pivot rolled to annual (always shows both FY25/FY26 for comparison). Click a zone to drill.',`<div class="tablewrap"><table>
-     <thead><tr><th>State</th><th>Zone</th><th>FY25</th><th>FY26</th><th>YoY</th></tr></thead><tbody>${strows||'<tr><td colspan="5">No states for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${card('State-wise offtake'+(fy?` (${yrLab[fy]})`:' YoY'),fy?`Filtered to ${yrLab[fy]}. Click a zone to drill.`:'Click a zone to drill.',`<div class="tablewrap"><table>
+     <thead><tr><th>State</th><th>Zone</th>${fy?`<th>${yrLab[fy]}</th>`:(yrs.length>=2?`<th>${yrLab[yrs[yrs.length-2]]}</th><th>${yrLab[yrs[yrs.length-1]]}</th><th>YoY</th>`:`<th>${yrLab[yrs[0]]}</th><th>YoY</th>`)}</tr></thead><tbody>${strows||`<tr><td colspan="${fy?3:yrs.length+3}">No states for this filter.</td></tr>`}</tbody></table></div>`)}
    ${catDrillCardHtml('ofCatDrill')}`;
   wireDrillLinks(s);
   mkLine('ofTrend',months,[{label:'Offtake',data:monthly,borderColor:C.amber,backgroundColor:C.amber+'22',fill:true}]);
