@@ -307,7 +307,7 @@ waterfall_rows = [
      F_LGREY, False),
 
     ("(=) Gross Margin 1  (GM1)",
-     "= NSV pending freight", None, None,
+     "≡ NSV (freight PENDING)", None, None,
      "GM1 = Invoice NSV − freight. Freight PENDING — GM1 equals NSV until supplied.",
      F_LGREY, False),
 
