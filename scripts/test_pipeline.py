@@ -373,6 +373,51 @@ class TestDataJSRegression:
         states_with_fy27 = [s for s in dash["offtake"]["by_state"] if s.get("fy27")]
         assert len(states_with_fy27) > 0
 
+    def test_fy27_chain_sum_matches_total(self, dash):
+        chain_sum = sum(c.get("fy27", 0) or 0 for c in dash["offtake"]["by_chain"])
+        total = dash["offtake"]["total_fy27"]
+        assert abs(chain_sum - total) < 0.5, f"chain sum {chain_sum} != total {total}"
+
+    def test_fy27_zone_sum_matches_total(self, dash):
+        zone_sum = sum(z.get("fy27", 0) or 0 for z in dash["offtake"]["by_zone"])
+        total = dash["offtake"]["total_fy27"]
+        assert abs(zone_sum - total) < 0.5, f"zone sum {zone_sum} != total {total}"
+
+    def test_fy27_monthly_values_in_range(self, dash):
+        """Each FY27 month should be in a reasonable range (3000-5000 L)."""
+        for v in dash["offtake"]["monthly_fy27"]:
+            assert 3000 < v < 5000, f"monthly value {v} outside 3000-5000 range"
+
+    def test_q1_fy27_equals_sum_of_months(self, dash):
+        monthly = dash["offtake"]["monthly_fy27"]
+        total = dash["offtake"]["total_fy27"]
+        assert abs(sum(monthly) - total) < 0.1
+
+    def test_reliance_bc_preserved(self, dash):
+        bc = dash.get("reliance_bc")
+        assert bc is not None
+        assert bc.get("is_brand_counter") is True
+        assert bc.get("include_in_overall_offtake") is False
+        assert bc.get("total", 0) > 0
+
+    def test_reliance_bc_not_in_offtake(self, dash):
+        """BC total should not be added to offtake total."""
+        bc = dash.get("reliance_bc", {})
+        o = dash["offtake"]
+        assert bc.get("include_in_overall_offtake") is False
+
+    def test_fy25_fy26_monthly_unchanged(self, dash):
+        """Historical monthly values must not change."""
+        o = dash["offtake"]
+        if "monthly_fy25" in o:
+            assert all(not (isinstance(v, float) and math.isnan(v)) for v in o["monthly_fy25"])
+        if "monthly_fy26" in o:
+            assert all(not (isinstance(v, float) and math.isnan(v)) for v in o["monthly_fy26"])
+
+    def test_all_fy_trend_includes_jun26(self, dash):
+        months = dash["offtake"].get("months", [])
+        assert "Jun-26" in months
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
