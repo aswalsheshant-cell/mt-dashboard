@@ -151,6 +151,66 @@
 <script src="data.js?v=20260703-3"></script>
 <script>
 const D = window.DASH;
+
+/* ---- Chain consolidation: map distributor/ship-to names leaked into
+   fyx_primary.by_chain / tot.by_chain to their canonical chain name.
+   Source: ChainMaster.csv + ChainAccount_Mapping_PriorityView.csv.
+   Multi-chain distributors (need cont% allocation) are grouped separately. ---- */
+const _CC={
+  'DC-D-Mart-Offline':'Dmart','JUST MARK-Dmart':'Dmart','D-Mart-Store-E-Com':'Dmart',
+  'Reliance Retail-DC':'Reliance Retail','Reliance Retail-Store':'Reliance Retail',
+  'RRL-FOC-Sample':'Reliance Retail','Reliance Retail-(Azorte)':'Azorte',
+  'Nykaa E-Retail Limited':'Nykaa (FSN)','Metro-CNC':'Metro C&C',
+  'Walmart-CNC':'Walmart','Health & Glow':'H&G',
+  'Guardian Healthcare':'Guardian','Guardian Healthcare-Delhi':'Guardian',
+  'Trent Hypermarket':'Trent','V-Mart Retail Limited':'V-Mart','V-Mart Retail':'V-Mart',
+  'Travel News Services-Wsmith':'WH-Smith','Travel Retail Services-Relay':'Relay',
+  'United Marketing':'Apollo','Eremedium Private Limited':'Eremedium',
+  'AZORTE':'Azorte','Ratanadeep':'Ratnadeep',
+  'Sancus':'RMT-Sancus','Gaurdian':'Guardian',
+  'Aarambagh food mart':'Arambagh','V Mart East':'V-Mart',
+  'VISHAL ENTERPRISES':'Vishal Mega Mart','Metro':'Metro C&C',
+  'Mark Enterprise-Apollo':'Apollo','PRAGATI SALES-Apollo':'Apollo',
+  'PRAGATI SALES-D-MART':'Dmart','JUST MARK-D-Mart':'Dmart',
+  'Kiran Trading Company-Solapur-D-Mart':'Dmart','Kiran Trading Company-Pune-MT':'Dmart',
+  'VISHAL ENTERPRISES-D-Mart':'Dmart','Az Enterprises-MT':'Az Enterprises',
+  'Sancus Networks-MT-Reg.':'RMT-Sancus','R.C. Trade Link H&G':'H&G',
+  'R.C. Trade Link':'H&G','Lifestyle Babyshop':'Lifestyle'
+};
+const _MCD=new Set([
+  'Kiran Trading Company','G.V Enterprises','Sri Vijaya Durga Agencies',
+  'Az Enterprises','VENKATESHWARA AGENCIES-TG','M/S KOTTARAM BUSINESS',
+  'Sancus Networks Private Limited-RMT','D.L. Sales - MT',
+  'Balaji Associates Distributor MT','CHHABRA TRADERS',
+  'MARK ENTERPRISE','RR Traders-MT','REAL TIME LOGISTICS_MT_BR',
+  'SAI SAACHI ASSOCIATES-MT-OR','CHOUDHARY ENTERPRISES','MANOJ SOAP AGENCY-MT',
+  'Sehaj Enterprises -MT-JK','SRIJAN ENTERPRISES-MT-JH',
+  'Vanaja Agencies','SC BUSINESS COMBINE_MT'
+]);
+function canonChain(n){return _CC[n]||n;}
+function consolidateChains(arr,sortKey){
+  sortKey=sortKey||'nsv';
+  const m={};const dist={_name:'Other (Unallocated Distributors)',_list:[]};
+  (arr||[]).forEach(c=>{
+    const bucket=_MCD.has(c.name)?dist:(function(){const cn=canonChain(c.name);if(!m[cn])m[cn]={name:cn};return m[cn];}());
+    if(_MCD.has(c.name)){dist._list.push(c);}
+    Object.keys(c).forEach(k=>{if(k==='name')return;if(typeof c[k]==='number'){bucket[k]=(bucket[k]||0)+c[k];}});
+  });
+  if(dist._list.length){dist.name=dist._name;delete dist._name;delete dist._list; m['__dist__']=dist;}
+  const out=Object.values(m).sort((a,b)=>(b[sortKey]||0)-(a[sortKey]||0));
+  out.forEach(c=>{
+    if(c.mrp&&c.passon_value!=null)c.tot_pct=Math.round(c.passon_value/c.mrp*1000)/10;
+    if(c.fy25&&c.fy26)c.yoy=Math.round((c.fy26-c.fy25)/c.fy25*1000)/10;
+    if(c.cm2_pct!==undefined&&c.nsv)c.cm2_pct=Math.round((c.cm2_value||0)/c.nsv*1000)/10;
+  });
+  return out;
+}
+/* Apply chain consolidation to detail_records at load time so filters and
+   all tab builders see canonical chain names. Original preserved as _origChain. */
+(D.detail_records||[]).forEach(r=>{
+  if(r.Chain){r._origChain=r.Chain;r.Chain=canonChain(r.Chain);if(_MCD.has(r._origChain))r.Chain='Other (Unallocated Distributors)';}
+});
+
 const C = {teal:'#2D9B7F',teald:'#1f7a63',blue:'#2b6cb0',amber:'#C77D17',red:'#C0392B',
            green:'#1E8E3E',grey:'#9aa4ad',purple:'#6b5b95',sand:'#cbb994'};
 const PAL=[C.teal,C.blue,C.amber,C.purple,C.green,C.red,C.sand,C.grey];
@@ -304,7 +364,7 @@ function mkDonut(id,labels,data,money=true,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'doughnut',
     data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
     options:Object.assign({cutout:'58%',plugins:{legend:{position:'right'},..._labelOpts(money),
-      tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
+      tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0)||1;
         return `${c.label}: ${money?crc(c.parsed):num(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}},_drillOpts(onClick))}));
 }
 
@@ -575,7 +635,7 @@ function buildOverview(){
   const primOk=!beyond||!!fp27, offOk=!fy||o['total_'+fy]!=null;
   let chains=p.by_chain, brands=p.by_brand, channels=p.by_channel;
   if(fp27){
-    chains=fp27.by_chain.map(c=>({name:c.name,[fy]:c.nsv}));
+    chains=consolidateChains(fp27.by_chain).map(c=>({name:c.name,[fy]:c.nsv}));
     brands=fp27.by_brand.map(b=>({name:b.name,[fy]:b.nsv}));
     channels=fp27.by_channel.map(c=>({name:c.name,[fy]:c.nsv}));
   }
@@ -626,7 +686,7 @@ function buildPrimary(){
     const fp=FPX(fyTag())||FP27();
     if(fp){
       // FY26-27 actuals (Apr'26+) from the article-wise primary, chain-allocated
-      let zones=fp.by_zone, chans=fp.by_channel, brands=fp.by_brand, chains=fp.by_chain;
+      let zones=fp.by_zone, chans=fp.by_channel, brands=fp.by_brand, chains=consolidateChains(fp.by_chain);
       if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
       if(fOn('Channel')) chans=chans.filter(c=>fHas('Channel',c.name));
       if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
@@ -857,7 +917,7 @@ function buildOfftake(){
   const yrs=fy?[fy]:['fy25','fy26'];
   const yrLab={fy25:'FY25',fy26:'FY26'};
   if(fy && !yrLab[fy]) yrLab[fy]=fy.toUpperCase();   // backfill FY27+ label
-  let zones=o.by_zone, states=o.by_state, chains=o.by_chain;
+  let zones=o.by_zone, states=o.by_state, chains=consolidateChains(o.by_chain);
   if(fOn('Zone')){ zones=zones.filter(z=>fHas('Zone',z.name)); states=states.filter(r=>fHas('Zone',r.zone)); }
   if(fOn('Chain')){ chains=chains.filter(c=>fHas('Chain',c.name)); }
   const mAbbr=m=>String(m).slice(0,3).toLowerCase();
@@ -874,9 +934,17 @@ function buildOfftake(){
     months=keep.map(i=>months[i]); monthly=keep.map(i=>monthly[i]);
   }
   const totFor=k=>o['total_'+k]||0;
-  const primFor=k=>p['nsv_'+k]||0;
+  const _fyTag=fy?fy.toUpperCase().replace('FY','FY'):'';
+  const _fpx=_fyTag&&FYX[_fyTag];
+  const primFor=k=>{
+    const v=p['nsv_'+k]; if(v) return v;
+    const tag=k.toUpperCase().replace('FY','FY'), fx=FYX[tag];
+    return fx?fx.nsv:0;
+  };
   const cmp=chains.filter(c=>(c[yrs[yrs.length-1]]||0)>50 || fOn('Chain')).slice(0,10);
-  const pc={}; p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);
+  const pc={};
+  if(_fpx){consolidateChains(_fpx.by_chain).forEach(c=>{pc[c.name]=c.nsv;});}
+  else{p.by_chain.forEach(c=>pc[c.name]=c[yrs[yrs.length-1]]);}
   const strows=states.map(r=>{
     if(fy){ return `<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r[fy])}</td></tr>`; }
     const prev=yrs.length>=2?yrs[yrs.length-2]:null, cur=yrs[yrs.length-1];
@@ -1006,7 +1074,7 @@ function buildPnl(){
   // article-level source (File 2), spans FY26-FY27; not gated by the FY26-only
   // guard above since its own data genuinely extends past FY26.
   const totD=D.tot;
-  let totChains=totD?totD.by_chain:[];
+  let totChains=totD?consolidateChains(totD.by_chain,'nsv'):[];
   if(fOn('Chain')) totChains=totChains.filter(c=>fHas('Chain',c.name));
   const totTop=totChains.slice(0,12);
   const totRows=totChains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.mrp)}</td><td>${crc(c.nsv)}</td>
@@ -1035,7 +1103,7 @@ function buildPnl(){
   // hardcoded -- they come entirely from PowerBI/SeedData/Masters/
   // PL_Expense_Input.csv (see cm2_block in build_dashboard_data.py).
   const cm2D=D.cm2;
-  let cm2Chains=cm2D?cm2D.by_chain:[];
+  let cm2Chains=cm2D?consolidateChains(cm2D.by_chain,'nsv'):[];
   if(fOn('Chain')) cm2Chains=cm2Chains.filter(c=>fHas('Chain',c.name));
   const cm2Top=cm2Chains.slice(0,12);
   const cm2Rows=cm2Chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
@@ -1188,7 +1256,7 @@ function buildShare(){
     const fp=FPX(fyTag())||FP27();
     if(fp){
       // FY27 share-of-business from the article-wise primary (chain-allocated)
-      let chains27=fp.by_chain.filter(c=>c.nsv>0);
+      let chains27=consolidateChains(fp.by_chain).filter(c=>c.nsv>0);
       if(fOn('Chain')) chains27=chains27.filter(c=>fHas('Chain',c.name));
       const tot27=fp.nsv||1;
       const sob=chains27.slice(0,10).map(c=>({name:c.name,share:c.nsv/tot27*100,v:c.nsv}));
@@ -1394,7 +1462,7 @@ function buildCategory(){
 /* ---------------- PROMO & TRADE SPEND ---------------- */
 function buildPromo(){
   const pr=D.promo,s=document.getElementById('tab-promo');
-  let chains=pr.by_chain, brandsArr=pr.by_brand, cats=pr.by_category;
+  let chains=consolidateChains(pr.by_chain,'promos'), brandsArr=pr.by_brand, cats=pr.by_category;
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   if(fOn('Brand')) brandsArr=brandsArr.filter(b=>fHas('Brand',b.name));
   if(fOn('Category')) cats=cats.filter(c=>fHas('Category',c.name));
@@ -1460,7 +1528,7 @@ function buildComparison(){
       // show those real numbers instead of a blank state when loaded.
       const fp=FPX(fyTag());
       if(fp){
-        const arr27=cmpDim==='Chain'?fp.by_chain:fp.by_brand;
+        const arr27=cmpDim==='Chain'?consolidateChains(fp.by_chain):fp.by_brand;
         source=`article-wise primary, chain-allocated (${fyTag()} YTD: ${fp.months_covered.join(' & ')})`;
         rows=arr27.filter(x=>x.nsv>0).map(x=>({name:x.name,a:null,b:x.nsv,yoy:null}));
         yrPair=['–',fyTag()];
@@ -1585,9 +1653,14 @@ const PREAGG_FYS=(function(){
 const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum(a)-fyNum(b));
 function optsFor(key){
   if(key==='FY') return FY_ALL;
-  const vals=[...new Set(recFilter(key).map(r=>r[key]))];
+  const recs=recFilter(key);
+  const vals=[...new Set(recs.map(r=>r[key]))];
   if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
-  else vals.sort((a,b)=>String(a).localeCompare(String(b)));
+  else{
+    const contrib={};
+    recs.forEach(r=>{const v=r[key];contrib[v]=(contrib[v]||0)+(r.NSV||0);});
+    vals.sort((a,b)=>(contrib[b]||0)-(contrib[a]||0)||String(a).localeCompare(String(b)));
+  }
   return vals;
 }
 function renderFilterBar(){
