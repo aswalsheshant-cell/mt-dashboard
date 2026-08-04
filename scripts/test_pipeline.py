@@ -418,6 +418,41 @@ class TestDataJSRegression:
         months = dash["offtake"].get("months", [])
         assert "Jun-26" in months
 
+    # ── Primary FY27 regression tests ──
+
+    def test_primary_fy27_chain_sum_matches_total(self, dash):
+        """Primary FY27 chain NSV sum must match total NSV (within rounding)."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        chain_sum = sum(c["nsv"] for c in fp["by_chain"])
+        assert abs(chain_sum - fp["nsv"]) < 2.0, (
+            f"chain sum {chain_sum} != total {fp['nsv']}")
+
+    def test_primary_fy27_zone_sum_matches_total(self, dash):
+        """Primary FY27 zone NSV sum must match total NSV."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        zone_sum = sum(z["nsv"] for z in fp["by_zone"])
+        assert abs(zone_sum - fp["nsv"]) < 0.5, (
+            f"zone sum {zone_sum} != total {fp['nsv']}")
+
+    def test_primary_fy27_monthly_sum_matches_total(self, dash):
+        """Primary FY27 monthly sum must match total NSV."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        monthly_sum = sum(v for v in fp["monthly"] if v)
+        assert abs(monthly_sum - fp["nsv"]) < 0.5, (
+            f"monthly sum {monthly_sum} != total {fp['nsv']}")
+
+    def test_primary_fy25_fy26_unchanged(self, dash):
+        """Pre-aggregated Primary FY25/FY26 values must not change."""
+        p = dash.get("primary", {})
+        assert p.get("nsv_fy25") == 23331.97
+        assert p.get("nsv_fy26") == 32900.36
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

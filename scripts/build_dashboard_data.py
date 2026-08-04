@@ -2290,9 +2290,17 @@ def allocate_dist_primary(df, wdf, raw_sums):
     Returns (new_df, alloc_block) where alloc_block carries the full
     reconciliation/QC payload for the dashboard, or (df-with-_Chain, None)
     when the file has no PO Type column or no cont sheet was found."""
-    chain_col = "Chain name for Dashboard" if "Chain name for Dashboard" in df.columns \
-        else ("Chain name" if "Chain name" in df.columns else None)
-    df["_ChainDash"] = df[chain_col].map(canon_chain) if chain_col else None
+    _has_dashboard = "Chain name for Dashboard" in df.columns
+    _has_plain = "Chain name" in df.columns
+    if _has_dashboard and _has_plain:
+        _raw_chain = df["Chain name for Dashboard"].fillna(df["Chain name"])
+    elif _has_dashboard:
+        _raw_chain = df["Chain name for Dashboard"]
+    elif _has_plain:
+        _raw_chain = df["Chain name"]
+    else:
+        _raw_chain = None
+    df["_ChainDash"] = _raw_chain.map(canon_chain) if _raw_chain is not None else None
     if "PO Type" not in df.columns or wdf is None:
         df["_Chain"] = df["_ChainDash"]
         df.drop(columns=["_ChainDash"], inplace=True)

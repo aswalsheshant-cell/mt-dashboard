@@ -637,9 +637,7 @@ function buildPrimary(){
       const rows27=chains.filter(c=>c.nsv>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
         <td>${crc(c.nsv)}</td><td>${fp.nsv?(c.nsv/fp.nsv*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
       s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
-       <p class="lead">FY26-27 actuals — ${fp.months_covered.join(' & ')} 2026 (year-to-date), from the article-wise
-         primary (chain-allocated: Distributor primary split by secondary cont%). The FY24-26 source workbook ends
-         Mar'26, so these months live only in this source.</p>
+       <p class="lead">FY27 year-to-date — ${fp.months_covered.join(', ')} actuals, ₹ Crore.</p>
        <div class="kpis">
          ${kpi('Primary NSV (FY27 YTD)',crc(totNsv),fOn('Chain')?'filtered scope':`${fp.months_covered.join(' + ')} actuals`)}
          ${kpi('Gross MRP Value',crc(fp.mrp),'Total MRP sales basis')}
@@ -776,7 +774,10 @@ function allocSectionHtml(){
         ${al.rows_unmapped?` <b>${num(al.rows_unmapped)} rows (${crc(al.unmapped_nsv)}) have no cont-sheet data at all</b> and are kept under
         "Unmapped Chain" (never dropped, never blank) — see the missing-mapping table and the patch file's proposals.`:''}</div>`
     :`<div class="repbanner"><b>Reconciliation variance detected</b> — check the summary below.</div>`;
-  return `<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Distributor primary → Chain allocation (Customer × Article)</h3>
+  return `<details style="margin:20px 0 0">
+   <summary style="cursor:pointer;font-size:15px;font-weight:700;color:var(--teal);padding:6px 0">
+     Methodology &amp; Data Quality — Distributor → Chain allocation${allZero?' ✓ reconciled':' ⚠ variance'}</summary>
+   <div style="margin:8px 0 0">
    <p class="note" style="margin:0 0 10px">${al.method}</p>
    ${banner}
    ${al.rows_chain_equals_shipto?`<p class="drillhint" style="margin:0 0 10px">QC flag: ${num(al.rows_chain_equals_shipto)} DIRECT rows in the SOURCE file have
@@ -814,7 +815,8 @@ function allocSectionHtml(){
    ${card(`Customer × Article × Month × Chain allocation (top 40 shown; ${num(ca.rows.length)} exportable of ${num(ca.rows_total)} total, ${ca.value_coverage_pct}% of |NSV|)`,
      ca.note+' Click a chain to drill.',`<button class="fbtn ghost" id="alExpCa" style="margin:0 0 8px">⭳ Export ALL Customer × Article rows (Excel)</button><div class="tablewrap"><table>
      <thead><tr><th>Cust-SAP</th><th>Ship To</th><th>Article</th><th>Brand</th><th>Range</th><th>Pack</th><th>Month</th><th>Chain</th><th>NSV</th><th>Qty</th><th>W.Avg Tot</th></tr></thead>
-     <tbody>${caSlice}</tbody></table></div>`)}`;
+     <tbody>${caSlice}</tbody></table></div>`)}
+   </div></details>`;
 }
 function wireAllocExports(root){
   const al=D.alloc;
