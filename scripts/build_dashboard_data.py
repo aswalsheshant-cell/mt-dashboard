@@ -794,6 +794,19 @@ def load_reliance_bc_data(src):
         result[f"months_{tag}"] = tag_months
         result[f"monthly_{tag}"] = [monthly_totals[mo] for mo in tag_months]
         result[f"total_{tag}"] = r2(sum(monthly_totals[mo] for mo in tag_months))
+    # June-26 coverage disclosure
+    result["data_complete_through"] = months[-1] if months else None
+    if months and "Jun-26" not in months:
+        result["june_status"] = (
+            "BLOCKED: source file offtake_store_article_Jun_26.csv (or equivalent .xlsb) "
+            "is not present in PowerBI/RawDataFolders/Offtake_Monthly/. "
+            "Brand Counter June-26 offtake is unavailable. "
+            "April–May 2026 data shown; this does not constitute a complete Q1 FY27 figure. "
+            "Expected file: offtake_store_article_Jun_26.csv with columns: "
+            "Store Code, Article Code/EAN, NSV (Lakh), Chain Name."
+        )
+    else:
+        result["june_status"] = None
     return result
 
 
@@ -1149,9 +1162,24 @@ def universe_block(src):
     out["by_chain"] = sorted([{"name": k, "stores": int(v)}
                               for k, v in act.groupby("chain").size().items() if k],
                              key=lambda d: -d["stores"])[:20]
-    st = act.groupby(act["Store Type"].astype(str).str.strip().str.upper()).size()
-    out["by_storetype"] = sorted([{"name": k.title(), "stores": int(v)} for k, v in st.items()],
-                                 key=lambda d: -d["stores"])[:10]
+    _st_col = act["Store Type"].astype(str).str.strip()
+    _st_valid = _st_col[_st_col.str.upper().ne("NAN") & _st_col.ne("") & _st_col.ne("NONE")]
+    _n_unclassified = int(len(act)) - int(len(_st_valid))
+    _st_counts = _st_valid.str.upper().value_counts()
+    _by_st = sorted([{"name": k.title(), "stores": int(v)} for k, v in _st_counts.items()],
+                    key=lambda d: -d["stores"])[:10]
+    if _n_unclassified > 0:
+        _by_st.append({"name": "Unclassified", "stores": _n_unclassified})
+    out["by_storetype"] = _by_st
+    out["storetype_classified"] = int(len(_st_valid))
+    out["storetype_unclassified"] = _n_unclassified
+    if _n_unclassified > 0:
+        _pct = round(_n_unclassified * 100 / len(act), 1)
+        out["storetype_note"] = (
+            f"{_n_unclassified:,} of {len(act):,} active stores ({_pct}%) have a blank or missing "
+            f"Store Type in the universe master (universe.xlsx) and are not shown in the chart above. "
+            f"Update the Store Type column in universe.xlsx to complete this view."
+        )
     return act, out
 
 # --------------------------------------------------------------------------

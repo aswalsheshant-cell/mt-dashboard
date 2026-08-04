@@ -1024,11 +1024,17 @@ function buildRelianceBC(){
     `<tr><td>${b.name}</td><td>${crc(brandVal(b))}</td><td>${total>0?((brandVal(b)/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
   const catRows=cats.filter(c=>(c.total||0)>0).map(c=>
     `<tr><td>${c.name}</td><td>${crc(c.total)}</td><td>${total>0?((c.total/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
+  const bcCoverage=bc.data_complete_through?`Data through ${bc.data_complete_through}.`:'';
+  const bcJuneNote=bc.june_status
+    ?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
+       <strong>⚠ Coverage gap — June 2026 missing:</strong> ${bc.june_status}
+      </div>`:'';
   s.innerHTML=`<h2 class="sec">Reliance Brand Counter — Analytical Breakout</h2>
-   <p class="lead">Brand Counter sell-out from Reliance stores. ${fy?yrLab[fy]+' only.':'₹ Lakh.'}</p>
+   <p class="lead">Brand Counter sell-out from Reliance stores. ${fy?yrLab[fy]+' only.':'₹ Lakh.'} ${bcCoverage}</p>
    <div class="note" style="background:var(--card);border-left:4px solid var(--amber);padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
      <strong>Note:</strong> ${bc.note||'Brand Counter data is a separate analytical breakout.'}
    </div>
+   ${bcJuneNote}
    <div class="kpis">
      ${kpi('BC Offtake',crc(total),yrLab[fyk]||fyk)}
      ${kpi('Months Covered',months.length,months.length?months[0]+' – '+months[months.length-1]:'none')}
@@ -1348,7 +1354,7 @@ function buildDistribution(){
    </div>
    <div class="grid g2">
      ${card('Top chains by store count','click to drill',cv('dChain',true))}
-     ${card('Stores by store type','',cv('dType',true))}
+     ${card('Stores by store type',u.storetype_note?`<span style="color:#e65100;font-size:.8rem;">⚠ ${u.storetype_note}</span>`:'',cv('dType',true))}
    </div>
    ${card('Store count by chain (all active)','Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>Active Stores</th><th>Share of Footprint</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}

@@ -1631,8 +1631,15 @@ window.DASH = {
    {
     "name": "Corp",
     "stores": 62
+   },
+   {
+    "name": "Unclassified",
+    "stores": 2216
    }
-  ]
+  ],
+  "storetype_classified": 10147,
+  "storetype_unclassified": 2216,
+  "storetype_note": "2,216 of 12,363 active stores (17.9%) have a blank or missing Store Type in the universe master (universe.xlsx) and are not shown in the chart above. Update the Store Type column in universe.xlsx to complete this view."
  },
  "promo": {
   "n_promos": 2182,
@@ -818229,6 +818236,8 @@ window.DASH = {
    435.49,
    508.18
   ],
-  "total_fy27": 943.67
+  "total_fy27": 943.67,
+  "data_complete_through": "May-26",
+  "june_status": "BLOCKED: source file offtake_store_article_Jun_26.csv (or equivalent .xlsb) is not present in PowerBI/RawDataFolders/Offtake_Monthly/. Brand Counter June-26 offtake is unavailable. April–May 2026 data shown; this does not constitute a complete Q1 FY27 figure. Expected file: offtake_store_article_Jun_26.csv with columns: Store Code, Article Code/EAN, NSV (Lakh), Chain Name."
  }
 };
