@@ -136,6 +136,7 @@
   <section id="tab-overview"></section>
   <section id="tab-primary"></section>
   <section id="tab-offtake"></section>
+  <section id="tab-reliance-bc"></section>
   <section id="tab-pnl"></section>
   <section id="tab-category"></section>
   <section id="tab-forecast"></section>
@@ -916,6 +917,71 @@ function buildOfftake(){
     {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
     {label:'Offtake (sell-out)',data:cmp.map(c=>c[yrs[yrs.length-1]]||0),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
   renderCatDrillChart('ofCatDrill',recFilter());
+}
+
+/* ---------------- Reliance Brand Counter ---------------- */
+function buildRelianceBC(){
+  const bc=D.reliance_bc, s=document.getElementById('tab-reliance-bc');
+  if(!bc){s.innerHTML='<h2 class="sec">Reliance Brand Counter</h2><p class="lead">No Brand Counter data available.</p>';return;}
+  const fy=fyKey();
+  const yrLab={fy25:'FY25',fy26:'FY26'};
+  FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });
+  const fyTags=bc.fy_tags||[];
+  if(fy && !fyTags.includes(fy)){
+    s.innerHTML=`<h2 class="sec">Reliance Brand Counter</h2><p class="lead">No Brand Counter data for ${yrLab[fy]||fy.toUpperCase()}.</p>`;return;
+  }
+  const fyk=fy||fyTags[fyTags.length-1]||'fy27';
+  const months=bc['months_'+fyk]||bc.months||[];
+  const monthly=bc['monthly_'+fyk]||bc.monthly||[];
+  const total=bc['total_'+fyk]||bc.total||0;
+  let zones=bc.by_zone||[];
+  let states=bc.by_state||[];
+  let brands=bc.by_brand||[];
+  let cats=bc.by_category||[];
+  if(fOn('Zone')){
+    zones=zones.filter(z=>fHas('Zone',z.name));
+    states=states.filter(r=>fHas('Zone',r.zone));
+  }
+  const zoneVal=z=>(z[fyk]||z.total||0);
+  const stateVal=r=>(r[fyk]||r.total||0);
+  const brandVal=b=>(b[fyk]||b.total||0);
+  const stRows=states.filter(r=>stateVal(r)>0).map(r=>
+    `<tr><td>${r.state}</td><td>${r.zone}</td><td>${crc(stateVal(r))}</td></tr>`).join('');
+  const brandRows=brands.filter(b=>brandVal(b)>0).map(b=>
+    `<tr><td>${b.name}</td><td>${crc(brandVal(b))}</td><td>${total>0?((brandVal(b)/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
+  const catRows=cats.filter(c=>(c.total||0)>0).map(c=>
+    `<tr><td>${c.name}</td><td>${crc(c.total)}</td><td>${total>0?((c.total/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
+  s.innerHTML=`<h2 class="sec">Reliance Brand Counter — Analytical Breakout</h2>
+   <p class="lead">Brand Counter sell-out from Reliance stores. ${fy?yrLab[fy]+' only.':'₹ Lakh.'}</p>
+   <div class="note" style="background:var(--card);border-left:4px solid var(--amber);padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
+     <strong>Note:</strong> ${bc.note||'Brand Counter data is a separate analytical breakout.'}
+   </div>
+   <div class="kpis">
+     ${kpi('BC Offtake',crc(total),yrLab[fyk]||fyk)}
+     ${kpi('Months Covered',months.length,months.length?months[0]+' – '+months[months.length-1]:'none')}
+     ${kpi('Zones',zones.length,'with BC presence')}
+     ${kpi('Brands',brands.length,'tracked in BC')}
+   </div>
+   <div class="grid g2">
+     ${card('Monthly BC offtake trend',months.length+' month(s).',cv('bcTrend'))}
+     ${card('BC offtake by zone'+(fy?' ('+yrLab[fy]+')':''),'Reliance zones with Brand Counter presence.',cv('bcZone'))}
+   </div>
+   <div class="grid g2">
+     ${card('BC offtake by brand','Share of Brand Counter sell-out by brand.',
+       `<div class="tablewrap"><table><thead><tr><th>Brand</th><th>₹ L</th><th>Share</th></tr></thead>
+        <tbody>${brandRows||'<tr><td colspan="3">No brand data.</td></tr>'}</tbody></table></div>`)}
+     ${card('BC offtake by category','Product category split.',
+       `<div class="tablewrap"><table><thead><tr><th>Category</th><th>₹ L</th><th>Share</th></tr></thead>
+        <tbody>${catRows||'<tr><td colspan="3">No category data.</td></tr>'}</tbody></table></div>`)}
+   </div>
+   ${card('State-wise BC offtake','Reliance Brand Counter sell-out by state.',
+     `<div class="tablewrap"><table><thead><tr><th>State</th><th>Zone</th><th>₹ L</th></tr></thead>
+      <tbody>${stRows||'<tr><td colspan="3">No state data.</td></tr>'}</tbody></table></div>`)}
+   <div style="margin-top:1rem;font-size:.8rem;color:var(--muted);">
+     <em>Classification: is_brand_counter=${bc.is_brand_counter}, include_in_overall_offtake=${bc.include_in_overall_offtake}, parent_chain="${bc.parent_chain||'Reliance Retail'}"</em>
+   </div>`;
+  mkLine('bcTrend',months,[{label:'BC Offtake',data:monthly,borderColor:C.amber,backgroundColor:C.amber+'22',fill:true}]);
+  mkBarH('bcZone',zones.map(z=>z.name),zones.map(z=>zoneVal(z)),C.amber);
 }
 
 /* ---------------- P&L ---------------- */
@@ -1875,10 +1941,12 @@ function exportCSV(recs){
 }
 /* ---------------- nav ---------------- */
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
+  ['reliance-bc','Reliance Brand Counter'],
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
   ['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
+  'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
   distribution:buildDistribution,comparison:buildComparison,insights:buildInsights};
 let currentTab='overview';

@@ -639,6 +639,139 @@ def load_offtake_article_files(src):
                 zsm[key][mo] = zsm[key].get(mo, 0.0) + float(v)
     return chain_month, zsm
 
+
+def load_reliance_bc_data(src):
+    """Extract Reliance Brand Counter rows from offtake source files for
+    the separate analytical tab.  These rows are EXCLUDED from overall
+    offtake (already embedded in Reliance's non-BC total); this function
+    captures them separately.
+    Returns a dict ready for data.js['reliance_bc'], or None if no data."""
+    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
+    frames = []
+    for fp in files:
+        if fp.suffix.lower() == ".csv":
+            _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+        else:
+            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+        for _, df in _frames.items():
+            df.columns = [str(c).strip() for c in df.columns]
+            need = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            if not need <= set(df.columns):
+                continue
+            _ds_col = "Data status" if "Data status" in df.columns else \
+                      "Store Type" if "Store Type" in df.columns else None
+            if _ds_col is None:
+                continue
+            _chain_c = df["Chain Name"].astype(str).str.strip().str.lower()
+            _ds_c = df[_ds_col].astype(str).str.strip().str.lower()
+            _is_rel = _chain_c.str.contains("reliance", na=False)
+            _is_bc = (_ds_c == "brand counter")
+            bc_df = df[_is_rel & _is_bc].copy()
+            if bc_df.empty:
+                continue
+            bc_df["_month"] = bc_df["Month"].map(_offtake_row_month)
+            if bc_df["_month"].isna().any():
+                mask = bc_df["_month"].isna()
+                if "Revised Month" in bc_df.columns:
+                    bc_df.loc[mask, "_month"] = bc_df.loc[mask, "Revised Month"].map(_offtake_row_month)
+                    mask = bc_df["_month"].isna()
+                if mask.any() and "Year" in bc_df.columns:
+                    def _mp(row):
+                        m, y = row["Month"], row["Year"]
+                        if isinstance(m, str) and m.strip() and y is not None:
+                            return _offtake_row_month(f"{m.strip()}'{int(y) % 100:02d}")
+                        return None
+                    bc_df.loc[mask, "_month"] = bc_df.loc[mask].apply(_mp, axis=1)
+            bc_df["_nsv"] = pd.to_numeric(bc_df["NSV"], errors="coerce").fillna(0.0)
+            bc_df["_zone"] = bc_df["Zone"].map(canon_zone)
+            bc_df["_state"] = bc_df["State"].map(canon_state)
+            bc_df["_brand"] = bc_df["Brand"].map(canon_brand) if "Brand" in bc_df.columns else None
+            bc_df["_category"] = bc_df["Category"].astype(str).str.strip() if "Category" in bc_df.columns else ""
+            bc_df["_city"] = bc_df["City"].astype(str).str.strip() if "City" in bc_df.columns else ""
+            bc_df["_article"] = bc_df["Article"].astype(str).str.strip() if "Article" in bc_df.columns else ""
+            bc_df = bc_df[bc_df["_month"].notna()]
+            frames.append(bc_df)
+    if not frames:
+        return None
+    all_bc = pd.concat(frames, ignore_index=True)
+    months = sorted(all_bc["_month"].unique(),
+                    key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+    # Aggregate by FY
+    fy_data = {}
+    for mo in months:
+        tag = fy_tag_from_label(mo)
+        if tag:
+            fy_data.setdefault(tag.lower(), []).append(mo)
+    monthly_totals = {}
+    for mo in months:
+        monthly_totals[mo] = r2(float(all_bc[all_bc["_month"] == mo]["_nsv"].sum()))
+    # By zone
+    by_zone = []
+    for zone, grp in all_bc.groupby("_zone"):
+        entry = {"name": zone, "total": r2(float(grp["_nsv"].sum()))}
+        for mo in months:
+            tag = fy_tag_from_label(mo)
+            if tag:
+                lo = tag.lower()
+                mo_val = float(grp[grp["_month"] == mo]["_nsv"].sum())
+                entry[lo] = r2(entry.get(lo, 0) + mo_val)
+        by_zone.append(entry)
+    by_zone.sort(key=lambda d: -d["total"])
+    # By state
+    by_state = []
+    for (zone, state), grp in all_bc.groupby(["_zone", "_state"]):
+        entry = {"zone": zone, "state": state, "total": r2(float(grp["_nsv"].sum()))}
+        for mo in months:
+            tag = fy_tag_from_label(mo)
+            if tag:
+                lo = tag.lower()
+                mo_val = float(grp[grp["_month"] == mo]["_nsv"].sum())
+                entry[lo] = r2(entry.get(lo, 0) + mo_val)
+        by_state.append(entry)
+    by_state.sort(key=lambda d: -d["total"])
+    # By brand
+    by_brand = []
+    if all_bc["_brand"].notna().any():
+        for brand, grp in all_bc[all_bc["_brand"].notna()].groupby("_brand"):
+            entry = {"name": brand, "total": r2(float(grp["_nsv"].sum()))}
+            for mo in months:
+                tag = fy_tag_from_label(mo)
+                if tag:
+                    lo = tag.lower()
+                    mo_val = float(grp[grp["_month"] == mo]["_nsv"].sum())
+                    entry[lo] = r2(entry.get(lo, 0) + mo_val)
+            by_brand.append(entry)
+        by_brand.sort(key=lambda d: -d["total"])
+    # By category
+    by_category = []
+    if all_bc["_category"].notna().any():
+        for cat, grp in all_bc[all_bc["_category"] != ""].groupby("_category"):
+            entry = {"name": cat, "total": r2(float(grp["_nsv"].sum()))}
+            by_category.append(entry)
+        by_category.sort(key=lambda d: -d["total"])
+    result = {
+        "total": r2(float(all_bc["_nsv"].sum())),
+        "months": months,
+        "monthly": [monthly_totals[mo] for mo in months],
+        "fy_tags": sorted(fy_data.keys(), key=lambda t: fy_start_year(t.upper())),
+        "by_zone": by_zone,
+        "by_state": by_state,
+        "by_brand": by_brand,
+        "by_category": by_category,
+        "include_in_overall_offtake": False,
+        "is_brand_counter": True,
+        "parent_chain": "Reliance Retail",
+        "note": ("Reliance Brand Counter Offtake is shown as a separate analytical breakout. "
+                 "It is already included in Reliance's reported Offtake and is excluded from "
+                 "additional Overall Offtake aggregation to prevent double counting."),
+    }
+    for tag, tag_months in fy_data.items():
+        result[f"months_{tag}"] = tag_months
+        result[f"monthly_{tag}"] = [monthly_totals[mo] for mo in tag_months]
+        result[f"total_{tag}"] = r2(sum(monthly_totals[mo] for mo in tag_months))
+    return result
+
+
 def patch_offtake_new_months(offtake, chain_month, zsm):
     """Merge chain-month / (zone,state)-month NSV aggregates (from
     load_offtake_article_files) into an EXISTING offtake_block() output.
@@ -1479,7 +1612,11 @@ def _build_custcode_chain_lookup(df):
     sub = df[df["_CustCode"] != ""]
     if sub.empty:
         return {}
-    return sub.groupby("_CustCode")["_Chain"].agg(lambda s: s.value_counts().idxmax()).to_dict()
+    def _most_common(s):
+        vc = s.value_counts()
+        return vc.idxmax() if len(vc) > 0 else None
+    result = sub.groupby("_CustCode")["_Chain"].agg(_most_common)
+    return result[result.notna()].to_dict()
 
 def cm2_block(df, expense_rows):
     """Chain/Brand/Category/Expense-Head CM2 rollups + monthly series, from
@@ -2323,23 +2460,38 @@ def detail_records_real(src, max_rows=20000):
                  "MT, Eb2B & SIS primary April_23 to May_26.xlsb"):
         if (src / name).exists():
             f = src / name; break
+    # Fallback: read monthly CSVs from Primary_Article_Monthly/ when no
+    # consolidated file exists. Searches src itself, src/Primary_Article_Monthly,
+    # and the repo-level PowerBI path.
+    _monthly_csv_dirs = [src, src / "Primary_Article_Monthly",
+                         Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolders" / "Primary_Article_Monthly"]
+    _monthly_csvs = []
     if f is None:
+        for _d in _monthly_csv_dirs:
+            if _d.is_dir():
+                _monthly_csvs = sorted(_d.glob("primary_article_*.csv"))
+                if _monthly_csvs:
+                    break
+    if f is None and not _monthly_csvs:
         return None
-    eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else None
-    # auto-detect the header row (source workbooks carry a blank first row or
-    # -- in the current business format -- a reference/annotation row ABOVE the
-    # real header, so require the actual data-column signature, not just any
-    # row mentioning Month/FY). Old exports carry "Article Code"; the current
-    # format doesn't, so accept "Ship To Name"+"EAN No." as the alternative.
-    probe = pd.read_excel(f, sheet_name=0, header=None, nrows=8, engine=eng)
-    hdr = 0
-    for i in range(len(probe)):
-        vals = {str(v).strip() for v in probe.iloc[i].tolist()}
-        if {"Month", "FY"} <= vals and ({"Article Code"} <= vals or {"Ship To Name", "EAN No."} <= vals):
-            hdr = i
-            break
-    print(f"detail source: {f.name} (header row {hdr})")
-    df = pd.read_excel(f, sheet_name=0, header=hdr, engine=eng)
+    if f is not None:
+        eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else None
+        probe = pd.read_excel(f, sheet_name=0, header=None, nrows=8, engine=eng)
+        hdr = 0
+        for i in range(len(probe)):
+            vals = {str(v).strip() for v in probe.iloc[i].tolist()}
+            if {"Month", "FY"} <= vals and ({"Article Code"} <= vals or {"Ship To Name", "EAN No."} <= vals):
+                hdr = i
+                break
+        print(f"detail source: {f.name} (header row {hdr})")
+        df = pd.read_excel(f, sheet_name=0, header=hdr, engine=eng)
+    else:
+        frames = []
+        for csvf in _monthly_csvs:
+            frames.append(pd.read_csv(csvf, low_memory=False))
+            print(f"detail source (CSV): {csvf.name} ({len(frames[-1])} rows)")
+        df = pd.concat(frames, ignore_index=True)
+        print(f"detail source: {len(_monthly_csvs)} monthly CSVs ({len(df)} total rows)")
     # normalise headers: trim + collapse embedded newlines ("Chain name\nfor
     # Dashboard" is the actual maintained header -- one cell, wrapped text)
     df.columns = [" ".join(str(c).split()) for c in df.columns]
@@ -2777,6 +2929,36 @@ def main():
         print(f"offtake source months found: {months_found}")
         patched = patch_offtake_new_months(obj["offtake"], chain_month, zsm)
         obj["offtake"] = patched
+        # Also extract Reliance Brand Counter data for the separate tab
+        bc_data = load_reliance_bc_data(src)
+        if bc_data is not None:
+            # Merge with existing BC data (preserve months not in new source)
+            existing_bc = obj.get("reliance_bc")
+            if existing_bc and existing_bc.get("months"):
+                new_bc_months = set(bc_data["months"])
+                kept = [m for m in existing_bc["months"] if m not in new_bc_months]
+                if kept:
+                    existing_monthly = dict(zip(existing_bc["months"], existing_bc["monthly"]))
+                    combined = sorted(kept + bc_data["months"],
+                                      key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+                    new_monthly = dict(zip(bc_data["months"], bc_data["monthly"]))
+                    bc_data["months"] = combined
+                    bc_data["monthly"] = [new_monthly.get(mo, existing_monthly.get(mo, 0)) for mo in combined]
+                    bc_data["total"] = r2(sum(bc_data["monthly"]))
+                    # Rebuild per-FY aggregates
+                    fy_data = {}
+                    for mo in combined:
+                        tag = fy_tag_from_label(mo)
+                        if tag:
+                            fy_data.setdefault(tag.lower(), []).append(mo)
+                    bc_data["fy_tags"] = sorted(fy_data.keys(), key=lambda t: fy_start_year(t.upper()))
+                    monthly_map = dict(zip(bc_data["months"], bc_data["monthly"]))
+                    for tag, tms in fy_data.items():
+                        bc_data[f"months_{tag}"] = tms
+                        bc_data[f"monthly_{tag}"] = [monthly_map[mo] for mo in tms]
+                        bc_data[f"total_{tag}"] = r2(sum(monthly_map[mo] for mo in tms))
+            obj["reliance_bc"] = bc_data
+            print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"offtake-patch: fy_tags now {patched['fy_tags']}")
         for t in patched["fy_tags"]:
