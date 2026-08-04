@@ -4,7 +4,11 @@ window.DASH = {
   "subtitle": "Honasa / Mamaearth — Primary, Offtake, P&L, Forecast & Market Share",
   "period": "FY 2024-25 vs FY 2025-26",
   "unit_note": "Values in INR Lakh in data; displayed in INR Crore where labelled (Cr = Lakh/100).",
-  "source": "Primary, Chain Offtake Master, Universe MT, Promo Master (MT, FY24-26)."
+  "source": "Primary, Chain Offtake Master, Universe MT, Promo Master (MT, FY24-26).",
+  "generated_at": "2026-08-04T18:52:31Z",
+  "source_files": [],
+  "generated_at_note": "Patched in place — last full build date not available without --src re-run",
+  "fy_range": "FY26–FY27"
  },
  "primary": {
   "nsv_fy25": 23331.97,
@@ -813674,7 +813678,9 @@ window.DASH = {
    "rows_total": 70690,
    "value_coverage_pct": 70.3,
    "note": "Dist.-allocated output at Customer x Article x Month x Chain grain. Capped to the top 4,000 groups by |NSV| for browser size; the reconciliation above is computed from the FULL uncapped population. Weighted Avg Tot = SUM(NSV x Avg Tot)/SUM(NSV) per group (Total-MRP-sales-weighted fallback where NSV nets to ~0) -- never a simple average."
-  }
+  },
+  "june_fallback_key_count": 48,
+  "unmapped_note": "53 distributor rows (2.0 L NSV) have no matching entry in the cont% allocation master (known cause: Guardian Healthcare and similar parties tagged Dist. in primary but absent from the secondary allocation file). Rows are excluded from chain allocation, not mis-assigned. Impact is immaterial at blended level."
  },
  "dist_gap": {
   "months_covered": [

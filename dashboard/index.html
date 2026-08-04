@@ -371,7 +371,7 @@ function mkDonut(id,labels,data,money=true,onClick){
 /* ================= EXPORT INFRASTRUCTURE (chart / table / page) ================= */
 // dashboard version / source note, embedded in every export (page footer, Excel
 // metadata rows) per the "dashboard version / source note" + "Source: ... | Exported on ..." requirement
-const DASH_VERSION='MT Dashboard — data.js built '+(D.meta&&D.meta.source||'Honasa MT working files');
+const DASH_VERSION='MT Dashboard'+(D.meta&&D.meta.generated_at?' — built '+D.meta.generated_at:D.meta&&D.meta.source?' — '+D.meta.source:'');
 function tabLabel(id){ const t=TABS.find(x=>x[0]===id); return t?t[1]:id; }
 function activeFiltersSummary(){
   const active=FILT.filter(([k])=>F[k].length).map(([k,lab])=>`${lab}: ${F[k].join(', ')}`);
@@ -1178,7 +1178,15 @@ function buildPnl(){
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
      <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).</p>
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
-        Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`:''}
+        Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
+   :(cm2D.expense_pct_of_nsv!=null&&cm2D.expense_pct_of_nsv<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
+     <strong>&#9888; Expense coverage thin — CM2% not yet meaningful:</strong>
+     P&amp;L expenses loaded = &#8377;${cm2D.total_expense!=null?cm2D.total_expense.toFixed(2):'&#8211;'} L
+     (${cm2D.expense_pct_of_nsv}% of NSV, ${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows
+     in <code>PL_Expense_Input.csv</code>). CM2% of ${cm2D.cm2_pct!=null?cm2D.cm2_pct+'%':'&#8211;'} will shift
+     substantially once Finance populates the expense master.
+     Update <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and re-run <code>--detail-only</code>.
+   </div>`:''}
    <div class="kpis">
      ${kpi('NSV (TOT%-scope)',crc(cm2D.total_nsv),'FY26-FY27, same population as TOT%')}
      ${kpi('TOT Value',totD?crc(totD.total_passon_value):'–',totD&&totD.blended_tot_pct!=null?totD.blended_tot_pct+'% of MRP':'')}
@@ -1238,11 +1246,19 @@ function buildPnl(){
 function buildForecast(){
   const f=D.forecast,s=document.getElementById('tab-forecast');
   const isTY=/TY target/i.test(f.method||'');
+  const targetMissing=f.fy27_target==null;
   const dimNote=dimUnsupportedNote(['FY','Month','Chain','Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],
     'the Forecast series (always shows the full FY24-27 trend — see Overview/Primary/Offtake for filtered totals)');
+  const fcTargetNote=targetMissing&&isTY?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
+     <strong>&#9888; TY target total unavailable:</strong> The monthly FY26-27 target file
+     (<code>FY2627_TGT_and_sales_team_mapping.xlsx</code>) was found and the monthly target series
+     is shown below, but the full-year total could not be derived. Achievement % vs annual plan
+     cannot be displayed until the file is re-verified and <code>--forecast-only</code> is re-run.
+   </div>`:'';
   s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''}</h2>
    <p class="lead">${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
    ${dimNote}
+   ${fcTargetNote}
    <div class="kpis">
      ${kpi('FY26 Actual (offtake)',crc(f.fy26_actual),'trailing 12m')}
      ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),isTY?'business TY target':`@ ${f.growth_assumption_pct}% growth`)}
@@ -2081,7 +2097,9 @@ function show(id){
 (function init(){
   document.getElementById('hTitle').textContent=D.meta.title;
   document.getElementById('hPeriod').textContent=D.meta.period;
-  document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`;
+  const _genAt=D.meta&&D.meta.generated_at?` | Built: ${D.meta.generated_at}`:'';
+  const _fyR=D.meta&&D.meta.fy_range?` | ${D.meta.fy_range}`:'';
+  document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}${_fyR}${_genAt}`;
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();

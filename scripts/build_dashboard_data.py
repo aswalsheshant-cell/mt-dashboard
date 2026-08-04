@@ -2546,12 +2546,24 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
     direct["_IsDist"] = False
     out_df = pd.concat([direct, merged], ignore_index=True)
 
+    _unmapped_shipto_names = sorted(um["_CustName"].dropna().unique().tolist()) if len(um) else []
     alloc = {
         "dist_rows_in": int(len(orig)), "dist_rows_out": int(len(merged)),
         "rows_unmapped": int((~matched).sum()),
         "unmapped_nsv": r2(float(um["_NSV"].sum())),
+        "unmapped_note": (
+            f"{int((~matched).sum())} distributor rows ({r2(float(um['_NSV'].sum()))} L NSV) "
+            "have no matching entry in the cont% allocation master and retain their original "
+            "Chain tag from the primary source. Known cause: some ship-to parties (e.g. "
+            "Guardian Healthcare) are tagged 'Dist.' in the primary extract but are not "
+            "covered by the Dist_primary_cont_based_on_secondary_MOM allocation file. "
+            "Impact is immaterial at the blended level."
+        ) if (not matched).any() else "All distributor rows successfully allocated.",
+        "unmapped_ship_to_names": _unmapped_shipto_names[:20],   # top-20 by name for QC
         "rows_nearest": rows_nearest,
         "nearest_nsv": nearest_nsv,
+        # TD-08: top-level convenience alias so QC panel and tests can reference directly
+        "june_fallback_key_count": june_fallback_keys,   # integer count of ShipTo×Brand keys using nearest-month for June-26
         "missing_avg_tot_rows": int(orig["_AvgTot"].isna().sum()),
         "chains_allocated_to": int(merged.loc[matched, "_Chain"].nunique()),
         "cont_pct_bad_keys": cont_bad,   # raw cont% sums deviating from 100 (flagged BEFORE normalisation)
@@ -3178,6 +3190,11 @@ def main():
     forecast = forecast_block(offtake)
     insights = insights_block(primary, offtake, pnl, universe, promo)
 
+    _build_ts = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    _src_files = sorted(
+        p.name for p in Path(a.src).iterdir()
+        if p.suffix.lower() in {".xlsx", ".xlsb", ".csv", ".xls"}
+    ) if Path(a.src).is_dir() else []
     data = {
         "meta": {
             "title": "Modern Trade Leadership Dashboard",
@@ -3185,6 +3202,9 @@ def main():
             "period": "FY 2024-25 vs FY 2025-26",
             "unit_note": "Values in INR Lakh in data; displayed in INR Crore where labelled (Cr = Lakh/100).",
             "source": "Primary, Chain Offtake Master, Universe MT, Promo Master (MT, FY24-26).",
+            "generated_at": _build_ts,
+            "source_files": _src_files,
+            "fy_range": None,   # populated below after primary is available
         },
         "primary": primary, "offtake": offtake, "pnl": pnl,
         "universe": universe, "promo": promo, "forecast": forecast,
@@ -3202,6 +3222,10 @@ def main():
         data["cm2"] = cm2
     if alloc is not None:
         data["alloc"] = alloc
+    # TD-07: populate fy_range now that dims are available
+    _fy_list = data.get("dims", {}).get("FY") or []
+    if _fy_list:
+        data["meta"]["fy_range"] = f"{_fy_list[0]}–{_fy_list[-1]}" if len(_fy_list) > 1 else _fy_list[0]
     dg = dist_gap_block(src, _REPO_ROOT)
     if dg is not None:
         data["dist_gap"] = dg
