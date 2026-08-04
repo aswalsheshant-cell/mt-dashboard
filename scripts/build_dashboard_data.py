@@ -2217,15 +2217,59 @@ def _month_period(v):
             return f"{2000+yy:04d}-{mn:02d}"
     return None
 
+_SHIPTO_PRIMARY_CSV = (Path(__file__).resolve().parent.parent
+                       / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+                       / "Primary_ShipTo_FY25-26_to_May26.csv")
+
+def load_shipto_primary_weights(repo_root=None):
+    """Priority-1 fallback allocation source: actual chain-level primary from
+    Primary_ShipTo_FY25-26_to_May26.csv, used when the secondary-derived xlsx is
+    absent from --src. This CSV records the business's own primary invoices at
+    Ship To Name × Brand × Month × Chain grain with Cont% as a 0-1 fraction
+    summing to 1.0 per (ShipTo×Brand×Month) key. Returns the same (wdf, raw_sums)
+    tuple as load_dist_cont_weights() for drop-in use by allocate_dist_primary(),
+    or (None, None) if the CSV is absent."""
+    p = (_SHIPTO_PRIMARY_CSV if repo_root is None else
+         Path(repo_root) / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+         / "Primary_ShipTo_FY25-26_to_May26.csv")
+    if not p.exists():
+        return None, None
+    w = pd.read_csv(p, low_memory=False)
+    w.columns = [str(c).strip() for c in w.columns]
+    dist_mask = w["Direct/Distributor"].astype(str).str.strip().str.lower().isin(["dist.", "dist"])
+    w = w[dist_mask].copy()
+    w["_pct"] = pd.to_numeric(w["Cont%"], errors="coerce").fillna(0.0)
+    w["_pm"] = pd.to_datetime(w["MonthStart"], errors="coerce").dt.strftime("%Y-%m")
+    w = w[w["_pm"].notna() & (w["_pct"] != 0)].copy()
+    w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
+    w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
+    # raw_sums: Cont% is 0-1 fraction; multiply by 100 so the same QC threshold
+    # (|sum - 100| < 0.5) applies consistently with the xlsx path
+    key_sums_raw = w.groupby(["_st", "_bl", "_pm"])["_pct"].sum()
+    raw_sums = {k: round(float(v) * 100, 2) for k, v in key_sums_raw.items()}
+    key_sums = w.groupby(["_st", "_bl", "_pm"])["_pct"].transform("sum")
+    w["_frac"] = w["_pct"] / key_sums
+    w["_AllocChainRaw"] = w["Chain"].astype(str).str.strip()
+    w["_ShipToRaw"] = w["Ship To Name"].astype(str).str.strip()
+    w["_BrandRaw"] = w["Brand"].astype(str).str.strip()
+    print(f"load_shipto_primary_weights: {len(w)} dist rows, "
+          f"{len(key_sums_raw)} (ShipTo×Brand×Month) keys, "
+          f"from {p.name}")
+    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums
+
 def load_dist_cont_weights(src):
     """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the cont
     sheet, fractions normalised to sum to 1 per (ShipTo, Brand, Month) key,
-    plus {key: raw_pct_sum} for the cont%-sum-=100 QC check. Returns
-    (None, None) if the file isn't in --src (allocation is then skipped and
-    Dist. rows keep whatever chain tag the source gave them -- old behaviour)."""
+    plus {key: raw_pct_sum} for the cont%-sum-=100 QC check. Returns a 3-tuple
+    (wdf, raw_sums, source_label). source_label is 'xlsx' when the secondary-
+    derived spreadsheet is found, 'shipto_primary_csv' when the Priority-1 CSV
+    fallback is used, or None when neither source exists (allocation skipped)."""
     f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
     if not f.exists():
-        return None, None
+        # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
+        wdf, raw_sums = load_shipto_primary_weights()
+        src_label = "shipto_primary_csv" if wdf is not None else None
+        return wdf, raw_sums, src_label
     w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
     w.columns = [str(c).strip() for c in w.columns]
     w = w.dropna(subset=["Ship To Name", "Chain Name", "Secondary contribution %"])
@@ -2242,7 +2286,7 @@ def load_dist_cont_weights(src):
     # raw-case names carried through for the auto-generated patch-proposal CSV
     w["_ShipToRaw"] = w["Ship To Name"].astype(str).str.strip()
     w["_BrandRaw"] = w["Brand"].astype(str).str.strip()
-    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums
+    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, "xlsx"
 
 _ALLOC_MEASURES = ["_Qty", "_MRP", "_NSV", "_TaxLOC"]   # scaled by cont%; _ArtMRP (per-unit) is NOT
 
@@ -2309,12 +2353,13 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
         wcsv.writerows(rows)
     return len(rows), "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv"
 
-def allocate_dist_primary(df, wdf, raw_sums):
+def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
     every row of `df` (Direct rows keep their own "Chain name for Dashboard").
     Returns (new_df, alloc_block) where alloc_block carries the full
     reconciliation/QC payload for the dashboard, or (df-with-_Chain, None)
-    when the file has no PO Type column or no cont sheet was found."""
+    when the file has no PO Type column or no cont sheet was found.
+    source_label: 'xlsx' | 'shipto_primary_csv' | None — recorded in alloc."""
     _has_dashboard = "Chain name for Dashboard" in df.columns
     _has_plain = "Chain name" in df.columns
     if _has_dashboard and _has_plain:
@@ -2456,24 +2501,41 @@ def allocate_dist_primary(df, wdf, raw_sums):
         "missing_mapping": missing,
         "patch_rows": patch_rows, "patch_file": patch_path,
         "unit": "INR Lakh (values), units (qty)",
-        "method": ("PO Type='Dist.' rows (blank \"Chain name for Dashboard\") are exploded across "
-                   "chains by the business's own secondary-derived monthly split "
-                   "(Dist_primary_cont_based_on_secondary_MOM.xlsx, sheet 'Dist Primary Conv to "
-                   "Chain Art'), matched on Ship To Name x Brand x Month (the cont sheet has no "
-                   "Cust-SAP Code column; the code<->ship-to bridge lives in the primary file "
-                   "itself and Cust-SAP Code is carried through every QC table). Keys with no "
-                   "entry for that exact month use the SAME ship-to x brand's split from the "
-                   "NEAREST month within 3 months -- still the business's own secondary data, "
-                   "never an invented mix -- and are QC-tagged 'Mapped (nearest ...)', never "
-                   "silently blended. Inv Qty, Total MRP sales, NSV and Tax are scaled by cont% "
-                   "(normalised to sum to exactly 100% per key, deviations flagged before "
-                   "normalisation); article MRP is per-unit and is NOT scaled; Avg Tot is a "
-                   "ratio, invariant under the split. Direct rows keep their own \"Chain name "
-                   "for Dashboard\". Rows with no cont data at all get Chain='Unmapped Chain' -- "
-                   "never a blank, never the distributor's Ship To Name. A reviewable patch "
-                   "proposal (SeedData/Mapping/DistCont_Patch_Proposed.csv) is regenerated on "
-                   "every build: paste approved rows into the cont xlsx to make the fix "
-                   "permanent (this also fixes Power BI, whose query 41 reads only the xlsx)."),
+        "source_label": source_label or "unknown",
+        "method": (
+            # ---- Priority-1 source: actual chain-level primary ----
+            "PO Type='Dist.' rows are exploded across chains using actual chain-level "
+            "primary data from Primary_ShipTo_FY25-26_to_May26.csv (Priority-1 source: "
+            "the business's own primary invoices at Ship To Name × Brand × Month × Chain "
+            "grain; Cont% verified to sum to 1.0 per key before normalisation). Matched "
+            "on Ship To Name × Brand × Month; months with no exact entry use the SAME "
+            "ship-to × brand's real primary split from the NEAREST month within 3 months "
+            "and are QC-tagged 'Mapped (nearest ...)'. Inv Qty, Total MRP sales, NSV and "
+            "Tax are scaled by cont%; article MRP is per-unit and is NOT scaled. Direct "
+            "rows keep their own \"Chain name for Dashboard\". Rows with no split data at "
+            "all get Chain='Unmapped Chain'. This source is the installed fallback when "
+            "Dist_primary_cont_based_on_secondary_MOM.xlsx is absent from --src."
+            if source_label == "shipto_primary_csv" else
+            # ---- xlsx source: secondary-derived cont sheet ----
+            "PO Type='Dist.' rows (blank \"Chain name for Dashboard\") are exploded across "
+            "chains by the business's own secondary-derived monthly split "
+            "(Dist_primary_cont_based_on_secondary_MOM.xlsx, sheet 'Dist Primary Conv to "
+            "Chain Art'), matched on Ship To Name x Brand x Month (the cont sheet has no "
+            "Cust-SAP Code column; the code<->ship-to bridge lives in the primary file "
+            "itself and Cust-SAP Code is carried through every QC table). Keys with no "
+            "entry for that exact month use the SAME ship-to x brand's split from the "
+            "NEAREST month within 3 months -- still the business's own secondary data, "
+            "never an invented mix -- and are QC-tagged 'Mapped (nearest ...)', never "
+            "silently blended. Inv Qty, Total MRP sales, NSV and Tax are scaled by cont% "
+            "(normalised to sum to exactly 100% per key, deviations flagged before "
+            "normalisation); article MRP is per-unit and is NOT scaled; Avg Tot is a "
+            "ratio, invariant under the split. Direct rows keep their own \"Chain name "
+            "for Dashboard\". Rows with no cont data at all get Chain='Unmapped Chain' -- "
+            "never a blank, never the distributor's Ship To Name. A reviewable patch "
+            "proposal (SeedData/Mapping/DistCont_Patch_Proposed.csv) is regenerated on "
+            "every build: paste approved rows into the cont xlsx to make the fix "
+            "permanent (this also fixes Power BI, whose query 41 reads only the xlsx)."
+        ),
     }
     return out_df, alloc
 
@@ -2592,8 +2654,8 @@ def detail_records_real(src, max_rows=20000):
     # rows across chains by the secondary-derived cont%). Row-level, BEFORE
     # any grouping, so Customer x Article grain survives into everything
     # downstream (TOT%, CM2, detail_records, the Customer x Article table).
-    _wdf, _raw_sums = load_dist_cont_weights(src)
-    df, alloc = allocate_dist_primary(df, _wdf, _raw_sums)
+    _wdf, _raw_sums, _alloc_src = load_dist_cont_weights(src)
+    df, alloc = allocate_dist_primary(df, _wdf, _raw_sums, source_label=_alloc_src)
     n_shipto_as_chain = int(((df["_Chain"].astype(str).str.strip().str.lower()
                               == df["_CustName"].str.lower()) & (df["_CustName"] != "")).sum())
     if alloc is not None:

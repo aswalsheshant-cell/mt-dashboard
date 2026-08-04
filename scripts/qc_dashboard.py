@@ -195,7 +195,29 @@ def check_mcd_unallocated(D: dict):
     else:
         qc("WARN", "MCD unallocated FY27 (high — allocation blocked)", f"{len(mcd_entries)} distributors, ₹{mcd_total/100:.2f} Cr ({mcd_pct:.1f}%) — BLOCKED on Dist_primary_cont_based_on_secondary_MOM.xlsx")
 
-    qc("BLOCKED", "Dist-to-chain allocation", "Source file missing: Dist_primary_cont_based_on_secondary_MOM.xlsx (Ship-To × Brand × Month grain required)")
+    # Check whether allocation was actually applied (via xlsx or CSV fallback)
+    alloc = D.get("alloc", {})
+    alloc_src = alloc.get("source_label")
+    if alloc_src in ("xlsx", "shipto_primary_csv"):
+        rows_unmapped = alloc.get("rows_unmapped", 0) or 0
+        unmapped_nsv = alloc.get("unmapped_nsv", 0) or 0
+        bad_keys = alloc.get("cont_pct_bad_keys", {})
+        src_name = ("Primary_ShipTo_FY25-26_to_May26.csv (Priority-1 fallback)"
+                    if alloc_src == "shipto_primary_csv" else
+                    "Dist_primary_cont_based_on_secondary_MOM.xlsx")
+        if bad_keys:
+            qc("WARN", "Dist-to-chain allocation",
+               f"Source: {src_name}; {len(bad_keys)} keys with cont% sum ≠ 100: {list(bad_keys.keys())[:3]}")
+        elif rows_unmapped > 0 and unmapped_nsv > 50:
+            qc("WARN", "Dist-to-chain allocation",
+               f"Source: {src_name}; {rows_unmapped} unmapped rows ₹{unmapped_nsv:.1f} L — review missing_mapping in alloc block")
+        else:
+            qc("PASS", "Dist-to-chain allocation",
+               f"Source: {src_name}; {rows_unmapped} unmapped rows ₹{unmapped_nsv:.2f} L")
+    else:
+        qc("BLOCKED", "Dist-to-chain allocation",
+           "Source file missing: Dist_primary_cont_based_on_secondary_MOM.xlsx and "
+           "Primary_ShipTo_FY25-26_to_May26.csv (Ship-To × Brand × Month grain required)")
 
 
 def check_tot_structure(D: dict):
@@ -391,11 +413,12 @@ def main():
     print("\n══════════════════════════════════════════════════════")
     print(f" SUMMARY: {counts['PASS']} PASS  {counts['WARN']} WARN  {counts['FAIL']} FAIL  {counts['BLOCKED']} BLOCKED")
 
-    if counts["FAIL"] == 0 and counts["BLOCKED"] == 0:
+    if counts["FAIL"] == 0 and counts["BLOCKED"] == 0 and counts["WARN"] == 0:
         decision = "READY"
-    elif counts["FAIL"] == 0:
+    elif counts["FAIL"] == 0 and counts["BLOCKED"] == 0:
         decision = "READY WITH ACCEPTED EXCEPTIONS" if counts["WARN"] <= 3 else "WARN — REVIEW BEFORE RELEASE"
     else:
+        # Any FAIL or BLOCKED prevents release — BLOCKED items are unresolved data dependencies
         decision = "NOT READY"
 
     print(f" RELEASE DECISION: {decision}")
