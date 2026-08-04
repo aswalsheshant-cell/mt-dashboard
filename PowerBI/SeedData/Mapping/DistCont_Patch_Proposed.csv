@@ -1,1 +1,21 @@
-Ship To Name,Direct/Distributor,Chain Name,Brand,Revised month,FY,Channel,Secondary contribution %,Confidence,Basis
+distributor_name,nsv_lakhs,nsv_crore,pct_of_fy27_primary,status,resolution,chains_served
+Kiran Trading Company,833.08,8.3308,6.1,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,"Dmart,Other MT"
+G.V Enterprises,797.14,7.9714,5.84,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,"Reliance Retail,Other MT"
+Sri Vijaya Durga Agencies,700.35,7.0035,5.13,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+Az Enterprises,321.72,3.2172,2.36,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+VENKATESHWARA AGENCIES-TG,259.27,2.5927,1.9,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+M/S KOTTARAM BUSINESS,239.4,2.394,1.75,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+Sancus Networks Private Limited-RMT,186.35,1.8635,1.36,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,"RMT-Sancus,Multiple"
+D.L. Sales - MT,157.13,1.5713,1.15,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+Balaji Associates Distributor MT,151.44,1.5144,1.11,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+CHHABRA TRADERS,105.44,1.0544,0.77,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+MARK ENTERPRISE,25.99,0.2599,0.19,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,"Apollo,Multiple"
+RR Traders-MT,24.6,0.246,0.18,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+REAL TIME LOGISTICS_MT_BR,20.67,0.2067,0.15,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+SAI SAACHI ASSOCIATES-MT-OR,10.53,0.1053,0.08,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+CHOUDHARY ENTERPRISES,10.33,0.1033,0.08,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+MANOJ SOAP AGENCY-MT,9.13,0.0913,0.07,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+Sehaj Enterprises -MT-JK,6.39,0.0639,0.05,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+SRIJAN ENTERPRISES-MT-JH,1.73,0.0173,0.01,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+Vanaja Agencies,-1.64,-0.0164,-0.01,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains
+SC BUSINESS COMBINE_MT,-2.51,-0.0251,-0.02,BLOCKED,Requires Dist_primary_cont_based_on_secondary_MOM.xlsx,Multiple chains

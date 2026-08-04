@@ -621,7 +621,9 @@ function buildOverview(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
   const s=document.getElementById('tab-overview');
   const fy=fyKey(), isTY=/TY target/i.test(f.method||'');
-  const yrLab={fy25:'FY25',fy26:'FY26',fy27:'FY27 Apr–May'};
+  const _mc27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27&&D.detail_meta.fyx_primary.FY27.months_covered)||[];
+  const _fy27lab=_mc27.length?'FY27 '+_mc27[0].slice(0,3)+'–'+_mc27[_mc27.length-1].slice(0,3):'FY27';
+  const yrLab={fy25:'FY25',fy26:'FY26',fy27:_fy27lab};
   FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });  // backfill future FYs (FY28+)
   // FYs beyond the pre-agg window (FY27's Apr'26+) exist ONLY in the article-wise
   // primary -- FPX() serves exact chain-allocated aggregates so the selected FY
@@ -648,7 +650,7 @@ function buildOverview(){
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
    ${dimNote}
    <div class="kpis">
-     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?'Apr–May actuals · article-wise primary':fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
+     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`)
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
@@ -1318,30 +1320,37 @@ function buildDistribution(){
   if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   const activeInScope=(fOn('Zone')||fOn('Chain'))?chains.reduce((a,c)=>a+c.stores,0):u.active_stores;
+  const gapStores=u.total_stores-u.active_stores;
+  const footprintPct=(u.active_stores/u.total_stores*100).toFixed(1);
   const rows=chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.stores)}</td>
      <td>${(c.stores/u.active_stores*100).toFixed(1)}%</td></tr>`).join('');
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the store universe is a point-in-time snapshot, not tracked by FY/Month.</p>`:'')
     +dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the store universe (no product-level breakdown)');
+  // Build format-level universe vs footprint from dist_gap if available
+  const dg=D.dist_gap;
+  const fmtRows=(dg&&dg.rows&&dg.rows.length)?distFmtFootprintRows(dg):'';
   s.innerHTML=`<h2 class="sec">Distribution</h2>
    <p class="lead">MT store universe — distribution footprint by zone, city category, chain and store type.</p>
    ${dimNote}
+   <h3 class="sec" style="font-size:14px;margin:16px 0 6px">Universe vs Footprint</h3>
    <div class="kpis">
-     ${kpi('Total Stores',num(u.total_stores),'MT universe')}
-     ${kpi(fOn('Zone')||fOn('Chain')?'Active Stores (filtered)':'Active Stores',num(activeInScope),`${(activeInScope/u.total_stores*100).toFixed(0)}% of universe`)}
-     ${kpi('Chains',chains.length+(fOn('Zone')||fOn('Chain')?'':'+'),'with active doors')}
-     ${kpi('Metro Coverage',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro stores')}
+     ${kpi('MT Universe',num(u.total_stores),'eligible MT stores')}
+     ${kpi('Footprint (Active)',num(fOn('Zone')||fOn('Chain')?activeInScope:u.active_stores),`${footprintPct}% coverage`)}
+     ${kpi('Gap Stores',num(gapStores),`${(gapStores/u.total_stores*100).toFixed(1)}% of universe not active`)}
+     ${kpi('Metro Footprint',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro active stores')}
+   </div>
+   ${fmtRows?card('Numeric Distribution % by Format (store-level offtake data)','From real store×article offtake — penetration = carrying stores ÷ comparable format universe, averaged across SKUs. Window: '+(dg.window_label||'loaded months')+'.',fmtRows):''}
+   <div class="grid g2">
+     ${card('Footprint by zone (active stores)','click to drill',cv('dZone',true))}
+     ${card('Footprint by city category','',cv('dCity',true))}
    </div>
    <div class="grid g2">
-     ${card('Distribution by zone (active stores)','click to drill',cv('dZone',true))}
-     ${card('Stores by city category','',cv('dCity',true))}
-   </div>
-   <div class="grid g2">
-     ${card('Stores by chain (top 10)','click to drill',cv('dChain',true))}
+     ${card('Top chains by store count','click to drill',cv('dChain',true))}
      ${card('Stores by store type','',cv('dType',true))}
    </div>
    ${card('Store count by chain (all active)','Click a chain to drill.',`<div class="tablewrap"><table>
-     <thead><tr><th>Chain</th><th>Active Stores</th><th>Share</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+     <thead><tr><th>Chain</th><th>Active Stores</th><th>Share of Footprint</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    ${distGapHtml()}
    ${catDrillCardHtml('dCatDrill')}`;
   wireDrillLinks(s);
@@ -1351,6 +1360,26 @@ function buildDistribution(){
   mkBarH('dType',u.by_storetype.map(t=>t.name),u.by_storetype.map(t=>t.stores),C.purple,false);
   renderCatDrillChart('dCatDrill',recFilter());
   distGapChart();
+}
+function distFmtFootprintRows(dg){
+  // Aggregate avg penetration per format from SKU-level dist_gap rows
+  const fmt={};
+  (dg.rows||[]).forEach(r=>{
+    if(!r.group) return;
+    if(!fmt[r.group]) fmt[r.group]={grp:r.group,target:r.target,sumPen:0,n:0,totCarry:0,totMiss:0};
+    const f=fmt[r.group];
+    f.sumPen+=r.penetration||0; f.n++;
+    f.totCarry+=(r.carrying||0); f.totMiss+=(r.missing||0);
+  });
+  const rows=Object.values(fmt).sort((a,b)=>b.target-a.target);
+  const body=rows.map(f=>{
+    const avgPen=(f.sumPen/f.n).toFixed(1);
+    const gap=(100-f.sumPen/f.n).toFixed(1);
+    return `<tr><td>${f.grp}</td><td>${num(f.target)}</td><td>${avgPen}%</td><td>${gap}%</td></tr>`;
+  }).join('');
+  return `<div class="tablewrap"><table>
+    <thead><tr><th>Format</th><th>Universe Stores</th><th>Avg Numeric Distribution</th><th>Gap%</th></tr></thead>
+    <tbody>${body||'<tr><td colspan="4">No data.</td></tr>'}</tbody></table></div>`;
 }
 // Distribution Gap & Add-on Revenue Potential -- reads the D.dist_gap block
 // (real store×article offtake, chain-format-comparable). Respects the global
