@@ -10,7 +10,7 @@ Usage:
 Exit codes: 0=all PASS/WARN, 1=any FAIL, 2=any FAIL or BLOCKED that blocks release.
 """
 from __future__ import annotations
-import argparse, json, math, re, sys
+import argparse, glob, json, math, os, re, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -309,13 +309,17 @@ def run_browser_check(port: int = 8765):
         )
         time.sleep(2)
         url = f"http://localhost:{port}/index.html"
-        chromium = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+        _chromium_candidates = (
+            glob.glob("/opt/pw-browsers/chromium-*/chrome-linux/chrome") +
+            glob.glob(os.path.expanduser("~/.cache/ms-playwright/chromium-*/chrome-linux/chrome"))
+        )
+        _chromium_path = _chromium_candidates[0] if _chromium_candidates else None
 
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(
-                executable_path=chromium, headless=True,
-                args=["--no-sandbox", "--disable-dev-shm-usage"]
-            )
+            _launch_kwargs: dict = {"headless": True, "args": ["--no-sandbox", "--disable-dev-shm-usage"]}
+            if _chromium_path:
+                _launch_kwargs["executable_path"] = _chromium_path
+            browser = pw.chromium.launch(**_launch_kwargs)
             page = browser.new_page()
             js_errors = []
             page.on("pageerror", lambda err: js_errors.append(str(err)))
