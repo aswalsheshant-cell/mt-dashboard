@@ -716,7 +716,8 @@ function buildPrimary(){
        </div>
        ${card('Chain-wise primary (FY27 YTD)','Chain-level (secondary-allocated for Distributor primary). Click a chain to drill.',`<div class="tablewrap"><table>
          <thead><tr><th>Chain</th><th>FY27 YTD NSV</th><th>Share</th></tr></thead>
-         <tbody>${rows27||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+         <tbody>${rows27||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`+
+         (fp.chain_alloc_note?`<p class="note" style="margin:8px 0 0;font-size:0.82em;color:var(--muted)">ℹ ${fp.chain_alloc_note}</p>`:''))}
        ${allocSectionHtml()}
        ${catDrillCardHtml('prCatDrill')}`;
       wireDrillLinks(s);

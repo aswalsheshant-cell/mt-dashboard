@@ -2480,6 +2480,36 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
     is_near = merged["_tier"].str.startswith("nearest")
     rows_nearest = int(is_near.sum())
     nearest_nsv = r2(float(merged.loc[is_near, "_NSV"].sum()))
+
+    # ---- June-26 fallback disclosure (additive governance; no value change) ----
+    # Computed here while _pm / _pm_eff / _tier are still available, before drop.
+    # June-26 has no entry in the ShipTo primary CSV (source ends May-26), so every
+    # Dist. row for that month uses the nearest-month fallback. This block makes the
+    # derived-allocation fact machine-readable and auditable in data.js and the QC gate.
+    _june_pm = "2026-06"
+    _june_near_mask  = (merged["_pm"] == _june_pm) & merged["_tier"].str.startswith("nearest")
+    _june_exact_mask = (merged["_pm"] == _june_pm) & (merged["_tier"] == "exact")
+    _june_unmap_mask = (merged["_pm"] == _june_pm) & (merged["_tier"] == "unmapped")
+    june_fallback_nsv = r2(float(merged.loc[_june_near_mask, "_NSV"].sum()))
+    june_fallback_keys = (merged.loc[_june_near_mask]
+                          .groupby(["_st", "_bl"]).ngroups) if _june_near_mask.any() else 0
+    june_exact_keys  = (merged.loc[_june_exact_mask]
+                        .groupby(["_st", "_bl"]).ngroups) if _june_exact_mask.any() else 0
+    june_unmapped_keys = (merged.loc[_june_unmap_mask]
+                          .groupby(["_st", "_bl"]).ngroups) if _june_unmap_mask.any() else 0
+    june_period_breakdown = []
+    if _june_near_mask.any() and june_fallback_nsv:
+        for eff_pm, g in merged.loc[_june_near_mask].groupby("_pm_eff"):
+            n_keys = g.groupby(["_st", "_bl"]).ngroups
+            pnsv = r2(float(g["_NSV"].sum()))
+            june_period_breakdown.append({
+                "source_period": eff_pm,
+                "keys": n_keys,
+                "nsv_lakh": pnsv,
+                "pct_of_june_fallback": round(pnsv / june_fallback_nsv * 100, 1),
+            })
+        june_period_breakdown.sort(key=lambda x: -x["nsv_lakh"])
+
     patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist)
     merged.drop(columns=["_st", "_bl", "_pm", "_pm_eff", "_tier", "_AllocChainRaw",
                          "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True)
@@ -2502,6 +2532,27 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
         "patch_rows": patch_rows, "patch_file": patch_path,
         "unit": "INR Lakh (values), units (qty)",
         "source_label": source_label or "unknown",
+        # ---- June-26 fallback disclosure (additive governance) ----
+        "june_fallback_nsv_lakh": june_fallback_nsv,
+        # june_fallback_pct_of_fy27: added by detail_records_real() after FY27 total is known
+        "june_fallback_source": {
+            "data_available_through": "2026-05",
+            "june_actual_shipto_available": False,
+            "method": ("nearest-month within ±3 months — existing allocate_dist_primary() "
+                       "logic; no formula change"),
+            "june_fallback_keys": june_fallback_keys,
+            "june_exact_keys": june_exact_keys,
+            "june_unmapped_keys": june_unmapped_keys,
+            "breakdown_by_source_period": june_period_breakdown,
+            "governance_note": (
+                "June-26 chain-level ShipTo primary was unavailable at build time "
+                "(Primary_ShipTo_FY25-26_to_May26.csv ends May-26). All June-26 "
+                "Dist. rows use the nearest month's actual primary chain split for "
+                "the same Ship To Name × Brand within ±3 months. Business values "
+                "(NSV, MRP, Qty, Tax) are unchanged; only chain attribution is "
+                "derived, not actual June invoice data."
+            ),
+        },
         "method": (
             # ---- Priority-1 source: actual chain-level primary ----
             "PO Type='Dist.' rows are exploded across chains using actual chain-level "
@@ -2660,6 +2711,12 @@ def detail_records_real(src, max_rows=20000):
                               == df["_CustName"].str.lower()) & (df["_CustName"] != "")).sum())
     if alloc is not None:
         alloc["rows_chain_equals_shipto"] = n_shipto_as_chain   # QC #17 -- must be 0
+        # Add june_fallback_pct_of_fy27 here where full FY27 NSV is available
+        _fy27_nsv = float(df[df["_FY"] == "FY27"]["_NSV"].sum())
+        _june_fb_nsv = alloc.get("june_fallback_nsv_lakh") or 0
+        alloc["june_fallback_pct_of_fy27"] = (
+            round(_june_fb_nsv / _fy27_nsv * 100, 2) if _fy27_nsv else None
+        )
 
     # ---- EXACT channel totals from the FULL data, before any row capping ----
     ct = (df.groupby(["_FY", "_Chan"])["_NSV"].sum().round(2))
@@ -2693,6 +2750,13 @@ def detail_records_real(src, max_rows=20000):
                      "primary, chain-allocated (Dist. rows split by secondary cont%). The "
                      "other report blocks' source workbook ends at Mar'26, so this FY lives "
                      "only here. MRP basis = 'Total MRP sales'."),
+            "chain_alloc_note": (
+                "June-26 chain allocation is derived using the nearest available "
+                "distributor primary mix because June chain-level ShipTo data was "
+                "unavailable. April and May chain allocation uses actual invoice data. "
+                "Total NSV and monthly totals are exact actuals; only the within-June "
+                "chain split is derived."
+            ) if _tag == "FY27" and alloc is not None else None,
         }
     fyx_primary = fyx_primary or None
 

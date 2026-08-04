@@ -205,6 +205,9 @@ def check_mcd_unallocated(D: dict):
         src_name = ("Primary_ShipTo_FY25-26_to_May26.csv (Priority-1 fallback)"
                     if alloc_src == "shipto_primary_csv" else
                     "Dist_primary_cont_based_on_secondary_MOM.xlsx")
+        june_src = alloc.get("june_fallback_source", {})
+        june_fb_nsv = alloc.get("june_fallback_nsv_lakh", 0) or 0
+        june_fb_keys = june_src.get("june_fallback_keys", 0) or 0
         if bad_keys:
             qc("WARN", "Dist-to-chain allocation",
                f"Source: {src_name}; {len(bad_keys)} keys with cont% sum ≠ 100: {list(bad_keys.keys())[:3]}")
@@ -212,8 +215,11 @@ def check_mcd_unallocated(D: dict):
             qc("WARN", "Dist-to-chain allocation",
                f"Source: {src_name}; {rows_unmapped} unmapped rows ₹{unmapped_nsv:.1f} L — review missing_mapping in alloc block")
         else:
+            june_note = (f"; June-26 distributor-chain allocation uses derived nearest-month weights: "
+                         f"₹{june_fb_nsv:.2f} L across {june_fb_keys} keys; total business values unchanged"
+                         if june_fb_nsv else "")
             qc("PASS", "Dist-to-chain allocation",
-               f"Source: {src_name}; {rows_unmapped} unmapped rows ₹{unmapped_nsv:.2f} L")
+               f"Source: {src_name}; {rows_unmapped} unmapped rows ₹{unmapped_nsv:.2f} L{june_note}")
     else:
         qc("BLOCKED", "Dist-to-chain allocation",
            "Source file missing: Dist_primary_cont_based_on_secondary_MOM.xlsx and "

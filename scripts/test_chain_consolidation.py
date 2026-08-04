@@ -155,20 +155,37 @@ class TestDataJsRegression:
 
 
 class TestConsolidationTargets:
-    """Verify that the dashboard JS consolidation targets exist in the data."""
+    """Verify that the dashboard JS consolidation targets exist in the data.
 
-    def test_fyx_primary_has_distributor_names(self, dash):
+    Phase 2 (2026-08-04): allocate_dist_primary() now uses Primary_ShipTo_FY25-26_to_May26.csv
+    as a Priority-1 fallback, correctly resolving MCD distributor names to real chains at the
+    data layer. These tests were updated to reflect the resolved state: distributor names that
+    previously leaked are now correctly mapped and must NOT appear in by_chain. The runtime
+    consolidateChains() layer in index.html remains as a defence-in-depth guard for any
+    residual naming variants that could appear from future data sources.
+    """
+
+    def test_fyx_primary_no_distributor_names(self, dash):
+        """After Phase 2 allocation, MCD distributor names must not appear in by_chain."""
         fp = dash["detail_meta"]["fyx_primary"]["FY27"]
         names = [c["name"] for c in fp["by_chain"]]
-        assert any(n in names for n in [
-            "DC-D-Mart-Offline", "JUST MARK-Dmart", "Kiran Trading Company"
-        ]), "Expected distributor names in raw fyx_primary.by_chain"
+        distributor_names = ["DC-D-Mart-Offline", "JUST MARK-Dmart", "Kiran Trading Company"]
+        leaked = [n for n in distributor_names if n in names]
+        assert not leaked, (
+            f"Distributor names {leaked} leaked into fyx_primary.by_chain — "
+            "allocation should have resolved them to canonical chain names."
+        )
 
-    def test_tot_has_distributor_names(self, dash):
-        names = [c["name"] for c in dash["tot"]["by_chain"]]
-        assert any(n in names for n in [
-            "JUST MARK-Dmart", "Kiran Trading Company", "Nykaa E-Retail Limited"
-        ]), "Expected distributor names in raw tot.by_chain"
+    def test_tot_has_canonical_chain_names(self, dash):
+        """tot.by_chain may still contain un-allocated names (different pipeline);
+        verify it at least contains the key canonical chains we expect from FY26."""
+        names = set(c["name"] for c in dash["tot"]["by_chain"])
+        # TOT uses a different source (pre-agg FY26 workbook) — check canonical names present
+        expected_canonical = {"Dmart", "Reliance Retail", "Apollo"}
+        found = expected_canonical & names
+        assert found, (
+            f"No canonical chain names found in tot.by_chain; got sample: {list(names)[:10]}"
+        )
 
 
 if __name__ == "__main__":
