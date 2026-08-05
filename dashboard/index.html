@@ -660,7 +660,7 @@ function buildOverview(){
        isTY?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
    <div class="grid g2">
-     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY25-26)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
+     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY27)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('ovChannel',true))}
    </div>
    <div class="grid g2">
@@ -668,10 +668,26 @@ function buildOverview(){
      ${card(`Brand portfolio mix (${yrLab[primYr]} primary)`,'click to drill',cv('ovBrand',true))}
    </div>
    ${catDrillCardHtml('ovCatDrill')}`;
+  // Build Primary series aligned to o.months (all FYs, any length).
+  // FY27 primary lives in fyx_primary.FY27.months_canon / monthly_canon (canonical
+  // "Mon-YY" labels matching o.months), so it joins by label-lookup rather than
+  // positional arithmetic — correct for any number of offtake months.
+  const _fp27ov = FPX('FY27');
+  const _fy27pri = {};
+  if (_fp27ov && _fp27ov.months_canon) {
+    _fp27ov.months_canon.forEach((m, i) => { _fy27pri[m] = (_fp27ov.monthly_canon || [])[i]; });
+  }
+  const _nOvMon = o.months.length;
+  const _prim25Arr = o.months.map((m, i) => i < 12 ? (p.monthly_fy25[i] || null) : null);
+  const _prim26_27Arr = o.months.map((m, i) => {
+    if (i < 12) return null;
+    if (i < 24) return p.monthly_fy26[i - 12];
+    return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
+  });
   mkLine('ovTrend',o.months,[
     {label:'Offtake (sell-out)',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22'},
-    {label:'Primary FY25-26',data:[...Array(12).fill(null),...p.monthly_fy26],borderColor:C.teal,backgroundColor:C.teal+'22'},
-    {label:'Primary FY24-25',data:[...p.monthly_fy25,...Array(12).fill(null)],borderColor:C.blue,dash:[5,4]},
+    {label:'Primary FY24-25',data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
+    {label:'Primary FY25-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
   ]);
   mkDonut('ovChannel',channels.map(c=>c.name),channels.map(c=>c[primYr]),true,v=>drillTo('Channel',v));
   const tc=chains.slice(0,8);
@@ -693,18 +709,31 @@ function buildPrimary(){
       if(fOn('Channel')) chans=chans.filter(c=>fHas('Channel',c.name));
       if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
       if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
-      let mSel=p.month_labels.map((m,i)=>({m,v:fp.monthly[i]})).filter(x=>fp.months_covered.includes(x.m));
+      // Use canonical "Mon-YY" labels (months_canon) for display when available.
+      // Filter and drill still use the full month names from months_covered so that
+      // F.Month stays consistent with detail_records Month values ("April", "May"…)
+      // and the FY25/26 primary monthly chart's exact fHas() check still works.
+      const _fpCanon = fp.months_canon || [];
+      const _fpCoveredNames = fp.months_covered || [];
+      // displayLabel: "Apr-26" if canon available, else "April"
+      const _dispLabels = _fpCanon.length ? _fpCanon : _fpCoveredNames;
+      let mSel=p.month_labels.map((m,i)=>({m,v:fp.monthly[i]})).filter(x=>_fpCoveredNames.includes(x.m));
       if(fOn('Month')) mSel=mSel.filter(x=>fHas('Month',x.m));
+      // Build display-label version of mSel (canonical "Apr-26") while drill still fires full name
+      const mSelDisp = mSel.map(x => {
+        const i = _fpCoveredNames.indexOf(x.m);
+        return {disp: i>=0&&_fpCanon[i] ? _fpCanon[i] : x.m, full: x.m, v: x.v};
+      });
       const totNsv=chains.reduce((a,c)=>a+(c.nsv||0),0);
       const rows27=chains.filter(c=>c.nsv>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
         <td>${crc(c.nsv)}</td><td>${fp.nsv?(c.nsv/fp.nsv*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
       s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
-       <p class="lead">FY27 year-to-date — ${fp.months_covered.join(', ')} actuals, ₹ Crore.</p>
+       <p class="lead">FY27 year-to-date — ${_dispLabels.join(', ')} actuals, ₹ Crore.</p>
        <div class="kpis">
-         ${kpi('Primary NSV (FY27 YTD)',crc(totNsv),fOn('Chain')?'filtered scope':`${fp.months_covered.join(' + ')} actuals`)}
+         ${kpi('Primary NSV (FY27 YTD)',crc(totNsv),fOn('Chain')?'filtered scope':`${_dispLabels.join(' + ')} actuals`)}
          ${kpi('Gross MRP Value',crc(fp.mrp),'Total MRP sales basis')}
          ${kpi('Active Chains',chains.filter(c=>c.nsv>0).length,`${brands.filter(b=>b.nsv>0).length} brands`)}
-         ${kpi('Months Loaded',fp.months_covered.length,fp.months_covered.join(', '))}
+         ${kpi('Months Loaded',_dispLabels.length,_dispLabels.join(', '))}
        </div>
        <div class="grid g2">
          ${card('Monthly NSV — FY26-27'+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Actuals to date. Click a month to drill.',cv('prMonth'))}
@@ -722,7 +751,8 @@ function buildPrimary(){
        ${catDrillCardHtml('prCatDrill')}`;
       wireDrillLinks(s);
       wireAllocExports(s);
-      mkLine('prMonth',mSel.map(x=>x.m),[{label:'FY26-27',data:mSel.map(x=>x.v),borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>drillTo('Month',v));
+      // Chart shows "Apr-26" labels; click drills to full name ("April") for filter consistency
+      mkLine('prMonth',mSelDisp.map(x=>x.disp),[{label:'FY26-27',data:mSelDisp.map(x=>x.v),borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>{const e=mSelDisp.find(x=>x.disp===v);drillTo('Month',e?e.full:v);});
       mkBarH('prZone',zones.map(z=>z.name),zones.map(z=>z.nsv),C.teal,true,v=>drillTo('Zone',v));
       mkDonut('prChan',chans.map(c=>c.name),chans.map(c=>c.nsv),true,v=>drillTo('Channel',v));
       const bb27=brands.filter(b=>(b.nsv||0)>0.5);
