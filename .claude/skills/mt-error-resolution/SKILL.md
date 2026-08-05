@@ -184,6 +184,79 @@ Every automation should reuse standard checks for:
 - Prior-period regression comparison
 - Output formula, pivot, filter and refresh verification
 
+## Dashboard Error Issue Template
+
+When a dashboard data issue is found that cannot be resolved immediately (source file missing, business confirmation pending, or deferred to next data refresh), document it using this template. One template per issue.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MT DASHBOARD — DATA ISSUE RECORD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID:               [DI-YYYYMMDD-NNN]           # e.g. DI-20260805-001
+Raised:           [YYYY-MM-DD]
+Raised by:        [Name / Claude / Script]
+Status:           [OPEN | IN REVIEW | AWAITING DATA | RESOLVED | ACCEPTED]
+
+── WHAT IS WRONG ──
+Tab / Section:    [e.g. Primary → FY27 by_chain]
+Metric affected:  [e.g. Chain NSV — Relay]
+Current value:    [e.g. -0.07 L]
+Expected value:   [e.g. 0 or positive (MRN return unconfirmed)]
+Difference:       [e.g. -0.07 L]
+Visible to user:  [YES | NO]   # Does this appear as a displayed card/chart value?
+
+── ROOT CAUSE (known or suspected) ──
+Error class:      [Source | Schema | Mapping | Formula | Filter | Time-period | Other]
+Description:      [One paragraph. Include: which pipeline stage, which source file,
+                   which business rule produces this value.]
+
+── IMPACT ──
+FY scope:         [FY25 | FY26 | FY27 | Multiple]
+Chains affected:  [e.g. Relay, or "All" or "None — metadata only"]
+Value impact:     [e.g. 0.07 L understated in FY27 by_chain total]
+Blocking merge:   [YES | NO]
+Risk level:       [Critical | High | Medium | Low | Cosmetic]
+
+── RESOLUTION PATH ──
+Source file needed:   [Exact filename, e.g. Primary_FY27_April.xlsb — or "N/A"]
+Action required:      [Who does what: e.g. "Business to confirm Relay return is MRN"]
+Can resolve via data update: [YES — re-run build_dashboard_data.py when source available | NO — requires code change]
+Estimated effort:     [e.g. 1 data refresh cycle]
+
+── INTERIM MITIGATION ──
+[What is currently shown / what governance disclosure exists, if any.
+ e.g. "Value shown in by_chain detail; not highlighted to leadership; 
+       alloc.missing_mapping documents Guardian Healthcare 2.0 L separately."]
+
+── RESOLUTION LOG ──
+[Date] [Who] [What was done]
+[Leave blank until resolved]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### When to use this template
+
+Use it for every finding from a PRR, UAT, or data quality sweep that:
+- Cannot be fixed in the current PR (missing source, pending business confirmation)
+- Requires a data-only refresh (no code change) to resolve
+- Is accepted as a known limitation with documented disclosure
+- Is deferred to the next release cycle
+
+Store completed templates in `docs/data-issues/` — one file per issue, named `DI-YYYYMMDD-NNN.md`. Reference the issue ID in any commit or PR that resolves it (`Resolves: DI-20260805-001`).
+
+### Active issues for this dashboard (as of 2026-08-05)
+
+| ID | Metric | Current | Expected | Status | Can data-update resolve? |
+|---|---|---|---|---|---|
+| DI-20260805-001 | FY27 by_chain: Relay NSV | -0.07 L | 0 or positive | OPEN (likely MRN) | YES — confirm with business |
+| DI-20260805-002 | FY27 by_chain: Sohum Shoppe NSV | -2.51 L | 0 or positive | OPEN (likely MRN) | YES — confirm with business |
+| DI-20260805-003 | FY27 by_brand: Pure Origin NSV | -0.32 L | 0 or positive | OPEN (likely MRN) | YES — confirm with business |
+| DI-20260805-004 | Guardian Healthcare 53 rows / 2.0 L | Unmapped (FY26 Nov) | Chain assigned | OPEN | YES — add to chain mapping CSV |
+| DI-20260805-005 | Reliance BC June-26 NSV (943.68 L) | BLOCKED (source missing) | Included | AWAITING DATA | YES — when June XLSB available |
+| DI-20260805-006 | P&L vs Primary FY26 delta | 0.91 L | Reconciled | ACCEPTED (SIS scope) | NO — by design |
+| DI-20260805-007 | generated_at_note (patch flag) | "Patched in place" | Full build timestamp | OPEN | YES — next full --src rebuild |
+
 ## Master rule
 
 When an error or reconciliation difference is found, do not patch the final report manually. Preserve the evidence, classify the error, identify the earliest processing stage where the result becomes incorrect, determine the root cause and quantify its impact. Correct the underlying rule or controlled mapping, add a test that prevents recurrence, rerun the full process and reconcile both affected and unaffected data. Keep the release BLOCKED until every critical difference is resolved or explicitly approved by the authorized business owner.
