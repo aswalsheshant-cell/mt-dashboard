@@ -489,7 +489,13 @@ function exportChart(canvasId,format){
   const chartLabel=titleEl?titleEl.textContent.replace(/[—–].*$/,'').trim():canvasId;
   const filename=exportFilename(tabLabel(currentTab),chartLabel);
   if(format==='png'){
-    const a=document.createElement('a');a.href=c.toBase64Image('image/png',1);a.download=filename+'.png';a.click();
+    const src=c.canvas;
+    const out=document.createElement('canvas');
+    out.width=src.width;out.height=src.height;
+    const ctx=out.getContext('2d');
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,out.width,out.height);
+    ctx.drawImage(src,0,0);
+    const a=document.createElement('a');a.href=out.toDataURL('image/png');a.download=filename+'.png';a.click();
     return;
   }
   const rows=chartExportRows(c);
