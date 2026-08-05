@@ -1,0 +1,51 @@
+name: Dashboard QC
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  qc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas openpyxl pyxlsb pytest playwright
+          python -m playwright install chromium --with-deps
+
+      - name: Syntax check — build script
+        run: python -m py_compile scripts/build_dashboard_data.py
+
+      - name: Run pytest (pipeline + chain consolidation + June fallback + disclosures)
+        run: pytest scripts/test_pipeline.py scripts/test_chain_consolidation.py scripts/test_june_fallback.py scripts/test_dashboard_disclosures.py -v
+
+      - name: Run QC gate
+        run: |
+          python scripts/qc_dashboard.py --data dashboard/data.js
+        # Exit code 0 even with BLOCKED (data deps); only FAIL exits non-zero.
+        # The gate output is visible in the workflow log for review.
+
+      - name: Assert no FAIL in QC gate
+        run: |
+          result=$(python scripts/qc_dashboard.py --data dashboard/data.js 2>&1)
+          echo "$result"
+          # Fail CI on any FAIL items (broken data, wrong calculations, JS errors)
+          if echo "$result" | grep -q "✗ FAIL"; then
+            echo "::error::QC gate has FAIL items — merge blocked until resolved."
+            exit 1
+          fi
+          # BLOCKED items are documented data dependencies; they annotate the run
+          # but do not fail CI (they require explicit business approval, not a code fix).
+          if echo "$result" | grep -q "⊘ BLOCKED"; then
+            echo "::warning::QC gate has BLOCKED items (data dependencies). See workflow log for details. Explicit approval required before merge."
+          fi
