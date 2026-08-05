@@ -1611,9 +1611,28 @@ function buildComparison(){
       const fp=FPX(fyTag());
       if(fp){
         const arr27=cmpDim==='Chain'?consolidateChains(fp.by_chain):fp.by_brand;
-        source=`article-wise primary, chain-allocated (${fyTag()} YTD: ${fp.months_covered.join(' & ')})`;
-        rows=arr27.filter(x=>x.nsv>0).map(x=>({name:x.name,a:null,b:x.nsv,yoy:null}));
-        yrPair=['–',fyTag()];
+        // Same-period prior-FY baseline: filter detail_records to the matching months
+        // in the preceding pre-agg FY (e.g. FY26 Apr–Jun vs FY27 Apr–Jun).
+        // detail_records are already canonicalized at load time so names align.
+        const _covMon=new Set(fp.months_covered||[]);
+        const _prevFY=PREAGG_FYS[PREAGG_FYS.length-1]||'FY26';
+        const _monthOrd=['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
+        const _prevMonArr=D.primary['monthly_'+_prevFY.replace('FY','fy')]||[];
+        const _prevExpected=_monthOrd.reduce((s,m,i)=>_covMon.has(m)?s+(_prevMonArr[i]||0):s,0);
+        const _prevMap={};
+        (D.detail_records||[]).forEach(r=>{
+          if(r.FY===_prevFY&&_covMon.has(r.Month)){const _k=cmpDim==='Chain'?r.Chain:r.Brand;_prevMap[_k]=(_prevMap[_k]||0)+(r.NSV||0);}
+        });
+        const _prevTot=Object.values(_prevMap).reduce((s,v)=>s+v,0);
+        const _covPct=_prevExpected>0?Math.round(_prevTot/_prevExpected*100):0;
+        const _canon=fp.months_canon||[];
+        const _pLbl=_canon.length?_canon[0]+'–'+_canon[_canon.length-1]:fp.months_covered.join('–');
+        source=`article-wise primary (${fyTag()} YTD: ${fp.months_covered.join(' & ')}); ${_prevFY} same-period baseline from article detail (${_covPct}% coverage)`;
+        rows=arr27.filter(x=>x.nsv>0).map(x=>{
+          const _a=(_prevMap[x.name]??null);
+          return {name:x.name,a:_a,b:x.nsv,yoy:(_a!=null&&_a>0)?Math.round((x.nsv/_a-1)*1000)/10:null};
+        });
+        yrPair=[`${_prevFY} ${_pLbl}`,`${fyTag()} ${_pLbl}`];
       } else {
         s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2><div style="margin:0 0 14px">${btns}</div>${fyNoDataNote('the chain/brand Primary source')}${catDrillCardHtml('cmpCatDrill')}`;
         wireCmpButtons(s); renderCatDrillChart('cmpCatDrill',recFilter()); return;
@@ -1643,9 +1662,9 @@ function buildComparison(){
   const tableRows=top.map(r=>`<tr><td>${drillLink(cmpDim,r.name)}</td><td>${r.a!=null?crc(r.a):'–'}</td><td>${crc(r.b)}</td>
     <td>${r.yoy!=null?`<span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span>`:'–'}</td>
     <td>${(r.b/tot*100).toFixed(1)}%</td></tr>`).join('');
-  const partialNote=(yrPair[1]==='FY27')?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
-     (Apr'26 onward only) — YoY vs a full FY26 will read sharply negative even where the run-rate is flat or
-     growing. Compare monthly averages, not full-year totals, for a fair read.</p>`:'';
+  const partialNote=(fyUnsupported()&&FPX(fyTag()))?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
+     (${(FPX(fyTag())||{}).months_covered?.join(', ')} only) — YoY uses the same ${(FPX(fyTag())||{}).months_covered?.length||3} months
+     from ${PREAGG_FYS[PREAGG_FYS.length-1]||'FY26'} as baseline. Chains with no prior-year data show '–'.</p>`:'';
   s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2>
    <p class="lead">Rank and compare ${dimLab[cmpDim]} performance. Source: ${source}.</p>
    ${partialNote}
