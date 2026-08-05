@@ -2566,7 +2566,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
             "Guardian Healthcare) are tagged 'Dist.' in the primary extract but are not "
             "covered by the Dist_primary_cont_based_on_secondary_MOM allocation file. "
             "Impact is immaterial at the blended level."
-        ) if (not matched).any() else "All distributor rows successfully allocated.",
+        ) if (~matched).any() else "All distributor rows successfully allocated.",
         "unmapped_ship_to_names": _unmapped_shipto_names[:20],   # top-20 by name for QC
         "rows_nearest": rows_nearest,
         "nearest_nsv": nearest_nsv,
