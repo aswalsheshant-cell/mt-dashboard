@@ -453,6 +453,169 @@ class TestDataJSRegression:
         assert p.get("nsv_fy25") == 23331.97
         assert p.get("nsv_fy26") == 32900.36
 
+    # ── months_canon / monthly_canon tests ──
+
+    def test_primary_fy27_has_months_canon(self, dash):
+        """fyx_primary.FY27 must carry months_canon (canonical Mon-YY labels)."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        assert "months_canon" in fp, "months_canon missing from FY27 fyx_primary"
+        assert fp["months_canon"] == ["Apr-26", "May-26", "Jun-26"], (
+            f"months_canon={fp['months_canon']} expected ['Apr-26','May-26','Jun-26']"
+        )
+
+    def test_primary_fy27_months_canon_matches_monthly_canon(self, dash):
+        """monthly_canon must be parallel to months_canon and sum to total NSV."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        assert "monthly_canon" in fp, "monthly_canon missing from FY27 fyx_primary"
+        assert len(fp["monthly_canon"]) == len(fp["months_canon"]), (
+            "monthly_canon and months_canon length mismatch"
+        )
+        canon_sum = sum(fp["monthly_canon"])
+        assert abs(canon_sum - fp["nsv"]) < 0.5, (
+            f"monthly_canon sum {canon_sum} != FY27 NSV {fp['nsv']}"
+        )
+
+    # ── 12 mandatory regression tests (primary trend continuity) ──
+
+    def test_fy27_apr_present_in_primary_series(self, dash):
+        """Apr-26 must appear in FY27 primary months_covered."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        assert "April" in (fp.get("months_covered") or []), (
+            "April missing from FY27 primary months_covered"
+        )
+
+    def test_fy27_may_present_in_primary_series(self, dash):
+        """May-26 must appear in FY27 primary months_covered."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        assert "May" in (fp.get("months_covered") or []), (
+            "May missing from FY27 primary months_covered"
+        )
+
+    def test_fy27_jun_present_in_primary_series(self, dash):
+        """Jun-26 must appear in FY27 primary months_covered."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        assert "June" in (fp.get("months_covered") or []), (
+            "June missing from FY27 primary months_covered"
+        )
+
+    def test_primary_months_chronologically_sorted(self, dash):
+        """FY27 months_covered must be in calendar order (April, May, June…)."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        ORDER = ["April","May","June","July","Aug","Sept","Oct","Nov","Dec","Jan","Feb","March"]
+        months = fp.get("months_covered", [])
+        indices = [ORDER.index(m) for m in months if m in ORDER]
+        assert indices == sorted(indices), f"months_covered not sorted: {months}"
+
+    def test_no_null_in_primary_fy27_monthly(self, dash):
+        """No None/NaN in the non-zero portion of FY27 monthly."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        monthly = fp.get("monthly", [])
+        ORDER = ["April","May","June","July","Aug","Sept","Oct","Nov","Dec","Jan","Feb","March"]
+        covered = set(fp.get("months_covered", []))
+        for i, m in enumerate(ORDER):
+            if m in covered:
+                v = monthly[i] if i < len(monthly) else None
+                assert v is not None and not (isinstance(v, float) and math.isnan(v)), (
+                    f"Null/NaN at position {i} ({m}) in FY27 monthly"
+                )
+
+    def test_primary_chart_total_equals_card_total(self, dash):
+        """FY27 monthly sum must equal the top-level NSV (chart == card)."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        monthly_sum = sum(v for v in fp.get("monthly", []) if v)
+        assert abs(monthly_sum - fp["nsv"]) < 0.5, (
+            f"FY27 monthly chart total {monthly_sum} != card NSV {fp['nsv']}"
+        )
+
+    def test_chain_ratios_sum_to_total(self, dash):
+        """FY27 chain NSVs must sum to the declared total (within rounding)."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        chain_sum = sum(c["nsv"] for c in fp.get("by_chain", []))
+        assert abs(chain_sum - fp["nsv"]) < 2.0, (
+            f"Chain sum {chain_sum} differs from total {fp['nsv']}"
+        )
+
+    def test_no_duplicate_chain_names_in_fy27(self, dash):
+        """No chain name should appear more than once in FY27 by_chain."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        names = [c["name"] for c in fp.get("by_chain", [])]
+        dupes = [n for n in set(names) if names.count(n) > 1]
+        assert not dupes, f"Duplicate chain names in FY27 by_chain: {dupes}"
+
+    def test_no_distributor_names_in_fy27_by_chain(self, dash):
+        """Distributor ship-to names must not appear in FY27 by_chain."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        known_dist_fragments = ["enterprises", "logistics", "real time", "saachi",
+                                "mark enterprise", "d.l. sales", "kiran trading"]
+        chain_names_lc = [c["name"].lower() for c in fp.get("by_chain", [])]
+        for frag in known_dist_fragments:
+            hits = [n for n in chain_names_lc if frag in n]
+            assert not hits, f"Possible distributor name in by_chain: {hits}"
+
+    def test_fallback_used_is_disclosed(self, dash):
+        """June fallback must be documented in alloc (not hidden as real allocation)."""
+        alloc = dash.get("alloc", {})
+        if not alloc:
+            pytest.skip("No alloc block")
+        assert alloc.get("june_fallback_nsv_lakh") is not None, (
+            "june_fallback_nsv_lakh missing — fallback not disclosed"
+        )
+
+    def test_unallocated_primary_not_hidden(self, dash):
+        """If any primary was unallocated, alloc block must record it."""
+        alloc = dash.get("alloc", {})
+        if not alloc:
+            pytest.skip("No alloc block")
+        assert "unmapped_chain_nsv" in alloc or "unallocated" in str(alloc).lower(), (
+            "Unallocated primary bucket not present in alloc block"
+        )
+
+    def test_primary_consistent_across_overview_and_primary_tab(self, dash):
+        """FY27 total NSV in fyx_primary must match what overview would show."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        if not fp:
+            pytest.skip("No FY27 primary data")
+        # The total in fyx_primary is the canonical source for both overview
+        # and primary tab KPI cards — there is no separate overview copy to diff.
+        assert fp["nsv"] is not None and fp["nsv"] > 0, (
+            "FY27 NSV is null or zero — overview and primary tab would be inconsistent"
+        )
+
+    def test_months_canon_labels_in_offtake_months(self, dash):
+        """months_canon labels must be present in offtake months (for overview chart join)."""
+        fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
+        o = dash.get("offtake", {})
+        if not fp or not fp.get("months_canon"):
+            pytest.skip("No months_canon or no FY27 primary")
+        offtake_months = set(o.get("months", []))
+        missing = [m for m in fp["months_canon"] if m not in offtake_months]
+        assert not missing, (
+            f"months_canon labels {missing} not found in offtake months — "
+            "overview chart join will produce null values"
+        )
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

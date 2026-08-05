@@ -2063,6 +2063,14 @@ def insights_block(primary, offtake, pnl, universe, promo):
 _ORDER = ["April","May","June","July","Aug","Sept","Oct","Nov","Dec","Jan","Feb","March"]
 
 _MNUM = {4:"April",5:"May",6:"June",7:"July",8:"Aug",9:"Sept",10:"Oct",11:"Nov",12:"Dec",1:"Jan",2:"Feb",3:"March"}
+
+# Maps _ORDER full names to 3-letter abbreviations used in MONTHS ("Apr-26" format),
+# kept consistent with _MON3_NUM keys so fyx_primary months_canon labels join o.months.
+_ORDER_MON3 = {
+    "April": "Apr", "May": "May", "June": "Jun", "July": "Jul",
+    "Aug": "Aug", "Sept": "Sep", "Oct": "Oct", "Nov": "Nov",
+    "Dec": "Dec", "Jan": "Jan", "Feb": "Feb", "March": "Mar",
+}
 _EXCEL_EPOCH = datetime.date(1899, 12, 30)
 
 def _mlabel(m):
@@ -2558,7 +2566,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
             "Guardian Healthcare) are tagged 'Dist.' in the primary extract but are not "
             "covered by the Dist_primary_cont_based_on_secondary_MOM allocation file. "
             "Impact is immaterial at the blended level."
-        ) if (not matched).any() else "All distributor rows successfully allocated.",
+        ) if (~matched).any() else "All distributor rows successfully allocated.",
         "unmapped_ship_to_names": _unmapped_shipto_names[:20],   # top-20 by name for QC
         "rows_nearest": rows_nearest,
         "nearest_nsv": nearest_nsv,
@@ -2777,12 +2785,24 @@ def detail_records_real(src, max_rows=20000):
             s = fx.groupby(col)["_NSV"].sum().sort_values(ascending=False)
             return [{"name": k, "nsv": r2(float(v))} for k, v in s.items() if k]
         mser = fx.groupby("_M")["_NSV"].sum()
+        _months_present = [m for m in _ORDER if m in set(fx["_M"])]
+        # Canonical "Mon-YY" labels (e.g. "Apr-26") matching MONTHS/offtake format so
+        # the overview trend chart can extend the Primary line into FY27 months without
+        # positional arithmetic -- just a dict-lookup on o.months labels.
+        _fy_cal_start = fy_start_year(_tag)
+        _months_canon = []
+        for _mn in _months_present:
+            _cm = _CAL_MONTH[_MONTH_IDX[_mn]]
+            _cy = _fy_cal_start if _cm >= 4 else _fy_cal_start + 1
+            _months_canon.append(f"{_ORDER_MON3[_mn]}-{_cy % 100:02d}")
         fyx_primary[_tag] = {
             "tag": _tag,
             "nsv": r2(float(fx["_NSV"].sum())),
             "mrp": r2(float(fx["_MRP"].sum())),
-            "months_covered": [m for m in _ORDER if m in set(fx["_M"])],
+            "months_covered": _months_present,
+            "months_canon": _months_canon,
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
+            "monthly_canon": [r2(float(mser.get(m, 0.0))) for m in _months_present],
             "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone"),
             "by_channel": _aggx("_Chan"), "by_brand": _aggx("_Brand"),
             "unit": "INR Lakh",
