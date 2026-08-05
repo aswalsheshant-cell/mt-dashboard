@@ -256,6 +256,7 @@ Store completed templates in `docs/data-issues/` — one file per issue, named `
 | DI-20260805-005 | Reliance BC June-26 NSV (943.68 L) | BLOCKED (source missing) | Included | AWAITING DATA | YES — when June XLSB available |
 | DI-20260805-006 | P&L vs Primary FY26 delta | 0.91 L | Reconciled | ACCEPTED (SIS scope) | NO — by design |
 | DI-20260805-007 | generated_at_note (patch flag) | "Patched in place" | Full build timestamp | OPEN | YES — next full --src rebuild |
+| DI-20260805-008 | Comparison tab: FY26 baseline missing when FY27 selected | Blue dots all ₹0 L ("– vs FY27") | FY26 chain values as comparison baseline | OPEN (by design — enhancement) | NO — requires code change in buildComparison() |
 
 ## Master rule
 
