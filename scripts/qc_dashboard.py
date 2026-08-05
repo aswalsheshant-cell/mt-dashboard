@@ -332,8 +332,8 @@ def run_browser_check(port: int = 8765):
             else:
                 qc("PASS", "JS load — no errors")
 
-            TABS = ["Data Explorer","Overview","Primary","Offtake","P&L",
-                    "Category & Pack","Forecast","Promo & Trade Spend",
+            TABS = ["Data Explorer","Overview","Primary","Offtake","Reliance Brand Counter",
+                    "P&L","Category & Pack","Forecast","Promo & Trade Spend",
                     "Market Share","Distribution","Performance & Comparison",
                     "Insights & Way Forward"]
             tab_errors = []
