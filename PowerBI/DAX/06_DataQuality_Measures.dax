@@ -124,3 +124,32 @@ Primary Article Total Rows = COUNTROWS ( 'Fact Primary Article' )
 
 Primary Data Health % =
 1 - DIVIDE ( [Primary Total DQ Issues], [Primary Article Total Rows] )
+
+// ---- Negative Frac QC (Source: ShipTo CSV correction/reversal entries) ----
+// 8 source rows have negative Cont% in the ShipTo CSV (reversal/credit entries).
+// These produce negative allocated NSV on 157 article-level rows across 4 distributors.
+// Total impact: approx -0.2093 L (0.0013% of total Dist NSV). Not a code defect —
+// the normalisation is mathematically valid (fracs still sum to 1 per group).
+// Finance must decide whether to zero-floor negatives or keep them for reconciliation.
+Primary Negative Frac Rows =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Primary NSV] < 0,
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+)
+
+Primary Negative Frac NSV =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Primary NSV] < 0,
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+)
+
+// Human-readable flag for the QC card
+Primary Negative Frac Flag =
+VAR _rows = [Primary Negative Frac Rows]
+RETURN
+    IF ( _rows > 0,
+        "⚠ " & _rows & " rows with negative allocated NSV (reversal entries in ShipTo CSV – Finance review required)",
+        "No negative-frac rows"
+    )
