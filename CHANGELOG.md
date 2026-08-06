@@ -7,6 +7,44 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — branch `claude/primary-pipeline-allocation-fy27-l9bdf6`
 
+### Documentation — Phase 16–18 Governance Package (2026-08-06)
+
+New documents completing the handoff package for Power BI Desktop assembly:
+
+| File | Purpose |
+|------|---------|
+| `PowerBI/docs/Finance_Approval_Decision_Log.md` | Formal Finance decision log for Jun'26 allocation and negative-frac treatment; fields for Finance to complete |
+| `PowerBI/docs/ServiceReadiness.md` | Power BI Service configuration requirements; Gateway, licence, workspace, and schedule specifications |
+| `PowerBI/docs/Desktop_Assembly_Checklist.md` | Operational step-by-step checklist for the PBIX builder; phases A–M with exact checkbox items and governance banner text |
+| `PowerBI/docs/AutomationScorecard.md` | Weighted automation scorecard v2.0: prior 56% → current 68%; gap analysis to 100%; score history |
+
+### Phase 0 / Phase 1 Asset Verification (2026-08-06)
+
+All assets confirmed at commit `2725b80`:
+
+| Asset | SHA256 (first 16 chars) |
+|-------|------------------------|
+| `41_DistContWeights.pq` | `2992f65489a14f46` |
+| `16_Fact_PrimaryArticle.pq` | `21cd6db6a62b0204` |
+| `06_DataQuality_Measures.dax` | `6326d0bedc358c34` |
+| `07_PrimaryAllocation_Measures.dax` | `c37fa48db9353bbe` |
+| `DistCont_Patch_Approved_2026-07-04.csv` | `ab91405435dbd670` |
+| `Primary_ShipTo_FY25-26_to_May26.csv` | `b9dd91fd4c224b9d` |
+
+Data source counts confirmed: 15 Primary Article CSVs (May'25–Jun'26), 2 Offtake CSVs (Apr'26–May'26), 16 SeedData masters, 25 PQ files, 14 DAX files.
+
+### Phase 18 Final Verdicts (2026-08-06)
+
+| Verdict | Status |
+|---------|--------|
+| PBIX | **NOT READY** — Desktop assembly required |
+| Finance approval | **PENDING** — Decision Log issued; awaiting Finance response |
+| Negative reversals | **RETAINED FOR RECONCILIATION** — pending Finance zero-floor decision |
+| Power BI Service | **SERVICE READY FOR CONFIGURATION** — blocked by PBIX assembly |
+| Overall | **POWER BI AUTOMATION PARTIALLY READY** — repository-side complete; Desktop assembly required |
+
+---
+
 ### Power BI — Query 41 (Dist Cont Weights) — COMPLETE REWRITE
 
 **Breaking change: removed XLSX dependency**
