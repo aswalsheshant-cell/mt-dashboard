@@ -7,6 +7,53 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] — branch `claude/primary-pipeline-allocation-fy27-l9bdf6`
 
+### Phase Q — Automation Scorecard v3.0 (corrected arithmetic) (2026-08-06)
+
+Updated `PowerBI/docs/AutomationScorecard.md` to v3.0:
+
+- Identified arithmetic error in v2.0 Domain 1 (Data Ingestion): sum 4.35 ÷ 9 = 0.483, not 0.595 as previously stated
+- Corrected Domain 1 contribution from 11.9% to 9.7%
+- Corrected total score from "68% est." to **54%** (verified calculated)
+- Added breakdown: Tier B 30.7% / Tier C 20.5% / Tier D 2.7% / Tier E 46.1%
+- Gap to 100% correctly calculated as 46% (was stated as ~32% in v2.0)
+- Score history updated with corrected milestones
+- No tier upgrades are possible without Power BI Desktop assembly
+
+| Domain | Weight | Component avg | Weighted contribution |
+|--------|--------|---------------|-----------------------|
+| Data Ingestion | 20% | 48.3% | 9.7% |
+| Power Query | 20% | 73.8% | 14.8% |
+| Data Model & DAX | 20% | 66.7% | 13.3% |
+| Report Pages & UX | 15% | 25.0% | 3.8% |
+| Reconciliation & QC | 15% | 63.8% | 9.6% |
+| Refresh & Deployment | 10% | 28.3% | 2.8% |
+| **TOTAL** | | | **53.9%** |
+
+### Phase A Asset Re-verification (2026-08-06, commit 6ea2c08)
+
+All key assets re-verified at current HEAD:
+
+| Asset | SHA256 (first 16 chars) | Status |
+|-------|------------------------|--------|
+| `41_DistContWeights.pq` | `2992f65489a14f46` | MATCH ✓ |
+| `16_Fact_PrimaryArticle.pq` | `21cd6db6a62b0204` | MATCH ✓ |
+| `06_DataQuality_Measures.dax` | `6326d0bedc358c34` | MATCH ✓ |
+| `07_PrimaryAllocation_Measures.dax` | `c37fa48db9353bbe` | MATCH ✓ |
+| `DistCont_Patch_Approved_2026-07-04.csv` | `ab91405435dbd670` | MATCH ✓ |
+| `Primary_ShipTo_FY25-26_to_May26.csv` | `b9dd91fd4c224b9d` | MATCH ✓ |
+
+Additional confirmations:
+- XLSX dependency in Q41: `0` functional references (comment-only mention, line 17)
+- `DistCont_Patch_Proposed.csv` not referenced in any PQ file ✓
+- `Jun26Fallback` step present in Q41 ✓ · `AddFrac` normalisation step present ✓
+- `Provisional – Jun'26 gap; awaiting Finance approval` still active in Q41 ✓
+- `FillSrcType` / `FillApproval` / `FillProv` / `DistAllocStatus` / `DirectWithGov` all present in Q16 ✓
+- `Primary Negative Frac Rows` / `Primary Negative Frac NSV` / `Primary Negative Frac Flag` in DAX 06 ✓
+- `Dist NSV – Approved Patch` / `Has Provisional Allocation` / `Dist Allocation Coverage %` in DAX 07 ✓
+- 25 PQ files, 14 DAX files, 15 Primary Article CSVs, 2 Offtake CSVs, 16 SeedData Masters confirmed ✓
+
+Desktop assembly environment blocked: Linux container. Power BI Desktop is Windows-only.
+
 ### Documentation — Phase 16–18 Governance Package (2026-08-06)
 
 New documents completing the handoff package for Power BI Desktop assembly:
