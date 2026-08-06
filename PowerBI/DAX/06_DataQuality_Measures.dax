@@ -61,3 +61,66 @@ Total DQ Issues =
     + [Blank NSV Values] + [Negative Sales Values]
     + [Unmapped Chain] + [Unmapped Brand] + [Unmapped Category] + [Unmapped Zone]
 Data Health % = 1 - DIVIDE ( [Total DQ Issues], [Total Fact Rows] )
+
+// =====================================================================
+// PRIMARY ARTICLE — DATA QUALITY CHECKS  (Fact Primary Article)
+// =====================================================================
+
+// ---- Missing key fields on Primary Article fact ----
+Primary Missing Month =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[MonthStart] ) ) )
+
+Primary Missing Chain =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article',
+        ISBLANK ( 'Fact Primary Article'[Chain] ) || 'Fact Primary Article'[Chain] = "" ) )
+
+Primary Missing Brand =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article',
+        ISBLANK ( 'Fact Primary Article'[Brand] ) || 'Fact Primary Article'[Brand] = "" ) )
+
+Primary Blank NSV =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[Primary NSV] ) ) )
+
+Primary Negative NSV =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', 'Fact Primary Article'[Primary NSV] < 0 ) )
+
+// ---- Distributor allocation quality ----
+// Unmapped Dist rows: PO Type = Dist. but no ShipTo match found in Q41
+Primary Unmapped Dist =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped" )
+
+// Provisional rows: Jun'26 nearest-month fallback, awaiting Finance approval
+Primary Provisional Alloc =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Provisional Flag] = TRUE () )
+
+// Provisional NSV value exposed for the finance review disclosure
+Primary Provisional NSV =
+CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Provisional Flag] = TRUE () )
+
+// Coverage: share of Dist rows that received an approved allocation
+Primary Dist Coverage % =
+VAR _distRows =
+    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" } )
+VAR _mapped =
+    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" } )
+RETURN DIVIDE ( _mapped, _distRows )
+
+// ---- Combined Primary DQ summary ----
+Primary Total DQ Issues =
+[Primary Missing Month] + [Primary Missing Chain] + [Primary Missing Brand]
+    + [Primary Blank NSV] + [Primary Unmapped Dist]
+
+Primary Article Total Rows = COUNTROWS ( 'Fact Primary Article' )
+
+Primary Data Health % =
+1 - DIVIDE ( [Primary Total DQ Issues], [Primary Article Total Rows] )
