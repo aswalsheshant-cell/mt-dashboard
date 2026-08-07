@@ -189,7 +189,7 @@ def _default_config() -> Dict[str, Any]:
         "reconciliation_variance_tolerance_pct": 0.01,
         "tot_fallback_max_pct": 30.0,
         "cm2_expense_match_min_pct": 80.0,
-        "negative_frac_treatment_status": "APPROVED",
+        "negative_frac_treatment_status": "PROVISIONAL",  # Finance Decision 2 PENDING as at 2026-08-07
         "jun26_allocation_status": "PROVISIONAL",
     }
 

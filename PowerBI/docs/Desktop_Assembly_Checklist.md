@@ -12,7 +12,7 @@
 - [ ] Confirm Windows machine (Power BI Desktop is Windows-only)
 - [ ] Confirm Power BI Desktop version June 2025 or later (Help → About)
 - [ ] Confirm repository branch: `claude/primary-pipeline-allocation-fy27-l9bdf6`
-- [ ] Confirm latest commit: `2725b80`
+- [ ] Confirm latest commit: `91b66c3` (or later)
 - [ ] Confirm working tree is clean: `git status` → "nothing to commit"
 - [ ] Note the absolute path of the `PowerBI/` folder, e.g.:
   `C:\Users\YourName\mt-dashboard\PowerBI`  (this is `pRootFolder`)
