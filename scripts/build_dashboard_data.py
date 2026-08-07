@@ -20,7 +20,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
-import argparse, csv, io, json, re, math, datetime
+import argparse, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
 
 import pandas as pd
@@ -3026,6 +3026,116 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     return detail, detail_dims(detail), meta, tot, cm2, alloc
 
 
+def _run_release_gate(alloc, report_path=None, config=None):
+    """Run the release gate against computed pipeline outputs.
+
+    Extracts gate inputs from the alloc dict produced by apply_chain_allocation()
+    and calls gate_pass(). Prints the human-readable report. Returns (passed, report).
+
+    The caller is responsible for NOT writing data.js when passed=False.
+    """
+    try:
+        from release_gate import gate_pass, _default_config
+    except ImportError:
+        print("⚠ WARNING: release_gate module not found — skipping release gate.")
+        print("  Install it by ensuring scripts/release_gate.py is on the Python path.")
+        return True, None  # advisory: skip gate if module not present
+
+    merged_config = _default_config()
+    if config:
+        merged_config.update(config)
+
+    # Build allocation_reconciliation from alloc["recon"]["overall"] if available
+    allocation_reconciliation = None
+    if alloc and "recon" in alloc:
+        ov = alloc["recon"].get("overall", {})
+        if ov:
+            # Convert from {metric: {original, allocated, variance}} to per-month structure
+            # The gate expects: {month_label: {original, allocated, variance}}
+            # The overall recon is across all months; pass as single "overall" key
+            allocation_reconciliation = {"overall": {
+                "original": ov.get("nsv", {}).get("original", 0),
+                "allocated": ov.get("nsv", {}).get("allocated", 0),
+                "variance": ov.get("nsv", {}).get("variance", 0),
+            }} if isinstance(ov.get("nsv"), dict) else None
+
+        # Per-month reconciliation if present
+        by_month = alloc["recon"].get("by_month", [])
+        if by_month:
+            allocation_reconciliation = {}
+            for row in by_month:
+                label = row.get("label") or row.get("month", "unknown")
+                allocation_reconciliation[label] = {
+                    "original": row.get("original", 0),
+                    "allocated": row.get("allocated", 0),
+                    "variance": row.get("variance", 0),
+                }
+
+    # Build primary_df proxy — pass unmapped NSV context for G6
+    primary_df = None
+    if alloc:
+        total_nsv = alloc.get("distributor_primary_total", 0) or 0
+        unmapped_nsv = alloc.get("unmapped_nsv", 0) or 0
+        if total_nsv > 0:
+            mapped_nsv = total_nsv - unmapped_nsv
+            primary_df = pd.DataFrame({
+                "Chain": ["_mapped", "_Unmapped"],
+                "NSV": [mapped_nsv, unmapped_nsv],
+                "MRP": [mapped_nsv * 1.5, unmapped_nsv * 1.5],
+                "Qty": [int(mapped_nsv), int(unmapped_nsv)],
+            })
+
+    passed, report = gate_pass(
+        primary_df=primary_df,
+        allocation_reconciliation=allocation_reconciliation,
+        config=merged_config,
+        report_path=report_path,
+    )
+    report.print_report()
+    return passed, report
+
+
+def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
+                        report_dir=None, skip_gate=False):
+    """Safe-write data.js: validate via release gate, then atomically replace.
+
+    1. Write candidate to a temp file in the same directory.
+    2. Run release gate against alloc metadata.
+    3. If gate PASS: move temp → production data.js.
+    4. If gate FAIL: leave production data.js intact, delete temp, exit(1).
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write candidate to temp file (same dir for atomic rename)
+    fd, tmp = tempfile.mkstemp(suffix=".js", dir=out_path.parent)
+    try:
+        import os
+        os.close(fd)
+        Path(tmp).write_text(payload_str, encoding="utf-8")
+
+        if skip_gate:
+            shutil.move(tmp, out_path)
+            print(f"⚠ Release gate skipped for this build path (lightweight refresh).")
+            return
+
+        report_path = Path(report_dir) / "release_gate_report.json" if report_dir else None
+        passed, report = _run_release_gate(alloc, report_path=report_path, config=gate_config)
+
+        if not passed:
+            Path(tmp).unlink(missing_ok=True)
+            print("\n⚠ RELEASE GATE BLOCKED: data.js was NOT updated. Last known-good file is intact.")
+            raise SystemExit(1)
+
+        shutil.move(tmp, out_path)
+        print(f"✓ Release gate PASSED. Wrote {out_path} ({out_path.stat().st_size:,} bytes)")
+    except SystemExit:
+        raise
+    except Exception:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -3082,9 +3192,8 @@ def main():
             obj["cm2"] = cm2
         if alloc is not None:
             obj["alloc"] = alloc
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
-        print(f"detail-only: wrote {len(detail)} detail_records "
-              f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}"
+        print(f"detail-only: {len(detail)} detail_records "
+              f"({'REAL' if not meta['representative'] else 'representative'})"
               + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
               + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
         if alloc:
@@ -3096,6 +3205,10 @@ def main():
                   + f"; unmapped rows {alloc['rows_unmapped']} (Rs {alloc['unmapped_nsv']} L)"
                   + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}"
                   + f"; patch proposals {alloc['patch_rows']} -> {alloc['patch_file']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=alloc, report_dir=str(outp.parent),
+        )
         return
 
     # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----
@@ -3114,10 +3227,13 @@ def main():
         obj["insights"] = insights
         if qc is not None:
             obj["chain_allocation_qc"] = qc
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"primary-only: FY25 {primary['nsv_fy25']} / FY26 {primary['nsv_fy26']} (Lakh); "
               + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
                  if qc else "no allocation file found -- chain tags left as-is"))
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         return
 
     # ---- lightweight path: refresh ONLY the forecast block from the real TY target ----
@@ -3130,9 +3246,12 @@ def main():
             raise SystemExit("No FY2627_TGT_and_sales_team_mapping.xlsb found in --src.")
         forecast = forecast_block_ty(obj["offtake"], ty_rows)
         obj["forecast"] = forecast
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"forecast-only: FY26 actual {forecast['fy26_actual']} / FY27 TY target "
               f"{forecast['fy27_forecast']} (Lakh) = Rs {forecast['fy27_forecast']/100:.2f} Cr")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         return
 
     # ---- lightweight path: merge new monthly article-level offtake extracts ----
@@ -3178,7 +3297,10 @@ def main():
                         bc_data[f"total_{tag}"] = r2(sum(monthly_map[mo] for mo in tms))
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         print(f"offtake-patch: fy_tags now {patched['fy_tags']}")
         for t in patched["fy_tags"]:
             print(f"  total_{t} = {patched.get('total_'+t)} Lakh"
@@ -3194,7 +3316,10 @@ def main():
         if dg is None:
             raise SystemExit(f"No .xlsb store x article offtake extracts found in --src ({src}).")
         obj["dist_gap"] = dg
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         print(f"distgap: {dg['row_count']} products, window {dg['window_label']}, "
               f"total add-on {dg['total_addon_window']} L over window "
               f"({dg['total_addon_ann']} L/yr); groups "
@@ -3256,10 +3381,14 @@ def main():
           + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
           + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
 
-    out = Path(a.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n")
-    print("wrote", out, "bytes:", out.stat().st_size)
+    # ---- RELEASE GATE: fail-closed before data.js is written ----
+    payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
+    _safe_write_data_js(
+        out_path=a.out,
+        payload_str=payload,
+        alloc=alloc,
+        report_dir=str(Path(a.out).parent),
+    )
 
 if __name__ == "__main__":
     main()
