@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas openpyxl pyxlsb pytest playwright
+          pip install -r requirements.txt
           python -m playwright install chromium --with-deps
 
       - name: Syntax check — build script
