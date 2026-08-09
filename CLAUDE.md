@@ -12,6 +12,8 @@ Before starting any task, follow these engineering standards in order:
 1. **`docs/ENGINEERING_STANDARDS.md`** — 20 engineering laws, 4 governance layers, skill routing
 2. **`docs/BUSINESS_RULES.md`** — Every business rule for Primary, Offtake, Allocation, P&L
 3. **`docs/QC_FRAMEWORK.md`** — 10 QC gates; nothing ships without passing all gates
+4. **`docs/ALLOCATION_RULES.md`** — FY27 target allocation hierarchy and SKU weight formulas
+5. **`docs/DATA_DICTIONARY.md`** — Canonical schema for all fact/dim tables and data quality rules
 
 **Active Claude Skills (auto-activate based on task):**
 
@@ -31,6 +33,7 @@ Before starting any task, follow these engineering standards in order:
 | `mt-trade-promotion` | Trade spend ROI, scheme analysis, BTL investment |
 | `mt-campaign-analytics` | Promo experiments, A/B testing, attribution, ICE scoring |
 | `mt-channel-decision-log` | NKAM decision log, commitments, channel intelligence |
+| `mt-data-pipeline` | Multi-source conformance, dedup, INT/MART architecture, controls |
 
 **Feed project context to Claude (for deep-context sessions):**
 ```bash
