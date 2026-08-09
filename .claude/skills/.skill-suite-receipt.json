@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "suite_version": "1.0.0",
+  "installed_at": "2026-08-09T14:58:08Z",
+  "source": "/home/user/mt-dashboard/skill-suite",
+  "target": "/home/user/mt-dashboard/.claude/skills",
+  "target_key": "project-claude",
+  "skills": {
+    "modern-trade-sales-growth": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "050d7236aa0f9763860fe79dbc1577a553a62696c8eb14c34da58fdf6735489a"
+      }
+    },
+    "sales-data-reconciliation": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "ebd22cdd6a5f2550c34ccc6fa7a3b6c2a844cfbbc535d37d5a5325b0f0f6fed1",
+        "references/issue-register.md": "4f491cada848e8b7db3a3129dfa6a363be2d8c7d8133ba1ae834b78d83604316",
+        "references/mt-pipeline-patterns.md": "aa27dd12704962d4b29b322c780c1fbb8068f83a48a42bff9f6e062eb310a816",
+        "references/validation-checks.md": "bc3d08f9b7e6e3a798b944f2e1e668daa1b8270932e2568bba17bf34fdf1622f"
+      }
+    },
+    "demand-inventory-planning": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "88b3779b633863da07797a519304441d8e2d28062b0c85266baf128b20d54cc6"
+      }
+    },
+    "executive-commercial-storytelling": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "0b532a2258bfcb11282c832ad8345388af2d0eb32d655ce67569eb5ab64922cf",
+        "references/deck-automation.md": "34debb3c686ad85074370d495e1725d75a6721c74b523fbb52050880cf1a6cf5"
+      }
+    },
+    "business-ai-automation": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "7d5914a6d3a766ae98b59fb1dcb30c76acfac80cb7770262a03b9d593ce6888f",
+        "references/excel.md": "d782ce63453fcd5ed6e562e41ef79a9eec95c7ca55ac1b6e90d42b63be5227d4",
+        "references/powerbi.md": "fd8026045ff0ed351808b990374a5114e51249e48bfde6440637059db95ed478",
+        "references/python.md": "d04c1ecd70fc68fdf76876226bd17b64322f38183546cbac8c90f7a41980404b",
+        "references/sql.md": "5ce81858e83920ebe3a8c2f41343c2b13b08a78febd8010b6f4f6d5be94fe431"
+      }
+    },
+    "professional-growth-coach": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "95679ff7e2ce5a93cc5eb6b9cfc6714544166e8516cb7c00150a311d37877012"
+      }
+    },
+    "agent-skill-governance": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "c89793d8e192ac9f724a0359ffee23a53c1b5bf6bd25e9205d7e5ba4ba49397d",
+        "references/skill-template.md": "2dc3e90fee62d3f1feb8019bc0cddc5f32e3bf1ccd5da68dffc72222fe96622b"
+      }
+    }
+  }
+}

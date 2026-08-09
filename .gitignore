@@ -10,3 +10,6 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
+
+# skill-suite: local backups of diverged install targets
+work/skill-suite-backups/
