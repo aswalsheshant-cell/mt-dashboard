@@ -25,8 +25,10 @@ def data():
     assert DATA_JS.exists(), f"data.js not found at {DATA_JS}"
     content = DATA_JS.read_text(encoding="utf-8")
     js_body = content[len("window.DASH = "):]
-    if js_body.endswith(";\n"):
-        js_body = js_body[:-2]
+    # Strip trailing semicolon (and optional newline)
+    js_body = js_body.rstrip()
+    if js_body.endswith(";"):
+        js_body = js_body[:-1]
     return json.loads(js_body)
 
 
