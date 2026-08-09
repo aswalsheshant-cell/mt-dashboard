@@ -3,6 +3,40 @@
 Modern Trade (MT) leadership analytics for **Honasa / Mamaearth**. Two deliverables
 live in this one repo:
 
+---
+
+## ENGINEERING CONSTITUTION (Load Before Every Task)
+
+Before starting any task, follow these engineering standards in order:
+
+1. **`docs/ENGINEERING_STANDARDS.md`** — 20 engineering laws, 4 governance layers, skill routing
+2. **`docs/BUSINESS_RULES.md`** — Every business rule for Primary, Offtake, Allocation, P&L
+3. **`docs/QC_FRAMEWORK.md`** — 10 QC gates; nothing ships without passing all gates
+
+**Active Claude Skills (auto-activate based on task):**
+
+| Skill | Activates for |
+|---|---|
+| `mt-enterprise-architecture` | Any change — architecture review first |
+| `mt-data-governance` | Business logic, QC, reconciliation, data quality |
+| `mt-intelligence-engine` | Insights, NKAM decisions, root cause, forecast |
+| `mt-production-readiness` | Before marking anything complete |
+| `mt-sql-analytics` | SQL queries for MT data |
+| `mt-python-pipeline` | Python/Pandas automation scripts |
+| `mt-financial-intelligence` | P&L, GM%, trade spend, financial analysis |
+| `mt-executive-storytelling` | Leadership narratives, decks, QBR |
+| `mt-powerbi-dax` | DAX measures, Power Query M, star schema |
+| `mt-error-resolution` | Debugging, data issues, reconciliation failures |
+
+**Feed project context to Claude (for deep-context sessions):**
+```bash
+pip install files-to-prompt
+files-to-prompt dashboard/ scripts/ docs/ CLAUDE.md --ignore "data.js" --ignore "*.min.js" --cxml
+```
+
+---
+
+
 1. **`dashboard/`** — a self-contained, offline HTML/JS dashboard (opens by
    double-clicking `dashboard/index.html`; also served on GitHub Pages / Vercel).
 2. **`PowerBI/`** — a paste-in Power BI build kit (Power Query M, DAX, seed data,
