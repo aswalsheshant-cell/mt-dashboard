@@ -59,7 +59,7 @@ KPI_MATRIX = {
         "tab": "Primary",
         "definition": "Primary NSV (Net Sales Value) in ₹ Lakh",
         "finance_control_column": "primary_nsv_lakhs",
-        "dashboard_source": "data.primary.total",
+        "dashboard_source": "primary.nsv_fy26",  # FY26 only; FY27 from detail_meta
         "tolerance_pct": 0.5,
         "tolerance_type": "percentage",
         "unit": "₹ Lakh"
@@ -68,7 +68,7 @@ KPI_MATRIX = {
         "tab": "Offtake",
         "definition": "Offtake Quantity in units",
         "finance_control_column": "offtake_qty_units",
-        "dashboard_source": "data.offtake.total_qty",
+        "dashboard_source": "offtake.total_fy26",  # FY26 only
         "tolerance_pct": 2.0,
         "tolerance_type": "percentage",
         "unit": "units"
@@ -77,7 +77,7 @@ KPI_MATRIX = {
         "tab": "P&L",
         "definition": "Gross Margin in ₹ Lakh",
         "finance_control_column": "gross_margin_lakhs",
-        "dashboard_source": "data.pnl.total_gm",
+        "dashboard_source": "pnl.total_nsv",  # Proxy; actual GM not in total
         "tolerance_pct": 0.5,
         "tolerance_type": "percentage",
         "unit": "₹ Lakh"
@@ -86,7 +86,7 @@ KPI_MATRIX = {
         "tab": "P&L",
         "definition": "Gross Margin % (GM / NSV * 100)",
         "finance_control_column": "gm_pct",
-        "dashboard_source": "data.pnl.gm_pct",
+        "dashboard_source": "pnl.blended_discount_pct",  # Placeholder
         "tolerance_pct": 1.0,
         "tolerance_type": "percentage_points",
         "unit": "%"
@@ -95,7 +95,7 @@ KPI_MATRIX = {
         "tab": "P&L",
         "definition": "Expense Ratio % (Trade Spend / NSV * 100)",
         "finance_control_column": "expense_ratio_pct",
-        "dashboard_source": "data.pnl.expense_ratio_pct",
+        "dashboard_source": "cm2.expense_ratio",  # FY26 if exists
         "tolerance_pct": 1.5,
         "tolerance_type": "percentage_points",
         "unit": "%"
@@ -104,7 +104,7 @@ KPI_MATRIX = {
         "tab": "P&L",
         "definition": "CM2 % (Contribution Margin 2 after expenses)",
         "finance_control_column": "cm2_pct",
-        "dashboard_source": "data.pnl.cm2_pct",
+        "dashboard_source": "cm2.cm2_pct_fy26",  # FY26 if exists
         "tolerance_pct": 1.0,
         "tolerance_type": "percentage_points",
         "unit": "%"
@@ -113,7 +113,7 @@ KPI_MATRIX = {
         "tab": "Distribution",
         "definition": "TDP (Trade Display Points) numeric distribution %",
         "finance_control_column": "tdp_numeric_dist_pct",
-        "dashboard_source": "data.distribution.tdp_numeric_dist",
+        "dashboard_source": "dist_gap.tdp_numeric",  # If exists
         "tolerance_pct": 2.0,
         "tolerance_type": "percentage_points",
         "unit": "%"
@@ -122,7 +122,7 @@ KPI_MATRIX = {
         "tab": "Market Share",
         "definition": "Market Share % (Mamaearth NSV / Total Market NSV)",
         "finance_control_column": "market_share_pct",
-        "dashboard_source": "data.share.market_share_pct",
+        "dashboard_source": "universe.share_pct_fy26",  # Calculated from universe
         "tolerance_pct": 0.5,
         "tolerance_type": "percentage_points",
         "unit": "%"
@@ -131,7 +131,7 @@ KPI_MATRIX = {
         "tab": "Forecast",
         "definition": "FY27 Target NSV in ₹ Lakh",
         "finance_control_column": "fy27_target_nsv_lakhs",
-        "dashboard_source": "data.forecast.fy27_target",
+        "dashboard_source": "forecast.fy27_total",  # FY27 forecast
         "tolerance_pct": 2.0,
         "tolerance_type": "percentage",
         "unit": "₹ Lakh"
@@ -411,7 +411,11 @@ DETAILED RESULTS
         if status in ['PASS', 'FAIL']:
             report += f"  Dashboard Value: {result.get('dashboard_value')} {kpi_config.get('unit', '')}\n"
             report += f"  Finance Control: {result.get('finance_value')} {kpi_config.get('unit', '')}\n"
-            report += f"  Variance: {result.get('variance_abs')} ({result.get('variance_pct'):.2f}%)\n"
+            variance_pct = result.get('variance_pct')
+            if variance_pct is not None:
+                report += f"  Variance: {result.get('variance_abs')} ({variance_pct:.2f}%)\n"
+            else:
+                report += f"  Variance: N/A (missing dashboard value)\n"
             report += f"  Tolerance: ±{result.get('tolerance_pct')} {result.get('tolerance_type')}\n"
             report += f"  Result: {result.get('reason')}\n"
         elif status == 'MISSING_CONTROL':
@@ -428,9 +432,13 @@ def _generate_failed_kpi_summary(results: Dict) -> str:
 
     explanation = ""
     for kpi_result in failed:
-        explanation += f"\n  - {kpi_result.get('kpi')}: Variance {kpi_result.get('variance_pct'):.2f}% " \
-                      f"(tolerance: {kpi_result.get('tolerance_pct')})\n" \
-                      f"    Root Cause: [TO BE COMPLETED BY VALIDATOR]\n"
+        variance_pct = kpi_result.get('variance_pct')
+        if variance_pct is not None:
+            explanation += f"\n  - {kpi_result.get('kpi')}: Variance {variance_pct:.2f}% " \
+                          f"(tolerance: {kpi_result.get('tolerance_pct')})\n" \
+                          f"    Root Cause: [TO BE COMPLETED BY VALIDATOR]\n"
+        else:
+            explanation += f"\n  - {kpi_result.get('kpi')}: N/A (missing data)\n"
 
     return explanation
 
