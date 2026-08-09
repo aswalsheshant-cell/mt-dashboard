@@ -10,3 +10,8 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
+
+# Phase 3 test output artifacts (timestamped, regenerated per run)
+docs/PHASE_3_VALIDATION_*.txt
+docs/PHASE_3_SIGNOFF_*.txt
+docs/PHASE_3_RESULTS_*.json
