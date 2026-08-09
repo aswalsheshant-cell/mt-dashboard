@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0",
+  "suite_version": "1.1.0",
+  "description": "Modern Trade analytics and professional capability skill suite. Canonical source; installed copies are generated artifacts.",
+  "targets": {
+    "project-codex": ".agents/skills",
+    "project-claude": ".claude/skills",
+    "user-codex": "~/.codex/skills",
+    "user-claude": "~/.claude/skills"
+  },
+  "skills": [
+    {
+      "name": "modern-trade-sales-growth",
+      "version": "1.1.0",
+      "source": "skills/modern-trade-sales-growth",
+      "dependencies": [],
+      "handoffs": [
+        "sales-data-reconciliation",
+        "demand-inventory-planning",
+        "executive-commercial-storytelling",
+        "business-ai-automation",
+        "retail-execution-tracking"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "sales-data-reconciliation",
+      "version": "1.0.0",
+      "source": "skills/sales-data-reconciliation",
+      "dependencies": [],
+      "handoffs": [
+        "modern-trade-sales-growth",
+        "demand-inventory-planning",
+        "business-ai-automation",
+        "executive-commercial-storytelling"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "demand-inventory-planning",
+      "version": "1.1.0",
+      "source": "skills/demand-inventory-planning",
+      "dependencies": [],
+      "handoffs": [
+        "modern-trade-sales-growth",
+        "sales-data-reconciliation",
+        "business-ai-automation",
+        "executive-commercial-storytelling",
+        "retail-execution-tracking"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "executive-commercial-storytelling",
+      "version": "1.1.0",
+      "source": "skills/executive-commercial-storytelling",
+      "dependencies": [],
+      "handoffs": [
+        "modern-trade-sales-growth",
+        "demand-inventory-planning",
+        "sales-data-reconciliation",
+        "business-ai-automation"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "business-ai-automation",
+      "version": "1.1.0",
+      "source": "skills/business-ai-automation",
+      "dependencies": [],
+      "handoffs": [
+        "modern-trade-sales-growth",
+        "demand-inventory-planning",
+        "sales-data-reconciliation",
+        "executive-commercial-storytelling",
+        "agent-skill-governance"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "professional-growth-coach",
+      "version": "1.0.0",
+      "source": "skills/professional-growth-coach",
+      "dependencies": [],
+      "handoffs": [
+        "modern-trade-sales-growth",
+        "business-ai-automation",
+        "executive-commercial-storytelling"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "agent-skill-governance",
+      "version": "1.0.1",
+      "source": "skills/agent-skill-governance",
+      "dependencies": [],
+      "handoffs": [
+        "business-ai-automation",
+        "sales-data-reconciliation",
+        "executive-commercial-storytelling"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "retail-execution-tracking",
+      "version": "1.0.0",
+      "source": "skills/retail-execution-tracking",
+      "dependencies": [],
+      "handoffs": [
+        "modern-trade-sales-growth",
+        "demand-inventory-planning",
+        "sales-data-reconciliation",
+        "business-ai-automation",
+        "executive-commercial-storytelling"
+      ],
+      "sha256": {}
+    }
+  ]
+}

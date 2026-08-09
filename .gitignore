@@ -15,3 +15,6 @@ primary_article.xlsb
 docs/PHASE_3_VALIDATION_*.txt
 docs/PHASE_3_SIGNOFF_*.txt
 docs/PHASE_3_RESULTS_*.json
+
+# skill-suite: local backups of diverged install targets
+work/skill-suite-backups/
