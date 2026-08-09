@@ -27,6 +27,10 @@ Before starting any task, follow these engineering standards in order:
 | `mt-executive-storytelling` | Leadership narratives, decks, QBR |
 | `mt-powerbi-dax` | DAX measures, Power Query M, star schema |
 | `mt-error-resolution` | Debugging, data issues, reconciliation failures |
+| `mt-deck-builder` | Build QBR / leadership / NKAM / launch decks |
+| `mt-trade-promotion` | Trade spend ROI, scheme analysis, BTL investment |
+| `mt-campaign-analytics` | Promo experiments, A/B testing, attribution, ICE scoring |
+| `mt-channel-decision-log` | NKAM decision log, commitments, channel intelligence |
 
 **Feed project context to Claude (for deep-context sessions):**
 ```bash
