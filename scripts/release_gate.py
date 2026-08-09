@@ -181,6 +181,21 @@ def gate_pass(
     return passed_overall, report
 
 
+# Finance Decision Configuration (G10) — Updated by Phase 2 implementation
+FINANCE_G10_CONFIG = {
+            "g10": {
+        "jun26_allocation_status": "APPROVED",  # Finance Decision 1: A
+        "negative_frac_treatment_status": "PROVISIONAL",  # Finance Decision 2: RETAIN
+        "finance_approval": true,
+        "approver_email": "finance.controller@company.local",
+        "approval_date": "2026-08-09",
+        "approval_timestamp": "2026-08-09T16:22:08.728928",
+        "decision1_rationale": "Use May'26 allocation for Jun'26 (RECOMMENDED)",
+        "decision2_rationale": "Preserve source fidelity (allow negative fractions)"
+    }
+}
+
+
 def _default_config() -> Dict[str, Any]:
     """Finance-approved business rules (production defaults)."""
     return {
@@ -189,8 +204,8 @@ def _default_config() -> Dict[str, Any]:
         "reconciliation_variance_tolerance_pct": 0.01,
         "tot_fallback_max_pct": 30.0,
         "cm2_expense_match_min_pct": 80.0,
-        "negative_frac_treatment_status": "PROVISIONAL",  # Finance Decision 2 PENDING as at 2026-08-07
-        "jun26_allocation_status": "PROVISIONAL",
+        "negative_frac_treatment_status": g10.get("negative_frac_treatment_status", "PROVISIONAL"),
+        "jun26_allocation_status": g10.get("jun26_allocation_status", "PROVISIONAL"),
     }
 
 
