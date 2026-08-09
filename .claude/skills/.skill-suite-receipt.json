@@ -1,15 +1,18 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.0.0",
-  "installed_at": "2026-08-09T14:58:08Z",
+  "suite_version": "1.1.0",
+  "installed_at": "2026-08-09T15:32:32Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.claude/skills",
   "target_key": "project-claude",
   "skills": {
     "modern-trade-sales-growth": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "sha256": {
-        "SKILL.md": "050d7236aa0f9763860fe79dbc1577a553a62696c8eb14c34da58fdf6735489a"
+        "SKILL.md": "a55ef2936717853b489d8e9ebcba4b94e986c97b34539372fac9c5de8befc512",
+        "references/exception-thresholds.md": "f3d99c9c106bfab524e51ffccfb0dbb9746911326d2b7d959ac7959ee0b0e3e6",
+        "references/market-share.md": "775ca71f4501c3dbd091b926c1d937a5d32c1cd1a393c65b026ce97d3114e83d",
+        "references/org-context.md": "3e2ca9a0926ba4c2fe6271d3f6511e0496395a72ff1c620a4d965233a8516726"
       }
     },
     "sales-data-reconciliation": {
@@ -22,23 +25,24 @@
       }
     },
     "demand-inventory-planning": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "sha256": {
-        "SKILL.md": "88b3779b633863da07797a519304441d8e2d28062b0c85266baf128b20d54cc6"
+        "SKILL.md": "b2cd7b97a59c9c618635150e910931b3107bee35ed673931ac7a3bde2787e902"
       }
     },
     "executive-commercial-storytelling": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "sha256": {
-        "SKILL.md": "0b532a2258bfcb11282c832ad8345388af2d0eb32d655ce67569eb5ab64922cf",
-        "references/deck-automation.md": "34debb3c686ad85074370d495e1725d75a6721c74b523fbb52050880cf1a6cf5"
+        "SKILL.md": "e70e70a306636fb9b5a8f72002492dd0bfb83045eb82ecda11eb8e74c79eca52",
+        "references/deck-automation.md": "34debb3c686ad85074370d495e1725d75a6721c74b523fbb52050880cf1a6cf5",
+        "references/house-style.md": "0169831d450caaba69e10fbb231eff66b5920a79d497d05844a70039a5419788"
       }
     },
     "business-ai-automation": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "sha256": {
-        "SKILL.md": "7d5914a6d3a766ae98b59fb1dcb30c76acfac80cb7770262a03b9d593ce6888f",
-        "references/excel.md": "d782ce63453fcd5ed6e562e41ef79a9eec95c7ca55ac1b6e90d42b63be5227d4",
+        "SKILL.md": "c38d3bb8fa988eb95af51d63e04b396f9ed241e5b8563046e937c0f802db2a52",
+        "references/excel.md": "b138b32b7b67fd55ac6ddc606a6422f27db5b7ce4a0b24cd2bb8e2a60416bf39",
         "references/powerbi.md": "fd8026045ff0ed351808b990374a5114e51249e48bfde6440637059db95ed478",
         "references/python.md": "d04c1ecd70fc68fdf76876226bd17b64322f38183546cbac8c90f7a41980404b",
         "references/sql.md": "5ce81858e83920ebe3a8c2f41343c2b13b08a78febd8010b6f4f6d5be94fe431"
@@ -51,10 +55,16 @@
       }
     },
     "agent-skill-governance": {
+      "version": "1.0.1",
+      "sha256": {
+        "SKILL.md": "8db6e7c2973d40772ac278efede0d09cc99ad67592251983e3f2585ed44a6c83",
+        "references/skill-template.md": "2dc3e90fee62d3f1feb8019bc0cddc5f32e3bf1ccd5da68dffc72222fe96622b"
+      }
+    },
+    "retail-execution-tracking": {
       "version": "1.0.0",
       "sha256": {
-        "SKILL.md": "c89793d8e192ac9f724a0359ffee23a53c1b5bf6bd25e9205d7e5ba4ba49397d",
-        "references/skill-template.md": "2dc3e90fee62d3f1feb8019bc0cddc5f32e3bf1ccd5da68dffc72222fe96622b"
+        "SKILL.md": "ece83cc9bc03d5d97d9f8934a8aeb144f2b8bd00d20074f55538a4fd7deb0277"
       }
     }
   }

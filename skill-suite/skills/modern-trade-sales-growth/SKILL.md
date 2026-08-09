@@ -50,6 +50,17 @@ Pure Origin).
 6. Apply the output contract.
 7. Identify the next action and any justified downstream handoff.
 
+## Organisation context
+
+Brands, chain names, metric vocabulary (NSV, ASP, DOI, L3M, TDP), the standard views and
+the dashboard KPI and slicer defaults are in `references/org-context.md`. Read it before
+writing any output — using the organisation's own terms is what makes a result
+paste-ready. In particular this organisation says **DOI**, not "days of supply", and
+**ASP**, not "realisation per unit".
+
+The standard analytical flow is **Assortment → Primary → Offtake → Insight → Action**.
+Work the stages in that order; skipping to offtake explains a listing gap as demand.
+
 ## Fiscal year rule
 
 Indian FY, April to March. April–December of year Y belongs to FY(Y+1); January–March
@@ -76,6 +87,35 @@ Answer in this order; stop at the level that explains the movement.
    caveat.
 6. **Comparability.** Before concluding, confirm no store or article set change, no
    calendar or festive shift, and no one-off event is producing the movement.
+
+The cause-by-cause table with a one-cut confirm for each — listing gap, assortment gap,
+pricing, mix, OOS/DOI, scheme pullback, base effect — is in
+`references/exception-thresholds.md`, together with the primary-versus-offtake pipeline
+reading. Use it to rule causes in or out rather than asserting one.
+
+## Exception thresholds and ownership
+
+Report only what breaches. The standing thresholds are decline worse than **-10 %** MoM
+or YoY, achievement below **90 %** of plan, **DOI** above the agreed cover or near zero,
+top-3 chain concentration above the agreed risk share, and any chain dropping to **zero
+billing** versus last month. Full table, including the unmapped-record rule, in
+`references/exception-thresholds.md`.
+
+Every action carries one owner: listing or assortment gap → **NKAM / RKAM**; out-of-stock
+or low stock → **NKAM + Supply**; pricing or ASP → **Category + KAM**; scheme or
+visibility → **Trade Marketing / BD**; ageing stock → **Supply + Category**; master or
+data error → **Analyst (self)**.
+
+"Monitor closely" is not an action. If no specific step can be named, say what evidence
+is missing to name one.
+
+## Market share and distribution points
+
+Share, Nielsen reading and TDP are diagnostic inputs at step 2 of the ladder and again
+when sizing the assortment gap — see `references/market-share.md`. The question they
+answer that growth cannot: did the business grow because the category grew, or because
+it took share. A brand growing slower than its category is losing share while showing a
+positive number.
 
 ## Opportunity pools
 

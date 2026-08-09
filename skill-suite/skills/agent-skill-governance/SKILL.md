@@ -111,6 +111,10 @@ jurisdiction or handoff contract changes.
 
 `scripts/validate_skills.py` enforces:
 
+Sixteen gate labels are emitted: `layout`, `frontmatter`, `naming`, `description`,
+`template`, `xml-safety`, `prompt-boundary`, `encoding`, `path-traversal`, `executable`,
+`file-type`, `reference`, `overlap`, `manifest`, `handoff`, `dependency`.
+
 | Gate | Prevents |
 |---|---|
 | YAML parses with a real parser | Silent misreads of block scalars and multi-line values |
@@ -127,6 +131,8 @@ jurisdiction or handoff contract changes.
 | Prompt-boundary strings absent | Injected instructions arriving through imported material |
 | No path traversal or unsafe archive paths | Writes outside the intended target |
 | No unexpected executable files | Code shipped inside a documentation artifact |
+| Files decode as UTF-8 | Mojibake reaching the prompt |
+| Declared dependencies resolve | A skill depending on something not in the suite |
 
 ### The XML rule
 

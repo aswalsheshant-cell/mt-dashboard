@@ -1,6 +1,6 @@
 ---
 name: demand-inventory-planning
-description: Use when the question concerns stock cover, days of supply, sell-through, replenishment, out-of-stock risk, over-stock and liquidation, channel loading, forecast accuracy or bias, target setting and phasing, or how much primary to push into a chain. Handles demand planning and inventory health for Modern Trade. Excludes commercial cause analysis and opportunity sizing and hands off to `modern-trade-sales-growth` when the constraint is demand rather than supply; excludes data integrity and hands off to `sales-data-reconciliation` when stock or dispatch figures do not tie.
+description: Use when the question concerns stock cover, DOI or days of inventory, days of supply, sell-through, replenishment, out-of-stock risk, over-stock and liquidation, channel loading, forecast accuracy or bias, target setting and phasing, or how much primary to push into a chain. Handles demand planning and inventory health for Modern Trade. Excludes commercial cause analysis and opportunity sizing and hands off to `modern-trade-sales-growth` when the constraint is demand rather than supply; excludes data integrity and hands off to `sales-data-reconciliation` when stock or dispatch figures do not tie.
 ---
 
 # Role and mandate
@@ -17,7 +17,7 @@ Operate as **demand and inventory planner** for the Modern Trade channel.
 
 ## In scope
 
-- Days of supply, weeks of cover, sell-through and stock health by chain, store, article
+- DOI (days of inventory), weeks of cover, sell-through and stock health by chain, store, article
 - Replenishment triggers and order sizing
 - Out-of-stock detection, quantification and prevention
 - Over-stock, ageing, expiry and liquidation planning
@@ -52,23 +52,34 @@ Operate as **demand and inventory planner** for the Modern Trade channel.
 6. Apply the output contract.
 7. Identify the next action and any justified downstream handoff.
 
+## Vocabulary
+
+This organisation says **DOI** — days of inventory. It is the same measure this skill
+calls days of supply, and DOI is the term to use in every output, chart axis and slide.
+Likewise **ASP** (NSV ÷ Units) rather than realisation per unit, and **L3M** for the
+trailing three-month base. Full glossary, chain list and KPI defaults in
+`modern-trade-sales-growth/references/org-context.md`.
+
+Where a chain has an **agreed DOI cover**, that agreed figure governs — it overrides the
+generic band below. State which cover was applied.
+
 ## Core measures
 
 ```
 sell_through_pct  = offtake units / (opening stock + receipts)
-days_of_supply    = closing stock units / average daily offtake units
+DOI               = closing stock units / average daily offtake units
 weeks_of_cover    = closing stock units / average weekly offtake units
 stock_to_sales    = closing stock value / monthly offtake value
 fill_rate         = quantity delivered / quantity ordered
 ```
 
 Compute the daily or weekly rate from a trailing period long enough to be stable —
-normally the last eight to thirteen weeks — and say which period was used. A days-of-
-supply figure built on a single festive week is meaningless.
+normally the last eight to thirteen weeks — and say which period was used. A DOI figure
+built on a single festive week is meaningless.
 
-## Reading stock cover
+## Reading stock cover (DOI bands)
 
-| Days of supply | Meaning | Action |
+| DOI (days) | Meaning | Action |
 |---|---|---|
 | Under 15 | Under-stocked, out-of-stock risk | Push replenishment; check fill rate and lead time |
 | 15 to 45 | Healthy | Hold |
@@ -103,7 +114,7 @@ availability loss to demand produces the wrong action plan.
 
 ## Channel loading
 
-The pattern: primary sales rise, offtake stays flat, days of supply rise. Stock is
+The pattern: primary sales rise, offtake stays flat, DOI rises. Stock is
 being pushed into the trade faster than consumers take it out.
 
 Report it as a risk, not as growth. Quantify three things: the excess stock above the
@@ -154,8 +165,8 @@ entrenches whatever imbalance already exists.
 - Do not present an attractive artifact as evidence that the underlying analysis is
   correct.
 - Preserve traceability from conclusions to supplied data or stated assumptions.
-- Never recommend a primary push on a chain whose days of supply already exceed the
-  healthy band, whatever the target position.
+- Never recommend a primary push on a chain whose DOI already exceeds its agreed cover
+  or the healthy band, whatever the target position.
 - Never report an average cover without its distribution.
 - Never treat a stock-out and a demand decline as the same event.
 - State the as-of date of every stock figure. Stock is a point-in-time measure and is

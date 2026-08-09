@@ -13,15 +13,15 @@ is a generated artifact.
 ```
 skill-suite/
 ├── manifest.json                  versions, dependencies, handoffs, checksums, targets
-├── skills/                        the seven canonical skills
+├── skills/                        the eight canonical skills
 ├── scripts/
 │   ├── validate_skills.py         all validation gates
 │   └── sync_skills.py             install, check, drift protection, receipts
-├── tests/                         35 tests over the validator and the pipeline
+├── tests/                         37 tests over the validator and the pipeline
 └── docs/portable-prompts.md       condensed prompts for Claude Projects and ChatGPT
 ```
 
-## The seven skills
+## The eight skills
 
 | Skill | Owns | Hands off when |
 |---|---|---|
@@ -30,10 +30,21 @@ skill-suite/
 | `demand-inventory-planning` | Stock cover, sell-through, replenishment, forecast, targets | The constraint is demand rather than supply |
 | `executive-commercial-storytelling` | Narrative, slide architecture, deck construction | The underlying finding or any figure is not yet established |
 | `business-ai-automation` | SQL, pandas, Power BI, Excel, automation and AI workflows | Interpretation or certification is required |
+| `retail-execution-tracking` | Merchandising compliance, contests, promoters, DMS ops, master data | The question becomes what the gap is worth |
 | `professional-growth-coach` | Learning plans, working rhythm, prioritisation, decisions, career | The question becomes an MT business question |
 | `agent-skill-governance` | The template, the manifest, validation gates, the sync pipeline | Domain content or production code is involved |
 
-Depth sits in `references/*.md` inside each skill and loads on demand.
+Depth sits in `references/*.md` inside each skill and loads on demand. Three shared
+references carry the organisation's own constants and are cited from several skills:
+
+| Reference | Holds |
+|---|---|
+| `modern-trade-sales-growth/references/org-context.md` | Brands, chain list, metric vocabulary (NSV, ASP, **DOI**, L3M, TDP), standard flow, KPI and slicer defaults, legacy agent-name mapping |
+| `modern-trade-sales-growth/references/exception-thresholds.md` | Numeric exception thresholds, ownership map, offtake-decline confirms, primary-vs-offtake reading |
+| `executive-commercial-storytelling/references/house-style.md` | Deck conventions, executive-summary cap, sentence patterns, action table, email and WhatsApp rules, OKR columns |
+
+This organisation says **DOI**, not "days of supply", and **ASP**, not "realisation per
+unit". Use its terms in output.
 
 ## How they chain
 
@@ -49,8 +60,11 @@ raw MT data ─────┼── business-ai-automation ── the query, sc
                         why, and what it's worth        how it reaches leadership
 ```
 
-`agent-skill-governance` sits outside the chain and governs the suite itself.
-`professional-growth-coach` is personal rather than commercial and does not participate.
+`retail-execution-tracking` feeds the chain from the store side: it measures whether what
+was agreed with a chain actually happened, and hands the rupee sizing to
+`modern-trade-sales-growth`. `agent-skill-governance` sits outside the chain and governs
+the suite itself. `professional-growth-coach` is personal rather than commercial and does
+not participate.
 
 ## Commands
 
@@ -74,6 +88,14 @@ python skill-suite/scripts/sync_skills.py --install --target user-claude --force
 
 # tests
 python -m unittest discover -s skill-suite/tests -v
+```
+
+Enable the pre-commit gate once per clone. It runs validation, the tests and a drift
+check on both project targets, and only when a commit touches `skill-suite/` or an
+installed target:
+
+```bash
+git config core.hooksPath .githooks
 ```
 
 Targets: `project-codex` → `.agents/skills`, `project-claude` → `.claude/skills`,

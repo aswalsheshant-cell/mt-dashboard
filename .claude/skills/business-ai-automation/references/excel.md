@@ -62,11 +62,29 @@ A result above 1 means the lookup table has duplicates and every result is suspe
 ```excel
 =IFERROR((C2-B2)/ABS(B2), "NA")                                  growth, signed
 =IFERROR(C2/SUM($C$2:$C$200), 0)                                 contribution
-=RANK.EQ(C2, $C$2:$C$200)                                        overall rank
+=COUNTIFS($C$2:$C$200, ">"&C2)+1                                 rank — use this one
 =SUMPRODUCT((Zone=$A2)*(Value>C2))+1                             rank within a zone
+=RANK.EQ(C2, $C$2:$C$200)                                        avoid on dynamic data
 ```
 
 `ABS()` in the growth denominator keeps the sign correct when the base is negative.
+
+**Use the COUNTIFS method for ranking, not `RANK.EQ`.** On a range that grows each month
+`RANK.EQ` silently misranks when rows are added outside its fixed reference, and it
+handles ties by leaving gaps that break a top-N filter. COUNTIFS re-evaluates against
+whatever is currently in the range and is easier to extend with a second criterion.
+
+### L3M average — the standard smoothed base
+
+```excel
+=IFERROR(AVERAGE(OFFSET(D2,0,-3,1,3)), "NA")     last three columns, avoid: volatile
+=AVERAGEIFS(Offtake[Value], Offtake[Chain], $A2,
+            Offtake[Month], ">="&EDATE($B$1,-3),
+            Offtake[Month], "<"&$B$1)             preferred: non-volatile, auditable
+```
+
+L3M is this organisation's standard comparison base alongside MoM and YoY. Prefer the
+`AVERAGEIFS` form — `OFFSET` is volatile and recalculates on every keystroke.
 
 ### Fiscal year and month order
 
@@ -120,6 +138,20 @@ Rows in / rows out    =ROWS(Raw) & " / " & ROWS(Output)
 
 A file without a QC block is not finished. The status cell is the thing another person
 looks at before using the numbers.
+
+## Working habits with raw MT files
+
+- **Keep raw data headers exactly as received.** Every mapping, formula and Power Query
+  step binds to them. Rename in the working layer, never in the raw layer.
+- **Never delete total rows from a source extract.** They are the reconciliation check —
+  exclude them from calculations with a filter or a flag column instead, so the source
+  total remains available to tie against.
+- **Force a full recalculation before sharing**: `Ctrl+Alt+F9`. A file that looks right
+  on screen can be showing cached results, and `F9` alone does not rebuild dependencies.
+- Refresh Power Query and pivots before reading any number off the output tab, and note
+  the refresh time in the header.
+- Paste as values only into an explicitly named snapshot sheet, never over a live
+  formula column.
 
 ## What not to do
 

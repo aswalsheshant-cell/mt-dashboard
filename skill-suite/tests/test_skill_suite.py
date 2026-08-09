@@ -96,9 +96,33 @@ class TestRealSuite(unittest.TestCase):
         report = validator.validate(SUITE_ROOT)
         self.assertEqual([f.render() for f in report.errors], [])
 
-    def test_suite_has_seven_skills(self):
+    def test_skill_count_matches_manifest(self):
+        """Skill directories and manifest entries stay in lockstep as the suite grows."""
         report = validator.validate(SUITE_ROOT)
-        self.assertEqual(len(report.skills), 7)
+        manifest = json.loads((SUITE_ROOT / "manifest.json").read_text())
+        self.assertEqual(len(report.skills), len(manifest["skills"]))
+        self.assertGreaterEqual(len(report.skills), 8)
+
+    def test_org_context_reference_exists_and_is_cited(self):
+        """The shared vocabulary file must exist and be reachable from the MT skills."""
+        org = SUITE_ROOT / "skills" / "modern-trade-sales-growth" / "references" / "org-context.md"
+        self.assertTrue(org.is_file())
+        text = org.read_text(encoding="utf-8")
+        for term in ("DOI", "ASP", "L3M", "TDP", "Nykaa", "Apollo", "Lulu", "Wellness"):
+            self.assertIn(term, text, f"org-context.md is missing {term}")
+
+        citing = ["demand-inventory-planning", "business-ai-automation",
+                  "executive-commercial-storytelling", "retail-execution-tracking"]
+        for name in citing:
+            body = (SUITE_ROOT / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("org-context.md", body, f"{name} does not cite org-context.md")
+
+    def test_exception_thresholds_and_ownership_are_present(self):
+        ref = (SUITE_ROOT / "skills" / "modern-trade-sales-growth"
+               / "references" / "exception-thresholds.md").read_text(encoding="utf-8").lower()
+        for token in ("-10 %", "90 %", "zero billing", "nkam", "trade marketing",
+                      "quick confirm", "analyst (self)"):
+            self.assertIn(token, ref, f"exception-thresholds.md is missing {token}")
 
     def test_every_skill_has_a_manifest_entry_and_vice_versa(self):
         manifest = json.loads((SUITE_ROOT / "manifest.json").read_text())

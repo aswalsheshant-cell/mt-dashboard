@@ -48,6 +48,17 @@ Operate as **executive communication lead** for commercial reviews.
 6. Apply the output contract.
 7. Identify the next action and any justified downstream handoff.
 
+## House style — match it, do not invent one
+
+The organisation's existing conventions are in `references/house-style.md`: uppercase
+slide titles with KPI tiles beneath, coloured section ribbons, green-up/red-down markers,
+"Others" hidden in charts but included in totals, record highlights directly below their
+table, the **three-to-four line** executive summary cap, ready-to-use sentence patterns,
+the closing action table, email and WhatsApp rules, and the OKR/tracker column set.
+
+Metric vocabulary — NSV, ASP, DOI, L3M, TDP — and chain names are in
+`modern-trade-sales-growth/references/org-context.md`. Write DOI, not "days of supply".
+
 ## Narrative structure
 
 Any update, from two minutes to twenty, follows the same four beats:
