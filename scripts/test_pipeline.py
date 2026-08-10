@@ -448,15 +448,19 @@ class TestDataJSRegression:
             f"monthly sum {monthly_sum} != total {fp['nsv']}")
 
     def test_primary_fy25_fy26_unchanged(self, dash):
-        """Pre-aggregated Primary FY25/FY26 values must not change.
+        """Pre-aggregated Primary FY25/FY26 totals must not change.
 
-        Note: FY25 updated to 22576 after Central zone extraction (MP, CG, Vidharbha).
-        This is intentional zone reorganization, not a regression.
-        FY26 remains 32900 (32900.36 rounded).
+        Central zone (MP, CG, Vidarbha) is split out of by_zone for FY26 only
+        (source-verified against Primary_Article_Monthly CSVs, which sum to
+        32900.36 for FY26). FY25 has no available raw source in this repo
+        (primary.xlsx / a Apr'24-Mar'25 feed isn't present) to safely split
+        Central out of, so nsv_fy25/by_zone/by_brand/by_channel/monthly_fy25
+        all stay at the original, source-backed 5-zone total until that file
+        is supplied. by_zone['Central'].fy25 is null pending that.
         """
         p = dash.get("primary", {})
-        assert p.get("nsv_fy25") == 22576
-        assert p.get("nsv_fy26") == 32900
+        assert p.get("nsv_fy25") == 23331.97
+        assert p.get("nsv_fy26") == 32900.36
 
     # ── months_canon / monthly_canon tests ──
 
