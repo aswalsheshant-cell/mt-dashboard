@@ -19,8 +19,8 @@ EXPECTED_JUNE_FB_KEYS   = 48        # unique (ShipTo × Brand) keys that used fa
 EXPECTED_MAY_KEYS       = 45        # keys whose effective source period was 2026-05
 EXPECTED_MAR_KEYS       = 2         # keys whose effective source period was 2026-03
 EXPECTED_APR_KEYS       = 1         # keys whose effective source period was 2026-04
-EXPECTED_FY27_NSV       = 13659.98  # ₹ Lakh — must not change
-EXPECTED_FY27_BY_CHAIN_TOTAL = 13659.98  # sum of by_chain NSVs ≈ FY27 total
+EXPECTED_FY27_NSV       = 18581.29  # ₹ Lakh — Apr–Jul 2026 (updated when July integrated)
+EXPECTED_FY27_BY_CHAIN_TOTAL = 18581.29  # sum of by_chain NSVs ≈ FY27 total
 NSV_TOL                 = 0.5       # ₹ Lakh tolerance for floating-point rounding
 
 
@@ -66,8 +66,8 @@ class TestJuneFallbackFields:
     def test_june_fallback_pct_of_fy27_reasonable(self, alloc):
         pct = alloc["june_fallback_pct_of_fy27"]
         assert pct is not None, "june_fallback_pct_of_fy27 is None"
-        # ₹1376.64 L / ₹13659.98 L ≈ 10.1%
-        assert 8 < pct < 15, f"june_fallback_pct_of_fy27={pct} outside expected range 8–15%"
+        # ₹1376.64 L / ₹18581.29 L ≈ 7.4% (denominator grows as months are added)
+        assert 5 < pct < 15, f"june_fallback_pct_of_fy27={pct} outside expected range 5–15%"
 
     def test_june_fallback_source_present(self, alloc):
         assert "june_fallback_source" in alloc, "june_fallback_source missing from alloc"
@@ -183,19 +183,19 @@ class TestNoValueChange:
     def test_dmart_nsv_unchanged(self, fy27):
         by_chain = {c["name"]: c["nsv"] for c in fy27.get("by_chain", [])}
         assert "Dmart" in by_chain, "Dmart missing from by_chain"
-        assert abs(by_chain["Dmart"] - 5488.97) < NSV_TOL, (
+        assert abs(by_chain["Dmart"] - 6792.66) < NSV_TOL, (
             f"Dmart NSV={by_chain['Dmart']} changed"
         )
 
     def test_reliance_nsv_unchanged(self, fy27):
         by_chain = {c["name"]: c["nsv"] for c in fy27.get("by_chain", [])}
         assert "Reliance Retail" in by_chain
-        assert abs(by_chain["Reliance Retail"] - 3050.94) < NSV_TOL
+        assert abs(by_chain["Reliance Retail"] - 4711.19) < NSV_TOL
 
     def test_apollo_nsv_unchanged(self, fy27):
         by_chain = {c["name"]: c["nsv"] for c in fy27.get("by_chain", [])}
         assert "Apollo" in by_chain
-        assert abs(by_chain["Apollo"] - 2588.79) < NSV_TOL
+        assert abs(by_chain["Apollo"] - 3317.15) < NSV_TOL
 
     def test_chain_alloc_note_present_in_fy27(self, fy27):
         note = fy27.get("chain_alloc_note", "")

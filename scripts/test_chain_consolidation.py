@@ -144,7 +144,7 @@ class TestDataJsRegression:
 
     def test_fyx_primary_fy27_value(self, dash):
         fp = dash["detail_meta"]["fyx_primary"]["FY27"]
-        assert abs(fp["nsv"] - 13659.98) < 2.0
+        assert abs(fp["nsv"] - 18581.29) < 2.0
 
     def test_tot_blended_preserved(self, dash):
         assert dash["tot"]["blended_tot_pct"] == 50.0

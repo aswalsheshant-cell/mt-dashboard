@@ -465,8 +465,8 @@ class TestDataJSRegression:
         if not fp:
             pytest.skip("No FY27 primary data")
         assert "months_canon" in fp, "months_canon missing from FY27 fyx_primary"
-        assert fp["months_canon"] == ["Apr-26", "May-26", "Jun-26"], (
-            f"months_canon={fp['months_canon']} expected ['Apr-26','May-26','Jun-26']"
+        assert fp["months_canon"] == ["Apr-26", "May-26", "Jun-26", "Jul-26"], (
+            f"months_canon={fp['months_canon']} expected ['Apr-26','May-26','Jun-26','Jul-26']"
         )
 
     def test_primary_fy27_months_canon_matches_monthly_canon(self, dash):
@@ -608,16 +608,28 @@ class TestDataJSRegression:
         )
 
     def test_months_canon_labels_in_offtake_months(self, dash):
-        """months_canon labels must be present in offtake months (for overview chart join)."""
+        """months_canon labels that fall within the offtake coverage window must be present
+        in offtake months (for overview chart join). Months beyond the last offtake month
+        are expected to be absent — primary arrives before offtake is reconciled."""
         fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
         o = dash.get("offtake", {})
         if not fp or not fp.get("months_canon"):
             pytest.skip("No months_canon or no FY27 primary")
-        offtake_months = set(o.get("months", []))
-        missing = [m for m in fp["months_canon"] if m not in offtake_months]
+        offtake_months = o.get("months", [])
+        if not offtake_months:
+            pytest.skip("No offtake months")
+        _mon3 = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,
+                 "Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+        def _mkey(m):
+            mon, yr = m.split("-")
+            return (int(yr), _mon3.get(mon, 0))
+        last_offtake_key = _mkey(offtake_months[-1])
+        offtake_set = set(offtake_months)
+        in_window = [m for m in fp["months_canon"] if _mkey(m) <= last_offtake_key]
+        missing = [m for m in in_window if m not in offtake_set]
         assert not missing, (
-            f"months_canon labels {missing} not found in offtake months — "
-            "overview chart join will produce null values"
+            f"months_canon labels {missing} within offtake window (≤{offtake_months[-1]}) "
+            "not found in offtake months — overview chart join will produce null values"
         )
 
 
