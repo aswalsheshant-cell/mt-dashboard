@@ -1285,6 +1285,10 @@ function buildForecast(){
      is shown below, but the full-year total could not be derived. Achievement % vs annual plan
      cannot be displayed until the file is re-verified and <code>--forecast-only</code> is re-run.
    </div>`:'';
+  // ── detail section (Sep–Nov brand/chain breakdown from Excel) ───────────
+  const det=f.detail||null;
+  const detHtml=det?_buildFcDetail(det):'';
+
   s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''}</h2>
    <p class="lead">${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
    ${dimNote}
@@ -1296,12 +1300,99 @@ function buildForecast(){
    </div>
    ${card(`Offtake — actuals &amp; FY26-27 ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
    ${card('Method',f.method,isTY?'':'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}
+   ${detHtml}
    ${catDrillCardHtml('fcCatDrill')}`;
   const histLen=f.hist.length;
   mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
     {label:'Actual offtake',data:[...f.hist,...Array(f.fc.length).fill(null)],borderColor:C.teal,backgroundColor:C.teal+'22',fill:true},
     {label:isTY?'TY Target FY26-27':'Forecast FY26-27',data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
+  if(det) _buildFcDetailCharts(det);
   renderCatDrillChart('fcCatDrill',recFilter());
+}
+
+function _buildFcDetail(det){
+  const mos=det.months||[];
+  const moLabels=mos.map(m=>m.replace('-',' '));
+  const statusBadge=s=>s==='PASS'?`<span style="color:#2e7d32;font-weight:600">&#10003; PASS</span>`
+    :`<span style="color:#c62828;font-weight:600">&#9888; ${s}</span>`;
+  const st=det.status||{};
+
+  // Brand table rows
+  const brandRows=(det.by_brand||[]).map(b=>{
+    const monCols=mos.map(mo=>`<td style="text-align:right">${crc(b[mo.replace('-','_').toLowerCase()]||0)}</td>`).join('');
+    return `<tr><td>${b.name}</td>${monCols}<td style="text-align:right"><b>${crc(b.total)}</b></td></tr>`;
+  }).join('');
+  const brandHeader=mos.map(m=>`<th style="text-align:right">${m}</th>`).join('');
+
+  // Chain table rows (top 10)
+  const chainRows=(det.by_chain||[]).slice(0,10).map(c=>{
+    const monCols=mos.map(mo=>`<td style="text-align:right">${crc(c[mo.replace('-','_').toLowerCase()]||0)}</td>`).join('');
+    return `<tr><td>${c.name}</td>${monCols}<td style="text-align:right"><b>${crc(c.total)}</b></td></tr>`;
+  }).join('');
+
+  // Monthly totals footer
+  const totCols=mos.map((mo,i)=>`<td style="text-align:right"><b>${crc(det.monthly_forecast[i])}</b></td>`).join('');
+
+  // Status row
+  const statusRow=`
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.5rem;font-size:.85rem">
+      <span>Reconciliation: ${statusBadge(st.reconciliation||'–')}</span>
+      <span>Owner mapping: ${statusBadge(st.owner_mapping||'–')}</span>
+      <span>NPI evidence: ${statusBadge(st.npi_evidence||'–')}</span>
+      <span style="color:#555">Source: ${det.source||''} · ${det.source_date||''}</span>
+    </div>`;
+
+  return `
+   <h3 class="sec" style="margin-top:1.5rem">Bottom-up Forecast: Sep–Nov 2026 (Q2+Q3 FY27)</h3>
+   <p class="lead" style="font-size:.9rem">${det.note||''}</p>
+   ${statusRow}
+   <div class="kpis" style="margin-bottom:1rem">
+     ${kpi('Q2+Q3 Target',crc(det.q2_q3_total),'Sep + Oct + Nov 2026')}
+     ${kpi('Brands covered',(det.by_brand||[]).length,'multi-brand plan')}
+     ${kpi('Chains covered',(det.by_chain||[]).length,'MT chain scope')}
+   </div>
+   ${card('Brand-wise target allocation (₹ Lakhs)','Target-aligned; Forecast = Target by design in this model',
+     `${cv('fcBrandChart')}<div class="tablewrap"><table>
+       <thead><tr><th>Brand</th>${brandHeader}<th style="text-align:right">Total</th></tr></thead>
+       <tbody>${brandRows}</tbody>
+       <tfoot><tr><td><b>Total</b></td>${totCols}<td style="text-align:right"><b>${crc(det.q2_q3_total)}</b></td></tr></tfoot>
+     </table></div>`)}
+   ${card('Chain-wise target allocation — top 10 (₹ Lakhs)','Preliminary; NKAM/RKAM mapping pending',
+     `${cv('fcChainChart')}<div class="tablewrap"><table>
+       <thead><tr><th>Chain</th>${brandHeader}<th style="text-align:right">Total</th></tr></thead>
+       <tbody>${chainRows}</tbody>
+     </table></div>`)}`;
+}
+
+function _buildFcDetailCharts(det){
+  const mos=det.months||[];
+  const moLabels=mos.map(m=>m.replace('-',' '));
+  const brandColors=[C.teal,C.amber,'#9c27b0','#e91e63','#ff5722'];
+
+  // Stacked bar: Brand × Month
+  const brandDatasets=(det.by_brand||[]).map((b,i)=>({
+    label:b.name,
+    data:mos.map(mo=>b[mo.replace('-','_').toLowerCase()]||0),
+    backgroundColor:(brandColors[i]||'#999')+'cc',
+    borderColor:brandColors[i]||'#999',borderWidth:1
+  }));
+  const bCtx=document.getElementById('fcBrandChart');
+  if(bCtx&&typeof Chart!=='undefined'){
+    new Chart(bCtx,{type:'bar',data:{labels:moLabels,datasets:brandDatasets},
+      options:{responsive:true,plugins:{legend:{position:'bottom'}},
+        scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>crc(v)}}}}});
+  }
+
+  // Horizontal bar: Chain totals
+  const cNames=(det.by_chain||[]).slice(0,10).map(c=>c.name);
+  const cTotals=(det.by_chain||[]).slice(0,10).map(c=>c.total);
+  const cCtx=document.getElementById('fcChainChart');
+  if(cCtx&&typeof Chart!=='undefined'){
+    new Chart(cCtx,{type:'bar',data:{labels:cNames,
+      datasets:[{label:'3-month target',data:cTotals,backgroundColor:C.teal+'bb',borderColor:C.teal,borderWidth:1}]},
+      options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{callback:v=>crc(v)}}}}});
+  }
 }
 
 /* ---------------- MARKET SHARE ---------------- */

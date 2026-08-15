@@ -1993,7 +1993,184 @@ window.DASH = {
   "fy26_actual": 31082.0,
   "fy27_forecast": 44132.86,
   "growth_assumption_pct": 42.0,
-  "method": "FY26-27 = the business's own TY (This Year) target (FY2627_TGT_and_sales_team_mapping.xlsx, Sheet1), NOT a seasonally-projected estimate. Total FY26-27 target = Rs 441.33 Cr (Power BI's Forecast page uses this same TY target file -- PowerBI/docs/PageLayouts.md Page 5)."
+  "method": "FY26-27 = the business's own TY (This Year) target (FY2627_TGT_and_sales_team_mapping.xlsx, Sheet1), NOT a seasonally-projected estimate. Total FY26-27 target = Rs 441.33 Cr (Power BI's Forecast page uses this same TY target file -- PowerBI/docs/PageLayouts.md Page 5).",
+  "detail": {
+   "months": [
+    "Sep-26",
+    "Oct-26",
+    "Nov-26"
+   ],
+   "monthly_forecast": [
+    4008.0,
+    3003.78,
+    3694.92
+   ],
+   "monthly_target": [
+    4008.0,
+    3003.78,
+    3694.92
+   ],
+   "q2_q3_total": 10706.7,
+   "by_brand": [
+    {
+     "name": "Mamaearth",
+     "total": 7758.48,
+     "sep_26": 2788.94,
+     "oct_26": 2059.61,
+     "nov_26": 2909.94
+    },
+    {
+     "name": "The Derma Co",
+     "total": 2789.6,
+     "sep_26": 1167.39,
+     "oct_26": 904.52,
+     "nov_26": 717.69
+    },
+    {
+     "name": "Aqualogica",
+     "total": 138.91,
+     "sep_26": 47.22,
+     "oct_26": 36.23,
+     "nov_26": 55.46
+    },
+    {
+     "name": "BBlunt",
+     "total": 12.32,
+     "sep_26": 2.11,
+     "oct_26": 1.62,
+     "nov_26": 8.6
+    },
+    {
+     "name": "Dr. Sheth's",
+     "total": 7.39,
+     "sep_26": 2.35,
+     "oct_26": 1.8,
+     "nov_26": 3.23
+    }
+   ],
+   "by_chain": [
+    {
+     "name": "Dmart",
+     "total": 3865.12,
+     "sep_26": 1362.04,
+     "oct_26": 1042.51,
+     "nov_26": 1460.57
+    },
+    {
+     "name": "Reliance Retail",
+     "total": 2763.04,
+     "sep_26": 1093.61,
+     "oct_26": 769.16,
+     "nov_26": 900.27
+    },
+    {
+     "name": "Apollo",
+     "total": 2102.83,
+     "sep_26": 766.37,
+     "oct_26": 581.32,
+     "nov_26": 755.14
+    },
+    {
+     "name": "Lulu Hyper",
+     "total": 498.54,
+     "sep_26": 224.53,
+     "oct_26": 178.55,
+     "nov_26": 95.46
+    },
+    {
+     "name": "Eb2B",
+     "total": 290.12,
+     "sep_26": 164.16,
+     "oct_26": 125.96,
+     "nov_26": 0.0
+    },
+    {
+     "name": "Wellness Forever",
+     "total": 273.68,
+     "sep_26": 87.77,
+     "oct_26": 67.34,
+     "nov_26": 118.57
+    },
+    {
+     "name": "RMT-Sancus",
+     "total": 192.55,
+     "sep_26": 68.56,
+     "oct_26": 52.61,
+     "nov_26": 71.38
+    },
+    {
+     "name": "H&G",
+     "total": 191.01,
+     "sep_26": 63.17,
+     "oct_26": 49.92,
+     "nov_26": 77.92
+    },
+    {
+     "name": "Metro C&C",
+     "total": 150.32,
+     "sep_26": 50.56,
+     "oct_26": 38.79,
+     "nov_26": 60.97
+    },
+    {
+     "name": "Vishal Mega Mart",
+     "total": 124.11,
+     "sep_26": 50.53,
+     "oct_26": 38.77,
+     "nov_26": 34.82
+    },
+    {
+     "name": "More Retail",
+     "total": 115.68,
+     "sep_26": 38.39,
+     "oct_26": 29.45,
+     "nov_26": 47.85
+    },
+    {
+     "name": "Walmart",
+     "total": 46.65,
+     "sep_26": 13.4,
+     "oct_26": 10.28,
+     "nov_26": 22.97
+    },
+    {
+     "name": "V-Mart",
+     "total": 45.32,
+     "sep_26": 9.53,
+     "oct_26": 7.32,
+     "nov_26": 28.48
+    },
+    {
+     "name": "Spencer",
+     "total": 28.65,
+     "sep_26": 8.83,
+     "oct_26": 6.78,
+     "nov_26": 13.05
+    },
+    {
+     "name": "Trent",
+     "total": 17.85,
+     "sep_26": 6.18,
+     "oct_26": 4.74,
+     "nov_26": 6.93
+    },
+    {
+     "name": "WH-Smith",
+     "total": 1.23,
+     "sep_26": 0.38,
+     "oct_26": 0.29,
+     "nov_26": 0.56
+    }
+   ],
+   "status": {
+    "reconciliation": "PASS",
+    "owner_mapping": "BLOCKED",
+    "npi_evidence": "BLOCKED"
+   },
+   "source": "Dynamic_Multi_Brand_Forecast_Sep_Nov_2026.xlsx",
+   "source_date": "2026-08-02",
+   "note": "Target-aligned bottom-up forecast for Q2+Q3 FY27 (Sep–Nov 2026). Brand allocation derived from system forecast value share; chain allocation is distributor-plan-based. Owner (NKAM/RKAM) mapping is pending — chain and zone splits are preliminary."
+  }
  },
  "insights": [
   {
