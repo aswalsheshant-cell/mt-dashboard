@@ -57,13 +57,13 @@ class TestBrandCounterDisclosure:
             "reliance_bc.data_complete_through should not be None when months are loaded"
         )
 
-    def test_bc_data_complete_through_is_may26_or_later(self, bc):
-        """When Jun-26 source is absent, last covered month must be May-26."""
-        june_file = OFFTAKE_DIR / "offtake_store_article_Jun_26.csv"
-        if not june_file.exists():
-            assert bc["data_complete_through"] == "May-26", (
-                f"Jun-26 source absent but data_complete_through = {bc['data_complete_through']!r}; "
-                f"expected 'May-26'"
+    def test_bc_data_complete_through_matches_last_loaded_month(self, bc):
+        """data_complete_through must equal the last month actually present in bc.months."""
+        months = bc.get("months", [])
+        if months:
+            assert bc["data_complete_through"] == months[-1], (
+                f"data_complete_through={bc['data_complete_through']!r} "
+                f"but last bc month is {months[-1]!r}"
             )
 
     def test_bc_june_status_field_present(self, bc):
