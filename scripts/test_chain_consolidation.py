@@ -157,8 +157,8 @@ class TestDataJsRegression:
     def test_bc_excluded(self, dash):
         bc = dash.get("reliance_bc", {})
         assert bc.get("include_in_overall_offtake") is False
-        # Updated 2026-08-15: July-26 BC integrated → Apr+May+Jul = 1389.49 L
-        assert abs(bc.get("total", 0) - 1389.49) < 1.0
+        # Updated 2026-08-15: Full BC history (Jan-24 to Jul-26) from dedicated RBC xlsb
+        assert abs(bc.get("total", 0) - 9186.08) < 5.0
 
     def test_fyx_primary_fy27_value(self, dash):
         fp = dash["detail_meta"]["fyx_primary"]["FY27"]
