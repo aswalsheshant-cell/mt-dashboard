@@ -94,6 +94,20 @@ class TestChainAliases:
     def test_trent(self):
         assert bd.canon_chain("Trent Hypermarket") == "Trent"
 
+    def test_spencer_variants(self):
+        assert bd.canon_chain("Spencers") == "Spencer"
+        assert bd.canon_chain("Spencer") == "Spencer"
+        assert bd.canon_chain("Spencer's") == "Spencer"
+
+    def test_frankross_variants(self):
+        assert bd.canon_chain("Frank Ross") == "Frankross"
+        assert bd.canon_chain("Frankross") == "Frankross"
+        assert bd.canon_chain("frankros") == "Frankross"
+
+    def test_sasta_sundar_variants(self):
+        assert bd.canon_chain("sastasundar") == "Sasta Sundar"
+        assert bd.canon_chain("Sasta Sunder") == "Sasta Sundar"
+
     def test_arambagh(self):
         assert bd.canon_chain("Aarambagh food mart") == "Arambagh"
 
