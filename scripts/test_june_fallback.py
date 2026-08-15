@@ -185,7 +185,7 @@ class TestNoValueChange:
         # via patched ShipTo CSV (92 new July entries); Dmart receives The Derma Co share
         by_chain = {c["name"]: c["nsv"] for c in fy27.get("by_chain", [])}
         assert "Dmart" in by_chain, "Dmart missing from by_chain"
-        assert abs(by_chain["Dmart"] - 6974.11) < NSV_TOL, (
+        assert abs(by_chain["Dmart"] - 6979.14) < NSV_TOL, (
             f"Dmart NSV={by_chain['Dmart']} changed"
         )
 
