@@ -900,27 +900,26 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                 by_chain_idx[chain] = row
             new_val = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag))
             if kept_months:
-                # Preserve existing value contribution from kept months.
-                # Existing row value covers ALL months of this FY, so we need
-                # to subtract the old value for the months we ARE replacing and
-                # add the new value. But we don't have per-month chain breakdowns
-                # in existing data, so for kept months the old total stands and
-                # we add only the new months' contribution.
                 old_total = existing_chain_vals.get(chain, 0.0)
-                # old_total covered existing_months; new source covers new_months_of_tag.
-                # For months in both, new source wins; for kept months, old value stays.
-                # Since we can't decompose old_total by month, approximate:
-                # if existing had only the kept months' worth, keep it and add new.
-                # But if existing also had the new months, we'd double-count.
-                # Safe approach: if existing_months overlaps new_months_of_tag, just use new.
-                overlap = set(existing_months) & new_month_set
-                if overlap:
-                    row[lo] = new_val
+                # old_total covers existing_months (e.g. Apr+May+Jun).
+                # new source covers new_months_of_tag (e.g. Apr+May+Jul).
+                # overlap = months in both (e.g. Apr+May).
+                # truly_new = months in new source not yet in existing (e.g. Jul).
+                # Correct: old_total already includes overlap months; just add truly_new.
+                # (Re-adding new_val directly would double-count the overlap months.)
+                truly_new = set(new_months_of_tag) - set(existing_months)
+                if truly_new:
+                    truly_new_val = r2(sum(v for mo, v in months.items() if mo in truly_new))
+                    row[lo] = r2(old_total + truly_new_val)
                 else:
-                    row[lo] = r2(old_total + new_val)
+                    # New source has no months beyond existing — replace with new_val
+                    # (source is more up-to-date for the same month window).
+                    row[lo] = new_val
             else:
                 row[lo] = new_val
-        zone_totals = {}
+        zone_truly_new_totals = {}   # Jul-only zone increments (for kept_months path)
+        zone_full_totals = {}        # Full zone sums (for no-kept-months path)
+        _truly_new_months = set(new_months_of_tag) - set(existing_months)
         for (zone, state), months in zsm.items():
             v = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag)) or 0.0
             srow = by_state_idx.get((zone, state))
@@ -930,15 +929,28 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                 by_state_idx[(zone, state)] = srow
             if kept_months:
                 old_sv = existing_state_vals.get((zone, state), 0.0)
-                overlap = set(existing_months) & new_month_set
-                if overlap:
-                    srow[lo] = v
+                if _truly_new_months:
+                    truly_new_sv = r2(sum(v for mo, v in months.items() if mo in _truly_new_months)) or 0.0
+                    srow[lo] = r2(old_sv + truly_new_sv)
+                    zone_truly_new_totals[zone] = zone_truly_new_totals.get(zone, 0.0) + truly_new_sv
                 else:
-                    srow[lo] = r2(old_sv + v)
+                    srow[lo] = v
+                    zone_full_totals[zone] = zone_full_totals.get(zone, 0.0) + (srow.get(lo) or 0.0)
             else:
                 srow[lo] = v
-            zone_totals[zone] = zone_totals.get(zone, 0.0) + (srow.get(lo) or 0.0)
-        for zone, v in zone_totals.items():
+                zone_full_totals[zone] = zone_full_totals.get(zone, 0.0) + (srow.get(lo) or 0.0)
+        for zone, inc in zone_truly_new_totals.items():
+            # Add only the truly-new-months increment to the existing zone value.
+            # This preserves the existing zone total (which includes old months AND
+            # any rows where state was null/unmapped that are not in zsm).
+            zrow = by_zone_idx.get(zone)
+            if zrow is None:
+                zrow = {"name": zone}
+                offtake["by_zone"].append(zrow)
+                by_zone_idx[zone] = zrow
+            old_zone_val = existing_zone_vals.get(zone, 0.0)
+            zrow[lo] = r2(old_zone_val + inc)
+        for zone, v in zone_full_totals.items():
             zrow = by_zone_idx.get(zone)
             if zrow is None:
                 zrow = {"name": zone}

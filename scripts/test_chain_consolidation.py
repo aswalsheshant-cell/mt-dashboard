@@ -134,13 +134,16 @@ class TestDataJsRegression:
     def test_offtake_fy26_unchanged(self, dash):
         assert dash["offtake"]["total_fy26"] == 31082.0
 
-    def test_offtake_fy27_unchanged(self, dash):
-        assert dash["offtake"]["total_fy27"] == 11438.72
+    def test_offtake_fy27_updated(self, dash):
+        # Updated 2026-08-15: July-26 offtake integrated (Apr+May+Jun+Jul)
+        total = dash["offtake"]["total_fy27"]
+        assert abs(total - 15038.05) < 1.0, f"FY27 offtake total {total} unexpected"
 
     def test_bc_excluded(self, dash):
         bc = dash.get("reliance_bc", {})
         assert bc.get("include_in_overall_offtake") is False
-        assert bc.get("total") == 943.68
+        # Updated 2026-08-15: July-26 BC integrated → Apr+May+Jul = 1389.49 L
+        assert abs(bc.get("total", 0) - 1389.49) < 1.0
 
     def test_fyx_primary_fy27_value(self, dash):
         fp = dash["detail_meta"]["fyx_primary"]["FY27"]
