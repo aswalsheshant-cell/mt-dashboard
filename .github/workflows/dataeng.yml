@@ -33,6 +33,7 @@ jobs:
           python -m py_compile scripts/build_dashboard_data.py
           python -m py_compile scripts/load_forecast_detail.py
           python -m py_compile scripts/validate_forecast_excel.py
+          python -m py_compile scripts/load_promo_detail.py
 
       - name: Run pytest (pipeline + chain consolidation + June fallback + disclosures + forecast schema)
         run: pytest scripts/test_pipeline.py scripts/test_chain_consolidation.py scripts/test_june_fallback.py scripts/test_dashboard_disclosures.py scripts/test_forecast_schema.py -v
