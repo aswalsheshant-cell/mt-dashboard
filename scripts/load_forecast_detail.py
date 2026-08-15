@@ -21,6 +21,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_dashboard_data as bd
+import validate_forecast_excel as vfe
 
 # Chains that don't resolve via canon_chain — hand-map here
 _EXTRA_CHAIN = {"Rmt": "RMT-Sancus"}
@@ -59,6 +60,13 @@ def r2(v: float) -> float:
 
 
 def main(xlsx_path: str, out_path: str) -> None:
+    print(f"Validating {xlsx_path} …")
+    results = vfe.validate_file(xlsx_path)
+    vfe.print_report(xlsx_path, results)
+    fails = [r for r in results if r.level == vfe.FAIL]
+    if fails:
+        sys.exit(f"Schema validation failed ({len(fails)} FAIL item(s)) — aborting patch.")
+    print()
     print(f"Loading {xlsx_path} …")
     df = pd.read_excel(xlsx_path, sheet_name="Forecast_Database",
                        header=None, engine="openpyxl")
