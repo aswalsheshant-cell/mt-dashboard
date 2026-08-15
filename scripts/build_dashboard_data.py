@@ -157,7 +157,6 @@ CHAIN_ALIASES = [
     ("More Retail",       ["more", "more retail", "more "]),
     ("RMT-Sancus",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
     ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
-    ("VMM",               ["vmm", "vmm "]),
     ("Spencer",           ["spencer", "spencers", "spencer's"]),
     ("Guardian",          ["guardian", "gaurdian "]),
     ("Trent",             ["trent", "trent "]),
@@ -193,7 +192,7 @@ CHAIN_ALIASES = [
     ("Ratnadeep",         ["ratanadeep"]),
     ("RMT-Sancus",        ["sancus", "sancus networks-mt-reg."]),
     ("Arambagh",          ["aarambagh food mart"]),
-    ("Vishal Mega Mart",  ["vishal enterprises"]),
+    ("Vishal Mega Mart",  ["vishal enterprises", "vmm", "vmm "]),
     ("Lifestyle",         ["lifestyle babyshop"]),
     ("Dmart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart"]),
@@ -994,7 +993,7 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
 # EAN, so it extends to more months automatically.
 # --------------------------------------------------------------------------
 _CHAIN_FORMAT_BRIDGE = {   # offtake chain (canon) -> ChainMaster spelling, where canon differs
-    "H&G": "Health & Glow", "Spencer": "Spencers", "VMM": "Vishal Mega Mart",
+    "H&G": "Health & Glow", "Spencer": "Spencers",
 }
 def load_chain_formats(repo_root):
     """canon chain name -> format ('Chain Type' from PowerBI ChainMaster.csv)."""

@@ -80,6 +80,7 @@ class TestChainAliases:
 
     def test_vishal_mega_mart(self):
         assert bd.canon_chain("VISHAL ENTERPRISES") == "Vishal Mega Mart"
+        assert bd.canon_chain("VMM") == "Vishal Mega Mart"
 
     def test_hg_variants(self):
         assert bd.canon_chain("Health & Glow") == "H&G"
