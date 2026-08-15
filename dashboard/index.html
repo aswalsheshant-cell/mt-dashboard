@@ -1595,6 +1595,53 @@ function buildCategory(){
   // NOT the same article repeated once per chain. Drill into a Chain (chip or any
   // chart's click-to-drill) to see that chain's own unique-article ranking here.
   const topArt=uniqueBy(recs,'Article',['Category','SubCategory','Range','PackSize']).slice(0,20);
+
+  // ── category margin analysis ────────────────────────────────────────────────
+  const detCatMap=Object.fromEntries(((D.promo?.detail?.by_category)||[]).map(c=>[c.name,c.skus]));
+  const promoBrands=new Set((D.promo?.detail?.by_brand||[]).map(b=>b.name));
+  const catWaterfall=(D.tot?.by_category||[]).filter(c=>c.mrp>0).map(c=>({
+    name:c.name, mrp:c.mrp, nsv:c.nsv,
+    nsv_pct:+(c.nsv/c.mrp*100).toFixed(1),
+    tax_pct:+(c.tax/c.mrp*100).toFixed(1),
+    tot_pct:c.tot_pct,
+    promos:detCatMap[c.name]||0,
+    promoIntensity:c.nsv>0?+((detCatMap[c.name]||0)/c.nsv*100).toFixed(1):0,
+  })).sort((a,b)=>b.tot_pct-a.tot_pct);
+  const dilutiveArts=uniqueBy(recs,'Article',['Category','Brand'])
+    .filter(a=>a.NSV>=10&&a.MRP>0)
+    .map(a=>({...a,disc_pct:+((1-a.NSV/a.MRP)*100).toFixed(1),on_promo:promoBrands.has(a.Brand)}))
+    .sort((a,b)=>b.disc_pct-a.disc_pct).slice(0,20);
+  const _dilRows=dilutiveArts.map(a=>`<tr>
+    <td>${drillLink('Article',a.Article)}</td>
+    <td>${drillLink('Brand',a.Brand)}</td>
+    <td>${drillLink('Category',a.Category)}</td>
+    <td style="text-align:right">${crc(a.NSV)}</td>
+    <td style="text-align:right">${a.disc_pct}%</td>
+    <td style="text-align:center">${a.on_promo?'<span class="pill g">Promo</span>':'–'}</td></tr>`).join('');
+  const _catRoiRows=catWaterfall.map(c=>`<tr>
+    <td>${drillLink('Category',c.name)}</td>
+    <td style="text-align:right">${crc(c.nsv)}</td>
+    <td style="text-align:right">${c.nsv_pct}%</td>
+    <td style="text-align:right">${c.tot_pct}%</td>
+    <td style="text-align:right">${c.promos>0?num(c.promos):'–'}</td>
+    <td style="text-align:right">${c.promoIntensity>0?c.promoIntensity:'–'}</td></tr>`).join('');
+  const _mrgHtml=catWaterfall.length?`
+  <h3 class="sec" style="margin:28px 0 4px">Category Margin &amp; Promo ROI</h3>
+  <p class="lead">MRP splits into NSV% (Honasa revenue), Tax% (GST), and TOT% (channel offer). Higher TOT% = heavier channel investment. Promo intensity shows Aug-26 SKUs per ₹100L NSV — high intensity alongside high TOT% signals ROI risk.</p>
+  <div class="grid g2">
+    ${card('MRP revenue split by category','NSV% + Tax% + TOT% = 100% of face MRP — sorted by TOT% highest first',cv('catMrgWaterfall',true))}
+    ${card('Promo intensity (Aug-26)','Aug-26 SKU-promo lines per ₹100L NSV — higher = more promo-heavy relative to revenue',cv('catPromoIntensity',true))}
+  </div>
+  ${card('Category margin ROI matrix','Effective TOT%, NSV realised, and Aug-26 promo intensity per category.',`<div class="tablewrap"><table><thead><tr>
+      <th>Category</th><th>NSV (L)</th><th>NSV% of MRP</th><th>TOT%</th><th>Aug Promos</th><th>Promos/100L NSV</th>
+    </tr></thead><tbody>${_catRoiRows||'<tr><td colspan="6">No data.</td></tr>'}</tbody></table></div>`)}
+  ${dilutiveArts.length?card('Margin-dilutive articles — top 20 by gross discount%',
+    'Gross disc% = 1 − NSV/MRP (= TOT% + Tax%). Filtered to NSV ≥ ₹10L. Promo badge = brand in Aug-26 calendar.',
+    `<div class="tablewrap"><table><thead><tr>
+      <th>Article</th><th>Brand</th><th>Category</th><th>NSV</th><th>Gross Disc%</th><th>Aug Promo</th>
+    </tr></thead><tbody>${_dilRows}</tbody></table></div>`):''}
+`:'';
+
   const artRows=topArt.map(r=>`<tr><td>${drillLink('Article',r.Article)}</td><td>${drillLink('Category',r.Category)}</td><td>${drillLink('SubCategory',r.SubCategory)}</td>
      <td>${drillLink('Range',r.Range)}</td><td>${drillLink('PackSize',r.PackSize)}</td><td>${crc(r.NSV)}</td><td>${qtyFmt(r.Qty)}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Category &amp; Pack</h2>
@@ -1620,7 +1667,8 @@ function buildCategory(){
    ${card('NSV by Pack Size','click a bar to drill',cv('catPack',true))}
    ${card(`Top 20 unique articles by NSV${active?' (scoped to active filter)':' (across all chains/months)'}`,'Click Article/Category/Sub-cat/Range/Pack to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Article</th><th>Category</th><th>Sub-cat</th><th>Range</th><th>Pack</th><th>NSV</th><th>Qty</th>
-     </tr></thead><tbody>${artRows||'<tr><td colspan="7">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
+     </tr></thead><tbody>${artRows||'<tr><td colspan="7">No records for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${_mrgHtml}`;
   wireDrillLinks(s);
   wireChips(s,buildCategory);
   if(recs.length){
@@ -1630,6 +1678,30 @@ function buildCategory(){
     mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
   }
   renderCatDrillChart('catCatDrill',recs);
+
+  // ── category margin charts ────────────────────────────────────────────────
+  if(catWaterfall.length){
+    const _wCh=new Chart(document.getElementById('catMrgWaterfall'),{
+      type:'bar',
+      data:{labels:catWaterfall.map(c=>c.name),datasets:[
+        {label:'NSV%',data:catWaterfall.map(c=>c.nsv_pct),backgroundColor:C.teal+'cc',stack:'mrp'},
+        {label:'Tax%',data:catWaterfall.map(c=>c.tax_pct),backgroundColor:C.grey+'cc',stack:'mrp'},
+        {label:'TOT%',data:catWaterfall.map(c=>c.tot_pct),backgroundColor:C.amber+'cc',stack:'mrp'},
+      ]},
+      options:{indexAxis:'y',responsive:true,
+        plugins:{legend:{display:true,position:'top'},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.x+'%'}}},
+        scales:{x:{stacked:true,max:100,ticks:{callback:v=>v+'%'}},y:{stacked:true}}},
+    });
+    charts.push(_wCh);
+    if(catWaterfall.some(c=>c.promoIntensity>0)){
+      mkBarH('catPromoIntensity',catWaterfall.map(c=>c.name),
+        catWaterfall.map(c=>c.promoIntensity),C.purple,false);
+      const _piCh=charts[charts.length-1];
+      _piCh.options.plugins.tooltip.callbacks.label=c=>'Promos/100L NSV: '+c.parsed.x;
+      _piCh.update();
+    }
+  }
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
