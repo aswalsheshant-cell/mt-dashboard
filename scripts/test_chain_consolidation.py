@@ -121,8 +121,8 @@ class TestNoAliasConflicts:
 
 class TestDataJsRegression:
     def test_primary_fy25_unchanged(self, dash):
-        # Updated to 22576 after Central zone extraction (MP, CG, Vidharbha from North/West)
-        assert dash["primary"]["nsv_fy25"] == 22576
+        # FY25 = ₹23,331.97 L (correct restored value; matches monthly sum)
+        assert dash["primary"]["nsv_fy25"] == 23331.97
 
     def test_primary_fy26_unchanged(self, dash):
         # FY26 remains at 32900 (was 32900.36 before rounding)

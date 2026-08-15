@@ -450,12 +450,11 @@ class TestDataJSRegression:
     def test_primary_fy25_fy26_unchanged(self, dash):
         """Pre-aggregated Primary FY25/FY26 values must not change.
 
-        Note: FY25 updated to 22576 after Central zone extraction (MP, CG, Vidharbha).
-        This is intentional zone reorganization, not a regression.
-        FY26 remains 32900 (32900.36 rounded).
+        FY25 = ₹23,331.97 L (correct value restored; matches monthly sum).
+        FY26 = ₹32,900.00 L (unchanged).
         """
         p = dash.get("primary", {})
-        assert p.get("nsv_fy25") == 22576
+        assert p.get("nsv_fy25") == 23331.97
         assert p.get("nsv_fy26") == 32900
 
     # ── months_canon / monthly_canon tests ──
