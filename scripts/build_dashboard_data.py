@@ -828,6 +828,12 @@ def load_reliance_bc_data(src):
     if all_bc["_category"].notna().any():
         for cat, grp in all_bc[all_bc["_category"] != ""].groupby("_category"):
             entry = {"name": cat, "total": r2(float(grp["_nsv"].sum()))}
+            for mo in months:
+                tag = fy_tag_from_label(mo)
+                if tag:
+                    lo = tag.lower()
+                    mo_val = float(grp[grp["_month"] == mo]["_nsv"].sum())
+                    entry[lo] = r2(entry.get(lo, 0) + mo_val)
             by_category.append(entry)
         by_category.sort(key=lambda d: -d["total"])
     result = {

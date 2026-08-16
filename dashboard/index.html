@@ -1084,8 +1084,9 @@ function buildRelianceBC(){
     `<tr><td>${r.state}</td><td>${r.zone}</td><td>${crc(stateVal(r))}</td></tr>`).join('');
   const brandRows=brands.filter(b=>brandVal(b)>0).map(b=>
     `<tr><td>${b.name}</td><td>${crc(brandVal(b))}</td><td>${total>0?((brandVal(b)/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
+  const catVal=c=>(c[fyk]||c.total||0);
   const catRows=cats.filter(c=>(c.total||0)>0).map(c=>
-    `<tr><td>${c.name}</td><td>${crc(c.total)}</td><td>${total>0?((c.total/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
+    `<tr><td>${c.name}</td><td>${crc(catVal(c))}</td><td>${total>0?((catVal(c)/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
   const bcCoverage=bc.data_complete_through?`Data through ${bc.data_complete_through}.`:'';
   const bcJuneNote=bc.june_status
     ?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
