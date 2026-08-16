@@ -111,11 +111,11 @@ class TestExampleRowsIdentification(unittest.TestCase):
             cls.expense_rows = list(csv.DictReader(f))
 
     def test_prov_11_three_example_rows(self):
-        """PROV-11: Exactly 3 rows are marked as EXAMPLE"""
+        """PROV-11: All example rows have been replaced with real data (0 EXAMPLE rows)"""
         example_count = sum(1 for r in self.expense_rows
                            if "EXAMPLE" in r.get("Remarks", "").upper())
-        self.assertEqual(example_count, 3,
-                        "Exactly 3 example rows expected; actual expenses must replace them")
+        self.assertEqual(example_count, 0,
+                        "Example rows must be replaced with real verified expense data (0 EXAMPLE rows expected)")
 
     def test_prov_12_examples_clearly_identified(self):
         """PROV-12: Example rows have 'EXAMPLE ROW' in Remarks"""
