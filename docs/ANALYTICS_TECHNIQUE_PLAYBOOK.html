@@ -80,6 +80,21 @@
   }
   .standfirst strong { color: var(--ink); font-weight: 600; }
 
+  /* ---------- correction notice ---------- */
+  .notice {
+    margin: 34px 0 0; padding: 20px 22px;
+    background: var(--surface); border: 1px solid var(--amber);
+    border-radius: 4px;
+  }
+  .notice b {
+    display: block; font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--amber);
+    margin-bottom: 9px;
+  }
+  .notice p { margin: 0 0 9px; font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); }
+  .notice p:last-child { margin-bottom: 0; }
+  .notice strong { color: var(--ink); font-weight: 600; }
+
   /* ---------- pipeline ---------- */
   .pipeline {
     display: flex; flex-wrap: wrap; gap: 8px;
@@ -209,6 +224,20 @@
     proves each one against your own numbers — every figure below is derived from the July
     Chain NPI Recovery deck itself.
   </p>
+  <div class="notice">
+    <b>Correction — 16 Aug 2026</b>
+    <p>A channel reconciliation run after this note was written found that <strong>eB2B and
+    SIS sales are inside the MT zone rollup</strong>: ₹9.06 Cr of non-MT primary in FY27, and
+    the Nykaa (FSN) account — carried through the deck as an MT zone — is classified eB2B.
+    The rupee figures below were computed on the blended base and are therefore
+    <strong>overstated pending recut</strong>: the ₹5.87 Cr benchmark prize falls to roughly
+    ₹5.4 Cr, and the ₹15.17 Cr gross gap falls by ₹1.7–2.4 Cr.</p>
+    <p>The <em>techniques</em> are unaffected — and the Kimball section below is the one that
+    caught it. What that section reports as an unexplained ₹2.07 Cr netting anomaly turned out
+    to be an entire mis-channelled account. Exact restatement is blocked on the source
+    workbook; see the issue record in the repo.</p>
+  </div>
+
   <ul class="pipeline">
     <li><b>1</b> <span><strong>Validate</strong> the grain</span></li>
     <li><b>2</b> <span><strong>Segment</strong> before averaging</span></li>
@@ -271,6 +300,16 @@
     until the errors cancel.</p>
     <p class="derivation">zone gaps · 1.77 + 1.61 + 4.96 + 1.98 + 4.28 + 0.57 = 15.17<br>
     15.17 − 2.07 (Pan India offtake, no primary) = 13.10 ≈ 13.11 headline</p>
+    <p style="margin-top:16px;padding-top:13px;border-top:1px solid var(--amber);
+              font-size:14px;color:var(--ink-soft)">
+      <strong style="color:var(--amber)">Root cause found, 16 Aug.</strong> The reason
+      Pan India carries no primary is that it is <strong>not a geography and not Modern
+      Trade</strong>. Its FY27 offtake (860.01 L) equals the Nykaa (FSN) account exactly,
+      1:1 — and Nykaa's primary is classified <strong>eB2B</strong>. A non-conforming
+      dimension was the visible symptom; an entire mis-channelled account was the disease.
+      This is the case for the technique, not against it: nothing else in the pack pointed
+      at it.
+    </p>
   </div>
 
   <p class="worth">
@@ -278,6 +317,8 @@
     <strong>₹2.06 Cr of recoverable gap is currently invisible</strong> — netted away by a
     dimension that doesn't conform. Report gross positive gap and gross negative gap as two
     separate lines and both problems become actionable instead of cancelling each other.
+    Following that single thread is what surfaced ₹9.06 Cr of non-MT primary sitting inside
+    zone sales.
   </p>
 </section>
 
