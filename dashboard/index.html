@@ -876,11 +876,15 @@ function allocSectionHtml(){
     const[c,b,bo]=m.split('|');
     return `<span style="font-size:0.79em;padding:2px 8px;border-radius:10px;font-weight:600;background:${b};color:${c};border:1px solid ${bo};white-space:nowrap">${t||'–'}</span>`;
   };
-  const qcSlice=al.qc_table.slice(0,25).map(r=>`<tr><td>${r.month} ${r.fy}</td><td>${r.brand}</td><td>${r.cust_code}</td><td>${r.ship_to}</td>
-      <td>${crc(r.orig_nsv)}</td><td>${crc(r.alloc_nsv)}</td><td>${r.nsv_var}</td>
+  const qcSlice=al.qc_table.slice(0,25).map(r=>{
+    const orig_fmt=crc(r.orig_nsv), alloc_fmt=crc(r.alloc_nsv), badge=r.eligibility_tier?govBadge(r.eligibility_tier):'–';
+    const conf=r.eligibility_confidence_pct!=null?r.eligibility_confidence_pct+'%':'–';
+    return `<tr><td>${r.month} ${r.fy}</td><td>${r.brand}</td><td>${r.cust_code}</td><td>${r.ship_to}</td>
+      <td>${orig_fmt}</td><td>${alloc_fmt}</td><td>${r.nsv_var}</td>
       <td class="${r.mapping_status==='Mapped'?'up':'down'}">${r.mapping_status}</td>
-      <td>${r.eligibility_tier?govBadge(r.eligibility_tier):'–'}</td>
-      <td style="text-align:right">${r.eligibility_confidence_pct!=null?r.eligibility_confidence_pct+'%':'–'}</td></tr>`).join('');
+      <td>${badge}</td>
+      <td style="text-align:right">${conf}</td></tr>`;
+  }).join('');
   const banner=allZero
     ?`<div class="repbanner" style="background:#e8f5ec;border-color:#b7e0c4;color:#1c6b3a"><b>Reconciled — zero variance.</b>
         Original Dist. primary input equals allocated output on all four measures (NSV, Total MRP sales, Inv Qty, Tax).
@@ -2085,8 +2089,15 @@ const fLab=k=>F[k].join(', ');
 const fOne=k=>F[k].length===1?F[k][0]:null;
 
 // records passing all active filters (optionally ignoring one key for cascading options)
+// Memoized to avoid redundant filtering on repeated calls (e.g., renderFilterBar calls optsFor multiple times)
+let recFilterCache={}, recFilterCacheKey='';
 function recFilter(except){
-  return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(String(r[k])) ));
+  const cacheKey=JSON.stringify([F,except]);
+  if(cacheKey===recFilterCacheKey) return recFilterCache.result||[];
+  const result=REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || FSETS[k].has(String(r[k])) ));
+  recFilterCache={result};
+  recFilterCacheKey=cacheKey;
+  return result;
 }
 // FY dropdown: derived from the data, never hardcoded, so a new FY (FY28+)
 // flows in automatically the moment its rows arrive. The pre-aggregated
@@ -2103,8 +2114,12 @@ const PREAGG_FYS=(function(){
   return [...s];
 })();
 const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum(a)-fyNum(b));
+const optsCache={}; let optsCacheKey='';
 function optsFor(key){
   if(key==='FY') return FY_ALL;
+  const cacheKey=JSON.stringify(F);
+  if(cacheKey===optsCacheKey && optsCache[key]) return optsCache[key];
+  if(cacheKey!==optsCacheKey){ optsCache[key]=null; optsCacheKey=cacheKey; }
   const recs=recFilter(key);
   const vals=[...new Set(recs.map(r=>r[key]))];
   if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
@@ -2113,6 +2128,7 @@ function optsFor(key){
     recs.forEach(r=>{const v=r[key];contrib[v]=(contrib[v]||0)+(r.NSV||0);});
     vals.sort((a,b)=>(contrib[b]||0)-(contrib[a]||0)||String(a).localeCompare(String(b)));
   }
+  optsCache[key]=vals;
   return vals;
 }
 function renderFilterBar(){
@@ -2156,6 +2172,7 @@ function renderFilterBar(){
 }
 let filterChangeTimer;
 function onFilterChange(){
+  recFilterCacheKey='';
   clearTimeout(filterChangeTimer);
   filterChangeTimer=setTimeout(()=>{
     renderFilterBar();
@@ -2415,9 +2432,12 @@ function buildExplorer(){
   const rep=(D.detail_meta&&D.detail_meta.representative)
     ? `<div class="repbanner"><b>Representative data.</b> Drill-down runs on <code>detail_records</code> whose Chain/Brand/Zone/Channel/Month/FY totals match the real primary; Category, Sub-category, Pack Size and Article are taxonomy placeholders until the granular source feeds <code>build_dashboard_data.py</code>.</div>` : '';
   const cap=400, shown=recs.slice(0,cap);
-  const trows=shown.map(r=>`<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
-     <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory}</td><td>${r.Range}</td><td>${r.PackSize}</td>
-     <td>${r.Article}</td><td>${crc(r.NSV)}</td><td>${crc(r.MRP)}</td><td>${qtyFmt(r.Qty)}</td></tr>`).join('');
+  const trows=shown.map(r=>{
+    const nsv_fmt=crc(r.NSV), mrp_fmt=crc(r.MRP), qty_fmt=qtyFmt(r.Qty);
+    return `<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
+       <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory}</td><td>${r.Range}</td><td>${r.PackSize}</td>
+       <td>${r.Article}</td><td>${nsv_fmt}</td><td>${mrp_fmt}</td><td>${qty_fmt}</td></tr>`;
+  }).join('');
   // SIS channel check — always the SIS slice (ignores the Channel filter, respects the others)
   const isRep=!!(D.detail_meta&&D.detail_meta.representative);
   const ct=(D.detail_meta&&D.detail_meta.channel_totals)||null;
