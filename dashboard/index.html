@@ -910,18 +910,26 @@ function allocSectionHtml(){
        <tbody>${brandRows}</tbody></table></div>`)}
    </div>
    ${gov?`<div class="grid g2">
-     ${card('Eligibility Tier Distribution','Governance tier counts from the allocation run.',`<div class="tablewrap"><table>
-       <thead><tr><th>Tier</th><th>Keys</th></tr></thead><tbody>
+     ${card('Eligibility Tier Distribution','Governance tier counts from the allocation run. Not_Eligible NSV flags rows with no allocation source and not in offtake universe.',`<div class="tablewrap"><table>
+       <thead><tr><th>Tier</th><th>Keys</th><th>NSV</th></tr></thead><tbody>
        ${['Eligible','Eligible_TAT','Brand_Not_Listed','Article_Not_Listed','Not_Eligible'].map(t=>{
          const n=(gov.eligibility_tier_counts||{})[t]||0;
-         return n?`<tr><td>${govBadge(t)}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${num(n)}</td></tr>`:'';
-       }).join('')||'<tr><td colspan="2">No governance data in this build.</td></tr>'}
+         const nsvCell=t==='Not_Eligible'&&gov.not_eligible_nsv_lakh!=null
+           ?`${crc(gov.not_eligible_nsv_lakh)} <span style="color:var(--muted);font-size:0.85em">(${gov.not_eligible_pct||0}% of Dist. NSV)</span>`
+           :'–';
+         return n?`<tr><td>${govBadge(t)}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${num(n)}</td><td style="font-variant-numeric:tabular-nums">${nsvCell}</td></tr>`:'';
+       }).join('')||'<tr><td colspan="3">No governance data in this build.</td></tr>'}
+       ${gov.flagged_rows?`<tr style="border-top:1px solid var(--border)"><td colspan="2" style="color:var(--muted);font-size:0.85em">Flagged rows CSV</td><td style="font-size:0.82em"><code>${gov.flagged_rows_csv||''}</code></td></tr>`:''}
+       ${gov.override_count?`<tr><td colspan="2" style="color:var(--muted);font-size:0.85em">Approved overrides (PrimaryAllocationOverride.csv)</td><td style="text-align:right;font-variant-numeric:tabular-nums;color:#1c6b3a">${num(gov.override_count)}</td></tr>`:''}
        </tbody></table></div>`)}
-     ${card('QC Gate Summary','Balance rate across Distributor × Brand × Month reconciliations.',`<div class="tablewrap"><table>
+     ${card('QC Gate Summary','Balance rate across Distributor × Brand × Month reconciliations. Build gate triggers when Not_Eligible NSV exceeds the --not-eligible-gate-pct threshold.',`<div class="tablewrap"><table>
        <thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
        ${(()=>{const r=gov.qc_report||{};return[
          ['Reconciliations logged',num(gov.reconciliations_logged||0)],
          ['Eligibility decisions logged',num(gov.decisions_logged||0)],
+         ['Not_Eligible flagged keys',num(gov.flagged_rows||0)],
+         ['Not_Eligible NSV',gov.not_eligible_nsv_lakh!=null?`${crc(gov.not_eligible_nsv_lakh)} (${gov.not_eligible_pct||0}%)`:'–'],
+         ['Approved overrides',num(gov.override_count||0)],
          ['Total QC rows in report',num(r.total_rows||0)],
          ['Balanced rows',num(r.balanced_count||0)],
          ['Balance rate',r.balance_rate_pct!=null?r.balance_rate_pct+'%':'–'],

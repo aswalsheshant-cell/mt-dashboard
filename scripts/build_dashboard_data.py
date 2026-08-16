@@ -2518,6 +2518,33 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
         wcsv.writerows(rows)
     return len(rows), "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv"
 
+
+def _write_flagged_rows_csv(ne_orig: "pd.DataFrame") -> None:
+    """Write Not_Eligible rows to a reviewable CSV for business override workflow.
+
+    Output: PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv
+    Business process: review this file, add approved rows to PrimaryAllocationOverride.csv,
+    then rebuild. The flagged_rows_csv path is surfaced in alloc.governance in data.js.
+    """
+    _out = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
+    _out.parent.mkdir(parents=True, exist_ok=True)
+    display_cols = {
+        "Month": "Month",
+        "_CustName": "Ship To Name",
+        "brand": "Brand",
+        "_NSV": "NSV (Lakh)",
+        "reasoning": "Eligibility Reasoning",
+    }
+    out_df = ne_orig[[c for c in display_cols if c in ne_orig.columns]].copy()
+    out_df.rename(columns={k: v for k, v in display_cols.items() if k in out_df.columns}, inplace=True)
+    out_df.insert(0, "Eligibility_Tier", "Not_Eligible")
+    out_df.insert(len(out_df.columns), "Override_Action", "")
+    out_df.insert(len(out_df.columns), "Override_Chain", "")
+    out_df.insert(len(out_df.columns), "Override_Remarks", "")
+    out_df.to_csv(_out, index=False)
+    print(f"Phase 6: wrote {len(out_df)} Not_Eligible rows to {_out.name} for business review")
+
+
 def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
                           offtake_brand_set=None, offtake_ean_set=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
@@ -2816,6 +2843,39 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             "note": f"QC report generation failed: {e}",
         }
 
+    # ---- STEP 6 (Phase 6): Not_Eligible NSV + flagged rows CSV + override count ----
+    ne_decision_rows = [
+        {"_st": d["key"][0], "_bl": d["key"][1], "_pm": d["key"][2],
+         "reasoning": d.get("reasoning", "")}
+        for d in governance_log["eligibility_decisions"]
+        if d["tier"] == "Not_Eligible"
+    ]
+    if ne_decision_rows:
+        ne_keys_df = pd.DataFrame(ne_decision_rows)
+        ne_orig = orig.merge(ne_keys_df, on=["_st", "_bl", "_pm"], how="inner")
+        not_eligible_nsv = float(ne_orig["_NSV"].sum())
+        _write_flagged_rows_csv(ne_orig)
+    else:
+        not_eligible_nsv = 0.0
+    total_dist_nsv = float(orig["_NSV"].sum())
+    not_eligible_pct = round(not_eligible_nsv / total_dist_nsv * 100, 2) if total_dist_nsv > 0 else 0.0
+
+    # Count approved overrides from PrimaryAllocationOverride.csv that match Not_Eligible keys
+    override_count = 0
+    _override_csv = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PrimaryAllocationOverride.csv"
+    if _override_csv.exists() and ne_decision_rows:
+        try:
+            ov_df = pd.read_csv(_override_csv)
+            if not ov_df.empty and "Ship To Name" in ov_df.columns and "Brand" in ov_df.columns:
+                ov_df["_st"] = ov_df["Ship To Name"].str.strip().str.lower()
+                ov_df["_bl"] = ov_df["Brand"].str.strip().str.lower()
+                ne_key_set = {(d["_st"], d["_bl"]) for d in ne_decision_rows}
+                override_count = int(ov_df[
+                    ov_df.apply(lambda r: (r["_st"], r["_bl"]) in ne_key_set, axis=1)
+                ].shape[0])
+        except Exception as e:
+            print(f"Warning: Could not load override CSV for count: {e}")
+
     _unmapped_shipto_names = sorted(um["_CustName"].dropna().unique().tolist()) if len(um) else []
     alloc = {
         "dist_rows_in": int(len(orig)), "dist_rows_out": int(len(merged)),
@@ -2897,16 +2957,24 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             "every build: paste approved rows into the cont xlsx to make the fix "
             "permanent (this also fixes Power BI, whose query 41 reads only the xlsx)."
         ),
-        # ---- STEP 5 (Phase 3): Governance metadata (optional, non-breaking) ----
+        # ---- STEP 5/6 (Phase 3/6): Governance metadata (optional, non-breaking) ----
         "governance": {
             "eligibility_tier_counts": tier_counts,
             "qc_report": qc_report,
             "reconciliations_logged": len(governance_log["qc_reconciliations"]),
             "decisions_logged": len(governance_log["eligibility_decisions"]),
+            # Phase 6: Not_Eligible NSV gating fields
+            "not_eligible_nsv_lakh": r2(not_eligible_nsv),
+            "not_eligible_pct": not_eligible_pct,
+            "total_dist_nsv_lakh": r2(total_dist_nsv),
+            "flagged_rows": len(ne_decision_rows),
+            "override_count": override_count,
+            "flagged_rows_csv": "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
             "note": (
-                "Phase 3 integration: Governance engine instrumentation logs eligibility "
-                "tiers and QC reconciliation results. No changes to allocation logic or output. "
-                "Dashboard may optionally display governance metadata; absence is graceful."
+                "Phase 3/6: Governance engine logs eligibility tiers and QC reconciliation. "
+                "not_eligible_pct drives the build gate (--not-eligible-gate-pct flag). "
+                "Flagged Not_Eligible rows exported to flagged_rows_csv for business review. "
+                "Override approvals tracked via PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv."
             ),
         },
     }
@@ -3305,6 +3373,44 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     return detail, detail_dims(detail), meta, tot, cm2, alloc
 
 
+def _check_governance_gate(alloc: dict, gate_pct: float) -> None:
+    """Fail the build if Not_Eligible NSV exceeds gate_pct % of total Dist. NSV.
+
+    gate_pct=0 disables the gate. Called after alloc is computed in all build paths.
+    Raises SystemExit with a human-readable message listing the threshold and actual %.
+    """
+    if gate_pct <= 0 or alloc is None:
+        return
+    gov = alloc.get("governance") or {}
+    ne_pct = gov.get("not_eligible_pct", 0.0)
+    if ne_pct > gate_pct:
+        ne_nsv = gov.get("not_eligible_nsv_lakh", 0)
+        total_nsv = gov.get("total_dist_nsv_lakh", 0)
+        flagged = gov.get("flagged_rows", 0)
+        override_count = gov.get("override_count", 0)
+        flagged_csv = gov.get("flagged_rows_csv", "DistAllocationGovernance_FlaggedRows.csv")
+        raise SystemExit(
+            f"\n{'='*70}\n"
+            f"BUILD GATE TRIGGERED — Not_Eligible NSV exceeds threshold\n"
+            f"{'='*70}\n"
+            f"  Not_Eligible NSV : {ne_nsv} L ({ne_pct}% of Dist. total)\n"
+            f"  Gate threshold   : {gate_pct}% (--not-eligible-gate-pct)\n"
+            f"  Total Dist. NSV  : {total_nsv} L\n"
+            f"  Flagged key rows : {flagged} (ShipTo × Brand × Month keys)\n"
+            f"  Approved overrides: {override_count}\n"
+            f"\nResolution options:\n"
+            f"  1. Review {flagged_csv} and add approved rows to\n"
+            f"     PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv, then rebuild.\n"
+            f"  2. Add missing ShipTo × Brand × Month rows to the allocation master\n"
+            f"     (Dist_primary_cont_based_on_secondary_MOM.xlsx or ShipTo primary CSV).\n"
+            f"  3. Lower the gate: --not-eligible-gate-pct {gate_pct + 5:.0f} (not recommended).\n"
+            f"  4. Disable the gate: --not-eligible-gate-pct 0\n"
+            f"{'='*70}"
+        )
+    print(f"Phase 6 gate: Not_Eligible NSV = {gov.get('not_eligible_nsv_lakh',0)} L "
+          f"({ne_pct}% vs threshold {gate_pct}%) — PASS")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -3339,6 +3445,12 @@ def main():
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
+    ap.add_argument("--not-eligible-gate-pct", type=float, default=0.0, dest="not_eligible_gate_pct",
+                    help="Fail build if Not_Eligible tier NSV exceeds this %% of total Dist. NSV "
+                         "(0 = disabled, the default). Example: --not-eligible-gate-pct 10 fails "
+                         "the build when more than 10%% of Dist. NSV has no matching allocation entry "
+                         "and is not in the offtake universe. Set per-environment in CI to enforce "
+                         "data quality without breaking local builds that lack source files.")
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -3375,6 +3487,7 @@ def main():
                   + f"; unmapped rows {alloc['rows_unmapped']} (Rs {alloc['unmapped_nsv']} L)"
                   + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}"
                   + f"; patch proposals {alloc['patch_rows']} -> {alloc['patch_file']}")
+            _check_governance_gate(alloc, a.not_eligible_gate_pct)
         return
 
     # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----
@@ -3534,6 +3647,8 @@ def main():
           f"({'REAL' if not detail_meta['representative'] else 'representative'})"
           + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
           + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
+    if alloc is not None:
+        _check_governance_gate(alloc, a.not_eligible_gate_pct)
 
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
