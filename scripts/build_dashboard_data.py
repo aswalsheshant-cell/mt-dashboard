@@ -680,6 +680,47 @@ def load_offtake_article_files(src):
     return chain_month, zsm
 
 
+def build_offtake_universe(src):
+    """Read monthly store×article offtake extracts from src and return
+    (brand_set, ean_set) for governance tier-signal wiring.
+
+      brand_set: frozenset[str] — lowercased brand names present in any offtake file
+      ean_set:   frozenset[str] — EAN strings present in any offtake file
+
+    Returns (None, None) if no files with Brand or EAN columns are found
+    (e.g. during --primary-only runs where no offtake files are supplied).
+    Graceful: per-file exceptions are printed and skipped; never raises.
+    Reads the same .xlsb/.csv files as load_offtake_article_files() but
+    collects Brand and EAN columns that function does not aggregate."""
+    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
+    brands, eans = set(), set()
+    for fp in files:
+        try:
+            if fp.suffix.lower() == ".csv":
+                _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+            else:
+                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            for _, df in _frames.items():
+                df.columns = [str(c).strip() for c in df.columns]
+                if "Brand" in df.columns:
+                    brands.update(
+                        str(b).strip().lower()
+                        for b in df["Brand"].dropna()
+                        if str(b).strip() not in ("", "nan")
+                    )
+                if "EAN" in df.columns:
+                    eans.update(
+                        str(e).strip()
+                        for e in df["EAN"].dropna()
+                        if str(e).strip() not in ("", "nan")
+                    )
+        except Exception as e:
+            print(f"Warning: build_offtake_universe skipped {fp.name}: {e}")
+    if not brands and not eans:
+        return None, None
+    return frozenset(brands), frozenset(eans)
+
+
 def load_reliance_bc_data(src):
     """Extract Reliance Brand Counter rows from offtake source files for
     the separate analytical tab.  These rows are EXCLUDED from overall
@@ -2471,13 +2512,18 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
         wcsv.writerows(rows)
     return len(rows), "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv"
 
-def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
+def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
+                          offtake_brand_set=None, offtake_ean_set=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
     every row of `df` (Direct rows keep their own "Chain name for Dashboard").
     Returns (new_df, alloc_block) where alloc_block carries the full
     reconciliation/QC payload for the dashboard, or (df-with-_Chain, None)
     when the file has no PO Type column or no cont sheet was found.
-    source_label: 'xlsx' | 'shipto_primary_csv' | None — recorded in alloc."""
+    source_label: 'xlsx' | 'shipto_primary_csv' | None — recorded in alloc.
+    offtake_brand_set: frozenset[str] of lowercased brand names from offtake,
+      or None (→ brand_in_offtake defaults True, preserving pre-Phase-5 behaviour).
+    offtake_ean_set: frozenset[str] of EAN strings from offtake,
+      or None (→ article_in_offtake defaults True)."""
     _has_dashboard = "Chain name for Dashboard" in df.columns
     _has_plain = "Chain name" in df.columns
     if _has_dashboard and _has_plain:
@@ -2528,6 +2574,19 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
     avail = {}
     for st, bl, pm in wkeys:
         avail.setdefault((st, bl), []).append(pm)
+
+    # Phase 5: precompute (st, bl, pm) → frozenset[EAN] for article-level check.
+    # Only built when offtake_ean_set is wired AND the EAN column is present.
+    if offtake_ean_set is not None and "_EAN No." in dist.columns:
+        _key_eans = (
+            dist[dist["_EAN No."].ne("")]
+            .groupby(["_st", "_bl", "_pm"])["_EAN No."]
+            .apply(frozenset)
+            .to_dict()
+        )
+    else:
+        _key_eans = {}
+
     key_eff, key_tier = {}, {}
     for k in set(zip(dist["_st"], dist["_bl"], dist["_pm"])):
         st, bl, pm = k
@@ -2550,8 +2609,9 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
                 primary_row={"ship_to": st, "brand": bl, "month": pm},
                 secondary_match_found=(pm is not None and k in wkeys),
                 secondary_match_within_tат=(key_tier[k].startswith("nearest")),
-                brand_in_offtake=True,  # TODO: Phase 4 — wire to actual brand presence
-                article_in_offtake=True,  # TODO: Phase 4 — wire to actual article presence
+                brand_in_offtake=(offtake_brand_set is None or bl in offtake_brand_set),
+                article_in_offtake=(offtake_ean_set is None
+                                    or bool(_key_eans.get(k, frozenset()) & offtake_ean_set)),
             )
             governance_log["eligibility_decisions"].append({
                 "key": k,
@@ -2962,7 +3022,12 @@ def detail_records_real(src, max_rows=20000):
     # any grouping, so Customer x Article grain survives into everything
     # downstream (TOT%, CM2, detail_records, the Customer x Article table).
     _wdf, _raw_sums, _alloc_src = load_dist_cont_weights(src)
-    df, alloc = allocate_dist_primary(df, _wdf, _raw_sums, source_label=_alloc_src)
+    _offtake_brand_set, _offtake_ean_set = build_offtake_universe(src)
+    df, alloc = allocate_dist_primary(
+        df, _wdf, _raw_sums, source_label=_alloc_src,
+        offtake_brand_set=_offtake_brand_set,
+        offtake_ean_set=_offtake_ean_set,
+    )
     n_shipto_as_chain = int(((df["_Chain"].astype(str).str.strip().str.lower()
                               == df["_CustName"].str.lower()) & (df["_CustName"] != "")).sum())
     if alloc is not None:
