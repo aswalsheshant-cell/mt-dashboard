@@ -753,91 +753,113 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   });
 }
 
-/* ---------------------------------------------------------------- S3 */
+/* ------------------------------------- S5  share per distribution point */
 {
-  const s = page(5, 'Mamaearth is gaining share — but shampoo is a productivity problem, not a width problem',
-    'June 2026 market share | Nielsen RMS value share and weighted distribution', SRC_NIEL);
+  const s = page(5, 'The shelf is already wide — Mamaearth is under-earning on it',
+    'Nielsen MT | share and weighted distribution, MAT Jun 2026 | pack detail May 2026', SRC_NIEL);
 
-  const kw = (CW - 0.24) / 3;
-  kpi(s, { x: M, y: BODY_Y, w: kw, h: 0.92, label: 'FACE WASH SHARE', value: '10.5%', sub: '#4 | +3.1 pp YoY | 89.0% WD', accent: BRIGHT });
-  kpi(s, { x: M + kw + 0.12, y: BODY_Y, w: kw, h: 0.92, label: 'SHAMPOO SHARE', value: '3.7%', sub: '+1.2 pp YoY | 81.5% WD', accent: BLUE });
-  kpi(s, { x: M + 2 * (kw + 0.12), y: BODY_Y, w: kw, h: 0.92, label: 'TDC FACE WASH', value: '0.4%', sub: '+0.3 pp YoY | 27.3% WD', accent: AMBER });
+  const kw = (CW - 0.36) / 4, kx = i => M + i * (kw + 0.12);
+  kpi(s, { x: kx(0), y: BODY_Y, w: kw, h: 0.94, label: 'FACE WASH', value: '10.5%', sub: '#4 share · 89.0% WD · SPD #4 of 6', accent: BRIGHT });
+  kpi(s, { x: kx(1), y: BODY_Y, w: kw, h: 0.94, label: 'SHAMPOO', value: '3.7%', sub: '#6 share · 81.5% WD · SPD #6 of 6', accent: RED, valueColor: RED });
+  kpi(s, { x: kx(2), y: BODY_Y, w: kw, h: 0.94, label: 'THE DERMA CO. FW', value: '0.4%', sub: '27.3% WD — a genuine width gap', accent: AMBER });
+  kpi(s, { x: kx(3), y: BODY_Y, w: kw, h: 0.94, label: 'AVAILABLE AT PEER RATE', value: '+7.9 pts', sub: 'both categories, no new doors', accent: GREEN });
 
   let y = BODY_Y + 1.06;
-  const halfW = (CW - 0.16) / 2;
-  chartTitle(s, M, y, halfW, 'Face Wash value share (%) — June 2026');
-  s.addChart(pres.ChartType.bar, [{ name: 'Value share', labels: CH['3'][0].series[0].cats, values: CH['3'][0].series[0].vals }],
-    Object.assign({}, axisBase, {
-      x: M - 0.02, y: y + 0.22, w: halfW, h: 2.26, chartColors: ['9DC9C2', '9DC9C2', '9DC9C2', BRIGHT],
-      varyColors: true, showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 6.6, dataLabelColor: INK,
-      dataLabelFormatCode: '0.0', valAxisMaxVal: 25, barGapWidthPct: 60
-    }));
-  chartTitle(s, M + halfW + 0.16, y, halfW, 'Shampoo value share (%) — June 2026');
-  s.addChart(pres.ChartType.bar, [{ name: 'Value share', labels: CH['3'][1].series[0].cats, values: CH['3'][1].series[0].vals }],
-    Object.assign({}, axisBase, {
-      x: M + halfW + 0.14, y: y + 0.22, w: halfW, h: 2.26, chartColors: ['A9C4D6', 'A9C4D6', BLUE],
-      varyColors: true, showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 6.6, dataLabelColor: INK,
-      dataLabelFormatCode: '0.0', valAxisMaxVal: 20, barGapWidthPct: 60
-    }));
+  s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.78, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
+  s.addText('Garnier holds the same shelf we do and earns 3.7 share points more from it', txt({
+    x: M + 0.16, y: y + 0.10, w: CW - 0.32, h: 0.30, fontSize: 11, bold: true, fontFace: FONTH, color: TEAL, align: 'center', valign: 'middle' }));
+  s.addText('Garnier 90.3% weighted distribution → 14.2% share.  Mamaearth 89.0% → 10.5%. Distribution is not the constraint in Face Wash, and it is not the constraint in Shampoo either — we hold 81.5% of the shelf and earn the lowest share per point of the top six brands.', txt({
+    x: M + 0.24, y: y + 0.40, w: CW - 0.48, h: 0.34, fontSize: 7, color: GREY, align: 'center', lineSpacingMultiple: 0.94 }));
 
-  y = y + 2.60;
-  y = banner(s, y, 'SHARE PER DISTRIBUTION POINT — THE MEASURE THAT CHANGES THE PACK DECISION', TEAL);
-  y = table(s, {
-    x: M, y, w: CW, rowH: 0.32, cols: [
-      { t: 'BRAND × CATEGORY', w: 2.4 }, { t: 'VALUE SHARE', w: 1.1, a: 'right' },
-      { t: 'WEIGHTED DIST.', w: 1.2, a: 'right' }, { t: 'SHARE PER POINT', w: 1.3, a: 'right' },
-      { t: 'READ', w: 2.0 }
-    ],
+  y += 0.94;
+  y = banner(s, y, 'SHARE PER POINT OF DISTRIBUTION — RANKED (MAT JUN 2026)', TEAL);
+  const hw = (CW - 0.16) / 2;
+  const cols = [{ t: 'BRAND', w: 1.6 }, { t: 'SHARE', w: 0.72, a: 'right' },
+                { t: 'WD', w: 0.72, a: 'right' }, { t: 'SPD', w: 0.74, a: 'right' }];
+  chartTitle(s, M, y, hw, 'Face Wash');
+  const yA = table(s, {
+    x: M, y: y + 0.20, w: hw, rowH: 0.26, size: 7, cols,
     rows: [
-      ['Mamaearth Face Wash', '10.5%', '89.0%', { t: '0.118', b: true, c: GREEN }, { t: 'Productive shelf — defend it', c: GREEN }],
-      ['Mamaearth Shampoo', '3.7%', '81.5%', { t: '0.045', b: true, c: RED }, { t: '38% as productive per point', c: RED }],
-      ['The Derma Co. Face Wash', '0.4%', '27.3%', { t: '0.015', b: true, c: AMBER }, { t: 'Genuine width gap — expand', c: AMBER }]
+      ['Himalaya', '22.6%', '99.8%', { t: '0.226', b: true }],
+      ['Garnier', '14.2%', '90.3%', { t: '0.157', b: true }],
+      ["Pond's", '13.8%', '98.8%', { t: '0.140', b: true }],
+      [{ t: 'Mamaearth', b: true }, { t: '10.5%', b: true }, { t: '89.0%', b: true }, { t: '0.118', b: true, c: AMBER }],
+      ['Clean & Clear', '7.5%', '98.3%', { t: '0.076', b: true }],
+      [{ t: 'The Derma Co.', c: GREY }, { t: '0.4%', c: GREY }, { t: '27.3%', c: GREY }, { t: '0.015', b: true, c: GREY }]
+    ]
+  });
+  chartTitle(s, M + hw + 0.16, y, hw, 'Shampoo');
+  table(s, {
+    x: M + hw + 0.16, y: y + 0.20, w: hw, rowH: 0.26, size: 7, cols,
+    rows: [
+      ['Dove', '16.6%', '99.7%', { t: '0.166', b: true }],
+      ["L'Oréal Paris", '12.8%', '91.6%', { t: '0.140', b: true }],
+      ['Head & Shoulders', '13.0%', '99.6%', { t: '0.131', b: true }],
+      ['Sunsilk', '9.6%', '99.4%', { t: '0.097', b: true }],
+      ['Clinic Plus', '9.6%', '99.4%', { t: '0.097', b: true }],
+      [{ t: 'Mamaearth', b: true }, { t: '3.7%', b: true }, { t: '81.5%', b: true }, { t: '0.045', b: true, c: RED }]
+    ]
+  });
+  s.addText('SPD = value share ÷ weighted distribution: the share each point of shelf presence earns. It separates "we are not on enough shelves" from "we are not selling off the shelves we hold".', txt({
+    x: M, y: yA + 0.06, w: CW, h: 0.26, fontSize: 6.6, color: GREY, lineSpacingMultiple: 0.94 }));
+
+  y = yA + 0.36;
+  const oA = card(s, { x: M, y, w: hw, h: 1.58, label: 'FACE WASH — CLOSE TO GARNIER', accent: AMBER });
+  s.addText('+3.7 pts  ·  ~₹3.0 Cr / month', txt({ x: M + 0.10, y: oA, w: hw - 0.20, h: 0.30, fontSize: 12.5, bold: true, fontFace: FONTH, color: AMBER, align: 'center', valign: 'middle' }));
+  s.addText('Nielsen MT Face Wash ≈ ₹81 Cr / month, so one share point is worth ₹0.81 Cr', txt({
+    x: M + 0.10, y: oA + 0.32, w: hw - 0.20, h: 0.16, fontSize: 6.3, color: GREY, align: 'center' }));
+  bullets(s, { x: M + 0.12, y: oA + 0.54, w: hw - 0.24, gap: 0.31, size: 6.9, dot: AMBER, items: [
+    { t: 'Garnier earns 14.2% on 90.3% WD; we earn 10.5% on 89.0%.', b: true },
+    { t: 'Same shelf, 26% less share per point. The gap is velocity, not reach.' }
+  ]});
+  const oB = card(s, { x: M + hw + 0.16, y, w: hw, h: 1.58, label: 'SHAMPOO — REACH THE WEAKEST PEER', accent: RED });
+  s.addText('+4.2 pts  ·  ~₹6.9 Cr / month', txt({ x: M + hw + 0.26, y: oB, w: hw - 0.20, h: 0.30, fontSize: 12.5, bold: true, fontFace: FONTH, color: RED, align: 'center', valign: 'middle' }));
+  s.addText('Nielsen MT Shampoo ≈ ₹164 Cr / month, so one share point is worth ₹1.64 Cr', txt({
+    x: M + hw + 0.26, y: oB + 0.32, w: hw - 0.20, h: 0.16, fontSize: 6.3, color: GREY, align: 'center' }));
+  bullets(s, { x: M + hw + 0.28, y: oB + 0.54, w: hw - 0.24, gap: 0.31, size: 6.9, dot: RED, items: [
+    { t: 'At Sunsilk\'s 0.097 — the weakest of the five peers — 81.5% WD yields 7.9%.', b: true },
+    { t: 'A conservative benchmark; the peer median is 0.131.' }
+  ]});
+
+  y += 1.72;
+  y = banner(s, y, 'PACK ARCHITECTURE — WHERE THE VOLUME ACTUALLY SITS (MAY 2026)', TEAL);
+  const pcols = [{ t: 'PACK', w: 1.0 }, { t: 'MIX', w: 0.62, a: 'right' },
+                 { t: '₹ Cr', w: 0.72, a: 'right' }, { t: 'YoY', w: 0.74, a: 'right' }];
+  chartTitle(s, M, y, hw, 'Mamaearth Face Wash');
+  const yP = table(s, {
+    x: M, y: y + 0.20, w: hw, rowH: 0.26, size: 7, cols: pcols,
+    rows: [
+      [{ t: '150 ml', b: true }, { t: '58%', b: true }, { t: '5.53', b: true }, { t: '+98%', b: true, c: GREEN }],
+      [{ t: '100 ml', b: true }, { t: '21%', b: true }, { t: '1.96', b: true }, { t: '−11%', b: true, c: RED }],
+      ['200 ml', '11%', '1.06', { t: 'new', c: GREY }],
+      ['50 ml', '11%', '1.01', { t: '+80%', c: GREEN }]
+    ]
+  });
+  chartTitle(s, M + hw + 0.16, y, hw, 'Mamaearth Shampoo');
+  table(s, {
+    x: M + hw + 0.16, y: y + 0.20, w: hw, rowH: 0.26, size: 7, cols: pcols,
+    rows: [
+      [{ t: '400 ml', b: true }, { t: '76%', b: true, c: AMBER }, { t: '4.96', b: true }, { t: '+71%', b: true, c: GREEN }],
+      [{ t: '250 ml', b: true }, { t: '13%', b: true }, { t: '0.82', b: true }, { t: '−7%', b: true, c: RED }],
+      ['650 ml', '7%', '0.43', { t: 'new', c: GREY }],
+      ['600 ml', '2%', '0.12', { t: '+151%', c: GREEN }]
     ]
   });
 
-  y += 0.20;
-  const bw = (CW - 0.16) / 2;
-  let y2 = card(s, { x: M, y, w: bw, h: 1.80, label: 'WHAT THE PACK-SIZE ANALYSIS SAID', accent: GREY });
-  bullets(s, { x: M + 0.12, y: y2 + 0.04, w: bw - 0.24, gap: 0.40, size: 7.2, dot: GREY, items: [
-    { t: 'Shampoo misses 12 of 16 formats — 66% of category value.' },
-    { t: 'Face Wash misses 7 of 16 formats — 5% of category value.' },
-    { t: 'Recommendation: pilot the largest missing shampoo formats.' }
-  ]});
-  let y3 = card(s, { x: M + bw + 0.16, y, w: bw, h: 1.80, label: 'WHAT SHARE-PER-POINT SAYS INSTEAD', accent: RED });
-  bullets(s, { x: M + bw + 0.28, y: y3 + 0.04, w: bw - 0.24, gap: 0.40, size: 7.2, dot: RED, items: [
-    { t: 'Shampoo already holds 81.5% of the shelf and under-earns on it.', b: true },
-    { t: 'Adding formats spends listing fees to dilute an already-thin rate.' },
-    { t: 'Fix the rate first: velocity, facing quality, hero availability.' }
+  y = yP + 0.32;
+  const pr = card(s, { x: M, y, w: CW, h: 1.26, label: 'PACK READ — ONE HERO, TWO DECLINING PACKS, ONE CONCENTRATION RISK', accent: TEAL });
+  bullets(s, { x: M + 0.12, y: pr + 0.02, w: CW - 0.24, gap: 0.30, size: 7.2, items: [
+    { t: 'Protect 150 ml: 58% of Mamaearth Face Wash at +98% YoY. A chain-level delisting or stock gap on this one pack is a brand-level event, so it leads the hero-SKU OSA target.', b: true },
+    { t: 'Fix 100 ml and Shampoo 250 ml: 21% and 13% of their brands, both declining on value and share. Check availability and promo cover before reading either as demand.', c: RED },
+    { t: 'Watch the 400 ml concentration: 76% of Mamaearth Shampoo sits in a single pack. 650 ml is the only credible second pack and it is new.', c: AMBER }
   ]});
 
-  y += 1.94;
-  s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.62, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
+  y += 1.38;
+  s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.84, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
   s.addText([
-    { text: 'DECISION   ', options: { color: TEAL, bold: true, fontSize: 7 } },
-    { text: 'Defend Mamaearth Face Wash — +58.2% L3M growth on a productive shelf. Hold the shampoo pack rollout and run a rate-recovery pilot in South-1, the only zone where shampoo out-sells cleanser. Expand The Derma Co. Face Wash, where 27.3% weighted distribution is a genuine width gap.', options: { fontSize: 7.2, color: INK } }
-  ], txt({ x: M + 0.14, y: y + 0.08, w: CW - 0.28, h: 0.48, lineSpacingMultiple: 0.94 }));
-
-  y += 0.78;
-  y = banner(s, y, 'BEFORE THE NEXT PACK DECISION — FIELDS THAT MUST RECONCILE', GREY);
-  const c3b = (CW - 0.24) / 3, cxb = i => M + i * (c3b + 0.12);
-  const need = [
-    { l: 'WEIGHTED DISTRIBUTION BY CHAIN', a: TEAL, items: [
-      { t: 'Nielsen gives national WD only. Share per point cannot yet be cut by chain.', b: true },
-      { t: 'Without it, "which account is the shelf under-earning in" stays unanswerable.' },
-      { t: 'Source: Nielsen chain-level RMS extract.' } ] },
-    { l: 'SALES PER DISTRIBUTION POINT', a: TEAL, items: [
-      { t: 'PDO = offtake ÷ productive stores, by article and chain.', b: true },
-      { t: 'Turns white space into a ₹ number: potential stores × benchmark PDO.' },
-      { t: 'Source: store × article × month listing table.' } ] },
-    { l: 'COMPETITOR DISTRIBUTION', a: TEAL, items: [
-      { t: 'Himalaya, Garnier, Dove and H&S WD are not in the current cut.', b: true },
-      { t: 'Our SPD can only be compared to itself until they are.' },
-      { t: 'Source: Nielsen competitive distribution panel.' } ] }
-  ];
-  need.forEach((t, i) => {
-    const y0 = card(s, { x: cxb(i), y, w: c3b, h: 1.62, label: t.l, accent: t.a });
-    bullets(s, { x: cxb(i) + 0.12, y: y0 + 0.02, w: c3b - 0.24, gap: 0.38, size: 6.9, items: t.items, dot: t.a });
-  });
+    { text: 'DECISION — RATE BEFORE REACH   ', options: { color: TEAL, bold: true, fontSize: 7 } },
+    { text: 'Fix the two declining packs first, then run the shampoo velocity pilot in South-1 — the only zone where shampoo out-sells cleanser. Expand The Derma Co. Face Wash, where 27.3% WD is the one genuine width gap in the portfolio. Hold the large-format entry: 340 ml (₹261 Cr), 1000 ml (₹216 Cr) and 580 ml (₹64 Cr) are ₹541 Cr of pool we do not touch, but Dove covers 250/340/400/1000 ml and Head & Shoulders 180/250/400/580 ml — these pools are contested, not empty. Entering them is a slow share-steal against an entrenched leader, and adding formats while under-earning per point spends listing fees to dilute a thin rate further.', options: { fontSize: 7, color: INK } }
+  ], txt({ x: M + 0.14, y: y + 0.06, w: CW - 0.28, h: 0.74, lineSpacingMultiple: 0.94 }));
 }
 
 /* ---------------------------------------------------------------- S4 */
