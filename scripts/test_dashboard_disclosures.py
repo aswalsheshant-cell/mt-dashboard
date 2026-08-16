@@ -423,3 +423,108 @@ class TestBCCategoryFyLoopFix:
         assert cat_fy == brand_fy, (
             f"by_category FY keys {cat_fy} differ from by_brand FY keys {brand_fy}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Phase 6: Build gating & governance metadata
+# ---------------------------------------------------------------------------
+
+class TestPhase6GovernanceGate:
+    """Tests for the --not-eligible-gate-pct build gating mechanism."""
+
+    def test_governance_gate_passes_when_disabled(self):
+        """Gate with threshold=0 never raises."""
+        from build_dashboard_data import _check_governance_gate
+        alloc = {"governance": {"not_eligible_pct": 99.9, "not_eligible_nsv_lakh": 100.0,
+                                "total_dist_nsv_lakh": 100.1, "flagged_rows": 5, "override_count": 0,
+                                "flagged_rows_csv": "some.csv"}}
+        _check_governance_gate(alloc, gate_pct=0.0)  # must not raise
+
+    def test_governance_gate_passes_when_below_threshold(self):
+        """Gate passes when not_eligible_pct <= threshold."""
+        from build_dashboard_data import _check_governance_gate
+        alloc = {"governance": {"not_eligible_pct": 4.5, "not_eligible_nsv_lakh": 4.5,
+                                "total_dist_nsv_lakh": 100.0, "flagged_rows": 2, "override_count": 0,
+                                "flagged_rows_csv": "some.csv"}}
+        _check_governance_gate(alloc, gate_pct=10.0)  # must not raise
+
+    def test_governance_gate_triggers_when_exceeded(self):
+        """Gate raises SystemExit when not_eligible_pct > threshold."""
+        from build_dashboard_data import _check_governance_gate
+        alloc = {"governance": {"not_eligible_pct": 15.3, "not_eligible_nsv_lakh": 15.3,
+                                "total_dist_nsv_lakh": 100.0, "flagged_rows": 7, "override_count": 0,
+                                "flagged_rows_csv": "some.csv"}}
+        with pytest.raises(SystemExit) as exc_info:
+            _check_governance_gate(alloc, gate_pct=10.0)
+        assert "Not_Eligible" in str(exc_info.value)
+        assert "15.3" in str(exc_info.value)
+
+    def test_governance_gate_none_alloc_is_noop(self):
+        """Gate with alloc=None never raises."""
+        from build_dashboard_data import _check_governance_gate
+        _check_governance_gate(None, gate_pct=5.0)  # must not raise
+
+    def test_governance_gate_message_contains_resolution_options(self):
+        """SystemExit message must include actionable resolution instructions."""
+        from build_dashboard_data import _check_governance_gate
+        alloc = {"governance": {"not_eligible_pct": 20.0, "not_eligible_nsv_lakh": 20.0,
+                                "total_dist_nsv_lakh": 100.0, "flagged_rows": 10, "override_count": 2,
+                                "flagged_rows_csv": "FlaggedRows.csv"}}
+        with pytest.raises(SystemExit) as exc_info:
+            _check_governance_gate(alloc, gate_pct=10.0)
+        msg = str(exc_info.value)
+        assert "PrimaryAllocationOverride.csv" in msg
+        assert "FlaggedRows.csv" in msg
+        assert "override_count" not in msg  # approved_overrides should be formatted, not raw key
+
+
+class TestPhase6GovernanceDataJs:
+    """Tests for governance metadata in data.js when alloc block is present."""
+
+    @pytest.fixture
+    def alloc(self, data):  # noqa: F811
+        if "alloc" not in data:
+            pytest.skip("alloc block absent from data.js (built without source files)")
+        return data["alloc"]
+
+    @pytest.fixture
+    def gov(self, alloc):
+        gov = alloc.get("governance")
+        if not gov:
+            pytest.skip("alloc.governance absent from data.js")
+        return gov
+
+    def test_governance_has_not_eligible_pct(self, gov):
+        """alloc.governance must expose not_eligible_pct for dashboard display."""
+        assert "not_eligible_pct" in gov, "not_eligible_pct missing from governance"
+        assert isinstance(gov["not_eligible_pct"], (int, float))
+        assert 0.0 <= gov["not_eligible_pct"] <= 100.0
+
+    def test_governance_has_flagged_rows(self, gov):
+        """alloc.governance must expose flagged_rows count."""
+        assert "flagged_rows" in gov
+        assert isinstance(gov["flagged_rows"], int)
+        assert gov["flagged_rows"] >= 0
+
+    def test_governance_has_override_count(self, gov):
+        """alloc.governance must expose override_count."""
+        assert "override_count" in gov
+        assert isinstance(gov["override_count"], int)
+        assert gov["override_count"] >= 0
+
+    def test_governance_has_flagged_rows_csv(self, gov):
+        """alloc.governance must expose flagged_rows_csv path."""
+        assert "flagged_rows_csv" in gov
+        assert gov["flagged_rows_csv"].endswith(".csv")
+
+    def test_not_eligible_pct_consistent_with_nsv(self, gov):
+        """not_eligible_pct must be consistent with not_eligible_nsv_lakh / total_dist_nsv_lakh."""
+        ne_nsv = gov.get("not_eligible_nsv_lakh", 0)
+        total_nsv = gov.get("total_dist_nsv_lakh", 0)
+        ne_pct = gov.get("not_eligible_pct", 0)
+        if total_nsv > 0:
+            expected_pct = round(ne_nsv / total_nsv * 100, 2)
+            assert abs(ne_pct - expected_pct) < 0.1, (
+                f"not_eligible_pct {ne_pct} inconsistent with "
+                f"NSV ratio {ne_nsv}/{total_nsv} = {expected_pct}"
+            )
