@@ -262,7 +262,17 @@ function chartDlHtml(id){
 }
 
 let charts=[];
-function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; }
+function destroyCharts(){
+  charts.forEach(c=>{
+    try{
+      c.destroy();
+      if(c.canvas){
+        c.canvas.remove();
+      }
+    }catch(e){}
+  });
+  charts=[];
+}
 // shared click-to-drill: any chart passed an onClick(label) callback gets a
 // pointer cursor + a click handler that resolves the clicked label and drills.
 function _drillOpts(onClick){
@@ -519,6 +529,7 @@ function exportTable(btn){
   const filename=exportFilename(tabLabel(currentTab),title);
   downloadRowsXLSX(rows,filename,`Table: ${title} (${tabLabel(currentTab)})`);
 }
+let exportInProgress=false;
 // Full-page export (PDF / PNG). Captures the CURRENTLY VISIBLE tab section
 // in place with html2canvas -- deliberately NOT a detached clone, because
 // <canvas> elements (every chart) don't carry their drawn pixels through
@@ -528,8 +539,10 @@ function exportTable(btn){
 // section, captured, then removed -- and every download-menu/export-button
 // icon is hidden for the capture so they don't appear in the output.
 async function exportPageImage(format){
+  if(exportInProgress){ alert('Export in progress. Please wait.'); return; }
+  exportInProgress=true;
   const section=document.getElementById('tab-'+currentTab);
-  if(!section){ alert('Nothing to export.'); return; }
+  if(!section){ alert('Nothing to export.'); exportInProgress=false; return; }
   const btn=document.querySelector('.pagedl summary');
   if(btn) btn.textContent='⏳ Preparing…';
   const ts=exportTimestamp();
@@ -564,7 +577,7 @@ async function exportPageImage(format){
     }
   });
   try{
-    const canvas=await html2canvas(section,{scale:1.3,backgroundColor:'#ffffff',useCORS:true});
+    const canvas=await html2canvas(section,{scale:1,backgroundColor:'#ffffff',useCORS:true,logging:false});
     const filename=exportFilename(tabLabel(currentTab),'FullPage');
     if(format==='png'){
       const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=filename+'.png';a.click();
@@ -587,6 +600,7 @@ async function exportPageImage(format){
   } catch(err){
     alert('Export failed: '+err.message);
   } finally{
+    exportInProgress=false;
     header.remove(); footer.remove();
     hidden.forEach(x=>x.style.visibility='');
     swappedTables.forEach(({wrap,display,note})=>{ wrap.style.display=display; note.remove(); });
@@ -2064,10 +2078,11 @@ const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','
 // (empty = All). Values in a dimension are OR'd together; dimensions are
 // AND'd, same as before.
 const F={}; FILT.forEach(([k])=>F[k]=[]);
-const fOn =k=>F[k].length>0;                                 // dimension filtered at all?
-const fHas=(k,v)=>!F[k].length||F[k].includes(String(v));    // does value v pass dimension k?
-const fLab=k=>F[k].join(', ');                               // display label ('' when unfiltered)
-const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one selection or null
+const FSETS={};FILT.forEach(([k])=>FSETS[k]=new Set());  // cached Set for O(1) lookups
+const fOn =k=>F[k].length>0;
+const fHas=(k,v)=>!F[k].length||FSETS[k].has(String(v));    // O(1) lookup via Set
+const fLab=k=>F[k].join(', ');
+const fOne=k=>F[k].length===1?F[k][0]:null;
 
 // records passing all active filters (optionally ignoring one key for cascading options)
 function recFilter(except){
@@ -2126,18 +2141,27 @@ function renderFilterBar(){
       const k=sel.dataset.k, v=sel.value;
       if(v==='') F[k]=[];
       else{ const i=F[k].indexOf(v); if(i>=0) F[k].splice(i,1); else F[k].push(v); }
+      FSETS[k]=new Set(F[k]);
       if(k==='Category'&&!F[k].length) catChartDrill=null;
       onFilterChange();
     };
   });
-  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;onFilterChange();};
+  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>{F[k]=[]; FSETS[k]=new Set();});catChartDrill=null;onFilterChange();};
   fb.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
     F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
+    FSETS[b.dataset.k]=new Set(F[b.dataset.k]);
     if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;
     onFilterChange();
   });
 }
-function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
+let filterChangeTimer;
+function onFilterChange(){
+  clearTimeout(filterChangeTimer);
+  filterChangeTimer=setTimeout(()=>{
+    renderFilterBar();
+    show(currentTab||'overview');
+  },200);
+}
 
 // cross-tab drill-down: click any chart bar/segment/table-row on ANY tab to
 // set that one filter and re-render the SAME tab narrowed to it -- drilling
@@ -2146,7 +2170,8 @@ function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
 // the raw row-level records for whatever's currently filtered.
 function drillTo(key,value){
   if(!FILT.some(([k])=>k===key) || value==null) return;
-  F[key]=[String(value)];   // drill = FOCUS on the clicked value (replaces the dimension's selection)
+  F[key]=[String(value)];
+  FSETS[key]=new Set(F[key]);
   onFilterChange();
 }
 function drillLink(key,label){
@@ -2165,6 +2190,7 @@ function activeChipsHtml(){
 function wireChips(root,rebuildFn){
   root.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
     F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
+    FSETS[b.dataset.k]=new Set(F[b.dataset.k]);
     if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;
     renderFilterBar();
     destroyCharts();
@@ -2466,13 +2492,6 @@ function show(id){
   currentTab=id;
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
   document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id==='tab-'+id));
-  // every tab always rebuilds from the CURRENT filter state (no stale cache) --
-  // this is what makes the global FY/Month/Chain/... filter bar apply dashboard-wide,
-  // not just on the Data Explorer. Deferred one tick: drillTo() is invoked from
-  // INSIDE a Chart.js onClick handler, and destroying that same chart synchronously
-  // (before Chart.js finishes its own internal afterEvent/tooltip processing for
-  // this click) throws "Cannot read properties of undefined (reading 'handleEvent')".
-  // Letting the current event loop turn finish first avoids that.
   setTimeout(()=>{
     destroyCharts();
     BUILD[id]();
