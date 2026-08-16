@@ -157,14 +157,13 @@ CHAIN_ALIASES = [
     ("More Retail",       ["more", "more retail", "more "]),
     ("RMT-Sancus",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
     ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
-    ("VMM",               ["vmm", "vmm "]),
-    ("Spencer",           ["spencer"]),
+    ("Spencer",           ["spencer", "spencers", "spencer's"]),
     ("Guardian",          ["guardian", "gaurdian "]),
     ("Trent",             ["trent", "trent "]),
     ("V-Mart",            ["v-mart", "v mart east "]),
     ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
-    ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl"]),
-    ("Frankross",         ["frankross", "frankros"]),
+    ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl", "sastasundar"]),
+    ("Frankross",         ["frankross", "frankros", "frank ross"]),
     ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
     ("WH-Smith",          ["wh-smith"]),
     ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
@@ -174,8 +173,6 @@ CHAIN_ALIASES = [
     ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
     ("Trent/Westside",    ["trends"]),
-    ("Sasta Sundar",      ["sastasundar"]),
-    ("Frankross",         ["frank ross"]),
     ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
     ("Dmart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
                             "just mark-d-mart"]),
@@ -195,7 +192,7 @@ CHAIN_ALIASES = [
     ("Ratnadeep",         ["ratanadeep"]),
     ("RMT-Sancus",        ["sancus", "sancus networks-mt-reg."]),
     ("Arambagh",          ["aarambagh food mart"]),
-    ("Vishal Mega Mart",  ["vishal enterprises"]),
+    ("Vishal Mega Mart",  ["vishal enterprises", "vmm", "vmm "]),
     ("Lifestyle",         ["lifestyle babyshop"]),
     ("Dmart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart"]),
@@ -255,12 +252,21 @@ def load_primary(src):
 # unambiguous (one ship-to = one chain) and are never re-split.
 # --------------------------------------------------------------------------
 def load_primary_v2(src):
-    """Load primary from Primary_FY202426_10.xlsx (business-confirmed
-    2026-07-03 as source-of-truth; see PowerBI/docs/SIS_Reconciliation.md).
-    Same output shape as load_primary() plus the raw Ship-To / Direct-
-    Distributor columns needed for chain-level allocation."""
-    f = src / "Primary_FY202426_10.xlsx"
-    df = pd.read_excel(f, sheet_name="Dump", header=1)
+    """Load primary from CSV seed (preferred) or XLSX (fallback).
+    CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
+    XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
+    Same output shape as load_primary() plus raw Ship-To/Distributor columns."""
+    # Try CSV first (versioned in git)
+    csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
+    if csv_f.exists():
+        df = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX in --src
+        f = src / "Primary_FY202426_10.xlsx"
+        if not f.exists():
+            raise FileNotFoundError(f"Primary data not found: {csv_f} or {f}")
+        df = pd.read_excel(f, sheet_name="Dump", header=1)
+
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -272,18 +278,22 @@ def load_primary_v2(src):
     return df
 
 def load_chain_allocation_weights(src):
-    """Read the secondary-driven Ship-To -> Chain Cont% allocation
-    (Dist_primary_cont_based_on_secondary_MOM.xlsx, Sheet2 = the already
-    chain-split Distributor rows). Returns {(ship_to_norm, brand_canon,
-    month_norm): [(chain_raw, fraction), ...]} with fractions derived from
-    the sheet's own NSV split (normalised to sum to 1 per key) rather than
-    trusting the printed Cont% column's rounding. Returns None if the file
-    isn't present in --src (allocation step is then skipped, unchanged
-    behaviour)."""
-    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-    if not f.exists():
-        return None
-    s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+    """Read the secondary-driven Ship-To -> Chain Cont% allocation (CSV seed preferred).
+    CSV: PowerBI/SeedData/DIST/ChainAllocationWeights.csv (versioned in git)
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx Sheet2 (fallback)
+    Returns {(ship_to_norm, brand_canon, month_norm): [(chain_raw, fraction), ...]}
+    with fractions normalized to sum to 1 per key. Returns None if neither file exists."""
+    # Try CSV first
+    csv_f = Path("PowerBI/SeedData/DIST/ChainAllocationWeights.csv")
+    if csv_f.exists():
+        s2 = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+        if not f.exists():
+            return None
+        s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+
     s2.columns = [str(c).strip() for c in s2.columns]
     s2 = s2.dropna(subset=["NSV"])
     s2["_key"] = list(zip(
@@ -900,27 +910,32 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                 by_chain_idx[chain] = row
             new_val = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag))
             if kept_months:
-                # Preserve existing value contribution from kept months.
-                # Existing row value covers ALL months of this FY, so we need
-                # to subtract the old value for the months we ARE replacing and
-                # add the new value. But we don't have per-month chain breakdowns
-                # in existing data, so for kept months the old total stands and
-                # we add only the new months' contribution.
                 old_total = existing_chain_vals.get(chain, 0.0)
-                # old_total covered existing_months; new source covers new_months_of_tag.
-                # For months in both, new source wins; for kept months, old value stays.
-                # Since we can't decompose old_total by month, approximate:
-                # if existing had only the kept months' worth, keep it and add new.
-                # But if existing also had the new months, we'd double-count.
-                # Safe approach: if existing_months overlaps new_months_of_tag, just use new.
-                overlap = set(existing_months) & new_month_set
-                if overlap:
+                # old_total covers existing_months (e.g. Apr+May+Jun+Jul).
+                # new source covers new_months_of_tag (e.g. Apr+May+Jul — may be missing Jun).
+                # truly_new = months in source not yet in existing.
+                # Correct: old_total already includes overlap months; just add truly_new.
+                # (Re-adding new_val directly would double-count the overlap months.)
+                truly_new = set(new_months_of_tag) - set(existing_months)
+                if truly_new:
+                    # Case A: source has genuinely new months → add only those
+                    truly_new_val = r2(sum(v for mo, v in months.items() if mo in truly_new))
+                    row[lo] = r2(old_total + truly_new_val)
+                elif set(new_months_of_tag) == set(existing_months):
+                    # Case B: source covers exactly the same months → fresh recompute
+                    # (e.g. alias mapping changed; source is authoritative for this window)
                     row[lo] = new_val
                 else:
-                    row[lo] = r2(old_total + new_val)
+                    # Case C: source is a strict subset of existing (some months not in --src)
+                    # → preserve existing total; adding new_val would drop missing months.
+                    row[lo] = old_total
             else:
                 row[lo] = new_val
-        zone_totals = {}
+        zone_truly_new_totals = {}   # Case A zone increments (new months only)
+        zone_full_totals = {}        # Case B/no-kept-months zone sums (full recompute)
+        _truly_new_months = set(new_months_of_tag) - set(existing_months)
+        _source_exact_match = (not _truly_new_months) and (set(new_months_of_tag) == set(existing_months))
+        _source_is_subset = (not _truly_new_months) and (set(new_months_of_tag) < set(existing_months))
         for (zone, state), months in zsm.items():
             v = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag)) or 0.0
             srow = by_state_idx.get((zone, state))
@@ -930,15 +945,32 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                 by_state_idx[(zone, state)] = srow
             if kept_months:
                 old_sv = existing_state_vals.get((zone, state), 0.0)
-                overlap = set(existing_months) & new_month_set
-                if overlap:
+                if _truly_new_months:
+                    # Case A: add truly-new-months increment only
+                    truly_new_sv = r2(sum(v for mo, v in months.items() if mo in _truly_new_months)) or 0.0
+                    srow[lo] = r2(old_sv + truly_new_sv)
+                    zone_truly_new_totals[zone] = zone_truly_new_totals.get(zone, 0.0) + truly_new_sv
+                elif _source_exact_match:
+                    # Case B: source covers same months — fresh recompute
                     srow[lo] = v
-                else:
-                    srow[lo] = r2(old_sv + v)
+                    zone_full_totals[zone] = zone_full_totals.get(zone, 0.0) + v
+                # else Case C: source subset — leave srow[lo] unchanged (don't touch zone_full_totals)
             else:
                 srow[lo] = v
-            zone_totals[zone] = zone_totals.get(zone, 0.0) + (srow.get(lo) or 0.0)
-        for zone, v in zone_totals.items():
+                zone_full_totals[zone] = zone_full_totals.get(zone, 0.0) + v
+        for zone, inc in zone_truly_new_totals.items():
+            # Case A: add only the truly-new-months increment to the existing zone value.
+            # This preserves the existing zone total (which includes old months AND
+            # any rows where state was null/unmapped that are not in zsm).
+            zrow = by_zone_idx.get(zone)
+            if zrow is None:
+                zrow = {"name": zone}
+                offtake["by_zone"].append(zrow)
+                by_zone_idx[zone] = zrow
+            old_zone_val = existing_zone_vals.get(zone, 0.0)
+            zrow[lo] = r2(old_zone_val + inc)
+        for zone, v in zone_full_totals.items():
+            # Case B or no-kept-months: full zone recompute
             zrow = by_zone_idx.get(zone)
             if zrow is None:
                 zrow = {"name": zone}
@@ -974,7 +1006,7 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
 # EAN, so it extends to more months automatically.
 # --------------------------------------------------------------------------
 _CHAIN_FORMAT_BRIDGE = {   # offtake chain (canon) -> ChainMaster spelling, where canon differs
-    "H&G": "Health & Glow", "Spencer": "Spencers", "VMM": "Vishal Mega Mart",
+    "H&G": "Health & Glow", "Spencer": "Spencers",
 }
 def load_chain_formats(repo_root):
     """canon chain name -> format ('Chain Type' from PowerBI ChainMaster.csv)."""
@@ -1146,7 +1178,18 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
 # UNIVERSE (distribution footprint)
 # --------------------------------------------------------------------------
 def universe_block(src):
-    u = pd.read_excel(src / "universe.xlsx", sheet_name="PAN INDIA", header=0)
+    # Try CSV first (versioned in git), fallback to XLSX
+    csv_f = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
+    if csv_f.exists():
+        u = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "universe.xlsx"
+        if not f.exists():
+            f = src / "Universe MT.xlsx"  # Try alternate naming
+        if not f.exists():
+            raise FileNotFoundError(f"Universe data not found: {csv_f} or {f}")
+        u = pd.read_excel(f, sheet_name="PAN INDIA", header=0)
     u.columns = [str(c).strip() for c in u.columns]
     u = u[u["Chain Name"].notna()]
     u["active"] = u["Status"].astype(str).str.strip().str.upper().eq("ACTIVE")
@@ -1212,7 +1255,19 @@ def parse_depth(x):
     return None
 
 def promo_block(src):
-    p = pd.read_excel(src / "promo.xlsx", sheet_name="Sheet1", header=0)
+    # Try CSV first (versioned in git), fallback to XLSX
+    csv_f = Path("PowerBI/SeedData/Promo/PromoMaster.csv")
+    if csv_f.exists():
+        p = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "promo.xlsx"
+        if not f.exists():
+            f = src / "Promo Master -MT.xlsx"  # Try alternate naming
+        if not f.exists():
+            # Promo is optional; skip if not found
+            return pd.DataFrame(), None
+        p = pd.read_excel(f, sheet_name="Sheet1", header=0)
     p.columns = [str(c).strip() for c in p.columns]
     p = p[p["Chain Name"].notna()]
     p["chain"] = p["Chain Name"].map(canon_chain)
@@ -2295,34 +2350,56 @@ def load_shipto_primary_weights(repo_root=None):
 
 def load_dist_cont_weights(src):
     """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the cont
-    sheet, fractions normalised to sum to 1 per (ShipTo, Brand, Month) key,
-    plus {key: raw_pct_sum} for the cont%-sum-=100 QC check. Returns a 3-tuple
-    (wdf, raw_sums, source_label). source_label is 'xlsx' when the secondary-
-    derived spreadsheet is found, 'shipto_primary_csv' when the Priority-1 CSV
-    fallback is used, or None when neither source exists (allocation skipped)."""
-    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-    if not f.exists():
-        # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
-        wdf, raw_sums = load_shipto_primary_weights()
-        src_label = "shipto_primary_csv" if wdf is not None else None
-        return wdf, raw_sums, src_label
-    w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
+    sheet (CSV preferred), fractions normalised to sum to 1 per (ShipTo, Brand, Month).
+    CSV: PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv (versioned in git)
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx (fallback)
+    CSV: Priority-1 fallback at ShipTo×Brand×Month grain if neither DIST file exists.
+    Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
+    # Try CSV seed first
+    csv_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+    if csv_f.exists():
+        w = pd.read_csv(csv_f)
+        src_label = "dist_cont_csv"
+    else:
+        # Fallback to XLSX
+        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+        if not f.exists():
+            # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
+            wdf, raw_sums = load_shipto_primary_weights()
+            src_label = "shipto_primary_csv" if wdf is not None else None
+            return wdf, raw_sums, src_label
+        w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
+        src_label = "xlsx"
+
     w.columns = [str(c).strip() for c in w.columns]
-    w = w.dropna(subset=["Ship To Name", "Chain Name", "Secondary contribution %"])
+    w = w.dropna(subset=["Ship To Name", "Chain Name"])
+
+    # Handle both CSV and XLSX column names
+    cont_col = "Cont_Pct" if "Cont_Pct" in w.columns else "Secondary contribution %"
+    month_col = "Month" if "Month" in w.columns else "Revised month"
+    chain_col = "Chain_Name" if "Chain_Name" in w.columns else "Chain Name"
+
+    w = w[w[cont_col].notna()]
     w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
     w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
-    w["_pm"] = w["Revised month"].map(_month_period)
-    w["_pct"] = pd.to_numeric(w["Secondary contribution %"], errors="coerce").fillna(0.0)
+
+    # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX)
+    if w[month_col].dtype == 'object':
+        w["_pm"] = pd.to_datetime(w[month_col], errors="coerce").dt.strftime("%Y-%m")
+    else:
+        w["_pm"] = w[month_col].map(_month_period)
+
+    w["_pct"] = pd.to_numeric(w[cont_col], errors="coerce").fillna(0.0)
     w = w[w["_pm"].notna() & (w["_pct"] != 0)]
     key_sums = w.groupby(["_st", "_bl", "_pm"])["_pct"].transform("sum")
     raw_sums = {k: round(float(v), 2)
                 for k, v in w.groupby(["_st", "_bl", "_pm"])["_pct"].sum().items()}
     w["_frac"] = w["_pct"] / key_sums
-    w["_AllocChainRaw"] = w["Chain Name"].astype(str).str.strip()
-    # raw-case names carried through for the auto-generated patch-proposal CSV
+    w["_AllocChainRaw"] = w[chain_col].astype(str).str.strip()
+    # raw-case names carried through for auto-generated patch-proposal CSV
     w["_ShipToRaw"] = w["Ship To Name"].astype(str).str.strip()
     w["_BrandRaw"] = w["Brand"].astype(str).str.strip()
-    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, "xlsx"
+    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, src_label
 
 _ALLOC_MEASURES = ["_Qty", "_MRP", "_NSV", "_TaxLOC"]   # scaled by cont%; _ArtMRP (per-unit) is NOT
 

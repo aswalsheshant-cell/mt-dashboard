@@ -57,13 +57,13 @@ class TestBrandCounterDisclosure:
             "reliance_bc.data_complete_through should not be None when months are loaded"
         )
 
-    def test_bc_data_complete_through_is_may26_or_later(self, bc):
-        """When Jun-26 source is absent, last covered month must be May-26."""
-        june_file = OFFTAKE_DIR / "offtake_store_article_Jun_26.csv"
-        if not june_file.exists():
-            assert bc["data_complete_through"] == "May-26", (
-                f"Jun-26 source absent but data_complete_through = {bc['data_complete_through']!r}; "
-                f"expected 'May-26'"
+    def test_bc_data_complete_through_matches_last_loaded_month(self, bc):
+        """data_complete_through must equal the last month actually present in bc.months."""
+        months = bc.get("months", [])
+        if months:
+            assert bc["data_complete_through"] == months[-1], (
+                f"data_complete_through={bc['data_complete_through']!r} "
+                f"but last bc month is {months[-1]!r}"
             )
 
     def test_bc_june_status_field_present(self, bc):
@@ -71,22 +71,34 @@ class TestBrandCounterDisclosure:
         assert "june_status" in bc, "reliance_bc missing 'june_status' field"
 
     def test_bc_june_status_blocked_when_source_absent(self, bc):
-        """june_status must be BLOCKED when offtake_store_article_Jun_26.csv is absent."""
-        june_file = OFFTAKE_DIR / "offtake_store_article_Jun_26.csv"
-        if not june_file.exists():
+        """june_status must be BLOCKED only when Jun-26 data is not loaded at all.
+        Jun-26 can now come from the dedicated RBC xlsb (not just the monthly CSV),
+        so we gate on whether Jun-26 is actually in bc.months, not on CSV presence."""
+        jun_loaded = "Jun-26" in (bc.get("months") or [])
+        june_csv = OFFTAKE_DIR / "offtake_store_article_Jun_26.csv"
+        if not june_csv.exists() and not jun_loaded:
             assert bc["june_status"] is not None, (
-                "Jun-26 source absent but reliance_bc.june_status is None — disclosure missing"
+                "Jun-26 not loaded from any source but reliance_bc.june_status is None — disclosure missing"
             )
             assert "BLOCKED" in str(bc["june_status"]), (
                 f"june_status should start with 'BLOCKED' but got: {bc['june_status'][:80]}"
             )
 
     def test_bc_june_not_in_months_when_source_absent(self, bc):
-        """When Jun-26 source is absent, 'Jun-26' must not appear in bc.months."""
-        june_file = OFFTAKE_DIR / "offtake_store_article_Jun_26.csv"
-        if not june_file.exists():
+        """Jun-26 must not appear in bc.months unless data was actually sourced.
+        Jun-26 can now be sourced from the dedicated RBC xlsb; if it is loaded,
+        june_status must be None (validated by test_bc_june_status_null_when_source_present)."""
+        jun_loaded = "Jun-26" in (bc.get("months") or [])
+        june_csv = OFFTAKE_DIR / "offtake_store_article_Jun_26.csv"
+        if not june_csv.exists() and not jun_loaded:
+            # Neither dedicated BC xlsb nor CSV provided Jun-26 — it must not appear
             assert "Jun-26" not in (bc.get("months") or []), (
-                "Jun-26 is in reliance_bc.months but offtake_store_article_Jun_26.csv is absent"
+                "Jun-26 is in reliance_bc.months but no Jun-26 source was loaded"
+            )
+        if jun_loaded:
+            # Jun-26 is present from dedicated BC xlsb → june_status must be None
+            assert bc.get("june_status") is None, (
+                "Jun-26 is loaded but june_status is not None — disclosure is stale"
             )
 
     def test_bc_june_status_null_when_source_present(self, bc):

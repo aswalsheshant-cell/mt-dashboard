@@ -13,3 +13,6 @@ primary_article.xlsb
 
 # skill-suite: local backups of diverged install targets
 work/skill-suite-backups/
+
+# Generated PPTX output — produced by scripts/export_slides.js
+MT_Leadership_Report.pptx

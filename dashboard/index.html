@@ -1285,6 +1285,10 @@ function buildForecast(){
      is shown below, but the full-year total could not be derived. Achievement % vs annual plan
      cannot be displayed until the file is re-verified and <code>--forecast-only</code> is re-run.
    </div>`:'';
+  // ── detail section (Sep–Nov brand/chain breakdown from Excel) ───────────
+  const det=f.detail||null;
+  const detHtml=det?_buildFcDetail(det):'';
+
   s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''}</h2>
    <p class="lead">${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
    ${dimNote}
@@ -1296,12 +1300,99 @@ function buildForecast(){
    </div>
    ${card(`Offtake — actuals &amp; FY26-27 ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
    ${card('Method',f.method,isTY?'':'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}
+   ${detHtml}
    ${catDrillCardHtml('fcCatDrill')}`;
   const histLen=f.hist.length;
   mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
     {label:'Actual offtake',data:[...f.hist,...Array(f.fc.length).fill(null)],borderColor:C.teal,backgroundColor:C.teal+'22',fill:true},
     {label:isTY?'TY Target FY26-27':'Forecast FY26-27',data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
+  if(det) _buildFcDetailCharts(det);
   renderCatDrillChart('fcCatDrill',recFilter());
+}
+
+function _buildFcDetail(det){
+  const mos=det.months||[];
+  const moLabels=mos.map(m=>m.replace('-',' '));
+  const statusBadge=s=>s==='PASS'?`<span style="color:#2e7d32;font-weight:600">&#10003; PASS</span>`
+    :`<span style="color:#c62828;font-weight:600">&#9888; ${s}</span>`;
+  const st=det.status||{};
+
+  // Brand table rows
+  const brandRows=(det.by_brand||[]).map(b=>{
+    const monCols=mos.map(mo=>`<td style="text-align:right">${crc(b[mo.replace('-','_').toLowerCase()]||0)}</td>`).join('');
+    return `<tr><td>${b.name}</td>${monCols}<td style="text-align:right"><b>${crc(b.total)}</b></td></tr>`;
+  }).join('');
+  const brandHeader=mos.map(m=>`<th style="text-align:right">${m}</th>`).join('');
+
+  // Chain table rows (top 10)
+  const chainRows=(det.by_chain||[]).slice(0,10).map(c=>{
+    const monCols=mos.map(mo=>`<td style="text-align:right">${crc(c[mo.replace('-','_').toLowerCase()]||0)}</td>`).join('');
+    return `<tr><td>${c.name}</td>${monCols}<td style="text-align:right"><b>${crc(c.total)}</b></td></tr>`;
+  }).join('');
+
+  // Monthly totals footer
+  const totCols=mos.map((mo,i)=>`<td style="text-align:right"><b>${crc(det.monthly_forecast[i])}</b></td>`).join('');
+
+  // Status row
+  const statusRow=`
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.5rem;font-size:.85rem">
+      <span>Reconciliation: ${statusBadge(st.reconciliation||'–')}</span>
+      <span>Owner mapping: ${statusBadge(st.owner_mapping||'–')}</span>
+      <span>NPI evidence: ${statusBadge(st.npi_evidence||'–')}</span>
+      <span style="color:#555">Source: ${det.source||''} · ${det.source_date||''}</span>
+    </div>`;
+
+  return `
+   <h3 class="sec" style="margin-top:1.5rem">Bottom-up Forecast: Sep–Nov 2026 (Q2+Q3 FY27)</h3>
+   <p class="lead" style="font-size:.9rem">${det.note||''}</p>
+   ${statusRow}
+   <div class="kpis" style="margin-bottom:1rem">
+     ${kpi('Q2+Q3 Target',crc(det.q2_q3_total),'Sep + Oct + Nov 2026')}
+     ${kpi('Brands covered',(det.by_brand||[]).length,'multi-brand plan')}
+     ${kpi('Chains covered',(det.by_chain||[]).length,'MT chain scope')}
+   </div>
+   ${card('Brand-wise target allocation (₹ Lakhs)','Target-aligned; Forecast = Target by design in this model',
+     `${cv('fcBrandChart')}<div class="tablewrap"><table>
+       <thead><tr><th>Brand</th>${brandHeader}<th style="text-align:right">Total</th></tr></thead>
+       <tbody>${brandRows}</tbody>
+       <tfoot><tr><td><b>Total</b></td>${totCols}<td style="text-align:right"><b>${crc(det.q2_q3_total)}</b></td></tr></tfoot>
+     </table></div>`)}
+   ${card('Chain-wise target allocation — top 10 (₹ Lakhs)','Preliminary; NKAM/RKAM mapping pending',
+     `${cv('fcChainChart')}<div class="tablewrap"><table>
+       <thead><tr><th>Chain</th>${brandHeader}<th style="text-align:right">Total</th></tr></thead>
+       <tbody>${chainRows}</tbody>
+     </table></div>`)}`;
+}
+
+function _buildFcDetailCharts(det){
+  const mos=det.months||[];
+  const moLabels=mos.map(m=>m.replace('-',' '));
+  const brandColors=[C.teal,C.amber,'#9c27b0','#e91e63','#ff5722'];
+
+  // Stacked bar: Brand × Month
+  const brandDatasets=(det.by_brand||[]).map((b,i)=>({
+    label:b.name,
+    data:mos.map(mo=>b[mo.replace('-','_').toLowerCase()]||0),
+    backgroundColor:(brandColors[i]||'#999')+'cc',
+    borderColor:brandColors[i]||'#999',borderWidth:1
+  }));
+  const bCtx=document.getElementById('fcBrandChart');
+  if(bCtx&&typeof Chart!=='undefined'){
+    new Chart(bCtx,{type:'bar',data:{labels:moLabels,datasets:brandDatasets},
+      options:{responsive:true,plugins:{legend:{position:'bottom'}},
+        scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>crc(v)}}}}});
+  }
+
+  // Horizontal bar: Chain totals
+  const cNames=(det.by_chain||[]).slice(0,10).map(c=>c.name);
+  const cTotals=(det.by_chain||[]).slice(0,10).map(c=>c.total);
+  const cCtx=document.getElementById('fcChainChart');
+  if(cCtx&&typeof Chart!=='undefined'){
+    new Chart(cCtx,{type:'bar',data:{labels:cNames,
+      datasets:[{label:'3-month target',data:cTotals,backgroundColor:C.teal+'bb',borderColor:C.teal,borderWidth:1}]},
+      options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{callback:v=>crc(v)}}}}});
+  }
 }
 
 /* ---------------- MARKET SHARE ---------------- */
@@ -1504,6 +1595,53 @@ function buildCategory(){
   // NOT the same article repeated once per chain. Drill into a Chain (chip or any
   // chart's click-to-drill) to see that chain's own unique-article ranking here.
   const topArt=uniqueBy(recs,'Article',['Category','SubCategory','Range','PackSize']).slice(0,20);
+
+  // ── category margin analysis ────────────────────────────────────────────────
+  const detCatMap=Object.fromEntries(((D.promo?.detail?.by_category)||[]).map(c=>[c.name,c.skus]));
+  const promoBrands=new Set((D.promo?.detail?.by_brand||[]).map(b=>b.name));
+  const catWaterfall=(D.tot?.by_category||[]).filter(c=>c.mrp>0).map(c=>({
+    name:c.name, mrp:c.mrp, nsv:c.nsv,
+    nsv_pct:+(c.nsv/c.mrp*100).toFixed(1),
+    tax_pct:+(c.tax/c.mrp*100).toFixed(1),
+    tot_pct:c.tot_pct,
+    promos:detCatMap[c.name]||0,
+    promoIntensity:c.nsv>0?+((detCatMap[c.name]||0)/c.nsv*100).toFixed(1):0,
+  })).sort((a,b)=>b.tot_pct-a.tot_pct);
+  const dilutiveArts=uniqueBy(recs,'Article',['Category','Brand'])
+    .filter(a=>a.NSV>=10&&a.MRP>0)
+    .map(a=>({...a,disc_pct:+((1-a.NSV/a.MRP)*100).toFixed(1),on_promo:promoBrands.has(a.Brand)}))
+    .sort((a,b)=>b.disc_pct-a.disc_pct).slice(0,20);
+  const _dilRows=dilutiveArts.map(a=>`<tr>
+    <td>${drillLink('Article',a.Article)}</td>
+    <td>${drillLink('Brand',a.Brand)}</td>
+    <td>${drillLink('Category',a.Category)}</td>
+    <td style="text-align:right">${crc(a.NSV)}</td>
+    <td style="text-align:right">${a.disc_pct}%</td>
+    <td style="text-align:center">${a.on_promo?'<span class="pill g">Promo</span>':'–'}</td></tr>`).join('');
+  const _catRoiRows=catWaterfall.map(c=>`<tr>
+    <td>${drillLink('Category',c.name)}</td>
+    <td style="text-align:right">${crc(c.nsv)}</td>
+    <td style="text-align:right">${c.nsv_pct}%</td>
+    <td style="text-align:right">${c.tot_pct}%</td>
+    <td style="text-align:right">${c.promos>0?num(c.promos):'–'}</td>
+    <td style="text-align:right">${c.promoIntensity>0?c.promoIntensity:'–'}</td></tr>`).join('');
+  const _mrgHtml=catWaterfall.length?`
+  <h3 class="sec" style="margin:28px 0 4px">Category Margin &amp; Promo ROI</h3>
+  <p class="lead">MRP splits into NSV% (Honasa revenue), Tax% (GST), and TOT% (channel offer). Higher TOT% = heavier channel investment. Promo intensity shows Aug-26 SKUs per ₹100L NSV — high intensity alongside high TOT% signals ROI risk.</p>
+  <div class="grid g2">
+    ${card('MRP revenue split by category','NSV% + Tax% + TOT% = 100% of face MRP — sorted by TOT% highest first',cv('catMrgWaterfall',true))}
+    ${card('Promo intensity (Aug-26)','Aug-26 SKU-promo lines per ₹100L NSV — higher = more promo-heavy relative to revenue',cv('catPromoIntensity',true))}
+  </div>
+  ${card('Category margin ROI matrix','Effective TOT%, NSV realised, and Aug-26 promo intensity per category.',`<div class="tablewrap"><table><thead><tr>
+      <th>Category</th><th>NSV (L)</th><th>NSV% of MRP</th><th>TOT%</th><th>Aug Promos</th><th>Promos/100L NSV</th>
+    </tr></thead><tbody>${_catRoiRows||'<tr><td colspan="6">No data.</td></tr>'}</tbody></table></div>`)}
+  ${dilutiveArts.length?card('Margin-dilutive articles — top 20 by gross discount%',
+    'Gross disc% = 1 − NSV/MRP (= TOT% + Tax%). Filtered to NSV ≥ ₹10L. Promo badge = brand in Aug-26 calendar.',
+    `<div class="tablewrap"><table><thead><tr>
+      <th>Article</th><th>Brand</th><th>Category</th><th>NSV</th><th>Gross Disc%</th><th>Aug Promo</th>
+    </tr></thead><tbody>${_dilRows}</tbody></table></div>`):''}
+`:'';
+
   const artRows=topArt.map(r=>`<tr><td>${drillLink('Article',r.Article)}</td><td>${drillLink('Category',r.Category)}</td><td>${drillLink('SubCategory',r.SubCategory)}</td>
      <td>${drillLink('Range',r.Range)}</td><td>${drillLink('PackSize',r.PackSize)}</td><td>${crc(r.NSV)}</td><td>${qtyFmt(r.Qty)}</td></tr>`).join('');
   s.innerHTML=`<h2 class="sec">Category &amp; Pack</h2>
@@ -1529,7 +1667,8 @@ function buildCategory(){
    ${card('NSV by Pack Size','click a bar to drill',cv('catPack',true))}
    ${card(`Top 20 unique articles by NSV${active?' (scoped to active filter)':' (across all chains/months)'}`,'Click Article/Category/Sub-cat/Range/Pack to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Article</th><th>Category</th><th>Sub-cat</th><th>Range</th><th>Pack</th><th>NSV</th><th>Qty</th>
-     </tr></thead><tbody>${artRows||'<tr><td colspan="7">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
+     </tr></thead><tbody>${artRows||'<tr><td colspan="7">No records for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${_mrgHtml}`;
   wireDrillLinks(s);
   wireChips(s,buildCategory);
   if(recs.length){
@@ -1539,6 +1678,30 @@ function buildCategory(){
     mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
   }
   renderCatDrillChart('catCatDrill',recs);
+
+  // ── category margin charts ────────────────────────────────────────────────
+  if(catWaterfall.length){
+    const _wCh=new Chart(document.getElementById('catMrgWaterfall'),{
+      type:'bar',
+      data:{labels:catWaterfall.map(c=>c.name),datasets:[
+        {label:'NSV%',data:catWaterfall.map(c=>c.nsv_pct),backgroundColor:C.teal+'cc',stack:'mrp'},
+        {label:'Tax%',data:catWaterfall.map(c=>c.tax_pct),backgroundColor:C.grey+'cc',stack:'mrp'},
+        {label:'TOT%',data:catWaterfall.map(c=>c.tot_pct),backgroundColor:C.amber+'cc',stack:'mrp'},
+      ]},
+      options:{indexAxis:'y',responsive:true,
+        plugins:{legend:{display:true,position:'top'},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.x+'%'}}},
+        scales:{x:{stacked:true,max:100,ticks:{callback:v=>v+'%'}},y:{stacked:true}}},
+    });
+    charts.push(_wCh);
+    if(catWaterfall.some(c=>c.promoIntensity>0)){
+      mkBarH('catPromoIntensity',catWaterfall.map(c=>c.name),
+        catWaterfall.map(c=>c.promoIntensity),C.purple,false);
+      const _piCh=charts[charts.length-1];
+      _piCh.options.plugins.tooltip.callbacks.label=c=>'Promos/100L NSV: '+c.parsed.x;
+      _piCh.update();
+    }
+  }
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
@@ -1554,6 +1717,80 @@ function buildPromo(){
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
     +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
+
+  // ── trade economics (D.tot) ──────────────────────────────────────────────
+  const _totD=D.tot||{};
+  const _totChains=(_totD.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
+  const _totMons=_totD.monthly||[];
+  const _cm2Map=Object.fromEntries((D.cm2?.by_chain||[]).map(c=>[c.name,c]));
+  const _totSorted=[..._totChains].sort((a,b)=>b.passon_value-a.passon_value);
+  const _allPasson=_totChains.reduce((s,c)=>s+c.passon_value,0);
+  const _allNsv=_totChains.reduce((s2,c)=>s2+c.nsv,0);
+  const _blendRoi=_allPasson>0?_allNsv/_allPasson:null;
+  const _roiRows=_totSorted.map(c=>({...c,btl:_cm2Map[c.name]?.expense||0,
+    roi:c.passon_value>0?c.nsv/c.passon_value:null}));
+  const _tradeRows=_roiRows.slice(0,15).map(r=>{
+    const rc=_blendRoi&&r.roi!=null?(r.roi>=_blendRoi*1.1?'up':r.roi<_blendRoi*0.9?'down':''):'';
+    return `<tr><td>${drillLink('Chain',r.name)}</td>
+      <td style="text-align:right">${crc(r.nsv)}</td>
+      <td style="text-align:right">${r.tot_pct!=null?r.tot_pct+'%':'–'}</td>
+      <td style="text-align:right">${crc(r.passon_value)}</td>
+      <td style="text-align:right">${r.btl>0?crc(r.btl):'–'}</td>
+      <td style="text-align:right" class="${rc}">${r.roi!=null?r.roi.toFixed(2)+'×':'–'}</td></tr>`;
+  }).join('');
+  const _effNote='Revenue efficiency = NSV ÷ passon value. Blended avg: '+
+    (_blendRoi?_blendRoi.toFixed(2)+'×':'–')+'. Green = above avg, red = below.';
+  const _totSection=`
+  <h3 class="sec" style="margin:28px 0 4px">Trade Economics — Channel Investment &amp; Efficiency</h3>
+  <p class="lead">Trade Offer Terms (TOT) = gross discount passed to each channel partner as a % of MRP. Revenue efficiency measures NSV generated per ₹ offered.</p>
+  <div class="kpis">
+    ${kpi('Channel Offer (Passon)',crc(_allPasson),'₹ passed to trade (FY26 total)')}
+    ${kpi('Blended TOT%',(_totD.blended_tot_pct||0)+'%','of MRP passed to channel')}
+    ${kpi('Revenue Efficiency',_blendRoi?_blendRoi.toFixed(2)+'×':'–','NSV per ₹ channel offer')}
+    ${kpi('BTL Spend',crc((D.cm2||{}).total_expense||0),'scheme + visibility + BA cost')}
+  </div>
+  <div class="grid g2">
+    ${card('Passon value by chain (FY26)','₹ offered to each chain — click to drill',cv('prmTotChain'))}
+    ${card('Monthly trade offer trend','passon value &amp; effective TOT% by month',cv('prmTotTrend'))}
+  </div>
+  ${card('Chain trade efficiency',_effNote,`<div class="tablewrap"><table>
+    <thead><tr><th>Chain</th><th>NSV</th><th>TOT%</th><th>Passon (L)</th><th>BTL</th><th>Rev/₹ Offered</th></tr></thead>
+    <tbody>${_tradeRows||'<tr><td colspan="6">No chain data.</td></tr>'}</tbody>
+  </table></div>`)}`;
+
+  // ── Aug-26 promo calendar detail (D.promo.detail) ────────────────────────
+  const _pdet=pr.detail||null;
+  let _detSection='';
+  if(_pdet){
+    const _dc=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
+    const _pend=(_pdet.kam_status?.pending||[]).join(', ');
+    const _pendNote=_pend?`<p class="drillhint" style="margin:4px 0 0">Response pending from: ${_pend}</p>`:'';
+    const _dRows=_dc.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
+      <td style="text-align:right">${num(c.skus)}</td>
+      <td style="text-align:right">${c.brands}</td>
+      <td style="text-align:right">${c.avg_offer_pct!=null?c.avg_offer_pct+'%':'–'}</td>
+      <td>${c.kam||'–'}</td>
+      <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td></tr>`).join('');
+    _detSection=`
+  <h3 class="sec" style="margin:28px 0 4px">Promo Calendar — ${_pdet.month||'Current Month'}</h3>
+  <p class="lead">${num(_pdet.total_skus)} SKU-promo lines across ${_pdet.chains_in_promo} chains for ${_pdet.month||'this month'}.</p>
+  <div class="kpis">
+    ${kpi('SKUs on Promo',num(_pdet.total_skus),'promo lines this month')}
+    ${kpi('Chains Covered',_pdet.chains_in_promo,'running promos')}
+    ${kpi('KAM Responses',_pdet.chains_received+'/'+(+_pdet.chains_received+(+_pdet.chains_pending)),'data sheets received')}
+    ${kpi('Brands on Promo',_pdet.brands_in_promo,'active brand count')}
+  </div>
+  ${_pendNote}
+  <div class="grid g2">
+    ${card('SKUs by chain','promo line count this month — click to drill',cv('prmDetChain'))}
+    ${card('Avg consumer offer % by chain','where parseable (%, BxGy decoded)',cv('prmDetOffer',true))}
+  </div>
+  ${card('KAM accountability — '+(_pdet.month||''),'Promo data received / pending per chain.',`<div class="tablewrap"><table>
+    <thead><tr><th>Chain</th><th>SKUs</th><th>Brands</th><th>Avg Offer%</th><th>KAM</th><th>Status</th></tr></thead>
+    <tbody>${_dRows||'<tr><td colspan="6">No data for this filter.</td></tr>'}</tbody>
+  </table></div>`)}`;
+  }
+
   s.innerHTML=`<h2 class="sec">Promo &amp; Trade Spend</h2>
    <p class="lead">Promo / trade-spend calendar activity by chain, brand and category (FY24-26 source coverage).</p>
    ${dimNote}
@@ -1574,7 +1811,8 @@ function buildPromo(){
    ${card('Chain-wise promo activity','Click a chain to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Chain</th><th>Promos</th><th>Avg Depth</th><th>Brands</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${catDrillCardHtml('prmCatDrill')}`;
+   ${catDrillCardHtml('prmCatDrill')}
+   ${_totSection}${_detSection}`;
   wireDrillLinks(s);
   const top=chains.slice(0,12);
   mkBar('prmChain',top.map(c=>c.name),[{label:'Promos',data:top.map(c=>c.promos),backgroundColor:C.teal,borderRadius:4}],{money:false},v=>drillTo('Chain',v));
@@ -1584,6 +1822,63 @@ function buildPromo(){
   mkBarH('prmBrand',brandsArr.map(b=>b.name),brandsArr.map(b=>b.promos),C.purple,false,v=>drillTo('Brand',v));
   mkBarH('prmCat',cats.map(c=>c.name),cats.map(c=>c.promos),C.blue,false,v=>drillTo('Category',v));
   renderCatDrillChart('prmCatDrill',recFilter());
+
+  // ── trade economics charts ────────────────────────────────────────────────
+  if(_roiRows.length){
+    mkBarH('prmTotChain',_roiRows.slice(0,12).map(c=>c.name),
+      _roiRows.slice(0,12).map(c=>c.passon_value),C.teal,true,v=>drillTo('Chain',v));
+  }
+  if(_totMons.length){
+    const _jm=['Jan','Feb','Mar'];
+    const _tLab=_totMons.map(m=>{
+      const m3=m.month.slice(0,3)==='Sep'?'Sep':m.month.slice(0,3);
+      const n=parseInt(m.fy.replace('FY',''));
+      return m3+'-'+String(_jm.includes(m3)?n:n-1).slice(-2);
+    });
+    const _pArr=_totMons.map(m=>m.passon_value);
+    const _mxP=Math.max(..._pArr)||1;
+    const _scl=_mxP/100;
+    const _tCh=new Chart(document.getElementById('prmTotTrend'),{
+      type:'bar',
+      data:{labels:_tLab,datasets:[
+        {label:'Passon Value (L)',data:_pArr,backgroundColor:C.teal+'aa',
+         borderColor:C.teal,borderWidth:1,type:'bar',order:2},
+        {label:'TOT% (scaled)',data:_totMons.map(m=>m.tot_pct*_scl),
+         borderColor:C.amber,backgroundColor:'transparent',borderWidth:2,
+         type:'line',pointRadius:3,tension:0.3,order:1},
+      ]},
+      options:{responsive:true,
+        plugins:{legend:{display:true,position:'top'},
+          tooltip:{callbacks:{label:ctx=>{
+            if(ctx.dataset.label.includes('TOT%'))
+              return 'TOT%: '+_totMons[ctx.dataIndex]?.tot_pct+'%';
+            return 'Passon: '+crc(ctx.parsed.y);
+          }}}},
+        scales:{x:{ticks:{maxRotation:45,font:{size:10}}},
+                y:{ticks:{callback:v=>crc(v)}}}},
+    });
+    charts.push(_tCh);
+  }
+
+  // ── Aug-26 calendar charts ────────────────────────────────────────────────
+  if(_pdet){
+    const _dc=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
+    const _dc12=_dc.slice(0,12);
+    if(_dc12.length){
+      mkBar('prmDetChain',_dc12.map(c=>c.name),
+        [{label:'SKUs on Promo',data:_dc12.map(c=>c.skus),backgroundColor:C.purple+'cc',borderRadius:4}],
+        {money:false},v=>drillTo('Chain',v));
+    }
+    const _odc=_dc.filter(c=>c.avg_offer_pct!=null).slice(0,12);
+    if(_odc.length){
+      mkBarH('prmDetOffer',_odc.map(c=>c.name),_odc.map(c=>c.avg_offer_pct),
+        C.amber,false,v=>drillTo('Chain',v));
+      const _oCh=charts[charts.length-1];
+      _oCh.options.scales.x.ticks.callback=v=>v+'%';
+      _oCh.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';
+      _oCh.update();
+    }
+  }
 }
 
 /* ---------------- PERFORMANCE & COMPARISON ---------------- */
