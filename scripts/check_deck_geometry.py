@@ -47,6 +47,24 @@ for i, s in enumerate(p.slides, 1):
         if not is_footer and h > 0 and y < SRC_Y < b:
             issues.append(f'S{i}: crosses the source line — {txt!r}')
 
+    # text hidden behind a later opaque shape (banner, card fill drawn after it).
+    # Catches text that starts BELOW its card and is overprinted by the next block,
+    # which the containment test below cannot see.
+    for ti, (x, y, w, h, txt_, sh) in enumerate(shapes):
+        if not txt_ or h == 0:
+            continue
+        for oj in range(ti + 1, len(shapes)):
+            ox, oy, ow, oh, otxt, osh = shapes[oj]
+            if otxt or ow < 0.5 or oh < 0.1:
+                continue
+            ovx = min(x + w, ox + ow) - max(x, ox)
+            ovy = min(y + h, oy + oh) - max(y, oy)
+            if ovx > 0.2 and ovy > 0.08:
+                issues.append(
+                    f'S{i}: text overprinted by a later shape '
+                    f'(overlap {ovy:.2f}in) — {txt_!r}')
+                break
+
     # card containment: rounded rects wider than 1in are cards; their text children
     # should not extend past the bottom edge
     cards = [t for t in shapes if t[2] > 1.0 and t[3] > 0.8 and not t[4]]
