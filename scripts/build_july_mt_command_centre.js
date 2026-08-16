@@ -314,11 +314,11 @@ const ZD = {
     me: '₹3.74 Cr', meRows: [['Face Cleanser', '1.04'], ['Shampoo', '0.94'], ['Sun Care', '0.14']],
     tdc: '₹1.11 Cr', tdcRows: [['Face Cleanser', '0.56'], ['Sun Care', '0.20'], ['Face Serum', '0.05']],
     npi: '₹0.31 Cr · 6.4% of zone — lowest NPI value nationally',
-    foot: 'South-2 NPI mix 6.4% | ₹0.89 Cr recoverable at the West / South-1 benchmark',
+    foot: 'South-2 NPI mix 6.4% | ₹0.90 Cr recoverable at the West / South-1 benchmark',
     ins: [
       { tag: 'ROOT CAUSE', c: RED, head: 'DMart South-2 converts at 45.1% — half its national rate', why: 'DMart runs 94.2% in West and 77.9% in North. At 45.1% here the account is behaving unlike itself, which points at a regional DC or fill problem rather than the chain relationship.', action: 'Audit DMart South-2 DC-to-store fill rate against the West benchmark.', owner: 'NKAM DMart + Supply · 22 Aug' },
       { tag: 'DATA', c: AMBER, head: 'Apollo South-2 reported at 148.5% conversion', why: 'The highest ratio in the pack. Offtake exceeding primary by half means opening stock or a billing-period mismatch, not performance — and it inflates the zone average.', action: 'Reconcile Apollo South-2 opening stock and billing cut-off before quoting zone conversion.', owner: 'Analyst · 18 Aug' },
-      { tag: 'SIZING', c: TEAL, head: '₹0.89 Cr recoverable, almost all of it inside DMart', why: 'At benchmark conversion the zone delivers ₹5.72 Cr against ₹4.91 Cr actual. The DMart cell alone accounts for the majority of the shortfall.', action: 'Scope the South-2 recovery as a single-account project, not a zone programme.', owner: 'South-2 RKAM · 25 Aug' },
+      { tag: 'SIZING', c: TEAL, head: '₹0.90 Cr recoverable, almost all of it inside DMart', why: 'At benchmark conversion the zone delivers ₹5.72 Cr against ₹4.91 Cr actual. The DMart cell alone accounts for the majority of the shortfall.', action: 'Scope the South-2 recovery as a single-account project, not a zone programme.', owner: 'South-2 RKAM · 25 Aug' },
       { tag: 'CONCENTRATION', c: AMBER, head: 'Only two material states in the zone cut', why: 'Telangana ₹2.56 Cr and Andhra Pradesh ₹2.35 Cr are the whole zone. The source pack described "top three states at 100%" while listing two — a reporting artefact worth correcting.', action: 'Correct the state-count logic in the build script.', owner: 'Analyst · 18 Aug' },
       { tag: 'PORTFOLIO', c: TEAL, head: 'The Derma Co. is under-developed at ₹1.11 Cr', why: 'TDC earns 22.6% of zone offtake against 39.4% in West. The gap is distribution-led rather than demand-led given TDC strength in neighbouring South-1.', action: 'Size the TDC listing white space in South-2 Apollo and Reliance doors.', owner: 'Category + RKAM · 15 Sep' },
       { tag: 'NPI', c: GREEN, head: 'Lowest NPI exposure nationally at 6.4%', why: 'With conversion unresolved, low new-product exposure is the correct posture — this zone is not carrying launch risk on top of a fill problem.', action: 'Hold NPI allocation flat until DMart fill is fixed.', owner: 'Category · Sep review' }
@@ -423,16 +423,27 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
   // 2 — the gap, gross
   y = card(s, { x: cx(1), y: R1, w: cw, h: CH1, label: 'THE MT GAP', accent: RED });
-  s.addText('₹13.06 Cr', txt({ x: cx(1) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: RED, align: 'center' }));
-  s.addText('billed to MT accounts and not yet sold through', txt({
-    x: cx(1) + 0.12, y: y + 0.42, w: cw - 0.24, h: 0.32, fontSize: 6.8, color: GREY, align: 'center', lineSpacingMultiple: 0.92 }));
-  bullets(s, {
-    x: cx(1) + 0.12, y: y + 0.82, w: cw - 0.24, gap: 0.42, size: 6.9, items: [
-      { t: 'MT primary ₹47.02 Cr less MT offtake ₹33.96 Cr.', c: RED },
-      { t: 'North and East hold ₹7.97 Cr of it — 61% in two zones.', c: RED },
-      { t: 'eB2B ₹2.20 Cr and SIS carry their own flow, on their own pages.', c: BLUE }
-    ]
-  });
+  s.addText('₹13.06 Cr billed and not yet sold through', txt({
+    x: cx(1) + 0.10, y, w: cw - 0.20, h: 0.24, fontSize: 7.4, bold: true, color: RED, align: 'center' }));
+  /* Waterfall: pptxgenjs has no native form, so it is a stacked bar with an
+     invisible riser. Each visible step is its own series to keep per-step colour;
+     stacked bars require dataLabelPosition ctr/inEnd/inBase — outEnd corrupts. */
+  const STEP = ['Primary', 'Gap', 'Offtake'];
+  s.addChart(pres.ChartType.bar, [
+    { name: 'riser', labels: STEP, values: [0, 33.96, 0] },
+    { name: 'MT primary', labels: STEP, values: [47.02, null, null] },
+    { name: 'not converted', labels: STEP, values: [null, 13.06, null] },
+    { name: 'MT offtake', labels: STEP, values: [null, null, 33.96] }
+  ], Object.assign({}, axisBase, {
+    x: cx(1) + 0.04, y: y + 0.26, w: cw - 0.08, h: 1.62,
+    barDir: 'col', barGrouping: 'stacked', barGapWidthPct: 45,
+    chartColors: [W, BLUE, RED, BRIGHT],
+    showValue: true, dataLabelPosition: 'ctr', dataLabelFontSize: 6.4,
+    dataLabelColor: W, dataLabelFormatCode: '0.00;;',
+    valAxisMaxVal: 50, showLegend: false
+  }));
+  s.addText('North and East hold ₹7.97 Cr of the gap — 61% of it in two zones. eB2B ₹2.20 Cr and SIS carry their own flow, on their own pages.', txt({
+    x: cx(1) + 0.12, y: y + 1.94, w: cw - 0.24, h: 0.52, fontSize: 6.8, color: GREY, lineSpacingMultiple: 0.92 }));
 
   // 3 — the prize
   y = card(s, { x: cx(2), y: R1, w: cw, h: CH1, label: 'THE PRIZE', accent: GREEN });
@@ -483,7 +494,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       { t: 'South-1 ₹8.18 Cr at 86.3% — best flow in the country.', c: GREEN },
       { t: 'North ₹4.41 Cr gap — largest recovery pool.', c: RED },
       { t: 'East 49.9% conversion — weakest flow, highest NPI mix.', c: RED },
-      { t: 'South-2 now clears the floor at +₹0.89 Cr recoverable.', c: AMBER }
+      { t: 'South-2 now clears the floor at +₹0.90 Cr recoverable.', c: AMBER }
     ]
   });
 
@@ -621,7 +632,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     { name: 'Primary', labels: ['Apr', 'May', 'Jun', 'Jul'], values: [48.00, 42.32, 39.41, 47.02] },
     { name: 'Offtake', labels: ['Apr', 'May', 'Jun', 'Jul'], values: [33.60, 38.11, 36.04, 33.96] }
   ], Object.assign({}, axisBase, {
-    x: M - 0.02, y: y + 0.22, w: hw, h: 1.94, barGapWidthPct: 45,
+    x: M - 0.02, y: y + 0.22, w: hw, h: 1.66, barGapWidthPct: 45,
     chartColors: [BLUE, BRIGHT], showLegend: true, legendPos: 'b', legendFontSize: 6.2, legendColor: GREY,
     showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 6, dataLabelColor: INK, dataLabelFormatCode: '0.0',
     valAxisMaxVal: 55
@@ -629,15 +640,15 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   chartTitle(s, M + hw + 0.16, y, hw, 'MT flow conversion by month (%)');
   s.addChart(pres.ChartType.line, [{ name: 'Conversion', labels: ['Apr', 'May', 'Jun', 'Jul'], values: [70.0, 90.1, 91.4, 72.2] }],
     Object.assign({}, axisBase, {
-      x: M + hw + 0.14, y: y + 0.22, w: hw, h: 1.94, chartColors: [RED], lineSize: 2.5, lineSmooth: false,
+      x: M + hw + 0.14, y: y + 0.22, w: hw, h: 1.66, chartColors: [RED], lineSize: 2.5, lineSmooth: false,
       showValue: true, dataLabelPosition: 't', dataLabelFontSize: 6.6, dataLabelColor: INK, dataLabelFormatCode: '0.0',
       valAxisMinVal: 60, valAxisMaxVal: 100
     }));
 
-  y += 2.34;
+  y += 2.06;
   y = banner(s, y, 'THE ZONES THAT LOADED HARDEST CONVERTED WORST', RED);
   y = table(s, {
-    x: M, y, w: CW, rowH: 0.36, size: 7.4, cols: [
+    x: M, y, w: CW, rowH: 0.32, size: 7.4, cols: [
       { t: 'ZONE', w: 1.2 }, { t: 'Q1 MONTHLY AVG PRIMARY', w: 1.8, a: 'right' },
       { t: 'JULY PRIMARY', w: 1.2, a: 'right' }, { t: 'LOAD vs Q1', w: 1.1, a: 'right' },
       { t: 'Q1 CONV.', w: 0.95, a: 'right' }, { t: 'JUL CONV.', w: 0.95, a: 'right' }
@@ -653,7 +664,33 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   s.addText('Ranked by July load against each zone’s own Q1 run-rate. The order is monotonic: every zone that billed above its Q1 average lost conversion, every zone that billed below it gained. Assortment, pricing and execution do not move that cleanly.', txt({
     x: M, y: y + 0.06, w: CW, h: 0.30, fontSize: 6.8, color: GREY, lineSpacingMultiple: 0.94 }));
 
-  y += 0.48;
+  y += 0.42;
+  chartTitle(s, M, y, CW, 'July load against each zone\u2019s own Q1 run-rate (x) versus July conversion (y)');
+  /* one point per zone, each its own series so the legend names them */
+  const LOAD = [-19.5, -10.5, 4.3, 16.4, 62.8];
+  const pt = (i, v) => LOAD.map((_, j) => (j === i ? v : null));
+  s.addChart(pres.ChartType.scatter, [
+    { name: 'X-Axis', values: LOAD },
+    { name: 'West', values: pt(0, 85.2) },
+    { name: 'South-1', values: pt(1, 86.3) },
+    { name: 'South-2', values: pt(2, 72.4) },
+    { name: 'North', values: pt(3, 61.2) },
+    { name: 'East', values: pt(4, 49.9) }
+  ], Object.assign({}, axisBase, {
+    x: M - 0.02, y: y + 0.22, w: CW, h: 1.66,
+    chartColors: [GREEN, GREEN, AMBER, RED, RED],
+    lineSize: 0, lineDataSymbolSize: 9,
+    valAxisMinVal: 40, valAxisMaxVal: 95,
+    catAxisMinVal: -30, catAxisMaxVal: 70,
+    valAxisTitle: 'July conversion %', showValAxisTitle: true,
+    catAxisTitle: 'July primary vs Q1 monthly run-rate, %', showCatAxisTitle: true,
+    axisLabelFontSize: 6.2, valAxisTitleFontSize: 6.4, catAxisTitleFontSize: 6.4,
+    showLegend: true, legendPos: 'r', legendFontSize: 6.4, legendColor: GREY
+  }));
+  s.addText('Five points, one per zone. The downward slope is the finding: conversion falls as the zone bills further above its own quarterly rate.', txt({
+    x: M, y: y + 1.92, w: CW, h: 0.24, fontSize: 6.6, color: GREY, lineSpacingMultiple: 0.92 }));
+
+  y += 2.26;
   const c3 = (CW - 0.24) / 3, cx3 = i => M + i * (c3 + 0.12);
   const cards = [
     { l: 'WHAT THIS CHANGES', a: RED, big: 'East is not broken', items: [
@@ -670,12 +707,12 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       { t: 'Re-read East and North in the August pack before funding any intervention.' } ] }
   ];
   cards.forEach((t, i) => {
-    const y0 = card(s, { x: cx3(i), y, w: c3, h: 2.04, label: t.l, accent: t.a });
-    s.addText(t.big, txt({ x: cx3(i) + 0.10, y: y0, w: c3 - 0.20, h: 0.34, fontSize: 12, bold: true, fontFace: FONTH, color: t.a, align: 'center', valign: 'middle' }));
-    bullets(s, { x: cx3(i) + 0.12, y: y0 + 0.44, w: c3 - 0.24, gap: 0.42, size: 7, items: t.items, dot: t.a });
+    const y0 = card(s, { x: cx3(i), y, w: c3, h: 1.88, label: t.l, accent: t.a });
+    s.addText(t.big, txt({ x: cx3(i) + 0.10, y: y0, w: c3 - 0.20, h: 0.30, fontSize: 11.5, bold: true, fontFace: FONTH, color: t.a, align: 'center', valign: 'middle' }));
+    bullets(s, { x: cx3(i) + 0.12, y: y0 + 0.38, w: c3 - 0.24, gap: 0.38, size: 6.9, items: t.items, dot: t.a });
   });
 
-  y += 2.20;
+  y += 2.04;
   s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.66, rectRadius: 0.03, fill: { color: 'FBEDEC' }, line: { color: RED, width: 1 } });
   s.addText([
     { text: 'READ THE REST OF THIS PACK WITH THIS IN MIND   ', options: { color: RED, bold: true, fontSize: 7 } },
@@ -774,36 +811,38 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   y += 0.94;
   y = banner(s, y, 'SHARE PER POINT OF DISTRIBUTION — RANKED (MAT JUN 2026)', TEAL);
   const hw = (CW - 0.16) / 2;
-  const cols = [{ t: 'BRAND', w: 1.6 }, { t: 'SHARE', w: 0.72, a: 'right' },
-                { t: 'WD', w: 0.72, a: 'right' }, { t: 'SPD', w: 0.74, a: 'right' }];
+  const cols = [{ t: 'BRAND', w: 1.5 }, { t: 'SHARE', w: 0.66, a: 'right' },
+                { t: 'ND', w: 0.60, a: 'right' }, { t: 'WD', w: 0.66, a: 'right' },
+                { t: 'SPD', w: 0.68, a: 'right' }];
+  const nd = { t: '—', c: GREY };   // numeric distribution: not fed anywhere in the repo
   chartTitle(s, M, y, hw, 'Face Wash');
   const yA = table(s, {
     x: M, y: y + 0.20, w: hw, rowH: 0.26, size: 7, cols,
     rows: [
-      ['Himalaya', '22.6%', '99.8%', { t: '0.226', b: true }],
-      ['Garnier', '14.2%', '90.3%', { t: '0.157', b: true }],
-      ["Pond's", '13.8%', '98.8%', { t: '0.140', b: true }],
-      [{ t: 'Mamaearth', b: true }, { t: '10.5%', b: true }, { t: '89.0%', b: true }, { t: '0.118', b: true, c: AMBER }],
-      ['Clean & Clear', '7.5%', '98.3%', { t: '0.076', b: true }],
-      [{ t: 'The Derma Co.', c: GREY }, { t: '0.4%', c: GREY }, { t: '27.3%', c: GREY }, { t: '0.015', b: true, c: GREY }]
+      ['Himalaya', '22.6%', nd, '99.8%', { t: '0.226', b: true }],
+      ['Garnier', '14.2%', nd, '90.3%', { t: '0.157', b: true }],
+      ["Pond's", '13.8%', nd, '98.8%', { t: '0.140', b: true }],
+      [{ t: 'Mamaearth', b: true }, { t: '10.5%', b: true }, nd, { t: '89.0%', b: true }, { t: '0.118', b: true, c: AMBER }],
+      ['Clean & Clear', '7.5%', nd, '98.3%', { t: '0.076', b: true }],
+      [{ t: 'The Derma Co.', c: GREY }, { t: '0.4%', c: GREY }, nd, { t: '27.3%', c: GREY }, { t: '0.015', b: true, c: GREY }]
     ]
   });
   chartTitle(s, M + hw + 0.16, y, hw, 'Shampoo');
   table(s, {
     x: M + hw + 0.16, y: y + 0.20, w: hw, rowH: 0.26, size: 7, cols,
     rows: [
-      ['Dove', '16.6%', '99.7%', { t: '0.166', b: true }],
-      ["L'Oréal Paris", '12.8%', '91.6%', { t: '0.140', b: true }],
-      ['Head & Shoulders', '13.0%', '99.6%', { t: '0.131', b: true }],
-      ['Sunsilk', '9.6%', '99.4%', { t: '0.097', b: true }],
-      ['Clinic Plus', '9.6%', '99.4%', { t: '0.097', b: true }],
-      [{ t: 'Mamaearth', b: true }, { t: '3.7%', b: true }, { t: '81.5%', b: true }, { t: '0.045', b: true, c: RED }]
+      ['Dove', '16.6%', nd, '99.7%', { t: '0.166', b: true }],
+      ["L'Oréal Paris", '12.8%', nd, '91.6%', { t: '0.140', b: true }],
+      ['Head & Shoulders', '13.0%', nd, '99.6%', { t: '0.131', b: true }],
+      ['Sunsilk', '9.6%', nd, '99.4%', { t: '0.097', b: true }],
+      ['Clinic Plus', '9.6%', nd, '99.4%', { t: '0.097', b: true }],
+      [{ t: 'Mamaearth', b: true }, { t: '3.7%', b: true }, nd, { t: '81.5%', b: true }, { t: '0.045', b: true, c: RED }]
     ]
   });
-  s.addText('SPD = value share ÷ weighted distribution: the share each point of shelf presence earns. It separates "we are not on enough shelves" from "we are not selling off the shelves we hold".', txt({
-    x: M, y: yA + 0.06, w: CW, h: 0.26, fontSize: 6.6, color: GREY, lineSpacingMultiple: 0.94 }));
+  s.addText('SPD = value share ÷ weighted distribution: the share each point of shelf presence earns. Numeric distribution (ND) is not supplied in any source we hold, so share = ND × (WD ÷ ND) × SPD can only be read on its last term — we cannot yet tell whether 89.0% WD means most stores or a few very large ones. SPD here is a hand-cut stand-in for the MS vs TDP Index already written in PowerBI/DAX/05_TDP_Measures.dax, which cannot run until the TDP feed exists.', txt({
+    x: M, y: yA + 0.06, w: CW, h: 0.40, fontSize: 6.5, color: GREY, lineSpacingMultiple: 0.94 }));
 
-  y = yA + 0.36;
+  y = yA + 0.50;
   const oA = card(s, { x: M, y, w: hw, h: 1.58, label: 'FACE WASH — CLOSE TO GARNIER', accent: AMBER });
   s.addText('+3.7 pts  ·  ~₹3.0 Cr / month', txt({ x: M + 0.10, y: oA, w: hw - 0.20, h: 0.30, fontSize: 12.5, bold: true, fontFace: FONTH, color: AMBER, align: 'center', valign: 'middle' }));
   s.addText('Nielsen MT Face Wash ≈ ₹81 Cr / month, so one share point is worth ₹0.81 Cr', txt({
@@ -901,7 +940,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       { t: '48.4% of national MT offtake at 85–86% conversion.' },
       { t: 'No recovery pool here — the rate is already the benchmark.' },
       { t: 'Hold spend flat; redirect field capacity to North.' } ] },
-    { l: 'ISOLATE — ONE CELL', a: AMBER, big: '₹0.89 Cr', sub: 'South-2, almost all DMart', items: [
+    { l: 'ISOLATE — ONE CELL', a: AMBER, big: '₹0.90 Cr', sub: 'South-2, almost all DMart', items: [
       { t: 'DMart South-2 converts 45.1% against 94–95% in West and Central.' },
       { t: 'A DC or fill problem, not a chain relationship problem.' },
       { t: 'Scope as a single-account audit, not a zone programme.' } ] }
@@ -1207,7 +1246,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       ev: 'Converts 51.4% nationally — 44.9% North, 52.9% East, 51.2% Central. Same weakness in every zone it operates.',
       rec: 'Halt incremental loading until conversion clears 65%; run hero-EAN OSA audit against the Apollo cadence.',
       kpi: 'Conversion 51.4% → 76.5% (DMart parity)', own: 'NKAM Reliance + Supply · 25 Aug' },
-    { n: 'DMART SOUTH-2', a: RED, stake: '₹0.89 Cr', head: 'One region behaving unlike the account',
+    { n: 'DMART SOUTH-2', a: RED, stake: '₹0.90 Cr', head: 'One region behaving unlike the account',
       ev: 'DMart converts 94.2% in West and 95.3% in Central, but 45.1% in South-2 — a regional break, not a chain issue.',
       rec: 'Audit DC-to-store fill rate and top-SKU store availability against the West benchmark.',
       kpi: 'South-2 conversion to 80%+', own: 'NKAM DMart + Supply · 22 Aug' },
@@ -1593,7 +1632,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     ],
     rows: [
       ['1', { t: 'Reliance recovery loop — halt loading, hero-EAN OSA audit across North, East, Central', b: true }, { t: '₹3.92 Cr', b: true, c: RED }, '0–30d', 'NKAM Reliance + Supply'],
-      ['2', { t: 'DMart South-2 DC-to-store fill audit against the West benchmark', b: true }, { t: '₹0.89 Cr', b: true, c: RED }, '0–30d', 'NKAM DMart + Supply'],
+      ['2', { t: 'DMart South-2 DC-to-store fill audit against the West benchmark', b: true }, { t: '₹0.90 Cr', b: true, c: RED }, '0–30d', 'NKAM DMart + Supply'],
       ['3', 'Cap East and North primary at trailing three-month offtake until gaps close', { t: '₹2.54 Cr', b: true, c: AMBER }, '0–30d', 'Supply + Sales lead'],
       ['4', 'Map Lulu, Wellness Forever and Health & Glow primary routes', { t: '₹2.23 Cr', b: true, c: AMBER }, '0–15d', 'Analyst'],
       ['5', 'Freeze incremental NPI into East and North until conversion thresholds clear', { t: '₹0.65 Cr', c: AMBER }, '0–30d', 'Category + Supply'],

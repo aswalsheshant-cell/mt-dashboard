@@ -1,0 +1,86 @@
+{
+ "unit": "INR Cr unless stated",
+ "basis": "EXACT \u2014 full month source files",
+ "note": "Brand Counter stores and discontinued brands excluded; June offtake file absent from RawDataFolders",
+ "months_present": [
+  "Apr",
+  "May",
+  "Jul"
+ ],
+ "months_missing": [
+  "Jun"
+ ],
+ "mt_monthly": [
+  {
+   "month": "Apr",
+   "units": 1956675,
+   "nsv_cr": 33.6,
+   "asp_inr": 171.7,
+   "realisation_pct": 41.6
+  },
+  {
+   "month": "May",
+   "units": 2197203,
+   "nsv_cr": 38.11,
+   "asp_inr": 173.47,
+   "realisation_pct": 41.7
+  },
+  {
+   "month": "Jul",
+   "units": 1895052,
+   "nsv_cr": 33.96,
+   "asp_inr": 179.21,
+   "realisation_pct": 42.2
+  }
+ ],
+ "jul_by_zone": [
+  {
+   "zone": "West",
+   "units": 497615,
+   "nsv_cr": 8.27,
+   "asp_inr": 166.22,
+   "asp_index": 93,
+   "realisation_pct": 41.9
+  },
+  {
+   "zone": "South-1",
+   "units": 433962,
+   "nsv_cr": 8.18,
+   "asp_inr": 188.56,
+   "asp_index": 105,
+   "realisation_pct": 42.7
+  },
+  {
+   "zone": "North",
+   "units": 377364,
+   "nsv_cr": 6.97,
+   "asp_inr": 184.82,
+   "asp_index": 103,
+   "realisation_pct": 41.8
+  },
+  {
+   "zone": "South-2",
+   "units": 278020,
+   "nsv_cr": 4.87,
+   "asp_inr": 175.3,
+   "asp_index": 98,
+   "realisation_pct": 42.9
+  },
+  {
+   "zone": "East",
+   "units": 183289,
+   "nsv_cr": 3.54,
+   "asp_inr": 193.17,
+   "asp_index": 108,
+   "realisation_pct": 42.1
+  },
+  {
+   "zone": "Central",
+   "units": 124802,
+   "nsv_cr": 2.12,
+   "asp_inr": 169.69,
+   "asp_index": 95,
+   "realisation_pct": 41.1
+  }
+ ]
+}
