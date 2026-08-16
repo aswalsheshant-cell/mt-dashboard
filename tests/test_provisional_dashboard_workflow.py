@@ -85,11 +85,11 @@ class TestDashboardProvisionalBanner(unittest.TestCase):
         self.assertEqual(status, "DRAFT",
                         "Formula status must remain DRAFT until D1/D9 approved")
 
-    def test_prov_09_example_data_only_true(self):
-        """PROV-09: cm2.example_data_only is true"""
+    def test_prov_09_example_data_only_false(self):
+        """PROV-09: cm2.example_data_only is false (replaced with real data)"""
         example = self.dash.get("cm2", {}).get("example_data_only", False)
-        self.assertTrue(example,
-                       "Dashboard must flag that only example expenses are loaded")
+        self.assertFalse(example,
+                        "Dashboard must reflect that example expenses have been replaced with real data")
 
     def test_prov_10_provisional_reasons_populated(self):
         """PROV-10: provisional_reasons explain why CM2 is provisional"""

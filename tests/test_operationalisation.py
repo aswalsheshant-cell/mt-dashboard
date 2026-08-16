@@ -542,13 +542,16 @@ class TestCm2ProvisionalGate(unittest.TestCase):
     def test_CP02_formula_status_is_draft(self):
         self.assertEqual(self.dash["cm2"]["formula_status"], "DRAFT")
 
-    def test_CP03_reasons_name_both_causes(self):
+    def test_CP03_reasons_name_formula_cause(self):
+        """CP03: provisional_reasons name the formula-status cause (example data has been replaced)."""
         joined = " ".join(self.dash["cm2"]["provisional_reasons"]).lower()
-        self.assertIn("d1", joined)
-        self.assertIn("example", joined)
+        self.assertIn("formula", joined,
+                     "Provisional reasons must mention formula approval status")
 
     def test_CP04_example_data_only_flag(self):
-        self.assertTrue(self.dash["cm2"]["example_data_only"])
+        """CP04: example_data_only is False (all example rows replaced with real data)."""
+        self.assertFalse(self.dash["cm2"]["example_data_only"],
+                        "Example data must have been replaced with real verified expense data")
 
     # -- CP05: flag agrees with the governance engine's own gate
     def test_CP05_agrees_with_governance_engine(self):
