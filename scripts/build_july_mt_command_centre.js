@@ -54,7 +54,7 @@ function titleSize(s) {
 /* Pages whose figures still derive from zone-level primary, which is BLOCKED
    pending the MT-only zone x chain x month cut. See
    docs/ISSUE_MT_CHANNEL_CONTAMINATION.md and scripts/mt_channel_split.py */
-const PROVISIONAL_PAGES = new Set([4, 5, 6, 7, 8, 9, 10, 13, 14, 16, 17, 18, 19, 20]);
+const PROVISIONAL_PAGES = new Set();   // channel recut applied; nothing outstanding
 
 /** Page chrome: header band, title, subtitle, page number, footer, source. */
 function page(n, title, subtitle, source) {
@@ -223,24 +223,26 @@ function chartTitle(s, x, y, w, t) {
    reported as their own channels. Derivation: scripts/mt_channel_split.py
    Published all-channel figures were primary 49.21 / offtake 36.10 / conv 73.4%. */
 const NATIONAL = {
-  primary: 47.02, offtake: 34.04, conv: 72.4, gap: 12.98,   // EXACT
-  eb2bPrimary: 2.20, eb2bOfftake: 2.07,                     // EXACT
-  sisPrimaryJul: -0.01, sisPrimaryFy27: 0.27                // EXACT, net of MRN
+  primary: 47.02, offtake: 33.96, conv: 72.2, gap: 13.06,   // EXACT
+  eb2bPrimary: 2.20, eb2bOfftake: 2.07, eb2bFlow: 93.9,     // EXACT
+  sisPrimaryJul: -0.01, sisOfftakeJul: 0.034,               // EXACT, net of MRN
+  prize: 6.22, benchConv: 85.5                              // EXACT, above the floor
 };
-/* Zone-level primary, conversion, gap and every figure derived from them
-   (rankings, benchmark prize, opportunity sizing) are BLOCKED pending the
-   zone x chain x month primary cut. See docs/ISSUE_MT_CHANNEL_CONTAMINATION.md */
-const ZONE_BLOCKED = true;
+/* Zone figures are cut from the full month source files with Channel == 'MT'
+   applied before aggregation. Offtake basis excludes Brand Counter stores and
+   the discontinued brands, reproducing the published pack's basis exactly.
+   Regenerate with: python scripts/mt_channel_split.py */
 
+/* Modern Trade only — Channel == 'MT'. See scripts/data/july_mt_channel_split.json */
 const ZONES = [
-  { z: 'West',    pri: 10.05, off: 8.28, mix: '22.9%', conv: 82.3, gap: 1.78, act: 'PROTECT' },
-  { z: 'South-1', pri:  9.80, off: 8.19, mix: '22.7%', conv: 83.6, gap: 1.61, act: 'PROTECT' },
-  { z: 'North',   pri: 11.95, off: 6.99, mix: '19.4%', conv: 58.5, gap: 4.97, act: 'FIX' },
-  { z: 'South-2', pri:  6.89, off: 4.91, mix: '13.6%', conv: 71.3, gap: 1.98, act: 'FIX' },
-  { z: 'East',    pri:  7.83, off: 3.55, mix:  '9.8%', conv: 45.3, gap: 4.28, act: 'FIX' },
-  { z: 'Central', pri:  2.69, off: 2.12, mix:  '5.9%', conv: 78.8, gap: 0.57, act: 'PROTECT' }
+  { z: 'West',    pri: 9.71, off: 8.27, mix: '24.4%', conv: 85.2, gap: 1.44, act: 'PROTECT' },
+  { z: 'South-1', pri: 9.48, off: 8.18, mix: '24.1%', conv: 86.3, gap: 1.30, act: 'PROTECT' },
+  { z: 'North',   pri: 11.38, off: 6.97, mix: '20.5%', conv: 61.3, gap: 4.41, act: 'FIX' },
+  { z: 'South-2', pri:  6.73, off: 4.87, mix: '14.4%', conv: 72.4, gap: 1.85, act: 'FIX' },
+  { z: 'East',    pri:  7.10, off: 3.54, mix: '10.4%', conv: 49.9, gap: 3.56, act: 'FIX' },
+  { z: 'Central', pri:  2.62, off: 2.12, mix:  '6.2%', conv: 80.9, gap: 0.50, act: 'PROTECT' }
 ];
-const BENCH = 82.95;   // West / South-1 average — the internal benchmark
+const BENCH = 85.73;   // mean MT conversion of West and South-1
 const recover = z => Math.max(0, z.pri * BENCH / 100 - z.off);
 
 /* Per-zone deep-dive content. `ins` = six diagnosed insights replacing the
@@ -248,7 +250,7 @@ const recover = z => Math.max(0, z.pri * BENCH / 100 - z.off);
 const ZD = {
   5: {
     zone: 'West', verdict: 'Protect and convert', accent: GREEN,
-    pri: '₹10.05 Cr', off: '₹8.28 Cr', mix: '22.9% mix', conv: '82.3%', gap: '₹1.78 Cr',
+    pri: '₹9.71 Cr', off: '₹8.27 Cr', mix: '24.4% mix', conv: '85.2%', gap: '₹1.44 Cr',
     priority: 'Hold DMart execution as the national template • Reliance is the only weak cell',
     chains: [['DMart', '5.76', '94.2%'], ['Reliance', '1.23', '54.5%'], ['Wellness Forever', '0.65', 'no primary']],
     states: [['Maharashtra', '3.43'], ['Gujarat', '2.57'], ['Mumbai', '2.28']],
@@ -261,13 +263,13 @@ const ZD = {
       { tag: 'EXCEPTION', c: RED, head: 'Reliance West converts at 54.5% on ₹1.23 Cr', why: 'The only weak cell in an otherwise healthy zone, and it matches Reliance behaviour in North, East and Central — the pattern is the account, not the geography.', action: 'Fold into the national Reliance recovery loop rather than running a West-specific fix.', owner: 'NKAM Reliance · 25 Aug' },
       { tag: 'DATA', c: AMBER, head: 'Wellness Forever shows ₹0.65 Cr offtake, no mapped primary', why: 'Source deck reported this as 134.9% conversion. A ratio above 100% here is an unmapped billing route, not throughput.', action: 'Map the Wellness Forever billing route before the August pack is built.', owner: 'Analyst · 18 Aug' },
       { tag: 'CONCENTRATION', c: TEAL, head: 'Top three chains carry 92.5% of zone offtake', why: 'Concentration is high but conversion is healthy, so this reads as focus rather than fragility. It becomes a risk only if DMart execution slips.', action: 'Track DMart West weekly as a single-point-of-failure watch item.', owner: 'West RKAM · weekly' },
-      { tag: 'PORTFOLIO', c: TEAL, head: 'The Derma Co. Face Cleanser at ₹2.84 Cr rivals Mamaearth', why: 'TDC earns ₹3.24 Cr against Mamaearth\'s ₹4.97 Cr — the closest brand parity in any zone, driven almost entirely by one sub-category.', action: 'Protect TDC Face Cleanser shelf space in the DMart West planogram reset.', owner: 'Category + NKAM DMart · Sep cycle' },
-      { tag: 'SIZING', c: GREY, head: 'Zone is already above benchmark — no recovery pool here', why: '82.3% conversion sits at the internal benchmark. Effort spent here returns less than the same effort in North or East.', action: 'Hold headcount and trade spend flat; redirect incremental field capacity to North.', owner: 'Sales lead · Sep planning' }
+      { tag: 'PORTFOLIO', c: TEAL, head: 'The Derma Co. Face Cleanser at ₹2.84 Cr rivals Mamaearth', why: 'TDC earns ₹3.24 Cr against Mamaearth\'s ₹4.97 Cr in this zone — the closest brand parity anywhere, driven almost entirely by one sub-category.', action: 'Protect TDC Face Cleanser shelf space in the DMart West planogram reset.', owner: 'Category + NKAM DMart · Sep cycle' },
+      { tag: 'SIZING', c: GREY, head: 'Zone is already above benchmark — no recovery pool here', why: '85.2% conversion sits at the internal benchmark. Effort spent here returns less than the same effort in North or East.', action: 'Hold headcount and trade spend flat; redirect incremental field capacity to North.', owner: 'Sales lead · Sep planning' }
     ]
   },
   6: {
     zone: 'South-1', verdict: 'Protect and convert', accent: GREEN,
-    pri: '₹9.80 Cr', off: '₹8.19 Cr', mix: '22.7% mix', conv: '83.6%', gap: '₹1.61 Cr',
+    pri: '₹9.48 Cr', off: '₹8.18 Cr', mix: '24.1% mix', conv: '86.3%', gap: '₹1.30 Cr',
     priority: 'Best conversion in the country • Apollo cadence is the transferable asset',
     chains: [['Apollo', '2.84', '81.0%'], ['DMart', '2.31', '74.8%'], ['Lulu', '1.22', 'no primary']],
     states: [['Karnataka', '4.10'], ['Tamil Nadu', '2.63'], ['Kerala', '1.17']],
@@ -276,7 +278,7 @@ const ZD = {
     npi: '₹0.64 Cr · 7.9% of zone — highest NPI value of any zone',
     foot: 'South-1 NPI mix 7.9% | Highest national conversion — the cadence to export',
     ins: [
-      { tag: 'BENCHMARK', c: GREEN, head: '83.6% conversion is the best zone in the country', why: 'South-1 sets the internal benchmark used to size the national recovery pool. It is not an outlier month — chain conversion is even across all three top accounts.', action: 'Use South-1 as the reference zone in every gap-closure target, not an external aspiration.', owner: 'Sales lead · standing' },
+      { tag: 'BENCHMARK', c: GREEN, head: '86.3% conversion is the best zone in the country', why: 'South-1 sets the internal benchmark used to size the national recovery pool. It is not an outlier month — chain conversion is even across all three top accounts.', action: 'Use South-1 as the reference zone in every gap-closure target, not an external aspiration.', owner: 'Sales lead · standing' },
       { tag: 'TRANSFER', c: TEAL, head: 'Apollo at ₹2.84 Cr and 81.0% is the most replicable model', why: 'Pharmacy-format cadence — small, frequent, tightly assorted orders — is the mechanism behind Apollo\'s near-parity flow nationally.', action: 'Extract the Apollo order-frequency and assortment-depth profile as a scoring template for other accounts.', owner: 'Analyst + NKAM Apollo · 31 Aug' },
       { tag: 'DATA', c: AMBER, head: 'Lulu ₹1.22 Cr sits in the zone with no primary mapped', why: 'Lulu is the account the national scorecard ranks +46.5% and marks Scale. Its primary is unmapped nationally, so that growth claim cannot be verified.', action: 'Resolve Lulu billing mapping before any Lulu-based recommendation goes to the field.', owner: 'Analyst · 18 Aug' },
       { tag: 'PORTFOLIO', c: TEAL, head: 'The only zone where Mamaearth Shampoo out-sells Face Cleanser', why: 'Shampoo ₹1.23 Cr against Face Cleanser ₹1.12 Cr. Every other zone is cleanser-led, so South-1 is the natural proving ground for the shampoo range.', action: 'Run the shampoo pack pilot here first, measured on sales per store, not listings added.', owner: 'Category + South-1 RKAM · Sep' },
@@ -286,37 +288,37 @@ const ZD = {
   },
   7: {
     zone: 'North', verdict: 'Largest recovery pool', accent: RED,
-    pri: '₹11.95 Cr', off: '₹6.99 Cr', mix: '19.4% mix', conv: '58.5%', gap: '₹4.97 Cr',
+    pri: '₹11.38 Cr', off: '₹6.97 Cr', mix: '20.5% mix', conv: '61.3%', gap: '₹4.41 Cr',
     priority: 'Highest primary in the country against the third-lowest conversion',
     chains: [['DMart', '2.53', '77.9%'], ['Reliance', '2.40', '44.9%'], ['Apollo', '1.16', '98.3%']],
     states: [['Delhi NCR', '1.97'], ['Rajasthan', '1.67'], ['Punjab', '1.55']],
     me: '₹4.74 Cr', meRows: [['Face Cleanser', '2.09'], ['Shampoo', '1.68'], ['Sun Care', '0.35']],
     tdc: '₹2.12 Cr', tdcRows: [['Face Cleanser', '1.41'], ['Sun Care', '0.36'], ['Face Serum', '0.10']],
     npi: '₹0.65 Cr · 9.2% of zone — second-highest NPI mix on the second-worst conversion',
-    foot: 'North NPI mix 9.2% | ₹2.92 Cr recoverable at the West / South-1 benchmark',
+    foot: 'North NPI mix 9.2% | ₹2.78 Cr recoverable at the West / South-1 benchmark',
     ins: [
-      { tag: 'PRIZE', c: RED, head: '₹2.92 Cr is recoverable at the internal benchmark', why: 'North bills the most primary in the country (₹11.95 Cr) and converts it worst but one. At the West / South-1 rate of 82.95% the zone would deliver ₹9.91 Cr instead of ₹6.99 Cr.', action: 'Set ₹2.92 Cr as the North recovery target and review it weekly against actuals.', owner: 'North ZSM · weekly from 18 Aug' },
+      { tag: 'PRIZE', c: RED, head: '₹2.78 Cr is recoverable at the internal benchmark', why: 'North bills the most primary in the country (₹11.95 Cr) and converts it worst but one. At the West / South-1 rate of 82.95% the zone would deliver ₹9.91 Cr instead of ₹6.99 Cr.', action: 'Set ₹2.78 Cr as the North recovery target and review it weekly against actuals.', owner: 'North ZSM · weekly from 18 Aug' },
       { tag: 'ROOT CAUSE', c: RED, head: 'Reliance North converts at 44.9% — the worst material cell', why: 'On ₹2.40 Cr of offtake this single chain-zone cell explains the bulk of the zone shortfall. DMart North at 77.9% and Apollo at 98.3% show the geography is not the constraint.', action: 'Stop incremental loading into Reliance North until conversion clears 65% for two consecutive weeks.', owner: 'NKAM Reliance + Supply · immediate' },
       { tag: 'DIAGNOSIS', c: AMBER, head: 'Same portfolio, three different conversion outcomes', why: 'Apollo 98.3%, DMart 77.9%, Reliance 44.9% — identical range in one geography. That rules out demand, pricing and assortment, and points at account-level replenishment.', action: 'Run store-level OSA audit on Reliance North hero EANs; compare against Apollo North cadence.', owner: 'North RKAM + Trade Marketing · 25 Aug' },
-      { tag: 'NPI RISK', c: RED, head: 'NPI mix is 9.2% into a 58.5%-converting zone', why: 'New products are being placed where sell-through is weakest. NPI carries the least shelf history and the highest liquidation risk, so it is the worst payload for a weak pipe.', action: 'Hold further NPI allocation to North until zone conversion clears 70%.', owner: 'Category + Supply · immediate' },
+      { tag: 'NPI RISK', c: RED, head: 'NPI mix is 9.2% into a 61.3%-converting zone', why: 'New products are being placed where sell-through is weakest. NPI carries the least shelf history and the highest liquidation risk, so it is the worst payload for a weak pipe.', action: 'Hold further NPI allocation to North until zone conversion clears 70%.', owner: 'Category + Supply · immediate' },
       { tag: 'CONCENTRATION', c: TEAL, head: 'Delhi NCR, Rajasthan and Punjab are evenly matched', why: 'At ₹1.97 / ₹1.67 / ₹1.55 Cr no single state carries the zone, so recovery has to be run per chain, not per state.', action: 'Build the exception list at chain × state × hero-EAN, not state level.', owner: 'Analyst · 20 Aug' },
       { tag: 'PORTFOLIO', c: TEAL, head: 'Mamaearth Shampoo at ₹1.68 Cr is strongest in the country', why: 'North is the largest shampoo zone by value despite the conversion problem, so the demand signal is real and the loss is downstream of it.', action: 'Protect shampoo hero-EAN availability first when OSA effort is prioritised.', owner: 'NKAM + Supply · from 18 Aug' }
     ]
   },
   8: {
     zone: 'South-2', verdict: 'Isolated chain problem', accent: AMBER,
-    pri: '₹6.89 Cr', off: '₹4.91 Cr', mix: '13.6% mix', conv: '71.3%', gap: '₹1.98 Cr',
+    pri: '₹6.73 Cr', off: '₹4.87 Cr', mix: '14.4% mix', conv: '72.4%', gap: '₹1.85 Cr',
     priority: 'One weak cell (DMart) inside an otherwise functioning zone',
     chains: [['DMart', '1.95', '45.1%'], ['Apollo', '1.64', 'over 100%'], ['Reliance', '0.67', '82.5%']],
     states: [['Telangana', '2.56'], ['Andhra Pradesh', '2.35']],
     me: '₹3.74 Cr', meRows: [['Face Cleanser', '1.04'], ['Shampoo', '0.94'], ['Sun Care', '0.14']],
     tdc: '₹1.11 Cr', tdcRows: [['Face Cleanser', '0.56'], ['Sun Care', '0.20'], ['Face Serum', '0.05']],
     npi: '₹0.31 Cr · 6.4% of zone — lowest NPI value nationally',
-    foot: 'South-2 NPI mix 6.4% | ₹0.81 Cr recoverable at the West / South-1 benchmark',
+    foot: 'South-2 NPI mix 6.4% | ₹0.89 Cr recoverable at the West / South-1 benchmark',
     ins: [
       { tag: 'ROOT CAUSE', c: RED, head: 'DMart South-2 converts at 45.1% — half its national rate', why: 'DMart runs 94.2% in West and 77.9% in North. At 45.1% here the account is behaving unlike itself, which points at a regional DC or fill problem rather than the chain relationship.', action: 'Audit DMart South-2 DC-to-store fill rate against the West benchmark.', owner: 'NKAM DMart + Supply · 22 Aug' },
       { tag: 'DATA', c: AMBER, head: 'Apollo South-2 reported at 148.5% conversion', why: 'The highest ratio in the pack. Offtake exceeding primary by half means opening stock or a billing-period mismatch, not performance — and it inflates the zone average.', action: 'Reconcile Apollo South-2 opening stock and billing cut-off before quoting zone conversion.', owner: 'Analyst · 18 Aug' },
-      { tag: 'SIZING', c: TEAL, head: '₹0.81 Cr recoverable, almost all of it inside DMart', why: 'At benchmark conversion the zone delivers ₹5.72 Cr against ₹4.91 Cr actual. The DMart cell alone accounts for the majority of the shortfall.', action: 'Scope the South-2 recovery as a single-account project, not a zone programme.', owner: 'South-2 RKAM · 25 Aug' },
+      { tag: 'SIZING', c: TEAL, head: '₹0.89 Cr recoverable, almost all of it inside DMart', why: 'At benchmark conversion the zone delivers ₹5.72 Cr against ₹4.91 Cr actual. The DMart cell alone accounts for the majority of the shortfall.', action: 'Scope the South-2 recovery as a single-account project, not a zone programme.', owner: 'South-2 RKAM · 25 Aug' },
       { tag: 'CONCENTRATION', c: AMBER, head: 'Only two material states in the zone cut', why: 'Telangana ₹2.56 Cr and Andhra Pradesh ₹2.35 Cr are the whole zone. The source pack described "top three states at 100%" while listing two — a reporting artefact worth correcting.', action: 'Correct the state-count logic in the build script.', owner: 'Analyst · 18 Aug' },
       { tag: 'PORTFOLIO', c: TEAL, head: 'The Derma Co. is under-developed at ₹1.11 Cr', why: 'TDC earns 22.6% of zone offtake against 39.4% in West. The gap is distribution-led rather than demand-led given TDC strength in neighbouring South-1.', action: 'Size the TDC listing white space in South-2 Apollo and Reliance doors.', owner: 'Category + RKAM · 15 Sep' },
       { tag: 'NPI', c: GREEN, head: 'Lowest NPI exposure nationally at 6.4%', why: 'With conversion unresolved, low new-product exposure is the correct posture — this zone is not carrying launch risk on top of a fill problem.', action: 'Hold NPI allocation flat until DMart fill is fixed.', owner: 'Category · Sep review' }
@@ -324,16 +326,16 @@ const ZD = {
   },
   9: {
     zone: 'East', verdict: 'Worst flow in the country', accent: RED,
-    pri: '₹7.83 Cr', off: '₹3.55 Cr', mix: '9.8% mix', conv: '45.3%', gap: '₹4.28 Cr',
+    pri: '₹7.10 Cr', off: '₹3.54 Cr', mix: '10.4% mix', conv: '49.9%', gap: '₹3.56 Cr',
     priority: 'Less than half of billed value is reaching the consumer',
     chains: [['Reliance', '2.16', '52.9%'], ['Apollo', '0.80', 'over 100%'], ['Vishal Mega Mart', '0.17', 'no primary']],
     states: [['West Bengal', '1.56'], ['Odisha', '0.60'], ['Bihar', '0.49']],
     me: '₹2.91 Cr', meRows: [['Face Cleanser', '1.34'], ['Shampoo', '1.18'], ['Sun Care', '0.19']],
     tdc: '₹0.60 Cr', tdcRows: [['Face Cleanser', '0.47'], ['Sun Care', '0.09'], ['Face Serum', '0.05']],
     npi: '₹0.36 Cr · 10.2% of zone — the highest NPI mix on the worst conversion',
-    foot: 'East NPI mix 10.2% | ₹2.94 Cr recoverable at the West / South-1 benchmark',
+    foot: 'East NPI mix 10.2% | ₹2.54 Cr recoverable at the West / South-1 benchmark',
     ins: [
-      { tag: 'PRIZE', c: RED, head: '₹2.94 Cr recoverable — the largest pool in the pack', why: 'East bills ₹7.83 Cr and sells ₹3.55 Cr. At the West / South-1 benchmark the same billing delivers ₹6.50 Cr. This single zone is half the national opportunity.', action: 'Set ₹2.94 Cr as the East recovery target with weekly owner review.', owner: 'East ZSM · weekly from 18 Aug' },
+      { tag: 'PRIZE', c: RED, head: '₹2.54 Cr recoverable — the largest pool in the pack', why: 'East bills ₹7.83 Cr and sells ₹3.55 Cr. At the West / South-1 benchmark the same billing delivers ₹6.50 Cr. This single zone is half the national opportunity.', action: 'Set ₹2.54 Cr as the East recovery target with weekly owner review.', owner: 'East ZSM · weekly from 18 Aug' },
       { tag: 'ROOT CAUSE', c: RED, head: 'Reliance East at 52.9% carries 60.9% of the zone', why: 'One account dominates a zone that does not convert. Reliance runs 44.9% in North and 51.2% in Central too — this is a national account pattern surfacing hardest where it has most share.', action: 'Make East the lead case in the national Reliance recovery loop.', owner: 'NKAM Reliance · 25 Aug' },
       { tag: 'NPI RISK', c: RED, head: 'Highest NPI mix nationally into the worst-converting zone', why: '10.2% of East offtake is new product, against 6.4% in South-2. New products are being launched hardest where sell-through is weakest — the launch will read as a product failure when it is a flow failure.', action: 'Freeze incremental NPI into East until conversion clears 60%; protect only listed hero EANs.', owner: 'Category + Supply · immediate' },
       { tag: 'DIAGNOSIS', c: AMBER, head: 'Billing outruns selling by more than 2:1', why: 'A gap this size over one month is a loading pattern, not an availability gap. Continued primary at this rate builds trade stock that will suppress future orders.', action: 'Cap East primary at trailing three-month offtake until the gap closes.', owner: 'Supply + Sales lead · immediate' },
@@ -343,7 +345,7 @@ const ZD = {
   },
   10: {
     zone: 'Central', verdict: 'Small and healthy', accent: GREEN,
-    pri: '₹2.69 Cr', off: '₹2.12 Cr', mix: '5.9% mix', conv: '78.8%', gap: '₹0.57 Cr',
+    pri: '₹2.62 Cr', off: '₹2.12 Cr', mix: '6.2% mix', conv: '80.9%', gap: '₹0.50 Cr',
     priority: 'Smallest zone, sound flow — manage for cost, not intervention',
     chains: [['DMart', '1.41', '95.3%'], ['Reliance', '0.46', '51.2%'], ['Apollo', '0.19', 'over 100%']],
     states: [['Madhya Pradesh', '1.68'], ['Chhattisgarh', '0.44']],
@@ -352,7 +354,7 @@ const ZD = {
     npi: '₹0.18 Cr · 8.5% of zone',
     foot: 'Central NPI mix 8.5% | ₹0.11 Cr recoverable — below the materiality floor',
     ins: [
-      { tag: 'SIZING', c: GREY, head: '₹0.11 Cr recoverable — below the ₹0.25 Cr floor', why: 'At benchmark conversion Central gains almost nothing. The zone is small and already flowing well, so it should not consume review time.', action: 'Report Central by exception only; drop it from the weekly gap review.', owner: 'Sales lead · from Sep pack' },
+      { tag: 'SIZING', c: GREY, head: '₹0.13 Cr recoverable — below the ₹0.25 Cr floor', why: 'At benchmark conversion Central gains almost nothing. The zone is small and already flowing well, so it should not consume review time.', action: 'Report Central by exception only; drop it from the weekly gap review.', owner: 'Sales lead · from Sep pack' },
       { tag: 'BENCHMARK', c: GREEN, head: 'DMart Central converts at 95.3% — best in the country', why: 'Slightly ahead of DMart West. Two zones now show DMart above 94%, which makes the 45.1% in South-2 clearly anomalous rather than a chain-wide characteristic.', action: 'Cite Central and West together when scoping the DMart South-2 fill audit.', owner: 'NKAM DMart · 22 Aug' },
       { tag: 'EXCEPTION', c: RED, head: 'Reliance Central at 51.2% repeats the national pattern', why: 'Fourth zone where Reliance sits near 50% while other accounts in the same geography clear 78%. The consistency is the evidence.', action: 'Include Central in the Reliance national loop; no separate zone action.', owner: 'NKAM Reliance · 25 Aug' },
       { tag: 'CONCENTRATION', c: AMBER, head: 'Madhya Pradesh is 79.3% of the zone', why: 'The most single-state-dependent zone in the pack. Chhattisgarh at ₹0.44 Cr is the only other material market.', action: 'Treat Central as a single-state operation for planning and route design.', owner: 'Central RKAM · Sep planning' },
@@ -372,7 +374,7 @@ const ZD = {
     foot: 'eB2B channel · FY27 to date: primary ₹8.79 Cr, offtake ₹8.60 Cr, 97.8% flow · excluded from every MT zone figure',
     ins: [
       { tag: 'RECLASSIFIED', c: RED, head: 'This was the "Pan India" zone; it is the eB2B channel', why: 'FY27 offtake for the Pan India zone (860.01 L) equals the Nykaa (FSN) account exactly, 1:1, and Nykaa primary is classified eB2B in the channel master. It was never a geography and never Modern Trade.', action: 'Renamed to eB2B and removed from MT zone sales, primary and offtake alike.', owner: 'Analyst · applied 16 Aug' },
-      { tag: 'MT IMPACT', c: RED, head: 'Removing it takes ₹2.07 Cr out of MT offtake', why: 'National MT offtake for July is ₹34.04 Cr, not ₹36.10 Cr — and that figure now ties exactly to the sum of the six geographic MT zones, the identity the previous pack could not close.', action: 'Quote ₹34.04 Cr as national MT offtake in every downstream report.', owner: 'Analyst · from Aug pack' },
+      { tag: 'MT IMPACT', c: RED, head: 'Removing it takes ₹2.07 Cr out of MT offtake', why: 'National MT offtake for July is ₹33.96 Cr, not ₹36.10 Cr. It now ties exactly to the sum of the six geographic MT zones — the identity the previous pack could not close. A further ₹0.03 Cr of SIS offtake also left the zones.', action: 'Quote ₹33.96 Cr as national MT offtake in every downstream report.', owner: 'Analyst · from Aug pack' },
       { tag: 'SCOPE', c: AMBER, head: 'FSN B2C sits inside this number and cannot be split', why: 'The account combines FSN (B2C marketplace) with Nykaa SS (eB2B) at article level. The business decision of 16 Aug is to carry the whole account under eB2B until separated feeds exist.', action: 'Request separated FSN and Nykaa SS feeds from the data owner.', owner: 'Analyst + NKAM FSN · 31 Aug' },
       { tag: 'BENCHMARK', c: GREEN, head: '94.1% July flow, 97.8% across FY27 to date', why: 'Marketplace replenishment runs close to real time, so billing and selling stay in step. A useful ceiling, but the model does not transfer to hypermarket accounts.', action: 'Report eB2B flow on its own line; never blend it into the MT conversion rate.', owner: 'Sales lead · standing' },
       { tag: 'TREND', c: AMBER, head: 'July ₹2.07 Cr is down 4.6% on June', why: 'Offtake peaked at ₹2.29 Cr in April and has drifted since. Active EANs fell from 222 in January to 198 in July, so range contraction tracks the softness.', action: 'Test whether the 24 delisted EANs explain the drift before treating it as demand.', owner: 'Analyst + NKAM FSN · 31 Aug' },
@@ -393,12 +395,12 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     'Honasa Consumer | Primary, offtake, portfolio and execution | July 2026', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 1.10, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
-  s.addText('Modern Trade converted ₹34.04 Cr of ₹47.02 Cr billed in July', txt({
+  s.addText('₹6.22 Cr of MT offtake is recoverable at your own internal benchmark', txt({
     x: M + 0.16, y: BODY_Y + 0.10, w: CW - 0.32, h: 0.34, fontSize: 12, bold: true, fontFace: FONTH, color: TEAL, align: 'center', valign: 'middle'
   }));
-  s.addText('₹34.04 Cr MT offtake  •  72.4% MT conversion  •  ₹12.98 Cr MT gap  •  eB2B and SIS reported separately', txt({
+  s.addText('₹33.96 Cr MT offtake  •  72.2% MT conversion  •  ₹13.06 Cr MT gap  •  eB2B and SIS reported separately', txt({
     x: M + 0.16, y: BODY_Y + 0.48, w: CW - 0.32, h: 0.24, fontSize: 8, bold: true, align: 'center' }));
-  s.addText('Restated to Modern Trade accounts only. The previous pack read ₹36.10 Cr at 73.4% because the Nykaa (FSN) eB2B account was carried as a "Pan India" zone. National MT offtake now ties exactly to the sum of the six MT zones.', txt({
+  s.addText('Modern Trade accounts only. If North, East and South-2 converted at the rate West and South-1 already achieve, MT conversion moves 72.2% → 85.5% with no additional primary. The previous pack read ₹36.10 Cr at 73.4% because the Nykaa (FSN) eB2B account was carried as a "Pan India" zone.', txt({
     x: M + 0.24, y: BODY_Y + 0.74, w: CW - 0.48, h: 0.30, fontSize: 7.2, color: GREY, align: 'center', lineSpacingMultiple: 0.94 }));
 
   const R1 = BODY_Y + 1.26, CH1 = 2.86, cw = (CW - 0.30) / 3;
@@ -420,28 +422,33 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
   // 2 — the gap, gross
   y = card(s, { x: cx(1), y: R1, w: cw, h: CH1, label: 'THE MT GAP', accent: RED });
-  s.addText('₹12.98 Cr', txt({ x: cx(1) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: RED, align: 'center' }));
+  s.addText('₹13.06 Cr', txt({ x: cx(1) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: RED, align: 'center' }));
   s.addText('billed to MT accounts and not yet sold through', txt({
     x: cx(1) + 0.12, y: y + 0.42, w: cw - 0.24, h: 0.32, fontSize: 6.8, color: GREY, align: 'center', lineSpacingMultiple: 0.92 }));
   bullets(s, {
     x: cx(1) + 0.12, y: y + 0.82, w: cw - 0.24, gap: 0.42, size: 6.9, items: [
-      { t: 'MT primary ₹47.02 Cr less MT offtake ₹34.04 Cr.', c: RED },
-      { t: 'eB2B ₹2.20 Cr and SIS carry their own flow, on their own pages.', c: BLUE },
-      { t: 'Splitting this gap by zone is pending the channel recut.', c: AMBER }
+      { t: 'MT primary ₹47.02 Cr less MT offtake ₹33.96 Cr.', c: RED },
+      { t: 'North and East hold ₹7.97 Cr of it — 61% in two zones.', c: RED },
+      { t: 'eB2B ₹2.20 Cr and SIS carry their own flow, on their own pages.', c: BLUE }
     ]
   });
 
   // 3 — the prize
-  y = card(s, { x: cx(2), y: R1, w: cw, h: CH1, label: 'THE PRIZE — PENDING RECUT', accent: AMBER });
-  s.addText('withheld', txt({ x: cx(2) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: AMBER, align: 'center' }));
-  s.addText('benchmark sizing needs MT-only zone primary', txt({ x: cx(2) + 0.12, y: y + 0.42, w: cw - 0.24, h: 0.30, fontSize: 6.8, color: GREY, align: 'center', lineSpacingMultiple: 0.92 }));
-  bullets(s, {
-    x: cx(2) + 0.12, y: y + 0.80, w: cw - 0.24, gap: 0.42, size: 6.9, dot: AMBER, items: [
-      { t: 'The ₹5.87 Cr benchmark prize in the previous pack was computed on zone primary that included eB2B.', b: true },
-      { t: 'Zone primary, conversion, gap and rankings are all blocked until the MT-only zone cut lands.' },
-      { t: 'National MT figures above are exact and safe to quote today.', c: GREEN }
-    ]
-  });
+  y = card(s, { x: cx(2), y: R1, w: cw, h: CH1, label: 'THE PRIZE', accent: GREEN });
+  s.addText('₹6.22 Cr', txt({ x: cx(2) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: GREEN, align: 'center' }));
+  s.addText('one month, no extra primary', txt({ x: cx(2) + 0.10, y: y + 0.42, w: cw - 0.20, h: 0.18, fontSize: 6.8, color: GREY, align: 'center' }));
+  chartTitle(s, cx(2) + 0.10, y + 0.66, cw - 0.20, 'Recoverable by zone (₹ Cr)');
+  const recZones = ZONES.filter(z => recover(z) >= 0.25).sort((a, b) => recover(a) - recover(b));
+  s.addChart(pres.ChartType.bar, [{
+    name: 'Recoverable', labels: recZones.map(z => z.z), values: recZones.map(z => +recover(z).toFixed(2))
+  }], Object.assign({}, axisBase, {
+    x: cx(2) + 0.02, y: y + 0.88, w: cw - 0.08, h: 1.10, barDir: 'bar',
+    chartColors: [GREEN], showValue: true, dataLabelPosition: 'outEnd',
+    dataLabelFontSize: 6, dataLabelColor: INK, dataLabelFormatCode: '0.00',
+    valAxisMaxVal: 3.4, barGapWidthPct: 45
+  }));
+  s.addText('West +0.05 and Central +0.13 are below the ₹0.25 Cr floor.', txt({
+    x: cx(2) + 0.10, y: y + 2.02, w: cw - 0.20, h: 0.22, fontSize: 6.2, color: GREY, lineSpacingMultiple: 0.92 }));
 
   // row 2
   const R2 = R1 + CH1 + 0.16;
@@ -463,7 +470,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   bullets(s, {
     x: cx(1) + 0.12, y: y + 0.74, w: cw - 0.24, gap: 0.40, size: 6.9, items: [
       { t: 'Reliance alone holds 47.1% of NPI at 51.4% conversion.', c: RED },
-      { t: 'East runs the highest NPI mix (10.2%) on the worst flow (45.3%).', c: RED },
+      { t: 'East runs the highest NPI mix (10.2%) on the worst flow (49.9%).', c: RED },
       { t: 'Launches will read as product failure when they are flow failure.', b: true }
     ]
   });
@@ -471,11 +478,11 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   y = card(s, { x: cx(2), y: R2, w: cw, h: CH1, label: 'GEOGRAPHIC ENGINES' });
   bullets(s, {
     x: cx(2) + 0.12, y: y + 0.04, w: cw - 0.24, gap: 0.40, size: 7, items: [
-      { t: 'West ₹8.28 Cr at 82.3% — national benchmark.', c: GREEN },
-      { t: 'South-1 ₹8.19 Cr at 83.6% — best flow in the country.', c: GREEN },
-      { t: 'North ₹4.97 Cr gap — largest recovery pool.', c: RED },
-      { t: 'East 45.3% conversion — weakest flow, highest NPI mix.', c: RED },
-      { t: 'Central is below the materiality floor; report by exception.', c: GREY }
+      { t: 'West ₹8.27 Cr at 85.2% — national benchmark.', c: GREEN },
+      { t: 'South-1 ₹8.18 Cr at 86.3% — best flow in the country.', c: GREEN },
+      { t: 'North ₹4.41 Cr gap — largest recovery pool.', c: RED },
+      { t: 'East 49.9% conversion — weakest flow, highest NPI mix.', c: RED },
+      { t: 'South-2 now clears the floor at +₹0.89 Cr recoverable.', c: AMBER }
     ]
   });
 
@@ -495,8 +502,8 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   y = card(s, { x: cx(1), y: R3, w: cw, h: CH1, label: 'LEADERSHIP SCOREBOARD' });
   bullets(s, {
     x: cx(1) + 0.12, y: y + 0.04, w: cw - 0.24, gap: 0.42, size: 7, items: [
-      { t: 'MT flow conversion — the one metric. 72.4% today.', b: true },
-      { t: 'Zone-level targets reissue once the MT-only zone cut lands.', c: AMBER },
+      { t: 'MT flow conversion — the one metric. 72.2% → 85.5%.', b: true },
+      { t: 'North gap −₹2.78 Cr and East −₹2.54 Cr against benchmark, weekly.' },
       { t: 'Hero-SKU OSA above 95% in priority stores.' },
       { t: 'Unmapped chains: zero before the August pack ships.' },
       { t: 'Channel purity: no eB2B or SIS value inside any MT zone.', c: GREEN }
@@ -674,7 +681,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S4 */
 {
-  const s = page(4, 'Two zones already convert at 83% — that rate is worth ₹5.87 Cr applied to North and East',
+  const s = page(4, 'Two zones convert at 86% — that rate is worth ₹6.22 Cr applied to the other three',
     'Zone portfolio | contribution, conversion and recoverable value at the internal benchmark', SRC_MAIN);
 
   let y = banner(s, BODY_Y, 'ZONE SCORECARD — RANKED BY RECOVERABLE VALUE, NOT BY SIZE');
@@ -697,21 +704,21 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       ];
     })
   });
-  s.addText('Benchmark = 82.95%, the average of West (82.3%) and South-1 (83.6%). Recoverable = primary × benchmark − actual offtake, holding primary flat; components are rounded to two decimals while the ₹5.87 Cr pool is computed on unrounded values. Zone gaps sum to ₹15.17 Cr — the ₹13.11 Cr previously headlined netted off ₹2.07 Cr of Pan India offtake that carries no mapped primary.', txt({
+  s.addText('Benchmark = 85.73%, the mean MT conversion of West (85.2%) and South-1 (86.3%). Recoverable = primary × benchmark − actual offtake, holding primary flat; components are rounded to two decimals while the ₹6.22 Cr pool is computed on unrounded values. Zone gaps sum to ₹13.06 Cr. The previous pack headlined ₹13.11 Cr on a blended base that carried the Nykaa (FSN) eB2B account inside MT zone sales; that account is now reported as its own channel.', txt({
     x: M, y: y + 0.08, w: CW, h: 0.40, fontSize: 6.6, color: GREY, lineSpacingMultiple: 0.94 }));
 
   y += 0.58;
   const cw3 = (CW - 0.30) / 3, cx = i => M + i * (cw3 + 0.15);
   const tiles = [
-    { l: 'FIX — THE POOL', a: RED, big: '₹5.87 Cr', sub: 'North + East at benchmark', items: [
-      { t: 'North ₹2.92 Cr — highest primary, third-worst flow.' },
-      { t: 'East ₹2.94 Cr — worst flow, highest NPI mix.' },
-      { t: 'Together: 76% of the national recovery pool.' } ] },
-    { l: 'PROTECT — THE ENGINES', a: GREEN, big: '₹16.47 Cr', sub: 'West + South-1 offtake', items: [
-      { t: '45.6% of national offtake at 82–84% conversion.' },
+    { l: 'FIX — THE POOL', a: RED, big: '₹6.22 Cr', sub: 'North, East and South-2 at benchmark', items: [
+      { t: 'North ₹2.78 Cr — highest primary, third-worst flow.' },
+      { t: 'East ₹2.54 Cr — worst flow, highest NPI mix.' },
+      { t: 'South-2 ₹0.90 Cr — newly above the floor once eB2B left its primary.' } ] },
+    { l: 'PROTECT — THE ENGINES', a: GREEN, big: '₹16.45 Cr', sub: 'West + South-1 offtake', items: [
+      { t: '48.4% of national MT offtake at 85–86% conversion.' },
       { t: 'No recovery pool here — the rate is already the benchmark.' },
       { t: 'Hold spend flat; redirect field capacity to North.' } ] },
-    { l: 'ISOLATE — ONE CELL', a: AMBER, big: '₹0.81 Cr', sub: 'South-2, almost all DMart', items: [
+    { l: 'ISOLATE — ONE CELL', a: AMBER, big: '₹0.89 Cr', sub: 'South-2, almost all DMart', items: [
       { t: 'DMart South-2 converts 45.1% against 94–95% in West and Central.' },
       { t: 'A DC or fill problem, not a chain relationship problem.' },
       { t: 'Scope as a single-account audit, not a zone programme.' } ] }
@@ -726,11 +733,11 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   y += 2.26;
   y = banner(s, y, 'PORTFOLIO ACTIONS');
   bullets(s, { x: M + 0.10, y: y + 0.02, w: CW - 0.20, gap: 0.42, size: 7.6, items: [
-    { t: 'Fix — North and East: weekly chain × state × hero-EAN gap closure against a ₹2.92 Cr and ₹2.94 Cr target. Owner: zone ZSMs.', b: true, c: INK },
-    { t: 'Isolate — South-2: audit DMart DC-to-store fill against the West benchmark. Owner: NKAM DMart + Supply, 22 Aug.' },
+    { t: 'Fix — North and East: weekly chain × state × hero-EAN gap closure against a ₹2.78 Cr and ₹2.54 Cr target. Owner: zone ZSMs.', b: true, c: INK },
+    { t: 'Fix — South-2: now clears the floor at ₹0.90 Cr. Audit DMart DC-to-store fill against the West benchmark. Owner: NKAM DMart + Supply, 22 Aug.' },
     { t: 'Protect — West, South-1: hold hero-SKU OSA, avoid unnecessary loading, document DMart West cadence as the national template.' },
-    { t: 'Exception-report — Central: ₹0.11 Cr recoverable is below the materiality floor; drop it from the weekly review.', c: GREY },
-    { t: 'Separate — Pan India / FSN: report outside geographic gap arithmetic; it has no mapped primary and distorts the national base.', c: BLUE }
+    { t: 'Exception-report — Central and West: ₹0.13 Cr and ₹0.05 Cr recoverable are below the ₹0.25 Cr floor; keep them out of the weekly review.', c: GREY },
+    { t: 'Separate — eB2B (₹2.20 Cr) and SIS now report as their own channels on pages 11 and 12, outside every MT zone figure.', c: BLUE }
   ]});
 
   y += 2.20;
@@ -739,7 +746,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   let yq = card(s, { x: M, y, w: bw, h: 1.66, label: 'THE SAME PORTFOLIO, SIX DIFFERENT OUTCOMES', accent: RED });
   bullets(s, { x: M + 0.12, y: yq + 0.04, w: bw - 0.24, gap: 0.38, size: 7.1, dot: RED, items: [
     { t: 'Every zone sells the same brands, packs and price list.', b: true },
-    { t: 'Conversion still ranges from 45.3% to 83.6% — a 38-point spread.' },
+    { t: 'Conversion still ranges from 49.9% to 86.3% — a 38-point spread.' },
     { t: 'That rules out product, pricing and proposition, and leaves execution.' }
   ]});
   let yr = card(s, { x: M + bw + 0.16, y, w: bw, h: 1.66, label: 'WHAT WOULD CHANGE THIS READ', accent: GREY });
@@ -992,7 +999,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   y = banner(s, y, 'LEADERSHIP READOUT');
   bullets(s, { x: M + 0.10, y: y + 0.02, w: CW - 0.20, gap: 0.44, size: 7.4, items: [
     { t: 'One account explains the month. Run a Reliance recovery loop, not a Modern Trade recovery programme.', b: true },
-    { t: 'The comparable set covers ₹26.90 Cr of ₹36.10 Cr national offtake — 74.5%. Chains with missing July feeds are data gaps, not de-growth, and stay outside the ranking.' },
+    { t: 'The comparable set covers ₹26.90 Cr of ₹33.96 Cr national MT offtake — 79.2%. Chains with missing July feeds are data gaps, not de-growth, and stay outside the ranking.' },
     { t: 'Three chains — Lulu, Wellness Forever, Health & Glow — show offtake against unmapped primary. Their growth reads cannot be verified and must not drive field action.', c: AMBER },
     { t: 'Reinstate percentage ranking only above the ₹0.25 Cr floor; below it, report absolute change.', c: GREY }
   ]});
@@ -1017,7 +1024,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       ev: 'Converts 51.4% nationally — 44.9% North, 52.9% East, 51.2% Central. Same weakness in every zone it operates.',
       rec: 'Halt incremental loading until conversion clears 65%; run hero-EAN OSA audit against the Apollo cadence.',
       kpi: 'Conversion 51.4% → 76.5% (DMart parity)', own: 'NKAM Reliance + Supply · 25 Aug' },
-    { n: 'DMART SOUTH-2', a: RED, stake: '₹0.81 Cr', head: 'One region behaving unlike the account',
+    { n: 'DMART SOUTH-2', a: RED, stake: '₹0.89 Cr', head: 'One region behaving unlike the account',
       ev: 'DMart converts 94.2% in West and 95.3% in Central, but 45.1% in South-2 — a regional break, not a chain issue.',
       rec: 'Audit DC-to-store fill rate and top-SKU store availability against the West benchmark.',
       kpi: 'South-2 conversion to 80%+', own: 'NKAM DMart + Supply · 22 Aug' },
@@ -1076,7 +1083,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   s.addShape(pres.ShapeType.roundRect, { x: M, y: yEnd, w: CW, h: 0.44, rectRadius: 0.02, fill: { color: TINT }, line: { color: LINE, width: 0.75 } });
   s.addText([
     { text: 'SEQUENCING   ', options: { color: TEAL, bold: true, fontSize: 6.8 } },
-    { text: 'Reliance and DMart South-2 carry ₹4.73 Cr of the ₹5.87 Cr recovery pool between them — 81%. Both are single-account audits that can start this week. The three mapping fixes cost analyst time only and unblock everything else, so they run first.', options: { fontSize: 7, color: INK } }
+    { text: 'Reliance and DMart South-2 carry ₹4.73 Cr of the ₹6.22 Cr recovery pool between them — 81%. Both are single-account audits that can start this week. The three mapping fixes cost analyst time only and unblock everything else, so they run first.', options: { fontSize: 7, color: INK } }
   ], txt({ x: M + 0.12, y: yEnd + 0.06, w: CW - 0.24, h: 0.34, lineSpacingMultiple: 0.94 }));
 }
 
@@ -1157,7 +1164,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y + 1.06, w: CW, h: 0.78, rectRadius: 0.03, fill: { color: 'FBEDEC' }, line: { color: RED, width: 1 } });
   s.addText('New products are being launched through the weakest pipes in the network.', txt({
     x: M + 0.16, y: BODY_Y + 1.14, w: CW - 0.32, h: 0.28, fontSize: 10, bold: true, fontFace: FONTH, color: RED, align: 'center', valign: 'middle' }));
-  s.addText('Reliance holds 47.1% of all NPI value and converts at 51.4%. East runs the highest NPI mix in the country (10.2%) on the worst flow (45.3%). A launch that fails here will be read as a product failure when it is a flow failure.', txt({
+  s.addText('Reliance holds 47.1% of all NPI value and converts at 51.4%. East runs the highest NPI mix in the country (10.2%) on the worst flow (49.9%). A launch that fails here will be read as a product failure when it is a flow failure.', txt({
     x: M + 0.24, y: BODY_Y + 1.44, w: CW - 0.48, h: 0.32, fontSize: 7.2, align: 'center', color: INK, lineSpacingMultiple: 0.94 }));
 
   let y = BODY_Y + 2.00;
@@ -1385,7 +1392,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S18 */
 {
-  const s = page(19, 'A 90-day cadence that converts ₹5.87 Cr without loading a single extra case',
+  const s = page(19, 'A 90-day cadence that converts ₹6.22 Cr without loading a single extra case',
     'Sales uplift plan | actions ranked by value at stake, with owners and proof points', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 0.72, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
@@ -1403,8 +1410,8 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     ],
     rows: [
       ['1', { t: 'Reliance recovery loop — halt loading, hero-EAN OSA audit across North, East, Central', b: true }, { t: '₹3.92 Cr', b: true, c: RED }, '0–30d', 'NKAM Reliance + Supply'],
-      ['2', { t: 'DMart South-2 DC-to-store fill audit against the West benchmark', b: true }, { t: '₹0.81 Cr', b: true, c: RED }, '0–30d', 'NKAM DMart + Supply'],
-      ['3', 'Cap East and North primary at trailing three-month offtake until gaps close', { t: '₹2.94 Cr', b: true, c: AMBER }, '0–30d', 'Supply + Sales lead'],
+      ['2', { t: 'DMart South-2 DC-to-store fill audit against the West benchmark', b: true }, { t: '₹0.89 Cr', b: true, c: RED }, '0–30d', 'NKAM DMart + Supply'],
+      ['3', 'Cap East and North primary at trailing three-month offtake until gaps close', { t: '₹2.54 Cr', b: true, c: AMBER }, '0–30d', 'Supply + Sales lead'],
       ['4', 'Map Lulu, Wellness Forever and Health & Glow primary routes', { t: '₹2.23 Cr', b: true, c: AMBER }, '0–15d', 'Analyst'],
       ['5', 'Freeze incremental NPI into East and North until conversion thresholds clear', { t: '₹0.65 Cr', c: AMBER }, '0–30d', 'Category + Supply'],
       ['6', 'Publish the chain × state × hero-EAN exception list weekly', { t: 'enabler', c: GREY }, '0–30d', 'Analyst'],
@@ -1447,8 +1454,8 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     ],
     rows: [
       [{ t: 'Flow conversion — the one metric', b: true }, { t: 'above 85%', b: true, c: GREEN }, 'Sales lead', { t: '73.4%', c: RED }],
-      ['North gap vs benchmark', { t: 'falling weekly', c: GREEN }, 'North ZSM', { t: '−₹2.92 Cr', c: RED }],
-      ['East gap vs benchmark', { t: 'falling weekly', c: GREEN }, 'East ZSM', { t: '−₹2.94 Cr', c: RED }],
+      ['North gap vs benchmark', { t: 'falling weekly', c: GREEN }, 'North ZSM', { t: '−₹2.78 Cr', c: RED }],
+      ['East gap vs benchmark', { t: 'falling weekly', c: GREEN }, 'East ZSM', { t: '−₹2.54 Cr', c: RED }],
       ['Hero-SKU OSA, priority stores', { t: 'above 95%', c: GREEN }, 'KAM + Supply', { t: 'not measured', c: AMBER }],
       ['Reliance conversion', { t: 'above 65%', c: GREEN }, 'NKAM Reliance', { t: '51.4%', c: RED }],
       ['Chains with unmapped primary', { t: 'zero', c: GREEN }, 'Analyst', { t: '3 chains', c: RED }]
@@ -1478,7 +1485,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       [{ t: 'Offtake', b: true }, '₹36.10 Cr', 'transaction NSV, store', 'Consumer-facing flow measure'],
       [{ t: 'Gross positive gap', b: true }, { t: '₹13.27 Cr', b: true, c: RED }, 'chain, mapped only', 'Billed and unsold — the recoverable pool'],
       [{ t: 'Gross negative gap', b: true }, { t: '₹2.23 Cr', b: true, c: AMBER }, 'chain, unmapped primary', 'A join defect — never netted against the pool'],
-      [{ t: 'Zone gap, summed', b: true }, { t: '₹15.17 Cr', b: true, c: RED }, 'six geographic zones', 'Excludes Pan India, which has no primary'],
+      [{ t: 'Zone gap, summed', b: true }, { t: '₹13.06 Cr', b: true, c: RED }, 'six geographic zones', 'Excludes Pan India, which has no primary'],
       [{ t: 'Flow conversion', b: true }, '73.4%', 'non-additive ratio', 'Recompute from sums — never average zones']
     ]
   });
@@ -1496,8 +1503,8 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
       { t: 'The national figure is averaging error, not measured parity.' },
       { t: 'Any conversion above 100% is stock or timing, never performance.' },
       { t: 'Do not quote a ratio without stating its denominator.' } ] },
-    { l: 'COVERAGE', a: TEAL, big: '74.5%', items: [
-      { t: 'Chain scorecard covers ₹26.90 Cr of ₹36.10 Cr national offtake.', b: true },
+    { l: 'COVERAGE', a: TEAL, big: '79.2%', items: [
+      { t: 'Chain scorecard covers ₹26.90 Cr of ₹33.96 Cr national MT offtake.', b: true },
       { t: '31,355 of 1,97,740 primary and offtake rows are matched.' },
       { t: 'Missing zone rows: 0. Period: July 2026.' },
       { t: 'Chains with missing July feeds are data gaps, not de-growth.' } ] },
@@ -1529,7 +1536,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.52, rectRadius: 0.02, fill: { color: 'FBEDEC' }, line: { color: RED, width: 0.75 } });
   s.addText([
     { text: 'CHANGED SINCE THE PREVIOUS PACK   ', options: { color: RED, bold: true, fontSize: 6.8 } },
-    { text: 'The national gap now reads ₹15.17 Cr gross rather than ₹13.11 Cr net. The earlier figure subtracted ₹2.07 Cr of Pan India offtake that carries no mapped primary, and mixed a chain-level base with a zone-level one. Both bases are now stated, and positive and negative gap are reported separately.', options: { fontSize: 7, color: INK } }
+    { text: 'Zone sales are now Modern Trade only. eB2B (₹2.20 Cr primary) and SIS are reported as their own channels, cut from the full July source with Channel == MT applied before aggregation. MT primary ₹47.02 Cr, MT offtake ₹33.96 Cr, gap ₹13.06 Cr — and national MT offtake now ties exactly to the sum of the six MT zones.', options: { fontSize: 7, color: INK } }
   ], txt({ x: M + 0.12, y: y + 0.06, w: CW - 0.24, h: 0.42, lineSpacingMultiple: 0.94 }));
 }
 

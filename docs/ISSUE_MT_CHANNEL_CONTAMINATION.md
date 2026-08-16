@@ -1,6 +1,6 @@
 # Issue — eB2B and SIS are inside MT Zone Sales
 
-**Raised:** 16 Aug 2026 · **Severity:** Critical · **Status:** PARTIALLY APPLIED — zone level still BLOCKED
+**Raised:** 16 Aug 2026 · **Severity:** Critical · **Status:** CLOSED — correction applied end to end
 **Affected:** July 2026 MT Command Centre deck, all zone-derived metrics
 **Check:** `python scripts/mt_channel_reconciliation.py` (exit 2 = BLOCKED)
 
@@ -8,25 +8,54 @@
 
 ## Verdict
 
-**PASS** for national MT, eB2B and SIS reporting — those figures are exact and are
-now in the deck. **BLOCKED** for zone-level MT primary, conversion and gap, and for
-everything derived from them (rankings, benchmark prize, opportunity sizing).
+**PASS.** The correction is applied at every level, cut from the full July month
+source files with `Channel == 'MT'` applied before aggregation. Nothing is estimated.
 
-### Applied 16 Aug 2026 (business decision)
+`scripts/mt_channel_split.py` reproduces the whole split and both reconciliation
+identities tie:
 
-- Nykaa (FSN) excluded from Modern Trade in full and reported under **eB2B**.
-- The **"Pan India" zone is renamed eB2B** and reported as a channel, not a geography
-  (deck page 11).
-- **SIS** given its own channel page on the same basis (deck page 12).
-- Classification held in `scripts/data/channel_master.json` with a named owner.
-- Methodology note added to every page footer.
-- Thirteen pages whose figures still derive from zone-level primary are stamped
-  **PROVISIONAL** with an amber rule and an explicit footer reason.
+- sum of MT zone primary **₹47.02 Cr** = `Channel == MT` total — **ties**
+- all-channel offtake ₹36.06 Cr less eB2B ₹2.07 Cr less SIS ₹0.03 Cr = MT offtake
+  **₹33.96 Cr** = sum of the six MT zones — **ties**
 
-**July 2026, Modern Trade only — EXACT:** primary **₹47.02 Cr**, offtake
-**₹34.04 Cr**, conversion **72.4%**, gap **₹12.98 Cr**. National MT offtake now ties
-exactly to the sum of the six MT zones. Previously published all-channel figures were
-₹49.21 Cr / ₹36.10 Cr / 73.4%.
+### July 2026, Modern Trade only — EXACT
+
+| Zone | MT primary | MT offtake | Conversion | Gap | At benchmark |
+|---|---:|---:|---:|---:|---:|
+| North | 11.38 | 6.97 | 61.3% | 4.41 | +2.78 |
+| East | 7.10 | 3.54 | 49.9% | 3.56 | +2.54 |
+| South-2 | 6.73 | 4.87 | 72.4% | 1.85 | +0.90 |
+| West | 9.71 | 8.27 | 85.2% | 1.44 | below floor |
+| South-1 | 9.48 | 8.18 | 86.3% | 1.30 | below floor |
+| Central | 2.62 | 2.12 | 80.9% | 0.50 | below floor |
+| **Total** | **47.02** | **33.96** | **72.2%** | **13.06** | **+6.22** |
+
+Published all-channel figures were ₹49.21 Cr / ₹36.10 Cr / 73.4%.
+
+**eB2B** — primary ₹2.20 Cr, offtake ₹2.07 Cr, 93.9% flow. Nykaa E-Retail ₹2.079 Cr
+and Eremedium ₹0.122 Cr.
+**SIS** — primary −₹0.01 Cr (net of MRN returns, negative in July), offtake ₹0.034 Cr
+which has moved out of the six MT zones.
+
+### Reporting basis
+
+The offtake source totals ₹40.52 Cr raw. The published pack's ₹36.10 Cr basis
+excludes `Store Type == 'Brand Counter'` (₹4.46 Cr — Reliance Brand Counter is a
+separate analytical breakout) and the discontinued brands Lumineve, Pure Origin and
+Staze. On that basis every zone reproduces the published deck within ₹0.03 Cr, so the
+restatement is a like-for-like channel correction and not a change of basis.
+
+### What changed in the conclusions
+
+- Every zone's conversion **rose** once eB2B left its denominator; national
+  conversion **fell** (73.4% → 72.2%) once Nykaa's 99.4% flow left the numerator.
+  National and parts moved in opposite directions — Simpson's paradox, and the reason
+  no commentary written on the blended number was safe.
+- **South-2 crosses the materiality floor.** At ₹0.90 Cr recoverable it joins North
+  and East as a Fix zone; on blended data it read ₹0.81 Cr and was framed as an
+  isolated chain issue.
+- The benchmark opportunity is **₹6.22 Cr**, not ₹5.87 Cr, and the benchmark rate is
+  85.73% rather than 82.95%.
 
 ## What the reconciliation found
 
