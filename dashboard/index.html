@@ -190,11 +190,13 @@ const _MCD=new Set([
 function canonChain(n){return _CC[n]||n;}
 function consolidateChains(arr,sortKey){
   sortKey=sortKey||'nsv';
+  if(!arr||!arr.length) return [];
   const m={};const dist={_name:'Other (Unallocated Distributors)',_list:[]};
+  const numKeys=new Set(Object.keys(arr[0]).filter(k=>k!=='name'&&typeof arr[0][k]==='number'));
   (arr||[]).forEach(c=>{
     const bucket=_MCD.has(c.name)?dist:(function(){const cn=canonChain(c.name);if(!m[cn])m[cn]={name:cn};return m[cn];}());
     if(_MCD.has(c.name)){dist._list.push(c);}
-    Object.keys(c).forEach(k=>{if(k==='name')return;if(typeof c[k]==='number'){bucket[k]=(bucket[k]||0)+c[k];}});
+    numKeys.forEach(k=>{if(c[k]!=null){bucket[k]=(bucket[k]||0)+c[k];}});
   });
   if(dist._list.length){dist.name=dist._name;delete dist._name;delete dist._list; m['__dist__']=dist;}
   const out=Object.values(m).sort((a,b)=>(b[sortKey]||0)-(a[sortKey]||0));
