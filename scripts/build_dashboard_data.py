@@ -252,12 +252,21 @@ def load_primary(src):
 # unambiguous (one ship-to = one chain) and are never re-split.
 # --------------------------------------------------------------------------
 def load_primary_v2(src):
-    """Load primary from Primary_FY202426_10.xlsx (business-confirmed
-    2026-07-03 as source-of-truth; see PowerBI/docs/SIS_Reconciliation.md).
-    Same output shape as load_primary() plus the raw Ship-To / Direct-
-    Distributor columns needed for chain-level allocation."""
-    f = src / "Primary_FY202426_10.xlsx"
-    df = pd.read_excel(f, sheet_name="Dump", header=1)
+    """Load primary from CSV seed (preferred) or XLSX (fallback).
+    CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
+    XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
+    Same output shape as load_primary() plus raw Ship-To/Distributor columns."""
+    # Try CSV first (versioned in git)
+    csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
+    if csv_f.exists():
+        df = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX in --src
+        f = src / "Primary_FY202426_10.xlsx"
+        if not f.exists():
+            raise FileNotFoundError(f"Primary data not found: {csv_f} or {f}")
+        df = pd.read_excel(f, sheet_name="Dump", header=1)
+
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -269,18 +278,22 @@ def load_primary_v2(src):
     return df
 
 def load_chain_allocation_weights(src):
-    """Read the secondary-driven Ship-To -> Chain Cont% allocation
-    (Dist_primary_cont_based_on_secondary_MOM.xlsx, Sheet2 = the already
-    chain-split Distributor rows). Returns {(ship_to_norm, brand_canon,
-    month_norm): [(chain_raw, fraction), ...]} with fractions derived from
-    the sheet's own NSV split (normalised to sum to 1 per key) rather than
-    trusting the printed Cont% column's rounding. Returns None if the file
-    isn't present in --src (allocation step is then skipped, unchanged
-    behaviour)."""
-    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-    if not f.exists():
-        return None
-    s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+    """Read the secondary-driven Ship-To -> Chain Cont% allocation (CSV seed preferred).
+    CSV: PowerBI/SeedData/DIST/ChainAllocationWeights.csv (versioned in git)
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx Sheet2 (fallback)
+    Returns {(ship_to_norm, brand_canon, month_norm): [(chain_raw, fraction), ...]}
+    with fractions normalized to sum to 1 per key. Returns None if neither file exists."""
+    # Try CSV first
+    csv_f = Path("PowerBI/SeedData/DIST/ChainAllocationWeights.csv")
+    if csv_f.exists():
+        s2 = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+        if not f.exists():
+            return None
+        s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+
     s2.columns = [str(c).strip() for c in s2.columns]
     s2 = s2.dropna(subset=["NSV"])
     s2["_key"] = list(zip(
@@ -1165,7 +1178,18 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
 # UNIVERSE (distribution footprint)
 # --------------------------------------------------------------------------
 def universe_block(src):
-    u = pd.read_excel(src / "universe.xlsx", sheet_name="PAN INDIA", header=0)
+    # Try CSV first (versioned in git), fallback to XLSX
+    csv_f = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
+    if csv_f.exists():
+        u = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "universe.xlsx"
+        if not f.exists():
+            f = src / "Universe MT.xlsx"  # Try alternate naming
+        if not f.exists():
+            raise FileNotFoundError(f"Universe data not found: {csv_f} or {f}")
+        u = pd.read_excel(f, sheet_name="PAN INDIA", header=0)
     u.columns = [str(c).strip() for c in u.columns]
     u = u[u["Chain Name"].notna()]
     u["active"] = u["Status"].astype(str).str.strip().str.upper().eq("ACTIVE")
@@ -1231,7 +1255,19 @@ def parse_depth(x):
     return None
 
 def promo_block(src):
-    p = pd.read_excel(src / "promo.xlsx", sheet_name="Sheet1", header=0)
+    # Try CSV first (versioned in git), fallback to XLSX
+    csv_f = Path("PowerBI/SeedData/Promo/PromoMaster.csv")
+    if csv_f.exists():
+        p = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "promo.xlsx"
+        if not f.exists():
+            f = src / "Promo Master -MT.xlsx"  # Try alternate naming
+        if not f.exists():
+            # Promo is optional; skip if not found
+            return pd.DataFrame(), None
+        p = pd.read_excel(f, sheet_name="Sheet1", header=0)
     p.columns = [str(c).strip() for c in p.columns]
     p = p[p["Chain Name"].notna()]
     p["chain"] = p["Chain Name"].map(canon_chain)
@@ -2314,34 +2350,56 @@ def load_shipto_primary_weights(repo_root=None):
 
 def load_dist_cont_weights(src):
     """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the cont
-    sheet, fractions normalised to sum to 1 per (ShipTo, Brand, Month) key,
-    plus {key: raw_pct_sum} for the cont%-sum-=100 QC check. Returns a 3-tuple
-    (wdf, raw_sums, source_label). source_label is 'xlsx' when the secondary-
-    derived spreadsheet is found, 'shipto_primary_csv' when the Priority-1 CSV
-    fallback is used, or None when neither source exists (allocation skipped)."""
-    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-    if not f.exists():
-        # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
-        wdf, raw_sums = load_shipto_primary_weights()
-        src_label = "shipto_primary_csv" if wdf is not None else None
-        return wdf, raw_sums, src_label
-    w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
+    sheet (CSV preferred), fractions normalised to sum to 1 per (ShipTo, Brand, Month).
+    CSV: PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv (versioned in git)
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx (fallback)
+    CSV: Priority-1 fallback at ShipTo×Brand×Month grain if neither DIST file exists.
+    Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
+    # Try CSV seed first
+    csv_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+    if csv_f.exists():
+        w = pd.read_csv(csv_f)
+        src_label = "dist_cont_csv"
+    else:
+        # Fallback to XLSX
+        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+        if not f.exists():
+            # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
+            wdf, raw_sums = load_shipto_primary_weights()
+            src_label = "shipto_primary_csv" if wdf is not None else None
+            return wdf, raw_sums, src_label
+        w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
+        src_label = "xlsx"
+
     w.columns = [str(c).strip() for c in w.columns]
-    w = w.dropna(subset=["Ship To Name", "Chain Name", "Secondary contribution %"])
+    w = w.dropna(subset=["Ship To Name", "Chain Name"])
+
+    # Handle both CSV and XLSX column names
+    cont_col = "Cont_Pct" if "Cont_Pct" in w.columns else "Secondary contribution %"
+    month_col = "Month" if "Month" in w.columns else "Revised month"
+    chain_col = "Chain_Name" if "Chain_Name" in w.columns else "Chain Name"
+
+    w = w[w[cont_col].notna()]
     w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
     w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
-    w["_pm"] = w["Revised month"].map(_month_period)
-    w["_pct"] = pd.to_numeric(w["Secondary contribution %"], errors="coerce").fillna(0.0)
+
+    # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX)
+    if w[month_col].dtype == 'object':
+        w["_pm"] = pd.to_datetime(w[month_col], errors="coerce").dt.strftime("%Y-%m")
+    else:
+        w["_pm"] = w[month_col].map(_month_period)
+
+    w["_pct"] = pd.to_numeric(w[cont_col], errors="coerce").fillna(0.0)
     w = w[w["_pm"].notna() & (w["_pct"] != 0)]
     key_sums = w.groupby(["_st", "_bl", "_pm"])["_pct"].transform("sum")
     raw_sums = {k: round(float(v), 2)
                 for k, v in w.groupby(["_st", "_bl", "_pm"])["_pct"].sum().items()}
     w["_frac"] = w["_pct"] / key_sums
-    w["_AllocChainRaw"] = w["Chain Name"].astype(str).str.strip()
-    # raw-case names carried through for the auto-generated patch-proposal CSV
+    w["_AllocChainRaw"] = w[chain_col].astype(str).str.strip()
+    # raw-case names carried through for auto-generated patch-proposal CSV
     w["_ShipToRaw"] = w["Ship To Name"].astype(str).str.strip()
     w["_BrandRaw"] = w["Brand"].astype(str).str.strip()
-    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, "xlsx"
+    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, src_label
 
 _ALLOC_MEASURES = ["_Qty", "_MRP", "_NSV", "_TaxLOC"]   # scaled by cont%; _ArtMRP (per-unit) is NOT
 
