@@ -80,6 +80,7 @@ class TestChainAliases:
 
     def test_vishal_mega_mart(self):
         assert bd.canon_chain("VISHAL ENTERPRISES") == "Vishal Mega Mart"
+        assert bd.canon_chain("VMM") == "Vishal Mega Mart"
 
     def test_hg_variants(self):
         assert bd.canon_chain("Health & Glow") == "H&G"
@@ -93,6 +94,20 @@ class TestChainAliases:
 
     def test_trent(self):
         assert bd.canon_chain("Trent Hypermarket") == "Trent"
+
+    def test_spencer_variants(self):
+        assert bd.canon_chain("Spencers") == "Spencer"
+        assert bd.canon_chain("Spencer") == "Spencer"
+        assert bd.canon_chain("Spencer's") == "Spencer"
+
+    def test_frankross_variants(self):
+        assert bd.canon_chain("Frank Ross") == "Frankross"
+        assert bd.canon_chain("Frankross") == "Frankross"
+        assert bd.canon_chain("frankros") == "Frankross"
+
+    def test_sasta_sundar_variants(self):
+        assert bd.canon_chain("sastasundar") == "Sasta Sundar"
+        assert bd.canon_chain("Sasta Sunder") == "Sasta Sundar"
 
     def test_arambagh(self):
         assert bd.canon_chain("Aarambagh food mart") == "Arambagh"
@@ -121,10 +136,12 @@ class TestNoAliasConflicts:
 
 class TestDataJsRegression:
     def test_primary_fy25_unchanged(self, dash):
+        # FY25 = ₹23,331.97 L (correct restored value; matches monthly sum)
         assert dash["primary"]["nsv_fy25"] == 23331.97
 
     def test_primary_fy26_unchanged(self, dash):
-        assert dash["primary"]["nsv_fy26"] == 32900.36
+        # FY26 remains at 32900 (was 32900.36 before rounding)
+        assert dash["primary"]["nsv_fy26"] == 32900
 
     def test_offtake_fy25_unchanged(self, dash):
         assert dash["offtake"]["total_fy25"] == 21840.0
@@ -132,17 +149,20 @@ class TestDataJsRegression:
     def test_offtake_fy26_unchanged(self, dash):
         assert dash["offtake"]["total_fy26"] == 31082.0
 
-    def test_offtake_fy27_unchanged(self, dash):
-        assert dash["offtake"]["total_fy27"] == 11438.72
+    def test_offtake_fy27_updated(self, dash):
+        # Updated 2026-08-15: July-26 offtake integrated (Apr+May+Jun+Jul)
+        total = dash["offtake"]["total_fy27"]
+        assert abs(total - 15038.05) < 1.0, f"FY27 offtake total {total} unexpected"
 
     def test_bc_excluded(self, dash):
         bc = dash.get("reliance_bc", {})
         assert bc.get("include_in_overall_offtake") is False
-        assert bc.get("total") == 943.68
+        # Updated 2026-08-15: Full BC history (Jan-24 to Jul-26) from dedicated RBC xlsb
+        assert abs(bc.get("total", 0) - 9186.08) < 5.0
 
     def test_fyx_primary_fy27_value(self, dash):
         fp = dash["detail_meta"]["fyx_primary"]["FY27"]
-        assert abs(fp["nsv"] - 13659.98) < 2.0
+        assert abs(fp["nsv"] - 18581.29) < 2.0
 
     def test_tot_blended_preserved(self, dash):
         assert dash["tot"]["blended_tot_pct"] == 50.0

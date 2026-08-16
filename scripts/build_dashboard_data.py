@@ -24,6 +24,11 @@ import argparse, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
 
 import pandas as pd
+from dist_allocation_governance import (
+    DistAllocationGovernance,
+    QCReconciliation,
+    eligibility_tier_rank,
+)
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -157,14 +162,13 @@ CHAIN_ALIASES = [
     ("More Retail",       ["more", "more retail", "more "]),
     ("RMT-Sancus",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
     ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
-    ("VMM",               ["vmm", "vmm "]),
-    ("Spencer",           ["spencer"]),
+    ("Spencer",           ["spencer", "spencers", "spencer's"]),
     ("Guardian",          ["guardian", "gaurdian "]),
     ("Trent",             ["trent", "trent "]),
     ("V-Mart",            ["v-mart", "v mart east "]),
     ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
-    ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl"]),
-    ("Frankross",         ["frankross", "frankros"]),
+    ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl", "sastasundar"]),
+    ("Frankross",         ["frankross", "frankros", "frank ross"]),
     ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
     ("WH-Smith",          ["wh-smith"]),
     ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
@@ -174,8 +178,6 @@ CHAIN_ALIASES = [
     ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
     ("Trent/Westside",    ["trends"]),
-    ("Sasta Sundar",      ["sastasundar"]),
-    ("Frankross",         ["frank ross"]),
     ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
     ("Dmart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
                             "just mark-d-mart"]),
@@ -195,7 +197,7 @@ CHAIN_ALIASES = [
     ("Ratnadeep",         ["ratanadeep"]),
     ("RMT-Sancus",        ["sancus", "sancus networks-mt-reg."]),
     ("Arambagh",          ["aarambagh food mart"]),
-    ("Vishal Mega Mart",  ["vishal enterprises"]),
+    ("Vishal Mega Mart",  ["vishal enterprises", "vmm", "vmm "]),
     ("Lifestyle",         ["lifestyle babyshop"]),
     ("Dmart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart"]),
@@ -255,12 +257,21 @@ def load_primary(src):
 # unambiguous (one ship-to = one chain) and are never re-split.
 # --------------------------------------------------------------------------
 def load_primary_v2(src):
-    """Load primary from Primary_FY202426_10.xlsx (business-confirmed
-    2026-07-03 as source-of-truth; see PowerBI/docs/SIS_Reconciliation.md).
-    Same output shape as load_primary() plus the raw Ship-To / Direct-
-    Distributor columns needed for chain-level allocation."""
-    f = src / "Primary_FY202426_10.xlsx"
-    df = pd.read_excel(f, sheet_name="Dump", header=1)
+    """Load primary from CSV seed (preferred) or XLSX (fallback).
+    CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
+    XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
+    Same output shape as load_primary() plus raw Ship-To/Distributor columns."""
+    # Try CSV first (versioned in git)
+    csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
+    if csv_f.exists():
+        df = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX in --src
+        f = src / "Primary_FY202426_10.xlsx"
+        if not f.exists():
+            raise FileNotFoundError(f"Primary data not found: {csv_f} or {f}")
+        df = pd.read_excel(f, sheet_name="Dump", header=1)
+
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -272,18 +283,22 @@ def load_primary_v2(src):
     return df
 
 def load_chain_allocation_weights(src):
-    """Read the secondary-driven Ship-To -> Chain Cont% allocation
-    (Dist_primary_cont_based_on_secondary_MOM.xlsx, Sheet2 = the already
-    chain-split Distributor rows). Returns {(ship_to_norm, brand_canon,
-    month_norm): [(chain_raw, fraction), ...]} with fractions derived from
-    the sheet's own NSV split (normalised to sum to 1 per key) rather than
-    trusting the printed Cont% column's rounding. Returns None if the file
-    isn't present in --src (allocation step is then skipped, unchanged
-    behaviour)."""
-    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-    if not f.exists():
-        return None
-    s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+    """Read the secondary-driven Ship-To -> Chain Cont% allocation (CSV seed preferred).
+    CSV: PowerBI/SeedData/DIST/ChainAllocationWeights.csv (versioned in git)
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx Sheet2 (fallback)
+    Returns {(ship_to_norm, brand_canon, month_norm): [(chain_raw, fraction), ...]}
+    with fractions normalized to sum to 1 per key. Returns None if neither file exists."""
+    # Try CSV first
+    csv_f = Path("PowerBI/SeedData/DIST/ChainAllocationWeights.csv")
+    if csv_f.exists():
+        s2 = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+        if not f.exists():
+            return None
+        s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+
     s2.columns = [str(c).strip() for c in s2.columns]
     s2 = s2.dropna(subset=["NSV"])
     s2["_key"] = list(zip(
@@ -665,6 +680,47 @@ def load_offtake_article_files(src):
     return chain_month, zsm
 
 
+def build_offtake_universe(src):
+    """Read monthly store×article offtake extracts from src and return
+    (brand_set, ean_set) for governance tier-signal wiring.
+
+      brand_set: frozenset[str] — lowercased brand names present in any offtake file
+      ean_set:   frozenset[str] — EAN strings present in any offtake file
+
+    Returns (None, None) if no files with Brand or EAN columns are found
+    (e.g. during --primary-only runs where no offtake files are supplied).
+    Graceful: per-file exceptions are printed and skipped; never raises.
+    Reads the same .xlsb/.csv files as load_offtake_article_files() but
+    collects Brand and EAN columns that function does not aggregate."""
+    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
+    brands, eans = set(), set()
+    for fp in files:
+        try:
+            if fp.suffix.lower() == ".csv":
+                _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+            else:
+                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            for _, df in _frames.items():
+                df.columns = [str(c).strip() for c in df.columns]
+                if "Brand" in df.columns:
+                    brands.update(
+                        str(b).strip().lower()
+                        for b in df["Brand"].dropna()
+                        if str(b).strip() not in ("", "nan")
+                    )
+                if "EAN" in df.columns:
+                    eans.update(
+                        str(e).strip()
+                        for e in df["EAN"].dropna()
+                        if str(e).strip() not in ("", "nan")
+                    )
+        except Exception as e:
+            print(f"Warning: build_offtake_universe skipped {fp.name}: {e}")
+    if not brands and not eans:
+        return None, None
+    return frozenset(brands), frozenset(eans)
+
+
 def load_reliance_bc_data(src):
     """Extract Reliance Brand Counter rows from offtake source files for
     the separate analytical tab.  These rows are EXCLUDED from overall
@@ -772,6 +828,12 @@ def load_reliance_bc_data(src):
     if all_bc["_category"].notna().any():
         for cat, grp in all_bc[all_bc["_category"] != ""].groupby("_category"):
             entry = {"name": cat, "total": r2(float(grp["_nsv"].sum()))}
+            for mo in months:
+                tag = fy_tag_from_label(mo)
+                if tag:
+                    lo = tag.lower()
+                    mo_val = float(grp[grp["_month"] == mo]["_nsv"].sum())
+                    entry[lo] = r2(entry.get(lo, 0) + mo_val)
             by_category.append(entry)
         by_category.sort(key=lambda d: -d["total"])
     result = {
@@ -900,27 +962,32 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                 by_chain_idx[chain] = row
             new_val = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag))
             if kept_months:
-                # Preserve existing value contribution from kept months.
-                # Existing row value covers ALL months of this FY, so we need
-                # to subtract the old value for the months we ARE replacing and
-                # add the new value. But we don't have per-month chain breakdowns
-                # in existing data, so for kept months the old total stands and
-                # we add only the new months' contribution.
                 old_total = existing_chain_vals.get(chain, 0.0)
-                # old_total covered existing_months; new source covers new_months_of_tag.
-                # For months in both, new source wins; for kept months, old value stays.
-                # Since we can't decompose old_total by month, approximate:
-                # if existing had only the kept months' worth, keep it and add new.
-                # But if existing also had the new months, we'd double-count.
-                # Safe approach: if existing_months overlaps new_months_of_tag, just use new.
-                overlap = set(existing_months) & new_month_set
-                if overlap:
+                # old_total covers existing_months (e.g. Apr+May+Jun+Jul).
+                # new source covers new_months_of_tag (e.g. Apr+May+Jul — may be missing Jun).
+                # truly_new = months in source not yet in existing.
+                # Correct: old_total already includes overlap months; just add truly_new.
+                # (Re-adding new_val directly would double-count the overlap months.)
+                truly_new = set(new_months_of_tag) - set(existing_months)
+                if truly_new:
+                    # Case A: source has genuinely new months → add only those
+                    truly_new_val = r2(sum(v for mo, v in months.items() if mo in truly_new))
+                    row[lo] = r2(old_total + truly_new_val)
+                elif set(new_months_of_tag) == set(existing_months):
+                    # Case B: source covers exactly the same months → fresh recompute
+                    # (e.g. alias mapping changed; source is authoritative for this window)
                     row[lo] = new_val
                 else:
-                    row[lo] = r2(old_total + new_val)
+                    # Case C: source is a strict subset of existing (some months not in --src)
+                    # → preserve existing total; adding new_val would drop missing months.
+                    row[lo] = old_total
             else:
                 row[lo] = new_val
-        zone_totals = {}
+        zone_truly_new_totals = {}   # Case A zone increments (new months only)
+        zone_full_totals = {}        # Case B/no-kept-months zone sums (full recompute)
+        _truly_new_months = set(new_months_of_tag) - set(existing_months)
+        _source_exact_match = (not _truly_new_months) and (set(new_months_of_tag) == set(existing_months))
+        _source_is_subset = (not _truly_new_months) and (set(new_months_of_tag) < set(existing_months))
         for (zone, state), months in zsm.items():
             v = r2(sum(v for mo, v in months.items() if mo in new_months_of_tag)) or 0.0
             srow = by_state_idx.get((zone, state))
@@ -930,15 +997,32 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
                 by_state_idx[(zone, state)] = srow
             if kept_months:
                 old_sv = existing_state_vals.get((zone, state), 0.0)
-                overlap = set(existing_months) & new_month_set
-                if overlap:
+                if _truly_new_months:
+                    # Case A: add truly-new-months increment only
+                    truly_new_sv = r2(sum(v for mo, v in months.items() if mo in _truly_new_months)) or 0.0
+                    srow[lo] = r2(old_sv + truly_new_sv)
+                    zone_truly_new_totals[zone] = zone_truly_new_totals.get(zone, 0.0) + truly_new_sv
+                elif _source_exact_match:
+                    # Case B: source covers same months — fresh recompute
                     srow[lo] = v
-                else:
-                    srow[lo] = r2(old_sv + v)
+                    zone_full_totals[zone] = zone_full_totals.get(zone, 0.0) + v
+                # else Case C: source subset — leave srow[lo] unchanged (don't touch zone_full_totals)
             else:
                 srow[lo] = v
-            zone_totals[zone] = zone_totals.get(zone, 0.0) + (srow.get(lo) or 0.0)
-        for zone, v in zone_totals.items():
+                zone_full_totals[zone] = zone_full_totals.get(zone, 0.0) + v
+        for zone, inc in zone_truly_new_totals.items():
+            # Case A: add only the truly-new-months increment to the existing zone value.
+            # This preserves the existing zone total (which includes old months AND
+            # any rows where state was null/unmapped that are not in zsm).
+            zrow = by_zone_idx.get(zone)
+            if zrow is None:
+                zrow = {"name": zone}
+                offtake["by_zone"].append(zrow)
+                by_zone_idx[zone] = zrow
+            old_zone_val = existing_zone_vals.get(zone, 0.0)
+            zrow[lo] = r2(old_zone_val + inc)
+        for zone, v in zone_full_totals.items():
+            # Case B or no-kept-months: full zone recompute
             zrow = by_zone_idx.get(zone)
             if zrow is None:
                 zrow = {"name": zone}
@@ -974,7 +1058,7 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
 # EAN, so it extends to more months automatically.
 # --------------------------------------------------------------------------
 _CHAIN_FORMAT_BRIDGE = {   # offtake chain (canon) -> ChainMaster spelling, where canon differs
-    "H&G": "Health & Glow", "Spencer": "Spencers", "VMM": "Vishal Mega Mart",
+    "H&G": "Health & Glow", "Spencer": "Spencers",
 }
 def load_chain_formats(repo_root):
     """canon chain name -> format ('Chain Type' from PowerBI ChainMaster.csv)."""
@@ -1146,7 +1230,18 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
 # UNIVERSE (distribution footprint)
 # --------------------------------------------------------------------------
 def universe_block(src):
-    u = pd.read_excel(src / "universe.xlsx", sheet_name="PAN INDIA", header=0)
+    # Try CSV first (versioned in git), fallback to XLSX
+    csv_f = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
+    if csv_f.exists():
+        u = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "universe.xlsx"
+        if not f.exists():
+            f = src / "Universe MT.xlsx"  # Try alternate naming
+        if not f.exists():
+            raise FileNotFoundError(f"Universe data not found: {csv_f} or {f}")
+        u = pd.read_excel(f, sheet_name="PAN INDIA", header=0)
     u.columns = [str(c).strip() for c in u.columns]
     u = u[u["Chain Name"].notna()]
     u["active"] = u["Status"].astype(str).str.strip().str.upper().eq("ACTIVE")
@@ -1212,7 +1307,19 @@ def parse_depth(x):
     return None
 
 def promo_block(src):
-    p = pd.read_excel(src / "promo.xlsx", sheet_name="Sheet1", header=0)
+    # Try CSV first (versioned in git), fallback to XLSX
+    csv_f = Path("PowerBI/SeedData/Promo/PromoMaster.csv")
+    if csv_f.exists():
+        p = pd.read_csv(csv_f)
+    else:
+        # Fallback to XLSX
+        f = src / "promo.xlsx"
+        if not f.exists():
+            f = src / "Promo Master -MT.xlsx"  # Try alternate naming
+        if not f.exists():
+            # Promo is optional; skip if not found
+            return pd.DataFrame(), None
+        p = pd.read_excel(f, sheet_name="Sheet1", header=0)
     p.columns = [str(c).strip() for c in p.columns]
     p = p[p["Chain Name"].notna()]
     p["chain"] = p["Chain Name"].map(canon_chain)
@@ -2295,34 +2402,56 @@ def load_shipto_primary_weights(repo_root=None):
 
 def load_dist_cont_weights(src):
     """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the cont
-    sheet, fractions normalised to sum to 1 per (ShipTo, Brand, Month) key,
-    plus {key: raw_pct_sum} for the cont%-sum-=100 QC check. Returns a 3-tuple
-    (wdf, raw_sums, source_label). source_label is 'xlsx' when the secondary-
-    derived spreadsheet is found, 'shipto_primary_csv' when the Priority-1 CSV
-    fallback is used, or None when neither source exists (allocation skipped)."""
-    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-    if not f.exists():
-        # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
-        wdf, raw_sums = load_shipto_primary_weights()
-        src_label = "shipto_primary_csv" if wdf is not None else None
-        return wdf, raw_sums, src_label
-    w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
+    sheet (CSV preferred), fractions normalised to sum to 1 per (ShipTo, Brand, Month).
+    CSV: PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv (versioned in git)
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx (fallback)
+    CSV: Priority-1 fallback at ShipTo×Brand×Month grain if neither DIST file exists.
+    Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
+    # Try CSV seed first
+    csv_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+    if csv_f.exists():
+        w = pd.read_csv(csv_f)
+        src_label = "dist_cont_csv"
+    else:
+        # Fallback to XLSX
+        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+        if not f.exists():
+            # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
+            wdf, raw_sums = load_shipto_primary_weights()
+            src_label = "shipto_primary_csv" if wdf is not None else None
+            return wdf, raw_sums, src_label
+        w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
+        src_label = "xlsx"
+
     w.columns = [str(c).strip() for c in w.columns]
-    w = w.dropna(subset=["Ship To Name", "Chain Name", "Secondary contribution %"])
+    w = w.dropna(subset=["Ship To Name", "Chain Name"])
+
+    # Handle both CSV and XLSX column names
+    cont_col = "Cont_Pct" if "Cont_Pct" in w.columns else "Secondary contribution %"
+    month_col = "Month" if "Month" in w.columns else "Revised month"
+    chain_col = "Chain_Name" if "Chain_Name" in w.columns else "Chain Name"
+
+    w = w[w[cont_col].notna()]
     w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
     w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
-    w["_pm"] = w["Revised month"].map(_month_period)
-    w["_pct"] = pd.to_numeric(w["Secondary contribution %"], errors="coerce").fillna(0.0)
+
+    # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX)
+    if w[month_col].dtype == 'object':
+        w["_pm"] = pd.to_datetime(w[month_col], errors="coerce").dt.strftime("%Y-%m")
+    else:
+        w["_pm"] = w[month_col].map(_month_period)
+
+    w["_pct"] = pd.to_numeric(w[cont_col], errors="coerce").fillna(0.0)
     w = w[w["_pm"].notna() & (w["_pct"] != 0)]
     key_sums = w.groupby(["_st", "_bl", "_pm"])["_pct"].transform("sum")
     raw_sums = {k: round(float(v), 2)
                 for k, v in w.groupby(["_st", "_bl", "_pm"])["_pct"].sum().items()}
     w["_frac"] = w["_pct"] / key_sums
-    w["_AllocChainRaw"] = w["Chain Name"].astype(str).str.strip()
-    # raw-case names carried through for the auto-generated patch-proposal CSV
+    w["_AllocChainRaw"] = w[chain_col].astype(str).str.strip()
+    # raw-case names carried through for auto-generated patch-proposal CSV
     w["_ShipToRaw"] = w["Ship To Name"].astype(str).str.strip()
     w["_BrandRaw"] = w["Brand"].astype(str).str.strip()
-    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, "xlsx"
+    return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, src_label
 
 _ALLOC_MEASURES = ["_Qty", "_MRP", "_NSV", "_TaxLOC"]   # scaled by cont%; _ArtMRP (per-unit) is NOT
 
@@ -2389,13 +2518,45 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
         wcsv.writerows(rows)
     return len(rows), "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv"
 
-def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
+
+def _write_flagged_rows_csv(ne_orig: "pd.DataFrame") -> None:
+    """Write Not_Eligible rows to a reviewable CSV for business override workflow.
+
+    Output: PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv
+    Business process: review this file, add approved rows to PrimaryAllocationOverride.csv,
+    then rebuild. The flagged_rows_csv path is surfaced in alloc.governance in data.js.
+    """
+    _out = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
+    _out.parent.mkdir(parents=True, exist_ok=True)
+    display_cols = {
+        "Month": "Month",
+        "_CustName": "Ship To Name",
+        "brand": "Brand",
+        "_NSV": "NSV (Lakh)",
+        "reasoning": "Eligibility Reasoning",
+    }
+    out_df = ne_orig[[c for c in display_cols if c in ne_orig.columns]].copy()
+    out_df.rename(columns={k: v for k, v in display_cols.items() if k in out_df.columns}, inplace=True)
+    out_df.insert(0, "Eligibility_Tier", "Not_Eligible")
+    out_df.insert(len(out_df.columns), "Override_Action", "")
+    out_df.insert(len(out_df.columns), "Override_Chain", "")
+    out_df.insert(len(out_df.columns), "Override_Remarks", "")
+    out_df.to_csv(_out, index=False)
+    print(f"Phase 6: wrote {len(out_df)} Not_Eligible rows to {_out.name} for business review")
+
+
+def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
+                          offtake_brand_set=None, offtake_ean_set=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
     every row of `df` (Direct rows keep their own "Chain name for Dashboard").
     Returns (new_df, alloc_block) where alloc_block carries the full
     reconciliation/QC payload for the dashboard, or (df-with-_Chain, None)
     when the file has no PO Type column or no cont sheet was found.
-    source_label: 'xlsx' | 'shipto_primary_csv' | None — recorded in alloc."""
+    source_label: 'xlsx' | 'shipto_primary_csv' | None — recorded in alloc.
+    offtake_brand_set: frozenset[str] of lowercased brand names from offtake,
+      or None (→ brand_in_offtake defaults True, preserving pre-Phase-5 behaviour).
+    offtake_ean_set: frozenset[str] of EAN strings from offtake,
+      or None (→ article_in_offtake defaults True)."""
     _has_dashboard = "Chain name for Dashboard" in df.columns
     _has_plain = "Chain name" in df.columns
     if _has_dashboard and _has_plain:
@@ -2416,6 +2577,14 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
     direct = df[~is_dist].copy()
     direct["_Chain"] = direct["_ChainDash"]
     dist = df[is_dist].copy()
+
+    # ---- STEP 1 (Phase 3): Initialize governance engine ----
+    gov = DistAllocationGovernance()
+    governance_log = {
+        "eligibility_decisions": [],
+        "qc_reconciliations": [],
+        "tier_counts": {},
+    }
 
     # join keys (year-qualified month; ship-to + brand case/space-insensitive)
     dist["_st"] = dist["_CustName"].str.lower()
@@ -2438,18 +2607,59 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
     avail = {}
     for st, bl, pm in wkeys:
         avail.setdefault((st, bl), []).append(pm)
+
+    # Phase 5: precompute (st, bl, pm) → frozenset[EAN] for article-level check.
+    # Only built when offtake_ean_set is wired AND the EAN column is present.
+    if offtake_ean_set is not None and "_EAN No." in dist.columns:
+        _key_eans = (
+            dist[dist["_EAN No."].ne("")]
+            .groupby(["_st", "_bl", "_pm"])["_EAN No."]
+            .apply(frozenset)
+            .to_dict()
+        )
+    else:
+        _key_eans = {}
+
     key_eff, key_tier = {}, {}
     for k in set(zip(dist["_st"], dist["_bl"], dist["_pm"])):
         st, bl, pm = k
         if pm is not None and k in wkeys:
             key_eff[k], key_tier[k] = pm, "exact"
+            gov_tier = "Eligible"
         else:
             months = avail.get((st, bl))
             near = min(months, key=lambda m: abs(_pm_ord(m) - _pm_ord(pm))) if (months and pm) else None
             if near is not None and abs(_pm_ord(near) - _pm_ord(pm)) <= 3:
                 key_eff[k], key_tier[k] = near, f"nearest {near}"
+                gov_tier = "Eligible_TAT"
             else:
                 key_eff[k], key_tier[k] = None, "unmapped"
+                gov_tier = "Not_Eligible"
+
+        # ---- STEP 2 (Phase 3): Log eligibility decision ----
+        try:
+            gov_result = gov.check_eligibility(
+                primary_row={"ship_to": st, "brand": bl, "month": pm},
+                secondary_match_found=(pm is not None and k in wkeys),
+                secondary_match_within_tат=(key_tier[k].startswith("nearest")),
+                brand_in_offtake=(offtake_brand_set is None or bl in offtake_brand_set),
+                article_in_offtake=(offtake_ean_set is None
+                                    or bool(_key_eans.get(k, frozenset()) & offtake_ean_set)),
+            )
+            governance_log["eligibility_decisions"].append({
+                "key": k,
+                "tier": gov_result.tier,
+                "confidence_pct": gov_result.confidence_pct,
+                "reasoning": gov_result.reasoning,
+            })
+        except Exception as e:
+            print(f"Warning: Governance check failed for key {k}: {e}")
+            governance_log["eligibility_decisions"].append({
+                "key": k,
+                "tier": gov_tier,
+                "confidence_pct": 50.0,
+                "reasoning": f"Governance check exception: {e}",
+            })
     kseries = list(zip(dist["_st"], dist["_bl"], dist["_pm"]))
     dist["_pm_eff"] = [key_eff[k] for k in kseries]
     dist["_tier"] = [key_tier[k] for k in kseries]
@@ -2480,6 +2690,47 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
         return out
 
     o_tot, a_tot = sums(orig), sums(merged)
+
+    # ---- STEP 3 (Phase 3): Track QC reconciliation via governance engine ----
+    try:
+        for fy, m, brand, shipto in set(orig.groupby(["_FY", "_M", "_Brand", "_CustName"]).groups):
+            orig_subset = orig[
+                (orig["_FY"] == fy) &
+                (orig["_M"] == m) &
+                (orig["_Brand"] == brand) &
+                (orig["_CustName"] == shipto)
+            ]
+            merged_subset = merged[
+                (merged["_FY"] == fy) &
+                (merged["_M"] == m) &
+                (merged["_Brand"] == brand) &
+                (merged["_CustName"] == shipto)
+            ]
+            o_nsv = float(orig_subset["_NSV"].sum()) if len(orig_subset) else 0.0
+            a_nsv = float(merged_subset["_NSV"].sum()) if len(merged_subset) else 0.0
+
+            qc_result = gov.reconcile_qc(
+                distributor=shipto,
+                brand=brand,
+                month=m,
+                original_nsv=o_nsv,
+                allocated_nsv=a_nsv,
+                blocked_nsv=0.0,  # Implicit in allocated (unmapped rows handled in allocation)
+                tolerance_lakh=0.0,  # Strict QC
+            )
+            governance_log["qc_reconciliations"].append({
+                "shipto": shipto,
+                "brand": brand,
+                "month": m,
+                "fy": fy,
+                "is_balanced": qc_result.is_balanced,
+                "variance": qc_result.variance,
+                "original_nsv": qc_result.original_nsv,
+                "allocated_nsv": qc_result.allocated_nsv,
+            })
+    except Exception as e:
+        print(f"Warning: QC reconciliation failed: {e}")
+
     recon = {
         "overall": {m: {"original": r2(o_tot[m]), "allocated": r2(a_tot[m]),
                         "variance": r2(a_tot[m] - o_tot[m])} for m in o_tot},
@@ -2500,6 +2751,18 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
         t = tier_by_qkey.get(key, "exact")
         row["mapping_status"] = ("Unmapped Chain" if t == "unmapped"
                                  else "Mapped" if t == "exact" else f"Mapped ({t})")
+
+        # ---- STEP 4 (Phase 3): Add eligibility tier + confidence to QC rows ----
+        if t == "exact":
+            row["eligibility_tier"] = "Eligible"
+            row["eligibility_confidence_pct"] = 100.0
+        elif t.startswith("nearest"):
+            row["eligibility_tier"] = "Eligible_TAT"
+            row["eligibility_confidence_pct"] = 90.0
+        else:  # unmapped
+            row["eligibility_tier"] = "Not_Eligible"
+            row["eligibility_confidence_pct"] = 100.0
+
         qc_rows.append(row)
     qc_rows.sort(key=lambda r: (0 if r["mapping_status"] == "Unmapped Chain"
                                 else 1 if r["mapping_status"] != "Mapped" else 2,
@@ -2548,11 +2811,70 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
 
     patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist)
     merged.drop(columns=["_st", "_bl", "_pm", "_pm_eff", "_tier", "_AllocChainRaw",
-                         "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True)
+                         "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True, errors='ignore')
     direct.drop(columns=["_ChainDash"], inplace=True)
     merged["_IsDist"] = True
     direct["_IsDist"] = False
     out_df = pd.concat([direct, merged], ignore_index=True)
+
+    # ---- STEP 5 (Phase 3): Generate governance report ----
+    tier_counts = {}
+    for decision in governance_log["eligibility_decisions"]:
+        tier = decision["tier"]
+        tier_counts[tier] = tier_counts.get(tier, 0) + 1
+
+    try:
+        qc_report = gov.generate_qc_report(
+            [
+                QCReconciliation(
+                    is_balanced=r["is_balanced"],
+                    variance=r["variance"],
+                    original_nsv=r["original_nsv"],
+                    allocated_nsv=r["allocated_nsv"],
+                    blocked_nsv=0.0,
+                )
+                for r in governance_log["qc_reconciliations"]
+            ]
+        )
+    except Exception as e:
+        print(f"Warning: Failed to generate QC report: {e}")
+        qc_report = {
+            "total_rows": len(governance_log["qc_reconciliations"]),
+            "note": f"QC report generation failed: {e}",
+        }
+
+    # ---- STEP 6 (Phase 6): Not_Eligible NSV + flagged rows CSV + override count ----
+    ne_decision_rows = [
+        {"_st": d["key"][0], "_bl": d["key"][1], "_pm": d["key"][2],
+         "reasoning": d.get("reasoning", "")}
+        for d in governance_log["eligibility_decisions"]
+        if d["tier"] == "Not_Eligible"
+    ]
+    if ne_decision_rows:
+        ne_keys_df = pd.DataFrame(ne_decision_rows)
+        ne_orig = orig.merge(ne_keys_df, on=["_st", "_bl", "_pm"], how="inner")
+        not_eligible_nsv = float(ne_orig["_NSV"].sum())
+        _write_flagged_rows_csv(ne_orig)
+    else:
+        not_eligible_nsv = 0.0
+    total_dist_nsv = float(orig["_NSV"].sum())
+    not_eligible_pct = round(not_eligible_nsv / total_dist_nsv * 100, 2) if total_dist_nsv > 0 else 0.0
+
+    # Count approved overrides from PrimaryAllocationOverride.csv that match Not_Eligible keys
+    override_count = 0
+    _override_csv = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PrimaryAllocationOverride.csv"
+    if _override_csv.exists() and ne_decision_rows:
+        try:
+            ov_df = pd.read_csv(_override_csv)
+            if not ov_df.empty and "Ship To Name" in ov_df.columns and "Brand" in ov_df.columns:
+                ov_df["_st"] = ov_df["Ship To Name"].str.strip().str.lower()
+                ov_df["_bl"] = ov_df["Brand"].str.strip().str.lower()
+                ne_key_set = {(d["_st"], d["_bl"]) for d in ne_decision_rows}
+                override_count = int(ov_df[
+                    ov_df.apply(lambda r: (r["_st"], r["_bl"]) in ne_key_set, axis=1)
+                ].shape[0])
+        except Exception as e:
+            print(f"Warning: Could not load override CSV for count: {e}")
 
     _unmapped_shipto_names = sorted(um["_CustName"].dropna().unique().tolist()) if len(um) else []
     alloc = {
@@ -2635,6 +2957,26 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
             "every build: paste approved rows into the cont xlsx to make the fix "
             "permanent (this also fixes Power BI, whose query 41 reads only the xlsx)."
         ),
+        # ---- STEP 5/6 (Phase 3/6): Governance metadata (optional, non-breaking) ----
+        "governance": {
+            "eligibility_tier_counts": tier_counts,
+            "qc_report": qc_report,
+            "reconciliations_logged": len(governance_log["qc_reconciliations"]),
+            "decisions_logged": len(governance_log["eligibility_decisions"]),
+            # Phase 6: Not_Eligible NSV gating fields
+            "not_eligible_nsv_lakh": r2(not_eligible_nsv),
+            "not_eligible_pct": not_eligible_pct,
+            "total_dist_nsv_lakh": r2(total_dist_nsv),
+            "flagged_rows": len(ne_decision_rows),
+            "override_count": override_count,
+            "flagged_rows_csv": "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
+            "note": (
+                "Phase 3/6: Governance engine logs eligibility tiers and QC reconciliation. "
+                "not_eligible_pct drives the build gate (--not-eligible-gate-pct flag). "
+                "Flagged Not_Eligible rows exported to flagged_rows_csv for business review. "
+                "Override approvals tracked via PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv."
+            ),
+        },
     }
     return out_df, alloc
 
@@ -2754,7 +3096,12 @@ def detail_records_real(src, max_rows=20000):
     # any grouping, so Customer x Article grain survives into everything
     # downstream (TOT%, CM2, detail_records, the Customer x Article table).
     _wdf, _raw_sums, _alloc_src = load_dist_cont_weights(src)
-    df, alloc = allocate_dist_primary(df, _wdf, _raw_sums, source_label=_alloc_src)
+    _offtake_brand_set, _offtake_ean_set = build_offtake_universe(src)
+    df, alloc = allocate_dist_primary(
+        df, _wdf, _raw_sums, source_label=_alloc_src,
+        offtake_brand_set=_offtake_brand_set,
+        offtake_ean_set=_offtake_ean_set,
+    )
     n_shipto_as_chain = int(((df["_Chain"].astype(str).str.strip().str.lower()
                               == df["_CustName"].str.lower()) & (df["_CustName"] != "")).sum())
     if alloc is not None:
@@ -3170,6 +3517,12 @@ def main():
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
+    ap.add_argument("--not-eligible-gate-pct", type=float, default=0.0, dest="not_eligible_gate_pct",
+                    help="Fail build if Not_Eligible tier NSV exceeds this %% of total Dist. NSV "
+                         "(0 = disabled, the default). Example: --not-eligible-gate-pct 10 fails "
+                         "the build when more than 10%% of Dist. NSV has no matching allocation entry "
+                         "and is not in the offtake universe. Set per-environment in CI to enforce "
+                         "data quality without breaking local builds that lack source files.")
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -3380,6 +3733,8 @@ def main():
           f"({'REAL' if not detail_meta['representative'] else 'representative'})"
           + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
           + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
+    if alloc is not None:
+        _check_governance_gate(alloc, a.not_eligible_gate_pct)
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"

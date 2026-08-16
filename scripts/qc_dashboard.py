@@ -288,8 +288,16 @@ def check_detail_records(D: dict):
         qc("WARN", "detail_records", "Empty — article-level drill-down unavailable")
 
 
-def check_blocked_items():
-    qc("BLOCKED", "Brand Counter June-26", "bc.months=['Apr-26','May-26'] only — source file not in repo; June BC unavailable")
+def check_blocked_items(D: dict = None):
+    # Brand Counter June-26 is now loaded from the dedicated RBC xlsb
+    if D:
+        bc = D.get("reliance_bc", {})
+        bc_months = bc.get("months") or []
+        jun26_loaded = "Jun-26" in bc_months
+        if not jun26_loaded:
+            qc("BLOCKED", "Brand Counter June-26",
+               f"bc.months={bc_months[-3:] if bc_months else '[]'} only — "
+               "Jun-26 source file not in repo; June BC unavailable")
     qc("BLOCKED", "EAN-level GST mapping", "Requires GSTIN master — not in repo")
 
 
@@ -412,7 +420,7 @@ def main():
     check_mcd_unallocated(D)
 
     print("\n── KNOWN BLOCKED ITEMS ────────────────────────────────")
-    check_blocked_items()
+    check_blocked_items(D)
 
     if not args.no_browser:
         print("\n── BROWSER / JS CHECKS ────────────────────────────────")
