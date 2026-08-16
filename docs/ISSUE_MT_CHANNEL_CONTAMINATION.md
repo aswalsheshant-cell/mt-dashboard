@@ -1,6 +1,6 @@
 # Issue — eB2B and SIS are inside MT Zone Sales
 
-**Raised:** 16 Aug 2026 · **Severity:** Critical · **Status:** OPEN — release BLOCKED
+**Raised:** 16 Aug 2026 · **Severity:** Critical · **Status:** PARTIALLY APPLIED — zone level still BLOCKED
 **Affected:** July 2026 MT Command Centre deck, all zone-derived metrics
 **Check:** `python scripts/mt_channel_reconciliation.py` (exit 2 = BLOCKED)
 
@@ -8,10 +8,25 @@
 
 ## Verdict
 
-**BLOCKED.** The business rule *"Zone Sales must contain only Modern Trade account
-sales"* is currently violated. `July_MT_Command_Centre_REWORKED.pptx` must not be
-presented as MT-only, and the methodology note must not be added to it, until the
-correction below is applied.
+**PASS** for national MT, eB2B and SIS reporting — those figures are exact and are
+now in the deck. **BLOCKED** for zone-level MT primary, conversion and gap, and for
+everything derived from them (rankings, benchmark prize, opportunity sizing).
+
+### Applied 16 Aug 2026 (business decision)
+
+- Nykaa (FSN) excluded from Modern Trade in full and reported under **eB2B**.
+- The **"Pan India" zone is renamed eB2B** and reported as a channel, not a geography
+  (deck page 11).
+- **SIS** given its own channel page on the same basis (deck page 12).
+- Classification held in `scripts/data/channel_master.json` with a named owner.
+- Methodology note added to every page footer.
+- Thirteen pages whose figures still derive from zone-level primary are stamped
+  **PROVISIONAL** with an amber rule and an explicit footer reason.
+
+**July 2026, Modern Trade only — EXACT:** primary **₹47.02 Cr**, offtake
+**₹34.04 Cr**, conversion **72.4%**, gap **₹12.98 Cr**. National MT offtake now ties
+exactly to the sum of the six MT zones. Previously published all-channel figures were
+₹49.21 Cr / ₹36.10 Cr / 73.4%.
 
 ## What the reconciliation found
 

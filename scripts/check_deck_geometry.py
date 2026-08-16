@@ -38,8 +38,10 @@ for i, s in enumerate(p.slides, 1):
             issues.append(f'S{i}: past page right ({r:.2f}in) — {txt!r}')
         if x < -0.01:
             issues.append(f'S{i}: past page left ({x:.2f}in) — {txt!r}')
-        # anything that is not the footer rail itself must clear it
-        is_footer = y >= FOOT_Y - 0.02
+        # Only the rail's own furniture may sit in the footer band. The rail is
+        # drawn by page() at fixed offsets, so anything else down there collides.
+        RAIL_YS = (FOOT_Y, FOOT_Y + 0.06, FOOT_Y + 0.09, FOOT_Y + 0.23, SRC_Y)
+        is_footer = any(abs(y - ry) < 0.02 for ry in RAIL_YS)
         if not is_footer and b > FOOT_Y + 0.02:
             issues.append(f'S{i}: collides with footer rail (bottom {b:.2f}in) — {txt!r}')
         if not is_footer and h > 0 and y < SRC_Y < b:

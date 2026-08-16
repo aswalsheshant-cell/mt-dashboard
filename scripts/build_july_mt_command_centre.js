@@ -51,6 +51,11 @@ function titleSize(s) {
   return 13;
 }
 
+/* Pages whose figures still derive from zone-level primary, which is BLOCKED
+   pending the MT-only zone x chain x month cut. See
+   docs/ISSUE_MT_CHANNEL_CONTAMINATION.md and scripts/mt_channel_split.py */
+const PROVISIONAL_PAGES = new Set([4, 5, 6, 7, 8, 9, 10, 13, 14, 16, 17, 18, 19, 20]);
+
 /** Page chrome: header band, title, subtitle, page number, footer, source. */
 function page(n, title, subtitle, source) {
   const s = pres.addSlide();
@@ -61,13 +66,17 @@ function page(n, title, subtitle, source) {
     x: M + 0.11, y: 0.20, w: CW - 0.75, h: 0.60, color: W,
     fontFace: FONTH, fontSize: titleSize(title), bold: true, valign: 'middle', lineSpacingMultiple: 0.92
   }));
-  s.addText(subtitle, txt({
+  const prov = PROVISIONAL_PAGES.has(n);
+  s.addText(prov ? subtitle + '  |  PROVISIONAL' : subtitle, txt({
     x: M + 0.13, y: 0.86, w: CW - 0.75, h: 0.26, color: 'BFDCD7', fontSize: 8.5, valign: 'middle'
   }));
   s.addText(String(n).padStart(2, '0'), txt({
-    x: PW - M - 0.52, y: 0.40, w: 0.44, h: 0.26, color: '8FC4BD',
+    x: PW - M - 0.52, y: 0.40, w: 0.44, h: 0.26, color: prov ? AMBER : '8FC4BD',
     fontSize: 9.5, bold: true, align: 'right'
   }));
+  if (prov) {
+    s.addShape(pres.ShapeType.rect, { x: 0, y: HDR_H - 0.05, w: PW, h: 0.05, fill: { color: AMBER } });
+  }
 
   // EVIDENCE / IMPLICATION / ACTION / OWNER rail
   s.addShape(pres.ShapeType.roundRect, {
@@ -85,7 +94,10 @@ function page(n, title, subtitle, source) {
     if (i) s.addShape(pres.ShapeType.line, { x: cx - 0.09, y: FOOT_Y + 0.09, w: 0, h: 0.29, line: { color: LINE, width: 0.75 } });
   });
 
-  s.addText(source, txt({ x: M + 0.04, y: SRC_Y, w: CW - 0.08, h: 0.22, color: GREY, fontSize: 6.5, align: 'center' }));
+  s.addText(prov
+    ? 'PROVISIONAL — zone-level primary, conversion, gap and anything derived from them are pending the MT-only channel recut. ' + METHOD
+    : source,
+    txt({ x: M + 0.04, y: SRC_Y, w: CW - 0.08, h: 0.22, color: prov ? AMBER : GREY, fontSize: 6.5, align: 'center' }));
   return s;
 }
 
@@ -207,11 +219,18 @@ function chartTitle(s, x, y, w, t) {
 
 /* ================================================================= data */
 
+/* Modern Trade only. eB2B (Nykaa (FSN) + Eremedium) and SIS are excluded and
+   reported as their own channels. Derivation: scripts/mt_channel_split.py
+   Published all-channel figures were primary 49.21 / offtake 36.10 / conv 73.4%. */
 const NATIONAL = {
-  primary: 49.21, offtake: 36.10, conv: 73.4,
-  netGap: 13.11, grossPos: 13.27, grossNeg: 2.23, zoneGap: 15.17,
-  prize: 5.87, benchConv: 85.3
+  primary: 47.02, offtake: 34.04, conv: 72.4, gap: 12.98,   // EXACT
+  eb2bPrimary: 2.20, eb2bOfftake: 2.07,                     // EXACT
+  sisPrimaryJul: -0.01, sisPrimaryFy27: 0.27                // EXACT, net of MRN
 };
+/* Zone-level primary, conversion, gap and every figure derived from them
+   (rankings, benchmark prize, opportunity sizing) are BLOCKED pending the
+   zone x chain x month primary cut. See docs/ISSUE_MT_CHANNEL_CONTAMINATION.md */
+const ZONE_BLOCKED = true;
 
 const ZONES = [
   { z: 'West',    pri: 10.05, off: 8.28, mix: '22.9%', conv: 82.3, gap: 1.78, act: 'PROTECT' },
@@ -342,30 +361,31 @@ const ZD = {
     ]
   },
   11: {
-    zone: 'Pan India', verdict: 'National account — not a geography', accent: BLUE,
-    pri: 'not mapped', off: '₹2.07 Cr', mix: '5.7% mix', conv: 'n/a', gap: 'n/a',
-    priority: 'Report FSN/Nykaa on its own terms • do not net it into the national gap',
-    chains: [['FSN / Nykaa', '2.07', '99.4%']],
-    states: [['Pan India', '2.07']],
+    zone: 'eB2B', verdict: 'Separate channel — excluded from MT', accent: BLUE,
+    pri: '₹2.20 Cr', off: '₹2.07 Cr', mix: 'outside MT', conv: '94.1%', gap: '₹0.13 Cr',
+    priority: 'Nykaa (FSN) + Eremedium • formerly reported as the "Pan India" zone',
+    chains: [['Nykaa (FSN)', '2.07', '99.4%'], ['Eremedium', '0.00', 'no offtake feed']],
+    states: [['Pan India (no geography)', '2.07']],
     me: '₹1.65 Cr', meRows: [['— sub-category split', 'pending']],
     tdc: '₹0.37 Cr', tdcRows: [['— sub-category split', 'pending']],
-    npi: '₹0.13 Cr · 6.3% of account',
-    foot: 'FSN/Nykaa 99.4% flow | Excluded from geographic gap arithmetic by design',
+    npi: '₹0.13 Cr · 6.3% of channel',
+    foot: 'eB2B channel · FY27 to date: primary ₹8.79 Cr, offtake ₹8.60 Cr, 97.8% flow · excluded from every MT zone figure',
     ins: [
-      { tag: 'GRAIN', c: RED, head: 'This ₹2.07 Cr is what makes the headline gap wrong', why: 'Pan India offtake carries no geographic primary. Netting it into the national total pulls the reported gap from ₹15.17 Cr down to ₹13.11 Cr — a 14% understatement of the recoverable pool.', action: 'Report Pan India outside the geographic gap arithmetic in every future pack.', owner: 'Analyst · from Aug pack' },
-      { tag: 'BENCHMARK', c: GREEN, head: '99.4% flow — the tightest in the portfolio', why: 'Marketplace replenishment runs close to real-time, so billing and selling stay in step. It is the ceiling the physical accounts are being measured against.', action: 'Quote FSN/Nykaa as the flow ceiling, with the caveat that its model is not directly transferable.', owner: 'Sales lead · standing' },
-      { tag: 'DATA', c: AMBER, head: 'FSN and Nykaa SS are combined at article level', why: 'The two entities cannot be separated in the current source, so account-level performance cannot be attributed to either.', action: 'Request separated FSN and Nykaa SS feeds from the data owner.', owner: 'Analyst · 31 Aug' },
-      { tag: 'DATA', c: RED, head: 'Sub-category split returns zero against ₹1.65 Cr brand total', why: 'The source pack printed ₹0.00 Cr for all three Mamaearth sub-categories while the brand total read ₹1.65 Cr — a broken rollup, not a real result.', action: 'Fix the Pan India sub-category rollup in the build script before publishing this page again.', owner: 'Analyst · 18 Aug' },
+      { tag: 'RECLASSIFIED', c: RED, head: 'This was the "Pan India" zone; it is the eB2B channel', why: 'FY27 offtake for the Pan India zone (860.01 L) equals the Nykaa (FSN) account exactly, 1:1, and Nykaa primary is classified eB2B in the channel master. It was never a geography and never Modern Trade.', action: 'Renamed to eB2B and removed from MT zone sales, primary and offtake alike.', owner: 'Analyst · applied 16 Aug' },
+      { tag: 'MT IMPACT', c: RED, head: 'Removing it takes ₹2.07 Cr out of MT offtake', why: 'National MT offtake for July is ₹34.04 Cr, not ₹36.10 Cr — and that figure now ties exactly to the sum of the six geographic MT zones, the identity the previous pack could not close.', action: 'Quote ₹34.04 Cr as national MT offtake in every downstream report.', owner: 'Analyst · from Aug pack' },
+      { tag: 'SCOPE', c: AMBER, head: 'FSN B2C sits inside this number and cannot be split', why: 'The account combines FSN (B2C marketplace) with Nykaa SS (eB2B) at article level. The business decision of 16 Aug is to carry the whole account under eB2B until separated feeds exist.', action: 'Request separated FSN and Nykaa SS feeds from the data owner.', owner: 'Analyst + NKAM FSN · 31 Aug' },
+      { tag: 'BENCHMARK', c: GREEN, head: '94.1% July flow, 97.8% across FY27 to date', why: 'Marketplace replenishment runs close to real time, so billing and selling stay in step. A useful ceiling, but the model does not transfer to hypermarket accounts.', action: 'Report eB2B flow on its own line; never blend it into the MT conversion rate.', owner: 'Sales lead · standing' },
       { tag: 'TREND', c: AMBER, head: 'July ₹2.07 Cr is down 4.6% on June', why: 'Offtake peaked at ₹2.29 Cr in April and has drifted since. Active EANs fell from 222 in January to 198 in July, so range contraction tracks the softness.', action: 'Test whether the 24 delisted EANs explain the drift before treating it as demand.', owner: 'Analyst + NKAM FSN · 31 Aug' },
-      { tag: 'ACTION', c: TEAL, head: 'Manage as a national account with its own dashboard', why: 'Geographic logic — zone targets, state splits, RKAM ownership — does not apply to this scope and produces meaningless cells when forced.', action: 'Stand up a standalone FSN/Nykaa flow view; retire the Pan India zone page.', owner: 'Analyst · Sep pack' }
+      { tag: 'DATA', c: RED, head: 'Sub-category split returns zero against a ₹1.65 Cr brand total', why: 'The source pack printed ₹0.00 Cr for all three Mamaearth sub-categories while the brand total read ₹1.65 Cr — a broken rollup, not a real result.', action: 'Fix the eB2B sub-category rollup in the build script before publishing this page again.', owner: 'Analyst · 18 Aug' }
     ]
   }
 };
 
 /* ================================================================ slides */
 
-const SRC_MAIN = 'July Compiled Offtake (Sheet1) · July\'26 primary and distributor secondary · values in ₹ Cr · gap = primary − offtake on comparable mapped cuts';
-const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_June26 · share-per-point derived as value share ÷ weighted distribution';
+const METHOD = 'Zone performance represents Modern Trade accounts only. eB2B and SIS channels are excluded from MT zone sales and reported separately.';
+const SRC_MAIN = 'July Compiled Offtake (Sheet1) · July\'26 primary and distributor secondary · values in ₹ Cr · ' + METHOD;
+const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_June26 · share-per-point derived as value share ÷ weighted distribution · ' + METHOD;
 
 /* ---------------------------------------------------------------- S1 */
 {
@@ -373,12 +393,12 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     'Honasa Consumer | Primary, offtake, portfolio and execution | July 2026', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 1.10, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
-  s.addText('₹5.87 Cr of July offtake is recoverable at your own internal benchmark', txt({
+  s.addText('Modern Trade converted ₹34.04 Cr of ₹47.02 Cr billed in July', txt({
     x: M + 0.16, y: BODY_Y + 0.10, w: CW - 0.32, h: 0.34, fontSize: 12, bold: true, fontFace: FONTH, color: TEAL, align: 'center', valign: 'middle'
   }));
-  s.addText('₹36.10 Cr offtake  •  73.4% conversion  •  ₹15.17 Cr gross gap  •  76% of it in North and East', txt({
+  s.addText('₹34.04 Cr MT offtake  •  72.4% MT conversion  •  ₹12.98 Cr MT gap  •  eB2B and SIS reported separately', txt({
     x: M + 0.16, y: BODY_Y + 0.48, w: CW - 0.32, h: 0.24, fontSize: 8, bold: true, align: 'center' }));
-  s.addText('If North and East converted at the rate West and South-1 already achieve, national conversion moves 73.4% → 85.3% with no additional primary. That is the mandate: convert what is already billed, not bill more.', txt({
+  s.addText('Restated to Modern Trade accounts only. The previous pack read ₹36.10 Cr at 73.4% because the Nykaa (FSN) eB2B account was carried as a "Pan India" zone. National MT offtake now ties exactly to the sum of the six MT zones.', txt({
     x: M + 0.24, y: BODY_Y + 0.74, w: CW - 0.48, h: 0.30, fontSize: 7.2, color: GREY, align: 'center', lineSpacingMultiple: 0.94 }));
 
   const R1 = BODY_Y + 1.26, CH1 = 2.86, cw = (CW - 0.30) / 3;
@@ -399,35 +419,29 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     x: cx(0) + 0.10, y: R1 + 2.32, w: cw - 0.20, h: 0.44, fontSize: 6.8, color: GREY, lineSpacingMultiple: 0.92 }));
 
   // 2 — the gap, gross
-  y = card(s, { x: cx(1), y: R1, w: cw, h: CH1, label: 'THE GAP, GROSS', accent: RED });
-  s.addText('₹15.17 Cr', txt({ x: cx(1) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: RED, align: 'center' }));
-  s.addText('true zone gap — the pack previously reported ₹13.11 Cr', txt({
+  y = card(s, { x: cx(1), y: R1, w: cw, h: CH1, label: 'THE MT GAP', accent: RED });
+  s.addText('₹12.98 Cr', txt({ x: cx(1) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: RED, align: 'center' }));
+  s.addText('billed to MT accounts and not yet sold through', txt({
     x: cx(1) + 0.12, y: y + 0.42, w: cw - 0.24, h: 0.32, fontSize: 6.8, color: GREY, align: 'center', lineSpacingMultiple: 0.92 }));
   bullets(s, {
     x: cx(1) + 0.12, y: y + 0.82, w: cw - 0.24, gap: 0.42, size: 6.9, items: [
-      { t: 'Positive gap ₹13.27 Cr sits in DMart, Reliance and Metro.', c: RED },
-      { t: 'Negative gap ₹2.23 Cr is three chains with unmapped primary.', c: AMBER },
-      { t: 'Netting the two hid ₹2.06 Cr of recoverable value.', c: RED }
+      { t: 'MT primary ₹47.02 Cr less MT offtake ₹34.04 Cr.', c: RED },
+      { t: 'eB2B ₹2.20 Cr and SIS carry their own flow, on their own pages.', c: BLUE },
+      { t: 'Splitting this gap by zone is pending the channel recut.', c: AMBER }
     ]
   });
 
   // 3 — the prize
-  y = card(s, { x: cx(2), y: R1, w: cw, h: CH1, label: 'THE PRIZE', accent: GREEN });
-  s.addText('₹5.87 Cr', txt({ x: cx(2) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: GREEN, align: 'center' }));
-  s.addText('one month, no extra primary', txt({ x: cx(2) + 0.10, y: y + 0.42, w: cw - 0.20, h: 0.18, fontSize: 6.8, color: GREY, align: 'center' }));
-  chartTitle(s, cx(2) + 0.10, y + 0.66, cw - 0.20, 'Recoverable by zone (₹ Cr)');
-  // horizontal bars plot bottom-up, so feed the list reversed to read largest-first
-  const recZones = ZONES.filter(z => recover(z) >= 0.10).sort((a, b) => recover(a) - recover(b));
-  s.addChart(pres.ChartType.bar, [{
-    name: 'Recoverable', labels: recZones.map(z => z.z), values: recZones.map(z => +recover(z).toFixed(2))
-  }], Object.assign({}, axisBase, {
-    x: cx(2) + 0.02, y: y + 0.88, w: cw - 0.08, h: 1.16, barDir: 'bar',
-    chartColors: [GREEN], showValue: true, dataLabelPosition: 'outEnd',
-    dataLabelFontSize: 6, dataLabelColor: INK, dataLabelFormatCode: '0.00',
-    valAxisMaxVal: 3.6, barGapWidthPct: 45
-  }));
-  s.addText('West +0.06 and South-1 −0.06 are below the materiality floor.', txt({
-    x: cx(2) + 0.10, y: y + 2.06, w: cw - 0.20, h: 0.22, fontSize: 6.2, color: GREY, lineSpacingMultiple: 0.92 }));
+  y = card(s, { x: cx(2), y: R1, w: cw, h: CH1, label: 'THE PRIZE — PENDING RECUT', accent: AMBER });
+  s.addText('withheld', txt({ x: cx(2) + 0.10, y, w: cw - 0.20, h: 0.40, fontSize: 19, bold: true, fontFace: FONTH, color: AMBER, align: 'center' }));
+  s.addText('benchmark sizing needs MT-only zone primary', txt({ x: cx(2) + 0.12, y: y + 0.42, w: cw - 0.24, h: 0.30, fontSize: 6.8, color: GREY, align: 'center', lineSpacingMultiple: 0.92 }));
+  bullets(s, {
+    x: cx(2) + 0.12, y: y + 0.80, w: cw - 0.24, gap: 0.42, size: 6.9, dot: AMBER, items: [
+      { t: 'The ₹5.87 Cr benchmark prize in the previous pack was computed on zone primary that included eB2B.', b: true },
+      { t: 'Zone primary, conversion, gap and rankings are all blocked until the MT-only zone cut lands.' },
+      { t: 'National MT figures above are exact and safe to quote today.', c: GREEN }
+    ]
+  });
 
   // row 2
   const R2 = R1 + CH1 + 0.16;
@@ -481,11 +495,11 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   y = card(s, { x: cx(1), y: R3, w: cw, h: CH1, label: 'LEADERSHIP SCOREBOARD' });
   bullets(s, {
     x: cx(1) + 0.12, y: y + 0.04, w: cw - 0.24, gap: 0.42, size: 7, items: [
-      { t: 'Flow conversion — the one metric. 73.4% → 85.3%.', b: true },
-      { t: 'North gap: −₹2.92 Cr against benchmark, weekly.' },
-      { t: 'East gap: −₹2.94 Cr against benchmark, weekly.' },
+      { t: 'MT flow conversion — the one metric. 72.4% today.', b: true },
+      { t: 'Zone-level targets reissue once the MT-only zone cut lands.', c: AMBER },
       { t: 'Hero-SKU OSA above 95% in priority stores.' },
-      { t: 'Unmapped chains: zero before the August pack ships.' }
+      { t: 'Unmapped chains: zero before the August pack ships.' },
+      { t: 'Channel purity: no eB2B or SIS value inside any MT zone.', c: GREEN }
     ]
   });
 
@@ -739,7 +753,10 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 /* ------------------------------------------------------- S5–S11 zones */
 [5, 6, 7, 8, 9, 10, 11].forEach(n => {
   const d = ZD[n];
-  const s = page(n, `${d.zone}: ${d.verdict}`, `Zone deep dive | July 2026 | ₹ Cr`, SRC_MAIN);
+  const isChannel = (n === 11);
+  const s = page(n, `${d.zone}: ${d.verdict}`,
+    isChannel ? 'Channel view | July 2026 | ₹ Cr | reported outside Modern Trade'
+              : 'MT zone deep dive | July 2026 | ₹ Cr | Modern Trade accounts only', SRC_MAIN);
 
   const kw = (CW - 0.36) / 4;
   const kx = i => M + i * (kw + 0.12);
@@ -832,9 +849,91 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   s.addText(d.foot, txt({ x: M, y: y + 2 * (ih + 0.12) + 0.06, w: CW, h: 0.20, fontSize: 6.8, color: GREY, align: 'center', italic: true }));
 });
 
+/* ------------------------------------------------- S12  SIS channel page */
+{
+  const s = page(12, 'SIS: Separate channel — excluded from MT',
+    'Channel view | Shop-in-Shop | FY27 to date | ₹ Lakh | reported outside Modern Trade', SRC_MAIN);
+
+  const kw = (CW - 0.36) / 4, kx = i => M + i * (kw + 0.12);
+  kpi(s, { x: kx(0), y: BODY_Y, w: kw, h: 0.94, label: 'NET SIS PRIMARY', value: '₹26.52 L', sub: 'FY27 to date, net of returns', accent: BLUE });
+  kpi(s, { x: kx(1), y: BODY_Y, w: kw, h: 0.94, label: 'GROSS SALES', value: '₹29.64 L', sub: 'before MRN returns', accent: GREY });
+  kpi(s, { x: kx(2), y: BODY_Y, w: kw, h: 0.94, label: 'MRN RETURNS', value: '−₹4.55 L', sub: '15.3% of gross', accent: RED, valueColor: RED });
+  kpi(s, { x: kx(3), y: BODY_Y, w: kw, h: 0.94, label: 'SHARE OF PRIMARY', value: '0.14%', sub: 'of FY27 all-channel', accent: GREY });
+
+  let y = BODY_Y + 1.06;
+  s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.42, rectRadius: 0.02, fill: { color: TINT }, line: { color: LINE, width: 0.75 } });
+  s.addText('PRIORITY', txt({ x: M + 0.12, y: y + 0.06, w: 0.72, h: 0.30, color: TEAL, fontSize: 6.6, bold: true, charSpacing: 0.4, valign: 'middle' }));
+  s.addText('Small but real — report on its own line, never inside an MT zone figure', txt({ x: M + 0.90, y: y + 0.06, w: CW - 1.02, h: 0.30, fontSize: 7.4, bold: true, valign: 'middle' }));
+
+  y += 0.58;
+  const halfW = (CW - 0.16) / 2;
+  chartTitle(s, M, y, halfW, 'SIS primary by month (₹ Lakh, FY27)');
+  s.addChart(pres.ChartType.bar, [{ name: 'SIS primary', labels: ['April', 'May', 'June', 'July'], values: [6.43, 1.42, 19.30, -0.64] }],
+    Object.assign({}, axisBase, {
+      x: M - 0.02, y: y + 0.22, w: halfW, h: 1.86, chartColors: [BLUE, BLUE, BLUE, RED], varyColors: true,
+      showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 6.4, dataLabelColor: INK, dataLabelFormatCode: '0.0', barGapWidthPct: 55
+    }));
+  chartTitle(s, M + halfW + 0.16, y, halfW, 'SIS primary by brand (₹ Lakh, FY27)');
+  s.addChart(pres.ChartType.bar, [{ name: 'SIS primary', labels: ['BBlunt', 'Aqualogica', 'Mamaearth', 'Lumineve', 'The Derma Co'], values: [-0.40, 3.79, 3.87, 7.69, 11.57] }],
+    Object.assign({}, axisBase, {
+      x: M + halfW + 0.14, y: y + 0.22, w: halfW, h: 1.86, barDir: 'bar', chartColors: [RED, BRIGHT, BRIGHT, AMBER, BRIGHT], varyColors: true,
+      showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 6.4, dataLabelColor: INK, dataLabelFormatCode: '0.0',
+      barGapWidthPct: 40, valAxisMinVal: -4, valAxisMaxVal: 14
+    }));
+
+  y += 2.24;
+  y = banner(s, y, 'SIS ACCOUNTS — FY27 TO DATE', BLUE);
+  y = table(s, {
+    x: M, y, w: CW, rowH: 0.36, size: 7.4, cols: [
+      { t: 'ACCOUNT', w: 2.0 }, { t: 'PRIMARY (₹ L)', w: 1.3, a: 'right' },
+      { t: 'OFFTAKE (₹ L)', w: 1.3, a: 'right' }, { t: 'READ', w: 2.4 }
+    ],
+    rows: [
+      [{ t: 'Azorte', b: true }, { t: '23.38', b: true }, { t: '0.00', c: AMBER }, { t: 'Largest SIS account; no offtake feed', c: AMBER }],
+      [{ t: 'Shoppers Stop', b: true }, '4.87', '2.00', 'Only account with both sides mapped'],
+      [{ t: 'Broadway', b: true }, { t: '−1.73', c: RED }, '0.48', { t: 'Net negative — returns exceed billing', c: RED }],
+      [{ t: 'Lifestyle', b: true }, { t: 'not billed', c: GREY }, '1.13', { t: 'Offtake with no SIS primary', c: AMBER }],
+      [{ t: "Today's Basket", b: true }, { t: 'nil in FY27', c: GREY }, { t: '—', c: GREY }, { t: 'FY26 account, dormant in FY27', c: GREY }]
+    ]
+  });
+
+  y += 0.20;
+  const c3 = (CW - 0.24) / 3, cx3 = i => M + i * (c3 + 0.12);
+  const cards = [
+    { l: 'WHY IT LEFT MT', a: RED, big: '₹0.04 Cr', sub: 'SIS offtake sitting in MT zones', items: [
+      { t: 'Shoppers Stop, Lifestyle and Broadway offtake was inside the six geographic zones.', b: true },
+      { t: 'It is 0.02% of national offtake — immaterial in value, wrong in principle.' },
+      { t: 'Moved to this channel; MT zone offtake is now SIS-free.' } ] },
+    { l: 'READ RETURNS FIRST', a: AMBER, big: '15.3%', sub: 'MRN as a share of gross', items: [
+      { t: 'Gross ₹29.64 L becomes ₹26.52 L net of ₹4.55 L returns.', b: true },
+      { t: 'July is net negative (−₹0.64 L): returns exceeded billing that month.' },
+      { t: 'Always quote SIS net; the gross figure overstates by 11.8%.' } ] },
+    { l: 'DATA QUALITY', a: GREY, big: '662 rows', sub: 'full source, not row-capped', items: [
+      { t: '206 exact-duplicate invoice lines detected, not deduplicated.', b: true },
+      { t: 'Impact ₹2.48 L — checked and judged negligible, but unresolved.' },
+      { t: 'Azorte has primary and no offtake; Lifestyle the reverse.' } ] }
+  ];
+  cards.forEach((t, i) => {
+    const y0 = card(s, { x: cx3(i), y, w: c3, h: 2.30, label: t.l, accent: t.a });
+    s.addText(t.big, txt({ x: cx3(i) + 0.10, y: y0, w: c3 - 0.20, h: 0.36, fontSize: 15, bold: true, fontFace: FONTH, color: t.a, align: 'center' }));
+    s.addText(t.sub, txt({ x: cx3(i) + 0.10, y: y0 + 0.38, w: c3 - 0.20, h: 0.18, fontSize: 6.6, color: GREY, align: 'center' }));
+    bullets(s, { x: cx3(i) + 0.12, y: y0 + 0.62, w: c3 - 0.24, gap: 0.42, size: 6.9, items: t.items, dot: t.a });
+  });
+
+  y += 2.46;
+  y = banner(s, y, 'CHANNEL REPORTING STRUCTURE NOW IN FORCE');
+  bullets(s, { x: M + 0.10, y: y + 0.02, w: CW - 0.20, gap: 0.42, size: 7.4, items: [
+    { t: 'Modern Trade → MT accounts → zone-wise MT performance. Six geographic zones, no eB2B, no SIS.', b: true },
+    { t: 'eB2B → Nykaa (FSN) and Eremedium. FY27 primary ₹8.79 Cr, offtake ₹8.60 Cr. Replaces the former "Pan India" zone.', c: BLUE },
+    { t: 'SIS → Azorte, Shoppers Stop, Broadway, Lifestyle. FY27 net primary ₹0.27 Cr.', c: BLUE },
+    { t: 'No channel is added, allocated, mapped or rolled up into another. Classification is held in scripts/data/channel_master.json with a named owner.', c: GREY }
+  ]});
+
+}
+
 /* ---------------------------------------------------------------- S12 */
 {
-  const s = page(12, 'July is a Reliance problem — every other chain combined grew',
+  const s = page(13, 'July is a Reliance problem — every other chain combined grew',
     'Chain growth and risk | June–July 2026 | ranked by ₹ change above a ₹0.25 Cr materiality floor', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 1.16, rectRadius: 0.03, fill: { color: 'FBEDEC' }, line: { color: RED, width: 1 } });
@@ -908,7 +1007,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S13 */
 {
-  const s = page(13, 'Fix the specific commercial loophole — not the whole account',
+  const s = page(14, 'Fix the specific commercial loophole — not the whole account',
     'Chain recovery plan | evidence, action, success KPI and value at stake', SRC_MAIN);
 
   let y = banner(s, BODY_Y, 'CHAIN-WISE RECOVERY LOOP — ORDERED BY VALUE AT STAKE');
@@ -983,13 +1082,13 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S14 */
 {
-  const s = page(14, 'FSN/Nykaa holds 99.4% flow, but its range has contracted 11% since January',
-    'FSN/Nykaa national account | January–July 2026', SRC_MAIN);
+  const s = page(15, 'eB2B account detail: Nykaa (FSN) holds 99.4% flow on a contracting range',
+    'eB2B channel | account deep dive | January–July 2026 | excluded from MT — see page 11', SRC_MAIN);
 
   const kw = (CW - 0.24) / 3;
-  kpi(s, { x: M, y: BODY_Y, w: kw, h: 0.94, label: 'JUL PRIMARY', value: '₹2.08 Cr', sub: 'FSN + Nykaa SS combined', accent: BLUE });
-  kpi(s, { x: M + kw + 0.12, y: BODY_Y, w: kw, h: 0.94, label: 'JUL OFFTAKE', value: '₹2.07 Cr', sub: '5.7% of national offtake', accent: BRIGHT });
-  kpi(s, { x: M + 2 * (kw + 0.12), y: BODY_Y, w: kw, h: 0.94, label: 'FLOW', value: '99.4%', sub: '+26.0 pp vs national average', accent: GREEN });
+  kpi(s, { x: M, y: BODY_Y, w: kw, h: 0.94, label: 'JUL PRIMARY', value: '₹2.08 Cr', sub: 'FSN + Nykaa SS, eB2B', accent: BLUE });
+  kpi(s, { x: M + kw + 0.12, y: BODY_Y, w: kw, h: 0.94, label: 'JUL OFFTAKE', value: '₹2.07 Cr', sub: 'reported outside MT', accent: BRIGHT });
+  kpi(s, { x: M + 2 * (kw + 0.12), y: BODY_Y, w: kw, h: 0.94, label: 'FLOW', value: '99.4%', sub: '+27.0 pp vs MT (72.4%)', accent: GREEN });
 
   let y = BODY_Y + 1.08;
   const halfW = (CW - 0.16) / 2;
@@ -1041,13 +1140,13 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   bullets(s, { x: M + bw + 0.28, y: yb + 0.02, w: bw - 0.24, gap: 0.34, size: 7.2, dot: AMBER, items: [
     { t: 'FSN and Nykaa SS are combined at article level — neither can be attributed.', b: true },
     { t: 'Marketplace replenishment is near real-time; 99.4% is not transferable to hypermarkets.' },
-    { t: 'This ₹2.07 Cr must sit outside the geographic gap arithmetic.' }
+    { t: 'This ₹2.07 Cr is eB2B and sits outside MT zone sales entirely.' }
   ]});
 }
 
 /* ---------------------------------------------------------------- S15 */
 {
-  const s = page(15, 'NPI is ₹2.82 Cr — and 82% of it sits in the two accounts that convert worst',
+  const s = page(16, 'NPI is ₹2.82 Cr — and 82% of it sits in the two accounts that convert worst',
     'New product introduction | contribution by zone and chain | July 2026', SRC_MAIN);
 
   const kw = (CW - 0.24) / 3;
@@ -1132,7 +1231,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S16 */
 {
-  const s = page(16, 'Three chains hold ₹13.27 Cr of gap; three more hide ₹2.23 Cr behind unmapped primary',
+  const s = page(17, 'Three chains hold ₹13.27 Cr of gap; three more hide ₹2.23 Cr behind unmapped primary',
     'Chain deep dive | gross positive and gross negative gap | July 2026 | ₹ Cr', SRC_MAIN);
 
   chartTitle(s, M, BODY_Y, CW, 'Primary vs offtake by chain (₹ Cr) — Lulu bills through an unmapped route');
@@ -1197,7 +1296,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S17 */
 {
-  const s = page(17, 'Two brands carry 98.4% of offtake; Face Cleanser alone carries a third',
+  const s = page(18, 'Two brands carry 98.4% of offtake; Face Cleanser alone carries a third',
     'Brand and sub-category architecture | July 2026', SRC_MAIN);
 
   const chW = 4.20;
@@ -1286,7 +1385,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S18 */
 {
-  const s = page(18, 'A 90-day cadence that converts ₹5.87 Cr without loading a single extra case',
+  const s = page(19, 'A 90-day cadence that converts ₹5.87 Cr without loading a single extra case',
     'Sales uplift plan | actions ranked by value at stake, with owners and proof points', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 0.72, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
@@ -1359,7 +1458,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S19 */
 {
-  const s = page(19, 'Decision-safe definitions, quality gates and authority boundaries',
+  const s = page(20, 'Decision-safe definitions, quality gates and authority boundaries',
     'Audit command centre | grain, conformity, coverage and controlled execution', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 0.86, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
