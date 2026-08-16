@@ -848,14 +848,25 @@ function allocSectionHtml(){
       <td class="${Math.abs(r.nsv_var||0)<0.01?'up':'down'}">${r.nsv_var}</td><td>${crc(r.orig_mrp)}</td><td>${crc(r.alloc_mrp)}</td><td>${r.mrp_var}</td></tr>`).join('');
   const missRows=al.missing_mapping.map(r=>`<tr><td>${r.month} ${r.fy}</td><td>${r.brand}</td><td>${r.cust_code}</td>
       <td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${num(r.rows)}</td></tr>`).join('');
-  const qcSlice=al.qc_table.slice(0,25).map(r=>`<tr><td>${r.month} ${r.fy}</td><td>${r.brand}</td><td>${r.cust_code}</td><td>${r.ship_to}</td>
-      <td>${crc(r.orig_nsv)}</td><td>${crc(r.alloc_nsv)}</td><td>${r.nsv_var}</td>
-      <td class="${r.mapping_status==='Mapped'?'up':'down'}">${r.mapping_status}</td></tr>`).join('');
   const ca=al.cust_article;
   const caSlice=ca.rows.slice(0,40).map(r=>`<tr><td>${r.cust_code}</td><td>${r.ship_to}</td><td>${r.article}</td>
       <td>${r.brand}</td><td>${r.range}</td><td>${r.pack}</td><td>${r.month} ${r.fy}</td><td>${drillLink('Chain',r.chain)}</td>
       <td>${crc(r.nsv)}</td><td>${num(r.qty)}</td><td>${r.w_avg_tot==null?'–':r.w_avg_tot+'%'}</td></tr>`).join('');
   const contBad=Object.keys(al.cont_pct_bad_keys||{}).length;
+  // Phase 4: Governance insights (optional — absent in older data.js builds)
+  const gov=al.governance||null;
+  const govBadge=t=>{
+    const m={'Eligible':'#1c6b3a|#e8f5ec|#b7e0c4','Eligible_TAT':'#7c5f00|#fff8e1|#ffe082',
+             'Brand_Not_Listed':'#7c4700|#fff3e0|#ffcc80','Article_Not_Listed':'#7c4700|#fff3e0|#ffcc80',
+             'Not_Eligible':'#9b1c1c|#fdecea|#f5c6cb'}[t]||'#555|#f5f5f5|#ccc';
+    const[c,b,bo]=m.split('|');
+    return `<span style="font-size:0.79em;padding:2px 8px;border-radius:10px;font-weight:600;background:${b};color:${c};border:1px solid ${bo};white-space:nowrap">${t||'–'}</span>`;
+  };
+  const qcSlice=al.qc_table.slice(0,25).map(r=>`<tr><td>${r.month} ${r.fy}</td><td>${r.brand}</td><td>${r.cust_code}</td><td>${r.ship_to}</td>
+      <td>${crc(r.orig_nsv)}</td><td>${crc(r.alloc_nsv)}</td><td>${r.nsv_var}</td>
+      <td class="${r.mapping_status==='Mapped'?'up':'down'}">${r.mapping_status}</td>
+      <td>${r.eligibility_tier?govBadge(r.eligibility_tier):'–'}</td>
+      <td style="text-align:right">${r.eligibility_confidence_pct!=null?r.eligibility_confidence_pct+'%':'–'}</td></tr>`).join('');
   const banner=allZero
     ?`<div class="repbanner" style="background:#e8f5ec;border-color:#b7e0c4;color:#1c6b3a"><b>Reconciled — zero variance.</b>
         Original Dist. primary input equals allocated output on all four measures (NSV, Total MRP sales, Inv Qty, Tax).
@@ -898,12 +909,32 @@ function allocSectionHtml(){
        <thead><tr><th>Brand</th><th>Orig NSV</th><th>Alloc NSV</th><th>Var</th><th>Orig MRP Sales</th><th>Alloc MRP Sales</th><th>Var</th></tr></thead>
        <tbody>${brandRows}</tbody></table></div>`)}
    </div>
+   ${gov?`<div class="grid g2">
+     ${card('Eligibility Tier Distribution','Governance tier counts from the allocation run.',`<div class="tablewrap"><table>
+       <thead><tr><th>Tier</th><th>Keys</th></tr></thead><tbody>
+       ${['Eligible','Eligible_TAT','Brand_Not_Listed','Article_Not_Listed','Not_Eligible'].map(t=>{
+         const n=(gov.eligibility_tier_counts||{})[t]||0;
+         return n?`<tr><td>${govBadge(t)}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${num(n)}</td></tr>`:'';
+       }).join('')||'<tr><td colspan="2">No governance data in this build.</td></tr>'}
+       </tbody></table></div>`)}
+     ${card('QC Gate Summary','Balance rate across Distributor × Brand × Month reconciliations.',`<div class="tablewrap"><table>
+       <thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+       ${(()=>{const r=gov.qc_report||{};return[
+         ['Reconciliations logged',num(gov.reconciliations_logged||0)],
+         ['Eligibility decisions logged',num(gov.decisions_logged||0)],
+         ['Total QC rows in report',num(r.total_rows||0)],
+         ['Balanced rows',num(r.balanced_count||0)],
+         ['Balance rate',r.balance_rate_pct!=null?r.balance_rate_pct+'%':'–'],
+         ['Max absolute variance',r.max_abs_variance!=null?crc(r.max_abs_variance):'–'],
+       ].map(([l,v])=>`<tr><td>${l}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${v}</td></tr>`).join('');})()}
+       </tbody></table></div>`)}
+   </div>`:''}
    ${card('Missing mapping QC — Dist. rows with no cont-sheet entry','These keep their value under "Unmapped Chain". Add the missing Ship-To × Brand × Month rows to Dist_primary_cont_based_on_secondary_MOM.xlsx and rebuild to allocate them.',`<div class="tablewrap"><table>
      <thead><tr><th>Month</th><th>Brand</th><th>Cust-SAP Code</th><th>Ship To Name</th><th>NSV</th><th>Rows</th></tr></thead>
      <tbody>${missRows||'<tr><td colspan="6">None — every Dist. row mapped.</td></tr>'}</tbody></table></div>`)}
    ${card(`Allocation QC — Month × Brand × Cust-SAP Code × Ship To (top 25 of ${num(al.qc_table_total_rows)})`,
      'Unmapped keys sort first, then by |NSV|.',`<button class="fbtn ghost" id="alExpQc" style="margin:0 0 8px">⭳ Export ALL QC rows (Excel)</button><div class="tablewrap"><table>
-     <thead><tr><th>Month</th><th>Brand</th><th>Cust-SAP Code</th><th>Ship To Name</th><th>Orig NSV</th><th>Alloc NSV</th><th>Var</th><th>Mapping</th></tr></thead>
+     <thead><tr><th>Month</th><th>Brand</th><th>Cust-SAP Code</th><th>Ship To Name</th><th>Orig NSV</th><th>Alloc NSV</th><th>Var</th><th>Mapping</th><th>Eligibility</th><th>Confidence</th></tr></thead>
      <tbody>${qcSlice}</tbody></table></div>`)}
    ${card(`Customer × Article × Month × Chain allocation (top 40 shown; ${num(ca.rows.length)} exportable of ${num(ca.rows_total)} total, ${ca.value_coverage_pct}% of |NSV|)`,
      ca.note+' Click a chain to drill.',`<button class="fbtn ghost" id="alExpCa" style="margin:0 0 8px">⭳ Export ALL Customer × Article rows (Excel)</button><div class="tablewrap"><table>
@@ -918,9 +949,10 @@ function wireAllocExports(root){
   if(qb) qb.onclick=()=>{
     const rows=[['Month','FY','Brand','Cust-SAP Code','Ship To Name','Original NSV','Allocated NSV','Variance',
                  'Original Qty','Allocated Qty','Qty Variance','Original MRP Sales','Allocated MRP Sales','MRP Variance',
-                 'Original Tax','Allocated Tax','Tax Variance','Mapping Status'],
+                 'Original Tax','Allocated Tax','Tax Variance','Mapping Status','Eligibility Tier','Eligibility Confidence %'],
       ...al.qc_table.map(r=>[r.month,r.fy,r.brand,r.cust_code,r.ship_to,r.orig_nsv,r.alloc_nsv,r.nsv_var,
-        r.orig_qty,r.alloc_qty,r.qty_var,r.orig_mrp,r.alloc_mrp,r.mrp_var,r.orig_tax,r.alloc_tax,r.tax_var,r.mapping_status])];
+        r.orig_qty,r.alloc_qty,r.qty_var,r.orig_mrp,r.alloc_mrp,r.mrp_var,r.orig_tax,r.alloc_tax,r.tax_var,
+        r.mapping_status,r.eligibility_tier||'',r.eligibility_confidence_pct!=null?r.eligibility_confidence_pct:''])];
     downloadRowsXLSX(rows,exportFilename('Primary','Dist_Allocation_QC'),'Dist primary allocation QC (values in INR Lakh)');
   };
   const cb=root.querySelector('#alExpCa');

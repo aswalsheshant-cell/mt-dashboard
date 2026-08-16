@@ -24,6 +24,11 @@ import argparse, csv, io, json, re, math, datetime
 from pathlib import Path
 
 import pandas as pd
+from dist_allocation_governance import (
+    DistAllocationGovernance,
+    QCReconciliation,
+    eligibility_tier_rank,
+)
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -2494,6 +2499,14 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
     direct["_Chain"] = direct["_ChainDash"]
     dist = df[is_dist].copy()
 
+    # ---- STEP 1 (Phase 3): Initialize governance engine ----
+    gov = DistAllocationGovernance()
+    governance_log = {
+        "eligibility_decisions": [],
+        "qc_reconciliations": [],
+        "tier_counts": {},
+    }
+
     # join keys (year-qualified month; ship-to + brand case/space-insensitive)
     dist["_st"] = dist["_CustName"].str.lower()
     dist["_bl"] = dist["brand"].astype(str).str.strip().str.lower()
@@ -2520,13 +2533,40 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
         st, bl, pm = k
         if pm is not None and k in wkeys:
             key_eff[k], key_tier[k] = pm, "exact"
+            gov_tier = "Eligible"
         else:
             months = avail.get((st, bl))
             near = min(months, key=lambda m: abs(_pm_ord(m) - _pm_ord(pm))) if (months and pm) else None
             if near is not None and abs(_pm_ord(near) - _pm_ord(pm)) <= 3:
                 key_eff[k], key_tier[k] = near, f"nearest {near}"
+                gov_tier = "Eligible_TAT"
             else:
                 key_eff[k], key_tier[k] = None, "unmapped"
+                gov_tier = "Not_Eligible"
+
+        # ---- STEP 2 (Phase 3): Log eligibility decision ----
+        try:
+            gov_result = gov.check_eligibility(
+                primary_row={"ship_to": st, "brand": bl, "month": pm},
+                secondary_match_found=(pm is not None and k in wkeys),
+                secondary_match_within_tат=(key_tier[k].startswith("nearest")),
+                brand_in_offtake=True,  # TODO: Phase 4 — wire to actual brand presence
+                article_in_offtake=True,  # TODO: Phase 4 — wire to actual article presence
+            )
+            governance_log["eligibility_decisions"].append({
+                "key": k,
+                "tier": gov_result.tier,
+                "confidence_pct": gov_result.confidence_pct,
+                "reasoning": gov_result.reasoning,
+            })
+        except Exception as e:
+            print(f"Warning: Governance check failed for key {k}: {e}")
+            governance_log["eligibility_decisions"].append({
+                "key": k,
+                "tier": gov_tier,
+                "confidence_pct": 50.0,
+                "reasoning": f"Governance check exception: {e}",
+            })
     kseries = list(zip(dist["_st"], dist["_bl"], dist["_pm"]))
     dist["_pm_eff"] = [key_eff[k] for k in kseries]
     dist["_tier"] = [key_tier[k] for k in kseries]
@@ -2557,6 +2597,47 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
         return out
 
     o_tot, a_tot = sums(orig), sums(merged)
+
+    # ---- STEP 3 (Phase 3): Track QC reconciliation via governance engine ----
+    try:
+        for fy, m, brand, shipto in set(orig.groupby(["_FY", "_M", "_Brand", "_CustName"]).groups):
+            orig_subset = orig[
+                (orig["_FY"] == fy) &
+                (orig["_M"] == m) &
+                (orig["_Brand"] == brand) &
+                (orig["_CustName"] == shipto)
+            ]
+            merged_subset = merged[
+                (merged["_FY"] == fy) &
+                (merged["_M"] == m) &
+                (merged["_Brand"] == brand) &
+                (merged["_CustName"] == shipto)
+            ]
+            o_nsv = float(orig_subset["_NSV"].sum()) if len(orig_subset) else 0.0
+            a_nsv = float(merged_subset["_NSV"].sum()) if len(merged_subset) else 0.0
+
+            qc_result = gov.reconcile_qc(
+                distributor=shipto,
+                brand=brand,
+                month=m,
+                original_nsv=o_nsv,
+                allocated_nsv=a_nsv,
+                blocked_nsv=0.0,  # Implicit in allocated (unmapped rows handled in allocation)
+                tolerance_lakh=0.0,  # Strict QC
+            )
+            governance_log["qc_reconciliations"].append({
+                "shipto": shipto,
+                "brand": brand,
+                "month": m,
+                "fy": fy,
+                "is_balanced": qc_result.is_balanced,
+                "variance": qc_result.variance,
+                "original_nsv": qc_result.original_nsv,
+                "allocated_nsv": qc_result.allocated_nsv,
+            })
+    except Exception as e:
+        print(f"Warning: QC reconciliation failed: {e}")
+
     recon = {
         "overall": {m: {"original": r2(o_tot[m]), "allocated": r2(a_tot[m]),
                         "variance": r2(a_tot[m] - o_tot[m])} for m in o_tot},
@@ -2577,6 +2658,18 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
         t = tier_by_qkey.get(key, "exact")
         row["mapping_status"] = ("Unmapped Chain" if t == "unmapped"
                                  else "Mapped" if t == "exact" else f"Mapped ({t})")
+
+        # ---- STEP 4 (Phase 3): Add eligibility tier + confidence to QC rows ----
+        if t == "exact":
+            row["eligibility_tier"] = "Eligible"
+            row["eligibility_confidence_pct"] = 100.0
+        elif t.startswith("nearest"):
+            row["eligibility_tier"] = "Eligible_TAT"
+            row["eligibility_confidence_pct"] = 90.0
+        else:  # unmapped
+            row["eligibility_tier"] = "Not_Eligible"
+            row["eligibility_confidence_pct"] = 100.0
+
         qc_rows.append(row)
     qc_rows.sort(key=lambda r: (0 if r["mapping_status"] == "Unmapped Chain"
                                 else 1 if r["mapping_status"] != "Mapped" else 2,
@@ -2625,11 +2718,37 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
 
     patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist)
     merged.drop(columns=["_st", "_bl", "_pm", "_pm_eff", "_tier", "_AllocChainRaw",
-                         "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True)
+                         "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True, errors='ignore')
     direct.drop(columns=["_ChainDash"], inplace=True)
     merged["_IsDist"] = True
     direct["_IsDist"] = False
     out_df = pd.concat([direct, merged], ignore_index=True)
+
+    # ---- STEP 5 (Phase 3): Generate governance report ----
+    tier_counts = {}
+    for decision in governance_log["eligibility_decisions"]:
+        tier = decision["tier"]
+        tier_counts[tier] = tier_counts.get(tier, 0) + 1
+
+    try:
+        qc_report = gov.generate_qc_report(
+            [
+                QCReconciliation(
+                    is_balanced=r["is_balanced"],
+                    variance=r["variance"],
+                    original_nsv=r["original_nsv"],
+                    allocated_nsv=r["allocated_nsv"],
+                    blocked_nsv=0.0,
+                )
+                for r in governance_log["qc_reconciliations"]
+            ]
+        )
+    except Exception as e:
+        print(f"Warning: Failed to generate QC report: {e}")
+        qc_report = {
+            "total_rows": len(governance_log["qc_reconciliations"]),
+            "note": f"QC report generation failed: {e}",
+        }
 
     _unmapped_shipto_names = sorted(um["_CustName"].dropna().unique().tolist()) if len(um) else []
     alloc = {
@@ -2712,6 +2831,18 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None):
             "every build: paste approved rows into the cont xlsx to make the fix "
             "permanent (this also fixes Power BI, whose query 41 reads only the xlsx)."
         ),
+        # ---- STEP 5 (Phase 3): Governance metadata (optional, non-breaking) ----
+        "governance": {
+            "eligibility_tier_counts": tier_counts,
+            "qc_report": qc_report,
+            "reconciliations_logged": len(governance_log["qc_reconciliations"]),
+            "decisions_logged": len(governance_log["eligibility_decisions"]),
+            "note": (
+                "Phase 3 integration: Governance engine instrumentation logs eligibility "
+                "tiers and QC reconciliation results. No changes to allocation logic or output. "
+                "Dashboard may optionally display governance metadata; absence is graceful."
+            ),
+        },
     }
     return out_df, alloc
 
