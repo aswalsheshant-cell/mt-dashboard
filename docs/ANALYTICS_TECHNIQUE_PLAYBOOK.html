@@ -1,0 +1,674 @@
+<title>Six Books, Six Blind Spots</title>
+<style>
+  :root {
+    --paper:        #FBFCFB;
+    --surface:      #FFFFFF;
+    --surface-sunk: #F1F5F4;
+    --ink:          #12312F;
+    --ink-soft:     #46605C;
+    --ink-faint:    #7B918D;
+    --rule:         #D8E4E1;
+    --teal:         #116F68;
+    --teal-bright:  #1E9186;
+    --red:          #B5403A;
+    --amber:        #9A6D12;
+    --shadow:       0 1px 2px rgba(18,49,47,.05), 0 8px 24px -12px rgba(18,49,47,.14);
+
+    --display: Georgia, "Bookman Old Style", "Times New Roman", serif;
+    --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:        #0B1A19;
+      --surface:      #122523;
+      --surface-sunk: #0F1F1E;
+      --ink:          #E4EEEC;
+      --ink-soft:     #A6BCB8;
+      --ink-faint:    #718A86;
+      --rule:         #23403D;
+      --teal:         #4FBBAE;
+      --teal-bright:  #6FD4C6;
+      --red:          #E58078;
+      --amber:        #D9A83F;
+      --shadow:       0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:        #0B1A19;
+    --surface:      #122523;
+    --surface-sunk: #0F1F1E;
+    --ink:          #E4EEEC;
+    --ink-soft:     #A6BCB8;
+    --ink-faint:    #718A86;
+    --rule:         #23403D;
+    --teal:         #4FBBAE;
+    --teal-bright:  #6FD4C6;
+    --red:          #E58078;
+    --amber:        #D9A83F;
+    --shadow:       0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 28px 96px; }
+
+  /* ---------- masthead ---------- */
+  .masthead { padding: 72px 0 40px; border-bottom: 2px solid var(--ink); }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--teal); margin: 0 0 20px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(38px, 6.4vw, 62px);
+    line-height: 1.04; font-weight: 700; letter-spacing: -.015em;
+    margin: 0 0 22px; text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 19px; line-height: 1.55; color: var(--ink-soft);
+    max-width: 62ch; margin: 0;
+  }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- pipeline ---------- */
+  .pipeline {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 36px 0 0; padding: 0; list-style: none;
+  }
+  .pipeline li {
+    display: flex; align-items: baseline; gap: 9px;
+    background: var(--surface-sunk); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 9px 14px 9px 11px;
+    font-size: 13.5px; color: var(--ink-soft);
+  }
+  .pipeline b {
+    font-family: var(--mono); font-size: 11px; color: var(--teal);
+    font-weight: 700;
+  }
+  .pipeline li strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- sections ---------- */
+  .book { padding: 56px 0; border-bottom: 1px solid var(--rule); }
+  .book-head { display: grid; grid-template-columns: 1fr; gap: 4px; margin-bottom: 32px; }
+  .discipline {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  h2 {
+    font-family: var(--display); font-size: clamp(26px, 3.4vw, 34px);
+    line-height: 1.18; font-weight: 700; letter-spacing: -.01em;
+    margin: 2px 0 0; text-wrap: balance;
+  }
+  .byline { font-size: 14px; color: var(--ink-faint); margin: 6px 0 0; font-style: italic; }
+
+  h3 {
+    font-family: var(--body); font-size: 12px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
+    margin: 0 0 12px;
+  }
+  .doing {
+    font-size: 15px; color: var(--ink-soft); margin: 0 0 30px;
+    padding-left: 15px; border-left: 2px solid var(--rule);
+  }
+  .doing strong { color: var(--ink); font-weight: 600; }
+
+  .techs { display: grid; gap: 22px; margin: 0 0 32px; }
+  @media (min-width: 720px) { .techs { grid-template-columns: 1fr 1fr; gap: 22px 32px; } }
+  .tech { }
+  .tech h4 {
+    font-family: var(--body); font-size: 16px; font-weight: 700;
+    margin: 0 0 6px; color: var(--ink); line-height: 1.35;
+  }
+  .tech p { margin: 0; font-size: 14.5px; line-height: 1.58; color: var(--ink-soft); }
+  .tech p code {
+    font-family: var(--mono); font-size: .88em; background: var(--surface-sunk);
+    padding: 1px 5px; border-radius: 3px; color: var(--ink);
+  }
+
+  /* ---------- proof ---------- */
+  .proof {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 4px; box-shadow: var(--shadow);
+    padding: 24px 26px; margin: 0;
+  }
+  .proof > h3 { color: var(--teal); margin-bottom: 14px; }
+  .figure {
+    font-family: var(--mono);
+    font-size: clamp(24px, 3.6vw, 32px); font-weight: 700;
+    line-height: 1.15; letter-spacing: -.02em;
+    color: var(--ink); margin: 0 0 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .figure.bad { color: var(--red); }
+  .figure.good { color: var(--teal-bright); }
+  .figure.warn { color: var(--amber); }
+  .proof p { margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); }
+  .proof p:first-of-type { margin-top: 0; }
+  .proof strong { color: var(--ink); font-weight: 600; }
+  .derivation {
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+    color: var(--ink-faint); margin: 16px 0 0;
+    padding-top: 13px; border-top: 1px dashed var(--rule);
+  }
+  .worth {
+    margin: 22px 0 0; padding: 15px 18px;
+    background: var(--surface-sunk); border-radius: 4px;
+    font-size: 14.5px; line-height: 1.55; color: var(--ink-soft);
+  }
+  .worth b {
+    display: block; font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--teal);
+    margin-bottom: 5px;
+  }
+  .worth strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- closing table ---------- */
+  .closing { padding: 56px 0 0; }
+  .tablewrap { overflow-x: auto; margin-top: 26px; }
+  table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: 14.5px; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint);
+    font-weight: 700; padding: 0 16px 10px 0; border-bottom: 1.5px solid var(--ink);
+    vertical-align: bottom;
+  }
+  tbody td { padding: 15px 16px 15px 0; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-soft); }
+  tbody td:first-child { color: var(--ink); font-weight: 600; width: 1%; white-space: nowrap; }
+  tbody td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+  .seq {
+    font-family: var(--mono); font-size: 11px; color: var(--teal);
+    font-weight: 700; padding-right: 14px !important;
+  }
+
+  .footnote {
+    margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule);
+    font-size: 13px; line-height: 1.6; color: var(--ink-faint); max-width: 72ch;
+  }
+  .footnote strong { color: var(--ink-soft); }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Modern Trade analytics · Honasa · capability note</p>
+  <h1>Six Books, Six Blind Spots</h1>
+  <p class="standfirst">
+    Your six-book list is sound. But a reading list only pays back when it changes what you
+    compute. So this note skips the summaries and does one thing instead: it names the
+    techniques from each book that <strong>your July 2026 pack does not yet use</strong>, and
+    proves each one against your own numbers — every figure below is derived from the July
+    Chain NPI Recovery deck itself.
+  </p>
+  <ul class="pipeline">
+    <li><b>1</b> <span><strong>Validate</strong> the grain</span></li>
+    <li><b>2</b> <span><strong>Segment</strong> before averaging</span></li>
+    <li><b>3</b> <span><strong>Size</strong> it in rupees</span></li>
+    <li><b>4</b> <span><strong>Rank</strong> by expected value</span></li>
+    <li><b>5</b> <span><strong>Tell</strong> it in one sentence</span></li>
+  </ul>
+</header>
+
+<!-- ============ 1. KIMBALL ============ -->
+<section class="book">
+  <div class="book-head">
+    <p class="discipline">Owns · the grain and the join</p>
+    <h2>The Data Warehouse Toolkit</h2>
+    <p class="byline">Ralph Kimball</p>
+  </div>
+
+  <p class="doing">
+    <strong>Already doing:</strong> you have clean conformed hierarchies — Chain, Zone, State,
+    Category, Sub-Category, Article, Pack — and you document sources on every slide.
+  </p>
+
+  <div class="techs">
+    <div class="tech">
+      <h4>Declare the grain once, then never mix bases</h4>
+      <p>Every fact table gets one stated grain, and every percentage on the page must share the
+      same denominator. Two numbers built on different bases can never appear in the same
+      sentence.</p>
+    </div>
+    <div class="tech">
+      <h4>Conformed dimensions must survive the join</h4>
+      <p>A chain that exists in offtake but not in primary means the Chain dimension isn't
+      conformed. That's a modelling defect, not a business result — and it has to surface as an
+      exception before anyone reads a growth number off it.</p>
+    </div>
+    <div class="tech">
+      <h4>Additive, semi-additive, non-additive</h4>
+      <p>Rupees add. Ratios do not. Conversion % can never be averaged across zones to get a
+      national figure — it must be recomputed from summed numerator and denominator.</p>
+    </div>
+    <div class="tech">
+      <h4>The factless fact table</h4>
+      <p>A store × article × month listing table records what <em>should</em> have sold, giving
+      you a real denominator for distribution and OSA. It's the missing table behind every
+      SAH / WD / PDO field your deck says it can't yet populate.</p>
+    </div>
+  </div>
+
+  <div class="proof">
+    <h3>Proof from your July deck</h3>
+    <p class="figure bad">₹15.17 Cr, not ₹13.11 Cr</p>
+    <p>Your headline flow gap is <strong>₹13.11 Cr</strong>. But add up the six zone gaps on
+    slide 4 and you get <strong>₹15.17 Cr</strong>. The difference is exactly the ₹2.07 Cr of
+    FSN/Nykaa offtake that carries no mapped primary — it is silently netted off the national
+    gap. So the deck reports a chain-level percentage (90.7% in DMart + Reliance) against a
+    ₹13.11 Cr base while the zone table sums to a different one. Two bases, one page.</p>
+    <p>The same defect makes <strong>Apollo</strong> look stable. Its national conversion reads
+    99.7% — but the zone pages show 148.5% in South-2, 137.7% in Central and 121.1% in East.
+    The national figure is not a performance; it's an artefact of averaging a non-additive ratio
+    until the errors cancel.</p>
+    <p class="derivation">zone gaps · 1.77 + 1.61 + 4.96 + 1.98 + 4.28 + 0.57 = 15.17<br>
+    15.17 − 2.07 (Pan India offtake, no primary) = 13.10 ≈ 13.11 headline</p>
+  </div>
+
+  <p class="worth">
+    <b>What it's worth</b>
+    <strong>₹2.06 Cr of recoverable gap is currently invisible</strong> — netted away by a
+    dimension that doesn't conform. Report gross positive gap and gross negative gap as two
+    separate lines and both problems become actionable instead of cancelling each other.
+  </p>
+</section>
+
+<!-- ============ 2. MCKINNEY ============ -->
+<section class="book">
+  <div class="book-head">
+    <p class="discipline">Owns · the mechanics that catch it</p>
+    <h2>Python for Data Analysis</h2>
+    <p class="byline">Wes McKinney</p>
+  </div>
+
+  <p class="doing">
+    <strong>Already doing:</strong> you compute contribution %, rank within group, and month-on-month
+    change — the core <code>groupby</code> vocabulary is clearly in place.
+  </p>
+
+  <div class="techs">
+    <div class="tech">
+      <h4>Validated merges</h4>
+      <p><code>merge(..., how="outer", indicator=True, validate="1:1")</code> is the single
+      highest-return line you are not writing. It tells you which keys exist on only one side
+      and refuses to run if the grain is wrong. Every mapping defect below would have been
+      caught by it automatically.</p>
+    </div>
+    <div class="tech">
+      <h4>groupby().transform() for share-of-parent</h4>
+      <p>Contribution, within-zone rank and index-vs-zone-average in one pass, at every level,
+      without a single manual denominator. Wrong denominators stop being possible.</p>
+    </div>
+    <div class="tech">
+      <h4>Tidy long form as the working grain</h4>
+      <p>Melt everything to one row per <code>chain × zone × article × month × measure</code>.
+      That single table is what makes the weekly chain × zone × EAN exception review your deck
+      promises actually runnable — right now it's promised on slide 1 and never shown.</p>
+    </div>
+    <div class="tech">
+      <h4>Rolling windows and qcut bands</h4>
+      <p><code>rolling(3).mean()</code> for a stable baseline instead of a single volatile prior
+      month; <code>qcut</code> to cut conversion into Scale / Fix / Hold bands by rule, so the
+      banding is reproducible next month rather than re-judged by eye.</p>
+    </div>
+  </div>
+
+  <div class="proof">
+    <h3>Proof from your July deck</h3>
+    <p class="figure bad">Lulu: ₹1.70 Cr offtake, ₹0 primary</p>
+    <p>Slide 12 ranks Lulu <strong>+46.5% MoM</strong> and calls it <em>Scale</em>. Slide 13
+    tells the team to "copy winning store execution." But the chain chart on slide 16 shows
+    Lulu's mapped primary is <strong>zero</strong> — the account has offtake with no billing
+    joined to it. Two other chains do the same thing: Wellness Forever and Health &amp; Glow
+    both show more offtake than primary.</p>
+    <p>An outer merge with <code>indicator=True</code> would have flagged all three as
+    <code>right_only</code> before anyone wrote a recommendation on top of them. Instead the
+    field is being sent to replicate a growth story that may be a mapping artefact.</p>
+    <p class="derivation">chain primary vs offtake (₹ Cr)<br>
+    Lulu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.00 → 1.70&nbsp;&nbsp;(−1.70)<br>
+    Wellness&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.49 → 0.72&nbsp;&nbsp;(−0.24)<br>
+    Health &amp; Glow&nbsp;0.22 → 0.51&nbsp;&nbsp;(−0.29)</p>
+  </div>
+
+  <p class="worth">
+    <b>What it's worth</b>
+    Three chains and <strong>₹2.23 Cr</strong> of negative gap are being read as commercial
+    performance when they are join failures. One validated merge in the build script converts
+    that from a monthly re-discovery into a permanent guardrail.
+  </p>
+</section>
+
+<!-- ============ 3. WHEELAN ============ -->
+<section class="book">
+  <div class="book-head">
+    <p class="discipline">Owns · whether the number means anything</p>
+    <h2>Naked Statistics</h2>
+    <p class="byline">Charles Wheelan</p>
+  </div>
+
+  <p class="doing">
+    <strong>Already doing:</strong> you correctly flag conversion above 100% as a timing or
+    stock signal rather than a success — that instinct is exactly right.
+  </p>
+
+  <div class="techs">
+    <div class="tech">
+      <h4>A materiality floor before any percentage</h4>
+      <p>No growth rate gets shown, ranked or coloured unless the base clears a stated rupee
+      threshold. Below the floor, report the absolute change only.</p>
+    </div>
+    <div class="tech">
+      <h4>Regression to the mean</h4>
+      <p>A single extreme month partly reverts on its own. Compare against a rolling 3-month
+      base, not against one prior month, or you will keep launching recovery programmes against
+      noise and then claim credit when it self-corrects.</p>
+    </div>
+    <div class="tech">
+      <h4>Simpson's paradox</h4>
+      <p>National conversion can fall while every single zone improves, purely from mix shifting
+      toward weaker zones. Nothing in the current pack can tell those two worlds apart — and
+      they demand opposite actions.</p>
+    </div>
+    <div class="tech">
+      <h4>Denominator hygiene</h4>
+      <p>Before interpreting any ratio, ask what is in the bottom. Your chain scorecard covers
+      ₹26.90 Cr of a ₹36.10 Cr national base — 74.5%. That coverage figure belongs on the slide.</p>
+    </div>
+  </div>
+
+  <div class="proof">
+    <h3>Proof from your July deck</h3>
+    <p class="figure warn">+127.8% on ₹1 lakh</p>
+    <p>Slide 12 ranks <strong>Sasta Sundar at +127.8%</strong> and labels it <em>Scale</em> —
+    the strongest growth signal on the page. The underlying move is ₹0.01 Cr to ₹0.02 Cr. One
+    lakh rupees. Ratandeep gets <em>Scale</em> on ₹0.03 Cr. Meanwhile <strong>Reliance</strong>
+    sits mid-table at −15.0%, which is a ₹1.42 Cr swing — a hundred times larger than the top
+    "growth" story and the single largest movement in Modern Trade this month.</p>
+    <p>Ranked by percentage, the table puts a rounding error at the top and the actual problem
+    in the middle. Ranked by rupee change with a ₹0.25 Cr materiality floor, the same table has
+    one row that matters.</p>
+    <p class="derivation">MoM Δ, ₹ Cr · Reliance −1.42 · DMart −0.23 · Metro −0.12 · Wellness −0.08<br>
+    Lulu +0.54 · Vishal +0.05 · all others |Δ| ≤ 0.03</p>
+  </div>
+
+  <p class="worth">
+    <b>What it's worth</b>
+    A materiality floor of ₹0.25 Cr removes <strong>8 of 13 rows</strong> from the chain
+    scorecard and stops the review spending airtime on ₹1–3 lakh accounts while a ₹1.42 Cr
+    decline reads as routine.
+  </p>
+</section>
+
+<!-- ============ 4. LEAN ANALYTICS ============ -->
+<section class="book">
+  <div class="book-head">
+    <p class="discipline">Owns · which metric you steer by</p>
+    <h2>Lean Analytics</h2>
+    <p class="byline">Alistair Croll &amp; Benjamin Yoskovitz</p>
+  </div>
+
+  <p class="doing">
+    <strong>Already doing:</strong> flow conversion % is a genuinely good rate metric, and you
+    already publish it by zone and by chain.
+  </p>
+
+  <div class="techs">
+    <div class="tech">
+      <h4>One Metric That Matters</h4>
+      <p>Your weekly scoreboard carries six KPIs of equal weight. Pick one the business steers
+      by this quarter — flow conversion is the right candidate — and demote the rest to
+      supporting. A scoreboard where everything is a priority sets no priority.</p>
+    </div>
+    <div class="tech">
+      <h4>Rates over counts</h4>
+      <p>₹36.1 Cr is a count; it only grows. ₹ per store per month, share per distribution
+      point, and conversion % are rates — they can fall while the total rises, which is exactly
+      the warning you want to receive early.</p>
+    </div>
+    <div class="tech">
+      <h4>Segment before you average</h4>
+      <p>An average is a hypothesis about homogeneity. Test it: if the spread inside a segment
+      is wider than the gap between segments, the average is meaningless and the segmentation
+      is wrong.</p>
+    </div>
+    <div class="tech">
+      <h4>Leading vs lagging</h4>
+      <p>Everything in the pack is lagging — July is already billed and sold. Active EAN count
+      and hero-SKU OSA are the leading pair; put them in front of the outcome, not in the
+      appendix.</p>
+    </div>
+  </div>
+
+  <div class="proof">
+    <h3>Proof from your July deck</h3>
+    <p class="figure warn">73.4% describes no zone at all</p>
+    <p>The national conversion headline sits between <strong>East at 45.3%</strong> and
+    <strong>South-1 at 83.6%</strong> — a 38-point spread. No zone is near the average; it is a
+    number that exists only on the cover slide. The distribution is bimodal: four zones cluster
+    at 71–84%, two sit at 45–59%. That is two different businesses reported as one.</p>
+    <p>Apply the same test to share per distribution point and something more useful appears.
+    Mamaearth Face Wash converts <strong>0.118 share points per point of weighted
+    distribution</strong>. Mamaearth Shampoo, on nearly the same shelf presence (81.5% WD vs
+    89.0%), converts <strong>0.045</strong> — <strong>38% as productive per point</strong>.</p>
+    <p class="derivation">SPD = value share ÷ weighted distribution<br>
+    ME Face Wash&nbsp;&nbsp;10.5 ÷ 89.0 = 0.118<br>
+    ME Shampoo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.7 ÷ 81.5 = 0.045&nbsp;&nbsp;(38% of Face Wash)<br>
+    TDC Face Wash&nbsp;&nbsp;0.4 ÷ 27.3 = 0.015</p>
+  </div>
+
+  <p class="worth">
+    <b>What it's worth</b>
+    This one changes a recommendation. Slide 3 says shampoo "misses 12 of 16 formats" and
+    prescribes <strong>more packs</strong>. The SPD math says shampoo is already on 81.5% of
+    the shelf and under-earning there — <strong>the constraint is productivity per point, not
+    width</strong>. Adding formats to shelves where the existing pack under-converts spends
+    listing fees to dilute an already-thin rate.
+  </p>
+</section>
+
+<!-- ============ 5. PROVOST & FAWCETT ============ -->
+<section class="book">
+  <div class="book-head">
+    <p class="discipline">Owns · what to do first</p>
+    <h2>Data Science for Business</h2>
+    <p class="byline">Foster Provost &amp; Tom Fawcett</p>
+  </div>
+
+  <p class="doing">
+    <strong>Already doing:</strong> your Scale / Fix / Hold framing is a decision rule, not just
+    a description — that is the right shape for an analysis to end in.
+  </p>
+
+  <div class="techs">
+    <div class="tech">
+      <h4>Expected value ranking</h4>
+      <p>Every proposed action carries ₹ at stake × probability of success × cost to act. Rank
+      by the product. Your 90-day plan lists twelve actions in three time buckets with no rupee
+      value on any of them, so nothing tells the reader which one to start Monday.</p>
+    </div>
+    <div class="tech">
+      <h4>Always state the baseline</h4>
+      <p>What does doing nothing deliver? Without that counterfactual no intervention can be
+      credited or killed. There is no "do nothing" line anywhere in the pack.</p>
+    </div>
+    <div class="tech">
+      <h4>Lift and targeting</h4>
+      <p>"Fix North and East" is a territory, not a target list. Score every store × EAN cell by
+      expected recovery, sort descending, and hand the field the top decile. Same effort,
+      several times the return.</p>
+    </div>
+    <div class="tech">
+      <h4>Look-alike scoring</h4>
+      <p>Apollo converts near parity. Instead of admiring it, extract what makes an Apollo store
+      an Apollo store — order cadence, assortment depth, replenishment frequency — and score
+      every other store for similarity. That produces a ranked intervention list from data you
+      already hold.</p>
+    </div>
+  </div>
+
+  <div class="proof">
+    <h3>Proof from your July deck</h3>
+    <p class="figure good">₹5.87 Cr in one month</p>
+    <p>North and East convert at 58.5% and 45.3%. West and South-1 — your own zones, your own
+    people, same portfolio — convert at 82.3% and 83.6%. Hold primary flat and move North and
+    East to that proven internal benchmark and you gain <strong>₹5.87 Cr of additional July
+    offtake</strong>, lifting national conversion from 73.4% to 85.3%.</p>
+    <p>That single number is the prize the entire deck is circling and never states. It is also
+    the baseline for judging every action in the 90-day plan: an intervention either moves a
+    share of ₹5.87 Cr or it doesn't earn its slot.</p>
+    <p>The same arithmetic on the largest account: Reliance at DMart's 76.5% conversion is worth
+    <strong>₹3.92 Cr</strong>.</p>
+    <p class="derivation">benchmark = (82.3 + 83.6) ÷ 2 = 82.95%<br>
+    North&nbsp;&nbsp;11.95 × 0.8295 = 9.91 vs 6.99 actual → +2.92<br>
+    East&nbsp;&nbsp;&nbsp;7.83 × 0.8295 = 6.50 vs 3.55 actual → +2.95<br>
+    total +5.87 · national conversion 73.4% → 85.3%</p>
+  </div>
+
+  <p class="worth">
+    <b>What it's worth</b>
+    <strong>₹5.87 Cr of monthly offtake</strong> at July run-rate, sized against an internal
+    benchmark rather than an aspiration — which means it survives the "is that realistic"
+    question, because two of your own zones already do it.
+  </p>
+</section>
+
+<!-- ============ 6. KNAFLIC ============ -->
+<section class="book">
+  <div class="book-head">
+    <p class="discipline">Owns · whether anyone acts on it</p>
+    <h2>Storytelling with Data</h2>
+    <p class="byline">Cole Nussbaumer Knaflic</p>
+  </div>
+
+  <p class="doing">
+    <strong>Already doing:</strong> your slide titles state findings rather than topics —
+    "Two high-conversion zones can fund focused intervention in North and East" is a real
+    sentence with a point. Most decks never get this far.
+  </p>
+
+  <div class="techs">
+    <div class="tech">
+      <h4>Cut to the one number that changes a decision</h4>
+      <p>Every element on a slide either supports the decision or competes with it. Thirteen
+      rows where one row carries the story is thirteen chances to miss it.</p>
+    </div>
+    <div class="tech">
+      <h4>Preattentive attributes carry the eye</h4>
+      <p>Colour should mark the exception, not decorate the furniture. When every card has a
+      coloured header, colour has stopped carrying information and nothing on the page tells the
+      reader where to look first.</p>
+    </div>
+    <div class="tech">
+      <h4>Never restate what the chart already said</h4>
+      <p>Text next to a number should explain <em>why</em>, never repeat <em>what</em>.</p>
+    </div>
+    <div class="tech">
+      <h4>Close with the ask</h4>
+      <p>A finding without a named owner and a date is a fact, not a recommendation. Your EVIDENCE /
+      IMPLICATION / ACTION / OWNER footer is the right frame — it just isn't filled in on any slide.</p>
+    </div>
+  </div>
+
+  <div class="proof">
+    <h3>Proof from your July deck</h3>
+    <p class="figure bad">−₹1.42 Cr vs +₹0.13 Cr</p>
+    <p>Modern Trade fell <strong>₹1.29 Cr</strong> month on month. Reliance alone accounts for
+    <strong>₹1.42 Cr</strong> of that. Every other chain in the comparable set, added together,
+    <strong>grew ₹0.13 Cr</strong>. July is not a broad softening — it is one account, and the
+    thirteen-row scorecard on slide 12 makes that almost impossible to see.</p>
+    <p>The zone pages have the opposite problem. Each carries a block titled "15 zone-specific
+    insights and actions." Of North's fifteen, item 01 restates the offtake already printed in
+    the KPI tile above it, 02 restates primary and offtake, 03 restates conversion, 04 restates
+    the gap. Four of the first five items repeat cards the reader passed two inches earlier. None
+    of the fifteen names a cause, and none names an owner.</p>
+    <p class="derivation">comparable chain set · Jun ₹28.19 Cr → Jul ₹26.90 Cr = −1.29<br>
+    ex-Reliance · −1.29 + 1.42 = +0.13<br>
+    set covers ₹26.90 of ₹36.10 Cr national = 74.5%</p>
+  </div>
+
+  <p class="worth">
+    <b>What it's worth</b>
+    Slide 12 currently takes about ninety seconds to read and leaves the room without a
+    conclusion. <strong>One sentence — "July is a Reliance problem; everything else grew"</strong>
+    — replaces it, and the ninety seconds go to what to do about Reliance.
+  </p>
+</section>
+
+<!-- ============ CLOSING ============ -->
+<section class="closing">
+  <h2 style="margin-bottom:6px">What to change in the August pack</h2>
+  <p style="color:var(--ink-soft); max-width:64ch; margin:0">
+    In dependency order — each step is only trustworthy once the one above it holds.
+  </p>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Change</th>
+          <th>Technique</th>
+          <th>Effect on the pack</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="seq">1</td>
+          <td>Report gross positive and gross negative gap as two lines</td>
+          <td>Kimball · grain</td>
+          <td class="num">₹15.17 Cr<br><span style="font-family:var(--body);font-weight:400;color:var(--ink-soft)">replaces a netted ₹13.11 Cr</span></td>
+        </tr>
+        <tr>
+          <td class="seq">2</td>
+          <td>Add a validated outer merge; publish unmatched keys as an exception list</td>
+          <td>McKinney · merge validation</td>
+          <td class="num">3 chains<br><span style="font-family:var(--body);font-weight:400;color:var(--ink-soft)">Lulu, Wellness, H&amp;G flagged, not ranked</span></td>
+        </tr>
+        <tr>
+          <td class="seq">3</td>
+          <td>Set a ₹0.25 Cr materiality floor before any % is shown or coloured</td>
+          <td>Wheelan · base rates</td>
+          <td class="num">13 → 5 rows<br><span style="font-family:var(--body);font-weight:400;color:var(--ink-soft)">on the chain scorecard</span></td>
+        </tr>
+        <tr>
+          <td class="seq">4</td>
+          <td>Add share per distribution point beside every share number</td>
+          <td>Lean · rates over counts</td>
+          <td class="num">0.045 vs 0.118<br><span style="font-family:var(--body);font-weight:400;color:var(--ink-soft)">reverses the shampoo pack call</span></td>
+        </tr>
+        <tr>
+          <td class="seq">5</td>
+          <td>Price every action against the internal-benchmark prize</td>
+          <td>Provost · expected value</td>
+          <td class="num">₹5.87 Cr<br><span style="font-family:var(--body);font-weight:400;color:var(--ink-soft)">North + East at West/S-1 conversion</span></td>
+        </tr>
+        <tr>
+          <td class="seq">6</td>
+          <td>Replace restated facts with cause, owner and date</td>
+          <td>Knaflic · declutter</td>
+          <td class="num">15 → 6<br><span style="font-family:var(--body);font-weight:400;color:var(--ink-soft)">items per zone page</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="footnote">
+    <strong>Sources and derivation.</strong> Every figure on this page is computed from the
+    July 2026 Honasa Chain NPI Recovery deck itself — its zone scorecard, chain scorecard,
+    embedded chart series and Nielsen RMS share slide — and the arithmetic is shown in the
+    mono block under each proof so it can be checked line by line. Nothing here is modelled,
+    estimated or imported from another source. The benchmark counterfactual holds primary
+    constant at July levels and assumes no supply constraint; it sizes an opportunity, it does
+    not forecast one, and it should not be annualised before a controlled pilot.
+  </p>
+</section>
+
+</div>
