@@ -15,3 +15,6 @@ __pycache__/
 # Backup files
 *.bak
 dashboard/data.js.d13.bak
+
+# Generated report artifacts (not source-controlled)
+MT_Leadership_Report.pptx
