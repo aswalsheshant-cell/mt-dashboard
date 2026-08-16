@@ -248,7 +248,7 @@ const recover = z => Math.max(0, z.pri * BENCH / 100 - z.off);
 /* Per-zone deep-dive content. `ins` = six diagnosed insights replacing the
    fifteen restated facts the source deck carried on each zone page. */
 const ZD = {
-  5: {
+  7: {
     zone: 'West', verdict: 'Protect and convert', accent: GREEN,
     pri: '₹9.71 Cr', off: '₹8.27 Cr', mix: '24.4% mix', conv: '85.2%', gap: '₹1.44 Cr',
     priority: 'Hold DMart execution as the national template • Reliance is the only weak cell',
@@ -267,7 +267,7 @@ const ZD = {
       { tag: 'SIZING', c: GREY, head: 'Zone is already above benchmark — no recovery pool here', why: '85.2% conversion sits at the internal benchmark. Effort spent here returns less than the same effort in North or East.', action: 'Hold headcount and trade spend flat; redirect incremental field capacity to North.', owner: 'Sales lead · Sep planning' }
     ]
   },
-  6: {
+  8: {
     zone: 'South-1', verdict: 'Protect and convert', accent: GREEN,
     pri: '₹9.48 Cr', off: '₹8.18 Cr', mix: '24.1% mix', conv: '86.3%', gap: '₹1.30 Cr',
     priority: 'Best conversion in the country • Apollo cadence is the transferable asset',
@@ -286,10 +286,10 @@ const ZD = {
       { tag: 'SIZING', c: GREY, head: 'Karnataka alone is 50.1% of zone offtake', why: 'Single-state dependence is the one structural risk in an otherwise strong zone; Kerala at ₹1.17 Cr is materially under-developed against its retail base.', action: 'Size the Kerala distribution white space in ₹ before the Q3 target reset.', owner: 'South-1 RKAM · 15 Sep' }
     ]
   },
-  7: {
-    zone: 'North', verdict: 'Largest recovery pool', accent: RED,
+  9: {
+    zone: 'North', verdict: 'Q1 best converter, July loaded', accent: RED,
     pri: '₹11.38 Cr', off: '₹6.97 Cr', mix: '20.5% mix', conv: '61.3%', gap: '₹4.41 Cr',
-    priority: 'Highest primary in the country against the third-lowest conversion',
+    priority: 'Converted 90.0% across Q1 — the best zone • July primary 16.4% above Q1 run-rate',
     chains: [['DMart', '2.53', '77.9%'], ['Reliance', '2.40', '44.9%'], ['Apollo', '1.16', '98.3%']],
     states: [['Delhi NCR', '1.97'], ['Rajasthan', '1.67'], ['Punjab', '1.55']],
     me: '₹4.74 Cr', meRows: [['Face Cleanser', '2.09'], ['Shampoo', '1.68'], ['Sun Care', '0.35']],
@@ -305,7 +305,7 @@ const ZD = {
       { tag: 'PORTFOLIO', c: TEAL, head: 'Mamaearth Shampoo at ₹1.68 Cr is strongest in the country', why: 'North is the largest shampoo zone by value despite the conversion problem, so the demand signal is real and the loss is downstream of it.', action: 'Protect shampoo hero-EAN availability first when OSA effort is prioritised.', owner: 'NKAM + Supply · from 18 Aug' }
     ]
   },
-  8: {
+  10: {
     zone: 'South-2', verdict: 'Isolated chain problem', accent: AMBER,
     pri: '₹6.73 Cr', off: '₹4.87 Cr', mix: '14.4% mix', conv: '72.4%', gap: '₹1.85 Cr',
     priority: 'One weak cell (DMart) inside an otherwise functioning zone',
@@ -324,10 +324,10 @@ const ZD = {
       { tag: 'NPI', c: GREEN, head: 'Lowest NPI exposure nationally at 6.4%', why: 'With conversion unresolved, low new-product exposure is the correct posture — this zone is not carrying launch risk on top of a fill problem.', action: 'Hold NPI allocation flat until DMart fill is fixed.', owner: 'Category · Sep review' }
     ]
   },
-  9: {
-    zone: 'East', verdict: 'Worst flow in the country', accent: RED,
+  11: {
+    zone: 'East', verdict: 'Q1 star, July load spike', accent: RED,
     pri: '₹7.10 Cr', off: '₹3.54 Cr', mix: '10.4% mix', conv: '49.9%', gap: '₹3.56 Cr',
-    priority: 'Less than half of billed value is reaching the consumer',
+    priority: 'Converted 89.7% across Q1 • July primary is 62.8% above its own Q1 run-rate',
     chains: [['Reliance', '2.16', '52.9%'], ['Apollo', '0.80', 'over 100%'], ['Vishal Mega Mart', '0.17', 'no primary']],
     states: [['West Bengal', '1.56'], ['Odisha', '0.60'], ['Bihar', '0.49']],
     me: '₹2.91 Cr', meRows: [['Face Cleanser', '1.34'], ['Shampoo', '1.18'], ['Sun Care', '0.19']],
@@ -343,7 +343,7 @@ const ZD = {
       { tag: 'PORTFOLIO', c: TEAL, head: 'The Derma Co. is barely present at ₹0.60 Cr', why: 'TDC is 16.9% of East offtake against 39.4% in West. Fixing flow before adding TDC distribution avoids compounding the problem.', action: 'Defer TDC expansion in East until zone conversion clears 60%.', owner: 'Category · Sep review' }
     ]
   },
-  10: {
+  12: {
     zone: 'Central', verdict: 'Small and healthy', accent: GREEN,
     pri: '₹2.62 Cr', off: '₹2.12 Cr', mix: '6.2% mix', conv: '80.9%', gap: '₹0.50 Cr',
     priority: 'Smallest zone, sound flow — manage for cost, not intervention',
@@ -362,7 +362,7 @@ const ZD = {
       { tag: 'DATA', c: AMBER, head: 'Apollo Central reported at 137.7%', why: 'Third zone where Apollo exceeds 100%. The national Apollo figure of 99.7% is an average of wide zone-level errors, not a measured parity.', action: 'Stop quoting Apollo national conversion until the zone figures reconcile.', owner: 'Analyst · 18 Aug' }
     ]
   },
-  11: {
+  13: {
     zone: 'eB2B', verdict: 'Separate channel — excluded from MT', accent: BLUE,
     pri: '₹2.20 Cr', off: '₹2.07 Cr', mix: 'outside MT', conv: '94.1%', gap: '₹0.13 Cr',
     priority: 'Nykaa (FSN) + Eremedium • formerly reported as the "Pan India" zone',
@@ -387,6 +387,7 @@ const ZD = {
 
 const METHOD = 'Zone performance represents Modern Trade accounts only. eB2B and SIS channels are excluded from MT zone sales and reported separately.';
 const SRC_MAIN = 'July Compiled Offtake (Sheet1) · July\'26 primary and distributor secondary · values in ₹ Cr · ' + METHOD;
+const SRC_Q1 = 'Q1 FY27 cut from the Apr/May/Jun month sources with Channel == MT · Q1 FY26 comparatives from the June 2026 MT offtake pack, restated MT-only · ' + METHOD;
 const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_June26 · share-per-point derived as value share ÷ weighted distribution · ' + METHOD;
 
 /* ---------------------------------------------------------------- S1 */
@@ -522,9 +523,169 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   });
 }
 
+/* ------------------------------------------------ S2  Q1 FY27 scorecard */
+{
+  const s = page(2, 'Q1 FY27: Modern Trade grew 66.6% to ₹107.75 Cr',
+    'Quarter in review | Apr–Jun 2026 vs Apr–Jun 2025 | Modern Trade accounts only | ₹ Cr', SRC_Q1);
+
+  const kw = (CW - 0.36) / 4, kx = i => M + i * (kw + 0.12);
+  kpi(s, { x: kx(0), y: BODY_Y, w: kw, h: 0.94, label: 'Q1 MT OFFTAKE', value: '₹107.75 Cr', sub: 'vs ₹64.69 Cr in Q1 FY26', accent: BRIGHT });
+  kpi(s, { x: kx(1), y: BODY_Y, w: kw, h: 0.94, label: 'Q1 GROWTH', value: '+66.6%', sub: 'blended read was +63.6%', accent: GREEN });
+  kpi(s, { x: kx(2), y: BODY_Y, w: kw, h: 0.94, label: 'Q1 MT PRIMARY', value: '₹129.73 Cr', sub: 'Channel == MT, three months', accent: BLUE });
+  kpi(s, { x: kx(3), y: BODY_Y, w: kw, h: 0.94, label: 'Q1 CONVERSION', value: '83.1%', sub: 'July fell to 72.2%', accent: GREEN });
+
+  let y = BODY_Y + 1.06;
+  s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.66, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
+  s.addText([
+    { text: 'EXCLUDING eB2B MAKES MT LOOK BETTER, NOT WORSE   ', options: { color: TEAL, bold: true, fontSize: 7 } },
+    { text: 'The June pack reported Q1 at ₹114.39 Cr and +63.6% on a blended MT + eB2B base. Nykaa (FSN) grew only 25% against the network’s 67%, so carrying it inside MT held the headline down. On a Modern Trade base the quarter grew 66.6%.', options: { fontSize: 7.2, color: INK } }
+  ], txt({ x: M + 0.14, y: y + 0.08, w: CW - 0.28, h: 0.52, lineSpacingMultiple: 0.94 }));
+
+  y += 0.82;
+  y = banner(s, y, 'ZONE — Q1 FY27 vs Q1 FY26 (MODERN TRADE ONLY)');
+  y = table(s, {
+    x: M, y, w: CW, rowH: 0.34, size: 7.4, cols: [
+      { t: 'ZONE', w: 1.3 }, { t: 'Q1 FY26', w: 1.0, a: 'right' }, { t: 'Q1 FY27', w: 1.0, a: 'right' },
+      { t: 'GROWTH', w: 0.95, a: 'right' }, { t: 'MIX', w: 0.75, a: 'right' },
+      { t: 'Q1 CONV.', w: 0.95, a: 'right' }, { t: 'JUL CONV.', w: 0.95, a: 'right' }
+    ],
+    rows: [
+      [{ t: 'West', b: true }, '18.77', { t: '29.05', b: true }, { t: '+55%', c: GREEN }, '27.0%', '80.3%', { t: '85.2%', c: GREEN }],
+      [{ t: 'North', b: true }, '15.83', { t: '26.41', b: true }, { t: '+67%', c: GREEN }, '24.5%', { t: '90.0%', c: GREEN }, { t: '61.2%', b: true, c: RED }],
+      [{ t: 'South-1', b: true }, '13.56', { t: '24.89', b: true }, { t: '+84%', b: true, c: GREEN }, '23.1%', '78.3%', { t: '86.3%', c: GREEN }],
+      [{ t: 'South-2', b: true }, '9.52', { t: '15.76', b: true }, { t: '+66%', c: GREEN }, '14.6%', '81.4%', { t: '72.4%', c: AMBER }],
+      [{ t: 'East', b: true }, '7.01', { t: '11.73', b: true }, { t: '+67%', c: GREEN }, '10.9%', { t: '89.7%', c: GREEN }, { t: '49.9%', b: true, c: RED }],
+      [{ t: 'TOTAL MT', b: true }, { t: '64.69', b: true }, { t: '107.75', b: true }, { t: '+66.6%', b: true, c: GREEN }, '100%', { t: '83.1%', b: true }, { t: '72.2%', b: true, c: RED }]
+    ]
+  });
+  s.addText('Central carried no primary in Apr–Jun and appears from July, so it has no Q1 comparative. eB2B (FSN) grew 25% to ₹6.53 Cr and is reported on page 13.', txt({
+    x: M, y: y + 0.06, w: CW, h: 0.24, fontSize: 6.6, color: GREY, lineSpacingMultiple: 0.94 }));
+
+  y += 0.40;
+  const hw = (CW - 0.16) / 2;
+  const ya = card(s, { x: M, y, w: hw, h: 2.34, label: 'CHAIN — Q1 FY27 (₹ Cr)', accent: TEAL });
+  const chains = [['D-Mart', '26.00', '42.32', '+63%'], ['Reliance', '19.08', '28.06', '+47%'],
+                  ['Apollo', '7.93', '21.73', '+174%'], ['Lulu', '1.24', '3.33', '+169%'],
+                  ['Wellness Forever', '2.49', '2.91', '+17%']];
+  chains.forEach((c, i) => {
+    const yy = ya + i * 0.33;
+    s.addText(c[0], txt({ x: M + 0.12, y: yy, w: hw - 1.70, h: 0.30, fontSize: 7.2, bold: i < 3 }));
+    s.addText(c[1], txt({ x: M + hw - 1.62, y: yy, w: 0.50, h: 0.30, fontSize: 7, align: 'right', color: GREY }));
+    s.addText(c[2], txt({ x: M + hw - 1.06, y: yy, w: 0.52, h: 0.30, fontSize: 7.2, align: 'right', bold: true }));
+    s.addText(c[3], txt({ x: M + hw - 0.50, y: yy, w: 0.40, h: 0.30, fontSize: 7, align: 'right', color: GREEN, bold: true }));
+  });
+  s.addText('Apollo added ₹13.80 Cr — the largest absolute gain of any account, off a base a third of DMart’s.', txt({
+    x: M + 0.12, y: ya + 1.66, w: hw - 0.24, h: 0.30, fontSize: 6.6, color: GREY, lineSpacingMultiple: 0.90 }));
+
+  const bx = M + hw + 0.16;
+  const yb = card(s, { x: bx, y, w: hw, h: 2.34, label: 'BRAND — Q1 FY27 (₹ Cr)', accent: BRIGHT });
+  const brands = [['Mamaearth', '61.42', '82.54', '+34%'], ['The Derma Co.', '6.34', '29.51', '+365%'],
+                  ['Aqualogica', '1.69', '1.96', '+16%'], ['Other brands', '0.44', '0.36', '−18%']];
+  brands.forEach((c, i) => {
+    const yy = yb + i * 0.33;
+    s.addText(c[0], txt({ x: bx + 0.12, y: yy, w: hw - 1.70, h: 0.30, fontSize: 7.2, bold: i < 2 }));
+    s.addText(c[1], txt({ x: bx + hw - 1.62, y: yy, w: 0.50, h: 0.30, fontSize: 7, align: 'right', color: GREY }));
+    s.addText(c[2], txt({ x: bx + hw - 1.06, y: yy, w: 0.52, h: 0.30, fontSize: 7.2, align: 'right', bold: true }));
+    s.addText(c[3], txt({ x: bx + hw - 0.50, y: yy, w: 0.40, h: 0.30, fontSize: 7, align: 'right', color: i === 3 ? RED : GREEN, bold: true }));
+  });
+  s.addText('The Derma Co. added ₹23.17 Cr — 54% of all Q1 growth — off a base one tenth of Mamaearth’s. Its scale-up is the quarter’s biggest commercial event.', txt({
+    x: bx + 0.12, y: yb + 1.42, w: hw - 0.24, h: 0.50, fontSize: 6.8, color: GREY, lineSpacingMultiple: 0.92 }));
+
+  y += 2.50;
+  y = banner(s, y, 'Q1 READOUT');
+  bullets(s, { x: M + 0.10, y: y + 0.02, w: CW - 0.20, gap: 0.42, size: 7.4, items: [
+    { t: 'Every zone grew more than 55% and South-1 led at +84%. Growth is broad-based, not carried by one geography.', b: true },
+    { t: 'The Derma Co. at +365% supplied 54% of the quarter’s growth on a tenth of Mamaearth’s base — the portfolio is genuinely widening.' },
+    { t: 'Apollo at +174% is the fastest material account, now ₹21.73 Cr and ahead of its Q1 FY26 position by ₹13.80 Cr.' },
+    { t: 'Q1 converted at 83.1%; July converted at 72.2% — and the two zones that led Q1 conversion fell hardest. Page 3 explains why.', b: true, c: RED }
+  ]});
+}
+
+/* --------------------------------------- S3  the quarter-opening load */
+{
+  const s = page(3, 'July did not break — it is the quarter-opening load, and April did the same',
+    'Why July conversion fell | monthly Modern Trade flow, Apr–Jul 2026 | ₹ Cr', SRC_Q1);
+
+  s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 1.06, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
+  s.addText('Conversion collapses in the first month of every quarter, then recovers', txt({
+    x: M + 0.16, y: BODY_Y + 0.10, w: CW - 0.32, h: 0.32, fontSize: 11.5, bold: true, fontFace: FONTH, color: TEAL, align: 'center', valign: 'middle' }));
+  s.addText('Apr 70.0%   →   May 90.1%   →   Jun 91.4%   →   Jul 72.2%', txt({
+    x: M + 0.16, y: BODY_Y + 0.46, w: CW - 0.32, h: 0.24, fontSize: 9, bold: true, align: 'center' }));
+  s.addText('April opened Q1 with ₹48.00 Cr of primary against ₹33.60 Cr of offtake. July opened Q2 with ₹47.02 Cr against ₹33.96 Cr. The two months are the same event, one quarter apart. Reading July on its own turns a billing rhythm into a performance crisis.', txt({
+    x: M + 0.24, y: BODY_Y + 0.72, w: CW - 0.48, h: 0.28, fontSize: 7.2, color: GREY, align: 'center', lineSpacingMultiple: 0.94 }));
+
+  let y = BODY_Y + 1.22;
+  const hw = (CW - 0.16) / 2;
+  chartTitle(s, M, y, hw, 'MT primary vs offtake by month (₹ Cr)');
+  s.addChart(pres.ChartType.bar, [
+    { name: 'Primary', labels: ['Apr', 'May', 'Jun', 'Jul'], values: [48.00, 42.32, 39.41, 47.02] },
+    { name: 'Offtake', labels: ['Apr', 'May', 'Jun', 'Jul'], values: [33.60, 38.11, 36.04, 33.96] }
+  ], Object.assign({}, axisBase, {
+    x: M - 0.02, y: y + 0.22, w: hw, h: 1.94, barGapWidthPct: 45,
+    chartColors: [BLUE, BRIGHT], showLegend: true, legendPos: 'b', legendFontSize: 6.2, legendColor: GREY,
+    showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 6, dataLabelColor: INK, dataLabelFormatCode: '0.0',
+    valAxisMaxVal: 55
+  }));
+  chartTitle(s, M + hw + 0.16, y, hw, 'MT flow conversion by month (%)');
+  s.addChart(pres.ChartType.line, [{ name: 'Conversion', labels: ['Apr', 'May', 'Jun', 'Jul'], values: [70.0, 90.1, 91.4, 72.2] }],
+    Object.assign({}, axisBase, {
+      x: M + hw + 0.14, y: y + 0.22, w: hw, h: 1.94, chartColors: [RED], lineSize: 2.5, lineSmooth: false,
+      showValue: true, dataLabelPosition: 't', dataLabelFontSize: 6.6, dataLabelColor: INK, dataLabelFormatCode: '0.0',
+      valAxisMinVal: 60, valAxisMaxVal: 100
+    }));
+
+  y += 2.34;
+  y = banner(s, y, 'THE ZONES THAT LOADED HARDEST CONVERTED WORST', RED);
+  y = table(s, {
+    x: M, y, w: CW, rowH: 0.36, size: 7.4, cols: [
+      { t: 'ZONE', w: 1.2 }, { t: 'Q1 MONTHLY AVG PRIMARY', w: 1.8, a: 'right' },
+      { t: 'JULY PRIMARY', w: 1.2, a: 'right' }, { t: 'LOAD vs Q1', w: 1.1, a: 'right' },
+      { t: 'Q1 CONV.', w: 0.95, a: 'right' }, { t: 'JUL CONV.', w: 0.95, a: 'right' }
+    ],
+    rows: [
+      [{ t: 'East', b: true }, '4.36', '7.10', { t: '+62.8%', b: true, c: RED }, '89.7%', { t: '49.9%', b: true, c: RED }],
+      [{ t: 'North', b: true }, '9.78', '11.38', { t: '+16.4%', b: true, c: RED }, '90.0%', { t: '61.2%', b: true, c: RED }],
+      [{ t: 'South-2', b: true }, '6.45', '6.73', { t: '+4.3%', c: AMBER }, '81.4%', { t: '72.4%', c: AMBER }],
+      [{ t: 'South-1', b: true }, '10.59', '9.48', { t: '−10.5%', c: GREEN }, '78.3%', { t: '86.3%', c: GREEN }],
+      [{ t: 'West', b: true }, '12.06', '9.71', { t: '−19.5%', c: GREEN }, '80.3%', { t: '85.2%', c: GREEN }]
+    ]
+  });
+  s.addText('Ranked by July load against each zone’s own Q1 run-rate. The order is monotonic: every zone that billed above its Q1 average lost conversion, every zone that billed below it gained. Assortment, pricing and execution do not move that cleanly.', txt({
+    x: M, y: y + 0.06, w: CW, h: 0.30, fontSize: 6.8, color: GREY, lineSpacingMultiple: 0.94 }));
+
+  y += 0.48;
+  const c3 = (CW - 0.24) / 3, cx3 = i => M + i * (c3 + 0.12);
+  const cards = [
+    { l: 'WHAT THIS CHANGES', a: RED, big: 'East is not broken', items: [
+      { t: 'East converted at 89.7% across Q1 — second best in the country.', b: true },
+      { t: 'Its July primary is 62.8% above its own Q1 monthly run-rate.' },
+      { t: 'A 49.9% read on a 63% load spike is arithmetic, not an execution failure.' } ] },
+    { l: 'WHAT STAYS TRUE', a: AMBER, big: 'The stock is real', items: [
+      { t: '₹13.06 Cr is billed and not yet sold through, whatever caused it.', b: true },
+      { t: 'It either sells in August or it suppresses the next order.' },
+      { t: 'The ₹6.22 Cr benchmark gap stands as an August recovery target.' } ] },
+    { l: 'WHAT TO DO DIFFERENTLY', a: GREEN, big: 'Phase the quarter', items: [
+      { t: 'Judge conversion on a rolling quarter, never on the opening month.', b: true },
+      { t: 'Cap month-1 primary at the trailing quarterly run-rate, by zone.' },
+      { t: 'Re-read East and North in the August pack before funding any intervention.' } ] }
+  ];
+  cards.forEach((t, i) => {
+    const y0 = card(s, { x: cx3(i), y, w: c3, h: 2.04, label: t.l, accent: t.a });
+    s.addText(t.big, txt({ x: cx3(i) + 0.10, y: y0, w: c3 - 0.20, h: 0.34, fontSize: 12, bold: true, fontFace: FONTH, color: t.a, align: 'center', valign: 'middle' }));
+    bullets(s, { x: cx3(i) + 0.12, y: y0 + 0.44, w: c3 - 0.24, gap: 0.42, size: 7, items: t.items, dot: t.a });
+  });
+
+  y += 2.20;
+  s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.66, rectRadius: 0.03, fill: { color: 'FBEDEC' }, line: { color: RED, width: 1 } });
+  s.addText([
+    { text: 'READ THE REST OF THIS PACK WITH THIS IN MIND   ', options: { color: RED, bold: true, fontSize: 7 } },
+    { text: 'The zone pages that follow report July on its own, because that is the month under review. Every July conversion figure in them is depressed by the quarter-opening load shown above. Use them to locate where the billed stock sits — not to rank zone capability. Q1 already did that, and it ranked North and East first.', options: { fontSize: 7.2, color: INK } }
+  ], txt({ x: M + 0.14, y: y + 0.08, w: CW - 0.28, h: 0.52, lineSpacingMultiple: 0.94 }));
+}
+
 /* ---------------------------------------------------------------- S2 */
 {
-  const s = page(2, 'Convert reporting into a State × Chain × SKU growth engine',
+  const s = page(4, 'Convert reporting into a State × Chain × SKU growth engine',
     'Decision framework | measures in force now, and the fields still to be reconciled', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 0.92, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
@@ -594,7 +755,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S3 */
 {
-  const s = page(3, 'Mamaearth is gaining share — but shampoo is a productivity problem, not a width problem',
+  const s = page(5, 'Mamaearth is gaining share — but shampoo is a productivity problem, not a width problem',
     'June 2026 market share | Nielsen RMS value share and weighted distribution', SRC_NIEL);
 
   const kw = (CW - 0.24) / 3;
@@ -681,7 +842,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S4 */
 {
-  const s = page(4, 'Two zones convert at 86% — that rate is worth ₹6.22 Cr applied to the other three',
+  const s = page(6, 'Two zones convert at 86% — that rate is worth ₹6.22 Cr applied to the other three',
     'Zone portfolio | contribution, conversion and recoverable value at the internal benchmark', SRC_MAIN);
 
   let y = banner(s, BODY_Y, 'ZONE SCORECARD — RANKED BY RECOVERABLE VALUE, NOT BY SIZE');
@@ -737,7 +898,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     { t: 'Fix — South-2: now clears the floor at ₹0.90 Cr. Audit DMart DC-to-store fill against the West benchmark. Owner: NKAM DMart + Supply, 22 Aug.' },
     { t: 'Protect — West, South-1: hold hero-SKU OSA, avoid unnecessary loading, document DMart West cadence as the national template.' },
     { t: 'Exception-report — Central and West: ₹0.13 Cr and ₹0.05 Cr recoverable are below the ₹0.25 Cr floor; keep them out of the weekly review.', c: GREY },
-    { t: 'Separate — eB2B (₹2.20 Cr) and SIS now report as their own channels on pages 11 and 12, outside every MT zone figure.', c: BLUE }
+    { t: 'Separate — eB2B (₹2.20 Cr) and SIS now report as their own channels on pages 13 and 14, outside every MT zone figure.', c: BLUE }
   ]});
 
   y += 2.20;
@@ -758,9 +919,9 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 }
 
 /* ------------------------------------------------------- S5–S11 zones */
-[5, 6, 7, 8, 9, 10, 11].forEach(n => {
+[7, 8, 9, 10, 11, 12, 13].forEach(n => {
   const d = ZD[n];
-  const isChannel = (n === 11);
+  const isChannel = (n === 13);
   const s = page(n, `${d.zone}: ${d.verdict}`,
     isChannel ? 'Channel view | July 2026 | ₹ Cr | reported outside Modern Trade'
               : 'MT zone deep dive | July 2026 | ₹ Cr | Modern Trade accounts only', SRC_MAIN);
@@ -779,7 +940,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
   y += 0.56;
   const halfW = (CW - 0.16) / 2;
-  const cd = CH[String(n)] || [];
+  const cd = CH[String(n - 2)] || [];   // charts.json is keyed by the original slide order
   const CHT = 1.64;
   if (n === 11) {
     chartTitle(s, M, y, halfW, 'FSN/Nykaa offtake, Jan–Jul 2026 (₹ Cr)');
@@ -858,7 +1019,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ------------------------------------------------- S12  SIS channel page */
 {
-  const s = page(12, 'SIS: Separate channel — excluded from MT',
+  const s = page(14, 'SIS: Separate channel — excluded from MT',
     'Channel view | Shop-in-Shop | FY27 to date | ₹ Lakh | reported outside Modern Trade', SRC_MAIN);
 
   const kw = (CW - 0.36) / 4, kx = i => M + i * (kw + 0.12);
@@ -940,7 +1101,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S12 */
 {
-  const s = page(13, 'July is a Reliance problem — every other chain combined grew',
+  const s = page(15, 'July is a Reliance problem — every other chain combined grew',
     'Chain growth and risk | June–July 2026 | ranked by ₹ change above a ₹0.25 Cr materiality floor', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 1.16, rectRadius: 0.03, fill: { color: 'FBEDEC' }, line: { color: RED, width: 1 } });
@@ -1014,7 +1175,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S13 */
 {
-  const s = page(14, 'Fix the specific commercial loophole — not the whole account',
+  const s = page(16, 'Fix the specific commercial loophole — not the whole account',
     'Chain recovery plan | evidence, action, success KPI and value at stake', SRC_MAIN);
 
   let y = banner(s, BODY_Y, 'CHAIN-WISE RECOVERY LOOP — ORDERED BY VALUE AT STAKE');
@@ -1089,8 +1250,8 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S14 */
 {
-  const s = page(15, 'eB2B account detail: Nykaa (FSN) holds 99.4% flow on a contracting range',
-    'eB2B channel | account deep dive | January–July 2026 | excluded from MT — see page 11', SRC_MAIN);
+  const s = page(17, 'eB2B account detail: Nykaa (FSN) holds 99.4% flow on a contracting range',
+    'eB2B channel | account deep dive | January–July 2026 | excluded from MT — see page 13', SRC_MAIN);
 
   const kw = (CW - 0.24) / 3;
   kpi(s, { x: M, y: BODY_Y, w: kw, h: 0.94, label: 'JUL PRIMARY', value: '₹2.08 Cr', sub: 'FSN + Nykaa SS, eB2B', accent: BLUE });
@@ -1153,7 +1314,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S15 */
 {
-  const s = page(16, 'NPI is ₹2.82 Cr — and 82% of it sits in the two accounts that convert worst',
+  const s = page(18, 'NPI is ₹2.82 Cr — and 82% of it sits in the two accounts that convert worst',
     'New product introduction | contribution by zone and chain | July 2026', SRC_MAIN);
 
   const kw = (CW - 0.24) / 3;
@@ -1238,7 +1399,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S16 */
 {
-  const s = page(17, 'Three chains hold ₹13.27 Cr of gap; three more hide ₹2.23 Cr behind unmapped primary',
+  const s = page(19, 'Three chains hold ₹13.27 Cr of gap; three more hide ₹2.23 Cr behind unmapped primary',
     'Chain deep dive | gross positive and gross negative gap | July 2026 | ₹ Cr', SRC_MAIN);
 
   chartTitle(s, M, BODY_Y, CW, 'Primary vs offtake by chain (₹ Cr) — Lulu bills through an unmapped route');
@@ -1303,7 +1464,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S17 */
 {
-  const s = page(18, 'Two brands carry 98.4% of offtake; Face Cleanser alone carries a third',
+  const s = page(20, 'Two brands carry 98.4% of offtake; Face Cleanser alone carries a third',
     'Brand and sub-category architecture | July 2026', SRC_MAIN);
 
   const chW = 4.20;
@@ -1392,7 +1553,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S18 */
 {
-  const s = page(19, 'A 90-day cadence that converts ₹6.22 Cr without loading a single extra case',
+  const s = page(21, 'A 90-day cadence that converts ₹6.22 Cr without loading a single extra case',
     'Sales uplift plan | actions ranked by value at stake, with owners and proof points', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 0.72, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
@@ -1465,7 +1626,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ---------------------------------------------------------------- S19 */
 {
-  const s = page(20, 'Decision-safe definitions, quality gates and authority boundaries',
+  const s = page(22, 'Decision-safe definitions, quality gates and authority boundaries',
     'Audit command centre | grain, conformity, coverage and controlled execution', SRC_MAIN);
 
   s.addShape(pres.ShapeType.roundRect, { x: M, y: BODY_Y, w: CW, h: 0.86, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
