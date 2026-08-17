@@ -120,6 +120,14 @@ class TestCanonZone:
 
     def test_passthrough(self):
         assert bd.canon_zone("West") == "West"
+        assert bd.canon_zone("Central") == "Central"
+        assert bd.canon_zone("East") == "East"
+
+    def test_central_zone_aliases(self):
+        assert bd.canon_zone("central") == "Central"
+        assert bd.canon_zone("CENTRAL") == "Central"
+        assert bd.canon_zone("pan india") == "Pan India"
+        assert bd.canon_zone("PAN INDIA") == "Pan India"
 
 
 # ── Brand helpers ──────────────────────────────────────────────────────────
