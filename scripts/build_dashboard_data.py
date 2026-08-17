@@ -123,11 +123,18 @@ def canon_brand(b):
     return BRAND_MAP.get(k, str(b).strip())
 
 def canon_zone(z):
+    """Canonicalize zone names from source data to standard form.
+
+    Central zone (Madhya Pradesh + Chhattisgarh) is classified as "Central" in
+    offtake source data and maintained as an official MT zone per ZoneStateMaster.csv.
+    This function normalizes variant spellings (e.g. "south-1" -> "South 1") and
+    ensures "Central" passes through as-is to the aggregation pipeline.
+    """
     if z is None:
         return None
     z = str(z).strip()
     m = {"south-1": "South 1", "south 1": "South 1", "south-2": "South 2", "south 2": "South 2",
-         "north": "North", "west": "West", "east": "East"}
+         "north": "North", "west": "West", "east": "East", "central": "Central", "pan india": "Pan India"}
     return m.get(z.lower(), z)
 
 STATE_ALIASES = {
