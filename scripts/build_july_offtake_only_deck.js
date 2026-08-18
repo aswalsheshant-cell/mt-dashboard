@@ -318,9 +318,171 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
     x: M, y, w: CW, h: 0.32, fontSize: 7.2, color: GREY, lineSpacingMultiple: 0.92 }));
 }
 
-/* ============================================================= SLIDE 3: ZONE PERFORMANCE */
+/* ============================================================= SLIDE 3: Q1 FY27 PERFORMANCE */
+// FY26 monthly offtake (Lakh, from pre-agg workbook) — Apr-25 to Mar-26:
+// [3174.6, 2366.9, 2182.64, 2472.9, ...] → Apr=31.75, May=23.67, Jun=21.83, Jul=24.73 Cr
+const LY = { apr: 31.75, may: 23.67, jun: 21.83, jul: 24.73 };
+const FY27 = { apr: 35.88, may: 40.19, jul: 36.06 }; // Jun absent
+const Q1_FY27 = 35.88 + 40.19 + 36.06;    // 112.13 Cr (3 months)
+const Q1_FY26C = 31.75 + 23.67 + 24.73;   // 80.15 Cr (same 3 months LY)
+const Q1_YOY = ((Q1_FY27 - Q1_FY26C) / Q1_FY26C * 100).toFixed(1); // +39.9%
 {
-  const s = page(3, 'Zone Offtake Performance — July 2026',
+  const s = page(3, 'Q1 FY27 Performance — Apr + May + Jul vs Last Year',
+    'June 2026 absent from source · Comparable 3-month LY = Apr-25 + May-25 + Jul-25 · Pre-agg workbook');
+
+  let y = BODY_Y;
+
+  // Row 1: 4 headline KPIs
+  const kw4 = (CW - 0.30) / 4, kx4 = i => M + i * (kw4 + 0.10);
+  kpi(s, { x: kx4(0), y, w: kw4, h: 0.92, label: 'Q1 FY27 NSV (3 months)', value: '₹112.13 Cr',
+    sub: 'Apr + May + Jul · Jun absent', accent: TEAL });
+  kpi(s, { x: kx4(1), y, w: kw4, h: 0.92, label: 'Q1 FY26 COMPARABLE',    value: '₹80.15 Cr',
+    sub: 'Same 3 months LY · pre-agg', accent: GREY });
+  kpi(s, { x: kx4(2), y, w: kw4, h: 0.92, label: 'YoY GROWTH (3M)',       value: '+39.9%',
+    sub: 'Like-for-like comparable', accent: GREEN, valueColor: GREEN });
+  kpi(s, { x: kx4(3), y, w: kw4, h: 0.92, label: 'MONTHLY AVG FY27',      value: '₹37.38 Cr',
+    sub: '₹112.13 ÷ 3 months', accent: BLUE });
+  y += 1.04;
+
+  // Monthly grouped bar (FY27 vs FY26)
+  chartTitle(s, M, y, CW * 0.58, 'Monthly offtake NSV — FY27 vs FY26 LY (₹ Cr)');
+  s.addChart(pres.ChartType.bar, [
+    { name: 'FY27', labels: ['Apr', 'May', 'Jun\n(absent)', 'Jul'],
+      values: [FY27.apr, FY27.may, null, FY27.jul] },
+    { name: 'FY26 LY', labels: ['Apr', 'May', 'Jun', 'Jul'],
+      values: [LY.apr, LY.may, LY.jun, LY.jul] },
+  ], Object.assign({}, axisBase, {
+    x: M, y: y + 0.22, w: CW * 0.58, h: 2.34,
+    barDir: 'col', barGrouping: 'clustered', barGapWidthPct: 35,
+    chartColors: [TEAL, BLUE],
+    showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 6.5,
+    valAxisLabelFontSize: 7, catAxisLabelFontSize: 8,
+    showLegend: true, legendPos: 'b', legendFontSize: 7, legendColor: GREY,
+  }));
+
+  // Month growth cards (right column)
+  const gmw = (CW * 0.40 - 0.08) / 3, gmx = i => M + CW * 0.60 + i * (gmw + 0.04);
+  chartTitle(s, M + CW * 0.60, y, CW * 0.40, 'YoY growth — Jul is accelerating');
+  [
+    { mo: 'APR', pct: '+13.0%', fy27: '₹35.88', fy26: '₹31.75', delta: '+₹4.13', a: TEAL },
+    { mo: 'MAY', pct: '+69.8%', fy27: '₹40.19', fy26: '₹23.67', delta: '+₹16.52', a: BRIGHT },
+    { mo: 'JUL', pct: '+45.8%', fy27: '₹36.06', fy26: '₹24.73', delta: '+₹11.33', a: BLUE },
+  ].forEach((m, i) => {
+    const gy = card(s, { x: gmx(i), y: y + 0.22, w: gmw, h: 2.34, label: m.mo, accent: m.a });
+    s.addText(m.pct, txt({ x: gmx(i)+0.06, y: gy+0.04, w: gmw-0.12, h: 0.40,
+      fontSize: 16, bold: true, fontFace: FONTH, color: GREEN, align: 'center' }));
+    s.addText(m.fy27 + ' Cr', txt({ x: gmx(i)+0.06, y: gy+0.48, w: gmw-0.12, h: 0.22,
+      fontSize: 7.5, bold: true, color: TEAL, align: 'center' }));
+    s.addText('vs ' + m.fy26 + ' Cr LY', txt({ x: gmx(i)+0.06, y: gy+0.72, w: gmw-0.12, h: 0.20,
+      fontSize: 6.8, color: GREY, align: 'center' }));
+    s.addText(m.delta + ' Cr', txt({ x: gmx(i)+0.06, y: gy+0.96, w: gmw-0.12, h: 0.24,
+      fontSize: 8.5, bold: true, color: GREEN, align: 'center' }));
+  });
+  y += 2.68;
+
+  // Insight block
+  y = banner(s, y, 'Q1 FY27 READ — DIAGNOSTIC & INTERPRETATION', TEAL);
+  const cy = card(s, { x: M, y, w: CW, h: 3.00, label: 'Q1 DIAGNOSTIC — FY27 vs FY26 COMPARABLE', accent: TEAL });
+  bullets(s, { x: M + 0.14, y: cy, w: CW - 0.28, gap: 0.46, size: 7.8, items: [
+    { t: 'Q1 FY27 (3-month comparable): ₹112.13 Cr vs ₹80.15 Cr FY26 = +39.9% YoY. Structural growth across all 3 months.', b: true, c: TEAL },
+    { t: 'May is the standout: ₹40.19 Cr (+69.8% vs May-25 ₹23.67 Cr). Likely promotional activation drove a strong billing month. Watch if May demand was pull-forward from June/July.' },
+    { t: 'July came in at ₹36.06 Cr vs ₹24.73 Cr LY (+45.8%). Post-May softness is normal. The key signal: July grew 45.8% YoY, not declining vs FY26.', b: true, c: GREEN },
+    { t: 'June 2026 is absent from the offtake source. The true Q1 4-month total cannot be computed. FY26 June was ₹21.83 Cr — if added to FY26 base, comparable YoY = ₹112.13 Cr vs ₹102.0 Cr = +10%. Use 3-month comparable (+39.9%) as primary lens.', c: AMBER },
+    { t: 'FY27 monthly avg ₹37.38 Cr vs FY26 same-period avg ₹26.72 Cr. Run rate improvement of +40% is the H1 baseline for planning Aug–Sep targets.', c: BLUE },
+  ]});
+}
+
+/* ============================================================= SLIDE 4: JULY MTD vs LY */
+{
+  const s = page(4, 'July 2026 MTD — vs Last Year (July FY26)',
+    'Jul-26 EXACT from CSV (220,522 rows) · Jul-25 from pre-aggregated FY26 workbook (NSV only)');
+
+  let y = BODY_Y;
+
+  // Big side-by-side comparison
+  y = banner(s, y, 'NATIONAL OFFTAKE — JULY 2026 vs JULY 2025', TEAL);
+  const bw = (CW - 0.14) / 3, bx = i => M + i * (bw + 0.07);
+
+  // Jul-26 card
+  const ay26 = card(s, { x: bx(0), y, w: bw, h: 2.60, label: 'JULY 2026 (FY27) — THIS YEAR', accent: TEAL });
+  s.addText('₹36.06 Cr', txt({ x: bx(0)+0.10, y: ay26,       w: bw-0.20, h: 0.46, fontSize: 22, bold: true, fontFace: FONTH, color: TEAL, align: 'center' }));
+  s.addText('2,051,674 units', txt({ x: bx(0)+0.10, y: ay26+0.50, w: bw-0.20, h: 0.22, fontSize: 8.5, color: GREY, align: 'center', bold: true }));
+  s.addText('ASP ₹175.76 / unit', txt({ x: bx(0)+0.10, y: ay26+0.74, w: bw-0.20, h: 0.20, fontSize: 7.5, color: GREY, align: 'center' }));
+  s.addText('Realisation 42.8%', txt({ x: bx(0)+0.10, y: ay26+0.96, w: bw-0.20, h: 0.20, fontSize: 7.5, color: GREY, align: 'center' }));
+  s.addText('Source: EXACT (CSV 220,522 rows, 0 bad)', txt({ x: bx(0)+0.10, y: ay26+1.22, w: bw-0.20, h: 0.18, fontSize: 6.2, color: BRIGHT, align: 'center', italic: true }));
+
+  // YoY growth card (middle)
+  const aym = card(s, { x: bx(1), y, w: bw, h: 2.60, label: 'YoY GROWTH', accent: GREEN });
+  s.addText('+₹11.33 Cr', txt({ x: bx(1)+0.10, y: aym,       w: bw-0.20, h: 0.44, fontSize: 20, bold: true, fontFace: FONTH, color: GREEN, align: 'center' }));
+  s.addText('+45.8%', txt({ x: bx(1)+0.10, y: aym+0.48, w: bw-0.20, h: 0.36, fontSize: 17, bold: true, fontFace: FONTH, color: GREEN, align: 'center' }));
+  s.addText('July is the 2nd highest-growth\nmonth in Q1 FY27 after May', txt({ x: bx(1)+0.10, y: aym+0.90, w: bw-0.20, h: 0.46, fontSize: 7.5, color: INK, align: 'center', lineSpacingMultiple: 0.92 }));
+  s.addText('Apr +13.0%  ·  May +69.8%  ·  Jul +45.8%', txt({ x: bx(1)+0.10, y: aym+1.40, w: bw-0.20, h: 0.22, fontSize: 6.8, color: GREY, align: 'center' }));
+
+  // Jul-25 card
+  const ay25 = card(s, { x: bx(2), y, w: bw, h: 2.60, label: 'JULY 2025 (FY26) — LAST YEAR', accent: BLUE });
+  s.addText('₹24.73 Cr', txt({ x: bx(2)+0.10, y: ay25,       w: bw-0.20, h: 0.46, fontSize: 22, bold: true, fontFace: FONTH, color: BLUE, align: 'center' }));
+  s.addText('Units: not in monthly data', txt({ x: bx(2)+0.10, y: ay25+0.50, w: bw-0.20, h: 0.22, fontSize: 8, color: GREY, align: 'center' }));
+  s.addText('ASP: not in monthly data', txt({ x: bx(2)+0.10, y: ay25+0.74, w: bw-0.20, h: 0.20, fontSize: 7.5, color: GREY, align: 'center' }));
+  s.addText('Realisation: not in monthly data', txt({ x: bx(2)+0.10, y: ay25+0.96, w: bw-0.20, h: 0.20, fontSize: 7.5, color: GREY, align: 'center' }));
+  s.addText('Source: monthly_fy26[3] from pre-agg workbook', txt({ x: bx(2)+0.10, y: ay25+1.22, w: bw-0.20, h: 0.18, fontSize: 6.2, color: AMBER, align: 'center', italic: true }));
+  y += 2.72;
+
+  // Zone July FY27 bar + FY26 YTD context
+  const hw = (CW - 0.10) / 2, hx2 = i => M + i * (hw + 0.10);
+
+  chartTitle(s, hx2(0), y, hw, 'Zone NSV — July 2026 actual (₹ Cr)');
+  s.addChart(pres.ChartType.bar, [{
+    name: 'Jul-26 NSV',
+    labels: GEO_ZONES.map(z => z.z),
+    values: GEO_ZONES.map(z => z.nsv),
+  }], Object.assign({}, axisBase, {
+    x: hx2(0), y: y + 0.22, w: hw, h: 2.18,
+    barDir: 'bar', barGrouping: 'clustered', barGapWidthPct: 38,
+    chartColors: [TEAL, BRIGHT, BLUE, AMBER, GREEN, RED],
+    showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 7,
+    catAxisLabelFontSize: 7.5, valAxisLabelFontSize: 7,
+  }));
+
+  // FY27 YTD zone bar (data.js fy27, 3-month)
+  const ZY = { West:37.33, 'South-1':33.08, North:33.40, 'South-2':20.64, East:15.29, Central:2.12 };
+  chartTitle(s, hx2(1), y, hw, 'Zone NSV — Q1 FY27 YTD (₹ Cr, Apr+May+Jul)');
+  s.addChart(pres.ChartType.bar, [{
+    name: 'Q1 FY27 YTD',
+    labels: Object.keys(ZY),
+    values: Object.values(ZY),
+  }], Object.assign({}, axisBase, {
+    x: hx2(1), y: y + 0.22, w: hw, h: 2.18,
+    barDir: 'bar', barGrouping: 'clustered', barGapWidthPct: 38,
+    chartColors: [TEAL, BRIGHT, BLUE, AMBER, GREEN, RED],
+    showValue: true, dataLabelPosition: 'outEnd', dataLabelFontSize: 7,
+    catAxisLabelFontSize: 7.5, valAxisLabelFontSize: 7,
+  }));
+  y += 2.52;
+
+  // Insight block
+  y = banner(s, y, 'JULY MTD DIAGNOSTIC — WHAT IS AVAILABLE vs WHAT IS MISSING', BLUE);
+  const c2w = (CW - 0.14) / 2, c2x = i => M + i * (c2w + 0.14);
+  const ly1 = card(s, { x: c2x(0), y, w: c2w, h: 2.80, label: 'WHAT WE CAN CONFIRM (EXACT)', accent: GREEN });
+  bullets(s, { x: c2x(0)+0.10, y: ly1, w: c2w-0.20, gap: 0.46, size: 7.4, dot: GREEN, items: [
+    { t: 'Jul-26 NSV ₹36.06 Cr — from Jul-26 CSV (220,522 rows, 0 bad rows, 8-gate PASS_WITH_FLAG).', b: true },
+    { t: 'Jul-26 units 2,051,674 · ASP ₹175.76 · Realisation 42.8% — all EXACT from source.' },
+    { t: 'Jul-25 NSV ₹24.73 Cr — from monthly_fy26[3] pre-aggregated workbook. This is the official LY baseline.' },
+    { t: 'YoY NSV growth +45.8% (+₹11.33 Cr). July is growing faster than April (+13.0%).' },
+    { t: 'Jul-26 zone breakdown available: West ₹8.27 Cr → Central ₹2.12 Cr (see adjacent chart).', c: TEAL },
+  ]});
+  const ly2 = card(s, { x: c2x(1), y, w: c2w, h: 2.80, label: 'WHAT IS NOT YET AVAILABLE (LY)', accent: AMBER });
+  bullets(s, { x: c2x(1)+0.10, y: ly2, w: c2w-0.20, gap: 0.46, size: 7.4, dot: AMBER, items: [
+    { t: 'Jul-25 units and ASP — pre-aggregated monthly data holds only NSV, not units. Cannot compute LY ASP.', b: true },
+    { t: 'Jul-25 zone breakdown — pre-agg workbook stores FY26 zone total, not monthly zone detail. Zone LY comparison requires article-level Jul-25 CSV.', c: AMBER },
+    { t: 'Jul-25 brand breakdown — same limitation. LY brand × month detail not in current data.js.' },
+    { t: 'Jul-25 realisation — requires LY MRP Sales Value, which is not in the monthly pre-agg data.' },
+    { t: 'TO UNLOCK: Supply article-level Jul-25 offtake CSV to PowerBI/RawDataFolders/Offtake_Monthly/ and run --offtake-patch. All LY splits will appear automatically.', c: RED },
+  ]});
+}
+
+/* ============================================================= SLIDE 5: ZONE PERFORMANCE */
+{
+  const s = page(5, 'Zone Offtake Performance — July 2026',
     'Geographic MT only (excl. eB2B / SIS) · NSV, Units, ASP, Realisation by zone');
 
   let y = BODY_Y;
@@ -376,9 +538,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
     x: M + 0.10, y: y + 0.04, w: CW - 0.20, h: 0.40, fontSize: 7.4, color: INK, lineSpacingMultiple: 0.92 }));
 }
 
-/* ============================================================= SLIDE 4: ZONE ASP ANALYSIS */
+/* ============================================================= SLIDE 6: ZONE ASP ANALYSIS */
 {
-  const s = page(4, 'Zone ASP Analysis — Why Zones Differ',
+  const s = page(6, 'Zone ASP Analysis — Why Zones Differ',
     'Price / mix / realisation decomposition · Pattern-matcher-router: diagnostic question type');
 
   let y = BODY_Y;
@@ -440,9 +602,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
   s.addText('Decline is 100% volume-driven. Pricing is improving. Diagnose the unit shortfall, not the price.', txt({ x: c3x(2)+0.10, y: tvy+0.72, w: c3w-0.20, h: 0.44, fontSize: 7, color: INK, lineSpacingMultiple: 0.92 }));
 }
 
-/* ============================================================= SLIDE 5: TOP CHAINS */
+/* ============================================================= SLIDE 7: TOP CHAINS */
 {
-  const s = page(5, 'Chain Performance — Top 9 Accounts',
+  const s = page(7, 'Chain Performance — Top 9 Accounts',
     'Geographic MT · NSV, units, ASP ranking · Big 3 = Dmart + Reliance + Apollo');
 
   let y = BODY_Y;
@@ -493,9 +655,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
     x: M, y, w: CW, h: 0.34, fontSize: 7.2, color: GREY, lineSpacingMultiple: 0.92 }));
 }
 
-/* ============================================================= SLIDE 6: BRAND MIX */
+/* ============================================================= SLIDE 8: BRAND MIX */
 {
-  const s = page(6, 'Brand Mix — Mamaearth · The Derma Co. · Aqualogica',
+  const s = page(8, 'Brand Mix — Mamaearth · The Derma Co. · Aqualogica',
     'Geographic MT · NSV, units, share, ASP by brand and zone');
 
   let y = BODY_Y;
@@ -566,9 +728,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
   ]});
 }
 
-/* ============================================================= SLIDE 7: CATEGORIES */
+/* ============================================================= SLIDE 9: CATEGORIES */
 {
-  const s = page(7, 'Category & Sub-Category Performance',
+  const s = page(9, 'Category & Sub-Category Performance',
     'Face / Hair / Body / Baby split · Geographic MT · Offtake data only');
 
   let y = BODY_Y;
@@ -617,9 +779,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
     x: M, y, w: CW, h: 0.30, fontSize: 7.2, color: GREY, lineSpacingMultiple: 0.92 }));
 }
 
-/* ============================================================= SLIDE 8: eBIZ & SIS */
+/* ============================================================= SLIDE 10: eBIZ & SIS */
 {
-  const s = page(8, 'Sub-Channel View — eB2B (Nykaa/FSN) and SIS',
+  const s = page(10, 'Sub-Channel View — eB2B (Nykaa/FSN) and SIS',
     'These accounts are in total MT NSV but excluded from geographic zone rollup');
 
   let y = BODY_Y;
@@ -667,9 +829,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
   ], rowH: 0.34 });
 }
 
-/* ============================================================= SLIDE 9: REALISATION */
+/* ============================================================= SLIDE 11: REALISATION */
 {
-  const s = page(9, 'Realisation Analysis — NSV ÷ MRP Value',
+  const s = page(11, 'Realisation Analysis — NSV ÷ MRP Value',
     'How much of shelf value reaches us as revenue · 42.8% national · zone spread 41–43%');
 
   let y = BODY_Y;
@@ -721,9 +883,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
   ], rowH: 0.32 });
 }
 
-/* ============================================================= SLIDE 10: DISTRIBUTION */
+/* ============================================================= SLIDE 12: DISTRIBUTION */
 {
-  const s = page(10, 'Distribution Productivity — WD, SPD and the ND Gap',
+  const s = page(12, 'Distribution Productivity — WD, SPD and the ND Gap',
     'Weighted distribution from Nielsen · Numeric distribution not yet fed · 8-gate flag');
 
   let y = BODY_Y;
@@ -778,9 +940,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
   ]});
 }
 
-/* ============================================================= SLIDE 11: 8-GATE VALIDATION */
+/* ============================================================= SLIDE 13: 8-GATE VALIDATION */
 {
-  const s = page(11, 'Methodology — 8-Gate Validation & Pattern-Matcher-Router',
+  const s = page(13, 'Methodology — 8-Gate Validation & Pattern-Matcher-Router',
     'All figures in this deck passed pre-flight quality gates before generation');
 
   let y = BODY_Y;
@@ -820,9 +982,9 @@ const BZ_TDC = { West:3.23, 'South-1':2.76, North:2.11, 'South-2':1.11, East:0.6
   ]});
 }
 
-/* ============================================================= SLIDE 12: ACTIONS */
+/* ============================================================= SLIDE 14: ACTIONS */
 {
-  const s = page(12, 'Key Actions — July Offtake Findings',
+  const s = page(14, 'Key Actions — July Offtake Findings',
     'Prioritised by impact · Owner assigned · August review trigger');
 
   let y = BODY_Y;
