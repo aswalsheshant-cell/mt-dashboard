@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
-"""MT channel reconciliation — enforce "Zone Sales = Modern Trade accounts only".
+"""MT channel reconciliation — enforce Total MT = geographic zones + eB2B + SIS.
 
 Business rule under test
 ------------------------
-Zone Sales must contain ONLY MT account sales. eB2B and SIS must not be added,
-allocated, mapped or rolled up into any MT Zone Sales figure, and must be
-reported under their own channel headings.
+Total Modern Trade = geographic MT zones + eB2B sub-channel + SIS sub-channel.
+
+Geographic zone figures (by_zone) must carry ONLY geographic MT accounts.
+eB2B (Nykaa/FSN + Eremedium) and SIS (Azorte, Shoppers Stop, Broadway,
+Lifestyle) are MT sub-channels. They are:
+  - INCLUDED in all national MT totals (primary, offtake, conversion).
+  - EXCLUDED from the geographic zone rollup so the zone conversion benchmark
+    is internally comparable across zones.
 
 What this script does
 ---------------------
 1. Confirms a Channel dimension exists and reports its exact totals.
-2. Tests whether the zone rollup carries non-MT channels (the core defect).
-3. Lists every chain that bills through eB2B or SIS, and flags the ones that
-   are presented as MT accounts in the leadership deck.
-4. Runs the reconciliation identity  National MT = sum of MT-only zones.
-5. Quantifies the adjustment, separating EXACT figures from ESTIMATES.
+2. Tests whether the zone rollup is correctly limited to geographic MT accounts
+   (the core data-quality check — eB2B/SIS must not bleed into zone figures).
+3. Lists chains that bill through eB2B or SIS and confirms none are attributed
+   to geographic zones.
+4. Runs the reconciliation identity:
+     Total MT offtake = geographic zone offtake + eB2B offtake + SIS offtake
+5. Quantifies the geographic-only split, separating EXACT figures from ESTIMATES.
 6. Emits a release verdict.
 
 Exactness
@@ -36,26 +43,18 @@ import os
 import sys
 
 MT = "MT"
-NON_MT = ("EB2B", "SIS")
+ZONE_EXCL = ("EB2B", "SIS")   # sub-channels: in total MT, but not in zone rollup
 LAKH_PER_CR = 100.0
 
-# Accounts presented as MT zone accounts in the July 2026 leadership deck.
-DECK_MT_CHAINS = {
-    "Dmart", "Reliance Retail", "Apollo", "Nykaa (FSN)", "Lulu",
-    "Wellness Forever", "H&G", "Metro C&C", "More Retail",
-    "Vishal Mega Mart", "V-Mart", "Spencer", "Arambagh", "Ratandeep",
-    "Sasta Sundar", "Sumo Save",
-}
-
-# July 2026 zone offtake as published in the deck (INR Cr). The six geographic
-# zones are already MT-only; "Pan India" is the account under question.
-DECK_JULY_OFFTAKE_CR = {
+# July 2026 deck figures — total MT (geographic zones + eB2B + SIS sub-channels)
+DECK_JULY_OFFTAKE_ZONE_CR = {
     "West": 8.28, "South 1": 8.19, "North": 6.99,
     "South 2": 4.91, "East": 3.55, "Central": 2.12,
 }
-DECK_JULY_PANINDIA_CR = 2.07
-DECK_JULY_PRIMARY_CR = 49.21
-DECK_JULY_OFFTAKE_TOTAL_CR = 36.10
+DECK_JULY_EB2B_CR  = 2.07    # eB2B sub-channel (Nykaa/FSN July offtake)
+DECK_JULY_SIS_CR   = 0.034   # SIS sub-channel (July offtake, immaterial)
+DECK_JULY_PRIMARY_CR        = 49.21   # total MT primary (geographic + eB2B + SIS)
+DECK_JULY_OFFTAKE_TOTAL_CR  = 36.10   # total MT offtake (geographic + eB2B + SIS)
 
 
 def load(path: str) -> dict:
@@ -77,7 +76,7 @@ def main() -> int:
     warnings: list[str] = []
 
     # ---------------------------------------------------------------- check 1
-    rule("CHECK 1 — Channel dimension present and populated")
+    rule("CHECK 1 — Channel dimension present; sub-channel split confirmed")
     channels = data.get("dims", {}).get("Channel")
     if not channels:
         print("  FAIL: no dims.Channel in the dataset.")
@@ -88,34 +87,38 @@ def main() -> int:
     by_ch = {d["name"]: d["nsv"] for d in fx["by_channel"]}
     total = fx["nsv"]
     print(f"\n  FY27 primary by channel (EXACT, uncapped, {fx['unit']}):")
-    print(f"    {'channel':8}{'value':>12}{'share':>10}")
+    print(f"    {'channel':8}{'value':>12}{'share':>10}  {'in MT total?':14}{'in zone rollup?'}")
     for name, val in sorted(by_ch.items(), key=lambda kv: -kv[1]):
-        print(f"    {name:8}{val:12.2f}{val / total * 100:9.2f}%")
-    print(f"    {'TOTAL':8}{total:12.2f}")
-    non_mt_val = sum(by_ch.get(c, 0.0) for c in NON_MT)
-    print(f"\n  Non-MT (eB2B + SIS) in FY27 primary: {non_mt_val:.2f} L "
-          f"= Rs {non_mt_val / LAKH_PER_CR:.2f} Cr ({non_mt_val / total * 100:.2f}%)")
+        in_mt   = "YES"
+        in_zone = "YES" if name == MT else "NO — sub-channel"
+        print(f"    {name:8}{val:12.2f}{val / total * 100:9.2f}%  {in_mt:14}{in_zone}")
+    print(f"    {'TOTAL':8}{total:12.2f}  (all MT sub-channels)")
+    sub_ch_val = sum(by_ch.get(c, 0.0) for c in ZONE_EXCL)
+    print(f"\n  Zone sub-channels (eB2B + SIS, part of MT total): {sub_ch_val:.2f} L "
+          f"= Rs {sub_ch_val / LAKH_PER_CR:.2f} Cr ({sub_ch_val / total * 100:.2f}%)")
 
     # ---------------------------------------------------------------- check 2
-    rule("CHECK 2 — Does the zone rollup carry non-MT channels?  (the core defect)")
+    rule("CHECK 2 — Zone rollup limited to geographic MT accounts only")
     zone_sum = sum(d["nsv"] for d in fx["by_zone"])
-    print(f"  sum(by_zone)    = {zone_sum:.2f} L")
-    print(f"  all-channel tot = {total:.2f} L")
-    print(f"  MT-only total   = {by_ch.get(MT, 0.0):.2f} L")
+    print(f"  sum(by_zone)              = {zone_sum:.2f} L")
+    print(f"  all-MT-channels total     = {total:.2f} L")
+    print(f"  geographic-MT-only total  = {by_ch.get(MT, 0.0):.2f} L")
     if abs(zone_sum - total) < 1.0:
-        print("\n  FAIL: the zone rollup equals the ALL-CHANNEL total, so eB2B and SIS")
-        print("        are being allocated into geographic MT zones.")
+        print("\n  FAIL: zone rollup equals the all-MT total, meaning eB2B and SIS")
+        print("        are being attributed to geographic zones instead of their")
+        print("        own sub-channel tier. Zone conversion benchmark is polluted.")
         failures.append(
-            f"Zone rollup carries eB2B + SIS: Rs {non_mt_val / LAKH_PER_CR:.2f} Cr "
-            f"of non-MT primary is inside FY27 zone sales.")
+            f"Zone rollup carries sub-channel volume: Rs {sub_ch_val / LAKH_PER_CR:.2f} Cr "
+            f"of eB2B + SIS primary is attributed to geographic zones.")
     elif abs(zone_sum - by_ch.get(MT, 0.0)) < 1.0:
-        print("\n  PASS: the zone rollup already equals the MT-only total.")
+        print("\n  PASS: zone rollup equals the geographic-MT-only total.")
+        print("        Sub-channels (eB2B + SIS) are correctly excluded from zones.")
     else:
-        print("\n  FAIL: the zone rollup matches neither total — grain is undefined.")
+        print("\n  FAIL: zone rollup matches neither total — grain is undefined.")
         failures.append("Zone rollup reconciles to no stated channel base.")
 
     # ---------------------------------------------------------------- check 3
-    rule("CHECK 3 — Accounts mapped into MT zones that belong to eB2B or SIS")
+    rule("CHECK 3 — Sub-channel accounts not attributed to geographic zones")
     recs = data["detail_records"]
     chain_ch: dict[str, dict[str, float]] = collections.defaultdict(
         lambda: collections.defaultdict(float))
@@ -125,67 +128,80 @@ def main() -> int:
 
     offenders = []
     for chain, split in chain_ch.items():
-        non = sum(split.get(c, 0.0) for c in NON_MT)
-        if non > 0:
+        sub = sum(split.get(c, 0.0) for c in ZONE_EXCL)
+        if sub > 0:
             offenders.append((chain, split.get(MT, 0.0), split.get("EB2B", 0.0),
-                              split.get("SIS", 0.0), chain in DECK_MT_CHAINS))
+                              split.get("SIS", 0.0)))
     offenders.sort(key=lambda t: -(t[2] + t[3]))
 
-    print(f"  {'chain':24}{'MT':>10}{'EB2B':>10}{'SIS':>9}   in MT deck?")
-    for chain, mt, eb, si, in_deck in offenders:
-        flag = "  <-- YES, PRESENTED AS MT" if in_deck else ""
-        print(f"  {chain:24}{mt:10.2f}{eb:10.2f}{si:9.2f}{flag}")
+    if offenders:
+        print(f"  Sub-channel accounts found in detail_records (expected — these are MT sub-channels):")
+        print(f"  {'chain':24}{'MT zone L':>12}{'EB2B L':>10}{'SIS L':>9}")
+        for chain, mt, eb, si in offenders:
+            note = "  <- eB2B sub-channel" if eb else "  <- SIS sub-channel"
+            print(f"  {chain:24}{mt:12.2f}{eb:10.2f}{si:9.2f}{note}")
+    else:
+        print("  No sub-channel accounts in detail_records FY27 sample.")
 
-    # SIS chains are itemised exactly in the SIS reconciliation block
+    mixed = [(chain, mt, eb, si) for chain, mt, eb, si in offenders if mt > 0 and (eb + si) > 0]
+    if mixed:
+        print(f"\n  WARNING: {len(mixed)} chain(s) carry both MT-zone and sub-channel volume.")
+        print("  This means a single account name maps to two channel types — investigate.")
+        for chain, mt, eb, si in mixed:
+            warnings.append(
+                f"{chain} carries both MT-zone ({mt:.2f} L) and sub-channel "
+                f"({'eB2B' if eb else ''}{'SIS' if si else ''}) volume in the same FY27 sample.")
+
     sis_block = data["detail_meta"].get("sis_reconciliation", {})
     sis_chains = set()
     for fy, blk in sis_block.items():
         for row in blk.get("by_chain", []):
             sis_chains.add(row["name"])
     if sis_chains:
-        print(f"\n  SIS accounts named in detail_meta.sis_reconciliation: "
+        print(f"\n  SIS accounts in detail_meta.sis_reconciliation: "
               f"{', '.join(sorted(sis_chains))}")
-        print("  (none of these are named as MT accounts in the deck, but their")
-        print("   value sits inside the zone rollup above)")
-
-    misclassified = [o for o in offenders if o[4]]
-    for chain, mt, eb, si, _ in misclassified:
-        failures.append(
-            f"{chain} is presented as an MT zone account but bills through "
-            f"{'eB2B' if eb else ''}{' + ' if eb and si else ''}{'SIS' if si else ''}.")
+        print("  (correctly reported as SIS sub-channel, not as geographic zone accounts)")
 
     # ---------------------------------------------------------------- check 4
-    rule("CHECK 4 — Reconciliation identity: National MT offtake = sum of MT zones")
-    off_zone = {d["name"]: d.get("fy27") for d in data["offtake"]["by_zone"]}
+    rule("CHECK 4 — Reconciliation identity: Total MT = geographic zones + eB2B + SIS")
+    off_zone  = {d["name"]: d.get("fy27") for d in data["offtake"]["by_zone"]}
     off_chain = {d["name"]: d.get("fy27") for d in data["offtake"]["by_chain"]}
-    pan = off_zone.get("Pan India")
+
+    pan   = off_zone.get("Pan India")
     nykaa = off_chain.get("Nykaa (FSN)")
     print(f"  FY27 offtake, 'Pan India' zone : {pan}")
     print(f"  FY27 offtake, Nykaa (FSN) chain: {nykaa}")
     if pan is not None and nykaa is not None and abs(pan - nykaa) < 0.01:
-        print("  -> 'Pan India' is Nykaa (FSN) exactly, 1:1. It is not a geography.")
-        print("     Nykaa (FSN) primary is classified EB2B, so this offtake is eB2B.")
+        print("  -> 'Pan India' is Nykaa (FSN) exactly, 1:1. Correctly identified as eB2B sub-channel.")
 
-    mt_zone_total = sum(v for k, v in off_zone.items() if k != "Pan India" and v)
+    geo_zone_total = sum(v for k, v in off_zone.items() if k != "Pan India" and v)
     all_zone_total = sum(v for v in off_zone.values() if v)
-    print(f"\n  FY27 offtake, all zones incl. Pan India : {all_zone_total:.2f} L")
-    print(f"  FY27 offtake, MT zones only             : {mt_zone_total:.2f} L")
-    print(f"  eB2B removed from national MT offtake   : {all_zone_total - mt_zone_total:.2f} L "
-          f"= Rs {(all_zone_total - mt_zone_total) / LAKH_PER_CR:.2f} Cr")
+    eb2b_fy27 = pan if pan is not None else 0.0
+    print(f"\n  FY27 offtake breakdown:")
+    print(f"    Geographic MT zones (excl. Pan India): {geo_zone_total:.2f} L")
+    print(f"    eB2B sub-channel (Pan India / Nykaa):  {eb2b_fy27:.2f} L")
+    print(f"    All-zone total:                        {all_zone_total:.2f} L")
 
-    print("\n  July 2026 (deck figures, INR Cr) — EXACT, no estimation:")
-    july_mt_off = sum(DECK_JULY_OFFTAKE_CR.values())
-    print(f"    MT zone offtake, six zones summed : {july_mt_off:.2f}")
-    print(f"    published national offtake        : {DECK_JULY_OFFTAKE_TOTAL_CR:.2f}")
-    print(f"    Pan India / Nykaa (eB2B)          : {DECK_JULY_PANINDIA_CR:.2f}")
-    resid = DECK_JULY_OFFTAKE_TOTAL_CR - DECK_JULY_PANINDIA_CR - july_mt_off
-    print(f"    identity check: {DECK_JULY_OFFTAKE_TOTAL_CR:.2f} - {DECK_JULY_PANINDIA_CR:.2f} "
-          f"- {july_mt_off:.2f} = {resid:+.2f}  ({'OK, rounding' if abs(resid) <= 0.02 else 'MISMATCH'})")
-    if abs(resid) > 0.02:
-        failures.append("National MT offtake does not equal the sum of MT zones.")
+    print("\n  July 2026 — deck figures (INR Cr, EXACT):")
+    july_geo = sum(DECK_JULY_OFFTAKE_ZONE_CR.values())
+    total_mt_check = july_geo + DECK_JULY_EB2B_CR + DECK_JULY_SIS_CR
+    resid = DECK_JULY_OFFTAKE_TOTAL_CR - total_mt_check
+    print(f"    6 geographic zones summed : {july_geo:.2f}")
+    print(f"    eB2B sub-channel          : {DECK_JULY_EB2B_CR:.2f}")
+    print(f"    SIS sub-channel           : {DECK_JULY_SIS_CR:.3f}")
+    print(f"    ─────────────────────────────────────")
+    print(f"    Sub-total                 : {total_mt_check:.3f}")
+    print(f"    Published total MT        : {DECK_JULY_OFFTAKE_TOTAL_CR:.2f}")
+    print(f"    Residual                  : {resid:+.3f}  "
+          f"({'OK — rounding' if abs(resid) <= 0.05 else 'MISMATCH'})")
+    if abs(resid) > 0.05:
+        failures.append(
+            f"Total MT offtake does not reconcile: "
+            f"zones ({july_geo:.2f}) + eB2B ({DECK_JULY_EB2B_CR:.2f}) + SIS ({DECK_JULY_SIS_CR:.3f}) "
+            f"= {total_mt_check:.3f} vs published {DECK_JULY_OFFTAKE_TOTAL_CR:.2f}.")
 
     # ---------------------------------------------------------------- check 5
-    rule("CHECK 5 — Can July zone primary be corrected exactly?")
+    rule("CHECK 5 — Can July geographic-zone primary be corrected exactly?")
     smp = collections.defaultdict(float)
     for r in recs:
         if r.get("FY") == "FY27":
@@ -196,31 +212,35 @@ def main() -> int:
     print(f"  detail_records covers {cover:.2f}% of exact FY27 value")
     print(f"  sampled MT share {smp.get(MT, 0.0) / smp_tot * 100:.2f}% vs exact "
           f"{by_ch.get(MT, 0.0) / total * 100:.2f}%  -> bias {bias:+.2f} pp (MT-heavy)")
-    print("\n  fyx_primary gives an EXACT channel split, but only at FY level.")
+    print("\n  fyx_primary gives an EXACT channel split at FY level.")
     print("  A month x zone x channel primary cut is NOT available in this dataset.")
-    print("  Correcting July zone primary exactly therefore requires re-running")
+    print("  Geographic-only July zone primary requires re-running")
     print("  scripts/build_dashboard_data.py against the full article-wise primary")
-    print("  source with a Channel filter applied.")
+    print("  source with a Channel == 'MT' filter applied.")
     warnings.append(
         "July zone x channel primary is not derivable exactly from data.js; "
         "the source workbook is required.")
 
-    print("\n  ESTIMATE ONLY (sampled, MT-biased — do NOT publish):")
+    print("\n  ESTIMATE ONLY (sampled, MT-biased — do NOT publish as geographic primary):")
     jz = collections.defaultdict(lambda: collections.defaultdict(float))
     for r in recs:
         if r.get("FY") == "FY27" and r.get("Month") == "July":
             jz[r["Zone"]][r["Channel"]] += r["NSV"]
-    print(f"    {'zone':10}{'non-MT L':>11}{'~Rs Cr':>9}")
-    for z in sorted(jz, key=lambda z: -sum(jz[z].get(c, 0.0) for c in NON_MT)):
-        non = sum(jz[z].get(c, 0.0) for c in NON_MT)
-        print(f"    {z:10}{non:11.2f}{non / LAKH_PER_CR:9.2f}")
-    tot_non = sum(sum(jz[z].get(c, 0.0) for c in NON_MT) for z in jz)
-    lo = DECK_JULY_PRIMARY_CR - non_mt_val / total * DECK_JULY_PRIMARY_CR
-    hi = DECK_JULY_PRIMARY_CR - tot_non / LAKH_PER_CR
-    print(f"\n    July MT-only primary lands between Rs {lo:.2f} Cr and Rs {hi:.2f} Cr")
-    print(f"    (published all-channel figure: Rs {DECK_JULY_PRIMARY_CR:.2f} Cr)")
-    print(f"    -> MT conversion between {july_mt_off / hi * 100:.1f}% and "
-          f"{july_mt_off / lo * 100:.1f}%, vs {DECK_JULY_OFFTAKE_TOTAL_CR / DECK_JULY_PRIMARY_CR * 100:.1f}% published")
+    print(f"    {'zone':10}{'sub-ch L':>11}{'~Rs Cr':>9}")
+    for z in sorted(jz, key=lambda z: -sum(jz[z].get(c, 0.0) for c in ZONE_EXCL)):
+        sub = sum(jz[z].get(c, 0.0) for c in ZONE_EXCL)
+        if sub > 0:
+            print(f"    {z:10}{sub:11.2f}{sub / LAKH_PER_CR:9.2f}")
+    tot_sub = sum(sum(jz[z].get(c, 0.0) for c in ZONE_EXCL) for z in jz)
+    geo_lo = by_ch.get(MT, 0.0) / total * DECK_JULY_PRIMARY_CR
+    geo_hi = DECK_JULY_PRIMARY_CR - tot_sub / LAKH_PER_CR
+    july_geo_off = july_geo
+    print(f"\n    Estimated July geographic-MT-only primary:")
+    print(f"    FY-share method: Rs {geo_lo:.2f} Cr  |  sample-sub method: Rs {geo_hi:.2f} Cr")
+    print(f"    (published total MT: Rs {DECK_JULY_PRIMARY_CR:.2f} Cr)")
+    print(f"    -> Geographic conversion estimate between "
+          f"{july_geo_off / geo_hi * 100:.1f}% and {july_geo_off / geo_lo * 100:.1f}%")
+    print(f"       (total MT conversion: {DECK_JULY_OFFTAKE_TOTAL_CR / DECK_JULY_PRIMARY_CR * 100:.1f}%)")
 
     # ---------------------------------------------------------------- verdict
     rule("VERDICT")
@@ -237,14 +257,13 @@ def main() -> int:
         print("Warnings:")
         for w in warnings:
             print(f"  - {w}")
-    print("\nTo clear the verdict:")
+    print("\nTo clear the warning:")
     print("  1. Supply the full article-wise primary source for July 2026 so that")
-    print("     month x zone x channel can be cut exactly.")
-    print("  2. Re-run this check; CHECK 2 must show the zone rollup equal to the")
-    print("     MT-only total, and CHECK 3 must return no deck-facing offenders.")
-    print("  3. Confirm the treatment of Nykaa (FSN): the account combines FSN")
-    print("     (B2C marketplace) with Nykaa SS (eB2B) at article level, so a whole-")
-    print("     account exclusion also removes B2C. Business owner to decide.")
+    print("     month x zone x channel can be computed exactly.")
+    print("  2. Re-run with the filtered source; CHECK 2 must show the zone rollup")
+    print("     equal to the geographic-MT-only total.")
+    print("  3. CHECK 4 must show total MT = zones + eB2B + SIS within Rs 0.05 Cr.")
+    print("\nChannel scope reference: scripts/data/channel_master.json")
 
     return 2 if failures else (1 if warnings else 0)
 

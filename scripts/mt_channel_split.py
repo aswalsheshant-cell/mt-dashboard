@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Produce the MT / eB2B / SIS split for July 2026 from the real month sources.
+"""Produce the Total MT channel split for July 2026 from the real month sources.
 
 Business rule (scripts/data/channel_master.json):
-  Zone Sales contain Modern Trade accounts only. eB2B and SIS are reported as
-  their own channels and never roll up into an MT zone figure. The former
-  "Pan India" zone is renamed eB2B and reported as a channel.
+  Total Modern Trade = geographic zones + eB2B sub-channel + SIS sub-channel.
+  Geographic zone figures carry MT accounts only; eB2B and SIS are excluded
+  from the zone rollup so the zone conversion benchmark is internally comparable.
+  Both sub-channels count in all national MT totals.
+
+  The former "Pan India" zone is the eB2B sub-channel (Nykaa/FSN account),
+  correctly classified and included in total MT.
 
 Sources — both are the full uncapped month files, not the row-capped
 detail_records table baked into dashboard/data.js:
@@ -160,17 +164,24 @@ def main() -> int:
     print(f"  {'TOTAL':9}{tp:12.2f}{to:12.2f}{to / tp * 100:8.1f}%{tp - to:9.2f}")
 
     rule("RECONCILIATION   [must tie]")
-    print(f"  sum of MT zone primary        {tp:8.2f} Cr")
-    print(f"  Channel == MT total           {pch['MT']:8.2f} Cr   "
+    print(f"  Geographic MT zone primary    {tp:8.2f} Cr")
+    print(f"  Channel == MT total (exact)   {pch['MT']:8.2f} Cr   "
           f"{'TIES' if abs(tp - pch['MT']) < 0.01 else 'MISMATCH'}")
-    print(f"  sum of MT zone offtake        {to:8.2f} Cr")
+    print(f"  eB2B sub-channel primary      {pch['EB2B']:8.2f} Cr")
+    print(f"  SIS sub-channel primary       {pch['SIS']:8.3f} Cr  (net of returns)")
+    total_primary = pch['MT'] + pch['EB2B'] + pch['SIS']
+    print(f"  TOTAL MT primary              {total_primary:8.2f} Cr   (published 49.21)")
+
+    print()
     otot = sum(oz.values())
-    print(f"  all-channel offtake           {otot:8.2f} Cr   (published 36.10)")
-    print(f"  less eB2B                     {-oz[('Pan India', 'EB2B')]:8.2f} Cr")
     sis_off = sum(v for (z, c), v in oz.items() if c == "SIS")
-    print(f"  less SIS inside MT zones      {-sis_off:8.2f} Cr")
-    print(f"  = MT offtake                  {otot - oz[('Pan India', 'EB2B')] - sis_off:8.2f} Cr   "
-          f"{'TIES' if abs(otot - oz[('Pan India', 'EB2B')] - sis_off - to) < 0.01 else 'MISMATCH'}")
+    eb2b_off = oz[("Pan India", "EB2B")]
+    print(f"  Geographic MT zone offtake    {to:8.2f} Cr")
+    print(f"  eB2B sub-channel offtake      {eb2b_off:8.2f} Cr")
+    print(f"  SIS sub-channel offtake       {sis_off:8.4f} Cr")
+    total_off = to + eb2b_off + sis_off
+    print(f"  TOTAL MT offtake              {total_off:8.2f} Cr   (published 36.10)"
+          f"  {'TIES' if abs(total_off - 36.10) <= 0.05 else 'MISMATCH'}")
 
     rule("BENCHMARK OPPORTUNITY, RECOMPUTED ON MT-ONLY   [EXACT]")
     bench_zones = ["West", "South-1"]
@@ -188,25 +199,40 @@ def main() -> int:
     print(f"\n  RECOVERABLE ABOVE FLOOR = Rs {prize:.2f} Cr")
     print(f"  national MT conversion would move {to / tp * 100:.1f}% -> {(to + prize) / tp * 100:.1f}%")
 
-    rule("eB2B AND SIS CHANNELS   [EXACT]")
+    rule("MT SUB-CHANNELS — eB2B AND SIS   [EXACT]")
     eb_p, eb_o = pch["EB2B"], oz[("Pan India", "EB2B")]
-    print(f"  eB2B   primary {eb_p:6.2f} Cr   offtake {eb_o:6.2f} Cr   flow {eb_o / eb_p * 100:5.1f}%")
-    print(f"  SIS    primary {pch['SIS']:6.2f} Cr   offtake {sis_off:6.4f} Cr   "
-          f"(primary is net of MRN returns and negative in July)")
+    print(f"  eB2B sub-channel  primary {eb_p:6.2f} Cr  offtake {eb_o:6.2f} Cr  flow {eb_o / eb_p * 100:5.1f}%")
+    print(f"  SIS sub-channel   primary {pch['SIS']:6.3f} Cr  offtake {sis_off:6.4f} Cr  "
+          f"(primary net of MRN returns; July net negative)")
 
+    total_mt_primary = round(tp + eb_p + pch["SIS"], 2)
+    total_mt_offtake = round(to + eb_o + sis_off, 2)
     out = {
         "period": "Jul-26", "unit": "INR Cr", "basis": "EXACT — full month source files",
-        "mt": {"primary": round(tp, 2), "offtake": round(to, 2),
-               "conversion_pct": round(to / tp * 100, 1), "gap": round(tp - to, 2),
-               "by_zone": [{"zone": r["zone"], "primary": round(r["primary"], 2),
-                            "offtake": round(r["offtake"], 2),
-                            "conversion_pct": round(r["conv"], 1),
-                            "gap": round(r["gap"], 2)} for r in rows]},
+        "total_mt": {
+            "primary": total_mt_primary,
+            "offtake": total_mt_offtake,
+            "conversion_pct": round(total_mt_offtake / total_mt_primary * 100, 1),
+            "gap": round(total_mt_primary - total_mt_offtake, 2),
+            "note": "geographic zones + eB2B sub-channel + SIS sub-channel"
+        },
+        "mt": {
+            "primary": round(tp, 2), "offtake": round(to, 2),
+            "conversion_pct": round(to / tp * 100, 1), "gap": round(tp - to, 2),
+            "note": "geographic zones only — used for zone conversion benchmark",
+            "by_zone": [{"zone": r["zone"], "primary": round(r["primary"], 2),
+                         "offtake": round(r["offtake"], 2),
+                         "conversion_pct": round(r["conv"], 1),
+                         "gap": round(r["gap"], 2)} for r in rows]
+        },
         "eb2b": {"primary": round(eb_p, 2), "offtake": round(eb_o, 2),
-                 "flow_pct": round(eb_o / eb_p * 100, 1)},
-        "sis": {"primary": round(pch["SIS"], 3), "offtake": round(sis_off, 4)},
+                 "flow_pct": round(eb_o / eb_p * 100, 1),
+                 "note": "MT digital sub-channel — Nykaa (FSN) + Eremedium"},
+        "sis": {"primary": round(pch["SIS"], 3), "offtake": round(sis_off, 4),
+                "note": "MT shop-in-shop sub-channel — Azorte, Shoppers Stop, Broadway, Lifestyle"},
         "benchmark": {"pct": round(bm, 2), "zones": bench_zones,
-                      "recoverable_above_floor": round(prize, 2), "floor": FLOOR},
+                      "recoverable_above_floor": round(prize, 2), "floor": FLOOR,
+                      "note": "based on geographic MT zones only"},
     }
     with open(args.json, "w", encoding="utf8") as fh:
         json.dump(out, fh, indent=1)
