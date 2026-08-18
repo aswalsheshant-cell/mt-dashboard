@@ -680,7 +680,14 @@ def load_offtake_article_files(src):
             for (chain, mo), v in df.groupby(["_chain", "_month"])["_nsv"].sum().items():
                 chain_month.setdefault(chain, {})
                 chain_month[chain][mo] = chain_month[chain].get(mo, 0.0) + float(v)
-            for (zone, state, mo), v in df[df["_zone"].notna()].groupby(["_zone", "_state", "_month"])["_nsv"].sum().items():
+            # Zone rollup must exclude eB2B and SIS sub-channel chains so the
+            # geographic zone benchmark stays internally comparable.
+            _SUBCHAN_CHAINS_OFF = {
+                "nykaa (fsn)", "eremedium",                          # eB2B
+                "azorte", "shoppers stop", "lifestyle", "broadway", "today's basket",  # SIS
+            }
+            _df_geo = df[~df["_chain"].str.lower().isin(_SUBCHAN_CHAINS_OFF)]
+            for (zone, state, mo), v in _df_geo[_df_geo["_zone"].notna()].groupby(["_zone", "_state", "_month"])["_nsv"].sum().items():
                 key = (zone, state)
                 zsm.setdefault(key, {})
                 zsm[key][mo] = zsm[key].get(mo, 0.0) + float(v)
@@ -3157,7 +3164,7 @@ def detail_records_real(src, max_rows=20000):
             "months_canon": _months_canon,
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
             "monthly_canon": [r2(float(mser.get(m, 0.0))) for m in _months_present],
-            "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone"),
+            "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone", fx[fx["_Chan"] == "MT"]),
             "by_channel": _aggx("_Chan"), "by_brand": _aggx("_Brand"),
             "unit": "INR Lakh",
             "note": (f"EXACT {_tag} primary actuals from the FULL (uncapped) article-wise "
