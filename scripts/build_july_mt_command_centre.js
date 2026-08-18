@@ -71,8 +71,12 @@ function page(n, title, subtitle, source) {
     x: M + 0.13, y: 0.86, w: CW - 0.75, h: 0.26, color: 'BFDCD7', fontSize: 8.5, valign: 'middle'
   }));
   s.addText(String(n).padStart(2, '0'), txt({
-    x: PW - M - 0.52, y: 0.40, w: 0.44, h: 0.26, color: prov ? AMBER : '8FC4BD',
-    fontSize: 9.5, bold: true, align: 'right'
+    x: PW - M - 0.52, y: 0.26, w: 0.44, h: 0.24, color: prov ? AMBER : W,
+    fontSize: 8, bold: true, align: 'right'
+  }));
+  s.addText("Jul'26  ·  FY27  ·  MT", txt({
+    x: PW - M - 1.12, y: 0.52, w: 1.04, h: 0.17, color: prov ? AMBER : 'BFDCD7',
+    fontSize: 5.2, align: 'right', italic: true
   }));
   if (prov) {
     s.addShape(pres.ShapeType.rect, { x: 0, y: HDR_H - 0.05, w: PW, h: 0.05, fill: { color: AMBER } });

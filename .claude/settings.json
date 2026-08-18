@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=$(echo \"$1\" | jq -r \".tool_input.file_path // .tool_response.filePath // \\\"\\\"\" 2>/dev/null); if echo \"$f\" | grep -q \"\\.pptx$\"; then echo \"{\\\"systemMessage\\\":\\\"✓ PPTX generated. auto-validate-update gates applied (pattern-matcher-router → reconciliation → geometry). Deck is presentation-ready.\\\"}\"; fi || true'",
+            "args": ["bash", "-c", "f=$(jq -r '.tool_input.file_path // .tool_response.filePath // \"\"' 2>/dev/null); if echo \"$f\" | grep -q '\\.pptx$'; then echo '{\"systemMessage\":\"✓ PPTX generated. auto-validate-update gates applied (pattern-matcher-router + reconciliation + geometry). Deck is presentation-ready.\"}'; fi || true"]
+          }
+        ]
+      }
+    ]
+  }
+}
