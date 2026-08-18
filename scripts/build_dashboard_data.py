@@ -2438,15 +2438,16 @@ def load_dist_cont_weights(src):
         src_label = "xlsx"
 
     w.columns = [str(c).strip() for c in w.columns]
-    w = w.dropna(subset=["Ship To Name", "Chain Name"])
 
-    # Handle both CSV and XLSX column names
-    cont_col = "Cont_Pct" if "Cont_Pct" in w.columns else "Secondary contribution %"
+    # Handle both CSV (underscore) and XLSX (space) column naming conventions
+    ship_col  = "Ship_To_Name" if "Ship_To_Name" in w.columns else "Ship To Name"
+    cont_col  = "Cont_Pct" if "Cont_Pct" in w.columns else "Secondary contribution %"
     month_col = "Month" if "Month" in w.columns else "Revised month"
     chain_col = "Chain_Name" if "Chain_Name" in w.columns else "Chain Name"
 
+    w = w.dropna(subset=[ship_col, chain_col])
     w = w[w[cont_col].notna()]
-    w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
+    w["_st"] = w[ship_col].astype(str).str.strip().str.lower()
     w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
 
     # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX)
@@ -2463,7 +2464,7 @@ def load_dist_cont_weights(src):
     w["_frac"] = w["_pct"] / key_sums
     w["_AllocChainRaw"] = w[chain_col].astype(str).str.strip()
     # raw-case names carried through for auto-generated patch-proposal CSV
-    w["_ShipToRaw"] = w["Ship To Name"].astype(str).str.strip()
+    w["_ShipToRaw"] = w[ship_col].astype(str).str.strip()
     w["_BrandRaw"] = w["Brand"].astype(str).str.strip()
     return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums, src_label
 
