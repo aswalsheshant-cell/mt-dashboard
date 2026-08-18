@@ -223,14 +223,15 @@ function chartTitle(s, x, y, w, t) {
 
 /* ================================================================= data */
 
-/* Modern Trade only. eB2B (Nykaa (FSN) + Eremedium) and SIS are excluded and
-   reported as their own channels. Derivation: scripts/mt_channel_split.py
-   Published all-channel figures were primary 49.21 / offtake 36.10 / conv 73.4%. */
+/* MT total — geographic MT + eB2B sub-channel + SIS sub-channel.
+   eB2B (Nykaa/FSN + Eremedium) and SIS are part of the MT channel;
+   reported on dedicated pages within MT. Zone conversion analysis uses
+   geographic MT accounts only. Derivation: scripts/mt_channel_split.py */
 const NATIONAL = {
-  primary: 47.02, offtake: 33.96, conv: 72.2, gap: 13.06,   // EXACT
-  eb2bPrimary: 2.20, eb2bOfftake: 2.07, eb2bFlow: 93.9,     // EXACT
-  sisPrimaryJul: -0.01, sisOfftakeJul: 0.034,               // EXACT, net of MRN
-  prize: 6.22, benchConv: 85.5                              // EXACT, above the floor
+  primary: 49.21, offtake: 36.10, conv: 73.4, gap: 13.11,   // EXACT — total MT incl. eB2B + SIS
+  eb2bPrimary: 2.20, eb2bOfftake: 2.07, eb2bFlow: 93.9,     // EXACT — eB2B sub-channel
+  sisPrimaryJul: -0.01, sisOfftakeJul: 0.034,               // EXACT, net of MRN — SIS sub-channel
+  prize: 6.22, benchConv: 85.5                              // EXACT, geographic zones only
 };
 /* Zone figures are cut from the full month source files with Channel == 'MT'
    applied before aggregation. Offtake basis excludes Brand Counter stores and
@@ -367,19 +368,19 @@ const ZD = {
     ]
   },
   13: {
-    zone: 'eB2B', verdict: 'Separate channel — excluded from MT', accent: BLUE,
-    pri: '₹2.20 Cr', off: '₹2.07 Cr', mix: 'outside MT', conv: '94.1%', gap: '₹0.13 Cr',
-    priority: 'Nykaa (FSN) + Eremedium • formerly reported as the "Pan India" zone',
+    zone: 'eB2B', verdict: 'MT digital sub-channel — marketplace and eB2B accounts', accent: BLUE,
+    pri: '₹2.20 Cr', off: '₹2.07 Cr', mix: '4.5% of MT', conv: '94.1%', gap: '₹0.13 Cr',
+    priority: 'Nykaa (FSN) + Eremedium • MT digital sub-channel • formerly mis-labelled "Pan India" zone',
     chains: [['Nykaa (FSN)', '2.07', '99.4%'], ['Eremedium', '0.00', 'no offtake feed']],
     states: [['Pan India (no geography)', '2.07']],
     me: '₹1.65 Cr', meRows: [['— sub-category split', 'pending']],
     tdc: '₹0.37 Cr', tdcRows: [['— sub-category split', 'pending']],
     npi: '₹0.13 Cr · 6.3% of channel',
-    foot: 'eB2B channel · FY27 to date: primary ₹8.79 Cr, offtake ₹8.60 Cr, 97.8% flow · excluded from every MT zone figure',
+    foot: 'eB2B sub-channel · FY27 to date: primary ₹8.79 Cr, offtake ₹8.60 Cr, 97.8% flow · included in total MT; excluded from geographic zone conversion benchmark',
     ins: [
-      { tag: 'RECLASSIFIED', c: RED, head: 'This was the "Pan India" zone; it is the eB2B channel', why: 'FY27 offtake for the Pan India zone (860.01 L) equals the Nykaa (FSN) account exactly, 1:1, and Nykaa primary is classified eB2B in the channel master. It was never a geography and never Modern Trade.', action: 'Renamed to eB2B and removed from MT zone sales, primary and offtake alike.', owner: 'Analyst · applied 16 Aug' },
-      { tag: 'MT IMPACT', c: RED, head: 'Removing it takes ₹2.07 Cr out of MT offtake', why: 'National MT offtake for July is ₹33.96 Cr, not ₹36.10 Cr. It now ties exactly to the sum of the six geographic MT zones — the identity the previous pack could not close. A further ₹0.03 Cr of SIS offtake also left the zones.', action: 'Quote ₹33.96 Cr as national MT offtake in every downstream report.', owner: 'Analyst · from Aug pack' },
-      { tag: 'SCOPE', c: AMBER, head: 'FSN B2C sits inside this number and cannot be split', why: 'The account combines FSN (B2C marketplace) with Nykaa SS (eB2B) at article level. The business decision of 16 Aug is to carry the whole account under eB2B until separated feeds exist.', action: 'Request separated FSN and Nykaa SS feeds from the data owner.', owner: 'Analyst + NKAM FSN · 31 Aug' },
+      { tag: 'MT SUB-CHANNEL', c: BLUE, head: 'eB2B is part of MT — reported on its own page for clarity', why: 'Nykaa (FSN) + Eremedium are classified eB2B in the channel master. Their replenishment model is near-real-time (94.1% July flow), so blending them into the geographic zone conversion benchmark would artificially inflate it. They count in total MT; excluded only from the zone benchmark.', action: 'Include eB2B in national MT totals (₹49.21 Cr primary, ₹36.10 Cr offtake). Report zone conversion on geographic MT only.', owner: 'Sales lead · standing' },
+      { tag: 'CHANNEL IDENTITY', c: AMBER, head: '"Pan India" was a mis-label — corrected to eB2B sub-channel', why: 'FY27 offtake for the former "Pan India" zone (860.01 L) equals the Nykaa (FSN) account exactly, 1:1. It is not a geography; it is the eB2B digital channel. The label is now corrected; the value stays inside total MT.', action: 'Never quote "Pan India" as a geographic zone. Always report as eB2B sub-channel of MT.', owner: 'Analyst · applied Aug pack' },
+      { tag: 'SCOPE', c: AMBER, head: 'FSN B2C sits inside this number and cannot be split', why: 'The account combines FSN (B2C marketplace) with Nykaa SS (eB2B) at article level. Carry the whole account under eB2B until separated feeds exist.', action: 'Request separated FSN and Nykaa SS feeds from the data owner.', owner: 'Analyst + NKAM FSN · 31 Aug' },
       { tag: 'BENCHMARK', c: GREEN, head: '94.1% July flow, 97.8% across FY27 to date', why: 'Marketplace replenishment runs close to real time, so billing and selling stay in step. A useful ceiling, but the model does not transfer to hypermarket accounts.', action: 'Report eB2B flow on its own line; never blend it into the MT conversion rate.', owner: 'Sales lead · standing' },
       { tag: 'TREND', c: AMBER, head: 'July ₹2.07 Cr is down 4.6% on June', why: 'Offtake peaked at ₹2.29 Cr in April and has drifted since. Active EANs fell from 222 in January to 198 in July, so range contraction tracks the softness.', action: 'Test whether the 24 delisted EANs explain the drift before treating it as demand.', owner: 'Analyst + NKAM FSN · 31 Aug' },
       { tag: 'DATA', c: RED, head: 'Sub-category split returns zero against a ₹1.65 Cr brand total', why: 'The source pack printed ₹0.00 Cr for all three Mamaearth sub-categories while the brand total read ₹1.65 Cr — a broken rollup, not a real result.', action: 'Fix the eB2B sub-category rollup in the build script before publishing this page again.', owner: 'Analyst · 18 Aug' }
@@ -389,7 +390,7 @@ const ZD = {
 
 /* ================================================================ slides */
 
-const METHOD = 'Zone performance represents Modern Trade accounts only. eB2B and SIS channels are excluded from MT zone sales and reported separately.';
+const METHOD = 'Geographic zone performance uses MT store accounts only. eB2B (Nykaa/FSN) and SIS are MT sub-channels; zone conversion analysis excludes them so the benchmark is internally comparable.';
 const SRC_MAIN = 'July Compiled Offtake (Sheet1) · July\'26 primary and distributor secondary · values in ₹ Cr · ' + METHOD;
 const SRC_Q1 = 'Q1 FY27 cut from the Apr/May/Jun month sources with Channel == MT · Q1 FY26 comparatives from the June 2026 MT offtake pack, restated MT-only · ' + METHOD;
 const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_June26 · share-per-point derived as value share ÷ weighted distribution · ' + METHOD;
@@ -403,9 +404,9 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   s.addText('₹6.22 Cr of MT offtake is recoverable at your own internal benchmark', txt({
     x: M + 0.16, y: BODY_Y + 0.10, w: CW - 0.32, h: 0.34, fontSize: 12, bold: true, fontFace: FONTH, color: TEAL, align: 'center', valign: 'middle'
   }));
-  s.addText('₹33.96 Cr MT offtake  •  72.2% MT conversion  •  ₹13.06 Cr MT gap  •  eB2B and SIS reported separately', txt({
+  s.addText('₹36.10 Cr MT offtake  •  73.4% MT conversion  •  ₹13.11 Cr MT gap  •  incl. eB2B ₹2.07 Cr and SIS ₹0.03 Cr sub-channels', txt({
     x: M + 0.16, y: BODY_Y + 0.48, w: CW - 0.32, h: 0.24, fontSize: 8, bold: true, align: 'center' }));
-  s.addText('Modern Trade accounts only. If North, East and South-2 converted at the rate West and South-1 already achieve, MT conversion moves 72.2% → 85.5% with no additional primary. The previous pack read ₹36.10 Cr at 73.4% because the Nykaa (FSN) eB2B account was carried as a "Pan India" zone.', txt({
+  s.addText('Modern Trade (geographic zones + eB2B + SIS sub-channels). If North, East and South-2 converted at the rate West and South-1 already achieve, MT geographic conversion moves 72.2% → 85.5% with no additional primary; that represents ₹6.22 Cr of recoverable offtake from the existing load.', txt({
     x: M + 0.24, y: BODY_Y + 0.74, w: CW - 0.48, h: 0.30, fontSize: 7.2, color: GREY, align: 'center', lineSpacingMultiple: 0.94 }));
 
   const R1 = BODY_Y + 1.26, CH1 = 2.86, cw = (CW - 0.30) / 3;
@@ -446,7 +447,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
     dataLabelColor: W, dataLabelFormatCode: '0.00;;',
     valAxisMaxVal: 50, showLegend: false
   }));
-  s.addText('North and East hold ₹7.97 Cr of the gap — 61% of it in two zones. eB2B ₹2.20 Cr and SIS carry their own flow, on their own pages.', txt({
+  s.addText('North and East hold ₹7.97 Cr of the gap — 61% of it in two zones. eB2B (₹2.20 Cr) and SIS are MT sub-channels with their own pages; zone benchmark uses geographic accounts only.', txt({
     x: cx(1) + 0.12, y: y + 1.94, w: cw - 0.24, h: 0.52, fontSize: 6.8, color: GREY, lineSpacingMultiple: 0.92 }));
 
   // 3 — the prize
@@ -552,8 +553,8 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   let y = BODY_Y + 1.06;
   s.addShape(pres.ShapeType.roundRect, { x: M, y, w: CW, h: 0.66, rectRadius: 0.03, fill: { color: TINT }, line: { color: BRIGHT, width: 1 } });
   s.addText([
-    { text: 'EXCLUDING eB2B MAKES MT LOOK BETTER, NOT WORSE   ', options: { color: TEAL, bold: true, fontSize: 7 } },
-    { text: 'The June pack reported Q1 at ₹114.39 Cr and +63.6% on a blended MT + eB2B base. Nykaa (FSN) grew only 25% against the network’s 67%, so carrying it inside MT held the headline down. On a Modern Trade base the quarter grew 66.6%.', options: { fontSize: 7.2, color: INK } }
+    { text: "eB2B IS PART OF MT — Q1 NOTE ON THE BASE   ", options: { color: TEAL, bold: true, fontSize: 7 } },
+    { text: "The June pack reported Q1 at ₹114.39 Cr and +63.6% on a total MT base. Nykaa (FSN) (eB2B sub-channel) grew only 25% against the network’s 67%, dragging the blended headline. The geographic zone base grew 66.6%. Both bases are valid; quote the total MT (₹107.75 Cr, 66.6%) for zone-improvement commentary.", options: { fontSize: 7.2, color: INK } }
   ], txt({ x: M + 0.14, y: y + 0.08, w: CW - 0.28, h: 0.52, lineSpacingMultiple: 0.94 }));
 
   y += 0.82;
@@ -1084,8 +1085,8 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 
 /* ------------------------------------------------- S12  SIS channel page */
 {
-  const s = page(14, 'SIS: Separate channel — excluded from MT',
-    'Channel view | Shop-in-Shop | FY27 to date | ₹ Lakh | reported outside Modern Trade', SRC_MAIN);
+  const s = page(14, 'SIS: MT shop-in-shop sub-channel',
+    'Channel view | Shop-in-Shop | FY27 to date | ₹ Lakh | MT sub-channel — reported separately from geographic zones', SRC_MAIN);
 
   const kw = (CW - 0.36) / 4, kx = i => M + i * (kw + 0.12);
   kpi(s, { x: kx(0), y: BODY_Y, w: kw, h: 0.94, label: 'NET SIS PRIMARY', value: '₹26.52 L', sub: 'FY27 to date, net of returns', accent: BLUE });
@@ -1133,10 +1134,10 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   y += 0.20;
   const c3 = (CW - 0.24) / 3, cx3 = i => M + i * (c3 + 0.12);
   const cards = [
-    { l: 'WHY IT LEFT MT', a: RED, big: '₹0.04 Cr', sub: 'SIS offtake sitting in MT zones', items: [
-      { t: 'Shoppers Stop, Lifestyle and Broadway offtake was inside the six geographic zones.', b: true },
-      { t: 'It is 0.02% of national offtake — immaterial in value, wrong in principle.' },
-      { t: 'Moved to this channel; MT zone offtake is now SIS-free.' } ] },
+    { l: 'SIS IN MT TOTAL', a: BLUE, big: '₹0.04 Cr', sub: 'SIS offtake within MT — immaterial', items: [
+      { t: 'Shoppers Stop, Lifestyle and Broadway offtake sits inside the six geographic zones.', b: true },
+      { t: 'SIS is 0.02% of total MT offtake — included in ₹36.10 Cr national MT figure.' },
+      { t: 'Reported on this page for transparency; zone conversion benchmark excludes SIS accounts.' } ] },
     { l: 'READ RETURNS FIRST', a: AMBER, big: '15.3%', sub: 'MRN as a share of gross', items: [
       { t: 'Gross ₹29.64 L becomes ₹26.52 L net of ₹4.55 L returns.', b: true },
       { t: 'July is net negative (−₹0.64 L): returns exceeded billing that month.' },
@@ -1154,12 +1155,13 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
   });
 
   y += 2.46;
-  y = banner(s, y, 'CHANNEL REPORTING STRUCTURE NOW IN FORCE');
-  bullets(s, { x: M + 0.10, y: y + 0.02, w: CW - 0.20, gap: 0.42, size: 7.4, items: [
-    { t: 'Modern Trade → MT accounts → zone-wise MT performance. Six geographic zones, no eB2B, no SIS.', b: true },
-    { t: 'eB2B → Nykaa (FSN) and Eremedium. FY27 primary ₹8.79 Cr, offtake ₹8.60 Cr. Replaces the former "Pan India" zone.', c: BLUE },
-    { t: 'SIS → Azorte, Shoppers Stop, Broadway, Lifestyle. FY27 net primary ₹0.27 Cr.', c: BLUE },
-    { t: 'No channel is added, allocated, mapped or rolled up into another. Classification is held in scripts/data/channel_master.json with a named owner.', c: GREY }
+  y = banner(s, y, 'MT CHANNEL STRUCTURE');
+  bullets(s, { x: M + 0.10, y: y + 0.02, w: CW - 0.20, gap: 0.32, size: 7.0, items: [
+    { t: 'Modern Trade (total) → geographic zones + eB2B sub-channel + SIS sub-channel = ₹49.21 Cr primary, ₹36.10 Cr offtake.', b: true },
+    { t: 'Geographic zones (6) → MT store accounts. Used for zone conversion benchmark and gap analysis. Primary ₹47.02 Cr, offtake ₹33.96 Cr.', c: TEAL },
+    { t: 'eB2B sub-channel → Nykaa (FSN) and Eremedium. FY27 primary ₹8.79 Cr, offtake ₹8.60 Cr. Formerly mis-labelled "Pan India" zone.', c: BLUE },
+    { t: 'SIS sub-channel → Azorte, Shoppers Stop, Broadway, Lifestyle. FY27 net primary ₹0.27 Cr. Included in total MT.', c: BLUE },
+    { t: 'Classification held in scripts/data/channel_master.json. No channel is merged or rolled into another without a business decision.', c: GREY }
   ]});
 
 }
@@ -1316,7 +1318,7 @@ const SRC_NIEL = 'Nielsen RMS June 2026 value share · Market_Share_By_PackSize_
 /* ---------------------------------------------------------------- S14 */
 {
   const s = page(17, 'eB2B account detail: Nykaa (FSN) holds 99.4% flow on a contracting range',
-    'eB2B channel | account deep dive | January–July 2026 | excluded from MT — see page 13', SRC_MAIN);
+    'eB2B sub-channel | account deep dive | January–July 2026 | MT sub-channel — see page 13', SRC_MAIN);
 
   const kw = (CW - 0.24) / 3;
   kpi(s, { x: M, y: BODY_Y, w: kw, h: 0.94, label: 'JUL PRIMARY', value: '₹2.08 Cr', sub: 'FSN + Nykaa SS, eB2B', accent: BLUE });
