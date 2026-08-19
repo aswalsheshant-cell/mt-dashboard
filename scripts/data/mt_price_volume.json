@@ -30,12 +30,12 @@
   },
   {
    "month": "Jun",
-   "nsv_lakh": 3823.78,
-   "nsv_cr": 38.24,
+   "nsv_lakh": 3840.46,
+   "nsv_cr": 38.40,
    "units": null,
    "asp_inr": null,
    "realisation_pct": null,
-   "source_note": "NSV from June26_compiled_offtake.xlsb ingested 2026-08-19. Units/ASP/Realisation pending article-level split."
+   "source_note": "NSV from June26_compiled_offtake.xlsb (final, 6.9MB, ingested 2026-08-19 after header-detection fix). Units/ASP/Realisation pending article-level split."
   },
   {
    "month": "Jul",
@@ -49,14 +49,14 @@
  ],
  "q1_fy27": {
   "months": ["Apr", "May", "Jun"],
-  "nsv_lakh": 11431.71,
-  "nsv_cr": 114.32,
-  "status": "COMPLETE — all 3 months present",
+  "nsv_lakh": 11448.39,
+  "nsv_cr": 114.48,
+  "status": "COMPLETE — all 3 months present (Jun from final file 2026-08-19)",
   "tier3_cleared": "2026-08-19"
  },
  "fytd_apr_jul": {
-  "nsv_lakh": 15038.05,
-  "nsv_cr": 150.38
+  "nsv_lakh": 15054.73,
+  "nsv_cr": 150.55
  },
  "jul_by_zone": [
   {
