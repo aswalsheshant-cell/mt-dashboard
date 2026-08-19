@@ -1,38 +1,63 @@
 {
- "unit": "INR Cr unless stated",
- "basis": "EXACT \u2014 full month source files",
- "note": "Brand Counter stores and discontinued brands excluded; June offtake file absent from RawDataFolders",
+ "unit": "INR Cr unless stated; NSV in Lacs where marked",
+ "basis": "EXACT — article-level xlsb aggregation via --offtake-patch (build_dashboard_data.py). NSV Lacs from data.js monthly_fy27. Units/ASP/Realisation from store-article extracts where available.",
+ "note": "Brand Counter stores excluded per channel_master. Jun-26 source file (June26_compiled_offtake.xlsb) ingested 2026-08-19. Tier 3 block cleared.",
  "months_present": [
   "Apr",
   "May",
+  "Jun",
   "Jul"
  ],
- "months_missing": [
-  "Jun"
- ],
+ "months_missing": [],
  "mt_monthly": [
   {
    "month": "Apr",
+   "nsv_lakh": 3588.51,
+   "nsv_cr": 35.89,
    "units": 1956675,
-   "nsv_cr": 33.6,
    "asp_inr": 171.7,
-   "realisation_pct": 41.6
+   "realisation_pct": 41.6,
+   "source_note": "Article-level xlsb; units/ASP from store-article extract"
   },
   {
    "month": "May",
+   "nsv_lakh": 4019.42,
+   "nsv_cr": 40.19,
    "units": 2197203,
-   "nsv_cr": 38.11,
    "asp_inr": 173.47,
-   "realisation_pct": 41.7
+   "realisation_pct": 41.7,
+   "source_note": "Article-level xlsb; units/ASP from store-article extract"
+  },
+  {
+   "month": "Jun",
+   "nsv_lakh": 3840.46,
+   "nsv_cr": 38.40,
+   "units": null,
+   "asp_inr": null,
+   "realisation_pct": null,
+   "source_note": "NSV from June26_compiled_offtake.xlsb (final, 6.9MB, ingested 2026-08-19 after header-detection fix). Units/ASP/Realisation pending article-level split."
   },
   {
    "month": "Jul",
+   "nsv_lakh": 3606.34,
+   "nsv_cr": 36.06,
    "units": 1895052,
-   "nsv_cr": 33.96,
    "asp_inr": 179.21,
-   "realisation_pct": 42.2
+   "realisation_pct": 42.2,
+   "source_note": "Article-level xlsb; units/ASP from store-article extract"
   }
  ],
+ "q1_fy27": {
+  "months": ["Apr", "May", "Jun"],
+  "nsv_lakh": 11448.39,
+  "nsv_cr": 114.48,
+  "status": "COMPLETE — all 3 months present (Jun from final file 2026-08-19)",
+  "tier3_cleared": "2026-08-19"
+ },
+ "fytd_apr_jul": {
+  "nsv_lakh": 15054.73,
+  "nsv_cr": 150.55
+ },
  "jul_by_zone": [
   {
    "zone": "West",
@@ -82,5 +107,14 @@
    "asp_index": 95,
    "realisation_pct": 41.1
   }
+ ],
+ "by_zone_fytd": [
+  { "zone": "West",      "fy27_lakh": 3732.52, "fy26_lakh": 8171.0, "fy25_lakh": 6215.0, "yoy_pct": 31.47 },
+  { "zone": "North",     "fy27_lakh": 3339.92, "fy26_lakh": 7060.0, "fy25_lakh": 4348.0, "yoy_pct": 62.37 },
+  { "zone": "South-1",   "fy27_lakh": 3308.35, "fy26_lakh": 6428.0, "fy25_lakh": 4102.0, "yoy_pct": 56.7  },
+  { "zone": "South-2",   "fy27_lakh": 2063.89, "fy26_lakh": 4163.0, "fy25_lakh": 3280.0, "yoy_pct": 26.92 },
+  { "zone": "East",      "fy27_lakh": 1528.60, "fy26_lakh": 3223.0, "fy25_lakh": 2095.0, "yoy_pct": 53.84 },
+  { "zone": "Pan India (eB2B)", "fy27_lakh": 860.01, "fy26_lakh": 2040.0, "fy25_lakh": 1805.0, "yoy_pct": 13.02 },
+  { "zone": "Central",   "fy27_lakh": 211.77, "fy26_lakh": null, "fy25_lakh": null, "yoy_pct": null }
  ]
 }

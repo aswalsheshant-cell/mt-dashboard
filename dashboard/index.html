@@ -627,9 +627,9 @@ function buildOverview(){
   const s=document.getElementById('tab-overview');
   const fy=fyKey(), isTY=/TY target/i.test(f.method||'');
   const _mc27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27&&D.detail_meta.fyx_primary.FY27.months_covered)||[];
-  const _fy27lab=_mc27.length?'FY27 '+_mc27[0].slice(0,3)+'–'+_mc27[_mc27.length-1].slice(0,3):'FY27';
-  const yrLab={fy25:'FY25',fy26:'FY26',fy27:_fy27lab};
-  FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });  // backfill future FYs (FY28+)
+  const _fy27lab=_mc27.length?fyDispLabel('FY27')+' '+_mc27[0].slice(0,3)+'–'+_mc27[_mc27.length-1].slice(0,3):fyDispLabel('FY27');
+  const yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26'),fy27:_fy27lab};
+  FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=fyDispLabel(t); });  // backfill future FYs (FY28+)
   // FYs beyond the pre-agg window (FY27's Apr'26+) exist ONLY in the article-wise
   // primary -- FPX() serves exact chain-allocated aggregates so the selected FY
   // renders real numbers here instead of an empty state. Offtake has no such FY.
@@ -665,7 +665,7 @@ function buildOverview(){
        isTY?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
    </div>
    <div class="grid g2">
-     ${card('Primary vs Offtake — monthly trend (FY24-25 → FY27)','Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
+     ${card(`Primary vs Offtake — monthly trend (${fyDispLabel('FY25')} → ${fyDispLabel('FY27')})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('ovChannel',true))}
    </div>
    <div class="grid g2">
@@ -691,7 +691,7 @@ function buildOverview(){
   });
   mkLine('ovTrend',o.months,[
     {label:'Offtake (sell-out)',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22'},
-    {label:'Primary FY24-25',data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
+    {label:`Primary ${fyDispLabel('FY25')}`,data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
     {label:'Primary FY25-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
   ]);
   mkDonut('ovChannel',channels.map(c=>c.name),channels.map(c=>c[primYr]),true,v=>drillTo('Channel',v));
@@ -735,21 +735,21 @@ function buildPrimary(){
       s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
        <p class="lead">FY27 year-to-date — ${_dispLabels.join(', ')} actuals, ₹ Crore.</p>
        <div class="kpis">
-         ${kpi('Primary NSV (FY27 YTD)',crc(totNsv),fOn('Chain')?'filtered scope':`${_dispLabels.join(' + ')} actuals`)}
+         ${kpi(`Primary NSV (${fyDispLabel('FY27')} YTD)`,crc(totNsv),fOn('Chain')?'filtered scope':`${_dispLabels.join(' + ')} actuals`)}
          ${kpi('Gross MRP Value',crc(fp.mrp),'Total MRP sales basis')}
          ${kpi('Active Chains',chains.filter(c=>c.nsv>0).length,`${brands.filter(b=>b.nsv>0).length} brands`)}
          ${kpi('Months Loaded',_dispLabels.length,_dispLabels.join(', '))}
        </div>
        <div class="grid g2">
-         ${card('Monthly NSV — FY26-27'+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Actuals to date. Click a month to drill.',cv('prMonth'))}
-         ${card('By zone (FY27 YTD)','click to drill',cv('prZone',true))}
+         ${card(`Monthly NSV — ${fyDispLabel('FY27')}`+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Actuals to date. Click a month to drill.',cv('prMonth'))}
+         ${card(`By zone (${fyDispLabel('FY27')} YTD)`,'click to drill',cv('prZone',true))}
        </div>
        <div class="grid g2">
-         ${card('By channel (FY27 YTD)','click to drill',cv('prChan',true))}
-         ${card('By brand (FY27 YTD)','click to drill',cv('prBrand',true))}
+         ${card(`By channel (${fyDispLabel('FY27')} YTD)`,'click to drill',cv('prChan',true))}
+         ${card(`By brand (${fyDispLabel('FY27')} YTD)`,'click to drill',cv('prBrand',true))}
        </div>
-       ${card('Chain-wise primary (FY27 YTD)','Chain-level (secondary-allocated for Distributor primary). Click a chain to drill.',`<div class="tablewrap"><table>
-         <thead><tr><th>Chain</th><th>FY27 YTD NSV</th><th>Share</th></tr></thead>
+       ${card(`Chain-wise primary (${fyDispLabel('FY27')} YTD)`,'Chain-level (secondary-allocated for Distributor primary). Click a chain to drill.',`<div class="tablewrap"><table>
+         <thead><tr><th>Chain</th><th>${fyDispLabel('FY27')} YTD NSV</th><th>Share</th></tr></thead>
          <tbody>${rows27||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`+
          (fp.chain_alloc_note?`<p class="note" style="margin:8px 0 0;font-size:0.82em;color:var(--muted)">ℹ ${fp.chain_alloc_note}</p>`:''))}
        ${allocSectionHtml()}
@@ -757,7 +757,7 @@ function buildPrimary(){
       wireDrillLinks(s);
       wireAllocExports(s);
       // Chart shows "Apr-26" labels; click drills to full name ("April") for filter consistency
-      mkLine('prMonth',mSelDisp.map(x=>x.disp),[{label:'FY26-27',data:mSelDisp.map(x=>x.v),borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>{const e=mSelDisp.find(x=>x.disp===v);drillTo('Month',e?e.full:v);});
+      mkLine('prMonth',mSelDisp.map(x=>x.disp),[{label:fyDispLabel('FY27'),data:mSelDisp.map(x=>x.v),borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>{const e=mSelDisp.find(x=>x.disp===v);drillTo('Month',e?e.full:v);});
       mkBarH('prZone',zones.map(z=>z.name),zones.map(z=>z.nsv),C.teal,true,v=>drillTo('Zone',v));
       mkDonut('prChan',chans.map(c=>c.name),chans.map(c=>c.nsv),true,v=>drillTo('Channel',v));
       const bb27=brands.filter(b=>(b.nsv||0)>0.5);
@@ -769,7 +769,7 @@ function buildPrimary(){
     renderCatDrillChart('prCatDrill',recFilter());
     return;
   }
-  const fy=fyKey(), yrs=fy?[fy]:['fy25','fy26'], last=yrs[yrs.length-1], yrLab={fy25:'FY25',fy26:'FY26'};
+  const fy=fyKey(), yrs=fy?[fy]:['fy25','fy26'], last=yrs[yrs.length-1], yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
   let chains=p.by_chain, zones=p.by_zone, brands=p.by_brand, channels=p.by_channel;
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
@@ -791,7 +791,7 @@ function buildPrimary(){
      mainly FY24-25) keeps its original single-chain tag.</p>`:'';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'this source (see the Category & Pack tab for those)');
   s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
-   <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
+   <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:`${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}, ₹ Crore.`}</p>
    ${dimNote}
    ${qcNote}
    <div class="kpis">
@@ -803,28 +803,28 @@ function buildPrimary(){
      ${kpi('Active Chains',chains.filter(c=>c[last]>0).length,`${p.n_brands} brands`)}
    </div>
    <div class="grid g2">
-     ${card('Monthly NSV — FY24-25 vs FY25-26'+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
-     ${card('By zone'+(fy?` (${yrLab[fy]})`:' (FY25 vs FY26)'),'click to drill',cv('prZone',true))}
+     ${card(`Monthly NSV — ${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}`+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
+     ${card('By zone'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')})`),'click to drill',cv('prZone',true))}
    </div>
    <div class="grid g2">
      ${card('By channel'+(fy?` (${yrLab[fy]})`:''),'click to drill',cv('prChan',true))}
-     ${card('By brand'+(fy?` (${yrLab[fy]})`:' (FY26)'),'click to drill',cv('prBrand',true))}
+     ${card('By brand'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY26')})`),'click to drill',cv('prBrand',true))}
    </div>
    ${card(`Chain-wise primary &amp; YoY (${yrLab[last]})`,'Sorted by NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise. Click a chain to drill.',`<div class="tablewrap"><table>
-     <thead><tr><th>Chain</th><th>FY25</th><th>FY26</th><th>YoY</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+     <thead><tr><th>Chain</th><th>${fyDispLabel('FY25')}</th><th>${fyDispLabel('FY26')}</th><th>YoY</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    ${allocSectionHtml()}
    ${catDrillCardHtml('prCatDrill')}`;
   wireDrillLinks(s);
   wireAllocExports(s);
   mkLine('prMonth',mLabels,[
-    {label:'FY24-25',data:m25,borderColor:C.blue,dash:[5,4]},
-    {label:'FY25-26',data:m26,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>drillTo('Month',v));
+    {label:fyDispLabel('FY25'),data:m25,borderColor:C.blue,dash:[5,4]},
+    {label:fyDispLabel('FY26'),data:m26,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>drillTo('Month',v));
   if(fy){
     mkBarH('prZone',zones.map(z=>z.name),zones.map(z=>z[fy]),C.teal,true,v=>drillTo('Zone',v));
   } else {
     mkBar('prZone',zones.map(z=>z.name),[
-      {label:'FY25',data:zones.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
-      {label:'FY26',data:zones.map(z=>z.fy26),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo('Zone',v));
+      {label:fyDispLabel('FY25'),data:zones.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
+      {label:fyDispLabel('FY26'),data:zones.map(z=>z.fy26),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo('Zone',v));
   }
   mkDonut('prChan',channels.map(c=>c.name),channels.map(c=>c[last]),true,v=>drillTo('Channel',v));
   const bb=brands.filter(b=>b[last]>0.5);
@@ -993,8 +993,8 @@ function buildOfftake(){
     return;
   }
   const yrs=fy?[fy]:['fy25','fy26'];
-  const yrLab={fy25:'FY25',fy26:'FY26'};
-  if(fy && !yrLab[fy]) yrLab[fy]=fy.toUpperCase();   // backfill FY27+ label
+  const yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
+  if(fy && !yrLab[fy]) yrLab[fy]=fyDispLabel('FY'+fy.slice(2));   // backfill FY27+ label
   let zones=o.by_zone, states=o.by_state, chains=consolidateChains(o.by_chain);
   if(fOn('Zone')){ zones=zones.filter(z=>fHas('Zone',z.name)); states=states.filter(r=>fHas('Zone',r.zone)); }
   if(fOn('Chain')){ chains=chains.filter(c=>fHas('Chain',c.name)); }
@@ -1033,7 +1033,7 @@ function buildOfftake(){
   }).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
-   <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:'FY24-25 vs FY25-26, ₹ Crore.'}</p>
+   <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:`${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}, ₹ Crore.`}</p>
    ${dimNote}
    <div class="kpis">
      ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
@@ -1058,8 +1058,8 @@ function buildOfftake(){
     mkBarH('ofZone',zones.map(z=>z.name),zones.map(z=>z[fy]),C.amber,true,v=>drillTo('Zone',v));
   } else {
     mkBar('ofZone',zones.map(z=>z.name),[
-      {label:'FY25',data:zones.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
-      {label:'FY26',data:zones.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Zone',v));
+      {label:fyDispLabel('FY25'),data:zones.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
+      {label:fyDispLabel('FY26'),data:zones.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Zone',v));
   }
   mkBar('ofCmp',cmp.map(c=>c.name),[
     {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
@@ -1072,8 +1072,8 @@ function buildRelianceBC(){
   const bc=D.reliance_bc, s=document.getElementById('tab-reliance-bc');
   if(!bc){s.innerHTML='<h2 class="sec">Reliance Brand Counter</h2><p class="lead">No Brand Counter data available.</p>';return;}
   const fy=fyKey();
-  const yrLab={fy25:'FY25',fy26:'FY26'};
-  FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=t; });
+  const yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
+  FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=fyDispLabel(t); });
   const fyTags=bc.fy_tags||[];
   if(fy && !fyTags.includes(fy)){
     s.innerHTML=`<h2 class="sec">Reliance Brand Counter</h2><p class="lead">No Brand Counter data for ${yrLab[fy]||fy.toUpperCase()}.</p>`;return;
@@ -1199,7 +1199,7 @@ function buildPnl(){
   const cm2Qc=(cm2D&&cm2D.qc)||{};
   const cm2NoData=!cm2D||!cm2D.has_expense_data;
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
-   ${fy26ok?`<p class="lead">FY25-26. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
+   ${fy26ok?`<p class="lead">${fyDispLabel('FY26')}. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
    ${dimNote}
    <div class="kpis">
@@ -1216,7 +1216,7 @@ function buildPnl(){
      <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Gap</th><th>Gap %</th><th>Promos</th><th>Avg depth</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="7">No chains for this filter.</td></tr>'}</tbody></table></div>`)}`
    :`<div class="fynote"><b>${fLab('FY')} actuals not available</b> — the gross-to-net P&amp;L bridge (source ends Mar-26) —
-      intentionally blank instead of a stale FY26 number. TOT% and CM2 below still cover FY26-27.</div>`}
+      intentionally blank instead of a stale ${fyDispLabel('FY26')} number. TOT% and CM2 below still cover ${fyDispLabel('FY26')}–${fyDispLabel('FY27')}.</div>`}
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
    <p class="note" style="margin:0 0 10px">FY26-FY27, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
      TOT% = SUM(Pass-on Value) / SUM(MRP), sourced per row: Primary file's own <b>Avg Tot</b> first, actual
@@ -1326,7 +1326,7 @@ function buildForecast(){
   const dimNote=dimUnsupportedNote(['FY','Month','Chain','Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],
     'the Forecast series (always shows the full FY24-27 trend — see Overview/Primary/Offtake for filtered totals)');
   const fcTargetNote=targetMissing&&isTY?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
-     <strong>&#9888; TY target total unavailable:</strong> The monthly FY26-27 target file
+     <strong>&#9888; TY target total unavailable:</strong> The monthly ${fyDispLabel('FY27')} target file
      (<code>FY2627_TGT_and_sales_team_mapping.xlsx</code>) was found and the monthly target series
      is shown below, but the full-year total could not be derived. Achievement % vs annual plan
      cannot be displayed until the file is re-verified and <code>--forecast-only</code> is re-run.
@@ -1336,22 +1336,22 @@ function buildForecast(){
   const detHtml=det?_buildFcDetail(det):'';
 
   s.innerHTML=`<h2 class="sec">Forecast${isTY?' / TY Target':''}</h2>
-   <p class="lead">${isTY?'FY26-27 (TY) target — the business\'s own monthly target, not a projected estimate.':'Forward offtake projection for FY26-27.'}</p>
+   <p class="lead">${isTY?`${fyDispLabel('FY27')} (TY) target — the business's own monthly target, not a projected estimate.`:`Forward offtake projection for ${fyDispLabel('FY27')}.`}</p>
    ${dimNote}
    ${fcTargetNote}
    <div class="kpis">
-     ${kpi('FY26 Actual (offtake)',crc(f.fy26_actual),'trailing 12m')}
-     ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),isTY?'business TY target':`@ ${f.growth_assumption_pct}% growth`)}
+     ${kpi(`${fyDispLabel('FY26')} Actual (offtake)`,crc(f.fy26_actual),'trailing 12m')}
+     ${kpi(isTY?`${fyDispLabel('FY27')} (TY) Target`:`${fyDispLabel('FY27')} Forecast`,crc(f.fy27_forecast),isTY?'business TY target':`@ ${f.growth_assumption_pct}% growth`)}
      ${kpi('Implied uplift',crc(f.fy27_forecast-f.fy26_actual),pct((f.fy27_forecast/f.fy26_actual-1)*100))}
    </div>
-   ${card(`Offtake — actuals &amp; FY26-27 ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
+   ${card(`Offtake — actuals &amp; ${fyDispLabel('FY27')} ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
    ${card('Method',f.method,isTY?'':'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}
    ${detHtml}
    ${catDrillCardHtml('fcCatDrill')}`;
   const histLen=f.hist.length;
   mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
     {label:'Actual offtake',data:[...f.hist,...Array(f.fc.length).fill(null)],borderColor:C.teal,backgroundColor:C.teal+'22',fill:true},
-    {label:isTY?'TY Target FY26-27':'Forecast FY26-27',data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
+    {label:isTY?`TY Target ${fyDispLabel('FY27')}`:`Forecast ${fyDispLabel('FY27')}`,data:[...Array(histLen-1).fill(null),f.hist[histLen-1],...f.fc],borderColor:C.amber,dash:[6,4]}]);
   if(det) _buildFcDetailCharts(det);
   renderCatDrillChart('fcCatDrill',recFilter());
 }
@@ -1454,17 +1454,17 @@ function buildShare(){
       const sob=chains27.slice(0,10).map(c=>({name:c.name,share:c.nsv/tot27*100,v:c.nsv}));
       const sobRows=sob.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.v)}</td><td>${c.share.toFixed(1)}%</td></tr>`).join('');
       s.innerHTML=`<h2 class="sec">Market Share</h2>
-       <p class="lead">Share-of-business across MT chains — FY26-27 YTD (${fp.months_covered.join(' & ')} 2026),
+       <p class="lead">Share-of-business across MT chains — ${fyDispLabel('FY27')} YTD (${fp.months_covered.join(' & ')} 2026),
          from the article-wise primary, chain-allocated. Internal share-of-business only.</p>
        <div class="kpis">
-         ${sob.length>1? kpi('Top-2 Chain Share',(sob[0].share+sob[1].share).toFixed(0)+'%','of FY27 YTD primary') :
-           kpi('Chain Share',sob[0]?sob[0].share.toFixed(0)+'%':'–','of FY27 YTD primary')}
+         ${sob.length>1? kpi('Top-2 Chain Share',(sob[0].share+sob[1].share).toFixed(0)+'%',`of ${fyDispLabel('FY27')} YTD primary`) :
+           kpi('Chain Share',sob[0]?sob[0].share.toFixed(0)+'%':'–',`of ${fyDispLabel('FY27')} YTD primary`)}
          ${kpi('Top Chain',sob[0]?sob[0].name:'–',sob[0]?`${sob[0].share.toFixed(0)}% share`:'')}
-         ${kpi('Active Chains',chains27.length,'with FY27 billing')}
-         ${kpi('FY27 YTD Primary',crc(fp.nsv),fp.months_covered.join(' + '))}
+         ${kpi('Active Chains',chains27.length,`with ${fyDispLabel('FY27')} billing`)}
+         ${kpi(`${fyDispLabel('FY27')} YTD Primary`,crc(fp.nsv),fp.months_covered.join(' + '))}
        </div>
-       ${card('Share of business by chain (FY27 YTD primary)','click a slice to drill',cv('shSob'))}
-       ${card('Share-of-business league table (FY27 YTD primary)','Click a chain to drill.',`<div class="tablewrap"><table>
+       ${card(`Share of business by chain (${fyDispLabel('FY27')} YTD primary)`,'click a slice to drill',cv('shSob'))}
+       ${card(`Share-of-business league table (${fyDispLabel('FY27')} YTD primary)`,'Click a chain to drill.',`<div class="tablewrap"><table>
          <thead><tr><th>Chain</th><th>NSV</th><th>Share</th></tr></thead><tbody>${sobRows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
        ${catDrillCardHtml('shCatDrill')}`;
       wireDrillLinks(s);
@@ -1476,7 +1476,7 @@ function buildShare(){
     renderCatDrillChart('shCatDrill',recFilter());
     return;
   }
-  const fy=fyKey()||'fy26', yrLab={fy25:'FY25',fy26:'FY26'};
+  const fy=fyKey()||'fy26', yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
   const tot=p['nsv_'+fy]||1;
   let chains=p.by_chain; if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   const sob=chains.filter(c=>c[fy]>0).slice(0,10).map(c=>({name:c.name,share:c[fy]/tot*100,v:c[fy]}));
@@ -1982,7 +1982,7 @@ function buildComparison(){
       source='Primary (chain-level, secondary-allocated for Distributors)';
       const arr=cmpDim==='Chain'?D.primary.by_chain:D.primary.by_brand;
       rows=arr.filter(x=>(x.fy26||0)>0||(x.fy25||0)>0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
-      yrPair=['FY25','FY26'];
+      yrPair=[fyDispLabel('FY25'),fyDispLabel('FY26')];
     }
   } else {
     source='article-level primary detail (File 2)';
@@ -2087,6 +2087,12 @@ function recFilter(except){
 // correctly show 0 records for it.
 const FYX=(D.detail_meta&&D.detail_meta.fyx_primary)||{};
 function fyNum(t){ return parseInt(String(t).slice(2),10)||0; }  // 'FY27' -> 27
+// Display label: 'FY25' -> "FY'24-25"; 'FY26' -> "FY'25-26"; 'FY27' -> "FY'26-27"
+function fyDispLabel(tag){
+  if(tag==null||tag==='') return '';
+  const n=fyNum(tag); if(!n) return String(tag);
+  const p=n-1; return `FY'${p<10?'0'+p:p}-${n<10?'0'+n:n}`;
+}
 const PREAGG_FYS=(function(){
   const s=new Set();
   Object.keys(D.primary||{}).forEach(k=>{ const m=/^nsv_(fy\d{2})$/.exec(k); if(m) s.add('FY'+m[1].slice(2)); });
@@ -2113,7 +2119,8 @@ function renderFilterBar(){
     return `<label class="fl"><span>${lab}</span><select data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
       <option value="">${sel.length?`${sel.length} selected — clear`:'All'}</option>
       ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');const on=sel.includes(String(v));
-        return `<option value="${s}">${on?'✓ ':''}${v}</option>`;}).join('')}
+        const disp=k==='FY'?fyDispLabel(v):v;
+        return `<option value="${s}">${on?'✓ ':''}${disp}</option>`;}).join('')}
     </select></label>`;
   }).join('')
   + `<button class="fbtn ghost" id="fReset">↺ Reset filters</button>`
@@ -2165,7 +2172,7 @@ function wireDrillLinks(root){
 // tab in place when a chip is removed, instead of jumping to Explorer.
 function activeChipsHtml(){
   return FILT.flatMap(([k,lab])=>F[k].map(v=>
-    `<span class="fchip">${lab}: ${v} <b data-k="${k}" data-v="${String(v).replace(/"/g,'&quot;')}" title="remove this value">✕</b></span>`)).join(' ');
+    `<span class="fchip">${lab}: ${k==='FY'?fyDispLabel(v):v} <b data-k="${k}" data-v="${String(v).replace(/"/g,'&quot;')}" title="remove this value">✕</b></span>`)).join(' ');
 }
 function wireChips(root,rebuildFn){
   root.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
@@ -2266,8 +2273,8 @@ function fyBeyondPreagg(tag){ return PREAGG_FYS.indexOf(tag)<0; }          // th
 function fyUnsupported(){ return F.FY.length>0 && F.FY.every(fyBeyondPreagg); }  // every selected FY is beyond the pre-agg window
 function fyNoDataNote(where){
   return `<div class="fynote"><b>${fLab('FY')} actuals not available</b> — ${where} — source ends Mar'26,
-    so this section is intentionally blank instead of showing stale FY26 numbers.
-    See <b>Forecast</b> for the FY26-27 target.</div>`;
+    so this section is intentionally blank instead of showing stale ${fyDispLabel('FY26')} numbers.
+    See <b>Forecast</b> for the ${fyDispLabel('FY27')} target.</div>`;
 }
 function monthUnsupportedNote(what){
   return fOn('Month') ? `<p class="drillhint" style="margin:4px 0 0">Month = ${fLab('Month')} doesn't narrow

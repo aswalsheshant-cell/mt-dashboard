@@ -638,7 +638,17 @@ def load_offtake_article_files(src):
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            # Some xlsb exports have a blank/index row before the header (header=1)
+            # while others start the header at row 0. Auto-detect by trying header=0
+            # first; fall back to header=1 if the required columns are absent.
+            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
+                          for df_ in _frames0.values())
+            if _use_h0:
+                _frames = _frames0
+            else:
+                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -740,7 +750,12 @@ def load_reliance_bc_data(src):
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
+                          for df_ in _frames0.values())
+            _frames = _frames0 if _use_h0 else \
+                      pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -1109,7 +1124,12 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
         if fp.suffix.lower() == ".csv":
             _sheets = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            _sheets0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req2 = {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"}
+            _use_h0 = any(_req2 <= {str(c).strip() for c in df_.columns}
+                          for df_ in _sheets0.values())
+            _sheets = _sheets0 if _use_h0 else \
+                      pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _sheets.items():
             df.columns = [str(c).strip() for c in df.columns]
             if not {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"} <= set(df.columns):
