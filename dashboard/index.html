@@ -994,7 +994,7 @@ function buildOfftake(){
   }
   const yrs=fy?[fy]:['fy25','fy26'];
   const yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
-  if(fy && !yrLab[fy]) yrLab[fy]=fyDispLabel(fy.replace('fy','FY').toUpperCase());   // backfill FY27+ label
+  if(fy && !yrLab[fy]) yrLab[fy]=fyDispLabel('FY'+fy.slice(2));   // backfill FY27+ label
   let zones=o.by_zone, states=o.by_state, chains=consolidateChains(o.by_chain);
   if(fOn('Zone')){ zones=zones.filter(z=>fHas('Zone',z.name)); states=states.filter(r=>fHas('Zone',r.zone)); }
   if(fOn('Chain')){ chains=chains.filter(c=>fHas('Chain',c.name)); }
@@ -2089,6 +2089,7 @@ const FYX=(D.detail_meta&&D.detail_meta.fyx_primary)||{};
 function fyNum(t){ return parseInt(String(t).slice(2),10)||0; }  // 'FY27' -> 27
 // Display label: 'FY25' -> "FY'24-25"; 'FY26' -> "FY'25-26"; 'FY27' -> "FY'26-27"
 function fyDispLabel(tag){
+  if(tag==null||tag==='') return '';
   const n=fyNum(tag); if(!n) return String(tag);
   const p=n-1; return `FY'${p<10?'0'+p:p}-${n<10?'0'+n:n}`;
 }
