@@ -130,3 +130,76 @@ VAR _bad =
         )
     )
 RETURN COALESCE ( _bad, 0 )
+
+// =====================================================================
+// DIST ALLOCATION SOURCE BREAKDOWN  (Fact Primary Article)
+// Source Type column is populated by Query 41 and propagated via Query 16.
+// Use these measures on the QC page to monitor allocation coverage and
+// confirm the Jun'26 provisional rows are eventually replaced by a Finance-
+// approved DistCont patch.
+// =====================================================================
+
+// --- NSV by allocation source ---
+Dist NSV – Approved Patch =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "Approved Patch"
+)
+
+Dist NSV – ShipTo CSV =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "ShipTo CSV"
+)
+
+Dist NSV – Provisional Fallback =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "Nearest-Month Fallback"
+)
+
+Dist NSV – Unmapped =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped"
+)
+
+// --- Coverage % (share of Dist NSV that has an approved allocation) ---
+Dist Allocation Coverage % =
+VAR _total =
+    CALCULATE (
+        SUM ( 'Fact Primary Article'[Primary NSV] ),
+        'Fact Primary Article'[Is Dist] = TRUE ()
+    )
+VAR _covered =
+    CALCULATE (
+        SUM ( 'Fact Primary Article'[Primary NSV] ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+    )
+RETURN DIVIDE ( _covered, _total )
+
+// --- Provisional row flag (for Jun'26 disclosure) ---
+Has Provisional Allocation =
+IF (
+    CALCULATE (
+        COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Provisional Flag] = TRUE ()
+    ) > 0,
+    "⚠ Provisional allocation active – Finance approval pending",
+    "All allocations approved"
+)
+
+// --- Unmapped Dist rows count (QC threshold: target = 0) ---
+Unmapped Dist Rows =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped"
+)
+
+// --- Is Dist flag (derived from PO Type; matches Query 16 logic) ---
+// Exposed as a measure for use in filters where the column isn't available.
+Dist Row Count =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" }
+)

@@ -17,8 +17,7 @@ Run:  pytest scripts/test_dashboard_disclosures.py -v
 """
 import csv
 import json
-import sys
-import tempfile
+import re
 import pytest
 from pathlib import Path
 
@@ -32,12 +31,9 @@ OFFTAKE_DIR = Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolde
 def data():
     assert DATA_JS.exists(), f"data.js not found at {DATA_JS}"
     content = DATA_JS.read_text(encoding="utf-8")
-    js_body = content[len("window.DASH = "):]
-    # Strip trailing semicolon (and optional newline)
-    js_body = js_body.rstrip()
-    if js_body.endswith(";"):
-        js_body = js_body[:-1]
-    return json.loads(js_body)
+    m = re.search(r'window\.DASH\s*=\s*(\{.*\})\s*;', content, re.DOTALL)
+    assert m, "Could not extract JSON object from data.js"
+    return json.loads(m.group(1))
 
 
 @pytest.fixture(scope="module")

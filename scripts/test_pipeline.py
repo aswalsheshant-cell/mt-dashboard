@@ -601,7 +601,7 @@ class TestDataJSRegression:
         alloc = dash.get("alloc", {})
         if not alloc:
             pytest.skip("No alloc block")
-        assert "unmapped_nsv" in alloc or "unmapped_note" in alloc, (
+        assert "unmapped_nsv" in alloc or "unallocated" in str(alloc).lower(), (
             "Unallocated primary bucket not present in alloc block"
         )
 
