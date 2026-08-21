@@ -283,7 +283,7 @@ Chart.register({
   id:'valueLabels',
   afterDatasetsDraw(chart){
     const opt=chart.options.plugins&&chart.options.plugins.valueLabels;
-    if(!opt||opt.display===false) return;
+    if(!opt||!('money' in opt)||opt.display===false) return;
     const ctx=chart.ctx, fmt=opt.money===false?num:crc;
     ctx.save();
     ctx.font='11px Aptos, Segoe UI, Calibri, sans-serif';
@@ -2209,7 +2209,7 @@ function subcatPareto95(recs){
   const out={};
   Object.values(byBrand).forEach(rows=>{
     const bySub={};
-    rows.forEach(r=>{ bySub[r.SubCategory]=(bySub[r.SubCategory]||0)+r.NSV; });
+    rows.forEach(r=>{ const k=r.SubCategory; if(k==null||k!==k)return; bySub[k]=(bySub[k]||0)+r.NSV; });
     const total=Object.values(bySub).reduce((a,b)=>a+b,0)||1;
     const sorted=Object.entries(bySub).sort((a,b)=>b[1]-a[1]);
     let cum=0;
@@ -2289,7 +2289,7 @@ function dimUnsupportedNote(dims,source){
 
 let expCharts=[];
 function expDestroy(){expCharts.forEach(c=>c.destroy());expCharts=[];}
-function grp(recs,key){const m={};recs.forEach(r=>m[r[key]]=(m[r[key]]||0)+r.NSV);
+function grp(recs,key){const m={};recs.forEach(r=>{const k=r[key];if(k==null||k!==k)return;m[k]=(m[k]||0)+r.NSV;});
   return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
 function expBarH(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
