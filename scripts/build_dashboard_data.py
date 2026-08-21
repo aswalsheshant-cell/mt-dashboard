@@ -3595,6 +3595,51 @@ def main():
                         bc_data[f"months_{tag}"] = tms
                         bc_data[f"monthly_{tag}"] = [monthly_map[mo] for mo in tms]
                         bc_data[f"total_{tag}"] = r2(sum(monthly_map[mo] for mo in tms))
+                    # Merge dimensional arrays: new source only covers new months;
+                    # add the existing kept-months dimensional data into each array so
+                    # zone/brand/category/state totals match bc.total (not just new months).
+                    def _merge_dim(existing_list, new_list, key):
+                        """Add existing kept-months entries into new_list by primary key."""
+                        idx = {d[key]: d for d in new_list}
+                        for old_d in existing_list:
+                            k = old_d[key]
+                            if k in idx:
+                                nd = idx[k]
+                                nd["total"] = r2(nd["total"] + old_d["total"])
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)):
+                                        nd[fk] = r2(nd.get(fk, 0) + fv)
+                            else:
+                                idx[k] = dict(old_d)
+                        return sorted(idx.values(), key=lambda d: -d["total"])
+
+                    def _merge_state_dim(existing_list, new_list):
+                        """Merge by (zone, state) composite key."""
+                        idx = {(d["zone"], d["state"]): d for d in new_list}
+                        for old_d in existing_list:
+                            k = (old_d["zone"], old_d["state"])
+                            if k in idx:
+                                nd = idx[k]
+                                nd["total"] = r2(nd["total"] + old_d["total"])
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)):
+                                        nd[fk] = r2(nd.get(fk, 0) + fv)
+                            else:
+                                idx[k] = dict(old_d)
+                        return sorted(idx.values(), key=lambda d: -d["total"])
+
+                    if existing_bc.get("by_zone"):
+                        bc_data["by_zone"] = _merge_dim(
+                            existing_bc["by_zone"], bc_data.get("by_zone", []), "name")
+                    if existing_bc.get("by_state"):
+                        bc_data["by_state"] = _merge_state_dim(
+                            existing_bc["by_state"], bc_data.get("by_state", []))
+                    if existing_bc.get("by_brand"):
+                        bc_data["by_brand"] = _merge_dim(
+                            existing_bc["by_brand"], bc_data.get("by_brand", []), "name")
+                    if existing_bc.get("by_category"):
+                        bc_data["by_category"] = _merge_dim(
+                            existing_bc["by_category"], bc_data.get("by_category", []), "name")
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
         outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
