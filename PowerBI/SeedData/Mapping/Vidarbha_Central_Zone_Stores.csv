@@ -1,0 +1,102 @@
+s.no,Site Code,Site Name,Chain Name,City,State,Zone,Zone_Revised,Sub_Zone,Remap_Date
+1,AKGAUR:443,AKGAUR:443,Wellness Forever,Akola,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+2,AKOLAN:338,AKOLAN:338,Wellness Forever,Akola,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+3,DIKEY:645,DIKEY:645,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+4,NAGPBS:374,NAGPBS:374,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+5,NAGTRI:341,NAGTRI:341,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+6,NGPAYM:717,NGPAYM:717,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+7,NGPGDN:437,NGPGDN:437,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+8,NGPHWR:393,NGPHWR:393,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+9,NGPMWD:459,NGPMWD:459,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+10,NGPVDN:485,NGPVDN:485,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+11,NGRCPS:477,NGRCPS:477,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+12,NGRPNS:470,NGRPNS:470,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+13,NGTKNM:372,NGTKNM:372,Wellness Forever,Nagpur City,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+14,WARDMR:379,WARDMR:379,Wellness Forever,Wardha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+15,YAVATR:337,YAVATR:337,Wellness Forever,Yavatmal,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+16,TD02,Trilium Mall,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+17,U178,Patni Complex,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+18,TUD1,Smart Sakharkar Celebration Bhandara,Reliance Retail Ltd.,Bhandara,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+19,TPU4,Vision Mall Gadchiroli,Reliance Retail Ltd.,Gadchiroli,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+20,TXGA,Smart Ratanlal plot Yavatmal,Reliance Retail Ltd.,Yavatmal,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+21,U704,SP Narayani Sankul Akola,Reliance Retail Ltd.,Akola,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+22,U663,SP Mishra Complex CMPDI Road,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+23,U723,SP Natraj Sabhagrah Wardha,Reliance Retail Ltd.,Wardha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+24,U591,SP Agne Imperium Nagpur,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+25,FRAD,smart bazar-NAGPUR-VIPL IT PARK,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+26,FRAE,smart bazar-CHANDRAPUR-MDR MALL,Reliance Retail Ltd.,Chandrapur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+27,FRAC,smart bazar-NAGPUR-MANISH NAGAR,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+28,FRAB,smart bazar-NAGPUR-LAND MARK,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+29,TAJ4,Smart Hinganghat,Reliance Retail Ltd.,Hinganghat,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+30,U608,SP Chandawar Complex,Reliance Retail Ltd.,Chandrapur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+31,TBGF,Jio Mart Dark Store Nagpur Nandanwan,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+32,TL3U,Jio Mart Dark Store Shanti Nagar Nagur,Reliance Retail Ltd.,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+33,4401,Camp Road DMart,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+34,4403,Amravati Badnera Rd DMart,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+35,4405,Hingna Nagpur DMart,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+36,4408,Wardha DMart,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+37,4409,Beltarodi Nagpur DMart,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+38,4410,Arvi Bypass Yavatmal DMart,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+39,4411,Wathoda Nagpur DMart,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+40,4412,Kaulkhed Akola,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+41,4415,Bhandara Maharashtra,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+42,4417,"Kamptee Road, Nagpur",Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+43,4419,Kachimeth Amravati Road Nagpur,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+44,4420,Ganesh Peth Nagpur MH,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+45,4421,Hinganghat Wardha MH,Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+46,4424,"Gonhi, Nagpur",Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+47,4425,"Sumthana, Nagpur",Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+48,4426,"Ensara Metropark, Pipla, Nagpu",Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+49,4429,"Padoli, Chandrapur",Dmart,Vidarbha,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+50,12004,KORADI ROAD-NARA,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+51,12227,PARDI BHANDARA ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+52,12246,BESA BUS STOP-NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+53,12381,LAVKUSH NAGAR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+54,12385,AYODHYA NAGAR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+55,12387,NARSALE ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+56,12380,MANEWADA ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+57,12298,KDK COLLEGE-NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+58,12296,BAJAJ NAGAR-NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+59,12344,FRIENDS COLONY KATOL RD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+60,12306,SAKKARDARA,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+61,12340,PRATAP NAGAR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+62,12320,BHAVANI MANDIR ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+63,12299,SHARDA SQUARE-NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+64,12305,TUKDOJI SQUARE,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+65,12297,BHARATWADA ROAD-NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+66,12268,BHANDE PLOT-UMRED ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+67,12281,QUETTA COLONY,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+68,12282,MAUZA BESA,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+69,12283,BESA ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+70,12277,KUKDEY LAYOUT,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+71,12278,GOKULPETH,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+72,12279,AMAR NAGAR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+73,12284,BELTARODI ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+74,12255,"NELCO SOCIETY,NAGPUR",Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+75,12256,"SUYOG NAGAR,NAGPUR",Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+76,12257,"PANCHSHEEL CHOWK,NAGPUR",Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+77,12249,KADU NAGAR HUDKESHWAR ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+78,12247,JAITALA ROAD BRANCH NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+79,12244,SHRINATH SAI NAGAR NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+80,12242,MAHAL NAGPUR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+81,12241,CHAPRU NAGAR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+82,12230,DIGHORI,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+83,12228,HUDKESHWAR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+84,12229,RAMESHWARI ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+85,12217,SHANTI NAGAR RAOD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+86,12218,VISHWAKARMA NAGAR MANEWADA,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+87,12219,SUBHEDAR LAYOUT,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+88,12209,GODHANI ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+89,12210,RAMNA MAROTI ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+90,12211,KHAMLA ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+91,12212,KHARBI ROAD,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+92,12141,NANDANVAN,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+93,12075,MANEWADA/JAIDURGA (NAGPUR),Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+94,12111,WARDHAMAN NAGAR,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+95,12072,NAGPUR-INDORA,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+96,14922,NAGPUR WAREHOUSE,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+97,40024,SRIDATTA-NAGPUR - PRS MISTAKES,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+98,12393,NAGPUR VDC,Apollo,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+99,4320,Nagpur DS,More,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+100,1677,LS-VR Mall-Nagpur,Lifestyle,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21
+101,3204,LS-Alankar Cinema-Dharmpeth-Nagpur,Lifestyle,Nagpur,Maharashtra,Central Zone,Central,Vidarbha,2026-08-21

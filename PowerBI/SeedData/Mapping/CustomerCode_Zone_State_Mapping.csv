@@ -1096,8 +1096,8 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1104631,TZUM-SMT TG Hyd kings Palace,Telangana,South-2,Telangana,,Reliance Retail-Store,Reliance Retail,MT,Customer Code,Confirmed,
 1104640,FRBO-SBZ TG Hyd SAIDABAD-ARIHANT TW-HYD,Telangana,South-2,Telangana,,Reliance Retail-Store,Reliance Retail,MT,Customer Code,Confirmed,
 1104782,Health & Glow-HG-RO-HYD,Telangana,South-2,Telangana,,Health & Glow,Health & Glow,MT,Customer Code,Confirmed,
-1101534,TEXAS CORPORATION-#N/A,,West,#N/A,,TEXAS CORPORATION,TEXAS CORPORATION,MT,Customer Code,Needs Check,Missing/!#N/A business region
-1101544,BALAJI SALES CORPORATION-#N/A,,West,#N/A,,BALAJI SALES CORPORATION,BALAJI SALES CORPORATION,MT,Customer Code,Needs Check,Missing/!#N/A business region; Source Status=Incorrect
+1101534,TEXAS CORPORATION-#N/A,,West,,,TEXAS CORPORATION,TEXAS CORPORATION,MT,Customer Code,Needs Check,Missing/!#N/A business region
+1101544,BALAJI SALES CORPORATION-#N/A,,West,,,BALAJI SALES CORPORATION,BALAJI SALES CORPORATION,MT,Customer Code,Needs Check,Missing/!#N/A business region; Source Status=Incorrect
 1100498,4716-Raipur-1 (Chattishgarh),Chhattisgarh,West,Chattishgarh,Chattishgarh,Walmart-CNC,Walmart-CNC,MT,Customer Code,Confirmed,State 'Chhattisgarh' split by business region: Chattishgarh
 1100839,Apollo Hospitals Enterprises Ltd_Bilaspur,Chhattisgarh,West,Chattishgarh,Chattishgarh,Apollo Hospitals Enterpris,Apollo Hospitals Enterpris,MT,Customer Code,Confirmed,State 'Chhattisgarh' split by business region: Chattishgarh
 1101078,4901-City Mall Raipur DMart,Chhattisgarh,West,Chattishgarh,Chattishgarh,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Chhattisgarh' split by business region: Chattishgarh
@@ -1235,7 +1235,7 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1100489,Avenue E Commerce Limited-Kanjur Marg FC,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1100490,Avenue E Commerce Limited-Mulund-Nahur W,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1100503,4724-Aurangabad (Pune),Maharashtra,West,Pune,Pune,Walmart-CNC,Walmart-CNC,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
-1100508,4744-Amravati (Pune),Maharashtra,West,Vidarbha,Vidarbha,Walmart-CNC,Walmart-CNC,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1100508,4744-Amravati (Pune),Maharashtra,Central,Vidarbha,Vidarbha,Walmart-CNC,Walmart-CNC,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1100536,Avenue E Commerce Limited(Kalyan),Maharashtra,West,Mumbai,Mumbai,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1100537,Avenue E Commerce Limited-Belapur FC,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1100538,Avenue E Commerce Limited-Pune Kiwale FC,Maharashtra,West,Pune,Pune,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
@@ -1244,7 +1244,7 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1100625,CM08-Pune,Maharashtra,West,Pune,Pune,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1100630,"CF08-BHIWANDI, MUMBAI",Maharashtra,West,Mumbai,Mumbai,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1100634,T0RM-Nashik(Pune)-DC30,Maharashtra,West,Pune,Pune,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune; Duplicate code (2 identical rows)
-1100668,S542-NAGPUR,Maharashtra,West,Vidarbha,Vidarbha,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1100668,S542-NAGPUR,Maharashtra,Central,Vidarbha,Vidarbha,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1100674,SC79-BHIWANDI,Maharashtra,West,Mumbai,Mumbai,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1100710,4020-New Panvel Dmart,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1100711,4012- Powai D-mart,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
@@ -1310,14 +1310,14 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1100982,4155-Moshi PCMC DMart,Maharashtra,West,Pune,Pune,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1100983,4170-Wanawadi Pune DMart,Maharashtra,West,Pune,Pune,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1101014,"T0RK-Bhandup(W), Mumbai-DC20",Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai; Duplicate code (2 identical rows)
-1101016,SK8Q-Nagpur Beauty DC,Maharashtra,West,Mumbai,Mumbai,Reliance Retail-Beauty,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
+1101016,SK8Q-Nagpur Beauty DC,Maharashtra,Central,Mumbai,Mumbai [Vidarbha],Reliance Retail-Beauty,Reliance Retail,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1101017,Reliance Retail Limited_ Bhiwandi,Maharashtra,West,MUMBAI,MUMBAI,Reliance Retail-Beauty,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: MUMBAI
 1101051,4027-Kalamboli Dmart,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1101052,4015-Nerul Dmart,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1101071,4140-Kondhwa Dmart,Maharashtra,West,Pune,Pune,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
-1101075,4409-Beltarodi Nagpur DMart,Maharashtra,West,Vidarbha,Vidarbha,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
-1101076,4403-Amravati Badnera Rd DMart,Maharashtra,West,Vidarbha,Vidarbha,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
-1101077,4405-Hingna Nagpur DMart,Maharashtra,West,Vidarbha,Vidarbha,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1101075,4409-Beltarodi Nagpur DMart,Maharashtra,Central,Vidarbha,Vidarbha,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
+1101076,4403-Amravati Badnera Rd DMart,Maharashtra,Central,Vidarbha,Vidarbha,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
+1101077,4405-Hingna Nagpur DMart,Maharashtra,Central,Vidarbha,Vidarbha,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1101084,SB01-KHOPOLI,Maharashtra,West,Mumbai,Mumbai,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1101099,Apollo Healthco Limited_Bhiwandi,Maharashtra,West,Mumbai,Mumbai,Apollo Healthco,Apollo Healthco,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1101157,D-Mart-Store-Mumbai,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
@@ -1351,7 +1351,7 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1101558,TEXAS CORPORATION,Maharashtra,West,Mumbai,Mumbai,TEXAS CORPORATION,TEXAS CORPORATION,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1101559,TEXAS CORPORATION,Maharashtra,West,Mumbai,Mumbai,TEXAS CORPORATION,TEXAS CORPORATION,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1101561,BALAJI SALES CORPORATION_H&G,Maharashtra,West,Mumbai,Mumbai,BALAJI SALES CORPORATION,BALAJI SALES CORPORATION,MT,Customer Code,Needs Check,State 'Maharashtra' split by business region: Mumbai; Source Status=Incorrect
-1101621,SH65-MH NAGPUR GATI DC,Maharashtra,West,Vidarbha,Vidarbha,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1101621,SH65-MH NAGPUR GATI DC,Maharashtra,Central,Vidarbha,Vidarbha,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1101835,SL7B-RELIANCE BRAND-Mothercare,Maharashtra,West,MUMBAI,MUMBAI,Reliance Brand Limited,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: MUMBAI
 1101845,Kapil Traders-Mumbai,Maharashtra,West,Mumbai,Mumbai,Kapil Traders,Kapil Traders,EB2B,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1101850,Hospireach Distributors-Mumbai,Maharashtra,West,Mumbai,Mumbai,Hospireach Distributors,Hospireach Distributors,EB2B,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
@@ -1397,12 +1397,12 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1102557,T2HL-Pune,Maharashtra,West,Pune,Pune,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1102560,T2RP-Pune Khed,Maharashtra,West,Pune,Pune,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1102561,T2SB -STORE ACHALPUR -MH,Maharashtra,West,Vidarbha,Vidarbha,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
-1102562,T2QK -STORE Hinganghat Wardha MH,Maharashtra,West,Vidarbha,Vidarbha,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
-1102565,T2QV -STORE Akola Balapur MH,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
+1102562,T2QK -STORE Hinganghat Wardha MH,Maharashtra,Central,Vidarbha,Vidarbha,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
+1102565,T2QV -STORE Akola Balapur MH,Maharashtra,Central,Mumbai,Mumbai [Vidarbha],Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1102586,"T2QE -STORE DHULE, MH",Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102587,"T2UY -STORE TAPADIA KOLHAPUR, MH",Maharashtra,West,Pune,Pune,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1102588,T2QQ -STORE Nerul Navi Mumbai,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
-1102589,"T2TD -STORE NAGPUR, MH",Maharashtra,West,Vidarbha,Vidarbha,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1102589,"T2TD -STORE NAGPUR, MH",Maharashtra,Central,Vidarbha,Vidarbha,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1102590,"T2QI -STORE Nandurbar, MH",Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102591,"T2QJ -STORE SATARA, MH",Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102645,6209-SMT ROM Pune Tain Square,Maharashtra,West,Pune,Pune,Reliance Retail-Store,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
@@ -1425,12 +1425,12 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1102701,T2FM-Ivory Mall Malad,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102702,T2FL-M K Shah Nerul-Mumbai,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102727,T3CQ-STORE Latur MH,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
-1102759,T2LY-STORE Ahmednagar-Nagpur-Pune,Maharashtra,West,Vidarbha,Vidarbha,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1102759,T2LY-STORE Ahmednagar-Nagpur-Pune,Maharashtra,Central,Vidarbha,Vidarbha,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1102760,T2LZ-STORE Chembur Mahul-Mumbai,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102761,T2QD-STORE Aurangabad Chikalthana-Pune,Maharashtra,West,Pune,Pune,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1102762,T2QG-STORE JALNA MH,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
-1102763,T2TP-STORE Yavatmal-Mumbai,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
-1102800,T2QF-STORE Gondia-MH,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
+1102763,T2TP-STORE Yavatmal-Mumbai,Maharashtra,Central,Mumbai,Mumbai [Vidarbha],Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
+1102800,T2QF-STORE Gondia-MH,Maharashtra,Central,Mumbai,Mumbai [Vidarbha],Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1102801,T2SH-STORE Bhiwandi RFC-MH,Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102844,"T2KC-STORE NANDED BHOKAR, MH",Maharashtra,West,Mumbai,Mumbai,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1102845,T2QW-STORE NASHIK Pune.,Maharashtra,West,Pune,Pune,Metro-CNC-RRL,Metro-CNC-RRL,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
@@ -1440,12 +1440,12 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1102879,Avenue E Commerce Ltd_Wagholi,Maharashtra,West,Pune,Pune,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1102880,Avenue E Commerce Ltd_Goregaon,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1103017,S0IX-RRL VF MH PUNE CHAKAN DC,Maharashtra,West,Pune,Pune,Reliance Retail-DC,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
-1103047,Ashirwad Distributors-Ascent-Nagpur,Maharashtra,West,Vidarbha,Vidarbha,Ascent Wellness,Ascent Wellness,EB2B,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1103047,Ashirwad Distributors-Ascent-Nagpur,Maharashtra,Central,Vidarbha,Vidarbha,Ascent Wellness,Ascent Wellness,EB2B,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1103053,EKDANTA PHARMATECH-Ascent-AURANGABAD,Maharashtra,West,Pune,Pune,Ascent Wellness,Ascent Wellness,EB2B,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1103054,EKDANTA PHARMATECH-Ascent-Nashik,Maharashtra,West,Pune,Pune,Ascent Wellness,Ascent Wellness,EB2B,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1103055,EKDANTA PHARMATECH-Ascent-SANGLI,Maharashtra,West,Pune,Pune,Ascent Wellness,Ascent Wellness,EB2B,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1103070,Shree Simba Chemist-Ascent-MH,Maharashtra,West,Mumbai,Mumbai,Ascent Wellness,Ascent Wellness,EB2B,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
-1103071,Avenue E Commerce Ltd -Nagpur-FC,Maharashtra,West,Vidarbha,Vidarbha,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1103071,Avenue E Commerce Ltd -Nagpur-FC,Maharashtra,Central,Vidarbha,Vidarbha,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1103072,Avenue E Commerce Ltd -Nashik FC AAR0,Maharashtra,West,Pune,Pune,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Pune
 1103099,Avenue E Commerce Limited-Vashi FC-E,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1103126,6210-SMT MUM Mum Central City Mall,Maharashtra,West,Mumbai,Mumbai,Reliance Retail-Store,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
@@ -1509,5 +1509,5 @@ Customer Code,Customer Name / Ship-to Name,State,Zone,City / Location,Business R
 1104680,AE00-IFC- Kukse Bhiwandi-Mumbai,Maharashtra,West,Mumbai,Mumbai,D-Mart-Store-E-Com,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1104706,Health & Glow - (HO),Maharashtra,West,Mumbai,Mumbai,Health & Glow,Health & Glow,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
 1104707,Health & Glow-HG-RO-MUM,Maharashtra,West,Mumbai,Mumbai,Health & Glow,Health & Glow,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
-1104727,8012 -ASL WM DC OCLP NAGPUR,Maharashtra,West,Vidarbha,Vidarbha,DC-D-Mart-Offline,D-Mart-Offline,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Vidarbha
+1104727,8012 -ASL WM DC OCLP NAGPUR,Maharashtra,Central,Vidarbha,Vidarbha,DC-D-Mart-Offline,D-Mart-Offline,MT,Customer Code,Confirmed,Zone reclassified: WEST → CENTRAL (Vidarbha) per Central_Mapping Aug-26
 1104891,T31K-SMT MUM IvoryMall,Maharashtra,West,Mumbai,Mumbai,Reliance Retail-Store,Reliance Retail,MT,Customer Code,Confirmed,State 'Maharashtra' split by business region: Mumbai
