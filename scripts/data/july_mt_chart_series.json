@@ -1,0 +1,1240 @@
+{
+ "1": [
+  {
+   "part": "ppt/slides/charts/chart1.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "Primary",
+     "cats": [
+      "West",
+      "S-1",
+      "North",
+      "S-2",
+      "East",
+      "Central"
+     ],
+     "vals": [
+      10.0524,
+      9.7986,
+      11.9527,
+      6.8914,
+      7.8306,
+      2.6873
+     ]
+    },
+    {
+     "name": "Offtake",
+     "cats": [
+      "West",
+      "S-1",
+      "North",
+      "S-2",
+      "East",
+      "Central"
+     ],
+     "vals": [
+      8.2769,
+      8.1886,
+      6.9873,
+      4.9102,
+      3.5511,
+      2.1177
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart2.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "Gap by account (₹ Cr)",
+     "cats": [
+      "Reliance",
+      "DMart",
+      "Metro"
+     ],
+     "vals": [
+      7.6051,
+      4.2864,
+      1.3592
+     ]
+    }
+   ]
+  }
+ ],
+ "10": [
+  {
+   "part": "ppt/slides/charts/chart15.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.5446
+     ]
+    },
+    {
+     "name": "Shampoo",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.3981
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0918
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart16.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.6611
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.1806
+     ]
+    },
+    {
+     "name": "Face Serum",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0184
+     ]
+    }
+   ]
+  }
+ ],
+ "11": [
+  {
+   "part": "ppt/slides/charts/chart17.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Offtake",
+     "cats": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul"
+     ],
+     "vals": [
+      1.6358,
+      1.6812,
+      1.7321,
+      2.2883,
+      2.0787,
+      2.1667,
+      2.0664
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart18.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Active EANs",
+     "cats": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul"
+     ],
+     "vals": [
+      222.0,
+      217.0,
+      203.0,
+      196.0,
+      190.0,
+      200.0,
+      198.0
+     ]
+    }
+   ]
+  }
+ ],
+ "14": [
+  {
+   "part": "ppt/slides/charts/chart19.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "FSN/Nykaa",
+     "cats": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul"
+     ],
+     "vals": [
+      1.6358,
+      1.6812,
+      1.7321,
+      2.2883,
+      2.0787,
+      2.1667,
+      2.0664
+     ]
+    }
+   ]
+  }
+ ],
+ "15": [
+  {
+   "part": "ppt/slides/charts/chart20.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "Contribution",
+     "cats": [
+      "North",
+      "SOUTH-1",
+      "WEST",
+      "East",
+      "SOUTH-2",
+      "Central"
+     ],
+     "vals": [
+      9.2431,
+      7.8763,
+      6.5842,
+      10.2337,
+      6.3747,
+      8.536
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart21.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "NPI sales",
+     "cats": [
+      "Reliance",
+      "DMart",
+      "Lulu",
+      "FSN / Nykaa",
+      "Health & Gl…",
+      "Metro",
+      "Wellness Fo…",
+      "Sancus(Rmt)"
+     ],
+     "vals": [
+      130.4688,
+      97.7058,
+      18.0157,
+      12.9338,
+      5.9485,
+      5.0212,
+      3.7384,
+      3.0032
+     ]
+    }
+   ]
+  }
+ ],
+ "16": [
+  {
+   "part": "ppt/slides/charts/chart22.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "Primary",
+     "cats": [
+      "DMart",
+      "Reliance",
+      "Apollo",
+      "FSN / Nykaa",
+      "Lulu",
+      "Wellness Forever",
+      "Health & Glow",
+      "Metro"
+     ],
+     "vals": [
+      18.2536,
+      15.6615,
+      7.2003,
+      2.079,
+      0.0,
+      0.4855,
+      0.2203,
+      1.8449
+     ]
+    },
+    {
+     "name": "Offtake",
+     "cats": [
+      "DMart",
+      "Reliance",
+      "Apollo",
+      "FSN / Nykaa",
+      "Lulu",
+      "Wellness Forever",
+      "Health & Glow",
+      "Metro"
+     ],
+     "vals": [
+      13.9672,
+      8.0564,
+      7.1816,
+      2.0664,
+      1.6977,
+      0.7209,
+      0.5081,
+      0.4858
+     ]
+    }
+   ]
+  }
+ ],
+ "17": [
+  {
+   "part": "ppt/slides/charts/chart23.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "Primary",
+     "cats": [
+      "Mamaearth",
+      "The Derma Co.",
+      "Aqualogica",
+      "BBlunt",
+      "Dr. Sheth's"
+     ],
+     "vals": [
+      33.378,
+      15.1916,
+      0.4123,
+      0.1802,
+      0.0
+     ]
+    },
+    {
+     "name": "Offtake",
+     "cats": [
+      "Mamaearth",
+      "The Derma Co.",
+      "Aqualogica",
+      "BBlunt",
+      "Dr. Sheth's"
+     ],
+     "vals": [
+      24.4881,
+      11.0272,
+      0.4833,
+      0.0634,
+      0.0334
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart24.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      7.0274,
+      8.1685,
+      8.5475,
+      9.6257,
+      9.6513,
+      8.5257
+     ]
+    },
+    {
+     "name": "Shampoo",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      4.8066,
+      5.3825,
+      6.1125,
+      6.6803,
+      6.8695,
+      6.9504
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      1.5518,
+      2.7323,
+      3.095,
+      2.9543,
+      1.991,
+      1.304
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart25.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      2.2515,
+      2.7532,
+      3.2367,
+      4.6282,
+      4.8318,
+      7.1312
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      1.0422,
+      1.8094,
+      2.274,
+      3.1776,
+      2.0479,
+      1.9915
+     ]
+    },
+    {
+     "name": "Face Serum",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.5635,
+      0.5748,
+      0.6938,
+      0.6607,
+      0.6635,
+      0.6285
+     ]
+    }
+   ]
+  }
+ ],
+ "3": [
+  {
+   "part": "ppt/slides/charts/chart3.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "Face Wash value share (%)",
+     "cats": [
+      "Himalaya",
+      "Garnier",
+      "Pond's",
+      "Mamaearth"
+     ],
+     "vals": [
+      22.6,
+      14.2,
+      13.8,
+      10.5
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart4.xml",
+   "type": "barChart",
+   "series": [
+    {
+     "name": "Shampoo value share (%)",
+     "cats": [
+      "Dove",
+      "H&S",
+      "Mamaearth"
+     ],
+     "vals": [
+      16.6,
+      13.0,
+      3.7
+     ]
+    }
+   ]
+  }
+ ],
+ "5": [
+  {
+   "part": "ppt/slides/charts/chart5.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      2.0929,
+      2.454,
+      2.423,
+      2.726,
+      2.8988,
+      2.3895
+     ]
+    },
+    {
+     "name": "Shampoo",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      1.3295,
+      1.5493,
+      1.5924,
+      1.6361,
+      1.7881,
+      1.5283
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.4378,
+      1.0265,
+      0.9663,
+      0.815,
+      0.4599,
+      0.219
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart6.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      1.1237,
+      1.3265,
+      1.4203,
+      2.0396,
+      2.1851,
+      2.8436
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.3484,
+      0.6647,
+      0.728,
+      1.0665,
+      0.6722,
+      0.5503
+     ]
+    },
+    {
+     "name": "Face Serum",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.1706,
+      0.1715,
+      0.1977,
+      0.1672,
+      0.1629,
+      0.2181
+     ]
+    }
+   ]
+  }
+ ],
+ "6": [
+  {
+   "part": "ppt/slides/charts/chart7.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.9362,
+      1.0264,
+      1.0769,
+      1.2856,
+      1.1223,
+      1.1188
+     ]
+    },
+    {
+     "name": "Shampoo",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.8603,
+      0.9523,
+      0.9632,
+      1.2141,
+      1.2798,
+      1.2277
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.2641,
+      0.3788,
+      0.4567,
+      0.4755,
+      0.3346,
+      0.3219
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart8.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.3679,
+      0.3982,
+      0.5194,
+      0.7716,
+      0.7147,
+      1.1802
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.2529,
+      0.4333,
+      0.6458,
+      0.8138,
+      0.5066,
+      0.607
+     ]
+    },
+    {
+     "name": "Face Serum",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.1424,
+      0.1456,
+      0.1665,
+      0.1917,
+      0.1937,
+      0.1866
+     ]
+    }
+   ]
+  }
+ ],
+ "7": [
+  {
+   "part": "ppt/slides/charts/chart9.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      1.7192,
+      2.0835,
+      2.232,
+      2.4319,
+      2.2778,
+      2.0919
+     ]
+    },
+    {
+     "name": "Shampoo",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      1.2172,
+      1.3299,
+      1.6309,
+      1.7503,
+      1.6847,
+      1.6785
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.386,
+      0.6555,
+      0.7694,
+      0.79,
+      0.5647,
+      0.3459
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart10.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.4877,
+      0.664,
+      0.7389,
+      1.0867,
+      1.1125,
+      1.4139
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.2136,
+      0.4238,
+      0.478,
+      0.7077,
+      0.511,
+      0.3638
+     ]
+    },
+    {
+     "name": "Face Serum",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0733,
+      0.1001,
+      0.1125,
+      0.1097,
+      0.0996,
+      0.1021
+     ]
+    }
+   ]
+  }
+ ],
+ "8": [
+  {
+   "part": "ppt/slides/charts/chart11.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.7289,
+      0.8852,
+      0.8872,
+      1.0779,
+      1.227,
+      1.0426
+     ]
+    },
+    {
+     "name": "Shampoo",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.6614,
+      0.7824,
+      0.8401,
+      0.8741,
+      0.9952,
+      0.9423
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.121,
+      0.247,
+      0.2813,
+      0.2857,
+      0.2002,
+      0.1361
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart12.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.1124,
+      0.1877,
+      0.2935,
+      0.4778,
+      0.503,
+      0.5594
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0861,
+      0.1261,
+      0.1731,
+      0.363,
+      0.2045,
+      0.1963
+     ]
+    },
+    {
+     "name": "Face Serum",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.04,
+      0.0385,
+      0.0454,
+      0.0486,
+      0.0433,
+      0.0516
+     ]
+    }
+   ]
+  }
+ ],
+ "9": [
+  {
+   "part": "ppt/slides/charts/chart13.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.8135,
+      0.9932,
+      1.0007,
+      1.148,
+      1.049,
+      1.3383
+     ]
+    },
+    {
+     "name": "Shampoo",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.6235,
+      0.6621,
+      0.9505,
+      1.0708,
+      0.9618,
+      1.1755
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.1535,
+      0.1634,
+      0.2517,
+      0.302,
+      0.1904,
+      0.1893
+     ]
+    }
+   ]
+  },
+  {
+   "part": "ppt/slides/charts/chart14.xml",
+   "type": "lineChart",
+   "series": [
+    {
+     "name": "Face Cleanser",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0606,
+      0.0795,
+      0.1159,
+      0.1131,
+      0.1543,
+      0.473
+     ]
+    },
+    {
+     "name": "Sun Care",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0552,
+      0.0585,
+      0.0855,
+      0.1036,
+      0.0671,
+      0.0933
+     ]
+    },
+    {
+     "name": "Face Serum",
+     "cats": [
+      "Feb 26",
+      "Mar 26",
+      "Apr 26",
+      "May 26",
+      "Jun 26",
+      "Jul 26"
+     ],
+     "vals": [
+      0.0366,
+      0.0307,
+      0.0403,
+      0.0458,
+      0.0702,
+      0.0517
+     ]
+    }
+   ]
+  }
+ ]
+}

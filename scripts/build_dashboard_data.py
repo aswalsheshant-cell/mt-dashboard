@@ -123,11 +123,18 @@ def canon_brand(b):
     return BRAND_MAP.get(k, str(b).strip())
 
 def canon_zone(z):
+    """Canonicalize zone names from source data to standard form.
+
+    Central zone (Madhya Pradesh + Chhattisgarh) is classified as "Central" in
+    offtake source data and maintained as an official MT zone per ZoneStateMaster.csv.
+    This function normalizes variant spellings (e.g. "south-1" -> "South 1") and
+    ensures "Central" passes through as-is to the aggregation pipeline.
+    """
     if z is None:
         return None
     z = str(z).strip()
     m = {"south-1": "South 1", "south 1": "South 1", "south-2": "South 2", "south 2": "South 2",
-         "north": "North", "west": "West", "east": "East"}
+         "north": "North", "west": "West", "east": "East", "central": "Central", "pan india": "Pan India"}
     return m.get(z.lower(), z)
 
 STATE_ALIASES = {
@@ -631,7 +638,17 @@ def load_offtake_article_files(src):
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            # Some xlsb exports have a blank/index row before the header (header=1)
+            # while others start the header at row 0. Auto-detect by trying header=0
+            # first; fall back to header=1 if the required columns are absent.
+            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
+                          for df_ in _frames0.values())
+            if _use_h0:
+                _frames = _frames0
+            else:
+                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -733,7 +750,12 @@ def load_reliance_bc_data(src):
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
+                          for df_ in _frames0.values())
+            _frames = _frames0 if _use_h0 else \
+                      pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -1102,7 +1124,12 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
         if fp.suffix.lower() == ".csv":
             _sheets = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            _sheets0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req2 = {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"}
+            _use_h0 = any(_req2 <= {str(c).strip() for c in df_.columns}
+                          for df_ in _sheets0.values())
+            _sheets = _sheets0 if _use_h0 else \
+                      pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _sheets.items():
             df.columns = [str(c).strip() for c in df.columns]
             if not {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"} <= set(df.columns):
@@ -3648,6 +3675,51 @@ def main():
                         bc_data[f"months_{tag}"] = tms
                         bc_data[f"monthly_{tag}"] = [monthly_map[mo] for mo in tms]
                         bc_data[f"total_{tag}"] = r2(sum(monthly_map[mo] for mo in tms))
+                    # Merge dimensional arrays: new source only covers new months;
+                    # add the existing kept-months dimensional data into each array so
+                    # zone/brand/category/state totals match bc.total (not just new months).
+                    def _merge_dim(existing_list, new_list, key):
+                        """Add existing kept-months entries into new_list by primary key."""
+                        idx = {d[key]: d for d in new_list}
+                        for old_d in existing_list:
+                            k = old_d[key]
+                            if k in idx:
+                                nd = idx[k]
+                                nd["total"] = r2(nd["total"] + old_d["total"])
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)):
+                                        nd[fk] = r2(nd.get(fk, 0) + fv)
+                            else:
+                                idx[k] = dict(old_d)
+                        return sorted(idx.values(), key=lambda d: -d["total"])
+
+                    def _merge_state_dim(existing_list, new_list):
+                        """Merge by (zone, state) composite key."""
+                        idx = {(d["zone"], d["state"]): d for d in new_list}
+                        for old_d in existing_list:
+                            k = (old_d["zone"], old_d["state"])
+                            if k in idx:
+                                nd = idx[k]
+                                nd["total"] = r2(nd["total"] + old_d["total"])
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)):
+                                        nd[fk] = r2(nd.get(fk, 0) + fv)
+                            else:
+                                idx[k] = dict(old_d)
+                        return sorted(idx.values(), key=lambda d: -d["total"])
+
+                    if existing_bc.get("by_zone"):
+                        bc_data["by_zone"] = _merge_dim(
+                            existing_bc["by_zone"], bc_data.get("by_zone", []), "name")
+                    if existing_bc.get("by_state"):
+                        bc_data["by_state"] = _merge_state_dim(
+                            existing_bc["by_state"], bc_data.get("by_state", []))
+                    if existing_bc.get("by_brand"):
+                        bc_data["by_brand"] = _merge_dim(
+                            existing_bc["by_brand"], bc_data.get("by_brand", []), "name")
+                    if existing_bc.get("by_category"):
+                        bc_data["by_category"] = _merge_dim(
+                            existing_bc["by_category"], bc_data.get("by_category", []), "name")
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
         _safe_write_data_js(
