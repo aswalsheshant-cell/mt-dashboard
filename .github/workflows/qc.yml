@@ -20,14 +20,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas openpyxl pyxlsb pytest playwright
+          pip install -r requirements.txt
           python -m playwright install chromium --with-deps
 
       - name: Syntax check — build script
         run: python -m py_compile scripts/build_dashboard_data.py
 
-      - name: Run pytest (pipeline + chain consolidation + June fallback + disclosures)
-        run: pytest scripts/test_pipeline.py scripts/test_chain_consolidation.py scripts/test_june_fallback.py scripts/test_dashboard_disclosures.py -v
+      - name: Run pytest (pipeline + chain + June fallback + disclosures + release gate)
+        run: pytest scripts/test_pipeline.py scripts/test_chain_consolidation.py scripts/test_june_fallback.py scripts/test_dashboard_disclosures.py scripts/test_release_gate.py -v
+
+      - name: Release Gate — deliberate failure injection
+        run: python scripts/demo_release_gate_blocking.py
 
       - name: Run QC gate
         run: |
@@ -49,3 +52,11 @@ jobs:
           if echo "$result" | grep -q "⊘ BLOCKED"; then
             echo "::warning::QC gate has BLOCKED items (data dependencies). See workflow log for details. Explicit approval required before merge."
           fi
+
+      - name: Upload Release Gate Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-gate-report
+          path: dashboard/release_gate_report.json
+          if-no-files-found: ignore

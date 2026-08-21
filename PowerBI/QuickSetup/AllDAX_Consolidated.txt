@@ -1500,3 +1500,145 @@ VAR _grouped =
         "RowCount", COUNTROWS ( 'PL Expense Input' )
     )
 RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
+
+// =====================================================================
+// == FILE: 06_DataQuality_Measures.dax  — PRIMARY ARTICLE ADDITIONS ==
+// =====================================================================
+
+// ---- Missing key fields on Primary Article fact ----
+Primary Missing Month =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[MonthStart] ) ) )
+
+Primary Missing Chain =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article',
+        ISBLANK ( 'Fact Primary Article'[Chain] ) || 'Fact Primary Article'[Chain] = "" ) )
+
+Primary Missing Brand =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article',
+        ISBLANK ( 'Fact Primary Article'[Brand] ) || 'Fact Primary Article'[Brand] = "" ) )
+
+Primary Blank NSV =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[Primary NSV] ) ) )
+
+Primary Negative NSV =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', 'Fact Primary Article'[Primary NSV] < 0 ) )
+
+Primary Unmapped Dist =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped" )
+
+Primary Provisional Alloc =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Provisional Flag] = TRUE () )
+
+Primary Provisional NSV =
+CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Provisional Flag] = TRUE () )
+
+Primary Dist Coverage % =
+VAR _distRows =
+    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" } )
+VAR _mapped =
+    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" } )
+RETURN DIVIDE ( _mapped, _distRows )
+
+Primary Total DQ Issues =
+[Primary Missing Month] + [Primary Missing Chain] + [Primary Missing Brand]
+    + [Primary Blank NSV] + [Primary Unmapped Dist]
+
+Primary Article Total Rows = COUNTROWS ( 'Fact Primary Article' )
+
+Primary Data Health % =
+1 - DIVIDE ( [Primary Total DQ Issues], [Primary Article Total Rows] )
+
+Primary Negative Frac Rows =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Primary NSV] < 0,
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+)
+
+Primary Negative Frac NSV =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Primary NSV] < 0,
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+)
+
+Primary Negative Frac Flag =
+VAR _rows = [Primary Negative Frac Rows]
+RETURN
+    IF ( _rows > 0,
+        "⚠ " & _rows & " rows with negative allocated NSV (reversal entries in ShipTo CSV – Finance review required)",
+        "No negative-frac rows"
+    )
+
+// =====================================================================
+// == FILE: 07_PrimaryAllocation_Measures.dax  — DIST BREAKDOWN ADDS ==
+// =====================================================================
+
+Dist NSV – Approved Patch =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "Approved Patch"
+)
+
+Dist NSV – ShipTo CSV =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "ShipTo CSV"
+)
+
+Dist NSV – Provisional Fallback =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "Nearest-Month Fallback"
+)
+
+Dist NSV – Unmapped =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped"
+)
+
+Dist Allocation Coverage % =
+VAR _total =
+    CALCULATE (
+        SUM ( 'Fact Primary Article'[Primary NSV] ),
+        'Fact Primary Article'[Is Dist] = TRUE ()
+    )
+VAR _covered =
+    CALCULATE (
+        SUM ( 'Fact Primary Article'[Primary NSV] ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+    )
+RETURN DIVIDE ( _covered, _total )
+
+Has Provisional Allocation =
+IF (
+    CALCULATE (
+        COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Provisional Flag] = TRUE ()
+    ) > 0,
+    "⚠ Provisional allocation active – Finance approval pending",
+    "All allocations approved"
+)
+
+Unmapped Dist Rows =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped"
+)
+
+Dist Row Count =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" }
+)

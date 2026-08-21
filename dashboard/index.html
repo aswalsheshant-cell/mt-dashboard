@@ -124,6 +124,13 @@
   .drill{cursor:pointer;border-bottom:1px dashed var(--teal-d)}
   .drill:hover{color:var(--teal-d);font-weight:700}
   .drillhint{font-size:11px;color:var(--muted);font-style:italic}
+  .drill-bc{font-size:12px;color:var(--muted);margin:0 0 8px;padding:5px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--line)}
+  .drill-bc b{color:var(--teal-d);font-weight:700}
+  .drill-ctrl{display:flex;gap:8px;margin:0 0 8px}
+  .recon-badge{font-size:11.5px;padding:4px 10px;border-radius:6px;margin:2px 0 6px;display:none}
+  .recon-badge.recon-pass{display:block;background:#e6f4ef;color:#1b6b47;border:1px solid #bfe3d6}
+  .recon-badge.recon-warn{display:block;background:#fff7e6;color:#8a5a00;border:1px solid #f0d8a8}
+  .recon-badge.recon-fail{display:block;background:#fef0f0;color:#b91c1c;border:1px solid #f5c2c2}
 </style>
 </head>
 <body>
@@ -621,6 +628,69 @@ document.addEventListener('click',e=>{
   document.querySelectorAll('details.chartdl[open],details.pagedl[open]').forEach(d=>{ if(!d.contains(e.target)) d.open=false; });
 });
 
+/* ---- HIERARCHY DRILL ENGINE (Phase 3B) ---- */
+const DRILL_HIER = ['Channel','Chain','Zone','State','Brand','Category','Article'];
+const _drillStates = {};
+function _drillState(id){ if(!_drillStates[id]) _drillStates[id]={path:[]}; return _drillStates[id]; }
+function _grpDrill(recs,dim){
+  const m={};
+  recs.forEach(r=>{ const v=r[dim]; if(v==null||v===''||String(v)==='undefined') return; m[v]=(m[v]||0)+(r.NSV||0); });
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+function drillCardHtml(chartId,baseTitle){
+  const st=_drillState(chartId), path=st.path, depth=path.length;
+  const dim=DRILL_HIER[depth]||null;
+  if(!dim) return card(baseTitle,'No further drill levels.','<p class="note">Fully expanded.</p>');
+  const bcHtml=depth?`<div class="drill-bc">India › ${path.map(p=>`<b>${p.val}</b>`).join(' › ')}</div>`:'';
+  const titleText=depth?`${path.map(p=>p.val).join(' › ')} — ${baseTitle} by ${dim}`:`${baseTitle} by ${dim}`;
+  const noteText=depth
+    ?`${dim}-level within <b>${path[path.length-1].val}</b>. Click a bar to go deeper.`
+    :`Click a bar to drill: ${DRILL_HIER.slice(0,3).join(' → ')} → … Global filters remain active.`;
+  const ctrlHtml=depth?`<div class="drill-ctrl"><button class="fbtn ghost" id="${chartId}Back">← Back</button><button class="fbtn ghost" id="${chartId}Reset">↺ Reset</button></div>`:'';
+  const reconHtml=`<div id="${chartId}Recon" class="recon-badge"></div>`;
+  return card(titleText,noteText,`${bcHtml}${ctrlHtml}${reconHtml}${cv(chartId,true)}`);
+}
+function renderDrillChart(chartId,baseTitle,baseRecs){
+  const st=_drillState(chartId), path=st.path;
+  let recs=baseRecs;
+  path.forEach(({dim,val})=>{ recs=recs.filter(r=>String(r[dim])===String(val)); });
+  const dim=DRILL_HIER[path.length]||null;
+  if(!dim||!document.getElementById(chartId)) return;
+  const backBtn=document.getElementById(chartId+'Back');
+  const resetBtn=document.getElementById(chartId+'Reset');
+  if(backBtn) backBtn.onclick=()=>{ st.path.pop(); show(currentTab); };
+  if(resetBtn) resetBtn.onclick=()=>{ _drillStates[chartId]={path:[]}; show(currentTab); };
+  const totalNsv=recs.reduce((a,r)=>a+(r.NSV||0),0);
+  const groups=_grpDrill(recs,dim);
+  const childSum=groups.reduce((a,[,v])=>a+v,0);
+  const variance=childSum-totalNsv;
+  const pctVar=totalNsv>0?Math.abs(variance)/totalNsv*100:0;
+  const reconStatus=pctVar<0.01?'PASS':pctVar<0.1?'WARNING':'FAIL';
+  const reconEl=document.getElementById(chartId+'Recon');
+  if(reconEl){
+    if(!groups.length){
+      reconEl.className='recon-badge recon-warn';
+      reconEl.textContent='⚠ No article-level records for this filter (FY25/FY26 data lives in pre-aggregated source only)';
+    } else {
+      const icon=reconStatus==='PASS'?'✓':reconStatus==='WARNING'?'⚠':'✗';
+      reconEl.className='recon-badge recon-'+(reconStatus==='WARNING'?'warn':reconStatus.toLowerCase());
+      if(reconStatus!=='PASS'){
+        reconEl.textContent=`${icon} DRILL RECONCILIATION ${reconStatus}: Variance = ${crc(Math.abs(variance))} (${pctVar.toFixed(3)}%)`;
+      } else if(path.length>0){
+        reconEl.textContent=`${icon} Reconciled — ${dim} sum = ${crc(childSum)}`;
+      }
+    }
+  }
+  if(!groups.length) return;
+  const top=groups.slice(0,20);
+  const labels=top.map(x=>x[0]), data=top.map(x=>x[1]);
+  const nextDepth=path.length+1;
+  mkBarH(chartId,labels,data,C.teal,true,val=>{
+    if(nextDepth<DRILL_HIER.length){ st.path.push({dim,val}); show(currentTab); }
+    else drillTo(dim,val);
+  });
+}
+
 /* ---------------- OVERVIEW ---------------- */
 function buildOverview(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
@@ -668,11 +738,7 @@ function buildOverview(){
      ${card(`Primary vs Offtake — monthly trend (${fyDispLabel('FY25')} → ${fyDispLabel('FY27')})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('ovChannel',true))}
    </div>
-   <div class="grid g2">
-     ${card(`Top chains by primary NSV (${yrLab[primYr]})`,'click a bar to drill',cv('ovChains'))}
-     ${card(`Brand portfolio mix (${yrLab[primYr]} primary)`,'click to drill',cv('ovBrand',true))}
-   </div>
-   ${catDrillCardHtml('ovCatDrill')}`;
+   ${drillCardHtml('ovDrill','Primary NSV')}`;
   // Build Primary series aligned to o.months (all FYs, any length).
   // FY27 primary lives in fyx_primary.FY27.months_canon / monthly_canon (canonical
   // "Mon-YY" labels matching o.months), so it joins by label-lookup rather than
@@ -694,12 +760,9 @@ function buildOverview(){
     {label:`Primary ${fyDispLabel('FY25')}`,data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
     {label:'Primary FY25-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
   ]);
-  mkDonut('ovChannel',channels.map(c=>c.name),channels.map(c=>c[primYr]),true,v=>drillTo('Channel',v));
   const tc=chains.slice(0,8);
   mkBarH('ovChains',tc.map(c=>c.name),tc.map(c=>c[primYr]),C.teal,true,v=>drillTo('Chain',v));
-  const bb=brands.filter(b=>(b[primYr]||0)>1);
-  mkDonut('ovBrand',bb.map(b=>b.name),bb.map(b=>b[primYr]),true,v=>drillTo('Brand',v));
-  renderCatDrillChart('ovCatDrill',recFilter());
+  renderDrillChart('ovDrill','Primary NSV',recFilter());
 }
 
 /* ---------------- PRIMARY ---------------- */
@@ -752,8 +815,7 @@ function buildPrimary(){
          <thead><tr><th>Chain</th><th>${fyDispLabel('FY27')} YTD NSV</th><th>Share</th></tr></thead>
          <tbody>${rows27||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`+
          (fp.chain_alloc_note?`<p class="note" style="margin:8px 0 0;font-size:0.82em;color:var(--muted)">ℹ ${fp.chain_alloc_note}</p>`:''))}
-       ${allocSectionHtml()}
-       ${catDrillCardHtml('prCatDrill')}`;
+       ${allocSectionHtml()}`;
       wireDrillLinks(s);
       wireAllocExports(s);
       // Chart shows "Apr-26" labels; click drills to full name ("April") for filter consistency
@@ -765,8 +827,8 @@ function buildPrimary(){
       renderCatDrillChart('prCatDrill',recFilter());
       return;
     }
-    s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>${fyNoDataNote('the Primary source (Primary_FY202426_10.xlsx)')}${catDrillCardHtml('prCatDrill')}`;
-    renderCatDrillChart('prCatDrill',recFilter());
+    s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>${fyNoDataNote('the Primary source (Primary_FY202426_10.xlsx)')}${drillCardHtml('prDrill','Primary NSV')}`;
+    renderDrillChart('prDrill','Primary NSV',recFilter());
     return;
   }
   const fy=fyKey(), yrs=fy?[fy]:['fy25','fy26'], last=yrs[yrs.length-1], yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
@@ -988,8 +1050,8 @@ function buildOfftake(){
   // so real FY27+ offtake actuals render the moment their source is loaded,
   // instead of always showing the "no data" state for any beyond-window FY.
   if(fy && o['total_'+fy]==null){
-    s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>${fyNoDataNote('the Offtake master file')}${catDrillCardHtml('ofCatDrill')}`;
-    renderCatDrillChart('ofCatDrill',recFilter());
+    s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>${fyNoDataNote('the Offtake master file')}${drillCardHtml('ofDrill','Offtake NSV')}`;
+    renderDrillChart('ofDrill','Offtake NSV',recFilter());
     return;
   }
   const yrs=fy?[fy]:['fy25','fy26'];
@@ -1046,12 +1108,11 @@ function buildOfftake(){
    </div>
    <div class="grid g2">
      ${card('Monthly offtake trend',`${months.length} month(s)${fOn('Month')?` — filtered to ${fLab('Month')}`:''}.`,cv('ofTrend'))}
-     ${card('Offtake by zone'+(fy?` (${yrLab[fy]})`:' (YoY)'),'click to drill',cv('ofZone'))}
+     ${card(`Primary vs Offtake by chain (${yrLab[yrs[yrs.length-1]]}) — inventory health`,'Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill). Click a chain to drill.',cv('ofCmp'))}
    </div>
-   ${card(`Primary vs Offtake by chain (${yrLab[yrs[yrs.length-1]]}) — inventory health`,'Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill). Click a chain to drill.',cv('ofCmp'))}
    ${card('State-wise offtake'+(fy?` (${yrLab[fy]})`:' YoY'),fy?`Filtered to ${yrLab[fy]}. Click a zone to drill.`:'Click a zone to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>State</th><th>Zone</th>${fy?`<th>${yrLab[fy]}</th>`:(yrs.length>=2?`<th>${yrLab[yrs[yrs.length-2]]}</th><th>${yrLab[yrs[yrs.length-1]]}</th><th>YoY</th>`:`<th>${yrLab[yrs[0]]}</th><th>YoY</th>`)}</tr></thead><tbody>${strows||`<tr><td colspan="${fy?3:yrs.length+3}">No states for this filter.</td></tr>`}</tbody></table></div>`)}
-   ${catDrillCardHtml('ofCatDrill')}`;
+   ${drillCardHtml('ofDrill','Offtake NSV')}`;
   wireDrillLinks(s);
   mkLine('ofTrend',months,[{label:'Offtake',data:monthly,borderColor:C.amber,backgroundColor:C.amber+'22',fill:true}]);
   if(fy){
@@ -1064,7 +1125,7 @@ function buildOfftake(){
   mkBar('ofCmp',cmp.map(c=>c.name),[
     {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
     {label:'Offtake (sell-out)',data:cmp.map(c=>c[yrs[yrs.length-1]]||0),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Chain',v));
-  renderCatDrillChart('ofCatDrill',recFilter());
+  renderDrillChart('ofDrill','Offtake NSV',recFilter());
 }
 
 /* ---------------- Reliance Brand Counter ---------------- */
@@ -1290,7 +1351,7 @@ function buildPnl(){
      <tr><td>Blank Expense Head (rows)</td><td>${num(cm2Qc.blank_expense_head||0)}</td></tr>
      <tr><td>Duplicate expense rows</td><td>${num(cm2Qc.duplicate_rows||0)}</td></tr>
      </tbody></table></div>`)}`:''}
-   ${catDrillCardHtml('plCatDrill')}`;
+   ${drillCardHtml('plDrill','Primary NSV')}`;
   wireDrillLinks(s);
   if(fy26ok){
     mkBar('plBridge',top.map(c=>c.name),[
@@ -1315,7 +1376,7 @@ function buildPnl(){
       {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}}}}},
       v=>drillTo('Chain',v));
   }
-  renderCatDrillChart('plCatDrill',recFilter());
+  renderDrillChart('plDrill','Primary NSV',recFilter());
 }
 
 /* ---------------- FORECAST ---------------- */
@@ -1346,8 +1407,7 @@ function buildForecast(){
    </div>
    ${card(`Offtake — actuals &amp; ${fyDispLabel('FY27')} ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
    ${card('Method',f.method,isTY?'':'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}
-   ${detHtml}
-   ${catDrillCardHtml('fcCatDrill')}`;
+   ${drillCardHtml('fcDrill','Primary NSV')}`;
   const histLen=f.hist.length;
   mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
     {label:'Actual offtake',data:[...f.hist,...Array(f.fc.length).fill(null)],borderColor:C.teal,backgroundColor:C.teal+'22',fill:true},
@@ -1466,14 +1526,14 @@ function buildShare(){
        ${card(`Share of business by chain (${fyDispLabel('FY27')} YTD primary)`,'click a slice to drill',cv('shSob'))}
        ${card(`Share-of-business league table (${fyDispLabel('FY27')} YTD primary)`,'Click a chain to drill.',`<div class="tablewrap"><table>
          <thead><tr><th>Chain</th><th>NSV</th><th>Share</th></tr></thead><tbody>${sobRows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-       ${catDrillCardHtml('shCatDrill')}`;
+       ${drillCardHtml('shDrill','Primary NSV')}`;
       wireDrillLinks(s);
       mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v),true,v=>drillTo('Chain',v));
-      renderCatDrillChart('shCatDrill',recFilter());
+      renderDrillChart('shDrill','Primary NSV',recFilter());
       return;
     }
-    s.innerHTML=`<h2 class="sec">Market Share</h2>${fyNoDataNote('the Primary source used for share-of-business')}${catDrillCardHtml('shCatDrill')}`;
-    renderCatDrillChart('shCatDrill',recFilter());
+    s.innerHTML=`<h2 class="sec">Market Share</h2>${fyNoDataNote('the Primary source used for share-of-business')}${drillCardHtml('shDrill','Primary NSV')}`;
+    renderDrillChart('shDrill','Primary NSV',recFilter());
     return;
   }
   const fy=fyKey()||'fy26', yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
@@ -1497,10 +1557,10 @@ function buildShare(){
    ${card(`Share of business by chain (${yrLab[fy]} primary)`,'click a slice to drill',cv('shSob'))}
    ${card(`Share-of-business league table (${yrLab[fy]} primary)`,'Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>NSV</th><th>Share</th></tr></thead><tbody>${sobRows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${catDrillCardHtml('shCatDrill')}`;
+   ${drillCardHtml('shDrill','Primary NSV')}`;
   wireDrillLinks(s);
   mkDonut('shSob',sob.map(c=>c.name),sob.map(c=>c.v),true,v=>drillTo('Chain',v));
-  renderCatDrillChart('shCatDrill',recFilter());
+  renderDrillChart('shDrill','Primary NSV',recFilter());
 }
 
 /* ---------------- DISTRIBUTION ---------------- */
@@ -1542,13 +1602,13 @@ function buildDistribution(){
    ${card('Store count by chain (all active)','Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>Active Stores</th><th>Share of Footprint</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    ${distGapHtml()}
-   ${catDrillCardHtml('dCatDrill')}`;
+   ${drillCardHtml('dDrill','Primary NSV')}`;
   wireDrillLinks(s);
   mkBarH('dZone',zones.map(z=>z.name),zones.map(z=>z.stores),C.teal,false,v=>drillTo('Zone',v));
   mkDonut('dCity',u.by_citycat.map(c=>c.name),u.by_citycat.map(c=>c.stores),false);
   mkBarH('dChain',chains.slice(0,10).map(c=>c.name),chains.slice(0,10).map(c=>c.stores),C.blue,false,v=>drillTo('Chain',v));
   mkBarH('dType',u.by_storetype.map(t=>t.name),u.by_storetype.map(t=>t.stores),C.purple,false);
-  renderCatDrillChart('dCatDrill',recFilter());
+  renderDrillChart('dDrill','Primary NSV',recFilter());
   distGapChart();
 }
 function distFmtFootprintRows(dg){
@@ -1703,7 +1763,7 @@ function buildCategory(){
      ${kpi('Top Pack Size',byPack[0]?byPack[0][0]:'–',byPack[0]?crc(byPack[0][1]):'')}
    </div>
    <div class="grid g2">
-     ${catDrillCardHtml('catCatDrill')}
+     ${drillCardHtml('catDrill','Primary NSV')}
      ${card('NSV by Sub-category — 95% of each brand\'s NSV, rest → Other','Within each brand, keeps sub-categories that cumulatively cover 95% of that brand\'s NSV; the long tail across all brands is clubbed into "Other". Click a slice to drill.',cv('catSubP'))}
    </div>
    <div class="grid g2">
@@ -1723,31 +1783,7 @@ function buildCategory(){
     mkBarH('catRange',byRange.slice(0,12).map(x=>x[0]),byRange.slice(0,12).map(x=>x[1]),C.amber,true,v=>drillTo('Range',v));
     mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
   }
-  renderCatDrillChart('catCatDrill',recs);
-
-  // ── category margin charts ────────────────────────────────────────────────
-  if(catWaterfall.length){
-    const _wCh=new Chart(document.getElementById('catMrgWaterfall'),{
-      type:'bar',
-      data:{labels:catWaterfall.map(c=>c.name),datasets:[
-        {label:'NSV%',data:catWaterfall.map(c=>c.nsv_pct),backgroundColor:C.teal+'cc',stack:'mrp'},
-        {label:'Tax%',data:catWaterfall.map(c=>c.tax_pct),backgroundColor:C.grey+'cc',stack:'mrp'},
-        {label:'TOT%',data:catWaterfall.map(c=>c.tot_pct),backgroundColor:C.amber+'cc',stack:'mrp'},
-      ]},
-      options:{indexAxis:'y',responsive:true,
-        plugins:{legend:{display:true,position:'top'},
-          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.x+'%'}}},
-        scales:{x:{stacked:true,max:100,ticks:{callback:v=>v+'%'}},y:{stacked:true}}},
-    });
-    charts.push(_wCh);
-    if(catWaterfall.some(c=>c.promoIntensity>0)){
-      mkBarH('catPromoIntensity',catWaterfall.map(c=>c.name),
-        catWaterfall.map(c=>c.promoIntensity),C.purple,false);
-      const _piCh=charts[charts.length-1];
-      _piCh.options.plugins.tooltip.callbacks.label=c=>'Promos/100L NSV: '+c.parsed.x;
-      _piCh.update();
-    }
-  }
+  renderDrillChart('catDrill','Primary NSV',recs);
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
@@ -1857,8 +1893,7 @@ function buildPromo(){
    ${card('Chain-wise promo activity','Click a chain to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Chain</th><th>Promos</th><th>Avg Depth</th><th>Brands</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${catDrillCardHtml('prmCatDrill')}
-   ${_totSection}${_detSection}`;
+   ${drillCardHtml('prmDrill','Primary NSV')}`;
   wireDrillLinks(s);
   const top=chains.slice(0,12);
   mkBar('prmChain',top.map(c=>c.name),[{label:'Promos',data:top.map(c=>c.promos),backgroundColor:C.teal,borderRadius:4}],{money:false},v=>drillTo('Chain',v));
@@ -1867,64 +1902,7 @@ function buildPromo(){
   ch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';ch.update();
   mkBarH('prmBrand',brandsArr.map(b=>b.name),brandsArr.map(b=>b.promos),C.purple,false,v=>drillTo('Brand',v));
   mkBarH('prmCat',cats.map(c=>c.name),cats.map(c=>c.promos),C.blue,false,v=>drillTo('Category',v));
-  renderCatDrillChart('prmCatDrill',recFilter());
-
-  // ── trade economics charts ────────────────────────────────────────────────
-  if(_roiRows.length){
-    mkBarH('prmTotChain',_roiRows.slice(0,12).map(c=>c.name),
-      _roiRows.slice(0,12).map(c=>c.passon_value),C.teal,true,v=>drillTo('Chain',v));
-  }
-  if(_totMons.length){
-    const _jm=['Jan','Feb','Mar'];
-    const _tLab=_totMons.map(m=>{
-      const m3=m.month.slice(0,3)==='Sep'?'Sep':m.month.slice(0,3);
-      const n=parseInt(m.fy.replace('FY',''));
-      return m3+'-'+String(_jm.includes(m3)?n:n-1).slice(-2);
-    });
-    const _pArr=_totMons.map(m=>m.passon_value);
-    const _mxP=Math.max(..._pArr)||1;
-    const _scl=_mxP/100;
-    const _tCh=new Chart(document.getElementById('prmTotTrend'),{
-      type:'bar',
-      data:{labels:_tLab,datasets:[
-        {label:'Passon Value (L)',data:_pArr,backgroundColor:C.teal+'aa',
-         borderColor:C.teal,borderWidth:1,type:'bar',order:2},
-        {label:'TOT% (scaled)',data:_totMons.map(m=>m.tot_pct*_scl),
-         borderColor:C.amber,backgroundColor:'transparent',borderWidth:2,
-         type:'line',pointRadius:3,tension:0.3,order:1},
-      ]},
-      options:{responsive:true,
-        plugins:{legend:{display:true,position:'top'},
-          tooltip:{callbacks:{label:ctx=>{
-            if(ctx.dataset.label.includes('TOT%'))
-              return 'TOT%: '+_totMons[ctx.dataIndex]?.tot_pct+'%';
-            return 'Passon: '+crc(ctx.parsed.y);
-          }}}},
-        scales:{x:{ticks:{maxRotation:45,font:{size:10}}},
-                y:{ticks:{callback:v=>crc(v)}}}},
-    });
-    charts.push(_tCh);
-  }
-
-  // ── Aug-26 calendar charts ────────────────────────────────────────────────
-  if(_pdet){
-    const _dc=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
-    const _dc12=_dc.slice(0,12);
-    if(_dc12.length){
-      mkBar('prmDetChain',_dc12.map(c=>c.name),
-        [{label:'SKUs on Promo',data:_dc12.map(c=>c.skus),backgroundColor:C.purple+'cc',borderRadius:4}],
-        {money:false},v=>drillTo('Chain',v));
-    }
-    const _odc=_dc.filter(c=>c.avg_offer_pct!=null).slice(0,12);
-    if(_odc.length){
-      mkBarH('prmDetOffer',_odc.map(c=>c.name),_odc.map(c=>c.avg_offer_pct),
-        C.amber,false,v=>drillTo('Chain',v));
-      const _oCh=charts[charts.length-1];
-      _oCh.options.scales.x.ticks.callback=v=>v+'%';
-      _oCh.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';
-      _oCh.update();
-    }
-  }
+  renderDrillChart('prmDrill','Primary NSV',recFilter());
 }
 
 /* ---------------- PERFORMANCE & COMPARISON ---------------- */
@@ -1975,8 +1953,8 @@ function buildComparison(){
         });
         yrPair=[`${_prevFY} ${_pLbl}`,`${fyTag()} ${_pLbl}`];
       } else {
-        s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2><div style="margin:0 0 14px">${btns}</div>${fyNoDataNote('the chain/brand Primary source')}${catDrillCardHtml('cmpCatDrill')}`;
-        wireCmpButtons(s); renderCatDrillChart('cmpCatDrill',recFilter()); return;
+        s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2><div style="margin:0 0 14px">${btns}</div>${fyNoDataNote('the chain/brand Primary source')}${drillCardHtml('cmpDrill','Primary NSV')}`;
+        wireCmpButtons(s); renderDrillChart('cmpDrill','Primary NSV',recFilter()); return;
       }
     } else {
       source='Primary (chain-level, secondary-allocated for Distributors)';
@@ -2020,7 +1998,7 @@ function buildComparison(){
    ${card(`${dimLab[cmpDim]} ranked comparison (top 15)`,'Click a name to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>${dimLab[cmpDim]}</th><th>${yrPair[0]}</th><th>${yrPair[1]}</th><th>YoY</th><th>Contribution</th>
      </tr></thead><tbody>${tableRows||'<tr><td colspan="5">No records for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${catDrillCardHtml('cmpCatDrill')}`;
+   ${drillCardHtml('cmpDrill','Primary NSV')}`;
   wireDrillLinks(s);
   wireChips(s,buildComparison);
   wireCmpButtons(s);
@@ -2029,7 +2007,7 @@ function buildComparison(){
       {label:yrPair[0],data:top.map(r=>r.a||0),backgroundColor:C.blue+'cc',borderRadius:4},
       {label:yrPair[1],data:top.map(r=>r.b||0),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo(cmpDim,v));
   }
-  renderCatDrillChart('cmpCatDrill',recFilter());
+  renderDrillChart('cmpDrill','Primary NSV',recFilter());
 }
 function wireCmpButtons(root){
   root.querySelectorAll('[data-dim]').forEach(b=>b.onclick=()=>{
@@ -2054,9 +2032,7 @@ function buildInsights(){
   s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2>
    <p class="lead">Auto-generated from the underlying data, with leadership actions.</p>
    <div class="ins">${cards}</div>
-   ${card('Way forward — recommended actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}
-   ${catDrillCardHtml('insCatDrill')}`;
-  renderCatDrillChart('insCatDrill',recFilter());
+   ${card('Way forward — recommended actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
 }
 
 /* ---------------- DATA EXPLORER (drill-down + cascading filters) ---------------- */
@@ -2142,7 +2118,7 @@ function renderFilterBar(){
       onFilterChange();
     };
   });
-  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;onFilterChange();};
+  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;Object.keys(_drillStates).forEach(k=>delete _drillStates[k]);onFilterChange();};
   fb.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
     F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
     if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;

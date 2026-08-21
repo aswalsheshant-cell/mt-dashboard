@@ -3,6 +3,13 @@
 // Source = every file in RawDataFolders\Primary_Weekly
 // Primary is maintained WEEKLY (date/week-wise) so MoM is built by rolling
 // the weekly rows up to Month via the Date table.
+//
+// MVP STATUS: DEFERRED — RawDataFolders\Primary_Weekly is empty (no weekly
+// files have been loaded yet). This query returns 0 rows and is structurally
+// correct. Drop weekly CSV/Excel files into Primary_Weekly and refresh to
+// activate. Weekly data is NOT required for the MVP release; article-level
+// monthly primary (Query 16) and ShipTo monthly (RawDataFolders\Primary_ShipTo_Monthly)
+// cover all current reporting needs.
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Weekly"),
