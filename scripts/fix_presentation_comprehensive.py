@@ -192,7 +192,7 @@ class PresentationFixer:
                     curr_shape.top = prev_bottom + min_gap
                     self.report["overlaps_fixed"] += 1
                     if self.verbose:
-                        print(f"   Fixed overlap: moved shape down")
+                        print("   Fixed overlap: moved shape down")
 
         print("✓ Slide 1 overlap fixes applied")
         return self
@@ -314,7 +314,7 @@ class PresentationFixer:
 
     def save(self):
         """Save corrected presentation."""
-        print(f"\n8. Saving corrected presentation...")
+        print("\n8. Saving corrected presentation...")
         self.prs.save(str(self.output_path))
         print(f"✓ Saved: {self.output_path.name}")
         return self
