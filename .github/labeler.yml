@@ -1,0 +1,16 @@
+documentation:
+  - "docs/**"
+  - "**/*.md"
+
+tests:
+  - "scripts/test_*.py"
+  - "test/**"
+
+workflows:
+  - ".github/workflows/**"
+
+dashboard:
+  - "dashboard/**"
+
+scripts:
+  - "scripts/**"
