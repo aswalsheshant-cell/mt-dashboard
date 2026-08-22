@@ -412,7 +412,6 @@ class TestDataJSRegression:
     def test_reliance_bc_not_in_offtake(self, dash):
         """BC total should not be added to offtake total."""
         bc = dash.get("reliance_bc", {})
-        o = dash["offtake"]
         assert bc.get("include_in_overall_offtake") is False
 
     def test_fy25_fy26_monthly_unchanged(self, dash):

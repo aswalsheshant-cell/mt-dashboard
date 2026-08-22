@@ -186,7 +186,7 @@ FINANCE_G10_CONFIG = {
             "g10": {
         "jun26_allocation_status": "APPROVED",  # Finance Decision 1: A
         "negative_frac_treatment_status": "PROVISIONAL",  # Finance Decision 2: RETAIN
-        "finance_approval": true,
+        "finance_approval": True,
         "approver_email": "finance.controller@company.local",
         "approval_date": "2026-08-09",
         "approval_timestamp": "2026-08-09T16:22:08.728928",
@@ -204,8 +204,8 @@ def _default_config() -> Dict[str, Any]:
         "reconciliation_variance_tolerance_pct": 0.01,
         "tot_fallback_max_pct": 30.0,
         "cm2_expense_match_min_pct": 80.0,
-        "negative_frac_treatment_status": g10.get("negative_frac_treatment_status", "PROVISIONAL"),
-        "jun26_allocation_status": g10.get("jun26_allocation_status", "PROVISIONAL"),
+        "negative_frac_treatment_status": FINANCE_G10_CONFIG["g10"].get("negative_frac_treatment_status", "PROVISIONAL"),
+        "jun26_allocation_status": FINANCE_G10_CONFIG["g10"].get("jun26_allocation_status", "PROVISIONAL"),
     }
 
 
