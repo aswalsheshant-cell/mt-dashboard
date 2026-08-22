@@ -1,0 +1,73 @@
+{
+  "status": "ADVISORY",
+  "row_count": 40000,
+  "affected_row_count": 3489,
+  "affected_row_pct": 8.72,
+  "fields": {
+    "SubCategory": {
+      "null_count": 3489,
+      "null_pct": 8.72,
+      "complete_count": 36511,
+      "complete_pct": 91.28
+    },
+    "Range": {
+      "null_count": 3489,
+      "null_pct": 8.72,
+      "complete_count": 36511,
+      "complete_pct": 91.28
+    },
+    "PackSize": {
+      "null_count": 3489,
+      "null_pct": 8.72,
+      "complete_count": 36511,
+      "complete_pct": 91.28
+    }
+  },
+  "breakdowns": {
+    "FY": {
+      "FY27": 3489
+    },
+    "Month": {
+      "July": 3489
+    },
+    "Brand": {
+      "Aqualogica": 63,
+      "BBlunt": 31,
+      "Dr. Sheth's": 15,
+      "Mamaearth": 2345,
+      "The Derma Co": 1035
+    },
+    "Chain": {
+      "Apollo": 565,
+      "Arambagh": 11,
+      "Azorte": 1,
+      "B&N": 9,
+      "CARREFOUR": 5,
+      "Dabur New U": 46,
+      "Deal Share": 20,
+      "Dmart": 331,
+      "Eremedium": 12,
+      "Frankross": 16,
+      "Guardian": 3,
+      "H&G": 97,
+      "Lulu": 138,
+      "Metro C&C": 353,
+      "More Retail": 108,
+      "National Mart": 20,
+      "Nykaa (FSN)": 276,
+      "Pothys": 9,
+      "Ratnadeep": 27,
+      "Reliance Retail": 1204,
+      "RMT-Sancus": 51,
+      "Sasta Sundar": 2,
+      "Spencer": 22,
+      "Sumo Save": 1,
+      "Trent": 15,
+      "Unmapped Chain": 14,
+      "V-Mart": 3,
+      "Vishal Mega Mart": 74,
+      "Wellness Forever": 47,
+      "WH-Smith": 9
+    }
+  }
+}

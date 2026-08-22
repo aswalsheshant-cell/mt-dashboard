@@ -1380,10 +1380,14 @@ function buildPnl(){
 }
 
 /* ---------------- FORECAST ---------------- */
+function hasValidForecastTarget(f){
+  const v=f?.fy27_forecast;
+  return v!=null && !(typeof v==='string'&&v.trim()==='') && Number.isFinite(Number(v));
+}
 function buildForecast(){
   const f=D.forecast,s=document.getElementById('tab-forecast');
   const isTY=/TY target/i.test(f.method||'');
-  const targetMissing=f.fy27_target==null;
+  const targetMissing=!hasValidForecastTarget(f);
   const dimNote=dimUnsupportedNote(['FY','Month','Chain','Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],
     'the Forecast series (always shows the full FY24-27 trend — see Overview/Primary/Offtake for filtered totals)');
   const fcTargetNote=targetMissing&&isTY?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">

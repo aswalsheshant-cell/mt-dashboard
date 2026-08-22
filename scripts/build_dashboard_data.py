@@ -233,6 +233,24 @@ def r2(x, nd=2):
     except Exception:
         return None
 
+
+def _json_safe(value):
+    """Convert non-finite floats to JSON null without changing finite values."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, tuple):
+        return [_json_safe(item) for item in value]
+    return value
+
+
+def _json_dumps_strict(value, **kwargs):
+    """Serialize standards-compliant JSON and fail if a non-finite value remains."""
+    return json.dumps(_json_safe(value), allow_nan=False, **kwargs)
+
 # --------------------------------------------------------------------------
 # PRIMARY
 # --------------------------------------------------------------------------
@@ -3628,7 +3646,7 @@ def main():
                   + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}"
                   + f"; patch proposals {alloc['patch_rows']} -> {alloc['patch_file']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + _json_dumps_strict(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=alloc, report_dir=str(outp.parent),
         )
         return
@@ -3653,7 +3671,7 @@ def main():
               + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
                  if qc else "no allocation file found -- chain tags left as-is"))
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + _json_dumps_strict(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -3671,7 +3689,7 @@ def main():
         print(f"forecast-only: FY26 actual {forecast['fy26_actual']} / FY27 TY target "
               f"{forecast['fy27_forecast']} (Lakh) = Rs {forecast['fy27_forecast']/100:.2f} Cr")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + _json_dumps_strict(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -3765,7 +3783,7 @@ def main():
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + _json_dumps_strict(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         print(f"offtake-patch: fy_tags now {patched['fy_tags']}")
@@ -3784,7 +3802,7 @@ def main():
             raise SystemExit(f"No .xlsb store x article offtake extracts found in --src ({src}).")
         obj["dist_gap"] = dg
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + _json_dumps_strict(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         print(f"distgap: {dg['row_count']} products, window {dg['window_label']}, "
@@ -3851,7 +3869,7 @@ def main():
         _check_governance_gate(alloc, a.not_eligible_gate_pct)
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
-    payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
+    payload = "window.DASH = " + _json_dumps_strict(data, indent=1, ensure_ascii=False) + ";\n"
     _safe_write_data_js(
         out_path=a.out,
         payload_str=payload,

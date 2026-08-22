@@ -34,8 +34,10 @@ def load_dash(path: Path) -> dict:
     if not m:
         raise ValueError("window.DASH not found in data.js")
     raw = txt[m.end():].rstrip().rstrip(";")
-    raw = re.sub(r"\bNaN\b", "null", raw)
-    return json.loads(raw)
+    def reject_non_finite(value: str):
+        raise ValueError(f"non-finite JSON number: {value}")
+
+    return json.loads(raw, parse_constant=reject_non_finite)
 
 
 def _isnum(v):
@@ -371,6 +373,33 @@ def run_browser_check(port: int = 8765):
                     qc("FAIL", f"Overview FY27 KPI contains '{bad}'", kpi_text[:200])
             if "Apr–May" not in kpi_text and "NaN" not in kpi_text and "undefined" not in kpi_text:
                 qc("PASS", "Overview FY27 KPI label — no hardcoded Apr–May or NaN")
+
+            # Forecast target visibility must use the same field as the KPI card.
+            page.locator("button:has-text('Forecast')").first.click(timeout=5000)
+            time.sleep(0.5)
+            forecast_text = page.locator("#tab-forecast").inner_text()
+            if "TY target total unavailable" in forecast_text:
+                qc("FAIL", "Forecast TY target warning", "Warning shown despite finite fy27_forecast")
+            elif "₹441.33 Cr" not in forecast_text:
+                qc("FAIL", "Forecast TY target KPI", "Expected ₹441.33 Cr was not rendered")
+            else:
+                qc("PASS", "Forecast TY target warning and KPI agree")
+
+            # Missing target must still render the advisory warning.
+            warning_for_missing = page.evaluate("""() => {
+                const original = D.forecast.fy27_forecast;
+                D.forecast.fy27_forecast = null;
+                buildForecast();
+                const shown = document.querySelector('#tab-forecast').innerText
+                    .includes('TY target total unavailable');
+                D.forecast.fy27_forecast = original;
+                buildForecast();
+                return shown;
+            }""")
+            if warning_for_missing:
+                qc("PASS", "Forecast missing TY target warning")
+            else:
+                qc("FAIL", "Forecast missing TY target warning", "Warning absent for null fy27_forecast")
 
             # Verify dynamic label appears anywhere on the page (not just first .kpis)
             page_text = page.inner_text("body")

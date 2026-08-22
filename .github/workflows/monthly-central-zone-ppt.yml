@@ -9,6 +9,8 @@ on:
 jobs:
   generate-central-zone-ppt:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - uses: actions/checkout@v4
@@ -34,16 +36,24 @@ jobs:
           path: Central_Zone_Leadership_Pack_*.pptx
           retention-days: 365
 
+      - name: Prepare release metadata
+        id: release
+        if: hashFiles('Central_Zone_Leadership_Pack_*.pptx') != ''
+        shell: bash
+        run: |
+          echo "tag=central-zone-ppt-$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+          echo "generated=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
+
       - name: Create Release with PPT
         if: hashFiles('Central_Zone_Leadership_Pack_*.pptx') != ''
         uses: softprops/action-gh-release@v1
         with:
           files: Central_Zone_Leadership_Pack_*.pptx
-          tag_name: central-zone-ppt-$(date +%Y%m%d)
+          tag_name: ${{ steps.release.outputs.tag }}
           body: |
             Central Zone Leadership Pack — Monthly Deliverable
             
-            - Generated: $(date)
+            - Generated: ${{ steps.release.outputs.generated }}
             - Slides: 18
             - Coverage: Madhya Pradesh & Chhattisgarh
             - Source: dashboard/data.js (latest)
