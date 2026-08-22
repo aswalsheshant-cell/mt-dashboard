@@ -386,15 +386,18 @@ def run_browser_check(port: int = 8765):
                 qc("PASS", "Forecast TY target warning and KPI agree")
 
             # Missing target must still render the advisory warning.
-            warning_for_missing = page.evaluate("""() => {
-                const original = D.forecast.fy27_forecast;
-                D.forecast.fy27_forecast = null;
-                buildForecast();
-                const shown = document.querySelector('#tab-forecast').innerText
-                    .includes('TY target total unavailable');
-                D.forecast.fy27_forecast = original;
-                buildForecast();
-                return shown;
+            original_target = page.evaluate("D.forecast.fy27_forecast")
+            page.evaluate("D.forecast.fy27_forecast = null; show('forecast')")
+            page.wait_for_function("""() => document.querySelector('#tab-forecast').innerText
+                .includes('TY target total unavailable')""")
+            warning_for_missing = True
+            page.evaluate(
+                "target => { D.forecast.fy27_forecast = target; show('forecast'); }",
+                original_target,
+            )
+            page.wait_for_function("""() => {
+                const text = document.querySelector('#tab-forecast').innerText;
+                return !text.includes('TY target total unavailable') && text.includes('₹441.33 Cr');
             }""")
             if warning_for_missing:
                 qc("PASS", "Forecast missing TY target warning")
