@@ -40,7 +40,7 @@ STATE_TO_ZONE = {
     "Gujarat": "West", "Maharashtra": "West", "Rajasthan": "West",
     "Goa": "West",
     # Central (new 6-zone structure)
-    "Madhya Pradesh": "Central", "Chhattisgarh": "Central",  # Vidarbha (Maharashtra) stays West above
+    "Madhya Pradesh": "Central", "Chhattisgarh": "Central", "Maharashtra": "West",  # Vidharbha region
     # East
     "West Bengal": "East", "Assam": "East", "Odisha": "East", "Bihar": "East", "Jharkhand": "East",
 }
@@ -205,7 +205,7 @@ def transform_july_data(input_file, output_file):
     print(f"\nWriting {len(output_df)} transformed rows to {output_file}...")
     output_df.to_excel(output_file, sheet_name="Dump", index=False)
 
-    print("✓ Transformation complete")
+    print(f"✓ Transformation complete")
     print(f"  Rows: {len(output_df)}")
     print(f"  Columns: {len(output_df.columns)}")
     print(f"  Brands: {output_df['brand'].unique().tolist()}")

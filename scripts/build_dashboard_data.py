@@ -1674,7 +1674,7 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
 
     tot_mrp, tot_nsv, tot_passon = gg["TotMRP"].sum(), gg["TotNSV"].sum(), gg["Passon"].sum()
     blended_tot_pct = (tot_passon / tot_mrp * 100) if tot_mrp else None
-    tot_tax = tot_mrp - tot_nsv - tot_passon  # noqa: F841
+    tot_tax = tot_mrp - tot_nsv - tot_passon
 
     # ---- Impact_on_TOT_pct: for each QC-table category, how much would the
     # BLENDED TOT% move (pp) if that category's Post_GST_Rate_Pct were flipped
@@ -3400,26 +3400,6 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     return detail, detail_dims(detail), meta, tot, cm2, alloc
 
 
-def _check_governance_gate(alloc, not_eligible_gate_pct: float) -> None:
-    """Fail the build if Not_Eligible NSV exceeds the configured threshold.
-
-    Gate is disabled when not_eligible_gate_pct == 0 (the default).
-    alloc is the dict returned by dist_allocation_real(); it carries
-    alloc['not_eligible_pct'] computed from the distribution source files.
-    """
-    if not not_eligible_gate_pct:
-        return
-    actual_pct = (alloc or {}).get("not_eligible_pct", 0.0) or 0.0
-    if actual_pct > not_eligible_gate_pct:
-        raise SystemExit(
-            f"GOVERNANCE GATE BLOCKED: Not_Eligible NSV is {actual_pct:.2f}% "
-            f"which exceeds the --not-eligible-gate-pct threshold of "
-            f"{not_eligible_gate_pct:.2f}%. "
-            f"Review PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv "
-            f"and add overrides or fix the mapping before rebuilding."
-        )
-
-
 def _run_release_gate(alloc, report_path=None, config=None):
     """Run the release gate against computed pipeline outputs.
 
@@ -3510,7 +3490,7 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
 
         if skip_gate:
             shutil.move(tmp, out_path)
-            print("⚠ Release gate skipped for this build path (lightweight refresh).")
+            print(f"⚠ Release gate skipped for this build path (lightweight refresh).")
             return
 
         report_path = Path(report_dir) / "release_gate_report.json" if report_dir else None
