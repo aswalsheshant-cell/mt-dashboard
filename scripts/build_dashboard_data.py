@@ -3469,6 +3469,48 @@ def _run_release_gate(alloc, report_path=None, config=None):
     return passed, report
 
 
+def _check_governance_gate(alloc: dict, gate_pct: float) -> None:
+    """Fail when Not_Eligible NSV exceeds the configured percentage gate."""
+    if gate_pct <= 0 or alloc is None:
+        return
+
+    gov = alloc.get("governance") or {}
+    ne_pct = gov.get("not_eligible_pct", 0.0)
+    if ne_pct > gate_pct:
+        ne_nsv = gov.get("not_eligible_nsv_lakh", 0)
+        total_nsv = gov.get("total_dist_nsv_lakh", 0)
+        flagged = gov.get("flagged_rows", 0)
+        override_count = gov.get("override_count", 0)
+        flagged_csv = gov.get(
+            "flagged_rows_csv", "DistAllocationGovernance_FlaggedRows.csv"
+        )
+        raise SystemExit(
+            f"\n{'='*70}\n"
+            "BUILD GATE TRIGGERED — Not_Eligible NSV exceeds threshold\n"
+            f"{'='*70}\n"
+            f"  Not_Eligible NSV : {ne_nsv} L ({ne_pct}% of Dist. total)\n"
+            f"  Gate threshold   : {gate_pct}% (--not-eligible-gate-pct)\n"
+            f"  Total Dist. NSV  : {total_nsv} L\n"
+            f"  Flagged key rows : {flagged} (ShipTo × Brand × Month keys)\n"
+            f"  Approved overrides: {override_count}\n"
+            "\nResolution options:\n"
+            f"  1. Review {flagged_csv} and add approved rows to\n"
+            "     PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv, then rebuild.\n"
+            "  2. Add missing ShipTo × Brand × Month rows to the allocation master\n"
+            "     (Dist_primary_cont_based_on_secondary_MOM.xlsx or ShipTo primary CSV).\n"
+            f"  3. Lower the gate: --not-eligible-gate-pct {gate_pct + 5:.0f} "
+            "(not recommended).\n"
+            "  4. Disable the gate: --not-eligible-gate-pct 0\n"
+            f"{'='*70}"
+        )
+
+    print(
+        "Phase 6 gate: Not_Eligible NSV = "
+        f"{gov.get('not_eligible_nsv_lakh', 0)} L "
+        f"({ne_pct}% vs threshold {gate_pct}%) - PASS"
+    )
+
+
 def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
                         report_dir=None, skip_gate=False):
     """Safe-write data.js: validate via release gate, then atomically replace.

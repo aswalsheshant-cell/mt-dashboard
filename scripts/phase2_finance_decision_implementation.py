@@ -150,7 +150,7 @@ def update_release_gate_config(decision1, decision2, approver_email, approval_da
     new_config = f'''    "g10": {{
         "jun26_allocation_status": "{decision1_status}",  # Finance Decision 1: {decision1}
         "negative_frac_treatment_status": "{decision2_status}",  # Finance Decision 2: {decision2}
-        "finance_approval": true,
+        "finance_approval": True,
         "approver_email": "{approver_email}",
         "approval_date": "{approval_date}",
         "approval_timestamp": "{timestamp}",

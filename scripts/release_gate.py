@@ -63,12 +63,12 @@ class ReleaseGateReport:
         print("\n" + "=" * 80)
         print("AUTOMATED RELEASE GATE REPORT")
         print("=" * 80)
-        print(f"\nOverall Status: {'✓ PASS' if self.passed_overall else '✗ FAIL'}")
+        print(f"\nOverall Status: {'PASS' if self.passed_overall else 'FAIL'}")
         print(f"Checks Passed: {sum(1 for c in self.checks if c.passed)}/{len(self.checks)}")
         print()
 
         for check in self.checks:
-            status = "✓" if check.passed else "✗"
+            status = "PASS" if check.passed else "FAIL"
             mandatory = "[MANDATORY]" if check.mandatory else "[ADVISORY]"
             print(f"{status} {check.check_id}: {check.name} {mandatory}")
             if check.actual_value is not None and check.threshold is not None:
@@ -78,9 +78,9 @@ class ReleaseGateReport:
             print()
 
         if any(not c.passed for c in self.checks if c.mandatory):
-            print("⚠ GATE BLOCKED: Mandatory checks failed. data.js will NOT be published.")
+            print("WARNING: GATE BLOCKED: Mandatory checks failed. data.js will NOT be published.")
         else:
-            print("✓ GATE PASSED: All mandatory checks passed. Safe to publish data.js.")
+            print("GATE PASSED: All mandatory checks passed. Safe to publish data.js.")
         print("=" * 80 + "\n")
 
 
@@ -183,10 +183,10 @@ def gate_pass(
 
 # Finance Decision Configuration (G10) — Updated by Phase 2 implementation
 FINANCE_G10_CONFIG = {
-            "g10": {
+    "g10": {
         "jun26_allocation_status": "APPROVED",  # Finance Decision 1: A
         "negative_frac_treatment_status": "PROVISIONAL",  # Finance Decision 2: RETAIN
-        "finance_approval": true,
+        "finance_approval": True,
         "approver_email": "finance.controller@company.local",
         "approval_date": "2026-08-09",
         "approval_timestamp": "2026-08-09T16:22:08.728928",
@@ -198,14 +198,19 @@ FINANCE_G10_CONFIG = {
 
 def _default_config() -> Dict[str, Any]:
     """Finance-approved business rules (production defaults)."""
+    g10_config = FINANCE_G10_CONFIG["g10"]
     return {
         "allocation_coverage_min_pct": 95.0,
         "unmapped_nsv_tolerance_pct": 2.0,
         "reconciliation_variance_tolerance_pct": 0.01,
         "tot_fallback_max_pct": 30.0,
         "cm2_expense_match_min_pct": 80.0,
-        "negative_frac_treatment_status": g10.get("negative_frac_treatment_status", "PROVISIONAL"),
-        "jun26_allocation_status": g10.get("jun26_allocation_status", "PROVISIONAL"),
+        "negative_frac_treatment_status": g10_config.get(
+            "negative_frac_treatment_status", "PROVISIONAL"
+        ),
+        "jun26_allocation_status": g10_config.get(
+            "jun26_allocation_status", "PROVISIONAL"
+        ),
     }
 
 
@@ -542,7 +547,7 @@ def _gate_7_reliance_bc_crosscheck(reliance_bc_data: Any) -> GateCheck:
 
         bc_total = reliance_bc_data['NSV'].sum() if len(reliance_bc_data) > 0 else 0.0
         passed = bc_total >= 0  # Basic sanity: non-negative total
-        reason = f"BC total NSV: ₹{bc_total:.2f}L (isolated, excluded from offtake)"
+        reason = f"BC total NSV: INR {bc_total:.2f}L (isolated, excluded from offtake)"
 
         return GateCheck(
             check_id="G7",
