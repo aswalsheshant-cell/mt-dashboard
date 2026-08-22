@@ -306,7 +306,7 @@ def validate_kpi(kpi_key: str, dashboard_value: Optional[float],
         'variance_pct': round(variance_pct, 2),
         'tolerance_pct': tolerance_pct,
         'tolerance_type': tolerance_type,
-        'reason': f"Within tolerance" if passes else f"Exceeds {tolerance_pct} threshold"
+        'reason': "Within tolerance" if passes else f"Exceeds {tolerance_pct} threshold"
     }
 
 def run_validation(finance_controls: Dict, dashboard_data: Dict, fy: str) -> Dict:
@@ -415,7 +415,7 @@ DETAILED RESULTS
             if variance_pct is not None:
                 report += f"  Variance: {result.get('variance_abs')} ({variance_pct:.2f}%)\n"
             else:
-                report += f"  Variance: N/A (missing dashboard value)\n"
+                report += "  Variance: N/A (missing dashboard value)\n"
             report += f"  Tolerance: ±{result.get('tolerance_pct')} {result.get('tolerance_type')}\n"
             report += f"  Result: {result.get('reason')}\n"
         elif status == 'MISSING_CONTROL':

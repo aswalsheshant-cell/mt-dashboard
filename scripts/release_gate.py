@@ -204,8 +204,8 @@ def _default_config() -> Dict[str, Any]:
         "reconciliation_variance_tolerance_pct": 0.01,
         "tot_fallback_max_pct": 30.0,
         "cm2_expense_match_min_pct": 80.0,
-        "negative_frac_treatment_status": g10.get("negative_frac_treatment_status", "PROVISIONAL"),
-        "jun26_allocation_status": g10.get("jun26_allocation_status", "PROVISIONAL"),
+        "negative_frac_treatment_status": FINANCE_G10_CONFIG["g10"].get("negative_frac_treatment_status", "PROVISIONAL"),
+        "jun26_allocation_status": FINANCE_G10_CONFIG["g10"].get("jun26_allocation_status", "PROVISIONAL"),
     }
 
 

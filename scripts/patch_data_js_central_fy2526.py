@@ -110,7 +110,7 @@ o["by_state"] = [r for r in by_state if not (
     (r.get("state","").lower() == "madhya pradesh" and r.get("zone","").lower() == "north") or
     (r.get("state","").lower() == "chhattisgarh"   and r.get("zone","").lower() == "west")
 )]
-print(f"\nby_state: removed stale MP-North and CG-West rows")
+print("\nby_state: removed stale MP-North and CG-West rows")
 print(f"by_state total rows: {len(o['by_state'])} (was {len(by_state)+2})")
 
 # ── 3. Fix by_zone ────────────────────────────────────────────────────────────
