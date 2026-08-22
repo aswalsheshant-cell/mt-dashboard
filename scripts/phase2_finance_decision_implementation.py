@@ -170,7 +170,7 @@ def update_release_gate_config(decision1, decision2, approver_email, approval_da
     with open(RELEASE_GATE_PATH, 'w') as f:
         f.write(new_content)
 
-    log_info("Updated release_gate.py with Finance approvals")
+    log_info(f"Updated release_gate.py with Finance approvals")
     log_info(f"  Decision 1: {decision1} → {decision1_status}")
     log_info(f"  Decision 2: {decision2} → {decision2_status}")
 
@@ -194,7 +194,7 @@ def rebuild_data_js():
             log_error(f"Build failed:\n{result.stderr}")
             return False
 
-        log_info("data.js rebuilt successfully")
+        log_info(f"data.js rebuilt successfully")
         return True
 
     except subprocess.TimeoutExpired:

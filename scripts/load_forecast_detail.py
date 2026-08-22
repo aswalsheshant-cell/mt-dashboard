@@ -145,7 +145,7 @@ def main(xlsx_path: str, out_path: str) -> None:
         ),
     }
 
-    print("\nDetail summary:")
+    print(f"\nDetail summary:")
     print(f"  Months: {months}")
     for mo in months:
         print(f"  {mo}: Fcst={monthly_fcst[mo]} L, Tgt={monthly_tgt[mo]} L")

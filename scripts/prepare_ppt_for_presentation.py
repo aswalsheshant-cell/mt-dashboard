@@ -80,7 +80,7 @@ def clean_chart_in_shape(shape, verbose=False) -> int:
         # Note: python-pptx has limited chart editing capability
         # For full chart cleanup, manual inspection is needed
         if verbose:
-            print("  Chart found (manual inspection may be needed for data labels)")
+            print(f"  Chart found (manual inspection may be needed for data labels)")
     except Exception as e:
         if verbose:
             print(f"  Warning: Could not access chart: {e}")
@@ -138,14 +138,14 @@ def merge_leadership_slides(base_prs: Presentation, leadership_prs: Presentation
             slides_added += 1
 
         if verbose and slides_added > 0:
-            print("Leadership slides: Recommended manual copy-paste (see checklist)")
-            print("  From: NEW_SLIDES_27-30_Leadership_Framework.pptx (slides 1-4)")
+            print(f"Leadership slides: Recommended manual copy-paste (see checklist)")
+            print(f"  From: NEW_SLIDES_27-30_Leadership_Framework.pptx (slides 1-4)")
             print(f"  To: {base_prs} (after slide 26)")
 
     except Exception as e:
         if verbose:
             print(f"Warning: Could not merge slides programmatically: {e}")
-            print("  Use PowerPoint manual copy-paste: Slides 1-4 from leadership file into base after slide 26")
+            print(f"  Use PowerPoint manual copy-paste: Slides 1-4 from leadership file into base after slide 26")
 
     return slides_added
 
@@ -195,7 +195,7 @@ def main():
     # Step 3: Verify revenue metric (if provided)
     if args.verify_revenue:
         print(f"3. Revenue metric target: ₹{args.verify_revenue:,.0f} Lakh (+82.3% YoY)")
-        print("   ⚠ NOTE: Manual verification needed in data.js or source Excel")
+        print(f"   ⚠ NOTE: Manual verification needed in data.js or source Excel")
         print()
 
     # Step 4: Save V2.5 (filtered, no leadership)
@@ -206,7 +206,7 @@ def main():
 
     # Step 5: Prepare V3 (if leadership PPT provided)
     if args.out_v3 and args.leadership:
-        print("5. Preparing V3 (filtered + leadership framework)...")
+        print(f"5. Preparing V3 (filtered + leadership framework)...")
         leadership_prs = Presentation(str(args.leadership))
         print(f"   ✓ Loaded leadership slides ({len(leadership_prs.slides)} slides)")
 
@@ -217,7 +217,7 @@ def main():
             base_prs.save(str(args.out_v3))
             print(f"   ✓ Saved: {args.out_v3.name} ({len(base_prs.slides)} total slides)")
         else:
-            print("   ⚠ Leadership slides: Manual copy-paste required in PowerPoint")
+            print(f"   ⚠ Leadership slides: Manual copy-paste required in PowerPoint")
             print(f"     From: {args.leadership.name} (slides 1-4)")
             print(f"     To: {args.out_v3} (after slide 26)")
     print()

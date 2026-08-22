@@ -114,7 +114,7 @@ def main(dry_run: bool = False):
                 "Cont%":               round(cont_frac, 6),
             })
 
-    print("\n── Summary ──────────────────────────────────────────────")
+    print(f"\n── Summary ──────────────────────────────────────────────")
     print(f"New rows to add: {len(new_rows)}")
     print(f"Skipped (chain unknown): {len(skipped)}")
     for st, bl, nsv in skipped:
