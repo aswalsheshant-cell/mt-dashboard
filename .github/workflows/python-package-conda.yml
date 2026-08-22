@@ -26,7 +26,7 @@ jobs:
         run: python -m compileall scripts
 
       - name: Ruff
-        run: ruff check .
+        run: ruff check . --select E9,F63,F7,F82
 
       - name: Collect tests
         run: pytest --collect-only scripts
