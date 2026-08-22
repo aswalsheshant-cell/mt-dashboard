@@ -13,6 +13,9 @@ on:
       - "PowerBI/SeedData/**"
       - "dashboard/data.js"
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
