@@ -186,7 +186,7 @@ FINANCE_G10_CONFIG = {
             "g10": {
         "jun26_allocation_status": "APPROVED",  # Finance Decision 1: A
         "negative_frac_treatment_status": "PROVISIONAL",  # Finance Decision 2: RETAIN
-        "finance_approval": true,
+        "finance_approval": True,
         "approver_email": "finance.controller@company.local",
         "approval_date": "2026-08-09",
         "approval_timestamp": "2026-08-09T16:22:08.728928",
