@@ -757,7 +757,8 @@ function buildOverview(){
   const _nOvMon = o.months.length;
   const _prim25Arr = o.months.map((m, i) => i < 12 ? (p.monthly_fy25[i] || null) : null);
   const _prim26_27Arr = o.months.map((m, i) => {
-    if (i < 12) return null;
+    if (i < 11) return null;
+    if (i === 11) return p.monthly_fy25[11] ?? null;  // bridge point so FY25→FY26 line connects
     if (i < 24) return p.monthly_fy26[i - 12];
     return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
   });
@@ -766,8 +767,7 @@ function buildOverview(){
     {label:`Primary ${fyDispLabel('FY25')}`,data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
     {label:'Primary FY25-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
   ]);
-  const tc=chains.slice(0,8);
-  mkBarH('ovChains',tc.map(c=>c.name),tc.map(c=>c[primYr]),C.teal,true,v=>drillTo('Chain',v));
+  mkDonut('ovChannel',channels.map(c=>c.name),channels.map(c=>c[primYr]),true,v=>drillTo('Channel',v));
   renderDrillChart('ovDrill','Primary NSV',recFilter());
 }
 
@@ -811,7 +811,7 @@ function buildPrimary(){
        </div>
        <div class="grid g2">
          ${card(`Monthly NSV — ${fyDispLabel('FY27')}`+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Actuals to date. Click a month to drill.',cv('prMonth'))}
-         ${card(`By zone (${fyDispLabel('FY27')} YTD)`,'click to drill',cv('prZone',true))}
+         ${card(`By zone (${fyDispLabel('FY27')} YTD)`,fOn('Month')?'Zone shows full YTD — month filter applies only to the monthly chart above':'click to drill',cv('prZone',true))}
        </div>
        <div class="grid g2">
          ${card(`By channel (${fyDispLabel('FY27')} YTD)`,'click to drill',cv('prChan',true))}
@@ -1395,7 +1395,7 @@ function buildPnl(){
 function buildForecast(){
   const f=D.forecast,s=document.getElementById('tab-forecast');
   const isTY=/TY target/i.test(f.method||'');
-  const targetMissing=f.fy27_target==null;
+  const targetMissing=f.fy27_forecast==null;
   const dimNote=dimUnsupportedNote(['FY','Month','Chain','Zone','Brand','Channel','Category','SubCategory','Range','PackSize','Article'],
     'the Forecast series (always shows the full FY24-27 trend — see Overview/Primary/Offtake for filtered totals)');
   const fcTargetNote=targetMissing&&isTY?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
@@ -1796,6 +1796,14 @@ function buildCategory(){
     mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
   }
   renderDrillChart('catDrill','Primary NSV',recs);
+  if(catWaterfall.length){
+    mkBar('catMrgWaterfall',catWaterfall.map(c=>c.name),[
+      {label:'NSV%',data:catWaterfall.map(c=>c.nsv_pct),backgroundColor:C.teal+'cc',borderRadius:0,stack:'s'},
+      {label:'Tax%',data:catWaterfall.map(c=>c.tax_pct),backgroundColor:C.amber+'cc',borderRadius:0,stack:'s'},
+      {label:'TOT%',data:catWaterfall.map(c=>c.tot_pct),backgroundColor:C.red+'cc',borderRadius:4,stack:'s'},
+    ],{money:false,cfg:{indexAxis:'y',scales:{x:{stacked:true,ticks:{callback:v=>v+'%'}},y:{stacked:true,grid:{display:false}}}}});
+    mkBarH('catPromoIntensity',catWaterfall.map(c=>c.name),catWaterfall.map(c=>c.promoIntensity),C.purple,false);
+  }
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
