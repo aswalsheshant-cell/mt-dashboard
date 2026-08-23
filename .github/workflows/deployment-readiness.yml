@@ -8,6 +8,9 @@ on:
     paths:
       - ".github/workflows/**"
 
+permissions:
+  contents: read
+
 jobs:
   validate-deployments:
     runs-on: ubuntu-latest
