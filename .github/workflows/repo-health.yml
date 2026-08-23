@@ -1,0 +1,87 @@
+name: Repository Health
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  asset-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify required repository files
+        run: |
+          fail=0
+          required=(
+            "dashboard/index.html"
+            "dashboard/data.js"
+            "requirements.txt"
+            "environment.yml"
+            ".github/labeler.yml"
+            "scripts/build_dashboard_data.py"
+          )
+          for f in "${required[@]}"; do
+            if [ -f "$f" ]; then
+              echo "✓ $f"
+            else
+              echo "::error::Required file missing: $f"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Python syntax check — all scripts
+        run: python -m compileall scripts/ -q
+
+      - name: Check environment.yml is valid YAML
+        run: |
+          python - <<'EOF'
+          import yaml, pathlib, sys
+          try:
+              doc = yaml.safe_load(pathlib.Path("environment.yml").read_text())
+              if not isinstance(doc, dict) or "dependencies" not in doc:
+                  print("::error::environment.yml missing 'dependencies' key")
+                  sys.exit(1)
+              print("✓ environment.yml valid")
+          except yaml.YAMLError as e:
+              print(f"::error::environment.yml parse error — {e}")
+              sys.exit(1)
+          EOF
+
+      - name: Check labeler.yml is valid YAML
+        run: |
+          python - <<'EOF'
+          import yaml, pathlib, sys
+          try:
+              doc = yaml.safe_load(pathlib.Path(".github/labeler.yml").read_text())
+              if not isinstance(doc, dict):
+                  print("::error::.github/labeler.yml is not a valid mapping")
+                  sys.exit(1)
+              print(f"✓ .github/labeler.yml valid ({len(doc)} label rules)")
+          except yaml.YAMLError as e:
+              print(f"::error::.github/labeler.yml parse error — {e}")
+              sys.exit(1)
+          EOF
+
+      - name: Dashboard asset size sanity check
+        run: |
+          size=$(wc -c < dashboard/data.js)
+          echo "data.js size: ${size} bytes"
+          if [ "$size" -lt 1000 ]; then
+            echo "::error::dashboard/data.js appears too small (${size} bytes) — may be empty or corrupted"
+            exit 1
+          fi
+          echo "✓ dashboard/data.js size OK"
