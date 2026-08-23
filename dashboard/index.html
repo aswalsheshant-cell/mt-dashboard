@@ -1075,6 +1075,12 @@ function buildOfftake(){
   let months, monthly;
   if(fy){ months=o['months_'+fy]||[]; monthly=o['monthly_'+fy]||[]; }
   else { months=o.months; monthly=o.monthly; }
+  // When a single zone is selected and per-zone monthly data exists, use it
+  if(fOn('Zone') && fy && F.Zone.length===1){
+    const zmKey='zone_monthly_'+fy;
+    const zm=o[zmKey];
+    if(zm && zm[F.Zone[0]]) monthly=zm[F.Zone[0]];
+  }
   if(fOn('Month')){
     const keep=months.map((m,i)=>i).filter(i=>F.Month.some(mm=>mAbbr(months[i])===mAbbr(mm)));
     months=keep.map(i=>months[i]); monthly=keep.map(i=>monthly[i]);

@@ -1067,6 +1067,49 @@ def patch_offtake_new_months(offtake, chain_month, zsm):
         offtake["months"] = list(offtake.get("months", [])) + appended
         offtake["monthly"] = list(offtake.get("monthly", [])) + [
             r2(sum(mm.get(mo, 0.0) for mm in chain_month.values())) for mo in appended]
+    # Build per-zone monthly series for each touched FY tag.
+    # Zone monthly is derived from zsm (zone,state,month) aggregates.
+    # For months missing from source (e.g. Jun when only Apr/May/Jul available),
+    # each zone's value is estimated proportionally from the known monthly total.
+    for tag in touched_tags:
+        lo = tag.lower()
+        tag_months = offtake.get(f"months_{lo}", [])
+        if not tag_months:
+            continue
+        tag_monthly = offtake.get(f"monthly_{lo}", [])
+        # Build zone→month dict from zsm for source months
+        zone_mo_nsv = {}  # {zone: {month: nsv}}
+        for (zone, state), months in zsm.items():
+            if zone is None:
+                continue
+            if zone not in zone_mo_nsv:
+                zone_mo_nsv[zone] = {}
+            for mo, v in months.items():
+                if fy_tag_from_label(mo) == tag:
+                    zone_mo_nsv[zone][mo] = zone_mo_nsv[zone].get(mo, 0.0) + v
+        if not zone_mo_nsv:
+            continue
+        # Source months (have zone data); missing months get proportional estimate
+        source_months = set(new_months_of_tag)
+        # Compute zone shares from source months (zone_total / all_zone_total per month)
+        zone_source_totals = {}
+        for zone in zone_mo_nsv:
+            zone_source_totals[zone] = sum(
+                zone_mo_nsv[zone].get(mo, 0.0) for mo in source_months)
+        all_zone_grand = sum(zone_source_totals.values())
+        zone_shares = {z: (v / all_zone_grand if all_zone_grand else 0.0)
+                       for z, v in zone_source_totals.items()}
+        zone_monthly_series = {}
+        for zone in zone_mo_nsv:
+            series = []
+            for mo, mo_total in zip(tag_months, tag_monthly):
+                if mo in source_months:
+                    series.append(r2(zone_mo_nsv[zone].get(mo, 0.0)))
+                else:
+                    # Estimate: zone_share * monthly_total
+                    series.append(r2(zone_shares.get(zone, 0.0) * (mo_total or 0.0)))
+            zone_monthly_series[zone] = series
+        offtake[f"zone_monthly_{lo}"] = zone_monthly_series
     return offtake
 
 # --------------------------------------------------------------------------
