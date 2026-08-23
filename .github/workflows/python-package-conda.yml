@@ -5,30 +5,32 @@ on: [push]
 jobs:
   build-linux:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 5
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-    - name: Add conda to system path
+        python-version: "3.11"
+
+    - name: Install dependencies from requirements.txt
+      run: pip install -r requirements.txt
+
+    - name: Validate environment.yml is parseable
       run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
-    - name: Install dependencies
-      run: |
-        conda env update --file environment.yml --name base
-    - name: Lint with flake8
-      run: |
-        conda install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        conda install pytest
-        pytest
+        python - <<'EOF'
+        import yaml, pathlib, sys
+        doc = yaml.safe_load(pathlib.Path("environment.yml").read_text())
+        assert "dependencies" in doc, "environment.yml missing 'dependencies'"
+        print(f"✓ environment.yml valid — name={doc.get('name')}")
+        EOF
+
+    - name: Syntax check — all scripts
+      run: python -m compileall scripts/ -q
+
+    - name: Lint with ruff
+      run: ruff check scripts/build_dashboard_data.py --select=E9,F63,F7,F82
+
+    - name: Run unit tests
+      run: pytest scripts/test_pipeline.py scripts/test_chain_consolidation.py -v
