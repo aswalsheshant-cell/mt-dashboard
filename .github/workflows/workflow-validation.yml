@@ -1,0 +1,61 @@
+name: Workflow Validation
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+
+jobs:
+  validate-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check no workflow file is empty
+        run: |
+          fail=0
+          for f in .github/workflows/*.yml .github/workflows/*.yaml; do
+            [ -f "$f" ] || continue
+            size=$(wc -c < "$f")
+            if [ "$size" -lt 10 ]; then
+              echo "::error file=$f::Workflow file is empty or near-empty ($size bytes). An empty workflow fails every CI run."
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Validate workflow YAML syntax
+        run: |
+          pip install pyyaml -q
+          python - <<'EOF'
+          import sys, glob, yaml, pathlib
+          errors = []
+          for path in glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"):
+              try:
+                  doc = yaml.safe_load(pathlib.Path(path).read_text())
+                  if not isinstance(doc, dict) or "on" not in doc and True not in doc:
+                      errors.append(f"{path}: missing required 'on:' trigger key")
+              except yaml.YAMLError as e:
+                  errors.append(f"{path}: YAML parse error — {e}")
+          if errors:
+              for e in errors:
+                  print(f"::error::{e}")
+              sys.exit(1)
+          print(f"✓ All {len(list(glob.glob('.github/workflows/*.yml')))} workflow files parsed successfully")
+          EOF
+
+      - name: Confirm required repo assets exist
+        run: |
+          fail=0
+          for f in dashboard/index.html dashboard/data.js requirements.txt; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Required file missing: $f"
+              fail=1
+            else
+              echo "✓ $f"
+            fi
+          done
+          exit $fail

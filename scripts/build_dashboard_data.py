@@ -1674,7 +1674,7 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
 
     tot_mrp, tot_nsv, tot_passon = gg["TotMRP"].sum(), gg["TotNSV"].sum(), gg["Passon"].sum()
     blended_tot_pct = (tot_passon / tot_mrp * 100) if tot_mrp else None
-    tot_tax = tot_mrp - tot_nsv - tot_passon
+    tot_tax = tot_mrp - tot_nsv - tot_passon  # noqa: F841
 
     # ---- Impact_on_TOT_pct: for each QC-table category, how much would the
     # BLENDED TOT% move (pp) if that category's Post_GST_Rate_Pct were flipped
@@ -3400,6 +3400,26 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     return detail, detail_dims(detail), meta, tot, cm2, alloc
 
 
+def _check_governance_gate(alloc, gate_pct: float = 0.0) -> None:
+    """Fail the build if Not_Eligible NSV exceeds the configured threshold.
+
+    Gate is disabled when gate_pct == 0 (the default).
+    alloc["governance"]["not_eligible_pct"] carries the computed percentage.
+    """
+    if not gate_pct:
+        return
+    gov = (alloc or {}).get("governance", {}) or {}
+    actual_pct = gov.get("not_eligible_pct", 0.0) or 0.0
+    if actual_pct > gate_pct:
+        flagged_csv = gov.get("flagged_rows_csv", "DistAllocationGovernance_FlaggedRows.csv")
+        raise SystemExit(
+            f"GOVERNANCE GATE BLOCKED: Not_Eligible NSV is {actual_pct:.2f}% "
+            f"which exceeds the --not-eligible-gate-pct threshold of {gate_pct:.2f}%. "
+            f"Review {flagged_csv} and add approved overrides to "
+            f"PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv before rebuilding."
+        )
+
+
 def _run_release_gate(alloc, report_path=None, config=None):
     """Run the release gate against computed pipeline outputs.
 
@@ -3490,7 +3510,7 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
 
         if skip_gate:
             shutil.move(tmp, out_path)
-            print(f"⚠ Release gate skipped for this build path (lightweight refresh).")
+            print("⚠ Release gate skipped for this build path (lightweight refresh).")
             return
 
         report_path = Path(report_dir) / "release_gate_report.json" if report_dir else None
@@ -3678,34 +3698,77 @@ def main():
                     # Merge dimensional arrays: new source only covers new months;
                     # add the existing kept-months dimensional data into each array so
                     # zone/brand/category/state totals match bc.total (not just new months).
+                    #
+                    # kept_fy_tags: FY tags whose months are ENTIRELY in `kept` (not in the
+                    # new source).  Only those subtotals are safe to carry forward from old
+                    # data; any FY that overlaps with the new source is already in new_list.
+                    new_bc_fy_tags = set(fy_data.keys())  # FYs covered by new source
+                    kept_fy_tags = set()
+                    for mo in kept:
+                        t = fy_tag_from_label(mo)
+                        if t:
+                            kept_fy_tags.add(t.lower())
+                    # A kept FY is "safe to add" only if the new source doesn't also cover it
+                    safe_kept_fy_tags = kept_fy_tags - new_bc_fy_tags
+
                     def _merge_dim(existing_list, new_list, key):
-                        """Add existing kept-months entries into new_list by primary key."""
+                        """Merge existing kept-FY subtotals into new_list entries.
+
+                        Only FY tags in safe_kept_fy_tags are added; FYs the new source
+                        also covers are already captured in new_list and must not be doubled.
+                        """
                         idx = {d[key]: d for d in new_list}
                         for old_d in existing_list:
                             k = old_d[key]
                             if k in idx:
                                 nd = idx[k]
-                                nd["total"] = r2(nd["total"] + old_d["total"])
+                                # Accumulate only kept-FY subtotals, not the full old total
+                                added = 0.0
                                 for fk, fv in old_d.items():
-                                    if fk.startswith("fy") and isinstance(fv, (int, float)):
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
                                         nd[fk] = r2(nd.get(fk, 0) + fv)
+                                        added += fv
+                                nd["total"] = r2(nd["total"] + added)
                             else:
-                                idx[k] = dict(old_d)
+                                # Entry not in new source — carry forward only safe-kept FYs
+                                new_entry = {key: k, "total": 0.0}
+                                carried = 0.0
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
+                                        new_entry[fk] = fv
+                                        carried += fv
+                                new_entry["total"] = r2(carried)
+                                if carried:  # omit entries with nothing kept
+                                    idx[k] = new_entry
                         return sorted(idx.values(), key=lambda d: -d["total"])
 
                     def _merge_state_dim(existing_list, new_list):
-                        """Merge by (zone, state) composite key."""
+                        """Merge by (zone, state) composite key, same kept-FY logic."""
                         idx = {(d["zone"], d["state"]): d for d in new_list}
                         for old_d in existing_list:
                             k = (old_d["zone"], old_d["state"])
                             if k in idx:
                                 nd = idx[k]
-                                nd["total"] = r2(nd["total"] + old_d["total"])
+                                added = 0.0
                                 for fk, fv in old_d.items():
-                                    if fk.startswith("fy") and isinstance(fv, (int, float)):
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
                                         nd[fk] = r2(nd.get(fk, 0) + fv)
+                                        added += fv
+                                nd["total"] = r2(nd["total"] + added)
                             else:
-                                idx[k] = dict(old_d)
+                                new_entry = {"zone": old_d["zone"], "state": old_d["state"], "total": 0.0}
+                                carried = 0.0
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
+                                        new_entry[fk] = fv
+                                        carried += fv
+                                new_entry["total"] = r2(carried)
+                                if carried:
+                                    idx[k] = new_entry
                         return sorted(idx.values(), key=lambda d: -d["total"])
 
                     if existing_bc.get("by_zone"):
@@ -3806,7 +3869,7 @@ def main():
           + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
           + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
     if alloc is not None:
-        _check_governance_gate(alloc, a.not_eligible_gate_pct)
+        _check_governance_gate(alloc, gate_pct=a.not_eligible_gate_pct)
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"

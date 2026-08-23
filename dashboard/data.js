@@ -81,32 +81,38 @@ window.DASH = {
    {
     "name": "West",
     "fy25": 6777,
-    "fy26": 8455
+    "fy26": 7917.98,
+    "yoy": 16.84
    },
    {
     "name": "North",
     "fy25": 4037,
-    "fy26": 6520
+    "fy26": 6520,
+    "yoy": 61.51
    },
    {
     "name": "South 1",
     "fy25": 5042,
-    "fy26": 7382
+    "fy26": 7382,
+    "yoy": 46.41
    },
    {
     "name": "South 2",
     "fy25": 3211,
-    "fy26": 4762
+    "fy26": 4762,
+    "yoy": 48.3
    },
    {
     "name": "East",
     "fy25": 2964,
-    "fy26": 4056
+    "fy26": 4056,
+    "yoy": 36.84
    },
    {
     "name": "Central",
     "fy25": 545,
-    "fy26": 1725
+    "fy26": 2262.02,
+    "yoy": 315.05
    }
   ],
   "by_brand": [
@@ -854,17 +860,10 @@ window.DASH = {
   "by_zone": [
    {
     "name": "West",
-    "fy25": 6215.0,
-    "fy26": 8171.0,
-    "yoy": 31.47,
-    "fy27": 3743.89
-   },
-   {
-    "name": "North",
-    "fy25": 4348.0,
-    "fy26": 7060.0,
-    "yoy": 62.37,
-    "fy27": 3342.39
+    "fy25": 5953.0,
+    "fy26": 7698.0,
+    "yoy": 29.31,
+    "fy27": 3416.34
    },
    {
     "name": "South 1",
@@ -872,6 +871,13 @@ window.DASH = {
     "fy26": 6428.0,
     "yoy": 56.7,
     "fy27": 3304.05
+   },
+   {
+    "name": "North",
+    "fy25": 3604.0,
+    "fy26": 5834.0,
+    "yoy": 61.88,
+    "fy27": 2857.21
    },
    {
     "name": "South 2",
@@ -896,14 +902,17 @@ window.DASH = {
    },
    {
     "name": "Central",
-    "fy27": 211.77
+    "fy27": 1024.51,
+    "fy25": 1006.0,
+    "fy26": 1699.0,
+    "yoy": 68.89
    }
   ],
   "by_state": [
    {
     "state": "Maharashtra",
     "zone": "West",
-    "fy27": 2196.6
+    "fy27": 2031.51
    },
    {
     "zone": "South 1",
@@ -935,7 +944,7 @@ window.DASH = {
     "fy25": 1716.0,
     "fy26": 2309.0,
     "yoy": 34.56,
-    "fy27": 1058.29
+    "fy27": 1056.14
    },
    {
     "zone": "South 2",
@@ -975,15 +984,15 @@ window.DASH = {
     "fy25": 680.0,
     "fy26": 1225.0,
     "yoy": 80.15,
-    "fy27": 645.3
+    "fy27": 640.06
    },
    {
-    "zone": "North",
     "state": "Madhya Pradesh",
+    "zone": "Central",
     "fy25": 744.0,
     "fy26": 1226.0,
     "yoy": 64.78,
-    "fy27": 479.94
+    "fy27": 647.97
    },
    {
     "zone": "South 1",
@@ -1004,7 +1013,7 @@ window.DASH = {
     "fy25": 0.0,
     "fy26": 40.0,
     "yoy": null,
-    "fy27": 309.64
+    "fy27": 307.22
    },
    {
     "state": "Punjab/J&K/Hp",
@@ -1046,17 +1055,17 @@ window.DASH = {
     "fy27": 185.33
    },
    {
-    "state": "Madhya Pradesh",
+    "state": "Maharashtra",
     "zone": "Central",
-    "fy27": 168.03
+    "fy27": 165.09
    },
    {
-    "zone": "West",
     "state": "Chhattisgarh",
+    "zone": "Central",
     "fy25": 262.0,
     "fy26": 473.0,
     "yoy": 80.53,
-    "fy27": 157.89
+    "fy27": 201.64
    },
    {
     "state": "Up",
@@ -1075,11 +1084,6 @@ window.DASH = {
     "state": "Uttar Pradesh",
     "zone": "North",
     "fy27": 126.37
-   },
-   {
-    "state": "Chhattisgarh",
-    "zone": "Central",
-    "fy27": 43.74
    },
    {
     "state": "Uttarakhand",
@@ -1105,6 +1109,11 @@ window.DASH = {
     "fy27": 8.04
    },
    {
+    "state": "Rajasthan",
+    "zone": "Central",
+    "fy27": 5.24
+   },
+   {
     "state": "Jammu And Kashmir",
     "zone": "North",
     "fy27": 4.73
@@ -1113,6 +1122,16 @@ window.DASH = {
     "state": "Delhi",
     "zone": "North",
     "fy27": 3.05
+   },
+   {
+    "state": "Mumbai",
+    "zone": "Central",
+    "fy27": 2.42
+   },
+   {
+    "state": "Gujarat",
+    "zone": "Central",
+    "fy27": 2.15
    },
    {
     "state": "Chandigarh",
@@ -818803,518 +818822,5 @@ window.DASH = {
   "total_addon_ann": 91753.42,
   "note": "Per EAN, compared ONLY across comparable stores = sites of the product's dominant chain FORMAT (Chain Type from ChainMaster), so drug-store SKUs are measured against drug-store doors only. Target = distinct format-sites selling that product's Category; Carrying = format-sites selling this EAN; Add-on = missing sites × NSV per carrying site. Built from real store×article offtake; annualised = monthly avg × 12. Window is whatever store-level months are loaded (currently 2), refreshes to true L3M as more months arrive."
  },
- "reliance_bc": {
-  "total": 9186.06,
-  "months": [
-   "Jan-24",
-   "Feb-24",
-   "Mar-24",
-   "Apr-24",
-   "May-24",
-   "Jun-24",
-   "Jul-24",
-   "Aug-24",
-   "Sep-24",
-   "Oct-24",
-   "Nov-24",
-   "Dec-24",
-   "Jan-25",
-   "Feb-25",
-   "Mar-25",
-   "Apr-25",
-   "May-25",
-   "Jun-25",
-   "Jul-25",
-   "Aug-25",
-   "Sep-25",
-   "Oct-25",
-   "Nov-25",
-   "Dec-25",
-   "Jan-26",
-   "Feb-26",
-   "Mar-26",
-   "Apr-26",
-   "May-26",
-   "Jun-26",
-   "Jul-26"
-  ],
-  "monthly": [
-   56.99,
-   37.69,
-   42.33,
-   139.34,
-   179.66,
-   192.96,
-   181.79,
-   267.97,
-   174.12,
-   223.0,
-   200.02,
-   212.44,
-   354.52,
-   212.53,
-   294.42,
-   338.45,
-   406.5,
-   322.17,
-   304.08,
-   445.31,
-   278.54,
-   372.0,
-   371.49,
-   380.18,
-   501.46,
-   418.63,
-   423.69,
-   435.49,
-   508.18,
-   464.3,
-   445.81
-  ],
-  "fy_tags": [
-   "fy24",
-   "fy25",
-   "fy26",
-   "fy27"
-  ],
-  "by_zone": [
-   {
-    "name": "East",
-    "total": 2805.24,
-    "fy24": 67.0,
-    "fy25": 813.13,
-    "fy26": 1366.29,
-    "fy27": 558.81
-   },
-   {
-    "name": "North",
-    "total": 2795.55,
-    "fy24": 34.38,
-    "fy25": 876.24,
-    "fy26": 1332.68,
-    "fy27": 552.25
-   },
-   {
-    "name": "West",
-    "total": 1222.18,
-    "fy24": 33.63,
-    "fy25": 399.81,
-    "fy26": 555.35,
-    "fy27": 233.42
-   },
-   {
-    "name": "South 1",
-    "total": 1210.74,
-    "fy24": 2.0,
-    "fy25": 269.5,
-    "fy26": 689.11,
-    "fy27": 250.12
-   },
-   {
-    "name": "South 2",
-    "total": 731.17,
-    "fy24": 0.0,
-    "fy25": 153.94,
-    "fy26": 409.38,
-    "fy27": 167.84
-   },
-   {
-    "name": "Central",
-    "total": 421.2,
-    "fy24": 0.0,
-    "fy25": 120.19,
-    "fy26": 209.65,
-    "fy27": 91.35
-   },
-   {
-    "name": "CentrAL",
-    "total": 0.0,
-    "fy24": 0.0,
-    "fy25": 0.0,
-    "fy26": 0.0,
-    "fy27": 0.0
-   }
-  ],
-  "by_state": [
-   {
-    "zone": "North",
-    "state": "Delhi/ Ncr",
-    "total": 1078.35,
-    "fy24": 34.38,
-    "fy25": 361.11,
-    "fy26": 492.67,
-    "fy27": 190.19
-   },
-   {
-    "zone": "East",
-    "state": "West Bengal",
-    "total": 953.32,
-    "fy24": 20.74,
-    "fy25": 298.88,
-    "fy26": 459.39,
-    "fy27": 174.29
-   },
-   {
-    "zone": "North",
-    "state": "Up",
-    "total": 727.4,
-    "fy24": 0.0,
-    "fy25": 237.77,
-    "fy26": 338.22,
-    "fy27": 151.38
-   },
-   {
-    "zone": "West",
-    "state": "Gujarat",
-    "total": 587.41,
-    "fy24": 19.17,
-    "fy25": 181.1,
-    "fy26": 280.91,
-    "fy27": 106.22
-   },
-   {
-    "zone": "South 1",
-    "state": "Karnataka",
-    "total": 580.03,
-    "fy24": 2.0,
-    "fy25": 136.64,
-    "fy26": 317.67,
-    "fy27": 123.73
-   },
-   {
-    "zone": "East",
-    "state": "Northeast",
-    "total": 520.9,
-    "fy24": 14.09,
-    "fy25": 147.74,
-    "fy26": 268.77,
-    "fy27": 90.31
-   },
-   {
-    "zone": "West",
-    "state": "Mumbai",
-    "total": 496.03,
-    "fy24": 9.09,
-    "fy25": 171.25,
-    "fy26": 211.99,
-    "fy27": 103.72
-   },
-   {
-    "zone": "East",
-    "state": "Jharkhand",
-    "total": 480.13,
-    "fy24": 13.4,
-    "fy25": 135.65,
-    "fy26": 221.97,
-    "fy27": 109.13
-   },
-   {
-    "zone": "South 2",
-    "state": "Andhra Pradesh",
-    "total": 458.7,
-    "fy24": 0.0,
-    "fy25": 100.92,
-    "fy26": 252.1,
-    "fy27": 105.67
-   },
-   {
-    "zone": "East",
-    "state": "Odisha",
-    "total": 454.33,
-    "fy24": 7.05,
-    "fy25": 129.45,
-    "fy26": 224.94,
-    "fy27": 92.88
-   },
-   {
-    "zone": "North",
-    "state": "Rajasthan",
-    "total": 446.73,
-    "fy24": 0.0,
-    "fy25": 129.47,
-    "fy26": 223.29,
-    "fy27": 93.98
-   },
-   {
-    "zone": "East",
-    "state": "Bihar",
-    "total": 396.56,
-    "fy24": 11.73,
-    "fy25": 101.42,
-    "fy26": 191.22,
-    "fy27": 92.21
-   },
-   {
-    "zone": "North",
-    "state": "Punjab",
-    "total": 338.67,
-    "fy24": 0.0,
-    "fy25": 103.97,
-    "fy26": 173.85,
-    "fy27": 60.81
-   },
-   {
-    "zone": "South 1",
-    "state": "Kerala",
-    "total": 330.67,
-    "fy24": 0.0,
-    "fy25": 61.04,
-    "fy26": 205.3,
-    "fy27": 64.33
-   },
-   {
-    "zone": "Central",
-    "state": "Madhya Pradesh",
-    "total": 314.66,
-    "fy24": 0.0,
-    "fy25": 85.92,
-    "fy26": 157.65,
-    "fy27": 71.06
-   },
-   {
-    "zone": "South 1",
-    "state": "Tamil Nadu",
-    "total": 300.03,
-    "fy24": 0.0,
-    "fy25": 71.81,
-    "fy26": 166.13,
-    "fy27": 62.08
-   },
-   {
-    "zone": "South 2",
-    "state": "Telangana",
-    "total": 272.47,
-    "fy24": 0.0,
-    "fy25": 53.02,
-    "fy26": 157.29,
-    "fy27": 62.17
-   },
-   {
-    "zone": "North",
-    "state": "Haryana",
-    "total": 197.06,
-    "fy24": 0.0,
-    "fy25": 43.88,
-    "fy26": 104.62,
-    "fy27": 48.54
-   },
-   {
-    "zone": "West",
-    "state": "Maharashtra",
-    "total": 138.73,
-    "fy24": 5.37,
-    "fy25": 47.46,
-    "fy26": 62.43,
-    "fy27": 23.47
-   },
-   {
-    "zone": "Central",
-    "state": "Chhattisgarh",
-    "total": 106.54,
-    "fy24": 0.0,
-    "fy25": 34.29,
-    "fy26": 51.98,
-    "fy27": 20.3
-   },
-   {
-    "zone": "North",
-    "state": "Himachal Pradesh",
-    "total": 4.97,
-    "fy24": 0.0,
-    "fy25": 0.0,
-    "fy26": 0.0,
-    "fy27": 4.97
-   },
-   {
-    "zone": "North",
-    "state": "Jammu And Kashmir",
-    "total": 2.38,
-    "fy24": 0.0,
-    "fy25": 0.0,
-    "fy26": 0.0,
-    "fy27": 2.38
-   },
-   {
-    "zone": "CentrAL",
-    "state": "Madhya Pradesh",
-    "total": 0.0,
-    "fy24": 0.0,
-    "fy25": 0.0,
-    "fy26": 0.0,
-    "fy27": 0.0
-   }
-  ],
-  "by_brand": [
-   {
-    "name": "Mamaearth",
-    "total": 8285.42,
-    "fy24": 136.91,
-    "fy25": 2450.94,
-    "fy26": 4123.81,
-    "fy27": 1573.74
-   },
-   {
-    "name": "The Derma Co",
-    "total": 538.62,
-    "fy24": 0.0,
-    "fy25": 86.53,
-    "fy26": 216.88,
-    "fy27": 235.21
-   },
-   {
-    "name": "Aqualogica",
-    "total": 274.29,
-    "fy24": 0.0,
-    "fy25": 70.2,
-    "fy26": 165.02,
-    "fy27": 39.08
-   },
-   {
-    "name": "BBlunt",
-    "total": 83.45,
-    "fy24": 0.09,
-    "fy25": 25.1,
-    "fy26": 52.85,
-    "fy27": 5.4
-   },
-   {
-    "name": "Pure Origin",
-    "total": 4.31,
-    "fy24": 0.0,
-    "fy25": 0.01,
-    "fy26": 3.93,
-    "fy27": 0.35
-   }
-  ],
-  "by_category": [
-   {
-    "name": "Face",
-    "total": 4449.99
-   },
-   {
-    "name": "Hair",
-    "total": 3177.08
-   },
-   {
-    "name": "Body",
-    "total": 920.02
-   },
-   {
-    "name": "Baby",
-    "total": 408.64
-   },
-   {
-    "name": "Fragrances",
-    "total": 107.67
-   },
-   {
-    "name": "Hair Care",
-    "total": 59.43
-   },
-   {
-    "name": "Color Care",
-    "total": 39.22
-   },
-   {
-    "name": "Hair Colour",
-    "total": 15.18
-   },
-   {
-    "name": "Styling Products",
-    "total": 8.83
-   },
-   {
-    "name": "Salon Secret",
-    "total": 0.0
-   }
-  ],
-  "include_in_overall_offtake": false,
-  "is_brand_counter": true,
-  "parent_chain": "Reliance Retail",
-  "note": "Reliance Brand Counter Offtake is shown as a separate analytical breakout. It is already included in Reliance's reported Offtake and is excluded from additional Overall Offtake aggregation to prevent double counting.",
-  "months_fy27": [
-   "Apr-26",
-   "May-26",
-   "Jun-26",
-   "Jul-26"
-  ],
-  "monthly_fy27": [
-   435.49,
-   508.18,
-   464.3,
-   445.81
-  ],
-  "total_fy27": 1853.78,
-  "data_complete_through": "Jul-26",
-  "june_status": null,
-  "months_fy24": [
-   "Jan-24",
-   "Feb-24",
-   "Mar-24"
-  ],
-  "monthly_fy24": [
-   56.99,
-   37.69,
-   42.33
-  ],
-  "total_fy24": 137.01,
-  "months_fy25": [
-   "Apr-24",
-   "May-24",
-   "Jun-24",
-   "Jul-24",
-   "Aug-24",
-   "Sep-24",
-   "Oct-24",
-   "Nov-24",
-   "Dec-24",
-   "Jan-25",
-   "Feb-25",
-   "Mar-25"
-  ],
-  "monthly_fy25": [
-   139.34,
-   179.66,
-   192.96,
-   181.79,
-   267.97,
-   174.12,
-   223.0,
-   200.02,
-   212.44,
-   354.52,
-   212.53,
-   294.42
-  ],
-  "total_fy25": 2632.77,
-  "months_fy26": [
-   "Apr-25",
-   "May-25",
-   "Jun-25",
-   "Jul-25",
-   "Aug-25",
-   "Sep-25",
-   "Oct-25",
-   "Nov-25",
-   "Dec-25",
-   "Jan-26",
-   "Feb-26",
-   "Mar-26"
-  ],
-  "monthly_fy26": [
-   338.45,
-   406.5,
-   322.17,
-   304.08,
-   445.31,
-   278.54,
-   372.0,
-   371.49,
-   380.18,
-   501.46,
-   418.63,
-   423.69
-  ],
-  "total_fy26": 4562.5
- }
+ "reliance_bc": {"total":9186.06,"months":["Jan-24","Feb-24","Mar-24","Apr-24","May-24","Jun-24","Jul-24","Aug-24","Sep-24","Oct-24","Nov-24","Dec-24","Jan-25","Feb-25","Mar-25","Apr-25","May-25","Jun-25","Jul-25","Aug-25","Sep-25","Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26","Apr-26","May-26","Jun-26","Jul-26"],"monthly":[56.99,37.69,42.33,139.34,179.66,192.96,181.79,267.97,174.12,223.0,200.02,212.44,354.52,212.53,294.42,338.45,406.5,322.17,304.08,445.31,278.54,372.0,371.49,380.18,501.46,418.63,423.69,435.49,508.18,464.3,445.81],"fy_tags":["fy24","fy25","fy26","fy27"],"by_zone":[{"name":"North","total":2804.13,"fy27":560.83,"fy24":34.38,"fy25":876.24,"fy26":1332.68},{"name":"East","total":2805.23,"fy27":558.81,"fy24":67.0,"fy25":813.13,"fy26":1366.29},{"name":"South 1","total":1210.73,"fy27":250.12,"fy24":2.0,"fy25":269.5,"fy26":689.11},{"name":"West","total":1224.69,"fy27":235.9,"fy24":33.63,"fy25":399.81,"fy26":555.35},{"name":"South 2","total":731.16,"fy27":167.84,"fy24":0.0,"fy25":153.94,"fy26":409.38},{"name":"Central","total":410.14,"fy27":80.3,"fy24":0.0,"fy25":120.19,"fy26":209.65}],"by_state":[{"zone":"North","state":"Delhi/ Ncr","total":1078.35,"fy27":190.19,"fy24":34.38,"fy25":361.11,"fy26":492.67},{"zone":"East","state":"West Bengal","total":953.3,"fy27":174.29,"fy24":20.74,"fy25":298.88,"fy26":459.39},{"zone":"North","state":"Up","total":670.41,"fy27":94.42,"fy24":0.0,"fy25":237.77,"fy26":338.22},{"zone":"South 1","state":"Karnataka","total":580.04,"fy27":123.73,"fy24":2.0,"fy25":136.64,"fy26":317.67},{"zone":"West","state":"Gujarat","total":587.4,"fy27":106.22,"fy24":19.17,"fy25":181.1,"fy26":280.91},{"zone":"East","state":"Northeast","total":520.91,"fy27":90.31,"fy24":14.09,"fy25":147.74,"fy26":268.77},{"zone":"East","state":"Jharkhand","total":480.15,"fy27":109.13,"fy24":13.4,"fy25":135.65,"fy26":221.97},{"zone":"South 2","state":"Andhra Pradesh","total":458.69,"fy27":105.67,"fy24":0.0,"fy25":100.92,"fy26":252.1},{"zone":"West","state":"Mumbai","total":473.67,"fy27":81.34,"fy24":9.09,"fy25":171.25,"fy26":211.99},{"zone":"East","state":"Odisha","total":454.32,"fy27":92.88,"fy24":7.05,"fy25":129.45,"fy26":224.94},{"zone":"North","state":"Rajasthan","total":446.74,"fy27":93.98,"fy24":0.0,"fy25":129.47,"fy26":223.29},{"zone":"East","state":"Bihar","total":396.58,"fy27":92.21,"fy24":11.73,"fy25":101.42,"fy26":191.22},{"zone":"South 1","state":"Kerala","total":330.67,"fy27":64.33,"fy24":0.0,"fy25":61.04,"fy26":205.3},{"zone":"Central","state":"Madhya Pradesh","total":306.05,"fy27":62.48,"fy24":0.0,"fy25":85.92,"fy26":157.65},{"zone":"South 1","state":"Tamil Nadu","total":300.02,"fy27":62.08,"fy24":0.0,"fy25":71.81,"fy26":166.13},{"zone":"North","state":"Punjab","total":318.13,"fy27":40.31,"fy24":0.0,"fy25":103.97,"fy26":173.85},{"zone":"South 2","state":"Telangana","total":272.48,"fy27":62.17,"fy24":0.0,"fy25":53.02,"fy26":157.29},{"zone":"North","state":"Haryana","total":197.04,"fy27":48.54,"fy24":0.0,"fy25":43.88,"fy26":104.62},{"zone":"West","state":"Maharashtra","total":161.11,"fy27":45.85,"fy24":5.37,"fy25":47.46,"fy26":62.43},{"zone":"Central","state":"Chhattisgarh","total":104.09,"fy27":17.82,"fy24":0.0,"fy25":34.29,"fy26":51.98},{"zone":"North","state":"UP/UK","total":38.48,"fy27":38.48},{"zone":"North","state":"Punjab/J&K/Hp","total":17.02,"fy27":17.02},{"zone":"North","state":"Uttar Pradesh","total":12.57,"fy27":12.57},{"zone":"North","state":"Madhya Pradesh","total":8.57,"fy27":8.57},{"zone":"North","state":"Himachal Pradesh","total":7.2,"fy27":7.2,"fy24":0.0,"fy25":0.0,"fy26":0.0},{"zone":"North","state":"Uttarakhand","total":5.92,"fy27":5.92},{"zone":"West","state":"Chhattisgarh","total":2.48,"fy27":2.48},{"zone":"North","state":"Jammu And Kashmir","total":2.38,"fy27":2.38,"fy24":0.0,"fy25":0.0,"fy26":0.0},{"zone":"North","state":"Jammu & Kasmir","total":1.26,"fy27":1.26},{"zone":"CentrAL","state":"Madhya Pradesh","total":0.0,"fy24":0.0,"fy25":0.0,"fy26":0.0,"fy27":0.0}],"by_brand":[{"name":"Mamaearth","total":8285.4,"fy27":1573.74,"fy24":136.91,"fy25":2450.94,"fy26":4123.81},{"name":"The Derma Co","total":538.62,"fy27":235.21,"fy24":0.0,"fy25":86.53,"fy26":216.88},{"name":"Aqualogica","total":274.3,"fy27":39.08,"fy24":0.0,"fy25":70.2,"fy26":165.02},{"name":"BBlunt","total":83.44,"fy27":5.4,"fy24":0.09,"fy25":25.1,"fy26":52.85},{"name":"Pure Origin","total":4.29,"fy27":0.35,"fy24":0.0,"fy25":0.01,"fy26":3.93}],"by_category":[{"name":"Face","total":4449.98},{"name":"Hair","total":3177.08},{"name":"Body","total":920.01},{"name":"Baby","total":408.64},{"name":"Fragrances","total":107.66},{"name":"Hair Care","total":59.43},{"name":"Color Care","total":39.21},{"name":"Hair Colour","total":15.18},{"name":"Styling Products","total":8.84},{"name":"Salon Secret","total":0.0}],"include_in_overall_offtake":false,"is_brand_counter":true,"parent_chain":"Reliance Retail","note":"Reliance Brand Counter Offtake is shown as a separate analytical breakout. It is already included in Reliance's reported Offtake and is excluded from additional Overall Offtake aggregation to prevent double counting.","months_fy27":["Apr-26","May-26","Jun-26","Jul-26"],"monthly_fy27":[435.49,508.18,464.3,445.81],"total_fy27":1853.78,"data_complete_through":"Jul-26","june_status":null,"months_fy24":["Jan-24","Feb-24","Mar-24"],"monthly_fy24":[56.99,37.69,42.33],"total_fy24":137.01,"months_fy25":["Apr-24","May-24","Jun-24","Jul-24","Aug-24","Sep-24","Oct-24","Nov-24","Dec-24","Jan-25","Feb-25","Mar-25"],"monthly_fy25":[139.34,179.66,192.96,181.79,267.97,174.12,223.0,200.02,212.44,354.52,212.53,294.42],"total_fy25":2632.77,"months_fy26":["Apr-25","May-25","Jun-25","Jul-25","Aug-25","Sep-25","Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26"],"monthly_fy26":[338.45,406.5,322.17,304.08,445.31,278.54,372.0,371.49,380.18,501.46,418.63,423.69],"total_fy26":4562.5}
 };
