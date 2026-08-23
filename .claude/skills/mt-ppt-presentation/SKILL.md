@@ -386,9 +386,58 @@ else:
 # r = etree.SubElement(p, qn('a:r'))   ← corrupts the file
 ```
 
+### MANDATORY LAYOUT OVERFLOW CHECK (Step 0b — run after every text change)
+
+After modifying text in any shape, check that the shape's height accommodates the new (potentially longer) text. Overflow causes wrapped text to bleed visually into adjacent shapes.
+
+```python
+def fix_text17_overflow(prs):
+    """
+    Expand source-footnote shape (Text 17) on every slide to use the full
+    remaining slide height, preventing wrapped text from overflowing.
+    Call this after any text changes to footnote shapes.
+    """
+    NS_A = '{http://schemas.openxmlformats.org/drawingml/2006/main}'
+    slide_h = int(prs.slide_height)
+    for slide in prs.slides:
+        for sh in slide.shapes:
+            if sh.name == 'Text 17':
+                xfrm = sh._element.find(f'.//{NS_A}xfrm')
+                ext  = xfrm.find(f'{NS_A}ext')
+                off  = xfrm.find(f'{NS_A}off')
+                top  = int(off.get('y'))
+                new_h = slide_h - top - 12700   # 12700 EMU ≈ 0.014" margin
+                if new_h > int(ext.get('cy')):
+                    ext.set('cy', str(new_h))
+
+# Run immediately after prs.save() but before validate_pptx():
+# fix_text17_overflow(prs)
+# prs.save(DST)
+# assert validate_pptx(DST)[0]
+```
+
+**Z-order rule:** Source footnote shapes must be inserted into the spTree BEFORE content shapes so they render behind (not on top of) EVIDENCE/ACTION tables. Use `sp_tree.insert(early_index, shape_element)`.
+
+### MANDATORY SHAPE OVERFLOW AUDIT (generalised — run on any modified slide)
+
+```python
+def audit_overflows(prs):
+    """Print shapes whose bottom edge exceeds slide height."""
+    slide_h = prs.slide_height.inches
+    for si, slide in enumerate(prs.slides):
+        for sh in slide.shapes:
+            if not sh.has_text_frame:
+                continue
+            bot = (sh.top + sh.height) / 914400
+            if bot > slide_h + 0.02:
+                print(f"OVERFLOW slide {si+1} {sh.name!r}: bottom={bot:.3f}\" > {slide_h:.3f}\"")
+# Call audit_overflows(prs) before prs.save() — fix any reported shape before delivering.
+```
+
 ### Content checklist
 
 1. [ ] **[Step 0 above]** File validates: `validate_pptx()` returns True before sending.
+1b.[ ] **[Step 0b above]** No text overflow: `audit_overflows(prs)` reports nothing before saving.
 2. [ ] Headline on every slide is a claim, not a topic label.
 3. [ ] Every data point has a source in the footer.
 4. [ ] All financial values in ₹ Cr (or stated otherwise) consistently.
