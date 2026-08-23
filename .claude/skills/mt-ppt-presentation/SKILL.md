@@ -332,18 +332,75 @@ prs.save('MT_July26_offtake_analysis_V22.pptx')
 
 ## PART 9 — MT DECK QA CHECKLIST (run before every distribution)
 
-1. [ ] Headline on every slide is a claim, not a topic label.
-2. [ ] Every data point has a source in the footer.
-3. [ ] All financial values in ₹ Cr (or stated otherwise) consistently.
-4. [ ] Zone names normalised: Central, North, South-1, South-2, East, West (not abbreviations).
-5. [ ] FY labelling follows THE ONE FY RULE: Apr–Dec Y → FY(Y+1), Jan–Mar Y → FY(Y).
-6. [ ] No slide exceeds 80 words of body text.
-7. [ ] Chart colour palette: growth = teal (#2A9D8F), decline = red (#E63946), neutral = grey.
-8. [ ] Presenter notes written for slides 1, key insight slides, and action slide.
-9. [ ] All animations set to ≤0.4s; no decorative animations.
-10. [ ] File compressed: File → Info → Compress Media (if video embedded).
-11. [ ] Accessibility Checker run and all errors resolved.
-12. [ ] Final version saved as `MT_[Month][YY]_[Purpose]_V[N].pptx`.
+### MANDATORY PRE-DELIVERY FILE VALIDATION (Step 0 — never skip)
+
+Before sending ANY generated or modified .pptx file, run this validation. A file that fails is NOT deliverable.
+
+```python
+import zipfile
+from pptx import Presentation
+from lxml import etree
+
+def validate_pptx(path):
+    """Returns (True, 'OK') or (False, error_message). Run before every delivery."""
+    # Step 1: Valid ZIP with parseable XML
+    try:
+        with zipfile.ZipFile(path) as z:
+            for name in z.namelist():
+                data = z.read(name)
+                if name.endswith('.xml') or name.endswith('.rels'):
+                    try:
+                        etree.fromstring(data)
+                    except etree.XMLSyntaxError as e:
+                        return False, f"Invalid XML in {name}: {e}"
+    except Exception as e:
+        return False, f"ZIP error: {e}"
+    # Step 2: python-pptx loads and all text frames readable
+    try:
+        prs = Presentation(path)
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if shape.has_text_frame:
+                    _ = shape.text_frame.text
+    except Exception as e:
+        return False, f"python-pptx load error: {e}"
+    return True, "OK"
+
+ok, msg = validate_pptx("path/to/file.pptx")
+assert ok, f"VALIDATION FAILED: {msg}"
+```
+
+**Root cause of PPTX corruption** — always use safe text replacement:
+```python
+# SAFE: modify existing run's text element directly
+ns = '{http://schemas.openxmlformats.org/drawingml/2006/main}'
+runs = shape.text_frame.paragraphs[0]._p.findall(f'{ns}r')
+if runs:
+    runs[0].find(f'{ns}t').text = new_text
+else:
+    # SAFE: use python-pptx API, never raw etree.SubElement for runs
+    run = shape.text_frame.paragraphs[0].add_run()
+    run.text = new_text
+
+# NEVER DO THIS — creates malformed XML PowerPoint cannot read:
+# r = etree.SubElement(p, qn('a:r'))   ← corrupts the file
+```
+
+### Content checklist
+
+1. [ ] **[Step 0 above]** File validates: `validate_pptx()` returns True before sending.
+2. [ ] Headline on every slide is a claim, not a topic label.
+3. [ ] Every data point has a source in the footer.
+4. [ ] All financial values in ₹ Cr (or stated otherwise) consistently.
+5. [ ] Zone names normalised: Central, North, South-1, South-2, East, West (not abbreviations).
+6. [ ] FY labelling follows THE ONE FY RULE: Apr–Dec Y → FY(Y+1), Jan–Mar Y → FY(Y).
+7. [ ] No slide exceeds 80 words of body text.
+8. [ ] Chart colour palette: growth = teal (#2A9D8F), decline = red (#E63946), neutral = grey.
+9. [ ] Presenter notes written for slides 1, key insight slides, and action slide.
+10. [ ] All animations set to ≤0.4s; no decorative animations.
+11. [ ] File compressed: File → Info → Compress Media (if video embedded).
+12. [ ] Accessibility Checker run and all errors resolved.
+13. [ ] Final version saved as `MT_[Month][YY]_[Purpose]_V[N].pptx`.
 
 ---
 
