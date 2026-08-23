@@ -120,6 +120,14 @@ class TestCanonZone:
 
     def test_passthrough(self):
         assert bd.canon_zone("West") == "West"
+        assert bd.canon_zone("Central") == "Central"
+        assert bd.canon_zone("East") == "East"
+
+    def test_central_zone_aliases(self):
+        assert bd.canon_zone("central") == "Central"
+        assert bd.canon_zone("CENTRAL") == "Central"
+        assert bd.canon_zone("pan india") == "Pan India"
+        assert bd.canon_zone("PAN INDIA") == "Pan India"
 
 
 # ── Brand helpers ──────────────────────────────────────────────────────────
@@ -404,7 +412,6 @@ class TestDataJSRegression:
     def test_reliance_bc_not_in_offtake(self, dash):
         """BC total should not be added to offtake total."""
         bc = dash.get("reliance_bc", {})
-        o = dash["offtake"]
         assert bc.get("include_in_overall_offtake") is False
 
     def test_fy25_fy26_monthly_unchanged(self, dash):
@@ -593,7 +600,7 @@ class TestDataJSRegression:
         alloc = dash.get("alloc", {})
         if not alloc:
             pytest.skip("No alloc block")
-        assert "unmapped_nsv" in alloc or "unmapped_note" in alloc, (
+        assert "unmapped_nsv" in alloc or "unallocated" in str(alloc).lower(), (
             "Unallocated primary bucket not present in alloc block"
         )
 

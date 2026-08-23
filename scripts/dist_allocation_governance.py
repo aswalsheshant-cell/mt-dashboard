@@ -180,26 +180,17 @@ class DistAllocationGovernance:
         primary_row: pd.Series,
         override_csv: Optional[Path] = None,
     ) -> pd.Series:
-        """
-        Apply business overrides from PrimaryAllocationOverride.csv.
+        """Apply business overrides from PrimaryAllocationOverride.csv.
 
-        Overrides allow manual corrections for edge cases:
-          - Specific Ship-To × Brand × Month allocations
-          - Eligibility tier corrections
-          - QC exception approvals
-
-        Args:
-            primary_row: Single primary row (pd.Series)
-            override_csv: Path to override master CSV (PrimaryAllocationOverride.csv)
-
-        Returns:
-            Modified primary_row with overrides applied (if any match)
+        CSV format: Month, Ship To Name, Chain, Brand, Override Cont%, Remarks
+        Match key: (Ship To Name × Brand × Month) — case/space-insensitive.
+        When a match is found, sets Chain and Override_Cont_Pct on the row.
         """
         if override_csv is None:
             override_csv = Path("PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv")
 
         if not override_csv.exists():
-            return primary_row  # No overrides available; return unchanged
+            return primary_row
 
         try:
             overrides = pd.read_csv(override_csv)
@@ -207,24 +198,30 @@ class DistAllocationGovernance:
             print(f"Warning: Could not load overrides from {override_csv}: {e}")
             return primary_row
 
-        # Match key: (Ship-To, Brand, Month)
-        st = primary_row.get("_CustName", primary_row.get("Ship_To_Name", ""))
-        brand = primary_row.get("brand", primary_row.get("Brand", ""))
-        month = primary_row.get("Month", "")
+        if overrides.empty:
+            return primary_row
 
-        if st and brand and month:
+        # Normalise column names to handle spaces in headers
+        overrides.columns = [c.strip() for c in overrides.columns]
+
+        # Match key: (Ship To Name, Brand, Month) — case-insensitive
+        st = str(primary_row.get("_CustName", primary_row.get("Ship To Name", ""))).strip().lower()
+        brand = str(primary_row.get("brand", primary_row.get("Brand", ""))).strip().lower()
+        month = str(primary_row.get("Month", ""))
+
+        if st and brand and month and "Ship To Name" in overrides.columns and "Brand" in overrides.columns:
             match = overrides[
-                (overrides.get("Ship_To_Name", overrides.get("_CustName", "")).astype(str).str.lower() == str(st).lower())
-                & (overrides.get("Brand", "").astype(str).str.lower() == str(brand).lower())
-                & (overrides.get("Month", "") == month)
+                (overrides["Ship To Name"].astype(str).str.strip().str.lower() == st)
+                & (overrides["Brand"].astype(str).str.strip().str.lower() == brand)
+                & (overrides.get("Month", pd.Series(dtype=str)).astype(str) == month)
             ]
-
             if not match.empty:
                 override_row = match.iloc[0]
-                # Apply override fields
-                for col in ["Chain", "Eligibility_Tier", "QC_Exception_Reason"]:
-                    if col in override_row:
-                        primary_row[col] = override_row[col]
+                if "Chain" in override_row and pd.notna(override_row["Chain"]):
+                    primary_row = primary_row.copy()
+                    primary_row["Chain"] = override_row["Chain"]
+                if "Override Cont%" in override_row and pd.notna(override_row["Override Cont%"]):
+                    primary_row["Override_Cont_Pct"] = float(override_row["Override Cont%"])
 
         return primary_row
 

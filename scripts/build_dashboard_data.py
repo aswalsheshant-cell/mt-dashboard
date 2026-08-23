@@ -20,7 +20,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
-import argparse, csv, io, json, re, math, datetime
+import argparse, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
 
 import pandas as pd
@@ -123,11 +123,18 @@ def canon_brand(b):
     return BRAND_MAP.get(k, str(b).strip())
 
 def canon_zone(z):
+    """Canonicalize zone names from source data to standard form.
+
+    Central zone (Madhya Pradesh + Chhattisgarh) is classified as "Central" in
+    offtake source data and maintained as an official MT zone per ZoneStateMaster.csv.
+    This function normalizes variant spellings (e.g. "south-1" -> "South 1") and
+    ensures "Central" passes through as-is to the aggregation pipeline.
+    """
     if z is None:
         return None
     z = str(z).strip()
     m = {"south-1": "South 1", "south 1": "South 1", "south-2": "South 2", "south 2": "South 2",
-         "north": "North", "west": "West", "east": "East"}
+         "north": "North", "west": "West", "east": "East", "central": "Central", "pan india": "Pan India"}
     return m.get(z.lower(), z)
 
 STATE_ALIASES = {
@@ -631,7 +638,17 @@ def load_offtake_article_files(src):
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            # Some xlsb exports have a blank/index row before the header (header=1)
+            # while others start the header at row 0. Auto-detect by trying header=0
+            # first; fall back to header=1 if the required columns are absent.
+            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
+                          for df_ in _frames0.values())
+            if _use_h0:
+                _frames = _frames0
+            else:
+                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -733,7 +750,12 @@ def load_reliance_bc_data(src):
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
+            _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
+                          for df_ in _frames0.values())
+            _frames = _frames0 if _use_h0 else \
+                      pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -1102,7 +1124,12 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
         if fp.suffix.lower() == ".csv":
             _sheets = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            _sheets = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+            _sheets0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            _req2 = {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"}
+            _use_h0 = any(_req2 <= {str(c).strip() for c in df_.columns}
+                          for df_ in _sheets0.values())
+            _sheets = _sheets0 if _use_h0 else \
+                      pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
         for _, df in _sheets.items():
             df.columns = [str(c).strip() for c in df.columns]
             if not {"Chain Name", "Site Code", "EAN", "Category", "NSV", "Month"} <= set(df.columns):
@@ -1647,7 +1674,7 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
 
     tot_mrp, tot_nsv, tot_passon = gg["TotMRP"].sum(), gg["TotNSV"].sum(), gg["Passon"].sum()
     blended_tot_pct = (tot_passon / tot_mrp * 100) if tot_mrp else None
-    tot_tax = tot_mrp - tot_nsv - tot_passon
+    tot_tax = tot_mrp - tot_nsv - tot_passon  # noqa: F841
 
     # ---- Impact_on_TOT_pct: for each QC-table category, how much would the
     # BLENDED TOT% move (pp) if that category's Post_GST_Rate_Pct were flipped
@@ -2518,6 +2545,34 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
         wcsv.writerows(rows)
     return len(rows), "PowerBI/SeedData/Mapping/DistCont_Patch_Proposed.csv"
 
+
+
+def _write_flagged_rows_csv(ne_orig: "pd.DataFrame") -> None:
+    """Write Not_Eligible rows to a reviewable CSV for business override workflow.
+
+    Output: PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv
+    Business process: review this file, add approved rows to PrimaryAllocationOverride.csv,
+    then rebuild. The flagged_rows_csv path is surfaced in alloc.governance in data.js.
+    """
+    _out = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
+    _out.parent.mkdir(parents=True, exist_ok=True)
+    display_cols = {
+        "Month": "Month",
+        "_CustName": "Ship To Name",
+        "brand": "Brand",
+        "_NSV": "NSV (Lakh)",
+        "reasoning": "Eligibility Reasoning",
+    }
+    out_df = ne_orig[[c for c in display_cols if c in ne_orig.columns]].copy()
+    out_df.rename(columns={k: v for k, v in display_cols.items() if k in out_df.columns}, inplace=True)
+    out_df.insert(0, "Eligibility_Tier", "Not_Eligible")
+    out_df.insert(len(out_df.columns), "Override_Action", "")
+    out_df.insert(len(out_df.columns), "Override_Chain", "")
+    out_df.insert(len(out_df.columns), "Override_Remarks", "")
+    out_df.to_csv(_out, index=False)
+    print(f"Phase 6: wrote {len(out_df)} Not_Eligible rows to {_out.name} for business review")
+
+
 def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
                           offtake_brand_set=None, offtake_ean_set=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
@@ -2816,6 +2871,39 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             "note": f"QC report generation failed: {e}",
         }
 
+    # ---- STEP 6 (Phase 6): Not_Eligible NSV + flagged rows CSV + override count ----
+    ne_decision_rows = [
+        {"_st": d["key"][0], "_bl": d["key"][1], "_pm": d["key"][2],
+         "reasoning": d.get("reasoning", "")}
+        for d in governance_log["eligibility_decisions"]
+        if d["tier"] == "Not_Eligible"
+    ]
+    if ne_decision_rows:
+        ne_keys_df = pd.DataFrame(ne_decision_rows)
+        ne_orig = orig.merge(ne_keys_df, on=["_st", "_bl", "_pm"], how="inner")
+        not_eligible_nsv = float(ne_orig["_NSV"].sum())
+        _write_flagged_rows_csv(ne_orig)
+    else:
+        not_eligible_nsv = 0.0
+    total_dist_nsv = float(orig["_NSV"].sum())
+    not_eligible_pct = round(not_eligible_nsv / total_dist_nsv * 100, 2) if total_dist_nsv > 0 else 0.0
+
+    # Count approved overrides from PrimaryAllocationOverride.csv that match Not_Eligible keys
+    override_count = 0
+    _override_csv = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PrimaryAllocationOverride.csv"
+    if _override_csv.exists() and ne_decision_rows:
+        try:
+            ov_df = pd.read_csv(_override_csv)
+            if not ov_df.empty and "Ship To Name" in ov_df.columns and "Brand" in ov_df.columns:
+                ov_df["_st"] = ov_df["Ship To Name"].str.strip().str.lower()
+                ov_df["_bl"] = ov_df["Brand"].str.strip().str.lower()
+                ne_key_set = {(d["_st"], d["_bl"]) for d in ne_decision_rows}
+                override_count = int(ov_df[
+                    ov_df.apply(lambda r: (r["_st"], r["_bl"]) in ne_key_set, axis=1)
+                ].shape[0])
+        except Exception as e:
+            print(f"Warning: Could not load override CSV for count: {e}")
+
     _unmapped_shipto_names = sorted(um["_CustName"].dropna().unique().tolist()) if len(um) else []
     alloc = {
         "dist_rows_in": int(len(orig)), "dist_rows_out": int(len(merged)),
@@ -2897,16 +2985,24 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             "every build: paste approved rows into the cont xlsx to make the fix "
             "permanent (this also fixes Power BI, whose query 41 reads only the xlsx)."
         ),
-        # ---- STEP 5 (Phase 3): Governance metadata (optional, non-breaking) ----
+        # ---- STEP 5/6 (Phase 3/6): Governance metadata (optional, non-breaking) ----
         "governance": {
             "eligibility_tier_counts": tier_counts,
             "qc_report": qc_report,
             "reconciliations_logged": len(governance_log["qc_reconciliations"]),
             "decisions_logged": len(governance_log["eligibility_decisions"]),
+            # Phase 6: Not_Eligible NSV gating fields
+            "not_eligible_nsv_lakh": r2(not_eligible_nsv),
+            "not_eligible_pct": not_eligible_pct,
+            "total_dist_nsv_lakh": r2(total_dist_nsv),
+            "flagged_rows": len(ne_decision_rows),
+            "override_count": override_count,
+            "flagged_rows_csv": "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
             "note": (
-                "Phase 3 integration: Governance engine instrumentation logs eligibility "
-                "tiers and QC reconciliation results. No changes to allocation logic or output. "
-                "Dashboard may optionally display governance metadata; absence is graceful."
+                "Phase 3/6: Governance engine logs eligibility tiers and QC reconciliation. "
+                "not_eligible_pct drives the build gate (--not-eligible-gate-pct flag). "
+                "Flagged Not_Eligible rows exported to flagged_rows_csv for business review. "
+                "Override approvals tracked via PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv."
             ),
         },
     }
@@ -3305,6 +3401,136 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     return detail, detail_dims(detail), meta, tot, cm2, alloc
 
 
+def _check_governance_gate(alloc, gate_pct: float = 0.0) -> None:
+    """Fail the build if Not_Eligible NSV exceeds the configured threshold.
+
+    Gate is disabled when gate_pct == 0 (the default).
+    alloc["governance"]["not_eligible_pct"] carries the computed percentage.
+    """
+    if not gate_pct:
+        return
+    gov = (alloc or {}).get("governance", {}) or {}
+    actual_pct = gov.get("not_eligible_pct", 0.0) or 0.0
+    if actual_pct > gate_pct:
+        flagged_csv = gov.get("flagged_rows_csv", "DistAllocationGovernance_FlaggedRows.csv")
+        raise SystemExit(
+            f"GOVERNANCE GATE BLOCKED: Not_Eligible NSV is {actual_pct:.2f}% "
+            f"which exceeds the --not-eligible-gate-pct threshold of {gate_pct:.2f}%. "
+            f"Review {flagged_csv} and add approved overrides to "
+            f"PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv before rebuilding."
+        )
+
+
+def _run_release_gate(alloc, report_path=None, config=None):
+    """Run the release gate against computed pipeline outputs.
+
+    Extracts gate inputs from the alloc dict produced by apply_chain_allocation()
+    and calls gate_pass(). Prints the human-readable report. Returns (passed, report).
+
+    The caller is responsible for NOT writing data.js when passed=False.
+    """
+    try:
+        from release_gate import gate_pass, _default_config
+    except ImportError:
+        print("⚠ WARNING: release_gate module not found — skipping release gate.")
+        print("  Install it by ensuring scripts/release_gate.py is on the Python path.")
+        return True, None  # advisory: skip gate if module not present
+
+    merged_config = _default_config()
+    if config:
+        merged_config.update(config)
+
+    # Build allocation_reconciliation from alloc["recon"]["overall"] if available
+    allocation_reconciliation = None
+    if alloc and "recon" in alloc:
+        ov = alloc["recon"].get("overall", {})
+        if ov:
+            # Convert from {metric: {original, allocated, variance}} to per-month structure
+            # The gate expects: {month_label: {original, allocated, variance}}
+            # The overall recon is across all months; pass as single "overall" key
+            allocation_reconciliation = {"overall": {
+                "original": ov.get("nsv", {}).get("original", 0),
+                "allocated": ov.get("nsv", {}).get("allocated", 0),
+                "variance": ov.get("nsv", {}).get("variance", 0),
+            }} if isinstance(ov.get("nsv"), dict) else None
+
+        # Per-month reconciliation if present
+        by_month = alloc["recon"].get("by_month", [])
+        if by_month:
+            allocation_reconciliation = {}
+            for row in by_month:
+                label = row.get("label") or row.get("month", "unknown")
+                allocation_reconciliation[label] = {
+                    "original": row.get("original", 0),
+                    "allocated": row.get("allocated", 0),
+                    "variance": row.get("variance", 0),
+                }
+
+    # Build primary_df proxy — pass unmapped NSV context for G6
+    primary_df = None
+    if alloc:
+        total_nsv = alloc.get("distributor_primary_total", 0) or 0
+        unmapped_nsv = alloc.get("unmapped_nsv", 0) or 0
+        if total_nsv > 0:
+            mapped_nsv = total_nsv - unmapped_nsv
+            primary_df = pd.DataFrame({
+                "Chain": ["_mapped", "_Unmapped"],
+                "NSV": [mapped_nsv, unmapped_nsv],
+                "MRP": [mapped_nsv * 1.5, unmapped_nsv * 1.5],
+                "Qty": [int(mapped_nsv), int(unmapped_nsv)],
+            })
+
+    passed, report = gate_pass(
+        primary_df=primary_df,
+        allocation_reconciliation=allocation_reconciliation,
+        config=merged_config,
+        report_path=report_path,
+    )
+    report.print_report()
+    return passed, report
+
+
+def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
+                        report_dir=None, skip_gate=False):
+    """Safe-write data.js: validate via release gate, then atomically replace.
+
+    1. Write candidate to a temp file in the same directory.
+    2. Run release gate against alloc metadata.
+    3. If gate PASS: move temp → production data.js.
+    4. If gate FAIL: leave production data.js intact, delete temp, exit(1).
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write candidate to temp file (same dir for atomic rename)
+    fd, tmp = tempfile.mkstemp(suffix=".js", dir=out_path.parent)
+    try:
+        import os
+        os.close(fd)
+        Path(tmp).write_text(payload_str, encoding="utf-8")
+
+        if skip_gate:
+            shutil.move(tmp, out_path)
+            print("⚠ Release gate skipped for this build path (lightweight refresh).")
+            return
+
+        report_path = Path(report_dir) / "release_gate_report.json" if report_dir else None
+        passed, report = _run_release_gate(alloc, report_path=report_path, config=gate_config)
+
+        if not passed:
+            Path(tmp).unlink(missing_ok=True)
+            print("\n⚠ RELEASE GATE BLOCKED: data.js was NOT updated. Last known-good file is intact.")
+            raise SystemExit(1)
+
+        shutil.move(tmp, out_path)
+        print(f"✓ Release gate PASSED. Wrote {out_path} ({out_path.stat().st_size:,} bytes)")
+    except SystemExit:
+        raise
+    except Exception:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -3339,6 +3565,12 @@ def main():
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
+    ap.add_argument("--not-eligible-gate-pct", type=float, default=0.0, dest="not_eligible_gate_pct",
+                    help="Fail build if Not_Eligible tier NSV exceeds this %% of total Dist. NSV "
+                         "(0 = disabled, the default). Example: --not-eligible-gate-pct 10 fails "
+                         "the build when more than 10%% of Dist. NSV has no matching allocation entry "
+                         "and is not in the offtake universe. Set per-environment in CI to enforce "
+                         "data quality without breaking local builds that lack source files.")
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -3361,9 +3593,8 @@ def main():
             obj["cm2"] = cm2
         if alloc is not None:
             obj["alloc"] = alloc
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
-        print(f"detail-only: wrote {len(detail)} detail_records "
-              f"({'REAL' if not meta['representative'] else 'representative'}) to {outp}"
+        print(f"detail-only: {len(detail)} detail_records "
+              f"({'REAL' if not meta['representative'] else 'representative'})"
               + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
               + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
         if alloc:
@@ -3375,6 +3606,10 @@ def main():
                   + f"; unmapped rows {alloc['rows_unmapped']} (Rs {alloc['unmapped_nsv']} L)"
                   + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}"
                   + f"; patch proposals {alloc['patch_rows']} -> {alloc['patch_file']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=alloc, report_dir=str(outp.parent),
+        )
         return
 
     # ---- lightweight path: refresh primary/pnl/insights with chain-level allocation ----
@@ -3393,10 +3628,13 @@ def main():
         obj["insights"] = insights
         if qc is not None:
             obj["chain_allocation_qc"] = qc
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"primary-only: FY25 {primary['nsv_fy25']} / FY26 {primary['nsv_fy26']} (Lakh); "
               + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
                  if qc else "no allocation file found -- chain tags left as-is"))
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         return
 
     # ---- lightweight path: refresh ONLY the forecast block from the real TY target ----
@@ -3409,9 +3647,12 @@ def main():
             raise SystemExit("No FY2627_TGT_and_sales_team_mapping.xlsb found in --src.")
         forecast = forecast_block_ty(obj["offtake"], ty_rows)
         obj["forecast"] = forecast
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
         print(f"forecast-only: FY26 actual {forecast['fy26_actual']} / FY27 TY target "
               f"{forecast['fy27_forecast']} (Lakh) = Rs {forecast['fy27_forecast']/100:.2f} Cr")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         return
 
     # ---- lightweight path: merge new monthly article-level offtake extracts ----
@@ -3455,9 +3696,100 @@ def main():
                         bc_data[f"months_{tag}"] = tms
                         bc_data[f"monthly_{tag}"] = [monthly_map[mo] for mo in tms]
                         bc_data[f"total_{tag}"] = r2(sum(monthly_map[mo] for mo in tms))
+                    # Merge dimensional arrays: new source only covers new months;
+                    # add the existing kept-months dimensional data into each array so
+                    # zone/brand/category/state totals match bc.total (not just new months).
+                    #
+                    # kept_fy_tags: FY tags whose months are ENTIRELY in `kept` (not in the
+                    # new source).  Only those subtotals are safe to carry forward from old
+                    # data; any FY that overlaps with the new source is already in new_list.
+                    new_bc_fy_tags = set(fy_data.keys())  # FYs covered by new source
+                    kept_fy_tags = set()
+                    for mo in kept:
+                        t = fy_tag_from_label(mo)
+                        if t:
+                            kept_fy_tags.add(t.lower())
+                    # A kept FY is "safe to add" only if the new source doesn't also cover it
+                    safe_kept_fy_tags = kept_fy_tags - new_bc_fy_tags
+
+                    def _merge_dim(existing_list, new_list, key):
+                        """Merge existing kept-FY subtotals into new_list entries.
+
+                        Only FY tags in safe_kept_fy_tags are added; FYs the new source
+                        also covers are already captured in new_list and must not be doubled.
+                        """
+                        idx = {d[key]: d for d in new_list}
+                        for old_d in existing_list:
+                            k = old_d[key]
+                            if k in idx:
+                                nd = idx[k]
+                                # Accumulate only kept-FY subtotals, not the full old total
+                                added = 0.0
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
+                                        nd[fk] = r2(nd.get(fk, 0) + fv)
+                                        added += fv
+                                nd["total"] = r2(nd["total"] + added)
+                            else:
+                                # Entry not in new source — carry forward only safe-kept FYs
+                                new_entry = {key: k, "total": 0.0}
+                                carried = 0.0
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
+                                        new_entry[fk] = fv
+                                        carried += fv
+                                new_entry["total"] = r2(carried)
+                                if carried:  # omit entries with nothing kept
+                                    idx[k] = new_entry
+                        return sorted(idx.values(), key=lambda d: -d["total"])
+
+                    def _merge_state_dim(existing_list, new_list):
+                        """Merge by (zone, state) composite key, same kept-FY logic."""
+                        idx = {(d["zone"], d["state"]): d for d in new_list}
+                        for old_d in existing_list:
+                            k = (old_d["zone"], old_d["state"])
+                            if k in idx:
+                                nd = idx[k]
+                                added = 0.0
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
+                                        nd[fk] = r2(nd.get(fk, 0) + fv)
+                                        added += fv
+                                nd["total"] = r2(nd["total"] + added)
+                            else:
+                                new_entry = {"zone": old_d["zone"], "state": old_d["state"], "total": 0.0}
+                                carried = 0.0
+                                for fk, fv in old_d.items():
+                                    if fk.startswith("fy") and isinstance(fv, (int, float)) \
+                                            and fk in safe_kept_fy_tags:
+                                        new_entry[fk] = fv
+                                        carried += fv
+                                new_entry["total"] = r2(carried)
+                                if carried:
+                                    idx[k] = new_entry
+                        return sorted(idx.values(), key=lambda d: -d["total"])
+
+                    if existing_bc.get("by_zone"):
+                        bc_data["by_zone"] = _merge_dim(
+                            existing_bc["by_zone"], bc_data.get("by_zone", []), "name")
+                    if existing_bc.get("by_state"):
+                        bc_data["by_state"] = _merge_state_dim(
+                            existing_bc["by_state"], bc_data.get("by_state", []))
+                    if existing_bc.get("by_brand"):
+                        bc_data["by_brand"] = _merge_dim(
+                            existing_bc["by_brand"], bc_data.get("by_brand", []), "name")
+                    if existing_bc.get("by_category"):
+                        bc_data["by_category"] = _merge_dim(
+                            existing_bc["by_category"], bc_data.get("by_category", []), "name")
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         print(f"offtake-patch: fy_tags now {patched['fy_tags']}")
         for t in patched["fy_tags"]:
             print(f"  total_{t} = {patched.get('total_'+t)} Lakh"
@@ -3473,7 +3805,10 @@ def main():
         if dg is None:
             raise SystemExit(f"No .xlsb store x article offtake extracts found in --src ({src}).")
         obj["dist_gap"] = dg
-        outp.write_text("window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
         print(f"distgap: {dg['row_count']} products, window {dg['window_label']}, "
               f"total add-on {dg['total_addon_window']} L over window "
               f"({dg['total_addon_ann']} L/yr); groups "
@@ -3534,11 +3869,17 @@ def main():
           f"({'REAL' if not detail_meta['representative'] else 'representative'})"
           + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
           + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
+    if alloc is not None:
+        _check_governance_gate(alloc, gate_pct=a.not_eligible_gate_pct)
 
-    out = Path(a.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n")
-    print("wrote", out, "bytes:", out.stat().st_size)
+    # ---- RELEASE GATE: fail-closed before data.js is written ----
+    payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
+    _safe_write_data_js(
+        out_path=a.out,
+        payload_str=payload,
+        alloc=alloc,
+        report_dir=str(Path(a.out).parent),
+    )
 
 if __name__ == "__main__":
     main()

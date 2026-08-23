@@ -150,9 +150,9 @@ class TestDataJsRegression:
         assert dash["offtake"]["total_fy26"] == 31082.0
 
     def test_offtake_fy27_updated(self, dash):
-        # Updated 2026-08-15: July-26 offtake integrated (Apr+May+Jun+Jul)
+        # Updated 2026-08-21: Jun+Jul-26 offtake integrated (Apr+May+Jun+Jul)
         total = dash["offtake"]["total_fy27"]
-        assert abs(total - 15038.05) < 1.0, f"FY27 offtake total {total} unexpected"
+        assert abs(total - 15054.73) < 1.0, f"FY27 offtake total {total} unexpected"
 
     def test_bc_excluded(self, dash):
         bc = dash.get("reliance_bc", {})
