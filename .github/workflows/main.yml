@@ -7,7 +7,7 @@ on:
 jobs:
   health-check:
     runs-on: ubuntu-latest
-    # environment: Development  # removed — environment not configured in repo settings
+    environment: Development
 
     steps:
       - uses: actions/checkout@v4
