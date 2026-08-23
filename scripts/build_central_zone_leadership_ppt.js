@@ -605,7 +605,7 @@ function pct(v) { return (v >= 0 ? "+" : "") + v.toFixed(1) + "%"; }
     s.addText(`By: ${o.by}`, { x:5.05, y:y+1.64, w:2.75, h:0.38,
       color:DARK, fontSize:8.5, fontFace:"Calibri", valign:"middle" });
 
-    s.addText(`Impact: ${o.impact.replace("\n"," | ")}`, { x:0.45, y:y+2.55, w:7.2, h:0.4,
+    s.addText(`Impact: ${o.impact.replace(/\n/g, " | ")}`, { x:0.45, y:y+2.55, w:7.2, h:0.4,
       color:o.color, fontSize:9.5, bold:true, fontFace:"Calibri" });
   });
 
