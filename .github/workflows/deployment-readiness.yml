@@ -1,0 +1,111 @@
+name: Deployment Readiness
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+
+jobs:
+  validate-deployments:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: pip install pyyaml -q
+
+      - name: Check all workflows reference valid structure
+        run: |
+          python - <<'EOF'
+          import sys, glob, yaml, pathlib
+
+          KNOWN_ENVIRONMENTS = {"Development", "Preview", "Production", "Testing"}
+          errors = []
+
+          for path in glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"):
+              text = pathlib.Path(path).read_text()
+              if len(text.strip()) < 10:
+                  errors.append(f"{path}: empty file")
+                  continue
+              try:
+                  doc = yaml.safe_load(text)
+              except yaml.YAMLError as e:
+                  errors.append(f"{path}: YAML parse error — {e}")
+                  continue
+
+              if not isinstance(doc, dict):
+                  errors.append(f"{path}: not a YAML mapping")
+                  continue
+
+              # Check on: key
+              if "on" not in doc and True not in doc:
+                  errors.append(f"{path}: missing required 'on:' trigger")
+
+              # Check jobs exist
+              jobs = doc.get("jobs", {})
+              if not jobs:
+                  errors.append(f"{path}: no jobs defined")
+                  continue
+
+              # Check environment references are in known set
+              for job_name, job in jobs.items():
+                  if not isinstance(job, dict):
+                      continue
+                  env = job.get("environment")
+                  if env and env not in KNOWN_ENVIRONMENTS:
+                      errors.append(
+                          f"{path} job '{job_name}': references unknown environment '{env}' "
+                          f"(known: {sorted(KNOWN_ENVIRONMENTS)})"
+                      )
+
+          if errors:
+              for e in errors:
+                  print(f"::error::{e}")
+              sys.exit(1)
+
+          print(f"✓ All {len(list(glob.glob('.github/workflows/*.yml')))} workflows passed deployment readiness checks")
+          EOF
+
+      - name: Confirm Development workflow targets Development environment
+        run: |
+          python - <<'EOF'
+          import yaml, pathlib, sys
+
+          path = ".github/workflows/main.yml"
+          try:
+              doc = yaml.safe_load(pathlib.Path(path).read_text())
+          except Exception as e:
+              print(f"::error::{path}: {e}")
+              sys.exit(1)
+
+          jobs = doc.get("jobs", {})
+          dev_jobs = [
+              name for name, job in jobs.items()
+              if isinstance(job, dict) and job.get("environment") == "Development"
+          ]
+
+          if not dev_jobs:
+              print(f"::error::{path}: no job targets environment: Development — badge will never update")
+              sys.exit(1)
+
+          print(f"✓ main.yml job(s) {dev_jobs} target Development environment")
+          EOF
+
+      - name: Startup failure classification guide
+        if: always()
+        run: |
+          echo ""
+          echo "=== Startup Failure Classification ==="
+          echo "If a workflow reports startup_failure, check in this order:"
+          echo "  Cat A — Workflow syntax: empty file or invalid YAML"
+          echo "  Cat D — Billing: Settings → Billing → Actions minutes exhausted"
+          echo "  Cat C — Permissions: Settings → Actions → Allow all actions"
+          echo "  Cat E — Environment: Settings → Environments → named env missing"
+          echo "  Cat G/H — Runner/Platform: githubstatus.com"
+          echo ""
+          echo "All categories require action OUTSIDE this workflow code."
+          echo "See docs/runner-failure-runbook.md for the full decision tree."
