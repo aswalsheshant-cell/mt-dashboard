@@ -36,3 +36,40 @@ Full RCA for major incidents goes in a separate `deployment-fix-report-YYYY-MM-D
 | J | Code Failure |
 
 See `docs/runner-failure-runbook.md` for the full diagnosis decision tree.
+
+---
+
+## Active Incident — Runner Provisioning Blocked (2026-08-23, OPEN)
+
+**Status:** MONITORING — code confirmed clean, root cause is account-level
+
+### Evidence collected via GitHub API
+
+| Test | Result | Conclusion |
+|---|---|---|
+| `workflow_dispatch` to `repo-health.yml` | **204 Accepted** | Actions NOT disabled (disabled → 403) |
+| Dispatched run conclusion | **`startup_failure` in 1 second** | Runner never provisioned |
+| 30 runs across 9 workflows | **All `startup_failure`** | Platform/account issue, not workflow code |
+| Local pytest | **52 passed, 7 skipped** | Code is correct |
+| YAML validation | **All files valid** | No syntax issue |
+
+### Eliminated causes
+
+- ❌ Cat A — Workflow syntax (API responds normally, dispatch accepted)
+- ❌ Cat C — Actions disabled (dispatch returned 204, not 403)
+- ❌ Cat J — Code failure (no steps execute; startup_failure precedes any runner)
+
+### Remaining suspects (in order)
+
+1. **Cat D — Billing/Quota** (~85%): free-plan 2,000 minutes exhausted, or spending limit = $0
+2. **Cat G/H — Runner outage** (~15%): GitHub platform incident (cannot verify — githubstatus.com blocked by container proxy)
+
+### Required browser checks (in order)
+
+1. `https://github.com/settings/billing` → GitHub Actions tile → minutes used / spending limit
+2. `https://www.githubstatus.com` → GitHub Actions row → Operational?
+
+### Closure criteria
+
+- Billing or runner restriction identified and corrected, AND
+- At least one workflow run shows `conclusion: success`
