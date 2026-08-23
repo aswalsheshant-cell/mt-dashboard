@@ -11,7 +11,6 @@
 | `label.yml` | Auto-label PRs by changed file path | pull_request_target |
 | `python-package-conda.yml` | Conda environment build + flake8 + pytest | push |
 | `azure-webapps-node.yml` | Azure Web Apps Node deployment | push |
-| `codeql.yml` | CodeQL security scanning | push, PR, schedule |
 | `monthly-central-zone-ppt.yml` | Generate Central Zone leadership PPT | schedule / manual |
 | `stale.yml` | Mark stale issues and PRs | schedule |
 | `summary.yml` | Summarise new issues | issues.opened |
