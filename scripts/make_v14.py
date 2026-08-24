@@ -35,14 +35,14 @@ ZONE = {
         'ins01_idx': 55, 'ins02_idx': 58,
         'ev_idx': 101,
         'chains': [
-            ('DMart',     2.22, 6.12, 175.7),   # chain, pri25, pri26, yoy%
-            ('Reliance',  1.02, 2.26, 121.6),
-            ('Apollo',    0.00, 0.62, None),
+            ('DMart',            3.27, 6.12, 87.0),   # chain, pri25, pri26, yoy% (ShipTo Jul'25)
+            ('Reliance',         1.02, 2.26, 121.6),
+            ('Apollo',           0.26, 0.62, 138.5),
         ],
         'chain_note': (
-            "Primary YoY: DMart ₹2.22→₹6.12Cr (+175.7%); "
-            "Reliance ₹1.02→₹2.26Cr (+121.6%); "
-            "Apollo NEW ₹0.62Cr; Wellness Forever NEW ₹0.49Cr. "
+            "Primary YoY: DMart ₹3.27→₹6.12Cr (+87.0%); "
+            "Reliance ₹1.02→₹2.26Cr (+121.6%); Apollo ₹0.26→₹0.62Cr (+138.5%); "
+            "Wellness Forever NEW ₹0.49Cr. "
             "Reliance West conversion 54.5% vs primary +121.6% → stock build watch."
         ),
     },
@@ -56,13 +56,13 @@ ZONE = {
         'ins01_idx': 55, 'ins02_idx': 58,
         'ev_idx': 101,
         'chains': [
-            ('Apollo',    0.74, 3.51, 374.3),
-            ('DMart',     1.01, 3.09, 205.9),
+            ('Apollo',    1.22, 3.51, 187.7),   # ShipTo Jul'25 corrected
+            ('DMart',     1.60, 3.09, 93.1),
             ('Reliance',  1.14, 2.24, 96.5),
         ],
         'chain_note': (
-            "Primary YoY: Apollo ₹0.74→₹3.51Cr (+374.3%); "
-            "DMart ₹1.01→₹3.09Cr (+205.9%); "
+            "Primary YoY: Apollo ₹1.22→₹3.51Cr (+187.7%); "
+            "DMart ₹1.60→₹3.09Cr (+93.1%); "
             "Reliance ₹1.14→₹2.24Cr (+96.5%). "
             "Apollo S-1 primary surge: validate offtake velocity before next loading."
         ),
@@ -100,15 +100,15 @@ ZONE = {
         'ins01_idx': 54, 'ins02_idx': 57,   # South-2 has 110 shapes, indices shift
         'ev_idx': 100,
         'chains': [
-            ('DMart',     0.00, 4.32, None),  # NEW account
-            ('Apollo',    0.28, 1.10, 292.9),
-            ('Reliance',  0.00, 0.81, None),  # NEW
+            ('DMart',     1.17, 4.32, 269.2),  # ShipTo Jul'25 corrected
+            ('Apollo',    1.10, 1.10, 0.0),    # flat
+            ('Reliance',  0.64, 0.81, 26.6),
         ],
         'chain_note': (
-            "Primary YoY: DMart NEW ₹4.32Cr (no Jul'25 baseline); "
-            "Apollo ₹0.28→₹1.10Cr (+292.9%); Reliance NEW ₹0.81Cr. "
-            "DMart S-2 is a NEW account in Jul'26 — offtake 45.1% = pipeline filling, "
-            "not true demand. Quarantine primary loading until offtake velocity confirmed."
+            "Primary YoY: DMart ₹1.17→₹4.32Cr (+269.2%); "
+            "Apollo ₹1.10→₹1.10Cr (flat); Reliance ₹0.64→₹0.81Cr (+26.6%). "
+            "DMart S-2 primary surge +269.2%: Apollo flat and Reliance low growth → "
+            "validate offtake velocity before next DMart loading."
         ),
     },
     'East': {
@@ -121,14 +121,14 @@ ZONE = {
         'ins01_idx': 55, 'ins02_idx': 58,
         'ev_idx': 101,
         'chains': [
-            ('Reliance',  1.64, 4.09, 149.4),
-            ('Vmart',     0.00, 2.00, None),  # NEW
-            ('Apollo',    0.27, 0.66, 144.4),
+            ('Reliance',  1.87, 4.09, 118.7),  # ShipTo Jul'25 corrected
+            ('Vmart',     0.00, 2.00, None),    # NEW
+            ('Apollo',    0.40, 0.66, 65.0),
         ],
         'chain_note': (
-            "Primary YoY: Reliance ₹1.64→₹4.09Cr (+149.4%); "
-            "Vmart NEW ₹2.00Cr; Apollo ₹0.27→₹0.66Cr (+144.4%). "
-            "PAISA VASOOL EFFECT: Reliance East primary +149.4% mirrors LY Jul'25 pattern; "
+            "Primary YoY: Reliance ₹1.87→₹4.09Cr (+118.7%); "
+            "Vmart NEW ₹2.00Cr; Apollo ₹0.40→₹0.66Cr (+65.0%). "
+            "PAISA VASOOL EFFECT: Reliance East primary +118.7% mirrors LY Jul'25 pattern; "
             "LY Aug'25 Paisa Vasool drove massive sellthrough — "
             "East 45.3% conversion signals over-stock NOW, not demand. "
             "Moratorium on non-Hero EAN loading stands; check Aug'26 Reliance East offtake by 05-Aug."
@@ -333,7 +333,7 @@ def validate(path):
         (0,  5,  '2114K units'),
         (0,  6,  '+98.9% YoY'),
         (4,  8,  "Jul'25: ₹5.05Cr"),
-        (4, 13,  '467K units'),
+        (4, 13,  '466K units'),
         (5,  8,  "Jul'25: ₹5.99Cr"),
         (6,  8,  "Jul'25: ₹5.1Cr"),
         (6, Z_by_idx(6)['ev_idx'], '[PRIMARY YoY]'),
