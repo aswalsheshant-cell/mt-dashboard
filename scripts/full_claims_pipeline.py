@@ -246,6 +246,7 @@ def read_file(path: Path, chunk_size=100_000):
 def normalise(df: pd.DataFrame, source_file: str, month_hint: str=None) -> pd.DataFrame:
     """Map raw columns to canonical names; infer fiscal_year & month if missing."""
     df.columns = [str(c).strip() for c in df.columns]
+    df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate column names (keep first)
 
     for canon, aliases in ALIASES.items():
         matched = resolve_col(df.columns.tolist(), aliases)
