@@ -2,7 +2,7 @@ window.DASH = {
   "metadata": {
     "version": "2.0-MULTI_YEAR",
     "status": "LOCKED_MULTI_YEAR_V2",
-    "generated_at": "2026-08-25T16:58:05.160972+00:00",
+    "generated_at": "2026-08-25T21:05:38.287672+00:00",
     "consolidation_phase": "Tier 2 Phase 2",
     "coverage": {
       "fiscal_years": [
@@ -55,7 +55,7 @@ window.DASH = {
   "meta": {
     "version": "2.0-MULTI_YEAR",
     "status": "LOCKED_MULTI_YEAR_V2",
-    "generated_at": "2026-08-25T16:58:05.160972+00:00",
+    "generated_at": "2026-08-25T21:05:38.287672+00:00",
     "consolidation_phase": "Tier 2 Phase 2",
     "coverage": {
       "fiscal_years": [
@@ -1685,7 +1685,102 @@ window.DASH = {
         "Jun-26": 79.9,
         "Jul-26": 78.9
       }
-    }
+    },
+    "by_zone": [
+      {
+        "name": "Central",
+        "fy25": 3.76
+      },
+      {
+        "name": "East",
+        "fy25": 13.889999999999999
+      },
+      {
+        "name": "North",
+        "fy25": 19.27
+      },
+      {
+        "name": "South 1",
+        "fy25": 22.11
+      },
+      {
+        "name": "South 2",
+        "fy25": 16.59
+      },
+      {
+        "name": "West",
+        "fy25": 26.349999999999998
+      },
+      {
+        "name": "Pan India",
+        "fy25": 101.98
+      },
+      {
+        "name": "Central",
+        "fy26": 23.889999999999997
+      },
+      {
+        "name": "East",
+        "fy26": 63.339999999999996
+      },
+      {
+        "name": "North",
+        "fy26": 108.92
+      },
+      {
+        "name": "South 1",
+        "fy26": 120.09
+      },
+      {
+        "name": "South 2",
+        "fy26": 71.96
+      },
+      {
+        "name": "West",
+        "fy26": 138.73999999999998
+      },
+      {
+        "name": "Pan India",
+        "fy26": 526.9499999999999
+      },
+      {
+        "name": "Central",
+        "fy27": 10.95
+      },
+      {
+        "name": "East",
+        "fy27": 13.59
+      },
+      {
+        "name": "North",
+        "fy27": 25.99
+      },
+      {
+        "name": "South 1",
+        "fy27": 32.45
+      },
+      {
+        "name": "South 2",
+        "fy27": 19.05
+      },
+      {
+        "name": "West",
+        "fy27": 30.169999999999998
+      },
+      {
+        "name": "Pan India",
+        "fy27": 132.2
+      }
+    ],
+    "total_fy25": 203.95,
+    "total_fy26": 1053.8899999999999,
+    "total_fy27": 264.4,
+    "yoy": 416.73939691100753,
+    "by_chain": [],
+    "by_state": [],
+    "n_chains": 0,
+    "months": [],
+    "monthly": []
   },
   "unit_economics": {
     "fy25": {

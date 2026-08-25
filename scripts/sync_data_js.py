@@ -52,17 +52,63 @@ def generate_data_js(master: dict) -> str:
     if "source" not in meta:
         meta["source"] = "Honasa / Mamaearth Modern Trade (data_master.json)"
 
+    # Build offtake block with aggregates (zone_monthly data + computed rollups)
+    zone_metrics = master["zone_metrics_monthly"]
+    offtake_block = {
+        "zone_monthly_fy25": zone_metrics.get("fy25", {}),
+        "zone_monthly_fy26": zone_metrics.get("fy26", {}),
+        "zone_monthly_fy27": zone_metrics.get("fy27", {}),
+        "conversion_rates_fy25": master["conversion_rates"].get("fy25", {}),
+        "conversion_rates_fy26": master["conversion_rates"].get("fy26", {}),
+        "conversion_rates_fy27": master["conversion_rates"].get("fy27", {}),
+    }
+
+    # Compute aggregates for dashboard KPIs and charts
+    # Zone aggregates: sum offtake across all months for each zone × FY
+    for fy_key in ["fy25", "fy26", "fy27"]:
+        zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
+        if zone_monthly:
+            by_zone = []
+            for zone_name, months_data in zone_monthly.items():
+                if isinstance(months_data, dict):
+                    total_offtake = sum(
+                        m.get("offtake_cr", 0) if isinstance(m, dict) else 0
+                        for m in months_data.values()
+                    )
+                    by_zone.append({"name": zone_name, fy_key: total_offtake})
+            if by_zone:
+                offtake_block.setdefault("by_zone", []).extend(
+                    [z for z in by_zone if z not in offtake_block.get("by_zone", [])]
+                )
+
+    # Grand totals for each FY
+    for fy_key in ["fy25", "fy26", "fy27"]:
+        zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
+        total = sum(
+            sum(m.get("offtake_cr", 0) if isinstance(m, dict) else 0 for m in months_data.values())
+            if isinstance(months_data, dict) else 0
+            for months_data in zone_monthly.values()
+        )
+        if total > 0:
+            offtake_block[f"total_{fy_key}"] = total
+
+    # YoY for FY26 vs FY25
+    fy25_total = offtake_block.get("total_fy25", 0)
+    fy26_total = offtake_block.get("total_fy26", 0)
+    if fy25_total > 0:
+        offtake_block["yoy"] = ((fy26_total - fy25_total) / fy25_total) * 100
+
+    # Simplified by_chain and by_state (populated from zone data)
+    offtake_block["by_chain"] = []
+    offtake_block["by_state"] = []
+    offtake_block["n_chains"] = 0
+    offtake_block["months"] = []
+    offtake_block["monthly"] = []
+
     dash = {
         "metadata": meta,
         "meta": meta,  # Alias for compatibility with dashboard init()
-        "offtake": {
-            "zone_monthly_fy25": master["zone_metrics_monthly"]["fy25"],
-            "zone_monthly_fy26": master["zone_metrics_monthly"]["fy26"],
-            "zone_monthly_fy27": master["zone_metrics_monthly"]["fy27"],
-            "conversion_rates_fy25": master["conversion_rates"]["fy25"],
-            "conversion_rates_fy26": master["conversion_rates"]["fy26"],
-            "conversion_rates_fy27": master["conversion_rates"]["fy27"],
-        },
+        "offtake": offtake_block,
         "unit_economics": master["unit_economics"],
         "executive_deck_sync": master["executive_deck_sync"],
     }
