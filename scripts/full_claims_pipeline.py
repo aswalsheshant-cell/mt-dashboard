@@ -30,6 +30,7 @@ from pathlib import Path
 # ── optional heavy deps — install if missing ──────────────────────────────────
 def _ensure(pkg, import_name=None):
     import importlib
+    import importlib.util
     n = import_name or pkg
     if importlib.util.find_spec(n) is None:
         subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "-q"])
