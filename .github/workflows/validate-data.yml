@@ -2,10 +2,13 @@ name: Data Integrity Validation
 
 on:
   push:
-    branches: [main, claude/**]
+    branches:
+      - main
+      - "claude/**"
     paths:
       - 'data_master.json'
       - 'dashboard/data.js'
+      - 'scripts/sync_data_js.py'
   pull_request:
     branches: [main]
     paths:
@@ -13,139 +16,39 @@ on:
       - 'dashboard/data.js'
 
 jobs:
-  validate-master-data:
+  validate:
     runs-on: ubuntu-latest
     name: Validate Master Data & Sync
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install pandas
+        run: pip install pandas openpyxl
 
       - name: Validate data_master.json structure
-        run: |
-          python3 << 'EOF'
-          import json
-          import sys
+        run: python scripts/ci_validate_master.py
 
-          print("Validating data_master.json...")
-          with open('data_master.json', 'r') as f:
-              master = json.load(f)
-
-          # Check required keys
-          required = ['metadata', 'zone_metrics_monthly']
-          for key in required:
-              if key not in master:
-                  print(f"❌ Missing required key: {key}")
-                  sys.exit(1)
-
-          # Check metadata status
-          status = master['metadata'].get('status')
-          if status != 'LOCKED_MULTI_YEAR_V2':
-              print(f"⚠️ Master status: {status} (expected: LOCKED_MULTI_YEAR_V2)")
-
-          # Validate zone taxonomy
-          authorized_zones = {'Central', 'East', 'North', 'Pan India', 'South 1', 'South 2', 'West'}
-          fy27_zones = set(master['zone_metrics_monthly'].get('fy27', {}).keys())
-
-          if not fy27_zones.issubset(authorized_zones):
-              print(f"❌ Invalid zones found: {fy27_zones - authorized_zones}")
-              sys.exit(1)
-
-          print(f"✅ data_master.json valid (status: {status}, zones: {len(fy27_zones)})")
-          EOF
-
-      - name: Regenerate data.js and validate sync
+      - name: Regenerate data.js
         run: |
           python scripts/sync_data_js.py
+          test -f dashboard/data.js && echo "✅ data.js generated" || (echo "❌ data.js missing"; exit 1)
 
-          # Verify data.js was generated
-          if [ ! -f "dashboard/data.js" ]; then
-              echo "❌ data.js not generated"
-              exit 1
-          fi
-
-          echo "✅ data.js regenerated successfully"
-
-      - name: Validate data.js JSON integrity
-        run: |
-          python3 << 'EOF'
-          import json
-          import sys
-
-          print("Validating dashboard/data.js...")
-          with open('dashboard/data.js', 'r') as f:
-              content = f.read()
-
-          # Extract JSON from "window.DASH = {...};"
-          json_str = content.replace('window.DASH = ', '').rstrip(';')
-
-          try:
-              data = json.loads(json_str)
-              print(f"✅ dashboard/data.js is valid JSON")
-
-              # Verify key structures exist
-              if 'offtake' not in data:
-                  raise ValueError("Missing 'offtake' key")
-
-              if 'zone_monthly_fy27' not in data['offtake']:
-                  raise ValueError("Missing FY27 zone metrics")
-
-              zones = list(data['offtake']['zone_monthly_fy27'].keys())
-              print(f"✅ FY27 zones present: {', '.join(zones)}")
-
-          except json.JSONDecodeError as e:
-              print(f"❌ JSON parse error: {e}")
-              sys.exit(1)
-          except ValueError as e:
-              print(f"❌ Validation error: {e}")
-              sys.exit(1)
-          EOF
-
-      - name: Check for divergence
-        run: |
-          python3 << 'EOF'
-          import json
-
-          print("Checking for master ↔ dashboard divergence...")
-
-          with open('data_master.json', 'r') as f:
-              master = json.load(f)
-
-          with open('dashboard/data.js', 'r') as f:
-              js_content = f.read()
-              json_str = js_content.replace('window.DASH = ', '').rstrip(';')
-              dashboard = json.loads(json_str)
-
-          # Compare FY27 zone metrics
-          master_fy27 = master['zone_metrics_monthly'].get('fy27', {})
-          dashboard_fy27 = dashboard['offtake'].get('zone_monthly_fy27', {})
-
-          for zone in master_fy27.keys():
-              if zone not in dashboard_fy27:
-                  print(f"⚠️ Zone mismatch: {zone} in master but not in dashboard")
-              else:
-                  if master_fy27[zone] != dashboard_fy27[zone]:
-                      print(f"⚠️ Data divergence in zone: {zone}")
-
-          print("✅ No critical divergence detected")
-          EOF
+      - name: Validate data.js integrity
+        run: python scripts/ci_validate_datajs.py
 
   report:
     runs-on: ubuntu-latest
-    needs: validate-master-data
+    needs: validate
     if: always()
     name: Report Results
     steps:
       - name: Status report
         run: |
-          if [ "${{ needs.validate-master-data.result }}" = "success" ]; then
+          if [ "${{ needs.validate.result }}" = "success" ]; then
             echo "✅ All validation checks passed"
           else
             echo "❌ Validation failed"

@@ -246,7 +246,7 @@ def read_file(path: Path, chunk_size=100_000):
 def normalise(df: pd.DataFrame, source_file: str, month_hint: str=None) -> pd.DataFrame:
     """Map raw columns to canonical names; infer fiscal_year & month if missing."""
     df.columns = [str(c).strip() for c in df.columns]
-    df = df.loc[:, ~df.columns.duplicated()]  # drop duplicate column names (keep first)
+    df = df.loc[:, ~df.columns.duplicated()].reset_index(drop=True)  # dedup cols + stable index
 
     for canon, aliases in ALIASES.items():
         matched = resolve_col(df.columns.tolist(), aliases)
@@ -407,33 +407,36 @@ def phase4_process(files: list):
         month_hint = _month_from_hint(fp.stem)
         file_chunks = []
 
-        for chunk in read_file(fp):
-            chunk = normalise(chunk, fp.name, month_hint)
-            valid, quarantine = phase3_qc(chunk)
+        try:
+            for chunk in read_file(fp):
+                chunk = normalise(chunk, fp.name, month_hint)
+                valid, quarantine = phase3_qc(chunk)
 
-            # track key chains
-            if "chain" in valid.columns:
-                for c in valid["chain"].dropna().unique():
-                    cl = str(c).lower().replace(" ","")
-                    for t in TARGET_CHAINS:
-                        if t.replace(" ","") in cl:
-                            found_chains.add(t)
+                # track key chains
+                if "chain" in valid.columns:
+                    for c in valid["chain"].dropna().unique():
+                        cl = str(c).lower().replace(" ","")
+                        for t in TARGET_CHAINS:
+                            if t.replace(" ","") in cl:
+                                found_chains.add(t)
 
-            total_valid += len(valid)
-            total_q += len(quarantine)
-            if not valid.empty:
-                file_chunks.append(valid)
-            if not quarantine.empty:
-                all_quarantine.append(quarantine)
+                total_valid += len(valid)
+                total_q += len(quarantine)
+                if not valid.empty:
+                    file_chunks.append(valid)
+                if not quarantine.empty:
+                    all_quarantine.append(quarantine)
 
-        if file_chunks:
-            file_df = pd.concat(file_chunks, ignore_index=True)
-            agg = aggregate(file_df)
-            if not agg.empty:
-                all_agg.append(agg)
-                print(f"  ✅ {len(file_df):,} valid rows → {len(agg):,} grain nodes")
-            else:
-                print(f"  ⚠  Could not aggregate (missing claim_amount column?)")
+            if file_chunks:
+                file_df = pd.concat(file_chunks, ignore_index=True)
+                agg = aggregate(file_df)
+                if not agg.empty:
+                    all_agg.append(agg)
+                    print(f"  ✅ {len(file_df):,} valid rows → {len(agg):,} grain nodes")
+                else:
+                    print(f"  ⚠  Could not aggregate (missing claim_amount column?)")
+        except Exception as e:
+            print(f"  ⚠  SKIPPED (quarantined): {e}")
 
     print(f"\n📊 Total valid rows:      {total_valid:,}")
     print(f"📊 Total quarantine rows: {total_q:,}")
