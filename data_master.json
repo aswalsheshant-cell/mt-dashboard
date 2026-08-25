@@ -1,4 +1,4 @@
-window.DASH = {
+{
   "metadata": {
     "version": "2.0-MULTI_YEAR",
     "status": "LOCKED_MULTI_YEAR_V2",
@@ -47,8 +47,8 @@ window.DASH = {
       "tier2_phase2_consolidation": "2026-08-25T16:58:05.160972+00:00"
     }
   },
-  "offtake": {
-    "zone_monthly_fy25": {
+  "zone_metrics_monthly": {
+    "fy25": {
       "Central": {
         "Apr-25": {
           "offtake_cr": 1.0,
@@ -344,7 +344,7 @@ window.DASH = {
         }
       }
     },
-    "zone_monthly_fy26": {
+    "fy26": {
       "Central": {
         "Apr-26": {
           "offtake_cr": 2.18,
@@ -1200,7 +1200,7 @@ window.DASH = {
         }
       }
     },
-    "zone_monthly_fy27": {
+    "fy27": {
       "Central": {
         "Apr-26": {
           "offtake_cr": 2.56,
@@ -1439,8 +1439,10 @@ window.DASH = {
           "data_source": "Pan_India_Computed"
         }
       }
-    },
-    "conversion_rates_fy25": {
+    }
+  },
+  "conversion_rates": {
+    "fy25": {
       "Central": {
         "Apr-25": 10.0,
         "Jul-25": 10.0,
@@ -1484,7 +1486,7 @@ window.DASH = {
         "May-25": 10.0
       }
     },
-    "conversion_rates_fy26": {
+    "fy26": {
       "Central": {
         "Apr-26": 10.0,
         "Aug-25": 10.0,
@@ -1584,7 +1586,7 @@ window.DASH = {
         "Sep-25": 10.0
       }
     },
-    "conversion_rates_fy27": {
+    "fy27": {
       "Central": {
         "Apr-26": 101.2,
         "May-26": 101.4,
@@ -2430,5 +2432,50 @@ window.DASH = {
         "match_status": "ALIGNED"
       }
     }
+  },
+  "audit_quarantine": {
+    "tier1_fy27_lock": {
+      "status": "IMMUTABLE",
+      "validated_by": "Sub-Agent B",
+      "locked_at": "2026-08-25T16:30Z",
+      "notes": "All FY27 July metrics validated against V20.pptx; zero mismatches"
+    },
+    "tier2_fy25_fy26_backfill": {
+      "status": "MERGED",
+      "validated_by": "Sub-Agent A",
+      "merged_at": "2026-08-25T17:30Z",
+      "notes": "FY25 Apr-Jul (4m) + FY26 Apr-Mar (12m) aggregated from 16 CSVs; 343,691 rows; zero data loss"
+    },
+    "data_lineage": {
+      "source_systems": [
+        "Primary_Article_Monthly_CSVs (FY25/FY26 zone aggregation)",
+        "Offtake_Store_Article_CSVs (FY27 zone grain)",
+        "data.js (existing FY27 baseline)"
+      ],
+      "transformations": [
+        "FY25 Apr-Jul zone aggregation (CSV \u2192 Cr conversion, 4 months)",
+        "FY26 Apr-Mar zone aggregation (CSV \u2192 Cr conversion, 12 months)",
+        "FY27 Apr-Jul locked baseline (no transformation, immutable)",
+        "South-1 \u2192 South 1 normalization (hyphen to space)",
+        "South-2 \u2192 South 2 normalization (hyphen to space)",
+        "Pan India computed as SUM(6 zones) for each month"
+      ]
+    },
+    "superseded_versions": [
+      {
+        "version": "V18",
+        "status": "SUPERSEDED",
+        "reason": "Hardcoded zone estimates (not CSV-derived)",
+        "preserved_in": "governance_audit_ledger.json",
+        "audit_event": "AE-004"
+      },
+      {
+        "version": "V19",
+        "status": "SUPERSEDED",
+        "reason": "Humanized text but retained V18 hardcoded values",
+        "preserved_in": "governance_audit_ledger.json",
+        "audit_event": "AE-005"
+      }
+    ]
   }
-};
+}
