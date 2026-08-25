@@ -36,8 +36,25 @@ def generate_data_js(master: dict) -> str:
     """
 
     # Build the DASH object (what dashboard/index.html expects in window.DASH)
+    meta = master["metadata"]
+
+    # Ensure dashboard-expected metadata fields are present
+    if "title" not in meta:
+        meta["title"] = "Modern Trade Leadership Dashboard"
+    if "period" not in meta:
+        fys = meta.get("coverage", {}).get("fiscal_years", [])
+        meta["period"] = f"FY{fys[0][-2:]}–{fys[-1][-2:]} (140 zone-months)" if fys else "Multi-year"
+    if "fy_range" not in meta:
+        fys = meta.get("coverage", {}).get("fiscal_years", [])
+        meta["fy_range"] = "–".join([f"FY{fy[-2:]}" for fy in fys]) if fys else "FY25–27"
+    if "unit_note" not in meta:
+        meta["unit_note"] = "All figures in ₹ Crore unless stated"
+    if "source" not in meta:
+        meta["source"] = "Honasa / Mamaearth Modern Trade (data_master.json)"
+
     dash = {
-        "metadata": master["metadata"],
+        "metadata": meta,
+        "meta": meta,  # Alias for compatibility with dashboard init()
         "offtake": {
             "zone_monthly_fy25": master["zone_metrics_monthly"]["fy25"],
             "zone_monthly_fy26": master["zone_metrics_monthly"]["fy26"],

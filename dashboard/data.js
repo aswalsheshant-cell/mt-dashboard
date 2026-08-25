@@ -45,7 +45,65 @@ window.DASH = {
       "tier1_locked": "2026-08-25T16:00Z",
       "tier2_phase1_complete": "2026-08-25T17:00Z",
       "tier2_phase2_consolidation": "2026-08-25T16:58:05.160972+00:00"
-    }
+    },
+    "title": "Modern Trade Leadership Dashboard",
+    "period": "FY25–27 (140 zone-months)",
+    "fy_range": "FY25–FY26–FY27",
+    "unit_note": "All figures in ₹ Crore unless stated",
+    "source": "Honasa / Mamaearth Modern Trade (data_master.json)"
+  },
+  "meta": {
+    "version": "2.0-MULTI_YEAR",
+    "status": "LOCKED_MULTI_YEAR_V2",
+    "generated_at": "2026-08-25T16:58:05.160972+00:00",
+    "consolidation_phase": "Tier 2 Phase 2",
+    "coverage": {
+      "fiscal_years": [
+        "fy25",
+        "fy26",
+        "fy27"
+      ],
+      "fy25_months": [
+        "Apr-25",
+        "May-25",
+        "Jun-25",
+        "Jul-25"
+      ],
+      "fy26_months": [
+        "Apr-26",
+        "May-26",
+        "Jun-26",
+        "Jul-26",
+        "Aug-25",
+        "Sep-25",
+        "Oct-25",
+        "Nov-25",
+        "Dec-25",
+        "Jan-26",
+        "Feb-26",
+        "Mar-26"
+      ],
+      "fy27_months": [
+        "Apr-26",
+        "May-26",
+        "Jun-26",
+        "Jul-26"
+      ],
+      "total_months": 28,
+      "zones": 7,
+      "total_zone_months": 140,
+      "data_completeness": "100%"
+    },
+    "audit_timeline": {
+      "tier1_locked": "2026-08-25T16:00Z",
+      "tier2_phase1_complete": "2026-08-25T17:00Z",
+      "tier2_phase2_consolidation": "2026-08-25T16:58:05.160972+00:00"
+    },
+    "title": "Modern Trade Leadership Dashboard",
+    "period": "FY25–27 (140 zone-months)",
+    "fy_range": "FY25–FY26–FY27",
+    "unit_note": "All figures in ₹ Crore unless stated",
+    "source": "Honasa / Mamaearth Modern Trade (data_master.json)"
   },
   "offtake": {
     "zone_monthly_fy25": {

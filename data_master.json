@@ -45,7 +45,12 @@
       "tier1_locked": "2026-08-25T16:00Z",
       "tier2_phase1_complete": "2026-08-25T17:00Z",
       "tier2_phase2_consolidation": "2026-08-25T16:58:05.160972+00:00"
-    }
+    },
+    "title": "Modern Trade Leadership Dashboard",
+    "period": "FY25–27 (140 zone-months)",
+    "fy_range": "FY25–FY26–FY27",
+    "unit_note": "All figures in ₹ Crore unless stated",
+    "source": "Honasa / Mamaearth Modern Trade (data_master.json)"
   },
   "zone_metrics_monthly": {
     "fy25": {
@@ -2453,11 +2458,11 @@
         "data.js (existing FY27 baseline)"
       ],
       "transformations": [
-        "FY25 Apr-Jul zone aggregation (CSV \u2192 Cr conversion, 4 months)",
-        "FY26 Apr-Mar zone aggregation (CSV \u2192 Cr conversion, 12 months)",
+        "FY25 Apr-Jul zone aggregation (CSV → Cr conversion, 4 months)",
+        "FY26 Apr-Mar zone aggregation (CSV → Cr conversion, 12 months)",
         "FY27 Apr-Jul locked baseline (no transformation, immutable)",
-        "South-1 \u2192 South 1 normalization (hyphen to space)",
-        "South-2 \u2192 South 2 normalization (hyphen to space)",
+        "South-1 → South 1 normalization (hyphen to space)",
+        "South-2 → South 2 normalization (hyphen to space)",
         "Pan India computed as SUM(6 zones) for each month"
       ]
     },
