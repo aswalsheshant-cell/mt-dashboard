@@ -164,6 +164,21 @@
 <script>
 const D = window.DASH;
 
+/* ---- Defensive initialization: guard against missing data blocks so
+   tabs degrade gracefully instead of crashing on undefined property access.
+   These defaults are overwritten when real data is present in data.js. ---- */
+D.primary   = D.primary   || {by_chain:[],by_zone:[],by_state:[],n_chains:0,n_skus:0};
+D.forecast  = D.forecast  || {method:'',total_fy:0,by_chain:[],by_zone:[]};
+D.universe  = D.universe  || {by_zone:[],by_chain:[],chains:[],n_chains:0};
+D.pnl       = D.pnl       || {chains:[],totals:{},blended:{}};
+D.promo     = D.promo     || {n_promos:0,avg_depth:0,by_chain:[],lines:[]};
+D.tot       = D.tot       || {blended_tot_pct:null,total_passon_value:0,chains:[]};
+D.cm2       = D.cm2       || {monthly:[],qc:{},by_chain:[]};
+D.reliance_bc = D.reliance_bc || null;
+D.detail_records = D.detail_records || [];
+D.detail_meta    = D.detail_meta    || {fyx_primary:{},months_covered:[],zones:[]};
+D.chain_allocation_qc = D.chain_allocation_qc || {warnings:[],blocked:[],audit_ts:null};
+
 /* ---- Chain consolidation: map distributor/ship-to names leaked into
    fyx_primary.by_chain / tot.by_chain to their canonical chain name.
    Source: ChainMaster.csv + ChainAccount_Mapping_PriorityView.csv.

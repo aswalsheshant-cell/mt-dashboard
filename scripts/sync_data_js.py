@@ -63,47 +63,77 @@ def generate_data_js(master: dict) -> str:
         "conversion_rates_fy27": master["conversion_rates"].get("fy27", {}),
     }
 
-    # Compute aggregates for dashboard KPIs and charts
-    # Zone aggregates: sum offtake across all months for each zone × FY
+    # Canonical month ordering (Indian FY: Apr→Mar)
+    MONTH_ORDER = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
+
+    def sort_months(month_dict):
+        """Sort a month→value dict into canonical Apr→Mar order, return (labels, values)."""
+        def month_sort_key(m_label):
+            parts = m_label.split("-")
+            abbr = parts[0] if parts else m_label
+            return MONTH_ORDER.index(abbr) if abbr in MONTH_ORDER else 99
+        sorted_items = sorted(month_dict.items(), key=lambda x: month_sort_key(x[0]))
+        return [k for k, _ in sorted_items], [v for _, v in sorted_items]
+
+    # Build proper by_zone: single entry per zone with all FY keys {name, fy25, fy26, fy27}
+    zone_names = set()
     for fy_key in ["fy25", "fy26", "fy27"]:
-        zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
-        if zone_monthly:
-            by_zone = []
-            for zone_name, months_data in zone_monthly.items():
-                if isinstance(months_data, dict):
-                    total_offtake = sum(
-                        m.get("offtake_cr", 0) if isinstance(m, dict) else 0
-                        for m in months_data.values()
-                    )
-                    by_zone.append({"name": zone_name, fy_key: total_offtake})
-            if by_zone:
-                offtake_block.setdefault("by_zone", []).extend(
-                    [z for z in by_zone if z not in offtake_block.get("by_zone", [])]
-                )
+        zone_names.update(offtake_block.get(f"zone_monthly_{fy_key}", {}).keys())
+
+    by_zone = []
+    for zone_name in sorted(zone_names):
+        entry = {"name": zone_name}
+        for fy_key in ["fy25", "fy26", "fy27"]:
+            zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
+            months_data = zone_monthly.get(zone_name, {})
+            if isinstance(months_data, dict):
+                entry[fy_key] = round(sum(
+                    m.get("offtake_cr", 0) if isinstance(m, dict) else 0
+                    for m in months_data.values()
+                ), 2)
+            else:
+                entry[fy_key] = 0
+        by_zone.append(entry)
+    offtake_block["by_zone"] = by_zone
 
     # Grand totals for each FY
     for fy_key in ["fy25", "fy26", "fy27"]:
-        zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
-        total = sum(
-            sum(m.get("offtake_cr", 0) if isinstance(m, dict) else 0 for m in months_data.values())
-            if isinstance(months_data, dict) else 0
-            for months_data in zone_monthly.values()
-        )
+        total = sum(z.get(fy_key, 0) for z in by_zone)
         if total > 0:
-            offtake_block[f"total_{fy_key}"] = total
+            offtake_block[f"total_{fy_key}"] = round(total, 2)
 
     # YoY for FY26 vs FY25
     fy25_total = offtake_block.get("total_fy25", 0)
     fy26_total = offtake_block.get("total_fy26", 0)
     if fy25_total > 0:
-        offtake_block["yoy"] = ((fy26_total - fy25_total) / fy25_total) * 100
+        offtake_block["yoy"] = round(((fy26_total - fy25_total) / fy25_total) * 100, 2)
 
-    # Simplified by_chain and by_state (populated from zone data)
+    # months_fyNN / monthly_fyNN: sorted month labels + summed offtake across all zones
+    for fy_key in ["fy25", "fy26", "fy27"]:
+        zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
+        # Aggregate across zones by month label
+        month_totals: dict = {}
+        for months_data in zone_monthly.values():
+            if not isinstance(months_data, dict):
+                continue
+            for m_label, m_data in months_data.items():
+                v = m_data.get("offtake_cr", 0) if isinstance(m_data, dict) else 0
+                month_totals[m_label] = round(month_totals.get(m_label, 0) + v, 2)
+        if month_totals:
+            labels, values = sort_months(month_totals)
+            offtake_block[f"months_{fy_key}"] = labels
+            offtake_block[f"monthly_{fy_key}"] = values
+
+    # Combined months / monthly (FY25 + FY26 for all-FY view, ordered Apr→Mar within each FY)
+    combined_months = (offtake_block.get("months_fy25") or []) + (offtake_block.get("months_fy26") or [])
+    combined_monthly = (offtake_block.get("monthly_fy25") or []) + (offtake_block.get("monthly_fy26") or [])
+    offtake_block["months"] = combined_months
+    offtake_block["monthly"] = combined_monthly
+
+    # by_chain, by_state: empty — source data has no chain/state breakdown yet
     offtake_block["by_chain"] = []
     offtake_block["by_state"] = []
     offtake_block["n_chains"] = 0
-    offtake_block["months"] = []
-    offtake_block["monthly"] = []
 
     dash = {
         "metadata": meta,

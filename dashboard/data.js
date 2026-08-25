@@ -2,7 +2,7 @@ window.DASH = {
   "metadata": {
     "version": "2.0-MULTI_YEAR",
     "status": "LOCKED_MULTI_YEAR_V2",
-    "generated_at": "2026-08-25T21:05:38.287672+00:00",
+    "generated_at": "2026-08-25T21:22:38.400524+00:00",
     "consolidation_phase": "Tier 2 Phase 2",
     "coverage": {
       "fiscal_years": [
@@ -55,7 +55,7 @@ window.DASH = {
   "meta": {
     "version": "2.0-MULTI_YEAR",
     "status": "LOCKED_MULTI_YEAR_V2",
-    "generated_at": "2026-08-25T21:05:38.287672+00:00",
+    "generated_at": "2026-08-25T21:22:38.400524+00:00",
     "consolidation_phase": "Tier 2 Phase 2",
     "coverage": {
       "fiscal_years": [
@@ -1689,98 +1689,142 @@ window.DASH = {
     "by_zone": [
       {
         "name": "Central",
-        "fy25": 3.76
-      },
-      {
-        "name": "East",
-        "fy25": 13.889999999999999
-      },
-      {
-        "name": "North",
-        "fy25": 19.27
-      },
-      {
-        "name": "South 1",
-        "fy25": 22.11
-      },
-      {
-        "name": "South 2",
-        "fy25": 16.59
-      },
-      {
-        "name": "West",
-        "fy25": 26.349999999999998
-      },
-      {
-        "name": "Pan India",
-        "fy25": 101.98
-      },
-      {
-        "name": "Central",
-        "fy26": 23.889999999999997
-      },
-      {
-        "name": "East",
-        "fy26": 63.339999999999996
-      },
-      {
-        "name": "North",
-        "fy26": 108.92
-      },
-      {
-        "name": "South 1",
-        "fy26": 120.09
-      },
-      {
-        "name": "South 2",
-        "fy26": 71.96
-      },
-      {
-        "name": "West",
-        "fy26": 138.73999999999998
-      },
-      {
-        "name": "Pan India",
-        "fy26": 526.9499999999999
-      },
-      {
-        "name": "Central",
+        "fy25": 3.76,
+        "fy26": 23.89,
         "fy27": 10.95
       },
       {
         "name": "East",
+        "fy25": 13.89,
+        "fy26": 63.34,
         "fy27": 13.59
       },
       {
         "name": "North",
+        "fy25": 19.27,
+        "fy26": 108.92,
         "fy27": 25.99
       },
       {
+        "name": "Pan India",
+        "fy25": 101.98,
+        "fy26": 526.95,
+        "fy27": 132.2
+      },
+      {
         "name": "South 1",
+        "fy25": 22.11,
+        "fy26": 120.09,
         "fy27": 32.45
       },
       {
         "name": "South 2",
+        "fy25": 16.59,
+        "fy26": 71.96,
         "fy27": 19.05
       },
       {
         "name": "West",
-        "fy27": 30.169999999999998
-      },
-      {
-        "name": "Pan India",
-        "fy27": 132.2
+        "fy25": 26.35,
+        "fy26": 138.74,
+        "fy27": 30.17
       }
     ],
     "total_fy25": 203.95,
-    "total_fy26": 1053.8899999999999,
+    "total_fy26": 1053.89,
     "total_fy27": 264.4,
-    "yoy": 416.73939691100753,
+    "yoy": 416.74,
+    "months_fy25": [
+      "Apr-25",
+      "May-25",
+      "Jun-25",
+      "Jul-25"
+    ],
+    "monthly_fy25": [
+      63.49,
+      47.34,
+      43.66,
+      49.46
+    ],
+    "months_fy26": [
+      "Apr-26",
+      "May-26",
+      "Jun-26",
+      "Jul-26",
+      "Aug-25",
+      "Sep-25",
+      "Oct-25",
+      "Nov-25",
+      "Dec-25",
+      "Jan-26",
+      "Feb-26",
+      "Mar-26"
+    ],
+    "monthly_fy26": [
+      101.54,
+      88.32,
+      186.02,
+      223.95,
+      43.24,
+      44.48,
+      53.5,
+      66.58,
+      56.41,
+      73.3,
+      58.5,
+      58.05
+    ],
+    "months_fy27": [
+      "Apr-26",
+      "May-26",
+      "Jun-26",
+      "Jul-26"
+    ],
+    "monthly_fy27": [
+      63.04,
+      66.28,
+      66.8,
+      68.28
+    ],
+    "months": [
+      "Apr-25",
+      "May-25",
+      "Jun-25",
+      "Jul-25",
+      "Apr-26",
+      "May-26",
+      "Jun-26",
+      "Jul-26",
+      "Aug-25",
+      "Sep-25",
+      "Oct-25",
+      "Nov-25",
+      "Dec-25",
+      "Jan-26",
+      "Feb-26",
+      "Mar-26"
+    ],
+    "monthly": [
+      63.49,
+      47.34,
+      43.66,
+      49.46,
+      101.54,
+      88.32,
+      186.02,
+      223.95,
+      43.24,
+      44.48,
+      53.5,
+      66.58,
+      56.41,
+      73.3,
+      58.5,
+      58.05
+    ],
     "by_chain": [],
     "by_state": [],
-    "n_chains": 0,
-    "months": [],
-    "monthly": []
+    "n_chains": 0
   },
   "unit_economics": {
     "fy25": {
