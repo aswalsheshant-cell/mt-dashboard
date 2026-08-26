@@ -52,21 +52,44 @@ def build_universe_block() -> dict | None:
     active = [r for r in rows if str(r.get("Status", "")).strip().upper() == "ACTIVE"]
     chains: dict[str, int] = {}
     zones: dict[str, int] = {}
+    citycats: dict[str, int] = {}
+    storetypes: dict[str, int] = {}
+    n_unclassified = 0
+
     for r in active:
-        c = str(r.get("Chain Name", "")).strip()
-        z = str(r.get("Zone", "")).strip()
+        c  = str(r.get("Chain Name", "")).strip()
+        z  = str(r.get("Zone", "")).strip()
+        cc = str(r.get("City Category", "")).strip()
+        st = str(r.get("Store Type", "")).strip()
+
         if c:
             chains[c] = chains.get(c, 0) + 1
         if z:
             zones[z] = zones.get(z, 0) + 1
+        if cc and cc.upper() not in ("NAN", "NONE", ""):
+            citycats[cc] = citycats.get(cc, 0) + 1
+        if st and st.upper() not in ("NAN", "NONE", ""):
+            storetypes[st] = storetypes.get(st, 0) + 1
+        else:
+            n_unclassified += 1
 
-    return {
+    out: dict = {
         "total_stores": len(rows),
         "active_stores": len(active),
         "n_chains": len(chains),
         "by_chain": sorted([{"name": k, "stores": v} for k, v in chains.items()], key=lambda d: -d["stores"]),
         "by_zone": sorted([{"name": k, "stores": v} for k, v in zones.items()], key=lambda d: -d["stores"]),
+        "by_citycat": sorted([{"name": k, "stores": v} for k, v in citycats.items()], key=lambda d: -d["stores"]),
+        "by_storetype": sorted([{"name": k, "stores": v} for k, v in storetypes.items()], key=lambda d: -d["stores"]),
+        "storetype_classified": len(active) - n_unclassified,
+        "storetype_unclassified": n_unclassified,
     }
+    if n_unclassified > 0:
+        out["storetype_note"] = (
+            f"{n_unclassified} of {len(active)} active stores have a blank or missing Store Type "
+            f"in UniverseMT.csv and are not shown in the store-type chart."
+        )
+    return out
 
 
 def _safe_json_parse(text: str) -> dict:
