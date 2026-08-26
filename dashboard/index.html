@@ -2044,6 +2044,78 @@ function wirePromoFilters() {
       });
     });
   });
+
+  // Handle anomaly toggle button
+  const anomalyToggle = document.getElementById('promoAnomalyToggle');
+  if (anomalyToggle) {
+    anomalyToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      promoAnomalyFilter = !promoAnomalyFilter;
+      anomalyToggle.classList.toggle('active');
+      anomalyToggle.classList.toggle('ghost');
+      buildPromo();
+    });
+  }
+}
+
+// ── PROMO ANOMALY DETECTION ────────────────────────────────────────────────
+let promoAnomalyFilter = false; // Toggle for anomalies-only view
+
+// Detect depth outliers (>50%)
+function flagDepthOutliers(chain, minDepthPct = 50) {
+  return (chain.avg_offer_pct != null && chain.avg_offer_pct > minDepthPct) ? 'depth_outlier' : null;
+}
+
+// Detect MoM spikes (>15% increase in depth from prior month)
+function detectMoMSpikes(promo, selectedMonths = []) {
+  const months = selectedMonths.length > 0 ? selectedMonths : promo.months_available || [];
+  if (months.length < 2) return {};
+
+  const monthlyData = promo.monthly || {};
+  const spikes = {};
+
+  for (let i = 1; i < months.length; i++) {
+    const prevMonth = months[i - 1];
+    const currMonth = months[i];
+    const prevBlock = monthlyData[prevMonth];
+    const currBlock = monthlyData[currMonth];
+
+    if (!prevBlock || !currBlock) continue;
+
+    const prevChainDepths = {};
+    (prevBlock.by_chain || []).forEach(c => {
+      prevChainDepths[c.name] = c.avg_offer_pct || 0;
+    });
+
+    (currBlock.by_chain || []).forEach(c => {
+      const prevDepth = prevChainDepths[c.name] || 0;
+      const currDepth = c.avg_offer_pct || 0;
+      const spike = ((currDepth - prevDepth) / Math.max(prevDepth, 1)) * 100;
+
+      if (spike > 15) {
+        spikes[c.name] = { from: prevDepth, to: currDepth, spike: spike.toFixed(1) };
+      }
+    });
+  }
+
+  return spikes;
+}
+
+// Render anomaly indicators in KAM accountability table
+function renderAnomalyBadge(chain, anomalies) {
+  if (!chain || !anomalies) return '';
+
+  const depthFlag = flagDepthOutliers(chain);
+  const momSpike = anomalies[chain.name];
+
+  let badges = '';
+  if (depthFlag) {
+    badges += `<span class="pill" style="background:#fef3e6;color:#9a5400;margin-right:4px;font-size:10px">⚠ High Depth ${chain.avg_offer_pct}%</span>`;
+  }
+  if (momSpike) {
+    badges += `<span class="pill" style="background:#fef3e6;color:#9a5400;margin-right:4px;font-size:10px">↑ Spike ${momSpike.spike}%</span>`;
+  }
+  return badges;
 }
 
 function buildPromo(){
@@ -2110,6 +2182,10 @@ function buildPromo(){
       ${renderMultiSelect('promo-months', 'Months', filterOptions.months, promoFilters.months)}
       ${renderMultiSelect('promo-chains', 'Accounts', filterOptions.chains, promoFilters.chains)}
       ${renderMultiSelect('promo-kams', 'KAMs', filterOptions.kams, promoFilters.kams)}
+      <button id="promoAnomalyToggle" class="fbtn ${promoAnomalyFilter ? '' : 'ghost'}" style="margin:0"
+              title="Show only anomalies: depth >50% or MoM spike >15%">
+        ⚠ Anomalies Only
+      </button>
     </div>
   ` : '';
 
@@ -2153,12 +2229,31 @@ function buildPromo(){
     const _dc=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
     const _pend=(_pdet.kam_status?.pending||[]).join(', ');
     const _pendNote=_pend?`<p class="drillhint" style="margin:4px 0 0">Response pending from: ${_pend}</p>`:'';
-    const _dRows=_dc.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
+
+    // Detect anomalies
+    const selectedMonths = Array.from(promoFilters.months.size > 0 ? promoFilters.months : _months);
+    const momSpikes = detectMoMSpikes(pr, selectedMonths);
+
+    // Filter for anomalies if toggle is on
+    let _dcDisplay = _dc;
+    if(promoAnomalyFilter){
+      _dcDisplay = _dc.filter(c => {
+        const hasDepthOutlier = flagDepthOutliers(c) !== null;
+        const hasMoMSpike = momSpikes[c.name] !== undefined;
+        return hasDepthOutlier || hasMoMSpike;
+      });
+    }
+
+    const _dRows=_dcDisplay.map(c=>{
+      const anomalyBadges = renderAnomalyBadge(c, momSpikes);
+      return `<tr><td>${drillLink('Chain',c.name)}</td>
       <td style="text-align:right">${num(c.skus)}</td>
       <td style="text-align:right">${c.brands==null?'–':c.brands}</td>
       <td style="text-align:right">${c.avg_offer_pct!=null?c.avg_offer_pct+'%':'–'}</td>
       <td>${c.kam||'–'}</td>
-      <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td></tr>`).join('');
+      <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td>
+      <td style="font-size:11px">${anomalyBadges}</td></tr>`;
+    }).join('');
     _detSection=`
   <h3 class="sec" style="margin:28px 0 4px">Promo Calendar — ${_pdet.month||'Current Month'}</h3>
   ${_filterToolbar}
@@ -2174,9 +2269,9 @@ function buildPromo(){
     ${card('SKUs by chain','promo line count this month — click to drill',cv('prmDetChain'))}
     ${card('Avg consumer offer % by chain','where parseable (%, BxGy decoded)',cv('prmDetOffer',true))}
   </div>
-  ${card('KAM accountability — '+(_pdet.month||''),'Promo data received / pending per chain.',`<div class="tablewrap"><table>
-    <thead><tr><th>Chain</th><th>SKUs</th><th>Brands</th><th>Avg Offer%</th><th>KAM</th><th>Status</th></tr></thead>
-    <tbody>${_dRows||'<tr><td colspan="6">No data for this filter.</td></tr>'}</tbody>
+  ${card('KAM accountability — '+(_pdet.month||''),'Promo data received / pending per chain. ⚠ flags indicate depth >50% or MoM spike >15%.',`<div class="tablewrap"><table>
+    <thead><tr><th>Chain</th><th>SKUs</th><th>Brands</th><th>Avg Offer%</th><th>KAM</th><th>Status</th><th>Flags</th></tr></thead>
+    <tbody>${_dRows||'<tr><td colspan="7">No data for this filter.</td></tr>'}</tbody>
   </table></div>`)}`;
   }
 
