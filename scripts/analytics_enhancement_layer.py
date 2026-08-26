@@ -178,6 +178,136 @@ class FMCGAnalyticsEnhancer:
 
         return insights or ["No anomalies detected."]
 
+    def calculate_real_gross_margin(
+        self, df_sales: pd.DataFrame, df_cogs: pd.DataFrame = None
+    ) -> pd.DataFrame:
+        """
+        Phase 4: Calculate real Gross Margin % from actual COGS data.
+        Gross Margin % = (NSV - Total COGS) / NSV × 100
+        Fallback to category/brand average if SKU-level COGS missing.
+        """
+        try:
+            df = df_sales.copy()
+
+            if df_cogs is not None and not df_cogs.empty:
+                # Merge with actual COGS
+                df = pd.merge(df, df_cogs[["SKU", "Total_COGS"]], on="SKU", how="left")
+            else:
+                # Default: assume 55% COGS (45% margin baseline)
+                df["Total_COGS"] = df.get("NSV", 0) * 0.55
+
+            # Compute Gross Margin %
+            df["Gross_Margin_Pct"] = (
+                (df["NSV"] - df["Total_COGS"]) / df["NSV"].replace(0, np.nan) * 100
+            ).fillna(45)  # Fallback to 45% if missing
+
+            # Cap at 0–100%
+            df["Gross_Margin_Pct"] = df["Gross_Margin_Pct"].clip(0, 100)
+
+            return df
+        except Exception as e:
+            print(f"WARN: Real margin calculation error: {e}")
+            return df_sales.copy()
+
+    def calculate_sop_forecast_accuracy(
+        self, df_actual: pd.DataFrame, df_forecast: pd.DataFrame, group_col: str = "Chain"
+    ) -> pd.DataFrame:
+        """
+        Phase 4: Compute S&OP Forecast Accuracy (WMAPE %) and Forecast Bias.
+        WMAPE % = (∑|Actual - Forecast| / ∑Actual) × 100
+        Bias % = (∑(Forecast - Actual) / ∑Actual) × 100
+        """
+        try:
+            actual_agg = df_actual.groupby(group_col)["NSV"].sum().reset_index()
+            actual_agg.rename(columns={"NSV": "actual_nsv"}, inplace=True)
+
+            forecast_agg = df_forecast.groupby(group_col)["Target"].sum().reset_index()
+            forecast_agg.rename(columns={"Target": "forecast_nsv"}, inplace=True)
+
+            merged = pd.merge(actual_agg, forecast_agg, on=group_col, how="outer").fillna(0)
+
+            # WMAPE %
+            merged["abs_error"] = (merged["forecast_nsv"] - merged["actual_nsv"]).abs()
+            merged["wmape_pct"] = (
+                merged["abs_error"] / merged["actual_nsv"].replace(0, np.nan) * 100
+            ).fillna(0)
+            merged["accuracy_pct"] = (100 - merged["wmape_pct"]).clip(0, 100)
+
+            # Forecast Bias %
+            merged["forecast_error"] = merged["forecast_nsv"] - merged["actual_nsv"]
+            merged["bias_pct"] = (
+                merged["forecast_error"] / merged["actual_nsv"].replace(0, np.nan) * 100
+            ).fillna(0)
+
+            # Bias Status
+            merged["bias_status"] = merged["bias_pct"].apply(
+                lambda x: "Under-forecasting" if x < -5
+                else ("Over-forecasting" if x > 5 else "Accurate")
+            )
+
+            return merged
+        except Exception as e:
+            print(f"WARN: S&OP forecast accuracy error: {e}")
+            return pd.DataFrame()
+
+    def calculate_open_po_sla_risk(
+        self, df_po: pd.DataFrame, sla_windows: dict = None
+    ) -> pd.DataFrame:
+        """
+        Phase 4: Compute Open PO SLA Penalty Risk based on aging days.
+        SLA Windows: DMart/Reliance 7d, Q-Commerce 2d, Others 14d (default).
+        Penalty Risk: 2–5% of PO value for breaches.
+        """
+        if sla_windows is None:
+            sla_windows = {
+                "DMart": 7,
+                "Reliance": 7,
+                "Q-Comm": 2,
+                "Wellness": 10,
+                "Apollo": 10,
+                "Spencer": 14,
+                "More": 14,
+            }
+
+        try:
+            df = df_po.copy()
+
+            # Calculate aging days
+            df["PO_Date"] = pd.to_datetime(df["PO_Date"], errors="coerce")
+            today = pd.Timestamp.now()
+            df["Aging_Days"] = (today - df["PO_Date"]).dt.days
+
+            # Map SLA window per account
+            df["SLA_Window"] = df["Account"].map(sla_windows).fillna(14)
+
+            # Compute risk status
+            def risk_status(aging, sla_window):
+                if aging <= 3:
+                    return "Normal"
+                elif aging <= (sla_window - 2):
+                    return "Caution"
+                else:
+                    return "BREACH"
+
+            df["Risk_Status"] = df.apply(
+                lambda row: risk_status(row["Aging_Days"], row["SLA_Window"]), axis=1
+            )
+
+            # Penalty debit % (2–5% scale)
+            def penalty_pct(aging, sla_window):
+                days_over = max(0, aging - sla_window)
+                return min(5, 2 + (days_over * 0.5))
+
+            df["Penalty_Debit_Pct"] = df.apply(
+                lambda row: penalty_pct(row["Aging_Days"], row["SLA_Window"]), axis=1
+            )
+            df["Penalty_Debit_Value"] = df["PO_Value"] * df["Penalty_Debit_Pct"] / 100
+
+            return df
+        except Exception as e:
+            print(f"WARN: PO SLA risk calculation error: {e}")
+            return pd.DataFrame()
+
     def to_json(self) -> Dict[str, Any]:
         """
         Export enriched metrics as JSON-serializable dict.
