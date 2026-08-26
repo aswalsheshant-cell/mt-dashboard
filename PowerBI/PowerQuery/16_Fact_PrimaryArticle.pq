@@ -109,24 +109,43 @@ let
     Merged = Table.NestedJoin(DistKeys2, {"ShipTo Key", "Brand Key", "MonthStart"},
         #"Dist Cont Weights", {"ShipTo Key", "Brand Key", "MonthStart"},
         "W", JoinKind.LeftOuter),
-    ExpandedW = Table.ExpandTableColumn(Merged, "W", {"Chain Name", "Frac"}),
+    ExpandedW = Table.ExpandTableColumn(Merged, "W",
+        {"Chain Name", "Frac", "Source Type", "Approval Status", "Provisional Flag"}),
     // scale measures by cont% (unmatched rows keep Frac=1 and go to "Unmapped Chain")
-    FillFrac = Table.ReplaceValue(ExpandedW, null, 1, Replacer.ReplaceValue, {"Frac"}),
-    Alloc1 = Table.AddColumn(FillFrac, "Primary Qty Alloc", each ([Primary Qty] ?? 0) * [Frac], type number),
+    FillFrac      = Table.ReplaceValue(ExpandedW, null, 1,       Replacer.ReplaceValue, {"Frac"}),
+    FillSrcType   = Table.ReplaceValue(FillFrac,  null, "Unmapped (no ShipTo data)",
+                        Replacer.ReplaceValue, {"Source Type"}),
+    FillApproval  = Table.ReplaceValue(FillSrcType, null, "Unmapped",
+                        Replacer.ReplaceValue, {"Approval Status"}),
+    FillProv      = Table.ReplaceValue(FillApproval, null, false, Replacer.ReplaceValue, {"Provisional Flag"}),
+    Alloc1 = Table.AddColumn(FillProv, "Primary Qty Alloc", each ([Primary Qty] ?? 0) * [Frac], type number),
     Alloc2 = Table.AddColumn(Alloc1, "Primary NSV Alloc", each ([Primary NSV] ?? 0) * [Frac], type number),
     Alloc3 = Table.AddColumn(Alloc2, "Primary MRP Alloc", each ([Primary MRP] ?? 0) * [Frac], type number),
     Alloc4 = Table.AddColumn(Alloc3, "Primary Tax Alloc", each
         if [Primary Tax Amount] = null then null else [Primary Tax Amount] * [Frac], type number),
     DistChain = Table.AddColumn(Alloc4, "Chain", each
         if [Chain Name] <> null then [Chain Name] else "Unmapped Chain", type text),
+    // Allocation Status: readable label for the QC page and DAX measures
+    DistAllocStatus = Table.AddColumn(DistChain, "Allocation Status", each
+        if [Chain Name] = null        then "Unmapped"
+        else if [Provisional Flag]    then "Provisional"
+        else "Allocated", type text),
     DistSwap = Table.RemoveColumns(
         Table.RenameColumns(
-            Table.RemoveColumns(DistChain, {"Primary Qty", "Primary NSV", "Primary MRP", "Primary Tax Amount"}),
+            Table.RemoveColumns(DistAllocStatus, {"Primary Qty", "Primary NSV", "Primary MRP", "Primary Tax Amount"}),
             {{"Primary Qty Alloc", "Primary Qty"}, {"Primary NSV Alloc", "Primary NSV"},
              {"Primary MRP Alloc", "Primary MRP"}, {"Primary Tax Alloc", "Primary Tax Amount"}}),
-        {"ShipTo Key", "Brand Key", "Chain Name", "Frac"}),
+        {"ShipTo Key", "Brand Key", "Chain Name", "Frac", "Approval Status"}),
 
-    Combined = Table.Combine({Table.RemoveColumns(DirectFinal, {"Is Dist"}),
+    // Add matching governance columns to Direct rows (no allocation applied)
+    DirectWithGov = Table.AddColumn(
+        Table.AddColumn(
+          Table.AddColumn(DirectFinal,
+            "Source Type", each null, type text),
+          "Provisional Flag", each false, type logical),
+        "Allocation Status", each "Direct", type text),
+
+    Combined = Table.Combine({Table.RemoveColumns(DirectWithGov, {"Is Dist"}),
                               Table.RemoveColumns(DistSwap, {"Is Dist"})}),
 
     // article key: EAN -> cleaned Description (the current format has no Article Code)

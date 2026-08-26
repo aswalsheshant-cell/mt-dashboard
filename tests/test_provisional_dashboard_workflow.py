@@ -85,11 +85,11 @@ class TestDashboardProvisionalBanner(unittest.TestCase):
         self.assertEqual(status, "DRAFT",
                         "Formula status must remain DRAFT until D1/D9 approved")
 
-    def test_prov_09_example_data_only_true(self):
-        """PROV-09: cm2.example_data_only is true"""
+    def test_prov_09_example_data_only_false(self):
+        """PROV-09: cm2.example_data_only is false (replaced with real data)"""
         example = self.dash.get("cm2", {}).get("example_data_only", False)
-        self.assertTrue(example,
-                       "Dashboard must flag that only example expenses are loaded")
+        self.assertFalse(example,
+                        "Dashboard must reflect that example expenses have been replaced with real data")
 
     def test_prov_10_provisional_reasons_populated(self):
         """PROV-10: provisional_reasons explain why CM2 is provisional"""
@@ -111,11 +111,11 @@ class TestExampleRowsIdentification(unittest.TestCase):
             cls.expense_rows = list(csv.DictReader(f))
 
     def test_prov_11_three_example_rows(self):
-        """PROV-11: Exactly 3 rows are marked as EXAMPLE"""
+        """PROV-11: All example rows have been replaced with real data (0 EXAMPLE rows)"""
         example_count = sum(1 for r in self.expense_rows
                            if "EXAMPLE" in r.get("Remarks", "").upper())
-        self.assertEqual(example_count, 3,
-                        "Exactly 3 example rows expected; actual expenses must replace them")
+        self.assertEqual(example_count, 0,
+                        "Example rows must be replaced with real verified expense data (0 EXAMPLE rows expected)")
 
     def test_prov_12_examples_clearly_identified(self):
         """PROV-12: Example rows have 'EXAMPLE ROW' in Remarks"""

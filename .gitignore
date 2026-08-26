@@ -10,11 +10,18 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
-__pycache__/
-*.pyc
-# Backup files
-*.bak
-dashboard/data.js.d13.bak
 
-# Generated report artifacts (not source-controlled)
+# Phase 3 test output artifacts (timestamped, regenerated per run)
+docs/PHASE_3_VALIDATION_*.txt
+docs/PHASE_3_SIGNOFF_*.txt
+docs/PHASE_3_RESULTS_*.json
+
+# skill-suite: local backups of diverged install targets
+work/skill-suite-backups/
+
+# Generated PPTX output — produced by scripts/export_slides.js and build_*_presentation.js
 MT_Leadership_Report.pptx
+Central_Zone_Leadership_Pack_*.pptx
+July_MT_Command_Centre_*.pptx
+tpl_cmd/
+unpacked_enriched/

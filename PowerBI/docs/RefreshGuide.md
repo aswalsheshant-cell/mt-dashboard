@@ -97,6 +97,22 @@ Use **Page 11: Raw Data Export View**.
 
 ---
 
+## Zone Classification
+
+**Central Zone** (Madhya Pradesh + Chhattisgarh) is now an official MT zone.
+
+- **Source:** Offtake data tags MP and CG as "Central" zone — this classification
+  is maintained through the refresh.
+- **Master:** `PowerBI/SeedData/Masters/ZoneStateMaster.csv` formally recognizes
+  Central zone (sort order 7) with MP and CG assigned to it.
+- **Coverage:** Central zone appears in all MT zone-level reporting and is included
+  in the zone slicer, zone charts, and zone performance comparisons.
+- **Separate reporting:** A dedicated Central Zone Leadership deck is generated
+  monthly, following the same structure as the main MT Command Centre but focused
+  on Central zone deep-dive (MP and CG state-level detail).
+
+---
+
 ## Quick monthly checklist
 
 - [ ] New file(s) dropped into the correct folder, template headers intact

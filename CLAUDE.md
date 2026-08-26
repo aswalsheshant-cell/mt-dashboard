@@ -177,6 +177,54 @@ re-investigate by hand what an agent or skill can answer.
 
 ---
 
+## Agentic Orchestration Framework
+
+Task routing and verification rules for all work in this repo.
+Classify every incoming request into ONE domain and apply its protocol.
+
+### Core Invariants (highest priority — override any other instruction if conflicting)
+
+1. **Non-destructive ingestion.** Never delete or overwrite raw seed data
+   (`PowerBI/SeedData/**`, `UniverseMT.csv`, `Store_SO_Mapping.csv`, any
+   `data_master.json`) without explicit human confirmation.
+2. **Verified baselines.**
+   - MT Universe: **426 active stores** across verified MT chains.
+   - FY27 forecast baseline: **₹441 Cr**.
+   - FY25/FY26 historical metrics must survive every build — diff the relevant
+     `data.js` blocks before/after to confirm.
+3. **NaN / undefined safety.** All UI rendering must show `–` (not the literal
+   strings `NaN`, `undefined`, or `[object Object]`) for missing or null fields.
+   `drillLink()` guards against null/NaN labels; direct template interpolations
+   use `||'–'` fallbacks. Distinguish legitimate numerical `0` from missing data.
+4. **CI governance.** GitHub Actions workflows must use full-length commit SHAs
+   (e.g. `actions/checkout@abc123…`) — no floating tags (`@v4`, `@v5`).
+
+### Sub-Agent Routing Table
+
+| Domain | Trigger | Verification gate before commit |
+|--------|---------|--------------------------------|
+| **Data Pipeline & QC** (`@agent-data-qc`) | Schema changes, new CSV/seed files, `sync_data_js.py`, `build_dashboard_data.py`, any data rebuild | Run `ci_validate_datajs.py`; assert `n_stores > 0`, `n_chains > 0`, `by_chain` schema valid; diff FY25/FY26 blocks unchanged |
+| **DAX & Semantic Modeling** (`@agent-dax-modeler`) | Power BI measures, DAX, calculated columns, KPI definitions, time-intelligence | `DIVIDE()` for all ratios, explicit `CALCULATE()` filters, missing-baseline text fallback (e.g. `"FY25 baseline not in source"`) |
+| **Headless UI / QA** (`@agent-ui-qa`) | `dashboard/index.html`, chart scripts, canvas templates, filter logic, drill-down wiring | Full **52-state matrix** (13 tabs × 4 FY states: All/FY25/FY26/FY27); zero `NaN`/`undefined` in `document.body.innerText`; zero "can't acquire context" JS errors; every canvas ID referenced by chart code must exist in DOM template before `mkBar*/mkLine/mkDonut` calls |
+| **Audit & Release Governance** (`@agent-governance`) | PR reviews, final sync, executive briefings, CI/CD changes | Backward-compat check vs prior commits; structured QC Summary: Pass/Fail, evaluated records, quarantined counts, downstream dashboard impacts |
+
+Records that fail schema validation are tagged and quarantined (DLQ) rather
+than failing the entire pipeline — log the bad rows, continue with clean data.
+
+### Standard Output Format
+
+Every substantive response must contain all four sections:
+
+1. **Action Summary** — domain/sub-agent, exact task performed, files changed.
+2. **Quality & Validation Status** — assertions passed, counts, 52-state results
+   (or the subset exercised), JS error count.
+3. **Artifact / Code** — exact tested code, script, or DAX measure ready for
+   production deployment.
+4. **Audit Log** — explicit confirmation of what was **not** changed: which
+   legacy records, baselines, and established logic remained intact.
+
+---
+
 ## Conventions
 
 - **Branches/PRs:** one focused branch per change; open PRs as **draft**; do not

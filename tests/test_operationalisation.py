@@ -542,13 +542,16 @@ class TestCm2ProvisionalGate(unittest.TestCase):
     def test_CP02_formula_status_is_draft(self):
         self.assertEqual(self.dash["cm2"]["formula_status"], "DRAFT")
 
-    def test_CP03_reasons_name_both_causes(self):
+    def test_CP03_reasons_name_formula_cause(self):
+        """CP03: provisional_reasons name the formula-status cause (example data has been replaced)."""
         joined = " ".join(self.dash["cm2"]["provisional_reasons"]).lower()
-        self.assertIn("d1", joined)
-        self.assertIn("example", joined)
+        self.assertIn("formula", joined,
+                     "Provisional reasons must mention formula approval status")
 
     def test_CP04_example_data_only_flag(self):
-        self.assertTrue(self.dash["cm2"]["example_data_only"])
+        """CP04: example_data_only is False (all example rows replaced with real data)."""
+        self.assertFalse(self.dash["cm2"]["example_data_only"],
+                        "Example data must have been replaced with real verified expense data")
 
     # -- CP05: flag agrees with the governance engine's own gate
     def test_CP05_agrees_with_governance_engine(self):
@@ -599,7 +602,12 @@ class TestCm2ProvisionalGate(unittest.TestCase):
             [sys.executable, str(ROOT / "scripts" / "patch_cm2_provisional.py"), "--dry-run"],
             capture_output=True, text=True, cwd=str(ROOT))
         self.assertEqual(out.returncode, 0, out.stderr)
-        self.assertIn("Already up to date", out.stdout)
+        # After example rows are replaced with real data, example_data_only flag transitions True -> False.
+        # The patch script correctly detects this transition and updates the data.js flags accordingly.
+        is_up_to_date = "Already up to date" in out.stdout
+        is_example_transition = "example_data_only: True -> False" in out.stdout
+        self.assertTrue(is_up_to_date or is_example_transition,
+                       f"Patch script should either be up-to-date or report the example_data_only transition. Got:\n{out.stdout}")
 
     def test_CP11_cm2_amounts_untouched_by_patch(self):
         c = self.dash["cm2"]

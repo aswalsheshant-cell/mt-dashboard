@@ -1,0 +1,64 @@
+{
+  "_doc": "Channel classification master for MT reporting. Business rule: Zone Sales contain MT accounts only; eB2B and SIS are reported as separate channels and are never added, allocated, mapped or rolled up into any MT zone figure. Sourced from dims.Channel in the article-wise primary; every listed account is 100% single-channel (verified: no chain carries both MT and non-MT primary).",
+  "_owner": "MT Channel Analyst Lead",
+  "_effective_from": "2026-08-16",
+  "_decision_ref": "docs/ISSUE_MT_CHANNEL_CONTAMINATION.md",
+
+  "channels": {
+    "MT": {
+      "label": "Modern Trade",
+      "reports_by": "zone",
+      "in_mt_zone_rollup": true
+    },
+    "EB2B": {
+      "label": "eB2B",
+      "reports_by": "channel",
+      "in_mt_zone_rollup": false,
+      "note": "Reported as its own channel. Replaces the former 'Pan India' zone, which was this channel's largest account carried as a seventh geography."
+    },
+    "SIS": {
+      "label": "SIS",
+      "reports_by": "channel",
+      "in_mt_zone_rollup": false,
+      "note": "Shop-in-Shop. Reported as its own channel. Primary is net of MRN returns."
+    }
+  },
+
+  "account_channel": {
+    "Nykaa (FSN)": "EB2B",
+    "Eremedium": "EB2B",
+    "Azorte": "SIS",
+    "Shoppers Stop": "SIS",
+    "Lifestyle": "SIS",
+    "Broadway": "SIS",
+    "Today's Basket": "SIS"
+  },
+
+  "offtake_aliases": {
+    "AZORTE": "Azorte",
+    "Pan India": "Nykaa (FSN)"
+  },
+
+  "zone_renames": {
+    "Pan India": "eB2B"
+  },
+
+  "decisions": [
+    {
+      "date": "2026-08-16",
+      "decision": "Exclude the whole Nykaa (FSN) account from Modern Trade and report it under eB2B.",
+      "accepted_consequence": "The account combines FSN (B2C marketplace) with Nykaa SS (eB2B) at article level and the feed cannot separate them, so B2C e-commerce is reported inside eB2B until split feeds are supplied.",
+      "owner": "MT Channel Analyst Lead"
+    },
+    {
+      "date": "2026-08-16",
+      "decision": "Rename the 'Pan India' zone to 'eB2B' and report it as a channel, not a geography.",
+      "owner": "MT Channel Analyst Lead"
+    },
+    {
+      "date": "2026-08-16",
+      "decision": "Report SIS as its own channel on the same basis as eB2B.",
+      "owner": "MT Channel Analyst Lead"
+    }
+  ]
+}
