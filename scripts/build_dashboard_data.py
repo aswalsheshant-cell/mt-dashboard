@@ -287,6 +287,10 @@ def load_primary_v2(src):
     df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
     df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
     df["Month"] = df["Month"].astype(str).str.strip()
+    # CSV stores NSV/MRP in rupees; script/dashboard expect INR Lakh (1 Lakh = 100,000)
+    if csv_f.exists():
+        df["NSV"] = df["NSV"] / 1e5
+        df["MRP value"] = df["MRP value"] / 1e5
     return df
 
 def load_chain_allocation_weights(src):
@@ -332,6 +336,9 @@ def apply_chain_allocation(df, weights):
     reallocated vs left on the raw tag, for the Chain Allocation QC card."""
     if weights is None:
         df["chain"] = df["Chain Name"].map(canon_chain)
+        df["brand"] = df["Brand"].map(canon_brand)
+        df["zone"] = df["Zone"].map(canon_zone)
+        df["channel"] = df["Channel"].astype(str).str.strip()
         return df, None
     is_dist = df["_dist_flag"] == "Dist."
     df["_key"] = list(zip(
@@ -2156,43 +2163,48 @@ def insights_block(primary, offtake, pnl, universe, promo):
     oc = {c["name"]: c for c in offtake["by_chain"]}
     uc = {c["name"]: c for c in universe["by_chain"]}
 
+    # Determine the two most recent FY tags dynamically
+    _fy_tags = primary.get("fy_tags") or []
+    _curr_fy = _fy_tags[-1] if _fy_tags else "fy26"
+    _prev_fy = _fy_tags[-2] if len(_fy_tags) >= 2 else (_fy_tags[0] if _fy_tags else "fy25")
+
     # 1. Concentration
     top2 = primary["by_chain"][:2]
-    tot = primary["nsv_fy26"] or 1
-    share = sum(c["fy26"] or 0 for c in top2) / tot * 100
+    tot = primary.get(f"nsv_{_curr_fy}") or 1
+    share = sum(c.get(_curr_fy) or 0 for c in top2) / tot * 100
     ins.append({"type": "risk", "title": "Revenue concentration in top 2 chains",
                 "text": f"{top2[0]['name']} and {top2[1]['name']} together drive "
-                        f"{share:.0f}% of FY25-26 MT primary (₹{(sum(c['fy26'] for c in top2))/100:.0f} Cr). "
+                        f"{share:.0f}% of {_prev_fy.upper()}-{_curr_fy.upper()} MT primary (₹{(sum(c.get(_curr_fy) or 0 for c in top2))/100:.0f} Cr). "
                         f"De-risk by accelerating the mid-tier (Apollo, Nykaa, Wellness Forever)."})
     # 2. Fastest growers (material base)
-    growers = [c for c in primary["by_chain"] if c["yoy"] is not None and (c["fy26"] or 0) > 200]
+    growers = [c for c in primary["by_chain"] if c["yoy"] is not None and (c.get(_curr_fy) or 0) > 200]
     growers.sort(key=lambda d: -(d["yoy"] or 0))
     if growers:
         g = growers[0]
         ins.append({"type": "win", "title": "Fastest-growing scaled chain",
-                    "text": f"{g['name']} grew {g['yoy']:.0f}% YoY to ₹{g['fy26']/100:.1f} Cr. "
+                    "text": f"{g['name']} grew {g['yoy']:.0f}% YoY to ₹{(g.get(_curr_fy) or 0)/100:.1f} Cr. "
                             f"Lock incremental visibility + assortment to defend the momentum."})
     # 3. Decliners
-    decl = [c for c in primary["by_chain"] if c["yoy"] is not None and c["yoy"] < 0 and (c["fy25"] or 0) > 150]
+    decl = [c for c in primary["by_chain"] if c["yoy"] is not None and c["yoy"] < 0 and (c.get(_prev_fy) or 0) > 150]
     decl.sort(key=lambda d: d["yoy"])
     if decl:
         d = decl[0]
         ins.append({"type": "risk", "title": "Scaled chain in decline",
-                    "text": f"{d['name']} fell {d['yoy']:.0f}% YoY (₹{d['fy25']/100:.1f}→₹{d['fy26']/100:.1f} Cr). "
+                    "text": f"{d['name']} fell {d['yoy']:.0f}% YoY (₹{(d.get(_prev_fy) or 0)/100:.1f}→₹{(d.get(_curr_fy) or 0)/100:.1f} Cr). "
                             f"Diagnose range/fill-rate and reset the JBP."})
     # 4. Sell-in vs sell-out (inventory health)
     gaps = []
     for name, p in pc.items():
         o = oc.get(name)
-        if o and (o["fy26"] or 0) > 200 and (p["fy26"] or 0) > 0:
-            ratio = (p["fy26"] or 0) / (o["fy26"] or 1)
-            gaps.append((name, ratio, p["fy26"], o["fy26"]))
+        if o and (o.get(_curr_fy) or 0) > 200 and (p.get(_curr_fy) or 0) > 0:
+            ratio = (p.get(_curr_fy) or 0) / (o.get(_curr_fy) or 1)
+            gaps.append((name, ratio, p.get(_curr_fy) or 0, o.get(_curr_fy) or 0))
     over = [x for x in gaps if x[1] > 1.15]
     over.sort(key=lambda x: -x[1])
     if over:
         n, ratio, pp, oo = over[0]
         ins.append({"type": "risk", "title": "Primary running ahead of offtake",
-                    "text": f"At {n}, primary is {ratio:.2f}x offtake in FY25-26 "
+                    "text": f"At {n}, primary is {ratio:.2f}x offtake in {_prev_fy.upper()}-{_curr_fy.upper()} "
                             f"(₹{pp/100:.1f} Cr in vs ₹{oo/100:.1f} Cr out) — watch for stock build-up "
                             f"and returns risk; tighten ordering to sell-out."})
     under = [x for x in gaps if x[1] < 0.9]
@@ -2214,8 +2226,8 @@ def insights_block(primary, offtake, pnl, universe, promo):
     prod = []
     for name, u in uc.items():
         p = pc.get(name)
-        if p and u["stores"] > 50 and (p["fy26"] or 0) > 0:
-            prod.append((name, (p["fy26"] or 0) / u["stores"], u["stores"], p["fy26"]))
+        if p and u["stores"] > 50 and (p.get(_curr_fy) or 0) > 0:
+            prod.append((name, (p.get(_curr_fy) or 0) / u["stores"], u["stores"], p.get(_curr_fy) or 0))
     if prod:
         prod.sort(key=lambda x: x[1])
         n, ppsk, stores, nsv = prod[0]
@@ -2223,12 +2235,12 @@ def insights_block(primary, offtake, pnl, universe, promo):
                     "text": f"{n} has {stores:,} active stores but only ₹{nsv/100:.1f} Cr primary "
                             f"(₹{ppsk:.1f} L/store) — large headroom to lift productivity per door."})
     # 7. Brand mix
-    bm = sorted(primary["by_brand"], key=lambda d: -(d["fy26"] or 0))
+    bm = sorted(primary["by_brand"], key=lambda d: -(d.get(_curr_fy) or 0))
     if bm:
         lead = bm[0]
-        bshare = (lead["fy26"] or 0) / (primary["nsv_fy26"] or 1) * 100
+        bshare = (lead.get(_curr_fy) or 0) / (primary.get(f"nsv_{_curr_fy}") or 1) * 100
         ins.append({"type": "watch", "title": "Portfolio mix",
-                    "text": f"{lead['name']} is {bshare:.0f}% of FY25-26 MT primary. "
+                    "text": f"{lead['name']} is {bshare:.0f}% of {_prev_fy.upper()}-{_curr_fy.upper()} MT primary. "
                             f"Scale Aqualogica / The Derma Co to broaden the portfolio in MT."})
     # 8. Forecast headline handled in forecast tab
     return ins
@@ -2494,12 +2506,15 @@ def load_dist_cont_weights(src):
         src_label = "xlsx"
 
     w.columns = [str(c).strip() for c in w.columns]
+    # Normalise underscore vs space column names
+    _col_map = {"Ship_To_Name": "Ship To Name", "Chain_Name": "Chain Name"}
+    w = w.rename(columns=_col_map)
     w = w.dropna(subset=["Ship To Name", "Chain Name"])
 
     # Handle both CSV and XLSX column names
     cont_col = "Cont_Pct" if "Cont_Pct" in w.columns else "Secondary contribution %"
     month_col = "Month" if "Month" in w.columns else "Revised month"
-    chain_col = "Chain_Name" if "Chain_Name" in w.columns else "Chain Name"
+    chain_col = "Chain Name"
 
     w = w[w[cont_col].notna()]
     w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
@@ -3664,14 +3679,18 @@ def main():
         weights = load_chain_allocation_weights(src)
         allocated, qc = apply_chain_allocation(raw, weights)
         pdf, primary = primary_block(allocated)
-        pnl = pnl_block(pdf, obj["promo"])
-        insights = insights_block(primary, obj["offtake"], pnl, obj["universe"], obj["promo"])
+        _promo = obj.get("promo") or {"n_promos": 0, "avg_depth": 0, "by_chain": [], "lines": []}
+        _universe = obj.get("universe") or {"by_zone": [], "by_chain": [], "chains": [], "n_chains": 0}
+        pnl = pnl_block(pdf, _promo)
+        insights = insights_block(primary, obj["offtake"], pnl, _universe, _promo)
         obj["primary"] = primary
         obj["pnl"] = pnl
         obj["insights"] = insights
         if qc is not None:
             obj["chain_allocation_qc"] = qc
-        print(f"primary-only: FY25 {primary['nsv_fy25']} / FY26 {primary['nsv_fy26']} (Lakh); "
+        _fy_tags = primary.get("fy_tags", [])
+        _nsv_summary = " / ".join(f"{t.upper()} {primary.get(f'nsv_{t}', 'N/A')}" for t in _fy_tags)
+        print(f"primary-only: {_nsv_summary} (Lakh); "
               + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
                  if qc else "no allocation file found -- chain tags left as-is"))
         _safe_write_data_js(
