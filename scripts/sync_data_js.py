@@ -119,6 +119,7 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     # Grand totals for each FY — exclude Pan India to prevent double-count
     # Use by_chain_offtake if available (ingested primary CSV data), otherwise use zone totals
     by_chain_offtake = master.get("by_chain_offtake", {})
+    by_chain_breakdown = None
 
     for fy_key in ["fy25", "fy26", "fy27"]:
         # Prefer chain-level totals if available (they're more complete)
@@ -128,16 +129,21 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
                 # Convert from Crore to Lakh (multiply by 100)
                 chain_total_lakh = chain_total_cr * CRORE_TO_LAKH
                 offtake_block[f"total_{fy_key}"] = round(chain_total_lakh, 2)
-                # Populate by_chain for dashboard display (convert to Lakh)
-                offtake_block["by_chain"] = [
-                    {"name": chain, "value": round(value * CRORE_TO_LAKH, 2)}
-                    for chain, value in sorted(by_chain_offtake[fy_key].items(), key=lambda x: x[1], reverse=True)
-                ]
+                # Use FY26 chain breakdown (most complete full-year data)
+                if fy_key == "fy26":
+                    by_chain_breakdown = [
+                        {"name": chain, "value": round(value * CRORE_TO_LAKH, 2)}
+                        for chain, value in sorted(by_chain_offtake[fy_key].items(), key=lambda x: x[1], reverse=True)
+                    ]
         else:
             # Fall back to zone-based totals (already in Lakh)
             total = sum(z.get(fy_key, 0) for z in by_zone)
             if total > 0:
                 offtake_block[f"total_{fy_key}"] = round(total, 2)
+
+    # Add FY26 chain breakdown to offtake block
+    if by_chain_breakdown:
+        offtake_block["by_chain"] = by_chain_breakdown
 
     # YoY for FY26 vs FY25 — keep as a percentage, do NOT multiply by CRORE_TO_LAKH
     fy25_total = offtake_block.get("total_fy25", 0)
@@ -173,10 +179,12 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     offtake_block["months"] = combined_months
     offtake_block["monthly"] = combined_monthly
 
-    # by_chain, by_state: empty — source data has no chain/state breakdown yet
-    offtake_block["by_chain"] = []
-    offtake_block["by_state"] = []
-    offtake_block["n_chains"] = 0
+    # by_chain, by_state: preserve chain breakdown if populated, otherwise empty
+    if "by_chain" not in offtake_block:
+        offtake_block["by_chain"] = []
+    if "by_state" not in offtake_block:
+        offtake_block["by_state"] = []
+    offtake_block["n_chains"] = len(offtake_block.get("by_chain", []))
 
     # Blocks controlled by this script
     sync_blocks = {
