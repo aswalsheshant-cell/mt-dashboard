@@ -4,10 +4,19 @@ Milestone 2: Generate dashboard/enriched_metrics.json
 Pre-aggregates Primary NSV, Offtake, Pipeline Ratio, TGT vs ACH, and MoM/YoY
 trajectories by Zone, Chain, and Category for use by the PPTX generator and
 any downstream analytics scripts.
+
+Chain FY26 source: primary.by_chain (pre-aggregated, 100% match with
+  authoritative Excel — full chain universe guaranteed).
+Chain FY27 source: primary.by_chain (patched from Chain_Wise_Primary_Sale.xlsx
+  via patch_fy27_chain_from_excel.py).
+Zone / Brand / Category: detail_records (correct for all three dimensions).
 """
-import json, re
+import json, re, sys
 from pathlib import Path
 from datetime import date
+
+sys.path.insert(0, str(Path(__file__).parent))
+from chain_aliases import normalize
 
 # ── Load DASH ────────────────────────────────────────────────────────────────
 raw = open('dashboard/data.js').read()
@@ -38,15 +47,49 @@ REC = D.get('detail_records', [])
 FY26_FILTER = {'FY26', 'fy26'}
 FY27_FILTER = {'FY27', 'fy27'}
 
-# Primary NSV by dimension
+# ── Zone / Brand / Category: from detail_records (full & correct) ──────────────
 primary_fy26_zone    = agg_detail(REC, 'Zone',     FY26_FILTER)
 primary_fy27_zone    = agg_detail(REC, 'Zone',     FY27_FILTER)
-primary_fy26_chain   = agg_detail(REC, 'Chain',    FY26_FILTER)
-primary_fy27_chain   = agg_detail(REC, 'Chain',    FY27_FILTER)
 primary_fy26_brand   = agg_detail(REC, 'Brand',    FY26_FILTER)
 primary_fy27_brand   = agg_detail(REC, 'Brand',    FY27_FILTER)
 primary_fy26_cat     = agg_detail(REC, 'Category', FY26_FILTER)
 primary_fy27_cat     = agg_detail(REC, 'Category', FY27_FILTER)
+
+# ── Chain: authoritative source = primary.by_chain (pre-aggregated) ───────────
+# FY26 and FY27 both come from primary.by_chain (patched from Excel for FY27).
+# This guarantees full chain coverage: Lulu, VMM, Sancus(RMT), H&G, More Retail,
+# Spencer, etc. which may be absent or incomplete in detail_records.
+_pbc = D.get('primary', {}).get('by_chain', [])
+primary_fy26_chain: dict[str, dict] = {}
+primary_fy27_chain: dict[str, dict] = {}
+for entry in _pbc:
+    canon = normalize(entry.get('name', ''))
+    if not canon:
+        continue
+    fy26_nsv = r2(entry.get('fy26', 0) or 0)
+    fy27_nsv = r2(entry.get('fy27', 0) or 0)
+    # Merge duplicate canonical names (safety guard)
+    if canon in primary_fy26_chain:
+        primary_fy26_chain[canon]['nsv'] = r2(primary_fy26_chain[canon]['nsv'] + fy26_nsv)
+        primary_fy27_chain[canon]['nsv'] = r2(primary_fy27_chain[canon]['nsv'] + fy27_nsv)
+    else:
+        primary_fy26_chain[canon] = {'nsv': fy26_nsv, 'qty': 0.0}
+        primary_fy27_chain[canon] = {'nsv': fy27_nsv, 'qty': 0.0}
+
+# Monthly FY27 per chain: from detail_records (with name normalisation applied)
+# Note: chains absent from detail_records will have an empty monthly dict —
+# their FY27 total still comes from primary.by_chain above.
+_monthly_chain_raw: dict[str, dict] = {}
+for rec in REC:
+    if rec.get('FY', rec.get('fy', '')) not in FY27_FILTER:
+        continue
+    raw_chain = rec.get('Chain', rec.get('chain', '')) or 'Unknown'
+    chain = normalize(raw_chain)
+    month = rec.get('Month', rec.get('month', ''))
+    nsv   = float(rec.get('NSV', rec.get('nsv', 0)) or 0)
+    if chain not in _monthly_chain_raw:
+        _monthly_chain_raw[chain] = {}
+    _monthly_chain_raw[chain][month] = _monthly_chain_raw[chain].get(month, 0) + nsv
 
 # Offtake by dimension
 offtake_data = D.get('offtake', {})
@@ -62,28 +105,21 @@ fyx = D.get('detail_meta', {}).get('fyx_primary', {}).get('FY27', {})
 months_covered = fyx.get('months_covered', [])
 
 monthly_fy27_zone = {}
-monthly_fy27_chain = {}
 for rec in REC:
     fy = rec.get('FY', rec.get('fy', ''))
     if fy not in FY27_FILTER:
         continue
     month = rec.get('Month', rec.get('month', ''))
     zone  = rec.get('Zone', rec.get('zone', '')) or 'Unknown'
-    chain = rec.get('Chain', rec.get('chain', '')) or 'Unknown'
     nsv   = float(rec.get('NSV', rec.get('nsv', 0)) or 0)
-
     if zone not in monthly_fy27_zone:
         monthly_fy27_zone[zone] = {}
     monthly_fy27_zone[zone][month] = monthly_fy27_zone[zone].get(month, 0) + nsv
 
-    if chain not in monthly_fy27_chain:
-        monthly_fy27_chain[chain] = {}
-    monthly_fy27_chain[chain][month] = monthly_fy27_chain[chain].get(month, 0) + nsv
-
-# Round
-for dim in [monthly_fy27_zone, monthly_fy27_chain]:
-    for k in dim:
-        dim[k] = {m: r2(v) for m, v in dim[k].items()}
+# Round zone monthly; chain monthly already accumulated in _monthly_chain_raw above
+for k in monthly_fy27_zone:
+    monthly_fy27_zone[k] = {m: r2(v) for m, v in monthly_fy27_zone[k].items()}
+monthly_fy27_chain = {k: {m: r2(v) for m, v in v2.items()} for k, v2 in _monthly_chain_raw.items()}
 
 # ── Pipeline Ratio & TGT vs ACH ───────────────────────────────────────────────
 GROWTH_TGT = 1.20  # 20% growth target over FY26 as FY27 target proxy
