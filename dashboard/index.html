@@ -238,7 +238,20 @@ function chartDlHtml(id){
 }
 
 let charts=[];
-function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; }
+let activeTabId=null;  // Track active tab to scope chart destruction
+function destroyCharts(){
+  // Properly destroy Chart.js instances and remove canvas elements from DOM to prevent memory leaks.
+  charts.forEach(c=>{
+    try{
+      c.destroy();
+      if(c.canvas) c.canvas.remove();  // Remove canvas from DOM to free memory
+    }catch(e){}
+  });
+  charts=[];
+}
+// Debounce utility for filter changes — prevents rapid re-renders during cascade filter updates.
+// Waits 120ms after the last filter change before rebuilding tabs (typical cascade delay).
+const debounce=(fn,ms=120)=>{let t;return (...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),ms);};};
 // shared click-to-drill: any chart passed an onClick(label) callback gets a
 // pointer cursor + a click handler that resolves the clicked label and drills.
 function _drillOpts(onClick){
@@ -1534,8 +1547,20 @@ const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','
 // (empty = All). Values in a dimension are OR'd together; dimensions are
 // AND'd, same as before.
 const F={}; FILT.forEach(([k])=>F[k]=[]);
+// FILTER_SETS: Pre-computed Set instances for O(1) lookups. Rebuilt on every filter change.
+// Replaces O(n) Array.includes() checks with O(1) Set.has() for faster filtering.
+const FILTER_SETS=new Map();
+function updateFilterSets(){
+  FILTER_SETS.clear();
+  Object.entries(F).forEach(([dim,vals])=>{
+    if(vals.length) FILTER_SETS.set(dim, new Set(vals));
+  });
+}
 const fOn =k=>F[k].length>0;                                 // dimension filtered at all?
-const fHas=(k,v)=>!F[k].length||F[k].includes(String(v));    // does value v pass dimension k?
+const fHas=(k,v)=>{  // O(1) lookup via Set instead of O(n) Array.includes
+  const set=FILTER_SETS.get(k);
+  return set ? set.has(String(v)) : true;  // if no set, dimension is unfiltered (all pass)
+};
 const fLab=k=>F[k].join(', ');                               // display label ('' when unfiltered)
 const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one selection or null
 
@@ -1592,17 +1617,23 @@ function renderFilterBar(){
       if(v==='') F[k]=[];
       else{ const i=F[k].indexOf(v); if(i>=0) F[k].splice(i,1); else F[k].push(v); }
       if(k==='Category'&&!F[k].length) catChartDrill=null;
-      onFilterChange();
+      onFilterChangeDebounced();  // Debounce to avoid rapid re-renders on cascade filter changes
     };
   });
-  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;onFilterChange();};
+  document.getElementById('fReset').onclick=()=>{FILT.forEach(([k])=>F[k]=[]);catChartDrill=null;onFilterChange();};  // Reset is immediate
   fb.querySelectorAll('.fchip b').forEach(b=>b.onclick=()=>{
     F[b.dataset.k]=F[b.dataset.k].filter(x=>x!==b.dataset.v);
     if(b.dataset.k==='Category'&&!F.Category.length) catChartDrill=null;
-    onFilterChange();
+    onFilterChangeDebounced();  // Debounce to avoid rapid re-renders
   });
 }
-function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
+function onFilterChange(){
+  updateFilterSets();  // Rebuild the O(1) filter lookup sets before rendering
+  renderFilterBar();
+  show(currentTab||'overview');
+}
+// Debounced filter change: prevents rapid re-renders when multiple filter events fire in quick succession.
+const onFilterChangeDebounced=debounce(onFilterChange);
 
 // cross-tab drill-down: click any chart bar/segment/table-row on ANY tab to
 // set that one filter and re-render the SAME tab narrowed to it -- drilling
@@ -2379,6 +2410,7 @@ const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,
 let currentTab='overview';
 function show(id){
   currentTab=id;
+  activeTabId=id;  // Track active tab for scoped chart destruction
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
   document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id==='tab-'+id));
   // every tab always rebuilds from the CURRENT filter state (no stale cache) --
@@ -2400,6 +2432,7 @@ function show(id){
   document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}`;
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
+  updateFilterSets();  // Initialize the O(1) filter lookup sets
   renderFilterBar();
   show('overview');
 })();
