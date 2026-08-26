@@ -59,7 +59,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@v4.1
 
       - name: Validate HTML structure
         run: |
@@ -174,7 +174,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@v4.1
 
       - name: Set up Node.js
         uses: actions/setup-node@v4.0
