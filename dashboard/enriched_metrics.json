@@ -1,0 +1,721 @@
+{
+  "generated_at": "2026-08-26",
+  "data_source": "dashboard/data.js (window.DASH)",
+  "fy27_period": "April \u2013 July",
+  "months_covered": [
+    "April",
+    "May",
+    "June",
+    "July"
+  ],
+  "months_ytd": 4,
+  "growth_target_pct": 120.0,
+  "topline": {
+    "primary_fy25": 0.0,
+    "primary_fy26": 32900.36,
+    "primary_fy27_ytd": 18005.16,
+    "offtake_fy26": 22703.0,
+    "offtake_fy27_ytd": 13220.0,
+    "yoy_fy26_pct": null,
+    "pipeline_ratio_fy26": 1.45,
+    "pipeline_ratio_fy27": 1.36
+  },
+  "by_zone": [
+    {
+      "name": "Central",
+      "fy26_nsv": 1243.29,
+      "fy27_ytd": 814.11,
+      "fy27_run_rate": 2442.33,
+      "fy27_tgt": 1491.95,
+      "fy27_ach_pct": 54.57,
+      "gap_vs_tgt": -677.84,
+      "pipeline_ratio_fy26": 1.35,
+      "pipeline_ratio_fy27": 0.74,
+      "pipeline_flag": "stockout",
+      "status": "escalate",
+      "monthly_fy27": {
+        "July": 257.75,
+        "April": 210.1,
+        "May": 185.69,
+        "June": 160.57
+      }
+    },
+    {
+      "name": "East",
+      "fy26_nsv": 3691.59,
+      "fy27_ytd": 2181.62,
+      "fy27_run_rate": 6544.86,
+      "fy27_tgt": 4429.91,
+      "fy27_ach_pct": 49.25,
+      "gap_vs_tgt": -2248.29,
+      "pipeline_ratio_fy26": 1.38,
+      "pipeline_ratio_fy27": 1.61,
+      "pipeline_flag": "high_risk",
+      "status": "escalate",
+      "monthly_fy27": {
+        "May": 493.45,
+        "June": 395.34,
+        "July": 750.27,
+        "April": 542.56
+      }
+    },
+    {
+      "name": "North",
+      "fy26_nsv": 6116.73,
+      "fy27_ytd": 3584.64,
+      "fy27_run_rate": 10753.92,
+      "fy27_tgt": 7340.08,
+      "fy27_ach_pct": 48.84,
+      "gap_vs_tgt": -3755.44,
+      "pipeline_ratio_fy26": 1.34,
+      "pipeline_ratio_fy27": 1.38,
+      "pipeline_flag": "healthy",
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 907.88,
+        "July": 1145.82,
+        "June": 741.5,
+        "May": 789.44
+      }
+    },
+    {
+      "name": "South 1",
+      "fy26_nsv": 7102.41,
+      "fy27_ytd": 4168.24,
+      "fy27_run_rate": 12504.72,
+      "fy27_tgt": 8522.89,
+      "fy27_ach_pct": 48.91,
+      "gap_vs_tgt": -4354.65,
+      "pipeline_ratio_fy26": 1.37,
+      "pipeline_ratio_fy27": 1.28,
+      "pipeline_flag": "healthy",
+      "status": "escalate",
+      "monthly_fy27": {
+        "May": 1065.97,
+        "April": 1095.42,
+        "June": 1058.41,
+        "July": 948.44
+      }
+    },
+    {
+      "name": "South 2",
+      "fy26_nsv": 4639.77,
+      "fy27_ytd": 2612.39,
+      "fy27_run_rate": 7837.17,
+      "fy27_tgt": 5567.72,
+      "fy27_ach_pct": 46.92,
+      "gap_vs_tgt": -2955.33,
+      "pipeline_ratio_fy26": 1.49,
+      "pipeline_ratio_fy27": 1.37,
+      "pipeline_flag": "healthy",
+      "status": "escalate",
+      "monthly_fy27": {
+        "June": 644.7,
+        "July": 674.01,
+        "April": 731.09,
+        "May": 562.59
+      }
+    },
+    {
+      "name": "West",
+      "fy26_nsv": 8673.04,
+      "fy27_ytd": 4644.16,
+      "fy27_run_rate": 13932.48,
+      "fy27_tgt": 10407.65,
+      "fy27_ach_pct": 44.62,
+      "gap_vs_tgt": -5763.49,
+      "pipeline_ratio_fy26": 1.38,
+      "pipeline_ratio_fy27": 1.54,
+      "pipeline_flag": "high_risk",
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 1458.66,
+        "May": 1176.34,
+        "June": 1029.57,
+        "July": 979.59
+      }
+    }
+  ],
+  "by_chain": [
+    {
+      "name": "Unmapped Chain",
+      "fy26_nsv": 11009.95,
+      "fy27_ytd": 5946.49,
+      "fy27_run_rate": 17839.47,
+      "fy27_tgt": 13211.94,
+      "fy27_ach_pct": 45.01,
+      "gap_vs_tgt": -7265.45,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 1881.38,
+        "June": 1357.07,
+        "July": 1332.51,
+        "May": 1375.53
+      }
+    },
+    {
+      "name": "Reliance Retail",
+      "fy26_nsv": 7087.84,
+      "fy27_ytd": 4137.82,
+      "fy27_run_rate": 12413.46,
+      "fy27_tgt": 8505.41,
+      "fy27_ach_pct": 48.65,
+      "gap_vs_tgt": -4367.59,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "June": 849.43,
+        "July": 1514.17,
+        "May": 880.78,
+        "April": 893.44
+      }
+    },
+    {
+      "name": "Dmart",
+      "fy26_nsv": 6432.01,
+      "fy27_ytd": 3758.9,
+      "fy27_run_rate": 11276.7,
+      "fy27_tgt": 7718.41,
+      "fy27_ach_pct": 48.7,
+      "gap_vs_tgt": -3959.51,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 1031.69,
+        "May": 922.33,
+        "June": 890.92,
+        "July": 913.96
+      }
+    },
+    {
+      "name": "Apollo",
+      "fy26_nsv": 3708.27,
+      "fy27_ytd": 2596.94,
+      "fy27_run_rate": 7790.82,
+      "fy27_tgt": 4449.92,
+      "fy27_ach_pct": 58.36,
+      "gap_vs_tgt": -1852.98,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 674.0,
+        "June": 625.56,
+        "July": 577.42,
+        "May": 719.96
+      }
+    },
+    {
+      "name": "Nykaa (FSN)",
+      "fy26_nsv": 1383.95,
+      "fy27_ytd": 674.16,
+      "fy27_run_rate": 2022.48,
+      "fy27_tgt": 1660.74,
+      "fy27_ach_pct": 40.59,
+      "gap_vs_tgt": -986.58,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "July": 162.64,
+        "April": 217.95,
+        "June": 163.61,
+        "May": 129.96
+      }
+    },
+    {
+      "name": "Wellness Forever",
+      "fy26_nsv": 864.6,
+      "fy27_ytd": 325.21,
+      "fy27_run_rate": 975.63,
+      "fy27_tgt": 1037.52,
+      "fy27_ach_pct": 31.34,
+      "gap_vs_tgt": -712.31,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 118.51,
+        "May": 91.79,
+        "June": 66.54,
+        "July": 48.37
+      }
+    },
+    {
+      "name": "Metro C&C",
+      "fy26_nsv": 363.35,
+      "fy27_ytd": 266.41,
+      "fy27_run_rate": 799.23,
+      "fy27_tgt": 436.02,
+      "fy27_ach_pct": 61.1,
+      "gap_vs_tgt": -169.61,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "monitor",
+      "monthly_fy27": {
+        "May": 46.21,
+        "July": 151.87,
+        "April": 42.41,
+        "June": 25.92
+      }
+    },
+    {
+      "name": "Walmart",
+      "fy26_nsv": 209.98,
+      "fy27_ytd": 34.62,
+      "fy27_run_rate": 103.86,
+      "fy27_tgt": 251.98,
+      "fy27_ach_pct": 13.74,
+      "gap_vs_tgt": -217.36,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 10.46,
+        "May": 24.49,
+        "June": -0.33
+      }
+    },
+    {
+      "name": "V-Mart",
+      "fy26_nsv": 95.43,
+      "fy27_ytd": 30.83,
+      "fy27_run_rate": 92.49,
+      "fy27_tgt": 114.52,
+      "fy27_ach_pct": 26.92,
+      "gap_vs_tgt": -83.69,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "July": 12.61,
+        "May": 16.38,
+        "April": 3.62,
+        "June": -1.78
+      }
+    },
+    {
+      "name": "Eremedium",
+      "fy26_nsv": 65.86,
+      "fy27_ytd": 25.96,
+      "fy27_run_rate": 77.88,
+      "fy27_tgt": 79.03,
+      "fy27_ach_pct": 32.85,
+      "gap_vs_tgt": -53.07,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "May": 6.31,
+        "April": 7.55,
+        "July": 12.1
+      }
+    },
+    {
+      "name": "Azorte",
+      "fy26_nsv": 58.93,
+      "fy27_ytd": 16.48,
+      "fy27_run_rate": 49.44,
+      "fy27_tgt": 70.72,
+      "fy27_ach_pct": 23.3,
+      "gap_vs_tgt": -54.24,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "June": 15.21,
+        "May": 0.44,
+        "July": 0.35,
+        "April": 0.48
+      }
+    },
+    {
+      "name": "Trent",
+      "fy26_nsv": 55.83,
+      "fy27_ytd": 39.28,
+      "fy27_run_rate": 117.84,
+      "fy27_tgt": 67.0,
+      "fy27_ach_pct": 58.63,
+      "gap_vs_tgt": -27.72,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "May": 16.1,
+        "June": 8.86,
+        "April": 6.34,
+        "July": 7.98
+      }
+    },
+    {
+      "name": "H&G",
+      "fy26_nsv": 52.82,
+      "fy27_ytd": 138.99,
+      "fy27_run_rate": 416.97,
+      "fy27_tgt": 63.38,
+      "fy27_ach_pct": 219.3,
+      "gap_vs_tgt": 75.61,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "on_track",
+      "monthly_fy27": {
+        "April": 51.36,
+        "May": 41.82,
+        "June": 29.08,
+        "July": 16.73
+      }
+    },
+    {
+      "name": "Shoppers Stop",
+      "fy26_nsv": 46.68,
+      "fy27_ytd": 5.57,
+      "fy27_run_rate": 16.71,
+      "fy27_tgt": 56.02,
+      "fy27_ach_pct": 9.94,
+      "gap_vs_tgt": -50.45,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 5.57
+      }
+    },
+    {
+      "name": "Ascent Wellness",
+      "fy26_nsv": 24.06,
+      "fy27_ytd": 0.0,
+      "fy27_run_rate": 0.0,
+      "fy27_tgt": 28.87,
+      "fy27_ach_pct": 0.0,
+      "gap_vs_tgt": -28.87,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {}
+    },
+    {
+      "name": "Guardian",
+      "fy26_nsv": 5.32,
+      "fy27_ytd": 3.08,
+      "fy27_run_rate": 9.24,
+      "fy27_tgt": 6.38,
+      "fy27_ach_pct": 48.28,
+      "gap_vs_tgt": -3.3,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "May": 1.38,
+        "April": 0.95,
+        "July": 0.75
+      }
+    },
+    {
+      "name": "Broadway",
+      "fy26_nsv": 1.68,
+      "fy27_ytd": 0.0,
+      "fy27_run_rate": 0.0,
+      "fy27_tgt": 2.02,
+      "fy27_ach_pct": 0.0,
+      "gap_vs_tgt": -2.02,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {}
+    },
+    {
+      "name": "Lifestyle",
+      "fy26_nsv": 1.34,
+      "fy27_ytd": 0.0,
+      "fy27_run_rate": 0.0,
+      "fy27_tgt": 1.61,
+      "fy27_ach_pct": 0.0,
+      "gap_vs_tgt": -1.61,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {}
+    },
+    {
+      "name": "SAI SAACHI ASSOCIATES-MT-OR",
+      "fy26_nsv": 0.28,
+      "fy27_ytd": 0.0,
+      "fy27_run_rate": 0.0,
+      "fy27_tgt": 0.34,
+      "fy27_ach_pct": 0.0,
+      "gap_vs_tgt": -0.34,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {}
+    },
+    {
+      "name": "CARREFOUR",
+      "fy26_nsv": 0.0,
+      "fy27_ytd": 1.77,
+      "fy27_run_rate": 5.31,
+      "fy27_tgt": 0.0,
+      "fy27_ach_pct": null,
+      "gap_vs_tgt": 1.77,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "July": 1.77
+      }
+    },
+    {
+      "name": "WH-Smith",
+      "fy26_nsv": -0.44,
+      "fy27_ytd": 2.65,
+      "fy27_run_rate": 7.95,
+      "fy27_tgt": -0.53,
+      "fy27_ach_pct": -500.0,
+      "gap_vs_tgt": 3.18,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "July": 2.65
+      }
+    },
+    {
+      "name": "Octopolis Technologies Pvt Ltd",
+      "fy26_nsv": -0.91,
+      "fy27_ytd": 0.0,
+      "fy27_run_rate": 0.0,
+      "fy27_tgt": -1.09,
+      "fy27_ach_pct": 0.0,
+      "gap_vs_tgt": 1.09,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {}
+    }
+  ],
+  "by_category": [
+    {
+      "name": "Face",
+      "fy26_nsv": 18397.52,
+      "fy27_ytd": 12198.84,
+      "fy27_run_rate": 36596.52,
+      "fy27_tgt": 22077.02,
+      "fy27_ach_pct": 55.26,
+      "gap_vs_tgt": -9878.18,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Hair",
+      "fy26_nsv": 7817.16,
+      "fy27_ytd": 4058.98,
+      "fy27_run_rate": 12176.94,
+      "fy27_tgt": 9380.59,
+      "fy27_ach_pct": 43.27,
+      "gap_vs_tgt": -5321.61,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Body",
+      "fy26_nsv": 2963.19,
+      "fy27_ytd": 836.06,
+      "fy27_run_rate": 2508.18,
+      "fy27_tgt": 3555.83,
+      "fy27_ach_pct": 23.51,
+      "gap_vs_tgt": -2719.77,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Baby",
+      "fy26_nsv": 2220.83,
+      "fy27_ytd": 864.66,
+      "fy27_run_rate": 2593.98,
+      "fy27_tgt": 2665.0,
+      "fy27_ach_pct": 32.45,
+      "gap_vs_tgt": -1800.34,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Styling Products",
+      "fy26_nsv": 27.51,
+      "fy27_ytd": 14.31,
+      "fy27_run_rate": 42.93,
+      "fy27_tgt": 33.01,
+      "fy27_ach_pct": 43.35,
+      "gap_vs_tgt": -18.7,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Fragrances",
+      "fy26_nsv": 26.84,
+      "fy27_ytd": 0.91,
+      "fy27_run_rate": 2.73,
+      "fy27_tgt": 32.21,
+      "fy27_ach_pct": 2.83,
+      "gap_vs_tgt": -31.3,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Hair Colour",
+      "fy26_nsv": 13.08,
+      "fy27_ytd": 9.08,
+      "fy27_run_rate": 27.24,
+      "fy27_tgt": 15.7,
+      "fy27_ach_pct": 57.83,
+      "gap_vs_tgt": -6.62,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Hair Care",
+      "fy26_nsv": 12.18,
+      "fy27_ytd": 4.1,
+      "fy27_run_rate": 12.3,
+      "fy27_tgt": 14.62,
+      "fy27_ach_pct": 28.04,
+      "gap_vs_tgt": -10.52,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Fragrance",
+      "fy26_nsv": 5.37,
+      "fy27_ytd": 3.63,
+      "fy27_run_rate": 10.89,
+      "fy27_tgt": 6.44,
+      "fy27_ach_pct": 56.37,
+      "gap_vs_tgt": -2.81,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Combo",
+      "fy26_nsv": 0.0,
+      "fy27_ytd": 17.48,
+      "fy27_run_rate": 52.44,
+      "fy27_tgt": 0.0,
+      "fy27_ach_pct": null,
+      "gap_vs_tgt": 17.48,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    },
+    {
+      "name": "Color Care",
+      "fy26_nsv": -16.85,
+      "fy27_ytd": -2.89,
+      "fy27_run_rate": -8.67,
+      "fy27_tgt": -20.22,
+      "fy27_ach_pct": 14.29,
+      "gap_vs_tgt": 17.33,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate"
+    }
+  ],
+  "by_brand": [
+    {
+      "name": "Aqualogica",
+      "fy26_nsv": 530.18,
+      "fy27_ytd": 332.25
+    },
+    {
+      "name": "BBlunt",
+      "fy26_nsv": 52.77,
+      "fy27_ytd": 27.49
+    },
+    {
+      "name": "Dr. Sheth's",
+      "fy26_nsv": 14.81,
+      "fy27_ytd": 11.79
+    },
+    {
+      "name": "Lumineve",
+      "fy26_nsv": 0,
+      "fy27_ytd": 5.57
+    },
+    {
+      "name": "Mamaearth",
+      "fy26_nsv": 26201.91,
+      "fy27_ytd": 12166.5
+    },
+    {
+      "name": "Pure Origin",
+      "fy26_nsv": 3.72,
+      "fy27_ytd": -0.32
+    },
+    {
+      "name": "The Derma Co",
+      "fy26_nsv": 4663.44,
+      "fy27_ytd": 5461.88
+    }
+  ],
+  "unmapped_chains": [
+    {
+      "chain": "Unmapped Chain",
+      "fy27_ytd_nsv": 5946.49,
+      "fy26_nsv": 11009.95
+    }
+  ],
+  "pipeline_health": {
+    "high_risk_chains": [],
+    "healthy_chains": [],
+    "stockout_chains": [],
+    "thresholds": {
+      "high_risk": ">1.40",
+      "healthy": "0.75\u20131.40",
+      "stockout": "<0.75"
+    }
+  }
+}

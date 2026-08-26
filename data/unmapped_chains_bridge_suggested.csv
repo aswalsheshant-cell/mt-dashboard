@@ -1,0 +1,11 @@
+cust_code,ship_to,total_nsv_lakh,rows_count,months,brands,cumulative_coverage_pct,suggested_chain,suggested_zone,suggested_state,confidence,notes
+1101181,Sri Vijaya Durga Agencies_Mt,2501.23,522,"April, Aug, Dec, Feb, Jan, July, June, March, May, Nov, Oct, Sept","Aqualogica, Mamaearth, The Derma Co",17.7,,,,LOW — please map manually,
+1102442,JUST MARK-Dmart_ship to,2334.23,290,"April, Aug, Dec, Feb, Jan, July, June, March, May, Nov, Oct, Sept","Mamaearth, The Derma Co",34.1,DMart,,,"MEDIUM — fuzzy match, verify before use",
+1101211,G.V Enterprises,1954.32,385,"April, Aug, Dec, Feb, Jan, July, June, March, May, Nov, Oct, Sept","Aqualogica, Mamaearth, The Derma Co",47.9,,,,LOW — please map manually,
+1104243,Kiran Trading Company_Ship to,1479.55,260,"April, Aug, Dec, Feb, Jan, July, June, March, May, Nov, Oct, Sept","Aqualogica, Mamaearth, The Derma Co",58.4,,,,LOW — please map manually,
+1104243,Kiran Trading Co_Shipto (Solapur),604.44,131,"April, Dec, Feb, Jan, July, June, March, May, Nov, Oct, Sept","Aqualogica, Mamaearth, The Derma Co",62.7,,,,LOW — please map manually,
+1101158,Az Enterprises,587.09,250,"April, Dec, Feb, Jan, July, June, March, May, Nov, Oct, Sept","Aqualogica, BBlunt, Mamaearth, The Derma Co",66.8,,,,LOW — please map manually,
+1104539,VENKATESHWARA AGENCIES-TG,552.08,237,"April, Dec, Feb, Jan, July, June, March, May, Nov","Aqualogica, BBlunt, Mamaearth, The Derma Co",70.7,,,,LOW — please map manually,
+1103031,BALAJI ASSOCIATES Distributor MT,494.45,197,"April, Aug, Dec, Feb, Jan, July, June, March, May, Nov, Oct","Mamaearth, The Derma Co",74.2,,,,LOW — please map manually,
+1101158,Az Enterprises(Apollo/More)Mt,440.48,192,"April, Aug, Dec, Feb, Jan, July, June, May, Oct, Sept","Aqualogica, BBlunt, Mamaearth, The Derma Co",77.3,Apollo Pharmacy,,,"MEDIUM — fuzzy match, verify before use",
+1102945,D.L. Sales - MT,431.79,230,"April, Aug, Dec, Feb, Jan, July, June, March, May, Nov, Oct, Sept","Aqualogica, Mamaearth, The Derma Co",80.3,,,,LOW — please map manually,
