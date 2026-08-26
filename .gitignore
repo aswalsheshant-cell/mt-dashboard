@@ -25,3 +25,8 @@ Central_Zone_Leadership_Pack_*.pptx
 July_MT_Command_Centre_*.pptx
 tpl_cmd/
 unpacked_enriched/
+
+# Playwright test artifacts
+playwright.config.js
+test_sprint6_e2e_local.js
+test-results/
