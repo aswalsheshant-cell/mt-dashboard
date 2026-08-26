@@ -31,10 +31,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@v4.1.7
 
       - name: Set up Python
-        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        uses: actions/setup-python@v5.0.0
         with:
           python-version: '3.11'
 
@@ -111,10 +111,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@v4.1.7
 
       - name: Set up Python
-        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        uses: actions/setup-python@v5.0.0
         with:
           python-version: '3.11'
 
@@ -177,7 +177,7 @@ jobs:
         uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
 
       - name: Set up Node.js
-        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8
+        uses: actions/setup-node@v4.0.1
         with:
           node-version: '22'
 
