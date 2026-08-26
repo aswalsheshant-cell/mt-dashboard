@@ -16,15 +16,19 @@ def main() -> int:
         print(f"FAIL: Cannot read {data_path}: {e}")
         return 1
 
-    # NaN-safe parse: data.js may contain bare NaN literals (SubCategory field)
+    # NaN/undefined-safe parse: data.js may contain bare NaN or undefined literals
     json_str_clean = re.sub(r'(?<!["\w])NaN(?!["\w])', 'null', json_str)
+    json_str_clean = re.sub(r'\bundefined\b', 'null', json_str_clean)
+    # Remove trailing commas before ] or } (older serialisers sometimes emit them)
+    json_str_clean = re.sub(r',\s*([}\]])', r'\1', json_str_clean)
+
     try:
         data = json.loads(json_str_clean)
     except json.JSONDecodeError as e:
         print(f"FAIL: JSON parse error: {e}")
         return 1
 
-    # ── Offtake block ────────────────────────────────────────────────────────────
+    # -- Offtake block ----
     if "offtake" not in data:
         print("FAIL: Missing 'offtake' key in data.js")
         return 1
@@ -35,15 +39,15 @@ def main() -> int:
     else:
         print(f"OK  offtake — FY27 zones: {', '.join(sorted(fy27.keys()))}")
 
-    # ── Universe block ───────────────────────────────────────────────────────────
+    # -- Universe block ----
     if "universe" not in data:
         print("FAIL: 'universe' key missing from data.js — sync_data_js.py may not have run with UniverseMT.csv")
         return 1
 
     u = data["universe"]
 
-    # 1. n_stores > 0
-    n_stores = u.get("active_stores") or u.get("total_stores") or 0
+    # 1. n_stores > 0 (accept either key: active_stores or n_stores alias)
+    n_stores = u.get("active_stores") or u.get("n_stores") or u.get("total_stores") or 0
     if not isinstance(n_stores, (int, float)) or n_stores <= 0:
         print(f"FAIL: universe.active_stores is {n_stores!r} — expected a positive integer (426)")
         return 1
@@ -75,10 +79,19 @@ def main() -> int:
         print(f"      Each entry must have {{\"name\": <str>, \"stores\": <int>}}")
         return 1
 
-    print(f"OK  universe block — {int(n_stores)} active stores, {int(n_chains)} chains, "
+    # 4. inactive_stores must be present (non-negative int)
+    n_inactive = u.get("inactive_stores")
+    if n_inactive is None:
+        print("WARN: universe.inactive_stores missing — older sync_data_js.py may have generated this file")
+    elif not isinstance(n_inactive, (int, float)) or n_inactive < 0:
+        print(f"FAIL: universe.inactive_stores is {n_inactive!r} — expected a non-negative integer")
+        return 1
+
+    inactive_note = f", {int(n_inactive)} inactive" if n_inactive is not None else ""
+    print(f"OK  universe block — {int(n_stores)} active stores{inactive_note}, {int(n_chains)} chains, "
           f"by_chain[{len(by_chain)}] schema valid")
 
-    # ── Final ────────────────────────────────────────────────────────────────────
+    # -- Final ----
     print("OK  dashboard/data.js is valid JSON")
     return 0
 
