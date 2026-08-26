@@ -1130,9 +1130,9 @@ function buildOfftake(){
      ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
        kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
      ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') :
-       kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master')}
-     ${fy? kpi('Chains Tracked',chains.length,fOn('Zone')||fOn('Chain')?'in this filter':'in offtake master') :
-       kpi('Chains Tracked',o.n_chains,'in offtake master')}
+       kpi('Chains Tracked',chains.length||(D.universe&&D.universe.n_chains)||o.n_chains,fOn('Zone')||fOn('Chain')?'in this filter':(chains.length?'in offtake master':'MT universe'))}
+     ${fy? kpi('Chains Tracked',chains.length||(D.universe&&D.universe.n_chains)||o.n_chains,fOn('Zone')||fOn('Chain')?'in this filter':(chains.length?'in offtake master':'MT universe')) :
+       kpi('Chains Tracked',(D.universe&&D.universe.n_chains)||o.n_chains,'MT universe')}
      ${kpi('Sell-through',primFor(yrs[yrs.length-1])?((totFor(yrs[yrs.length-1])/primFor(yrs[yrs.length-1]))*100).toFixed(0)+'%':'–',`offtake ÷ primary ${yrLab[yrs[yrs.length-1]]}`)}
    </div>
    <div class="grid g2">
@@ -2115,7 +2115,7 @@ const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum
 function optsFor(key){
   if(key==='FY') return FY_ALL;
   const recs=recFilter(key);
-  const vals=[...new Set(recs.map(r=>r[key]))];
+  const vals=[...new Set(recs.map(r=>r[key]))].filter(v=>v!=null&&v===v&&String(v).trim()!=='');
   if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
   else{
     const contrib={};
