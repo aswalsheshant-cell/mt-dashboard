@@ -1836,6 +1836,7 @@ function buildCategory(){
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
+let promoMonthSel='ALL';
 function buildPromo(){
   const pr=D.promo,s=document.getElementById('tab-promo');
   let chains=consolidateChains(pr.by_chain,'promos'), brandsArr=pr.by_brand||[], cats=pr.by_category||[];
@@ -1844,7 +1845,7 @@ function buildPromo(){
   if(fOn('Category')) cats=cats.filter(c=>fHas('Category',c.name));
   const promosInScope=chains.reduce((a,c)=>a+c.promos,0);
   const rows=chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.promos)}</td>
-     <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands}</td></tr>`).join('');
+     <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands==null?'–':c.brands}</td></tr>`).join('');
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
     +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
@@ -1889,21 +1890,38 @@ function buildPromo(){
     <tbody>${_tradeRows||'<tr><td colspan="6">No chain data.</td></tr>'}</tbody>
   </table></div>`)}`;
 
-  // ── Aug-26 promo calendar detail (D.promo.detail) ────────────────────────
-  const _pdet=pr.detail||null;
+  // ── Promo calendar detail — month-filterable (D.promo.monthly) ───────────
+  const _months=pr.months_available||(pr.detail?[pr.detail.month]:[]);
+  const _monthly=pr.monthly||(pr.detail?{[pr.detail.month]:pr.detail}:{});
+  if(_months.length && !_months.includes(promoMonthSel)) promoMonthSel='ALL';
+  const _pdet=promoMonthSel==='ALL'?pr.detail:(_monthly[promoMonthSel]||pr.detail);
+  const _momTrend=pr.mom_trend||[];
   let _detSection='';
+  const _monthPicker=_months.length>1?`<div style="margin:12px 0"><label style="font-size:.85em;font-weight:600;margin-right:8px">View month:</label>
+    <select id="promoMonthPicker" style="padding:4px 8px;border-radius:6px">
+      <option value="ALL"${promoMonthSel==='ALL'?' selected':''}>All ${_months.length} months (${_months[0]}–${_months[_months.length-1]})</option>
+      ${_months.map(m=>`<option value="${m}"${promoMonthSel===m?' selected':''}>${m}</option>`).join('')}
+    </select></div>`:'';
+  const _momSection=_momTrend.length>1?`
+  <h3 class="sec" style="margin:28px 0 4px">Month-on-Month Promo Trend</h3>
+  <p class="lead">SKU-promo line count and average consumer discount depth across ${_momTrend[0].month}–${_momTrend[_momTrend.length-1].month}.</p>
+  <div class="grid g2">
+    ${card('SKUs on promo by month','promo-line volume trend',cv('prmMomSkus'))}
+    ${card('Avg consumer discount depth (%) by month','blended offer depth trend',cv('prmMomDepth'))}
+  </div>`:'';
   if(_pdet){
     const _dc=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
     const _pend=(_pdet.kam_status?.pending||[]).join(', ');
     const _pendNote=_pend?`<p class="drillhint" style="margin:4px 0 0">Response pending from: ${_pend}</p>`:'';
     const _dRows=_dc.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
       <td style="text-align:right">${num(c.skus)}</td>
-      <td style="text-align:right">${c.brands}</td>
+      <td style="text-align:right">${c.brands==null?'–':c.brands}</td>
       <td style="text-align:right">${c.avg_offer_pct!=null?c.avg_offer_pct+'%':'–'}</td>
       <td>${c.kam||'–'}</td>
       <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td></tr>`).join('');
     _detSection=`
   <h3 class="sec" style="margin:28px 0 4px">Promo Calendar — ${_pdet.month||'Current Month'}</h3>
+  ${_monthPicker}
   <p class="lead">${num(_pdet.total_skus)} SKU-promo lines across ${_pdet.chains_in_promo} chains for ${_pdet.month||'this month'}.</p>
   <div class="kpis">
     ${kpi('SKUs on Promo',num(_pdet.total_skus),'promo lines this month')}
@@ -1939,7 +1957,10 @@ function buildPromo(){
    ${card('Chain-wise promo activity','Click a chain to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Chain</th><th>Promos</th><th>Avg Depth</th><th>Brands</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${drillCardHtml('prmDrill','Primary NSV')}`;
+   ${drillCardHtml('prmDrill','Primary NSV')}
+   ${_momSection}
+   ${_detSection}
+   ${_totSection}`;
   wireDrillLinks(s);
   if(!promoEmpty){
     const top=chains.slice(0,12);
@@ -1951,6 +1972,21 @@ function buildPromo(){
     mkBarH('prmCat',cats.map(c=>c.name),cats.map(c=>c.promos),C.blue,false,v=>drillTo('Category',v));
     renderDrillChart('prmDrill','Primary NSV',recFilter());
   }
+  if(_momTrend.length>1){
+    mkBar('prmMomSkus',_momTrend.map(r=>r.month),[{label:'SKUs on Promo',data:_momTrend.map(r=>r.skus),backgroundColor:C.teal,borderRadius:4}],{money:false});
+    mkBar('prmMomDepth',_momTrend.map(r=>r.month),[{label:'Avg Depth %',data:_momTrend.map(r=>r.avg_depth),backgroundColor:C.amber,borderRadius:4}],{money:false});
+    const dch=charts[charts.length-1];dch.options.scales.y.ticks.callback=v=>v+'%';
+    dch.options.plugins.tooltip.callbacks.label=c=>c.parsed.y+'%';dch.update();
+  }
+  if(_pdet){
+    const _dcSorted=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name)).slice(0,15);
+    mkBarH('prmDetChain',_dcSorted.map(c=>c.name),_dcSorted.map(c=>c.skus),C.teal,false,v=>drillTo('Chain',v));
+    mkBarH('prmDetOffer',_dcSorted.map(c=>c.name),_dcSorted.map(c=>c.avg_offer_pct),C.amber,false,v=>drillTo('Chain',v));
+    const och=charts[charts.length-1];och.options.scales.x.ticks.callback=v=>v+'%';
+    och.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';och.update();
+  }
+  const _monthPickerEl=document.getElementById('promoMonthPicker');
+  if(_monthPickerEl) _monthPickerEl.addEventListener('change',e=>{promoMonthSel=e.target.value;buildPromo();});
 }
 
 /* ---------------- PERFORMANCE & COMPARISON ---------------- */
