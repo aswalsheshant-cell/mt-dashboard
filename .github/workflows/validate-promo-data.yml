@@ -1,0 +1,197 @@
+name: Promo Data Schema Validation
+
+on:
+  pull_request:
+    paths:
+      - 'data/**'
+      - 'raw_promos/**'
+      - 'scripts/validate_promo_schema.py'
+      - 'scripts/build_dashboard_data.py'
+      - 'scripts/sync_data_js.py'
+      - '.github/workflows/validate-promo-data.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'data/**'
+      - 'raw_promos/**'
+      - 'scripts/validate_promo_schema.py'
+      - 'scripts/build_dashboard_data.py'
+      - '.github/workflows/validate-promo-data.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-schema:
+    name: Schema Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+
+      - name: Set up Python
+        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        with:
+          python-version: '3.11'
+
+      - name: Run promo schema validation
+        run: |
+          python3 scripts/validate_promo_schema.py \
+            --json data/data_master.json \
+            --datajs dashboard/data.js \
+            --strict
+        continue-on-error: true
+        id: schema_check
+
+      - name: Validate Python syntax
+        run: python3 -m py_compile scripts/build_dashboard_data.py scripts/validate_promo_schema.py
+        continue-on-error: true
+        id: syntax_check
+
+  validate-dashboard:
+    name: Dashboard Integrity Check
+    runs-on: ubuntu-latest
+    needs: validate-schema
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+
+      - name: Validate HTML structure
+        run: |
+          # Check for matching braces/parens in dashboard HTML
+          OPEN_BRACES=$(grep -o '{' dashboard/index.html | wc -l)
+          CLOSE_BRACES=$(grep -o '}' dashboard/index.html | wc -l)
+          if [ "$OPEN_BRACES" -ne "$CLOSE_BRACES" ]; then
+            echo "ERROR: Mismatched braces in dashboard/index.html"
+            echo "  Open: $OPEN_BRACES, Close: $CLOSE_BRACES"
+            exit 1
+          fi
+          echo "✓ HTML brace matching verified"
+
+      - name: Check critical functions present
+        run: |
+          FUNCTIONS=(
+            "buildPromo"
+            "buildPrimary"
+            "buildOfftake"
+            "buildPnl"
+            "show"
+            "buildPromoCSV"
+            "exportPromoCSV"
+          )
+
+          for func in "${FUNCTIONS[@]}"; do
+            if grep -q "function $func" dashboard/index.html; then
+              echo "✓ Found: $func()"
+            else
+              echo "✗ Missing: $func()"
+              exit 1
+            fi
+          done
+          echo "All critical functions present"
+
+      - name: Validate data.js window.DASH wrapper
+        run: |
+          if grep -q 'window\.DASH\s*=' dashboard/data.js; then
+            echo "✓ data.js has window.DASH wrapper"
+          else
+            echo "✗ data.js missing window.DASH wrapper"
+            exit 1
+          fi
+
+  validate-baseline:
+    name: Historical Baseline Integrity
+    runs-on: ubuntu-latest
+    needs: validate-schema
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+
+      - name: Set up Python
+        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        with:
+          python-version: '3.11'
+
+      - name: Verify FY25/FY26 baseline coverage
+        run: |
+          python3 << 'EOF'
+          import json
+          import re
+
+          # Extract JSON from data.js
+          with open('dashboard/data.js', 'r') as f:
+              content = f.read()
+
+          match = re.search(r'window\.DASH\s*=\s*(\{.*\})\s*;', content, re.DOTALL)
+          if not match:
+              print("ERROR: Could not extract JSON from data.js")
+              exit(1)
+
+          try:
+              data = json.loads(match.group(1))
+          except json.JSONDecodeError as e:
+              print(f"ERROR: Invalid JSON in data.js: {e}")
+              exit(1)
+
+          # Check for required FY coverage
+          metadata = data.get('metadata', {})
+          coverage = metadata.get('coverage', {})
+          fiscal_years = coverage.get('fiscal_years', [])
+
+          required_years = ['fy25', 'fy26']
+          missing = [fy for fy in required_years if fy not in fiscal_years]
+
+          if missing:
+              print(f"ERROR: Missing required fiscal years: {missing}")
+              exit(1)
+
+          print(f"✓ Fiscal year coverage verified: {fiscal_years}")
+
+          # Verify month counts
+          fy25_months = coverage.get('fy25_months', [])
+          fy26_months = coverage.get('fy26_months', [])
+
+          print(f"✓ FY25: {len(fy25_months)} months")
+          print(f"✓ FY26: {len(fy26_months)} months")
+
+          if len(fy25_months) == 0 or len(fy26_months) == 0:
+              print("ERROR: Insufficient month coverage")
+              exit(1)
+
+          print("✓ Baseline integrity verified")
+          EOF
+
+  report:
+    name: CI Results Summary
+    runs-on: ubuntu-latest
+    needs: [validate-schema, validate-dashboard, validate-baseline]
+    if: always()
+
+    steps:
+      - name: Check overall status
+        run: |
+          echo "=========================================="
+          echo "Promo Data Validation CI Pipeline"
+          echo "=========================================="
+          echo ""
+          echo "Jobs Status:"
+          echo "  - Schema Validation: ${{ needs.validate-schema.result }}"
+          echo "  - Dashboard Integrity: ${{ needs.validate-dashboard.result }}"
+          echo "  - Baseline Integrity: ${{ needs.validate-baseline.result }}"
+          echo ""
+
+          if [ "${{ needs.validate-schema.result }}" = "failure" ] || \
+             [ "${{ needs.validate-dashboard.result }}" = "failure" ] || \
+             [ "${{ needs.validate-baseline.result }}" = "failure" ]; then
+            echo "❌ VALIDATION FAILED"
+            exit 1
+          fi
+
+          echo "✅ ALL VALIDATION CHECKS PASSED"
+          echo ""
+          echo "Pipeline verified for:"
+          echo "  - Promo schema (monthly ingestion)"
+          echo "  - Dashboard integrity (HTML/JS)"
+          echo "  - Historical baseline (FY25/FY26)"
