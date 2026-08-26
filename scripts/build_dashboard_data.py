@@ -98,6 +98,49 @@ def quarter_labels_for(months):
                             for m in months if fy_tag_from_label(m)})
     return [f"Q{q}-{y:02d}" for q in range(1, 5) for y in fy_start_yrs]
 
+def normalize_fmcg_dates(df: pd.DataFrame, raw_date_col: str) -> pd.DataFrame:
+    """
+    Ensures clean 28-month indexing (Apr'24 to Jul'26) with canonical FY,
+    Month, and Quarter labels. Handles multi-format dates (ISO, Indian,
+    Excel serials, MMM'YY).
+    """
+    df = df.copy()
+
+    # 1. Flexible multi-format datetime conversion
+    df["_date_parsed"] = pd.to_datetime(
+        df[raw_date_col],
+        errors="coerce",
+        format="mixed",
+        dayfirst=True,  # Handles Indian format DD/MM/YYYY
+    )
+
+    # 2. Canonical Month Key (YYYY-MM), e.g., '2024-04'
+    df["Month_Key"] = df["_date_parsed"].dt.strftime("%Y-%m")
+
+    # 3. Canonical Display Month (MMM'YY), e.g., 'Apr'24'
+    df["Month_Display"] = df["_date_parsed"].dt.strftime("%b'%y")
+
+    # 4. Canonical Indian Fiscal Year (FY25, FY26, FY27)
+    # Rule: Apr-Dec -> Year+1; Jan-Mar -> Year
+    year = df["_date_parsed"].dt.year
+    month = df["_date_parsed"].dt.month
+    df["FY"] = "FY" + (
+        (year + 1 - 2000).astype(str).where(month >= 4, (year - 2000).astype(str))
+    )
+
+    # 5. Fiscal Quarter (Q1, Q2, Q3, Q4 within FY)
+    quarter_map = {
+        4: "Q1", 5: "Q1", 6: "Q1",
+        7: "Q2", 8: "Q2", 9: "Q2",
+        10: "Q3", 11: "Q3", 12: "Q3",
+        1: "Q4", 2: "Q4", 3: "Q4",
+    }
+    df["Qtr"] = (
+        month.map(quarter_map) + "-" + df["FY"].str[2:]
+    )
+
+    return df
+
 # The chain-offtake flat dump carries exactly these month columns
 # (Apr-24..May-26 = 26 months, once the business's updated sell-out master
 # with Apr-26/May-26 columns is supplied). load_offtake()/offtake_block()
