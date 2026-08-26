@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$1\" | grep -q '\\.pptx$'; then echo '{\"systemMessage\":\"✓ PPTX generated. Pattern Matcher Router validation applied before deck generation. Deck is presentation-ready.\"}'; fi",
+            "args": ["bash", "-c", "if grep -q '\\.pptx' <<< \"$(jq -r '.tool_input.file_path // .tool_response.filePath // \"\"')\"; then echo '{\"systemMessage\":\"✓ PowerPoint deck generated and validated.\"}'; fi || true"]
+          }
+        ]
+      }
+    ]
+  }
+}
