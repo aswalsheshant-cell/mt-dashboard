@@ -947,7 +947,7 @@ function allocSectionHtml(){
       <td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${num(r.rows)}</td></tr>`).join('');
   const ca=al.cust_article;
   const caSlice=ca.rows.slice(0,40).map(r=>`<tr><td>${r.cust_code}</td><td>${r.ship_to}</td><td>${r.article}</td>
-      <td>${r.brand}</td><td>${r.range}</td><td>${r.pack}</td><td>${r.month} ${r.fy}</td><td>${drillLink('Chain',r.chain)}</td>
+      <td>${r.brand}</td><td>${r.range||'–'}</td><td>${r.pack||'–'}</td><td>${r.month} ${r.fy}</td><td>${drillLink('Chain',r.chain)}</td>
       <td>${crc(r.nsv)}</td><td>${num(r.qty)}</td><td>${r.w_avg_tot==null?'–':r.w_avg_tot+'%'}</td></tr>`).join('');
   const contBad=Object.keys(al.cont_pct_bad_keys||{}).length;
   // Phase 4: Governance insights (optional — absent in older data.js builds)
