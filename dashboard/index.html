@@ -142,6 +142,7 @@
 <div class="topbar">
   <nav id="nav"></nav>
   <div id="filterbar" class="filterbar"></div>
+  <button class="fbtn ghost" id="exportZonalSummary" title="Export zonal breakdown to CSV (filtered by current zone/chain selection)" style="margin-left:auto;align-self:center">⭳ Export Zonal Summary</button>
 </div>
 <div class="wrap">
   <section id="tab-explorer"></section>
@@ -2730,6 +2731,27 @@ function show(id){
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
   show('overview');
+
+  // Export zonal summary — CSV download
+  document.getElementById('exportZonalSummary').addEventListener('click', () => {
+    const p = D.primary || {};
+    const zones = (p.by_zone || []).filter(z => !F.Zone.length || F.Zone.includes(z.name));
+    const chainFilter = F.Chain.length ? new Set(F.Chain) : null;
+    const cols = ['Zone', 'FY26 (₹L)', 'FY27 (₹L)', 'YoY %'];
+    const rows = zones.map(z => [
+      z.name,
+      (z.fy26 !== null ? z.fy26.toLocaleString('en-IN', {maximumFractionDigits: 2}) : '–'),
+      (z.fy27 !== null ? z.fy27.toLocaleString('en-IN', {maximumFractionDigits: 2}) : '–'),
+      (z.yoy !== null ? z.yoy.toFixed(1) + '%' : '–')
+    ]);
+    const csvData = [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const blob = new Blob(['﻿' + csvData], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = exportFilename('Zonal Summary', 'by Zone') + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
 })();
 </script>
 <script>
