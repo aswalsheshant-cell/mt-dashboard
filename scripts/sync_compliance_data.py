@@ -3,15 +3,18 @@
 Sprint 8: Store Compliance & Inventory Fill-Rate Sync Engine
 
 Computes Promo Execution Score (PES) audit data and Supply Chain Fill-Rate (CFR/OTIF)
-metrics. Merges compliance and inventory_fillrate blocks into dashboard/data.js.
+metrics. Writes compliance and inventory_fillrate JSON to dashboard/compliance_metrics.json.
+
+The dashboard loads this file via fetch() and merges into window.DASH at runtime.
+This pattern keeps the data.js build pipeline clean (one-way: data_master.json → data.js).
 
 Formula: PES = (0.40 × Price_Compliance + 0.30 × FSDU_Compliance + 0.30 × OSA_Compliance) × 100
 
 USAGE:
-  python scripts/sync_compliance_data.py --source <data.js> --output <data.js>
+  python scripts/sync_compliance_data.py --output <compliance_metrics.json>
 
   Default: python scripts/sync_compliance_data.py
-    (reads/writes: dashboard/data.js)
+    (writes: dashboard/compliance_metrics.json)
 """
 from __future__ import annotations
 import json
@@ -20,7 +23,6 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import sys
 import os
-import re
 
 # Add scripts directory to path for imports
 sys.path.insert(0, os.path.dirname(__file__))
@@ -178,52 +180,30 @@ def generate_mock_fillrate_data() -> dict:
     }
 
 
-def load_data_js(path: str) -> dict:
-    """Load existing data.js and extract JSON from window.DASH wrapper."""
-    with open(path, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    # Extract JSON from window.DASH = {...};
-    match = re.search(r'window\.DASH\s*=\s*(\{.*\})\s*;', content, re.DOTALL)
-    if not match:
-        raise ValueError("Could not extract JSON from data.js")
-
-    try:
-        return json.loads(match.group(1))
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in data.js: {e}")
 
 
-def save_data_js(data: dict, path: str) -> None:
-    """Write data back to data.js as window.DASH = {...}; wrapper."""
-    output = f"window.DASH = {json.dumps(data, indent=2)};\n"
-    with open(path, 'w', encoding='utf-8') as f:
-        f.write(output)
-
-
-def sync_compliance_data(data_js_path: str = "dashboard/data.js") -> None:
+def sync_compliance_data(output_path: str = "dashboard/compliance_metrics.json") -> None:
     """
     Main sync flow:
-    1. Load existing data.js
-    2. Generate compliance and fillrate data
-    3. Merge into data.js
-    4. Write back to disk
-    """
-    print(f"[*] Loading {data_js_path}...")
-    data = load_data_js(data_js_path)
+    1. Generate compliance and fillrate data
+    2. Write to separate JSON file (compliance_metrics.json)
+    3. Dashboard loads this via fetch() and merges into window.DASH
 
+    This pattern allows compliance data to be updated independently
+    without modifying the data.js build pipeline.
+    """
     print("[*] Generating compliance audit data...")
     compliance_data = generate_mock_compliance_data()
 
     print("[*] Generating fill-rate metrics...")
     fillrate_data = generate_mock_fillrate_data()
 
-    # Merge into window.DASH
-    data.update(compliance_data)
-    data.update(fillrate_data)
+    # Combine into single output file
+    output_data = {**compliance_data, **fillrate_data}
 
-    print(f"[*] Writing merged data to {data_js_path}...")
-    save_data_js(data, data_js_path)
+    print(f"[*] Writing compliance metrics to {output_path}...")
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(output_data, f, indent=2)
 
     # Report
     compliance = compliance_data["compliance"]
@@ -238,14 +218,15 @@ def sync_compliance_data(data_js_path: str = "dashboard/data.js") -> None:
     print(f"✓ Macro CFR: {fillrate['metadata']['macro_cfr_percent']}%")
     print(f"✓ Macro OTIF: {fillrate['metadata']['macro_otif_percent']}%")
     print(f"✓ Total Lost Revenue: ₹{fillrate['metadata']['total_lost_revenue_lakh']} Lakh")
-    print("\nData merged into window.DASH.compliance and window.DASH.inventory_fillrate")
+    print(f"\n✓ Output file: {output_path}")
+    print("  Dashboard loads this file dynamically and merges into window.DASH")
+    print("  at runtime via fetch(). This keeps data.js build pipeline clean.")
     print("="*60 + "\n")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Sprint 8: Compliance & Fill-Rate Sync")
-    parser.add_argument("--source", default="dashboard/data.js", help="Source data.js path")
-    parser.add_argument("--output", default="dashboard/data.js", help="Output data.js path")
+    parser.add_argument("--output", default="dashboard/compliance_metrics.json", help="Output compliance metrics JSON path")
     args = parser.parse_args()
 
     sync_compliance_data(args.output)

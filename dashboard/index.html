@@ -297,6 +297,12 @@
 window.enrichedMetrics={};
 fetch('enriched_metrics.json').then(r=>r.json()).then(d=>window.enrichedMetrics=d).catch(()=>{});
 
+// Load compliance & inventory fill-rate metrics (dynamic sidecar, optional)
+fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
+  if(d.compliance) window.DASH.compliance=d.compliance;
+  if(d.inventory_fillrate) window.DASH.inventory_fillrate=d.inventory_fillrate;
+}).catch(()=>{});
+
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);
 
