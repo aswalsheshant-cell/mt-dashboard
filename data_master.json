@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "2.0-MULTI_YEAR",
-    "status": "LOCKED_MULTI_YEAR_V2",
+    "status": "INGEST_PRIMARY_CSV",
     "generated_at": "2026-08-25T21:22:38.400524+00:00",
     "consolidation_phase": "Tier 2 Phase 2",
     "coverage": {
@@ -46,7 +46,9 @@
     "period": "FY25–27 (140 zone-months)",
     "fy_range": "FY25–FY26–FY27",
     "unit_note": "All figures in ₹ Crore unless stated",
-    "source": "Honasa / Mamaearth Modern Trade (data_master.json)"
+    "source": "Honasa / Mamaearth Modern Trade (data_master.json)",
+    "ingestion_date": "2026-08-26T17:19:35.522283",
+    "source_csv": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv"
   },
   "zone_metrics_monthly": {
     "fy25": {
@@ -2200,306 +2202,109 @@
     ]
   },
   "reliance_bc": {
-    "total": 13.89,
-    "months": [
-      "Jul-26",
-      "46113.0-26",
-      "May'26-26"
-    ],
-    "monthly": [
-      4.46,
-      4.35,
-      5.08
-    ],
-    "fy_tags": [
-      "fy27"
-    ],
-    "by_zone": [
-      {
-        "name": "North",
-        "total": 4.2,
-        "fy27": 1.34
-      },
-      {
-        "name": "East",
-        "total": 4.18,
-        "fy27": 1.29
-      },
-      {
-        "name": "South-1",
-        "total": 1.85,
-        "fy27": 0.56
-      },
-      {
-        "name": "West",
-        "total": 1.77,
-        "fy27": 0.68
-      },
-      {
-        "name": "South-2",
-        "total": 1.2,
-        "fy27": 0.37
-      },
-      {
-        "name": "Central",
-        "total": 0.69,
-        "fy27": 0.22
-      }
-    ],
-    "by_state": [
-      {
-        "zone": "East",
-        "state": "West Bengal",
-        "total": 1.28,
-        "fy27": 0.4
-      },
-      {
-        "zone": "North",
-        "state": "Delhi/ Ncr",
-        "total": 1.01,
-        "fy27": 0.0
-      },
-      {
-        "zone": "South-1",
-        "state": "Karnataka",
-        "total": 0.92,
-        "fy27": 0.29
-      },
-      {
-        "zone": "East",
-        "state": "Jharkhand",
-        "total": 0.8,
-        "fy27": 0.23
-      },
-      {
-        "zone": "West",
-        "state": "Gujarat",
-        "total": 0.8,
-        "fy27": 0.26
-      },
-      {
-        "zone": "South-2",
-        "state": "Andhra Pradesh",
-        "total": 0.75,
-        "fy27": 0.24
-      },
-      {
-        "zone": "North",
-        "state": "Rajasthan",
-        "total": 0.72,
-        "fy27": 0.22
-      },
-      {
-        "zone": "East",
-        "state": "Northeast",
-        "total": 0.71,
-        "fy27": 0.22
-      },
-      {
-        "zone": "East",
-        "state": "Bihar",
-        "total": 0.69,
-        "fy27": 0.23
-      },
-      {
-        "zone": "East",
-        "state": "Odisha",
-        "total": 0.69,
-        "fy27": 0.22
-      },
-      {
-        "zone": "West",
-        "state": "Mumbai",
-        "total": 0.59,
-        "fy27": 0.37
-      },
-      {
-        "zone": "Central",
-        "state": "Madhya Pradesh",
-        "total": 0.54,
-        "fy27": 0.17
-      },
-      {
-        "zone": "South-1",
-        "state": "Kerala",
-        "total": 0.48,
-        "fy27": 0.14
-      },
-      {
-        "zone": "North",
-        "state": "Delhi Ncr",
-        "total": 0.45,
-        "fy27": 0.45
-      },
-      {
-        "zone": "South-1",
-        "state": "Tamil Nadu",
-        "total": 0.45,
-        "fy27": 0.14
-      },
-      {
-        "zone": "South-2",
-        "state": "Telangana",
-        "total": 0.45,
-        "fy27": 0.13
-      },
-      {
-        "zone": "North",
-        "state": "Up/Uk",
-        "total": 0.4,
-        "fy27": 0.0
-      },
-      {
-        "zone": "West",
-        "state": "Maharashtra",
-        "total": 0.39,
-        "fy27": 0.05
-      },
-      {
-        "zone": "North",
-        "state": "Haryana",
-        "total": 0.37,
-        "fy27": 0.13
-      },
-      {
-        "zone": "North",
-        "state": "Up",
-        "total": 0.37,
-        "fy27": 0.37
-      },
-      {
-        "zone": "North",
-        "state": "Uttar Pradesh",
-        "total": 0.25,
-        "fy27": 0.0
-      },
-      {
-        "zone": "North",
-        "state": "Punjab",
-        "total": 0.2,
-        "fy27": 0.1
-      },
-      {
-        "zone": "North",
-        "state": "Punjab/J&K/Hp",
-        "total": 0.18,
-        "fy27": 0.0
-      },
-      {
-        "zone": "Central",
-        "state": "Chhattisgarh",
-        "total": 0.15,
-        "fy27": 0.05
-      },
-      {
-        "zone": "North",
-        "state": "Uttarakhand",
-        "total": 0.12,
-        "fy27": 0.0
-      },
-      {
-        "zone": "North",
-        "state": "Himachal Pradesh",
-        "total": 0.09,
-        "fy27": 0.05
-      },
-      {
-        "zone": "North",
-        "state": "Jammu & Kasmir",
-        "total": 0.03,
-        "fy27": 0.0
-      },
-      {
-        "zone": "North",
-        "state": "Jammu And Kashmir",
-        "total": 0.02,
-        "fy27": 0.02
-      }
-    ],
-    "by_brand": [
-      {
-        "name": "Mamaearth",
-        "total": 11.8,
-        "fy27": 3.28
-      },
-      {
-        "name": "The Derma Co.",
-        "total": 1.75,
-        "fy27": 1.12
-      },
-      {
-        "name": "Aqualogica",
-        "total": 0.31,
-        "fy27": 0.06
-      },
-      {
-        "name": "BBLUNT",
-        "total": 0.04,
-        "fy27": 0.0
-      },
-      {
-        "name": "Pure Origin",
-        "total": 0.0,
-        "fy27": 0.0
-      }
-    ],
-    "by_category": [
-      {
-        "name": "Face",
-        "total": 7.72,
-        "fy27": 2.7
-      },
-      {
-        "name": "Hair",
-        "total": 4.54,
-        "fy27": 1.26
-      },
-      {
-        "name": "Body",
-        "total": 1.19,
-        "fy27": 0.36
-      },
-      {
-        "name": "Baby",
-        "total": 0.39,
-        "fy27": 0.12
-      },
-      {
-        "name": "Hair Care",
-        "total": 0.03,
-        "fy27": 0.0
-      },
-      {
-        "name": "Color Care",
-        "total": 0.01,
-        "fy27": 0.0
-      },
-      {
-        "name": "Fragrances",
-        "total": 0.01,
-        "fy27": 0.0
-      },
-      {
-        "name": "Hair Colour",
-        "total": 0.0,
-        "fy27": 0.0
-      },
-      {
-        "name": "Styling Products",
-        "total": 0.0,
-        "fy27": 0.0
-      }
-    ],
-    "include_in_overall_offtake": false,
     "is_brand_counter": true,
-    "parent_chain": "Reliance Retail",
-    "note": "Reliance Brand Counter Offtake is shown as a separate analytical breakout. Data extracted from store-article offtake CSVs.",
-    "months_fy27": [
-      "Jul-26"
-    ],
-    "monthly_fy27": [
-      4.46
-    ],
-    "total_fy27": 4.46
+    "include_in_overall_offtake": false,
+    "months": [
+      "Apr'25",
+      "Apr'26",
+      "Aug'25",
+      "Dec'25",
+      "Feb'26",
+      "Jan'26",
+      "Jul'25",
+      "Jul'26",
+      "Jun'25",
+      "Mar'26",
+      "May'25",
+      "May'26",
+      "Nov'25",
+      "Oct'25",
+      "Sep'25"
+    ]
+  },
+  "by_chain_offtake": {
+    "fy25": {},
+    "fy26": {
+      "Apna Mart": 0.07,
+      "Apollo": 52.63,
+      "Arambagh": 0.35,
+      "Ascent Wellness": 0.26,
+      "Azorte": 0.68,
+      "B&N": 0.12,
+      "Broadway": 0.25,
+      "D-Mart": 121.9,
+      "Deal Share": 0.1,
+      "Eremedium": 0.66,
+      "Frank Ross": 0.46,
+      "G N R C Medishop Pvt Ltd": 0.0,
+      "Grace Super MKT": 0.08,
+      "Guardian": 0.17,
+      "Health & Glow": 8.52,
+      "Lifestyle": 0.33,
+      "Lifestyle Babyshop": 0.01,
+      "Lulu": 8.29,
+      "Max Hyper": 0.01,
+      "Metro CNC": 4.64,
+      "More Retail": 4.57,
+      "National Mart": 0.0,
+      "Nykaa SS": 18.73,
+      "Pothys": 0.2,
+      "RMT-Sancus": 4.27,
+      "Ratnadeep": 0.63,
+      "Relay": 0.01,
+      "Reliance Retail": 83.49,
+      "Sarvana": 0.07,
+      "SastaSundar": 0.06,
+      "Shoppers Stop": 1.21,
+      "Sohum Shoppe": 0.0,
+      "Spencers": 1.34,
+      "Sumo Save": 0.03,
+      "Today's Basket": 0.02,
+      "Trent": 0.56,
+      "Trilife": 0.04,
+      "V-Mart": 1.17,
+      "Vijetha": 0.18,
+      "Vishal Mega Mart": 1.82,
+      "WH-Smith": 0.05,
+      "Walmart CNC": 2.39,
+      "Wellness Forever": 8.62
+    },
+    "fy27": {
+      "Apna Mart": 0.05,
+      "Apollo": 18.31,
+      "Arambagh": 0.1,
+      "Azorte": 0.03,
+      "B&N": 0.06,
+      "D-Mart": 40.08,
+      "Dabur New U": 0.17,
+      "Deal Share": 0.08,
+      "Dmart": 0.05,
+      "Eremedium": 0.14,
+      "Frank Ross": 0.27,
+      "Guardian": 0.06,
+      "Health & Glow": 2.25,
+      "Lulu": 3.56,
+      "Max Hyper": 0.01,
+      "Medanta": 0.0,
+      "Metro CNC": 1.03,
+      "More Retail": 1.25,
+      "National Mart": 0.07,
+      "Nykaa SS": 4.39,
+      "Pothys": 0.09,
+      "RMT-Sancus": 1.42,
+      "Ratnadeep": 0.13,
+      "Reliance Retail": 21.13,
+      "SastaSundar": 0.03,
+      "Shoppers Stop": 0.05,
+      "Spencers": 0.27,
+      "Sumo Save": 0.06,
+      "Trent": 0.23,
+      "Trilife": 0.01,
+      "V-Mart": 0.23,
+      "Vishal Mega Mart": 1.42,
+      "WH-Smith": 0.0,
+      "Walmart CNC": 0.47,
+      "Wellness Forever": 2.08
+    }
   }
 }
