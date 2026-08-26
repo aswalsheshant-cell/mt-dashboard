@@ -30,6 +30,7 @@ from dist_allocation_governance import (
     eligibility_tier_rank,
 )
 from analytics_enhancement_layer import FMCGAnalyticsEnhancer
+from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dynamic_offtake_weights
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -3721,8 +3722,55 @@ def main():
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
         raw = load_primary_v2(src)
         weights = load_chain_allocation_weights(src)
-        allocated, qc = apply_chain_allocation(raw, weights)
+
+        # Load offtake data for enhanced allocation (Tier 2 fallback)
+        offtake_data = None
+        try:
+            chains, zs = load_offtake(src)
+            # Convert offtake to DataFrame for dynamic weight computation
+            offtake_rows = []
+            for chain_name, chain_data in chains.items():
+                for month_label, nsv_val in chain_data["months"].items():
+                    offtake_rows.append({
+                        "Brand": "All",  # Aggregate level
+                        "Month_Key": month_label,
+                        "Chain": chain_name,
+                        "NSV": nsv_val,
+                    })
+            if offtake_rows:
+                offtake_data = pd.DataFrame(offtake_rows)
+        except Exception as e:
+            print(f"⚠️  Could not load offtake for dynamic weights: {e}")
+
+        # Use enhanced allocation with 3-tier fallback
+        allocated, qc = apply_chain_allocation_enhanced(raw, weights, offtake_data)
         pdf, primary = primary_block(allocated)
+
+        # Print Zonal Reconciliation Checksum
+        if primary and "by_zone" in primary:
+            total_nsv = primary.get("nsv_fy26", 0) or primary.get("nsv_fy27", 0) or 0
+            zone_sum = sum(z.get("fy26", 0) or z.get("fy27", 0) or 0 for z in primary.get("by_zone", []))
+            print(f"\n╔════════════════════════════════════════════════════════════╗")
+            print(f"║ PRIMARY RECONCILIATION CHECKSUM (Enhanced Allocation)      ║")
+            print(f"╚════════════════════════════════════════════════════════════╝")
+            print(f"Total National Primary NSV:    ₹{total_nsv:.2f} Lakh")
+            print(f"Sum of Zonal Primary NSV:      ₹{zone_sum:.2f} Lakh")
+            if abs(total_nsv - zone_sum) < 0.01:
+                print(f"✅ Zonal Reconciliation: PASSED (Delta: ₹0.00 | 100.00% matched)")
+            else:
+                delta = total_nsv - zone_sum
+                pct = (zone_sum / total_nsv * 100) if total_nsv > 0 else 0
+                print(f"⚠️  Zonal Reconciliation: VARIANCE detected (Delta: ₹{delta:.2f} | {pct:.2f}% matched)")
+            if qc:
+                print(f"\nDistributor Allocation Tiers:")
+                print(f"  Tier 1 (Explicit):     {qc.get('tier1_rows', 0)} rows")
+                print(f"  Tier 2 (Dynamic):      {qc.get('tier2_rows', 0)} rows")
+                print(f"  Tier 3 (Default):      {qc.get('tier3_rows', 0)} rows")
+                print(f"  Total Dist Rows:       {qc.get('total_dist_rows_processed', 0)}")
+                print(f"  Reconciliation:        {'✅ PASSED' if qc.get('reconciliation_passed') else '❌ FAILED'}")
+                print(f"  Variance:              ₹{qc.get('variance_lakh', 0):.4f} Lakh ({qc.get('variance_pct', 0):.3f}%)")
+            print()
+
         _promo = obj.get("promo") or {"n_promos": 0, "avg_depth": 0, "by_chain": [], "lines": []}
         _universe = obj.get("universe") or {"by_zone": [], "by_chain": [], "chains": [], "n_chains": 0}
         pnl = pnl_block(pdf, _promo)
@@ -3735,7 +3783,7 @@ def main():
         _fy_tags = primary.get("fy_tags", [])
         _nsv_summary = " / ".join(f"{t.upper()} {primary.get(f'nsv_{t}', 'N/A')}" for t in _fy_tags)
         print(f"primary-only: {_nsv_summary} (Lakh); "
-              + (f"chain allocation coverage {qc['allocated_coverage_pct']}% of Distributor primary"
+              + (f"3-Tier allocation: Tier1={qc.get('tier1_rows', 0)}, Tier2={qc.get('tier2_rows', 0)}, Tier3={qc.get('tier3_rows', 0)}"
                  if qc else "no allocation file found -- chain tags left as-is"))
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
