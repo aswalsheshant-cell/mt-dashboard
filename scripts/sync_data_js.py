@@ -5,6 +5,7 @@ Tier 3: Automated Data.JS Sync Pipeline
 Regenerates dashboard/data.js from the authoritative data_master.json.
 Ensures single source of truth: data_master.json → data.js (one-way sync).
 Also populates universe block from UniverseMT.csv (Active MT Store count).
+Integrates Sprint 5 Track 3: Promo depth vs. Offtake correlation analytics.
 
 This script is part of the master data governance consolidation (Tiers 1-3).
 It automates what was previously a manual, error-prone process.
@@ -20,6 +21,11 @@ import json
 import argparse
 from pathlib import Path
 from datetime import datetime
+import sys
+import os
+
+# Add scripts directory to path for imports
+sys.path.insert(0, os.path.dirname(__file__))
 
 
 def load_master(master_path: str) -> dict:
@@ -202,6 +208,24 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     # Include promo block if present in master (Promo & Trade Spend data)
     if "promo" in master and master["promo"] is not None:
         sync_blocks["promo"] = master["promo"]
+
+    # Generate correlations block (Sprint 5 Track 3: Promo elasticity analytics)
+    # Only generate if promo data is available
+    if "promo" in master and master["promo"] is not None:
+        try:
+            from promo_offtake_correlation import generate_correlations_block
+            correlations_result = generate_correlations_block(
+                # Pass the master dict directly instead of file path
+                master
+            )
+            if correlations_result and "correlations" in correlations_result:
+                correlations = correlations_result["correlations"]
+                # Add timestamp to correlations
+                correlations["generated_at"] = datetime.now().isoformat()
+                sync_blocks["correlations"] = correlations
+        except Exception as e:
+            # Warn but don't fail if correlation generation has issues
+            print(f"  ⚠ Warning: Could not generate correlations: {e}")
 
     if existing_js is not None:
         # Merge mode: preserve all blocks not controlled by this script

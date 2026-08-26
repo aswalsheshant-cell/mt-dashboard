@@ -304,25 +304,29 @@ class CorrelationAnalyzer:
         }
 
 
-def generate_correlations_block(data_master_path):
+def generate_correlations_block(data_master_path_or_dict):
     """
-    Load data_master.json, compute correlations, return structured output.
+    Compute correlations from data_master.json or dict.
 
     Extracts monthly promo data and correlates with available offtake metrics.
     Monthly offtake data integration pending; uses FY-level aggregates as baseline.
 
     Args:
-        data_master_path: path to data_master.json
+        data_master_path_or_dict: path to data_master.json or dict of loaded data
 
     Returns:
         dict: {correlations: {by_chain, anomaly_flags, summary}}
     """
-    try:
-        with open(data_master_path, 'r') as f:
-            data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"ERROR: Could not load data_master.json: {e}")
-        return {}
+    # Load data from path or use dict directly
+    if isinstance(data_master_path_or_dict, dict):
+        data = data_master_path_or_dict
+    else:
+        try:
+            with open(data_master_path_or_dict, 'r') as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"ERROR: Could not load data_master.json: {e}")
+            return {}
 
     promo = data.get('promo', {})
     by_chain_offtake = data.get('by_chain_offtake', {})
