@@ -8,6 +8,8 @@ on:
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
       - 'scripts/sync_data_js.py'
+      - 'dashboard/index.html'
+      - 'test_sprint6_e2e.js'
       - '.github/workflows/validate-promo-data.yml'
   push:
     branches:
@@ -17,6 +19,8 @@ on:
       - 'raw_promos/**'
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
+      - 'dashboard/index.html'
+      - 'test_sprint6_e2e.js'
       - '.github/workflows/validate-promo-data.yml'
   workflow_dispatch:
 
@@ -163,10 +167,51 @@ jobs:
           print("✓ Baseline integrity verified")
           EOF
 
+  e2e-tests:
+    name: Playwright E2E Tests (Sprint 6)
+    runs-on: ubuntu-latest
+    needs: validate-dashboard
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+
+      - name: Set up Node.js
+        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8
+        with:
+          node-version: '22'
+
+      - name: Install Playwright
+        run: npm install @playwright/test@latest
+
+      - name: Start HTTP server (background)
+        run: |
+          cd dashboard
+          python3 -m http.server 8000 &
+          sleep 2
+          echo "HTTP Server started on :8000"
+
+      - name: Run Playwright E2E tests
+        run: |
+          npx playwright test test_sprint6_e2e.js --reporter=list
+        continue-on-error: true
+        id: e2e_tests
+
+      - name: Stop HTTP server
+        if: always()
+        run: |
+          pkill -f "http.server" || true
+
+      - name: Report E2E test results
+        if: steps.e2e_tests.outcome == 'failure'
+        run: |
+          echo "⚠️ E2E tests had failures. Review output above for details."
+          exit 1
+
   report:
     name: CI Results Summary
     runs-on: ubuntu-latest
-    needs: [validate-schema, validate-dashboard, validate-baseline]
+    needs: [validate-schema, validate-dashboard, validate-baseline, e2e-tests]
     if: always()
 
     steps:
