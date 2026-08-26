@@ -138,32 +138,13 @@
   ],
   "by_chain": [
     {
-      "name": "Unmapped Chain",
-      "fy26_nsv": 11009.95,
-      "fy27_ytd": 5946.49,
-      "fy27_run_rate": 17839.47,
-      "fy27_tgt": 13211.94,
-      "fy27_ach_pct": 45.01,
-      "gap_vs_tgt": -7265.45,
-      "pipeline_ratio_fy26": null,
-      "pipeline_ratio_fy27": null,
-      "pipeline_flag": null,
-      "status": "escalate",
-      "monthly_fy27": {
-        "April": 1881.38,
-        "June": 1357.07,
-        "July": 1332.51,
-        "May": 1375.53
-      }
-    },
-    {
       "name": "Reliance Retail",
-      "fy26_nsv": 7087.84,
-      "fy27_ytd": 4137.82,
-      "fy27_run_rate": 12413.46,
-      "fy27_tgt": 8505.41,
-      "fy27_ach_pct": 48.65,
-      "gap_vs_tgt": -4367.59,
+      "fy26_nsv": 7408.89,
+      "fy27_ytd": 4632.27,
+      "fy27_run_rate": 13896.81,
+      "fy27_tgt": 8890.67,
+      "fy27_ach_pct": 52.1,
+      "gap_vs_tgt": -4258.4,
       "pipeline_ratio_fy26": null,
       "pipeline_ratio_fy27": null,
       "pipeline_flag": null,
@@ -195,6 +176,20 @@
       }
     },
     {
+      "name": "DMart",
+      "fy26_nsv": 5967.46,
+      "fy27_ytd": 9190.5,
+      "fy27_run_rate": 27571.49,
+      "fy27_tgt": 7160.96,
+      "fy27_ach_pct": null,
+      "gap_vs_tgt": 0,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "monitor",
+      "monthly_fy27": {}
+    },
+    {
       "name": "Apollo",
       "fy26_nsv": 3708.27,
       "fy27_ytd": 2596.94,
@@ -211,6 +206,25 @@
         "June": 625.56,
         "July": 577.42,
         "May": 719.96
+      }
+    },
+    {
+      "name": "Unmapped Chain",
+      "fy26_nsv": 3621.05,
+      "fy27_ytd": 0.0,
+      "fy27_run_rate": 0.0,
+      "fy27_tgt": 4345.26,
+      "fy27_ach_pct": 0.0,
+      "gap_vs_tgt": -4345.26,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "escalate",
+      "monthly_fy27": {
+        "April": 1881.38,
+        "June": 1357.07,
+        "July": 1332.51,
+        "May": 1375.53
       }
     },
     {
@@ -252,6 +266,20 @@
       }
     },
     {
+      "name": "Apollo Pharmacy",
+      "fy26_nsv": 707.12,
+      "fy27_ytd": 1089.04,
+      "fy27_run_rate": 3267.13,
+      "fy27_tgt": 848.55,
+      "fy27_ach_pct": null,
+      "gap_vs_tgt": 0,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "monitor",
+      "monthly_fy27": {}
+    },
+    {
       "name": "Metro C&C",
       "fy26_nsv": 363.35,
       "fy27_ytd": 266.41,
@@ -269,6 +297,20 @@
         "April": 42.41,
         "June": 25.92
       }
+    },
+    {
+      "name": "More Retail",
+      "fy26_nsv": 308.64,
+      "fy27_ytd": 475.34,
+      "fy27_run_rate": 1426.01,
+      "fy27_tgt": 370.37,
+      "fy27_ach_pct": null,
+      "gap_vs_tgt": 0,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "monitor",
+      "monthly_fy27": {}
     },
     {
       "name": "Walmart",
@@ -306,6 +348,20 @@
         "April": 3.62,
         "June": -1.78
       }
+    },
+    {
+      "name": "Health & Glow",
+      "fy26_nsv": 84.63,
+      "fy27_ytd": 130.33,
+      "fy27_run_rate": 391.0,
+      "fy27_tgt": 101.55,
+      "fy27_ach_pct": null,
+      "gap_vs_tgt": 0,
+      "pipeline_ratio_fy26": null,
+      "pipeline_ratio_fy27": null,
+      "pipeline_flag": null,
+      "status": "monitor",
+      "monthly_fy27": {}
     },
     {
       "name": "Eremedium",
@@ -717,5 +773,14 @@
       "healthy": "0.75\u20131.40",
       "stockout": "<0.75"
     }
+  },
+  "unmapped_reconciliation": {
+    "applied_at": "2026-08-26",
+    "bridge_rows_applied": 10,
+    "nsv_reallocated_lakh": 11379.66,
+    "residual_unmapped_nsv_lakh": 2784.19,
+    "coverage_pct": 80.3,
+    "tier1_direct_rows": 7,
+    "tier2_weighted_rows": 3
   }
 }

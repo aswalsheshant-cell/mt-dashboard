@@ -11,13 +11,10 @@ Output:
   dashboard/enriched_metrics.json (updated with reconciled chain NSV)
   data/unmapped_reconciliation_report.json (audit trail)
 """
-import json, re, csv, sys
+import json, re, csv
 from pathlib import Path
 from datetime import date
 from collections import defaultdict
-
-sys.path.insert(0, str(Path(__file__).parent))
-from chain_aliases import normalize
 
 def r2(v):
     try: return round(float(v or 0), 2)
@@ -58,11 +55,14 @@ for row in bridge_rows:
         weights = []
         for chain_name, pct in splits:
             chain_name = chain_name.strip()
-            # Skip placeholder buckets not mapped to a real chain
-            if chain_name.lower() in ('other mt', 'other', 'others'):
-                continue
-            canon = normalize(chain_name)
-            weights.append({'chain': canon, 'weight': float(pct) / 100})
+            # Normalize chain names to match existing chain keys
+            norm = {
+                'DMart': 'DMart', 'Apollo Pharmacy': 'Apollo Pharmacy',
+                'Health & Glow': 'Health & Glow', 'More Retail': 'More Retail',
+                'Reliance Retail': 'Reliance Retail', 'Other MT': None
+            }.get(chain_name, chain_name)
+            if norm:
+                weights.append({'chain': norm, 'weight': float(pct) / 100})
         # Renormalize to 1.0 (exclude None mappings)
         total_w = sum(w['weight'] for w in weights)
         if total_w > 0:
@@ -74,7 +74,7 @@ for row in bridge_rows:
         }
     else:
         SHIP_TO_MAPPING[ship_to] = {
-            'type': 'direct', 'chain': normalize(chain),
+            'type': 'direct', 'chain': chain,
             'zone': zone, 'state': state, 'confidence': conf
         }
 
@@ -122,10 +122,11 @@ total_unmapped_detail_fy27 = sum(unmapped_fy27.values())
 # We reallocate alloc NSV (which feeds the enriched_metrics chain breakdown)
 # by proportionally distributing each mapped ship_to's NSV to its target chain(s)
 
-# FY27-only deltas: FY26 is intentionally NOT mutated — primary.by_chain FY26
-# is the authoritative complete figure from the pre-aggregated workbook.
-chain_delta_fy27 = defaultdict(float)
+chain_delta_fy27 = defaultdict(float)   # NSV to add to each chain
+chain_delta_fy26 = defaultdict(float)
 
+# Map ship_to to zone/state; find matching detail records for FY weighting
+# Use alloc NSV as the primary amount to reallocate
 reallocation_log = []
 covered_nsv   = 0.0
 covered_rows  = 0
@@ -140,6 +141,9 @@ for ship_to, mapping in SHIP_TO_MAPPING.items():
     if mapping['type'] == 'direct':
         target_chain = mapping['chain']
         chain_delta_fy27[target_chain] += ship_nsv
+        # Approximate FY26 share proportional to overall FY26/FY27 ratio
+        fy_ratio = total_unmapped_detail_fy26 / (total_unmapped_detail_fy26 + total_unmapped_detail_fy27) if (total_unmapped_detail_fy26 + total_unmapped_detail_fy27) else 0.5
+        chain_delta_fy26[target_chain] += ship_nsv * fy_ratio
         reallocation_log.append({
             'ship_to': ship_to, 'type': 'DIRECT',
             'chain': target_chain, 'nsv_reallocated': round(ship_nsv, 2),
@@ -149,6 +153,8 @@ for ship_to, mapping in SHIP_TO_MAPPING.items():
         for split in mapping['splits']:
             allocated = ship_nsv * split['weight']
             chain_delta_fy27[split['chain']] += allocated
+            fy_ratio = total_unmapped_detail_fy26 / (total_unmapped_detail_fy26 + total_unmapped_detail_fy27) if (total_unmapped_detail_fy26 + total_unmapped_detail_fy27) else 0.5
+            chain_delta_fy26[split['chain']] += allocated * fy_ratio
         reallocation_log.append({
             'ship_to': ship_to, 'type': 'WEIGHTED_SPLIT',
             'splits': mapping['splits'], 'nsv_reallocated': round(ship_nsv, 2),
@@ -166,27 +172,27 @@ if not em_path.exists():
 em = json.loads(em_path.read_text())
 
 # Update by_chain entries with reallocation deltas
-# Key by canonical name so reconciliation merges into the correct bucket
-chain_lookup = {normalize(c['name']): c for c in em.get('by_chain', [])}
+chain_lookup = {c['name']: c for c in em.get('by_chain', [])}
 
 for chain_name, delta_fy27 in chain_delta_fy27.items():
+    delta_fy26 = chain_delta_fy26.get(chain_name, 0.0)
     if chain_name in chain_lookup:
         c = chain_lookup[chain_name]
         c['fy27_ytd']     = r2(c['fy27_ytd']     + delta_fy27)
-        # fy26_nsv intentionally unchanged — authoritative from primary.by_chain
+        c['fy26_nsv']     = r2(c['fy26_nsv']     + delta_fy26)
         c['fy27_run_rate']= r2(c['fy27_ytd'] * 12 / em['months_ytd'])
         tgt = r2(c['fy26_nsv'] * em['growth_target_pct'] / 100)
         c['fy27_tgt']     = tgt
         c['fy27_ach_pct'] = r2(c['fy27_ytd'] / tgt * 100) if tgt else None
         c['gap_vs_tgt']   = r2(c['fy27_ytd'] - tgt)
     else:
-        # New chain not in primary.by_chain (alloc-only distributor chain)
+        # New chain entry (unlikely but handle it)
         chain_lookup[chain_name] = {
             'name': chain_name,
-            'fy26_nsv': 0.0,
+            'fy26_nsv': r2(delta_fy26),
             'fy27_ytd': r2(delta_fy27),
             'fy27_run_rate': r2(delta_fy27 * 12 / em['months_ytd']),
-            'fy27_tgt': 0.0,
+            'fy27_tgt': r2(delta_fy26 * em['growth_target_pct'] / 100),
             'fy27_ach_pct': None,
             'gap_vs_tgt': 0,
             'pipeline_ratio_fy26': None,
@@ -196,21 +202,20 @@ for chain_name, delta_fy27 in chain_delta_fy27.items():
             'monthly_fy27': {},
         }
 
-# Reduce "Unmapped Chain" FY27 by the covered NSV (check all common variants)
-# fy26_nsv for Unmapped Chain is intentionally unchanged.
-for key in ('Unmapped Chain', 'unmapped chain', 'Unknown', 'Unmapped chain'):
+# Reduce "Unmapped Chain" by the covered NSV
+for key in ('Unmapped Chain', 'unmapped chain', 'Unknown'):
     if key in chain_lookup:
         c = chain_lookup[key]
         c['fy27_ytd']  = r2(max(0, c['fy27_ytd']  - covered_nsv))
+        fy_ratio = total_unmapped_detail_fy26 / (total_unmapped_detail_fy26 + total_unmapped_detail_fy27) if (total_unmapped_detail_fy26 + total_unmapped_detail_fy27) else 0.5
+        c['fy26_nsv']  = r2(max(0, c['fy26_nsv']  - covered_nsv * fy_ratio))
         c['fy27_run_rate'] = r2(c['fy27_ytd'] * 12 / em['months_ytd'])
         tgt = r2(c['fy26_nsv'] * em['growth_target_pct'] / 100)
         c['fy27_tgt']  = tgt
         c['fy27_ach_pct'] = r2(c['fy27_ytd'] / tgt * 100) if tgt else None
         c['gap_vs_tgt']   = r2(c['fy27_ytd'] - tgt)
 
-# Re-sort chains by fy26_nsv descending; ensure canonical name on each entry
-for c in chain_lookup.values():
-    c['name'] = normalize(c['name'])
+# Re-sort chains by fy26_nsv descending
 em['by_chain'] = sorted(chain_lookup.values(), key=lambda x: x['fy26_nsv'], reverse=True)
 
 # Rebuild pipeline_health buckets
@@ -248,6 +253,7 @@ report = {
         'coverage_pct': round(covered_nsv / total_unmapped_alloc * 100, 1) if total_unmapped_alloc else 0,
     },
     'chain_deltas_fy27': {k: round(v, 2) for k, v in sorted(chain_delta_fy27.items(), key=lambda x: -x[1])},
+    'chain_deltas_fy26': {k: round(v, 2) for k, v in sorted(chain_delta_fy26.items(), key=lambda x: -x[1])},
     'reallocation_log': reallocation_log,
 }
 Path('data').mkdir(exist_ok=True)

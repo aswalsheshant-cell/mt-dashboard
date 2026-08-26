@@ -12,14 +12,14 @@
   },
   "chain_deltas_fy27": {
     "DMart": 9190.5,
-    "Apollo": 1089.04,
+    "Apollo Pharmacy": 1089.04,
     "Reliance Retail": 494.45,
     "More Retail": 475.34,
     "Health & Glow": 130.33
   },
   "chain_deltas_fy26": {
     "DMart": 5967.46,
-    "Apollo": 707.12,
+    "Apollo Pharmacy": 707.12,
     "Reliance Retail": 321.05,
     "More Retail": 308.64,
     "Health & Glow": 84.63
@@ -69,7 +69,7 @@
           "weight": 0.412
         },
         {
-          "chain": "Apollo",
+          "chain": "Apollo Pharmacy",
           "weight": 0.366
         },
         {
@@ -89,7 +89,7 @@
           "weight": 0.5737
         },
         {
-          "chain": "Apollo",
+          "chain": "Apollo Pharmacy",
           "weight": 0.4263
         }
       ],
@@ -112,7 +112,7 @@
           "weight": 0.53
         },
         {
-          "chain": "Apollo",
+          "chain": "Apollo Pharmacy",
           "weight": 0.47
         }
       ],
@@ -122,7 +122,7 @@
     {
       "ship_to": "D.L. Sales - MT",
       "type": "DIRECT",
-      "chain": "Apollo",
+      "chain": "Apollo Pharmacy",
       "nsv_reallocated": 431.79,
       "confidence": "HIGH \u2014 Single-chain confirmed"
     }
