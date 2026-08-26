@@ -226,6 +226,20 @@
   .yoy-badge.positive{background:#e8f5ec;color:var(--green);border:1px solid #b7e0c4}
   .yoy-badge.negative{background:#fce8e6;color:var(--red);border:1px solid #f5c6cb}
   .yoy-badge.inactive{background:#f5f5f5;color:var(--muted);border:1px solid #e0e0e0}
+  .insight-banner-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;
+      margin:12px 0 20px 0}
+  .insight-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;
+      box-shadow:0 1px 2px rgba(0,0,0,0.04);display:flex;flex-direction:column;justify-content:space-between}
+  .insight-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .insight-icon{font-size:18px}
+  .insight-title{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:#64748b}
+  .insight-body{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:2px 0}
+  .insight-primary-val{font-size:1.15rem;font-weight:700;color:#0f172a}
+  .text-truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .insight-badge{font-size:0.78rem;font-weight:600;padding:2px 6px;border-radius:4px;background:#f1f5f9}
+  .badge-green{background:#dcfce7;color:#15803d}
+  .badge-red{background:#fee2e2;color:#b91c1c}
+  .insight-subtext{font-size:0.8rem;color:#64748b;margin-top:4px}
 </style>
 </head>
 <body>
@@ -284,6 +298,47 @@
         <button class="secondary" onclick="exportExecutiveBriefPDF()">📄 Print / PDF</button>
         <button class="primary" onclick="exportExecutiveBriefImage()">🖼️ Download PNG (1920×1080)</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Executive Insight Banner -->
+  <div id="exec-insight-banner" class="insight-banner-grid">
+    <!-- Card 1: Target vs Baseline -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <span class="insight-icon">🎯</span>
+        <span class="insight-title">Target vs Baseline</span>
+      </div>
+      <div class="insight-body">
+        <span id="banner-target-val" class="insight-primary-val">--</span>
+        <span id="banner-delta-badge" class="insight-badge">--</span>
+      </div>
+      <div id="banner-baseline-sub" class="insight-subtext">Baseline: --</div>
+    </div>
+
+    <!-- Card 2: Top 3 Driver Accounts -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <span class="insight-icon">🏆</span>
+        <span class="insight-title">Top 3 Driver Accounts</span>
+      </div>
+      <div class="insight-body">
+        <span id="banner-top3-names" class="insight-primary-val text-truncate">--</span>
+      </div>
+      <div id="banner-top3-share" class="insight-subtext">Drives --% of active target</div>
+    </div>
+
+    <!-- Card 3: Growth Leader -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <span class="insight-icon">⚡</span>
+        <span class="insight-title">Growth Leader</span>
+      </div>
+      <div class="insight-body">
+        <span id="banner-growth-leader" class="insight-primary-val">--</span>
+        <span id="banner-growth-rate" class="insight-badge badge-green">--</span>
+      </div>
+      <div id="banner-growth-target" class="insight-subtext">Target: --</div>
     </div>
   </div>
 </div>
@@ -4803,11 +4858,74 @@ function show(id){
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
+  const p = D.primary || {};
+  updateExecutiveBanner(p.by_chain || []);
   show('overview');
   // Render YoY badges after initial tab load
   setTimeout(()=>renderYoYBadges(),100);
 
-  // Export zonal summary — CSV download
+  // Update insight banner on every filter change
+  const origOnFilterChange = onFilterChange;
+  onFilterChange = function() {
+    origOnFilterChange();
+    const chains = (D.primary || {}).by_chain || [];
+    const filtered = chains.filter(c => !F.Chain.length || F.Chain.includes(c.name));
+    updateExecutiveBanner(filtered.length ? filtered : chains);
+  };
+})();
+
+// ── Executive Insight Banner ─────────────────────────────────────────────────
+function updateExecutiveBanner(filteredChains) {
+  if (!filteredChains || filteredChains.length === 0) return;
+
+  let totalFY26 = 0;
+  let totalFY27 = 0;
+  let accounts = [];
+
+  filteredChains.forEach(c => {
+    const fy26 = Number(c.fy26 || 0);
+    const fy27 = Number(c.fy27 || 0);
+    totalFY26 += fy26;
+    totalFY27 += fy27;
+
+    const growth = fy26 > 0 ? ((fy27 - fy26) / fy26) * 100 : 0;
+    accounts.push({ name: c.name || c.chain, fy26, fy27, growth });
+  });
+
+  const delta = totalFY27 - totalFY26;
+  const overallGrowth = totalFY26 > 0 ? (delta / totalFY26) * 100 : 0;
+
+  // 1. Target vs Baseline Card
+  document.getElementById('banner-target-val').textContent = `₹${totalFY27.toLocaleString('en-IN', { maximumFractionDigits: 1 })}L`;
+  document.getElementById('banner-baseline-sub').textContent = `Baseline: ₹${totalFY26.toLocaleString('en-IN', { maximumFractionDigits: 1 })}L (Δ ${delta >= 0 ? '+' : ''}₹${delta.toFixed(1)}L)`;
+
+  const deltaBadge = document.getElementById('banner-delta-badge');
+  deltaBadge.textContent = `${overallGrowth >= 0 ? '▲ +' : '▼ '}${Math.abs(overallGrowth).toFixed(1)}% YoY`;
+  deltaBadge.className = `insight-badge ${overallGrowth >= 0 ? 'badge-green' : 'badge-red'}`;
+
+  // 2. Top 3 Accounts Card
+  const sortedByTarget = [...accounts].sort((a, b) => b.fy27 - a.fy27);
+  const top3 = sortedByTarget.slice(0, 3);
+  const top3Sum = top3.reduce((s, a) => s + a.fy27, 0);
+  const top3Share = totalFY27 > 0 ? ((top3Sum / totalFY27) * 100).toFixed(1) : 0;
+
+  document.getElementById('banner-top3-names').textContent = top3.map(a => a.name).join(', ') || 'N/A';
+  document.getElementById('banner-top3-share').textContent = `Drives ${top3Share}% of selected target (₹${top3Sum.toFixed(1)}L)`;
+
+  // 3. Growth Leader Card (filter small bases < ₹10L to prevent skew)
+  const viableGrowth = accounts.filter(a => a.fy26 >= 10);
+  const topGrower = viableGrowth.sort((a, b) => b.growth - a.growth)[0] || sortedByTarget[0];
+
+  if (topGrower) {
+    document.getElementById('banner-growth-leader').textContent = topGrower.name;
+    const rateBadge = document.getElementById('banner-growth-rate');
+    rateBadge.textContent = `+${topGrower.growth.toFixed(1)}% YoY`;
+    rateBadge.className = 'insight-badge badge-green';
+    document.getElementById('banner-growth-target').textContent = `Target: ₹${topGrower.fy27.toFixed(1)}L (Base: ₹${topGrower.fy26.toFixed(1)}L)`;
+  }
+}
+
+(function init_export(){
   document.getElementById('exportZonalSummary').addEventListener('click', () => {
     const p = D.primary || {};
     const zones = (p.by_zone || []).filter(z => !F.Zone.length || F.Zone.includes(z.name));
