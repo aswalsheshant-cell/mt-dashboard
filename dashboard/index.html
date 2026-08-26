@@ -855,6 +855,7 @@ function buildPrimary(){
     return;
   }
   const fy=fyKey(), yrs=fy?[fy]:['fy25','fy26'], last=yrs[yrs.length-1], yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
+  if(fy && !yrLab[fy]) yrLab[fy]=fyDispLabel('FY'+fy.slice(2));   // backfill FY27+ label
   let chains=p.by_chain, zones=p.by_zone, brands=p.by_brand, channels=p.by_channel;
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
@@ -1139,6 +1140,7 @@ function buildOfftake(){
      ${card('Monthly offtake trend',`${months.length} month(s)${fOn('Month')?` — filtered to ${fLab('Month')}`:''}.`,cv('ofTrend'))}
      ${card(`Primary vs Offtake by chain (${yrLab[yrs[yrs.length-1]]}) — inventory health`,'Bars above the line = billing ahead of sell-out (stock build); below = sell-out ahead (refill). Click a chain to drill.',cv('ofCmp'))}
    </div>
+   ${card('Offtake by zone'+(fy?` (${yrLab[fy]})`:' YoY'),'Click a zone to drill.',cv('ofZone'))}
    ${card('State-wise offtake'+(fy?` (${yrLab[fy]})`:' YoY'),fy?`Filtered to ${yrLab[fy]}. Click a zone to drill.`:'Click a zone to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>State</th><th>Zone</th>${fy?`<th>${yrLab[fy]}</th>`:(yrs.length>=2?`<th>${yrLab[yrs[yrs.length-2]]}</th><th>${yrLab[yrs[yrs.length-1]]}</th><th>YoY</th>`:`<th>${yrLab[yrs[0]]}</th><th>YoY</th>`)}</tr></thead><tbody>${strows||`<tr><td colspan="${fy?3:yrs.length+3}">No states for this filter.</td></tr>`}</tbody></table></div>`)}
    ${drillCardHtml('ofDrill','Offtake NSV')}`;
@@ -1436,6 +1438,7 @@ function buildForecast(){
    </div>
    ${card(`Offtake — actuals &amp; ${fyDispLabel('FY27')} ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
    ${card('Method',f.method,isTY?'':'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}
+   ${catDrillCardHtml('fcCatDrill')}
    ${drillCardHtml('fcDrill','Primary NSV')}`;
   const histLen=f.hist.length;
   mkLine('fcChart',[...f.hist_labels,...f.fc_labels],[
@@ -1566,6 +1569,7 @@ function buildShare(){
     return;
   }
   const fy=fyKey()||'fy26', yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
+  if(fy && !yrLab[fy]) yrLab[fy]=fyDispLabel('FY'+fy.slice(2));   // backfill FY27+ label
   const tot=p['nsv_'+fy]||1;
   let chains=p.by_chain; if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   const sob=chains.filter(c=>c[fy]>0).slice(0,10).map(c=>({name:c.name,share:c[fy]/tot*100,v:c[fy]}));
@@ -2174,6 +2178,7 @@ function drillTo(key,value){
   onFilterChange();
 }
 function drillLink(key,label){
+  if(label==null||label!==label) return '–';
   return `<span class="drill" data-k="${key}" data-v="${String(label).replace(/"/g,'&quot;')}" title="Filter this view to ${label}">${label}</span>`;
 }
 function wireDrillLinks(root){
@@ -2414,7 +2419,7 @@ function buildExplorer(){
     ? `<div class="repbanner"><b>Representative data.</b> Drill-down runs on <code>detail_records</code> whose Chain/Brand/Zone/Channel/Month/FY totals match the real primary; Category, Sub-category, Pack Size and Article are taxonomy placeholders until the granular source feeds <code>build_dashboard_data.py</code>.</div>` : '';
   const cap=400, shown=recs.slice(0,cap);
   const trows=shown.map(r=>`<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
-     <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory}</td><td>${r.Range}</td><td>${r.PackSize}</td>
+     <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory||'–'}</td><td>${r.Range||'–'}</td><td>${r.PackSize||'–'}</td>
      <td>${r.Article}</td><td>${crc(r.NSV)}</td><td>${crc(r.MRP)}</td><td>${qtyFmt(r.Qty)}</td></tr>`).join('');
   // SIS channel check — always the SIS slice (ignores the Channel filter, respects the others)
   const isRep=!!(D.detail_meta&&D.detail_meta.representative);
