@@ -4,6 +4,7 @@ Tier 3: Automated Data.JS Sync Pipeline
 
 Regenerates dashboard/data.js from the authoritative data_master.json.
 Ensures single source of truth: data_master.json → data.js (one-way sync).
+Also populates universe block from UniverseMT.csv (Active MT Store count).
 
 This script is part of the master data governance consolidation (Tiers 1-3).
 It automates what was previously a manual, error-prone process.
