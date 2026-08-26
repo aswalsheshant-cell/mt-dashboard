@@ -2056,6 +2056,77 @@ function wirePromoFilters() {
       buildPromo();
     });
   }
+
+  // Handle export to CSV button
+  const exportCSVBtn = document.getElementById('exportPromoCSV');
+  if (exportCSVBtn) {
+    exportCSVBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      exportPromoCSV();
+    });
+  }
+}
+
+// ── PROMO EXPORT UTILITIES ─────────────────────────────────────────────────
+function getPromoFilteredRows() {
+  const table = document.querySelector('#tab-promo table tbody');
+  if (!table) return [];
+  return Array.from(table.querySelectorAll('tr')).map(row => {
+    const cells = row.querySelectorAll('td');
+    return {
+      chain: cells[0]?.textContent?.trim() || '',
+      skus: cells[1]?.textContent?.trim() || '',
+      brands: cells[2]?.textContent?.trim() || '',
+      depth: cells[3]?.textContent?.trim() || '',
+      kam: cells[4]?.textContent?.trim() || '',
+      status: cells[5]?.textContent?.trim() || '',
+      flags: cells[6]?.textContent?.trim() || ''
+    };
+  });
+}
+
+function buildPromoCSV() {
+  const headers = ['Month', 'Chain', 'KAM', 'SKU Count', 'Avg Offer (%)', 'Status', 'Anomaly Flags'];
+  const selectedMonths = Array.from(promoFilters.months).length > 0
+    ? Array.from(promoFilters.months)
+    : (D.promo?.months_available || []);
+
+  const rows = [headers];
+  const tableRows = getPromoFilteredRows();
+
+  tableRows.forEach(row => {
+    rows.push([
+      selectedMonths.join(', '),
+      row.chain,
+      row.kam,
+      row.skus,
+      row.depth,
+      row.status,
+      row.flags.replace(/\n/g, ' ').trim()
+    ]);
+  });
+
+  return rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+}
+
+function exportPromoCSV() {
+  const csv = buildPromoCSV();
+  if (!csv || csv.trim() === '"Month","Chain","KAM","SKU Count","Avg Offer (%)","Status","Anomaly Flags"') {
+    alert('No data to export. Please ensure the Promo tab has data loaded.');
+    return;
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  const dateStr = new Date().toISOString().split('T')[0];
+
+  link.setAttribute('href', url);
+  link.setAttribute('download', `promo_export_${dateStr}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 // ── PROMO ANOMALY DETECTION ────────────────────────────────────────────────
@@ -2185,6 +2256,10 @@ function buildPromo(){
       <button id="promoAnomalyToggle" class="fbtn ${promoAnomalyFilter ? '' : 'ghost'}" style="margin:0"
               title="Show only anomalies: depth >50% or MoM spike >15%">
         ⚠ Anomalies Only
+      </button>
+      <button id="exportPromoCSV" class="fbtn ghost" style="margin:0"
+              title="Download filtered table as CSV">
+        📥 Export CSV
       </button>
     </div>
   ` : '';
