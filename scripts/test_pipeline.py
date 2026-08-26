@@ -153,7 +153,7 @@ class TestBCExclusion:
         return pd.DataFrame({
             "Chain Name": [
                 "Reliance Retail", "Reliance Retail", "Reliance Retail",
-                "DMart", "DMart"
+                "Dmart", "Dmart"
             ],
             col_name: [
                 "Brand Counter", "Non Brand Counter", "Non Brand Counter",
@@ -199,7 +199,7 @@ class TestBCExclusion:
         _is_rel = _chain_c.str.contains("reliance", na=False)
         _is_bc = (_ds_c == "brand counter")
         filtered = df[~(_is_rel & _is_bc)]
-        dmart_rows = filtered[filtered["Chain Name"] == "DMart"]
+        dmart_rows = filtered[filtered["Chain Name"] == "Dmart"]
         assert len(dmart_rows) == 2
 
 
@@ -212,7 +212,7 @@ class TestPatchIdempotency:
     def _make_chain_month(self):
         return {
             "Reliance Retail": {"Apr-26": 100.0, "May-26": 200.0, "Jun-26": 150.0},
-            "DMart": {"Apr-26": 50.0, "May-26": 60.0, "Jun-26": 70.0},
+            "Dmart": {"Apr-26": 50.0, "May-26": 60.0, "Jun-26": 70.0},
         }
 
     def _make_zsm(self):
@@ -225,7 +225,7 @@ class TestPatchIdempotency:
         return {
             "by_chain": [
                 {"name": "Reliance Retail"},
-                {"name": "DMart"},
+                {"name": "Dmart"},
             ],
             "by_zone": [
                 {"name": "North"},
@@ -280,7 +280,7 @@ class TestPatchIdempotency:
         for z in base.get("by_zone", []):
             z["fy27"] = 110.0
         cm = {"Reliance Retail": {"Apr-26": 100.0, "May-26": 200.0},
-              "DMart": {"Apr-26": 50.0, "May-26": 60.0}}
+              "Dmart": {"Apr-26": 50.0, "May-26": 60.0}}
         zsm = {("North", "Delhi/ Ncr"): {"Apr-26": 30.0, "May-26": 40.0},
                ("South 1", "Karnataka"): {"Apr-26": 20.0, "May-26": 25.0}}
         patched = bd.patch_offtake_new_months(copy.deepcopy(base), cm, zsm)
@@ -298,14 +298,14 @@ class TestCSVGlobSupport:
         with tempfile.TemporaryDirectory() as td:
             p = Path(td)
             df = pd.DataFrame({
-                "Chain Name": ["DMart"], "Zone": ["West"],
+                "Chain Name": ["Dmart"], "Zone": ["West"],
                 "State": ["Maharashtra"], "Month": ["Jun'26"],
                 "NSV": [100.0],
             })
             df.to_csv(p / "test_offtake.csv", index=False)
             cm, zsm = bd.load_offtake_article_files(p)
-            assert "DMart" in cm
-            assert cm["DMart"].get("Jun-26", 0) > 0
+            assert "Dmart" in cm
+            assert cm["Dmart"].get("Jun-26", 0) > 0
 
     def test_empty_dir_returns_empty(self):
         with tempfile.TemporaryDirectory() as td:

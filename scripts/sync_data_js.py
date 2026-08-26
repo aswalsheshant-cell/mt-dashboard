@@ -5,7 +5,6 @@ Tier 3: Automated Data.JS Sync Pipeline
 Regenerates dashboard/data.js from the authoritative data_master.json.
 Ensures single source of truth: data_master.json → data.js (one-way sync).
 Also populates universe block from UniverseMT.csv (Active MT Store count).
-Integrates Sprint 5 Track 3: Promo depth vs. Offtake correlation analytics.
 
 This script is part of the master data governance consolidation (Tiers 1-3).
 It automates what was previously a manual, error-prone process.
@@ -18,156 +17,9 @@ USAGE:
 """
 from __future__ import annotations
 import json
-import re
 import argparse
 from pathlib import Path
 from datetime import datetime
-import sys
-import os
-
-# Add scripts directory to path for imports
-sys.path.insert(0, os.path.dirname(__file__))
-
-from json_boundary import parse_window_dash_strict, serialize_window_dash
-
-try:
-    import pandas as pd
-    _HAS_PANDAS = True
-except ImportError:
-    import csv
-    _HAS_PANDAS = False
-
-UNIVERSE_CSV = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
-
-# Canonical column names after standardization (strip + lower + underscore)
-_COL_CHAIN     = "chain_name"
-_COL_STATUS    = "status"
-_COL_ZONE      = "zone"
-_COL_CITYCAT   = "city_category"
-_COL_STORETYPE = "store_type"
-
-
-def build_universe_block() -> dict | None:
-    """Read UniverseMT.csv and return a universe block for data.js.
-
-    Uses pandas when available (consistent with build_dashboard_data.py).
-    Falls back to csv.DictReader in minimal environments.
-    Returns None if the CSV is missing (non-fatal — existing block is preserved).
-    """
-    if not UNIVERSE_CSV.exists():
-        return None
-
-    if _HAS_PANDAS:
-        df = pd.read_csv(UNIVERSE_CSV, dtype=str).fillna("")
-        # Standardise column names: strip, lowercase, spaces→underscore
-        df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
-
-        total_stores = len(df)
-        active_df   = df[df[_COL_STATUS].str.strip().str.upper() == "ACTIVE"].copy()
-        inactive_df = df[df[_COL_STATUS].str.strip().str.upper() != "ACTIVE"].copy()
-
-        def _chain_counts(frame):
-            return (
-                frame[_COL_CHAIN].str.strip()
-                .replace("", pd.NA).dropna()
-                .value_counts()
-                .rename_axis("name")
-                .reset_index(name="stores")
-                .sort_values("stores", ascending=False)
-                .to_dict("records")
-            )
-
-        def _dim_counts(frame, col):
-            return (
-                frame[col].str.strip()
-                .replace({"": pd.NA, "nan": pd.NA, "none": pd.NA}, regex=False)
-                .dropna()
-                .value_counts()
-                .rename_axis("name")
-                .reset_index(name="stores")
-                .sort_values("stores", ascending=False)
-                .to_dict("records")
-            )
-
-        by_chain_active   = _chain_counts(active_df)
-        by_chain_inactive = _chain_counts(inactive_df)
-        by_zone           = _dim_counts(active_df, _COL_ZONE)
-        by_citycat        = _dim_counts(active_df, _COL_CITYCAT)
-        by_storetype      = _dim_counts(active_df, _COL_STORETYPE)
-
-        classified   = active_df[_COL_STORETYPE].str.strip().replace({"": pd.NA, "nan": pd.NA, "none": pd.NA}, regex=False).notna().sum()
-        unclassified = len(active_df) - int(classified)
-
-    else:
-        # csv fallback
-        rows = []
-        with open(UNIVERSE_CSV, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for r in reader:
-                rows.append({c.strip().lower().replace(" ", "_"): v for c, v in r.items()})
-        if not rows:
-            return None
-
-        total_stores = len(rows)
-        active   = [r for r in rows if r.get(_COL_STATUS, "").strip().upper() == "ACTIVE"]
-        inactive = [r for r in rows if r.get(_COL_STATUS, "").strip().upper() != "ACTIVE"]
-
-        def _tally(lst, key):
-            counts: dict[str, int] = {}
-            for r in lst:
-                v = r.get(key, "").strip()
-                if v and v.upper() not in ("NAN", "NONE"):
-                    counts[v] = counts.get(v, 0) + 1
-            return sorted([{"name": k, "stores": v} for k, v in counts.items()], key=lambda d: -d["stores"])
-
-        by_chain_active   = _tally(active, _COL_CHAIN)
-        by_chain_inactive = _tally(inactive, _COL_CHAIN)
-        by_zone     = _tally(active, _COL_ZONE)
-        by_citycat  = _tally(active, _COL_CITYCAT)
-        by_storetype = _tally(active, _COL_STORETYPE)
-
-        classified = sum(
-            1 for r in active
-            if r.get(_COL_STORETYPE, "").strip()
-            and r.get(_COL_STORETYPE, "").strip().upper() not in ("NAN", "NONE")
-        )
-        unclassified = len(active) - classified
-        active_df    = active   # for len()
-        inactive_df  = inactive
-
-    n_active   = len(active_df) if _HAS_PANDAS else len(active)
-    n_inactive = len(inactive_df) if _HAS_PANDAS else len(inactive)
-    n_chains   = len(by_chain_active)
-
-    out: dict = {
-        "total_stores":  total_stores,
-        "active_stores": n_active,
-        "n_stores":      n_active,   # alias — index.html may use either key
-        "inactive_stores": n_inactive,
-        "n_chains":      n_chains,
-        "by_chain":      by_chain_active,
-        "inactive_by_chain": by_chain_inactive,
-        "by_zone":       by_zone,
-        "by_citycat":    by_citycat,
-        "by_storetype":  by_storetype,
-        "storetype_classified":   int(classified),
-        "storetype_unclassified": unclassified,
-    }
-    if unclassified > 0:
-        out["storetype_note"] = (
-            f"{unclassified} of {n_active} active stores have a blank or missing Store Type "
-            f"in UniverseMT.csv and are not shown in the store-type chart."
-        )
-    return out
-
-
-def _safe_json_parse(text: str) -> dict:
-    """Parse JSON that may contain bare NaN/undefined literals or trailing commas."""
-    cleaned = re.sub(r'(?<!["\w])NaN(?!["\w])', 'null', text)
-    cleaned = re.sub(r'\bundefined\b', 'null', cleaned)
-    # Remove trailing commas before ] or }
-    cleaned = re.sub(r',\s*([}\]])', r'\1', cleaned)
-    return json.loads(cleaned)
 
 
 def load_master(master_path: str) -> dict:
@@ -258,40 +110,17 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
             else:
                 entry[fy_key] = 0
         by_zone.append(entry)
-
-    # Pan India = exact rollup of all regional zones; exclude it from UI + totals to avoid 2× double-counting
-    PAN_INDIA_ZONE = "Pan India"
-    by_zone = [z for z in by_zone if z["name"] != PAN_INDIA_ZONE]
     offtake_block["by_zone"] = by_zone
 
+    # Pan India = exact rollup of all regional zones; exclude it from grand totals
+    # and monthly aggregations to avoid 2× double-counting.
+    PAN_INDIA_ZONE = "Pan India"
+
     # Grand totals for each FY — exclude Pan India to prevent double-count
-    # Use by_chain_offtake if available (ingested primary CSV data), otherwise use zone totals
-    by_chain_offtake = master.get("by_chain_offtake", {})
-    by_chain_breakdown = None
-
     for fy_key in ["fy25", "fy26", "fy27"]:
-        # Prefer chain-level totals if available (they're more complete)
-        if by_chain_offtake and fy_key in by_chain_offtake:
-            chain_total_cr = sum(by_chain_offtake[fy_key].values())
-            if chain_total_cr > 0:
-                # Convert from Crore to Lakh (multiply by 100)
-                chain_total_lakh = chain_total_cr * CRORE_TO_LAKH
-                offtake_block[f"total_{fy_key}"] = round(chain_total_lakh, 2)
-                # Use FY26 chain breakdown (most complete full-year data)
-                if fy_key == "fy26":
-                    by_chain_breakdown = [
-                        {"name": chain, "value": round(value * CRORE_TO_LAKH, 2)}
-                        for chain, value in sorted(by_chain_offtake[fy_key].items(), key=lambda x: x[1], reverse=True)
-                    ]
-        else:
-            # Fall back to zone-based totals (already in Lakh)
-            total = sum(z.get(fy_key, 0) for z in by_zone)
-            if total > 0:
-                offtake_block[f"total_{fy_key}"] = round(total, 2)
-
-    # Add FY26 chain breakdown to offtake block
-    if by_chain_breakdown:
-        offtake_block["by_chain"] = by_chain_breakdown
+        total = sum(z.get(fy_key, 0) for z in by_zone if z["name"] != PAN_INDIA_ZONE)
+        if total > 0:
+            offtake_block[f"total_{fy_key}"] = round(total, 2)
 
     # YoY for FY26 vs FY25 — keep as a percentage, do NOT multiply by CRORE_TO_LAKH
     fy25_total = offtake_block.get("total_fy25", 0)
@@ -327,15 +156,10 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     offtake_block["months"] = combined_months
     offtake_block["monthly"] = combined_monthly
 
-    # by_chain, by_state: preserve chain breakdown if populated, otherwise empty
-    if "by_chain" not in offtake_block:
-        offtake_block["by_chain"] = []
-    if "by_state" not in offtake_block:
-        offtake_block["by_state"] = []
-    offtake_block["n_chains"] = len(offtake_block.get("by_chain", []))
-
-    # Universe block — read from UniverseMT.csv (canonical source, git-tracked)
-    universe = build_universe_block()
+    # by_chain, by_state: empty — source data has no chain/state breakdown yet
+    offtake_block["by_chain"] = []
+    offtake_block["by_state"] = []
+    offtake_block["n_chains"] = 0
 
     # Blocks controlled by this script
     sync_blocks = {
@@ -345,43 +169,14 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         "unit_economics": master["unit_economics"],
         "executive_deck_sync": master["executive_deck_sync"],
     }
-    if universe is not None:
-        sync_blocks["universe"] = universe
-
-    # Include reliance_bc if present in master (Reliance Brand Counter data)
-    if "reliance_bc" in master and master["reliance_bc"] is not None:
-        sync_blocks["reliance_bc"] = master["reliance_bc"]
-
-    # Include promo block if present in master (Promo & Trade Spend data)
-    if "promo" in master and master["promo"] is not None:
-        sync_blocks["promo"] = master["promo"]
-
-    # Generate correlations block (Sprint 5 Track 3: Promo elasticity analytics)
-    # Only generate if promo data is available
-    if "promo" in master and master["promo"] is not None:
-        try:
-            from promo_offtake_correlation import generate_correlations_block
-            correlations_result = generate_correlations_block(
-                # Pass the master dict directly instead of file path
-                master
-            )
-            if correlations_result and "correlations" in correlations_result:
-                correlations = correlations_result["correlations"]
-                # Add timestamp to correlations
-                correlations["generated_at"] = datetime.now().isoformat()
-                sync_blocks["correlations"] = correlations
-        except Exception as e:
-            # Warn but don't fail if correlation generation has issues
-            print(f"  ⚠ Warning: Could not generate correlations: {e}")
 
     if existing_js is not None:
-        # Merge mode: preserve all blocks not controlled by this script.
-        # Use _safe_json_parse to handle bare NaN literals that json.loads rejects.
+        # Merge mode: preserve all blocks not controlled by this script
         try:
             json_str = existing_js.replace("window.DASH = ", "", 1).strip()
             if json_str.endswith(";"):
                 json_str = json_str[:-1]
-            existing_dash = _safe_json_parse(json_str)
+            existing_dash = json.loads(json_str)
         except (json.JSONDecodeError, ValueError):
             existing_dash = {}
         # Update only sync_blocks, keep everything else
@@ -389,16 +184,23 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     else:
         dash = sync_blocks
 
-    return serialize_window_dash(dash, indent=2)
+    # Serialize to JSON with proper formatting for readability
+    data_json = json.dumps(dash, indent=2, ensure_ascii=False)
+
+    # Wrap in JavaScript variable assignment (what index.html expects)
+    js_output = f"window.DASH = {data_json};"
+
+    return js_output
 
 
 def validate_output(js_content: str) -> bool:
     """Validate that the generated JS is syntactically sound."""
     # Extract the JSON part (between "window.DASH = " and ";")
     try:
-        parse_window_dash_strict(js_content)
+        json_part = js_content.replace("window.DASH = ", "").rstrip(";")
+        json.loads(json_part)
         return True
-    except ValueError as e:
+    except json.JSONDecodeError as e:
         print(f"✗ JSON validation failed: {e}")
         return False
 
@@ -481,8 +283,8 @@ Source:      {args.source} (LOCKED_MULTI_YEAR_V2)
 Output:      {args.output} (production-ready)
 Generated:   {datetime.now().isoformat()}
 
-Coverage:    FY25 (4m) + FY26 (12m) + FY27 (4m) = 120 zone-months
-Zones:       6 (Central, East, North, South 1, South 2, West)
+Coverage:    FY25 (4m) + FY26 (12m) + FY27 (4m) = 140 zone-months
+Zones:       7 (Central, East, North, Pan India, South 1, South 2, West)
 Status:      ✓ READY FOR DEPLOYMENT
 
 Next Steps:
@@ -498,4 +300,3 @@ Next Steps:
 
 if __name__ == "__main__":
     exit(main())
-

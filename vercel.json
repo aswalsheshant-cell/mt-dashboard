@@ -1,45 +1,7 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    {
-      "src": "/schemas/(.*)",
-      "headers": {
-        "Content-Type": "application/schema+json",
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800"
-      },
-      "dest": "/schemas/$1"
-    },
-    {
-      "src": "/(.*\\.json)",
-      "headers": {
-        "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-        "Pragma": "no-cache",
-        "Expires": "0"
-      },
-      "dest": "/dashboard/$1"
-    },
-    {
-      "src": "/(.*\\.(?:css|js|woff2|woff|ttf|otf))",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      },
-      "dest": "/dashboard/$1"
-    },
-    {
-      "src": "/(.*)",
-      "headers": {
-        "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "SAMEORIGIN",
-        "X-XSS-Protection": "1; mode=block",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Cache-Control": "public, max-age=0, must-revalidate"
-      },
-      "dest": "/dashboard/$1"
-    }
-  ],
-  "buildCommand": "echo 'Dashboard is static; no build required.'",
-  "outputDirectory": "dashboard"
+  "framework": null,
+  "buildCommand": "exit 0",
+  "installCommand": "exit 0",
+  "outputDirectory": "dashboard",
+  "cleanUrls": true
 }

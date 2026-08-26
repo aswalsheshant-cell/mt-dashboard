@@ -1,24 +1,25 @@
 Zone,Zone Sort Order,State,Region
-Central,1,Madhya Pradesh,Central
-Central,1,Chhattisgarh,Central
-Central,1,Maharashtra-Vidarbha,"Vidarbha (Nagpur, Akola, Amravati, Wardha, Yavatmal, Chandrapur, Bhandara, Gadchiroli)"
-East,2,West Bengal,East
-East,2,Bihar,East
-East,2,Odisha,East
-East,2,Assam,East
-East,2,Jharkhand,East
-North,3,Delhi,North
-North,3,Uttar Pradesh,North
-North,3,Punjab,North
-North,3,Haryana,North
-North,3,Rajasthan,North
-North,3,Uttarakhand,North
-North,3,Chandigarh,North
-South-1,4,Telangana,South
-South-1,4,Andhra Pradesh,South
-South-1,4,Tamil Nadu,South
-South-2,5,Karnataka,South
-South-2,5,Kerala,South
-West,6,Maharashtra,West
-West,6,Gujarat,West
-West,6,Goa,West
+East,1,West Bengal,East
+East,1,Bihar,East
+East,1,Odisha,East
+East,1,Assam,East
+East,1,Jharkhand,East
+North,2,Delhi,North
+North,2,Uttar Pradesh,North
+North,2,Punjab,North
+North,2,Haryana,North
+North,2,Rajasthan,North
+North,2,Uttarakhand,North
+North,2,Chandigarh,North
+South-1,3,Telangana,South
+South-1,3,Andhra Pradesh,South
+South-1,3,Tamil Nadu,South
+South-2,4,Karnataka,South
+South-2,4,Kerala,South
+West,5,Maharashtra,West
+West,5,Gujarat,West
+West,5,Goa,West
+Central,7,Madhya Pradesh,Central
+Central,7,Chhattisgarh,Central
+Pan India,6,Pan India,Pan India
+Central,6,Maharashtra-Vidarbha,"Vidarbha (Nagpur, Akola, Amravati, Wardha, Yavatmal, Chandrapur, Bhandara, Gadchiroli)"

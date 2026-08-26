@@ -34,10 +34,10 @@ def dash():
 
 class TestChainAliases:
     def test_dmart_variants(self):
-        assert bd.canon_chain("DC-D-Mart-Offline") == "DMart"
-        assert bd.canon_chain("JUST MARK-Dmart") == "DMart"
-        assert bd.canon_chain("D-Mart-Store-E-Com") == "DMart"
-        assert bd.canon_chain("JUST MARK-D-Mart") == "DMart"
+        assert bd.canon_chain("DC-D-Mart-Offline") == "Dmart"
+        assert bd.canon_chain("JUST MARK-Dmart") == "Dmart"
+        assert bd.canon_chain("D-Mart-Store-E-Com") == "Dmart"
+        assert bd.canon_chain("JUST MARK-D-Mart") == "Dmart"
 
     def test_reliance_variants(self):
         assert bd.canon_chain("Reliance Retail-DC") == "Reliance Retail"
@@ -79,18 +79,18 @@ class TestChainAliases:
         assert bd.canon_chain("Ratanadeep") == "Ratnadeep"
 
     def test_vishal_mega_mart(self):
-        assert bd.canon_chain("VISHAL ENTERPRISES") == "VMM"
-        assert bd.canon_chain("VMM") == "VMM"
+        assert bd.canon_chain("VISHAL ENTERPRISES") == "Vishal Mega Mart"
+        assert bd.canon_chain("VMM") == "Vishal Mega Mart"
 
     def test_hg_variants(self):
-        assert bd.canon_chain("Health & Glow") == "Health & Glow"
+        assert bd.canon_chain("Health & Glow") == "H&G"
 
     def test_eremedium(self):
         assert bd.canon_chain("Eremedium Private Limited") == "Eremedium"
 
     def test_sancus(self):
-        assert bd.canon_chain("Sancus") == "Sancus (RMT)"
-        assert bd.canon_chain("Sancus Networks-MT-Reg.") == "Sancus (RMT)"
+        assert bd.canon_chain("Sancus") == "RMT-Sancus"
+        assert bd.canon_chain("Sancus Networks-MT-Reg.") == "RMT-Sancus"
 
     def test_trent(self):
         assert bd.canon_chain("Trent Hypermarket") == "Trent"
@@ -113,7 +113,7 @@ class TestChainAliases:
         assert bd.canon_chain("Aarambagh food mart") == "Arambagh"
 
     def test_canonical_passthrough(self):
-        assert bd.canon_chain("Dmart") == "DMart"
+        assert bd.canon_chain("Dmart") == "Dmart"
         assert bd.canon_chain("Apollo") == "Apollo"
         assert bd.canon_chain("Shoppers Stop") == "Shoppers Stop"
 
@@ -201,7 +201,7 @@ class TestConsolidationTargets:
         verify it at least contains the key canonical chains we expect from FY26."""
         names = set(c["name"] for c in dash["tot"]["by_chain"])
         # TOT uses a different source (pre-agg FY26 workbook) — check canonical names present
-        expected_canonical = {"DMart", "Reliance Retail", "Apollo"}
+        expected_canonical = {"Dmart", "Reliance Retail", "Apollo"}
         found = expected_canonical & names
         assert found, (
             f"No canonical chain names found in tot.by_chain; got sample: {list(names)[:10]}"
