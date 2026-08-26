@@ -289,12 +289,14 @@
 <footer id="foot"></footer>
 
 <script src="data.js?v=20260703-3"></script>
+<script src="inventory_engine.js"></script>
 <script>
 // Load enriched analytics sidecar (non-destructive, optional)
 window.enrichedMetrics={};
 fetch('enriched_metrics.json').then(r=>r.json()).then(d=>window.enrichedMetrics=d).catch(()=>{});
 
 const D = window.DASH;
+const id = (eid) => document.getElementById(eid);
 
 /* ---- Defensive initialization: guard against missing data blocks so
    tabs degrade gracefully instead of crashing on undefined property access.
