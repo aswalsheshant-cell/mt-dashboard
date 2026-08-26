@@ -40,6 +40,9 @@ jobs:
       - name: Validate data.js integrity
         run: python scripts/ci_validate_datajs.py
 
+      - name: Validate data integrity assertions
+        run: python tests/validate_data_integrity.py
+
   report:
     runs-on: ubuntu-latest
     needs: validate

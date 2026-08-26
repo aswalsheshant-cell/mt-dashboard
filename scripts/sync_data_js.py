@@ -110,15 +110,15 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
             else:
                 entry[fy_key] = 0
         by_zone.append(entry)
+
+    # Pan India = exact rollup of all regional zones; exclude it from UI + totals to avoid 2× double-counting
+    PAN_INDIA_ZONE = "Pan India"
+    by_zone = [z for z in by_zone if z["name"] != PAN_INDIA_ZONE]
     offtake_block["by_zone"] = by_zone
 
-    # Pan India = exact rollup of all regional zones; exclude it from grand totals
-    # and monthly aggregations to avoid 2× double-counting.
-    PAN_INDIA_ZONE = "Pan India"
-
-    # Grand totals for each FY — exclude Pan India to prevent double-count
+    # Grand totals for each FY (Pan India already filtered from by_zone)
     for fy_key in ["fy25", "fy26", "fy27"]:
-        total = sum(z.get(fy_key, 0) for z in by_zone if z["name"] != PAN_INDIA_ZONE)
+        total = sum(z.get(fy_key, 0) for z in by_zone)
         if total > 0:
             offtake_block[f"total_{fy_key}"] = round(total, 2)
 
