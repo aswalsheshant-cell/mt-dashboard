@@ -220,6 +220,9 @@
   <nav id="nav"></nav>
   <div id="filterbar" class="filterbar"></div>
   <button class="fbtn ghost" id="exportZonalSummary" title="Export zonal breakdown to CSV (filtered by current zone/chain selection)" style="margin-left:auto;align-self:center">⭳ Export Zonal Summary</button>
+  <div class="alert-badge-container" style="margin-left: 12px; align-self: center; position: relative;">
+    <span class="alert-badge" style="display: inline-block; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 11px; font-weight: 700; min-width: 20px; position: relative;">0</span>
+  </div>
 </div>
 <div class="wrap">
   <!-- Tier Boundary Configurator -->
@@ -284,6 +287,7 @@
   <section id="tab-distribution"></section>
   <section id="tab-comparison"></section>
   <section id="tab-analytics"></section>
+  <section id="tab-alerts"></section>
   <section id="tab-stores"></section>
   <section id="tab-inventory"></section>
   <section id="tab-insights"></section>
@@ -292,6 +296,7 @@
 
 <script src="data.js?v=20260703-3"></script>
 <script src="inventory_engine.js"></script>
+<script src="alert_controller.js"></script>
 <script>
 // Load enriched analytics sidecar (non-destructive, optional)
 window.enrichedMetrics={};
@@ -302,6 +307,10 @@ fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
   if(d.compliance) window.DASH.compliance=d.compliance;
   if(d.inventory_fillrate) window.DASH.inventory_fillrate=d.inventory_fillrate;
 }).catch(()=>{});
+
+// Load active alerts feed (dynamic sidecar, optional)
+window.alertsFeed={metadata:{total_alerts:0,critical_count:0,warning_count:0},alerts:[]};
+fetch('alerts_feed.json').then(r=>r.json()).then(d=>window.alertsFeed=d).catch(()=>{});
 
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);
@@ -2826,6 +2835,12 @@ function computePORiskSummary(){
   return{breach_count:breach,penalty_exposure:penalty,max_aging:Math.max(...aging_vals,0)};
 }
 
+function buildAlerts(){
+  if(window.AlertController && window.AlertController.buildAlerts){
+    window.AlertController.buildAlerts();
+  }
+}
+
 function buildStores(){
   const s=document.getElementById('tab-stores');
   if(!D.compliance){
@@ -3318,13 +3333,13 @@ const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Pri
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],['insights','Insights & Way Forward']];
+  ['analytics','Commercial Analytics'],['alerts','Operational Alerts'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,insights:buildInsights};
+  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,alerts:buildAlerts,stores:buildStores,inventory:buildInventory,insights:buildInsights};
 let currentTab='overview';
 function show(id){
   currentTab=id;
