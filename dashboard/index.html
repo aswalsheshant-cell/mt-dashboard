@@ -867,7 +867,7 @@ function buildPrimary(){
   }
   const rows=chains.filter(c=>c[last]>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.fy25)}</td><td>${crc(c.fy26)}</td>
      <td><span class="pill ${c.yoy>=0?'g':'r'}">${pct(c.yoy)}</span></td></tr>`).join('');
-  const qcNote=qc?`<p class="note" style="margin:0 0 16px">
+  const qcNote=(qc&&qc.allocated_coverage_pct!=null)?`<p class="note" style="margin:0 0 16px">
      <b>Chain-level, not distributor-level:</b> Distributor-billed primary is split across the
      chains each ship-to actually serves, weighted by that chain's share of the ship-to's own
      secondary/offtake billing (same method as the Power BI model's Ship-to allocation) —
