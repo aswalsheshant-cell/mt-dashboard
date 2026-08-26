@@ -17,7 +17,9 @@ USAGE:
     (reads: data_master.json, writes: dashboard/data.js)
 """
 from __future__ import annotations
+import csv
 import json
+import re
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -28,6 +30,49 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from json_boundary import parse_window_dash_strict, serialize_window_dash
+
+UNIVERSE_CSV = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
+
+
+def build_universe_block() -> dict | None:
+    """Read UniverseMT.csv and return a universe block for data.js.
+
+    Returns None if the CSV is missing (non-fatal — existing block is preserved).
+    """
+    if not UNIVERSE_CSV.exists():
+        return None
+    rows = []
+    with open(UNIVERSE_CSV, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            rows.append(r)
+    if not rows:
+        return None
+
+    active = [r for r in rows if str(r.get("Status", "")).strip().upper() == "ACTIVE"]
+    chains: dict[str, int] = {}
+    zones: dict[str, int] = {}
+    for r in active:
+        c = str(r.get("Chain Name", "")).strip()
+        z = str(r.get("Zone", "")).strip()
+        if c:
+            chains[c] = chains.get(c, 0) + 1
+        if z:
+            zones[z] = zones.get(z, 0) + 1
+
+    return {
+        "total_stores": len(rows),
+        "active_stores": len(active),
+        "n_chains": len(chains),
+        "by_chain": sorted([{"name": k, "stores": v} for k, v in chains.items()], key=lambda d: -d["stores"]),
+        "by_zone": sorted([{"name": k, "stores": v} for k, v in zones.items()], key=lambda d: -d["stores"]),
+    }
+
+
+def _safe_json_parse(text: str) -> dict:
+    """Parse JSON that may contain bare NaN literals (replace with null first)."""
+    cleaned = re.sub(r'(?<!["\w])NaN(?!["\w])', 'null', text)
+    return json.loads(cleaned)
 
 
 def load_master(master_path: str) -> dict:
@@ -194,6 +239,9 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         offtake_block["by_state"] = []
     offtake_block["n_chains"] = len(offtake_block.get("by_chain", []))
 
+    # Universe block — read from UniverseMT.csv (canonical source, git-tracked)
+    universe = build_universe_block()
+
     # Blocks controlled by this script
     sync_blocks = {
         "metadata": meta,
@@ -202,6 +250,8 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         "unit_economics": master["unit_economics"],
         "executive_deck_sync": master["executive_deck_sync"],
     }
+    if universe is not None:
+        sync_blocks["universe"] = universe
 
     # Include reliance_bc if present in master (Reliance Brand Counter data)
     if "reliance_bc" in master and master["reliance_bc"] is not None:
@@ -230,8 +280,15 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
             print(f"  ⚠ Warning: Could not generate correlations: {e}")
 
     if existing_js is not None:
-        # Merge mode: preserve all blocks not controlled by this script
-        existing_dash = parse_window_dash_strict(existing_js)
+        # Merge mode: preserve all blocks not controlled by this script.
+        # Use _safe_json_parse to handle bare NaN literals that json.loads rejects.
+        try:
+            json_str = existing_js.replace("window.DASH = ", "", 1).strip()
+            if json_str.endswith(";"):
+                json_str = json_str[:-1]
+            existing_dash = _safe_json_parse(json_str)
+        except (json.JSONDecodeError, ValueError):
+            existing_dash = {}
         # Update only sync_blocks, keep everything else
         dash = {**existing_dash, **sync_blocks}
     else:
