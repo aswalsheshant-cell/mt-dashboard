@@ -170,6 +170,10 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         "executive_deck_sync": master["executive_deck_sync"],
     }
 
+    # Include reliance_bc if present in master (Reliance Brand Counter data)
+    if "reliance_bc" in master and master["reliance_bc"] is not None:
+        sync_blocks["reliance_bc"] = master["reliance_bc"]
+
     if existing_js is not None:
         # Merge mode: preserve all blocks not controlled by this script
         try:
