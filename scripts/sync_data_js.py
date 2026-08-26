@@ -191,6 +191,10 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     if "reliance_bc" in master and master["reliance_bc"] is not None:
         sync_blocks["reliance_bc"] = master["reliance_bc"]
 
+    # Include promo block if present in master (Promo & Trade Spend data)
+    if "promo" in master and master["promo"] is not None:
+        sync_blocks["promo"] = master["promo"]
+
     if existing_js is not None:
         # Merge mode: preserve all blocks not controlled by this script
         try:

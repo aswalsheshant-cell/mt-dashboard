@@ -2310,5 +2310,12 @@
       "Walmart CNC": 0.71,
       "Wellness Forever": 3.14
     }
+  },
+  "promo": {
+    "n_promos": 0,
+    "avg_depth": 0,
+    "by_chain": [],
+    "lines": [],
+    "detail": {}
   }
 }
