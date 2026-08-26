@@ -153,3 +153,78 @@ RETURN
         "⚠ " & _rows & " rows with negative allocated NSV (reversal entries in ShipTo CSV – Finance review required)",
         "No negative-frac rows"
     )
+
+// =====================================================================
+// FY26 RECONCILIATION & DATA QUALITY GATES
+// Validates Power BI offtake data against dashboard canonical reference
+// =====================================================================
+
+// Expected FY26 Offtake (from dashboard data_master.json)
+Expected FY26 Offtake =
+VAR expectedCr = 311.28  // ₹ Crore (43 chains, verified)
+RETURN expectedCr * 10000000  // Convert to base unit (smallest denomination)
+
+// Actual FY26 Offtake (from Power BI fact)
+Actual FY26 Offtake =
+CALCULATE (
+    [Total MT NSV],
+    'Date Table'[Fiscal Year] = 2026
+)
+
+// Variance Alert (should be < ±0.05 Cr tolerance)
+FY26 Offtake Variance =
+VAR actual = [Actual FY26 Offtake] / 10000000  // Convert to Crore
+VAR expected = [Expected FY26 Offtake] / 10000000
+RETURN actual - expected
+
+// Status Flag: Green/Red
+FY26 Status =
+VAR variance = [FY26 Offtake Variance]
+RETURN
+    IF (
+        ABS ( variance ) < 0.05,
+        "🟢 OK — Aligned with dashboard",
+        "🔴 MISMATCH — Variance: " & FORMAT ( variance, "+0.00;-0.00;0.00" ) & " Cr"
+    )
+
+// Expected FY26 RBC (from dashboard)
+Expected FY26 RBC =
+VAR expectedCr = 45.62  // ₹ Crore (Reliance Brand Counter)
+RETURN expectedCr * 10000000
+
+// Actual FY26 RBC
+Actual FY26 RBC =
+CALCULATE (
+    [Total RBC NSV],
+    'Date Table'[Fiscal Year] = 2026
+)
+
+// RBC Variance
+FY26 RBC Variance =
+VAR actual = [Actual FY26 RBC] / 10000000
+VAR expected = [Expected FY26 RBC] / 10000000
+RETURN actual - expected
+
+// RBC Status
+FY26 RBC Status =
+VAR variance = [FY26 RBC Variance]
+RETURN
+    IF (
+        ABS ( variance ) < 0.01,
+        "🟢 OK — Aligned with dashboard",
+        "🔴 MISMATCH — Variance: " & FORMAT ( variance, "+0.00;-0.00;0.00" ) & " Cr"
+    )
+
+// Combined total (MT + RBC)
+Expected FY26 Combined = [Expected FY26 Offtake] + [Expected FY26 RBC]
+Actual FY26 Combined = [Actual FY26 Offtake] + [Actual FY26 RBC]
+FY26 Combined Variance = ([Actual FY26 Combined] - [Expected FY26 Combined]) / 10000000
+
+FY26 Combined Status =
+VAR variance = [FY26 Combined Variance]
+RETURN
+    IF (
+        ABS ( variance ) < 0.05,
+        "🟢 OK — ₹356.90 Cr target",
+        "🔴 MISMATCH — Variance: " & FORMAT ( variance, "+0.00;-0.00;0.00" ) & " Cr"
+    )
