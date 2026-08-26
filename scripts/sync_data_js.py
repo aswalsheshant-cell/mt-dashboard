@@ -117,10 +117,27 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     PAN_INDIA_ZONE = "Pan India"
 
     # Grand totals for each FY — exclude Pan India to prevent double-count
+    # Use by_chain_offtake if available (ingested primary CSV data), otherwise use zone totals
+    by_chain_offtake = master.get("by_chain_offtake", {})
+
     for fy_key in ["fy25", "fy26", "fy27"]:
-        total = sum(z.get(fy_key, 0) for z in by_zone if z["name"] != PAN_INDIA_ZONE)
-        if total > 0:
-            offtake_block[f"total_{fy_key}"] = round(total, 2)
+        # Prefer chain-level totals if available (they're more complete)
+        if by_chain_offtake and fy_key in by_chain_offtake:
+            chain_total_cr = sum(by_chain_offtake[fy_key].values())
+            if chain_total_cr > 0:
+                # Convert from Crore to Lakh (multiply by 100)
+                chain_total_lakh = chain_total_cr * CRORE_TO_LAKH
+                offtake_block[f"total_{fy_key}"] = round(chain_total_lakh, 2)
+                # Populate by_chain for dashboard display (convert to Lakh)
+                offtake_block["by_chain"] = [
+                    {"name": chain, "value": round(value * CRORE_TO_LAKH, 2)}
+                    for chain, value in sorted(by_chain_offtake[fy_key].items(), key=lambda x: x[1], reverse=True)
+                ]
+        else:
+            # Fall back to zone-based totals (already in Lakh)
+            total = sum(z.get(fy_key, 0) for z in by_zone if z["name"] != PAN_INDIA_ZONE)
+            if total > 0:
+                offtake_block[f"total_{fy_key}"] = round(total, 2)
 
     # YoY for FY26 vs FY25 — keep as a percentage, do NOT multiply by CRORE_TO_LAKH
     fy25_total = offtake_block.get("total_fy25", 0)
