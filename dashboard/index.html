@@ -284,6 +284,8 @@
   <section id="tab-distribution"></section>
   <section id="tab-comparison"></section>
   <section id="tab-analytics"></section>
+  <section id="tab-stores"></section>
+  <section id="tab-inventory"></section>
   <section id="tab-insights"></section>
 </div>
 <footer id="foot"></footer>
@@ -294,6 +296,12 @@
 // Load enriched analytics sidecar (non-destructive, optional)
 window.enrichedMetrics={};
 fetch('enriched_metrics.json').then(r=>r.json()).then(d=>window.enrichedMetrics=d).catch(()=>{});
+
+// Load compliance & inventory fill-rate metrics (dynamic sidecar, optional)
+fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
+  if(d.compliance) window.DASH.compliance=d.compliance;
+  if(d.inventory_fillrate) window.DASH.inventory_fillrate=d.inventory_fillrate;
+}).catch(()=>{});
 
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);
@@ -2818,6 +2826,68 @@ function computePORiskSummary(){
   return{breach_count:breach,penalty_exposure:penalty,max_aging:Math.max(...aging_vals,0)};
 }
 
+function buildStores(){
+  const s=document.getElementById('tab-stores');
+  if(!D.compliance){
+    s.innerHTML='<h2>Store Audit Scorecard</h2><p class="lead">Compliance data not yet loaded.</p>';
+    return;
+  }
+  const comp=D.compliance, meta=comp.metadata, accounts=comp.accounts||[], doors=comp.doors||[];
+  const macroCard=card('Macro Promo Execution Score (PES)',
+    `${meta.total_doors_audited} doors audited • ${meta.coverage}`,
+    `<div class="kpi-row"><span class="kpi-val">${meta.macro_pes_percent}%</span><span class="kpi-lab">Macro PES</span></div>
+     <p class="note">Score = 0.40×Price + 0.30×FSDU + 0.30×OSA compliance</p>`);
+  const accountRows=accounts.map(a=>`<tr><td>${a.account_name}</td><td>${a.doors_audited}</td>
+    <td><span class="badge" style="background:${a.account_pes_percent>=85?'#4CAF50':a.account_pes_percent>=75?'#FF9800':'#F44336'}">${a.account_pes_percent}%</span></td>
+    <td>${a.price_compliance.toFixed(0)}%</td><td>${a.fsdu_compliance.toFixed(0)}%</td><td>${a.osa_compliance.toFixed(0)}%</td></tr>`).join('');
+  const accountTable=card('Account-Level Compliance',
+    `${accounts.length} accounts audited`,
+    `<table class="tbl"><thead><tr><th>Account</th><th>Doors</th><th>PES%</th><th>Price%</th><th>FSDU%</th><th>OSA%</th></tr></thead>
+     <tbody>${accountRows}</tbody></table>`);
+  const doorFlagRows=doors.slice(0,15).map(d=>`<tr><td>${d.door_name}</td>
+    <td><span class="badge ${d.price_flag?'badge-success':'badge-danger'}">${d.price_flag?'✓ Pass':'✗ Fail'}</span></td>
+    <td><span class="badge ${d.fsdu_flag?'badge-success':'badge-danger'}">${d.fsdu_flag?'✓ Pass':'✗ Fail'}</span></td>
+    <td><span class="badge ${d.osa_flag?'badge-success':'badge-danger'}">${d.osa_flag?'✓ Pass':'✗ Fail'}</span></td>
+    <td>${d.pes_percent}%</td></tr>`).join('');
+  const doorDetail=card('Door-Level Audit Detail',
+    `${doors.length} doors (showing first 15)`,
+    `<table class="tbl"><thead><tr><th>Door</th><th>Price</th><th>FSDU</th><th>OSA</th><th>PES%</th></tr></thead>
+     <tbody>${doorFlagRows}</tbody></table>`);
+  s.innerHTML=`<h2 class="sec">Store Audit Scorecard</h2>
+   <p class="lead">Promo Execution Score (PES) tracking across audit dimensions.</p>
+   ${macroCard}${accountTable}${doorDetail}`;
+}
+
+function buildInventory(){
+  const s=document.getElementById('tab-inventory');
+  if(!D.inventory_fillrate){
+    s.innerHTML='<h2>Supply Chain & Inventory</h2><p class="lead">Fill-rate data not yet loaded.</p>';
+    return;
+  }
+  const fr=D.inventory_fillrate, meta=fr.metadata, accounts=fr.accounts||[];
+  const kpiRow=`<div class="kpi-row"><span class="kpi-val">${meta.macro_cfr_percent}%</span><span class="kpi-lab">Macro CFR</span></div>
+   <div class="kpi-row"><span class="kpi-val">${meta.macro_otif_percent}%</span><span class="kpi-lab">Macro OTIF</span></div>`;
+  const metaCard=card('Supply Chain Fill-Rate Metrics',
+    `${meta.period} • Total Lost Revenue: ₹${meta.total_lost_revenue_lakh} Lakh`,
+    kpiRow);
+  const accountRows=accounts.map(a=>`<tr><td>${a.account_name}</td>
+    <td><span class="badge" style="background:${a.cfr_percent>=95?'#4CAF50':'#FF9800'}">${a.cfr_percent}%</span></td>
+    <td><span class="badge" style="background:${a.otif_percent>=90?'#4CAF50':'#FF9800'}">${a.otif_percent}%</span></td>
+    <td>₹${a.lost_revenue_lakh} Lakh</td></tr>`).join('');
+  const accountTable=card('Account-Level Fill-Rate & Lost Revenue',
+    `${accounts.length} accounts`,
+    `<table class="tbl"><thead><tr><th>Account</th><th>CFR%</th><th>OTIF%</th><th>Lost Revenue</th></tr></thead>
+     <tbody>${accountRows}</tbody></table>`);
+  const docInfo=`<p class="note"><strong>DOC Thresholds:</strong> Critical OOS (&lt;7d) | Low Cover (7-14d) | Healthy (15-35d) | Overstock (&gt;60d)</p>
+   <p class="note">Days of Cover = Current SOH ÷ Average Daily Offtake. Use with InventoryEngine.calculateDaysOfCover().</p>`;
+  const docCard=card('Days of Cover (DOC) & Stock Sufficiency',
+    'Pre-promo inventory guardrail',
+    docInfo);
+  s.innerHTML=`<h2 class="sec">Supply Chain & Inventory</h2>
+   <p class="lead">Fill-rate (CFR/OTIF), lost revenue, and Days of Cover tracking.</p>
+   ${metaCard}${accountTable}${docCard}`;
+}
+
 function buildInsights(){
   const s=document.getElementById('tab-insights');
   const cards=D.insights.map(i=>`<div class="icard ${i.type}">
@@ -3248,13 +3318,13 @@ const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Pri
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['analytics','Commercial Analytics'],['insights','Insights & Way Forward']];
+  ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,insights:buildInsights};
+  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,insights:buildInsights};
 let currentTab='overview';
 function show(id){
   currentTab=id;
