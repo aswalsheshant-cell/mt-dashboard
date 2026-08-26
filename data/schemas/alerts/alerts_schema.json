@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MT Leadership Dashboard Alerts Schema",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "total_alerts": {"type": "integer", "minimum": 0},
+        "critical_count": {"type": "integer", "minimum": 0},
+        "warning_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "alert_id": {"type": "string"},
+          "timestamp": {"type": "string", "format": "date-time"},
+          "severity": {"enum": ["CRITICAL", "WARNING", "INFO"]},
+          "alert_type": {"enum": ["CRITICAL_OOS", "AUDIT_FAILURE", "SERVICE_BREACH"]},
+          "account_id": {"type": "string"},
+          "account_name": {"type": "string"},
+          "metric_name": {"type": "string"},
+          "current_value": {"type": "number"},
+          "threshold": {"type": "number"},
+          "gap": {"type": "number"},
+          "message": {"type": "string"},
+          "recommendation": {"type": "string"},
+          "action_url": {"type": "string"}
+        },
+        "required": ["alert_id", "severity", "alert_type", "account_id", "message"]
+      }
+    }
+  },
+  "required": ["metadata", "alerts"]
+}
