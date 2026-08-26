@@ -11,8 +11,10 @@
 Sprint 8 delivers **store compliance auditing and supply chain fill-rate tracking** to the MT Leadership Dashboard. Four phases executed in sequence: backend sync, client-side integration, UI rendering, and comprehensive E2E verification.
 
 ### Phase 1: Backend Compliance Sync ✅
-**File**: `scripts/sync_compliance_data.py`  
-**Schema**: `data/schemas/store_compliance_schema.json`
+**Files**: 
+- `scripts/sync_compliance_data.py` — PES computation engine
+- `data/schemas/store_compliance_schema.json` — Data schema
+- `dashboard/compliance_metrics.json` — Generated compliance data (auto-generated)
 
 - **Promo Execution Score (PES)** formula: `(0.40 × Price + 0.30 × FSDU + 0.30 × OSA) × 100`
 - **Audit Data**:
@@ -27,7 +29,7 @@ Sprint 8 delivers **store compliance auditing and supply chain fill-rate trackin
   - Total lost revenue: **₹124.5 Lakh**
   - Per-account CFR/OTIF/lost revenue breakdown
 
-- **Data Integration**: `window.DASH.compliance` and `window.DASH.inventory_fillrate` merged into `dashboard/data.js`
+- **Data Integration**: `compliance_metrics.json` generated as separate sidecar file (similar to `enriched_metrics.json`). Dashboard dynamically loads via `fetch()` and merges `window.DASH.compliance` and `window.DASH.inventory_fillrate` at runtime. This keeps the `data.js` build pipeline clean.
 
 ### Phase 2 & 3: Client-Side UI Integration ✅
 **File**: `dashboard/index.html`
@@ -105,16 +107,17 @@ Integrated with existing DOC calculations to provide inventory guardrail:
 
 ### Created:
 ```
-data/schemas/store_compliance_schema.json    (JSON Schema for compliance data)
-scripts/sync_compliance_data.py              (PES computation & sync engine)
-test_sprint8_compliance_inventory.js         (E2E test suite)
-SPRINT8_IMPLEMENTATION_REPORT.md            (This report)
+data/schemas/store_compliance_schema.json        (JSON Schema for compliance data)
+scripts/sync_compliance_data.py                  (PES computation & sync engine → compliance_metrics.json)
+dashboard/compliance_metrics.json                (auto-generated compliance audit data)
+test_sprint8_compliance_inventory.js             (E2E test suite)
+SPRINT8_IMPLEMENTATION_REPORT.md                (This report)
 ```
 
 ### Modified:
 ```
-dashboard/index.html                        (+2 new tabs, +2 build functions, +2 BUILD mappings)
-dashboard/data.js                           (merged compliance & fillrate blocks via sync)
+dashboard/index.html                            (+2 new tabs, +2 build functions, +2 BUILD mappings,
+                                                 +dynamic load of compliance_metrics.json via fetch())
 ```
 
 ### No Changes To:
@@ -123,6 +126,7 @@ dashboard/data.js                           (merged compliance & fillrate blocks
 - Existing build functions (buildPrimary, buildOfftake, etc.)
 - FY logic or data model structure
 - InventoryEngine (Sprint 6 module reused)
+- `dashboard/data.js` build pipeline (compliance data loaded dynamically via sidecar pattern)
 
 ---
 
