@@ -2220,7 +2220,11 @@
       "Nov'25",
       "Oct'25",
       "Sep'25"
-    ]
+    ],
+    "total_fy25": 0,
+    "total_fy26": 4562,
+    "total_fy27": 1854,
+    "note": "RBC totals manually populated from authorized source"
   },
   "by_chain_offtake": {
     "fy25": {},
