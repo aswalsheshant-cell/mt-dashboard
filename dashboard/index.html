@@ -189,25 +189,26 @@ D.chain_allocation_qc = D.chain_allocation_qc || {warnings:[],blocked:[],audit_t
    Source: ChainMaster.csv + ChainAccount_Mapping_PriorityView.csv.
    Multi-chain distributors (need cont% allocation) are grouped separately. ---- */
 const _CC={
-  'DC-D-Mart-Offline':'Dmart','JUST MARK-Dmart':'Dmart','D-Mart-Store-E-Com':'Dmart',
+  'Dmart':'DMart','D-Mart':'DMart','dmart':'DMart',
+  'H&G':'Health & Glow','RMT-Sancus':'Sancus (RMT)','Vishal Mega Mart':'VMM','VMM':'VMM',
+  'DC-D-Mart-Offline':'DMart','JUST MARK-Dmart':'DMart','D-Mart-Store-E-Com':'DMart',
   'Reliance Retail-DC':'Reliance Retail','Reliance Retail-Store':'Reliance Retail',
   'RRL-FOC-Sample':'Reliance Retail','Reliance Retail-(Azorte)':'Azorte',
   'Nykaa E-Retail Limited':'Nykaa (FSN)','Metro-CNC':'Metro C&C',
-  'Walmart-CNC':'Walmart','Health & Glow':'H&G',
-  'Guardian Healthcare':'Guardian','Guardian Healthcare-Delhi':'Guardian',
+  'Walmart-CNC':'Walmart','Guardian Healthcare':'Guardian','Guardian Healthcare-Delhi':'Guardian',
   'Trent Hypermarket':'Trent','V-Mart Retail Limited':'V-Mart','V-Mart Retail':'V-Mart',
   'Travel News Services-Wsmith':'WH-Smith','Travel Retail Services-Relay':'Relay',
   'United Marketing':'Apollo','Eremedium Private Limited':'Eremedium',
   'AZORTE':'Azorte','Ratanadeep':'Ratnadeep',
-  'Sancus':'RMT-Sancus','Gaurdian':'Guardian',
+  'Sancus':'Sancus (RMT)','Gaurdian':'Guardian',
   'Aarambagh food mart':'Arambagh','V Mart East':'V-Mart',
-  'VISHAL ENTERPRISES':'Vishal Mega Mart','Metro':'Metro C&C',
+  'VISHAL ENTERPRISES':'VMM','Metro':'Metro C&C',
   'Mark Enterprise-Apollo':'Apollo','PRAGATI SALES-Apollo':'Apollo',
-  'PRAGATI SALES-D-MART':'Dmart','JUST MARK-D-Mart':'Dmart',
-  'Kiran Trading Company-Solapur-D-Mart':'Dmart','Kiran Trading Company-Pune-MT':'Dmart',
-  'VISHAL ENTERPRISES-D-Mart':'Dmart','Az Enterprises-MT':'Az Enterprises',
-  'Sancus Networks-MT-Reg.':'RMT-Sancus','R.C. Trade Link H&G':'H&G',
-  'R.C. Trade Link':'H&G','Lifestyle Babyshop':'Lifestyle'
+  'PRAGATI SALES-D-MART':'DMart','JUST MARK-D-Mart':'DMart',
+  'Kiran Trading Company-Solapur-D-Mart':'DMart','Kiran Trading Company-Pune-MT':'DMart',
+  'VISHAL ENTERPRISES-D-Mart':'DMart','Az Enterprises-MT':'Az Enterprises',
+  'Sancus Networks-MT-Reg.':'Sancus (RMT)','R.C. Trade Link H&G':'Health & Glow',
+  'R.C. Trade Link':'Health & Glow','Lifestyle Babyshop':'Lifestyle'
 };
 const _MCD=new Set([
   'Kiran Trading Company','G.V Enterprises','Sri Vijaya Durga Agencies',
@@ -2380,7 +2381,7 @@ function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
 
 // cross-tab drill-down: click any chart bar/segment/table-row on ANY tab to
 // set that one filter and re-render the SAME tab narrowed to it -- drilling
-// into "Dmart" on the Primary tab shows Dmart's own Primary view, not a jump
+// into "DMart" on the Primary tab shows DMart's own Primary view, not a jump
 // to a different tab. The Data Explorer tab is still there whenever you want
 // the raw row-level records for whatever's currently filtered.
 function drillTo(key,value){
