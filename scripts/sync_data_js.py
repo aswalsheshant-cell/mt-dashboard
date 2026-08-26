@@ -283,8 +283,8 @@ Source:      {args.source} (LOCKED_MULTI_YEAR_V2)
 Output:      {args.output} (production-ready)
 Generated:   {datetime.now().isoformat()}
 
-Coverage:    FY25 (4m) + FY26 (12m) + FY27 (4m) = 140 zone-months
-Zones:       7 (Central, East, North, Pan India, South 1, South 2, West)
+Coverage:    FY25 (4m) + FY26 (12m) + FY27 (4m) = 120 zone-months
+Zones:       6 (Central, East, North, South 1, South 2, West)
 Status:      ✓ READY FOR DEPLOYMENT
 
 Next Steps:

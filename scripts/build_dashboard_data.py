@@ -205,14 +205,14 @@ CHAIN_ALIASES = [
     ("Apollo",            ["apollo", "apollo healthco"]),
     ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
                             "reliance", "reliance ", "rrl"]),
-    ("Dmart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
+    ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
     ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
     ("Wellness Forever",  ["wellness forever"]),
-    ("H&G",               ["h&g", "hng", "h\\&g"]),
+    ("Health & Glow",               ["h&g", "hng", "h\\&g"]),
     ("Lulu",              ["lulu", "lulu "]),
     ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
     ("More Retail",       ["more", "more retail", "more "]),
-    ("RMT-Sancus",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
+    ("Sancus (RMT)",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
     ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
     ("Spencer",           ["spencer", "spencers", "spencer's"]),
     ("Guardian",          ["guardian", "gaurdian "]),
@@ -231,13 +231,13 @@ CHAIN_ALIASES = [
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
     ("Trent/Westside",    ["trends"]),
     ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
-    ("Dmart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
+    ("DMart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
                             "just mark-d-mart"]),
     ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
     ("Nykaa (FSN)",       ["nykaa e-retail limited"]),
     ("Metro C&C",         ["metro-cnc"]),
     ("Walmart",           ["walmart-cnc"]),
-    ("H&G",               ["health & glow", "r.c. trade link h&g", "r.c. trade link"]),
+    ("Health & Glow",               ["health & glow", "r.c. trade link h&g", "r.c. trade link"]),
     ("Guardian",          ["guardian healthcare", "guardian healthcare-delhi", "gaurdian"]),
     ("Trent",             ["trent hypermarket"]),
     ("V-Mart",            ["v-mart retail limited", "v-mart retail", "v mart east"]),
@@ -247,11 +247,11 @@ CHAIN_ALIASES = [
                             "pragati sales-apollo"]),
     ("Eremedium",         ["eremedium private limited"]),
     ("Ratnadeep",         ["ratanadeep"]),
-    ("RMT-Sancus",        ["sancus", "sancus networks-mt-reg."]),
+    ("Sancus (RMT)",        ["sancus", "sancus networks-mt-reg."]),
     ("Arambagh",          ["aarambagh food mart"]),
-    ("Vishal Mega Mart",  ["vishal enterprises", "vmm", "vmm "]),
+    ("VMM",  ["vishal enterprises", "vmm", "vmm "]),
     ("Lifestyle",         ["lifestyle babyshop"]),
-    ("Dmart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
+    ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart"]),
     ("Shoppers Stop",     ["shoppers stop"]),
     ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
@@ -516,6 +516,19 @@ def primary_block(df):
         return sorted(rows, key=lambda d: -(d.get(lo[-1]) or 0)) if (sort and lo) else rows
 
     out["by_channel"] = dim_rows("channel", keep_blank=True, sort=False)
+
+    # Ensure all known channels are represented (MT, EB2B, SIS), even if missing from current data
+    # This ensures the UI shows consistent channel options across all FYs
+    all_known_channels = {"MT", "EB2B", "SIS"}
+    existing_channels = {ch["name"] for ch in out["by_channel"]}
+    for ch_name in sorted(all_known_channels):
+        if ch_name not in existing_channels:
+            # Add channel with zero values for all FYs
+            ch_entry = {"name": ch_name}
+            for t in tags:
+                ch_entry[t.lower()] = None
+            out["by_channel"].append(ch_entry)
+
     out["by_zone"] = dim_rows("zone")
     out["by_brand"] = dim_rows("brand")
     out["by_chain"] = dim_rows("chain")
@@ -3744,6 +3757,17 @@ def main():
 
         # Use enhanced allocation with 3-tier fallback
         allocated, qc = apply_chain_allocation_enhanced(raw, weights, offtake_data)
+
+        # Normalize columns that primary_block expects (chain, brand, zone, channel)
+        if "chain" not in allocated.columns and "Chain Name" in allocated.columns:
+            allocated["chain"] = allocated["Chain Name"].map(canon_chain)
+        if "brand" not in allocated.columns and "Brand" in allocated.columns:
+            allocated["brand"] = allocated["Brand"].map(canon_brand)
+        if "zone" not in allocated.columns and "Zone" in allocated.columns:
+            allocated["zone"] = allocated["Zone"].map(canon_zone)
+        if "channel" not in allocated.columns and "Channel" in allocated.columns:
+            allocated["channel"] = allocated["Channel"].astype(str).str.strip()
+
         pdf, primary = primary_block(allocated)
 
         # Print Zonal Reconciliation Checksum
@@ -4010,6 +4034,31 @@ def main():
         data["cm2"] = cm2
     if alloc is not None:
         data["alloc"] = alloc
+
+    # ---- Merge FY27+ channels into primary.by_channel to ensure all channels are represented ----
+    # FY27 article-level data has EB2B/SIS channels not in pre-agg FY25/26 workbooks.
+    # Merge them so the channel array has ALL channels (MT, EB2B, SIS) for every FY,
+    # with zero values for missing FYs, so the UI shows consistent channel options.
+    if detail_meta and detail_meta.get("fyx_primary"):
+        # Collect all unique channels from all FY27+ sources
+        all_channels_set = set()
+        for fy_data in detail_meta["fyx_primary"].values():
+            if "by_channel" in fy_data:
+                for ch in fy_data["by_channel"]:
+                    all_channels_set.add(ch.get("name"))
+
+        # Current channels in the main primary block
+        existing_ch_dict = {ch["name"]: ch for ch in (primary.get("by_channel") or [])}
+
+        # For each channel in the FY27+ data, ensure it exists in by_channel
+        # with zero values for any missing FYs
+        for ch_name in sorted(all_channels_set):
+            if ch_name not in existing_ch_dict:
+                # Add new channel with zero values for FY25/26
+                existing_ch_dict[ch_name] = {"name": ch_name}
+
+        # Update primary.by_channel with merged channels
+        primary["by_channel"] = list(existing_ch_dict.values())
     # TD-07: populate fy_range now that dims are available
     _fy_list = data.get("dims", {}).get("FY") or []
     if _fy_list:

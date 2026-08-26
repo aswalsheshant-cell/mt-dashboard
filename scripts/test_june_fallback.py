@@ -182,11 +182,11 @@ class TestNoValueChange:
 
     def test_dmart_nsv_unchanged(self, fy27):
         # Updated 2026-08-15: Derma Co distributor rows now correctly allocated to chains
-        # via patched ShipTo CSV (92 new July entries); Dmart receives The Derma Co share
+        # via patched ShipTo CSV (92 new July entries); DMart receives The Derma Co share
         by_chain = {c["name"]: c["nsv"] for c in fy27.get("by_chain", [])}
-        assert "Dmart" in by_chain, "Dmart missing from by_chain"
-        assert abs(by_chain["Dmart"] - 6979.14) < NSV_TOL, (
-            f"Dmart NSV={by_chain['Dmart']} changed"
+        assert "DMart" in by_chain, "DMart missing from by_chain"
+        assert abs(by_chain["DMart"] - 6979.14) < NSV_TOL, (
+            f"DMart NSV={by_chain['Dmart']} changed"
         )
 
     def test_reliance_nsv_unchanged(self, fy27):
