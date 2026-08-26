@@ -770,11 +770,11 @@ function buildOverview(){
     _fp27ov.months_canon.forEach((m, i) => { _fy27pri[m] = (_fp27ov.monthly_canon || [])[i]; });
   }
   const _nOvMon = o.months.length;
-  const _prim25Arr = o.months.map((m, i) => i < 12 ? (p.monthly_fy25[i] || null) : null);
+  const _prim25Arr = o.months.map((m, i) => i < 12 ? ((p.monthly_fy25 || [])[i] || null) : null);
   const _prim26_27Arr = o.months.map((m, i) => {
     if (i < 11) return null;
-    if (i === 11) return p.monthly_fy25[11] ?? null;  // bridge point so FY25→FY26 line connects
-    if (i < 24) return p.monthly_fy26[i - 12];
+    if (i === 11) return (p.monthly_fy25 || [])[11] ?? null;  // bridge point so FY25→FY26 line connects
+    if (i < 24) return (p.monthly_fy26 || [])[i - 12] ?? null;
     return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
   });
   mkLine('ovTrend',o.months,[
