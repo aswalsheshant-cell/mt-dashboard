@@ -27,12 +27,16 @@ def load_master(master_path: str) -> dict:
         return json.load(f)
 
 
-def generate_data_js(master: dict) -> str:
+CRORE_TO_LAKH = 100  # data_master stores monetary values in Crore; dashboard crc() expects Lakh
+
+
+def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     """
     Transform data_master.json into dashboard-optimized data.js format.
 
-    The output is a JavaScript variable assignment that contains the complete
-    dashboard data structure, derived solely from the master.
+    If existing_js is provided (merge mode), only the blocks controlled by this
+    script are updated; all other blocks (primary, pnl, insights, detail_*, etc.)
+    are preserved from the existing file.
     """
 
     # Build the DASH object (what dashboard/index.html expects in window.DASH)
@@ -75,6 +79,14 @@ def generate_data_js(master: dict) -> str:
         sorted_items = sorted(month_dict.items(), key=lambda x: month_sort_key(x[0]))
         return [k for k, _ in sorted_items], [v for _, v in sorted_items]
 
+    # FY27 months (per THE ONE FY RULE: Apr–Dec of year Y → FY(Y+1))
+    # data_master.json fy26 bucket erroneously includes these months which actually belong to FY27
+    FY27_MONTHS = {"Apr-26", "May-26", "Jun-26", "Jul-26", "Aug-26", "Sep-26", "Oct-26", "Nov-26", "Dec-26"}
+
+    def _offtake_cr_to_lakh(val: float) -> float:
+        """Convert Crore to Lakh so dashboard crc() displays correctly."""
+        return round(val * CRORE_TO_LAKH, 2)
+
     # Build proper by_zone: single entry per zone with all FY keys {name, fy25, fy26, fy27}
     zone_names = set()
     for fy_key in ["fy25", "fy26", "fy27"]:
@@ -87,42 +99,55 @@ def generate_data_js(master: dict) -> str:
             zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
             months_data = zone_monthly.get(zone_name, {})
             if isinstance(months_data, dict):
-                entry[fy_key] = round(sum(
+                raw_cr = sum(
                     m.get("offtake_cr", 0) if isinstance(m, dict) else 0
-                    for m in months_data.values()
-                ), 2)
+                    for m_label, m in months_data.items()
+                    # Exclude months that belong to FY27 from the fy26 bucket (double-count fix)
+                    if not (fy_key == "fy26" and m_label in FY27_MONTHS)
+                )
+                entry[fy_key] = _offtake_cr_to_lakh(raw_cr)
             else:
                 entry[fy_key] = 0
         by_zone.append(entry)
     offtake_block["by_zone"] = by_zone
 
-    # Grand totals for each FY
+    # Pan India = exact rollup of all regional zones; exclude it from grand totals
+    # and monthly aggregations to avoid 2× double-counting.
+    PAN_INDIA_ZONE = "Pan India"
+
+    # Grand totals for each FY — exclude Pan India to prevent double-count
     for fy_key in ["fy25", "fy26", "fy27"]:
-        total = sum(z.get(fy_key, 0) for z in by_zone)
+        total = sum(z.get(fy_key, 0) for z in by_zone if z["name"] != PAN_INDIA_ZONE)
         if total > 0:
             offtake_block[f"total_{fy_key}"] = round(total, 2)
 
-    # YoY for FY26 vs FY25
+    # YoY for FY26 vs FY25 — keep as a percentage, do NOT multiply by CRORE_TO_LAKH
     fy25_total = offtake_block.get("total_fy25", 0)
     fy26_total = offtake_block.get("total_fy26", 0)
     if fy25_total > 0:
         offtake_block["yoy"] = round(((fy26_total - fy25_total) / fy25_total) * 100, 2)
 
-    # months_fyNN / monthly_fyNN: sorted month labels + summed offtake across all zones
+    # months_fyNN / monthly_fyNN: sorted month labels + summed offtake across regional zones
+    # Pan India is excluded here too (it equals the regional sum, so including both doubles values)
     for fy_key in ["fy25", "fy26", "fy27"]:
         zone_monthly = offtake_block.get(f"zone_monthly_{fy_key}", {})
-        # Aggregate across zones by month label
+        # Aggregate across regional zones (exclude Pan India) by month label
         month_totals: dict = {}
-        for months_data in zone_monthly.values():
+        for zone_name, months_data in zone_monthly.items():
+            if zone_name == PAN_INDIA_ZONE:
+                continue  # skip Pan India; it equals the regional sum
             if not isinstance(months_data, dict):
                 continue
             for m_label, m_data in months_data.items():
+                if fy_key == "fy26" and m_label in FY27_MONTHS:
+                    continue  # skip double-counted months
                 v = m_data.get("offtake_cr", 0) if isinstance(m_data, dict) else 0
                 month_totals[m_label] = round(month_totals.get(m_label, 0) + v, 2)
         if month_totals:
             labels, values = sort_months(month_totals)
             offtake_block[f"months_{fy_key}"] = labels
-            offtake_block[f"monthly_{fy_key}"] = values
+            # Convert each monthly value from Crore to Lakh
+            offtake_block[f"monthly_{fy_key}"] = [_offtake_cr_to_lakh(v) for v in values]
 
     # Combined months / monthly (FY25 + FY26 for all-FY view, ordered Apr→Mar within each FY)
     combined_months = (offtake_block.get("months_fy25") or []) + (offtake_block.get("months_fy26") or [])
@@ -135,13 +160,28 @@ def generate_data_js(master: dict) -> str:
     offtake_block["by_state"] = []
     offtake_block["n_chains"] = 0
 
-    dash = {
+    # Blocks controlled by this script
+    sync_blocks = {
         "metadata": meta,
-        "meta": meta,  # Alias for compatibility with dashboard init()
+        "meta": meta,
         "offtake": offtake_block,
         "unit_economics": master["unit_economics"],
         "executive_deck_sync": master["executive_deck_sync"],
     }
+
+    if existing_js is not None:
+        # Merge mode: preserve all blocks not controlled by this script
+        try:
+            json_str = existing_js.replace("window.DASH = ", "", 1).strip()
+            if json_str.endswith(";"):
+                json_str = json_str[:-1]
+            existing_dash = json.loads(json_str)
+        except (json.JSONDecodeError, ValueError):
+            existing_dash = {}
+        # Update only sync_blocks, keep everything else
+        dash = {**existing_dash, **sync_blocks}
+    else:
+        dash = sync_blocks
 
     # Serialize to JSON with proper formatting for readability
     data_json = json.dumps(dash, indent=2, ensure_ascii=False)
@@ -205,9 +245,17 @@ def main():
             return 1
     print(f"  ✓ Schema valid (5 collections present)")
 
-    # Generate data.js
-    print(f"\n[3] Generating data.js from master")
-    js_content = generate_data_js(master)
+    # Generate data.js (merge mode: preserve existing build-pipeline blocks)
+    print(f"\n[3] Generating data.js from master (merge mode)")
+    existing_js = None
+    output_path = Path(args.output)
+    if output_path.exists():
+        try:
+            existing_js = output_path.read_text(encoding="utf-8")
+            print(f"  ✓ Read existing data.js for merge ({len(existing_js):,} bytes)")
+        except OSError:
+            pass
+    js_content = generate_data_js(master, existing_js)
     print(f"  ✓ Generated ({len(js_content):,} bytes)")
 
     # Validate output

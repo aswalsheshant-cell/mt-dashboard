@@ -752,8 +752,10 @@ function buildOverview(){
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
-     ${kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
-       isTY?'business TY target':`@ ${f.growth_assumption_pct}% planning growth`)}
+     ${f.fy27_forecast!=null
+       ? kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
+           isTY?'business TY target':`@ ${f.growth_assumption_pct!=null?f.growth_assumption_pct+'%':'–'} planning growth`)
+       : kpi('FY27 Forecast','–','forecast data not yet loaded')}
    </div>
    <div class="grid g2">
      ${card(`Primary vs Offtake — monthly trend (${fyDispLabel('FY25')} → ${fyDispLabel('FY27')})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
