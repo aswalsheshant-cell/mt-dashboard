@@ -1,0 +1,130 @@
+{
+  "generated_at": "2026-08-26",
+  "summary": {
+    "total_unmapped_alloc_nsv": 14163.85,
+    "total_unmapped_detail_fy26_nsv": 11009.95,
+    "total_unmapped_detail_fy27_nsv": 5946.49,
+    "bridge_rows_in_csv": 10,
+    "bridge_rows_matched_in_alloc": 10,
+    "nsv_covered": 11379.66,
+    "nsv_residual_unmapped": 2784.19,
+    "coverage_pct": 80.3
+  },
+  "chain_deltas_fy27": {
+    "DMart": 9190.5,
+    "Apollo Pharmacy": 1089.04,
+    "Reliance Retail": 494.45,
+    "More Retail": 475.34,
+    "Health & Glow": 130.33
+  },
+  "chain_deltas_fy26": {
+    "DMart": 5967.46,
+    "Apollo Pharmacy": 707.12,
+    "Reliance Retail": 321.05,
+    "More Retail": 308.64,
+    "Health & Glow": 84.63
+  },
+  "reallocation_log": [
+    {
+      "ship_to": "Sri Vijaya Durga Agencies_Mt",
+      "type": "DIRECT",
+      "chain": "DMart",
+      "nsv_reallocated": 2501.23,
+      "confidence": "MEDIUM \u2014 INFERRED_DOMINANT_AP"
+    },
+    {
+      "ship_to": "JUST MARK-Dmart_ship to",
+      "type": "DIRECT",
+      "chain": "DMart",
+      "nsv_reallocated": 2334.23,
+      "confidence": "HIGH \u2014 Single-chain confirmed"
+    },
+    {
+      "ship_to": "G.V Enterprises",
+      "type": "DIRECT",
+      "chain": "DMart",
+      "nsv_reallocated": 1954.32,
+      "confidence": "HIGH \u2014 Single-chain confirmed by name"
+    },
+    {
+      "ship_to": "Kiran Trading Company_Ship to",
+      "type": "DIRECT",
+      "chain": "DMart",
+      "nsv_reallocated": 1479.55,
+      "confidence": "HIGH \u2014 Single-chain confirmed"
+    },
+    {
+      "ship_to": "Kiran Trading Co_Shipto (Solapur)",
+      "type": "DIRECT",
+      "chain": "DMart",
+      "nsv_reallocated": 604.44,
+      "confidence": "HIGH \u2014 Single-chain confirmed"
+    },
+    {
+      "ship_to": "Az Enterprises",
+      "type": "WEIGHTED_SPLIT",
+      "splits": [
+        {
+          "chain": "More Retail",
+          "weight": 0.412
+        },
+        {
+          "chain": "Apollo Pharmacy",
+          "weight": 0.366
+        },
+        {
+          "chain": "Health & Glow",
+          "weight": 0.222
+        }
+      ],
+      "nsv_reallocated": 587.09,
+      "confidence": "MEDIUM \u2014 Multi-chain weighted split"
+    },
+    {
+      "ship_to": "VENKATESHWARA AGENCIES-TG",
+      "type": "WEIGHTED_SPLIT",
+      "splits": [
+        {
+          "chain": "DMart",
+          "weight": 0.5737
+        },
+        {
+          "chain": "Apollo Pharmacy",
+          "weight": 0.4263
+        }
+      ],
+      "nsv_reallocated": 552.08,
+      "confidence": "MEDIUM \u2014 Multi-chain weighted split"
+    },
+    {
+      "ship_to": "BALAJI ASSOCIATES Distributor MT",
+      "type": "DIRECT",
+      "chain": "Reliance Retail",
+      "nsv_reallocated": 494.45,
+      "confidence": "HIGH \u2014 Single-chain confirmed"
+    },
+    {
+      "ship_to": "Az Enterprises(Apollo/More)Mt",
+      "type": "WEIGHTED_SPLIT",
+      "splits": [
+        {
+          "chain": "More Retail",
+          "weight": 0.53
+        },
+        {
+          "chain": "Apollo Pharmacy",
+          "weight": 0.47
+        }
+      ],
+      "nsv_reallocated": 440.48,
+      "confidence": "MEDIUM \u2014 Multi-chain weighted split (fuzzy match corrected)"
+    },
+    {
+      "ship_to": "D.L. Sales - MT",
+      "type": "DIRECT",
+      "chain": "Apollo Pharmacy",
+      "nsv_reallocated": 431.79,
+      "confidence": "HIGH \u2014 Single-chain confirmed"
+    }
+  ]
+}
