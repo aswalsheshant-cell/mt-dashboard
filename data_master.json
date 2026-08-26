@@ -2312,9 +2312,296 @@
     }
   },
   "promo": {
-    "n_promos": 0,
-    "avg_depth": 0,
-    "by_chain": [],
+    "n_promos": 3694,
+    "avg_depth": 31.6,
+    "by_chain": [
+      {
+        "name": "Reliance Retail",
+        "promos": 827,
+        "avg_depth": 42.2,
+        "brands": 4
+      },
+      {
+        "name": "Apollo",
+        "promos": 393,
+        "avg_depth": 26.3,
+        "brands": 5
+      },
+      {
+        "name": "Health & Glow",
+        "promos": 383,
+        "avg_depth": 20.9,
+        "brands": 6
+      },
+      {
+        "name": "Lulu",
+        "promos": 342,
+        "avg_depth": 37.8,
+        "brands": 3
+      },
+      {
+        "name": "More Retail",
+        "promos": 226,
+        "avg_depth": 17.6,
+        "brands": 3
+      },
+      {
+        "name": "Metro CNC",
+        "promos": 201,
+        "avg_depth": 44.1,
+        "brands": 3
+      },
+      {
+        "name": "Spencers",
+        "promos": 152,
+        "avg_depth": 25.0,
+        "brands": 4
+      },
+      {
+        "name": "Guardian",
+        "promos": 150,
+        "avg_depth": 10.0,
+        "brands": 3
+      },
+      {
+        "name": "RMT-Sancus",
+        "promos": 120,
+        "avg_depth": 50.0,
+        "brands": 2
+      },
+      {
+        "name": "D-Mart",
+        "promos": 97,
+        "avg_depth": 38.9,
+        "brands": 3
+      },
+      {
+        "name": "B&N",
+        "promos": 80,
+        "avg_depth": 19.1,
+        "brands": 4
+      },
+      {
+        "name": "Walmart CNC",
+        "promos": 66,
+        "avg_depth": 45.7,
+        "brands": 1
+      },
+      {
+        "name": "Wellness",
+        "promos": 60,
+        "avg_depth": 12.8,
+        "brands": null
+      },
+      {
+        "name": "Vishal Mega Mart",
+        "promos": 50,
+        "avg_depth": 20.5,
+        "brands": 2
+      },
+      {
+        "name": "Sumo Save",
+        "promos": 46,
+        "avg_depth": 25.8,
+        "brands": 2
+      },
+      {
+        "name": "Frankros",
+        "promos": 44,
+        "avg_depth": 13.1,
+        "brands": null
+      },
+      {
+        "name": "ARAMBAGH",
+        "promos": 43,
+        "avg_depth": 27.7,
+        "brands": null
+      },
+      {
+        "name": "Spencer",
+        "promos": 43,
+        "avg_depth": 24.7,
+        "brands": null
+      },
+      {
+        "name": "Frank Ross",
+        "promos": 40,
+        "avg_depth": 15.0,
+        "brands": 3
+      },
+      {
+        "name": "Delhi-RMT",
+        "promos": 38,
+        "avg_depth": 50.0,
+        "brands": null
+      },
+      {
+        "name": "SastaSundar",
+        "promos": 38,
+        "avg_depth": 10.0,
+        "brands": 2
+      },
+      {
+        "name": "DMart",
+        "promos": 37,
+        "avg_depth": 38.8,
+        "brands": null
+      },
+      {
+        "name": "V-Mart",
+        "promos": 37,
+        "avg_depth": 24.2,
+        "brands": 1
+      },
+      {
+        "name": "Medanta",
+        "promos": 31,
+        "avg_depth": 25.5,
+        "brands": null
+      },
+      {
+        "name": "Arambagh",
+        "promos": 31,
+        "avg_depth": 12.1,
+        "brands": 4
+      },
+      {
+        "name": "Trent",
+        "promos": 30,
+        "avg_depth": 35.2,
+        "brands": 4
+      },
+      {
+        "name": "Dealshare",
+        "promos": 24,
+        "avg_depth": 28.3,
+        "brands": null
+      },
+      {
+        "name": "Deal Share",
+        "promos": 24,
+        "avg_depth": 28.3,
+        "brands": 2
+      },
+      {
+        "name": "Ratnadeep",
+        "promos": 18,
+        "avg_depth": 50.0,
+        "brands": null
+      },
+      {
+        "name": "WH Smith",
+        "promos": 13,
+        "avg_depth": null,
+        "brands": null
+      },
+      {
+        "name": "Apna Mart",
+        "promos": 7,
+        "avg_depth": 20.0,
+        "brands": 2
+      },
+      {
+        "name": "Sohum Shoppe",
+        "promos": 2,
+        "avg_depth": 10.0,
+        "brands": 1
+      },
+      {
+        "name": "Wellness Forever",
+        "promos": 1,
+        "avg_depth": 10.0,
+        "brands": 1
+      }
+    ],
+    "by_brand": [
+      {
+        "name": "Mamaearth",
+        "promos": 2242
+      },
+      {
+        "name": "The Derma Co.",
+        "promos": 518
+      },
+      {
+        "name": "Aqualogica",
+        "promos": 276
+      },
+      {
+        "name": "The Derma Co",
+        "promos": 259
+      },
+      {
+        "name": "BBLUNT",
+        "promos": 230
+      },
+      {
+        "name": "Dr. Sheth's",
+        "promos": 80
+      },
+      {
+        "name": "Unknown",
+        "promos": 45
+      },
+      {
+        "name": "BBlunt",
+        "promos": 44
+      }
+    ],
+    "by_category": [
+      {
+        "name": "Face",
+        "promos": 1893
+      },
+      {
+        "name": "Unknown",
+        "promos": 659
+      },
+      {
+        "name": "Hair",
+        "promos": 347
+      },
+      {
+        "name": "Body",
+        "promos": 310
+      },
+      {
+        "name": "Baby",
+        "promos": 277
+      },
+      {
+        "name": "Hair Colour",
+        "promos": 88
+      },
+      {
+        "name": "Hair Care",
+        "promos": 59
+      },
+      {
+        "name": "#N/A",
+        "promos": 18
+      },
+      {
+        "name": "Fragrances",
+        "promos": 16
+      },
+      {
+        "name": "Styling Products",
+        "promos": 15
+      },
+      {
+        "name": "Fragrance",
+        "promos": 6
+      },
+      {
+        "name": "Color Care",
+        "promos": 5
+      },
+      {
+        "name": "Combo",
+        "promos": 1
+      }
+    ],
     "lines": [],
     "detail": {
       "month": "Aug-26",
@@ -2638,6 +2925,1255 @@
           "Walmart"
         ]
       }
-    }
+    },
+    "monthly": {
+      "Aug-26": {
+        "month": "Aug-26",
+        "source": "75992248-Promo_Aug__2026.xlsx",
+        "total_skus": 1026,
+        "chains_in_promo": 21,
+        "brands_in_promo": 5,
+        "chains_received": 0,
+        "chains_pending": 25,
+        "by_chain": [
+          {
+            "name": "Health & Glow",
+            "skus": 115,
+            "brands": 5,
+            "categories": 7,
+            "avg_offer_pct": 20.4,
+            "offer_parseable_pct": 94,
+            "kam": "Rashi",
+            "received": false
+          },
+          {
+            "name": "Lulu",
+            "skus": 102,
+            "brands": 3,
+            "categories": 7,
+            "avg_offer_pct": 37.7,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "Reliance Retail",
+            "skus": 99,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 41.0,
+            "offer_parseable_pct": 84,
+            "kam": "Smita",
+            "received": false
+          },
+          {
+            "name": "Metro CNC",
+            "skus": 87,
+            "brands": 4,
+            "categories": 7,
+            "avg_offer_pct": 38.3,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "Apollo",
+            "skus": 80,
+            "brands": 5,
+            "categories": 7,
+            "avg_offer_pct": 16.4,
+            "offer_parseable_pct": 80,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "More Retail",
+            "skus": 60,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 15.7,
+            "offer_parseable_pct": 95,
+            "kam": "Shubham",
+            "received": false
+          },
+          {
+            "name": "Wellness",
+            "skus": 60,
+            "brands": 3,
+            "categories": 3,
+            "avg_offer_pct": 12.8,
+            "offer_parseable_pct": 100
+          },
+          {
+            "name": "Guardian",
+            "skus": 46,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "Frankros",
+            "skus": 44,
+            "brands": 2,
+            "categories": 4,
+            "avg_offer_pct": 13.1,
+            "offer_parseable_pct": 59,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "ARAMBAGH",
+            "skus": 43,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 27.7,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "Spencer",
+            "skus": 43,
+            "brands": 4,
+            "categories": 5,
+            "avg_offer_pct": 24.7,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "Delhi-RMT",
+            "skus": 38,
+            "brands": 2,
+            "categories": 4,
+            "avg_offer_pct": 50.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "DMart",
+            "skus": 37,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 38.8,
+            "offer_parseable_pct": 84,
+            "kam": "Shubham",
+            "received": false
+          },
+          {
+            "name": "V-Mart",
+            "skus": 35,
+            "brands": 2,
+            "categories": 4,
+            "avg_offer_pct": 52.7,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "Medanta",
+            "skus": 31,
+            "brands": 2,
+            "categories": 4,
+            "avg_offer_pct": 25.5,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "Sumo Save",
+            "skus": 26,
+            "brands": 1,
+            "categories": 4,
+            "avg_offer_pct": 36.2,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "Dealshare",
+            "skus": 24,
+            "brands": 2,
+            "categories": 3,
+            "avg_offer_pct": 28.3,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "Ratnadeep",
+            "skus": 18,
+            "brands": 2,
+            "categories": 3,
+            "avg_offer_pct": 50.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "Vishal Mega Mart",
+            "skus": 16,
+            "brands": 1,
+            "categories": 2,
+            "avg_offer_pct": 11.4,
+            "offer_parseable_pct": 69,
+            "kam": "Nishchay",
+            "received": false
+          },
+          {
+            "name": "WH Smith",
+            "skus": 13,
+            "brands": 2,
+            "categories": 2,
+            "avg_offer_pct": null,
+            "offer_parseable_pct": 0,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "Trent",
+            "skus": 9,
+            "brands": 2,
+            "categories": 2,
+            "avg_offer_pct": 3.5,
+            "offer_parseable_pct": 67,
+            "kam": "Shubham",
+            "received": false
+          }
+        ],
+        "by_brand": [
+          {
+            "name": "Mamaearth",
+            "skus": 628,
+            "chains": 21,
+            "avg_offer_pct": 34.3
+          },
+          {
+            "name": "The Derma Co",
+            "skus": 259,
+            "chains": 19,
+            "avg_offer_pct": 21.5
+          },
+          {
+            "name": "Aqualogica",
+            "skus": 67,
+            "chains": 10,
+            "avg_offer_pct": 22.6
+          },
+          {
+            "name": "BBlunt",
+            "skus": 44,
+            "chains": 4,
+            "avg_offer_pct": 18.0
+          },
+          {
+            "name": "Dr. Sheth's",
+            "skus": 28,
+            "chains": 3,
+            "avg_offer_pct": 11.1
+          }
+        ],
+        "by_category": [
+          {
+            "name": "Face",
+            "skus": 651
+          },
+          {
+            "name": "Hair",
+            "skus": 124
+          },
+          {
+            "name": "Baby",
+            "skus": 113
+          },
+          {
+            "name": "Body",
+            "skus": 86
+          },
+          {
+            "name": "Hair Colour",
+            "skus": 25
+          },
+          {
+            "name": "Hair Care",
+            "skus": 13
+          },
+          {
+            "name": "Fragrance",
+            "skus": 6
+          },
+          {
+            "name": "Styling Products",
+            "skus": 6
+          },
+          {
+            "name": "Color Care",
+            "skus": 1
+          },
+          {
+            "name": "Combo",
+            "skus": 1
+          }
+        ],
+        "kam_status": {
+          "received": [],
+          "pending": [
+            "Apollo",
+            "ARAMBAGH",
+            "Frankros",
+            "Guardian",
+            "Medanta",
+            "Wellness Forever",
+            "WH Smith",
+            "Lulu",
+            "Metro CNC",
+            "V-Mart",
+            "Vishal Mega Mart",
+            "Dealshare",
+            "Delhi-RMT",
+            "Spencer",
+            "Ratnadeep",
+            "Health & Glow",
+            "Sumo Save",
+            "DMart",
+            "More Retail",
+            "Reliance Retail",
+            "Trent",
+            "SIS",
+            "Apna Mart",
+            "Sasta Sundar",
+            "Walmart"
+          ]
+        }
+      },
+      "May-26": {
+        "month": "May-26",
+        "source": "Promo_Apr_Jun_2026.xlsx",
+        "total_skus": 719,
+        "chains_in_promo": 20,
+        "brands_in_promo": 6,
+        "chains_received": 6,
+        "chains_pending": 9,
+        "avg_depth": 33.8,
+        "by_chain": [
+          {
+            "name": "Reliance Retail",
+            "skus": 209,
+            "brands": 4,
+            "categories": 8,
+            "avg_offer_pct": 42.1,
+            "offer_parseable_pct": 99,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Lulu",
+            "skus": 80,
+            "brands": 3,
+            "categories": 5,
+            "avg_offer_pct": 37.9,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "Apollo",
+            "skus": 79,
+            "brands": 5,
+            "categories": 6,
+            "avg_offer_pct": 28.5,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": true
+          },
+          {
+            "name": "Health & Glow",
+            "skus": 56,
+            "brands": 5,
+            "categories": 8,
+            "avg_offer_pct": 26.3,
+            "offer_parseable_pct": 100,
+            "kam": "Rashi",
+            "received": true
+          },
+          {
+            "name": "More Retail",
+            "skus": 53,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 19.3,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Guardian",
+            "skus": 52,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "Spencers",
+            "skus": 42,
+            "brands": 4,
+            "categories": 5,
+            "avg_offer_pct": 24.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": true
+          },
+          {
+            "name": "RMT-Sancus",
+            "skus": 40,
+            "brands": 2,
+            "categories": 4,
+            "avg_offer_pct": 50.0,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Metro CNC",
+            "skus": 38,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 46.1,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "Walmart CNC",
+            "skus": 22,
+            "brands": 1,
+            "categories": 4,
+            "avg_offer_pct": 45.7,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "Vishal Mega Mart",
+            "skus": 17,
+            "brands": 2,
+            "categories": 3,
+            "avg_offer_pct": 25.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "D-Mart",
+            "skus": 16,
+            "brands": 3,
+            "categories": 2,
+            "avg_offer_pct": 37.4,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Trent",
+            "skus": 7,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 45.7,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Frank Ross",
+            "skus": 2,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 17.5,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Apna Mart",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 20.0,
+            "offer_parseable_pct": 100,
+            "kam": "RKAM/Nischay",
+            "received": false
+          },
+          {
+            "name": "Arambagh",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "SastaSundar",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "RKAM/Nischay",
+            "received": false
+          },
+          {
+            "name": "Sohum Shoppe",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Sumo Save",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "RKAM/Nischay",
+            "received": false
+          },
+          {
+            "name": "V-Mart",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          }
+        ],
+        "by_brand": [
+          {
+            "name": "Mamaearth",
+            "skus": 432
+          },
+          {
+            "name": "The Derma Co.",
+            "skus": 138
+          },
+          {
+            "name": "Aqualogica",
+            "skus": 59
+          },
+          {
+            "name": "BBLUNT",
+            "skus": 44
+          },
+          {
+            "name": "Unknown",
+            "skus": 33
+          },
+          {
+            "name": "Dr. Sheth's",
+            "skus": 13
+          }
+        ],
+        "by_category": [
+          {
+            "name": "Face",
+            "skus": 428
+          },
+          {
+            "name": "Body",
+            "skus": 84
+          },
+          {
+            "name": "Hair",
+            "skus": 76
+          },
+          {
+            "name": "Baby",
+            "skus": 44
+          },
+          {
+            "name": "Unknown",
+            "skus": 33
+          },
+          {
+            "name": "Hair Colour",
+            "skus": 21
+          },
+          {
+            "name": "Hair Care",
+            "skus": 20
+          },
+          {
+            "name": "Fragrances",
+            "skus": 8
+          },
+          {
+            "name": "Styling Products",
+            "skus": 3
+          },
+          {
+            "name": "Color Care",
+            "skus": 2
+          }
+        ],
+        "kam_status": {
+          "pending": [
+            "Apna Mart",
+            "Guardian",
+            "Lulu",
+            "Metro CNC",
+            "SastaSundar",
+            "Sumo Save",
+            "V-Mart",
+            "Vishal Mega Mart",
+            "Walmart CNC"
+          ]
+        }
+      },
+      "Jun-26": {
+        "month": "Jun-26",
+        "source": "Promo_Apr_Jun_2026.xlsx",
+        "total_skus": 837,
+        "chains_in_promo": 20,
+        "brands_in_promo": 6,
+        "chains_received": 6,
+        "chains_pending": 9,
+        "avg_depth": 31.4,
+        "by_chain": [
+          {
+            "name": "Reliance Retail",
+            "skus": 203,
+            "brands": 4,
+            "categories": 8,
+            "avg_offer_pct": 41.4,
+            "offer_parseable_pct": 99,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Lulu",
+            "skus": 80,
+            "brands": 3,
+            "categories": 5,
+            "avg_offer_pct": 37.9,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "Apollo",
+            "skus": 79,
+            "brands": 5,
+            "categories": 6,
+            "avg_offer_pct": 29.0,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": true
+          },
+          {
+            "name": "Health & Glow",
+            "skus": 56,
+            "brands": 5,
+            "categories": 8,
+            "avg_offer_pct": 26.3,
+            "offer_parseable_pct": 100,
+            "kam": "Rashi",
+            "received": true
+          },
+          {
+            "name": "More Retail",
+            "skus": 53,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 19.3,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Guardian",
+            "skus": 52,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": false
+          },
+          {
+            "name": "Spencers",
+            "skus": 42,
+            "brands": 4,
+            "categories": 5,
+            "avg_offer_pct": 24.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": true
+          },
+          {
+            "name": "RMT-Sancus",
+            "skus": 40,
+            "brands": 2,
+            "categories": 4,
+            "avg_offer_pct": 50.0,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Frank Ross",
+            "skus": 38,
+            "brands": 2,
+            "categories": 4,
+            "avg_offer_pct": 12.5,
+            "offer_parseable_pct": 53,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Metro CNC",
+            "skus": 38,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 46.1,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "SastaSundar",
+            "skus": 37,
+            "brands": 1,
+            "categories": 3,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "RKAM/Nischay",
+            "received": false
+          },
+          {
+            "name": "Arambagh",
+            "skus": 30,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 14.1,
+            "offer_parseable_pct": 97,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Walmart CNC",
+            "skus": 22,
+            "brands": 1,
+            "categories": 4,
+            "avg_offer_pct": 45.7,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "Sumo Save",
+            "skus": 19,
+            "brands": 1,
+            "categories": 3,
+            "avg_offer_pct": 31.1,
+            "offer_parseable_pct": 100,
+            "kam": "RKAM/Nischay",
+            "received": false
+          },
+          {
+            "name": "Vishal Mega Mart",
+            "skus": 17,
+            "brands": 2,
+            "categories": 3,
+            "avg_offer_pct": 25.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "D-Mart",
+            "skus": 16,
+            "brands": 3,
+            "categories": 2,
+            "avg_offer_pct": 37.7,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Trent",
+            "skus": 7,
+            "brands": 2,
+            "categories": 2,
+            "avg_offer_pct": 45.7,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Apna Mart",
+            "skus": 6,
+            "brands": 2,
+            "categories": 2,
+            "avg_offer_pct": 20.0,
+            "offer_parseable_pct": 17,
+            "kam": "RKAM/Nischay",
+            "received": false
+          },
+          {
+            "name": "Sohum Shoppe",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "V-Mart",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          }
+        ],
+        "by_brand": [
+          {
+            "name": "Mamaearth",
+            "skus": 540
+          },
+          {
+            "name": "The Derma Co.",
+            "skus": 156
+          },
+          {
+            "name": "Aqualogica",
+            "skus": 71
+          },
+          {
+            "name": "BBLUNT",
+            "skus": 45
+          },
+          {
+            "name": "Dr. Sheth's",
+            "skus": 13
+          },
+          {
+            "name": "Unknown",
+            "skus": 12
+          }
+        ],
+        "by_category": [
+          {
+            "name": "Face",
+            "skus": 521
+          },
+          {
+            "name": "Body",
+            "skus": 92
+          },
+          {
+            "name": "Hair",
+            "skus": 91
+          },
+          {
+            "name": "Baby",
+            "skus": 66
+          },
+          {
+            "name": "Hair Colour",
+            "skus": 21
+          },
+          {
+            "name": "Hair Care",
+            "skus": 21
+          },
+          {
+            "name": "#N/A",
+            "skus": 12
+          },
+          {
+            "name": "Fragrances",
+            "skus": 8
+          },
+          {
+            "name": "Styling Products",
+            "skus": 3
+          },
+          {
+            "name": "Color Care",
+            "skus": 2
+          }
+        ],
+        "kam_status": {
+          "pending": [
+            "Apna Mart",
+            "Guardian",
+            "Lulu",
+            "Metro CNC",
+            "SastaSundar",
+            "Sumo Save",
+            "V-Mart",
+            "Vishal Mega Mart",
+            "Walmart CNC"
+          ]
+        }
+      },
+      "Apr-26": {
+        "month": "Apr-26",
+        "source": "Promo_Apr_Jun_2026.xlsx",
+        "total_skus": 626,
+        "chains_in_promo": 11,
+        "brands_in_promo": 5,
+        "chains_received": 3,
+        "chains_pending": 4,
+        "avg_depth": 34.8,
+        "by_chain": [
+          {
+            "name": "Reliance Retail",
+            "skus": 200,
+            "brands": 4,
+            "categories": 1,
+            "avg_offer_pct": 41.1,
+            "offer_parseable_pct": 98,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Lulu",
+            "skus": 80,
+            "brands": 3,
+            "categories": 1,
+            "avg_offer_pct": 37.7,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "B&N",
+            "skus": 80,
+            "brands": 4,
+            "categories": 1,
+            "avg_offer_pct": 19.1,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Apollo",
+            "skus": 73,
+            "brands": 4,
+            "categories": 1,
+            "avg_offer_pct": 27.0,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": true
+          },
+          {
+            "name": "RMT-Sancus",
+            "skus": 40,
+            "brands": 2,
+            "categories": 1,
+            "avg_offer_pct": 50.0,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Health & Glow",
+            "skus": 40,
+            "brands": 2,
+            "categories": 1,
+            "avg_offer_pct": 10.1,
+            "offer_parseable_pct": 100,
+            "kam": "Rashi",
+            "received": true
+          },
+          {
+            "name": "Metro CNC",
+            "skus": 38,
+            "brands": 3,
+            "categories": 1,
+            "avg_offer_pct": 46.1,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "D-Mart",
+            "skus": 28,
+            "brands": 3,
+            "categories": 1,
+            "avg_offer_pct": 42.2,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Deal Share",
+            "skus": 24,
+            "brands": 2,
+            "categories": 1,
+            "avg_offer_pct": 28.3,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Walmart CNC",
+            "skus": 22,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 45.7,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": false
+          },
+          {
+            "name": "Wellness Forever",
+            "skus": 1,
+            "brands": 1,
+            "categories": 1,
+            "avg_offer_pct": 10.0,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": false
+          }
+        ],
+        "by_brand": [
+          {
+            "name": "Mamaearth",
+            "skus": 354
+          },
+          {
+            "name": "BBLUNT",
+            "skus": 114
+          },
+          {
+            "name": "The Derma Co.",
+            "skus": 103
+          },
+          {
+            "name": "Aqualogica",
+            "skus": 42
+          },
+          {
+            "name": "Dr. Sheth's",
+            "skus": 13
+          }
+        ],
+        "by_category": [
+          {
+            "name": "Unknown",
+            "skus": 626
+          }
+        ],
+        "kam_status": {
+          "pending": [
+            "Lulu",
+            "Wellness Forever",
+            "Metro CNC",
+            "Walmart CNC"
+          ]
+        }
+      },
+      "Jul-26": {
+        "month": "Jul-26",
+        "source": "Promo_July_2026.xlsx",
+        "total_skus": 486,
+        "chains_in_promo": 7,
+        "brands_in_promo": 5,
+        "chains_received": 6,
+        "chains_pending": 0,
+        "avg_depth": 30.5,
+        "by_chain": [
+          {
+            "name": "Health & Glow",
+            "skus": 116,
+            "brands": 5,
+            "categories": 7,
+            "avg_offer_pct": 21.6,
+            "offer_parseable_pct": 99,
+            "kam": "Rashi",
+            "received": true
+          },
+          {
+            "name": "Reliance Retail",
+            "skus": 116,
+            "brands": 4,
+            "categories": 7,
+            "avg_offer_pct": 45.4,
+            "offer_parseable_pct": 100,
+            "kam": null,
+            "received": null
+          },
+          {
+            "name": "Apollo",
+            "skus": 82,
+            "brands": 4,
+            "categories": 5,
+            "avg_offer_pct": 30.6,
+            "offer_parseable_pct": 100,
+            "kam": "Aastha",
+            "received": true
+          },
+          {
+            "name": "Spencers",
+            "skus": 68,
+            "brands": 4,
+            "categories": 5,
+            "avg_offer_pct": 26.9,
+            "offer_parseable_pct": 100,
+            "kam": "Nischay",
+            "received": true
+          },
+          {
+            "name": "More Retail",
+            "skus": 60,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 16.0,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "D-Mart",
+            "skus": 37,
+            "brands": 3,
+            "categories": 4,
+            "avg_offer_pct": 38.2,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          },
+          {
+            "name": "Trent",
+            "skus": 7,
+            "brands": 2,
+            "categories": 2,
+            "avg_offer_pct": 45.7,
+            "offer_parseable_pct": 100,
+            "kam": "Shubham",
+            "received": true
+          }
+        ],
+        "by_brand": [
+          {
+            "name": "Mamaearth",
+            "skus": 288
+          },
+          {
+            "name": "The Derma Co.",
+            "skus": 121
+          },
+          {
+            "name": "Aqualogica",
+            "skus": 37
+          },
+          {
+            "name": "BBLUNT",
+            "skus": 27
+          },
+          {
+            "name": "Dr. Sheth's",
+            "skus": 13
+          }
+        ],
+        "by_category": [
+          {
+            "name": "Face",
+            "skus": 293
+          },
+          {
+            "name": "Hair",
+            "skus": 56
+          },
+          {
+            "name": "Baby",
+            "skus": 54
+          },
+          {
+            "name": "Body",
+            "skus": 48
+          },
+          {
+            "name": "Hair Colour",
+            "skus": 21
+          },
+          {
+            "name": "#N/A",
+            "skus": 6
+          },
+          {
+            "name": "Hair Care",
+            "skus": 5
+          },
+          {
+            "name": "Styling Products",
+            "skus": 3
+          }
+        ],
+        "kam_status": {
+          "pending": []
+        }
+      }
+    },
+    "months_available": [
+      "Apr-26",
+      "May-26",
+      "Jun-26",
+      "Jul-26",
+      "Aug-26"
+    ],
+    "mom_trend": [
+      {
+        "month": "Apr-26",
+        "skus": 626,
+        "avg_depth": 34.8,
+        "chains": 11
+      },
+      {
+        "month": "May-26",
+        "skus": 719,
+        "avg_depth": 33.8,
+        "chains": 20
+      },
+      {
+        "month": "Jun-26",
+        "skus": 837,
+        "avg_depth": 31.4,
+        "chains": 20
+      },
+      {
+        "month": "Jul-26",
+        "skus": 486,
+        "avg_depth": 30.5,
+        "chains": 7
+      },
+      {
+        "month": "Aug-26",
+        "skus": 1026,
+        "avg_depth": 27.7,
+        "chains": 21
+      }
+    ]
   }
 }

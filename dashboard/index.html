@@ -131,6 +131,31 @@
   .recon-badge.recon-pass{display:block;background:#e6f4ef;color:#1b6b47;border:1px solid #bfe3d6}
   .recon-badge.recon-warn{display:block;background:#fff7e6;color:#8a5a00;border:1px solid #f0d8a8}
   .recon-badge.recon-fail{display:block;background:#fef0f0;color:#b91c1c;border:1px solid #f5c2c2}
+  /* Multi-select filter dropdown styles */
+  .multiselect-wrapper{position:relative;display:inline-block;min-width:140px}
+  .multiselect-btn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);background:#fff;
+      border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;width:100%;
+      text-align:left;display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .multiselect-btn:hover{border-color:var(--teal);background:#fbfaf7}
+  .multiselect-btn.active{border-color:var(--teal);color:var(--teal-d);font-weight:700}
+  .multiselect-dropdown{position:absolute;top:calc(100% + 2px);left:0;background:#fff;border:1px solid var(--line);
+      border-radius:8px;box-shadow:0 4px 12px rgba(31,41,51,.12);z-index:100;min-width:200px;max-height:300px;
+      overflow-y:auto}
+  .multiselect-search{padding:6px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+  .multiselect-search input{width:100%;font-family:inherit;font-size:12px;padding:6px 8px;
+      border:1px solid var(--line);border-radius:4px;color:var(--ink)}
+  .multiselect-search input:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .multiselect-options{max-height:240px;overflow-y:auto}
+  .multiselect-option{padding:7px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;
+      font-size:12px;color:var(--ink);border:none;background:none;width:100%;text-align:left}
+  .multiselect-option:hover{background:#fbfaf7;color:var(--teal-d)}
+  .multiselect-option input[type="checkbox"]{cursor:pointer;accent-color:var(--teal)}
+  .multiselect-controls{padding:6px 8px;border-top:1px solid var(--line);display:flex;gap:6px;font-size:11px}
+  .multiselect-controls button{flex:1;font-family:inherit;font-size:11px;padding:4px 6px;
+      border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--teal-d);cursor:pointer}
+  .multiselect-controls button:hover{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .multiselect-badge{font-size:10px;background:var(--teal);color:#fff;border-radius:10px;
+      padding:2px 6px;min-width:18px;text-align:center}
 </style>
 </head>
 <body>
@@ -1836,6 +1861,334 @@ function buildCategory(){
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
+let promoMonthSel='ALL';
+
+// Multi-select filter state for promo section
+let promoFilters = {
+  months: new Set(),   // empty = all months
+  chains: new Set(),   // empty = all chains
+  kams: new Set()      // empty = all KAMs
+};
+
+// Initialize promo filter options from data
+function initPromoFilters(){
+  const pr = D.promo;
+  const months = pr.months_available || [];
+  const allChains = new Set();
+  const allKams = new Set();
+
+  // Collect unique chains and KAMs
+  (pr.by_chain || []).forEach(c => allChains.add(c.name));
+  Object.values(pr.monthly || {}).forEach(block => {
+    (block.by_chain || []).forEach(c => {
+      if(c.kam) allKams.add(c.kam);
+      allChains.add(c.name);
+    });
+    (block.kam_status || {}).received?.forEach(k => allKams.add(k));
+    (block.kam_status || {}).pending?.forEach(k => allKams.add(k));
+  });
+
+  return {
+    months: months,
+    chains: Array.from(allChains).sort(),
+    kams: Array.from(allKams).sort()
+  };
+}
+
+// Apply promo filters to data
+function applyPromoFilters(data, filters) {
+  if(!data || (!filters.months.size && !filters.chains.size && !filters.kams.size)) {
+    return data; // No filters applied
+  }
+
+  // Filter by_chain
+  if(filters.chains.size > 0 || filters.kams.size > 0) {
+    data.by_chain = (data.by_chain || []).filter(c => {
+      const chainMatch = !filters.chains.size || filters.chains.has(c.name);
+      const kamMatch = !filters.kams.size || filters.kams.has(c.kam);
+      return chainMatch && kamMatch;
+    });
+  }
+
+  // Recalculate totals if filtered
+  if(filters.chains.size > 0 || filters.kams.size > 0) {
+    data.total_skus = (data.by_chain || []).reduce((s, c) => s + (c.skus || 0), 0);
+    data.chains_in_promo = data.by_chain.length;
+  }
+
+  return data;
+}
+
+// Render multi-select dropdown component
+function renderMultiSelect(id, label, options, selectedSet) {
+  const selected = Array.from(selectedSet);
+  const badge = selected.length > 0 ? `<span class="multiselect-badge">${selected.length}</span>` : '';
+  const optionsHtml = options.map(opt => `
+    <label class="multiselect-option">
+      <input type="checkbox" value="${opt}" ${selectedSet.has(opt) ? 'checked' : ''} data-filter-id="${id}">
+      <span>${opt}</span>
+    </label>
+  `).join('');
+
+  return `
+    <div class="multiselect-wrapper">
+      <button class="multiselect-btn ${selected.length > 0 ? 'active' : ''}" data-toggle="${id}">
+        ${label} ${badge}
+        <span style="font-size:10px">▼</span>
+      </button>
+      <div class="multiselect-dropdown" id="${id}-dropdown" style="display:none">
+        <div class="multiselect-search">
+          <input type="text" placeholder="Search..." data-search-for="${id}">
+        </div>
+        <div class="multiselect-options">
+          ${optionsHtml}
+        </div>
+        <div class="multiselect-controls">
+          <button data-select-all="${id}">Select All</button>
+          <button data-clear="${id}">Clear</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Wire up multi-select event listeners
+function wirePromoFilters() {
+  const pr = D.promo;
+  const filterOptions = initPromoFilters();
+
+  // Toggle dropdown visibility
+  document.querySelectorAll('[data-toggle]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-toggle');
+      const dropdown = document.getElementById(id + '-dropdown');
+      const isOpen = dropdown.style.display !== 'none';
+      document.querySelectorAll('.multiselect-dropdown').forEach(d => d.style.display = 'none');
+      if(!isOpen) dropdown.style.display = 'block';
+    });
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.multiselect-dropdown').forEach(d => d.style.display = 'none');
+  });
+
+  // Handle checkbox changes
+  document.querySelectorAll('.multiselect-option input[type="checkbox"]').forEach(input => {
+    input.addEventListener('change', e => {
+      const filterId = e.target.getAttribute('data-filter-id');
+      const value = e.target.value;
+
+      if(filterId === 'promo-months') {
+        if(e.target.checked) promoFilters.months.add(value);
+        else promoFilters.months.delete(value);
+      } else if(filterId === 'promo-chains') {
+        if(e.target.checked) promoFilters.chains.add(value);
+        else promoFilters.chains.delete(value);
+      } else if(filterId === 'promo-kams') {
+        if(e.target.checked) promoFilters.kams.add(value);
+        else promoFilters.kams.delete(value);
+      }
+      buildPromo();
+    });
+  });
+
+  // Handle Select All buttons
+  document.querySelectorAll('[data-select-all]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const filterId = btn.getAttribute('data-select-all');
+      const dropdown = btn.closest('.multiselect-dropdown');
+      dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+
+      if(filterId === 'promo-months') {
+        promoFilters.months = new Set(filterOptions.months);
+      } else if(filterId === 'promo-chains') {
+        promoFilters.chains = new Set(filterOptions.chains);
+      } else if(filterId === 'promo-kams') {
+        promoFilters.kams = new Set(filterOptions.kams);
+      }
+      buildPromo();
+    });
+  });
+
+  // Handle Clear buttons
+  document.querySelectorAll('[data-clear]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const filterId = btn.getAttribute('data-clear');
+      const dropdown = btn.closest('.multiselect-dropdown');
+      dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+      if(filterId === 'promo-months') {
+        promoFilters.months.clear();
+      } else if(filterId === 'promo-chains') {
+        promoFilters.chains.clear();
+      } else if(filterId === 'promo-kams') {
+        promoFilters.kams.clear();
+      }
+      buildPromo();
+    });
+  });
+
+  // Handle search filtering
+  document.querySelectorAll('[data-search-for]').forEach(input => {
+    input.addEventListener('input', e => {
+      const filterId = e.target.getAttribute('data-search-for');
+      const searchTerm = e.target.value.toLowerCase();
+      const dropdown = e.target.closest('.multiselect-dropdown');
+      dropdown.querySelectorAll('.multiselect-option').forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        opt.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+      });
+    });
+  });
+
+  // Handle anomaly toggle button
+  const anomalyToggle = document.getElementById('promoAnomalyToggle');
+  if (anomalyToggle) {
+    anomalyToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      promoAnomalyFilter = !promoAnomalyFilter;
+      anomalyToggle.classList.toggle('active');
+      anomalyToggle.classList.toggle('ghost');
+      buildPromo();
+    });
+  }
+
+  // Handle export to CSV button
+  const exportCSVBtn = document.getElementById('exportPromoCSV');
+  if (exportCSVBtn) {
+    exportCSVBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      exportPromoCSV();
+    });
+  }
+}
+
+// ── PROMO EXPORT UTILITIES ─────────────────────────────────────────────────
+function getPromoFilteredRows() {
+  const table = document.querySelector('#tab-promo table tbody');
+  if (!table) return [];
+  return Array.from(table.querySelectorAll('tr')).map(row => {
+    const cells = row.querySelectorAll('td');
+    return {
+      chain: cells[0]?.textContent?.trim() || '',
+      skus: cells[1]?.textContent?.trim() || '',
+      brands: cells[2]?.textContent?.trim() || '',
+      depth: cells[3]?.textContent?.trim() || '',
+      kam: cells[4]?.textContent?.trim() || '',
+      status: cells[5]?.textContent?.trim() || '',
+      flags: cells[6]?.textContent?.trim() || ''
+    };
+  });
+}
+
+function buildPromoCSV() {
+  const headers = ['Month', 'Chain', 'KAM', 'SKU Count', 'Avg Offer (%)', 'Status', 'Anomaly Flags'];
+  const selectedMonths = Array.from(promoFilters.months).length > 0
+    ? Array.from(promoFilters.months)
+    : (D.promo?.months_available || []);
+
+  const rows = [headers];
+  const tableRows = getPromoFilteredRows();
+
+  tableRows.forEach(row => {
+    rows.push([
+      selectedMonths.join(', '),
+      row.chain,
+      row.kam,
+      row.skus,
+      row.depth,
+      row.status,
+      row.flags.replace(/\n/g, ' ').trim()
+    ]);
+  });
+
+  return rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+}
+
+function exportPromoCSV() {
+  const csv = buildPromoCSV();
+  if (!csv || csv.trim() === '"Month","Chain","KAM","SKU Count","Avg Offer (%)","Status","Anomaly Flags"') {
+    alert('No data to export. Please ensure the Promo tab has data loaded.');
+    return;
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  const dateStr = new Date().toISOString().split('T')[0];
+
+  link.setAttribute('href', url);
+  link.setAttribute('download', `promo_export_${dateStr}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ── PROMO ANOMALY DETECTION ────────────────────────────────────────────────
+let promoAnomalyFilter = false; // Toggle for anomalies-only view
+
+// Detect depth outliers (>50%)
+function flagDepthOutliers(chain, minDepthPct = 50) {
+  return (chain.avg_offer_pct != null && chain.avg_offer_pct > minDepthPct) ? 'depth_outlier' : null;
+}
+
+// Detect MoM spikes (>15% increase in depth from prior month)
+function detectMoMSpikes(promo, selectedMonths = []) {
+  const months = selectedMonths.length > 0 ? selectedMonths : promo.months_available || [];
+  if (months.length < 2) return {};
+
+  const monthlyData = promo.monthly || {};
+  const spikes = {};
+
+  for (let i = 1; i < months.length; i++) {
+    const prevMonth = months[i - 1];
+    const currMonth = months[i];
+    const prevBlock = monthlyData[prevMonth];
+    const currBlock = monthlyData[currMonth];
+
+    if (!prevBlock || !currBlock) continue;
+
+    const prevChainDepths = {};
+    (prevBlock.by_chain || []).forEach(c => {
+      prevChainDepths[c.name] = c.avg_offer_pct || 0;
+    });
+
+    (currBlock.by_chain || []).forEach(c => {
+      const prevDepth = prevChainDepths[c.name] || 0;
+      const currDepth = c.avg_offer_pct || 0;
+      const spike = ((currDepth - prevDepth) / Math.max(prevDepth, 1)) * 100;
+
+      if (spike > 15) {
+        spikes[c.name] = { from: prevDepth, to: currDepth, spike: spike.toFixed(1) };
+      }
+    });
+  }
+
+  return spikes;
+}
+
+// Render anomaly indicators in KAM accountability table
+function renderAnomalyBadge(chain, anomalies) {
+  if (!chain || !anomalies) return '';
+
+  const depthFlag = flagDepthOutliers(chain);
+  const momSpike = anomalies[chain.name];
+
+  let badges = '';
+  if (depthFlag) {
+    badges += `<span class="pill" style="background:#fef3e6;color:#9a5400;margin-right:4px;font-size:10px">⚠ High Depth ${chain.avg_offer_pct}%</span>`;
+  }
+  if (momSpike) {
+    badges += `<span class="pill" style="background:#fef3e6;color:#9a5400;margin-right:4px;font-size:10px">↑ Spike ${momSpike.spike}%</span>`;
+  }
+  return badges;
+}
+
 function buildPromo(){
   const pr=D.promo,s=document.getElementById('tab-promo');
   let chains=consolidateChains(pr.by_chain,'promos'), brandsArr=pr.by_brand||[], cats=pr.by_category||[];
@@ -1844,7 +2197,7 @@ function buildPromo(){
   if(fOn('Category')) cats=cats.filter(c=>fHas('Category',c.name));
   const promosInScope=chains.reduce((a,c)=>a+c.promos,0);
   const rows=chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.promos)}</td>
-     <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands}</td></tr>`).join('');
+     <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands==null?'–':c.brands}</td></tr>`).join('');
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
     +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
@@ -1889,22 +2242,97 @@ function buildPromo(){
     <tbody>${_tradeRows||'<tr><td colspan="6">No chain data.</td></tr>'}</tbody>
   </table></div>`)}`;
 
-  // ── Aug-26 promo calendar detail (D.promo.detail) ────────────────────────
-  const _pdet=pr.detail||null;
+  // ── Promo calendar detail — multi-filter (D.promo.monthly) ───────────
+  const _months=pr.months_available||(pr.detail?[pr.detail.month]:[]);
+  const _monthly=pr.monthly||(pr.detail?{[pr.detail.month]:pr.detail}:{});
+
+  // Build filter toolbar HTML
+  const filterOptions = initPromoFilters();
+  const _filterToolbar = _months.length > 1 ? `
+    <div style="margin:12px 0;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      ${renderMultiSelect('promo-months', 'Months', filterOptions.months, promoFilters.months)}
+      ${renderMultiSelect('promo-chains', 'Accounts', filterOptions.chains, promoFilters.chains)}
+      ${renderMultiSelect('promo-kams', 'KAMs', filterOptions.kams, promoFilters.kams)}
+      <button id="promoAnomalyToggle" class="fbtn ${promoAnomalyFilter ? '' : 'ghost'}" style="margin:0"
+              title="Show only anomalies: depth >50% or MoM spike >15%">
+        ⚠ Anomalies Only
+      </button>
+      <button id="exportPromoCSV" class="fbtn ghost" style="margin:0"
+              title="Download filtered table as CSV">
+        📥 Export CSV
+      </button>
+    </div>
+  ` : '';
+
+  // Determine which month(s) to display based on filter
+  let _pdet = null;
+  if(promoFilters.months.size > 0){
+    // If specific months selected, merge their data
+    const selectedMonths = Array.from(promoFilters.months);
+    const merged = { by_chain: [], total_skus: 0, chains_in_promo: 0, chains_received: 0, chains_pending: 0, brands_in_promo: 0 };
+    selectedMonths.forEach(m => {
+      const monthData = _monthly[m];
+      if(monthData){
+        merged.by_chain = [...merged.by_chain, ...(monthData.by_chain || [])];
+        merged.total_skus = (merged.total_skus || 0) + (monthData.total_skus || 0);
+        merged.month = `${selectedMonths[0]}–${selectedMonths[selectedMonths.length-1]}`;
+      }
+    });
+    merged.chains_in_promo = new Set(merged.by_chain.map(c => c.name)).size;
+    _pdet = merged;
+  } else if(promoMonthSel === 'ALL' || !_months.includes(promoMonthSel)) {
+    _pdet = pr.detail;
+  } else {
+    _pdet = _monthly[promoMonthSel] || pr.detail;
+  }
+
+  // Apply chain/KAM filters if selected
+  if(_pdet && (promoFilters.chains.size > 0 || promoFilters.kams.size > 0)){
+    _pdet = applyPromoFilters({..._pdet}, promoFilters);
+  }
+
+  const _momTrend=pr.mom_trend||[];
   let _detSection='';
+  const _momSection=_momTrend.length>1?`
+  <h3 class="sec" style="margin:28px 0 4px">Month-on-Month Promo Trend</h3>
+  <p class="lead">SKU-promo line count and average consumer discount depth across ${_momTrend[0].month}–${_momTrend[_momTrend.length-1].month}.</p>
+  <div class="grid g2">
+    ${card('SKUs on promo by month','promo-line volume trend',cv('prmMomSkus'))}
+    ${card('Avg consumer discount depth (%) by month','blended offer depth trend',cv('prmMomDepth'))}
+  </div>`:'';
   if(_pdet){
     const _dc=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
     const _pend=(_pdet.kam_status?.pending||[]).join(', ');
     const _pendNote=_pend?`<p class="drillhint" style="margin:4px 0 0">Response pending from: ${_pend}</p>`:'';
-    const _dRows=_dc.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
+
+    // Detect anomalies
+    const selectedMonths = Array.from(promoFilters.months.size > 0 ? promoFilters.months : _months);
+    const momSpikes = detectMoMSpikes(pr, selectedMonths);
+
+    // Filter for anomalies if toggle is on
+    let _dcDisplay = _dc;
+    if(promoAnomalyFilter){
+      _dcDisplay = _dc.filter(c => {
+        const hasDepthOutlier = flagDepthOutliers(c) !== null;
+        const hasMoMSpike = momSpikes[c.name] !== undefined;
+        return hasDepthOutlier || hasMoMSpike;
+      });
+    }
+
+    const _dRows=_dcDisplay.map(c=>{
+      const anomalyBadges = renderAnomalyBadge(c, momSpikes);
+      return `<tr><td>${drillLink('Chain',c.name)}</td>
       <td style="text-align:right">${num(c.skus)}</td>
-      <td style="text-align:right">${c.brands}</td>
+      <td style="text-align:right">${c.brands==null?'–':c.brands}</td>
       <td style="text-align:right">${c.avg_offer_pct!=null?c.avg_offer_pct+'%':'–'}</td>
       <td>${c.kam||'–'}</td>
-      <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td></tr>`).join('');
+      <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td>
+      <td style="font-size:11px">${anomalyBadges}</td></tr>`;
+    }).join('');
     _detSection=`
   <h3 class="sec" style="margin:28px 0 4px">Promo Calendar — ${_pdet.month||'Current Month'}</h3>
-  <p class="lead">${num(_pdet.total_skus)} SKU-promo lines across ${_pdet.chains_in_promo} chains for ${_pdet.month||'this month'}.</p>
+  ${_filterToolbar}
+  <p class="lead">${num(_pdet.total_skus)} SKU-promo lines across ${_pdet.chains_in_promo} chains ${promoFilters.months.size > 0 ? ' across ' + Array.from(promoFilters.months).join(', ') : 'for ' + (_pdet.month||'this month')}.</p>
   <div class="kpis">
     ${kpi('SKUs on Promo',num(_pdet.total_skus),'promo lines this month')}
     ${kpi('Chains Covered',_pdet.chains_in_promo,'running promos')}
@@ -1916,9 +2344,9 @@ function buildPromo(){
     ${card('SKUs by chain','promo line count this month — click to drill',cv('prmDetChain'))}
     ${card('Avg consumer offer % by chain','where parseable (%, BxGy decoded)',cv('prmDetOffer',true))}
   </div>
-  ${card('KAM accountability — '+(_pdet.month||''),'Promo data received / pending per chain.',`<div class="tablewrap"><table>
-    <thead><tr><th>Chain</th><th>SKUs</th><th>Brands</th><th>Avg Offer%</th><th>KAM</th><th>Status</th></tr></thead>
-    <tbody>${_dRows||'<tr><td colspan="6">No data for this filter.</td></tr>'}</tbody>
+  ${card('KAM accountability — '+(_pdet.month||''),'Promo data received / pending per chain. ⚠ flags indicate depth >50% or MoM spike >15%.',`<div class="tablewrap"><table>
+    <thead><tr><th>Chain</th><th>SKUs</th><th>Brands</th><th>Avg Offer%</th><th>KAM</th><th>Status</th><th>Flags</th></tr></thead>
+    <tbody>${_dRows||'<tr><td colspan="7">No data for this filter.</td></tr>'}</tbody>
   </table></div>`)}`;
   }
 
@@ -1939,7 +2367,10 @@ function buildPromo(){
    ${card('Chain-wise promo activity','Click a chain to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Chain</th><th>Promos</th><th>Avg Depth</th><th>Brands</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${drillCardHtml('prmDrill','Primary NSV')}`;
+   ${drillCardHtml('prmDrill','Primary NSV')}
+   ${_momSection}
+   ${_detSection}
+   ${_totSection}`;
   wireDrillLinks(s);
   if(!promoEmpty){
     const top=chains.slice(0,12);
@@ -1951,6 +2382,21 @@ function buildPromo(){
     mkBarH('prmCat',cats.map(c=>c.name),cats.map(c=>c.promos),C.blue,false,v=>drillTo('Category',v));
     renderDrillChart('prmDrill','Primary NSV',recFilter());
   }
+  if(_momTrend.length>1){
+    mkBar('prmMomSkus',_momTrend.map(r=>r.month),[{label:'SKUs on Promo',data:_momTrend.map(r=>r.skus),backgroundColor:C.teal,borderRadius:4}],{money:false});
+    mkBar('prmMomDepth',_momTrend.map(r=>r.month),[{label:'Avg Depth %',data:_momTrend.map(r=>r.avg_depth),backgroundColor:C.amber,borderRadius:4}],{money:false});
+    const dch=charts[charts.length-1];dch.options.scales.y.ticks.callback=v=>v+'%';
+    dch.options.plugins.tooltip.callbacks.label=c=>c.parsed.y+'%';dch.update();
+  }
+  if(_pdet){
+    const _dcSorted=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name)).slice(0,15);
+    mkBarH('prmDetChain',_dcSorted.map(c=>c.name),_dcSorted.map(c=>c.skus),C.teal,false,v=>drillTo('Chain',v));
+    mkBarH('prmDetOffer',_dcSorted.map(c=>c.name),_dcSorted.map(c=>c.avg_offer_pct),C.amber,false,v=>drillTo('Chain',v));
+    const och=charts[charts.length-1];och.options.scales.x.ticks.callback=v=>v+'%';
+    och.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';och.update();
+  }
+  // Wire multi-select filters
+  wirePromoFilters();
 }
 
 /* ---------------- PERFORMANCE & COMPARISON ---------------- */
