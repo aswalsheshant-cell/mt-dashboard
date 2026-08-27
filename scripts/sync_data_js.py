@@ -5,6 +5,7 @@ Tier 3: Automated Data.JS Sync Pipeline
 Regenerates dashboard/data.js from the authoritative data_master.json.
 Ensures single source of truth: data_master.json → data.js (one-way sync).
 Also populates universe block from UniverseMT.csv (Active MT Store count).
+Integrates Sprint 5 Track 3: Promo depth vs. Offtake correlation analytics.
 
 This script is part of the master data governance consolidation (Tiers 1-3).
 It automates what was previously a manual, error-prone process.
@@ -20,6 +21,11 @@ import json
 import argparse
 from pathlib import Path
 from datetime import datetime
+import sys
+import os
+
+# Add scripts directory to path for imports
+sys.path.insert(0, os.path.dirname(__file__))
 
 
 def load_master(master_path: str) -> dict:
@@ -110,17 +116,40 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
             else:
                 entry[fy_key] = 0
         by_zone.append(entry)
+
+    # Pan India = exact rollup of all regional zones; exclude it from UI + totals to avoid 2× double-counting
+    PAN_INDIA_ZONE = "Pan India"
+    by_zone = [z for z in by_zone if z["name"] != PAN_INDIA_ZONE]
     offtake_block["by_zone"] = by_zone
 
-    # Pan India = exact rollup of all regional zones; exclude it from grand totals
-    # and monthly aggregations to avoid 2× double-counting.
-    PAN_INDIA_ZONE = "Pan India"
-
     # Grand totals for each FY — exclude Pan India to prevent double-count
+    # Use by_chain_offtake if available (ingested primary CSV data), otherwise use zone totals
+    by_chain_offtake = master.get("by_chain_offtake", {})
+    by_chain_breakdown = None
+
     for fy_key in ["fy25", "fy26", "fy27"]:
-        total = sum(z.get(fy_key, 0) for z in by_zone if z["name"] != PAN_INDIA_ZONE)
-        if total > 0:
-            offtake_block[f"total_{fy_key}"] = round(total, 2)
+        # Prefer chain-level totals if available (they're more complete)
+        if by_chain_offtake and fy_key in by_chain_offtake:
+            chain_total_cr = sum(by_chain_offtake[fy_key].values())
+            if chain_total_cr > 0:
+                # Convert from Crore to Lakh (multiply by 100)
+                chain_total_lakh = chain_total_cr * CRORE_TO_LAKH
+                offtake_block[f"total_{fy_key}"] = round(chain_total_lakh, 2)
+                # Use FY26 chain breakdown (most complete full-year data)
+                if fy_key == "fy26":
+                    by_chain_breakdown = [
+                        {"name": chain, "value": round(value * CRORE_TO_LAKH, 2)}
+                        for chain, value in sorted(by_chain_offtake[fy_key].items(), key=lambda x: x[1], reverse=True)
+                    ]
+        else:
+            # Fall back to zone-based totals (already in Lakh)
+            total = sum(z.get(fy_key, 0) for z in by_zone)
+            if total > 0:
+                offtake_block[f"total_{fy_key}"] = round(total, 2)
+
+    # Add FY26 chain breakdown to offtake block
+    if by_chain_breakdown:
+        offtake_block["by_chain"] = by_chain_breakdown
 
     # YoY for FY26 vs FY25 — keep as a percentage, do NOT multiply by CRORE_TO_LAKH
     fy25_total = offtake_block.get("total_fy25", 0)
@@ -156,10 +185,12 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
     offtake_block["months"] = combined_months
     offtake_block["monthly"] = combined_monthly
 
-    # by_chain, by_state: empty — source data has no chain/state breakdown yet
-    offtake_block["by_chain"] = []
-    offtake_block["by_state"] = []
-    offtake_block["n_chains"] = 0
+    # by_chain, by_state: preserve chain breakdown if populated, otherwise empty
+    if "by_chain" not in offtake_block:
+        offtake_block["by_chain"] = []
+    if "by_state" not in offtake_block:
+        offtake_block["by_state"] = []
+    offtake_block["n_chains"] = len(offtake_block.get("by_chain", []))
 
     # Blocks controlled by this script
     sync_blocks = {
@@ -169,6 +200,32 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         "unit_economics": master["unit_economics"],
         "executive_deck_sync": master["executive_deck_sync"],
     }
+
+    # Include reliance_bc if present in master (Reliance Brand Counter data)
+    if "reliance_bc" in master and master["reliance_bc"] is not None:
+        sync_blocks["reliance_bc"] = master["reliance_bc"]
+
+    # Include promo block if present in master (Promo & Trade Spend data)
+    if "promo" in master and master["promo"] is not None:
+        sync_blocks["promo"] = master["promo"]
+
+    # Generate correlations block (Sprint 5 Track 3: Promo elasticity analytics)
+    # Only generate if promo data is available
+    if "promo" in master and master["promo"] is not None:
+        try:
+            from promo_offtake_correlation import generate_correlations_block
+            correlations_result = generate_correlations_block(
+                # Pass the master dict directly instead of file path
+                master
+            )
+            if correlations_result and "correlations" in correlations_result:
+                correlations = correlations_result["correlations"]
+                # Add timestamp to correlations
+                correlations["generated_at"] = datetime.now().isoformat()
+                sync_blocks["correlations"] = correlations
+        except Exception as e:
+            # Warn but don't fail if correlation generation has issues
+            print(f"  ⚠ Warning: Could not generate correlations: {e}")
 
     if existing_js is not None:
         # Merge mode: preserve all blocks not controlled by this script
@@ -283,8 +340,8 @@ Source:      {args.source} (LOCKED_MULTI_YEAR_V2)
 Output:      {args.output} (production-ready)
 Generated:   {datetime.now().isoformat()}
 
-Coverage:    FY25 (4m) + FY26 (12m) + FY27 (4m) = 140 zone-months
-Zones:       7 (Central, East, North, Pan India, South 1, South 2, West)
+Coverage:    FY25 (4m) + FY26 (12m) + FY27 (4m) = 120 zone-months
+Zones:       6 (Central, East, North, South 1, South 2, West)
 Status:      ✓ READY FOR DEPLOYMENT
 
 Next Steps:

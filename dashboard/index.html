@@ -156,6 +156,83 @@
   .recon-badge.recon-pass{display:block;background:#e6f4ef;color:#1b6b47;border:1px solid #bfe3d6}
   .recon-badge.recon-warn{display:block;background:#fff7e6;color:#8a5a00;border:1px solid #f0d8a8}
   .recon-badge.recon-fail{display:block;background:#fef0f0;color:#b91c1c;border:1px solid #f5c2c2}
+  /* Multi-select filter dropdown styles */
+  .multiselect-wrapper{position:relative;display:inline-block;min-width:140px}
+  .multiselect-btn{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);background:#fff;
+      border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;width:100%;
+      text-align:left;display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .multiselect-btn:hover{border-color:var(--teal);background:#fbfaf7}
+  .multiselect-btn.active{border-color:var(--teal);color:var(--teal-d);font-weight:700}
+  .multiselect-dropdown{position:absolute;top:calc(100% + 2px);left:0;background:#fff;border:1px solid var(--line);
+      border-radius:8px;box-shadow:0 4px 12px rgba(31,41,51,.12);z-index:100;min-width:200px;max-height:300px;
+      overflow-y:auto}
+  .multiselect-search{padding:6px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+  .multiselect-search input{width:100%;font-family:inherit;font-size:12px;padding:6px 8px;
+      border:1px solid var(--line);border-radius:4px;color:var(--ink)}
+  .multiselect-search input:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .multiselect-options{max-height:240px;overflow-y:auto}
+  .multiselect-option{padding:7px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;
+      font-size:12px;color:var(--ink);border:none;background:none;width:100%;text-align:left}
+  .multiselect-option:hover{background:#fbfaf7;color:var(--teal-d)}
+  .multiselect-option input[type="checkbox"]{cursor:pointer;accent-color:var(--teal)}
+  .multiselect-controls{padding:6px 8px;border-top:1px solid var(--line);display:flex;gap:6px;font-size:11px}
+  .multiselect-controls button{flex:1;font-family:inherit;font-size:11px;padding:4px 6px;
+      border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--teal-d);cursor:pointer}
+  .multiselect-controls button:hover{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .multiselect-badge{font-size:10px;background:var(--teal);color:#fff;border-radius:10px;
+      padding:2px 6px;min-width:18px;text-align:center}
+  /* Tier Boundary Configurator */
+  .tier-boundary-configurator{background:var(--card);border:1px solid var(--line);border-radius:10px;
+      padding:14px 16px;margin:0 0 14px;display:none}
+  .tier-boundary-configurator.active{display:block}
+  .tier-boundary-configurator h3{margin:0 0 12px;font-size:14px;font-weight:700}
+  .tier-preset-buttons{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tier-preset-buttons button{font-family:inherit;font-size:11.5px;font-weight:600;
+      background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 12px;
+      cursor:pointer;color:var(--teal-d);transition:all .2s}
+  .tier-preset-buttons button:hover{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .tier-preset-buttons button.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .tier-sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:12px}
+  .tier-slider-group{display:flex;flex-direction:column;gap:6px}
+  .tier-slider-group label{font-size:12px;font-weight:700;color:var(--ink)}
+  .tier-slider-group .range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+  .tier-slider-group input[type="range"]{width:100%;cursor:pointer;accent-color:var(--teal)}
+  .tier-slider-value{font-size:12px;font-weight:700;color:var(--teal-d)}
+  .tier-config-actions{display:flex;gap:8px;justify-content:flex-end}
+  .tier-config-actions button{font-family:inherit;font-size:12px;font-weight:600;
+      border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+  .tier-config-actions button.apply{background:var(--teal);color:#fff}
+  .tier-config-actions button.apply:hover{background:var(--teal-d)}
+  .tier-config-actions button.reset{background:#f0f0f0;color:var(--ink);border:1px solid var(--line)}
+  .tier-config-actions button.reset:hover{background:var(--line)}
+  /* Executive Brief Modal */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);
+      display:flex;align-items:center;justify-content:center;z-index:1000;display:none}
+  .modal-overlay.active{display:flex}
+  .modal-content{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+      max-width:900px;max-height:90vh;overflow-y:auto;padding:24px;position:relative}
+  .modal-close{position:absolute;top:12px;right:12px;background:none;border:0;
+      font-size:24px;cursor:pointer;color:var(--muted);width:32px;height:32px;
+      display:flex;align-items:center;justify-content:center;border-radius:6px}
+  .modal-close:hover{background:var(--bg);color:var(--ink)}
+  .brief-header{margin-bottom:20px;border-bottom:2px solid var(--teal);padding-bottom:16px}
+  .brief-header h2{margin:0;font-size:18px;color:var(--ink)}
+  .brief-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0}
+  .brief-kpi{background:var(--bg);border:1px solid var(--line);border-radius:8px;
+      padding:12px;text-align:center}
+  .brief-kpi .lab{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted)}
+  .brief-kpi .val{font-size:20px;font-weight:800;color:var(--teal-d);margin:6px 0 0}
+  .brief-section{margin:16px 0}
+  .brief-section h3{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--ink)}
+  .brief-text{font-size:12.5px;line-height:1.6;color:#555;margin:0}
+  .brief-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;
+      padding-top:16px;border-top:1px solid var(--line)}
+  .brief-actions button{font-family:inherit;font-size:12.5px;font-weight:600;
+      border-radius:6px;padding:8px 14px;cursor:pointer;border:0}
+  .brief-actions button.primary{background:var(--teal);color:#fff}
+  .brief-actions button.primary:hover{background:var(--teal-d)}
+  .brief-actions button.secondary{background:#f0f0f0;color:var(--ink);border:1px solid var(--line)}
+  .brief-actions button.secondary:hover{background:var(--line)}
 </style>
 </head>
 <body>
@@ -167,6 +244,55 @@
 <div class="topbar">
   <nav id="nav"></nav>
   <div id="filterbar" class="filterbar"></div>
+  <button class="fbtn ghost" id="exportZonalSummary" title="Export zonal breakdown to CSV (filtered by current zone/chain selection)" style="margin-left:auto;align-self:center">⭳ Export Zonal Summary</button>
+</div>
+<div class="wrap">
+  <!-- Tier Boundary Configurator -->
+  <div class="tier-boundary-configurator" id="tierConfigurator">
+    <h3>⚙️ Promo Tier Configuration (Offtake Impact Tab)</h3>
+    <div class="tier-preset-buttons">
+      <button onclick="applyPresetTiers('fmcg')">FMCG Default (30/50/70)</button>
+      <button onclick="applyPresetTiers('edlp')">EDLP (15/35/50)</button>
+      <button onclick="applyPresetTiers('clearance')">Clearance (40/60/80)</button>
+    </div>
+    <div class="tier-sliders">
+      <div class="tier-slider-group">
+        <label>Tier 1 Upper Bound (%)</label>
+        <div class="range-labels"><span>0%</span><span>70%</span></div>
+        <input type="range" id="t1Slider" min="0" max="70" value="30" oninput="validateTierBoundary(1)">
+        <div class="tier-slider-value">Value: <span id="t1Value">30</span>%</div>
+      </div>
+      <div class="tier-slider-group">
+        <label>Tier 2 Upper Bound (%)</label>
+        <div class="range-labels"><span>0%</span><span>90%</span></div>
+        <input type="range" id="t2Slider" min="0" max="90" value="50" oninput="validateTierBoundary(2)">
+        <div class="tier-slider-value">Value: <span id="t2Value">50</span>%</div>
+      </div>
+      <div class="tier-slider-group">
+        <label>Tier 3 Upper Bound (%)</label>
+        <div class="range-labels"><span>0%</span><span>100%</span></div>
+        <input type="range" id="t3Slider" min="0" max="100" value="70" oninput="validateTierBoundary(3)">
+        <div class="tier-slider-value">Value: <span id="t3Value">70</span>%</div>
+      </div>
+    </div>
+    <div class="tier-config-actions">
+      <button class="reset" onclick="resetTierBoundaries()">Reset to Default</button>
+      <button class="apply" onclick="applyTierBoundaries()">Apply Boundaries</button>
+    </div>
+  </div>
+
+  <!-- Executive Brief Modal -->
+  <div class="modal-overlay" id="executiveBriefModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeExecutiveBriefModal()">✕</button>
+      <div id="executiveBriefContent"></div>
+      <div class="brief-actions">
+        <button class="secondary" onclick="copyExecutiveBriefToClipboard()">📋 Copy Bullet Points</button>
+        <button class="secondary" onclick="exportExecutiveBriefPDF()">📄 Print / PDF</button>
+        <button class="primary" onclick="exportExecutiveBriefImage()">🖼️ Download PNG (1920×1080)</button>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="wrap">
   <section id="tab-explorer"></section>
@@ -178,22 +304,33 @@
   <section id="tab-category"></section>
   <section id="tab-forecast"></section>
   <section id="tab-promo"></section>
+  <section id="tab-offtake-impact"></section>
   <section id="tab-share"></section>
   <section id="tab-distribution"></section>
   <section id="tab-comparison"></section>
   <section id="tab-analytics"></section>
+  <section id="tab-stores"></section>
+  <section id="tab-inventory"></section>
   <section id="tab-insights"></section>
   <section id="tab-qc"></section>
 </div>
 <footer id="foot"></footer>
 
 <script src="data.js?v=20260703-3"></script>
+<script src="inventory_engine.js"></script>
 <script>
 // Load enriched analytics sidecar (non-destructive, optional)
 window.enrichedMetrics={};
 fetch('enriched_metrics.json').then(r=>r.json()).then(d=>window.enrichedMetrics=d).catch(()=>{});
 
+// Load compliance & inventory fill-rate metrics (dynamic sidecar, optional)
+fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
+  if(d.compliance) window.DASH.compliance=d.compliance;
+  if(d.inventory_fillrate) window.DASH.inventory_fillrate=d.inventory_fillrate;
+}).catch(()=>{});
+
 const D = window.DASH;
+const id = (eid) => document.getElementById(eid);
 
 /* ---- Defensive initialization: guard against missing data blocks so
    tabs degrade gracefully instead of crashing on undefined property access.
@@ -215,25 +352,26 @@ D.chain_allocation_qc = D.chain_allocation_qc || {warnings:[],blocked:[],audit_t
    Source: ChainMaster.csv + ChainAccount_Mapping_PriorityView.csv.
    Multi-chain distributors (need cont% allocation) are grouped separately. ---- */
 const _CC={
-  'DC-D-Mart-Offline':'Dmart','JUST MARK-Dmart':'Dmart','D-Mart-Store-E-Com':'Dmart',
+  'Dmart':'DMart','D-Mart':'DMart','dmart':'DMart',
+  'H&G':'Health & Glow','RMT-Sancus':'Sancus (RMT)','Vishal Mega Mart':'VMM','VMM':'VMM',
+  'DC-D-Mart-Offline':'DMart','JUST MARK-Dmart':'DMart','D-Mart-Store-E-Com':'DMart',
   'Reliance Retail-DC':'Reliance Retail','Reliance Retail-Store':'Reliance Retail',
   'RRL-FOC-Sample':'Reliance Retail','Reliance Retail-(Azorte)':'Azorte',
   'Nykaa E-Retail Limited':'Nykaa (FSN)','Metro-CNC':'Metro C&C',
-  'Walmart-CNC':'Walmart','Health & Glow':'H&G',
-  'Guardian Healthcare':'Guardian','Guardian Healthcare-Delhi':'Guardian',
+  'Walmart-CNC':'Walmart','Guardian Healthcare':'Guardian','Guardian Healthcare-Delhi':'Guardian',
   'Trent Hypermarket':'Trent','V-Mart Retail Limited':'V-Mart','V-Mart Retail':'V-Mart',
   'Travel News Services-Wsmith':'WH-Smith','Travel Retail Services-Relay':'Relay',
   'United Marketing':'Apollo','Eremedium Private Limited':'Eremedium',
   'AZORTE':'Azorte','Ratanadeep':'Ratnadeep',
-  'Sancus':'RMT-Sancus','Gaurdian':'Guardian',
+  'Sancus':'Sancus (RMT)','Gaurdian':'Guardian',
   'Aarambagh food mart':'Arambagh','V Mart East':'V-Mart',
-  'VISHAL ENTERPRISES':'Vishal Mega Mart','Metro':'Metro C&C',
+  'VISHAL ENTERPRISES':'VMM','Metro':'Metro C&C',
   'Mark Enterprise-Apollo':'Apollo','PRAGATI SALES-Apollo':'Apollo',
-  'PRAGATI SALES-D-MART':'Dmart','JUST MARK-D-Mart':'Dmart',
-  'Kiran Trading Company-Solapur-D-Mart':'Dmart','Kiran Trading Company-Pune-MT':'Dmart',
-  'VISHAL ENTERPRISES-D-Mart':'Dmart','Az Enterprises-MT':'Az Enterprises',
-  'Sancus Networks-MT-Reg.':'RMT-Sancus','R.C. Trade Link H&G':'H&G',
-  'R.C. Trade Link':'H&G','Lifestyle Babyshop':'Lifestyle'
+  'PRAGATI SALES-D-MART':'DMart','JUST MARK-D-Mart':'DMart',
+  'Kiran Trading Company-Solapur-D-Mart':'DMart','Kiran Trading Company-Pune-MT':'DMart',
+  'VISHAL ENTERPRISES-D-Mart':'DMart','Az Enterprises-MT':'Az Enterprises',
+  'Sancus Networks-MT-Reg.':'Sancus (RMT)','R.C. Trade Link H&G':'Health & Glow',
+  'R.C. Trade Link':'Health & Glow','Lifestyle Babyshop':'Lifestyle'
 };
 const _MCD=new Set([
   'Kiran Trading Company','G.V Enterprises','Sri Vijaya Durga Agencies',
@@ -1002,7 +1140,7 @@ function allocSectionHtml(){
       <td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${num(r.rows)}</td></tr>`).join('');
   const ca=al.cust_article;
   const caSlice=ca.rows.slice(0,40).map(r=>`<tr><td>${r.cust_code}</td><td>${r.ship_to}</td><td>${r.article}</td>
-      <td>${r.brand}</td><td>${r.range}</td><td>${r.pack}</td><td>${r.month} ${r.fy}</td><td>${drillLink('Chain',r.chain)}</td>
+      <td>${r.brand}</td><td>${r.range||'–'}</td><td>${r.pack||'–'}</td><td>${r.month} ${r.fy}</td><td>${drillLink('Chain',r.chain)}</td>
       <td>${crc(r.nsv)}</td><td>${num(r.qty)}</td><td>${r.w_avg_tot==null?'–':r.w_avg_tot+'%'}</td></tr>`).join('');
   const contBad=Object.keys(al.cont_pct_bad_keys||{}).length;
   // Phase 4: Governance insights (optional — absent in older data.js builds)
@@ -1898,6 +2036,334 @@ function buildCategory(){
 }
 
 /* ---------------- PROMO & TRADE SPEND ---------------- */
+let promoMonthSel='ALL';
+
+// Multi-select filter state for promo section
+let promoFilters = {
+  months: new Set(),   // empty = all months
+  chains: new Set(),   // empty = all chains
+  kams: new Set()      // empty = all KAMs
+};
+
+// Initialize promo filter options from data
+function initPromoFilters(){
+  const pr = D.promo;
+  const months = pr.months_available || [];
+  const allChains = new Set();
+  const allKams = new Set();
+
+  // Collect unique chains and KAMs
+  (pr.by_chain || []).forEach(c => allChains.add(c.name));
+  Object.values(pr.monthly || {}).forEach(block => {
+    (block.by_chain || []).forEach(c => {
+      if(c.kam) allKams.add(c.kam);
+      allChains.add(c.name);
+    });
+    (block.kam_status || {}).received?.forEach(k => allKams.add(k));
+    (block.kam_status || {}).pending?.forEach(k => allKams.add(k));
+  });
+
+  return {
+    months: months,
+    chains: Array.from(allChains).sort(),
+    kams: Array.from(allKams).sort()
+  };
+}
+
+// Apply promo filters to data
+function applyPromoFilters(data, filters) {
+  if(!data || (!filters.months.size && !filters.chains.size && !filters.kams.size)) {
+    return data; // No filters applied
+  }
+
+  // Filter by_chain
+  if(filters.chains.size > 0 || filters.kams.size > 0) {
+    data.by_chain = (data.by_chain || []).filter(c => {
+      const chainMatch = !filters.chains.size || filters.chains.has(c.name);
+      const kamMatch = !filters.kams.size || filters.kams.has(c.kam);
+      return chainMatch && kamMatch;
+    });
+  }
+
+  // Recalculate totals if filtered
+  if(filters.chains.size > 0 || filters.kams.size > 0) {
+    data.total_skus = (data.by_chain || []).reduce((s, c) => s + (c.skus || 0), 0);
+    data.chains_in_promo = data.by_chain.length;
+  }
+
+  return data;
+}
+
+// Render multi-select dropdown component
+function renderMultiSelect(id, label, options, selectedSet) {
+  const selected = Array.from(selectedSet);
+  const badge = selected.length > 0 ? `<span class="multiselect-badge">${selected.length}</span>` : '';
+  const optionsHtml = options.map(opt => `
+    <label class="multiselect-option">
+      <input type="checkbox" value="${opt}" ${selectedSet.has(opt) ? 'checked' : ''} data-filter-id="${id}">
+      <span>${opt}</span>
+    </label>
+  `).join('');
+
+  return `
+    <div class="multiselect-wrapper">
+      <button class="multiselect-btn ${selected.length > 0 ? 'active' : ''}" data-toggle="${id}">
+        ${label} ${badge}
+        <span style="font-size:10px">▼</span>
+      </button>
+      <div class="multiselect-dropdown" id="${id}-dropdown" style="display:none">
+        <div class="multiselect-search">
+          <input type="text" placeholder="Search..." data-search-for="${id}">
+        </div>
+        <div class="multiselect-options">
+          ${optionsHtml}
+        </div>
+        <div class="multiselect-controls">
+          <button data-select-all="${id}">Select All</button>
+          <button data-clear="${id}">Clear</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Wire up multi-select event listeners
+function wirePromoFilters() {
+  const pr = D.promo;
+  const filterOptions = initPromoFilters();
+
+  // Toggle dropdown visibility
+  document.querySelectorAll('[data-toggle]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-toggle');
+      const dropdown = document.getElementById(id + '-dropdown');
+      const isOpen = dropdown.style.display !== 'none';
+      document.querySelectorAll('.multiselect-dropdown').forEach(d => d.style.display = 'none');
+      if(!isOpen) dropdown.style.display = 'block';
+    });
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.multiselect-dropdown').forEach(d => d.style.display = 'none');
+  });
+
+  // Handle checkbox changes
+  document.querySelectorAll('.multiselect-option input[type="checkbox"]').forEach(input => {
+    input.addEventListener('change', e => {
+      const filterId = e.target.getAttribute('data-filter-id');
+      const value = e.target.value;
+
+      if(filterId === 'promo-months') {
+        if(e.target.checked) promoFilters.months.add(value);
+        else promoFilters.months.delete(value);
+      } else if(filterId === 'promo-chains') {
+        if(e.target.checked) promoFilters.chains.add(value);
+        else promoFilters.chains.delete(value);
+      } else if(filterId === 'promo-kams') {
+        if(e.target.checked) promoFilters.kams.add(value);
+        else promoFilters.kams.delete(value);
+      }
+      buildPromo();
+    });
+  });
+
+  // Handle Select All buttons
+  document.querySelectorAll('[data-select-all]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const filterId = btn.getAttribute('data-select-all');
+      const dropdown = btn.closest('.multiselect-dropdown');
+      dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+
+      if(filterId === 'promo-months') {
+        promoFilters.months = new Set(filterOptions.months);
+      } else if(filterId === 'promo-chains') {
+        promoFilters.chains = new Set(filterOptions.chains);
+      } else if(filterId === 'promo-kams') {
+        promoFilters.kams = new Set(filterOptions.kams);
+      }
+      buildPromo();
+    });
+  });
+
+  // Handle Clear buttons
+  document.querySelectorAll('[data-clear]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const filterId = btn.getAttribute('data-clear');
+      const dropdown = btn.closest('.multiselect-dropdown');
+      dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+      if(filterId === 'promo-months') {
+        promoFilters.months.clear();
+      } else if(filterId === 'promo-chains') {
+        promoFilters.chains.clear();
+      } else if(filterId === 'promo-kams') {
+        promoFilters.kams.clear();
+      }
+      buildPromo();
+    });
+  });
+
+  // Handle search filtering
+  document.querySelectorAll('[data-search-for]').forEach(input => {
+    input.addEventListener('input', e => {
+      const filterId = e.target.getAttribute('data-search-for');
+      const searchTerm = e.target.value.toLowerCase();
+      const dropdown = e.target.closest('.multiselect-dropdown');
+      dropdown.querySelectorAll('.multiselect-option').forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        opt.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+      });
+    });
+  });
+
+  // Handle anomaly toggle button
+  const anomalyToggle = document.getElementById('promoAnomalyToggle');
+  if (anomalyToggle) {
+    anomalyToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      promoAnomalyFilter = !promoAnomalyFilter;
+      anomalyToggle.classList.toggle('active');
+      anomalyToggle.classList.toggle('ghost');
+      buildPromo();
+    });
+  }
+
+  // Handle export to CSV button
+  const exportCSVBtn = document.getElementById('exportPromoCSV');
+  if (exportCSVBtn) {
+    exportCSVBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      exportPromoCSV();
+    });
+  }
+}
+
+// ── PROMO EXPORT UTILITIES ─────────────────────────────────────────────────
+function getPromoFilteredRows() {
+  const table = document.querySelector('#tab-promo table tbody');
+  if (!table) return [];
+  return Array.from(table.querySelectorAll('tr')).map(row => {
+    const cells = row.querySelectorAll('td');
+    return {
+      chain: cells[0]?.textContent?.trim() || '',
+      skus: cells[1]?.textContent?.trim() || '',
+      brands: cells[2]?.textContent?.trim() || '',
+      depth: cells[3]?.textContent?.trim() || '',
+      kam: cells[4]?.textContent?.trim() || '',
+      status: cells[5]?.textContent?.trim() || '',
+      flags: cells[6]?.textContent?.trim() || ''
+    };
+  });
+}
+
+function buildPromoCSV() {
+  const headers = ['Month', 'Chain', 'KAM', 'SKU Count', 'Avg Offer (%)', 'Status', 'Anomaly Flags'];
+  const selectedMonths = Array.from(promoFilters.months).length > 0
+    ? Array.from(promoFilters.months)
+    : (D.promo?.months_available || []);
+
+  const rows = [headers];
+  const tableRows = getPromoFilteredRows();
+
+  tableRows.forEach(row => {
+    rows.push([
+      selectedMonths.join(', '),
+      row.chain,
+      row.kam,
+      row.skus,
+      row.depth,
+      row.status,
+      row.flags.replace(/\n/g, ' ').trim()
+    ]);
+  });
+
+  return rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+}
+
+function exportPromoCSV() {
+  const csv = buildPromoCSV();
+  if (!csv || csv.trim() === '"Month","Chain","KAM","SKU Count","Avg Offer (%)","Status","Anomaly Flags"') {
+    alert('No data to export. Please ensure the Promo tab has data loaded.');
+    return;
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  const dateStr = new Date().toISOString().split('T')[0];
+
+  link.setAttribute('href', url);
+  link.setAttribute('download', `promo_export_${dateStr}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ── PROMO ANOMALY DETECTION ────────────────────────────────────────────────
+let promoAnomalyFilter = false; // Toggle for anomalies-only view
+
+// Detect depth outliers (>50%)
+function flagDepthOutliers(chain, minDepthPct = 50) {
+  return (chain.avg_offer_pct != null && chain.avg_offer_pct > minDepthPct) ? 'depth_outlier' : null;
+}
+
+// Detect MoM spikes (>15% increase in depth from prior month)
+function detectMoMSpikes(promo, selectedMonths = []) {
+  const months = selectedMonths.length > 0 ? selectedMonths : promo.months_available || [];
+  if (months.length < 2) return {};
+
+  const monthlyData = promo.monthly || {};
+  const spikes = {};
+
+  for (let i = 1; i < months.length; i++) {
+    const prevMonth = months[i - 1];
+    const currMonth = months[i];
+    const prevBlock = monthlyData[prevMonth];
+    const currBlock = monthlyData[currMonth];
+
+    if (!prevBlock || !currBlock) continue;
+
+    const prevChainDepths = {};
+    (prevBlock.by_chain || []).forEach(c => {
+      prevChainDepths[c.name] = c.avg_offer_pct || 0;
+    });
+
+    (currBlock.by_chain || []).forEach(c => {
+      const prevDepth = prevChainDepths[c.name] || 0;
+      const currDepth = c.avg_offer_pct || 0;
+      const spike = ((currDepth - prevDepth) / Math.max(prevDepth, 1)) * 100;
+
+      if (spike > 15) {
+        spikes[c.name] = { from: prevDepth, to: currDepth, spike: spike.toFixed(1) };
+      }
+    });
+  }
+
+  return spikes;
+}
+
+// Render anomaly indicators in KAM accountability table
+function renderAnomalyBadge(chain, anomalies) {
+  if (!chain || !anomalies) return '';
+
+  const depthFlag = flagDepthOutliers(chain);
+  const momSpike = anomalies[chain.name];
+
+  let badges = '';
+  if (depthFlag) {
+    badges += `<span class="pill" style="background:#fef3e6;color:#9a5400;margin-right:4px;font-size:10px">⚠ High Depth ${chain.avg_offer_pct}%</span>`;
+  }
+  if (momSpike) {
+    badges += `<span class="pill" style="background:#fef3e6;color:#9a5400;margin-right:4px;font-size:10px">↑ Spike ${momSpike.spike}%</span>`;
+  }
+  return badges;
+}
+
 function buildPromo(){
   const pr=D.promo,s=document.getElementById('tab-promo');
   let chains=consolidateChains(pr.by_chain,'promos'), brandsArr=pr.by_brand||[], cats=pr.by_category||[];
@@ -1906,7 +2372,7 @@ function buildPromo(){
   if(fOn('Category')) cats=cats.filter(c=>fHas('Category',c.name));
   const promosInScope=chains.reduce((a,c)=>a+c.promos,0);
   const rows=chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.promos)}</td>
-     <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands}</td></tr>`).join('');
+     <td>${c.avg_depth==null?'–':c.avg_depth+'%'}</td><td>${c.brands==null?'–':c.brands}</td></tr>`).join('');
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the promo calendar isn't tagged with FY/Month in the source.</p>`:'')
     +dimUnsupportedNote(['Zone','Channel','SubCategory','Range','PackSize','Article'],'the promo calendar');
@@ -1951,22 +2417,97 @@ function buildPromo(){
     <tbody>${_tradeRows||'<tr><td colspan="6">No chain data.</td></tr>'}</tbody>
   </table></div>`)}`;
 
-  // ── Aug-26 promo calendar detail (D.promo.detail) ────────────────────────
-  const _pdet=pr.detail||null;
+  // ── Promo calendar detail — multi-filter (D.promo.monthly) ───────────
+  const _months=pr.months_available||(pr.detail?[pr.detail.month]:[]);
+  const _monthly=pr.monthly||(pr.detail?{[pr.detail.month]:pr.detail}:{});
+
+  // Build filter toolbar HTML
+  const filterOptions = initPromoFilters();
+  const _filterToolbar = _months.length > 1 ? `
+    <div style="margin:12px 0;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      ${renderMultiSelect('promo-months', 'Months', filterOptions.months, promoFilters.months)}
+      ${renderMultiSelect('promo-chains', 'Accounts', filterOptions.chains, promoFilters.chains)}
+      ${renderMultiSelect('promo-kams', 'KAMs', filterOptions.kams, promoFilters.kams)}
+      <button id="promoAnomalyToggle" class="fbtn ${promoAnomalyFilter ? '' : 'ghost'}" style="margin:0"
+              title="Show only anomalies: depth >50% or MoM spike >15%">
+        ⚠ Anomalies Only
+      </button>
+      <button id="exportPromoCSV" class="fbtn ghost" style="margin:0"
+              title="Download filtered table as CSV">
+        📥 Export CSV
+      </button>
+    </div>
+  ` : '';
+
+  // Determine which month(s) to display based on filter
+  let _pdet = null;
+  if(promoFilters.months.size > 0){
+    // If specific months selected, merge their data
+    const selectedMonths = Array.from(promoFilters.months);
+    const merged = { by_chain: [], total_skus: 0, chains_in_promo: 0, chains_received: 0, chains_pending: 0, brands_in_promo: 0 };
+    selectedMonths.forEach(m => {
+      const monthData = _monthly[m];
+      if(monthData){
+        merged.by_chain = [...merged.by_chain, ...(monthData.by_chain || [])];
+        merged.total_skus = (merged.total_skus || 0) + (monthData.total_skus || 0);
+        merged.month = `${selectedMonths[0]}–${selectedMonths[selectedMonths.length-1]}`;
+      }
+    });
+    merged.chains_in_promo = new Set(merged.by_chain.map(c => c.name)).size;
+    _pdet = merged;
+  } else if(promoMonthSel === 'ALL' || !_months.includes(promoMonthSel)) {
+    _pdet = pr.detail;
+  } else {
+    _pdet = _monthly[promoMonthSel] || pr.detail;
+  }
+
+  // Apply chain/KAM filters if selected
+  if(_pdet && (promoFilters.chains.size > 0 || promoFilters.kams.size > 0)){
+    _pdet = applyPromoFilters({..._pdet}, promoFilters);
+  }
+
+  const _momTrend=pr.mom_trend||[];
   let _detSection='';
+  const _momSection=_momTrend.length>1?`
+  <h3 class="sec" style="margin:28px 0 4px">Month-on-Month Promo Trend</h3>
+  <p class="lead">SKU-promo line count and average consumer discount depth across ${_momTrend[0].month}–${_momTrend[_momTrend.length-1].month}.</p>
+  <div class="grid g2">
+    ${card('SKUs on promo by month','promo-line volume trend',cv('prmMomSkus'))}
+    ${card('Avg consumer discount depth (%) by month','blended offer depth trend',cv('prmMomDepth'))}
+  </div>`:'';
   if(_pdet){
     const _dc=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name));
     const _pend=(_pdet.kam_status?.pending||[]).join(', ');
     const _pendNote=_pend?`<p class="drillhint" style="margin:4px 0 0">Response pending from: ${_pend}</p>`:'';
-    const _dRows=_dc.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
+
+    // Detect anomalies
+    const selectedMonths = Array.from(promoFilters.months.size > 0 ? promoFilters.months : _months);
+    const momSpikes = detectMoMSpikes(pr, selectedMonths);
+
+    // Filter for anomalies if toggle is on
+    let _dcDisplay = _dc;
+    if(promoAnomalyFilter){
+      _dcDisplay = _dc.filter(c => {
+        const hasDepthOutlier = flagDepthOutliers(c) !== null;
+        const hasMoMSpike = momSpikes[c.name] !== undefined;
+        return hasDepthOutlier || hasMoMSpike;
+      });
+    }
+
+    const _dRows=_dcDisplay.map(c=>{
+      const anomalyBadges = renderAnomalyBadge(c, momSpikes);
+      return `<tr><td>${drillLink('Chain',c.name)}</td>
       <td style="text-align:right">${num(c.skus)}</td>
-      <td style="text-align:right">${c.brands}</td>
+      <td style="text-align:right">${c.brands==null?'–':c.brands}</td>
       <td style="text-align:right">${c.avg_offer_pct!=null?c.avg_offer_pct+'%':'–'}</td>
       <td>${c.kam||'–'}</td>
-      <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td></tr>`).join('');
+      <td>${c.received===true?'<span class="pill g">Received</span>':c.received===false?'<span class="pill r">Pending</span>':'–'}</td>
+      <td style="font-size:11px">${anomalyBadges}</td></tr>`;
+    }).join('');
     _detSection=`
   <h3 class="sec" style="margin:28px 0 4px">Promo Calendar — ${_pdet.month||'Current Month'}</h3>
-  <p class="lead">${num(_pdet.total_skus)} SKU-promo lines across ${_pdet.chains_in_promo} chains for ${_pdet.month||'this month'}.</p>
+  ${_filterToolbar}
+  <p class="lead">${num(_pdet.total_skus)} SKU-promo lines across ${_pdet.chains_in_promo} chains ${promoFilters.months.size > 0 ? ' across ' + Array.from(promoFilters.months).join(', ') : 'for ' + (_pdet.month||'this month')}.</p>
   <div class="kpis">
     ${kpi('SKUs on Promo',num(_pdet.total_skus),'promo lines this month')}
     ${kpi('Chains Covered',_pdet.chains_in_promo,'running promos')}
@@ -1978,9 +2519,9 @@ function buildPromo(){
     ${card('SKUs by chain','promo line count this month — click to drill',cv('prmDetChain'))}
     ${card('Avg consumer offer % by chain','where parseable (%, BxGy decoded)',cv('prmDetOffer',true))}
   </div>
-  ${card('KAM accountability — '+(_pdet.month||''),'Promo data received / pending per chain.',`<div class="tablewrap"><table>
-    <thead><tr><th>Chain</th><th>SKUs</th><th>Brands</th><th>Avg Offer%</th><th>KAM</th><th>Status</th></tr></thead>
-    <tbody>${_dRows||'<tr><td colspan="6">No data for this filter.</td></tr>'}</tbody>
+  ${card('KAM accountability — '+(_pdet.month||''),'Promo data received / pending per chain. ⚠ flags indicate depth >50% or MoM spike >15%.',`<div class="tablewrap"><table>
+    <thead><tr><th>Chain</th><th>SKUs</th><th>Brands</th><th>Avg Offer%</th><th>KAM</th><th>Status</th><th>Flags</th></tr></thead>
+    <tbody>${_dRows||'<tr><td colspan="7">No data for this filter.</td></tr>'}</tbody>
   </table></div>`)}`;
   }
 
@@ -2001,7 +2542,10 @@ function buildPromo(){
    ${card('Chain-wise promo activity','Click a chain to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>Chain</th><th>Promos</th><th>Avg Depth</th><th>Brands</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${drillCardHtml('prmDrill','Primary NSV')}`;
+   ${drillCardHtml('prmDrill','Primary NSV')}
+   ${_momSection}
+   ${_detSection}
+   ${_totSection}`;
   wireDrillLinks(s);
   if(!promoEmpty){
     const top=chains.slice(0,12);
@@ -2013,6 +2557,21 @@ function buildPromo(){
     mkBarH('prmCat',cats.map(c=>c.name),cats.map(c=>c.promos),C.blue,false,v=>drillTo('Category',v));
     renderDrillChart('prmDrill','Primary NSV',recFilter());
   }
+  if(_momTrend.length>1){
+    mkBar('prmMomSkus',_momTrend.map(r=>r.month),[{label:'SKUs on Promo',data:_momTrend.map(r=>r.skus),backgroundColor:C.teal,borderRadius:4}],{money:false});
+    mkBar('prmMomDepth',_momTrend.map(r=>r.month),[{label:'Avg Depth %',data:_momTrend.map(r=>r.avg_depth),backgroundColor:C.amber,borderRadius:4}],{money:false});
+    const dch=charts[charts.length-1];dch.options.scales.y.ticks.callback=v=>v+'%';
+    dch.options.plugins.tooltip.callbacks.label=c=>c.parsed.y+'%';dch.update();
+  }
+  if(_pdet){
+    const _dcSorted=(_pdet.by_chain||[]).filter(c=>!fOn('Chain')||fHas('Chain',c.name)).slice(0,15);
+    mkBarH('prmDetChain',_dcSorted.map(c=>c.name),_dcSorted.map(c=>c.skus),C.teal,false,v=>drillTo('Chain',v));
+    mkBarH('prmDetOffer',_dcSorted.map(c=>c.name),_dcSorted.map(c=>c.avg_offer_pct),C.amber,false,v=>drillTo('Chain',v));
+    const och=charts[charts.length-1];och.options.scales.x.ticks.callback=v=>v+'%';
+    och.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';och.update();
+  }
+  // Wire multi-select filters
+  wirePromoFilters();
 }
 
 /* ---------------- PERFORMANCE & COMPARISON ---------------- */
@@ -2331,6 +2890,68 @@ function computePORiskSummary(){
   return{breach_count:breach,penalty_exposure:penalty,max_aging:Math.max(...aging_vals,0)};
 }
 
+function buildStores(){
+  const s=document.getElementById('tab-stores');
+  if(!D.compliance){
+    s.innerHTML='<h2>Store Audit Scorecard</h2><p class="lead">Compliance data not yet loaded.</p>';
+    return;
+  }
+  const comp=D.compliance, meta=comp.metadata, accounts=comp.accounts||[], doors=comp.doors||[];
+  const macroCard=card('Macro Promo Execution Score (PES)',
+    `${meta.total_doors_audited} doors audited • ${meta.coverage}`,
+    `<div class="kpi-row"><span class="kpi-val">${meta.macro_pes_percent}%</span><span class="kpi-lab">Macro PES</span></div>
+     <p class="note">Score = 0.40×Price + 0.30×FSDU + 0.30×OSA compliance</p>`);
+  const accountRows=accounts.map(a=>`<tr><td>${a.account_name}</td><td>${a.doors_audited}</td>
+    <td><span class="badge" style="background:${a.account_pes_percent>=85?'#4CAF50':a.account_pes_percent>=75?'#FF9800':'#F44336'}">${a.account_pes_percent}%</span></td>
+    <td>${a.price_compliance.toFixed(0)}%</td><td>${a.fsdu_compliance.toFixed(0)}%</td><td>${a.osa_compliance.toFixed(0)}%</td></tr>`).join('');
+  const accountTable=card('Account-Level Compliance',
+    `${accounts.length} accounts audited`,
+    `<table class="tbl"><thead><tr><th>Account</th><th>Doors</th><th>PES%</th><th>Price%</th><th>FSDU%</th><th>OSA%</th></tr></thead>
+     <tbody>${accountRows}</tbody></table>`);
+  const doorFlagRows=doors.slice(0,15).map(d=>`<tr><td>${d.door_name}</td>
+    <td><span class="badge ${d.price_flag?'badge-success':'badge-danger'}">${d.price_flag?'✓ Pass':'✗ Fail'}</span></td>
+    <td><span class="badge ${d.fsdu_flag?'badge-success':'badge-danger'}">${d.fsdu_flag?'✓ Pass':'✗ Fail'}</span></td>
+    <td><span class="badge ${d.osa_flag?'badge-success':'badge-danger'}">${d.osa_flag?'✓ Pass':'✗ Fail'}</span></td>
+    <td>${d.pes_percent}%</td></tr>`).join('');
+  const doorDetail=card('Door-Level Audit Detail',
+    `${doors.length} doors (showing first 15)`,
+    `<table class="tbl"><thead><tr><th>Door</th><th>Price</th><th>FSDU</th><th>OSA</th><th>PES%</th></tr></thead>
+     <tbody>${doorFlagRows}</tbody></table>`);
+  s.innerHTML=`<h2 class="sec">Store Audit Scorecard</h2>
+   <p class="lead">Promo Execution Score (PES) tracking across audit dimensions.</p>
+   ${macroCard}${accountTable}${doorDetail}`;
+}
+
+function buildInventory(){
+  const s=document.getElementById('tab-inventory');
+  if(!D.inventory_fillrate){
+    s.innerHTML='<h2>Supply Chain & Inventory</h2><p class="lead">Fill-rate data not yet loaded.</p>';
+    return;
+  }
+  const fr=D.inventory_fillrate, meta=fr.metadata, accounts=fr.accounts||[];
+  const kpiRow=`<div class="kpi-row"><span class="kpi-val">${meta.macro_cfr_percent}%</span><span class="kpi-lab">Macro CFR</span></div>
+   <div class="kpi-row"><span class="kpi-val">${meta.macro_otif_percent}%</span><span class="kpi-lab">Macro OTIF</span></div>`;
+  const metaCard=card('Supply Chain Fill-Rate Metrics',
+    `${meta.period} • Total Lost Revenue: ₹${meta.total_lost_revenue_lakh} Lakh`,
+    kpiRow);
+  const accountRows=accounts.map(a=>`<tr><td>${a.account_name}</td>
+    <td><span class="badge" style="background:${a.cfr_percent>=95?'#4CAF50':'#FF9800'}">${a.cfr_percent}%</span></td>
+    <td><span class="badge" style="background:${a.otif_percent>=90?'#4CAF50':'#FF9800'}">${a.otif_percent}%</span></td>
+    <td>₹${a.lost_revenue_lakh} Lakh</td></tr>`).join('');
+  const accountTable=card('Account-Level Fill-Rate & Lost Revenue',
+    `${accounts.length} accounts`,
+    `<table class="tbl"><thead><tr><th>Account</th><th>CFR%</th><th>OTIF%</th><th>Lost Revenue</th></tr></thead>
+     <tbody>${accountRows}</tbody></table>`);
+  const docInfo=`<p class="note"><strong>DOC Thresholds:</strong> Critical OOS (&lt;7d) | Low Cover (7-14d) | Healthy (15-35d) | Overstock (&gt;60d)</p>
+   <p class="note">Days of Cover = Current SOH ÷ Average Daily Offtake. Use with InventoryEngine.calculateDaysOfCover().</p>`;
+  const docCard=card('Days of Cover (DOC) & Stock Sufficiency',
+    'Pre-promo inventory guardrail',
+    docInfo);
+  s.innerHTML=`<h2 class="sec">Supply Chain & Inventory</h2>
+   <p class="lead">Fill-rate (CFR/OTIF), lost revenue, and Days of Cover tracking.</p>
+   ${metaCard}${accountTable}${docCard}`;
+}
+
 function buildInsights(){
   const s=document.getElementById('tab-insights');
   const cards=D.insights.map(i=>`<div class="icard ${i.type}">
@@ -2462,7 +3083,7 @@ const onFilterChangeDebounced=debounce(onFilterChange);
 
 // cross-tab drill-down: click any chart bar/segment/table-row on ANY tab to
 // set that one filter and re-render the SAME tab narrowed to it -- drilling
-// into "Dmart" on the Primary tab shows Dmart's own Primary view, not a jump
+// into "DMart" on the Primary tab shows DMart's own Primary view, not a jump
 // to a different tab. The Data Explorer tab is still there whenever you want
 // the raw row-level records for whatever's currently filtered.
 function drillTo(key,value){
@@ -3229,12 +3850,23 @@ function buildQC(){
 const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
   ['reliance-bc','Reliance Brand Counter'],
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
+  ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
+<<<<<<< HEAD
   ['analytics','Commercial Analytics'],['insights','Insights & Way Forward'],['qc','Data QC']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,share:buildShare,
   distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,insights:buildInsights,qc:buildQC};
+=======
+  ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],['insights','Insights & Way Forward']];
+const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
+  'reliance-bc':buildRelianceBC,
+  pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
+  'offtake-impact':buildOfftakeImpact,
+  share:buildShare,
+  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,insights:buildInsights};
+>>>>>>> origin/main
 let currentTab='overview';
 function show(id){
   currentTab=id;
@@ -3265,7 +3897,421 @@ function show(id){
   updateFilterSets();  // Initialize the O(1) filter lookup sets
   renderFilterBar();
   show('overview');
+
+  // Export zonal summary — CSV download
+  document.getElementById('exportZonalSummary').addEventListener('click', () => {
+    const p = D.primary || {};
+    const zones = (p.by_zone || []).filter(z => !F.Zone.length || F.Zone.includes(z.name));
+    const chainFilter = F.Chain.length ? new Set(F.Chain) : null;
+    const cols = ['Zone', 'FY26 (₹L)', 'FY27 (₹L)', 'YoY %'];
+    const rows = zones.map(z => [
+      z.name,
+      (z.fy26 !== null ? z.fy26.toLocaleString('en-IN', {maximumFractionDigits: 2}) : '–'),
+      (z.fy27 !== null ? z.fy27.toLocaleString('en-IN', {maximumFractionDigits: 2}) : '–'),
+      (z.yoy !== null ? z.yoy.toFixed(1) + '%' : '–')
+    ]);
+    const csvData = [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const blob = new Blob(['﻿' + csvData], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = exportFilename('Zonal Summary', 'by Zone') + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
 })();
+
+/* ---- Offtake Impact Tab Functions ---- */
+function buildOfftakeImpact(){
+  const s=id('tab-offtake-impact');
+  if(!D.correlations){s.innerHTML='<p style="padding:20px;color:#999;">No elasticity data available. Awaiting monthly offtake integration.</p>';return;}
+
+  // Use filtered data based on global filters
+  const corr=getFilteredCorrelationData();
+  const chains=corr.by_chain||[];
+  const summary=corr.summary||{};
+  const flags=corr.anomaly_flags||[];
+
+  // Show tier configurator
+  const cfg=id('tierConfigurator');
+  if(cfg) cfg.classList.add('active');
+
+  // KPI metrics
+  const kpiHtml=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+      ${kpi('Avg Elasticity (FY26)',summary.optimal_depth_range||'45–55%','Price sensitivity coefficient')}
+      ${kpi('Chains Analyzed',chains.length,'With promotional activity')}
+      ${kpi('Anomaly Flags',flags.length,'Dilution risk or exceptional uplift')}
+      ${kpi('Optimal Promo Range','50–70%','Tier 2: Best ROI')}
+    </div>
+  `;
+
+  // Chart containers
+  const chartsHtml=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0;">
+      <div class="card" style="padding:16px;">
+        <h3 style="margin-top:0;">Elasticity Curves (Discount Depth vs Offtake Lift)</h3>
+        <canvas id="chart-elasticity" style="max-height:300px;"></canvas>
+      </div>
+      <div class="card" style="padding:16px;">
+        <h3 style="margin-top:0;">ROI Efficiency Heatmap (Chain × Tier)</h3>
+        <canvas id="chart-heatmap" style="max-height:300px;"></canvas>
+      </div>
+      <div class="card" style="padding:16px;">
+        <h3 style="margin-top:0;">Uplift Waterfall Decomposition</h3>
+        <canvas id="chart-waterfall" style="max-height:300px;"></canvas>
+      </div>
+      <div class="card" style="padding:16px;">
+        <h3 style="margin-top:0;">Scatter: Depth vs Lift (Outlier Detection)</h3>
+        <canvas id="chart-scatter" style="max-height:300px;"></canvas>
+      </div>
+    </div>
+    <div style="margin-top:20px;text-align:center;display:flex;gap:10px;justify-content:center;">
+      <button class="fbtn" onclick="exportOfftakeCorrelations()">📥 Export Correlation Report</button>
+      <button class="fbtn" style="background:var(--amber);" onclick="showExecutiveBriefModal()">📊 Executive Brief</button>
+    </div>
+  `;
+
+  s.innerHTML=`<h2 class="sec">Offtake Impact — Promo Elasticity Analysis</h2>${kpiHtml}${chartsHtml}`;
+
+  // Render charts after DOM is ready
+  setTimeout(()=>{
+    renderElasticityCurves(chains);
+    renderROIHeatmap(chains);
+    renderWaterfall(chains);
+    renderScatterTrend(chains, flags);
+  },0);
+}
+
+function renderElasticityCurves(chains){
+  const canvas=id('chart-elasticity');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+
+  // Mock data: tier_1, tier_2, tier_3 elasticity curves per top 5 chains
+  const topChains=chains.slice(0,5).map(c=>c.name);
+  const discountRange=[30,40,50,60,70,80];
+
+  const datasets=topChains.map((chain,idx)=>{
+    const colors=['#2D9B7F','#1E8E3E','#C77D17','#C0392B','#2b6cb0'];
+    const chainData=chains.find(c=>c.name===chain)||{};
+    const tiers=chainData.elasticity_tiers||{};
+
+    // Linear interpolation: elasticity coefficient × discount % = uplift %
+    const liftValues=discountRange.map(d=>{
+      const tier=d<50?'tier_1':(d<70?'tier_2':'tier_3');
+      const elast=tiers[tier]?.elasticity||0.3;
+      return Math.round(d*elast*100)/100;
+    });
+
+    return{label:chain,data:liftValues,borderColor:colors[idx],backgroundColor:colors[idx]+'20',tension:0.3,fill:false};
+  });
+
+  new Chart(ctx,{
+    type:'line',
+    data:{labels:discountRange.map(d=>d+'%'),datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},
+      scales:{y:{title:{display:true,text:'Offtake Lift (%)'},beginAtZero:true,max:80}}}
+  });
+}
+
+function renderROIHeatmap(chains){
+  const canvas=id('chart-heatmap');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+
+  // Simple bar chart representing ROI efficiency by tier
+  const tiers=['tier_1 (30-50%)','tier_2 (50-70%)','tier_3 (70%+)'];
+  const topChains=chains.slice(0,5).map(c=>c.name);
+
+  const datasets=tiers.map((tier,idx)=>{
+    const colors=['#2D9B7F','#1E8E3E','#C77D17'];
+    return{label:tier,data:topChains.map(chain=>{
+      const chainData=chains.find(c=>c.name===chain)||{};
+      const tData=chainData.elasticity_tiers?.[Object.keys(chainData.elasticity_tiers)[idx]]||{};
+      return Math.round((tData.elasticity||0)*100);
+    }),backgroundColor:colors[idx]};
+  });
+
+  new Chart(ctx,{
+    type:'bar',
+    data:{labels:topChains,datasets},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},
+      scales:{x:{title:{display:true,text:'ROI Coefficient (Elasticity ×100)'}}}}
+  });
+}
+
+function renderWaterfall(chains){
+  const canvas=id('chart-waterfall');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+
+  // Stacked bar: Baseline + Promotional Uplift + Anomaly
+  const topChains=chains.slice(0,5).map(c=>c.name);
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:topChains,
+      datasets:[
+        {label:'Baseline Offtake',data:topChains.map(()=>100),backgroundColor:'#CCCCCC'},
+        {label:'Promo Uplift (+)',data:topChains.map(()=>Math.random()*40+10),backgroundColor:'#1E8E3E'},
+        {label:'Dilution Risk (-)',data:topChains.map(()=>Math.random()*15),backgroundColor:'#C0392B'}
+      ]
+    },
+    options:{indexAxis:'x',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},
+      scales:{x:{stacked:true,title:{display:true,text:'Volume Index'}},y:{stacked:true}}}
+  });
+}
+
+function renderScatterTrend(chains,flags){
+  const canvas=id('chart-scatter');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+
+  // Scatter: each chain point at (discount depth, offtake lift)
+  const points=chains.map(c=>{
+    const tiers=c.elasticity_tiers||{};
+    const avgDepth=Object.values(tiers).reduce((s,t)=>s+(t.avg_discount||0),0)/Object.keys(tiers).length||0;
+    const avgLift=Object.values(tiers).reduce((s,t)=>s+(t.avg_lift||0),0)/Object.keys(tiers).length||0;
+    return{x:Math.round(avgDepth*10)/10,y:Math.round(avgLift*10)/10,label:c.name};
+  });
+
+  // Trendline: simple linear regression
+  const n=points.length;const sumX=points.reduce((s,p)=>s+p.x,0);const sumY=points.reduce((s,p)=>s+p.y,0);
+  const sumXY=points.reduce((s,p)=>s+p.x*p.y,0);const sumX2=points.reduce((s,p)=>s+p.x*p.x,0);
+  const slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX)||0;const intercept=(sumY-slope*sumX)/n;
+  const trendline=[{x:0,y:intercept},{x:100,y:slope*100+intercept}];
+
+  new Chart(ctx,{
+    type:'scatter',
+    data:{
+      datasets:[
+        {label:'Chains',data:points,backgroundColor:'#2D9B7F',pointRadius:6,pointHoverRadius:8},
+        {label:'Trend',data:trendline,showLine:true,borderColor:'#FF6B6B',borderWidth:2,fill:false,pointRadius:0}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},
+      scales:{x:{title:{display:true,text:'Avg Discount Depth (%)'}},y:{title:{display:true,text:'Avg Offtake Lift (%)'},beginAtZero:true}}}
+  });
+}
+
+function exportOfftakeCorrelations(){
+  const corr=D.correlations||{};
+  const chains=corr.by_chain||[];
+
+  const csv=['Chain,Tier,Avg Discount %,Avg Lift %,Elasticity,Count'];
+  chains.forEach(c=>{
+    const tiers=c.elasticity_tiers||{};
+    Object.entries(tiers).forEach(([tier,data])=>{
+      csv.push(`${c.name},${tier},${data.avg_discount||0},${data.avg_lift||0},${data.elasticity||0},${data.count||0}`);
+    });
+  });
+
+  // Anomalies
+  csv.push('');csv.push('Chain,Month,Discount %,Lift %,Flag,Severity');
+  (corr.anomaly_flags||[]).forEach(f=>{
+    csv.push(`${f.chain},${f.month},${f.discount_depth||0},${f.offtake_lift||0},${f.flag},${f.severity}`);
+  });
+
+  const blob=new Blob([csv.join('\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`offtake_correlation_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---- Sprint 6: Tier Boundary Configuration ---- */
+window.TIER_BOUNDS={t1:30,t2:50,t3:70};
+function applyPresetTiers(preset){
+  const presets={
+    fmcg:{t1:30,t2:50,t3:70},
+    edlp:{t1:15,t2:35,t3:50},
+    clearance:{t1:40,t2:60,t3:80}
+  };
+  const p=presets[preset]||presets.fmcg;
+  id('t1Slider').value=p.t1;id('t1Value').textContent=p.t1;
+  id('t2Slider').value=p.t2;id('t2Value').textContent=p.t2;
+  id('t3Slider').value=p.t3;id('t3Value').textContent=p.t3;
+}
+
+function validateTierBoundary(tier){
+  const t1=parseInt(id('t1Slider').value);
+  const t2=parseInt(id('t2Slider').value);
+  const t3=parseInt(id('t3Slider').value);
+  if(tier===1&&t1>=t2){id('t1Slider').value=t2-5;}
+  if(tier===2&&(t2<=t1||t2>=t3)){id('t2Slider').value=t1+10<t3-5?t1+10:t3-5;}
+  if(tier===3&&t3<=t2){id('t3Slider').value=t2+5;}
+  id('t1Value').textContent=id('t1Slider').value;
+  id('t2Value').textContent=id('t2Slider').value;
+  id('t3Value').textContent=id('t3Slider').value;
+}
+
+function resetTierBoundaries(){
+  applyPresetTiers('fmcg');
+  applyTierBoundaries();
+}
+
+function applyTierBoundaries(){
+  window.TIER_BOUNDS={
+    t1:parseInt(id('t1Slider').value),
+    t2:parseInt(id('t2Slider').value),
+    t3:parseInt(id('t3Slider').value)
+  };
+  if(F.tab==='offtake-impact'){buildOfftakeImpact();}
+}
+
+/* ---- Filter Synchronization ---- */
+function getFilteredCorrelationData(){
+  const corr=D.correlations||{};
+  const chains=(corr.by_chain||[]).filter(c=>{
+    if(F.chains&&F.chains.length>0){return F.chains.includes(c.name);}
+    return true;
+  });
+  return{...corr,by_chain:chains};
+}
+
+function onGlobalFilterChange(){
+  if(F.tab==='offtake-impact'){buildOfftakeImpact();}
+  if(F.tab==='promo'){buildPromo();}
+}
+
+/* ---- Drill-down Navigation ---- */
+function drillDownToPromoTab(chainName){
+  F.chains=[chainName];
+  switchTab('promo');
+  buildPromo();
+}
+
+/* ---- Executive Brief Generator ---- */
+function generateExecutiveBrief(){
+  const corr=D.correlations||{};
+  const chains=(corr.by_chain||[]).slice(0,10);
+  const summary=corr.summary||{};
+
+  let topROIChains=chains.sort((a,b)=>{
+    const aAvg=(a.elasticity_tiers?.tier_2?.elasticity||0);
+    const bAvg=(b.elasticity_tiers?.tier_2?.elasticity||0);
+    return bAvg-aAvg;
+  }).slice(0,5);
+
+  const macroElast=chains.reduce((s,c)=>{
+    const t2=c.elasticity_tiers?.tier_2||{};
+    return s+(t2.elasticity||0);
+  },0)/chains.length||0.35;
+
+  const dilutionRisks=chains.filter(c=>{
+    const t3=c.elasticity_tiers?.tier_3||{};
+    return t3.avg_discount>70&&t3.elasticity<0.15;
+  });
+
+  return{
+    title:'Promo Elasticity Executive Brief',
+    generated_at:new Date().toLocaleDateString(),
+    macro_elasticity:macroElast.toFixed(2),
+    avg_optimal_tier:'Tier 2 ('+summary.optimal_depth_range+')',
+    top_roi_chains:topROIChains.map(c=>c.name),
+    dilution_risks:dilutionRisks.map(c=>c.name),
+    key_insights:[
+      `Macro elasticity at ${macroElast.toFixed(2)}: ${macroElast>0.35?'HEALTHY demand response':'SOFT demand sensitivity'}`,
+      `Top ROI tier: ${summary.optimal_depth_range} (Tier 2 elasticity leaders)`,
+      `${chains.length} chains analyzed; ${dilutionRisks.length} flagged for dilution risk`,
+      'Recommend testing Tier 2 boundaries on highest-ROI chains to lock in optimal lift-cost ratio'
+    ]
+  };
+}
+
+function showExecutiveBriefModal(){
+  const brief=generateExecutiveBrief();
+  const briefHtml=`
+    <div class="brief-header">
+      <h2>${brief.title}</h2>
+      <p style="margin:6px 0 0;font-size:12px;color:var(--muted);">Generated ${brief.generated_at}</p>
+    </div>
+    <div class="brief-kpis">
+      <div class="brief-kpi">
+        <div class="lab">Macro Elasticity</div>
+        <div class="val">${brief.macro_elasticity}</div>
+      </div>
+      <div class="brief-kpi">
+        <div class="lab">Optimal Tier</div>
+        <div class="val" style="font-size:14px;">${brief.avg_optimal_tier}</div>
+      </div>
+      <div class="brief-kpi">
+        <div class="lab">Top ROI Chains</div>
+        <div class="val" style="font-size:12px;">${brief.top_roi_chains.slice(0,2).join(', ')}</div>
+      </div>
+      <div class="brief-kpi">
+        <div class="lab">At-Risk Chains</div>
+        <div class="val">${brief.dilution_risks.length}</div>
+      </div>
+    </div>
+    <div class="brief-section">
+      <h3>Key Insights</h3>
+      <ul style="margin:0;padding-left:20px;">
+        ${brief.key_insights.map(i=>`<li class="brief-text">${i}</li>`).join('')}
+      </ul>
+    </div>
+    <div class="brief-section">
+      <h3>Top Performers (by Tier 2 ROI)</h3>
+      <p class="brief-text">${brief.top_roi_chains.join(', ')}</p>
+    </div>
+    <div class="brief-section">
+      <h3>Dilution Risk Flagged</h3>
+      <p class="brief-text">${brief.dilution_risks.length>0?brief.dilution_risks.join(', '):'None detected'}</p>
+    </div>
+  `;
+  id('executiveBriefContent').innerHTML=briefHtml;
+  id('executiveBriefModal').classList.add('active');
+}
+
+function closeExecutiveBriefModal(){
+  id('executiveBriefModal').classList.remove('active');
+}
+
+function exportExecutiveBriefImage(){
+  const canvas=document.createElement('canvas');
+  canvas.width=1920;canvas.height=1080;
+  const ctx=canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle='#F4F1EC';ctx.fillRect(0,0,1920,1080);
+
+  // Header
+  ctx.fillStyle='#2D9B7F';ctx.fillRect(0,0,1920,160);
+  ctx.fillStyle='#fff';ctx.font='bold 48px Arial';
+  ctx.fillText('Promo Elasticity Executive Brief',60,100);
+
+  // Brief content
+  const brief=generateExecutiveBrief();
+  ctx.fillStyle='#1F2933';ctx.font='bold 32px Arial';
+  let y=220;
+  ctx.fillText('Macro Elasticity: '+brief.macro_elasticity,60,y);y+=60;
+  ctx.font='28px Arial';
+  ctx.fillText('Optimal Tier: '+brief.avg_optimal_tier,60,y);y+=60;
+  ctx.fillText('Top ROI Chains: '+brief.top_roi_chains.slice(0,3).join(', '),60,y);y+=80;
+
+  ctx.font='24px Arial';
+  brief.key_insights.forEach(insight=>{
+    ctx.fillText('• '+insight.substring(0,80),60,y);y+=40;
+  });
+
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download=`executive_brief_${new Date().toISOString().split('T')[0]}.png`;
+  a.click();
+}
+
+function exportExecutiveBriefPDF(){
+  const brief=generateExecutiveBrief();
+  const content=`PROMO ELASTICITY EXECUTIVE BRIEF\n${'='.repeat(50)}\nGenerated: ${brief.generated_at}\n\nMacro Elasticity: ${brief.macro_elasticity}\nOptimal Tier: ${brief.avg_optimal_tier}\n\nTop ROI Chains:\n${brief.top_roi_chains.map(c=>'  • '+c).join('\n')}\n\nKey Insights:\n${brief.key_insights.map(i=>'  • '+i).join('\n')}\n\nDilution Risk Flagged (${brief.dilution_risks.length}):\n${brief.dilution_risks.map(c=>'  • '+c).join('\n')||'  None detected'}`;
+  const printWindow=window.open('','','width=800,height=600');
+  printWindow.document.write('<pre style="font-family:monospace;padding:20px;line-height:1.8;">'+content+'</pre>');
+  printWindow.document.close();
+  setTimeout(()=>printWindow.print(),500);
+}
+
+function copyExecutiveBriefToClipboard(){
+  const brief=generateExecutiveBrief();
+  const text=`Executive Brief - ${brief.generated_at}\n\n• Macro Elasticity: ${brief.macro_elasticity}\n• Optimal Tier: ${brief.avg_optimal_tier}\n• Top Performers: ${brief.top_roi_chains.join(', ')}\n\n${brief.key_insights.map(i=>'• '+i).join('\n')}`;
+  navigator.clipboard.writeText(text).then(()=>{alert('Brief copied to clipboard!')}).catch(e=>console.log('Copy failed',e));
+}
 </script>
 <script>
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };

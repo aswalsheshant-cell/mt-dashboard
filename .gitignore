@@ -31,3 +31,8 @@ July_MT_Command_Centre_*.pptx
 tpl_cmd/
 unpacked_enriched/
 dashboard/data.js.cm2prov.bak
+
+# Playwright test artifacts
+playwright.config.js
+test_sprint6_e2e_local.js
+test-results/
