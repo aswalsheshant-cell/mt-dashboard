@@ -16,6 +16,9 @@ docs/PHASE_3_VALIDATION_*.txt
 docs/PHASE_3_SIGNOFF_*.txt
 docs/PHASE_3_RESULTS_*.json
 
+# Standby mode operational logs (daily health checks, timestamped)
+.standby-logs/
+
 # skill-suite: local backups of diverged install targets
 work/skill-suite-backups/
 
