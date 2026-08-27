@@ -1489,6 +1489,10 @@ function buildPnl(){
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
      <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).</p>
+   ${cm2D&&cm2D.provisional?`<div class="repbanner" style="border-left:4px solid #b45309;background:#fffbeb;color:#7c2d12">
+        <b>${hesc(cm2D.provisional_label||'CM2 PROVISIONAL - FORMULA APPROVAL PENDING')}</b>
+        <div style="margin-top:6px;font-weight:400">Do not publish these figures as final. Reason${(cm2D.provisional_reasons||[]).length>1?'s':''}:
+        <ul style="margin:4px 0 0 18px;padding:0">${(cm2D.provisional_reasons||[]).map(r=>\`<li>\${hesc(r)}</li>\`).join('')}</ul></div></div>`:''}
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
         Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
    :(cm2D.expense_pct_of_nsv!=null&&cm2D.expense_pct_of_nsv<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
