@@ -170,6 +170,57 @@ def run_build(mode: str, src: Path, out: Path, dry_run: bool = False) -> bool:
         return False
 
 
+def extract_data_contracts(data_js: Path, export_dir: Path, dry_run: bool = False) -> bool:
+    """
+    Phase 2: Extract normalized CSV data contracts from data.js.
+    Returns True if successful.
+    """
+    extract_script = SCRIPTS / "extract_data_contracts.py"
+    cmd = ["python", str(extract_script), "--src", str(data_js), "--out", str(export_dir)]
+
+    log("INFO", f"Extracting data contracts from {data_js.name}")
+    log("DEBUG", f"Command: {' '.join(cmd)}")
+
+    if dry_run:
+        log("INFO", "[DRY RUN] Skipping extraction")
+        return True
+
+    try:
+        run_cmd(cmd)
+        log("OK", f"Data contracts extracted to {export_dir}")
+        return True
+    except Exception as e:
+        log("ERROR", f"Data extraction failed: {e}")
+        return False
+
+
+def generate_agent_sentiments(export_dir: Path, dry_run: bool = False) -> bool:
+    """
+    Phase 3: Generate automated executive insights from CSV data contracts.
+    Returns True if successful.
+    """
+    sentiments_script = SCRIPTS / "generate_agent_sentiments.py"
+    insights_file = REPO / "insights" / "generated_insights.json"
+    insights_file.parent.mkdir(parents=True, exist_ok=True)
+
+    cmd = ["python", str(sentiments_script), "--data", str(export_dir), "--out", str(insights_file)]
+
+    log("INFO", f"Generating agent sentiments from data contracts")
+    log("DEBUG", f"Command: {' '.join(cmd)}")
+
+    if dry_run:
+        log("INFO", "[DRY RUN] Skipping sentiments generation")
+        return True
+
+    try:
+        run_cmd(cmd)
+        log("OK", f"Agent sentiments generated: {insights_file.name}")
+        return True
+    except Exception as e:
+        log("ERROR", f"Sentiments generation failed: {e}")
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Automated Power BI + Dashboard Monthly Refresh",
@@ -216,14 +267,29 @@ Examples:
     log("INFO", f"Dry run: {args.dry_run}")
 
     # ────────────────────────────────────────────────────────────────────────────
-    # Step 1: Build
+    # Step 1: Build data.js (Phase 1)
     # ────────────────────────────────────────────────────────────────────────────
     if not run_build(args.mode, args.src, args.out, dry_run=args.dry_run):
         log("ERROR", "Build pipeline failed")
         sys.exit(2)
 
     # ────────────────────────────────────────────────────────────────────────────
-    # Step 2: QC Validation
+    # Step 2: Extract Data Contracts (Phase 2)
+    # ────────────────────────────────────────────────────────────────────────────
+    export_dir = REPO / "PowerBI" / "ExportData"
+    if not extract_data_contracts(args.out, export_dir, dry_run=args.dry_run):
+        log("ERROR", "Data extraction failed")
+        sys.exit(2)
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # Step 3: Generate Agent Sentiments (Phase 3)
+    # ────────────────────────────────────────────────────────────────────────────
+    if not generate_agent_sentiments(export_dir, dry_run=args.dry_run):
+        log("ERROR", "Sentiments generation failed")
+        sys.exit(2)
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # Step 4: QC Validation Gate
     # ────────────────────────────────────────────────────────────────────────────
     if not args.no_qc:
         if not validate_qc(args.out):
@@ -234,18 +300,18 @@ Examples:
         log("WARN", "QC validation skipped (--no-qc)")
 
     # ────────────────────────────────────────────────────────────────────────────
-    # Step 3: Git Commit
+    # Step 5: Git Commit (Phase 1 output + Phase 2/3 artifacts)
     # ────────────────────────────────────────────────────────────────────────────
     if not args.no_commit:
         # Determine commit message based on mode
         mode_msgs = {
-            "full": "data: Full dashboard rebuild (all blocks)",
-            "primary-only": "data: Primary sales + P&L + Insights refresh",
-            "offtake-patch": "data: Merge new monthly offtake data",
-            "detail-only": "data: Article-level detail data refresh",
-            "forecast-only": "data: TY forecast target update",
+            "full": "data: Full dashboard rebuild (Phase 1) + contracts (Phase 2) + sentiments (Phase 3)",
+            "primary-only": "data: Primary sales + P&L + Insights (Phase 1-3)",
+            "offtake-patch": "data: Monthly offtake patch (Phase 1-3)",
+            "detail-only": "data: Article-level detail refresh (Phase 1-3)",
+            "forecast-only": "data: Forecast target update (Phase 1-3)",
         }
-        msg = mode_msgs.get(args.mode, f"data: {args.mode} refresh")
+        msg = mode_msgs.get(args.mode, f"data: {args.mode} refresh (Phase 1-3)")
         if not git_commit(msg, dry_run=args.dry_run):
             log("ERROR", "Git commit failed")
             sys.exit(3)
@@ -254,12 +320,13 @@ Examples:
         log("WARN", "Git commit skipped (--no-commit)")
 
     # ────────────────────────────────────────────────────────────────────────────
-    # Step 4: Power BI Refresh (Platform-specific)
+    # Step 6: Power BI PBIX Generation & Refresh (Phase 2.5+)
     # ────────────────────────────────────────────────────────────────────────────
     if not args.no_pbi_refresh:
-        log("INFO", "Power BI refresh trigger (Phase 1 placeholder)")
-        log("INFO", "  [TODO] Phase 2: Implement PBIX generation + refresh via COM API")
-        log("INFO", "  [TODO] Requires Windows/Mac + Power BI Desktop + Python win32com")
+        log("INFO", "Power BI PBIX generation trigger (Phase 2.5)")
+        log("INFO", "  Note: Requires Windows self-hosted runner + Power BI Desktop 2024.09+")
+        log("INFO", "  [TODO] Sep 5-8: Set up Windows runner")
+        log("INFO", "  [TODO] Sep 10-12: Enable PBIX generation + DAX validation via COM API")
 
     log("INFO", "═" * 70)
     log("OK", "Pipeline completed successfully!")
