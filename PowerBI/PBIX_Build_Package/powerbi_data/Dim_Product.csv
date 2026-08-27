@@ -1,0 +1,12 @@
+SKU_Code,SKU_Name,Brand,Category,Base_Unit_Cost,Is_Seasonal,Status
+SKU-101,Premium Tea 500g,Brand Alpha,Beverages,120.0,True,Active
+SKU-102,Classic Coffee 200g,Brand Alpha,Beverages,180.0,True,Active
+SKU-103,Instant Coffee 100g,Brand Alpha,Beverages,95.0,False,Active
+SKU-201,Dark Chocolate 100g,Brand Beta,Confectionery,65.0,True,Active
+SKU-202,Hazelnut Spread 350g,Brand Beta,Confectionery,140.0,True,Active
+SKU-203,Milk Chocolate 150g,Brand Beta,Confectionery,85.0,True,Active
+SKU-301,Organic Oats 1kg,Brand Gamma,Breakfast Foods,95.0,True,Active
+SKU-302,Cornflakes 500g,Brand Gamma,Breakfast Foods,55.0,True,Active
+SKU-303,Granola 750g,Brand Gamma,Breakfast Foods,125.0,False,Active
+SKU-401,Almond Butter 500g,Brand Delta,Nut Butters,220.0,True,Active
+SKU-402,Peanut Butter 400g,Brand Delta,Nut Butters,85.0,True,Active

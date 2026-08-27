@@ -1,0 +1,7 @@
+DateKey,Month_Year,Month_Name,Month_Num,FY_Quarter,Fiscal_Year,Is_Current_Month
+202604,Apr 2026,April,4,Q1,FY27,False
+202605,May 2026,May,5,Q1,FY27,False
+202606,Jun 2026,June,6,Q1,FY27,False
+202607,Jul 2026,July,7,Q2,FY27,False
+202608,Aug 2026,August,8,Q2,FY27,True
+202609,Sep 2026,September,9,Q2,FY27,False

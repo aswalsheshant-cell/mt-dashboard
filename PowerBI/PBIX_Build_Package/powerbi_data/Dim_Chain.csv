@@ -1,0 +1,9 @@
+Chain_ID,Chain_Code,Chain_Name,Account_Tier,Status,Region,Warehouse_Hub
+CH01,C001,DMart,Tier 1,Active,East,WH_CH_01
+CH02,C002,Reliance Retail,Tier 1,Active,South,WH_CH_01
+CH03,C003,Spencer's,Tier 2,Active,South,WH_CH_01
+CH04,C004,Nature's Basket,Tier 2,Active,North,WH_CH_01
+CH05,C005,More Retail,Tier 1,Active,North,WH_CH_01
+CH06,C006,BigBazaar,Tier 1,Active,East,WH_CH_01
+CH07,C007,Aditya Birla,Tier 1,Active,North,WH_CH_01
+CH08,C008,Walmart India,Tier 1,Active,West,WH_CH_01
