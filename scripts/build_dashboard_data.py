@@ -1913,6 +1913,51 @@ def _build_custcode_chain_lookup(df):
     result = sub.groupby("_CustCode")["_Chain"].agg(_most_common)
     return result[result.notna()].to_dict()
 
+def _cm2_provisional_state(expense_rows, formula_path=None):
+    """Is the published CM2 safe to read as final?
+
+    Two independent reasons it may not be, both derived from tracked config so
+    the banner clears itself the moment the underlying condition clears -- no
+    hardcoded FY, date or flag:
+
+      1. PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv still carries DRAFT components (Finance has not
+         signed the formula -- decision D1). Mirrors the GOV-FORMULA-DRAFT gate
+         in scripts/dataeng/governance.py; keep the two in step.
+      2. every loaded expense row is an EXAMPLE row, so the expense total -- and
+         therefore CM2 -- is illustrative, not real.
+
+    Returns a dict merged into the cm2 block. `provisional` True means the UI
+    must label every CM2 figure provisional and must not present it as final.
+    """
+    reasons, formula_status = [], "UNKNOWN"
+    path = Path(formula_path) if formula_path else (
+        Path(__file__).resolve().parent.parent / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "cm2_formula.csv")
+    if path.exists():
+        with open(path, newline="", encoding="utf-8") as fh:
+            comps = list(csv.DictReader(fh))
+        draft = [c for c in comps if (c.get("Status") or "").strip().upper() == "DRAFT"]
+        if comps:
+            formula_status = "DRAFT" if draft else "APPROVED"
+        if draft:
+            reasons.append(
+                f"CM2 formula is DRAFT ({len(draft)}/{len(comps)} components unapproved) "
+                "- Finance decision D1 pending")
+
+    example = [r for r in expense_rows
+               if "EXAMPLE ROW" in (r.get("Remarks") or "").upper()]
+    if expense_rows and len(example) == len(expense_rows):
+        reasons.append(
+            f"all {len(expense_rows)} P&L expense rows are EXAMPLE rows - the expense "
+            "total and CM2% below are illustrative, not real")
+
+    return {
+        "formula_status": formula_status,
+        "provisional": bool(reasons),
+        "provisional_label": "CM2 PROVISIONAL - FORMULA APPROVAL PENDING",
+        "provisional_reasons": reasons,
+        "example_data_only": bool(expense_rows) and len(example) == len(expense_rows),
+    }
+
 def cm2_block(df, expense_rows):
     """Chain/Brand/Category/Expense-Head CM2 rollups + monthly series, from
     the row-level article-level primary detail `df` (already carries _NSV,
@@ -2071,6 +2116,7 @@ def cm2_block(df, expense_rows):
         "by_expense_head": by_expense_head,
         "monthly": monthly,
         "has_expense_data": len(parsed) > 0,
+        **_cm2_provisional_state(expense_rows),
         "unit": "INR Lakh",
         "qc": qc,
         "methodology": (
