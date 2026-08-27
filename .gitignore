@@ -13,6 +13,9 @@ primary_article.xlsb
 # Generated data contracts (extracted from data.js) — Phase 2 automation output
 PowerBI/ExportData/
 
+# Generated agent sentiments & insights — Phase 3 automation output
+insights/
+
 # Phase 3 test output artifacts (timestamped, regenerated per run)
 docs/PHASE_3_VALIDATION_*.txt
 docs/PHASE_3_SIGNOFF_*.txt

@@ -303,6 +303,11 @@ fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
   if(d.inventory_fillrate) window.DASH.inventory_fillrate=d.inventory_fillrate;
 }).catch(()=>{});
 
+// Load generated agent sentiments & executive insights (Phase 3 output, optional)
+fetch('../insights/generated_insights.json').then(r=>r.json()).then(d=>{
+  if(d.insights) window.DASH.insights=d.insights;
+}).catch(()=>{});
+
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);
 
@@ -2894,9 +2899,57 @@ function buildInventory(){
 
 function buildInsights(){
   const s=document.getElementById('tab-insights');
-  const cards=D.insights.map(i=>`<div class="icard ${i.type}">
-     <div class="tag">${i.type==='win'?'Opportunity':i.type==='risk'?'Risk':'Watch'}</div>
-     <h4>${i.title}</h4><p>${i.text}</p></div>`).join('');
+  if(!D.insights||D.insights.length===0){s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2><p class="lead">No insights available yet.</p>`;return;}
+
+  // Detect new vs. old insight format
+  const isNewFormat=D.insights[0]&&D.insights[0].severity;
+
+  // Severity badge styling (new format: CRITICAL/WARNING/ON_TRACK/OPPORTUNITY)
+  const severityBadge=sev=>{
+    const badges={
+      'CRITICAL':['🔴','#dc2626','red',`CRITICAL`],
+      'WARNING':['🟠','#ea8c55','orange',`WARNING`],
+      'ON_TRACK':['🟢','#16a34a','green',`ON TRACK`],
+      'OPPORTUNITY':['💡','#2563eb','blue',`OPPORTUNITY`]
+    };
+    const [icon,bgColor,cls,label]=badges[sev]||['❓','#6b7280','gray','UNKNOWN'];
+    return {icon,bgColor,cls,label};
+  };
+
+  // Old format badge styling (legacy: risk/win/watch)
+  const legacyBadge=type=>{
+    const badges={
+      'risk':['⚠','#dc2626','risk','Risk'],
+      'win':['✓','#16a34a','win','Opportunity'],
+      'watch':['👁','#2563eb','watch','Watch']
+    };
+    const [icon,bgColor,cls,label]=badges[type]||['❓','#6b7280','','Unknown'];
+    return {icon,bgColor,cls,label};
+  };
+
+  const cards=D.insights.map(i=>{
+    const badge=isNewFormat?severityBadge(i.severity):legacyBadge(i.type);
+    const metricsHtml=i.metrics?`<div class="metrics" style="margin-top:8px;font-size:12px;color:#666;border-top:1px solid #eee;padding-top:8px;">
+      ${Object.entries(i.metrics).map(([k,v])=>{
+        const label=k.replace(/_/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2');
+        const val=typeof v==='number'?v.toFixed(1):v;
+        return `<div style="display:flex;justify-content:space-between;"><span>${label}</span><strong>${val}</strong></div>`;
+      }).join('')}
+    </div>`:'';
+    return `<div class="icard ${badge.cls}" style="border-left:4px solid ${badge.bgColor};">
+      <div class="tag" style="background-color:${badge.bgColor};color:white;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:bold;display:inline-block;margin-bottom:8px;">${badge.icon} ${badge.label}</div>
+      <h4 style="margin:8px 0;">${i.title}</h4>
+      <p style="margin:0;color:#333;font-size:14px;">${i.text}</p>${metricsHtml}
+    </div>`;
+  }).join('');
+
+  // Summary section
+  const summary=D.insights.find(i=>i.type==='summary'||i.severity==='SUMMARY');
+  const summaryHtml=summary?`<div style="background:#f3f4f6;padding:12px;border-radius:4px;margin-bottom:16px;font-size:13px;color:#374151;">
+    <strong>Summary:</strong> ${summary.text}
+  </div>`:'';
+
+  // Strategic actions (from data.js or Phase 3-generated)
   const wf=[
     `<b>Defend the core, grow the mid-tier:</b> protect Dmart &amp; Reliance with assured fill-rate and visibility while pushing Apollo, Nykaa and Wellness Forever to reduce top-2 concentration.`,
     `<b>Sell-in to sell-out discipline:</b> use the Primary-vs-Offtake gap as a monthly control — tighten ordering where primary &gt; offtake, accelerate refills where offtake &gt; primary.`,
@@ -2905,9 +2958,11 @@ function buildInsights(){
     `<b>Activate distribution:</b> 12,000+ active stores — lift throughput per door in under-productive chains via assortment and planogram compliance before adding new doors.`,
     `<b>Zone playbook:</b> back the fastest-growing zones (East/North offtake) with targeted JBPs while arresting any declining scaled accounts.`,
   ].map(x=>`<li>${x}</li>`).join('');
+
   s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2>
-   <p class="lead">Auto-generated from the underlying data, with leadership actions.</p>
-   <div class="ins">${cards}</div>
+   <p class="lead">${isNewFormat?'AI-generated executive sentiments from Phase 3 analysis. ':''}Auto-generated from the underlying data, with leadership actions.</p>
+   ${summaryHtml}
+   <div class="ins" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px;">${cards}</div>
    ${card('Way forward — recommended actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
 }
 
