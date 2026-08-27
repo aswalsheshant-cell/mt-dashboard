@@ -10,6 +10,8 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
+# Generated data contracts (extracted from data.js) — Phase 2 automation output
+PowerBI/ExportData/
 
 # Phase 3 test output artifacts (timestamped, regenerated per run)
 docs/PHASE_3_VALIDATION_*.txt
