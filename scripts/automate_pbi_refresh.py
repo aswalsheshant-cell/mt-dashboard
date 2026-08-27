@@ -197,13 +197,20 @@ def extract_data_contracts(data_js: Path, export_dir: Path, dry_run: bool = Fals
 def generate_agent_sentiments(export_dir: Path, dry_run: bool = False) -> bool:
     """
     Phase 3: Generate automated executive insights from CSV data contracts.
+    Uses externalized TOT% rates from Finance-approved config file.
     Returns True if successful.
     """
     sentiments_script = SCRIPTS / "generate_agent_sentiments.py"
     insights_file = REPO / "insights" / "generated_insights.json"
+    tot_config = REPO / "PowerBI" / "Reference" / "CM2_Provisional" / "config" / "tot_rates.json"
     insights_file.parent.mkdir(parents=True, exist_ok=True)
 
-    cmd = ["python", str(sentiments_script), "--data", str(export_dir), "--out", str(insights_file)]
+    cmd = [
+        "python", str(sentiments_script),
+        "--data", str(export_dir),
+        "--out", str(insights_file),
+        "--tot-config", str(tot_config)
+    ]
 
     log("INFO", f"Generating agent sentiments from data contracts")
     log("DEBUG", f"Command: {' '.join(cmd)}")

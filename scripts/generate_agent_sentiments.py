@@ -51,6 +51,43 @@ def load_csv(csv_path: Path) -> pd.DataFrame | None:
         return None
 
 
+def load_tot_config(config_path: Path) -> dict:
+    """
+    Load TOT% (Terms of Trade) configuration from JSON.
+    Returns dict with blended_tot_pct and by_chain rates.
+    Falls back to blended 50% if config missing or invalid.
+    """
+    default_config = {
+        "status": "FALLBACK",
+        "blended_tot_pct": 50.0,
+        "by_chain": {},
+        "notes": "Using default blended rate; config file not found or invalid"
+    }
+
+    if not config_path.exists():
+        log("WARN", f"TOT% config missing: {config_path}. Using default blended rate (50.0%).")
+        return default_config
+
+    try:
+        with open(config_path) as f:
+            config = json.load(f)
+
+        if config.get("status") == "DRAFT":
+            log("WARN", "TOT% config status is DRAFT — awaiting Finance approval. Using blended rate.")
+            return config
+
+        if config.get("status") != "APPROVED":
+            log("WARN", f"TOT% config status is '{config.get('status')}' — not approved. Using fallback.")
+            return default_config
+
+        log("OK", f"TOT% config loaded: status=APPROVED, blended={config.get('blended_tot_pct')}%")
+        return config
+
+    except Exception as e:
+        log("ERROR", f"Failed to parse TOT% config: {e}. Using default.")
+        return default_config
+
+
 def analyze_revenue_velocity(offtake_df: pd.DataFrame, forecast_df: pd.DataFrame | None) -> dict:
     """
     Analyze revenue growth, MoM acceleration, YoY trend, and variance to forecast.
@@ -372,6 +409,9 @@ Examples:
                     help="CSV data directory (default: PowerBI/ExportData)")
     ap.add_argument("--out", type=Path, default=Path("insights_output.json"),
                     help="Output JSON path (default: insights_output.json)")
+    ap.add_argument("--tot-config", type=Path,
+                    default=Path("PowerBI/Reference/CM2_Provisional/config/tot_rates.json"),
+                    help="TOT% config path (default: PowerBI/Reference/CM2_Provisional/config/tot_rates.json)")
     ap.add_argument("--dry-run", action="store_true",
                     help="Validate CSVs only, don't analyze")
 
@@ -382,6 +422,7 @@ Examples:
     log("INFO", "═" * 70)
     log("INFO", f"Data: {args.data}")
     log("INFO", f"Output: {args.out}")
+    log("INFO", f"TOT% config: {args.tot_config}")
 
     # Load data contracts
     log("INFO", "")
@@ -404,9 +445,16 @@ Examples:
         log("INFO", "[DRY RUN] Skipping analysis")
         sys.exit(0)
 
+    # Load TOT% configuration
+    log("INFO", "")
+    log("INFO", "Step 2: Load configuration")
+    tot_config = load_tot_config(args.tot_config)
+    tot_pct = tot_config.get("blended_tot_pct", 50.0)
+    log("OK", f"TOT% config: {tot_config.get('status')} (blended={tot_pct}%)")
+
     # Analyze insights
     log("INFO", "")
-    log("INFO", "Step 2: Analyze dimensions")
+    log("INFO", "Step 3: Analyze dimensions")
     insights = []
 
     # 1. Revenue velocity
@@ -429,7 +477,7 @@ Examples:
     profitability_insight = analyze_profitability(
         cm2_value=10000,  # Placeholder
         cm2_pct=0.25,
-        tot_pct=50.0,
+        tot_pct=tot_pct,  # From config file
         primary_nsv=18000,
         expense_pct=0.15
     )
@@ -438,7 +486,7 @@ Examples:
 
     # Write output
     log("INFO", "")
-    log("INFO", "Step 3: Write insights JSON")
+    log("INFO", "Step 4: Write insights JSON")
     output = {
         "generated_at": datetime.now().isoformat(),
         "version": "Phase 3 - Agent Sentiments Engine v1",
