@@ -63,6 +63,7 @@ def load_data_js(path: Path) -> dict:
 def extract_offtake_csv(data: dict, out_dir: Path) -> None:
     """
     Extract offtake data (zone/chain/month grain) from data['offtake'].
+    Enhanced to include pipeline health metrics (conversion, flow gap, units).
     Outputs to offtake.csv
     """
     offtake_dict = data.get('offtake', {})
@@ -72,19 +73,41 @@ def extract_offtake_csv(data: dict, out_dir: Path) -> None:
 
     rows = []
 
-    # Extract FY26/FY27 monthly data by zone
+    # Extract FY26/FY27 monthly data by zone with enhanced metrics
     for fy in ['fy26', 'fy27']:
         monthly_key = f'zone_monthly_{fy}'
         if monthly_key in offtake_dict:
             zone_monthly = offtake_dict[monthly_key]
             for zone, months_dict in zone_monthly.items():
-                for month, nsv in months_dict.items():
-                    rows.append({
-                        'Zone': zone,
-                        'Month': month,
-                        'FY': fy.upper(),
-                        'NSV_Lakh': nsv if nsv else 0,
-                    })
+                for month, month_data in months_dict.items():
+                    # Handle both old format (direct NSV) and new format (full month_data dict)
+                    if isinstance(month_data, dict):
+                        rows.append({
+                            'Zone': zone,
+                            'Month': month,
+                            'FY': fy.upper(),
+                            'Offtake_NSV_Lakh': month_data.get('offtake_cr', 0),
+                            'Primary_NSV_Lakh': month_data.get('primary_cr', 0),
+                            'Pipeline_Gap_Lakh': month_data.get('flow_gap_cr', 0),
+                            'Conversion_Pct': month_data.get('conversion_pct', 0),
+                            'Units_Sold': month_data.get('units_sold', 0),
+                            'Chain_Count': month_data.get('chain_count', 0),
+                            'State_Count': month_data.get('state_count', 0),
+                        })
+                    else:
+                        # Fallback for legacy data format
+                        rows.append({
+                            'Zone': zone,
+                            'Month': month,
+                            'FY': fy.upper(),
+                            'Offtake_NSV_Lakh': month_data if month_data else 0,
+                            'Primary_NSV_Lakh': 0,
+                            'Pipeline_Gap_Lakh': 0,
+                            'Conversion_Pct': 0,
+                            'Units_Sold': 0,
+                            'Chain_Count': 0,
+                            'State_Count': 0,
+                        })
 
     # Extract by-chain data (list of {name, value} dicts)
     by_chain = offtake_dict.get('by_chain', [])
@@ -242,6 +265,7 @@ def extract_forecast_csv(data: dict, out_dir: Path) -> None:
 def extract_universe_csv(data: dict, out_dir: Path) -> None:
     """
     Extract store universe from data['universe'].
+    Enhanced to include zone and store-type breakdown for distribution analysis.
     Outputs to universe.csv
     """
     universe_dict = data.get('universe', {})
@@ -251,20 +275,99 @@ def extract_universe_csv(data: dict, out_dir: Path) -> None:
 
     rows = []
 
-    # Chain universe (can be list or dict)
+    # Total universe summary
+    rows.append({
+        'Grain': 'Total',
+        'Chain': 'ALL',
+        'Zone': '',
+        'Store_Type': '',
+        'Store_Count': universe_dict.get('total_stores', 0),
+        'Active_Stores': universe_dict.get('active_stores', 0),
+    })
+
+    # By chain (can be list or dict)
     by_chain = universe_dict.get('by_chain', [])
     if isinstance(by_chain, list):
         for item in by_chain:
-            rows.append({
-                'Chain': item.get('name', '') if isinstance(item, dict) else '',
-                'Store_Count': item.get('value', 0) if isinstance(item, dict) else 0,
-            })
+            if isinstance(item, dict):
+                chain_name = item.get('name', '')
+                store_count = item.get('value', 0)
+            else:
+                chain_name = ''
+                store_count = 0
+            if chain_name:
+                rows.append({
+                    'Grain': 'By_Chain',
+                    'Chain': chain_name,
+                    'Zone': '',
+                    'Store_Type': '',
+                    'Store_Count': store_count,
+                    'Active_Stores': store_count,
+                })
     elif isinstance(by_chain, dict):
         for chain, count in by_chain.items():
             rows.append({
+                'Grain': 'By_Chain',
                 'Chain': chain,
+                'Zone': '',
+                'Store_Type': '',
                 'Store_Count': count,
+                'Active_Stores': count,
             })
+
+    # By zone (NEW - for distribution % calculation)
+    by_zone = universe_dict.get('by_zone', {})
+    if isinstance(by_zone, dict):
+        for zone, count in by_zone.items():
+            rows.append({
+                'Grain': 'By_Zone',
+                'Chain': '',
+                'Zone': zone,
+                'Store_Type': '',
+                'Store_Count': count,
+                'Active_Stores': count,
+            })
+    elif isinstance(by_zone, list):
+        for item in by_zone:
+            if isinstance(item, dict):
+                zone_name = item.get('name', '')
+                store_count = item.get('value', 0)
+                if zone_name:
+                    rows.append({
+                        'Grain': 'By_Zone',
+                        'Chain': '',
+                        'Zone': zone_name,
+                        'Store_Type': '',
+                        'Store_Count': store_count,
+                        'Active_Stores': store_count,
+                    })
+
+    # By store type (NEW - for productivity analysis)
+    by_storetype = universe_dict.get('by_storetype', {})
+    if isinstance(by_storetype, dict):
+        for storetype, count in by_storetype.items():
+            rows.append({
+                'Grain': 'By_StoreType',
+                'Chain': '',
+                'Zone': '',
+                'Store_Type': storetype,
+                'Store_Count': count,
+                'Active_Stores': count,
+            })
+    elif isinstance(by_storetype, list):
+        for item in by_storetype:
+            if isinstance(item, dict):
+                storetype_name = item.get('name', '')
+                store_count = item.get('value', 0)
+                if storetype_name:
+                    rows.append({
+                        'Grain': 'By_StoreType',
+                        'Chain': '',
+                        'Zone': '',
+                        'Store_Type': storetype_name,
+                        'Store_Count': store_count,
+                        'Active_Stores': store_count,
+                    })
 
     if rows:
         df = pd.DataFrame(rows)
