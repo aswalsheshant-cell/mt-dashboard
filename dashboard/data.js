@@ -726123,14 +726123,14 @@ window.DASH = {
     "cm2_pct": 100.0
    },
    {
-    "name": "Staze",
+    "name": "Lumineve",
     "nsv": 7.69,
     "expense": 0.0,
     "cm2_value": 7.69,
     "cm2_pct": 100.0
    },
    {
-    "name": "Lumineve",
+    "name": "Staze",
     "nsv": 7.69,
     "expense": 0.0,
     "cm2_value": 7.69,
