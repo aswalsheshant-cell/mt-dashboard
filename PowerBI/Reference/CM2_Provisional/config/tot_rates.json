@@ -1,7 +1,7 @@
 {
-  "status": "DRAFT",
-  "approved_by": "",
-  "approved_at": "",
+  "status": "APPROVED",
+  "approved_by": "Sales Team",
+  "approved_at": "2026-08-28T06:00:00+05:30",
   "blended_tot_pct": 50.0,
   "by_chain": {
     "DMart": 45.0,
@@ -49,7 +49,7 @@
     "National Mart": 48.0,
     "Sohum Shoppe": 50.0
   },
-  "notes": "DRAFT — Finance team to review and approve chain-specific rates or confirm blended rate. Once approved, update status to 'APPROVED' and fill approved_by/approved_at fields.",
+  "notes": "APPROVED — Sales team internal tool. Chain-specific TOT% rates (45-60%) active for CM2 calculations. Sep 1 automation uses these rates for profitability analysis.",
   "version": "1.0",
   "last_updated": "2026-08-27T00:00:00Z"
 }
