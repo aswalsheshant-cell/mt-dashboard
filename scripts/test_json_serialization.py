@@ -1,4 +1,3 @@
-import ast
 import copy
 import json
 import math
@@ -64,18 +63,100 @@ def test_strict_parser_rejects_nonstandard_constants(constant):
         json_boundary.parse_window_dash_strict(f'window.DASH = {{"bad": {constant}}};')
 
 
-def test_all_six_build_paths_use_centralized_serializer():
-    source = Path(bd.__file__).read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    serializer_calls = [
-        node for node in ast.walk(tree)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == "serialize_window_dash"
-    ]
-    assert len(serializer_calls) == 6
-    assert '"window.DASH = " + json.dumps(obj' not in source
-    assert '"window.DASH = " + json.dumps(data' not in source
+class _SerializationReached(Exception):
+    pass
+
+
+@pytest.mark.parametrize(
+    ("mode", "extra_args"),
+    [
+        ("full", []),
+        ("detail-only", ["--detail-only"]),
+        ("primary-only", ["--primary-only"]),
+        ("forecast-only", ["--forecast-only"]),
+        ("offtake-patch", ["--offtake-patch"]),
+        ("distgap", ["--distgap"]),
+    ],
+)
+def test_all_six_build_modes_reach_centralized_serializer(tmp_path, monkeypatch, mode, extra_args):
+    output = tmp_path / "data.js"
+    output.write_text(
+        json_boundary.serialize_window_dash({"primary": {}, "offtake": {}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sys, "argv", ["build_dashboard_data.py", "--src", str(tmp_path),
+                                      "--out", str(output), *extra_args])
+
+    calls = []
+
+    def serializer(value, *, indent=None):
+        calls.append((value, indent))
+        raise _SerializationReached(mode)
+
+    monkeypatch.setattr(bd, "serialize_window_dash", serializer)
+
+    if mode == "detail-only":
+        monkeypatch.setattr(
+            bd, "_build_detail_meta",
+            lambda *args: ([], {}, {"representative": False}, None, None, None),
+        )
+    elif mode == "primary-only":
+        monkeypatch.setattr(bd, "load_primary_v2", lambda *args: object())
+        monkeypatch.setattr(bd, "load_chain_allocation_weights", lambda *args: None)
+        monkeypatch.setattr(bd, "load_offtake", lambda *args: (_ for _ in ()).throw(OSError()))
+        allocated = bd.pd.DataFrame(columns=["chain", "brand", "zone", "channel"])
+        monkeypatch.setattr(bd, "apply_chain_allocation_enhanced",
+                            lambda *args: (allocated, None))
+        monkeypatch.setattr(bd, "primary_block",
+                            lambda *args: (bd.pd.DataFrame(), {"fy_tags": []}))
+        monkeypatch.setattr(bd, "pnl_block", lambda *args: {})
+        monkeypatch.setattr(bd, "insights_block", lambda *args: [])
+    elif mode == "forecast-only":
+        monkeypatch.setattr(bd, "load_ty_target", lambda *args: [{}])
+        monkeypatch.setattr(
+            bd, "forecast_block_ty",
+            lambda *args: {"fy26_actual": 1, "fy27_forecast": 2},
+        )
+    elif mode == "offtake-patch":
+        monkeypatch.setattr(
+            bd, "load_offtake_article_files",
+            lambda *args: ({"Chain": {"Apr-26": 1}}, {}),
+        )
+        monkeypatch.setattr(bd, "patch_offtake_new_months", lambda *args: {"fy_tags": []})
+        monkeypatch.setattr(bd, "load_reliance_bc_data", lambda *args: None)
+    elif mode == "distgap":
+        monkeypatch.setattr(
+            bd, "dist_gap_block",
+            lambda *args: {
+                "row_count": 1,
+                "window_label": "test",
+                "total_addon_window": 1,
+                "total_addon_ann": 1,
+                "addon_by_group": [],
+            },
+        )
+    else:
+        monkeypatch.setattr(bd, "load_primary", lambda *args: object())
+        monkeypatch.setattr(bd, "primary_block",
+                            lambda *args: (bd.pd.DataFrame(), {"by_channel": []}))
+        monkeypatch.setattr(bd, "load_offtake", lambda *args: ({}, {}))
+        monkeypatch.setattr(bd, "offtake_block", lambda *args: {})
+        monkeypatch.setattr(bd, "universe_block", lambda *args: (bd.pd.DataFrame(), {}))
+        monkeypatch.setattr(bd, "promo_block", lambda *args: (bd.pd.DataFrame(), {}))
+        monkeypatch.setattr(bd, "pnl_block", lambda *args: {})
+        monkeypatch.setattr(bd, "forecast_block", lambda *args: {})
+        monkeypatch.setattr(bd, "insights_block", lambda *args: [])
+        monkeypatch.setattr(
+            bd, "_build_detail_meta",
+            lambda *args: ([], {}, {"representative": False}, None, None, None),
+        )
+        monkeypatch.setattr(bd, "dist_gap_block", lambda *args: None)
+
+    with pytest.raises(_SerializationReached, match=mode):
+        bd.main()
+
+    assert len(calls) == 1
+    assert calls[0][1] == 1
 
 
 def test_invalid_candidate_cannot_replace_last_known_good(tmp_path, monkeypatch):
@@ -120,6 +201,7 @@ def test_release_gate_failure_preserves_last_known_good(tmp_path, monkeypatch):
         )
 
     assert destination.read_text(encoding="utf-8") == original
+    assert not list(tmp_path.glob("*.tmp"))
 
 
 def test_valid_candidate_replaces_atomically(tmp_path):
@@ -177,9 +259,56 @@ def test_sync_writer_rejects_nonfinite_existing_artifact(constant):
         sync_data_js.generate_data_js(master, existing_js=existing)
 
 
-def test_patch_writer_uses_strict_boundary_contract():
-    source = Path(patch_cm2_provisional.__file__).read_text(encoding="utf-8")
-    assert "parse_window_dash_strict" in source
-    assert "serialize_window_dash" in source
-    assert "json.dumps(dash" not in source
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_patch_writer_rejects_nonfinite_input(tmp_path, monkeypatch, constant):
+    candidate = tmp_path / "data.js"
+    candidate.write_text(
+        f'window.DASH = {{"cm2": {{"total_nsv": {constant}}}}};\n',
+        encoding="utf-8",
+    )
+    original = candidate.read_bytes()
+    monkeypatch.setattr(sys, "argv", ["patch_cm2_provisional.py", "--data-js", str(candidate)])
+
+    assert patch_cm2_provisional.main() == 2
+    assert candidate.read_bytes() == original
+    assert not candidate.with_suffix(".js.cm2prov.bak").exists()
+
+
+def test_patch_writer_produces_strict_finite_output(tmp_path, monkeypatch):
+    candidate = tmp_path / "data.js"
+    candidate.write_text(
+        json_boundary.serialize_window_dash({
+            "cm2": {
+                "total_nsv": 10.5,
+                "total_expense": 2.25,
+                "cm2_value": 8.25,
+                "cm2_pct": 78.57,
+            },
+        }),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sys, "argv", ["patch_cm2_provisional.py", "--data-js", str(candidate)])
+    monkeypatch.setattr(patch_cm2_provisional, "load_pl_expense_input", lambda: object())
+    monkeypatch.setattr(
+        patch_cm2_provisional,
+        "_cm2_provisional_state",
+        lambda *args: {
+            "formula_status": "PROVISIONAL",
+            "provisional": True,
+            "provisional_label": "Pending",
+            "provisional_reasons": ["Review"],
+            "example_data_only": False,
+        },
+    )
+
+    assert patch_cm2_provisional.main() == 0
+
+    output = candidate.read_text(encoding="utf-8")
+    parsed = json_boundary.parse_window_dash_strict(output)
+    assert parsed["cm2"]["total_nsv"] == 10.5
+    assert parsed["cm2"]["total_expense"] == 2.25
+    assert parsed["cm2"]["cm2_value"] == 8.25
+    assert parsed["cm2"]["cm2_pct"] == 78.57
+    assert "NaN" not in output
+    assert "Infinity" not in output
 
