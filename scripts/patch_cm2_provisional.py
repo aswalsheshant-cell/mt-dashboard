@@ -18,18 +18,15 @@ this clears the banner. No CM2 amount is ever touched.
 from __future__ import annotations
 
 import argparse
-import json
-import re
 import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_JS = ROOT / "dashboard" / "data.js"
-PREFIX_RE = re.compile(r"\s*window\.DASH\s*=\s*")
-
 sys.path.insert(0, str(ROOT / "scripts"))
 from build_dashboard_data import _cm2_provisional_state, load_pl_expense_input  # noqa: E402
+from json_boundary import parse_window_dash_strict, serialize_window_dash  # noqa: E402
 
 MANAGED_KEYS = (
     "formula_status", "provisional", "provisional_label",
@@ -45,12 +42,11 @@ def main() -> int:
 
     path = Path(args.data_js)
     text = path.read_text(encoding="utf-8")
-    m = PREFIX_RE.match(text)
-    if not m:
-        print("ERROR: data.js does not start with `window.DASH =`", file=sys.stderr)
+    try:
+        dash = parse_window_dash_strict(text)
+    except ValueError as exc:
+        print(f"ERROR: invalid data.js: {exc}", file=sys.stderr)
         return 2
-    prefix, payload = text[: m.end()], text[m.end():].rstrip().rstrip(";")
-    dash = json.loads(payload)
 
     if "cm2" not in dash:
         print("ERROR: no cm2 block in data.js", file=sys.stderr)
@@ -79,12 +75,11 @@ def main() -> int:
 
     backup = path.with_suffix(path.suffix + ".cm2prov.bak")
     shutil.copy2(path, backup)
-    path.write_text(prefix + json.dumps(dash, ensure_ascii=False,
-                                        separators=(",", ":")) + ";\n",
-                    encoding="utf-8")
+    path.write_text(serialize_window_dash(dash), encoding="utf-8")
     print(f"\nWrote {path}  (backup: {backup.name})")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
