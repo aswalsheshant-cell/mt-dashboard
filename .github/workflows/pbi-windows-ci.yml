@@ -20,7 +20,7 @@ on:
 jobs:
   validate-powerbi:
     name: Run Headless Tabular Editor & DAX Validation
-    runs-on: [self-hosted, Windows, x64]
+    runs-on: windows-latest
 
     steps:
       - name: Check out repository
