@@ -1,57 +1,45 @@
 {
   "metadata": {
-    "source": "Distributor_Chain_Claim_Master_AprJun_2026_Invoice_Mapped.xlsx",
-    "months": [
-      "Apr-2026",
-      "May-2026",
-      "Jun-2026"
-    ],
-    "period": "Q1 FY27",
-    "generated_at": "2026-08-30T11:17:09.599411",
-    "note": "Values in Lakhs (INR ÷ 1,00,000). Invoice-mapped version with updated chain assignments."
+    "source_file": "Distributor_Chain_Claim_Master_AprJun_2026_Invoice_Mapped.xlsx",
+    "period": "Apr–Jun 2026",
+    "currency": "INR (values in Lakh)",
+    "provisional": true,
+    "generated_by": "scripts/ingest_claims_and_secondary.py"
   },
   "claims": {
-    "grand_total_inr": 56487873.37,
-    "grand_total_lakh": 564.88,
-    "included_mapped_inr": 50438436.94,
-    "included_mapped_lakh": 504.38,
+    "grand_total_lakh": 449.77,
+    "included_mapped_lakh": 450.09,
     "by_chain": {
       "AirPlaza": {
-        "total_claim_lakh": 5.62,
-        "source_chains": [
-          "AirPlaza"
-        ],
+        "total_claim_lakh": 0.0,
+        "source_chain": "AirPlaza",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 5.31,
-          "Freight / Transportation": 0.31,
+          "Extra Margin / Rate Difference": 0.0,
+          "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
       "Apollo": {
-        "total_claim_lakh": 22.19,
-        "source_chains": [
-          "Apollo"
-        ],
+        "total_claim_lakh": 22.1901,
+        "source_chain": "Apollo",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 21.72,
+          "Extra Margin / Rate Difference": 21.7167,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.47,
+          "Off Invoice / Debit Note Promo": 0.4734,
           "Visibility": 0.0
         }
       },
       "Arambagh": {
-        "total_claim_lakh": 5.43,
-        "source_chains": [
-          "Arambagh"
-        ],
+        "total_claim_lakh": 5.4335,
+        "source_chain": "Arambagh",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 5.43,
+          "Extra Margin / Rate Difference": 5.4335,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -59,70 +47,35 @@
         }
       },
       "DMart": {
-        "total_claim_lakh": 124.13,
-        "source_chains": [
-          "Avenue Supermarts Ltd.",
-          "D-Mart"
-        ],
+        "total_claim_lakh": 124.133,
+        "source_chain": "D-Mart",
         "by_category": {
-          "Chain Promo (On Invoice)": 0.98,
-          "Extra Margin / Rate Difference": 123.02,
-          "Freight / Transportation": 0.13,
+          "Chain Promo (On Invoice)": 0.9762,
+          "Extra Margin / Rate Difference": 123.0231,
+          "Freight / Transportation": 0.1336,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
       "Beauty & Nutrition": {
-        "total_claim_lakh": 0.05,
-        "source_chains": [
-          "Beauty & Nutrition"
-        ],
-        "by_category": {
-          "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": -0.06,
-          "Freight / Transportation": 0.0,
-          "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.11,
-          "Visibility": 0.0
-        }
-      },
-      "Combined Charge": {
-        "total_claim_lakh": 44.23,
-        "source_chains": [
-          "Combined Charge"
-        ],
+        "total_claim_lakh": 0.0,
+        "source_chain": "Beauty & Nutrition",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": 0.0,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
-          "Visibility": 44.23
-        }
-      },
-      "EMAMI FRANKROSS": {
-        "total_claim_lakh": 8.45,
-        "source_chains": [
-          "EMAMI FRANKROSS"
-        ],
-        "by_category": {
-          "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 8.45,
-          "Freight / Transportation": 0.0,
-          "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
-      "FLEET LABS": {
-        "total_claim_lakh": 1.88,
-        "source_chains": [
-          "FLEET LABS"
-        ],
+      "Combined Charge": {
+        "total_claim_lakh": 0.0,
+        "source_chain": "Combined Charge",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 1.88,
+          "Extra Margin / Rate Difference": 0.0,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -130,24 +83,32 @@
         }
       },
       "Frankross": {
-        "total_claim_lakh": 1.63,
-        "source_chains": [
-          "Frankross"
-        ],
+        "total_claim_lakh": 1.6316,
+        "source_chain": "Frankross",
         "by_category": {
-          "Chain Promo (On Invoice)": 1.73,
-          "Extra Margin / Rate Difference": -0.1,
+          "Chain Promo (On Invoice)": 1.7343,
+          "Extra Margin / Rate Difference": -0.1027,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
-      "GHL Pharma & Diagnostic Pvt Ltd": {
+      "Fleet Labs": {
         "total_claim_lakh": 0.0,
-        "source_chains": [
-          "GHL Pharma & Diagnostic Pvt Ltd"
-        ],
+        "source_chain": "FLEET LABS",
+        "by_category": {
+          "Chain Promo (On Invoice)": 0.0,
+          "Extra Margin / Rate Difference": 0.0,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 0.0,
+          "Visibility": 0.0
+        }
+      },
+      "GHL Pharma": {
+        "total_claim_lakh": 0.0,
+        "source_chain": "GHL Pharma & Diagnostic Pvt Ltd",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": 0.0,
@@ -158,55 +119,59 @@
         }
       },
       "Health & Glow": {
-        "total_claim_lakh": 24.5,
-        "source_chains": [
-          "Health & Glow"
-        ],
+        "total_claim_lakh": 24.4959,
+        "source_chain": "Health & Glow",
         "by_category": {
-          "Chain Promo (On Invoice)": 4.76,
-          "Extra Margin / Rate Difference": 13.64,
+          "Chain Promo (On Invoice)": 4.755,
+          "Extra Margin / Rate Difference": 13.6359,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 4.77,
-          "Visibility": 1.34
+          "Off Invoice / Debit Note Promo": 4.7689,
+          "Visibility": 1.336
         }
       },
       "Lulu": {
-        "total_claim_lakh": 118.91,
-        "source_chains": [
-          "Lulu"
-        ],
+        "total_claim_lakh": 118.9147,
+        "source_chain": "Lulu",
         "by_category": {
-          "Chain Promo (On Invoice)": 58.18,
-          "Extra Margin / Rate Difference": 27.28,
+          "Chain Promo (On Invoice)": 58.1821,
+          "Extra Margin / Rate Difference": 27.2815,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
-          "Visibility": 33.45
+          "Visibility": 33.4511
+        }
+      },
+      "Merabo Labs": {
+        "total_claim_lakh": 0.0,
+        "source_chain": "MERABO LABS PRIVATE LIMITED",
+        "by_category": {
+          "Chain Promo (On Invoice)": 0.0,
+          "Extra Margin / Rate Difference": 0.0,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 0.0,
+          "Visibility": 0.0
         }
       },
       "More Retail": {
         "total_claim_lakh": 31.89,
-        "source_chains": [
-          "More Retail"
-        ],
+        "source_chain": "More Retail",
         "by_category": {
-          "Chain Promo (On Invoice)": 5.66,
-          "Extra Margin / Rate Difference": 11.08,
+          "Chain Promo (On Invoice)": 5.6628,
+          "Extra Margin / Rate Difference": 11.0786,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 11.47,
-          "Visibility": 3.68
+          "Off Invoice / Debit Note Promo": 11.4671,
+          "Visibility": 3.6816
         }
       },
-      "RATNADEEP RETAIL PVT LTD": {
-        "total_claim_lakh": 3.96,
-        "source_chains": [
-          "RATNADEEP RETAIL PVT LTD"
-        ],
+      "Ratnadeep": {
+        "total_claim_lakh": 3.9622,
+        "source_chain": "RATNADEEP RETAIL PVT LTD",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 3.96,
+          "Extra Margin / Rate Difference": 3.9622,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -214,27 +179,23 @@
         }
       },
       "Reliance Retail": {
-        "total_claim_lakh": 87.88,
-        "source_chains": [
-          "Reliance Retail"
-        ],
+        "total_claim_lakh": 87.8839,
+        "source_chain": "Reliance Retail",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 86.32,
-          "Freight / Transportation": 1.57,
+          "Extra Margin / Rate Difference": 86.3163,
+          "Freight / Transportation": 1.5676,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
-      "SUMOSAVE": {
-        "total_claim_lakh": 2.05,
-        "source_chains": [
-          "SUMOSAVE"
-        ],
+      "Sumo Save": {
+        "total_claim_lakh": 2.0542,
+        "source_chain": "SUMOSAVE",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 2.05,
+          "Extra Margin / Rate Difference": 2.0542,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -242,13 +203,11 @@
         }
       },
       "Sastasundar": {
-        "total_claim_lakh": -0.26,
-        "source_chains": [
-          "Sastasundar"
-        ],
+        "total_claim_lakh": -0.2628,
+        "source_chain": "Sastasundar",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": -0.26,
+          "Extra Margin / Rate Difference": -0.2628,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -256,13 +215,11 @@
         }
       },
       "Spar": {
-        "total_claim_lakh": -0.02,
-        "source_chains": [
-          "Spar"
-        ],
+        "total_claim_lakh": -0.0205,
+        "source_chain": "Spar",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": -0.02,
+          "Extra Margin / Rate Difference": -0.0205,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -270,13 +227,11 @@
         }
       },
       "Spencer's": {
-        "total_claim_lakh": 7.94,
-        "source_chains": [
-          "Spencer's"
-        ],
+        "total_claim_lakh": 7.9449,
+        "source_chain": "Spencer's",
         "by_category": {
-          "Chain Promo (On Invoice)": 1.97,
-          "Extra Margin / Rate Difference": 5.97,
+          "Chain Promo (On Invoice)": 1.972,
+          "Extra Margin / Rate Difference": 5.9729,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -284,27 +239,35 @@
         }
       },
       "Transportation": {
-        "total_claim_lakh": 0.19,
-        "source_chains": [
-          "Transportation"
-        ],
+        "total_claim_lakh": 0.0,
+        "source_chain": "Transportation",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": 0.0,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.19,
+          "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
       "Trilife": {
-        "total_claim_lakh": -0.04,
-        "source_chains": [
-          "Trilife"
-        ],
+        "total_claim_lakh": -0.0384,
+        "source_chain": "Trilife",
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": -0.04,
+          "Extra Margin / Rate Difference": -0.0384,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 0.0,
+          "Visibility": 0.0
+        }
+      },
+      "Unspecified": {
+        "total_claim_lakh": 0.0,
+        "source_chain": "Unspecified / Review",
+        "by_category": {
+          "Chain Promo (On Invoice)": 0.0,
+          "Extra Margin / Rate Difference": 0.0,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -312,161 +275,731 @@
         }
       },
       "Vishal Mega Mart": {
-        "total_claim_lakh": 13.75,
-        "source_chains": [
-          "Vishal Mega Mart"
-        ],
+        "total_claim_lakh": 19.5573,
+        "source_chain": "Vishal Mega Mart",
         "by_category": {
-          "Chain Promo (On Invoice)": 3.05,
-          "Extra Margin / Rate Difference": 8.45,
-          "Freight / Transportation": 2.25,
+          "Chain Promo (On Invoice)": 3.0457,
+          "Extra Margin / Rate Difference": 13.766,
+          "Freight / Transportation": 2.5598,
           "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.0,
+          "Off Invoice / Debit Note Promo": 0.1857,
           "Visibility": 0.0
         }
       }
     },
+    "by_brand": {
+      "Aqualogica": {
+        "apr_lakh": 0.5848,
+        "may_lakh": 3.0579,
+        "jun_lakh": 1.324,
+        "total_lakh": 4.9667
+      },
+      "BBLUNT": {
+        "apr_lakh": -0.0989,
+        "may_lakh": -0.1146,
+        "jun_lakh": -0.0642,
+        "total_lakh": -0.2778
+      },
+      "Dr. Sheth's": {
+        "apr_lakh": -0.0319,
+        "may_lakh": -0.0078,
+        "jun_lakh": -0.0102,
+        "total_lakh": -0.0499
+      },
+      "Mamaearth": {
+        "apr_lakh": 139.7109,
+        "may_lakh": 119.9325,
+        "jun_lakh": 138.9308,
+        "total_lakh": 398.5741
+      },
+      "The Derma Co.": {
+        "apr_lakh": 43.4764,
+        "may_lakh": 23.9898,
+        "jun_lakh": 33.7051,
+        "total_lakh": 101.1713
+      }
+    },
     "by_distributor": {
-      "A Z Enterprises": {
-        "total_claim_lakh": 88.83,
-        "apr_lakh": 37.64,
-        "may_lakh": 31.28,
-        "jun_lakh": 19.91,
-        "review_lakh": 0.0
+      "AZ Enterprises": {
+        "total_claim_lakh": 88.8309,
+        "source_name": "A Z Enterprises",
+        "apr_lakh": 37.6388,
+        "may_lakh": 31.282,
+        "jun_lakh": 19.9102
       },
-      "Balaji Associates": {
-        "total_claim_lakh": 46.29,
-        "apr_lakh": 15.28,
-        "may_lakh": 13.63,
-        "jun_lakh": 17.38,
-        "review_lakh": 3.89
+      "Balaji": {
+        "total_claim_lakh": 46.2869,
+        "source_name": "Balaji Associates",
+        "apr_lakh": 15.2761,
+        "may_lakh": 13.6272,
+        "jun_lakh": 17.3837
       },
-      "CHOUDHARY ENTERPRISES": {
-        "total_claim_lakh": 0.31,
+      "Choudhary Enterprises": {
+        "total_claim_lakh": 0.3052,
+        "source_name": "CHOUDHARY ENTERPRISES",
         "apr_lakh": 0.0,
         "may_lakh": 0.0,
-        "jun_lakh": 0.31,
-        "review_lakh": 1.49
+        "jun_lakh": 0.3052
       },
       "Chhabra Traders": {
-        "total_claim_lakh": 25.77,
-        "apr_lakh": 14.06,
-        "may_lakh": 11.71,
-        "jun_lakh": 0.0,
-        "review_lakh": 18.7
+        "total_claim_lakh": 25.7673,
+        "source_name": "Chhabra Traders",
+        "apr_lakh": 14.0613,
+        "may_lakh": 11.7061,
+        "jun_lakh": 0.0
       },
-      "D.L. Sales": {
-        "total_claim_lakh": 32.21,
-        "apr_lakh": 13.23,
-        "may_lakh": 10.2,
-        "jun_lakh": 8.78,
-        "review_lakh": 0.0
+      "DL Sales": {
+        "total_claim_lakh": 32.2127,
+        "source_name": "D.L. Sales",
+        "apr_lakh": 13.2332,
+        "may_lakh": 10.1982,
+        "jun_lakh": 8.7813
       },
       "Just Mark": {
         "total_claim_lakh": 0.0,
+        "source_name": "Just Mark",
         "apr_lakh": 0.0,
         "may_lakh": 0.0,
-        "jun_lakh": 0.0,
-        "review_lakh": 10.64
+        "jun_lakh": 0.0
       },
-      "Kiran Trading Co.": {
+      "Kiran Trading": {
         "total_claim_lakh": 0.0,
+        "source_name": "Kiran Trading Co.",
         "apr_lakh": 0.0,
         "may_lakh": 0.0,
-        "jun_lakh": 0.0,
-        "review_lakh": 22.91
+        "jun_lakh": 0.0
       },
       "Kottaram": {
-        "total_claim_lakh": 26.53,
+        "total_claim_lakh": 26.528,
+        "source_name": "Kottaram",
         "apr_lakh": 0.0,
         "may_lakh": 0.0,
-        "jun_lakh": 26.53,
-        "review_lakh": 0.0
+        "jun_lakh": 26.528
       },
       "Mark Enterprises": {
-        "total_claim_lakh": 0.53,
-        "apr_lakh": 0.11,
-        "may_lakh": 0.22,
-        "jun_lakh": 0.2,
-        "review_lakh": 0.0
+        "total_claim_lakh": 0.527,
+        "source_name": "Mark Enterprises",
+        "apr_lakh": 0.109,
+        "may_lakh": 0.2157,
+        "jun_lakh": 0.2024
       },
       "Pragati Sales": {
-        "total_claim_lakh": 0.23,
+        "total_claim_lakh": 0.2256,
+        "source_name": "Pragati Sales",
         "apr_lakh": 0.0,
         "may_lakh": 0.0,
-        "jun_lakh": 0.23,
-        "review_lakh": 0.56
+        "jun_lakh": 0.2256
       },
-      "R R Traders": {
-        "total_claim_lakh": 0.36,
-        "apr_lakh": 0.09,
-        "may_lakh": 0.27,
-        "jun_lakh": 0.0,
-        "review_lakh": 3.3
+      "RR Traders": {
+        "total_claim_lakh": 0.3554,
+        "source_name": "R R Traders",
+        "apr_lakh": 0.0886,
+        "may_lakh": 0.2668,
+        "jun_lakh": 0.0
       },
-      "Real Time Logistics": {
-        "total_claim_lakh": 4.33,
-        "apr_lakh": 2.53,
-        "may_lakh": 0.59,
-        "jun_lakh": 1.21,
-        "review_lakh": 0.0
+      "RealTime": {
+        "total_claim_lakh": 4.3343,
+        "source_name": "Real Time Logistics",
+        "apr_lakh": 2.5344,
+        "may_lakh": 0.5859,
+        "jun_lakh": 1.2139
       },
-      "Sai Saachi Associates": {
-        "total_claim_lakh": 2.67,
-        "apr_lakh": 1.67,
-        "may_lakh": 0.54,
-        "jun_lakh": 0.46,
-        "review_lakh": 0.05
+      "Sai Saachi": {
+        "total_claim_lakh": 2.6711,
+        "source_name": "Sai Saachi Associates",
+        "apr_lakh": 1.6703,
+        "may_lakh": 0.5389,
+        "jun_lakh": 0.462
       },
-      "Sancus Network": {
-        "total_claim_lakh": 44.23,
-        "apr_lakh": 14.46,
-        "may_lakh": 14.44,
-        "jun_lakh": 15.34,
-        "review_lakh": 0.0
+      "Sancus Networks Pvt Ltd.": {
+        "total_claim_lakh": 44.2346,
+        "source_name": "Sancus Network",
+        "apr_lakh": 14.4574,
+        "may_lakh": 14.4372,
+        "jun_lakh": 15.34
       },
       "Sehaj Enterprises": {
-        "total_claim_lakh": 0.08,
-        "apr_lakh": 0.01,
-        "may_lakh": 0.05,
-        "jun_lakh": 0.02,
-        "review_lakh": 0.86
+        "total_claim_lakh": 0.0848,
+        "source_name": "Sehaj Enterprises",
+        "apr_lakh": 0.0148,
+        "may_lakh": 0.0479,
+        "jun_lakh": 0.0221
       },
-      "Sri Vijaya Durga Agencies": {
-        "total_claim_lakh": 177.29,
-        "apr_lakh": 67.41,
-        "may_lakh": 47.33,
-        "jun_lakh": 62.55,
-        "review_lakh": 0.0
+      "SVDA": {
+        "total_claim_lakh": 177.2886,
+        "source_name": "Sri Vijaya Durga Agencies",
+        "apr_lakh": 67.4121,
+        "may_lakh": 47.3294,
+        "jun_lakh": 62.547
       },
-      "Srijan Enterprises": {
-        "total_claim_lakh": 0.69,
-        "apr_lakh": 0.69,
+      "Srijan": {
+        "total_claim_lakh": 0.694,
+        "source_name": "Srijan Enterprises",
+        "apr_lakh": 0.694,
         "may_lakh": 0.0,
-        "jun_lakh": 0.0,
-        "review_lakh": 0.09
+        "jun_lakh": 0.0
       },
       "United Marketing": {
-        "total_claim_lakh": 0.7,
-        "apr_lakh": 0.3,
-        "may_lakh": 0.23,
-        "jun_lakh": 0.17,
-        "review_lakh": 0.0
+        "total_claim_lakh": 0.7025,
+        "source_name": "United Marketing",
+        "apr_lakh": 0.2995,
+        "may_lakh": 0.2296,
+        "jun_lakh": 0.1735
       },
-      "Venkateshwara Agencies": {
-        "total_claim_lakh": 53.34,
-        "apr_lakh": 16.15,
-        "may_lakh": 16.39,
-        "jun_lakh": 20.79,
-        "review_lakh": 0.0
+      "VA": {
+        "total_claim_lakh": 53.3355,
+        "source_name": "Venkateshwara Agencies",
+        "apr_lakh": 16.1519,
+        "may_lakh": 16.3931,
+        "jun_lakh": 20.7905
       }
     },
+    "exceptions": [
+      {
+        "month": "Apr-2026",
+        "distributor": "G V Enterprises",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "April\\Claims\\G V Enterprises April 26 Okay\\GV April'26 MT -Indirect Claim Submission Process and Format Final.xlsb",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Kottaram",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "April\\Claims\\Kottaram April 26 Okay\\promo claim.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "G V Enterprises",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "June\\June Claims\\G V Enterprises June 26 Okay\\GV JUN'26 MT -Indirect Claim Submission Process and Format.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Kottaram",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "June\\June Claims\\Kottaram June 26\\NORMAL CLAIM ULY (2).xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Kottaram",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "June\\June Claims\\Kottaram June 26\\PROMO CLAIM JULY (3) CORRE.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "MANOJ SOAP AGENCY",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "June\\June Claims\\MANOJ SOAP AGENCY June 26 Okay\\MT -Indirect Claim Submission Process  MANOJ SOAP June 2026.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "May-2026",
+        "distributor": "G V Enterprises",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "May\\May Claims\\G V Enterprises May 26 Okay\\GV MAY'26 MT -Indirect Claim Submission Process and Format.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Kottaram",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "May\\May Claims\\Kottaram May 26 Okay\\NEW MAY-26 claimS.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Kottaram",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "May\\May Claims\\Kottaram May 26 Okay\\OFF INVOICE MAY CLAIM 2614.50.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Manoj Soap Agency",
+        "issue": "Legacy claim workbook not parsed",
+        "source_file": "May\\May Claims\\Manoj Soap Agency May 26 Okay\\MT -Indirect Claim Submission Process  MANOJ SOAP MAY 2026.xls",
+        "details": "Retained in source index; manual review required."
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Chain mapping required",
+        "source_file": "April\\Claims\\BALAJI ASSOCIATES  April 26 Okay\\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx",
+        "details": "Incentive | ₹1,94,442"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Srijan Enterprises",
+        "issue": "Chain mapping required",
+        "source_file": "June\\June Claims\\SriJan Enterprises Not consider\\MT -Indirect Claim Format June-26 (Rate difference) (2).xlsx",
+        "details": "Off Invoice / Debit Note Promo | ₹3,375"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\BALAJI ASSOCIATES  April 26 Okay\\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx",
+        "details": "Reliance Retail | Extra Margin / Rate Difference | ₹5,669"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\BALAJI ASSOCIATES  April 26 Okay\\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx",
+        "details": "Apollo | Extra Margin / Rate Difference | ₹-709"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\BALAJI ASSOCIATES  April 26 Okay\\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹46,257"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\BALAJI ASSOCIATES  April 26 Okay\\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx",
+        "details": "Reliance Retail | Freight / Transportation | ₹38,541"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\BALAJI ASSOCIATES  April 26 Okay\\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx",
+        "details": "Unspecified / Review | Incentive | ₹1,94,442"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Just Mark",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\JUST MARK-Dmart  April 26 Okay\\Final Claim Just Mark- Apr.26 Revised.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | ₹3,73,650"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Kiran Trading Co.",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\Kiran Trading Co- Dmart  April 26 Okay\\Kiran Trading Final Claim Working April'26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | ₹1,52,678"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Pragati Sales",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\PRAGATI SALES-D-MART April 26\\Final Claim Pragati Sales- April'26 (1).xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | ₹55,501"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Real Time Logistics",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\REAL TIME LOGISTICS April 26 Okay\\APRIL MONTH.xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹31,006"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "R R Traders",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\RR Traders-MT  April 26 Okay\\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹52,431"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "R R Traders",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\RR Traders-MT  April 26 Okay\\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹8,856"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Sai Saachi Associates",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\SAI SAACHI ASSOCIATES-MT-OR  April 26 Okay\\Sai Saachi -MT -Indirect Claim Format April-26 - (1).xlsx",
+        "details": "D-Mart | Freight / Transportation | ₹11,508"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\Sehaj Enterprises -MT-JK  April 26 Okay\\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹7,756"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\Sehaj Enterprises -MT-JK  April 26 Okay\\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹1,483"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Srijan Enterprises",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\SRIJAN ENTERPRISES-MT April 26 Okay\\MT -Indirect Claim Format April-26 (Rate difference).xlsx",
+        "details": "FLEET LABS | Freight / Transportation | ₹2,459"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Venkateshwara Agencies",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\VENKATESHWARA AGENCIES April 26\\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx",
+        "details": "More Retail | Off Invoice / Debit Note Promo | ₹43,223"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Venkateshwara Agencies",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\VENKATESHWARA AGENCIES April 26\\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx",
+        "details": "Health & Glow | Off Invoice / Debit Note Promo | ₹27,398"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Venkateshwara Agencies",
+        "issue": "Brand split required",
+        "source_file": "April\\Claims\\VENKATESHWARA AGENCIES April 26\\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx",
+        "details": "Apollo | Off Invoice / Debit Note Promo | ₹16,953"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Balaji Associates June 26 Okay\\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹3,14,338"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Balaji Associates June 26 Okay\\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx",
+        "details": "Reliance Retail | Extra Margin / Rate Difference | ₹13,01,221"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Balaji Associates June 26 Okay\\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹69,877"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Balaji Associates June 26 Okay\\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx",
+        "details": "Reliance Retail | Freight / Transportation | ₹52,936"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "CHOUDHARY ENTERPRISES",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\CHOUDHARY ENTERPRISES June 26\\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,48,874"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "CHOUDHARY ENTERPRISES",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\CHOUDHARY ENTERPRISES June 26\\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx",
+        "details": "AirPlaza | Freight / Transportation | ₹30,519"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Just Mark",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\JUST MARK-Dmart  June 26 Okay\\Final Claim Just Mark- Jun.26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | ₹6,29,594"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Kiran Trading Co.",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Kiran Trading June 26 Okay\\Kiran Trading Final Claim Working June'26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | ₹19,27,494"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "R R Traders",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\R R Traders June 26 oKAY\\MT -Indirect Claim Process  RR June-2026-.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,07,462"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "R R Traders",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\R R Traders June 26 oKAY\\MT -Indirect Claim Process  RR June-2026-.xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹19,259"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Real Time Logistics",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\REAL TIME LOGISTICS June 26 Okay\\MT -Indirect Claim Format JUNE-26 (Rate difference) (3).xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹14,774"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Sai Saachi Associates",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\SAI SAACHI ASSOCIATES June 26 Okay\\Sai Saachi -MT -Indirect Claim Format June-26.xlsx",
+        "details": "D-Mart | Freight / Transportation | ₹1,856"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Sehaj Enterprises -MT-JK  June 26 Okay\\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹18,880"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Sehaj Enterprises -MT-JK  June 26 Okay\\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹2,213"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Srijan Enterprises",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\SriJan Enterprises Not consider\\MT -Indirect Claim Format June-26 (Rate difference) (2).xlsx",
+        "details": "Unspecified / Review | Off Invoice / Debit Note Promo | ₹3,375"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Venkateshwara Agencies",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Venkateshwara Agencies June 26 Okay\\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx",
+        "details": "More Retail | Off Invoice / Debit Note Promo | ₹46,357"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Venkateshwara Agencies",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Venkateshwara Agencies June 26 Okay\\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx",
+        "details": "Health & Glow | Off Invoice / Debit Note Promo | ₹4,02,611"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Venkateshwara Agencies",
+        "issue": "Brand split required",
+        "source_file": "June\\June Claims\\Venkateshwara Agencies June 26 Okay\\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx",
+        "details": "Apollo | Off Invoice / Debit Note Promo | ₹30,384"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Balaji Associates May 26 Okay\\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹21,642"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Balaji Associates May 26 Okay\\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx",
+        "details": "Reliance Retail | Extra Margin / Rate Difference | ₹12,46,131"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Balaji Associates May 26 Okay\\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx",
+        "details": "Apollo | Extra Margin / Rate Difference | ₹15,751"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Balaji Associates May 26 Okay\\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹13,912"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Balaji Associates",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Balaji Associates May 26 Okay\\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx",
+        "details": "Reliance Retail | Freight / Transportation | ₹65,281"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Just Mark",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Just Mark May 26 Okay\\Final Claim Just Mark- May.26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | ₹60,559"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Kiran Trading Co.",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Kiran Trading May 26 Okay\\Kiran Trading Final Claim Working May'26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | ₹2,10,735"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "R R Traders",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\R R Trader May 26 Okay\\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,50,630"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "R R Traders",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\R R Trader May 26 Okay\\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹26,683"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Real Time Logistics",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\REAL TIME LOGISTICS May 26 Okay\\MAY MONTH CLAIM (1) Real time.xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹5,611"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Sai Saachi Associates",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Sai Sachi Claim May 26 Query\\Sai Saachi -MT -Indirect Claim Format May-26.xlsx",
+        "details": "D-Mart | Freight / Transportation | ₹4,633"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Sehaj Enterprises May 26 Okay\\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | ₹59,373"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Brand split required",
+        "source_file": "May\\May Claims\\Sehaj Enterprises May 26 Okay\\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | ₹4,786"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Just Mark",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "April\\Claims\\JUST MARK-Dmart  April 26 Okay\\Final Claim Just Mark- Apr.26 Revised.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | Difference ₹4,88,765"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Kiran Trading Co.",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "April\\Claims\\Kiran Trading Co- Dmart  April 26 Okay\\Kiran Trading Final Claim Working April'26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | Difference ₹2,82,066"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Pragati Sales",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "April\\Claims\\PRAGATI SALES-D-MART April 26\\Final Claim Pragati Sales- April'26 (1).xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | Difference ₹1,49,571"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "R R Traders",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "April\\Claims\\RR Traders-MT  April 26 Okay\\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹52,431"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "April\\Claims\\Sehaj Enterprises -MT-JK  April 26 Okay\\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹7,756"
+      },
+      {
+        "month": "Apr-2026",
+        "distributor": "Srijan Enterprises",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "April\\Claims\\SRIJAN ENTERPRISES-MT April 26 Okay\\MT -Indirect Claim Format April-26 (Rate difference).xlsx",
+        "details": "FLEET LABS | Freight / Transportation | Difference ₹-375"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "CHOUDHARY ENTERPRISES",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "June\\June Claims\\CHOUDHARY ENTERPRISES June 26\\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,48,874"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Just Mark",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "June\\June Claims\\JUST MARK-Dmart  June 26 Okay\\Final Claim Just Mark- Jun.26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | Difference ₹6,57,545"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Kiran Trading Co.",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "June\\June Claims\\Kiran Trading June 26 Okay\\Kiran Trading Final Claim Working June'26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | Difference ₹14,23,698"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "R R Traders",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "June\\June Claims\\R R Traders June 26 oKAY\\MT -Indirect Claim Process  RR June-2026-.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,07,425"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "R R Traders",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "June\\June Claims\\R R Traders June 26 oKAY\\MT -Indirect Claim Process  RR June-2026-.xlsx",
+        "details": "Vishal Mega Mart | Freight / Transportation | Difference ₹-2,938"
+      },
+      {
+        "month": "Jun-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "June\\June Claims\\Sehaj Enterprises -MT-JK  June 26 Okay\\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹18,880"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Just Mark",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "May\\May Claims\\Just Mark May 26 Okay\\Final Claim Just Mark- May.26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | Difference ₹-9,238"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Kiran Trading Co.",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "May\\May Claims\\Kiran Trading May 26 Okay\\Kiran Trading Final Claim Working May'26.xlsx",
+        "details": "D-Mart | Extra Margin / Rate Difference | Difference ₹1,72,547"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "R R Traders",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "May\\May Claims\\R R Trader May 26 Okay\\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,50,630"
+      },
+      {
+        "month": "May-2026",
+        "distributor": "Sehaj Enterprises",
+        "issue": "Invoice chain confirmed; amount mismatch",
+        "source_file": "May\\May Claims\\Sehaj Enterprises May 26 Okay\\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx",
+        "details": "Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹59,373"
+      }
+    ],
     "quality_summary": {
-      "total_chains": 22,
-      "total_distributors": 19,
-      "exceptions_count": 77,
-      "exceptions_pending": 77,
-      "note": "77 exceptions in queue — see docs/claim_exceptions_review.csv"
+      "n_chains": 23,
+      "n_brands": 5,
+      "n_distributors": 19,
+      "n_exceptions": 77
     }
   }
 }
