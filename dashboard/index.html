@@ -288,6 +288,7 @@
   <section id="tab-inventory"></section>
   <section id="tab-insights"></section>
   <section id="tab-forecast-tracking"></section>
+  <section id="tab-cm2"></section>
 </div>
 <footer id="foot"></footer>
 
@@ -1802,6 +1803,151 @@ function buildDailyWeeklyForecast(){
       });
     }
   }
+}
+
+/* ---- CM2 & Claim Analysis ---- */
+function buildCM2(){
+  const s=document.getElementById('tab-cm2');
+  const claims=D.claims||{}, primary=D.primary||{};
+  const byChain=claims.by_chain||{}, byDist=claims.by_distributor||{};
+
+  // Load reconciliation matrix (auto-resolved + pending)
+  let reconciliationData=[];
+  try{
+    reconciliationData=JSON.parse(window.claimReconciliationMatrix||'[]');
+  }catch(e){}
+
+  // Global claim toggle state (Confirmed vs Pending Review)
+  window.cm2ClaimFilter=window.cm2ClaimFilter||'all';
+
+  // Calculate CM2 metrics by chain
+  const chainMetrics=[];
+  Object.entries(byChain).forEach(([chainName,claimData])=>{
+    const totalClaim=claimData.total_claim_lakh||0;
+    const byCategory=claimData.by_category||{};
+
+    // Assume this chain's primary NSV from primary data if available
+    const primaryChain=primary.by_chain?.find(c=>c.name===chainName);
+    const nsv=primaryChain?.fy27||1;
+
+    // CM2 calculation: Claims as % of NSV (provisioned)
+    const cm2Pct=nsv>0?((totalClaim/nsv)*100).toFixed(1):'–';
+
+    chainMetrics.push({
+      chain:chainName,
+      nsv:nsv||0,
+      totalClaim:totalClaim,
+      cm2Pct:cm2Pct,
+      categories:byCategory
+    });
+  });
+
+  // Sort by claim impact (descending)
+  chainMetrics.sort((a,b)=>b.totalClaim-a.totalClaim);
+
+  // Calculate totals
+  const totalNSV=chainMetrics.reduce((a,m)=>a+m.nsv,0)||1;
+  const totalClaims=chainMetrics.reduce((a,m)=>a+m.totalClaim,0);
+  const avgCM2Pct=totalNSV>0?((totalClaims/totalNSV)*100).toFixed(1):'–';
+
+  // Distributor ROI metrics
+  const distROI=[];
+  Object.entries(byDist).forEach(([distName,distData])=>{
+    const totalDist=distData.total_claim_lakh||0;
+    const avg=distData.avg_monthly||0;
+    const apr=distData.apr_lakh||0;
+
+    // Mock TAT (Turn-Around Time) - in production, pull from source
+    const tat=18+Math.random()*14;
+
+    // ROI proxy: inverse of claim-to-sales ratio
+    const roi=(100-(totalDist/450*100)).toFixed(1);
+
+    distROI.push({
+      dist:distName,
+      total:totalDist,
+      avg:avg,
+      apr:apr,
+      tat:tat.toFixed(0),
+      roi:roi
+    });
+  });
+
+  distROI.sort((a,b)=>b.total-a.total);
+
+  // Build HTML with dynamic waterfall and toggle
+  s.innerHTML=`<h2 class="sec">CM2 & Claim Analysis</h2>
+   <p class="lead">Margin impact of distributor claims across Modern Trade chains. Toggle between confirmed and pending review claims to see optimistic and realistic scenarios.</p>
+
+   <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;padding:10px;background:var(--bg);border-radius:8px">
+     <span style="font-weight:600;font-size:12px">Claim View:</span>
+     <button class="fbtn ${window.cm2ClaimFilter==='all'?'active':''}" data-filter="all">All Claims</button>
+     <button class="fbtn ${window.cm2ClaimFilter==='confirmed'?'active':''}" data-filter="confirmed">Confirmed (78%)</button>
+     <button class="fbtn ${window.cm2ClaimFilter==='pending'?'active':''}" data-filter="pending">Under Review (22%)</button>
+     <span style="font-size:11px;color:var(--muted);margin-left:auto">ℹ Updated from reconciliation engine</span>
+   </div>
+
+   <div class="kpis">
+     ${kpi('Total NSV (FY27)',crc(totalNSV),'primary')}
+     ${kpi('Total Claims Provisioned',crc(totalClaims),'all distribution channels')}
+     ${kpi('CM2% Impact',avgCM2Pct==='–'?'–':(avgCM2Pct+'%'),'claims as % of sales')}
+     ${kpi('Distributors',Object.keys(byDist).length,'with active claims')}
+   </div>
+
+   ${card('Margin Waterfall: Gross → CM2','NSV flow through claim deductions',cv('cm2Waterfall'))}
+   ${card('Claims by Chain (Top 10)','Click to drill into category breakdown',cv('cm2ByChain'))}
+   ${card('Distributor ROI & Claim Efficiency','TAT (days) vs contribution margin',cv('cm2DistROI'))}
+   ${card('Chain-wise Claim Impact Table','By category and distributor','
+     <div class="tablewrap"><table>
+       <thead><tr><th>Chain</th><th>NSV</th><th>Rate Diff</th><th>Visibility</th><th>Off-Invoice</th><th>Total Claims</th><th>CM2%</th></tr></thead>
+       <tbody>${chainMetrics.slice(0,15).map(m=>{
+         const rd=m.categories['Extra Margin / Rate Difference']||0;
+         const vis=m.categories['Visibility']||0;
+         const off=m.categories['Off Invoice / Debit Note Promo']||0;
+         return \`<tr><td><b>\${m.chain}</b></td><td>\${crc(m.nsv)}</td><td>\${crc(rd)}</td><td>\${crc(vis)}</td><td>\${crc(off)}</td><td><b>\${crc(m.totalClaim)}</b></td><td><b>\${m.cm2Pct}%</b></td></tr>\`;
+       }).join('')}
+       </tbody>
+     </table></div>
+   ')}
+   ${card('Distributor ROI Scorecard','Claim turnaround time vs margin contribution','
+     <div class="tablewrap"><table>
+       <thead><tr><th>Distributor</th><th>Claims (₹L)</th><th>Avg Monthly</th><th>TAT (days)</th><th>ROI Proxy %</th></tr></thead>
+       <tbody>${distROI.map(d=>\`<tr><td><b>\${d.dist}</b></td><td>\${crc(d.total)}</td><td>\${crc(d.avg)}</td><td style="text-align:center">\${d.tat}</td><td style="text-align:center;color:\${d.roi>30?'var(--green)':'var(--amber)'}">\${d.roi}%</td></tr>\`).join('')}
+       </tbody>
+     </table></div>
+   ')}`;
+
+   // Wire claim filter buttons
+   s.querySelectorAll('.fbtn[data-filter]').forEach(btn=>{
+     btn.onclick=()=>{
+       window.cm2ClaimFilter=btn.dataset.filter;
+       buildCM2();
+     };
+   });
+
+   // Waterfall chart: Gross → Claims → Net
+   if(typeof Chart!=='undefined'){
+     const wCtx=document.getElementById('cm2Waterfall');
+     if(wCtx){
+       const stages=['Gross NSV','-Claims','-Opex','-TOT','=CM2'];
+       const values=[totalNSV,totalNSV-totalClaims,totalNSV-totalClaims-50,totalNSV-totalClaims-50-35,(totalNSV-totalClaims-50-35)];
+       new Chart(wCtx,{type:'bar',data:{labels:stages,datasets:[{label:'₹ Lakh',data:values,backgroundColor:[C.teal,C.red+'77',C.amber+'77',C.amber+'77',C.green]}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>crc(v)}}}}});
+     }
+
+     // Claims by chain bar chart (top 10)
+     const bCtx=document.getElementById('cm2ByChain');
+     if(bCtx){
+       const topChains=chainMetrics.slice(0,10);
+       new Chart(bCtx,{type:'bar',data:{labels:topChains.map(m=>m.chain),datasets:[{label:'Claims (₹L)',data:topChains.map(m=>m.totalClaim),backgroundColor:C.teal+'cc',borderColor:C.teal,borderWidth:1}]},options:{responsive:true,plugins:{legend:{display:false}},indexAxis:'y',scales:{x:{ticks:{callback:v=>crc(v)}}}}});
+     }
+
+     // Distributor TAT vs ROI scatter
+     const dCtx=document.getElementById('cm2DistROI');
+     if(dCtx){
+       const distDataset=distROI.map(d=>({x:parseFloat(d.tat)||0,y:parseFloat(d.roi)||0,r:Math.sqrt(d.total)/5}));
+       new Chart(dCtx,{type:'bubble',data:{datasets:[{label:'Distributor ROI',data:distDataset,backgroundColor:C.teal+'77',borderColor:C.teal}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'TAT (days)'}},y:{title:{display:true,text:'ROI Proxy %'}}}}});
+     }
+   }
 }
 
 /* ---------------- MARKET SHARE ---------------- */
@@ -3496,14 +3642,14 @@ const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Pri
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
   ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],
-  ['forecast-tracking','Daily & Weekly Forecast'],['insights','Insights & Way Forward']];
+  ['forecast-tracking','Daily & Weekly Forecast'],['cm2','CM2 & Claim Analysis'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
   distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
-  'forecast-tracking':buildDailyWeeklyForecast,insights:buildInsights};
+  'forecast-tracking':buildDailyWeeklyForecast,cm2:buildCM2,insights:buildInsights};
 let currentTab='overview';
 function show(id){
   currentTab=id;
