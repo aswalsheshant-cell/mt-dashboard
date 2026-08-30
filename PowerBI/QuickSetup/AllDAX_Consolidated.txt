@@ -1642,3 +1642,152 @@ CALCULATE (
     COUNTROWS ( 'Fact Primary Article' ),
     'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" }
 )
+
+// ═══════════════════════════════════════════════════════════════════
+// STEP 15 — Secondary Sales Measures (14_SecondarySales_Measures.dax)
+// ═══════════════════════════════════════════════════════════════════
+// =====================================================================
+// SECONDARY SALES MEASURES
+//
+// All measures read from 'Fact Secondary Sales' (query 44_Fact_SecondarySales.pq).
+// Grain: Source_Month × Distributor × NSV_Lakh.
+//
+// Cross-table measures compare secondary sell-out NSV against primary
+// (from 'Fact Primary Article') to derive sell-through ratio.
+// All ratio measures use DIVIDE() — never plain division.
+//
+// FY filter: measures respect the Date[FY Year] slicer via the
+// MonthStart → Date table relationship established in the model.
+// =====================================================================
+
+
+// ── Core KPIs ─────────────────────────────────────────────────────────────
+
+[Secondary NSV Lakh] =
+SUMX (
+    FILTER (
+        'Fact Secondary Sales',
+        'Fact Secondary Sales'[Is_Provisional] = FALSE()
+    ),
+    'Fact Secondary Sales'[NSV_Lakh]
+)
+
+[Secondary NSV Lakh (Incl Provisional)] =
+SUM ( 'Fact Secondary Sales'[NSV_Lakh] )
+
+[Secondary NSV Cr] =
+DIVIDE ( [Secondary NSV Lakh], 100 )
+
+[Secondary Distributor Count] =
+DISTINCTCOUNT ( 'Fact Secondary Sales'[Distributor] )
+
+
+// ── Month-over-Month ───────────────────────────────────────────────────────
+
+[Secondary NSV MoM Δ Lakh] =
+VAR _cur  = [Secondary NSV Lakh]
+VAR _prev =
+    CALCULATE (
+        [Secondary NSV Lakh],
+        DATEADD ( 'Date'[Date], -1, MONTH )
+    )
+RETURN
+    IF ( ISBLANK ( _prev ), BLANK (), _cur - _prev )
+
+[Secondary NSV MoM % Δ] =
+VAR _cur  = [Secondary NSV Lakh]
+VAR _prev =
+    CALCULATE (
+        [Secondary NSV Lakh],
+        DATEADD ( 'Date'[Date], -1, MONTH )
+    )
+RETURN
+    DIVIDE ( _cur - _prev, _prev )
+
+
+// ── Sell-Through (Secondary ÷ Primary) ────────────────────────────────────
+// "Sell-through" = what proportion of primary dispatched was sold through
+// by the distributor to the MT store. Healthy range: 75–110%.
+// Values > 110% indicate pipeline drawdown; < 75% = under-liquidation.
+
+[Sell-Through %] =
+VAR _secondary = [Secondary NSV Lakh]
+VAR _primary   = [Total Primary Article NSV]      // from 01_CoreMeasures.dax
+RETURN
+    DIVIDE ( _secondary, _primary )
+
+[Sell-Through % (Capped 200)] =
+VAR _raw = [Sell-Through %]
+RETURN
+    IF ( _raw > 2, 2, _raw )
+
+[Sell-Through Signal] =
+VAR _st = [Sell-Through %]
+RETURN
+    IF (
+        ISBLANK ( _st ), "–",
+        IF ( _st >= 1.10, "Pipeline Drawdown",
+        IF ( _st >= 0.75, "On-Track",
+             "Under-Liquidation" ))
+    )
+
+
+// ── Distributor-level ranking ──────────────────────────────────────────────
+
+[Secondary NSV Rank] =
+RANKX (
+    ALLSELECTED ( 'Fact Secondary Sales'[Distributor] ),
+    [Secondary NSV Lakh],
+    ,
+    DESC,
+    DENSE
+)
+
+[Secondary NSV Distributor Share %] =
+DIVIDE (
+    [Secondary NSV Lakh],
+    CALCULATE ( [Secondary NSV Lakh], ALLSELECTED ( 'Fact Secondary Sales'[Distributor] ) )
+)
+
+
+// ── Q1 FY27 aggregates (period-fixed, for scorecards) ─────────────────────
+
+[Q1 FY27 Secondary NSV Lakh] =
+CALCULATE (
+    [Secondary NSV Lakh],
+    'Date'[FY Year] = "FY27",
+    'Date'[Quarter] = "Q1"
+)
+
+[Q1 FY27 Secondary NSV Cr] =
+DIVIDE ( [Q1 FY27 Secondary NSV Lakh], 100 )
+
+
+// ── Claim context (from Fact Claim Master) ────────────────────────────────
+// Claim as % of secondary sell-out NSV (a different ratio to the
+// claim-as-%-of-primary-NSV computed in 13_CM2_Measures.dax).
+
+[Claim % of Secondary NSV] =
+VAR _claim    = SUM ( 'Fact Claim Master'[Amount_Lakh] )
+VAR _secondary = [Secondary NSV Lakh]
+RETURN
+    DIVIDE ( _claim, _secondary )
+
+
+// ── Display labels ────────────────────────────────────────────────────────
+
+[Secondary NSV Label] =
+VAR _val = [Secondary NSV Lakh]
+RETURN
+    IF (
+        ISBLANK ( _val ), "–",
+        IF ( _val >= 100,
+            "₹" & FORMAT ( DIVIDE ( _val, 100 ), "0.0" ) & " Cr",
+            "₹" & FORMAT ( _val, "0.0" ) & " L"
+        )
+    )
+
+[Sell-Through Label] =
+VAR _st = [Sell-Through %]
+RETURN
+    IF ( ISBLANK ( _st ), "–", FORMAT ( _st, "0.0%" ) )
