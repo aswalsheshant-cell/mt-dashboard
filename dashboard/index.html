@@ -1604,6 +1604,26 @@ function buildForecast(){
      ${kpi('Implied uplift',crc(f.fy27_forecast-f.fy26_actual),pct((f.fy27_forecast/f.fy26_actual-1)*100))}
    </div>
    ${card(`Offtake — actuals &amp; ${fyDispLabel('FY27')} ${isTY?'TY target':'forecast'}`,'',cv('fcChart'))}
+   ${(()=>{
+     const fzones=(f.by_zone||[]);
+     if(!fzones.length) return '';
+     const zrows=fzones.map(z=>{
+       const yoyV=z.yoy!=null?z.yoy:null;
+       return `<tr>
+         <td>${drillLink('Zone',z.name)}</td>
+         <td>${crc(z.fy26)}</td>
+         <td><b>${crc(z.fy27)}</b></td>
+         <td>${z.share!=null?z.share+'%':'–'}</td>
+         <td><span class="pill ${yoyV!=null&&yoyV>=0?'g':'r'}">${yoyV!=null?pct(yoyV):'–'}</span></td>
+       </tr>`;
+     }).join('');
+     return card(`Regional forecast by zone — ${fyDispLabel('FY27')}`,
+       `${fyDispLabel('FY27')} forecast distributed by each zone\'s ${fyDispLabel('FY26')} offtake share. Click a zone to drill.`,
+       `<div class="tablewrap"><table>
+         <thead><tr><th>Zone</th><th>${fyDispLabel('FY26')} Actual</th><th>${fyDispLabel('FY27')} Forecast</th><th>Zone Share</th><th>YoY</th></tr></thead>
+         <tbody>${zrows}</tbody>
+       </table></div>`);
+   })()}
    ${card('Method',f.method,isTY?'':'<p class="note" style="margin:0">Forecast is directional for planning, not a financial commitment. Refresh monthly as actuals land; calibrate the growth band against the JBP/AOP targets.</p>')}
    ${catDrillCardHtml('fcCatDrill')}
    ${drillCardHtml('fcDrill','Primary NSV')}`;
