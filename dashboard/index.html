@@ -1943,11 +1943,23 @@ function buildCM2(){
    `)}
    ${card('Distributor ROI Scorecard','Claim turnaround time vs margin contribution',`
      <div class="tablewrap"><table>
-       <thead><tr><th>Distributor</th><th>Claims (₹L)</th><th>Avg Monthly</th><th>TAT (days)</th><th>ROI Proxy %</th></tr></thead>
-       <tbody>${distROI.map(d=>`<tr><td><b>${d.dist}</b></td><td>${crc(d.total)}</td><td>${crc(d.avg)}</td><td style="text-align:center">${d.tat}</td><td style="text-align:center;color:${d.roi>30?'var(--green)':'var(--amber)'}">${d.roi}%</td></tr>`).join('')}
+       <thead><tr><th>Distributor</th><th>Claims (₹L)</th><th>Apr</th><th>May</th><th>Jun</th></tr></thead>
+       <tbody>${Object.entries(byDist).map(([d,v])=>`<tr><td><b>${hesc(d)}</b></td><td>${crc(v.total_claim_lakh)}</td><td>${crc(v.apr_lakh)}</td><td>${crc(v.may_lakh)}</td><td>${crc(v.jun_lakh)}</td></tr>`).join('')}
        </tbody>
      </table></div>
-   `)}`;
+   `)}
+   ${(()=>{
+     const byBrand=claims.by_brand||{};
+     if(!Object.keys(byBrand).length) return '';
+     const brandRows=Object.entries(byBrand).sort((a,b)=>b[1].total_lakh-a[1].total_lakh).map(([brand,bv])=>
+       `<tr><td><b>${hesc(brand)}</b></td><td class="r">${crc(bv.apr_lakh)}</td><td class="r">${crc(bv.may_lakh)}</td><td class="r">${crc(bv.jun_lakh)}</td><td class="r"><b>${crc(bv.total_lakh)}</b></td></tr>`
+     ).join('');
+     return card('Brand-wise Claim Distribution (Apr–Jun 2026)','Actual expense provisioned by brand from invoice-mapped claim master.',
+       `<div class="tablewrap"><table>
+         <thead><tr><th>Brand</th><th>Apr-2026</th><th>May-2026</th><th>Jun-2026</th><th>Q1 Total</th></tr></thead>
+         <tbody>${brandRows}</tbody>
+       </table></div>`);
+   })()}`;
 
    // Wire claim filter buttons
    s.querySelectorAll('.fbtn[data-filter]').forEach(btn=>{
@@ -2094,6 +2106,62 @@ function buildDistribution(){
        </table></div>`);
    })()}
    ${distGapHtml()}
+   ${(()=>{
+     const ss=D.secondary_sales||{};
+     if(!ss.by_distributor||!ss.by_distributor.length) return '';
+     const monthLabels=['Apr-2026','May-2026','Jun-2026'];
+     // Filter distributors by Zone if applicable (no zone dimension here — show all)
+     const dists=ss.by_distributor||[];
+     const topDists=dists.slice(0,20);
+     const distRows=topDists.map(d=>{
+       const trend=d.jun_lakh>=d.apr_lakh?'▲':'▼';
+       const trendCls=d.jun_lakh>=d.apr_lakh?'g':'r';
+       return `<tr>
+         <td><b>${hesc(d.name)}</b></td>
+         <td class="r">${crc(d.apr_lakh)}</td>
+         <td class="r">${crc(d.may_lakh)}</td>
+         <td class="r">${crc(d.jun_lakh)}</td>
+         <td class="r"><b>${crc(d.total_lakh)}</b></td>
+         <td style="text-align:center"><span class="pill ${trendCls}">${trend}</span></td>
+       </tr>`;
+     }).join('');
+     // By chain top 10
+     const chainRows=(ss.by_chain||[]).filter(c=>c.name&&c.name!=='Unknown').slice(0,10).map(c=>`<tr>
+       <td>${hesc(c.name)}</td>
+       <td class="r">${crc(c.apr_lakh)}</td><td class="r">${crc(c.may_lakh)}</td><td class="r">${crc(c.jun_lakh)}</td>
+       <td class="r"><b>${crc(c.total_lakh)}</b></td></tr>`).join('');
+     // By brand
+     const brandRows=(ss.by_brand||[]).filter(b=>b.name&&b.name!=='Unknown/Unmapped').map(b=>`<tr>
+       <td>${hesc(b.name)}</td>
+       <td class="r">${crc(b.apr_lakh)}</td><td class="r">${crc(b.may_lakh)}</td><td class="r">${crc(b.jun_lakh)}</td>
+       <td class="r"><b>${crc(b.total_lakh)}</b></td></tr>`).join('');
+     return `<hr style="margin:20px 0;border:none;border-top:1px solid var(--border)">
+     <h3 class="sec" style="font-size:14px;margin:16px 0 6px">Secondary Sales — Distributor MoM (Apr–Jun 2026)</h3>
+     <p class="lead" style="margin-bottom:10px">Distributor sell-out registers. ₹${ss.total_cr} Cr total NSV across ${ss.n_distributors} distributors (${ss.n_rows?.toLocaleString()} rows). <em>Note: North region registers not yet included.</em></p>
+     <div class="kpis">
+       ${kpi('Total Secondary NSV',`₹${ss.total_cr} Cr`,'Apr–Jun 2026 (ex-GST where stated)')}
+       ${kpi('Distributors Reporting',ss.n_distributors,'in this repository')}
+       ${kpi('Transaction Records',(ss.n_rows||0).toLocaleString(),'aggregated SKU-level lines')}
+       ${kpi('Period','Apr–Jun 2026','Q1 FY27')}
+     </div>
+     ${card('Distributor-wise Secondary NSV (MoM)','Sell-out NSV by distributor by month. North registers not yet available.',
+       `<div class="tablewrap"><table>
+         <thead><tr><th>Distributor</th><th>Apr-2026</th><th>May-2026</th><th>Jun-2026</th><th>Q1 Total</th><th>Trend</th></tr></thead>
+         <tbody>${distRows||'<tr><td colspan="6">No data.</td></tr>'}</tbody>
+       </table></div>`)}
+     <div class="grid g2">
+       ${card('Top Chains by Secondary NSV','Mapped from distributor registers.',
+         `<div class="tablewrap"><table>
+           <thead><tr><th>Chain</th><th>Apr</th><th>May</th><th>Jun</th><th>Total</th></tr></thead>
+           <tbody>${chainRows||'<tr><td colspan="5">No data.</td></tr>'}</tbody>
+         </table></div>`)}
+       ${card('Brand-wise Secondary NSV','NSV by brand, mapped from article master.',
+         `<div class="tablewrap"><table>
+           <thead><tr><th>Brand</th><th>Apr</th><th>May</th><th>Jun</th><th>Total</th></tr></thead>
+           <tbody>${brandRows||'<tr><td colspan="5">No data.</td></tr>'}</tbody>
+         </table></div>`)}
+     </div>`;
+   })()}
    ${drillCardHtml('dDrill','Primary NSV')}`;
   wireDrillLinks(s);
   mkBarH('dZone',zones.map(z=>z.name),zones.map(z=>z.stores),C.teal,false,v=>drillTo('Zone',v));

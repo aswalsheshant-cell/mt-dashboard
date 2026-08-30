@@ -1,147 +1,78 @@
-# Chain Claim Expense Master — Apr–Jun 2026 (Invoice Mapped)
-# Generated: 2026-08-30
-# Source: Distributor_Chain_Claim_Master_AprJun_2026_Invoice_Mapped.xlsx
-# Total Extracted Actual: INR 56,487,873.37  (564.88 L)
-# Included & Mapped (chain totals): INR 50,438,436.94  (504.38 L)
-# Exceptions pending: 77
-
-SECTION 1: Chain-wise Actual Expense
-Chain Name,Chain Promo (On Invoice) INR,Extra Margin INR,Freight INR,Incentive INR,Off Invoice INR,Visibility INR,Total (INR),Total (L),Review Note
-"D-Mart",0.00,12259937.55,13364.45,0.00,0.00,0.00,12273302.00,122.7300,""
-"Lulu",5818211.56,2728148.00,0.00,0.00,0.00,3345110.80,11891470.36,118.9100,""
-"Reliance Retail",0.00,8631631.89,156758.00,0.00,0.00,0.00,8788389.89,87.8800,""
-"Combined Charge",0.00,0.00,0.00,0.00,0.00,4423455.10,4423455.10,44.2300,""
-"More Retail",566279.40,1107859.37,0.00,0.00,1146705.65,368160.00,3189004.42,31.8900,""
-"Health & Glow",475501.70,1363592.82,0.00,0.00,476894.20,133599.27,2449587.99,24.5000,""
-"Apollo",0.00,2171674.00,0.00,0.00,47336.35,0.00,2219010.34,22.1900,""
-"Vishal Mega Mart",304573.68,845386.39,225457.68,0.00,0.00,0.00,1375417.75,13.7500,""
-"EMAMI FRANKROSS",0.00,845309.17,0.00,0.00,0.00,0.00,845309.17,8.4500,""
-"Spencer's",197200.50,597290.75,0.00,0.00,0.00,0.00,794491.25,7.9400,""
-"AirPlaza",0.00,531216.02,30518.71,0.00,0.00,0.00,561734.73,5.6200,""
-"Arambagh",0.00,543349.19,0.00,0.00,0.00,0.00,543349.19,5.4300,""
-"RATNADEEP RETAIL PVT LTD",0.00,396216.45,0.00,0.00,0.00,0.00,396216.45,3.9600,""
-"SUMOSAVE",0.00,205419.93,0.00,0.00,0.00,0.00,205419.93,2.0500,""
-"FLEET LABS",0.00,187901.45,0.00,0.00,0.00,0.00,187901.45,1.8800,""
-"Frankross",173433.56,-10273.41,0.00,0.00,0.00,0.00,163160.15,1.6300,""
-"Avenue Supermarts Ltd.",97624.76,42370.36,0.00,0.00,0.00,0.00,139995.12,1.4000,""
-"Transportation",0.00,0.00,0.00,0.00,18572.69,0.00,18572.69,0.1900,""
-"Beauty & Nutrition",0.00,-6404.25,0.00,0.00,11219.06,0.00,4814.81,0.0500,""
-"GHL Pharma & Diagnostic Pvt Ltd",0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.0000,""
-"MERABO LABS PRIVATE LIMITED",0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.0000,""
-"Unspecified / Review",0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.0000,"Assign chain before booking"
-"Spar",0.00,-2051.27,0.00,0.00,0.00,0.00,-2051.27,-0.0200,""
-"Trilife",0.00,-3838.59,0.00,0.00,0.00,0.00,-3838.59,-0.0400,""
-"Sastasundar",0.00,-26276.00,0.00,0.00,0.00,0.00,-26276.00,-0.2600,""
-
-SECTION 2: Distributor-wise Monthly Expense
-Distributor,Apr-2026 INR,May-2026 INR,Jun-2026 INR,3-Month Total INR,3-Month Total (L),Review Amount INR
-"Sri Vijaya Durga Agencies",6741211.30,4732942.88,6254702.37,17728856.55,177.2900,0.00
-"A Z Enterprises",3763877.64,3128201.00,1991015.38,8883094.02,88.8300,0.00
-"Venkateshwara Agencies",1615190.42,1639309.60,2079051.81,5333551.83,53.3400,0.00
-"Balaji Associates",1527605.22,1362716.87,1738371.70,4628693.80,46.2900,388883.00
-"Sancus Network",1445739.18,1443715.92,1534000.00,4423455.10,44.2300,0.00
-"D.L. Sales",1323319.79,1019820.18,878130.12,3221270.09,32.2100,0.00
-"Kottaram",0.00,0.00,2652797.23,2652797.23,26.5300,0.00
-"Chhabra Traders",1406125.72,1170605.07,0.00,2576730.79,25.7700,1869652.54
-"Real Time Logistics",253443.68,58589.05,121392.48,433425.21,4.3300,0.00
-"Sai Saachi Associates",167025.47,53886.15,46195.99,267107.61,2.6700,4633.00
-"United Marketing",29951.35,22955.13,17345.57,70252.05,0.7000,0.00
-"Srijan Enterprises",69401.20,0.00,0.00,69401.20,0.6900,9208.60
-"Mark Enterprises",10895.22,21566.63,20239.38,52701.22,0.5300,0.00
-"R R Traders",8855.87,26682.54,0.00,35538.41,0.3600,329781.81
-"CHOUDHARY ENTERPRISES",0.00,0.00,30518.71,30518.71,0.3100,148874.40
-"Pragati Sales",0.00,0.00,22560.84,22560.84,0.2300,55501.00
-"Sehaj Enterprises",1483.18,4785.61,2213.49,8482.28,0.0800,86008.45
-"Just Mark",0.00,0.00,0.00,0.00,0.0000,1063803.09
-"Kiran Trading Co.",0.00,0.00,0.00,0.00,0.0000,2290906.84
-
-SECTION 3: Exception & Approval Queue
-Month,Distributor,Issue,Source File,Details,Owner / Decision
-"Apr-2026","G V Enterprises","Legacy claim workbook not parsed","April\Claims\G V Enterprises April 26 Okay\GV April'26 MT -Indirect Claim Submission Process and Format Final.xlsb","Retained in source index; manual review required.","PENDING"
-"Apr-2026","Kottaram","Legacy claim workbook not parsed","April\Claims\Kottaram April 26 Okay\promo claim.xls","Retained in source index; manual review required.","PENDING"
-"Jun-2026","G V Enterprises","Legacy claim workbook not parsed","June\June Claims\G V Enterprises June 26 Okay\GV JUN'26 MT -Indirect Claim Submission Process and Format.xls","Retained in source index; manual review required.","PENDING"
-"Jun-2026","Kottaram","Legacy claim workbook not parsed","June\June Claims\Kottaram June 26\NORMAL CLAIM ULY (2).xls","Retained in source index; manual review required.","PENDING"
-"Jun-2026","Kottaram","Legacy claim workbook not parsed","June\June Claims\Kottaram June 26\PROMO CLAIM JULY (3) CORRE.xls","Retained in source index; manual review required.","PENDING"
-"Jun-2026","MANOJ SOAP AGENCY","Legacy claim workbook not parsed","June\June Claims\MANOJ SOAP AGENCY June 26 Okay\MT -Indirect Claim Submission Process  MANOJ SOAP June 2026.xls","Retained in source index; manual review required.","PENDING"
-"May-2026","G V Enterprises","Legacy claim workbook not parsed","May\May Claims\G V Enterprises May 26 Okay\GV MAY'26 MT -Indirect Claim Submission Process and Format.xls","Retained in source index; manual review required.","PENDING"
-"May-2026","Kottaram","Legacy claim workbook not parsed","May\May Claims\Kottaram May 26 Okay\NEW MAY-26 claimS.xls","Retained in source index; manual review required.","PENDING"
-"May-2026","Kottaram","Legacy claim workbook not parsed","May\May Claims\Kottaram May 26 Okay\OFF INVOICE MAY CLAIM 2614.50.xls","Retained in source index; manual review required.","PENDING"
-"May-2026","Manoj Soap Agency","Legacy claim workbook not parsed","May\May Claims\Manoj Soap Agency May 26 Okay\MT -Indirect Claim Submission Process  MANOJ SOAP MAY 2026.xls","Retained in source index; manual review required.","PENDING"
-"Apr-2026","Balaji Associates","Chain mapping required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Incentive | ₹1,94,442","PENDING"
-"Jun-2026","Srijan Enterprises","Chain mapping required","June\June Claims\SriJan Enterprises Not consider\MT -Indirect Claim Format June-26 (Rate difference) (2).xlsx","Off Invoice / Debit Note Promo | ₹3,375","PENDING"
-"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Reliance Retail | Extra Margin / Rate Difference | ₹5,669","PENDING"
-"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Apollo | Extra Margin / Rate Difference | ₹-709","PENDING"
-"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Vishal Mega Mart | Freight / Transportation | ₹46,257","PENDING"
-"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Reliance Retail | Freight / Transportation | ₹38,541","PENDING"
-"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Unspecified / Review | Incentive | ₹1,94,442","PENDING"
-"Apr-2026","Just Mark","Brand split required","April\Claims\JUST MARK-Dmart  April 26 Okay\Final Claim Just Mark- Apr.26 Revised.xlsx","D-Mart | Extra Margin / Rate Difference | ₹3,73,650","PENDING"
-"Apr-2026","Kiran Trading Co.","Brand split required","April\Claims\Kiran Trading Co- Dmart  April 26 Okay\Kiran Trading Final Claim Working April'26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹1,52,678","PENDING"
-"Apr-2026","Pragati Sales","Brand split required","April\Claims\PRAGATI SALES-D-MART April 26\Final Claim Pragati Sales- April'26 (1).xlsx","D-Mart | Extra Margin / Rate Difference | ₹55,501","PENDING"
-"Apr-2026","Real Time Logistics","Brand split required","April\Claims\REAL TIME LOGISTICS April 26 Okay\APRIL MONTH.xlsx","Vishal Mega Mart | Freight / Transportation | ₹31,006","PENDING"
-"Apr-2026","R R Traders","Brand split required","April\Claims\RR Traders-MT  April 26 Okay\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹52,431","PENDING"
-"Apr-2026","R R Traders","Brand split required","April\Claims\RR Traders-MT  April 26 Okay\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx","Vishal Mega Mart | Freight / Transportation | ₹8,856","PENDING"
-"Apr-2026","Sai Saachi Associates","Brand split required","April\Claims\SAI SAACHI ASSOCIATES-MT-OR  April 26 Okay\Sai Saachi -MT -Indirect Claim Format April-26 - (1).xlsx","D-Mart | Freight / Transportation | ₹11,508","PENDING"
-"Apr-2026","Sehaj Enterprises","Brand split required","April\Claims\Sehaj Enterprises -MT-JK  April 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹7,756","PENDING"
-"Apr-2026","Sehaj Enterprises","Brand split required","April\Claims\Sehaj Enterprises -MT-JK  April 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx","Vishal Mega Mart | Freight / Transportation | ₹1,483","PENDING"
-"Apr-2026","Srijan Enterprises","Brand split required","April\Claims\SRIJAN ENTERPRISES-MT April 26 Okay\MT -Indirect Claim Format April-26 (Rate difference).xlsx","FLEET LABS | Freight / Transportation | ₹2,459","PENDING"
-"Apr-2026","Venkateshwara Agencies","Brand split required","April\Claims\VENKATESHWARA AGENCIES April 26\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx","More Retail | Off Invoice / Debit Note Promo | ₹43,223","PENDING"
-"Apr-2026","Venkateshwara Agencies","Brand split required","April\Claims\VENKATESHWARA AGENCIES April 26\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx","Health & Glow | Off Invoice / Debit Note Promo | ₹27,398","PENDING"
-"Apr-2026","Venkateshwara Agencies","Brand split required","April\Claims\VENKATESHWARA AGENCIES April 26\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx","Apollo | Off Invoice / Debit Note Promo | ₹16,953","PENDING"
-"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹3,14,338","PENDING"
-"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Reliance Retail | Extra Margin / Rate Difference | ₹13,01,221","PENDING"
-"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Vishal Mega Mart | Freight / Transportation | ₹69,877","PENDING"
-"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Reliance Retail | Freight / Transportation | ₹52,936","PENDING"
-"Jun-2026","CHOUDHARY ENTERPRISES","Brand split required","June\June Claims\CHOUDHARY ENTERPRISES June 26\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,48,874","PENDING"
-"Jun-2026","CHOUDHARY ENTERPRISES","Brand split required","June\June Claims\CHOUDHARY ENTERPRISES June 26\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx","AirPlaza | Freight / Transportation | ₹30,519","PENDING"
-"Jun-2026","Just Mark","Brand split required","June\June Claims\JUST MARK-Dmart  June 26 Okay\Final Claim Just Mark- Jun.26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹6,29,594","PENDING"
-"Jun-2026","Kiran Trading Co.","Brand split required","June\June Claims\Kiran Trading June 26 Okay\Kiran Trading Final Claim Working June'26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹19,27,494","PENDING"
-"Jun-2026","R R Traders","Brand split required","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,07,462","PENDING"
-"Jun-2026","R R Traders","Brand split required","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Freight / Transportation | ₹19,259","PENDING"
-"Jun-2026","Real Time Logistics","Brand split required","June\June Claims\REAL TIME LOGISTICS June 26 Okay\MT -Indirect Claim Format JUNE-26 (Rate difference) (3).xlsx","Vishal Mega Mart | Freight / Transportation | ₹14,774","PENDING"
-"Jun-2026","Sai Saachi Associates","Brand split required","June\June Claims\SAI SAACHI ASSOCIATES June 26 Okay\Sai Saachi -MT -Indirect Claim Format June-26.xlsx","D-Mart | Freight / Transportation | ₹1,856","PENDING"
-"Jun-2026","Sehaj Enterprises","Brand split required","June\June Claims\Sehaj Enterprises -MT-JK  June 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹18,880","PENDING"
-"Jun-2026","Sehaj Enterprises","Brand split required","June\June Claims\Sehaj Enterprises -MT-JK  June 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx","Vishal Mega Mart | Freight / Transportation | ₹2,213","PENDING"
-"Jun-2026","Srijan Enterprises","Brand split required","June\June Claims\SriJan Enterprises Not consider\MT -Indirect Claim Format June-26 (Rate difference) (2).xlsx","Unspecified / Review | Off Invoice / Debit Note Promo | ₹3,375","PENDING"
-"Jun-2026","Venkateshwara Agencies","Brand split required","June\June Claims\Venkateshwara Agencies June 26 Okay\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx","More Retail | Off Invoice / Debit Note Promo | ₹46,357","PENDING"
-"Jun-2026","Venkateshwara Agencies","Brand split required","June\June Claims\Venkateshwara Agencies June 26 Okay\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx","Health & Glow | Off Invoice / Debit Note Promo | ₹4,02,611","PENDING"
-"Jun-2026","Venkateshwara Agencies","Brand split required","June\June Claims\Venkateshwara Agencies June 26 Okay\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx","Apollo | Off Invoice / Debit Note Promo | ₹30,384","PENDING"
-"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹21,642","PENDING"
-"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Reliance Retail | Extra Margin / Rate Difference | ₹12,46,131","PENDING"
-"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Apollo | Extra Margin / Rate Difference | ₹15,751","PENDING"
-"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Vishal Mega Mart | Freight / Transportation | ₹13,912","PENDING"
-"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Reliance Retail | Freight / Transportation | ₹65,281","PENDING"
-"May-2026","Just Mark","Brand split required","May\May Claims\Just Mark May 26 Okay\Final Claim Just Mark- May.26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹60,559","PENDING"
-"May-2026","Kiran Trading Co.","Brand split required","May\May Claims\Kiran Trading May 26 Okay\Kiran Trading Final Claim Working May'26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹2,10,735","PENDING"
-"May-2026","R R Traders","Brand split required","May\May Claims\R R Trader May 26 Okay\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,50,630","PENDING"
-"May-2026","R R Traders","Brand split required","May\May Claims\R R Trader May 26 Okay\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx","Vishal Mega Mart | Freight / Transportation | ₹26,683","PENDING"
-"May-2026","Real Time Logistics","Brand split required","May\May Claims\REAL TIME LOGISTICS May 26 Okay\MAY MONTH CLAIM (1) Real time.xlsx","Vishal Mega Mart | Freight / Transportation | ₹5,611","PENDING"
-"May-2026","Sai Saachi Associates","Brand split required","May\May Claims\Sai Sachi Claim May 26 Query\Sai Saachi -MT -Indirect Claim Format May-26.xlsx","D-Mart | Freight / Transportation | ₹4,633","PENDING"
-"May-2026","Sehaj Enterprises","Brand split required","May\May Claims\Sehaj Enterprises May 26 Okay\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹59,373","PENDING"
-"May-2026","Sehaj Enterprises","Brand split required","May\May Claims\Sehaj Enterprises May 26 Okay\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx","Vishal Mega Mart | Freight / Transportation | ₹4,786","PENDING"
-"Apr-2026","Just Mark","Invoice chain confirmed; amount mismatch","April\Claims\JUST MARK-Dmart  April 26 Okay\Final Claim Just Mark- Apr.26 Revised.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹4,88,765","PENDING"
-"Apr-2026","Kiran Trading Co.","Invoice chain confirmed; amount mismatch","April\Claims\Kiran Trading Co- Dmart  April 26 Okay\Kiran Trading Final Claim Working April'26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹2,82,066","PENDING"
-"Apr-2026","Pragati Sales","Invoice chain confirmed; amount mismatch","April\Claims\PRAGATI SALES-D-MART April 26\Final Claim Pragati Sales- April'26 (1).xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹1,49,571","PENDING"
-"Apr-2026","R R Traders","Invoice chain confirmed; amount mismatch","April\Claims\RR Traders-MT  April 26 Okay\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹52,431","PENDING"
-"Apr-2026","Sehaj Enterprises","Invoice chain confirmed; amount mismatch","April\Claims\Sehaj Enterprises -MT-JK  April 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹7,756","PENDING"
-"Apr-2026","Srijan Enterprises","Invoice chain confirmed; amount mismatch","April\Claims\SRIJAN ENTERPRISES-MT April 26 Okay\MT -Indirect Claim Format April-26 (Rate difference).xlsx","FLEET LABS | Freight / Transportation | Difference ₹-375","PENDING"
-"Jun-2026","CHOUDHARY ENTERPRISES","Invoice chain confirmed; amount mismatch","June\June Claims\CHOUDHARY ENTERPRISES June 26\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,48,874","PENDING"
-"Jun-2026","Just Mark","Invoice chain confirmed; amount mismatch","June\June Claims\JUST MARK-Dmart  June 26 Okay\Final Claim Just Mark- Jun.26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹6,57,545","PENDING"
-"Jun-2026","Kiran Trading Co.","Invoice chain confirmed; amount mismatch","June\June Claims\Kiran Trading June 26 Okay\Kiran Trading Final Claim Working June'26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹14,23,698","PENDING"
-"Jun-2026","R R Traders","Invoice chain confirmed; amount mismatch","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,07,425","PENDING"
-"Jun-2026","R R Traders","Invoice chain confirmed; amount mismatch","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Freight / Transportation | Difference ₹-2,938","PENDING"
-"Jun-2026","Sehaj Enterprises","Invoice chain confirmed; amount mismatch","June\June Claims\Sehaj Enterprises -MT-JK  June 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹18,880","PENDING"
-"May-2026","Just Mark","Invoice chain confirmed; amount mismatch","May\May Claims\Just Mark May 26 Okay\Final Claim Just Mark- May.26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹-9,238","PENDING"
-"May-2026","Kiran Trading Co.","Invoice chain confirmed; amount mismatch","May\May Claims\Kiran Trading May 26 Okay\Kiran Trading Final Claim Working May'26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹1,72,547","PENDING"
-"May-2026","R R Traders","Invoice chain confirmed; amount mismatch","May\May Claims\R R Trader May 26 Okay\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,50,630","PENDING"
-"May-2026","Sehaj Enterprises","Invoice chain confirmed; amount mismatch","May\May Claims\Sehaj Enterprises May 26 Okay\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹59,373","PENDING"
-
-SECTION 4: Summary Statistics
-Metric,Value
-Total Extracted Actual (INR),56487873.37
-Total Extracted Actual (L),564.8800
-Included & Mapped (INR),50438436.94
-Included & Mapped (L),504.3800
-Chains with data,22
-Distributors,19
-Exception records,77
-Period,Q1 FY27 (Apr-Jun 2026)
+Month,Distributor,Issue,Source File,Details
+"Apr-2026","G V Enterprises","Legacy claim workbook not parsed","April\Claims\G V Enterprises April 26 Okay\GV April'26 MT -Indirect Claim Submission Process and Format Final.xlsb","Retained in source index; manual review required."
+"Apr-2026","Kottaram","Legacy claim workbook not parsed","April\Claims\Kottaram April 26 Okay\promo claim.xls","Retained in source index; manual review required."
+"Jun-2026","G V Enterprises","Legacy claim workbook not parsed","June\June Claims\G V Enterprises June 26 Okay\GV JUN'26 MT -Indirect Claim Submission Process and Format.xls","Retained in source index; manual review required."
+"Jun-2026","Kottaram","Legacy claim workbook not parsed","June\June Claims\Kottaram June 26\NORMAL CLAIM ULY (2).xls","Retained in source index; manual review required."
+"Jun-2026","Kottaram","Legacy claim workbook not parsed","June\June Claims\Kottaram June 26\PROMO CLAIM JULY (3) CORRE.xls","Retained in source index; manual review required."
+"Jun-2026","MANOJ SOAP AGENCY","Legacy claim workbook not parsed","June\June Claims\MANOJ SOAP AGENCY June 26 Okay\MT -Indirect Claim Submission Process  MANOJ SOAP June 2026.xls","Retained in source index; manual review required."
+"May-2026","G V Enterprises","Legacy claim workbook not parsed","May\May Claims\G V Enterprises May 26 Okay\GV MAY'26 MT -Indirect Claim Submission Process and Format.xls","Retained in source index; manual review required."
+"May-2026","Kottaram","Legacy claim workbook not parsed","May\May Claims\Kottaram May 26 Okay\NEW MAY-26 claimS.xls","Retained in source index; manual review required."
+"May-2026","Kottaram","Legacy claim workbook not parsed","May\May Claims\Kottaram May 26 Okay\OFF INVOICE MAY CLAIM 2614.50.xls","Retained in source index; manual review required."
+"May-2026","Manoj Soap Agency","Legacy claim workbook not parsed","May\May Claims\Manoj Soap Agency May 26 Okay\MT -Indirect Claim Submission Process  MANOJ SOAP MAY 2026.xls","Retained in source index; manual review required."
+"Apr-2026","Balaji Associates","Chain mapping required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Incentive | ₹1,94,442"
+"Jun-2026","Srijan Enterprises","Chain mapping required","June\June Claims\SriJan Enterprises Not consider\MT -Indirect Claim Format June-26 (Rate difference) (2).xlsx","Off Invoice / Debit Note Promo | ₹3,375"
+"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Reliance Retail | Extra Margin / Rate Difference | ₹5,669"
+"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Apollo | Extra Margin / Rate Difference | ₹-709"
+"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Vishal Mega Mart | Freight / Transportation | ₹46,257"
+"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Reliance Retail | Freight / Transportation | ₹38,541"
+"Apr-2026","Balaji Associates","Brand split required","April\Claims\BALAJI ASSOCIATES  April 26 Okay\MT -Indirect Claim Format SCBC April-2026 (Rate difference).xlsx","Unspecified / Review | Incentive | ₹1,94,442"
+"Apr-2026","Just Mark","Brand split required","April\Claims\JUST MARK-Dmart  April 26 Okay\Final Claim Just Mark- Apr.26 Revised.xlsx","D-Mart | Extra Margin / Rate Difference | ₹3,73,650"
+"Apr-2026","Kiran Trading Co.","Brand split required","April\Claims\Kiran Trading Co- Dmart  April 26 Okay\Kiran Trading Final Claim Working April'26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹1,52,678"
+"Apr-2026","Pragati Sales","Brand split required","April\Claims\PRAGATI SALES-D-MART April 26\Final Claim Pragati Sales- April'26 (1).xlsx","D-Mart | Extra Margin / Rate Difference | ₹55,501"
+"Apr-2026","Real Time Logistics","Brand split required","April\Claims\REAL TIME LOGISTICS April 26 Okay\APRIL MONTH.xlsx","Vishal Mega Mart | Freight / Transportation | ₹31,006"
+"Apr-2026","R R Traders","Brand split required","April\Claims\RR Traders-MT  April 26 Okay\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹52,431"
+"Apr-2026","R R Traders","Brand split required","April\Claims\RR Traders-MT  April 26 Okay\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx","Vishal Mega Mart | Freight / Transportation | ₹8,856"
+"Apr-2026","Sai Saachi Associates","Brand split required","April\Claims\SAI SAACHI ASSOCIATES-MT-OR  April 26 Okay\Sai Saachi -MT -Indirect Claim Format April-26 - (1).xlsx","D-Mart | Freight / Transportation | ₹11,508"
+"Apr-2026","Sehaj Enterprises","Brand split required","April\Claims\Sehaj Enterprises -MT-JK  April 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹7,756"
+"Apr-2026","Sehaj Enterprises","Brand split required","April\Claims\Sehaj Enterprises -MT-JK  April 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx","Vishal Mega Mart | Freight / Transportation | ₹1,483"
+"Apr-2026","Srijan Enterprises","Brand split required","April\Claims\SRIJAN ENTERPRISES-MT April 26 Okay\MT -Indirect Claim Format April-26 (Rate difference).xlsx","FLEET LABS | Freight / Transportation | ₹2,459"
+"Apr-2026","Venkateshwara Agencies","Brand split required","April\Claims\VENKATESHWARA AGENCIES April 26\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx","More Retail | Off Invoice / Debit Note Promo | ₹43,223"
+"Apr-2026","Venkateshwara Agencies","Brand split required","April\Claims\VENKATESHWARA AGENCIES April 26\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx","Health & Glow | Off Invoice / Debit Note Promo | ₹27,398"
+"Apr-2026","Venkateshwara Agencies","Brand split required","April\Claims\VENKATESHWARA AGENCIES April 26\MT-Indirect Claim_Venkateshwara-MT_Apr-26.xlsx","Apollo | Off Invoice / Debit Note Promo | ₹16,953"
+"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹3,14,338"
+"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Reliance Retail | Extra Margin / Rate Difference | ₹13,01,221"
+"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Vishal Mega Mart | Freight / Transportation | ₹69,877"
+"Jun-2026","Balaji Associates","Brand split required","June\June Claims\Balaji Associates June 26 Okay\MT -Indirect Claim Format SCBC June-2026 (Rate difference).xlsx","Reliance Retail | Freight / Transportation | ₹52,936"
+"Jun-2026","CHOUDHARY ENTERPRISES","Brand split required","June\June Claims\CHOUDHARY ENTERPRISES June 26\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,48,874"
+"Jun-2026","CHOUDHARY ENTERPRISES","Brand split required","June\June Claims\CHOUDHARY ENTERPRISES June 26\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx","AirPlaza | Freight / Transportation | ₹30,519"
+"Jun-2026","Just Mark","Brand split required","June\June Claims\JUST MARK-Dmart  June 26 Okay\Final Claim Just Mark- Jun.26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹6,29,594"
+"Jun-2026","Kiran Trading Co.","Brand split required","June\June Claims\Kiran Trading June 26 Okay\Kiran Trading Final Claim Working June'26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹19,27,494"
+"Jun-2026","R R Traders","Brand split required","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,07,462"
+"Jun-2026","R R Traders","Brand split required","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Freight / Transportation | ₹19,259"
+"Jun-2026","Real Time Logistics","Brand split required","June\June Claims\REAL TIME LOGISTICS June 26 Okay\MT -Indirect Claim Format JUNE-26 (Rate difference) (3).xlsx","Vishal Mega Mart | Freight / Transportation | ₹14,774"
+"Jun-2026","Sai Saachi Associates","Brand split required","June\June Claims\SAI SAACHI ASSOCIATES June 26 Okay\Sai Saachi -MT -Indirect Claim Format June-26.xlsx","D-Mart | Freight / Transportation | ₹1,856"
+"Jun-2026","Sehaj Enterprises","Brand split required","June\June Claims\Sehaj Enterprises -MT-JK  June 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹18,880"
+"Jun-2026","Sehaj Enterprises","Brand split required","June\June Claims\Sehaj Enterprises -MT-JK  June 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx","Vishal Mega Mart | Freight / Transportation | ₹2,213"
+"Jun-2026","Srijan Enterprises","Brand split required","June\June Claims\SriJan Enterprises Not consider\MT -Indirect Claim Format June-26 (Rate difference) (2).xlsx","Unspecified / Review | Off Invoice / Debit Note Promo | ₹3,375"
+"Jun-2026","Venkateshwara Agencies","Brand split required","June\June Claims\Venkateshwara Agencies June 26 Okay\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx","More Retail | Off Invoice / Debit Note Promo | ₹46,357"
+"Jun-2026","Venkateshwara Agencies","Brand split required","June\June Claims\Venkateshwara Agencies June 26 Okay\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx","Health & Glow | Off Invoice / Debit Note Promo | ₹4,02,611"
+"Jun-2026","Venkateshwara Agencies","Brand split required","June\June Claims\Venkateshwara Agencies June 26 Okay\MT-Indirect Claim_Venkateshwara-MT_Jun-26.xlsx","Apollo | Off Invoice / Debit Note Promo | ₹30,384"
+"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹21,642"
+"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Reliance Retail | Extra Margin / Rate Difference | ₹12,46,131"
+"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Apollo | Extra Margin / Rate Difference | ₹15,751"
+"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Vishal Mega Mart | Freight / Transportation | ₹13,912"
+"May-2026","Balaji Associates","Brand split required","May\May Claims\Balaji Associates May 26 Okay\Balaji AssociatesMT -Indirect Claim Format SCBC May-2026 (Rate difference).xlsx","Reliance Retail | Freight / Transportation | ₹65,281"
+"May-2026","Just Mark","Brand split required","May\May Claims\Just Mark May 26 Okay\Final Claim Just Mark- May.26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹60,559"
+"May-2026","Kiran Trading Co.","Brand split required","May\May Claims\Kiran Trading May 26 Okay\Kiran Trading Final Claim Working May'26.xlsx","D-Mart | Extra Margin / Rate Difference | ₹2,10,735"
+"May-2026","R R Traders","Brand split required","May\May Claims\R R Trader May 26 Okay\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹1,50,630"
+"May-2026","R R Traders","Brand split required","May\May Claims\R R Trader May 26 Okay\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx","Vishal Mega Mart | Freight / Transportation | ₹26,683"
+"May-2026","Real Time Logistics","Brand split required","May\May Claims\REAL TIME LOGISTICS May 26 Okay\MAY MONTH CLAIM (1) Real time.xlsx","Vishal Mega Mart | Freight / Transportation | ₹5,611"
+"May-2026","Sai Saachi Associates","Brand split required","May\May Claims\Sai Sachi Claim May 26 Query\Sai Saachi -MT -Indirect Claim Format May-26.xlsx","D-Mart | Freight / Transportation | ₹4,633"
+"May-2026","Sehaj Enterprises","Brand split required","May\May Claims\Sehaj Enterprises May 26 Okay\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | ₹59,373"
+"May-2026","Sehaj Enterprises","Brand split required","May\May Claims\Sehaj Enterprises May 26 Okay\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx","Vishal Mega Mart | Freight / Transportation | ₹4,786"
+"Apr-2026","Just Mark","Invoice chain confirmed; amount mismatch","April\Claims\JUST MARK-Dmart  April 26 Okay\Final Claim Just Mark- Apr.26 Revised.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹4,88,765"
+"Apr-2026","Kiran Trading Co.","Invoice chain confirmed; amount mismatch","April\Claims\Kiran Trading Co- Dmart  April 26 Okay\Kiran Trading Final Claim Working April'26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹2,82,066"
+"Apr-2026","Pragati Sales","Invoice chain confirmed; amount mismatch","April\Claims\PRAGATI SALES-D-MART April 26\Final Claim Pragati Sales- April'26 (1).xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹1,49,571"
+"Apr-2026","R R Traders","Invoice chain confirmed; amount mismatch","April\Claims\RR Traders-MT  April 26 Okay\MT -Indirect Claim Submission Process  RR Traders  April-26.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹52,431"
+"Apr-2026","Sehaj Enterprises","Invoice chain confirmed; amount mismatch","April\Claims\Sehaj Enterprises -MT-JK  April 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT April-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹7,756"
+"Apr-2026","Srijan Enterprises","Invoice chain confirmed; amount mismatch","April\Claims\SRIJAN ENTERPRISES-MT April 26 Okay\MT -Indirect Claim Format April-26 (Rate difference).xlsx","FLEET LABS | Freight / Transportation | Difference ₹-375"
+"Jun-2026","CHOUDHARY ENTERPRISES","Invoice chain confirmed; amount mismatch","June\June Claims\CHOUDHARY ENTERPRISES June 26\MT-Indirect Claim Submission Process Chouthdary Bhopal.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,48,874"
+"Jun-2026","Just Mark","Invoice chain confirmed; amount mismatch","June\June Claims\JUST MARK-Dmart  June 26 Okay\Final Claim Just Mark- Jun.26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹6,57,545"
+"Jun-2026","Kiran Trading Co.","Invoice chain confirmed; amount mismatch","June\June Claims\Kiran Trading June 26 Okay\Kiran Trading Final Claim Working June'26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹14,23,698"
+"Jun-2026","R R Traders","Invoice chain confirmed; amount mismatch","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,07,425"
+"Jun-2026","R R Traders","Invoice chain confirmed; amount mismatch","June\June Claims\R R Traders June 26 oKAY\MT -Indirect Claim Process  RR June-2026-.xlsx","Vishal Mega Mart | Freight / Transportation | Difference ₹-2,938"
+"Jun-2026","Sehaj Enterprises","Invoice chain confirmed; amount mismatch","June\June Claims\Sehaj Enterprises -MT-JK  June 26 Okay\MT -Indirect Claim Submission Process  SEHAJ ENT June-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹18,880"
+"May-2026","Just Mark","Invoice chain confirmed; amount mismatch","May\May Claims\Just Mark May 26 Okay\Final Claim Just Mark- May.26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹-9,238"
+"May-2026","Kiran Trading Co.","Invoice chain confirmed; amount mismatch","May\May Claims\Kiran Trading May 26 Okay\Kiran Trading Final Claim Working May'26.xlsx","D-Mart | Extra Margin / Rate Difference | Difference ₹1,72,547"
+"May-2026","R R Traders","Invoice chain confirmed; amount mismatch","May\May Claims\R R Trader May 26 Okay\R R Trader MT -Indirect Claim Process  RR MAY-2026-.xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹1,50,630"
+"May-2026","Sehaj Enterprises","Invoice chain confirmed; amount mismatch","May\May Claims\Sehaj Enterprises May 26 Okay\Sehaj enterprises MT -Indirect Claim Submission Process  SEHAJ ENT MAY-2026-  (1).xlsx","Vishal Mega Mart | Extra Margin / Rate Difference | Difference ₹59,373"
