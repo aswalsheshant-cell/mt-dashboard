@@ -1,0 +1,277 @@
+{
+  "metadata": {
+    "source": "Distributor_Chain_Claim_Master_AprJun_2026.xlsx",
+    "months": [
+      "Apr-2026",
+      "May-2026",
+      "Jun-2026"
+    ],
+    "period": "Q1 FY27",
+    "generated_at": "2026-08-30T07:11:17.379025"
+  },
+  "claims": {
+    "by_chain": {
+      "Apollo": {
+        "total_claim_lakh": 4160378.25,
+        "by_category": {
+          "Extra Margin / Rate Difference": 2032852.77,
+          "Off Invoice / Debit Note Promo": 47336.35,
+          "Total": 2080189.12
+        },
+        "row_count": 0
+      },
+      "Arambagh": {
+        "total_claim_lakh": 1086698.38,
+        "by_category": {
+          "Extra Margin / Rate Difference": 543349.19,
+          "Total": 543349.19
+        },
+        "row_count": 0
+      },
+      "Avenue Supermarts Ltd.": {
+        "total_claim_lakh": 279990.24,
+        "by_category": {
+          "Chain Promo (On Invoice)": 97624.76,
+          "Extra Margin / Rate Difference": 42370.36,
+          "Total": 139995.12
+        },
+        "row_count": 0
+      },
+      "Beauty & Nutrition": {
+        "total_claim_lakh": 9629.63,
+        "by_category": {
+          "Extra Margin / Rate Difference": -6404.25,
+          "Off Invoice / Debit Note Promo": 11219.06,
+          "Total": 4814.81
+        },
+        "row_count": 0
+      },
+      "Combined Charge": {
+        "total_claim_lakh": 8846910.2,
+        "by_category": {
+          "Visibility": 4423455.1,
+          "Total": 4423455.1
+        },
+        "row_count": 0
+      },
+      "D-Mart": {
+        "total_claim_lakh": 24188344.97,
+        "by_category": {
+          "Extra Margin / Rate Difference": 12080808.04,
+          "Freight / Transportation": 13364.45,
+          "Total": 12094172.49
+        },
+        "row_count": 0
+      },
+      "EMAMI FRANKROSS": {
+        "total_claim_lakh": 1690618.34,
+        "by_category": {
+          "Extra Margin / Rate Difference": 845309.17,
+          "Total": 845309.17
+        },
+        "row_count": 0
+      },
+      "FLEET LABS": {
+        "total_claim_lakh": 237000.5,
+        "by_category": {
+          "Extra Margin / Rate Difference": 118500.25,
+          "Total": 118500.25
+        },
+        "row_count": 0
+      },
+      "Frankross": {
+        "total_claim_lakh": 326320.3,
+        "by_category": {
+          "Chain Promo (On Invoice)": 173433.56,
+          "Extra Margin / Rate Difference": -10273.41,
+          "Total": 163160.15
+        },
+        "row_count": 0
+      },
+      "Health & Glow": {
+        "total_claim_lakh": 4899175.98,
+        "by_category": {
+          "Chain Promo (On Invoice)": 475501.7,
+          "Extra Margin / Rate Difference": 1363592.82,
+          "Off Invoice / Debit Note Promo": 476894.2,
+          "Visibility": 133599.27,
+          "Total": 2449587.99
+        },
+        "row_count": 0
+      },
+      "Lulu": {
+        "total_claim_lakh": 23782940.72,
+        "by_category": {
+          "Chain Promo (On Invoice)": 5818211.56,
+          "Extra Margin / Rate Difference": 2728148.0,
+          "Visibility": 3345110.8,
+          "Total": 11891470.36
+        },
+        "row_count": 0
+      },
+      "More Retail": {
+        "total_claim_lakh": 6378008.84,
+        "by_category": {
+          "Chain Promo (On Invoice)": 566279.4,
+          "Extra Margin / Rate Difference": 1107859.37,
+          "Off Invoice / Debit Note Promo": 1146705.65,
+          "Visibility": 368160.0,
+          "Total": 3189004.42
+        },
+        "row_count": 0
+      },
+      "RATNADEEP RETAIL PVT LTD": {
+        "total_claim_lakh": 792432.9,
+        "by_category": {
+          "Extra Margin / Rate Difference": 396216.45,
+          "Total": 396216.45
+        },
+        "row_count": 0
+      },
+      "Reliance Retail": {
+        "total_claim_lakh": 9895058.25,
+        "by_category": {
+          "Extra Margin / Rate Difference": 4790771.13,
+          "Freight / Transportation": 156758.0,
+          "Total": 4947529.13
+        },
+        "row_count": 0
+      },
+      "SUMOSAVE": {
+        "total_claim_lakh": 410839.86,
+        "by_category": {
+          "Extra Margin / Rate Difference": 205419.93,
+          "Total": 205419.93
+        },
+        "row_count": 0
+      },
+      "Sastasundar": {
+        "total_claim_lakh": -52552.0,
+        "by_category": {
+          "Extra Margin / Rate Difference": -26276.0,
+          "Total": -26276.0
+        },
+        "row_count": 0
+      },
+      "Spar": {
+        "total_claim_lakh": -4102.53,
+        "by_category": {
+          "Extra Margin / Rate Difference": -2051.27,
+          "Total": -2051.27
+        },
+        "row_count": 0
+      },
+      "Spencer's": {
+        "total_claim_lakh": 1588982.5,
+        "by_category": {
+          "Chain Promo (On Invoice)": 197200.5,
+          "Extra Margin / Rate Difference": 597290.75,
+          "Total": 794491.25
+        },
+        "row_count": 0
+      },
+      "Transportation": {
+        "total_claim_lakh": 37145.38,
+        "by_category": {
+          "Off Invoice / Debit Note Promo": 18572.69,
+          "Total": 18572.69
+        },
+        "row_count": 0
+      },
+      "Trilife": {
+        "total_claim_lakh": -7677.18,
+        "by_category": {
+          "Extra Margin / Rate Difference": -3838.59,
+          "Total": -3838.59
+        },
+        "row_count": 0
+      },
+      "Vishal Mega Mart": {
+        "total_claim_lakh": 1796486.59,
+        "by_category": {
+          "Chain Promo (On Invoice)": 304573.68,
+          "Extra Margin / Rate Difference": 412232.62,
+          "Freight / Transportation": 181436.99,
+          "Total": 898243.29
+        },
+        "row_count": 0
+      }
+    },
+    "by_distributor": {
+      "A Z Enterprises": {
+        "total_claim_lakh": 8883094.02,
+        "apr_lakh": 3763877.64,
+        "may_lakh": 3128201.0,
+        "jun_lakh": 1991015.38,
+        "avg_monthly": 2961031.34
+      },
+      "Balaji Associates": {
+        "total_claim_lakh": 286803.99,
+        "apr_lakh": 84798.0,
+        "may_lakh": 79193.0,
+        "jun_lakh": 122812.99,
+        "avg_monthly": 95601.33
+      },
+      "Chhabra Traders": {
+        "total_claim_lakh": 2576730.79,
+        "apr_lakh": 1406125.72,
+        "may_lakh": 1170605.07,
+        "jun_lakh": 0.0,
+        "avg_monthly": 858910.26
+      },
+      "D.L. Sales": {
+        "total_claim_lakh": 3221270.09,
+        "apr_lakh": 1323319.79,
+        "may_lakh": 1019820.18,
+        "jun_lakh": 878130.12,
+        "avg_monthly": 1073756.7
+      },
+      "Kottaram": {
+        "total_claim_lakh": 2652797.23,
+        "apr_lakh": 0.0,
+        "may_lakh": 0.0,
+        "jun_lakh": 2652797.23,
+        "avg_monthly": 884265.74
+      },
+      "Real Time Logistics": {
+        "total_claim_lakh": 51391.0,
+        "apr_lakh": 31006.0,
+        "may_lakh": 5611.0,
+        "jun_lakh": 14774.0,
+        "avg_monthly": 17130.33
+      },
+      "Sai Saachi Associates": {
+        "total_claim_lakh": 13364.45,
+        "apr_lakh": 11508.45,
+        "may_lakh": 0.0,
+        "jun_lakh": 1856.0,
+        "avg_monthly": 4454.82
+      },
+      "Sancus Network": {
+        "total_claim_lakh": 4423455.1,
+        "apr_lakh": 1445739.18,
+        "may_lakh": 1443715.92,
+        "jun_lakh": 1534000.0,
+        "avg_monthly": 1474485.03
+      },
+      "Sri Vijaya Durga Agencies": {
+        "total_claim_lakh": 17728856.55,
+        "apr_lakh": 6741211.3,
+        "may_lakh": 4732942.88,
+        "jun_lakh": 6254702.37,
+        "avg_monthly": 5909618.85
+      },
+      "Venkateshwara Agencies": {
+        "total_claim_lakh": 5333551.83,
+        "apr_lakh": 1615190.42,
+        "may_lakh": 1639309.6,
+        "jun_lakh": 2079051.81,
+        "avg_monthly": 1777850.61
+      }
+    },
+    "quality_summary": {
+      "total_records": 201,
+      "exceptions_count": 51
+    }
+  }
+}
