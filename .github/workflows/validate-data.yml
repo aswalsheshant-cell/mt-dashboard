@@ -20,32 +20,29 @@ jobs:
     runs-on: ubuntu-latest
     name: Validate Master Data & Sync
     steps:
-      - name: Checkout repository
-        run: |
-          git init .
-          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
-          git fetch --no-tags --depth=1 origin "$GITHUB_SHA"
-          git checkout --force FETCH_HEAD
+      - uses: actions/checkout@v4
 
-      - name: Verify Python
-        run: python3 --version
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
 
       - name: Install dependencies
-        run: python3 -m pip install pandas openpyxl
+        run: pip install pandas openpyxl
 
       - name: Validate data_master.json structure
-        run: python3 scripts/ci_validate_master.py
+        run: python scripts/ci_validate_master.py
 
       - name: Regenerate data.js
         run: |
-          python3 scripts/sync_data_js.py
+          python scripts/sync_data_js.py
           test -f dashboard/data.js && echo "✅ data.js generated" || (echo "❌ data.js missing"; exit 1)
 
       - name: Validate data.js integrity
-        run: python3 scripts/ci_validate_datajs.py
+        run: python scripts/ci_validate_datajs.py
 
       - name: Validate data integrity assertions
-        run: python3 tests/validate_data_integrity.py
+        run: python tests/validate_data_integrity.py
 
   report:
     runs-on: ubuntu-latest
