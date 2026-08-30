@@ -1028,6 +1028,11 @@ function buildPrimary(){
      is allocated this way; the remainder (no matching Ship-To × Brand × Month allocation entry,
      mainly FY24-25) keeps its original single-chain tag.</p>`:'';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'this source (see the Category & Pack tab for those)');
+  const prStates=(p.by_state||[]).filter(r=>!fOn('Zone')||fHas('Zone',r.zone));
+  const prStRows=prStates.map(r=>{
+    if(fy) return `<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r[fy])}</td></tr>`;
+    return `<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td></tr>`;
+  }).join('');
   s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
    <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:`${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}, ₹ Crore.`}</p>
    ${dimNote}
@@ -1050,6 +1055,12 @@ function buildPrimary(){
    </div>
    ${card(`Chain-wise primary &amp; YoY (${yrLab[last]})`,'Sorted by NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise. Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>${fyDispLabel('FY25')}</th><th>${fyDispLabel('FY26')}</th><th>YoY</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${card('State-wise primary NSV'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')})`),
+     'Real primary sell-in by state. '+(!fOn('Zone')&&!fOn('Chain')?'All zones. ':'Filtered. ')+'Click a zone to drill.',
+     `<div class="tablewrap"><table>
+       <thead><tr><th>State</th><th>Zone</th>${fy?`<th>${yrLab[fy]}</th>`:`<th>${fyDispLabel('FY25')}</th><th>${fyDispLabel('FY26')}</th>`}</tr></thead>
+       <tbody>${prStRows||`<tr><td colspan="${fy?3:4}">No states for this filter.</td></tr>`}</tbody>
+     </table></div>`)}
    ${allocSectionHtml()}
    ${catDrillCardHtml('prCatDrill')}`;
   wireDrillLinks(s);
@@ -2052,6 +2063,16 @@ function buildDistribution(){
    </div>
    ${card('Store count by chain (all active)','Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>Active Stores</th><th>Share of Footprint</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${(()=>{
+     const stateList=(u.by_state||[]).filter(r=>!fOn('Zone')||fHas('Zone',r.zone));
+     const stateBody=stateList.map(r=>`<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${num(r.stores)}</td>
+       <td>${u.active_stores?((r.stores/u.active_stores)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
+     return card('State-wise active stores','MT store footprint breakdown by state. Click a zone to drill.',
+       `<div class="tablewrap"><table>
+         <thead><tr><th>State</th><th>Zone</th><th>Active Stores</th><th>Share of Footprint</th></tr></thead>
+         <tbody>${stateBody||'<tr><td colspan="4">No states for this filter.</td></tr>'}</tbody>
+       </table></div>`);
+   })()}
    ${distGapHtml()}
    ${drillCardHtml('dDrill','Primary NSV')}`;
   wireDrillLinks(s);
