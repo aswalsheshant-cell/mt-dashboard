@@ -1,76 +1,111 @@
 {
   "metadata": {
-    "source": "Distributor_Chain_Claim_Master_AprJun_2026.xlsx",
+    "source": "Distributor_Chain_Claim_Master_AprJun_2026_Invoice_Mapped.xlsx",
     "months": [
       "Apr-2026",
       "May-2026",
       "Jun-2026"
     ],
     "period": "Q1 FY27",
-    "generated_at": "2026-08-30T11:03:56.568260",
-    "note": "Values in Lakhs (INR ÷ 1,00,000). Grand total verified against CSV summary: INR 45,171,315."
+    "generated_at": "2026-08-30T11:17:09.599411",
+    "note": "Values in Lakhs (INR ÷ 1,00,000). Invoice-mapped version with updated chain assignments."
   },
   "claims": {
-    "grand_total_inr": 45171315.0,
-    "grand_total_lakh": 451.71,
+    "grand_total_inr": 56487873.37,
+    "grand_total_lakh": 564.88,
+    "included_mapped_inr": 50438436.94,
+    "included_mapped_lakh": 504.38,
     "by_chain": {
-      "Apollo": {
-        "total_claim_lakh": 23.3,
+      "AirPlaza": {
+        "total_claim_lakh": 5.62,
+        "source_chains": [
+          "AirPlaza"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 23.3,
-          "Freight / Transportation": 0.0,
+          "Extra Margin / Rate Difference": 5.31,
+          "Freight / Transportation": 0.31,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
+          "Visibility": 0.0
+        }
+      },
+      "Apollo": {
+        "total_claim_lakh": 22.19,
+        "source_chains": [
+          "Apollo"
+        ],
+        "by_category": {
+          "Chain Promo (On Invoice)": 0.0,
+          "Extra Margin / Rate Difference": 21.72,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 0.47,
           "Visibility": 0.0
         }
       },
       "Arambagh": {
-        "total_claim_lakh": 11.39,
-        "by_category": {
-          "Chain Promo (On Invoice)": 11.63,
-          "Extra Margin / Rate Difference": -0.23,
-          "Freight / Transportation": 0.0,
-          "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.0,
-          "Visibility": 0.0
-        }
-      },
-      "Beauty & Nutrition": {
-        "total_claim_lakh": 1.97,
-        "by_category": {
-          "Chain Promo (On Invoice)": 1.97,
-          "Extra Margin / Rate Difference": 0.0,
-          "Freight / Transportation": 0.0,
-          "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.0,
-          "Visibility": 0.0
-        }
-      },
-      "Combined Charge": {
-        "total_claim_lakh": 72.5,
-        "by_category": {
-          "Chain Promo (On Invoice)": 32.27,
-          "Extra Margin / Rate Difference": 40.23,
-          "Freight / Transportation": 0.0,
-          "Incentive": 0.0,
-          "Off Invoice / Debit Note Promo": 0.0,
-          "Visibility": 0.0
-        }
-      },
-      "D-Mart": {
-        "total_claim_lakh": 120.94,
+        "total_claim_lakh": 5.43,
+        "source_chains": [
+          "Arambagh"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 120.81,
+          "Extra Margin / Rate Difference": 5.43,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 0.0,
+          "Visibility": 0.0
+        }
+      },
+      "DMart": {
+        "total_claim_lakh": 124.13,
+        "source_chains": [
+          "Avenue Supermarts Ltd.",
+          "D-Mart"
+        ],
+        "by_category": {
+          "Chain Promo (On Invoice)": 0.98,
+          "Extra Margin / Rate Difference": 123.02,
           "Freight / Transportation": 0.13,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
+      "Beauty & Nutrition": {
+        "total_claim_lakh": 0.05,
+        "source_chains": [
+          "Beauty & Nutrition"
+        ],
+        "by_category": {
+          "Chain Promo (On Invoice)": 0.0,
+          "Extra Margin / Rate Difference": -0.06,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 0.11,
+          "Visibility": 0.0
+        }
+      },
+      "Combined Charge": {
+        "total_claim_lakh": 44.23,
+        "source_chains": [
+          "Combined Charge"
+        ],
+        "by_category": {
+          "Chain Promo (On Invoice)": 0.0,
+          "Extra Margin / Rate Difference": 0.0,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 0.0,
+          "Visibility": 44.23
+        }
+      },
       "EMAMI FRANKROSS": {
         "total_claim_lakh": 8.45,
+        "source_chains": [
+          "EMAMI FRANKROSS"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": 8.45,
@@ -81,10 +116,13 @@
         }
       },
       "FLEET LABS": {
-        "total_claim_lakh": 1.19,
+        "total_claim_lakh": 1.88,
+        "source_chains": [
+          "FLEET LABS"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 1.19,
+          "Extra Margin / Rate Difference": 1.88,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -93,6 +131,9 @@
       },
       "Frankross": {
         "total_claim_lakh": 1.63,
+        "source_chains": [
+          "Frankross"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 1.73,
           "Extra Margin / Rate Difference": -0.1,
@@ -102,19 +143,39 @@
           "Visibility": 0.0
         }
       },
-      "Health & Glow": {
-        "total_claim_lakh": 1.83,
+      "GHL Pharma & Diagnostic Pvt Ltd": {
+        "total_claim_lakh": 0.0,
+        "source_chains": [
+          "GHL Pharma & Diagnostic Pvt Ltd"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 1.83,
+          "Extra Margin / Rate Difference": 0.0,
           "Freight / Transportation": 0.0,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       },
+      "Health & Glow": {
+        "total_claim_lakh": 24.5,
+        "source_chains": [
+          "Health & Glow"
+        ],
+        "by_category": {
+          "Chain Promo (On Invoice)": 4.76,
+          "Extra Margin / Rate Difference": 13.64,
+          "Freight / Transportation": 0.0,
+          "Incentive": 0.0,
+          "Off Invoice / Debit Note Promo": 4.77,
+          "Visibility": 1.34
+        }
+      },
       "Lulu": {
         "total_claim_lakh": 118.91,
+        "source_chains": [
+          "Lulu"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 58.18,
           "Extra Margin / Rate Difference": 27.28,
@@ -126,6 +187,9 @@
       },
       "More Retail": {
         "total_claim_lakh": 31.89,
+        "source_chains": [
+          "More Retail"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 5.66,
           "Extra Margin / Rate Difference": 11.08,
@@ -137,6 +201,9 @@
       },
       "RATNADEEP RETAIL PVT LTD": {
         "total_claim_lakh": 3.96,
+        "source_chains": [
+          "RATNADEEP RETAIL PVT LTD"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": 3.96,
@@ -147,10 +214,13 @@
         }
       },
       "Reliance Retail": {
-        "total_claim_lakh": 49.48,
+        "total_claim_lakh": 87.88,
+        "source_chains": [
+          "Reliance Retail"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
-          "Extra Margin / Rate Difference": 47.91,
+          "Extra Margin / Rate Difference": 86.32,
           "Freight / Transportation": 1.57,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
@@ -159,6 +229,9 @@
       },
       "SUMOSAVE": {
         "total_claim_lakh": 2.05,
+        "source_chains": [
+          "SUMOSAVE"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": 2.05,
@@ -170,6 +243,9 @@
       },
       "Sastasundar": {
         "total_claim_lakh": -0.26,
+        "source_chains": [
+          "Sastasundar"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": -0.26,
@@ -181,6 +257,9 @@
       },
       "Spar": {
         "total_claim_lakh": -0.02,
+        "source_chains": [
+          "Spar"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": -0.02,
@@ -192,6 +271,9 @@
       },
       "Spencer's": {
         "total_claim_lakh": 7.94,
+        "source_chains": [
+          "Spencer's"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 1.97,
           "Extra Margin / Rate Difference": 5.97,
@@ -203,6 +285,9 @@
       },
       "Transportation": {
         "total_claim_lakh": 0.19,
+        "source_chains": [
+          "Transportation"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": 0.0,
@@ -214,6 +299,9 @@
       },
       "Trilife": {
         "total_claim_lakh": -0.04,
+        "source_chains": [
+          "Trilife"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 0.0,
           "Extra Margin / Rate Difference": -0.04,
@@ -224,22 +312,161 @@
         }
       },
       "Vishal Mega Mart": {
-        "total_claim_lakh": 8.98,
+        "total_claim_lakh": 13.75,
+        "source_chains": [
+          "Vishal Mega Mart"
+        ],
         "by_category": {
           "Chain Promo (On Invoice)": 3.05,
-          "Extra Margin / Rate Difference": 4.12,
-          "Freight / Transportation": 1.81,
+          "Extra Margin / Rate Difference": 8.45,
+          "Freight / Transportation": 2.25,
           "Incentive": 0.0,
           "Off Invoice / Debit Note Promo": 0.0,
           "Visibility": 0.0
         }
       }
     },
+    "by_distributor": {
+      "A Z Enterprises": {
+        "total_claim_lakh": 88.83,
+        "apr_lakh": 37.64,
+        "may_lakh": 31.28,
+        "jun_lakh": 19.91,
+        "review_lakh": 0.0
+      },
+      "Balaji Associates": {
+        "total_claim_lakh": 46.29,
+        "apr_lakh": 15.28,
+        "may_lakh": 13.63,
+        "jun_lakh": 17.38,
+        "review_lakh": 3.89
+      },
+      "CHOUDHARY ENTERPRISES": {
+        "total_claim_lakh": 0.31,
+        "apr_lakh": 0.0,
+        "may_lakh": 0.0,
+        "jun_lakh": 0.31,
+        "review_lakh": 1.49
+      },
+      "Chhabra Traders": {
+        "total_claim_lakh": 25.77,
+        "apr_lakh": 14.06,
+        "may_lakh": 11.71,
+        "jun_lakh": 0.0,
+        "review_lakh": 18.7
+      },
+      "D.L. Sales": {
+        "total_claim_lakh": 32.21,
+        "apr_lakh": 13.23,
+        "may_lakh": 10.2,
+        "jun_lakh": 8.78,
+        "review_lakh": 0.0
+      },
+      "Just Mark": {
+        "total_claim_lakh": 0.0,
+        "apr_lakh": 0.0,
+        "may_lakh": 0.0,
+        "jun_lakh": 0.0,
+        "review_lakh": 10.64
+      },
+      "Kiran Trading Co.": {
+        "total_claim_lakh": 0.0,
+        "apr_lakh": 0.0,
+        "may_lakh": 0.0,
+        "jun_lakh": 0.0,
+        "review_lakh": 22.91
+      },
+      "Kottaram": {
+        "total_claim_lakh": 26.53,
+        "apr_lakh": 0.0,
+        "may_lakh": 0.0,
+        "jun_lakh": 26.53,
+        "review_lakh": 0.0
+      },
+      "Mark Enterprises": {
+        "total_claim_lakh": 0.53,
+        "apr_lakh": 0.11,
+        "may_lakh": 0.22,
+        "jun_lakh": 0.2,
+        "review_lakh": 0.0
+      },
+      "Pragati Sales": {
+        "total_claim_lakh": 0.23,
+        "apr_lakh": 0.0,
+        "may_lakh": 0.0,
+        "jun_lakh": 0.23,
+        "review_lakh": 0.56
+      },
+      "R R Traders": {
+        "total_claim_lakh": 0.36,
+        "apr_lakh": 0.09,
+        "may_lakh": 0.27,
+        "jun_lakh": 0.0,
+        "review_lakh": 3.3
+      },
+      "Real Time Logistics": {
+        "total_claim_lakh": 4.33,
+        "apr_lakh": 2.53,
+        "may_lakh": 0.59,
+        "jun_lakh": 1.21,
+        "review_lakh": 0.0
+      },
+      "Sai Saachi Associates": {
+        "total_claim_lakh": 2.67,
+        "apr_lakh": 1.67,
+        "may_lakh": 0.54,
+        "jun_lakh": 0.46,
+        "review_lakh": 0.05
+      },
+      "Sancus Network": {
+        "total_claim_lakh": 44.23,
+        "apr_lakh": 14.46,
+        "may_lakh": 14.44,
+        "jun_lakh": 15.34,
+        "review_lakh": 0.0
+      },
+      "Sehaj Enterprises": {
+        "total_claim_lakh": 0.08,
+        "apr_lakh": 0.01,
+        "may_lakh": 0.05,
+        "jun_lakh": 0.02,
+        "review_lakh": 0.86
+      },
+      "Sri Vijaya Durga Agencies": {
+        "total_claim_lakh": 177.29,
+        "apr_lakh": 67.41,
+        "may_lakh": 47.33,
+        "jun_lakh": 62.55,
+        "review_lakh": 0.0
+      },
+      "Srijan Enterprises": {
+        "total_claim_lakh": 0.69,
+        "apr_lakh": 0.69,
+        "may_lakh": 0.0,
+        "jun_lakh": 0.0,
+        "review_lakh": 0.09
+      },
+      "United Marketing": {
+        "total_claim_lakh": 0.7,
+        "apr_lakh": 0.3,
+        "may_lakh": 0.23,
+        "jun_lakh": 0.17,
+        "review_lakh": 0.0
+      },
+      "Venkateshwara Agencies": {
+        "total_claim_lakh": 53.34,
+        "apr_lakh": 16.15,
+        "may_lakh": 16.39,
+        "jun_lakh": 20.79,
+        "review_lakh": 0.0
+      }
+    },
     "quality_summary": {
-      "total_chains": 20,
-      "exceptions_count": 51,
-      "exceptions_pending": 51,
-      "note": "51 exceptions pending Finance / Commercial sign-off (see docs/claim_exceptions_review.csv)"
+      "total_chains": 22,
+      "total_distributors": 19,
+      "exceptions_count": 77,
+      "exceptions_pending": 77,
+      "note": "77 exceptions in queue — see docs/claim_exceptions_review.csv"
     }
   }
 }
