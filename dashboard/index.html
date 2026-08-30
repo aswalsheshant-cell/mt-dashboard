@@ -287,6 +287,7 @@
   <section id="tab-stores"></section>
   <section id="tab-inventory"></section>
   <section id="tab-insights"></section>
+  <section id="tab-forecast-tracking"></section>
 </div>
 <footer id="foot"></footer>
 
@@ -1683,6 +1684,123 @@ function _buildFcDetailCharts(det){
       datasets:[{label:'3-month target',data:cTotals,backgroundColor:C.teal+'bb',borderColor:C.teal,borderWidth:1}]},
       options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
         scales:{x:{ticks:{callback:v=>crc(v)}}}}});
+  }
+}
+
+/* ---- Daily & Weekly Forecast Tracking ---- */
+function buildDailyWeeklyForecast(){
+  const f=D.forecast||{}, s=document.getElementById('tab-forecast-tracking');
+
+  // Safety: null-safe access to forecast data
+  const fy27Total=f.fy27_forecast==null?0:f.fy27_forecast;
+  const fy26Actual=f.fy26_actual==null?0:f.fy26_actual;
+
+  // Calculate daily run-rate for FY27 (365 days)
+  const daysInFY=365;
+  const dailyRunRate=fy27Total>0?fy27Total/daysInFY:0;
+
+  // Weekly breakdown from monthly forecast (approximately 4.3 weeks per month)
+  const weeksInMonth=4.33;
+  const hist=(f.hist||[]), fc=(f.fc||[]), histLabels=(f.hist_labels||[]), fcLabels=(f.fc_labels||[]);
+  const allLabels=[...histLabels,...fcLabels];
+  const allData=[...hist,...fc];
+
+  // Calculate weekly values for visualization
+  const weeklyData=allData.map(m=>(m==null?0:m)/weeksInMonth);
+
+  // Build achievement summary (assuming we have some actual monthly data)
+  const completedMonths=hist.filter(m=>m!=null).length;
+  const projectedYTD=hist.reduce((a,v)=>a+(v==null?0:v),0);
+  const targetYTD=fc.reduce((a,v)=>a+(v==null?0:v),0);
+  const achievementPct=targetYTD>0?((projectedYTD/targetYTD)*100).toFixed(1):'–';
+
+  // Growth metrics
+  const impliedUplift=fy26Actual>0?((fy27Total/fy26Actual-1)*100).toFixed(1):'–';
+
+  // Build HTML
+  s.innerHTML=`<h2 class="sec">Daily & Weekly Forecast Tracking</h2>
+   <p class="lead">Granular view of FY27 forecast with daily run-rate, weekly phasing breakdown, and target achievement tracking.</p>
+   <div class="kpis">
+     ${kpi('Daily Run-Rate',crc(dailyRunRate),'365-day basis')}
+     ${kpi('Weekly Average',crc(dailyRunRate*7),'7-day average')}
+     ${kpi('FY27 Total Target',crc(fy27Total),'full year')}
+     ${kpi('YoY Growth',impliedUplift==='–'?'–':(impliedUplift+'%'),'vs FY26 actual')}
+   </div>
+   ${card('Daily Run-Rate & Weekly Pacing','Target achievement tracking across FY27',cv('dwChartDaily'))}
+   ${card('Monthly Forecast Breakdown','FY27 target phasing by month',cv('dwChartMonthly'))}
+   ${card('Cumulative Achievement','YTD target vs actual pacing',cv('dwChartCum'))}
+   ${card('Weekly Target Tracking','Target on track indicator',`
+     <div style="padding:8px 0">
+       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+         <div><span style="font-size:12px;color:var(--muted);font-weight:600">Target Achievement</span>
+           <div style="font-size:24px;font-weight:800;color:var(--teal);margin-top:4px">${completedMonths} ${completedMonths===1?'month':'months'}</div>
+           <div style="font-size:12px;color:var(--muted);margin-top:2px">of FY27 completed</div></div>
+         <div><span style="font-size:12px;color:var(--muted);font-weight:600">Current Pacing vs Target</span>
+           <div style="font-size:24px;font-weight:800;color:${achievementPct==='–'?'#999':(parseFloat(achievementPct)>=100?'var(--green)':'var(--amber)')};margin-top:4px">${achievementPct}%</div>
+           <div style="font-size:12px;color:var(--muted);margin-top:2px">YTD pacing rate</div></div>
+       </div>
+       <div style="font-size:13px;color:var(--muted);padding:12px;background:var(--bg);border-radius:6px">
+         <b>Weekly Target:</b> ₹${crc(dailyRunRate*7)} weekly to stay on pace for FY27 full-year target.
+       </div>
+     </div>`)}`;
+
+  // Daily run-rate line chart (show last 12 months + forecast period)
+  if(typeof Chart!=='undefined'){
+    const dCtx=document.getElementById('dwChartDaily');
+    if(dCtx){
+      new Chart(dCtx,{type:'line',
+        data:{
+          labels:allLabels,
+          datasets:[
+            {label:'Daily Run-Rate (₹ Lakh)',data:allData.map(m=>m==null?null:m),borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:0.3},
+            {label:'Weekly Average (₹ Lakh)',data:allData.map(m=>m==null?null:m/weeksInMonth),borderColor:C.amber,borderDash:[5,5],tension:0.3}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},
+          scales:{y:{ticks:{callback:v=>crc(v)}}}}
+      });
+    }
+
+    // Monthly forecast breakdown (stacked view)
+    const mCtx=document.getElementById('dwChartMonthly');
+    if(mCtx){
+      const monthColors=[C.teal,C.amber,C.green];
+      new Chart(mCtx,{type:'bar',
+        data:{
+          labels:fcLabels,
+          datasets:[
+            {label:'Forecast',data:fc.map(v=>v==null?0:v),backgroundColor:C.teal+'cc',borderColor:C.teal,borderWidth:1}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},
+          scales:{y:{ticks:{callback:v=>crc(v)}}}}
+      });
+    }
+
+    // Cumulative achievement chart
+    const cCtx=document.getElementById('dwChartCum');
+    if(cCtx){
+      const cumulativeActual=[];
+      const cumulativeTarget=[];
+      let sumA=0, sumT=0;
+      for(let i=0;i<allData.length;i++){
+        sumA+=(allData[i]==null?0:allData[i]);
+        sumT+=(fc[i]==null?0:fc[i]);
+        cumulativeActual.push(sumA);
+        cumulativeTarget.push(sumT);
+      }
+      new Chart(cCtx,{type:'line',
+        data:{
+          labels:allLabels,
+          datasets:[
+            {label:'Cumulative Actual',data:cumulativeActual,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:0.3},
+            {label:'Cumulative Target',data:cumulativeTarget,borderColor:C.amber,borderDash:[5,5],tension:0.3}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},
+          scales:{y:{ticks:{callback:v=>crc(v)}}}}
+      });
+    }
   }
 }
 
@@ -3377,13 +3495,15 @@ const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Pri
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],['insights','Insights & Way Forward']];
+  ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],
+  ['forecast-tracking','Daily & Weekly Forecast'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,insights:buildInsights};
+  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
+  'forecast-tracking':buildDailyWeeklyForecast,insights:buildInsights};
 let currentTab='overview';
 function show(id){
   currentTab=id;
