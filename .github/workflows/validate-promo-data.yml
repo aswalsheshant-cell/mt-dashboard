@@ -2,9 +2,9 @@ name: Promo Data Schema Validation
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - 'data/**'
-      - 'raw_promos/**'
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
       - 'scripts/sync_data_js.py'
@@ -12,9 +12,9 @@ on:
   push:
     branches:
       - main
+      - 'claude/**'
     paths:
       - 'data/**'
-      - 'raw_promos/**'
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
       - '.github/workflows/validate-promo-data.yml'
