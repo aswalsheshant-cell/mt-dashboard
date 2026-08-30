@@ -406,6 +406,7 @@ const crc = v => { if(v==null) return '–'; const av=Math.abs(v);
                 : '₹'+(v/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr'; };
 const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
+const hesc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 // Quantity formatter (separate unit family from money -- never mix Value Cr with Qty
 // Cr): shows "Qty Cr" (÷1 crore units) by default, degrading to "Qty L" only when the
 // Cr-rounded figure would read as 0.00, so small quantities stay legible.
@@ -1499,7 +1500,7 @@ function buildPnl(){
    ${cm2D&&cm2D.provisional?`<div class="repbanner" style="border-left:4px solid #b45309;background:#fffbeb;color:#7c2d12">
         <b>${hesc(cm2D.provisional_label||'CM2 PROVISIONAL - FORMULA APPROVAL PENDING')}</b>
         <div style="margin-top:6px;font-weight:400">Do not publish these figures as final. Reason${(cm2D.provisional_reasons||[]).length>1?'s':''}:
-        <ul style="margin:4px 0 0 18px;padding:0">${(cm2D.provisional_reasons||[]).map(r=>\`<li>\${hesc(r)}</li>\`).join('')}</ul></div></div>`:''}
+        <ul style="margin:4px 0 0 18px;padding:0">${(cm2D.provisional_reasons||[]).map(r=>`<li>${hesc(r)}</li>`).join('')}</ul></div></div>`:''}
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
         Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
    :(cm2D.expense_pct_of_nsv!=null&&cm2D.expense_pct_of_nsv<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
@@ -1897,25 +1898,25 @@ function buildCM2(){
    ${card('Margin Waterfall: Gross → CM2','NSV flow through claim deductions',cv('cm2Waterfall'))}
    ${card('Claims by Chain (Top 10)','Click to drill into category breakdown',cv('cm2ByChain'))}
    ${card('Distributor ROI & Claim Efficiency','TAT (days) vs contribution margin',cv('cm2DistROI'))}
-   ${card('Chain-wise Claim Impact Table','By category and distributor','
+   ${card('Chain-wise Claim Impact Table','By category and distributor',`
      <div class="tablewrap"><table>
        <thead><tr><th>Chain</th><th>NSV</th><th>Rate Diff</th><th>Visibility</th><th>Off-Invoice</th><th>Total Claims</th><th>CM2%</th></tr></thead>
        <tbody>${chainMetrics.slice(0,15).map(m=>{
          const rd=m.categories['Extra Margin / Rate Difference']||0;
          const vis=m.categories['Visibility']||0;
          const off=m.categories['Off Invoice / Debit Note Promo']||0;
-         return \`<tr><td><b>\${m.chain}</b></td><td>\${crc(m.nsv)}</td><td>\${crc(rd)}</td><td>\${crc(vis)}</td><td>\${crc(off)}</td><td><b>\${crc(m.totalClaim)}</b></td><td><b>\${m.cm2Pct}%</b></td></tr>\`;
+         return `<tr><td><b>${m.chain}</b></td><td>${crc(m.nsv)}</td><td>${crc(rd)}</td><td>${crc(vis)}</td><td>${crc(off)}</td><td><b>${crc(m.totalClaim)}</b></td><td><b>${m.cm2Pct}%</b></td></tr>`;
        }).join('')}
        </tbody>
      </table></div>
-   ')}
-   ${card('Distributor ROI Scorecard','Claim turnaround time vs margin contribution','
+   `)}
+   ${card('Distributor ROI Scorecard','Claim turnaround time vs margin contribution',`
      <div class="tablewrap"><table>
        <thead><tr><th>Distributor</th><th>Claims (₹L)</th><th>Avg Monthly</th><th>TAT (days)</th><th>ROI Proxy %</th></tr></thead>
-       <tbody>${distROI.map(d=>\`<tr><td><b>\${d.dist}</b></td><td>\${crc(d.total)}</td><td>\${crc(d.avg)}</td><td style="text-align:center">\${d.tat}</td><td style="text-align:center;color:\${d.roi>30?'var(--green)':'var(--amber)'}">\${d.roi}%</td></tr>\`).join('')}
+       <tbody>${distROI.map(d=>`<tr><td><b>${d.dist}</b></td><td>${crc(d.total)}</td><td>${crc(d.avg)}</td><td style="text-align:center">${d.tat}</td><td style="text-align:center;color:${d.roi>30?'var(--green)':'var(--amber)'}">${d.roi}%</td></tr>`).join('')}
        </tbody>
      </table></div>
-   ')}`;
+   `)}`;
 
    // Wire claim filter buttons
    s.querySelectorAll('.fbtn[data-filter]').forEach(btn=>{
@@ -3019,17 +3020,17 @@ function buildAnalytics(){
       <div class="card">
         <h3>Price-Volume-Mix Decomposition</h3>
         <p class="note">NSV variance split by volume, price, and mix effects</p>
-        <div class="chartbox" id="cvPVM" style="height:250px"></div>
+        <div class="chartbox" style="height:250px"><canvas id="cvPVM"></canvas></div>
       </div>
       <div class="card">
         <h3>Offtake vs. Primary Health Ratio</h3>
         <p class="note">Account inventory balance: >1.15 understocked, <0.85 overstocked</p>
-        <div class="chartbox" id="cvHealth" style="height:250px"></div>
+        <div class="chartbox" style="height:250px"><canvas id="cvHealth"></canvas></div>
       </div>
       <div class="card" style="grid-column:1/-1">
         <h3>SKU Portfolio Quadrants (ROS vs. Gross Margin %)</h3>
         <p class="note">Q1: Core Driver (protect) | Q2: Traffic Builder (optimize promo) | Q3: Margin Booster (secondary display) | Q4: Delist Review</p>
-        <div class="chartbox" id="cvQuadrant" style="height:300px"></div>
+        <div class="chartbox" style="height:300px"><canvas id="cvQuadrant"></canvas></div>
       </div>
     </div>
     <div class="grid g2">
