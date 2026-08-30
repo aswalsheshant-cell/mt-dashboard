@@ -3728,9 +3728,9 @@ def main():
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
     ap.add_argument("--not-eligible-gate-pct", type=float, default=0.0, dest="not_eligible_gate_pct",
-                    help="Fail build if Not_Eligible tier NSV exceeds this %% of total Dist. NSV "
+                    help="Fail build if Not_Eligible tier NSV exceeds this percentage of total Dist. NSV "
                          "(0 = disabled, the default). Example: --not-eligible-gate-pct 10 fails "
-                         "the build when more than 10%% of Dist. NSV has no matching allocation entry "
+                         "the build when more than 10 percent of Dist. NSV has no matching allocation entry "
                          "and is not in the offtake universe. Set per-environment in CI to enforce "
                          "data quality without breaking local builds that lack source files.")
     a = ap.parse_args()

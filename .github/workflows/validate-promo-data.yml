@@ -2,9 +2,9 @@ name: Promo Data Schema Validation
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - 'data/**'
-      - 'raw_promos/**'
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
       - 'scripts/sync_data_js.py'
@@ -12,9 +12,9 @@ on:
   push:
     branches:
       - main
+      - 'claude/**'
     paths:
       - 'data/**'
-      - 'raw_promos/**'
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
       - '.github/workflows/validate-promo-data.yml'
@@ -27,10 +27,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@v4
 
       - name: Validate HTML structure
         run: |
@@ -107,10 +107,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 

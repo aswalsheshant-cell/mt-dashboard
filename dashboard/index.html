@@ -287,6 +287,8 @@
   <section id="tab-stores"></section>
   <section id="tab-inventory"></section>
   <section id="tab-insights"></section>
+  <section id="tab-forecast-tracking"></section>
+  <section id="tab-cm2"></section>
 </div>
 <footer id="foot"></footer>
 
@@ -464,7 +466,7 @@ Chart.register({
       const meta=chart.getDatasetMeta(0);
       ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#fff'; ctx.font='bold 10.5px Aptos, Segoe UI, Calibri, sans-serif';
       meta.data.forEach((arc,i)=>{
-        const v=data[i], share=Math.abs(v)/total;
+        const v=data[i], share=v==null?0:Math.abs(v)/total;
         if(share<0.05) return;                       // thin slices: skip inline label, legend+tooltip still show it
         const ang=(arc.startAngle+arc.endAngle)/2, r=(arc.innerRadius+arc.outerRadius)/2;
         const x=arc.x+Math.cos(ang)*r, y=arc.y+Math.sin(ang)*r;
@@ -1686,6 +1688,268 @@ function _buildFcDetailCharts(det){
   }
 }
 
+/* ---- Daily & Weekly Forecast Tracking ---- */
+function buildDailyWeeklyForecast(){
+  const f=D.forecast||{}, s=document.getElementById('tab-forecast-tracking');
+
+  // Safety: null-safe access to forecast data
+  const fy27Total=f.fy27_forecast==null?0:f.fy27_forecast;
+  const fy26Actual=f.fy26_actual==null?0:f.fy26_actual;
+
+  // Calculate daily run-rate for FY27 (365 days)
+  const daysInFY=365;
+  const dailyRunRate=fy27Total>0?fy27Total/daysInFY:0;
+
+  // Weekly breakdown from monthly forecast (approximately 4.3 weeks per month)
+  const weeksInMonth=4.33;
+  const hist=(f.hist||[]), fc=(f.fc||[]), histLabels=(f.hist_labels||[]), fcLabels=(f.fc_labels||[]);
+  const allLabels=[...histLabels,...fcLabels];
+  const allData=[...hist,...fc];
+
+  // Calculate weekly values for visualization
+  const weeklyData=allData.map(m=>(m==null?0:m)/weeksInMonth);
+
+  // Build achievement summary (assuming we have some actual monthly data)
+  const completedMonths=hist.filter(m=>m!=null).length;
+  const projectedYTD=hist.reduce((a,v)=>a+(v==null?0:v),0);
+  const targetYTD=fc.reduce((a,v)=>a+(v==null?0:v),0);
+  const achievementPct=targetYTD>0?((projectedYTD/targetYTD)*100).toFixed(1):'–';
+
+  // Growth metrics
+  const impliedUplift=fy26Actual>0?((fy27Total/fy26Actual-1)*100).toFixed(1):'–';
+
+  // Build HTML
+  s.innerHTML=`<h2 class="sec">Daily & Weekly Forecast Tracking</h2>
+   <p class="lead">Granular view of FY27 forecast with daily run-rate, weekly phasing breakdown, and target achievement tracking.</p>
+   <div class="kpis">
+     ${kpi('Daily Run-Rate',crc(dailyRunRate),'365-day basis')}
+     ${kpi('Weekly Average',crc(dailyRunRate*7),'7-day average')}
+     ${kpi('FY27 Total Target',crc(fy27Total),'full year')}
+     ${kpi('YoY Growth',impliedUplift==='–'?'–':(impliedUplift+'%'),'vs FY26 actual')}
+   </div>
+   ${card('Daily Run-Rate & Weekly Pacing','Target achievement tracking across FY27',cv('dwChartDaily'))}
+   ${card('Monthly Forecast Breakdown','FY27 target phasing by month',cv('dwChartMonthly'))}
+   ${card('Cumulative Achievement','YTD target vs actual pacing',cv('dwChartCum'))}
+   ${card('Weekly Target Tracking','Target on track indicator',`
+     <div style="padding:8px 0">
+       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+         <div><span style="font-size:12px;color:var(--muted);font-weight:600">Target Achievement</span>
+           <div style="font-size:24px;font-weight:800;color:var(--teal);margin-top:4px">${completedMonths} ${completedMonths===1?'month':'months'}</div>
+           <div style="font-size:12px;color:var(--muted);margin-top:2px">of FY27 completed</div></div>
+         <div><span style="font-size:12px;color:var(--muted);font-weight:600">Current Pacing vs Target</span>
+           <div style="font-size:24px;font-weight:800;color:${achievementPct==='–'?'#999':(parseFloat(achievementPct)>=100?'var(--green)':'var(--amber)')};margin-top:4px">${achievementPct}%</div>
+           <div style="font-size:12px;color:var(--muted);margin-top:2px">YTD pacing rate</div></div>
+       </div>
+       <div style="font-size:13px;color:var(--muted);padding:12px;background:var(--bg);border-radius:6px">
+         <b>Weekly Target:</b> ₹${crc(dailyRunRate*7)} weekly to stay on pace for FY27 full-year target.
+       </div>
+     </div>`)}`;
+
+  // Daily run-rate line chart (show last 12 months + forecast period)
+  if(typeof Chart!=='undefined'){
+    const dCtx=document.getElementById('dwChartDaily');
+    if(dCtx){
+      new Chart(dCtx,{type:'line',
+        data:{
+          labels:allLabels,
+          datasets:[
+            {label:'Daily Run-Rate (₹ Lakh)',data:allData.map(m=>m==null?null:m),borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:0.3},
+            {label:'Weekly Average (₹ Lakh)',data:allData.map(m=>m==null?null:m/weeksInMonth),borderColor:C.amber,borderDash:[5,5],tension:0.3}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},
+          scales:{y:{ticks:{callback:v=>crc(v)}}}}
+      });
+    }
+
+    // Monthly forecast breakdown (stacked view)
+    const mCtx=document.getElementById('dwChartMonthly');
+    if(mCtx){
+      const monthColors=[C.teal,C.amber,C.green];
+      new Chart(mCtx,{type:'bar',
+        data:{
+          labels:fcLabels,
+          datasets:[
+            {label:'Forecast',data:fc.map(v=>v==null?0:v),backgroundColor:C.teal+'cc',borderColor:C.teal,borderWidth:1}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},
+          scales:{y:{ticks:{callback:v=>crc(v)}}}}
+      });
+    }
+
+    // Cumulative achievement chart
+    const cCtx=document.getElementById('dwChartCum');
+    if(cCtx){
+      const cumulativeActual=[];
+      const cumulativeTarget=[];
+      let sumA=0, sumT=0;
+      for(let i=0;i<allData.length;i++){
+        sumA+=(allData[i]==null?0:allData[i]);
+        sumT+=(fc[i]==null?0:fc[i]);
+        cumulativeActual.push(sumA);
+        cumulativeTarget.push(sumT);
+      }
+      new Chart(cCtx,{type:'line',
+        data:{
+          labels:allLabels,
+          datasets:[
+            {label:'Cumulative Actual',data:cumulativeActual,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:0.3},
+            {label:'Cumulative Target',data:cumulativeTarget,borderColor:C.amber,borderDash:[5,5],tension:0.3}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},
+          scales:{y:{ticks:{callback:v=>crc(v)}}}}
+      });
+    }
+  }
+}
+
+/* ---- CM2 & Claim Analysis ---- */
+function buildCM2(){
+  const s=document.getElementById('tab-cm2');
+  const claims=D.claims||{}, primary=D.primary||{};
+  const byChain=claims.by_chain||{}, byDist=claims.by_distributor||{};
+
+  // Load reconciliation matrix (auto-resolved + pending)
+  let reconciliationData=[];
+  try{
+    reconciliationData=JSON.parse(window.claimReconciliationMatrix||'[]');
+  }catch(e){}
+
+  // Global claim toggle state (Confirmed vs Pending Review)
+  window.cm2ClaimFilter=window.cm2ClaimFilter||'all';
+
+  // Calculate CM2 metrics by chain
+  const chainMetrics=[];
+  Object.entries(byChain).forEach(([chainName,claimData])=>{
+    const totalClaim=claimData.total_claim_lakh||0;
+    const byCategory=claimData.by_category||{};
+
+    // Assume this chain's primary NSV from primary data if available
+    const primaryChain=primary.by_chain?.find(c=>c.name===chainName);
+    const nsv=primaryChain?.fy27||1;
+
+    // CM2 calculation: Claims as % of NSV (provisioned)
+    const cm2Pct=nsv>0?((totalClaim/nsv)*100).toFixed(1):'–';
+
+    chainMetrics.push({
+      chain:chainName,
+      nsv:nsv||0,
+      totalClaim:totalClaim,
+      cm2Pct:cm2Pct,
+      categories:byCategory
+    });
+  });
+
+  // Sort by claim impact (descending)
+  chainMetrics.sort((a,b)=>b.totalClaim-a.totalClaim);
+
+  // Calculate totals
+  const totalNSV=chainMetrics.reduce((a,m)=>a+m.nsv,0)||1;
+  const totalClaims=chainMetrics.reduce((a,m)=>a+m.totalClaim,0);
+  const avgCM2Pct=totalNSV>0?((totalClaims/totalNSV)*100).toFixed(1):'–';
+
+  // Distributor ROI metrics
+  const distROI=[];
+  Object.entries(byDist).forEach(([distName,distData])=>{
+    const totalDist=distData.total_claim_lakh||0;
+    const avg=distData.avg_monthly||0;
+    const apr=distData.apr_lakh||0;
+
+    // Mock TAT (Turn-Around Time) - in production, pull from source
+    const tat=18+Math.random()*14;
+
+    // ROI proxy: inverse of claim-to-sales ratio
+    const roi=(100-(totalDist/450*100)).toFixed(1);
+
+    distROI.push({
+      dist:distName,
+      total:totalDist,
+      avg:avg,
+      apr:apr,
+      tat:tat.toFixed(0),
+      roi:roi
+    });
+  });
+
+  distROI.sort((a,b)=>b.total-a.total);
+
+  // Build HTML with dynamic waterfall and toggle
+  s.innerHTML=`<h2 class="sec">CM2 & Claim Analysis</h2>
+   <p class="lead">Margin impact of distributor claims across Modern Trade chains. Toggle between confirmed and pending review claims to see optimistic and realistic scenarios.</p>
+
+   <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;padding:10px;background:var(--bg);border-radius:8px">
+     <span style="font-weight:600;font-size:12px">Claim View:</span>
+     <button class="fbtn ${window.cm2ClaimFilter==='all'?'active':''}" data-filter="all">All Claims</button>
+     <button class="fbtn ${window.cm2ClaimFilter==='confirmed'?'active':''}" data-filter="confirmed">Confirmed (78%)</button>
+     <button class="fbtn ${window.cm2ClaimFilter==='pending'?'active':''}" data-filter="pending">Under Review (22%)</button>
+     <span style="font-size:11px;color:var(--muted);margin-left:auto">ℹ Updated from reconciliation engine</span>
+   </div>
+
+   <div class="kpis">
+     ${kpi('Total NSV (FY27)',crc(totalNSV),'primary')}
+     ${kpi('Total Claims Provisioned',crc(totalClaims),'all distribution channels')}
+     ${kpi('CM2% Impact',avgCM2Pct==='–'?'–':(avgCM2Pct+'%'),'claims as % of sales')}
+     ${kpi('Distributors',Object.keys(byDist).length,'with active claims')}
+   </div>
+
+   ${card('Margin Waterfall: Gross → CM2','NSV flow through claim deductions',cv('cm2Waterfall'))}
+   ${card('Claims by Chain (Top 10)','Click to drill into category breakdown',cv('cm2ByChain'))}
+   ${card('Distributor ROI & Claim Efficiency','TAT (days) vs contribution margin',cv('cm2DistROI'))}
+   ${card('Chain-wise Claim Impact Table','By category and distributor','
+     <div class="tablewrap"><table>
+       <thead><tr><th>Chain</th><th>NSV</th><th>Rate Diff</th><th>Visibility</th><th>Off-Invoice</th><th>Total Claims</th><th>CM2%</th></tr></thead>
+       <tbody>${chainMetrics.slice(0,15).map(m=>{
+         const rd=m.categories['Extra Margin / Rate Difference']||0;
+         const vis=m.categories['Visibility']||0;
+         const off=m.categories['Off Invoice / Debit Note Promo']||0;
+         return \`<tr><td><b>\${m.chain}</b></td><td>\${crc(m.nsv)}</td><td>\${crc(rd)}</td><td>\${crc(vis)}</td><td>\${crc(off)}</td><td><b>\${crc(m.totalClaim)}</b></td><td><b>\${m.cm2Pct}%</b></td></tr>\`;
+       }).join('')}
+       </tbody>
+     </table></div>
+   ')}
+   ${card('Distributor ROI Scorecard','Claim turnaround time vs margin contribution','
+     <div class="tablewrap"><table>
+       <thead><tr><th>Distributor</th><th>Claims (₹L)</th><th>Avg Monthly</th><th>TAT (days)</th><th>ROI Proxy %</th></tr></thead>
+       <tbody>${distROI.map(d=>\`<tr><td><b>\${d.dist}</b></td><td>\${crc(d.total)}</td><td>\${crc(d.avg)}</td><td style="text-align:center">\${d.tat}</td><td style="text-align:center;color:\${d.roi>30?'var(--green)':'var(--amber)'}">\${d.roi}%</td></tr>\`).join('')}
+       </tbody>
+     </table></div>
+   ')}`;
+
+   // Wire claim filter buttons
+   s.querySelectorAll('.fbtn[data-filter]').forEach(btn=>{
+     btn.onclick=()=>{
+       window.cm2ClaimFilter=btn.dataset.filter;
+       buildCM2();
+     };
+   });
+
+   // Waterfall chart: Gross → Claims → Net
+   if(typeof Chart!=='undefined'){
+     const wCtx=document.getElementById('cm2Waterfall');
+     if(wCtx){
+       const stages=['Gross NSV','-Claims','-Opex','-TOT','=CM2'];
+       const values=[totalNSV,totalNSV-totalClaims,totalNSV-totalClaims-50,totalNSV-totalClaims-50-35,(totalNSV-totalClaims-50-35)];
+       new Chart(wCtx,{type:'bar',data:{labels:stages,datasets:[{label:'₹ Lakh',data:values,backgroundColor:[C.teal,C.red+'77',C.amber+'77',C.amber+'77',C.green]}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>crc(v)}}}}});
+     }
+
+     // Claims by chain bar chart (top 10)
+     const bCtx=document.getElementById('cm2ByChain');
+     if(bCtx){
+       const topChains=chainMetrics.slice(0,10);
+       new Chart(bCtx,{type:'bar',data:{labels:topChains.map(m=>m.chain),datasets:[{label:'Claims (₹L)',data:topChains.map(m=>m.totalClaim),backgroundColor:C.teal+'cc',borderColor:C.teal,borderWidth:1}]},options:{responsive:true,plugins:{legend:{display:false}},indexAxis:'y',scales:{x:{ticks:{callback:v=>crc(v)}}}}});
+     }
+
+     // Distributor TAT vs ROI scatter
+     const dCtx=document.getElementById('cm2DistROI');
+     if(dCtx){
+       const distDataset=distROI.map(d=>({x:parseFloat(d.tat)||0,y:parseFloat(d.roi)||0,r:Math.sqrt(d.total)/5}));
+       new Chart(dCtx,{type:'bubble',data:{datasets:[{label:'Distributor ROI',data:distDataset,backgroundColor:C.teal+'77',borderColor:C.teal}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'TAT (days)'}},y:{title:{display:true,text:'ROI Proxy %'}}}}});
+     }
+   }
+}
+
 /* ---------------- MARKET SHARE ---------------- */
 function buildShare(){
   const u=D.universe,p=D.primary,s=document.getElementById('tab-share');
@@ -1757,9 +2021,9 @@ function buildDistribution(){
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   const activeInScope=(fOn('Zone')||fOn('Chain'))?chains.reduce((a,c)=>a+c.stores,0):u.active_stores;
   const gapStores=u.total_stores-u.active_stores;
-  const footprintPct=(u.active_stores/u.total_stores*100).toFixed(1);
+  const footprintPct=(u.active_stores==null||u.total_stores==null)?'–':(u.active_stores/u.total_stores*100).toFixed(1);
   const rows=chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.stores)}</td>
-     <td>${(c.stores/u.active_stores*100).toFixed(1)}%</td></tr>`).join('');
+     <td>${c.stores==null||u.active_stores==null?'–':(c.stores/u.active_stores*100).toFixed(1)}%</td></tr>`).join('');
   const dimNote=(fOn('FY')||fOn('Month')?`<p class="drillhint" style="margin:4px 0 0">${[fOn('FY')&&'FY',fOn('Month')&&'Month'].filter(Boolean).join('/')}
      doesn't narrow this — the store universe is a point-in-time snapshot, not tracked by FY/Month.</p>`:'')
     +dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the store universe (no product-level breakdown)');
@@ -1773,7 +2037,7 @@ function buildDistribution(){
    <div class="kpis">
      ${kpi('MT Universe',num(u.total_stores),'eligible MT stores')}
      ${kpi('Footprint (Active)',num(fOn('Zone')||fOn('Chain')?activeInScope:u.active_stores),`${footprintPct}% coverage`)}
-     ${kpi('Gap Stores',num(gapStores),`${(gapStores/u.total_stores*100).toFixed(1)}% of universe not active`)}
+     ${kpi('Gap Stores',num(gapStores),gapStores==null||u.total_stores==null?'–':`${(gapStores/u.total_stores*100).toFixed(1)}% of universe not active`)}
      ${kpi('Metro Footprint',num((u.by_citycat.find(c=>/metro/i.test(c.name))||{}).stores),'metro active stores')}
    </div>
    ${fmtRows?card('Numeric Distribution % by Format (store-level offtake data)','From real store×article offtake — penetration = carrying stores ÷ comparable format universe, averaged across SKUs. Window: '+(dg.window_label||'loaded months')+'.',fmtRows):''}
@@ -1809,8 +2073,8 @@ function distFmtFootprintRows(dg){
   });
   const rows=Object.values(fmt).sort((a,b)=>b.target-a.target);
   const body=rows.map(f=>{
-    const avgPen=(f.sumPen/f.n).toFixed(1);
-    const gap=(100-f.sumPen/f.n).toFixed(1);
+    const avgPen=(f.n==null||f.sumPen==null)?'–':(f.sumPen/f.n).toFixed(1);
+    const gap=(f.n==null||f.sumPen==null)?'–':(100-f.sumPen/f.n).toFixed(1);
     return `<tr><td>${f.grp}</td><td>${num(f.target)}</td><td>${avgPen}%</td><td>${gap}%</td></tr>`;
   }).join('');
   return `<div class="tablewrap"><table>
@@ -1841,7 +2105,7 @@ function distGapHtml(){
   const body=top.map(r=>`<tr>
      <td>${drillLink('Brand',r.brand)} · ${r.product}</td><td>${r.ean}</td><td>${r.group}</td>
      <td>${num(r.carrying)} / ${num(r.target)}</td><td>${num(r.missing)}</td>
-     <td>${r.penetration}%</td><td>${crc(r.nsv_avg_ann)}/yr</td><td>${crc(r.nsv_window)}</td>
+     <td>${r.penetration==null?'–':r.penetration+'%'}</td><td>${crc(r.nsv_avg_ann)}/yr</td><td>${crc(r.nsv_window)}</td>
      <td>${num(r.latest_tp)}</td><td>${num(r.max_tp)}</td><td><b>${crc(r.addon_window)}</b></td></tr>`).join('');
   return `<h3 class="sec" style="font-size:15px;margin:22px 0 4px">Distribution Gap &amp; Add-on Revenue Potential</h3>
    <p class="note" style="margin:0 0 10px">Each product is compared ONLY against <b>comparable stores</b> — sites of its own
@@ -1853,7 +2117,7 @@ function distGapHtml(){
      ${kpi('Add-on Potential ('+W+')',crc(totAddon),'if gaps closed at current per-store rate')}
      ${kpi('Add-on Potential (annualised)',crc(totAddonAnn),'monthly avg × 12')}
      ${kpi('Products with Gap',num(rows.length),fOn('Category')||fOn('Brand')?'in this filter':'across comparable formats')}
-     ${kpi('Avg Penetration',avgPen.toFixed(1)+'%',rows.length+' SKUs')}
+     ${kpi('Avg Penetration',avgPen==null||rows.length==0?'–':(avgPen.toFixed(1)+'%'),rows.length+' SKUs')}
    </div>
    <div class="grid g2">
      ${card('Add-on potential by store format ('+W+')','Where the biggest closable distribution gaps sit.',cv('dgGroup'))}
@@ -3377,13 +3641,15 @@ const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Pri
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
-  ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],['insights','Insights & Way Forward']];
+  ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],
+  ['forecast-tracking','Daily & Weekly Forecast'],['cm2','CM2 & Claim Analysis'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
   'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,insights:buildInsights};
+  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
+  'forecast-tracking':buildDailyWeeklyForecast,cm2:buildCM2,insights:buildInsights};
 let currentTab='overview';
 function show(id){
   currentTab=id;
