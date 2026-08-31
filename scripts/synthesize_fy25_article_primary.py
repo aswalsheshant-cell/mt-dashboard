@@ -88,7 +88,9 @@ def load_and_filter_primary() -> tuple[pd.DataFrame, float]:
         .sum()
         .rename(columns={"Clean_NSV": "Target_NSV_Lakh"})
     )
-    df_targets = df_targets[df_targets["Target_NSV_Lakh"] > 0].copy()
+    # Keep all grains including negative values (credit notes, adjustments)
+    # Filtering > 0 was incorrectly dropping ₹53.30L in deductions
+    df_targets = df_targets[df_targets["Target_NSV_Lakh"] != 0].copy()
 
     total_target_nsv = df_targets["Target_NSV_Lakh"].sum()
     print(f"✓ FY25 Target Base Loaded: ₹{total_target_nsv:,.2f} Lakhs across {len(df_targets):,} grain partitions.")
