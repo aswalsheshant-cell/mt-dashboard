@@ -1,0 +1,73 @@
+name: Dashboard UI Smoke Tests
+
+on:
+  push:
+    branches:
+      - main
+      - "claude/**"
+    paths:
+      - 'dashboard/index.html'
+      - 'dashboard/data.js'
+      - 'tests/test_dashboard_ui.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'dashboard/index.html'
+      - 'dashboard/data.js'
+
+env:
+  PLAYWRIGHT_BROWSERS_PATH: /opt/pw-browsers
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+
+jobs:
+  ui-smoke:
+    runs-on: ubuntu-latest
+    name: Headless Playwright UI Smoke
+
+    steps:
+      - uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
+
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: pip install pytest pytest-asyncio playwright
+
+      - name: Install Chromium system deps
+        run: |
+          # Playwright's system-deps installer — does NOT download browsers
+          python -m playwright install-deps chromium
+
+      - name: Download Chromium (CI runner lacks /opt/pw-browsers)
+        run: |
+          # In the GitHub-hosted runner the pre-installed path does not exist;
+          # override to the default cache location and let playwright fetch it.
+          if [ ! -f "${PLAYWRIGHT_BROWSERS_PATH}/chromium" ]; then
+            echo "Pre-installed Chromium not found — downloading via Playwright"
+            PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0 python -m playwright install chromium
+            # Point tests at the Playwright-managed binary
+            echo "PLAYWRIGHT_BROWSERS_PATH=$(python -c "import playwright; import pathlib; print(pathlib.Path(playwright.__file__).parent / 'driver' / 'package' / '.local-browsers')")" >> $GITHUB_ENV
+          fi
+
+      - name: Verify dashboard/data.js exists
+        run: test -f dashboard/data.js && echo "data.js present" || (echo "data.js missing"; exit 1)
+
+      - name: Run UI smoke tests
+        run: pytest tests/test_dashboard_ui.py -v --tb=short
+
+  report:
+    runs-on: ubuntu-latest
+    needs: ui-smoke
+    if: always()
+    name: Report UI Smoke Results
+    steps:
+      - name: Status
+        run: |
+          if [ "${{ needs.ui-smoke.result }}" = "success" ]; then
+            echo "✅ All UI smoke tests passed"
+          else
+            echo "❌ UI smoke tests failed"
+            exit 1
+          fi
