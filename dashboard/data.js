@@ -4240,7 +4240,7 @@ window.DASH = {
   "nsv_fy27": 9955.63,
   "mrp_fy27": 24178.02,
   "yoy": 41.05,
-  "n_chains": 58,
+  "n_chains": 55,
   "n_brands": 11,
   "month_labels": [
    "April",
@@ -4444,175 +4444,175 @@ window.DASH = {
   ],
   "by_chain": [
    {
-    "name": "D-Mart",
+    "name": "DMART",
     "fy25": 8530.2,
     "fy26": 12190.3,
-    "fy27": 4008.32,
+    "fy27": 4013.35,
     "yoy": 42.91
    },
    {
-    "name": "Reliance Retail",
+    "name": "RELIANCE RETAIL",
     "fy25": 6439.3,
     "fy26": 8348.9,
     "fy27": 2112.76,
     "yoy": 29.66
    },
    {
-    "name": "Apollo",
-    "fy25": 0.0,
+    "name": "APOLLO PHARMACY",
+    "fy25": 2146.9,
     "fy26": 5262.76,
     "fy27": 1831.35,
-    "yoy": null
+    "yoy": 145.13
    },
    {
-    "name": "Nykaa SS(fsn)",
+    "name": "NYKAA SS(FSN)",
     "fy25": 1504.2,
     "fy26": 1872.78,
     "fy27": 438.82,
     "yoy": 24.5
    },
    {
-    "name": "Lulu",
+    "name": "LULU HYPERMARKET",
     "fy25": 457.5,
     "fy26": 828.62,
     "fy27": 355.58,
     "yoy": 81.12
    },
    {
-    "name": "Health & Glow",
-    "fy25": 0.0,
+    "name": "HEALTH & GLOW",
+    "fy25": 767.4,
     "fy26": 851.77,
     "fy27": 224.87,
-    "yoy": null
+    "yoy": 10.99
    },
    {
-    "name": "Wellness Forever",
+    "name": "WELLNESS FOREVER",
     "fy25": 952.2,
     "fy26": 861.98,
     "fy27": 207.83,
     "yoy": -9.47
    },
    {
-    "name": "RMT-Sancus",
+    "name": "RMT-SANCUS",
     "fy25": 334.0,
     "fy26": 427.06,
     "fy27": 142.31,
     "yoy": 27.86
    },
    {
-    "name": "Vishal Mega Mart",
+    "name": "VISHAL MEGA MART",
     "fy25": 0.0,
     "fy26": 182.13,
     "fy27": 142.25,
     "yoy": null
    },
    {
-    "name": "More Retail",
+    "name": "MORE RETAIL",
     "fy25": 260.6,
     "fy26": 457.45,
     "fy27": 125.46,
     "yoy": 75.54
    },
    {
-    "name": "Metro CNC",
+    "name": "METRO CNC",
     "fy25": 0.0,
     "fy26": 464.37,
     "fy27": 102.73,
     "yoy": null
    },
    {
-    "name": "Walmart CNC",
+    "name": "WALMART CNC",
     "fy25": 245.6,
     "fy26": 238.53,
     "fy27": 46.88,
     "yoy": -2.88
    },
    {
-    "name": "Spencers",
+    "name": "SPENCERS",
     "fy25": 0.0,
     "fy26": 134.09,
     "fy27": 27.06,
     "yoy": null
    },
    {
-    "name": "Frank Ross",
+    "name": "FRANK ROSS",
     "fy25": 0.0,
     "fy26": 46.27,
     "fy27": 26.65,
     "yoy": null
    },
    {
-    "name": "V-Mart",
+    "name": "V-MART",
     "fy25": 72.2,
     "fy26": 116.74,
     "fy27": 22.97,
     "yoy": 61.69
    },
    {
-    "name": "Trent",
+    "name": "TRENT",
     "fy25": 40.5,
     "fy26": 56.24,
     "fy27": 22.58,
     "yoy": 38.86
    },
    {
-    "name": "Dabur New U",
+    "name": "DABUR NEW U",
     "fy25": 0.0,
     "fy26": 0.0,
     "fy27": 17.39,
     "yoy": null
    },
    {
-    "name": "Eremedium",
+    "name": "EREMEDIUM",
     "fy25": 43.6,
     "fy26": 66.45,
     "fy27": 13.86,
     "yoy": 52.41
    },
    {
-    "name": "Ratnadeep",
+    "name": "RATNADEEP SUPERMARKET",
     "fy25": 68.0,
     "fy26": 62.64,
     "fy27": 12.82,
     "yoy": -7.88
    },
    {
-    "name": "Arambagh",
+    "name": "ARAMBAGH",
     "fy25": 15.6,
     "fy26": 34.95,
     "fy27": 10.08,
     "yoy": 124.04
    },
    {
-    "name": "Pothys",
+    "name": "POTHYS",
     "fy25": 70.3,
     "fy26": 19.97,
     "fy27": 8.53,
     "yoy": -71.59
    },
    {
-    "name": "Deal Share",
+    "name": "DEAL SHARE",
     "fy25": 0.0,
     "fy26": 10.0,
     "fy27": 8.11,
     "yoy": null
    },
    {
-    "name": "National Mart",
+    "name": "NATIONAL MART",
     "fy25": 0.0,
     "fy26": 0.18,
     "fy27": 7.11,
     "yoy": null
    },
    {
-    "name": "Sumo Save",
+    "name": "SUMO SAVE",
     "fy25": 0.0,
     "fy26": 3.0,
     "fy27": 5.71,
     "yoy": null
    },
    {
-    "name": "Guardian",
+    "name": "GUARDIAN PHARMACY",
     "fy25": 17.4,
     "fy26": 17.49,
     "fy27": 5.6,
@@ -4626,200 +4626,186 @@ window.DASH = {
     "yoy": -415.26
    },
    {
-    "name": "Apna Mart",
+    "name": "APNA MART",
     "fy25": 0.0,
     "fy26": 6.6,
     "fy27": 5.27,
     "yoy": null
    },
    {
-    "name": "Shoppers Stop",
+    "name": "SHOPPERS STOP",
     "fy25": 0.0,
     "fy26": 121.19,
     "fy27": 5.2,
     "yoy": null
    },
    {
-    "name": "Dmart",
-    "fy25": 0.0,
-    "fy26": 0.0,
-    "fy27": 5.03,
-    "yoy": null
-   },
-   {
-    "name": "SastaSundar",
+    "name": "SASTASUNDAR",
     "fy25": 0.0,
     "fy26": 6.06,
     "fy27": 3.48,
     "yoy": null
    },
    {
-    "name": "Azorte",
+    "name": "AZORTE",
     "fy25": 0.0,
     "fy26": 68.09,
     "fy27": 2.65,
     "yoy": null
    },
    {
-    "name": "Trilife",
+    "name": "TRILIFE",
     "fy25": 1.3,
     "fy26": 3.86,
     "fy27": 1.41,
     "yoy": 196.92
    },
    {
-    "name": "Max Hyper",
+    "name": "MAX HYPER",
     "fy25": 15.8,
     "fy26": 1.3,
     "fy27": 1.26,
     "yoy": -91.77
    },
    {
-    "name": "WH-Smith",
+    "name": "WH-SMITH",
     "fy25": 15.6,
     "fy26": 4.87,
     "fy27": 0.39,
     "yoy": -68.78
    },
    {
-    "name": "Medanta",
+    "name": "MEDANTA",
     "fy25": 0.0,
     "fy26": 0.0,
     "fy27": 0.29,
     "yoy": null
    },
    {
-    "name": "Apna Klub",
+    "name": "APNA KLUB",
     "fy25": 7.7,
     "fy26": -0.91,
     "fy27": 0.0,
     "yoy": -111.82
    },
    {
-    "name": "Apollo Healthco",
-    "fy25": 2146.9,
-    "fy26": 0.0,
-    "fy27": 0.0,
-    "yoy": -100.0
-   },
-   {
-    "name": "Ascent Wellness",
+    "name": "ASCENT WELLNESS",
     "fy25": 61.1,
     "fy26": 25.97,
     "fy27": 0.0,
     "yoy": -57.5
    },
    {
-    "name": "Broadway",
+    "name": "BROADWAY",
     "fy25": 0.0,
     "fy26": 24.69,
     "fy27": 0.0,
     "yoy": null
    },
    {
-    "name": "Frankross",
+    "name": "FRANKROSS",
     "fy25": 13.4,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "G N R C Medishop Pvt Ltd",
+    "name": "G N R C MEDISHOP PVT LTD",
     "fy25": 1.0,
     "fy26": 0.09,
     "fy27": 0.0,
     "yoy": -91.0
    },
    {
-    "name": "Grace Super MKT",
+    "name": "GRACE SUPER MKT",
     "fy25": 31.2,
     "fy26": 8.42,
     "fy27": 0.0,
     "yoy": -73.01
    },
    {
-    "name": "H&G",
-    "fy25": 767.4,
-    "fy26": 0.0,
-    "fy27": 0.0,
-    "yoy": -100.0
-   },
-   {
-    "name": "Hyper Grocer",
+    "name": "HYPER GROCER",
     "fy25": 0.3,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "Lifestyle",
+    "name": "LIFESTYLE",
     "fy25": 0.0,
     "fy26": 32.79,
     "fy27": 0.0,
     "yoy": null
    },
    {
-    "name": "Lifestyle Babyshop",
+    "name": "LIFESTYLE BABYSHOP",
     "fy25": 0.0,
     "fy26": 1.17,
     "fy27": 0.0,
     "yoy": null
    },
    {
-    "name": "Metro-CNC-RRL",
+    "name": "METRO-CNC-RRL",
     "fy25": 695.7,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "Mother Care",
+    "name": "MOTHER CARE",
     "fy25": -0.1,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "Nao Grocery",
+    "name": "NAO GROCERY",
     "fy25": 0.3,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "Sarvana",
+    "name": "SARVANA",
     "fy25": 82.2,
     "fy26": 7.4,
     "fy27": 0.0,
     "yoy": -91.0
    },
    {
-    "name": "Sasta Sunder",
+    "name": "SASTA SUNDER",
     "fy25": 0.2,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "Shubham K Mart",
+    "name": "SHUBHAM K MART",
     "fy25": 1.4,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "Spencer",
+    "name": "SPENCER",
     "fy25": 208.7,
     "fy26": 0.0,
     "fy27": 0.0,
     "yoy": -100.0
    },
    {
-    "name": "Today's Basket",
+    "name": "TODAY'S BASKET",
     "fy25": 0.0,
     "fy26": 2.24,
     "fy27": 0.0,
     "yoy": null
+   },
+   {
+    "name": "VIJETHA SUPERMARKET",
+    "fy25": 37.4,
+    "fy26": 18.44,
+    "fy27": 0.0,
+    "yoy": -50.7
    },
    {
     "name": "VMM",
@@ -4829,21 +4815,14 @@ window.DASH = {
     "yoy": -100.0
    },
    {
-    "name": "Vijetha",
-    "fy25": 37.4,
-    "fy26": 18.44,
-    "fy27": 0.0,
-    "yoy": -50.7
-   },
-   {
-    "name": "Relay",
+    "name": "RELAY",
     "fy25": 4.4,
     "fy26": 1.22,
     "fy27": -0.07,
     "yoy": -72.27
    },
    {
-    "name": "Sohum Shoppe",
+    "name": "SOHUM SHOPPE",
     "fy25": 6.7,
     "fy26": 0.22,
     "fy27": -2.51,
@@ -4854,34 +4833,34 @@ window.DASH = {
  "pnl": {
   "by_chain": [
    {
-    "name": "D-Mart",
+    "name": "DMART",
     "mrp": 10055.29,
-    "nsv": 4008.32,
-    "discount": 6046.98,
+    "nsv": 4013.35,
+    "discount": 6041.95,
     "discount_pct": 60.1,
-    "promos": 97,
-    "promo_depth": 38.9
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Reliance Retail",
+    "name": "RELIANCE RETAIL",
     "mrp": 5736.15,
     "nsv": 2112.76,
     "discount": 3623.39,
     "discount_pct": 63.2,
-    "promos": 827,
-    "promo_depth": 42.2
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Apollo",
+    "name": "APOLLO PHARMACY",
     "mrp": 4560.88,
     "nsv": 1831.35,
     "discount": 2729.53,
     "discount_pct": 59.8,
-    "promos": 393,
-    "promo_depth": 26.3
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Nykaa SS(fsn)",
+    "name": "NYKAA SS(FSN)",
     "mrp": 819.83,
     "nsv": 438.82,
     "discount": 381.01,
@@ -4890,115 +4869,115 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Lulu",
+    "name": "LULU HYPERMARKET",
     "mrp": 608.7,
     "nsv": 355.58,
     "discount": 253.12,
     "discount_pct": 41.6,
-    "promos": 342,
-    "promo_depth": 37.8
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Health & Glow",
+    "name": "HEALTH & GLOW",
     "mrp": 392.8,
     "nsv": 224.87,
     "discount": 167.94,
     "discount_pct": 42.8,
-    "promos": 383,
-    "promo_depth": 20.9
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Wellness Forever",
+    "name": "WELLNESS FOREVER",
     "mrp": 374.92,
     "nsv": 207.83,
     "discount": 167.09,
     "discount_pct": 44.6,
-    "promos": 1,
-    "promo_depth": 10.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "RMT-Sancus",
+    "name": "RMT-SANCUS",
     "mrp": 390.77,
     "nsv": 142.31,
     "discount": 248.46,
     "discount_pct": 63.6,
-    "promos": 120,
-    "promo_depth": 50.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Vishal Mega Mart",
+    "name": "VISHAL MEGA MART",
     "mrp": 303.8,
     "nsv": 142.25,
     "discount": 161.55,
     "discount_pct": 53.2,
-    "promos": 50,
-    "promo_depth": 20.5
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "More Retail",
+    "name": "MORE RETAIL",
     "mrp": 223.77,
     "nsv": 125.46,
     "discount": 98.31,
     "discount_pct": 43.9,
-    "promos": 226,
-    "promo_depth": 17.6
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Metro CNC",
+    "name": "METRO CNC",
     "mrp": 217.21,
     "nsv": 102.73,
     "discount": 114.48,
     "discount_pct": 52.7,
-    "promos": 201,
-    "promo_depth": 44.1
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Walmart CNC",
+    "name": "WALMART CNC",
     "mrp": 120.37,
     "nsv": 46.88,
     "discount": 73.49,
     "discount_pct": 61.1,
-    "promos": 66,
-    "promo_depth": 45.7
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Spencers",
+    "name": "SPENCERS",
     "mrp": 46.94,
     "nsv": 27.06,
     "discount": 19.88,
     "discount_pct": 42.4,
-    "promos": 152,
-    "promo_depth": 25.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Frank Ross",
+    "name": "FRANK ROSS",
     "mrp": 48.51,
     "nsv": 26.65,
     "discount": 21.86,
     "discount_pct": 45.1,
-    "promos": 40,
-    "promo_depth": 15.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "V-Mart",
+    "name": "V-MART",
     "mrp": 81.14,
     "nsv": 22.97,
     "discount": 58.17,
     "discount_pct": 71.7,
-    "promos": 37,
-    "promo_depth": 24.2
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Trent",
+    "name": "TRENT",
     "mrp": 57.51,
     "nsv": 22.58,
     "discount": 34.93,
     "discount_pct": 60.7,
-    "promos": 30,
-    "promo_depth": 35.2
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Dabur New U",
+    "name": "DABUR NEW U",
     "mrp": 0.0,
     "nsv": 17.39,
     "discount": -17.39,
@@ -5007,7 +4986,7 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Eremedium",
+    "name": "EREMEDIUM",
     "mrp": 25.64,
     "nsv": 13.86,
     "discount": 11.78,
@@ -5016,25 +4995,25 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Ratnadeep",
+    "name": "RATNADEEP SUPERMARKET",
     "mrp": 12.5,
     "nsv": 12.82,
     "discount": -0.31,
     "discount_pct": -2.5,
-    "promos": 18,
-    "promo_depth": 50.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Arambagh",
+    "name": "ARAMBAGH",
     "mrp": 19.42,
     "nsv": 10.08,
     "discount": 9.34,
     "discount_pct": 48.1,
-    "promos": 31,
-    "promo_depth": 12.1
+    "promos": 43,
+    "promo_depth": 27.7
    },
    {
-    "name": "Pothys",
+    "name": "POTHYS",
     "mrp": 0.0,
     "nsv": 8.53,
     "discount": -8.53,
@@ -5043,16 +5022,16 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Deal Share",
+    "name": "DEAL SHARE",
     "mrp": 17.49,
     "nsv": 8.11,
     "discount": 9.38,
     "discount_pct": 53.6,
-    "promos": 24,
-    "promo_depth": 28.3
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "National Mart",
+    "name": "NATIONAL MART",
     "mrp": 10.51,
     "nsv": 7.11,
     "discount": 3.4,
@@ -5061,22 +5040,22 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Sumo Save",
+    "name": "SUMO SAVE",
     "mrp": 10.09,
     "nsv": 5.71,
     "discount": 4.38,
     "discount_pct": 43.4,
-    "promos": 46,
-    "promo_depth": 25.8
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Guardian",
+    "name": "GUARDIAN PHARMACY",
     "mrp": 12.07,
     "nsv": 5.6,
     "discount": 6.47,
     "discount_pct": 53.6,
-    "promos": 150,
-    "promo_depth": 10.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
     "name": "B&N",
@@ -5088,16 +5067,16 @@ window.DASH = {
     "promo_depth": 19.1
    },
    {
-    "name": "Apna Mart",
+    "name": "APNA MART",
     "mrp": 8.49,
     "nsv": 5.27,
     "discount": 3.23,
     "discount_pct": 38.0,
-    "promos": 7,
-    "promo_depth": 20.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Shoppers Stop",
+    "name": "SHOPPERS STOP",
     "mrp": 10.1,
     "nsv": 5.2,
     "discount": 4.89,
@@ -5106,25 +5085,16 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Dmart",
-    "mrp": 0.0,
-    "nsv": 5.03,
-    "discount": -5.03,
-    "discount_pct": null,
-    "promos": 0,
-    "promo_depth": null
-   },
-   {
-    "name": "SastaSundar",
+    "name": "SASTASUNDAR",
     "mrp": 6.68,
     "nsv": 3.48,
     "discount": 3.2,
     "discount_pct": 47.9,
-    "promos": 38,
-    "promo_depth": 10.0
+    "promos": 0,
+    "promo_depth": null
    },
    {
-    "name": "Azorte",
+    "name": "AZORTE",
     "mrp": 4.36,
     "nsv": 2.65,
     "discount": 1.71,
@@ -5133,7 +5103,7 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Trilife",
+    "name": "TRILIFE",
     "mrp": 1.43,
     "nsv": 1.41,
     "discount": 0.02,
@@ -5142,7 +5112,7 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Max Hyper",
+    "name": "MAX HYPER",
     "mrp": 0.87,
     "nsv": 1.26,
     "discount": -0.39,
@@ -5151,7 +5121,7 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "WH-Smith",
+    "name": "WH-SMITH",
     "mrp": 0.78,
     "nsv": 0.39,
     "discount": 0.39,
@@ -5160,13 +5130,13 @@ window.DASH = {
     "promo_depth": null
    },
    {
-    "name": "Medanta",
+    "name": "MEDANTA",
     "mrp": 1.06,
     "nsv": 0.29,
     "discount": 0.77,
     "discount_pct": 72.3,
-    "promos": 31,
-    "promo_depth": 25.5
+    "promos": 0,
+    "promo_depth": null
    }
   ],
   "fy_tag": "FY27",
@@ -5179,27 +5149,22 @@ window.DASH = {
   {
    "type": "risk",
    "title": "Revenue concentration in top 2 chains",
-   "text": "D-Mart and Reliance Retail together drive 61% of FY26-FY27 MT primary (₹61 Cr). De-risk by accelerating the mid-tier (Apollo, Nykaa, Wellness Forever)."
+   "text": "DMART and RELIANCE RETAIL together drive 62% of FY26-FY27 MT primary (₹61 Cr). De-risk by accelerating the mid-tier (Apollo, Nykaa, Wellness Forever)."
   },
   {
    "type": "win",
    "title": "Fastest-growing scaled chain",
-   "text": "Lulu grew 81% YoY to ₹3.6 Cr. Lock incremental visibility + assortment to defend the momentum."
+   "text": "APOLLO PHARMACY grew 145% YoY to ₹18.3 Cr. Lock incremental visibility + assortment to defend the momentum."
   },
   {
    "type": "risk",
    "title": "Scaled chain in decline",
-   "text": "Wellness Forever fell -9% YoY (₹8.6→₹2.1 Cr). Diagnose range/fill-rate and reset the JBP."
+   "text": "WELLNESS FOREVER fell -9% YoY (₹8.6→₹2.1 Cr). Diagnose range/fill-rate and reset the JBP."
   },
   {
    "type": "watch",
    "title": "Highest trade-discount intensity",
-   "text": "Reliance Retail runs the deepest gross-to-net gap at 63% (₹36.2 Cr off MRP). Re-evaluate ROI of that spend vs. offtake lift."
-  },
-  {
-   "type": "watch",
-   "title": "Low throughput per store — distribution to activate",
-   "text": "Reliance Retail has 304 active stores but only ₹21.1 Cr primary (₹6.9 L/store) — large headroom to lift productivity per door."
+   "text": "RELIANCE RETAIL runs the deepest gross-to-net gap at 63% (₹36.2 Cr off MRP). Re-evaluate ROI of that spend vs. offtake lift."
   },
   {
    "type": "watch",
