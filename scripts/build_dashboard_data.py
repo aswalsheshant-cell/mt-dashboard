@@ -46,6 +46,16 @@ from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dyna
 _MON3_NUM = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,
              "Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
 
+# Load canonical alias vector from JSON (single source of truth)
+_CANONICAL_VECTOR_PATH = Path(__file__).parent.parent / "data_mappings" / "canonical_alias_vector.json"
+_CANONICAL_ALIASES_JSON = {}
+if _CANONICAL_VECTOR_PATH.exists():
+    try:
+        with open(_CANONICAL_VECTOR_PATH, 'r', encoding='utf-8') as f:
+            _CANONICAL_ALIASES_JSON = json.load(f).get('chains', {})
+    except Exception as e:
+        print(f"Warning: Could not load canonical_alias_vector.json: {e}")
+
 def fy_tag_from_ym(year, month):
     """Calendar (year, month) -> 'FY27' style tag. Apr-2026 -> FY27; Mar-2026 -> FY26."""
     return f"FY{(year + 1 if month >= 4 else year) % 100:02d}"
@@ -201,61 +211,69 @@ def canon_state(s):
 
 # Canonical chain key: collapse the many spellings across the four files onto a
 # single business-facing chain name so primary / offtake / universe / promo join.
-CHAIN_ALIASES = [
-    ("Apollo",            ["apollo", "apollo healthco"]),
-    ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
-                            "reliance", "reliance ", "rrl"]),
-    ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
-    ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
-    ("Wellness Forever",  ["wellness forever"]),
-    ("Health & Glow",               ["h&g", "hng", "h\\&g"]),
-    ("Lulu",              ["lulu", "lulu "]),
-    ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
-    ("More Retail",       ["more", "more retail", "more "]),
-    ("Sancus (RMT)",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
-    ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
-    ("Spencer",           ["spencer", "spencers", "spencer's"]),
-    ("Guardian",          ["guardian", "gaurdian "]),
-    ("Trent",             ["trent", "trent "]),
-    ("V-Mart",            ["v-mart", "v mart east "]),
-    ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
-    ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl", "sastasundar"]),
-    ("Frankross",         ["frankross", "frankros", "frank ross"]),
-    ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
-    ("WH-Smith",          ["wh-smith"]),
-    ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
-    ("Apna Mart",         ["apna mart", "apna mart "]),
-    ("Sumo Save",         ["sumo save", "sumosave"]),
-    ("Deal Share",        ["deal share", "deal share "]),
-    ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
-    ("Lifestyle",         ["lifestyle", "lifestyle "]),
-    ("Trent/Westside",    ["trends"]),
-    ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
-    ("DMart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
-                            "just mark-d-mart"]),
-    ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
-    ("Nykaa (FSN)",       ["nykaa e-retail limited"]),
-    ("Metro C&C",         ["metro-cnc"]),
-    ("Walmart",           ["walmart-cnc"]),
-    ("Health & Glow",               ["health & glow", "r.c. trade link h&g", "r.c. trade link"]),
-    ("Guardian",          ["guardian healthcare", "guardian healthcare-delhi", "gaurdian"]),
-    ("Trent",             ["trent hypermarket"]),
-    ("V-Mart",            ["v-mart retail limited", "v-mart retail", "v mart east"]),
-    ("WH-Smith",          ["travel news services-wsmith"]),
-    ("Relay",             ["travel retail services-relay"]),
-    ("Apollo",            ["united marketing", "mark enterprise-apollo",
-                            "pragati sales-apollo"]),
-    ("Eremedium",         ["eremedium private limited"]),
-    ("Ratnadeep",         ["ratanadeep"]),
-    ("Sancus (RMT)",        ["sancus", "sancus networks-mt-reg."]),
-    ("Arambagh",          ["aarambagh food mart"]),
-    ("VMM",  ["vishal enterprises", "vmm", "vmm "]),
-    ("Lifestyle",         ["lifestyle babyshop"]),
-    ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
-                            "vishal enterprises-d-mart"]),
-    ("Shoppers Stop",     ["shoppers stop"]),
-    ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
-]
+# Build CHAIN_ALIASES from canonical vector JSON (if available) or use fallback
+if _CANONICAL_ALIASES_JSON:
+    CHAIN_ALIASES = [
+        (canonical_name, aliases)
+        for canonical_name, aliases in _CANONICAL_ALIASES_JSON.items()
+    ]
+else:
+    # Fallback: legacy hardcoded aliases (used if JSON not available)
+    CHAIN_ALIASES = [
+        ("Apollo",            ["apollo", "apollo healthco"]),
+        ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
+                                "reliance", "reliance ", "rrl"]),
+        ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
+        ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
+        ("Wellness Forever",  ["wellness forever"]),
+        ("Health & Glow",               ["h&g", "hng", "h\\&g"]),
+        ("Lulu",              ["lulu", "lulu "]),
+        ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
+        ("More Retail",       ["more", "more retail", "more "]),
+        ("Sancus (RMT)",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
+        ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
+        ("Spencer",           ["spencer", "spencers", "spencer's"]),
+        ("Guardian",          ["guardian", "gaurdian "]),
+        ("Trent",             ["trent", "trent "]),
+        ("V-Mart",            ["v-mart", "v mart east "]),
+        ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
+        ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl", "sastasundar"]),
+        ("Frankross",         ["frankross", "frankros", "frank ross"]),
+        ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
+        ("WH-Smith",          ["wh-smith"]),
+        ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
+        ("Apna Mart",         ["apna mart", "apna mart "]),
+        ("Sumo Save",         ["sumo save", "sumosave"]),
+        ("Deal Share",        ["deal share", "deal share "]),
+        ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
+        ("Lifestyle",         ["lifestyle", "lifestyle "]),
+        ("Trent/Westside",    ["trends"]),
+        ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
+        ("DMart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
+                                "just mark-d-mart"]),
+        ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
+        ("Nykaa (FSN)",       ["nykaa e-retail limited"]),
+        ("Metro C&C",         ["metro-cnc"]),
+        ("Walmart",           ["walmart-cnc"]),
+        ("Health & Glow",               ["health & glow", "r.c. trade link h&g", "r.c. trade link"]),
+        ("Guardian",          ["guardian healthcare", "guardian healthcare-delhi", "gaurdian"]),
+        ("Trent",             ["trent hypermarket"]),
+        ("V-Mart",            ["v-mart retail limited", "v-mart retail", "v mart east"]),
+        ("WH-Smith",          ["travel news services-wsmith"]),
+        ("Relay",             ["travel retail services-relay"]),
+        ("Apollo",            ["united marketing", "mark enterprise-apollo",
+                                "pragati sales-apollo"]),
+        ("Eremedium",         ["eremedium private limited"]),
+        ("Ratnadeep",         ["ratanadeep"]),
+        ("Sancus (RMT)",        ["sancus", "sancus networks-mt-reg."]),
+        ("Arambagh",          ["aarambagh food mart"]),
+        ("VMM",  ["vishal enterprises", "vmm", "vmm "]),
+        ("Lifestyle",         ["lifestyle babyshop"]),
+        ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
+                                "vishal enterprises-d-mart"]),
+        ("Shoppers Stop",     ["shoppers stop"]),
+        ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
+    ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
     for a in al:
