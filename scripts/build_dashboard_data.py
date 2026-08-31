@@ -3771,6 +3771,95 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
         raise
 
 
+# ---------------------------------------------------------------------------
+# Analytical enhancement: MoM Chain Scorecard & Forecast Diagnostics
+# These functions operate on already-built block dicts (no new source files).
+# ---------------------------------------------------------------------------
+
+def compute_mom_chain_scorecard(secondary_sales: dict) -> list[dict]:
+    """Derive chain-level MoM sell-out velocity from the secondary_sales block.
+
+    Operates on the already-computed D.secondary_sales.by_chain entries which
+    carry {apr_lakh, may_lakh, jun_lakh}. Returns a sorted list ready for
+    window.DASH['mom_chain_scorecard'].
+    """
+    rows = []
+    for c in secondary_sales.get("by_chain", []):
+        name = c.get("name", "")
+        if not name or name.lower() in ("unmapped", "unknown"):
+            continue
+        apr = float(c.get("apr_lakh") or 0)
+        may = float(c.get("may_lakh") or 0)
+        jun = float(c.get("jun_lakh") or 0)
+        mom1 = round((may - apr) / apr * 100, 1) if apr > 0 else None
+        mom2 = round((jun - may) / may * 100, 1) if may > 0 else None
+        latest_mom = mom2 if mom2 is not None else mom1
+        status = (
+            "Accelerating" if latest_mom is not None and latest_mom > 10
+            else "Stable" if latest_mom is not None and latest_mom >= 0
+            else "Softening"
+        )
+        rows.append({
+            "chain": name,
+            "apr_lakh": round(apr, 2),
+            "may_lakh": round(may, 2),
+            "jun_lakh": round(jun, 2),
+            "mom_apr_may_pct": mom1,
+            "mom_may_jun_pct": mom2,
+            "q1_total_lakh": round(float(c.get("total_lakh") or (apr + may + jun)), 2),
+            "trajectory": status,
+        })
+    rows.sort(key=lambda r: -(r["q1_total_lakh"] or 0))
+    return rows
+
+
+def compute_forecast_diagnostics(forecast: dict, offtake: dict) -> dict:
+    """Compute MAPE, bias, and MAE from TY-target vs. actual offtake overlap.
+
+    Compares D.forecast.fc (TY monthly targets for FY27) against
+    D.offtake.monthly (actual offtake) for the months that appear in both
+    fc_labels and offtake.months.
+    Returns a diagnostics dict to merge into D.forecast.
+    """
+    fc_labels = forecast.get("fc_labels", [])
+    fc_vals = forecast.get("fc", [])
+    om = offtake.get("months", [])
+    ov = offtake.get("monthly", [])
+
+    pairs = []
+    for i, lbl in enumerate(fc_labels):
+        if i >= len(fc_vals) or fc_vals[i] is None:
+            continue
+        try:
+            ai = om.index(lbl)
+        except ValueError:
+            continue
+        if ai >= len(ov) or ov[ai] is None or ov[ai] == 0:
+            continue
+        pairs.append({"month": lbl, "actual": ov[ai], "forecast": fc_vals[i]})
+
+    if not pairs:
+        return {
+            "n_calibrated_months": 0,
+            "mape_pct": None,
+            "bias_pct": None,
+            "mae_lakh": None,
+            "accuracy_pct": None,
+        }
+
+    mape = sum(abs(p["forecast"] - p["actual"]) / p["actual"] * 100 for p in pairs) / len(pairs)
+    bias = sum((p["forecast"] - p["actual"]) / p["actual"] * 100 for p in pairs) / len(pairs)
+    mae = sum(abs(p["forecast"] - p["actual"]) for p in pairs) / len(pairs)
+    return {
+        "n_calibrated_months": len(pairs),
+        "mape_pct": round(mape, 2),
+        "bias_pct": round(bias, 2),
+        "mae_lakh": round(mae, 2),
+        "accuracy_pct": round(100 - mape, 2),
+        "calibrated_months": [p["month"] for p in pairs],
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -4198,6 +4287,17 @@ def main():
           + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
     if alloc is not None:
         _check_governance_gate(alloc, gate_pct=a.not_eligible_gate_pct)
+
+    # ---- Analytical enhancement blocks (computed from already-built dicts) ----
+    if "secondary_sales" in data and data["secondary_sales"].get("by_chain"):
+        scorecard = compute_mom_chain_scorecard(data["secondary_sales"])
+        data["mom_chain_scorecard"] = scorecard
+        print(f"mom_chain_scorecard: {len(scorecard)} chains")
+    diag = compute_forecast_diagnostics(data.get("forecast", {}), data.get("offtake", {}))
+    data.setdefault("forecast", {})["diagnostics"] = diag
+    if diag["n_calibrated_months"]:
+        print(f"forecast_diagnostics: MAPE={diag['mape_pct']}% bias={diag['bias_pct']}% "
+              f"n={diag['n_calibrated_months']}")
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
