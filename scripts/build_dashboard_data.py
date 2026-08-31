@@ -282,7 +282,14 @@ def r2(x, nd=2):
 # PRIMARY
 # --------------------------------------------------------------------------
 def load_primary(src):
-    df = pd.read_excel(src / "primary.xlsx", sheet_name="Sheet1", header=1)
+    # Try XLSX first (from --src), then fall back to CSV seed data
+    xlsx_f = src / "primary.xlsx"
+    if xlsx_f.exists():
+        df = pd.read_excel(xlsx_f, sheet_name="Sheet1", header=1)
+    else:
+        # Fall back to load_primary_v2 (CSV seed: Primary_FY202426_10.csv)
+        return load_primary_v2(src)
+
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -309,21 +316,65 @@ def load_primary(src):
 # unambiguous (one ship-to = one chain) and are never re-split.
 # --------------------------------------------------------------------------
 def load_primary_v2(src):
-    """Load primary from CSV seed (preferred) or XLSX (fallback).
-    CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
-    XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
-    Same output shape as load_primary() plus raw Ship-To/Distributor columns."""
-    # Try CSV first (versioned in git)
-    csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
-    if csv_f.exists():
-        df = pd.read_csv(csv_f)
-    else:
-        # Fallback to XLSX in --src
-        f = src / "Primary_FY202426_10.xlsx"
-        if not f.exists():
-            raise FileNotFoundError(f"Primary data not found: {csv_f} or {f}")
-        df = pd.read_excel(f, sheet_name="Dump", header=1)
+    """Load primary from CSV seed (composite preferred, fallback to FY202426, then XLSX).
+    Priority:
+      1. Composite: PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv (FY24-26)
+      2. Seed CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv (FY25-26 only)
+      3. XLSX: Primary_FY202426_10.xlsx in --src (fallback)
+    Returns: DataFrame matching primary_block's expected schema."""
+    csv_composite = Path("PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv")
+    csv_seed = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
 
+    # Try composite first (includes FY24-25)
+    if csv_composite.exists():
+        print(f"Loading primary from composite (FY24-26): {csv_composite}")
+        df = pd.read_csv(csv_composite, low_memory=False)
+        df.columns = [str(c).strip() for c in df.columns]
+        df = df.dropna(how="all")
+        df = df[df["Primary NSV"].notna()]
+        df["_ship_to"] = df["Ship To Name"].astype(str).str.strip()
+        df["_dist_flag"] = df["Direct/Distributor"].astype(str).str.strip()
+        # Composite file stores NSV already in rupees (not Lakh), scale to Lakh
+        df["NSV"] = pd.to_numeric(df["Primary NSV"], errors="coerce").fillna(0.0) / 1e5
+        df["MRP value"] = pd.to_numeric(df["MRP Value"], errors="coerce").fillna(0.0) / 1e5
+        df["Month"] = df["Month"].astype(str).str.strip()
+        df["FY"] = df["FY Year"].astype(str).str.strip()
+        # Composite has Chain (already canonical) and Zone (already normalized)
+        df["chain"] = df["Chain"].astype(str).str.strip() if "Chain" in df.columns else df["_ship_to"]
+        df["brand"] = df["Brand"].astype(str).str.strip() if "Brand" in df.columns else None
+        df["zone"] = df["Zone"].astype(str).str.strip() if "Zone" in df.columns else None
+        df["channel"] = "MT"  # Composite is all MT channel
+        return df
+
+    # Fallback to seed CSV (FY25-26 only)
+    if csv_seed.exists():
+        print(f"Loading primary from seed CSV (FY25-26): {csv_seed}")
+        df = pd.read_csv(csv_seed)
+        df.columns = [str(c).strip() for c in df.columns]
+        df = df.dropna(how="all")
+        df = df[df["NSV"].notna()]
+        df["_ship_to"] = df["Bill to customer"].astype(str).str.strip()
+        df["_dist_flag"] = df["Direct/Distributor"].astype(str).str.strip()
+        df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
+        df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
+        df["Month"] = df["Month"].astype(str).str.strip()
+        # Seed CSV stores NSV/MRP in rupees; convert to Lakh
+        df["NSV"] = df["NSV"] / 1e5
+        df["MRP value"] = df["MRP value"] / 1e5
+        df["FY"] = df["FY"].astype(str).str.strip()
+        # Add canonical mappings
+        df["chain"] = df["Chain Name"].map(canon_chain) if "Chain Name" in df.columns else df.get("chain", df["_ship_to"])
+        df["brand"] = df["Brand"].map(canon_brand) if "Brand" in df.columns else None
+        df["zone"] = df["Zone"].map(canon_zone) if "Zone" in df.columns else None
+        df["channel"] = df["Channel"].astype(str).str.strip() if "Channel" in df.columns else "MT"
+        return df
+
+    # Final fallback to XLSX in --src
+    f = src / "Primary_FY202426_10.xlsx"
+    if not f.exists():
+        raise FileNotFoundError(f"Primary data not found: {csv_composite}, {csv_seed}, or {f}")
+    print(f"Loading primary from XLSX: {f}")
+    df = pd.read_excel(f, sheet_name="Dump", header=1)
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -332,10 +383,11 @@ def load_primary_v2(src):
     df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
     df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
     df["Month"] = df["Month"].astype(str).str.strip()
-    # CSV stores NSV/MRP in rupees; script/dashboard expect INR Lakh (1 Lakh = 100,000)
-    if csv_f.exists():
-        df["NSV"] = df["NSV"] / 1e5
-        df["MRP value"] = df["MRP value"] / 1e5
+    df["FY"] = df["FY"].astype(str).str.strip()
+    df["chain"] = df["Chain Name"].map(canon_chain) if "Chain Name" in df.columns else df.get("chain", df["_ship_to"])
+    df["brand"] = df["Brand"].map(canon_brand) if "Brand" in df.columns else None
+    df["zone"] = df["Zone"].map(canon_zone) if "Zone" in df.columns else None
+    df["channel"] = df["Channel"].astype(str).str.strip() if "Channel" in df.columns else "MT"
     return df
 
 def load_chain_allocation_weights(src):
@@ -2552,15 +2604,23 @@ _SHIPTO_PRIMARY_CSV = (Path(__file__).resolve().parent.parent
 
 def load_shipto_primary_weights(repo_root=None):
     """Priority-1 fallback allocation source: actual chain-level primary from
-    Primary_ShipTo_FY25-26_to_May26.csv, used when the secondary-derived xlsx is
-    absent from --src. This CSV records the business's own primary invoices at
-    Ship To Name × Brand × Month × Chain grain with Cont% as a 0-1 fraction
-    summing to 1.0 per (ShipTo×Brand×Month) key. Returns the same (wdf, raw_sums)
-    tuple as load_dist_cont_weights() for drop-in use by allocate_dist_primary(),
-    or (None, None) if the CSV is absent."""
-    p = (_SHIPTO_PRIMARY_CSV if repo_root is None else
-         Path(repo_root) / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
-         / "Primary_ShipTo_FY25-26_to_May26.csv")
+    Primary_ShipTo_FY25-26_to_May26.csv (or composite FY24-26), used when the
+    secondary-derived xlsx is absent from --src. This CSV records the business's
+    own primary invoices at Ship To Name × Brand × Month × Chain grain with Cont%
+    as a 0-1 fraction summing to 1.0 per (ShipTo×Brand×Month) key. Returns the
+    same (wdf, raw_sums) tuple as load_dist_cont_weights() for drop-in use by
+    allocate_dist_primary(), or (None, None) if the CSV is absent."""
+    # Try composite file first (FY24-26), then fall back to FY25-26 only
+    if repo_root is None:
+        base_path = Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+        p = base_path / "Primary_ShipTo_FY24-26_Composite.csv"
+        if not p.exists():
+            p = _SHIPTO_PRIMARY_CSV
+    else:
+        base_path = Path(repo_root) / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+        p = base_path / "Primary_ShipTo_FY24-26_Composite.csv"
+        if not p.exists():
+            p = base_path / "Primary_ShipTo_FY25-26_to_May26.csv"
     if not p.exists():
         return None, None
     w = pd.read_csv(p, low_memory=False)
