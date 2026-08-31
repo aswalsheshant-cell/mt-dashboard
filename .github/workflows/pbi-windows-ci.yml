@@ -36,6 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas openpyxl pytest
+          python -c "import pandas; import pytest; print(f'pandas={pandas.__version__}, pytest={pytest.__version__}')"
 
       - name: Ensure Tabular Editor CLI Available
         shell: pwsh
@@ -63,7 +64,13 @@ jobs:
         run: |
           Write-Host "Running article-level governance tests..." -ForegroundColor Cyan
           if (Test-Path "tests/test_article_uniqueness.py") {
-            python -m pytest tests/test_article_uniqueness.py -v
+            Write-Host "✓ Test file found at tests/test_article_uniqueness.py" -ForegroundColor Green
+            if ((Test-Path "PowerBI/RawDataFolders/Primary_Derived_FY25/Primary_Article_Synthesized_FY25.csv") -or (Test-Path "data_mappings/Chain_Article_EAN_Mapping_CORRECTED_v2.csv")) {
+              python -m pytest tests/test_article_uniqueness.py -v
+            } else {
+              Write-Host "⚠ Data files not found in CI environment (expected on fresh runners). Tests will skip gracefully." -ForegroundColor Yellow
+              python -m pytest tests/test_article_uniqueness.py -v
+            }
           } else {
             Write-Host "Skipped: test_article_uniqueness.py not found" -ForegroundColor Yellow
           }

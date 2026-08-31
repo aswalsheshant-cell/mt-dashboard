@@ -23,7 +23,9 @@ RECONCILIATION_TOLERANCE_LAKH = 0.01
 
 @pytest.fixture(scope="module")
 def df_synthesized():
-    assert PATH_SYNTHESIZED_FY25.exists(), f"Missing file: {PATH_SYNTHESIZED_FY25}"
+    if not PATH_SYNTHESIZED_FY25.exists():
+        pytest.skip(f"Skipping test: required data file not found at {PATH_SYNTHESIZED_FY25}. "
+                   "Run synthesis script or full data build to generate.")
     df = pd.read_csv(PATH_SYNTHESIZED_FY25, low_memory=False)
     df.columns = [c.strip().replace(" ", "_") for c in df.columns]
     return df
@@ -31,7 +33,9 @@ def df_synthesized():
 
 @pytest.fixture(scope="module")
 def df_mapping_v2():
-    assert PATH_MAPPING_V2.exists(), f"Missing file: {PATH_MAPPING_V2}"
+    if not PATH_MAPPING_V2.exists():
+        pytest.skip(f"Skipping test: required data file not found at {PATH_MAPPING_V2}. "
+                   "Run synthesis script or full data build to generate.")
     df = pd.read_csv(PATH_MAPPING_V2, low_memory=False)
     df.columns = [c.strip().replace(" ", "_") for c in df.columns]
     return df

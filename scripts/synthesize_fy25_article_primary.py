@@ -106,11 +106,12 @@ def build_empirical_assortment_matrix():
     nsv_col = [c for c in df_sec.columns if "NSV" in c.upper()][0]
     chain_col = [c for c in df_sec.columns if "CHAIN" in c.upper()][0]
     brand_col = [c for c in df_sec.columns if "BRAND" in c.upper()][0]
-    ean_col = [c for c in df_sec.columns if "EAN" in c.upper() or "ARTICLE" in c.upper()][0]
+    ean_col = [c for c in df_sec.columns if "EAN" in c.upper()][0]
 
     df_sec["Chain"] = df_sec[chain_col].astype(str).str.strip().str.upper()
     df_sec["Brand"] = df_sec[brand_col].astype(str).str.strip().str.upper()
     df_sec["EAN"] = df_sec[ean_col].astype(str).str.strip()
+    df_sec["Article_Code"] = df_sec[ean_col].astype(str).str.strip()
     # Secondary NSV might already be in Lakhs or need conversion - check magnitude
     nsv_raw = pd.to_numeric(df_sec[nsv_col], errors="coerce").fillna(0.0)
     if nsv_raw.max() > 1000:  # If max value > 1000, likely in rupees, convert to Lakhs
@@ -118,11 +119,11 @@ def build_empirical_assortment_matrix():
     else:
         df_sec["Sec_NSV"] = nsv_raw
 
-    df_valid = df_sec[(df_sec["Sec_NSV"] > 0) & (df_sec["EAN"] != "") & (df_sec["EAN"] != "nan")].copy()
+    df_valid = df_sec[(df_sec["Sec_NSV"] > 0) & (df_sec["EAN"] != "") & (df_sec["EAN"] != "nan") & (df_sec["Article_Code"] != "")].copy()
 
     # 1. Chain-Specific SKU Weights
     chain_brand_sku = (
-        df_valid.groupby(["Chain", "Brand", "EAN"], as_index=False)["Sec_NSV"]
+        df_valid.groupby(["Chain", "Brand", "Article_Code", "EAN"], as_index=False)["Sec_NSV"]
         .sum()
     )
     chain_brand_totals = (
@@ -134,11 +135,11 @@ def build_empirical_assortment_matrix():
     weights_chain_specific["SKU_Weight"] = (
         weights_chain_specific["Sec_NSV"] / weights_chain_specific["CB_Total_NSV"]
     )
-    weights_chain_specific = weights_chain_specific[["Chain", "Brand", "EAN", "SKU_Weight"]].copy()
+    weights_chain_specific = weights_chain_specific[["Chain", "Brand", "Article_Code", "EAN", "SKU_Weight"]].copy()
 
     # 2. Brand-Level Fallback Weights (Top 80% Pareto Assortment)
     brand_sku = (
-        df_valid.groupby(["Brand", "EAN"], as_index=False)["Sec_NSV"]
+        df_valid.groupby(["Brand", "Article_Code", "EAN"], as_index=False)["Sec_NSV"]
         .sum()
         .sort_values(by=["Brand", "Sec_NSV"], ascending=[True, False])
     )
@@ -151,7 +152,7 @@ def build_empirical_assortment_matrix():
     weights_brand_fallback["SKU_Weight_Fallback"] = (
         weights_brand_fallback["Sec_NSV"] / weights_brand_fallback["B_Total_NSV"]
     )
-    weights_brand_fallback = weights_brand_fallback[["Brand", "EAN", "SKU_Weight_Fallback"]].copy()
+    weights_brand_fallback = weights_brand_fallback[["Brand", "Article_Code", "EAN", "SKU_Weight_Fallback"]].copy()
 
     print(f"✓ Generated {len(weights_chain_specific):,} Empirical (Chain × SKU) weights.")
     print(f"✓ Generated {len(weights_brand_fallback):,} Brand Core Fallback weights.")
@@ -181,34 +182,34 @@ def allocate_with_assortment_mask(
 
         if not skus.empty:
             for _, s_row in skus.iterrows():
-                ean = str(s_row["EAN"])
+                article_code = str(s_row["Article_Code"])
                 alloc_nsv = target_nsv * s_row["SKU_Weight"]
                 records.append({
                     "Month_Label": m_label,
                     "Chain": chain,
                     "Brand": brand,
-                    "Article_Code": ean,
-                    "EAN": ean,
+                    "Article_Code": article_code,
+                    "EAN": article_code,
                     "Primary_NSV_Lakh": alloc_nsv,
                     "Derivation_Method": "Empirical_Chain_Assortment",
                 })
-                mapping_tuples.add((chain, brand, ean, "Empirical_Chain_Assortment"))
+                mapping_tuples.add((chain, brand, article_code, "Empirical_Chain_Assortment"))
         else:
             skus_fb = weights_brand_fallback[weights_brand_fallback["Brand"] == brand]
             if not skus_fb.empty:
                 for _, s_row in skus_fb.iterrows():
-                    ean = str(s_row["EAN"])
+                    article_code = str(s_row["Article_Code"])
                     alloc_nsv = target_nsv * s_row["SKU_Weight_Fallback"]
                     records.append({
                         "Month_Label": m_label,
                         "Chain": chain,
                         "Brand": brand,
-                        "Article_Code": ean,
-                        "EAN": ean,
+                        "Article_Code": article_code,
+                        "EAN": article_code,
                         "Primary_NSV_Lakh": alloc_nsv,
                         "Derivation_Method": "Brand_Pareto_Assortment_Fallback",
                     })
-                    mapping_tuples.add((chain, brand, ean, "Brand_Pareto_Assortment_Fallback"))
+                    mapping_tuples.add((chain, brand, article_code, "Brand_Pareto_Assortment_Fallback"))
             else:
                 placeholder_ean = f"UNMAPPED_{brand}_CORE"
                 records.append({
@@ -239,7 +240,7 @@ def allocate_with_assortment_mask(
         print(f"✓ Re-scaled synthesized output by {rescale:.10f} (Exact ₹0.0000 L variance achieved).")
 
     # Hard Governance Gate: Ensure no duplicate rows for the same composite grain
-    dup_mask = df_out.duplicated(subset=["Month_Label", "Chain", "Brand", "EAN"])
+    dup_mask = df_out.duplicated(subset=["Month_Label", "Chain", "Brand", "Article_Code"])
     assert not dup_mask.any(), f"CRITICAL: Found {dup_mask.sum()} duplicate grain records in synthesized output!"
 
     df_mapping_v2 = pd.DataFrame(
