@@ -110,8 +110,9 @@ def build_empirical_assortment_matrix():
 
     df_sec["Chain"] = df_sec[chain_col].astype(str).str.strip().str.upper()
     df_sec["Brand"] = df_sec[brand_col].astype(str).str.strip().str.upper()
-    df_sec["EAN"] = df_sec[ean_col].astype(str).str.strip()
-    df_sec["Article_Code"] = df_sec[ean_col].astype(str).str.strip()
+    # Remove leading/trailing quotes and spaces (Q1 data has leading quotes from CSV export)
+    df_sec["EAN"] = df_sec[ean_col].astype(str).str.strip().str.replace(r"^['\"]|['\"]$", "", regex=True).str.strip()
+    df_sec["Article_Code"] = df_sec["EAN"].copy()
     # Secondary NSV might already be in Lakhs or need conversion - check magnitude
     nsv_raw = pd.to_numeric(df_sec[nsv_col], errors="coerce").fillna(0.0)
     if nsv_raw.max() > 1000:  # If max value > 1000, likely in rupees, convert to Lakhs
@@ -119,7 +120,29 @@ def build_empirical_assortment_matrix():
     else:
         df_sec["Sec_NSV"] = nsv_raw
 
-    df_valid = df_sec[(df_sec["Sec_NSV"] > 0) & (df_sec["EAN"] != "") & (df_sec["EAN"] != "nan") & (df_sec["Article_Code"] != "")].copy()
+    # Filter for valid barcode format: 13 or 14-digit numeric (both Q1 and Q2 formats supported)
+    # Q1 data (Apr-Jun) uses 14-char EAN; Q2 (Jul-Aug) uses standard 13-char EAN
+    df_sec["is_valid_barcode"] = (
+        (df_sec["EAN"].str.match(r"^[0-9]{13}$", na=False)) |  # Standard 13-digit
+        (df_sec["EAN"].str.match(r"^[0-9]{14}$", na=False))    # Extended 14-digit (Q1 format)
+    )
+
+    df_valid = df_sec[
+        (df_sec["Sec_NSV"] > 0)
+        & (df_sec["EAN"] != "")
+        & (df_sec["EAN"] != "nan")
+        & (df_sec["Article_Code"] != "")
+        & (df_sec["is_valid_barcode"])
+    ].copy()
+
+    # Log data quality by period
+    source_month_col = [c for c in df_sec.columns if "MONTH" in c.upper() or "DATE" in c.upper()][0] if any(c in df_sec.columns for c in ["Source_Month", "Month_Label"]) else None
+    if source_month_col or "Source_Month" in df_sec.columns:
+        month_col = "Source_Month" if "Source_Month" in df_sec.columns else source_month_col
+        q1_count = df_valid[df_valid[month_col].isin(["2026-04", "2026-05", "2026-06"])].shape[0]
+        q2_count = df_valid[df_valid[month_col].isin(["2026-07", "2026-08"])].shape[0]
+        print(f"✓ Q1 (Apr-Jun) valid records: {q1_count:,}")
+        print(f"✓ Q2 (Jul-Aug) valid records: {q2_count:,}")
 
     # 1. Chain-Specific SKU Weights
     chain_brand_sku = (
