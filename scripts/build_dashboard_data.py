@@ -282,7 +282,14 @@ def r2(x, nd=2):
 # PRIMARY
 # --------------------------------------------------------------------------
 def load_primary(src):
-    df = pd.read_excel(src / "primary.xlsx", sheet_name="Sheet1", header=1)
+    # Try XLSX first (from --src), then fall back to CSV seed data
+    xlsx_f = src / "primary.xlsx"
+    if xlsx_f.exists():
+        df = pd.read_excel(xlsx_f, sheet_name="Sheet1", header=1)
+    else:
+        # Fall back to load_primary_v2 (CSV seed: Primary_FY202426_10.csv)
+        return load_primary_v2(src)
+
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -336,6 +343,11 @@ def load_primary_v2(src):
     if csv_f.exists():
         df["NSV"] = df["NSV"] / 1e5
         df["MRP value"] = df["MRP value"] / 1e5
+    # Add canonical mappings (same as load_primary for compatibility)
+    df["chain"] = df["Chain Name"].map(canon_chain) if "Chain Name" in df.columns else df.get("chain", df["_ship_to"])
+    df["brand"] = df["Brand"].map(canon_brand) if "Brand" in df.columns else None
+    df["zone"] = df["Zone"].map(canon_zone) if "Zone" in df.columns else None
+    df["channel"] = df["Channel"].astype(str).str.strip() if "Channel" in df.columns else "MT"
     return df
 
 def load_chain_allocation_weights(src):
@@ -2552,15 +2564,23 @@ _SHIPTO_PRIMARY_CSV = (Path(__file__).resolve().parent.parent
 
 def load_shipto_primary_weights(repo_root=None):
     """Priority-1 fallback allocation source: actual chain-level primary from
-    Primary_ShipTo_FY25-26_to_May26.csv, used when the secondary-derived xlsx is
-    absent from --src. This CSV records the business's own primary invoices at
-    Ship To Name × Brand × Month × Chain grain with Cont% as a 0-1 fraction
-    summing to 1.0 per (ShipTo×Brand×Month) key. Returns the same (wdf, raw_sums)
-    tuple as load_dist_cont_weights() for drop-in use by allocate_dist_primary(),
-    or (None, None) if the CSV is absent."""
-    p = (_SHIPTO_PRIMARY_CSV if repo_root is None else
-         Path(repo_root) / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
-         / "Primary_ShipTo_FY25-26_to_May26.csv")
+    Primary_ShipTo_FY25-26_to_May26.csv (or composite FY24-26), used when the
+    secondary-derived xlsx is absent from --src. This CSV records the business's
+    own primary invoices at Ship To Name × Brand × Month × Chain grain with Cont%
+    as a 0-1 fraction summing to 1.0 per (ShipTo×Brand×Month) key. Returns the
+    same (wdf, raw_sums) tuple as load_dist_cont_weights() for drop-in use by
+    allocate_dist_primary(), or (None, None) if the CSV is absent."""
+    # Try composite file first (FY24-26), then fall back to FY25-26 only
+    if repo_root is None:
+        base_path = Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+        p = base_path / "Primary_ShipTo_FY24-26_Composite.csv"
+        if not p.exists():
+            p = _SHIPTO_PRIMARY_CSV
+    else:
+        base_path = Path(repo_root) / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+        p = base_path / "Primary_ShipTo_FY24-26_Composite.csv"
+        if not p.exists():
+            p = base_path / "Primary_ShipTo_FY25-26_to_May26.csv"
     if not p.exists():
         return None, None
     w = pd.read_csv(p, low_memory=False)
