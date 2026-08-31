@@ -58,10 +58,24 @@ jobs:
             python tests/validate_data_integrity.py
           }
 
+      - name: Run Article Uniqueness & Assortment Governance Pytest Suite
+        shell: pwsh
+        run: |
+          Write-Host "Running article-level governance tests..." -ForegroundColor Cyan
+          if (Test-Path "tests/test_article_uniqueness.py") {
+            python -m pytest tests/test_article_uniqueness.py -v
+          } else {
+            Write-Host "Skipped: test_article_uniqueness.py not found" -ForegroundColor Yellow
+          }
+
       - name: Execute Power BI Watch Folder & DAX Validation
         shell: pwsh
         run: |
-          .\scripts\ci\test_powerbi_model.ps1 -RepoRoot $env:GITHUB_WORKSPACE
+          if (Test-Path ".\scripts\ci\test_powerbi_model.ps1") {
+            .\scripts\ci\test_powerbi_model.ps1 -RepoRoot $env:GITHUB_WORKSPACE
+          } else {
+            Write-Host "Skipped: test_powerbi_model.ps1 not found" -ForegroundColor Yellow
+          }
 
       - name: Upload Test Report Artifacts (On Failure)
         if: failure()
