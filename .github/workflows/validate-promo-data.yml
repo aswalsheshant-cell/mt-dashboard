@@ -27,17 +27,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
         with:
           python-version: '3.11'
 
       - name: Run promo schema validation
         run: |
           python3 scripts/validate_promo_schema.py \
-            --json data/data_master.json \
+            --json data_master.json \
             --datajs dashboard/data.js \
             --strict
         continue-on-error: true
@@ -55,7 +57,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Validate HTML structure
         run: |
@@ -107,10 +111,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
         with:
           python-version: '3.11'
 
