@@ -20,11 +20,11 @@ jobs:
     name: Extract Data Contracts (CSV)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
         with:
           python-version: '3.11'
 
@@ -53,7 +53,7 @@ jobs:
           done
 
       - name: Upload CSV artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@5d5d22a31266ced592b4d2e6a78a02a72126d14b  # v4.3.1
         with:
           name: data-contracts-csv
           path: PowerBI/ExportData/
@@ -64,11 +64,11 @@ jobs:
     needs: extract-data-contracts
     runs-on: windows-latest  # Requires Windows for Power BI Desktop COM API
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
         with:
           python-version: '3.11'
 
@@ -79,7 +79,7 @@ jobs:
           pip install pywin32  # For COM API to Power BI Desktop
 
       - name: Download CSV artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af5b321c5c1f7ba3d26d72a9e8  # v4.1.7
         with:
           name: data-contracts-csv
           path: PowerBI/ExportData/
@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload PBIX artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@5d5d22a31266ced592b4d2e6a78a02a72126d14b  # v4.3.1
         with:
           name: generated-pbix
           path: PowerBI/mt-dashboard-*.pbix
@@ -138,11 +138,11 @@ jobs:
     runs-on: windows-latest
     if: false  # Disabled until Phase 2.5 (requires live Power BI Desktop + Analysis Services)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
         with:
           python-version: '3.11'
 
@@ -152,7 +152,7 @@ jobs:
           pip install pywin32
 
       - name: Download PBIX artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af5b321c5c1f7ba3d26d72a9e8  # v4.1.7
         with:
           name: generated-pbix
 
@@ -173,11 +173,11 @@ jobs:
     needs: extract-data-contracts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
         with:
           python-version: '3.11'
 
@@ -187,7 +187,7 @@ jobs:
           pip install pandas
 
       - name: Download CSV artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af5b321c5c1f7ba3d26d72a9e8  # v4.1.7
         with:
           name: data-contracts-csv
           path: PowerBI/ExportData/
