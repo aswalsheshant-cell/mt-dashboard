@@ -32,7 +32,7 @@ tpl_cmd/
 unpacked_enriched/
 
 # Playwright test artifacts
-playwright.config.js
 test_sprint6_e2e_local.js
 test-results/
+playwright-report/
 !data_mappings/*.xlsx
