@@ -7,18 +7,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: 'pages'
+  group: 'pages-deploy'
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
-    name: Build & Deploy Dashboard
+  validate-test-and-deploy:
+    name: Validate, Test & Deploy to gh-pages
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,25 +26,26 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+          cache: 'npm'
 
-      - name: Install AJV for schema validation
-        run: npm install -g ajv-cli ajv-formats
+      - name: Install dependencies
+        run: npm ci || npm install
 
-      - name: Validate JSON schemas
+      - name: Validate JSON Schemas
         run: |
-          echo "Validating sidecar JSON files against schemas..."
-          if [ -f "schemas/compliance_metrics.schema.json" ] && [ -f "dashboard/compliance_metrics.json" ]; then
-            ajv validate -s schemas/compliance_metrics.schema.json -d dashboard/compliance_metrics.json -c ajv-formats && echo "✓ Compliance metrics validated"
-          fi
-          if [ -f "schemas/enriched_metrics.schema.json" ] && [ -f "dashboard/enriched_metrics.json" ]; then
-            ajv validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats && echo "✓ Enriched metrics validated"
-          fi
-          if [ -f "schemas/generated_insights.schema.json" ] && [ -f "dashboard/generated_insights.json" ]; then
-            ajv validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats && echo "✓ Generated insights validated"
+          if [ -d schemas ]; then
+            npx ajv-cli validate -s schemas/compliance_metrics.schema.json -d dashboard/compliance_metrics.json -c ajv-formats || \
+            npx ajv validate -s schemas/compliance_metrics.schema.json -d dashboard/compliance_metrics.json -c ajv-formats
+
+            npx ajv-cli validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats || \
+            npx ajv validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats
+
+            npx ajv-cli validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats || \
+            npx ajv validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats
           fi
 
-      - name: Stage GitHub Pages Artifacts
+      - name: Stage Artifacts for Testing & Deployment
         run: |
           mkdir -p _site
           cp -r dashboard/* _site/
@@ -53,16 +54,34 @@ jobs:
             cp -r schemas/* _site/schemas/
           fi
           touch _site/.nojekyll
-          echo "✓ Staged files for deployment"
-          ls -la _site/ | head -15
 
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
+      - name: Install Playwright Chromium & System Dependencies
+        run: npx playwright install --with-deps chromium
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Start Local Web Server
+        run: |
+          python3 -m http.server 8765 --directory _site &
+          for i in {1..10}; do
+            if curl -s http://127.0.0.1:8765/index.html > /dev/null; then
+              echo "✓ Local test server running on port 8765"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Playwright E2E Smoke Suite
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:8765
+        run: |
+          npx playwright test tests/dashboard.spec.js --project=chromium --reporter=list
+
+      - name: Deploy to gh-pages Branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: "chore(deploy): publish dashboard to gh-pages [${{ github.sha }}]"
