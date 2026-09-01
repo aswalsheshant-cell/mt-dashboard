@@ -66,6 +66,49 @@ jobs:
           npx ajv validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats
           npx ajv validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats
 
+      - name: Generate alert payloads
+        if: always()
+        run: python3 extract_alert_payload.py
+
+      - name: Send Slack webhook notification
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -f /tmp/slack_notification.json ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data @/tmp/slack_notification.json \
+              "${SLACK_WEBHOOK_URL}"
+            echo "✓ Slack notification sent"
+          fi
+
+      - name: Send Microsoft Teams webhook notification
+        if: always() && env.TEAMS_WEBHOOK_URL != ''
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: |
+          if [ -f /tmp/teams_notification.json ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data @/tmp/teams_notification.json \
+              "${TEAMS_WEBHOOK_URL}"
+            echo "✓ Teams notification sent"
+          fi
+
+      - name: Notify on pipeline failure
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "text": "❌ *CRITICAL:* Daily MT Sidecar Refresh workflow failed!",
+              "attachments": [{
+                "color": "danger",
+                "text": "Run: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+              }]
+            }' \
+            "${SLACK_WEBHOOK_URL}"
+
       - name: Check for data changes
         id: git_diff
         run: |
