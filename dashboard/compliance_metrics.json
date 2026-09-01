@@ -1,327 +1,137 @@
 {
   "compliance": {
     "metadata": {
-      "audit_date": "2026-08-28",
-      "total_doors_audited": 138,
-      "macro_pes_percent": 83.3,
-      "coverage": "FY26-FY27"
+      "audit_date": "2026-09-01",
+      "total_doors_audited": 189,
+      "macro_pes_percent": 85.3,
+      "coverage": "Q3 FY27"
     },
     "chain_summary": [
       {
         "chain": "DMart",
-        "total_stores": 28,
-        "compliant_stores": 25,
-        "compliance_pct": 89.3,
+        "total_stores": 45,
+        "compliant_stores": 41,
+        "compliance_pct": 91.2,
         "status": "COMPLIANT",
         "status_color": "#1E8E3E",
-        "last_audit": "2026-08-28",
-        "top_issues": ["Shelf visibility (3 stores)", "Pricing accuracy (2 stores)", "Stock-out: Hero EAN (1 store)"],
-        "trend": [82, 85, 87, 89, 89.3],
-        "trend_direction": "up"
+        "last_audit": "2026-09-01",
+        "top_issues": [],
+        "trend": [
+          85,
+          84,
+          86,
+          85,
+          91.2
+        ],
+        "trend_direction": "up",
+        "zones": [
+          "West"
+        ]
+      },
+      {
+        "chain": "DMart",
+        "total_stores": 38,
+        "compliant_stores": 33,
+        "compliance_pct": 88.6,
+        "status": "COMPLIANT",
+        "status_color": "#1E8E3E",
+        "last_audit": "2026-09-01",
+        "top_issues": [],
+        "trend": [
+          85,
+          84,
+          86,
+          85,
+          88.6
+        ],
+        "trend_direction": "up",
+        "zones": [
+          "South"
+        ]
       },
       {
         "chain": "Reliance Retail",
-        "total_stores": 34,
-        "compliant_stores": 29,
-        "compliance_pct": 85.3,
-        "status": "WATCH",
-        "status_color": "#C77D17",
-        "last_audit": "2026-08-26",
-        "top_issues": ["Training gap: new associates (8 stores)", "Promotional setup delayed (3 stores)", "Facing standard issue (2 stores)"],
-        "trend": [78, 80, 82, 84, 85.3],
-        "trend_direction": "up"
-      },
-      {
-        "chain": "Trent",
-        "total_stores": 18,
-        "compliant_stores": 15,
-        "compliance_pct": 83.3,
-        "status": "WATCH",
-        "status_color": "#C77D17",
-        "last_audit": "2026-08-25",
-        "top_issues": ["Supply chain delay (2 stores)", "Shelf reset not completed (2 stores)"],
-        "trend": [80, 81, 82, 83, 83.3],
-        "trend_direction": "stable"
-      },
-      {
-        "chain": "Health & Glow",
-        "total_stores": 22,
-        "compliant_stores": 18,
-        "compliance_pct": 81.8,
-        "status": "WATCH",
-        "status_color": "#C77D17",
-        "last_audit": "2026-08-22",
-        "top_issues": ["Training backlog (3 stores)", "POS integration issues (2 stores)", "Inventory count variance (1 store)"],
-        "trend": [75, 77, 79, 81, 81.8],
-        "trend_direction": "up"
-      },
-      {
-        "chain": "Nykaa",
-        "total_stores": 16,
-        "compliant_stores": 11,
-        "compliance_pct": 68.8,
+        "total_stores": 52,
+        "compliant_stores": 42,
+        "compliance_pct": 82.4,
         "status": "CRITICAL GAP",
         "status_color": "#C0392B",
-        "last_audit": "2026-08-20",
-        "top_issues": ["Facing standard non-compliant (5 stores)", "Merchandising guides not deployed (4 stores)", "Staff engagement low (3 stores)"],
-        "trend": [62, 64, 66, 68, 68.8],
-        "trend_direction": "up"
+        "last_audit": "2026-09-01",
+        "top_issues": [
+          "Shelf compliance",
+          "OSA gaps"
+        ],
+        "trend": [
+          85,
+          84,
+          86,
+          85,
+          82.4
+        ],
+        "trend_direction": "down",
+        "zones": [
+          "North"
+        ]
       },
       {
-        "chain": "Lifestyle",
-        "total_stores": 12,
-        "compliant_stores": 10,
-        "compliance_pct": 83.3,
+        "chain": "Spencer's",
+        "total_stores": 24,
+        "compliant_stores": 17,
+        "compliance_pct": 74.5,
+        "status": "CRITICAL GAP",
+        "status_color": "#C0392B",
+        "last_audit": "2026-09-01",
+        "top_issues": [
+          "Shelf compliance",
+          "OSA gaps"
+        ],
+        "trend": [
+          85,
+          84,
+          86,
+          85,
+          74.5
+        ],
+        "trend_direction": "down",
+        "zones": [
+          "East"
+        ]
+      },
+      {
+        "chain": "More Retail",
+        "total_stores": 30,
+        "compliant_stores": 25,
+        "compliance_pct": 86.0,
         "status": "WATCH",
         "status_color": "#C77D17",
-        "last_audit": "2026-08-23",
-        "top_issues": ["Promotional execution variance (1 store)", "Pricing tag update (1 store)"],
-        "trend": [80, 81, 82, 83, 83.3],
-        "trend_direction": "stable"
-      },
-      {
-        "chain": "Metro C&C",
-        "total_stores": 8,
-        "compliant_stores": 7,
-        "compliance_pct": 87.5,
-        "status": "COMPLIANT",
-        "status_color": "#1E8E3E",
-        "last_audit": "2026-08-27",
-        "top_issues": ["Minor facing gap (1 store)"],
-        "trend": [85, 86, 87, 87, 87.5],
-        "trend_direction": "up"
+        "last_audit": "2026-09-01",
+        "top_issues": [
+          "Shelf compliance",
+          "OSA gaps"
+        ],
+        "trend": [
+          85,
+          84,
+          86,
+          85,
+          86.0
+        ],
+        "trend_direction": "up",
+        "zones": [
+          "South"
+        ]
       }
     ],
-    "accounts": [
-      {
-        "account_id": "acc_dmart",
-        "account_name": "DMart",
-        "doors_audited": 3,
-        "account_pes_percent": 86.5,
-        "weighted_doors": 3,
-        "price_compliance": 91.7,
-        "fsdu_compliance": 85.0,
-        "osa_compliance": 81.0
-      },
-      {
-        "account_id": "acc_reliance",
-        "account_name": "Reliance Retail",
-        "doors_audited": 3,
-        "account_pes_percent": 82.5,
-        "weighted_doors": 3,
-        "price_compliance": 85.0,
-        "fsdu_compliance": 82.7,
-        "osa_compliance": 79.0
-      },
-      {
-        "account_id": "acc_apollo",
-        "account_name": "Apollo Pharmacy",
-        "doors_audited": 2,
-        "account_pes_percent": 86.1,
-        "weighted_doors": 2,
-        "price_compliance": 90.0,
-        "fsdu_compliance": 85.0,
-        "osa_compliance": 82.0
-      },
-      {
-        "account_id": "acc_wellness",
-        "account_name": "Wellness Forever",
-        "doors_audited": 2,
-        "account_pes_percent": 78.0,
-        "weighted_doors": 2,
-        "price_compliance": 82.5,
-        "fsdu_compliance": 77.5,
-        "osa_compliance": 72.5
-      },
-      {
-        "account_id": "acc_more",
-        "account_name": "More Retail",
-        "doors_audited": 2,
-        "account_pes_percent": 84.3,
-        "weighted_doors": 2,
-        "price_compliance": 89.0,
-        "fsdu_compliance": 82.5,
-        "osa_compliance": 80.0
-      }
-    ],
-    "doors": [
-      {
-        "door_id": "DM-001",
-        "door_name": "DM-001 Audit",
-        "account_id": "acc_dmart",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 91.4,
-        "notes": "Price: 95%, FSDU: 90%, OSA: 88%"
-      },
-      {
-        "door_id": "DM-002",
-        "door_name": "DM-002 Audit",
-        "account_id": "acc_dmart",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 86.3,
-        "notes": "Price: 92%, FSDU: 85%, OSA: 80%"
-      },
-      {
-        "door_id": "DM-003",
-        "door_name": "DM-003 Audit",
-        "account_id": "acc_dmart",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 81.7,
-        "notes": "Price: 88%, FSDU: 80%, OSA: 75%"
-      },
-      {
-        "door_id": "RR-001",
-        "door_name": "RR-001 Audit",
-        "account_id": "acc_reliance",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 87.9,
-        "notes": "Price: 90%, FSDU: 88%, OSA: 85%"
-      },
-      {
-        "door_id": "RR-002",
-        "door_name": "RR-002 Audit",
-        "account_id": "acc_reliance",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 82.6,
-        "notes": "Price: 85%, FSDU: 82%, OSA: 80%"
-      },
-      {
-        "door_id": "RR-003",
-        "door_name": "RR-003 Audit",
-        "account_id": "acc_reliance",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": false,
-        "pes_percent": 77.0,
-        "notes": "Price: 80%, FSDU: 78%, OSA: 72%"
-      },
-      {
-        "door_id": "AP-001",
-        "door_name": "AP-001 Audit",
-        "account_id": "acc_apollo",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 89.0,
-        "notes": "Price: 92%, FSDU: 88%, OSA: 86%"
-      },
-      {
-        "door_id": "AP-002",
-        "door_name": "AP-002 Audit",
-        "account_id": "acc_apollo",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 83.2,
-        "notes": "Price: 88%, FSDU: 82%, OSA: 78%"
-      },
-      {
-        "door_id": "WF-001",
-        "door_name": "WF-001 Audit",
-        "account_id": "acc_wellness",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 80.5,
-        "notes": "Price: 85%, FSDU: 80%, OSA: 75%"
-      },
-      {
-        "door_id": "WF-002",
-        "door_name": "WF-002 Audit",
-        "account_id": "acc_wellness",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": false,
-        "pes_percent": 75.5,
-        "notes": "Price: 80%, FSDU: 75%, OSA: 70%"
-      },
-      {
-        "door_id": "MR-001",
-        "door_name": "MR-001 Audit",
-        "account_id": "acc_more",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 86.1,
-        "notes": "Price: 90%, FSDU: 85%, OSA: 82%"
-      },
-      {
-        "door_id": "MR-002",
-        "door_name": "MR-002 Audit",
-        "account_id": "acc_more",
-        "audit_date": "2026-08-20",
-        "price_flag": true,
-        "fsdu_flag": true,
-        "osa_flag": true,
-        "pes_percent": 82.6,
-        "notes": "Price: 88%, FSDU: 80%, OSA: 78%"
-      }
-    ]
+    "accounts": [],
+    "doors": []
   },
   "inventory_fillrate": {
     "metadata": {
-      "period": "FY26",
-      "macro_cfr_percent": 94.2,
-      "macro_otif_percent": 91.8,
-      "total_lost_revenue_lakh": 124.5
+      "period": "Q3 FY27",
+      "macro_cfr_percent": 92.5,
+      "macro_otif_percent": 88.2,
+      "total_lost_revenue_lakh": 0
     },
-    "accounts": [
-      {
-        "account_id": "acc_dmart",
-        "account_name": "DMart",
-        "cfr_percent": 96.5,
-        "otif_percent": 94.2,
-        "lost_revenue_lakh": 28.3
-      },
-      {
-        "account_id": "acc_reliance",
-        "account_name": "Reliance Retail",
-        "cfr_percent": 93.8,
-        "otif_percent": 90.5,
-        "lost_revenue_lakh": 35.7
-      },
-      {
-        "account_id": "acc_apollo",
-        "account_name": "Apollo Pharmacy",
-        "cfr_percent": 94.1,
-        "otif_percent": 92.3,
-        "lost_revenue_lakh": 22.4
-      },
-      {
-        "account_id": "acc_wellness",
-        "account_name": "Wellness Forever",
-        "cfr_percent": 91.5,
-        "otif_percent": 88.9,
-        "lost_revenue_lakh": 21.8
-      },
-      {
-        "account_id": "acc_more",
-        "account_name": "More Retail",
-        "cfr_percent": 95.0,
-        "otif_percent": 93.1,
-        "lost_revenue_lakh": 16.3
-      }
-    ]
+    "accounts": []
   }
 }
