@@ -3429,7 +3429,10 @@ function buildRetailExecution(){
   const tableHtml=`
     <div class="card" style="margin:0;">
       <h3>Chain-Level Compliance Matrix</h3>
-      <button class="tblexport" onclick="exportRetailExecutionCompliance()">📥 Export Compliance CSV</button>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="tblexport" onclick="exportRetailExecutionCompliance()">📄 Export CSV</button>
+        <button class="tblexport" style="background:var(--teal);color:#fff;border-color:var(--teal);" onclick="exportRetailExecutionMultiTab()">📊 Export Excel</button>
+      </div>
       <div style="margin-bottom:12px;">
         <input type="text" id="complianceSearchInput" placeholder="🔍 Filter chains..."
                style="width:100%;max-width:280px;font-family:inherit;font-size:12.5px;padding:8px 12px;
@@ -3576,6 +3579,116 @@ function exportRetailExecutionCompliance(){
   a.download=exportFilename('Retail Execution','Compliance Matrix')+'.csv';
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function exportRetailExecutionMultiTab(){
+  if(typeof XLSX==='undefined'||!XLSX.utils){
+    exportRetailExecutionCompliance(); // fallback to CSV
+    return;
+  }
+
+  const comp=(D.compliance||{});
+  const summary=comp.chain_summary||[];
+  const meta=comp.metadata||{};
+  const ts=exportTimestamp();
+
+  const wb=XLSX.utils.book_new();
+
+  // Sheet 1: Executive Summary
+  const summaryRows=[
+    ['Retail Execution — Compliance Dashboard'],
+    [`Export Date: ${ts.human}`],
+    [`Total Stores: ${summary.reduce((n,c)=>n+(c.total_stores||0),0)}`],
+    [`Avg Compliance: ${(summary.reduce((n,c)=>n+(c.compliant_stores||0),0)/Math.max(summary.reduce((n,c)=>n+(c.total_stores||0),0),1)*100).toFixed(1)}%`],
+    [],
+    ['Chain Summary'],
+    ['Chain','Total Stores','Compliant','Compliance %','Status','Last Audit'],
+    ...summary.map(c=>[
+      c.chain,c.total_stores,c.compliant_stores,c.compliance_pct.toFixed(1),c.status,c.last_audit||'–'
+    ])
+  ];
+  const sumWs=XLSX.utils.aoa_to_sheet(summaryRows);
+  sumWs['!cols']=[{wch:20},{wch:14},{wch:12},{wch:15},{wch:15},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,sumWs,'Summary');
+
+  // Sheet 2: Chain Details with Issues
+  const detailRows=[
+    ['Chain Compliance Details'],
+    [`Last Updated: ${meta.audit_date||'–'}`],
+    [],
+    ['Chain','Compliance %','Status','Total Issues','Store Gap','Last Audit','Trend']
+  ];
+  summary.forEach(c=>{
+    const issueCount=(c.top_issues||[]).length;
+    const storeGap=c.total_stores-(c.compliant_stores||0);
+    const trend=c.trend_direction||'stable';
+    detailRows.push([
+      c.chain,
+      c.compliance_pct.toFixed(1),
+      c.status,
+      issueCount,
+      storeGap,
+      c.last_audit||'–',
+      trend
+    ]);
+  });
+  const detWs=XLSX.utils.aoa_to_sheet(detailRows);
+  detWs['!cols']=[{wch:20},{wch:15},{wch:15},{wch:14},{wch:12},{wch:12},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,detWs,'Chain Details');
+
+  // Sheet 3: Zone Health (aggregated from D.universe if available)
+  const zoneRows=[
+    ['Zone-Level Health Summary'],
+    [`Coverage: ${meta.coverage||'FY26-FY27'}`],
+    [],
+    ['Zone','Stores','Avg Compliance %','Top Chain','Notes']
+  ];
+
+  const u=D.universe||{};
+  const byZone=u.by_zone||[];
+  const chainsByZone={};
+  summary.forEach(c=>{
+    const zones=c.zones||[];
+    zones.forEach(z=>{
+      if(!chainsByZone[z]) chainsByZone[z]=[];
+      chainsByZone[z].push({name:c.chain,comp:c.compliance_pct});
+    });
+  });
+
+  byZone.slice(0,10).forEach(z=>{
+    const chains=chainsByZone[z.name]||[];
+    const topChain=chains.length>0?chains.reduce((a,b)=>b.comp>a.comp?b:a):null;
+    zoneRows.push([
+      z.name,
+      z.stores||'–',
+      '–',
+      topChain?topChain.name:'–',
+      chains.length>0?`${chains.length} chains monitoring`:'No data'
+    ]);
+  });
+
+  const zoneWs=XLSX.utils.aoa_to_sheet(zoneRows);
+  zoneWs['!cols']=[{wch:20},{wch:10},{wch:18},{wch:18},{wch:25}];
+  XLSX.utils.book_append_sheet(wb,zoneWs,'Zone Health');
+
+  // Generate filename and download
+  const filename=exportFilename('Retail Execution','Compliance Multi-Tab');
+  XLSX.writeFile(wb,filename+'.xlsx');
+}
+
+function expandRetailExecutionExports(){
+  const exportBtn=document.getElementById('complianceExportBtn');
+  if(!exportBtn) return;
+
+  const menu=document.createElement('div');
+  menu.style.cssText='position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 12px rgba(31,41,51,.12);z-index:100;min-width:180px;';
+  menu.innerHTML=`
+    <button onclick="exportRetailExecutionCompliance()" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:none;font-family:inherit;font-size:12.5px;cursor:pointer;color:var(--ink);">📄 CSV (Compliance Matrix)</button>
+    <button onclick="exportRetailExecutionMultiTab()" style="display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:none;font-family:inherit;font-size:12.5px;cursor:pointer;color:var(--ink);border-top:1px solid var(--line);">📊 Excel Multi-Tab</button>
+  `;
+
+  document.body.appendChild(menu);
+  setTimeout(()=>menu.addEventListener('click',(e)=>{e.stopPropagation();}),0);
 }
 
 function destroyAnalyticsCharts(){
