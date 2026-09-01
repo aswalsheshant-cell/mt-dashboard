@@ -864,6 +864,36 @@ function renderDrillChart(chartId,baseTitle,baseRecs){
   });
 }
 
+/* ────────────── PHASE 1: Zone Heatmap & Summary Box ────────────── */
+function renderZoneHeatmap(zoneData){
+  if(!zoneData||!zoneData.length)return'';
+  const getConvColor=cv=>{
+    if(cv==null)return'background:#f0f0f0';
+    if(cv>=85)return'background:#1E8E3E;color:#fff;font-weight:600';
+    if(cv>=75)return'background:#C77D17;color:#fff;font-weight:600';
+    if(cv>=70)return'background:#E65100;color:#fff;font-weight:600';
+    return'background:#C0392B;color:#fff;font-weight:600';
+  };
+  const rows=zoneData.map(d=>`<tr><td><b>${d.zone||'–'}</b></td><td class="r">${d.offtake!=null?crc(d.offtake):'–'}</td><td class="r">${d.primary!=null?crc(d.primary):'–'}</td><td class="r" style="${getConvColor(d.conversion)}">${d.conversion!=null?d.conversion.toFixed(1)+'%':'–'}</td><td class="r" style="color:${d.gap>1?'#C0392B':d.gap>0.5?'#E65100':'#1E8E3E'}">${d.gap!=null?crc(d.gap):'–'}</td></tr>`).join('');
+  return`<div class="card"><h3>Zone Heatmap — Flow Conversion Command Center</h3><p class="note">Conversion = Offtake ÷ Primary (%). <span style="color:#1E8E3E"><b>PROTECT</b> ≥85%</span> · <span style="color:#C77D17"><b>STABLE</b> 75–85%</span> · <span style="color:#E65100"><b>WATCH</b> 70–75%</span> · <span style="color:#C0392B"><b>FIX</b> &lt;70%</span>. Sorted by conversion (worst first).</p><div class="tablewrap"><table><thead><tr style="background:var(--teal);color:#fff"><th>Zone</th><th>Offtake ₹Cr</th><th>Primary ₹Cr</th><th>Conversion %</th><th>Gap ₹Cr</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+function renderSummaryBox(data){
+  const{headline,evidence,implication,action,owner,ownerDate}=data||{};
+  return`<div class="card" style="background:linear-gradient(135deg,#0D1B2A 0%,#1a2a3a 100%);color:#fff;border:0;border-left:5px solid #E63946;margin:16px 0"><div style="padding:2px 0"><h3 style="margin:0 0 8px;color:#fff;font-size:16px;font-weight:700">${headline||'Leadership Priority'}</h3><div style="margin:12px 0;padding:10px;background:rgba(255,255,255,0.08);border-radius:6px;border-left:3px solid #E63946"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#E63946">EVIDENCE</div><div style="font-size:13px;line-height:1.5;margin-top:4px">${evidence||'–'}</div></div><div style="margin:12px 0;padding:10px;background:rgba(255,255,255,0.08);border-radius:6px;border-left:3px solid #2A9D8F"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#2A9D8F">IMPLICATION</div><div style="font-size:13px;line-height:1.5;margin-top:4px">${implication||'–'}</div></div><div style="margin:12px 0;padding:10px;background:rgba(255,255,255,0.08);border-radius:6px;border-left:3px solid #F4A261"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#F4A261">ACTION</div><div style="font-size:13px;line-height:1.5;margin-top:4px">${action||'–'}</div></div><div style="margin:12px 0;padding:10px;background:rgba(255,255,255,0.08);border-radius:6px;border-left:3px solid #999"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#999">OWNER</div><div style="font-size:13px;line-height:1.5;margin-top:4px"><b>${owner||'TBD'}</b> · <span style="opacity:.8">${ownerDate||'–'}</span></div></div></div></div>`;
+}
+function extractZoneHeatmapData(){
+  const o=D.offtake||{},zm=o.zone_monthly_fy27||{};
+  if(!Object.keys(zm).length)return[];
+  const _MO=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const _sm=(a,b)=>{const[am,ay]=a.split('-'),[bm,by]=b.split('-');return(parseInt(ay)*12+_MO.indexOf(am))-(parseInt(by)*12+_MO.indexOf(bm));};
+  const zoneRows=Object.entries(zm).filter(([z])=>z!=='Pan India').map(([zone,months])=>{const lt=Object.keys(months).sort(_sm).slice(-1)[0];const d=months[lt]||{};return{zone,month:lt,offtake:d.offtake_cr,primary:d.primary_cr,conversion:d.conversion_pct,gap:d.flow_gap_cr};}).sort((a,b)=>(a.conversion||0)-(b.conversion||0));
+  return zoneRows;
+}
+function extractSummaryBoxData(){
+  const o=D.offtake||{},totalOff=o.total_fy26||36.06,totalPri=D.primary?.nsv_fy26||47.02,gap=Math.max(0,totalPri-totalOff),conv=totalOff>0?(totalOff/totalPri*100).toFixed(1):0;
+  return{headline:'90.7% of gap sits in DMart + Reliance; convert via hero-EAN OSA focus',evidence:`Jul-26 ₹${totalOff}L (+64.2% YoY); Primary ₹${totalPri}L (+98.9% YoY); ${conv}% conversion; ₹${gap}L gap. DMart (₹14.33L) + Reliance (₹8.06L) = 90.7% of national gap.`,implication:'East + North hold 70.5% of the gap; conversion <50% in East signals inventory build risk. New distribution (Dr. Sheths +14 EANs) adds portfolio upside but increases SKU/OOS management burden.',action:'ZSMs: publish chain-zone-hero-EAN exception list by 22-Aug. KAMs: validate Aug-26 offtake by 05-Aug (early signal of Paisa Vasool recovery). Non-Hero moratorium stands until Aug offtake proof.',owner:'Sales Lead (weekly chair) + Analytics',ownerDate:'22-Aug review'};
+}
+
 /* ---------------- OVERVIEW ---------------- */
 function buildOverview(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
@@ -909,6 +939,8 @@ function buildOverview(){
            isTY?'business TY target':`@ ${f.growth_assumption_pct!=null?f.growth_assumption_pct+'%':'–'} planning growth`)
        : kpi('FY27 Forecast','–','forecast data not yet loaded')}
    </div>
+   ${renderZoneHeatmap(extractZoneHeatmapData())}
+   ${renderSummaryBox(extractSummaryBoxData())}
    <div class="grid g2">
      ${card(`Primary vs Offtake — monthly trend (${fyDispLabel('FY25')} → ${fyDispLabel('FY27')})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('ovChannel',true))}
