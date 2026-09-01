@@ -283,6 +283,7 @@
   <section id="tab-share"></section>
   <section id="tab-distribution"></section>
   <section id="tab-comparison"></section>
+  <section id="tab-retail-execution"></section>
   <section id="tab-analytics"></section>
   <section id="tab-stores"></section>
   <section id="tab-inventory"></section>
@@ -3387,6 +3388,196 @@ function renderQuadrantChart(){
   });
 }
 
+function buildRetailExecution(){
+  const s=document.getElementById('tab-retail-execution');
+  const comp=(D.compliance||{});
+  const summary=comp.chain_summary||[];
+
+  if(!summary || summary.length===0){
+    s.innerHTML='<p style="padding:20px;color:#999;">No compliance data available. Awaiting data integration.</p>';
+    return;
+  }
+
+  // KPI summary header
+  const metadata=comp.metadata||{};
+  const totalCompliant=summary.reduce((n,c)=>n+(c.compliant_stores||0),0);
+  const totalStores=summary.reduce((n,c)=>n+(c.total_stores||0),0);
+  const avgCompliance=totalStores>0?Math.round(totalCompliant/totalStores*1000)/10:0;
+
+  const kpiHtml=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px;">
+      ${kpi('Total Stores Monitored',totalStores.toLocaleString())}
+      ${kpi('Compliant Stores',totalCompliant.toLocaleString(),'Store-level audit pass')}
+      ${kpi('Avg Compliance %',avgCompliance.toFixed(1)+'%','Weighted across chains')}
+      ${kpi('Last Audit Date',metadata.audit_date||'–','Most recent door audit')}
+    </div>
+  `;
+
+  // Status distribution pills
+  const statusCounts={COMPLIANT:0,WATCH:0,'CRITICAL GAP':0};
+  summary.forEach(c=>{if(c.status) statusCounts[c.status]=(statusCounts[c.status]||0)+1;});
+
+  const statusHtml=`
+    <div style="margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;">
+      <div class="pill g" style="background:#e6f4ea;color:#1E8E3E;"><b>${statusCounts.COMPLIANT}</b> Compliant</div>
+      <div class="pill" style="background:#fff7e6;color:#C77D17;"><b>${statusCounts.WATCH}</b> Watch List</div>
+      <div class="pill r" style="background:#fce8e6;color:#C0392B;"><b>${statusCounts['CRITICAL GAP']}</b> Critical Gaps</div>
+    </div>
+  `;
+
+  // Compliance matrix table with search filter
+  const tableHtml=`
+    <div class="card" style="margin:0;">
+      <h3>Chain-Level Compliance Matrix</h3>
+      <button class="tblexport" onclick="exportRetailExecutionCompliance()">📥 Export Compliance CSV</button>
+      <div style="margin-bottom:12px;">
+        <input type="text" id="complianceSearchInput" placeholder="🔍 Filter chains..."
+               style="width:100%;max-width:280px;font-family:inherit;font-size:12.5px;padding:8px 12px;
+                      border:1px solid var(--line);border-radius:8px;color:var(--ink);"
+               oninput="filterComplianceTable()">
+      </div>
+      <div class="tablewrap">
+        <table id="complianceTable">
+          <thead>
+            <tr>
+              <th>Chain</th>
+              <th>Total Stores</th>
+              <th>Compliant</th>
+              <th style="text-align:center;">Compliance %</th>
+              <th style="text-align:center;">Status</th>
+              <th>Last Audit</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${summary.map(c=>`
+              <tr style="cursor:pointer;" onclick="expandChainCompliance('${c.chain}')">
+                <td><b>${c.chain}</b></td>
+                <td>${c.total_stores}</td>
+                <td>${c.compliant_stores}</td>
+                <td style="text-align:center;"><b>${c.compliance_pct.toFixed(1)}%</b></td>
+                <td style="text-align:center;">
+                  <span class="pill" style="background:${c.status_color}20;color:${c.status_color};">
+                    ${c.status}
+                  </span>
+                </td>
+                <td style="font-size:11.5px;color:var(--muted);">${c.last_audit||'–'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Chain detail modal (expanded view)
+  const detailHtml=`
+    <div id="chainDetailModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+         background:rgba(0,0,0,0.5);z-index:500;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:12px;max-width:600px;width:90%;max-height:80vh;
+                  overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;">
+        <button onclick="closeChainDetail()" style="position:absolute;top:12px;right:12px;background:none;
+                border:0;font-size:24px;cursor:pointer;color:var(--muted);">✕</button>
+        <div id="chainDetailContent"></div>
+      </div>
+    </div>
+  `;
+
+  s.innerHTML=`
+    <h2 class="sec">Retail Execution — Store Compliance & Audit Tracking</h2>
+    <div class="lead">Real-time compliance status across MT network with drill-down to store-level issues</div>
+    ${kpiHtml}
+    ${statusHtml}
+    ${tableHtml}
+    ${detailHtml}
+  `;
+}
+
+function filterComplianceTable(){
+  const q=(document.getElementById('complianceSearchInput')||{}).value.toLowerCase();
+  (document.querySelectorAll('#complianceTable tbody tr')||[]).forEach(tr=>{
+    const chainName=(tr.cells[0]?.textContent||'').toLowerCase();
+    tr.style.display=chainName.includes(q)?'':'none';
+  });
+}
+
+function expandChainCompliance(chainName){
+  const comp=(D.compliance||{});
+  const summary=comp.chain_summary||[];
+  const chain=summary.find(c=>c.chain===chainName);
+
+  if(!chain) return;
+
+  const modal=document.getElementById('chainDetailModal');
+  const content=document.getElementById('chainDetailContent');
+
+  const trendSvg=chain.trend?renderKpiSparkline(chain.trend,chain.status_color):'';
+
+  const issuesHtml=(chain.top_issues||[]).map(issue=>`
+    <li style="font-size:12px;color:#555;margin-bottom:6px;">• ${issue}</li>
+  `).join('');
+
+  content.innerHTML=`
+    <h3 style="margin-top:0;">${chainName} — Compliance Details</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0;">
+      <div style="padding:12px;background:var(--bg);border-radius:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">Stores Audited</div>
+        <div style="font-size:20px;font-weight:800;color:var(--teal-d);margin-top:4px;">${chain.compliant_stores}/${chain.total_stores}</div>
+      </div>
+      <div style="padding:12px;background:var(--bg);border-radius:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">Compliance %</div>
+        <div style="font-size:20px;font-weight:800;color:${chain.status_color};margin-top:4px;">${chain.compliance_pct.toFixed(1)}%</div>
+      </div>
+    </div>
+    <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Trend (Last 5 Audits)</div>
+      ${trendSvg}
+    </div>
+    <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Top Issues to Address</div>
+      <ul style="margin:0;padding-left:20px;">
+        ${issuesHtml}
+      </ul>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--line);padding-top:12px;">
+      <button onclick="closeChainDetail()" style="padding:8px 14px;background:var(--bg);border:1px solid var(--line);
+               border-radius:6px;cursor:pointer;font-family:inherit;">Close</button>
+    </div>
+  `;
+
+  modal.style.display='flex';
+}
+
+function closeChainDetail(){
+  const modal=document.getElementById('chainDetailModal');
+  if(modal) modal.style.display='none';
+}
+
+function exportRetailExecutionCompliance(){
+  const comp=(D.compliance||{});
+  const summary=comp.chain_summary||[];
+  const cols=['Chain','Total Stores','Compliant Stores','Compliance %','Status','Last Audit','Top Issues'];
+  const rows=summary.map(c=>[
+    c.chain,
+    c.total_stores,
+    c.compliant_stores,
+    c.compliance_pct.toFixed(1),
+    c.status,
+    c.last_audit||'–',
+    (c.top_issues||[]).slice(0,2).join('; ')
+  ]);
+
+  const csvData=[cols,...rows]
+    .map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))
+    .join('\r\n');
+
+  const blob=new Blob(['﻿'+csvData],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=exportFilename('Retail Execution','Compliance Matrix')+'.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 function destroyAnalyticsCharts(){
   ['_chartPVM','_chartHealth','_chartQuadrant'].forEach(name=>{if(window[name]) window[name].destroy();});
 }
@@ -4025,6 +4216,7 @@ const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Pri
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
+  ['retail-execution','Retail Execution'],
   ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],
   ['forecast-tracking','Daily & Weekly Forecast'],['cm2','CM2 & Claim Analysis'],['insights','Insights & Way Forward']];
 const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
@@ -4032,7 +4224,7 @@ const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
+  distribution:buildDistribution,comparison:buildComparison,'retail-execution':buildRetailExecution,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
   'forecast-tracking':buildDailyWeeklyForecast,cm2:buildCM2,insights:buildInsights};
 let currentTab='overview';
 function show(id){

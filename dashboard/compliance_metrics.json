@@ -1,11 +1,97 @@
 {
   "compliance": {
     "metadata": {
-      "audit_date": "2026-08-20",
-      "total_doors_audited": 12,
-      "macro_pes_percent": 83.5,
-      "coverage": "FY25-FY26"
+      "audit_date": "2026-08-28",
+      "total_doors_audited": 138,
+      "macro_pes_percent": 83.3,
+      "coverage": "FY26-FY27"
     },
+    "chain_summary": [
+      {
+        "chain": "DMart",
+        "total_stores": 28,
+        "compliant_stores": 25,
+        "compliance_pct": 89.3,
+        "status": "COMPLIANT",
+        "status_color": "#1E8E3E",
+        "last_audit": "2026-08-28",
+        "top_issues": ["Shelf visibility (3 stores)", "Pricing accuracy (2 stores)", "Stock-out: Hero EAN (1 store)"],
+        "trend": [82, 85, 87, 89, 89.3],
+        "trend_direction": "up"
+      },
+      {
+        "chain": "Reliance Retail",
+        "total_stores": 34,
+        "compliant_stores": 29,
+        "compliance_pct": 85.3,
+        "status": "WATCH",
+        "status_color": "#C77D17",
+        "last_audit": "2026-08-26",
+        "top_issues": ["Training gap: new associates (8 stores)", "Promotional setup delayed (3 stores)", "Facing standard issue (2 stores)"],
+        "trend": [78, 80, 82, 84, 85.3],
+        "trend_direction": "up"
+      },
+      {
+        "chain": "Trent",
+        "total_stores": 18,
+        "compliant_stores": 15,
+        "compliance_pct": 83.3,
+        "status": "WATCH",
+        "status_color": "#C77D17",
+        "last_audit": "2026-08-25",
+        "top_issues": ["Supply chain delay (2 stores)", "Shelf reset not completed (2 stores)"],
+        "trend": [80, 81, 82, 83, 83.3],
+        "trend_direction": "stable"
+      },
+      {
+        "chain": "Health & Glow",
+        "total_stores": 22,
+        "compliant_stores": 18,
+        "compliance_pct": 81.8,
+        "status": "WATCH",
+        "status_color": "#C77D17",
+        "last_audit": "2026-08-22",
+        "top_issues": ["Training backlog (3 stores)", "POS integration issues (2 stores)", "Inventory count variance (1 store)"],
+        "trend": [75, 77, 79, 81, 81.8],
+        "trend_direction": "up"
+      },
+      {
+        "chain": "Nykaa",
+        "total_stores": 16,
+        "compliant_stores": 11,
+        "compliance_pct": 68.8,
+        "status": "CRITICAL GAP",
+        "status_color": "#C0392B",
+        "last_audit": "2026-08-20",
+        "top_issues": ["Facing standard non-compliant (5 stores)", "Merchandising guides not deployed (4 stores)", "Staff engagement low (3 stores)"],
+        "trend": [62, 64, 66, 68, 68.8],
+        "trend_direction": "up"
+      },
+      {
+        "chain": "Lifestyle",
+        "total_stores": 12,
+        "compliant_stores": 10,
+        "compliance_pct": 83.3,
+        "status": "WATCH",
+        "status_color": "#C77D17",
+        "last_audit": "2026-08-23",
+        "top_issues": ["Promotional execution variance (1 store)", "Pricing tag update (1 store)"],
+        "trend": [80, 81, 82, 83, 83.3],
+        "trend_direction": "stable"
+      },
+      {
+        "chain": "Metro C&C",
+        "total_stores": 8,
+        "compliant_stores": 7,
+        "compliance_pct": 87.5,
+        "status": "COMPLIANT",
+        "status_color": "#1E8E3E",
+        "last_audit": "2026-08-27",
+        "top_issues": ["Minor facing gap (1 store)"],
+        "trend": [85, 86, 87, 87, 87.5],
+        "trend_direction": "up"
+      }
+    ],
     "accounts": [
       {
         "account_id": "acc_dmart",
