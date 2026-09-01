@@ -874,7 +874,7 @@ function renderZoneHeatmap(zoneData){
     if(cv>=70)return'background:#E65100;color:#fff;font-weight:600';
     return'background:#C0392B;color:#fff;font-weight:600';
   };
-  const rows=zoneData.map(d=>`<tr><td><b>${d.zone||'–'}</b></td><td class="r">${d.offtake!=null?crc(d.offtake):'–'}</td><td class="r">${d.primary!=null?crc(d.primary):'–'}</td><td class="r" style="${getConvColor(d.conversion)}">${d.conversion!=null?d.conversion.toFixed(1)+'%':'–'}</td><td class="r" style="color:${d.gap>1?'#C0392B':d.gap>0.5?'#E65100':'#1E8E3E'}">${d.gap!=null?crc(d.gap):'–'}</td></tr>`).join('');
+  const rows=zoneData.map(d=>`<tr><td><span class="drill" onclick="drillTo('Zone','${d.zone}')">${d.zone||'–'}</span></td><td class="r">${d.offtake!=null?crc(d.offtake):'–'}</td><td class="r">${d.primary!=null?crc(d.primary):'–'}</td><td class="r" style="${getConvColor(d.conversion)}">${d.conversion!=null?d.conversion.toFixed(1)+'%':'–'}</td><td class="r" style="color:${d.gap>1?'#C0392B':d.gap>0.5?'#E65100':'#1E8E3E'}">${d.gap!=null?crc(d.gap):'–'}</td></tr>`).join('');
   return`<div class="card"><h3>Zone Heatmap — Flow Conversion Command Center</h3><p class="note">Conversion = Offtake ÷ Primary (%). <span style="color:#1E8E3E"><b>PROTECT</b> ≥85%</span> · <span style="color:#C77D17"><b>STABLE</b> 75–85%</span> · <span style="color:#E65100"><b>WATCH</b> 70–75%</span> · <span style="color:#C0392B"><b>FIX</b> &lt;70%</span>. Sorted by conversion (worst first).</p><div class="tablewrap"><table><thead><tr style="background:var(--teal);color:#fff"><th>Zone</th><th>Offtake ₹Cr</th><th>Primary ₹Cr</th><th>Conversion %</th><th>Gap ₹Cr</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 function renderSummaryBox(data){
@@ -892,6 +892,38 @@ function extractZoneHeatmapData(){
 function extractSummaryBoxData(){
   const o=D.offtake||{},totalOff=o.total_fy26||36.06,totalPri=D.primary?.nsv_fy26||47.02,gap=Math.max(0,totalPri-totalOff),conv=totalOff>0?(totalOff/totalPri*100).toFixed(1):0;
   return{headline:'90.7% of gap sits in DMart + Reliance; convert via hero-EAN OSA focus',evidence:`Jul-26 ₹${totalOff}L (+64.2% YoY); Primary ₹${totalPri}L (+98.9% YoY); ${conv}% conversion; ₹${gap}L gap. DMart (₹14.33L) + Reliance (₹8.06L) = 90.7% of national gap.`,implication:'East + North hold 70.5% of the gap; conversion <50% in East signals inventory build risk. New distribution (Dr. Sheths +14 EANs) adds portfolio upside but increases SKU/OOS management burden.',action:'ZSMs: publish chain-zone-hero-EAN exception list by 22-Aug. KAMs: validate Aug-26 offtake by 05-Aug (early signal of Paisa Vasool recovery). Non-Hero moratorium stands until Aug offtake proof.',owner:'Sales Lead (weekly chair) + Analytics',ownerDate:'22-Aug review'};
+}
+
+/* ────────────── PHASE 2: Highlights Card & Sparklines ────────────── */
+function renderHighlightsCard(data){
+  if(!data)return'';
+  const{topChain,topChainMom,atRiskZone,atRiskConv,npiAlert,npiPct,dmrtRelGap}=data;
+  return`<div class="card" style="background:linear-gradient(135deg,#f8f9fa 0%,#ffffff 100%);border-left:5px solid #FFB81C;margin:16px 0"><h3 style="margin:0 0 12px;font-size:15px;font-weight:700">Month Highlights</h3><div style="display:grid;gap:10px">${topChain?`<div style="padding:10px;background:rgba(30,142,62,.08);border-left:3px solid #1E8E3E;border-radius:4px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#1E8E3E">🟢 TOP CHAIN</div><div style="font-size:13px;margin-top:3px"><b>${topChain}</b> ${topChainMom!=null?`<span style="color:#1E8E3E;font-weight:600">+${topChainMom.toFixed(1)}% MoM</span>`:''}</div></div>`:''}${atRiskZone?`<div style="padding:10px;background:rgba(192,57,43,.08);border-left:3px solid #C0392B;border-radius:4px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#C0392B">🔴 AT RISK</div><div style="font-size:13px;margin-top:3px"><b>${atRiskZone}</b> ${atRiskConv!=null?`<span style="color:#C0392B;font-weight:600">${atRiskConv.toFixed(1)}% conversion</span>`:''}</div></div>`:''}${npiAlert?`<div style="padding:10px;background:rgba(45,155,127,.08);border-left:3px solid #2A9D8F;border-radius:4px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#2A9D8F">💡 NPI ALERT</div><div style="font-size:13px;margin-top:3px">${npiAlert}${npiPct!=null?` <span style="color:#2A9D8F;font-weight:600">${npiPct.toFixed(1)}% mix</span>`:''}</div></div>`:''}${dmrtRelGap?`<div style="padding:10px;background:rgba(244,162,97,.08);border-left:3px solid #F4A261;border-radius:4px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#F4A261">🎯 DMart + Reliance Gap</div><div style="font-size:13px;margin-top:3px">${dmrtRelGap}</div></div>`:''}</div></div>`;
+}
+function extractHighlightsData(){
+  const o=D.offtake||{},zm=o.zone_monthly_fy27||{};
+  let topChain=null,topChainMom=null;
+  const chains=o.by_chain||[];
+  if(chains.length>0){const sorted=chains.slice().sort((a,b)=>(b.mom_pct||0)-(a.mom_pct||0));topChain=sorted[0]?.name;topChainMom=sorted[0]?.mom_pct;}
+  const _MO=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const _sm=(a,b)=>{const[am,ay]=a.split('-'),[bm,by]=b.split('-');return(parseInt(ay)*12+_MO.indexOf(am))-(parseInt(by)*12+_MO.indexOf(bm));};
+  let atRiskZone=null,atRiskConv=null;
+  const zoneRows=Object.entries(zm).filter(([z])=>z!=='Pan India').map(([zone,months])=>{const lt=Object.keys(months).sort(_sm).slice(-1)[0];const d=months[lt]||{};return{zone,conversion:d.conversion_pct};}).sort((a,b)=>(a.conversion||999)-(b.conversion||999));
+  if(zoneRows.length>0){atRiskZone=zoneRows[0].zone;atRiskConv=zoneRows[0].conversion;}
+  let npiAlert=null,npiPct=null;
+  const npiShare=D.detail_meta?.npi_share||null;
+  if(npiShare&&npiShare>0.08){npiAlert='NPI growing faster than MT portfolio';npiPct=npiShare*100;}
+  const totalPri=D.primary?.nsv_fy26||47.02,totalOff=o.total_fy26||36.06,gap=Math.max(0,totalPri-totalOff),dmrtRelGap=`₹${gap.toFixed(2)}L gap (${((gap/totalPri)*100).toFixed(1)}% of primary)`;
+  return{topChain,topChainMom,atRiskZone,atRiskConv,npiAlert,npiPct,dmrtRelGap};
+}
+function renderKpiSparkline(data,color='#2D9B7F'){
+  if(!data||data.length<2)return'';
+  const validData=data.filter(v=>v!=null&&!Number.isNaN(v));
+  if(validData.length<2)return'';
+  const min=Math.min(...validData),max=Math.max(...validData),range=max-min||1;
+  const points=validData.map((v,i)=>{const x=(i/(validData.length-1))*40;const y=18-((v-min)/range)*16;return`${x},${y}`;}).join(' ');
+  const trend=validData[validData.length-1]>=validData[0]?'#1E8E3E':'#C0392B';
+  return`<svg width="50" height="18" style="display:inline;vertical-align:middle;margin-left:6px;"><polyline points="${points}" fill="none" stroke="${trend}" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
 /* ---------------- OVERVIEW ---------------- */
@@ -923,14 +955,17 @@ function buildOverview(){
   if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
+  const getSparklineHtml=(monthly,label)=>{if(!monthly||monthly.length<2)return'';const last7=monthly.slice(-7);const spark=renderKpiSparkline(last7);return spark;};
+  const primMonthly=fy?p['monthly_'+primYr]||[]:p.monthly||[];
+  const offMonthly=fy?o['monthly_'+offYr]||[]:o.monthly||[];
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Overview aggregates (see Category & Pack)');
   s.innerHTML = `<h2 class="sec">Executive Overview</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
    ${dimNote}
    <div class="kpis">
-     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':(p.nsv_fy25!=null&&!Number.isNaN(p.nsv_fy25))?`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`:'FY25 baseline not in source')
+     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,`<span style="display:flex;align-items:flex-end;gap:8px"><span>${crc(chains.reduce((a,c)=>a+(c[primYr]||0),0))}</span>${getSparklineHtml(primMonthly)}</span>`,fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':(p.nsv_fy25!=null&&!Number.isNaN(p.nsv_fy25))?`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`:'FY25 baseline not in source')
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
-     ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
+     ${offOk? kpi(`Offtake (${yrLab[offYr]})`,`<span style="display:flex;align-items:flex-end;gap:8px"><span>${crc(o['total_'+offYr]||0)}</span>${getSparklineHtml(offMonthly)}</span>`,fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
@@ -941,6 +976,7 @@ function buildOverview(){
    </div>
    ${renderZoneHeatmap(extractZoneHeatmapData())}
    ${renderSummaryBox(extractSummaryBoxData())}
+   ${renderHighlightsCard(extractHighlightsData())}
    <div class="grid g2">
      ${card(`Primary vs Offtake — monthly trend (${fyDispLabel('FY25')} → ${fyDispLabel('FY27')})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('ovTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('ovChannel',true))}
