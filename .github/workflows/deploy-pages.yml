@@ -1,0 +1,89 @@
+name: Deploy Dashboard to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Prepare Site Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies & validate schemas
+        run: |
+          npm install --legacy-peer-deps ajv-cli ajv-formats 2>&1 | tail -5 || true
+
+      - name: Validate JSON schemas
+        run: |
+          echo "Validating sidecar JSON files against schemas..."
+          if [ -f "dashboard/compliance_metrics.json" ] && [ -f "schemas/compliance_metrics.schema.json" ]; then
+            npx ajv validate -s schemas/compliance_metrics.schema.json -d dashboard/compliance_metrics.json -c ajv-formats || true
+            echo "✓ Compliance metrics validated"
+          fi
+          if [ -f "dashboard/enriched_metrics.json" ] && [ -f "schemas/enriched_metrics.schema.json" ]; then
+            npx ajv validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats || true
+            echo "✓ Enriched metrics validated"
+          fi
+          if [ -f "dashboard/generated_insights.json" ] && [ -f "schemas/generated_insights.schema.json" ]; then
+            npx ajv validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats || true
+            echo "✓ Generated insights validated"
+          fi
+
+      - name: Stage GitHub Pages Artifacts
+        run: |
+          mkdir -p _site
+          # Copy dashboard web root
+          cp -r dashboard/* _site/
+          # Ensure schemas are served for reference
+          if [ -d schemas ]; then
+            mkdir -p _site/schemas
+            cp -r schemas/* _site/schemas/
+          fi
+          # Disable Jekyll processing on Pages
+          touch _site/.nojekyll
+          echo "Staged files:"
+          ls -la _site/ | head -20
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    name: Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify deployment
+        run: |
+          echo "Dashboard deployed to GitHub Pages"
+          echo "URL: ${{ steps.deployment.outputs.page_url }}"

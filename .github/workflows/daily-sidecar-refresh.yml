@@ -1,0 +1,95 @@
+name: Daily Modern Trade Sidecar Data Refresh
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      audit_period:
+        description: 'Audit period label (e.g., Q3 FY27)'
+        required: false
+        default: 'Q3 FY27'
+      force_refresh:
+        description: 'Force sidecar re-generation even if unchanged'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: 'daily-data-refresh'
+  cancel-in-progress: true
+
+jobs:
+  refresh-and-commit:
+    name: Generate, Validate & Commit Sidecars
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas openpyxl jsonschema
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Ajv CLI
+        run: npm install -g ajv-cli ajv-formats
+
+      - name: Execute sidecar pipeline
+        run: |
+          PERIOD="${{ github.event.inputs.audit_period || 'Q3 FY27' }}"
+          echo "Running pipeline_generate_sidecars.py for period: ${PERIOD}"
+          python3 pipeline_generate_sidecars.py --period "${PERIOD}"
+
+      - name: Strict JSON schema verification
+        run: |
+          echo "Verifying sidecar files against schemas..."
+          npx ajv validate -s schemas/compliance_metrics.schema.json -d dashboard/compliance_metrics.json -c ajv-formats
+          npx ajv validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats
+          npx ajv validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats
+
+      - name: Check for data changes
+        id: git_diff
+        run: |
+          git status --porcelain dashboard/*.json
+          if [ -n "$(git status --porcelain dashboard/*.json)" ]; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push updated sidecars
+        if: steps.git_diff.outputs.changes_detected == 'true' || github.event.inputs.force_refresh == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add dashboard/compliance_metrics.json
+          git add dashboard/enriched_metrics.json
+          git add dashboard/generated_insights.json
+
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          git commit -m "chore(data): automated daily refresh of sidecar metrics [${TIMESTAMP}]"
+          git push origin main
+
+      - name: Log status
+        if: steps.git_diff.outputs.changes_detected == 'false' && github.event.inputs.force_refresh != 'true'
+        run: echo "✓ All sidecars are up-to-date. No commit needed."

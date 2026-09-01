@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated Insights Schema",
+  "description": "AI-generated insights, risks, and opportunities from MT dashboard analytics",
+  "type": "object",
+  "required": ["insights"],
+  "properties": {
+    "insights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "title", "text", "confidence"],
+        "properties": {
+          "type": { "type": "string", "enum": ["opportunity", "risk", "action", "trend", "anomaly"] },
+          "title": { "type": "string" },
+          "text": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "affected_chains": { "type": "array", "items": { "type": "string" } },
+          "affected_zones": { "type": "array", "items": { "type": "string" } },
+          "impact_value_lakh": { "type": ["number", "null"], "minimum": 0 },
+          "action_owner": { "type": ["string", "null"] },
+          "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+          "source_metric": { "type": ["string", "null"] },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "alert_id": { "type": "string" },
+          "severity": { "type": "string", "enum": ["critical", "warning", "info"] },
+          "message": { "type": "string" },
+          "metric_name": { "type": "string" },
+          "threshold_breached": { "type": ["number", "null"] },
+          "current_value": { "type": ["number", "null"] },
+          "affected_entities": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "generated_at": { "type": "string", "format": "date-time" },
+        "model_name": { "type": "string" },
+        "model_version": { "type": "string" },
+        "period": { "type": "string" },
+        "confidence_min": { "type": "number", "minimum": 0, "maximum": 1 },
+        "total_insights": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "additionalProperties": false
+}
