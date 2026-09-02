@@ -31,6 +31,8 @@ from dist_allocation_governance import (
 )
 from analytics_enhancement_layer import FMCGAnalyticsEnhancer
 from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dynamic_offtake_weights
+from npi_master_loader import load_npi_master
+from npi_lifecycle import enrich_npi_master_with_lifecycle
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -3900,6 +3902,10 @@ def main():
                          "the build when more than 10 percent of Dist. NSV has no matching allocation entry "
                          "and is not in the offtake universe. Set per-environment in CI to enforce "
                          "data quality without breaking local builds that lack source files.")
+    ap.add_argument("--npi-master", type=str, default=None,
+                    help="Path to NPI_Master.csv file (optional). If provided, loads NPI article metadata "
+                         "and enriches with lifecycle information. NPI blocks are added to data.js as additive "
+                         "layer (does not modify existing blocks).")
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -4298,6 +4304,23 @@ def main():
     if diag["n_calibrated_months"]:
         print(f"forecast_diagnostics: MAPE={diag['mape_pct']}% bias={diag['bias_pct']}% "
               f"n={diag['n_calibrated_months']}")
+
+    # ---- NPI Master (optional) ----
+    if a.npi_master:
+        npi_master_path = Path(a.npi_master)
+        if npi_master_path.exists():
+            npi_master = load_npi_master(npi_master_path)
+            if npi_master and npi_master["load_status"] == "ok":
+                # Enrich with lifecycle information
+                npi_master_enriched = enrich_npi_master_with_lifecycle(npi_master)
+                data["npi_master"] = npi_master_enriched
+                n_npi = npi_master_enriched["n_npi_articles"]
+                n_total = npi_master_enriched["n_total_articles"]
+                print(f"npi_master: {n_npi} NPI articles of {n_total} total loaded and enriched with lifecycle")
+            else:
+                print(f"⚠ NPI Master load error: {npi_master['errors']}")
+        else:
+            print(f"⚠ NPI Master file not found: {npi_master_path}")
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
