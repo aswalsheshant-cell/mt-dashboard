@@ -43,13 +43,15 @@ def normalize_chain_name(chain_name: str) -> str:
     chain = re.sub(r'[\xa0​‌‍\s]+', ' ', chain).strip().upper()
 
     # Exact mapping table (all keys uppercase for case-insensitive matching)
+    # Note: Some universe chains have non-breaking spaces (\xa0) — preserve them in return values
     chain_mapping = {
         "D-MART": "D-Mart-Offline",
         "D-MART-STORE-E-COM": "D-Mart-Offline",
         "DC-D-MART-OFFLINE": "D-Mart-Offline",
         "PRAGATI SALES-D-MART": "PRAGATI SALES-D-MART",
         "PRAGATI SALES-APOLLO": "PRAGATI SALES-D-MART",  # Fuzzy: both are PRAGATI SALES
-        "JUST MARK-DMART": "JUST MARK-D-Mart",
+        "JUST MARK-DMART": "JUST\xa0MARK-D-Mart",  # Universe has non-breaking space
+        "JUST MARK-D-MART": "JUST\xa0MARK-D-Mart",  # Universe has non-breaking space
         "H&G": "Health & Glow",
         "HEALTH & GLOW": "Health & Glow",
         "AZ ENTERPRISES": "Az Enterprises-H&G",
@@ -81,8 +83,8 @@ def normalize_chain_name(chain_name: str) -> str:
         "KIRAN TRADING COMPANY-PUNE-MT": "Kiran Trading Company-Solapur-D-Mart",  # Fuzzy: both are Kiran Trading
         "SANCUS NETWORKS PRIVATE LIMITED-RMT": "Sancus Networks-MT-Reg.",
         "SANCUS NETWORKS-MT-REG.": "Sancus Networks-MT-Reg.",
-        "MARK ENTERPRISE": "Mark Enterprise-Apollo",
-        "MARK ENTERPRISE-APOLLO": "Mark Enterprise-Apollo",
+        "MARK ENTERPRISE": "Mark\xa0Enterprise-Apollo",  # Universe has non-breaking space
+        "MARK ENTERPRISE-APOLLO": "Mark\xa0Enterprise-Apollo",  # Universe has non-breaking space
         "AZORTE": "Az Enterprises-MT",
         "SHOPPERS STOP": "Health & Glow",
         "BROADWAY": "Health & Glow",
