@@ -104,6 +104,26 @@ def synthesize_offtake_summary_from_csvs(src_dir):
         return {}, []
 
 # --------------------------------------------------------------------------
+# JSON Serialization Safety: NaN/Infinity Prevention
+# --------------------------------------------------------------------------
+def sanitize_floats_for_json(obj):
+    """
+    Recursively traverse dictionaries/lists, replacing NaN, Infinity, -Infinity with None.
+    None serializes to JSON null, which is standards-compliant and always safe.
+    """
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, dict):
+        return {k: sanitize_floats_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_floats_for_json(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(sanitize_floats_for_json(item) for item in obj)
+    return obj
+
+# --------------------------------------------------------------------------
 # Canonicalisation helpers
 # --------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
@@ -4016,7 +4036,7 @@ def main():
                   + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}"
                   + f"; patch proposals {alloc['patch_rows']} -> {alloc['patch_file']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + json.dumps(sanitize_floats_for_json(obj), indent=1, ensure_ascii=False, allow_nan=False) + ";\n",
             alloc=alloc, report_dir=str(outp.parent),
         )
         return
@@ -4103,7 +4123,7 @@ def main():
               + (f"3-Tier allocation: Tier1={qc.get('tier1_rows', 0)}, Tier2={qc.get('tier2_rows', 0)}, Tier3={qc.get('tier3_rows', 0)}"
                  if qc else "no allocation file found -- chain tags left as-is"))
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + json.dumps(sanitize_floats_for_json(obj), indent=1, ensure_ascii=False, allow_nan=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -4121,7 +4141,7 @@ def main():
         print(f"forecast-only: FY26 actual {forecast['fy26_actual']} / FY27 TY target "
               f"{forecast['fy27_forecast']} (Lakh) = Rs {forecast['fy27_forecast']/100:.2f} Cr")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + json.dumps(sanitize_floats_for_json(obj), indent=1, ensure_ascii=False, allow_nan=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -4258,7 +4278,7 @@ def main():
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + json.dumps(sanitize_floats_for_json(obj), indent=1, ensure_ascii=False, allow_nan=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         print(f"offtake-patch: fy_tags now {patched['fy_tags']}")
@@ -4277,7 +4297,7 @@ def main():
             raise SystemExit(f"No .xlsb store x article offtake extracts found in --src ({src}).")
         obj["dist_gap"] = dg
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, "window.DASH = " + json.dumps(sanitize_floats_for_json(obj), indent=1, ensure_ascii=False, allow_nan=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         print(f"distgap: {dg['row_count']} products, window {dg['window_label']}, "
@@ -4441,7 +4461,11 @@ def main():
             print(f"⚠ NPI Performance block generation failed (non-blocking): {e}")
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
-    payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
+    # 1. Clean all NaN/Infinity from data tree (prevents malformed JSON)
+    cleaned_data = sanitize_floats_for_json(data)
+
+    # 2. Serialize with allow_nan=False as safety gate (raises if any slip through)
+    payload = "window.DASH = " + json.dumps(cleaned_data, indent=1, ensure_ascii=False, allow_nan=False) + ";\n"
     _safe_write_data_js(
         out_path=a.out,
         payload_str=payload,
