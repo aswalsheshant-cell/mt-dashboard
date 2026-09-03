@@ -405,7 +405,7 @@ const cr = v => v==null?'–':(v/100).toLocaleString('en-IN',{maximumFractionDig
 const crc = v => { if(v==null) return '–'; const av=Math.abs(v);
   return av<100 ? '₹'+v.toLocaleString('en-IN',{maximumFractionDigits:1})+' L'
                 : '₹'+(v/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr'; };
-const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
+const pct = v => (v==null||isNaN(v)||!isFinite(v))?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
 const hesc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 // Quantity formatter (separate unit family from money -- never mix Value Cr with Qty
