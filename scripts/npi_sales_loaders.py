@@ -28,6 +28,68 @@ def normalize_article_id(article_name: str) -> str:
     return article_name.strip()
 
 
+def normalize_chain_name(chain_name: str) -> str:
+    """
+    Normalize chain names to match UniverseMT.csv naming conventions.
+    Maps primary chain names to canonical universe chain names.
+    """
+    if pd.isna(chain_name) or not chain_name:
+        return None
+
+    chain = str(chain_name).strip()
+
+    # Mapping table: primary name → universe name
+    chain_mapping = {
+        "D-Mart": "D-Mart-Offline",
+        "D-Mart-Store-E-Com": "D-Mart-Offline",
+        "DC-D-Mart-Offline": "D-Mart-Offline",
+        "PRAGATI SALES-D-MART": "PRAGATI SALES-D-MART",
+        "JUST MARK-Dmart": "JUST MARK-D-Mart",
+        "H&G": "Health & Glow",
+        "Health & Glow": "Health & Glow",
+        "Az Enterprises": "Az Enterprises-H&G",
+        "Apollo/Dmart/H&G/Lulu/Max Hyper/More Retails/Ratnadeep/Spencer": "Apollo Healthco",
+        "Apollo/H&G/Lulu": "Apollo Healthco",
+        "Apollo/Dmart/H&G/Reliance/Spencer": "Apollo Healthco",
+        "Apollo Healthco": "Apollo Healthco",
+        "Apollo Healthco/Dmart": "Apollo Healthco",
+        "CHOUDHARY ENTERPRISES": "CHHABRA TRADERS",
+        "Reliance Retail Limited": "Reliance Retail",
+        "Reliance Retail-DC": "Reliance Retail",
+        "Reliance Retail-Store": "Reliance Retail",
+        "Reliance Retail-(Azorte)": "Reliance Retail",
+        "V-Mart Retail Limited": "V-Mart Retail",
+        "V-Mart Retail": "V-Mart Retail",
+        "Vmart": "V-Mart Retail",
+        "VMM": "V-Mart Retail",
+        "Nykaa E-Retail Limited": "Health & Glow",  # Nykaa not in universe; map to H&G
+        "Guardian Healthcare": "Guardian Healthcare-Delhi",
+        "Guardian Healthcare-Delhi": "Guardian Healthcare-Delhi",
+        "Dmart/Apollo/H&G/Lulu/Max Hyper/Pothys": "Apollo Healthco",
+        "Apollo/Lulu/Max Hyper/More Retails": "Apollo Healthco",
+        "Metro-CNC": "Metro-CNC-RRL",
+        "Metro-CNC-RRL": "Metro-CNC-RRL",
+        "Kiran Trading Company": "Kiran Trading Company-Solapur-D-Mart",
+        "Sancus Networks Private Limited-RMT": "Sancus Networks-MT-Reg.",
+        "MARK ENTERPRISE": "Mark Enterprise-Apollo",
+        "Azorte": "Az Enterprises-MT",
+        "Shoppers Stop": "Health & Glow",  # Shoppers Stop not in universe
+        "Broadway": "Health & Glow",  # Broadway not in universe
+        "VISHAL ENTERPRISES": "VISHAL ENTERPRISES-D-Mart",
+        "Trent Hypermarket": "Trent Hypermarket",
+        "Walmart-CNC": "Walmart-CNC",
+        "R.C. Trade Link": "Sancus Networks-MT-Reg.",
+        "R.C. Trade Link H&G": "Health & Glow",
+        "Eremedium Private Limited": "Sancus Networks-MT-Reg.",
+        "SC BUSINESS COMBINE_MT": "SC BUSINESS COMBINE",
+        "JB Pharma_MT": "Apollo Healthco",
+        "JB Pharma": "Apollo Healthco",
+    }
+
+    # Return mapped name if found, else original
+    return chain_mapping.get(chain, chain)
+
+
 def load_article_primary_sales(primary_df: pd.DataFrame) -> pd.DataFrame:
     """
     Extract article-level primary sales from raw primary data.
@@ -94,6 +156,9 @@ def load_article_primary_sales(primary_df: pd.DataFrame) -> pd.DataFrame:
     df['month_label'] = df['Month'].apply(normalize_month)
     df['fy'] = df['FY'].astype(str).str.strip()
     df['chain'] = df[chain_col].astype(str).str.strip() if chain_col else 'Unknown'
+
+    # Normalize chain names to match universe
+    df['chain'] = df['chain'].apply(normalize_chain_name)
 
     # Convert NSV to Lakh
     df['primary_nsv_lakhs'] = pd.to_numeric(df['Inv. Net value(LOC)'], errors='coerce').fillna(0.0) / 1e5
