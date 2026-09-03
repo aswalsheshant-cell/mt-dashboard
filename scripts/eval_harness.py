@@ -155,10 +155,12 @@ class EvalHarness:
         )
 
     def check_fy_coverage(self, data_js: Dict[str, Any]) -> bool:
-        """Verify FY25/FY26/FY27 months are present."""
-        metadata = data_js.get("metadata", {})
-        coverage = metadata.get("coverage", {})
-        fiscal_years = coverage.get("fiscal_years", [])
+        """Verify FY25/FY26 baseline is present in the primary block."""
+        primary = data_js.get("primary", {})
+        # primary.fy_tags is the canonical source; fall back to scanning nsv_fyXX keys
+        fiscal_years = primary.get("fy_tags", [])
+        if not fiscal_years:
+            fiscal_years = [k[4:] for k in primary if k.startswith("nsv_fy")]
 
         has_fy25 = "fy25" in fiscal_years
         has_fy26 = "fy26" in fiscal_years

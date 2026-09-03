@@ -32,7 +32,8 @@ EXPECTED_CHAIN_COUNT    = 55
 EXPECTED_FY26_TOTAL_L   = 32_900.36   # Lakh — authoritative from pre-aggregated workbook
 FY26_TOLERANCE_PCT      = 0.1         # ± 0.1 %
 
-AUTHORISED_ZONES = frozenset({"Central", "East", "North", "South-1", "South-2", "West"})
+# primary.by_zone uses hyphens; dims.Zone uses spaces — accept both until generator is aligned
+AUTHORISED_ZONES = frozenset({"Central", "East", "North", "South-1", "South-2", "South 1", "South 2", "West"})
 REQUIRED_CHANNELS = frozenset({"MT", "EB2B", "SIS"})
 
 # Names that must NOT appear in production data after the canonical alignment
