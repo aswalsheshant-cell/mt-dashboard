@@ -1,17 +1,17 @@
-"""Unit tests for SkillRegistry."""
+"""Unit tests for SkillRegistry — compatible with unittest discover and pytest."""
+import tempfile
 import textwrap
+import unittest
 from pathlib import Path
-
-import pytest
 
 from skills_loader import SkillRegistry, _parse_yaml_simple, build_system_prompt
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def make_skills_dir(tmp_path: Path, files: dict[str, str]) -> Path:
-    d = tmp_path / "skills"
-    d.mkdir()
+def _write_skills(directory: Path, files: dict) -> Path:
+    d = directory / "skills"
+    d.mkdir(exist_ok=True)
     for name, content in files.items():
         (d / name).write_text(content, encoding="utf-8")
     return d
@@ -38,136 +38,167 @@ NO_NAME_MD = textwrap.dedent("""\
 BAD_MD = "# No frontmatter\nJust body text.\n"
 
 
-# ── loading ───────────────────────────────────────────────────────────────────
+# ── test cases ────────────────────────────────────────────────────────────────
 
-def test_load_single_skill(tmp_path):
-    d = make_skills_dir(tmp_path, {"promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    assert len(reg) == 1
+class TestSkillLoading(unittest.TestCase):
 
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self._tmp.name)
 
-def test_load_multiple_skills(tmp_path):
-    d = make_skills_dir(tmp_path, {
-        "promo-query.md": VALID_MD,
-        "data-validation.md": NO_NAME_MD,
-    })
-    reg = SkillRegistry(d)
-    assert len(reg) == 2
+    def tearDown(self):
+        self._tmp.cleanup()
 
+    def test_load_single_skill(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        self.assertEqual(len(reg), 1)
 
-def test_list_skills_contains_name_and_description(tmp_path):
-    d = make_skills_dir(tmp_path, {"promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    catalog = reg.list_skills()
-    assert "promo-query" in catalog
-    assert "Answers promo inquiries." in catalog
+    def test_load_multiple_skills(self):
+        d = _write_skills(self.base, {
+            "promo-query.md": VALID_MD,
+            "data-validation.md": NO_NAME_MD,
+        })
+        reg = SkillRegistry(d)
+        self.assertEqual(len(reg), 2)
 
+    def test_list_skills_contains_name_and_description(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        catalog = reg.list_skills()
+        self.assertIn("promo-query", catalog)
+        self.assertIn("Answers promo inquiries.", catalog)
 
-def test_get_skill_returns_body(tmp_path):
-    d = make_skills_dir(tmp_path, {"promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    body = reg.get_skill("promo-query")
-    assert body is not None
-    assert "Query the promo table" in body
+    def test_get_skill_returns_body(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        body = reg.get_skill("promo-query")
+        self.assertIsNotNone(body)
+        self.assertIn("Query the promo table", body)
 
-
-def test_get_skill_unknown_returns_none(tmp_path):
-    d = make_skills_dir(tmp_path, {"promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    assert reg.get_skill("nonexistent") is None
-
-
-# ── missing directory ─────────────────────────────────────────────────────────
-
-def test_missing_directory_does_not_crash(tmp_path):
-    reg = SkillRegistry(tmp_path / "no_such_dir")
-    assert len(reg) == 0
-    assert reg.list_skills() == "(no skills loaded)"
+    def test_get_skill_unknown_returns_none(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        self.assertIsNone(reg.get_skill("nonexistent"))
 
 
-def test_missing_directory_list_skills_safe(tmp_path):
-    reg = SkillRegistry(tmp_path / "no_such_dir")
-    result = reg.list_skills()
-    assert isinstance(result, str)
+class TestMissingDirectory(unittest.TestCase):
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_missing_directory_does_not_crash(self):
+        reg = SkillRegistry(self.base / "no_such_dir")
+        self.assertEqual(len(reg), 0)
+
+    def test_missing_directory_list_skills_safe(self):
+        reg = SkillRegistry(self.base / "no_such_dir")
+        self.assertEqual(reg.list_skills(), "(no skills loaded)")
+
+    def test_empty_directory_is_safe(self):
+        d = self.base / "skills"
+        d.mkdir()
+        reg = SkillRegistry(d)
+        self.assertEqual(len(reg), 0)
+        self.assertEqual(reg.list_skills(), "(no skills loaded)")
 
 
-# ── malformed frontmatter ─────────────────────────────────────────────────────
+class TestMalformedFrontmatter(unittest.TestCase):
 
-def test_malformed_frontmatter_skipped(tmp_path):
-    d = make_skills_dir(tmp_path, {"bad.md": BAD_MD, "promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    assert len(reg) == 1  # bad.md skipped; promo-query.md loaded
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self._tmp.name)
 
+    def tearDown(self):
+        self._tmp.cleanup()
 
-def test_missing_name_falls_back_to_stem(tmp_path):
-    d = make_skills_dir(tmp_path, {"my-skill.md": NO_NAME_MD})
-    reg = SkillRegistry(d)
-    assert reg.get_skill("my-skill") is not None
+    def test_malformed_frontmatter_skipped(self):
+        d = _write_skills(self.base, {"bad.md": BAD_MD, "promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        self.assertEqual(len(reg), 1)
 
-
-def test_empty_directory_is_safe(tmp_path):
-    d = tmp_path / "skills"
-    d.mkdir()
-    reg = SkillRegistry(d)
-    assert len(reg) == 0
-    assert reg.list_skills() == "(no skills loaded)"
+    def test_missing_name_falls_back_to_stem(self):
+        d = _write_skills(self.base, {"my-skill.md": NO_NAME_MD})
+        reg = SkillRegistry(d)
+        self.assertIsNotNone(reg.get_skill("my-skill"))
 
 
-# ── yaml parser ───────────────────────────────────────────────────────────────
+class TestYamlParser(unittest.TestCase):
 
-def test_parse_yaml_simple_inline_list():
-    result = _parse_yaml_simple("tags: [promo, data, sql]")
-    assert result["tags"] == ["promo", "data", "sql"]
+    def test_inline_list(self):
+        result = _parse_yaml_simple("tags: [promo, data, sql]")
+        self.assertEqual(result["tags"], ["promo", "data", "sql"])
 
+    def test_quoted_string(self):
+        result = _parse_yaml_simple('description: "My description."')
+        self.assertEqual(result["description"], "My description.")
 
-def test_parse_yaml_simple_quoted_string():
-    result = _parse_yaml_simple('description: "My description."')
-    assert result["description"] == "My description."
+    def test_unquoted_string(self):
+        result = _parse_yaml_simple("name: promo-query")
+        self.assertEqual(result["name"], "promo-query")
 
+    def test_ignores_lines_without_colon(self):
+        result = _parse_yaml_simple("no colon here\nname: test")
+        self.assertEqual(result, {"name": "test"})
 
-def test_parse_yaml_simple_unquoted_string():
-    result = _parse_yaml_simple("name: promo-query")
-    assert result["name"] == "promo-query"
-
-
-def test_parse_yaml_simple_ignores_lines_without_colon():
-    result = _parse_yaml_simple("no colon here\nname: test")
-    assert result == {"name": "test"}
-
-
-def test_parse_yaml_simple_empty_input():
-    result = _parse_yaml_simple("")
-    assert result == {}
+    def test_empty_input(self):
+        result = _parse_yaml_simple("")
+        self.assertEqual(result, {})
 
 
-# ── system prompt builder ─────────────────────────────────────────────────────
+class TestSystemPromptBuilder(unittest.TestCase):
 
-def test_build_system_prompt_includes_catalog(tmp_path):
-    d = make_skills_dir(tmp_path, {"promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    prompt = build_system_prompt("You are a helpful assistant.", reg)
-    assert "Available Skills" in prompt
-    assert "promo-query" in prompt
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_includes_skill_catalog(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        prompt = build_system_prompt("You are a helpful assistant.", reg)
+        self.assertIn("Available Skills", prompt)
+        self.assertIn("promo-query", prompt)
+
+    def test_injects_active_skill_body(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        prompt = build_system_prompt("Base.", reg, active_skill="promo-query")
+        self.assertIn("Active Skill: promo-query", prompt)
+        self.assertIn("Query the promo table", prompt)
+
+    def test_unknown_active_skill_is_safe(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        prompt = build_system_prompt("Base.", reg, active_skill="nonexistent")
+        self.assertIn("Base.", prompt)
+
+    def test_no_active_skill_omits_body_section(self):
+        d = _write_skills(self.base, {"promo-query.md": VALID_MD})
+        reg = SkillRegistry(d)
+        prompt = build_system_prompt("Base.", reg)
+        self.assertNotIn("Active Skill:", prompt)
 
 
-def test_build_system_prompt_injects_active_skill(tmp_path):
-    d = make_skills_dir(tmp_path, {"promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    prompt = build_system_prompt("Base.", reg, active_skill="promo-query")
-    assert "Active Skill: promo-query" in prompt
-    assert "Query the promo table" in prompt
+class TestRealSkillsDirectory(unittest.TestCase):
+
+    def test_real_skills_directory_loads(self):
+        """Smoke-test: the repo's own skills/ dir loads without crashing."""
+        reg = SkillRegistry("skills")
+        self.assertIsInstance(reg.list_skills(), str)
+
+    def test_real_skills_directory_has_expected_skills(self):
+        reg = SkillRegistry("skills")
+        self.assertGreaterEqual(len(reg), 3)
+        for name in ("promo-query", "data-validation", "report-generator"):
+            self.assertIsNotNone(reg.get_skill(name), f"Missing skill: {name}")
 
 
-def test_build_system_prompt_unknown_active_skill_is_safe(tmp_path):
-    d = make_skills_dir(tmp_path, {"promo-query.md": VALID_MD})
-    reg = SkillRegistry(d)
-    prompt = build_system_prompt("Base.", reg, active_skill="nonexistent")
-    assert "Base." in prompt  # does not crash
-
-
-# ── real skills directory ─────────────────────────────────────────────────────
-
-def test_real_skills_directory_loads():
-    """Smoke-test: the repo's own skills/ dir loads without crashing."""
-    reg = SkillRegistry("skills")
-    assert len(reg) >= 0  # empty is fine if dir missing in CI; never raises
+if __name__ == "__main__":
+    unittest.main()

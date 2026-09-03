@@ -27,6 +27,10 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Run Python Unit Tests
+        run: |
+          python3 -m unittest discover -s tests -p "test_*.py" -v
+
       - name: Lint action SHA pins
         run: |
           python3 << 'EOF'
