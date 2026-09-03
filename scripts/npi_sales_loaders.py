@@ -32,62 +32,98 @@ def normalize_chain_name(chain_name: str) -> str:
     """
     Normalize chain names to match UniverseMT.csv naming conventions.
     Maps primary chain names to canonical universe chain names.
+    Handles special characters, whitespace variations, and partial matches.
     """
     if pd.isna(chain_name) or not chain_name:
         return None
 
-    chain = str(chain_name).strip()
+    # Clean whitespace: strip leading/trailing, normalize internal whitespace,
+    # handle non-breaking spaces and other Unicode whitespace
+    chain = str(chain_name)
+    chain = re.sub(r'[\xa0​‌‍\s]+', ' ', chain).strip().upper()
 
-    # Mapping table: primary name → universe name
+    # Exact mapping table (all keys uppercase for case-insensitive matching)
     chain_mapping = {
-        "D-Mart": "D-Mart-Offline",
-        "D-Mart-Store-E-Com": "D-Mart-Offline",
-        "DC-D-Mart-Offline": "D-Mart-Offline",
+        "D-MART": "D-Mart-Offline",
+        "D-MART-STORE-E-COM": "D-Mart-Offline",
+        "DC-D-MART-OFFLINE": "D-Mart-Offline",
         "PRAGATI SALES-D-MART": "PRAGATI SALES-D-MART",
-        "JUST MARK-Dmart": "JUST MARK-D-Mart",
+        "PRAGATI SALES-APOLLO": "PRAGATI SALES-D-MART",  # Fuzzy: both are PRAGATI SALES
+        "JUST MARK-DMART": "JUST MARK-D-Mart",
         "H&G": "Health & Glow",
-        "Health & Glow": "Health & Glow",
-        "Az Enterprises": "Az Enterprises-H&G",
-        "Apollo/Dmart/H&G/Lulu/Max Hyper/More Retails/Ratnadeep/Spencer": "Apollo Healthco",
-        "Apollo/H&G/Lulu": "Apollo Healthco",
-        "Apollo/Dmart/H&G/Reliance/Spencer": "Apollo Healthco",
-        "Apollo Healthco": "Apollo Healthco",
-        "Apollo Healthco/Dmart": "Apollo Healthco",
+        "HEALTH & GLOW": "Health & Glow",
+        "AZ ENTERPRISES": "Az Enterprises-H&G",
+        "AZ ENTERPRISES-H&G": "Az Enterprises-H&G",
+        "AZ ENTERPRISES-MT": "Az Enterprises-MT",
+        "APOLLO/DMART/H&G/LULU/MAX HYPER/MORE RETAILS/RATNADEEP/SPENCER": "Apollo Healthco",
+        "APOLLO/H&G/LULU": "Apollo Healthco",
+        "APOLLO/DMART/H&G/RELIANCE/SPENCER": "Apollo Healthco",
+        "DMART/APOLLO/H&G/LULU/MAX HYPER/POTHYS": "Apollo Healthco",
+        "APOLLO/LULU/MAX HYPER/MORE RETAILS": "Apollo Healthco",
+        "APOLLO HEALTHCO": "Apollo Healthco",
+        "APOLLO HEALTHCO/DMART": "Apollo Healthco",
         "CHOUDHARY ENTERPRISES": "CHHABRA TRADERS",
-        "Reliance Retail Limited": "Reliance Retail",
-        "Reliance Retail-DC": "Reliance Retail",
-        "Reliance Retail-Store": "Reliance Retail",
-        "Reliance Retail-(Azorte)": "Reliance Retail",
-        "V-Mart Retail Limited": "V-Mart Retail",
-        "V-Mart Retail": "V-Mart Retail",
-        "Vmart": "V-Mart Retail",
+        "RELIANCE RETAIL LIMITED": "Reliance Retail",
+        "RELIANCE RETAIL-DC": "Reliance Retail",
+        "RELIANCE RETAIL-STORE": "Reliance Retail",
+        "RELIANCE RETAIL-(AZORTE)": "Reliance Retail",
+        "V-MART RETAIL LIMITED": "V-Mart Retail",
+        "V-MART RETAIL": "V-Mart Retail",
+        "VMART": "V-Mart Retail",
         "VMM": "V-Mart Retail",
-        "Nykaa E-Retail Limited": "Health & Glow",  # Nykaa not in universe; map to H&G
-        "Guardian Healthcare": "Guardian Healthcare-Delhi",
-        "Guardian Healthcare-Delhi": "Guardian Healthcare-Delhi",
-        "Dmart/Apollo/H&G/Lulu/Max Hyper/Pothys": "Apollo Healthco",
-        "Apollo/Lulu/Max Hyper/More Retails": "Apollo Healthco",
-        "Metro-CNC": "Metro-CNC-RRL",
-        "Metro-CNC-RRL": "Metro-CNC-RRL",
-        "Kiran Trading Company": "Kiran Trading Company-Solapur-D-Mart",
-        "Sancus Networks Private Limited-RMT": "Sancus Networks-MT-Reg.",
+        "NYKAA E-RETAIL LIMITED": "Health & Glow",
+        "GUARDIAN HEALTHCARE": "Guardian Healthcare-Delhi",
+        "GUARDIAN HEALTHCARE-DELHI": "Guardian Healthcare-Delhi",
+        "METRO-CNC": "Metro-CNC-RRL",
+        "METRO-CNC-RRL": "Metro-CNC-RRL",
+        "KIRAN TRADING COMPANY": "Kiran Trading Company-Solapur-D-Mart",
+        "KIRAN TRADING COMPANY-SOLAPUR-D-MART": "Kiran Trading Company-Solapur-D-Mart",
+        "KIRAN TRADING COMPANY-PUNE-MT": "Kiran Trading Company-Solapur-D-Mart",  # Fuzzy: both are Kiran Trading
+        "SANCUS NETWORKS PRIVATE LIMITED-RMT": "Sancus Networks-MT-Reg.",
+        "SANCUS NETWORKS-MT-REG.": "Sancus Networks-MT-Reg.",
         "MARK ENTERPRISE": "Mark Enterprise-Apollo",
-        "Azorte": "Az Enterprises-MT",
-        "Shoppers Stop": "Health & Glow",  # Shoppers Stop not in universe
-        "Broadway": "Health & Glow",  # Broadway not in universe
+        "MARK ENTERPRISE-APOLLO": "Mark Enterprise-Apollo",
+        "AZORTE": "Az Enterprises-MT",
+        "SHOPPERS STOP": "Health & Glow",
+        "BROADWAY": "Health & Glow",
         "VISHAL ENTERPRISES": "VISHAL ENTERPRISES-D-Mart",
-        "Trent Hypermarket": "Trent Hypermarket",
-        "Walmart-CNC": "Walmart-CNC",
-        "R.C. Trade Link": "Sancus Networks-MT-Reg.",
-        "R.C. Trade Link H&G": "Health & Glow",
-        "Eremedium Private Limited": "Sancus Networks-MT-Reg.",
+        "VISHAL ENTERPRISES-D-MART": "VISHAL ENTERPRISES-D-Mart",
+        "TRENT HYPERMARKET": "Trent Hypermarket",
+        "WALMART-CNC": "Walmart-CNC",
+        "R.C. TRADE LINK": "Sancus Networks-MT-Reg.",
+        "R.C. TRADE LINK H&G": "Health & Glow",
+        "EREMEDIUM PRIVATE LIMITED": "Sancus Networks-MT-Reg.",
         "SC BUSINESS COMBINE_MT": "SC BUSINESS COMBINE",
-        "JB Pharma_MT": "Apollo Healthco",
-        "JB Pharma": "Apollo Healthco",
+        "SC BUSINESS COMBINE": "SC BUSINESS COMBINE",
+        "JB PHARMA_MT": "Apollo Healthco",
+        "JB PHARMA": "Apollo Healthco",
+        "WELLNESS FOREVER": "Wellness Forever",
+        "BALAJI ASSOCIATES DISTRIBUTOR MT": "Balaji Associates Distributor MT",
+        "CHHABRA TRADERS": "CHHABRA TRADERS",
+        "D.L. SALES - MT": "D.L. Sales - MT",
+        "G.V ENTERPRISES": "G.V Enterprises",
+        "M/S KOTTARAM BUSINESS": "M/S KOTTARAM BUSINESS",
+        "MANOJ SOAP AGENCY-MT": "MANOJ SOAP AGENCY-MT",
+        "REAL TIME LOGISTICS_MT_BR": "REAL TIME LOGISTICS_MT_BR",
+        "RR TRADERS-MT": "RR Traders-MT",
+        "RRL-FOC-SAMPLE": "RRL-FOC-Sample",
+        "SEHAJ ENTERPRISES -MT-JK": "Sehaj Enterprises -MT-JK",
+        "SRI VIJAYA DURGA AGENCIES": "Sri Vijaya Durga Agencies",
+        "TRAVEL NEWS SERVICES-WSMITH": "Travel News Services-Wsmith",
+        "UNITED MARKETING": "United Marketing",
     }
 
-    # Return mapped name if found, else original
-    return chain_mapping.get(chain, chain)
+    # Try exact match first
+    if chain in chain_mapping:
+        return chain_mapping[chain]
+
+    # Try to find mapped value (return correctly-cased result)
+    for key, value in chain_mapping.items():
+        if key == chain:
+            return value
+
+    # If no match found, return None (will be filtered in aggregation)
+    return None
 
 
 def load_article_primary_sales(primary_df: pd.DataFrame) -> pd.DataFrame:
