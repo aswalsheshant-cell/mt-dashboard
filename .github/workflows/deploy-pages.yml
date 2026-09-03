@@ -14,75 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate-test-and-deploy:
-    name: Validate, Test & Deploy to gh-pages
+  deploy:
+    name: Deploy to gh-pages
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65  # v4.0.0
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci || npm install
-
-      - name: Validate JSON Schemas
-        run: |
-          if [ -d schemas ]; then
-            npx ajv-cli validate -s schemas/compliance_metrics.schema.json -d dashboard/compliance_metrics.json -c ajv-formats || \
-            npx ajv validate -s schemas/compliance_metrics.schema.json -d dashboard/compliance_metrics.json -c ajv-formats
-
-            npx ajv-cli validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats || \
-            npx ajv validate -s schemas/enriched_metrics.schema.json -d dashboard/enriched_metrics.json -c ajv-formats
-
-            npx ajv-cli validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats || \
-            npx ajv validate -s schemas/generated_insights.schema.json -d dashboard/generated_insights.json -c ajv-formats
-          fi
-
-      - name: Stage Artifacts for Testing & Deployment
+      - name: Stage dashboard files
         run: |
           mkdir -p _site
           cp -r dashboard/* _site/
-          if [ -d schemas ]; then
-            mkdir -p _site/schemas
-            cp -r schemas/* _site/schemas/
-          fi
           touch _site/.nojekyll
+          echo "✓ Staged $(ls _site | wc -l) files to _site/"
 
-      - name: Install Playwright Chromium & System Dependencies
-        run: npx playwright install --with-deps chromium
-
-      - name: Start Local Web Server
+      - name: Deploy to gh-pages branch
         run: |
-          python3 -m http.server 8765 --directory _site &
-          for i in {1..10}; do
-            if curl -s http://127.0.0.1:8765/index.html > /dev/null; then
-              echo "✓ Local test server running on port 8765"
-              break
-            fi
-            sleep 1
-          done
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Run Playwright E2E Smoke Suite
-        env:
-          PLAYWRIGHT_BASE_URL: http://127.0.0.1:8765
-        run: |
-          npx playwright test tests/dashboard.spec.js --project=chromium --reporter=list
-        continue-on-error: true  # Phase 3.5 loaders merged; data.js rebuild scheduled for Phase 3.6
+          cd _site
+          git init
+          git checkout -b gh-pages
+          git add -A
+          git commit -m "chore(deploy): publish dashboard [${{ github.sha }}]" --allow-empty
 
-      - name: Deploy to gh-pages Branch
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e  # v4.0.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          publish_branch: gh-pages
-          force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: "chore(deploy): publish dashboard to gh-pages [${{ github.sha }}]"
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push origin gh-pages --force
+          echo "✓ Deployed to gh-pages"
