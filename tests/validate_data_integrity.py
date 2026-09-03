@@ -32,8 +32,9 @@ EXPECTED_CHAIN_COUNT    = 55
 EXPECTED_FY26_TOTAL_L   = 32_900.36   # Lakh — authoritative from pre-aggregated workbook
 FY26_TOLERANCE_PCT      = 0.1         # ± 0.1 %
 
-# primary.by_zone uses hyphens; dims.Zone uses spaces — accept both until generator is aligned
-AUTHORISED_ZONES = frozenset({"Central", "East", "North", "South-1", "South-2", "South 1", "South 2", "West"})
+# primary.by_zone uses hyphens; dims.Zone uses spaces — separate constants until generator is aligned
+AUTHORISED_ZONES = frozenset({"Central", "East", "North", "South-1", "South-2", "West"})
+AUTHORISED_DIMS_ZONES = frozenset({"Central", "East", "North", "South 1", "South 2", "West"})
 REQUIRED_CHANNELS = frozenset({"MT", "EB2B", "SIS"})
 
 # Names that must NOT appear in production data after the canonical alignment
@@ -161,7 +162,7 @@ def check_dims_zones(data: dict, failures: list) -> None:
     if not dims_zones:
         print("  –  dims.Zone not present (skip — only in full builds)")
         return
-    extra = dims_zones - AUTHORISED_ZONES
+    extra = dims_zones - AUTHORISED_DIMS_ZONES
     if extra:
         failures.append(f"DIMS ZONE: unexpected zones {extra}")
     else:
