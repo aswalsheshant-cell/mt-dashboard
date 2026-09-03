@@ -29,7 +29,7 @@ jobs:
 
       - name: Run Python Unit Tests
         run: |
-          python3 -m unittest tests.test_skills_loader -v
+          python3 -m unittest tests.unit.test_skills_loader -v
 
       - name: Lint action SHA pins
         run: |
@@ -91,7 +91,6 @@ jobs:
         continue-on-error: true
 
       - name: Validate JSON schemas
-        continue-on-error: true
         run: |
           # Validate compliance_metrics.json against schema
           if command -v ajv &> /dev/null; then
@@ -99,76 +98,74 @@ jobs:
             echo "✓ compliance_metrics.json valid"
           else
             python3 << 'EOF'
-            import json
-            import sys
+          import json
+          import sys
 
-            # Load and validate compliance_metrics.json
-            try:
-              with open('dashboard/compliance_metrics.json', 'r') as f:
-                data = json.load(f)
+          # Load and validate compliance_metrics.json
+          try:
+            with open('dashboard/compliance_metrics.json', 'r') as f:
+              data = json.load(f)
 
-              # Basic validation
-              assert 'compliance' in data, "Missing 'compliance' key"
-              assert 'chain_summary' in data['compliance'], "Missing 'chain_summary'"
-              assert isinstance(data['compliance']['chain_summary'], list), "chain_summary must be array"
-              assert len(data['compliance']['chain_summary']) > 0, "chain_summary is empty"
+            # Basic validation
+            assert 'compliance' in data, "Missing 'compliance' key"
+            assert 'chain_summary' in data['compliance'], "Missing 'chain_summary'"
+            assert isinstance(data['compliance']['chain_summary'], list), "chain_summary must be array"
+            assert len(data['compliance']['chain_summary']) > 0, "chain_summary is empty"
 
-              for chain in data['compliance']['chain_summary']:
-                assert 'chain' in chain, "Missing 'chain' in summary"
-                assert 'status' in chain, "Missing 'status' in chain"
-                assert chain['status'] in ['COMPLIANT', 'WATCH', 'CRITICAL GAP'], f"Invalid status: {chain['status']}"
+            for chain in data['compliance']['chain_summary']:
+              assert 'chain' in chain, "Missing 'chain' in summary"
+              assert 'status' in chain, "Missing 'status' in chain"
+              assert chain['status'] in ['COMPLIANT', 'WATCH', 'CRITICAL GAP'], f"Invalid status: {chain['status']}"
 
-              print("✓ compliance_metrics.json schema valid")
-            except Exception as e:
-              print(f"❌ Schema validation error: {e}")
-              sys.exit(1)
-            EOF
+            print("✓ compliance_metrics.json schema valid")
+          except Exception as e:
+            print(f"❌ Schema validation error: {e}")
+            sys.exit(1)
+          EOF
           fi
 
       - name: Validate enriched_metrics.json
         run: |
           python3 << 'EOF'
-            import json
-            import os
+          import json
+          import os
 
-            filepath = 'dashboard/enriched_metrics.json'
-            if os.path.exists(filepath):
-              try:
-                with open(filepath, 'r') as f:
-                  data = json.load(f)
-                print("✓ enriched_metrics.json is valid JSON")
-              except json.JSONDecodeError as e:
-                print(f"❌ enriched_metrics.json invalid: {e}")
-                exit(1)
-            else:
-              print("⚠ enriched_metrics.json not found (optional)")
+          filepath = 'dashboard/enriched_metrics.json'
+          if os.path.exists(filepath):
+            try:
+              with open(filepath, 'r') as f:
+                data = json.load(f)
+              print("✓ enriched_metrics.json is valid JSON")
+            except json.JSONDecodeError as e:
+              print(f"❌ enriched_metrics.json invalid: {e}")
+              exit(1)
+          else:
+            print("⚠ enriched_metrics.json not found (optional)")
           EOF
-        continue-on-error: true
 
       - name: Validate generated_insights.json
         run: |
           python3 << 'EOF'
-            import json
-            import os
+          import json
+          import os
 
-            filepath = 'insights/generated_insights.json'
-            if os.path.exists(filepath):
-              try:
-                with open(filepath, 'r') as f:
-                  data = json.load(f)
+          filepath = 'insights/generated_insights.json'
+          if os.path.exists(filepath):
+            try:
+              with open(filepath, 'r') as f:
+                data = json.load(f)
 
-                if 'insights' in data:
-                  assert isinstance(data['insights'], list), "insights must be array"
-                  print(f"✓ generated_insights.json valid: {len(data['insights'])} insights")
-                else:
-                  print("⚠ generated_insights.json missing 'insights' key (optional)")
-              except json.JSONDecodeError as e:
-                print(f"❌ generated_insights.json invalid: {e}")
-                exit(1)
-            else:
-              print("⚠ generated_insights.json not found (optional)")
+              if 'insights' in data:
+                assert isinstance(data['insights'], list), "insights must be array"
+                print(f"✓ generated_insights.json valid: {len(data['insights'])} insights")
+              else:
+                print("⚠ generated_insights.json missing 'insights' key (optional)")
+            except json.JSONDecodeError as e:
+              print(f"❌ generated_insights.json invalid: {e}")
+              exit(1)
+          else:
+            print("⚠ generated_insights.json not found (optional)")
           EOF
-        continue-on-error: true
 
       - name: Check for data.js integrity
         run: |
