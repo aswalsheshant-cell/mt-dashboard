@@ -43,7 +43,8 @@ def synthesize_offtake_summary_from_csvs(src_dir):
     """
     Fallback aggregation when offtake_flat.txt is missing.
     Loads article-level raw offtake CSVs via Phase 3.5 loaders,
-    normalizes chain names, and aggregates into chain × month totals.
+    normalizes chain names, and aggregates into chain × month totals,
+    plus zone × state quarterly aggregates.
     Returns: (chains_dict, zones_list) tuple compatible with offtake_block()
     """
     print("  [Fallback] offtake_flat.txt not found. Synthesizing summary from raw CSVs...")
@@ -90,17 +91,76 @@ def synthesize_offtake_summary_from_csvs(src_dir):
             total = chain_data["offtake_units"].sum()
             chains_dict[chain] = {"months": months_dict, "total": total}
 
-        # For now, return empty zones list (zone/state aggregation requires more detail data)
+        # Build zones list: zone × state × quarter aggregation
+        # Convert month_label to quarter for zone/state aggregation
+        qcols = quarter_labels_for(MONTHS)
+
         zones_list = []
+
+        # Group by zone and state if available
+        if "zone" in df_offtake.columns:
+            # Derive state from zone if needed, or use placeholder
+            df_offtake["_zone"] = df_offtake["zone"]
+            df_offtake["_state"] = df_offtake.get("state", df_offtake["_zone"]) if "state" in df_offtake.columns else df_offtake["_zone"]
+
+            # Map month_label to quarter
+            def month_to_quarter(month_label):
+                try:
+                    m = re.match(r"([A-Za-z]{3})-(\d{2})$", str(month_label).strip())
+                    if m:
+                        mon = _MON3_NUM.get(m.group(1).title(), 1)
+                        year = 2000 + int(m.group(2))
+                        # Map month to quarter: Apr-Jun=Q1, Jul-Sep=Q2, Oct-Dec=Q3, Jan-Mar=Q4
+                        if 4 <= mon <= 6:
+                            return f"Q1-{year % 100:02d}"
+                        elif 7 <= mon <= 9:
+                            return f"Q2-{year % 100:02d}"
+                        elif 10 <= mon <= 12:
+                            return f"Q3-{year % 100:02d}"
+                        else:  # 1-3
+                            return f"Q4-{year - 1 % 100:02d}"
+                except:
+                    pass
+                return None
+
+            df_offtake["_quarter"] = df_offtake["month_label"].apply(month_to_quarter)
+            df_offtake = df_offtake[df_offtake["_quarter"].notna()]
+
+            if len(df_offtake) > 0:
+                # Group by zone, state, and quarter
+                zone_state_q = df_offtake.groupby(["_zone", "_state", "_quarter"]).agg({
+                    "offtake_units": "sum"
+                }).reset_index()
+
+                # Build zones_list in format: {zone, state, q: {quarter: value, ...}, total}
+                zone_state_pairs = zone_state_q[["_zone", "_state"]].drop_duplicates()
+
+                for _, row in zone_state_pairs.iterrows():
+                    zone = row["_zone"]
+                    state = row["_state"]
+
+                    # Get quarters for this zone/state
+                    quarters = zone_state_q[(zone_state_q["_zone"] == zone) & (zone_state_q["_state"] == state)]
+                    q_dict = {r["_quarter"]: r["offtake_units"] for _, r in quarters.iterrows()}
+                    total = quarters["offtake_units"].sum()
+
+                    zones_list.append({
+                        "zone": zone,
+                        "state": state,
+                        "q": q_dict,
+                        "total": total
+                    })
 
         total_units = monthly_summary["offtake_units"].sum()
         print(f"  ✓ Synthesized offtake summary: {len(unique_chains)} chains, "
-              f"{len(unique_months)} months, {int(total_units):,} total units.")
+              f"{len(unique_months)} months, {len(zones_list)} zone/state pairs, {int(total_units):,} total units.")
 
         return chains_dict, zones_list
 
     except Exception as e:
         print(f"  ⚠ [Fallback] Error synthesizing offtake summary: {e}")
+        import traceback
+        traceback.print_exc()
         return {}, []
 
 # --------------------------------------------------------------------------

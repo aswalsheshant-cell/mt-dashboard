@@ -5,7 +5,7 @@ window.DASH = {
   "period": "FY 2024-25 vs FY 2025-26",
   "unit_note": "Values in INR Lakh in data; displayed in INR Crore where labelled (Cr = Lakh/100).",
   "source": "Primary, Chain Offtake Master, Universe MT, Promo Master (MT, FY24-26).",
-  "generated_at": "2026-09-03T12:19:45Z",
+  "generated_at": "2026-09-03T13:22:26Z",
   "source_files": [
    "MTEB2BMTDPrimaryAug26._3.xlsx",
    "MTEB2BMTDPrimaryAug26._3_UPDATED.xlsx",
@@ -770,8 +770,43 @@ window.DASH = {
    "Apr-26",
    "May-26"
   ],
-  "by_zone": [],
-  "by_state": []
+  "by_zone": [
+   {
+    "name": "South-2,SOUTH-1,WEST,East",
+    "fy27": 4216.0,
+    "yoy": null
+   },
+   {
+    "name": "South 2",
+    "fy27": 219.0,
+    "yoy": null
+   },
+   {
+    "name": "West",
+    "fy27": 77.0,
+    "yoy": null
+   }
+  ],
+  "by_state": [
+   {
+    "fy27": 4216.0,
+    "yoy": null,
+    "zone": "South-2,SOUTH-1,WEST,East",
+    "state": "South-2,SOUTH-1,WEST,East"
+   },
+   {
+    "fy27": 219.0,
+    "yoy": null,
+    "zone": "South 2",
+    "state": "South-2"
+   },
+   {
+    "fy27": 77.0,
+    "yoy": null,
+    "zone": "West",
+    "state": "West"
+   }
+  ]
  },
  "pnl": {
   "by_chain": [
@@ -724402,14 +724437,14 @@ window.DASH = {
     "cm2_pct": 100.0
    },
    {
-    "name": "Lumineve",
+    "name": "Staze",
     "nsv": 7.69,
     "expense": 0.0,
     "cm2_value": 7.69,
     "cm2_pct": 100.0
    },
    {
-    "name": "Staze",
+    "name": "Lumineve",
     "nsv": 7.69,
     "expense": 0.0,
     "cm2_value": 7.69,
