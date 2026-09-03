@@ -78,7 +78,6 @@ jobs:
           npm install --legacy-peer-deps \
             eslint eslint-config-standard eslint-plugin-import \
             ajv-cli 2>&1 | tail -5
-        continue-on-error: true
 
       - name: Run ESLint on dashboard/index.html
         run: |
@@ -92,7 +91,6 @@ jobs:
             exit 1
           fi
           echo "✓ JavaScript syntax valid"
-        continue-on-error: true
 
       - name: Validate JSON schemas
         run: |
