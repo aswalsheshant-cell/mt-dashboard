@@ -201,7 +201,11 @@ def load_article_offtake_sales(src_dir: Path) -> pd.DataFrame:
             # Count stocking stores (distinct stores with non-zero offtake)
             store_col = next((c for c in df.columns if 'store' in c.lower()), None)
             if store_col:
-                df['stocking_stores'] = df.groupby(['article_id', 'chain', 'month_label'])[store_col].nunique()
+                # Count distinct stores per article/chain/month, then merge back
+                store_counts = df.groupby(['article_id', 'chain', 'month_label'])[store_col].nunique().reset_index(name='stocking_stores')
+                df = df.merge(store_counts, on=['article_id', 'chain', 'month_label'], how='left')
+                # Fill any missing with 0
+                df['stocking_stores'] = df['stocking_stores'].fillna(0).astype(int)
             else:
                 # Fallback: count as 1 if we have any offtake
                 df['stocking_stores'] = (df['offtake_units'] > 0).astype(int)
@@ -335,12 +339,18 @@ def compute_npi_performance_facts(primary_sales: pd.DataFrame,
     )
 
     # Join primary and offtake on article_id/month_label/chain
+    # Note: merge only on ID + date + chain, not article_name (names may differ between sources)
     if len(primary_sales) > 0 and len(offtake_sales) > 0:
         combined = primary_sales.merge(
-            offtake_sales,
-            on=['article_id', 'article_name', 'month_label', 'chain'],
-            how='outer'
+            offtake_sales[['article_id', 'month_label', 'chain', 'offtake_units', 'offtake_nsv_lakhs', 'stocking_stores', 'zone', 'fy']],
+            on=['article_id', 'month_label', 'chain'],
+            how='outer',
+            suffixes=('', '_offtake')
         )
+        # Reconcile FY if both present
+        if 'fy' in combined.columns and 'fy_offtake' in combined.columns:
+            combined['fy'] = combined['fy'].fillna(combined['fy_offtake'])
+            combined = combined.drop('fy_offtake', axis=1)
     elif len(primary_sales) > 0:
         combined = primary_sales.copy()
         combined['offtake_units'] = 0
