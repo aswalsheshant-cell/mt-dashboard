@@ -34,6 +34,7 @@ from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dyna
 from npi_master_loader import load_npi_master
 from npi_lifecycle import enrich_npi_master_with_lifecycle
 from npi_performance import build_npi_performance_block
+from npi_sales_loaders import load_article_primary_sales, load_article_offtake_sales
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -4327,15 +4328,43 @@ def main():
     # ---- NPI Performance (optional, requires npi_master) ----
     if npi_master_enriched:
         try:
+            # Try to load article-level sales data
+            primary_sales = None
+            offtake_sales = None
+
+            # Load primary article sales if detail_meta has article-level data
+            if data.get("detail_meta") and data["detail_meta"].get("fyx_primary"):
+                try:
+                    # Get raw primary data from detail_meta (it should include article detail)
+                    # For now, we'll load from detail_records if available
+                    if len(data.get("detail_records", [])) > 0:
+                        detail_records_df = pd.DataFrame(data["detail_records"])
+                        primary_sales = load_article_primary_sales(detail_records_df)
+                        print(f"  → Loaded {len(primary_sales)} primary sales records by article/month/chain")
+                except Exception as e:
+                    print(f"  ⚠ Could not load article-level primary sales: {e}")
+
+            # Load offtake article sales if files exist
+            try:
+                offtake_sales = load_article_offtake_sales(src)
+                if len(offtake_sales) > 0:
+                    print(f"  → Loaded {len(offtake_sales)} offtake sales records by article/month/chain")
+            except Exception as e:
+                print(f"  ⚠ Could not load article-level offtake sales: {e}")
+
+            # Build npi_performance block with sales data
             perf_block = build_npi_performance_block(
                 npi_master=npi_master_enriched,
                 detail_meta=data.get("detail_meta"),
+                primary_sales=primary_sales,
+                offtake_sales=offtake_sales,
                 universe_df=universe_df,
                 reference_date=None
             )
             data.update(perf_block)
             n_facts = perf_block["npi_performance"].get("n_facts", 0)
-            print(f"npi_performance: {n_facts} performance facts generated (PHASE 3)")
+            load_status = perf_block["npi_performance"].get("load_status", "unknown")
+            print(f"npi_performance: {n_facts} performance facts generated ({load_status})")
         except Exception as e:
             print(f"⚠ NPI Performance block generation failed (non-blocking): {e}")
 

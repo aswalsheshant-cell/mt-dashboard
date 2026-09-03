@@ -262,10 +262,20 @@ class NPIPerformanceCalculator:
 
 def build_npi_performance_block(npi_master: dict,
                                  detail_meta: dict | None = None,
+                                 primary_sales: pd.DataFrame | None = None,
+                                 offtake_sales: pd.DataFrame | None = None,
                                  universe_df: pd.DataFrame | None = None,
                                  reference_date: str | None = None) -> dict:
     """
     Build npi_performance block for data.js.
+
+    Args:
+        npi_master: Enriched NPI master dict
+        detail_meta: Unused (kept for backward compat)
+        primary_sales: Article-level primary sales DataFrame (from load_article_primary_sales)
+        offtake_sales: Article-level offtake sales DataFrame (from load_article_offtake_sales)
+        universe_df: Store universe DataFrame (for distribution % calc)
+        reference_date: Reference date for lifecycle (default: today)
 
     Returns:
         {
@@ -282,13 +292,28 @@ def build_npi_performance_block(npi_master: dict,
             }
         }
     """
+    # Import loaders here to avoid circular dependency
+    from npi_sales_loaders import compute_npi_performance_facts
+
     calc = NPIPerformanceCalculator(npi_master, detail_meta, universe_df, reference_date)
 
-    # Placeholder: in PHASE 3 full implementation, would load article-level sales
-    # from detail_meta.fyx_primary and compute facts for each article/month/chain combo
-    performance_facts = []
+    # Compute performance facts from sales data
+    if primary_sales is not None or offtake_sales is not None:
+        primary_sales = primary_sales if primary_sales is not None else pd.DataFrame()
+        offtake_sales = offtake_sales if offtake_sales is not None else pd.DataFrame()
 
-    # For now, return structure with zero facts (to be populated in next step)
+        performance_facts = compute_npi_performance_facts(
+            primary_sales=primary_sales,
+            offtake_sales=offtake_sales,
+            npi_master=npi_master,
+            universe_df=universe_df,
+            reference_date=reference_date
+        )
+    else:
+        # No sales data provided: return empty structure
+        performance_facts = []
+
+    # Aggregate into pivot structure
     pivot = calc.aggregate_by_article_month_chain(performance_facts)
 
     articles_list = npi_master.get("npi_articles", [])
