@@ -141,10 +141,10 @@ jobs:
               print(f"ERROR: Invalid JSON in data.js: {e}")
               exit(1)
 
-          # Check for required FY coverage
-          metadata = data.get('metadata', {})
-          coverage = metadata.get('coverage', {})
-          fiscal_years = coverage.get('fiscal_years', [])
+          # Check for required FY coverage using actual data.js structure
+          dims = data.get('dims', {})
+          fiscal_years_upper = dims.get('FY', [])
+          fiscal_years = [fy.lower() for fy in fiscal_years_upper]
 
           required_years = ['fy25', 'fy26']
           missing = [fy for fy in required_years if fy not in fiscal_years]
@@ -155,9 +155,10 @@ jobs:
 
           print(f"✓ Fiscal year coverage verified: {fiscal_years}")
 
-          # Verify month counts
-          fy25_months = coverage.get('fy25_months', [])
-          fy26_months = coverage.get('fy26_months', [])
+          # Verify month counts using primary.monthly_fyNN keys
+          primary = data.get('primary', {})
+          fy25_months = primary.get('monthly_fy25', {})
+          fy26_months = primary.get('monthly_fy26', {})
 
           print(f"✓ FY25: {len(fy25_months)} months")
           print(f"✓ FY26: {len(fy26_months)} months")

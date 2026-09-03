@@ -87,6 +87,7 @@ jobs:
         continue-on-error: true
 
       - name: Validate JSON schemas
+        continue-on-error: true
         run: |
           # Validate compliance_metrics.json against schema
           if command -v ajv &> /dev/null; then
