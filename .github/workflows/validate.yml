@@ -252,14 +252,8 @@ jobs:
       - name: Validate 52-state matrix subset
         run: |
           python3 << 'EOF'
-            import subprocess
-            import time
-            import json
-            import os
-
-            # This is a simplified subset check - a full 52-state check would require a browser
-            print("⚠ Full 52-state matrix validation requires Playwright (skipped in CI)")
-            print("   To run full tests locally: npm install -D @playwright/test && npx playwright test")
+          print("⚠ Full 52-state matrix validation requires Playwright (skipped in CI)")
+          print("  To run full tests locally: npm install -D @playwright/test && npx playwright test")
           EOF
 
       - name: Create PR comment with validation results
