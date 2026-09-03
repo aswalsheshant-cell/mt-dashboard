@@ -1,0 +1,11 @@
+article_id,article_name,chain,month_label,primary_nsv_lakhs,offtake_units,stocking_stores
+AQ_FW_50ML,Aqualogica Face Wash 50ml,Reliance,Jun-26,12.5,8500,45
+AQ_FW_50ML,Aqualogica Face Wash 50ml,DMart,Jun-26,8.2,5200,28
+AQ_FW_50ML,Aqualogica Face Wash 50ml,Nykaa,Jun-26,3.4,2100,12
+ME_HS_200ML,Mamaearth Hair Oil 200ml,Reliance,Aug-26,15.8,10200,52
+ME_HS_200ML,Mamaearth Hair Oil 200ml,DMart,Aug-26,11.2,7500,35
+ME_HS_200ML,Mamaearth Hair Oil 200ml,Trent,Aug-26,6.5,4200,18
+TDC_FW_ACNE,The Derma Co Acne Face Wash,Reliance,Jul-26,9.3,6100,35
+TDC_FW_ACNE,The Derma Co Acne Face Wash,Nykaa,Jul-26,4.1,2800,15
+DS_SERUM_VIT,Dr. Sheth's Vitamin C Serum,DMart,May-26,7.8,4500,25
+DS_SERUM_VIT,Dr. Sheth's Vitamin C Serum,Reliance,May-26,10.2,6200,30

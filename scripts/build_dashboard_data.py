@@ -31,6 +31,10 @@ from dist_allocation_governance import (
 )
 from analytics_enhancement_layer import FMCGAnalyticsEnhancer
 from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dynamic_offtake_weights
+from npi_master_loader import load_npi_master
+from npi_lifecycle import enrich_npi_master_with_lifecycle
+from npi_performance import build_npi_performance_block
+from npi_sales_loaders import load_article_primary_sales, load_article_offtake_sales
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -617,7 +621,12 @@ def _num(x):
         return None
 
 def load_offtake(src):
-    t = (src / "offtake_flat.txt").read_text()
+    offtake_file = src / "offtake_flat.txt"
+    if not offtake_file.exists():
+        print(f"⚠️  offtake_flat.txt not found; returning empty offtake data.")
+        return {}, []
+
+    t = offtake_file.read_text()
     n_m = len(MONTHS)
     # ---- chain-wise monthly (Sheet2) ----
     s2 = t[: t.index("Sheet3")]
@@ -3900,6 +3909,10 @@ def main():
                          "the build when more than 10 percent of Dist. NSV has no matching allocation entry "
                          "and is not in the offtake universe. Set per-environment in CI to enforce "
                          "data quality without breaking local builds that lack source files.")
+    ap.add_argument("--npi-master", type=str, default=None,
+                    help="Path to NPI_Master.csv file (optional). If provided, loads NPI article metadata "
+                         "and enriches with lifecycle information. NPI blocks are added to data.js as additive "
+                         "layer (does not modify existing blocks).")
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -4298,6 +4311,67 @@ def main():
     if diag["n_calibrated_months"]:
         print(f"forecast_diagnostics: MAPE={diag['mape_pct']}% bias={diag['bias_pct']}% "
               f"n={diag['n_calibrated_months']}")
+
+    # ---- NPI Master (optional) ----
+    npi_master_enriched = None
+    if a.npi_master:
+        npi_master_path = Path(a.npi_master)
+        if npi_master_path.exists():
+            npi_master = load_npi_master(npi_master_path)
+            if npi_master and npi_master["load_status"] == "ok":
+                # Enrich with lifecycle information
+                npi_master_enriched = enrich_npi_master_with_lifecycle(npi_master)
+                data["npi_master"] = npi_master_enriched
+                n_npi = npi_master_enriched["n_npi_articles"]
+                n_total = npi_master_enriched["n_total_articles"]
+                print(f"npi_master: {n_npi} NPI articles of {n_total} total loaded and enriched with lifecycle")
+            else:
+                print(f"⚠ NPI Master load error: {npi_master['errors']}")
+        else:
+            print(f"⚠ NPI Master file not found: {npi_master_path}")
+
+    # ---- NPI Performance (optional, requires npi_master) ----
+    if npi_master_enriched:
+        try:
+            # Try to load article-level sales data
+            primary_sales = None
+            offtake_sales = None
+
+            # Load primary article sales if detail_meta has article-level data
+            if data.get("detail_meta") and data["detail_meta"].get("fyx_primary"):
+                try:
+                    # Get raw primary data from detail_meta (it should include article detail)
+                    # For now, we'll load from detail_records if available
+                    if len(data.get("detail_records", [])) > 0:
+                        detail_records_df = pd.DataFrame(data["detail_records"])
+                        primary_sales = load_article_primary_sales(detail_records_df)
+                        print(f"  → Loaded {len(primary_sales)} primary sales records by article/month/chain")
+                except Exception as e:
+                    print(f"  ⚠ Could not load article-level primary sales: {e}")
+
+            # Load offtake article sales if files exist
+            try:
+                offtake_sales = load_article_offtake_sales(src)
+                if len(offtake_sales) > 0:
+                    print(f"  → Loaded {len(offtake_sales)} offtake sales records by article/month/chain")
+            except Exception as e:
+                print(f"  ⚠ Could not load article-level offtake sales: {e}")
+
+            # Build npi_performance block with sales data
+            perf_block = build_npi_performance_block(
+                npi_master=npi_master_enriched,
+                detail_meta=data.get("detail_meta"),
+                primary_sales=primary_sales,
+                offtake_sales=offtake_sales,
+                universe_df=universe_df,
+                reference_date=None
+            )
+            data.update(perf_block)
+            n_facts = perf_block["npi_performance"].get("n_facts", 0)
+            load_status = perf_block["npi_performance"].get("load_status", "unknown")
+            print(f"npi_performance: {n_facts} performance facts generated ({load_status})")
+        except Exception as e:
+            print(f"⚠ NPI Performance block generation failed (non-blocking): {e}")
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"

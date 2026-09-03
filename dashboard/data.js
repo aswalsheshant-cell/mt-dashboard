@@ -826294,90 +826294,21 @@ window.DASH = {
    2903.0
   ],
   "fc_labels": [
-   "Apr-26",
-   "May-26",
-   "Jun-26",
-   "Jul-26",
-   "Aug-26",
    "Sep-26",
    "Oct-26",
-   "Nov-26",
-   "Dec-26",
-   "Jan-27",
-   "Feb-27",
-   "Mar-27"
+   "Nov-26"
   ],
   "fc": [
-   5072.4,
-   3800.52,
-   3627.85,
-   4427.4,
-   3560.4,
-   4008.0,
-   3003.78,
-   3694.92,
-   3096.51,
-   3597.33,
-   2836.75,
-   3407.0
+   30760.0,
+   34486.0,
+   35417.0
   ],
-  "base_fy_tag": "fy26",
-  "target_fy_tag": "fy27",
-  "fy26_actual": 22703.0,
-  "fy27_forecast": 44132.86,
-  "growth_assumption_pct": 94.4,
-  "method": "FY27 = business TY (This Year) target from FY2627_Targets.csv (12 months Apr-26 → Mar-27). Total target = ₹441.33 Cr. Source: PowerBI/SeedData/Targets/FY2627_Targets.csv",
-  "by_zone": [
-   {
-    "name": "Central",
-    "fy26": 919.0,
-    "fy27": 1786.46,
-    "yoy": 94.4,
-    "share": 4.0,
-    "note": "FY27 forecast = total forecast distributed by FY26 zone share"
-   },
-   {
-    "name": "East",
-    "fy26": 2666.0,
-    "fy27": 5182.5,
-    "yoy": 94.4,
-    "share": 11.7,
-    "note": "FY27 forecast = total forecast distributed by FY26 zone share"
-   },
-   {
-    "name": "North",
-    "fy26": 4553.0,
-    "fy27": 8850.68,
-    "yoy": 94.4,
-    "share": 20.1,
-    "note": "FY27 forecast = total forecast distributed by FY26 zone share"
-   },
-   {
-    "name": "South 1",
-    "fy26": 5171.0,
-    "fy27": 10052.02,
-    "yoy": 94.4,
-    "share": 22.8,
-    "note": "FY27 forecast = total forecast distributed by FY26 zone share"
-   },
-   {
-    "name": "South 2",
-    "fy26": 3104.0,
-    "fy27": 6033.93,
-    "yoy": 94.4,
-    "share": 13.7,
-    "note": "FY27 forecast = total forecast distributed by FY26 zone share"
-   },
-   {
-    "name": "West",
-    "fy26": 6290.0,
-    "fy27": 12227.27,
-    "yoy": 94.4,
-    "share": 27.7,
-    "note": "FY27 forecast = total forecast distributed by FY26 zone share"
-   }
-  ],
-  "by_zone_method": "FY27 forecast total distributed proportionally by each zone's share of FY26 offtake actuals."
+  "base_fy_tag": "FY26",
+  "target_fy_tag": "FY27",
+  "fy26_actual": 32900.0,
+  "fy27_forecast": 100663.0,
+  "growth_assumption_pct": 205.97,
+  "method": "FY27 Q2 (Sep-Nov) consensus forecast from build_mapping_forecast.py + generate_facewash_forecast.py + generate_shampoo_forecast.py. Sep ₹1006.63 Cr baseline + PSR uplift projections."
  },
  "universe": {
   "total_stores": 426,
