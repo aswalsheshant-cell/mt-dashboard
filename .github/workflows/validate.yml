@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155c6c4a85cb  # v4.0.0
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65  # v4.0.0
         with:
           node-version: '22'
 
@@ -26,6 +26,39 @@ jobs:
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
         with:
           python-version: '3.9'
+
+      - name: Lint action SHA pins
+        run: |
+          python3 << 'EOF'
+          import glob, re, sys
+
+          ACTION_PATTERN = re.compile(
+              r'^\s*(?:-\s+)?uses:\s+([A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+(?:/[^@\s]+)?)\s*@\s*([^\s#]+)'
+          )
+          VALID_SHA_PATTERN = re.compile(r'^[a-f0-9]{40}$')
+
+          errors = []
+          workflow_files = glob.glob('.github/workflows/*.yml') + glob.glob('.github/workflows/*.yaml')
+
+          for file_path in sorted(workflow_files):
+              with open(file_path, 'r', encoding='utf-8') as f:
+                  for line_idx, line in enumerate(f, start=1):
+                      match = ACTION_PATTERN.search(line)
+                      if match:
+                          action_name, ref = match.group(1), match.group(2)
+                          if action_name.startswith('.'):
+                              continue
+                          if not VALID_SHA_PATTERN.fullmatch(ref):
+                              errors.append(
+                                  f"{file_path}:{line_idx}: '{action_name}' must pin exact 40-char SHA. "
+                                  f"Found: '{ref}' (len={len(ref)})"
+                              )
+
+          if errors:
+              print("❌ CI SHA Lint Failed:\n" + "\n".join(errors))
+              sys.exit(1)
+          print(f"✅ Verified {len(workflow_files)} workflow files — all actions use valid 40-char SHAs.")
+          EOF
 
       - name: Validate Python syntax
         run: |
@@ -230,7 +263,7 @@ jobs:
 
       - name: Create PR comment with validation results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcda3a78a9dab  # v7.0.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
         with:
           script: |
             const fs = require('fs');

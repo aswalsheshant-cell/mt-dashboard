@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
       - name: Setup Python environment
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload Test Report Artifacts (On Failure)
         if: failure()
-        uses: actions/upload-artifact@5d5d22a31266ced592b4d2e6a78a02a72126d14b  # v4.3.1
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3  # v4.3.1
         with:
           name: pbi-validation-failure-logs
           path: |
