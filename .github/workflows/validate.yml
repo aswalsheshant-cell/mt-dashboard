@@ -15,15 +15,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffbf834c0dab474d5c4aaae9a77c503bda4c0f  # v4.1.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155c6c4a85cb  # v4.0.0
         with:
           node-version: '22'
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0110993efc25b59c4ee7  # v5.1.0
         with:
           python-version: '3.9'
 
@@ -230,7 +230,7 @@ jobs:
 
       - name: Create PR comment with validation results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcda3a78a9dab  # v7.0.1
         with:
           script: |
             const fs = require('fs');

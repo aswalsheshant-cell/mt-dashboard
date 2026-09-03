@@ -84,12 +84,12 @@ def inspect_data_payload(data, valid_chains: set) -> tuple:
     total_offtake_units = 0.0
     unmapped_chains_found = set()
 
-    def walk(node):
+    def walk(node, parent_key=None):
         nonlocal total_offtake_units
         if isinstance(node, dict):
-            # 1. Offtake units check
+            # 1. Offtake units check: look for offtake_units, sales_qty, units, or total (in by_chain)
             for k, v in node.items():
-                if k in ("offtake_units", "sales_qty", "units"):
+                if k in ("offtake_units", "sales_qty", "units") or (k == "total" and parent_key == "by_chain"):
                     if isinstance(v, (int, float)):
                         if not math.isnan(v):
                             total_offtake_units += v
@@ -110,12 +110,12 @@ def inspect_data_payload(data, valid_chains: set) -> tuple:
                             unmapped_chains_found.add(norm_v)
 
             # Continue walking children
-            for child in node.values():
-                walk(child)
+            for k, child in node.items():
+                walk(child, parent_key=k)
 
         elif isinstance(node, list):
             for item in node:
-                walk(item)
+                walk(item, parent_key=parent_key)
 
     walk(data)
 

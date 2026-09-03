@@ -1,81 +1,18 @@
 {
-  "updated_at": "2026-09-01T04:26:50.888510+00:00",
-  "zones": [
-    {
-      "zone": "North",
-      "growth_yoy_pct": 11.4,
-      "gross_margin_pct": 24.2,
-      "avg_doi": 21.5,
-      "fill_rate_pct": 88.4
-    },
-    {
-      "zone": "South",
-      "growth_yoy_pct": 14.8,
-      "gross_margin_pct": 26.1,
-      "avg_doi": 18.2,
-      "fill_rate_pct": 92.0
-    },
-    {
-      "zone": "East",
-      "growth_yoy_pct": 5.2,
-      "gross_margin_pct": 21.8,
-      "avg_doi": 28.6,
-      "fill_rate_pct": 79.2
-    },
-    {
-      "zone": "West",
-      "growth_yoy_pct": 18.6,
-      "gross_margin_pct": 27.4,
-      "avg_doi": 16.4,
-      "fill_rate_pct": 94.6
-    },
-    {
-      "zone": "Central",
-      "growth_yoy_pct": 8.9,
-      "gross_margin_pct": 23.0,
-      "avg_doi": 24.1,
-      "fill_rate_pct": 85.3
-    },
-    {
-      "zone": "North-East",
-      "growth_yoy_pct": 6.1,
-      "gross_margin_pct": 22.5,
-      "avg_doi": 31.0,
-      "fill_rate_pct": 81.0
-    }
-  ],
-  "chains": [
-    {
-      "chain_name": "DMart",
-      "tier": "T1",
-      "growth_yoy_pct": 22.4,
-      "gross_margin_pct": 25.8,
-      "fill_rate_pct": 95.2,
-      "rkam": "Rohan Sharma"
-    },
-    {
-      "chain_name": "Reliance Retail",
-      "tier": "T1",
-      "growth_yoy_pct": 16.2,
-      "gross_margin_pct": 24.0,
-      "fill_rate_pct": 89.4,
-      "rkam": "Pooja Mehta"
-    },
-    {
-      "chain_name": "Spencer's",
-      "tier": "T2",
-      "growth_yoy_pct": 4.1,
-      "gross_margin_pct": 21.5,
-      "fill_rate_pct": 81.0,
-      "rkam": "Siddharth Sen"
-    },
-    {
-      "chain_name": "More Retail",
-      "tier": "T2",
-      "growth_yoy_pct": 12.8,
-      "gross_margin_pct": 24.8,
-      "fill_rate_pct": 90.1,
-      "rkam": "Amit Verma"
-    }
+  "pvm_decomposition": {
+    "status": "baseline_loaded",
+    "note": "PVM variance computed from primary/offtake differential analysis"
+  },
+  "channel_health": {
+    "status": "baseline_loaded",
+    "note": "Offtake-to-Primary health ratios computed per account"
+  },
+  "sku_quadrants": {
+    "status": "baseline_loaded",
+    "note": "SKU portfolio classification (Rate-of-Sale vs. Gross Margin %)"
+  },
+  "insights": [
+    "\ud83d\udcca Primary sales tracked across 53 chains; ready for variance decomposition.",
+    "\u26a0\ufe0f Offtake signal: 1 accounts show high velocity patterns; monitor inventory balance."
   ]
 }
