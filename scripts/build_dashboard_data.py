@@ -33,6 +33,7 @@ from analytics_enhancement_layer import FMCGAnalyticsEnhancer
 from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dynamic_offtake_weights
 from npi_master_loader import load_npi_master
 from npi_lifecycle import enrich_npi_master_with_lifecycle
+from npi_performance import build_npi_performance_block
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -4306,6 +4307,7 @@ def main():
               f"n={diag['n_calibrated_months']}")
 
     # ---- NPI Master (optional) ----
+    npi_master_enriched = None
     if a.npi_master:
         npi_master_path = Path(a.npi_master)
         if npi_master_path.exists():
@@ -4321,6 +4323,21 @@ def main():
                 print(f"⚠ NPI Master load error: {npi_master['errors']}")
         else:
             print(f"⚠ NPI Master file not found: {npi_master_path}")
+
+    # ---- NPI Performance (optional, requires npi_master) ----
+    if npi_master_enriched:
+        try:
+            perf_block = build_npi_performance_block(
+                npi_master=npi_master_enriched,
+                detail_meta=data.get("detail_meta"),
+                universe_df=universe_df,
+                reference_date=None
+            )
+            data.update(perf_block)
+            n_facts = perf_block["npi_performance"].get("n_facts", 0)
+            print(f"npi_performance: {n_facts} performance facts generated (PHASE 3)")
+        except Exception as e:
+            print(f"⚠ NPI Performance block generation failed (non-blocking): {e}")
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
