@@ -3678,12 +3678,19 @@ def detail_records_representative(primary):
                         "EAN":ean(art),"NSV":nsv,"MRP":mrp,"Qty":qty})
     return recs
 
-def detail_dims(recs):
+def detail_dims(recs, primary_block=None):
     keys = ["FY","Month","Channel","Zone","State","Chain","Brand","Category","SubCategory","Range","PackSize","Article"]
     out = {}
     for k in keys:
         vals = {r[k] for r in recs if r.get(k) is not None}
         out[k] = [m for m in _ORDER if m in vals] if k == "Month" else sorted(vals, key=lambda x: str(x))
+    # Ensure all FYs from primary block are in dims, even if not in detail_records
+    if primary_block and "fy_tags" in primary_block and "FY" in out:
+        primary_fys = {"FY" + t.replace("fy", "").upper() for t in primary_block.get("fy_tags", [])}
+        detail_fys = set(out["FY"])
+        missing_fys = primary_fys - detail_fys
+        if missing_fys:
+            out["FY"] = sorted(list(detail_fys | missing_fys))
     return out
 
 
@@ -3696,7 +3703,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     result = detail_records_real(src, max_rows)
     if result is None:
         detail = detail_records_representative(primary_for_fallback)
-        return detail, detail_dims(detail), {
+        return detail, detail_dims(detail, primary_for_fallback), {
             "representative": True,
             "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
                         "SubCategory","Range","PackSize","Article","NSV","MRP","Qty"],
@@ -3734,7 +3741,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
                           "Primary SIS FY26. Rs 236 L and Rs 275.44 L (gross) are "
                           "NOT correct.",
     }
-    return detail, detail_dims(detail), meta, tot, cm2, alloc
+    return detail, detail_dims(detail, primary_for_fallback), meta, tot, cm2, alloc
 
 
 def _check_governance_gate(alloc, gate_pct: float = 0.0) -> None:
