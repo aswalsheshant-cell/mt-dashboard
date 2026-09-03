@@ -32,6 +32,157 @@ from dist_allocation_governance import (
 from analytics_enhancement_layer import FMCGAnalyticsEnhancer
 from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dynamic_offtake_weights
 from json_boundary import parse_window_dash_strict, serialize_window_dash
+from npi_master_loader import load_npi_master
+from npi_lifecycle import enrich_npi_master_with_lifecycle
+from npi_performance import build_npi_performance_block
+from npi_sales_loaders import load_article_primary_sales, load_article_offtake_sales, normalize_chain_name
+
+# --------------------------------------------------------------------------
+# FALLBACK: Synthesize offtake summary from raw CSVs when flat file missing
+# --------------------------------------------------------------------------
+def synthesize_offtake_summary_from_csvs(src_dir):
+    """
+    Fallback aggregation when offtake_flat.txt is missing.
+    Loads article-level raw offtake CSVs via Phase 3.5 loaders,
+    normalizes chain names, and aggregates into chain × month totals,
+    plus zone × state quarterly aggregates.
+    Returns: (chains_dict, zones_list) tuple compatible with offtake_block()
+    """
+    print("  [Fallback] offtake_flat.txt not found. Synthesizing summary from raw CSVs...")
+
+    try:
+        # Load article-level offtake facts using Phase 3.5 fixed loader
+        # CSV files are in src_dir/Offtake_Monthly/
+        offtake_dir = Path(src_dir) / "Offtake_Monthly"
+        if not offtake_dir.exists():
+            offtake_dir = Path(src_dir)  # Fallback to src_dir if subdirectory doesn't exist
+
+        df_offtake = load_article_offtake_sales(offtake_dir)
+
+        if df_offtake is None or len(df_offtake) == 0:
+            print("  ⚠ [Fallback] No offtake CSV records found. Returning empty summary.")
+            return {}, []
+
+        # Normalize chain names using Phase 3.5 normalization
+        if "chain" in df_offtake.columns:
+            df_offtake["chain"] = df_offtake["chain"].apply(normalize_chain_name)
+
+        # Filter out unmapped chains (None values)
+        df_offtake = df_offtake[df_offtake["chain"].notna()]
+
+        if len(df_offtake) == 0:
+            print("  ⚠ [Fallback] All chains unmapped or null. Returning empty summary.")
+            return {}, []
+
+        # Aggregate by chain and month
+        # Expected columns: chain, month_label, offtake_units
+        monthly_summary = df_offtake.groupby(["chain", "month_label"]).agg({
+            "offtake_units": "sum"
+        }).reset_index()
+
+        unique_chains = sorted(monthly_summary["chain"].unique())
+        unique_months = sorted(monthly_summary["month_label"].unique())
+
+        # Build chains dict: {chain_name: {months: {month: value}, total: sum}}
+        chains_dict = {}
+        for chain in unique_chains:
+            chain_data = monthly_summary[monthly_summary["chain"] == chain]
+            months_dict = {row["month_label"]: row["offtake_units"]
+                          for _, row in chain_data.iterrows()}
+            total = chain_data["offtake_units"].sum()
+            chains_dict[chain] = {"months": months_dict, "total": total}
+
+        # Build zones list: zone × state × quarter aggregation
+        # Convert month_label to quarter for zone/state aggregation
+        qcols = quarter_labels_for(MONTHS)
+
+        zones_list = []
+
+        # Group by zone and state if available
+        if "zone" in df_offtake.columns:
+            # Derive state from zone if needed, or use placeholder
+            df_offtake["_zone"] = df_offtake["zone"]
+            df_offtake["_state"] = df_offtake.get("state", df_offtake["_zone"]) if "state" in df_offtake.columns else df_offtake["_zone"]
+
+            # Map month_label to quarter
+            def month_to_quarter(month_label):
+                try:
+                    m = re.match(r"([A-Za-z]{3})-(\d{2})$", str(month_label).strip())
+                    if m:
+                        mon = _MON3_NUM.get(m.group(1).title(), 1)
+                        year = 2000 + int(m.group(2))
+                        # Map month to quarter: Apr-Jun=Q1, Jul-Sep=Q2, Oct-Dec=Q3, Jan-Mar=Q4
+                        if 4 <= mon <= 6:
+                            return f"Q1-{year % 100:02d}"
+                        elif 7 <= mon <= 9:
+                            return f"Q2-{year % 100:02d}"
+                        elif 10 <= mon <= 12:
+                            return f"Q3-{year % 100:02d}"
+                        else:  # 1-3
+                            return f"Q4-{year - 1 % 100:02d}"
+                except:
+                    pass
+                return None
+
+            df_offtake["_quarter"] = df_offtake["month_label"].apply(month_to_quarter)
+            df_offtake = df_offtake[df_offtake["_quarter"].notna()]
+
+            if len(df_offtake) > 0:
+                # Group by zone, state, and quarter
+                zone_state_q = df_offtake.groupby(["_zone", "_state", "_quarter"]).agg({
+                    "offtake_units": "sum"
+                }).reset_index()
+
+                # Build zones_list in format: {zone, state, q: {quarter: value, ...}, total}
+                zone_state_pairs = zone_state_q[["_zone", "_state"]].drop_duplicates()
+
+                for _, row in zone_state_pairs.iterrows():
+                    zone = row["_zone"]
+                    state = row["_state"]
+
+                    # Get quarters for this zone/state
+                    quarters = zone_state_q[(zone_state_q["_zone"] == zone) & (zone_state_q["_state"] == state)]
+                    q_dict = {r["_quarter"]: r["offtake_units"] for _, r in quarters.iterrows()}
+                    total = quarters["offtake_units"].sum()
+
+                    zones_list.append({
+                        "zone": zone,
+                        "state": state,
+                        "q": q_dict,
+                        "total": total
+                    })
+
+        total_units = monthly_summary["offtake_units"].sum()
+        print(f"  ✓ Synthesized offtake summary: {len(unique_chains)} chains, "
+              f"{len(unique_months)} months, {len(zones_list)} zone/state pairs, {int(total_units):,} total units.")
+
+        return chains_dict, zones_list
+
+    except Exception as e:
+        print(f"  ⚠ [Fallback] Error synthesizing offtake summary: {e}")
+        import traceback
+        traceback.print_exc()
+        return {}, []
+
+# --------------------------------------------------------------------------
+# JSON Serialization Safety: NaN/Infinity Prevention
+# --------------------------------------------------------------------------
+def sanitize_floats_for_json(obj):
+    """
+    Recursively traverse dictionaries/lists, replacing NaN, Infinity, -Infinity with None.
+    None serializes to JSON null, which is standards-compliant and always safe.
+    """
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, dict):
+        return {k: sanitize_floats_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_floats_for_json(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(sanitize_floats_for_json(item) for item in obj)
+    return obj
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -46,6 +197,16 @@ from json_boundary import parse_window_dash_strict, serialize_window_dash
 # ---------------------------------------------------------------------------
 _MON3_NUM = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,
              "Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+
+# Load canonical alias vector from JSON (single source of truth)
+_CANONICAL_VECTOR_PATH = Path(__file__).parent.parent / "data_mappings" / "canonical_alias_vector.json"
+_CANONICAL_ALIASES_JSON = {}
+if _CANONICAL_VECTOR_PATH.exists():
+    try:
+        with open(_CANONICAL_VECTOR_PATH, 'r', encoding='utf-8') as f:
+            _CANONICAL_ALIASES_JSON = json.load(f).get('chains', {})
+    except Exception as e:
+        print(f"Warning: Could not load canonical_alias_vector.json: {e}")
 
 def fy_tag_from_ym(year, month):
     """Calendar (year, month) -> 'FY27' style tag. Apr-2026 -> FY27; Mar-2026 -> FY26."""
@@ -202,61 +363,69 @@ def canon_state(s):
 
 # Canonical chain key: collapse the many spellings across the four files onto a
 # single business-facing chain name so primary / offtake / universe / promo join.
-CHAIN_ALIASES = [
-    ("Apollo",            ["apollo", "apollo healthco"]),
-    ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
-                            "reliance", "reliance ", "rrl"]),
-    ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
-    ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
-    ("Wellness Forever",  ["wellness forever"]),
-    ("Health & Glow",               ["h&g", "hng", "h\\&g"]),
-    ("Lulu",              ["lulu", "lulu "]),
-    ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
-    ("More Retail",       ["more", "more retail", "more "]),
-    ("Sancus (RMT)",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
-    ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
-    ("Spencer",           ["spencer", "spencers", "spencer's"]),
-    ("Guardian",          ["guardian", "gaurdian "]),
-    ("Trent",             ["trent", "trent "]),
-    ("V-Mart",            ["v-mart", "v mart east "]),
-    ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
-    ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl", "sastasundar"]),
-    ("Frankross",         ["frankross", "frankros", "frank ross"]),
-    ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
-    ("WH-Smith",          ["wh-smith"]),
-    ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
-    ("Apna Mart",         ["apna mart", "apna mart "]),
-    ("Sumo Save",         ["sumo save", "sumosave"]),
-    ("Deal Share",        ["deal share", "deal share "]),
-    ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
-    ("Lifestyle",         ["lifestyle", "lifestyle "]),
-    ("Trent/Westside",    ["trends"]),
-    ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
-    ("DMart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
-                            "just mark-d-mart"]),
-    ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
-    ("Nykaa (FSN)",       ["nykaa e-retail limited"]),
-    ("Metro C&C",         ["metro-cnc"]),
-    ("Walmart",           ["walmart-cnc"]),
-    ("Health & Glow",               ["health & glow", "r.c. trade link h&g", "r.c. trade link"]),
-    ("Guardian",          ["guardian healthcare", "guardian healthcare-delhi", "gaurdian"]),
-    ("Trent",             ["trent hypermarket"]),
-    ("V-Mart",            ["v-mart retail limited", "v-mart retail", "v mart east"]),
-    ("WH-Smith",          ["travel news services-wsmith"]),
-    ("Relay",             ["travel retail services-relay"]),
-    ("Apollo",            ["united marketing", "mark enterprise-apollo",
-                            "pragati sales-apollo"]),
-    ("Eremedium",         ["eremedium private limited"]),
-    ("Ratnadeep",         ["ratanadeep"]),
-    ("Sancus (RMT)",        ["sancus", "sancus networks-mt-reg."]),
-    ("Arambagh",          ["aarambagh food mart"]),
-    ("VMM",  ["vishal enterprises", "vmm", "vmm "]),
-    ("Lifestyle",         ["lifestyle babyshop"]),
-    ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
-                            "vishal enterprises-d-mart"]),
-    ("Shoppers Stop",     ["shoppers stop"]),
-    ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
-]
+# Build CHAIN_ALIASES from canonical vector JSON (if available) or use fallback
+if _CANONICAL_ALIASES_JSON:
+    CHAIN_ALIASES = [
+        (canonical_name, aliases)
+        for canonical_name, aliases in _CANONICAL_ALIASES_JSON.items()
+    ]
+else:
+    # Fallback: legacy hardcoded aliases (used if JSON not available)
+    CHAIN_ALIASES = [
+        ("Apollo",            ["apollo", "apollo healthco"]),
+        ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
+                                "reliance", "reliance ", "rrl"]),
+        ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
+        ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
+        ("Wellness Forever",  ["wellness forever"]),
+        ("Health & Glow",               ["h&g", "hng", "h\\&g"]),
+        ("Lulu",              ["lulu", "lulu "]),
+        ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
+        ("More Retail",       ["more", "more retail", "more "]),
+        ("Sancus (RMT)",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
+        ("Walmart",           ["walmart cnc", "walmart", "walmart ", "wal-mart"]),
+        ("Spencer",           ["spencer", "spencers", "spencer's"]),
+        ("Guardian",          ["guardian", "gaurdian "]),
+        ("Trent",             ["trent", "trent "]),
+        ("V-Mart",            ["v-mart", "v mart east "]),
+        ("Ratnadeep",         ["ratnadeep", "ratandeep"]),
+        ("Sasta Sundar",      ["sasta sundar", "sasta sunder", "ssl", "sastasundar"]),
+        ("Frankross",         ["frankross", "frankros", "frank ross"]),
+        ("Arambagh",          ["arambagh", "aarambagh food mart ", "arambagh food mart"]),
+        ("WH-Smith",          ["wh-smith"]),
+        ("B&N",               ["b&n", "beauty & nutire", "beauty & nutrie", "b\\&n"]),
+        ("Apna Mart",         ["apna mart", "apna mart "]),
+        ("Sumo Save",         ["sumo save", "sumosave"]),
+        ("Deal Share",        ["deal share", "deal share "]),
+        ("Sohum Shoppe",      ["sohum shoppe", "sohum"]),
+        ("Lifestyle",         ["lifestyle", "lifestyle "]),
+        ("Trent/Westside",    ["trends"]),
+        ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
+        ("DMart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
+                                "just mark-d-mart"]),
+        ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
+        ("Nykaa (FSN)",       ["nykaa e-retail limited"]),
+        ("Metro C&C",         ["metro-cnc"]),
+        ("Walmart",           ["walmart-cnc"]),
+        ("Health & Glow",               ["health & glow", "r.c. trade link h&g", "r.c. trade link"]),
+        ("Guardian",          ["guardian healthcare", "guardian healthcare-delhi", "gaurdian"]),
+        ("Trent",             ["trent hypermarket"]),
+        ("V-Mart",            ["v-mart retail limited", "v-mart retail", "v mart east"]),
+        ("WH-Smith",          ["travel news services-wsmith"]),
+        ("Relay",             ["travel retail services-relay"]),
+        ("Apollo",            ["united marketing", "mark enterprise-apollo",
+                                "pragati sales-apollo"]),
+        ("Eremedium",         ["eremedium private limited"]),
+        ("Ratnadeep",         ["ratanadeep"]),
+        ("Sancus (RMT)",        ["sancus", "sancus networks-mt-reg."]),
+        ("Arambagh",          ["aarambagh food mart"]),
+        ("VMM",  ["vishal enterprises", "vmm", "vmm "]),
+        ("Lifestyle",         ["lifestyle babyshop"]),
+        ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
+                                "vishal enterprises-d-mart"]),
+        ("Shoppers Stop",     ["shoppers stop"]),
+        ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
+    ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
     for a in al:
@@ -283,7 +452,14 @@ def r2(x, nd=2):
 # PRIMARY
 # --------------------------------------------------------------------------
 def load_primary(src):
-    df = pd.read_excel(src / "primary.xlsx", sheet_name="Sheet1", header=1)
+    # Try XLSX first (from --src), then fall back to CSV seed data
+    xlsx_f = src / "primary.xlsx"
+    if xlsx_f.exists():
+        df = pd.read_excel(xlsx_f, sheet_name="Sheet1", header=1)
+    else:
+        # Fall back to load_primary_v2 (CSV seed: Primary_FY202426_10.csv)
+        return load_primary_v2(src)
+
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -310,21 +486,65 @@ def load_primary(src):
 # unambiguous (one ship-to = one chain) and are never re-split.
 # --------------------------------------------------------------------------
 def load_primary_v2(src):
-    """Load primary from CSV seed (preferred) or XLSX (fallback).
-    CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
-    XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
-    Same output shape as load_primary() plus raw Ship-To/Distributor columns."""
-    # Try CSV first (versioned in git)
-    csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
-    if csv_f.exists():
-        df = pd.read_csv(csv_f)
-    else:
-        # Fallback to XLSX in --src
-        f = src / "Primary_FY202426_10.xlsx"
-        if not f.exists():
-            raise FileNotFoundError(f"Primary data not found: {csv_f} or {f}")
-        df = pd.read_excel(f, sheet_name="Dump", header=1)
+    """Load primary from CSV seed (composite preferred, fallback to FY202426, then XLSX).
+    Priority:
+      1. Composite: PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv (FY24-26)
+      2. Seed CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv (FY25-26 only)
+      3. XLSX: Primary_FY202426_10.xlsx in --src (fallback)
+    Returns: DataFrame matching primary_block's expected schema."""
+    csv_composite = Path("PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv")
+    csv_seed = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
 
+    # Try composite first (includes FY24-25)
+    if csv_composite.exists():
+        print(f"Loading primary from composite (FY24-26): {csv_composite}")
+        df = pd.read_csv(csv_composite, low_memory=False)
+        df.columns = [str(c).strip() for c in df.columns]
+        df = df.dropna(how="all")
+        df = df[df["Primary NSV"].notna()]
+        df["_ship_to"] = df["Ship To Name"].astype(str).str.strip()
+        df["_dist_flag"] = df["Direct/Distributor"].astype(str).str.strip()
+        # Composite file stores NSV already in rupees (not Lakh), scale to Lakh
+        df["NSV"] = pd.to_numeric(df["Primary NSV"], errors="coerce").fillna(0.0) / 1e5
+        df["MRP value"] = pd.to_numeric(df["MRP Value"], errors="coerce").fillna(0.0) / 1e5
+        df["Month"] = df["Month"].astype(str).str.strip()
+        df["FY"] = df["FY Year"].astype(str).str.strip()
+        # Composite has Chain (already canonical) and Zone (already normalized)
+        df["chain"] = df["Chain"].astype(str).str.strip() if "Chain" in df.columns else df["_ship_to"]
+        df["brand"] = df["Brand"].astype(str).str.strip() if "Brand" in df.columns else None
+        df["zone"] = df["Zone"].astype(str).str.strip() if "Zone" in df.columns else None
+        df["channel"] = "MT"  # Composite is all MT channel
+        return df
+
+    # Fallback to seed CSV (FY25-26 only)
+    if csv_seed.exists():
+        print(f"Loading primary from seed CSV (FY25-26): {csv_seed}")
+        df = pd.read_csv(csv_seed)
+        df.columns = [str(c).strip() for c in df.columns]
+        df = df.dropna(how="all")
+        df = df[df["NSV"].notna()]
+        df["_ship_to"] = df["Bill to customer"].astype(str).str.strip()
+        df["_dist_flag"] = df["Direct/Distributor"].astype(str).str.strip()
+        df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
+        df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
+        df["Month"] = df["Month"].astype(str).str.strip()
+        # Seed CSV stores NSV/MRP in rupees; convert to Lakh
+        df["NSV"] = df["NSV"] / 1e5
+        df["MRP value"] = df["MRP value"] / 1e5
+        df["FY"] = df["FY"].astype(str).str.strip()
+        # Add canonical mappings
+        df["chain"] = df["Chain Name"].map(canon_chain) if "Chain Name" in df.columns else df.get("chain", df["_ship_to"])
+        df["brand"] = df["Brand"].map(canon_brand) if "Brand" in df.columns else None
+        df["zone"] = df["Zone"].map(canon_zone) if "Zone" in df.columns else None
+        df["channel"] = df["Channel"].astype(str).str.strip() if "Channel" in df.columns else "MT"
+        return df
+
+    # Final fallback to XLSX in --src
+    f = src / "Primary_FY202426_10.xlsx"
+    if not f.exists():
+        raise FileNotFoundError(f"Primary data not found: {csv_composite}, {csv_seed}, or {f}")
+    print(f"Loading primary from XLSX: {f}")
+    df = pd.read_excel(f, sheet_name="Dump", header=1)
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
     df = df[df["NSV"].notna()]
@@ -333,10 +553,11 @@ def load_primary_v2(src):
     df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
     df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
     df["Month"] = df["Month"].astype(str).str.strip()
-    # CSV stores NSV/MRP in rupees; script/dashboard expect INR Lakh (1 Lakh = 100,000)
-    if csv_f.exists():
-        df["NSV"] = df["NSV"] / 1e5
-        df["MRP value"] = df["MRP value"] / 1e5
+    df["FY"] = df["FY"].astype(str).str.strip()
+    df["chain"] = df["Chain Name"].map(canon_chain) if "Chain Name" in df.columns else df.get("chain", df["_ship_to"])
+    df["brand"] = df["Brand"].map(canon_brand) if "Brand" in df.columns else None
+    df["zone"] = df["Zone"].map(canon_zone) if "Zone" in df.columns else None
+    df["channel"] = df["Channel"].astype(str).str.strip() if "Channel" in df.columns else "MT"
     return df
 
 def load_chain_allocation_weights(src):
@@ -548,7 +769,12 @@ def _num(x):
         return None
 
 def load_offtake(src):
-    t = (src / "offtake_flat.txt").read_text()
+    offtake_file = src / "offtake_flat.txt"
+    if not offtake_file.exists():
+        print(f"⚠️  offtake_flat.txt not found; attempting CSV fallback...")
+        return synthesize_offtake_summary_from_csvs(src)
+
+    t = offtake_file.read_text()
     n_m = len(MONTHS)
     # ---- chain-wise monthly (Sheet2) ----
     s2 = t[: t.index("Sheet3")]
@@ -2150,7 +2376,7 @@ def pnl_block(pdf, promo):
     latest_keys = [k for k in pdf["FY"].dropna().unique() if _fylabel(k) == latest]
     g = pdf[pdf["FY"].isin(latest_keys)].groupby("chain").agg(
         nsv=("NSV", "sum"), mrp=("MRP value", "sum")).reset_index()
-    promo_by = {r["name"]: r for r in promo["by_chain"]}
+    promo_by = {r["name"]: r for r in promo["by_chain"]} if promo else {}
     rows = []
     for _, r in g.iterrows():
         c = r["chain"]
@@ -2553,15 +2779,23 @@ _SHIPTO_PRIMARY_CSV = (Path(__file__).resolve().parent.parent
 
 def load_shipto_primary_weights(repo_root=None):
     """Priority-1 fallback allocation source: actual chain-level primary from
-    Primary_ShipTo_FY25-26_to_May26.csv, used when the secondary-derived xlsx is
-    absent from --src. This CSV records the business's own primary invoices at
-    Ship To Name × Brand × Month × Chain grain with Cont% as a 0-1 fraction
-    summing to 1.0 per (ShipTo×Brand×Month) key. Returns the same (wdf, raw_sums)
-    tuple as load_dist_cont_weights() for drop-in use by allocate_dist_primary(),
-    or (None, None) if the CSV is absent."""
-    p = (_SHIPTO_PRIMARY_CSV if repo_root is None else
-         Path(repo_root) / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
-         / "Primary_ShipTo_FY25-26_to_May26.csv")
+    Primary_ShipTo_FY25-26_to_May26.csv (or composite FY24-26), used when the
+    secondary-derived xlsx is absent from --src. This CSV records the business's
+    own primary invoices at Ship To Name × Brand × Month × Chain grain with Cont%
+    as a 0-1 fraction summing to 1.0 per (ShipTo×Brand×Month) key. Returns the
+    same (wdf, raw_sums) tuple as load_dist_cont_weights() for drop-in use by
+    allocate_dist_primary(), or (None, None) if the CSV is absent."""
+    # Try composite file first (FY24-26), then fall back to FY25-26 only
+    if repo_root is None:
+        base_path = Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+        p = base_path / "Primary_ShipTo_FY24-26_Composite.csv"
+        if not p.exists():
+            p = _SHIPTO_PRIMARY_CSV
+    else:
+        base_path = Path(repo_root) / "PowerBI" / "RawDataFolders" / "Primary_ShipTo_Monthly"
+        p = base_path / "Primary_ShipTo_FY24-26_Composite.csv"
+        if not p.exists():
+            p = base_path / "Primary_ShipTo_FY25-26_to_May26.csv"
     if not p.exists():
         return None, None
     w = pd.read_csv(p, low_memory=False)
@@ -3505,12 +3739,19 @@ def detail_records_representative(primary):
                         "EAN":ean(art),"NSV":nsv,"MRP":mrp,"Qty":qty})
     return recs
 
-def detail_dims(recs):
+def detail_dims(recs, primary_block=None):
     keys = ["FY","Month","Channel","Zone","State","Chain","Brand","Category","SubCategory","Range","PackSize","Article"]
     out = {}
     for k in keys:
         vals = {r[k] for r in recs if r.get(k) is not None}
         out[k] = [m for m in _ORDER if m in vals] if k == "Month" else sorted(vals, key=lambda x: str(x))
+    # Ensure all FYs from primary block are in dims, even if not in detail_records
+    if primary_block and "fy_tags" in primary_block and "FY" in out:
+        primary_fys = {"FY" + t.replace("fy", "").upper() for t in primary_block.get("fy_tags", [])}
+        detail_fys = set(out["FY"])
+        missing_fys = primary_fys - detail_fys
+        if missing_fys:
+            out["FY"] = sorted(list(detail_fys | missing_fys))
     return out
 
 
@@ -3523,7 +3764,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
     result = detail_records_real(src, max_rows)
     if result is None:
         detail = detail_records_representative(primary_for_fallback)
-        return detail, detail_dims(detail), {
+        return detail, detail_dims(detail, primary_for_fallback), {
             "representative": True,
             "columns": ["Month","FY","Channel","Zone","Chain","Brand","Category",
                         "SubCategory","Range","PackSize","Article","NSV","MRP","Qty"],
@@ -3561,7 +3802,7 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
                           "Primary SIS FY26. Rs 236 L and Rs 275.44 L (gross) are "
                           "NOT correct.",
     }
-    return detail, detail_dims(detail), meta, tot, cm2, alloc
+    return detail, detail_dims(detail, primary_for_fallback), meta, tot, cm2, alloc
 
 
 def _check_governance_gate(alloc, gate_pct: float = 0.0) -> None:
@@ -3698,6 +3939,95 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
         raise
 
 
+# ---------------------------------------------------------------------------
+# Analytical enhancement: MoM Chain Scorecard & Forecast Diagnostics
+# These functions operate on already-built block dicts (no new source files).
+# ---------------------------------------------------------------------------
+
+def compute_mom_chain_scorecard(secondary_sales: dict) -> list[dict]:
+    """Derive chain-level MoM sell-out velocity from the secondary_sales block.
+
+    Operates on the already-computed D.secondary_sales.by_chain entries which
+    carry {apr_lakh, may_lakh, jun_lakh}. Returns a sorted list ready for
+    window.DASH['mom_chain_scorecard'].
+    """
+    rows = []
+    for c in secondary_sales.get("by_chain", []):
+        name = c.get("name", "")
+        if not name or name.lower() in ("unmapped", "unknown"):
+            continue
+        apr = float(c.get("apr_lakh") or 0)
+        may = float(c.get("may_lakh") or 0)
+        jun = float(c.get("jun_lakh") or 0)
+        mom1 = round((may - apr) / apr * 100, 1) if apr > 0 else None
+        mom2 = round((jun - may) / may * 100, 1) if may > 0 else None
+        latest_mom = mom2 if mom2 is not None else mom1
+        status = (
+            "Accelerating" if latest_mom is not None and latest_mom > 10
+            else "Stable" if latest_mom is not None and latest_mom >= 0
+            else "Softening"
+        )
+        rows.append({
+            "chain": name,
+            "apr_lakh": round(apr, 2),
+            "may_lakh": round(may, 2),
+            "jun_lakh": round(jun, 2),
+            "mom_apr_may_pct": mom1,
+            "mom_may_jun_pct": mom2,
+            "q1_total_lakh": round(float(c.get("total_lakh") or (apr + may + jun)), 2),
+            "trajectory": status,
+        })
+    rows.sort(key=lambda r: -(r["q1_total_lakh"] or 0))
+    return rows
+
+
+def compute_forecast_diagnostics(forecast: dict, offtake: dict) -> dict:
+    """Compute MAPE, bias, and MAE from TY-target vs. actual offtake overlap.
+
+    Compares D.forecast.fc (TY monthly targets for FY27) against
+    D.offtake.monthly (actual offtake) for the months that appear in both
+    fc_labels and offtake.months.
+    Returns a diagnostics dict to merge into D.forecast.
+    """
+    fc_labels = forecast.get("fc_labels", [])
+    fc_vals = forecast.get("fc", [])
+    om = offtake.get("months", [])
+    ov = offtake.get("monthly", [])
+
+    pairs = []
+    for i, lbl in enumerate(fc_labels):
+        if i >= len(fc_vals) or fc_vals[i] is None:
+            continue
+        try:
+            ai = om.index(lbl)
+        except ValueError:
+            continue
+        if ai >= len(ov) or ov[ai] is None or ov[ai] == 0:
+            continue
+        pairs.append({"month": lbl, "actual": ov[ai], "forecast": fc_vals[i]})
+
+    if not pairs:
+        return {
+            "n_calibrated_months": 0,
+            "mape_pct": None,
+            "bias_pct": None,
+            "mae_lakh": None,
+            "accuracy_pct": None,
+        }
+
+    mape = sum(abs(p["forecast"] - p["actual"]) / p["actual"] * 100 for p in pairs) / len(pairs)
+    bias = sum((p["forecast"] - p["actual"]) / p["actual"] * 100 for p in pairs) / len(pairs)
+    mae = sum(abs(p["forecast"] - p["actual"]) for p in pairs) / len(pairs)
+    return {
+        "n_calibrated_months": len(pairs),
+        "mape_pct": round(mape, 2),
+        "bias_pct": round(bias, 2),
+        "mae_lakh": round(mae, 2),
+        "accuracy_pct": round(100 - mape, 2),
+        "calibrated_months": [p["month"] for p in pairs],
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -3733,11 +4063,15 @@ def main():
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
     ap.add_argument("--not-eligible-gate-pct", type=float, default=0.0, dest="not_eligible_gate_pct",
-                    help="Fail build if Not_Eligible tier NSV exceeds this %% of total Dist. NSV "
+                    help="Fail build if Not_Eligible tier NSV exceeds this percentage of total Dist. NSV "
                          "(0 = disabled, the default). Example: --not-eligible-gate-pct 10 fails "
-                         "the build when more than 10%% of Dist. NSV has no matching allocation entry "
+                         "the build when more than 10 percent of Dist. NSV has no matching allocation entry "
                          "and is not in the offtake universe. Set per-environment in CI to enforce "
                          "data quality without breaking local builds that lack source files.")
+    ap.add_argument("--npi-master", type=str, default=None,
+                    help="Path to NPI_Master.csv file (optional). If provided, loads NPI article metadata "
+                         "and enriches with lifecycle information. NPI blocks are added to data.js as additive "
+                         "layer (does not modify existing blocks).")
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -4125,6 +4459,78 @@ def main():
           + (f"; CM2% = {cm2['cm2_pct']}%" if cm2 else ""))
     if alloc is not None:
         _check_governance_gate(alloc, gate_pct=a.not_eligible_gate_pct)
+
+    # ---- Analytical enhancement blocks (computed from already-built dicts) ----
+    if "secondary_sales" in data and data["secondary_sales"].get("by_chain"):
+        scorecard = compute_mom_chain_scorecard(data["secondary_sales"])
+        data["mom_chain_scorecard"] = scorecard
+        print(f"mom_chain_scorecard: {len(scorecard)} chains")
+    diag = compute_forecast_diagnostics(data.get("forecast", {}), data.get("offtake", {}))
+    data.setdefault("forecast", {})["diagnostics"] = diag
+    if diag["n_calibrated_months"]:
+        print(f"forecast_diagnostics: MAPE={diag['mape_pct']}% bias={diag['bias_pct']}% "
+              f"n={diag['n_calibrated_months']}")
+
+    # ---- NPI Master (optional) ----
+    npi_master_enriched = None
+    if a.npi_master:
+        npi_master_path = Path(a.npi_master)
+        if npi_master_path.exists():
+            npi_master = load_npi_master(npi_master_path)
+            if npi_master and npi_master["load_status"] == "ok":
+                # Enrich with lifecycle information
+                npi_master_enriched = enrich_npi_master_with_lifecycle(npi_master)
+                data["npi_master"] = npi_master_enriched
+                n_npi = npi_master_enriched["n_npi_articles"]
+                n_total = npi_master_enriched["n_total_articles"]
+                print(f"npi_master: {n_npi} NPI articles of {n_total} total loaded and enriched with lifecycle")
+            else:
+                print(f"⚠ NPI Master load error: {npi_master['errors']}")
+        else:
+            print(f"⚠ NPI Master file not found: {npi_master_path}")
+
+    # ---- NPI Performance (optional, requires npi_master) ----
+    if npi_master_enriched:
+        try:
+            # Try to load article-level sales data
+            primary_sales = None
+            offtake_sales = None
+
+            # Load primary article sales if detail_meta has article-level data
+            if data.get("detail_meta") and data["detail_meta"].get("fyx_primary"):
+                try:
+                    # Get raw primary data from detail_meta (it should include article detail)
+                    # For now, we'll load from detail_records if available
+                    if len(data.get("detail_records", [])) > 0:
+                        detail_records_df = pd.DataFrame(data["detail_records"])
+                        primary_sales = load_article_primary_sales(detail_records_df)
+                        print(f"  → Loaded {len(primary_sales)} primary sales records by article/month/chain")
+                except Exception as e:
+                    print(f"  ⚠ Could not load article-level primary sales: {e}")
+
+            # Load offtake article sales if files exist
+            try:
+                offtake_sales = load_article_offtake_sales(src)
+                if len(offtake_sales) > 0:
+                    print(f"  → Loaded {len(offtake_sales)} offtake sales records by article/month/chain")
+            except Exception as e:
+                print(f"  ⚠ Could not load article-level offtake sales: {e}")
+
+            # Build npi_performance block with sales data
+            perf_block = build_npi_performance_block(
+                npi_master=npi_master_enriched,
+                detail_meta=data.get("detail_meta"),
+                primary_sales=primary_sales,
+                offtake_sales=offtake_sales,
+                universe_df=universe_df,
+                reference_date=None
+            )
+            data.update(perf_block)
+            n_facts = perf_block["npi_performance"].get("n_facts", 0)
+            load_status = perf_block["npi_performance"].get("load_status", "unknown")
+            print(f"npi_performance: {n_facts} performance facts generated ({load_status})")
+        except Exception as e:
+            print(f"⚠ NPI Performance block generation failed (non-blocking): {e}")
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = serialize_window_dash(data, indent=1)

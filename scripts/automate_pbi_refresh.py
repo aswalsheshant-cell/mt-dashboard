@@ -111,7 +111,12 @@ def git_commit(message: str, dry_run: bool = False) -> bool:
         return False
 
     # Add files
-    files_to_add = ["dashboard/data.js", "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv"]
+    files_to_add = [
+        "dashboard/data.js",
+        "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv",
+        "PowerBI/RawDataFolders/SecondarySales_Monthly",
+        "PowerBI/RawDataFolders/ClaimMaster_Quarterly",
+    ]
     for f in files_to_add:
         path = REPO / f
         if path.exists():
@@ -228,6 +233,40 @@ def generate_agent_sentiments(export_dir: Path, dry_run: bool = False) -> bool:
         return False
 
 
+def export_pbi_watch_csvs(data_js: Path, dry_run: bool = False) -> bool:
+    """
+    Export Power BI-ready CSVs from data.js into SecondarySales_Monthly/ and
+    ClaimMaster_Quarterly/ watch folders so Power BI auto-picks them on Refresh.
+    Non-fatal if export_pbi_csvs.py is absent (PBI can run with existing files).
+    """
+    export_script = SCRIPTS / "export_pbi_csvs.py"
+    pbi_out = REPO / "PowerBI" / "RawDataFolders"
+    cmd = [
+        "python", str(export_script),
+        "--datajs", str(data_js),
+        "--out", str(pbi_out),
+        "--blocks", "all",
+    ]
+
+    log("INFO", "Exporting Power BI watch-folder CSVs from data.js")
+
+    if dry_run:
+        log("INFO", "[DRY RUN] Skipping PBI CSV export")
+        return True
+
+    if not export_script.exists():
+        log("WARN", f"export_pbi_csvs.py not found — skipping PBI CSV export")
+        return True
+
+    try:
+        run_cmd(cmd)
+        log("OK", f"Power BI CSVs exported to {pbi_out}")
+        return True
+    except Exception as e:
+        log("ERROR", f"PBI CSV export failed: {e}")
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Automated Power BI + Dashboard Monthly Refresh",
@@ -293,6 +332,13 @@ Examples:
     # ────────────────────────────────────────────────────────────────────────────
     if not generate_agent_sentiments(export_dir, dry_run=args.dry_run):
         log("ERROR", "Sentiments generation failed")
+        sys.exit(2)
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # Step 3.5: Export Power BI Watch-Folder CSVs
+    # ────────────────────────────────────────────────────────────────────────────
+    if not export_pbi_watch_csvs(args.out, dry_run=args.dry_run):
+        log("ERROR", "Power BI CSV export failed")
         sys.exit(2)
 
     # ────────────────────────────────────────────────────────────────────────────

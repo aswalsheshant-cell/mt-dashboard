@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Compliance Metrics Schema",
+  "description": "Store-level compliance audit data with chain summaries and inventory fill-rate metrics",
+  "type": "object",
+  "required": ["compliance"],
+  "properties": {
+    "compliance": {
+      "type": "object",
+      "required": ["metadata", "chain_summary"],
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "audit_date": { "type": "string", "format": "date" },
+            "total_doors_audited": { "type": "integer", "minimum": 0 },
+            "macro_pes_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+            "coverage": { "type": "string" }
+          }
+        },
+        "chain_summary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["chain", "total_stores", "compliant_stores", "compliance_pct", "status", "status_color"],
+            "properties": {
+              "chain": { "type": "string" },
+              "total_stores": { "type": "integer", "minimum": 0 },
+              "compliant_stores": { "type": "integer", "minimum": 0 },
+              "compliance_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+              "status": { "type": "string", "enum": ["COMPLIANT", "WATCH", "CRITICAL GAP"] },
+              "status_color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+              "last_audit": { "type": ["string", "null"] },
+              "top_issues": { "type": "array", "items": { "type": "string" } },
+              "trend": { "type": "array", "items": { "type": "number" } },
+              "trend_direction": { "type": "string", "enum": ["up", "down", "stable"] },
+              "zones": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "account_id": { "type": "string" },
+              "account_name": { "type": "string" },
+              "doors_audited": { "type": "integer", "minimum": 0 },
+              "account_pes_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+              "price_compliance": { "type": "number", "minimum": 0, "maximum": 100 },
+              "fsdu_compliance": { "type": "number", "minimum": 0, "maximum": 100 },
+              "osa_compliance": { "type": "number", "minimum": 0, "maximum": 100 }
+            }
+          }
+        },
+        "doors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "door_id": { "type": "string" },
+              "door_name": { "type": "string" },
+              "account_id": { "type": "string" },
+              "audit_date": { "type": "string", "format": "date" },
+              "price_flag": { "type": "boolean" },
+              "fsdu_flag": { "type": "boolean" },
+              "osa_flag": { "type": "boolean" },
+              "pes_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+              "notes": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "inventory_fillrate": {
+      "type": "object",
+      "required": ["metadata"],
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "period": { "type": "string" },
+            "macro_cfr_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+            "macro_otif_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+            "total_lost_revenue_lakh": { "type": "number", "minimum": 0 }
+          }
+        },
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "account_id": { "type": "string" },
+              "account_name": { "type": "string" },
+              "cfr_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+              "otif_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+              "lost_revenue_lakh": { "type": "number", "minimum": 0 }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
