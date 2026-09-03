@@ -307,7 +307,7 @@ fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
 }).catch(()=>{});
 
 // Load generated agent sentiments & executive insights (Phase 3 output, optional)
-fetch('../insights/generated_insights.json').then(r=>r.json()).then(d=>{
+fetch('./generated_insights.json').then(r=>r.json()).then(d=>{
   if(d.insights) window.DASH.insights=d.insights;
 }).catch(()=>{});
 
