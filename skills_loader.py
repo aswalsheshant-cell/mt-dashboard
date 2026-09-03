@@ -23,11 +23,20 @@ class SkillRegistry:
         if not self._dir.is_dir():
             logger.warning("Skills directory not found: %s — registry is empty", self._dir)
             return
+
+        # Load flat .md files (e.g., skills/promo-query.md)
         for path in sorted(self._dir.glob("*.md")):
             try:
                 self._parse(path)
             except Exception as exc:
                 logger.warning("Skipping %s — parse error: %s", path, exc)
+
+        # Load nested skill directories (e.g., .claude/skills/mt-python-pipeline/SKILL.md)
+        for skill_dir in sorted(self._dir.glob("*/SKILL.md")):
+            try:
+                self._parse(skill_dir)
+            except Exception as exc:
+                logger.warning("Skipping %s — parse error: %s", skill_dir, exc)
 
     def _parse(self, path: Path) -> None:
         text = path.read_text(encoding="utf-8")
