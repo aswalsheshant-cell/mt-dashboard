@@ -5,16 +5,15 @@ window.DASH = {
   "period": "FY 2024-25 vs FY 2025-26",
   "unit_note": "Values in INR Lakh in data; displayed in INR Crore where labelled (Cr = Lakh/100).",
   "source": "Primary, Chain Offtake Master, Universe MT, Promo Master (MT, FY24-26).",
-  "generated_at": "2026-09-03T13:46:22Z",
+  "generated_at": "2026-09-03T13:49:54Z",
   "source_files": [
    "MTEB2BMTDPrimaryAug26._3.xlsx",
    "MTEB2BMTDPrimaryAug26._3_UPDATED.xlsx",
    "MTEB2BMTDPrimaryAug26_SAMPLE_100rows.xlsx",
    "MTEB2BMTDPrimaryAug26_SAMPLE_100rows_UPDATED.xlsx",
-   "Primary_Aug26_Commercial_Exceptions.xlsx",
-   "Primary_Aug26_FY27.csv"
+   "Primary_Aug26_Commercial_Exceptions.xlsx"
   ],
-  "fy_range": "FY26–FY27"
+  "fy_range": "FY25–FY27"
  },
  "primary": {
   "fy_tags": [
@@ -770,43 +769,8 @@ window.DASH = {
    "Apr-26",
    "May-26"
   ],
-  "by_zone": [
-   {
-    "name": "South-2,SOUTH-1,WEST,East",
-    "fy27": 4216.0,
-    "yoy": null
-   },
-   {
-    "name": "South 2",
-    "fy27": 219.0,
-    "yoy": null
-   },
-   {
-    "name": "West",
-    "fy27": 77.0,
-    "yoy": null
-   }
-  ],
-  "by_state": [
-   {
-    "fy27": 4216.0,
-    "yoy": null,
-    "zone": "South-2,SOUTH-1,WEST,East",
-    "state": "South-2,SOUTH-1,WEST,East"
-   },
-   {
-    "fy27": 219.0,
-    "yoy": null,
-    "zone": "South 2",
-    "state": "South-2"
-   },
-   {
-    "fy27": 77.0,
-    "yoy": null,
-    "zone": "West",
-    "state": "West"
-   }
-  ]
+  "by_zone": [],
+  "by_state": []
  },
  "pnl": {
   "by_chain": [
@@ -721404,6 +721368,7 @@ window.DASH = {
  ],
  "dims": {
   "FY": [
+   "FY25",
    "FY26",
    "FY27"
   ],
@@ -742461,8 +742426,7 @@ window.DASH = {
   "method": "PO Type='Dist.' rows (blank \"Chain name for Dashboard\") are exploded across chains by the business's own secondary-derived monthly split (Dist_primary_cont_based_on_secondary_MOM.xlsx, sheet 'Dist Primary Conv to Chain Art'), matched on Ship To Name x Brand x Month (the cont sheet has no Cust-SAP Code column; the code<->ship-to bridge lives in the primary file itself and Cust-SAP Code is carried through every QC table). Keys with no entry for that exact month use the SAME ship-to x brand's split from the NEAREST month within 3 months -- still the business's own secondary data, never an invented mix -- and are QC-tagged 'Mapped (nearest ...)', never silently blended. Inv Qty, Total MRP sales, NSV and Tax are scaled by cont% (normalised to sum to exactly 100% per key, deviations flagged before normalisation); article MRP is per-unit and is NOT scaled; Avg Tot is a ratio, invariant under the split. Direct rows keep their own \"Chain name for Dashboard\". Rows with no cont data at all get Chain='Unmapped Chain' -- never a blank, never the distributor's Ship To Name. A reviewable patch proposal (SeedData/Mapping/DistCont_Patch_Proposed.csv) is regenerated on every build: paste approved rows into the cont xlsx to make the fix permanent (this also fixes Power BI, whose query 41 reads only the xlsx).",
   "governance": {
    "eligibility_tier_counts": {
-    "Article_Not_Listed": 709,
-    "Brand_Not_Listed": 231
+    "Not_Eligible": 940
    },
    "qc_report": {
     "total_rows": 940,
@@ -742475,10 +742439,10 @@ window.DASH = {
    },
    "reconciliations_logged": 940,
    "decisions_logged": 940,
-   "not_eligible_nsv_lakh": 0.0,
-   "not_eligible_pct": 0.0,
+   "not_eligible_nsv_lakh": 17104.9,
+   "not_eligible_pct": 100.0,
    "total_dist_nsv_lakh": 17104.9,
-   "flagged_rows": 0,
+   "flagged_rows": 940,
    "override_count": 0,
    "flagged_rows_csv": "PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv",
    "note": "Phase 3/6: Governance engine logs eligibility tiers and QC reconciliation. not_eligible_pct drives the build gate (--not-eligible-gate-pct flag). Flagged Not_Eligible rows exported to flagged_rows_csv for business review. Override approvals tracked via PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv."
