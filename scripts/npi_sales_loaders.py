@@ -298,7 +298,9 @@ def load_article_offtake_sales(src_dir: Path) -> pd.DataFrame:
             nsv_col = next((c for c in df.columns if 'nsv' in c.lower() or 'value' in c.lower()), None)
             qty_col = next((c for c in df.columns if 'qty' in c.lower() or 'quantity' in c.lower()), None)
 
-            df['offtake_units'] = pd.to_numeric(df[unit_col], errors='coerce').fillna(0).astype(int) if unit_col else 0
+            # Fall back to qty_col if unit_col not found (offtake files use 'Sales Qty')
+            units_source = unit_col or qty_col
+            df['offtake_units'] = pd.to_numeric(df[units_source], errors='coerce').fillna(0).astype(int) if units_source else 0
             df['offtake_nsv_lakhs'] = pd.to_numeric(df[nsv_col], errors='coerce').fillna(0.0) if nsv_col else 0.0
 
             # Count stocking stores (distinct stores with non-zero offtake)
