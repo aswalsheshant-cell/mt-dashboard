@@ -169,63 +169,59 @@ jobs:
       - name: Check for data.js integrity
         run: |
           python3 << 'EOF'
-            import os
-            import re
+          import os
+          import re
 
-            filepath = 'dashboard/data.js'
-            if not os.path.exists(filepath):
-              print(f"⚠ data.js not found in repository")
-              exit(0)
+          filepath = 'dashboard/data.js'
+          if not os.path.exists(filepath):
+            print(f"⚠ data.js not found in repository")
+            exit(0)
 
-            with open(filepath, 'r') as f:
-              content = f.read()
+          with open(filepath, 'r') as f:
+            content = f.read()
 
-            # Check basic structure
-            if not content.startswith('window.DASH'):
-              print("❌ data.js does not start with 'window.DASH'")
-              exit(1)
+          if not content.startswith('window.DASH'):
+            print("❌ data.js does not start with 'window.DASH'")
+            exit(1)
 
-            # Check for valid JSON structure
-            try:
-              # Extract JSON portion (after 'window.DASH=')
-              json_match = re.search(r'window\.DASH\s*=\s*({.*});', content, re.DOTALL)
-              if json_match:
-                print(f"✓ data.js has valid structure (~{len(content)} bytes)")
-              else:
-                print("⚠ Could not verify data.js structure (may be minified)")
-            except Exception as e:
-              print(f"⚠ data.js structure check skipped: {e}")
+          try:
+            json_match = re.search(r'window\.DASH\s*=\s*({.*});', content, re.DOTALL)
+            if json_match:
+              print(f"✓ data.js has valid structure (~{len(content)} bytes)")
+            else:
+              print("⚠ Could not verify data.js structure (may be minified)")
+          except Exception as e:
+            print(f"⚠ data.js structure check skipped: {e}")
           EOF
 
       - name: Verify dashboard markup
         run: |
           python3 << 'EOF'
-            import re
+          import re
 
-            with open('dashboard/index.html', 'r') as f:
-              html = f.read()
+          with open('dashboard/index.html', 'r') as f:
+            html = f.read()
 
-            # Check critical elements
-            checks = [
-              ('nav button', 'Navigation buttons'),
-              ('section id="tab-', 'Tab sections'),
-              ('function buildRetailExecution', 'Retail Execution tab builder'),
-              ('compliance_metrics.json', 'Compliance data reference'),
-              ('exportRetailExecutionCompliance', 'CSV export function'),
-              ('exportRetailExecutionMultiTab', 'Excel export function')
-            ]
+          checks = [
+            ('nav button', 'Navigation buttons'),
+            ('section id="tab-', 'Tab sections'),
+            ('function buildRetailExecution', 'Retail Execution tab builder'),
+            ('compliance_metrics.json', 'Compliance data reference'),
+            ('exportRetailExecutionCompliance', 'CSV export function'),
+            ('exportRetailExecutionMultiTab', 'Excel export function')
+          ]
 
-            passed = 0
-            for check, label in checks:
-              if check in html:
-                print(f"✓ {label}")
-                passed += 1
-              else:
-                print(f"❌ Missing: {label}")
+          passed = 0
+          for check, label in checks:
+            if check in html:
+              print(f"✓ {label}")
+              passed += 1
+            else:
+              print(f"❌ Missing: {label}")
 
-            print(f"\n{passed}/{len(checks)} markup checks passed")
-            if passed < len(checks):
-              exit(1)
+          print(f"\n{passed}/{len(checks)} markup checks passed")
+          if passed < len(checks):
+            exit(1)
           EOF
 
       - name: Test local HTTP server startup
