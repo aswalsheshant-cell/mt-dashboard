@@ -5,8 +5,14 @@ window.DASH = {
   "period": "FY 2024-25 vs FY 2025-26",
   "unit_note": "Values in INR Lakh in data; displayed in INR Crore where labelled (Cr = Lakh/100).",
   "source": "Primary, Chain Offtake Master, Universe MT, Promo Master (MT, FY24-26).",
-  "generated_at": "2026-09-03T05:26:15Z",
-  "source_files": [],
+  "generated_at": "2026-09-03T11:59:29Z",
+  "source_files": [
+   "MTEB2BMTDPrimaryAug26._3.xlsx",
+   "MTEB2BMTDPrimaryAug26._3_UPDATED.xlsx",
+   "MTEB2BMTDPrimaryAug26_SAMPLE_100rows.xlsx",
+   "MTEB2BMTDPrimaryAug26_SAMPLE_100rows_UPDATED.xlsx",
+   "Primary_Aug26_Commercial_Exceptions.xlsx"
+  ],
   "fy_range": "FY26–FY27"
  },
  "primary": {
