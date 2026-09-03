@@ -34,7 +34,74 @@ from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dyna
 from npi_master_loader import load_npi_master
 from npi_lifecycle import enrich_npi_master_with_lifecycle
 from npi_performance import build_npi_performance_block
-from npi_sales_loaders import load_article_primary_sales, load_article_offtake_sales
+from npi_sales_loaders import load_article_primary_sales, load_article_offtake_sales, normalize_chain_name
+
+# --------------------------------------------------------------------------
+# FALLBACK: Synthesize offtake summary from raw CSVs when flat file missing
+# --------------------------------------------------------------------------
+def synthesize_offtake_summary_from_csvs(src_dir):
+    """
+    Fallback aggregation when offtake_flat.txt is missing.
+    Loads article-level raw offtake CSVs via Phase 3.5 loaders,
+    normalizes chain names, and aggregates into chain × month totals.
+    Returns: (chains_dict, zones_list) tuple compatible with offtake_block()
+    """
+    print("  [Fallback] offtake_flat.txt not found. Synthesizing summary from raw CSVs...")
+
+    try:
+        # Load article-level offtake facts using Phase 3.5 fixed loader
+        # CSV files are in src_dir/Offtake_Monthly/
+        offtake_dir = Path(src_dir) / "Offtake_Monthly"
+        if not offtake_dir.exists():
+            offtake_dir = Path(src_dir)  # Fallback to src_dir if subdirectory doesn't exist
+
+        df_offtake = load_article_offtake_sales(offtake_dir)
+
+        if df_offtake is None or len(df_offtake) == 0:
+            print("  ⚠ [Fallback] No offtake CSV records found. Returning empty summary.")
+            return {}, []
+
+        # Normalize chain names using Phase 3.5 normalization
+        if "chain" in df_offtake.columns:
+            df_offtake["chain"] = df_offtake["chain"].apply(normalize_chain_name)
+
+        # Filter out unmapped chains (None values)
+        df_offtake = df_offtake[df_offtake["chain"].notna()]
+
+        if len(df_offtake) == 0:
+            print("  ⚠ [Fallback] All chains unmapped or null. Returning empty summary.")
+            return {}, []
+
+        # Aggregate by chain and month
+        # Expected columns: chain, month_label, offtake_units
+        monthly_summary = df_offtake.groupby(["chain", "month_label"]).agg({
+            "offtake_units": "sum"
+        }).reset_index()
+
+        unique_chains = sorted(monthly_summary["chain"].unique())
+        unique_months = sorted(monthly_summary["month_label"].unique())
+
+        # Build chains dict: {chain_name: {months: {month: value}, total: sum}}
+        chains_dict = {}
+        for chain in unique_chains:
+            chain_data = monthly_summary[monthly_summary["chain"] == chain]
+            months_dict = {row["month_label"]: row["offtake_units"]
+                          for _, row in chain_data.iterrows()}
+            total = chain_data["offtake_units"].sum()
+            chains_dict[chain] = {"months": months_dict, "total": total}
+
+        # For now, return empty zones list (zone/state aggregation requires more detail data)
+        zones_list = []
+
+        total_units = monthly_summary["offtake_units"].sum()
+        print(f"  ✓ Synthesized offtake summary: {len(unique_chains)} chains, "
+              f"{len(unique_months)} months, {int(total_units):,} total units.")
+
+        return chains_dict, zones_list
+
+    except Exception as e:
+        print(f"  ⚠ [Fallback] Error synthesizing offtake summary: {e}")
+        return {}, []
 
 # --------------------------------------------------------------------------
 # Canonicalisation helpers
@@ -623,8 +690,8 @@ def _num(x):
 def load_offtake(src):
     offtake_file = src / "offtake_flat.txt"
     if not offtake_file.exists():
-        print(f"⚠️  offtake_flat.txt not found; returning empty offtake data.")
-        return {}, []
+        print(f"⚠️  offtake_flat.txt not found; attempting CSV fallback...")
+        return synthesize_offtake_summary_from_csvs(src)
 
     t = offtake_file.read_text()
     n_m = len(MONTHS)
@@ -2228,7 +2295,7 @@ def pnl_block(pdf, promo):
     latest_keys = [k for k in pdf["FY"].dropna().unique() if _fylabel(k) == latest]
     g = pdf[pdf["FY"].isin(latest_keys)].groupby("chain").agg(
         nsv=("NSV", "sum"), mrp=("MRP value", "sum")).reset_index()
-    promo_by = {r["name"]: r for r in promo["by_chain"]}
+    promo_by = {r["name"]: r for r in promo["by_chain"]} if promo else {}
     rows = []
     for _, r in g.iterrows():
         c = r["chain"]
