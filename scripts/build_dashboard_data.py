@@ -621,7 +621,12 @@ def _num(x):
         return None
 
 def load_offtake(src):
-    t = (src / "offtake_flat.txt").read_text()
+    offtake_file = src / "offtake_flat.txt"
+    if not offtake_file.exists():
+        print(f"⚠️  offtake_flat.txt not found; returning empty offtake data.")
+        return {}, []
+
+    t = offtake_file.read_text()
     n_m = len(MONTHS)
     # ---- chain-wise monthly (Sheet2) ----
     s2 = t[: t.index("Sheet3")]
