@@ -318,6 +318,7 @@ fetch('./generated_insights.json').then(r=>r.json()).then(d=>{
   if(d.insights) window.DASH.insights=d.insights;
 }).catch(()=>{});
 
+
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);
 
