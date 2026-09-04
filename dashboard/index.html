@@ -209,6 +209,10 @@
   .brief-actions button.primary:hover{background:var(--teal-d)}
   .brief-actions button.secondary{background:#f0f0f0;color:var(--ink);border:1px solid var(--line)}
   .brief-actions button.secondary:hover{background:var(--line)}
+  .yoy-badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 6px;border-radius:12px;margin-left:4px;vertical-align:middle}
+  .yoy-badge.positive{background:#e8f5ec;color:var(--green);border:1px solid #b7e0c4}
+  .yoy-badge.negative{background:#fce8e6;color:var(--red);border:1px solid #f5c6cb}
+  .yoy-badge.inactive{background:#f5f5f5;color:var(--muted);border:1px solid #e0e0e0}
 </style>
 </head>
 <body>
@@ -4704,6 +4708,49 @@ const BUILD={explorer:buildExplorer,overview:buildOverview,'monthly-briefing':bu
   'retail-execution':buildRetailExecution,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
   'forecast-tracking':buildDailyWeeklyForecast,cm2:buildCM2,insights:buildInsights};
 let currentTab='overview';
+
+/* ---- YoY Performance Badges ---- */
+function renderYoYBadges(){
+  if(!D.yoy_metrics||D.yoy_metrics.status!=='active') return;
+  const yoy=D.yoy_metrics;
+
+  // Helper to find and update KPI labels with badges
+  const addBadge=(selector,growth)=>{
+    if(growth==null) return;
+    const kpi=document.querySelector(selector);
+    if(!kpi){return;}
+    const lab=kpi.querySelector('.lab');
+    if(!lab) return;
+
+    // Remove existing badge if present
+    const existing=lab.querySelector('.yoy-badge');
+    if(existing) existing.remove();
+
+    // Add new badge
+    const ipos=growth>=0;
+    const badge=el('span','yoy-badge '+(ipos?'positive':'negative'),
+      (ipos?'▲':'▼')+' '+(Math.abs(growth)).toFixed(1)+'%');
+    lab.appendChild(badge);
+  };
+
+  // Primary NSV badge
+  if(yoy.top_line.rbc_total_growth_pct!=null){
+    const pct=yoy.top_line.rbc_total_growth_pct;
+    addBadge('#tab-reliance-bc .kpis .kpi:first-child',pct);
+  }
+
+  // Brand-level badges (for Reliance Brand Counter tab specifically)
+  if(yoy.by_brand&&Object.keys(yoy.by_brand).length>0){
+    let badgeCount=0;
+    Object.entries(yoy.by_brand).slice(0,2).forEach(([brand,data])=>{
+      if(badgeCount>=2) return;
+      const selector=`#tab-reliance-bc .kpis .kpi:nth-child(${2+badgeCount})`;
+      addBadge(selector,data.growth_pct);
+      badgeCount++;
+    });
+  }
+}
+
 function show(id){
   currentTab=id;
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
@@ -4718,6 +4765,7 @@ function show(id){
   setTimeout(()=>{
     destroyCharts();
     BUILD[id]();
+    renderYoYBadges();
     window.scrollTo({top:0,behavior:'smooth'});
   },0);
 }
@@ -4731,6 +4779,8 @@ function show(id){
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
   show('overview');
+  // Render YoY badges after initial tab load
+  setTimeout(()=>renderYoYBadges(),100);
 
   // Export zonal summary — CSV download
   document.getElementById('exportZonalSummary').addEventListener('click', () => {
