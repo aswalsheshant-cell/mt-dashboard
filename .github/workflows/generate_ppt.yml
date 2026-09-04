@@ -101,9 +101,11 @@ jobs:
           fi
 
       - name: Notify on Success (Optional Slack Webhook)
-        if: success() && secrets.SLACK_WEBHOOK_URL != ''
+        if: success() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          curl -X POST "$SLACK_WEBHOOK_URL" \
             -H 'Content-Type: application/json' \
             -d '{
               "text": "✅ Modern Trade 1-Pager Generated Successfully",
@@ -119,9 +121,11 @@ jobs:
             }'
 
       - name: Alert on Failure (Optional Slack Webhook)
-        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          curl -X POST "$SLACK_WEBHOOK_URL" \
             -H 'Content-Type: application/json' \
             -d '{
               "text": "❌ Modern Trade 1-Pager Generation Failed",
