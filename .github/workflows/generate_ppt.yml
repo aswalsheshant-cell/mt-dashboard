@@ -26,7 +26,12 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies (LibreOffice & Poppler)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice poppler-utils
+
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install python-pptx openpyxl pytest pytest-cov
@@ -68,18 +73,30 @@ jobs:
         run: |
           python generate_1pager_ppt.py
 
+      - name: Convert PPTX to PDF & High-Res PNG
+        run: |
+          # Convert presentation to PDF via headless LibreOffice
+          libreoffice --headless --convert-to pdf MT_Primary_vs_Offtake_1Pager.pptx
+
+          # Convert PDF first page to 300 DPI PNG
+          pdftoppm -png -r 300 -f 1 -l 1 MT_Primary_vs_Offtake_1Pager.pdf MT_Primary_vs_Offtake_1Pager
+          mv MT_Primary_vs_Offtake_1Pager-1.png MT_Primary_vs_Offtake_1Pager.png
+
       - name: Commit and Push Updated Artifacts
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Check if there are changes to commit
-          if git diff --quiet MT_Primary_vs_Offtake_1Pager.pptx coverage.svg 2>/dev/null; then
+          if git diff --quiet MT_Primary_vs_Offtake_1Pager.pptx MT_Primary_vs_Offtake_1Pager.pdf MT_Primary_vs_Offtake_1Pager.png coverage.svg 2>/dev/null; then
             echo "✓ No changes detected in generated artifacts."
           else
-            git add MT_Primary_vs_Offtake_1Pager.pptx coverage.svg
-            git commit -m "Auto-generate updated 1-pager PPT and coverage badge from Excel [skip ci]"
+            git add MT_Primary_vs_Offtake_1Pager.pptx \
+                    MT_Primary_vs_Offtake_1Pager.pdf \
+                    MT_Primary_vs_Offtake_1Pager.png \
+                    coverage.svg
+            git commit -m "Auto-generate updated PPTX, PDF, PNG, and coverage badge from Excel [skip ci]"
             git push origin main
-            echo "✅ Updated artifacts committed and pushed."
+            echo "✅ Updated artifacts (PPTX/PDF/PNG/badge) committed and pushed."
           fi
 

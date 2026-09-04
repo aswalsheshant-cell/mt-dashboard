@@ -51,7 +51,7 @@ Automatically generate professional executive presentations from MT Primary vs. 
 ```bash
 # Generate PPT locally
 python generate_1pager_ppt.py
-# Output: MT_Primary_vs_Offtake_1Pager.pptx
+# Output: MT_Primary_vs_Offtake_1Pager.pptx (+ .pdf and .png auto-generated)
 
 # Or push Excel template to trigger GitHub Actions auto-generation
 git push origin main
@@ -62,8 +62,18 @@ git push origin main
 - RAG status coloring (Green/Amber/Red based on alignment gap)
 - Zone performance table with 6 regions
 - Automatic alerts and action items
+- Multi-format output: PPTX, PDF, and 300 DPI PNG
 - Idempotent (same input = same output)
 - GitHub Actions auto-regeneration on Excel push
+
+#### 📊 Latest Modern Trade Snapshot
+
+![Modern Trade Snapshot](MT_Primary_vs_Offtake_1Pager.png?raw=true)
+
+**Download formats:**
+- 📥 [Download PPTX (Editable)](MT_Primary_vs_Offtake_1Pager.pptx?raw=true) — PowerPoint presentation
+- 📄 [Download PDF (Print-Ready)](MT_Primary_vs_Offtake_1Pager.pdf?raw=true) — Executive summary
+- 🖼️ [PNG (Mobile-Friendly)](MT_Primary_vs_Offtake_1Pager.png?raw=true) — Direct sharing
 
 **Full documentation:** See [`AUTOMATED_PPT_GUIDE.md`](AUTOMATED_PPT_GUIDE.md)
 
