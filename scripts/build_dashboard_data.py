@@ -36,6 +36,7 @@ from npi_master_loader import load_npi_master
 from npi_lifecycle import enrich_npi_master_with_lifecycle
 from npi_performance import build_npi_performance_block
 from npi_sales_loaders import load_article_primary_sales, load_article_offtake_sales, normalize_chain_name
+from monthly_insights_integration import inject_monthly_insights_into_data
 
 # --------------------------------------------------------------------------
 # FALLBACK: Synthesize offtake summary from raw CSVs when flat file missing
@@ -4189,6 +4190,10 @@ def main():
         obj["insights"] = insights
         if qc is not None:
             obj["chain_allocation_qc"] = qc
+
+        # Inject monthly insights (Phase 4.4 pre-calculation)
+        obj = inject_monthly_insights_into_data(obj)
+
         _fy_tags = primary.get("fy_tags", [])
         _nsv_summary = " / ".join(f"{t.upper()} {primary.get(f'nsv_{t}', 'N/A')}" for t in _fy_tags)
         print(f"primary-only: {_nsv_summary} (Lakh); "
@@ -4531,6 +4536,10 @@ def main():
             print(f"npi_performance: {n_facts} performance facts generated ({load_status})")
         except Exception as e:
             print(f"⚠ NPI Performance block generation failed (non-blocking): {e}")
+
+    # ---- Monthly Insights Pre-Calculation (Phase 4.4) ----
+    # Inject pre-calculated insights block (non-destructive; fails gracefully if insufficient data)
+    data = inject_monthly_insights_into_data(data)
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
     payload = serialize_window_dash(data, indent=1)

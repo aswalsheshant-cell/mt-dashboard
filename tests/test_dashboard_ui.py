@@ -24,9 +24,11 @@ TABS_KEYWORDS = {
 }
 
 ALL_TAB_IDS = [
-    "explorer", "overview", "primary", "offtake", "pnl",
-    "category", "forecast", "promo", "mktshare",
-    "distribution", "performance", "insights",
+    "explorer", "overview", "monthly-briefing", "primary", "offtake", "reliance-bc",
+    "pnl", "category", "forecast", "promo", "offtake-impact",
+    "share", "distribution", "comparison", "channel-economics", "execution-excellence",
+    "demand-supply", "market-research", "retail-execution", "analytics", "stores",
+    "inventory", "forecast-tracking", "cm2", "insights",
 ]
 
 

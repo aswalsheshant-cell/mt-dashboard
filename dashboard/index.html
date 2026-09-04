@@ -8,6 +8,7 @@
 <script src="html2canvas.min.js"></script>
 <script src="jspdf.umd.min.js"></script>
 <script src="xlsx.core.min.js"></script>
+<link rel="stylesheet" href="monthly-insights.css">
 <script>
   // Vercel Web Analytics initialization
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -272,6 +273,7 @@
 <div class="wrap">
   <section id="tab-explorer"></section>
   <section id="tab-overview"></section>
+  <section id="tab-monthly-briefing"></section>
   <section id="tab-primary"></section>
   <section id="tab-offtake"></section>
   <section id="tab-reliance-bc"></section>
@@ -290,11 +292,16 @@
   <section id="tab-insights"></section>
   <section id="tab-forecast-tracking"></section>
   <section id="tab-cm2"></section>
+  <section id="tab-channel-economics"></section>
+  <section id="tab-execution-excellence"></section>
+  <section id="tab-demand-supply"></section>
+  <section id="tab-market-research"></section>
 </div>
 <footer id="foot"></footer>
 
 <script src="data.js?v=20260703-3"></script>
 <script src="inventory_engine.js"></script>
+<script src="monthly-insights.js"></script>
 <script>
 // Load enriched analytics sidecar (non-destructive, optional)
 window.enrichedMetrics={};
@@ -975,6 +982,49 @@ function buildOverview(){
            isTY?'business TY target':`@ ${f.growth_assumption_pct!=null?f.growth_assumption_pct+'%':'–'} planning growth`)
        : kpi('FY27 Forecast','–','forecast data not yet loaded')}
    </div>
+   ${(()=>{
+     const brief=D.monthly_insights||{};
+     const align=brief.alignment||{};
+     const dist=brief.distribution||{};
+     const dh=brief.distributor_health||[];
+     const highCnt=dh.filter(d=>d.engagement_status==='HIGH').length;
+     const medCnt=dh.filter(d=>d.engagement_status==='MEDIUM').length;
+     const lowCnt=dh.filter(d=>d.engagement_status==='LOW').length;
+     const alignColor=align.health_status==='HEALTHY'?'#2d9b7f':align.health_status==='WARNING'?'#c77d17':'#c0392b';
+     const alignText=align.health_status==='HEALTHY'?'Aligned':align.health_status==='WARNING'?'Caution':'At Risk';
+     const ndColor=dist.nd_status==='ON_TRACK'?'#2d9b7f':'#c77d17';
+     const wdColor=dist.wd_status==='ON_TRACK'?'#2d9b7f':'#c77d17';
+     const gapStatus=getRagStatus('alignment_gap',align.delta_pct||0);
+     const ndStatus=getRagStatus('nd_pct',dist.nd_pct||0);
+     const wdStatus=getRagStatus('wd_pct',dist.wd_pct||0);
+     if(!brief.month) return '';
+     return `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0;margin-bottom:24px;">
+       <div style="background:#f9f6f3;border:1px solid #e4e0d8;border-radius:10px;padding:16px;text-align:center;">
+         <p style="margin:0;font-size:11px;color:#6b7682;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Primary vs Secondary</p>
+         <p style="margin:8px 0 0 0;font-size:16px;font-weight:700;color:${alignColor};">${alignText}</p>
+         <p style="margin:4px 0 0 0;font-size:11px;color:#666;">${align.delta_pct!=null?align.delta_pct.toFixed(1)+'% gap':'No data'}</p>
+         <p style="margin:6px 0 0 0;font-size:10px;">${renderRagBadge(gapStatus,'Gap: '+gapStatus.toUpperCase())}</p>
+       </div>
+       <div style="background:#f9f6f3;border:1px solid #e4e0d8;border-radius:10px;padding:16px;text-align:center;">
+         <p style="margin:0;font-size:11px;color:#6b7682;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">ND / WD Positioning</p>
+         <p style="margin:8px 0 0 0;font-size:13px;font-weight:700;color:#1f2933;">
+           <span style="color:${ndColor};">${(dist.nd_pct||0).toFixed(1)}%</span> ND /
+           <span style="color:${wdColor};">${(dist.wd_pct||0).toFixed(1)}%</span> WD
+         </p>
+         <p style="margin:4px 0 0 0;font-size:11px;color:#666;font-weight:600;color:${dist.positioning==='WINNING'?'#2d9b7f':dist.positioning==='SPREAD_THIN'?'#c77d17':dist.positioning==='CONCENTRATED'?'#2b6cb0':'#c0392b'};">${dist.positioning||'–'}</p>
+         <p style="margin:6px 0 0 0;font-size:10px;">${renderRagBadge(ndStatus,'ND')}&nbsp;&nbsp;${renderRagBadge(wdStatus,'WD')}</p>
+       </div>
+       <div style="background:#f9f6f3;border:1px solid #e4e0d8;border-radius:10px;padding:16px;text-align:center;">
+         <p style="margin:0;font-size:11px;color:#6b7682;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Distributor Health</p>
+         <p style="margin:8px 0 0 0;font-size:13px;font-weight:700;">
+           <span style="color:#2d9b7f;margin-right:8px;">●${highCnt}</span>
+           <span style="color:#c77d17;margin-right:8px;">●${medCnt}</span>
+           <span style="color:#c0392b;">●${lowCnt}</span>
+         </p>
+         <p style="margin:4px 0 0 0;font-size:11px;color:#666;">High·Medium·Low</p>
+       </div>
+     </div>`;
+   })()}
    ${renderZoneHeatmap(extractZoneHeatmapData())}
    ${renderSummaryBox(extractSummaryBoxData())}
    ${renderHighlightsCard(extractHighlightsData())}
@@ -1081,6 +1131,221 @@ function buildOverview(){
   ]);
   mkDonut('ovChannel',channels.map(c=>c.name),channels.map(c=>c[primYr]),true,v=>drillTo('Channel',v));
   renderDrillChart('ovDrill','Primary NSV',recFilter());
+}
+
+/* -------- MONTHLY BRIEFING (Executive 1-Pager) -------- */
+function buildMonthlyBriefing(){
+  const s=document.getElementById('tab-monthly-briefing');
+  const brief=D.monthly_insights;
+  if(!brief){
+    s.innerHTML=`<h2 class="sec">Monthly Executive Briefing</h2><p class="lead">Monthly insights data not available. Pre-calculation may be pending.</p>`;
+    return;
+  }
+  s.innerHTML=`
+    <h2 class="sec">Monthly Executive Briefing</h2>
+    <p class="lead">${brief.month} · Modern Trade · All values in ₹ Lakh unless noted · <span style="font-size:.85rem;color:#666">Generated ${new Date(brief.generated_at).toLocaleString()}</span></p>
+    <div id="briefing-content"></div>
+  `;
+  renderMonthlyInsightsBrief(brief, document.getElementById('briefing-content'));
+}
+
+/* ---- Channel Economics Tab ---- */
+function buildChannelEconomics(){
+  const s=id('tab-channel-economics');
+  const brief=D.monthly_insights;
+
+  if(!brief||!brief.distributor_health||!brief.distributor_health.length){
+    s.innerHTML='<h2 class="sec">Channel Economics</h2><p class="lead">Distributor profitability and engagement data not yet available.</p>';
+    return;
+  }
+
+  const dh=brief.distributor_health;
+  const highEngagement=dh.filter(d=>d.engagement_status==='HIGH').length;
+  const mediumEngagement=dh.filter(d=>d.engagement_status==='MEDIUM').length;
+  const lowEngagement=dh.filter(d=>d.engagement_status==='LOW').length;
+  const avgEarnings=dh.reduce((a,d)=>a+(d.est_annual_earnings_lakhs||0),0)/dh.length;
+  const avgRotation=dh.reduce((a,d)=>a+(d.rotation_days||0),0)/dh.length;
+
+  const rotationStatus=getRagStatus('rotation_days',avgRotation);
+  const summary=`
+    <div class="kpis">
+      ${kpi('Top Distributor Annual Earnings','₹'+((dh[0]&&dh[0].est_annual_earnings_lakhs)||0).toFixed(1)+'L',dh[0]?'by revenue contribution':'')}
+      ${kpi('Avg Stock Rotation',''+avgRotation.toFixed(1)+' days '+renderRagBadge(rotationStatus,""+rotationStatus),'lower = faster turns')}
+      ${kpi('High Engagement Distributors',highEngagement+'/'+dh.length,'10-day rotation target')}
+      ${kpi('Avg Annual Earnings','₹'+avgEarnings.toFixed(1)+'L','across top 10')}
+    </div>
+  `;
+
+  const rows=dh.map(d=>{
+    const rotStatus=getRagStatus('rotation_days',d.rotation_days);
+    return `<tr class="row-${d.engagement_status.toLowerCase()}">
+    <td><b>${hesc(d.distributor)}</b></td>
+    <td class="r">₹${(d.monthly_purchase_lakhs||0).toFixed(1)}</td>
+    <td class="r">${(d.rotation_days||0).toFixed(0)} <span style="font-size:9px;">${renderRagBadge(rotStatus,"")}</span></td>
+    <td class="r">${(d.annual_turns||0).toFixed(1)}</td>
+    <td class="r">${(d.margin_pct||0).toFixed(1)}%</td>
+    <td class="r"><b>₹${(d.est_annual_earnings_lakhs||0).toFixed(1)}</b></td>
+    <td style="text-align:center"><span class="status-${d.engagement_status.toLowerCase()}">${d.engagement_status}</span></td>
+  </tr>`;
+  }).join('');
+
+  const table=`<div class="tablewrap"><table>
+    <thead><tr><th>Distributor</th><th>Monthly Purchase</th><th>Rotation Days</th><th>Annual Turns</th><th>Margin %</th><th>Est. Annual Earnings</th><th>Engagement</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+
+  s.innerHTML=`<h2 class="sec">Channel Economics — Distributor Profitability & Engagement</h2>
+    <p class="lead">Distributor economics analysis: annual earnings, stock rotation speed, and engagement tier classification.</p>
+    ${summary}
+    ${card('Top 10 Distributors by Revenue','Economics: (Monthly Purchase × Margin % × Annual Turns) − Operating Costs. Rotation Days derived from monthly purchase velocity.',table)}
+    <div style="margin-top:20px;padding:16px;background:#f9f6f3;border-radius:8px;border-left:4px solid #2d9b7f;">
+      <p style="margin:0;font-size:14px;color:#1f2933;"><b>Initiative #3: Distributor Engagement Program</b></p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#666;">Target: Move ${lowEngagement} low-engagement distributors (${(lowEngagement/dh.length*100).toFixed(0)}%) to MEDIUM within 60 days through economics fix & secondary sales training. Expected impact: +₹50L.</p>
+    </div>`;
+}
+
+/* ---- Execution Excellence Tab ---- */
+function buildExecutionExcellence(){
+  const s=id('tab-execution-excellence');
+  const retail=D.retail_execution||{};
+  const inv=D.inventory||{};
+
+  // KPI summary
+  const otd=retail.otd_pct||null;
+  const fill=retail.fill_rate_pct||null;
+  const strike=retail.strike_rate_pct||null;
+  const olfr=retail.olfr_pct||null;
+  const otdStatus=otd!=null?getRagStatus('otd_pct',otd):'unknown';
+  const fillStatus=fill!=null?getRagStatus('fill_rate_pct',fill):'unknown';
+  const strikeStatus=strike!=null?getRagStatus('strike_rate_pct',strike):'unknown';
+
+  const kpiHtml=`
+    <div class="kpis">
+      ${kpi('OTD (On-Time Delivery)',otd!=null?(otd.toFixed(1)+'% '+renderRagBadge(otdStatus,"")):'–','Target ≥85%')}
+      ${kpi('Fill Rate',fill!=null?(fill.toFixed(1)+'% '+renderRagBadge(fillStatus,"")):'–','Planogram compliance')}
+      ${kpi('Strike Rate',strike!=null?(strike.toFixed(1)+'% '+renderRagBadge(strikeStatus,"")):'–','Productive calls %')}
+      ${kpi('OLFR (Online-to-Offline)',olfr!=null?(olfr.toFixed(1)+'%'):'–','Omnichannel penetration')}
+    </div>
+  `;
+
+  // Zone-wise breakdown
+  const zoneData=(D.primary||{}).by_zone||[];
+  const zoneRows=zoneData.map(z=>{
+    const zr=retail.by_zone&&retail.by_zone.find(x=>x.name===z.name)||{};
+    const zotdStatus=zr.otd_pct!=null?getRagStatus('otd_pct',zr.otd_pct):'unknown';
+    const zfillStatus=zr.fill_rate_pct!=null?getRagStatus('fill_rate_pct',zr.fill_rate_pct):'unknown';
+    return `<tr style="background:${zotdStatus==='red'?'#fce8e6':zotdStatus==='amber'?'#fff7e6':'transparent'}">
+      <td><b>${hesc(z.name)}</b></td>
+      <td class="r">${zr.otd_pct!=null?(zr.otd_pct.toFixed(1)+'%'):'–'}</td>
+      <td class="r">${zr.fill_rate_pct!=null?(zr.fill_rate_pct.toFixed(1)+'%'):'–'}</td>
+      <td class="r">${zr.strike_rate_pct!=null?(zr.strike_rate_pct.toFixed(1)+'%'):'–'}</td>
+      <td class="r">${zr.zds_count||0}</td>
+    </tr>`;
+  }).join('');
+
+  const zoneTable=`<div class="tablewrap"><table>
+    <thead><tr><th>Zone</th><th>OTD %</th><th>Fill Rate %</th><th>Strike Rate %</th><th>ZDS Count</th></tr></thead>
+    <tbody>${zoneRows}</tbody>
+  </table></div>`;
+
+  s.innerHTML=`<h2 class="sec">Execution Excellence — Field Metrics & RAG</h2>
+    <p class="lead">On-time delivery, planogram compliance, productivity, and zero-demand-store tracking.</p>
+    ${kpiHtml}
+    ${card('Zone-wise Execution Performance','OTD = % orders delivered within SLA. Fill Rate = Planogram compliance. Strike = Productive calls %. ZDS = Zero-demand stores.',zoneTable)}
+    <div style="margin-top:20px;padding:16px;background:#f0f9f7;border-radius:8px;border-left:4px solid #2d9b7f;">
+      <p style="margin:0;font-size:14px;color:#1f2933;"><b>Initiative #4: Execution Excellence</b></p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#666;">Target: Achieve OTD ≥85% (SLA), Strike Rate ≥80% (productive calls), Fill Rate ≥95% (planogram). Expected impact: +₹30–40L in 30 days.</p>
+    </div>`;
+}
+
+/* ---- Demand vs Supply Alignment Tab ---- */
+function buildDemandSupply(){
+  const s=id('tab-demand-supply');
+  const p=D.primary||{}, o=D.offtake||{}, f=D.forecast||{};
+  const brief=D.monthly_insights||{};
+
+  // Primary vs Secondary alignment
+  const alignment=brief.alignment||{};
+  const alignStatus=alignment.health_status||'NO_DATA';
+  const primaryV=alignment.primary_value||0;
+  const secondaryV=alignment.secondary_value||0;
+
+  // WAPE and Forecast bias
+  const forecast=brief.forecast_accuracy||{};
+  const wape=forecast.wape_pct||null;
+  const bias=forecast.bias_pct||null;
+  const gapPct=alignment.delta_pct||null;
+  const gapStatus=gapPct!=null?getRagStatus('alignment_gap',gapPct):'unknown';
+  const wapeStatus=wape!=null?getRagStatus('wape_pct',wape):'unknown';
+
+  const alignBadge=alignStatus==='HEALTHY'?renderRagBadge('green','healthy'):alignStatus==='WARNING'?renderRagBadge('amber','caution'):renderRagBadge('red','at_risk');
+  const alignLabel=alignStatus==='HEALTHY'?'Aligned ':alignStatus==='WARNING'?'Caution ':'At Risk ';
+  const kpiHtml=`
+    <div class="kpis">
+      ${kpi('Alignment Health',alignLabel+alignBadge,'Primary vs Secondary gap')}
+      ${kpi('WAPE (Forecast Error)',wape!=null?wape.toFixed(1)+'% '+renderRagBadge(wapeStatus,""):'–','Target ≤8%')}
+      ${kpi('Forecast Bias',bias!=null?(bias>0?'+':'')+(bias.toFixed(1))+'%':'–','Systematic under/over')}
+      ${kpi('Stock Cover Days',f.dds_days!=null?f.dds_days.toFixed(1)+' days':'–','Supply availability')}
+    </div>
+  `;
+
+  // Alignment interpretation
+  const alignDetail=alignment.interpretation||'Insufficient primary and offtake data for analysis.';
+
+  s.innerHTML=`<h2 class="sec">Demand vs Supply Alignment — Primary–Secondary Gap Analysis</h2>
+    <p class="lead">Primary (sell-in) vs secondary (sell-out) trends, supply-demand mismatch detection, and forecast accuracy.</p>
+    ${kpiHtml}
+    ${card('Alignment Interpretation','','<p style="padding:0;margin:0;font-size:13px;color:#374151;line-height:1.6;">'+hesc(alignDetail)+'</p>')}
+    <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      ${card('Scenario Detection','','<ul style="padding:0;margin:0;font-size:13px;"><li><b>Inventory Buildup:</b> Primary ↑ while Secondary flat → Stock accumulation risk</li><li><b>Supply Constraint:</b> Secondary ↑ while Primary flat → Fulfillment gap</li><li><b>Healthy Alignment:</b> Primary & Secondary in sync (&lt;1% gap)</li></ul>')}
+      ${card('Action Trigger','','<ul style="padding:0;margin:0;font-size:13px;"><li><b>Gap &gt;5%:</b> RED — Immediate intervention (run audits, adjust orders)</li><li><b>Gap 1–5%:</b> AMBER — Monitor closely (may resolve in 1–2 days)</li><li><b>Gap &lt;1%:</b> GREEN — Healthy alignment (maintain cadence)</li></ul>')}
+    </div>
+    <div style="margin-top:20px;padding:16px;background:#fffaf5;border-radius:8px;border-left:4px solid #c77d17;">
+      <p style="margin:0;font-size:14px;color:#1f2933;"><b>Initiative #2: Secondary Sales Acceleration</b></p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#666;">Target: Grow secondary sales +40–60% in 30–60 days. Demand vs Supply tab gates action: if secondary is supply-constrained, prioritize order fulfillment first; if demand-constrained, accelerate promotions.</p>
+    </div>`;
+}
+
+/* ---- Market Research & Macro Tab ---- */
+function buildMarketResearch(){
+  const s=id('tab-market-research');
+  const mr=D.market_research||{};
+  const brief=D.monthly_insights||{};
+  const dist=brief.distribution||{};
+  const nd=dist.nd_pct||null;
+  const wd=dist.wd_pct||null;
+  const ndStatus=nd!=null?getRagStatus('nd_pct',nd):'unknown';
+  const wdStatus=wd!=null?getRagStatus('wd_pct',wd):'unknown';
+
+  const kpiHtml=`
+    <div class="kpis">
+      ${kpi('ND % by Category',nd!=null?(nd.toFixed(1)+'% '+renderRagBadge(ndStatus,"")):'–','Numeric distribution analysis')}
+      ${kpi('WD % by Category',wd!=null?(wd.toFixed(1)+'% '+renderRagBadge(wdStatus,"")):'–','Weighted distribution analysis')}
+      ${kpi('Whitespace Opportunity','–','Unserved store-category pairs')}
+      ${kpi('Competitive Benchmark','–','vs. leading regional players')}
+    </div>
+  `;
+
+  const content=`
+    <p style="font-size:13px;color:#666;margin:0;">Market research data is pre-calculated from the monthly insights engine and updated monthly. This tab displays:</p>
+    <ul style="font-size:13px;color:#666;margin:12px 0;">
+      <li><b>ND/WD Quadrant Matrix by Category:</b> 4-quadrant positioning for each category (WINNING, SPREAD_THIN, CONCENTRATED, LOSING)</li>
+      <li><b>Regional Whitespace:</b> Store-category combinations with zero stocking opportunity</li>
+      <li><b>Macro Insight (Weather, Rainfall):</b> Seasonal/regional demand levers that inform category-wise strategy</li>
+      <li><b>Competitor Benchmarking:</b> Regional player penetration and positioning (where competitive data exists)</li>
+    </ul>
+    <p style="font-size:13px;color:#666;margin:12px 0;"><b>Note:</b> Detailed category-wise analysis available in the Category & Pack tab. This view aggregates insights for strategic decision-making.</p>
+  `;
+
+  s.innerHTML=`<h2 class="sec">Market Research & Macro — Strategic Whitespace & Competitive Positioning</h2>
+    <p class="lead">ND/WD quadrant analysis by category, whitespace opportunity mapping, and macro-informed demand drivers.</p>
+    ${kpiHtml}
+    ${card('4-Quadrant ND/WD Analysis','','<p>Each category positioned on a 2×2 matrix:</p><ul style="font-size:13px;margin:8px 0 0 0;"><li><b>WINNING (High ND, High WD):</b> Strong penetration and revenue concentration</li><li><b>SPREAD_THIN (High ND, Low WD):</b> Broad reach but low revenue per store</li><li><b>CONCENTRATED (Low ND, High WD):</b> Elite channel but limited reach</li><li><b>LOSING (Low ND, Low WD):</b> Limited penetration and revenue − growth opportunity</li></ul>')}
+    ${card('Macro & Seasonal Drivers',content,'')}
+    <div style="margin-top:20px;padding:16px;background:#fff7e6;border-radius:8px;border-left:4px solid #c77d17;">
+      <p style="margin:0;font-size:14px;color:#1f2933;"><b>Initiative #5: Macro-Informed Planning</b></p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#666;">Incorporate weather, rainfall, and regional demand patterns into monthly demand forecasts. Expected net benefit: +₹20L (immediate, through better inventory allocation).</p>
+    </div>`;
 }
 
 /* ---------------- PRIMARY ---------------- */
@@ -3851,7 +4116,39 @@ function buildInventory(){
 
 function buildInsights(){
   const s=document.getElementById('tab-insights');
-  if(!D.insights||D.insights.length===0){s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2><p class="lead">No insights available yet.</p>`;return;}
+
+  // Build alert center from RAG thresholds
+  const alerts=getAlertSummary();
+  const alertCenter=alerts.red.length>0||alerts.amber.length>0?`
+    <div style="margin-bottom:24px;padding:16px;background:#fff8f5;border:2px solid #fce8e6;border-radius:10px;">
+      <h3 style="margin:0 0 12px 0;color:#c0392b;font-size:16px;">🚨 Operational Alert Center</h3>
+      ${alerts.red.length>0?`
+        <div style="margin-bottom:12px;">
+          <p style="margin:0 0 8px 0;color:#c0392b;font-weight:600;font-size:13px;">🔴 RED ALERTS (${alerts.red.length}) — Immediate action required</p>
+          <div style="display:grid;gap:8px;">
+            ${alerts.red.map(a=>`<div style="background:#fce8e6;padding:8px;border-radius:6px;font-size:12px;color:#c0392b;">
+              <strong>${a.label}</strong>: ${a.value}
+            </div>`).join('')}
+          </div>
+        </div>
+      `:''}
+      ${alerts.amber.length>0?`
+        <div>
+          <p style="margin:0 0 8px 0;color:#c77d17;font-weight:600;font-size:13px;">🟡 AMBER ALERTS (${alerts.amber.length}) — Monitor closely</p>
+          <div style="display:grid;gap:8px;">
+            ${alerts.amber.map(a=>`<div style="background:#fff7e6;padding:8px;border-radius:6px;font-size:12px;color:#c77d17;">
+              <strong>${a.label}</strong>: ${a.value}
+            </div>`).join('')}
+          </div>
+        </div>
+      `:''}
+    </div>
+  `:'';
+
+  if(!D.insights||D.insights.length===0){s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2>
+    <p class="lead">Executive dashboard and operational alerts.</p>
+    ${alertCenter}
+    <p class="lead" style="color:#999;">No additional insights available yet.</p>`;return;}
 
   // Detect new vs. old insight format
   const isNewFormat=D.insights[0]&&D.insights[0].severity;
@@ -3913,6 +4210,7 @@ function buildInsights(){
 
   s.innerHTML=`<h2 class="sec">Data Insights &amp; Way Forward</h2>
    <p class="lead">${isNewFormat?'AI-generated executive sentiments from Phase 3 analysis. ':''}Auto-generated from the underlying data, with leadership actions.</p>
+   ${alertCenter}
    ${summaryHtml}
    <div class="ins" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px;">${cards}</div>
    ${card('Way forward — recommended actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
@@ -4323,21 +4621,86 @@ function exportCSV(recs){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='mt_detail_filtered.csv';a.click();
 }
+/* ---- RAG Threshold Rules (Phase 4.5) ---- */
+const RAG_THRESHOLDS={
+  alignment_gap:{green:{min:0,max:5},amber:{min:5,max:10},red:{min:10,max:Infinity}},
+  otd_pct:{green:{min:92,max:Infinity},amber:{min:85,max:92},red:{min:0,max:85}},
+  rotation_days:{green:{min:0,max:15},amber:{min:15,max:25},red:{min:25,max:Infinity}},
+  nd_pct:{green:{min:78,max:Infinity},amber:{min:70,max:78},red:{min:0,max:70}},
+  wd_pct:{green:{min:72,max:Infinity},amber:{min:60,max:72},red:{min:0,max:60}},
+  wape_pct:{green:{min:0,max:8},amber:{min:8,max:15},red:{min:15,max:Infinity}},
+  fill_rate_pct:{green:{min:95,max:Infinity},amber:{min:90,max:95},red:{min:0,max:90}},
+  strike_rate_pct:{green:{min:80,max:Infinity},amber:{min:70,max:80},red:{min:0,max:70}},
+  earning_trend:{green:{min:0,max:Infinity},amber:{min:-5,max:0},red:{min:-999,max:-5}}
+};
+
+function getRagStatus(metricKey,value){
+  if(value==null||isNaN(value))return'unknown';
+  const threshold=RAG_THRESHOLDS[metricKey];
+  if(!threshold)return'unknown';
+  if(value>=threshold.green.min&&value<=threshold.green.max)return'green';
+  if(value>=threshold.amber.min&&value<=threshold.amber.max)return'amber';
+  if(value>=threshold.red.min&&value<=threshold.red.max)return'red';
+  return'unknown';
+}
+
+function renderRagBadge(status,label){
+  const colors={green:'#2e7d32',amber:'#c77d17',red:'#c0392b',unknown:'#6b7682'};
+  const bgColors={green:'#e6f4ea',amber:'#fff7e6',red:'#fce8e6',unknown:'#f5f5f5'};
+  const color=colors[status]||colors.unknown;
+  const bgColor=bgColors[status]||bgColors.unknown;
+  return `<span style="display:inline-block;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;background:${bgColor};color:${color};border:1px solid ${color}22;">${label}</span>`;
+}
+
+function getAlertSummary(){
+  const brief=D.monthly_insights||{};
+  const alerts={red:[],amber:[]};
+
+  const checks=[
+    {metric:'alignment_gap',value:(brief.alignment||{}).delta_pct,label:'Primary vs Secondary Gap',unit:'%'},
+    {metric:'nd_pct',value:(brief.distribution||{}).nd_pct,label:'Numeric Distribution (ND)',unit:'%'},
+    {metric:'wd_pct',value:(brief.distribution||{}).wd_pct,label:'Weighted Distribution (WD)',unit:'%'},
+    {metric:'wape_pct',value:(brief.forecast_accuracy||{}).wape_pct,label:'Forecast Error (WAPE)',unit:'%'}
+  ];
+
+  checks.forEach(c=>{
+    if(c.value!=null){
+      const status=getRagStatus(c.metric,c.value);
+      if(status==='red') alerts.red.push({label:c.label,value:c.value.toFixed(1)+c.unit,status});
+      if(status==='amber') alerts.amber.push({label:c.label,value:c.value.toFixed(1)+c.unit,status});
+    }
+  });
+
+  const dh=brief.distributor_health||[];
+  const slowRotation=dh.filter(d=>getRagStatus('rotation_days',d.rotation_days)==='red');
+  if(slowRotation.length>0){
+    alerts.amber.push({label:`Slow Distributor Rotation`,value:`${slowRotation.length} distributors >25d`,status:'amber'});
+  }
+
+  return alerts;
+}
+
 /* ---------------- nav ---------------- */
-const TABS=[['explorer','Data Explorer'],['overview','Overview'],['primary','Primary'],['offtake','Offtake'],
+const TABS=[['explorer','Data Explorer'],['overview','Overview'],['monthly-briefing','Monthly Briefing'],
+  ['primary','Primary'],['offtake','Offtake'],
   ['reliance-bc','Reliance Brand Counter'],
   ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
+  ['channel-economics','Channel Economics'],['execution-excellence','Execution Excellence'],
+  ['demand-supply','Demand vs Supply'],['market-research','Market Research & Macro'],
   ['retail-execution','Retail Execution'],
   ['analytics','Commercial Analytics'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory'],
   ['forecast-tracking','Daily & Weekly Forecast'],['cm2','CM2 & Claim Analysis'],['insights','Insights & Way Forward']];
-const BUILD={explorer:buildExplorer,overview:buildOverview,primary:buildPrimary,offtake:buildOfftake,
+const BUILD={explorer:buildExplorer,overview:buildOverview,'monthly-briefing':buildMonthlyBriefing,primary:buildPrimary,offtake:buildOfftake,
   'reliance-bc':buildRelianceBC,
   pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,'retail-execution':buildRetailExecution,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
+  distribution:buildDistribution,comparison:buildComparison,
+  'channel-economics':buildChannelEconomics,'execution-excellence':buildExecutionExcellence,
+  'demand-supply':buildDemandSupply,'market-research':buildMarketResearch,
+  'retail-execution':buildRetailExecution,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
   'forecast-tracking':buildDailyWeeklyForecast,cm2:buildCM2,insights:buildInsights};
 let currentTab='overview';
 function show(id){
