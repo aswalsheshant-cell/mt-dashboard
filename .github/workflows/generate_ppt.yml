@@ -100,3 +100,39 @@ jobs:
             echo "✅ Updated artifacts (PPTX/PDF/PNG/badge) committed and pushed."
           fi
 
+      - name: Notify on Success (Optional Slack Webhook)
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "✅ Modern Trade 1-Pager Generated Successfully",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Modern Trade Executive Snapshot*\n📊 Latest artifacts generated and committed.\n\n• <https://github.com/aswalsheshant-cell/mt-dashboard/raw/main/MT_Primary_vs_Offtake_1Pager.pptx|📥 Download PPTX>\n• <https://github.com/aswalsheshant-cell/mt-dashboard/raw/main/MT_Primary_vs_Offtake_1Pager.pdf|📄 Download PDF>\n• <https://github.com/aswalsheshant-cell/mt-dashboard/raw/main/MT_Primary_vs_Offtake_1Pager.png|🖼️ View PNG>"
+                  }
+                }
+              ]
+            }'
+
+      - name: Alert on Failure (Optional Slack Webhook)
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "❌ Modern Trade 1-Pager Generation Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Modern Trade PPT Generation Failed*\n⚠️ Data validation or generation error detected.\n\n<https://github.com/aswalsheshant-cell/mt-dashboard/actions|View workflow logs> to diagnose the issue."
+                  }
+                }
+              ]
+            }'
+
