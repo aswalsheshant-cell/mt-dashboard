@@ -1,26 +1,92 @@
-# MT Dashboard Production Runbook
+# MT Dashboard v1.1.0 — Operations Runbook
 
-**Release Version:** v1.0.0  
-**Date:** 2026-09-03  
-**Status:** Production Ready ✅
+**Release Version:** v1.1.0 (Phase 4 Complete)  
+**Date:** 2026-09-04  
+**Status:** Production Ready ✅  
+**Live Dashboard:** https://aswalsheshant-cell.github.io/mt-dashboard/
 
 ---
 
 ## Overview
 
-This runbook documents operational procedures for the MT Dashboard production environment. The dashboard operates in two modes: (1) **Static HTML/JS** served offline or on GitHub Pages, and (2) **Power BI analytics** for detailed modeling and executive reporting.
+This runbook documents operational procedures for the MT Dashboard v1.1.0 production environment. 
+
+**Architecture:** 25-tab unified dashboard with 14-layer monthly insights engine and RAG alert system.
+
+**Components:**
+1. **Static HTML/JS Dashboard** — served via GitHub Pages, offline-capable
+2. **Monthly Insights Engine** — pre-calculated 14-layer framework (alignment, distribution, forecast, actions)
+3. **RAG Alert System** — 9-metric thresholds with Red/Amber/Green status indicators
+4. **Playwright CI Pipeline** — strict 52-state validation (25 tabs × 4 FY states)
+5. **Power BI Integration** — optional detailed modeling and secondary analysis
 
 ---
 
-## 1. Strict CI/CD Pipeline (Sept 2026)
+## 1. Dashboard Navigation & RAG Alert Monitoring
+
+### 25-Tab Architecture
+
+**Executive Tabs:**
+- **Overview** — 3 RAG summary cards (alignment health, ND%, WD%)
+- **Monthly Briefing** — executive monthly review with drill-down
+- **Insights & Way Forward** — alert center (RED/AMBER alerts aggregated)
+
+**Operational Tabs:**
+- **Data Explorer** — granular data inspection
+- **Primary Sales** — chain × category performance
+- **Offtake (Secondary)** — store-level sell-through tracking
+- **P&L** — profitability analysis
+- **Category & Pack** — SKU-level performance
+- **Forecast** — demand planning & accuracy
+- **Promo & Trade Spend** — promotional ROI
+- **Market Share** — competitive positioning
+- **Distribution** — coverage & penetration
+- **Performance & Comparison** — zone/chain benchmarking
+- **Channel Economics** — distributor profitability & rotation
+- **Execution Excellence** — OTD, fill rate, strike rate
+- **Demand vs Supply** — primary/secondary alignment
+- **Market Research** — ND/WD quadrant, macro drivers
+- **Additional 11 tabs** — detailed analytics, custom views
+
+### RAG Alert Thresholds (Monitor Weekly)
+
+Visit **Insights & Way Forward** → **Alert Center** to review:
+
+| Alert Level | Color | Threshold | Action |
+|------------|-------|-----------|--------|
+| 🟢 GREEN | Green | Within target | Continue current strategy |
+| 🟡 AMBER | Orange | Warning zone | Plan corrective action |
+| 🔴 RED | Red | Critical breach | Escalate immediately |
+| ⚫ UNKNOWN | Gray | No data | Collect data, investigate |
+
+**9 Monitored Metrics:**
+1. Alignment Gap % (distributor overlap)
+2. Numeric Distribution % (store coverage)
+3. Weighted Distribution % (value coverage)
+4. On-Time Delivery % (supply chain)
+5. Fill Rate % (inventory)
+6. Rotation Days (secondary sales velocity)
+7. Forecast Accuracy % (demand planning)
+8. Promo ROI (trade spend efficiency)
+9. Secondary YoY % (growth rate)
+
+---
+
+## 2. Strict CI/CD Pipeline (Phase 4 Implementation)
 
 ### Validation Gates Active
 - **validate.yml** — Python syntax, JSON schema, JavaScript linting, dashboard markup
+- **ui-smoke.yml** — Playwright headless browser tests (all 25 tabs × 4 FY states = 52 states)
 - **deploy-pages.yml** — Automated GitHub Pages deployment on every `main` push
 - **pbi-windows-ci.yml** — Power BI model validation on Windows runner
 
-**Key Change:** `continue-on-error: true` flags removed from critical validation steps.  
-→ **Failures now halt the pipeline.** Do not bypass; fix the root cause.
+**Phase 4 Improvements:**
+- Fixed ui-smoke.yml: Added HTTP server startup + Chromium installation with system dependencies
+- Fixed ui-smoke.yml: Added server readiness verification before running Playwright tests
+- Tests now validate: No NaN/undefined, all tabs render, data structure integrity
+
+**Key Rule:** `continue-on-error: true` applies only to optional steps.  
+→ **Critical tests (validate, ui-smoke, deploy-pages) must pass.** Do not bypass; fix the root cause.
 
 ### Monitoring CI Health
 ```bash
@@ -33,20 +99,20 @@ git log main -5 --oneline
 
 ---
 
-## 2. Monthly Offtake Patch (Refresh Cycle)
+## 3. Monthly Offtake Patch (Refresh Cycle)
 
 ### Trigger
-When monthly offtake CSVs arrive in `PowerBI/RawDataFolders/Offtake_Monthly/`:
+When monthly offtake files arrive in `PowerBI/RawDataFolders/offtake_monthly/`:
 
 ### Procedure
 ```bash
 # 1. Verify files arrived
-ls PowerBI/RawDataFolders/Offtake_Monthly/*.xlsx | wc -l
+ls PowerBI/RawDataFolders/offtake_monthly/*.xlsb | wc -l
 
 # 2. Run offtake patch (idempotent — recomputes all touched FYs)
-python scripts/build_dashboard_data.py \
+python3 scripts/build_dashboard_data.py \
   --offtake-patch \
-  --src PowerBI/RawDataFolders/Offtake_Monthly \
+  --src PowerBI/RawDataFolders/offtake_monthly \
   --out dashboard/data.js
 
 # 3. Validate data integrity
@@ -64,7 +130,7 @@ git push origin main
 
 ---
 
-## 3. FY25/FY26/FY27 Coverage Rules
+## 4. FY25/FY26/FY27 Coverage Rules
 
 ### THE ONE FY RULE
 - **Apr–Dec of year Y** → **FY(Y+1)**  (e.g., Apr-26 → FY27)
@@ -93,7 +159,41 @@ with open('dashboard/data.js') as f:
 
 ---
 
-## 4. Data Integrity Assertions (Locked at Release)
+## 5. 14-Layer Monthly Insights Engine
+
+The insights engine pre-calculates 14 metrics for every month, chain, and zone:
+
+**Layer 1–3: Alignment & Distribution**
+- Alignment Delta % — primary vs offtake variance
+- Numeric Distribution % — store coverage at chain level
+- Weighted Distribution % — value-weighted coverage
+
+**Layer 4–6: Secondary Sales Velocity**
+- Rotation Days — stock turn speed (lower = faster)
+- Secondary YoY % — growth rate vs prior year
+- Fill Rate % — secondary sales fulfillment
+
+**Layer 7–9: Execution & Profitability**
+- On-Time Delivery % — supply chain performance
+- Promo ROI — trade spend efficiency
+- Distributor Margin $ — profitability per distributor
+
+**Layer 10–12: Demand & Forecasting**
+- Forecast Accuracy % — demand planning precision
+- MAPE (Mean Absolute Percentage Error)
+- Bias % — systematic over/under forecast
+
+**Layer 13–14: Strategic Insights**
+- Top 3 Opportunities — actionable levers by chain
+- Risk Flags — RED/AMBER alerts by metric
+
+**Generated at:** Build time (`revenue_presentation_engine.py`)  
+**Integrated into:** Overview tab + all drill-down views  
+**Accessed via:** `window.DASH.monthly_insights[fy_tag][chain]`
+
+---
+
+## 6. Data Integrity Assertions (Locked at Release)
 
 These assertions gate every build and PR merge:
 
@@ -119,7 +219,7 @@ python tests/validate_data_integrity.py dashboard/data.js
 
 ---
 
-## 5. GitHub Pages Deployment
+## 7. GitHub Pages Deployment
 
 ### Automatic (No Action Required)
 - Every push to `main` triggers `deploy-pages.yml`
