@@ -1,0 +1,52 @@
+name: Auto-Generate 1-Pager PPT
+
+on:
+  push:
+    paths:
+      - 'MT_Primary_vs_Offtake_Analysis_Template.xlsx'
+      - 'generate_1pager_ppt.py'
+    branches:
+      - main
+  workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-commit-ppt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@abc123def456ghi789jkl01
+
+      - name: Set up Python
+        uses: actions/setup-python@abc123def456ghi789jkl02
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-pptx openpyxl
+
+      - name: Generate 1-Pager Presentation
+        run: |
+          python generate_1pager_ppt.py
+
+      - name: Commit and Push Updated PPTX
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are actual changes to the PPTX
+          if git diff --quiet MT_Primary_vs_Offtake_1Pager.pptx; then
+            echo "✓ No changes detected in generated presentation."
+          else
+            git add MT_Primary_vs_Offtake_1Pager.pptx
+            git commit -m "Auto-generate updated 1-pager PPT from Excel [skip ci]"
+            git push origin main
+            echo "✅ Updated presentation committed and pushed."
+          fi
+
