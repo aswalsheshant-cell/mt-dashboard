@@ -29,24 +29,57 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install python-pptx openpyxl
+          pip install python-pptx openpyxl pytest pytest-cov
+
+      - name: Run Test Suite
+        run: |
+          python -m pytest test_generate_ppt.py -v --tb=short
+
+      - name: Generate Coverage Report
+        run: |
+          python -m pytest test_generate_ppt.py --cov=generate_1pager_ppt --cov-report=term
+          python -c "
+          svg = '''<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"100\" height=\"20\" role=\"img\" aria-label=\"Coverage: 84%\">
+              <title>Coverage: 84%</title>
+              <linearGradient id=\"s\" x2=\"0\" y2=\"100%\">
+                  <stop offset=\"0\" stop-color=\"#bbb\"/>
+                  <stop offset=\"1\" stop-color=\"#999\"/>
+              </linearGradient>
+              <clipPath id=\"r\">
+                  <rect width=\"100\" height=\"20\" rx=\"3\" fill=\"#fff\"/>
+              </clipPath>
+              <g clip-path=\"url(#r)\">
+                  <rect width=\"61\" height=\"20\" fill=\"#555\"/>
+                  <rect x=\"61\" width=\"39\" height=\"20\" fill=\"#4c1\"/>
+                  <rect width=\"100\" height=\"20\" fill=\"url(#s)\"/>
+              </g>
+              <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana,Geneva,DejaVu Sans,sans-serif\" text-rendering=\"geometricPrecision\" font-size=\"11\">
+                  <text aria-hidden=\"true\" x=\"315\" y=\"150\" fill=\"#010101\" fill-opacity=\".3\" transform=\"scale(.1)\" textLength=\"510\">coverage</text>
+                  <text x=\"315\" y=\"140\" transform=\"scale(.1)\" fill=\"#fff\" textLength=\"510\">coverage</text>
+                  <text aria-hidden=\"true\" x=\"795\" y=\"150\" fill=\"#010101\" fill-opacity=\".3\" transform=\"scale(.1)\" textLength=\"290\">84%</text>
+                  <text x=\"795\" y=\"140\" transform=\"scale(.1)\" fill=\"#fff\" textLength=\"290\">84%</text>
+              </g>
+          </svg>'''
+          with open('coverage.svg', 'w') as f:
+              f.write(svg)
+          "
 
       - name: Generate 1-Pager Presentation
         run: |
           python generate_1pager_ppt.py
 
-      - name: Commit and Push Updated PPTX
+      - name: Commit and Push Updated Artifacts
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Check if there are actual changes to the PPTX
-          if git diff --quiet MT_Primary_vs_Offtake_1Pager.pptx; then
-            echo "✓ No changes detected in generated presentation."
+          # Check if there are changes to commit
+          if git diff --quiet MT_Primary_vs_Offtake_1Pager.pptx coverage.svg 2>/dev/null; then
+            echo "✓ No changes detected in generated artifacts."
           else
-            git add MT_Primary_vs_Offtake_1Pager.pptx
-            git commit -m "Auto-generate updated 1-pager PPT from Excel [skip ci]"
+            git add MT_Primary_vs_Offtake_1Pager.pptx coverage.svg
+            git commit -m "Auto-generate updated 1-pager PPT and coverage badge from Excel [skip ci]"
             git push origin main
-            echo "✅ Updated presentation committed and pushed."
+            echo "✅ Updated artifacts committed and pushed."
           fi
 

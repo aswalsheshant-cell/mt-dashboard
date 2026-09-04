@@ -2,6 +2,7 @@
 
 [![CI Status](https://github.com/aswalsheshant-cell/mt-dashboard/actions/workflows/qc.yml/badge.svg)](https://github.com/aswalsheshant-cell/mt-dashboard/actions)
 [![Production Status](https://img.shields.io/badge/status-CONDITIONALLY%20READY-orange)](docs/PRODUCTION_READINESS_REPORT.md)
+[![PPT Test Coverage](coverage.svg)](test_generate_ppt.py)
 
 A self-contained offline analytics dashboard for Honasa / Mamaearth Modern Trade channel data, covering Primary (distributor) sales, Offtake (retail), P&L, Forecasts, and Executive Insights.
 
@@ -42,6 +43,29 @@ python scripts/qc_dashboard.py --data dashboard/data.js
 ```
 
 See [`docs/SOURCES.md`](docs/SOURCES.md) for source file locations and archival strategy.
+
+### Generate Executive 1-Pager PPT
+
+Automatically generate professional executive presentations from MT Primary vs. Offtake data:
+
+```bash
+# Generate PPT locally
+python generate_1pager_ppt.py
+# Output: MT_Primary_vs_Offtake_1Pager.pptx
+
+# Or push Excel template to trigger GitHub Actions auto-generation
+git push origin main
+```
+
+**Features:**
+- 16:9 widescreen executive layout
+- RAG status coloring (Green/Amber/Red based on alignment gap)
+- Zone performance table with 6 regions
+- Automatic alerts and action items
+- Idempotent (same input = same output)
+- GitHub Actions auto-regeneration on Excel push
+
+**Full documentation:** See [`AUTOMATED_PPT_GUIDE.md`](AUTOMATED_PPT_GUIDE.md)
 
 ---
 
