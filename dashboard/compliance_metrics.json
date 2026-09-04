@@ -1,11 +1,78 @@
 {
   "compliance": {
     "metadata": {
-      "audit_date": "2026-08-20",
-      "total_doors_audited": 12,
-      "macro_pes_percent": 83.5,
-      "coverage": "FY25-FY26"
+      "audit_date": "2026-09-01",
+      "total_doors_audited": 189,
+      "macro_pes_percent": 85.3,
+      "coverage": "Q3 FY27"
     },
+    "chain_summary": [
+      {
+        "chain": "DMart",
+        "total_stores": 45,
+        "compliant_stores": 41,
+        "compliance_pct": 91.2,
+        "status": "COMPLIANT",
+        "status_color": "#1E8E3E",
+        "last_audit": "2026-09-01",
+        "top_issues": [],
+        "trend": [85, 84, 86, 85, 91.2],
+        "trend_direction": "up",
+        "zones": ["West"]
+      },
+      {
+        "chain": "DMart",
+        "total_stores": 38,
+        "compliant_stores": 33,
+        "compliance_pct": 88.6,
+        "status": "COMPLIANT",
+        "status_color": "#1E8E3E",
+        "last_audit": "2026-09-01",
+        "top_issues": [],
+        "trend": [85, 84, 86, 85, 88.6],
+        "trend_direction": "up",
+        "zones": ["South"]
+      },
+      {
+        "chain": "Reliance Retail",
+        "total_stores": 52,
+        "compliant_stores": 42,
+        "compliance_pct": 82.4,
+        "status": "CRITICAL GAP",
+        "status_color": "#C0392B",
+        "last_audit": "2026-09-01",
+        "top_issues": ["Shelf compliance", "OSA gaps"],
+        "trend": [85, 84, 86, 85, 82.4],
+        "trend_direction": "down",
+        "zones": ["North"]
+      },
+      {
+        "chain": "Spencer's",
+        "total_stores": 24,
+        "compliant_stores": 17,
+        "compliance_pct": 74.5,
+        "status": "CRITICAL GAP",
+        "status_color": "#C0392B",
+        "last_audit": "2026-09-01",
+        "top_issues": ["Shelf compliance", "OSA gaps"],
+        "trend": [85, 84, 86, 85, 74.5],
+        "trend_direction": "down",
+        "zones": ["East"]
+      },
+      {
+        "chain": "More Retail",
+        "total_stores": 30,
+        "compliant_stores": 25,
+        "compliance_pct": 86.0,
+        "status": "WATCH",
+        "status_color": "#C77D17",
+        "last_audit": "2026-09-01",
+        "top_issues": ["Shelf compliance", "OSA gaps"],
+        "trend": [85, 84, 86, 85, 86.0],
+        "trend_direction": "up",
+        "zones": ["South"]
+      }
+    ],
     "accounts": [
       {
         "account_id": "acc_dmart",
@@ -195,9 +262,9 @@
   },
   "inventory_fillrate": {
     "metadata": {
-      "period": "FY26",
-      "macro_cfr_percent": 94.2,
-      "macro_otif_percent": 91.8,
+      "period": "Q3 FY27",
+      "macro_cfr_percent": 92.5,
+      "macro_otif_percent": 88.2,
       "total_lost_revenue_lakh": 124.5
     },
     "accounts": [
