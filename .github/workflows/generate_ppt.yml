@@ -7,7 +7,7 @@ on:
       - 'generate_1pager_ppt.py'
     branches:
       - main
-  workflow_dispatch
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@abc123def456ghi789jkl01
+        uses: actions/checkout@b4ffbf834c0d30837f0d8c5e4fbee37f7b17bbe1
 
       - name: Set up Python
-        uses: actions/setup-python@abc123def456ghi789jkl02
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
         with:
           python-version: '3.11'
           cache: 'pip'
