@@ -529,9 +529,12 @@ def main():
     print(f"  ✓ Saved")
 
     print(f"\n[6] Regenerating dashboard/data.js via sync_data_js.py...")
-    import subprocess
+    import subprocess, os
+    master_path = os.path.realpath(args.master)
+    output_path = os.path.realpath(args.output)
+    sync_script = os.path.join(os.path.dirname(os.path.realpath(__file__)), "sync_data_js.py")
     result = subprocess.run(
-        ["python", "scripts/sync_data_js.py", "--source", args.master, "--output", args.output],
+        [sys.executable, sync_script, "--source", master_path, "--output", output_path],
         capture_output=True, text=True
     )
     if result.returncode == 0:

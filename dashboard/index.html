@@ -13,7 +13,7 @@
   // Vercel Web Analytics initialization
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
-<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){document.write('<script defer src="\/_vercel\/insights\/script.js"><\/script>');}})();</script>
+<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){var s=document.createElement('script');s.defer=true;s.src='/_vercel/insights/script.js';document.head.appendChild(s);}})();</script>
 <style>
   :root{
     --teal:#2D9B7F; --teal-d:#1f7a63; --bg:#F4F1EC; --card:#ffffff;
@@ -424,7 +424,7 @@ const qtyFmt = v => { if(v==null) return '–'; const crv=v/1e7;
                                : (v/1e5).toLocaleString('en-IN',{maximumFractionDigits:2})+' L Qty'; };
 const cls = v => v==null?'':(v>=0?'up':'down');
 const arrow = v => v==null?'':(v>=0?'▲':'▼');
-const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null){if(typeof h==='string'&&/<[a-z]/i.test(h)){e.innerHTML=h;}else{e.textContent=h;}}return e;};
 
 function kpi(lab,val,sub){return `<div class="kpi"><div class="lab">${lab}</div><div class="val">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
 function card(title,note,inner,extraCls){
@@ -5136,7 +5136,10 @@ function exportExecutiveBriefPDF(){
   const brief=generateExecutiveBrief();
   const content=`PROMO ELASTICITY EXECUTIVE BRIEF\n${'='.repeat(50)}\nGenerated: ${brief.generated_at}\n\nMacro Elasticity: ${brief.macro_elasticity}\nOptimal Tier: ${brief.avg_optimal_tier}\n\nTop ROI Chains:\n${brief.top_roi_chains.map(c=>'  • '+c).join('\n')}\n\nKey Insights:\n${brief.key_insights.map(i=>'  • '+i).join('\n')}\n\nDilution Risk Flagged (${brief.dilution_risks.length}):\n${brief.dilution_risks.map(c=>'  • '+c).join('\n')||'  None detected'}`;
   const printWindow=window.open('','','width=800,height=600');
-  printWindow.document.write('<pre style="font-family:monospace;padding:20px;line-height:1.8;">'+content+'</pre>');
+  var pre=printWindow.document.createElement('pre');
+  pre.style.cssText='font-family:monospace;padding:20px;line-height:1.8;';
+  pre.textContent=content;
+  printWindow.document.body.appendChild(pre);
   printWindow.document.close();
   setTimeout(()=>printWindow.print(),500);
 }
@@ -5150,6 +5153,6 @@ function copyExecutiveBriefToClipboard(){
 <script>
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
 </script>
-<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){document.write('<script defer src="\/_vercel\/speed-insights\/script.js"><\/script>');}})();</script>
+<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){var s=document.createElement('script');s.defer=true;s.src='/_vercel/speed-insights/script.js';document.head.appendChild(s);}})();</script>
 </body>
 </html>
