@@ -2,6 +2,7 @@
 """
 Generate 1-pager executive PowerPoint presentation from MT Primary vs Offtake Analysis template.
 Reads metrics from Excel, applies RAG status logic, and builds a 16:9 slide.
+Includes comprehensive data validation, error handling, and schema guardrails.
 Idempotent: generates the same output for the same input.
 """
 
@@ -12,7 +13,6 @@ import openpyxl
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
 
 EXCEL_PATH = "MT_Primary_vs_Offtake_Analysis_Template.xlsx"
 OUTPUT_PPTX = "MT_Primary_vs_Offtake_1Pager.pptx"
@@ -25,20 +25,51 @@ COLOR_DARK = RGBColor(24, 43, 73)
 COLOR_GRAY = RGBColor(110, 110, 110)
 COLOR_BODY = RGBColor(16, 24, 40)
 
-def safe_float(val, default=0.0):
-    """Safely convert value to float, handling None, strings, and errors."""
-    if val is None:
-        return default
+class DataValidationError(Exception):
+    """Custom exception raised when Excel input fails schema validation."""
+    pass
+
+def validate_numeric(val, field_name, min_val=0.0, max_val=None, allow_none=False):
+    """
+    Validates that a cell value is numeric, non-empty, and within expected bounds.
+    Raises DataValidationError with descriptive message on failure.
+    """
+    if val is None or str(val).strip() == "":
+        if allow_none:
+            return 0.0
+        raise DataValidationError(f"Missing required numeric value for: '{field_name}'.")
+
     try:
-        return float(val)
+        num = float(val)
     except (ValueError, TypeError):
-        return default
+        raise DataValidationError(
+            f"Invalid data type for '{field_name}'. Expected a number, found: '{val}'."
+        )
+
+    if min_val is not None and num < min_val:
+        raise DataValidationError(
+            f"Value out of bounds for '{field_name}'. Got {num}, but minimum allowed is {min_val}."
+        )
+    if max_val is not None and num > max_val:
+        raise DataValidationError(
+            f"Value out of bounds for '{field_name}'. Got {num}, but maximum allowed is {max_val}."
+        )
+    return num
 
 def safe_str(val, default="–"):
     """Safely convert value to string, handling None."""
     if val is None or val == "":
         return default
     return str(val).strip()
+
+def safe_float(val, default=0.0):
+    """Safely convert value to float, returning default on failure."""
+    if val is None or str(val).strip() == "":
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
 
 def get_rag_status(gap_pct, primary_val=None):
     """
@@ -59,9 +90,10 @@ def get_rag_status(gap_pct, primary_val=None):
     else:
         return ("Red", COLOR_RED)
 
-def load_excel_metrics(filepath):
+def validate_and_load_data(filepath):
     """
-    Extracts summary metrics and zone data from Excel template.
+    Performs comprehensive schema validation and extracts metrics from Excel.
+    Raises DataValidationError with structured error list if validation fails.
     Returns: (kpis, zone_data, alerts)
     """
     if not os.path.exists(filepath):
@@ -71,24 +103,34 @@ def load_excel_metrics(filepath):
         wb = openpyxl.load_workbook(filepath, data_only=True)
         ws = wb.active
     except Exception as e:
-        raise RuntimeError(f"Failed to load Excel: {e}")
+        raise DataValidationError(f"Failed to open workbook '{filepath}'. File may be corrupt: {e}")
 
-    # --- 1. Extract Executive Summary Metrics ---
-    primary_nsv = safe_float(ws["B7"].value, 0.0)
-    primary_mom = safe_float(ws["B8"].value, 0.0)
-    primary_yoy = safe_float(ws["B9"].value, 0.0)
+    errors = []
 
-    offtake_nsv = safe_float(ws["B11"].value, 0.0)
-    offtake_mom = safe_float(ws["B12"].value, 0.0)
-    offtake_yoy = safe_float(ws["B13"].value, 0.0)
+    # --- 1. Validate Executive Summary / KPI Schema ---
+    try:
+        primary_nsv = validate_numeric(ws["B7"].value, "Primary NSV (Cell B7)", min_val=0.01)
+    except DataValidationError as e:
+        errors.append(str(e))
+        primary_nsv = 0.0
 
-    gap_pct = safe_float(ws["B15"].value, 0.0)
-    status_text = safe_str(ws["B16"].value, "Unknown")
+    try:
+        primary_mom = safe_float(ws["B8"].value, 0.0)
+    except Exception:
+        primary_mom = 0.0
 
-    # Calculate gap if not explicitly provided
-    if gap_pct == 0.0 and primary_nsv > 0:
-        gap_pct = abs((primary_nsv - offtake_nsv) / primary_nsv * 100)
+    try:
+        offtake_nsv = validate_numeric(ws["B11"].value, "Offtake NSV (Cell B11)", min_val=0.01)
+    except DataValidationError as e:
+        errors.append(str(e))
+        offtake_nsv = 0.0
 
+    try:
+        offtake_mom = safe_float(ws["B12"].value, 0.0)
+    except Exception:
+        offtake_mom = 0.0
+
+    gap_pct = abs((primary_nsv - offtake_nsv) / primary_nsv * 100) if primary_nsv > 0 else 0.0
     gap_status, gap_color = get_rag_status(gap_pct)
 
     # Build KPI cards
@@ -97,8 +139,8 @@ def load_excel_metrics(filepath):
     offtake_str = f"₹{offtake_nsv:.1f} Cr" if offtake_nsv > 0 else "No data"
     gap_str = f"{gap_pct:.1f}%" if gap_pct > 0 else "TBD"
 
-    primary_mom_str = (f"{primary_mom:+.1f}% MoM" if primary_mom != 0 else "MoM Data")
-    offtake_mom_str = (f"{offtake_mom:+.1f}% MoM" if offtake_mom != 0 else "MoM Data")
+    primary_mom_str = (f"{primary_mom:+.1f}% MoM" if primary_mom != 0 else "No MoM data")
+    offtake_mom_str = (f"{offtake_mom:+.1f}% MoM" if offtake_mom != 0 else "No MoM data")
 
     kpis = [
         ("Primary Sales", primary_str,
@@ -302,8 +344,8 @@ def build_presentation(kpis, zone_data, alerts):
 
 def main():
     try:
-        print(f"📊 Loading Excel template: {EXCEL_PATH}")
-        kpis, zone_data, alerts = load_excel_metrics(EXCEL_PATH)
+        print(f"📊 Loading and validating Excel template: {EXCEL_PATH}")
+        kpis, zone_data, alerts = validate_and_load_data(EXCEL_PATH)
 
         print(f"✓ Extracted {len(zone_data)} zones and {len(alerts)} alerts")
 
@@ -317,6 +359,9 @@ def main():
         print(f"✅ Success! Generated {OUTPUT_PPTX} ({file_size:,} bytes)")
         return 0
 
+    except DataValidationError as e:
+        print(f"❌ Validation Error: {e}", file=sys.stderr)
+        return 1
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
