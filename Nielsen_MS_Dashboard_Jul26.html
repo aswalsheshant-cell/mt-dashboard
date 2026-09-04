@@ -1,0 +1,762 @@
+<title>Mamaearth Market Share</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+:root {
+  --bg:#F8FAFC;--panel:#FFFFFF;--border:#E2E8F0;--text:#0F172A;--muted:#64748B;
+  --hdr:#1E3A5F;--accent:#2563EB;--accent-l:#EFF6FF;
+  --green:#059669;--green-l:#ECFDF5;--amber:#D97706;--amber-l:#FFFBEB;
+  --red:#DC2626;--red-l:#FEF2F2;--tab-h:#F1F5F9;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F172A;--panel:#1E293B;--border:#334155;--text:#F1F5F9;--muted:#94A3B8;
+    --accent-l:rgba(37,99,235,.18);--green-l:rgba(5,150,105,.18);
+    --amber-l:rgba(217,119,6,.18);--red-l:rgba(220,38,38,.18);--tab-h:#1E293B;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F172A;--panel:#1E293B;--border:#334155;--text:#F1F5F9;--muted:#94A3B8;
+  --accent-l:rgba(37,99,235,.18);--green-l:rgba(5,150,105,.18);
+  --amber-l:rgba(217,119,6,.18);--red-l:rgba(220,38,38,.18);--tab-h:#1E293B;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
+
+.hdr{background:var(--hdr);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.hdr-brand{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;letter-spacing:-.3px;}
+.hdr-brand em{color:#60A5FA;font-style:normal;}
+.hdr-sub{font-size:11px;opacity:.6;margin-top:2px;}
+.hdr-r{display:flex;align-items:center;gap:12px;}
+.hdr-meta{font-size:11px;opacity:.65;text-align:right;line-height:1.6;}
+.theme-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 11px;border-radius:5px;font-size:12px;cursor:pointer;font-family:inherit;}
+.theme-btn:hover{background:rgba(255,255,255,.2);}
+
+.tab-nav{background:var(--panel);border-bottom:1px solid var(--border);display:flex;padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:10;box-shadow:var(--sh);gap:2px;}
+.tab-btn{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);background:none;border:none;padding:11px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
+.tab-btn:hover{color:var(--text);background:var(--tab-h);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+
+.panel{display:none;padding:24px;max-width:1200px;margin:0 auto;}
+.panel.active{display:block;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:520px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--sh);}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px;}
+.kpi-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1;margin-bottom:3px;font-variant-numeric:tabular-nums;}
+.kpi-chg{font-size:11px;font-weight:500;}
+.up{color:var(--green);}.dn{color:var(--red);}.warn-c{color:var(--amber);}.mut{color:var(--muted);}
+
+.cc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;box-shadow:var(--sh);margin-bottom:16px;}
+.cc-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:3px;}
+.cc-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.cw{position:relative;}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:680px){.g2{grid-template-columns:1fr;}}
+
+.ins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:680px){.ins-grid{grid-template-columns:1fr;}}
+.ins{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;border-left:4px solid;}
+.ins.good{border-left-color:var(--green);}.ins.warn{border-left-color:var(--amber);}.ins.alert{border-left-color:var(--red);}
+.ins-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.ins.good .ins-tag{color:var(--green);}.ins.warn .ins-tag{color:var(--amber);}.ins.alert .ins-tag{color:var(--red);}
+.ins-txt{font-size:13px;font-weight:500;line-height:1.4;}
+.ins-meta{font-size:11px;color:var(--muted);margin-top:5px;}
+
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:16px;}
+.tbl{width:100%;border-collapse:collapse;background:var(--panel);font-variant-numeric:tabular-nums;}
+.tbl th{background:var(--hdr);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:right;white-space:nowrap;}
+.tbl th:first-child{text-align:left;}
+.tbl td{padding:9px 12px;font-size:12px;text-align:right;border-bottom:1px solid var(--border);}
+.tbl td:first-child{text-align:left;font-weight:600;font-size:13px;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr.hl td{background:var(--accent-l);}
+.tbl tr.hl td:first-child{color:var(--accent);}
+.tbl tr:not(.hl):hover td{background:var(--tab-h);}
+.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:600;}
+.pill-up{background:var(--green-l);color:var(--green);}
+.pill-dn{background:var(--red-l);color:var(--red);}
+.pill-0{background:var(--amber-l);color:var(--amber);}
+
+.opp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:880px){.opp-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:480px){.opp-grid{grid-template-columns:1fr;}}
+.opp{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;box-shadow:var(--sh);}
+.opp-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent);margin-bottom:3px;font-variant-numeric:tabular-nums;}
+.opp-lbl{font-size:13px;font-weight:600;margin-bottom:8px;}
+.opp-desc{font-size:12px;color:var(--muted);line-height:1.4;}
+.opp-budget{font-size:11px;color:var(--amber);font-weight:600;margin-top:8px;}
+.opp-time{font-size:11px;color:var(--muted);}
+
+.tracker-phase{margin-bottom:20px;}
+.phase-hdr{padding:9px 16px;border-radius:6px 6px 0 0;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.phase-aug{background:var(--accent);color:#fff;}
+.phase-sep{background:var(--amber);color:#fff;}
+.phase-gates{background:var(--hdr);color:#fff;}
+.phase-hdr span{font-size:11px;font-weight:500;opacity:.85;}
+.tracker-items{border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;overflow:hidden;}
+.t-item{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--panel);}
+.t-item:last-child{border-bottom:none;}
+.t-item.done{opacity:.5;}
+.t-item.done .t-title{text-decoration:line-through;}
+.t-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);background:var(--bg);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .1s;user-select:none;}
+.t-check.checked{background:var(--green);border-color:var(--green);}
+.t-check.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
+.t-body{flex:1;}
+.t-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.t-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;}
+.t-budget{color:var(--amber);font-weight:600;}
+.t-desc{font-size:12px;color:var(--muted);margin-top:3px;}
+.prog-wrap{margin-bottom:20px;}
+.prog-lbl{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
+.prog-bg{background:var(--border);border-radius:99px;height:8px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#34D399);transition:width .4s ease;}
+.gate-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--panel);}
+.gate-item:last-child{border-bottom:none;}
+.gate-date{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);min-width:54px;font-variant-numeric:tabular-nums;}
+.gate-q{font-size:13px;flex:1;}
+.gate-impact{font-size:11px;color:var(--green);font-weight:600;white-space:nowrap;}
+
+.s-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:3px;}
+.s-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+
+.pack-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.pack-row:last-child{border-bottom:none;}
+.pack-size{width:58px;font-size:12px;font-weight:600;flex-shrink:0;}
+.pack-bar-bg{flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;}
+.pack-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
+.pack-val{width:90px;font-size:12px;font-variant-numeric:tabular-nums;text-align:right;flex-shrink:0;}
+.pack-yoy{width:52px;font-size:11px;font-weight:600;text-align:right;flex-shrink:0;}
+
+.bridge-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.bridge-row:last-child{border-bottom:none;}
+.bridge-brand{width:108px;font-size:12px;font-weight:600;flex-shrink:0;}
+.bridge-area{flex:1;display:flex;align-items:center;gap:8px;}
+.bridge-bar{height:18px;border-radius:3px;min-width:3px;}
+.bridge-val{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<!-- ═══ HEADER ═══ -->
+<div class="hdr">
+  <div>
+    <div class="hdr-brand"><em>Mamaearth</em> Market Share Intelligence</div>
+    <div class="hdr-sub">Urban MT India · Facewash Category · Nielsen Retail Intelligence · July 2026</div>
+  </div>
+  <div class="hdr-r">
+    <div class="hdr-meta">FY26 | As of Jul 2026<br>Source: Nielsen RI</div>
+    <button class="theme-btn" onclick="toggleTheme()">◐ Theme</button>
+  </div>
+</div>
+
+<!-- ═══ TAB NAV ═══ -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showTab(0)">📊 Overview</button>
+  <button class="tab-btn" onclick="showTab(1)">🏆 Market Share</button>
+  <button class="tab-btn" onclick="showTab(2)">📦 Pack Size</button>
+  <button class="tab-btn" onclick="showTab(3)">💰 Opportunity</button>
+  <button class="tab-btn" onclick="showTab(4)">✅ 90-Day Tracker</button>
+</div>
+
+<!-- ═══ PANEL 0: OVERVIEW ═══ -->
+<div class="panel active" id="p0">
+  <div class="s-title">Performance Snapshot</div>
+  <div class="s-sub">Mamaearth Facewash · Urban MT India · July 2026 vs. Year Ago</div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-lbl">Market Share</div>
+      <div class="kpi-val" style="color:var(--accent)">11.2%</div>
+      <div class="kpi-chg up">▲ +2.4pp YoY · Rank #4</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">NSV Jul 26</div>
+      <div class="kpi-val">₹9.2Cr</div>
+      <div class="kpi-chg up">▲ +47.7% YoY</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">WD%</div>
+      <div class="kpi-val">89.2%</div>
+      <div class="kpi-chg up">▲ +6.4pp YoY</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Stores Retailing</div>
+      <div class="kpi-val">13,097</div>
+      <div class="kpi-chg up">▲ +25.6% YoY</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">PDO (₹/store)</div>
+      <div class="kpi-val">7,025</div>
+      <div class="kpi-chg warn-c">▼ Himalaya: ₹9,177</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">MoM Change</div>
+      <div class="kpi-val dn">−3.2%</div>
+      <div class="kpi-chg dn">⚠ Category flat 0%</div>
+    </div>
+  </div>
+
+  <div class="ins-grid">
+    <div class="ins good">
+      <div class="ins-tag">Strength</div>
+      <div class="ins-txt">Fastest growing brand +47.7% YoY — gained +2.4pp share in 12 months, category avg ~15%</div>
+      <div class="ins-meta">Apr 25: 8.1% → Jul 26: 11.2%</div>
+    </div>
+    <div class="ins alert">
+      <div class="ins-tag">⚠ Red Flag — Act Now</div>
+      <div class="ins-txt">Jul MoM down −3.2% while category flat — immediate root cause diagnosis required</div>
+      <div class="ins-meta">Likely supply/POSM issue · Diagnose by Aug 7</div>
+    </div>
+    <div class="ins warn">
+      <div class="ins-tag">Opportunity</div>
+      <div class="ins-txt">Pond's at 13.0%, only 1.8pp ahead — ₹1.5 Cr NSV gap is closeable in 90 days</div>
+      <div class="ins-meta">Target: Flip Pond's #3 by Oct 2026</div>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-title">Market Share % Trend — Apr 2025 to Jul 2026</div>
+    <div class="cc-sub">MS% (blue, left) and Weighted Distribution % (green dashed, right) · 16 months</div>
+    <div class="cw" style="height:270px"><canvas id="trendChart"></canvas></div>
+  </div>
+
+  <div class="g2">
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Monthly NSV (₹ Cr)</div>
+      <div class="cc-sub">Apr 25 → Jul 26 · Jul 26 highlighted</div>
+      <div class="cw" style="height:200px"><canvas id="nsvChart"></canvas></div>
+    </div>
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Store Expansion</div>
+      <div class="cc-sub">Stores Retailing · +3,191 stores in 16 months</div>
+      <div class="cw" style="height:200px"><canvas id="storeChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANEL 1: MARKET SHARE ═══ -->
+<div class="panel" id="p1">
+  <div class="s-title">Competitive Landscape</div>
+  <div class="s-sub">Urban MT India · Facewash Category · Jul 2026 · Category NSV ₹82.3 Cr</div>
+
+  <div class="cc">
+    <div class="cc-title">Market Share by Brand — Jul 2026</div>
+    <div class="cc-sub">Mamaearth #4 at 11.2% · Pond's #3 target 1.8pp ahead · Fastest growing brand</div>
+    <div class="cw" style="height:310px"><canvas id="brandChart"></canvas></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="tbl" id="compTable"></table>
+  </div>
+
+  <div class="cc">
+    <div class="cc-title">YoY Share Shift — Who Did Mamaearth Take From?</div>
+    <div class="cc-sub">Share points gained / lost Jul 25 → Jul 26 · Mamaearth gained +2.4pp</div>
+    <div id="bridge"></div>
+  </div>
+</div>
+
+<!-- ═══ PANEL 2: PACK SIZE ═══ -->
+<div class="panel" id="p2">
+  <div class="s-title">Pack Size Strategy</div>
+  <div class="s-sub">Facewash and Shampoo category · Urban MT India · Jul 2026 NSV and YoY growth</div>
+
+  <div class="g2">
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Facewash Pack Mix</div>
+      <div class="cc-sub">₹82.3 Cr category · NSV share % &amp; YoY growth</div>
+      <div id="fwPacks"></div>
+    </div>
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Shampoo Pack Mix</div>
+      <div class="cc-sub">Category total · NSV share % &amp; YoY growth</div>
+      <div id="shPacks"></div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-top:16px">
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Facewash — NSV by Pack Size (₹ Cr)</div>
+      <div class="cc-sub">150ml segment highlighted — category winner</div>
+      <div class="cw" style="height:210px"><canvas id="fwChart"></canvas></div>
+    </div>
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Shampoo — NSV by Pack Size (₹ Cr)</div>
+      <div class="cc-sub">Bulk formats (650ml, 1000ml) outpacing mid sizes</div>
+      <div class="cw" style="height:210px"><canvas id="shChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="ins-grid" style="margin-top:16px">
+    <div class="ins good">
+      <div class="ins-tag">150ml Dominance</div>
+      <div class="ins-txt">150ml owns 39.1% of FW value (+59.7% YoY) — the single fastest-growing segment</div>
+      <div class="ins-meta">Win 150ml to hold #4 and attack Pond's #3</div>
+    </div>
+    <div class="ins alert">
+      <div class="ins-tag">100ml Declining</div>
+      <div class="ins-txt">100ml fell −9.8% YoY, share shrinking 36%→29% of category value</div>
+      <div class="ins-meta">Avoid 100ml over-indexing · shift mix to 150ml</div>
+    </div>
+    <div class="ins warn">
+      <div class="ins-tag">Shampoo Signal</div>
+      <div class="ins-txt">1000ml (+58% YoY) and 650ml growing fast — premiumization / bulk trend</div>
+      <div class="ins-meta">Mamaearth shampoo opportunity in larger packs</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANEL 3: OPPORTUNITY ═══ -->
+<div class="panel" id="p3">
+  <div class="s-title">90-Day Revenue Opportunity</div>
+  <div class="s-sub">Jul 26 baseline ₹56 Cr annualized NSV → target ₹60–65 Cr by Oct 31, 2026</div>
+
+  <div class="opp-grid">
+    <div class="opp">
+      <div class="opp-num">₹1–2 Cr</div>
+      <div class="opp-lbl">Fix Jul MoM Decline</div>
+      <div class="opp-desc">Jul −3.2% MoM vs. flat category. Root cause likely supply/POSM. Fix recovers Aug/Sep MoM to +5–10%.</div>
+      <div class="opp-budget">Budget: ₹15–30L</div>
+      <div class="opp-time">30 days · Owner: Supply + Sales</div>
+    </div>
+    <div class="opp">
+      <div class="opp-num">₹2–3 Cr</div>
+      <div class="opp-lbl">Flip Pond's to #3</div>
+      <div class="opp-desc">Pond's only 1.8pp ahead. Add 110 new MT stores + 150ml promo closes gap. Annual gain once #3 is locked.</div>
+      <div class="opp-budget">Budget: ₹204L</div>
+      <div class="opp-time">60–90 days · Owner: Commercial</div>
+    </div>
+    <div class="opp">
+      <div class="opp-num">₹1–2 Cr</div>
+      <div class="opp-lbl">Unlock PDO Gap</div>
+      <div class="opp-desc">PDO ₹7,025 vs. Himalaya ₹9,177 — 23% velocity gap. POSM refresh + loyalty + price test unlocks velocity.</div>
+      <div class="opp-budget">Budget: ₹17–47L</div>
+      <div class="opp-time">60 days · Owner: Marketing</div>
+    </div>
+    <div class="opp">
+      <div class="opp-num">₹0.5–1 Cr</div>
+      <div class="opp-lbl">Own 150ml Trend</div>
+      <div class="opp-desc">150ml at 39.1% category value (+59.7% YoY). Campaign + promotion to own this premium segment.</div>
+      <div class="opp-budget">Budget: ₹53L</div>
+      <div class="opp-time">Ongoing · Owner: Marketing</div>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-title">90-Day Roadmap Summary</div>
+    <div class="cc-sub">Actions, baselines, targets, and upside — total 90-day impact ₹4–6 Cr</div>
+    <div class="tbl-wrap" style="border:none;box-shadow:none;border-radius:0;margin-bottom:0">
+      <table class="tbl" id="roadmapTable"></table>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-title">Budget vs. Minimum Expected Return (₹ Lakhs)</div>
+    <div class="cc-sub">Amber = investment · Green = conservative return estimate</div>
+    <div class="cw" style="height:220px"><canvas id="oppChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══ PANEL 4: TRACKER ═══ -->
+<div class="panel" id="p4">
+  <div class="s-title">90-Day Execution Tracker</div>
+  <div class="s-sub">Aug–Oct 2026 · Click items to mark complete · Progress saved in browser</div>
+
+  <div class="prog-wrap">
+    <div class="prog-lbl">
+      <span>Overall completion</span>
+      <span id="prog-pct">0 of 6 actions</span>
+    </div>
+    <div class="prog-bg">
+      <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="tracker-phase">
+    <div class="phase-hdr phase-aug">
+      Aug 2026 — Immediate Actions
+      <span>4 actions · ₹123L budget</span>
+    </div>
+    <div class="tracker-items" id="aug-items"></div>
+  </div>
+
+  <div class="tracker-phase">
+    <div class="phase-hdr phase-sep">
+      Sep–Oct 2026 — Consolidate &amp; Scale
+      <span>2 actions · ₹53L budget</span>
+    </div>
+    <div class="tracker-items" id="sep-items"></div>
+  </div>
+
+  <div class="tracker-phase">
+    <div class="phase-hdr phase-gates">
+      Decision Gates
+      <span>5 gates · Aug–Oct 2026</span>
+    </div>
+    <div class="tracker-items">
+      <div class="gate-item"><span class="gate-date">Aug 7</span><span class="gate-q">Root cause diagnosed? Mobilize fix?</span><span class="gate-impact">₹1–2 Cr protected</span></div>
+      <div class="gate-item"><span class="gate-date">Aug 19</span><span class="gate-q">Price test results: raise 150ml by 3–5%?</span><span class="gate-impact">+₹0.5–1 Cr margin</span></div>
+      <div class="gate-item"><span class="gate-date">Aug 31</span><span class="gate-q">On track to flip Pond's? New stores live?</span><span class="gate-impact">+₹2–3 Cr annual</span></div>
+      <div class="gate-item"><span class="gate-date">Sep 15</span><span class="gate-q">Consolidation working? PDO improving to ₹7,200+?</span><span class="gate-impact">Lock in gains</span></div>
+      <div class="gate-item"><span class="gate-date">Oct 25</span><span class="gate-q">Hit targets? Approve 2027 plan (#2 vs Himalaya)?</span><span class="gate-impact">Next phase</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ DATA ═══
+const MONTHS=['Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26','Jul 26'];
+const MS_=[8.1,8.4,8.5,8.8,10.2,9.4,9.2,9.0,9.7,11.6,11.7,11.3,11.6,11.6,11.6,11.2];
+const NSV_=[5.4,6.2,6.0,6.2,7.5,6.0,6.5,5.8,6.2,7.9,7.8,8.5,8.8,9.6,9.5,9.2];
+const WD_=[81.3,81.0,78.6,82.8,83.6,80.8,79.1,77.5,79.3,85.0,86.3,85.2,86.9,87.1,87.0,89.2];
+const STORES_=[9906,10743,10007,10426,10486,10544,10503,10740,11268,12144,12352,12201,12876,13023,13171,13097];
+
+const BRANDS=[
+  {n:'Himalaya',    nsv:18.7,ms:22.8,pp:-0.4,yoy:13.9, stores:20376,wd:99.5,pdo:9177},
+  {n:'Garnier',     nsv:10.9,ms:13.3,pp:-1.2,yoy:6.6,  stores:17042,wd:88.5,pdo:6396},
+  {n:"Pond's",      nsv:10.7,ms:13.0,pp:-1.1,yoy:6.9,  stores:18231,wd:97.5,pdo:5869},
+  {n:'Mamaearth',   nsv:9.2, ms:11.2,pp:2.4, yoy:47.7, stores:13097,wd:89.2,pdo:7025},
+  {n:'Clean & Clear',nsv:6.3,ms:7.7, pp:0.0, yoy:15.7, stores:16479,wd:97.0,pdo:3823},
+  {n:'Joy',         nsv:5.5, ms:6.7, pp:0.1, yoy:17.7, stores:9277, wd:75.1,pdo:5924},
+  {n:'Lakme',       nsv:3.3, ms:4.0, pp:0.5, yoy:35.0, stores:9699, wd:77.8,pdo:3403},
+  {n:'Nivea',       nsv:2.8, ms:3.4, pp:-1.7,yoy:-21.1,stores:12535,wd:85.3,pdo:2233},
+];
+
+const FW_PACKS=[
+  {s:'150ml',nsv:32.1,ms:39.1,yoy:59.7},
+  {s:'100ml',nsv:24.0,ms:29.2,yoy:-9.8},
+  {s:'50ml', nsv:14.9,ms:18.1,yoy:11.2},
+  {s:'200ml',nsv:4.8, ms:5.8, yoy:-26.2},
+  {s:'125ml',nsv:2.0, ms:2.4, yoy:400},
+  {s:'240ml',nsv:1.8, ms:2.2, yoy:12.5},
+];
+
+const SH_PACKS=[
+  {s:'650ml', nsv:40.5,ms:26.0,yoy:13.4},
+  {s:'340ml', nsv:23.6,ms:15.1,yoy:-22.4},
+  {s:'180ml', nsv:22.3,ms:14.3,yoy:1.8},
+  {s:'1000ml',nsv:20.7,ms:13.3,yoy:58.0},
+  {s:'400ml', nsv:7.2, ms:4.6, yoy:35.8},
+];
+
+const BRIDGE=[
+  {n:'Mamaearth', pp:2.4},
+  {n:'Nivea',     pp:-1.7},
+  {n:'Garnier',   pp:-1.2},
+  {n:"Pond's",    pp:-1.1},
+  {n:'Himalaya',  pp:-0.4},
+  {n:'Joy',       pp:0.1},
+  {n:'Lakme',     pp:0.5},
+];
+
+const ROADMAP=[
+  {a:'Fix MoM decline',   base:'Jul 26 −3.2% MoM',base2:'+5–10% MoM',   up:'₹1–2 Cr',  d:'30',  bud:'₹15–30L'},
+  {a:"Flip Pond's #3",    base:'11.2% share',      base2:'12.0%+ share', up:'₹2–3 Cr',  d:'90',  bud:'₹204L'},
+  {a:'Unlock PDO gap',    base:'PDO ₹7,025',       base2:'PDO ₹7,200+', up:'₹1–2 Cr',  d:'60',  bud:'₹17–47L'},
+  {a:'Own 150ml trend',   base:'39.1% value share',base2:'42%+ value',   up:'₹0.5–1Cr', d:'—',   bud:'₹53L'},
+  {a:'TOTAL (90-day)',     base:'₹56 Cr NSV base',  base2:'₹60–65 Cr',   up:'₹4–6 Cr',  d:'90',  bud:'₹289–321L'},
+];
+
+const AUG_ACTIONS=[
+  {id:'a1',title:"MoM Decline Diagnosis & Fix",desc:"Chain-wise stock audit · POSM condition audit · competitive intel on Pond's/Himalaya Jul promos",owner:'Supply + Sales Lead',budget:'₹15–30L',due:'Aug 7'},
+  {id:'a2',title:"Add 110 New MT Stores (Pond's Push)",desc:'30–40 new stores per chain · secure shelf space ahead of Sep review cycle',owner:'Sales Lead',budget:'₹35L',due:'Aug 31'},
+  {id:'a3',title:'150ml Promotion Launch',desc:'Buy-1-Get-1 or bundle offer across all active chains for August',owner:'Commercial Lead',budget:'₹20L',due:'Aug 31'},
+  {id:'a4',title:'150ml Messaging Campaign',desc:'Influencer content + paid social on premium 150ml positioning',owner:'Marketing Lead',budget:'₹53L',due:'Aug 31'},
+];
+
+const SEP_ACTIONS=[
+  {id:'s1',title:'Loyalty Program Launch',desc:"Target 10,000+ signups · lock repeat buyers away from Pond's",owner:'Marketing Lead',budget:'₹30L',due:'Sep 7'},
+  {id:'s2',title:'Lock POSMs in 2-Year Agreements',desc:"80%+ chain coverage · prevent Pond's from expanding into premium shelf positions",owner:'Field Lead',budget:'₹23L',due:'Sep 20'},
+];
+
+// ═══ CHART GLOBALS ═══
+Chart.defaults.font.family="'IBM Plex Sans',system-ui,sans-serif";
+Chart.defaults.font.size=11;
+const GC='rgba(100,116,139,0.12)';
+const TC='#64748B';
+const AC='#2563EB';
+const AF='rgba(37,99,235,0.09)';
+function gs(){return{color:GC};}
+function ts(sz){return{color:TC,font:{size:sz||11}};}
+
+// ═══ TAB SWITCHING ═══
+const panels=document.querySelectorAll('.panel');
+const tabBtns=document.querySelectorAll('.tab-btn');
+let inited=false;
+
+function showTab(i){
+  panels.forEach((p,j)=>p.classList.toggle('active',i===j));
+  tabBtns.forEach((b,j)=>b.classList.toggle('active',i===j));
+  if(!inited){initCharts();inited=true;}
+}
+
+// ═══ THEME ═══
+let dark=false;
+function toggleTheme(){
+  dark=!dark;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+}
+
+// ═══ PILL HELPERS ═══
+function ppill(v){const c=v>0?'pill-up':v<0?'pill-dn':'pill-0';return`<span class="pill ${c}">${v>0?'+':''}${v.toFixed(1)}pp</span>`;}
+function ypill(v){const c=v>0?'pill-up':v<0?'pill-dn':'pill-0';return`<span class="pill ${c}">${v>0?'+':''}${v.toFixed(1)}%</span>`;}
+
+// ═══ BUILD COMP TABLE ═══
+function buildCompTable(){
+  document.getElementById('compTable').innerHTML=`
+    <thead><tr><th>Brand</th><th>NSV ₹Cr</th><th>MS%</th><th>YoY pp</th><th>YoY%</th><th>Stores</th><th>WD%</th><th>PDO ₹/store</th></tr></thead>
+    <tbody>${BRANDS.map(b=>`<tr class="${b.n==='Mamaearth'?'hl':''}">
+      <td>${b.n==='Mamaearth'?'★ Mamaearth':b.n}</td>
+      <td>₹${b.nsv.toFixed(1)}</td>
+      <td><strong>${b.ms.toFixed(1)}%</strong></td>
+      <td>${ppill(b.pp)}</td>
+      <td>${ypill(b.yoy)}</td>
+      <td>${b.stores.toLocaleString('en-IN')}</td>
+      <td>${b.wd.toFixed(1)}%</td>
+      <td>₹${b.pdo.toLocaleString('en-IN')}</td>
+    </tr>`).join('')}</tbody>`;
+}
+
+// ═══ BUILD BRIDGE ═══
+function buildBridge(){
+  const el=document.getElementById('bridge');
+  const maxA=Math.max(...BRIDGE.map(b=>Math.abs(b.pp)));
+  el.innerHTML=BRIDGE.map(b=>{
+    const pct=(Math.abs(b.pp)/maxA)*65;
+    const clr=b.pp>=0?AC:'#DC2626';
+    const sign=b.pp>0?'+':'';
+    return`<div class="bridge-row">
+      <span class="bridge-brand">${b.n}</span>
+      <div class="bridge-area">
+        <div class="bridge-bar" style="width:${pct}%;background:${clr};opacity:.8"></div>
+        <span class="bridge-val" style="color:${clr}">${sign}${b.pp.toFixed(1)}pp</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ BUILD PACK BARS ═══
+function buildPackBars(id,packs,clr){
+  const el=document.getElementById(id);
+  const mx=Math.max(...packs.map(p=>p.nsv));
+  el.innerHTML=packs.map(p=>{
+    const pct=(p.nsv/mx)*100;
+    const yc=p.yoy>=0?'var(--green)':'var(--red)';
+    const ys=p.yoy>=0?'+':'';
+    const yd=Math.abs(p.yoy)>=100?ys+Math.round(p.yoy)+'%':ys+p.yoy.toFixed(1)+'%';
+    return`<div class="pack-row">
+      <span class="pack-size">${p.s}</span>
+      <div class="pack-bar-bg"><div class="pack-bar-fill" style="width:${pct}%;background:${clr};opacity:.75"></div></div>
+      <span class="pack-val">₹${p.nsv}Cr · ${p.ms}%</span>
+      <span class="pack-yoy" style="color:${yc}">${yd}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══ BUILD TRACKER ═══
+function buildTrackerItems(elId,actions){
+  const el=document.getElementById(elId);
+  el.innerHTML=actions.map(a=>{
+    const done=localStorage.getItem('t_'+a.id)==='1';
+    return`<div class="t-item${done?' done':''}" id="ti_${a.id}">
+      <div class="t-check${done?' checked':''}" onclick="toggle('${a.id}')" id="tc_${a.id}"></div>
+      <div class="t-body">
+        <div class="t-title">${a.title}</div>
+        <div class="t-meta">
+          <span class="t-budget">${a.budget}</span>
+          <span>Owner: ${a.owner}</span>
+          <span>Due: ${a.due}</span>
+        </div>
+        <div class="t-desc">${a.desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(id){
+  const done=localStorage.getItem('t_'+id)==='1';
+  try{localStorage.setItem('t_'+id,done?'0':'1');}catch(e){}
+  document.getElementById('ti_'+id).classList.toggle('done',!done);
+  document.getElementById('tc_'+id).classList.toggle('checked',!done);
+  updateProg();
+}
+
+function updateProg(){
+  const all=[...AUG_ACTIONS,...SEP_ACTIONS];
+  let done=0;
+  all.forEach(a=>{try{if(localStorage.getItem('t_'+a.id)==='1')done++;}catch(e){}});
+  const pct=Math.round((done/all.length)*100);
+  document.getElementById('prog-pct').textContent=done+' of '+all.length+' actions ('+pct+'%)';
+  document.getElementById('prog-fill').style.width=pct+'%';
+}
+
+// ═══ BUILD ROADMAP TABLE ═══
+function buildRoadmap(){
+  document.getElementById('roadmapTable').innerHTML=`
+    <thead><tr><th>Action</th><th>Jul 26 Baseline</th><th>Target (Oct 31)</th><th>Upside</th><th>Timeline</th><th>Budget</th></tr></thead>
+    <tbody>${ROADMAP.map((r,i)=>`
+      <tr${i===ROADMAP.length-1?' class="hl"':''}>
+        <td>${i===ROADMAP.length-1?'<strong>'+r.a+'</strong>':r.a}</td>
+        <td>${r.base}</td><td>${r.base2}</td>
+        <td><strong style="color:var(--green)">${r.up}</strong></td>
+        <td>${r.d}${r.d!=='—'?' days':''}</td><td>${r.bud}</td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+// ═══ CHARTS ═══
+function initCharts(){
+  // Trend
+  new Chart(document.getElementById('trendChart'),{
+    type:'line',
+    data:{labels:MONTHS,datasets:[
+      {label:'MS%',data:MS_,borderColor:AC,backgroundColor:AF,fill:true,tension:0.4,
+       pointRadius:4,pointBackgroundColor:AC,pointHoverRadius:6,yAxisID:'y',borderWidth:2.5},
+      {label:'WD%',data:WD_,borderColor:'#059669',backgroundColor:'transparent',fill:false,
+       tension:0.3,pointRadius:3,pointBackgroundColor:'#059669',yAxisID:'y2',borderWidth:1.5,borderDash:[4,3]},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,position:'top',align:'end',labels:{color:TC,font:{size:11},boxWidth:16,padding:10}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+'%'}}
+      },
+      scales:{
+        x:{border:{display:false},grid:{color:GC},ticks:{...ts(10),maxRotation:45}},
+        y:{border:{display:false},grid:gs(),ticks:{...ts(),callback:v=>v+'%'},min:7,max:14,
+           title:{display:true,text:'Market Share %',color:TC,font:{size:10}}},
+        y2:{position:'right',border:{display:false},grid:{drawOnChartArea:false},
+            ticks:{...ts(),callback:v=>v+'%'},min:70,max:100,
+            title:{display:true,text:'WD%',color:TC,font:{size:10}}},
+      }
+    }
+  });
+
+  // NSV
+  new Chart(document.getElementById('nsvChart'),{
+    type:'bar',
+    data:{labels:MONTHS,datasets:[{
+      label:'NSV ₹Cr',data:NSV_,borderRadius:3,borderWidth:1,
+      backgroundColor:MONTHS.map((_,i)=>i===MONTHS.length-1?AC:'rgba(37,99,235,0.22)'),
+      borderColor:MONTHS.map((_,i)=>i===MONTHS.length-1?AC:'rgba(37,99,235,0.4)'),
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.parsed.y+' Cr'}}},
+      scales:{
+        x:{border:{display:false},grid:{display:false},ticks:{...ts(9),maxRotation:60}},
+        y:{border:{display:false},grid:gs(),ticks:{...ts(),callback:v=>'₹'+v},min:4,max:11},
+      }
+    }
+  });
+
+  // Stores
+  new Chart(document.getElementById('storeChart'),{
+    type:'line',
+    data:{labels:MONTHS,datasets:[{
+      label:'Stores',data:STORES_,borderColor:'#D97706',backgroundColor:'rgba(217,119,6,0.08)',
+      fill:true,tension:0.4,pointRadius:3,borderWidth:2,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toLocaleString('en-IN')+' stores'}}},
+      scales:{
+        x:{border:{display:false},grid:{display:false},ticks:{...ts(9),maxRotation:60}},
+        y:{border:{display:false},grid:gs(),ticks:{...ts(),callback:v=>(v/1000).toFixed(0)+'k'}},
+      }
+    }
+  });
+
+  // Brand (horizontal bar)
+  const sorted=[...BRANDS].sort((a,b)=>a.ms-b.ms);
+  new Chart(document.getElementById('brandChart'),{
+    type:'bar',
+    data:{labels:sorted.map(b=>b.n),datasets:[{
+      label:'MS% Jul 26',data:sorted.map(b=>b.ms),borderRadius:3,borderWidth:1,
+      backgroundColor:sorted.map(b=>b.n==='Mamaearth'?AC:'rgba(100,116,139,0.28)'),
+      borderColor:sorted.map(b=>b.n==='Mamaearth'?AC:'rgba(100,116,139,0.5)'),
+    }]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x.toFixed(1)+'% market share'}}},
+      scales:{
+        x:{border:{display:false},grid:gs(),ticks:{...ts(),callback:v=>v+'%'}},
+        y:{border:{display:false},grid:{display:false},ticks:ts()},
+      }
+    }
+  });
+
+  // FW packs chart
+  new Chart(document.getElementById('fwChart'),{
+    type:'bar',
+    data:{labels:FW_PACKS.map(p=>p.s),datasets:[{
+      label:'NSV ₹Cr',data:FW_PACKS.map(p=>p.nsv),borderRadius:3,borderWidth:1,
+      backgroundColor:FW_PACKS.map(p=>p.s==='150ml'?AC:'rgba(37,99,235,0.22)'),
+      borderColor:AC,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.parsed.y+' Cr · '+FW_PACKS[c.dataIndex].ms+'% share'}}},
+      scales:{
+        x:{border:{display:false},grid:{display:false},ticks:ts()},
+        y:{border:{display:false},grid:gs(),ticks:{...ts(),callback:v=>'₹'+v}},
+      }
+    }
+  });
+
+  // Shampoo packs chart
+  new Chart(document.getElementById('shChart'),{
+    type:'bar',
+    data:{labels:SH_PACKS.map(p=>p.s),datasets:[{
+      label:'NSV ₹Cr',data:SH_PACKS.map(p=>p.nsv),borderRadius:3,borderWidth:1,
+      backgroundColor:SH_PACKS.map(p=>p.s==='650ml'?'#059669':'rgba(5,150,105,0.22)'),
+      borderColor:'#059669',
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.parsed.y+' Cr · '+SH_PACKS[c.dataIndex].ms+'% share'}}},
+      scales:{
+        x:{border:{display:false},grid:{display:false},ticks:ts()},
+        y:{border:{display:false},grid:gs(),ticks:{...ts(),callback:v=>'₹'+v}},
+      }
+    }
+  });
+
+  // Opportunity chart
+  new Chart(document.getElementById('oppChart'),{
+    type:'bar',
+    data:{
+      labels:[['Fix MoM','Decline'],["Flip Pond's",'#3'],['Unlock','PDO'],['Own 150ml','Trend']],
+      datasets:[
+        {label:'Budget (₹L)',data:[22,204,32,53],backgroundColor:'rgba(217,119,6,0.55)',borderColor:'#D97706',borderWidth:1,borderRadius:3},
+        {label:'Min Return (₹L)',data:[100,200,100,50],backgroundColor:'rgba(5,150,105,0.5)',borderColor:'#059669',borderWidth:1,borderRadius:3},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'top',align:'end',labels:{color:TC,font:{size:11},boxWidth:14,padding:10}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': ₹'+c.parsed.y+'L'}}
+      },
+      scales:{
+        x:{border:{display:false},grid:{display:false},ticks:ts()},
+        y:{border:{display:false},grid:gs(),ticks:{...ts(),callback:v=>'₹'+v+'L'}},
+      }
+    }
+  });
+}
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded',()=>{
+  buildCompTable();
+  buildBridge();
+  buildPackBars('fwPacks',FW_PACKS,AC);
+  buildPackBars('shPacks',SH_PACKS,'#059669');
+  buildTrackerItems('aug-items',AUG_ACTIONS);
+  buildTrackerItems('sep-items',SEP_ACTIONS);
+  buildRoadmap();
+  updateProg();
+  initCharts();
+  inited=true;
+});
+</script>
