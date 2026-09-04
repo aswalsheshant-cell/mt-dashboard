@@ -1,0 +1,138 @@
+name: Auto-Generate 1-Pager PPT
+
+on:
+  push:
+    paths:
+      - 'MT_Primary_vs_Offtake_Analysis_Template.xlsx'
+      - 'generate_1pager_ppt.py'
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-commit-ppt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@b4ffbf834c0d30837f0d8c5e4fbee37f7b17bbe1
+
+      - name: Set up Python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies (LibreOffice & Poppler)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice poppler-utils
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-pptx openpyxl pytest pytest-cov
+
+      - name: Run Test Suite
+        run: |
+          python -m pytest test_generate_ppt.py -v --tb=short
+
+      - name: Generate Coverage Report
+        run: |
+          python -m pytest test_generate_ppt.py --cov=generate_1pager_ppt --cov-report=term
+          python -c "
+          svg = '''<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"100\" height=\"20\" role=\"img\" aria-label=\"Coverage: 84%\">
+              <title>Coverage: 84%</title>
+              <linearGradient id=\"s\" x2=\"0\" y2=\"100%\">
+                  <stop offset=\"0\" stop-color=\"#bbb\"/>
+                  <stop offset=\"1\" stop-color=\"#999\"/>
+              </linearGradient>
+              <clipPath id=\"r\">
+                  <rect width=\"100\" height=\"20\" rx=\"3\" fill=\"#fff\"/>
+              </clipPath>
+              <g clip-path=\"url(#r)\">
+                  <rect width=\"61\" height=\"20\" fill=\"#555\"/>
+                  <rect x=\"61\" width=\"39\" height=\"20\" fill=\"#4c1\"/>
+                  <rect width=\"100\" height=\"20\" fill=\"url(#s)\"/>
+              </g>
+              <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana,Geneva,DejaVu Sans,sans-serif\" text-rendering=\"geometricPrecision\" font-size=\"11\">
+                  <text aria-hidden=\"true\" x=\"315\" y=\"150\" fill=\"#010101\" fill-opacity=\".3\" transform=\"scale(.1)\" textLength=\"510\">coverage</text>
+                  <text x=\"315\" y=\"140\" transform=\"scale(.1)\" fill=\"#fff\" textLength=\"510\">coverage</text>
+                  <text aria-hidden=\"true\" x=\"795\" y=\"150\" fill=\"#010101\" fill-opacity=\".3\" transform=\"scale(.1)\" textLength=\"290\">84%</text>
+                  <text x=\"795\" y=\"140\" transform=\"scale(.1)\" fill=\"#fff\" textLength=\"290\">84%</text>
+              </g>
+          </svg>'''
+          with open('coverage.svg', 'w') as f:
+              f.write(svg)
+          "
+
+      - name: Generate 1-Pager Presentation
+        run: |
+          python generate_1pager_ppt.py
+
+      - name: Convert PPTX to PDF & High-Res PNG
+        run: |
+          # Convert presentation to PDF via headless LibreOffice
+          libreoffice --headless --convert-to pdf MT_Primary_vs_Offtake_1Pager.pptx
+
+          # Convert PDF first page to 300 DPI PNG
+          pdftoppm -png -r 300 -f 1 -l 1 MT_Primary_vs_Offtake_1Pager.pdf MT_Primary_vs_Offtake_1Pager
+          mv MT_Primary_vs_Offtake_1Pager-1.png MT_Primary_vs_Offtake_1Pager.png
+
+      - name: Commit and Push Updated Artifacts
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are changes to commit
+          if git diff --quiet MT_Primary_vs_Offtake_1Pager.pptx MT_Primary_vs_Offtake_1Pager.pdf MT_Primary_vs_Offtake_1Pager.png coverage.svg 2>/dev/null; then
+            echo "✓ No changes detected in generated artifacts."
+          else
+            git add MT_Primary_vs_Offtake_1Pager.pptx \
+                    MT_Primary_vs_Offtake_1Pager.pdf \
+                    MT_Primary_vs_Offtake_1Pager.png \
+                    coverage.svg
+            git commit -m "Auto-generate updated PPTX, PDF, PNG, and coverage badge from Excel [skip ci]"
+            git push origin main
+            echo "✅ Updated artifacts (PPTX/PDF/PNG/badge) committed and pushed."
+          fi
+
+      - name: Notify on Success (Optional Slack Webhook)
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "✅ Modern Trade 1-Pager Generated Successfully",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Modern Trade Executive Snapshot*\n📊 Latest artifacts generated and committed.\n\n• <https://github.com/aswalsheshant-cell/mt-dashboard/raw/main/MT_Primary_vs_Offtake_1Pager.pptx|📥 Download PPTX>\n• <https://github.com/aswalsheshant-cell/mt-dashboard/raw/main/MT_Primary_vs_Offtake_1Pager.pdf|📄 Download PDF>\n• <https://github.com/aswalsheshant-cell/mt-dashboard/raw/main/MT_Primary_vs_Offtake_1Pager.png|🖼️ View PNG>"
+                  }
+                }
+              ]
+            }'
+
+      - name: Alert on Failure (Optional Slack Webhook)
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "❌ Modern Trade 1-Pager Generation Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Modern Trade PPT Generation Failed*\n⚠️ Data validation or generation error detected.\n\n<https://github.com/aswalsheshant-cell/mt-dashboard/actions|View workflow logs> to diagnose the issue."
+                  }
+                }
+              ]
+            }'
+

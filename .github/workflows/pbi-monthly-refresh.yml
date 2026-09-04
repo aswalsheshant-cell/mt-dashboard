@@ -1,0 +1,112 @@
+name: Monthly PBI + Dashboard Refresh
+
+on:
+  # Schedule: First business day of month at 6 AM UTC (1:30 PM IST)
+  # Note: GitHub Actions cron doesn't have day-of-week in month, so this runs on
+  # 1st of every month. Adjust if needed to skip holidays.
+  schedule:
+    - cron: '0 6 1 * *'
+
+  # Manual trigger (when user needs to run outside schedule)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Build mode'
+        required: true
+        default: 'primary-only'
+        type: choice
+        options:
+          - full
+          - primary-only
+          - offtake-patch
+          - detail-only
+          - forecast-only
+      source_dir:
+        description: 'Source data directory (relative to repo root)'
+        required: false
+        default: './data-sources'
+
+permissions:
+  contents: write    # Commit changes
+  checks: write      # Report check results
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        with:
+          # Fetch full history for git operations
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas openpyxl pyxlsb pytest
+
+      - name: Create source directory placeholder
+        run: |
+          mkdir -p ./data-sources
+          # Note: In actual deployment, mount or download source files here
+          # For now, this is a placeholder for manual testing
+
+      - name: Run Python syntax checks
+        run: |
+          python -m py_compile scripts/build_dashboard_data.py
+          python -m py_compile scripts/automate_pbi_refresh.py
+          python -m py_compile scripts/qc_dashboard.py
+
+      - name: Run monthly refresh pipeline
+        id: refresh
+        run: |
+          MODE="${{ github.event.inputs.mode || 'primary-only' }}"
+          SRC="${{ github.event.inputs.source_dir || './data-sources' }}"
+
+          python scripts/automate_pbi_refresh.py \
+            --mode "$MODE" \
+            --src "$SRC" \
+            --out dashboard/data.js \
+            2>&1 | tee refresh-output.log
+
+          echo "refresh_status=completed" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Upload refresh log
+        if: always()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3  # v4.3.1
+        with:
+          name: refresh-log
+          path: refresh-output.log
+          retention-days: 30
+
+      - name: Check for failures
+        if: always()
+        run: |
+          if grep -q "ERROR" refresh-output.log; then
+            echo "::warning::Pipeline had errors — check log"
+            exit 1
+          fi
+          if grep -q "✓ Pipeline completed" refresh-output.log; then
+            echo "✓ Refresh pipeline successful"
+          fi
+
+      # Note: Git push would require GitHub token with write access.
+      # In a real deployment, the commit would be pushed here via:
+      # git push origin $(git rev-parse --abbrev-ref HEAD)
+
+      - name: Report completion
+        if: always()
+        run: |
+          echo "## Monthly Refresh Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode**: ${{ github.event.inputs.mode || 'primary-only' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ steps.refresh.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp**: $(date -u)" >> $GITHUB_STEP_SUMMARY

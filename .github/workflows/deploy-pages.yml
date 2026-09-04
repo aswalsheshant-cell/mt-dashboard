@@ -1,0 +1,46 @@
+name: Deploy Dashboard to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: 'pages-deploy'
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to gh-pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Stage dashboard files
+        run: |
+          mkdir -p _site
+          cp -r dashboard/* _site/
+          touch _site/.nojekyll
+          echo "✓ Staged $(ls _site | wc -l) files to _site/"
+
+      - name: Deploy to gh-pages branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          cd _site
+          git init
+          git checkout -b gh-pages
+          git add -A
+          git commit -m "chore(deploy): publish dashboard [${{ github.sha }}]" --allow-empty
+
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push origin gh-pages --force
+          echo "✓ Deployed to gh-pages"

@@ -1,0 +1,50 @@
+[
+  {
+    "ID": "DAX_NO_UNFORMATTED_DIVIDE",
+    "Name": "Use DIVIDE instead of division operator",
+    "Category": "Performance",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Description": "Use the DIVIDE() function to prevent divide-by-zero errors and return 0 or alternative value on error."
+  },
+  {
+    "ID": "FORMAT_STRING_MISSING",
+    "Name": "Visible numeric measures must have format strings",
+    "Category": "Formatting",
+    "Severity": 3,
+    "Scope": "Measure",
+    "Description": "Provide an explicit format string for all visible numeric measures (currency, percentage, etc.)."
+  },
+  {
+    "ID": "RELATIONSHIPS_BOTH_DIRECTIONS",
+    "Name": "Avoid Bi-directional Cross Filtering",
+    "Category": "Performance",
+    "Severity": 1,
+    "Scope": "Relationship",
+    "Description": "Ensure relationships use single-direction filtering (1 -> *) to avoid circular ambiguity and improve query performance."
+  },
+  {
+    "ID": "MEASURE_DESCRIPTION_MISSING",
+    "Name": "All measures must have descriptions",
+    "Category": "Documentation",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Description": "Provide clear descriptions for all measures to enable self-service BI and reduce support burden."
+  },
+  {
+    "ID": "COLUMN_NAMING_CONVENTION",
+    "Name": "Column names should follow naming conventions",
+    "Category": "Naming",
+    "Severity": 1,
+    "Scope": "Column",
+    "Description": "Use consistent naming: dimensions (Dim_), facts (Fact_), calculated (Calc_), measures in brackets [Measure Name]."
+  },
+  {
+    "ID": "HIERARCHY_VALIDATION",
+    "Name": "Hierarchies must contain related columns only",
+    "Category": "Modeling",
+    "Severity": 2,
+    "Scope": "Hierarchy",
+    "Description": "Ensure hierarchies group logically related columns (e.g., Country -> Region -> City, not Brand -> Discount %)"
+  }
+]

@@ -1,0 +1,211 @@
+name: Build Nielsen Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/nielsen_*.json"
+      - "templates/dashboard_template.html"
+      - "scripts/build_nielsen_dashboard.py"
+  workflow_dispatch:
+    inputs:
+      data_file:
+        description: "Data JSON to build (e.g. data/nielsen_aug26.json)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write   # needed to create releases
+
+jobs:
+  build:
+    name: Compile Nielsen Dashboard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: "3.11"
+
+      # Detect which nielsen data file(s) were added or modified in this push.
+      # Falls back to the manually supplied input, then to the newest file.
+      - name: Resolve target data file
+        id: resolve
+        run: |
+          # Manual dispatch with explicit file
+          if [ -n "${{ github.event.inputs.data_file }}" ]; then
+            echo "data_file=${{ github.event.inputs.data_file }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Files changed in this push
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null \
+            | grep '^data/nielsen_.*\.json$' | head -1)
+
+          if [ -n "$CHANGED" ]; then
+            echo "data_file=$CHANGED" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Fallback: most recently modified nielsen JSON
+          LATEST=$(ls -t data/nielsen_*.json 2>/dev/null | head -1)
+          if [ -n "$LATEST" ]; then
+            echo "data_file=$LATEST" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "::error::No nielsen_*.json found in data/ — push at least one data file."
+          exit 1
+
+      - name: Derive output filename
+        id: names
+        run: |
+          DATA="${{ steps.resolve.outputs.data_file }}"
+          # e.g. data/nielsen_aug26.json → AUG26
+          STEM=$(basename "$DATA" .json | sed 's/nielsen_//' | tr '[:lower:]' '[:upper:]')
+          HTML="dist/Nielsen_MS_Dashboard_${STEM}.html"
+          echo "stem=$STEM"    >> "$GITHUB_OUTPUT"
+          echo "html=$HTML"    >> "$GITHUB_OUTPUT"
+          echo "tag=nielsen-dashboard-${STEM,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build dashboard
+        run: |
+          python scripts/build_nielsen_dashboard.py \
+            --data "${{ steps.resolve.outputs.data_file }}" \
+            --out  "${{ steps.names.outputs.html }}"
+
+      - name: Validate output
+        run: |
+          HTML="${{ steps.names.outputs.html }}"
+          python - <<'PY'
+          import sys, os
+          path = os.environ.get("HTML") or sys.argv[1] if len(sys.argv) > 1 else ""
+          import subprocess
+          html_path = "${{ steps.names.outputs.html }}"
+          html = open(html_path).read()
+          errors = []
+          if "__NIELSEN_DATA_PAYLOAD__" in html:
+              errors.append("Placeholder was not replaced — injection failed")
+          if '"MONTHS"' not in html:
+              errors.append("MONTHS key missing from injected payload")
+          if html.count('<canvas id=') < 5:
+              errors.append(f"Expected ≥5 canvas elements, found {html.count('<canvas id=')}")
+          size_kb = len(html) // 1024
+          if size_kb < 150:
+              errors.append(f"Output suspiciously small: {size_kb}KB (expected ~238KB)")
+          if errors:
+              for e in errors: print(f"FAIL: {e}")
+              sys.exit(1)
+          print(f"OK: {html_path} ({size_kb}KB, {html.count('<canvas id=')} canvases)")
+          PY
+        env:
+          HTML: ${{ steps.names.outputs.html }}
+
+      - name: Publish to GitHub Pages (index.html)
+        run: |
+          cp "${{ steps.names.outputs.html }}" index.html
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "index.html unchanged — skipping commit"
+          else
+            git commit -m "chore(pages): update index.html → ${{ steps.names.outputs.stem }} [skip ci]"
+            git push origin main
+            echo "index.html updated and pushed"
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3  # v4.3.1
+        with:
+          name: nielsen-dashboard-${{ steps.names.outputs.stem }}
+          path: ${{ steps.names.outputs.html }}
+          retention-days: 90
+
+      - name: Create GitHub Release
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+        with:
+          script: |
+            const fs   = require('fs');
+            const path = require('path');
+
+            const htmlPath = '${{ steps.names.outputs.html }}';
+            const tag      = '${{ steps.names.outputs.tag }}';
+            const stem     = '${{ steps.names.outputs.stem }}';
+
+            // Create (or update) the release
+            let release;
+            try {
+              const existing = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                tag,
+              });
+              release = existing.data;
+              console.log(`Updating existing release: ${tag}`);
+            } catch {
+              const res = await github.rest.repos.createRelease({
+                owner:            context.repo.owner,
+                repo:             context.repo.repo,
+                tag_name:         tag,
+                name:             `Nielsen MS Dashboard — ${stem}`,
+                body:             [
+                  `## Nielsen Market Share Intelligence Dashboard`,
+                  `**Period:** ${stem}  |  **Built:** ${new Date().toISOString().slice(0,10)}`,
+                  '',
+                  '### How to use',
+                  '1. Download `Nielsen_MS_Dashboard_*.html` from **Assets** below.',
+                  '2. Double-click to open in Chrome / Edge — works fully offline.',
+                  '3. `Ctrl+P` → Save as PDF for executive distribution.',
+                  '',
+                  '### What\'s inside',
+                  '| Tab | Content |',
+                  '|-----|---------|',
+                  '| Overview | 6 KPI cards, trend chart, NSV × WD combo |',
+                  '| Market Share | Brand benchmark bar, competitive table, share bridge |',
+                  '| Pack Size | FW & Shampoo donut + bar breakdown |',
+                  '| Opportunity | 4 scenario cards, WD × PDO scatter, store trend |',
+                  '| 90-Day Tracker | Execution checklist with localStorage persistence |',
+                  '',
+                  '> Built with `scripts/build_nielsen_dashboard.py` · Chart.js v4.4.3 inlined',
+                ].join('\n'),
+                draft:      false,
+                prerelease: false,
+              });
+              release = res.data;
+              console.log(`Created release: ${tag} (id=${release.id})`);
+            }
+
+            // Upload the HTML file as a release asset
+            const content = fs.readFileSync(htmlPath);
+            const assetName = path.basename(htmlPath);
+
+            // Delete stale asset with same name if re-running
+            const assets = await github.rest.repos.listReleaseAssets({
+              owner:      context.repo.owner,
+              repo:       context.repo.repo,
+              release_id: release.id,
+            });
+            for (const asset of assets.data) {
+              if (asset.name === assetName) {
+                await github.rest.repos.deleteReleaseAsset({
+                  owner:    context.repo.owner,
+                  repo:     context.repo.repo,
+                  asset_id: asset.id,
+                });
+                console.log(`Deleted stale asset: ${assetName}`);
+              }
+            }
+
+            await github.rest.repos.uploadReleaseAsset({
+              owner:      context.repo.owner,
+              repo:       context.repo.repo,
+              release_id: release.id,
+              name:       assetName,
+              data:       content,
+            });
+            console.log(`Uploaded: ${assetName} (${(content.length/1024).toFixed(0)}KB)`);

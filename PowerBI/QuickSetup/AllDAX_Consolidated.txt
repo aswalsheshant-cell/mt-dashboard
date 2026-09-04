@@ -1642,3 +1642,354 @@ CALCULATE (
     COUNTROWS ( 'Fact Primary Article' ),
     'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" }
 )
+
+// ═══════════════════════════════════════════════════════════════════
+// STEP 15 — Secondary Sales Measures (14_SecondarySales_Measures.dax)
+// ═══════════════════════════════════════════════════════════════════
+// =====================================================================
+// SECONDARY SALES MEASURES
+//
+// All measures read from 'Fact Secondary Sales' (query 44_Fact_SecondarySales.pq).
+// Grain: Source_Month × Distributor × NSV_Lakh.
+//
+// Cross-table measures compare secondary sell-out NSV against primary
+// (from 'Fact Primary Article') to derive sell-through ratio.
+// All ratio measures use DIVIDE() — never plain division.
+//
+// FY filter: measures respect the Date[FY Year] slicer via the
+// MonthStart → Date table relationship established in the model.
+// =====================================================================
+
+
+// ── Core KPIs ─────────────────────────────────────────────────────────────
+
+[Secondary NSV Lakh] =
+SUMX (
+    FILTER (
+        'Fact Secondary Sales',
+        'Fact Secondary Sales'[Is_Provisional] = FALSE()
+    ),
+    'Fact Secondary Sales'[NSV_Lakh]
+)
+
+[Secondary NSV Lakh (Incl Provisional)] =
+SUM ( 'Fact Secondary Sales'[NSV_Lakh] )
+
+[Secondary NSV Cr] =
+DIVIDE ( [Secondary NSV Lakh], 100 )
+
+[Secondary Distributor Count] =
+DISTINCTCOUNT ( 'Fact Secondary Sales'[Distributor] )
+
+
+// ── Month-over-Month ───────────────────────────────────────────────────────
+
+[Secondary NSV MoM Δ Lakh] =
+VAR _cur  = [Secondary NSV Lakh]
+VAR _prev =
+    CALCULATE (
+        [Secondary NSV Lakh],
+        DATEADD ( 'Date'[Date], -1, MONTH )
+    )
+RETURN
+    IF ( ISBLANK ( _prev ), BLANK (), _cur - _prev )
+
+[Secondary NSV MoM % Δ] =
+VAR _cur  = [Secondary NSV Lakh]
+VAR _prev =
+    CALCULATE (
+        [Secondary NSV Lakh],
+        DATEADD ( 'Date'[Date], -1, MONTH )
+    )
+RETURN
+    DIVIDE ( _cur - _prev, _prev )
+
+
+// ── Sell-Through (Secondary ÷ Primary) ────────────────────────────────────
+// "Sell-through" = what proportion of primary dispatched was sold through
+// by the distributor to the MT store. Healthy range: 75–110%.
+// Values > 110% indicate pipeline drawdown; < 75% = under-liquidation.
+
+[Sell-Through %] =
+VAR _secondary = [Secondary NSV Lakh]
+VAR _primary   = [Total Primary Article NSV]      // from 01_CoreMeasures.dax
+RETURN
+    DIVIDE ( _secondary, _primary )
+
+[Sell-Through % (Capped 200)] =
+VAR _raw = [Sell-Through %]
+RETURN
+    IF ( _raw > 2, 2, _raw )
+
+[Sell-Through Signal] =
+VAR _st = [Sell-Through %]
+RETURN
+    IF (
+        ISBLANK ( _st ), "–",
+        IF ( _st >= 1.10, "Pipeline Drawdown",
+        IF ( _st >= 0.75, "On-Track",
+             "Under-Liquidation" ))
+    )
+
+
+// ── Distributor-level ranking ──────────────────────────────────────────────
+
+[Secondary NSV Rank] =
+RANKX (
+    ALLSELECTED ( 'Fact Secondary Sales'[Distributor] ),
+    [Secondary NSV Lakh],
+    ,
+    DESC,
+    DENSE
+)
+
+[Secondary NSV Distributor Share %] =
+DIVIDE (
+    [Secondary NSV Lakh],
+    CALCULATE ( [Secondary NSV Lakh], ALLSELECTED ( 'Fact Secondary Sales'[Distributor] ) )
+)
+
+
+// ── Q1 FY27 aggregates (period-fixed, for scorecards) ─────────────────────
+
+[Q1 FY27 Secondary NSV Lakh] =
+CALCULATE (
+    [Secondary NSV Lakh],
+    'Date'[FY Year] = "FY27",
+    'Date'[Quarter] = "Q1"
+)
+
+[Q1 FY27 Secondary NSV Cr] =
+DIVIDE ( [Q1 FY27 Secondary NSV Lakh], 100 )
+
+
+// ── Claim context (from Fact Claim Master) ────────────────────────────────
+// Claim as % of secondary sell-out NSV (a different ratio to the
+// claim-as-%-of-primary-NSV computed in 13_CM2_Measures.dax).
+
+[Claim % of Secondary NSV] =
+VAR _claim    = SUM ( 'Fact Claim Master'[Amount_Lakh] )
+VAR _secondary = [Secondary NSV Lakh]
+RETURN
+    DIVIDE ( _claim, _secondary )
+
+
+// ── Display labels ────────────────────────────────────────────────────────
+
+[Secondary NSV Label] =
+VAR _val = [Secondary NSV Lakh]
+RETURN
+    IF (
+        ISBLANK ( _val ), "–",
+        IF ( _val >= 100,
+            "₹" & FORMAT ( DIVIDE ( _val, 100 ), "0.0" ) & " Cr",
+            "₹" & FORMAT ( _val, "0.0" ) & " L"
+        )
+    )
+
+[Sell-Through Label] =
+VAR _st = [Sell-Through %]
+RETURN
+    IF ( ISBLANK ( _st ), "–", FORMAT ( _st, "0.0%" ) )
+
+// ==============================================================================
+// STEP 16: PROMOTIONAL ANALYTICS & TRADE ROI MEASURES
+// Source: PowerBI/DAX/15_Promo_Measures.dax
+// ==============================================================================
+
+// ==============================================================================
+// 15_Promo_Measures.dax
+// Modern Trade Dashboard — Promotional Analytics & Trade Spend ROI Measures
+// Target Tables: Fact_Secondary_TOT_Hierarchy, Dim_PromoCalendar, Fact_ClaimMaster
+// Purpose: Measure planned promo mechanics vs actual sales & claim spend outcomes
+// ==============================================================================
+
+// --- SECTION 1: BASE ACTUALS & PROMO SCOPE ---
+
+[Actual NSV Lakh] =
+SUM(Fact_Secondary_TOT_Hierarchy[NSV_Lakh])
+
+[Actual Promoted NSV Lakh] =
+CALCULATE(
+    [Actual NSV Lakh],
+    KEEPFILTERS(NOT(ISBLANK(Dim_PromoCalendar[EAN Code])))
+)
+
+[Baseline Non-Promoted NSV Lakh] =
+[Actual NSV Lakh] - [Actual Promoted NSV Lakh]
+
+[Active Promo Offer Count] =
+DISTINCTCOUNT(Dim_PromoCalendar[Promo_Key])
+
+[Promoted NSV Share %] =
+DIVIDE(
+    [Actual Promoted NSV Lakh],
+    [Actual NSV Lakh],
+    0
+)
+
+[Promoted SKU Breadth %] =
+VAR PromotedSKUs =
+    CALCULATE(
+        DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN]),
+        KEEPFILTERS(NOT(ISBLANK(Dim_PromoCalendar[EAN Code])))
+    )
+VAR TotalSKUs =
+    DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN])
+RETURN
+    DIVIDE(PromotedSKUs, TotalSKUs, 0)
+
+// --- SECTION 2: PLANNED PROMOTIONAL MECHANICS & SPEND ---
+
+[Planned Promo Discount %] =
+VAR WeightedDiscount =
+    SUMX(
+        Dim_PromoCalendar,
+        VALUE(Dim_PromoCalendar[Offer to consumer])
+    )
+VAR OfferCount = COUNTROWS(Dim_PromoCalendar)
+RETURN
+    DIVIDE(WeightedDiscount, OfferCount, 0)
+
+[Planned Company Trade Spend %] =
+VAR WeightedCompanyShare =
+    SUMX(
+        Dim_PromoCalendar,
+        Dim_PromoCalendar[ME_Contribution_Pct]
+    )
+VAR OfferCount = COUNTROWS(Dim_PromoCalendar)
+RETURN
+    DIVIDE(WeightedCompanyShare, OfferCount, 0)
+
+[Planned Trade Spend Value Lakh] =
+SUMX(
+    VALUES(Dim_PromoCalendar[EAN Code]),
+    VAR EAN_NSV = CALCULATE([Actual Promoted NSV Lakh])
+    VAR EAN_Company_Discount =
+        CALCULATE(
+            AVERAGE(Dim_PromoCalendar[ME_Contribution_Pct])
+        )
+    RETURN
+        EAN_NSV * EAN_Company_Discount / 100
+)
+
+// --- SECTION 3: SPEND VARIANCE (PLANNED VS ACTUAL) ---
+
+[Actual Claim Expense Lakh] =
+CALCULATE(
+    SUM(Fact_ClaimMaster[Amount_Lakh]),
+    REMOVEFILTERS(Dim_PromoCalendar),
+    REMOVEFILTERS(Fact_Secondary_TOT_Hierarchy)
+)
+
+[Promo Spend Variance Lakh] =
+[Planned Trade Spend Value Lakh] - [Actual Claim Expense Lakh]
+
+[Promo Spend Variance %] =
+DIVIDE(
+    [Promo Spend Variance Lakh],
+    [Planned Trade Spend Value Lakh],
+    0
+)
+
+[Promo Execution Status] =
+VAR VariancePct = [Promo Spend Variance %]
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK([Actual Promoted NSV Lakh]), "No Actual Offtake",
+        VariancePct < -0.15, "Over-Spent vs Plan (High Risk)",
+        VariancePct > 0.15, "Under-Utilized Plan",
+        "On-Plan (Within ±15%)"
+    )
+
+// --- SECTION 4: INCREMENTAL LIFT & ROI ---
+
+[Historical Baseline Velocity Lakh] =
+VAR CurrentDate = MAX(Dim_Calendar[Date])
+RETURN
+    CALCULATE(
+        AVERAGEX(
+            VALUES(Dim_Calendar[Month_Label]),
+            [Actual NSV Lakh]
+        ),
+        DATESINPERIOD(
+            Dim_Calendar[Date],
+            EDATE(CurrentDate, -1),
+            -3,
+            MONTH
+        ),
+        REMOVEFILTERS(Dim_PromoCalendar)
+    )
+
+[Incremental Promo NSV Lakh] =
+VAR Baseline = [Historical Baseline Velocity Lakh]
+VAR Actuals = [Actual Promoted NSV Lakh]
+VAR Lift = Actuals - Baseline
+RETURN
+    IF(
+        ISBLANK(Actuals),
+        BLANK(),
+        MAX(0, Lift)
+    )
+
+[Promo Volume Lift %] =
+DIVIDE(
+    [Incremental Promo NSV Lakh],
+    [Historical Baseline Velocity Lakh],
+    0
+)
+
+[Promo Trade Spend ROI] =
+DIVIDE(
+    [Incremental Promo NSV Lakh],
+    [Actual Claim Expense Lakh],
+    0
+)
+
+[Promo Net Margin ROI] =
+VAR BaseGrossMarginPct = 0.40
+VAR IncrementalGrossProfit = [Incremental Promo NSV Lakh] * BaseGrossMarginPct
+VAR TotalPromoCost = [Actual Claim Expense Lakh]
+VAR NetGain = IncrementalGrossProfit - TotalPromoCost
+RETURN
+    DIVIDE(NetGain, TotalPromoCost, 0)
+
+[Promo ROI Performance Band] =
+VAR ROI = [Promo Trade Spend ROI]
+RETURN
+    SWITCH(
+        TRUE(),
+        ISBLANK([Actual Promoted NSV Lakh]), "No Activity",
+        [Actual Claim Expense Lakh] = 0 && [Actual Promoted NSV Lakh] > 0, "Self-Liquidating",
+        ROI >= 3.0, "🟢 High ROI (≥3.0x)",
+        ROI >= 1.5, "🟡 Moderate ROI (1.5-3.0x)",
+        ROI >= 1.0, "🟠 Break-even (1.0-1.5x)",
+        "🔴 Value Destroying (<1.0x)"
+    )
+
+// ==============================================================================
+// USAGE NOTES:
+// ==============================================================================
+// 1. Relationships required:
+//    - Dim_PromoCalendar[EAN Code] → Fact_Secondary_TOT_Hierarchy[EAN]
+//    - Dim_PromoCalendar[Brand] → Dim_Brand[Brand_Name]
+//    - Dim_Calendar[Date] → Fact_Secondary_TOT_Hierarchy[Source_Month]
+//
+// 2. Slicers recommended:
+//    - Dim_Calendar[Month_Label] (Sep-26)
+//    - Dim_Brand[Brand_Name]
+//    - Dim_Chain[Chain_Name]
+//    - Dim_PromoCalendar[Promo_Type] (Consumer Promotion, etc.)
+//
+// 3. Conditional formatting:
+//    - [Promo Spend Variance %]: <-15% = Red, -15% to +15% = Green, >15% = Amber
+//    - [Promo Trade Spend ROI]: >3.0x = Green, 1.5-3.0x = Yellow, <1.0x = Red
+//
+// 4. Interpretation:
+//    - Positive [Promo Spend Variance Lakh] = Planned spend not fully utilized
+//    - Positive [Incremental Promo NSV Lakh] = Promo drove incremental sales
+//    - [Promo Trade Spend ROI] = Incremental NSV ÷ Claim Spend ratio
+//    - [Promo Net Margin ROI] = (Margin Profit - Cost) ÷ Cost (gauges true profitability)
+//
+// ==============================================================================

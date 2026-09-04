@@ -2,9 +2,9 @@ name: Promo Data Schema Validation
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - 'data/**'
-      - 'raw_promos/**'
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
       - 'scripts/sync_data_js.py'
@@ -12,9 +12,9 @@ on:
   push:
     branches:
       - main
+      - 'claude/**'
     paths:
       - 'data/**'
-      - 'raw_promos/**'
       - 'scripts/validate_promo_schema.py'
       - 'scripts/build_dashboard_data.py'
       - '.github/workflows/validate-promo-data.yml'
@@ -27,17 +27,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
         with:
           python-version: '3.11'
 
       - name: Run promo schema validation
         run: |
           python3 scripts/validate_promo_schema.py \
-            --json data/data_master.json \
+            --json data_master.json \
             --datajs dashboard/data.js \
             --strict
         continue-on-error: true
@@ -55,7 +57,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Validate HTML structure
         run: |
@@ -107,10 +111,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901afe0db655ddb234ae5f60e7104a9e63
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@f677139ead7c9c8f5e2efb1f96b09bc9c6521be5
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
         with:
           python-version: '3.11'
 
@@ -135,10 +141,10 @@ jobs:
               print(f"ERROR: Invalid JSON in data.js: {e}")
               exit(1)
 
-          # Check for required FY coverage
-          metadata = data.get('metadata', {})
-          coverage = metadata.get('coverage', {})
-          fiscal_years = coverage.get('fiscal_years', [])
+          # Check for required FY coverage using actual data.js structure
+          dims = data.get('dims', {})
+          fiscal_years_upper = dims.get('FY', [])
+          fiscal_years = [fy.lower() for fy in fiscal_years_upper]
 
           required_years = ['fy25', 'fy26']
           missing = [fy for fy in required_years if fy not in fiscal_years]
@@ -149,9 +155,10 @@ jobs:
 
           print(f"✓ Fiscal year coverage verified: {fiscal_years}")
 
-          # Verify month counts
-          fy25_months = coverage.get('fy25_months', [])
-          fy26_months = coverage.get('fy26_months', [])
+          # Verify month counts using primary.monthly_fyNN keys
+          primary = data.get('primary', {})
+          fy25_months = primary.get('monthly_fy25', {})
+          fy26_months = primary.get('monthly_fy26', {})
 
           print(f"✓ FY25: {len(fy25_months)} months")
           print(f"✓ FY26: {len(fy26_months)} months")
