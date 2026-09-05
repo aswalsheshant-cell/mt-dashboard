@@ -16,17 +16,19 @@ def main() -> int:
         print(f"FAIL: Cannot read {data_path}: {e}")
         return 1
 
-    # NaN/undefined-safe parse: data.js may contain bare NaN or undefined literals
-    json_str_clean = re.sub(r'(?<!["\w])NaN(?!["\w])', 'null', json_str)
-    json_str_clean = re.sub(r'\bundefined\b', 'null', json_str_clean)
-    # Remove trailing commas before ] or } (older serialisers sometimes emit them)
-    json_str_clean = re.sub(r',\s*([}\]])', r'\1', json_str_clean)
-
+    # Use window.DASH extraction for JS files
     try:
-        data = json.loads(json_str_clean)
-    except json.JSONDecodeError as e:
-        print(f"FAIL: JSON parse error: {e}")
-        return 1
+        data = parse_window_dash_strict(json_str)
+    except Exception as e:
+        # Fallback: NaN/undefined-safe parse
+        json_str_clean = re.sub(r'(?<!["\w])NaN(?!["\w])', 'null', json_str)
+        json_str_clean = re.sub(r'\bundefined\b', 'null', json_str_clean)
+        json_str_clean = re.sub(r',\s*([}\]])', r'\1', json_str_clean)
+        try:
+            data = json.loads(json_str_clean)
+        except json.JSONDecodeError as e2:
+            print(f"FAIL: JSON parse error: {e2}")
+            return 1
 
     # -- Offtake block ----
     if "offtake" not in data:
