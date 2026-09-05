@@ -412,8 +412,8 @@ def add_zone_slide(prs, zone_name, zone_data):
 
 def main():
     """Load existing 6-slide deck and add 6 zone slides."""
-    # Load existing deck
-    input_file = "/home/user/mt-dashboard/MT_July26_Final_UPDATED_with_All3_Insights_v1.pptx"
+    # Load existing deck (use fixed version without overlapping text)
+    input_file = "/home/user/mt-dashboard/MT_July26_Final_FIXED_No_Overlap.pptx"
     prs = Presentation(input_file)
 
     print(f"Loaded existing deck: {input_file}")
@@ -426,7 +426,7 @@ def main():
         print(f"✓ Added {zone_name} zone slide ({len(prs.slides)}/12)")
 
     # Save expanded deck
-    output_file = "/home/user/mt-dashboard/MT_July26_Final_with_Zone_DeepDives_v1.pptx"
+    output_file = "/home/user/mt-dashboard/MT_July26_Final_with_Zone_DeepDives_FIXED.pptx"
     prs.save(output_file)
 
     print(f"\n✓ Saved expanded deck: {output_file}")
