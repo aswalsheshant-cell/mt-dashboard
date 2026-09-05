@@ -1,0 +1,32 @@
+table Dim_Category
+	lineageTag: e42a8f90-64c1-4f10-9112-c1b2c3d4e003
+
+	column Category_ID
+		dataType: string
+		lineageTag: e3a2b3c4-0003-4000-8000-000000000001
+		summarizeBy: none
+		sourceColumn: Category_ID
+		isKey
+
+	column Category_Name
+		dataType: string
+		lineageTag: e3a2b3c4-0003-4000-8000-000000000002
+		summarizeBy: none
+		sourceColumn: Category_Name
+
+	column Sub_Category
+		dataType: string
+		lineageTag: e3a2b3c4-0003-4000-8000-000000000003
+		summarizeBy: none
+		sourceColumn: Sub_Category
+
+	partition Dim_Category = m
+		mode: import
+		source = ```
+			let
+			    Source = Csv.Document(File.Contents("\\data-server\MT\Primary\Dim_Category.csv"), [Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+			    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+			    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Category_ID", type text}, {"Category_Name", type text}, {"Sub_Category", type text}})
+			in
+			    #"Changed Type"
+			```
