@@ -4746,8 +4746,20 @@ function renderYoYBadges(){
     lab.appendChild(badge);
   };
 
-  // Primary NSV badge
-  if(yoy.top_line.rbc_total_growth_pct!=null){
+  // Primary NSV FY26 badge
+  if(yoy.top_line&&yoy.top_line.primary_nsv_growth!=null){
+    const pct=yoy.top_line.primary_nsv_growth;
+    addBadge('#tab-primary .kpis .kpi:first-child',pct);
+  }
+
+  // Offtake FY26 badge
+  if(yoy.top_line&&yoy.top_line.offtake_value_growth!=null){
+    const pct=yoy.top_line.offtake_value_growth;
+    addBadge('#tab-offtake .kpis .kpi:first-child',pct);
+  }
+
+  // Reliance Brand Counter badge
+  if(yoy.top_line&&yoy.top_line.rbc_total_growth_pct!=null){
     const pct=yoy.top_line.rbc_total_growth_pct;
     addBadge('#tab-reliance-bc .kpis .kpi:first-child',pct);
   }
