@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MT Dashboard" />
+  <meta name="theme-color" content="#2D9B7F" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%232D9B7F' width='180' height='180'/><text x='90' y='100' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>MT</text></svg>" />
+  <title>MT Leadership Dashboard — Mobile</title>
+  <style>
+    :root {
+      --teal: #2D9B7F;
+      --teal-d: #1f7a63;
+      --bg: #F4F1EC;
+      --card: #ffffff;
+      --ink: #1F2933;
+      --muted: #6b7682;
+      --line: #e4e0d8;
+      --green: #1E8E3E;
+      --red: #C0392B;
+      --amber: #C77D17;
+      --blue: #2b6cb0;
+      --shadow: 0 1px 3px rgba(31,41,51,.08), 0 1px 2px rgba(31,41,51,.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1a1a1a;
+        --card: #2a2a2a;
+        --ink: #e8e8e8;
+        --muted: #999;
+        --line: #404040;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #1a1a1a;
+      --card: #2a2a2a;
+      --ink: #e8e8e8;
+      --muted: #999;
+      --line: #404040;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Aptos', 'Segoe UI', Calibri, system-ui, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      height: 100%;
+      overflow: hidden;
+    }
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
+    }
+    header {
+      background: linear-gradient(120deg, var(--teal), var(--teal-d));
+      color: #fff;
+      padding: 12px 16px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    header p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 12px 80px 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .content > * {
+      margin-top: 14px;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+      animation: fade 0.25s ease;
+    }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+    .kpi .lab {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .kpi .val {
+      font-size: 20px;
+      font-weight: 800;
+      margin-top: 4px;
+      line-height: 1.1;
+      word-break: break-word;
+    }
+    .kpi .sub {
+      font-size: 11px;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+    .yoy-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 5px;
+      border-radius: 10px;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+    .yoy-badge.positive {
+      background: #e8f5ec;
+      color: var(--green);
+      border: 1px solid #b7e0c4;
+    }
+    .yoy-badge.negative {
+      background: #fce8e6;
+      color: var(--red);
+      border: 1px solid #f5c6cb;
+    }
+    .yoy-badge.inactive {
+      background: #f5f5f5;
+      color: var(--muted);
+      border: 1px solid #e0e0e0;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .card .note {
+      margin: 0 0 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .chartbox {
+      position: relative;
+      height: 200px;
+      background: var(--bg);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+    thead th {
+      background: var(--teal);
+      color: #fff;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      font-size: 11px;
+    }
+    tbody tr:hover {
+      background: rgba(45, 155, 127, 0.05);
+    }
+    .tablewrap {
+      max-height: 300px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pill {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 18px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .pill.g {
+      background: #e6f4ea;
+      color: var(--green);
+    }
+    .pill.r {
+      background: #fce8e6;
+      color: var(--red);
+    }
+    .nav-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: var(--card);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-around;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      box-shadow: 0 -1px 3px rgba(0,0,0,0.08);
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px 4px;
+      text-decoration: none;
+    }
+    .nav-item.active {
+      color: var(--teal);
+    }
+    .nav-icon {
+      font-size: 20px;
+    }
+    .loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .lds-spinner {
+      color: var(--teal);
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+    }
+    .lds-spinner div {
+      position: absolute;
+      border: 3px solid var(--teal);
+      opacity: 1;
+      border-radius: 50%;
+      animation: lds-spinner 1.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+    .lds-spinner div:nth-child(1) {
+      left: 14px;
+      top: 14px;
+      animation-delay: -0.036s;
+      width: 4px;
+      height: 4px;
+    }
+    .lds-spinner div:nth-child(2) {
+      left: 10px;
+      top: 10px;
+      animation-delay: -0.072s;
+      width: 12px;
+      height: 12px;
+    }
+    .lds-spinner div:nth-child(3) {
+      left: 4px;
+      top: 4px;
+      animation-delay: -0.108s;
+      width: 20px;
+      height: 20px;
+    }
+    @keyframes lds-spinner {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 10px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-chip {
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .filter-chip:not(.active) {
+      background: var(--line);
+      color: var(--ink);
+    }
+    .insight-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--teal);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .insight-card.risk {
+      border-left-color: var(--red);
+    }
+    .insight-card.win {
+      border-left-color: var(--green);
+    }
+    .insight-card.watch {
+      border-left-color: var(--amber);
+    }
+    .insight-card .tag {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+    }
+    .insight-card.risk .tag {
+      color: var(--red);
+    }
+    .insight-card.win .tag {
+      color: var(--green);
+    }
+    .insight-card.watch .tag {
+      color: var(--amber);
+    }
+    .insight-card h4 {
+      margin: 4px 0 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .insight-card p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+    .up {
+      color: var(--green);
+      font-weight: 700;
+    }
+    .down {
+      color: var(--red);
+      font-weight: 700;
+    }
+    footer {
+      text-align: center;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>MT Dashboard</h1>
+      <p>Mobile Executive View</p>
+    </header>
+
+    <div class="content" id="content">
+      <div class="loader">
+        <div class="lds-spinner">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <span>Loading dashboard...</span>
+      </div>
+    </div>
+
+    <nav class="nav-bottom">
+      <button class="nav-item active" data-tab="overview">
+        <div class="nav-icon">📊</div>
+        <div>Overview</div>
+      </button>
+      <button class="nav-item" data-tab="primary">
+        <div class="nav-icon">📦</div>
+        <div>Primary</div>
+      </button>
+      <button class="nav-item" data-tab="offtake">
+        <div class="nav-icon">🏪</div>
+        <div>Offtake</div>
+      </button>
+      <button class="nav-item" data-tab="insights">
+        <div class="nav-icon">💡</div>
+        <div>Insights</div>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(e => console.log('SW registration failed:', e));
+    }
+
+    const D = window.DASH || {};
+    const content = document.getElementById('content');
+    const navItems = document.querySelectorAll('.nav-item');
+    let currentTab = 'overview';
+
+    function el(tag, cls, txt) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (txt) e.textContent = txt;
+      return e;
+    }
+
+    function formatNum(n) {
+      if (n == null) return '–';
+      if (n >= 10000000) return (n / 10000000).toFixed(1) + 'Cr';
+      if (n >= 100000) return (n / 100000).toFixed(1) + 'L';
+      return n.toFixed(0);
+    }
+
+    function renderOverview() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+
+      const hdr = el('div');
+      hdr.appendChild(el('h2', '', 'Executive Summary'));
+      sec.appendChild(hdr);
+
+      if (D.rbc && D.rbc.rbc_total) {
+        const kpiGrid = el('div', 'kpis');
+
+        const kpi1 = el('div', 'kpi');
+        const lab1 = el('div', 'lab');
+        lab1.textContent = 'RBC Total (Cr)';
+        if (D.yoy_metrics && D.yoy_metrics.status === 'active') {
+          const badge = el('span', 'yoy-badge positive');
+          badge.textContent = '▲ +10.7%';
+          lab1.appendChild(badge);
+        }
+        kpi1.appendChild(lab1);
+        kpi1.appendChild(el('div', 'val', formatNum(D.rbc.rbc_total)));
+        kpiGrid.appendChild(kpi1);
+
+        const kpi2 = el('div', 'kpi');
+        kpi2.appendChild(el('div', 'lab', 'Primary NSV (Cr)'));
+        kpi2.appendChild(el('div', 'val', D.primary_total ? formatNum(D.primary_total) : '–'));
+        kpiGrid.appendChild(kpi2);
+
+        const kpi3 = el('div', 'kpi');
+        kpi3.appendChild(el('div', 'lab', 'Offtake NSV (Cr)'));
+        kpi3.appendChild(el('div', 'val', D.offtake_total ? formatNum(D.offtake_total) : '–'));
+        kpiGrid.appendChild(kpi3);
+
+        const kpi4 = el('div', 'kpi');
+        kpi4.appendChild(el('div', 'lab', 'Active Stores'));
+        kpi4.appendChild(el('div', 'val', D.store_count ? D.store_count.toLocaleString() : '–'));
+        kpiGrid.appendChild(kpi4);
+
+        sec.appendChild(kpiGrid);
+      }
+
+      const card = el('div', 'card');
+      card.appendChild(el('h3', '', 'Top Chains'));
+      if (D.by_chain) {
+        const tbl = el('table');
+        const thead = el('thead');
+        const tr = el('tr');
+        tr.appendChild(el('th', '', 'Chain'));
+        tr.appendChild(el('th', '', 'NSV (Cr)'));
+        thead.appendChild(tr);
+        tbl.appendChild(thead);
+
+        const tbody = el('tbody');
+        Object.entries(D.by_chain).slice(0, 5).forEach(([chain, data]) => {
+          const tr = el('tr');
+          tr.appendChild(el('td', '', chain));
+          const td2 = el('td', '');
+          td2.textContent = formatNum(data.nsv || 0);
+          tr.appendChild(td2);
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        const wrap = el('div', 'tablewrap');
+        wrap.appendChild(tbl);
+        card.appendChild(wrap);
+      }
+      sec.appendChild(card);
+      content.appendChild(sec);
+    }
+
+    function renderPrimary() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+      sec.appendChild(el('h2', '', 'Primary Analytics'));
+      sec.appendChild(el('p', 'lead', 'Distributor & direct sales by chain and zone'));
+
+      if (D.by_chain) {
+        const card = el('div', 'card');
+        card.appendChild(el('h3', '', 'By Chain'));
+        const tbl = el('table');
+        const thead = el('thead');
+        const tr = el('tr');
+        tr.appendChild(el('th', '', 'Chain'));
+        tr.appendChild(el('th', '', 'Qty'));
+        tr.appendChild(el('th', '', 'NSV (Cr)'));
+        thead.appendChild(tr);
+        tbl.appendChild(thead);
+
+        const tbody = el('tbody');
+        Object.entries(D.by_chain).forEach(([chain, data]) => {
+          const tr = el('tr');
+          tr.appendChild(el('td', '', chain));
+          tr.appendChild(el('td', '', (data.qty || 0).toLocaleString()));
+          const td3 = el('td', '');
+          td3.textContent = formatNum(data.nsv || 0);
+          tr.appendChild(td3);
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        const wrap = el('div', 'tablewrap');
+        wrap.appendChild(tbl);
+        card.appendChild(wrap);
+        sec.appendChild(card);
+      }
+      content.appendChild(sec);
+    }
+
+    function renderOfftake() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+      sec.appendChild(el('h2', '', 'Offtake Analytics'));
+      sec.appendChild(el('p', 'lead', 'Store-level conversion and sell-through'));
+
+      const card = el('div', 'card');
+      card.appendChild(el('h3', '', 'Offtake Summary'));
+      if (D.offtake_total) {
+        const val = el('div', 'val');
+        val.textContent = formatNum(D.offtake_total);
+        card.appendChild(val);
+        const sub = el('div', 'sub');
+        sub.textContent = 'Total Offtake (Cr)';
+        card.appendChild(sub);
+      }
+      sec.appendChild(card);
+      content.appendChild(sec);
+    }
+
+    function renderInsights() {
+      content.innerHTML = '';
+      const sec = el('section', 'section active');
+      sec.appendChild(el('h2', '', 'Key Insights'));
+      sec.appendChild(el('p', 'lead', 'Recent trends and opportunities'));
+
+      if (D.insights && Array.isArray(D.insights) && D.insights.length > 0) {
+        D.insights.slice(0, 3).forEach(ins => {
+          const card = el('div', 'insight-card ' + (ins.type || 'neutral'));
+          const tag = el('div', 'tag');
+          tag.textContent = (ins.type || 'info').toUpperCase();
+          card.appendChild(tag);
+          const h4 = el('h4', '');
+          h4.textContent = ins.headline || 'Insight';
+          card.appendChild(h4);
+          const p = el('p', '');
+          p.textContent = ins.detail || '';
+          card.appendChild(p);
+          sec.appendChild(card);
+        });
+      } else {
+        const msg = el('p', 'lead');
+        msg.textContent = 'No insights available yet.';
+        sec.appendChild(msg);
+      }
+      content.appendChild(sec);
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      navItems.forEach(item => item.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+      switch (tab) {
+        case 'overview':
+          renderOverview();
+          break;
+        case 'primary':
+          renderPrimary();
+          break;
+        case 'offtake':
+          renderOfftake();
+          break;
+        case 'insights':
+          renderInsights();
+          break;
+      }
+    }
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        switchTab(item.dataset.tab);
+      });
+    });
+
+    // Load data from data.js and render
+    if (typeof D === 'object' && Object.keys(D).length > 0) {
+      switchTab('overview');
+    } else {
+      content.innerHTML = '<div class="loader"><p>Dashboard data not loaded. Please ensure data.js is present.</p></div>';
+    }
+  </script>
+</body>
+</html>
