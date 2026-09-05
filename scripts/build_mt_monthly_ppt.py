@@ -38,6 +38,10 @@ from mt_analytics_engine import (
     calculate_matrix_coordinates
 )
 
+# Import IR and exporters for dual-format support (Phase 3)
+from mt_deck_ir import build_deck_ir
+from gslides_exporter import build_gslides_batch_from_ir
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SECTION 1: COLOR PALETTE & THEME TOKENS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1666,12 +1670,18 @@ def build_mt_ppt(config=None, output_path=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Build parameterized 18-slide MT leadership deck"
+        description="Build parameterized 18-slide MT leadership deck (dual-export: PPTX + Google Slides JSON)"
     )
     parser.add_argument("--month", default="September", help="Month name")
     parser.add_argument("--year", type=int, default=2026, help="Year")
     parser.add_argument("--theme", default="default", help="Theme name (default, teal, etc)")
-    parser.add_argument("--output", default=None, help="Output file path")
+    parser.add_argument("--output", default=None, help="Output file path (without extension)")
+    parser.add_argument(
+        "--format",
+        choices=["pptx", "json", "both"],
+        default="pptx",
+        help="Export format: 'pptx' (PowerPoint), 'json' (Google Slides batchUpdate), or 'both' (default: pptx)"
+    )
 
     args = parser.parse_args()
 
@@ -1680,4 +1690,24 @@ if __name__ == "__main__":
     config["year"] = args.year
     config["theme_name"] = args.theme
 
-    build_mt_ppt(config, args.output)
+    # Generate base output filename
+    if args.output is None:
+        month_lower = args.month.lower()
+        base_output = f"MT_{month_lower}_{args.year}"
+    else:
+        base_output = args.output
+
+    # Export to PPTX
+    if args.format in ("pptx", "both"):
+        pptx_path = f"{base_output}.pptx"
+        build_mt_ppt(config, pptx_path)
+
+    # Export to Google Slides batchUpdate JSON
+    if args.format in ("json", "both"):
+        ir = build_deck_ir(args.month, args.year, config)
+        payload = build_gslides_batch_from_ir(ir)
+        json_path = f"{base_output}_gslides_batch.json"
+        with open(json_path, "w") as f:
+            json.dump(payload, f, indent=2)
+        print(f"✅ Google Slides payload: {json_path}")
+        print(f"📊 Total requests: {len(payload.get('requests', []))}")
