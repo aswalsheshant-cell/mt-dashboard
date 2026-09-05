@@ -42,6 +42,9 @@ from mt_analytics_engine import (
 from mt_deck_ir import build_deck_ir
 from gslides_exporter import build_gslides_batch_from_ir
 
+# Import data loader for live data ingestion support
+from mt_data_loader import MTDataLoader
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SECTION 1: COLOR PALETTE & THEME TOKENS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1682,10 +1685,28 @@ if __name__ == "__main__":
         default="pptx",
         help="Export format: 'pptx' (PowerPoint), 'json' (Google Slides batchUpdate), or 'both' (default: pptx)"
     )
+    parser.add_argument(
+        "--data-source",
+        default=None,
+        help="Path to CSV folder, JSON file, or SQLAlchemy connection URI (e.g. postgresql://user:pass@host/db). If not provided, uses DEFAULT_CONFIG."
+    )
 
     args = parser.parse_args()
 
     config = DEFAULT_CONFIG.copy()
+
+    # Load data from external source if provided
+    if args.data_source:
+        loader = MTDataLoader(fallback_config=DEFAULT_CONFIG)
+        if args.data_source.endswith(".json"):
+            config = loader.load_from_json(args.data_source)
+        elif os.path.isdir(args.data_source):
+            config = loader.load_from_csv_directory(args.data_source)
+        elif "://" in args.data_source:
+            config = loader.load_from_sql(args.data_source, args.month, args.year)
+        else:
+            raise ValueError(f"Unsupported data source format: {args.data_source}")
+
     config["month"] = args.month
     config["year"] = args.year
     config["theme_name"] = args.theme

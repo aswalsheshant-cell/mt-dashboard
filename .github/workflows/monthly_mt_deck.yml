@@ -16,6 +16,10 @@ on:
         description: 'Target Review Year'
         required: false
         default: '2026'
+      data_source:
+        description: 'Path to CSV seed directory (leave blank for default sample seeds)'
+        required: false
+        default: './data/sample_seeds'
       format:
         description: 'Artifact Export Mode'
         required: true
@@ -75,6 +79,17 @@ jobs:
           echo "Running Google Slides Export & Float Validation Suite..."
           python scripts/test_gslides_export.py
 
+      - name: Pre-Flight CSV Data Schema & Bounds Validation
+        id: preflight_check
+        run: |
+          DATA_DIR="${{ github.event.inputs.data_source || './data/sample_seeds' }}"
+          if [ -d "$DATA_DIR" ]; then
+            echo "Executing pre-flight validation on data directory: $DATA_DIR"
+            python scripts/validate_seeds.py --data-dir "$DATA_DIR"
+          else
+            echo "Directory $DATA_DIR does not exist. Skipping pre-flight CSV validation (fallback config will be used)."
+          fi
+
       - name: Resolve Target Month and Year
         id: resolve_date
         run: |
@@ -98,13 +113,17 @@ jobs:
           TARGET_MONTH="${{ steps.resolve_date.outputs.month }}"
           TARGET_YEAR="${{ steps.resolve_date.outputs.year }}"
           EXPORT_FORMAT="${{ github.event.inputs.format || 'both' }}"
+          DATA_DIR="${{ github.event.inputs.data_source || './data/sample_seeds' }}"
           OUTPUT_PREFIX="./output/MT_${TARGET_MONTH^}_${TARGET_YEAR}_Leadership"
 
-          python scripts/build_mt_monthly_ppt.py \
-            --month "$TARGET_MONTH" \
-            --year "$TARGET_YEAR" \
-            --format "$EXPORT_FORMAT" \
-            --output "$OUTPUT_PREFIX"
+          BUILD_CMD="python scripts/build_mt_monthly_ppt.py --month \"$TARGET_MONTH\" --year \"$TARGET_YEAR\" --format \"$EXPORT_FORMAT\" --output \"$OUTPUT_PREFIX\""
+
+          if [ -d "$DATA_DIR" ]; then
+            BUILD_CMD="$BUILD_CMD --data-source \"$DATA_DIR\""
+          fi
+
+          echo "Executing generation: $BUILD_CMD"
+          eval $BUILD_CMD
 
           echo "output_prefix=$OUTPUT_PREFIX" >> "$GITHUB_OUTPUT"
 
@@ -155,6 +174,8 @@ jobs:
         run: |
           echo "### 📊 Modern Trade Monthly Deck Run Summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Target Period:** ${{ steps.resolve_date.outputs.month }} ${{ steps.resolve_date.outputs.year }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Data Directory:** ${{ github.event.inputs.data_source || './data/sample_seeds' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-Flight Validation:** ${{ steps.preflight_check.outcome }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Export Mode:** ${{ github.event.inputs.format || 'both' }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Artifacts Uploaded:** PowerPoint (.pptx), Google Slides payload (.json)" >> $GITHUB_STEP_SUMMARY
           echo "- **Test Suite Status:** Passed (32/32 tests)" >> $GITHUB_STEP_SUMMARY
