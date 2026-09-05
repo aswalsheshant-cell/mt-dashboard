@@ -34,6 +34,7 @@ class MTDataLoader:
         - zones.csv: zone_name, primary_nsv, offtake_nsv, conversion_pct, yoy_growth
         - chains.csv: chain_name, primary_cr, offtake_cr, conversion_pct, growth_yoy
         - categories.csv: category_name, share_pct, growth_yoy, hero_sku
+        - offtake.csv: [OPTIONAL] chain_name, month, article, nsv_lakhs, qty, store_count
         """
         if not os.path.isdir(csv_dir):
             raise NotADirectoryError(f"CSV data directory not found: {csv_dir}")
@@ -86,6 +87,31 @@ class MTDataLoader:
                     })
             config_patch["categories"] = categories
             logger.info("Ingested %d category records from %s", len(categories), categories_file)
+
+        # 4. Parse Offtake (Secondary POS Data) [NEW]
+        offtake_file = os.path.join(csv_dir, "offtake.csv")
+        if os.path.exists(offtake_file):
+            offtake_by_chain = {}
+            with open(offtake_file, "r", encoding="utf-8-sig") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    chain = str(row.get("chain_name", "")).strip()
+                    month = str(row.get("month", "")).strip()
+                    article = str(row.get("article", "")).strip()
+                    nsv = float(row.get("nsv_lakhs", 0.0))
+
+                    if chain not in offtake_by_chain:
+                        offtake_by_chain[chain] = {"monthly": {}, "total": 0.0}
+                    if month not in offtake_by_chain[chain]["monthly"]:
+                        offtake_by_chain[chain]["monthly"][month] = 0.0
+
+                    offtake_by_chain[chain]["monthly"][month] += nsv
+                    offtake_by_chain[chain]["total"] += nsv
+
+            config_patch["by_chain_detail"] = offtake_by_chain
+            logger.info("Ingested offtake data for %d chains from %s", len(offtake_by_chain), offtake_file)
+        else:
+            logger.info("No offtake.csv found (optional); using fallback aggregates")
 
         return self._merge_with_fallback(config_patch)
 

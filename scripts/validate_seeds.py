@@ -56,6 +56,22 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
             "growth_yoy": (-100.0, 500.0),
         },
     },
+    "offtake.csv": {
+        "required_columns": ["chain_name", "month", "article", "nsv_lakhs", "qty", "store_count"],
+        "types": {
+            "chain_name": str,
+            "month": str,
+            "article": str,
+            "nsv_lakhs": float,
+            "qty": float,
+            "store_count": int,
+        },
+        "bounds": {
+            "nsv_lakhs": (0.0, None),
+            "qty": (0.0, None),
+            "store_count": (0, None),
+        },
+    },
 }
 
 
