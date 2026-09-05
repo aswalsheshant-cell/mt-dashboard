@@ -405,6 +405,132 @@
       color: var(--muted);
       margin-top: 20px;
     }
+    .filter-button {
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    header {
+      position: relative;
+    }
+    .filter-tray {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--card);
+      border-left: 1px solid var(--line);
+      box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+      z-index: 200;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-tray.open {
+      right: 0;
+    }
+    .filter-tray-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--card);
+      z-index: 10;
+    }
+    .filter-tray-header h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .filter-tray-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-group {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .filter-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .filter-group select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .filter-group select:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(45,155,127,0.1);
+    }
+    .filter-reset {
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      margin-top: auto;
+    }
+    .filter-reset button {
+      width: 100%;
+      padding: 10px;
+      background: var(--line);
+      border: none;
+      border-radius: 6px;
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .filter-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .filter-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
   </style>
 </head>
 <body>
@@ -412,7 +538,37 @@
     <header>
       <h1>MT Dashboard</h1>
       <p>Mobile Executive View</p>
+      <button class="filter-button" id="filterBtn" title="Open filters">⚙️</button>
     </header>
+
+    <div class="filter-overlay" id="filterOverlay"></div>
+    <div class="filter-tray" id="filterTray">
+      <div class="filter-tray-header">
+        <h3>Filters</h3>
+        <button class="filter-tray-close" id="filterClose">✕</button>
+      </div>
+      <div class="filter-group">
+        <label for="fySelect">Financial Year</label>
+        <select id="fySelect">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="brandSelect">Brand</label>
+        <select id="brandSelect">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="zoneSelect">Zone</label>
+        <select id="zoneSelect">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="filter-reset">
+        <button id="resetFilters">Reset All Filters</button>
+      </div>
+    </div>
 
     <div class="content" id="content">
       <div class="loader">
@@ -454,6 +610,131 @@
     const content = document.getElementById('content');
     const navItems = document.querySelectorAll('.nav-item');
     let currentTab = 'overview';
+
+    // Filter state
+    const filters = {
+      fy: '',
+      brand: '',
+      zone: ''
+    };
+
+    // Filter UI elements
+    const filterBtn = document.getElementById('filterBtn');
+    const filterTray = document.getElementById('filterTray');
+    const filterOverlay = document.getElementById('filterOverlay');
+    const filterClose = document.getElementById('filterClose');
+    const fySelect = document.getElementById('fySelect');
+    const brandSelect = document.getElementById('brandSelect');
+    const zoneSelect = document.getElementById('zoneSelect');
+    const resetBtn = document.getElementById('resetFilters');
+
+    // Initialize filter options from data
+    function initializeFilters() {
+      const fySet = new Set();
+      const brandSet = new Set();
+      const zoneSet = new Set();
+
+      // Collect available FY values
+      if (D.primary && D.primary.fy_tags) {
+        D.primary.fy_tags.forEach(fy => {
+          fySet.add('FY' + fy.slice(2).toUpperCase());
+        });
+      }
+
+      // Collect available brands and zones from primary or detail data
+      if (D.primary && D.primary.by_brand) {
+        D.primary.by_brand.forEach(b => {
+          if (b.name) brandSet.add(b.name);
+        });
+      }
+      if (D.primary && D.primary.by_zone) {
+        D.primary.by_zone.forEach(z => {
+          if (z.name) zoneSet.add(z.name);
+        });
+      }
+
+      // Populate FY dropdown
+      fySet.forEach(fy => {
+        const opt = document.createElement('option');
+        opt.value = fy.toLowerCase();
+        opt.textContent = fy.replace('fy', 'FY\'') + (fy === 'FY25' ? ' (24-25)' : fy === 'FY26' ? ' (25-26)' : ' (26-27)');
+        fySelect.appendChild(opt);
+      });
+
+      // Populate Brand dropdown
+      [...brandSet].sort().forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b;
+        opt.textContent = b;
+        brandSelect.appendChild(opt);
+      });
+
+      // Populate Zone dropdown
+      [...zoneSet].sort().forEach(z => {
+        const opt = document.createElement('option');
+        opt.value = z;
+        opt.textContent = z;
+        zoneSelect.appendChild(opt);
+      });
+    }
+
+    // Filter tray toggle
+    filterBtn.addEventListener('click', () => {
+      filterTray.classList.add('open');
+      filterOverlay.classList.add('open');
+    });
+
+    filterClose.addEventListener('click', closeFilterTray);
+    filterOverlay.addEventListener('click', closeFilterTray);
+
+    function closeFilterTray() {
+      filterTray.classList.remove('open');
+      filterOverlay.classList.remove('open');
+    }
+
+    // Filter change handlers
+    fySelect.addEventListener('change', (e) => {
+      filters.fy = e.target.value;
+      switchTab(currentTab);
+    });
+
+    brandSelect.addEventListener('change', (e) => {
+      filters.brand = e.target.value;
+      switchTab(currentTab);
+    });
+
+    zoneSelect.addEventListener('change', (e) => {
+      filters.zone = e.target.value;
+      switchTab(currentTab);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      filters.fy = '';
+      filters.brand = '';
+      filters.zone = '';
+      fySelect.value = '';
+      brandSelect.value = '';
+      zoneSelect.value = '';
+      switchTab(currentTab);
+    });
+
+    // Apply filters to data
+    function applyFilters(data, isArray = false) {
+      if (!isArray) {
+        if (!filters.fy && !filters.brand && !filters.zone) return data;
+        const filtered = { ...data };
+        // For non-array data, return as-is for now
+        return filtered;
+      }
+
+      // For arrays, filter by fy, brand, zone
+      return data.filter(row => {
+        if (filters.fy && row.fy && row.fy !== filters.fy) return false;
+        if (filters.brand && row.brand && row.brand !== filters.brand) return false;
+        if (filters.zone && row.zone && row.zone !== filters.zone) return false;
+        return true;
+      });
+    }
 
     function el(tag, cls, txt) {
       const e = document.createElement(tag);
@@ -749,6 +1030,7 @@
 
     // Load data from data.js and render
     if (typeof D === 'object' && Object.keys(D).length > 0) {
+      initializeFilters();
       switchTab('overview');
     } else {
       content.innerHTML = '<div class="loader"><p>Dashboard data not loaded. Please ensure data.js is present.</p></div>';
