@@ -7,7 +7,6 @@ against baseline thresholds defined in docs/BUSINESS_VALIDATION_BASELINE.md.
 Run: pytest tests/test_business_validation_dax.py -v
 """
 
-from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 import pytest
