@@ -278,8 +278,12 @@ def load_article_offtake_sales(src_dir: Path) -> pd.DataFrame:
 
             # Extract article_id and month
             df['article_id'] = df['Article'].astype(str).str.strip()
-            df['article_id'] = df['article_id'].str.replace(r'[^\w]', '_', regex=True)[:50]
-            df['article_name'] = df['Article'].astype(str).str.strip()
+            df['article_id'] = df['article_id'].str.replace(r'[^\w]', '_', regex=True).str[:50]
+            # Use Article Name column if available, otherwise fall back to Article
+            if 'Article Name' in df.columns:
+                df['article_name'] = df['Article Name'].astype(str).str.strip()
+            else:
+                df['article_name'] = df['Article'].astype(str).str.strip()
 
             # Normalize month
             def normalize_month(m):
