@@ -31,6 +31,13 @@ from pptx.dml.color import RGBColor
 import json
 import os
 
+# Import analytics engine for dynamic calculations (Phase 2)
+from mt_analytics_engine import (
+    calculate_waterfall_bridge,
+    calculate_scenario_roi,
+    calculate_matrix_coordinates
+)
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SECTION 1: COLOR PALETTE & THEME TOKENS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -92,6 +99,23 @@ DEFAULT_CONFIG = {
         "West": {"offtake": "₹8.28 Cr", "conv": 82.3, "gap": "₹1.78 Cr", "status": "WATCH", "yoy_growth": 24},
     },
 
+    # Diagnostic chain data (for Slide 5c waterfall auto-balancing)
+    "diagnostic_chain": {
+        "chain_name": "Reliance",
+        "primary": 2.40,  # ₹ Cr
+        "offtake": 1.25,  # ₹ Cr
+    },
+
+    # Zones detail for Risk-Opportunity Matrix (Slide 7)
+    "zones_detail": [
+        {"name": "East", "conversion": 45.3, "nsv": 3.55},
+        {"name": "South-2", "conversion": 71.3, "nsv": 4.91},
+        {"name": "North", "conversion": 58.5, "nsv": 6.99},
+        {"name": "West", "conversion": 82.3, "nsv": 8.28},
+        {"name": "Central", "conversion": 78.8, "nsv": 2.12},
+        {"name": "South-1", "conversion": 83.6, "nsv": 8.19},
+    ],
+
     # Chain data (name → {offtake, conversion%})
     "chains": [
         {"name": "DMart", "offtake": "₹52.1 Cr", "conv": 45.6},
@@ -115,6 +139,17 @@ DEFAULT_CONFIG = {
         "target_conv": 0.70,
         "days": 21,
         "lift_pp": 25,  # percentage points
+    },
+
+    # Scenario ROI params for dynamic calculation (Phase 2)
+    "scenario_params": {
+        "current_offtake_weekly": 7.0,  # ₹ Cr (East zone weekly)
+        "current_conv": 45.3,  # % (East zone current conversion)
+        "target_conv": 70.0,  # % (target)
+        "promo_spend": 30.0,  # ₹ Lakhs
+        "promo_days": 21,
+        "gross_margin_pct": 0.45,  # 45%
+        "discount_pct": 10.0,  # 10% discount
     },
 
     # Theme
@@ -508,18 +543,27 @@ def slide_05c_waterfall(prs, config, theme):
     clear_slide(slide)
     add_background_color(slide, theme.NAVY)
 
-    add_heading(slide, "Multi-Step Waterfall: Where Primary Gets Lost (Reliance Case Study)",
+    # Extract diagnostic inputs and calculate waterfall dynamically
+    chain_data = config.get("diagnostic_chain", {})
+    primary = chain_data.get("primary", 2.40)
+    realized_offtake = chain_data.get("offtake", 1.25)
+    chain_name = chain_data.get("chain_name", "Reliance")
+
+    # Run calculation engine
+    bridge = calculate_waterfall_bridge(primary, realized_offtake)
+
+    add_heading(slide, f"Multi-Step Waterfall: Where Primary Gets Lost ({chain_name} Case Study)",
                 top_inches=0.3, size_pt=32)
-    add_subtitle(slide, "Root cause diagnostic: May primary ₹2.40 Cr → current offtake ₹1.25 Cr (52% realized)",
+    add_subtitle(slide, f"Root cause diagnostic: {chain_name} primary ₹{bridge['primary']:.2f} Cr → current offtake ₹{bridge['realized_offtake']:.2f} Cr ({bridge['conversion_rate']}% realized)",
                  top_inches=1.0, size_pt=12)
 
-    # Waterfall cards (5 boxes)
+    # Waterfall cards (5 boxes) — dynamically calculated
     waterfall_cards = [
-        ("DISPATCHED", "₹2.40 Cr", theme.TEAL, "May Primary Inflow"),
-        ("LOSS 1: Shelf Creep", "−₹0.45 Cr", theme.ACCENT_RED, "HUL captured eye-level"),
-        ("LOSS 2: Price Cliff", "−₹0.30 Cr", theme.ACCENT_RED, "Consumer resistance >₹499"),
-        ("LOSS 3: Trapped NPI", "−₹0.40 Cr", theme.ACCENT_RED, "Slow-moving fringe variants"),
-        ("REALIZED OFFTAKE", "₹1.25 Cr", theme.ACCENT_GREEN, "Actual sell-out (52% Conv)"),
+        ("DISPATCHED", f"₹{bridge['primary']:.2f} Cr", theme.TEAL, "Primary Inflow"),
+        ("LOSS 1: Shelf Creep", f"−₹{bridge['shelf_loss']:.2f} Cr", theme.ACCENT_RED, "Competitor creep"),
+        ("LOSS 2: Price Cliff", f"−₹{bridge['price_loss']:.2f} Cr", theme.ACCENT_RED, "Elasticity loss"),
+        ("LOSS 3: Trapped NPI", f"−₹{bridge['stuck_inventory']:.2f} Cr", theme.ACCENT_RED, "Slow SKUs"),
+        ("REALIZED OFFTAKE", f"₹{bridge['realized_offtake']:.2f} Cr", theme.ACCENT_GREEN, f"{bridge['conversion_rate']}% Conv"),
     ]
 
     left_offset = 0.4
@@ -643,7 +687,7 @@ def slide_06_zone_primary(prs, config, theme):
                size_pt=10, color=theme.MEDIUM_GREY)
 
 def slide_07_risk_matrix(prs, config, theme):
-    """Slide 7: Zone Risk-Opportunity Matrix (2x2)."""
+    """Slide 7: Zone Risk-Opportunity Matrix (2x2) — dynamically plotted."""
     slide_layout = prs.slide_layouts[0]
     slide = prs.slides.add_slide(slide_layout)
     clear_slide(slide)
@@ -651,58 +695,107 @@ def slide_07_risk_matrix(prs, config, theme):
 
     add_heading(slide, "Territory Prioritization: Zone Risk vs. Opportunity Matrix", top_inches=0.3, size_pt=32)
 
-    # Draw 2x2 grid
-    # Axes
-    slide.shapes.add_shape(1, Inches(1.5), Inches(1.8), Inches(0.05), Inches(4)).line.color.rgb = theme.MEDIUM_GREY
-    slide.shapes.add_shape(1, Inches(1.5), Inches(5.8), Inches(7), Inches(0.05)).line.color.rgb = theme.MEDIUM_GREY
+    # Get zones detail and compute dynamic coordinates
+    zones_data = config.get("zones_detail", [
+        {"name": "East", "conversion": 45.3, "nsv": 3.55},
+        {"name": "South-2", "conversion": 71.3, "nsv": 4.91},
+        {"name": "North", "conversion": 58.5, "nsv": 6.99},
+        {"name": "West", "conversion": 82.3, "nsv": 8.28},
+        {"name": "Central", "conversion": 78.8, "nsv": 2.12},
+        {"name": "South-1", "conversion": 83.6, "nsv": 8.19},
+    ])
+
+    # Canvas dimensions for the matrix area
+    plot_box_left = Inches(1.5)
+    plot_box_top = Inches(1.8)
+    plot_box_width = Inches(7.0)
+    plot_box_height = Inches(4.0)
+
+    # Compute coordinates dynamically
+    mapped_zones = calculate_matrix_coordinates(
+        zones_data,
+        1.5,  # box_left in inches
+        1.8,  # box_top in inches
+        7.0,  # box_width in inches
+        4.0,  # box_height in inches
+        target_conv=75.0
+    )
+
+    # Draw 2x2 grid with dividers
+    mid_x_inches = plot_box_left + (plot_box_width / 2)
+    mid_y_inches = plot_box_top + (plot_box_height / 2)
+
+    # Vertical divider
+    slide.shapes.add_shape(
+        1,  # Rectangle
+        mid_x_inches, plot_box_top,
+        Inches(0.02), plot_box_height
+    ).line.color.rgb = theme.MEDIUM_GREY
+
+    # Horizontal divider
+    slide.shapes.add_shape(
+        1,  # Rectangle
+        plot_box_left, mid_y_inches,
+        plot_box_width, Inches(0.02)
+    ).line.color.rgb = theme.MEDIUM_GREY
 
     # Quadrant labels
     q_labels = [
-        ("WATCH / HIGH CONVERSION LOSS", Inches(1.8), Inches(2.0), theme.ACCENT_ORANGE),
-        ("CRITICAL INTERVENTION ZONE", Inches(5.5), Inches(2.0), theme.ACCENT_RED),
-        ("STABLE MONITORING", Inches(1.8), Inches(5.0), theme.MEDIUM_GREY),
-        ("BENCHMARK / CORE ENGINE", Inches(5.8), Inches(5.0), theme.ACCENT_GREEN),
+        ("WATCH / MEDIUM SCALE", Inches(1.8), Inches(2.0), theme.ACCENT_ORANGE),
+        ("CRITICAL INTERVENTION", Inches(5.2), Inches(2.0), theme.ACCENT_RED),
+        ("STABLE / SMALL SCALE", Inches(1.8), Inches(5.0), theme.MEDIUM_GREY),
+        ("BENCHMARK / CORE", Inches(5.8), Inches(5.0), theme.ACCENT_GREEN),
     ]
 
     for label, left, top, color in q_labels:
-        lbl_box = slide.shapes.add_textbox(left, top, Inches(2.8), Inches(0.4))
+        lbl_box = slide.shapes.add_textbox(left, top, Inches(2.6), Inches(0.35))
         tf = lbl_box.text_frame
         p = tf.paragraphs[0]
         p.text = label
-        p.font.size = Pt(10)
-        p.font.bold = True
-        p.font.color.rgb = color
-
-    # Zone bubble placements (simplified text representation)
-    zones_placement = [
-        ("NORTH\n₹6.99 Cr\n58.5% conv", Inches(2.5), Inches(3.5), theme.ACCENT_ORANGE),
-        ("EAST\n₹3.55 Cr\n45.3% conv", Inches(6.0), Inches(3.5), theme.ACCENT_RED),
-        ("WEST\n₹8.28 Cr\n82.3% conv", Inches(2.5), Inches(5.2), theme.MEDIUM_GREY),
-        ("SOUTH-1\n₹8.19 Cr\n83.6% conv", Inches(6.0), Inches(5.2), theme.ACCENT_GREEN),
-    ]
-
-    for zone_text, left, top, color in zones_placement:
-        zone_box = slide.shapes.add_textbox(left, top, Inches(2.2), Inches(0.8))
-        zone_shape = slide.shapes.add_shape(
-            1,  # Rectangle
-            left, top,
-            Inches(2.0), Inches(0.7)
-        )
-        zone_shape.fill.solid()
-        zone_shape.fill.fore_color.rgb = RGBColor(40, 60, 90)
-        zone_shape.line.color.rgb = color
-        zone_shape.line.width = Pt(2)
-
-        tf = zone_box.text_frame
-        tf.word_wrap = True
-        p = tf.paragraphs[0]
-        p.text = zone_text
         p.font.size = Pt(9)
         p.font.bold = True
         p.font.color.rgb = color
+
+    # Plot dynamic zone bubbles
+    for zone in mapped_zones:
+        color_map = {
+            "RED": theme.ACCENT_RED,
+            "ORANGE": theme.ACCENT_ORANGE,
+            "YELLOW": RGBColor(200, 160, 50),
+            "GREEN": theme.ACCENT_GREEN,
+        }
+        bubble_color = color_map.get(zone["color_theme"], theme.MEDIUM_GREY)
+
+        # Zone bubble box
+        zone_left_inches = zone["x_coord"]
+        zone_top_inches = zone["y_coord"]
+
+        zone_shape = slide.shapes.add_shape(
+            1,  # Rectangle
+            Inches(zone_left_inches), Inches(zone_top_inches),
+            Inches(1.8), Inches(0.65)
+        )
+        zone_shape.fill.solid()
+        zone_shape.fill.fore_color.rgb = RGBColor(40, 60, 90)
+        zone_shape.line.color.rgb = bubble_color
+        zone_shape.line.width = Pt(2)
+
+        # Zone text
+        zone_text_box = slide.shapes.add_textbox(
+            Inches(zone_left_inches + 0.05),
+            Inches(zone_top_inches + 0.05),
+            Inches(1.7), Inches(0.55)
+        )
+        tf = zone_text_box.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.text = f"{zone['name']}\n₹{zone['nsv']:.2f}Cr | {zone['conversion']:.1f}%"
+        p.font.size = Pt(8)
+        p.font.bold = True
+        p.font.color.rgb = bubble_color
         p.alignment = PP_ALIGN.CENTER
 
-    add_footer(slide, "X-axis: Conversion gap (far right = worst); Y-axis: Zone offtake size (top = largest). Action intensity: Red > Orange > Grey > Green",
+    add_footer(slide, "X-axis: Conversion gap vs 75% target (right = worse); Y-axis: NSV scale (top = larger). Dynamically computed quadrant placement.",
                size_pt=10, color=theme.MEDIUM_GREY)
 
 def slide_08_zone_conversion(prs, config, theme):
@@ -1058,45 +1151,55 @@ def slide_12_scenario_analysis(prs, config, theme):
     clear_slide(slide)
     add_background_color(slide, theme.NAVY)
 
-    add_heading(slide, "Scenario Analysis: Promo Impact on East Conversion Recovery",
+    # Extract scenario params and run dynamic ROI calculation
+    scenario_cfg = config.get("scenario_params", {
+        "current_offtake_weekly": 7.0,
+        "current_conv": 45.3,
+        "target_conv": 70.0,
+        "promo_spend": 30.0,
+        "promo_days": 21,
+        "gross_margin_pct": 0.45,
+        "discount_pct": 10.0,
+    })
+
+    # Run analytics engine
+    roi = calculate_scenario_roi(
+        current_offtake_weekly=scenario_cfg["current_offtake_weekly"],
+        current_conv=scenario_cfg["current_conv"],
+        target_conv=scenario_cfg["target_conv"],
+        promo_spend=scenario_cfg["promo_spend"],
+        promo_days=scenario_cfg["promo_days"],
+        gross_margin_pct=scenario_cfg["gross_margin_pct"] / 100.0,
+        discount_pct=scenario_cfg["discount_pct"]
+    )
+
+    zone = config.get("scenario", {}).get("zone", "East")
+    add_heading(slide, f"Scenario Analysis: Promo Impact on {zone} Conversion Recovery",
                 top_inches=0.3, size_pt=32)
 
-    # Extract scenario params
-    scenario = config.get("scenario", {})
-    zone = scenario.get("zone", "East")
-    curr_conv = scenario.get("current_conv", 0.453)
-    promo_spend = scenario.get("promo_spend", 30.0)
-    promo_discount = scenario.get("promo_discount", 0.10)
-    target_conv = scenario.get("target_conv", 0.70)
-    days = scenario.get("days", 21)
-    lift_pp = scenario.get("lift_pp", 25)
-
-    # Calculate outcomes
-    new_conv = curr_conv + (lift_pp / 100)
-
-    # Three-column scenario
+    # Three-column scenario (dynamically calculated)
     scenarios = [
         {
             "title": "CURRENT STATE",
             "subtitle": f"{zone} Zone, Week 1",
-            "conv": f"{curr_conv*100:.1f}%",
-            "weekly_offtake": "₹7.0 L",
+            "conv": f"{roi['current_conv']:.1f}%",
+            "weekly_offtake": f"₹{roi['current_weekly']:.1f} L",
             "status": "🔴 URGENT",
             "color": theme.ACCENT_RED,
         },
         {
             "title": "WITH PROMO",
-            "subtitle": f"₹{promo_spend:.0f}L spend, {promo_discount*100:.0f}% discount",
-            "conv": f"{new_conv*100:.1f}%",
-            "weekly_offtake": "₹15.0 L",
+            "subtitle": f"₹{roi['promo_spend']:.0f}L spend, {scenario_cfg['discount_pct']:.0f}% discount",
+            "conv": f"{roi['mid_conv']:.1f}%",
+            "weekly_offtake": f"₹{roi['promo_weekly']:.1f} L (+{roi['uplift_pct']:.0f}%)",
             "status": "🟡 IMPROVING",
             "color": theme.ACCENT_ORANGE,
         },
         {
             "title": "TARGET STATE",
-            "subtitle": f"By Oct 1 (30 days)",
-            "conv": f"{target_conv*100:.0f}%+",
-            "weekly_offtake": "₹18+ L",
+            "subtitle": f"By Day {scenario_cfg['promo_days']}",
+            "conv": f"{roi['target_conv']:.0f}%+",
+            "weekly_offtake": f"₹{roi['target_weekly']:.1f}+ L",
             "status": "🟢 RECOVERED",
             "color": theme.ACCENT_GREEN,
         },
@@ -1167,16 +1270,13 @@ def slide_12_scenario_analysis(prs, config, theme):
         p.font.color.rgb = scenario_item["color"]
         p.alignment = PP_ALIGN.CENTER
 
-    # ROI calculation
+    # ROI calculation (dynamically derived from analytics engine)
     roi_box = slide.shapes.add_textbox(Inches(0.5), Inches(4.7), Inches(9), Inches(1.5))
     tf = roi_box.text_frame
     tf.word_wrap = True
 
-    cumulative_upside = 7.0  # ₹ Cr (calculated from weekly lift over 30 days)
-    roi_pct = (cumulative_upside / promo_spend) * 100
-
     p = tf.paragraphs[0]
-    p.text = f"SCENARIO OUTCOME: ₹{promo_spend:.0f}L promo spend → cumulative offtake uplift ₹{cumulative_upside:.1f} Cr over 30 days → ROI {roi_pct:.0f}x → Release ₹2.1 Cr working capital from East inventory clearance."
+    p.text = f"SCENARIO OUTCOME: ₹{roi['promo_spend']:.0f}L promo spend → cumulative offtake uplift ₹{roi['net_uplift']:.1f} Cr over {scenario_cfg['promo_days']} days → ROI {roi['roi_multiple']:.1f}x → Release ₹{roi['net_uplift'] * 0.30:.1f} Cr working capital from {zone} inventory clearance."
     p.font.size = Pt(12)
     p.font.bold = True
     p.font.color.rgb = theme.ACCENT_GREEN
