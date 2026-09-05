@@ -542,8 +542,20 @@
     function renderPrimary() {
       content.innerHTML = '';
       const sec = el('section', 'section active');
-      sec.appendChild(el('h2', '', 'Primary Analytics'));
-      sec.appendChild(el('p', 'lead', 'Distributor & direct sales by chain and zone'));
+
+      const hdr = el('div');
+      const h2 = el('h2', '', 'Primary Analytics');
+      if (D.yoy_metrics && D.yoy_metrics.status === 'active' && D.yoy_metrics.top_line) {
+        const badge = el('span', 'yoy-badge positive');
+        const pct = D.yoy_metrics.top_line.primary_nsv_growth || 0;
+        const isPos = pct >= 0;
+        badge.className = 'yoy-badge ' + (isPos ? 'positive' : 'negative');
+        badge.textContent = (isPos ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(1) + '%';
+        h2.appendChild(badge);
+      }
+      hdr.appendChild(h2);
+      hdr.appendChild(el('p', 'lead', 'Distributor & direct sales by chain'));
+      sec.appendChild(hdr);
 
       if (D.by_chain) {
         const card = el('div', 'card');
@@ -579,18 +591,65 @@
     function renderOfftake() {
       content.innerHTML = '';
       const sec = el('section', 'section active');
-      sec.appendChild(el('h2', '', 'Offtake Analytics'));
-      sec.appendChild(el('p', 'lead', 'Store-level conversion and sell-through'));
+
+      const hdr = el('div');
+      const h2 = el('h2', '', 'Offtake Analytics');
+      if (D.yoy_metrics && D.yoy_metrics.status === 'active' && D.yoy_metrics.top_line) {
+        const badge = el('span', 'yoy-badge positive');
+        const pct = D.yoy_metrics.top_line.offtake_value_growth || 0;
+        const isPos = pct >= 0;
+        badge.className = 'yoy-badge ' + (isPos ? 'positive' : 'negative');
+        badge.textContent = (isPos ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(1) + '%';
+        h2.appendChild(badge);
+      }
+      hdr.appendChild(h2);
+      hdr.appendChild(el('p', 'lead', 'Store-level conversion and sell-through'));
+      sec.appendChild(hdr);
+
+      const kpiGrid = el('div', 'kpis');
+
+      const kpi1 = el('div', 'kpi');
+      const lab1 = el('div', 'lab');
+      lab1.textContent = 'Offtake Total (Cr)';
+      kpi1.appendChild(lab1);
+      kpi1.appendChild(el('div', 'val', D.offtake_total ? formatNum(D.offtake_total) : '–'));
+      kpiGrid.appendChild(kpi1);
+
+      const kpi2 = el('div', 'kpi');
+      kpi2.appendChild(el('div', 'lab', 'Active Counters'));
+      const counterCount = D.rbc ? (D.rbc.counter_count || 0) : 0;
+      kpi2.appendChild(el('div', 'val', counterCount.toLocaleString()));
+      kpiGrid.appendChild(kpi2);
+
+      sec.appendChild(kpiGrid);
 
       const card = el('div', 'card');
-      card.appendChild(el('h3', '', 'Offtake Summary'));
-      if (D.offtake_total) {
-        const val = el('div', 'val');
-        val.textContent = formatNum(D.offtake_total);
-        card.appendChild(val);
-        const sub = el('div', 'sub');
-        sub.textContent = 'Total Offtake (Cr)';
-        card.appendChild(sub);
+      card.appendChild(el('h3', '', 'Offtake Trend'));
+      const note = el('p', 'note');
+      note.textContent = 'Monthly offtake values by chain';
+      card.appendChild(note);
+      if (D.by_chain) {
+        const tbl = el('table');
+        const thead = el('thead');
+        const tr = el('tr');
+        tr.appendChild(el('th', '', 'Chain'));
+        tr.appendChild(el('th', '', 'Offtake'));
+        thead.appendChild(tr);
+        tbl.appendChild(thead);
+
+        const tbody = el('tbody');
+        Object.entries(D.by_chain).slice(0, 5).forEach(([chain, data]) => {
+          const tr = el('tr');
+          tr.appendChild(el('td', '', chain));
+          const td2 = el('td', '');
+          td2.textContent = formatNum(data.offtake || 0);
+          tr.appendChild(td2);
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        const wrap = el('div', 'tablewrap');
+        wrap.appendChild(tbl);
+        card.appendChild(wrap);
       }
       sec.appendChild(card);
       content.appendChild(sec);
@@ -599,8 +658,45 @@
     function renderInsights() {
       content.innerHTML = '';
       const sec = el('section', 'section active');
-      sec.appendChild(el('h2', '', 'Key Insights'));
-      sec.appendChild(el('p', 'lead', 'Recent trends and opportunities'));
+
+      const hdr = el('div');
+      const h2 = el('h2', '', 'Key Insights');
+      if (D.yoy_metrics && D.yoy_metrics.status === 'active') {
+        const badge = el('span', 'yoy-badge positive');
+        badge.textContent = '⚡ YoY Active';
+        h2.appendChild(badge);
+      }
+      hdr.appendChild(h2);
+      hdr.appendChild(el('p', 'lead', 'Recent trends and performance deltas'));
+      sec.appendChild(hdr);
+
+      // YoY summary card
+      if (D.yoy_metrics && D.yoy_metrics.status === 'active' && D.yoy_metrics.top_line) {
+        const yoy = D.yoy_metrics.top_line;
+        const summaryCard = el('div', 'insight-card win');
+        const tag = el('div', 'tag');
+        tag.textContent = 'YEAR-OVER-YEAR';
+        summaryCard.appendChild(tag);
+        const h4 = el('h4', '');
+        h4.textContent = 'Annual Growth Comparison';
+        summaryCard.appendChild(h4);
+
+        const details = [];
+        if (yoy.rbc_total_growth_pct != null) {
+          details.push(`RBC: ${yoy.rbc_total_growth_pct >= 0 ? '▲' : '▼'} ${Math.abs(yoy.rbc_total_growth_pct).toFixed(1)}%`);
+        }
+        if (yoy.primary_nsv_growth != null) {
+          details.push(`Primary: ${yoy.primary_nsv_growth >= 0 ? '▲' : '▼'} ${Math.abs(yoy.primary_nsv_growth).toFixed(1)}%`);
+        }
+        if (yoy.offtake_value_growth != null) {
+          details.push(`Offtake: ${yoy.offtake_value_growth >= 0 ? '▲' : '▼'} ${Math.abs(yoy.offtake_value_growth).toFixed(1)}%`);
+        }
+
+        const p = el('p', '');
+        p.textContent = details.length > 0 ? details.join(' • ') : 'YoY metrics data in collection mode.';
+        summaryCard.appendChild(p);
+        sec.appendChild(summaryCard);
+      }
 
       if (D.insights && Array.isArray(D.insights) && D.insights.length > 0) {
         D.insights.slice(0, 3).forEach(ins => {
@@ -618,7 +714,7 @@
         });
       } else {
         const msg = el('p', 'lead');
-        msg.textContent = 'No insights available yet.';
+        msg.textContent = 'No additional insights available. Check back soon.';
         sec.appendChild(msg);
       }
       content.appendChild(sec);
