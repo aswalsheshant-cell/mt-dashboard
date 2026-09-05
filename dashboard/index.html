@@ -13,7 +13,20 @@
   // Vercel Web Analytics initialization
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
-<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){document.write('<script defer src="\/_vercel\/insights\/script.js"><\/script>');}})();</script>
+<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){var s=document.createElement('script');s.defer=true;s.src='/_vercel/insights/script.js';document.head.appendChild(s);}})();</script>
+<script>
+  // Phase 5.1: Mobile detection and redirect
+  (function(){
+    if(typeof window.FORCE_DESKTOP !== 'undefined'&&window.FORCE_DESKTOP) return;
+    var isMobile=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    var isTablet=/iPad|Android(?!.*Mobile)/i.test(navigator.userAgent);
+    var vw=Math.max(document.documentElement.clientWidth||0,window.innerWidth||0);
+    var isSmallScreen=vw<880;
+    if((isMobile||isTablet)&&isSmallScreen&&!location.pathname.includes('mobile.html')){
+      location.replace('mobile.html');
+    }
+  })();
+</script>
 <style>
   :root{
     --teal:#2D9B7F; --teal-d:#1f7a63; --bg:#F4F1EC; --card:#ffffff;
@@ -209,6 +222,24 @@
   .brief-actions button.primary:hover{background:var(--teal-d)}
   .brief-actions button.secondary{background:#f0f0f0;color:var(--ink);border:1px solid var(--line)}
   .brief-actions button.secondary:hover{background:var(--line)}
+  .yoy-badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 6px;border-radius:12px;margin-left:4px;vertical-align:middle}
+  .yoy-badge.positive{background:#e8f5ec;color:var(--green);border:1px solid #b7e0c4}
+  .yoy-badge.negative{background:#fce8e6;color:var(--red);border:1px solid #f5c6cb}
+  .yoy-badge.inactive{background:#f5f5f5;color:var(--muted);border:1px solid #e0e0e0}
+  .insight-banner-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;
+      margin:12px 0 20px 0}
+  .insight-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;
+      box-shadow:0 1px 2px rgba(0,0,0,0.04);display:flex;flex-direction:column;justify-content:space-between}
+  .insight-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .insight-icon{font-size:18px}
+  .insight-title{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:#64748b}
+  .insight-body{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:2px 0}
+  .insight-primary-val{font-size:1.15rem;font-weight:700;color:#0f172a}
+  .text-truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .insight-badge{font-size:0.78rem;font-weight:600;padding:2px 6px;border-radius:4px;background:#f1f5f9}
+  .badge-green{background:#dcfce7;color:#15803d}
+  .badge-red{background:#fee2e2;color:#b91c1c}
+  .insight-subtext{font-size:0.8rem;color:#64748b;margin-top:4px}
 </style>
 </head>
 <body>
@@ -269,6 +300,47 @@
       </div>
     </div>
   </div>
+
+  <!-- Dynamic Executive Insight Banner -->
+  <div id="exec-insight-banner" class="insight-banner-grid">
+    <!-- Card 1: Target vs Baseline -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <span class="insight-icon">🎯</span>
+        <span class="insight-title">Target vs Baseline</span>
+      </div>
+      <div class="insight-body">
+        <span id="banner-target-val" class="insight-primary-val">--</span>
+        <span id="banner-delta-badge" class="insight-badge">--</span>
+      </div>
+      <div id="banner-baseline-sub" class="insight-subtext">Baseline: --</div>
+    </div>
+
+    <!-- Card 2: Top 3 Driver Accounts -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <span class="insight-icon">🏆</span>
+        <span class="insight-title">Top 3 Driver Accounts</span>
+      </div>
+      <div class="insight-body">
+        <span id="banner-top3-names" class="insight-primary-val text-truncate">--</span>
+      </div>
+      <div id="banner-top3-share" class="insight-subtext">Drives --% of active target</div>
+    </div>
+
+    <!-- Card 3: Growth Leader -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <span class="insight-icon">⚡</span>
+        <span class="insight-title">Growth Leader</span>
+      </div>
+      <div class="insight-body">
+        <span id="banner-growth-leader" class="insight-primary-val">--</span>
+        <span id="banner-growth-rate" class="insight-badge badge-green">--</span>
+      </div>
+      <div id="banner-growth-target" class="insight-subtext">Target: --</div>
+    </div>
+  </div>
 </div>
 <div class="wrap">
   <section id="tab-explorer"></section>
@@ -317,6 +389,7 @@ fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
 fetch('./generated_insights.json').then(r=>r.json()).then(d=>{
   if(d.insights) window.DASH.insights=d.insights;
 }).catch(()=>{});
+
 
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);
@@ -423,7 +496,7 @@ const qtyFmt = v => { if(v==null) return '–'; const crv=v/1e7;
                                : (v/1e5).toLocaleString('en-IN',{maximumFractionDigits:2})+' L Qty'; };
 const cls = v => v==null?'':(v>=0?'up':'down');
 const arrow = v => v==null?'':(v>=0?'▲':'▼');
-const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null){if(typeof h==='string'&&/<[a-z]/i.test(h)){e.innerHTML=h;}else{e.textContent=h;}}return e;};
 
 function kpi(lab,val,sub){return `<div class="kpi"><div class="lab">${lab}</div><div class="val">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
 function card(title,note,inner,extraCls){
@@ -1421,12 +1494,15 @@ function buildPrimary(){
   if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
   if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
-  let mLabels=p.month_labels, m25=p.monthly_fy25, m26=p.monthly_fy26;
+
+  // Dynamically get available FY keys
+  const fy1=p.fy_tags?.[0]||'fy26', fy2=p.fy_tags?.[1]||'fy27';
+  let mLabels=p.month_labels, m25=p[`monthly_${fy1}`]||[], m26=p[`monthly_${fy2}`]||[];
   if(fOn('Month')){
     const sel=p.month_labels.map((m,i)=>({m,i})).filter(x=>fHas('Month',x.m));
-    if(sel.length){ mLabels=sel.map(x=>x.m); m25=sel.map(x=>p.monthly_fy25[x.i]); m26=sel.map(x=>p.monthly_fy26[x.i]); }
+    if(sel.length){ mLabels=sel.map(x=>x.m); m25=sel.map(x=>m25[x.i]); m26=sel.map(x=>m26[x.i]); }
   }
-  const rows=chains.filter(c=>c[last]>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.fy25)}</td><td>${crc(c.fy26)}</td>
+  const rows=chains.filter(c=>c[last]>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[fy1])}</td><td>${crc(c[fy2])}</td>
      <td><span class="pill ${c.yoy>=0?'g':'r'}">${pct(c.yoy)}</span></td></tr>`).join('');
   const qcNote=(qc&&qc.allocated_coverage_pct!=null)?`<p class="note" style="margin:0 0 16px">
      <b>Chain-level, not distributor-level:</b> Distributor-billed primary is split across the
@@ -1442,33 +1518,34 @@ function buildPrimary(){
     return `<tr><td>${r.state}</td><td>${drillLink('Zone',r.zone)}</td><td>${crc(r.fy25)}</td><td>${crc(r.fy26)}</td></tr>`;
   }).join('');
   s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
-   <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:`${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}, ₹ Crore.`}</p>
+   <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:`${fyDispLabel(fy1.toUpperCase())} vs ${fyDispLabel(fy2.toUpperCase())}, ₹ Crore.`}</p>
    ${dimNote}
    ${qcNote}
    <div class="kpis">
      ${fy? kpi(`Primary NSV ${yrLab[fy]}`,crc(chains.reduce((a,c)=>a+(c[fy]||0),0)),fOn('Chain')||fOn('Zone')||fOn('Brand')||fOn('Channel')?'filtered scope':'') :
-       kpi('Primary NSV FY26',crc(p.nsv_fy26),`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)}</span> YoY`)}
-     ${!fy? kpi('Primary NSV FY25',crc(p.nsv_fy25),'base year') :
-       kpi('Gross MRP Value',crc(p.mrp_fy26),'FY26 MRP basis (MRP not split by FY25/27)')}
+       kpi(`Primary NSV ${fyDispLabel(fy2.toUpperCase())}`,crc(p[`nsv_${fy2}`]),`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)}</span> YoY`)}
+     ${!fy? kpi(`Primary NSV ${fyDispLabel(fy1.toUpperCase())}`,crc(p[`nsv_${fy1}`]),'base year') :
+       kpi('Gross MRP Value',crc(p[`mrp_${fy2}`]),`${fyDispLabel(fy2.toUpperCase())} MRP basis (MRP not split by FY25/27)`)}
      ${!fy? kpi('Gross MRP Value FY26',crc(p.mrp_fy26),'at MRP basis') : ''}
      ${kpi('Active Chains',chains.filter(c=>c[last]>0).length,`${p.n_brands} brands`)}
    </div>
    <div class="grid g2">
-     ${card(`Monthly NSV — ${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}`+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
-     ${card('By zone'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')})`),'click to drill',cv('prZone',true))}
+     ${card(`Monthly NSV — ${fyDispLabel(fy1.toUpperCase())} vs ${fyDispLabel(fy2.toUpperCase())}`+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
+     ${card('By zone'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel(fy1.toUpperCase())} vs ${fyDispLabel(fy2.toUpperCase())})`),'click to drill',cv('prZone',true))}
    </div>
    <div class="grid g2">
      ${card('By channel'+(fy?` (${yrLab[fy]})`:''),'click to drill',cv('prChan',true))}
-     ${card('By brand'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY26')})`),'click to drill',cv('prBrand',true))}
+     ${card('By brand'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel(fy2.toUpperCase())})`),'click to drill',cv('prBrand',true))}
    </div>
    ${card(`Chain-wise primary &amp; YoY (${yrLab[last]})`,'Sorted by NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise. Click a chain to drill.',`<div class="tablewrap"><table>
-     <thead><tr><th>Chain</th><th>${fyDispLabel('FY25')}</th><th>${fyDispLabel('FY26')}</th><th>YoY</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${card('State-wise primary NSV'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')})`),
+     <thead><tr><th>Chain</th><th>${fyDispLabel(fy1.toUpperCase())}</th><th>${fyDispLabel(fy2.toUpperCase())}</th><th>YoY</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+   ${card('State-wise primary NSV'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel(fy1.toUpperCase())} vs ${fyDispLabel(fy2.toUpperCase())})`),
      'Real primary sell-in by state. '+(!fOn('Zone')&&!fOn('Chain')?'All zones. ':'Filtered. ')+'Click a zone to drill.',
      `<div class="tablewrap"><table>
-       <thead><tr><th>State</th><th>Zone</th>${fy?`<th>${yrLab[fy]}</th>`:`<th>${fyDispLabel('FY25')}</th><th>${fyDispLabel('FY26')}</th>`}</tr></thead>
+       <thead><tr><th>State</th><th>Zone</th>${fy?`<th>${yrLab[fy]}</th>`:`<th>${fyDispLabel(fy1.toUpperCase())}</th><th>${fyDispLabel(fy2.toUpperCase())}</th>`}</tr></thead>
        <tbody>${prStRows||`<tr><td colspan="${fy?3:4}">No states for this filter.</td></tr>`}</tbody>
      </table></div>`)}
+
    ${allocSectionHtml()}
    ${catDrillCardHtml('prCatDrill')}`;
   wireDrillLinks(s);
@@ -1480,8 +1557,8 @@ function buildPrimary(){
     mkBarH('prZone',zones.map(z=>z.name),zones.map(z=>z[fy]),C.teal,true,v=>drillTo('Zone',v));
   } else {
     mkBar('prZone',zones.map(z=>z.name),[
-      {label:fyDispLabel('FY25'),data:zones.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
-      {label:fyDispLabel('FY26'),data:zones.map(z=>z.fy26),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo('Zone',v));
+      {label:fyDispLabel(fy1.toUpperCase()),data:zones.map(z=>z[fy1]),backgroundColor:C.blue+'cc',borderRadius:4},
+      {label:fyDispLabel(fy2.toUpperCase()),data:zones.map(z=>z[fy2]),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo('Zone',v));
   }
   mkDonut('prChan',channels.map(c=>c.name),channels.map(c=>c[last]),true,v=>drillTo('Channel',v));
   const bb=brands.filter(b=>b[last]>0.5);
@@ -1649,8 +1726,11 @@ function buildOfftake(){
     renderDrillChart('ofDrill','Offtake NSV',recFilter());
     return;
   }
-  const yrs=fy?[fy]:['fy25','fy26'];
-  const yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
+  // Determine available FY keys for offtake (checks for total_fyNN fields)
+  const _offtakeFYs = ['fy25','fy26','fy27','fy28','fy29','fy30'].filter(t => o['total_'+t] != null);
+  const yrs=fy?[fy]:(_offtakeFYs.length >= 2 ? [_offtakeFYs[0], _offtakeFYs[1]] : _offtakeFYs.length === 1 ? _offtakeFYs : ['fy26']);
+  const yrLab={};
+  _offtakeFYs.forEach(t => yrLab[t] = fyDispLabel(t.toUpperCase()));
   if(fy && !yrLab[fy]) yrLab[fy]=fyDispLabel('FY'+fy.slice(2));   // backfill FY27+ label
   let zones=o.by_zone, states=o.by_state, chains=consolidateChains(o.by_chain);
   if(fOn('Zone')){ zones=zones.filter(z=>fHas('Zone',z.name)); states=states.filter(r=>fHas('Zone',r.zone)); }
@@ -1696,12 +1776,12 @@ function buildOfftake(){
   }).join('');
   const dimNote=dimUnsupportedNote(['Brand','Channel','Category','SubCategory','Range','PackSize','Article'],'the Offtake source (chain/zone/month only, no brand or product-level breakdown)');
   s.innerHTML=`<h2 class="sec">Offtake (Sell-out)</h2>
-   <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:`${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}, ₹ Crore.`}</p>
+   <p class="lead">Consumer offtake from MT stores. ${fy?`${yrLab[fy]} only (filtered).`:`${yrLab[yrs[0]]||'–'} vs ${yrLab[yrs[1]]||'–'}, ₹ Crore.`}</p>
    ${dimNote}
    <div class="kpis">
      ${fy? kpi(`Offtake ${yrLab[fy]}`,crc(totFor(fy)),fOn('Zone')||fOn('Chain')?'filtered scope':'') :
-       kpi('Offtake FY26',crc(o.total_fy26),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
-     ${!fy? kpi('Offtake FY25',crc(o.total_fy25),'base year') :
+       kpi(`Offtake ${yrLab[yrs[yrs.length-1]]}`,crc(totFor(yrs[yrs.length-1])),`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)}</span> YoY`)}
+     ${!fy && yrs.length >= 2? kpi(`Offtake ${yrLab[yrs[0]]}`,crc(totFor(yrs[0])),'base year') :
        kpi('Chains Tracked',(fOn('Zone')||fOn('Chain'))?chains.length:(chains.length||(D.universe&&D.universe.n_chains)||o.n_chains),fOn('Zone')||fOn('Chain')?'in this filter':(chains.length?'in offtake master':'MT universe'))}
      ${fy? kpi('Chains Tracked',(fOn('Zone')||fOn('Chain'))?chains.length:(chains.length||(D.universe&&D.universe.n_chains)||o.n_chains),fOn('Zone')||fOn('Chain')?'in this filter':(chains.length?'in offtake master':'MT universe')) :
        kpi('Chains Tracked',(D.universe&&D.universe.n_chains)||o.n_chains,'MT universe')}
@@ -1720,9 +1800,10 @@ function buildOfftake(){
   if(fy){
     mkBarH('ofZone',zones.map(z=>z.name),zones.map(z=>z[fy]),C.amber,true,v=>drillTo('Zone',v));
   } else {
-    mkBar('ofZone',zones.map(z=>z.name),[
-      {label:fyDispLabel('FY25'),data:zones.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
-      {label:fyDispLabel('FY26'),data:zones.map(z=>z.fy26),backgroundColor:C.amber,borderRadius:4}],{},v=>drillTo('Zone',v));
+    const _ofZoneSeries = [];
+    if(yrs.length >= 1) _ofZoneSeries.push({label:yrLab[yrs[0]],data:zones.map(z=>z[yrs[0]]),backgroundColor:C.blue+'cc',borderRadius:4});
+    if(yrs.length >= 2) _ofZoneSeries.push({label:yrLab[yrs[1]],data:zones.map(z=>z[yrs[1]]),backgroundColor:C.amber,borderRadius:4});
+    mkBar('ofZone',zones.map(z=>z.name),_ofZoneSeries,{},v=>drillTo('Zone',v));
   }
   mkBar('ofCmp',cmp.map(c=>c.name),[
     {label:'Primary (sell-in)',data:cmp.map(c=>pc[c.name]||0),backgroundColor:C.teal,borderRadius:4},
@@ -3487,8 +3568,27 @@ function buildComparison(){
     } else {
       source='Primary (chain-level, secondary-allocated for Distributors)';
       const arr=cmpDim==='Chain'?D.primary.by_chain:D.primary.by_brand;
-      rows=arr.filter(x=>(x.fy26||0)>0||(x.fy25||0)>0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
-      yrPair=[fyDispLabel('FY25'),fyDispLabel('FY26')];
+
+      // Dynamically detect available FY keys (fy25, fy26, fy27, etc.)
+      const fyKeys = [];
+      if (arr.length > 0) {
+        const sample = arr[0];
+        ['fy25','fy26','fy27','fy28','fy29','fy30'].forEach(k => {
+          if (sample.hasOwnProperty(k) && sample[k] != null) fyKeys.push(k);
+        });
+      }
+
+      // Use first two available FYs for comparison; if only one exists, compare with zero baseline
+      const [fyA, fyB] = fyKeys.length >= 2 ? [fyKeys[0], fyKeys[1]] :
+                         fyKeys.length === 1 ? [null, fyKeys[0]] : [null, null];
+
+      rows = arr.filter(x => (x[fyB]||0) > 0 || (fyA && (x[fyA]||0) > 0))
+                .map(x => ({name: x.name, a: fyA ? x[fyA] : null, b: x[fyB], yoy: x.yoy}));
+
+      // Label the comparison pair based on what's available
+      const fyALabel = fyA ? fyDispLabel(fyA.toUpperCase()) : '–';
+      const fyBLabel = fyB ? fyDispLabel(fyB.toUpperCase()) : '–';
+      yrPair = [fyALabel, fyBLabel];
     }
   } else {
     source='article-level primary detail (File 2)';
@@ -4703,6 +4803,61 @@ const BUILD={explorer:buildExplorer,overview:buildOverview,'monthly-briefing':bu
   'retail-execution':buildRetailExecution,analytics:buildAnalytics,stores:buildStores,inventory:buildInventory,
   'forecast-tracking':buildDailyWeeklyForecast,cm2:buildCM2,insights:buildInsights};
 let currentTab='overview';
+
+/* ---- YoY Performance Badges ---- */
+function renderYoYBadges(){
+  if(!D.yoy_metrics||D.yoy_metrics.status!=='active') return;
+  const yoy=D.yoy_metrics;
+
+  // Helper to find and update KPI labels with badges
+  const addBadge=(selector,growth)=>{
+    if(growth==null) return;
+    const kpi=document.querySelector(selector);
+    if(!kpi){return;}
+    const lab=kpi.querySelector('.lab');
+    if(!lab) return;
+
+    // Remove existing badge if present
+    const existing=lab.querySelector('.yoy-badge');
+    if(existing) existing.remove();
+
+    // Add new badge
+    const ipos=growth>=0;
+    const badge=el('span','yoy-badge '+(ipos?'positive':'negative'),
+      (ipos?'▲':'▼')+' '+(Math.abs(growth)).toFixed(1)+'%');
+    lab.appendChild(badge);
+  };
+
+  // Primary NSV FY26 badge
+  if(yoy.top_line&&yoy.top_line.primary_nsv_growth!=null){
+    const pct=yoy.top_line.primary_nsv_growth;
+    addBadge('#tab-primary .kpis .kpi:first-child',pct);
+  }
+
+  // Offtake FY26 badge
+  if(yoy.top_line&&yoy.top_line.offtake_value_growth!=null){
+    const pct=yoy.top_line.offtake_value_growth;
+    addBadge('#tab-offtake .kpis .kpi:first-child',pct);
+  }
+
+  // Reliance Brand Counter badge
+  if(yoy.top_line&&yoy.top_line.rbc_total_growth_pct!=null){
+    const pct=yoy.top_line.rbc_total_growth_pct;
+    addBadge('#tab-reliance-bc .kpis .kpi:first-child',pct);
+  }
+
+  // Brand-level badges (for Reliance Brand Counter tab specifically)
+  if(yoy.by_brand&&Object.keys(yoy.by_brand).length>0){
+    let badgeCount=0;
+    Object.entries(yoy.by_brand).slice(0,2).forEach(([brand,data])=>{
+      if(badgeCount>=2) return;
+      const selector=`#tab-reliance-bc .kpis .kpi:nth-child(${2+badgeCount})`;
+      addBadge(selector,data.growth_pct);
+      badgeCount++;
+    });
+  }
+}
+
 function show(id){
   currentTab=id;
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
@@ -4717,6 +4872,7 @@ function show(id){
   setTimeout(()=>{
     destroyCharts();
     BUILD[id]();
+    renderYoYBadges();
     window.scrollTo({top:0,behavior:'smooth'});
   },0);
 }
@@ -4729,9 +4885,74 @@ function show(id){
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
+  const p = D.primary || {};
+  updateExecutiveBanner(p.by_chain || []);
   show('overview');
+  // Render YoY badges after initial tab load
+  setTimeout(()=>renderYoYBadges(),100);
 
-  // Export zonal summary — CSV download
+  // Update insight banner on every filter change
+  const origOnFilterChange = onFilterChange;
+  onFilterChange = function() {
+    origOnFilterChange();
+    const chains = (D.primary || {}).by_chain || [];
+    const filtered = chains.filter(c => !F.Chain.length || F.Chain.includes(c.name));
+    updateExecutiveBanner(filtered.length ? filtered : chains);
+  };
+})();
+
+// ── Executive Insight Banner ─────────────────────────────────────────────────
+function updateExecutiveBanner(filteredChains) {
+  if (!filteredChains || filteredChains.length === 0) return;
+
+  let totalFY26 = 0;
+  let totalFY27 = 0;
+  let accounts = [];
+
+  filteredChains.forEach(c => {
+    const fy26 = Number(c.fy26 || 0);
+    const fy27 = Number(c.fy27 || 0);
+    totalFY26 += fy26;
+    totalFY27 += fy27;
+
+    const growth = fy26 > 0 ? ((fy27 - fy26) / fy26) * 100 : 0;
+    accounts.push({ name: c.name || c.chain, fy26, fy27, growth });
+  });
+
+  const delta = totalFY27 - totalFY26;
+  const overallGrowth = totalFY26 > 0 ? (delta / totalFY26) * 100 : 0;
+
+  // 1. Target vs Baseline Card
+  document.getElementById('banner-target-val').textContent = `₹${totalFY27.toLocaleString('en-IN', { maximumFractionDigits: 1 })}L`;
+  document.getElementById('banner-baseline-sub').textContent = `Baseline: ₹${totalFY26.toLocaleString('en-IN', { maximumFractionDigits: 1 })}L (Δ ${delta >= 0 ? '+' : ''}₹${delta.toFixed(1)}L)`;
+
+  const deltaBadge = document.getElementById('banner-delta-badge');
+  deltaBadge.textContent = `${overallGrowth >= 0 ? '▲ +' : '▼ '}${Math.abs(overallGrowth).toFixed(1)}% YoY`;
+  deltaBadge.className = `insight-badge ${overallGrowth >= 0 ? 'badge-green' : 'badge-red'}`;
+
+  // 2. Top 3 Accounts Card
+  const sortedByTarget = [...accounts].sort((a, b) => b.fy27 - a.fy27);
+  const top3 = sortedByTarget.slice(0, 3);
+  const top3Sum = top3.reduce((s, a) => s + a.fy27, 0);
+  const top3Share = totalFY27 > 0 ? ((top3Sum / totalFY27) * 100).toFixed(1) : 0;
+
+  document.getElementById('banner-top3-names').textContent = top3.map(a => a.name).join(', ') || 'N/A';
+  document.getElementById('banner-top3-share').textContent = `Drives ${top3Share}% of selected target (₹${top3Sum.toFixed(1)}L)`;
+
+  // 3. Growth Leader Card (filter small bases < ₹10L to prevent skew)
+  const viableGrowth = accounts.filter(a => a.fy26 >= 10);
+  const topGrower = viableGrowth.sort((a, b) => b.growth - a.growth)[0] || sortedByTarget[0];
+
+  if (topGrower) {
+    document.getElementById('banner-growth-leader').textContent = topGrower.name;
+    const rateBadge = document.getElementById('banner-growth-rate');
+    rateBadge.textContent = `+${topGrower.growth.toFixed(1)}% YoY`;
+    rateBadge.className = 'insight-badge badge-green';
+    document.getElementById('banner-growth-target').textContent = `Target: ₹${topGrower.fy27.toFixed(1)}L (Base: ₹${topGrower.fy26.toFixed(1)}L)`;
+  }
+}
+
+(function init_export(){
   document.getElementById('exportZonalSummary').addEventListener('click', () => {
     const p = D.primary || {};
     const zones = (p.by_zone || []).filter(z => !F.Zone.length || F.Zone.includes(z.name));
@@ -5135,7 +5356,10 @@ function exportExecutiveBriefPDF(){
   const brief=generateExecutiveBrief();
   const content=`PROMO ELASTICITY EXECUTIVE BRIEF\n${'='.repeat(50)}\nGenerated: ${brief.generated_at}\n\nMacro Elasticity: ${brief.macro_elasticity}\nOptimal Tier: ${brief.avg_optimal_tier}\n\nTop ROI Chains:\n${brief.top_roi_chains.map(c=>'  • '+c).join('\n')}\n\nKey Insights:\n${brief.key_insights.map(i=>'  • '+i).join('\n')}\n\nDilution Risk Flagged (${brief.dilution_risks.length}):\n${brief.dilution_risks.map(c=>'  • '+c).join('\n')||'  None detected'}`;
   const printWindow=window.open('','','width=800,height=600');
-  printWindow.document.write('<pre style="font-family:monospace;padding:20px;line-height:1.8;">'+content+'</pre>');
+  var pre=printWindow.document.createElement('pre');
+  pre.style.cssText='font-family:monospace;padding:20px;line-height:1.8;';
+  pre.textContent=content;
+  printWindow.document.body.appendChild(pre);
   printWindow.document.close();
   setTimeout(()=>printWindow.print(),500);
 }
@@ -5149,6 +5373,6 @@ function copyExecutiveBriefToClipboard(){
 <script>
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
 </script>
-<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){document.write('<script defer src="\/_vercel\/speed-insights\/script.js"><\/script>');}})();</script>
+<script>(function(){var h=location.hostname;if(h!=='localhost'&&h!=='127.0.0.1'&&!h.endsWith('.local')){var s=document.createElement('script');s.defer=true;s.src='/_vercel/speed-insights/script.js';document.head.appendChild(s);}})();</script>
 </body>
 </html>

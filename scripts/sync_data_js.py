@@ -18,6 +18,7 @@ USAGE:
 """
 from __future__ import annotations
 import json
+import re
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -28,6 +29,145 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from json_boundary import parse_window_dash_strict, serialize_window_dash
+
+try:
+    import pandas as pd
+    _HAS_PANDAS = True
+except ImportError:
+    import csv
+    _HAS_PANDAS = False
+
+UNIVERSE_CSV = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
+
+# Canonical column names after standardization (strip + lower + underscore)
+_COL_CHAIN     = "chain_name"
+_COL_STATUS    = "status"
+_COL_ZONE      = "zone"
+_COL_CITYCAT   = "city_category"
+_COL_STORETYPE = "store_type"
+
+
+def build_universe_block() -> dict | None:
+    """Read UniverseMT.csv and return a universe block for data.js.
+
+    Uses pandas when available (consistent with build_dashboard_data.py).
+    Falls back to csv.DictReader in minimal environments.
+    Returns None if the CSV is missing (non-fatal — existing block is preserved).
+    """
+    if not UNIVERSE_CSV.exists():
+        return None
+
+    if _HAS_PANDAS:
+        df = pd.read_csv(UNIVERSE_CSV, dtype=str).fillna("")
+        # Standardise column names: strip, lowercase, spaces→underscore
+        df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+
+        total_stores = len(df)
+        active_df   = df[df[_COL_STATUS].str.strip().str.upper() == "ACTIVE"].copy()
+        inactive_df = df[df[_COL_STATUS].str.strip().str.upper() != "ACTIVE"].copy()
+
+        def _chain_counts(frame):
+            return (
+                frame[_COL_CHAIN].str.strip()
+                .replace("", pd.NA).dropna()
+                .value_counts()
+                .rename_axis("name")
+                .reset_index(name="stores")
+                .sort_values("stores", ascending=False)
+                .to_dict("records")
+            )
+
+        def _dim_counts(frame, col):
+            return (
+                frame[col].str.strip()
+                .replace({"": pd.NA, "nan": pd.NA, "none": pd.NA}, regex=False)
+                .dropna()
+                .value_counts()
+                .rename_axis("name")
+                .reset_index(name="stores")
+                .sort_values("stores", ascending=False)
+                .to_dict("records")
+            )
+
+        by_chain_active   = _chain_counts(active_df)
+        by_chain_inactive = _chain_counts(inactive_df)
+        by_zone           = _dim_counts(active_df, _COL_ZONE)
+        by_citycat        = _dim_counts(active_df, _COL_CITYCAT)
+        by_storetype      = _dim_counts(active_df, _COL_STORETYPE)
+
+        classified   = active_df[_COL_STORETYPE].str.strip().replace({"": pd.NA, "nan": pd.NA, "none": pd.NA}, regex=False).notna().sum()
+        unclassified = len(active_df) - int(classified)
+
+    else:
+        # csv fallback
+        rows = []
+        with open(UNIVERSE_CSV, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for r in reader:
+                rows.append({c.strip().lower().replace(" ", "_"): v for c, v in r.items()})
+        if not rows:
+            return None
+
+        total_stores = len(rows)
+        active   = [r for r in rows if r.get(_COL_STATUS, "").strip().upper() == "ACTIVE"]
+        inactive = [r for r in rows if r.get(_COL_STATUS, "").strip().upper() != "ACTIVE"]
+
+        def _tally(lst, key):
+            counts: dict[str, int] = {}
+            for r in lst:
+                v = r.get(key, "").strip()
+                if v and v.upper() not in ("NAN", "NONE"):
+                    counts[v] = counts.get(v, 0) + 1
+            return sorted([{"name": k, "stores": v} for k, v in counts.items()], key=lambda d: -d["stores"])
+
+        by_chain_active   = _tally(active, _COL_CHAIN)
+        by_chain_inactive = _tally(inactive, _COL_CHAIN)
+        by_zone     = _tally(active, _COL_ZONE)
+        by_citycat  = _tally(active, _COL_CITYCAT)
+        by_storetype = _tally(active, _COL_STORETYPE)
+
+        classified = sum(
+            1 for r in active
+            if r.get(_COL_STORETYPE, "").strip()
+            and r.get(_COL_STORETYPE, "").strip().upper() not in ("NAN", "NONE")
+        )
+        unclassified = len(active) - classified
+        active_df    = active   # for len()
+        inactive_df  = inactive
+
+    n_active   = len(active_df) if _HAS_PANDAS else len(active)
+    n_inactive = len(inactive_df) if _HAS_PANDAS else len(inactive)
+    n_chains   = len(by_chain_active)
+
+    out: dict = {
+        "total_stores":  total_stores,
+        "active_stores": n_active,
+        "n_stores":      n_active,   # alias — index.html may use either key
+        "inactive_stores": n_inactive,
+        "n_chains":      n_chains,
+        "by_chain":      by_chain_active,
+        "inactive_by_chain": by_chain_inactive,
+        "by_zone":       by_zone,
+        "by_citycat":    by_citycat,
+        "by_storetype":  by_storetype,
+        "storetype_classified":   int(classified),
+        "storetype_unclassified": unclassified,
+    }
+    if unclassified > 0:
+        out["storetype_note"] = (
+            f"{unclassified} of {n_active} active stores have a blank or missing Store Type "
+            f"in UniverseMT.csv and are not shown in the store-type chart."
+        )
+    return out
+
+
+def _safe_json_parse(text: str) -> dict:
+    """Parse JSON that may contain bare NaN/undefined literals or trailing commas."""
+    cleaned = re.sub(r'(?<!["\w])NaN(?!["\w])', 'null', text)
+    cleaned = re.sub(r'\bundefined\b', 'null', cleaned)
+    # Remove trailing commas before ] or }
+    cleaned = re.sub(r',\s*([}\]])', r'\1', cleaned)
+    return json.loads(cleaned)
 
 
 def load_master(master_path: str) -> dict:
@@ -194,6 +334,9 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         offtake_block["by_state"] = []
     offtake_block["n_chains"] = len(offtake_block.get("by_chain", []))
 
+    # Universe block — read from UniverseMT.csv (canonical source, git-tracked)
+    universe = build_universe_block()
+
     # Blocks controlled by this script
     sync_blocks = {
         "metadata": meta,
@@ -202,6 +345,8 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         "unit_economics": master["unit_economics"],
         "executive_deck_sync": master["executive_deck_sync"],
     }
+    if universe is not None:
+        sync_blocks["universe"] = universe
 
     # Include reliance_bc if present in master (Reliance Brand Counter data)
     if "reliance_bc" in master and master["reliance_bc"] is not None:
@@ -230,8 +375,15 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
             print(f"  ⚠ Warning: Could not generate correlations: {e}")
 
     if existing_js is not None:
-        # Merge mode: preserve all blocks not controlled by this script
-        existing_dash = parse_window_dash_strict(existing_js)
+        # Merge mode: preserve all blocks not controlled by this script.
+        # Use _safe_json_parse to handle bare NaN literals that json.loads rejects.
+        try:
+            json_str = existing_js.replace("window.DASH = ", "", 1).strip()
+            if json_str.endswith(";"):
+                json_str = json_str[:-1]
+            existing_dash = _safe_json_parse(json_str)
+        except (json.JSONDecodeError, ValueError):
+            existing_dash = {}
         # Update only sync_blocks, keep everything else
         dash = {**existing_dash, **sync_blocks}
     else:

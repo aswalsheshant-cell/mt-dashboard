@@ -15,19 +15,20 @@ on:
       - 'data_master.json'
       - 'dashboard/data.js'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     name: Validate Master Data & Sync
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
-        with:
-          fetch-depth: 0
 
-      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install dependencies
         run: pip install pandas openpyxl
@@ -42,11 +43,26 @@ jobs:
 
       - name: Validate data.js integrity
         run: python scripts/ci_validate_datajs.py
-        continue-on-error: true  # Phase 3.5 loaders merged; data.js rebuild scheduled for Phase 3.6
 
       - name: Validate data integrity assertions
         run: python tests/validate_data_integrity.py
-        continue-on-error: true  # Phase 3.5 loaders merged; data.js rebuild scheduled for Phase 3.6
+
+      - name: Archive monthly metrics for YoY comparison
+        run: python scripts/archive_metrics.py
+        continue-on-error: true
+
+      - name: Calculate YoY performance metrics
+        run: python scripts/calculate_yoy.py
+        continue-on-error: true
+
+      - name: Commit archive and YoY updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add archive/ dashboard/data.js
+          git commit -m "ci: update dashboard data, archive metrics, and calculate YoY" || echo "No changes to commit"
+          git push
+        continue-on-error: true
 
   report:
     runs-on: ubuntu-latest
