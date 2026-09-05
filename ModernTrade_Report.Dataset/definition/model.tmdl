@@ -1,0 +1,37 @@
+model Model
+	culture: en-IN
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-IN
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBIDesktopVersion = 2.138.1452.0
+
+annotation PBI_QueryOrder = ["Dim_Date","Dim_Chain","Dim_Category","Fact_Financials","_Measures"]
+
+ref table _Measures
+ref table Dim_Date
+ref table Dim_Chain
+ref table Dim_Category
+ref table Fact_Financials
+
+/// Relationship: Dim_Date -> Fact_Financials (1:* Single Direction)
+relationship 4f3b7c89-21a4-4a57-8912-32b0a3c9e001
+	fromColumn: Fact_Financials.Date
+	toColumn: Dim_Date.Date
+	crossFilteringBehavior: oneDirection
+
+/// Relationship: Dim_Chain -> Fact_Financials (1:* Single Direction)
+relationship 8d2e1b45-67c8-4b23-a123-98e7d4c2a002
+	fromColumn: Fact_Financials.Chain_ID
+	toColumn: Dim_Chain.Chain_ID
+	crossFilteringBehavior: oneDirection
+
+/// Relationship: Dim_Category -> Fact_Financials (1:* Single Direction)
+relationship 1a9f0e34-5b67-4d89-9812-76c5b4a3e003
+	fromColumn: Fact_Financials.Category_ID
+	toColumn: Dim_Category.Category_ID
+	crossFilteringBehavior: oneDirection

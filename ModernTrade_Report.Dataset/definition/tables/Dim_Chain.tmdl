@@ -1,0 +1,32 @@
+table Dim_Chain
+	lineageTag: b32a8f90-74c1-4f10-9112-b1b2c3d4e002
+
+	column Chain_ID
+		dataType: string
+		lineageTag: c2a2b3c4-0002-4000-8000-000000000001
+		summarizeBy: none
+		sourceColumn: Chain_ID
+		isKey
+
+	column Chain_Name
+		dataType: string
+		lineageTag: c2a2b3c4-0002-4000-8000-000000000002
+		summarizeBy: none
+		sourceColumn: Chain_Name
+
+	column Channel_Tier
+		dataType: string
+		lineageTag: c2a2b3c4-0002-4000-8000-000000000003
+		summarizeBy: none
+		sourceColumn: Channel_Tier
+
+	partition Dim_Chain = m
+		mode: import
+		source = ```
+			let
+			    Source = Csv.Document(File.Contents("\\data-server\MT\Primary\Dim_Chain.csv"), [Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+			    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+			    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Chain_ID", type text}, {"Chain_Name", type text}, {"Channel_Tier", type text}})
+			in
+			    #"Changed Type"
+			```
