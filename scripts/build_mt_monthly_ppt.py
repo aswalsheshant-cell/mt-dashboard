@@ -82,14 +82,14 @@ DEFAULT_CONFIG = {
     "q1_growth_seq": "+27%",
     "q1_growth_yoy": "+64%",
 
-    # Zone data (name → {offtake, conversion%, gap, status})
+    # Zone data (name → {offtake, conversion%, gap, status, yoy_growth})
     "zones": {
-        "Central": {"offtake": "₹2.12 Cr", "conv": 78.8, "gap": "₹0.57 Cr", "status": "WATCH"},
-        "North": {"offtake": "₹6.99 Cr", "conv": 58.5, "gap": "₹4.97 Cr", "status": "FIX"},
-        "East": {"offtake": "₹3.55 Cr", "conv": 45.3, "gap": "₹4.28 Cr", "status": "URGENT"},
-        "South-1": {"offtake": "₹8.19 Cr", "conv": 83.6, "gap": "₹1.61 Cr", "status": "WATCH"},
-        "South-2": {"offtake": "₹4.91 Cr", "conv": 71.3, "gap": "₹1.98 Cr", "status": "FIX"},
-        "West": {"offtake": "₹8.28 Cr", "conv": 82.3, "gap": "₹1.78 Cr", "status": "WATCH"},
+        "Central": {"offtake": "₹2.12 Cr", "conv": 78.8, "gap": "₹0.57 Cr", "status": "WATCH", "yoy_growth": 18},
+        "North": {"offtake": "₹6.99 Cr", "conv": 58.5, "gap": "₹4.97 Cr", "status": "FIX", "yoy_growth": 22},
+        "East": {"offtake": "₹3.55 Cr", "conv": 45.3, "gap": "₹4.28 Cr", "status": "URGENT", "yoy_growth": 15},
+        "South-1": {"offtake": "₹8.19 Cr", "conv": 83.6, "gap": "₹1.61 Cr", "status": "WATCH", "yoy_growth": 26},
+        "South-2": {"offtake": "₹4.91 Cr", "conv": 71.3, "gap": "₹1.98 Cr", "status": "FIX", "yoy_growth": 20},
+        "West": {"offtake": "₹8.28 Cr", "conv": 82.3, "gap": "₹1.78 Cr", "status": "WATCH", "yoy_growth": 24},
     },
 
     # Chain data (name → {offtake, conversion%})
@@ -622,7 +622,8 @@ def slide_06_zone_primary(prs, config, theme):
     for zone_name, zone_data in sorted_zones:
         p = tf.add_paragraph()
         status_color = theme.get_status_color(zone_data["status"])
-        line = f"{zone_name:12}  {zone_data['offtake']:>10}   +{78+int(zone_name[0]):>2}%        {zone_data['conv']:>5.1f}%      {zone_data['status']}"
+        yoy = zone_data.get("yoy_growth", 20)
+        line = f"{zone_name:12}  {zone_data['offtake']:>10}   +{yoy:>2}%        {zone_data['conv']:>5.1f}%      {zone_data['status']}"
         p.text = line
         p.font.size = Pt(11)
         p.font.color.rgb = theme.WHITE
