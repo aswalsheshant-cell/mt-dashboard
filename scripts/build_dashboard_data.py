@@ -230,6 +230,132 @@ def fy_tag_from_label(lab):
     mn = _MON3_NUM.get(m.group(1).title())
     return fy_tag_from_ym(2000 + int(m.group(2)), mn) if mn else None
 
+def normalize_fy_notation(fy_val):
+    """
+    Convert any FY notation to canonical code notation (FY25, FY26, FY27, ...).
+
+    Handles multiple formats:
+    - Source format: 'FY24', 'FY25', 'FY26' (user's calendar-year notation)
+    - Code format: 'FY25', 'FY26', 'FY27' (derived by rule)
+    - Range format: 'FY_24-25', 'FY_25-26', 'FY2024-25' (some source files)
+
+    Mapping (for Apr-Mar fiscal year):
+    - User's FY24 (Apr 2024-Mar 2025) → Code's FY25
+    - User's FY25 (Apr 2025-Mar 2026) → Code's FY26
+    - User's FY26 (Apr 2026-Mar 2027) → Code's FY27
+
+    If input is already in code format (FY25, FY26, ...), returns unchanged.
+    """
+    if not fy_val or not isinstance(fy_val, str):
+        return None
+
+    fy_str = str(fy_val).strip().upper()
+
+    # Already in code format (e.g., 'FY25', 'FY26', 'FY27')?
+    if re.match(r"^FY\d{2}$", fy_str):
+        return fy_str
+
+    # Range format: 'FY_24-25', 'FY_25-26', 'FY2024-25', 'FY 24-25'?
+    m = re.match(r"^FY[_\s]?(\d{2})-(\d{2})$", fy_str)
+    if m:
+        start_yy = int(m.group(1))
+        # Map: FY24-25 (user) → FY25 (code), FY25-26 → FY26, etc.
+        code_fy_num = (start_yy + 1) % 100
+        return f"FY{code_fy_num:02d}"
+
+    # Plain format: 'FY24', 'FY25', 'FY26' (user notation, detect by magnitude)
+    m = re.match(r"^FY(\d{1,4})$", fy_str)
+    if m:
+        num = int(m.group(1))
+        if 20 <= num <= 30:  # 2-digit year (20-30 = 2020-2030)
+            # User notation: FY20 (Apr 2020-Mar 2021) → add 5 → FY25 (code)
+            # Pattern: user_fy + 5 = code_fy (for FY20-26 range)
+            # Better: if num < 25, it's user notation (FY24 → FY25)
+            # if num >= 25, ambiguous, assume code notation
+            if num <= 24:
+                code_fy_num = num + 1
+                return f"FY{code_fy_num:02d}"
+            else:
+                # FY25+ could be code notation, return as-is
+                return f"FY{num:02d}"
+        elif 2000 <= num <= 2030:  # 4-digit year (2024, 2025, etc.)
+            # Map calendar year to FY: 2024 → FY25, 2025 → FY26, etc.
+            code_fy_num = (num % 100 + 1) % 100
+            return f"FY{code_fy_num:02d}"
+
+    return fy_str  # Return unchanged if no pattern matches
+
+def allocate_distributor_primary_by_offtake(primary_df, offtake_chains, months):
+    """
+    Allocate Distributor ('Dist.') primary across chains based on each
+    chain's share of Distributor offtake for that month.
+
+    Args:
+        primary_df: Primary sales dataframe with 'chain' col indicating 'Dist.' for distributor rows
+        offtake_chains: Dict of {chain_name: {months: {month_label: value, ...}, ...}, ...}
+        months: List of month labels ['Apr-24', 'May-24', ...]
+
+    Returns:
+        primary_df with Distributor rows re-split across chains proportional to their offtake share
+    """
+    df = primary_df.copy()
+
+    # Identify distributor rows
+    dist_mask = (df.get("chain") == "Dist.") | (df.get("Chain Name") == "Dist.")
+
+    if not dist_mask.any():
+        return df  # No distributor rows to allocate
+
+    # Compute distributor offtake total and chain shares by month
+    # E.g., if in Apr-24: Dist. offtake = 100, Reliance = 30, Apollo = 20, Modern Trade = 50,
+    # then allocate Distributor primary as: Reliance 30%, Apollo 20%, Modern Trade 50%
+
+    offtake_by_month = {}
+    for month in months:
+        month_total = 0
+        chain_shares = {}
+        for chain_name, chain_data in offtake_chains.items():
+            if chain_name.lower() == "dist." or chain_name == "Distributor":
+                continue  # Skip if offtake dict has a Dist. entry
+            offtake_val = chain_data.get("months", {}).get(month, 0)
+            if offtake_val > 0:
+                chain_shares[chain_name] = offtake_val
+                month_total += offtake_val
+
+        if month_total > 0:
+            # Normalize to fractions
+            offtake_by_month[month] = {c: v / month_total for c, v in chain_shares.items()}
+
+    # Re-split distributor rows
+    exploded_rows = []
+    for idx, row in df[dist_mask].iterrows():
+        month = row.get("month_label") or row.get("Month", "")
+        shares = offtake_by_month.get(month, {})
+
+        if not shares:
+            # No offtake data for this month, keep original row
+            exploded_rows.append(row)
+        else:
+            # Split across chains
+            for chain, fraction in shares.items():
+                new_row = row.copy()
+                new_row["chain"] = chain
+                new_row["Chain Name"] = chain
+                if "NSV" in new_row.index:
+                    new_row["NSV"] = row["NSV"] * fraction
+                if "MRP value" in new_row.index:
+                    new_row["MRP value"] = row["MRP value"] * fraction
+                exploded_rows.append(new_row)
+
+    # Combine unmatched (non-distributor) rows with exploded (distributor) rows
+    unmatched = df[~dist_mask]
+    if exploded_rows:
+        exploded_df = pd.DataFrame(exploded_rows)
+        result = pd.concat([unmatched, exploded_df], ignore_index=True)
+    else:
+        result = unmatched
+
+    return result
 
 def fy_ge(series, floor="FY26"):
     """Boolean mask: FY-tag series >= floor FY (e.g. FY26 onward -- the GST/
@@ -4120,12 +4246,20 @@ def main():
         txt = outp.read_text()
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
         raw = load_primary_v2(src)
+
+        # Step 1: Normalize FY notation (convert user notation FY24/FY25/FY26 to code notation FY25/FY26/FY27)
+        print("  Normalizing FY notation...")
+        if "FY" in raw.columns:
+            raw["FY"] = raw["FY"].apply(normalize_fy_notation)
+
         weights = load_chain_allocation_weights(src)
 
-        # Load offtake data for enhanced allocation (Tier 2 fallback)
+        # Load offtake data for enhanced allocation (Tier 2 fallback) and distributor allocation
         offtake_data = None
+        offtake_chains = None
         try:
             chains, zs = load_offtake(src)
+            offtake_chains = chains
             # Convert offtake to DataFrame for dynamic weight computation
             offtake_rows = []
             for chain_name, chain_data in chains.items():
@@ -4140,6 +4274,16 @@ def main():
                 offtake_data = pd.DataFrame(offtake_rows)
         except Exception as e:
             print(f"⚠️  Could not load offtake for dynamic weights: {e}")
+
+        # Step 2: Allocate distributor primary by offtake % before apply_chain_allocation_enhanced
+        if offtake_chains:
+            months_list = list(MONTHS) if MONTHS else []
+            print("  Allocating distributor primary by chain offtake share...")
+            try:
+                raw = allocate_distributor_primary_by_offtake(raw, offtake_chains, months_list)
+                print("  ✓ Distributor allocation complete")
+            except Exception as e:
+                print(f"⚠️  Distributor allocation failed, proceeding with original data: {e}")
 
         # Use enhanced allocation with 3-tier fallback
         allocated, qc = apply_chain_allocation_enhanced(raw, weights, offtake_data)
@@ -4383,8 +4527,27 @@ def main():
               + ", ".join(f"{g['name']}={g['addon']}" for g in dg['addon_by_group']))
         return
 
-    pdf, primary = primary_block(*[load_primary(src)])
+    # Load and normalize primary data
+    raw_primary = load_primary(src)
+
+    # Step 1: Normalize FY notation (convert user notation FY24/FY25/FY26 to code notation FY25/FY26/FY27)
+    print("  Normalizing FY notation...")
+    if "FY" in raw_primary.columns:
+        raw_primary["FY"] = raw_primary["FY"].apply(normalize_fy_notation)
+
+    # Load offtake for distributor allocation
     off_chains, off_zs = load_offtake(src)
+
+    # Step 2: Allocate distributor primary by offtake % before primary_block
+    months_list = list(MONTHS) if MONTHS else []
+    print("  Allocating distributor primary by chain offtake share...")
+    try:
+        raw_primary = allocate_distributor_primary_by_offtake(raw_primary, off_chains, months_list)
+        print("  ✓ Distributor allocation complete")
+    except Exception as e:
+        print(f"⚠️  Distributor allocation failed, proceeding with original data: {e}")
+
+    pdf, primary = primary_block(raw_primary)
     offtake = offtake_block(off_chains, off_zs)
     universe_df, universe = universe_block(src)
     promo_df, promo = promo_block(src)
