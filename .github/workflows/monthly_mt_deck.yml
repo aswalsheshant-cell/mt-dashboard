@@ -50,10 +50,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@f43a0e5ff2bd38153f7a18047557fdf981ff0595
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@b64ffcaf5b410884a987f8f74f3a1ae0fe07b49e
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -109,7 +109,7 @@ jobs:
           echo "output_prefix=$OUTPUT_PREFIX" >> "$GITHUB_OUTPUT"
 
       - name: Upload Deck Artifacts to GitHub
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4ca96e9bcd51e55ad2dffb4c08788ca3ffc78fa5
         with:
           name: MT-Leadership-Deck-${{ steps.resolve_date.outputs.month }}-${{ steps.resolve_date.outputs.year }}
           path: ./output/
