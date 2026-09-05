@@ -79,6 +79,9 @@ jobs:
           echo "Running Google Slides Export & Float Validation Suite..."
           python scripts/test_gslides_export.py
 
+          echo "Running Priority 3 Dashboard UI Validation Suite..."
+          python scripts/test_priority_3_dashboard_validation.py
+
       - name: Pre-Flight CSV Data Schema & Bounds Validation
         id: preflight_check
         run: |
