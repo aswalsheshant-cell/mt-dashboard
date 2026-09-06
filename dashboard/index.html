@@ -1187,10 +1187,13 @@ function renderChannelSubview(chains,brands,channels,primYr,fy){
     }
 
     const sorted=validChains.slice().sort((a,b)=>(b[primYr]||0)-(a[primYr]||0));
+    const selectedChain=fOne('Chain'); // Phase 2: Check if single chain is filtered
+    const granularityDisclaimer=renderGranularityDisclaimer(selectedChain); // Phase 2: Add granularity note
     const rows27=sorted.filter(c=>(c[primYr]||0)>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
     const sum=sorted.reduce((a,c)=>a+(c[primYr]||0),0);
     const chRows=validChannels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
     content.innerHTML=`
+      ${granularityDisclaimer}
       ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr.slice(3)]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
       ${card(`Channel Split (${yrLab[primYr.slice(3)]||primYr})`,`${validChannels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
       <div class="grid g2">
@@ -1234,15 +1237,20 @@ function renderChannelSubview(chains,brands,channels,primYr,fy){
     wireDrillLinks(content);
   }
   else if(sv==='reliance'){
-    // Reliance Brand Counter sub-view
+    // Phase 2: Reliance Brand Counter sub-view with toggle between macro (bulk) and BA (dedicated counters)
     const recs=recFilter('Brand');
     const reliance=recs.filter(r=>r.Brand==='Reliance');
     if(!reliance.length) {content.innerHTML=card('Reliance Brand Counter','No Reliance records','<p class="lead">Select a timeframe that includes Reliance sales.</p>');return;}
     const byzone={};
     reliance.forEach(r=>{const z=r.Zone||'Unknown';if(!byzone[z]) byzone[z]={nsv:0,stores:0};byzone[z].nsv+=r.NSV||0;});
     const zoneRows=Object.entries(byzone).sort((a,b)=>b[1].nsv-a[1].nsv).map(([zone,{nsv}])=>`<tr><td>${drillLink('Zone',zone)}</td><td>${crc(nsv/100)}</td></tr>`).join('');
-    content.innerHTML=`${card('Reliance by Zone',`${reliance.length} Reliance transactions`,`<table class="tbl"><thead><tr><th>Zone</th><th>NSV (Cr)</th></tr></thead><tbody>${zoneRows}</tbody></table>`)}`;
+    // Phase 2: Add toggle control for Brand Counter view mode
+    const toggleHtml=getRelianceBCToggleHtml();
+    content.innerHTML=`
+      ${toggleHtml}
+      ${card('Reliance by Zone',`${reliance.length} Reliance transactions`,`<table class="tbl"><thead><tr><th>Zone</th><th>NSV (Cr)</th></tr></thead><tbody>${zoneRows}</tbody></table>`)}`;
     wireDrillLinks(content);
+    wireRelianceBCToggle(); // Phase 2: Wire up the toggle buttons
   }
 }
 
@@ -3684,9 +3692,13 @@ function buildExplorer(){
   const rep=(D.detail_meta&&D.detail_meta.representative)
     ? `<div class="repbanner"><b>Representative data.</b> Drill-down runs on <code>detail_records</code> whose Chain/Brand/Zone/Channel/Month/FY totals match the real primary; Category, Sub-category, Pack Size and Article are taxonomy placeholders until the granular source feeds <code>build_dashboard_data.py</code>.</div>` : '';
   const cap=400, shown=recs.slice(0,cap);
-  const trows=shown.map(r=>`<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
+  // Phase 2: Apply synthetic site code masking in detail records table
+  const trows=shown.map(r=>{
+    const displaySiteCode=maskSiteCode(r.SiteCode||r.site_code, r.Zone);
+    return `<tr><td>${r.Month}</td><td>${r.FY}</td><td>${r.Channel}</td><td>${r.Zone}</td>
      <td>${r.Chain}</td><td>${r.Brand}</td><td>${r.Category}</td><td>${r.SubCategory||'–'}</td><td>${r.Range||'–'}</td><td>${r.PackSize||'–'}</td>
-     <td>${r.Article}</td><td>${crc(r.NSV)}</td><td>${crc(r.MRP)}</td><td>${qtyFmt(r.Qty)}</td></tr>`).join('');
+     <td>${r.Article}</td><td>${displaySiteCode}</td><td>${crc(r.NSV)}</td><td>${crc(r.MRP)}</td><td>${qtyFmt(r.Qty)}</td></tr>`;
+  }).join('');
   // SIS channel check — always the SIS slice (ignores the Channel filter, respects the others)
   const isRep=!!(D.detail_meta&&D.detail_meta.representative);
   const ct=(D.detail_meta&&D.detail_meta.channel_totals)||null;
@@ -3731,8 +3743,8 @@ function buildExplorer(){
      `<div style="margin:-4px 0 10px"><button class="fbtn ghost" id="exExport">⭳ Export ALL filtered records (CSV)</button></div>
       <div class="tablewrap"><table><thead><tr>
       <th>Month</th><th>FY</th><th>Channel</th><th>Zone</th><th>Chain</th><th>Brand</th><th>Category</th>
-      <th>Sub-cat</th><th>Range</th><th>Pack</th><th>Article</th><th>NSV</th><th>MRP</th><th>Qty</th>
-      </tr></thead><tbody>${trows||'<tr><td colspan="14">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
+      <th>Sub-cat</th><th>Range</th><th>Pack</th><th>Article</th><th>Site/Store</th><th>NSV</th><th>MRP</th><th>Qty</th>
+      </tr></thead><tbody>${trows||'<tr><td colspan="15">No records for this filter.</td></tr>'}</tbody></table></div>`)}`;
   if(recs.length){ GAL_DIMS.forEach(([id])=>renderGal(id)); }
   wireGallery(s);
   renderCatDrillChart('exCatDrill',recs);
@@ -3740,12 +3752,87 @@ function buildExplorer(){
   const ex=document.getElementById('exExport'); if(ex) ex.onclick=()=>exportCSV(recs);
 }
 function exportCSV(recs){
-  const cols=['Month','FY','Channel','Zone','Chain','Brand','Category','SubCategory','Range','PackSize','Article','NSV','MRP','Qty'];
+  const cols=['Month','FY','Channel','Zone','Chain','Brand','Category','SubCategory','Range','PackSize','Article','SiteCode','NSV','MRP','Qty'];
   const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
-  const csv=[cols.join(',')].concat(recs.map(r=>cols.map(c=>esc(r[c])).join(','))).join('\n');
+  // Phase 2: Apply synthetic site code masking in CSV export
+  const csv=[cols.join(',')].concat(recs.map(r=>{
+    const displaySiteCode=maskSiteCode(r.SiteCode||r.site_code, r.Zone);
+    return [r.Month,r.FY,r.Channel,r.Zone,r.Chain,r.Brand,r.Category,r.SubCategory,r.Range,r.PackSize,r.Article,displaySiteCode,r.NSV,r.MRP,r.Qty]
+      .map(c=>esc(c)).join(',');
+  })).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='mt_detail_filtered.csv';a.click();
 }
+/* ============ PHASE 2: GRANULARITY AWARENESS & SYNTHETIC SITE CODE MASKING ============ */
+// Helper: Return granularity badge HTML for a given chain name
+function getGranularityBadge(chainName){
+  if(!chainName) return '';
+  const chain=(chainName||'').toUpperCase();
+  const panIndiaChains=['NYKAA','FSN','AMAZON','FLIPKART','NYKAA (FSN)','NYKAA SS(FSN)'];
+  if(panIndiaChains.includes(chain)){
+    return `<span class="badge" style="background:#e6f4ef;color:#1b6b47;border:1px solid #bfe3d6">🏷️ Pan-India Aggregate (Store-level not reported by chain)</span>`;
+  }
+  if(chain==='RELIANCE RETAIL'){
+    return `<span class="badge" style="background:#e6f4ef;color:#1b6b47;border:1px solid #bfe3d6">🏷️ Zone & State Aggregated (Reliance bulk offtake)</span>`;
+  }
+  return '';
+}
+// Helper: Mask synthetic site codes for user-friendly display in tables
+function maskSiteCode(siteCode, zone){
+  if(!siteCode) return '–';
+  if(siteCode==='PAN_INDIA_DUMMY') return 'National / Pan-India Central';
+  if(siteCode&&siteCode.startsWith('REL_REGIONAL_')){
+    const zoneLabel=(zone||'Consolidated').replace(/_/g,' ');
+    return `Reliance ${zoneLabel} Consolidated`;
+  }
+  if(siteCode==='SITE_UNASSIGNED') return 'Unassigned / Aggregated';
+  return siteCode; // Return as-is if not a synthetic code
+}
+// Helper: Display granularity disclaimer in the Channel & Chain Performance tab
+function renderGranularityDisclaimer(selectedChain){
+  if(!selectedChain) return '';
+  const badge=getGranularityBadge(selectedChain);
+  if(!badge) return '';
+  return `<div class="fynote" style="margin:0 0 14px">${badge} — This data is aggregated at chain level and does not include individual store-level breakdowns.</div>`;
+}
+// Reliance Brand Counter view state and toggle handler
+let relianceBCViewMode='macro'; // 'macro' = total offtake, 'ba' = dedicated brand counters only
+function getRelianceBCToggleHtml(){
+  return `
+    <div class="drill-ctrl">
+      <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-right:10px">View:</label>
+      <button class="fbtn" id="bcMacroBtn" style="background:var(--teal);border:1px solid var(--teal);padding:7px 12px;font-size:12px" data-mode="macro">Total Reliance Offtake (Macro)</button>
+      <button class="fbtn ghost" id="bcBABtn" style="background:#fff;color:var(--teal-d);border:1px solid var(--teal);padding:7px 12px;font-size:12px;margin-left:4px" data-mode="ba">Dedicated Brand Counters (350 BA Doors)</button>
+    </div>
+    <div class="drill-bc" id="bcDisclaimer" style="display:none">
+      <b>Brand Counter Metrics:</b> Sales represent an operational subset (~350 staffed Brand Counter doors) and are excluded from gross channel totals to eliminate double-counting with bulk offtake.
+    </div>
+  `;
+}
+// Wire up Reliance BC toggle buttons
+function wireRelianceBCToggle(){
+  const macroBtn=document.getElementById('bcMacroBtn');
+  const baBtn=document.getElementById('bcBABtn');
+  const disclaimer=document.getElementById('bcDisclaimer');
+  if(!macroBtn || !baBtn) return;
+  macroBtn.onclick=()=>{
+    relianceBCViewMode='macro';
+    macroBtn.style.background='var(--teal)';
+    macroBtn.style.color='#fff';
+    baBtn.style.background='#fff';
+    baBtn.style.color='var(--teal-d)';
+    if(disclaimer) disclaimer.style.display='none';
+  };
+  baBtn.onclick=()=>{
+    relianceBCViewMode='ba';
+    baBtn.style.background='var(--teal)';
+    baBtn.style.color='#fff';
+    macroBtn.style.background='#fff';
+    macroBtn.style.color='var(--teal-d)';
+    if(disclaimer) disclaimer.style.display='block';
+  };
+}
+/* ============ END PHASE 2 HELPERS ============ */
 /* ---------------- nav ---------------- */
 // Semantic Tab Registry: maps canonical tab IDs to build functions and display labels.
 // Supports future sub-views and backward-compatibility redirects.
