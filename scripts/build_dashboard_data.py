@@ -987,9 +987,16 @@ def load_reliance_bc_data(src):
     for fp in files:
         if fp.suffix.lower() == ".csv":
             try:
-                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='utf-8')}
-            except UnicodeDecodeError:
-                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='latin-1')}
+                # Use pandas with engine='python' for better variable-width CSV handling
+                try:
+                    _frames = {"csv": pd.read_csv(fp, engine='python', encoding='utf-8',
+                                                 low_memory=False, on_bad_lines='warn')}
+                except (UnicodeDecodeError, pd.errors.ParserError):
+                    _frames = {"csv": pd.read_csv(fp, engine='python', encoding='latin-1',
+                                                 low_memory=False, on_bad_lines='warn')}
+            except Exception:
+                # Skip files that can't be parsed
+                continue
         else:
             _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
             _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -1010,6 +1017,12 @@ def load_reliance_bc_data(src):
             _ds_c = df[_ds_col].astype(str).str.strip().str.lower()
             _is_rel = _chain_c.str.contains("reliance", na=False)
             _is_bc = (_ds_c == "brand counter")
+
+            # Also check Source_Tab column if it exists (some exports use this instead)
+            if "Source_Tab" in df.columns:
+                _source_c = df["Source_Tab"].astype(str).str.strip().str.lower()
+                _is_bc = _is_bc | (_source_c.str.contains("brand.counter|_ba_counter", regex=True, na=False))
+
             bc_df = df[_is_rel & _is_bc].copy()
             if bc_df.empty:
                 continue
