@@ -1,0 +1,15 @@
+{
+  "month": "Aug-26",
+  "fy": "FY27",
+  "primary_nsv_cr": 36.58,
+  "primary_mom_pct": 3.2,
+  "zones": {
+    "North": 6.12,
+    "South-1": 8.72,
+    "South-2": 4.97,
+    "East": 4.15,
+    "West": 10.16,
+    "Central": 2.46
+  },
+  "generated_at": "2026-09-04T13:12:18.227764"
+}

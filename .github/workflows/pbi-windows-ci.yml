@@ -1,0 +1,97 @@
+name: Power BI Windows CI Validation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'PowerBI/**'
+      - 'scripts/**'
+      - 'docs/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'PowerBI/**'
+      - 'scripts/**'
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  validate-powerbi:
+    name: Run Headless Tabular Editor & DAX Validation
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Setup Python environment
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas openpyxl pytest
+          python -c "import pandas; import pytest; print(f'pandas={pandas.__version__}, pytest={pytest.__version__}')"
+
+      - name: Ensure Tabular Editor CLI Available
+        shell: pwsh
+        run: |
+          if (-not (Get-Command "TabularEditor.exe" -ErrorAction SilentlyContinue) -and -not (Test-Path "C:\Program Files (x86)\Tabular Editor\TabularEditor.exe")) {
+            Write-Host "Tabular Editor not found. Install via: choco install tabulareditor --yes" -ForegroundColor Yellow
+            Write-Host "For now, proceeding with core validation checks..." -ForegroundColor Yellow
+          } else {
+            Write-Host "✓ Tabular Editor CLI is ready." -ForegroundColor Green
+          }
+
+      - name: Run Core Data Validation Harness
+        shell: pwsh
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          Write-Host "Checking for Python validation scripts..." -ForegroundColor Cyan
+          if (Test-Path "scripts/eval_harness.py") {
+            python scripts/eval_harness.py
+          }
+          if (Test-Path "tests/validate_data_integrity.py") {
+            python tests/validate_data_integrity.py
+          }
+
+      - name: Run Article Uniqueness & Assortment Governance Pytest Suite
+        shell: pwsh
+        run: |
+          Write-Host "Running article-level governance tests..." -ForegroundColor Cyan
+          if (Test-Path "tests/test_article_uniqueness.py") {
+            Write-Host "✓ Test file found at tests/test_article_uniqueness.py" -ForegroundColor Green
+            if ((Test-Path "PowerBI/RawDataFolders/Primary_Derived_FY25/Primary_Article_Synthesized_FY25.csv") -or (Test-Path "data_mappings/Chain_Article_EAN_Mapping_CORRECTED_v2.csv")) {
+              python -m pytest tests/test_article_uniqueness.py -v
+            } else {
+              Write-Host "⚠ Data files not found in CI environment (expected on fresh runners). Tests will skip gracefully." -ForegroundColor Yellow
+              python -m pytest tests/test_article_uniqueness.py -v
+            }
+          } else {
+            Write-Host "Skipped: test_article_uniqueness.py not found" -ForegroundColor Yellow
+          }
+
+      - name: Execute Power BI Watch Folder & DAX Validation
+        shell: pwsh
+        run: |
+          if (Test-Path ".\scripts\ci\test_powerbi_model.ps1") {
+            .\scripts\ci\test_powerbi_model.ps1 -RepoRoot $env:GITHUB_WORKSPACE
+          } else {
+            Write-Host "Skipped: test_powerbi_model.ps1 not found" -ForegroundColor Yellow
+          }
+
+      - name: Upload Test Report Artifacts (On Failure)
+        if: failure()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3  # v4.3.1
+        with:
+          name: pbi-validation-failure-logs
+          path: |
+            PowerBI/RawDataFolders/
+            PowerBI/CI/
+            logs/

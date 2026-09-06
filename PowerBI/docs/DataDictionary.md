@@ -30,7 +30,7 @@ Column → table → type → meaning.
 |---|---|---|
 | 🔒 Chain | text | Retail chain (Reliance Retail, Lulu, Wellness Forever, More, Apollo, D-Mart, Health & Glow, Metro CNC…). |
 | Account | text | Parent account / group. |
-| 🔒 Zone | text | East, North, South-1, South-2, West, Pan India. |
+| 🔒 Zone | text | Central (Madhya Pradesh, Chhattisgarh), East, North, South-1, South-2, West, Pan India. |
 | 🔒 State | text | Indian state. |
 | City | text | City. |
 | 🔒 Store Code | text | Unique store id (= `Cust-SAP Code` in the team-mapping file). |

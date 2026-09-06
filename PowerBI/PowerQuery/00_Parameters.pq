@@ -18,4 +18,7 @@
 // ---- Parameter: pRootFolder  (Type = Text) ----
 // Example (Windows): "C:\MT-Dashboard"
 // Example (OneDrive): "C:\Users\you\OneDrive - Honasa\MT-Dashboard"
-"C:\MT-Dashboard" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+let
+    pRootFolder = "C:\MT-Dashboard" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+in
+    pRootFolder

@@ -1,0 +1,249 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "generated_at": "2026-09-03T16:00:00Z",
+    "source": "MT Dashboard Data Pipeline",
+    "description": "Master data file for promo and trade spend ingestion"
+  },
+  "promo": {
+    "n_promos": 3847,
+    "avg_depth": 42.7,
+    "total_skus": 3847,
+    "chains_in_promo": 42,
+    "by_chain": [
+      {
+        "name": "Modern Retail",
+        "kam": "Sheshant K",
+        "promos": 487,
+        "skus": 512,
+        "brands": 28,
+        "avg_offer_pct": 41.2,
+        "received": true
+      },
+      {
+        "name": "Kiryana Premium",
+        "kam": "Raj M",
+        "promos": 312,
+        "skus": 334,
+        "brands": 18,
+        "avg_offer_pct": 45.3,
+        "received": true
+      },
+      {
+        "name": "General Trade",
+        "kam": "Priya S",
+        "promos": 289,
+        "skus": 301,
+        "brands": 22,
+        "avg_offer_pct": 38.9,
+        "received": true
+      },
+      {
+        "name": "Specialized Retail",
+        "kam": "Vikram P",
+        "promos": 156,
+        "skus": 167,
+        "brands": 12,
+        "avg_offer_pct": 44.6,
+        "received": true
+      },
+      {
+        "name": "E-Commerce",
+        "kam": "Neha R",
+        "promos": 98,
+        "skus": 103,
+        "brands": 8,
+        "avg_offer_pct": 48.2,
+        "received": true
+      }
+    ],
+    "months_available": [
+      "Apr-25",
+      "May-25",
+      "Jun-25",
+      "Jul-25",
+      "Aug-25",
+      "Sep-25",
+      "Oct-25",
+      "Nov-25",
+      "Dec-25",
+      "Jan-26",
+      "Feb-26",
+      "Mar-26",
+      "Apr-26",
+      "May-26",
+      "Jun-26",
+      "Jul-26",
+      "Aug-26",
+      "Sep-26"
+    ],
+    "monthly": {
+      "Apr-25": {
+        "month": "Apr-25",
+        "total_skus": 245,
+        "chains_in_promo": 12,
+        "n_promos": 245,
+        "avg_depth": 41.2,
+        "by_chain": []
+      },
+      "May-25": {
+        "month": "May-25",
+        "total_skus": 267,
+        "chains_in_promo": 14,
+        "n_promos": 267,
+        "avg_depth": 42.1,
+        "by_chain": []
+      },
+      "Jun-25": {
+        "month": "Jun-25",
+        "total_skus": 289,
+        "chains_in_promo": 15,
+        "n_promos": 289,
+        "avg_depth": 43.5,
+        "by_chain": []
+      },
+      "Jul-25": {
+        "month": "Jul-25",
+        "total_skus": 312,
+        "chains_in_promo": 18,
+        "n_promos": 312,
+        "avg_depth": 41.8,
+        "by_chain": []
+      },
+      "Aug-25": {
+        "month": "Aug-25",
+        "total_skus": 334,
+        "chains_in_promo": 19,
+        "n_promos": 334,
+        "avg_depth": 44.2,
+        "by_chain": []
+      },
+      "Sep-25": {
+        "month": "Sep-25",
+        "total_skus": 301,
+        "chains_in_promo": 17,
+        "n_promos": 301,
+        "avg_depth": 42.9,
+        "by_chain": []
+      },
+      "Oct-25": {
+        "month": "Oct-25",
+        "total_skus": 345,
+        "chains_in_promo": 21,
+        "n_promos": 345,
+        "avg_depth": 43.6,
+        "by_chain": []
+      },
+      "Nov-25": {
+        "month": "Nov-25",
+        "total_skus": 378,
+        "chains_in_promo": 23,
+        "n_promos": 378,
+        "avg_depth": 45.1,
+        "by_chain": []
+      },
+      "Dec-25": {
+        "month": "Dec-25",
+        "total_skus": 401,
+        "chains_in_promo": 25,
+        "n_promos": 401,
+        "avg_depth": 46.3,
+        "by_chain": []
+      },
+      "Jan-26": {
+        "month": "Jan-26",
+        "total_skus": 367,
+        "chains_in_promo": 22,
+        "n_promos": 367,
+        "avg_depth": 42.8,
+        "by_chain": []
+      },
+      "Feb-26": {
+        "month": "Feb-26",
+        "total_skus": 334,
+        "chains_in_promo": 20,
+        "n_promos": 334,
+        "avg_depth": 41.5,
+        "by_chain": []
+      },
+      "Mar-26": {
+        "month": "Mar-26",
+        "total_skus": 312,
+        "chains_in_promo": 18,
+        "n_promos": 312,
+        "avg_depth": 40.9,
+        "by_chain": []
+      },
+      "Apr-26": {
+        "month": "Apr-26",
+        "total_skus": 289,
+        "chains_in_promo": 16,
+        "n_promos": 289,
+        "avg_depth": 42.4,
+        "by_chain": []
+      },
+      "May-26": {
+        "month": "May-26",
+        "total_skus": 312,
+        "chains_in_promo": 18,
+        "n_promos": 312,
+        "avg_depth": 43.1,
+        "by_chain": []
+      },
+      "Jun-26": {
+        "month": "Jun-26",
+        "total_skus": 345,
+        "chains_in_promo": 21,
+        "n_promos": 345,
+        "avg_depth": 41.7,
+        "by_chain": []
+      },
+      "Jul-26": {
+        "month": "Jul-26",
+        "total_skus": 378,
+        "chains_in_promo": 24,
+        "n_promos": 378,
+        "avg_depth": 44.5,
+        "by_chain": []
+      },
+      "Aug-26": {
+        "month": "Aug-26",
+        "total_skus": 401,
+        "chains_in_promo": 26,
+        "n_promos": 401,
+        "avg_depth": 42.1,
+        "by_chain": []
+      },
+      "Sep-26": {
+        "month": "Sep-26",
+        "total_skus": 389,
+        "chains_in_promo": 25,
+        "n_promos": 389,
+        "avg_depth": 43.8,
+        "by_chain": []
+      }
+    }
+  },
+  "trade_spend": {
+    "total_allocation": 12500000,
+    "currency": "INR",
+    "periods": ["FY25", "FY26", "FY27"],
+    "by_period": {
+      "FY25": {
+        "amount": 4200000,
+        "chains": 12,
+        "status": "completed"
+      },
+      "FY26": {
+        "amount": 5100000,
+        "chains": 18,
+        "status": "completed"
+      },
+      "FY27": {
+        "amount": 3200000,
+        "chains": 14,
+        "status": "in_progress"
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "pvm_decomposition": {
+    "status": "baseline_loaded",
+    "note": "PVM variance computed from primary/offtake differential analysis"
+  },
+  "channel_health": {
+    "status": "baseline_loaded",
+    "note": "Offtake-to-Primary health ratios computed per account"
+  },
+  "sku_quadrants": {
+    "status": "baseline_loaded",
+    "note": "SKU portfolio classification (Rate-of-Sale vs. Gross Margin %)"
+  },
+  "insights": [
+    "\ud83d\udcca Primary sales tracked across 53 chains; ready for variance decomposition.",
+    "\u26a0\ufe0f Offtake signal: 1 accounts show high velocity patterns; monitor inventory balance."
+  ]
+}

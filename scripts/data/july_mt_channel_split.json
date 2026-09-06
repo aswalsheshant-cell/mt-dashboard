@@ -1,0 +1,73 @@
+{
+ "period": "Jul-26",
+ "unit": "INR Cr",
+ "basis": "EXACT \u2014 full month source files",
+ "mt": {
+  "primary": 47.02,
+  "offtake": 33.96,
+  "conversion_pct": 72.2,
+  "gap": 13.06,
+  "by_zone": [
+   {
+    "zone": "North",
+    "primary": 11.38,
+    "offtake": 6.97,
+    "conversion_pct": 61.3,
+    "gap": 4.41
+   },
+   {
+    "zone": "East",
+    "primary": 7.1,
+    "offtake": 3.54,
+    "conversion_pct": 49.9,
+    "gap": 3.56
+   },
+   {
+    "zone": "South-2",
+    "primary": 6.73,
+    "offtake": 4.87,
+    "conversion_pct": 72.4,
+    "gap": 1.85
+   },
+   {
+    "zone": "West",
+    "primary": 9.71,
+    "offtake": 8.27,
+    "conversion_pct": 85.2,
+    "gap": 1.44
+   },
+   {
+    "zone": "South-1",
+    "primary": 9.48,
+    "offtake": 8.18,
+    "conversion_pct": 86.3,
+    "gap": 1.3
+   },
+   {
+    "zone": "Central",
+    "primary": 2.62,
+    "offtake": 2.12,
+    "conversion_pct": 80.9,
+    "gap": 0.5
+   }
+  ]
+ },
+ "eb2b": {
+  "primary": 2.2,
+  "offtake": 2.07,
+  "flow_pct": 93.9
+ },
+ "sis": {
+  "primary": -0.006,
+  "offtake": 0.034
+ },
+ "benchmark": {
+  "pct": 85.73,
+  "zones": [
+   "West",
+   "South-1"
+  ],
+  "recoverable_above_floor": 6.22,
+  "floor": 0.25
+ }
+}

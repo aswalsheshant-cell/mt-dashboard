@@ -1,0 +1,10 @@
+fy,kpi_name,value,unit,control_date,source
+FY27,primary_nsv,,₹ Lakh,2026-08-10,SAP FI
+FY27,offtake_qty,,units,2026-08-10,Offtake System
+FY27,pnl_gross_margin,,₹ Lakh,2026-08-10,SAP FI
+FY27,pnl_gm_pct,,%,2026-08-10,SAP FI
+FY27,pnl_expense_ratio,,%,2026-08-10,SAP FI
+FY27,cm2_pct,,%,2026-08-10,SAP FI
+FY27,tdp_distribution,,%,2026-08-10,Distribution System
+FY27,market_share,,%,2026-08-10,Nielsen
+FY27,forecast_target,,₹ Lakh,2026-08-10,Finance Plan

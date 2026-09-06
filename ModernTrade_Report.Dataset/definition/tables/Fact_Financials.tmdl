@@ -1,0 +1,107 @@
+table Fact_Financials
+	lineageTag: a52a8f90-54c1-4f10-9112-d1b2c3d4e004
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000001
+		summarizeBy: none
+		sourceColumn: Date
+
+	column Chain_ID
+		dataType: string
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000002
+		summarizeBy: none
+		sourceColumn: Chain_ID
+
+	column Category_ID
+		dataType: string
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000003
+		summarizeBy: none
+		sourceColumn: Category_ID
+
+	column Scenario
+		dataType: string
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000004
+		summarizeBy: none
+		sourceColumn: Scenario
+
+	column NSV_Actual_INR
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000005
+		summarizeBy: sum
+		sourceColumn: NSV_Actual_INR
+
+	column NSV_Pool_INR
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000006
+		summarizeBy: sum
+		sourceColumn: NSV_Pool_INR
+
+	column COGS_INR
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000007
+		summarizeBy: sum
+		sourceColumn: COGS_INR
+
+	column Variable_Trade_Spend_INR
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000008
+		summarizeBy: sum
+		sourceColumn: Variable_Trade_Spend_INR
+
+	column Freight_Logistics_INR
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000009
+		summarizeBy: sum
+		sourceColumn: Freight_Logistics_INR
+
+	column NSV_Actual_INR_Sum = CALCULATE(SUM('Fact_Financials'[NSV_Actual_INR]))
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000010
+		summarizeBy: none
+
+	column COGS_INR_Sum = CALCULATE(SUM('Fact_Financials'[COGS_INR]))
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000011
+		summarizeBy: none
+
+	column Trade_Spend_INR_Sum = CALCULATE(SUM('Fact_Financials'[Variable_Trade_Spend_INR]))
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000012
+		summarizeBy: none
+
+	column Freight_INR_Sum = CALCULATE(SUM('Fact_Financials'[Freight_Logistics_INR]))
+		dataType: double
+		formatString: #,##0.00
+		lineageTag: f4a2b3c4-0004-4000-8000-000000000013
+		summarizeBy: none
+
+	partition Fact_Financials = m
+		mode: import
+		source = ```
+			let
+			    Source = Csv.Document(File.Contents("\\data-server\MT\Primary\Fact_Financials.csv"), [Delimiter=",", Columns=9, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+			    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+			    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+			        {"Date", type date},
+			        {"Chain_ID", type text},
+			        {"Category_ID", type text},
+			        {"Scenario", type text},
+			        {"NSV_Actual_INR", type number},
+			        {"NSV_Pool_INR", type number},
+			        {"COGS_INR", type number},
+			        {"Variable_Trade_Spend_INR", type number},
+			        {"Freight_Logistics_INR", type number}
+			    })
+			in
+			    #"Changed Type"
+			```

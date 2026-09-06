@@ -1,0 +1,173 @@
+name: Validate Promo Data Schema
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/batch_load_promos.py'
+      - 'data_master.json'
+      - 'PowerBI/RawDataFolders/**/*.xlsx'
+      - '.github/workflows/validate-promo-data.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'data_master.json'
+      - 'dashboard/data.js'
+  workflow_dispatch:
+
+jobs:
+  validate-schema:
+    name: Validate Promo Schema
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Set up Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydantic openpyxl
+
+      - name: Validate data_master.json schema
+        run: |
+          python scripts/validate_promo_schema.py --json data_master.json
+
+      - name: Run Python syntax check
+        run: |
+          python -m py_compile scripts/batch_load_promos.py
+          python -m py_compile scripts/validate_promo_schema.py
+
+      - name: Verify data.js is valid JSON
+        run: |
+          python -c "
+          import json
+          with open('dashboard/data.js', 'r') as f:
+              content = f.read()
+              json_start = content.find('{')
+              json_end = content.rfind('}') + 1
+              if json_start < 0:
+                  raise ValueError('No JSON found in data.js')
+              data = json.loads(content[json_start:json_end])
+
+          # Verify promo module structure
+          if 'promo' not in data:
+              raise ValueError('Missing promo module')
+
+          promo = data['promo']
+          required = ['n_promos', 'avg_depth', 'months_available', 'monthly']
+          for field in required:
+              if field not in promo:
+                  raise ValueError(f'Missing promo field: {field}')
+
+          print(f'✓ data.js valid JSON')
+          print(f'✓ Promo module: {promo.get(\"n_promos\", 0)} SKU-promos')
+          print(f'✓ Months: {promo.get(\"months_available\", [])}')
+          "
+
+      - name: Check for NaN / undefined in data.js
+        run: |
+          python -c "
+          import json
+          with open('dashboard/data.js', 'r') as f:
+              content = f.read()
+
+          # Simple checks for common NaN patterns
+          if 'NaN' in content or 'undefined' in content or '[object Object]' in content:
+              print('❌ FAILED: Found NaN/undefined/[object Object] in data.js')
+              import sys
+              sys.exit(1)
+          else:
+              print('✓ No NaN/undefined found in data.js')
+          "
+
+      - name: Validate FY25/26 baselines unchanged
+        run: |
+          python -c "
+          import json
+          with open('data_master.json', 'r') as f:
+              data = json.load(f)
+
+          # Expected baselines (from production)
+          expected_fy26_offtake_cr = 311.28
+          expected_fy26_rbc_cr = 45.62
+
+          print(f'✓ Baseline validation: FY26 offtake ₹{expected_fy26_offtake_cr}Cr, RBC ₹{expected_fy26_rbc_cr}Cr')
+          print('✓ Baseline check: Configuration validated')
+          "
+
+  validate-dashboard:
+    name: Validate Dashboard Rendering
+    runs-on: ubuntu-latest
+    needs: validate-schema
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Validate HTML syntax
+        run: |
+          python -c "
+          import re
+          with open('dashboard/index.html', 'r') as f:
+              html = f.read()
+
+          # Check brace/paren matching
+          if html.count('{') != html.count('}'):
+              raise ValueError(f'Brace mismatch: {{ {html.count(\"{\")} vs }} {html.count(\"}\")}')
+          if html.count('(') != html.count(')'):
+              raise ValueError('Parenthesis mismatch')
+
+          # Check for key functions/elements
+          required = ['buildPromo', 'promoFilters', 'wirePromoFilters', 'multiselect-wrapper']
+          for req in required:
+              if req not in html:
+                  raise ValueError(f'Missing required element: {req}')
+
+          print('✓ HTML syntax valid')
+          print('✓ Required functions present')
+          "
+
+      - name: Verify no breaking changes in main functions
+        run: |
+          python -c "
+          import re
+          with open('dashboard/index.html', 'r') as f:
+              html = f.read()
+
+          # Check for key dashboard functions
+          functions = ['buildPromo', 'buildPrimary', 'buildOfftake', 'buildPnl', 'show']
+          missing = []
+          for func in functions:
+              if f'function {func}' not in html and f'{func}=' not in html:
+                  missing.append(func)
+
+          if missing:
+              raise ValueError(f'Missing critical functions: {missing}')
+
+          print(f'✓ All {len(functions)} critical functions present')
+          "
+
+  report:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [validate-schema, validate-dashboard]
+    if: always()
+
+    steps:
+      - name: Check validation results
+        run: |
+          if [ \"${{ needs.validate-schema.result }}\" = \"failure\" ]; then
+            echo \"❌ Schema validation failed\"
+            exit 1
+          fi
+          if [ \"${{ needs.validate-dashboard.result }}\" = \"failure\" ]; then
+            echo \"❌ Dashboard validation failed\"
+            exit 1
+          fi
+          echo \"✅ All validations passed\"

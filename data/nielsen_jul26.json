@@ -1,0 +1,47 @@
+{
+  "reporting_period": "July 2026",
+  "months": ["Apr 25","May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25","Dec 25","Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26"],
+  "ms":     [8.1,8.4,8.5,8.8,10.2,9.4,9.2,9.0,9.7,11.6,11.7,11.3,11.6,11.6,11.6,11.2],
+  "nsv":    [5.4,6.2,6.0,6.2,7.5,6.0,6.5,5.8,6.2,7.9,7.8,8.5,8.8,9.6,9.5,9.2],
+  "wd":     [81.3,81.0,78.6,82.8,83.6,80.8,79.1,77.5,79.3,85.0,86.3,85.2,86.9,87.1,87.0,89.2],
+  "stores": [9906,10743,10007,10426,10486,10544,10503,10740,11268,12144,12352,12201,12876,13023,13171,13097],
+  "brands": [
+    {"n":"Himalaya",    "nsv":18.7,"ms":22.8,"pp":-0.4,"yoy":13.9,"stores":20376,"wd":99.5,"pdo":9177},
+    {"n":"Garnier",     "nsv":10.9,"ms":13.3,"pp":-1.2,"yoy":6.6, "stores":17042,"wd":88.5,"pdo":6396},
+    {"n":"Pond's",      "nsv":10.7,"ms":13.0,"pp":-1.1,"yoy":6.9, "stores":18231,"wd":97.5,"pdo":5869},
+    {"n":"Mamaearth",   "nsv":9.2, "ms":11.2,"pp":2.4, "yoy":47.7,"stores":13097,"wd":89.2,"pdo":7025},
+    {"n":"Clean&Clear", "nsv":6.3, "ms":7.7, "pp":0.0, "yoy":15.7,"stores":16479,"wd":97.0,"pdo":3823},
+    {"n":"Joy",         "nsv":5.5, "ms":6.7, "pp":0.1, "yoy":17.7,"stores":9277, "wd":75.1,"pdo":5924},
+    {"n":"Lakme",       "nsv":3.3, "ms":4.0, "pp":0.5, "yoy":35.0,"stores":9699, "wd":77.8,"pdo":3403},
+    {"n":"Nivea",       "nsv":2.8, "ms":3.4, "pp":-1.7,"yoy":-21.1,"stores":12535,"wd":85.3,"pdo":2233}
+  ],
+  "fw_packs": [
+    {"sz":"<50ml",    "val":18.2,"yoy":8.1, "clr":"#60A5FA"},
+    {"sz":"50–75ml",  "val":38.4,"yoy":14.2,"clr":"#2563EB"},
+    {"sz":"76–100ml", "val":31.4,"yoy":19.8,"clr":"#1D4ED8"},
+    {"sz":">100ml",   "val":12.0,"yoy":31.5,"clr":"#1E40AF"}
+  ],
+  "sh_packs": [
+    {"sz":"<100ml",    "val":14.3,"yoy":5.2, "clr":"#6EE7B7"},
+    {"sz":"100–180ml", "val":28.7,"yoy":9.4, "clr":"#10B981"},
+    {"sz":"180–200ml", "val":41.2,"yoy":22.6,"clr":"#059669"},
+    {"sz":">200ml",    "val":15.8,"yoy":17.1,"clr":"#047857"}
+  ],
+  "aug_actions": [
+    {"title":"Hero-EAN OSA Audit — All Chains","owner":"NKAM · Dist team","budget":"₹0 (ops)","due":"Aug 15","desc":"Audit top-10 Facewash SKUs across 500+ stores; flag gaps in real-time"},
+    {"title":"Close 2,000 New WD Stores","owner":"ASM East + West","budget":"₹0.3 Cr scheme","due":"Aug 25","desc":"Priority: Reliance, DMart, Star — target 91.2% WD by month-end"},
+    {"title":"Launch 100ml Premium SKU Display","owner":"TM / KAM","budget":"₹0.1 Cr display","due":"Aug 10","desc":"Premium shelf blocker in top 300 stores; photo compliance mandatory"},
+    {"title":"Beat Garnier on WD — Aug KPI","owner":"MT Head","budget":"—","due":"Aug 31","desc":"Garnier at 88.5% WD · Mamaearth at 89.2% — defend and widen the lead"}
+  ],
+  "sep_actions": [
+    {"title":"Shampoo Cross-listing Drive","owner":"KAM Shampoo","budget":"₹0.2 Cr bundling","due":"Sep 10","desc":"Bundle FW+Shampoo shelf insertion in 1,000 high-WD stores"},
+    {"title":"Premium Pack Mix to 18%","owner":"Category Manager","budget":"₹0.1 Cr","due":"Sep 20","desc":"Push 100ml+ SKU share from 12% to 18% via gondola and end-cap"},
+    {"title":"Per-Door Output Review","owner":"MT Analytics","budget":"—","due":"Sep 30","desc":"Close PDO gap to ₹8,500 (from ₹7,025) — target Himalaya-level by Dec 26"},
+    {"title":"Q2 FY27 Gate Review","owner":"MT Head + Finance","budget":"—","due":"Sep 30","desc":"Confirm ₹10 Cr NSV run-rate; adjust if WD below 92%"}
+  ],
+  "gates": [
+    {"date":"Aug 25","q":"WD crosses 91% — green-light Sept activation spend","impact":"Unlock ₹0.5 Cr budget"},
+    {"date":"Sep 30","q":"NSV run-rate ≥ ₹10 Cr — confirm #3 position target","impact":"Re-forecast FY27 to ₹115 Cr+"},
+    {"date":"Oct 15","q":"Premium pack mix hits 18% — scale premium shelf program","impact":"₹2.4 Cr incremental annualized"}
+  ]
+}

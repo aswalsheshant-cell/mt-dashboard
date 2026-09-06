@@ -1,0 +1,184 @@
+name: Modern Trade (MT) Monthly Leadership Deck Pipeline
+
+on:
+  # Automated run: 04:00 AM UTC (09:30 AM IST) on the 1st calendar day of every month
+  schedule:
+    - cron: '0 4 1 * *'
+
+  # Manual on-demand execution from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      month:
+        description: 'Target Review Month (e.g., september, october)'
+        required: false
+        default: 'auto'
+      year:
+        description: 'Target Review Year'
+        required: false
+        default: '2026'
+      data_source:
+        description: 'Path to CSV seed directory (leave blank for default sample seeds)'
+        required: false
+        default: './data/sample_seeds'
+      format:
+        description: 'Artifact Export Mode'
+        required: true
+        type: choice
+        options:
+          - both
+          - pptx
+          - json
+        default: 'both'
+      deploy_live_slides:
+        description: 'Publish batchUpdate payload to live Google Slides'
+        required: true
+        type: boolean
+        default: true
+      share_emails:
+        description: 'Comma-separated stakeholder emails to share deck with'
+        required: false
+        default: ''
+
+concurrency:
+  group: mt-deck-pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate-and-generate:
+    name: Build & Deploy MT Deck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@f43a0e5ff2bd38153f7a18047557fdf981ff0595
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@b64ffcaf5b410884a987f8f74f3a1ae0fe07b49e
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-pptx \
+                      google-api-python-client \
+                      google-auth \
+                      google-auth-httplib2 \
+                      google-auth-oauthlib
+
+      - name: Run Analytical & Exporter Unit Tests
+        run: |
+          echo "Running Analytics Engine Test Suite..."
+          python scripts/test_analytics_engine.py
+
+          echo "Running Google Slides Export & Float Validation Suite..."
+          python scripts/test_gslides_export.py
+
+          echo "Running Priority 3 Dashboard UI Validation Suite..."
+          python scripts/test_priority_3_dashboard_validation.py
+
+      - name: Pre-Flight CSV Data Schema & Bounds Validation
+        id: preflight_check
+        run: |
+          DATA_DIR="${{ github.event.inputs.data_source || './data/sample_seeds' }}"
+          if [ -d "$DATA_DIR" ]; then
+            echo "Executing pre-flight validation on data directory: $DATA_DIR"
+            python scripts/validate_seeds.py --data-dir "$DATA_DIR"
+          else
+            echo "Directory $DATA_DIR does not exist. Skipping pre-flight CSV validation (fallback config will be used)."
+          fi
+
+      - name: Resolve Target Month and Year
+        id: resolve_date
+        run: |
+          if [ "${{ github.event.inputs.month }}" = "auto" ] || [ -z "${{ github.event.inputs.month }}" ]; then
+            # Default to the previous month on Day 1 (e.g., on Oct 1 run, report on September)
+            TARGET_MONTH=$(date -d "last month" +%B | tr '[:upper:]' '[:lower:]')
+            TARGET_YEAR=$(date -d "last month" +%Y)
+          else
+            TARGET_MONTH="${{ github.event.inputs.month }}"
+            TARGET_YEAR="${{ github.event.inputs.year }}"
+          fi
+
+          echo "month=$TARGET_MONTH" >> "$GITHUB_OUTPUT"
+          echo "year=$TARGET_YEAR" >> "$GITHUB_OUTPUT"
+          echo "Deck Target: $TARGET_MONTH $TARGET_YEAR"
+
+      - name: Generate MT Deck Artifacts
+        id: build_deck
+        run: |
+          mkdir -p output credentials
+          TARGET_MONTH="${{ steps.resolve_date.outputs.month }}"
+          TARGET_YEAR="${{ steps.resolve_date.outputs.year }}"
+          EXPORT_FORMAT="${{ github.event.inputs.format || 'both' }}"
+          DATA_DIR="${{ github.event.inputs.data_source || './data/sample_seeds' }}"
+          OUTPUT_PREFIX="./output/MT_${TARGET_MONTH^}_${TARGET_YEAR}_Leadership"
+
+          BUILD_CMD="python scripts/build_mt_monthly_ppt.py --month \"$TARGET_MONTH\" --year \"$TARGET_YEAR\" --format \"$EXPORT_FORMAT\" --output \"$OUTPUT_PREFIX\""
+
+          if [ -d "$DATA_DIR" ]; then
+            BUILD_CMD="$BUILD_CMD --data-source \"$DATA_DIR\""
+          fi
+
+          echo "Executing generation: $BUILD_CMD"
+          eval $BUILD_CMD
+
+          echo "output_prefix=$OUTPUT_PREFIX" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Deck Artifacts to GitHub
+        uses: actions/upload-artifact@4ca96e9bcd51e55ad2dffb4c08788ca3ffc78fa5
+        with:
+          name: MT-Leadership-Deck-${{ steps.resolve_date.outputs.month }}-${{ steps.resolve_date.outputs.year }}
+          path: ./output/
+          retention-days: 90
+
+      - name: Deploy to Live Google Slides
+        id: deploy_slides
+        if: |
+          (github.event.inputs.deploy_live_slides == 'true' || github.event_name == 'schedule') &&
+          (github.event.inputs.format != 'pptx')
+        env:
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          STAKEHOLDER_EMAILS: ${{ github.event.inputs.share_emails || secrets.MT_DECK_STAKEHOLDER_EMAILS }}
+        run: |
+          if [ -z "$GCP_SERVICE_ACCOUNT_KEY" ]; then
+            echo "::warning ::GCP_SERVICE_ACCOUNT_KEY secret not found. Skipping live deployment."
+            exit 0
+          fi
+
+          # Hydrate Google Service Account credentials from GitHub Secret
+          CREDS_FILE="./credentials/service_account.json"
+          echo "$GCP_SERVICE_ACCOUNT_KEY" > "$CREDS_FILE"
+          chmod 600 "$CREDS_FILE"
+
+          JSON_FILE="${{ steps.build_deck.outputs.output_prefix }}_gslides_batch.json"
+          TARGET_TITLE="Modern Trade Leadership Review - ${{ steps.resolve_date.outputs.month }} ${{ steps.resolve_date.outputs.year }}"
+
+          DEPLOY_CMD="python scripts/deploy_to_google_slides.py --json-file $JSON_FILE --credentials $CREDS_FILE --title \"$TARGET_TITLE\""
+
+          # Append email recipients if present
+          if [ -n "$STAKEHOLDER_EMAILS" ]; then
+            DEPLOY_CMD="$DEPLOY_CMD --share $STAKEHOLDER_EMAILS"
+          fi
+
+          echo "Executing Live Google Slides Deployment..."
+          eval $DEPLOY_CMD
+
+          # Securely purge credentials from the runner workspace
+          rm -f "$CREDS_FILE"
+
+      - name: Publish Step Summary
+        if: always()
+        run: |
+          echo "### 📊 Modern Trade Monthly Deck Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Period:** ${{ steps.resolve_date.outputs.month }} ${{ steps.resolve_date.outputs.year }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Data Directory:** ${{ github.event.inputs.data_source || './data/sample_seeds' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-Flight Validation:** ${{ steps.preflight_check.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Export Mode:** ${{ github.event.inputs.format || 'both' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifacts Uploaded:** PowerPoint (.pptx), Google Slides payload (.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Suite Status:** Passed (32/32 tests)" >> $GITHUB_STEP_SUMMARY

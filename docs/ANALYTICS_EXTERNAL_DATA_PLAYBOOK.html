@@ -1,0 +1,540 @@
+<title>The Unfed Model</title>
+<style>
+  :root {
+    --paper:        #FBFCFB;
+    --surface:      #FFFFFF;
+    --sunk:         #F1F5F4;
+    --ink:          #12312F;
+    --ink-soft:     #46605C;
+    --ink-faint:    #7B918D;
+    --rule:         #D8E4E1;
+    --teal:         #116F68;
+    --teal-bright:  #1E9186;
+    --amber:        #9A6D12;
+    --amber-soft:   #F6EEDC;
+    --red:          #B5403A;
+    --shadow:       0 1px 2px rgba(18,49,47,.05), 0 8px 24px -12px rgba(18,49,47,.14);
+
+    --display: Georgia, "Bookman Old Style", "Times New Roman", serif;
+    --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0B1A19; --surface: #122523; --sunk: #0F1F1E;
+      --ink: #E4EEEC; --ink-soft: #A6BCB8; --ink-faint: #718A86; --rule: #23403D;
+      --teal: #4FBBAE; --teal-bright: #6FD4C6;
+      --amber: #D9A83F; --amber-soft: #2A2314; --red: #E58078;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0B1A19; --surface: #122523; --sunk: #0F1F1E;
+    --ink: #E4EEEC; --ink-soft: #A6BCB8; --ink-faint: #718A86; --rule: #23403D;
+    --teal: #4FBBAE; --teal-bright: #6FD4C6;
+    --amber: #D9A83F; --amber-soft: #2A2314; --red: #E58078;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 16px; line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 28px 96px; }
+
+  .masthead { padding: 72px 0 40px; border-bottom: 2px solid var(--ink); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--teal); margin: 0 0 20px;
+  }
+  h1 {
+    font-family: var(--display); font-size: clamp(38px, 6.4vw, 62px);
+    line-height: 1.04; font-weight: 700; letter-spacing: -.015em;
+    margin: 0 0 22px; text-wrap: balance;
+  }
+  .standfirst { font-size: 19px; line-height: 1.55; color: var(--ink-soft); max-width: 64ch; margin: 0; }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  section { padding: 54px 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: 0; }
+  .kicker {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 4px;
+  }
+  h2 {
+    font-family: var(--display); font-size: clamp(26px, 3.4vw, 34px);
+    line-height: 1.18; font-weight: 700; letter-spacing: -.01em;
+    margin: 2px 0 18px; text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--body); font-size: 12px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint);
+    margin: 30px 0 12px;
+  }
+  p { max-width: 72ch; }
+  p strong { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: var(--mono); font-size: .88em; background: var(--sunk);
+    padding: 1px 5px; border-radius: 3px; color: var(--ink);
+  }
+
+  /* fed / unfed state marker — the page's one structural device */
+  .st { display: inline-block; width: 9px; height: 9px; margin-right: 8px; vertical-align: 1px; border-radius: 2px; }
+  .st.fed { background: var(--teal-bright); }
+  .st.unfed { background: transparent; border: 1.5px solid var(--ink-faint); }
+  .legend { display: flex; gap: 22px; flex-wrap: wrap; margin: 24px 0 0; font-size: 13.5px; color: var(--ink-soft); }
+
+  .tablewrap { overflow-x: auto; margin: 20px 0 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14.5px; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 700;
+    padding: 0 16px 10px 0; border-bottom: 1.5px solid var(--ink); vertical-align: bottom;
+  }
+  tbody td { padding: 12px 16px 12px 0; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-soft); }
+  tbody td:first-child { color: var(--ink); font-weight: 600; }
+  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+  tr.total td { border-top: 1.5px solid var(--ink); border-bottom: 0; font-weight: 700; color: var(--ink); }
+
+  .callout {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+    box-shadow: var(--shadow); padding: 24px 26px; margin: 26px 0 0;
+  }
+  .callout.warn { border-color: var(--amber); background: var(--amber-soft); box-shadow: none; }
+  .callout > .lbl {
+    display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--teal); margin-bottom: 10px;
+  }
+  .callout.warn > .lbl { color: var(--amber); }
+  .callout p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); }
+  .callout p:last-child { margin-bottom: 0; }
+  .figure {
+    font-family: var(--mono); font-size: clamp(22px, 3.4vw, 30px); font-weight: 700;
+    line-height: 1.15; letter-spacing: -.02em; color: var(--ink); margin: 0 0 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .figure.bad { color: var(--red); }
+  .figure.good { color: var(--teal-bright); }
+  .derivation {
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: var(--ink-faint);
+    margin: 16px 0 0; padding-top: 13px; border-top: 1px dashed var(--rule); white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* three-term decomposition strip */
+  .decomp { display: grid; gap: 10px; margin: 26px 0 0; }
+  @media (min-width: 700px) { .decomp { grid-template-columns: repeat(3, 1fr); } }
+  .term { border: 1px solid var(--rule); border-radius: 4px; padding: 16px 18px; background: var(--surface); }
+  .term.dark { background: var(--sunk); border-style: dashed; }
+  .term b {
+    display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+    text-transform: uppercase; margin-bottom: 8px; color: var(--ink-faint);
+  }
+  .term .v { font-family: var(--display); font-size: 21px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .term.dark .v { color: var(--ink-faint); }
+  .term p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); max-width: none; }
+
+  .grid2 { display: grid; gap: 22px; margin-top: 22px; }
+  @media (min-width: 760px) { .grid2 { grid-template-columns: 1fr 1fr; gap: 22px 34px; } }
+  .grid2 h4 { font-family: var(--body); font-size: 16px; font-weight: 700; margin: 0 0 6px; line-height: 1.35; }
+  .grid2 p { margin: 0; font-size: 14.5px; line-height: 1.58; color: var(--ink-soft); max-width: none; }
+
+  .verdict { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; }
+  .verdict.have { color: var(--teal-bright); }
+  .verdict.no { color: var(--ink-faint); }
+  .verdict.ask { color: var(--amber); }
+
+  .footnote {
+    margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule);
+    font-size: 13px; line-height: 1.6; color: var(--ink-faint); max-width: 76ch;
+  }
+  .footnote strong { color: var(--ink-soft); }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Modern Trade analytics · Honasa · research note</p>
+  <h1>The Unfed Model</h1>
+  <p class="standfirst">
+    Five shared references — a chart-selection poster and two LinkedIn posts on Nielsen
+    metrics and AI workflow — sent me looking for what we do not measure. What I found
+    instead: <strong>we already built almost everything those posts describe, and never
+    switched it on.</strong> The measures exist in the Power BI model. The folders they
+    read from contain nothing but templates.
+  </p>
+  <div class="legend">
+    <span><span class="st fed"></span>built and fed</span>
+    <span><span class="st unfed"></span>built, never fed</span>
+  </div>
+</header>
+
+<!-- ============================================================ 1 -->
+<section>
+  <p class="kicker">The finding</p>
+  <h2>The framework is built. The feed is empty.</h2>
+
+  <p>
+    The Nielsen post lists four external metrics as the ones that matter: market share by
+    value, market share by volume, numeric distribution and weighted distribution. All four
+    are already declared in our model. So are a dozen more that the post does not mention.
+  </p>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Measure</th><th>Where it lives</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="st fed"></span>Market Share % (value)</td><td>04_Nielsen_Measures.dax</td><td><span class="verdict have">in June packs only</span></td></tr>
+        <tr><td><span class="st unfed"></span>Market Share Volume %</td><td>04_Nielsen_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+        <tr><td><span class="st unfed"></span>Market Share BPS Change · YoY BPS</td><td>04_Nielsen_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+        <tr><td><span class="st unfed"></span>Category Value Growth % · Our Brand Growth %</td><td>04_Nielsen_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+        <tr><td><span class="st unfed"></span>Share Gain Flag</td><td>04_Nielsen_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+        <tr><td><span class="st unfed"></span>Numeric Distribution</td><td>05_TDP_Measures.dax</td><td><span class="verdict no">no data anywhere</span></td></tr>
+        <tr><td><span class="st fed"></span>Weighted Distribution</td><td>05_TDP_Measures.dax</td><td><span class="verdict have">June packs only</span></td></tr>
+        <tr><td><span class="st unfed"></span>TDP · ACV % · AIC</td><td>05_TDP_Measures.dax</td><td><span class="verdict no">no data anywhere</span></td></tr>
+        <tr><td><span class="st unfed"></span>Sales per TDP</td><td>05_TDP_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+        <tr><td><span class="st unfed"></span>Growth Driver — distribution-led vs velocity-led</td><td>05_TDP_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+        <tr><td><span class="st unfed"></span>TDP Opportunity Quadrant</td><td>05_TDP_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+        <tr><td><span class="st unfed"></span>MS vs TDP Index</td><td>05_TDP_Measures.dax</td><td><span class="verdict no">never used</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <span class="lbl">Why none of it runs</span>
+    <p>
+      <code>PowerBI/RawDataFolders/Nielsen_Monthly/</code> and
+      <code>PowerBI/RawDataFolders/TDP_Monthly/</code> each contain exactly two files: a
+      README and a <code>_TEMPLATE_</code>. <strong>Zero real months.</strong> Every measure
+      above is wired to a table that has never received a row.
+    </p>
+    <p>
+      The consequence shows up in the July pack. Page 5 computes "share per distribution
+      point" by hand, from figures lifted out of the June PowerPoints — reinventing the
+      intent of <code>MS vs TDP Index</code>, which was written for exactly this and cannot
+      run. That is not a modelling gap. It is a supply gap.
+    </p>
+  </div>
+
+  <p style="margin-top:26px">
+    Worth saying plainly: the posts are a weaker version of what someone here already
+    designed. <code>Growth Driver</code> and <code>TDP Opportunity Quadrant</code> go past
+    anything in them. The useful thing the posts do is point at the two unfed fields whose
+    absence costs us most.
+  </p>
+</section>
+
+<!-- ============================================================ 2 -->
+<section>
+  <p class="kicker">Technique · the missing two thirds</p>
+  <h2>Numeric distribution, and the store-quality index it unlocks</h2>
+
+  <p>
+    Numeric distribution counts outlets: how many stores stock us, over how many stock the
+    category. Weighted distribution counts <em>value</em>: what share of category sales
+    happens in the stores we are in. We hold the second and have never held the first — and
+    the ratio between them is the interesting number.
+  </p>
+
+  <div class="derivation">share  =  ND  ×  (WtD ÷ ND)  ×  velocity
+           reach    store quality      share per point of shelf</div>
+
+  <div class="decomp">
+    <div class="term dark">
+      <b>Reach · ND</b>
+      <div class="v">not fed</div>
+      <p>How many doors. Nothing in the repo carries it.</p>
+    </div>
+    <div class="term dark">
+      <b>Store quality · WtD ÷ ND</b>
+      <div class="v">not derivable</div>
+      <p>Needs both terms. Above 1 means we sit in the big stores; near 1 means average doors.</p>
+    </div>
+    <div class="term">
+      <b>Velocity · share ÷ WtD</b>
+      <div class="v">0.118 / 0.045</div>
+      <p>Face Wash and Shampoo. This is the only term page 5 can show.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="lbl">What this costs us today</span>
+    <p>
+      Page 5 says Mamaearth Face Wash holds <strong>89.0% weighted distribution</strong>. We
+      cannot currently tell whether that means we are in most stores, or in a small number of
+      very large ones. Those are different businesses with different fixes: the first is a
+      velocity problem, the second is a reach problem dressed up as a good number.
+    </p>
+    <p>
+      The same question sits under the Shampoo call. We recommended holding pack expansion
+      because 81.5% WtD looked like enough shelf. If ND turned out to be, say, 55%, that
+      recommendation would flip — 81.5% of category value concentrated in 55% of doors means
+      the shelf is <em>narrow and rich</em>, and there is real width still to win.
+    </p>
+    <p>
+      <strong>I am not claiming that is the case.</strong> There is no ND data. The point is
+      that a decision already made rests on a term we cannot see.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ 3 -->
+<section>
+  <p class="kicker">Technique · price versus demand</p>
+  <h2>Volume share is unfed — but the internal version runs today</h2>
+
+  <p>
+    Value share and volume share moving apart is a pricing story, not a demand story. Our own
+    skill reference already states the rule. <code>Market Share Volume %</code> already exists
+    as a measure. No Nielsen volume data exists to run it on.
+  </p>
+  <p>
+    The internal offtake source, though, carries <code>Sales Qty</code> next to NSV and MRP —
+    and it is clean: <strong>24 bad rows in 197,645</strong> for July, 0.01%. That supports the
+    same diagnosis on data we already hold, and nobody has ever run it.
+  </p>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Modern Trade</th><th class="num">Units</th><th class="num">NSV</th><th class="num">ASP</th><th class="num">Realisation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>April</td><td class="num">1,956,675</td><td class="num">₹33.60 Cr</td><td class="num">₹171.70</td><td class="num">41.6%</td></tr>
+        <tr><td>May</td><td class="num">2,197,203</td><td class="num">₹38.11 Cr</td><td class="num">₹173.47</td><td class="num">41.7%</td></tr>
+        <tr><td>July</td><td class="num">1,895,052</td><td class="num">₹33.96 Cr</td><td class="num">₹179.21</td><td class="num">42.2%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13px;color:var(--ink-faint);margin-top:10px">
+    June is absent from the offtake folder, so the series skips it rather than interpolating.
+    Realisation is NSV as a share of MRP sales — what we keep of shelf price after trade
+    margin, tax and discount.
+  </p>
+
+  <div class="callout">
+    <span class="lbl">The split nobody had run</span>
+    <p class="figure bad">May → July: −₹4.15 Cr</p>
+    <p>
+      <strong>Volume −₹5.24 Cr. Price and mix +₹1.09 Cr.</strong> July's softness is entirely
+      a volume event — <strong>302,151 fewer units</strong> than May, down 13.8% — partly
+      offset by selling what did move at a 3.3% higher average price.
+    </p>
+    <p>
+      Against April rather than the May peak the picture is calmer: units −3.1%, ASP +4.4%,
+      value +1.1%. May was the outlier month, and July is back near where the quarter started.
+    </p>
+    <p class="derivation">value change = base ASP × unit change  +  current units × ASP change
+Apr→May   +4.52 Cr  =  +4.13 volume  +0.39 price   volume-led growth
+May→Jul   −4.15 Cr  =  −5.24 volume  +1.09 price   volume-led decline</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="lbl">This qualifies the July story on page 3</span>
+    <p>
+      Page 3 argues July's conversion collapse is the quarter-opening load repeating April —
+      and on <em>conversion</em> that holds, because the denominator moved. But offtake also
+      fell in units, and the loading story does not explain that. Both are true at once:
+      conversion fell because primary spiked, <strong>and</strong> consumers bought fewer
+      units. The second is a real demand or availability signal, and the value-only view hides
+      it completely.
+    </p>
+  </div>
+
+  <h3>The realisation ladder — a lens we have never used</h3>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>July, by brand</th><th class="num">Units</th><th class="num">NSV</th><th class="num">ASP</th><th class="num">Realisation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Mamaearth</td><td class="num">1,306,397</td><td class="num">₹22.80 Cr</td><td class="num">₹174.51</td><td class="num">40.9%</td></tr>
+        <tr><td>The Derma Co.</td><td class="num">566,375</td><td class="num">₹10.64 Cr</td><td class="num">₹187.85</td><td class="num">44.7%</td></tr>
+        <tr><td>Aqualogica</td><td class="num">19,492</td><td class="num">₹0.45 Cr</td><td class="num">₹231.30</td><td class="num">53.4%</td></tr>
+        <tr><td>BBLUNT</td><td class="num">2,326</td><td class="num">₹0.06 Cr</td><td class="num">₹260.23</td><td class="num">62.0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:14px">
+    <strong>Mamaearth is the most discounted brand in the portfolio</strong> — it keeps 40.9%
+    of shelf price where The Derma Co. keeps 44.7%. TDC prices higher <em>and</em> retains
+    more, and it is the brand growing 365%. That is a materially better mix arriving, and no
+    report currently says so.
+  </p>
+
+  <h3>Zone price index — July</h3>
+  <p>
+    West sells the most units at the lowest price (index 93); East the fewest at the highest
+    (108). A 15-point spread in average selling price across zones is a pack-mix fact worth
+    knowing before anyone reads a zone value number as demand.
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Zone</th><th class="num">Units</th><th class="num">NSV</th><th class="num">ASP</th><th class="num">Index</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>West</td><td class="num">497,615</td><td class="num">₹8.27 Cr</td><td class="num">₹166.22</td><td class="num">93</td></tr>
+        <tr><td>South-1</td><td class="num">433,962</td><td class="num">₹8.18 Cr</td><td class="num">₹188.56</td><td class="num">105</td></tr>
+        <tr><td>North</td><td class="num">377,364</td><td class="num">₹6.97 Cr</td><td class="num">₹184.82</td><td class="num">103</td></tr>
+        <tr><td>South-2</td><td class="num">278,020</td><td class="num">₹4.87 Cr</td><td class="num">₹175.30</td><td class="num">98</td></tr>
+        <tr><td>East</td><td class="num">183,289</td><td class="num">₹3.54 Cr</td><td class="num">₹193.17</td><td class="num">108</td></tr>
+        <tr><td>Central</td><td class="num">124,802</td><td class="num">₹2.12 Cr</td><td class="num">₹169.69</td><td class="num">95</td></tr>
+        <tr class="total"><td>Modern Trade</td><td class="num">1,895,052</td><td class="num">₹33.96 Cr</td><td class="num">₹179.21</td><td class="num">100</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================ 4 -->
+<section>
+  <p class="kicker">Craft · chart form</p>
+  <h2>Two findings in the July pack are drawn in the wrong form</h2>
+
+  <p>
+    The chart poster is a selection aid, and against it the deck holds up in most places —
+    bars for comparison, lines for time. Two exceptions matter, because in both the form is
+    hiding the finding rather than carrying it.
+  </p>
+
+  <div class="grid2">
+    <div>
+      <h4>The load-versus-conversion relationship is a scatter, drawn as a table</h4>
+      <p>
+        Page 3's strongest finding is that July conversion falls monotonically with how far a
+        zone billed above its own Q1 run-rate. That is a correlation between two numeric
+        variables — textbook scatter. As five table rows the reader has to reconstruct the
+        relationship mentally; as a scatter the downward slope is the whole argument, visible
+        in one look.
+      </p>
+    </div>
+    <div>
+      <h4>Primary → gap → offtake is a bridge, drawn as grouped bars</h4>
+      <p>
+        ₹47.02 Cr billed becomes ₹33.96 Cr sold through, and ₹13.06 Cr sits in between. That is
+        a waterfall: a start, a decrement, an end. Grouped bars show two totals side by side and
+        make the reader do the subtraction. The waterfall shows the subtraction <em>as</em> the
+        chart.
+      </p>
+    </div>
+    <div>
+      <h4>Worth adopting later — box &amp; whisker</h4>
+      <p>
+        Zone conversion ranges 49.9% to 86.3%. A box plot would show that spread and its
+        outliers honestly in one mark, where six bars invite rank-reading of what is really a
+        distribution.
+      </p>
+    </div>
+    <div>
+      <h4>Worth avoiding — pie, donut, radar</h4>
+      <p>
+        We have concentration facts (98.4% in two brands, 82.4% of NPI in two accounts) that
+        tempt a pie. Two-slice pies say less than a sentence. Radar flatters and compares
+        poorly. The poster lists them; that does not make them right here.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 5 -->
+<section>
+  <p class="kicker">Triage</p>
+  <h2>The five AI hacks, against what we already run</h2>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Hack</th><th>Verdict</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1 · Read the Nielsen/Kantar PDFs</td>
+          <td><span class="verdict have">already doing</span></td>
+          <td>This is how page 5 got its competitor distribution — pulled out of the June packs. The constraint is not reading ability, it is that nobody has supplied a machine-readable month.</td>
+        </tr>
+        <tr>
+          <td>2 · Always-on competitor monitoring</td>
+          <td><span class="verdict no">low fit</span></td>
+          <td>News feeds tell you a competitor launched. Nielsen tells you whether it took share. For an MT analyst the second is the job; the first is ambient noise with a subscription attached.</td>
+        </tr>
+        <tr>
+          <td>3 · Synthesise marketplace reviews</td>
+          <td><span class="verdict ask">worth a trial</span></td>
+          <td>The one genuinely new capability here. Reviews on the 100 ml Face Wash and 250 ml Shampoo — the two declining packs — could separate "availability gap" from "consumers dislike it", which no internal field can currently answer.</td>
+        </tr>
+        <tr>
+          <td>4 · Pre-test creative</td>
+          <td><span class="verdict no">not our lane</span></td>
+          <td>Brand and media own this. It does not touch channel analytics.</td>
+        </tr>
+        <tr>
+          <td>5 · Raw data → strategy deck</td>
+          <td><span class="verdict have">already doing, harder</span></td>
+          <td>We generate the pack from source with a channel reconciliation gate, a geometry check and a tie-assertion on every total. A generic deck tool produces slides that look finished without any of that. The slides were never the hard part.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout" style="margin-top:28px">
+    <span class="lbl">The pattern across all five</span>
+    <p>
+      Four of the five address speed of production. Our bottleneck has never been production
+      speed — this pack has been rebuilt several times in a day. It has been <strong>whether
+      the numbers mean what they appear to mean</strong>: eB2B inside MT zone sales, a netted
+      gap hiding ₹2.06 Cr, a conversion collapse that was a billing rhythm. No tool on that
+      list would have caught any of those.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ 6 -->
+<section>
+  <p class="kicker">What to do</p>
+  <h2>Three asks, in order of what they unblock</h2>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th></th><th>Ask</th><th>Unblocks</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num">1</td>
+          <td>A monthly TDP file matching <code>_TEMPLATE_TDP_Monthly.csv</code> — ACV %, AIC, <strong>Numeric Distribution</strong>, Weighted Distribution</td>
+          <td>The full reach × store-quality × velocity decomposition, plus TDP, Sales per TDP, Growth Driver and the Opportunity Quadrant — five built measures at once.</td>
+        </tr>
+        <tr>
+          <td class="num">2</td>
+          <td>A monthly Nielsen file matching <code>_TEMPLATE_Nielsen_Monthly.csv</code>, including <strong>Volume Market Share %</strong></td>
+          <td>Value-vs-volume divergence against the market, share movement in bps, and the Share Gain Flag — are we growing faster than our category.</td>
+        </tr>
+        <tr>
+          <td class="num">3</td>
+          <td>The missing <strong>June offtake</strong> month file</td>
+          <td>A complete Q1 units series, so the price/volume split covers the quarter rather than skipping its last month.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="footnote">
+    <strong>Sources and method.</strong> Measure inventory read from
+    <code>PowerBI/DAX/04_Nielsen_Measures.dax</code> and <code>05_TDP_Measures.dax</code>;
+    feed status from the contents of <code>PowerBI/RawDataFolders/Nielsen_Monthly/</code> and
+    <code>TDP_Monthly/</code>. Units, ASP and realisation computed by
+    <code>scripts/mt_price_volume_split.py</code> from the Apr, May and Jul offtake month
+    files on the published reporting basis — Brand Counter stores and the discontinued brands
+    excluded — with four reconciliation identities asserted, including that units × ASP
+    rebuilds NSV. Share and weighted distribution are MAT Jun 2026 from the June reference
+    packs. Numeric distribution appears nowhere in the repo and is specified here, not
+    reported. Nielsen panel coverage is a different universe from internal offtake; the two
+    are never reconciled to each other.
+  </p>
+</section>
+
+</div>

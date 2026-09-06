@@ -1,0 +1,43 @@
+#!/bin/sh
+# Skill-suite pre-commit gate.
+#
+# Enable once per clone:
+#     git config core.hooksPath .githooks
+#
+# Runs only when the commit touches skill-suite/ or an installed target, so
+# ordinary dashboard and pipeline commits are unaffected.
+
+set -e
+
+CHANGED=$(git diff --cached --name-only --diff-filter=ACMR)
+
+echo "$CHANGED" | grep -qE '^(skill-suite/|\.claude/skills/|\.agents/skills/)' || exit 0
+
+PYTHON=${PYTHON:-python3}
+command -v "$PYTHON" >/dev/null 2>&1 || PYTHON=python
+
+echo "pre-commit: validating skill suite"
+"$PYTHON" skill-suite/scripts/validate_skills.py || {
+    echo "pre-commit: BLOCKED — validation failed. Fix the errors above, or commit with --no-verify if you know why."
+    exit 1
+}
+
+echo "pre-commit: running skill-suite tests"
+"$PYTHON" -m unittest discover -s skill-suite/tests -q || {
+    echo "pre-commit: BLOCKED — tests failed."
+    exit 1
+}
+
+echo "pre-commit: checking installed targets for drift"
+"$PYTHON" skill-suite/scripts/sync_skills.py --check --target project-claude >/dev/null || {
+    echo "pre-commit: BLOCKED — project-claude is out of sync with skill-suite/."
+    echo "  Run: $PYTHON skill-suite/scripts/sync_skills.py --install --target all"
+    exit 1
+}
+"$PYTHON" skill-suite/scripts/sync_skills.py --check --target project-codex >/dev/null || {
+    echo "pre-commit: BLOCKED — project-codex is out of sync with skill-suite/."
+    echo "  Run: $PYTHON skill-suite/scripts/sync_skills.py --install --target all"
+    exit 1
+}
+
+echo "pre-commit: skill suite OK"

@@ -1,0 +1,117 @@
+table _Measures
+
+	measure NSV_L3M_Actuals = ```
+		CALCULATE(
+		    [NSV_Actual_INR],
+		    DATESBETWEEN(
+		        'Dim_Date'[Date],
+		        DATE(2026, 3, 1),
+		        DATE(2026, 5, 31)
+		    ),
+		    'Fact_Financials'[Scenario] = "Actual"
+		)
+		```
+		formatString: #,##0.00
+		displayFolder: GAP-01 Allocation
+
+	measure NSV_L3M_AllChannel_Total = ```
+		CALCULATE(
+		    [NSV_L3M_Actuals],
+		    ALLSELECTED('Dim_Chain'),
+		    ALLSELECTED('Dim_Category')
+		)
+		```
+		formatString: #,##0.00
+		displayFolder: GAP-01 Allocation
+
+	measure Allocation_Weight_L3M = ```
+		DIVIDE(
+		    [NSV_L3M_Actuals],
+		    [NSV_L3M_AllChannel_Total],
+		    0
+		)
+		```
+		formatString: 0.0000%
+		displayFolder: GAP-01 Allocation
+
+	measure NSV_Jun26_Allocated = ```
+		VAR Unallocated_Jun26_Pool =
+		    CALCULATE(
+		        [NSV_Pool_INR],
+		        'Dim_Date'[YearMonth] = 202606,
+		        'Fact_Financials'[Scenario] = "Forecast_Unallocated",
+		        ALL('Dim_Chain'),
+		        ALL('Dim_Category')
+		    )
+		VAR CurrentRowActual =
+		    CALCULATE(
+		        [NSV_Actual_INR],
+		        'Dim_Date'[YearMonth] = 202606
+		    )
+		RETURN
+		    IF(
+		        ISBLANK(CurrentRowActual) || CurrentRowActual = 0,
+		        Unallocated_Jun26_Pool * [Allocation_Weight_L3M],
+		        CurrentRowActual
+		    )
+		```
+		formatString: #,##0.00
+		displayFolder: GAP-01 Allocation
+
+	measure Contribution_Margin_INR = ```
+		[NSV_Actual_INR] - [COGS_INR] - [Variable_Trade_Spend_INR] - [Freight_Logistics_INR]
+		```
+		formatString: #,##0.00
+		displayFolder: GAP-02 Contribution Margin
+
+	measure Cont_Margin_Pct = ```
+		DIVIDE(
+		    [Contribution_Margin_INR],
+		    [NSV_Actual_INR],
+		    BLANK()
+		)
+		```
+		formatString: 0.0%
+		displayFolder: GAP-02 Contribution Margin
+
+	measure Cont_Margin_Status = ```
+		VAR Pct = [Cont_Margin_Pct]
+		RETURN
+		    SWITCH(
+		        TRUE(),
+		        ISBLANK(Pct), "No Data",
+		        Pct < 0, "Loss-Making (< 0%)",
+		        Pct < 0.10, "At-Risk (0-10%)",
+		        Pct < 0.20, "Target (10-20%)",
+		        "High Margin (> 20%)"
+		    )
+		```
+		displayFolder: GAP-02 Contribution Margin
+
+	measure Cont_Margin_Color = ```
+		VAR Pct = [Cont_Margin_Pct]
+		RETURN
+		    SWITCH(
+		        TRUE(),
+		        ISBLANK(Pct), "#9E9E9E",
+		        Pct < 0, "#D32F2F",
+		        Pct < 0.10, "#F57C00",
+		        Pct < 0.20, "#388E3C",
+		        "#1B5E20"
+		    )
+		```
+		displayFolder: GAP-02 Contribution Margin
+
+	measure Cont_Margin_Badge = ```
+		VAR Pct = [Cont_Margin_Pct]
+		VAR FormattedPct = FORMAT(Pct, "0.0%")
+		RETURN
+		    SWITCH(
+		        TRUE(),
+		        ISBLANK(Pct), "—",
+		        Pct < 0, "⚠️ " & FormattedPct & " [LOSS]",
+		        Pct < 0.10, "⚡ " & FormattedPct & " [COMPRESSED]",
+		        FormattedPct
+		    )
+		```
+		displayFolder: GAP-02 Contribution Margin
