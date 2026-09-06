@@ -26,7 +26,17 @@ jobs:
       - name: Stage dashboard files
         run: |
           mkdir -p _site
+          # MT Leadership Dashboard -> site root (dashboard/index.html becomes /)
           cp -r dashboard/* _site/
+          # Nielsen Market Share -> /market-share.html, written by
+          # build-nielsen-dashboard.yml. Guarded: a checkout without it (or a
+          # run before that workflow has produced one) must not fail the deploy.
+          if [ -f market-share.html ]; then
+            cp market-share.html _site/market-share.html
+            echo "Staged market-share.html"
+          else
+            echo "market-share.html absent — skipping (MT dashboard unaffected)"
+          fi
           touch _site/.nojekyll
           echo "Dashboard staged: $(ls _site | wc -l) files"
 

@@ -105,18 +105,23 @@ jobs:
         env:
           HTML: ${{ steps.names.outputs.html }}
 
-      - name: Publish to GitHub Pages (index.html)
+      # Publishes to market-share.html, NOT index.html. Root index.html is the
+      # MT Leadership Dashboard's slot: deploy-pages.yml stages dashboard/* to
+      # the gh-pages root, and this workflow used to overwrite index.html on
+      # every Nielsen data drop, silently replacing the MT dashboard on the live
+      # site. Both now co-exist -- MT at /, Nielsen at /market-share.html.
+      - name: Publish to GitHub Pages (market-share.html)
         run: |
-          cp "${{ steps.names.outputs.html }}" index.html
+          cp "${{ steps.names.outputs.html }}" market-share.html
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
+          git add market-share.html
           if git diff --staged --quiet; then
-            echo "index.html unchanged — skipping commit"
+            echo "market-share.html unchanged — skipping commit"
           else
-            git commit -m "chore(pages): update index.html → ${{ steps.names.outputs.stem }} [skip ci]"
+            git commit -m "chore(pages): update market-share.html → ${{ steps.names.outputs.stem }} [skip ci]"
             git push origin main
-            echo "index.html updated and pushed"
+            echo "market-share.html updated and pushed"
           fi
 
       - name: Upload build artifact
