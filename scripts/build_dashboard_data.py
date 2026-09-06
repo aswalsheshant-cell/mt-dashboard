@@ -851,7 +851,10 @@ def load_offtake_article_files(src):
     chain_month, zsm = {}, {}
     for fp in files:
         if fp.suffix.lower() == ".csv":
-            _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+            try:
+                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='utf-8')}
+            except UnicodeDecodeError:
+                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='latin-1')}
         else:
             # .xlsb needs pyxlsb, .xlsx needs openpyxl.
             _eng = "pyxlsb" if fp.suffix.lower() == ".xlsb" else "openpyxl"
@@ -983,7 +986,10 @@ def load_reliance_bc_data(src):
     frames = []
     for fp in files:
         if fp.suffix.lower() == ".csv":
-            _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+            try:
+                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='utf-8')}
+            except UnicodeDecodeError:
+                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='latin-1')}
         else:
             _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
             _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -4570,6 +4576,23 @@ def main():
         "universe": universe, "promo": promo, "forecast": forecast,
         "insights": insights,
     }
+
+    # Load Reliance Brand Counter data for the separate analytics tab
+    bc_data = load_reliance_bc_data(src)
+    if bc_data is not None:
+        data["reliance_brand_counters"] = bc_data
+    else:
+        # If no BC data in source, create empty block so UI shows "no records" gracefully
+        data["reliance_brand_counters"] = {
+            "months": [],
+            "monthly": [],
+            "total": 0,
+            "fy_tags": [],
+            "by_zone": [],
+            "by_state": [],
+            "by_brand": [],
+            "note": "Reliance Brand Counter data not available in current extracts."
+        }
 
     # ---- Data Explorer detail_records: real from File 2 if present, else representative ----
     detail, dims, detail_meta, tot, cm2, alloc = _build_detail_meta(src, a.detail_max_rows, primary)
