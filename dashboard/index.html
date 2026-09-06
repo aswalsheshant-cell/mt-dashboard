@@ -414,6 +414,25 @@ const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
 // Deterministic, DOM-safe id fragment from an arbitrary label/value. Every form
 // control below gets a stable id/name built from its semantic key so the
 // controls are addressable by the QA sweep and announced by assistive tech.
+// offtake.monthly has shipped carrying PRIMARY values: every month within Rs 1 L
+// of primary.monthly_fyNN (totals 32,900.00 vs 32,900.37), which made the
+// "Primary vs Offtake" trend a comparison of primary with itself. The business's
+// own FY26 offtake ex-Reliance-Brand-Counter is Rs 311.28 Cr, and both
+// offtake.total_fy26 and sum(offtake.by_chain[].value) tie to it exactly -- so the
+// CHAIN-level offtake is real and only this monthly series is contaminated.
+// Detect the copy and suppress the sell-out line rather than draw a false one.
+const OFFTAKE_MONTHLY_OK = (()=>{
+  try{
+    const om=(D.offtake&&D.offtake.monthly)||[];
+    if(!om.length) return false;
+    for(const k in (D.primary||{})){
+      if(k.indexOf('monthly_fy')!==0) continue;
+      const pm=(D.primary[k])||[];
+      if(pm.length===om.length && pm.every((v,i)=>Math.abs((v||0)-(om[i]||0))<=1)) return false;
+    }
+    return true;
+  }catch(e){ return false; }
+})();
 const slugId = v => (String(v==null?'':v).trim().toLowerCase()
   .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'x');
 const attrEsc = v => String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
@@ -952,11 +971,31 @@ function buildExecutiveCockpit(){
     if (i < 24) return (p.monthly_fy26 || [])[i - 12] ?? null;
     return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
   });
-  mkLine('cockpitTrend',o.months,[
-    {label:'Offtake (sell-out)',data:o.monthly,borderColor:C.amber,backgroundColor:C.amber+'22'},
+  // Sell-out line only when offtake.monthly is genuinely offtake (see
+  // OFFTAKE_MONTHLY_OK). Drawing primary twice under two labels is worse than
+  // showing primary alone with the reason stated.
+  const _cockpitSeries=[
     {label:`Primary ${fyDispLabel('FY25')}`,data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
     {label:'Primary FY25-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
-  ]);
+  ];
+  if(OFFTAKE_MONTHLY_OK){
+    _cockpitSeries.unshift({label:'Offtake (sell-out)',data:o.monthly,
+      borderColor:C.amber,backgroundColor:C.amber+'22'});
+  }
+  mkLine('cockpitTrend',o.months,_cockpitSeries);
+  if(!OFFTAKE_MONTHLY_OK){
+    const _c=document.getElementById('cockpitTrend');
+    const _h=_c&&_c.closest('.card');
+    if(_h&&!_h.querySelector('.offtake-warn')){
+      const _n=document.createElement('p');
+      _n.className='note offtake-warn';
+      _n.style.cssText='margin:8px 0 0;color:#C0392B';
+      _n.textContent='Sell-out line withheld: the monthly offtake series in this build '
+        +'duplicates primary, so plotting both would compare primary with itself. '
+        +'Chain-level offtake is unaffected — FY26 ties to ₹311.28 Cr ex-Reliance Brand Counter.';
+      _h.appendChild(_n);
+    }
+  }
   mkDonut('cockpitChannel',channels.map(c=>c.name),channels.map(c=>c[primYr]),true,v=>drillTo('Channel',v));
   renderDrillChart('cockpitDrill','Primary NSV',recFilter());
 }
