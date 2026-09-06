@@ -1127,9 +1127,9 @@ function buildChannelDynamics(){
   const fp27=beyond?FPX(fyTag()):null;
   const primOk=!beyond||!!fp27;
 
-  let chains=p.by_chain, brands=p.by_brand, channels=p.by_channel;
+  let chains=(p.by_chain||[]).filter(c=>c.name!=='Unmapped Chain'), brands=p.by_brand, channels=p.by_channel;
   if(fp27){
-    chains=consolidateChains(fp27.by_chain).map(c=>({name:c.name,[fy]:c.nsv}));
+    chains=consolidateChains(fp27.by_chain).filter(c=>c.name!=='Unmapped Chain').map(c=>({name:c.name,[fy]:c.nsv}));
     brands=fp27.by_brand.map(b=>({name:b.name,[fy]:b.nsv}));
     channels=fp27.by_channel.map(c=>({name:c.name,[fy]:c.nsv}));
   }
@@ -1166,12 +1166,23 @@ function renderChannelSubview(chains,brands,channels,primYr,fy){
 
   if(sv==='primary'){
     // Primary Sales sub-view: top chains, channel split, chain detail
-    // Data validation: ensure chains and channels have the required year property
-    const validChains=chains&&chains.length&&chains.every(c=>c[primYr]!=null)?chains:[];
-    const validChannels=channels&&channels.length&&channels.every(c=>c[primYr]!=null)?channels:[];
+    // Data validation: ensure chains and channels have the required year property; fallback to prior FY if empty
+    let validChains=chains&&chains.length&&chains.every(c=>c[primYr]!=null)?chains:[];
+    let validChannels=channels&&channels.length&&channels.every(c=>c[primYr]!=null)?channels:[];
 
     if(!validChains.length||!validChannels.length){
-      content.innerHTML=card('Primary Sales','No data available','<p class="lead">No Primary Sales data for the selected timeframe.</p>');
+      // Fallback: try prior FY
+      const fallbackFy=primYr==='fy26'?'fy25':primYr==='fy27'?'fy26':'fy25';
+      if(!validChains.length && chains&&chains.length){
+        validChains=chains.filter(c=>c[fallbackFy]!=null).map(c=>({...c,[primYr]:c[fallbackFy]}));
+      }
+      if(!validChannels.length && channels&&channels.length){
+        validChannels=channels.filter(c=>c[fallbackFy]!=null).map(c=>({...c,[primYr]:c[fallbackFy]}));
+      }
+    }
+
+    if(!validChains.length||!validChannels.length){
+      content.innerHTML=card('Primary Sales','No data available',`<p class="lead">No Primary Sales data available for ${primYr}. Try selecting a different FY filter.</p>`);
       return;
     }
 
@@ -1262,12 +1273,17 @@ function buildInventoryHealth(){
     if(sv==='velocity'){
       // Offtake Velocity: store-level sales + chain heatmap
       const byChain=o.by_chain||{};
-      const chainData=Object.keys(byChain).map(ch=>({
-        name:ch,
-        stores:Object.keys(byChain[ch].by_month?.[MONTH_NOW]||{}).length,
-        nsv:byChain[ch].total?.[fy]||0,
-        growth:(byChain[ch][fy]&&byChain[ch][fy-1])?((byChain[ch][fy]/byChain[ch][fy-1]-1)*100):0
-      })).sort((a,b)=>b.nsv-a.nsv);
+      const chainData=Object.keys(byChain).filter(ch=>byChain[ch]).map(ch=>{
+        const ch_data=byChain[ch];
+        const month_key=ch_data.by_month?.[MONTH_NOW];
+        const stores=month_key?Object.keys(month_key||{}).length:0;
+        const nsv=(ch_data.total&&ch_data.total[fy])||(ch_data[`total_${fy}`])||0;
+        const prior_fy=`total_${(parseInt(fy.slice(2))-1).toString().padStart(2,'0')}`;
+        const prior=ch_data[prior_fy]||0;
+        const growth=(prior>0)?((nsv/prior-1)*100):0;
+        return {name:ch,stores,nsv,growth};
+      })||[];
+      chainData.sort((a,b)=>b.nsv-a.nsv);
 
       content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores}</td><td>${crc(c.nsv)}</td><td>${c.growth.toFixed(1)}%</td></tr>`).join('')}</tbody></table>`);
 
@@ -3104,8 +3120,11 @@ function generateAnalyticsInsights(){
 
 function renderPVMChart(){
   destroyAnalyticsCharts();
-  const cv=document.getElementById('cvPVM');
-  if(!cv) return;
+  const cvDiv=document.getElementById('cvPVM');
+  if(!cvDiv) return;
+  cvDiv.innerHTML='';
+  const cv=document.createElement('canvas');
+  cvDiv.appendChild(cv);
   const pvm=computePVMMetrics();
   const ctx=cv.getContext('2d');
   window._chartPVM=new Chart(ctx,{
@@ -3120,8 +3139,11 @@ function renderPVMChart(){
 }
 
 function renderHealthChart(){
-  const cv=document.getElementById('cvHealth');
-  if(!cv) return;
+  const cvDiv=document.getElementById('cvHealth');
+  if(!cvDiv) return;
+  cvDiv.innerHTML='';
+  const cv=document.createElement('canvas');
+  cvDiv.appendChild(cv);
   const health=computeChannelHealth();
   const ctx=cv.getContext('2d');
   if(window._chartHealth) window._chartHealth.destroy();
@@ -3137,8 +3159,11 @@ function renderHealthChart(){
 }
 
 function renderQuadrantChart(){
-  const cv=document.getElementById('cvQuadrant');
-  if(!cv) return;
+  const cvDiv=document.getElementById('cvQuadrant');
+  if(!cvDiv) return;
+  cvDiv.innerHTML='';
+  const cv=document.createElement('canvas');
+  cvDiv.appendChild(cv);
   const quads=computeSKUQuadrants();
   const ctx=cv.getContext('2d');
   if(window._chartQuadrant) window._chartQuadrant.destroy();
