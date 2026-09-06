@@ -33,3 +33,6 @@ test-results/
 
 # GitHub Pages build output (Jekyll)
 _site/
+
+# Backup archives (user-downloaded backups)
+mt-dashboard-backup-*.zip
