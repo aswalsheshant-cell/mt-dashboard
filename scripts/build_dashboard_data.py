@@ -354,24 +354,61 @@ def load_primary(src):
 # unambiguous (one ship-to = one chain) and are never re-split.
 # --------------------------------------------------------------------------
 def load_primary_v2(src):
-    """Load primary from CSV seed (preferred) or XLSX (fallback).
-    CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
-    XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
+    """Load primary from the monthly drop in --src (authoritative), else the
+    committed CSV seed (fallback).
+    DROP: <src>/Primary_FY202426_*.{xlsx,xlsb,csv}  -- newest by mtime wins
+    SEED: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
     Same output shape as load_primary() plus raw Ship-To/Distributor columns.
 
     Phase 1 v1.1.2: Applies standardize_site_codes() to ensure Pan-India and
     regional chains have deterministic synthetic site codes (prevents null-join
     dropped rows in dashboard aggregations)."""
-    # Try CSV first (versioned in git)
-    csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
-    if csv_f.exists():
-        df = pd.read_csv(csv_f)
+    # Resolution order (changed 2026-09): a monthly drop in --src is
+    # AUTHORITATIVE; the committed seed is only the fallback.
+    #
+    # Previously the seed was checked first. Because it is tracked in git it
+    # exists in every clone, so it always won and a file dropped into --src was
+    # never read -- the documented monthly workflow refreshed nothing and still
+    # exited 0. The old fallback also matched one exact filename and demanded a
+    # sheet literally named "Dump", so Primary_FY202426_11.xlsx would have been
+    # missed even had the fallback been reachable.
+    seed = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
+    drops = sorted([*src.glob("Primary_FY202426_*.xlsx"),
+                    *src.glob("Primary_FY202426_*.xlsb"),
+                    *src.glob("Primary_FY202426_*.csv")],
+                   key=lambda p: (p.stat().st_mtime, p.name))
+    if drops:
+        f = drops[-1]                      # newest by mtime, name as tiebreak
+        print(f"  primary source: {f}  (monthly drop)")
+        if len(drops) > 1:
+            print(f"    note: {len(drops)} Primary candidates in {src}; using newest")
+        if f.suffix.lower() == ".csv":
+            df = pd.read_csv(f)
+        else:
+            _eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else "openpyxl"
+            # Header normally sits on row 2 ("Dump" sheet with a spacer row),
+            # but accept ANY sheet/offset that carries the required columns
+            # rather than hardcoding a sheet name the business may rename.
+            _need = {"NSV", "Month", "Chain Name", "Bill to customer"}
+            df = None
+            for _hdr in (1, 0):
+                for _d in pd.read_excel(f, sheet_name=None, header=_hdr,
+                                        engine=_eng).values():
+                    if _need <= {str(c).strip() for c in _d.columns}:
+                        df = _d
+                        break
+                if df is not None:
+                    break
+            if df is None:
+                raise SystemExit(
+                    f"Primary drop {f.name} has no sheet carrying {sorted(_need)} "
+                    f"at header row 0 or 1.")
+    elif seed.exists():
+        print(f"  primary source: {seed}  (committed seed -- no drop found in {src})")
+        df = pd.read_csv(seed)
     else:
-        # Fallback to XLSX in --src
-        f = src / "Primary_FY202426_10.xlsx"
-        if not f.exists():
-            raise FileNotFoundError(f"Primary data not found: {csv_f} or {f}")
-        df = pd.read_excel(f, sheet_name="Dump", header=1)
+        raise FileNotFoundError(
+            f"Primary data not found: no Primary_FY202426_* in {src}, and no {seed}")
 
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")

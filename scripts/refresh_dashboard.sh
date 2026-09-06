@@ -42,13 +42,30 @@ count_detail_records() {
     awk -v s="$START" -v e="$END" 'NR>s && NR<e && /^  \{$/ {c++} END {print c+0}' dashboard/data.js
 }
 
-# Snapshot pre-refresh state so we can prove the partial passes preserved it.
+primary_totals() {
+    # Both nsv_fyNN keys live only in the primary block, so a plain grep is a
+    # safe snapshot and costs nothing.
+    grep -o '"nsv_fy[0-9]*": [0-9.]*' dashboard/data.js 2>/dev/null | tr '\n' ' '
+}
+
+# Snapshot pre-refresh state so we can prove the partial passes preserved it
+# (detail_records) and that they actually ingested something (primary totals).
 if [ -f "dashboard/data.js" ]; then
     DETAIL_BEFORE=$(count_detail_records)
+    PRIMARY_BEFORE=$(primary_totals)
 else
     DETAIL_BEFORE=0
+    PRIMARY_BEFORE=""
 fi
 echo "  detail_records before refresh: $DETAIL_BEFORE"
+echo "  primary totals before refresh: ${PRIMARY_BEFORE:-none}"
+
+# Did the operator actually stage a Primary file? Used below to tell a genuine
+# no-op ("nothing dropped") apart from a silent one ("dropped but ignored").
+PRIMARY_DROPPED=$(ls data/raw_drops/Primary_FY202426_*.xlsx \
+                     data/raw_drops/Primary_FY202426_*.xlsb \
+                     data/raw_drops/Primary_FY202426_*.csv 2>/dev/null | wc -l)
+echo "  Primary files staged in drop folder: $PRIMARY_DROPPED"
 
 echo ""
 echo "========== Step 1/3: Regenerate data.js (partial patch chain) =========="
@@ -78,7 +95,8 @@ echo ""
 echo "========== Step 2/3: QA Sentinel & Validation =========="
 
 DETAIL_AFTER=$(count_detail_records)
-export DETAIL_BEFORE DETAIL_AFTER
+PRIMARY_AFTER=$(primary_totals)
+export DETAIL_BEFORE DETAIL_AFTER PRIMARY_BEFORE PRIMARY_AFTER PRIMARY_DROPPED
 
 # Streaming validation — extracts only the small blocks it needs.
 python3 << 'PYTHON_VALIDATE'
@@ -209,7 +227,26 @@ elif before and after < before:
 else:
     print(f"✓ detail_records: {after} (was {before}, floor {DETAIL_FLOOR})")
 
-# --- 5. Literal null-safety scan, streamed
+# --- 5. Silent no-op guard. load_primary_v2 used to read the git-tracked seed
+#        CSV unconditionally, so a file staged in data/raw_drops/ was never read
+#        and Primary "refreshed" to identical numbers at exit 0. That is now
+#        fixed at the loader, and this is the tripwire: if Primary files were
+#        staged but not one FY total moved, the drop did not reach the build.
+before = (os.environ.get("PRIMARY_BEFORE") or "").strip()
+after  = (os.environ.get("PRIMARY_AFTER")  or "").strip()
+staged = int(os.environ.get("PRIMARY_DROPPED", 0) or 0)
+if staged and before and before == after:
+    failures.append(
+        f"{staged} Primary file(s) staged in data/raw_drops/ but no FY total "
+        f"changed ({after}) — the drop was not ingested. Check the "
+        "'primary source:' line in the Pass 1 output above. "
+        "(Re-running with the same Primary file also trips this, by design.)")
+elif staged:
+    print(f"✓ Primary drop ingested ({staged} file(s) staged; {before or 'none'} -> {after})")
+else:
+    print(f"✓ No Primary staged; totals unchanged ({after})")
+
+# --- 6. Literal null-safety scan, streamed
 counts = {b"NaN": 0, b"undefined": 0, b"Infinity": 0}
 with open(PATH, "rb") as f:
     carry = b""
