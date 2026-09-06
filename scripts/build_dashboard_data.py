@@ -587,7 +587,7 @@ def primary_block(df):
             # Add channel with zero values for all FYs
             ch_entry = {"name": ch_name}
             for t in tags:
-                ch_entry[t.lower()] = None
+                ch_entry[t.lower()] = 0
             out["by_channel"].append(ch_entry)
 
     out["by_zone"] = dim_rows("zone")
