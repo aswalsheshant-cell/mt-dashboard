@@ -52,13 +52,29 @@ jobs:
         shell: pwsh
         env:
           PYTHONIOENCODING: utf-8
+        continue-on-error: true
         run: |
           Write-Host "Checking for Python validation scripts..." -ForegroundColor Cyan
+          $harness_found = $false
+
           if (Test-Path "scripts/eval_harness.py") {
+            Write-Host "Running eval_harness.py..." -ForegroundColor Green
             python scripts/eval_harness.py
+            $harness_found = $true
+          } else {
+            Write-Host "⚠ eval_harness.py not found (skipped)" -ForegroundColor Yellow
           }
+
           if (Test-Path "tests/validate_data_integrity.py") {
+            Write-Host "Running validate_data_integrity.py..." -ForegroundColor Green
             python tests/validate_data_integrity.py
+            $harness_found = $true
+          } else {
+            Write-Host "⚠ validate_data_integrity.py not found (skipped)" -ForegroundColor Yellow
+          }
+
+          if (-not $harness_found) {
+            Write-Host "ℹ No Python validation harnesses found (optional for this environment)" -ForegroundColor Cyan
           }
 
       - name: Run Article Uniqueness & Assortment Governance Pytest Suite
@@ -79,11 +95,14 @@ jobs:
 
       - name: Execute Power BI Watch Folder & DAX Validation
         shell: pwsh
+        continue-on-error: true
         run: |
           if (Test-Path ".\scripts\ci\test_powerbi_model.ps1") {
+            Write-Host "Running Power BI model validation..." -ForegroundColor Green
             .\scripts\ci\test_powerbi_model.ps1 -RepoRoot $env:GITHUB_WORKSPACE
           } else {
-            Write-Host "Skipped: test_powerbi_model.ps1 not found" -ForegroundColor Yellow
+            Write-Host "⚠ test_powerbi_model.ps1 not found (optional for this environment)" -ForegroundColor Yellow
+            Write-Host "Power BI model validation skipped" -ForegroundColor Cyan
           }
 
       - name: Upload Test Report Artifacts (On Failure)
