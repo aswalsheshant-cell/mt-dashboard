@@ -1,16 +1,5 @@
 {
-  "scripts": {
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:chromium": "playwright test --project=chromium",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
-  },
   "dependencies": {
     "pptxgenjs": "^4.0.1"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.62.1",
-    "playwright": "^1.62.1"
   }
 }

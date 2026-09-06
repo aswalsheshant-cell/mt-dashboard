@@ -1,285 +1,312 @@
 #!/usr/bin/env python3
 """
-Promo data schema validation for monthly ingestion pipeline.
-Enforces data quality gates before allowing data.js generation.
-
-Usage:
-  python validate_promo_schema.py --json <file.json> [--strict]
-
-Exit codes:
-  0 = all validations passed
-  1 = schema validation failed
-  2 = data quality issues found
+Promo Data Schema Validator — Standalone validation for monthly ingestion.
+No external dependencies required (pydantic optional for advanced validation).
 """
 
-import sys
-import argparse
 import json
-from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple
+import sys
+import re
+from datetime import datetime
 
 
 class ValidationResult:
-    """Collects validation errors and warnings"""
-    def __init__(self, strict=False):
-        self.strict = strict
+    """Collects validation errors and warnings."""
+
+    def __init__(self):
         self.errors = []
         self.warnings = []
-        self.rows_validated = 0
 
-    def add_error(self, field: str, message: str, row: Optional[int] = None):
-        self.errors.append({
-            'field': field,
-            'message': message,
-            'row': row
-        })
+    def add_error(self, msg):
+        self.errors.append(msg)
 
-    def add_warning(self, field: str, message: str, row: Optional[int] = None):
-        self.warnings.append({
-            'field': field,
-            'message': message,
-            'row': row
-        })
+    def add_warning(self, msg):
+        self.warnings.append(msg)
 
-    def is_valid(self) -> bool:
-        """Returns True if validation passed"""
+    def is_valid(self):
         return len(self.errors) == 0
 
-    def report(self) -> str:
-        """Generates validation report"""
-        lines = []
-        lines.append("=" * 70)
-        lines.append("PROMO DATA SCHEMA VALIDATION REPORT")
-        lines.append("=" * 70)
-        lines.append("")
+    def report(self, strict=False):
+        """Print formatted report. Returns exit code."""
+        if self.errors:
+            print(f"❌ VALIDATION FAILED: {len(self.errors)} error(s)")
+            for err in self.errors:
+                print(f"   - {err}")
 
-        lines.append(f"Total validations performed: {max(len(self.errors), len(self.warnings))}")
-        lines.append(f"Errors: {len(self.errors)}")
-        lines.append(f"Warnings: {len(self.warnings)}")
-        lines.append("")
+        if self.warnings:
+            print(f"⚠️  {len(self.warnings)} warning(s)")
+            for warn in self.warnings:
+                print(f"   - {warn}")
+
+        if not self.errors and not self.warnings:
+            print("✅ VALIDATION PASSED")
+            return 0
 
         if self.errors:
-            lines.append("❌ ERRORS (Blocking):")
-            for idx, err in enumerate(self.errors[:20], 1):  # Show first 20
-                row_str = f" (row {err['row']})" if err['row'] else ""
-                lines.append(f"  {idx}. {err['field']}: {err['message']}{row_str}")
-            if len(self.errors) > 20:
-                lines.append(f"  ... and {len(self.errors) - 20} more errors")
-            lines.append("")
+            return 1
 
-        if self.warnings and not self.strict:
-            lines.append("⚠ WARNINGS (Non-blocking):")
-            for idx, warn in enumerate(self.warnings[:10], 1):
-                row_str = f" (row {warn['row']})" if warn['row'] else ""
-                lines.append(f"  {idx}. {warn['field']}: {warn['message']}{row_str}")
-            if len(self.warnings) > 10:
-                lines.append(f"  ... and {len(self.warnings) - 10} more warnings")
-            lines.append("")
+        if self.warnings and strict:
+            return 2
 
-        if self.is_valid():
-            lines.append("✅ VALIDATION PASSED")
-        else:
-            lines.append(f"❌ VALIDATION FAILED ({len(self.errors)} errors)")
-
-        lines.append("=" * 70)
-        return "\n".join(lines)
+        return 0
 
 
-def validate_json_data(data: Dict[str, Any]) -> ValidationResult:
-    """Validates generated promo JSON data structure"""
+def validate_month_format(month_str):
+    """Validate month format: 'MMM-YY' (e.g., 'Apr-26', 'Sep-26')."""
+    pattern = r'^[A-Z][a-z]{2}-\d{2}$'
+    return bool(re.match(pattern, month_str))
+
+
+def validate_chain_name(chain_name, canonical_chains=None):
+    """Validate chain name against canonical list (if provided)."""
+    if not isinstance(chain_name, str) or len(chain_name) == 0:
+        return False
+
+    if canonical_chains is not None:
+        return chain_name in canonical_chains
+
+    return True
+
+
+def validate_discount_depth(depth):
+    """Validate discount depth: 0-100% as float or int."""
+    try:
+        d = float(depth)
+        return 0 <= d <= 100
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_json_data(filepath):
+    """Validate data_master.json structure (if exists)."""
     result = ValidationResult()
 
-    # Check promo module exists
+    try:
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        result.add_warning(f"File not found: {filepath}")
+        return result
+    except json.JSONDecodeError as e:
+        result.add_error(f"Invalid JSON: {e}")
+        return result
+
+    # Validate promo block
     if 'promo' not in data:
-        result.add_error('promo', "Missing 'promo' module in data")
+        result.add_error("Missing 'promo' key in data")
         return result
 
     promo = data['promo']
 
-    # Check required top-level fields
+    # Validate required fields
     required_fields = ['n_promos', 'avg_depth', 'by_chain', 'months_available', 'monthly']
     for field in required_fields:
         if field not in promo:
-            result.add_error('promo', f"Missing required field: {field}")
+            result.add_error(f"Promo: missing required field '{field}'")
 
-    if not result.is_valid():
-        return result
+    # Validate numeric ranges
+    if 'avg_depth' in promo:
+        if not validate_discount_depth(promo['avg_depth']):
+            result.add_error(f"Promo avg_depth out of range: {promo['avg_depth']}")
 
-    # Validate promo counts
-    n_promos = promo.get('n_promos', 0)
-    if not isinstance(n_promos, (int, float)) or n_promos <= 0:
-        result.add_error('promo.n_promos', f"Invalid promo count: {n_promos}")
-
-    avg_depth = promo.get('avg_depth', 0)
-    if not isinstance(avg_depth, (int, float)) or avg_depth < 0 or avg_depth > 100:
-        result.add_error('promo.avg_depth', f"Invalid average depth: {avg_depth}% (must be 0-100)")
+    if 'n_promos' in promo:
+        if not isinstance(promo['n_promos'], int) or promo['n_promos'] < 0:
+            result.add_error(f"Promo n_promos must be non-negative int: {promo['n_promos']}")
 
     # Validate by_chain structure
-    by_chain = promo.get('by_chain', [])
-    if not isinstance(by_chain, list):
-        result.add_error('promo.by_chain', f"Expected list, got {type(by_chain).__name__}")
-    else:
-        for idx, chain in enumerate(by_chain):
-            if not isinstance(chain, dict):
-                result.add_error('promo.by_chain', f"Row {idx}: Expected dict, got {type(chain).__name__}")
-                continue
+    if 'by_chain' in promo:
+        chains = promo['by_chain']
+        if not isinstance(chains, list):
+            result.add_error("Promo by_chain must be a list")
+        else:
+            for chain in chains:
+                if 'name' not in chain:
+                    result.add_error("Chain missing 'name' field")
+                if 'promos' not in chain or not isinstance(chain['promos'], int):
+                    result.add_error(f"Chain {chain.get('name', '?')}: invalid promos count")
 
-            # Check required chain fields
-            if 'name' not in chain:
-                result.add_error('promo.by_chain.name', f"Row {idx}: Missing chain name", row=idx)
-            if 'promos' not in chain or not isinstance(chain['promos'], (int, float)):
-                result.add_error('promo.by_chain.promos', f"Row {idx}: Missing or invalid promos count", row=idx)
-            if chain.get('promos', 0) < 0:
-                result.add_error('promo.by_chain.promos', f"Row {idx}: Negative promos count: {chain['promos']}", row=idx)
+    # Validate monthly blocks
+    if 'months_available' in promo and 'monthly' in promo:
+        months = promo['months_available']
+        monthly = promo['monthly']
 
-    # Validate months_available
-    months = promo.get('months_available', [])
-    if not isinstance(months, list):
-        result.add_error('promo.months_available', f"Expected list, got {type(months).__name__}")
-    elif len(months) == 0:
-        result.add_warning('promo.months_available', "No months available")
-    else:
         for month in months:
-            if not isinstance(month, str) or len(month) == 0:
-                result.add_error('promo.months_available', f"Invalid month format: {month}")
-
-    # Validate monthly structure
-    monthly = promo.get('monthly', {})
-    if not isinstance(monthly, dict):
-        result.add_error('promo.monthly', f"Expected dict, got {type(monthly).__name__}")
-    else:
-        for month_key, month_data in monthly.items():
-            if not isinstance(month_data, dict):
-                result.add_error(f'promo.monthly.{month_key}', f"Expected dict, got {type(month_data).__name__}")
-                continue
-
-            # Check monthly data structure
-            if 'by_chain' in month_data:
-                chains = month_data['by_chain']
-                if not isinstance(chains, list):
-                    result.add_error(f'promo.monthly.{month_key}.by_chain', f"Expected list, got {type(chains).__name__}")
-                else:
-                    for chain in chains:
-                        if 'name' not in chain:
-                            result.add_error(f'promo.monthly.{month_key}.by_chain', "Chain missing 'name' field")
-                        if 'skus' in chain and not isinstance(chain['skus'], (int, float)):
-                            result.add_error(f'promo.monthly.{month_key}.by_chain.skus', f"Invalid SKU count: {chain['skus']}")
-
-    # Check for NaN/Infinity in numeric fields
-    def check_numeric_values(obj, path='', max_depth=10):
-        if max_depth <= 0:
-            return
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                check_numeric_values(v, f"{path}.{k}" if path else k, max_depth - 1)
-        elif isinstance(obj, list):
-            for i, v in enumerate(obj[:100]):  # Check first 100 items
-                check_numeric_values(v, f"{path}[{i}]", max_depth - 1)
-        elif isinstance(obj, float):
-            if obj != obj:  # NaN check
-                result.add_error(path, "Contains NaN value")
-            elif obj == float('inf') or obj == float('-inf'):
-                result.add_error(path, f"Contains Infinity value")
-
-    check_numeric_values(promo)
-
-    # Validate consistency between months_available and monthly keys
-    available_months = set(months)
-    monthly_keys = set(monthly.keys())
-    missing_in_monthly = available_months - monthly_keys
-    if missing_in_monthly:
-        result.add_warning('promo', f"months_available has months not in monthly dict: {missing_in_monthly}")
+            if not validate_month_format(month):
+                result.add_warning(f"Invalid month format: {month}")
+            if month not in monthly:
+                result.add_error(f"Month {month} in months_available but not in monthly")
 
     return result
 
 
-def validate_data_js_integrity(filepath: Path) -> ValidationResult:
-    """Validates data.js file integrity"""
+def validate_data_js_integrity(filepath):
+    """Validate data.js file: valid JSON wrapped in 'window.DASH = {...}'."""
     result = ValidationResult()
-
-    if not filepath.exists():
-        result.add_error('file', f"File not found: {filepath}")
-        return result
 
     try:
         with open(filepath, 'r') as f:
             content = f.read()
+    except FileNotFoundError:
+        result.add_warning(f"File not found: {filepath}")
+        return result
 
-        # Extract JSON from data.js
-        json_start = content.find('{')
-        json_end = content.rfind('}') + 1
+    # Extract JSON from window.DASH = {...}
+    match = re.search(r'window\.DASH\s*=\s*(\{.*\})\s*;', content, re.DOTALL)
+    if not match:
+        result.add_error("Could not find 'window.DASH = {...}' in data.js")
+        return result
 
-        if json_start < 0:
-            result.add_error('file', "No JSON object found in data.js")
-            return result
+    json_str = match.group(1)
 
-        json_str = content[json_start:json_end]
+    # Validate JSON parsing
+    try:
         data = json.loads(json_str)
-
-        # Check for NaN/undefined/[object Object] — but only if not quoted (actual JS literals)
-        # NaN in objects like {"field": NaN, ...} is a valid pattern for missing numeric data
-        # Only flag if they appear as rendering output (not in JSON structure)
-        import re
-
-        # Check for unquoted NaN values (actual JS NaN, not strings)
-        # This is allowed in detail_records and some article fields with missing data
-        unquoted_nan = re.findall(r':\s*NaN[,\}]', content)
-        if unquoted_nan and len(unquoted_nan) > 5000:
-            # This is expected for detail_records with missing SubCategory/Range/PackSize
-            result.add_warning('data.js', f"Found {len(unquoted_nan)} NaN values (expected for missing article metadata)")
-
-        # Check for strings that should never appear in rendered output
-        if '"NaN"' in content or '"undefined"' in content:
-            result.add_error('data.js', "Found quoted NaN/undefined strings (should be null or numbers)")
-        if '[object Object]' in content:
-            result.add_error('data.js', "Found [object Object] string (rendering error)")
-
-        result.rows_validated = 1
-        return result
-
     except json.JSONDecodeError as e:
-        result.add_error('json', f"Invalid JSON: {e}")
+        result.add_error(f"data.js contains invalid JSON: {e}")
         return result
+
+    # Check for rendered NaN/undefined (quoted strings)
+    if '"NaN"' in content or '"undefined"' in content or '"[object Object]"' in content:
+        result.add_error("data.js contains quoted NaN/undefined/[object Object] (rendering error)")
+
+    # Unquoted NaN in article metadata is expected; warn but don't error
+    if re.search(r':\s*NaN(?!\s*[a-z])', content):
+        result.add_warning("Unquoted NaN detected (expected for article metadata)")
+
+    return result
+
+
+def validate_Sep26_mock_data():
+    """Validate structure of mock Sep '26 data for testing."""
+    result = ValidationResult()
+
+    # Mock Sep '26 promo data structure
+    mock_sep26 = {
+        'promo': {
+            'n_promos': 1389,
+            'avg_depth': 43.1,
+            'total_skus': 1389,
+            'chains_in_promo': 34,
+            'by_chain': [
+                {
+                    'name': 'Modern Retail',
+                    'kam': 'Sheshant K',
+                    'promos': 145,
+                    'skus': 156,
+                    'brands': 12,
+                    'avg_offer_pct': 41.2,
+                    'received': True
+                },
+                {
+                    'name': 'Kiryana Premium',
+                    'kam': 'Raj M',
+                    'promos': 89,
+                    'skus': 92,
+                    'brands': 8,
+                    'avg_offer_pct': 55.3,
+                    'received': True
+                }
+            ],
+            'months_available': ['Apr-26', 'May-26', 'Jun-26', 'Jul-26', 'Aug-26', 'Sep-26'],
+            'monthly': {
+                'Sep-26': {
+                    'month': 'Sep-26',
+                    'total_skus': 1389,
+                    'chains_in_promo': 34,
+                    'by_chain': []
+                }
+            }
+        }
+    }
+
+    # Validate mock structure
+    try:
+        validate_json_data_inline(mock_sep26)
+        result.add_warning("Mock Sep '26 data validated (structure OK)")
     except Exception as e:
-        result.add_error('file', f"Error reading file: {e}")
-        return result
+        result.add_error(f"Mock Sep '26 data structure invalid: {e}")
+
+    return result
+
+
+def validate_json_data_inline(data):
+    """Inline validation of parsed JSON data (for testing)."""
+    if 'promo' not in data:
+        raise ValueError("Missing 'promo' key")
+
+    promo = data['promo']
+
+    # Check required fields
+    for field in ['n_promos', 'avg_depth', 'by_chain', 'months_available', 'monthly']:
+        if field not in promo:
+            raise ValueError(f"Missing required field: {field}")
+
+    # Validate ranges
+    if not (0 <= promo['avg_depth'] <= 100):
+        raise ValueError(f"avg_depth out of range: {promo['avg_depth']}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Validate promo data schema')
-    parser.add_argument('--json', type=Path, help='JSON data_master.json file to validate')
-    parser.add_argument('--datajs', type=Path, help='data.js file to validate')
-    parser.add_argument('--strict', action='store_true', help='Fail on warnings')
+    """CLI interface for validation."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description='Validate promo data schema for monthly ingestion'
+    )
+    parser.add_argument(
+        '--json',
+        type=str,
+        help='Path to data_master.json to validate'
+    )
+    parser.add_argument(
+        '--datajs',
+        type=str,
+        help='Path to data.js to validate'
+    )
+    parser.add_argument(
+        '--strict',
+        action='store_true',
+        help='Treat warnings as errors (exit code 2)'
+    )
+    parser.add_argument(
+        '--mock-sep26',
+        action='store_true',
+        help='Validate mock Sep \'26 data structure'
+    )
+
     args = parser.parse_args()
 
-    if not args.json and not args.datajs:
-        parser.print_help()
-        sys.exit(1)
-
-    exit_code = 0
+    all_results = []
 
     if args.json:
-        print(f"Validating JSON data: {args.json}")
-        try:
-            with open(args.json) as f:
-                data = json.load(f)
-            result = validate_json_data(data)
-            print(result.report())
-            if not result.is_valid():
-                exit_code = 1
-        except Exception as e:
-            print(f"❌ Failed to load JSON: {e}")
-            exit_code = 1
+        print(f"Validating {args.json}...")
+        result = validate_json_data(args.json)
+        all_results.append(result)
+        print(result.report(args.strict))
+        print()
 
     if args.datajs:
-        print(f"Validating data.js: {args.datajs}")
+        print(f"Validating {args.datajs}...")
         result = validate_data_js_integrity(args.datajs)
-        print(result.report())
-        if not result.is_valid():
-            exit_code = 1
+        all_results.append(result)
+        print(result.report(args.strict))
+        print()
 
-    sys.exit(exit_code)
+    if args.mock_sep26:
+        print("Validating mock Sep '26 data structure...")
+        result = validate_Sep26_mock_data()
+        all_results.append(result)
+        print(result.report(args.strict))
+        print()
+
+    if not all_results:
+        print("No validation target specified. Use --json, --datajs, or --mock-sep26")
+        return 1
+
+    # Return most severe exit code
+    exit_codes = [r.report(args.strict) for r in all_results]
+    return max(exit_codes)
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

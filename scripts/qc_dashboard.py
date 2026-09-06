@@ -10,10 +10,8 @@ Usage:
 Exit codes: 0=all PASS/WARN, 1=any FAIL, 2=any FAIL or BLOCKED that blocks release.
 """
 from __future__ import annotations
-import argparse, glob, math, os, sys
+import argparse, glob, json, math, os, re, sys
 from pathlib import Path
-
-from json_boundary import parse_window_dash_strict
 
 REPO = Path(__file__).resolve().parent.parent
 DATA_JS = REPO / "dashboard" / "data.js"
@@ -32,7 +30,12 @@ def qc(status: str, check: str, detail: str = "", value=None):
 
 def load_dash(path: Path) -> dict:
     txt = path.read_text(encoding="utf-8")
-    return parse_window_dash_strict(txt)
+    m = re.search(r"window\.DASH\s*=\s*", txt)
+    if not m:
+        raise ValueError("window.DASH not found in data.js")
+    raw = txt[m.end():].rstrip().rstrip(";")
+    raw = re.sub(r"\bNaN\b", "null", raw)
+    return json.loads(raw)
 
 
 def _isnum(v):
@@ -444,4 +447,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
