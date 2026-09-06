@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-08-27T21:19:09.360306",
+  "version": "Phase 3 - Agent Sentiments Engine v1",
+  "insights": [
+    {
+      "type": "revenue",
+      "severity": "CRITICAL",
+      "title": "Revenue Momentum Declined \u2014 YoY Growth at -30%+",
+      "text": "YoY decline of -41.8% indicates market share loss or channel contraction. This period's revenue \u20b9264Cr is down from \u20b9454Cr last year. Action: (1) Diagnose channel-wise decline (DMart, Reliance, Apollo), (2) Accelerate hero SKUs with incremental trade support, (3) Review discounting strategy vs. offtake lift.",
+      "metrics": {
+        "revenue_current_cr": 264.4,
+        "revenue_prior_year_cr": 454.1,
+        "mom_growth_pct": -16.9,
+        "yoy_growth_pct": -41.8
+      }
+    },
+    {
+      "type": "pipeline",
+      "severity": "WARNING",
+      "title": "Channel Pipeline Health \u2014 Data Review Required",
+      "text": "Current data lacks channel-specific primary vs. offtake gap metrics needed to identify high-conversion channels. Action: Verify Primary \u00d7 Offtake data contract loading from PowerBI/ExportData/offtake.csv on Sep 1 refresh.",
+      "metrics": {
+        "data_completeness_pct": 0,
+        "channels_analyzed": 0,
+        "status": "awaiting_sep_1_data"
+      }
+    },
+    {
+      "type": "distribution",
+      "severity": "CRITICAL",
+      "title": "Low Store Productivity \u2014 Distribution Audit Required",
+      "text": "Active stores: 426/426 (100%). Productivity: \u20b90.13L per store/month. Critically low productivity suggests stale/low-velocity store base. Action: rationalize bottom 20% stores, accelerate new-store ramp in high-potential zones.",
+      "metrics": {
+        "total_stores": 426,
+        "active_stores": 426,
+        "active_pct": 100.0,
+        "productivity_per_store_lakh": 0.13
+      }
+    },
+    {
+      "type": "profitability",
+      "severity": "DRAFT",
+      "title": "Profitability Analysis \u2014 Production Data Loading Sep 1",
+      "text": "CM2 and expense analysis currently use placeholder data. On Sep 1 refresh, this insight will load real CM2 from data.js, PnL expenses from Power BI, and Finance-approved TOT% rates from config. Metric framework is validated; awaiting production data.",
+      "metrics": {
+        "cm2_pct_of_nsv": 25.0,
+        "expense_pct_of_nsv": 15.0,
+        "tot_pct": 50.0,
+        "status": "awaiting_sep_1_production_data"
+      }
+    }
+  ],
+  "summary": {
+    "total_insights": 4,
+    "critical_count": 2,
+    "warning_count": 1,
+    "on_track_count": 0,
+    "opportunity_count": 0
+  }
+}
