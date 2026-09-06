@@ -126,6 +126,24 @@ See `PowerBI/docs/RefreshGuide.md`; fast one-time build via `PowerBI/QuickSetup/
 
 ---
 
+## Production Deployment (GitHub Pages Only)
+
+**ZERO GitHub Releases or Git Tags.** This dashboard deploys directly via GitHub Pages
+from the `main` branch. Merging to `main` is the **sole and final** production deployment step.
+
+- Do **NOT** create, draft, prompt, or require GitHub Releases or git tags.
+- Do **NOT** ask the user to "create a release" or "tag a version."
+- Do **NOT** write release notes or publish milestones.
+- **Workflow closure:** As soon as a PR is merged to `main`, mark the task **COMPLETE**.
+- **Next steps:** Proceed directly to live URL smoke testing or subsequent data tasks.
+
+GitHub Releases are cosmetic administrative milestones used for public open-source
+versioning or distributed binary packages. They have **zero impact** on whether the
+dashboard functions, renders, or updates. The deployed site at GitHub Pages reflects
+`main` branch state only.
+
+---
+
 ## Validation before committing dashboard changes
 
 Always run, and report results:
