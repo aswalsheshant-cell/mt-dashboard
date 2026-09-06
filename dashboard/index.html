@@ -92,6 +92,9 @@
   .wf li b{color:var(--teal-d)}
   footer{color:var(--muted);font-size:11.5px;text-align:center;padding:24px}
   .badge{display:inline-block;background:rgba(255,255,255,.18);padding:3px 9px;border-radius:20px;font-size:11.5px;margin-top:8px}
+  .subview-tab{background:var(--bg);border:1px solid var(--line);border-bottom:none;padding:10px 14px;font-size:13px;font-weight:600;
+      color:var(--muted);cursor:pointer;border-radius:8px 8px 0 0;margin-right:4px}
+  .subview-tab.active{background:var(--card);color:var(--teal-d);border-color:var(--teal)}
   .topbar{position:sticky;top:0;z-index:20;background:#fff;box-shadow:var(--shadow)}
   nav{position:static;box-shadow:none}
   .filterbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;
@@ -275,11 +278,9 @@
 <div class="wrap">
   <section id="tab-explorer"></section>
   <section id="tab-executive-cockpit"></section>
-  <section id="tab-primary"></section>
+  <section id="tab-channel-dynamics"></section>
   <section id="tab-offtake"></section>
-  <section id="tab-reliance-bc"></section>
   <section id="tab-pnl"></section>
-  <section id="tab-category"></section>
   <section id="tab-forecast"></section>
   <section id="tab-promo"></section>
   <section id="tab-offtake-impact"></section>
@@ -440,7 +441,7 @@ function chartDlHtml(id){
 }
 
 let charts=[];
-function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; destroyAnalyticsCharts(); }
+function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; destroyAnalyticsCharts(); destroyChannelDynamicsCharts(); }
 function destroyAnalyticsCharts(){ ['_chartPVM','_chartHealth','_chartQuadrant'].forEach(name=>{try{if(window[name])window[name].destroy();}catch(e){}}); }
 // shared click-to-drill: any chart passed an onClick(label) callback gets a
 // pointer cursor + a click handler that resolves the clicked label and drills.
@@ -951,7 +952,132 @@ function buildExecutiveCockpit(){
   renderDrillChart('cockpitDrill','Primary NSV',recFilter());
 }
 
-/* ---------------- PRIMARY ---------------- */
+/* ---- CHANNEL & CHAIN DYNAMICS: Consolidated Primary + Category & Pack + Reliance Brand Counter
+    with responsive sub-views. Implements canvas lifecycle & August 2026 period safety (Guardrails #3, #2). ---- */
+let channelDynamicsState={subview:'primary',charts:{}};  // Sub-view state isolation (Guardrail #4)
+
+function destroyChannelDynamicsCharts(){
+  Object.values(channelDynamicsState.charts).forEach(c=>{if(c&&c.destroy) c.destroy();});
+  channelDynamicsState.charts={};
+}
+
+function buildChannelDynamics(){
+  const p=D.primary,o=D.offtake,u=D.universe;
+  const s=document.getElementById('tab-channel-dynamics');
+  const fy=fyKey();
+  const _mc27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27&&D.detail_meta.fyx_primary.FY27.months_covered)||[];
+  const _fy27lab=_mc27.length?fyDispLabel('FY27')+' '+_mc27[0].slice(0,3)+'–'+_mc27[_mc27.length-1].slice(0,3):fyDispLabel('FY27');
+  const yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26'),fy27:_fy27lab};
+  FY_ALL.forEach(t=>{ const k='fy'+t.slice(2); if(!yrLab[k]) yrLab[k]=fyDispLabel(t); });
+
+  // Guardrail #2: August 2026 Offtake Safety Check — Offtake only through July, Primary through August
+  const augOftakeAvail=o.months&&o.months.some(m=>m.includes('Aug'));
+  const augWarning=!augOftakeAvail?` <span class="badge" style="background:#fbbf24;color:#000">⚠ Offtake ingestion pending for Aug '26</span>`:'';
+
+  const beyond=!!fy&&fyBeyondPreagg(fyTag());
+  const fp27=beyond?FPX(fyTag()):null;
+  const primOk=!beyond||!!fp27;
+
+  let chains=p.by_chain, brands=p.by_brand, channels=p.by_channel;
+  if(fp27){
+    chains=consolidateChains(fp27.by_chain).map(c=>({name:c.name,[fy]:c.nsv}));
+    brands=fp27.by_brand.map(b=>({name:b.name,[fy]:b.nsv}));
+    channels=fp27.by_channel.map(c=>({name:c.name,[fy]:c.nsv}));
+  }
+  if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
+  if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
+  if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
+  const primYr=fy&&primOk?fy:'fy26';
+
+  // Sub-view HTML tabs
+  const subviews=['primary','category','reliance'];
+  const subviewLabels={primary:'Primary Sales',category:'Category & Pack Mix',reliance:'Reliance Brand Counter'};
+  const tabNav=subviews.map(sv=>`<button class="subview-tab ${sv===channelDynamicsState.subview?'active':''}" data-subview="${sv}">${subviewLabels[sv]}</button>`).join('');
+
+  s.innerHTML=`<h2 class="sec">Channel & Chain Performance</h2>
+   <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.${augWarning}</p>
+   <div style="border-bottom:1px solid var(--line);display:flex;gap:8px;padding-bottom:8px;margin-bottom:16px;flex-wrap:wrap">${tabNav}</div>
+   <div id="channel-subview-content"></div>`;
+
+  // Guardrail #3: Canvas Lifecycle — mount sub-view with explicit cleanup
+  document.querySelectorAll('.subview-tab').forEach(btn=>{
+    btn.onclick=()=>{
+      channelDynamicsState.subview=btn.dataset.subview;
+      destroyChannelDynamicsCharts();
+      renderChannelSubview(chains,brands,channels,primYr,fy);
+    };
+  });
+
+  renderChannelSubview(chains,brands,channels,primYr,fy);
+}
+
+function renderChannelSubview(chains,brands,channels,primYr,fy){
+  const content=document.getElementById('channel-subview-content');
+  const sv=channelDynamicsState.subview;
+
+  if(sv==='primary'){
+    // Primary Sales sub-view: top chains, channel split, chain detail
+    const sorted=chains.slice().sort((a,b)=>(b[primYr]||0)-(a[primYr]||0));
+    const rows27=sorted.filter(c=>c.nsv>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
+    const sum=sorted.reduce((a,c)=>a+(c[primYr]||0),0);
+    const chRows=channels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
+    content.innerHTML=`
+      ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr.slice(3)]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
+      ${card(`Channel Split (${yrLab[primYr.slice(3)]||primYr})`,`${channels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
+      <div class="grid g2">
+        ${card('Primary Sales Trend','FY25 to FY27 trajectory',cv('chanPrimTrend'))}
+        ${card('Channel Contribution','% share by channel',cv('chanChanSplit',true))}
+      </div>`;
+    wireDrillLinks(content);
+
+    // Guardrail #3: Canvas instantiation with state tracking
+    const o=D.offtake;
+    const _fp27 = FPX('FY27');
+    const _fy27pri = {};
+    if (_fp27 && _fp27.months_canon) {
+      _fp27.months_canon.forEach((m, i) => { _fy27pri[m] = (_fp27.monthly_canon || [])[i]; });
+    }
+    const _prim25Arr = o.months.map((m, i) => i < 12 ? ((D.primary.monthly_fy25 || [])[i] || null) : null);
+    const _prim26_27Arr = o.months.map((m, i) => {
+      if (i < 11) return null;
+      if (i === 11) return (D.primary.monthly_fy25 || [])[11] ?? null;
+      if (i < 24) return (D.primary.monthly_fy26 || [])[i - 12] ?? null;
+      return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
+    });
+
+    const lc = mkLine('chanPrimTrend',o.months,[
+      {label:'Primary FY25',data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
+      {label:'Primary FY26-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
+    ]);
+    channelDynamicsState.charts.trend=lc;
+
+    const dc = mkDonut('chanChanSplit',channels.map(c=>c.name),channels.map(c=>c[primYr]),true);
+    channelDynamicsState.charts.channel=dc;
+  }
+  else if(sv==='category'){
+    // Category & Pack Mix sub-view
+    const recs=recFilter();
+    if(!recs.length) {content.innerHTML=card('Category & Pack Analysis','No records match current filters','<p class="lead">Adjust filters to see category breakdown.</p>');return;}
+    const bycat={};
+    recs.forEach(r=>{const k=r.Category||'Unknown';if(!bycat[k]) bycat[k]={nsv:0,qty:0,count:0};bycat[k].nsv+=r.NSV||0;bycat[k].qty+=r.Qty||0;bycat[k].count+=1;});
+    const catRows=Object.entries(bycat).sort((a,b)=>b[1].nsv-a[1].nsv).map(([cat,{nsv,qty}])=>`<tr><td>${drillLink('Category',cat)}</td><td>${crc(nsv/100)}</td><td>${num(qty)}</td></tr>`).join('');
+    content.innerHTML=`${card('Category & Pack Mix',`${Object.keys(bycat).length} categories`,`<table class="tbl"><thead><tr><th>Category</th><th>NSV (Cr)</th><th>Qty</th></tr></thead><tbody>${catRows}</tbody></table>`)}`;
+    wireDrillLinks(content);
+  }
+  else if(sv==='reliance'){
+    // Reliance Brand Counter sub-view
+    const recs=recFilter('Brand');
+    const reliance=recs.filter(r=>r.Brand==='Reliance');
+    if(!reliance.length) {content.innerHTML=card('Reliance Brand Counter','No Reliance records','<p class="lead">Select a timeframe that includes Reliance sales.</p>');return;}
+    const byzone={};
+    reliance.forEach(r=>{const z=r.Zone||'Unknown';if(!byzone[z]) byzone[z]={nsv:0,stores:0};byzone[z].nsv+=r.NSV||0;});
+    const zoneRows=Object.entries(byzone).sort((a,b)=>b[1].nsv-a[1].nsv).map(([zone,{nsv}])=>`<tr><td>${drillLink('Zone',zone)}</td><td>${crc(nsv/100)}</td></tr>`).join('');
+    content.innerHTML=`${card('Reliance by Zone',`${reliance.length} Reliance transactions`,`<table class="tbl"><thead><tr><th>Zone</th><th>NSV (Cr)</th></tr></thead><tbody>${zoneRows}</tbody></table>`)}`;
+    wireDrillLinks(content);
+  }
+}
+
+/* ---------------- PRIMARY (Legacy, now called from Channel Dynamics) -------- */
 function buildPrimary(){
   const p=D.primary,s=document.getElementById('tab-primary'),qc=D.chain_allocation_qc;
   if(fyUnsupported()){
@@ -3320,30 +3446,42 @@ function exportCSV(recs){
   a.download='mt_detail_filtered.csv';a.click();
 }
 /* ---------------- nav ---------------- */
-const TABS=[['explorer','Data Explorer'],['executive-cockpit','Executive Cockpit'],['primary','Primary'],['offtake','Offtake'],
-  ['reliance-bc','Reliance Brand Counter'],
-  ['pnl','P&L'],['category','Category & Pack'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
+// Semantic Tab Registry: maps canonical tab IDs to build functions and display labels.
+// Supports future sub-views and backward-compatibility redirects.
+// LEGACY ROUTE REDIRECT TABLE (Guardrail #1: Backward Compatibility)
+// Maps obsolete tab IDs to their new consolidated homes:
+//   #tab-overview         → #tab-executive-cockpit
+//   #tab-insights         → #tab-executive-cockpit (sub-section)
+//   #tab-primary          → #tab-channel-dynamics?subview=primary
+//   #tab-category         → #tab-channel-dynamics?subview=category
+//   #tab-reliance-bc      → #tab-channel-dynamics?subview=reliance
+const LEGACY_TAB_ROUTES={
+  'overview':'executive-cockpit',
+  'insights':'executive-cockpit',
+  'primary':'channel-dynamics',
+  'category':'channel-dynamics',
+  'reliance-bc':'channel-dynamics'
+};
+const TABS=[['explorer','Data Explorer'],['executive-cockpit','Executive Cockpit'],['channel-dynamics','Channel & Chain Performance'],['offtake','Offtake'],
+  ['pnl','P&L'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
   ['offtake-impact','Offtake Impact'],
   ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
   ['analytics','Commercial Analytics'],['alerts','Operational Alerts'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory']];
-const BUILD={explorer:buildExplorer,'executive-cockpit':buildExecutiveCockpit,primary:buildPrimary,offtake:buildOfftake,
-  'reliance-bc':buildRelianceBC,
-  pnl:buildPnl,category:buildCategory,forecast:buildForecast,promo:buildPromo,
+const BUILD={explorer:buildExplorer,'executive-cockpit':buildExecutiveCockpit,'channel-dynamics':buildChannelDynamics,offtake:buildOfftake,
+  pnl:buildPnl,forecast:buildForecast,promo:buildPromo,
   'offtake-impact':buildOfftakeImpact,
   share:buildShare,
   distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,alerts:buildAlerts,stores:buildStores,inventory:buildInventory};
 let currentTab='executive-cockpit';
 function show(id){
   currentTab=id;
+  // Guardrail #1: Semantic routing with legacy redirect
+  if(LEGACY_TAB_ROUTES[id]) {
+    console.warn(`Legacy tab ID '${id}' redirected to '${LEGACY_TAB_ROUTES[id]}'`);
+    id=LEGACY_TAB_ROUTES[id];
+  }
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.t===id));
   document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id==='tab-'+id));
-  // every tab always rebuilds from the CURRENT filter state (no stale cache) --
-  // this is what makes the global FY/Month/Chain/... filter bar apply dashboard-wide,
-  // not just on the Data Explorer. Deferred one tick: drillTo() is invoked from
-  // INSIDE a Chart.js onClick handler, and destroying that same chart synchronously
-  // (before Chart.js finishes its own internal afterEvent/tooltip processing for
-  // this click) throws "Cannot read properties of undefined (reading 'handleEvent')".
-  // Letting the current event loop turn finish first avoids that.
   setTimeout(()=>{
     destroyCharts();
     BUILD[id]();
@@ -3359,7 +3497,7 @@ function show(id){
   const nav=document.getElementById('nav');
   TABS.forEach(([id,lab])=>{const b=el('button',null,lab);b.dataset.t=id;b.onclick=()=>show(id);nav.appendChild(b);});
   renderFilterBar();
-  show('overview');
+  show('executive-cockpit');
 
   // Export zonal summary — CSV download
   document.getElementById('exportZonalSummary').addEventListener('click', () => {
