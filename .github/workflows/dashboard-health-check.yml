@@ -1,0 +1,135 @@
+name: Dashboard Health Check
+on:
+  push:
+    branches: [ main, claude/* ]
+    paths:
+      - 'dashboard/data.js'
+      - 'dashboard/index.html'
+      - 'scripts/build_dashboard_data.py'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  data-validation:
+    runs-on: ubuntu-latest
+    name: Validate Dashboard Data & Schema
+    steps:
+      - uses: actions/checkout@11278081b57cac02f6c63977c5843ec0dcc9d95a
+
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480e0343a8aea4f060d5151
+        with:
+          node-version: '20'
+
+      - name: Run data health verification
+        run: node scripts/verify_data_health.js
+        continue-on-error: false
+
+      - name: Validate JSON integrity
+        run: |
+          python3 << 'PYEOF'
+          import json
+          import re
+          from pathlib import Path
+
+          data_js = Path('dashboard/data.js').read_text()
+          match = re.search(r'window\.DASH\s*=\s*(\{.*\});', data_js, re.DOTALL)
+          if not match:
+              print("❌ Cannot extract DASH object")
+              exit(1)
+
+          try:
+              data = json.loads(match.group(1))
+              print(f"✅ data.js is valid JSON ({len(data)} blocks)")
+          except json.JSONDecodeError as e:
+              print(f"❌ JSON parse error: {e}")
+              exit(1)
+          PYEOF
+
+      - name: Check for regressions in primary data
+        run: |
+          python3 << 'PYEOF'
+          import json
+          import re
+          from pathlib import Path
+
+          data_js = Path('dashboard/data.js').read_text()
+          match = re.search(r'window\.DASH\s*=\s*(\{.*\});', data_js, re.DOTALL)
+          data = json.loads(match.group(1))
+
+          # Baseline expectations
+          checks = {
+              "Primary chains > 0": len(data.get('primary', {}).get('by_chain', [])) > 0,
+              "Offtake zones > 0": len(data.get('offtake', {}).get('by_zone', [])) > 0,
+              "Offtake total exists": isinstance(data.get('offtake', {}).get('total'), dict),
+              "Detail records > 0": len(data.get('detail_records', [])) > 0,
+          }
+
+          failed = [k for k, v in checks.items() if not v]
+          for check, result in checks.items():
+              status = "✅" if result else "❌"
+              print(f"{status} {check}")
+
+          if failed:
+              print(f"\n❌ {len(failed)} regression(s) detected")
+              exit(1)
+          else:
+              print(f"\n✅ All baseline checks passed")
+          PYEOF
+
+  html-validation:
+    runs-on: ubuntu-latest
+    name: Validate HTML Structure & Fixes
+    steps:
+      - uses: actions/checkout@11278081b57cac02f6c63977c5843ec0dcc9d95a
+
+      - name: Check for required fixes in HTML
+        run: |
+          python3 << 'PYEOF'
+          from pathlib import Path
+
+          html = Path('dashboard/index.html').read_text()
+
+          fixes = {
+              "Fix 1: Unmapped Chain Filter": "filter(c=>c.name!=='Unmapped Chain')",
+              "Fix 2: FY Fallback Logic": "fallbackFy",
+              "Fix 3: by_month Defensive": "ch_data.by_month",
+              "Fix 4: Canvas Creation": "createElement('canvas')",
+              "Fix 5: Alert Controller": "AlertController.buildAlerts"
+          }
+
+          missing = []
+          for fix_name, pattern in fixes.items():
+              if pattern in html:
+                  print(f"✅ {fix_name}")
+              else:
+                  print(f"❌ {fix_name}")
+                  missing.append(fix_name)
+
+          if missing:
+              print(f"\n❌ {len(missing)} fix(es) missing")
+              exit(1)
+          else:
+              print(f"\n✅ All 5 fixes verified")
+          PYEOF
+
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [ data-validation, html-validation ]
+    steps:
+      - name: Log failure for agent inspection
+        run: |
+          echo "❌ Dashboard health check FAILED"
+          echo "Issues detected - requires investigation"
+          exit 1
+
+  notify-on-success:
+    runs-on: ubuntu-latest
+    if: success()
+    needs: [ data-validation, html-validation ]
+    steps:
+      - name: Log success
+        run: |
+          echo "✅ Dashboard health check PASSED"
+          echo "All validations successful - deployment ready"
