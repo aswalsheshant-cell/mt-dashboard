@@ -36,10 +36,9 @@ jobs:
 
       - name: Run promo schema validation
         run: |
+          # Validate data.js without --strict (data_master.json is a source file, not committed)
           python3 scripts/validate_promo_schema.py \
-            --json data/data_master.json \
-            --datajs dashboard/data.js \
-            --strict
+            --datajs dashboard/data.js
         continue-on-error: true
         id: schema_check
 
