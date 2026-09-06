@@ -7,15 +7,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: 'pages-deploy'
-  cancel-in-progress: true
+  group: 'pages'
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Deploy to gh-pages
+  build:
+    name: Build dashboard artifact
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,19 +30,23 @@ jobs:
           mkdir -p _site
           cp -r dashboard/* _site/
           touch _site/.nojekyll
-          echo "✓ Staged $(ls _site | wc -l) files to _site/"
+          echo "Dashboard staged: $(ls _site | wc -l) files"
 
-      - name: Deploy to gh-pages branch
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
 
-          cd _site
-          git init
-          git checkout -b gh-pages
-          git add -A
-          git commit -m "chore(deploy): publish dashboard [${{ github.sha }}]" --allow-empty
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
-          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          git push origin gh-pages --force
-          echo "✓ Deployed to gh-pages"
+    steps:
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
