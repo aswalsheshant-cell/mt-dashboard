@@ -193,6 +193,7 @@ else:
 #        tracks Primary within an order of magnitude, so anything far outside
 #        that band means the wrong file was ingested.
 o = extract("offtake")
+f = extract("forecast")
 if not o:
     failures.append("could not read offtake block")
 else:
@@ -226,6 +227,74 @@ elif before and after < before:
     failures.append(f"detail_records shrank: {before} -> {after}")
 else:
     print(f"✓ detail_records: {after} (was {before}, floor {DETAIL_FLOOR})")
+
+# --- 4b. CROSS-BLOCK FY INTEGRITY.
+#     Each block stores its own FY totals, so they can drift apart when only
+#     some blocks are refreshed. Three real defects shipped this way:
+#       forecast.fy26_actual Rs 227.03 Cr  (an 8-month Aug-25..Mar-26 window
+#         labelled as full-year FY26)
+#       offtake.total_fy26   Rs 311.28 Cr  (matching neither the 12-month
+#         Rs 329.00 Cr nor the 8-month Rs 227.03 Cr sum -- orphaned)
+#       offtake.monthly      identical to primary.monthly_fy26 to within Rs 1 L
+#         per month, i.e. the sell-out series was primary data, making every
+#         "Primary vs Offtake" comparison a comparison with itself
+#     These check the block against ITSELF, so they hold for any FY.
+MON={"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,
+     "Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+def fy_of(label):
+    try:
+        mo,yy=str(label).split("-"); y=2000+int(yy); m=MON[mo[:3].title()]
+    except Exception:
+        return None
+    return "fy%02d" % (((y+1) if m>=4 else y) % 100)
+
+if o and p:
+    months=o.get("months") or []; monthly=o.get("monthly") or []
+
+    # (a) months_fyNN must agree with the FY rule applied to offtake.months
+    for t in {fy_of(m) for m in months if fy_of(m)}:
+        expect=[m for m in months if fy_of(m)==t]
+        stored=o.get("months_"+t)
+        if stored is not None and list(stored)!=expect:
+            missing=[m for m in expect if m not in stored]
+            failures.append(
+                f"offtake.months_{t} disagrees with the FY rule: stored {len(stored)} "
+                f"month(s), rule gives {len(expect)}" + (f", dropping {missing}" if missing else ""))
+
+    # (b) total_fyNN must equal the sum of that FY's months in the series
+    for t in {fy_of(m) for m in months if fy_of(m)}:
+        tot=o.get("total_"+t)
+        if tot is None: continue
+        s=sum(v or 0 for m,v in zip(months,monthly) if fy_of(m)==t)
+        if s and abs(tot-s) > max(1.0, 0.005*s):
+            failures.append(
+                f"offtake.total_{t} = {tot:,.0f} L but its own months sum to {s:,.0f} L "
+                "— the stored total is stale relative to the series")
+
+    # (c) forecast baseline must equal the FY it claims
+    if f:
+        bt=(f.get("base_fy_tag") or "").lower()
+        ba=f.get("fy26_actual")
+        if bt and ba is not None:
+            s=sum(v or 0 for m,v in zip(months,monthly) if fy_of(m)==bt)
+            n=len([m for m in months if fy_of(m)==bt])
+            if s and abs(ba-s) > max(1.0, 0.005*s):
+                failures.append(
+                    f"forecast baseline ({bt}) = {ba:,.0f} L but {bt} in the offtake series "
+                    f"is {s:,.0f} L over {n} month(s) — baseline covers a different window")
+
+    # (d) offtake must not be a copy of primary
+    for pk in [k for k in p if k.startswith("monthly_fy")]:
+        pm=p.get(pk) or []
+        if len(pm)==len(monthly) and monthly:
+            close=sum(1 for a,b in zip(pm,monthly) if abs((a or 0)-(b or 0))<=1.0)
+            if close==len(monthly):
+                failures.append(
+                    f"offtake.monthly is identical to primary.{pk} within Rs 1 L on every "
+                    "month — the sell-out series is carrying primary data, so any "
+                    "primary-vs-offtake comparison is self-referential")
+    if not any("offtake." in x or "forecast baseline" in x for x in failures):
+        print("✓ Cross-block FY integrity (windows, totals, baseline, no primary/offtake copy)")
 
 # --- 5. Silent no-op guard. load_primary_v2 used to read the git-tracked seed
 #        CSV unconditionally, so a file staged in data/raw_drops/ was never read
