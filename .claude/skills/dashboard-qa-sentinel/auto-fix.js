@@ -8,13 +8,14 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const BASE = path.join(__dirname, '../..');
+const BASE = path.join(__dirname, '../../..');
 const DATA_JS = path.join(BASE, 'dashboard/data.js');
 const INDEX_HTML = path.join(BASE, 'dashboard/index.html');
 const REPORT_FILE = '/tmp/dashboard_qa_sentinel_report.json';
 
 class DashboardQASentinel {
   constructor() {
+    this.fixes_applied = [];
     this.report = {
       timestamp: new Date().toISOString(),
       branch: this.getCurrentBranch(),
