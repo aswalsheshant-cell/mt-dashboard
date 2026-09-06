@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # One-command dashboard data refresh — triggered when raw monthly files land in data/raw_drops/
 # Usage: ./scripts/refresh_dashboard.sh
+#
+# Ingest model: PARTIAL PATCH CHAIN (not a full rebuild).
+#   A full rebuild needs every source workbook in --src (Primary, Offtake, P&L,
+#   Universe, Promo). The monthly drop is only Primary + Offtake, so a full
+#   rebuild would run without the others. The partial modes below mutate only
+#   their own blocks and leave P&L / Universe / Promo / detail_records intact.
 
 set -e
 
@@ -10,7 +16,7 @@ echo "MT Dashboard v1.1.2 — Data Refresh"
 echo "=========================================="
 echo ""
 
-# Step 1: Validate raw drops folder exists
+# Step 0: Validate raw drops folder exists
 if [ ! -d "data/raw_drops" ]; then
     echo "❌ Error: data/raw_drops/ not found."
     echo "   Place your monthly source files here first:"
@@ -23,64 +29,184 @@ fi
 echo "✓ Ingestion folder found: data/raw_drops/"
 ls -lh data/raw_drops/ | tail -n +2 | awk '{print "  ", $9, "(" $5 ")"}'
 
-echo ""
-echo "========== Step 1/3: Regenerate data.js =========="
-python scripts/build_dashboard_data.py --src data/raw_drops --out dashboard/data.js
-if [ $? -eq 0 ]; then
-    echo "✓ data.js regenerated"
-    wc -c dashboard/data.js | awk '{print "  Size: " $1/1024/1024 " MB"}'
+# ---------------------------------------------------------------------------
+# Helpers — all read data.js line-by-line. The file is ~42 MB; never load it
+# whole (that is what was OOM-killing agent containers).
+# ---------------------------------------------------------------------------
+count_detail_records() {
+    local START END
+    START=$(grep -n '^ "detail_records": \[' dashboard/data.js | cut -d: -f1)
+    [ -z "$START" ] && { echo 0; return; }
+    END=$(awk -v s="$START" 'NR>s && /^ "[A-Za-z_]+":/ {print NR; exit}' dashboard/data.js)
+    [ -z "$END" ] && END=$(wc -l < dashboard/data.js)
+    awk -v s="$START" -v e="$END" 'NR>s && NR<e && /^  \{$/ {c++} END {print c+0}' dashboard/data.js
+}
+
+# Snapshot pre-refresh state so we can prove the partial passes preserved it.
+if [ -f "dashboard/data.js" ]; then
+    DETAIL_BEFORE=$(count_detail_records)
 else
-    echo "❌ data.js build failed"
-    exit 1
+    DETAIL_BEFORE=0
 fi
+echo "  detail_records before refresh: $DETAIL_BEFORE"
+
+echo ""
+echo "========== Step 1/3: Regenerate data.js (partial patch chain) =========="
+
+# Pass 1 — Primary block (also refreshes pnl/insights + DIST allocation).
+#   --detail-max-rows is a defensive guard only: it is read by --detail-only and
+#   by the full build, NOT by --primary-only. detail_records survive this pass
+#   because --primary-only does not rebuild them at all. Keep the flag so that
+#   if this line is ever switched to a full rebuild, it does not silently
+#   truncate back to the 40,000 default.
+echo "  [1/2] --primary-only (detail headroom 500k) ..."
+python scripts/build_dashboard_data.py \
+    --src data/raw_drops --out dashboard/data.js \
+    --primary-only --detail-max-rows 500000
+
+# Pass 2 — Offtake block. Idempotent: recomputes each touched FY, never
+# double-counts, and leaves P&L / Universe / Promo untouched.
+echo "  [2/2] --offtake-patch ..."
+python scripts/build_dashboard_data.py \
+    --src data/raw_drops --out dashboard/data.js \
+    --offtake-patch
+
+echo "✓ data.js regenerated"
+wc -c dashboard/data.js | awk '{printf "  Size: %.2f MB\n", $1/1024/1024}'
 
 echo ""
 echo "========== Step 2/3: QA Sentinel & Validation =========="
 
-# Python validation: baseline preservation, null safety, schema
+DETAIL_AFTER=$(count_detail_records)
+export DETAIL_BEFORE DETAIL_AFTER
+
+# Streaming validation — extracts only the small blocks it needs.
 python3 << 'PYTHON_VALIDATE'
-import json
-import sys
+import json, os, sys
 
-try:
-    with open('dashboard/data.js', 'r') as f:
-        content = f.read()
-        # Extract window.DASH = {...}; to validate JSON
-        start = content.find('{')
-        end = content.rfind('}') + 1
-        json_str = content[start:end]
-        data = json.loads(json_str)
+PATH  = "dashboard/data.js"
+CHUNK = 1 << 18                  # 256 KB window
+FY26_BASELINE = 32900.36         # FY26 is a closed year: must never move
+DETAIL_FLOOR  = 40000            # anything at/below this means a truncated build
 
-        # Basic schema checks
-        assert 'by_chain' in data, "Missing by_chain block"
-        assert 'detail_meta' in data, "Missing detail_meta block"
-        assert 'forecast' in data, "Missing forecast block"
-        assert 'offtake' in data, "Missing offtake block"
+failures, warnings = [], []
 
-        # Baseline check: n_chains and n_stores must be > 0
-        assert len(data.get('by_chain', {})) > 0, "by_chain is empty"
+def extract(key):
+    """Brace-matched extraction of one top-level block. Constant memory."""
+    marker = f'"{key}":'.encode()
+    started, depth, out, carry = False, 0, bytearray(), b""
+    with open(PATH, "rb") as f:
+        while True:
+            buf = f.read(CHUNK)
+            if not buf:
+                return None
+            hay = carry + buf
+            if not started:
+                i = hay.find(marker)
+                if i == -1:
+                    carry = hay[-64:]
+                    continue
+                j = hay.find(b"{", i)
+                if j == -1:
+                    carry = hay[-64:]
+                    continue
+                hay, started = hay[j:], True
+            for b in hay:
+                out.append(b)
+                if b == 0x7B: depth += 1
+                elif b == 0x7D:
+                    depth -= 1
+                    if depth == 0:
+                        return json.loads(out.decode())
+            carry = b""
 
-        # Null safety: data.js should not contain literal 'NaN' or 'undefined' strings
-        if 'NaN' in json_str or 'undefined' in json_str:
-            print("⚠ WARNING: Found NaN or undefined literals in data.js")
-        else:
-            print("✓ No NaN/undefined literals")
+# --- 1. Required top-level blocks (correct nesting: by_chain lives under primary)
+present = set()
+with open(PATH, "r") as f:
+    for line in f:
+        if line.startswith(' "') and '":' in line:
+            present.add(line.strip().split('"')[1])
+for blk in ("primary", "offtake", "pnl", "detail_meta", "detail_records", "forecast", "universe"):
+    if blk not in present:
+        failures.append(f"missing top-level block: {blk}")
+print(f"✓ Top-level blocks present ({len(present)} keys)")
 
-        print(f"✓ JSON schema valid")
-        print(f"  Chains: {len(data.get('by_chain', {}))}")
+# --- 2. Primary block: null guards + baseline
+p = extract("primary")
+if not p:
+    failures.append("could not read primary block")
+else:
+    tags    = p.get("fy_tags", [])
+    chains  = [c for c in p.get("by_chain", []) if c.get("name") != "Unmapped Chain"]
+    channels = p.get("by_channel", [])
 
-except json.JSONDecodeError as e:
-    print(f"❌ data.js JSON invalid: {e}")
+    if not chains:
+        failures.append("primary.by_chain is empty")
+    if not channels:
+        failures.append("primary.by_channel is empty")
+
+    # This is the exact guard dashboard/index.html:1170-1171 applies. A single
+    # null here blanks the Primary Sales tab with "No data available".
+    for t in tags:
+        bad_ch = [c["name"] for c in chains   if c.get(t) is None]
+        bad_cn = [c["name"] for c in channels if c.get(t) is None]
+        if bad_ch:
+            failures.append(f"{t}: null in by_chain -> {bad_ch[:5]}")
+        if bad_cn:
+            failures.append(f"{t}: null in by_channel -> {bad_cn[:5]}")
+    if not any("null in by_" in f for f in failures):
+        print(f"✓ Null guards pass ({len(chains)} chains, {len(channels)} channels, FY {tags})")
+
+    # FY26 is closed (Apr-25..Mar-26). New drops are FY27+, so it must not move.
+    nsv26 = p.get("nsv_fy26")
+    if nsv26 is None:
+        failures.append("primary.nsv_fy26 missing")
+    elif abs(nsv26 - FY26_BASELINE) > 0.01:
+        failures.append(
+            f"FY26 baseline drifted: Rs {nsv26}L vs Rs {FY26_BASELINE}L "
+            "(if this restatement is intentional, update FY26_BASELINE in this script)")
+    else:
+        print(f"✓ FY26 baseline preserved: Rs {nsv26}L")
+
+# --- 3. detail_records: floor + preservation across the refresh
+before = int(os.environ.get("DETAIL_BEFORE", 0))
+after  = int(os.environ.get("DETAIL_AFTER", 0))
+if after <= DETAIL_FLOOR:
+    failures.append(f"detail_records={after} at/below floor {DETAIL_FLOOR} — truncated build")
+elif before and after < before:
+    failures.append(f"detail_records shrank: {before} -> {after}")
+else:
+    print(f"✓ detail_records: {after} (was {before}, floor {DETAIL_FLOOR})")
+
+# --- 4. Literal null-safety scan, streamed
+counts = {b"NaN": 0, b"undefined": 0, b"Infinity": 0}
+with open(PATH, "rb") as f:
+    carry = b""
+    while True:
+        buf = f.read(CHUNK)
+        if not buf:
+            break
+        hay = carry + buf
+        for k in counts:
+            counts[k] += hay.count(k)
+        carry = hay[-16:]
+for k, v in counts.items():
+    if v:
+        failures.append(f"{v} literal '{k.decode()}' occurrence(s) in data.js")
+if not any(counts.values()):
+    print("✓ No NaN / undefined / Infinity literals")
+
+# --- verdict
+print()
+if failures:
+    print("❌ QA SENTINEL FAILED")
+    for f in failures:
+        print(f"   - {f}")
     sys.exit(1)
-except AssertionError as e:
-    print(f"❌ Schema validation failed: {e}")
-    sys.exit(1)
+for w in warnings:
+    print(f"⚠ {w}")
+print("✅ QA SENTINEL PASSED")
 PYTHON_VALIDATE
-
-if [ $? -ne 0 ]; then
-    echo "❌ QA validation failed"
-    exit 1
-fi
 
 echo ""
 echo "========== Step 3/3: Commit & Push to Production =========="
@@ -92,14 +218,13 @@ echo ""
 read -p "Review changes above. Ready to push to main? (y/n): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    git commit -m "data: refresh monthly offtake dataset (v1.1.2 store hierarchy schema)
+    git commit -m "data: monthly refresh via partial patch chain
 
 $(date +%Y-%m-%d\ %H:%M:%S) ingestion from data/raw_drops/
-- Phase 1 synthetic site code standardization active
-- Phase 2 granularity badges & Reliance BC toggle live
-- QA Sentinel validation passed
-
-Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
+- Pass 1: --primary-only (primary/pnl/insights + DIST allocation)
+- Pass 2: --offtake-patch (idempotent per-FY offtake merge)
+- detail_records ${DETAIL_BEFORE} -> ${DETAIL_AFTER}
+- QA Sentinel: null guards, FY26 baseline, detail floor all passed"
 
     git push origin main
     if [ $? -eq 0 ]; then
