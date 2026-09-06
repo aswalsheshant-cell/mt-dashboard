@@ -667,6 +667,18 @@ def offtake_block(chains, zs):
         row["state"] = row.pop("name")
         st.append(row)
     out["by_state"] = sorted(st, key=lambda d: -(d.get(zlo[-1]) or 0))
+
+    # Defensive: provide nested total[] object for buildInventoryHealth()
+    # while keeping flat total_fyNN keys for backward compatibility
+    out["total"] = {t.lower(): out.get(f"total_{t.lower()}") for t in tags}
+
+    # Populate metrics (DOI/OTIF) — defaults for now, can be enriched with
+    # actual calculations from inventory records if available
+    out["metrics"] = {
+        "doi": {},      # Days of Inventory by zone
+        "otif": {},     # On-Time In-Full by zone
+    }
+
     return out
 
 def _offtake_row_month(month_val):

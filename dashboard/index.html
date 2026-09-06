@@ -1240,7 +1240,10 @@ function buildInventoryHealth(){
   const o=D.offtake, d=D.detail_meta||{}, s=document.getElementById('tab-inventory-health');
   if(!s) return;
   const fy=fyKey();
-  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(o.total[fy]||0)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys(o.by_chain[ch].by_month[MONTH_NOW]||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${(o.metrics&&o.metrics.avg_fill_rate)?Number(o.metrics.avg_fill_rate).toFixed(1):'–'}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${(o.metrics&&o.metrics.otif_pct)?Number(o.metrics.otif_pct).toFixed(1)+'%':'–'}</div></div></div>`;
+  // Defensive: handles both nested o.total['fy26'] and legacy o.total_fy26 formats
+  const total = o?.total?.[fy] ?? o?.[`total_${fy}`] ?? 0;
+  const metrics = o?.metrics ?? { doi: {}, otif: {} };
+  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys(o.by_chain[ch].by_month[MONTH_NOW]||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'–'}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'–'}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage'];
