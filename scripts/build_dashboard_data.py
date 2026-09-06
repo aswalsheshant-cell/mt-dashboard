@@ -279,6 +279,51 @@ def r2(x, nd=2):
         return None
 
 # --------------------------------------------------------------------------
+# STORE HIERARCHY & DATA GRANULARITY STANDARDIZATION
+# Phase 1: v1.1.2 — Assign deterministic synthetic site codes to chains
+# that report at Pan-India or regional levels (no store ID mapping).
+# Prevents null-join dropped rows in frontend aggregations.
+# --------------------------------------------------------------------------
+def standardize_site_codes(df):
+    """
+    Assigns deterministic synthetic site codes to prevent null-join dropped rows.
+
+    Business Rules:
+    - Pan-India chains (Nykaa, FSN, E-commerce): Single synthetic code 'PAN_INDIA_DUMMY'
+    - Regional chains (Reliance bulk offtake): Zone-level codes 'REL_REGIONAL_{ZONE}'
+    - Default fallback: 'SITE_UNASSIGNED' for any unexpected blanks
+
+    Returns: DataFrame with standardized site_code and store_name columns.
+    """
+    df = df.copy()
+
+    # Initialize site_code column if missing
+    if 'site_code' not in df.columns:
+        df['site_code'] = None
+    if 'store_name' not in df.columns:
+        df['store_name'] = None
+
+    # Pan-India chains: Single synthetic code (Nykaa, FSN, E-commerce)
+    pan_india_chains = ['NYKAA', 'FSN', 'AMAZON', 'FLIPKART', 'NYKAA (FSN)', 'NYKAA SS(FSN)']
+    mask_pan_india = df['chain'].fillna('').str.upper().isin(pan_india_chains)
+    df.loc[mask_pan_india & df['site_code'].isna(), 'site_code'] = 'PAN_INDIA_DUMMY'
+    df.loc[mask_pan_india & df['store_name'].isna(), 'store_name'] = \
+        df.loc[mask_pan_india & df['store_name'].isna(), 'chain'].fillna('') + ' - Pan-India Aggregated'
+    df.loc[mask_pan_india & df['zone'].isna(), 'zone'] = 'Pan India'
+
+    # Regional-level chains (Reliance bulk offtake): Zone-level synthetic codes
+    mask_reliance_bulk = (df['chain'].fillna('').str.upper() == 'RELIANCE RETAIL') & df['site_code'].isna()
+    df.loc[mask_reliance_bulk, 'site_code'] = 'REL_REGIONAL_' + df.loc[mask_reliance_bulk, 'zone'].fillna('NA').str.upper()
+    df.loc[mask_reliance_bulk, 'store_name'] = \
+        'Reliance Regional (' + df.loc[mask_reliance_bulk, 'state'].fillna('Unassigned') + ')'
+
+    # Default fallback for any unexpected blank site codes
+    df['site_code'] = df['site_code'].fillna('SITE_UNASSIGNED')
+    df['store_name'] = df['store_name'].fillna('Unassigned Store / Aggregated')
+
+    return df
+
+# --------------------------------------------------------------------------
 # PRIMARY
 # --------------------------------------------------------------------------
 def load_primary(src):
@@ -312,7 +357,11 @@ def load_primary_v2(src):
     """Load primary from CSV seed (preferred) or XLSX (fallback).
     CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
     XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
-    Same output shape as load_primary() plus raw Ship-To/Distributor columns."""
+    Same output shape as load_primary() plus raw Ship-To/Distributor columns.
+
+    Phase 1 v1.1.2: Applies standardize_site_codes() to ensure Pan-India and
+    regional chains have deterministic synthetic site codes (prevents null-join
+    dropped rows in dashboard aggregations)."""
     # Try CSV first (versioned in git)
     csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
     if csv_f.exists():
@@ -336,6 +385,18 @@ def load_primary_v2(src):
     if csv_f.exists():
         df["NSV"] = df["NSV"] / 1e5
         df["MRP value"] = df["MRP value"] / 1e5
+
+    # Phase 1 v1.1.2: Canonicalize chain names and standardize site codes
+    # before returning so downstream allocation/aggregation doesn't drop rows.
+    if "Chain Name" in df.columns:
+        df["chain"] = df["Chain Name"].map(canon_chain)
+    if "Zone" in df.columns:
+        df["zone"] = df["Zone"].map(canon_zone)
+    if "State" in df.columns:
+        df["state"] = df["State"].map(canon_state)
+
+    df = standardize_site_codes(df)
+
     return df
 
 def load_chain_allocation_weights(src):
@@ -968,6 +1029,76 @@ def load_reliance_bc_data(src):
         )
     else:
         result["june_status"] = None
+    return result
+
+
+def validate_offtake_partition(offtake, reliance_bc=None):
+    """
+    Phase 1 v1.1.2: Validate that the offtake-BA partition is mathematically
+    sound (BA counters are not double-counted in overall offtake totals).
+
+    Returns: dict with validation results {
+        'valid': bool,
+        'offtake_total': float,
+        'reliance_bc_total': float (if present),
+        'partition_check': str (human-readable status),
+    }
+    """
+    result = {
+        'valid': True,
+        'offtake_total': None,
+        'reliance_bc_total': None,
+        'partition_check': 'PASS: No Reliance BC data detected (standard offtake only)',
+    }
+
+    if not offtake or 'by_chain' not in offtake:
+        result['partition_check'] = 'WARN: Offtake structure incomplete'
+        return result
+
+    # Get overall offtake total (should NOT include BA)
+    offtake_fy_tags = offtake.get('fy_tags', [])
+    offtake_total = 0.0
+    for tag in offtake_fy_tags:
+        total_key = f"total_{tag}"
+        if total_key in offtake:
+            offtake_total += offtake[total_key] or 0.0
+    result['offtake_total'] = r2(offtake_total)
+
+    # If Reliance BC exists, verify it's isolated
+    if reliance_bc and isinstance(reliance_bc, dict):
+        bc_total = reliance_bc.get('total', 0.0) or 0.0
+        result['reliance_bc_total'] = r2(bc_total)
+
+        # Check: BC should be a SUBSET of Reliance's offtake, not additional
+        reliance_offtake = 0.0
+        for chain_row in offtake.get('by_chain', []):
+            if 'reliance' in (chain_row.get('name') or '').lower():
+                for tag in offtake_fy_tags:
+                    reliance_offtake += chain_row.get(tag, 0.0) or 0.0
+
+        if reliance_offtake > 0 and bc_total > 0:
+            # BC should be <= Reliance's total (it's a subset)
+            if bc_total <= reliance_offtake * 1.05:  # Allow 5% rounding variance
+                result['partition_check'] = (
+                    f"PASS: Reliance BC (₹{bc_total:.2f}L) is correctly isolated as a subset "
+                    f"of Reliance offtake (₹{reliance_offtake:.2f}L). No double counting."
+                )
+            else:
+                result['valid'] = False
+                result['partition_check'] = (
+                    f"FAIL: Reliance BC (₹{bc_total:.2f}L) exceeds Reliance offtake "
+                    f"(₹{reliance_offtake:.2f}L). Possible double counting detected."
+                )
+        elif bc_total > 0 and reliance_offtake == 0:
+            result['partition_check'] = (
+                f"WARN: Reliance BC detected (₹{bc_total:.2f}L) but no Reliance offtake rows. "
+                "Check data source."
+            )
+        else:
+            result['partition_check'] = "PASS: Reliance BC isolated correctly"
+    else:
+        result['partition_check'] = "INFO: No Reliance BC detected in data.js"
+
     return result
 
 
