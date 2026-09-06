@@ -19,6 +19,31 @@ here — `Fact Primary Article` relates to the Date Table at day/month grain,
 so FY27 months appear in slicers/visuals as soon as the monthly CSVs are
 dropped in (no FY gating like the HTML dashboard's pre-aggregated blocks).
 
+---
+
+## **Web Dashboard Consolidation Alignment (v1.1.0)**
+
+**Phase 1 tab consolidation (15 → 13 tabs):** The HTML dashboard has consolidated
+multiple single-view tabs into responsive, multi-sub-view consolidated tabs. Power BI
+pages listed below are grouped to match web dashboard consolidation for consistency:
+
+| Web Dashboard Consolidated Tab | Power BI Pages | Sub-Views / Visuals | Slicer Sync Behavior |
+|---|---|---|---|
+| **Executive Cockpit** | Pages 1, 9, 10 | KPI cards + insights + trends | Month (single), Zone, Brand filters apply to all charts |
+| **Channel & Chain Performance** | Pages 2B, 3, 6, 7 | Primary Sales, Category Mix, Reliance Counter (toggles) | Global filters (Month, Chain, Zone, Brand) apply to all 3 sub-views; switching sub-views preserves filter state |
+| **Inventory & Supply Health** | Pages 2, 8 | Offtake Velocity, Demand-Supply Gap, Store Coverage (toggles) | Chain, Zone multi-select filters apply to all sub-views; DOI watchlist updates with store-level drill-down |
+| **Demand & S&OP Planning** | Pages 5, 6, 9 | Demand Forecast, Promotional Impact, Competitive Landscape (toggles) | Month range + Level toggles (Zone/Channel/Category) persist across sub-views; Trade spend ROI measures tied to actual promotion calendar |
+| **P&L & Profitability** | Pages 4 | Chain P&L, CM2, TOT%, Expense tracking | Chain + Brand filters; CM2 updates with expense file refresh |
+| **Performance & Comparison** | Page 10 (TDP) | Growth driver quadrants, Sales per TDP benchmarks | TDP Level toggle (Brand/Category/Chain/Zone); drill-down via Product/Geography hierarchies |
+| **Commercial Analytics** | Page 11 (Raw Export) | Raw data export view with all dimensions | Full global slicer row; export-friendly table format |
+
+**Sub-view filter synchronization (Channel & Chain Performance example):**
+When a user switches between Primary Sales / Category Mix / Reliance Counter sub-views,
+the global filters (Chain, Zone, Brand, Month) persist across all three sub-views.
+The Power BI equivalent is achieved via **View ▸ Sync slicers** — select all pages
+(2B, 3, 6, 7) and confirm they are bound to the same slicer group; filter state
+automatically carries across page switches.
+
 **Export & data labels:** every page should get a small text box (bottom-right,
 matches the filter-summary convention above) reading *"Use File ▸ Export ▸ PDF
 to download this page with current filters applied."* Turn on data labels for
