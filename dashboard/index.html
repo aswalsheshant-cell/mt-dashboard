@@ -806,7 +806,7 @@ document.addEventListener('click',e=>{
 });
 
 /* ---- HIERARCHY DRILL ENGINE (Phase 3B) ---- */
-const DRILL_HIER = ['Channel','Chain','Zone','State','Brand','Category','Article'];
+const DRILL_HIER = ['Channel','Chain','Zone','State','Brand','Category','SubCategory','Range','PackSize','Article'];
 const _drillStates = {};
 function _drillState(id){ if(!_drillStates[id]) _drillStates[id]={path:[]}; return _drillStates[id]; }
 function _grpDrill(recs,dim){
@@ -1166,13 +1166,22 @@ function renderChannelSubview(chains,brands,channels,primYr,fy){
 
   if(sv==='primary'){
     // Primary Sales sub-view: top chains, channel split, chain detail
-    const sorted=chains.slice().sort((a,b)=>(b[primYr]||0)-(a[primYr]||0));
-    const rows27=sorted.filter(c=>c.nsv>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
+    // Data validation: ensure chains and channels have the required year property
+    const validChains=chains&&chains.length&&chains.every(c=>c[primYr]!=null)?chains:[];
+    const validChannels=channels&&channels.length&&channels.every(c=>c[primYr]!=null)?channels:[];
+
+    if(!validChains.length||!validChannels.length){
+      content.innerHTML=card('Primary Sales','No data available','<p class="lead">No Primary Sales data for the selected timeframe.</p>');
+      return;
+    }
+
+    const sorted=validChains.slice().sort((a,b)=>(b[primYr]||0)-(a[primYr]||0));
+    const rows27=sorted.filter(c=>(c[primYr]||0)>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
     const sum=sorted.reduce((a,c)=>a+(c[primYr]||0),0);
-    const chRows=channels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
+    const chRows=validChannels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
     content.innerHTML=`
       ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr.slice(3)]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
-      ${card(`Channel Split (${yrLab[primYr.slice(3)]||primYr})`,`${channels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
+      ${card(`Channel Split (${yrLab[primYr.slice(3)]||primYr})`,`${validChannels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
       <div class="grid g2">
         ${card('Primary Sales Trend','FY25 to FY27 trajectory',cv('chanPrimTrend'))}
         ${card('Channel Contribution','% share by channel',cv('chanChanSplit',true))}
@@ -1200,7 +1209,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy){
     ]);
     channelDynamicsState.charts.trend=lc;
 
-    const dc = mkDonut('chanChanSplit',channels.map(c=>c.name),channels.map(c=>c[primYr]),true);
+    const dc = mkDonut('chanChanSplit',validChannels.map(c=>c.name),validChannels.map(c=>c[primYr]),true);
     channelDynamicsState.charts.channel=dc;
   }
   else if(sv==='category'){
@@ -3346,7 +3355,7 @@ const PREAGG_FYS=(function(){
 const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum(a)-fyNum(b));
 function optsFor(key){
   if(key==='FY') return FY_ALL;
-  const recs=recFilter(key);
+  const recs=REC;  // Use full REC instead of recFilter(key) to ensure all unique values appear (e.g., Central zone from any FY)
   const vals=[...new Set(recs.map(r=>r[key]))].filter(v=>v!=null&&v===v&&String(v).trim()!=='');
   if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
   else{
