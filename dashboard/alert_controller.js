@@ -4,7 +4,12 @@
  * Renders alert cards, updates navigation badge, and handles drill-down navigation
  */
 
-const AlertController = (function () {
+// Attached to `window` deliberately: index.html's buildAlerts() gates on
+// `window.AlertController`. A bare top-level `const` does NOT become a window
+// property in a classic script, so that check silently failed and the
+// Operational Alerts tab rendered blank with no console error.
+// (inventory_engine.js already uses this same window.* form.)
+window.AlertController = (function () {
   let activeAlerts = [];
 
   function updateNavBadge() {

@@ -1153,14 +1153,18 @@ function buildChannelDynamics(){
     btn.onclick=()=>{
       channelDynamicsState.subview=btn.dataset.subview;
       destroyChannelDynamicsCharts();
-      renderChannelSubview(chains,brands,channels,primYr,fy);
+      renderChannelSubview(chains,brands,channels,primYr,fy,yrLab);
     };
   });
 
-  renderChannelSubview(chains,brands,channels,primYr,fy);
+  renderChannelSubview(chains,brands,channels,primYr,fy,yrLab);
 }
 
-function renderChannelSubview(chains,brands,channels,primYr,fy){
+// yrLab is passed in: it is a const local to buildChannelDynamics(), so
+// referencing it here threw "ReferenceError: yrLab is not defined" and the
+// whole content.innerHTML template blew up, leaving Primary Sales blank.
+function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
+  yrLab=yrLab||{};
   const content=document.getElementById('channel-subview-content');
   const sv=channelDynamicsState.subview;
 
@@ -1194,8 +1198,8 @@ function renderChannelSubview(chains,brands,channels,primYr,fy){
     const chRows=validChannels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
     content.innerHTML=`
       ${granularityDisclaimer}
-      ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr.slice(3)]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
-      ${card(`Channel Split (${yrLab[primYr.slice(3)]||primYr})`,`${validChannels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
+      ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
+      ${card(`Channel Split (${yrLab[primYr]||primYr})`,`${validChannels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
       <div class="grid g2">
         ${card('Primary Sales Trend','FY25 to FY27 trajectory',cv('chanPrimTrend'))}
         ${card('Channel Contribution','% share by channel',cv('chanChanSplit',true))}
@@ -1262,7 +1266,21 @@ function buildInventoryHealth(){
   // Defensive: handles both nested o.total['fy26'] and legacy o.total_fy26 formats
   const total = o?.total?.[fy] ?? o?.[`total_${fy}`] ?? 0;
   const metrics = o?.metrics ?? { doi: {}, otif: {} };
-  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys(o.by_chain[ch].by_month[MONTH_NOW]||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'–'}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'–'}</div></div></div>`;
+  // MONTH_NOW was referenced three times below but never defined anywhere in
+  // this file, so the whole tab died on "ReferenceError: MONTH_NOW is not
+  // defined" and rendered blank. It is a by_month key, so the latest month in
+  // the offtake series is the correct value.
+  // NOTE: the pipeline currently emits offtake.by_chain as a flat
+  // [{name,value}] list with no by_month member, so the store counts below
+  // resolve to '–'/0 until that structure is produced. Guarded rather than
+  // left to throw, per the project's "show – for missing data" rule.
+  const MONTH_NOW = (o && o.months && o.months.length) ? o.months[o.months.length - 1] : null;
+  // fyKey() is null unless exactly ONE FY is selected -- the default "All"
+  // state. Code below did fy.slice(2) on it and threw. Resolve to the latest FY
+  // present in the data (never a hardcoded year: THE ONE FY RULE).
+  const _fyTags = (o && o.fy_tags) || (D.primary && D.primary.fy_tags) || [];
+  const fyR = fy || _fyTags[_fyTags.length - 1] || 'fy26';
+  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys((o.by_chain[ch]&&o.by_chain[ch].by_month&&o.by_chain[ch].by_month[MONTH_NOW])||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'–'}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'–'}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage'];
@@ -1281,16 +1299,23 @@ function buildInventoryHealth(){
     if(sv==='velocity'){
       // Offtake Velocity: store-level sales + chain heatmap
       const byChain=o.by_chain||{};
-      const chainData=Object.keys(byChain).filter(ch=>byChain[ch]).map(ch=>{
-        const ch_data=byChain[ch];
+      // by_chain is emitted as an ARRAY of {name,...} objects; Object.keys() on
+      // it yielded "0","1","2" and those indices were rendered as chain names.
+      // Handle both the array and the legacy {chain:{...}} map shape.
+      const _entries=Array.isArray(byChain)
+        ? byChain.map(e=>[e&&e.name,e])
+        : Object.keys(byChain).map(k=>[k,byChain[k]]);
+      const chainData=_entries.filter(([n,e])=>n&&e).map(([name,ch_data])=>{
         const month_key=ch_data.by_month?.[MONTH_NOW];
         const stores=month_key?Object.keys(month_key||{}).length:0;
-        const nsv=(ch_data.total&&ch_data.total[fy])||(ch_data[`total_${fy}`])||0;
-        const prior_fy=`total_${(parseInt(fy.slice(2))-1).toString().padStart(2,'0')}`;
-        const prior=ch_data[prior_fy]||0;
+        const nsv=(ch_data.total&&ch_data.total[fyR])||ch_data[`total_${fyR}`]||ch_data[fyR]||ch_data.value||0;
+        // Prior-FY key is `fy25`/`total_fy25`, not `total_25` -- the old form
+        // never matched, so growth was hardcoded to 0 for every chain.
+        const prior_fy=`fy${(parseInt(fyR.slice(2),10)-1).toString().padStart(2,'0')}`;
+        const prior=(ch_data.total&&ch_data.total[prior_fy])||ch_data[`total_${prior_fy}`]||ch_data[prior_fy]||0;
         const growth=(prior>0)?((nsv/prior-1)*100):0;
-        return {name:ch,stores,nsv,growth};
-      })||[];
+        return {name,stores,nsv,growth};
+      });
       chainData.sort((a,b)=>b.nsv-a.nsv);
 
       content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores}</td><td>${crc(c.nsv)}</td><td>${c.growth.toFixed(1)}%</td></tr>`).join('')}</tbody></table>`);
@@ -1314,7 +1339,6 @@ function buildInventoryHealth(){
       // Demand-Supply Gap: Primary inflow vs Offtake bridge + DOI watchlist
       const p=D.primary||{};
       const gapData=[];
-      const months30=(MONTH_NOW-30).toString().padStart(7,'0');
       (o.metrics&&o.metrics.doi_watchlist||[]).forEach(row=>{
         gapData.push({chain:row.chain||'Unknown',doi:row.doi||0,status:row.doi<7?'CRITICAL':row.doi<14?'WATCH':'OK'});
       });
