@@ -168,7 +168,38 @@ else:
     else:
         print(f"✓ FY26 baseline preserved: Rs {nsv26}L")
 
-# --- 3. detail_records: floor + preservation across the refresh
+# --- 3. Offtake sanity. A Primary workbook left in data/raw_drops/ satisfies the
+#        offtake loader's column test, so it used to be merged into offtake at
+#        ~5 orders of magnitude too large, with exit 0. The loader now rejects
+#        those files; this is the second line of defence. Offtake is INR Lakh and
+#        tracks Primary within an order of magnitude, so anything far outside
+#        that band means the wrong file was ingested.
+o = extract("offtake")
+if not o:
+    failures.append("could not read offtake block")
+else:
+    # Derive the per-FY totals from the total_fyNN keys themselves. Do NOT key
+    # off offtake["fy_tags"]: that key is only written by --offtake-patch, so a
+    # block built by the full builder has none and the loop would silently
+    # validate nothing while still printing a tick.
+    totals = {k: v for k, v in o.items()
+              if k.startswith("total_fy") and isinstance(v, (int, float))}
+    if not totals:
+        failures.append("offtake has no total_fyNN keys — cannot validate magnitude")
+    for k, v in sorted(totals.items()):
+        if not (100 <= v <= 500000):        # plausible annual MT sell-out, Lakh
+            failures.append(
+                f"offtake.{k} = {v:,.0f} Lakh is outside the plausible "
+                "100..500,000 band — likely a Primary/rupee-denominated file "
+                "ingested as offtake")
+    nc = o.get("n_chains") or 0
+    if nc > 60:
+        failures.append(f"offtake.n_chains = {nc} exceeds the MT universe — foreign file merged")
+    if not any("offtake" in f for f in failures):
+        print(f"✓ Offtake sane ({nc} chains, "
+              + ", ".join(f"{k}={v}" for k, v in sorted(totals.items())) + ")")
+
+# --- 4. detail_records: floor + preservation across the refresh
 before = int(os.environ.get("DETAIL_BEFORE", 0))
 after  = int(os.environ.get("DETAIL_AFTER", 0))
 if after <= DETAIL_FLOOR:
@@ -178,7 +209,7 @@ elif before and after < before:
 else:
     print(f"✓ detail_records: {after} (was {before}, floor {DETAIL_FLOOR})")
 
-# --- 4. Literal null-safety scan, streamed
+# --- 5. Literal null-safety scan, streamed
 counts = {b"NaN": 0, b"undefined": 0, b"Infinity": 0}
 with open(PATH, "rb") as f:
     carry = b""

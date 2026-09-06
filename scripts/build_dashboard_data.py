@@ -770,28 +770,48 @@ def load_offtake_article_files(src):
     against the existing Lakh-denominated offtake trend -- same order of
     magnitude, continuing its Oct'25-Mar'26 growth trajectory).
     Returns (chain_month, zone_state_month); both {} if no offtake extracts found."""
-    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
+    files = sorted([*src.glob("*.xlsb"), *src.glob("*.xlsx"), *src.glob("*.csv")])
     chain_month, zsm = {}, {}
     for fp in files:
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": pd.read_csv(fp, low_memory=False)}
         else:
-            # Some xlsb exports have a blank/index row before the header (header=1)
+            # .xlsb needs pyxlsb, .xlsx needs openpyxl.
+            _eng = "pyxlsb" if fp.suffix.lower() == ".xlsb" else "openpyxl"
+            # Some exports have a blank/index row before the header (header=1)
             # while others start the header at row 0. Auto-detect by trying header=0
             # first; fall back to header=1 if the required columns are absent.
-            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            try:
+                _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine=_eng)
+            except Exception as _e:
+                # An unreadable/placeholder workbook must not abort the whole
+                # patch -- skip it and let the "no extracts found" guard decide.
+                print(f"  ! skipping {fp.name}: unreadable ({type(_e).__name__})")
+                continue
             _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
             _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
                           for df_ in _frames0.values())
             if _use_h0:
                 _frames = _frames0
             else:
-                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine=_eng)
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
             if not need <= set(df.columns):
                 continue   # not a row-level extract sheet -- skip
+            # A Primary sell-in extract carries ALL FIVE columns above, so the
+            # test alone is not enough: a Primary workbook sitting in the same
+            # --src folder gets merged into offtake, inflating it by ~5 orders
+            # of magnitude (its NSV is rupee-denominated, offtake is Lakh) with
+            # exit 0 and no warning. Reject on billing-side columns that only
+            # ever appear in Primary, never in a sell-out extract.
+            _primary_only = {"Bill to customer", "Direct/Distributor", "MRP value"}
+            _hit = _primary_only & set(df.columns)
+            if _hit:
+                print(f"  ! skipping {fp.name}: Primary extract, not offtake "
+                      f"(carries {sorted(_hit)})")
+                continue
             df = df[df["Chain Name"].notna()].copy()
             # Reliance Brand Counter is a store-level breakout whose articles
             # already exist in the Non-Brand Counter totals — including both
@@ -4001,7 +4021,11 @@ def main():
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
         chain_month, zsm = load_offtake_article_files(src)
         if not chain_month:
-            raise SystemExit(f"No .xlsb offtake extracts found in --src ({src}).")
+            raise SystemExit(
+                f"No offtake extracts found in --src ({src}).\n"
+                f"  Expected a store x article sell-out extract (.xlsb / .xlsx / .csv) "
+                f"carrying columns: Chain Name, Zone, State, Month, NSV.\n"
+                f"  Primary sell-in workbooks in this folder are skipped by design.")
         months_found = sorted({mo for mm in chain_month.values() for mo in mm},
                                key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
         print(f"offtake source months found: {months_found}")
