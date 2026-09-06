@@ -31,11 +31,11 @@ pages listed below are grouped to match web dashboard consolidation for consiste
 |---|---|---|---|
 | **Executive Cockpit** | Pages 1, 9, 10 | KPI cards + insights + trends | Month (single), Zone, Brand filters apply to all charts |
 | **Channel & Chain Performance** | Pages 2B, 3, 6, 7 | Primary Sales, Category Mix, Reliance Counter (toggles) | Global filters (Month, Chain, Zone, Brand) apply to all 3 sub-views; switching sub-views preserves filter state |
-| **Offtake & Inventory** | Pages 2, 8 | Offtake velocity, Store coverage, Demand-supply gap | Chain, Zone multi-select filters apply to all sub-views; store-level drill-down available |
+| **Inventory & Supply Health** | Pages 2, 8 | Offtake Velocity, Demand-Supply Gap, Store Coverage (toggles) | Chain, Zone multi-select filters apply to all sub-views; DOI watchlist updates with store-level drill-down |
+| **Demand & S&OP Planning** | Pages 5, 6, 9 | Demand Forecast, Promotional Impact, Competitive Landscape (toggles) | Month range + Level toggles (Zone/Channel/Category) persist across sub-views; Trade spend ROI measures tied to actual promotion calendar |
 | **P&L & Profitability** | Pages 4 | Chain P&L, CM2, TOT%, Expense tracking | Chain + Brand filters; CM2 updates with expense file refresh |
-| **Forecast & Planning** | Page 5 | TY target vs FY26 actual, Sales person ownership | Month range slicer; Forecast Level toggle (Chain/Zone/Brand/Category) |
-| **Market Share & Competition** | Page 9 | Market Share MoM, Nielsen competitor bench | Zone, Nielsen Category filters |
-| **Distribution & TDP** | Page 10 | Brand/Chain TDP, Growth driver quadrants | TDP Level toggle (Brand/Category/Chain/Zone); drill-down via Product/Geography hierarchies |
+| **Performance & Comparison** | Page 10 (TDP) | Growth driver quadrants, Sales per TDP benchmarks | TDP Level toggle (Brand/Category/Chain/Zone); drill-down via Product/Geography hierarchies |
+| **Commercial Analytics** | Page 11 (Raw Export) | Raw data export view with all dimensions | Full global slicer row; export-friendly table format |
 
 **Sub-view filter synchronization (Channel & Chain Performance example):**
 When a user switches between Primary Sales / Category Mix / Reliance Counter sub-views,

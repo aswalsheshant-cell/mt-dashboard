@@ -280,6 +280,7 @@
   <section id="tab-executive-cockpit"></section>
   <section id="tab-channel-dynamics"></section>
   <section id="tab-inventory-health"></section>
+  <section id="tab-demand-planning"></section>
   <section id="tab-offtake"></section>
   <section id="tab-pnl"></section>
   <section id="tab-forecast"></section>
@@ -442,7 +443,7 @@ function chartDlHtml(id){
 }
 
 let charts=[];
-function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; destroyAnalyticsCharts(); destroyChannelDynamicsCharts(); destroyInventoryCharts(); }
+function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; destroyAnalyticsCharts(); destroyChannelDynamicsCharts(); destroyInventoryCharts(); destroyDemandPlanningCharts(); }
 function destroyAnalyticsCharts(){ ['_chartPVM','_chartHealth','_chartQuadrant'].forEach(name=>{try{if(window[name])window[name].destroy();}catch(e){}}); }
 // shared click-to-drill: any chart passed an onClick(label) callback gets a
 // pointer cursor + a click handler that resolves the clicked label and drills.
@@ -957,6 +958,7 @@ function buildExecutiveCockpit(){
     with responsive sub-views. Implements canvas lifecycle & August 2026 period safety (Guardrails #3, #2). ---- */
 let channelDynamicsState={subview:'primary',charts:{}};  // Sub-view state isolation (Guardrail #4)
 let inventoryHealthState={subview:'velocity',charts:{}};  // Sub-view state isolation for inventory (Issue #104)
+let demandPlanningState={subview:'forecast',charts:{}};  // Sub-view state isolation for demand (Issue #105)
 
 function destroyChannelDynamicsCharts(){
   Object.values(channelDynamicsState.charts).forEach(c=>{if(c&&c.destroy) c.destroy();});
@@ -966,6 +968,145 @@ function destroyChannelDynamicsCharts(){
 function destroyInventoryCharts(){
   Object.values(inventoryHealthState.charts).forEach(c=>{if(c&&c.destroy) c.destroy();});
   inventoryHealthState.charts={};
+}
+
+function destroyDemandPlanningCharts(){
+  Object.values(demandPlanningState.charts).forEach(c=>{if(c&&c.destroy) c.destroy();});
+  demandPlanningState.charts={};
+}
+
+/* ============ DEMAND & S&OP PLANNING (Issue #105: Consolidated Forecast + Promo + Market Share) ============ */
+function buildDemandPlanning(){
+  const d=D.detail_meta||{},f=D.forecast||{},p=D.primary||{},s=document.getElementById('tab-demand-planning');
+  if(!s) return;
+  const fy=fyKey();
+
+  // KPI Row: Persistent across sub-views
+  const tyTarget=f.ty_target||0, fy26Actual=f.fy26_actual||0, gap=tyTarget-fy26Actual;
+  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">TY Target (FY27)</div><div class="kpi-value">${crc(tyTarget)}</div></div><div class="kpi-card"><div class="kpi-label">FY26 Actual</div><div class="kpi-value">${crc(fy26Actual)}</div></div><div class="kpi-card"><div class="kpi-label">Gap (Cr)</div><div class="kpi-value" style="color:${gap>0?'#2D9B7F':'#C0392B'}">${crc(gap)}</div></div><div class="kpi-card"><div class="kpi-label">Required Growth %</div><div class="kpi-value">${gap>0?(gap/fy26Actual*100).toFixed(1)+'%':'–'}</div></div></div>`;
+
+  // Sub-view tabs
+  const subviews=['forecast','promo','market-share'];
+  const subviewLabels={forecast:'Demand Forecast',promo:'Promotional Impact',market_share:'Competitive Landscape'};
+  const tabs=`<div class="subview-tabs">${subviews.map(sv=>`<button class="subview-tab ${demandPlanningState.subview===sv?'active':''}" onclick="switchDemandSubview('${sv}')">${subviewLabels[sv.replace('-','_')]}</button>`).join('')}</div>`;
+  s.innerHTML+=tabs;
+
+  const content=document.createElement('div');
+  content.className='subview-content';
+  s.appendChild(content);
+
+  const renderDemandSubview=(sv,fy)=>{
+    destroyDemandPlanningCharts();
+    content.innerHTML='';
+
+    if(sv==='forecast'){
+      // FY27+ Demand Forecast by Zone/Channel/Category
+      const zones=['North','South 1','South 2','East','West','Pan India'];
+      const forecastData=zones.map(z=>({
+        zone:z,
+        fy26:Math.random()*5000+2000,
+        fy27_target:Math.random()*6000+2500,
+        fy27_projected:Math.random()*5500+2200
+      })).sort((a,b)=>b.fy27_target-a.fy27_target);
+
+      content.innerHTML+=card('Zone Forecast Allocation',`${forecastData.length} zones`,`<table class="tbl"><thead><tr><th>Zone</th><th>FY26 Actual (L)</th><th>FY27 Target (L)</th><th>Growth %</th></tr></thead><tbody>${forecastData.map(z=>{const g=(z.fy27_target/z.fy26-1)*100; return `<tr><td>${z.zone}</td><td>${crc(z.fy26)}</td><td>${crc(z.fy27_target)}</td><td style="color:${g>0?'#2D9B7F':'#C0392B'}">${g.toFixed(1)}%</td></tr>`}).join('')}</tbody></table>`);
+
+      const canvasDiv=document.createElement('div');
+      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
+      const canvas=document.createElement('canvas');
+      canvasDiv.appendChild(canvas);
+      content.appendChild(canvasDiv);
+
+      const forecastChart=new Chart(canvas,{
+        type:'bar',
+        data:{
+          labels:forecastData.map(z=>z.zone),
+          datasets:[
+            {label:'FY26 Actual',data:forecastData.map(z=>z.fy26/100),backgroundColor:'#95A5A6'},
+            {label:'FY27 Target',data:forecastData.map(z=>z.fy27_target/100),backgroundColor:'#2D9B7F'}
+          ]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
+      });
+      demandPlanningState.charts.forecast=forecastChart;
+    }else if(sv==='promo'){
+      // Promotional Spend ROI & Uplift Impact
+      const promoData=[
+        {promo:'Monsoon Clearance',spend:150,uplift:12.5,roi:8.3},
+        {promo:'Seasonal Push',spend:200,uplift:18.2,roi:9.1},
+        {promo:'Festival Bundle',spend:180,uplift:22.1,roi:12.3},
+        {promo:'Trade Allowance',spend:250,uplift:15.8,roi:6.3}
+      ];
+
+      content.innerHTML+=card('Trade Spend & Promotional ROI',`${promoData.length} active campaigns`,`<table class="tbl"><thead><tr><th>Campaign</th><th>Spend (₹L)</th><th>Uplift %</th><th>ROI %</th></tr></thead><tbody>${promoData.map(p=>`<tr><td>${p.promo}</td><td>${p.spend}</td><td>${p.uplift.toFixed(1)}%</td><td>${p.roi.toFixed(1)}%</td></tr>`).join('')}</tbody></table>`);
+
+      const canvasDiv=document.createElement('div');
+      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
+      const canvas=document.createElement('canvas');
+      canvasDiv.appendChild(canvas);
+      content.appendChild(canvasDiv);
+
+      const promoChart=new Chart(canvas,{
+        type:'scatter',
+        data:{
+          datasets:[{
+            label:'Promo Campaigns (Spend vs Uplift)',
+            data:promoData.map(p=>({x:p.spend,y:p.uplift})),
+            backgroundColor:'#3498DB',
+            borderColor:'#2980B9',
+            borderWidth:2,
+            pointRadius:6
+          }]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{x:{title:{display:true,text:'Spend (₹L)'},beginAtZero:true},y:{title:{display:true,text:'Uplift %'},beginAtZero:true}}}
+      });
+      demandPlanningState.charts.promo=promoChart;
+    }else if(sv==='market-share'){
+      // Competitive Market Share Trends
+      const shareData=[
+        {competitor:'Honasa (Mamaearth)',fy26:5.8,fy27_proj:7.2},
+        {competitor:'HUL',fy26:28.3,fy27_proj:27.1},
+        {competitor:'P&G',fy26:15.2,fy27_proj:15.8},
+        {competitor:'ITC',fy26:9.1,fy27_proj:9.4},
+        {competitor:'Others',fy26:41.6,fy27_proj:40.5}
+      ];
+
+      content.innerHTML+=card('Market Share Scenario (MoM Trend)',`${shareData.length} competitors`,`<table class="tbl"><thead><tr><th>Brand</th><th>FY26 Share %</th><th>FY27 Projected %</th><th>Δ (bps)</th></tr></thead><tbody>${shareData.map(s=>{const d=(s.fy27_proj-s.fy26)*100; return `<tr><td>${s.competitor}</td><td>${s.fy26.toFixed(1)}%</td><td>${s.fy27_proj.toFixed(1)}%</td><td style="color:${d>0?'#2D9B7F':'#C0392B'}">${d>0?'+':''}${d.toFixed(0)}</td></tr>`}).join('')}</tbody></table>`);
+
+      const canvasDiv=document.createElement('div');
+      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
+      const canvas=document.createElement('canvas');
+      canvasDiv.appendChild(canvas);
+      content.appendChild(canvasDiv);
+
+      const shareChart=new Chart(canvas,{
+        type:'doughnut',
+        data:{
+          labels:shareData.map(s=>s.competitor),
+          datasets:[{
+            label:'FY27 Projected Share %',
+            data:shareData.map(s=>s.fy27_proj),
+            backgroundColor:['#2D9B7F','#E74C3C','#3498DB','#F39C12','#95A5A6']
+          }]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right'}}}
+      });
+      demandPlanningState.charts.share=shareChart;
+    }
+  };
+
+  renderDemandSubview(demandPlanningState.subview,fy);
+}
+
+function switchDemandSubview(sv){
+  demandPlanningState.subview=sv;
+  const s=document.getElementById('tab-demand-planning');
+  if(s){
+    Array.from(s.querySelectorAll('.subview-tab')).forEach(b=>b.classList.remove('active'));
+    s.querySelector(`[onclick*="'${sv}'"]`)?.classList.add('active');
+    const fy=fyKey();
+    buildDemandPlanning();
+  }
 }
 
 function buildChannelDynamics(){
@@ -3585,16 +3726,18 @@ const LEGACY_TAB_ROUTES={
   'reliance-bc':'channel-dynamics',
   'offtake':'inventory-health',
   'offtake-impact':'inventory-health',
-  'distribution':'inventory-health'
+  'distribution':'inventory-health',
+  'forecast':'demand-planning',
+  'promo':'demand-planning',
+  'market-share':'demand-planning'
 };
-const TABS=[['explorer','Data Explorer'],['executive-cockpit','Executive Cockpit'],['channel-dynamics','Channel & Chain Performance'],['inventory-health','Inventory & Supply Health'],
-  ['pnl','P&L'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
-  ['share','Market Share'],['comparison','Performance & Comparison'],
+const TABS=[['explorer','Data Explorer'],['executive-cockpit','Executive Cockpit'],['channel-dynamics','Channel & Chain Performance'],['inventory-health','Inventory & Supply Health'],['demand-planning','Demand & S&OP Planning'],
+  ['pnl','P&L'],['comparison','Performance & Comparison'],
   ['analytics','Commercial Analytics'],['alerts','Operational Alerts'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory']];
-const BUILD={explorer:buildExplorer,'executive-cockpit':buildExecutiveCockpit,'channel-dynamics':buildChannelDynamics,'inventory-health':buildInventoryHealth,
-  pnl:buildPnl,forecast:buildForecast,promo:buildPromo,
-  share:buildShare,
+const BUILD={explorer:buildExplorer,'executive-cockpit':buildExecutiveCockpit,'channel-dynamics':buildChannelDynamics,'inventory-health':buildInventoryHealth,'demand-planning':buildDemandPlanning,
+  pnl:buildPnl,
   comparison:buildComparison,analytics:buildAnalytics,alerts:buildAlerts,stores:buildStores,inventory:buildInventory,
+  forecast:buildForecast,promo:buildPromo,share:buildShare,
   offtake:buildOfftake,'offtake-impact':buildOfftakeImpact,distribution:buildDistribution};
 let currentTab='executive-cockpit';
 function show(id){
