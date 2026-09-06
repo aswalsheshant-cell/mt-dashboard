@@ -239,21 +239,21 @@
     </div>
     <div class="tier-sliders">
       <div class="tier-slider-group">
-        <label>Tier 1 Upper Bound (%)</label>
+        <label for="t1Slider">Tier 1 Upper Bound (%)</label>
         <div class="range-labels"><span>0%</span><span>70%</span></div>
-        <input type="range" id="t1Slider" min="0" max="70" value="30" oninput="validateTierBoundary(1)">
+        <input type="range" id="t1Slider" name="t1Slider" aria-label="Tier 1 upper bound percent" min="0" max="70" value="30" oninput="validateTierBoundary(1)">
         <div class="tier-slider-value">Value: <span id="t1Value">30</span>%</div>
       </div>
       <div class="tier-slider-group">
-        <label>Tier 2 Upper Bound (%)</label>
+        <label for="t2Slider">Tier 2 Upper Bound (%)</label>
         <div class="range-labels"><span>0%</span><span>90%</span></div>
-        <input type="range" id="t2Slider" min="0" max="90" value="50" oninput="validateTierBoundary(2)">
+        <input type="range" id="t2Slider" name="t2Slider" aria-label="Tier 2 upper bound percent" min="0" max="90" value="50" oninput="validateTierBoundary(2)">
         <div class="tier-slider-value">Value: <span id="t2Value">50</span>%</div>
       </div>
       <div class="tier-slider-group">
-        <label>Tier 3 Upper Bound (%)</label>
+        <label for="t3Slider">Tier 3 Upper Bound (%)</label>
         <div class="range-labels"><span>0%</span><span>100%</span></div>
-        <input type="range" id="t3Slider" min="0" max="100" value="70" oninput="validateTierBoundary(3)">
+        <input type="range" id="t3Slider" name="t3Slider" aria-label="Tier 3 upper bound percent" min="0" max="100" value="70" oninput="validateTierBoundary(3)">
         <div class="tier-slider-value">Value: <span id="t3Value">70</span>%</div>
       </div>
     </div>
@@ -411,6 +411,12 @@ const crc = v => { if(v==null) return '–'; const av=Math.abs(v);
                 : '₹'+(v/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr'; };
 const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
+// Deterministic, DOM-safe id fragment from an arbitrary label/value. Every form
+// control below gets a stable id/name built from its semantic key so the
+// controls are addressable by the QA sweep and announced by assistive tech.
+const slugId = v => (String(v==null?'':v).trim().toLowerCase()
+  .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'x');
+const attrEsc = v => String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
 // Quantity formatter (separate unit family from money -- never mix Value Cr with Qty
 // Cr): shows "Qty Cr" (÷1 crore units) by default, degrading to "Qty L" only when the
 // Cr-rounded figure would read as 0.00, so small quantities stay legible.
@@ -2576,7 +2582,7 @@ function renderMultiSelect(id, label, options, selectedSet) {
   const badge = selected.length > 0 ? `<span class="multiselect-badge">${selected.length}</span>` : '';
   const optionsHtml = options.map(opt => `
     <label class="multiselect-option">
-      <input type="checkbox" value="${opt}" ${selectedSet.has(opt) ? 'checked' : ''} data-filter-id="${id}">
+      <input type="checkbox" id="${id}-opt-${slugId(opt)}" name="${id}" value="${attrEsc(opt)}" ${selectedSet.has(opt) ? 'checked' : ''} data-filter-id="${id}" aria-label="${attrEsc(label)}: ${attrEsc(opt)}">
       <span>${opt}</span>
     </label>
   `).join('');
@@ -2589,7 +2595,7 @@ function renderMultiSelect(id, label, options, selectedSet) {
       </button>
       <div class="multiselect-dropdown" id="${id}-dropdown" style="display:none">
         <div class="multiselect-search">
-          <input type="text" placeholder="Search..." data-search-for="${id}">
+          <input type="text" id="${id}-search" name="${id}-search" placeholder="Search..." aria-label="Search ${attrEsc(label)} options" data-search-for="${id}">
         </div>
         <div class="multiselect-options">
           ${optionsHtml}
@@ -3501,7 +3507,7 @@ function renderFilterBar(){
   const anyActive=FILT.some(([k])=>F[k].length);
   fb.innerHTML = FILT.map(([k,lab])=>{
     const opts=optsFor(k), sel=F[k];
-    return `<label class="fl"><span>${lab}</span><select data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
+    return `<label class="fl" for="filter-${k}"><span>${lab}</span><select id="filter-${k}" name="filter-${k}" aria-label="Filter by ${attrEsc(lab)}" data-k="${k}" title="Pick a value to add it; pick it again to remove it. Multiple values are OR'd.">
       <option value="">${sel.length?`${sel.length} selected — clear`:'All'}</option>
       ${opts.map(v=>{const s=String(v).replace(/"/g,'&quot;');const on=sel.includes(String(v));
         const disp=k==='FY'?fyDispLabel(v):v;
@@ -3729,8 +3735,8 @@ function galControls(id,dim){
   const st=galGet(id,dim);
   const opt=(list,cur)=>list.map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${l}</option>`).join('');
   return `<span style="display:inline-flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-    <label>Metric <select data-gal="metric" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_METRICS,st.metric)}</select></label>
-    <label>Chart <select data-gal="type" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_TYPES,st.type)}</select></label></span>`;
+    <label for="gal-${id}-metric">Metric <select id="gal-${id}-metric" name="gal-${id}-metric" aria-label="Metric for chart ${id}" data-gal="metric" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_METRICS,st.metric)}</select></label>
+    <label for="gal-${id}-type">Chart <select id="gal-${id}-type" name="gal-${id}-type" aria-label="Chart type for chart ${id}" data-gal="type" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_TYPES,st.type)}</select></label></span>`;
 }
 function galCardHtml(id,dim,title){ return card(title,galControls(id,dim),cv(id,dim!=='Month'&&dim!=='Chain')); }
 function galAgg(recs,dim,metric){
