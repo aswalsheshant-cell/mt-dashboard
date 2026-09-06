@@ -957,7 +957,9 @@ function buildExecutiveCockpit(){
 
 /* ---- CHANNEL & CHAIN DYNAMICS: Consolidated Primary + Category & Pack + Reliance Brand Counter
     with responsive sub-views. Implements canvas lifecycle & August 2026 period safety (Guardrails #3, #2). ---- */
-let channelDynamicsState={subview:'primary',charts:{}};  // Sub-view state isolation (Guardrail #4)
+// catPath drives the Category & Pack Mix drill (Category -> Sub-Category ->
+// Range -> Pack Size -> Article); each entry is {dim,val}.
+let channelDynamicsState={subview:'primary',charts:{},catPath:[]};  // Sub-view state isolation (Guardrail #4)
 let inventoryHealthState={subview:'velocity',charts:{}};  // Sub-view state isolation for inventory (Issue #104)
 let demandPlanningState={subview:'forecast',charts:{}};  // Sub-view state isolation for demand (Issue #105)
 
@@ -1001,16 +1003,40 @@ function buildDemandPlanning(){
     content.innerHTML='';
 
     if(sv==='forecast'){
-      // FY27+ Demand Forecast by Zone/Channel/Category
-      const zones=['North','South 1','South 2','East','West','Pan India'];
-      const forecastData=zones.map(z=>({
-        zone:z,
-        fy26:Math.random()*5000+2000,
-        fy27_target:Math.random()*6000+2500,
-        fy27_projected:Math.random()*5500+2200
-      })).sort((a,b)=>b.fy27_target-a.fy27_target);
+      // Zones and FY26/FY27 actuals come from primary.by_zone -- real data, and
+      // it includes Central. The previous version used a hardcoded list
+      // ['North','South 1','South 2','East','West','Pan India'] with Math.random()
+      // values: that is why Central never appeared, why "Pan India" did, and why
+      // the growth% changed on every page load.
+      // The FY27 TARGET in source is a single national figure
+      // (forecast.fy27_forecast, from FY2627_Targets.csv). No zone-level target
+      // exists in source, so it is cascaded pro-rata on FY26 contribution and the
+      // card header says exactly that. Nothing here is generated.
+      const _fc=D.forecast||{};
+      const _zones=((D.primary&&D.primary.by_zone)||[]).filter(z=>z&&z.name);
+      const _nat=Number(_fc.fy27_forecast)||0;
+      const _base=_zones.reduce((a,z)=>a+(Number(z.fy26)||0),0);
+      const forecastData=_zones.map(z=>{
+        const fy26=Number(z.fy26)||0, share=_base>0?fy26/_base:0;
+        return {zone:z.name,fy26,share,fy27_target:_nat*share,fy27_actual:Number(z.fy27)||0};
+      }).sort((a,b)=>b.fy27_target-a.fy27_target);
 
-      content.innerHTML+=card('Zone Forecast Allocation',`${forecastData.length} zones`,`<table class="tbl"><thead><tr><th>Zone</th><th>FY26 Actual (L)</th><th>FY27 Target (L)</th><th>Growth %</th></tr></thead><tbody>${forecastData.map(z=>{const g=(z.fy27_target/z.fy26-1)*100; return `<tr><td>${z.zone}</td><td>${crc(z.fy26)}</td><td>${crc(z.fy27_target)}</td><td style="color:${g>0?'#2D9B7F':'#C0392B'}">${g.toFixed(1)}%</td></tr>`}).join('')}</tbody></table>`);
+      if(!forecastData.length){
+        content.innerHTML+=card('Zone Forecast Allocation','no zone data',
+          '<p class="lead">primary.by_zone is empty in this build — rerun the primary refresh.</p>');
+      }else{
+        // FY27 actuals are part-year (only the months the article-level primary
+        // covers), so the achievement column is labelled with that window.
+        const _mc=((D.detail_meta||{}).fyx_primary||{}).FY27||{};
+        const _mcs=(_mc.months_covered||[]).length;
+        const _sub=_nat>0
+          ? `${forecastData.length} zones · FY27 target ${crc(_nat)} cascaded pro-rata on FY26 contribution`
+            + (_mcs?` · actuals cover ${_mcs} month${_mcs===1?'':'s'} (${_mc.months_covered.join(', ')})`:'')
+          : `${forecastData.length} zones · FY27 target not present in source`;
+        content.innerHTML+=card('Zone Forecast Allocation',_sub,
+          `<table class="tbl"><thead><tr><th>Zone</th><th>FY26 Actual</th><th>Contribution</th><th>FY27 Target (allocated)</th><th>FY27 Actual to date</th><th>Ach. vs target</th></tr></thead><tbody>${forecastData.map(z=>{const a=z.fy27_target>0?(100*z.fy27_actual/z.fy27_target):null;return `<tr><td>${drillLink('Zone',z.zone)}</td><td>${crc(z.fy26)}</td><td>${(z.share*100).toFixed(1)}%</td><td>${crc(z.fy27_target)}</td><td>${crc(z.fy27_actual)}</td><td style="color:${a==null?'#666':a>=100?'#2D9B7F':a>=60?'#C77D17':'#C0392B'}">${a==null?'–':a.toFixed(1)+'%'}</td></tr>`}).join('')}</tbody></table>`);
+        wireDrillLinks(content);
+      }
 
       const canvasDiv=document.createElement('div');
       canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
@@ -1023,23 +1049,33 @@ function buildDemandPlanning(){
         data:{
           labels:forecastData.map(z=>z.zone),
           datasets:[
-            {label:'FY26 Actual',data:forecastData.map(z=>z.fy26/100),backgroundColor:'#95A5A6'},
-            {label:'FY27 Target',data:forecastData.map(z=>z.fy27_target/100),backgroundColor:'#2D9B7F'}
+            {label:'FY26 Actual (Cr)',data:forecastData.map(z=>z.fy26/100),backgroundColor:'#95A5A6'},
+            {label:'FY27 Target (Cr, allocated)',data:forecastData.map(z=>z.fy27_target/100),backgroundColor:'#2D9B7F'}
           ]
         },
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
       });
       demandPlanningState.charts.forecast=forecastChart;
     }else if(sv==='promo'){
-      // Promotional Spend ROI & Uplift Impact
-      const promoData=[
-        {promo:'Monsoon Clearance',spend:150,uplift:12.5,roi:8.3},
-        {promo:'Seasonal Push',spend:200,uplift:18.2,roi:9.1},
-        {promo:'Festival Bundle',spend:180,uplift:22.1,roi:12.3},
-        {promo:'Trade Allowance',spend:250,uplift:15.8,roi:6.3}
-      ];
+      // Real promo master: D.promo.by_chain carries {name,promos,avg_depth,brands}.
+      // The previous version listed four invented campaigns ("Monsoon Clearance",
+      // "Seasonal Push", "Festival Bundle", "Trade Allowance") with made-up spend,
+      // uplift and ROI. Source carries no spend/uplift/ROI measure at all, so
+      // those columns are gone rather than filled with numbers that do not exist.
+      const _pm=D.promo||{};
+      const promoData=((_pm.by_chain)||[]).filter(c=>c&&c.name)
+        .slice().sort((a,b)=>(b.promos||0)-(a.promos||0)).slice(0,15);
 
-      content.innerHTML+=card('Trade Spend & Promotional ROI',`${promoData.length} active campaigns`,`<table class="tbl"><thead><tr><th>Campaign</th><th>Spend (₹L)</th><th>Uplift %</th><th>ROI %</th></tr></thead><tbody>${promoData.map(p=>`<tr><td>${p.promo}</td><td>${p.spend}</td><td>${p.uplift.toFixed(1)}%</td><td>${p.roi.toFixed(1)}%</td></tr>`).join('')}</tbody></table>`);
+      if(!promoData.length){
+        content.innerHTML+=card('Promo Intensity by Chain','source not loaded',
+          '<p class="lead">Promo master not present in this build (DASH.promo.by_chain is empty).</p>');
+      }else{
+        content.innerHTML+=card('Promo Intensity by Chain',
+          `${num(_pm.n_promos||promoData.length)} promo lines · blended depth ${_pm.avg_depth!=null?Number(_pm.avg_depth).toFixed(1)+'%':'–'}`,
+          `<table class="tbl"><thead><tr><th>Chain</th><th>Promo lines</th><th>Avg depth %</th><th>Brands</th></tr></thead><tbody>${promoData.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${num(c.promos)}</td><td>${c.avg_depth!=null?Number(c.avg_depth).toFixed(1)+'%':'–'}</td><td>${Array.isArray(c.brands)?c.brands.length:(c.brands!=null?c.brands:'–')}</td></tr>`).join('')}</tbody></table>
+           <p class="note">Spend, uplift and ROI are not in the promo source — add them to the promo master to enable ROI analysis here.</p>`);
+        wireDrillLinks(content);
+      }
 
       const canvasDiv=document.createElement('div');
       canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
@@ -1051,48 +1087,30 @@ function buildDemandPlanning(){
         type:'scatter',
         data:{
           datasets:[{
-            label:'Promo Campaigns (Spend vs Uplift)',
-            data:promoData.map(p=>({x:p.spend,y:p.uplift})),
+            label:'Chains — promo lines vs avg depth %',
+            data:promoData.map(c=>({x:Number(c.promos)||0,y:Number(c.avg_depth)||0})),
             backgroundColor:'#3498DB',
             borderColor:'#2980B9',
             borderWidth:2,
             pointRadius:6
           }]
         },
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{x:{title:{display:true,text:'Spend (₹L)'},beginAtZero:true},y:{title:{display:true,text:'Uplift %'},beginAtZero:true}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{x:{title:{display:true,text:'Promo lines'},beginAtZero:true},y:{title:{display:true,text:'Avg depth %'},beginAtZero:true}}}
       });
       demandPlanningState.charts.promo=promoChart;
     }else if(sv==='market-share'){
-      // Competitive Market Share Trends
-      const shareData=[
-        {competitor:'Honasa (Mamaearth)',fy26:5.8,fy27_proj:7.2},
-        {competitor:'HUL',fy26:28.3,fy27_proj:27.1},
-        {competitor:'P&G',fy26:15.2,fy27_proj:15.8},
-        {competitor:'ITC',fy26:9.1,fy27_proj:9.4},
-        {competitor:'Others',fy26:41.6,fy27_proj:40.5}
-      ];
-
-      content.innerHTML+=card('Market Share Scenario (MoM Trend)',`${shareData.length} competitors`,`<table class="tbl"><thead><tr><th>Brand</th><th>FY26 Share %</th><th>FY27 Projected %</th><th>Δ (bps)</th></tr></thead><tbody>${shareData.map(s=>{const d=(s.fy27_proj-s.fy26)*100; return `<tr><td>${s.competitor}</td><td>${s.fy26.toFixed(1)}%</td><td>${s.fy27_proj.toFixed(1)}%</td><td style="color:${d>0?'#2D9B7F':'#C0392B'}">${d>0?'+':''}${d.toFixed(0)}</td></tr>`}).join('')}</tbody></table>`);
-
-      const canvasDiv=document.createElement('div');
-      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
-      const canvas=document.createElement('canvas');
-      canvasDiv.appendChild(canvas);
-      content.appendChild(canvasDiv);
-
-      const shareChart=new Chart(canvas,{
-        type:'doughnut',
-        data:{
-          labels:shareData.map(s=>s.competitor),
-          datasets:[{
-            label:'FY27 Projected Share %',
-            data:shareData.map(s=>s.fy27_proj),
-            backgroundColor:['#2D9B7F','#E74C3C','#3498DB','#F39C12','#95A5A6']
-          }]
-        },
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right'}}}
-      });
-      demandPlanningState.charts.share=shareChart;
+      // The previous version hardcoded competitor shares (Honasa 5.8%, HUL 28.3%,
+      // P&G 15.2%, ITC 9.1%, Others 41.6%) with FY27 "projections". Those were
+      // invented -- there is no share/market_share/competitors block anywhere in
+      // DASH. On a leadership surface those numbers could be quoted in a review,
+      // so they are removed and the required source is named instead.
+      content.innerHTML+=card('Competitive Market Share','source not available',
+        `<p class="lead">No market-share data exists in this build.</p>
+         <p class="note">To populate this view, supply a Nielsen / RMS market-share export
+         (brand × category × period, share %) and emit it as <code>DASH.share</code> from
+         <code>scripts/build_dashboard_data.py</code>. Until then this card stays empty by
+         design — it previously displayed placeholder competitor shares that were not sourced
+         from any file.</p>`);
     }
   };
 
@@ -1231,14 +1249,67 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     channelDynamicsState.charts.channel=dc;
   }
   else if(sv==='category'){
-    // Category & Pack Mix sub-view
-    const recs=recFilter();
-    if(!recs.length) {content.innerHTML=card('Category & Pack Analysis','No records match current filters','<p class="lead">Adjust filters to see category breakdown.</p>');return;}
-    const bycat={};
-    recs.forEach(r=>{const k=r.Category||'Unknown';if(!bycat[k]) bycat[k]={nsv:0,qty:0,count:0};bycat[k].nsv+=r.NSV||0;bycat[k].qty+=r.Qty||0;bycat[k].count+=1;});
-    const catRows=Object.entries(bycat).sort((a,b)=>b[1].nsv-a[1].nsv).map(([cat,{nsv,qty}])=>`<tr><td>${drillLink('Category',cat)}</td><td>${crc(nsv/100)}</td><td>${num(qty)}</td></tr>`).join('');
-    content.innerHTML=`${card('Category & Pack Mix',`${Object.keys(bycat).length} categories`,`<table class="tbl"><thead><tr><th>Category</th><th>NSV (Cr)</th><th>Qty</th></tr></thead><tbody>${catRows}</tbody></table>`)}`;
-    wireDrillLinks(content);
+    // Category & Pack Mix -- hierarchical drill:
+    //   Category -> Sub-Category -> Range -> Pack Size / Net Content -> Article
+    // Previously this only ever grouped by Category with no way to go deeper,
+    // even though detail_records already carry SubCategory, Range, PackSize and
+    // Article. Nothing new is computed -- each level is the same NSV/Qty rollup
+    // applied one dimension further down.
+    const LEVELS=[['Category','Category'],['SubCategory','Sub-Category'],
+                  ['Range','Range'],['PackSize','Pack Size / Net Content'],
+                  ['Article','Article']];
+    const path=channelDynamicsState.catPath||(channelDynamicsState.catPath=[]);
+    let recs=recFilter();
+    path.forEach(step=>{ recs=recs.filter(r=>(r[step.dim]||'Unknown')===step.val); });
+    const depth=Math.min(path.length,LEVELS.length-1);
+    const dimKey=LEVELS[depth][0], dimLabel=LEVELS[depth][1];
+
+    if(!recs.length){
+      content.innerHTML=card('Category & Pack Analysis','No records match current filters',
+        `<p class="lead">No records at this level.</p>
+         <p class="note"><a href="#" data-cat-pop="0" style="cursor:pointer;">Reset drill</a></p>`);
+      content.querySelectorAll('[data-cat-pop]').forEach(a=>{a.onclick=e=>{e.preventDefault();
+        channelDynamicsState.catPath=[]; renderChannelSubview(chains,brands,channels,primYr,fy,yrLab);};});
+      return;
+    }
+
+    const agg={};
+    recs.forEach(r=>{const k=r[dimKey]||'Unknown';
+      if(!agg[k]) agg[k]={nsv:0,qty:0,n:0};
+      agg[k].nsv+=r.NSV||0; agg[k].qty+=r.Qty||0; agg[k].n+=1;});
+    const rows=Object.entries(agg).sort((a,b)=>b[1].nsv-a[1].nsv);
+    const totalNsv=rows.reduce((a,kv)=>a+kv[1].nsv,0);
+    const canDrill=depth<LEVELS.length-1;
+
+    const crumbs=`<div style="margin-bottom:10px;font-size:13px;">
+      <a href="#" data-cat-pop="0" style="cursor:pointer;">All categories</a>`
+      + path.map((st,i)=>` &rsaquo; <a href="#" data-cat-pop="${i+1}" style="cursor:pointer;">${st.val}</a>`).join('')
+      + `<span class="note" style="margin-left:10px;">${canDrill?('click a '+dimLabel.toLowerCase()+' to drill deeper'):'deepest level'}</span>
+    </div>`;
+
+    const body=rows.map(kv=>{
+      const k=kv[0], v=kv[1];
+      const shr=totalNsv>0?(100*v.nsv/totalNsv):0;
+      const cell=canDrill
+        ? `<a href="#" data-cat-drill="${encodeURIComponent(k)}" style="cursor:pointer;">${k}</a>`
+        : k;
+      return `<tr><td>${cell}</td><td>${crc(v.nsv/100)}</td><td>${num(v.qty)}</td><td>${shr.toFixed(1)}%</td></tr>`;
+    }).join('');
+
+    content.innerHTML=crumbs+card(`Category & Pack Mix — by ${dimLabel}`,
+      `${rows.length} ${dimLabel.toLowerCase()}${rows.length===1?'':'s'} · ${num(recs.length)} records`,
+      `<table class="tbl"><thead><tr><th>${dimLabel}</th><th>NSV</th><th>Qty</th><th>Share</th></tr></thead><tbody>${body}</tbody></table>`);
+
+    content.querySelectorAll('[data-cat-drill]').forEach(a=>{
+      a.onclick=e=>{e.preventDefault();
+        channelDynamicsState.catPath=path.concat([{dim:dimKey,val:decodeURIComponent(a.dataset.catDrill)}]);
+        renderChannelSubview(chains,brands,channels,primYr,fy,yrLab);};
+    });
+    content.querySelectorAll('[data-cat-pop]').forEach(a=>{
+      a.onclick=e=>{e.preventDefault();
+        channelDynamicsState.catPath=path.slice(0,Number(a.dataset.catPop));
+        renderChannelSubview(chains,brands,channels,primYr,fy,yrLab);};
+    });
   }
   else if(sv==='reliance'){
     // Phase 2: Reliance Brand Counter sub-view with toggle between macro (bulk) and BA (dedicated counters)
@@ -4059,20 +4130,28 @@ function renderWaterfall(chains){
   const canvas=id('chart-waterfall');if(!canvas)return;
   const ctx=canvas.getContext('2d');
 
-  // Stacked bar: Baseline + Promotional Uplift + Anomaly
-  const topChains=chains.slice(0,5).map(c=>c.name);
+  // Decomposition by discount tier, read from correlations.by_chain[].elasticity_tiers
+  // -- the same real source the elasticity / heatmap / scatter charts on this
+  // tab already use. The previous version drew a constant 100 "Baseline Offtake"
+  // plus Math.random() "Promo Uplift (+)" and "Dilution Risk (-)" series: those
+  // were invented and changed on every page load.
+  const top=chains.slice(0,5);
+  const tierNames=[...new Set(top.flatMap(c=>Object.keys(c.elasticity_tiers||{})))].sort();
+  const colors=['#2D9B7F','#1E8E3E','#C77D17','#C0392B','#2b6cb0'];
+  const datasets=tierNames.map((t,i)=>({
+    label:t+' avg lift %',
+    data:top.map(c=>Number(((c.elasticity_tiers||{})[t]||{}).avg_lift)||0),
+    backgroundColor:colors[i%colors.length]
+  }));
+  const anyLift=datasets.some(d=>d.data.some(v=>v>0));
+
   new Chart(ctx,{
     type:'bar',
-    data:{
-      labels:topChains,
-      datasets:[
-        {label:'Baseline Offtake',data:topChains.map(()=>100),backgroundColor:'#CCCCCC'},
-        {label:'Promo Uplift (+)',data:topChains.map(()=>Math.random()*40+10),backgroundColor:'#1E8E3E'},
-        {label:'Dilution Risk (-)',data:topChains.map(()=>Math.random()*15),backgroundColor:'#C0392B'}
-      ]
-    },
-    options:{indexAxis:'x',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},
-      scales:{x:{stacked:true,title:{display:true,text:'Volume Index'}},y:{stacked:true}}}
+    data:{labels:top.map(c=>c.name),datasets},
+    options:{indexAxis:'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true},
+        title:{display:!anyLift,text:'No measured uplift in source — promo master carries no lift values'}},
+      scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,title:{display:true,text:'Avg lift % by discount tier'}}}}
   });
 }
 
