@@ -3278,6 +3278,12 @@ def detail_records_real(src, max_rows=20000):
     many small line items) -- top-N-by-value keeps ~98%+ of total value at a
     fraction of the full row count.
     """
+    def _safe_val(x):
+        """Convert NaN/None to None (null in JSON), keep strings and numbers as-is."""
+        if x is None or (isinstance(x, float) and math.isnan(x)):
+            return None
+        return x
+
     f = None
     for name in ("primary_article.xlsb", "primary_article.xlsx",
                  "MT, Eb2B & SIS primary April_23 to May_26.xlsb"):
@@ -3504,12 +3510,12 @@ def detail_records_real(src, max_rows=20000):
             else:
                 wat = None
             cust_article.append({
-                "cust_code": r["_CustCode"], "ship_to": r["_CustName"],
-                "ean": str(r["_EAN No."]), "article": r["_Description"],
-                "art_mrp": r2(r["_ArtMRP"]), "brand": r["_Brand"],
-                "category": r["_category"], "sub_category": r["_sub_category"],
-                "range": r["_range"], "pack": r["_net_content"],
-                "month": r["_M"], "fy": r["_FY"], "chain": r["_Chain"],
+                "cust_code": _safe_val(r["_CustCode"]), "ship_to": _safe_val(r["_CustName"]),
+                "ean": _safe_val(str(r["_EAN No."])), "article": _safe_val(r["_Description"]),
+                "art_mrp": r2(r["_ArtMRP"]), "brand": _safe_val(r["_Brand"]),
+                "category": _safe_val(r["_category"]), "sub_category": _safe_val(r["_sub_category"]),
+                "range": _safe_val(r["_range"]), "pack": _safe_val(r["_net_content"]),
+                "month": _safe_val(r["_M"]), "fy": _safe_val(r["_FY"]), "chain": _safe_val(r["_Chain"]),
                 "nsv": r2(r["NSV"]), "mrp_sales": r2(r["MRPS"]),
                 "qty": int(round(r["Qty"])), "tax": r2(r["Tax"]),
                 "w_avg_tot": r2(wat * 100, 1) if wat is not None else None,
@@ -3549,10 +3555,10 @@ def detail_records_real(src, max_rows=20000):
     coverage = float(kept["NSV"].sum() / total_value * 100) if total_value else 100.0
     recs = []
     for _, r in kept.iterrows():
-        recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],"State":r["_State"],
-            "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":r["_category"],
-            "SubCategory":r["_sub_category"],"Range":r["_range"],"PackSize":r["_net_content"],
-            "Article":r["_Description"],"EAN":str(r["_EAN No."]),
+        recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],"State":_safe_val(r["_State"]),
+            "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":_safe_val(r["_category"]),
+            "SubCategory":_safe_val(r["_sub_category"]),"Range":_safe_val(r["_range"]),"PackSize":_safe_val(r["_net_content"]),
+            "Article":_safe_val(r["_Description"]),"EAN":_safe_val(str(r["_EAN No."])),
             "NSV":r2(r["NSV"]),"MRP":r2(r["MRP"]),"Qty":int(r["Qty"])})
     print(f"detail rows: {rows_total} groups total -> kept top {len(recs)} "
           f"({coverage:.1f}% of total value)")
@@ -3789,6 +3795,18 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
         Path(tmp).unlink(missing_ok=True)
         raise
 
+
+def _convert_nan_to_none(obj):
+    """Recursively convert all NaN values to None for clean JSON serialization.
+    Handles lists, dicts, and primitive types."""
+    if isinstance(obj, dict):
+        return {k: _convert_nan_to_none(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_nan_to_none(item) for item in obj]
+    elif isinstance(obj, float):
+        return None if (math.isnan(obj) or math.isinf(obj)) else obj
+    else:
+        return obj
 
 def main():
     ap = argparse.ArgumentParser()
@@ -4219,6 +4237,8 @@ def main():
         _check_governance_gate(alloc, gate_pct=a.not_eligible_gate_pct)
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
+    # Convert all NaN values to None for clean JSON serialization
+    data = _convert_nan_to_none(data)
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
     _safe_write_data_js(
         out_path=a.out,
