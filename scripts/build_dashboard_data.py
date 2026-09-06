@@ -183,6 +183,45 @@ def canon_zone(z):
          "north": "North", "west": "West", "east": "East", "central": "Central", "pan india": "Pan India"}
     return m.get(z.lower(), z)
 
+def canon_zone_from_state(state):
+    """Map state/region to MT zone. Used to override zone column when it's miscoded in source.
+
+    The offtake extracts incorrectly assign Madhya Pradesh and Chhattisgarh to North/West
+    instead of Central, so this override corrects the zone assignment at ingest time."""
+    if state is None:
+        return None
+    state = str(state).strip()
+    state_lower = state.lower()
+
+    # State -> Zone mappings (official per ZoneStateMaster)
+    state_to_zone = {
+        # North zone
+        "delhi": "North", "delhi ncr": "North", "delhi/ ncr": "North",
+        "haryana": "North", "punjab": "North", "j&k": "North", "himachal": "North",
+        "up": "North", "uttarakhand": "North", "up/uk": "North",
+
+        # East zone
+        "bihar": "East", "jharkhand": "East", "odisha": "East", "west bengal": "East",
+        "northeast": "East",
+
+        # West zone
+        "goa": "West", "rajasthan": "West", "maharashtra": "West", "mumbai": "West",
+        "gujarat": "West",
+
+        # South 1 zone
+        "karnataka": "South 1", "tamil nadu": "South 1", "telangana": "South 1",
+        "andhra": "South 1", "andhra pradesh": "South 1",
+
+        # South 2 zone
+        "kerala": "South 2",
+
+        # Central zone (CRITICAL: MP and CG are miscoded as North/West in offtake, override here)
+        "madhya pradesh": "Central", "mp": "Central",
+        "chhattisgarh": "Central", "cg": "Central",
+    }
+
+    return state_to_zone.get(state_lower, None)
+
 STATE_ALIASES = {
     "delhi/ ncr": "Delhi/ Ncr", "delhi/ncr": "Delhi/ Ncr", "delhi ncr": "Delhi/ Ncr",
     "up/uk": "UP/UK", "up / uk": "UP/UK",
@@ -1746,7 +1785,7 @@ def load_offtake_month_folders(src):
                     continue
                 H = len(hdr)
                 ix = {n: (hdr.index(n) if n in hdr else -1) for n in
-                      ("NSV", "Source_Tab", "Chain Name", "Zone", "Brand", "Store Type")}
+                      ("NSV", "Source_Tab", "Chain Name", "Zone", "State", "Brand", "Store Type")}
                 if ix["NSV"] < 0:
                     continue
                 for row in rd:
@@ -1765,7 +1804,11 @@ def load_offtake_month_folders(src):
                     bucket = c if (src_tab == "Reliance_Brand_Counter"
                                    or stype.lower() == "brand counter") else o
                     ch = canon_chain((g(ix["Chain Name"]) or "").strip())
-                    zn = canon_zone((g(ix["Zone"]) or "").strip())
+                    # Zone override: if state maps to a zone (e.g. Madhya Pradesh -> Central),
+                    # use that instead of the Zone column (which misclassifies MP/CG as North/West)
+                    state_val = (g(ix["State"]) or "").strip() if ix["State"] >= 0 else ""
+                    zone_override = canon_zone_from_state(state_val) if state_val else None
+                    zn = canon_zone(zone_override or (g(ix["Zone"]) or "").strip())
                     br = canon_brand((g(ix["Brand"]) or "").strip())
                     bucket["total"] += v
                     if ch: bucket["chain"][ch] = bucket["chain"].get(ch, 0.0) + v
@@ -1796,7 +1839,9 @@ def load_fy25_secondary(src):
                 continue
             m = out.setdefault(lab, {"total": 0.0, "chain": {}, "zone": {}, "brand": {}})
             ch = canon_chain((row.get("Chain Mapping") or row.get("Chain Name") or "").strip())
-            zn = canon_zone((row.get("Zone") or "").strip())
+            state_val = (row.get("State") or "").strip()
+            zone_override = canon_zone_from_state(state_val) if state_val else None
+            zn = canon_zone(zone_override or (row.get("Zone") or "").strip())
             br = canon_brand((row.get("Brand") or "").strip())
             m["total"] += v
             if ch: m["chain"][ch] = m["chain"].get(ch, 0.0) + v

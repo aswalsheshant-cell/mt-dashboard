@@ -1058,7 +1058,7 @@ function buildDemandPlanning(){
       // exists in source, so it is cascaded pro-rata on FY26 contribution and the
       // card header says exactly that. Nothing here is generated.
       const _fc=D.forecast||{};
-      const _zones=((D.primary&&D.primary.by_zone)||[]).filter(z=>z&&z.name);
+      const _zones=((D.offtake&&D.offtake.by_zone)||[]).filter(z=>z&&z.name);
       const _nat=Number(_fc.fy27_forecast)||0;
       const _base=_zones.reduce((a,z)=>a+(Number(z.fy26)||0),0);
       const forecastData=_zones.map(z=>{
@@ -1276,19 +1276,47 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     if (_fp27 && _fp27.months_canon) {
       _fp27.months_canon.forEach((m, i) => { _fy27pri[m] = (_fp27.monthly_canon || [])[i]; });
     }
-    const _prim25Arr = o.months.map((m, i) => i < 12 ? ((D.primary.monthly_fy25 || [])[i] || null) : null);
-    const _prim26_27Arr = o.months.map((m, i) => {
-      if (i < 11) return null;
-      if (i === 11) return (D.primary.monthly_fy25 || [])[11] ?? null;
-      if (i < 24) return (D.primary.monthly_fy26 || [])[i - 12] ?? null;
-      return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
-    });
+    // Primary Sales Trend: show whatever FYs are available
+    const has_fy25 = (D.primary.monthly_fy25 || []).some(v => v);
+    const has_fy26 = (D.primary.monthly_fy26 || []).some(v => v);
 
-    const lc = mkLine('chanPrimTrend',o.months,[
-      {label:'Primary FY25',data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
-      {label:'Primary FY26-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
-    ]);
-    channelDynamicsState.charts.trend=lc;
+    let trendMonths = o.months, trendSeries = [];
+
+    if (has_fy25) {
+      // Full 24-month window: FY25 (months 0-11) + FY26-27 (months 12-23)
+      const _prim25Arr = o.months.map((m, i) => i < 12 ? ((D.primary.monthly_fy25 || [])[i] || null) : null);
+      const _prim26_27Arr = o.months.map((m, i) => {
+        if (i < 12) return null;
+        if (i < 24) return (D.primary.monthly_fy26 || [])[i - 12] ?? null;
+        return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
+      });
+      trendSeries = [
+        {label:'Primary FY25',data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
+        {label:'Primary FY26-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
+      ];
+    } else if (has_fy26) {
+      // Only FY26-27: 12 months from positions 12-23 of the calendar, or rebase to 0-11
+      // Show as a clean 12-month trend without the FY25 gap
+      const _prim26Arr = (D.primary.monthly_fy26 || []);
+      const _prim27Arr = (D.primary.monthly_fy27 || []).map(v => v);
+      const m26 = _prim26Arr.length ? _prim26Arr : [];
+      const m27 = _prim27Arr.length ? _prim27Arr : [];
+      // Rebase months for FY26-27 only (Apr-Mar calendar order)
+      trendMonths = (D.primary.months_fy26 || []).concat(D.primary.months_fy27 || []).slice(0, 12);
+      trendSeries = [
+        {label:'FY26 (Apr-25 to Mar-26)',data:m26,borderColor:C.teal,backgroundColor:C.teal+'22'},
+        {label:'FY27 (Actuals to date)',data:m27,borderColor:C.amber,backgroundColor:C.amber+'22'},
+      ];
+    } else {
+      // No primary data available
+      const emptyMsg = '<p class="lead">Primary sales data not available for this period.</p>';
+      content.innerHTML += card('Primary Sales Trend','No data', emptyMsg);
+    }
+
+    if (trendSeries.length > 0) {
+      const lc = mkLine('chanPrimTrend', trendMonths, trendSeries);
+      channelDynamicsState.charts.trend = lc;
+    }
 
     const dc = mkDonut('chanChanSplit',validChannels.map(c=>c.name),validChannels.map(c=>c[primYr]),true);
     channelDynamicsState.charts.channel=dc;
