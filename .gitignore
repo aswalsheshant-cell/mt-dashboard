@@ -30,3 +30,6 @@ unpacked_enriched/
 playwright.config.js
 test_sprint6_e2e_local.js
 test-results/
+
+# GitHub Pages build output (Jekyll)
+_site/
