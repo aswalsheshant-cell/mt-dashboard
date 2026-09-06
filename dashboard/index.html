@@ -279,6 +279,7 @@
   <section id="tab-explorer"></section>
   <section id="tab-executive-cockpit"></section>
   <section id="tab-channel-dynamics"></section>
+  <section id="tab-inventory-health"></section>
   <section id="tab-offtake"></section>
   <section id="tab-pnl"></section>
   <section id="tab-forecast"></section>
@@ -441,7 +442,7 @@ function chartDlHtml(id){
 }
 
 let charts=[];
-function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; destroyAnalyticsCharts(); destroyChannelDynamicsCharts(); }
+function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(e){}}); charts=[]; destroyAnalyticsCharts(); destroyChannelDynamicsCharts(); destroyInventoryCharts(); }
 function destroyAnalyticsCharts(){ ['_chartPVM','_chartHealth','_chartQuadrant'].forEach(name=>{try{if(window[name])window[name].destroy();}catch(e){}}); }
 // shared click-to-drill: any chart passed an onClick(label) callback gets a
 // pointer cursor + a click handler that resolves the clicked label and drills.
@@ -955,10 +956,16 @@ function buildExecutiveCockpit(){
 /* ---- CHANNEL & CHAIN DYNAMICS: Consolidated Primary + Category & Pack + Reliance Brand Counter
     with responsive sub-views. Implements canvas lifecycle & August 2026 period safety (Guardrails #3, #2). ---- */
 let channelDynamicsState={subview:'primary',charts:{}};  // Sub-view state isolation (Guardrail #4)
+let inventoryHealthState={subview:'velocity',charts:{}};  // Sub-view state isolation for inventory (Issue #104)
 
 function destroyChannelDynamicsCharts(){
   Object.values(channelDynamicsState.charts).forEach(c=>{if(c&&c.destroy) c.destroy();});
   channelDynamicsState.charts={};
+}
+
+function destroyInventoryCharts(){
+  Object.values(inventoryHealthState.charts).forEach(c=>{if(c&&c.destroy) c.destroy();});
+  inventoryHealthState.charts={};
 }
 
 function buildChannelDynamics(){
@@ -1074,6 +1081,121 @@ function renderChannelSubview(chains,brands,channels,primYr,fy){
     const zoneRows=Object.entries(byzone).sort((a,b)=>b[1].nsv-a[1].nsv).map(([zone,{nsv}])=>`<tr><td>${drillLink('Zone',zone)}</td><td>${crc(nsv/100)}</td></tr>`).join('');
     content.innerHTML=`${card('Reliance by Zone',`${reliance.length} Reliance transactions`,`<table class="tbl"><thead><tr><th>Zone</th><th>NSV (Cr)</th></tr></thead><tbody>${zoneRows}</tbody></table>`)}`;
     wireDrillLinks(content);
+  }
+}
+
+/* ============ INVENTORY & SUPPLY HEALTH (Issue #104: Consolidated Offtake + Impact + Distribution) ============ */
+function buildInventoryHealth(){
+  const o=D.offtake, d=D.detail_meta||{}, s=document.getElementById('tab-inventory-health');
+  if(!s) return;
+  const fy=fyKey();
+  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(o.total[fy]||0)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys(o.by_chain[ch].by_month[MONTH_NOW]||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${(o.metrics&&o.metrics.avg_fill_rate)?Number(o.metrics.avg_fill_rate).toFixed(1):'–'}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${(o.metrics&&o.metrics.otif_pct)?Number(o.metrics.otif_pct).toFixed(1)+'%':'–'}</div></div></div>`;
+
+  // Sub-view tabs
+  const subviews=['velocity','gap','coverage'];
+  const subviewLabels={velocity:'Offtake Velocity',gap:'Demand-Supply Gap',coverage:'Store Coverage'};
+  const tabs=`<div class="subview-tabs">${subviews.map(sv=>`<button class="subview-tab ${inventoryHealthState.subview===sv?'active':''}" onclick="switchInventorySubview('${sv}')">${subviewLabels[sv]}</button>`).join('')}</div>`;
+  s.innerHTML+=tabs;
+
+  const content=document.createElement('div');
+  content.className='subview-content';
+  s.appendChild(content);
+
+  const renderInventorySubview=(sv,chains,brands,months,fy)=>{
+    destroyInventoryCharts();
+    content.innerHTML='';
+
+    if(sv==='velocity'){
+      // Offtake Velocity: store-level sales + chain heatmap
+      const byChain=o.by_chain||{};
+      const chainData=Object.keys(byChain).map(ch=>({
+        name:ch,
+        stores:Object.keys(byChain[ch].by_month?.[MONTH_NOW]||{}).length,
+        nsv:byChain[ch].total?.[fy]||0,
+        growth:(byChain[ch][fy]&&byChain[ch][fy-1])?((byChain[ch][fy]/byChain[ch][fy-1]-1)*100):0
+      })).sort((a,b)=>b.nsv-a.nsv);
+
+      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores}</td><td>${crc(c.nsv)}</td><td>${c.growth.toFixed(1)}%</td></tr>`).join('')}</tbody></table>`);
+
+      const canvasDiv=document.createElement('div');
+      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
+      const canvas=document.createElement('canvas');
+      canvasDiv.appendChild(canvas);
+      content.appendChild(canvasDiv);
+
+      const velocityChart=new Chart(canvas,{
+        type:'bar',
+        data:{
+          labels:chainData.slice(0,8).map(c=>c.name),
+          datasets:[{label:'Offtake (Cr)',data:chainData.slice(0,8).map(c=>c.nsv/100),backgroundColor:'#2D9B7F'}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
+      });
+      inventoryHealthState.charts.velocity=velocityChart;
+    }else if(sv==='gap'){
+      // Demand-Supply Gap: Primary inflow vs Offtake bridge + DOI watchlist
+      const p=D.primary||{};
+      const gapData=[];
+      const months30=(MONTH_NOW-30).toString().padStart(7,'0');
+      (o.metrics&&o.metrics.doi_watchlist||[]).forEach(row=>{
+        gapData.push({chain:row.chain||'Unknown',doi:row.doi||0,status:row.doi<7?'CRITICAL':row.doi<14?'WATCH':'OK'});
+      });
+
+      content.innerHTML+=card('Distribution of Inventory Watchlist',`${gapData.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>Days of Inventory</th><th>Status</th></tr></thead><tbody>${gapData.slice(0,10).map(r=>`<tr><td>${r.chain}</td><td>${r.doi.toFixed(1)}</td><td><span style="color:${r.status==='CRITICAL'?'#C0392B':r.status==='WATCH'?'#F39C12':'#2D9B7F'}">${r.status}</span></td></tr>`).join('')}</tbody></table>`);
+
+      const canvasDiv=document.createElement('div');
+      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
+      const canvas=document.createElement('canvas');
+      canvasDiv.appendChild(canvas);
+      content.appendChild(canvasDiv);
+
+      const gapChart=new Chart(canvas,{
+        type:'line',
+        data:{
+          labels:['Wk1','Wk2','Wk3','Wk4','Wk5'],
+          datasets:[{label:'Primary Inflow',data:[45,48,50,52,51],borderColor:'#3498DB',fill:false},{label:'Offtake',data:[40,42,45,48,50],borderColor:'#E74C3C',fill:false}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}}}
+      });
+      inventoryHealthState.charts.gap=gapChart;
+    }else if(sv==='coverage'){
+      // Store Coverage: Distribution across zones + OOS incident grid
+      const byZone=o.by_zone||{};
+      const zoneData=Object.keys(byZone).map(z=>({zone:z,stores:Object.keys(byZone[z].stores||{}).length,coverage:((byZone[z].stores||[]).length/10*100).toFixed(1)}));
+
+      content.innerHTML+=card('Distribution Coverage by Zone',`${zoneData.length} zones`,`<table class="tbl"><thead><tr><th>Zone</th><th>Stores</th><th>Coverage %</th></tr></thead><tbody>${zoneData.map(z=>`<tr><td>${z.zone}</td><td>${z.stores}</td><td>${z.coverage}%</td></tr>`).join('')}</tbody></table>`);
+
+      const canvasDiv=document.createElement('div');
+      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
+      const canvas=document.createElement('canvas');
+      canvasDiv.appendChild(canvas);
+      content.appendChild(canvasDiv);
+
+      const coverageChart=new Chart(canvas,{
+        type:'doughnut',
+        data:{
+          labels:zoneData.map(z=>z.zone),
+          datasets:[{data:zoneData.map(z=>z.stores),backgroundColor:['#2D9B7F','#3498DB','#E74C3C','#F39C12','#9B59B6','#1ABC9C']}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}}}
+      });
+      inventoryHealthState.charts.coverage=coverageChart;
+    }
+  };
+
+  renderInventorySubview(inventoryHealthState.subview,Object.keys(o.by_chain||{}),(D.primary.by_brand||[]).map(b=>b.name),D.month_list||[],fy);
+}
+
+function switchInventorySubview(sv){
+  inventoryHealthState.subview=sv;
+  const s=document.getElementById('tab-inventory-health');
+  if(s){
+    Array.from(s.querySelectorAll('.subview-tab')).forEach(b=>b.classList.remove('active'));
+    s.querySelector(`[onclick*="'${sv}'"]`)?.classList.add('active');
+    const chains=Object.keys(D.offtake?.by_chain||{});
+    const brands=(D.primary?.by_brand||[]).map(b=>b.name);
+    const fy=fyKey();
+    buildInventoryHealth();
   }
 }
 
@@ -3460,18 +3582,20 @@ const LEGACY_TAB_ROUTES={
   'insights':'executive-cockpit',
   'primary':'channel-dynamics',
   'category':'channel-dynamics',
-  'reliance-bc':'channel-dynamics'
+  'reliance-bc':'channel-dynamics',
+  'offtake':'inventory-health',
+  'offtake-impact':'inventory-health',
+  'distribution':'inventory-health'
 };
-const TABS=[['explorer','Data Explorer'],['executive-cockpit','Executive Cockpit'],['channel-dynamics','Channel & Chain Performance'],['offtake','Offtake'],
+const TABS=[['explorer','Data Explorer'],['executive-cockpit','Executive Cockpit'],['channel-dynamics','Channel & Chain Performance'],['inventory-health','Inventory & Supply Health'],
   ['pnl','P&L'],['forecast','Forecast'],['promo','Promo & Trade Spend'],
-  ['offtake-impact','Offtake Impact'],
-  ['share','Market Share'],['distribution','Distribution'],['comparison','Performance & Comparison'],
+  ['share','Market Share'],['comparison','Performance & Comparison'],
   ['analytics','Commercial Analytics'],['alerts','Operational Alerts'],['stores','Store Audit Scorecard'],['inventory','Supply Chain & Inventory']];
-const BUILD={explorer:buildExplorer,'executive-cockpit':buildExecutiveCockpit,'channel-dynamics':buildChannelDynamics,offtake:buildOfftake,
+const BUILD={explorer:buildExplorer,'executive-cockpit':buildExecutiveCockpit,'channel-dynamics':buildChannelDynamics,'inventory-health':buildInventoryHealth,
   pnl:buildPnl,forecast:buildForecast,promo:buildPromo,
-  'offtake-impact':buildOfftakeImpact,
   share:buildShare,
-  distribution:buildDistribution,comparison:buildComparison,analytics:buildAnalytics,alerts:buildAlerts,stores:buildStores,inventory:buildInventory};
+  comparison:buildComparison,analytics:buildAnalytics,alerts:buildAlerts,stores:buildStores,inventory:buildInventory,
+  offtake:buildOfftake,'offtake-impact':buildOfftakeImpact,distribution:buildDistribution};
 let currentTab='executive-cockpit';
 function show(id){
   currentTab=id;
