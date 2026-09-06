@@ -54,6 +54,42 @@ dashboard, not a completely different product**.
 
 ---
 
+## RELIANCE BRAND COUNTER DEDUPLICATION SAFEGUARD (Critical Data Boundary)
+
+**Scope Boundary: Offtake Sales Only — Never Apply to Primary Sales**
+
+The Reliance Brand Counter isolation (~350 staffed doors) is a **deduplication control
+that applies STRICTLY to Offtake Sales only**. It must NEVER be applied to Primary Sales.
+
+### Why This Matters
+- **Primary Sales** = Factory/depot billing to Reliance Retail accounts/distributors
+  - Reflects gross channel NSV (₹32,900.36L baseline)
+  - No "manned counter" billing streams exist at primary level
+  - Filtering/deducting counter data here artificially suppresses gross NSV
+  - **Action: Aggregate ALL Reliance invoices without exclusions**
+
+- **Offtake Sales** = Point-of-sale data from stores
+  - Total Reliance macro numbers already subsume counter sales
+  - Staffed counter POS data causes duplicate counting if merged into primary offtake
+  - **Action: Partition Brand Counters (`source_type != 'RELIANCE_BA_COUNTER'`) in offtake transforms only**
+
+### Pipeline Enforcement
+```
+scripts/build_dashboard_data.py:
+  • load_primary_v2()        → Aggregate ALL Reliance (no counter isolation)
+  • build_offtake_block()    → Filter Brand Counters (isolation active)
+  • DASH.reliance_brand_counters → Staffed counter data routed here for audit
+```
+
+### Baseline Protection
+- Gross Primary NSV = ₹32,900.36L (all Reliance invoices included)
+- Offtake deduplication never retroactively modifies this baseline
+- Counter isolation is a **read-only partition for operational reporting**, not a data reduction
+
+**Never modify Primary Sales to exclude Reliance Brand Counter data.**
+
+---
+
 ## THE ONE FY RULE (Indian financial year, Apr–Mar)
 
 Every report derives FY from month + year, **never** from a fixed index/column
