@@ -20,6 +20,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
+import sys
 import argparse, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
 
@@ -1674,6 +1675,229 @@ def promo_block(src):
     out["by_category"] = sorted([{"name": k, "promos": int(len(d))} for k, d in gc if k and k != "nan"],
                                 key=lambda d: -d["promos"])[:8]
     return p, out
+
+
+# --------------------------------------------------------------------------
+# OFFTAKE v2 -- folder-of-months chain extracts
+#
+# Layout: <src>/offtake_fy26/<Mon'YY>/<Chain>.csv, one CSV per chain per month.
+#
+# Two things make a naive read wrong, both found the hard way:
+#
+#  1. ROW WIDTH VARIES WITHIN A FILE. Reliance.csv has a 29-field header but
+#     also carries 30-field rows (an extra leading field), so a DictReader
+#     silently shifts every column: "NSV" then reads the Margin column and the
+#     file's total inflates ~15x. Rows are indexed against the header with an
+#     offset of len(row) - len(header).
+#
+#  2. RELIANCE BRAND COUNTER IS INSIDE THE SAME FILE. The 30-field rows are the
+#     staffed-counter doors (Source_Tab "Reliance_Brand_Counter", Store Type
+#     "Brand Counter"); the 29-field rows are the macro figure
+#     ("Reliance_Non_Brand_Counter"). Per CLAUDE.md the macro number already
+#     subsumes counter sales, so counting both double-counts Reliance. Counters
+#     are partitioned out of offtake and returned separately for the BC block.
+#
+# Verified against the business's own anchors: offtake FY26 ex-counter comes to
+# Rs 311.20 Cr against a stated Rs 311.28 Cr (-0.026%), and the partitioned
+# counter total comes to Rs 45.62 Cr, matching reliance_bc.total_fy26 exactly.
+# NSV in these extracts is already INR Lakh (MRP Sales Value / 1.18 * (1 -
+# Margin) / 1e5 reproduces it in both layouts).
+# --------------------------------------------------------------------------
+_OFFTAKE_V2_DIRS = ("offtake_fy26", "offtake", "Offtake")
+
+def _mon_folder_to_label(name):
+    """\"Apr'25\" -> \"Apr-25\"; returns None for anything that is not a month."""
+    m = re.match(r"([A-Za-z]{3})'?-?(\d{2})$", str(name).strip())
+    if not m:
+        return None
+    mon = m.group(1).title()
+    return f"{mon}-{m.group(2)}" if mon in _MON3_NUM else None
+
+def load_offtake_month_folders(src):
+    """Read <src>/<offtake dir>/<Mon'YY>/*.csv.
+
+    Returns (offtake, counters) where each is
+        {month_label: {"total": L, "chain": {...}, "zone": {...}, "brand": {...}}}
+    Both {} when no such folder exists, so callers can fall back."""
+    root = None
+    for d in _OFFTAKE_V2_DIRS:
+        p = src / d
+        if p.is_dir() and any(_mon_folder_to_label(x.name) for x in p.iterdir() if x.is_dir()):
+            root = p
+            break
+    if root is None:
+        return {}, {}
+
+    csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
+    off, ctr = {}, {}
+    for mdir in sorted(root.iterdir()):
+        if not mdir.is_dir():
+            continue
+        lab = _mon_folder_to_label(mdir.name)
+        if not lab:
+            continue
+        o = off.setdefault(lab, {"total": 0.0, "chain": {}, "zone": {}, "brand": {}})
+        c = ctr.setdefault(lab, {"total": 0.0, "chain": {}, "zone": {}, "brand": {}})
+        for fp in sorted(mdir.glob("*.csv")):
+            with open(fp, newline="", encoding="utf-8", errors="replace") as fh:
+                rd = csv.reader(fh)
+                hdr = next(rd, None)
+                if not hdr:
+                    continue
+                H = len(hdr)
+                ix = {n: (hdr.index(n) if n in hdr else -1) for n in
+                      ("NSV", "Source_Tab", "Chain Name", "Zone", "Brand", "Store Type")}
+                if ix["NSV"] < 0:
+                    continue
+                for row in rd:
+                    shift = len(row) - H          # >0 => extra leading field(s)
+                    def g(i):
+                        if i < 0:
+                            return ""
+                        j = i - shift if shift > 0 else i
+                        return row[j] if 0 <= j < len(row) else ""
+                    try:
+                        v = float(g(ix["NSV"]) or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    src_tab = (g(ix["Source_Tab"]) or "").strip()
+                    stype = (g(ix["Store Type"]) or "").strip()
+                    bucket = c if (src_tab == "Reliance_Brand_Counter"
+                                   or stype.lower() == "brand counter") else o
+                    ch = canon_chain((g(ix["Chain Name"]) or "").strip())
+                    zn = canon_zone((g(ix["Zone"]) or "").strip())
+                    br = canon_brand((g(ix["Brand"]) or "").strip())
+                    bucket["total"] += v
+                    if ch: bucket["chain"][ch] = bucket["chain"].get(ch, 0.0) + v
+                    if zn: bucket["zone"][zn] = bucket["zone"].get(zn, 0.0) + v
+                    if br: bucket["brand"][br] = bucket["brand"].get(br, 0.0) + v
+    return off, ctr
+
+def load_fy25_secondary(src):
+    """Distributor secondary for FY25 (Apr-24..Mar-25), already chain-mapped by
+    the business in its 'Chain Mapping' column -- no allocation model needed.
+
+    NOTE ON MEASURE: this is SECONDARY (distributor -> retailer), not offtake
+    (store -> consumer). It is the only FY25 series available, so it is carried
+    as the prior-year reference, but under keys that name it as secondary so no
+    caller can mistake it for like-for-like offtake."""
+    cand = sorted(src.glob("Distributor_secondary_*.csv")) + sorted(src.glob("*Distributor_secondary*.csv"))
+    if not cand:
+        return {}
+    out = {}
+    with open(cand[0], newline="", encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            lab = (row.get("Revised month") or "").strip()          # e.g. "Apr-24"
+            if not fy_tag_from_label(lab):
+                continue
+            try:
+                v = float(row.get("NSV") or 0)
+            except (TypeError, ValueError):
+                continue
+            m = out.setdefault(lab, {"total": 0.0, "chain": {}, "zone": {}, "brand": {}})
+            ch = canon_chain((row.get("Chain Mapping") or row.get("Chain Name") or "").strip())
+            zn = canon_zone((row.get("Zone") or "").strip())
+            br = canon_brand((row.get("Brand") or "").strip())
+            m["total"] += v
+            if ch: m["chain"][ch] = m["chain"].get(ch, 0.0) + v
+            if zn: m["zone"][zn] = m["zone"].get(zn, 0.0) + v
+            if br: m["brand"][br] = m["brand"].get(br, 0.0) + v
+    return out
+
+
+def offtake_rebuild_block(prev, off_m, ctr_m, sec_m):
+    """Build a COMPLETE offtake block from the month-folder extracts, replacing
+    the stale one rather than patching it.
+
+    The shipped block had three independent defects, which is why this rebuilds
+    instead of patching: months_fy26 held 8 of 12 months (Apr-25..Jul-25 were
+    assigned to no FY at all), total_fy26 matched neither the 8- nor the
+    12-month sum, and `monthly` carried PRIMARY values rather than offtake.
+    Every key below is derived from one labelled month series, so the parts
+    cannot drift apart again. Keys this function does not own (metrics, doi,
+    otif, ...) are carried over from `prev` untouched."""
+    out = dict(prev or {})
+    months = sorted(off_m, key=lambda l: (int(l.split("-")[1]), _MON3_NUM[l.split("-")[0]]))
+    out["months"] = months
+    out["monthly"] = [r2(off_m[m]["total"]) for m in months]
+
+    tags = sorted({fy_tag_from_label(m) for m in months if fy_tag_from_label(m)}, key=fy_start_year)
+    out["fy_tags"] = [t.lower() for t in tags]
+    for t in tags:
+        lo = t.lower()
+        ms = [m for m in months if fy_tag_from_label(m) == t]
+        out[f"months_{lo}"] = ms
+        out[f"monthly_{lo}"] = [r2(off_m[m]["total"]) for m in ms]
+        out[f"total_{lo}"] = r2(sum(off_m[m]["total"] for m in ms))
+    out["total"] = r2(sum(off_m[m]["total"] for m in months))
+
+    # FY25 prior-year reference. SECONDARY, not offtake -- named so throughout.
+    sec_tags = sorted({fy_tag_from_label(m) for m in sec_m if fy_tag_from_label(m)}, key=fy_start_year)
+    for t in sec_tags:
+        lo = t.lower()
+        ms = sorted([m for m in sec_m if fy_tag_from_label(m) == t],
+                    key=lambda l: (int(l.split("-")[1]), _MON3_NUM[l.split("-")[0]]))
+        out[f"secondary_months_{lo}"] = ms
+        out[f"secondary_monthly_{lo}"] = [r2(sec_m[m]["total"]) for m in ms]
+        out[f"secondary_total_{lo}"] = r2(sum(sec_m[m]["total"] for m in ms))
+    out["prior_year_basis"] = (
+        "FY25 figures are DISTRIBUTOR SECONDARY (distributor -> retailer), the only "
+        "FY25 series available; FY26 is true offtake (store -> consumer). They sit at "
+        "different points in the value chain, so any FY26-vs-FY25 movement shown here "
+        "is indicative, not like-for-like." if sec_tags else None)
+
+    def dim_rows(key):
+        names = {n for m in months for n in off_m[m][key]}
+        names |= {n for m in sec_m for n in sec_m[m][key]}
+        rows = []
+        for n in names:
+            row = {"name": n}
+            for t in tags:
+                lo = t.lower()
+                row[lo] = r2(sum(off_m[m][key].get(n, 0.0)
+                                 for m in months if fy_tag_from_label(m) == t))
+            row["value"] = r2(sum(off_m[m][key].get(n, 0.0) for m in months))
+            for t in sec_tags:
+                row[f"secondary_{t.lower()}"] = r2(sum(sec_m[m][key].get(n, 0.0) for m in sec_m))
+            rows.append(row)
+        return sorted(rows, key=lambda d: -(d.get("value") or 0))
+
+    # Stale FY keys from an earlier generation must not survive. The previous
+    # block carried total_fy27 = 15,054 L whose own monthly_fy27 summed to
+    # 13,220 L, plus months_fy25/monthly_fy25 with no total at all -- all from
+    # the same patch that produced the 8-month FY26 window. Any FY the current
+    # source does not cover is dropped rather than left to drift.
+    _live = {t.lower() for t in tags}
+    for _k in [k for k in list(out)
+               if re.match(r"^(total|monthly|months|conversion_rates)_fy\d\d$", k)]:
+        if _k.rsplit("_", 1)[1] not in _live:
+            out.pop(_k, None)
+
+    out["by_chain"] = dim_rows("chain")
+    out["by_zone"] = dim_rows("zone")
+    out["by_brand"] = dim_rows("brand")
+    out["n_chains"] = len([r for r in out["by_chain"] if (r.get("value") or 0) > 0])
+    out["provenance"] = (
+        f"Rebuilt from {len(months)} monthly store x article extracts "
+        f"({months[0]}..{months[-1]}). Reliance Brand Counter partitioned out per the "
+        "CLAUDE.md dedup rule (macro already subsumes counter sales). NSV in INR Lakh.")
+
+    bc = None
+    if ctr_m:
+        bmonths = sorted(ctr_m, key=lambda l: (int(l.split("-")[1]), _MON3_NUM[l.split("-")[0]]))
+        bc = {"is_brand_counter": True, "include_in_overall_offtake": False,
+              "months": bmonths, "monthly": [r2(ctr_m[m]["total"]) for m in bmonths],
+              "total": r2(sum(ctr_m[m]["total"] for m in bmonths)),
+              "note": "Reliance staffed-counter doors, held OUT of offtake to avoid "
+                      "double counting against the Reliance macro figure."}
+        for t in sorted({fy_tag_from_label(m) for m in bmonths if fy_tag_from_label(m)},
+                        key=fy_start_year):
+            lo = t.lower()
+            ms = [m for m in bmonths if fy_tag_from_label(m) == t]
+            bc[f"months_{lo}"] = ms
+            bc[f"monthly_{lo}"] = [r2(ctr_m[m]["total"]) for m in ms]
+            bc[f"total_{lo}"] = r2(sum(ctr_m[m]["total"] for m in ms))
+    return out, bc
 
 # --------------------------------------------------------------------------
 # TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %)
@@ -3888,6 +4112,10 @@ def main():
                          "FY2627_TGT_and_sales_team_mapping.xlsb (real TY/FY26-27 target, replaces "
                          "the seasonally-projected estimate); reuses the existing offtake block "
                          "already in data.js for FY24-26 history")
+    ap.add_argument("--offtake-rebuild", action="store_true",
+                    help="rebuild the offtake block wholesale from <src>/offtake_fy26/<Mon'YY>/*.csv "
+                         "month folders (+ optional FY25 distributor secondary), replacing the "
+                         "stored block instead of patching it")
     ap.add_argument("--offtake-patch", action="store_true",
                     help="merge NEW monthly store x article offtake extracts (.xlsb, one workbook "
                          "per calendar month -- put ALL months collected so far in --src, not just "
@@ -4052,6 +4280,59 @@ def main():
         return
 
     # ---- lightweight path: merge new monthly article-level offtake extracts ----
+    # ---- rebuild the offtake block wholesale from month-folder extracts ----
+    if a.offtake_rebuild:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        off_m, ctr_m = load_offtake_month_folders(src)
+        if not off_m:
+            raise SystemExit(
+                f"No offtake month folders under {src}.\n"
+                f"  Expected <src>/offtake_fy26/<Mon'YY>/<Chain>.csv "
+                f"(e.g. offtake_fy26/Apr'25/Dmart.csv).")
+        sec_m = load_fy25_secondary(src)
+        new_off, bc = offtake_rebuild_block(obj.get("offtake") or {}, off_m, ctr_m, sec_m)
+        obj["offtake"] = new_off
+        if bc:
+            obj["reliance_bc"] = {**(obj.get("reliance_bc") or {}), **bc}
+
+        # Re-derive the forecast baseline off the rebuilt series. It had been
+        # left at 22,703 L -- the old 8-month Aug-25..Mar-26 window -- and shown
+        # as full-year FY26 against primary's Rs 329.00 Cr for the same year.
+        # The TY target itself (fy27_forecast, from FY2627_Targets.csv) is real
+        # and is kept; only the baseline and the growth it implies are recomputed.
+        _fc = obj.get("forecast")
+        if _fc:
+            _bt = (_fc.get("base_fy_tag") or "").lower()
+            _new_base = new_off.get("total_" + _bt)
+            if _new_base:
+                _old = _fc.get("fy26_actual")
+                _fc["fy26_actual"] = _new_base
+                _tt = _fc.get("fy27_forecast")
+                _fc["growth_assumption_pct"] = (
+                    r2((_tt / _new_base - 1) * 100, 1) if _tt and _new_base else None)
+                print(f"  forecast baseline ({_bt}): {_old} -> {_new_base} Lakh "
+                      f"(now the full {len(new_off.get('months_'+_bt) or [])}-month window)")
+
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        print(f"offtake-rebuild: {len(new_off['months'])} months "
+              f"{new_off['months'][0]}..{new_off['months'][-1]}")
+        for t in new_off["fy_tags"]:
+            print(f"  total_{t} = {new_off.get('total_'+t)} Lakh "
+                  f"(Rs {(new_off.get('total_'+t) or 0)/100:.2f} Cr) "
+                  f"over {len(new_off.get('months_'+t) or [])} months")
+        for k in sorted(k for k in new_off if k.startswith("secondary_total_")):
+            print(f"  {k} = {new_off[k]} Lakh (Rs {new_off[k]/100:.2f} Cr) -- SECONDARY, not offtake")
+        if bc:
+            print(f"  reliance_bc total = {bc['total']} Lakh (Rs {bc['total']/100:.2f} Cr), "
+                  f"held OUT of offtake")
+        print(f"  chains={new_off['n_chains']} zones={len(new_off['by_zone'])}")
+        return
+
     if a.offtake_patch:
         outp = Path(a.out)
         txt = outp.read_text()
