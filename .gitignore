@@ -39,3 +39,12 @@ mt-dashboard-backup-*.zip
 
 # generated leadership decks (rebuild with scripts/build_mt_july26_audit_deck.py)
 MT_July26_Offtake_Audit_Nielsen.pptx
+
+# Raw monthly source drops — 875 MB of store x article extracts, staged for
+# scripts/build_dashboard_data.py. Kept on disk, never committed (same rule as
+# the PowerBI/RawDataFolders sources above). The small derived aggregate IS
+# tracked: the July'26 audit deck cites it for the Jul'25 and FY26 series.
+data/raw_drops/*
+!data/raw_drops/_agg/
+data/raw_drops/_agg/*
+!data/raw_drops/_agg/*.json
