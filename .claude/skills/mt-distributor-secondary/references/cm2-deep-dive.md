@@ -20,7 +20,7 @@ def load_hierarchy(path=HIER):
     """Rows with NSV in Lakh, computed from the rupee column.
 
     - latin-1: the file carries non-UTF8 bytes
-    - sum NSV_Value (rupees), never NSV_Lakh (rounded to 2dp, loses Rs 7.59 L)
+    - sums NSV_Value (rupees); NSV_Lakh is rounded to 2dp and loses Rs 7.59 L
     - EAN carries a leading apostrophe from Excel
     """
     out = []
@@ -46,7 +46,7 @@ print(f"{len(rows):,} rows, Rs {sum(r['nsv_l'] for r in rows):,.2f} L")
 # 28,537 rows, Rs 4,281.34 L
 ```
 
-**Do not** use the `Chain_TOT_Pct` / `Brand_TOT_Pct` columns. 93% and 95% of rows
+Skip the `Chain_TOT_Pct` / `Brand_TOT_Pct` columns. 93% and 95% of rows
 respectively disagree with the totals in their own row. Recompute:
 
 ```python
@@ -66,8 +66,8 @@ chain_share = shares(rows, ["month", "dist"], "chain")
 
 Verified on Apr–Jul'26: **72 of 77** distributor-months sum to exactly 100%. The other
 five sum to 0 because the distributor's whole month is ₹0.00 — the guard returns 0
-rather than dividing by zero, which is correct. Do not treat those as errors, but do
-exclude them from any share-weighted allocation:
+rather than dividing by zero, which is correct. They are not errors, but they are worth
+excluding from a share-weighted allocation:
 
 | Distributor-month with ₹0 NSV | |
 |---|---|
@@ -94,8 +94,8 @@ by_d_c_br  = rollup(rows, ["dist", "chain", "brand"])            # -> brand
 by_article = rollup(rows, ["dist", "chain", "brand", "ean"])     # -> article
 ```
 
-Assert before you attribute — a level that does not tie means the level below is
-incomplete and any CM2 on it is understated:
+Worth asserting before attributing — a level that does not tie means the level below is
+incomplete, and CM2 on it comes out understated:
 
 ```python
 assert abs(sum(by_dist.values()) - sum(by_article.values())) < 0.01
@@ -124,7 +124,7 @@ def cm2(nsv_l, expense_l):
 ```
 
 **Allocating a distributor-level claim down to article** — legitimate, but the result is
-allocated, not actual, and must be labelled that way on any output:
+allocated rather than actual, and reads best labelled that way on the output:
 
 ```python
 def allocate_expense(rows, dist_expense, month):
@@ -146,11 +146,11 @@ def allocate_expense(rows, dist_expense, month):
     return out
 ```
 
-Rules that keep the number defensible:
+What keeps the number defensible:
 
 - Name the NSV basis on every CM2 figure — secondary and primary NSV give different
   CM2 for the same expense.
-- Never carry an expense across pillars. A claim settled against distributor billing
+- Expense stays with its own measure. A claim settled against distributor billing
   belongs on secondary NSV, not on offtake.
 - Where a claim is settled at distributor level and you report at article level, the
   article CM2 is an allocation. Say so in the column header, not a footnote.
@@ -170,8 +170,8 @@ FY25 secondary (`data/raw_drops/Distributor_secondary_FY25_Apr24_Mar25.csv`) has
 | **CM2 by article / EAN** | **No — not in the data** | Yes |
 
 Any FY25 article-level split is modelled. `Primary_Article_Synthesized_FY25.csv` did
-exactly this with a Pareto fallback on 54,328 of 67,545 rows — do not reuse it as if it
-were measured.
+exactly this with a Pareto fallback on 54,328 of 67,545 rows, so it does not stand in
+for measured data.
 
 FY25 loading gotchas:
 
@@ -179,13 +179,13 @@ FY25 loading gotchas:
 # Channel column has a TRAILING SPACE in the header
 channel = r["Channel "].strip()          # 'MT' or 'EB2B'
 
-# MT-only work must filter, or the number is 7% high:
+# MT-only work needs this filter, or the number runs 7% high:
 #   MT   Rs 21,723.43 L
 #   EB2B Rs  1,608.93 L
 #   ----------------------
 #   all  Rs 23,332.36 L
 
-# Chhattisgarh is spelled "Chattishgarh". Match variants, never exact equality.
+# Chhattisgarh is spelled "Chattishgarh" here. Match variants, not exact equality.
 CENTRAL = {"madhya pradesh", "chattishgarh", "chhattisgarh", "maharashtra-vidarbha"}
 # Central = Rs 1,052.77 L (4.51%). Exact-match on the correct spelling gives
 # Rs 756.15 L and raises no error.
@@ -195,7 +195,7 @@ CENTRAL = {"madhya pradesh", "chattishgarh", "chhattisgarh", "maharashtra-vidarb
 
 ## 5. Pre-publication checklist
 
-- [ ] Pillar named on the artifact: Primary / **Secondary** / Offtake
+- [ ] Measure named on the artifact: Primary / **Distributor Secondary** / Offtake
 - [ ] NSV summed from `NSV_Value`/1e5, not `NSV_Lakh`
 - [ ] Shares recomputed, not read from `*_TOT_Pct`
 - [ ] Units reconciled — the file mixes rupees and lakh in one row
@@ -203,4 +203,4 @@ CENTRAL = {"madhya pradesh", "chattishgarh", "chhattisgarh", "maharashtra-vidarb
 - [ ] Allocated expense labelled ALLOCATED
 - [ ] CM2 % suppressed where NSV ≤ 0
 - [ ] Chain names via `canon_chain()`; zone re-derived from `State`
-- [ ] No cross-pillar growth % anywhere
+- [ ] No growth % spanning two different measures

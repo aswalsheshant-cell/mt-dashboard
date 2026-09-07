@@ -1,13 +1,13 @@
 ---
 name: mt-distributor-secondary
-description: Use whenever distributor secondary sell-out is involved — distributor billing, Ship-To to chain allocation, Cont% weights, distributor-to-chain-to-customer-to-article deep dives, TOT hierarchy, or CM2 built on secondary NSV. Also use whenever a number must be classified as Primary, Secondary or Offtake, when a file is labelled "primary" but may be secondary, or when a two-measure comparison (primary vs offtake, FY-on-FY) needs its basis checked. Handles the third pillar of the MT data model. Excludes pure offtake or primary questions with no secondary component and hands off to `modern-trade-sales-growth`; excludes release verdicts and hands off to `sales-data-reconciliation`.
+description: Reference for distributor secondary sell-out. Use whenever it is involved — distributor billing, Ship-To to chain allocation, Cont% weights, distributor-to-chain-to-customer-to-article deep dives, TOT hierarchy, or CM2 built on secondary NSV. Also use whenever a number needs classifying as Primary, Secondary or Offtake, when a file is labelled "primary" but may be secondary, or when a two-measure comparison (primary vs offtake, FY-on-FY) needs its basis checked. Covers distributor secondary as its own named measure alongside primary and offtake. Excludes pure offtake or primary questions with no secondary component and hands off to `modern-trade-sales-growth`; excludes release verdicts and hands off to `sales-data-reconciliation`.
 ---
 
-# Distributor Secondary — the third pillar
+# Distributor Secondary
 
-Modern Trade has **three** measurement pillars, not two. Every MT number belongs to
-exactly one of them, and the single most expensive mistake in this repo is treating a
-number from one pillar as if it came from another.
+Modern Trade is measured three ways, not two. Distributor secondary is the middle one,
+and it has often been read as a version of primary — which is where the confusion comes
+from. This is the reference for what it is, where it lives, and what it can answer.
 
 ```
 Honasa ──PRIMARY──▶ chain DC / distributor ──SECONDARY──▶ retailer store ──OFFTAKE──▶ consumer
@@ -23,16 +23,16 @@ Honasa ──PRIMARY──▶ chain DC / distributor ──SECONDARY──▶ re
 | FY26 scale | ₹32,900.36 L | — | ₹31,119.88 L |
 | Direction of error | over-states if channel is loaded | sits between the other two | under-states if a feed drops |
 
-**Secondary is not a fallback for primary.** It is its own measure, one step down the
+Secondary is not a stand-in for primary — it is its own measure, one step down the
 trade chain. It answers questions primary cannot: what the distributor actually pushed
 into each chain, and therefore what trade spend and CM2 attach to.
 
 ---
 
-## Rule 1 — Never compare across pillars without saying so
+## Comparing across the three measures
 
-A ratio between two pillars measures the **gap between the measures** at least as much
-as it measures business movement. Channel inventory, trade margin, returns and claim
+A ratio between two of these measures reflects the **gap between the measures** at least
+as much as it reflects business movement. Channel inventory, trade margin, returns and claim
 timing all sit in that gap.
 
 | Comparison | Verdict | What it actually tells you |
@@ -40,15 +40,14 @@ timing all sit in that gap.
 | Primary vs Offtake, same period | **Valid** | Channel loading / sell-through. The standard check. |
 | Secondary vs Offtake, same period | **Valid** | Distributor-served sell-through |
 | Primary vs Secondary, same period | **Valid, with care** | Distributor stock build |
-| **Secondary (year A) vs Primary (year B)** | **NEVER** | Nothing. Do not compute a growth %. |
+| **Secondary (year A) vs Primary (year B)** | Not comparable | Little — the measure gap dominates. Best shown side by side. |
 
-That last row is the FY25-vs-FY26 trap: FY25 has only secondary, FY26 has primary. Put
-them in **separate labelled columns** and state on the artifact that no growth rate is
-available. This is a real constraint, not a formatting preference.
+That last row is the FY25-vs-FY26 trap: FY25 has only secondary, FY26 has primary. Showing them in separate labelled columns, and noting that no like-for-like rate is
+available, keeps the reader out of trouble.
 
 ---
 
-## Rule 2 — The trap-file register
+## Files named "primary" that hold secondary data
 
 These files are named or columned as **primary** and are not. All four are the same
 FY25 distributor secondary data. Verified by row-level join: 7,050 of 7,150 keys match
@@ -61,21 +60,20 @@ within ₹0.05 L; totals differ by 0.03%.
 | `PowerBI/RawDataFolders/Primary_Derived_FY25/Primary_Article_Synthesized_FY25.csv` | Article-level, looks like a real extract | 54,328 of 67,545 rows are `Brand_Pareto_Assortment_Fallback` |
 | `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv` | Filename reads as FY25 | `FY Year` is **only** `FY_25-26` / `FY_26-27`. Zero FY_24-25 rows. Also runs to Jul'26, not May'26 |
 
-**There is no true FY25 primary billing anywhere in this repo.** Before quoting any
-FY25 "primary" number, check the file's `FY Year` values and its provenance. If asked
-to *derive* FY25 primary, say plainly that it cannot be derived — only requested. See
-"Requesting real FY25 primary" below.
+There is no true FY25 primary billing in this repo. Checking a file's `FY Year` values
+and provenance settles what it is. FY25 primary cannot be derived from what is here —
+it has to be requested; see "Requesting real FY25 primary" below.
 
 **Classification test — apply to any unfamiliar file:**
 1. What system emitted it? Billing → primary. DMS → secondary. POS → offtake.
-2. Does it have `Direct/Distributor`, `Ship To`, `Cont%` or `Dist chain ten`? → secondary or distributor-allocated primary.
+2. Does it have `Direct/Distributor`, `Ship To`, `Cont%` or `Dist chain ten`? → secondary, or primary that has been distributor-allocated.
 3. Does it have `Site Code`, `Store Type`, `Sales Qty`? → offtake.
-4. Does the total tie to a known pillar baseline? FY26 primary ₹32,900.36 L, FY26 offtake ₹31,119.88 L, FY25 secondary ₹23,332.36 L.
-5. A column *named* `Primary NSV` proves nothing. Rule 4 of this list beats the header.
+4. Does the total tie to a known baseline? FY26 primary ₹32,900.36 L, FY26 offtake ₹31,119.88 L, FY25 secondary ₹23,332.36 L.
+5. A column *named* `Primary NSV` proves nothing on its own — point 4 above settles it.
 
 ---
 
-## Rule 3 — Secondary grain changes by era. Know which you have.
+## Grain differs by year
 
 This asymmetry decides whether an article-level question is answerable at all.
 
@@ -88,12 +86,12 @@ FY25 columns: `Format, Ship to customer, Direct/Distributor, Chain Name, State, 
 NSV, MRP value, Brand, Revised month, Month, FY, Channel, Chain Mapping`.
 
 FY25 stops at brand. That is precisely why `Primary_Article_Synthesized_FY25.csv` had
-to invent article splits with a Pareto fallback. **Any FY25 article-level or
-category-level CM2 is modelled, not measured** — label it so, or refuse it.
+to invent article splits with a Pareto fallback. Any FY25 article-level or category-level CM2 is therefore modelled rather than
+measured, and reads best when labelled that way.
 
 ---
 
-## Rule 4 — The distributor → chain → customer → article deep dive
+## The distributor → chain → customer → article deep dive
 
 For CM2 and trade-spend work, the hierarchy file is the one to use:
 
@@ -108,29 +106,29 @@ For CM2 and trade-spend work, the hierarchy file is the one to use:
 | `Dist_Monthly_Total` | distributor total | **In rupees**, not lakh |
 | `Chain` | **customer** | Which chain the distributor served |
 | `Chain_Monthly_Total` | chain total | **In rupees** |
-| `Chain_TOT_Pct` | chain share | **Do not use — see below** |
+| `Chain_TOT_Pct` | chain share | Unreliable — recompute, see below |
 | `Brand`, `Brand_Monthly_Total` | brand | Total in rupees |
-| `Brand_TOT_Pct` | brand share | **Do not use — see below** |
+| `Brand_TOT_Pct` | brand share | Unreliable — recompute, see below |
 | `EAN`, `Article` | **article** | The CM2 denominator at SKU level |
 | `NSV_Value` | measure | **Rupees.** This is the one to sum |
 | `NSV_Lakh` | measure | Rupees / 1e5, **rounded to 2dp** |
 
 **Standard drill path:** Distributor → Chain → Brand → EAN.
 
-Three defects in this file, all verified — handle every one of them:
+Three quirks in this file, all verified. Each one changes the answer:
 
-1. **Never sum `NSV_Lakh`.** It is rounded to 2 decimals, and most rows are small, so
-   the rounding compounds. Summing it gives ₹4,273.75 L against a true ₹4,281.34 L —
-   **₹7.59 L lost**. Always `sum(NSV_Value) / 1e5`.
-2. **Never trust `Chain_TOT_Pct` or `Brand_TOT_Pct`.** They do not reconcile to the
-   totals sitting in their own rows: **93%** of rows disagree with
+1. **Sum `NSV_Value`/1e5, not `NSV_Lakh`.** `NSV_Lakh` is rounded to 2 decimals and most
+   rows are small, so the rounding compounds: summing it gives ₹4,273.75 L against a
+   true ₹4,281.34 L, **₹7.59 L short**.
+2. **`Chain_TOT_Pct` and `Brand_TOT_Pct` do not reconcile** to the totals sitting in
+   their own rows: **93%** of rows disagree with
    `Chain_Monthly_Total / Dist_Monthly_Total`, and **95%** disagree with
    `Brand_Monthly_Total / Chain_Monthly_Total`. Per distributor-month the chain
-   percentages sum to anywhere between −0.17% and 158.87%, not 100%. **Recompute every
-   share from the totals.**
+   percentages sum to anywhere between −0.17% and 158.87%, not 100%. Recomputing each
+   share from the totals avoids this.
 3. **Units are mixed inside one row.** `Dist_Monthly_Total`, `Chain_Monthly_Total`,
-   `Brand_Monthly_Total` and `NSV_Value` are rupees; `NSV_Lakh` is lakh. Convert before
-   any comparison, or the answer is out by 1e5.
+   `Brand_Monthly_Total` and `NSV_Value` are rupees; `NSV_Lakh` is lakh — a comparison
+   without converting is out by 1e5.
 
 Verify at each level that the children sum to the parent (using recomputed shares)
 before attributing anything. A level that does not sum means the level below is
@@ -141,7 +139,7 @@ and the by-distributor / by-chain / by-brand files in `SecondarySales_Monthly/`.
 
 ---
 
-## Rule 5 — CM2 on secondary
+## CM2 on secondary
 
 The repo's definition, enforced in `scripts/validate_dashboard_qc.py:158`:
 
@@ -152,14 +150,14 @@ CM2 %     = CM2 Value / NSV × 100
 
 Tolerances the QC applies: CM2 value ±₹0.01 L, CM2 % ±0.1 pp.
 
-Rules that keep a CM2 number defensible:
+Things that keep a CM2 number defensible:
 
 1. **Name the NSV basis on every CM2 figure.** Secondary NSV and primary NSV give
    different CM2 on the same expense. "CM2 47%" without a basis is unusable.
 2. **Match the grain of expense to the grain of NSV.** A distributor-level claim
    spread to EAN by `Brand_TOT_Pct` is allocated, not actual — say so.
-3. **Never carry expense across pillars.** A claim settled against distributor billing
-   belongs on secondary NSV, not on offtake.
+3. **Expense stays with its own measure.** A claim settled against distributor billing
+   sits on secondary NSV rather than on offtake.
 4. **Guard the denominator.** `NSV = 0` → CM2 % is undefined, not 0 and not 100.
    Negative NSV (net-credit months) makes CM2 % meaningless — show the value, suppress
    the percentage. FY25 has real cases: B&N −₹3.80 L, Mother Care −₹0.06 L.
@@ -169,14 +167,14 @@ Rules that keep a CM2 number defensible:
 
 ---
 
-## Rule 6 — Cont% allocation (how distributor NSV becomes chain NSV)
+## Cont% allocation — how distributor NSV becomes chain NSV
 
 Distributor rows carry a distributor name, not a chain. Attributing them to chains uses
 secondary-derived **Cont%** weights at Ship-To × Brand × Month × Chain grain
 (`scripts/build_dashboard_data.py:342` onward; logic documented in
 `PowerBI/docs/DistributorPrimaryAllocation_Logic.md`).
 
-Consequences to respect:
+Consequences worth knowing:
 
 - **A naive `groupby('Chain name')` on `primary_article_*.csv` is wrong.** For `Dist.`
   rows that column holds the *distributor* ("Kiran Trading Company", "Az Enterprises"),
@@ -187,11 +185,11 @@ Consequences to respect:
   Ship-To serves). Without it, distributor rows cannot be split at all.
 - Where a month has no approved Cont% sheet, allocation falls back to the nearest month.
   Jun'26 does this from May'26 — disclosed in `PowerBI/docs/Jun26_Provisional_Allocation.md`,
-  Finance-approved 2026-08-09. A fallback month must be labelled **PROVISIONAL**.
+  Finance-approved 2026-08-09. A fallback month reads as **PROVISIONAL**.
 
 ---
 
-## Rule 7 — Zone integrity on secondary
+## Zone handling on secondary
 
 Two defects confirmed in the FY25 secondary file. Check both before any zone cut.
 
@@ -203,28 +201,28 @@ Two defects confirmed in the FY25 secondary file. Check both before any zone cut
    **Watch the spelling:** the FY25 file writes Chhattisgarh as **"Chattishgarh"**. A
    state match on the correct spelling silently drops it and leaves Central at
    ₹756.15 L — a ₹296 L hole with no error raised. Match state names
-   case-insensitively against a spelling-variant list, never on exact equality.
+   case-insensitively against a spelling-variant list; exact equality misses it.
 2. **South-1 and South-2 are swapped** versus `ZoneStateMaster.csv`. The source puts
    Karnataka/Kerala/Tamil Nadu in South-1 and Telangana/AP in South-2; the master is the
-   reverse. About ₹376 L moves. **Pick one master, state which, and stay on it.**
+   reverse. About ₹376 L moves. Worth picking one master, saying which, and staying on it.
 
-Always re-derive zone from `State` via `canon_zone_from_state()`. Never trust a `Zone`
-column. Note also that `canon_zone()` emits `South 1` (space) while `ZoneStateMaster.csv`
+Re-deriving zone from `State` via `canon_zone_from_state()` is the reliable route; the
+`Zone` column itself varies by file. Note also that `canon_zone()` emits `South 1` (space) while `ZoneStateMaster.csv`
 and `offtake_fy26.json` use `South-1` (hyphen) — normalise before joining.
 
 ---
 
-## Rule 8 — Before publishing any secondary number
+## Worth checking before publishing a secondary number
 
-- [ ] Pillar named on the artifact: Primary / **Secondary** / Offtake
+- [ ] Measure named on the artifact: Primary / **Distributor Secondary** / Offtake
 - [ ] Unit stated (₹ Lakh vs ₹ Cr; source NSV is already Lakh in most secondary files)
-- [ ] FY derived from month via Apr–Mar, never a column position
+- [ ] FY derived from month via Apr–Mar, not a column position
 - [ ] Chain names through `canon_chain()`; zones re-derived from State
 - [ ] Total ties to source (FY25 secondary = **₹23,332.36 L**)
 - [ ] Channel split declared — FY25 is ₹21,723.43 L MT + ₹1,608.93 L EB2B. MT-only work
-      must filter `Channel`, or the number is 7% high
-- [ ] No cross-pillar growth % anywhere on the artifact
-- [ ] Allocated figures marked as allocated; provisional months marked PROVISIONAL
+      needs a `Channel` filter, or the number runs 7% high
+- [ ] No growth % spanning two different measures
+- [ ] Allocated figures shown as allocated; provisional months shown as provisional
 
 ---
 
