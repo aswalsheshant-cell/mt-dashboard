@@ -36,3 +36,6 @@ _site/
 
 # Backup archives (user-downloaded backups)
 mt-dashboard-backup-*.zip
+
+# generated leadership decks (rebuild with scripts/build_mt_july26_audit_deck.py)
+MT_July26_Offtake_Audit_Nielsen.pptx
