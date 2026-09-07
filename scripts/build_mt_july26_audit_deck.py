@@ -35,24 +35,27 @@ SRC_NIELSEN = ("Source: NielsenIQ, India Urban Modern Trade, July 2026 "
 JUL26_EX_BC = 3621.47      # raw CSV, Brand Counter excluded
 JUL26_INC_BC = 4067.28     # same file, unfiltered
 JUL26_BC = 445.81          # Reliance Brand Counter partition, 22,818 rows
-DASHJS_JUL26 = 3414.00     # what dashboard/data.js currently publishes
-FSN_PAN_INDIA = 206.64     # the dropped chain
+DASHJS_JUL26 = 3414.00     # what dashboard/data.js published BEFORE the Sep'26 fix
+FSN_PAN_INDIA = 206.64     # the chain that was dropped
 ROUNDING = 0.83            # 2-dp rounding across the six retained zones
 JUL25_EX_BC = 2199.19
+JUN26_EX_BC = 3840.46      # recovered 22-Jul-2026 commit, merged into main 07-Sep-2026
 MAY26_EX_BC = 4019.42
 APR26_EX_BC = 3588.51
 
-# chain: (Jul'26, share %, Jul'25, YoY %, May'26, vs May %)
+# chain: (Jul'26, share %, Jul'25, YoY %, Jun'26, vs Jun %)
+# Jun'26 replaces May'26 as the sequential reference now that June is a real,
+# audited month rather than a two-month-old stand-in.
 CHAINS = [
-    ("D-Mart",          1396.72, 38.6,  780.25,  79.0, 1517.52,  -8.0),
-    ("Reliance Retail", 805.64,  22.2,  556.79,  44.7,  990.20, -18.6),
-    ("Apollo",          718.16,  19.8,  287.14, 150.1,  751.19,  -4.4),
-    ("Nykaa / FSN",     206.64,   5.7,  191.40,   8.0,  207.87,  -0.6),
-    ("Lulu",            169.77,   4.7,   47.32, 258.8,  116.40,  45.9),
-    ("Wellness Forever", 72.09,   2.0,   71.95,   0.2,  101.64, -29.1),
-    ("Health & Glow",    50.81,   1.4,   79.42, -36.0,   87.44, -41.9),
-    ("More Retail",      40.69,   1.1,   35.32,  15.2,   55.11, -26.2),
-    ("Spencer",           8.55,   0.2,   14.16, -39.6,   11.99, -28.7),
+    ("D-Mart",          1396.72, 38.6,  780.25,  79.0, 1455.91,  -4.1),
+    ("Reliance Retail", 805.64,  22.2,  556.79,  44.7,  947.81, -15.0),
+    ("Apollo",          718.16,  19.8,  287.14, 150.1,  723.03,  -0.7),
+    ("Nykaa / FSN",     206.64,   5.7,  191.40,   8.0,  216.67,  -4.6),
+    ("Lulu",            169.77,   4.7,   47.32, 258.8,  115.85,  46.5),
+    ("Wellness Forever", 72.09,   2.0,   71.95,   0.2,   80.02,  -9.9),
+    ("Health & Glow",    50.81,   1.4,   79.42, -36.0,   51.84,  -2.0),
+    ("More Retail",      40.69,   1.1,   35.32,  15.2,   43.66,  -6.8),
+    ("Spencer",           8.55,   0.2,   14.16, -39.6,    8.49,   0.7),
 ]
 
 # zone as the source labels it — this is the view that ties to dashboard/data.js
@@ -78,7 +81,7 @@ FY25_SECONDARY = [2160.81, 2240.04, 1995.21, 2195.99, 1420.11, 2110.12,
                   1439.12, 1923.32, 2096.81, 1773.06, 2027.30, 1950.47]
 FY26_OFFTAKE = [2271.99, 2449.48, 2270.36, 2199.19, 2435.71, 2095.21,
                 2651.74, 2819.99, 2891.30, 3039.29, 2761.18, 3234.43]
-FY27_OFFTAKE = [APR26_EX_BC, MAY26_EX_BC, None, JUL26_EX_BC]   # Jun'26 = no file
+FY27_OFFTAKE = [APR26_EX_BC, MAY26_EX_BC, JUN26_EX_BC, JUL26_EX_BC]
 FY26_PRIMARY = [3174.60, 2366.90, 2182.64, 2472.90, 2162.39, 2223.75,
                 2674.89, 3329.34, 2820.61, 3665.41, 2924.94, 2902.00]
 FY27_PRIMARY = [5076.86, 4415.74, 4167.38, 4921.31]
@@ -220,8 +223,8 @@ def s02(prs):
 
     y = k.sowhat(s, y, [
         ("Adopt", f"{cr(JUL26_EX_BC)} is the July baseline for targets and QBR."),
-        ("Fix", "Give Nykaa/FSN a real zone so the roll-up stops overwriting it."),
-        ("Re-check", "Apr and May'26 zones do not tie either — rebuild them."),
+        ("Fixed", "The Sep'26 FY27 rebuild gives Nykaa/FSN its own zone total."),
+        ("Verified", "Apr and May'26 zones now tie to source — rebuilt alongside June."),
     ], h=1.34)
     k.fits(y, "s02")
     return s
@@ -271,8 +274,8 @@ def s03(prs):
 
     y = k.sowhat(s, y, [
         ("Restate", "July'26 goes to leadership at ₹36.21 Cr, not ₹34.14 Cr."),
-        ("Repair", "Nykaa/FSN needs its own zone before the next refresh."),
-        ("Re-run", "Apr and May'26 zones are unreconciled — rebuild both."),
+        ("Repaired", "The FY27 rebuild now computes Pan India/Nykaa-FSN correctly."),
+        ("Confirmed", "All four Apr–Jul'26 zone splits tie to source, rupee-lakh."),
     ], h=1.24)
     k.fits(y, "s03")
     return s
@@ -286,11 +289,11 @@ def s04(prs):
     s, y = k.page(
         prs, "key account offtake dynamics",
         "Three chains carry 81% of July; Apollo and Lulu are the growth engines",
-        "Year-on-year is like-for-like. The sequential column is against May'26 — "
-        "there is no June'26 extract on file.",
+        "Year-on-year is like-for-like. The sequential column is against Jun'26, "
+        "now a fully audited month.",
         page_no=4, total=TOTAL,
         source=SRC_OFFTAKE + " Jul'25 from data/raw_drops/_agg/offtake_fy26.json; "
-                             "May'26 from offtake_store_article_May_26.csv.")
+                             "Jun'26 from offtake_store_article_Jun_26.csv.")
 
     y = k.bars(s, y, [(c[0], c[1], f"{c[1]:,.0f}") for c in CHAINS[:7]],
                h_row=0.34, gap=0.08,
@@ -301,10 +304,10 @@ def s04(prs):
 
     y = k.data_table(
         s, y,
-        ["Chain", "Jul'26", "Share", "vs Jul'25", "vs May'26"],
+        ["Chain", "Jul'26", "Share", "vs Jul'25", "vs Jun'26"],
         [[name, f"{v:,.0f}", f"{sh:.1f}%", pct(yoy), pct(mm)]
-         for name, v, sh, _j25, yoy, _m26, mm in CHAINS] +
-        [["TOTAL", f"{JUL26_EX_BC:,.0f}", "100.0%", pct(64.7), pct(-9.9)]],
+         for name, v, sh, _j25, yoy, _jn6, mm in CHAINS] +
+        [["TOTAL", f"{JUL26_EX_BC:,.0f}", "100.0%", pct(64.7), pct(-5.7)]],
         [0.28, 0.17, 0.14, 0.20, 0.21],
         hi_rows=("TOTAL",), row_h=0.26)
     y += 0.28
@@ -314,9 +317,10 @@ def s04(prs):
          "₹718 L, up 150% year on year, now the third-largest account at 19.8% "
          "of the channel — from under 13% a year ago. Lulu is the other engine, "
          "up 259% and the only top-10 account also up sequentially."),
-        ("Health & Glow and Spencer are contracting",
-         "Down 36% and 40% year on year. Small in value, but both have fallen "
-         "in every month since April."),
+        ("Reliance and D-Mart softened month on month",
+         "Reliance is down 15.0% and D-Mart 4.1% against June, the two biggest "
+         "sequential movers. Both are still up sharply year on year — this is a "
+         "month-on-month read, not a decline."),
     ], h_item=0.86)
     y += 0.20
 
@@ -326,9 +330,9 @@ def s04(prs):
     k.text(s, k.ML + 0.18, y + 0.13, k.CW - 0.36, 0.20, "DATA FLAG — NOT A BUSINESS READ",
            size=8, bold=True, color=k.AMBER, spacing=1.0)
     k.text(s, k.ML + 0.18, y + 0.37, k.CW - 0.36, 0.42,
-           "Walmart C&C is absent from the July extract altogether (₹15.11 L in "
-           "Jul'25). It was also missing in May but present in April, so treat this "
-           "as a feed gap until the source owner confirms it.",
+           "Walmart C&C is nil in both June and July, down from ₹25.59 L in "
+           "April and ₹11.31 L in May. Two months at zero reads more like an "
+           "exit than a feed gap — worth a direct confirmation either way.",
            size=9, color=k.INK, line_spacing=1.18)
     y += 0.86
     k.fits(y, "s04")
@@ -488,7 +492,7 @@ def s08(prs):
         "distributor secondary, shown as an indicative anchor only.",
         page_no=8, total=TOTAL,
         source="Source: offtake from data/raw_drops/_agg/offtake_fy26.json and the "
-               "Apr/May/Jul'26 store x article extracts; primary from "
+               "Apr/May/Jun/Jul'26 store x article extracts; primary from "
                "primary_article_*.csv; FY25 from "
                "Distributor_secondary_FY25_Apr24_Mar25.csv.")
 
@@ -507,8 +511,8 @@ def s08(prs):
         [["FY25 (Apr'24–Mar'25)", "not available", "not available",
           "distributor secondary only"],
          ["FY26 (Apr'25–Mar'26)", "₹311.20 Cr", "₹329.00 Cr", "full 12 months"],
-         ["FY27 to date (Apr–Jul'26)", "₹112.29 Cr*", "₹185.81 Cr",
-          "*3 of 4 months"]],
+         ["FY27 to date (Apr–Jul'26)", "₹150.70 Cr", "₹185.81 Cr",
+          "full 4 months"]],
         [0.34, 0.20, 0.20, 0.26], row_h=0.30)
     y += 0.30
 
@@ -516,9 +520,10 @@ def s08(prs):
         ("The growth is real and verified",
          "July'26 at ₹36.21 Cr against ₹21.99 Cr in July'25 is a like-for-like "
          "+64.7% — both sides are true offtake, both exclude Brand Counter."),
-        ("Two months of FY27 are still open",
-         "June'26 offtake has no source file at all, and April/May'26 zone "
-         "figures on the dashboard do not tie to the raw extracts."),
+        ("All four months are now audited",
+         "June'26 was recovered from an unmerged commit and folded into the "
+         "same rebuild as April and May. All four Apr–Jul'26 zone splits now "
+         "tie to source to the rupee-lakh."),
         ("FY25 is not a comparison base",
          "Distributor secondary sits one step above offtake in the chain. It "
          "anchors scale; it cannot carry a growth rate."),
@@ -526,9 +531,9 @@ def s08(prs):
     y += 0.24
 
     y = k.sowhat(s, y, [
-        ("Quote", "FY26 ₹311.20 Cr and Jul'26 ₹36.21 Cr are safe to publish."),
+        ("Quote", "FY26 ₹311.20 Cr and FY27-to-date ₹150.70 Cr are safe to publish."),
         ("Withhold", "No FY25-vs-FY26 growth rate until true primary arrives."),
-        ("Close", "June'26 is the one file that completes Q1 FY27."),
+        ("Close", "August'26 is the next month to source once available."),
     ], h=1.24)
     k.fits(y, "s08")
     return s
@@ -541,9 +546,9 @@ def s08(prs):
 def s09(prs):
     s, y = k.page(
         prs, "strategic commercial takeaways",
-        "The growth is broad and genuine; the reporting around it is what needs "
-        "fixing",
-        "Where the value is coming from, and what could take it away.",
+        "The growth is broad and genuine — most of the reporting gaps behind it "
+        "are now closed",
+        "Where the value is coming from, and what could still take it away.",
         page_no=9, total=TOTAL,
         source="Source: as per slides 3, 4, 6, 7 and 8.")
 
@@ -577,14 +582,14 @@ def s09(prs):
     for label, body, val in [
         ("Account concentration", "D-Mart, Reliance and Apollo are 80.6% of the "
          "channel. A single listing or planogram change moves the month.", "80.6%"),
-        ("Sequential softening", "July is 9.9% below May across almost every "
-         "account. Without a June file we cannot see the shape of the decline.",
-         "−9.9% vs May"),
+        ("Sequential softening", "July is 5.7% below June, led by Reliance "
+         "(−15.0%) and the West zone (−16.9%). Real month-on-month, not a "
+         "YoY concern.", "−5.7% vs Jun"),
         ("Reach quality", "Relative numeric distribution fell to 57.8% while "
          "weighted held at 89.2% — the remaining stores are lower value.", "−1.7 pp"),
-        ("Reporting integrity", "One chain was dropped from the zone view, "
-         "April and May zones do not tie, and June is missing entirely.",
-         "3 open defects"),
+        ("Walmart C&C at nil for two months", "Zero in both June and July "
+         "after falling through April and May. Needs a direct answer, not an "
+         "assumption.", "2 months at ₹0"),
     ]:
         k.rect(s, k.ML, y, 0.045, 0.66, fill=k.RED)
         b = k.text(s, k.ML + 0.16, y, k.CW - 1.55, 0.66,
@@ -613,9 +618,9 @@ def s09(prs):
 def s10(prs):
     s, y = k.page(
         prs, "action plan  ·  governance roadmap",
-        "Five fixes, named owners, closed by end September",
-        "Three are data-integrity items that gate the others. Nothing on this "
-        "page needs new investment.",
+        "Two fixes done, three open, all with named owners",
+        "The two data-integrity items that gated everything else closed with "
+        "the June'26 restore. Nothing on this page needs new investment.",
         page_no=10, total=TOTAL,
         source="Owners and dates to be confirmed in the monthly MT governance call.")
 
@@ -623,18 +628,19 @@ def s10(prs):
            color=k.TEAL, spacing=1.2)
     y += 0.30
     y = k.data_table(
-        s, y, ["#", "Action", "Owner", "By"],
+        s, y, ["#", "Action", "Owner", "Status"],
         [["01", "Re-zone Nykaa/FSN so the roll-up stops overwriting it",
-          "Sales Analytics", "12-Sep"],
+          "Sales Analytics", "Done 07-Sep"],
          ["02", "Source the June'26 offtake extract and rebuild Apr–Jun zones",
-          "MT Analytics", "15-Sep"],
+          "MT Analytics", "Done 07-Sep"],
          ["03", "Settle one zone master (Telangana/AP and Kerala conflict)",
           "Sales Analytics", "19-Sep"],
          ["04", "Request Nielsen brand-by-pack Shampoo extract",
           "Category / Insights", "22-Sep"],
-         ["05", "Confirm Walmart C&C July feed — gap or genuine nil",
+         ["05", "Confirm Walmart C&C status — nil for two months running",
           "NKAM", "12-Sep"]],
-        [0.07, 0.53, 0.22, 0.18], row_h=0.34,
+        [0.07, 0.53, 0.20, 0.20], row_h=0.34,
+        hi_rows=("01", "02"),
         aligns=[k.PP_ALIGN.CENTER, k.PP_ALIGN.LEFT, k.PP_ALIGN.LEFT,
                 k.PP_ALIGN.RIGHT])
     y += 0.34
@@ -661,9 +667,9 @@ def s10(prs):
     y += 0.30
     y = k.data_table(
         s, y, ["Open item", "What it blocks", "Needed"],
-        [["June'26 offtake", "True MoM and Q1 FY27 close", "Source extract"],
-         ["FY25 primary", "Any two-year like-for-like", "Billing extract"],
-         ["Shampoo by brand", "Pack and price-ladder calls", "Nielsen file"]],
+        [["FY25 primary", "Any two-year like-for-like", "Billing extract"],
+         ["Shampoo by brand", "Pack and price-ladder calls", "Nielsen file"],
+         ["Walmart C&C status", "Whether the account is still live", "NKAM confirmation"]],
         [0.30, 0.42, 0.28], row_h=0.30)
     y += 0.30
 
@@ -679,19 +685,33 @@ def s10(prs):
 DATA_NOTES = """
 Verified against source; see the Data Truth Matrix for full derivations.
 
-NOT PUBLISHED because it could not be verified:
-  - Jul'26 vs Jun'26 MoM — no offtake_store_article_Jun_26.csv exists.
-    Sequential comparisons on this deck are against May'26 and labelled.
+RESOLVED since the first cut of this deck (07-Sep-2026):
+  - June'26 offtake recovered from an unmerged commit (fb4d7e3e, blob
+    21b2dc44) and folded into the FY27 rebuild. Rs 3,840.46 L ex-Brand-
+    Counter, independently re-verified against the restored CSV.
+  - The Pan India/Nykaa-FSN zone drop that understated July by Rs 2.07 Cr
+    was a symptom of the same stale FY27 block June's absence pointed at.
+    The full 4-month rebuild fixed both: Jul'26 now nets to Rs 3,621.47 L
+    (matching the audited figure) with no manual patch, and Apr/May/Jun/Jul
+    zone splits all tie to source to the rupee-lakh.
+  - "vs May'26" throughout this deck is now "vs Jun'26" — a real prior
+    month rather than a two-month-old stand-in.
+
+STILL NOT PUBLISHED because it could not be verified:
   - FY25 primary — Primary_Article_Synthesized_FY25.csv is the distributor
     secondary file re-split, not billing. Shown as an indicative proxy only.
   - Mamaearth-level shampoo share/value/WD/PDO — not in the supplied file.
   - Nielsen "Simple 2.6%" — outside the top-8 extract held in the repo.
-  - Walmart C&C -100% — flagged as a feed gap, not stated as a decline.
+  - Walmart C&C — nil in both June and July, down from Rs 25.59 L in April.
+    Read as a likely exit, not asserted as one; needs direct confirmation.
 
 ZONE MASTER: this deck uses the source Zone column (which ties to
-dashboard/data.js). The pipeline's canon_zone_from_state() disagrees on
-Telangana/AP and Kerala, moving c.₹376 L between South 1 and South 2.
-That conflict is action 03 on slide 10.
+dashboard/data.js). The pipeline's zone_with_central_override() now derives
+Central from State for Madhya Pradesh and Chhattisgarh specifically (the one
+state pair Jun'26 mistagged), but a separate conflict remains: the pipeline's
+broader state-to-zone master disagrees with the source on Telangana/AP and
+Kerala, moving c.₹376 L between South 1 and South 2. That conflict is action
+03 on slide 10.
 """
 
 
