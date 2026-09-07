@@ -78,6 +78,36 @@ block's — e.g. the Offtake tab checks `o['total_'+fy]`, not the Primary-only
 
 ---
 
+## THE THREE PILLARS (Primary / Secondary / Offtake)
+
+Every MT number belongs to exactly one pillar. Treating one as another is the most
+expensive recurring error in this repo.
+
+```
+Honasa ──PRIMARY──▶ chain DC / distributor ──SECONDARY──▶ store ──OFFTAKE──▶ consumer
+```
+
+| Pillar | Source system | Repo home | FY26 total |
+|--------|---------------|-----------|-----------|
+| **Primary** | SAP/ERP billing | `Primary_Article_Monthly/`, `Primary_ShipTo_Monthly/` | ₹32,900.36 L |
+| **Distributor Secondary** | Distributor DMS | `SecondarySales_Monthly/`, `data/raw_drops/Distributor_secondary_*` | FY25 ₹23,332.36 L |
+| **Offtake** | Chain POS | `Offtake_Monthly/` | ₹31,119.88 L |
+
+- **Never compute a growth % across two pillars** (e.g. FY25 secondary vs FY26 primary).
+  Put them in separate labelled columns and say no like-for-like rate exists.
+- **There is no true FY25 primary in this repo.** Four files claim to be and are not —
+  including `Primary_ShipTo_FY24-25.csv`, whose column is literally named `Primary NSV`.
+  See the trap-file register in the `mt-distributor-secondary` skill.
+- FY25 secondary reaches **brand** level only; FY27 secondary reaches **EAN/article**
+  (`SecondarySales_Monthly_TOT_Analysis/01_FULL_HIERARCHY_*.csv`). Article-level FY25 is
+  modelled, never measured.
+
+Full rules, CM2 basis, Cont% allocation and the file-level gotchas live in
+`.claude/skills/mt-distributor-secondary/SKILL.md` — consult it before any secondary,
+CM2 or cross-pillar work.
+
+---
+
 ## Architecture map
 
 ```
