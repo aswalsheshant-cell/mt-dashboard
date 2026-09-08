@@ -652,7 +652,16 @@ def zone_deepdive_slide(prs, page_no, zone):
          "separately last year" if yoy is None else "year on year",
          "n" if yoy is None else ("+" if yoy >= 0 else "-")),
     ])
-    y += 0.34
+    y += 0.10
+
+    if zone == "Central":
+        footnote = ("Like-for-like YoY (MP+CG only): 108%. Headline 161% includes "
+                    "Vidarbha, reclassified into Central this year.")
+        fh = k.text_height(footnote, 8, k.CW)
+        k.text(s, k.ML, y, k.CW, fh, footnote, size=8, color=k.MUTED)
+        y += fh + 0.08
+
+    y += 0.11
 
     rows = ZONE_CHAINS[zone]
     if len(rows) > 1:
