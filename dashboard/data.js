@@ -398,582 +398,6 @@ window.DASH = {
     }
    }
   },
-  "zone_monthly_fy26": {
-   "Central": {
-    "Aug-25": {
-     "offtake_cr": 0.7,
-     "primary_cr": 6.96,
-     "units_sold": 43834,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 6.26,
-     "chain_count": 6,
-     "state_count": 1,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Dec-25": {
-     "offtake_cr": 0.93,
-     "primary_cr": 9.31,
-     "units_sold": 62731,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 8.38,
-     "chain_count": 5,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Feb-26": {
-     "offtake_cr": 1.49,
-     "primary_cr": 14.92,
-     "units_sold": 85211,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 13.43,
-     "chain_count": 5,
-     "state_count": 1,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Jan-26": {
-     "offtake_cr": 1.53,
-     "primary_cr": 15.32,
-     "units_sold": 99992,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 13.79,
-     "chain_count": 5,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Mar-26": {
-     "offtake_cr": 1.38,
-     "primary_cr": 13.78,
-     "units_sold": 80287,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 12.4,
-     "chain_count": 5,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Nov-25": {
-     "offtake_cr": 1.03,
-     "primary_cr": 10.29,
-     "units_sold": 66266,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 9.26,
-     "chain_count": 5,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Oct-25": {
-     "offtake_cr": 1.55,
-     "primary_cr": 15.5,
-     "units_sold": 91448,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 13.95,
-     "chain_count": 5,
-     "state_count": 1,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Sep-25": {
-     "offtake_cr": 0.58,
-     "primary_cr": 5.81,
-     "units_sold": 35602,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 5.22,
-     "chain_count": 6,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    }
-   },
-   "East": {
-    "Aug-25": {
-     "offtake_cr": 2.97,
-     "primary_cr": 29.72,
-     "units_sold": 177059,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 26.75,
-     "chain_count": 11,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Dec-25": {
-     "offtake_cr": 3.74,
-     "primary_cr": 37.45,
-     "units_sold": 235680,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 33.7,
-     "chain_count": 10,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Feb-26": {
-     "offtake_cr": 2.47,
-     "primary_cr": 24.7,
-     "units_sold": 146057,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 22.23,
-     "chain_count": 9,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Jan-26": {
-     "offtake_cr": 4.79,
-     "primary_cr": 47.91,
-     "units_sold": 265963,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 43.11,
-     "chain_count": 11,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Mar-26": {
-     "offtake_cr": 3.32,
-     "primary_cr": 33.18,
-     "units_sold": 213810,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 29.86,
-     "chain_count": 10,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Nov-25": {
-     "offtake_cr": 3.43,
-     "primary_cr": 34.26,
-     "units_sold": 210404,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 30.84,
-     "chain_count": 11,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Oct-25": {
-     "offtake_cr": 3.36,
-     "primary_cr": 33.61,
-     "units_sold": 208732,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 30.25,
-     "chain_count": 12,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Sep-25": {
-     "offtake_cr": 2.58,
-     "primary_cr": 25.81,
-     "units_sold": 179697,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 23.23,
-     "chain_count": 9,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    }
-   },
-   "North": {
-    "Aug-25": {
-     "offtake_cr": 4.44,
-     "primary_cr": 44.4,
-     "units_sold": 263692,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 39.96,
-     "chain_count": 14,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Dec-25": {
-     "offtake_cr": 6.28,
-     "primary_cr": 62.76,
-     "units_sold": 390346,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 56.49,
-     "chain_count": 15,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Feb-26": {
-     "offtake_cr": 4.37,
-     "primary_cr": 43.67,
-     "units_sold": 273306,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 39.31,
-     "chain_count": 16,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Jan-26": {
-     "offtake_cr": 7.87,
-     "primary_cr": 78.7,
-     "units_sold": 442477,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 70.83,
-     "chain_count": 17,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Mar-26": {
-     "offtake_cr": 6.2,
-     "primary_cr": 61.98,
-     "units_sold": 353397,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 55.78,
-     "chain_count": 12,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Nov-25": {
-     "offtake_cr": 6.69,
-     "primary_cr": 66.93,
-     "units_sold": 421767,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 60.24,
-     "chain_count": 17,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Oct-25": {
-     "offtake_cr": 5.33,
-     "primary_cr": 53.35,
-     "units_sold": 328407,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 48.01,
-     "chain_count": 15,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Sep-25": {
-     "offtake_cr": 4.35,
-     "primary_cr": 43.46,
-     "units_sold": 256657,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 39.12,
-     "chain_count": 12,
-     "state_count": 6,
-     "data_source": "Primary_Article_Monthly"
-    }
-   },
-   "South 1": {
-    "Aug-25": {
-     "offtake_cr": 5.32,
-     "primary_cr": 53.2,
-     "units_sold": 280671,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 47.88,
-     "chain_count": 11,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Dec-25": {
-     "offtake_cr": 5.69,
-     "primary_cr": 56.93,
-     "units_sold": 335425,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 51.24,
-     "chain_count": 13,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Feb-26": {
-     "offtake_cr": 5.81,
-     "primary_cr": 58.11,
-     "units_sold": 320044,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 52.3,
-     "chain_count": 14,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Jan-26": {
-     "offtake_cr": 8.84,
-     "primary_cr": 88.36,
-     "units_sold": 465623,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 79.53,
-     "chain_count": 13,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Mar-26": {
-     "offtake_cr": 6.66,
-     "primary_cr": 66.64,
-     "units_sold": 389546,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 59.97,
-     "chain_count": 12,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Nov-25": {
-     "offtake_cr": 6.93,
-     "primary_cr": 69.32,
-     "units_sold": 378673,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 62.39,
-     "chain_count": 14,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Oct-25": {
-     "offtake_cr": 5.92,
-     "primary_cr": 59.18,
-     "units_sold": 334253,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 53.26,
-     "chain_count": 11,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Sep-25": {
-     "offtake_cr": 6.54,
-     "primary_cr": 65.38,
-     "units_sold": 358345,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 58.84,
-     "chain_count": 13,
-     "state_count": 3,
-     "data_source": "Primary_Article_Monthly"
-    }
-   },
-   "South 2": {
-    "Aug-25": {
-     "offtake_cr": 2.96,
-     "primary_cr": 29.61,
-     "units_sold": 167429,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 26.65,
-     "chain_count": 9,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Dec-25": {
-     "offtake_cr": 4.16,
-     "primary_cr": 41.64,
-     "units_sold": 244021,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 37.48,
-     "chain_count": 10,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Feb-26": {
-     "offtake_cr": 4.78,
-     "primary_cr": 47.8,
-     "units_sold": 279062,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 43.02,
-     "chain_count": 11,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Jan-26": {
-     "offtake_cr": 4.93,
-     "primary_cr": 49.32,
-     "units_sold": 270519,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 44.38,
-     "chain_count": 11,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Mar-26": {
-     "offtake_cr": 4.25,
-     "primary_cr": 42.45,
-     "units_sold": 240878,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 38.21,
-     "chain_count": 8,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Nov-25": {
-     "offtake_cr": 5.1,
-     "primary_cr": 50.99,
-     "units_sold": 283071,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 45.89,
-     "chain_count": 10,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Oct-25": {
-     "offtake_cr": 2.81,
-     "primary_cr": 28.07,
-     "units_sold": 156813,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 25.26,
-     "chain_count": 11,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Sep-25": {
-     "offtake_cr": 2.05,
-     "primary_cr": 20.5,
-     "units_sold": 118568,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 18.45,
-     "chain_count": 9,
-     "state_count": 2,
-     "data_source": "Primary_Article_Monthly"
-    }
-   },
-   "West": {
-    "Aug-25": {
-     "offtake_cr": 5.23,
-     "primary_cr": 52.35,
-     "units_sold": 334267,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 47.11,
-     "chain_count": 18,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Dec-25": {
-     "offtake_cr": 7.4,
-     "primary_cr": 73.96,
-     "units_sold": 496741,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 66.57,
-     "chain_count": 19,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Feb-26": {
-     "offtake_cr": 10.33,
-     "primary_cr": 103.28,
-     "units_sold": 660959,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 92.95,
-     "chain_count": 20,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Jan-26": {
-     "offtake_cr": 8.69,
-     "primary_cr": 86.93,
-     "units_sold": 553298,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 78.24,
-     "chain_count": 19,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Mar-26": {
-     "offtake_cr": 7.22,
-     "primary_cr": 72.17,
-     "units_sold": 419302,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 64.95,
-     "chain_count": 17,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Nov-25": {
-     "offtake_cr": 10.11,
-     "primary_cr": 101.14,
-     "units_sold": 604015,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 91.03,
-     "chain_count": 18,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Oct-25": {
-     "offtake_cr": 7.78,
-     "primary_cr": 77.78,
-     "units_sold": 486050,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 70.0,
-     "chain_count": 20,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Sep-25": {
-     "offtake_cr": 6.14,
-     "primary_cr": 61.42,
-     "units_sold": 381364,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 55.28,
-     "chain_count": 20,
-     "state_count": 5,
-     "data_source": "Primary_Article_Monthly"
-    }
-   },
-   "Pan India": {
-    "Aug-25": {
-     "offtake_cr": 21.62,
-     "primary_cr": 216.24,
-     "units_sold": 1266952,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 194.61,
-     "chain_count": 37,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Dec-25": {
-     "offtake_cr": 28.21,
-     "primary_cr": 282.06,
-     "units_sold": 1764944,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 253.86,
-     "chain_count": 38,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Feb-26": {
-     "offtake_cr": 29.25,
-     "primary_cr": 292.49,
-     "units_sold": 1764639,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 263.24,
-     "chain_count": 39,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Jan-26": {
-     "offtake_cr": 36.65,
-     "primary_cr": 366.54,
-     "units_sold": 2097872,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 329.89,
-     "chain_count": 37,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Mar-26": {
-     "offtake_cr": 29.02,
-     "primary_cr": 290.2,
-     "units_sold": 1697220,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 261.18,
-     "chain_count": 33,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Nov-25": {
-     "offtake_cr": 33.29,
-     "primary_cr": 332.93,
-     "units_sold": 1964196,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 299.64,
-     "chain_count": 39,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Oct-25": {
-     "offtake_cr": 26.75,
-     "primary_cr": 267.49,
-     "units_sold": 1605703,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 240.74,
-     "chain_count": 40,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    },
-    "Sep-25": {
-     "offtake_cr": 22.24,
-     "primary_cr": 222.38,
-     "units_sold": 1330233,
-     "conversion_pct": 10.0,
-     "flow_gap_cr": 200.14,
-     "chain_count": 36,
-     "state_count": 22,
-     "data_source": "Primary_Article_Monthly"
-    }
-   }
-  },
   "zone_monthly_fy27": {
    "Central": [
     256.37,
@@ -1018,331 +442,160 @@ window.DASH = {
     781.34
    ]
   },
-  "conversion_rates_fy25": {
-   "Central": {
-    "Apr-25": 10.0,
-    "Jul-25": 10.0,
-    "Jun-25": 10.0,
-    "May-25": 10.0
-   },
-   "East": {
-    "Apr-25": 10.0,
-    "Jul-25": 10.0,
-    "Jun-25": 10.0,
-    "May-25": 10.0
-   },
-   "North": {
-    "Apr-25": 10.0,
-    "Jul-25": 10.0,
-    "Jun-25": 10.0,
-    "May-25": 10.0
-   },
-   "South 1": {
-    "Apr-25": 10.0,
-    "Jul-25": 10.0,
-    "Jun-25": 10.0,
-    "May-25": 10.0
-   },
-   "South 2": {
-    "Apr-25": 10.0,
-    "Jul-25": 10.0,
-    "Jun-25": 10.0,
-    "May-25": 10.0
-   },
-   "West": {
-    "Apr-25": 10.0,
-    "Jul-25": 10.0,
-    "Jun-25": 10.0,
-    "May-25": 10.0
-   },
-   "Pan India": {
-    "Apr-25": 10.0,
-    "Jul-25": 10.0,
-    "Jun-25": 10.0,
-    "May-25": 10.0
-   }
-  },
-  "conversion_rates_fy26": {
-   "Central": {
-    "Apr-26": 10.0,
-    "Aug-25": 10.0,
-    "Dec-25": 10.0,
-    "Feb-26": 10.0,
-    "Jan-26": 10.0,
-    "Jul-26": 24.87,
-    "Jun-26": 23.74,
-    "Mar-26": 10.0,
-    "May-26": 10.0,
-    "Nov-25": 10.0,
-    "Oct-25": 10.0,
-    "Sep-25": 10.0
-   },
-   "East": {
-    "Apr-26": 10.0,
-    "Aug-25": 10.0,
-    "Dec-25": 10.0,
-    "Feb-26": 10.0,
-    "Jan-26": 10.0,
-    "Jul-26": 20.78,
-    "Jun-26": 21.88,
-    "Mar-26": 10.0,
-    "May-26": 10.0,
-    "Nov-25": 10.0,
-    "Oct-25": 10.0,
-    "Sep-25": 10.0
-   },
-   "North": {
-    "Apr-26": 10.0,
-    "Aug-25": 10.0,
-    "Dec-25": 10.0,
-    "Feb-26": 10.0,
-    "Jan-26": 10.0,
-    "Jul-26": 23.72,
-    "Jun-26": 22.5,
-    "Mar-26": 10.0,
-    "May-26": 10.0,
-    "Nov-25": 10.0,
-    "Oct-25": 10.0,
-    "Sep-25": 10.0
-   },
-   "South 1": {
-    "Apr-26": 10.0,
-    "Aug-25": 10.0,
-    "Dec-25": 10.0,
-    "Feb-26": 10.0,
-    "Jan-26": 10.0,
-    "Jul-26": 23.21,
-    "Jun-26": 21.66,
-    "Mar-26": 10.0,
-    "May-26": 10.0,
-    "Nov-25": 10.0,
-    "Oct-25": 10.0,
-    "Sep-25": 10.0
-   },
-   "South 2": {
-    "Apr-26": 10.0,
-    "Aug-25": 10.0,
-    "Dec-25": 10.0,
-    "Feb-26": 10.0,
-    "Jan-26": 10.0,
-    "Jul-26": 20.49,
-    "Jun-26": 20.65,
-    "Mar-26": 10.0,
-    "May-26": 10.0,
-    "Nov-25": 10.0,
-    "Oct-25": 10.0,
-    "Sep-25": 10.0
-   },
-   "West": {
-    "Apr-26": 10.0,
-    "Aug-25": 10.0,
-    "Dec-25": 10.0,
-    "Feb-26": 10.0,
-    "Jan-26": 10.0,
-    "Jul-26": 23.68,
-    "Jun-26": 23.86,
-    "Mar-26": 10.0,
-    "May-26": 10.0,
-    "Nov-25": 10.0,
-    "Oct-25": 10.0,
-    "Sep-25": 10.0
-   },
-   "Pan India": {
-    "Apr-26": 10.0,
-    "Aug-25": 10.0,
-    "Dec-25": 10.0,
-    "Feb-26": 10.0,
-    "Jan-26": 10.0,
-    "Jul-26": 22.75,
-    "Jun-26": 22.32,
-    "Mar-26": 10.0,
-    "May-26": 10.0,
-    "Nov-25": 10.0,
-    "Oct-25": 10.0,
-    "Sep-25": 10.0
-   }
-  },
-  "conversion_rates_fy27": {
-   "Central": {
-    "Apr-26": 101.2,
-    "May-26": 101.4,
-    "Jun-26": 101.5,
-    "Jul-26": 98.9
-   },
-   "East": {
-    "Apr-26": 62.0,
-    "May-26": 63.6,
-    "Jun-26": 64.0,
-    "Jul-26": 61.9
-   },
-   "North": {
-    "Apr-26": 69.0,
-    "May-26": 70.0,
-    "Jun-26": 70.4,
-    "Jul-26": 69.7
-   },
-   "South 1": {
-    "Apr-26": 89.4,
-    "May-26": 89.7,
-    "Jun-26": 90.0,
-    "Jul-26": 89.4
-   },
-   "South 2": {
-    "Apr-26": 77.2,
-    "May-26": 77.4,
-    "Jun-26": 77.1,
-    "Jul-26": 77.0
-   },
-   "West": {
-    "Apr-26": 84.4,
-    "May-26": 84.6,
-    "Jun-26": 84.6,
-    "Jul-26": 84.4
-   },
-   "Pan India": {
-    "Apr-26": 79.1,
-    "May-26": 79.8,
-    "Jun-26": 79.9,
-    "Jul-26": 78.9
-   }
-  },
   "by_zone": [
    {
     "name": "West",
     "fy25": 2635.0,
-    "fy26": 6290.0,
-    "fy27": 3422.46
+    "fy27": 3422.46,
+    "fy26": 7746.61
    },
    {
     "name": "South 1",
     "fy25": 2211.0,
-    "fy26": 5171.0,
-    "fy27": 3305.82
+    "fy27": 3305.82,
+    "fy26": 6428.06
    },
    {
     "name": "North",
     "fy25": 1927.0,
-    "fy26": 4553.0,
-    "fy27": 2858.43
+    "fy27": 2858.43,
+    "fy26": 5837.15
    },
    {
     "name": "South 2",
     "fy25": 1659.0,
-    "fy26": 3104.0,
-    "fy27": 2070.83
+    "fy27": 2070.83,
+    "fy26": 4214.97
    },
    {
     "name": "East",
     "fy25": 1389.0,
-    "fy26": 2666.0,
-    "fy27": 1527.77
+    "fy27": 1527.77,
+    "fy26": 3221.89
    },
    {
     "name": "Central",
     "fy25": 376.0,
-    "fy26": 919.0,
-    "fy27": 1024.52
+    "fy27": 1024.52,
+    "fy26": 1630.27
    },
    {
     "name": "Pan India",
-    "fy27": 860.01
+    "fy27": 860.01,
+    "fy26": 2040.92
    }
   ],
-  "total_fy26": 31128.0,
   "total_fy27": 15069.86,
   "by_chain": [
    {
     "name": "DMart",
     "raw": "DMart",
     "total": 0.0,
-    "fy27": 5628.39
+    "fy27": 5628.39,
+    "fy26": 10926.76
    },
    {
     "name": "Reliance Retail",
     "value": 7899.0,
-    "fy27": 3611.4
+    "fy27": 3611.4,
+    "fy26": 8299.32
    },
    {
     "name": "Apollo",
     "value": 4980.0,
-    "fy27": 2891.09
+    "fy27": 2891.09,
+    "fy26": 4880.2
    },
    {
     "name": "Nykaa (FSN)",
     "raw": "Nykaa (FSN)",
     "total": 0.0,
-    "fy27": 860.01
+    "fy27": 860.01,
+    "fy26": 2040.92
    },
    {
     "name": "Lulu",
     "value": 784.0,
-    "fy27": 502.93
+    "fy27": 502.93,
+    "fy26": 747.89
    },
    {
     "name": "Wellness Forever",
     "value": 816.0,
-    "fy27": 363.35
+    "fy27": 363.35,
+    "fy26": 997.16
    },
    {
     "name": "Health & Glow",
     "value": 806.0,
-    "fy27": 251.88
+    "fy27": 251.88,
+    "fy26": 870.17
    },
    {
     "name": "Metro C&C",
     "raw": "Metro C&C",
     "total": 0.0,
-    "fy27": 205.11
+    "fy27": 205.11,
+    "fy26": 597.48
    },
    {
     "name": "More Retail",
     "value": 432.0,
-    "fy27": 184.1
+    "fy27": 184.1,
+    "fy26": 433.4
    },
    {
     "name": "Sancus (RMT)",
     "raw": "Sancus (RMT)",
     "total": 0.0,
-    "fy27": 162.09
+    "fy27": 162.09,
+    "fy26": 452.84
    },
    {
     "name": "VMM",
     "raw": "VMM",
     "total": 0.0,
-    "fy27": 125.43
+    "fy27": 125.43,
+    "fy26": 148.0
    },
    {
     "name": "V-Mart",
     "value": 111.0,
-    "fy27": 49.43
+    "fy27": 49.43,
+    "fy26": 99.12
    },
    {
     "name": "Spencer",
     "raw": "Spencer",
     "total": 0.0,
-    "fy27": 41.53
+    "fy27": 41.53,
+    "fy26": 164.96
    },
    {
     "name": "Walmart",
     "raw": "Walmart",
     "total": 0.0,
-    "fy27": 36.9
+    "fy27": 36.9,
+    "fy26": 227.13
    },
    {
     "name": "Trent",
     "value": 53.0,
-    "fy27": 36.18
+    "fy27": 36.18,
+    "fy26": 57.4
    },
    {
     "name": "Frankross",
     "raw": "Frankross",
     "total": 0.0,
-    "fy27": 27.88
+    "fy27": 27.88,
+    "fy26": 24.6
    },
    {
     "name": "Arambagh",
     "value": 33.0,
-    "fy27": 21.14
+    "fy27": 21.14,
+    "fy26": 21.76
    },
    {
     "name": "Trent/Westside",
@@ -1358,28 +611,33 @@ window.DASH = {
    {
     "name": "Ratnadeep",
     "value": 60.0,
-    "fy27": 11.64
+    "fy27": 11.64,
+    "fy26": 73.07
    },
    {
     "name": "Sasta Sundar",
     "raw": "Sasta Sundar",
     "total": 0.0,
-    "fy27": 7.85
+    "fy27": 7.85,
+    "fy26": 5.35
    },
    {
     "name": "Guardian",
     "value": 16.0,
-    "fy27": 7.34
+    "fy27": 7.34,
+    "fy26": 16.16
    },
    {
     "name": "Sumo Save",
     "value": 3.0,
-    "fy27": 6.27
+    "fy27": 6.27,
+    "fy26": 0.43
    },
    {
     "name": "B&N",
     "value": 11.0,
-    "fy27": 3.36
+    "fy27": 3.36,
+    "fy26": 10.61
    },
    {
     "name": "Apna Mart",
@@ -1389,7 +647,8 @@ window.DASH = {
    {
     "name": "WH-Smith",
     "value": 5.0,
-    "fy27": 2.11
+    "fy27": 2.11,
+    "fy26": 9.98
    },
    {
     "name": "Shoppers Stop",
@@ -1457,7 +716,8 @@ window.DASH = {
    },
    {
     "name": "Vijetha",
-    "value": 17.0
+    "value": 17.0,
+    "fy26": 15.19
    },
    {
     "name": "Deal Share",
@@ -1516,26 +776,6 @@ window.DASH = {
    2183.0,
    2473.0
   ],
-  "months_fy26": [
-   "Aug-25",
-   "Sep-25",
-   "Oct-25",
-   "Nov-25",
-   "Dec-25",
-   "Jan-26",
-   "Feb-26",
-   "Mar-26"
-  ],
-  "monthly_fy26": [
-   2162.0,
-   2224.0,
-   2675.0,
-   3329.0,
-   2820.0,
-   3665.0,
-   2925.0,
-   2903.0
-  ],
   "months_fy27": [
    "Apr-26",
    "May-26",
@@ -1588,82 +828,98 @@ window.DASH = {
    {
     "state": "Maharashtra",
     "zone": "West",
-    "fy27": 2034.85
+    "fy27": 2034.85,
+    "fy26": 4895.15
    },
    {
     "state": "Karnataka",
     "zone": "South 1",
-    "fy27": 1809.27
+    "fy27": 1809.27,
+    "fy26": 3720.1
    },
    {
     "state": "Telangana",
     "zone": "South 2",
-    "fy27": 1099.5
+    "fy27": 1099.5,
+    "fy26": 2290.6
    },
    {
     "state": "Tamil Nadu",
     "zone": "South 1",
-    "fy27": 1072.19
+    "fy27": 1072.19,
+    "fy26": 1886.99
    },
    {
     "state": "Gujarat",
     "zone": "West",
-    "fy27": 1056.69
+    "fy27": 1056.69,
+    "fy26": 2308.22
    },
    {
     "state": "Andhra Pradesh",
     "zone": "South 2",
-    "fy27": 971.33
+    "fy27": 971.33,
+    "fy26": 1924.37
    },
    {
     "state": "Pan India",
     "zone": "Pan India",
-    "fy27": 860.01
+    "fy27": 860.01,
+    "fy26": 2040.92
    },
    {
     "state": "Delhi/ Ncr",
     "zone": "North",
-    "fy27": 859.23
+    "fy27": 859.23,
+    "fy26": 1960.03
    },
    {
     "state": "West Bengal",
     "zone": "East",
-    "fy27": 656.6
+    "fy27": 656.6,
+    "fy26": 1426.75
    },
    {
     "state": "Madhya Pradesh",
     "zone": "Central",
-    "fy27": 647.97
+    "fy27": 647.97,
+    "fy26": 1225.06
    },
    {
     "state": "Rajasthan",
     "zone": "North",
-    "fy27": 640.06
+    "fy27": 640.06,
+    "fy26": 1227.21
    },
    {
     "state": "Kerala",
     "zone": "South 1",
-    "fy27": 424.36
+    "fy27": 424.36,
+    "fy26": 820.97
    },
    {
     "state": "UP/UK",
     "zone": "North",
-    "fy27": 318.41
+    "fy27": 318.41,
+    "fy26": 1144.0
    },
    {
     "state": "Mumbai",
     "zone": "West",
-    "fy27": 309.45
+    "fy27": 309.45,
+    "fy26": 543.24
    },
    {
     "state": "Punjab/J&K/Hp",
     "zone": "North",
-    "fy27": 297.39
+    "fy27": 297.39,
+    "fy26": 1266.56
    },
    {
     "state": "Odisha",
     "zone": "East",
-    "fy27": 258.48
+    "fy27": 258.48,
+    "fy26": 512.48
    },
    {
     "state": "Punjab",
@@ -1673,22 +929,26 @@ window.DASH = {
    {
     "state": "Jharkhand",
     "zone": "East",
-    "fy27": 218.22
+    "fy27": 218.22,
+    "fy26": 406.47
    },
    {
     "state": "Bihar",
     "zone": "East",
-    "fy27": 209.12
+    "fy27": 209.12,
+    "fy26": 402.14
    },
    {
     "state": "Chhattisgarh",
     "zone": "Central",
-    "fy27": 201.65
+    "fy27": 201.65,
+    "fy26": 405.21
    },
    {
     "state": "Northeast",
     "zone": "East",
-    "fy27": 185.35
+    "fy27": 185.35,
+    "fy26": 474.05
    },
    {
     "state": "Maharashtra",
@@ -1703,7 +963,8 @@ window.DASH = {
    {
     "state": "Haryana",
     "zone": "North",
-    "fy27": 144.93
+    "fy27": 144.93,
+    "fy26": 239.35
    },
    {
     "state": "Uttar Pradesh",
@@ -1773,7 +1034,136 @@ window.DASH = {
   "fy_tags": [
    "fy26",
    "fy27"
-  ]
+  ],
+  "months_fy26": [
+   "Apr-25",
+   "May-25",
+   "Jun-25",
+   "Jul-25",
+   "Aug-25",
+   "Sep-25",
+   "Oct-25",
+   "Nov-25",
+   "Dec-25",
+   "Jan-26",
+   "Feb-26",
+   "Mar-26"
+  ],
+  "monthly_fy26": [
+   2271.99,
+   2449.48,
+   2270.36,
+   2199.19,
+   2435.71,
+   2095.21,
+   2651.74,
+   2819.99,
+   2891.3,
+   3039.29,
+   2761.18,
+   3234.43
+  ],
+  "total_fy26": 31119.87,
+  "zone_monthly_fy26": {
+   "Central": [
+    121.11,
+    128.77,
+    121.29,
+    102.02,
+    115.66,
+    93.22,
+    142.01,
+    147.34,
+    146.12,
+    159.34,
+    157.33,
+    196.04
+   ],
+   "East": [
+    221.58,
+    254.92,
+    224.94,
+    222.98,
+    289.59,
+    214.69,
+    251.63,
+    301.17,
+    301.55,
+    342.28,
+    283.74,
+    312.82
+   ],
+   "North": [
+    427.05,
+    464.29,
+    412.38,
+    403.71,
+    478.26,
+    392.99,
+    516.11,
+    523.13,
+    542.31,
+    555.86,
+    511.21,
+    609.85
+   ],
+   "South 1": [
+    412.54,
+    486.61,
+    454.94,
+    454.06,
+    518.6,
+    476.64,
+    534.52,
+    547.69,
+    624.64,
+    666.96,
+    590.79,
+    660.07
+   ],
+   "South 2": [
+    297.88,
+    319.46,
+    333.6,
+    318.92,
+    311.99,
+    280.77,
+    339.18,
+    383.46,
+    408.86,
+    425.09,
+    366.84,
+    428.91
+   ],
+   "West": [
+    607.79,
+    620.39,
+    558.91,
+    506.09,
+    562.0,
+    485.69,
+    711.81,
+    730.79,
+    700.28,
+    726.18,
+    683.16,
+    853.52
+   ],
+   "Pan India": [
+    184.05,
+    175.04,
+    164.31,
+    191.4,
+    159.6,
+    151.2,
+    156.47,
+    186.4,
+    167.53,
+    163.58,
+    168.12,
+    173.21
+   ]
+  }
  },
  "unit_economics": {
   "fy25": {

@@ -136,11 +136,12 @@ ZONE_CHAINS = {
     ],
 }
 
-# --- Zone deep dive: headline metrics. jul25=None where FY25 tracked no
-# separate Central zone (Madhya Pradesh/Chhattisgarh sat inside North/West
-# that year) — shown as "not tracked" rather than a fabricated YoY.
+# --- Zone deep dive: headline metrics. Central's jul25 is re-derived from
+# data/raw_drops/offtake_fy26/Jul'25/*.csv's State column (Madhya Pradesh +
+# Chhattisgarh), the same fix already applied to Jun'26 -- Jul'25's own Zone
+# column tagged those rows North/West instead of Central. Real, not fabricated.
 ZONE_DEEPDIVE = {
-    "Central":   dict(jul=266.30, jun=207.92, jul25=None,   share=7.4),
+    "Central":   dict(jul=266.30, jun=207.92, jul25=102.02, share=7.4),
     "East":      dict(jul=355.21, jun=389.87, jul25=222.98, share=9.8),
     "North":     dict(jul=697.90, jun=706.36, jul25=479.34, share=19.3),
     "Pan India": dict(jul=206.64, jun=216.67, jul25=191.40, share=5.7),
@@ -518,17 +519,19 @@ def s06(prs):
 # ===========================================================================
 ZONE_COPY = {
     "Central": dict(
-        headline="Central is July's fastest-growing zone — up 28% on June",
-        subhead="D-Mart carries 70% of the zone; no Jul'25 zone was tracked "
-                "separately last year.",
+        headline="Central is July's fastest-growing zone — up 28% on June, "
+                 "161% on July'25",
+        subhead="D-Mart carries 70% of the zone; Jul'25 is now measured on the "
+                "same Madhya Pradesh + Chhattisgarh basis as this July.",
         insight=[
             ("D-Mart drives the zone",
              "₹187.35 L of ₹266.30 L — 70.4% of Central sits in one chain, up "
              "from ₹131.52 L in June."),
-            ("No year-on-year base exists",
-             "FY25 offtake had no separate Central zone — Madhya Pradesh and "
-             "Chhattisgarh sat inside North/West that year. This month's growth "
-             "has no like-for-like YoY to compare against."),
+            ("The YoY base is now real, not estimated",
+             "Jul'25 tagged MP/Chhattisgarh rows North/West, not Central — the "
+             "same defect Jun'26 had. Re-derived from State: a real ₹102.02 L "
+             "base, not a fabricated one. Growth has climbed all year (₹102-196 "
+             "L, Apr'25-Mar'26), so 161% YoY isn't a one-month spike."),
         ],
         sowhat=[("Watch", "Confirm D-Mart's Central growth is sell-through, not stock-in.")],
     ),
@@ -627,12 +630,20 @@ def zone_deepdive_slide(prs, page_no, zone):
     mom = (jul / jun - 1) * 100
     yoy = (jul / jul25 - 1) * 100 if jul25 else None
 
+    if zone == "Central" and jul25 is not None:
+        jul25_source = (SRC_OFFTAKE_JUN + " Jul'25 Central re-derived from "
+                         "offtake_fy26/Jul'25/*.csv by State (MP + Chhattisgarh).")
+    elif jul25 is not None:
+        jul25_source = (SRC_OFFTAKE_JUN + " Jul'25 zone total from "
+                         "data/raw_drops/_agg/offtake_fy26.json.")
+    else:
+        jul25_source = SRC_OFFTAKE_JUN
+
     s, y = k.page(
         prs, f"zone deep dive  ·  {zone.lower()}  ·  july 2026",
         copy["headline"], copy["subhead"],
         page_no=page_no, total=TOTAL,
-        source=SRC_OFFTAKE_JUN + f" Jul'25 zone total from "
-               f"data/raw_drops/_agg/offtake_fy26.json." if jul25 else SRC_OFFTAKE_JUN)
+        source=jul25_source)
 
     y = k.kpi_row(s, y, [
         ("Jul'26 value", cr(jul), f"{share:.1f}% of total", "n"),
@@ -1068,10 +1079,29 @@ RESOLVED since the first cut of this deck (07-Sep-2026):
 ADDED in this revision (slides 5-13): brand mix, sub-category mix, and a
 deep-dive slide per zone, all computed from the same restored Jun/Jul'26
 store x article extracts using the pipeline's own canon_chain() and
-zone_with_central_override(). Central's zone deep dive carries no Jul'25
-comparison because FY25 offtake never tracked Central as a separate zone
-(Madhya Pradesh and Chhattisgarh sat inside North/West that year) — shown
-as "not tracked" rather than a fabricated year-on-year figure.
+zone_with_central_override().
+
+UPDATED in the follow-up pass: Central's Jul'25 comparison, previously shown
+as "not tracked". FY26 offtake's raw per-store extracts
+(data/raw_drops/offtake_fy26/, one CSV per chain per month, Apr'25-Mar'26)
+were checked and found to have the same defect Jun'26 had — Madhya Pradesh
+and Chhattisgarh rows are tagged North/East/West in the Zone column instead
+of Central, for all 12 months, not just June. Re-deriving each month's Central
+total from the State column (same zone_with_central_override() logic) gives
+a real, reconciled FY26 Central series: Rs 1,630.27 L total against a known
+Rs 31,119.87-31,119.88 L FY26 offtake baseline (ties to the rupee). Central's
+Jul'25 value (Rs 102.02 L) comes from that recomputation, not an estimate.
+This also surfaced a separate, larger defect: dashboard/data.js's FY26
+zone_monthly block for Aug'25-Mar'26 (all 7 zones, not just Central) held a
+flat "10% of Primary NSV" placeholder (data_source: "Primary_Article_Monthly",
+conversion_pct: 10 on every month) instead of measured offtake -- dead data
+no dashboard tab or generator script actually read, but fabricated
+nonetheless. dashboard/data.js's full FY26 offtake block (by_chain, by_zone,
+zone_monthly_fy26, monthly_fy26, total_fy26) was rebuilt from the same real
+per-store extracts; FY25 and FY27 are byte-identical before/after (diffed).
+The unused conversion_rates_fy25/26/27 fields, which mixed those same
+fabricated placeholders with real FY27 figures under one key, were removed
+rather than "fixed", since nothing reads them.
 
 STILL NOT PUBLISHED because it could not be verified:
   - FY25 primary — Primary_Article_Synthesized_FY25.csv is the distributor

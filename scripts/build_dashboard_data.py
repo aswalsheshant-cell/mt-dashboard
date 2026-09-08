@@ -714,7 +714,45 @@ def _offtake_row_month(month_val):
     if isinstance(month_val, (int, float)) and not (isinstance(month_val, float) and math.isnan(month_val)):
         d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=float(month_val))
         return f"{d.strftime('%b')}-{d.strftime('%y')}"
+    # Some extracts (e.g. Reliance's monthly CSV, which carries no "Revised
+    # Month"/"Year" fallback columns) hold the same Excel serial date as a
+    # plain numeric-looking STRING when read via a manual csv.reader path
+    # rather than pandas' own type inference. Give it the same serial-date
+    # treatment rather than dropping the row.
+    if isinstance(month_val, str) and month_val.strip():
+        try:
+            serial = float(month_val.strip())
+        except ValueError:
+            return None
+        if not math.isnan(serial) and serial > 0:
+            d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=serial)
+            return f"{d.strftime('%b')}-{d.strftime('%y')}"
     return None
+
+def _read_offtake_csv(fp):
+    """Read one offtake extract CSV, tolerating a known export defect: some
+    Reliance monthly files concatenate two source tabs (the general extract,
+    then a Brand Counter tab) that don't share a column count, so the file
+    is ragged from the point the second tab starts. pandas' C parser raises
+    on the first ragged row; when that happens, keep only the well-formed
+    leading block (every row up to the point the field count first departs
+    from the header) and drop the rest -- which is safe here because that
+    trailing block is exactly the Brand Counter rows the pipeline already
+    excludes from totals via the Store Type/Data status filter below."""
+    try:
+        return pd.read_csv(fp, low_memory=False)
+    except pd.errors.ParserError:
+        with open(fp, encoding="latin-1", newline="") as f:
+            lines = f.readlines()
+        header = next(csv.reader([lines[0]]))
+        good_rows = []
+        for line in lines[1:]:
+            row = next(csv.reader([line]))
+            if len(row) != len(header):
+                break
+            good_rows.append(row)
+        return pd.DataFrame(good_rows, columns=header)
+
 
 def load_offtake_article_files(src):
     """Aggregates NEW monthly store x article offtake extracts (.xlsb, one
@@ -726,12 +764,15 @@ def load_offtake_article_files(src):
     nothing to do with. NSV in these extracts is already INR Lakh (checked
     against the existing Lakh-denominated offtake trend -- same order of
     magnitude, continuing its Oct'25-Mar'26 growth trajectory).
+    Searches src recursively, so a --src pointed at a parent of per-month
+    subfolders (e.g. data/raw_drops/offtake_fy26/Apr'25/*.csv) is picked up
+    the same as a flat folder of monthly files.
     Returns (chain_month, zone_state_month); both {} if no offtake extracts found."""
-    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
+    files = sorted([*src.rglob("*.xlsb"), *src.rglob("*.csv")])
     chain_month, zsm = {}, {}
     for fp in files:
         if fp.suffix.lower() == ".csv":
-            _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+            _frames = {"csv": _read_offtake_csv(fp)}
         else:
             # Some xlsb exports have a blank/index row before the header (header=1)
             # while others start the header at row 0. Auto-detect by trying header=0
