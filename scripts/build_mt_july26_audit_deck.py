@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build: "Modern Trade July'26 Offtake Audit & Nielsen Category Performance".
 
-Ten slides, portrait 7.5 x 13.33in, drawn with scripts/deck_kit.py so the deck
+19 slides, portrait 7.5 x 13.33in, drawn with scripts/deck_kit.py so the deck
 sits in the same visual family as the existing MT leadership pack.
 
 Every figure carries a source. Nothing here is estimated: where a number could
@@ -19,11 +19,14 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import deck_kit as k  # noqa: E402
 
-TOTAL = 10
+TOTAL = 19
 
 SRC_OFFTAKE = ("Source: PowerBI/RawDataFolders/Offtake_Monthly/"
                "offtake_store_article_Jul_26.csv (221,548 rows), Reliance Brand "
                "Counter excluded per the offtake dedup rule.")
+SRC_OFFTAKE_JUN = ("Source: offtake_store_article_Jul_26.csv and "
+                    "offtake_store_article_Jun_26.csv, both ex-Brand-Counter, "
+                    "canon_chain()/zone_with_central_override() applied.")
 SRC_NIELSEN = ("Source: NielsenIQ, India Urban Modern Trade, July 2026 "
                "(data/nielsen/*.csv, data/nielsen_jul26.json).")
 
@@ -68,6 +71,83 @@ ZONES = [
     ("Central",    266.30,  7.4),
     ("Pan India",  206.64,  5.7),
 ]
+
+# --- Brand mix, July'26 offtake, ex-Brand-Counter
+# (brand, Jul'26 L, share %, Jun'26 L, MoM %, YoY % or None if not meaningful)
+BRAND_MIX = [
+    ("Mamaearth",     2455.41, 67.8, 2762.85, -11.1,  26.9),
+    ("The Derma Co.", 1107.73, 30.6, 1003.43,  10.4, 426.4),
+    ("Aqualogica",       48.36, 1.3,   62.76, -22.9,  21.2),
+    ("BBLUNT",            6.34, 0.2,    7.76, -18.3, -52.8),
+    ("Other brands",      3.63, 0.1,    3.65,  -0.5,  None),
+]
+
+# --- Sub-category mix, July'26 offtake, ex-Brand-Counter
+# (sub-category, Jul'26 L, share %, Jun'26 L, MoM %)
+SUBCAT_MIX = [
+    ("Face Cleanser", 1764.30, 48.7, 1718.32,   2.7),
+    ("Shampoo",         744.58, 20.6,  813.36,  -8.5),
+    ("Sun Care",        459.09, 12.7,  603.22, -23.9),
+    ("Face Serum",        93.99, 2.6,  100.04,  -6.0),
+    ("Body Lotion",       82.28, 2.3,   89.86,  -8.4),
+    ("Soap",               76.99, 2.1,  58.38,  31.9),
+    ("Moisturisers",       75.76, 2.1,  91.52, -17.2),
+    ("Baby Soap",          64.99, 1.8,  71.58,  -9.2),
+    ("Body Wash",          61.69, 1.7,  71.28, -13.5),
+    ("Hair Oil",           59.69, 1.6,  63.97,  -6.7),
+    ("Other",             138.13, 3.8, 158.93, -13.1),
+]
+
+# --- Zone deep dive: chain mix within each zone, Jul'26 vs Jun'26 (₹ Lakh)
+# top 5 chains + an "Other" residual so each zone's rows sum to its total.
+ZONE_CHAINS = {
+    "Central": [
+        ("DMart", 187.35, 131.52), ("Reliance Retail", 46.47, 53.48),
+        ("Apollo", 24.17, 18.95), ("Wellness Forever", 4.57, 1.35),
+        ("VMM", 2.71, 1.61), ("Other", 1.03, 0.76),
+    ],
+    "East": [
+        ("Reliance Retail", 216.16, 249.68), ("Apollo", 79.63, 79.54),
+        ("VMM", 17.35, 13.80), ("More Retail", 9.27, 9.75),
+        ("Spencer", 6.16, 6.10), ("Other", 26.65, 29.18),
+    ],
+    "North": [
+        ("DMart", 250.56, 219.00), ("Reliance Retail", 240.25, 270.24),
+        ("Apollo", 115.55, 110.62), ("Lulu", 26.57, 17.98),
+        ("Sancus (RMT)", 18.50, 39.83), ("Other", 46.46, 43.67),
+    ],
+    "Pan India": [
+        ("Nykaa (FSN)", 206.64, 216.67),
+    ],
+    "South 1": [
+        ("Apollo", 284.14, 288.84), ("DMart", 231.16, 229.40),
+        ("Lulu", 122.12, 86.17), ("Reliance Retail", 112.74, 151.30),
+        ("Health & Glow", 34.12, 34.54), ("Other", 36.34, 36.99),
+    ],
+    "South 2": [
+        ("DMart", 194.90, 229.44), ("Apollo", 163.55, 162.57),
+        ("Reliance Retail", 66.69, 94.36), ("Lulu", 21.08, 11.70),
+        ("Health & Glow", 13.37, 14.14), ("Other", 33.87, 35.63),
+    ],
+    "West": [
+        ("DMart", 531.93, 645.31), ("Reliance Retail", 123.33, 128.75),
+        ("Wellness Forever", 62.26, 73.35), ("Apollo", 51.13, 62.52),
+        ("Trent", 6.05, 6.60), ("Other", 6.64, 19.41),
+    ],
+}
+
+# --- Zone deep dive: headline metrics. jul25=None where FY25 tracked no
+# separate Central zone (Madhya Pradesh/Chhattisgarh sat inside North/West
+# that year) — shown as "not tracked" rather than a fabricated YoY.
+ZONE_DEEPDIVE = {
+    "Central":   dict(jul=266.30, jun=207.92, jul25=None,   share=7.4),
+    "East":      dict(jul=355.21, jun=389.87, jul25=222.98, share=9.8),
+    "North":     dict(jul=697.90, jun=706.36, jul25=479.34, share=19.3),
+    "Pan India": dict(jul=206.64, jun=216.67, jul25=191.40, share=5.7),
+    "South 1":   dict(jul=820.63, jun=829.80, jul25=454.06, share=22.7),
+    "South 2":   dict(jul=493.45, jun=549.77, jul25=318.92, share=13.6),
+    "West":      dict(jul=781.34, jun=940.06, jul25=532.48, share=21.6),
+}
 
 # 28 months, Apr'24 -> Jul'26
 MONTHS = (["Apr'24", "May'24", "Jun'24", "Jul'24", "Aug'24", "Sep'24", "Oct'24",
@@ -340,30 +420,319 @@ def s04(prs):
 
 
 # ===========================================================================
-# 05 — section divider
+# 05 — brand mix
 # ===========================================================================
 @slide
 def s05(prs):
+    s, y = k.page(
+        prs, "july'26 offtake  ·  brand mix",
+        "Two brands carry 98% of July — and The Derma Co. is still scaling fast",
+        "Brand share of July'26 offtake, ex-Brand-Counter, with June and July'25 "
+        "for comparison.",
+        page_no=5, total=TOTAL, source=SRC_OFFTAKE_JUN)
+
+    y = k.kpi_row(s, y, [
+        ("Mamaearth", cr(BRAND_MIX[0][1]), f"{BRAND_MIX[0][2]:.1f}% of month", "n"),
+        ("The Derma Co.", cr(BRAND_MIX[1][1]), pct(BRAND_MIX[1][5]) + " YoY", "+"),
+        ("Top 2 brands", f"{BRAND_MIX[0][2]+BRAND_MIX[1][2]:.1f}%", "of July offtake", "n"),
+    ])
+    y += 0.32
+
+    y = k.donut(s, k.ML, y, k.CW, 2.15,
+                [(b, sh) for b, _, sh, *_ in BRAND_MIX],
+                [k.TEAL, k.BLUE, k.AMBER, k.RGBColor(0xA8, 0xC5, 0xBE), k.RULE],
+                centre_value=f"{BRAND_MIX[0][2]:.0f}%", centre_label="MAMAEARTH")
+    y += 0.26
+
+    y = k.data_table(
+        s, y, ["Brand", "Jul'26 ₹L", "Share", "vs Jun'26", "vs Jul'25"],
+        [[b, f"{jul:,.2f}", f"{sh:.1f}%", pct(mm),
+          ("n/m — new/negligible base" if yoy is None else pct(yoy))]
+         for b, jul, sh, jun, mm, yoy in BRAND_MIX],
+        [0.24, 0.19, 0.14, 0.18, 0.25], hi_rows=("Mamaearth",), row_h=0.27)
+    y += 0.30
+
+    y = k.insight(s, y, "the brand read", [
+        ("The Derma Co. is the growth engine",
+         "Up 426% year on year and still up 10.4% on June alone — the one brand "
+         "growing sequentially while the channel softened."),
+        ("Mamaearth is normalising off a strong base",
+         "Down 11.1% on June but still up 26.9% year on year. At 67.8% of the "
+         "month, its month-on-month moves set the channel's shape."),
+    ], h_item=0.80)
+    y += 0.20
+
+    y = k.sowhat(s, y, [
+        ("Watch", "The Derma Co.'s share of the channel is compounding monthly."),
+        ("Protect", "Mamaearth's base is still the majority of every zone."),
+    ], h=1.02)
+    k.fits(y, "s05")
+    return s
+
+
+# ===========================================================================
+# 06 — sub-category mix
+# ===========================================================================
+@slide
+def s06(prs):
+    s, y = k.page(
+        prs, "july'26 offtake  ·  sub-category mix",
+        "Face Cleanser and Shampoo are 69% of July; Sun Care is the steepest "
+        "sequential faller",
+        "Sub-category share of July'26 offtake, ex-Brand-Counter, against June.",
+        page_no=6, total=TOTAL, source=SRC_OFFTAKE_JUN)
+
+    y = k.kpi_row(s, y, [
+        ("Face Cleanser", cr(SUBCAT_MIX[0][1]), f"{SUBCAT_MIX[0][2]:.1f}% of month", "n"),
+        ("Shampoo", cr(SUBCAT_MIX[1][1]), pct(SUBCAT_MIX[1][4]) + " vs Jun", "-"),
+        ("Sun Care", cr(SUBCAT_MIX[2][1]), pct(SUBCAT_MIX[2][4]) + " vs Jun", "-"),
+    ])
+    y += 0.32
+
+    y = k.data_table(
+        s, y, ["Sub-category", "Jul'26 ₹L", "Share", "vs Jun'26"],
+        [[c, f"{v:,.2f}", f"{sh:.1f}%", pct(mm)] for c, v, sh, _jn, mm in SUBCAT_MIX],
+        [0.34, 0.22, 0.18, 0.26], hi_rows=("Face Cleanser", "Shampoo"), row_h=0.235)
+    y += 0.28
+
+    y = k.insight(s, y, "the sub-category read", [
+        ("Sun Care fell fastest",
+         "Down 23.9% on June as the peak-season taper begins — the largest "
+         "sequential swing of any sub-category above ₹50 L."),
+        ("Face Cleanser held up, Shampoo softened",
+         "Face Cleanser is flat-to-up (+2.7% on June); Shampoo is down 8.5%, "
+         "in line with the channel's broader June-to-July pullback."),
+    ], h_item=0.72)
+    y += 0.18
+
+    y = k.sowhat(s, y, [
+        ("Expect", "Sun Care's taper is seasonal, not a demand problem."),
+        ("Hold", "Face Cleanser availability protects 48.7% of the month."),
+    ], h=0.90)
+    k.fits(y, "s06")
+    return s
+
+
+# ===========================================================================
+# 07-13 — zone deep dives
+# ===========================================================================
+ZONE_COPY = {
+    "Central": dict(
+        headline="Central is July's fastest-growing zone — up 28% on June",
+        subhead="D-Mart carries 70% of the zone; no Jul'25 zone was tracked "
+                "separately last year.",
+        insight=[
+            ("D-Mart drives the zone",
+             "₹187.35 L of ₹266.30 L — 70.4% of Central sits in one chain, up "
+             "from ₹131.52 L in June."),
+            ("No year-on-year base exists",
+             "FY25 offtake had no separate Central zone — Madhya Pradesh and "
+             "Chhattisgarh sat inside North/West that year. This month's growth "
+             "has no like-for-like YoY to compare against."),
+        ],
+        sowhat=[("Watch", "Confirm D-Mart's Central growth is sell-through, not stock-in.")],
+    ),
+    "East": dict(
+        headline="East is Reliance's zone — and its steepest June-to-July pullback",
+        subhead="Reliance is 61% of East. The zone is still up 59% year on year "
+                "despite the monthly dip.",
+        insight=[
+            ("Reliance-concentrated",
+             "₹216.16 L of ₹355.21 L — 60.9% of East sits in one chain, down "
+             "from ₹249.68 L in June (−13.4%)."),
+            ("Still a strong year",
+             "East is up 59.3% on July'25 (₹222.98 L), so the June-to-July dip "
+             "is a sequential read, not a trend reversal."),
+        ],
+        sowhat=[("Confirm", "Whether Reliance's East dip is a listing or a stocking gap.")],
+    ),
+    "North": dict(
+        headline="North holds steady — D-Mart and Reliance are running neck and neck",
+        subhead="The two largest chains are within ₹10 L of each other; the "
+                "zone is flat month on month.",
+        insight=[
+            ("A genuine two-horse race",
+             "D-Mart ₹250.56 L vs Reliance ₹240.25 L — the closest contest of "
+             "any zone, and Reliance's June lead (₹270.24 L) has narrowed."),
+            ("Broad-based growth",
+             "North is up 45.6% year on year with Apollo (₹115.55 L) and Lulu "
+             "(₹26.57 L, +47.8% on June) both contributing."),
+        ],
+        sowhat=[("Hold", "No single-chain risk here — the zone is genuinely diversified.")],
+    ),
+    "Pan India": dict(
+        headline="Pan India is Nykaa/FSN, in full — a single-chain zone by design",
+        subhead="This is not a physical-store zone; it exists because Nykaa/FSN "
+                "isn't mapped to a state-level zone.",
+        insight=[
+            ("100% one chain",
+             "Every rupee of Pan India's ₹206.64 L is Nykaa/FSN — there is no "
+             "chain mix to show because none exists."),
+            ("This is what slide 3 was about",
+             "The FY27 zone-drop bug happened precisely because this zone has "
+             "only one chain in it — its outage looked like a rounding error "
+             "instead of a whole account going missing."),
+        ],
+        sowhat=[("Consider", "Whether Nykaa/FSN deserves a chain-level view instead of a zone.")],
+    ),
+    "South 1": dict(
+        headline="South 1 is the largest zone at 22.7% of July — and up 81% year on year",
+        subhead="Apollo leads, D-Mart is close behind, and Lulu is the "
+                "fastest-growing chain in the zone.",
+        insight=[
+            ("Apollo edges D-Mart",
+             "₹284.14 L vs ₹231.16 L — Apollo has led South 1 in both June and "
+             "July, though its margin has narrowed slightly."),
+            ("Lulu is scaling fast within the zone",
+             "₹122.12 L, up 41.7% on June's ₹86.17 L — South 1 is where Lulu's "
+             "channel-wide growth is concentrated."),
+        ],
+        sowhat=[("Bank", "South 1's 80.7% YoY makes it the zone to protect first.")],
+    ),
+    "South 2": dict(
+        headline="South 2 posts the second-steepest pullback, down 10.2% on June",
+        subhead="D-Mart still leads but fell from June; Apollo held almost flat.",
+        insight=[
+            ("D-Mart pulled back, Apollo didn't",
+             "D-Mart fell to ₹194.90 L from ₹229.44 L (−15.1%) while Apollo held "
+             "at ₹163.55 L, essentially flat on June's ₹162.57 L."),
+            ("Reliance also softened",
+             "₹66.69 L, down 29.3% on June's ₹94.36 L — the zone's decline is "
+             "concentrated in two chains, not broad-based."),
+        ],
+        sowhat=[("Check", "Whether D-Mart and Reliance's South 2 dip is a common cause.")],
+    ),
+    "West": dict(
+        headline="West has July's steepest pullback, down 16.9% on June — still up "
+                 "47% year on year",
+        subhead="D-Mart alone is 68% of the zone; its swing is the largest "
+                "single chain-month movement in this deck.",
+        insight=[
+            ("D-Mart's West swing is the single largest in the deck",
+             "₹531.93 L in July against ₹645.31 L in June — a ₹113.38 L drop, "
+             "bigger than the total offtake of five other zones combined."),
+            ("The zone is still a strong year",
+             "West is up 46.7% on July'25 (₹532.48 L), so July's level is still "
+             "well ahead of last year despite the June pullback."),
+        ],
+        sowhat=[("Prioritise", "D-Mart West is the single largest MoM swing to root-cause.")],
+    ),
+}
+
+
+def zone_deepdive_slide(prs, page_no, zone):
+    meta = ZONE_DEEPDIVE[zone]
+    copy = ZONE_COPY[zone]
+    jul, jun, jul25, share = meta["jul"], meta["jun"], meta["jul25"], meta["share"]
+    mom = (jul / jun - 1) * 100
+    yoy = (jul / jul25 - 1) * 100 if jul25 else None
+
+    s, y = k.page(
+        prs, f"zone deep dive  ·  {zone.lower()}  ·  july 2026",
+        copy["headline"], copy["subhead"],
+        page_no=page_no, total=TOTAL,
+        source=SRC_OFFTAKE_JUN + f" Jul'25 zone total from "
+               f"data/raw_drops/_agg/offtake_fy26.json." if jul25 else SRC_OFFTAKE_JUN)
+
+    y = k.kpi_row(s, y, [
+        ("Jul'26 value", cr(jul), f"{share:.1f}% of total", "n"),
+        ("vs Jun'26", pct(mom), "month on month", "+" if mom >= 0 else "-"),
+        ("vs Jul'25", ("not tracked" if yoy is None else pct(yoy)),
+         "separately last year" if yoy is None else "year on year",
+         "n" if yoy is None else ("+" if yoy >= 0 else "-")),
+    ])
+    y += 0.34
+
+    rows = ZONE_CHAINS[zone]
+    if len(rows) > 1:
+        y = k.bars(s, y, [(c, v, f"{v:,.0f}") for c, v, _jn in rows],
+                   h_row=0.36, gap=0.09,
+                   hi=(rows[0][0],),
+                   note=f"₹ Lakh, Jul'26, chain mix within {zone}. "
+                        f"June comparison in the table below.")
+        y += 0.30
+        y = k.data_table(
+            s, y, ["Chain", "Jul'26 ₹L", "Jun'26 ₹L", "vs Jun'26"],
+            [[c, f"{jl:,.2f}", f"{jn:,.2f}", pct((jl/jn-1)*100 if jn else 0.0)]
+             for c, jl, jn in rows],
+            [0.32, 0.24, 0.24, 0.20], hi_rows=(rows[0][0],), row_h=0.27)
+        y += 0.30
+    else:
+        c, jl, jn = rows[0]
+        y = k.data_table(
+            s, y, ["Chain", "Jul'26 ₹L", "Jun'26 ₹L", "vs Jun'26"],
+            [[c, f"{jl:,.2f}", f"{jn:,.2f}", pct((jl/jn-1)*100 if jn else 0.0)]],
+            [0.32, 0.24, 0.24, 0.20], hi_rows=(c,), row_h=0.30)
+        y += 0.34
+
+    y = k.insight(s, y, "the zone read", copy["insight"], h_item=0.80)
+    y += 0.22
+
+    y = k.sowhat(s, y, copy["sowhat"], h=0.90)
+    k.fits(y, f"zone-{zone}")
+    return s
+
+
+@slide
+def s07(prs):
+    return zone_deepdive_slide(prs, 7, "Central")
+
+
+@slide
+def s08(prs):
+    return zone_deepdive_slide(prs, 8, "East")
+
+
+@slide
+def s09(prs):
+    return zone_deepdive_slide(prs, 9, "North")
+
+
+@slide
+def s10(prs):
+    return zone_deepdive_slide(prs, 10, "Pan India")
+
+
+@slide
+def s11(prs):
+    return zone_deepdive_slide(prs, 11, "South 1")
+
+
+@slide
+def s12(prs):
+    return zone_deepdive_slide(prs, 12, "South 2")
+
+
+@slide
+def s13(prs):
+    return zone_deepdive_slide(prs, 13, "West")
+
+
+# ===========================================================================
+# 14 — section divider
+# ===========================================================================
+@slide
+def s14(prs):
     return k.divider(
         prs, "section two", "NielsenIQ Category\nIntelligence",
         "External category read for Face Wash and Shampoo through July 2026. "
         "India Urban Modern Trade. Measured on a different base to internal NSV "
         "— the two are never compared as one series.",
-        page_no=5, total=TOTAL)
+        page_no=14, total=TOTAL)
 
 
 # ===========================================================================
-# 06 — face wash
+# 15 — face wash
 # ===========================================================================
 @slide
-def s06(prs):
+def s15(prs):
     s, y = k.page(
         prs, "nielseniq  ·  face wash",
         "Mamaearth is the No.4 face wash brand at 11.2% share — and the fastest "
         "growing of the top eight",
         "Share is up 2.4 points year on year while the three brands above it all "
         "lost ground.",
-        page_no=6, total=TOTAL, source=SRC_NIELSEN)
+        page_no=15, total=TOTAL, source=SRC_NIELSEN)
 
     y = k.kpi_row(s, y, [
         ("July value", "₹9.2 Cr", "▲ 47.7% YoY", "+"),
@@ -409,22 +778,22 @@ def s06(prs):
         ("Protect", "150 ml availability is the single biggest lever on share."),
         ("Qualify", "Set store-addition and PDO targets separately."),
     ], h=1.02)
-    k.fits(y, "s06")
+    k.fits(y, "s15")
     return s
 
 
 # ===========================================================================
-# 07 — shampoo
+# 16 — shampoo
 # ===========================================================================
 @slide
-def s07(prs):
+def s16(prs):
     s, y = k.page(
         prs, "nielseniq  ·  shampoo",
         "Shampoo value is consolidating into bulk packs — but we cannot yet see "
         "Mamaearth's position in it",
         "Category pack architecture is clear. Brand-level detail is not in the "
         "supplied file.",
-        page_no=7, total=TOTAL,
+        page_no=16, total=TOTAL,
         source=SRC_NIELSEN + " Pack cut from Shampoo_Jul26_PackSize_Analysis.csv.")
 
     y = k.kpi_row(s, y, [
@@ -475,22 +844,22 @@ def s07(prs):
            "decision is taken on shampoo.",
            size=9, color=k.INK, line_spacing=1.18)
     y += 1.02
-    k.fits(y, "s07")
+    k.fits(y, "s16")
     return s
 
 
 # ===========================================================================
-# 08 — multi-year momentum
+# 17 — multi-year momentum
 # ===========================================================================
 @slide
-def s08(prs):
+def s17(prs):
     s, y = k.page(
         prs, "multi-year momentum  ·  apr'24 to jul'26",
         "Offtake is up 65% year on year, on a base that only becomes "
         "like-for-like from April 2025",
         "FY25 has no true offtake anywhere in the source set — the dotted line is "
         "distributor secondary, shown as an indicative anchor only.",
-        page_no=8, total=TOTAL,
+        page_no=17, total=TOTAL,
         source="Source: offtake from data/raw_drops/_agg/offtake_fy26.json and the "
                "Apr/May/Jun/Jul'26 store x article extracts; primary from "
                "primary_article_*.csv; FY25 from "
@@ -535,22 +904,22 @@ def s08(prs):
         ("Withhold", "No FY25-vs-FY26 growth rate until true primary arrives."),
         ("Close", "August'26 is the next month to source once available."),
     ], h=1.24)
-    k.fits(y, "s08")
+    k.fits(y, "s17")
     return s
 
 
 # ===========================================================================
-# 09 — strategic takeaways
+# 18 — strategic takeaways
 # ===========================================================================
 @slide
-def s09(prs):
+def s18(prs):
     s, y = k.page(
         prs, "strategic commercial takeaways",
         "The growth is broad and genuine — most of the reporting gaps behind it "
         "are now closed",
         "Where the value is coming from, and what could still take it away.",
-        page_no=9, total=TOTAL,
-        source="Source: as per slides 3, 4, 6, 7 and 8.")
+        page_no=18, total=TOTAL,
+        source="Source: as per the preceding audit, brand, zone and category slides.")
 
     k.text(s, k.ML, y, k.CW, 0.22, "GROWTH DRIVERS", size=8.5, bold=True,
            color=k.GREEN, spacing=1.2)
@@ -558,10 +927,10 @@ def s09(prs):
     for label, body, val in [
         ("Apollo scale-up", "Third-largest account from a standing start; "
          "+150% year on year and now a fifth of the channel.", "+₹431 L YoY"),
+        ("The Derma Co. is compounding", "Up 426% year on year and still up "
+         "10.4% on June alone — growing while the channel softened.", "+426% YoY"),
         ("Face wash share gain", "Rank 4 at 11.2%, +2.4 points, while every "
          "brand above lost share. Velocity-led, not distribution-led.", "+2.4 pp"),
-        ("150 ml pack shift", "The category's value pool moved to 150 ml, up "
-         "59.7%. Mamaearth is positioned in the growing pack.", "39.1% of category"),
         ("Bulk shampoo demand", "650 ml and 1000 ml both growing strongly — "
          "72.1% of category value is now above 250 ml.", "1000 ml +58%"),
     ]:
@@ -582,9 +951,8 @@ def s09(prs):
     for label, body, val in [
         ("Account concentration", "D-Mart, Reliance and Apollo are 80.6% of the "
          "channel. A single listing or planogram change moves the month.", "80.6%"),
-        ("Sequential softening", "July is 5.7% below June, led by Reliance "
-         "(−15.0%) and the West zone (−16.9%). Real month-on-month, not a "
-         "YoY concern.", "−5.7% vs Jun"),
+        ("West's D-Mart swing", "A ₹113 L June-to-July drop in one chain, one "
+         "zone — the single largest sequential movement in this audit.", "−16.9% West"),
         ("Reach quality", "Relative numeric distribution fell to 57.8% while "
          "weighted held at 89.2% — the remaining stores are lower value.", "−1.7 pp"),
         ("Walmart C&C at nil for two months", "Zero in both June and July "
@@ -607,21 +975,21 @@ def s09(prs):
         ("Hedge", "Concentration means chain-level risk is channel-level risk."),
         ("Close", "No pack or zone decision until the data gaps are shut."),
     ], h=1.20)
-    k.fits(y, "s09")
+    k.fits(y, "s18")
     return s
 
 
 # ===========================================================================
-# 10 — action plan and governance
+# 19 — action plan and governance
 # ===========================================================================
 @slide
-def s10(prs):
+def s19(prs):
     s, y = k.page(
         prs, "action plan  ·  governance roadmap",
         "Two fixes done, three open, all with named owners",
         "The two data-integrity items that gated everything else closed with "
         "the June'26 restore. Nothing on this page needs new investment.",
-        page_no=10, total=TOTAL,
+        page_no=19, total=TOTAL,
         source="Owners and dates to be confirmed in the monthly MT governance call.")
 
     k.text(s, k.ML, y, k.CW, 0.22, "PRIORITY ACTIONS", size=8.5, bold=True,
@@ -677,7 +1045,7 @@ def s10(prs):
         ("Approve", f"{cr(JUL26_EX_BC)} as the July baseline for Q2 targets."),
         ("Assign", "The five owners above, reviewed in the next MT call."),
     ], h=1.00)
-    k.fits(y, "s10")
+    k.fits(y, "s19")
     return s
 
 
@@ -697,6 +1065,14 @@ RESOLVED since the first cut of this deck (07-Sep-2026):
   - "vs May'26" throughout this deck is now "vs Jun'26" — a real prior
     month rather than a two-month-old stand-in.
 
+ADDED in this revision (slides 5-13): brand mix, sub-category mix, and a
+deep-dive slide per zone, all computed from the same restored Jun/Jul'26
+store x article extracts using the pipeline's own canon_chain() and
+zone_with_central_override(). Central's zone deep dive carries no Jul'25
+comparison because FY25 offtake never tracked Central as a separate zone
+(Madhya Pradesh and Chhattisgarh sat inside North/West that year) — shown
+as "not tracked" rather than a fabricated year-on-year figure.
+
 STILL NOT PUBLISHED because it could not be verified:
   - FY25 primary — Primary_Article_Synthesized_FY25.csv is the distributor
     secondary file re-split, not billing. Shown as an indicative proxy only.
@@ -711,7 +1087,7 @@ Central from State for Madhya Pradesh and Chhattisgarh specifically (the one
 state pair Jun'26 mistagged), but a separate conflict remains: the pipeline's
 broader state-to-zone master disagrees with the source on Telangana/AP and
 Kerala, moving c.₹376 L between South 1 and South 2. That conflict is action
-03 on slide 10.
+03 on the action-plan slide.
 """
 
 
