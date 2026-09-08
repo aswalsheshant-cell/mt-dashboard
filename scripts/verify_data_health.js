@@ -40,12 +40,15 @@ function runChecks(dataPath, htmlPath) {
     msg: hasNaN ? '❌ Raw NaN in data.js' : '✓ No raw NaN'
   });
 
-  // Check 2: Offtake total object
-  const hasOfftakeTotal = typeof data.offtake?.total === 'object' && Object.keys(data.offtake.total).length > 0;
+  // Check 2: Offtake total present. build_dashboard_data.py has always emitted
+  // offtake.total as a plain number (the all-FY grand total NSV), with each
+  // FY's own total under total_fy25/total_fy26/... -- there has never been a
+  // nested total object, so check the real generator contract instead.
+  const hasOfftakeTotal = typeof data.offtake?.total === 'number' && data.offtake.total > 0;
   results.push({
     check: 'OFFTAKE_SCHEMA',
     pass: hasOfftakeTotal,
-    msg: hasOfftakeTotal ? '✓ Offtake total object valid' : '❌ Offtake total missing'
+    msg: hasOfftakeTotal ? '✓ Offtake total valid' : '❌ Offtake total missing'
   });
 
   // Check 3: Primary chains exist

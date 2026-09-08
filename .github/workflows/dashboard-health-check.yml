@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Validate Dashboard Data & Schema
     steps:
-      - uses: actions/checkout@11278081b57cac02f6c63977c5843ec0dcc9d95a
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@39370e3970a6d050c480e0343a8aea4f060d5151
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65  # v4.0.0
         with:
           node-version: '20'
 
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Validate HTML Structure & Fixes
     steps:
-      - uses: actions/checkout@11278081b57cac02f6c63977c5843ec0dcc9d95a
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
       - name: Check for required fixes in HTML
         run: |
