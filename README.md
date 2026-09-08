@@ -5,7 +5,7 @@
 
 A self-contained offline analytics dashboard for Honasa / Mamaearth Modern Trade channel data, covering Primary (distributor) sales, Offtake (retail), P&L, Forecasts, and Executive Insights.
 
-**Live Dashboard:** https://mt-dashboard.github.io
+**Live Dashboard:** https://aswalsheshant-cell.github.io/mt-dashboard/
 
 ---
 
@@ -13,7 +13,7 @@ A self-contained offline analytics dashboard for Honasa / Mamaearth Modern Trade
 
 ### View the Dashboard
 
-1. **Online:** Open [https://mt-dashboard.github.io](https://mt-dashboard.github.io) in your browser
+1. **Online:** Open [https://aswalsheshant-cell.github.io/mt-dashboard/](https://aswalsheshant-cell.github.io/mt-dashboard/) in your browser
 2. **Offline:** Clone this repo, double-click `dashboard/index.html`
 3. **No login required.** Data is embedded in `dashboard/data.js` (~14 MB)
 
@@ -378,4 +378,4 @@ Internal Honasa / Mamaearth analytics platform. All source code, documentation, 
 
 **Last Updated:** 2026-08-08  
 **Status Badge:** [![CI Status](https://github.com/aswalsheshant-cell/mt-dashboard/actions/workflows/qc.yml/badge.svg)](https://github.com/aswalsheshant-cell/mt-dashboard/actions)  
-**Production Dashboard:** https://mt-dashboard.github.io
+**Production Dashboard:** https://aswalsheshant-cell.github.io/mt-dashboard/

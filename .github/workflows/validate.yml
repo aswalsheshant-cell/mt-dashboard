@@ -205,13 +205,15 @@ jobs:
           with open('dashboard/index.html', 'r') as f:
             html = f.read()
 
+          # Phase 2 (v1.1.2) checks — Store Hierarchy & Granularity awareness
           checks = [
             ('nav button', 'Navigation buttons'),
             ('section id="tab-', 'Tab sections'),
-            ('function buildRetailExecution', 'Retail Execution tab builder'),
-            ('compliance_metrics.json', 'Compliance data reference'),
-            ('exportRetailExecutionCompliance', 'CSV export function'),
-            ('exportRetailExecutionMultiTab', 'Excel export function')
+            ('function maskSiteCode', 'Synthetic site code masking (Phase 2)'),
+            ('function getGranularityBadge', 'Granularity badge display (Phase 2)'),
+            ('function wireRelianceBCToggle', 'Reliance Brand Counter toggle (Phase 2)'),
+            ('function buildExplorer', 'Data Explorer tab builder'),
+            ('function exportCSV', 'CSV export function'),
           ]
 
           passed = 0
@@ -224,6 +226,7 @@ jobs:
 
           print(f"\n{passed}/{len(checks)} markup checks passed")
           if passed < len(checks):
+            print("⚠ Some checks failed — dashboard may have legacy references")
             exit(1)
           EOF
 

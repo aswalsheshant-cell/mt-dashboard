@@ -20,6 +20,7 @@ Usage:
         --out ../dashboard/data.js
 """
 from __future__ import annotations
+import sys
 import argparse, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
 
@@ -193,12 +194,70 @@ def zone_with_central_override(zone, state):
     Central for that month and inflate the other two. Re-deriving from State
     for these two states keeps every month consistent without touching zones
     that are not in dispute.
+
+    Unlike canon_zone_from_state() below, this ALWAYS prefers the source's own
+    Zone tag first (via canon_zone()) and only steps in for the two disputed
+    states -- so a row the source already correctly tags (e.g. the Vidarbha
+    cities of Maharashtra, which FY27 extracts already tag Central) is never
+    overridden. Use this wherever the source's own zone tag is present and
+    should be trusted except for the known MP/Chhattisgarh gap.
     """
     z = canon_zone(zone)
     s = str(state).strip().lower() if state is not None else ""
     if s in _CENTRAL_STATES:
         return "Central"
     return z
+
+def canon_zone_from_state(state):
+    """Map state/region to MT zone unconditionally. Used to override zone column
+    when it's miscoded in source.
+
+    The offtake extracts incorrectly assign Madhya Pradesh and Chhattisgarh to North/West
+    instead of Central, so this override corrects the zone assignment at ingest time.
+
+    CAVEAT: this is a blanket state->zone table, not a source-respecting patch --
+    it does NOT check whether the source already tagged the row correctly. Every
+    Maharashtra row maps to "West" here, including the Vidarbha cities (Nagpur,
+    Akola, Yavatmal, Wardha, Amravati, Chandrapur) that FY27 offtake extracts
+    already tag "Central" in their own Zone column. Safe today only because its
+    two call sites (offtake_rebuild_block, load_fy25_secondary) both consume
+    FY26/FY25 sources where Central was never tagged for any state (so there is
+    no correct pre-existing tag to clobber) -- do not reuse this function against
+    a source, like the FY27 monthly drops, whose Zone column already carries a
+    real Central classification; use zone_with_central_override() there instead."""
+    if state is None:
+        return None
+    state = str(state).strip()
+    state_lower = state.lower()
+
+    # State -> Zone mappings (official per ZoneStateMaster)
+    state_to_zone = {
+        # North zone
+        "delhi": "North", "delhi ncr": "North", "delhi/ ncr": "North",
+        "haryana": "North", "punjab": "North", "j&k": "North", "himachal": "North",
+        "up": "North", "uttarakhand": "North", "up/uk": "North",
+
+        # East zone
+        "bihar": "East", "jharkhand": "East", "odisha": "East", "west bengal": "East",
+        "northeast": "East",
+
+        # West zone
+        "goa": "West", "rajasthan": "West", "maharashtra": "West", "mumbai": "West",
+        "gujarat": "West",
+
+        # South 1 zone
+        "karnataka": "South 1", "tamil nadu": "South 1", "telangana": "South 1",
+        "andhra": "South 1", "andhra pradesh": "South 1",
+
+        # South 2 zone
+        "kerala": "South 2",
+
+        # Central zone (CRITICAL: MP and CG are miscoded as North/West in offtake, override here)
+        "madhya pradesh": "Central", "mp": "Central",
+        "chhattisgarh": "Central", "cg": "Central",
+    }
+
+    return state_to_zone.get(state_lower, None)
 
 STATE_ALIASES = {
     "delhi/ ncr": "Delhi/ Ncr", "delhi/ncr": "Delhi/ Ncr", "delhi ncr": "Delhi/ Ncr",
@@ -297,6 +356,51 @@ def r2(x, nd=2):
         return None
 
 # --------------------------------------------------------------------------
+# STORE HIERARCHY & DATA GRANULARITY STANDARDIZATION
+# Phase 1: v1.1.2 — Assign deterministic synthetic site codes to chains
+# that report at Pan-India or regional levels (no store ID mapping).
+# Prevents null-join dropped rows in frontend aggregations.
+# --------------------------------------------------------------------------
+def standardize_site_codes(df):
+    """
+    Assigns deterministic synthetic site codes to prevent null-join dropped rows.
+
+    Business Rules:
+    - Pan-India chains (Nykaa, FSN, E-commerce): Single synthetic code 'PAN_INDIA_DUMMY'
+    - Regional chains (Reliance bulk offtake): Zone-level codes 'REL_REGIONAL_{ZONE}'
+    - Default fallback: 'SITE_UNASSIGNED' for any unexpected blanks
+
+    Returns: DataFrame with standardized site_code and store_name columns.
+    """
+    df = df.copy()
+
+    # Initialize site_code column if missing
+    if 'site_code' not in df.columns:
+        df['site_code'] = None
+    if 'store_name' not in df.columns:
+        df['store_name'] = None
+
+    # Pan-India chains: Single synthetic code (Nykaa, FSN, E-commerce)
+    pan_india_chains = ['NYKAA', 'FSN', 'AMAZON', 'FLIPKART', 'NYKAA (FSN)', 'NYKAA SS(FSN)']
+    mask_pan_india = df['chain'].fillna('').str.upper().isin(pan_india_chains)
+    df.loc[mask_pan_india & df['site_code'].isna(), 'site_code'] = 'PAN_INDIA_DUMMY'
+    df.loc[mask_pan_india & df['store_name'].isna(), 'store_name'] = \
+        df.loc[mask_pan_india & df['store_name'].isna(), 'chain'].fillna('') + ' - Pan-India Aggregated'
+    df.loc[mask_pan_india & df['zone'].isna(), 'zone'] = 'Pan India'
+
+    # Regional-level chains (Reliance bulk offtake): Zone-level synthetic codes
+    mask_reliance_bulk = (df['chain'].fillna('').str.upper() == 'RELIANCE RETAIL') & df['site_code'].isna()
+    df.loc[mask_reliance_bulk, 'site_code'] = 'REL_REGIONAL_' + df.loc[mask_reliance_bulk, 'zone'].fillna('NA').str.upper()
+    df.loc[mask_reliance_bulk, 'store_name'] = \
+        'Reliance Regional (' + df.loc[mask_reliance_bulk, 'state'].fillna('Unassigned') + ')'
+
+    # Default fallback for any unexpected blank site codes
+    df['site_code'] = df['site_code'].fillna('SITE_UNASSIGNED')
+    df['store_name'] = df['store_name'].fillna('Unassigned Store / Aggregated')
+
+    return df
+
+# --------------------------------------------------------------------------
 # PRIMARY
 # --------------------------------------------------------------------------
 def load_primary(src):
@@ -327,20 +431,61 @@ def load_primary(src):
 # unambiguous (one ship-to = one chain) and are never re-split.
 # --------------------------------------------------------------------------
 def load_primary_v2(src):
-    """Load primary from CSV seed (preferred) or XLSX (fallback).
-    CSV: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
-    XLSX: Primary_FY202426_10.xlsx (business-confirmed 2026-07-03)
-    Same output shape as load_primary() plus raw Ship-To/Distributor columns."""
-    # Try CSV first (versioned in git)
-    csv_f = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
-    if csv_f.exists():
-        df = pd.read_csv(csv_f)
+    """Load primary from the monthly drop in --src (authoritative), else the
+    committed CSV seed (fallback).
+    DROP: <src>/Primary_FY202426_*.{xlsx,xlsb,csv}  -- newest by mtime wins
+    SEED: PowerBI/SeedData/Primary/Primary_FY202426_10.csv
+    Same output shape as load_primary() plus raw Ship-To/Distributor columns.
+
+    Phase 1 v1.1.2: Applies standardize_site_codes() to ensure Pan-India and
+    regional chains have deterministic synthetic site codes (prevents null-join
+    dropped rows in dashboard aggregations)."""
+    # Resolution order (changed 2026-09): a monthly drop in --src is
+    # AUTHORITATIVE; the committed seed is only the fallback.
+    #
+    # Previously the seed was checked first. Because it is tracked in git it
+    # exists in every clone, so it always won and a file dropped into --src was
+    # never read -- the documented monthly workflow refreshed nothing and still
+    # exited 0. The old fallback also matched one exact filename and demanded a
+    # sheet literally named "Dump", so Primary_FY202426_11.xlsx would have been
+    # missed even had the fallback been reachable.
+    seed = Path("PowerBI/SeedData/Primary/Primary_FY202426_10.csv")
+    drops = sorted([*src.glob("Primary_FY202426_*.xlsx"),
+                    *src.glob("Primary_FY202426_*.xlsb"),
+                    *src.glob("Primary_FY202426_*.csv")],
+                   key=lambda p: (p.stat().st_mtime, p.name))
+    if drops:
+        f = drops[-1]                      # newest by mtime, name as tiebreak
+        print(f"  primary source: {f}  (monthly drop)")
+        if len(drops) > 1:
+            print(f"    note: {len(drops)} Primary candidates in {src}; using newest")
+        if f.suffix.lower() == ".csv":
+            df = pd.read_csv(f)
+        else:
+            _eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else "openpyxl"
+            # Header normally sits on row 2 ("Dump" sheet with a spacer row),
+            # but accept ANY sheet/offset that carries the required columns
+            # rather than hardcoding a sheet name the business may rename.
+            _need = {"NSV", "Month", "Chain Name", "Bill to customer"}
+            df = None
+            for _hdr in (1, 0):
+                for _d in pd.read_excel(f, sheet_name=None, header=_hdr,
+                                        engine=_eng).values():
+                    if _need <= {str(c).strip() for c in _d.columns}:
+                        df = _d
+                        break
+                if df is not None:
+                    break
+            if df is None:
+                raise SystemExit(
+                    f"Primary drop {f.name} has no sheet carrying {sorted(_need)} "
+                    f"at header row 0 or 1.")
+    elif seed.exists():
+        print(f"  primary source: {seed}  (committed seed -- no drop found in {src})")
+        df = pd.read_csv(seed)
     else:
-        # Fallback to XLSX in --src
-        f = src / "Primary_FY202426_10.xlsx"
-        if not f.exists():
-            raise FileNotFoundError(f"Primary data not found: {csv_f} or {f}")
-        df = pd.read_excel(f, sheet_name="Dump", header=1)
+        raise FileNotFoundError(
+            f"Primary data not found: no Primary_FY202426_* in {src}, and no {seed}")
 
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
@@ -354,6 +499,18 @@ def load_primary_v2(src):
     if csv_f.exists():
         df["NSV"] = df["NSV"] / 1e5
         df["MRP value"] = df["MRP value"] / 1e5
+
+    # Phase 1 v1.1.2: Canonicalize chain names and standardize site codes
+    # before returning so downstream allocation/aggregation doesn't drop rows.
+    if "Chain Name" in df.columns:
+        df["chain"] = df["Chain Name"].map(canon_chain)
+    if "Zone" in df.columns:
+        df["zone"] = df["Zone"].map(canon_zone)
+    if "State" in df.columns:
+        df["state"] = df["State"].map(canon_state)
+
+    df = standardize_site_codes(df)
+
     return df
 
 def load_chain_allocation_weights(src):
@@ -544,7 +701,7 @@ def primary_block(df):
             # Add channel with zero values for all FYs
             ch_entry = {"name": ch_name}
             for t in tags:
-                ch_entry[t.lower()] = None
+                ch_entry[t.lower()] = 0
             out["by_channel"].append(ch_entry)
 
     out["by_zone"] = dim_rows("zone")
@@ -740,18 +897,28 @@ def _read_offtake_csv(fp):
     trailing block is exactly the Brand Counter rows the pipeline already
     excludes from totals via the Store Type/Data status filter below."""
     try:
-        return pd.read_csv(fp, low_memory=False)
+        return pd.read_csv(fp, low_memory=False, encoding="utf-8")
+    except UnicodeDecodeError:
+        pass
     except pd.errors.ParserError:
-        with open(fp, encoding="latin-1", newline="") as f:
-            lines = f.readlines()
-        header = next(csv.reader([lines[0]]))
-        good_rows = []
-        for line in lines[1:]:
-            row = next(csv.reader([line]))
-            if len(row) != len(header):
-                break
-            good_rows.append(row)
-        return pd.DataFrame(good_rows, columns=header)
+        return _read_offtake_csv_ragged_leading_block(fp)
+    try:
+        return pd.read_csv(fp, low_memory=False, encoding="latin-1")
+    except pd.errors.ParserError:
+        return _read_offtake_csv_ragged_leading_block(fp)
+
+
+def _read_offtake_csv_ragged_leading_block(fp):
+    with open(fp, encoding="latin-1", newline="") as f:
+        lines = f.readlines()
+    header = next(csv.reader([lines[0]]))
+    good_rows = []
+    for line in lines[1:]:
+        row = next(csv.reader([line]))
+        if len(row) != len(header):
+            break
+        good_rows.append(row)
+    return pd.DataFrame(good_rows, columns=header)
 
 
 def load_offtake_article_files(src):
@@ -768,28 +935,48 @@ def load_offtake_article_files(src):
     subfolders (e.g. data/raw_drops/offtake_fy26/Apr'25/*.csv) is picked up
     the same as a flat folder of monthly files.
     Returns (chain_month, zone_state_month); both {} if no offtake extracts found."""
-    files = sorted([*src.rglob("*.xlsb"), *src.rglob("*.csv")])
+    files = sorted([*src.rglob("*.xlsb"), *src.rglob("*.xlsx"), *src.rglob("*.csv")])
     chain_month, zsm = {}, {}
     for fp in files:
         if fp.suffix.lower() == ".csv":
             _frames = {"csv": _read_offtake_csv(fp)}
         else:
-            # Some xlsb exports have a blank/index row before the header (header=1)
+            # .xlsb needs pyxlsb, .xlsx needs openpyxl.
+            _eng = "pyxlsb" if fp.suffix.lower() == ".xlsb" else "openpyxl"
+            # Some exports have a blank/index row before the header (header=1)
             # while others start the header at row 0. Auto-detect by trying header=0
             # first; fall back to header=1 if the required columns are absent.
-            _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
+            try:
+                _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine=_eng)
+            except Exception as _e:
+                # An unreadable/placeholder workbook must not abort the whole
+                # patch -- skip it and let the "no extracts found" guard decide.
+                print(f"  ! skipping {fp.name}: unreadable ({type(_e).__name__})")
+                continue
             _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
             _use_h0 = any(_req <= {str(c).strip() for c in df_.columns}
                           for df_ in _frames0.values())
             if _use_h0:
                 _frames = _frames0
             else:
-                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine="pyxlsb")
+                _frames = pd.read_excel(fp, sheet_name=None, header=1, engine=_eng)
         for _, df in _frames.items():
             df.columns = [str(c).strip() for c in df.columns]
             need = {"Chain Name", "Zone", "State", "Month", "NSV"}
             if not need <= set(df.columns):
                 continue   # not a row-level extract sheet -- skip
+            # A Primary sell-in extract carries ALL FIVE columns above, so the
+            # test alone is not enough: a Primary workbook sitting in the same
+            # --src folder gets merged into offtake, inflating it by ~5 orders
+            # of magnitude (its NSV is rupee-denominated, offtake is Lakh) with
+            # exit 0 and no warning. Reject on billing-side columns that only
+            # ever appear in Primary, never in a sell-out extract.
+            _primary_only = {"Bill to customer", "Direct/Distributor", "MRP value"}
+            _hit = _primary_only & set(df.columns)
+            if _hit:
+                print(f"  ! skipping {fp.name}: Primary extract, not offtake "
+                      f"(carries {sorted(_hit)})")
+                continue
             df = df[df["Chain Name"].notna()].copy()
             # Reliance Brand Counter is a store-level breakout whose articles
             # already exist in the Non-Brand Counter totals — including both
@@ -885,7 +1072,17 @@ def load_reliance_bc_data(src):
     frames = []
     for fp in files:
         if fp.suffix.lower() == ".csv":
-            _frames = {"csv": pd.read_csv(fp, low_memory=False)}
+            try:
+                # Use pandas with engine='python' for better variable-width CSV handling
+                try:
+                    _frames = {"csv": pd.read_csv(fp, engine='python', encoding='utf-8',
+                                                 low_memory=False, on_bad_lines='warn')}
+                except (UnicodeDecodeError, pd.errors.ParserError):
+                    _frames = {"csv": pd.read_csv(fp, engine='python', encoding='latin-1',
+                                                 low_memory=False, on_bad_lines='warn')}
+            except Exception:
+                # Skip files that can't be parsed
+                continue
         else:
             _frames0 = pd.read_excel(fp, sheet_name=None, header=0, engine="pyxlsb")
             _req = {"Chain Name", "Zone", "State", "Month", "NSV"}
@@ -906,6 +1103,12 @@ def load_reliance_bc_data(src):
             _ds_c = df[_ds_col].astype(str).str.strip().str.lower()
             _is_rel = _chain_c.str.contains("reliance", na=False)
             _is_bc = (_ds_c == "brand counter")
+
+            # Also check Source_Tab column if it exists (some exports use this instead)
+            if "Source_Tab" in df.columns:
+                _source_c = df["Source_Tab"].astype(str).str.strip().str.lower()
+                _is_bc = _is_bc | (_source_c.str.contains("brand.counter|_ba_counter", regex=True, na=False))
+
             bc_df = df[_is_rel & _is_bc].copy()
             if bc_df.empty:
                 continue
@@ -1028,6 +1231,76 @@ def load_reliance_bc_data(src):
         )
     else:
         result["june_status"] = None
+    return result
+
+
+def validate_offtake_partition(offtake, reliance_bc=None):
+    """
+    Phase 1 v1.1.2: Validate that the offtake-BA partition is mathematically
+    sound (BA counters are not double-counted in overall offtake totals).
+
+    Returns: dict with validation results {
+        'valid': bool,
+        'offtake_total': float,
+        'reliance_bc_total': float (if present),
+        'partition_check': str (human-readable status),
+    }
+    """
+    result = {
+        'valid': True,
+        'offtake_total': None,
+        'reliance_bc_total': None,
+        'partition_check': 'PASS: No Reliance BC data detected (standard offtake only)',
+    }
+
+    if not offtake or 'by_chain' not in offtake:
+        result['partition_check'] = 'WARN: Offtake structure incomplete'
+        return result
+
+    # Get overall offtake total (should NOT include BA)
+    offtake_fy_tags = offtake.get('fy_tags', [])
+    offtake_total = 0.0
+    for tag in offtake_fy_tags:
+        total_key = f"total_{tag}"
+        if total_key in offtake:
+            offtake_total += offtake[total_key] or 0.0
+    result['offtake_total'] = r2(offtake_total)
+
+    # If Reliance BC exists, verify it's isolated
+    if reliance_bc and isinstance(reliance_bc, dict):
+        bc_total = reliance_bc.get('total', 0.0) or 0.0
+        result['reliance_bc_total'] = r2(bc_total)
+
+        # Check: BC should be a SUBSET of Reliance's offtake, not additional
+        reliance_offtake = 0.0
+        for chain_row in offtake.get('by_chain', []):
+            if 'reliance' in (chain_row.get('name') or '').lower():
+                for tag in offtake_fy_tags:
+                    reliance_offtake += chain_row.get(tag, 0.0) or 0.0
+
+        if reliance_offtake > 0 and bc_total > 0:
+            # BC should be <= Reliance's total (it's a subset)
+            if bc_total <= reliance_offtake * 1.05:  # Allow 5% rounding variance
+                result['partition_check'] = (
+                    f"PASS: Reliance BC (₹{bc_total:.2f}L) is correctly isolated as a subset "
+                    f"of Reliance offtake (₹{reliance_offtake:.2f}L). No double counting."
+                )
+            else:
+                result['valid'] = False
+                result['partition_check'] = (
+                    f"FAIL: Reliance BC (₹{bc_total:.2f}L) exceeds Reliance offtake "
+                    f"(₹{reliance_offtake:.2f}L). Possible double counting detected."
+                )
+        elif bc_total > 0 and reliance_offtake == 0:
+            result['partition_check'] = (
+                f"WARN: Reliance BC detected (₹{bc_total:.2f}L) but no Reliance offtake rows. "
+                "Check data source."
+            )
+        else:
+            result['partition_check'] = "PASS: Reliance BC isolated correctly"
+    else:
+        result['partition_check'] = "INFO: No Reliance BC detected in data.js"
+
     return result
 
 
@@ -1546,6 +1819,235 @@ def promo_block(src):
     out["by_category"] = sorted([{"name": k, "promos": int(len(d))} for k, d in gc if k and k != "nan"],
                                 key=lambda d: -d["promos"])[:8]
     return p, out
+
+
+# --------------------------------------------------------------------------
+# OFFTAKE v2 -- folder-of-months chain extracts
+#
+# Layout: <src>/offtake_fy26/<Mon'YY>/<Chain>.csv, one CSV per chain per month.
+#
+# Two things make a naive read wrong, both found the hard way:
+#
+#  1. ROW WIDTH VARIES WITHIN A FILE. Reliance.csv has a 29-field header but
+#     also carries 30-field rows (an extra leading field), so a DictReader
+#     silently shifts every column: "NSV" then reads the Margin column and the
+#     file's total inflates ~15x. Rows are indexed against the header with an
+#     offset of len(row) - len(header).
+#
+#  2. RELIANCE BRAND COUNTER IS INSIDE THE SAME FILE. The 30-field rows are the
+#     staffed-counter doors (Source_Tab "Reliance_Brand_Counter", Store Type
+#     "Brand Counter"); the 29-field rows are the macro figure
+#     ("Reliance_Non_Brand_Counter"). Per CLAUDE.md the macro number already
+#     subsumes counter sales, so counting both double-counts Reliance. Counters
+#     are partitioned out of offtake and returned separately for the BC block.
+#
+# Verified against the business's own anchors: offtake FY26 ex-counter comes to
+# Rs 311.20 Cr against a stated Rs 311.28 Cr (-0.026%), and the partitioned
+# counter total comes to Rs 45.62 Cr, matching reliance_bc.total_fy26 exactly.
+# NSV in these extracts is already INR Lakh (MRP Sales Value / 1.18 * (1 -
+# Margin) / 1e5 reproduces it in both layouts).
+# --------------------------------------------------------------------------
+_OFFTAKE_V2_DIRS = ("offtake_fy26", "offtake", "Offtake")
+
+def _mon_folder_to_label(name):
+    """\"Apr'25\" -> \"Apr-25\"; returns None for anything that is not a month."""
+    m = re.match(r"([A-Za-z]{3})'?-?(\d{2})$", str(name).strip())
+    if not m:
+        return None
+    mon = m.group(1).title()
+    return f"{mon}-{m.group(2)}" if mon in _MON3_NUM else None
+
+def load_offtake_month_folders(src):
+    """Read <src>/<offtake dir>/<Mon'YY>/*.csv.
+
+    Returns (offtake, counters) where each is
+        {month_label: {"total": L, "chain": {...}, "zone": {...}, "brand": {...}}}
+    Both {} when no such folder exists, so callers can fall back."""
+    root = None
+    for d in _OFFTAKE_V2_DIRS:
+        p = src / d
+        if p.is_dir() and any(_mon_folder_to_label(x.name) for x in p.iterdir() if x.is_dir()):
+            root = p
+            break
+    if root is None:
+        return {}, {}
+
+    csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
+    off, ctr = {}, {}
+    for mdir in sorted(root.iterdir()):
+        if not mdir.is_dir():
+            continue
+        lab = _mon_folder_to_label(mdir.name)
+        if not lab:
+            continue
+        o = off.setdefault(lab, {"total": 0.0, "chain": {}, "zone": {}, "brand": {}})
+        c = ctr.setdefault(lab, {"total": 0.0, "chain": {}, "zone": {}, "brand": {}})
+        for fp in sorted(mdir.glob("*.csv")):
+            with open(fp, newline="", encoding="utf-8", errors="replace") as fh:
+                rd = csv.reader(fh)
+                hdr = next(rd, None)
+                if not hdr:
+                    continue
+                H = len(hdr)
+                ix = {n: (hdr.index(n) if n in hdr else -1) for n in
+                      ("NSV", "Source_Tab", "Chain Name", "Zone", "State", "Brand", "Store Type")}
+                if ix["NSV"] < 0:
+                    continue
+                for row in rd:
+                    shift = len(row) - H          # >0 => extra leading field(s)
+                    def g(i):
+                        if i < 0:
+                            return ""
+                        j = i - shift if shift > 0 else i
+                        return row[j] if 0 <= j < len(row) else ""
+                    try:
+                        v = float(g(ix["NSV"]) or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    src_tab = (g(ix["Source_Tab"]) or "").strip()
+                    stype = (g(ix["Store Type"]) or "").strip()
+                    bucket = c if (src_tab == "Reliance_Brand_Counter"
+                                   or stype.lower() == "brand counter") else o
+                    ch = canon_chain((g(ix["Chain Name"]) or "").strip())
+                    # Zone override: if state maps to a zone (e.g. Madhya Pradesh -> Central),
+                    # use that instead of the Zone column (which misclassifies MP/CG as North/West)
+                    state_val = (g(ix["State"]) or "").strip() if ix["State"] >= 0 else ""
+                    zone_override = canon_zone_from_state(state_val) if state_val else None
+                    zn = canon_zone(zone_override or (g(ix["Zone"]) or "").strip())
+                    br = canon_brand((g(ix["Brand"]) or "").strip())
+                    bucket["total"] += v
+                    if ch: bucket["chain"][ch] = bucket["chain"].get(ch, 0.0) + v
+                    if zn: bucket["zone"][zn] = bucket["zone"].get(zn, 0.0) + v
+                    if br: bucket["brand"][br] = bucket["brand"].get(br, 0.0) + v
+    return off, ctr
+
+def load_fy25_secondary(src):
+    """Distributor secondary for FY25 (Apr-24..Mar-25), already chain-mapped by
+    the business in its 'Chain Mapping' column -- no allocation model needed.
+
+    NOTE ON MEASURE: this is SECONDARY (distributor -> retailer), not offtake
+    (store -> consumer). It is the only FY25 series available, so it is carried
+    as the prior-year reference, but under keys that name it as secondary so no
+    caller can mistake it for like-for-like offtake."""
+    cand = sorted(src.glob("Distributor_secondary_*.csv")) + sorted(src.glob("*Distributor_secondary*.csv"))
+    if not cand:
+        return {}
+    out = {}
+    with open(cand[0], newline="", encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            lab = (row.get("Revised month") or "").strip()          # e.g. "Apr-24"
+            if not fy_tag_from_label(lab):
+                continue
+            try:
+                v = float(row.get("NSV") or 0)
+            except (TypeError, ValueError):
+                continue
+            m = out.setdefault(lab, {"total": 0.0, "chain": {}, "zone": {}, "brand": {}})
+            ch = canon_chain((row.get("Chain Mapping") or row.get("Chain Name") or "").strip())
+            state_val = (row.get("State") or "").strip()
+            zone_override = canon_zone_from_state(state_val) if state_val else None
+            zn = canon_zone(zone_override or (row.get("Zone") or "").strip())
+            br = canon_brand((row.get("Brand") or "").strip())
+            m["total"] += v
+            if ch: m["chain"][ch] = m["chain"].get(ch, 0.0) + v
+            if zn: m["zone"][zn] = m["zone"].get(zn, 0.0) + v
+            if br: m["brand"][br] = m["brand"].get(br, 0.0) + v
+    return out
+
+
+def offtake_rebuild_block(prev, off_m, ctr_m, sec_m):
+    """Build a COMPLETE offtake block from the month-folder extracts, replacing
+    the stale one rather than patching it.
+
+    The shipped block had three independent defects, which is why this rebuilds
+    instead of patching: months_fy26 held 8 of 12 months (Apr-25..Jul-25 were
+    assigned to no FY at all), total_fy26 matched neither the 8- nor the
+    12-month sum, and `monthly` carried PRIMARY values rather than offtake.
+    Every key below is derived from one labelled month series, so the parts
+    cannot drift apart again. Keys this function does not own (metrics, doi,
+    otif, ...) are carried over from `prev` untouched."""
+    out = dict(prev or {})
+    months = sorted(off_m, key=lambda l: (int(l.split("-")[1]), _MON3_NUM[l.split("-")[0]]))
+    out["months"] = months
+    out["monthly"] = [r2(off_m[m]["total"]) for m in months]
+
+    tags = sorted({fy_tag_from_label(m) for m in months if fy_tag_from_label(m)}, key=fy_start_year)
+    out["fy_tags"] = [t.lower() for t in tags]
+    for t in tags:
+        lo = t.lower()
+        ms = [m for m in months if fy_tag_from_label(m) == t]
+        out[f"months_{lo}"] = ms
+        out[f"monthly_{lo}"] = [r2(off_m[m]["total"]) for m in ms]
+        out[f"total_{lo}"] = r2(sum(off_m[m]["total"] for m in ms))
+    out["total"] = r2(sum(off_m[m]["total"] for m in months))
+
+    # FY25 prior-year reference. SECONDARY, not offtake -- named so throughout.
+    sec_tags = sorted({fy_tag_from_label(m) for m in sec_m if fy_tag_from_label(m)}, key=fy_start_year)
+    for t in sec_tags:
+        lo = t.lower()
+        ms = sorted([m for m in sec_m if fy_tag_from_label(m) == t],
+                    key=lambda l: (int(l.split("-")[1]), _MON3_NUM[l.split("-")[0]]))
+        out[f"secondary_months_{lo}"] = ms
+        out[f"secondary_monthly_{lo}"] = [r2(sec_m[m]["total"]) for m in ms]
+        out[f"secondary_total_{lo}"] = r2(sum(sec_m[m]["total"] for m in ms))
+    out["prior_year_basis"] = (
+        "FY25 figures are DISTRIBUTOR SECONDARY (distributor -> retailer), the only "
+        "FY25 series available; FY26 is true offtake (store -> consumer). They sit at "
+        "different points in the value chain, so any FY26-vs-FY25 movement shown here "
+        "is indicative, not like-for-like." if sec_tags else None)
+
+    def dim_rows(key):
+        names = {n for m in months for n in off_m[m][key]}
+        names |= {n for m in sec_m for n in sec_m[m][key]}
+        rows = []
+        for n in names:
+            row = {"name": n}
+            for t in tags:
+                lo = t.lower()
+                row[lo] = r2(sum(off_m[m][key].get(n, 0.0)
+                                 for m in months if fy_tag_from_label(m) == t))
+            row["value"] = r2(sum(off_m[m][key].get(n, 0.0) for m in months))
+            for t in sec_tags:
+                row[f"secondary_{t.lower()}"] = r2(sum(sec_m[m][key].get(n, 0.0) for m in sec_m))
+            rows.append(row)
+        return sorted(rows, key=lambda d: -(d.get("value") or 0))
+
+    # Stale FY keys from an earlier generation must not survive. The previous
+    # block carried total_fy27 = 15,054 L whose own monthly_fy27 summed to
+    # 13,220 L, plus months_fy25/monthly_fy25 with no total at all -- all from
+    # the same patch that produced the 8-month FY26 window. Any FY the current
+    # source does not cover is dropped rather than left to drift.
+    _live = {t.lower() for t in tags}
+    for _k in [k for k in list(out)
+               if re.match(r"^(total|monthly|months|conversion_rates)_fy\d\d$", k)]:
+        if _k.rsplit("_", 1)[1] not in _live:
+            out.pop(_k, None)
+
+    out["by_chain"] = dim_rows("chain")
+    out["by_zone"] = dim_rows("zone")
+    out["by_brand"] = dim_rows("brand")
+    out["n_chains"] = len([r for r in out["by_chain"] if (r.get("value") or 0) > 0])
+    out["provenance"] = (
+        f"Rebuilt from {len(months)} monthly store x article extracts "
+        f"({months[0]}..{months[-1]}). Reliance Brand Counter partitioned out per the "
+        "CLAUDE.md dedup rule (macro already subsumes counter sales). NSV in INR Lakh.")
+
+    bc = None
+    if ctr_m:
+        bmonths = sorted(ctr_m, key=lambda l: (int(l.split("-")[1]), _MON3_NUM[l.split("-")[0]]))
+        bc = {"is_brand_counter": True, "include_in_overall_offtake": False,
+              "months": bmonths, "monthly": [r2(ctr_m[m]["total"]) for m in bmonths],
+              "total": r2(sum(ctr_m[m]["total"] for m in bmonths)),
+              "note": "Reliance staffed-counter doors, held OUT of offtake to avoid "
+                      "double counting against the Reliance macro figure."}
+        for t in sorted({fy_tag_from_label(m) for m in bmonths if fy_tag_from_label(m)},
+                        key=fy_start_year):
+            lo = t.lower()
+            ms = [m for m in bmonths if fy_tag_from_label(m) == t]
+            bc[f"months_{lo}"] = ms
+            bc[f"monthly_{lo}"] = [r2(ctr_m[m]["total"]) for m in ms]
+            bc[f"total_{lo}"] = r2(sum(ctr_m[m]["total"] for m in ms))
+    return out, bc
 
 # --------------------------------------------------------------------------
 # TOT% (Trade Offer Terms % / On-Invoice Margin Pass-on %)
@@ -3207,6 +3709,12 @@ def detail_records_real(src, max_rows=20000):
     many small line items) -- top-N-by-value keeps ~98%+ of total value at a
     fraction of the full row count.
     """
+    def _safe_val(x):
+        """Convert NaN/None to None (null in JSON), keep strings and numbers as-is."""
+        if x is None or (isinstance(x, float) and math.isnan(x)):
+            return None
+        return x
+
     f = None
     for name in ("primary_article.xlsb", "primary_article.xlsx",
                  "MT, Eb2B & SIS primary April_23 to May_26.xlsb"):
@@ -3433,12 +3941,12 @@ def detail_records_real(src, max_rows=20000):
             else:
                 wat = None
             cust_article.append({
-                "cust_code": r["_CustCode"], "ship_to": r["_CustName"],
-                "ean": str(r["_EAN No."]), "article": r["_Description"],
-                "art_mrp": r2(r["_ArtMRP"]), "brand": r["_Brand"],
-                "category": r["_category"], "sub_category": r["_sub_category"],
-                "range": r["_range"], "pack": r["_net_content"],
-                "month": r["_M"], "fy": r["_FY"], "chain": r["_Chain"],
+                "cust_code": _safe_val(r["_CustCode"]), "ship_to": _safe_val(r["_CustName"]),
+                "ean": _safe_val(str(r["_EAN No."])), "article": _safe_val(r["_Description"]),
+                "art_mrp": r2(r["_ArtMRP"]), "brand": _safe_val(r["_Brand"]),
+                "category": _safe_val(r["_category"]), "sub_category": _safe_val(r["_sub_category"]),
+                "range": _safe_val(r["_range"]), "pack": _safe_val(r["_net_content"]),
+                "month": _safe_val(r["_M"]), "fy": _safe_val(r["_FY"]), "chain": _safe_val(r["_Chain"]),
                 "nsv": r2(r["NSV"]), "mrp_sales": r2(r["MRPS"]),
                 "qty": int(round(r["Qty"])), "tax": r2(r["Tax"]),
                 "w_avg_tot": r2(wat * 100, 1) if wat is not None else None,
@@ -3478,10 +3986,10 @@ def detail_records_real(src, max_rows=20000):
     coverage = float(kept["NSV"].sum() / total_value * 100) if total_value else 100.0
     recs = []
     for _, r in kept.iterrows():
-        recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],"State":r["_State"],
-            "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":r["_category"],
-            "SubCategory":r["_sub_category"],"Range":r["_range"],"PackSize":r["_net_content"],
-            "Article":r["_Description"],"EAN":str(r["_EAN No."]),
+        recs.append({"Month":r["_M"],"FY":r["_FY"],"Channel":r["_Chan"],"Zone":r["_Zone"],"State":_safe_val(r["_State"]),
+            "Chain":r["_Chain"],"Brand":r["_Brand"],"Category":_safe_val(r["_category"]),
+            "SubCategory":_safe_val(r["_sub_category"]),"Range":_safe_val(r["_range"]),"PackSize":_safe_val(r["_net_content"]),
+            "Article":_safe_val(r["_Description"]),"EAN":_safe_val(str(r["_EAN No."])),
             "NSV":r2(r["NSV"]),"MRP":r2(r["MRP"]),"Qty":int(r["Qty"])})
     print(f"detail rows: {rows_total} groups total -> kept top {len(recs)} "
           f"({coverage:.1f}% of total value)")
@@ -3719,6 +4227,18 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
         raise
 
 
+def _convert_nan_to_none(obj):
+    """Recursively convert all NaN values to None for clean JSON serialization.
+    Handles lists, dicts, and primitive types."""
+    if isinstance(obj, dict):
+        return {k: _convert_nan_to_none(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_nan_to_none(item) for item in obj]
+    elif isinstance(obj, float):
+        return None if (math.isnan(obj) or math.isinf(obj)) else obj
+    else:
+        return obj
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -3742,6 +4262,10 @@ def main():
                          "FY2627_TGT_and_sales_team_mapping.xlsb (real TY/FY26-27 target, replaces "
                          "the seasonally-projected estimate); reuses the existing offtake block "
                          "already in data.js for FY24-26 history")
+    ap.add_argument("--offtake-rebuild", action="store_true",
+                    help="rebuild the offtake block wholesale from <src>/offtake_fy26/<Mon'YY>/*.csv "
+                         "month folders (+ optional FY25 distributor secondary), replacing the "
+                         "stored block instead of patching it")
     ap.add_argument("--offtake-patch", action="store_true",
                     help="merge NEW monthly store x article offtake extracts (.xlsb, one workbook "
                          "per calendar month -- put ALL months collected so far in --src, not just "
@@ -3906,13 +4430,70 @@ def main():
         return
 
     # ---- lightweight path: merge new monthly article-level offtake extracts ----
+    # ---- rebuild the offtake block wholesale from month-folder extracts ----
+    if a.offtake_rebuild:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        off_m, ctr_m = load_offtake_month_folders(src)
+        if not off_m:
+            raise SystemExit(
+                f"No offtake month folders under {src}.\n"
+                f"  Expected <src>/offtake_fy26/<Mon'YY>/<Chain>.csv "
+                f"(e.g. offtake_fy26/Apr'25/Dmart.csv).")
+        sec_m = load_fy25_secondary(src)
+        new_off, bc = offtake_rebuild_block(obj.get("offtake") or {}, off_m, ctr_m, sec_m)
+        obj["offtake"] = new_off
+        if bc:
+            obj["reliance_bc"] = {**(obj.get("reliance_bc") or {}), **bc}
+
+        # Re-derive the forecast baseline off the rebuilt series. It had been
+        # left at 22,703 L -- the old 8-month Aug-25..Mar-26 window -- and shown
+        # as full-year FY26 against primary's Rs 329.00 Cr for the same year.
+        # The TY target itself (fy27_forecast, from FY2627_Targets.csv) is real
+        # and is kept; only the baseline and the growth it implies are recomputed.
+        _fc = obj.get("forecast")
+        if _fc:
+            _bt = (_fc.get("base_fy_tag") or "").lower()
+            _new_base = new_off.get("total_" + _bt)
+            if _new_base:
+                _old = _fc.get("fy26_actual")
+                _fc["fy26_actual"] = _new_base
+                _tt = _fc.get("fy27_forecast")
+                _fc["growth_assumption_pct"] = (
+                    r2((_tt / _new_base - 1) * 100, 1) if _tt and _new_base else None)
+                print(f"  forecast baseline ({_bt}): {_old} -> {_new_base} Lakh "
+                      f"(now the full {len(new_off.get('months_'+_bt) or [])}-month window)")
+
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        print(f"offtake-rebuild: {len(new_off['months'])} months "
+              f"{new_off['months'][0]}..{new_off['months'][-1]}")
+        for t in new_off["fy_tags"]:
+            print(f"  total_{t} = {new_off.get('total_'+t)} Lakh "
+                  f"(Rs {(new_off.get('total_'+t) or 0)/100:.2f} Cr) "
+                  f"over {len(new_off.get('months_'+t) or [])} months")
+        for k in sorted(k for k in new_off if k.startswith("secondary_total_")):
+            print(f"  {k} = {new_off[k]} Lakh (Rs {new_off[k]/100:.2f} Cr) -- SECONDARY, not offtake")
+        if bc:
+            print(f"  reliance_bc total = {bc['total']} Lakh (Rs {bc['total']/100:.2f} Cr), "
+                  f"held OUT of offtake")
+        print(f"  chains={new_off['n_chains']} zones={len(new_off['by_zone'])}")
+        return
+
     if a.offtake_patch:
         outp = Path(a.out)
         txt = outp.read_text()
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
         chain_month, zsm = load_offtake_article_files(src)
         if not chain_month:
-            raise SystemExit(f"No .xlsb offtake extracts found in --src ({src}).")
+            raise SystemExit(
+                f"No offtake extracts found in --src ({src}).\n"
+                f"  Expected a store x article sell-out extract (.xlsb / .xlsx / .csv) "
+                f"carrying columns: Chain Name, Zone, State, Month, NSV.\n"
+                f"  Primary sell-in workbooks in this folder are skipped by design.")
         months_found = sorted({mo for mm in chain_month.values() for mo in mm},
                                key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
         print(f"offtake source months found: {months_found}")
@@ -4111,6 +4692,23 @@ def main():
         "insights": insights,
     }
 
+    # Load Reliance Brand Counter data for the separate analytics tab
+    bc_data = load_reliance_bc_data(src)
+    if bc_data is not None:
+        data["reliance_brand_counters"] = bc_data
+    else:
+        # If no BC data in source, create empty block so UI shows "no records" gracefully
+        data["reliance_brand_counters"] = {
+            "months": [],
+            "monthly": [],
+            "total": 0,
+            "fy_tags": [],
+            "by_zone": [],
+            "by_state": [],
+            "by_brand": [],
+            "note": "Reliance Brand Counter data not available in current extracts."
+        }
+
     # ---- Data Explorer detail_records: real from File 2 if present, else representative ----
     detail, dims, detail_meta, tot, cm2, alloc = _build_detail_meta(src, a.detail_max_rows, primary)
     data["detail_records"] = detail
@@ -4164,6 +4762,8 @@ def main():
         _check_governance_gate(alloc, gate_pct=a.not_eligible_gate_pct)
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
+    # Convert all NaN values to None for clean JSON serialization
+    data = _convert_nan_to_none(data)
     payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
     _safe_write_data_js(
         out_path=a.out,

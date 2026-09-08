@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy to gh-pages
+    name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -26,9 +26,19 @@ jobs:
       - name: Stage dashboard files
         run: |
           mkdir -p _site
+          # MT Leadership Dashboard -> site root (dashboard/index.html becomes /)
           cp -r dashboard/* _site/
+          # Nielsen Market Share -> /market-share.html, written by
+          # build-nielsen-dashboard.yml. Guarded: a checkout without it (or a
+          # run before that workflow has produced one) must not fail the deploy.
+          if [ -f market-share.html ]; then
+            cp market-share.html _site/market-share.html
+            echo "Staged market-share.html"
+          else
+            echo "market-share.html absent — skipping (MT dashboard unaffected)"
+          fi
           touch _site/.nojekyll
-          echo "✓ Staged $(ls _site | wc -l) files to _site/"
+          echo "Dashboard staged: $(ls _site | wc -l) files"
 
       - name: Deploy to gh-pages branch
         run: |
@@ -43,4 +53,4 @@ jobs:
 
           git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           git push origin gh-pages --force
-          echo "✓ Deployed to gh-pages"
+          echo "✓ Deployed to gh-pages branch"
