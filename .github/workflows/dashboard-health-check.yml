@@ -61,7 +61,13 @@ jobs:
           checks = {
               "Primary chains > 0": len(data.get('primary', {}).get('by_chain', [])) > 0,
               "Offtake zones > 0": len(data.get('offtake', {}).get('by_zone', [])) > 0,
-              "Offtake total exists": isinstance(data.get('offtake', {}).get('total'), dict),
+              # build_dashboard_data.py has always emitted offtake.total as a plain
+              # number (the all-FY grand total NSV); per-FY totals live under
+              # total_fy25/total_fy26/... separately. There has never been a nested
+              # total object -- check the real contract, not an assumption that
+              # never matched the generator (see scripts/verify_data_health.js).
+              "Offtake total exists": isinstance(data.get('offtake', {}).get('total'), (int, float))
+                                       and data['offtake']['total'] > 0,
               "Detail records > 0": len(data.get('detail_records', [])) > 0,
           }
 
