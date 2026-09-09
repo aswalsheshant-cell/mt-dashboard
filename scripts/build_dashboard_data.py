@@ -326,10 +326,16 @@ CHAIN_ALIASES = [
     ("Ratnadeep",         ["ratanadeep"]),
     ("Sancus (RMT)",        ["sancus", "sancus networks-mt-reg."]),
     ("Arambagh",          ["aarambagh food mart"]),
-    ("VMM",  ["vishal enterprises", "vmm", "vmm ", "vishal mega mart"]),
+    ("VMM",  ["vmm", "vmm ", "vishal mega mart"]),
     ("Lifestyle",         ["lifestyle babyshop"]),
+    # Vishal Enterprises (Solapur) is a distributor billing into D-Mart, not
+    # a name for the Vishal Mega Mart chain -- despite the "vishal" in both,
+    # they are unrelated entities. Confirmed against the raw Primary source:
+    # every "VISHAL ENTERPRISES_Solapur" row already carries Chain Name =
+    # "D-Mart" there. The bare "vishal enterprises" alias used to be
+    # (incorrectly) mapped to VMM above; this is the correct destination.
     ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
-                            "vishal enterprises-d-mart"]),
+                            "vishal enterprises-d-mart", "vishal enterprises"]),
     ("Shoppers Stop",     ["shoppers stop"]),
     ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
 ]
