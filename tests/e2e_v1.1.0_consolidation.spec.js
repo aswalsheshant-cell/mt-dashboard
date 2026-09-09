@@ -201,21 +201,14 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
         await pill.click();
         await page.waitForTimeout(500);
 
-        // Verify active status. KNOWN BUG (Issue #114): buildChannelDynamics()'s
-        // click handler updates state and re-renders content correctly, but
-        // never toggles the .active class on the clicked button (unlike
-        // switchInventorySubview/switchDemandSubview, which both do). Confirmed
-        // against the real app while writing this suite — not a test bug.
-        // Content correctness (asserted below via body text) is
-        // unaffected; only the visual "which tab is active" indicator is wrong
-        // for channel-dynamics. Track the content assertion as real and
-        // blocking; the active-class assertion is skipped for channel-dynamics
-        // only, pending the fix in #114, so this suite doesn't mask the switch
-        // itself actually working.
-        if (tab.id !== 'channel-dynamics') {
-          const hasActive = await pill.evaluate(el => el.classList.contains('active')).catch(() => false);
-          expect(hasActive).toBeTruthy();
-        }
+        // Verify active status. Issue #114 (fixed): buildChannelDynamics()'s
+        // click handler previously updated state and re-rendered content
+        // correctly but never toggled the .active class on the clicked
+        // button, unlike switchInventorySubview/switchDemandSubview. Now
+        // mirrors that same pattern, so this assertion is unconditional
+        // across all 9 subviews / all 3 consolidated tabs.
+        const hasActive = await pill.evaluate(el => el.classList.contains('active')).catch(() => false);
+        expect(hasActive, `${tab.id}/${subview} pill should be .active after click`).toBeTruthy();
 
         // NOTE: deliberately NOT asserting a chart-canvas count here.
         // channel-dynamics' 'category'/'reliance' subviews and
@@ -274,14 +267,15 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     // channel-dynamics subview buttons use data-subview, not onclick="..."
     // (see the pillSelector note in TC03) — 'reliance', not 'reliance-bc',
     // is the actual subview id (CONSOLIDATED_TABS.channel-dynamics.subviews).
+    const primaryPill = page.locator('#tab-channel-dynamics .subview-tab[data-subview="primary"]');
     const reliancePill = page.locator('#tab-channel-dynamics .subview-tab[data-subview="reliance"]');
     await reliancePill.click();
     await page.waitForTimeout(400);
 
-    // NOTE: not asserting the .active class here — see the KNOWN BUG comment
-    // in TC03 (Issue #114). channel-dynamics is the one consolidated tab
-    // whose click handler doesn't toggle .active; the content switch itself
-    // (asserted below via the section still being mounted/visible) is correct.
+    // Issue #114 (fixed): the previously-active pill (Primary Sales, the
+    // default subview) must lose .active, and the clicked one must gain it.
+    expect(await reliancePill.evaluate(el => el.classList.contains('active'))).toBeTruthy();
+    expect(await primaryPill.evaluate(el => el.classList.contains('active'))).toBeFalsy();
 
     // Verify section is still mounted
     const section = page.locator('section#tab-channel-dynamics');
@@ -413,5 +407,55 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
         expect(actual, `forecast.diagnostics missing key '${key}'`).toContain(key);
       }
     }
+  });
+
+  // TEST 9: Issue #114 fix — Channel & Chain Performance active-pill sync.
+  // Dedicated, explicit coverage (beyond TC03's generic per-subview loop)
+  // for the exact defect reported: clicking a subview changed content but
+  // never moved the .active class off the previously-selected pill. Asserts
+  // the visible DOM class directly, not just internal state, because the
+  // DOM class was the actual bug.
+  test('TC09 - Channel & Chain Performance subview pills sync .active on click', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    await page.evaluate(() => window.show('channel-dynamics'));
+    await page.waitForTimeout(400);
+
+    const pillFor = (sv) => page.locator(`#tab-channel-dynamics .subview-tab[data-subview="${sv}"]`);
+    const order = ['primary', 'category', 'reliance', 'primary'];
+
+    // Primary Sales is the default subview — verify it starts active before
+    // any click, so the first transition below has a real "previous" to
+    // check losing .active from.
+    expect(await pillFor('primary').evaluate(el => el.classList.contains('active'))).toBeTruthy();
+
+    for (let i = 1; i < order.length; i++) {
+      const previous = order[i - 1];
+      const current = order[i];
+
+      await pillFor(current).click();
+      await page.waitForTimeout(400);
+
+      const state = await Promise.all([
+        pillFor(current).evaluate(el => el.classList.contains('active')),
+        pillFor(previous).evaluate(el => el.classList.contains('active')),
+        page.evaluate(() => channelDynamicsState.subview),
+      ]);
+      const [currentActive, previousStillActive, stateSubview] = state;
+
+      expect(currentActive, `${current} pill should become .active after click`).toBeTruthy();
+      expect(previousStillActive, `${previous} pill should lose .active once ${current} is selected`).toBeFalsy();
+      expect(stateSubview, 'channelDynamicsState.subview should track the clicked pill').toBe(current);
+
+      // Exactly one pill active at a time, across all three.
+      const allActive = await page.$$eval('#tab-channel-dynamics .subview-tab.active', els => els.map(e => e.dataset.subview));
+      expect(allActive, 'exactly one subview-tab should carry .active').toEqual([current]);
+
+      // Content still renders correctly, and cleanly.
+      const bodyText = await page.locator('#channel-subview-content').innerText();
+      expect(bodyText.trim().length, `${current} subview content should not be empty`).toBeGreaterThan(0);
+      assertCleanBodyText(bodyText, `channel-dynamics/${current}`);
+    }
+
+    expect(consoleErrors.length, 'no console/page errors during subview switching').toBe(0);
   });
 });

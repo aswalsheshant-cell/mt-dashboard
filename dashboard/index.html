@@ -1172,9 +1172,20 @@ function buildChannelDynamics(){
    <div id="channel-subview-content"></div>`;
 
   // Guardrail #3: Canvas Lifecycle — mount sub-view with explicit cleanup
-  document.querySelectorAll('.subview-tab').forEach(btn=>{
+  // Scoped to `s` (this tab's own section) — an unscoped
+  // document.querySelectorAll here would also re-wire subview-tab buttons
+  // belonging to Inventory & Supply Health / Demand & S&OP Planning if
+  // either was ever built earlier in the session (their DOM persists,
+  // just hidden), silently overwriting their onclick handlers.
+  s.querySelectorAll('.subview-tab').forEach(btn=>{
     btn.onclick=()=>{
       channelDynamicsState.subview=btn.dataset.subview;
+      // Mirror switchInventorySubview/switchDemandSubview's active-class
+      // sync (Issue #114) — this handler previously updated state and
+      // content but never toggled .active, so the highlighted pill stayed
+      // stuck on whichever subview was active at initial render.
+      s.querySelectorAll('.subview-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
       destroyChannelDynamicsCharts();
       renderChannelSubview(chains,brands,channels,primYr,fy,yrLab);
     };
