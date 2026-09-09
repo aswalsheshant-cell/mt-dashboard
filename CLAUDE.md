@@ -314,17 +314,20 @@ event, not a failure — the workflow below is what makes it harmless.
 - **Git is the source of truth, not the container.** Don't rely on shell
   state, a running dev server, or conversation memory to carry work forward.
   On resume, or right after a context compaction, first run `git status`,
-  `git log --oneline -5`, and `git branch --show-current`, and compare the
-  designated branch against its remote before continuing any edit. If that
-  branch's PR has already merged, follow the "already merged" restart
-  procedure under "Git Development Branch Requirements" — don't stack new
-  commits on merged history.
+  `git rev-parse HEAD`, `git branch --show-current`, and `git log --oneline -5`,
+  and compare the current branch and its HEAD SHA against its remote before
+  continuing any edit. If the branch's work has already merged, don't stack
+  new commits on merged history — branch fresh from `main` instead (see
+  Conventions below).
 - **Checkpoint by committing, not by waiting.** For work with real
   milestones (an allocation methodology validated against source data, a
   `data.js` rebuild reconciled, the 12-tab × FY sweep passed), commit as soon
   as that milestone is validated instead of holding everything for one final
   commit at the end. Never commit a `data.js` rebuild or script change that
-  hasn't passed "Validation before committing dashboard changes" above.
+  hasn't passed "Validation before committing dashboard changes" above. For
+  work spanning several sessions, a Draft PR (see Conventions below) is the
+  right place to keep the running status of what's validated so far and
+  what's left — not a scratch file.
 - **Don't redo work that's already committed.** After a restart or context
   compaction, check `git log` and the open PR/issue before regenerating a
   file or re-running a derivation — if a milestone is already committed,
