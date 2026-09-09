@@ -326,7 +326,7 @@ CHAIN_ALIASES = [
     ("Ratnadeep",         ["ratanadeep"]),
     ("Sancus (RMT)",        ["sancus", "sancus networks-mt-reg."]),
     ("Arambagh",          ["aarambagh food mart"]),
-    ("VMM",  ["vishal enterprises", "vmm", "vmm "]),
+    ("VMM",  ["vishal enterprises", "vmm", "vmm ", "vishal mega mart"]),
     ("Lifestyle",         ["lifestyle babyshop"]),
     ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart"]),
@@ -459,7 +459,8 @@ def load_primary_v2(src):
         print(f"  primary source: {f}  (monthly drop)")
         if len(drops) > 1:
             print(f"    note: {len(drops)} Primary candidates in {src}; using newest")
-        if f.suffix.lower() == ".csv":
+        _is_csv = f.suffix.lower() == ".csv"
+        if _is_csv:
             df = pd.read_csv(f)
         else:
             _eng = "pyxlsb" if f.suffix.lower() == ".xlsb" else "openpyxl"
@@ -483,6 +484,7 @@ def load_primary_v2(src):
     elif seed.exists():
         print(f"  primary source: {seed}  (committed seed -- no drop found in {src})")
         df = pd.read_csv(seed)
+        _is_csv = True
     else:
         raise FileNotFoundError(
             f"Primary data not found: no Primary_FY202426_* in {src}, and no {seed}")
@@ -496,7 +498,7 @@ def load_primary_v2(src):
     df["MRP value"] = pd.to_numeric(df["MRP value"], errors="coerce").fillna(0.0)
     df["Month"] = df["Month"].astype(str).str.strip()
     # CSV stores NSV/MRP in rupees; script/dashboard expect INR Lakh (1 Lakh = 100,000)
-    if csv_f.exists():
+    if _is_csv:
         df["NSV"] = df["NSV"] / 1e5
         df["MRP value"] = df["MRP value"] / 1e5
 
