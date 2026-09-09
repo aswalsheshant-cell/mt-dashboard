@@ -149,7 +149,7 @@ Background, CM2 basis, Cont% allocation and file-level notes:
 
 ```
 dashboard/
-  index.html      single-file app: 12 tabs, global filter bar, drill-down, exports.
+  index.html      single-file app: 11 tabs, global filter bar, drill-down, exports.
                   Data = window.DASH from data.js. Chart.js/jsPDF/xlsx vendored locally.
   data.js         generated — DO NOT hand-edit. ~9 MB baked JSON.
   *.min.js        vendored libs (offline). README.md = dashboard usage.
@@ -161,9 +161,41 @@ PowerBI/
   QuickSetup/               consolidated PQ+DAX paste-in references.
 ```
 
-12 tabs (order): Data Explorer, Overview, Primary, Offtake, P&L, Category & Pack,
-Forecast, Promo & Trade Spend, Market Share, Distribution, Performance &
-Comparison, Insights & Way Forward.
+11 tabs (order): Data Explorer, Executive Cockpit, Channel & Chain Performance,
+Inventory & Supply Health, Demand & S&OP Planning, P&L, Performance &
+Comparison, Commercial Analytics, Operational Alerts, Store Audit Scorecard,
+Supply Chain & Inventory.
+
+Three of these are consolidated tabs with their own sub-view tab strip:
+
+- **Channel & Chain Performance** — Primary Sales, Category & Pack Mix, Reliance
+  Brand Counter.
+- **Inventory & Supply Health** — Offtake Velocity, Demand-Supply Gap, Store
+  Coverage.
+- **Demand & S&OP Planning** — Demand Forecast, Promotional Impact,
+  Competitive Landscape / Market Share.
+
+**v1.1.0 navigation consolidation.** The dashboard used to have 15 top-level
+tabs; v1.1.0 folded them into the 11 above (Overview+Insights → Executive
+Cockpit; Primary+Category&Pack+Reliance Brand Counter → Channel & Chain
+Performance; Offtake+Offtake Impact+Distribution → Inventory & Supply Health;
+Forecast+Promo+Market Share → Demand & S&OP Planning). `LEGACY_TAB_ROUTES` in
+`index.html` redirects any of the old tab IDs — `overview`, `insights`,
+`primary`, `category`, `reliance-bc`, `offtake`, `offtake-impact`,
+`distribution`, `forecast`, `promo`, `market-share` — to their consolidated
+replacement, so an old bookmark or drill-down link never lands on a blank
+tab. None of these old IDs are active top-level tabs any more; see the
+sub-view lists above for where each one's content actually lives now. The
+Power BI side of this same consolidation is mapped in
+`PowerBI/docs/PageLayouts.md`'s "Web Dashboard Consolidation Alignment
+(v1.1.0)" section — refer there rather than duplicating that table here.
+
+*Maintenance note:* the pre-consolidation builder functions (`buildOfftake`,
+`buildOfftakeImpact`, `buildDistribution`, `buildForecast`, `buildPromo`,
+`buildShare`) and their DOM containers are still present in `index.html`.
+They are reachable only by `LEGACY_TAB_ROUTES`'s redirect target, not as
+user-facing navigation surfaces in their own right — don't treat them as a
+second, parallel UI to maintain.
 
 ---
 
