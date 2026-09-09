@@ -114,6 +114,37 @@ block's — e.g. the Offtake tab checks `o['total_'+fy]`, not the Primary-only
 
 ---
 
+## The three MT measures — naming
+
+Three different things, easily mixed up. Calling each by its own name is what keeps
+them apart.
+
+```
+Honasa ──PRIMARY──▶ chain DC / distributor ──DISTRIBUTOR SECONDARY──▶ store ──OFFTAKE──▶ consumer
+```
+
+| Measure | Comes from | Lives in | Reference figure |
+|---------|------------|----------|------------------|
+| **Primary** | SAP/ERP billing | `Primary_Article_Monthly/`, `Primary_ShipTo_Monthly/` | FY26 ₹32,900.36 L |
+| **Distributor Secondary** | Distributor DMS | `SecondarySales_Monthly/`, `data/raw_drops/Distributor_secondary_*` | FY25 ₹23,332.36 L |
+| **Offtake** | Chain POS | `Offtake_Monthly/` | FY26 ₹31,119.88 L |
+
+Useful to know when working with these:
+
+- FY25 (Apr'24–Mar'25) has distributor secondary only — no primary billing extract.
+  A few files are named as if they were FY25 primary; the `mt-distributor-secondary`
+  skill lists which ones and what they actually contain.
+- Distributor secondary reaches **brand** level in FY25 and **EAN/article** from FY27
+  (`SecondarySales_Monthly_TOT_Analysis/01_FULL_HIERARCHY_*.csv`).
+- A movement measured between two different measures reflects the gap between them as
+  well as any business change, so those are usually worth showing side by side rather
+  than as one rate.
+
+Background, CM2 basis, Cont% allocation and file-level notes:
+`.claude/skills/mt-distributor-secondary/SKILL.md`
+
+---
+
 ## Architecture map
 
 ```

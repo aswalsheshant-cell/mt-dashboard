@@ -183,11 +183,48 @@ def canon_zone(z):
          "north": "North", "west": "West", "east": "East", "central": "Central", "pan india": "Pan India"}
     return m.get(z.lower(), z)
 
+_CENTRAL_STATES = {"madhya pradesh", "mp", "chhattisgarh", "chattisgarh", "chattishgarh"}
+
+def zone_with_central_override(zone, state):
+    """Apply the Central-state override on top of canon_zone().
+
+    Apr/May/Jul'26 offtake extracts already tag Madhya Pradesh and Chhattisgarh
+    rows as "Central" in their own Zone column. Jun'26 does not -- those same
+    states show up there as North/East/West, which would silently zero out
+    Central for that month and inflate the other two. Re-deriving from State
+    for these two states keeps every month consistent without touching zones
+    that are not in dispute.
+
+    Unlike canon_zone_from_state() below, this ALWAYS prefers the source's own
+    Zone tag first (via canon_zone()) and only steps in for the two disputed
+    states -- so a row the source already correctly tags (e.g. the Vidarbha
+    cities of Maharashtra, which FY27 extracts already tag Central) is never
+    overridden. Use this wherever the source's own zone tag is present and
+    should be trusted except for the known MP/Chhattisgarh gap.
+    """
+    z = canon_zone(zone)
+    s = str(state).strip().lower() if state is not None else ""
+    if s in _CENTRAL_STATES:
+        return "Central"
+    return z
+
 def canon_zone_from_state(state):
-    """Map state/region to MT zone. Used to override zone column when it's miscoded in source.
+    """Map state/region to MT zone unconditionally. Used to override zone column
+    when it's miscoded in source.
 
     The offtake extracts incorrectly assign Madhya Pradesh and Chhattisgarh to North/West
-    instead of Central, so this override corrects the zone assignment at ingest time."""
+    instead of Central, so this override corrects the zone assignment at ingest time.
+
+    CAVEAT: this is a blanket state->zone table, not a source-respecting patch --
+    it does NOT check whether the source already tagged the row correctly. Every
+    Maharashtra row maps to "West" here, including the Vidarbha cities (Nagpur,
+    Akola, Yavatmal, Wardha, Amravati, Chandrapur) that FY27 offtake extracts
+    already tag "Central" in their own Zone column. Safe today only because its
+    two call sites (offtake_rebuild_block, load_fy25_secondary) both consume
+    FY26/FY25 sources where Central was never tagged for any state (so there is
+    no correct pre-existing tag to clobber) -- do not reuse this function against
+    a source, like the FY27 monthly drops, whose Zone column already carries a
+    real Central classification; use zone_with_central_override() there instead."""
     if state is None:
         return None
     state = str(state).strip()
@@ -834,7 +871,55 @@ def _offtake_row_month(month_val):
     if isinstance(month_val, (int, float)) and not (isinstance(month_val, float) and math.isnan(month_val)):
         d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=float(month_val))
         return f"{d.strftime('%b')}-{d.strftime('%y')}"
+    # Some extracts (e.g. Reliance's monthly CSV, which carries no "Revised
+    # Month"/"Year" fallback columns) hold the same Excel serial date as a
+    # plain numeric-looking STRING when read via a manual csv.reader path
+    # rather than pandas' own type inference. Give it the same serial-date
+    # treatment rather than dropping the row.
+    if isinstance(month_val, str) and month_val.strip():
+        try:
+            serial = float(month_val.strip())
+        except ValueError:
+            return None
+        if not math.isnan(serial) and serial > 0:
+            d = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=serial)
+            return f"{d.strftime('%b')}-{d.strftime('%y')}"
     return None
+
+def _read_offtake_csv(fp):
+    """Read one offtake extract CSV, tolerating a known export defect: some
+    Reliance monthly files concatenate two source tabs (the general extract,
+    then a Brand Counter tab) that don't share a column count, so the file
+    is ragged from the point the second tab starts. pandas' C parser raises
+    on the first ragged row; when that happens, keep only the well-formed
+    leading block (every row up to the point the field count first departs
+    from the header) and drop the rest -- which is safe here because that
+    trailing block is exactly the Brand Counter rows the pipeline already
+    excludes from totals via the Store Type/Data status filter below."""
+    try:
+        return pd.read_csv(fp, low_memory=False, encoding="utf-8")
+    except UnicodeDecodeError:
+        pass
+    except pd.errors.ParserError:
+        return _read_offtake_csv_ragged_leading_block(fp)
+    try:
+        return pd.read_csv(fp, low_memory=False, encoding="latin-1")
+    except pd.errors.ParserError:
+        return _read_offtake_csv_ragged_leading_block(fp)
+
+
+def _read_offtake_csv_ragged_leading_block(fp):
+    with open(fp, encoding="latin-1", newline="") as f:
+        lines = f.readlines()
+    header = next(csv.reader([lines[0]]))
+    good_rows = []
+    for line in lines[1:]:
+        row = next(csv.reader([line]))
+        if len(row) != len(header):
+            break
+        good_rows.append(row)
+    return pd.DataFrame(good_rows, columns=header)
+
 
 def load_offtake_article_files(src):
     """Aggregates NEW monthly store x article offtake extracts (.xlsb, one
@@ -846,15 +931,15 @@ def load_offtake_article_files(src):
     nothing to do with. NSV in these extracts is already INR Lakh (checked
     against the existing Lakh-denominated offtake trend -- same order of
     magnitude, continuing its Oct'25-Mar'26 growth trajectory).
+    Searches src recursively, so a --src pointed at a parent of per-month
+    subfolders (e.g. data/raw_drops/offtake_fy26/Apr'25/*.csv) is picked up
+    the same as a flat folder of monthly files.
     Returns (chain_month, zone_state_month); both {} if no offtake extracts found."""
-    files = sorted([*src.glob("*.xlsb"), *src.glob("*.xlsx"), *src.glob("*.csv")])
+    files = sorted([*src.rglob("*.xlsb"), *src.rglob("*.xlsx"), *src.rglob("*.csv")])
     chain_month, zsm = {}, {}
     for fp in files:
         if fp.suffix.lower() == ".csv":
-            try:
-                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='utf-8')}
-            except UnicodeDecodeError:
-                _frames = {"csv": pd.read_csv(fp, low_memory=False, encoding='latin-1')}
+            _frames = {"csv": _read_offtake_csv(fp)}
         else:
             # .xlsb needs pyxlsb, .xlsx needs openpyxl.
             _eng = "pyxlsb" if fp.suffix.lower() == ".xlsb" else "openpyxl"
@@ -906,8 +991,9 @@ def load_offtake_article_files(src):
                 _is_bc = (_ds_c == "brand counter")
                 df = df[~(_is_rel & _is_bc)].copy()
             df["_chain"] = df["Chain Name"].map(canon_chain)
-            df["_zone"] = df["Zone"].map(canon_zone)
             df["_state"] = df["State"].map(canon_state)
+            df["_zone"] = [zone_with_central_override(z, s)
+                           for z, s in zip(df["Zone"], df["State"])]
             df["_month"] = df["Month"].map(_offtake_row_month)
             # Fallback: when Month has no year (e.g. "Jun" instead of "Jun'26"),
             # try "Revised Month" (Excel serial date) or combine Month + Year.
@@ -4418,7 +4504,7 @@ def main():
         if bc_data is not None:
             # Merge with existing BC data (preserve months not in new source)
             existing_bc = obj.get("reliance_bc")
-            if existing_bc and existing_bc.get("months"):
+            if existing_bc and existing_bc.get("months") and existing_bc.get("monthly"):
                 new_bc_months = set(bc_data["months"])
                 kept = [m for m in existing_bc["months"] if m not in new_bc_months]
                 if kept:
@@ -4529,6 +4615,22 @@ def main():
                     if existing_bc.get("by_category"):
                         bc_data["by_category"] = _merge_dim(
                             existing_bc["by_category"], bc_data.get("by_category", []), "name")
+            # Carry forward any scalar total_fyNN from an existing block for FY tags
+            # the new source doesn't cover (e.g. a manually-entered FY26 figure with
+            # no month-level detail to merge granularly). Never overwrites a tag the
+            # new source did compute.
+            if existing_bc:
+                new_tags = set(bc_data.get("fy_tags", []))
+                for k, v in existing_bc.items():
+                    m = re.match(r"^total_(fy\d{2})$", k)
+                    if m and m.group(1) not in new_tags and v:
+                        bc_data[k] = v
+                        new_tags.add(m.group(1))
+                        for suffix in ("months_", "monthly_"):
+                            old_key = suffix + m.group(1)
+                            if old_key in existing_bc:
+                                bc_data[old_key] = existing_bc[old_key]
+                bc_data["fy_tags"] = sorted(new_tags, key=lambda t: fy_start_year(t.upper()))
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
         _safe_write_data_js(
