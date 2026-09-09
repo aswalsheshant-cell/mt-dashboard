@@ -30,6 +30,7 @@ the baseline history file. Pass --promote to append a new baseline record
 after you have reviewed the report.
 """
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -145,6 +146,14 @@ def load_primary(path):
 
 def load_secondary(path, month):
     df = pd.read_csv(path, low_memory=False)
+    # NOTE: no duplicate-grain check here. (Source_Month, Distributor, Chain,
+    # Brand, EAN) looks like it should be unique but is verifiably NOT --
+    # rows sharing that exact key legitimately carry different NSV_Value and
+    # different Chain_TOT_Pct (consistent with this file's documented
+    # quirks in .claude/skills/mt-distributor-secondary/SKILL.md). Asserting
+    # an unverified grain would itself be an invented rule, which is exactly
+    # what this gate exists to avoid -- so this stays an open question for
+    # the data owner rather than a hard-coded (and wrong) duplicate check.
     problems = validate_input(df, REQUIRED_SECONDARY_COLS, "Secondary")
     df["NSV_Value"] = pd.to_numeric(df["NSV_Value"], errors="coerce")
     if df["NSV_Value"].isna().any():
@@ -162,6 +171,12 @@ def load_secondary(path, month):
 def load_offtake(path):
     df = pd.read_csv(path, low_memory=False)
     df.columns = [c.strip() for c in df.columns]
+    # NOTE: no duplicate-grain check here either. (Site Code, Article, Chain
+    # Name) is not confirmed unique -- rows sharing that exact key can carry
+    # identical Sales Qty/NSV, and this extract has no transaction/invoice-
+    # level identifier to prove whether that is a real repeat sale or a true
+    # duplicate. Flagging a number here without being able to tell the two
+    # apart would be a guess dressed up as a finding.
     problems = validate_input(df, REQUIRED_OFFTAKE_COLS, "Offtake")
     df["NSV"] = pd.to_numeric(df["NSV"], errors="coerce")
     if df["NSV"].isna().any():
@@ -171,6 +186,19 @@ def load_offtake(path):
     if blank_chain:
         problems.append(f"Offtake: {blank_chain} rows with blank Chain Name")
     return df, problems
+
+
+def fingerprint_file(path):
+    """SHA-256 + size, computed by reading the file (never writing to it), so
+    a replacement file with the SAME NAME but DIFFERENT CONTENT is detectable
+    in the baseline record -- a filename alone cannot prove the source is
+    the one that was actually validated."""
+    p = Path(path)
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return dict(path=str(p), sha256=h.hexdigest(), size_bytes=p.stat().st_size)
 
 
 def check_total_collapse(new_total, prior_total, label, tolerance_pct=50.0):
@@ -336,18 +364,31 @@ def recheck_exceptions(primary, secondary_month, offtake, prior_secondary_month=
                 pooled_evidence_L = round(dist_rows.loc[mask, "NSV value"].sum() / 1e5, 2)
                 pooled_distributors = sorted(dist_rows.loc[mask, "Ship-To Name"].unique().tolist())
 
+        # NOTE on SECONDARY_SOURCE_MISSING vs PRIMARY_SOURCE_MISSING: both
+        # require p_val == 0 this month (no Aug-26 Primary landed for this
+        # chain either way), so the label must describe what is DIFFERENT
+        # about the two situations, not just repeat "no Primary" under two
+        # names. SECONDARY_SOURCE_MISSING is reserved for a chain we can
+        # independently confirm DID have real Primary before (prior_p > 0)
+        # -- i.e. Secondary specifically dropping out this month is plausibly
+        # *why* the split broke. If Primary itself has never been seen for
+        # this chain (prior_p in (0, None) too), the accurate description is
+        # PRIMARY_SOURCE_MISSING regardless of whether Secondary happened to
+        # exist in a prior month -- that fact is still visible in
+        # prior_secondary_L for evidence, it just isn't the current-month
+        # root cause.
         if p_val > 0 and o_val > 0:
             status = "MATCHED"
         elif o_val > 0 and p_val == 0 and s_val > 0:
             status = "MAPPING_GAP"          # secondary sees it, primary allocation didn't land it
         elif o_val > 0 and p_val == 0 and pooled_evidence_L:
             status = "MAPPING_GAP"          # diagnostic only: named in a distributor's pooled billing, not yet split
-        elif o_val > 0 and p_val == 0 and s_val == 0 and (prior_s or 0) > 0:
-            status = "SECONDARY_SOURCE_MISSING"
+        elif o_val > 0 and p_val == 0 and s_val == 0 and (prior_p or 0) > 0:
+            status = "SECONDARY_SOURCE_MISSING"   # this chain's Primary was confirmed before -- Secondary dropping is the plausible current-month cause
         elif o_val > 0 and p_val == 0 and s_val == 0 and not any([prior_s, prior_o, prior_p]):
             status = "UNRESOLVED"           # no corroborating history anywhere -- too little evidence to classify confidently
         elif o_val > 0 and p_val == 0 and s_val == 0:
-            status = "PRIMARY_SOURCE_MISSING"
+            status = "PRIMARY_SOURCE_MISSING"     # Primary has never been captured for this chain in any period checked, regardless of Secondary/Offtake history
         else:
             status = "UNRESOLVED"
 
@@ -481,6 +522,10 @@ def main():
     problems += p_probs + s_probs + o_probs
     soft_warnings += p_soft
 
+    fingerprints = dict(primary=fingerprint_file(args.primary),
+                         secondary=fingerprint_file(args.secondary),
+                         offtake=fingerprint_file(args.offtake))
+
     history = load_baseline_history()
     prior_record = history[-1] if history else None
     if prior_record:
@@ -488,6 +533,20 @@ def main():
                                           prior_record["coverage"]["total_primary_L"], "Primary")
         problems += check_total_collapse(offtake["NSV"].sum(),
                                           prior_record["coverage"]["total_offtake_L"], "Offtake")
+    provenance_notices = []
+    if prior_record:
+        prior_fp = prior_record.get("source_fingerprints", {})
+        for key in ("primary", "secondary", "offtake"):
+            prior_path = prior_record.get("source_files", {}).get(key)
+            new_path = str(getattr(args, key))
+            prior_sha = prior_fp.get(key, {}).get("sha256")
+            if prior_path == new_path and prior_sha and prior_sha != fingerprints[key]["sha256"]:
+                provenance_notices.append(
+                    f"{key}: same filename as the prior baseline record but DIFFERENT content "
+                    f"(sha256 changed from {prior_sha[:12]}... to {fingerprints[key]['sha256'][:12]}...) "
+                    "-- this is a genuine replacement file, not a re-read of the same source.")
+            elif prior_path == new_path and prior_sha == fingerprints[key]["sha256"]:
+                provenance_notices.append(f"{key}: identical file (same name, same sha256) as the prior baseline record.")
 
     print("=" * 90)
     print(f"AUG'26 DATA READINESS GATE -- run at {datetime.now(timezone.utc).isoformat()}")
@@ -497,6 +556,23 @@ def main():
         print(f"  ! {p}")
     for w in soft_warnings:
         print(f"  (known, scoped) {w}")
+    for n in provenance_notices:
+        print(f"  (provenance) {n}")
+
+    # A missing required column or an unrecognized period is structural --
+    # continuing into allocation/coverage would crash with a raw traceback
+    # instead of a clean, explicit failure. Stop here rather than let a bad
+    # input produce a stack trace (or worse, a partially-computed result).
+    structural = [p for p in problems if "missing required columns" in p or "no rows found for expected period" in p]
+    if structural:
+        print(f"\nSTRUCTURAL INPUT PROBLEM -- cannot safely proceed to allocation/coverage:")
+        for s in structural:
+            print(f"  ! {s}")
+        print("\nDATA READINESS GATE: FAIL")
+        print("RECOMMENDED DISPOSITION: REJECT SOURCE")
+        if args.promote:
+            print("\n--promote requested but gate FAILed -- refusing to write baseline.")
+        sys.exit(1)
 
     chain_audit = build_chain_mapping_audit(primary, secondary_month, offtake)
     needs_review = chain_audit[chain_audit["status"] == "NEEDS_REVIEW"]
@@ -541,6 +617,7 @@ def main():
     record = dict(
         run_at=datetime.now(timezone.utc).isoformat(),
         source_files=dict(primary=str(args.primary), secondary=str(args.secondary), offtake=str(args.offtake)),
+        source_fingerprints=fingerprints,
         period=args.month,
         input_validation_problems=problems,
         input_validation_soft_warnings=soft_warnings,
