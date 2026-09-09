@@ -8,16 +8,17 @@ on:
     paths:
       - 'dashboard/index.html'
       - 'dashboard/data.js'
-      - 'tests/test_dashboard_ui.py'
+      - 'tests/e2e_v1.1.0_consolidation.spec.js'
+      - 'playwright.config.js'
+      - '.github/workflows/ui-smoke.yml'
   pull_request:
     branches: [main]
     paths:
       - 'dashboard/index.html'
       - 'dashboard/data.js'
-
-env:
-  PLAYWRIGHT_BROWSERS_PATH: /opt/pw-browsers
-  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      - 'tests/e2e_v1.1.0_consolidation.spec.js'
+      - 'playwright.config.js'
+      - '.github/workflows/ui-smoke.yml'
 
 jobs:
   ui-smoke:
@@ -27,21 +28,16 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
-      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65  # v4.0.0
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Install Python dependencies
-        run: pip install pytest pytest-asyncio playwright
+      - name: Install Node dependencies
+        run: npm ci
 
-      - name: Install Chromium with all system dependencies
-        run: |
-          # Install all system deps required by Chromium
-          python -m playwright install-deps chromium
-          # Download and install Chromium browser
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0 python -m playwright install chromium
-          echo "Chromium installation complete"
+      - name: Install Chromium (minimal — this spec only runs the chromium project)
+        run: npx playwright install --with-deps chromium
 
       - name: Verify dashboard files exist
         run: |
@@ -50,14 +46,17 @@ jobs:
 
       - name: Start HTTP server for tests
         run: |
-          cd dashboard
           python3 -m http.server 8765 > /tmp/server.log 2>&1 &
           SERVER_PID=$!
           echo "Server PID: $SERVER_PID"
 
-          # Wait for server to be ready (max 10 seconds)
+          # Wait for server to be ready (max 10 seconds). Serve the repo
+          # root (not dashboard/) so BASE_URL in the spec
+          # (http://localhost:3000/dashboard/index.html-shaped paths use
+          # PLAYWRIGHT_BASE_URL below instead) resolves dashboard/index.html
+          # under a stable, repo-relative path.
           for i in {1..10}; do
-            if curl -s http://localhost:8765/index.html > /dev/null 2>&1; then
+            if curl -s http://localhost:8765/dashboard/index.html > /dev/null 2>&1; then
               echo "✓ Dashboard server is ready"
               break
             fi
@@ -69,13 +68,14 @@ jobs:
             sleep 1
           done
 
-      - name: Run UI smoke tests
-        run: |
-          # Set Playwright to use the downloaded Chromium
-          export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
-          pytest tests/test_dashboard_ui.py -v --tb=short --timeout=60
-        continue-on-error: true  # Phase 3.5 loaders merged; data.js rebuild scheduled for Phase 3.6
-        timeout-minutes: 5
+      - name: Run Playwright v1.1.0 consolidation regression suite
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:8765
+        run: npx playwright test tests/e2e_v1.1.0_consolidation.spec.js --project=chromium
+        # NOTE: intentionally no continue-on-error here. A failure in this
+        # job must fail the PR check — that is the entire point of this
+        # workflow. Do not add continue-on-error back.
+        timeout-minutes: 10
 
   report:
     runs-on: ubuntu-latest

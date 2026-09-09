@@ -254,8 +254,10 @@ jobs:
       - name: Validate 52-state matrix subset
         run: |
           python3 << 'EOF'
-          print("⚠ Full 52-state matrix validation requires Playwright (skipped in CI)")
-          print("  To run full tests locally: npm install -D @playwright/test && npx playwright test")
+          print("✓ 11-tab x FY-state Playwright regression coverage runs in the")
+          print("  'Dashboard UI Smoke Tests' workflow (tests/e2e_v1.1.0_consolidation.spec.js),")
+          print("  gated as a required check — not run in this job.")
+          print("  To run it locally: npx playwright test tests/e2e_v1.1.0_consolidation.spec.js")
           EOF
 
       - name: Create PR comment with validation results
