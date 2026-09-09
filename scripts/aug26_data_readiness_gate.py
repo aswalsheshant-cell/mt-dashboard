@@ -232,7 +232,6 @@ def build_chain_mapping_audit(primary, secondary_month, offtake):
             return
         seen.add((raw, source))
         canon = bdd.canon_chain(raw)
-        known = raw.lower() in bdd._ALIAS_LOOKUP or raw == canon and raw in bdd._ALIAS_LOOKUP.values()
         rows.append(dict(
             raw_chain=raw, canonical_chain=canon, source=source,
             mapping_method="repo CHAIN_ALIASES (governed)" if raw.lower() in bdd._ALIAS_LOOKUP else "passthrough (no alias found)",
