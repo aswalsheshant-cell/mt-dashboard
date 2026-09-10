@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite_version": "1.1.0",
-  "installed_at": "2026-08-09T15:32:32Z",
+  "installed_at": "2026-09-10T02:31:24Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.claude/skills",
   "target_key": "project-claude",
@@ -65,6 +65,15 @@
       "version": "1.0.0",
       "sha256": {
         "SKILL.md": "ece83cc9bc03d5d97d9f8934a8aeb144f2b8bd00d20074f55538a4fd7deb0277"
+      }
+    },
+    "fmcg-decision-leader": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "19b3cd19288912b47d51d20b16703177069b694ef6376a69f00b746f4eae7059",
+        "references/decision-classification.md": "511aa5c56e32354fc242003e90c2f5a67fab077903730ef185e3a47aca86697a",
+        "references/initiative-states.md": "f927f3502ffce526f610e6d45a60939e40e8d3273ed08d1a704b8f1c0f7a9e92",
+        "references/pre-mortem-and-technique-catalog.md": "b5d19c57c65ef34dbc121c95b2ac6607bde4dcd02c85684c8b0ccf2fa6929740"
       }
     }
   }

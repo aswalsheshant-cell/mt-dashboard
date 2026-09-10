@@ -114,6 +114,20 @@
         "executive-commercial-storytelling"
       ],
       "sha256": {}
+    },
+    {
+      "name": "fmcg-decision-leader",
+      "version": "1.0.0",
+      "source": "skills/fmcg-decision-leader",
+      "dependencies": [],
+      "handoffs": [
+        "sales-data-reconciliation",
+        "modern-trade-sales-growth",
+        "executive-commercial-storytelling",
+        "professional-growth-coach",
+        "business-ai-automation"
+      ],
+      "sha256": {}
     }
   ]
 }
