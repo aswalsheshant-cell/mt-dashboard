@@ -141,6 +141,18 @@
         "modern-trade-sales-growth"
       ],
       "sha256": {}
+    },
+    {
+      "name": "mapping-approval-governor",
+      "version": "1.0.0",
+      "source": "skills/mapping-approval-governor",
+      "dependencies": [],
+      "handoffs": [
+        "sales-data-reconciliation",
+        "fmcg-decision-leader",
+        "business-ai-automation"
+      ],
+      "sha256": {}
     }
   ]
 }

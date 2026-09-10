@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite_version": "1.1.0",
-  "installed_at": "2026-09-10T02:56:46Z",
+  "installed_at": "2026-09-10T04:14:16Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.claude/skills",
   "target_key": "project-claude",
@@ -49,9 +49,10 @@
       }
     },
     "professional-growth-coach": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "sha256": {
-        "SKILL.md": "95679ff7e2ce5a93cc5eb6b9cfc6714544166e8516cb7c00150a311d37877012"
+        "SKILL.md": "2415eeabe468a025e090e56eae8bf3b0330f76bcb139c8c3c84b1660aa642b34",
+        "references/ai-prompt-toolkit.md": "df1309f1f55492356ed764baa19c49eca710097fc8b027e77529d4cd3d5167b2"
       }
     },
     "agent-skill-governance": {
@@ -81,6 +82,15 @@
       "sha256": {
         "SKILL.md": "e883be096281c60f13f6c619da5dc71df0ee4498ee9acc34c780eab2a14bbb63",
         "references/triage-criteria.md": "7b2a5ce99e6c0f10d7cc6bd88a7db94dcf2be7536791435138c14e1e13f7ac70"
+      }
+    },
+    "mapping-approval-governor": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "a066bccf1534ee2f3c623b2e66dfee1fba3f9d3a92a8e9c5eaa929e8bd03654f",
+        "references/compression-algorithm.md": "ac5ed4c20d7902d03879554946700e667fdeb0630b0a8313ef43073c52abd75a",
+        "references/decision-types.md": "aa0ce0d55e263e29498eb2051f81f567ca0f0d67b21dcb4b081bc852400fe09f",
+        "references/policy-schema.md": "224a28031492e76cd2ef826a8dae1a3648ec15af00fdc3200c75a7f681cafa81"
       }
     }
   }
