@@ -128,6 +128,19 @@
         "business-ai-automation"
       ],
       "sha256": {}
+    },
+    {
+      "name": "steward",
+      "version": "1.0.0",
+      "source": "skills/steward",
+      "dependencies": [],
+      "handoffs": [
+        "fmcg-decision-leader",
+        "sales-data-reconciliation",
+        "business-ai-automation",
+        "modern-trade-sales-growth"
+      ],
+      "sha256": {}
     }
   ]
 }
