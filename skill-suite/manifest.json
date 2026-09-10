@@ -79,7 +79,7 @@
     },
     {
       "name": "professional-growth-coach",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "skills/professional-growth-coach",
       "dependencies": [],
       "handoffs": [
