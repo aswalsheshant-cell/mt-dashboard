@@ -109,7 +109,7 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             # one output line; Residual_Non_Core_Value_L discloses how much of that
             # total sits outside the named core chain(s), for transparency
             rule_value = rows["Value_L"].sum()
-            months = sorted(rows["Month"].unique(), key=lambda m: str(m))
+            months = sorted(rows["Month"].unique(), key=str)
             brand_scope = "ALL" if set(brands) == all_brands_for_distributor and len(signature_to_brands) == 1 else ", ".join(sorted(brands))
             # per-chain split, so the owner sees the actual % breakdown, not just the chain names
             split = (core_rows.groupby("Chain")["Value_L"].sum() / core_value * 100).round(1).to_dict() if core_value else {}
@@ -137,7 +137,7 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             active = bdf[bdf["Value_L"].abs() > NOISE_FLOOR_L]
             distinct_chains = sorted(active["Chain"].dropna().unique().tolist())
             value = bdf["Value_L"].sum()
-            months = sorted(bdf["Month"].unique(), key=lambda m: str(m))
+            months = sorted(bdf["Month"].unique(), key=str)
             exceptions.append(dict(
                 Rule_ID=f"EXC-{len(exceptions)+1:04d}",
                 Decision_Type="OWNER_ROW_EXCEPTION",
