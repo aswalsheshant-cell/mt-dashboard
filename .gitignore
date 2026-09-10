@@ -54,3 +54,4 @@ data/raw_drops/*
 !data/raw_drops/_agg/
 data/raw_drops/_agg/*
 !data/raw_drops/_agg/*.json
+historical_primary_chain_backfill_output/
