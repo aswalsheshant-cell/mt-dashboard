@@ -19,6 +19,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import historical_primary_chain_backfill as hpcb  # noqa: E402
+import historical_primary_chain_backfill_report as hpcb_report  # noqa: E402
+import provisional_mapping_disposition as disposition  # noqa: E402
 import build_dashboard_data as bdd  # noqa: E402
 import aug26_data_readiness_gate as gate  # noqa: E402
 
@@ -304,6 +306,95 @@ def test_cancel_invoice_rows_excluded(tmp_path):
     df = _make_primary_df(rows)
     final, problems = _process(df, tmp_path=tmp_path)
     assert abs(final["Inv. Net value(LOC)"].sum() - rows[0]["Inv. Net value(LOC)"]) < 0.01
+
+
+# ---------------------------------------------------------------------
+# Report-generation control: catches the transcription-error class of bug
+# (correct run, wrong hand-copied report) by asserting level totals sum to
+# the reported grand total within tolerance.
+# ---------------------------------------------------------------------
+def _summary_df(**overrides):
+    row = dict(Month="Apr'25", Raw_Primary_L=1000.0, Actual_L=600.0,
+               DistChainTen_Single_L=200.0, Provisional_L=150.0,
+               Secondary_Derived_L=0.0, Unallocated_L=50.0, Status="PASS")
+    row.update(overrides)
+    return pd.DataFrame([row])
+
+
+def test_report_passes_when_levels_reconcile():
+    report = hpcb_report.build_report(_summary_df())
+    assert report["total_primary_l"] == 1000.0
+    assert report["levels_l"]["PROVISIONAL_BUSINESS_MAPPED_PRIMARY"] == 150.0
+    assert abs(report["reconciliation_diff_l"]) <= 0.01
+
+
+def test_report_raises_when_levels_do_not_reconcile():
+    """Simulates the exact failure mode that produced the original
+    transcription error -- a level total that doesn't sum to the grand
+    total must be caught here, not published."""
+    bad = _summary_df(Provisional_L=150.31)  # +0.31 vs the real figure
+    with pytest.raises(AssertionError):
+        hpcb_report.build_report(bad, tolerance_l=0.01)
+
+
+def test_report_tolerant_of_rounding_noise():
+    ok = _summary_df(Unallocated_L=50.0049)  # sub-cent rounding, within tolerance
+    report = hpcb_report.build_report(ok, tolerance_l=0.01)
+    assert abs(report["reconciliation_diff_l"]) <= 0.01
+
+
+# ---------------------------------------------------------------------
+# Owner-approval disposition reconciliation
+# ---------------------------------------------------------------------
+def _register_df(rows):
+    cols = ["Distributor", "Brand", "Chain", "Value_L", "Owner_Decision", "Owner_Correction"]
+    return pd.DataFrame(rows, columns=cols)
+
+
+def test_disposition_reconciles_when_all_lines_decided(monkeypatch):
+    monkeypatch.setattr(disposition, "EXPECTED_BUCKET_TOTAL_L", 300.0)
+    df = _register_df([
+        ["D1", "B1", "Chain A", 100.0, "Approve", ""],
+        ["D2", "B1", "Chain B", 100.0, "Reject", ""],
+        ["D3", "B1", "Chain C", 100.0, "Amend", "Should be Chain D"],
+    ])
+    d = disposition.build_disposition(df, tolerance_l=0.01)
+    assert d["approved_l"] == 100.0
+    assert d["rejected_l"] == 100.0
+    assert d["amended_l"] == 100.0
+    assert d["pending_l"] == 0.0
+    assert abs(d["reconciliation_diff_l"]) <= 0.01
+
+
+def test_disposition_silence_counted_as_pending_not_approved(monkeypatch):
+    monkeypatch.setattr(disposition, "EXPECTED_BUCKET_TOTAL_L", 150.0)
+    df = _register_df([
+        ["D1", "B1", "Chain A", 100.0, "", ""],
+        ["D2", "B1", "Chain B", 50.0, "Approve", ""],
+    ])
+    d = disposition.build_disposition(df, tolerance_l=0.01)
+    assert d["approved_l"] == 50.0
+    assert d["pending_l"] == 100.0
+    assert d["n_pending"] == 1
+
+
+def test_disposition_amend_without_correction_is_rejected_by_script():
+    """An Amend with no Owner_Correction is a data-entry error -- the
+    intended governed chain must come from the owner, never inferred."""
+    df = _register_df([
+        ["D1", "B1", "Chain A", 100.0, "Amend", ""],
+    ])
+    with pytest.raises(ValueError, match="Owner_Correction"):
+        disposition.build_disposition(df)
+
+
+def test_disposition_raises_when_total_does_not_reconcile(monkeypatch):
+    monkeypatch.setattr(disposition, "EXPECTED_BUCKET_TOTAL_L", 1000.0)
+    df = _register_df([
+        ["D1", "B1", "Chain A", 100.0, "Approve", ""],  # far short of 1000
+    ])
+    with pytest.raises(AssertionError):
+        disposition.build_disposition(df, tolerance_l=0.01)
 
 
 if __name__ == "__main__":

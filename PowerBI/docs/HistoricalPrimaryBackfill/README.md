@@ -243,6 +243,26 @@ and overwrite the snapshot file; the change shows up as a normal diff.
 
 ---
 
+## 9b. Downstream governance controls (added post-freeze, same PR)
+
+Two follow-on scripts, both covered by the same test file:
+
+- **`scripts/historical_primary_chain_backfill_report.py`** — generates the
+  final-report ₹L/% table straight from `Monthly_Reconciliation_Summary.csv`
+  and asserts the five level totals sum to the reported grand total within
+  ±₹0.01L. This exists because an earlier hand-typed write-up of this same
+  run quoted ₹9,455.51L for the provisional bucket (the real figure is
+  ₹9,455.20L) and swapped the Actual/DistChainSingle figures — the run was
+  correct, the report wasn't. This script removes the hand-copy step.
+- **`scripts/provisional_mapping_disposition.py`** — once the business owner
+  returns the `ProvisionalMapping_OwnerApproval_Apr25_Jul26.xlsx` register
+  (Approval Summary sheet, 266 Distributor×Brand×Chain lines) with
+  Owner_Decision filled in, this reconciles Approved + Amended + Rejected +
+  Pending back to the frozen ₹9,455.1997L provisional bucket. A blank
+  Owner_Decision is tracked as `PENDING`, never counted as approved. An
+  `Amend` with no `Owner_Correction` (the owner's intended governed chain)
+  is rejected by the script rather than silently kept as-is.
+
 ## 10. Regenerating the outputs
 
 ```bash
