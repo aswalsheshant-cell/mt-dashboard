@@ -35,7 +35,7 @@ HIGH_THRESHOLD_L = 200.0
 MEDIUM_THRESHOLD_L = 20.0
 NOISE_FLOOR_L = 0.01          # a value below this in a given month is treated as absent, not a chain appearance
 CORE_CHAIN_MONTH_COVERAGE = 0.8  # a chain must be nonzero in >= this fraction of active months to be "core"
-RESIDUAL_MATERIALITY_L = 5.0  # non-core value below this, for a given (distributor,brand), is folded into the core rule as a noted residual rather than a separate exception
+RESIDUAL_MATERIALITY_PCT = 0.20  # a non-core residual above this share of the (distributor,brand) total forces an exception -- percentage-based so the test scales with rule size instead of a flat rupee floor
 
 
 def materiality(value_l: float) -> str:
@@ -70,6 +70,14 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             active = bdf[bdf["Value_L"].abs() > NOISE_FLOOR_L]
             active_months = active["Month"].nunique()
             if active_months == 0:
+                # Every value for this (distributor, brand) is at or below the
+                # noise floor -- there is no month to compute a core-chain
+                # share against. This must NOT silently drop the rows (that
+                # was a real defect: 9 near-zero brand-pairs, Rs0.0001L total,
+                # vanished from both rules and exceptions). Route to the
+                # exception path instead -- INSUFFICIENT_EVIDENCE-shaped, but
+                # still accounted for and reconciled.
+                unstable_brands.append(brand)
                 continue
             chain_month_counts = active.groupby("Chain")["Month"].nunique()
             core_chains = set(chain_month_counts[chain_month_counts >= CORE_CHAIN_MONTH_COVERAGE * active_months].index)
@@ -81,8 +89,17 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             residual = bdf[~bdf["Chain"].isin(core_chains)]
             residual_value = residual["Value_L"].sum()
             total_value = bdf["Value_L"].sum()
-            if total_value > 0 and (residual_value / total_value) > 0.20 and residual_value > RESIDUAL_MATERIALITY_L:
-                # the "non-core" portion is itself too large to wave away -- treat as unstable
+            # Percentage-based, not a flat absolute floor: a flat Rs5L cutoff
+            # is simultaneously too loose for a small rule (Rs1.93L residual
+            # on a Rs2.97L total is 65% disagreement but never crosses Rs5L)
+            # and too strict for a large one (Rs5.55L residual on a Rs2,334L
+            # total is 0.24% -- an obviously clean, stable split that a flat
+            # floor would wrongly explode). The noise floor only exists to
+            # stop pure floating-point/rounding dust from forcing a split
+            # when the residual is negligible in absolute terms regardless
+            # of what % it happens to be of a tiny total.
+            residual_pct = abs(residual_value / total_value) if total_value != 0 else 1.0
+            if residual_pct > RESIDUAL_MATERIALITY_PCT and abs(residual_value) > NOISE_FLOOR_L:
                 unstable_brands.append(brand)
                 continue
             stable_brand_rule[brand] = dict(
@@ -104,6 +121,20 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             core_rows = rows[rows["Chain"].isin(chain_set)]
             core_value = core_rows["Value_L"].sum()
             residual_value = sum(stable_brand_rule[b]["residual_value"] for b in brands)
+            # Re-check materiality AFTER merging brands into one rule. The
+            # percentage check is merge-safe by construction (a weighted
+            # average of per-brand ratios that are each <=20% cannot exceed
+            # 20%), so this is a belt-and-suspenders re-verification rather
+            # than an expected trigger -- but it's re-tested on the merged
+            # totals, not assumed, per the same percentage basis as the
+            # per-brand check (a flat rupee floor here would reintroduce the
+            # exact "too strict for large rules" defect the per-brand fix
+            # just removed).
+            merged_total = rows["Value_L"].sum()
+            merged_residual_pct = abs(residual_value / merged_total) if merged_total != 0 else 1.0
+            if merged_residual_pct > RESIDUAL_MATERIALITY_PCT and abs(residual_value) > NOISE_FLOOR_L:
+                unstable_brands.extend(brands)
+                continue
             # the rule's Value_L covers the WHOLE brand-cluster total (core + the
             # immaterial residual folded in) so every input rupee lands in exactly
             # one output line; Residual_Non_Core_Value_L discloses how much of that
@@ -115,9 +146,18 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             split = (core_rows.groupby("Chain")["Value_L"].sum() / core_value * 100).round(1).to_dict() if core_value else {}
             split_str = "; ".join(f"{c}: {p}%" for c, p in sorted(split.items(), key=lambda kv: -kv[1]))
             rule_seq += 1
+            # CHAIN_SET_APPROVAL (one chain, no split ambiguity) vs
+            # ALLOCATION_SPLIT_APPROVAL (multiple chains -- the % shown is
+            # the ACTUAL historical rupee split for the stated period, not a
+            # proposed reusable formula). Approving an ALLOCATION_SPLIT_APPROVAL
+            # means "yes, this is what happened in these months" -- it must
+            # never be read as licensing the same % for a month outside
+            # Month_Range without a separate, explicit decision.
+            chain_approval_type = "CHAIN_SET_APPROVAL" if len(chain_set) <= 1 else "ALLOCATION_SPLIT_APPROVAL"
             rules.append(dict(
                 Rule_ID=f"RULE-{rule_seq:04d}",
                 Decision_Type="OWNER_RULE_APPROVAL",
+                Chain_Approval_Type=chain_approval_type,
                 Distributor=distributor,
                 Brand_Scope=brand_scope,
                 Proposed_Chain=split_str if len(chain_set) > 1 else (next(iter(chain_set)) if chain_set else "UNKNOWN"),
@@ -129,6 +169,9 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
                 Evidence_Source="Chain_Wise_Primary_Sale_2.xlsx (Dump) -- PENDING OWNER APPROVAL",
                 Conflicts=0,
                 Residual_Non_Core_Value_L=round(residual_value, 4),
+                Scope_Note="Historical fact for the stated Month_Range only -- approval does not extend to any "
+                           "month outside that range unless a separate decision says so." if chain_approval_type == "ALLOCATION_SPLIT_APPROVAL"
+                           else "Approves this distributor/brand as belonging to this single chain for the stated Month_Range only.",
             ))
 
         # Step 2b: brands with no stable core -> exceptions
@@ -141,6 +184,7 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
             exceptions.append(dict(
                 Rule_ID=f"EXC-{len(exceptions)+1:04d}",
                 Decision_Type="OWNER_ROW_EXCEPTION",
+                Chain_Approval_Type="UNRESOLVED",
                 Distributor=distributor,
                 Brand_Scope=brand,
                 Proposed_Chain=" / ".join(distinct_chains) if distinct_chains else "NONE",
@@ -154,6 +198,8 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
                 Reason=f"No chain clears the {int(CORE_CHAIN_MONTH_COVERAGE*100)}% month-coverage bar, or the "
                        f"non-core residual is too large to fold in -- chain composition genuinely shifts across "
                        f"{len(distinct_chains)} chains ({', '.join(distinct_chains)})",
+                Scope_Note="No default scope -- this is a genuine exception; the owner's decision applies only "
+                           "to the specific row(s) it is made against.",
             ))
 
     rules_df = pd.DataFrame(rules)
@@ -163,12 +209,69 @@ def compress(detail: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def build_owner_message() -> str:
     return (
-        "Please review only the highlighted approval rows.\n"
-        "For each row choose APPROVE, CORRECT or REJECT.\n"
-        "Do not review the full methodology again.\n"
-        "Where correcting, enter the correct chain.\n"
-        "We will use only your explicit decision and retain the original proposal for audit."
+        "Please review the attached mapping approval sheet. The original 266-line "
+        "register has been consolidated into a smaller number of business decisions "
+        "while retaining full row-level traceability.\n"
+        "Please select APPROVE, CORRECT, or REJECT for each decision. Where correcting, "
+        "enter the correct chain.\n"
+        "Approval applies only to the stated historical period/scope unless explicitly "
+        "indicated otherwise."
     )
+
+
+_MATERIALITY_ORDER = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+
+
+def order_by_materiality(df: pd.DataFrame) -> pd.DataFrame:
+    """HIGH -> MEDIUM -> LOW, highest value first within each tier, so the
+    owner's attention goes to the economically important decisions first."""
+    if not len(df):
+        return df
+    return df.sort_values(
+        ["Materiality", "Value_L"],
+        key=lambda s: s.map(_MATERIALITY_ORDER) if s.name == "Materiality" else s,
+        ascending=[True, False],
+    )
+
+
+def build_draft_policy(rules_df: pd.DataFrame, exceptions_df: pd.DataFrame, source_hash: str) -> pd.DataFrame:
+    """Draft machine-readable policy, per skill-suite/skills/mapping-approval-governor
+    references/policy-schema.md. Every row's scope is bounded to the historical
+    Month_Range it was actually compressed from -- VALID_TO is never left open,
+    and DECISION_SCOPE never defaults to a future-inclusive value. Nothing here
+    is an approval; STATUS is always PENDING until a real owner decision returns."""
+    rows = []
+    for _, r in rules_df.iterrows():
+        valid_from, _, valid_to = str(r["Month_Range"]).partition("..")
+        scope = ("THIS_DISTRIBUTOR_GENERALLY" if r["Brand_Scope"] == "ALL"
+                 else "THIS_DISTRIBUTOR_BRAND")
+        rows.append(dict(
+            RULE_ID=r["Rule_ID"], STATUS="PENDING",
+            DISTRIBUTOR=r["Distributor"], BRAND=r["Brand_Scope"], CHAIN=r["Proposed_Chain"],
+            CHAIN_APPROVAL_TYPE=r["Chain_Approval_Type"],
+            VALID_FROM=valid_from or "", VALID_TO=valid_to or valid_from or "",
+            SOURCE="Chain_Wise_Primary_Sale_2.xlsx (Dump)", SOURCE_HASH=source_hash,
+            DECISION_OWNER="", DECISION_DATE="",
+            DECISION_SCOPE=f"{scope} (bounded to VALID_FROM..VALID_TO -- never future periods by default)",
+            PRECEDENCE="PROVISIONAL_BUSINESS_MAPPED_PRIMARY (Level 2) -- becomes "
+                       "OWNER_APPROVED_BUSINESS_MAPPED_PRIMARY only on explicit APPROVE, "
+                       "for the stated VALID_FROM..VALID_TO period only",
+            SUPERSEDES_RULE_ID="", COMMENT=r.get("Scope_Note", ""),
+        ))
+    for _, r in exceptions_df.iterrows():
+        valid_from, _, valid_to = str(r["Month_Range"]).partition("..")
+        rows.append(dict(
+            RULE_ID=r["Rule_ID"], STATUS="PENDING",
+            DISTRIBUTOR=r["Distributor"], BRAND=r["Brand_Scope"], CHAIN=r["Proposed_Chain"],
+            CHAIN_APPROVAL_TYPE="UNRESOLVED",
+            VALID_FROM=valid_from or "", VALID_TO=valid_to or valid_from or "",
+            SOURCE="Chain_Wise_Primary_Sale_2.xlsx (Dump)", SOURCE_HASH=source_hash,
+            DECISION_OWNER="", DECISION_DATE="",
+            DECISION_SCOPE="THIS_ROW_ONLY (bounded to VALID_FROM..VALID_TO -- never future periods by default)",
+            PRECEDENCE="UNRESOLVED -- exception, no precedence until decided",
+            SUPERSEDES_RULE_ID="", COMMENT=r.get("Reason", ""),
+        ))
+    return pd.DataFrame(rows)
 
 
 def main() -> int:
@@ -193,10 +296,15 @@ def main() -> int:
     n_output_items = len(rules_df) + len(exceptions_df)
     compression_ratio = round((1 - n_output_items / input_rows) * 100, 2) if input_rows else 0.0
 
-    rules_df.to_csv(args.out_dir / "OwnerDecisionPack_RuleApprovals.csv", index=False)
-    exceptions_df.to_csv(args.out_dir / "OwnerDecisionPack_RowExceptions.csv", index=False)
-
     fingerprint = hashlib.sha256(args.detail.read_bytes()).hexdigest()
+
+    rules_ordered = order_by_materiality(rules_df)
+    exceptions_ordered = order_by_materiality(exceptions_df)
+    rules_ordered.to_csv(args.out_dir / "OwnerDecisionPack_RuleApprovals.csv", index=False)
+    exceptions_ordered.to_csv(args.out_dir / "OwnerDecisionPack_RowExceptions.csv", index=False)
+
+    policy_df = build_draft_policy(rules_df, exceptions_df, fingerprint)
+    policy_df.to_csv(args.out_dir / "DraftGovernedPolicy_v0_PENDING.csv", index=False)
     summary = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "input_detail_file": str(args.detail),
