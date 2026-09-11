@@ -58,6 +58,15 @@ else
 fi
 say "pandas" "$(python3 -c 'import pandas;print(pandas.__version__)' 2>/dev/null || echo 'absent — pip install pandas before a data build')"
 say "chromium" "$([ -x /opt/pw-browsers/chromium ] && echo present || echo absent)"
+# Python deps come from the environment setup step, not the session hook, so a
+# fresh VM can legitimately be missing them. Name the fix rather than the fault.
+PYMISS=$(python3 - <<'PY' 2>/dev/null || echo '?'
+import importlib.util
+print(",".join(m for m in ("pandas","pytest","openpyxl","pyxlsb")
+                if importlib.util.find_spec(m) is None) or "none")
+PY
+)
+say "python deps" "$([ "$PYMISS" = "none" ] && echo 'complete' || echo "missing: $PYMISS — run ./scripts/setup_environment.sh")"
 
 echo "--- project assets ---"
 say "dashboard/data.js" "$([ -f dashboard/data.js ] && echo "$(du -h dashboard/data.js | cut -f1)" || echo MISSING)"

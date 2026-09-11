@@ -91,9 +91,8 @@ One bounded component per run: implement, validate, commit, stop.
 - Payout caps and the BDE Q1-only top-up restriction are not encoded in the slab sheet.
 - `unit_economics.nsv_per_unit` is degenerate (0.02 everywhere); PVM uses article Qty instead.
 - 5 pre-existing ruff F541 findings in `build_dashboard_data.py` (cosmetic, untouched).
-- `tests/test_article_uniqueness.py` and `tests/test_business_validation_dax.py` are
-  pytest-based and error on import because pytest is not installed. Pre-existing;
-  `python3 -m unittest discover tests` reports 2 errors for this reason alone.
+- (resolved) The two pytest-based test files no longer error on import —
+  `scripts/setup_environment.sh` installs `requirements.txt`.
 
 ## Regression Baseline
 
@@ -108,10 +107,15 @@ Every change must leave these unchanged:
 | FY27 target | ₹441.33 Cr |
 | PVM reconciliation | PASS, variance 0.00 |
 | Dashboard sweep | 44 states, 0 NaN/undefined, 0 JS errors |
-| Tests | 24 pass |
+| unittest suite | 24 pass |
+
+| pytest suite | 13 pass |
 
 Run: `./scripts/run_dashboard_sweep.sh tests/dashboard_sweep.js`, `python3 -m unittest discover tests`,
-`python3 scripts/ci_validate_datajs.py`, `./scripts/environment_health_check.sh`
+`python3 -m pytest tests -q`, `python3 scripts/ci_validate_datajs.py`,
+`./scripts/environment_health_check.sh`
+
+On a fresh VM, run `./scripts/setup_environment.sh` first (Python deps).
 
 ## Privacy Boundary
 
