@@ -18,7 +18,13 @@ from pathlib import Path
 # =========================================================================
 # CONFIGURATION
 # =========================================================================
-UNIVERSE_FILE = "/root/.claude/uploads/56e517c9-8924-532f-9453-27801a9c5401/948d97c7-Universe_MT_.xlsx"
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from input_paths import resolve_input
+UNIVERSE_FILE = resolve_input(
+    flag="--universe", env="MT_UNIVERSE_FILE",
+    describe="the MT Universe workbook (Universe_MT_.xlsx, sheet 'PAN INDIA')")
 NIELSEN_FILE = "/home/user/mt-dashboard/exports/Nielsen_MT_Only_Clean.xlsx"
 OUTPUT_FILE = "/home/user/mt-dashboard/exports/Mapping_MT_Forecast_FY27.xlsx"
 

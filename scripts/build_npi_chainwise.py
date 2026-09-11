@@ -7,7 +7,13 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 import re, os
 
-SRC = "/root/.claude/uploads/f72862e2-ac8f-514a-a251-d4833c7268e5/74ad52cf-MT_Chain_Wise__Article_Wise_NPI_for_TY__Central_mapping_for_maharastra.xlsx"
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from input_paths import resolve_input
+SRC = resolve_input(
+    flag="--src", env="MT_NPI_FILE",
+    describe="the chain-wise / article-wise NPI workbook for TY")
 OUT = "/home/user/mt-dashboard/PowerBI/SeedData/NPI_ChainWise_WithVidarbha.xlsx"
 
 # ── Load Sheet 1 (header on row index 1, row 0 is blank) ──────────────────────
