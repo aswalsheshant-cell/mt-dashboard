@@ -3032,6 +3032,41 @@ def readiness_gate(data, cfg=None):
     if "npd" in rules:
         put("npd", "BLOCKED", "NPD master not joined to the transaction grain")
 
+    if "sales_consolidation" in rules:
+        sa = data.get("sales_actuals") or {}
+        ok = bool(sa) and sa.get("reconciliation", {}).get("status") == "PASS" \
+            and sa.get("period_aligned") is True
+        if not sa:
+            measured = "no DMS extract ingested"
+        elif not sa.get("period_aligned"):
+            measured = (f"chain {len(sa.get('chain_sales_period') or [])} month(s) vs DMS "
+                        f"{len(sa.get('dms_period') or [])} month(s) — periods not aligned")
+        else:
+            measured = f"reconciliation {sa.get('reconciliation', {}).get('status')}"
+        put("sales_consolidation", "PASS" if ok else "BLOCKED", measured)
+
+    if "incentive" in rules:
+        # Every mandatory input, named. A missing one blocks the affected role
+        # rather than defaulting to a middle tier -- this decides real pay.
+        have = {
+            "slab master": bool(data.get("incentive_slabs")),
+            "employee incentive grade": False,
+            "role-scope targets": bool(((data.get("targets") or {}).get("measures") or {}).get("by_chain")),
+            "target basis confirmed": bool(((cfg.get("target") or {}).get("basis_confirmed_by"))),
+            "emerging-brand rule": ((cfg.get("brands") or {}).get("emerging_rule")) is not None,
+        }
+        miss = [k for k, v in have.items() if not v]
+        put("incentive", "PASS" if not miss else "BLOCKED",
+            f"{len(have) - len(miss)} of {len(have)} mandatory inputs present"
+            + (f"; missing: {', '.join(miss)}" if miss else ""))
+
+    if "persona_reporting" in rules:
+        sa = data.get("sales_actuals") or {}
+        hs = sa.get("hierarchy_stores")
+        put("persona_reporting", "BLOCKED",
+            (f"hierarchy covers {hs} stores but carries names, not employee IDs"
+             if hs else "store-employee hierarchy not ingested"))
+
     blocked = [k for k in order if (out.get(k) or {}).get("status") == "BLOCKED"]
     return {"gates": out, "blocked": blocked,
             "summary": f"{len(order) - len(blocked)} of {len(order)} layers ready",
@@ -3191,6 +3226,139 @@ def frame_from_records(records, detail_meta=None):
         "_Brand": r.get("Brand"), "_category": r.get("Category"),
         "_Description": r.get("Article"), "_Chan": r.get("Channel"),
     } for r in records])
+
+# --------------------------------------------------------------------------
+# CANONICAL NORMALISATION — zones and brands
+# --------------------------------------------------------------------------
+def canon_zone_name(raw, cfg=None):
+    """One canonical zone name from any source system's spelling.
+
+    Four sources spell the same zone four ways: 'South 1' (dashboard),
+    'South-1' (employee master), 'South_1' (WoA), 'SOUTH-1' (Massit). A rule
+    beats an alias list here -- the next source with a fifth spelling is
+    handled without an edit. Returns (canonical, matched) so the caller can
+    keep the raw value and quarantine what did not match rather than guessing.
+    """
+    z = ((cfg or {}).get("zones") or {})
+    canon = z.get("canonical") or []
+    over = {k.lower(): v for k, v in (z.get("explicit_overrides") or {}).items()}
+    if raw is None:
+        return None, False
+    t = re.sub(r"[\-_]+", " ", str(raw).strip())
+    t = re.sub(r"\s+", " ", t).strip()
+    if not t:
+        return None, False
+    if t.lower() in over:
+        return over[t.lower()], True
+    for c in canon:
+        if t.lower() == c.lower():
+            return c, True
+    return t.title(), False          # unmatched: keep it visible, flag it
+
+def is_emerging_brand(brand, cfg=None):
+    """Emerging brand = every MT brand except the core one(s).
+
+    Business-confirmed rule, deliberately expressed as 'all except' rather than
+    a fixed list, so a brand that appears next month is emerging by default --
+    which is what the rule means. Returns None when the brand is missing, so a
+    blank never silently counts as emerging.
+    """
+    b = ((cfg or {}).get("brands") or {})
+    if b.get("emerging_rule") != "all_except":
+        return None
+    if brand is None or not str(brand).strip():
+        return None
+    core = {str(c).strip().lower() for c in (b.get("core_brands") or [])}
+    return str(brand).strip().lower() not in core
+
+# --------------------------------------------------------------------------
+# CONSOLIDATED SALES ACTUALS — chain first, DMS as gap-fill only
+# --------------------------------------------------------------------------
+def sales_actuals_block(chain_rows, massit_rows, cfg=None, chain_alias=None):
+    """Actual sales with an explicit source priority, and no double counting.
+
+    chain_rows : {chain_name: value} -- chain sales for the period (authoritative)
+    massit_rows: iterable of dicts with client_id, client_type, chain, zone, value
+
+    The rule that matters: a DMS client whose chain ALREADY has chain-sales
+    coverage is a duplicate, not extra sales. Measured on Jun-26, 98.8% of DMS
+    tertiary falls in that bucket -- adding the two sources would have
+    overstated the month by about Rs 35.6 Cr. So DMS is gap-fill only, and its
+    real contribution here is store grain and employee attribution, which chain
+    sales does not carry.
+
+    Nothing is silently zeroed: a store with no sales in either source is
+    reported as NO_SALES_DATA, which is a different statement from zero sales.
+    """
+    sa = ((cfg or {}).get("sales_actuals") or {})
+    alias = chain_alias or {}
+    covered = {k for k, v in (chain_rows or {}).items() if (v or 0) > 0}
+
+    def resolve(name):
+        if name is None:
+            return None
+        n = str(name).strip()
+        if n in covered:
+            return n
+        if n in alias and alias[n] in covered:
+            return alias[n]
+        low = {c.lower(): c for c in covered}
+        return low.get(n.lower())
+
+    buckets = {"CHAIN": 0.0, "MASSIT": 0.0, "DUPLICATE_EXCLUDED": 0.0, "UNMAPPED": 0.0}
+    by_type, clients = {}, {}
+    for r in (massit_rows or []):
+        v = float(r.get("value") or 0.0)
+        ct = (r.get("client_type") or "").strip() or "(blank)"
+        ch = resolve(r.get("chain") or ct)
+        cid = (r.get("client_id") or "").strip()
+        if ch:
+            status, bucket = "DUPLICATE", "DUPLICATE_EXCLUDED"
+        elif ct in ("#N/A", "(blank)", ""):
+            status, bucket = "UNMAPPED", "UNMAPPED"
+        else:
+            status, bucket = "GAP_FILL", "MASSIT"
+        buckets[bucket] += v
+        t = by_type.setdefault(ct, {"client_type": ct, "status": status,
+                                    "maps_to_chain": ch, "value": 0.0, "clients": set()})
+        t["value"] += v
+        if cid:
+            t["clients"].add(cid)
+        clients.setdefault(cid, status)
+    buckets["CHAIN"] = float(sum((v or 0) for v in (chain_rows or {}).values()))
+
+    rows = []
+    for t in by_type.values():
+        t["clients"] = len(t["clients"])
+        t["value"] = r2(t["value"])
+        rows.append(t)
+    rows.sort(key=lambda d: -(d["value"] or 0))
+
+    consolidated = buckets["CHAIN"] + buckets["MASSIT"]
+    naive = buckets["CHAIN"] + buckets["MASSIT"] + buckets["DUPLICATE_EXCLUDED"]
+    return {
+        "priority": sa.get("priority") or ["CHAIN", "MASSIT"],
+        "massit_measure": sa.get("massit_measure"),
+        "unit": "INR",
+        "chain_sales": r2(buckets["CHAIN"]),
+        "massit_gap_fill": r2(buckets["MASSIT"]),
+        "massit_duplicate_excluded": r2(buckets["DUPLICATE_EXCLUDED"]),
+        "massit_unmapped": r2(buckets["UNMAPPED"]),
+        "consolidated_actual": r2(consolidated),
+        "naive_sum_would_be": r2(naive),
+        "double_count_avoided": r2(naive - consolidated),
+        "chains_with_chain_sales": len(covered),
+        "by_client_type": rows,
+        "reconciliation": {
+            "statement": "chain_sales + massit_gap_fill = consolidated_actual",
+            "check": r2(buckets["CHAIN"] + buckets["MASSIT"] - consolidated),
+            "status": "PASS" if abs(buckets["CHAIN"] + buckets["MASSIT"] - consolidated) < 1 else "CHECK",
+        },
+        "note": ("Chain sales is authoritative. DMS is used only where a chain has no "
+                 "chain-sales coverage. A DMS client on an already-covered chain is "
+                 "excluded as a duplicate, not added. Stores with neither source are "
+                 "NO_SALES_DATA, never zero."),
+    }
 
 # --------------------------------------------------------------------------
 # PHASE 3 — MoM, SCORECARD, PRICE-VOLUME-MIX

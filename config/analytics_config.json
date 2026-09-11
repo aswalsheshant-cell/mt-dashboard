@@ -1,25 +1,42 @@
 {
   "_README": "Central business configuration for the MT analytics build. Thresholds and basis choices live HERE, not inlined in formulas or JS. Loaded by scripts/build_dashboard_data.py and embedded into data.js as DASH.config, so the dashboard and Power BI read the same numbers from the same place.",
   "version": "1.0",
-
   "target": {
     "basis": "offtake",
-    "basis_options": ["offtake", "primary"],
+    "basis_options": [
+      "offtake",
+      "primary"
+    ],
     "basis_rationale": "The target file (PowerBI/SeedData/Targets/FY2627_Targets.csv) is headed 'Target NSV Cr' and does not name its measure. forecast_block_ty already compares this same file to offtake, so offtake is the default. Both bases are always computed and shown side by side so the choice stays visible.",
     "basis_confirmed_by": null,
     "basis_confirmed_on": null,
     "_action": "Set basis_confirmed_by/on once the business confirms whether the target is set on primary billing or on retail offtake. Until then the dashboard labels the basis as ASSUMED."
   },
-
   "rag": {
     "_note": "Green/amber boundaries. A value at or above 'green' is green; at or above 'amber' is amber; below is red. For run_rate_ratio LOWER is better, so the comparison inverts.",
-    "achievement_pct":            { "green": 100.0, "amber": 90.0 },
-    "growth_pct":                 { "green": 0.0,   "amber": -5.0 },
-    "run_rate_ratio":             { "green": 1.00,  "amber": 1.05, "red": 1.15, "lower_is_better": true },
-    "mapping_completeness_pct":   { "green": 95.0,  "amber": 85.0 },
-    "sell_through_ratio":         { "green": 0.90,  "amber": 0.75 }
+    "achievement_pct": {
+      "green": 100.0,
+      "amber": 90.0
+    },
+    "growth_pct": {
+      "green": 0.0,
+      "amber": -5.0
+    },
+    "run_rate_ratio": {
+      "green": 1.0,
+      "amber": 1.05,
+      "red": 1.15,
+      "lower_is_better": true
+    },
+    "mapping_completeness_pct": {
+      "green": 95.0,
+      "amber": 85.0
+    },
+    "sell_through_ratio": {
+      "green": 0.9,
+      "amber": 0.75
+    }
   },
-
   "readiness": {
     "_note": "Data readiness gates. An analytical layer must not present output as authoritative until its preconditions hold. Each gate names the precondition, the threshold and what unblocks it. Evaluated by readiness_gate() at build time and published as DASH.readiness; the dashboard shows a blocked layer's reason instead of a confident-looking number.",
     "chain_primary": {
@@ -49,16 +66,96 @@
       "label": "NPD tracker",
       "requires": "NPD launch and article master joined to the transaction grain",
       "unblocks_with": "A join key between PowerBI/SeedData/NPI_Master.csv article ids and the EAN/Article values on detail_records."
+    },
+    "sales_consolidation": {
+      "label": "Consolidated store-level sales actuals",
+      "requires": "Chain sales at store grain, or a store->chain bridge that proves no double counting",
+      "unblocks_with": "Store-grain chain offtake in the build (the source .xlsb carries store x article; data.js publishes chain/zone/state aggregates only). Until then the chain-level dedup rule applies and store-level actuals come from Massit alone."
+    },
+    "incentive": {
+      "label": "Incentive calculation",
+      "requires": "Slab master, employee master, incentive grade per employee, role-scope targets, actuals at role grain, and every business rule confirmed",
+      "unblocks_with": "Incentive grade (Asst/regular/Sr) for the 14 RKAM/NKAM/BA Lead employees; zone/account/territory targets; target basis (Primary vs Offtake); confirmation of conflicts C1-C6, the payout caps, and the nested lower-is-better slab rule."
+    },
+    "persona_reporting": {
+      "label": "Persona reporting (Leadership / Account / NKAM / RKAM / BDE)",
+      "requires": "Store->employee hierarchy resolved on a stable key",
+      "unblocks_with": "Employee IDs on the WoA hierarchy (it carries first names only), and Store-SO mapping for Jun'26 and Jul'26."
     }
   },
-
   "run_rate": {
     "_note": "Monthly run rate. Business planning here is monthly, and the source grain is monthly, so a daily rate would imply precision the data does not carry.",
     "basis": "monthly"
   },
-
   "mom": {
     "_note": "Metrics the MoM view shows when present. Anything unavailable is listed with its reason rather than shown as zero.",
-    "metrics": ["primary_nsv", "offtake_nsv", "target", "achievement_pct", "gap", "run_rate", "asp"]
+    "metrics": [
+      "primary_nsv",
+      "offtake_nsv",
+      "target",
+      "achievement_pct",
+      "gap",
+      "run_rate",
+      "asp"
+    ]
+  },
+  "brands": {
+    "_note": "Emerging-brand classification. CONFIRMED BY THE BUSINESS (MT Channel Analyst Lead) on 2026-09-11: every MT brand EXCEPT Mamaearth is an emerging brand. Stated as a rule, not a hardcoded list, so a new brand is emerging by default the moment it appears in the data -- which is the intent.",
+    "emerging_rule": "all_except",
+    "core_brands": [
+      "Mamaearth"
+    ],
+    "match": "case_insensitive_trimmed",
+    "confirmed_by": "Business (MT Channel Analyst Lead)",
+    "confirmed_on": "2026-09-11",
+    "evidence_type": "INTERNAL",
+    "confidence": "HIGH"
+  },
+  "zones": {
+    "_note": "Canonical zone names. Four source systems spell the same zone four ways (dashboard 'South 1', employee master 'South-1', WoA 'South_1', Massit 'SOUTH-1'). Normalisation is by RULE (casefold, strip, collapse -/_/space) rather than an ever-growing alias list, with explicit overrides only where a rule cannot reach. Raw values are always preserved alongside the canonical one.",
+    "canonical": [
+      "Central",
+      "East",
+      "North",
+      "South 1",
+      "South 2",
+      "West"
+    ],
+    "normalize_rule": "casefold -> strip -> replace [-_] with space -> collapse whitespace -> title-case -> match against canonical",
+    "explicit_overrides": {
+      "ho": "Head Office",
+      "head office": "Head Office"
+    },
+    "non_sales_zones": [
+      "Head Office"
+    ],
+    "_ho_note": "HO is an employee location, not a sales zone. Held out of zone sales reporting rather than silently dropped."
+  },
+  "sales_actuals": {
+    "_note": "Source priority for Actual Sales. Chain sales is authoritative; Massit/DMS is a GAP-FILL source only, never additive. Measured evidence (Jun-26): 98.8% of Massit tertiary belongs to chains already covered by chain sales, so adding the two would overstate sales by ~Rs 35.6 Cr in one month. Massit's real value here is store-level grain and employee attribution, which chain sales does not carry.",
+    "priority": [
+      "CHAIN",
+      "MASSIT"
+    ],
+    "massit_measure": "TotalTertiaryValue",
+    "_massit_measure_note": "Tertiary = sell-out to consumer, the same basis as chain offtake. Secondary (distributor->store) is a different measure and must NOT be mixed in -- see CLAUDE.md 'The three MT measures'.",
+    "source_values": [
+      "CHAIN",
+      "MASSIT",
+      "NO_SALES_DATA"
+    ],
+    "dedup_rule": "A Massit client whose chain already has chain-sales coverage in the period is DUPLICATE and is excluded from the consolidated actual. Only a client whose chain has no chain-sales coverage is gap-fill.",
+    "missing_is_zero": false,
+    "_missing_note": "Absent sales stays blank and is labelled NO_SALES_DATA. It is never converted to zero -- a zero reads as 'sold nothing', which is a different business statement from 'we have no data'.",
+    "unit": "INR"
+  },
+  "focus_pack": {
+    "_note": "Focus Pack EAN classification comes from the supplied chain x article x month file (F1/F2 tags). Massit's own 'Focus Tag' column is blank on every row and must NOT be used as evidence either way.",
+    "source": "Focus Pack chain-wise article-wise file (F1/F2)",
+    "tags": [
+      "F1",
+      "F2"
+    ],
+    "ignore_massit_focus_tag": true
   }
 }
