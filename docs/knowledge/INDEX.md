@@ -19,6 +19,11 @@ from an external source.
 | employee mapping, identity, hierarchy, alias | KA-04, KA-06, KA-07 |
 | target, quota scope, coverage gap | KA-03 |
 | target mismatch, why the target does not tie, quota allocation | KA-11 |
+| sales credit, store ownership, employee actuals, split credit | KA-12 |
+| who decides, policy owner, approval routing, exception governance | KA-13 |
+| rule change, effective date, restatement, historical payout | KA-14 |
+| can this be calculated, readiness, why is this blocked | KA-15 |
+| totals do not tie, control total, unexplained difference | KA-16 |
 | Power Query, ingestion, refresh, ETL | KA-05 |
 | data model, star schema, many-to-many, grain | KA-06 |
 | RLS, row-level security, persona access | KA-06, KA-08 |
