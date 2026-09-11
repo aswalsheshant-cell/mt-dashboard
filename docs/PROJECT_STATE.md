@@ -11,6 +11,31 @@ Update after a **validated** milestone, then commit and push with that milestone
 
 ---
 
+## V1 Status — CLOSED
+
+**V1 is code-complete and closed.** Build mode is over; the project is now in
+operate-and-improve mode. Monthly business runs, validating recommendations and
+measuring outcomes are the work — not further architecture.
+
+Source workbooks live at `D:\sALES & eXPENSES` (local Windows storage, outside
+Git by design). The repository stores how to find them, never the files. See
+`docs/RUNBOOK.md` section 0.
+
+### V1.1 backlog — deliberately deferred, none of it blocking
+
+- Rename the four `@agent-*` handles in CLAUDE.md to the skills that deliver them
+- Decide the boundary between `executive-commercial-storytelling` and
+  `mt-executive-storytelling` (both carry unique content; neither should be deleted)
+- `require()` is duplicated across three incentive scripts — could import from
+  `scripts/input_paths.py`
+- CLAUDE.md redistribution (invariants stay; the routing table is procedural)
+- Continuous-learning loop: recommendation -> expected impact -> action -> actual
+  -> variance -> learning
+- Move source workbooks to approved company storage if the D: drive becomes a
+  backup or access concern — that changes one environment variable, no code
+
+---
+
 ## Current Phase
 
 Phase 4 complete — commercial analytics validated; incentive foundation gated on
@@ -20,8 +45,8 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`bfffadd` — Credit store actuals to employees, and say what each signature is worth
-Validated: 2026-09-11
+`ec55115` — Fail with an actionable message when an incentive input is missing
+Validated: 2026-09-11 — fresh-clone reproducibility PASS
 
 > A milestone's own commit hash does not exist while this file is being written
 > for it, so this section is corrected in the **next** commit. Check it against
@@ -132,7 +157,9 @@ Every change must leave these unchanged:
 | FY27 target | ₹441.33 Cr |
 | PVM reconciliation | PASS, variance 0.00 |
 | Dashboard sweep | 44 states, 0 NaN/undefined, 0 JS errors |
-| unittest suite | 51 pass, 1 skipped |
+| unittest suite | 64 pass, 1 skipped |
+| Baseline invariants | 7/7 hold (`config/baselines.json`) |
+| Fresh clone | dashboard reproduces fully: 44 states, 0 failures, 0 JS errors |
 | Incentive workbook | 51 employees / 42 VALID grades / 85 slab rows / 3,124 target rows / 67 WoA rows / 267 actual rows; payout NOT CALCULATED |
 | Target file (refreshed) | Rs 33,986.08 L; 77.0% of business target; gap 76% explained |
 | Actual attribution | Rs 14,118.82 L Apr-Jul; all 4 role lines reconcile, difference 0 |
