@@ -20,7 +20,7 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`8240027` — Knowledge base: 10 sourced articles, a router, and a freshness gate
+`bfffadd` — Credit store actuals to employees, and say what each signature is worth
 Validated: 2026-09-11
 
 > A milestone's own commit hash does not exist while this file is being written
@@ -29,12 +29,16 @@ Validated: 2026-09-11
 
 ## Next Approved Task
 
-Business input closure. The Excel working model is ready and waiting on answers —
-`08_Exceptions` and `12_Rule_Decisions` in the workbook list every open item with
-its owner. Close these gaps, then employee/store actual attribution:
-  (a) 9 employees still unpayable — 5 `#N/A` grades, 4 blank (see grade exceptions)
-  (b) target file covers 74.5% of the business target — is that the intended scope?
-  (c) 28 WoA mapping approvals + 3 exceptions
+**Business input closure — the work is now waiting on people, not on data.**
+`incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,
+each with an owner and a value, are in `08_Exceptions` and `12_Rule_Decisions`:
+  (a) MT Leadership — are North and Central H1-only? (~Rs 5,091.77 L)
+  (b) MT Leadership — 5 accounts with no target row (Nykaa, Sancus, Ratnadeep,
+      Guardian, Vijetha, ~Rs 2,598.18 L); and are 445 D-Mart stores with no WoA
+      deployment inside the incentive measurement scope? (Rs 7,535.62 L of actuals)
+  (c) Finance — Rs 2,456.83 L of the target gap is explained by nothing
+  (d) MT Ops — 28 WoA signatures (largest role line Rs 6,398.95 L) + 3 exceptions
+  (e) HR — 9 unpayable grades (5 `#N/A`, 4 blank)
 Still outstanding: target basis (Primary vs Offtake), C1-C6, caps, proration.
 Do NOT calculate any incentive payout. Do NOT start NPD, OSA/OOS,
 profitability or persona reporting — all gated.
@@ -54,14 +58,20 @@ One bounded component per run: implement, validate, commit, stop.
 - DMS/Massit consolidation, fenced to the incentive domain only
 - Privacy boundary + regression tests; environment health check; resume recovery
 - Knowledge base: 10 sourced articles + routing index, with a staleness gate
-- Governed incentive workbook `MT_Incentive_Working_FY27.xlsx` — 13 sheets, every
+- Target scope reconciliation (KA-11) — 76% of the Rs 10,146.78 L gap traced to
+  named causes; nothing scaled or allocated
+- Employee actual attribution (KA-12) — Apr-Jul store actuals credited through the
+  WoA sheet; all four role lines reconcile with a zero difference; no candidate
+  identity is ever treated as approved
+- Knowledge base extended to 16 articles (KA-11..KA-16) with router entries
+- Governed incentive workbook `MT_Incentive_Working_FY27.xlsx` — 14 sheets, every
   sheet an Excel Table, calculated cells are formulas, blocked rows stay blocked
   and never read as zero. Restricted: written to `incentive_working/`, gitignored.
 
 ## Partial Capabilities
 
 - Store-grain sales — dedup runs at chain level; store-grain chain offtake not in the build
-- Employee attribution — WoA identity register built (67 person-values: 28 one-line rule approvals, 3 exceptions, 36 no candidate). All PENDING owner approval; nothing auto-assigned
+- Employee attribution — actuals now credited through the WoA sheet, but 0 of 67 identities are approved so nothing is credited yet. 609 of 1,147 selling stores (mostly the D-Mart estate) have no WoA row at all — a scope question, not a mapping failure
 - Focus Pack — EAN source registered (F1/F2); achievement not computed (EAN→brand map needed)
 - WoA — working sheet available; the WoA formula itself is not stated
 
@@ -122,8 +132,10 @@ Every change must leave these unchanged:
 | FY27 target | ₹441.33 Cr |
 | PVM reconciliation | PASS, variance 0.00 |
 | Dashboard sweep | 44 states, 0 NaN/undefined, 0 JS errors |
-| unittest suite | 46 pass, 1 skipped |
-| Incentive workbook | 51 employees / 42 VALID grades / 85 slab rows / 3,100 target rows / 67 WoA rows; payout NOT CALCULATED |
+| unittest suite | 51 pass, 1 skipped |
+| Incentive workbook | 51 employees / 42 VALID grades / 85 slab rows / 3,124 target rows / 67 WoA rows / 267 actual rows; payout NOT CALCULATED |
+| Target file (refreshed) | Rs 33,986.08 L; 77.0% of business target; gap 76% explained |
+| Actual attribution | Rs 14,118.82 L Apr-Jul; all 4 role lines reconcile, difference 0 |
 
 | pytest suite | 13 pass |
 

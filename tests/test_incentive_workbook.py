@@ -21,13 +21,14 @@ WB_PATH = REPO / "incentive_working" / "MT_Incentive_Working_FY27.xlsx"
 SHEETS = ["00_Control", "01_Employee_Master", "02_Incentive_Criteria", "03_Targets",
           "04_Actuals", "05_WoA_Mapping", "06_Achievement", "07_Incentive_Calc",
           "08_Exceptions", "09_Finance_Approval", "10_Summary", "11_Data_Quality",
-          "12_Rule_Decisions"]
+          "12_Rule_Decisions", "13_Target_Scope"]
 
 # Functions available in Excel 2016 / 2019 too. XLOOKUP, LET, FILTER and friends are
 # Microsoft-365-only and would show #NAME? on an older office build.
-ALLOWED_FUNCS = {"IF", "IFERROR", "INDEX", "MATCH", "SUMIFS", "COUNTA", "OR", "AND", "ROUND"}
+ALLOWED_FUNCS = {"IF", "IFERROR", "INDEX", "MATCH", "SUMIFS", "COUNTIFS", "COUNTA",
+                 "OR", "AND", "LEFT", "ROUND"}
 
-EXPECTED_COUNTS = {"tblEmployee": 51, "tblSlab": 85, "tblTarget": 3100,
+EXPECTED_COUNTS = {"tblEmployee": 51, "tblSlab": 85, "tblTarget": 3124,
                    "tblWoA": 67, "tblAchievement": 51, "tblCalc": 51}
 
 
@@ -132,15 +133,56 @@ class IncentiveWorkbook(unittest.TestCase):
         _, hdr, _ = table_of(ws)
         items = {ws.cell(r, 1).value: ws.cell(r, 2).value for r in range(hdr + 1, ws.max_row + 1)}
         self.assertEqual(items.get("Calculation status"), "BLOCKED")
+        self.assertEqual(items.get("Approved WoA identities"), 0)
         self.assertEqual(items.get("Target_Scope_Status"), "UNKNOWN_SCOPE")
         self.assertEqual(items.get("Rule version"), "PENDING")
 
-    def test_actuals_and_approval_are_empty_not_zero_filled(self):
-        for name in ("04_Actuals", "09_Finance_Approval"):
-            ws = self.wb[name]
-            _, hdr, _ = table_of(ws)
-            body = [v for row in ws.iter_rows(min_row=hdr + 1, values_only=True) for v in row]
-            self.assertTrue(all(v is None for v in body), f"{name} was pre-filled")
+    def test_approval_sheet_is_empty_not_zero_filled(self):
+        ws = self.wb["09_Finance_Approval"]
+        _, hdr, _ = table_of(ws)
+        body = [v for row in ws.iter_rows(min_row=hdr + 1, values_only=True) for v in row]
+        self.assertTrue(all(v is None for v in body), "09_Finance_Approval was pre-filled")
+
+    def test_actuals_are_loaded(self):
+        ws = self.wb["04_Actuals"]
+        _, hdr, cols = table_of(ws)
+        n = sum(1 for r in range(hdr + 1, ws.max_row + 1) if ws.cell(r, cols["Month"]).value)
+        self.assertGreater(n, 0, "04_Actuals should carry the attribution layer")
+
+    def test_no_credit_without_an_approved_identity(self):
+        """The whole point of the layer: a candidate must never be paid as approved."""
+        ws = self.wb["04_Actuals"]
+        _, hdr, cols = table_of(ws)
+        for r in range(hdr + 1, ws.max_row + 1):
+            emp = ws.cell(r, cols["Employee_ID"]).value
+            cred = ws.cell(r, cols["Credited_Actual"]).value
+            if not emp:
+                self.assertIn(cred, ("", None), f"04_Actuals row {r} credits an unapproved identity")
+
+    def test_unattributed_value_is_classified_not_dropped(self):
+        ws = self.wb["04_Actuals"]
+        _, hdr, cols = table_of(ws)
+        allowed = {"ATTRIBUTED", "UNATTRIBUTED_PENDING_APPROVAL", "AMBIGUOUS_IDENTITY",
+                   "INVALID_SOURCE_PERSON", "SOURCE_POPULATION_MISSING"}
+        for r in range(hdr + 1, ws.max_row + 1):
+            if ws.cell(r, cols["Month"]).value:
+                self.assertIn(ws.cell(r, cols["Mapping_Status"]).value, allowed, f"row {r}")
+
+    def test_readiness_names_the_failing_gate(self):
+        """KA-15: a generic BLOCKED sends the request to nobody."""
+        ws = self.wb["06_Achievement"]
+        _, hdr, cols = table_of(ws)
+        f = ws.cell(hdr + 1, cols["Readiness"]).value
+        for gate in ("GRADE_BLOCKED", "IDENTITY_BLOCKED", "TARGET_BLOCKED",
+                     "RULE_BLOCKED", "READY_TO_CALCULATE"):
+            self.assertIn(gate, f)
+
+    def test_target_scope_sheet_reports_the_unexplained_residual(self):
+        ws = self.wb["13_Target_Scope"]
+        _, hdr, cols = table_of(ws)
+        dims = [ws.cell(r, cols["Dimension"]).value for r in range(hdr + 1, ws.max_row + 1)]
+        self.assertTrue(any("unexplained residual" in str(d) for d in dims),
+                        "the residual must be stated, never absorbed (KA-16)")
 
     def test_grade_counts_reconcile(self):
         ws = self.wb["01_Employee_Master"]
