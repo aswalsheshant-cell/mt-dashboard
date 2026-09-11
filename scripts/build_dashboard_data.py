@@ -46,6 +46,9 @@ from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dyna
 # ---------------------------------------------------------------------------
 _MON3_NUM = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,
              "Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+# month number -> "Mon" label, so a date can be turned into the canonical
+# "Mon-YY" key the offtake/fyx month series already use.
+_CAL_MON3 = {v: k for k, v in _MON3_NUM.items()}
 
 def fy_tag_from_ym(year, month):
     """Calendar (year, month) -> 'FY27' style tag. Apr-2026 -> FY27; Mar-2026 -> FY26."""
@@ -86,6 +89,19 @@ def month_labels(start_year=2024, n_months=24):
         if m == 13:
             m, y = 1, y + 1
     return out
+
+# ---------------------------------------------------------------------------
+# Which FYs the PRE-AGGREGATED Primary/Offtake/P&L workbooks actually cover.
+# Those workbooks end Mar'26. Any FY beyond this window is owned by the
+# article-level source instead and is published under
+# detail_meta.fyx_primary[<FY>] -- see CLAUDE.md "Coverage split".
+#
+# This is a statement about SOURCE FILE COVERAGE, not about FY derivation:
+# THE ONE FY RULE still derives every FY tag from month+year. When the
+# pre-aggregated workbooks are next extended past Mar'26, add that tag here
+# (it is echoed into metadata.preagg_fy_tags so the current value is always
+# visible in the generated data.js).
+PREAGG_FY_TAGS = {"FY25", "FY26"}
 
 def quarter_labels_for(months):
     """Q-col labels for load_offtake()'s Sheet3 (zone/state) pivot: one
@@ -642,10 +658,34 @@ def primary_block(df):
     # source-FY column value -> canonical tag ('FY_24-25' -> 'FY25')
     src_fys = [k for k in df["FY"].dropna().unique()]
     tag_of = {k: _fylabel(k) for k in src_fys}
-    tags = sorted({t for t in tag_of.values() if t}, key=fy_start_year)
+    _all_tags = sorted({t for t in tag_of.values() if t}, key=fy_start_year)
+    # COVERAGE GATE: this workbook is the pre-aggregated Primary extract, which
+    # ends Mar'26. It can still carry a handful of stray rows for a later FY
+    # (an early Apr-26 billing batch, a manual add) -- those are PARTIAL and are
+    # not this source's to publish. Emitting them as first-class nsv_fyNN keys
+    # made the dashboard treat that FY as fully covered here, which (a) silently
+    # understated it and (b) switched off the partial-year guards downstream,
+    # because index.html derives PREAGG_FYS from exactly these keys.
+    # The article-level source owns those FYs and publishes them under
+    # detail_meta.fyx_primary[<FY>]. Drop them here rather than compete.
+    tags = [t for t in _all_tags if t in PREAGG_FY_TAGS]
+    _dropped = [t for t in _all_tags if t not in PREAGG_FY_TAGS]
     keys_of = {t: [k for k, tt in tag_of.items() if tt == t] for t in tags}
     lo = [t.lower() for t in tags]
     out["fy_tags"] = lo
+    if _dropped:
+        # Auditable, not silent: record what this source held back and why.
+        _held = {}
+        for t in _dropped:
+            _k = [k for k, tt in tag_of.items() if tt == t]
+            _held[t.lower()] = r2(float(df[df["FY"].isin(_k)]["NSV"].sum()))
+        out["coverage_note"] = (
+            f"{', '.join(t.upper() for t in _dropped)} rows present in this "
+            f"pre-aggregated workbook are PARTIAL ({_held}, INR Lakh) and are "
+            f"not published here. Those FYs are owned by the article-level "
+            f"source: see detail_meta.fyx_primary. Source coverage = "
+            f"{sorted(PREAGG_FY_TAGS)}.")
+        out["coverage_withheld"] = _held
 
     def fy_get(series, t):
         return float(sum(series.get(k, 0) or 0 for k in keys_of[t]))
@@ -2795,10 +2835,161 @@ def forecast_block_ty(off, ty_rows):
                       "page uses this same TY target file -- PowerBI/docs/PageLayouts.md Page 5)."}
 
 # --------------------------------------------------------------------------
+# TARGET / ACHIEVEMENT / RUN RATE
+# --------------------------------------------------------------------------
+# Which measure the business target is set against. forecast_block_ty already
+# compares this same target file to OFFTAKE, so that stays the default here --
+# one place to change it, and the choice is published in the output so nobody
+# has to guess which basis a number on screen was built on.
+TARGET_BASIS = "offtake"
+
+# Required-vs-current run-rate bands. Business thresholds belong in one named
+# place, not inlined in a formula.
+RUNRATE_BANDS = ((1.00, "Ahead"), (1.05, "On Track"), (1.15, "At Risk"))
+
+def load_targets_csv(repo_root):
+    """Monthly business target from the tracked seed CSV
+    (PowerBI/SeedData/Targets/FY2627_Targets.csv -- same numbers the Power BI
+    Targets query reads). Returns [(FY tag, 'Mon-YY', value_in_Lakh)] or None.
+
+    This is the committed fallback for load_ty_target()'s .xlsb, which is
+    gitignored and so is not present in every environment."""
+    f = Path(repo_root) / "PowerBI" / "SeedData" / "Targets" / "FY2627_Targets.csv"
+    if not f.exists():
+        return None
+    rows = []
+    with open(f, newline="", encoding="utf-8-sig") as fh:
+        for r in csv.DictReader(fh):
+            try:
+                d = datetime.date.fromisoformat(r["MonthStart"].strip())
+                cr = float(r["Target NSV Cr"])
+            except (KeyError, ValueError, AttributeError):
+                continue                      # skip a malformed row, keep the rest
+            rows.append((d, fy_tag_from_ym(d.year, d.month),
+                         f"{_CAL_MON3[d.month]}-{d.year % 100:02d}",
+                         r2(cr * 100)))       # Cr -> Lakh
+    # sort CHRONOLOGICALLY -- sorting the "Mon-YY" label as text puts Aug
+    # before Jan and silently reorders the fiscal year.
+    rows.sort(key=lambda x: x[0])
+    return [(tag, lbl, v) for _d, tag, lbl, v in rows] or None
+
+def _runrate_status(required, current):
+    if not current or required is None:
+        return None
+    ratio = required / current
+    for limit, label in RUNRATE_BANDS:
+        if ratio <= limit:
+            return label
+    return "Critical"
+
+def _achv(actual, target):
+    """Achievement / gap / gap% for one actual-vs-target pair."""
+    if not target:
+        return {"target": r2(target or 0), "actual": r2(actual),
+                "achievement_pct": None, "gap": r2(actual), "gap_pct": None}
+    return {"target": r2(target), "actual": r2(actual),
+            "achievement_pct": r2(actual / target * 100),
+            "gap": r2(actual - target),
+            "gap_pct": r2((actual - target) / target * 100)}
+
+def targets_block(target_rows, actuals, same_period=None):
+    """Target vs achievement vs run rate, for each measure in `actuals`.
+
+    actuals: {"offtake": {"Apr-26": 3588.51, ...}, "primary": {...}}
+             month-keyed so the period-to-date window is DERIVED from the
+             months that actually have actuals -- it extends itself when
+             Aug-26 lands rather than needing a hardcoded month count.
+
+    The target file is total-business monthly only: it carries no zone or
+    chain split. Zone/chain targets are therefore DERIVED by applying each
+    dimension's prior-year same-period contribution to the business target,
+    and every derived row is tagged basis="DERIVED" so it is never mistaken
+    for a business-owned number. To publish owner-set zone/chain targets,
+    supply a zone/chain-level target file and split this on that instead.
+    """
+    if not target_rows:
+        return None
+    fy = target_rows[0][0]
+    tgt_by_month = {lbl: v for tag, lbl, v in target_rows if tag == fy}
+    fy_target = r2(sum(tgt_by_month.values()))
+
+    out = {"fy_tag": fy, "basis": TARGET_BASIS, "unit": "INR Lakh",
+           "fy_target": fy_target, "months_in_fy": len(tgt_by_month),
+           # tgt_by_month is built from chronologically sorted rows, so plain
+           # insertion order is already Apr..Mar.
+           "monthly_target": [{"month": l, "target": v} for l, v in tgt_by_month.items()],
+           "measures": {}, "source": "PowerBI/SeedData/Targets/FY2627_Targets.csv"}
+
+    for measure, series in (actuals or {}).items():
+        months = [m for m in tgt_by_month if series.get(m) is not None]
+        if not months:
+            continue
+        ptd_actual = float(sum(series[m] for m in months))
+        ptd_target = float(sum(tgt_by_month[m] for m in months))
+        elapsed = len(months)
+        remaining = len(tgt_by_month) - elapsed
+        current_rr = ptd_actual / elapsed if elapsed else None
+        required_rr = ((fy_target - ptd_actual) / remaining) if remaining > 0 else None
+        blk = _achv(ptd_actual, ptd_target)
+        blk.update({
+            "months": months, "months_elapsed": elapsed, "months_remaining": remaining,
+            "fy_target": fy_target,
+            "fy_gap": r2(fy_target - ptd_actual),
+            "current_run_rate": r2(current_rr) if current_rr is not None else None,
+            "required_run_rate": r2(required_rr) if required_rr is not None else None,
+            "run_rate_status": _runrate_status(required_rr, current_rr),
+            "monthly": [{"month": m, "actual": r2(series[m]),
+                         "target": r2(tgt_by_month[m]),
+                         "achievement_pct": r2(series[m] / tgt_by_month[m] * 100)
+                         if tgt_by_month[m] else None} for m in months],
+        })
+        # ---- Zone / chain: DERIVED split, never presented as owner-set ----
+        if same_period:
+            for dim in ("by_zone", "by_chain"):
+                rows = same_period.get(dim) or []
+                base = float(sum(r.get("prev") or 0 for r in rows))
+                if not base:
+                    continue
+                split = []
+                for r in rows:
+                    share = (r.get("prev") or 0) / base
+                    d = _achv(float(r.get("curr") or 0), ptd_target * share)
+                    d.update({"name": r["name"], "contribution_pct": r2(share * 100),
+                              "basis": "DERIVED"})
+                    split.append(d)
+                blk[dim] = sorted(split, key=lambda d: -(d["actual"] or 0))
+            blk["dim_target_basis"] = (
+                f"Zone/chain targets are DERIVED: the business target is split by each "
+                f"dimension's {same_period.get('prev_fy', 'prior-FY')} same-period contribution "
+                f"({', '.join(same_period.get('months') or [])}). The target file is "
+                f"total-business monthly only. Replace with a zone/chain-level target "
+                f"file to publish owner-set numbers.")
+        out["measures"][measure] = blk
+    return out or None
+
+# --------------------------------------------------------------------------
 # INSIGHTS  (auto-generated, data-driven)
 # --------------------------------------------------------------------------
-def insights_block(primary, offtake, pnl, universe, promo):
+def insights_block(primary, offtake, pnl, universe, promo, same_period=None):
     ins = []
+    # The pre-aggregated primary block only publishes the FYs its workbook
+    # actually covers, so the current FY is owned by the article-level source
+    # and reaches here via `same_period`. Re-base the chain view onto that
+    # like-for-like window when it is available: without it the growth
+    # insights below either go blank or compare a part-year against a full
+    # year -- which is how "Fastest-growing scaled chain: Lulu grew -57%"
+    # ended up on the dashboard as a "win".
+    _win = ""
+    if same_period and same_period.get("by_chain"):
+        _cf = str(same_period["curr_fy"]).lower()
+        _pf = str(same_period["prev_fy"]).lower()
+        primary = dict(primary)          # shallow copy; never mutate the caller's block
+        primary["by_chain"] = [{"name": r["name"], _cf: r["curr"], _pf: r["prev"],
+                                "yoy": r["yoy_pct"]} for r in same_period["by_chain"]]
+        primary[f"nsv_{_cf}"] = same_period["curr"]
+        primary[f"nsv_{_pf}"] = same_period["prev"]
+        primary["fy_tags"] = [_pf, _cf]
+        _win = f" ({'+'.join(same_period.get('months') or [])} like-for-like)"
     pc = {c["name"]: c for c in primary["by_chain"]}
     oc = {c["name"]: c for c in offtake["by_chain"]}
     uc = {c["name"]: c for c in universe["by_chain"]}
@@ -2814,7 +3005,7 @@ def insights_block(primary, offtake, pnl, universe, promo):
     share = sum(c.get(_curr_fy) or 0 for c in top2) / tot * 100
     ins.append({"type": "risk", "title": "Revenue concentration in top 2 chains",
                 "text": f"{top2[0]['name']} and {top2[1]['name']} together drive "
-                        f"{share:.0f}% of {_prev_fy.upper()}-{_curr_fy.upper()} MT primary (₹{(sum(c.get(_curr_fy) or 0 for c in top2))/100:.0f} Cr). "
+                        f"{share:.0f}% of {_curr_fy.upper()} MT primary{_win} (₹{(sum(c.get(_curr_fy) or 0 for c in top2))/100:.0f} Cr). "
                         f"De-risk by accelerating the mid-tier (Apollo, Nykaa, Wellness Forever)."})
     # 2. Fastest growers (material base)
     growers = [c for c in primary["by_chain"] if c["yoy"] is not None and (c.get(_curr_fy) or 0) > 200]
@@ -3706,6 +3897,74 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     }
     return out_df, alloc
 
+def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV",
+                      dims=(("by_zone", "_Zone"), ("by_chain", "_Chain"))):
+    """LIKE-FOR-LIKE year-on-year, on the months the two latest FYs share.
+
+    A part-year FY compared against a full prior FY is not a YoY -- it is a
+    coverage artefact. FY27 Apr-Jul vs FY26 Apr-Mar read as -69.7% when the
+    same-period move is +82.2%: same data, opposite direction, and the wrong
+    one was on the leadership screen.
+
+    So the comparison window is DERIVED, never assumed: take the months the
+    current FY actually carries, intersect with the months the prior FY
+    carries, and compare only those. When Aug-26 lands the window widens to
+    five months on its own; when FY27 completes it becomes a true full-year
+    YoY with no code change. Returns None if there is no prior FY to compare
+    against, or no month in common.
+    """
+    tags = sorted({t for t in df[fy_col].dropna().unique() if t}, key=fy_start_year)
+    if len(tags) < 2:
+        return None
+    curr, prev = tags[-1], tags[-2]
+    cur_df, prv_df = df[df[fy_col] == curr], df[df[fy_col] == prev]
+    shared = [m for m in _ORDER
+              if m in set(cur_df[m_col]) and m in set(prv_df[m_col])]
+    if not shared:
+        return None
+    c = cur_df[cur_df[m_col].isin(shared)]
+    v = prv_df[prv_df[m_col].isin(shared)]
+
+    def _pct(a, b):
+        return r2((a / b - 1) * 100) if b else None
+
+    def _canon(tag, months):
+        y0 = fy_start_year(tag)
+        out = []
+        for mn in months:
+            cm = _CAL_MONTH[_MONTH_IDX[mn]]
+            out.append(f"{_ORDER_MON3[mn]}-{(y0 if cm >= 4 else y0 + 1) % 100:02d}")
+        return out
+
+    c_tot, v_tot = float(c[nsv_col].sum()), float(v[nsv_col].sum())
+    block = {
+        "curr_fy": curr, "prev_fy": prev,
+        "months": shared,
+        "months_curr_canon": _canon(curr, shared),
+        "months_prev_canon": _canon(prev, shared),
+        "n_months": len(shared),
+        "curr": r2(c_tot), "prev": r2(v_tot),
+        "delta": r2(c_tot - v_tot), "yoy_pct": _pct(c_tot, v_tot),
+        "unit": "INR Lakh",
+        "basis": (f"Like-for-like: {curr} vs {prev} over the {len(shared)} month(s) "
+                  f"both FYs carry ({', '.join(shared)}). Article-level primary. "
+                  f"Window widens automatically as new months arrive."),
+    }
+    for out_key, col in dims:
+        if col not in df.columns:
+            continue
+        cs = c.groupby(col)[nsv_col].sum()
+        vs = v.groupby(col)[nsv_col].sum()
+        rows = []
+        for name in sorted(set(cs.index) | set(vs.index)):
+            if not name:
+                continue
+            a, b = float(cs.get(name, 0.0)), float(vs.get(name, 0.0))
+            rows.append({"name": name, "curr": r2(a), "prev": r2(b),
+                         "delta": r2(a - b), "yoy_pct": _pct(a, b)})
+        block[out_key] = sorted(rows, key=lambda d: -(d["curr"] or 0))
+    return block
+
 def detail_records_real(src, max_rows=20000):
     """Real 13-column detail_records from File 2 (article-wise primary).
     Looks for primary_article.xlsb/.xlsx in src. Returns None if absent, else
@@ -3856,9 +4115,8 @@ def detail_records_real(src, max_rows=20000):
     # workbooks' window (that other source ends Mar'26, i.e. covers FY25/26).
     # FY27 today; FY28 automatically when Apr-27 rows arrive -- one block per
     # tag, keyed by tag, so the dashboard just looks up the selected FY.
-    _PREAGG_FY_TAGS = {"FY25", "FY26"}   # the FY window the Primary/Offtake workbooks cover
     fyx_primary = {}
-    for _tag in sorted(set(df["_FY"].dropna().unique()) - _PREAGG_FY_TAGS, key=fy_start_year):
+    for _tag in sorted(set(df["_FY"].dropna().unique()) - PREAGG_FY_TAGS, key=fy_start_year):
         fx = df[df["_FY"] == _tag]
         def _aggx(col, fx=fx):
             s = fx.groupby(col)["_NSV"].sum().sort_values(ascending=False)
@@ -4004,7 +4262,11 @@ def detail_records_real(src, max_rows=20000):
     return recs, channel_totals, sis_reconciliation, {
         "rows_total": rows_total, "rows_kept": len(recs),
         "value_coverage_pct": round(coverage, 1),
-        "fyx_primary": fyx_primary}, tot, cm2, alloc
+        "fyx_primary": fyx_primary,
+        # Like-for-like YoY on the months the two latest FYs share. Computed
+        # from this same article-level frame, so it covers every FY -- not just
+        # the ones the pre-aggregated workbook happens to reach.
+        "same_period": same_period_block(df)}, tot, cm2, alloc
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -4088,6 +4350,8 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
         # pre-aggregated workbooks' window. Dict keyed by FY tag ('FY27',
         # 'FY28', ...); None if the article primary carries no such FY.
         "fyx_primary": cov.get("fyx_primary"),
+        # Like-for-like YoY window shared by the two latest FYs.
+        "same_period": cov.get("same_period"),
         # {FY: {summary, by_chain, by_month, by_brand, exclusions, row_count}} —
         # SIS reconciliation drill-down, computed from the FULL uncapped source.
         # Kept for audit trail. See docs/SIS_Reconciliation.md.
@@ -4402,7 +4666,8 @@ def main():
         _promo = obj.get("promo") or {"n_promos": 0, "avg_depth": 0, "by_chain": [], "lines": []}
         _universe = obj.get("universe") or {"by_zone": [], "by_chain": [], "chains": [], "n_chains": 0}
         pnl = pnl_block(pdf, _promo)
-        insights = insights_block(primary, obj["offtake"], pnl, _universe, _promo)
+        insights = insights_block(primary, obj["offtake"], pnl, _universe, _promo,
+                                  (obj.get("detail_meta") or {}).get("same_period"))
         obj["primary"] = primary
         obj["pnl"] = pnl
         obj["insights"] = insights
@@ -4753,6 +5018,37 @@ def main():
 
         # Update primary.by_channel with merged channels
         primary["by_channel"] = list(existing_ch_dict.values())
+
+    # ---- Like-for-like YoY + target/achievement/run-rate ------------------
+    # Both need the article-level same-period window, which only exists once
+    # detail_meta is built, so they are assembled here rather than up with the
+    # first insights pass.
+    _sp = (detail_meta or {}).get("same_period")
+    if _sp:
+        # Recompute insights on the like-for-like basis (see insights_block).
+        data["insights"] = insights_block(primary, offtake, pnl, universe, promo, _sp)
+    _tgt_rows = load_ty_target(src) or load_targets_csv(_REPO_ROOT)
+    if _tgt_rows:
+        # Month-keyed actuals per measure, so targets_block derives the
+        # period-to-date window from the months that actually have actuals.
+        _acts = {}
+        _om = dict(zip(offtake.get("months_" + _tgt_rows[0][0].lower(), []) or [],
+                       offtake.get("monthly_" + _tgt_rows[0][0].lower(), []) or []))
+        if _om:
+            _acts["offtake"] = _om
+        _fx = (detail_meta or {}).get("fyx_primary", {}).get(_tgt_rows[0][0])
+        if _fx:
+            _acts["primary"] = dict(zip(_fx.get("months_canon", []),
+                                        _fx.get("monthly_canon", [])))
+        _tb = targets_block(_tgt_rows, _acts, _sp)
+        if _tb:
+            data["targets"] = _tb
+            _m = _tb["measures"].get(_tb["basis"], {})
+            print(f"targets: {_tb['fy_tag']} basis={_tb['basis']} "
+                  f"FY target Rs {_tb['fy_target']/100:.2f} Cr; PTD achievement "
+                  f"{_m.get('achievement_pct')}% over {_m.get('months_elapsed')} month(s); "
+                  f"required run rate Rs {(_m.get('required_run_rate') or 0)/100:.2f} Cr/mth "
+                  f"({_m.get('run_rate_status')})")
     # TD-07: populate fy_range now that dims are available
     _fy_list = data.get("dims", {}).get("FY") or []
     if _fy_list:

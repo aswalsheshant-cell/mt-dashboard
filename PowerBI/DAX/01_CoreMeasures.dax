@@ -174,3 +174,111 @@ RETURN CONCATENATEX ( t, 'Brand Master'[Brand], ", " )
 Top Growing Category =
 VAR t = TOPN ( 1, ALLSELECTED ( 'Category Master'[Category] ), [MoM Growth %], DESC )
 RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
+
+// =====================================================================
+// TARGET / ACHIEVEMENT / RUN RATE
+// Mirrors scripts/build_dashboard_data.py targets_block() so the Power BI
+// report and the web dashboard state the same numbers from the same rules.
+// [TY Target] is defined in 03_Forecast_Measures.dax (Targets[Target NSV]).
+//
+// BASIS: the target file is NSV and does not name its measure. The Forecast
+// page compares it to OFFTAKE, so these default to offtake. Swap
+// [Total Offtake NSV] for [Total Primary NSV] below to move the basis --
+// change it in "Actual (Basis)" only; everything else follows.
+// =====================================================================
+
+Actual (Basis) = [Total Offtake NSV]
+
+// ---------- PERIOD TO DATE (only months that actually have actuals) ----------
+// The PTD window is DERIVED from where actuals exist, so it widens on its own
+// as each new month lands -- no hardcoded month count to maintain.
+Last Actual Month =
+    CALCULATE (
+        MAX ( 'Date Table'[MonthStart] ),
+        FILTER ( ALL ( 'Date Table' ), [Actual (Basis)] > 0 )
+    )
+
+Target PTD =
+    CALCULATE (
+        [TY Target],
+        FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] <= [Last Actual Month] )
+    )
+
+Actual PTD =
+    CALCULATE (
+        [Actual (Basis)],
+        FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] <= [Last Actual Month] )
+    )
+
+// ---------- ACHIEVEMENT ----------
+Achievement % = DIVIDE ( [Actual PTD], [Target PTD] )
+
+Gap to Target = [Actual PTD] - [Target PTD]
+
+Gap to Target % = DIVIDE ( [Gap to Target], [Target PTD] )
+
+Achievement Status =
+    VAR _a = [Achievement %]
+    RETURN
+        SWITCH (
+            TRUE (),
+            ISBLANK ( _a ), "No target",
+            _a >= 1.00, "Met",
+            _a >= 0.90, "Near",
+            "Missed"
+        )
+
+// ---------- RUN RATE ----------
+Months Elapsed =
+    CALCULATE (
+        DISTINCTCOUNT ( 'Date Table'[MonthStart] ),
+        FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] <= [Last Actual Month] ),
+        FILTER ( ALL ( 'Date Table' ), NOT ISBLANK ( [TY Target] ) )
+    )
+
+Months In FY = CALCULATE ( DISTINCTCOUNT ( Targets[MonthStart] ), ALL ( 'Date Table' ) )
+
+Months Remaining = [Months In FY] - [Months Elapsed]
+
+Current Run Rate = DIVIDE ( [Actual PTD], [Months Elapsed] )
+
+// What the remaining months must average to still land the full-year target.
+Required Run Rate =
+    DIVIDE (
+        CALCULATE ( [TY Target], ALL ( 'Date Table' ) ) - [Actual PTD],
+        [Months Remaining]
+    )
+
+Run Rate Status =
+    VAR _req = [Required Run Rate]
+    VAR _cur = [Current Run Rate]
+    VAR _ratio = DIVIDE ( _req, _cur )
+    RETURN
+        SWITCH (
+            TRUE (),
+            _cur = 0 || ISBLANK ( _ratio ), "No actuals",
+            _ratio <= 1.00, "Ahead",
+            _ratio <= 1.05, "On Track",
+            _ratio <= 1.15, "At Risk",
+            "Critical"
+        )
+
+// ---------- LIKE-FOR-LIKE YoY ----------
+// A part-year FY against a full prior FY is not a YoY. Compare only the
+// months the current FY actually carries.
+Actual LY Same Period =
+    CALCULATE (
+        [Actual (Basis)],
+        FILTER (
+            ALL ( 'Date Table' ),
+            'Date Table'[MonthStart]
+                <= EDATE ( [Last Actual Month], -12 )
+                && 'Date Table'[FY Year]
+                    = CALCULATE ( MAX ( 'Date Table'[FY Year] ),
+                        FILTER ( ALL ( 'Date Table' ),
+                            'Date Table'[MonthStart] = EDATE ( [Last Actual Month], -12 ) ) )
+        )
+    )
+
+YoY % (Like-for-Like) =
+    DIVIDE ( [Actual PTD] - [Actual LY Same Period], [Actual LY Same Period] )

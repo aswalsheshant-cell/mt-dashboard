@@ -504,6 +504,89 @@ insights: {
 
 ---
 
+## Block 15: targets (Target, Achievement & Run Rate)
+
+Built by `targets_block()` from `PowerBI/SeedData/Targets/FY2627_Targets.csv`
+(same numbers the Power BI `Targets` query reads). Absent when no target file
+is available — consumers must treat it as optional.
+
+```javascript
+targets: {
+  fy_tag: "FY27",
+  basis: "offtake",          // which measure the headline uses — see note below
+  unit: "INR Lakh",
+  fy_target: 44132.86,       // full-year, INR Lakh
+  months_in_fy: 12,
+  monthly_target: [ { month: "Apr-26", target: 5072.40 }, ... ],
+  source: "PowerBI/SeedData/Targets/FY2627_Targets.csv",
+  measures: {
+    offtake: {
+      months: ["Apr-26","May-26","Jun-26","Jul-26"],   // DERIVED: months with actuals
+      months_elapsed: 4, months_remaining: 8,
+      target: 16928.17, actual: 15069.86,              // period-to-date
+      achievement_pct: 89.02, gap: -1858.31, gap_pct: -10.98,
+      current_run_rate: 3767.47,                       // actual PTD / months elapsed
+      required_run_rate: 3632.88,                      // (fy_target - actual) / months remaining
+      run_rate_status: "Ahead",                        // Ahead | On Track | At Risk | Critical
+      fy_target: 44132.86, fy_gap: 29063.00,
+      monthly: [ { month, actual, target, achievement_pct }, ... ],
+      by_zone:  [ { name, target, actual, achievement_pct, gap, gap_pct,
+                    contribution_pct, basis: "DERIVED" }, ... ],
+      by_chain: [ ...same shape... ],
+      dim_target_basis: "..."   // how the zone/chain split was derived
+    },
+    primary: { ...same shape... }
+  }
+}
+```
+
+**Basis.** The target file is NSV and does not state which measure it is set
+against. `basis` records the choice (default `offtake`, matching
+`forecast_block_ty`). Both measures are always computed so the choice is
+visible rather than assumed — set `TARGET_BASIS` in
+`scripts/build_dashboard_data.py` to change it.
+
+**`by_zone` / `by_chain` are DERIVED, not business-set.** The target file is
+total-business monthly only, with no zone or chain split. Those rows apply each
+dimension's prior-year same-period contribution to the business target and are
+tagged `basis: "DERIVED"`. Supply a zone/chain-level target file to publish
+owner-set numbers.
+
+---
+
+## Block 16: detail_meta.same_period (Like-for-Like YoY)
+
+Built by `same_period_block()` from the article-level detail. A part-year FY
+compared against a full prior FY is not a YoY — it is a coverage artefact. This
+block compares only the months the two latest FYs share, and the window widens
+by itself as new months arrive.
+
+```javascript
+detail_meta.same_period: {
+  curr_fy: "FY27", prev_fy: "FY26",
+  months: ["April","May","June","July"],        // DERIVED intersection
+  months_curr_canon: ["Apr-26", ...],
+  months_prev_canon: ["Apr-25", ...],
+  n_months: 4,
+  curr: 18581.54, prev: 10198.40,
+  delta: 8383.14, yoy_pct: 82.2,
+  unit: "INR Lakh",
+  basis: "...",
+  by_zone:  [ { name, curr, prev, delta, yoy_pct }, ... ],
+  by_chain: [ ...same shape... ]
+}
+```
+
+**Related — `primary.coverage_note` / `primary.coverage_withheld`.** The
+pre-aggregated primary workbook covers only the FYs in `PREAGG_FY_TAGS`
+(currently FY25/FY26). Stray partial rows for a later FY are withheld rather
+than published as `nsv_fyNN`, because `index.html` derives `PREAGG_FYS` from
+exactly those keys — publishing a partial FY there switched off the
+partial-year guards and understated the FY. Those FYs are owned by
+`detail_meta.fyx_primary`.
+
+---
+
 ## Block 13: share (Market Share from Nielsen)
 
 Nielsen market share data (awaiting FY27 supply).
