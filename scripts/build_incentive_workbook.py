@@ -126,6 +126,17 @@ def read_targets(path):
     return out
 
 
+def require(path, describe):
+    """Stop with a message naming the file, not a stack trace 30 frames deep."""
+    p = Path(path).expanduser()
+    if not p.exists():
+        raise SystemExit(
+            f"\nMissing input: {describe}\n  expected at: {p}\n"
+            "\nSupply the real file. Nothing is guessed or substituted -- see\n"
+            "CLAUDE.md 'No dummy data'.\n")
+    return p
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--employees", required=True)
@@ -144,6 +155,9 @@ def main() -> int:
         print("REFUSING: the incentive workbook must not be written into the published dashboard.")
         return 2
 
+    require(a.employees, "the employee grade workbook")
+    require(a.slabs, "the incentive slab workbook")
+    require(a.targets, "the RKAM target planning workbook")
     emps = read_employees(Path(a.employees))
     slabs = read_slabs(Path(a.slabs))
     tgts = read_targets(Path(a.targets))

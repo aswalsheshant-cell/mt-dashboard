@@ -8,6 +8,10 @@ description: |
   "workflow failed", "qc failed", "fix the CI", "CI is red", "CI breaking", "fix the tests",
   "fix CI", "why did CI fail", "CI pipeline", "actions failed", "build failed".
   Do NOT use for Power BI, dashboard UI, or PPTX tasks.
+  Do NOT use when the job never reached the test body (runner would not provision,
+  startup_failure, invalid or missing workflow YAML, Actions disabled, billing
+  exhausted, missing secret) - that is infrastructure, hand off to
+  github-actions-reliability. This skill owns a job that RAN and FAILED on code.
 ---
 
 # CI Autofix — Senior Python Engineer & CI/CD Troubleshooter

@@ -91,6 +91,17 @@ def read_massit(paths):
     return rows, report
 
 
+def require(path, describe):
+    """Stop with a message naming the file, not a stack trace 30 frames deep."""
+    p = Path(path).expanduser()
+    if not p.exists():
+        raise SystemExit(
+            f"\nMissing input: {describe}\n  expected at: {p}\n"
+            "\nSupply the real file. Nothing is guessed or substituted -- see\n"
+            "CLAUDE.md 'No dummy data'.\n")
+    return p
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--woa", required=True)
@@ -103,6 +114,7 @@ def main() -> int:
     cfg = json.loads((REPO / "config" / "analytics_config.json").read_text())
 
     # ---- store -> person, from the WoA sheet -------------------------------
+    require(a.woa, "the WoA store/person working sheet")
     woa, idx = read_woa(Path(a.woa))
     cid_key = next((k for k in idx if k.lower().replace(" ", "") == "clientid"), None)
     store_people = {}                      # client_id -> {role: (raw_name, canonical zone)}

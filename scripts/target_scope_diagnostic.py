@@ -200,6 +200,17 @@ def write_decision_pack(path, d):
     path.write_text("\n".join(L))
 
 
+def require(path, describe):
+    """Stop with a message naming the file, not a stack trace 30 frames deep."""
+    p = Path(path).expanduser()
+    if not p.exists():
+        raise SystemExit(
+            f"\nMissing input: {describe}\n  expected at: {p}\n"
+            "\nSupply the real file. Nothing is guessed or substituted -- see\n"
+            "CLAUDE.md 'No dummy data'.\n")
+    return p
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--targets", required=True)
@@ -208,6 +219,7 @@ def main() -> int:
     outd = Path(a.out_dir)
     outd.mkdir(parents=True, exist_ok=True)
 
+    require(a.targets, "the RKAM target planning workbook")
     tg = read_targets(Path(a.targets))
     raw_total = sum(t["Target"] for t in tg)
 
