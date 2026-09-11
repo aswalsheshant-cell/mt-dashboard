@@ -18,6 +18,7 @@ from an external source.
 | incentive, payout, slab, commission, quota | KA-01, KA-02, KA-03, KA-07, KA-09 |
 | employee mapping, identity, hierarchy, alias | KA-04, KA-06, KA-07 |
 | target, quota scope, coverage gap | KA-03 |
+| target mismatch, why the target does not tie, quota allocation | KA-11 |
 | Power Query, ingestion, refresh, ETL | KA-05 |
 | data model, star schema, many-to-many, grain | KA-06 |
 | RLS, row-level security, persona access | KA-06, KA-08 |
