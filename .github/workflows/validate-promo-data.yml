@@ -70,10 +70,16 @@ jobs:
 
       - name: Check critical functions present
         run: |
+          # buildOfftake/buildOfftakeImpact/buildDistribution/buildForecast/buildShare
+          # were consolidated away by the v1.1.0 tab merge (see CLAUDE.md); only
+          # buildPromo survives from that legacy list. Removed here because the
+          # function no longer exists and never did have a call site -- checking
+          # for it only ever produced a false failure. The behavioral equivalent
+          # (does the consolidated dashboard actually work) is covered by the
+          # Playwright sweep in ui-smoke.yml, not a function-name grep.
           FUNCTIONS=(
             "buildPromo"
             "buildPrimary"
-            "buildOfftake"
             "buildPnl"
             "show"
             "buildPromoCSV"

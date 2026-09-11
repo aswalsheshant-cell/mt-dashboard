@@ -1,19 +1,18 @@
 name: Data Integrity Validation
 
+# Manual-only. This validates the data_master.json -> sync_data_js.py -> data.js
+# pipeline, which is NOT the production path: build_dashboard_data.py is the
+# ONLY generator of dashboard/data.js (see CLAUDE.md), deploy-pages.yml stages
+# dashboard/* directly, and neither references data_master.json or
+# sync_data_js.py. data_master.json was last updated 2026-08-26, predating the
+# current single-generator architecture. Its automatic trigger fired on every
+# real production data.js update and always failed, because sync_data_js.py
+# regenerates a different, stale-derived data.js and that copy (not the real
+# committed one) got checked against the baseline invariants. Left runnable via
+# workflow_dispatch rather than deleted outright -- see docs/PROJECT_STATE.md
+# for the recommended full retirement.
 on:
-  push:
-    branches:
-      - main
-      - "claude/**"
-    paths:
-      - 'data_master.json'
-      - 'dashboard/data.js'
-      - 'scripts/sync_data_js.py'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'data_master.json'
-      - 'dashboard/data.js'
+  workflow_dispatch:
 
 jobs:
   validate:
