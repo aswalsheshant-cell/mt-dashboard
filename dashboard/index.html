@@ -2741,6 +2741,153 @@ function renderAnomalyBadge(chain, anomalies) {
 // pair shown adapts to whichever two FYs are actually present for that
 // dimension.
 let cmpDim='Chain';
+// ---- Phase 3: readiness gate, MoM, scorecard, PVM detail, mapping health ----
+// Thresholds come from D.config (config/analytics_config.json), never inlined.
+const CFG=()=>D.config||{};
+function ragClass(v,band){
+  const b=((CFG().rag)||{})[band]; if(v==null||!b) return '';
+  const {green:g,amber:a}=b;
+  if(g==null||a==null) return '';
+  if(b.lower_is_better) return v<=g?'g':(v<=a?'':'r');
+  return v>=g?'g':(v>=a?'':'r');
+}
+function ragPill(v,band,fmt){
+  if(v==null) return '–';
+  return `<span class="pill ${ragClass(v,band)}">${fmt?fmt(v):v}</span>`;
+}
+// A blocked layer explains itself instead of showing a confident-looking number.
+function gateNote(key){
+  const g=((D.readiness||{}).gates||{})[key];
+  if(!g||g.status!=='BLOCKED') return '';
+  return `<p class="note" style="margin:0 0 16px;border-left:4px solid var(--amber);padding-left:10px">
+    <b>⚠ ${g.label}: not yet reliable.</b> ${g.requires?`Needs ${g.requires}.`:''}
+    Measured: ${g.measured}. ${g.unblocks_with?`<br><b>Unblocks with:</b> ${g.unblocks_with}`:''}</p>`;
+}
+function readinessCard(){
+  const R=D.readiness; if(!R||!R.gates) return '';
+  const rows=Object.entries(R.gates).map(([k,g])=>`<tr>
+    <td>${g.label}</td>
+    <td><span class="pill ${g.status==='PASS'?'g':'r'}">${g.status}</span></td>
+    <td>${g.measured||'–'}</td><td>${g.unblocks_with||'–'}</td></tr>`).join('');
+  return card('Data readiness gate',
+    `${R.summary}. A layer is BLOCKED when its inputs are not in place — it is not broken, and it is not presenting a half-built number as final.`,
+    `<div class="tablewrap"><table><thead><tr><th>Layer</th><th>Status</th><th>Measured</th><th>Unblocks with</th></tr></thead>
+     <tbody>${rows}</tbody></table></div>`);
+}
+function momSection(){
+  const M=D.mom; if(!M||!M.rows) return '';
+  const hdr=M.months.map(m=>`<th>${m}</th>`).join('');
+  const body=M.rows.map(r=>{
+    const cells=r.values.map((v,i)=>{
+      const mom=(r.mom_pct||[])[i];
+      const val=r.unit==='%'?(v==null?'–':v.toFixed(1)+'%')
+              :r.unit==='INR/unit'?(v==null?'–':'₹'+v.toFixed(2))
+              :crc(v);
+      const sub=mom==null?'':`<br><span class="pill ${mom>=0?'g':'r'}" style="font-size:10px">${pct(mom)}</span>`;
+      return `<td>${val}${sub}</td>`;
+    }).join('');
+    const tot=r.unit==='INR Lakh'?crc(r.total):(r.avg==null?'–':(r.unit==='%'?r.avg.toFixed(1)+'%':'₹'+r.avg.toFixed(2)));
+    return `<tr><td><b>${r.metric}</b></td>${cells}<td>${tot}</td></tr>`;
+  }).join('');
+  const na=(M.unavailable||[]).map(u=>`<li><b>${u.metric}</b> — ${u.reason}</li>`).join('');
+  return `<h2 class="sec" style="margin-top:32px">Month-on-Month — ${M.fy_tag}</h2>
+   <p class="lead">${M.months.join(' → ')}. Small pill under each value is the change vs the prior month. ₹ Crore unless noted.</p>
+   ${card(`MoM by metric (${M.n_months} months, ${M.basis} basis)`,M.note,
+     `<div class="tablewrap"><table><thead><tr><th>Metric</th>${hdr}<th>Total / Avg</th></tr></thead><tbody>${body}</tbody></table></div>`)}
+   ${na?card('Not shown, and why','These metrics have no source at this grain in this build. Listed rather than shown as zero.',`<ul class="wf">${na}</ul>`):''}`;
+}
+function scorecardSection(){
+  const S=D.scorecard; if(!S) return '';
+  const tbl=(blk,label)=>{
+    if(!blk||!blk.rows||!blk.rows.length) return '';
+    const rows=blk.rows.map(r=>`<tr>
+      <td>${drillLink(label,r.name)}</td>
+      <td>${crc(r.curr)}</td>
+      <td>${ragPill(r.growth_pct,'growth_pct',v=>pct(v))}</td>
+      <td>${crc(r.target)}</td>
+      <td>${ragPill(r.achievement_pct,'achievement_pct',v=>v.toFixed(1)+'%')}</td>
+      <td>${crc(r.gap)}</td>
+      <td>${crc(r.current_run_rate)}</td>
+      <td>${crc(r.required_run_rate)}</td>
+      <td><span class="pill ${r.status==='green'?'g':r.status==='red'?'r':''}">${r.status?r.status.toUpperCase():'–'}</span></td>
+      <td style="min-width:230px">${r.action||'–'}</td></tr>`).join('');
+    return card(`${label} scorecard`,blk.note,
+      `<div class="tablewrap"><table><thead><tr>
+        <th>${label}</th><th>${blk.curr_fy}</th><th>Growth</th><th>Target</th><th>Ach%</th>
+        <th>Gap</th><th>Curr RR</th><th>Reqd RR</th><th>Status</th><th>Action</th>
+       </tr></thead><tbody>${rows}</tbody></table></div>`);
+  };
+  const z=S.by_zone, c=S.by_chain;
+  const ref=z||c; if(!ref) return '';
+  return `<h2 class="sec" style="margin-top:32px">Account &amp; Zone Scorecard</h2>
+   <p class="lead">${ref.curr_fy} vs ${ref.prev_fy}, like-for-like over ${ref.months?ref.months.join(' + '):''}. RAG thresholds from config/analytics_config.json. ₹ Crore.</p>
+   ${gateNote('chain_primary')}
+   ${tbl(z,'Zone')}
+   ${tbl(c,'Chain')}`;
+}
+function pvmSection(){
+  const pv=D.pvm; if(!pv) return '';
+  const rows=(pv.buckets||[]).map(b=>`<tr><td><b>${b.driver}</b></td><td>${crc(b.value)}</td>
+    <td>${b.pct_of_change==null?'–':b.pct_of_change.toFixed(1)+'%'}</td><td>${b.meaning}</td></tr>`).join('');
+  const rc=pv.reconciliation||{};
+  const contrib=(arr,lab)=>{
+    if(!arr||!arr.length) return '';
+    const r=arr.slice(0,10).map(x=>`<tr><td>${drillLink(lab,x.name)}</td><td>${crc(x.prev)}</td><td>${crc(x.curr)}</td>
+      <td><span class="pill ${x.delta>=0?'g':'r'}">${crc(x.delta)}</span></td>
+      <td>${x.pct_of_total_change==null?'–':x.pct_of_total_change.toFixed(1)+'%'}</td></tr>`).join('');
+    return card(`Growth contribution by ${lab.toLowerCase()}`,'Who moved the number. Sorted by change.',
+      `<div class="tablewrap"><table><thead><tr><th>${lab}</th><th>${pv.prev_fy}</th><th>${pv.curr_fy}</th><th>Change</th><th>% of total change</th></tr></thead><tbody>${r}</tbody></table></div>`);
+  };
+  const a=pv.asp||{};
+  return `<h2 class="sec" style="margin-top:32px">Price-Volume-Mix — value bridge &amp; drivers</h2>
+   <p class="lead">The detail behind the decomposition chart above. What actually drove the ${crc(pv.delta)} change, ${pv.prev_fy} → ${pv.curr_fy} over ${pv.n_months} months. Decomposed at ${pv.grain.toLowerCase()} grain.</p>
+   ${gateNote('pvm')}
+   <div class="kpis">
+     ${kpi(`${pv.prev_fy} → ${pv.curr_fy}`,crc(pv.delta),`${pct(pv.delta_pct)} on value · ${pct(pv.qty_delta_pct)} on units`)}
+     ${kpi('Blended ASP',a.curr==null?'–':'₹'+a.curr.toFixed(2),`from ₹${a.prev==null?'–':a.prev.toFixed(2)} · ${pct(a.blended_change_pct)}`)}
+     ${kpi('Like-for-like price',a.pure_price_change_pct==null?'–':pct(a.pure_price_change_pct),'same articles, quantities held constant')}
+     ${kpi('Mix &amp; range effect',a.mix_effect_pp==null?'–':(a.mix_effect_pp>0?'+':'')+a.mix_effect_pp.toFixed(2)+' pp',
+        'the rest of the ASP move')}
+   </div>
+   ${a.reading?`<p class="note" style="margin:0 0 16px"><b>Reading:</b> ${a.reading}</p>`:''}
+   ${card('Value bridge',pv.note,
+     `<div class="tablewrap"><table><thead><tr><th>Driver</th><th>Impact</th><th>% of change</th><th>What it means</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td><b>Sum of drivers</b></td><td><b>${crc(rc.sum_of_buckets)}</b></td><td colspan="2">
+        vs actual change ${crc(rc.actual_delta)} — variance ${rc.variance} L
+        <span class="pill ${rc.status==='PASS'?'g':'r'}">${rc.status}</span></td></tr></tfoot></table></div>`)}
+   ${card('Article counts','A large new-article count means the growth is range expansion, which behaves differently from same-article growth.',
+     `<div class="kpi-row"><span class="kpi-val">${pv.n_articles.common}</span><span class="kpi-lab">sold in both periods</span></div>
+      <div class="kpi-row"><span class="kpi-val">${pv.n_articles.new}</span><span class="kpi-lab">new this period</span></div>
+      <div class="kpi-row"><span class="kpi-val">${pv.n_articles.discontinued}</span><span class="kpi-lab">stopped selling</span></div>`)}
+   ${contrib(pv.by_chain,'Chain')}
+   ${contrib(pv.by_brand,'Brand')}`;
+}
+function mappingHealthSection(){
+  const M=D.mapping_health; if(!M||!M.by_fy) return '';
+  const fys=Object.keys(M.by_fy);
+  const cur=fys[fys.length-1], b=M.by_fy[cur];
+  const ex=(M.exceptions||[]).slice(0,15).map(r=>`<tr><td>${r.ship_to||'–'}</td><td>${r.cust_code||'–'}</td>
+    <td>${crc(r.nsv)}</td><td>${r.cumulative_pct==null?'–':r.cumulative_pct.toFixed(1)+'%'}</td>
+    <td>${(r.brands||[]).join(', ')||'–'}</td></tr>`).join('');
+  const pr=(M.proposals||[]).map(r=>`<tr><td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${r.suggested_chain||'–'}</td>
+    <td>${r.confidence||'–'}</td><td><span class="pill">${r.status}</span></td></tr>`).join('');
+  return `<h2 class="sec" style="margin-top:32px">Chain Mapping Health</h2>
+   <p class="lead">How much primary can actually be attributed to a named chain. Chain-level reporting is only as good as this.</p>
+   <div class="kpis">
+     ${kpi(`Mapping completeness (${cur})`,b.completeness_pct==null?'–':b.completeness_pct.toFixed(1)+'%',
+        `${ragPill(b.completeness_pct,'mapping_completeness_pct',v=>v.toFixed(1)+'%')} against the ${((CFG().readiness||{}).chain_primary||{}).min_mapping_completeness_pct||'–'}% gate`)}
+     ${kpi('Attributed to a chain',crc(b.mapped_nsv),'usable for chain reporting')}
+     ${kpi('Not attributed',crc(b.unmapped_nsv),`${M.exception_count} ship-to parties`)}
+   </div>
+   ${gateNote('chain_primary')}
+   ${card('Unmapped exception register',M.note,
+     `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>Cust code</th><th>NSV</th><th>Cumulative</th><th>Brands</th></tr></thead>
+      <tbody>${ex||'<tr><td colspan="5">None.</td></tr>'}</tbody></table></div>`)}
+   ${pr?card('Proposed mappings — awaiting approval',M.proposals_note,
+     `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>NSV at stake</th><th>Suggested chain</th><th>Confidence</th><th>Status</th></tr></thead>
+      <tbody>${pr}</tbody></table></div>`):''}`;
+}
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
   const dims=['Chain','Brand','SubCategory','Range','PackSize','Article'];
@@ -2825,7 +2972,9 @@ function buildComparison(){
    ${card(`${dimLab[cmpDim]} ranked comparison (top 15)`,'Click a name to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>${dimLab[cmpDim]}</th><th>${yrPair[0]}</th><th>${yrPair[1]}</th><th>YoY</th><th>Contribution</th>
      </tr></thead><tbody>${tableRows||'<tr><td colspan="5">No records for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${drillCardHtml('cmpDrill','Primary NSV')}`;
+   ${drillCardHtml('cmpDrill','Primary NSV')}
+   ${momSection()}
+   ${scorecardSection()}`;
   wireDrillLinks(s);
   wireChips(s,buildComparison);
   wireCmpButtons(s);
@@ -2844,17 +2993,21 @@ function wireCmpButtons(root){
 
 /* ---------------- INSIGHTS / WAY FORWARD ---------------- */
 function computePVMMetrics(){
-  const fy=fOne('FY')||'FY26';
-  const primeKey=`nsv_${fy.toLowerCase()}`;
-  const priorKey=`nsv_${fy==='FY27'?'fy26':fy==='FY26'?'fy25':'fy25'}`;
-  const curr=(D.primary&&D.primary[primeKey])||0;
-  const prior=(D.primary&&D.primary[priorKey])||curr*0.9;
-  const delta=curr-prior;
-  return{
-    volume_effect: delta*0.6,
-    price_effect: delta*-0.3,
-    mix_effect: delta*0.7,
-    total_delta_nsv: delta
+  // Reads the real article-grain decomposition from D.pvm (pvm_block).
+  // This previously returned delta*0.6 / delta*-0.3 / delta*0.7 -- fixed
+  // ratios with no analysis behind them, charted under a "Price-Volume-Mix"
+  // title. Returns null when D.pvm is absent so the caller can say so rather
+  // than draw an invented split.
+  const pv=D.pvm; if(!pv||!pv.buckets) return null;
+  const by={}; pv.buckets.forEach(b=>{by[b.driver]=b.value;});
+  return {
+    volume_effect: by['Volume']??0,
+    price_effect: by['Price']??0,
+    new_effect: by['New articles']??0,
+    lost_effect: by['Discontinued']??0,
+    total_delta_nsv: pv.delta,
+    asp: pv.asp||{},
+    recon: pv.reconciliation||{}
   };
 }
 
@@ -2894,10 +3047,22 @@ function computeSKUQuadrants(){
 }
 
 function generateAnalyticsInsights(){
-  const pvm=computePVMMetrics();
+  const pvm=computePVMMetrics();      // may be null when D.pvm is absent
   const health=computeChannelHealth();
   const insights=[];
-  if(pvm.volume_effect>0) insights.push({type:'win',title:'Volume Growth',text:`Volume effect +${Math.round(pvm.volume_effect/100)/10}% contributes to NSV lift.`});
+  // volume_effect is a RUPEE amount in Lakh. It was previously divided by 1000
+  // and printed with a % sign, so a Rs 38.44 Cr volume effect read as "+3.8%".
+  if(pvm&&pvm.volume_effect>0){
+    const share=pvm.total_delta_nsv?Math.round(pvm.volume_effect/pvm.total_delta_nsv*1000)/10:null;
+    insights.push({type:'win',title:'Volume growth',
+      text:`Volume added ${crc(pvm.volume_effect)} of the ${crc(pvm.total_delta_nsv)} change`
+           +(share!=null?` (${share}% of it)`:'')+`, on the same articles at last year's prices.`});
+  }
+  if(pvm&&pvm.asp&&pvm.asp.pure_price_change_pct!=null&&pvm.asp.pure_price_change_pct<0){
+    insights.push({type:'risk',title:'Realisation slipping on existing range',
+      text:`Like-for-like price is ${pct(pvm.asp.pure_price_change_pct)} even though blended ASP is `
+           +`${pct(pvm.asp.blended_change_pct)} — the ASP lift is mix and new range, not pricing.`});
+  }
   const overstocked=health.filter(h=>h.status==='Overstocked');
   if(overstocked.length>0) insights.push({type:'risk',title:'Inventory Imbalance',text:`${overstocked.length} accounts overstocked; rebalancing needed.`});
   return insights.slice(0,5);
@@ -2911,13 +3076,17 @@ function renderPVMChart(){
   const cv=document.createElement('canvas');
   cvDiv.appendChild(cv);
   const pvm=computePVMMetrics();
+  if(!pvm){ cvDiv.innerHTML='<p class="note">Price-Volume-Mix not available: no article-level Qty in this build.</p>'; return; }
   const ctx=cv.getContext('2d');
+  // Buckets sum to the actual change exactly, so "Net NSV" is a total, not a
+  // fifth driver -- coloured apart from the four drivers for that reason.
   window._chartPVM=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:['Volume Effect','Price Effect','Mix Effect','Net NSV'],
-      datasets:[{label:'NSV Impact (Lakh)',data:[pvm.volume_effect,pvm.price_effect,pvm.mix_effect,pvm.total_delta_nsv],
-        backgroundColor:['var(--green)','var(--red)','var(--amber)','var(--blue)']}]
+      labels:['Volume','Price','New articles','Discontinued','Net change'],
+      datasets:[{label:'NSV impact (₹ Lakh)',
+        data:[pvm.volume_effect,pvm.price_effect,pvm.new_effect,pvm.lost_effect,pvm.total_delta_nsv],
+        backgroundColor:[C.teal,C.red,C.blue,C.amber,C.grey]}]
     },
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
   });
@@ -3025,7 +3194,11 @@ function buildAnalytics(){
 
   s.innerHTML=`<h2 class="sec">Commercial Analytics — Phase 4</h2>
    <p class="lead">Real P&L margins, S&OP forecast diagnostics, Open PO SLA monitoring, and cross-tab drill-through navigation.</p>
-   ${frames}`;
+   ${frames}
+   ${pvmSection()}
+   ${mappingHealthSection()}
+   <h2 class="sec" style="margin-top:32px">Data Readiness</h2>
+   ${readinessCard()}`;
 
   setTimeout(()=>{
     renderPVMChart();

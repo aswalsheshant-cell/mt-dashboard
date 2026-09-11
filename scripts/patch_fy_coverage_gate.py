@@ -172,7 +172,50 @@ def main() -> int:
         except Exception as e:                       # never lose existing insights
             print(f"  ! insights left unchanged ({type(e).__name__}: {e})")
 
-    # 5) stamp provenance so the file says how it got this way
+    # 5) Phase 3 — config, mapping health, MoM, scorecard, PVM, readiness gate.
+    #    Same functions the builder calls, over the article frame rebuilt from
+    #    detail_records, so both paths produce the same blocks.
+    cfg = b.load_analytics_config(REPO)
+    if cfg:
+        data["config"] = {k: v for k, v in cfg.items() if not k.startswith("_")}
+        changes.append("config: embedded from config/analytics_config.json")
+    adf = b.frame_from_records(data.get("detail_records"), dmeta)
+    if adf is not None:
+        mh = b.mapping_health_block(adf, alloc=data.get("alloc"), cfg=cfg, repo_root=REPO)
+        if mh:
+            data["mapping_health"] = mh
+            cf = sorted(mh["by_fy"], key=b.fy_start_year)[-1]
+            changes.append(f"mapping_health: {cf} completeness "
+                           f"{mh['by_fy'][cf]['completeness_pct']}% "
+                           f"({mh['exception_count']} unmapped parties, "
+                           f"Rs {mh['exception_nsv']/100:.2f} Cr)")
+    if sp:
+        mb = b.mom_block(offtake, dmeta.get("fyx_primary"), data.get("targets"), adf, cfg)
+        if mb:
+            data["mom"] = mb
+            changes.append(f"mom: {mb['fy_tag']} x {mb['n_months']} months, "
+                           f"{len(mb['rows'])} metric rows")
+        sc = {}
+        for dim in ("by_zone", "by_chain"):
+            blk = b.scorecard_block(sp, data.get("targets"), data.get("mapping_health"), cfg, dim)
+            if blk:
+                sc[dim] = blk
+        if sc:
+            data["scorecard"] = sc
+            changes.append("scorecard: " + ", ".join(f"{k} {len(v['rows'])} rows"
+                                                     for k, v in sc.items()))
+        if adf is not None:
+            pv = b.pvm_block(adf, sp, cfg=cfg)
+            if pv:
+                data["pvm"] = pv
+                changes.append(f"pvm: delta Rs {pv['delta']/100:.2f} Cr, "
+                               f"recon {pv['reconciliation']['status']}")
+    data["readiness"] = b.readiness_gate(data, cfg)
+    changes.append("readiness: " + data["readiness"]["summary"]
+                   + (f"; blocked: {', '.join(data['readiness']['blocked'])}"
+                      if data["readiness"]["blocked"] else ""))
+
+    # 6) stamp provenance so the file says how it got this way
     data.setdefault("metadata", {})["fy_coverage_patch"] = {
         "applied": True, "preagg_fy_tags": sorted(b.PREAGG_FY_TAGS),
         "script": "scripts/patch_fy_coverage_gate.py",

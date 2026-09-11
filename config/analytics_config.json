@@ -1,0 +1,64 @@
+{
+  "_README": "Central business configuration for the MT analytics build. Thresholds and basis choices live HERE, not inlined in formulas or JS. Loaded by scripts/build_dashboard_data.py and embedded into data.js as DASH.config, so the dashboard and Power BI read the same numbers from the same place.",
+  "version": "1.0",
+
+  "target": {
+    "basis": "offtake",
+    "basis_options": ["offtake", "primary"],
+    "basis_rationale": "The target file (PowerBI/SeedData/Targets/FY2627_Targets.csv) is headed 'Target NSV Cr' and does not name its measure. forecast_block_ty already compares this same file to offtake, so offtake is the default. Both bases are always computed and shown side by side so the choice stays visible.",
+    "basis_confirmed_by": null,
+    "basis_confirmed_on": null,
+    "_action": "Set basis_confirmed_by/on once the business confirms whether the target is set on primary billing or on retail offtake. Until then the dashboard labels the basis as ASSUMED."
+  },
+
+  "rag": {
+    "_note": "Green/amber boundaries. A value at or above 'green' is green; at or above 'amber' is amber; below is red. For run_rate_ratio LOWER is better, so the comparison inverts.",
+    "achievement_pct":            { "green": 100.0, "amber": 90.0 },
+    "growth_pct":                 { "green": 0.0,   "amber": -5.0 },
+    "run_rate_ratio":             { "green": 1.00,  "amber": 1.05, "red": 1.15, "lower_is_better": true },
+    "mapping_completeness_pct":   { "green": 95.0,  "amber": 85.0 },
+    "sell_through_ratio":         { "green": 0.90,  "amber": 0.75 }
+  },
+
+  "readiness": {
+    "_note": "Data readiness gates. An analytical layer must not present output as authoritative until its preconditions hold. Each gate names the precondition, the threshold and what unblocks it. Evaluated by readiness_gate() at build time and published as DASH.readiness; the dashboard shows a blocked layer's reason instead of a confident-looking number.",
+    "chain_primary": {
+      "label": "Chain-level Primary reporting",
+      "requires": "mapping_completeness_pct >= 85 on the current FY primary",
+      "min_mapping_completeness_pct": 85.0,
+      "unblocks_with": "Owner-approved distributor-to-chain mapping for the ship-to parties listed in the unmapped exception report."
+    },
+    "pvm": {
+      "label": "Price-Volume-Mix",
+      "requires": "Article-level Qty and NSV present on the detail records, with a usable blended ASP",
+      "min_asp_rupees": 1.0,
+      "unblocks_with": "Article-level Qty on detail_records. Does NOT use unit_economics.nsv_per_unit, which is degenerate (0.02 for every zone and month) and has no generator in this repo."
+    },
+    "profitability": {
+      "label": "Profitability / margin analytics",
+      "requires": "Cost or margin fields present at the reporting grain",
+      "unblocks_with": "A COGS or standard-cost field per article. Not present today, so margin is NOT computed; CM2 and P&L remain as-is on their own documented basis."
+    },
+    "scorecard_execution": {
+      "label": "OSA / OOS / fill-rate columns on the scorecard",
+      "requires": "Store-audit coverage across the reporting universe in the reporting period",
+      "min_audit_coverage_pct": 60.0,
+      "unblocks_with": "A store audit covering the reporting months. compliance_metrics.json today audits 189 doors of a 426-store universe (44%) and is labelled Q3 FY27 while the reporting window is Apr-Jul'26."
+    },
+    "npd": {
+      "label": "NPD tracker",
+      "requires": "NPD launch and article master joined to the transaction grain",
+      "unblocks_with": "A join key between PowerBI/SeedData/NPI_Master.csv article ids and the EAN/Article values on detail_records."
+    }
+  },
+
+  "run_rate": {
+    "_note": "Monthly run rate. Business planning here is monthly, and the source grain is monthly, so a daily rate would imply precision the data does not carry.",
+    "basis": "monthly"
+  },
+
+  "mom": {
+    "_note": "Metrics the MoM view shows when present. Anything unavailable is listed with its reason rather than shown as zero.",
+    "metrics": ["primary_nsv", "offtake_nsv", "target", "achievement_pct", "gap", "run_rate", "asp"]
+  }
+}

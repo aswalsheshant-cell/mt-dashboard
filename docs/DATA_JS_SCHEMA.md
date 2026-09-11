@@ -587,6 +587,150 @@ partial-year guards and understated the FY. Those FYs are owned by
 
 ---
 
+## Block 17: config (Central Business Configuration)
+
+Mirror of `config/analytics_config.json` (comment keys stripped). Thresholds and
+basis choices live in that file, not inlined in Python formulas or JS template
+strings, so changing one is a config edit and a review conversation.
+
+```javascript
+config: {
+  target: { basis: "offtake", basis_rationale: "...", basis_confirmed_by: null },
+  rag: { achievement_pct: {green:100, amber:90}, growth_pct: {...},
+         run_rate_ratio: {green:1.00, amber:1.05, red:1.15, lower_is_better:true},
+         mapping_completeness_pct: {...}, sell_through_ratio: {...} },
+  readiness: { chain_primary: {...}, pvm: {...}, profitability: {...},
+               scorecard_execution: {...}, npd: {...} },
+  run_rate: { basis: "monthly" },
+  mom: { metrics: [...] }
+}
+```
+
+---
+
+## Block 18: readiness (Data Readiness Gate)
+
+Built by `readiness_gate()`. An analytical layer must not present itself as
+authoritative on inputs it does not have. Each gate names its precondition,
+what was measured, and what would unblock it, so a blocked layer explains
+itself rather than showing a confident zero.
+
+```javascript
+readiness: {
+  gates: { chain_primary: { label, status: "PASS"|"BLOCKED", requires,
+                            measured, unblocks_with, threshold, value }, ... },
+  blocked: ["chain_primary", "profitability", "scorecard_execution", "npd"],
+  summary: "1 of 5 layers ready"
+}
+```
+
+The dashboard renders a blocked gate as a warning above the affected section
+(`gateNote()`), and the full table on Commercial Analytics (`readinessCard()`).
+
+---
+
+## Block 19: mapping_health (Chain Attribution Quality)
+
+Built by `mapping_health_block()`. Chain-level primary is only as good as the
+distributor-to-chain mapping behind it; this measures that rather than hiding it.
+
+```javascript
+mapping_health: {
+  unmapped_label: "Unmapped Chain",
+  by_fy: { FY27: { total_nsv, mapped_nsv, unmapped_nsv,
+                   completeness_pct, rag: "red" } },
+  exceptions: [ { ship_to, cust_code, nsv, rows, months, brands,
+                  cumulative_pct } ],      // value order, top 60
+  exception_count, exception_nsv,
+  proposals: [ { ship_to, nsv, suggested_chain, confidence,
+                 status: "PROPOSED — awaiting business owner approval" } ],
+  proposals_note: "..."
+}
+```
+
+**Proposals are never applied.** Assigning a distributor to a chain is a business
+decision with a named owner. The build surfaces the candidates and the value at
+stake; approving them into the mapping master is a human step.
+
+---
+
+## Block 20: mom (Month-on-Month)
+
+Built by `mom_block()`. One row per metric, one column per month. Months are
+DERIVED from the months that carry actuals, so the view extends itself as new
+months land. Metrics with no source appear in `unavailable` with the reason
+rather than as zero.
+
+```javascript
+mom: {
+  fy_tag: "FY27", months: ["Apr-26","May-26","Jun-26","Jul-26"],
+  n_months: 4, basis: "offtake",
+  rows: [ { metric, key, unit, values: [...], mom_pct: [null, ...],
+            total, avg, latest, no_mom? } ],
+  unavailable: [ { metric, reason } ]
+}
+```
+
+`mom_pct` is suppressed (`no_mom: true`) on ratio and gap rows, where a
+month-on-month percentage of a percentage would mislead.
+
+---
+
+## Block 21: scorecard (Account / Zone Commercial Scorecard)
+
+Built by `scorecard_block()`, keyed `by_zone` and `by_chain`. Every row ends in
+a RAG status and a specific next step; thresholds come from `config.rag`.
+
+```javascript
+scorecard: {
+  by_zone: { dim, basis, curr_fy, prev_fy, months, n_months, thresholds,
+             rows: [ { name, curr, prev, delta, growth_pct,
+                       target, actual, achievement_pct, gap, gap_pct,
+                       contribution_pct, current_run_rate, required_run_rate,
+                       rag: {achievement, growth, run_rate},
+                       status: "green"|"amber"|"red",
+                       action: "...", target_basis: "DERIVED" } ] },
+  by_chain: { ...same shape... }
+}
+```
+
+Growth is like-for-like primary. Target/achievement/run rate are on the
+`config.target.basis` measure. Zone and chain targets are DERIVED.
+
+---
+
+## Block 22: pvm (Price-Volume-Mix)
+
+Built by `pvm_block()` at ARTICLE grain — the only grain where a unit price is a
+real price. Four buckets that sum to the actual change exactly.
+
+```javascript
+pvm: {
+  curr_fy, prev_fy, months, n_months, grain: "Article", unit: "INR Lakh",
+  prev: { nsv, qty, asp }, curr: { nsv, qty, asp },
+  delta, delta_pct, qty_delta_pct,
+  buckets: [ { driver: "Volume"|"Price"|"New articles"|"Discontinued",
+               value, pct_of_change, meaning } ],
+  reconciliation: { sum_of_buckets, actual_delta, variance, status: "PASS" },
+  asp: { prev, curr, blended_change_pct, pure_price_change_pct,
+         mix_effect_pp, reading },
+  n_articles: { common, new, discontinued },
+  by_chain: [...], by_brand: [...], by_category: [...]
+}
+```
+
+**`pure_price_change_pct`, not a blended same-article ASP.** It is the rupee
+price effect over the same basket valued at last year's prices, so quantities
+are held constant. A blended ASP across common articles still carries mix inside
+that set and can move opposite in sign to the actual price effect — which is
+misleading in exactly the case that matters.
+
+**ASP comes from article Qty and NSV**, never from `unit_economics.nsv_per_unit`,
+which is `0.02` for every zone and month in this dataset and has no generator in
+this repo.
+
+---
+
 ## Block 13: share (Market Share from Nielsen)
 
 Nielsen market share data (awaiting FY27 supply).
