@@ -14,11 +14,13 @@ Update after a **validated** milestone, then commit and push with that milestone
 ## Current Phase
 
 Phase 4 complete — commercial analytics validated; incentive foundation gated on
-business inputs. Environment resilience added.
+business inputs. Environment resilience added. Knowledge base (KA-01..KA-10) and
+the governed incentive Excel working model are built and validated; the workbook
+produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`3127bad` — Correct PROJECT_STATE: record f01ed02 and point to the next phase
+`8240027` — Knowledge base: 10 sourced articles, a router, and a freshness gate
 Validated: 2026-09-11
 
 > A milestone's own commit hash does not exist while this file is being written
@@ -27,13 +29,16 @@ Validated: 2026-09-11
 
 ## Next Approved Task
 
-Close three specific gaps, then employee/store actual attribution:
+Business input closure. The Excel working model is ready and waiting on answers —
+`08_Exceptions` and `12_Rule_Decisions` in the workbook list every open item with
+its owner. Close these gaps, then employee/store actual attribution:
   (a) 9 employees still unpayable — 5 `#N/A` grades, 4 blank (see grade exceptions)
   (b) target file covers 74.5% of the business target — is that the intended scope?
   (c) 28 WoA mapping approvals + 3 exceptions
 Still outstanding: target basis (Primary vs Offtake), C1-C6, caps, proration.
 Do NOT calculate any incentive payout. Do NOT start NPD, OSA/OOS,
 profitability or persona reporting — all gated.
+Do NOT start the Power BI incentive dashboard.
 One bounded component per run: implement, validate, commit, stop.
 
 ## Completed Capabilities
@@ -48,6 +53,10 @@ One bounded component per run: implement, validate, commit, stop.
 - Emerging-brand rule (all brands except Mamaearth) — business-confirmed
 - DMS/Massit consolidation, fenced to the incentive domain only
 - Privacy boundary + regression tests; environment health check; resume recovery
+- Knowledge base: 10 sourced articles + routing index, with a staleness gate
+- Governed incentive workbook `MT_Incentive_Working_FY27.xlsx` — 13 sheets, every
+  sheet an Excel Table, calculated cells are formulas, blocked rows stay blocked
+  and never read as zero. Restricted: written to `incentive_working/`, gitignored.
 
 ## Partial Capabilities
 
@@ -113,7 +122,8 @@ Every change must leave these unchanged:
 | FY27 target | ₹441.33 Cr |
 | PVM reconciliation | PASS, variance 0.00 |
 | Dashboard sweep | 44 states, 0 NaN/undefined, 0 JS errors |
-| unittest suite | 24 pass |
+| unittest suite | 46 pass, 1 skipped |
+| Incentive workbook | 51 employees / 42 VALID grades / 85 slab rows / 3,100 target rows / 67 WoA rows; payout NOT CALCULATED |
 
 | pytest suite | 13 pass |
 
@@ -133,7 +143,8 @@ On a fresh VM, run `./scripts/setup_environment.sh` first (Python deps).
 | CONFIDENTIAL | Employee names/IDs, DMS client identities | Outside the repo only |
 | RESTRICTED_HR_FINANCE | Incentive slabs, grades, payouts | Excel / restricted Power BI only |
 
-Enforced by `tests/test_published_assets_privacy.py` and `.gitignore`.
+Enforced by `tests/test_published_assets_privacy.py`, `tests/test_incentive_workbook.py`
+and `.gitignore`. The incentive workbook builder refuses to write into `dashboard/`.
 DMS/Massit is **incentive-scope only** and must not appear in commercial reports.
 
 ## Environment Notes
