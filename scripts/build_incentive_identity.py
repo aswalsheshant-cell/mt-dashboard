@@ -127,6 +127,101 @@ def classify(method, cands, stores, floor):
     return "OWNER_RULE_APPROVAL", f"One consistent candidate via {method}, covering {stores} store(s). Confirm or correct the Employee ID."
 
 
+def slab_designations(repo):
+    """Designations the slab master defines. A grade outside this set has no rate."""
+    import zipfile, io, xml.etree.ElementTree as ET
+    f = Path(repo) / "PowerBI" / "SeedData" / "Targets" / "_slab_designations.txt"
+    if f.exists():
+        return {ln.strip() for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip()}
+    # Fall back to the grades the communication and slab master define.
+    return {"Analyst", "Asst NKAM", "Asst RKAM", "BA Lead - Asst Mgr", "BA Lead - Sr Exec",
+            "BDE", "BDO", "NKAM", "RKAM", "Sr BDE", "Sr NKAM", "Sr National BA Ops", "Sr RKAM"}
+
+
+def read_grades(path: Path):
+    """Employee ID -> supplied incentive grade. Reads the value as given."""
+    import openpyxl
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = wb[wb.sheetnames[0]]
+    rows = list(ws.iter_rows(values_only=True))
+    hi = next((i for i, r in enumerate(rows[:12])
+               if r and any(str(c).strip() == "Employee ID" for c in r if c)), None)
+    if hi is None:
+        raise SystemExit(f"{path}: no 'Employee ID' header row")
+    hdr = [("" if c is None else str(c).strip()) for c in rows[hi]]
+    eid_i = hdr.index("Employee ID")
+    # The grade sits in the sheet's LAST column and carries no header. Read that
+    # fixed position -- scanning backwards for the last non-empty cell instead
+    # picks up the job title whenever the grade is blank, which reports "not
+    # supplied" as "wrong value". Those are different asks to a business owner.
+    gi = ws.max_column - 1
+    out = {}
+    for r in rows[hi + 1:]:
+        if not r or len(r) <= eid_i or not r[eid_i]:
+            continue
+        grade = "" if gi >= len(r) or r[gi] is None else str(r[gi]).strip()
+        out[str(r[eid_i]).strip()] = grade
+    return out
+
+
+def read_targets(path: Path, cfg, b):
+    """Target master: totals, coverage, and the values that will not join."""
+    import openpyxl
+    from collections import Counter as C
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = next((wb[n] for n in wb.sheetnames if "TARGET MASTER" in n.upper()), wb[wb.sheetnames[0]])
+    rows = list(ws.iter_rows(values_only=True))
+    hi = next((i for i, r in enumerate(rows[:15])
+               if r and any(str(c).strip().upper() == "TARGET" for c in r if c)), None)
+    if hi is None:
+        raise SystemExit(f"{path}: no 'Target' header row")
+    hdr = [("" if c is None else str(c).strip()) for c in rows[hi]]
+    ix = {h: i for i, h in enumerate(hdr) if h}
+    recs = [r for r in rows[hi + 1:] if r and r[0]]
+    def g(r, k):
+        i = ix.get(k)
+        return ("" if i is None or i >= len(r) or r[i] is None else str(r[i]).strip())
+    total = sum(float(r[ix["Target"]] or 0) for r in recs if ix["Target"] < len(r))
+    # Values that will not join a reporting dimension as spelled.
+    exc, seen = [], {}
+    for r in recs:
+        val = float(r[ix["Target"]] or 0) if ix["Target"] < len(r) else 0.0
+        for field, key in (("Region", "Region"), ("Chain", "Chain"), ("Brand", "Brand")):
+            raw = g(r, key)
+            if not raw:
+                continue
+            if field == "Region":
+                canon, ok = b.canon_zone_name(raw, cfg)
+                bad = not ok
+            else:
+                bad = False
+            k = (field, raw)
+            a_ = seen.setdefault(k, [0, 0.0, bad])
+            a_[0] += 1; a_[1] += val
+    for (field, raw), (n, val, bad) in seen.items():
+        if field == "Region" and bad:
+            exc.append((field, raw, n, val))
+    # Chain and brand spelling variants: same canonical shape, different text.
+    for field, key in (("Chain", "Chain"), ("Brand", "Brand")):
+        norm = {}
+        for r in recs:
+            raw = g(r, key)
+            if not raw:
+                continue
+            k = re.sub(r"[^a-z0-9]", "", raw.lower())
+            norm.setdefault(k, C())[raw] += 1
+        for k, variants in norm.items():
+            if len(variants) > 1:
+                for raw, n in variants.items():
+                    exc.append((f"{field} (spelling variant)", raw, n, 0.0))
+    return {"rows": len(recs), "total": round(total, 2),
+            "months": len({g(r, "Month")[:10] for r in recs if g(r, "Month")}),
+            "fy": sorted({g(r, "FY") for r in recs if g(r, "FY")}),
+            "bdo_bde_names": len({g(r, "BDO/BDE") for r in recs if g(r, "BDO/BDE")}),
+            "rkam_values": sorted({g(r, "RKAM") for r in recs if g(r, "RKAM")}),
+            "exceptions": exc}
+
+
 def w(path, header, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8") as fh:
@@ -141,6 +236,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--woa", required=True)
     ap.add_argument("--employees", required=True)
+    ap.add_argument("--grades", help="Employee master carrying the incentive grade column.")
+    ap.add_argument("--targets", help="RKAM target planning workbook (RAW DATA TARGET MASTER sheet).")
     ap.add_argument("--out", default="incentive_working")
     ap.add_argument("--materiality-floor", type=int, default=3,
                     help="Stores below which a single-candidate row is monitored, not asked.")
@@ -361,14 +458,71 @@ def main() -> int:
             json.dumps(readiness, ensure_ascii=False, indent=1), encoding="utf-8")
         n6 = 1
 
+    # ---- 7. Grade file: validate against the slab master, never assign ------
+    n7 = n8 = 0
+    grade_summary = target_summary = None
+    if a.grades:
+        slab = slab_designations(REPO)
+        supplied = read_grades(Path(a.grades))
+        rows_g, counts_g = [], defaultdict(int)
+        for eid, g in sorted(supplied.items()):
+            if not g:
+                st, why = "MISSING", "Grade cell is blank."
+            elif g.upper().startswith("#N/A") or g.upper() in {"#N/A", "#REF!", "#VALUE!"}:
+                st, why = "SOURCE_DATA_FIX_REQUIRED", f"Cell holds a spreadsheet error ({g}), not a grade."
+            elif g not in slab:
+                st, why = "INVALID", f"{g!r} is not a designation the slab master defines, so no payout rate exists for it."
+            else:
+                st, why = "VALID", "Matches a slab designation; a payout rate exists."
+            counts_g[st] += 1
+            rows_g.append({"Employee_ID": eid, "Supplied_Grade": g, "Status": st, "Why": why,
+                           "Corrected_Grade": "", "Confirmed_By": "", "Confirmation_Date": ""})
+        if not a.dry_run:
+            n7 = w(outd / "incentive_grade_exceptions.csv", list(rows_g[0].keys()), rows_g) if rows_g else 0
+        grade_summary = {"supplied": len(supplied), "by_status": dict(counts_g),
+                         "slab_designations": sorted(slab)}
+
+    if a.targets:
+        t = read_targets(Path(a.targets), cfg, b)
+        rows_t = []
+        for kind, raw, n, val in t["exceptions"]:
+            rows_t.append({"Field": kind, "Raw_Value": raw, "Rows": n,
+                           "Target_Value": round(val, 2),
+                           "Issue": "Spelling variant or unmapped value — will not join to the reporting dimension",
+                           "Canonical_Value": "", "Confirmed_By": "", "Confirmation_Date": ""})
+        if not a.dry_run:
+            n8 = w(outd / "target_quality_exceptions.csv",
+                   ["Field", "Raw_Value", "Rows", "Target_Value", "Issue",
+                    "Canonical_Value", "Confirmed_By", "Confirmation_Date"], rows_t)
+        target_summary = {k: v for k, v in t.items() if k != "exceptions"}
+        target_summary["exception_rows"] = len(rows_t)
+
+    if grade_summary:
+        readiness["grade_file"] = grade_summary
+    if target_summary:
+        readiness["target_file"] = target_summary
+    if not a.dry_run:
+        (outd / "incentive_readiness.json").write_text(
+            json.dumps(readiness, ensure_ascii=False, indent=1), encoding="utf-8")
+
     print(f"WoA rows {len(woa)} | employees {len(emps)} | unique WoA person-values {len(agg)}")
+    if grade_summary:
+        print(f"\ngrade file: {grade_summary['supplied']} supplied -> {grade_summary['by_status']}")
+    if target_summary:
+        print(f"target file: {target_summary['rows']} rows, Rs {target_summary['total']:,.2f} L, "
+              f"{target_summary['months']} month(s), {target_summary['exception_rows']} quality exception(s)")
     print("\nregister classification:")
     for k, v in sorted(counts.items(), key=lambda kv: -kv[1]):
         print(f"  {k:26s} {v}")
     print(f"\nwritten to {outd}/ (restricted, gitignored):")
-    for f, n in [("woa_employee_mapping_register.csv", n1), ("incentive_grade_request.csv", n2),
-                 ("role_measurement_scope.csv", n3), ("target_request_template.csv", n4),
-                 ("incentive_decision_register.csv", n5), ("incentive_readiness.json", n6)]:
+    files = [("woa_employee_mapping_register.csv", n1), ("incentive_grade_request.csv", n2),
+             ("role_measurement_scope.csv", n3), ("target_request_template.csv", n4),
+             ("incentive_decision_register.csv", n5), ("incentive_readiness.json", n6)]
+    if a.grades:
+        files.append(("incentive_grade_exceptions.csv", n7))
+    if a.targets:
+        files.append(("target_quality_exceptions.csv", n8))
+    for f, n in files:
         print(f"  {f:38s} {n} row(s)")
     if a.dry_run:
         print("\n(--dry-run: nothing written)")

@@ -27,9 +27,11 @@ Validated: 2026-09-11
 
 ## Next Approved Task
 
-Send the six restricted templates in `incentive_working/` to their owners and
-load the returned decisions. Nothing further can be built until they come back.
-Then: employee/store actual attribution, still stopping before payout.
+Close three specific gaps, then employee/store actual attribution:
+  (a) 9 employees still unpayable — 5 `#N/A` grades, 4 blank (see grade exceptions)
+  (b) target file covers 74.5% of the business target — is that the intended scope?
+  (c) 28 WoA mapping approvals + 3 exceptions
+Still outstanding: target basis (Primary vs Offtake), C1-C6, caps, proration.
 Do NOT calculate any incentive payout. Do NOT start NPD, OSA/OOS,
 profitability or persona reporting — all gated.
 One bounded component per run: implement, validate, commit, stop.
@@ -68,9 +70,13 @@ One bounded component per run: implement, validate, commit, stop.
 
 ## Required Business Inputs
 
-1. Incentive grade (Asst / regular / Sr) for 14 RKAM/NKAM/BA Lead employees — ~₹38.1 L payout ambiguity
+1. ~~Incentive grade for 14 RKAM/NKAM/BA Lead employees~~ — **received**, all 14 valid.
+   Residual: 5 rows hold `#N/A` (spreadsheet errors) and 4 are blank — 9 of 51 still unpayable
 2. Employee IDs on the WoA hierarchy sheet — names are not a safe production key
-3. Official Zone / Account / Territory targets — current zone/chain targets are DERIVED
+3. Official targets — **RKAM target planning file received** (3,100 rows, FY27, all 12 months,
+   at FY x Month x State x Chain x Brand x BDO/BDE x RKAM grain). Not yet usable: it totals
+   ₹328.68 Cr against the ₹441.33 Cr business target (74.5%), and carries 16 chain/brand
+   spelling variants. Needs a coverage explanation and normalisation before payout use
 4. Target basis confirmation — Primary or Offtake (89.0% vs 109.8% achievement)
 5. Jul-26 DMS extract — completes the Apr–Jul incentive window
 6. Business-rule confirmations C1–C6, payout caps, nested lower-is-better slab rule
