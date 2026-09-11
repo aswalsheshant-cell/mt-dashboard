@@ -2865,6 +2865,24 @@ def load_analytics_config(repo_root=None):
     _CONFIG_CACHE[str(root)] = cfg
     return cfg
 
+def public_config(cfg):
+    """The slice of config safe for the published payload.
+
+    dashboard/ goes to GitHub Pages. Sections marked scope=INCENTIVE_ONLY belong
+    to the restricted incentive domain and are dropped here along with the
+    comment keys -- the commercial payload should not carry incentive-domain
+    configuration at all.
+    """
+    def strip(o):
+        if isinstance(o, dict):
+            return {k: strip(v) for k, v in o.items() if not k.startswith("_")}
+        if isinstance(o, list):
+            return [strip(x) for x in o]
+        return o
+    return {k: strip(v) for k, v in (cfg or {}).items()
+            if not k.startswith("_")
+            and not (isinstance(v, dict) and v.get("scope") == "INCENTIVE_ONLY")}
+
 def rag_of(value, band, cfg=None):
     """'green' / 'amber' / 'red' for a value against a named RAG band."""
     b = ((cfg or {}).get("rag") or {}).get(band) or {}
@@ -3033,17 +3051,11 @@ def readiness_gate(data, cfg=None):
         put("npd", "BLOCKED", "NPD master not joined to the transaction grain")
 
     if "sales_consolidation" in rules:
-        sa = data.get("sales_actuals") or {}
-        ok = bool(sa) and sa.get("reconciliation", {}).get("status") == "PASS" \
-            and sa.get("period_aligned") is True
-        if not sa:
-            measured = "no DMS extract ingested"
-        elif not sa.get("period_aligned"):
-            measured = (f"chain {len(sa.get('chain_sales_period') or [])} month(s) vs DMS "
-                        f"{len(sa.get('dms_period') or [])} month(s) — periods not aligned")
-        else:
-            measured = f"reconciliation {sa.get('reconciliation', {}).get('status')}"
-        put("sales_consolidation", "PASS" if ok else "BLOCKED", measured)
+        # DMS/Massit is incentive-scope only by business instruction, so it is
+        # deliberately absent from this payload. The gate records that rather
+        # than reporting a missing block as a failure.
+        put("sales_consolidation", "N/A",
+            "DMS is incentive-scope only; the commercial payload stays on chain sales")
 
     if "incentive" in rules:
         # Every mandatory input, named. A missing one blocks the affected role
@@ -5736,7 +5748,7 @@ def main():
     # runs last and can report on what the other blocks actually produced.
     _cfg = load_analytics_config(_REPO_ROOT)
     if _cfg:
-        data["config"] = {k: v for k, v in _cfg.items() if not k.startswith("_")}
+        data["config"] = public_config(_cfg)
     _adf = frame_from_records(data.get("detail_records"), detail_meta)
     if _adf is not None:
         _mh = mapping_health_block(_adf, alloc=data.get("alloc"), cfg=_cfg,

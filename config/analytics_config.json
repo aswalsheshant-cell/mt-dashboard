@@ -68,9 +68,9 @@
       "unblocks_with": "A join key between PowerBI/SeedData/NPI_Master.csv article ids and the EAN/Article values on detail_records."
     },
     "sales_consolidation": {
-      "label": "Consolidated store-level sales actuals",
-      "requires": "Chain sales at store grain, or a store->chain bridge that proves no double counting",
-      "unblocks_with": "Store-grain chain offtake in the build (the source .xlsb carries store x article; data.js publishes chain/zone/state aggregates only). Until then the chain-level dedup rule applies and store-level actuals come from Massit alone."
+      "label": "Consolidated sales actuals (incentive scope)",
+      "requires": "DMS months matching the incentive period, and a dedup rule proving no double counting",
+      "unblocks_with": "DMS for every month in the incentive period. Applies to the incentive working only — the commercial reports use chain sales and are unaffected."
     },
     "incentive": {
       "label": "Incentive calculation",
@@ -147,7 +147,9 @@
     "dedup_rule": "A Massit client whose chain already has chain-sales coverage in the period is DUPLICATE and is excluded from the consolidated actual. Only a client whose chain has no chain-sales coverage is gap-fill.",
     "missing_is_zero": false,
     "_missing_note": "Absent sales stays blank and is labelled NO_SALES_DATA. It is never converted to zero -- a zero reads as 'sold nothing', which is a different business statement from 'we have no data'.",
-    "unit": "INR"
+    "unit": "INR",
+    "_scope": "INCENTIVE ONLY. Business instruction 2026-09-11: DMS/Massit is used for the incentive working and must NOT appear in or influence the commercial reports (Executive Cockpit, MoM, scorecards, PVM, Target vs Achievement). Those stay on chain sales. DMS output is written to incentive_working/, never to dashboard/data.js.",
+    "scope": "INCENTIVE_ONLY"
   },
   "focus_pack": {
     "_note": "Focus Pack EAN classification comes from the supplied chain x article x month file (F1/F2 tags). Massit's own 'Focus Tag' column is blank on every row and must NOT be used as evidence either way.",

@@ -21,6 +21,10 @@ FORBIDDEN = [
     (r"Annual\s+Eligibility", "incentive eligibility column"),
     (r"Payout\s+Amount", "incentive payout column"),
     (r"Incentive[_ ]Grade", "incentive grade column"),
+    # DMS/Massit is incentive-scope only (business instruction 2026-09-11): it
+    # must not appear in, or influence, the commercial reports.
+    (r"Massit", "DMS source reference"),
+    (r"TotalTertiaryValue", "DMS measure"),
 ]
 
 
@@ -37,6 +41,23 @@ class TestPublishedAssetsPrivacy(unittest.TestCase):
                     hits, [],
                     f"{rel} contains {len(hits)} {what} match(es) e.g. {hits[:3]} — "
                     f"published assets are public; keep this data out of dashboard/.")
+
+    def test_dms_block_absent_from_published_payload(self):
+        """DMS is incentive-scope. Its consolidated block belongs in
+        incentive_working/, never in the published dashboard payload."""
+        p = REPO / "dashboard" / "data.js"
+        if not p.exists():
+            self.skipTest("data.js not present")
+        import json
+        s = p.read_text(encoding="utf-8")
+        d = json.loads(s[s.index("{"):].rstrip().rstrip(";"))
+        self.assertNotIn("sales_actuals", d,
+                         "DMS consolidation must not be published — it is incentive-scope only.")
+        cfg = d.get("config") or {}
+        for k, v in cfg.items():
+            if isinstance(v, dict):
+                self.assertNotEqual(v.get("scope"), "INCENTIVE_ONLY",
+                                    f"config section {k!r} is incentive-scope and must not be published.")
 
     def test_sales_actuals_is_aggregate_only(self):
         p = REPO / "dashboard" / "data.js"

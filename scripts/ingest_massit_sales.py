@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Consolidate DMS (Massit) sales against chain sales, and publish AGGREGATES ONLY.
+"""Consolidate DMS (Massit) sales against chain sales, for the INCENTIVE working only.
+
+SCOPE RULE (business instruction, 2026-09-11)
+--------------------------------------------
+DMS/Massit is an INCENTIVE-ONLY source. It must not appear in, or influence,
+the commercial reports -- Executive Cockpit, MoM, scorecards, PVM, Target vs
+Achievement. Those stay on chain sales. This script therefore writes to an
+incentive working file OUTSIDE the published dashboard payload; it does not
+touch dashboard/data.js.
+
+That is also the right call on measure grounds: DMS tertiary and chain offtake
+are different measures (see CLAUDE.md "The three MT measures"), and mixing them
+into one commercial number would misstate the basis.
 
 Why this is a separate script
 ----------------------------
@@ -114,14 +126,29 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--massit", action="append", required=True)
     ap.add_argument("--woa")
-    ap.add_argument("--out", default="dashboard/data.js")
+    ap.add_argument("--out", default="incentive_working/massit_sales_basis.json",
+                    help="Incentive working output. NOT dashboard/data.js -- DMS is "
+                         "incentive-scope only and must stay out of the published payload.")
+    ap.add_argument("--chain-ref", default="dashboard/data.js",
+                    help="Read-only source of chain sales for the coverage/dedup test.")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
 
     b = load_builder()
     cfg = b.load_analytics_config(REPO)
     outp = REPO / a.out if not Path(a.out).is_absolute() else Path(a.out)
-    data = read_data_js(outp)
+    refp = REPO / a.chain_ref if not Path(a.chain_ref).is_absolute() else Path(a.chain_ref)
+    # Guard the published payload specifically -- test the path RELATIVE to the
+    # repo, not the absolute string (the repo itself is named "mt-dashboard",
+    # which a naive substring check matches).
+    try:
+        rel = outp.resolve().relative_to(REPO.resolve()).parts
+    except ValueError:
+        rel = ()
+    if outp.suffix == ".js" or (rel and rel[0] == "dashboard"):
+        print("REFUSING: DMS output must not be written into the published dashboard "
+              "payload. It is incentive-scope only."); return 2
+    data = read_data_js(refp)          # read-only; never written back
 
     files = massit_files(a.massit)
     if not files:
@@ -144,7 +171,13 @@ def main() -> int:
 
     blk = b.sales_actuals_block(chain_rupees, rows, cfg)
     per_month = {}
-    for mon, m in sorted(months.items()):
+    def _mkey(lbl):
+        try:
+            mon3, yy = lbl.split("-")
+            return (int(yy), b._MON3_NUM.get(mon3, 99))
+        except (ValueError, AttributeError):
+            return (9999, 99)
+    for mon, m in sorted(months.items(), key=lambda kv: _mkey(kv[0])):
         mr = [r for r in rows if r["month"] == mon]
         mb = b.sales_actuals_block(chain_rupees, mr, cfg)
         per_month[mon] = {
@@ -158,14 +191,14 @@ def main() -> int:
             "unmatched_zone_spellings": sorted(m["unmatched_zones"])[:10],
         }
     blk["by_month"] = per_month
-    blk["months_present"] = sorted(months)
+    blk["months_present"] = sorted(months, key=_mkey)
     blk["fy_tag"] = fy
     blk["hierarchy_stores"] = len(woa) or None
     # Period honesty: chain sales here is the whole FY window the offtake block
     # publishes, while DMS covers only the months supplied. Saying so stops the
     # consolidated figure being read as a like-for-like total.
     chain_months = off.get(f"months_{fy.lower()}") or []
-    dms_months = sorted(months)
+    dms_months = sorted(months, key=_mkey)
     blk["chain_sales_period"] = chain_months
     blk["dms_period"] = dms_months
     missing = [m for m in chain_months if m not in dms_months]
@@ -180,8 +213,10 @@ def main() -> int:
     blk["privacy"] = ("Aggregates only. No client name, employee name or employee ID is "
                       "emitted here. Source extracts stay outside the repo.")
 
-    data["sales_actuals"] = blk
-    data["readiness"] = b.readiness_gate(data, cfg)
+    blk["scope"] = "INCENTIVE_ONLY"
+    blk["scope_note"] = ("DMS/Massit is used for the incentive working only. It is "
+                         "deliberately absent from the commercial reports, which stay "
+                         "on chain sales.")
 
     print(f"\n  months            : {', '.join(blk['months_present'])}")
     print(f"  chain sales       : Rs {blk['chain_sales']/1e7:,.2f} Cr ({blk['chains_with_chain_sales']} chains)")
@@ -197,8 +232,9 @@ def main() -> int:
 
     if a.dry_run:
         print("\n(--dry-run: nothing written)"); return 0
-    outp.write_text(PREFIX + json.dumps(data, ensure_ascii=False, indent=1) + ";\n", encoding="utf-8")
-    print(f"\nWrote {outp} ({outp.stat().st_size/1e6:.1f} MB)")
+    outp.parent.mkdir(parents=True, exist_ok=True)
+    outp.write_text(json.dumps(blk, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"\nWrote {outp} ({outp.stat().st_size/1e3:.0f} KB) — INCENTIVE SCOPE, gitignored")
     return 0
 
 

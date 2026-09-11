@@ -867,45 +867,6 @@ function targetRows(rows){
       <td>${crc(r.gap)}</td><td>${r.contribution_pct!=null?r.contribution_pct.toFixed(1)+'%':'–'}</td></tr>`;
   }).join('');
 }
-// ---- Sales source coverage: chain first, DMS gap-fill only -----------------
-function salesSourceSection(){
-  const S=D.sales_actuals; if(!S) return '';
-  const cr=v=>v==null?'–':'₹'+(v/1e7).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr';
-  const rows=(S.by_client_type||[]).map(t=>`<tr>
-    <td>${t.client_type}</td><td>${t.clients}</td><td>${cr(t.value)}</td>
-    <td>${t.maps_to_chain||'–'}</td>
-    <td><span class="pill ${t.status==='GAP_FILL'?'g':t.status==='DUPLICATE'?'':'r'}">${t.status.replace('_',' ')}</span></td>
-    <td>${t.status==='DUPLICATE'?'Excluded — already in chain sales'
-        :t.status==='GAP_FILL'?'Included — chain has no coverage'
-        :'Held as an exception — chain unresolved'}</td></tr>`).join('');
-  const mrows=Object.entries(S.by_month||{}).map(([m,v])=>`<tr>
-    <td>${m}</td><td>${v.dms_clients==null?'–':v.dms_clients.toLocaleString('en-IN')}</td>
-    <td>${v.hierarchy_coverage_pct==null?'–':v.hierarchy_coverage_pct.toFixed(1)+'%'}</td>
-    <td>${cr(v.dms_value)}</td><td>${cr(v.duplicate_excluded)}</td>
-    <td>${cr(v.gap_fill)}</td><td>${cr(v.unmapped)}</td></tr>`).join('');
-  const warn=S.period_warning?`<p class="note" style="margin:0 0 16px;border-left:4px solid var(--amber);padding-left:10px">
-     <b>⚠ Periods are not aligned.</b> ${S.period_warning}</p>`:'';
-  return `<h2 class="sec" style="margin-top:32px">Sales Source Coverage — chain vs DMS</h2>
-   <p class="lead">Chain sales is authoritative. DMS (Massit) is used only where a chain has no chain-sales coverage — never added on top.</p>
-   ${warn}
-   ${gateNote('sales_consolidation')}
-   <div class="kpis">
-     ${kpi('Chain sales',cr(S.chain_sales),`${S.chains_with_chain_sales} chains · authoritative`)}
-     ${kpi('DMS gap-fill added',cr(S.massit_gap_fill),'chains with no chain-sales coverage')}
-     ${kpi('DMS duplicate excluded',cr(S.massit_duplicate_excluded),'<span class="down">already inside chain sales</span>')}
-     ${kpi('Consolidated actual',cr(S.consolidated_actual),`reconciliation <span class="pill ${S.reconciliation&&S.reconciliation.status==='PASS'?'g':'r'}">${(S.reconciliation||{}).status||'–'}</span>`)}
-   </div>
-   <p class="note" style="margin:0 0 16px"><b>Double counting avoided: ${cr(S.double_count_avoided)}.</b>
-     Adding the two sources would have reported ${cr(S.naive_sum_would_be)} instead of ${cr(S.consolidated_actual)}.
-     ${S.note||''}</p>
-   ${card('By DMS client type','What each DMS client type contributes, and whether it is already covered by chain sales.',
-     `<div class="tablewrap"><table><thead><tr><th>DMS client type</th><th>Clients</th><th>DMS value</th><th>Maps to chain</th><th>Verdict</th><th>Treatment</th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="6">No DMS data ingested.</td></tr>'}</tbody></table></div>`)}
-   ${card('By month','DMS coverage and how much of it was excluded as duplicate.',
-     `<div class="tablewrap"><table><thead><tr><th>Month</th><th>DMS clients</th><th>Store hierarchy covered</th><th>DMS value</th><th>Duplicate excluded</th><th>Gap-fill</th><th>Unmapped</th></tr></thead>
-      <tbody>${mrows||'<tr><td colspan="7">–</td></tr>'}</tbody></table></div>`)}
-   <p class="note">${S.privacy||''}</p>`;
-}
 function targetSection(){
   const T=D.targets; if(!T||!T.measures) return '';
   const m=T.measures[T.basis]; if(!m) return '';
@@ -1024,7 +985,6 @@ function buildExecutiveCockpit(){
    </div>
    ${drillCardHtml('cockpitDrill','Primary NSV')}
    ${targetSection()}
-   ${salesSourceSection()}
    <h2 class="sec" style="margin-top:32px">Data Insights &amp; Way Forward</h2>
    <div class="ins">${insightCards}</div>
    ${card('Recommended Actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;

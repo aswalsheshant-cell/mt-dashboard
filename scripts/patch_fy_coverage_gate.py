@@ -177,7 +177,7 @@ def main() -> int:
     #    detail_records, so both paths produce the same blocks.
     cfg = b.load_analytics_config(REPO)
     if cfg:
-        data["config"] = {k: v for k, v in cfg.items() if not k.startswith("_")}
+        data["config"] = b.public_config(cfg)
         changes.append("config: embedded from config/analytics_config.json")
     adf = b.frame_from_records(data.get("detail_records"), dmeta)
     if adf is not None:
