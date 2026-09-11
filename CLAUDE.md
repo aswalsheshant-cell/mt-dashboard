@@ -348,6 +348,28 @@ event, not a failure — the workflow below is what makes it harmless.
 
 ---
 
+## Knowledge base — read before solving an unfamiliar problem
+
+`docs/knowledge/` holds compact, sourced articles on **how** to do something
+correctly (incentive governance, target/quota scope, master-data matching, Power
+Query quality, star schema and bridge tables, effective-dated rules, RLS, Excel
+engineering, the privacy boundary). `docs/knowledge/INDEX.md` routes a task to the
+one or two articles it needs — loading all ten for every task defeats the purpose.
+
+Escalation order for an unknown problem: internal project docs → these articles →
+only then an authoritative external source.
+
+**The rule that governs the whole base:** external knowledge says HOW to build and
+govern something; it never says WHAT our rule is. Target basis, employee grade,
+incentive policy, payout rules and ownership mappings come from Finance / HR / MT
+Leadership. When one is unresolved, return
+`INTERNAL_BUSINESS_CONFIRMATION_REQUIRED` rather than filling the gap externally.
+
+`tests/test_knowledge_base.py` fails when an article loses its sources, goes past
+its review date, or picks up a real employee identifier.
+
+---
+
 ## Conventions
 
 - **Branches/PRs:** one focused branch per change; open PRs as **draft**; do not
