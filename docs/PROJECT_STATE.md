@@ -18,7 +18,7 @@ business inputs. Environment resilience added.
 
 ## Last Validated Commit
 
-`f01ed02` — Environment resilience: resume recovery, health check, project state
+`3127bad` — Correct PROJECT_STATE: record f01ed02 and point to the next phase
 Validated: 2026-09-11
 
 > A milestone's own commit hash does not exist while this file is being written
@@ -27,10 +27,9 @@ Validated: 2026-09-11
 
 ## Next Approved Task
 
-Build the incentive identity foundation: WoA person -> Employee ID candidate
-mapping (proposed only, never auto-approved), and the business-input templates
-that unblock payout — incentive grade, role-level targets, target basis, and
-the C1-C6 rule confirmations.
+Send the six restricted templates in `incentive_working/` to their owners and
+load the returned decisions. Nothing further can be built until they come back.
+Then: employee/store actual attribution, still stopping before payout.
 Do NOT calculate any incentive payout. Do NOT start NPD, OSA/OOS,
 profitability or persona reporting — all gated.
 One bounded component per run: implement, validate, commit, stop.
@@ -51,7 +50,7 @@ One bounded component per run: implement, validate, commit, stop.
 ## Partial Capabilities
 
 - Store-grain sales — dedup runs at chain level; store-grain chain offtake not in the build
-- Employee attribution — DMS client id joins the store hierarchy; hierarchy carries names, not IDs
+- Employee attribution — WoA identity register built (67 person-values: 28 one-line rule approvals, 3 exceptions, 36 no candidate). All PENDING owner approval; nothing auto-assigned
 - Focus Pack — EAN source registered (F1/F2); achievement not computed (EAN→brand map needed)
 - WoA — working sheet available; the WoA formula itself is not stated
 
@@ -92,6 +91,9 @@ One bounded component per run: implement, validate, commit, stop.
 - Payout caps and the BDE Q1-only top-up restriction are not encoded in the slab sheet.
 - `unit_economics.nsv_per_unit` is degenerate (0.02 everywhere); PVM uses article Qty instead.
 - 5 pre-existing ruff F541 findings in `build_dashboard_data.py` (cosmetic, untouched).
+- `tests/test_article_uniqueness.py` and `tests/test_business_validation_dax.py` are
+  pytest-based and error on import because pytest is not installed. Pre-existing;
+  `python3 -m unittest discover tests` reports 2 errors for this reason alone.
 
 ## Regression Baseline
 
