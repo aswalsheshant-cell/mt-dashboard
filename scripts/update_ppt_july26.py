@@ -8,6 +8,10 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from input_paths import resolve_input
 
 # Color palette (modern MT theme)
 NAVY = RGBColor(13, 27, 42)           # #0D1B2A (dark background)
@@ -1136,7 +1140,10 @@ def save_presentation(prs, output_path):
 def main():
     # Load the original presentation (or create new one)
     try:
-        prs = Presentation("/root/.claude/uploads/fca9dc4c-355d-55d2-8fb3-9c3700ee1ff0/290aa690-MT_MarketShare_Leadership_Deck_July26.pptx")
+        prs = Presentation(resolve_input(
+        flag="--deck", env="MT_MARKETSHARE_DECK",
+        describe="the July-26 market-share leadership deck",
+        repo_default="MT_July26_MarketShare_Leadership_V3_16Slides.pptx"))
         print("✓ Loaded existing presentation")
     except Exception as e:
         print(f"Note: {e}. Creating new presentation.")

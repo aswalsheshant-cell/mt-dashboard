@@ -12,6 +12,10 @@ Data sources:
 from pptx import Presentation
 from pptx.util import Pt, Emu
 import re
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from input_paths import resolve_input
 
 # =====================================================================
 # NEW DATA MAPPING (File 1 Nielsen + File 2 MT Ops + File 3 Current)
@@ -281,7 +285,10 @@ def update_pptx_with_insights(pptx_path, output_path):
     return output_path
 
 if __name__ == "__main__":
-    input_path = "/root/.claude/uploads/fca9dc4c-355d-55d2-8fb3-9c3700ee1ff0/486c9290-MT_July26_Final_to_be_update.pptx"
+    input_path = resolve_input(
+        flag="--src", env="MT_DECK_FILE",
+        describe="the July-26 deck to inject insights into",
+        repo_default="MT_July26_Final_UPDATED_with_All3_Insights_v1.pptx")
     output_path = "/home/user/mt-dashboard/MT_July26_Final_UPDATED_with_All3_Insights_v1.pptx"
 
     update_pptx_with_insights(input_path, output_path)

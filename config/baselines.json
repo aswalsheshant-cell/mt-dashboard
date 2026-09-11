@@ -1,0 +1,82 @@
+{
+  "_README": "Protected values in dashboard/data.js. Checked by scripts/ci_validate_datajs.py and tests/test_baseline_invariants.py. The point is that these cannot change SILENTLY -- a deliberate change means editing this file and saying why, which shows up in review. Seeded from the live data.js, never hand-typed.",
+  "_classes": {
+    "frozen_history": "A closed financial year. History does not change. Exact equality; a mismatch is a defect in the build, never an update.",
+    "approved_current": "A business-approved figure for the CURRENT FY. Exact equality. Changing it needs the named owner's approval and a new FY key.",
+    "tracked_universe": "Legitimately evolves (stores open and close). Not frozen: the test asserts it is present, positive, and equal to the value recorded here -- so a refresh is a deliberate edit, not a silent drift."
+  },
+  "checks": [
+    {
+      "key": "offtake_fy26_total",
+      "path": "offtake.total_fy26",
+      "expected": 31119.87,
+      "unit": "INR Lakh",
+      "class": "frozen_history",
+      "tolerance": 0.01,
+      "why": "FY26 closed Mar-26. Every build must reproduce it.",
+      "owner": "MT Analytics"
+    },
+    {
+      "key": "primary_nsv_fy26",
+      "path": "primary.nsv_fy26",
+      "expected": 32900.36,
+      "unit": "INR Lakh",
+      "class": "frozen_history",
+      "tolerance": 0.01,
+      "why": "Gross Primary NSV baseline named in CLAUDE.md's Reliance safeguard.",
+      "owner": "MT Analytics"
+    },
+    {
+      "key": "forecast_fy26_actual",
+      "path": "forecast.fy26_actual",
+      "expected": 31119.88,
+      "unit": "INR Lakh",
+      "class": "frozen_history",
+      "tolerance": 0.01,
+      "why": "The actual the FY27 forecast is built from.",
+      "owner": "MT Analytics"
+    },
+    {
+      "key": "fy27_target",
+      "path": "targets.fy_target",
+      "expected": 44132.86,
+      "unit": "INR Lakh",
+      "class": "approved_current",
+      "tolerance": 0.01,
+      "fy": "FY27",
+      "why": "Business target for FY27 (Rs 441.33 Cr). Approved figure.",
+      "owner": "MT Leadership / Finance"
+    },
+    {
+      "key": "fy27_forecast",
+      "path": "forecast.fy27_forecast",
+      "expected": 44132.86,
+      "unit": "INR Lakh",
+      "class": "approved_current",
+      "tolerance": 0.01,
+      "fy": "FY27",
+      "why": "Must stay equal to the FY27 target; a drift between them is a build defect.",
+      "owner": "MT Leadership / Finance"
+    },
+    {
+      "key": "active_stores",
+      "path": "universe.active_stores",
+      "expected": 426,
+      "unit": "stores",
+      "class": "tracked_universe",
+      "tolerance": 0,
+      "why": "MT Universe active-store count. Update deliberately on a universe refresh.",
+      "owner": "MT Ops"
+    },
+    {
+      "key": "n_chains",
+      "path": "universe.n_chains",
+      "expected": 20,
+      "unit": "chains",
+      "class": "tracked_universe",
+      "tolerance": 0,
+      "why": "Verified MT chain count. Update deliberately when a chain is added or retired.",
+      "owner": "MT Ops"
+    }
+  ]
+}

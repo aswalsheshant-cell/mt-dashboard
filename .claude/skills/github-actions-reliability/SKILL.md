@@ -9,6 +9,9 @@ description: |
   "workflow dispatch", "workflow not running", "red deployment badge", "Development red",
   "workflow empty", "workflow invalid", "missing workflow", "actions disabled".
   Do NOT use for Python code bugs, data pipeline issues, or dashboard UI changes.
+  Do NOT use when the workflow ran and a test, lint or compile step failed - that is a
+  code failure, hand off to ci-autofix. This skill owns failures where the job never
+  got as far as running the code.
 ---
 
 # GitHub Actions Reliability Guardian

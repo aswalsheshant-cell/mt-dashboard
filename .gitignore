@@ -54,3 +54,19 @@ data/raw_drops/*
 !data/raw_drops/_agg/
 data/raw_drops/_agg/*
 !data/raw_drops/_agg/*.json
+
+# ---- Confidential HR / incentive / DMS source extracts --------------------
+# These carry employee names, employee IDs and DMS client names. dashboard/ is
+# published to GitHub Pages, so none of this may enter the repo. Aggregate them
+# with scripts/ingest_massit_sales.py, which emits non-identifying totals only.
+Massit*.csv
+*Massit*.csv
+*INCENTIVE*.xlsx
+*INCENTIVE*.csv
+*Incentive_criteria*.csv
+*INCENTIVE_COMMUNICATION*.docx
+*WOA_*working_sheet*.csv
+*fOCUS_PACK*.csv
+*FOCUS_PACK*.csv
+employee_master*.csv
+incentive_working/

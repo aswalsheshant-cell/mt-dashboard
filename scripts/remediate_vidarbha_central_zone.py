@@ -27,7 +27,13 @@ SEED_MST  = os.path.join(ROOT, "PowerBI/SeedData/Masters")
 OFT_DIR   = os.path.join(ROOT, "PowerBI/RawDataFolders/Offtake_Monthly")
 PRI_DIR   = os.path.join(ROOT, "PowerBI/RawDataFolders/Primary_Article_Monthly")
 SHP_DIR   = os.path.join(ROOT, "PowerBI/RawDataFolders/Primary_ShipTo_Monthly")
-NPI_SRC   = "/root/.claude/uploads/f72862e2-ac8f-514a-a251-d4833c7268e5/74ad52cf-MT_Chain_Wise__Article_Wise_NPI_for_TY__Central_mapping_for_maharastra.xlsx"
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from input_paths import resolve_input
+NPI_SRC = resolve_input(
+    flag="--npi", env="MT_NPI_FILE",
+    describe="the chain-wise / article-wise NPI workbook for TY")
 
 VIDARBHA_CITIES = [
     "nagpur", "amravati", "akola", "chandrapur", "wardha",

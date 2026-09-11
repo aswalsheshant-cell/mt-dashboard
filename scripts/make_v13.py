@@ -4,7 +4,14 @@ from pptx.oxml.ns import qn
 from lxml import etree
 import copy, re
 
-SRC = "/root/.claude/uploads/55682d72-6b69-5e1a-b307-5d5ff59817ad/3f5aae9c-MT_Jul26_Honasa_Finalv12.pptx"
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from input_paths import resolve_input
+SRC = resolve_input(
+    flag="--src", env="MT_DECK_FILE",
+    describe="the source MT deck to build v13 from",
+    repo_default="MT_Jul26_Honasa_Finalv18.pptx")
 DST = "/home/user/mt-dashboard/MT_Jul26_Honasa_Finalv13.pptx"
 
 prs = Presentation(SRC)

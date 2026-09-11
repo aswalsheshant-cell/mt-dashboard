@@ -14,9 +14,10 @@ Usage:
       --excel /path/to/Chain_Wise_Primary_Sale.xlsx \
       --out dashboard/data.js
 
-Default excel path: /root/.claude/uploads/55682d72.../Chain_Wise_Primary_Sale.xlsx
+--excel is required: the workbook is a gitignored source file, so there is no
+default. Set MT_CHAIN_PRIMARY_FILE instead if you prefer an environment variable.
 """
-import argparse, json, re, sys
+import argparse, json, os, re, sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -28,8 +29,9 @@ try:
 except ImportError:
     sys.exit("pip install openpyxl required")
 
-DEFAULT_EXCEL = ('/root/.claude/uploads/55682d72-6b69-5e1a-b307-5d5ff59817ad'
-                 '/bc91b3cc-Chain_Wise_Primary_Sale.xlsx')
+# No default: the old one pointed into a Claude session's upload directory,
+# which does not survive a new container. Falls back to an env var, then errors.
+DEFAULT_EXCEL = os.environ.get("MT_CHAIN_PRIMARY_FILE")
 DEFAULT_OUT   = 'dashboard/data.js'
 
 def r2(v):

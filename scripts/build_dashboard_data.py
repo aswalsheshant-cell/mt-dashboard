@@ -46,6 +46,9 @@ from allocate_dist_enhanced import apply_chain_allocation_enhanced, compute_dyna
 # ---------------------------------------------------------------------------
 _MON3_NUM = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,
              "Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+# month number -> "Mon" label, so a date can be turned into the canonical
+# "Mon-YY" key the offtake/fyx month series already use.
+_CAL_MON3 = {v: k for k, v in _MON3_NUM.items()}
 
 def fy_tag_from_ym(year, month):
     """Calendar (year, month) -> 'FY27' style tag. Apr-2026 -> FY27; Mar-2026 -> FY26."""
@@ -86,6 +89,24 @@ def month_labels(start_year=2024, n_months=24):
         if m == 13:
             m, y = 1, y + 1
     return out
+
+# ---------------------------------------------------------------------------
+# Which FYs the PRE-AGGREGATED Primary/Offtake/P&L workbooks actually cover.
+# Those workbooks end Mar'26. Any FY beyond this window is owned by the
+# article-level source instead and is published under
+# detail_meta.fyx_primary[<FY>] -- see CLAUDE.md "Coverage split".
+#
+# This is a statement about SOURCE FILE COVERAGE, not about FY derivation:
+# THE ONE FY RULE still derives every FY tag from month+year. When the
+# pre-aggregated workbooks are next extended past Mar'26, add that tag here
+# (it is echoed into metadata.preagg_fy_tags so the current value is always
+# visible in the generated data.js).
+PREAGG_FY_TAGS = {"FY25", "FY26"}
+
+# Repo root, at module scope. main() assigns an identical local; defining it
+# here as well lets helper functions (and the patch script) resolve repo-
+# relative config/seed paths without threading the path through every call.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def quarter_labels_for(months):
     """Q-col labels for load_offtake()'s Sheet3 (zone/state) pivot: one
@@ -642,10 +663,34 @@ def primary_block(df):
     # source-FY column value -> canonical tag ('FY_24-25' -> 'FY25')
     src_fys = [k for k in df["FY"].dropna().unique()]
     tag_of = {k: _fylabel(k) for k in src_fys}
-    tags = sorted({t for t in tag_of.values() if t}, key=fy_start_year)
+    _all_tags = sorted({t for t in tag_of.values() if t}, key=fy_start_year)
+    # COVERAGE GATE: this workbook is the pre-aggregated Primary extract, which
+    # ends Mar'26. It can still carry a handful of stray rows for a later FY
+    # (an early Apr-26 billing batch, a manual add) -- those are PARTIAL and are
+    # not this source's to publish. Emitting them as first-class nsv_fyNN keys
+    # made the dashboard treat that FY as fully covered here, which (a) silently
+    # understated it and (b) switched off the partial-year guards downstream,
+    # because index.html derives PREAGG_FYS from exactly these keys.
+    # The article-level source owns those FYs and publishes them under
+    # detail_meta.fyx_primary[<FY>]. Drop them here rather than compete.
+    tags = [t for t in _all_tags if t in PREAGG_FY_TAGS]
+    _dropped = [t for t in _all_tags if t not in PREAGG_FY_TAGS]
     keys_of = {t: [k for k, tt in tag_of.items() if tt == t] for t in tags}
     lo = [t.lower() for t in tags]
     out["fy_tags"] = lo
+    if _dropped:
+        # Auditable, not silent: record what this source held back and why.
+        _held = {}
+        for t in _dropped:
+            _k = [k for k, tt in tag_of.items() if tt == t]
+            _held[t.lower()] = r2(float(df[df["FY"].isin(_k)]["NSV"].sum()))
+        out["coverage_note"] = (
+            f"{', '.join(t.upper() for t in _dropped)} rows present in this "
+            f"pre-aggregated workbook are PARTIAL ({_held}, INR Lakh) and are "
+            f"not published here. Those FYs are owned by the article-level "
+            f"source: see detail_meta.fyx_primary. Source coverage = "
+            f"{sorted(PREAGG_FY_TAGS)}.")
+        out["coverage_withheld"] = _held
 
     def fy_get(series, t):
         return float(sum(series.get(k, 0) or 0 for k in keys_of[t]))
@@ -2795,10 +2840,850 @@ def forecast_block_ty(off, ty_rows):
                       "page uses this same TY target file -- PowerBI/docs/PageLayouts.md Page 5)."}
 
 # --------------------------------------------------------------------------
+# CONFIG / READINESS GATE / MAPPING HEALTH
+# --------------------------------------------------------------------------
+_CONFIG_CACHE = {}
+
+def load_analytics_config(repo_root=None):
+    """config/analytics_config.json -- business thresholds and basis choices.
+
+    Kept out of the formulas so a threshold change is a config edit and a
+    review conversation, not a code change buried in a template string.
+    Returns {} if the file is absent; every consumer must tolerate that.
+    """
+    root = Path(repo_root or _REPO_ROOT)
+    if str(root) in _CONFIG_CACHE:
+        return _CONFIG_CACHE[str(root)]
+    f = root / "config" / "analytics_config.json"
+    cfg = {}
+    if f.exists():
+        try:
+            cfg = json.loads(f.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            print(f"WARN: config/analytics_config.json is not valid JSON ({e}); "
+                  f"falling back to built-in defaults.")
+    _CONFIG_CACHE[str(root)] = cfg
+    return cfg
+
+def public_config(cfg):
+    """The slice of config safe for the published payload.
+
+    dashboard/ goes to GitHub Pages. Sections marked scope=INCENTIVE_ONLY belong
+    to the restricted incentive domain and are dropped here along with the
+    comment keys -- the commercial payload should not carry incentive-domain
+    configuration at all.
+    """
+    def strip(o):
+        if isinstance(o, dict):
+            return {k: strip(v) for k, v in o.items() if not k.startswith("_")}
+        if isinstance(o, list):
+            return [strip(x) for x in o]
+        return o
+    return {k: strip(v) for k, v in (cfg or {}).items()
+            if not k.startswith("_")
+            and not (isinstance(v, dict) and v.get("scope") == "INCENTIVE_ONLY")}
+
+def rag_of(value, band, cfg=None):
+    """'green' / 'amber' / 'red' for a value against a named RAG band."""
+    b = ((cfg or {}).get("rag") or {}).get(band) or {}
+    if value is None or not b:
+        return None
+    g, a = b.get("green"), b.get("amber")
+    if g is None or a is None:
+        return None
+    if b.get("lower_is_better"):
+        return "green" if value <= g else ("amber" if value <= a else "red")
+    return "green" if value >= g else ("amber" if value >= a else "red")
+
+def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
+                         unmapped_label="Unmapped Chain", alloc=None, cfg=None,
+                         repo_root=None):
+    """How much of primary can actually be attributed to a named chain.
+
+    Chain-level primary is only as good as the distributor-to-chain mapping
+    behind it. Today a large share of distributor billing carries no mapping
+    entry and keeps the placeholder chain tag, so a chain table silently reads
+    as if that value did not exist. This block measures that instead of hiding
+    it, and feeds the chain_primary readiness gate.
+    """
+    if chain_col not in df.columns:
+        return None
+    out = {"unmapped_label": unmapped_label, "unit": "INR Lakh", "by_fy": {}}
+    for tag in sorted({t for t in df[fy_col].dropna().unique() if t}, key=fy_start_year):
+        d = df[df[fy_col] == tag]
+        total = float(d[nsv_col].sum())
+        un = float(d[d[chain_col] == unmapped_label][nsv_col].sum())
+        pct = r2((total - un) / total * 100) if total else None
+        out["by_fy"][tag] = {
+            "total_nsv": r2(total), "mapped_nsv": r2(total - un), "unmapped_nsv": r2(un),
+            "completeness_pct": pct,
+            "rag": rag_of(pct, "mapping_completeness_pct", cfg),
+        }
+    # Exception register: where the unmapped value actually sits, biggest first,
+    # so the owner works the list in value order rather than alphabetically.
+    rows = []
+    for r in ((alloc or {}).get("missing_mapping") or []):
+        rows.append({k: r.get(k) for k in ("fy", "month", "brand", "cust_code", "ship_to", "nsv", "rows")})
+    agg = {}
+    for r in rows:
+        k = (r.get("cust_code"), r.get("ship_to"))
+        a = agg.setdefault(k, {"cust_code": k[0], "ship_to": k[1], "nsv": 0.0,
+                               "rows": 0, "months": set(), "brands": set()})
+        a["nsv"] += float(r.get("nsv") or 0); a["rows"] += int(r.get("rows") or 0)
+        if r.get("month"): a["months"].add(r["month"])
+        if r.get("brand"): a["brands"].add(r["brand"])
+    ex = sorted(agg.values(), key=lambda d: -d["nsv"])
+    tot_ex = sum(d["nsv"] for d in ex) or 1.0
+    run = 0.0
+    for d in ex:
+        run += d["nsv"]
+        d["nsv"] = r2(d["nsv"]); d["months"] = sorted(d["months"]); d["brands"] = sorted(d["brands"])
+        d["cumulative_pct"] = r2(run / tot_ex * 100)
+    out["exceptions"] = ex[:60]
+    out["exception_count"] = len(ex)
+    out["exception_nsv"] = r2(tot_ex)
+    out["note"] = (
+        "Distributor rows with no matching entry in the cont% allocation master keep "
+        "their original chain tag. Value is NOT lost (allocation reconciles to zero "
+        "variance) but it cannot be attributed to a named chain, so chain-level primary "
+        "is understated by this amount. Work the exception list in value order.")
+    # Proposals, if a suggestion file exists. These are SUGGESTIONS and are never
+    # applied here: assigning a distributor to a chain is a business decision with
+    # a named owner, not something a build step may infer.
+    sug = Path(repo_root or _REPO_ROOT) / "data" / "unmapped_chains_bridge_suggested.csv"
+    if sug.exists():
+        props = []
+        try:
+            with open(sug, newline="", encoding="utf-8-sig") as fh:
+                for r in csv.DictReader(fh):
+                    props.append({
+                        "ship_to": r.get("ship_to"), "cust_code": r.get("cust_code"),
+                        "nsv": r2(float(r.get("total_nsv_lakh") or 0)),
+                        "suggested_chain": r.get("suggested_chain"),
+                        "suggested_zone": r.get("suggested_zone"),
+                        "confidence": r.get("confidence"),
+                        "cumulative_coverage_pct": r2(float(r.get("cumulative_coverage_pct") or 0)),
+                        "status": "PROPOSED — awaiting business owner approval",
+                    })
+        except (ValueError, KeyError):
+            props = []
+        if props:
+            out["proposals"] = props
+            out["proposals_nsv"] = r2(sum(p["nsv"] for p in props))
+            out["proposals_note"] = (
+                "PROPOSED ONLY — not applied. Source: data/unmapped_chains_bridge_suggested.csv. "
+                "Approving a distributor-to-chain mapping is a business decision with a named "
+                "owner; the build never infers one. Approve rows into the mapping master, "
+                "re-run the allocation, and this register shrinks on its own.")
+    return out
+
+def readiness_gate(data, cfg=None):
+    """Is each analytical layer allowed to present itself as authoritative?
+
+    A layer that runs on inputs it needs but does not have produces a number
+    that looks finished and is not. Each gate states its precondition, what it
+    measured, and what would unblock it -- so a blocked layer explains itself
+    instead of showing a confident zero.
+    """
+    cfg = cfg or {}
+    rules = (cfg.get("readiness") or {})
+    out, order = {}, [k for k in rules if not k.startswith("_")]
+
+    def put(key, status, measured, detail=None):
+        r = rules.get(key) or {}
+        out[key] = {"label": r.get("label", key), "status": status,
+                    "requires": r.get("requires"), "measured": measured,
+                    "unblocks_with": r.get("unblocks_with")}
+        if detail:
+            out[key].update(detail)
+
+    mh = data.get("mapping_health") or {}
+    cur = None
+    if mh.get("by_fy"):
+        cur_tag = sorted(mh["by_fy"], key=fy_start_year)[-1]
+        cur = mh["by_fy"][cur_tag]
+    if "chain_primary" in rules:
+        floor = (rules["chain_primary"] or {}).get("min_mapping_completeness_pct")
+        got = (cur or {}).get("completeness_pct")
+        ok = got is not None and floor is not None and got >= floor
+        put("chain_primary", "PASS" if ok else "BLOCKED",
+            f"mapping completeness {got}%" if got is not None else "not measured",
+            {"threshold": floor, "value": got})
+
+    if "pvm" in rules:
+        pv = data.get("pvm") or {}
+        asp = ((pv.get("curr") or {}).get("asp"))
+        floor = (rules["pvm"] or {}).get("min_asp_rupees")
+        ok = asp is not None and floor is not None and asp >= floor
+        put("pvm", "PASS" if ok else "BLOCKED",
+            f"blended ASP Rs {asp}/unit" if asp is not None else "ASP not computable",
+            {"threshold": floor, "value": asp})
+
+    if "profitability" in rules:
+        cols = set((data.get("detail_meta") or {}).get("columns") or [])
+        has_cost = bool(cols & {"COGS", "Cost", "StdCost", "Margin"})
+        put("profitability", "PASS" if has_cost else "BLOCKED",
+            "cost/margin field present" if has_cost else "no cost or margin field at the reporting grain")
+
+    if "scorecard_execution" in rules:
+        # compliance/inventory metrics ship as a runtime sidecar the dashboard
+        # fetches separately, so they are not in `data`. Read the sidecar here
+        # rather than reporting "no data" for a file that exists.
+        comp = data.get("compliance") or {}
+        if not comp:
+            _cf = Path(_REPO_ROOT) / "dashboard" / "compliance_metrics.json"
+            if _cf.exists():
+                try:
+                    comp = (json.loads(_cf.read_text(encoding="utf-8")) or {}).get("compliance") or {}
+                except json.JSONDecodeError:
+                    comp = {}
+        doors = ((comp.get("metadata") or {}).get("total_doors_audited"))
+        univ = ((data.get("universe") or {}).get("active_stores"))
+        covp = r2(doors / univ * 100) if doors and univ else None
+        floor = (rules["scorecard_execution"] or {}).get("min_audit_coverage_pct")
+        ok = covp is not None and floor is not None and covp >= floor
+        put("scorecard_execution", "PASS" if ok else "BLOCKED",
+            f"audit coverage {covp}% ({doors} of {univ} stores)" if covp is not None
+            else "no store-audit data in this build",
+            {"threshold": floor, "value": covp})
+
+    if "npd" in rules:
+        put("npd", "BLOCKED", "NPD master not joined to the transaction grain")
+
+    if "sales_consolidation" in rules:
+        # DMS/Massit is incentive-scope only by business instruction, so it is
+        # deliberately absent from this payload. The gate records that rather
+        # than reporting a missing block as a failure.
+        put("sales_consolidation", "N/A",
+            "DMS is incentive-scope only; the commercial payload stays on chain sales")
+
+    if "incentive" in rules:
+        # Every mandatory input, named. A missing one blocks the affected role
+        # rather than defaulting to a middle tier -- this decides real pay.
+        have = {
+            "slab master": bool(data.get("incentive_slabs")),
+            "employee incentive grade": False,
+            "role-scope targets": bool(((data.get("targets") or {}).get("measures") or {}).get("by_chain")),
+            "target basis confirmed": bool(((cfg.get("target") or {}).get("basis_confirmed_by"))),
+            "emerging-brand rule": ((cfg.get("brands") or {}).get("emerging_rule")) is not None,
+        }
+        miss = [k for k, v in have.items() if not v]
+        put("incentive", "PASS" if not miss else "BLOCKED",
+            f"{len(have) - len(miss)} of {len(have)} mandatory inputs present"
+            + (f"; missing: {', '.join(miss)}" if miss else ""))
+
+    if "persona_reporting" in rules:
+        sa = data.get("sales_actuals") or {}
+        hs = sa.get("hierarchy_stores")
+        put("persona_reporting", "BLOCKED",
+            (f"hierarchy covers {hs} stores but carries names, not employee IDs"
+             if hs else "store-employee hierarchy not ingested"))
+
+    blocked = [k for k in order if (out.get(k) or {}).get("status") == "BLOCKED"]
+    return {"gates": out, "blocked": blocked,
+            "summary": f"{len(order) - len(blocked)} of {len(order)} layers ready",
+            "note": ("A BLOCKED layer is not broken -- its inputs are not in place yet. "
+                     "It reports why rather than presenting an incomplete number as final.")}
+
+# --------------------------------------------------------------------------
+# TARGET / ACHIEVEMENT / RUN RATE
+# --------------------------------------------------------------------------
+# Which measure the business target is set against. forecast_block_ty already
+# compares this same target file to OFFTAKE, so that stays the default here --
+# one place to change it, and the choice is published in the output so nobody
+# has to guess which basis a number on screen was built on.
+TARGET_BASIS = "offtake"
+
+# Required-vs-current run-rate bands. Business thresholds belong in one named
+# place, not inlined in a formula.
+RUNRATE_BANDS = ((1.00, "Ahead"), (1.05, "On Track"), (1.15, "At Risk"))
+
+def load_targets_csv(repo_root):
+    """Monthly business target from the tracked seed CSV
+    (PowerBI/SeedData/Targets/FY2627_Targets.csv -- same numbers the Power BI
+    Targets query reads). Returns [(FY tag, 'Mon-YY', value_in_Lakh)] or None.
+
+    This is the committed fallback for load_ty_target()'s .xlsb, which is
+    gitignored and so is not present in every environment."""
+    f = Path(repo_root) / "PowerBI" / "SeedData" / "Targets" / "FY2627_Targets.csv"
+    if not f.exists():
+        return None
+    rows = []
+    with open(f, newline="", encoding="utf-8-sig") as fh:
+        for r in csv.DictReader(fh):
+            try:
+                d = datetime.date.fromisoformat(r["MonthStart"].strip())
+                cr = float(r["Target NSV Cr"])
+            except (KeyError, ValueError, AttributeError):
+                continue                      # skip a malformed row, keep the rest
+            rows.append((d, fy_tag_from_ym(d.year, d.month),
+                         f"{_CAL_MON3[d.month]}-{d.year % 100:02d}",
+                         r2(cr * 100)))       # Cr -> Lakh
+    # sort CHRONOLOGICALLY -- sorting the "Mon-YY" label as text puts Aug
+    # before Jan and silently reorders the fiscal year.
+    rows.sort(key=lambda x: x[0])
+    return [(tag, lbl, v) for _d, tag, lbl, v in rows] or None
+
+def _runrate_status(required, current):
+    if not current or required is None:
+        return None
+    ratio = required / current
+    for limit, label in RUNRATE_BANDS:
+        if ratio <= limit:
+            return label
+    return "Critical"
+
+def _achv(actual, target):
+    """Achievement / gap / gap% for one actual-vs-target pair."""
+    if not target:
+        return {"target": r2(target or 0), "actual": r2(actual),
+                "achievement_pct": None, "gap": r2(actual), "gap_pct": None}
+    return {"target": r2(target), "actual": r2(actual),
+            "achievement_pct": r2(actual / target * 100),
+            "gap": r2(actual - target),
+            "gap_pct": r2((actual - target) / target * 100)}
+
+def targets_block(target_rows, actuals, same_period=None):
+    """Target vs achievement vs run rate, for each measure in `actuals`.
+
+    actuals: {"offtake": {"Apr-26": 3588.51, ...}, "primary": {...}}
+             month-keyed so the period-to-date window is DERIVED from the
+             months that actually have actuals -- it extends itself when
+             Aug-26 lands rather than needing a hardcoded month count.
+
+    The target file is total-business monthly only: it carries no zone or
+    chain split. Zone/chain targets are therefore DERIVED by applying each
+    dimension's prior-year same-period contribution to the business target,
+    and every derived row is tagged basis="DERIVED" so it is never mistaken
+    for a business-owned number. To publish owner-set zone/chain targets,
+    supply a zone/chain-level target file and split this on that instead.
+    """
+    if not target_rows:
+        return None
+    fy = target_rows[0][0]
+    tgt_by_month = {lbl: v for tag, lbl, v in target_rows if tag == fy}
+    fy_target = r2(sum(tgt_by_month.values()))
+
+    out = {"fy_tag": fy, "basis": TARGET_BASIS, "unit": "INR Lakh",
+           "fy_target": fy_target, "months_in_fy": len(tgt_by_month),
+           # tgt_by_month is built from chronologically sorted rows, so plain
+           # insertion order is already Apr..Mar.
+           "monthly_target": [{"month": l, "target": v} for l, v in tgt_by_month.items()],
+           "measures": {}, "source": "PowerBI/SeedData/Targets/FY2627_Targets.csv"}
+
+    for measure, series in (actuals or {}).items():
+        months = [m for m in tgt_by_month if series.get(m) is not None]
+        if not months:
+            continue
+        ptd_actual = float(sum(series[m] for m in months))
+        ptd_target = float(sum(tgt_by_month[m] for m in months))
+        elapsed = len(months)
+        remaining = len(tgt_by_month) - elapsed
+        current_rr = ptd_actual / elapsed if elapsed else None
+        required_rr = ((fy_target - ptd_actual) / remaining) if remaining > 0 else None
+        blk = _achv(ptd_actual, ptd_target)
+        blk.update({
+            "months": months, "months_elapsed": elapsed, "months_remaining": remaining,
+            "fy_target": fy_target,
+            "fy_gap": r2(fy_target - ptd_actual),
+            "current_run_rate": r2(current_rr) if current_rr is not None else None,
+            "required_run_rate": r2(required_rr) if required_rr is not None else None,
+            "run_rate_status": _runrate_status(required_rr, current_rr),
+            "monthly": [{"month": m, "actual": r2(series[m]),
+                         "target": r2(tgt_by_month[m]),
+                         "achievement_pct": r2(series[m] / tgt_by_month[m] * 100)
+                         if tgt_by_month[m] else None} for m in months],
+        })
+        # ---- Zone / chain: DERIVED split, never presented as owner-set ----
+        if same_period:
+            for dim in ("by_zone", "by_chain"):
+                rows = same_period.get(dim) or []
+                base = float(sum(r.get("prev") or 0 for r in rows))
+                if not base:
+                    continue
+                split = []
+                for r in rows:
+                    share = (r.get("prev") or 0) / base
+                    d = _achv(float(r.get("curr") or 0), ptd_target * share)
+                    d.update({"name": r["name"], "contribution_pct": r2(share * 100),
+                              "basis": "DERIVED"})
+                    split.append(d)
+                blk[dim] = sorted(split, key=lambda d: -(d["actual"] or 0))
+            blk["dim_target_basis"] = (
+                f"Zone/chain targets are DERIVED: the business target is split by each "
+                f"dimension's {same_period.get('prev_fy', 'prior-FY')} same-period contribution "
+                f"({', '.join(same_period.get('months') or [])}). The target file is "
+                f"total-business monthly only. Replace with a zone/chain-level target "
+                f"file to publish owner-set numbers.")
+        out["measures"][measure] = blk
+    return out or None
+
+def frame_from_records(records, detail_meta=None):
+    """Article-grain DataFrame from detail_records, with the _-prefixed column
+    names the Phase-3 blocks expect.
+
+    Returns None when the records are row-capped: Phase-3 totals would be
+    understated against a partial frame, and a quietly understated number is
+    worse than an absent one. detail_meta.value_coverage_pct reports the cap.
+    """
+    if not records:
+        return None
+    cov = (detail_meta or {}).get("value_coverage_pct")
+    if cov is not None and float(cov) < 100.0:
+        return None
+    return pd.DataFrame([{
+        "_FY": r.get("FY"), "_M": r.get("Month"), "_NSV": r.get("NSV") or 0.0,
+        "_Qty": r.get("Qty") or 0.0, "_MRP": r.get("MRP") or 0.0,
+        "_Chain": r.get("Chain"), "_Zone": r.get("Zone"), "_State": r.get("State"),
+        "_Brand": r.get("Brand"), "_category": r.get("Category"),
+        "_Description": r.get("Article"), "_Chan": r.get("Channel"),
+    } for r in records])
+
+# --------------------------------------------------------------------------
+# CANONICAL NORMALISATION — zones and brands
+# --------------------------------------------------------------------------
+def canon_zone_name(raw, cfg=None):
+    """One canonical zone name from any source system's spelling.
+
+    Four sources spell the same zone four ways: 'South 1' (dashboard),
+    'South-1' (employee master), 'South_1' (WoA), 'SOUTH-1' (Massit). A rule
+    beats an alias list here -- the next source with a fifth spelling is
+    handled without an edit. Returns (canonical, matched) so the caller can
+    keep the raw value and quarantine what did not match rather than guessing.
+    """
+    z = ((cfg or {}).get("zones") or {})
+    canon = z.get("canonical") or []
+    over = {k.lower(): v for k, v in (z.get("explicit_overrides") or {}).items()}
+    if raw is None:
+        return None, False
+    t = re.sub(r"[\-_]+", " ", str(raw).strip())
+    t = re.sub(r"\s+", " ", t).strip()
+    if not t:
+        return None, False
+    if t.lower() in over:
+        return over[t.lower()], True
+    for c in canon:
+        if t.lower() == c.lower():
+            return c, True
+    return t.title(), False          # unmatched: keep it visible, flag it
+
+def is_emerging_brand(brand, cfg=None):
+    """Emerging brand = every MT brand except the core one(s).
+
+    Business-confirmed rule, deliberately expressed as 'all except' rather than
+    a fixed list, so a brand that appears next month is emerging by default --
+    which is what the rule means. Returns None when the brand is missing, so a
+    blank never silently counts as emerging.
+    """
+    b = ((cfg or {}).get("brands") or {})
+    if b.get("emerging_rule") != "all_except":
+        return None
+    if brand is None or not str(brand).strip():
+        return None
+    core = {str(c).strip().lower() for c in (b.get("core_brands") or [])}
+    return str(brand).strip().lower() not in core
+
+# --------------------------------------------------------------------------
+# CONSOLIDATED SALES ACTUALS — chain first, DMS as gap-fill only
+# --------------------------------------------------------------------------
+def sales_actuals_block(chain_rows, massit_rows, cfg=None, chain_alias=None):
+    """Actual sales with an explicit source priority, and no double counting.
+
+    chain_rows : {chain_name: value} -- chain sales for the period (authoritative)
+    massit_rows: iterable of dicts with client_id, client_type, chain, zone, value
+
+    The rule that matters: a DMS client whose chain ALREADY has chain-sales
+    coverage is a duplicate, not extra sales. Measured on Jun-26, 98.8% of DMS
+    tertiary falls in that bucket -- adding the two sources would have
+    overstated the month by about Rs 35.6 Cr. So DMS is gap-fill only, and its
+    real contribution here is store grain and employee attribution, which chain
+    sales does not carry.
+
+    Nothing is silently zeroed: a store with no sales in either source is
+    reported as NO_SALES_DATA, which is a different statement from zero sales.
+    """
+    sa = ((cfg or {}).get("sales_actuals") or {})
+    alias = chain_alias or {}
+    covered = {k for k, v in (chain_rows or {}).items() if (v or 0) > 0}
+
+    def resolve(name):
+        if name is None:
+            return None
+        n = str(name).strip()
+        if n in covered:
+            return n
+        if n in alias and alias[n] in covered:
+            return alias[n]
+        low = {c.lower(): c for c in covered}
+        return low.get(n.lower())
+
+    buckets = {"CHAIN": 0.0, "MASSIT": 0.0, "DUPLICATE_EXCLUDED": 0.0, "UNMAPPED": 0.0}
+    by_type, clients = {}, {}
+    for r in (massit_rows or []):
+        v = float(r.get("value") or 0.0)
+        ct = (r.get("client_type") or "").strip() or "(blank)"
+        ch = resolve(r.get("chain") or ct)
+        cid = (r.get("client_id") or "").strip()
+        if ch:
+            status, bucket = "DUPLICATE", "DUPLICATE_EXCLUDED"
+        elif ct in ("#N/A", "(blank)", ""):
+            status, bucket = "UNMAPPED", "UNMAPPED"
+        else:
+            status, bucket = "GAP_FILL", "MASSIT"
+        buckets[bucket] += v
+        t = by_type.setdefault(ct, {"client_type": ct, "status": status,
+                                    "maps_to_chain": ch, "value": 0.0, "clients": set()})
+        t["value"] += v
+        if cid:
+            t["clients"].add(cid)
+        clients.setdefault(cid, status)
+    buckets["CHAIN"] = float(sum((v or 0) for v in (chain_rows or {}).values()))
+
+    rows = []
+    for t in by_type.values():
+        t["clients"] = len(t["clients"])
+        t["value"] = r2(t["value"])
+        rows.append(t)
+    rows.sort(key=lambda d: -(d["value"] or 0))
+
+    consolidated = buckets["CHAIN"] + buckets["MASSIT"]
+    naive = buckets["CHAIN"] + buckets["MASSIT"] + buckets["DUPLICATE_EXCLUDED"]
+    return {
+        "priority": sa.get("priority") or ["CHAIN", "MASSIT"],
+        "massit_measure": sa.get("massit_measure"),
+        "unit": "INR",
+        "chain_sales": r2(buckets["CHAIN"]),
+        "massit_gap_fill": r2(buckets["MASSIT"]),
+        "massit_duplicate_excluded": r2(buckets["DUPLICATE_EXCLUDED"]),
+        "massit_unmapped": r2(buckets["UNMAPPED"]),
+        "consolidated_actual": r2(consolidated),
+        "naive_sum_would_be": r2(naive),
+        "double_count_avoided": r2(naive - consolidated),
+        "chains_with_chain_sales": len(covered),
+        "by_client_type": rows,
+        "reconciliation": {
+            "statement": "chain_sales + massit_gap_fill = consolidated_actual",
+            "check": r2(buckets["CHAIN"] + buckets["MASSIT"] - consolidated),
+            "status": "PASS" if abs(buckets["CHAIN"] + buckets["MASSIT"] - consolidated) < 1 else "CHECK",
+        },
+        "note": ("Chain sales is authoritative. DMS is used only where a chain has no "
+                 "chain-sales coverage. A DMS client on an already-covered chain is "
+                 "excluded as a duplicate, not added. Stores with neither source are "
+                 "NO_SALES_DATA, never zero."),
+    }
+
+# --------------------------------------------------------------------------
+# PHASE 3 — MoM, SCORECARD, PRICE-VOLUME-MIX
+# --------------------------------------------------------------------------
+def _mom_pcts(vals):
+    """Month-on-month % for a series; first month has no prior, so it is None."""
+    out = [None]
+    for i in range(1, len(vals)):
+        a, b = vals[i - 1], vals[i]
+        out.append(r2((b / a - 1) * 100) if (a not in (None, 0) and b is not None) else None)
+    return out
+
+def mom_block(offtake, fyx, targets, df=None, cfg=None):
+    """Month-on-month view for the current FY, one row per metric.
+
+    The month list is DERIVED from the months that actually carry actuals, so
+    Aug'26 extends this view by arriving -- there is no month count to update.
+    Metrics with no source in this build are listed in `unavailable` with the
+    reason, rather than shown as zero.
+    """
+    cfg = cfg or {}
+    tgt_fy = (targets or {}).get("fy_tag")
+    fy = tgt_fy or (sorted(fyx or {}, key=fy_start_year)[-1] if fyx else None)
+    if not fy:
+        return None
+    lo = fy.lower()
+    off_m = list((offtake or {}).get(f"months_{lo}") or [])
+    off_v = list((offtake or {}).get(f"monthly_{lo}") or [])
+    fx = (fyx or {}).get(fy) or {}
+    pri = dict(zip(fx.get("months_canon") or [], fx.get("monthly_canon") or []))
+    months = off_m or list(pri)
+    if not months:
+        return None
+    tgt = {r["month"]: r["target"] for r in ((targets or {}).get("monthly_target") or [])}
+    basis = (targets or {}).get("basis") or "offtake"
+
+    pri_s = [pri.get(m) for m in months]
+    off_s = [off_v[off_m.index(m)] if m in off_m else None for m in months]
+    tgt_s = [tgt.get(m) for m in months]
+    act_s = off_s if basis == "offtake" else pri_s
+    achv = [r2(a / t * 100) if (a is not None and t) else None for a, t in zip(act_s, tgt_s)]
+    gap = [r2(a - t) if (a is not None and t is not None) else None for a, t in zip(act_s, tgt_s)]
+
+    # ASP per month, from the article grain -- the only place a real unit price exists.
+    asp_s = [None] * len(months)
+    if df is not None and "_Qty" in df.columns:
+        d = df[df["_FY"] == fy]
+        canon = dict(zip(fx.get("months_covered") or [], fx.get("months_canon") or []))
+        g = d.groupby("_M").agg(nsv=("_NSV", "sum"), qty=("_Qty", "sum"))
+        by = {canon.get(m, m): (row.nsv, row.qty) for m, row in g.iterrows()}
+        asp_s = [r2(by[m][0] * 100000 / by[m][1]) if (m in by and by[m][1]) else None for m in months]
+
+    rows = [
+        {"metric": "Primary NSV",     "key": "primary_nsv", "unit": "INR Lakh", "values": pri_s},
+        {"metric": "Offtake NSV",     "key": "offtake_nsv", "unit": "INR Lakh", "values": off_s},
+        {"metric": "Target",          "key": "target",      "unit": "INR Lakh", "values": tgt_s},
+        {"metric": f"Achievement % ({basis})", "key": "achievement_pct", "unit": "%", "values": achv, "no_mom": True},
+        {"metric": f"Gap vs target ({basis})", "key": "gap", "unit": "INR Lakh", "values": gap, "no_mom": True},
+        {"metric": "ASP",             "key": "asp",         "unit": "INR/unit", "values": asp_s},
+    ]
+    for r in rows:
+        r["mom_pct"] = [None] * len(months) if r.get("no_mom") else _mom_pcts(r["values"])
+        vals = [v for v in r["values"] if v is not None]
+        r["total"] = r2(sum(vals)) if (vals and r["unit"] == "INR Lakh") else None
+        r["avg"] = r2(sum(vals) / len(vals)) if vals else None
+        r["latest"] = r["values"][-1] if r["values"] else None
+    return {
+        "fy_tag": fy, "months": months, "n_months": len(months), "basis": basis,
+        "rows": rows,
+        "unavailable": [
+            {"metric": "Stock / inventory days", "reason": "No monthly stock-on-hand feed in this build."},
+            {"metric": "OSA / OOS / Fill rate", "reason": "Store audit is a single Q3 FY27 snapshot over 189 of 426 stores, not a monthly series. See readiness.scorecard_execution."},
+            {"metric": "NPD", "reason": "NPD master is not joined to the transaction grain. See readiness.npd."},
+            {"metric": "Promo ROI", "reason": "Promo data is not aligned to this FY's month grain in this build."},
+        ],
+        "note": ("Months are derived from the actuals present, so the view extends itself "
+                 "as new months land. MoM % is suppressed on ratio and gap rows, where a "
+                 "month-on-month percentage of a percentage would mislead."),
+    }
+
+def scorecard_block(same_period, targets, mapping_health=None, cfg=None, dim="by_zone"):
+    """One commercial row per zone or chain: scale, growth, target, status, action.
+
+    Built to be acted on rather than read: every row ends in a RAG status and a
+    specific next step, and the thresholds behind the status come from
+    config/analytics_config.json rather than being inlined here.
+    """
+    cfg = cfg or {}
+    if not same_period:
+        return None
+    sp_rows = (same_period or {}).get(dim) or []
+    if not sp_rows:
+        return None
+    basis = (targets or {}).get("basis") or "offtake"
+    tm = ((targets or {}).get("measures") or {}).get(basis) or {}
+    tgt_rows = {r["name"]: r for r in (tm.get(dim) or [])}
+    months = tm.get("months_elapsed") or same_period.get("n_months") or 1
+    fy_target_total = tm.get("fy_target")
+    rows = []
+    for r in sp_rows:
+        name = r["name"]
+        t = tgt_rows.get(name) or {}
+        growth = r.get("yoy_pct")
+        achv = t.get("achievement_pct")
+        # Remaining full-year target for this dimension, on its derived share.
+        share = (t.get("contribution_pct") or 0) / 100.0
+        fy_t = (fy_target_total or 0) * share
+        act = t.get("actual")
+        curr_rr = r2(act / months) if (act is not None and months) else None
+        rem = (targets or {}).get("months_in_fy")
+        rem = (rem - months) if rem else None
+        req_rr = r2((fy_t - (act or 0)) / rem) if (rem and rem > 0) else None
+        ratio = (req_rr / curr_rr) if (req_rr is not None and curr_rr) else None
+        rag = {"achievement": rag_of(achv, "achievement_pct", cfg),
+               "growth": rag_of(growth, "growth_pct", cfg),
+               "run_rate": rag_of(ratio, "run_rate_ratio", cfg)}
+        worst = "red" if "red" in rag.values() else ("amber" if "amber" in rag.values()
+                else ("green" if "green" in rag.values() else None))
+        # Action: the specific thing wrong, not a generic nudge.
+        if rag["achievement"] == "red" and (growth or 0) < 0:
+            action = "Behind target and declining — diagnose range, fill rate and visibility; reset the JBP."
+        elif rag["achievement"] == "red":
+            action = f"Behind target despite {pctf(growth)} growth — phasing or base issue; re-check the target split."
+        elif rag["run_rate"] in ("amber", "red"):
+            action = f"Needs {crf(req_rr)}/mth against {crf(curr_rr)}/mth today — lift order frequency or add assortment."
+        elif rag["achievement"] == "amber":
+            action = "Close to target — protect with visibility; small assortment add should close the gap."
+        elif worst == "green":
+            action = "On track — hold current plan; look for share gain."
+        else:
+            action = "Insufficient target data for this row."
+        rows.append({
+            "name": name, "curr": r.get("curr"), "prev": r.get("prev"),
+            "delta": r.get("delta"), "growth_pct": growth,
+            "target": t.get("target"), "actual": act,
+            "achievement_pct": achv, "gap": t.get("gap"), "gap_pct": t.get("gap_pct"),
+            "contribution_pct": t.get("contribution_pct"),
+            "current_run_rate": curr_rr, "required_run_rate": req_rr,
+            "rag": rag, "status": worst, "action": action,
+            "target_basis": t.get("basis"),
+        })
+    rows.sort(key=lambda d: -(d.get("curr") or 0))
+    return {
+        "dim": dim, "basis": basis,
+        "curr_fy": same_period.get("curr_fy"), "prev_fy": same_period.get("prev_fy"),
+        "months": same_period.get("months"), "n_months": same_period.get("n_months"),
+        "rows": rows,
+        "thresholds": (cfg.get("rag") or {}),
+        "note": ("Growth is like-for-like primary over the shared months. Target, "
+                 "achievement and run rate are on the "
+                 f"{basis} basis; zone/chain targets are DERIVED from prior-year "
+                 "contribution and are not business-set."),
+    }
+
+def pctf(v):
+    return "–" if v is None else f"{v:+.1f}%"
+
+def crf(v):
+    return "–" if v is None else f"Rs {v/100:.2f} Cr"
+
+# Column names differ between the article frame and the record frame, so resolve
+# by first-present rather than pinning one spelling.
+_PVM_ITEM_COLS = ("_Description", "_Article", "_article", "Article")
+_PVM_CAT_COLS = ("_category", "_Cat", "Category")
+
+def _first_col(df, names):
+    return next((c for c in names if c in df.columns), None)
+
+def pvm_block(df, same_period, item_col=None, nsv_col="_NSV", qty_col="_Qty",
+              fy_col="_FY", m_col="_M", cfg=None):
+    """Price-Volume-Mix: what actually drove the change in value.
+
+    Decomposed at ARTICLE grain, because that is the only grain where a unit
+    price is a real price. Four buckets that sum to the total change exactly:
+
+      Volume        same articles, more or fewer units, at last year's price
+      Price         same articles, same units, different realisation
+      New           articles selling this period that did not sell last period
+      Discontinued  the reverse
+
+    Blended ASP is reported alongside: when blended ASP moves more than
+    same-article price, the difference is mix -- the shop sold a different
+    basket, not a dearer one. Mix is shown as that gap rather than as a
+    residual bucket, so every rupee stays attributable.
+    """
+    item_col = item_col or _first_col(df, _PVM_ITEM_COLS)
+    if not same_period or qty_col not in df.columns or not item_col:
+        return None
+    curr, prev = same_period.get("curr_fy"), same_period.get("prev_fy")
+    shared = set(same_period.get("months") or [])
+    if not (curr and prev and shared):
+        return None
+    c = df[(df[fy_col] == curr) & (df[m_col].isin(shared))]
+    v = df[(df[fy_col] == prev) & (df[m_col].isin(shared))]
+    if c.empty or v.empty:
+        return None
+
+    def agg(d):
+        g = d.groupby(item_col).agg(nsv=(nsv_col, "sum"), qty=(qty_col, "sum"))
+        return {k: (float(r.nsv), float(r.qty)) for k, r in g.iterrows() if k}
+
+    C, P = agg(c), agg(v)
+    common = set(C) & set(P)
+    new_i, lost_i = set(C) - set(P), set(P) - set(C)
+
+    vol = price = 0.0
+    base_at_prev_price = 0.0   # Sigma P_prev * Q_curr -- the denominator that turns
+                               # the price effect into a true like-for-like price %
+    for k in common:
+        nc, qc = C[k]; np_, qp = P[k]
+        if qp <= 0 or qc <= 0:
+            # No usable unit price on one side: the whole move is volume-like.
+            vol += nc - np_
+            continue
+        pp, pc = np_ / qp, nc / qc
+        vol += (qc - qp) * pp
+        price += (pc - pp) * qc
+        base_at_prev_price += pp * qc
+    new_v = sum(C[k][0] for k in new_i)
+    lost_v = -sum(P[k][0] for k in lost_i)
+
+    c_nsv, c_qty = sum(x[0] for x in C.values()), sum(x[1] for x in C.values())
+    p_nsv, p_qty = sum(x[0] for x in P.values()), sum(x[1] for x in P.values())
+    delta = c_nsv - p_nsv
+    asp_c = (c_nsv * 100000 / c_qty) if c_qty else None
+    asp_p = (p_nsv * 100000 / p_qty) if p_qty else None
+    # PURE price change: the rupee price effect expressed against the same basket
+    # valued at last year's prices. Quantities are held constant, so this is the
+    # only ASP percentage that is consistent in sign with the Price bucket above.
+    # (A blended ASP across the common articles is NOT that number -- it still
+    # carries mix shifts inside the common set, and can move opposite to the
+    # actual price effect.)
+    blend_pct = r2((asp_c / asp_p - 1) * 100) if (asp_c and asp_p) else None
+    pure_pct = r2(price / base_at_prev_price * 100) if base_at_prev_price else None
+    mix_pp = r2(blend_pct - pure_pct) if (blend_pct is not None and pure_pct is not None) else None
+
+    buckets = [
+        {"driver": "Volume", "value": r2(vol), "pct_of_change": r2(vol / delta * 100) if delta else None,
+         "meaning": "Same articles, more units sold, valued at last year's price."},
+        {"driver": "Price", "value": r2(price), "pct_of_change": r2(price / delta * 100) if delta else None,
+         "meaning": "Same articles, change in realisation per unit."},
+        {"driver": "New articles", "value": r2(new_v), "pct_of_change": r2(new_v / delta * 100) if delta else None,
+         "meaning": f"{len(new_i)} article(s) selling this period that did not sell last period."},
+        {"driver": "Discontinued", "value": r2(lost_v), "pct_of_change": r2(lost_v / delta * 100) if delta else None,
+         "meaning": f"{len(lost_i)} article(s) that sold last period and did not this period."},
+    ]
+    recon = r2(vol + price + new_v + lost_v - delta)
+
+    def contrib(col):
+        if not col or col not in df.columns:
+            return None
+        cs = c.groupby(col)[nsv_col].sum(); vs = v.groupby(col)[nsv_col].sum()
+        rows = []
+        for k in sorted(set(cs.index) | set(vs.index)):
+            if not k:
+                continue
+            a, b = float(cs.get(k, 0.0)), float(vs.get(k, 0.0))
+            rows.append({"name": k, "curr": r2(a), "prev": r2(b), "delta": r2(a - b),
+                         "pct_of_total_change": r2((a - b) / delta * 100) if delta else None})
+        return sorted(rows, key=lambda d: -(d["delta"] or 0))
+
+    return {
+        "curr_fy": curr, "prev_fy": prev, "months": sorted(shared),
+        "n_months": len(shared), "unit": "INR Lakh", "grain": "Article",
+        "prev": {"nsv": r2(p_nsv), "qty": int(p_qty), "asp": r2(asp_p)},
+        "curr": {"nsv": r2(c_nsv), "qty": int(c_qty), "asp": r2(asp_c)},
+        "delta": r2(delta),
+        "delta_pct": r2(delta / p_nsv * 100) if p_nsv else None,
+        "qty_delta_pct": r2((c_qty / p_qty - 1) * 100) if p_qty else None,
+        "buckets": buckets,
+        "reconciliation": {"sum_of_buckets": r2(vol + price + new_v + lost_v),
+                           "actual_delta": r2(delta), "variance": recon,
+                           "status": "PASS" if abs(recon) < 1.0 else "CHECK"},
+        "asp": {"prev": r2(asp_p), "curr": r2(asp_c), "blended_change_pct": blend_pct,
+                "pure_price_change_pct": pure_pct, "mix_effect_pp": mix_pp,
+                "reading": (
+                    f"Blended ASP moved {blend_pct}%, but on a like-for-like basket "
+                    f"(same articles, quantities held constant) price moved {pure_pct}%. "
+                    f"The {mix_pp}pp difference is MIX and range change -- what was sold, "
+                    f"not what it was priced at."
+                ) if (blend_pct is not None and pure_pct is not None) else None},
+        "n_articles": {"common": len(common), "new": len(new_i), "discontinued": len(lost_i)},
+        "by_chain": contrib("_Chain"), "by_brand": contrib("_Brand"),
+        "by_category": contrib(_first_col(df, _PVM_CAT_COLS)) if _first_col(df, _PVM_CAT_COLS) else None,
+        "note": ("Article-grain decomposition. Volume + Price + New + Discontinued sums "
+                 "to the actual change exactly (see reconciliation). ASP is computed from "
+                 "article Qty and NSV, NOT from unit_economics.nsv_per_unit, which is "
+                 "degenerate in this dataset."),
+    }
+
+# --------------------------------------------------------------------------
 # INSIGHTS  (auto-generated, data-driven)
 # --------------------------------------------------------------------------
-def insights_block(primary, offtake, pnl, universe, promo):
+def insights_block(primary, offtake, pnl, universe, promo, same_period=None):
     ins = []
+    # The pre-aggregated primary block only publishes the FYs its workbook
+    # actually covers, so the current FY is owned by the article-level source
+    # and reaches here via `same_period`. Re-base the chain view onto that
+    # like-for-like window when it is available: without it the growth
+    # insights below either go blank or compare a part-year against a full
+    # year -- which is how "Fastest-growing scaled chain: Lulu grew -57%"
+    # ended up on the dashboard as a "win".
+    _win = ""
+    if same_period and same_period.get("by_chain"):
+        _cf = str(same_period["curr_fy"]).lower()
+        _pf = str(same_period["prev_fy"]).lower()
+        primary = dict(primary)          # shallow copy; never mutate the caller's block
+        primary["by_chain"] = [{"name": r["name"], _cf: r["curr"], _pf: r["prev"],
+                                "yoy": r["yoy_pct"]} for r in same_period["by_chain"]]
+        primary[f"nsv_{_cf}"] = same_period["curr"]
+        primary[f"nsv_{_pf}"] = same_period["prev"]
+        primary["fy_tags"] = [_pf, _cf]
+        _win = f" ({'+'.join(same_period.get('months') or [])} like-for-like)"
     pc = {c["name"]: c for c in primary["by_chain"]}
     oc = {c["name"]: c for c in offtake["by_chain"]}
     uc = {c["name"]: c for c in universe["by_chain"]}
@@ -2814,7 +3699,7 @@ def insights_block(primary, offtake, pnl, universe, promo):
     share = sum(c.get(_curr_fy) or 0 for c in top2) / tot * 100
     ins.append({"type": "risk", "title": "Revenue concentration in top 2 chains",
                 "text": f"{top2[0]['name']} and {top2[1]['name']} together drive "
-                        f"{share:.0f}% of {_prev_fy.upper()}-{_curr_fy.upper()} MT primary (₹{(sum(c.get(_curr_fy) or 0 for c in top2))/100:.0f} Cr). "
+                        f"{share:.0f}% of {_curr_fy.upper()} MT primary{_win} (₹{(sum(c.get(_curr_fy) or 0 for c in top2))/100:.0f} Cr). "
                         f"De-risk by accelerating the mid-tier (Apollo, Nykaa, Wellness Forever)."})
     # 2. Fastest growers (material base)
     growers = [c for c in primary["by_chain"] if c["yoy"] is not None and (c.get(_curr_fy) or 0) > 200]
@@ -3706,6 +4591,74 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     }
     return out_df, alloc
 
+def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV",
+                      dims=(("by_zone", "_Zone"), ("by_chain", "_Chain"))):
+    """LIKE-FOR-LIKE year-on-year, on the months the two latest FYs share.
+
+    A part-year FY compared against a full prior FY is not a YoY -- it is a
+    coverage artefact. FY27 Apr-Jul vs FY26 Apr-Mar read as -69.7% when the
+    same-period move is +82.2%: same data, opposite direction, and the wrong
+    one was on the leadership screen.
+
+    So the comparison window is DERIVED, never assumed: take the months the
+    current FY actually carries, intersect with the months the prior FY
+    carries, and compare only those. When Aug-26 lands the window widens to
+    five months on its own; when FY27 completes it becomes a true full-year
+    YoY with no code change. Returns None if there is no prior FY to compare
+    against, or no month in common.
+    """
+    tags = sorted({t for t in df[fy_col].dropna().unique() if t}, key=fy_start_year)
+    if len(tags) < 2:
+        return None
+    curr, prev = tags[-1], tags[-2]
+    cur_df, prv_df = df[df[fy_col] == curr], df[df[fy_col] == prev]
+    shared = [m for m in _ORDER
+              if m in set(cur_df[m_col]) and m in set(prv_df[m_col])]
+    if not shared:
+        return None
+    c = cur_df[cur_df[m_col].isin(shared)]
+    v = prv_df[prv_df[m_col].isin(shared)]
+
+    def _pct(a, b):
+        return r2((a / b - 1) * 100) if b else None
+
+    def _canon(tag, months):
+        y0 = fy_start_year(tag)
+        out = []
+        for mn in months:
+            cm = _CAL_MONTH[_MONTH_IDX[mn]]
+            out.append(f"{_ORDER_MON3[mn]}-{(y0 if cm >= 4 else y0 + 1) % 100:02d}")
+        return out
+
+    c_tot, v_tot = float(c[nsv_col].sum()), float(v[nsv_col].sum())
+    block = {
+        "curr_fy": curr, "prev_fy": prev,
+        "months": shared,
+        "months_curr_canon": _canon(curr, shared),
+        "months_prev_canon": _canon(prev, shared),
+        "n_months": len(shared),
+        "curr": r2(c_tot), "prev": r2(v_tot),
+        "delta": r2(c_tot - v_tot), "yoy_pct": _pct(c_tot, v_tot),
+        "unit": "INR Lakh",
+        "basis": (f"Like-for-like: {curr} vs {prev} over the {len(shared)} month(s) "
+                  f"both FYs carry ({', '.join(shared)}). Article-level primary. "
+                  f"Window widens automatically as new months arrive."),
+    }
+    for out_key, col in dims:
+        if col not in df.columns:
+            continue
+        cs = c.groupby(col)[nsv_col].sum()
+        vs = v.groupby(col)[nsv_col].sum()
+        rows = []
+        for name in sorted(set(cs.index) | set(vs.index)):
+            if not name:
+                continue
+            a, b = float(cs.get(name, 0.0)), float(vs.get(name, 0.0))
+            rows.append({"name": name, "curr": r2(a), "prev": r2(b),
+                         "delta": r2(a - b), "yoy_pct": _pct(a, b)})
+        block[out_key] = sorted(rows, key=lambda d: -(d["curr"] or 0))
+    return block
+
 def detail_records_real(src, max_rows=20000):
     """Real 13-column detail_records from File 2 (article-wise primary).
     Looks for primary_article.xlsb/.xlsx in src. Returns None if absent, else
@@ -3856,9 +4809,8 @@ def detail_records_real(src, max_rows=20000):
     # workbooks' window (that other source ends Mar'26, i.e. covers FY25/26).
     # FY27 today; FY28 automatically when Apr-27 rows arrive -- one block per
     # tag, keyed by tag, so the dashboard just looks up the selected FY.
-    _PREAGG_FY_TAGS = {"FY25", "FY26"}   # the FY window the Primary/Offtake workbooks cover
     fyx_primary = {}
-    for _tag in sorted(set(df["_FY"].dropna().unique()) - _PREAGG_FY_TAGS, key=fy_start_year):
+    for _tag in sorted(set(df["_FY"].dropna().unique()) - PREAGG_FY_TAGS, key=fy_start_year):
         fx = df[df["_FY"] == _tag]
         def _aggx(col, fx=fx):
             s = fx.groupby(col)["_NSV"].sum().sort_values(ascending=False)
@@ -4004,7 +4956,11 @@ def detail_records_real(src, max_rows=20000):
     return recs, channel_totals, sis_reconciliation, {
         "rows_total": rows_total, "rows_kept": len(recs),
         "value_coverage_pct": round(coverage, 1),
-        "fyx_primary": fyx_primary}, tot, cm2, alloc
+        "fyx_primary": fyx_primary,
+        # Like-for-like YoY on the months the two latest FYs share. Computed
+        # from this same article-level frame, so it covers every FY -- not just
+        # the ones the pre-aggregated workbook happens to reach.
+        "same_period": same_period_block(df)}, tot, cm2, alloc
 
 def detail_records_representative(primary):
     """Fallback: synthesise detail_records whose Chain/Brand/Zone/Channel/Month/FY
@@ -4088,6 +5044,8 @@ def _build_detail_meta(src, max_rows, primary_for_fallback):
         # pre-aggregated workbooks' window. Dict keyed by FY tag ('FY27',
         # 'FY28', ...); None if the article primary carries no such FY.
         "fyx_primary": cov.get("fyx_primary"),
+        # Like-for-like YoY window shared by the two latest FYs.
+        "same_period": cov.get("same_period"),
         # {FY: {summary, by_chain, by_month, by_brand, exclusions, row_count}} —
         # SIS reconciliation drill-down, computed from the FULL uncapped source.
         # Kept for audit trail. See docs/SIS_Reconciliation.md.
@@ -4402,7 +5360,8 @@ def main():
         _promo = obj.get("promo") or {"n_promos": 0, "avg_depth": 0, "by_chain": [], "lines": []}
         _universe = obj.get("universe") or {"by_zone": [], "by_chain": [], "chains": [], "n_chains": 0}
         pnl = pnl_block(pdf, _promo)
-        insights = insights_block(primary, obj["offtake"], pnl, _universe, _promo)
+        insights = insights_block(primary, obj["offtake"], pnl, _universe, _promo,
+                                  (obj.get("detail_meta") or {}).get("same_period"))
         obj["primary"] = primary
         obj["pnl"] = pnl
         obj["insights"] = insights
@@ -4753,6 +5712,79 @@ def main():
 
         # Update primary.by_channel with merged channels
         primary["by_channel"] = list(existing_ch_dict.values())
+
+    # ---- Like-for-like YoY + target/achievement/run-rate ------------------
+    # Both need the article-level same-period window, which only exists once
+    # detail_meta is built, so they are assembled here rather than up with the
+    # first insights pass.
+    _sp = (detail_meta or {}).get("same_period")
+    if _sp:
+        # Recompute insights on the like-for-like basis (see insights_block).
+        data["insights"] = insights_block(primary, offtake, pnl, universe, promo, _sp)
+    _tgt_rows = load_ty_target(src) or load_targets_csv(_REPO_ROOT)
+    if _tgt_rows:
+        # Month-keyed actuals per measure, so targets_block derives the
+        # period-to-date window from the months that actually have actuals.
+        _acts = {}
+        _om = dict(zip(offtake.get("months_" + _tgt_rows[0][0].lower(), []) or [],
+                       offtake.get("monthly_" + _tgt_rows[0][0].lower(), []) or []))
+        if _om:
+            _acts["offtake"] = _om
+        _fx = (detail_meta or {}).get("fyx_primary", {}).get(_tgt_rows[0][0])
+        if _fx:
+            _acts["primary"] = dict(zip(_fx.get("months_canon", []),
+                                        _fx.get("monthly_canon", [])))
+        _tb = targets_block(_tgt_rows, _acts, _sp)
+        if _tb:
+            data["targets"] = _tb
+            _m = _tb["measures"].get(_tb["basis"], {})
+            print(f"targets: {_tb['fy_tag']} basis={_tb['basis']} "
+                  f"FY target Rs {_tb['fy_target']/100:.2f} Cr; PTD achievement "
+                  f"{_m.get('achievement_pct')}% over {_m.get('months_elapsed')} month(s); "
+                  f"required run rate Rs {(_m.get('required_run_rate') or 0)/100:.2f} Cr/mth "
+                  f"({_m.get('run_rate_status')})")
+    # ---- Phase 3: mapping health, MoM, scorecard, PVM, readiness gate --------
+    # Order matters: mapping_health and pvm feed the readiness gate, so the gate
+    # runs last and can report on what the other blocks actually produced.
+    _cfg = load_analytics_config(_REPO_ROOT)
+    if _cfg:
+        data["config"] = public_config(_cfg)
+    _adf = frame_from_records(data.get("detail_records"), detail_meta)
+    if _adf is not None:
+        _mh = mapping_health_block(_adf, alloc=data.get("alloc"), cfg=_cfg,
+                                   repo_root=_REPO_ROOT)
+        if _mh:
+            data["mapping_health"] = _mh
+            _cf = sorted(_mh["by_fy"], key=fy_start_year)[-1]
+            print(f"mapping_health: {_cf} completeness {_mh['by_fy'][_cf]['completeness_pct']}% "
+                  f"({_mh['exception_count']} unmapped ship-to parties, "
+                  f"Rs {_mh['exception_nsv']/100:.2f} Cr)")
+    if _sp:
+        _mb = mom_block(offtake, (detail_meta or {}).get("fyx_primary"),
+                        data.get("targets"), _adf, _cfg)
+        if _mb:
+            data["mom"] = _mb
+            print(f"mom: {_mb['fy_tag']} over {_mb['n_months']} month(s), "
+                  f"{len(_mb['rows'])} metric rows")
+        _sc = {}
+        for _dim in ("by_zone", "by_chain"):
+            _b = scorecard_block(_sp, data.get("targets"), data.get("mapping_health"), _cfg, _dim)
+            if _b:
+                _sc[_dim] = _b
+        if _sc:
+            data["scorecard"] = _sc
+            print("scorecard: " + ", ".join(f"{k} {len(v['rows'])} rows" for k, v in _sc.items()))
+        if _adf is not None:
+            _pv = pvm_block(_adf, _sp, cfg=_cfg)
+            if _pv:
+                data["pvm"] = _pv
+                print(f"pvm: delta Rs {_pv['delta']/100:.2f} Cr = "
+                      + " + ".join(f"{b['driver']} {b['value']/100:.2f}" for b in _pv["buckets"])
+                      + f" (recon {_pv['reconciliation']['status']})")
+    data["readiness"] = readiness_gate(data, _cfg)
+    print(f"readiness: {data['readiness']['summary']}"
+          + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))
+
     # TD-07: populate fy_range now that dims are available
     _fy_list = data.get("dims", {}).get("FY") or []
     if _fy_list:

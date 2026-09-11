@@ -856,6 +856,60 @@ function renderDrillChart(chartId,baseTitle,baseRecs){
 /* ---------------- OVERVIEW ---------------- */
 
 /* ---- EXECUTIVE COCKPIT: Unified KPI + Trend + Insights view (consolidated from Overview + Insights & Way Forward) ---- */
+// ---- Target / Achievement / Run rate -------------------------------------
+// Reads D.targets (built by targets_block). Renders nothing when no target
+// file was loaded, so the tab degrades quietly rather than showing zeros.
+function targetRows(rows){
+  return (rows||[]).filter(r=>(r.actual||0)>0||(r.target||0)>0).map(r=>{
+    const a=r.achievement_pct;
+    return `<tr><td>${drillLink(r._dim,r.name)}</td><td>${crc(r.target)}</td><td>${crc(r.actual)}</td>
+      <td>${a!=null?`<span class="pill ${a>=100?'g':a>=90?'':'r'}">${a.toFixed(1)}%</span>`:'–'}</td>
+      <td>${crc(r.gap)}</td><td>${r.contribution_pct!=null?r.contribution_pct.toFixed(1)+'%':'–'}</td></tr>`;
+  }).join('');
+}
+function targetSection(){
+  const T=D.targets; if(!T||!T.measures) return '';
+  const m=T.measures[T.basis]; if(!m) return '';
+  const others=Object.keys(T.measures).filter(k=>k!==T.basis);
+  const st=m.run_rate_status;
+  const stCls=st==='Ahead'||st==='On Track'?'g':st==='At Risk'?'':'r';
+  const win=(m.months||[]).join(' + ');
+  const kpis=`<div class="kpis">
+     ${kpi('Target (period to date)',crc(m.target),`${win} · ${m.months_elapsed} of ${T.months_in_fy} months`)}
+     ${kpi('Actual (period to date)',crc(m.actual),`${T.basis} basis`)}
+     ${kpi('Achievement %',m.achievement_pct!=null?m.achievement_pct.toFixed(1)+'%':'–',
+        `<span class="${cls(m.gap)}">${arrow(m.gap)} ${crc(Math.abs(m.gap||0))} gap (${pct(m.gap_pct)})</span>`)}
+     ${kpi('Current run rate',crc(m.current_run_rate),'per month, actuals to date')}
+     ${kpi('Required run rate',crc(m.required_run_rate),`per month for the remaining ${m.months_remaining}`)}
+     ${kpi('Status',`<span class="pill ${stCls}">${st||'–'}</span>`,`full-year target ${crc(m.fy_target)} · ${crc(m.fy_gap)} still to deliver`)}
+   </div>`;
+  // Both measures side by side: the target file does not itself say which one
+  // it is set against, so neither is hidden.
+  const altRows=others.map(k=>{const x=T.measures[k];
+    return `<tr><td>${k}</td><td>${crc(x.target)}</td><td>${crc(x.actual)}</td>
+      <td>${x.achievement_pct!=null?x.achievement_pct.toFixed(1)+'%':'–'}</td>
+      <td>${crc(x.gap)}</td><td>${crc(x.current_run_rate)}</td><td>${crc(x.required_run_rate)}</td>
+      <td>${x.run_rate_status||'–'}</td></tr>`;}).join('');
+  const altCard=others.length?card('Same target, other measure',
+    `The target file is NSV and does not name its measure. <b>${T.basis}</b> is used for the headline above because the Forecast page already compares this file to ${T.basis}. Shown here on the other basis so the choice is visible, not buried.`,
+    `<div class="tablewrap"><table><thead><tr><th>Measure</th><th>Target</th><th>Actual</th><th>Ach%</th><th>Gap</th><th>Curr RR</th><th>Reqd RR</th><th>Status</th></tr></thead>
+     <tbody><tr><td><b>${T.basis}</b> (headline)</td><td>${crc(m.target)}</td><td>${crc(m.actual)}</td>
+       <td>${m.achievement_pct!=null?m.achievement_pct.toFixed(1)+'%':'–'}</td><td>${crc(m.gap)}</td>
+       <td>${crc(m.current_run_rate)}</td><td>${crc(m.required_run_rate)}</td><td>${st||'–'}</td></tr>${altRows}</tbody></table></div>`):'';
+  const dimNote=m.dim_target_basis?`<p class="note" style="margin:0 0 16px"><b>Zone and chain targets are DERIVED, not business-set.</b> ${m.dim_target_basis}</p>`:'';
+  const dimCard=(dim,label)=>{const rows=(m[dim]||[]).map(r=>Object.assign({_dim:label},r));
+    return rows.length?card(`${label} — target vs achievement (DERIVED split)`,
+      `Sorted by actual. Click to drill.`,
+      `<div class="tablewrap"><table><thead><tr><th>${label}</th><th>Target</th><th>Actual</th><th>Ach%</th><th>Gap</th><th>Contrib%</th></tr></thead>
+       <tbody>${targetRows(rows)}</tbody></table></div>`):'';};
+  return `<h2 class="sec" style="margin-top:32px">Target, Achievement &amp; Run Rate</h2>
+   <p class="lead">${T.fy_tag} business target vs actuals, ${T.basis} basis. Source: ${T.source}. ₹ Crore.</p>
+   ${kpis}
+   ${altCard}
+   ${dimNote}
+   ${dimCard('by_zone','Zone')}
+   ${dimCard('by_chain','Chain')}`;
+}
 function buildExecutiveCockpit(){
   const p=D.primary,o=D.offtake,f=D.forecast,u=D.universe;
   const s=document.getElementById('tab-executive-cockpit');
@@ -894,13 +948,29 @@ function buildExecutiveCockpit(){
     `<b>Zone playbook:</b> back the fastest-growing zones (East/North offtake) with targeted JBPs while arresting any declining scaled accounts.`,
   ].map(x=>`<li>${x}</li>`).join('');
 
+  // Like-for-like YoY for the headline KPIs. A part-year FY against a full FY
+  // is not a YoY -- that comparison is what put -69.7% on this screen while the
+  // same-period move was +82.2%. Offtake is computed the same way, over the
+  // months its own current-FY series actually carries.
+  const _SPC=(D.detail_meta&&D.detail_meta.same_period)||null;
+  let _offSP=null;
+  if(_SPC){
+    const _cm=o['months_'+String(_SPC.curr_fy).toLowerCase()]||[], _cv=o['monthly_'+String(_SPC.curr_fy).toLowerCase()]||[];
+    const _pm=o['months_'+String(_SPC.prev_fy).toLowerCase()]||[], _pv=o['monthly_'+String(_SPC.prev_fy).toLowerCase()]||[];
+    if(_cm.length&&_pm.length){
+      // Match on calendar position within the FY, not on label text.
+      const _sum=(v,n)=>v.slice(0,n).reduce((a,x)=>a+(x||0),0);
+      const _n=Math.min(_cm.length,_pm.length), _c=_sum(_cv,_n), _p=_sum(_pv,_n);
+      if(_p>0) _offSP=Math.round((_c/_p-1)*1000)/10;
+    }
+  }
   s.innerHTML = `<h2 class="sec">Executive Cockpit</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
    ${dimNote}
    <div class="kpis">
-     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':(p.nsv_fy25!=null&&!Number.isNaN(p.nsv_fy25))?`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)} YoY</span> vs ${crc(p.nsv_fy25)}`:'FY25 baseline not in source')
+     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':_SPC?`${_SPC.curr_fy} to date ${crc(_SPC.curr)} · <span class="${cls(_SPC.yoy_pct)}">${arrow(_SPC.yoy_pct)} ${pct(_SPC.yoy_pct)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'prior-year baseline not in source')
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
-     ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':`<span class="${cls(o.yoy)}">${arrow(o.yoy)} ${pct(o.yoy)} YoY</span> sell-out`)
+     ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':_offSP!=null?`${_SPC.curr_fy} to date ${crc(o['total_'+String(_SPC.curr_fy).toLowerCase()])} · <span class="${cls(_offSP)}">${arrow(_offSP)} ${pct(_offSP)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'sell-out')
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
@@ -914,6 +984,7 @@ function buildExecutiveCockpit(){
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('cockpitChannel',true))}
    </div>
    ${drillCardHtml('cockpitDrill','Primary NSV')}
+   ${targetSection()}
    <h2 class="sec" style="margin-top:32px">Data Insights &amp; Way Forward</h2>
    <div class="ins">${insightCards}</div>
    ${card('Recommended Actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
@@ -1578,20 +1649,36 @@ function buildPrimary(){
     renderDrillChart('prDrill','Primary NSV',recFilter());
     return;
   }
-  const fy=fyKey(), yrs=fy?[fy]:['fy25','fy26'], last=yrs[yrs.length-1], yrLab={fy25:fyDispLabel('FY25'),fy26:fyDispLabel('FY26')};
+  // FY tags this block ACTUALLY covers, read from the data. The pre-aggregated
+  // primary workbook used to be a fixed FY25/FY26 pair; it no longer is, and a
+  // hardcoded pair here silently mislabels whatever the source really holds.
+  const PT=(p.fy_tags&&p.fy_tags.length?p.fy_tags:['fy26']);
+  const pPrev=PT.length>1?PT[PT.length-2]:null, pLast=PT[PT.length-1];
+  // Like-for-like window (article-level). Carries the current FY, which the
+  // pre-aggregated block deliberately does not publish -- see its coverage_note.
+  const SP=(D.detail_meta&&D.detail_meta.same_period)||null;
+  const spChain={}; if(SP&&SP.by_chain) SP.by_chain.forEach(r=>{spChain[r.name]=r;});
+  const fy=fyKey(), yrs=fy?[fy]:PT.slice(-2), last=yrs[yrs.length-1], yrLab={};
+  PT.concat(FY_ALL.map(t=>String(t).toLowerCase())).forEach(t=>{yrLab[t]=fyDispLabel(String(t).toUpperCase());});
   if(fy && !yrLab[fy]) yrLab[fy]=fyDispLabel('FY'+fy.slice(2));   // backfill FY27+ label
   let chains=p.by_chain, zones=p.by_zone, brands=p.by_brand, channels=p.by_channel;
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   if(fOn('Zone')) zones=zones.filter(z=>fHas('Zone',z.name));
   if(fOn('Brand')) brands=brands.filter(b=>fHas('Brand',b.name));
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
-  let mLabels=p.month_labels, m25=p.monthly_fy25, m26=p.monthly_fy26;
+  let mLabels=p.month_labels, mPrev=pPrev?(p['monthly_'+pPrev]||null):null, mLast=p['monthly_'+pLast]||[];
   if(fOn('Month')){
     const sel=p.month_labels.map((m,i)=>({m,i})).filter(x=>fHas('Month',x.m));
-    if(sel.length){ mLabels=sel.map(x=>x.m); m25=sel.map(x=>p.monthly_fy25[x.i]); m26=sel.map(x=>p.monthly_fy26[x.i]); }
+    // Guard each series separately: indexing a FY series this source does not
+    // carry used to throw and blank the whole tab.
+    if(sel.length){ const _mp=mPrev, _ml=mLast; mLabels=sel.map(x=>x.m);
+      mPrev=_mp?sel.map(x=>_mp[x.i]):null; mLast=sel.map(x=>_ml[x.i]); }
   }
-  const rows=chains.filter(c=>c[last]>0).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.fy25)}</td><td>${crc(c.fy26)}</td>
-     <td><span class="pill ${c.yoy>=0?'g':'r'}">${pct(c.yoy)}</span></td></tr>`).join('');
+  // YoY: the FY pair when this source holds one, else the like-for-like window.
+  const chainYoY=c=>(c.yoy!=null?c.yoy:((spChain[c.name]||{}).yoy_pct));
+  const rows=chains.filter(c=>c[last]>0).map(c=>{const y=chainYoY(c);
+    return `<tr><td>${drillLink('Chain',c.name)}</td>${pPrev?`<td>${crc(c[pPrev])}</td>`:''}<td>${crc(c[pLast])}</td>
+     <td>${y!=null?`<span class="pill ${y>=0?'g':'r'}">${pct(y)}</span>`:'–'}</td></tr>`;}).join('');
   const qcNote=(qc&&qc.allocated_coverage_pct!=null)?`<p class="note" style="margin:0 0 16px">
      <b>Chain-level, not distributor-level:</b> Distributor-billed primary is split across the
      chains each ship-to actually serves, weighted by that chain's share of the ship-to's own
@@ -1600,41 +1687,50 @@ function buildPrimary(){
      is allocated this way; the remainder (no matching Ship-To × Brand × Month allocation entry,
      mainly FY24-25) keeps its original single-chain tag.</p>`:'';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'this source (see the Category & Pack tab for those)');
+  // Say plainly which FY this source covers and where the newer one lives, so a
+  // missing FY column reads as coverage rather than as a gap in the business.
+  const spNote=(!fy&&SP&&p.coverage_note)?`<p class="note" style="margin:0 0 16px">
+     <b>${SP.curr_fy} is not in this pre-aggregated source.</b> It is article-level and shown above as a
+     like-for-like ${SP.n_months}-month figure (${SP.months.join(' + ')}) against ${SP.prev_fy}.
+     A part-year FY compared against a full FY is not a YoY, so the two are never mixed here.</p>`:'';
   s.innerHTML=`<h2 class="sec">Primary (Sell-in)</h2>
-   <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:`${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}, ₹ Crore.`}</p>
+   <p class="lead">Billed NSV from Honasa to MT chains. ${fy?`${yrLab[fy]} only (filtered).`:`${pPrev?`${yrLab[pPrev]} vs `:''}${yrLab[pLast]}, ₹ Crore.`}</p>
    ${dimNote}
+   ${spNote}
    ${qcNote}
    <div class="kpis">
      ${fy? kpi(`Primary NSV ${yrLab[fy]}`,crc(chains.reduce((a,c)=>a+(c[fy]||0),0)),fOn('Chain')||fOn('Zone')||fOn('Brand')||fOn('Channel')?'filtered scope':'') :
-       kpi('Primary NSV FY26',crc(p.nsv_fy26),`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)}</span> YoY`)}
-     ${!fy? kpi('Primary NSV FY25',crc(p.nsv_fy25),'base year') :
-       kpi('Gross MRP Value',crc(p.mrp_fy26),'FY26 MRP basis (MRP not split by FY25/27)')}
-     ${!fy? kpi('Gross MRP Value FY26',crc(p.mrp_fy26),'at MRP basis') : ''}
+       kpi(`Primary NSV ${yrLab[pLast]}`,crc(p['nsv_'+pLast]),pPrev?`<span class="${cls(p.yoy)}">${arrow(p.yoy)} ${pct(p.yoy)}</span> YoY`:`${p.month_labels?'full year':''}`)}
+     ${!fy&&SP? kpi(`Primary ${SP.curr_fy} (${SP.n_months} mth)`,crc(SP.curr),
+         `<span class="${cls(SP.yoy_pct)}">${arrow(SP.yoy_pct)} ${pct(SP.yoy_pct)}</span> vs ${SP.prev_fy} same period`) :
+      !fy? kpi(`Primary NSV ${pPrev?yrLab[pPrev]:'prior FY'}`,crc(pPrev?p['nsv_'+pPrev]:null),'base year') :
+       kpi('Gross MRP Value',crc(p['mrp_'+pLast]),`${yrLab[pLast]} MRP basis`)}
+     ${!fy? kpi(`Gross MRP Value ${yrLab[pLast]}`,crc(p['mrp_'+pLast]),'at MRP basis') : ''}
      ${kpi('Active Chains',chains.filter(c=>c[last]>0).length,`${p.n_brands} brands`)}
    </div>
    <div class="grid g2">
-     ${card(`Monthly NSV — ${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')}`+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
-     ${card('By zone'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY25')} vs ${fyDispLabel('FY26')})`),'click to drill',cv('prZone',true))}
+     ${card(`Monthly NSV — ${pPrev?`${yrLab[pPrev]} vs `:''}${yrLab[pLast]}`+(fOn('Month')?` (filtered to ${fLab('Month')})`:''),'Calendar-aligned Apr→Mar. Click a month to drill.',cv('prMonth'))}
+     ${card('By zone'+(fy?` (${yrLab[fy]})`:` (${pPrev?`${yrLab[pPrev]} vs `:''}${yrLab[pLast]})`),'click to drill',cv('prZone',true))}
    </div>
    <div class="grid g2">
      ${card('By channel'+(fy?` (${yrLab[fy]})`:''),'click to drill',cv('prChan',true))}
-     ${card('By brand'+(fy?` (${yrLab[fy]})`:` (${fyDispLabel('FY26')})`),'click to drill',cv('prBrand',true))}
+     ${card('By brand'+(fy?` (${yrLab[fy]})`:` (${yrLab[pLast]})`),'click to drill',cv('prBrand',true))}
    </div>
    ${card(`Chain-wise primary &amp; YoY (${yrLab[last]})`,'Sorted by NSV — chain-level (secondary-allocated for Distributor primary), not distributor-name-wise. Click a chain to drill.',`<div class="tablewrap"><table>
-     <thead><tr><th>Chain</th><th>${fyDispLabel('FY25')}</th><th>${fyDispLabel('FY26')}</th><th>YoY</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
+     <thead><tr><th>Chain</th>${pPrev?`<th>${yrLab[pPrev]}</th>`:''}<th>${yrLab[pLast]}</th><th>YoY${!pPrev&&SP?` (${SP.curr_fy} vs ${SP.prev_fy}, ${SP.n_months} mth)`:''}</th></tr></thead><tbody>${rows||`<tr><td colspan="${pPrev?4:3}">No chains for this filter.</td></tr>`}</tbody></table></div>`)}
    ${allocSectionHtml()}
    ${catDrillCardHtml('prCatDrill')}`;
   wireDrillLinks(s);
   wireAllocExports(s);
   mkLine('prMonth',mLabels,[
-    {label:fyDispLabel('FY25'),data:m25,borderColor:C.blue,dash:[5,4]},
-    {label:fyDispLabel('FY26'),data:m26,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>drillTo('Month',v));
+    ...(mPrev?[{label:yrLab[pPrev],data:mPrev,borderColor:C.blue,dash:[5,4]}]:[]),
+    {label:yrLab[pLast],data:mLast,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true}],v=>drillTo('Month',v));
   if(fy){
     mkBarH('prZone',zones.map(z=>z.name),zones.map(z=>z[fy]),C.teal,true,v=>drillTo('Zone',v));
   } else {
     mkBar('prZone',zones.map(z=>z.name),[
-      {label:fyDispLabel('FY25'),data:zones.map(z=>z.fy25),backgroundColor:C.blue+'cc',borderRadius:4},
-      {label:fyDispLabel('FY26'),data:zones.map(z=>z.fy26),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo('Zone',v));
+      ...(pPrev?[{label:yrLab[pPrev],data:zones.map(z=>z[pPrev]),backgroundColor:C.blue+'cc',borderRadius:4}]:[]),
+      {label:yrLab[pLast],data:zones.map(z=>z[pLast]),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo('Zone',v));
   }
   mkDonut('prChan',channels.map(c=>c.name),channels.map(c=>c[last]),true,v=>drillTo('Channel',v));
   const bb=brands.filter(b=>b[last]>0.5);
@@ -2645,6 +2741,153 @@ function renderAnomalyBadge(chain, anomalies) {
 // pair shown adapts to whichever two FYs are actually present for that
 // dimension.
 let cmpDim='Chain';
+// ---- Phase 3: readiness gate, MoM, scorecard, PVM detail, mapping health ----
+// Thresholds come from D.config (config/analytics_config.json), never inlined.
+const CFG=()=>D.config||{};
+function ragClass(v,band){
+  const b=((CFG().rag)||{})[band]; if(v==null||!b) return '';
+  const {green:g,amber:a}=b;
+  if(g==null||a==null) return '';
+  if(b.lower_is_better) return v<=g?'g':(v<=a?'':'r');
+  return v>=g?'g':(v>=a?'':'r');
+}
+function ragPill(v,band,fmt){
+  if(v==null) return '–';
+  return `<span class="pill ${ragClass(v,band)}">${fmt?fmt(v):v}</span>`;
+}
+// A blocked layer explains itself instead of showing a confident-looking number.
+function gateNote(key){
+  const g=((D.readiness||{}).gates||{})[key];
+  if(!g||g.status!=='BLOCKED') return '';
+  return `<p class="note" style="margin:0 0 16px;border-left:4px solid var(--amber);padding-left:10px">
+    <b>⚠ ${g.label}: not yet reliable.</b> ${g.requires?`Needs ${g.requires}.`:''}
+    Measured: ${g.measured}. ${g.unblocks_with?`<br><b>Unblocks with:</b> ${g.unblocks_with}`:''}</p>`;
+}
+function readinessCard(){
+  const R=D.readiness; if(!R||!R.gates) return '';
+  const rows=Object.entries(R.gates).map(([k,g])=>`<tr>
+    <td>${g.label}</td>
+    <td><span class="pill ${g.status==='PASS'?'g':'r'}">${g.status}</span></td>
+    <td>${g.measured||'–'}</td><td>${g.unblocks_with||'–'}</td></tr>`).join('');
+  return card('Data readiness gate',
+    `${R.summary}. A layer is BLOCKED when its inputs are not in place — it is not broken, and it is not presenting a half-built number as final.`,
+    `<div class="tablewrap"><table><thead><tr><th>Layer</th><th>Status</th><th>Measured</th><th>Unblocks with</th></tr></thead>
+     <tbody>${rows}</tbody></table></div>`);
+}
+function momSection(){
+  const M=D.mom; if(!M||!M.rows) return '';
+  const hdr=M.months.map(m=>`<th>${m}</th>`).join('');
+  const body=M.rows.map(r=>{
+    const cells=r.values.map((v,i)=>{
+      const mom=(r.mom_pct||[])[i];
+      const val=r.unit==='%'?(v==null?'–':v.toFixed(1)+'%')
+              :r.unit==='INR/unit'?(v==null?'–':'₹'+v.toFixed(2))
+              :crc(v);
+      const sub=mom==null?'':`<br><span class="pill ${mom>=0?'g':'r'}" style="font-size:10px">${pct(mom)}</span>`;
+      return `<td>${val}${sub}</td>`;
+    }).join('');
+    const tot=r.unit==='INR Lakh'?crc(r.total):(r.avg==null?'–':(r.unit==='%'?r.avg.toFixed(1)+'%':'₹'+r.avg.toFixed(2)));
+    return `<tr><td><b>${r.metric}</b></td>${cells}<td>${tot}</td></tr>`;
+  }).join('');
+  const na=(M.unavailable||[]).map(u=>`<li><b>${u.metric}</b> — ${u.reason}</li>`).join('');
+  return `<h2 class="sec" style="margin-top:32px">Month-on-Month — ${M.fy_tag}</h2>
+   <p class="lead">${M.months.join(' → ')}. Small pill under each value is the change vs the prior month. ₹ Crore unless noted.</p>
+   ${card(`MoM by metric (${M.n_months} months, ${M.basis} basis)`,M.note,
+     `<div class="tablewrap"><table><thead><tr><th>Metric</th>${hdr}<th>Total / Avg</th></tr></thead><tbody>${body}</tbody></table></div>`)}
+   ${na?card('Not shown, and why','These metrics have no source at this grain in this build. Listed rather than shown as zero.',`<ul class="wf">${na}</ul>`):''}`;
+}
+function scorecardSection(){
+  const S=D.scorecard; if(!S) return '';
+  const tbl=(blk,label)=>{
+    if(!blk||!blk.rows||!blk.rows.length) return '';
+    const rows=blk.rows.map(r=>`<tr>
+      <td>${drillLink(label,r.name)}</td>
+      <td>${crc(r.curr)}</td>
+      <td>${ragPill(r.growth_pct,'growth_pct',v=>pct(v))}</td>
+      <td>${crc(r.target)}</td>
+      <td>${ragPill(r.achievement_pct,'achievement_pct',v=>v.toFixed(1)+'%')}</td>
+      <td>${crc(r.gap)}</td>
+      <td>${crc(r.current_run_rate)}</td>
+      <td>${crc(r.required_run_rate)}</td>
+      <td><span class="pill ${r.status==='green'?'g':r.status==='red'?'r':''}">${r.status?r.status.toUpperCase():'–'}</span></td>
+      <td style="min-width:230px">${r.action||'–'}</td></tr>`).join('');
+    return card(`${label} scorecard`,blk.note,
+      `<div class="tablewrap"><table><thead><tr>
+        <th>${label}</th><th>${blk.curr_fy}</th><th>Growth</th><th>Target</th><th>Ach%</th>
+        <th>Gap</th><th>Curr RR</th><th>Reqd RR</th><th>Status</th><th>Action</th>
+       </tr></thead><tbody>${rows}</tbody></table></div>`);
+  };
+  const z=S.by_zone, c=S.by_chain;
+  const ref=z||c; if(!ref) return '';
+  return `<h2 class="sec" style="margin-top:32px">Account &amp; Zone Scorecard</h2>
+   <p class="lead">${ref.curr_fy} vs ${ref.prev_fy}, like-for-like over ${ref.months?ref.months.join(' + '):''}. RAG thresholds from config/analytics_config.json. ₹ Crore.</p>
+   ${gateNote('chain_primary')}
+   ${tbl(z,'Zone')}
+   ${tbl(c,'Chain')}`;
+}
+function pvmSection(){
+  const pv=D.pvm; if(!pv) return '';
+  const rows=(pv.buckets||[]).map(b=>`<tr><td><b>${b.driver}</b></td><td>${crc(b.value)}</td>
+    <td>${b.pct_of_change==null?'–':b.pct_of_change.toFixed(1)+'%'}</td><td>${b.meaning}</td></tr>`).join('');
+  const rc=pv.reconciliation||{};
+  const contrib=(arr,lab)=>{
+    if(!arr||!arr.length) return '';
+    const r=arr.slice(0,10).map(x=>`<tr><td>${drillLink(lab,x.name)}</td><td>${crc(x.prev)}</td><td>${crc(x.curr)}</td>
+      <td><span class="pill ${x.delta>=0?'g':'r'}">${crc(x.delta)}</span></td>
+      <td>${x.pct_of_total_change==null?'–':x.pct_of_total_change.toFixed(1)+'%'}</td></tr>`).join('');
+    return card(`Growth contribution by ${lab.toLowerCase()}`,'Who moved the number. Sorted by change.',
+      `<div class="tablewrap"><table><thead><tr><th>${lab}</th><th>${pv.prev_fy}</th><th>${pv.curr_fy}</th><th>Change</th><th>% of total change</th></tr></thead><tbody>${r}</tbody></table></div>`);
+  };
+  const a=pv.asp||{};
+  return `<h2 class="sec" style="margin-top:32px">Price-Volume-Mix — value bridge &amp; drivers</h2>
+   <p class="lead">The detail behind the decomposition chart above. What actually drove the ${crc(pv.delta)} change, ${pv.prev_fy} → ${pv.curr_fy} over ${pv.n_months} months. Decomposed at ${pv.grain.toLowerCase()} grain.</p>
+   ${gateNote('pvm')}
+   <div class="kpis">
+     ${kpi(`${pv.prev_fy} → ${pv.curr_fy}`,crc(pv.delta),`${pct(pv.delta_pct)} on value · ${pct(pv.qty_delta_pct)} on units`)}
+     ${kpi('Blended ASP',a.curr==null?'–':'₹'+a.curr.toFixed(2),`from ₹${a.prev==null?'–':a.prev.toFixed(2)} · ${pct(a.blended_change_pct)}`)}
+     ${kpi('Like-for-like price',a.pure_price_change_pct==null?'–':pct(a.pure_price_change_pct),'same articles, quantities held constant')}
+     ${kpi('Mix &amp; range effect',a.mix_effect_pp==null?'–':(a.mix_effect_pp>0?'+':'')+a.mix_effect_pp.toFixed(2)+' pp',
+        'the rest of the ASP move')}
+   </div>
+   ${a.reading?`<p class="note" style="margin:0 0 16px"><b>Reading:</b> ${a.reading}</p>`:''}
+   ${card('Value bridge',pv.note,
+     `<div class="tablewrap"><table><thead><tr><th>Driver</th><th>Impact</th><th>% of change</th><th>What it means</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td><b>Sum of drivers</b></td><td><b>${crc(rc.sum_of_buckets)}</b></td><td colspan="2">
+        vs actual change ${crc(rc.actual_delta)} — variance ${rc.variance} L
+        <span class="pill ${rc.status==='PASS'?'g':'r'}">${rc.status}</span></td></tr></tfoot></table></div>`)}
+   ${card('Article counts','A large new-article count means the growth is range expansion, which behaves differently from same-article growth.',
+     `<div class="kpi-row"><span class="kpi-val">${pv.n_articles.common}</span><span class="kpi-lab">sold in both periods</span></div>
+      <div class="kpi-row"><span class="kpi-val">${pv.n_articles.new}</span><span class="kpi-lab">new this period</span></div>
+      <div class="kpi-row"><span class="kpi-val">${pv.n_articles.discontinued}</span><span class="kpi-lab">stopped selling</span></div>`)}
+   ${contrib(pv.by_chain,'Chain')}
+   ${contrib(pv.by_brand,'Brand')}`;
+}
+function mappingHealthSection(){
+  const M=D.mapping_health; if(!M||!M.by_fy) return '';
+  const fys=Object.keys(M.by_fy);
+  const cur=fys[fys.length-1], b=M.by_fy[cur];
+  const ex=(M.exceptions||[]).slice(0,15).map(r=>`<tr><td>${r.ship_to||'–'}</td><td>${r.cust_code||'–'}</td>
+    <td>${crc(r.nsv)}</td><td>${r.cumulative_pct==null?'–':r.cumulative_pct.toFixed(1)+'%'}</td>
+    <td>${(r.brands||[]).join(', ')||'–'}</td></tr>`).join('');
+  const pr=(M.proposals||[]).map(r=>`<tr><td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${r.suggested_chain||'–'}</td>
+    <td>${r.confidence||'–'}</td><td><span class="pill">${r.status}</span></td></tr>`).join('');
+  return `<h2 class="sec" style="margin-top:32px">Chain Mapping Health</h2>
+   <p class="lead">How much primary can actually be attributed to a named chain. Chain-level reporting is only as good as this.</p>
+   <div class="kpis">
+     ${kpi(`Mapping completeness (${cur})`,b.completeness_pct==null?'–':b.completeness_pct.toFixed(1)+'%',
+        `${ragPill(b.completeness_pct,'mapping_completeness_pct',v=>v.toFixed(1)+'%')} against the ${((CFG().readiness||{}).chain_primary||{}).min_mapping_completeness_pct||'–'}% gate`)}
+     ${kpi('Attributed to a chain',crc(b.mapped_nsv),'usable for chain reporting')}
+     ${kpi('Not attributed',crc(b.unmapped_nsv),`${M.exception_count} ship-to parties`)}
+   </div>
+   ${gateNote('chain_primary')}
+   ${card('Unmapped exception register',M.note,
+     `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>Cust code</th><th>NSV</th><th>Cumulative</th><th>Brands</th></tr></thead>
+      <tbody>${ex||'<tr><td colspan="5">None.</td></tr>'}</tbody></table></div>`)}
+   ${pr?card('Proposed mappings — awaiting approval',M.proposals_note,
+     `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>NSV at stake</th><th>Suggested chain</th><th>Confidence</th><th>Status</th></tr></thead>
+      <tbody>${pr}</tbody></table></div>`):''}`;
+}
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
   const dims=['Chain','Brand','SubCategory','Range','PackSize','Article'];
@@ -2729,7 +2972,9 @@ function buildComparison(){
    ${card(`${dimLab[cmpDim]} ranked comparison (top 15)`,'Click a name to drill.',`<div class="tablewrap"><table><thead><tr>
      <th>${dimLab[cmpDim]}</th><th>${yrPair[0]}</th><th>${yrPair[1]}</th><th>YoY</th><th>Contribution</th>
      </tr></thead><tbody>${tableRows||'<tr><td colspan="5">No records for this filter.</td></tr>'}</tbody></table></div>`)}
-   ${drillCardHtml('cmpDrill','Primary NSV')}`;
+   ${drillCardHtml('cmpDrill','Primary NSV')}
+   ${momSection()}
+   ${scorecardSection()}`;
   wireDrillLinks(s);
   wireChips(s,buildComparison);
   wireCmpButtons(s);
@@ -2748,36 +2993,61 @@ function wireCmpButtons(root){
 
 /* ---------------- INSIGHTS / WAY FORWARD ---------------- */
 function computePVMMetrics(){
-  const fy=fOne('FY')||'FY26';
-  const primeKey=`nsv_${fy.toLowerCase()}`;
-  const priorKey=`nsv_${fy==='FY27'?'fy26':fy==='FY26'?'fy25':'fy25'}`;
-  const curr=(D.primary&&D.primary[primeKey])||0;
-  const prior=(D.primary&&D.primary[priorKey])||curr*0.9;
-  const delta=curr-prior;
-  return{
-    volume_effect: delta*0.6,
-    price_effect: delta*-0.3,
-    mix_effect: delta*0.7,
-    total_delta_nsv: delta
+  // Reads the real article-grain decomposition from D.pvm (pvm_block).
+  // This previously returned delta*0.6 / delta*-0.3 / delta*0.7 -- fixed
+  // ratios with no analysis behind them, charted under a "Price-Volume-Mix"
+  // title. Returns null when D.pvm is absent so the caller can say so rather
+  // than draw an invented split.
+  const pv=D.pvm; if(!pv||!pv.buckets) return null;
+  const by={}; pv.buckets.forEach(b=>{by[b.driver]=b.value;});
+  return {
+    volume_effect: by['Volume']??0,
+    price_effect: by['Price']??0,
+    new_effect: by['New articles']??0,
+    lost_effect: by['Discontinued']??0,
+    total_delta_nsv: pv.delta,
+    asp: pv.asp||{},
+    recon: pv.reconciliation||{}
   };
 }
 
 function computeChannelHealth(){
-  const fy=fyKey();
-  const primary=(D.primary&&D.primary.by_chain)||{};
-  const offtake=(D.offtake&&D.offtake.by_chain)||{};
-  const chains=Object.keys({...primary,...offtake});
-  return chains.map(c=>{
-    const p=(primary[c]&&primary[c][fy?'nsv_'+fy:'nsv'])||0;
-    const o=(offtake[c]&&offtake[c].total)||0;
-    const ratio=p>0?o/p:0;
+  // by_chain is an ARRAY on both blocks. This used Object.keys() over it, so
+  // every "chain" was an array index ('0','1','2'…) and each row was
+  // mislabelled. It also read primary[c]['nsv_'+fy] and offtake[c].total,
+  // neither of which exists on these rows -- offtake was therefore always 0,
+  // the ratio always 0, and every chain came back "Overstocked".
+  // Index by name, use keys that exist, and compare the SAME window on both
+  // sides so sell-out vs sell-in is like for like.
+  const SP=(D.detail_meta&&D.detail_meta.same_period)||null;
+  const fy=fyKey();                                    // 'fy26' | 'fy27' | ''
+  const spKey=SP?String(SP.curr_fy).toLowerCase():null;
+  const useSP=!!(SP&&SP.by_chain&&(!fy||fy===spKey));   // SP covers the current FY
+  const offKey=useSP?spKey:fy;
+  const off={};
+  ((D.offtake&&D.offtake.by_chain)||[]).forEach(r=>{
+    if(!r||r.name==null) return;
+    off[r.name]=(offKey&&r[offKey]!=null)?r[offKey]:r.value;
+  });
+  const pri={};
+  if(useSP) SP.by_chain.forEach(r=>{ if(r&&r.name!=null) pri[r.name]=r.curr; });
+  else ((D.primary&&D.primary.by_chain)||[]).forEach(r=>{
+    if(!r||r.name==null) return;
+    pri[r.name]=fy?r[fy]:r.value;
+  });
+  const names=[...new Set([...Object.keys(pri),...Object.keys(off)])];
+  return names.map(c=>{
+    const p=pri[c]||0, o=off[c]||0;
+    // Both sides must be real before a ratio means anything.
+    const ratio=(p>0&&o>0)?o/p:null;
     return{
-      chain:c,
-      health_ratio:ratio,
-      status:ratio>1.15?'Understocked':ratio<0.85?'Overstocked':'Balanced',
-      color:ratio>1.15?'var(--red)':ratio<0.85?'var(--red)':'var(--green)'
+      chain:c, primary:p, offtake:o, health_ratio:ratio,
+      status:ratio==null?'No data':ratio>1.15?'Selling out faster than billed'
+             :ratio<0.85?'Billed ahead of sell-out':'Balanced',
+      color:ratio==null?'var(--muted)':(ratio>1.15||ratio<0.85)?'var(--amber)':'var(--green)'
     };
-  }).sort((a,b)=>b.health_ratio-a.health_ratio).slice(0,8);
+  }).filter(x=>x.health_ratio!=null)
+    .sort((a,b)=>b.health_ratio-a.health_ratio).slice(0,8);
 }
 
 function computeSKUQuadrants(){
@@ -2798,10 +3068,22 @@ function computeSKUQuadrants(){
 }
 
 function generateAnalyticsInsights(){
-  const pvm=computePVMMetrics();
+  const pvm=computePVMMetrics();      // may be null when D.pvm is absent
   const health=computeChannelHealth();
   const insights=[];
-  if(pvm.volume_effect>0) insights.push({type:'win',title:'Volume Growth',text:`Volume effect +${Math.round(pvm.volume_effect/100)/10}% contributes to NSV lift.`});
+  // volume_effect is a RUPEE amount in Lakh. It was previously divided by 1000
+  // and printed with a % sign, so a Rs 38.44 Cr volume effect read as "+3.8%".
+  if(pvm&&pvm.volume_effect>0){
+    const share=pvm.total_delta_nsv?Math.round(pvm.volume_effect/pvm.total_delta_nsv*1000)/10:null;
+    insights.push({type:'win',title:'Volume growth',
+      text:`Volume added ${crc(pvm.volume_effect)} of the ${crc(pvm.total_delta_nsv)} change`
+           +(share!=null?` (${share}% of it)`:'')+`, on the same articles at last year's prices.`});
+  }
+  if(pvm&&pvm.asp&&pvm.asp.pure_price_change_pct!=null&&pvm.asp.pure_price_change_pct<0){
+    insights.push({type:'risk',title:'Realisation slipping on existing range',
+      text:`Like-for-like price is ${pct(pvm.asp.pure_price_change_pct)} even though blended ASP is `
+           +`${pct(pvm.asp.blended_change_pct)} — the ASP lift is mix and new range, not pricing.`});
+  }
   const overstocked=health.filter(h=>h.status==='Overstocked');
   if(overstocked.length>0) insights.push({type:'risk',title:'Inventory Imbalance',text:`${overstocked.length} accounts overstocked; rebalancing needed.`});
   return insights.slice(0,5);
@@ -2815,13 +3097,17 @@ function renderPVMChart(){
   const cv=document.createElement('canvas');
   cvDiv.appendChild(cv);
   const pvm=computePVMMetrics();
+  if(!pvm){ cvDiv.innerHTML='<p class="note">Price-Volume-Mix not available: no article-level Qty in this build.</p>'; return; }
   const ctx=cv.getContext('2d');
+  // Buckets sum to the actual change exactly, so "Net NSV" is a total, not a
+  // fifth driver -- coloured apart from the four drivers for that reason.
   window._chartPVM=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:['Volume Effect','Price Effect','Mix Effect','Net NSV'],
-      datasets:[{label:'NSV Impact (Lakh)',data:[pvm.volume_effect,pvm.price_effect,pvm.mix_effect,pvm.total_delta_nsv],
-        backgroundColor:['var(--green)','var(--red)','var(--amber)','var(--blue)']}]
+      labels:['Volume','Price','New articles','Discontinued','Net change'],
+      datasets:[{label:'NSV impact (₹ Lakh)',
+        data:[pvm.volume_effect,pvm.price_effect,pvm.new_effect,pvm.lost_effect,pvm.total_delta_nsv],
+        backgroundColor:[C.teal,C.red,C.blue,C.amber,C.grey]}]
     },
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}
   });
@@ -2841,7 +3127,7 @@ function renderHealthChart(){
     data:{
       labels:health.map(h=>h.chain),
       datasets:[{label:'Offtake/Primary Ratio',data:health.map(h=>h.health_ratio),
-        backgroundColor:health.map(h=>h.status==='Understocked'?'var(--amber)':h.status==='Overstocked'?'var(--red)':'var(--green)')}]
+        backgroundColor:health.map(h=>h.status==='Balanced'?'var(--green)':'var(--amber)')}]
     },
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:1.5}}}
   });
@@ -2896,17 +3182,17 @@ function buildAnalytics(){
     </div>
     <div class="grid g2">
       <div class="card">
-        <h3>S&OP Forecast Reliability</h3>
-        <p class="note">WMAPE % and Forecast Bias tracking</p>
+        <h3>Target vs Actual Reliability</h3>
+        <p class="note">${forecast.note||'WMAPE % and bias'}</p>
         <div style="padding:20px;background:var(--card);border-radius:4px">
           <div style="display:flex;gap:20px;align-items:center">
             <div style="text-align:center">
-              <div style="font-size:32px;font-weight:bold;color:var(--green)">${forecast.accuracy??'–'}%</div>
-              <div style="font-size:12px;color:var(--muted)">Accuracy</div>
+              <div style="font-size:32px;font-weight:bold;color:${forecast.accuracy==null?'var(--muted)':forecast.accuracy>=90?'var(--green)':forecast.accuracy>=75?'var(--amber)':'var(--red)'}">${forecast.accuracy??'–'}%</div>
+              <div style="font-size:12px;color:var(--muted)">Accuracy (100 − WMAPE)</div>
             </div>
             <div style="flex:1">
-              <div style="padding:8px 12px;background:${forecast.bias_status==='Accurate'?'var(--green)':forecast.bias_status==='Under-forecasting'?'var(--amber)':'var(--red)'}20;border-left:4px solid ${forecast.bias_status==='Accurate'?'var(--green)':forecast.bias_status==='Under-forecasting'?'var(--amber)':'var(--red)'};border-radius:2px">
-                <strong>${forecast.bias_status??'–'}</strong><br><small>${forecast.bias??'–'}% bias</small>
+              <div style="padding:8px 12px;background:${forecast.bias_status==='On plan'?'var(--green)':forecast.bias_status==null?'var(--muted)':'var(--amber)'}20;border-left:4px solid ${forecast.bias_status==='On plan'?'var(--green)':forecast.bias_status==null?'var(--muted)':'var(--amber)'};border-radius:2px">
+                <strong>${forecast.bias_status??'–'}</strong><br><small>${forecast.bias??'–'}% bias · WMAPE ${forecast.wmape??'–'}%</small>
               </div>
             </div>
           </div>
@@ -2929,7 +3215,11 @@ function buildAnalytics(){
 
   s.innerHTML=`<h2 class="sec">Commercial Analytics — Phase 4</h2>
    <p class="lead">Real P&L margins, S&OP forecast diagnostics, Open PO SLA monitoring, and cross-tab drill-through navigation.</p>
-   ${frames}`;
+   ${frames}
+   ${pvmSection()}
+   ${mappingHealthSection()}
+   <h2 class="sec" style="margin-top:32px">Data Readiness</h2>
+   ${readinessCard()}`;
 
   setTimeout(()=>{
     renderPVMChart();
@@ -2939,14 +3229,27 @@ function buildAnalytics(){
 }
 
 function computeForecastAccuracy(){
-  const fy=fOne('FY')||'FY26';
-  const actual=(D.primary&&D.primary[`nsv_${fy.toLowerCase()}`])||1000;
-  const forecast=(D.forecast&&D.forecast.target)||1050;
-  const error=Math.abs(forecast-actual);
-  const wmape=Math.round((error/actual)*100);
-  const accuracy=Math.max(0,100-wmape);
-  const bias=Math.round(((forecast-actual)/actual)*100);
-  return{accuracy,wmape,bias,bias_status:bias<-5?'Under-forecasting':bias>5?'Over-forecasting':'Accurate'};
+  // Measured month by month against the target, over the months that have BOTH
+  // a target and an actual. This previously read D.forecast.target -- a key that
+  // does not exist -- and fell back to a hardcoded 1050 against a full-FY
+  // primary total, which is what produced "3% accuracy, -97% bias" on screen.
+  const T=D.targets, m=T&&T.measures&&T.measures[T.basis];
+  const rows=(m&&m.monthly)||[];
+  const pairs=rows.filter(r=>r&&r.actual!=null&&r.target!=null&&r.target!==0);
+  if(!pairs.length) return{accuracy:null,wmape:null,bias:null,bias_status:null,
+    n_months:0,basis:null,note:'No month has both a target and an actual in this build.'};
+  const sumA=pairs.reduce((s,r)=>s+r.actual,0);
+  const sumT=pairs.reduce((s,r)=>s+r.target,0);
+  const sumE=pairs.reduce((s,r)=>s+Math.abs(r.target-r.actual),0);
+  const wmape=sumA?Math.round(sumE/sumA*1000)/10:null;
+  const bias=sumA?Math.round((sumT-sumA)/sumA*1000)/10:null;
+  return{
+    accuracy:wmape==null?null:Math.max(0,Math.round((100-wmape)*10)/10),
+    wmape, bias,
+    bias_status:bias==null?null:bias>5?'Target set above actual':bias<-5?'Target set below actual':'On plan',
+    n_months:pairs.length, basis:T.basis,
+    note:`Target vs actual on the ${T.basis} basis, over ${pairs.length} month(s) with both.`
+  };
 }
 
 function computePORiskSummary(){
