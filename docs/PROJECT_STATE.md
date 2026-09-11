@@ -18,17 +18,22 @@ business inputs. Environment resilience added.
 
 ## Last Validated Commit
 
-`8c35c5b` — Re-scope DMS/Massit to the incentive working only; add May-26
+`f01ed02` — Environment resilience: resume recovery, health check, project state
 Validated: 2026-09-11
+
+> A milestone's own commit hash does not exist while this file is being written
+> for it, so this section is corrected in the **next** commit. Check it against
+> `git log --oneline -1` on resume; the hook prints both.
 
 ## Next Approved Task
 
-Obtain the blocked business inputs, then build the incentive engine.
-Do NOT start NPD, OSA/OOS, profitability or persona reporting — all gated.
-Do NOT calculate incentive payouts until the readiness gate passes.
-Highest-value inputs to chase first: incentive grade for 14 employees, and
-Employee IDs on the WoA hierarchy. Both are one extra column on files that
-already exist.
+Build the incentive identity foundation: WoA person -> Employee ID candidate
+mapping (proposed only, never auto-approved), and the business-input templates
+that unblock payout — incentive grade, role-level targets, target basis, and
+the C1-C6 rule confirmations.
+Do NOT calculate any incentive payout. Do NOT start NPD, OSA/OOS,
+profitability or persona reporting — all gated.
+One bounded component per run: implement, validate, commit, stop.
 
 ## Completed Capabilities
 
