@@ -248,10 +248,13 @@ dashboard functions, renders, or updates. The deployed site at GitHub Pages refl
 Always run, and report results:
 
 1. `python -m py_compile scripts/build_dashboard_data.py`
-2. Serve `dashboard/` on a local HTTP server and sweep **all 12 tabs × 4 FY
+2. Serve `dashboard/` on a local HTTP server and sweep **every tab × 4 FY
    states** (no-filter / FY25 / FY26 / FY27) with a headless browser
    (Playwright at `/opt/node22`, chromium at `/opt/pw-browsers/chromium`):
    assert **no** NaN / `undefined` / empty-broken cards / JS errors / card overlap.
+   `tests/dashboard_sweep.js` reads the tab list from the page's own `TABS`
+   array, so the state count follows the dashboard rather than a number written
+   here — report whatever the run prints (11 tabs × 4 = 44 states today).
 3. Confirm FY25/FY26 numbers are unchanged when only FY27 was intended to change
    (diff the relevant `data.js` blocks before/after).
 
@@ -285,7 +288,7 @@ Classify every incoming request into ONE domain and apply its protocol.
 |--------|---------|--------------------------------|
 | **Data Pipeline & QC** (`@agent-data-qc`) | Schema changes, new CSV/seed files, `sync_data_js.py`, `build_dashboard_data.py`, any data rebuild | Run `ci_validate_datajs.py`; assert `n_stores > 0`, `n_chains > 0`, `by_chain` schema valid; diff FY25/FY26 blocks unchanged |
 | **DAX & Semantic Modeling** (`@agent-dax-modeler`) | Power BI measures, DAX, calculated columns, KPI definitions, time-intelligence | `DIVIDE()` for all ratios, explicit `CALCULATE()` filters, missing-baseline text fallback (e.g. `"FY25 baseline not in source"`) |
-| **Headless UI / QA** (`@agent-ui-qa`) | `dashboard/index.html`, chart scripts, canvas templates, filter logic, drill-down wiring | Full **52-state matrix** (13 tabs × 4 FY states: All/FY25/FY26/FY27); zero `NaN`/`undefined` in `document.body.innerText`; zero "can't acquire context" JS errors; every canvas ID referenced by chart code must exist in DOM template before `mkBar*/mkLine/mkDonut` calls |
+| **Headless UI / QA** (`@agent-ui-qa`) | `dashboard/index.html`, chart scripts, canvas templates, filter logic, drill-down wiring | Full tab × FY sweep (every tab in `TABS` × All/FY25/FY26/FY27 — currently 11 × 4 = 44 states); zero `NaN`/`undefined` in `document.body.innerText`; zero "can't acquire context" JS errors; every canvas ID referenced by chart code must exist in DOM template before `mkBar*/mkLine/mkDonut` calls |
 | **Audit & Release Governance** (`@agent-governance`) | PR reviews, final sync, executive briefings, CI/CD changes | Backward-compat check vs prior commits; structured QC Summary: Pass/Fail, evaluated records, quarantined counts, downstream dashboard impacts |
 
 Records that fail schema validation are tagged and quarantined (DLQ) rather
@@ -296,7 +299,7 @@ than failing the entire pipeline — log the bad rows, continue with clean data.
 Every substantive response must contain all four sections:
 
 1. **Action Summary** — domain/sub-agent, exact task performed, files changed.
-2. **Quality & Validation Status** — assertions passed, counts, 52-state results
+2. **Quality & Validation Status** — assertions passed, counts, sweep results
    (or the subset exercised), JS error count.
 3. **Artifact / Code** — exact tested code, script, or DAX measure ready for
    production deployment.
