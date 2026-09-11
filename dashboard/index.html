@@ -3012,21 +3012,42 @@ function computePVMMetrics(){
 }
 
 function computeChannelHealth(){
-  const fy=fyKey();
-  const primary=(D.primary&&D.primary.by_chain)||{};
-  const offtake=(D.offtake&&D.offtake.by_chain)||{};
-  const chains=Object.keys({...primary,...offtake});
-  return chains.map(c=>{
-    const p=(primary[c]&&primary[c][fy?'nsv_'+fy:'nsv'])||0;
-    const o=(offtake[c]&&offtake[c].total)||0;
-    const ratio=p>0?o/p:0;
+  // by_chain is an ARRAY on both blocks. This used Object.keys() over it, so
+  // every "chain" was an array index ('0','1','2'…) and each row was
+  // mislabelled. It also read primary[c]['nsv_'+fy] and offtake[c].total,
+  // neither of which exists on these rows -- offtake was therefore always 0,
+  // the ratio always 0, and every chain came back "Overstocked".
+  // Index by name, use keys that exist, and compare the SAME window on both
+  // sides so sell-out vs sell-in is like for like.
+  const SP=(D.detail_meta&&D.detail_meta.same_period)||null;
+  const fy=fyKey();                                    // 'fy26' | 'fy27' | ''
+  const spKey=SP?String(SP.curr_fy).toLowerCase():null;
+  const useSP=!!(SP&&SP.by_chain&&(!fy||fy===spKey));   // SP covers the current FY
+  const offKey=useSP?spKey:fy;
+  const off={};
+  ((D.offtake&&D.offtake.by_chain)||[]).forEach(r=>{
+    if(!r||r.name==null) return;
+    off[r.name]=(offKey&&r[offKey]!=null)?r[offKey]:r.value;
+  });
+  const pri={};
+  if(useSP) SP.by_chain.forEach(r=>{ if(r&&r.name!=null) pri[r.name]=r.curr; });
+  else ((D.primary&&D.primary.by_chain)||[]).forEach(r=>{
+    if(!r||r.name==null) return;
+    pri[r.name]=fy?r[fy]:r.value;
+  });
+  const names=[...new Set([...Object.keys(pri),...Object.keys(off)])];
+  return names.map(c=>{
+    const p=pri[c]||0, o=off[c]||0;
+    // Both sides must be real before a ratio means anything.
+    const ratio=(p>0&&o>0)?o/p:null;
     return{
-      chain:c,
-      health_ratio:ratio,
-      status:ratio>1.15?'Understocked':ratio<0.85?'Overstocked':'Balanced',
-      color:ratio>1.15?'var(--red)':ratio<0.85?'var(--red)':'var(--green)'
+      chain:c, primary:p, offtake:o, health_ratio:ratio,
+      status:ratio==null?'No data':ratio>1.15?'Selling out faster than billed'
+             :ratio<0.85?'Billed ahead of sell-out':'Balanced',
+      color:ratio==null?'var(--muted)':(ratio>1.15||ratio<0.85)?'var(--amber)':'var(--green)'
     };
-  }).sort((a,b)=>b.health_ratio-a.health_ratio).slice(0,8);
+  }).filter(x=>x.health_ratio!=null)
+    .sort((a,b)=>b.health_ratio-a.health_ratio).slice(0,8);
 }
 
 function computeSKUQuadrants(){
@@ -3106,7 +3127,7 @@ function renderHealthChart(){
     data:{
       labels:health.map(h=>h.chain),
       datasets:[{label:'Offtake/Primary Ratio',data:health.map(h=>h.health_ratio),
-        backgroundColor:health.map(h=>h.status==='Understocked'?'var(--amber)':h.status==='Overstocked'?'var(--red)':'var(--green)')}]
+        backgroundColor:health.map(h=>h.status==='Balanced'?'var(--green)':'var(--amber)')}]
     },
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:1.5}}}
   });
@@ -3161,17 +3182,17 @@ function buildAnalytics(){
     </div>
     <div class="grid g2">
       <div class="card">
-        <h3>S&OP Forecast Reliability</h3>
-        <p class="note">WMAPE % and Forecast Bias tracking</p>
+        <h3>Target vs Actual Reliability</h3>
+        <p class="note">${forecast.note||'WMAPE % and bias'}</p>
         <div style="padding:20px;background:var(--card);border-radius:4px">
           <div style="display:flex;gap:20px;align-items:center">
             <div style="text-align:center">
-              <div style="font-size:32px;font-weight:bold;color:var(--green)">${forecast.accuracy??'–'}%</div>
-              <div style="font-size:12px;color:var(--muted)">Accuracy</div>
+              <div style="font-size:32px;font-weight:bold;color:${forecast.accuracy==null?'var(--muted)':forecast.accuracy>=90?'var(--green)':forecast.accuracy>=75?'var(--amber)':'var(--red)'}">${forecast.accuracy??'–'}%</div>
+              <div style="font-size:12px;color:var(--muted)">Accuracy (100 − WMAPE)</div>
             </div>
             <div style="flex:1">
-              <div style="padding:8px 12px;background:${forecast.bias_status==='Accurate'?'var(--green)':forecast.bias_status==='Under-forecasting'?'var(--amber)':'var(--red)'}20;border-left:4px solid ${forecast.bias_status==='Accurate'?'var(--green)':forecast.bias_status==='Under-forecasting'?'var(--amber)':'var(--red)'};border-radius:2px">
-                <strong>${forecast.bias_status??'–'}</strong><br><small>${forecast.bias??'–'}% bias</small>
+              <div style="padding:8px 12px;background:${forecast.bias_status==='On plan'?'var(--green)':forecast.bias_status==null?'var(--muted)':'var(--amber)'}20;border-left:4px solid ${forecast.bias_status==='On plan'?'var(--green)':forecast.bias_status==null?'var(--muted)':'var(--amber)'};border-radius:2px">
+                <strong>${forecast.bias_status??'–'}</strong><br><small>${forecast.bias??'–'}% bias · WMAPE ${forecast.wmape??'–'}%</small>
               </div>
             </div>
           </div>
@@ -3208,14 +3229,27 @@ function buildAnalytics(){
 }
 
 function computeForecastAccuracy(){
-  const fy=fOne('FY')||'FY26';
-  const actual=(D.primary&&D.primary[`nsv_${fy.toLowerCase()}`])||1000;
-  const forecast=(D.forecast&&D.forecast.target)||1050;
-  const error=Math.abs(forecast-actual);
-  const wmape=Math.round((error/actual)*100);
-  const accuracy=Math.max(0,100-wmape);
-  const bias=Math.round(((forecast-actual)/actual)*100);
-  return{accuracy,wmape,bias,bias_status:bias<-5?'Under-forecasting':bias>5?'Over-forecasting':'Accurate'};
+  // Measured month by month against the target, over the months that have BOTH
+  // a target and an actual. This previously read D.forecast.target -- a key that
+  // does not exist -- and fell back to a hardcoded 1050 against a full-FY
+  // primary total, which is what produced "3% accuracy, -97% bias" on screen.
+  const T=D.targets, m=T&&T.measures&&T.measures[T.basis];
+  const rows=(m&&m.monthly)||[];
+  const pairs=rows.filter(r=>r&&r.actual!=null&&r.target!=null&&r.target!==0);
+  if(!pairs.length) return{accuracy:null,wmape:null,bias:null,bias_status:null,
+    n_months:0,basis:null,note:'No month has both a target and an actual in this build.'};
+  const sumA=pairs.reduce((s,r)=>s+r.actual,0);
+  const sumT=pairs.reduce((s,r)=>s+r.target,0);
+  const sumE=pairs.reduce((s,r)=>s+Math.abs(r.target-r.actual),0);
+  const wmape=sumA?Math.round(sumE/sumA*1000)/10:null;
+  const bias=sumA?Math.round((sumT-sumA)/sumA*1000)/10:null;
+  return{
+    accuracy:wmape==null?null:Math.max(0,Math.round((100-wmape)*10)/10),
+    wmape, bias,
+    bias_status:bias==null?null:bias>5?'Target set above actual':bias<-5?'Target set below actual':'On plan',
+    n_months:pairs.length, basis:T.basis,
+    note:`Target vs actual on the ${T.basis} basis, over ${pairs.length} month(s) with both.`
+  };
 }
 
 function computePORiskSummary(){
