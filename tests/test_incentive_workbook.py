@@ -219,3 +219,54 @@ class IncentiveWorkbook(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SafeMissingSchemaBehavior(unittest.TestCase):
+    """A source file that exists but doesn't match the expected schema must fail
+    with a named reason -- never a raw StopIteration, never a partial/misleading
+    output. This is the matrix-vs-flattened-slab failure mode found during
+    Windows acceptance: a real business workbook, wrong shape for this parser.
+    """
+
+    @staticmethod
+    def _matrix_fixture(tmp_path):
+        wb = openpyxl.Workbook(); wb.remove(wb.active)
+        ws = wb.create_sheet("Sales Team")
+        ws.append([None] * 4)
+        ws.append([None] * 4)
+        ws.append([None, None, "Slab", "BDO", "BDE", "Sr BDE"])
+        ws.append([None, None, "90% to 105%", 7200, 9000, 13300])
+        p = tmp_path / "matrix_slab.xlsx"
+        wb.save(p)
+        return p
+
+    def test_matrix_shaped_slab_file_fails_cleanly(self):
+        import sys, tempfile
+        from pathlib import Path as _P
+        sys.path.insert(0, str(REPO / "scripts"))
+        from build_incentive_workbook import read_slabs
+        with tempfile.TemporaryDirectory() as td:
+            fixture = self._matrix_fixture(_P(td))
+            with self.assertRaises(SystemExit) as cm:
+                read_slabs(fixture)
+            msg = str(cm.exception)
+            self.assertIn("Designation", msg)
+            self.assertIn(str(fixture), msg)
+            self.assertNotIn("Traceback", msg)
+
+    def test_missing_header_never_raises_bare_stopiteration(self):
+        """The failure mode this whole test class exists to prevent."""
+        import sys, tempfile
+        from pathlib import Path as _P
+        sys.path.insert(0, str(REPO / "scripts"))
+        from build_incentive_workbook import read_slabs, read_employees, read_targets
+        with tempfile.TemporaryDirectory() as td:
+            fixture = self._matrix_fixture(_P(td))
+            for fn in (read_slabs, read_employees):
+                try:
+                    fn(fixture)
+                    self.fail(f"{fn.__name__} should have raised")
+                except StopIteration:
+                    self.fail(f"{fn.__name__} leaked a raw StopIteration")
+                except SystemExit:
+                    pass  # the correct, actionable failure

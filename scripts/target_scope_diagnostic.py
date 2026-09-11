@@ -96,8 +96,14 @@ def read_targets(path):
     wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
     ws = next((wb[n] for n in wb.sheetnames if "TARGET MASTER" in n.upper()), wb[wb.sheetnames[0]])
     rows = list(ws.iter_rows(values_only=True))
-    hi = next(i for i, r in enumerate(rows[:15])
-              if r and any(str(c).strip().upper() == "TARGET" for c in r if c))
+    hi = next((i for i, r in enumerate(rows[:15])
+               if r and any(str(c).strip().upper() == "TARGET" for c in r if c)), None)
+    if hi is None:
+        raise SystemExit(
+            f"\n{path}: no 'TARGET' header found in the first 15 rows of sheet "
+            f"'{ws.title}'.\nExpected schema: FY | Month | Region | State | Chain | "
+            f"Brand | BDO/BDE | RKAM | Target.\nNothing is guessed -- supply a file "
+            f"matching that schema.\n")
     hdr = [("" if c is None else str(c).strip()) for c in rows[hi]]
     ix = {h: i for i, h in enumerate(hdr) if h}
     out = []

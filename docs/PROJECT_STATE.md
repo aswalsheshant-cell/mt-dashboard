@@ -11,11 +11,24 @@ Update after a **validated** milestone, then commit and push with that milestone
 
 ---
 
-## V1 Status — CLOSED
+## V1 Status — CONDITIONALLY READY
 
-**V1 is code-complete and closed.** Build mode is over; the project is now in
-operate-and-improve mode. Monthly business runs, validating recommendations and
-measuring outcomes are the work — not further architecture.
+**Code is closed. One external business input is outstanding.** Real Windows
+acceptance (2026-09-12) proved the dashboard reproduces completely from a fresh
+clone — 44 states, 0 failures, 0 JS errors — and proved the incentive scripts
+correctly resolve real paths (space + `&` included) and fail safely when an
+input's shape doesn't match. It also found that the company's live FY27 slab
+master is a different shape from what `--slabs` expects (see
+`docs/RUNBOOK.md` §"The slab file must be the flattened Designation schema").
+
+That gap is an **external business input, not a code defect**: no reproducibility
+failure, no fabricated output, no invariant broken. `read_slabs()` now names the
+exact expected schema and exits cleanly rather than crashing — verified against
+a synthetic fixture shaped like the real matrix workbook.
+
+**Blocking full closure:** locate or (once, by a person, against the incentive
+communication) produce the flattened, `Designation`-keyed slab file. Everything
+else in `docs/RUNBOOK.md` §5 is unaffected.
 
 Source workbooks live at `D:\sALES & eXPENSES` (local Windows storage, outside
 Git by design). The repository stores how to find them, never the files. See

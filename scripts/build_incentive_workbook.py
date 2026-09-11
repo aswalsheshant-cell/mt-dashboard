@@ -75,7 +75,13 @@ def read_employees(path):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb[wb.sheetnames[0]]
     rows = list(ws.iter_rows(values_only=True))
-    hi = next(i for i, r in enumerate(rows[:12]) if r and any(str(c).strip() == "Employee ID" for c in r if c))
+    hi = next((i for i, r in enumerate(rows[:12]) if r and any(str(c).strip() == "Employee ID" for c in r if c)), None)
+    if hi is None:
+        raise SystemExit(
+            f"\n{path}: no 'Employee ID' header found in the first 12 rows of sheet "
+            f"'{ws.title}'.\nExpected schema: a row with 'Employee ID' as one of its "
+            f"column headers (Employee_wise_grade_for_payment.xlsx's own layout).\n"
+            f"Nothing is guessed -- supply a file matching that schema.\n")
     hdr = [("" if c is None else str(c).strip()) for c in rows[hi]]
     gi = ws.max_column - 1
     out = []
@@ -92,7 +98,17 @@ def read_slabs(path):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb[wb.sheetnames[0]]
     rows = list(ws.iter_rows(values_only=True))
-    hi = next(i for i, r in enumerate(rows[:10]) if r and any(str(c).strip() == "Designation" for c in r if c))
+    hi = next((i for i, r in enumerate(rows[:10]) if r and any(str(c).strip() == "Designation" for c in r if c)), None)
+    if hi is None:
+        raise SystemExit(
+            f"\n{path}: no 'Designation' header found in the first 10 rows of sheet "
+            f"'{ws.title}'.\nExpected schema: one row-per-designation table with a "
+            f"'Designation' column (Role Group | Designation | Frequency | Metric | "
+            f"Slab Name | Min Ach % | Max Ach % | Amount % | Payout Amount | Condition "
+            f"Type). A per-role-sheet matrix workbook is a different, unconverted "
+            f"shape -- see docs/RUNBOOK.md for the required input contract.\n"
+            f"Nothing is guessed or auto-converted -- supply a file matching that "
+            f"schema.\n")
     hdr = [("" if c is None else str(c).strip()) for c in rows[hi]]
     out = []
     for r in rows[hi + 1:]:
@@ -106,7 +122,13 @@ def read_targets(path):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = next((wb[n] for n in wb.sheetnames if "TARGET MASTER" in n.upper()), wb[wb.sheetnames[0]])
     rows = list(ws.iter_rows(values_only=True))
-    hi = next(i for i, r in enumerate(rows[:15]) if r and any(str(c).strip().upper() == "TARGET" for c in r if c))
+    hi = next((i for i, r in enumerate(rows[:15]) if r and any(str(c).strip().upper() == "TARGET" for c in r if c)), None)
+    if hi is None:
+        raise SystemExit(
+            f"\n{path}: no 'TARGET' header found in the first 15 rows of sheet "
+            f"'{ws.title}'.\nExpected schema: FY | Month | Region | State | Chain | "
+            f"Brand | BDO/BDE | RKAM | Target.\nNothing is guessed -- supply a file "
+            f"matching that schema.\n")
     hdr = [("" if c is None else str(c).strip()) for c in rows[hi]]
     ix = {h: i for i, h in enumerate(hdr) if h}
     out = []

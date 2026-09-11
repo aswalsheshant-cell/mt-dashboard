@@ -20,6 +20,30 @@ The repository stores *how to find the input*, never the input itself. Nothing i
 hardcoded to that path — every script takes the location as an argument or an
 environment variable, so a different machine only changes the value.
 
+### The slab file must be the flattened Designation schema, not the matrix master
+
+Windows acceptance (2026-09-12) found that the company's live FY27 slab master
+- `MT HO & Sales team Incentive Structure Slab for 2026-27.xlsx` - is organized
+one sheet per role group (a "Sales Team" sheet with BDO/BDE/Sr BDE columns, a
+"Data" sheet with an Analyst column, a "Lead & BA lead" sheet with a Sr National
+BA Ops column, and likely further sheets for RKAM/NKAM/BA Leads), with the
+designation as a *column header*, not a row value.
+
+`--slabs` needs the OTHER shape: one row per designation, with a literal
+`Designation` column -- `Role Group | Designation | Frequency | Metric | Slab
+Name | Min Ach % | Max Ach % | Amount % | Payout Amount | Condition Type`. That
+flattened file was produced once and reconciled 85/85 against the official
+incentive communication email; it is a different artifact from the matrix
+master, not an export of it that this repo can regenerate.
+
+There is no converter in this repo from the matrix shape to the flattened
+shape, and none should be built speculatively -- the mapping from a matrix
+sheet's rows to `Slab Name` / `Condition Type` needs business sign-off, not a
+guess. If the flattened file is not at hand, treat it as a business input to
+locate or (once) produce by hand, the same way it was produced before -- not a
+code defect. Pointing `--slabs` at the matrix master fails safely and says
+exactly this; it does not crash and does not fabricate a workbook.
+
 ### The one thing that bites
 
 That folder name contains a space **and** an ampersand. In a shell, an unquoted
