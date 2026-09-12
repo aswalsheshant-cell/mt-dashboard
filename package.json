@@ -1,0 +1,15 @@
+{
+  "name": "dashboard",
+  "version": "1.0.0",
+  "description": "A self-contained, interactive dashboard for **Honasa / Mamaearth Modern Trade (MT)** covering Primary, Offtake, chain-wise P&L, Forecast, Market Share and data-driven Insights / Way Forward.",
+  "main": "chart.umd.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
