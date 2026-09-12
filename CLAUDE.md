@@ -294,6 +294,33 @@ Classify every incoming request into ONE domain and apply its protocol.
 Records that fail schema validation are tagged and quarantined (DLQ) rather
 than failing the entire pipeline — log the bad rows, continue with clean data.
 
+### External capability / plugin policy
+
+A prompt or an imported "skill pack" naming a plugin (e.g. Superpowers, Deep
+Research, Presenton, SlidesGPT, AMD, VSI AI Automation, Links Connect, Agent
+Consent Patterns, Template Creator) does not mean that tool is installed here.
+Before routing a task to a named capability:
+
+1. Check it against the **real** inventory: this repo's `.claude/skills/*`
+   (governed by `agent-skill-governance`; canonical source is `skill-suite/`
+   for suite-managed skills), the Anthropic-native skills (`pdf`, `docx`,
+   `xlsx`, `pptx`, `dataviz`, …), and the MCP servers actually configured for
+   the session (currently GitHub, Gmail, Google Drive, Canva — no VSI, Links
+   Connect or AMD connector exists here).
+2. If an existing project skill already owns the task (e.g. spreadsheets →
+   `excel-generator`/`mt-excel-powerbi-agent`; decks → `mt-ppt-presentation`;
+   research → `deep-research-solve`/`proactive-intelligence-engine`;
+   debugging/regression discipline → `steward`/`business-ai-automation`;
+   headless browser evidence → `dashboard-qa-sentinel`'s Playwright sweep),
+   use that skill. Do not install a second, overlapping skill for the same
+   trigger — `agent-skill-governance` treats trigger overlap as a defect.
+3. Track availability (available / unavailable / method-only), verification
+   (declared / instructions-reviewed / smoke-tested) and authorization
+   (granted / not-granted / not-needed) as separate facts. A skill file that
+   describes how a provider *would* work is a procedure, not proof the
+   provider is connected — report a missing connector as a gap, never as a
+   completed integration.
+
 ### Standard Output Format
 
 Every substantive response must contain all four sections:
