@@ -27,19 +27,21 @@ jobs:
             build-mode: none
           - language: python
             build-mode: none
+          - language: actions
+            build-mode: none
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@4fa2a7953630fd2f3fb380f21be14ede0169dd4f  # v3.25.15
+        uses: github/codeql-action/init@4bd7200e1f146b1c937cae12d258b50f41a53cf8  # v4.38.0
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
           queries: security-and-quality
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@4fa2a7953630fd2f3fb380f21be14ede0169dd4f  # v3.25.15
+        uses: github/codeql-action/analyze@4bd7200e1f146b1c937cae12d258b50f41a53cf8  # v4.38.0
         with:
           category: /language:${{ matrix.language }}
