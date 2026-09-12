@@ -92,26 +92,66 @@ if ($daxFiles.Count -gt 0) {
 
 $pqFiles = Get-ChildItem -Path (Join-Path $RepoRoot "PowerBI/PowerQuery") -Filter "*.pq" -Recurse -ErrorAction SilentlyContinue
 if ($pqFiles.Count -gt 0) {
+    # M does NOT require a let/in expression to be valid -- per the M language
+    # specification (https://learn.microsoft.com/en-us/powerquery-m/m-spec-basic-concepts),
+    # a valid M document can be a bare literal, a record ([a=1]), a list
+    # ({1,2,3}), a function (x) => x, or a metadata-annotated value (as in
+    # this repo's own 00_Parameters.pq, a Power Query PARAMETER). A previous
+    # version of this check required the literal substrings "let" and "in"
+    # and flagged 00_Parameters.pq as malformed for lacking them -- that was
+    # a false positive, not a real defect in the file.
+    #
+    # This check does NOT parse M grammar and cannot prove syntactic
+    # validity. It only verifies that brackets/parens/braces and double
+    # quotes balance after stripping // and /* */ comments -- a structural
+    # sanity check, not full M validation. Known limitations, disclosed
+    # rather than hidden: a delimiter character INSIDE a string literal
+    # (e.g. a paren in descriptive text) still counts toward the balance and
+    # can produce a false positive or false negative; this check cannot
+    # catch every malformed file a real M parser would reject, and it
+    # cannot catch a file that balances but is still semantically wrong.
+    # Full M grammar validation is NOT RUN by this script.
     foreach ($pqFile in $pqFiles) {
         $content = Get-Content -Path $pqFile.FullName -Raw
-        # Word-boundary match: a bare substring check on "let"/"in" also matches
-        # inside ordinary comment prose (e.g. "outlet", "in Power BI"), which can
-        # hide a genuinely malformed query behind unrelated text.
-        $hasLetIn = ($content -match "\blet\b") -and ($content -match "\bin\b")
-        # A Power Query PARAMETER (created via Home > Manage Parameters) is a
-        # single value annotated with `meta [IsParameterQuery=true, ...]` — this
-        # is valid, standard M syntax and never contains a let/in expression, so
-        # it is a different legitimate shape, not a malformed query.
-        $isParameterQuery = $content -match "IsParameterQuery\s*=\s*true"
-        if ($hasLetIn) {
-            Write-Host "  ✓ Structural M-code valid: $($pqFile.Name)" -ForegroundColor Green
-        } elseif ($isParameterQuery) {
-            Write-Host "  ✓ Parameter query (no let/in expected): $($pqFile.Name)" -ForegroundColor Green
+        $issues = @()
+
+        if ([string]::IsNullOrWhiteSpace($content)) {
+            $issues += "file is empty"
         } else {
-            $failures += "Power Query structural error in $($pqFile.Name): Missing 'let' or 'in' clause"
-            Write-Host "  ❌ $($pqFile.Name): Malformed M-code structure" -ForegroundColor Red
+            $stripped = [regex]::Replace($content, '//[^\r\n]*', '')
+            $stripped = [regex]::Replace($stripped, '(?s)/\*.*?\*/', '')
+
+            $delimPairs = @(
+                @{ Open = '('; Close = ')' },
+                @{ Open = '['; Close = ']' },
+                @{ Open = '{'; Close = '}' }
+            )
+            foreach ($pair in $delimPairs) {
+                $openCount = ($stripped.ToCharArray() | Where-Object { $_ -eq $pair.Open }).Count
+                $closeCount = ($stripped.ToCharArray() | Where-Object { $_ -eq $pair.Close }).Count
+                if ($openCount -ne $closeCount) {
+                    $issues += "unbalanced '$($pair.Open)$($pair.Close)' ($openCount open vs $closeCount close)"
+                }
+            }
+
+            # M escapes a literal quote inside a string by doubling it ("").
+            # Each escaped quote still contributes an even number of `"`
+            # characters, so a simple parity check on the total count remains
+            # valid even in the presence of escaped quotes.
+            $quoteCount = ($stripped.ToCharArray() | Where-Object { $_ -eq '"' }).Count
+            if ($quoteCount % 2 -ne 0) {
+                $issues += "unbalanced double-quote count ($quoteCount)"
+            }
+        }
+
+        if ($issues.Count -eq 0) {
+            Write-Host "  ✓ Basic structural sanity passed (balanced brackets/quotes -- NOT full M syntax validation): $($pqFile.Name)" -ForegroundColor Green
+        } else {
+            $failures += "Power Query structural issue in $($pqFile.Name): $($issues -join '; ')"
+            Write-Host "  ❌ $($pqFile.Name): $($issues -join '; ')" -ForegroundColor Red
         }
     }
+    Write-Host "  ℹ Full M grammar validation: NOT RUN (no M parser available in this environment)" -ForegroundColor Gray
 } else {
     Write-Host "  ℹ No .pq files found in PowerBI/PowerQuery" -ForegroundColor Gray
 }
