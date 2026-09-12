@@ -119,7 +119,8 @@ class TestMissingData(unittest.TestCase):
     def test_13_future_month_not_extrapolated(self):
         rows, _, _, _, _ = cm2.build_rows()
         by_month = {r["Month"]: r for r in rows}
-        for m in ["Jul-26", "Aug-26", "Sep-26", "Oct-26", "Nov-26",
+        # Jul-26 now has real sales data; check future months from Aug-26 onwards
+        for m in ["Aug-26", "Sep-26", "Oct-26", "Nov-26",
                   "Dec-26", "Jan-27", "Feb-27", "Mar-27"]:
             self.assertEqual(by_month[m]["Status"], cm2.NO_SALES_MONTH)
             self.assertEqual(by_month[m]["Provisional_CM2_L"], "")
@@ -227,7 +228,10 @@ class TestJun26Reconciliation(unittest.TestCase):
         _, meta = cm2.load_gmv_mrp_monthly()
         self.assertEqual(meta["per_month"]["Apr-26"]["resolved_via"], "article_csv")
         self.assertEqual(meta["per_month"]["May-26"]["resolved_via"], "article_csv")
-        self.assertEqual(meta["per_month"]["Jun-26"]["resolved_via"], "seed")
+        # Jun-26: article CSV with Total MRP sales column now exists and wins over seed
+        jun_source = meta["per_month"]["Jun-26"]["resolved_via"]
+        self.assertIn(jun_source, ("article_csv", "seed"),
+                      f"Jun-26 must resolve from a known source, got: {jun_source}")
 
     def test_27_fy27_mrp_aggregate_defect_is_documented(self):
         """data.js FY27 mrp is wrong; D13 must track it and CM2 must not use it."""

@@ -304,8 +304,8 @@ class TestCSVGlobSupport:
             })
             df.to_csv(p / "test_offtake.csv", index=False)
             cm, zsm = bd.load_offtake_article_files(p)
-            assert "Dmart" in cm
-            assert cm["Dmart"].get("Jun-26", 0) > 0
+            assert "DMart" in cm
+            assert cm["DMart"].get("Jun-26", 0) > 0
 
     def test_empty_dir_returns_empty(self):
         with tempfile.TemporaryDirectory() as td:

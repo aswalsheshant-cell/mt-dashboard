@@ -34,54 +34,6 @@
       "owner": "Dashboard team",
       "decision_ref": ""
     },
-    "SCAN-ORPHAN-build_fw_nielsen_slide.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_fw_nielsen_slide.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
-    "SCAN-ORPHAN-build_shampoo_deepdive_slide.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_shampoo_deepdive_slide.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
-    "SCAN-ORPHAN-build_shampoo_nielsen_slide.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_shampoo_nielsen_slide.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
-    "SCAN-ORPHAN-build_stdlib.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/build_stdlib.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
-    "SCAN-ORPHAN-enhance_v3.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/enhance_v3.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
-    "SCAN-ORPHAN-insert_pack_size_slide.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/insert_pack_size_slide.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
-    "SCAN-ORPHAN-patch_corrections_v2.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/patch_corrections_v2.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
-    "SCAN-ORPHAN-rebuild_mt_offtake_ppt.py": {
-      "severity": "INFO",
-      "summary": "Script is not referenced anywhere and writes no tracked file: scripts/rebuild_mt_offtake_ppt.py",
-      "owner": "Dashboard team",
-      "decision_ref": ""
-    },
     "VAL-FY-HARDCODE-build_dashboard_data": {
       "severity": "WARN",
       "summary": "14 hardcoded FY literals in build_dashboard_data.py",
