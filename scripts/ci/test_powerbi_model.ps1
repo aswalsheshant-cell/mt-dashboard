@@ -94,8 +94,19 @@ $pqFiles = Get-ChildItem -Path (Join-Path $RepoRoot "PowerBI/PowerQuery") -Filte
 if ($pqFiles.Count -gt 0) {
     foreach ($pqFile in $pqFiles) {
         $content = Get-Content -Path $pqFile.FullName -Raw
-        if ($content -match "let" -and $content -match "in") {
+        # Word-boundary match: a bare substring check on "let"/"in" also matches
+        # inside ordinary comment prose (e.g. "outlet", "in Power BI"), which can
+        # hide a genuinely malformed query behind unrelated text.
+        $hasLetIn = ($content -match "\blet\b") -and ($content -match "\bin\b")
+        # A Power Query PARAMETER (created via Home > Manage Parameters) is a
+        # single value annotated with `meta [IsParameterQuery=true, ...]` — this
+        # is valid, standard M syntax and never contains a let/in expression, so
+        # it is a different legitimate shape, not a malformed query.
+        $isParameterQuery = $content -match "IsParameterQuery\s*=\s*true"
+        if ($hasLetIn) {
             Write-Host "  ✓ Structural M-code valid: $($pqFile.Name)" -ForegroundColor Green
+        } elseif ($isParameterQuery) {
+            Write-Host "  ✓ Parameter query (no let/in expected): $($pqFile.Name)" -ForegroundColor Green
         } else {
             $failures += "Power Query structural error in $($pqFile.Name): Missing 'let' or 'in' clause"
             Write-Host "  ❌ $($pqFile.Name): Malformed M-code structure" -ForegroundColor Red
