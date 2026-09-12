@@ -109,10 +109,17 @@ jobs:
               print("   - Missing test harness files")
               print("   - Test data not available in CI environment")
               print("   - PowerBI validation script not found")
-              print("\n   Auto-fix: Make test harnesses optional (continue-on-error: true)")
+              print("   - A genuine data or Power Query defect the harness correctly caught")
+              print("\n   This job only detects and logs -- it makes no code changes.")
+              print("   Do NOT add continue-on-error: true to make this pass; that hides")
+              print("   real failures instead of fixing them (see pbi-windows-ci.yml's own")
+              print("   history for why). Read the actual job log with get_job_logs, classify")
+              print("   the failure as required-validation vs. optional-probe, and fix the")
+              print("   root cause.")
 
           print("\n" + "=" * 60)
-          print("💡 Recommendation: Deploy CI workflow fixes to main branch")
+          print("💡 Recommendation: a human or agent should read the failing job's log and")
+          print("   fix the root cause. This workflow does not open a PR or push a fix.")
           EOF
 
       - name: Create remediation checklist
@@ -120,29 +127,32 @@ jobs:
           cat > /tmp/ci_remediation_checklist.md << 'EOF'
           # CI Failure Remediation Checklist
 
+          This file is a printed log for this job's own output only -- it is written
+          to the runner's /tmp and is not committed, uploaded as an artifact, or acted
+          on by any later step. Detection here does not mean anything was fixed.
+
           ## Recent Failures
-          - [ ] Dashboard Validation & QC — Verify markup checks
-          - [ ] Power BI Windows CI — Verify test harnesses are optional
+          - [ ] Dashboard Validation & QC — check the actual failing step's log
+          - [ ] Power BI Windows CI — check the actual failing step's log
 
           ## Action Items
-          1. **For Dashboard Validation**
+          1. **For Dashboard Validation** (if the markup-check step failed)
              - Check that Phase 2 functions are present in index.html
              - Verify 'function maskSiteCode' exists
              - Verify 'function getGranularityBadge' exists
              - Verify 'function wireRelianceBCToggle' exists
 
           2. **For Power BI Windows CI**
-             - Ensure all test files have 'continue-on-error: true'
-             - Make test harnesses optional (skip if missing)
-             - Don't fail on missing optional validation scripts
+             - Read the job log to see which check actually failed (schema drift,
+               DAX bracket mismatch, PQ structural error, or a real dashboard/data.js
+               assertion) -- do not assume it is a missing-file/optional-tooling case
+             - Do not paper over a real failure with continue-on-error: true; that
+               makes the job green without fixing anything
 
-          ## Prevention
-          - Add `continue-on-error: true` to optional validation steps
-          - Check for Phase 2 functions, not Phase 3 references
-          - Mock or skip tests that require unavailable data in CI
-
-          **Status**: Auto-remediation applied to both workflows
-          **Next review**: Check if failures resolve on next push
+          ## Status
+          Detection only -- this workflow does not push a fix, open a PR, or change
+          any file. A human or an agent session needs to read the failing job's log
+          and fix the underlying cause.
           EOF
           cat /tmp/ci_remediation_checklist.md
 
@@ -152,13 +162,16 @@ jobs:
           echo "CI Auto-Fix Check Complete"
           echo "=========================================="
           echo ""
-          echo "Actions taken:"
-          echo "  ✓ Detected recent workflow failures"
-          echo "  ✓ Analyzed failure patterns"
-          echo "  ✓ Logged remediation checklist"
+          echo "This job only detects and logs -- it does not modify, commit, or push"
+          echo "anything to the repository."
           echo ""
-          echo "Workflow fixes deployed:"
-          echo "  ✓ Dashboard Validation — updated markup checks"
-          echo "  ✓ Power BI Windows CI — made tests optional"
+          echo "This run:"
+          echo "  - Checked for workflow runs that failed in the last 24 hours"
+          echo "  - If any were found, printed a failure-pattern analysis and a"
+          echo "    remediation checklist to this job's own log (not saved anywhere)"
           echo ""
-          echo "Next: Monitor next scheduled run (6 hours from now)"
+          echo "No workflow fixes were deployed by this job. If a failure was reported"
+          echo "above, a human or an agent session needs to read the actual failing"
+          echo "job's log and fix the root cause."
+          echo ""
+          echo "Next scheduled check: 6 hours from now"
