@@ -294,6 +294,70 @@ Classify every incoming request into ONE domain and apply its protocol.
 Records that fail schema validation are tagged and quarantined (DLQ) rather
 than failing the entire pipeline — log the bad rows, continue with clean data.
 
+### External capability / plugin policy
+
+A prompt or an imported "skill pack" naming a plugin (e.g. Superpowers, Deep
+Research, Presenton, SlidesGPT, AMD, VSI AI Automation, Links Connect, Agent
+Consent Patterns, Template Creator) does not mean that tool is installed here.
+Before routing a task to a named capability:
+
+1. Check it against the **real** inventory: this repo's `.claude/skills/*`
+   (governed by `agent-skill-governance`; canonical source is `skill-suite/`
+   for suite-managed skills), the Anthropic-native skills (`pdf`, `docx`,
+   `xlsx`, `pptx`, `dataviz`, …), and the MCP servers actually configured for
+   the session (currently GitHub, Gmail, Google Drive, Canva — no VSI, Links
+   Connect or AMD connector exists here).
+2. If an existing project skill already owns the task (e.g. spreadsheets →
+   `excel-generator`/`mt-excel-powerbi-agent`; decks → `mt-ppt-presentation`;
+   research → `deep-research-solve`/`proactive-intelligence-engine`), use
+   that skill. Do not install a second, overlapping skill for the same
+   trigger — `agent-skill-governance` treats trigger overlap as a defect.
+   A similarly-named skill is not automatically the same skill — check its
+   actual behavior, not just its name, before calling it equivalent:
+   - **Browser interaction.** This repo's only real headless-browser
+     capability is `tests/dashboard_sweep.js` (Playwright), run per the
+     "Validation before committing dashboard changes" section above. It
+     asserts no NaN/`undefined`/JS errors across this dashboard's own
+     tab × FY states — nothing more. It does not read arbitrary web
+     sources, drive an external site, or validate any UI outside this
+     repo. (`dashboard-qa-sentinel`'s SKILL.md is unrelated to it — that
+     skill describes regex-pattern checks on `data.js`, not browser
+     automation, and separately claims "auto-fix without asking" /
+     "commit & push immediately," which conflicts with this repo's
+     require-explicit-approval and draft-PR conventions; treat that skill
+     file itself as unreviewed, not as authority to auto-commit.)
+   - **Review/debugging discipline.** No single skill here matches a
+     general "systematic debugging + regression-test-first + fresh
+     verification" practice end to end. `steward` only triages an
+     incoming PR concern into act-now/propose/escalate; it hands off
+     verification to `sales-data-reconciliation` or
+     `business-ai-automation` rather than performing it. The built-in
+     `code-review`/`simplify` skills cover code-quality review, not
+     debugging methodology. Treat this as a real but minor gap — apply
+     the discipline directly (reproduce, fix, add a regression test,
+     verify on a fresh run) rather than assuming a named skill enforces it
+     for you.
+   - **Reusable-template behavior.** `agent-skill-governance`'s own
+     template (`references/skill-template.md`) is for authoring a new
+     `SKILL.md` file — it is not a general "turn an approved document/
+     deck/sheet into a reusable template" procedure. `mt-ppt-presentation`
+     (`template_ref.pptx`) and `excel-generator`'s tracker formats do
+     reuse templates within their own artifact type, but neither
+     documents the general procedure explicitly. Also a real, minor gap;
+     not enough on its own to justify a new skill.
+   - **Artifact validation.** Native `pdf`/`docx`/`xlsx`/`pptx` skills
+     create and edit those formats; creating a file is not the same as
+     verifying its rendered output, recalculated formulas, or layout —
+     open and check the actual result before reporting an artifact task
+     done, the same way dashboard changes require a real Playwright run
+     rather than a passing build.
+3. Track availability (available / unavailable / method-only), verification
+   (declared / instructions-reviewed / smoke-tested) and authorization
+   (granted / not-granted / not-needed) as separate facts. A skill file that
+   describes how a provider *would* work is a procedure, not proof the
+   provider is connected — report a missing connector as a gap, never as a
+   completed integration.
+
 ### Standard Output Format
 
 Every substantive response must contain all four sections:
