@@ -52,14 +52,33 @@ jobs:
         shell: pwsh
         env:
           PYTHONIOENCODING: utf-8
-        continue-on-error: true
         run: |
           Write-Host "Checking for Python validation scripts..." -ForegroundColor Cyan
           $harness_found = $false
+          $hardFailure = $false
 
+          # Each script's exit code is checked immediately after it runs (via
+          # $LASTEXITCODE). Without this, only the LAST command in this block
+          # would determine the step's outcome, silently discarding an earlier
+          # script's non-zero exit -- that previously let a script's own
+          # failure go invisible whenever the one that ran afterwards happened
+          # to pass.
+          #
+          # eval_harness.py validates data_master.json, a separate transitional
+          # pipeline that PR #126 deliberately removed from automated CI
+          # triggers (it is not part of the dashboard/data.js production path
+          # this workflow exists to protect), and its data.js size check is
+          # pinned to a stale 15-25MB range from before later FY patches grew
+          # the file past 40MB -- so it is reported here for visibility but
+          # does not fail this step. validate_data_integrity.py checks
+          # dashboard/data.js, the actual artifact GitHub Pages serves, so its
+          # failures are treated as required and do fail this step.
           if (Test-Path "scripts/eval_harness.py") {
-            Write-Host "Running eval_harness.py..." -ForegroundColor Green
+            Write-Host "Running eval_harness.py (informational -- see comment above)..." -ForegroundColor Green
             python scripts/eval_harness.py
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "⚠ eval_harness.py reported failing checks (exit $LASTEXITCODE) -- not blocking, data_master.json is outside this workflow's scope" -ForegroundColor Yellow
+            }
             $harness_found = $true
           } else {
             Write-Host "⚠ eval_harness.py not found (skipped)" -ForegroundColor Yellow
@@ -68,6 +87,10 @@ jobs:
           if (Test-Path "tests/validate_data_integrity.py") {
             Write-Host "Running validate_data_integrity.py..." -ForegroundColor Green
             python tests/validate_data_integrity.py
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "❌ validate_data_integrity.py reported failing assertions (exit $LASTEXITCODE)" -ForegroundColor Red
+              $hardFailure = $true
+            }
             $harness_found = $true
           } else {
             Write-Host "⚠ validate_data_integrity.py not found (skipped)" -ForegroundColor Yellow
@@ -75,6 +98,11 @@ jobs:
 
           if (-not $harness_found) {
             Write-Host "ℹ No Python validation harnesses found (optional for this environment)" -ForegroundColor Cyan
+          }
+
+          if ($hardFailure) {
+            Write-Host "❌ Required data validation harness reported failures -- see output above." -ForegroundColor Red
+            exit 1
           }
 
       - name: Run Article Uniqueness & Assortment Governance Pytest Suite
@@ -95,7 +123,6 @@ jobs:
 
       - name: Execute Power BI Watch Folder & DAX Validation
         shell: pwsh
-        continue-on-error: true
         run: |
           if (Test-Path ".\scripts\ci\test_powerbi_model.ps1") {
             Write-Host "Running Power BI model validation..." -ForegroundColor Green
@@ -103,6 +130,16 @@ jobs:
           } else {
             Write-Host "⚠ test_powerbi_model.ps1 not found (optional for this environment)" -ForegroundColor Yellow
             Write-Host "Power BI model validation skipped" -ForegroundColor Cyan
+          }
+
+      - name: Run Power BI Model Checker Regression Fixtures
+        shell: pwsh
+        run: |
+          if (Test-Path ".\scripts\ci\test_powerbi_model.regression.ps1") {
+            Write-Host "Running test_powerbi_model.ps1's own regression fixtures..." -ForegroundColor Green
+            .\scripts\ci\test_powerbi_model.regression.ps1
+          } else {
+            Write-Host "⚠ test_powerbi_model.regression.ps1 not found (optional for this environment)" -ForegroundColor Yellow
           }
 
       - name: Upload Test Report Artifacts (On Failure)
