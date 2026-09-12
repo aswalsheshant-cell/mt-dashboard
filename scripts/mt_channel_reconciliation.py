@@ -41,9 +41,9 @@ LAKH_PER_CR = 100.0
 
 # Accounts presented as MT zone accounts in the July 2026 leadership deck.
 DECK_MT_CHAINS = {
-    "Dmart", "Reliance Retail", "Apollo", "Nykaa (FSN)", "Lulu",
-    "Wellness Forever", "H&G", "Metro C&C", "More Retail",
-    "Vishal Mega Mart", "V-Mart", "Spencer", "Arambagh", "Ratandeep",
+    "DMart", "Reliance Retail", "Apollo", "Nykaa (FSN)", "Lulu",
+    "Wellness Forever", "Health & Glow", "Metro C&C", "More Retail",
+    "VMM", "V-Mart", "Spencer", "Arambagh", "Ratandeep",
     "Sasta Sundar", "Sumo Save",
 }
 

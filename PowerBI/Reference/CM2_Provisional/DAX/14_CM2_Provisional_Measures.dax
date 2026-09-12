@@ -1,0 +1,173 @@
+// =====================================================================
+// CM2 PROVISIONAL VS APPROVED MEASURES
+//
+// Splits CM2 calculation into two paths:
+// - PROVISIONAL: includes PENDING_APPROVAL decisions (D1, D9, D2-D8)
+// - APPROVED: BLANK unless ALL required decisions are APPROVED
+//
+// This ensures that development/scenario testing can occur without
+// presenting tentative figures as approved business actuals.
+//
+// Dependencies:
+// - DAX/13_CM2_Measures.dax (base measures)
+// - DAX/12_TOT_Measures.dax ([Total Primary Article NSV])
+// - SeedData/Masters/CM2_Governance_Status.csv ('CM2 Governance Status' table)
+// - SeedData/Masters/CM2_Provisional_Assumptions.csv ('CM2 Provisional Assumptions' table, optional for scenarios)
+// =====================================================================
+
+// ---------- GOVERNANCE HELPERS ----------
+
+All_Decisions_Approved =
+VAR _d1Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D1" )
+VAR _d2Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D2" )
+VAR _d3Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D3" )
+VAR _d4Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D4" )
+VAR _d5Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D5" )
+VAR _d6Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D6" )
+VAR _d7Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D7" )
+VAR _d9Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D9" )
+RETURN
+    _d1Status = "APPROVED" &&
+    _d2Status = "APPROVED" &&
+    _d3Status = "APPROVED" &&
+    _d4Status = "APPROVED" &&
+    _d5Status = "APPROVED" &&
+    _d6Status = "APPROVED" &&
+    _d7Status = "APPROVED" &&
+    _d9Status = "APPROVED"
+
+Formula_Status =
+VAR _d1Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D1" )
+VAR _d9Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D9" )
+RETURN
+    IF ( _d1Status = "APPROVED" && _d9Status = "APPROVED", "APPROVED", "DRAFT" )
+
+// ---------- PROVISIONAL EXPENSE (base scenario, all pending decisions included) ----------
+
+Provisional Expense Lacs =
+[Total P&L Expense]   // from 13_CM2_Measures.dax; includes all mapped rows regardless of approval status
+
+Provisional Base Contribution Lacs =
+[Total Primary Article NSV]   // from 12_TOT_Measures.dax
+
+Provisional CM2 Lacs =
+[Provisional Base Contribution Lacs] - [Provisional Expense Lacs]
+
+Provisional CM2 % =
+DIVIDE ( [Provisional CM2 Lacs], [Provisional Base Contribution Lacs] ) * 100
+
+// ---------- APPROVED EXPENSE (only runs if all decisions are APPROVED) ----------
+
+Approved Expense Lacs =
+IF ( [Formula_Status] = "APPROVED", [Total P&L Expense], BLANK() )
+
+Approved Base Contribution Lacs =
+IF ( [Formula_Status] = "APPROVED", [Total Primary Article NSV], BLANK() )
+
+Approved CM2 Lacs =
+IF ( [Formula_Status] = "APPROVED",
+    [Approved Base Contribution Lacs] - [Approved Expense Lacs],
+    BLANK()
+)
+
+Approved CM2 % =
+IF ( [Formula_Status] = "APPROVED",
+    DIVIDE ( [Approved CM2 Lacs], [Approved Base Contribution Lacs] ) * 100,
+    BLANK()
+)
+
+// ---------- DISPLAY LOGIC ----------
+
+CM2 Display Status =
+VAR _d1Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D1" )
+VAR _d9Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D9" )
+RETURN
+    IF ( _d1Status = "PENDING_APPROVAL" || _d9Status = "PENDING_APPROVAL",
+        "PROVISIONAL",
+        "APPROVED"
+    )
+
+CM2 Publication Eligible =
+IF ( [Formula_Status] = "APPROVED", TRUE(), FALSE() )
+
+CM2 QC Status =
+VAR _allApproved = [All_Decisions_Approved]
+VAR _d1Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D1" )
+VAR _d9Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D9" )
+RETURN
+    IF ( _allApproved, "APPROVED - Ready for Publication",
+        IF ( _d1Status = "APPROVED" && _d9Status = "APPROVED",
+            "APPROVED - All Formula Decisions Set",
+            "PENDING - Awaiting Finance Approval"
+        )
+    )
+
+CM2 QC Reason =
+VAR _d1Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D1" )
+VAR _d2Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D2" )
+VAR _d3Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D3" )
+VAR _d4Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D4" )
+VAR _d5Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D5" )
+VAR _d6Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D6" )
+VAR _d7Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D7" )
+VAR _d9Status = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D9" )
+VAR _pending = CONCATENATEX (
+    FILTER ( 'CM2 Governance Status', 'CM2 Governance Status'[Status] = "PENDING_APPROVAL" && 'CM2 Governance Status'[Blocks_Publication] = TRUE() ),
+    'CM2 Governance Status'[Decision_ID],
+    ", "
+)
+RETURN
+    IF ( ISBLANK ( _pending ), "", "Awaiting approval on decisions: " & _pending )
+
+// ---------- RECONCILIATION MEASURES ----------
+
+Mapped Expense Lacs =
+[Total P&L Expense (Mapped)]   // from 13_CM2_Measures.dax
+
+Unmapped Expense Lacs =
+[Total P&L Expense (Unmapped)]   // from 13_CM2_Measures.dax
+
+Source Expense Total Lacs =
+[Total Expense Amount Loaded]   // from 13_CM2_Measures.dax
+
+Missing Assumption Count =
+COUNTROWS ( FILTER ( 'CM2 Provisional Assumptions', ISBLANK ( 'CM2 Provisional Assumptions'[Approved_By] ) ) )
+
+Expense Reconciliation Difference =
+[Source Expense Total Lacs] - ( [Mapped Expense Lacs] + [Unmapped Expense Lacs] )
+
+// ---------- WARNINGS ----------
+
+CM2 Warning Message =
+VAR _d1Pending = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D1" ) <> "APPROVED"
+VAR _d9Pending = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D9" ) <> "APPROVED"
+VAR _isProvisional = _d1Pending || _d9Pending
+RETURN
+    IF ( _isProvisional,
+        "CM2 PROVISIONAL — FORMULA AND ALLOCATION APPROVAL PENDING. TENTATIVE EXPENSE ASSUMPTIONS. NOT FOR FINAL REPORTING OR COMMERCIAL SETTLEMENT.",
+        ""
+    )
+
+Show CM2 Warning =
+VAR _d1Pending = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D1" ) <> "APPROVED"
+VAR _d9Pending = LOOKUPVALUE ( 'CM2 Governance Status'[Status], 'CM2 Governance Status'[Decision_ID], "D9" ) <> "APPROVED"
+RETURN
+    _d1Pending || _d9Pending
+
+// ---------- SCENARIO HELPERS (if using CM2_Provisional_Assumptions for scenarios) ----------
+
+Selected Scenario =
+LOOKUPVALUE ( VALUES ( 'CM2 Provisional Assumptions'[Scenario] ), 'CM2 Provisional Assumptions'[Scenario], "Base" )
+// Replace with a bookmark or slicer selection in the real Power BI file
+
+Scenario Expense Lacs =
+CALCULATE (
+    SUM ( 'CM2 Provisional Assumptions'[Expense_Lacs] ),
+    'CM2 Provisional Assumptions'[Scenario] = [Selected Scenario]
+)
+
+Scenario CM2 Lacs =
+[Provisional Base Contribution Lacs] - [Scenario Expense Lacs]
+
+Scenario CM2 % =
+DIVIDE ( [Scenario CM2 Lacs], [Provisional Base Contribution Lacs] ) * 100

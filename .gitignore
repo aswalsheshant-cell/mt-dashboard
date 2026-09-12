@@ -10,6 +10,21 @@ node_modules/
 primary_article.xlsb
 # but DO track the small committed seed/template/mapping CSVs under PowerBI/
 !PowerBI/**/*.csv
+# Generated data contracts (extracted from data.js) — Phase 2 automation output
+PowerBI/ExportData/
+
+# Generated agent sentiments & insights — Phase 3 automation output
+insights/
+
+# Phase 3 test output artifacts (timestamped, regenerated per run)
+docs/PHASE_3_VALIDATION_*.txt
+docs/PHASE_3_SIGNOFF_*.txt
+docs/PHASE_3_RESULTS_*.json
+
+# Standby mode operational logs (daily health checks, timestamped)
+# But track documentation/procedures in .standby-logs/
+.standby-logs/*.log
+.standby-logs/.*
 
 # skill-suite: local backups of diverged install targets
 work/skill-suite-backups/
@@ -18,3 +33,11 @@ work/skill-suite-backups/
 MT_Leadership_Report.pptx
 Central_Zone_Leadership_Pack_*.pptx
 July_MT_Command_Centre_*.pptx
+tpl_cmd/
+unpacked_enriched/
+dashboard/data.js.cm2prov.bak
+
+# Playwright test artifacts
+playwright.config.js
+test_sprint6_e2e_local.js
+test-results/

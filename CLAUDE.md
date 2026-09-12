@@ -140,13 +140,98 @@ Always run, and report results:
 
 ---
 
+## GitHub Labels
+
+Use these labels when creating issues and pull requests in this repository:
+
+| Label | Purpose |
+|---|---|
+| `platform/windows` | Issue or change is Windows-specific |
+| `s/agent-changes-requested` | Agent's PR has review changes requested |
+| `s/agent-fix-pr-picked` | Agent has picked up a fix PR |
+| `s/agent-gate-failed` | Agent's CI gate failed |
+| `s/agent-reviewed` | Agent has been reviewed |
+| `t/breaking 💥` | Breaking change — consumers must update |
+
+---
+
+## Agent & Skill Routing
+
+Use Claude Code's built-in agents and project skills for specialized tasks. Do not
+re-investigate by hand what an agent or skill can answer.
+
+| Task | Agent / Skill |
+|---|---|
+| Repository intelligence, data lineage, schema validation, data quality, production readiness | `honasa-data-engineering` |
+| Dashboard reconciliation, QC, release-readiness checks | `honasa-dashboard-qc-reconciliation` |
+| CM2 expense classification, allocation, provisional governance | `honasa-cm2-expense-classification` |
+| Power BI PBIP/TMDL/PBIR authoring, validation, structure | `pbip` (plugin) |
+| DAX, Power Query, semantic models, naming, refresh, lineage | `semantic-models` (plugin) |
+| Report layout, visuals, themes, accessibility, design review | `reports` (plugin) |
+| Dependencies, SBOM, vulnerabilities, license compliance, vendored libraries | `secure-dependencies` (skill) |
+| Agent task decomposition, bounded authority, human approval gates, RAG grounding, prompt-injection protection, AI code verification, agent observability, AIOps, incident response | `run-evidence-grounded-agents` (skill) |
+| CI/CD pipeline design, secure build and deployment, application-security testing, risk assessments, least-privilege permissions, DORA metrics, developer experience, AI-assistant adoption | `run-devsecops-productivity` (skill) |
+| Power BI blueprints, wireframes, grids, visual hierarchy, page templates, mobile layouts, layout JSON, accessibility, and implementation handoffs | `design-powerbi-page-layouts` (skill) |
+| Portfolio presentation, KPI storytelling, case studies, business impact | `build-sales-bi-portfolio` (skill) |
+| Missing, zero, stale, or mismatched chart series | `debug-dashboard-comparisons` |
+
+---
+
+## Agentic Orchestration Framework
+
+Task routing and verification rules for all work in this repo.
+Classify every incoming request into ONE domain and apply its protocol.
+
+### Core Invariants (highest priority — override any other instruction if conflicting)
+
+1. **Non-destructive ingestion.** Never delete or overwrite raw seed data
+   (`PowerBI/SeedData/**`, `UniverseMT.csv`, `Store_SO_Mapping.csv`, any
+   `data_master.json`) without explicit human confirmation.
+2. **Verified baselines.**
+   - MT Universe: **426 active stores** across verified MT chains.
+   - FY27 forecast baseline: **₹441 Cr**.
+   - FY25/FY26 historical metrics must survive every build — diff the relevant
+     `data.js` blocks before/after to confirm.
+3. **NaN / undefined safety.** All UI rendering must show `–` (not the literal
+   strings `NaN`, `undefined`, or `[object Object]`) for missing or null fields.
+   `drillLink()` guards against null/NaN labels; direct template interpolations
+   use `||'–'` fallbacks. Distinguish legitimate numerical `0` from missing data.
+4. **CI governance.** GitHub Actions workflows must use full-length commit SHAs
+   (e.g. `actions/checkout@abc123…`) — no floating tags (`@v4`, `@v5`).
+
+### Sub-Agent Routing Table
+
+| Domain | Trigger | Verification gate before commit |
+|--------|---------|--------------------------------|
+| **Data Pipeline & QC** (`@agent-data-qc`) | Schema changes, new CSV/seed files, `sync_data_js.py`, `build_dashboard_data.py`, any data rebuild | Run `ci_validate_datajs.py`; assert `n_stores > 0`, `n_chains > 0`, `by_chain` schema valid; diff FY25/FY26 blocks unchanged |
+| **DAX & Semantic Modeling** (`@agent-dax-modeler`) | Power BI measures, DAX, calculated columns, KPI definitions, time-intelligence | `DIVIDE()` for all ratios, explicit `CALCULATE()` filters, missing-baseline text fallback (e.g. `"FY25 baseline not in source"`) |
+| **Headless UI / QA** (`@agent-ui-qa`) | `dashboard/index.html`, chart scripts, canvas templates, filter logic, drill-down wiring | Full **52-state matrix** (13 tabs × 4 FY states: All/FY25/FY26/FY27); zero `NaN`/`undefined` in `document.body.innerText`; zero "can't acquire context" JS errors; every canvas ID referenced by chart code must exist in DOM template before `mkBar*/mkLine/mkDonut` calls |
+| **Audit & Release Governance** (`@agent-governance`) | PR reviews, final sync, executive briefings, CI/CD changes | Backward-compat check vs prior commits; structured QC Summary: Pass/Fail, evaluated records, quarantined counts, downstream dashboard impacts |
+
+Records that fail schema validation are tagged and quarantined (DLQ) rather
+than failing the entire pipeline — log the bad rows, continue with clean data.
+
+### Standard Output Format
+
+Every substantive response must contain all four sections:
+
+1. **Action Summary** — domain/sub-agent, exact task performed, files changed.
+2. **Quality & Validation Status** — assertions passed, counts, 52-state results
+   (or the subset exercised), JS error count.
+3. **Artifact / Code** — exact tested code, script, or DAX measure ready for
+   production deployment.
+4. **Audit Log** — explicit confirmation of what was **not** changed: which
+   legacy records, baselines, and established logic remained intact.
+
+---
+
 ## Conventions
 
 - **Branches/PRs:** one focused branch per change; open PRs as **draft**; do not
   merge without explicit instruction. Never stack new work on already-merged
   history — branch fresh from `main`.
 - **Commit trailers:** end commit messages with
-  `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` and the
+  `Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>` and the
   `Claude-Session:` line. Never put the model identifier in commits/PRs/code.
 - **No dummy data.** If a required real source file is missing, stop and name the
   exact file needed — never fabricate numbers.

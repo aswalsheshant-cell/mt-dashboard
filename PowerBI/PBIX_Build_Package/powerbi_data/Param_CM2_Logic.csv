@@ -1,0 +1,3 @@
+Option,OptionID,Description
+Provisional (Base COGS Only),1,CM2 = Revenue - Base_COGS (expense data EXAMPLE only)
+Finance Baseline (COGS + Logistics + Scheme),2,CM2 = Revenue - Base_COGS - Logistics_Cost - Scheme_Adjustment (approved by Finance D1)

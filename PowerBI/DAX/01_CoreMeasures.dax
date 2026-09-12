@@ -11,8 +11,37 @@ Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
 Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
 Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
 
+// ---------- RELIANCE BRAND COUNTER (RBC) ISOLATION ----------
+Total MT NSV =
+    CALCULATE (
+        [Total Offtake NSV],
+        'Chain Master'[Channel] = "MT"
+    )
+
+Total RBC NSV =
+    CALCULATE (
+        [Total Offtake NSV],
+        'Chain Master'[Channel] = "RBC"
+    )
+
+RBC % of Total =
+    DIVIDE (
+        [Total RBC NSV],
+        [Total MT NSV] + [Total RBC NSV]
+    )
+
+Combined MT Total NSV =
+    [Total MT NSV] + [Total RBC NSV]
+
+Is RBC =
+    IF (
+        HASONEVALUE ( 'Chain Master'[Channel] ) && VALUES ( 'Chain Master'[Channel] ) = "RBC",
+        "RBC (Brand Counter)",
+        "MT (Modern Trade)"
+    )
+
 // Headline NSV used by most visuals (Offtake basis). Swap to Primary if needed.
-NSV = [Total Offtake NSV]
+NSV = [Total MT NSV]
 
 // ---------- INDIAN FORMAT HELPERS (display measures) ----------
 NSV (Cr) = DIVIDE ( [NSV], 10000000 )
@@ -83,6 +112,30 @@ IF ( ISINSCOPE ( 'Chain Master'[Chain] ),
     RANKX ( ALLSELECTED ( 'Chain Master'[Chain] ), [NSV],, DESC ),
     RANKX ( ALLSELECTED ( 'Brand Master'[Brand] ), [NSV],, DESC )
 )
+
+// ---------- CHAIN CONCENTRATION & TOP MOVERS ----------
+Top 3 Concentration % =
+VAR top3Total =
+    SUMX (
+        TOPN ( 3, ALLSELECTED ( 'Chain Master'[Chain] ), [Total MT NSV], DESC ),
+        [Total MT NSV]
+    )
+RETURN
+    DIVIDE ( top3Total, [Total MT NSV] )
+
+Top Chain =
+    CONCATENATEX (
+        TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [Total MT NSV], DESC ),
+        'Chain Master'[Chain],
+        ""
+    )
+
+Top 3 Chains =
+    CONCATENATEX (
+        TOPN ( 3, ALLSELECTED ( 'Chain Master'[Chain] ), [Total MT NSV], DESC ),
+        'Chain Master'[Chain],
+        ", "
+    )
 
 // ---------- PRIMARY vs OFFTAKE ----------
 Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]

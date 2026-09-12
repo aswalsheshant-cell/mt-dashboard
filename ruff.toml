@@ -1,0 +1,10 @@
+[lint]
+# F — pyflakes: catches undefined names (F821), missing imports (F401 use)
+# E9 — syntax errors that compile would also catch but ruff reports with context
+select = ["E9", "F"]
+# Ignore F401 (imported but unused) — scripts import modules for side effects
+ignore = ["F401"]
+
+[lint.per-file-ignores]
+# Test files use fixtures that look unused to static analysis
+"scripts/test_*.py" = ["F811"]

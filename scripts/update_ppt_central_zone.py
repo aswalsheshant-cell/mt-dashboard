@@ -126,7 +126,7 @@ def main():
     print("="*70)
     print(f"Input:  {args.input}")
     print(f"Output: {output}")
-    print(f"\nCentral Zone Data:")
+    print("\nCentral Zone Data:")
     print(f"  Primary: ₹{CENTRAL_ZONE_DATA['primary_cr']} Cr")
     print(f"  Offtake: ₹{CENTRAL_ZONE_DATA['offtake_cr']} Cr")
     print(f"  Conversion: {CENTRAL_ZONE_DATA['conversion']}%")

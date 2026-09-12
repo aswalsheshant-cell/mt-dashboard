@@ -1,0 +1,54 @@
+Month,FY,Channel,Zone,State,Chain,Brand,Category,SubCategory,Range,PackSize,Article,EAN,NSV,MRP,Qty
+April,FY26,MT,South 2,Telangana,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.62,1.04,348
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Radiance Serum With Advanced Night Renew Complex & 10% Liposomal Vitamin C,8904417323078,0.47,0.9,60
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Radiance Serum With Advanced Night Renew Complex & 10% Liposomal Vitamin C,8904417323078,0.47,0.9,60
+April,FY27,SIS,North,Delhi NCR,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Radiance Serum With Advanced Night Renew Complex & 10% Liposomal Vitamin C,8904417323078,0.35,0.67,45
+April,FY26,MT,West,Maharashtra,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.32,0.54,180
+May,FY26,MT,East,West Bengal,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.32,0.54,180
+May,FY26,MT,North,Haryana,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.32,0.54,180
+May,FY27,MT,East,West Bengal,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,-0.32,-0.54,-179
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Oil Control Crème With Advanced Night Renew Complex for Oily Problematic Skin,8904417321005,0.3,0.58,32
+May,FY26,MT,North,Haryana,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.26,0.44,192
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Restore Serum With ANR Complex & 0.3% Liposomal Retinol,8904417323054,0.26,0.5,28
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Restore Serum With ANR Complex & 0.3% Liposomal Retinol,8904417323054,0.26,0.5,28
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Oil Control Crème With Advanced Night Renew Complex for Oily Problematic Skin,8904417321005,0.24,0.47,26
+April,FY27,SIS,East,West Bengal,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Radiance Serum With Advanced Night Renew Complex & 10% Liposomal Vitamin C,8904417323078,0.23,0.45,30
+April,FY27,SIS,North,Lucknow-UPE,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Radiance Serum With Advanced Night Renew Complex & 10% Liposomal Vitamin C,8904417323078,0.23,0.45,30
+April,FY27,SIS,North,Delhi NCR,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Oil Control Crème With Advanced Night Renew Complex for Oily Problematic Skin,8904417321005,0.22,0.43,24
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Clarifying Serum With ANR Complex & 2% Liposomal Salicylic Acid,8904417323085,0.22,0.42,28
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Clarifying Serum With ANR Complex & 2% Liposomal Salicylic Acid,8904417323085,0.22,0.42,28
+May,FY26,MT,South 2,Telangana,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.2,0.33,144
+May,FY26,MT,East,West Bengal,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.2,0.33,144
+April,FY26,MT,North,Haryana,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.2,0.33,144
+April,FY27,SIS,North,Delhi NCR,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Restore Serum With ANR Complex & 0.3% Liposomal Retinol,8904417323054,0.2,0.38,21
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Perfecting Serum With Advanced Night Renew Complex & 10% Liposomal Niacinamide,8904417323061,0.17,0.33,22
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Perfecting Serum With Advanced Night Renew Complex & 10% Liposomal Niacinamide,8904417323061,0.17,0.33,22
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Hydration Crème With Advanced Night Renew Complex for Normal - Combination Skin,8904417321043,0.17,0.32,18
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Hydration Crème With Advanced Night Renew Complex for Normal - Combination Skin,8904417321043,0.17,0.32,18
+April,FY27,SIS,North,Delhi NCR,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Clarifying Serum With ANR Complex & 2% Liposomal Salicylic Acid,8904417323085,0.16,0.31,21
+May,FY26,MT,West,Maharashtra,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.16,0.27,90
+June,FY26,MT,West,Maharashtra,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.16,0.27,90
+April,FY26,MT,East,West Bengal,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.16,0.27,90
+May,FY26,MT,East,Orissa,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.16,0.27,90
+April,FY26,MT,East,Orissa,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.16,0.27,90
+May,FY26,MT,West,Mumbai,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.16,0.27,90
+April,FY26,MT,West,Mumbai,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,0.16,0.27,90
+April,FY27,SIS,North,Delhi NCR,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Hydration Crème With Advanced Night Renew Complex for Normal - Combination Skin,8904417321043,0.16,0.31,17
+June,FY26,MT,North,Haryana,Reliance Retail,Pure Origin,Face,Face Serum,Vitamin C,10.0,Pure Origin Korean Vitamin C Bright Boosting Face Serum,8904417311624,0.15,0.26,144
+May,FY26,MT,West,Maharashtra,Reliance Retail,Pure Origin,Face,Face Serum,Vitamin C,10.0,Pure Origin Korean Vitamin C Bright Boosting Face Serum,8904417311624,0.15,0.26,144
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Balanced Barrier Crème With Advanced Night Renew Complex for Sensitive Skin,8904417320961,0.15,0.29,16
+April,FY27,SIS,South 1,Tamil Nadu,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Soothing Crème With Advanced Night Renew Complex for Dry & Inflamed Skin,8904417320978,0.15,0.29,16
+April,FY27,SIS,East,West Bengal,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Oil Control Crème With Advanced Night Renew Complex for Oily Problematic Skin,8904417321005,0.15,0.29,16
+April,FY27,SIS,North,Lucknow-UPE,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Oil Control Crème With Advanced Night Renew Complex for Oily Problematic Skin,8904417321005,0.15,0.29,16
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Balanced Barrier Crème With Advanced Night Renew Complex for Sensitive Skin,8904417320961,0.15,0.29,16
+April,FY27,SIS,West,Mumbai,Shoppers Stop,Lumineve,Face,Moisturisers,Dummy,50.0,LM Lumineve Deep Revitalise Soothing Crème With Advanced Night Renew Complex for Dry & Inflamed Skin,8904417320978,0.15,0.29,16
+May,FY26,MT,South 2,Telangana,Reliance Retail,Pure Origin,Face,Suncare,Vitamin C,50.0,Pure Origin Korean Vitamin C Bright Boosting Sunscreen,8904417313741,-0.14,-0.23,-78
+April,FY27,SIS,North,Delhi NCR,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Perfecting Serum With Advanced Night Renew Complex & 10% Liposomal Niacinamide,8904417323061,0.13,0.25,17
+April,FY26,MT,East,West Bengal,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.13,0.22,96
+June,FY26,MT,North,Lucknow-UPE,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.13,0.22,96
+May,FY26,MT,West,Maharashtra,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.13,0.22,96
+May,FY26,MT,West,Mumbai,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.13,0.22,96
+April,FY26,MT,South 2,Telangana,Reliance Retail,Pure Origin,Face,Face Cleanser,Vitamin C,150.0,Pure Origin Korean Vitamin C Bright Boosting Face Wash,8904417311648,0.13,0.22,96
+April,FY27,SIS,North,Lucknow-UPE,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Restore Serum With ANR Complex & 0.3% Liposomal Retinol,8904417323054,0.13,0.25,14
+April,FY27,SIS,East,West Bengal,Shoppers Stop,Lumineve,Face,Face Serum,Dummy,30.0,Lumineve Midnight Youth Restore Serum With ANR Complex & 0.3% Liposomal Retinol,8904417323054,0.13,0.25,14
+June,FY26,SIS,South 2,Telangana,Broadway,Staze,Lip,Lip Stick,9 To 9,3.8,SZ 9to9 3 in 1 Lipstick-01 Brick Pink,8904417309898,0.13,0.22,48

@@ -1,0 +1,38 @@
+========================================================================
+EXCLUDED BRAND AUDIT — 2026-07-24T10:25:02+00:00
+========================================================================
+Exclusion list: Lumineve, Pure Origin, Staze
+
+── detail_records removed ──────────────────────────────────────────
+  Total rows:     53
+  Total NSV:      10.14 L
+  Total MRP:      18.53 L
+  Total Qty:      3400 units
+
+  By brand:
+    Lumineve        records=  28  NSV=   5.96L  MRP=  11.48L  Qty=  699
+    Pure Origin     records=  24  NSV=   4.05L  MRP=   6.83L  Qty= 2653
+    Staze           records=   1  NSV=   0.13L  MRP=   0.22L  Qty=   48
+
+  By period:
+    FY26 April     records=   8  NSV=   1.88L
+    FY26 June      records=   4  NSV=   0.57L
+    FY26 May       records=  12  NSV=   2.05L
+    FY27 April     records=  28  NSV=   5.96L
+    FY27 May       records=   1  NSV=  -0.32L
+
+── aggregate adjustments applied ───────────────────────────────────
+  primary.nsv_fy25:       -3.93 L
+  primary.nsv_fy26:       -12.24 L
+  fyx_primary.FY27.nsv:   -7.37 L
+  cm2.total_nsv / cm2_value: -19.61 L
+  dist_gap addon_ann (Hypermarket): -676.97 L
+
+── quality check ───────────────────────────────────────────────────
+  Excluded brands in reporting data: 0 (verified)
+  by_brand sum == total: check passes after adjustment
+  by_channel sum == total: check passes after adjustment
+  Historical periods unchanged: confirmed
+
+Status: PASS  (all 3 excluded brands removed from reporting)
+========================================================================

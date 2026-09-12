@@ -1,0 +1,2 @@
+Status,Approver_Name,Approved_At,Formula_Description,Test_Only_Flag
+APPROVED,"[TEST] Mock Finance Approver","2026-08-27","CM2 = NSV - P&L Expenses (matched by Chain/Brand/Category/Month)","YES - LOCAL TESTING ONLY"
