@@ -159,9 +159,15 @@ def check_offtake_zones(offtake: dict, failures: list) -> None:
     # no regional attribution (Nykaa, FSN, Amazon, Flipkart -- see standardize_site_codes()'s
     # own docstring). Confirmed by reconciliation, not assumption: offtake.by_zone's 6 real
     # zones sum to ₹29,078.95L FY26, short of offtake.total (₹31,119.88L, the documented FY26
-    # Offtake baseline in CLAUDE.md) by exactly Pan India's ₹2,040.92L. Banning the name would
-    # make by_zone silently undercount the real total by that amount, not fix a double-count.
-    # The actual invariant worth enforcing is that by_zone reconciles to the total.
+    # Offtake baseline in CLAUDE.md) by Pan India's own ₹2,040.92L (6 real zones + Pan India =
+    # ₹31,119.87L -- the remaining ₹0.01L gap against the stored ₹31,119.88L total is ordinary
+    # floating-point rounding: every value here is independently rounded to 2dp via
+    # build_dashboard_data.py's r2(), so summing several already-rounded parts and comparing
+    # against a separately-rounded total can differ by a cent even when both are computed from
+    # the same underlying data -- this is not evidence of a further discrepancy, so the check
+    # below uses a tolerance rather than requiring bit-exact equality). Banning the "Pan India"
+    # name would make by_zone silently undercount the real total by ~₹2,040.92L, not fix a
+    # double-count. The actual invariant worth enforcing is that by_zone reconciles to the total.
     by_zone = offtake.get("by_zone", [])
     total = offtake.get("total")
     by_zone_names = {z.get("name") for z in by_zone}
@@ -262,7 +268,9 @@ def main() -> int:
         return 1
 
     print("=" * 72)
-    print(f"PASSED — all {10} integrity assertions satisfied")
+    # Scoped claim: this states that the 10 checks below found nothing wrong,
+    # not that dashboard/data.js is free of any defect outside their scope.
+    print(f"PASSED — all {10} checked assertions satisfied (scope: this file's 10 checks only)")
     print("=" * 72)
     return 0
 

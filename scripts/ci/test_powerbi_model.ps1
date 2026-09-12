@@ -90,6 +90,111 @@ if ($daxFiles.Count -gt 0) {
     Write-Host "  ℹ No .dax files found in PowerBI/DAX" -ForegroundColor Gray
 }
 
+function Test-MStructuralSanity {
+    <#
+    .SYNOPSIS
+    Bounded structural sanity check for a Power Query M file. NOT a grammar
+    parser: it does not build or validate an AST, and a file can pass this
+    and still be semantically invalid M (e.g. a stray comma, a bad operator).
+    See M's lexical spec: https://learn.microsoft.com/en-us/powerquery-m/m-spec-lexical-structure
+
+    Tests reconciled: an earlier version of this check stripped // and /* */
+    comments with a regex BEFORE recognizing strings. That is unsound -- M
+    does not suppress comment tokens inside a string, so a valid string
+    containing "//" (e.g. a URL parameter value) was wrongly treated as a
+    comment start, corrupting the quote count and failing a valid file. And
+    a regex requiring a closing */ cannot detect an UNTERMINATED block
+    comment: if no closing */ exists, the (?s)/\*.*?\*/ pattern simply never
+    matches, so the malformed marker and everything after it silently passed
+    through unchanged. Both were demonstrated with real pwsh fixtures, not
+    assumed.
+
+    Fixed by single-pass lexical scanning (comments and strings recognized
+    together, in one left-to-right character walk) instead of two independent
+    regex substitutions:
+      - "//" and "/* */" are only recognized as comment starts when the
+        scanner is not currently inside a string.
+      - a doubled quote ("") inside a string is treated as M's escaped-quote
+        sequence, not a string terminator.
+      - reaching end-of-file while still inside a string, or still inside a
+        block comment, is itself reported as a structural issue (previously
+        undetectable).
+      - a closing delimiter encountered before its matching opener (e.g.
+        ")(" with equal counts but invalid order) is reported immediately,
+        not just an aggregate open/close count mismatch.
+    #>
+    param([string]$Content)
+
+    if ([string]::IsNullOrWhiteSpace($Content)) {
+        return @("file is empty")
+    }
+
+    $issues = [System.Collections.Generic.List[string]]::new()
+    $depth = @{ '(' = 0; '[' = 0; '{' = 0 }
+    $closerFor = @{ ')' = '('; ']' = '['; '}' = '{' }
+    $inString = $false
+    $inLineComment = $false
+    $inBlockComment = $false
+    $chars = $Content.ToCharArray()
+    $len = $chars.Length
+    $i = 0
+
+    while ($i -lt $len) {
+        $c = $chars[$i]
+        $next = if ($i + 1 -lt $len) { $chars[$i + 1] } else { [char]0 }
+
+        if ($inLineComment) {
+            if ($c -eq "`n") { $inLineComment = $false }
+            $i++; continue
+        }
+        if ($inBlockComment) {
+            if ($c -eq '*' -and $next -eq '/') { $inBlockComment = $false; $i += 2; continue }
+            $i++; continue
+        }
+        if ($inString) {
+            if ($c -eq '"') {
+                if ($next -eq '"') { $i += 2; continue }  # M's doubled-quote escape
+                $inString = $false
+            }
+            $i++; continue
+        }
+
+        # Not inside a string or comment: comment/string starts are only
+        # recognized here, so a "//" or "/* */" inside a string literal
+        # (e.g. a URL) is correctly left alone.
+        if ($c -eq '/' -and $next -eq '/') { $inLineComment = $true; $i += 2; continue }
+        if ($c -eq '/' -and $next -eq '*') { $inBlockComment = $true; $i += 2; continue }
+        if ($c -eq '"') { $inString = $true; $i++; continue }
+
+        # Hashtable.ContainsKey/indexing do NOT coerce a [char] to match a
+        # string key (unlike PowerShell's -eq operator, which does) -- cast
+        # explicitly, or every bracket silently fails to match any key and
+        # depth tracking never increments or decrements at all.
+        $cs = [string]$c
+        if ($depth.ContainsKey($cs)) {
+            $depth[$cs]++
+        } elseif ($closerFor.ContainsKey($cs)) {
+            $opener = $closerFor[$cs]
+            $depth[$opener]--
+            if ($depth[$opener] -lt 0) {
+                $issues.Add("closing '$cs' encountered before its matching '$opener'")
+                $depth[$opener] = 0  # avoid cascading negative-count noise for the rest of the file
+            }
+        }
+        $i++
+    }
+
+    if ($inString) { $issues.Add("unterminated string literal (end of file reached inside an open double-quoted string)") }
+    if ($inBlockComment) { $issues.Add("unterminated block comment (end of file reached inside an open /* ... */ comment)") }
+    foreach ($opener in @('(', '[', '{')) {
+        if ($depth[$opener] -ne 0) {
+            $closer = (@{ '(' = ')'; '[' = ']'; '{' = '}' })[$opener]
+            $issues.Add("unbalanced '$opener$closer' ($($depth[$opener]) net unclosed)")
+        }
+    }
+    return ,@($issues.ToArray())
+}
+
 $pqFiles = Get-ChildItem -Path (Join-Path $RepoRoot "PowerBI/PowerQuery") -Filter "*.pq" -Recurse -ErrorAction SilentlyContinue
 if ($pqFiles.Count -gt 0) {
     # M does NOT require a let/in expression to be valid -- per the M language
@@ -101,51 +206,17 @@ if ($pqFiles.Count -gt 0) {
     # and flagged 00_Parameters.pq as malformed for lacking them -- that was
     # a false positive, not a real defect in the file.
     #
-    # This check does NOT parse M grammar and cannot prove syntactic
-    # validity. It only verifies that brackets/parens/braces and double
-    # quotes balance after stripping // and /* */ comments -- a structural
-    # sanity check, not full M validation. Known limitations, disclosed
-    # rather than hidden: a delimiter character INSIDE a string literal
-    # (e.g. a paren in descriptive text) still counts toward the balance and
-    # can produce a false positive or false negative; this check cannot
-    # catch every malformed file a real M parser would reject, and it
-    # cannot catch a file that balances but is still semantically wrong.
-    # Full M grammar validation is NOT RUN by this script.
+    # Test-MStructuralSanity (above) verifies delimiter and string/comment
+    # well-formedness only -- it is a bounded structural check, not a
+    # grammar parser, and a file can pass it while still being invalid M
+    # (see the function's own docstring for what it does and does not
+    # catch). Full M grammar validation is NOT RUN by this script.
     foreach ($pqFile in $pqFiles) {
         $content = Get-Content -Path $pqFile.FullName -Raw
-        $issues = @()
-
-        if ([string]::IsNullOrWhiteSpace($content)) {
-            $issues += "file is empty"
-        } else {
-            $stripped = [regex]::Replace($content, '//[^\r\n]*', '')
-            $stripped = [regex]::Replace($stripped, '(?s)/\*.*?\*/', '')
-
-            $delimPairs = @(
-                @{ Open = '('; Close = ')' },
-                @{ Open = '['; Close = ']' },
-                @{ Open = '{'; Close = '}' }
-            )
-            foreach ($pair in $delimPairs) {
-                $openCount = ($stripped.ToCharArray() | Where-Object { $_ -eq $pair.Open }).Count
-                $closeCount = ($stripped.ToCharArray() | Where-Object { $_ -eq $pair.Close }).Count
-                if ($openCount -ne $closeCount) {
-                    $issues += "unbalanced '$($pair.Open)$($pair.Close)' ($openCount open vs $closeCount close)"
-                }
-            }
-
-            # M escapes a literal quote inside a string by doubling it ("").
-            # Each escaped quote still contributes an even number of `"`
-            # characters, so a simple parity check on the total count remains
-            # valid even in the presence of escaped quotes.
-            $quoteCount = ($stripped.ToCharArray() | Where-Object { $_ -eq '"' }).Count
-            if ($quoteCount % 2 -ne 0) {
-                $issues += "unbalanced double-quote count ($quoteCount)"
-            }
-        }
+        $issues = Test-MStructuralSanity -Content $content
 
         if ($issues.Count -eq 0) {
-            Write-Host "  ✓ Basic structural sanity passed (balanced brackets/quotes -- NOT full M syntax validation): $($pqFile.Name)" -ForegroundColor Green
+            Write-Host "  ✓ Basic structural sanity passed (balanced delimiters/strings/comments -- NOT full M syntax validation): $($pqFile.Name)" -ForegroundColor Green
         } else {
             $failures += "Power Query structural issue in $($pqFile.Name): $($issues -join '; ')"
             Write-Host "  ❌ $($pqFile.Name): $($issues -join '; ')" -ForegroundColor Red
