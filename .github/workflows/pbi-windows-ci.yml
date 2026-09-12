@@ -132,6 +132,16 @@ jobs:
             Write-Host "Power BI model validation skipped" -ForegroundColor Cyan
           }
 
+      - name: Run Power BI Model Checker Regression Fixtures
+        shell: pwsh
+        run: |
+          if (Test-Path ".\scripts\ci\test_powerbi_model.regression.ps1") {
+            Write-Host "Running test_powerbi_model.ps1's own regression fixtures..." -ForegroundColor Green
+            .\scripts\ci\test_powerbi_model.regression.ps1
+          } else {
+            Write-Host "⚠ test_powerbi_model.regression.ps1 not found (optional for this environment)" -ForegroundColor Yellow
+          }
+
       - name: Upload Test Report Artifacts (On Failure)
         if: failure()
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3  # v4.3.1
