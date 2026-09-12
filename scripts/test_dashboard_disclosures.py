@@ -144,37 +144,49 @@ class TestBrandCounterReconciliation:
             f"bc.monthly sum={sum(monthly):.4f} but bc.total={total:.4f} (diff={diff:.4f} L)"
         )
 
+    def _latest_fy_total(self, bc):
+        """Return the most recent FY-specific total from the BC block.
+        by_zone/by_brand/by_category carry 'total' == latest FY only, not the
+        grand multi-year bc.total, so comparisons must use the FY-specific figure."""
+        fy_tags = bc.get('fy_tags', [])
+        for tag in reversed(fy_tags):
+            v = bc.get('total_' + tag)
+            if v is not None:
+                return v
+        return bc.get('total', 0)
+
     def test_bc_zone_sum_equals_total(self, bc):
-        """by_zone totals must sum to bc.total (within 0.5 L rounding)."""
+        """by_zone totals must sum to the most-recent FY total (within 0.5 L rounding).
+        'total' in each by_zone entry reflects the latest FY only, not the grand total."""
         by_zone = bc.get('by_zone', [])
-        total = bc.get('total', 0)
         if not by_zone:
             pytest.skip("no by_zone data")
         zone_sum = sum(z['total'] for z in by_zone)
-        assert abs(zone_sum - total) < 0.5, (
-            f"by_zone sum={zone_sum:.2f} != bc.total={total:.2f} (diff={zone_sum-total:.4f})"
+        ref = self._latest_fy_total(bc)
+        assert abs(zone_sum - ref) < 0.5, (
+            f"by_zone sum={zone_sum:.2f} != latest-FY total={ref:.2f} (diff={zone_sum-ref:.4f})"
         )
 
     def test_bc_brand_sum_equals_total(self, bc):
-        """by_brand totals must sum to bc.total (within 0.5 L rounding)."""
+        """by_brand totals must sum to the most-recent FY total (within 0.5 L rounding)."""
         by_brand = bc.get('by_brand', [])
-        total = bc.get('total', 0)
         if not by_brand:
             pytest.skip("no by_brand data")
         brand_sum = sum(b['total'] for b in by_brand)
-        assert abs(brand_sum - total) < 0.5, (
-            f"by_brand sum={brand_sum:.2f} != bc.total={total:.2f} (diff={brand_sum-total:.4f})"
+        ref = self._latest_fy_total(bc)
+        assert abs(brand_sum - ref) < 0.5, (
+            f"by_brand sum={brand_sum:.2f} != latest-FY total={ref:.2f} (diff={brand_sum-ref:.4f})"
         )
 
     def test_bc_category_sum_equals_total(self, bc):
-        """by_category totals must sum to bc.total (within 0.5 L rounding)."""
+        """by_category totals must sum to the most-recent FY total (within 0.5 L rounding)."""
         by_cat = bc.get('by_category', [])
-        total = bc.get('total', 0)
         if not by_cat:
             pytest.skip("no by_category data")
         cat_sum = sum(c['total'] for c in by_cat)
-        assert abs(cat_sum - total) < 0.5, (
-            f"by_category sum={cat_sum:.2f} != bc.total={total:.2f} (diff={cat_sum-total:.4f})"
+        ref = self._latest_fy_total(bc)
+        assert abs(cat_sum - ref) < 0.5, (
+            f"by_category sum={cat_sum:.2f} != latest-FY total={ref:.2f} (diff={cat_sum-ref:.4f})"
         )
 
     def test_bc_category_has_fy_subtotals_when_present(self, bc):
@@ -231,14 +243,14 @@ class TestBrandCounterReconciliation:
         assert not negatives, f"Negative BC monthly values: {negatives}"
 
     def test_bc_state_sum_equals_total(self, bc):
-        """by_state totals must sum to bc.total (within 0.5 L rounding)."""
+        """by_state totals must sum to the most-recent FY total (within 0.5 L rounding)."""
         by_state = bc.get('by_state', [])
-        total = bc.get('total', 0)
         if not by_state:
             pytest.skip("no by_state data")
         state_sum = sum(s['total'] for s in by_state)
-        assert abs(state_sum - total) < 0.5, (
-            f"by_state sum={state_sum:.2f} != bc.total={total:.2f}"
+        ref = self._latest_fy_total(bc)
+        assert abs(state_sum - ref) < 0.5, (
+            f"by_state sum={state_sum:.2f} != latest-FY total={ref:.2f}"
         )
 
 
