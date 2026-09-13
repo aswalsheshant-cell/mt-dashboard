@@ -80,13 +80,17 @@ datasets:
     last_validated: "2026-09-13 (Jul'26 Rs36.21 Cr ex-RBC matches independently-supplied benchmark; Aug'26 Rs39.75 Cr ex-RBC computed fresh)"
     modification_allowed: false
     notes: >
-      CRITICAL BUSINESS RULE (see docs/BUSINESS_LOGIC_REGISTRY.md BL-07): rows
-      where Chain Name == "Reliance Brand Counter" must be EXCLUDED before
-      reporting an offtake total -- verified 2026-09-13 that excluding them is
-      exactly what makes this file's Jul'26 total match the independently
-      supplied Jul'26 benchmark (Rs36.21 Cr computed vs Rs36.18 Cr given).
-      Jun'26 file was historically flagged BLOCKED for BC in BL-08 -- re-check
-      before trusting a BC figure for any month before Jul'26.
+      CRITICAL BUSINESS RULE (see docs/BUSINESS_LOGIC_REGISTRY.md BL-07,
+      corrected 2026-09-13): rows where Store Type == "Brand Counter" must be
+      EXCLUDED before reporting an offtake total. Filter on Store Type, NEVER
+      on Chain Name alone -- Chain Name only forks into "Reliance" vs.
+      "Reliance Brand Counter" from Jul'26 onward; in Apr-Jun'26 both BC and
+      non-BC rows share Chain Name "Reliance" and only Store Type
+      distinguishes them (confirmed 2026-09-13: a Chain-Name-only filter
+      silently keeps ~Rs4-5 Cr/month of real BC rows in Apr-Jun'26 mixed into
+      the total). Store-Type-filtered ex-BC series: Apr 35.89 / May 40.19 /
+      Jun 38.40 / Jul 36.21 / Aug 39.75 Cr -- Jul'26 matches the independently
+      supplied Rs36.18 Cr benchmark.
 
   primary_article_monthly:
     business_name: "Primary NSV -- article-level monthly (locked File2 / Query16 schema)"

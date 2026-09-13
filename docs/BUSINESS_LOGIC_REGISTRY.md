@@ -134,7 +134,28 @@ Expenses sourced from `PL_Expense_Input.csv`. Customer Code → Chain matching v
 
 **Gate:** G7 in `release_gate.py` — advisory check that BC total NSV is non-negative (basic sanity).  
 **Owner:** Analytics Engineering  
-**Finance approval required:** No — isolation rule is an engineering contract, not a Finance decision  
+**Finance approval required:** No — isolation rule is an engineering contract, not a Finance decision
+
+**Schema note added 2026-09-13 — filter on `Store Type`, never on `Chain Name` alone:**
+The raw monthly `offtake_store_article_<Mon>_<YY>.csv` files changed how they
+label Brand Counter rows partway through FY27:
+- **Apr/May/Jun'26:** `Chain Name` stays `"Reliance"` for BOTH Brand Counter
+  and non-Brand-Counter rows; only `Store Type` (`"Brand Counter"` /
+  `"Non Brand Counter"`) distinguishes them.
+- **Jul/Aug'26:** `Chain Name` itself forks into `"Reliance"` vs.
+  `"Reliance Brand Counter"`, with `Store Type` still present and agreeing.
+
+`load_reliance_bc_data()` already filters on `Store Type` (correct, unaffected
+by this). But an ad-hoc analysis that excludes BC by matching
+`Chain Name == "Reliance Brand Counter"` literally will **silently miss ~
+Rs4-5 Cr/month of real Brand Counter rows in Apr-Jun'26** (they're still
+labelled plain `"Reliance"` there) while working correctly for Jul/Aug —
+producing an inconsistent, monthly-varying offtake total that looks fine in
+isolation but is not comparable month-to-month. Confirmed 2026-09-13, filtering
+correctly by `Store Type` (trimmed, case-insensitive) instead: Apr 35.89 /
+May 40.19 / Jun 38.40 / Jul 36.21 / Aug 39.75 Cr ex-BC — materially different
+from a Chain-Name-only filter for Apr-Jun. **Rule: always partition Reliance
+Brand Counter by `Store Type == "Brand Counter"`, never by `Chain Name`.**  
 
 ---
 
