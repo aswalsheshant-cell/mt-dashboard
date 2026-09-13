@@ -1,0 +1,8 @@
+Ship To Name,Month,Brand,Article/EAN,Current Chain,Proposed Chain,Affinity %,Confidence,Primary NSV (Lakh),Evidence Basis,Recommended Action
+VENKATESHWARA AGENCIES-TG,Aug'26,Dr. Sheth's,8906148701019.0,Unmapped Chain,Health & Glow,100.0,HIGH,0.1,EAN 8906148701019.0 known sales are 100.0% to Health & Glow (of 0.62 L known NSV elsewhere),APPROVE_CANDIDATE
+D.L. Sales - MT,Aug'26,BBlunt,8906087779490.0,Unmapped Chain,Health & Glow,80.05,MEDIUM,0.05,EAN 8906087779490.0 known sales are 80.05% to Health & Glow (of 38.11 L known NSV elsewhere),REVIEW_REQUIRED
+D.L. Sales - MT,Aug'26,BBlunt,8904417322439.0,Unmapped Chain,Health & Glow,83.42,MEDIUM,0.05,EAN 8904417322439.0 known sales are 83.42% to Health & Glow (of 1.81 L known NSV elsewhere),REVIEW_REQUIRED
+CHHABRA TRADERS_Ship To,Jul'26,Mamaearth,8904417312294.0,Unmapped Chain,Reliance Retail,86.29,MEDIUM,0.18,EAN 8904417312294.0 known sales are 86.29% to Reliance Retail (of 400.76 L known NSV elsewhere),REVIEW_REQUIRED
+Guardian Healthcare Services Pvt Ltd(DL),Nov'25,Mamaearth,8904417315660.0,Unmapped Chain,Apollo,89.71,MEDIUM,0.07,EAN 8904417315660.0 known sales are 89.71% to Apollo (of 215.46 L known NSV elsewhere),REVIEW_REQUIRED
+Guardian Healthcare Services Pvt Ltd(DL),Nov'25,The Derma Co,8906087775645.0,Unmapped Chain,DMart,86.2,MEDIUM,0.01,EAN 8906087775645.0 known sales are 86.2% to DMart (of 2594.8 L known NSV elsewhere),REVIEW_REQUIRED
+Guardian Healthcare Services Pvt Ltd(DL),Nov'25,The Derma Co,8906087775645.0,Unmapped Chain,DMart,86.2,MEDIUM,0.04,EAN 8906087775645.0 known sales are 86.2% to DMart (of 2594.8 L known NSV elsewhere),REVIEW_REQUIRED

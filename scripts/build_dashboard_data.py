@@ -4350,6 +4350,120 @@ def _write_flagged_rows_csv(ne_orig: "pd.DataFrame") -> None:
     print(f"Phase 6: wrote {len(out_df)} Not_Eligible rows to {_out.name} for business review")
 
 
+def _classify_ean_affinity(um: "pd.DataFrame", out_df: "pd.DataFrame"):
+    """Residual certification (2026-09-13, post-FM-16B): for each still-
+    Unmapped Dist. row, check every OTHER already-mapped row (any source,
+    any month) sharing its EAN, and see how concentrated that EAN's known
+    sales are in one chain. This is evidence about the ARTICLE's typical
+    distribution footprint, not a business rule about this transaction --
+    disclosed as a proposal for approval, never applied automatically.
+
+    Confidence bands (evidence-based, not invented per-row):
+      HIGH    >=95% of the EAN's known positive NSV goes to one chain
+      MEDIUM  >=80% and <95%
+      LOW     <80% -- article is genuinely multi-chain; no defensible
+                      single answer exists, so no mapping is proposed
+      NO_EVIDENCE -- EAN never appears in any already-mapped row
+
+    Returns (residual_summary: dict | None, proposal_rows: list[dict]).
+    proposal_rows holds ONLY HIGH/MEDIUM rows -- LOW/NO_EVIDENCE stay
+    Unmapped Chain and are counted in residual_summary only; forcing a
+    chain guess onto a multi-chain article would be fabricated mapping."""
+    if not len(um) or "_EAN No." not in um.columns:
+        return None, []
+    known = out_df[(out_df["_Chain"] != "Unmapped Chain") & (out_df["_NSV"] > 0)]
+    if "_EAN No." not in known.columns or not len(known):
+        return None, []
+
+    aff = known.groupby(["_EAN No.", "_Chain"])["_NSV"].sum().reset_index()
+    ean_total = aff.groupby("_EAN No.")["_NSV"].sum().rename("ean_total")
+    top = (aff.sort_values(["_EAN No.", "_NSV"], ascending=[True, False])
+              .groupby("_EAN No.").first().join(ean_total))
+    top["dominant_share"] = top["_NSV"] / top["ean_total"]
+    top = top.rename(columns={"_Chain": "dominant_chain"})[
+        ["dominant_chain", "dominant_share", "ean_total"]]
+
+    u = um.merge(top, left_on="_EAN No.", right_index=True, how="left")
+
+    def _confidence(share):
+        if pd.isna(share):
+            return "NO_EVIDENCE"
+        if share >= 0.95:
+            return "HIGH"
+        if share >= 0.80:
+            return "MEDIUM"
+        return "LOW"
+
+    u["confidence"] = u["dominant_share"].map(_confidence)
+    residual_class = {"HIGH": "DEFENSIBLE_MAPPING_AVAILABLE",
+                       "MEDIUM": "BUSINESS_REVIEW_REQUIRED",
+                       "LOW": "AMBIGUOUS_MULTI_CHAIN",
+                       "NO_EVIDENCE": "NO_EVIDENCE"}
+    u["residual_class"] = u["confidence"].map(residual_class)
+
+    by_class = {cls: {"rows": 0, "nsv_lakh": 0.0} for cls in residual_class.values()}
+    for cls, g in u.groupby("residual_class"):
+        by_class[cls] = {"rows": int(len(g)), "nsv_lakh": r2(float(g["_NSV"].sum()))}
+
+    residual_summary = {
+        "residual_row_count": int(len(um)),
+        "residual_nsv_lakh": r2(float(um["_NSV"].sum())),
+        "residual_distributor_count": int(um["_CustName"].nunique()) if "_CustName" in um.columns else None,
+        "residual_brand_count": int(um["_Brand"].nunique()) if "_Brand" in um.columns else None,
+        "residual_article_count": int(um["_EAN No."].nunique()),
+        "by_class": by_class,
+        "materiality": "MATERIALITY_THRESHOLD_NOT_GOVERNED",  # no approved threshold exists for this specific residual metric -- see per-context floors elsewhere (zone recovery, incentive identity) which are NOT this metric
+        "method": (
+            "Article(EAN)-affinity evidence check over already-mapped rows, run once "
+            "after the FM-16B loader fix. HIGH/MEDIUM rows are written to "
+            "EanAffinity_ResidualProposal.csv for business review; NEVER auto-applied "
+            "to _Chain. LOW/NO_EVIDENCE rows stay Unmapped Chain -- the article is "
+            "genuinely sold across multiple chains with no single defensible answer."
+        ),
+    }
+
+    proposal_rows = []
+    for _, r in u[u["confidence"].isin(["HIGH", "MEDIUM"])].iterrows():
+        share_pct = round(float(r["dominant_share"]) * 100, 2)
+        proposal_rows.append({
+            "ship_to": r.get("_CustName"), "month": r.get("Month"),
+            "brand": r.get("_Brand", r.get("brand")), "ean": r.get("_EAN No."),
+            "current_chain": "Unmapped Chain", "proposed_chain": r.get("dominant_chain"),
+            "affinity_pct": share_pct, "confidence": r["confidence"],
+            "nsv_lakh": r2(float(r["_NSV"])),
+            "evidence_basis": (f"EAN {r.get('_EAN No.')} known sales are {share_pct}% to "
+                               f"{r.get('dominant_chain')} (of {r2(float(r['ean_total']))} L "
+                               "known NSV elsewhere)"),
+            "recommended_action": "APPROVE_CANDIDATE" if r["confidence"] == "HIGH" else "REVIEW_REQUIRED",
+        })
+    return residual_summary, proposal_rows
+
+
+def _write_ean_affinity_proposal(proposal_rows):
+    """Regenerate SeedData/Mapping/EanAffinity_ResidualProposal.csv on every
+    build -- reviewable HIGH/MEDIUM article-affinity mapping candidates for
+    the small residual of Dist. rows the cont%/ShipTo-primary allocation
+    still leaves Unmapped (see alloc.residual in data.js). This is a
+    DIFFERENT, later-stage mechanism from DistCont_Patch_Proposed.csv (which
+    proposes ShipTo x Brand x Month cont% rows); it never overlaps because it
+    only ever covers rows already in `um` (still Unmapped after that tier).
+    Governance: HIGH -> APPROVE_CANDIDATE, MEDIUM -> REVIEW_REQUIRED. Neither
+    is auto-applied -- approving a row means adding it to
+    PrimaryAllocationOverride.csv (or the cont sheet) and rebuilding."""
+    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "EanAffinity_ResidualProposal.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        wcsv = csv.writer(fh, quoting=csv.QUOTE_MINIMAL)
+        wcsv.writerow(["Ship To Name", "Month", "Brand", "Article/EAN", "Current Chain",
+                       "Proposed Chain", "Affinity %", "Confidence", "Primary NSV (Lakh)",
+                       "Evidence Basis", "Recommended Action"])
+        for r in proposal_rows:
+            wcsv.writerow([r["ship_to"], r["month"], r["brand"], r["ean"], r["current_chain"],
+                           r["proposed_chain"], r["affinity_pct"], r["confidence"], r["nsv_lakh"],
+                           r["evidence_basis"], r["recommended_action"]])
+    return len(proposal_rows), "PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv"
+
+
 def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
                           offtake_brand_set=None, offtake_ean_set=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
@@ -4622,6 +4736,11 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     direct["_IsDist"] = False
     out_df = pd.concat([direct, merged], ignore_index=True)
 
+    # ---- residual certification (Phase 2, 2026-09-13): article-affinity
+    # evidence check on whatever remains Unmapped after the tiers above ----
+    residual_summary, ean_proposal_rows = _classify_ean_affinity(um, out_df)
+    ean_proposal_count, ean_proposal_path = _write_ean_affinity_proposal(ean_proposal_rows)
+
     # ---- STEP 5 (Phase 3): Generate governance report ----
     tier_counts = {}
     for decision in governance_log["eligibility_decisions"]:
@@ -4664,6 +4783,14 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
         not_eligible_nsv = 0.0
     total_dist_nsv = float(orig["_NSV"].sum())
     not_eligible_pct = round(not_eligible_nsv / total_dist_nsv * 100, 2) if total_dist_nsv > 0 else 0.0
+    total_primary_nsv = total_dist_nsv + float(direct["_NSV"].sum())
+    if residual_summary is not None:
+        residual_summary["residual_pct_of_total_primary"] = (
+            round(residual_summary["residual_nsv_lakh"] / total_primary_nsv * 100, 4)
+            if total_primary_nsv else None)
+        residual_summary["total_primary_nsv_lakh"] = r2(total_primary_nsv)
+        residual_summary["proposal_rows"] = ean_proposal_count
+        residual_summary["proposal_file"] = ean_proposal_path
 
     # Count approved overrides from PrimaryAllocationOverride.csv that match Not_Eligible keys
     override_count = 0
@@ -4705,6 +4832,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
         "recon": recon, "qc_table": qc_rows[:400], "qc_table_total_rows": len(qc_rows),
         "missing_mapping": missing,
         "patch_rows": patch_rows, "patch_file": patch_path,
+        "residual": residual_summary,
         "unit": "INR Lakh (values), units (qty)",
         "source_label": source_label or "unknown",
         # ---- June-26 fallback disclosure (additive governance) ----

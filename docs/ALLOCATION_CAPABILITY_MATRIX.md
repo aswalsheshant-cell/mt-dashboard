@@ -220,6 +220,83 @@ improve once a `--primary-only` or full rebuild is run with the newly-fixed
 loader -- but that has not been run or verified this pass. Do not assume the
 banner's number has already moved; it has not, yet.
 
+## Residual certification -- 2026-09-13, same day, after the FM-16B fix
+
+The 167 rows (Rs12.13 L) FM-16B's fix still leaves Unmapped were checked one more
+way: for each row's article (EAN), does that EAN sell almost exclusively through
+one chain elsewhere in the dataset? If so, that's real, defensible evidence for
+where this row belongs -- not a guess.
+
+**Corrected percentage.** Rs12.13 L against the FY26 Primary baseline of
+Rs32,900.36 L is **0.037%** (12.13 / 32,900.36 x 100 = 0.0369%), not 0.07%. (The
+0.07 figure that appeared in a chat reply was `alloc.governance.not_eligible_pct`,
+which is correctly computed but against a *different* denominator -- total
+Distributor NSV, not total Primary -- so it was the wrong number to quote for
+"share of total Primary baseline." `not_eligible_pct` itself was never wrong.)
+
+**Result** (`_classify_ean_affinity()`, wired into `allocate_dist_primary()`,
+`scripts/build_dashboard_data.py`):
+
+| Confidence | Residual class | Rows | NSV (Lakh) |
+|---|---|---:|---:|
+| HIGH (>=95% of the EAN's known sales go to one chain) | `DEFENSIBLE_MAPPING_AVAILABLE` | 1 | 0.10 |
+| MEDIUM (80-95%) | `BUSINESS_REVIEW_REQUIRED` | 6 | 0.41 |
+| LOW (<80%) | `AMBIGUOUS_MULTI_CHAIN` | 158 | 11.24 |
+| No EAN match elsewhere | `NO_EVIDENCE` | 2 | 0.38 |
+| **Total** | | **167** | **12.13** |
+
+(An earlier, throwaway debug-script version of this same check, run before it was
+built into the pipeline, counted the "known" population without excluding
+negative-NSV rows [returns/credit notes] from the affinity denominator, and got
+8 MEDIUM / 156 LOW. The production version excludes negative NSV from "known"
+sales evidence -- a return at one chain shouldn't count as that chain's share of
+the article's footprint -- which moved 2 rows from MEDIUM to LOW. The numbers
+above are from the actual shipped code, not the earlier scratch estimate.)
+
+**Governance decision (per business instruction, matches this project's existing
+proposal-not-auto-apply pattern):**
+- HIGH -> written to the proposal file as `APPROVE_CANDIDATE` (still requires
+  sign-off before being turned into a real mapping -- not auto-applied).
+- MEDIUM -> written to the proposal file as `REVIEW_REQUIRED`. Never auto-applied.
+- LOW / NO_EVIDENCE -> remain `Unmapped Chain`. Not proposed as mappings anywhere
+  (they appear only in the residual counts above) -- the article genuinely sells
+  across multiple chains, so no single answer is defensible.
+
+**New reviewable proposal file** (regenerated every `--detail-only`/full build,
+same governance pattern as `DistCont_Patch_Proposed.csv`, never auto-applied):
+`PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv` -- 7 rows (the
+HIGH+MEDIUM set only). Columns: Ship To Name, Month, Brand, Article/EAN, Current
+Chain, Proposed Chain, Affinity %, Confidence, Primary NSV (Lakh), Evidence
+Basis, Recommended Action. Approving a row means adding it to
+`PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv` (the existing override
+mechanism) and rebuilding -- this proposal file itself changes nothing in
+`data.js` on its own.
+
+**Machine-readable residual block** -- `alloc.residual` in `data.js`:
+`residual_row_count`, `residual_nsv_lakh`, `residual_distributor_count`,
+`residual_brand_count`, `residual_article_count`, `by_class` (the 4-way split
+above), `residual_pct_of_total_primary` (0.022% -- computed against the full
+multi-FY Primary total this `--detail-only` block processes, Rs55,139.95 L,
+which is *not* the same denominator as the FY26-only 0.037% above; both are
+correct for what they measure, and the doc figure above is the one that matches
+the FY26 baseline this project reports elsewhere), and `materiality`:
+`MATERIALITY_THRESHOLD_NOT_GOVERNED` -- this project has several *other*
+materiality floors (zone recovery Rs0.25 Cr, incentive identity 3-store floor,
+mapping-compression 0.20 residual-share), each governing a different metric; none
+of them is an approved threshold for "unmapped chain-allocation residual as % of
+Primary," so none was borrowed. The actual percentage is disclosed either way.
+
+**Decision going forward**: this residual is not a defect to keep chasing. At
+0.037% of FY26 Primary, forcing a chain guess onto the 158 LOW-confidence rows
+would reduce analytical quality, not improve it (they are genuinely multi-chain
+SKUs with no single correct answer). `Unmapped Chain` is treated as a valid,
+disclosed, conserved state, not a gap to close by any means necessary.
+
+Validation for this change: `python -m py_compile` clean; `--detail-only` rebuild
+-- conservation exact (0.0 variance on NSV/Qty/MRP/Tax), FY26/FY27 Offtake totals
+byte-identical before/after, 7/7 baseline invariants, 66 unittest (1 skipped) +
+84 pytest (1 skipped) unchanged, 44/44 dashboard-sweep states clean, 0 JS errors.
+
 ## STOP condition -- narrowed to exactly one remaining item
 
 Per Section 34: **the only thing this environment cannot do is validate the fix
