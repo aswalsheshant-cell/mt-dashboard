@@ -295,6 +295,27 @@ only — no calculation, threshold, or business rule changed):**
 
 ---
 
+## BL-15 — Commercial Finance & Supply Chain/Forecasting Capability Classification
+
+**Category:** Capability inventory (REUSE → EXTEND → SPECIALIZE → CREATE-only-if-required decision, per the specialist-expansion request)
+**Added:** 2026-09-13
+**Method:** Inspected `.claude/skills/` (`mt-financial-intelligence`, `demand-inventory-planning`, `modern-trade-sales-growth`, `mt-distributor-secondary`) and this registry's own existing entries before concluding anything was missing, per the REUSE-BEFORE-CREATE rule this same registry is governed by.
+
+**Commercial Finance / CM2:**
+- **Existing coverage:** `docs/BUSINESS_LOGIC_REGISTRY.md` BL-06 (CM2% formula, `cm2_block()`, G9 expense-match gate) and the `mt-financial-intelligence` skill (P&L analysis, margin waterfall, trade-spend ROI) already own the *logic and narrative* side.
+- **What's genuinely missing (classification D — create only if required, and not yet required):** an actual, populated data source for 4 of 5 CM2 input classes (COGS, BA/Supervisor cost, Visibility/Rental, and Aug'26-dated Claims — see `cm2_cogs`/`cm2_claims`/`cm2_ba_supervisor_visibility_rental` in `config/data_source_registry.yml`). **Building a Commercial Finance specialist agent now would have nothing real to compute with beyond what BL-06/`mt-financial-intelligence` already do.** Registering the input taxonomy (this pass) is the correct-sized step; standing up the full agent is deferred until Finance supplies the missing inputs — building it sooner would either sit idle or invite exactly the "CM2_INPUT_MISSING silently defaulted" failure mode the specialist-expansion request itself warns against.
+
+**Supply Chain / Demand Forecasting:**
+- **Existing coverage:** `demand-inventory-planning` skill already owns stock cover, DOS, sell-through, replenishment and forecast-bias *methodology*. `D.forecast` in `data.js` already carries a monthly target/forecast block (brand x channel).
+- **What's genuinely missing (classification D, same caveat):** an actual statistical forecasting *engine* (model selection by article behaviour, backtesting, WAPE/bias measurement) and the historical depth to responsibly backtest one at Article grain. Registered `forecast_offtake_history`/`forecast_stock_inventory`/`forecast_npd_master` in `config/data_source_registry.yml` with their real limits (5 months of full-grain Offtake history; no stock feed; NPD master is demo data). **Building the engine now, on 5 data points, would violate this same registry's own "accuracy over complexity" and "backtest before accepting" principles** — it would produce a model no one could honestly validate yet.
+
+**Recommendation:** hold both specialist agents at "input taxonomy registered, capability classified D-deferred" until (a) Finance supplies COGS/BA-cost/Visibility data and August Claims, and (b) 2-3 more months of Offtake history accumulate. Re-classify then — likely B (partially exists, upgrade the existing skills above) rather than a fresh agent from zero, since `mt-financial-intelligence` and `demand-inventory-planning` already carry real methodology to extend.
+
+**Owner:** Analytics Engineering + Finance (CM2 inputs) + Supply Chain (stock feed)
+**Finance approval required:** No for this classification pass; yes before any CM2 figure is published
+
+---
+
 ## Registry Summary
 
 | ID | Rule | Finance Approval | Status |
@@ -313,6 +334,7 @@ only — no calculation, threshold, or business rule changed):**
 | BL-12 | Allocation coverage floor | Threshold approval required | POLICY APPROVAL REQUIRED (+ advisory gap) |
 | BL-13 | Unmapped NSV tolerance | Threshold approval required | POLICY APPROVAL REQUIRED |
 | BL-14 | Aug'26 ad-hoc data readiness gate (discovery/allocation tool) | Not required | LOCKED (tool); registered in `config/data_source_registry.yml` |
+| BL-15 | Commercial Finance / Supply Chain capability classification | Yes before CM2 published | CLASSIFIED D-DEFERRED — inputs registered, agent build held pending Finance/history |
 
 **LOCKED** = rule is established, no Finance action needed.  
 **PENDING** = Finance decision explicitly open (Decision Log issued 2026-08-06).  

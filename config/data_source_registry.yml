@@ -179,6 +179,89 @@ datasets:
       PRIMARY_SOURCE_MISSING / SECONDARY_SOURCE_MISSING / UNRESOLVED) rather
       than silently being dropped or silently reported as zero.
 
+  # ---- Commercial Finance / CM2 inputs -----------------------------------
+  # Checked 2026-09-13 while assessing CM2 readiness for August. Every entry
+  # below is either MISSING or COVERAGE-LIMITED -- registered as such rather
+  # than silently treated as available. Do not compute CM2 from these until
+  # status changes.
+  cm2_cogs:
+    business_name: "COGS / standard cost per article"
+    source_path: null
+    source_type: null
+    validation_status: MISSING
+    source_priority: null
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "No COGS or standard-cost file found anywhere in the repo (confirmed by repo-wide search). Matches config/analytics_config.json's own readiness.profitability gate, already flagged as blocked for the same reason. NOT August-specific -- a repo-wide gap."
+
+  cm2_claims:
+    business_name: "Distributor/chain claims"
+    source_path: "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_{brand,chain,distributor}_AprJun_2026.csv"
+    source_type: "CSV, quarterly"
+    date_min: "2026-04"
+    date_max: "2026-06"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. CM2 cannot be computed for August until this quarter's claims land."
+
+  cm2_ba_supervisor_visibility_rental:
+    business_name: "BA salary, BA supervisor cost, visibility spend, rental"
+    source_path: null
+    validation_status: MISSING
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "No source files found anywhere in the repo for any of these four cost heads, for any period. CM2 by chain/brand/article cannot be governed until Finance supplies these."
+
+  cm2_pl_expense_input:
+    business_name: "P&L Expense Input master (customer/chain matched costs, general)"
+    source_path: "PowerBI/SeedData/Masters/PL_Expense_Input.csv"
+    source_type: "CSV, master (not month-stamped)"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    downstream_outputs: ["PowerBI/PowerQuery/39_PL_Expense_Input.pq", "PowerBI/DAX/13_CM2_Measures.dax", "docs/BUSINESS_LOGIC_REGISTRY.md BL-06"]
+    last_validated: "2026-09-13 (existence + path only -- month coverage not re-verified this pass)"
+    modification_allowed: false
+    notes: "Existing CM2% logic (BL-06) already reads this master via CustCode_Chain_Map. Whether it carries an Aug'26-dated row was not re-checked this pass."
+
+  # ---- Supply Chain / Forecasting inputs ---------------------------------
+  forecast_offtake_history:
+    business_name: "Offtake history usable as demand-forecast input"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/*.csv + dashboard/data.js offtake.monthly_fy26"
+    grain: "month x store x article x chain"
+    date_min: "2024-04 (pre-agg, no chain/article grain)"
+    date_max: "DISCOVER AT RUNTIME -- Aug'26 as of 2026-09-13"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "Only 5 months (Apr-Aug'26) at full store x article grain -- too short to backtest an Article-level statistical model responsibly. Brand/Subcategory aggregation is more defensible with this history depth."
+
+  forecast_stock_inventory:
+    business_name: "Opening/closing stock, in-transit, fill rate"
+    source_path: null
+    validation_status: MISSING
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "No stock-on-hand feed found anywhere in the repo (matches docs/PROJECT_STATE.md's own 'Inventory days: No stock-on-hand feed' blocked-capability entry). Forecast can estimate demand without this, but cannot translate demand into a replenishment/stock-out signal."
+
+  forecast_npd_master:
+    business_name: "NPD article master for new-product forecasting analogues"
+    source_path: "PowerBI/SeedData/NPI_Master.csv"
+    validation_status: PROVISIONAL
+    source_priority: null
+    downstream_outputs: []
+    last_validated: "2026-09-13 (unchanged from prior finding: 10 rows, one repeated sample article, filename says TestData -- demo, not real launch history)"
+    modification_allowed: false
+    notes: "Cannot support NPD_FORECAST analogue-matching until real launch history is supplied."
+
   article_category_mapping:
     business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"
     source_path: "The SAME primary file's own brand/category/sub_category/PPT Category columns (present at article grain on most monthly files); PowerBI/PowerQuery/42_PackSizeBuckets.pq for pack-size bucketing; PowerBI/SeedData/NPI_Master.csv for NPI article metadata"
