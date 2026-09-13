@@ -233,6 +233,47 @@ Expenses sourced from `PL_Expense_Input.csv`. Customer Code → Chain matching v
 
 ---
 
+## BL-14 — Aug'26 Ad-Hoc Data Readiness Gate (Reusable Discovery/Allocation Tool)
+
+**Category:** Data discovery / allocation tooling
+**Added:** 2026-09-13
+**Implemented in:** `scripts/aug26_data_readiness_gate.py`
+**Registered in:** `config/data_source_registry.yml` (`chain_allocation_tool`, `primary_aug26_adhoc`), `docs/DATA_LINEAGE.md`
+
+**What it is:** a reusable gate — already built in an earlier session — that
+validates an ad-hoc Primary/Secondary/Offtake upload, runs the SAME governed
+distributor→chain allocation methodology as BL-02 (real secondary-offtake
+evidence, never a naive groupby on the raw billing-customer name), tracks a
+fixed exception-chain list (Lulu, Spencer, Ratnadeep, National Mart,
+Frankross, Sumo Save, B&N, Apna Mart) with an evidence-based status, and
+persists a baseline history (`PowerBI/docs/DataReadiness/Aug26_Baseline_History.jsonl`).
+
+**Why it's in this registry:** an earlier analysis session did not discover
+this tool and re-derived chain-level Aug'26 figures with a naive groupby on
+raw distributor billing names — producing an incomplete, unreconciled result
+and incorrectly treating "Lulu has no billing-customer row" as inconclusive.
+Re-running the actual gate resolved it: Lulu is `PRIMARY_SOURCE_MISSING` for
+Aug'26 (checked against secondary and pooled-distributor evidence, genuinely
+absent), and overall value coverage is 81.4% against the current complete
+source files (vs. 42% recorded in the one prior baseline, which used an
+incomplete offtake upload).
+
+**Two additive, non-destructive fixes made 2026-09-13 (schema recognition
+only — no calculation, threshold, or business rule changed):**
+1. Added `"Chain name"` (lowercase "name") to `PRIMARY_SCHEMA_ALIASES` — a
+   third real schema variant, found on `data/monthly/Aug26_primary_detailed.csv`,
+   that the existing two-variant alias table didn't cover.
+2. `normalize_primary_schema()` now drops a duplicate `"Division Desc."`
+   column when a source file carries both a real `Division Desc.` column and
+   a `brand` column that also aliases to it (verified the two only differ by
+   a trailing-period spelling variant on 3,929 of 19,070 rows, already
+   normalized downstream by `canon_brand()` — not a genuine value conflict).
+
+**Owner:** Analytics Engineering
+**Finance approval required:** No — tooling/schema-recognition fix, not a business-rule change
+
+---
+
 ## Registry Summary
 
 | ID | Rule | Finance Approval | Status |
@@ -250,6 +291,7 @@ Expenses sourced from `PL_Expense_Input.csv`. Customer Code → Chain matching v
 | BL-11 | Primary reconciliation variance tolerance | Threshold approval required | POLICY APPROVAL REQUIRED |
 | BL-12 | Allocation coverage floor | Threshold approval required | POLICY APPROVAL REQUIRED (+ advisory gap) |
 | BL-13 | Unmapped NSV tolerance | Threshold approval required | POLICY APPROVAL REQUIRED |
+| BL-14 | Aug'26 ad-hoc data readiness gate (discovery/allocation tool) | Not required | LOCKED (tool); registered in `config/data_source_registry.yml` |
 
 **LOCKED** = rule is established, no Finance action needed.  
 **PENDING** = Finance decision explicitly open (Decision Log issued 2026-08-06).  

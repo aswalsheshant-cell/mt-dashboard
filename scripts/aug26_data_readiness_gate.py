@@ -76,6 +76,7 @@ REQUIRED_OFFTAKE_COLS = {"Chain Name", "Brand", "NSV", "Description as per Fount
 PRIMARY_SCHEMA_ALIASES = {
     "NSV value": "NSV value", "Inv. Net value(LOC)": "NSV value",
     "Chain Name": "Chain Name", "Chain name for Dashboard": "Chain Name",
+    "Chain name": "Chain Name",  # third variant seen in data/monthly/Aug26_primary_detailed.csv (lowercase "name")
     "Ship-To Name": "Ship-To Name", "Ship To Name": "Ship-To Name",
     "Division Desc.": "Division Desc.", "brand": "Division Desc.",
     "EAN No.": "EAN No.",
@@ -88,6 +89,17 @@ REQUIRED_PRIMARY_COLS_CANONICAL = {"NSV value", "Chain Name", "Ship-To Name", "P
 
 def normalize_primary_schema(df):
     df = df.rename(columns={k: v for k, v in PRIMARY_SCHEMA_ALIASES.items() if k in df.columns})
+    # Some sources (e.g. data/monthly/Aug26_primary_detailed.csv) carry BOTH a
+    # real "Division Desc." column and a "brand" column that also aliases to
+    # "Division Desc." -- after the rename above that produces two identically
+    # -named columns, which breaks every downstream df["Division Desc."]
+    # access (returns a DataFrame, not a Series). Verified on that file
+    # (2026-09-13): the two only differ by a trailing-period spelling variant
+    # ("The Derma Co" vs "The Derma Co.") on 3,929 of 19,070 rows -- not a
+    # genuine value conflict, since bdd.canon_brand() normalizes both to the
+    # same canonical brand downstream either way. Keep the first occurrence
+    # only; this is column dedup, not a business-logic or value change.
+    df = df.loc[:, ~df.columns.duplicated(keep="first")]
     if "Cancelled" not in df.columns:
         # Locked File2 schema has no explicit Cancelled column -- derive it
         # from MTD-Sale type so both schemas cancel out the same rows.

@@ -1,0 +1,201 @@
+# Data Source Registry
+#
+# Points to EXISTING datasets already produced by this repo's pipelines -- it
+# does not duplicate them. Added 2026-09-13 to close a real, demonstrated gap:
+# docs/AI_ORCHESTRATOR_READINESS.md (2026-08-07) already flagged "no
+# reverse-tracing infrastructure" and "no tool wrapper" as open items; this
+# registry plus scripts/data_catalog.py is that next increment, not a
+# replacement for anything.
+#
+# What this repo ALREADY has that this file does not duplicate:
+#   - docs/BUSINESS_LOGIC_REGISTRY.md   -- business rules (BL-01..BL-13), owners,
+#                                          Finance-approval status. Authoritative
+#                                          for RULES. This file is authoritative
+#                                          for WHERE DATA LIVES.
+#   - config/analytics_config.json      -- thresholds, RAG bands, per-layer
+#                                          readiness gates (the `readiness` block
+#                                          is itself a coarse availability matrix
+#                                          for derived analytical layers).
+#   - config/baselines.json             -- protected/frozen KPI values, checked
+#                                          by tests/test_baseline_invariants.py.
+#   - docs/PROJECT_STATE.md             -- current phase, blockers, regression
+#                                          baseline. Read this FIRST on resume.
+#
+# modification_allowed: false means "this dataset's historical values must not
+# be silently changed" (frozen_history / approved_current in baselines.json's
+# vocabulary) -- it does NOT mean the registry ENTRY is immutable; extend entries
+# freely as new months/sources are discovered.
+
+schema_version: "1.0"
+updated: "2026-09-13"
+
+datasets:
+
+  offtake_preagg_fy25_fy26:
+    business_name: "Offtake NSV -- pre-aggregated workbooks (FY25 + FY26)"
+    source_path: "dashboard/data.js (offtake.monthly_fy26 / offtake.months_fy26 / offtake.total_fy26)"
+    source_type: "generated JSON (baked from source workbooks by scripts/build_dashboard_data.py; raw workbooks are gitignored)"
+    grain: "month x zone (see offtake.zone_monthly_fy26 for the zone cut)"
+    date_min: "2024-04"
+    date_max: "2026-03"
+    financial_years: ["FY25", "FY26"]
+    primary_keys: ["month"]
+    important_columns: ["monthly_fy26", "months_fy26", "total_fy26", "zone_monthly_fy26"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Only on a full rebuild via build_dashboard_data.py (no --offtake-patch mode covers this pre-FY27 window)"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_dashboard_data.py (full build only)"
+    downstream_outputs: ["dashboard/index.html Executive Cockpit / Inventory & Supply Health tabs", "config/baselines.json offtake_fy26_total check"]
+    last_validated: "2026-09-13 (this session: offtake.monthly_fy26 sums to total_fy26 exactly, Rs31,119.87L)"
+    modification_allowed: false
+    notes: >
+      THIS IS THE FIX FOR THE "Aug'25 Offtake is unavailable" FAILURE MODE.
+      Offtake_Monthly/ (the raw watch folder) only starts Apr'26 because that
+      folder is for the FY27+ --offtake-patch mechanism (see
+      offtake_article_fy27_patch entry below) -- it was never meant to hold
+      FY25/FY26 history. That history already lives here. Confirmed 2026-09-13:
+      offtake.monthly_fy26[offtake.months_fy26.indexOf('Aug-25')] = 2435.71 (Rs
+      24.36 Cr). A search that stops at Offtake_Monthly/ and concludes "no
+      Aug'25 data" is searching the wrong dataset for that period.
+
+  offtake_article_fy27_patch:
+    business_name: "Offtake NSV -- article-level FY27+ monthly patch"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_<YY>.csv"
+    source_type: "CSV, one file per month, store x article grain"
+    grain: "month x store x article x chain"
+    date_min: "2026-04"
+    date_max: "DISCOVER AT RUNTIME -- see scripts/data_catalog.py:get_latest_available('offtake'); as of 2026-09-13 the newest file present is offtake_store_article_Aug_26.csv"
+    financial_years: ["FY27"]
+    primary_keys: ["Month", "Site Code", "Article", "Chain Name"]
+    important_columns: ["NSV", "Sales Qty", "Brand", "Category", "Sub_category", "Chain Name", "Description as per Fountain"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Monthly, on new file drop"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: "offtake_preagg_fy25_fy26 for any month before FY27"
+    existing_pipeline: "scripts/build_dashboard_data.py --offtake-patch"
+    downstream_outputs: ["dashboard/data.js offtake.total_fyNN / monthly_fyNN / months_fyNN"]
+    last_validated: "2026-09-13 (Jul'26 Rs36.21 Cr ex-RBC matches independently-supplied benchmark; Aug'26 Rs39.75 Cr ex-RBC computed fresh)"
+    modification_allowed: false
+    notes: >
+      CRITICAL BUSINESS RULE (see docs/BUSINESS_LOGIC_REGISTRY.md BL-07): rows
+      where Chain Name == "Reliance Brand Counter" must be EXCLUDED before
+      reporting an offtake total -- verified 2026-09-13 that excluding them is
+      exactly what makes this file's Jul'26 total match the independently
+      supplied Jul'26 benchmark (Rs36.21 Cr computed vs Rs36.18 Cr given).
+      Jun'26 file was historically flagged BLOCKED for BC in BL-08 -- re-check
+      before trusting a BC figure for any month before Jul'26.
+
+  primary_article_monthly:
+    business_name: "Primary NSV -- article-level monthly (locked File2 / Query16 schema)"
+    source_path: "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_<Mon>_<YY>.csv"
+    source_type: "CSV, one file per month, invoice-line grain"
+    grain: "invoice line (month x customer x article)"
+    date_min: "2025-04"
+    date_max: "DISCOVER AT RUNTIME -- 16 files present as of 2026-09-13, newest primary_article_Jul_26.csv"
+    financial_years: ["FY25", "FY26", "FY27"]
+    primary_keys: ["Inv No.", "Article Code"]
+    important_columns: ["Inv. Net value(LOC)", "Chain name for Dashboard", "PO Type", "brand", "sub_category", "EAN No.", "FY", "Month"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Monthly, on new file drop"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_dashboard_data.py load_primary_v2()"
+    downstream_outputs: ["dashboard/data.js primary.* / detail_meta.fyx_primary", "PowerBI/PowerQuery/16_Fact_PrimaryArticle.pq"]
+    last_validated: "2026-09-13 via scripts/reconcile_primary_baseline.py -- FY'25-26 subtotal Rs32,900.36L and grand total Rs51,481.65L both match independently-quoted figures exactly"
+    modification_allowed: false
+    notes: >
+      "Chain name for Dashboard" on this file is NOT the same thing as the
+      "Chain name" column on the newer ad-hoc Aug'26 upload below -- see
+      primary_aug26_adhoc's notes and docs/BUSINESS_LOGIC_REGISTRY.md BL-02
+      before comparing chain-level cuts across the two.
+
+  primary_aug26_adhoc:
+    business_name: "Primary NSV -- Aug'26 ad-hoc raw invoice upload (pre-watch-folder)"
+    source_path: "data/monthly/Aug26_primary_detailed.csv (article grain, matches locked File2 schema); PowerBI/RawDataFolders/Primary_Aug26_FY27.csv (Bill-to-customer grain, NOT the same total -- see caveat)"
+    source_type: "CSV"
+    grain: "invoice line (article grain, for Aug26_primary_detailed.csv)"
+    date_min: "2026-08"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Inv No.", "Article Code"]
+    important_columns: ["Inv. Net value(LOC)", "Chain name", "PO Type", "brand / Division Desc.", "EAN No."]
+    business_owner: "MT Analytics"
+    refresh_frequency: "One-off until Aug'26 is folded into the regular Primary_Article_Monthly watch folder"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/aug26_data_readiness_gate.py (governed distributor-to-chain allocation + exception tracking for this exact file -- DO NOT re-derive chain splits with a naive groupby, see BL-14)"
+    downstream_outputs: ["data/monthly/Aug26_chain_summary.csv", "data/monthly/Aug26_zone_summary.csv", "data/monthly/Aug26_metrics.json (all three cross-checked 2026-09-13, agree to the cent)"]
+    last_validated: "2026-09-13 -- re-ran scripts/aug26_data_readiness_gate.py against the CURRENT complete Aug'26 offtake file: 81.4% value coverage (was 42% in the 2026-09-09 baseline record, which used an incomplete offtake upload). Lulu: CONFIRMED PRIMARY_SOURCE_MISSING (checked against secondary evidence and pooled-distributor evidence -- genuinely absent, not a mapping artifact)."
+    modification_allowed: false
+    notes: >
+      CAVEAT: PowerBI/RawDataFolders/Primary_Aug26_FY27.csv (customer-grain)
+      sums to ~Rs38.72 Cr; Aug26_primary_detailed.csv (article-grain, the one
+      the readiness gate consumes) sums to Rs36.58 Cr, corroborated three
+      independent ways (chain_summary.csv, zone_summary.csv, metrics.json).
+      The ~Rs2.1 Cr gap between the two files is an UNRESOLVED SOURCE_CONFLICT
+      (see docs/DATA_LINEAGE.md) -- not picked as "whichever passes"; flagged,
+      not silently resolved. Use Aug26_primary_detailed.csv until the
+      discrepancy is explained.
+      "Chain name" (lowercase n) is a THIRD schema variant of the Primary
+      file family -- added as an alias in scripts/aug26_data_readiness_gate.py
+      PRIMARY_SCHEMA_ALIASES on 2026-09-13.
+
+  chain_allocation_tool:
+    business_name: "Distributor -> Chain allocation (governed logic, reusable)"
+    source_path: "scripts/aug26_data_readiness_gate.py (allocate_primary(), build_chain_mapping_audit(), recheck_exceptions()); scripts/build_dashboard_data.py (load_chain_allocation_weights(), apply_chain_allocation() -- the production-build equivalent)"
+    source_type: "Python function, not a static dataset"
+    grain: "n/a"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: []
+    important_columns: []
+    business_owner: "Analytics Engineering"
+    refresh_frequency: "n/a"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "n/a -- this IS the pipeline"
+    downstream_outputs: ["Allocated_Chain column on any primary file it is run against"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      THIS IS THE FIX FOR "raw distributor billing used as chain primary
+      without checking for existing allocation logic". Direct rows keep their
+      own chain; Dist. rows are split using REAL secondary-offtake evidence
+      (article-level ratio first, then distributor+brand ratio), never a
+      naive groupby on the raw billing-customer name. A chain with genuinely
+      no evidence anywhere lands in an explicit exception register
+      (TRACKED_EXCEPTION_CHAINS) with a reasoned status (MAPPING_GAP /
+      PRIMARY_SOURCE_MISSING / SECONDARY_SOURCE_MISSING / UNRESOLVED) rather
+      than silently being dropped or silently reported as zero.
+
+  article_category_mapping:
+    business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"
+    source_path: "The SAME primary file's own brand/category/sub_category/PPT Category columns (present at article grain on most monthly files); PowerBI/PowerQuery/42_PackSizeBuckets.pq for pack-size bucketing; PowerBI/SeedData/NPI_Master.csv for NPI article metadata"
+    source_type: "CSV columns + M query"
+    grain: "article (EAN)"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["EAN No.", "Article Code"]
+    important_columns: ["brand", "category", "sub_category", "PPT Category"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "n/a -- carried on the transaction file itself"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: "If sub_category is blank on a given month's file (confirmed real gap: primary_article_Jul_26.csv has 0 of 31,355 rows populated in sub_category AND PPT Category), use offtake_article_fy27_patch's Sub_category for the SAME EAN/article -- offtake carries the mapping at full population for every month checked so far. Do not report category analysis as impossible before checking this."
+    downstream_outputs: ["dashboard Category & Pack Mix sub-view", "PowerBI/DAX/12_TOT_Measures.dax pack-size logic"]
+    last_validated: "2026-09-13 -- confirmed the Jul'26 gap and the offtake fallback both directly on file"
+    modification_allowed: false
+    notes: >
+      THIS IS THE FIX FOR "blank sub_category => category analysis declared
+      impossible". The field is blank on ONE month's Primary file, not
+      structurally absent from the business -- the same EAN's category is
+      present on the article master carried by every other Primary month AND
+      on the Offtake file for the same period.
