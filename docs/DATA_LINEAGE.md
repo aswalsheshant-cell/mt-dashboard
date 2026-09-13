@@ -45,21 +45,71 @@ exactly. A third figure, Rs46,560.34L (`PowerBI/docs/Desktop_Assembly_Checklist.
 Phase J), is explained as stale-by-one-month (see that file's own note), not a
 defect.
 
-**Unresolved: Aug'26 Primary total (SOURCE_CONFLICT, not silently picked).**
-Two Aug'26 sources exist and disagree:
-- `data/monthly/Aug26_primary_detailed.csv` (article grain): Rs36.58 Cr.
-  Corroborated three independent ways: matches `Aug26_chain_summary.csv`
-  (sum of `Primary_Crores` column), `Aug26_zone_summary.csv`, and
-  `Aug26_metrics.json`'s `primary_nsv_cr` field, all exactly.
-- `PowerBI/RawDataFolders/Primary_Aug26_FY27.csv` (Bill-to-customer grain):
-  Rs38.72 Cr (`NSV` column already in Lakh, summed and divided by 100).
-- Gap: ~Rs2.14 Cr (~5.5%). Not reconciled -- could be a different cutoff date,
-  additional adjustment/credit rows in one file, or a scope difference between
-  invoice-line and customer-level aggregation. **Recommended next step:** ask
-  the data owner which file is the approved Aug'26 Primary source before
-  either is used for a published total; the article-grain file is used
-  provisionally above because it has three-way internal corroboration the
-  other file lacks, not because it is confirmed correct.
+**Aug'26 Primary total -- RECONCILED 2026-09-13 (was SOURCE_CONFLICT).**
+Two Aug'26 sources exist and disagreed by ~Rs2.14 Cr (Rs213.30L). Row-level
+reconciliation (not a guess) explains the entire gap in two pieces:
+
+- `data/monthly/Aug26_primary_detailed.csv` (**Source A**, article/invoice-line
+  grain, 19,070 rows): Rs36.58 Cr. Has `Inv No.`, `Article Code`, `EAN No.`,
+  and an explicit `MTD-Sale type` field (`Sales` / `MRN` / `Cancel Invoice`)
+  that nets returns and cancellations. Corroborated three independent ways
+  already (chain/zone summaries + `Aug26_metrics.json`).
+- `PowerBI/RawDataFolders/Primary_Aug26_FY27.csv` (**Source B**,
+  Bill-to-customer grain, 16,488 rows, no invoice/article key): Rs38.72 Cr.
+
+**Piece 1 -- Rs116.50L (54.6% of the gap), fully explained.** Source A's
+`Sales`-type rows alone (ignoring its own MRN/Cancel netting) total
+Rs3,774.80L; Source B totals Rs3,871.60L. By channel, Source A's `Sales`-only
+figures for **EB2B** (Rs202.64L) and **SIS** (Rs72.75L) match Source B
+**exactly**, to the rupee, row-count included (4,044 and 145 rows in both).
+Source A's `MRN` (return/credit-note) rows are worth -Rs116.50L and its
+`Cancel Invoice` rows net to ~Rs0. **Source B is a gross-of-returns figure --
+it does not net out the Rs116.50L of Aug'26 returns that Source A correctly
+subtracts.** This piece is closed: Source A's returns-netted treatment is
+correct; Source B under-nets by exactly this amount.
+
+**Piece 2 -- Rs96.80L (45.4% of the gap), isolated but not fully explained.**
+After matching on the returns treatment above, the entire remaining
+difference sits inside the **MT channel only** (confirmed: EB2B and SIS
+reconcile to zero variance, both value and row count). Source B has 350 more
+MT-channel rows (12,299) than Source A's MT `Sales`-only rows (11,949).
+Investigated and ruled out:
+- Not FOC invoices (Source A's FOC rows total Rs0.017L -- immaterial).
+- Not literal duplicate rows in Source B -- de-duplicating Source B's MT rows
+  on every shared dimension (customer/brand/zone/state/NSV/MRP/month)
+  over-removes (drops to 10,528 rows, Rs3,345.26L, undershooting Source A),
+  meaning many of the "duplicate-looking" rows are genuinely distinct
+  transactions that happen to share those dimensions and values --
+  coincidental, not a data defect, at customer grain with no invoice key.
+- **A real, separate data-quality bug found in Source B along the way**: its
+  `Direct/Distributor` column is **100% "Direct"** for every one of its
+  16,488 rows. Source A's equivalent field (`PO Type`) shows the MT channel
+  genuinely contains both `Direct` (Rs2,260.10L) and `Dist.` (Rs1,239.31L)
+  billing -- Source B's totals are in the right neighbourhood for MT overall
+  (consistent with including both), so the column isn't dropping distributor
+  rows, but the column itself cannot be trusted for a Direct-vs-Distributor
+  split. Registered as `BUG_MAPPING` in the exception register below.
+- Remaining Rs96.80L residual: not resolved to a specific row-level cause
+  with the columns available in these two aggregated extracts (neither file
+  carries a shared unique transaction key). Immaterial to the recommendation
+  below (2.7% of the Rs36.58 Cr total) -- flagged as `LOW` materiality, not
+  blocking.
+
+**Recommendation: use Source A (`data/monthly/Aug26_primary_detailed.csv`,
+Rs36.58 Cr) as the Aug'26 Primary NSV.** It is invoice/article-line grain
+(matching how FY26 and Apr-Jul'26 FY27 Primary are already built elsewhere in
+this pipeline -- see `detail_meta.fyx_primary`'s own note, "FULL (uncapped)
+article-wise primary"), nets returns and cancellations explicitly, has
+three-way internal corroboration, and its `PO Type` field is verified
+reliable. Source B should not be used for the Aug'26 Primary total -- treat
+it as superseded for that purpose, not deleted (still useful for spot-checks
+outside MT channel, where it ties exactly). This does not require further
+data-owner escalation to proceed with ingestion; the residual 2.7% "how
+exactly are these 350 MT rows different" question can stay open as a
+`LOW`-materiality note. Ingestion into `dashboard/data.js` is still blocked
+on the separate schema-harmonization step noted in `CLAUDE.md`
+(raw-SAP 53-column schema vs. the production loader's ~24-column
+expectation) -- not attempted in this pass.
 
 ## Offtake NSV
 

@@ -256,14 +256,56 @@ datasets:
       resolved" claim as accurate without independently recounting the PENDING
       rows.
 
-  cm2_ba_supervisor_visibility_rental:
-    business_name: "BA salary, BA supervisor cost, visibility spend, rental"
-    source_path: null
-    validation_status: MISSING
+  mt_provision_national_aug26:
+    business_name: "MT National Provision -- Claims/Promotions/Visibility/Rental/Freight/Extra Margin, single month"
+    source_path: "supplied 2026-09-13 by the user, not yet copied into the repo (candidate location: data/raw_drops/MT_Provision_National_Aug26.xlsx, following the existing raw_drops convention -- not moved without confirmation)"
+    source_type: "XLSX, single sheet '26-27', 427 rows, national, single month"
+    date_min: "2026-08"
+    date_max: "2026-08"
+    validation_status: PARTIAL
+    source_priority: null
+    fallback_source: null
     downstream_outputs: []
     last_validated: "2026-09-13"
     modification_allowed: false
-    notes: "No source files found anywhere in the repo for any of these four cost heads, for any period, including in the CM2_Provisional cluster (that cluster's own formula marks visibility/rental as a Rs12.5L MEMO placeholder, 'awaiting real Q1 FY27 data file'). CM2 by chain/brand/article cannot be governed until Finance supplies these."
+    notes: >
+      Profiled 2026-09-13. Grain: Party (distributor/chain) x Brand x Claim
+      Type, Aug'26 only. Columns: Brand Name, Party Code (43/427 null -- chain-
+      level rows with no distributor), Party Name, Chain Name, Channel, Region,
+      Responsible, Nature Of Claims, MD/Retention/Chain TOT (294-297/427 null
+      -- mostly unused claim mechanisms this month), Claim Type, Month, Chain
+      Secondary (NSV), Provision Amount (113/427 null -- ~26% of rows carry no
+      provision value, not yet explained), Remarks (mostly blank).
+      By claim type (Chain Secondary NSV / Provision Amount, INR Cr):
+      Promotions 8.97/4.28, Visibility 3.04/1.79, offinvoice-TOT 3.95/0.31,
+      Extra Margin 15.08/1.00, NPI 0.00/0.00, Rental 0.00/0.38, 3P 0.00/0.01,
+      On-Invoice Promo 1.87/0.93, **Freight 0.00/0.02** (12 rows, distributor-
+      level freight/delivery reimbursement claims on specific transactions --
+      total Chain Secondary NSV Rs32.92 Cr, total Provision Rs8.73 Cr).
+      IMPORTANT: this Freight line is NOT the same concept as BL-16's
+      "Logistics Cost = rate-card % x NSV" -- it is ~140x smaller than
+      BL-16's own Apr+May'26 modelled logistics figure (Rs275.53L) for a
+      full national month, and is structured as ad hoc per-transaction
+      distributor reimbursement claims, not a comprehensive outbound
+      logistics cost. Do not merge these two concepts without further
+      evidence; see BL-16 in docs/BUSINESS_LOGIC_REGISTRY.md.
+      This file DOES correct `cm2_ba_supervisor_visibility_rental` below --
+      real Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr provision) data now
+      exists for Aug'26, contradicting that entry's prior "no source found
+      for any period" claim.
+      Not reconciled against any independent Aug'26 total (no other Trade
+      Expense/Claims figure exists for Aug'26 specifically to check it
+      against). Not ingested into any dashboard block -- registration and
+      profiling only, per this pass's scope.
+
+  cm2_ba_supervisor_visibility_rental:
+    business_name: "BA salary, BA supervisor cost, visibility spend, rental"
+    source_path: "Visibility + Rental now PARTIAL via mt_provision_national_aug26 (Aug'26 only); BA salary and BA supervisor cost still MISSING for any period"
+    validation_status: PARTIAL
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "CORRECTED 2026-09-13 (previous entry said 'no source files found anywhere in the repo for any of these four cost heads, for any period' -- that was wrong for two of the four). The newly supplied MT_Provision_National_till_Aug26.xlsx (see mt_provision_national_aug26 above) has real Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr provision) claims for Aug'26 -- single month, national, not yet reconciled against an independent total. BA salary and BA supervisor cost remain MISSING for any period; CM2_Provisional's own formula still marks visibility/rental as a Rs12.5L MEMO placeholder for Q1 FY27 specifically, a different period and a different (smaller, modelled) figure than this file's real Aug'26 claims -- do not average or blend the two without a business decision on which is authoritative for which period."
 
   cm2_pl_expense_input:
     business_name: "P&L Expense Input master (customer/chain matched costs, general)"
@@ -308,6 +350,20 @@ datasets:
     last_validated: "2026-09-13 (unchanged from prior finding: 10 rows, one repeated sample article, filename says TestData -- demo, not real launch history)"
     modification_allowed: false
     notes: "Cannot support NPD_FORECAST analogue-matching until real launch history is supplied."
+
+  promotions_offtake_correlation:
+    business_name: "Promotional offers/schemes, chain-wise, with offtake correlation"
+    source_path: "dashboard/data.js promo.* (production, already loaded); scripts/batch_load_promos.py is the loader"
+    source_type: "Already ingested and governed -- checked as part of the 2026-09-13 domain sweep, not previously catalogued here"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    validation_status: AVAILABLE
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    downstream_outputs: ["dashboard/index.html Demand & S&OP Planning > Promotional Impact sub-view"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "3,694 promo lines, Apr-Aug'26 (5 months), avg consumer depth 31.6%, with by_chain/by_brand/by_category/monthly/mom_trend breakdowns already in production. No FY25/FY26 promo history (consistent with the rest of the FY27-only article-level watch-folder sources) -- registered as a known scope boundary, not a defect. This domain did not surface a gap this pass; deeper Trade Spend / COGS auditing beyond BL-15/BL-16's existing findings was not attempted this pass (time-boxed) -- see docs/BUSINESS_LOGIC_REGISTRY.md BL-16 for what was checked there."
 
   article_category_mapping:
     business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"

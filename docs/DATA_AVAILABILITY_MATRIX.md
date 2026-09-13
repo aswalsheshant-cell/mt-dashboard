@@ -24,7 +24,7 @@ business sign-off pending) · **MISSING** (checked, genuinely absent) ·
 | FY25 (Apr'24-Mar'25) | **SOURCE_NOT_AVAILABLE — corrected 2026-09-13** | n/a | **This row previously said AVAILABLE. That was wrong** -- verified directly against the live `dashboard/data.js`: `primary.fy_tags == ['fy26']` only; there is no `fy25` key anywhere in the `primary` block. No true FY25 Primary billing extract exists anywhere in this repo (`.claude/skills/mt-distributor-secondary/SKILL.md` traced every file that looks like FY25 primary and found each one is either FY26/27-only or a synthesized Pareto-fallback, not a real extract). The only FY25 series in the dashboard is Distributor Secondary (see below) -- do not read `primary.*` and conclude FY25 Primary is present. |
 | FY26 (Apr'25-Mar'26) | AVAILABLE_AND_LOADED | `PowerBI/RawDataFolders/Primary_Article_Monthly/*.csv` (12 months) + `dashboard/data.js primary.monthly_fy26` | Rs32,900.36L, matches CLAUDE.md exactly (reconciled 2026-09-13) |
 | Apr-Jul'26 (FY27 article-level) | AVAILABLE_AND_LOADED | `dashboard/data.js detail_meta.fyx_primary.FY27.monthly_canon` | Rs18,581.29L across 4 months; sums with FY26 to Rs51,481.65L grand total, matches PR #119 exactly |
-| Aug'26 | **AVAILABLE_BUT_NOT_LOADED, plus an unresolved CONFLICT** | Two Aug'26 sources disagree by ~Rs2.1 Cr: `data/monthly/Aug26_primary_detailed.csv` (article grain, Rs36.58 Cr, corroborated 3 ways) vs `PowerBI/RawDataFolders/Primary_Aug26_FY27.csv` (customer grain, Rs38.72 Cr) | Verified 2026-09-13: `detail_meta.fyx_primary.FY27.months_canon` still stops at `Jul-26` -- Aug'26 has NOT been merged into `data.js` yet. Two blockers, in order: (1) which of the two conflicting totals is correct (needs a data-owner decision, see `docs/DATA_LINEAGE.md`), (2) the raw-SAP Aug'26 file's schema (53 columns) does not match the production loader's expected trimmed schema (~24 columns) -- needs harmonization before ingest, not attempted blind |
+| Aug'26 | **AVAILABLE_BUT_NOT_LOADED — conflict RESOLVED 2026-09-13** | `data/monthly/Aug26_primary_detailed.csv` (article grain, Rs36.58 Cr) -- confirmed the correct source | Row-level reconciliation (see `docs/DATA_LINEAGE.md`) explained the full Rs2.14 Cr gap against `PowerBI/RawDataFolders/Primary_Aug26_FY27.csv`: 54.6% = that file not netting Rs116.50L of Aug'26 returns, 45.4% = an isolated, immaterial (2.7% of total) MT-channel-only residual. No data-owner decision needed for this. Still blocked on schema harmonization before `data.js` ingest: raw-SAP file is 53 columns vs. the production loader's ~24-column expectation -- not attempted this pass |
 | Aug'26, chain-level split | PARTIAL | `scripts/aug26_data_readiness_gate.py` output, 2026-09-13 run | 81.4% of NSV allocated to a matched chain; Lulu/Spencer/Ratnadeep/National Mart/Frankross/Sumo Save/B&N = `PRIMARY_SOURCE_MISSING` (checked, not a mapping bug) |
 | Sep'26+ | Not yet arrived | -- | Will land in `Primary_Article_Monthly/primary_article_Sep_26.csv` per the existing naming convention; `fy_tag_from_ym()` will tag it FY27 automatically, no code change needed |
 
@@ -66,25 +66,44 @@ FY25 chain-level Offtake/POS extract; neither can be derived from what already e
 this repo (see "Requesting real FY25 primary" in the `mt-distributor-secondary` skill for
 the exact ask to send).
 
-## Known data.js hygiene issue (does not affect the dashboard UI)
+## Known data.js hygiene issue (does not affect the dashboard UI) -- root cause found 2026-09-13
 
 `dashboard/data.js` carries two duplicate top-level blocks, `meta` and `metadata`, with
 identical content. `meta` is the one the UI actually reads (header title/period/footer in
-`index.html`); `metadata` is read nowhere in `index.html` (checked 2026-09-13,
-`grep -n "DASH.metadata" dashboard/index.html` returns nothing). Both blocks contain a
-`coverage.fy25_months` / `fy26_months` / `fy27_months` sub-object that is **wrong** by
-this project's own FY convention -- it lists `fy25_months: [Apr-25..Jul-25]`, which under
-THE ONE FY RULE is FY26, not FY25. No script in `scripts/*.py` generates this block
-(`grep -rn "fy25_months" scripts/*.py` finds nothing) -- it is leftover content from a
-superseded build step, carried forward unedited across every partial-refresh patch since.
-It causes no visible dashboard defect today because nothing reads `.coverage`, but it is
-exactly the kind of stale, misleading field a future reader (human or AI) could
-mistakenly trust if they open `data.js` directly instead of querying through
-`scripts/data_catalog.py` or this matrix. Flagged, not fixed: fixing it means either (a)
-finding a full-rebuild opportunity to regenerate `data.js` cleanly (no source files
-staged for a full rebuild this session), or (b) a targeted one-off patch script -- not
-attempted here since `data.js` must never be hand-edited and there is no material impact
-to justify a bespoke patch script on its own.
+`index.html`); `metadata` is read nowhere in `index.html` (checked, `grep -n
+"DASH.metadata" dashboard/index.html` returns nothing).
+
+**Correction to this doc's own earlier entry:** this previously said "no script in
+`scripts/*.py` generates this block." **That was wrong** -- a deeper check found
+`scripts/sync_data_js.py:197` (`"metadata": meta,`), part of a separate, older "Tier 3"
+pipeline (`data_master.json` -> `scripts/ingest_primary_csv.py` /
+`scripts/sync_data_js.py` -> `data.js`) that is NOT the documented production path
+(`build_dashboard_data.py` is -- see `CLAUDE.md`). This is exactly the kind of
+documentation-becomes-a-bad-future-decision case flagged elsewhere in this project's
+governance rules -- corrected here rather than left standing.
+
+The good news: this legacy pipeline is already safely deprecated, not newly discovered
+as a live risk. `.github/workflows/validate-data.yml` (lines 1-13) documents that a prior
+session found the exact same issue, confirmed `sync_data_js.py` regenerates a different,
+stale-derived copy of `data.js` that isn't the real committed one, and restricted that
+workflow to `workflow_dispatch` only (no automatic trigger) rather than deleting the
+scripts outright -- `docs/PROJECT_STATE.md` carries the "recommended full retirement"
+note. Not acted on further here: deleting `scripts/sync_data_js.py`,
+`scripts/ingest_primary_csv.py`, `data_master.json`, or the workflow file is a bigger,
+harder-to-reverse cleanup than this pass's scope, and none of them run automatically
+today, so there is no live risk to force the decision.
+
+The `metadata.coverage.fy25_months` / `fy26_months` / `fy27_months` sub-object is still
+**wrong** by this project's own FY convention (`fy25_months: [Apr-25..Jul-25]` is FY26
+under THE ONE FY RULE, not FY25) -- it reflects `data_master.json`'s last state
+(2026-08-26), predating this repo's current FY tag convention being locked down, and was
+never corrected because nothing in the production path (`build_dashboard_data.py`) owns
+or refreshes this key. **Prevention added 2026-09-13:** `scripts/ci_validate_datajs.py`
+now WARNs (not fails, since there is no live defect to block on) whenever `metadata`
+exists and differs from `meta`, so this cannot silently drift back into being trusted.
+Not removed from the currently-committed `data.js` itself -- hand-editing generated JSON
+is against this project's own rule, and the object causes no visible defect today, so
+there is no case for a bespoke one-off patch script just to delete two dead keys.
 
 ## Chain / distributor allocation
 

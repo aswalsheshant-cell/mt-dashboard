@@ -2518,14 +2518,27 @@ _EXPENSE_DEDUP_FIELDS = ["Month", "FY", "Chain", "Customer Code", "Customer Name
 
 def load_pl_expense_input():
     """Row dicts from the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv.
-    Returns [] if the file is missing (no expenses loaded yet -- CM2 then
-    just equals NSV, and the dashboard/Power BI both show an explicit
-    "no expense data loaded" state rather than a fabricated CM2)."""
+    Returns [] if the file is missing OR contains only the seed template's own
+    "EXAMPLE ROW" placeholder rows (no expenses loaded yet -- CM2 then just
+    equals NSV, and the dashboard/Power BI both show an explicit "no expense
+    data loaded" state rather than a fabricated CM2).
+
+    Bug fixed 2026-09-13: the seed file ships with 3 rows explicitly marked
+    "EXAMPLE ROW -- replace with real data" in Remarks, to show a Finance
+    user the exact schema. Those rows used to satisfy has_expense_data (any
+    parsed row counted as real), so the dashboard silently treated Rs47.65L
+    of template placeholder values (Dmart Visibility Spend Rs12.5L, Reliance
+    Retail Scheme/Trade Spend Rs28.4L, Apollo BA Cost Rs6.75L) as real CM2
+    expense and never showed the "no expense data loaded" banner it was
+    designed to show in that state. Filtering them out here is a pure
+    correctness fix -- no real expense data existed in this file before or
+    after this change."""
     path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PL_Expense_Input.csv"
     if not path.exists():
         return []
     with open(path, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+        rows = list(csv.DictReader(fh))
+    return [r for r in rows if "EXAMPLE ROW" not in (r.get("Remarks") or "").upper()]
 
 def _build_custcode_chain_lookup(df):
     """Cust-SAP Code -> most common Chain, built from the primary article

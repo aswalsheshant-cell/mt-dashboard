@@ -383,6 +383,66 @@ exact methodology against real data and re-register as `VALIDATED`.
 **Owner:** Commercial Finance (real approval + real source files) + Analytics Engineering (re-run once supplied)
 **Finance approval required:** Yes — genuinely, this time, from a named person
 
+### Update 2026-09-13 — four statuses tracked separately, plus new evidence
+
+Per this project's own rule that methodology, data, calculation and approval are four
+different questions and must never collapse into one status:
+
+| Status dimension | Value | Why |
+|---|---|---|
+| **Methodology Status** | `VALIDATED` | The waterfall (NSV − COGS − Trade Expense − Field-force − Visibility/Rental − Logistics − Shared/Corporate) and the two rate-basis choices (COGS % of GMV/MRP, Logistics % of NSV) are a defensible, standard FMCG CM2 design. Nothing about the *shape* of the formula is in question — only its inputs. |
+| **Data Status** | `MOSTLY MISSING` | The rate-card files themselves, the claim master workbook, and `MT_Spend.xlsx` are still not present anywhere in the repo (confirmed again this pass — no new copies found). One real, dated input newly exists: `mt_provision_national_aug26` (see `config/data_source_registry.yml`), which has genuine Aug'26 Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr) claims — the first real data point for those two cost heads at any period. |
+| **Calculation Status** | `PARTIALLY CALCULABLE` | Visibility/Rental now has one real month to work from. COGS and Logistics still cannot be calculated from real data — see rate-reconstruction attempt below, which found no usable actual-cost source to reconstruct an implied rate from. |
+| **Approval Status** | `PENDING_APPROVAL` (unchanged) | No named Finance approval exists. Unchanged by anything found this pass. |
+
+**Technical Status: `CLOSED_PROVISIONAL`.** The methodology itself does not need
+further technical work to be usable as a disclosed, provisional estimate — the open
+item is Finance approval and real source data, not the formula design. **Dashboard
+usage: `ALLOWED_WITH_DISCLOSURE`** — if a CM2 figure computed this way is ever shown,
+it must carry an explicit "provisional, rate-card methodology, not Finance-approved"
+label, the same way `PowerBI/SeedData/Masters/PL_Expense_Input.csv`'s current
+production use already does (`dashboard/index.html`'s P&L tab: "COGS is not in source
+data, so this is a gross-to-net trade contribution view... not a full statutory P&L").
+It must never be shown as if it were an approved actual.
+
+**Rate-reconstruction attempt (Section 14 of the 2026-09-13 governance request).**
+Searched for a real, comprehensive Logistics or COGS actual-cost figure to divide by a
+real NSV and derive an implied rate, rather than requesting the rate card outright.
+Result: **no usable source exists in this repo.**
+- `dashboard/data.js`'s own `pnl` block (the one real, produced P&L-adjacent output)
+  contains only `total_mrp` / `total_nsv` / `total_discount` — no COGS, no logistics,
+  no expense line of any kind.
+- `dashboard/data.js`'s `cm2` block (`total_expense: Rs47.65L` against `total_nsv:
+  Rs51,481.65L`, i.e. a 0.1% "expense" ratio) is **not** a real COGS/Logistics figure —
+  see the `PL_EXPENSE_INPUT_EXAMPLE_ROW` bug fixed in this same pass below: that Rs47.65L
+  is exactly the sum of the three shipped placeholder example rows, not real Finance data.
+- The new `mt_provision_national_aug26` Freight claim type (Rs0.02 Cr for all of Aug'26,
+  national) is **~140x smaller** than BL-16's own Apr+May'26 modelled logistics figure
+  (Rs275.53L) and is structurally a different thing (ad hoc distributor reimbursement
+  claims on specific transactions, not a comprehensive outbound logistics cost) — using
+  it to reconstruct an implied logistics rate would understate the real cost by roughly
+  two orders of magnitude and is explicitly rejected here as a source, not adopted.
+- **Conclusion: no defensible implied rate can be reconstructed from data currently in
+  this repo.** This is not a gap this pass could close with more searching — it
+  requires either the real rate-card file or a real GL/ledger logistics-expense actual,
+  neither of which exists here. Sensitivity/materiality analysis (Section 18) is
+  therefore not performed either — there is no base-case estimate to sensitize around
+  that would be more than a restatement of the already-flagged synthetic rate card.
+
+**Bug found and fixed in the same investigation, registered separately (not part of
+BL-16 itself, but discovered while tracing why the dashboard's own `cm2` block looked
+implausible):** `scripts/build_dashboard_data.py`'s `load_pl_expense_input()` did not
+filter out the seed file's own "EXAMPLE ROW — replace with real data" placeholder rows,
+so the dashboard's P&L/CM2 tab was silently treating Rs47.65L of template example values
+(Dmart Visibility Rs12.5L, Reliance Retail Scheme/Trade Spend Rs28.4L, Apollo BA Cost
+Rs6.75L) as real Finance expense, and never showed its own designed "no expense data
+loaded yet" banner. Fixed 2026-09-13 (filter on the `EXAMPLE ROW` marker in `Remarks`);
+regression test added at `tests/test_pl_expense_input_filter.py`. Classified
+`BUG_CODE` / `DATA_QUALITY`. **Not yet reflected in the committed `dashboard/data.js`**
+— applying it requires a `--detail-only` rebuild, which needs source workbooks not
+staged in this session; the fix is correct in the generator for the next rebuild that
+has them.
+
 ---
 
 ## Registry Summary
@@ -404,7 +464,7 @@ exact methodology against real data and re-register as `VALIDATED`.
 | BL-13 | Unmapped NSV tolerance | Threshold approval required | POLICY APPROVAL REQUIRED |
 | BL-14 | Aug'26 ad-hoc data readiness gate (discovery/allocation tool) | Not required | LOCKED (tool); registered in `config/data_source_registry.yml` |
 | BL-15 | Commercial Finance / Supply Chain capability classification | Yes before CM2 published | CLASSIFIED D-DEFERRED — inputs registered, agent build held pending Finance/history |
-| BL-16 | GAP-01/GAP-02 CM2 & logistics cost methodology | Claimed but NOT genuine — see notes | METHODOLOGY REGISTERED AS TEMPLATE; "approval" REJECTED on evidence — real Finance sign-off + source files still required |
+| BL-16 | GAP-01/GAP-02 CM2 & logistics cost methodology | PENDING_APPROVAL — see notes | Methodology `VALIDATED` / Technical `CLOSED_PROVISIONAL` / Data `MOSTLY MISSING` / Calculation `PARTIALLY CALCULABLE` — usable with mandatory disclosure, never as an approved actual; rate-reconstruction from real data attempted 2026-09-13, no usable actual-cost source found |
 
 **LOCKED** = rule is established, no Finance action needed.  
 **PENDING** = Finance decision explicitly open (Decision Log issued 2026-08-06).  

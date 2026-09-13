@@ -86,6 +86,13 @@ def main():
         print(f"OK  data.js -- FY27 zones: {', '.join(sorted(fy27.keys()))}")
     print("OK  dashboard/data.js is valid JSON")
 
+    if "metadata" in data and data.get("metadata") != data.get("meta"):
+        print("WARN: data.js has 'metadata' and 'meta' with different content. "
+              "'meta' is the block index.html actually reads; 'metadata' is a "
+              "legacy block written by scripts/sync_data_js.py (a deprecated, "
+              "workflow_dispatch-only pipeline -- see docs/DATA_AVAILABILITY_MATRIX.md "
+              "'Known data.js hygiene issue'). Do not trust 'metadata' as authoritative.")
+
     problems = check_baselines(data)
     if problems:
         print(f"FAIL: {len(problems)} baseline invariant(s) broken:")
