@@ -20,6 +20,9 @@ on:
       - '.github/workflows/validate-promo-data.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   validate-schema:
     name: Schema Validation
