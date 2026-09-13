@@ -316,6 +316,75 @@ only — no calculation, threshold, or business rule changed):**
 
 ---
 
+## BL-16 — GAP-01/GAP-02 CM2 & Logistics Cost Methodology (Found, NOT Approved — Authenticity Flag)
+
+**Category:** CM2 / commercial finance — governance authenticity finding
+**Added:** 2026-09-13, in response to a direct request to locate and use the
+CM2/logistics cost work from earlier in the project.
+
+**Found on a deeper, targeted search** (BL-15's search wasn't broad enough —
+corrected here): `PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv`,
+`docs/FINANCE_DECISION_MEMO_GAP01_GAP02.md`, `docs/FINANCE_APPROVAL_Q1_FY27.md`,
+`docs/finance_decision_matrix_Q1_FY27.csv`, `docs/cm2_decision_register_Q1_FY27.csv`,
+`docs/CM2_CLAIM_ANALYSIS.md`, `PowerBI/docs/DAX_GAP01_GAP02_MEASURES.md`, and the
+small standalone `ModernTrade_Report.pbip`/`.Dataset` prototype (previously
+mis-described in this session as "an unrelated prototype" — it is in fact the
+PBIP implementation of exactly this GAP-01/GAP-02 work).
+
+**The methodology itself is real and reasonable:** a full CM2 waterfall
+(NSV → COGS → trade expense → field-force cost → visibility/rental →
+**logistics cost** → shared/corporate → CM2), with logistics costed as a
+rate-card percentage applied to NSV and COGS as a rate-card percentage applied
+to GMV/MRP sales — a defensible design, worth keeping as a template.
+
+**But the "approval" behind it does not hold up, on direct evidence:**
+1. `cm2_formula.csv` states `Approved_By: MT Automation`, `Approval_Date:
+   2026-08-30`, `Status: APPROVED` for every line, including logistics cost.
+2. `docs/FINANCE_DECISION_MEMO_GAP01_GAP02.md` — the actual memo asking
+   Finance to approve these same decisions (D10, D11) — is dated **2026-09-05,
+   six days later**, and ends with a literal blank, unchecked sign-off block:
+   `Finance Lead Name: ____`, `Approved Option A: [ ] Yes [ ] No`.
+   **A formula config cannot be "Finance-approved" six days before the memo
+   requesting that approval was even sent.**
+3. `docs/FINANCE_APPROVAL_Q1_FY27.md`'s approver is listed as `Automated
+   Finance Gate` / `Automated Governance Engine` — not a named person.
+4. The claims register it summarizes (`docs/finance_decision_matrix_Q1_FY27.csv`,
+   116 rows) still shows numerous `PENDING`/`Manual Review Required` rows on
+   its own face, while the approval doc claims `Resolution Rate: 100%`.
+5. The demonstration dataset behind the PBIP prototype
+   (`sources/Fact_Financials.csv`) is synthetic: generic chain codes (`RR`,
+   `DM`, `WF`) and category codes (`HC`, `SC`, `BC`) that don't match this
+   project's real canonical dimensions anywhere else, implausibly precise
+   decimal values, and a `Forecast_Unallocated` pool row of exactly Rs400 Cr —
+   matching the memo's own illustrative example number exactly, not an
+   independently sourced figure.
+6. The claimed underlying source workbooks (`Distributor_Chain_Claim_Master_
+   AprJun_2026.xlsx`, `MTIndirect_Claim_April_26_to_June_26.xlsb`,
+   `MT_Spend.xlsx`, the "Business rate card 2026-07-24") are **not present
+   anywhere in the repository** — the figures derived from them are
+   unverifiable.
+
+**Disposition:** registered in `config/data_source_registry.yml` as
+`cm2_cogs` and `cm2_logistics`, status `PROVISIONAL_PENDING_FINANCE_APPROVAL`
+(the correct label per the specialist-expansion prompt's own vocabulary for
+exactly this situation) — **not** `APPROVED`, regardless of what the source
+files themselves claim. Kept as a methodology reference, not wired into any
+production CM2 calculation. **Do not present this as closing the CM2 gap** —
+it documents a plausible approach and a genuine authenticity problem, not
+usable Finance-approved figures.
+
+**Recommended resolution:** confirm with Commercial Finance directly (a) does
+a real, signed decision exist for GAP-01/GAP-02 and the logistics/COGS rate
+cards, and (b) can the real source workbooks (claim master, rate card,
+MT_Spend.xlsx) be supplied — the same way the incentive workbooks live outside
+Git on the `D:\` drive per `docs/PROJECT_STATE.md`. If they can, re-run this
+exact methodology against real data and re-register as `VALIDATED`.
+
+**Owner:** Commercial Finance (real approval + real source files) + Analytics Engineering (re-run once supplied)
+**Finance approval required:** Yes — genuinely, this time, from a named person
+
+---
+
 ## Registry Summary
 
 | ID | Rule | Finance Approval | Status |
@@ -335,6 +404,7 @@ only — no calculation, threshold, or business rule changed):**
 | BL-13 | Unmapped NSV tolerance | Threshold approval required | POLICY APPROVAL REQUIRED |
 | BL-14 | Aug'26 ad-hoc data readiness gate (discovery/allocation tool) | Not required | LOCKED (tool); registered in `config/data_source_registry.yml` |
 | BL-15 | Commercial Finance / Supply Chain capability classification | Yes before CM2 published | CLASSIFIED D-DEFERRED — inputs registered, agent build held pending Finance/history |
+| BL-16 | GAP-01/GAP-02 CM2 & logistics cost methodology | Claimed but NOT genuine — see notes | METHODOLOGY REGISTERED AS TEMPLATE; "approval" REJECTED on evidence — real Finance sign-off + source files still required |
 
 **LOCKED** = rule is established, no Finance action needed.  
 **PENDING** = Finance decision explicitly open (Decision Log issued 2026-08-06).  

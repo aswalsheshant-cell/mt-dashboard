@@ -186,14 +186,52 @@ datasets:
   # status changes.
   cm2_cogs:
     business_name: "COGS / standard cost per article"
-    source_path: null
-    source_type: null
-    validation_status: MISSING
+    source_path: "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv (methodology only)"
+    source_type: "Rate-card percentage applied to GMV/MRP sales (per the formula config), NOT an article-level cost file"
+    validation_status: PROVISIONAL_PENDING_FINANCE_APPROVAL
+    source_priority: null
+    downstream_outputs: ["ModernTrade_Report.pbip/.Dataset (a small, separate GAP-01/GAP-02 prototype, NOT the main dashboard)"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      CORRECTED 2026-09-13 (previous entry said "no COGS source found" -- found on
+      a deeper, targeted search: PowerBI/Reference/CM2_Provisional/). A COGS
+      methodology exists (rate-card % on GMV/MRP sales, "Business rate card
+      2026-07-24"), but SERIOUS AUTHENTICITY PROBLEM found: the rate card file
+      itself is not in the repo (unverifiable), cm2_formula.csv's own
+      "Approved_By: MT Automation" / "Approval_Date: 2026-08-30" predates and
+      contradicts docs/FINANCE_DECISION_MEMO_GAP01_GAP02.md (dated 2026-09-05,
+      explicitly UNSIGNED: "Finance Lead Name: ____", "Approved: [ ] Yes [ ] No"),
+      and the underlying sources/Fact_Financials.csv it was demonstrated against
+      is synthetic (generic non-project chain codes RR/DM/WF, category codes
+      HC/SC/BC that don't match this project's real taxonomy anywhere else, and
+      a suspiciously exact Rs400 Cr "Forecast_Unallocated" pool row that matches
+      the memo's own illustrative example number exactly). Treat as an
+      UNVERIFIED METHODOLOGY TEMPLATE, not an approved or usable COGS source.
+      Do not compute production CM2 from this until a human Finance sign-off
+      and the real rate-card file are confirmed to exist.
+
+  cm2_logistics:
+    business_name: "Logistics/freight cost (the specific input asked about 2026-09-13)"
+    source_path: "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv (methodology only)"
+    source_type: "Rate-card percentage applied to NSV (per the formula config)"
+    validation_status: PROVISIONAL_PENDING_FINANCE_APPROVAL
     source_priority: null
     downstream_outputs: []
     last_validated: "2026-09-13"
     modification_allowed: false
-    notes: "No COGS or standard-cost file found anywhere in the repo (confirmed by repo-wide search). Matches config/analytics_config.json's own readiness.profitability gate, already flagged as blocked for the same reason. NOT August-specific -- a repo-wide gap."
+    notes: >
+      Methodology found: "logistics rate applies to NSV" per cm2_formula.csv,
+      with Apr+May-26 = Rs275.53L and Jun-26 = Rs170.45L given as computed
+      examples (implying a % rate back-solvable from those two figures against
+      known NSV, described in the file as "computable from NSV" for any month).
+      SAME AUTHENTICITY CAVEAT AS cm2_cogs above applies -- the rate card
+      itself is not in the repo, and the surrounding approval trail is
+      self-certified ("Approved_By: MT Automation"), not a verified human
+      Finance sign-off. The underlying claim source
+      (MTIndirect_Claim_April_26_to_June_26.xlsb) is also not in the repo.
+      Registering the METHODOLOGY as a candidate approach for when real rate-
+      card data is confirmed; not using it to compute a production CM2 figure.
 
   cm2_claims:
     business_name: "Distributor/chain claims"
@@ -207,7 +245,16 @@ datasets:
     downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq"]
     last_validated: "2026-09-13"
     modification_allowed: false
-    notes: "Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. CM2 cannot be computed for August until this quarter's claims land."
+    notes: >
+      Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. Separately,
+      docs/finance_decision_matrix_Q1_FY27.csv (a related but different claims
+      register, 116 rows, real-looking distributor names) still shows numerous
+      PENDING/"Manual Review Required" rows as of its own content, while
+      docs/FINANCE_APPROVAL_Q1_FY27.md claims "Resolution Rate: 100%" and
+      "READY FOR PRODUCTION DEPLOYMENT" -- a direct contradiction between a
+      document and the data it claims to summarize. Do not treat the "100%
+      resolved" claim as accurate without independently recounting the PENDING
+      rows.
 
   cm2_ba_supervisor_visibility_rental:
     business_name: "BA salary, BA supervisor cost, visibility spend, rental"
@@ -216,7 +263,7 @@ datasets:
     downstream_outputs: []
     last_validated: "2026-09-13"
     modification_allowed: false
-    notes: "No source files found anywhere in the repo for any of these four cost heads, for any period. CM2 by chain/brand/article cannot be governed until Finance supplies these."
+    notes: "No source files found anywhere in the repo for any of these four cost heads, for any period, including in the CM2_Provisional cluster (that cluster's own formula marks visibility/rental as a Rs12.5L MEMO placeholder, 'awaiting real Q1 FY27 data file'). CM2 by chain/brand/article cannot be governed until Finance supplies these."
 
   cm2_pl_expense_input:
     business_name: "P&L Expense Input master (customer/chain matched costs, general)"
