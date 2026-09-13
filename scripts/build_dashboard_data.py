@@ -4547,7 +4547,12 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             gov_tier = "Eligible"
         else:
             months = avail.get((st, bl))
-            near = min(months, key=lambda m: abs(_pm_ord(m) - _pm_ord(pm))) if (months and pm) else None
+            # Tie-break deterministically on the month string itself (earlier
+            # wins) when two months are equidistant -- `months` is built from
+            # iterating a `set`, whose order is hash-randomized per process,
+            # so `min()` on distance alone silently picked a different month
+            # on different runs for tied keys (e.g. -1 vs +1 month away).
+            near = min(months, key=lambda m: (abs(_pm_ord(m) - _pm_ord(pm)), m)) if (months and pm) else None
             if near is not None and abs(_pm_ord(near) - _pm_ord(pm)) <= 3:
                 key_eff[k], key_tier[k] = near, f"nearest {near}"
                 gov_tier = "Eligible_TAT"
