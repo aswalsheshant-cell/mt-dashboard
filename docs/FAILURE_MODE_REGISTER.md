@@ -29,6 +29,35 @@ hypothetical), each already fixed at least once. Preventive controls marked
 | FM-14 | TECHNICAL_DEBT (documented, not built) | Provision, Claims and Trade Spend can describe the same commercial event at different lifecycle stages (accrual/provision -> claim -> settlement); naively summing all three sources would double-count | No incident has actually occurred yet in this project -- flagged proactively because `mt_provision_national_aug26` (Provision) and `cm2_claims`/`ClaimMaster_Quarterly` (Claims) both now have real Aug'26-adjacent data and a future CM2 build could plausibly sum both without checking | None yet (proactive, not incident-driven) | **NOT YET BUILT**: no canonical commercial-event key exists to detect Provision-to-Claim-to-Settlement matches across these sources | none | MEDIUM (real risk to CM2 accuracy once these sources are actually combined) | OPEN -- registered here so a future CM2 integration pass checks lifecycle overlap before aggregating, rather than discovering the double-count after publishing a wrong number |
 | FM-15 | SOURCE_CONFLICT (documented pattern, partial tooling) | Two files can represent the same dataset+period (Aug'26 Primary, FM-02/FM-06) without either file declaring itself authoritative or superseded | No machine-readable "this supersedes that" relationship exists between source files -- resolution has depended on manual row-level reconciliation each time | Manual reconciliation, twice now (Aug'26 Primary here; implicitly also candidate #2 in `docs/GIT_RECOVERY_MATRIX.md`) | Recommendation registered in `docs/DATA_LINEAGE.md` each time it occurs | none automated -- **NOT YET BUILT**: a pre-ingestion scan that flags "another file already claims this dataset+period" before a new file is wired in | MEDIUM-HIGH (each occurrence costs a full manual investigation) | OPEN -- the general control (source-conflict pre-flight check) remains the single highest-value piece of automation this register recommends and does not yet have |
 
+## Error-to-pattern routing (the "trace to the earliest wrong layer" rule)
+
+Added 2026-09-13. When a number looks wrong, trace it through the layers below in
+order and fix the **earliest** one that's actually broken — never patch a later
+layer (a chart, a card, a rendering tweak) to paper over an error that originated
+upstream:
+
+```
+Source file -> Schema/grain -> Master-data mapping -> Allocation ->
+Canonical fact (data.js block) -> Registered measure (docs/METRIC_REGISTRY.md) ->
+Filter/comparison logic -> Rendered visual
+```
+
+| Symptom | Check first | Matches |
+|---|---|---|
+| Two totals for the same period disagree | Source-conflict reconciliation (`docs/DATA_LINEAGE.md`) | FM-02, FM-06, FM-15 |
+| A number that used to exist now shows blank/zero | `docs/GIT_RECOVERY_MATRIX.md` + `docs/DATA_AVAILABILITY_MATRIX.md` before assuming the source never existed | FM-07, FM-09 |
+| CM2 or another expense-derived KPI looks implausible (too high margin, too low cost) | Is the input a real submitted row or a seed-template example row? (`grep -i "EXAMPLE" the source CSV`) | FM-01 |
+| A rebuild changes a total that should have been untouched | `detail_meta.value_coverage_pct` before/after; did a `--detail-max-rows` cap change silently? | FM-03 |
+| A source's own tag/classification field looks inconsistent with its own totals | Cross-check against a sibling field on the same file, or another file covering the same scope, before trusting either | FM-04 |
+| `data.js` has a field nothing in `index.html` reads | Check which generator actually wrote it (`grep` the field name across `scripts/*.py`) before assuming it's dead | FM-05, FM-10 |
+| A methodology looks "Approved" but something feels off | Check the approval date against the actual approval-request document's date, and who/what is named as approver | BL-16's own authenticity finding; FM-11 |
+| Provision, Claims and Trade Spend sources might overlap for the same cost | Do NOT sum them; check for a shared business key (chain/scheme/period/amount) first | FM-14 |
+| A dashboard card shows a number nobody can find the formula for | `docs/METRIC_REGISTRY.md` — if it's not there, it's an unregistered calculation and should be added or reconciled against an existing registered measure | new, 2026-09-13 |
+
+This table is deliberately built from FM-NN rows that already happened in this
+project, not a hypothetical list — extend it the next time a new class of failure
+is found, following the same "what pattern does this match" question.
+
 ## What this register is NOT
 
 This is a documentation-level catalogue, not an automated pre-flight validation

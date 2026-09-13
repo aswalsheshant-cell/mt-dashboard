@@ -413,6 +413,17 @@ Promotions, Provision or Trade Spend specifically, check for lifecycle
 overlap (provision -> claim -> settlement can describe one commercial event)
 before summing sources — see FM-14 in the Failure-Mode Register.
 
+**This project's governance is organized as skills + docs, not a separate
+`agents/` folder.** Before proposing a new specialist agent role, check
+`docs/AGENT_ARCHITECTURE_MAPPING.md` — most roles (source registration, mapping
+governance, allocation, reconciliation, release gating) already exist as a
+`.claude/skills/*` skill or a `docs/*.md` registry; extend that, don't create a
+parallel file under a new name. Before adding a new number to any dashboard
+card or chart, check `docs/METRIC_REGISTRY.md` — reuse a registered measure's
+formula and source rather than recomputing it independently. When tracing a
+wrong number, use `docs/FAILURE_MODE_REGISTER.md`'s routing table to find the
+earliest layer likely responsible before touching the visual.
+
 ## Knowledge base — read before solving an unfamiliar problem
 
 `docs/knowledge/` holds compact, sourced articles on **how** to do something
