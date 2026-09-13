@@ -402,6 +402,17 @@ investigation from zero. `config/data_source_registry.yml` +
 duplicate-metadata divergence) are the release gates that actually run today
 — treat a WARN from either as something to explain, not ignore.
 
+Before declaring historical data missing, also check `docs/GIT_RECOVERY_MATRIX.md`
+and the Data Availability Matrix — a prior Git-history search may already have
+settled whether it was ever recoverable, so as not to repeat that
+investigation from scratch. Valid recovered data belongs in the current
+canonical source location and registry, reconciled, never a separate legacy
+pipeline (`docs/WORKFLOW_AND_MODEL_AUDIT.md` FM-05/FM-10 explain why two
+pipelines writing the same artifact is itself a standing risk). For Claims,
+Promotions, Provision or Trade Spend specifically, check for lifecycle
+overlap (provision -> claim -> settlement can describe one commercial event)
+before summing sources — see FM-14 in the Failure-Mode Register.
+
 ## Knowledge base — read before solving an unfamiliar problem
 
 `docs/knowledge/` holds compact, sourced articles on **how** to do something

@@ -365,6 +365,35 @@ datasets:
     modification_allowed: false
     notes: "3,694 promo lines, Apr-Aug'26 (5 months), avg consumer depth 31.6%, with by_chain/by_brand/by_category/monthly/mom_trend breakdowns already in production. No FY25/FY26 promo history (consistent with the rest of the FY27-only article-level watch-folder sources) -- registered as a known scope boundary, not a defect. This domain did not surface a gap this pass; deeper Trade Spend / COGS auditing beyond BL-15/BL-16's existing findings was not attempted this pass (time-boxed) -- see docs/BUSINESS_LOGIC_REGISTRY.md BL-16 for what was checked there."
 
+  fy25_secondary_chain_brand_detail:
+    business_name: "FY25 Distributor Secondary, chain+brand grain (finer than the currently-published national monthly total)"
+    source_path: "PowerBI/SeedData/Mapping/DistPrimary_Sheet1_FY24-25.csv"
+    source_type: "CSV, Ship-To x Chain x Brand x Month, FY_24-25 only"
+    date_min: "2024-04"
+    date_max: "2025-03"
+    validation_status: AVAILABLE
+    source_priority: null
+    fallback_source: null
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      Found via Git-history investigation (docs/GIT_RECOVERY_MATRIX.md candidate
+      #3) while searching for lost FY24-25 data -- this file is STILL PRESENT in
+      the current repo, just not currently wired into any dashboard block. 8,769
+      rows, 38 chains, 6 brands. Total NSV Rs23,325.30L, matching the already-
+      registered offtake.secondary_total_fy25 (Rs23,332.36L) to within 0.03% --
+      confirmed to be the SAME real FY25 Distributor Secondary data (not a new
+      or different source), just at a materially finer grain than
+      dashboard/data.js currently exposes (offtake.secondary_monthly_fy25 is
+      national-only). Do NOT relabel this as "Primary" -- despite the filename
+      "DistPrimary", the content and total tie to Secondary, not Primary; the
+      filename uses "primary" loosely (as in "primary allocation of
+      distributor data"), a naming trap already flagged in the
+      mt-distributor-secondary skill. Wiring a chain/brand-level FY25
+      Secondary view into the dashboard is a genuine, bounded next step, not
+      done in this pass.
+
   article_category_mapping:
     business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"
     source_path: "The SAME primary file's own brand/category/sub_category/PPT Category columns (present at article grain on most monthly files); PowerBI/PowerQuery/42_PackSizeBuckets.pq for pack-size bucketing; PowerBI/SeedData/NPI_Master.csv for NPI article metadata"

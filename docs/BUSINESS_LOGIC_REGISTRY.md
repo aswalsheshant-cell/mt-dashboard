@@ -422,12 +422,48 @@ Result: **no usable source exists in this repo.**
   claims on specific transactions, not a comprehensive outbound logistics cost) — using
   it to reconstruct an implied logistics rate would understate the real cost by roughly
   two orders of magnitude and is explicitly rejected here as a source, not adopted.
-- **Conclusion: no defensible implied rate can be reconstructed from data currently in
-  this repo.** This is not a gap this pass could close with more searching — it
-  requires either the real rate-card file or a real GL/ledger logistics-expense actual,
-  neither of which exists here. Sensitivity/materiality analysis (Section 18) is
-  therefore not performed either — there is no base-case estimate to sensitize around
-  that would be more than a restatement of the already-flagged synthetic rate card.
+- **Conclusion (2026-09-13, first pass): no defensible implied rate can be reconstructed
+  from data currently in this repo.**
+
+**Update 2026-09-13, later the same day — Git history investigation upgraded the
+evidence position materially.** A full `--all` history search (see
+`docs/GIT_RECOVERY_MATRIX.md`) found commit `13fe0acdf8f2ad3f41704f324fddf8b8f47f60a8`
+("Add FY27 COGS + logistics CM2 calculation from supplied rate card (staging only)",
+2026-07-24, never merged to `main` — lives only on
+`remotes/origin/claude/june-26-sales-data-xzbhub`). Its own text says: *"Business
+supplied a monthly COGS % and logistics cost % rate card for FY27 ... on 2026-07-24"*,
+supplied as a **screenshot** (not a machine-readable file — explains why no rate-card
+spreadsheet exists in the repo to verify against). Cross-checked against the merged
+`PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv`: **the monthly logistics-%
+figures match exactly** (e.g. Jun-26 logistics = Rs170.45L in both) — this is the SAME
+real 2026-07-24 rate-card event, not two different numbers.
+
+**What this changes:** the rate card is not synthetic/fabricated the way
+`sources/Fact_Financials.csv` is — it traces to a real, dated business communication,
+independently corroborated across two separate commits/sessions. **What this does NOT
+change:** it is still not a machine-readable source file (only a transcribed
+screenshot), and the self-certified "Approved_By: MT Automation" stamp on the merged
+version is still illegitimate (unchanged finding, see below) — Finance has still never
+actually reviewed or signed off on it.
+
+**What the unmerged commit got right that the merged one didn't:** its own
+`cm2_decision_register.csv` (D1–D11) leaves every decision correctly `PENDING_APPROVAL`
+— including D10 (rate applies to NSV or MRP? ~2x material difference) and D11 (is
+logistics already inside the COGS rate — a double-count risk?) — each with a safe
+default, amount affected, and evidence reference. Recovered verbatim (byte-for-byte via
+`git show`, not modified) to
+`PowerBI/Reference/CM2_Provisional/recovered_governance_20260724/` (see that folder's
+own `README.md` for full provenance) as the better document to use once a real Finance
+review of BL-16 happens, rather than starting from the self-certified version or writing
+a new decision register from scratch.
+
+**Revised Data Status: from `MOSTLY MISSING` to `RATE CARD REAL BUT UNVERIFIABLE
+(screenshot-transcribed, independently corroborated across 2 commits, still no
+machine-readable source, still zero Finance approval)`.** Sensitivity/materiality
+analysis (Section 18) remains not performed — D10 alone changes the COGS+logistics
+figure by ~2x depending on the NSV-vs-MRP basis decision, which is exactly the kind of
+open question a sensitivity analysis would need Finance's D10/D11 answers to bound
+correctly, not invent independently.
 
 **Bug found and fixed in the same investigation, registered separately (not part of
 BL-16 itself, but discovered while tracing why the dashboard's own `cm2` block looked
