@@ -28,11 +28,11 @@ rebuild AND the live `origin/main` production `dashboard/data.js`)
 
 **The cont%-split mechanism matches 0 rows in both cases.** This is not a
 regression introduced by this session's Aug'26 ingestion — it is the state of the
-currently live, deployed dashboard too. Root cause: `Dist_primary_cont_based_on_
-secondary_MOM.xlsx` (the cont% master this join depends on) is not present in this
-environment (confirmed: not in the working tree, never added to Git history under
-that name — it is a gitignored raw source file that must live only on whichever
-machine last ran a full `--src`-complete build). Whether the join actually succeeds
+currently live, deployed dashboard too. **Root cause, corrected below after a
+deeper trace: not simply "file missing" — a loader-priority defect means the code
+would ignore the real workbook even if it were supplied.** See "CORRECTION
+2026-09-13" further down this document before reading the rest of this section.
+Whether the join actually succeeds
 when that file IS present is genuinely unverified from this session — this
 environment cannot test that path.
 
@@ -115,15 +115,60 @@ own totals. Building that explicit three-way split is real, scoped, valuable
 future work — not attempted this pass given the file-availability blocker above
 makes it untestable in this environment regardless.
 
-## STOP condition triggered
+## CORRECTION 2026-09-13 (same day, later pass) — the real root cause is not "file missing," it's a code defect that would ignore the file even if supplied
 
-Per this review's own Section 34 ("STOP and report rather than guess when...
-allocation evidence is insufficient"): **this environment cannot fully validate
-the cont%-based allocation mechanism because its one required source file
-(`Dist_primary_cont_based_on_secondary_MOM.xlsx`) is not present and is gitignored
-by design.** A session running with that file in `--src` would be needed to confirm
-whether the exact-match/nearest-fallback logic works at all, or whether the 0%
-match rate reflects a genuine, deeper join-key defect (e.g. a Ship-To name
-normalization mismatch) that would persist even with the file present. **This is a
-P1 finding requiring the source file (or a session run with it) to resolve**, not
-something to guess at further from here.
+`Dist_primary_cont_based_on_secondary_MOM.xlsx` is a **legitimate, business-
+maintained monthly input**, owned by the MT Channel Analyst Lead, correctly kept
+outside Git for security reasons. Its absence from this build environment is
+expected and by design -- not itself a defect. **The defect is in the code, found
+by tracing `load_dist_cont_weights()` (`scripts/build_dashboard_data.py:4123`)
+line by line:**
+
+```python
+csv_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+if csv_f.exists():
+    w = pd.read_csv(csv_f)          # <-- used EXCLUSIVELY if this file exists
+else:
+    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"   # never reached
+    ...
+```
+
+`PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv` **does exist** in this
+repo (versioned in Git) and **always has** -- checked its full history
+(`git log --follow`, 3 commits): it has held exactly **27 data rows** since it was
+first added, every one of them an "Approved Patch" exception row (dated
+2026-07-04), never the full monthly Distributor x Chain x Brand x Article
+contribution weights the real workbook contains.
+
+**This means the `if/else` is an exclusive either/or, not a per-key fallback.**
+Because the 27-row CSV exists, the function returns after reading only those 27
+rows and **never even checks whether the XLSX exists**, regardless of how
+incomplete the CSV's coverage is. **Supplying the real workbook today, into the
+`--src` directory, would have zero effect on the current code path** -- the CSV
+would still win by existing at all.
+
+Confirms exactly the pattern the business review's own Section 11 warned about
+("remove single-file fragility") -- except the fragility isn't in the workbook, it's
+in the loader function silently preferring an incomplete governance-patch file over
+the authoritative monthly source whenever both exist.
+
+**Recommended fix (PROPOSE_FIX, not applied without review, per the change-
+governance classification this review itself defines):** change
+`load_dist_cont_weights()` to load the XLSX (when present in `--src`) as the base
+weights, then apply the CSV's rows as an **overlay/patch on top of it** (matching
+what the CSV's own name and `Basis`/`Patch_File` columns already imply it's for),
+rather than the current all-or-nothing switch. This is a deterministic, non-
+semantic correction to a loading bug -- it does not touch the allocation formula
+itself (Chain Contribution % x SAP Distributor Primary, confirmed to match the
+business rule below), so it does not require Finance/business approval, only a
+code review before merging.
+
+## STOP condition -- still applies, now scoped correctly
+
+Per Section 34 ("STOP and report rather than guess when allocation evidence is
+insufficient"): **this environment still cannot run the corrected logic against
+real data, because the workbook itself is not available here.** Two separate
+things are needed before FM-16 can move past P1: (1) the loader fix above,
+reviewed and merged, and (2) the real workbook, placed at the location named
+below, so the fixed loader has something real to read. Neither can be completed
+unilaterally from this session.
