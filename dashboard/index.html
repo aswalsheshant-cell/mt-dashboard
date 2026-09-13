@@ -1388,9 +1388,32 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     recs.forEach(r=>{const k=r[dimKey]||'Unknown';
       if(!agg[k]) agg[k]={nsv:0,qty:0,n:0};
       agg[k].nsv+=r.NSV||0; agg[k].qty+=r.Qty||0; agg[k].n+=1;});
-    const rows=Object.entries(agg).sort((a,b)=>b[1].nsv-a[1].nsv);
+    // value desc, name asc on ties -- deterministic regardless of object iteration order
+    let rows=Object.entries(agg).sort((a,b)=>(b[1].nsv-a[1].nsv)||String(a[0]).localeCompare(String(b[0])));
     const totalNsv=rows.reduce((a,kv)=>a+kv[1].nsv,0);
     const canDrill=depth<LEVELS.length-1;
+
+    // Governed Presentation Hierarchy (2026-09-13): at the Sub-Category level
+    // -- i.e. one Category already fixed by `path` above -- keep only the
+    // sub-categories that cumulatively cover the first 95% of THIS Category's
+    // own NSV; the rest collapse into one "Others" row. This is the live
+    // equivalent of the rule; the drill hierarchy never lists Category or
+    // Brand as a level here, so only Sub-Category is grouped. Presentation
+    // only -- `agg`/`totalNsv` (Share% denominator) still reflect every row.
+    let othersRow=null;
+    if(dimKey==='SubCategory' && rows.length){
+      const items=rows.map(([name,v])=>({name,...v}));
+      const g=cumulative95Group(items,'name','nsv','Others');
+      rows=g.major.map(x=>[x.name,{nsv:x.nsv,qty:x.qty,n:x.n}]);
+      if(g.tailCount){
+        othersRow={
+          nsv:g.tailValue,
+          qty:g.tailMembers.reduce((a,x)=>a+x.qty,0),
+          n:g.tailMembers.reduce((a,x)=>a+x.n,0),
+          members:g.tailMembers.map(x=>x.name),
+        };
+      }
+    }
 
     const crumbs=`<div style="margin-bottom:10px;font-size:13px;">
       <a href="#" data-cat-pop="0" style="cursor:pointer;">All categories</a>`
@@ -1405,10 +1428,15 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
         ? `<a href="#" data-cat-drill="${encodeURIComponent(k)}" style="cursor:pointer;">${k}</a>`
         : k;
       return `<tr><td>${cell}</td><td>${crc(v.nsv/100)}</td><td>${num(v.qty)}</td><td>${shr.toFixed(1)}%</td></tr>`;
-    }).join('');
+    }).join('') + (othersRow?`<tr style="color:var(--muted)" title="${othersRow.members.map(m=>String(m).replace(/"/g,'&quot;')).join(', ')}">
+      <td>Others (${othersRow.members.length} sub-categories, &lt;95% cutoff)</td>
+      <td>${crc(othersRow.nsv/100)}</td><td>${num(othersRow.qty)}</td>
+      <td>${totalNsv>0?(100*othersRow.nsv/totalNsv).toFixed(1):'0.0'}%</td></tr>`:'');
 
     content.innerHTML=crumbs+card(`Category & Pack Mix — by ${dimLabel}`,
-      `${rows.length} ${dimLabel.toLowerCase()}${rows.length===1?'':'s'} · ${num(recs.length)} records`,
+      `${rows.length}${othersRow?' + Others':''} ${dimLabel.toLowerCase()}${rows.length===1?'':'s'} shown`+
+      (dimKey==='SubCategory'?' (95% cumulative NSV of this Category; long tail grouped into Others)':'')+
+      ` · ${num(recs.length)} records`,
       `<table class="tbl"><thead><tr><th>${dimLabel}</th><th>NSV</th><th>Qty</th><th>Share</th></tr></thead><tbody>${body}</tbody></table>`);
 
     content.querySelectorAll('[data-cat-drill]').forEach(a=>{
@@ -2373,7 +2401,7 @@ function buildCategory(){
    </div>
    <div class="grid g2">
      ${drillCardHtml('catDrill','Primary NSV')}
-     ${card('NSV by Sub-category — 95% of each brand\'s NSV, rest → Other','Within each brand, keeps sub-categories that cumulatively cover 95% of that brand\'s NSV; the long tail across all brands is clubbed into "Other". Click a slice to drill.',cv('catSubP'))}
+     ${card('NSV by Sub-category — 95% of each Category\'s NSV, rest → Others','Within each Category, keeps sub-categories that cumulatively cover 95% of that Category\'s own NSV; the long tail across all Categories is grouped into "Others". Click a named slice to drill.',cv('catSubP'))}
    </div>
    <div class="grid g2">
      ${card('Top Sub-categories by NSV (this view)','click a bar to drill',cv('catSub',true))}
@@ -2387,7 +2415,7 @@ function buildCategory(){
   wireDrillLinks(s);
   wireChips(s,buildCategory);
   if(recs.length){
-    mkDonut('catSubP',bySubPareto.map(x=>x[0]),bySubPareto.map(x=>x[1]),true,v=>{ if(v!=='Other') drillTo('SubCategory',v); });
+    mkDonut('catSubP',bySubPareto.map(x=>x[0]),bySubPareto.map(x=>x[1]),true,v=>{ if(v!=='Others') drillTo('SubCategory',v); });
     mkBarH('catSub',bySub.slice(0,12).map(x=>x[0]),bySub.slice(0,12).map(x=>x[1]),C.teal,true,v=>drillTo('SubCategory',v));
     mkBarH('catRange',byRange.slice(0,12).map(x=>x[0]),byRange.slice(0,12).map(x=>x[1]),C.amber,true,v=>drillTo('Range',v));
     mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
@@ -3581,30 +3609,61 @@ function uniqueBy(recs,key,cols){
   });
   return Object.values(m).sort((a,b)=>b.NSV-a.NSV);
 }
-// per-brand 95%-of-brand-NSV Pareto: within each brand, keep sub-categories
-// (sorted desc) until cumulative NSV crosses 95% of that brand's total;
-// everything past that point is relabelled "Other" for that brand, THEN
-// summed across all brands into the final SubCategory buckets. So a
-// sub-category stays named if it's a material contributor for at least one
-// brand, even if the combined "Other" bucket (all brands' long tails) ends
-// up large.
+// per-CATEGORY 95%-of-category-NSV Pareto (Governed Presentation Hierarchy,
+// 2026-09-13): within EACH Category independently, keep sub-categories
+// (sorted NSV desc, name asc on ties -- deterministic regardless of object
+// iteration order) until cumulative NSV crosses 95% of that CATEGORY's own
+// total; the rest are relabelled "Others" for that Category, THEN summed
+// across every Category into the final SubCategory buckets shown in the
+// chart. So a sub-category stays named if it's a material contributor
+// within its OWN parent Category, even if the combined "Others" bucket
+// (every Category's long tail) ends up large. Negative/zero sub-category
+// NSV (returns, MRN) can never be a "major" contributor and always falls
+// into that Category's Others -- but its SIGNED value is preserved in the
+// Others total (grouping is presentation, never a value change: nothing is
+// deleted, zeroed or abs()'d). Previously grouped per-Brand instead of
+// per-Category; corrected because the business rule is "contribution to
+// the PARENT CATEGORY", not to the brand that happens to sell it.
 function subcatPareto95(recs){
-  const byBrand={};
-  recs.forEach(r=>{ (byBrand[r.Brand]??=[]).push(r); });
+  const byCat={};
+  recs.forEach(r=>{ (byCat[r.Category]??=[]).push(r); });
   const out={};
-  Object.values(byBrand).forEach(rows=>{
+  Object.values(byCat).forEach(rows=>{
     const bySub={};
     rows.forEach(r=>{ const k=r.SubCategory; if(k==null||k!==k)return; bySub[k]=(bySub[k]||0)+r.NSV; });
-    const total=Object.values(bySub).reduce((a,b)=>a+b,0)||1;
-    const sorted=Object.entries(bySub).sort((a,b)=>b[1]-a[1]);
+    const entries=Object.entries(bySub).sort((a,b)=>(b[1]-a[1])||String(a[0]).localeCompare(String(b[0])));
+    const posTotal=entries.reduce((a,[,v])=>a+(v>0?v:0),0);
     let cum=0;
-    sorted.forEach(([sub,val])=>{
-      const label=(cum/total<0.95)?sub:'Other';
+    entries.forEach(([sub,val])=>{
+      const isMajor=val>0 && posTotal>0 && (cum/posTotal)<0.95;
+      const label=isMajor?sub:'Others';
       out[label]=(out[label]||0)+val;
-      cum+=val;
+      if(isMajor) cum+=val;
     });
   });
-  return Object.entries(out).sort((a,b)=>b[1]-a[1]);
+  return Object.entries(out).sort((a,b)=>(b[1]-a[1])||String(a[0]).localeCompare(String(b[0])));
+}
+// ---- 95%-cumulative-contribution grouping for a flat list (e.g. Brand),
+// used where a raw bar/donut of every item would bury the handful that
+// actually matter under a long tail of near-invisible slivers (Governed
+// Presentation Hierarchy, 2026-09-13). Deterministic: value desc, then name
+// asc on ties -- never depends on object/array iteration order. Negative or
+// zero items can never be a "major" contributor and always land in the tail
+// bucket, WITH their sign preserved in tailValue (grouping is presentation
+// only -- nothing is deleted, zeroed or abs()'d). `major` holds the SAME
+// object references passed in, so any existing filter/drill logic on them
+// keeps working unchanged; only the chart-display array is grouped.
+function cumulative95Group(items,nameKey,valueKey,tailLabel){
+  const sorted=[...items].sort((a,b)=>(b[valueKey]-a[valueKey])||String(a[nameKey]).localeCompare(String(b[nameKey])));
+  const posTotal=sorted.reduce((a,x)=>a+(x[valueKey]>0?x[valueKey]:0),0);
+  const major=[],tailMembers=[]; let cum=0;
+  sorted.forEach(x=>{
+    const v=x[valueKey];
+    if(v>0 && posTotal>0 && (cum/posTotal)<0.95){ major.push(x); cum+=v; }
+    else tailMembers.push(x);
+  });
+  const tailValue=tailMembers.reduce((a,x)=>a+x[valueKey],0);
+  return {major,tailMembers,tailLabel,tailValue,tailCount:tailMembers.length};
 }
 
 // ---- Category -> Sub-category drill-down chart, reusable on EVERY tab ----
@@ -3675,7 +3734,8 @@ function dimUnsupportedNote(dims,source){
 let expCharts=[];
 function expDestroy(){expCharts.forEach(c=>c.destroy());expCharts=[];}
 function grp(recs,key){const m={};recs.forEach(r=>{const k=r[key];if(k==null||k!==k)return;m[k]=(m[k]||0)+r.NSV;});
-  return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
+  // value desc, name asc on ties -- deterministic regardless of object iteration order
+  return Object.entries(m).sort((a,b)=>(b[1]-a[1])||String(a[0]).localeCompare(String(b[0])));}
 function expBarH(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
   expCharts.push(new Chart(document.getElementById(id),{type:'bar',

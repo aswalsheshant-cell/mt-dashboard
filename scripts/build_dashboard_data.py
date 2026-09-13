@@ -2758,7 +2758,11 @@ def cm2_block(df, expense_rows):
             cm2 = nsv - exp
             out.append({"name": name, "nsv": r2(nsv), "expense": r2(exp),
                         "cm2_value": r2(cm2), "cm2_pct": r2(cm2 / nsv * 100, 1) if nsv else None})
-        return sorted(out, key=lambda d: -(d["nsv"] or 0))
+        # NSV desc, then name asc on ties -- deterministic regardless of the
+        # `set(nsv_series.index) | set(exp_by.keys())` iteration order above
+        # (hash-randomized per process; previously caused e.g. Hair Colour/
+        # Fragrances, tied at the same NSV, to swap order between rebuilds).
+        return sorted(out, key=lambda d: (-(d["nsv"] or 0), str(d["name"])))
 
     by_chain = rollup("_Chain", "chain")
     by_brand = rollup("_Brand", "brand")
