@@ -278,7 +278,7 @@ class SmokeTestHarness:
         for tab_id in EXPECTED_TABS:
             print(f"  {tab_id:30}", end=" | ")
 
-            for fy_state in FY_STATES:
+            for _ in FY_STATES:
                 # Simulate tab switch
                 # In real implementation, this would use Playwright or Selenium
                 # For now, we just verify the logic would work
