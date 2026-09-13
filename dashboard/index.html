@@ -411,7 +411,11 @@ function card(title,note,inner,extraCls){
   // any card whose content includes a <table> automatically gets an "Export
   // Table" button -- applies dashboard-wide with zero changes needed at each
   // of the ~15 individual table call sites (see wireTableExports() delegation).
-  const dl=/<table/i.test(inner)?`<button class="tblexport" data-title="${String(title).replace(/<[^>]+>/g,'').replace(/"/g,'&quot;')}">⭳ Export Table</button>`:'';
+  // use the browser's own HTML parser (via textContent) to strip tags, not a
+  // regex -- a single regex pass can leave residual tags behind on adversarial
+  // nested input (e.g. "<<script>script>"); textContent has no such gap.
+  const titleText=(()=>{const d=document.createElement('div');d.innerHTML=String(title);return d.textContent||'';})();
+  const dl=/<table/i.test(inner)?`<button class="tblexport" data-title="${titleText.replace(/"/g,'&quot;')}">⭳ Export Table</button>`:'';
   return `<div class="card"><h3>${title}</h3>${note?`<p class="note">${note}</p>`:''}${dl}${inner}</div>`;
 }
 function cv(id,sm){return `<div class="chartbox${sm?' sm':''}">${chartDlHtml(id)}<canvas id="${id}"></canvas></div>`;}
