@@ -4276,7 +4276,7 @@ def _infer_chain_from_name(shipto):
                 return canon
     return None
 
-def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
+def _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=None):
     """Regenerate SeedData/Mapping/DistCont_Patch_Proposed.csv on every build:
     one reviewable row per proposed cont-sheet addition, in the cont sheet's
     own column layout plus Confidence/Basis. Two kinds of proposals:
@@ -4290,7 +4290,9 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
     Returns (row_count, repo-relative path). The file is PROPOSALS only --
     edits belong in the cont xlsx, so regenerating this file is always safe;
     once the xlsx has the rows, the gap disappears and so does the proposal."""
-    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistCont_Patch_Proposed.csv"
+    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistCont_Patch_Proposed.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
     def fy_of(pm):
         y, m = int(pm[:4]), int(pm[5:7])
         yy = y % 100
@@ -4328,14 +4330,16 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
 
 
 
-def _write_flagged_rows_csv(ne_orig: "pd.DataFrame") -> None:
+def _write_flagged_rows_csv(ne_orig: "pd.DataFrame", output_dir=None) -> None:
     """Write Not_Eligible rows to a reviewable CSV for business override workflow.
 
     Output: PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv
     Business process: review this file, add approved rows to PrimaryAllocationOverride.csv,
     then rebuild. The flagged_rows_csv path is surfaced in alloc.governance in data.js.
-    """
-    _out = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
+    output_dir: when given, write under this directory instead of the repo root
+    (used by shadow/test runs so they never touch tracked files)."""
+    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    _out = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
     _out.parent.mkdir(parents=True, exist_ok=True)
     display_cols = {
         "Month": "Month",
@@ -4443,7 +4447,7 @@ def _classify_ean_affinity(um: "pd.DataFrame", out_df: "pd.DataFrame"):
     return residual_summary, proposal_rows
 
 
-def _write_ean_affinity_proposal(proposal_rows):
+def _write_ean_affinity_proposal(proposal_rows, output_dir=None):
     """Regenerate SeedData/Mapping/EanAffinity_ResidualProposal.csv on every
     build -- reviewable HIGH/MEDIUM article-affinity mapping candidates for
     the small residual of Dist. rows the cont%/ShipTo-primary allocation
@@ -4454,7 +4458,8 @@ def _write_ean_affinity_proposal(proposal_rows):
     Governance: HIGH -> APPROVE_CANDIDATE, MEDIUM -> REVIEW_REQUIRED. Neither
     is auto-applied -- approving a row means adding it to
     PrimaryAllocationOverride.csv (or the cont sheet) and rebuilding."""
-    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "EanAffinity_ResidualProposal.csv"
+    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "EanAffinity_ResidualProposal.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8") as fh:
         wcsv = csv.writer(fh, quoting=csv.QUOTE_MINIMAL)
@@ -4469,7 +4474,8 @@ def _write_ean_affinity_proposal(proposal_rows):
 
 
 def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
-                          offtake_brand_set=None, offtake_ean_set=None):
+                          offtake_brand_set=None, offtake_ean_set=None,
+                          output_dir=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
     every row of `df` (Direct rows keep their own "Chain name for Dashboard").
     Returns (new_df, alloc_block) where alloc_block carries the full
@@ -4479,7 +4485,13 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     offtake_brand_set: frozenset[str] of lowercased brand names from offtake,
       or None (→ brand_in_offtake defaults True, preserving pre-Phase-5 behaviour).
     offtake_ean_set: frozenset[str] of EAN strings from offtake,
-      or None (→ article_in_offtake defaults True)."""
+      or None (→ article_in_offtake defaults True).
+    output_dir: directory the 3 reviewable governance/proposal CSVs
+      (DistCont_Patch_Proposed.csv, DistAllocationGovernance_FlaggedRows.csv,
+      EanAffinity_ResidualProposal.csv) are written under, in place of the
+      repo root — pass a scratch directory for a shadow/test run so it never
+      overwrites the tracked copies. None (default) preserves the original,
+      production behaviour of writing into the repo."""
     _has_dashboard = "Chain name for Dashboard" in df.columns
     _has_plain = "Chain name" in df.columns
     if _has_dashboard and _has_plain:
@@ -4737,7 +4749,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             })
         june_period_breakdown.sort(key=lambda x: -x["nsv_lakh"])
 
-    patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist)
+    patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=output_dir)
     merged.drop(columns=["_st", "_bl", "_pm", "_pm_eff", "_tier", "_AllocChainRaw",
                          "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True, errors='ignore')
     direct.drop(columns=["_ChainDash"], inplace=True)
@@ -4748,7 +4760,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     # ---- residual certification (Phase 2, 2026-09-13): article-affinity
     # evidence check on whatever remains Unmapped after the tiers above ----
     residual_summary, ean_proposal_rows = _classify_ean_affinity(um, out_df)
-    ean_proposal_count, ean_proposal_path = _write_ean_affinity_proposal(ean_proposal_rows)
+    ean_proposal_count, ean_proposal_path = _write_ean_affinity_proposal(ean_proposal_rows, output_dir=output_dir)
 
     # ---- STEP 5 (Phase 3): Generate governance report ----
     tier_counts = {}
@@ -4787,7 +4799,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
         ne_keys_df = pd.DataFrame(ne_decision_rows)
         ne_orig = orig.merge(ne_keys_df, on=["_st", "_bl", "_pm"], how="inner")
         not_eligible_nsv = float(ne_orig["_NSV"].sum())
-        _write_flagged_rows_csv(ne_orig)
+        _write_flagged_rows_csv(ne_orig, output_dir=output_dir)
     else:
         not_eligible_nsv = 0.0
     total_dist_nsv = float(orig["_NSV"].sum())
