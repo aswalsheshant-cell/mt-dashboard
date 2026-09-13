@@ -2924,6 +2924,65 @@ function primaryOfftakeGapSection(){
      ${chain.primary_only.length} chain(s) have Primary but no Offtake series (not divided into a ratio): ${chain.primary_only.slice(0,8).map(c=>c.name).join(', ')}${chain.primary_only.length>8?'…':''}.
      ${chain.offtake_only.length} chain(s) have Offtake but no Primary series: ${chain.offtake_only.slice(0,8).map(c=>c.name).join(', ')}${chain.offtake_only.length>8?'…':''}.</p>`:''}`;
 }
+function fy25SecondarySection(){
+  const chains=((D.offtake&&D.offtake.by_chain)||[]).filter(c=>c.secondary_fy25).sort((a,b)=>b.secondary_fy25-a.secondary_fy25);
+  const brands=((D.offtake&&D.offtake.by_brand)||[]).filter(c=>c.secondary_fy25).sort((a,b)=>b.secondary_fy25-a.secondary_fy25);
+  if(!chains.length&&!brands.length) return '';
+  const totSec=(D.offtake&&D.offtake.secondary_total_fy25)||chains.reduce((s,c)=>s+c.secondary_fy25,0);
+  const chainRows=chains.slice(0,10).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.secondary_fy25)}</td>
+    <td>${(c.secondary_fy25/totSec*100).toFixed(1)}%</td></tr>`).join('');
+  const brandRows=brands.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${crc(c.secondary_fy25)}</td>
+    <td>${(c.secondary_fy25/totSec*100).toFixed(1)}%</td></tr>`).join('');
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">FY25 Distributor Secondary — Chain &amp; Brand View (Apr'24-Mar'25)</h3>
+   <p class="note" style="margin:0 0 10px"><b>This is Distributor Secondary (distributor -&gt; retailer), not Primary and not Offtake</b> —
+     FY25 has no real Primary billing or chain-POS Offtake extract anywhere in this project (see CLAUDE.md "The three MT measures").
+     Shown here because it is the only real Apr'24-Mar'25 series available, broken down by chain and brand for the first time
+     (previously only the Rs${crc(totSec)} national monthly total was surfaced). Do not compare these figures directly against
+     FY26/FY27 Primary or Offtake as if they were the same measure.</p>
+   <div class="grid g2">
+     ${card(`Top ${Math.min(10,chains.length)} chains by FY25 Secondary`,'Contribution % of the Rs'+crc(totSec)+' FY25 Secondary total.',
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>FY25 Secondary</th><th>Contribution</th></tr></thead>
+        <tbody>${chainRows||'<tr><td colspan="3">No chain detail.</td></tr>'}</tbody></table></div>`)}
+     ${card(`Top ${Math.min(10,brands.length)} brands by FY25 Secondary`,'Same Rs'+crc(totSec)+' total, by brand.',
+       `<div class="tablewrap"><table><thead><tr><th>Brand</th><th>FY25 Secondary</th><th>Contribution</th></tr></thead>
+        <tbody>${brandRows||'<tr><td colspan="3">No brand detail.</td></tr>'}</tbody></table></div>`)}
+   </div>`;
+}
+function unifiedSalesTrendSection(){
+  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[], secV=(D.offtake&&D.offtake.secondary_monthly_fy25)||[];
+  const p26M=(D.primary&&D.primary.month_labels)||[], p26V=(D.primary&&D.primary.monthly_fy26)||[];
+  const o26M=(D.offtake&&D.offtake.months_fy26)||[], o26V=(D.offtake&&D.offtake.monthly_fy26)||[];
+  const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
+  const o27M=(D.offtake&&D.offtake.months_fy27)||[], o27V=(D.offtake&&D.offtake.monthly_fy27)||[];
+  if(!secM.length&&!o26M.length&&!o27M.length) return '';
+  // Primary has no real series for FY25 -- nulls there are a genuine gap, not a chart bug.
+  const months=[...secM, ...o26M, ...(p27.months_canon||o27M)];
+  const primary=[...secM.map(()=>null), ...p26V, ...(p27.monthly_canon||o27M.map(()=>null))];
+  const offtake=[...secV, ...o26V, ...o27V];
+  const secondary=[...secV, ...o26M.map(()=>null), ...o27M.map(()=>null)];
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Unified Sales Trend — Apr'24 to Aug'26 (${months.length} months)</h3>
+   <p class="note" style="margin:0 0 10px">Three different measures shown on one timeline, never blended into one line:
+     <b>Secondary</b> (Apr'24-Mar'25, the only real series for that window), <b>Primary</b> (Apr'25 onward — none exists for FY25),
+     <b>Offtake</b> (Apr'25 onward). FY27's last month (Aug'26) still includes ~5% EB2B/SIS in the Primary figure (see the
+     Primary-Offtake Gap note above) -- this trend does not re-strip that out.</p>
+   ${card('Primary / Offtake / FY25 Secondary, month by month','Click-through drill is not available on this combined trend view.',cv('unifiedTrendChart'))}`;
+}
+function renderUnifiedTrendChart(){
+  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[], secV=(D.offtake&&D.offtake.secondary_monthly_fy25)||[];
+  const p26M=(D.primary&&D.primary.month_labels)||[], p26V=(D.primary&&D.primary.monthly_fy26)||[];
+  const o26M=(D.offtake&&D.offtake.months_fy26)||[], o26V=(D.offtake&&D.offtake.monthly_fy26)||[];
+  const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
+  const o27M=(D.offtake&&D.offtake.months_fy27)||[], o27V=(D.offtake&&D.offtake.monthly_fy27)||[];
+  if(!document.getElementById('unifiedTrendChart')) return;
+  const months=[...secM, ...o26M, ...(p27.months_canon||o27M)];
+  const primary=[...secM.map(()=>null), ...p26V, ...(p27.monthly_canon||o27M.map(()=>null))];
+  const offtake=[...secV.map(()=>null), ...o26V, ...o27V];
+  const secondary=[...secV, ...o26M.map(()=>null), ...o27M.map(()=>null)];
+  mkLine('unifiedTrendChart',months,[
+    {label:'Secondary (FY25 only)',data:secondary,dash:[6,4]},
+    {label:'Primary',data:primary},
+    {label:'Offtake',data:offtake}]);
+}
 function renderPogGapCharts(){
   const g=D.primary_offtake_gap;
   if(!g) return;
@@ -3020,6 +3079,8 @@ function buildComparison(){
      </tr></thead><tbody>${tableRows||'<tr><td colspan="5">No records for this filter.</td></tr>'}</tbody></table></div>`)}
    ${drillCardHtml('cmpDrill','Primary NSV')}
    ${primaryOfftakeGapSection()}
+   ${unifiedSalesTrendSection()}
+   ${fy25SecondarySection()}
    ${momSection()}
    ${scorecardSection()}`;
   wireDrillLinks(s);
@@ -3031,6 +3092,7 @@ function buildComparison(){
       {label:yrPair[1],data:top.map(r=>r.b||0),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo(cmpDim,v));
   }
   renderPogGapCharts();
+  renderUnifiedTrendChart();
   renderDrillChart('cmpDrill','Primary NSV',recFilter());
 }
 function wireCmpButtons(root){

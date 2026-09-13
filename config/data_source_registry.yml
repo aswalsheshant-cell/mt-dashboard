@@ -374,25 +374,33 @@ datasets:
     validation_status: AVAILABLE
     source_priority: null
     fallback_source: null
-    downstream_outputs: []
+    downstream_outputs: ["dashboard/index.html buildComparison() -> fy25SecondarySection(), unifiedSalesTrendSection()"]
     last_validated: "2026-09-13"
     modification_allowed: false
     notes: >
       Found via Git-history investigation (docs/GIT_RECOVERY_MATRIX.md candidate
-      #3) while searching for lost FY24-25 data -- this file is STILL PRESENT in
-      the current repo, just not currently wired into any dashboard block. 8,769
-      rows, 38 chains, 6 brands. Total NSV Rs23,325.30L, matching the already-
-      registered offtake.secondary_total_fy25 (Rs23,332.36L) to within 0.03% --
-      confirmed to be the SAME real FY25 Distributor Secondary data (not a new
-      or different source), just at a materially finer grain than
-      dashboard/data.js currently exposes (offtake.secondary_monthly_fy25 is
-      national-only). Do NOT relabel this as "Primary" -- despite the filename
-      "DistPrimary", the content and total tie to Secondary, not Primary; the
-      filename uses "primary" loosely (as in "primary allocation of
-      distributor data"), a naming trap already flagged in the
-      mt-distributor-secondary skill. Wiring a chain/brand-level FY25
-      Secondary view into the dashboard is a genuine, bounded next step, not
-      done in this pass.
+      #3) while searching for lost FY24-25 data. 8,769 rows, 38 chains, 6
+      brands. Total NSV Rs23,325.30L, matching the already-registered
+      offtake.secondary_total_fy25 (Rs23,332.36L) to within 0.03% -- confirmed
+      to be the SAME real FY25 Distributor Secondary data, not a new source.
+      CORRECTED 2026-09-13 (same day, later pass): this entry originally said
+      "not currently wired into any dashboard block." That undersold what was
+      already true -- offtake.by_chain / offtake.by_brand in the LIVE
+      dashboard/data.js already carry a per-row `secondary_fy25` field
+      (reconciles exactly: sums to Rs23,332.36L), populated by an earlier
+      --offtake-rebuild run against a differently-named but equivalent source
+      file (Distributor_secondary_*.csv, gitignored, not currently in the
+      repo). The gap was narrower than first stated: the DATA existed, but no
+      UI anywhere read `secondary_fy25` (grep confirmed zero references in
+      dashboard/index.html before this pass). Fixed by adding
+      fy25SecondarySection() (chain/brand ranked tables) and
+      unifiedSalesTrendSection() (Apr'24-Aug'26 combined trend chart, FY25
+      Secondary rendered dashed and separately from Primary/Offtake) to
+      buildComparison(). Do NOT relabel this as "Primary" -- despite the
+      filename "DistPrimary", the content and total tie to Secondary, not
+      Primary; the filename uses "primary" loosely (as in "primary
+      allocation of distributor data"), a naming trap already flagged in the
+      mt-distributor-secondary skill.
 
   article_category_mapping:
     business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"
