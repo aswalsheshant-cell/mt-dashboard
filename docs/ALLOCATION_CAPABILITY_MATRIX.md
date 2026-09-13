@@ -163,12 +163,68 @@ itself (Chain Contribution % x SAP Distributor Primary, confirmed to match the
 business rule below), so it does not require Finance/business approval, only a
 code review before merging.
 
-## STOP condition -- still applies, now scoped correctly
+## FM-16B FIX APPLIED AND VERIFIED — 2026-09-13, same day
 
-Per Section 34 ("STOP and report rather than guess when allocation evidence is
-insufficient"): **this environment still cannot run the corrected logic against
-real data, because the workbook itself is not available here.** Two separate
-things are needed before FM-16 can move past P1: (1) the loader fix above,
-reviewed and merged, and (2) the real workbook, placed at the location named
-below, so the fixed loader has something real to read. Neither can be completed
-unilaterally from this session.
+The loader-priority fix described above has been implemented (not just proposed)
+and verified with synthetic data (`tests/test_dist_cont_loader_fix.py`, 4 tests,
+all real business-column shapes but no real business data):
+- Base workbook alone loads correctly.
+- Base + patch: the patch overrides only its own (Ship-To, Brand, Month) keys;
+  every other base row survives untouched.
+- Patch alone (base absent): falls through to the Priority-1 ShipTo-primary
+  fallback, exactly as before this fix -- the 27-row patch never masquerades as
+  a complete allocation universe.
+- Malformed patch schema: fails loudly (`SystemExit`), never silently ignored.
+
+**A second, independent bug was found and fixed in the same investigation**: the
+month-parsing branch (`if w[month_col].dtype == 'object':`) silently broke under
+pandas 3.x, which introduced a distinct `str` dtype for text columns that pandas
+2.x never had (all text used to be `'object'`). A text month column was
+therefore falling into the wrong parsing branch and returning no valid month for
+any row -- this would have caused a 0%-match result even with the loader-
+priority fix alone, and even with the real workbook supplied, until this pandas-
+version issue was also fixed. Replaced the fragile dtype-name check with
+`pd.api.types.is_numeric_dtype()` so the branch decision no longer depends on
+which pandas version drew the boundary between "object" and "str".
+
+## Real-data result -- even before the business workbook is supplied
+
+The real workbook is still not available in this environment. But the fix
+changes what happens when it's absent, too: previously, the 27-row patch file
+being merely PRESENT caused the loader to use ONLY those 27 rows as if they were
+the entire weights table (near-total mismatch against 55,455 real distributor
+rows). Now, with no base workbook, the loader correctly falls through to the
+Priority-1 ShipTo-primary fallback (`Primary_ShipTo_FY25-26_to_May26.csv`, which
+IS present in this repo) -- a real source that was always available but was
+never being reached because of the FM-16B defect.
+
+| Metric | BEFORE this fix | AFTER this fix (same environment, no workbook added) |
+|---|---|---|
+| `alloc.rows_unmapped` | 55,455 (100%) | **167 (0.3%)** |
+| `alloc.chains_allocated_to` | 0 | **29** |
+| `alloc.unmapped_nsv` | Rs18,318.41L (Rs183.18 Cr) | **Rs12.13L (Rs0.12 Cr)** |
+| `alloc.governance.not_eligible_pct` | 100.0 | **0.07** |
+| `alloc.recon.overall` (NSV/Qty/MRP/Tax) | exact (0.0 variance) | **exact (0.0 variance), unchanged** |
+| `alloc.source_label` | `dist_cont_csv` (the bug) | `shipto_primary_csv` (Priority-1 fallback, correctly reached) |
+| Primary FY26 / FY27 totals | Rs32,900.37L / Rs22,239.59L | **unchanged, exact** |
+| `detail_records` coverage | 100% | **unchanged, 100%** |
+| Dashboard sweep | 44/44, 0 errors | **44/44, 0 errors** |
+
+**Known remaining gap, reported honestly, not glossed over**: `mapping_health`'s
+own completeness % (the one shown in the dashboard's red warning banner, 66.28%/
+67.65%) is **unchanged** by this fix in this pass, because `mapping_health_block()`
+is only invoked in the full/`--primary-only` build path, not `--detail-only` (the
+mode used here, since a full rebuild needs source files not staged this
+session). It reads the `alloc` block as an input, so it would very likely also
+improve once a `--primary-only` or full rebuild is run with the newly-fixed
+loader -- but that has not been run or verified this pass. Do not assume the
+banner's number has already moved; it has not, yet.
+
+## STOP condition -- narrowed to exactly one remaining item
+
+Per Section 34: **the only thing this environment cannot do is validate the fix
+against the REAL business workbook**, since it isn't present here. Everything
+else in the fix (priority logic, merge semantics, schema validation, the
+independent pandas-dtype bug) has been implemented and verified with synthetic
+data. See "EXACT FILE NEEDED / EXACT APPROVED LOCATION" in the session's closure
+report for the one remaining step.

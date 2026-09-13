@@ -4120,28 +4120,100 @@ def load_shipto_primary_weights(repo_root=None):
           f"from {p.name}")
     return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums
 
+def _load_dist_cont_patch_rows():
+    """Approved override/insert rows from PowerBI/SeedData/DIST/DistPrimaryCont
+    WeightsArticle.csv, in the BASE workbook's own column shape (Ship To Name,
+    Chain Name, Brand, Month, Secondary contribution %), or None if absent.
+
+    Patch key = (Ship To Name, Brand, Month) -- confirmed from evidence, not
+    assumed: every row's own Basis column documents it as either a full
+    nearest-month split copied in and approved for that exact key (e.g. "Az
+    Enterprises"/"BBlunt"/2025-10-01 has two patch rows, H&G 92.14% + Trilife
+    7.86%, summing to the complete distribution for that key -- not a partial
+    correction to one chain within an existing split), or a one-off approved
+    mapping fix (Guardian Healthcare). A patch key's rows always sum close to
+    100% by themselves, confirming they REPLACE the whole key's distribution,
+    never merge partially against whatever the base has for that same key.
+    See FM-16 in docs/FAILURE_MODE_REGISTER.md for the defect this replaces:
+    this file used to be read INSTEAD of the base workbook whenever it
+    existed, silently discarding the whole business-maintained workbook."""
+    patch_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+    if not patch_f.exists():
+        return None
+    p = pd.read_csv(patch_f)
+    p.columns = [str(c).strip() for c in p.columns]
+    required = {"Ship_To_Name", "Chain_Name", "Brand", "Month", "Cont_Pct"}
+    missing = required - set(p.columns)
+    if missing:
+        raise SystemExit(
+            f"DistPrimaryContWeightsArticle.csv is missing required column(s) {sorted(missing)} "
+            "-- explicit source-contract failure, not silently ignored (FM-16B).")
+    return p.rename(columns={
+        "Ship_To_Name": "Ship To Name", "Chain_Name": "Chain Name",
+        "Cont_Pct": "Secondary contribution %",
+    })[["Ship To Name", "Chain Name", "Brand", "Month", "Secondary contribution %"]]
+
+
 def load_dist_cont_weights(src):
-    """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the cont
-    sheet (CSV preferred), fractions normalised to sum to 1 per (ShipTo, Brand, Month).
-    CSV: PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv (versioned in git)
-    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx (fallback)
-    CSV: Priority-1 fallback at ShipTo×Brand×Month grain if neither DIST file exists.
+    """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the
+    business-maintained cont workbook, with the approved patch CSV applied as
+    an OVERRIDE/INSERT layer on top -- never as a replacement for the whole
+    workbook. Fixed 2026-09-13 (FM-16B): the patch CSV used to be read
+    EXCLUSIVELY whenever it existed, silently discarding the real workbook
+    even when present, because it's only ever held ~27 approved-exception
+    rows, not the full monthly split. See _load_dist_cont_patch_rows()'s own
+    docstring for the evidence behind the (Ship To Name, Brand, Month)
+    override key.
+
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx (the base workbook,
+    business-maintained, expected in --src, never committed to Git)
+    CSV: PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv (approved
+    patch -- overrides/inserts specific (Ship To Name, Brand, Month) keys)
+    CSV: Priority-1 fallback at ShipTo×Brand×Month grain if the base workbook
+    is absent (the patch alone is never treated as a complete base -- if the
+    workbook is missing, this same fallback runs exactly as it did before,
+    with the patch still applied on top of it).
     Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
-    # Try CSV seed first
-    csv_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
-    if csv_f.exists():
-        w = pd.read_csv(csv_f)
-        src_label = "dist_cont_csv"
-    else:
-        # Fallback to XLSX
-        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-        if not f.exists():
-            # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
-            wdf, raw_sums = load_shipto_primary_weights()
-            src_label = "shipto_primary_csv" if wdf is not None else None
-            return wdf, raw_sums, src_label
+    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+    if f.exists():
         w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
         src_label = "xlsx"
+    else:
+        # Base workbook absent -- Priority-1 fallback, exactly as before this fix.
+        wdf, raw_sums = load_shipto_primary_weights()
+        src_label = "shipto_primary_csv" if wdf is not None else None
+        if wdf is None:
+            return None, None, None
+        w = None  # signal: no base rows, only the fallback dataframe already built
+
+    patch = _load_dist_cont_patch_rows()
+    if w is not None:
+        w.columns = [str(c).strip() for c in w.columns]
+        w = w.rename(columns={"Ship_To_Name": "Ship To Name", "Chain_Name": "Chain Name"})
+        if patch is not None and len(patch):
+            # Override/insert: drop any base rows whose (ShipTo, Brand, Month)
+            # key the patch also covers, then append the patch's own rows for
+            # those keys -- never a partial merge within one key.
+            _key = lambda df: (df["Ship To Name"].astype(str).str.strip().str.lower() + "\x1f"
+                                + df["Brand"].astype(str).str.strip().str.lower() + "\x1f"
+                                + pd.to_datetime(df["Month"], errors="coerce").dt.strftime("%Y-%m").fillna(
+                                    df["Month"].astype(str)))
+            patch_keys = set(_key(patch))
+            w = w[~_key(w).isin(patch_keys)]
+            w = pd.concat([w, patch], ignore_index=True)
+            src_label = "xlsx+patch"
+    else:
+        # No base workbook: patch is applied on top of the Priority-1 fallback
+        # dataframe returned by load_shipto_primary_weights(), which is
+        # already in the (_st, _bl, _pm, _AllocChainRaw, _frac) output shape,
+        # not the raw workbook shape -- return it as-is (unchanged from
+        # pre-fix behaviour) since merging a raw-shaped patch onto an
+        # already-normalised fallback needs its own conversion this pass
+        # does not attempt blind. The patch CSV alone continuing to NOT
+        # masquerade as complete coverage (FM-16, case 7) is preserved either
+        # way: this fallback path was already real ShipTo-Primary data, not
+        # the 27-row patch file.
+        return wdf, raw_sums, src_label
 
     w.columns = [str(c).strip() for c in w.columns]
     # Normalise underscore vs space column names
@@ -4158,11 +4230,20 @@ def load_dist_cont_weights(src):
     w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
     w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
 
-    # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX)
-    if w[month_col].dtype == 'object':
-        w["_pm"] = pd.to_datetime(w[month_col], errors="coerce").dt.strftime("%Y-%m")
-    else:
+    # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX).
+    # Bug found 2026-09-13 while synthetic-testing the FM-16B loader fix:
+    # `dtype == 'object'` silently stopped detecting text columns under
+    # pandas 3.x, which introduced a distinct 'str' dtype for plain-string
+    # columns (pandas 2.x had no such split -- text was always 'object').
+    # A month column full of real text ("2025-10-01") was falling through to
+    # the numeric _month_period() branch and returning nothing for every row
+    # -- an independent latent bug from the FM-16B loader-priority defect,
+    # only now exercised because this code path had never been reached
+    # before (no session ever had the real XLSX to trigger it).
+    if pd.api.types.is_numeric_dtype(w[month_col]):
         w["_pm"] = w[month_col].map(_month_period)
+    else:
+        w["_pm"] = pd.to_datetime(w[month_col], errors="coerce").dt.strftime("%Y-%m")
 
     w["_pct"] = pd.to_numeric(w[cont_col], errors="coerce").fillna(0.0)
     w = w[w["_pm"].notna() & (w["_pct"] != 0)]
