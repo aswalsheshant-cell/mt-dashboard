@@ -2888,6 +2888,52 @@ function mappingHealthSection(){
      `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>NSV at stake</th><th>Suggested chain</th><th>Confidence</th><th>Status</th></tr></thead>
       <tbody>${pr}</tbody></table></div>`):''}`;
 }
+function primaryOfftakeGapSection(){
+  const g=D.primary_offtake_gap;
+  if(!g||(!g.fy26&&!g.fy27)) return '';
+  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const w=g[win];
+  const rows=w.by_month.rows;
+  const chain=w.by_chain;
+  const latestGap=rows.length?rows[rows.length-1].gap:null;
+  const avgRatio=(()=>{const rs=rows.filter(r=>r.ratio!=null).map(r=>r.ratio);
+    return rs.length?Math.round(rs.reduce((a,b)=>a+b,0)/rs.length*100)/100:null;})();
+  const notComparable=w.by_month.comparable_note.startsWith('NOT_FULLY_COMPARABLE');
+  const chainRows=chain.matched.slice(0,10).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
+    <td>${crc(c.primary)}</td><td>${crc(c.offtake)}</td>
+    <td><span class="pill ${c.gap>=0?'g':'r'}">${crc(c.gap)}</span></td>
+    <td>${c.ratio!=null?c.ratio:'–'}</td></tr>`).join('');
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Primary–Offtake Gap (${win.toUpperCase()})</h3>
+   <p class="note" style="margin:0 0 10px">Primary NSV vs Offtake NSV, ${win==='fy27'?'Apr–Aug… (partial year so far)':'full 12 months'}.
+     <b>Neutral label deliberately used</b> — a positive gap (Primary &gt; Offtake) is NOT automatically "inventory build";
+     it may reflect timing/cutoff, returns, channel scope, or coverage differences. ${notComparable?
+     `<span class="pill r">NOT FULLY COMPARABLE</span> ${w.by_month.comparable_note}`:
+     `<span class="pill g">Comparable scope</span> ${w.by_month.comparable_note}`}</p>
+   <div class="kpis">
+     ${kpi('Latest month gap',latestGap!=null?crc(latestGap):'–',latestGap!=null?(latestGap>=0?'Primary ahead':'Offtake ahead'):'')}
+     ${kpi('Avg Primary/Offtake ratio',avgRatio!=null?avgRatio:'–','across months shown')}
+     ${kpi('Chain coverage',`${chain.matched.length} matched`,chain.coverage_note)}
+   </div>
+   <div class="grid g2">
+     ${card('Primary vs Offtake, by month','Click a chain row to drill (chart shows the trend only).',cv('pogMonthChart'))}
+     ${card(`Chain-wise gap — top ${Math.min(10,chain.matched.length)} by |gap|`,'Only chains present in BOTH series (matched) are ranked or divided into a ratio.',
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Primary</th><th>Offtake</th><th>Gap</th><th>Ratio</th></tr></thead>
+        <tbody>${chainRows||'<tr><td colspan="5">No matched chains.</td></tr>'}</tbody></table></div>`)}
+   </div>
+   ${(chain.primary_only.length||chain.offtake_only.length)?`<p class="drillhint" style="margin:8px 0 0">
+     ${chain.primary_only.length} chain(s) have Primary but no Offtake series (not divided into a ratio): ${chain.primary_only.slice(0,8).map(c=>c.name).join(', ')}${chain.primary_only.length>8?'…':''}.
+     ${chain.offtake_only.length} chain(s) have Offtake but no Primary series: ${chain.offtake_only.slice(0,8).map(c=>c.name).join(', ')}${chain.offtake_only.length>8?'…':''}.</p>`:''}`;
+}
+function renderPogGapCharts(){
+  const g=D.primary_offtake_gap;
+  if(!g) return;
+  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const rows=g[win].by_month.rows;
+  if(!rows.length||!document.getElementById('pogMonthChart')) return;
+  mkLine('pogMonthChart',rows.map(r=>r.month),[
+    {label:'Primary',data:rows.map(r=>r.primary)},
+    {label:'Offtake',data:rows.map(r=>r.offtake)}]);
+}
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
   const dims=['Chain','Brand','SubCategory','Range','PackSize','Article'];
@@ -2973,6 +3019,7 @@ function buildComparison(){
      <th>${dimLab[cmpDim]}</th><th>${yrPair[0]}</th><th>${yrPair[1]}</th><th>YoY</th><th>Contribution</th>
      </tr></thead><tbody>${tableRows||'<tr><td colspan="5">No records for this filter.</td></tr>'}</tbody></table></div>`)}
    ${drillCardHtml('cmpDrill','Primary NSV')}
+   ${primaryOfftakeGapSection()}
    ${momSection()}
    ${scorecardSection()}`;
   wireDrillLinks(s);
@@ -2983,6 +3030,7 @@ function buildComparison(){
       {label:yrPair[0],data:top.map(r=>r.a||0),backgroundColor:C.blue+'cc',borderRadius:4},
       {label:yrPair[1],data:top.map(r=>r.b||0),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo(cmpDim,v));
   }
+  renderPogGapCharts();
   renderDrillChart('cmpDrill','Primary NSV',recFilter());
 }
 function wireCmpButtons(root){

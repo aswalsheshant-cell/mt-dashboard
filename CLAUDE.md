@@ -388,6 +388,20 @@ event, not a failure — the workflow below is what makes it harmless.
 
 ---
 
+## Before calling anything a new bug
+
+Check `docs/FAILURE_MODE_REGISTER.md` first — it catalogues failure PATTERNS
+already found in this project (synthetic template rows reaching production,
+detail-coverage silently dropping on rebuild, competing pipelines writing
+`data.js`, source-file conflicts, doc-vs-artifact drift, and more), each with
+its preventive control and regression test. A new incident that matches an
+existing FM-NN pattern gets a note added to that row, not a duplicate
+investigation from zero. `config/data_source_registry.yml` +
+`scripts/data_catalog.py` (source lookup), `scripts/ci_validate_datajs.py`
+(release-time checks: baseline invariants, detail-coverage regression, stale
+duplicate-metadata divergence) are the release gates that actually run today
+— treat a WARN from either as something to explain, not ignore.
+
 ## Knowledge base — read before solving an unfamiliar problem
 
 `docs/knowledge/` holds compact, sourced articles on **how** to do something

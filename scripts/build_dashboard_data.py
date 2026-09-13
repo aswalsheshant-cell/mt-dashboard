@@ -2553,6 +2553,106 @@ def _build_custcode_chain_lookup(df):
     result = sub.groupby("_CustCode")["_Chain"].agg(_most_common)
     return result[result.notna()].to_dict()
 
+def primary_offtake_gap_block(primary, offtake, fyx_primary):
+    """Primary-vs-Offtake gap analysis, computed only over grains and periods
+    where both measures genuinely exist and are comparable -- never a
+    fabricated relationship. Two windows:
+
+      fy26: primary.monthly_fy26 (12 real months, primary.by_channel shows
+            EB2B/SIS are both 0 for FY26 -- a clean, fully MT-channel-scoped
+            comparison) vs offtake.monthly_fy26 / offtake.total_fy26.
+      fy27: fyx_primary.monthly_canon (Apr-Aug'26 so far) vs
+            offtake.monthly_fy27 -- flagged NOT_FULLY_COMPARABLE because
+            fyx_primary's total still includes EB2B/SIS (~5.2% of FY27
+            Primary per by_channel), which Offtake (chain POS, MT-only by
+            construction) does not carry. Shown anyway, with the caveat
+            attached, rather than withheld -- the gap is still directionally
+            informative, it just isn't a pure like-for-like ratio.
+
+    By-chain gap is split into three groups rather than one blended list,
+    because Primary and Offtake do not cover the same 21/35-chain universe
+    (verified 2026-09-13: 15 chains exist in both, 6 Primary-only, 19
+    Offtake-only) -- dividing across mismatched universes would silently
+    misrepresent coverage:
+      matched:      chain exists in both -> gap/ratio computed
+      primary_only: chain has Primary NSV but no Offtake series -- shown as
+                    a value, never divided into a ratio
+      offtake_only: the mirror case
+
+    Never call the gap "inventory" -- it may reflect inventory movement,
+    timing/cutoff, returns, channel/coverage differences, or other business
+    processes not evidenced here. Labelled neutrally throughout.
+    """
+    def _by_month(months, prim_vals, off_months, off_vals, comparable_note):
+        off_map = dict(zip(off_months, off_vals))
+        rows = []
+        for i, m in enumerate(months):
+            p = prim_vals[i] if i < len(prim_vals) else None
+            o = off_map.get(m)
+            gap = (p - o) if (p is not None and o is not None) else None
+            ratio = round(p / o, 3) if (p and o) else None
+            rows.append({"month": m, "primary": p, "offtake": o, "gap": gap,
+                         "ratio": ratio})
+        return {"rows": rows, "comparable_note": comparable_note}
+
+    def _by_chain(prim_chain_map, off_chain_map):
+        matched, primary_only, offtake_only = [], [], []
+        for name in sorted(set(prim_chain_map) | set(off_chain_map)):
+            p = prim_chain_map.get(name)
+            o = off_chain_map.get(name)
+            if p is not None and o is not None:
+                gap = p - o
+                ratio = round(p / o, 3) if o else None
+                matched.append({"name": name, "primary": p, "offtake": o,
+                                 "gap": gap, "ratio": ratio})
+            elif p is not None:
+                primary_only.append({"name": name, "primary": p})
+            elif o is not None:
+                offtake_only.append({"name": name, "offtake": o})
+        matched.sort(key=lambda r: abs(r["gap"]), reverse=True)
+        return {"matched": matched, "primary_only": primary_only,
+                "offtake_only": offtake_only,
+                "coverage_note": (f"{len(matched)} chains in both series, "
+                                  f"{len(primary_only)} Primary-only (no Offtake series), "
+                                  f"{len(offtake_only)} Offtake-only (no Primary series) -- "
+                                  "gap/ratio computed only for matched chains")}
+
+    fy26 = None
+    if primary.get("monthly_fy26") and offtake.get("monthly_fy26"):
+        fy26 = {
+            "by_month": _by_month(
+                offtake["months_fy26"], primary["monthly_fy26"],
+                offtake["months_fy26"], offtake["monthly_fy26"],
+                "Comparable: FY26 Primary is 100% MT channel (EB2B/SIS both 0 "
+                "per primary.by_channel), matching Offtake's MT-only scope."),
+            "by_chain": _by_chain(
+                {c["name"]: c["fy26"] for c in primary.get("by_chain", []) if c.get("fy26")},
+                {c["name"]: c["fy26"] for c in offtake.get("by_chain", []) if c.get("fy26")}),
+        }
+
+    fy27 = None
+    if fyx_primary and fyx_primary.get("monthly_canon") and offtake.get("monthly_fy27"):
+        fy27 = {
+            "by_month": _by_month(
+                fyx_primary["months_canon"], fyx_primary["monthly_canon"],
+                offtake["months_fy27"], offtake["monthly_fy27"],
+                "NOT_FULLY_COMPARABLE: FY27 Primary total still includes EB2B/SIS "
+                "(~5.2% of FY27 Primary per fyx_primary.by_channel); Offtake is "
+                "MT-only by construction. Shown for trend direction, not as a "
+                "precise like-for-like ratio."),
+            "by_chain": _by_chain(
+                {c["name"]: c["nsv"] for c in fyx_primary.get("by_chain", [])},
+                {c["name"]: c["fy27"] for c in offtake.get("by_chain", []) if c.get("fy27")}),
+        }
+
+    return {"fy26": fy26, "fy27": fy27,
+            "note": ("Primary-Offtake Gap = Primary NSV - Offtake NSV. Neutral "
+                     "label deliberately used instead of 'inventory' -- the gap "
+                     "may reflect inventory movement, timing/cutoff, returns, "
+                     "channel or coverage differences, or other business "
+                     "processes not evidenced here.")}
+
+
 def cm2_block(df, expense_rows):
     """Chain/Brand/Category/Expense-Head CM2 rollups + monthly series, from
     the row-level article-level primary detail `df` (already carries _NSV,
@@ -5284,6 +5384,9 @@ def main():
             obj["cm2"] = cm2
         if alloc is not None:
             obj["alloc"] = alloc
+        if obj.get("primary") and obj.get("offtake"):
+            obj["primary_offtake_gap"] = primary_offtake_gap_block(
+                obj["primary"], obj["offtake"], meta.get("fyx_primary", {}).get("FY27"))
         print(f"detail-only: {len(detail)} detail_records "
               f"({'REAL' if not meta['representative'] else 'representative'})"
               + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
@@ -5700,6 +5803,9 @@ def main():
         data["cm2"] = cm2
     if alloc is not None:
         data["alloc"] = alloc
+    if primary and offtake:
+        data["primary_offtake_gap"] = primary_offtake_gap_block(
+            primary, offtake, (detail_meta or {}).get("fyx_primary", {}).get("FY27"))
 
     # ---- Merge FY27+ channels into primary.by_channel to ensure all channels are represented ----
     # FY27 article-level data has EB2B/SIS channels not in pre-agg FY25/26 workbooks.
