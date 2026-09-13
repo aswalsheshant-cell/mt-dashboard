@@ -2995,17 +2995,15 @@ function fy25SecondarySection(){
    </div>`;
 }
 function unifiedSalesTrendSection(){
-  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[], secV=(D.offtake&&D.offtake.secondary_monthly_fy25)||[];
-  const p26M=(D.primary&&D.primary.month_labels)||[], p26V=(D.primary&&D.primary.monthly_fy26)||[];
-  const o26M=(D.offtake&&D.offtake.months_fy26)||[], o26V=(D.offtake&&D.offtake.monthly_fy26)||[];
+  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[];
+  const o26M=(D.offtake&&D.offtake.months_fy26)||[];
   const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
-  const o27M=(D.offtake&&D.offtake.months_fy27)||[], o27V=(D.offtake&&D.offtake.monthly_fy27)||[];
+  const o27M=(D.offtake&&D.offtake.months_fy27)||[];
   if(!secM.length&&!o26M.length&&!o27M.length) return '';
   // Primary has no real series for FY25 -- nulls there are a genuine gap, not a chart bug.
+  // (Only the month count is needed here -- the actual Primary/Offtake/Secondary
+  // series are computed once, in renderUnifiedTrendChart(), for the chart itself.)
   const months=[...secM, ...o26M, ...(p27.months_canon||o27M)];
-  const primary=[...secM.map(()=>null), ...p26V, ...(p27.monthly_canon||o27M.map(()=>null))];
-  const offtake=[...secV, ...o26V, ...o27V];
-  const secondary=[...secV, ...o26M.map(()=>null), ...o27M.map(()=>null)];
   return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Unified Sales Trend — Apr'24 to Aug'26 (${months.length} months)</h3>
    <p class="note" style="margin:0 0 10px">Three different measures shown on one timeline, never blended into one line:
      <b>Secondary</b> (Apr'24-Mar'25, the only real series for that window), <b>Primary</b> (Apr'25 onward — none exists for FY25),
@@ -3015,7 +3013,7 @@ function unifiedSalesTrendSection(){
 }
 function renderUnifiedTrendChart(){
   const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[], secV=(D.offtake&&D.offtake.secondary_monthly_fy25)||[];
-  const p26M=(D.primary&&D.primary.month_labels)||[], p26V=(D.primary&&D.primary.monthly_fy26)||[];
+  const p26V=(D.primary&&D.primary.monthly_fy26)||[];
   const o26M=(D.offtake&&D.offtake.months_fy26)||[], o26V=(D.offtake&&D.offtake.monthly_fy26)||[];
   const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
   const o27M=(D.offtake&&D.offtake.months_fy27)||[], o27V=(D.offtake&&D.offtake.monthly_fy27)||[];
