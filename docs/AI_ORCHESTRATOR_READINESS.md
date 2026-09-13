@@ -104,10 +104,12 @@ The data structure supports multi-level causal decomposition. The drill hierarch
 | Structured data output | READY | `data.js` is JSON, accessible programmatically |
 | Automated QC outputs | READY | `release_gate_report.json` from CI |
 | Knowledge base (docs) | READY | 16 structured markdown docs in `PowerBI/docs/` |
-| API / agent integration layer | NOT STARTED | No REST API, no agent SDK integration |
+| Data source registry (path/grain/coverage per dataset) | **ADDED 2026-09-13** | `config/data_source_registry.yml` + `scripts/data_catalog.py` (`find_source`/`get_historical_source`/`get_latest_available`/`get_lineage`) — see `docs/DATA_AVAILABILITY_MATRIX.md` and `docs/DATA_LINEAGE.md` |
+| Reverse-tracing infrastructure (dashboard KPI -> source rows) | **PARTIALLY ADDED 2026-09-13** | `docs/DATA_LINEAGE.md` traces Primary NSV, Offtake NSV and chain allocation end to end (the item #5 recommendation below, for two KPIs so far — not yet all of them) |
+| API / agent integration layer | NOT STARTED | No REST API, no agent SDK integration. `scripts/data_catalog.py` is a plain Python module, callable from a script or a future tool wrapper, not yet exposed as a service |
 | Prompt templates | NOT STARTED | No agent prompts authored yet |
-| Conversation memory | NOT STARTED | No memory layer designed |
-| Tool definitions | NOT STARTED | No tool wrappers around pipeline functions |
+| Conversation memory | NOT STARTED | No memory layer designed — and by design should not be: `docs/PROJECT_STATE.md` + the registry/lineage docs above are the intended persistent memory, not chat history (see `config/data_source_registry.yml`'s own header) |
+| Tool definitions | PARTIALLY ADDED 2026-09-13 | `scripts/data_catalog.py` is the first tool wrapper (recommendation #2 below) — covers discovery only, not yet the full gate-report/reconciliation wrapper that recommendation describes |
 
 ---
 
