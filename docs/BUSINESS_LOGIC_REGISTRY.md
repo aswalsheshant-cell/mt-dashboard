@@ -438,10 +438,20 @@ so the dashboard's P&L/CM2 tab was silently treating Rs47.65L of template exampl
 Rs6.75L) as real Finance expense, and never showed its own designed "no expense data
 loaded yet" banner. Fixed 2026-09-13 (filter on the `EXAMPLE ROW` marker in `Remarks`);
 regression test added at `tests/test_pl_expense_input_filter.py`. Classified
-`BUG_CODE` / `DATA_QUALITY`. **Not yet reflected in the committed `dashboard/data.js`**
-— applying it requires a `--detail-only` rebuild, which needs source workbooks not
-staged in this session; the fix is correct in the generator for the next rebuild that
-has them.
+`BUG_CODE` / `DATA_QUALITY`. **LIVE in production as of 2026-09-13** — carried
+through by the same `--detail-only --detail-max-rows 0` rebuild that ingested
+Aug'26 Primary (see below); `dashboard/data.js`'s `cm2.total_expense` is now
+`0.0` and `cm2.has_expense_data` is `false`, so the dashboard's P&L tab now shows
+its own designed "no expense data loaded yet" banner instead of a fabricated
+99.9% CM2 margin. Verified directly against the committed file, not assumed.
+
+**Aug'26 Primary — production-ingested 2026-09-13.** `scripts/ingest_aug26_primary.py`
+schema-maps `data/monthly/Aug26_primary_detailed.csv` (the source this registry's
+Aug'26 reconciliation recommends) into the production `Primary_Article_Monthly`
+folder; `--detail-only --detail-max-rows 0` picked it up with no other code
+change. `detail_meta.fyx_primary.FY27.nsv` is now Rs22,239.59L (Apr-Aug), FY25/
+FY26 unchanged, 44/44 dashboard-sweep states pass with 0 JS errors. Full
+reconciliation table in `docs/DATA_LINEAGE.md`.
 
 ---
 

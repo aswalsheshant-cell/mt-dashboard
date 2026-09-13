@@ -104,12 +104,42 @@ three-way internal corroboration, and its `PO Type` field is verified
 reliable. Source B should not be used for the Aug'26 Primary total -- treat
 it as superseded for that purpose, not deleted (still useful for spot-checks
 outside MT channel, where it ties exactly). This does not require further
-data-owner escalation to proceed with ingestion; the residual 2.7% "how
-exactly are these 350 MT rows different" question can stay open as a
-`LOW`-materiality note. Ingestion into `dashboard/data.js` is still blocked
-on the separate schema-harmonization step noted in `CLAUDE.md`
-(raw-SAP 53-column schema vs. the production loader's ~24-column
-expectation) -- not attempted in this pass.
+data-owner escalation to proceed with ingestion; the residual Rs96.80L "how
+exactly are these 350 MT rows different" question stays open as a
+**non-blocking technical source discrepancy** (not formally called
+"immaterial" without a Finance-set threshold to measure that against, per
+the 2026-09-13 governance request).
+
+**INGESTED 2026-09-13.** Schema-harmonized and production-ingested:
+`scripts/ingest_aug26_primary.py` maps the raw-SAP 53-column source to the
+production loader's exact 24-column `Primary_Article_Monthly` schema (full
+Source-Column -> Canonical-Column -> Transformation table in that script's
+docstring; every source column classified USED / renamed / or
+IGNORED_WITH_REASON -- none dropped silently), writes
+`PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_26.csv`,
+verified row-count and value-exact against the source (19,070 rows, Rs36.58
+Cr, both match to the rupee). `scripts/build_dashboard_data.py --detail-only
+--detail-max-rows 0 --out dashboard/data.js` then picked it up automatically
+via the existing monthly-CSV-glob fallback in `detail_records_real()` -- no
+other code change needed.
+
+Reconciliation, source through dashboard:
+| Stage | Rows | NSV |
+|---|---|---|
+| Raw source (`Aug26_primary_detailed.csv`) | 19,070 | Rs36.58 Cr |
+| Transformed (`primary_article_Aug_26.csv`) | 19,070 | Rs36.58 Cr (exact) |
+| Canonical (`detail_meta.fyx_primary.FY27`, Apr-Aug) | -- | Rs22,239.59L = Rs18,581.29L (Apr-Jul, unchanged) + Rs3,658.30L (Aug, exact) |
+| Dashboard (44-state sweep) | -- | 0 failures, 0 JS errors, 0 NaN/undefined |
+
+`--detail-max-rows 0` (uncapped) was used deliberately after the default
+40,000-row cap was tried first and found to silently reduce total
+`detail_records` coverage from 100% (108,893/108,893 groups, matching the
+prior file's own uncapped state) to 95.6% -- that would have been a real,
+undocumented regression to drill-down granularity across **every** FY, not
+just Aug'26, so it was reverted and re-run uncapped before this was
+committed. FY25/FY26 verified unchanged (Rs32,900.37L / Rs31,119.87L, exact
+to the pre-ingestion commit) -- diffed before and after per `CLAUDE.md`'s
+own validation rule, not assumed.
 
 ## Offtake NSV
 

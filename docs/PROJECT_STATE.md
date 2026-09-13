@@ -179,7 +179,7 @@ Every change must leave these unchanged:
 |---|---|
 | Primary NSV FY26 | ₹32,900.36 L |
 | Offtake FY26 / FY27 | ₹31,119.87 L / ₹15,069.86 L |
-| FY27 primary (article-level) | ₹18,581.29 L |
+| FY27 primary (article-level) | ₹22,239.59 L (was ₹18,581.29 L before 2026-09-13 -- intentional: Aug'26 was production-ingested that day, adding ₹36.58 Cr for a 5th month, Apr-Aug now vs. Apr-Jul before. Evidence: `docs/DATA_LINEAGE.md` Aug'26 reconciliation; not a frozen invariant in `config/baselines.json`, so this is documentation catching up to an intended change, not a baseline violation) |
 | Active MT stores | 426 |
 | FY27 target | ₹441.33 Cr |
 | PVM reconciliation | PASS, variance 0.00 |
