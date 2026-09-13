@@ -22,7 +22,13 @@ whether the visual's behaviour matches what it claims to do*.
 
 ## Critical findings (ranked by severity — read this section first)
 
-### 1. MISLEADING — a chart shows entirely fabricated numbers
+**Findings #1-#3 below were fixed the same session** (commit `cc53f0d`, after
+user sign-off), verified live via Playwright. Kept in full below as the audit
+record; each now says **FIXED** instead of being silently removed, since a
+registry that erases its own findings once addressed defeats the point of
+having one.
+
+### 1. FIXED (was MISLEADING) — a chart showed entirely fabricated numbers
 `dashboard/index.html:1558-1572`, Inventory & Supply Health tab, "Demand-Supply Gap"
 sub-view. The line chart directly beneath the (real-data) "Distribution of Inventory
 Watchlist" table is built from **literal hardcoded arrays**, no `D.xxx` reference at
@@ -33,23 +39,43 @@ labels: ['Wk1','Wk2','Wk3','Wk4','Wk5']
 'Offtake':        [40,42,45,48,50]
 ```
 This is the exact thing CLAUDE.md's Core Invariants forbid ("No dummy data... never
-fabricate numbers") — and it sits on a live, reachable tab, immediately below a table
-built from real data, with nothing in the UI distinguishing the two. **This is a V1
-blocker, not a backlog item**, precisely because it looks authoritative and isn't.
+fabricate numbers") — and it sat on a live, reachable tab, immediately below a table
+built from real data, with nothing in the UI distinguishing the two.
 
-### 2. MISLEADING — coverage % can silently return NaN
-`dashboard/index.html:1576`, Inventory Health "Store Coverage" sub-view. Same line
-treats `stores` as an object for the door-count column (`Object.keys(...).length`)
-and as an array for the coverage % column (`(stores||[]).length/10*100`) — one of the
-two is wrong for whatever `stores` actually is, and the hardcoded `/10` denominator
-matches no named constant anywhere in the file.
+**Fix applied:** the fabricated chart is removed and replaced with an honest "source
+not available" card explaining that Primary/Offtake are monthly-grain in this build,
+not weekly, naming the exact file that would need a weekly extract added
+(`scripts/build_dashboard_data.py`) — the same disclosure pattern already used for
+Demand Planning's "Competitive Market Share" card.
 
-### 3. MISLEADING — two KPI tiles bound to fields that don't exist
-`dashboard/index.html:1478, 1493`. "Pipeline Cover (DOI)" reads `metrics.avg_fill_rate`
-and "Fill Rate (OTIF)" reads `metrics.otif_pct` — neither field name appears anywhere
-else in the codebase (confirmed by full-file grep), and the declared fallback shape
-one line above (`{doi:{}, otif:{}}`) doesn't define them either. These two KPIs are
-very likely always blank/wrong.
+### 2. FIXED (was MISLEADING) — Store Coverage table was reading a field that doesn't exist
+`dashboard/index.html:1576` (pre-fix). The code read `D.offtake.by_zone.stores` — a
+field that does not exist in that block at all (`D.offtake.by_zone` carries NSV, not
+store counts) — and additionally called `Object.keys()` on it as if it were a map,
+when `D.offtake.by_zone` is actually an array. Real effect in production: every row
+showed the **array index** ("0", "1", "2"...) as the zone name, 0 stores, and 0.0%
+"coverage" — not a NaN risk, an always-zero, always-mislabelled table.
+
+**Fix applied:** switched to the real source, `D.universe.by_zone` (`{name,stores}`),
+which sums to the 426-store baseline invariant — verified live: North 117, East 91,
+South 1 77, West 73, South 2 39, Central 29 = 426. The fabricated "Coverage %" column
+(`stores/10*100`, no real denominator) is dropped rather than replaced with another
+invented ratio, since no active-vs-total split by zone exists yet to compute a real
+coverage % from.
+
+### 3. FIXED (was MISLEADING) — two KPI tiles bound to fields that don't exist
+`dashboard/index.html:1478, 1493` (pre-fix). "Pipeline Cover (DOI)" read
+`metrics.avg_fill_rate` and "Fill Rate (OTIF)" read `metrics.otif_pct` — neither field
+name appears anywhere else in the codebase. Traced to source: `build_dashboard_data.py`
+emits `metrics.doi = {}` and `metrics.otif = {}` as explicit, permanently-empty
+placeholders (comments: "Days of Inventory by zone", "On-Time In-Full by zone") — no
+DOI/OTIF computation is implemented anywhere in the pipeline yet, so these two KPIs
+always showed a bare `–`, indistinguishable from a KPI that's legitimately zero after
+filtering.
+
+**Fix applied:** changed the blank-state label to **"Not computed"** so it reads as
+"this pipeline gap exists" rather than "filtered to zero" — no fabricated number was
+invented, since no real DOI/OTIF source exists to compute one from.
 
 ### 4. Real bug — a safety fix is silently shadowed
 `dashboard/index.html:433` and `:3292` both declare `function destroyAnalyticsCharts()`
@@ -161,11 +187,11 @@ just worth knowing.
 
 | Visual | Sub-view | Type | Source | Class |
 |---|---|---|---|---|
-| Total Offtake / Active Stores / Pipeline Cover / Fill Rate KPIs (4) | all | KPI | `D.offtake` | Pipeline Cover + Fill Rate: **MISLEADING (#3)**; other two AUTHORITATIVE |
+| Total Offtake / Active Stores / Pipeline Cover / Fill Rate KPIs (4) | all | KPI | `D.offtake` | Pipeline Cover + Fill Rate: **FIXED, now "Not computed" (#3)**; other two AUTHORITATIVE |
 | Top Chains by Offtake table + bar chart | velocity | table+bar | `D.offtake.by_chain` | AUTHORITATIVE (not drill-linked, not filter-aware) |
 | Inventory Watchlist table | gap | table | `D.offtake.metrics.doi_watchlist` | AUTHORITATIVE |
-| Gap line chart | gap | line | **hardcoded literals** | **MISLEADING (#1) — V1 blocker** |
-| Coverage by Zone table + donut | coverage | table+donut | `D.offtake.by_zone` | table AUTHORITATIVE; coverage % calc **MISLEADING (#2)** |
+| Gap line chart | gap | line → honest note | was hardcoded literals | **FIXED (#1)** — now an honest "source not available" card |
+| Store Distribution by Zone table + donut | coverage | table+donut | `D.universe.by_zone` (was wrongly `D.offtake.by_zone`) | **FIXED (#2)** — real zone names/store counts, sums to 426 |
 
 None of this tab's visuals respond to the Chain/Brand/Channel/Zone filter bar; only
 the FY selector partially applies (see full inventory notes below).
