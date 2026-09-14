@@ -300,14 +300,25 @@ def canon_state(s):
 # Canonical chain key: collapse the many spellings across the four files onto a
 # single business-facing chain name so primary / offtake / universe / promo join.
 CHAIN_ALIASES = [
-    ("Apollo",            ["apollo", "apollo healthco"]),
+    ("Apollo",            ["apollo", "apollo healthco",
+                            # Verified 2026-09-14 against ShipToMaster.csv and the Apr-Aug'26
+                            # secondary hierarchy file: every "APOLLO HEALTHCO LIMITED-*"
+                            # distributor Ship-To reports its Chain as "Apollo Pharmacy" --
+                            # that is Apollo's own retail-pharmacy format, not a distinct chain.
+                            # Real money: ~Rs9.98 Cr over Apr-Aug'26 was previously stranded
+                            # under this unaliased spelling instead of folding into Apollo.
+                            "apollo pharmacy", "apollo healthco limited"]),
     ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
                             "reliance", "reliance ", "rrl"]),
     ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
     ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
     ("Wellness Forever",  ["wellness forever"]),
     ("Health & Glow",               ["h&g", "hng", "h\\&g"]),
-    ("Lulu",              ["lulu", "lulu "]),
+    ("Lulu",              ["lulu", "lulu ",
+                            # Verified 2026-09-14 against the same secondary hierarchy file --
+                            # "Lulu Hyper" and "Lulu Hypermarket" are spelling variants of Lulu,
+                            # not separate chains (~Rs3.13 Cr over Apr-Aug'26 combined).
+                            "lulu hyper", "lulu hypermarket"]),
     ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
     ("More Retail",       ["more", "more retail", "more "]),
     ("Sancus (RMT)",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
