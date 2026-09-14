@@ -329,8 +329,8 @@ CHAIN_ALIASES = [
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
     ("Trent/Westside",    ["trends"]),
     ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
-    ("DMart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
-                            "just mark-d-mart"]),
+    ("DMart",             ["dc-d-mart-offline", "d-mart-offline", "d-mart-store-e-com",
+                            "just mark-dmart", "just mark-d-mart"]),
     ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
     ("Nykaa (FSN)",       ["nykaa e-retail limited"]),
     ("Metro C&C",         ["metro-cnc"]),
@@ -1787,9 +1787,28 @@ def universe_block(src):
                             key=lambda d: -d["stores"])
     out["by_citycat"] = [{"name": k, "stores": int(v)}
                          for k, v in act.groupby(act["City Category"].astype(str).str.strip()).size().items()]
-    out["by_chain"] = sorted([{"name": k, "stores": int(v)}
-                              for k, v in act.groupby("chain").size().items() if k],
-                             key=lambda d: -d["stores"])[:20]
+    _chain_counts = sorted([{"name": k, "stores": int(v)}
+                            for k, v in act.groupby("chain").size().items() if k],
+                           key=lambda d: -d["stores"])
+    out["by_chain"] = _chain_counts[:20]
+    _chain_other = sum(d["stores"] for d in _chain_counts[20:])
+    if _chain_other > 0:
+        # Root QC (2026-09-14): silently truncating here made by_chain sum to
+        # 415 of 426 active stores with no disclosure -- indistinguishable from
+        # a real 11-store data gap. Disclosed the same way storetype_note
+        # already discloses its own truncation below, rather than fabricating
+        # which of the excluded entities is a real chain vs a distributor
+        # billing point (several -- e.g. "REAL TIME LOGISTICS_MT_BR",
+        # "CHHABRA TRADERS" -- look like the latter; that reclassification is
+        # a business call, not made here).
+        out["by_chain"].append({"name": "Other (below top 20)", "stores": _chain_other})
+        out["by_chain_note"] = (
+            f"{_chain_other} of {len(act)} active stores belong to chains outside the top 20 by "
+            "store count (mostly 1-store entries, some of which read as distributor/logistics "
+            "names rather than retail chains -- e.g. from the raw Chain Name column, not "
+            "reclassified here). Folded into \"Other (below top 20)\" so this total reconciles "
+            "to active_stores; see PowerBI/SeedData/Distribution/UniverseMT.csv for the raw names."
+        )
     _st_col = act["Store Type"].astype(str).str.strip()
     _st_valid = _st_col[_st_col.str.upper().ne("NAN") & _st_col.ne("") & _st_col.ne("NONE")]
     _n_unclassified = int(len(act)) - int(len(_st_valid))
@@ -5738,6 +5757,11 @@ def main():
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
+    ap.add_argument("--universe-only", action="store_true",
+                    help="rebuild ONLY the universe block (D.universe) in an existing data.js from "
+                         "PowerBI/SeedData/Distribution/UniverseMT.csv (already in git -- no raw "
+                         "source files needed); also recomputes the readiness gate since "
+                         "scorecard_execution reads universe.active_stores")
     ap.add_argument("--readiness-only", action="store_true",
                     help="recompute ONLY the readiness gate (D.readiness) in an existing data.js "
                          "from config/analytics_config.json + the data already baked into it; "
@@ -5753,6 +5777,25 @@ def main():
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
+
+    # ---- lightweight path: rebuild ONLY the universe block from UniverseMT.csv ----
+    if a.universe_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        _, universe = universe_block(src)
+        obj["universe"] = universe
+        cfg = load_analytics_config(_REPO_ROOT)
+        obj["readiness"] = readiness_gate(obj, cfg)
+        print(f"universe-only: {universe['active_stores']} active stores, "
+              f"{len(universe['by_chain'])} chain rows"
+              + (f" ({universe.get('by_chain_note')})" if universe.get("by_chain_note") else ""))
+        print(f"readiness: {obj['readiness']['summary']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        return
 
     # ---- lightweight path: recompute ONLY the readiness gate (+ the two small
     # derived blocks it now reads, profitability and npd) in an existing data.js ----
