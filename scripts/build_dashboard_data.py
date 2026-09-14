@@ -309,7 +309,16 @@ CHAIN_ALIASES = [
                             # under this unaliased spelling instead of folding into Apollo.
                             "apollo pharmacy", "apollo healthco limited"]),
     ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
-                            "reliance", "reliance ", "rrl"]),
+                            "reliance", "reliance ", "rrl",
+                            # Verified 2026-09-14: ShipToMaster.csv has a governed
+                            # "Reliance Retail Limited-FOC" entry (Direct, Primary
+                            # Chain = Reliance Retail) -- the same entity type as
+                            # UniverseMT.csv's "RRL-FOC-Sample" (RRL = Reliance
+                            # Retail Limited; FOC = free-of-charge/sample door).
+                            # Previously kept as its own standalone label with no
+                            # evidence either way; this resolves it using the same
+                            # real master data used for every other chain here.
+                            "rrl-foc-sample"]),
     ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
     ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
     ("Wellness Forever",  ["wellness forever"]),
@@ -369,7 +378,6 @@ CHAIN_ALIASES = [
     ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart", "vishal enterprises"]),
     ("Shoppers Stop",     ["shoppers stop"]),
-    ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
 ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
@@ -557,18 +565,45 @@ def load_chain_allocation_weights(src):
     """Read the secondary-driven Ship-To -> Chain Cont% allocation (CSV seed preferred).
     CSV: PowerBI/SeedData/DIST/ChainAllocationWeights.csv (versioned in git)
     XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx Sheet2 (fallback)
+    CSV (narrow, approved patch): PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv
     Returns {(ship_to_norm, brand_canon, month_norm): [(chain_raw, fraction), ...]}
-    with fractions normalized to sum to 1 per key. Returns None if neither file exists."""
-    # Try CSV first
+    with fractions normalized to sum to 1 per key. Returns None if none of these exist."""
+    # Try the comprehensive CSV first
     csv_f = Path("PowerBI/SeedData/DIST/ChainAllocationWeights.csv")
     if csv_f.exists():
         s2 = pd.read_csv(csv_f)
     else:
         # Fallback to XLSX
         f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-        if not f.exists():
-            return None
-        s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+        if f.exists():
+            s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+        else:
+            # Neither the comprehensive file nor its XLSX source exists in this
+            # repo (verified 2026-09-14). What DOES exist is a much narrower,
+            # already-APPROVED patch covering 5 distributors x 4 months --
+            # PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv. It has a
+            # pre-computed Cont_Pct (not raw NSV to ratio from) and different
+            # column names, so it needs its own conversion rather than being
+            # forced through the NSV-ratio path below. Using it here is real,
+            # approved data that was previously wired into nothing -- not a
+            # fabricated default (contrast with allocate_dist_enhanced.py's
+            # Tier 3, which was inventing a split; see that file's history).
+            patch_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+            if not patch_f.exists():
+                return None
+            p = pd.read_csv(patch_f)
+            p = p[p["Approval_Status"].astype(str).str.strip().str.lower() == "approved"]
+            weights = {}
+            for key, g in p.groupby([
+                p["Ship_To_Name"].astype(str).str.strip().str.lower(),
+                p["Brand"].map(canon_brand),
+                p["Month"].astype(str).str.strip().str.lower(),
+            ]):
+                tot = g["Cont_Pct"].sum()
+                if tot <= 0:
+                    continue
+                weights[key] = [(row["Chain_Name"], row["Cont_Pct"] / tot) for _, row in g.iterrows()]
+            return weights or None
 
     s2.columns = [str(c).strip() for c in s2.columns]
     s2 = s2.dropna(subset=["NSV"])
@@ -5837,6 +5872,13 @@ def main():
                          "PowerBI/SeedData/Distribution/UniverseMT.csv (already in git -- no raw "
                          "source files needed); also recomputes the readiness gate since "
                          "scorecard_execution reads universe.active_stores")
+    ap.add_argument("--mapping-health-only", action="store_true",
+                    help="recompute ONLY mapping_health (D.mapping_health) in an existing data.js "
+                         "from the detail_records/alloc already baked into it -- no raw source "
+                         "files needed. Use whenever detail_records has been refreshed (e.g. a new "
+                         "month patched in via --detail-only) so mapping_health's completeness_pct "
+                         "doesn't go stale relative to it; also recomputes the readiness gate since "
+                         "chain_primary reads mapping_health.by_fy")
     ap.add_argument("--readiness-only", action="store_true",
                     help="recompute ONLY the readiness gate (D.readiness) in an existing data.js "
                          "from config/analytics_config.json + the data already baked into it; "
@@ -5865,6 +5907,33 @@ def main():
         print(f"universe-only: {universe['active_stores']} active stores, "
               f"{len(universe['by_chain'])} chain rows"
               + (f" ({universe.get('by_chain_note')})" if universe.get("by_chain_note") else ""))
+        print(f"readiness: {obj['readiness']['summary']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        return
+
+    # ---- lightweight path: recompute ONLY mapping_health from detail_records/alloc
+    # already baked into an existing data.js -- no raw source files needed ----
+    if a.mapping_health_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        adf = frame_from_records(obj.get("detail_records"), obj.get("detail_meta"))
+        if adf is None:
+            raise SystemExit("mapping-health-only: detail_records missing or row-capped "
+                              "(value_coverage_pct < 100) -- refusing to compute an understated total.")
+        cfg = load_analytics_config(_REPO_ROOT)
+        mh = mapping_health_block(adf, alloc=obj.get("alloc"), cfg=cfg, repo_root=_REPO_ROOT)
+        if mh is None:
+            raise SystemExit("mapping-health-only: mapping_health_block() returned None "
+                              "(no _Chain column on the frame built from detail_records).")
+        obj["mapping_health"] = mh
+        obj["readiness"] = readiness_gate(obj, cfg)
+        cur_fy = sorted(mh["by_fy"], key=fy_start_year)[-1]
+        print(f"mapping-health-only: {cur_fy} completeness {mh['by_fy'][cur_fy]['completeness_pct']}% "
+              f"({mh['exception_count']} unmapped ship-to parties, Rs {mh['exception_nsv']/100:.2f} Cr)")
         print(f"readiness: {obj['readiness']['summary']}")
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",

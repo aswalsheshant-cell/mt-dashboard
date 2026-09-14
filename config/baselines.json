@@ -71,11 +71,11 @@
     {
       "key": "n_chains",
       "path": "universe.n_chains",
-      "expected": 17,
+      "expected": 16,
       "unit": "chains",
       "class": "tracked_universe",
       "tolerance": 0,
-      "why": "Verified MT chain count. Update deliberately when a chain is added or retired. CORRECTED 2026-09-14 from 20 to 17: universe.n_chains previously had no producing code path anywhere in this repo (an orphaned field -- any full rebuild would have silently dropped it), and the prior 20 coincided exactly with universe.by_chain's old, undisclosed [:20] truncation length, not a real verified count. Root QC found 18 of UniverseMT.csv's 36 raw Chain Name values were actually distributor Ship-To/DC billing codes, not chains (confirmed against PowerBI/SeedData/Masters/ShipToMaster.csv's own governed Primary Chain / Chains Served columns -- e.g. \"G.V Enterprises\" serves Apollo, D-Mart, Lulu and Pothys, it is not its own chain). Reclassifying those 16 (of 18; 2 already resolved via existing canon_chain() aliases) into their governed Primary Chain, plus fixing a separate missing DMart alias, yields 17 real distinct chains reconciling exactly to all 426 active stores with no truncation. See scripts/build_dashboard_data.py universe_block()/CHAIN_ALIASES and docs/PROJECT_STATE.md for the full trace.",
+      "why": "Verified MT chain count. Update deliberately when a chain is added or retired. CORRECTED 2026-09-14 from 20 to 17, then to 16: universe.n_chains previously had no producing code path anywhere in this repo (an orphaned field -- any full rebuild would have silently dropped it), and the prior 20 coincided exactly with universe.by_chain's old, undisclosed [:20] truncation length, not a real verified count. Root QC found 18 of UniverseMT.csv's 36 raw Chain Name values were actually distributor Ship-To/DC billing codes, not chains (confirmed against PowerBI/SeedData/Masters/ShipToMaster.csv's own governed Primary Chain / Chains Served columns -- e.g. \"G.V Enterprises\" serves Apollo, D-Mart, Lulu and Pothys, it is not its own chain). Reclassifying 16 of those 18 into their governed Primary Chain first yielded 17 (\"RRL-FOC-Sample\", 1 store, had no ShipToMaster match and stayed its own label). Further evidence found: ShipToMaster.csv carries a governed \"Reliance Retail Limited-FOC\" entry (Direct, Primary Chain = Reliance Retail) -- the same entity type (RRL = Reliance Retail Limited, FOC = free-of-charge/sample door) -- so RRL-FOC-Sample was folded into Reliance Retail too, yielding 16 real distinct chains reconciling exactly to all 426 active stores with no truncation. See scripts/build_dashboard_data.py universe_block()/CHAIN_ALIASES and docs/PROJECT_STATE.md for the full trace.",
       "owner": "MT Ops"
     }
   ]
