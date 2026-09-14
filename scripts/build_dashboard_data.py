@@ -3094,13 +3094,28 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
                 "re-run the allocation, and this register shrinks on its own.")
     return out
 
+# Status vocabulary for readiness_gate(). PASS/N/A are self-explanatory.
+# AWAITING_BUSINESS_DATA means the implementation is complete and correctly
+# withholds the number until a named external/business input arrives -- it is
+# NOT a software defect, so it must never render or read like one. "BLOCKED"
+# is reserved for a genuine, unresolved technical/software gap -- readiness_gate()
+# does not currently emit it for any gate; it stays available for one that
+# actually needs it (e.g. a required source file failing to parse).
+AWAITING_BUSINESS_DATA = "AWAITING BUSINESS DATA"
+
+
 def readiness_gate(data, cfg=None):
     """Is each analytical layer allowed to present itself as authoritative?
 
     A layer that runs on inputs it needs but does not have produces a number
     that looks finished and is not. Each gate states its precondition, what it
-    measured, and what would unblock it -- so a blocked layer explains itself
-    instead of showing a confident zero.
+    measured, and what would unblock it.
+
+    Status meanings (see AWAITING_BUSINESS_DATA docstring above for the full
+    rationale): PASS = ready to present as authoritative. AWAITING_BUSINESS_DATA
+    = implementation complete, correctly waiting on a named external input --
+    not broken. N/A = out of scope for this reporting surface. BLOCKED = a
+    genuine unresolved technical/software gap.
     """
     cfg = cfg or {}
     rules = (cfg.get("readiness") or {})
@@ -3123,7 +3138,7 @@ def readiness_gate(data, cfg=None):
         floor = (rules["chain_primary"] or {}).get("min_mapping_completeness_pct")
         got = (cur or {}).get("completeness_pct")
         ok = got is not None and floor is not None and got >= floor
-        put("chain_primary", "PASS" if ok else "BLOCKED",
+        put("chain_primary", "PASS" if ok else AWAITING_BUSINESS_DATA,
             f"mapping completeness {got}%" if got is not None else "not measured",
             {"threshold": floor, "value": got})
 
@@ -3139,7 +3154,7 @@ def readiness_gate(data, cfg=None):
     if "profitability" in rules:
         cols = set((data.get("detail_meta") or {}).get("columns") or [])
         has_cost = bool(cols & {"COGS", "Cost", "StdCost", "Margin"})
-        put("profitability", "PASS" if has_cost else "BLOCKED",
+        put("profitability", "PASS" if has_cost else AWAITING_BUSINESS_DATA,
             "cost/margin field present" if has_cost else "no cost or margin field at the reporting grain")
 
     if "scorecard_execution" in rules:
@@ -3159,13 +3174,13 @@ def readiness_gate(data, cfg=None):
         covp = r2(doors / univ * 100) if doors and univ else None
         floor = (rules["scorecard_execution"] or {}).get("min_audit_coverage_pct")
         ok = covp is not None and floor is not None and covp >= floor
-        put("scorecard_execution", "PASS" if ok else "BLOCKED",
+        put("scorecard_execution", "PASS" if ok else AWAITING_BUSINESS_DATA,
             f"audit coverage {covp}% ({doors} of {univ} stores)" if covp is not None
             else "no store-audit data in this build",
             {"threshold": floor, "value": covp})
 
     if "npd" in rules:
-        put("npd", "BLOCKED", "NPD master not joined to the transaction grain")
+        put("npd", AWAITING_BUSINESS_DATA, "NPD master not joined to the transaction grain")
 
     if "sales_consolidation" in rules:
         # DMS/Massit is incentive-scope only by business instruction, so it is
@@ -3185,22 +3200,40 @@ def readiness_gate(data, cfg=None):
             "emerging-brand rule": ((cfg.get("brands") or {}).get("emerging_rule")) is not None,
         }
         miss = [k for k, v in have.items() if not v]
-        put("incentive", "PASS" if not miss else "BLOCKED",
+        put("incentive", "PASS" if not miss else AWAITING_BUSINESS_DATA,
             f"{len(have) - len(miss)} of {len(have)} mandatory inputs present"
             + (f"; missing: {', '.join(miss)}" if miss else ""))
 
     if "persona_reporting" in rules:
         sa = data.get("sales_actuals") or {}
         hs = sa.get("hierarchy_stores")
-        put("persona_reporting", "BLOCKED",
+        put("persona_reporting", AWAITING_BUSINESS_DATA,
             (f"hierarchy covers {hs} stores but carries names, not employee IDs"
              if hs else "store-employee hierarchy not ingested"))
 
-    blocked = [k for k in order if (out.get(k) or {}).get("status") == "BLOCKED"]
+    ready = [k for k in order if (out.get(k) or {}).get("status") == "PASS"]
+    awaiting = [k for k in order if (out.get(k) or {}).get("status") == AWAITING_BUSINESS_DATA]
+    not_applicable = [k for k in order if (out.get(k) or {}).get("status") == "N/A"]
+    genuinely_blocked = [k for k in order if (out.get(k) or {}).get("status") == "BLOCKED"]
+    # Kept for existing callers that log "blocked: <keys>" during a build --
+    # they only print this list, nothing gates on its exact status label.
+    blocked = awaiting + genuinely_blocked
+
+    summary_parts = [f"{len(ready)} of {len(order)} layers ready"]
+    if awaiting:
+        summary_parts.append(f"{len(awaiting)} awaiting business data (not software defects)")
+    if not_applicable:
+        summary_parts.append(f"{len(not_applicable)} not applicable to current scope")
+    if genuinely_blocked:
+        summary_parts.append(f"{len(genuinely_blocked)} blocked on unresolved technical work")
+
     return {"gates": out, "blocked": blocked,
-            "summary": f"{len(order) - len(blocked)} of {len(order)} layers ready",
-            "note": ("A BLOCKED layer is not broken -- its inputs are not in place yet. "
-                     "It reports why rather than presenting an incomplete number as final.")}
+            "summary": "; ".join(summary_parts),
+            "note": ("PASS = ready to present as authoritative. AWAITING BUSINESS DATA = "
+                     "the implementation is complete and correctly withholds the number "
+                     "until a named business or source input arrives -- not a software "
+                     "defect. N/A = out of scope for this reporting surface. BLOCKED = a "
+                     "genuine, unresolved technical/software gap.")}
 
 # --------------------------------------------------------------------------
 # TARGET / ACHIEVEMENT / RUN RATE
@@ -5586,6 +5619,12 @@ def main():
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
+    ap.add_argument("--readiness-only", action="store_true",
+                    help="recompute ONLY the readiness gate (D.readiness) in an existing data.js "
+                         "from config/analytics_config.json + the data already baked into it; "
+                         "needs no source files at all. Use after changing readiness_gate()'s "
+                         "logic/thresholds/status labels so a status-semantics fix does not "
+                         "require a full rebuild")
     ap.add_argument("--not-eligible-gate-pct", type=float, default=0.0, dest="not_eligible_gate_pct",
                     help="Fail build if Not_Eligible tier NSV exceeds this %% of total Dist. NSV "
                          "(0 = disabled, the default). Example: --not-eligible-gate-pct 10 fails "
@@ -5595,6 +5634,20 @@ def main():
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
+
+    # ---- lightweight path: recompute ONLY the readiness gate in an existing data.js ----
+    if a.readiness_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        cfg = load_analytics_config(_REPO_ROOT)
+        obj["readiness"] = readiness_gate(obj, cfg)
+        print(f"readiness-only: {obj['readiness']['summary']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        return
 
     # ---- lightweight path: refresh ONLY detail_records in an existing data.js ----
     if a.detail_only:
