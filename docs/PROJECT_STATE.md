@@ -133,11 +133,14 @@ One bounded component per run: implement, validate, commit, stop.
 |---|---|
 | Incentive calculation | 4 of 5 mandatory inputs (see Required Business Inputs) |
 | Persona reporting (KAM/RKAM/BDE) | Employee IDs on the WoA hierarchy |
-| Chain-level Primary | Distributor→chain mapping at 67.65% (₹60.11 Cr unattributed) |
-| NPD tracker | No join key between NPD master and transaction grain |
-| OSA / OOS | Store audit covers 44.4% of stores, wrong period |
-| Profitability | No article-level COGS / standard cost |
+| Chain-level Primary | Distributor→chain mapping at 67.65% (₹60.11 Cr unattributed). Root QC (2026-09-14) on `data/monthly/Aug26_primary_detailed.csv`: its "Chain name" column is a real chain for Direct rows only — for Dist. rows it is the distributor's own name, and "Customer Name.1" carries the same unconfirmed pooled-chain hint already tracked in `scripts/aug26_data_readiness_gate.py` ("Customer name 2"). Still needs the data owner to confirm what that field means before it can be used as an allocation weight — not resolved by this file alone. |
+| OSA / OOS | Store audit covers 44.4% of stores, wrong period. Root QC (2026-09-14): `universe.by_chain` also carries 13 distributor-named "chains" (1 store each, ~3% of stores) — same contamination pattern as Primary's Dist. rows — and only sums to 415 of the 426-store total (11 stores unattributed to any chain). Separately, `compliance_metrics.json`'s audited chains (DMart/Reliance Retail/More Retail/Spencer's) only partly match the universe's own chain names, and DMart's audited door count (83) exceeds its universe.by_chain store count (24) — the audit's chain grain is not the same as the commercial universe's. |
 | Inventory days | No stock-on-hand feed |
+
+## Resolved (2026-09-14, business rules confirmed)
+
+- **Profitability / margin** — standard cost confirmed as 14% of MRP (COGS) + 3% of MRP (logistics), applied to `detail_records` (`profitability_block()` in `build_dashboard_data.py`). FY-to-date: margin 60.68% of NSV. This is a standard-cost rate, not a per-article SAP COGS extract — CM2/P&L are unaffected, they keep their own separate basis.
+- **NPD tracker** — redefined as demand-based, not master-join-based: an article-chain pair is NPD for the FY after its first-ever sale at that chain, when that first sale falls in calendar March (`npd_block()`). FY27: 140 article-chain pairs flagged. No join key to `PowerBI/SeedData/NPI_Master.csv` needed any more for this definition.
 
 ## Required Business Inputs
 

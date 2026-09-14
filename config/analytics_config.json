@@ -53,19 +53,19 @@
     },
     "profitability": {
       "label": "Profitability / margin analytics",
-      "requires": "Cost or margin fields present at the reporting grain",
-      "unblocks_with": "A COGS or standard-cost field per article. Not present today, so margin is NOT computed; CM2 and P&L remain as-is on their own documented basis."
+      "requires": "Cost or margin fields present at the reporting grain, OR a business-confirmed standard-cost rate",
+      "unblocks_with": "Standard-cost basis confirmed by business 2026-09-14: COGS 14% of MRP + logistics 3% of MRP, applied to detail_records (see profitability_block() in build_dashboard_data.py). This is a rate, not an actual per-article SAP COGS extract; CM2 and P&L remain as-is on their own separate, already-documented basis."
     },
     "scorecard_execution": {
       "label": "OSA / OOS / fill-rate columns on the scorecard",
       "requires": "Store-audit coverage across the reporting universe in the reporting period",
       "min_audit_coverage_pct": 60.0,
-      "unblocks_with": "A store audit covering the reporting months. compliance_metrics.json today audits 189 doors of a 426-store universe (44%) and is labelled Q3 FY27 while the reporting window is Apr-Jul'26."
+      "unblocks_with": "A store audit covering the reporting months. compliance_metrics.json today audits 189 doors of a 426-store universe (44%) and is labelled Q3 FY27 while the reporting window is Apr-Jul'26. Root-QC (2026-09-14) also found the audit's own chain identities (DMart/Reliance Retail/More Retail/Spencer's) only partly match the commercial universe's chain names, and universe.by_chain sums to 415 of the 426-store total -- see the diagnostic report for both gaps."
     },
     "npd": {
       "label": "NPD tracker",
-      "requires": "NPD launch and article master joined to the transaction grain",
-      "unblocks_with": "A join key between PowerBI/SeedData/NPI_Master.csv article ids and the EAN/Article values on detail_records."
+      "requires": "NPD launch and article master joined to the transaction grain, OR a business-confirmed demand-based definition",
+      "unblocks_with": "Business-confirmed 2026-09-14: an article-chain pair is NPD for the FY after its first-ever sale at that chain, when that first sale falls in March (see npd_block() in build_dashboard_data.py). No external NPD master join required any more."
     },
     "sales_consolidation": {
       "label": "Consolidated sales actuals (incentive scope)",

@@ -3103,6 +3103,109 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
 # actually needs it (e.g. a required source file failing to parse).
 AWAITING_BUSINESS_DATA = "AWAITING BUSINESS DATA"
 
+# Confirmed by business, 2026-09-14: standard cost = 14% of MRP (COGS) + 3% of
+# MRP (logistics). Applied to detail_records' MRP/NSV (article x chain x month
+# grain, both already in Lakh). This is a standard-cost rate, not an actual
+# SAP COGS extract -- the "measured" text below says so every time it is shown.
+PROFITABILITY_COGS_PCT_OF_MRP = 0.14
+PROFITABILITY_LOGISTICS_PCT_OF_MRP = 0.03
+
+# Fiscal-year month order (Apr=1..Mar=12), matching the exact Month-name
+# strings used in detail_records (mixed abbreviation styles -- verified
+# against the real data, not assumed).
+_FY_MONTH_ORDER = {"April": 1, "May": 2, "June": 3, "July": 4, "Aug": 5, "Sept": 6,
+                    "Oct": 7, "Nov": 8, "Dec": 9, "Jan": 10, "Feb": 11, "March": 12}
+
+
+def profitability_block(detail_records):
+    """Standard-cost margin from detail_records' own MRP/NSV -- no external
+    COGS extract needed now that the business has confirmed the cost rate.
+    See PROFITABILITY_COGS_PCT_OF_MRP/LOGISTICS docstring above for the basis.
+    """
+    if not detail_records:
+        return None
+    by_chain = {}
+    tot_nsv = tot_mrp = tot_cogs = tot_log = 0.0
+    for r in detail_records:
+        nsv = r.get("NSV") or 0.0
+        mrp = r.get("MRP") or 0.0
+        cogs = mrp * PROFITABILITY_COGS_PCT_OF_MRP
+        log = mrp * PROFITABILITY_LOGISTICS_PCT_OF_MRP
+        tot_nsv += nsv; tot_mrp += mrp; tot_cogs += cogs; tot_log += log
+        c = by_chain.setdefault(r.get("Chain") or "Unknown", {"nsv": 0.0, "mrp": 0.0, "cogs": 0.0, "logistics": 0.0})
+        c["nsv"] += nsv; c["mrp"] += mrp; c["cogs"] += cogs; c["logistics"] += log
+
+    def margin_row(nsv, cogs, log):
+        margin = nsv - cogs - log
+        return round(margin, 2), (round(margin / nsv * 100, 2) if nsv else None)
+
+    tot_margin, tot_margin_pct = margin_row(tot_nsv, tot_cogs, tot_log)
+    chain_rows = []
+    for name, v in sorted(by_chain.items(), key=lambda kv: -kv[1]["nsv"]):
+        m, mp = margin_row(v["nsv"], v["cogs"], v["logistics"])
+        chain_rows.append({"name": name, "nsv_lakh": round(v["nsv"], 2), "margin_lakh": m, "margin_pct_of_nsv": mp})
+
+    return {
+        "basis": (f"Standard cost = {PROFITABILITY_COGS_PCT_OF_MRP*100:.0f}% of MRP (COGS) + "
+                  f"{PROFITABILITY_LOGISTICS_PCT_OF_MRP*100:.0f}% of MRP (logistics), confirmed by "
+                  "business 2026-09-14. This is a standard-cost rate applied to detail_records' MRP, "
+                  "not an actual per-article SAP COGS extract."),
+        "total": {"nsv_lakh": round(tot_nsv, 2), "mrp_lakh": round(tot_mrp, 2),
+                  "cogs_lakh": round(tot_cogs, 2), "logistics_lakh": round(tot_log, 2),
+                  "margin_lakh": tot_margin, "margin_pct_of_nsv": tot_margin_pct},
+        "by_chain": chain_rows,
+    }
+
+
+def npd_block(detail_records):
+    """NPD = an article whose first-ever sale AT A GIVEN CHAIN falls in March;
+    it is flagged NPD for the FY immediately following that March (its first
+    full FY of sales). Confirmed by business, 2026-09-14, per chain x article
+    (the same article can be NPD at one chain and not another).
+
+    ASSUMPTION (stated because the source instruction did not spell out
+    every edge case): "March" means the literal calendar month named "March"
+    in detail_records, evaluated once per (Chain, Article) using the EARLIEST
+    FY x Month with NSV > 0 across the whole history available here -- not
+    re-evaluated per FY. If this is not what was meant, this is a one-function
+    change (this docstring names exactly what would need to differ).
+    """
+    if not detail_records:
+        return None
+    first_seen = {}  # (chain, article) -> (fy_start_year, month_order, fy_tag, month_name)
+    for r in detail_records:
+        if not (r.get("NSV") or 0.0) > 0:
+            continue
+        chain, article, fy, month = r.get("Chain"), r.get("Article"), r.get("FY"), r.get("Month")
+        if not (chain and article and fy and month and month in _FY_MONTH_ORDER):
+            continue
+        fy_year = fy_start_year(fy)
+        key = (chain, article)
+        cand = (fy_year, _FY_MONTH_ORDER[month], fy, month)
+        if key not in first_seen or cand < first_seen[key]:
+            first_seen[key] = cand
+
+    by_fy = {}
+    for (chain, article), (fy_year, _mo, fy_tag, month_name) in first_seen.items():
+        if month_name != "March":
+            continue
+        npd_fy = f"FY{int(fy_tag[2:]) + 1}"
+        by_fy.setdefault(npd_fy, []).append({
+            "chain": chain, "article": article,
+            "first_sale_fy": fy_tag, "first_sale_month": month_name,
+        })
+    for fy in by_fy:
+        by_fy[fy].sort(key=lambda r: (r["chain"], r["article"]))
+
+    return {
+        "basis": ("An article-chain pair is flagged NPD for the FY immediately after its first-ever "
+                   "sale at that chain, when that first sale falls in March. Confirmed by business, "
+                   "2026-09-14. Evaluated per chain x article from detail_records' own sales history -- "
+                   "no external NPD master join required."),
+        "by_fy": by_fy,
+        "counts_by_fy": {fy: len(rows) for fy, rows in by_fy.items()},
+    }
+
 
 def readiness_gate(data, cfg=None):
     """Is each analytical layer allowed to present itself as authoritative?
@@ -3152,10 +3255,20 @@ def readiness_gate(data, cfg=None):
             {"threshold": floor, "value": asp})
 
     if "profitability" in rules:
+        # Prefer an actual sourced cost field if one ever arrives; otherwise
+        # fall back to the confirmed standard-cost rate in data["profitability"]
+        # (see profitability_block() -- 14% COGS + 3% logistics of MRP).
         cols = set((data.get("detail_meta") or {}).get("columns") or [])
         has_cost = bool(cols & {"COGS", "Cost", "StdCost", "Margin"})
-        put("profitability", "PASS" if has_cost else AWAITING_BUSINESS_DATA,
-            "cost/margin field present" if has_cost else "no cost or margin field at the reporting grain")
+        prof = data.get("profitability") or {}
+        margin_pct = (prof.get("total") or {}).get("margin_pct_of_nsv")
+        if has_cost:
+            put("profitability", "PASS", "cost/margin field present")
+        elif margin_pct is not None:
+            put("profitability", "PASS",
+                f"margin {margin_pct}% of NSV (standard-cost basis: 14% COGS + 3% logistics of MRP, confirmed by business)")
+        else:
+            put("profitability", AWAITING_BUSINESS_DATA, "no cost or margin field at the reporting grain")
 
     if "scorecard_execution" in rules:
         # compliance/inventory metrics ship as a runtime sidecar the dashboard
@@ -3180,7 +3293,13 @@ def readiness_gate(data, cfg=None):
             {"threshold": floor, "value": covp})
 
     if "npd" in rules:
-        put("npd", AWAITING_BUSINESS_DATA, "NPD master not joined to the transaction grain")
+        npd = data.get("npd") or {}
+        counts = npd.get("counts_by_fy") or {}
+        if counts:
+            summary = "; ".join(f"{fy}: {n} article-chain pairs" for fy, n in sorted(counts.items()))
+            put("npd", "PASS", f"NPD identified from first-sale-in-March rule ({summary})")
+        else:
+            put("npd", AWAITING_BUSINESS_DATA, "NPD master not joined to the transaction grain")
 
     if "sales_consolidation" in rules:
         # DMS/Massit is incentive-scope only by business instruction, so it is
@@ -5635,14 +5754,27 @@ def main():
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
 
-    # ---- lightweight path: recompute ONLY the readiness gate in an existing data.js ----
+    # ---- lightweight path: recompute ONLY the readiness gate (+ the two small
+    # derived blocks it now reads, profitability and npd) in an existing data.js ----
     if a.readiness_only:
         outp = Path(a.out)
         txt = outp.read_text()
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
         cfg = load_analytics_config(_REPO_ROOT)
+        detail_records = obj.get("detail_records")
+        prof = profitability_block(detail_records)
+        npd = npd_block(detail_records)
+        if prof is not None:
+            obj["profitability"] = prof
+        if npd is not None:
+            obj["npd"] = npd
         obj["readiness"] = readiness_gate(obj, cfg)
         print(f"readiness-only: {obj['readiness']['summary']}")
+        if prof:
+            print(f"  profitability: margin {prof['total']['margin_pct_of_nsv']}% of NSV "
+                  f"(NSV {prof['total']['nsv_lakh']}L, standard cost {prof['total']['cogs_lakh'] + prof['total']['logistics_lakh']}L)")
+        if npd:
+            print(f"  npd: {npd['counts_by_fy']}")
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -6183,6 +6315,12 @@ def main():
                 print(f"pvm: delta Rs {_pv['delta']/100:.2f} Cr = "
                       + " + ".join(f"{b['driver']} {b['value']/100:.2f}" for b in _pv["buckets"])
                       + f" (recon {_pv['reconciliation']['status']})")
+    _prof = profitability_block(data.get("detail_records"))
+    if _prof is not None:
+        data["profitability"] = _prof
+    _npd = npd_block(data.get("detail_records"))
+    if _npd is not None:
+        data["npd"] = _npd
     data["readiness"] = readiness_gate(data, _cfg)
     print(f"readiness: {data['readiness']['summary']}"
           + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))
