@@ -411,7 +411,11 @@ function card(title,note,inner,extraCls){
   // any card whose content includes a <table> automatically gets an "Export
   // Table" button -- applies dashboard-wide with zero changes needed at each
   // of the ~15 individual table call sites (see wireTableExports() delegation).
-  const dl=/<table/i.test(inner)?`<button class="tblexport" data-title="${String(title).replace(/<[^>]+>/g,'').replace(/"/g,'&quot;')}">⭳ Export Table</button>`:'';
+  // use the browser's own HTML parser (via textContent) to strip tags, not a
+  // regex -- a single regex pass can leave residual tags behind on adversarial
+  // nested input (e.g. "<<script>script>"); textContent has no such gap.
+  const titleText=(()=>{const d=document.createElement('div');d.innerHTML=String(title);return d.textContent||'';})();
+  const dl=/<table/i.test(inner)?`<button class="tblexport" data-title="${titleText.replace(/"/g,'&quot;')}">⭳ Export Table</button>`:'';
   return `<div class="card"><h3>${title}</h3>${note?`<p class="note">${note}</p>`:''}${dl}${inner}</div>`;
 }
 function cv(id,sm){return `<div class="chartbox${sm?' sm':''}">${chartDlHtml(id)}<canvas id="${id}"></canvas></div>`;}
@@ -1388,9 +1392,32 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     recs.forEach(r=>{const k=r[dimKey]||'Unknown';
       if(!agg[k]) agg[k]={nsv:0,qty:0,n:0};
       agg[k].nsv+=r.NSV||0; agg[k].qty+=r.Qty||0; agg[k].n+=1;});
-    const rows=Object.entries(agg).sort((a,b)=>b[1].nsv-a[1].nsv);
+    // value desc, name asc on ties -- deterministic regardless of object iteration order
+    let rows=Object.entries(agg).sort((a,b)=>(b[1].nsv-a[1].nsv)||String(a[0]).localeCompare(String(b[0])));
     const totalNsv=rows.reduce((a,kv)=>a+kv[1].nsv,0);
     const canDrill=depth<LEVELS.length-1;
+
+    // Governed Presentation Hierarchy (2026-09-13): at the Sub-Category level
+    // -- i.e. one Category already fixed by `path` above -- keep only the
+    // sub-categories that cumulatively cover the first 95% of THIS Category's
+    // own NSV; the rest collapse into one "Others" row. This is the live
+    // equivalent of the rule; the drill hierarchy never lists Category or
+    // Brand as a level here, so only Sub-Category is grouped. Presentation
+    // only -- `agg`/`totalNsv` (Share% denominator) still reflect every row.
+    let othersRow=null;
+    if(dimKey==='SubCategory' && rows.length){
+      const items=rows.map(([name,v])=>({name,...v}));
+      const g=cumulative95Group(items,'name','nsv','Others');
+      rows=g.major.map(x=>[x.name,{nsv:x.nsv,qty:x.qty,n:x.n}]);
+      if(g.tailCount){
+        othersRow={
+          nsv:g.tailValue,
+          qty:g.tailMembers.reduce((a,x)=>a+x.qty,0),
+          n:g.tailMembers.reduce((a,x)=>a+x.n,0),
+          members:g.tailMembers.map(x=>x.name),
+        };
+      }
+    }
 
     const crumbs=`<div style="margin-bottom:10px;font-size:13px;">
       <a href="#" data-cat-pop="0" style="cursor:pointer;">All categories</a>`
@@ -1405,10 +1432,15 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
         ? `<a href="#" data-cat-drill="${encodeURIComponent(k)}" style="cursor:pointer;">${k}</a>`
         : k;
       return `<tr><td>${cell}</td><td>${crc(v.nsv/100)}</td><td>${num(v.qty)}</td><td>${shr.toFixed(1)}%</td></tr>`;
-    }).join('');
+    }).join('') + (othersRow?`<tr style="color:var(--muted)" title="${othersRow.members.map(m=>String(m).replace(/"/g,'&quot;')).join(', ')}">
+      <td>Others (${othersRow.members.length} sub-categories, &lt;95% cutoff)</td>
+      <td>${crc(othersRow.nsv/100)}</td><td>${num(othersRow.qty)}</td>
+      <td>${totalNsv>0?(100*othersRow.nsv/totalNsv).toFixed(1):'0.0'}%</td></tr>`:'');
 
     content.innerHTML=crumbs+card(`Category & Pack Mix — by ${dimLabel}`,
-      `${rows.length} ${dimLabel.toLowerCase()}${rows.length===1?'':'s'} · ${num(recs.length)} records`,
+      `${rows.length}${othersRow?' + Others':''} ${dimLabel.toLowerCase()}${rows.length===1?'':'s'} shown`+
+      (dimKey==='SubCategory'?' (95% cumulative NSV of this Category; long tail grouped into Others)':'')+
+      ` · ${num(recs.length)} records`,
       `<table class="tbl"><thead><tr><th>${dimLabel}</th><th>NSV</th><th>Qty</th><th>Share</th></tr></thead><tbody>${body}</tbody></table>`);
 
     content.querySelectorAll('[data-cat-drill]').forEach(a=>{
@@ -1462,7 +1494,14 @@ function buildInventoryHealth(){
   // present in the data (never a hardcoded year: THE ONE FY RULE).
   const _fyTags = (o && o.fy_tags) || (D.primary && D.primary.fy_tags) || [];
   const fyR = fy || _fyTags[_fyTags.length - 1] || 'fy26';
-  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys((o.by_chain[ch]&&o.by_chain[ch].by_month&&o.by_chain[ch].by_month[MONTH_NOW])||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'–'}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'–'}</div></div></div>`;
+  // Pipeline Cover (DOI) / Fill Rate (OTIF): scripts/build_dashboard_data.py
+  // emits metrics.doi/{} and metrics.otif/{} as explicit, permanently-empty
+  // placeholders (no DOI/OTIF computation exists anywhere in the pipeline
+  // yet) -- shown as "Not computed" rather than a bare "-" so this reads as
+  // "not built yet", not as "filtered to zero" like the KPIs beside it.
+  const _doiVal=(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'Not computed';
+  const _otifVal=(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'Not computed';
+  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys((o.by_chain[ch]&&o.by_chain[ch].by_month&&o.by_chain[ch].by_month[MONTH_NOW])||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage'];
@@ -1527,27 +1566,38 @@ function buildInventoryHealth(){
 
       content.innerHTML+=card('Distribution of Inventory Watchlist',`${gapData.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>Days of Inventory</th><th>Status</th></tr></thead><tbody>${gapData.slice(0,10).map(r=>`<tr><td>${r.chain}</td><td>${r.doi.toFixed(1)}</td><td><span style="color:${r.status==='CRITICAL'?'#C0392B':r.status==='WATCH'?'#F39C12':'#2D9B7F'}">${r.status}</span></td></tr>`).join('')}</tbody></table>`);
 
-      const canvasDiv=document.createElement('div');
-      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
-      const canvas=document.createElement('canvas');
-      canvasDiv.appendChild(canvas);
-      content.appendChild(canvasDiv);
-
-      const gapChart=new Chart(canvas,{
-        type:'line',
-        data:{
-          labels:['Wk1','Wk2','Wk3','Wk4','Wk5'],
-          datasets:[{label:'Primary Inflow',data:[45,48,50,52,51],borderColor:'#3498DB',fill:false},{label:'Offtake',data:[40,42,45,48,50],borderColor:'#E74C3C',fill:false}]
-        },
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}}}
-      });
-      inventoryHealthState.charts.gap=gapChart;
+      // A weekly Primary-Inflow-vs-Offtake chart previously rendered here with
+      // hardcoded numbers (Wk1-5: [45,48,50,52,51] vs [40,42,45,48,50]) that
+      // were never sourced from DASH at all -- removed per this project's own
+      // "no dummy data" rule (same reasoning already applied to the Demand
+      // Planning "Competitive Market Share" card below). Primary/Offtake data
+      // in this build is monthly (D.primary.monthly_fyXX, D.offtake.monthly),
+      // not weekly, so no real weekly series exists to plot here yet.
+      content.innerHTML+=card('Primary Inflow vs. Offtake — weekly','source not available',
+        `<p class="lead">No weekly Primary/Offtake series exists in this build.</p>
+         <p class="note">Primary and Offtake are tracked monthly today
+         (see the Primary Sales Trend chart on Channel &amp; Chain Performance).
+         To populate a weekly gap view, a weekly-grain Primary and Offtake
+         extract would need to be added to <code>scripts/build_dashboard_data.py</code>
+         and emitted as e.g. <code>DASH.offtake.weekly</code>. Until then this
+         card stays empty by design — it previously displayed hardcoded
+         placeholder weekly figures that were not sourced from any file.</p>`);
     }else if(sv==='coverage'){
-      // Store Coverage: Distribution across zones + OOS incident grid
-      const byZone=o.by_zone||{};
-      const zoneData=Object.keys(byZone).map(z=>({zone:z,stores:Object.keys(byZone[z].stores||{}).length,coverage:((byZone[z].stores||[]).length/10*100).toFixed(1)}));
+      // Store Coverage: real store counts by zone from the MT universe
+      // (D.universe.by_zone: [{name,stores}], sums to the 426-store baseline).
+      // Previously read D.offtake.by_zone.stores, a field that doesn't exist
+      // in that block at all (D.offtake.by_zone carries NSV, not store
+      // counts) AND treated it as a map with Object.keys() when it's really
+      // an array -- so every row showed the array INDEX ("0","1",...) as the
+      // zone name with 0 stores and 0.0% "coverage" for every zone. Fixed to
+      // the real source; the fabricated "Coverage %" column (stores/10*100,
+      // no real denominator) is dropped rather than replaced with another
+      // invented ratio -- no active-vs-total split by zone exists yet to
+      // compute a real coverage percentage from.
+      const zoneData=(D.universe&&D.universe.by_zone||[]).map(z=>({zone:z.name,stores:z.stores||0}))
+        .sort((a,b)=>b.stores-a.stores);
 
-      content.innerHTML+=card('Distribution Coverage by Zone',`${zoneData.length} zones`,`<table class="tbl"><thead><tr><th>Zone</th><th>Stores</th><th>Coverage %</th></tr></thead><tbody>${zoneData.map(z=>`<tr><td>${z.zone}</td><td>${z.stores}</td><td>${z.coverage}%</td></tr>`).join('')}</tbody></table>`);
+      content.innerHTML+=card('Store Distribution by Zone',`${zoneData.length} zones`,`<table class="tbl"><thead><tr><th>Zone</th><th>Stores</th></tr></thead><tbody>${zoneData.map(z=>`<tr><td>${z.zone}</td><td>${z.stores}</td></tr>`).join('')}</tbody></table>`);
 
       const canvasDiv=document.createElement('div');
       canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
@@ -2373,7 +2423,7 @@ function buildCategory(){
    </div>
    <div class="grid g2">
      ${drillCardHtml('catDrill','Primary NSV')}
-     ${card('NSV by Sub-category — 95% of each brand\'s NSV, rest → Other','Within each brand, keeps sub-categories that cumulatively cover 95% of that brand\'s NSV; the long tail across all brands is clubbed into "Other". Click a slice to drill.',cv('catSubP'))}
+     ${card('NSV by Sub-category — 95% of each Category\'s NSV, rest → Others','Within each Category, keeps sub-categories that cumulatively cover 95% of that Category\'s own NSV; the long tail across all Categories is grouped into "Others". Click a named slice to drill.',cv('catSubP'))}
    </div>
    <div class="grid g2">
      ${card('Top Sub-categories by NSV (this view)','click a bar to drill',cv('catSub',true))}
@@ -2387,7 +2437,7 @@ function buildCategory(){
   wireDrillLinks(s);
   wireChips(s,buildCategory);
   if(recs.length){
-    mkDonut('catSubP',bySubPareto.map(x=>x[0]),bySubPareto.map(x=>x[1]),true,v=>{ if(v!=='Other') drillTo('SubCategory',v); });
+    mkDonut('catSubP',bySubPareto.map(x=>x[0]),bySubPareto.map(x=>x[1]),true,v=>{ if(v!=='Others') drillTo('SubCategory',v); });
     mkBarH('catSub',bySub.slice(0,12).map(x=>x[0]),bySub.slice(0,12).map(x=>x[1]),C.teal,true,v=>drillTo('SubCategory',v));
     mkBarH('catRange',byRange.slice(0,12).map(x=>x[0]),byRange.slice(0,12).map(x=>x[1]),C.amber,true,v=>drillTo('Range',v));
     mkBarH('catPack',byPack.slice(0,12).map(x=>x[0]),byPack.slice(0,12).map(x=>x[1]),C.blue,true,v=>drillTo('PackSize',v));
@@ -2888,6 +2938,109 @@ function mappingHealthSection(){
      `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>NSV at stake</th><th>Suggested chain</th><th>Confidence</th><th>Status</th></tr></thead>
       <tbody>${pr}</tbody></table></div>`):''}`;
 }
+function primaryOfftakeGapSection(){
+  const g=D.primary_offtake_gap;
+  if(!g||(!g.fy26&&!g.fy27)) return '';
+  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const w=g[win];
+  const rows=w.by_month.rows;
+  const chain=w.by_chain;
+  const latestGap=rows.length?rows[rows.length-1].gap:null;
+  const avgRatio=(()=>{const rs=rows.filter(r=>r.ratio!=null).map(r=>r.ratio);
+    return rs.length?Math.round(rs.reduce((a,b)=>a+b,0)/rs.length*100)/100:null;})();
+  const notComparable=w.by_month.comparable_note.startsWith('NOT_FULLY_COMPARABLE');
+  const chainRows=chain.matched.slice(0,10).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td>
+    <td>${crc(c.primary)}</td><td>${crc(c.offtake)}</td>
+    <td><span class="pill ${c.gap>=0?'g':'r'}">${crc(c.gap)}</span></td>
+    <td>${c.ratio!=null?c.ratio:'–'}</td></tr>`).join('');
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Primary–Offtake Gap (${win.toUpperCase()})</h3>
+   <p class="note" style="margin:0 0 10px">Primary NSV vs Offtake NSV, ${win==='fy27'?'Apr–Aug… (partial year so far)':'full 12 months'}.
+     <b>Neutral label deliberately used</b> — a positive gap (Primary &gt; Offtake) is NOT automatically "inventory build";
+     it may reflect timing/cutoff, returns, channel scope, or coverage differences. ${notComparable?
+     `<span class="pill r">NOT FULLY COMPARABLE</span> ${w.by_month.comparable_note}`:
+     `<span class="pill g">Comparable scope</span> ${w.by_month.comparable_note}`}</p>
+   <div class="kpis">
+     ${kpi('Latest month gap',latestGap!=null?crc(latestGap):'–',latestGap!=null?(latestGap>=0?'Primary ahead':'Offtake ahead'):'')}
+     ${kpi('Avg Primary/Offtake ratio',avgRatio!=null?avgRatio:'–','across months shown')}
+     ${kpi('Chain coverage',`${chain.matched.length} matched`,chain.coverage_note)}
+   </div>
+   <div class="grid g2">
+     ${card('Primary vs Offtake, by month','Click a chain row to drill (chart shows the trend only).',cv('pogMonthChart'))}
+     ${card(`Chain-wise gap — top ${Math.min(10,chain.matched.length)} by |gap|`,'Only chains present in BOTH series (matched) are ranked or divided into a ratio.',
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Primary</th><th>Offtake</th><th>Gap</th><th>Ratio</th></tr></thead>
+        <tbody>${chainRows||'<tr><td colspan="5">No matched chains.</td></tr>'}</tbody></table></div>`)}
+   </div>
+   ${(chain.primary_only.length||chain.offtake_only.length)?`<p class="drillhint" style="margin:8px 0 0">
+     ${chain.primary_only.length} chain(s) have Primary but no Offtake series (not divided into a ratio): ${chain.primary_only.slice(0,8).map(c=>c.name).join(', ')}${chain.primary_only.length>8?'…':''}.
+     ${chain.offtake_only.length} chain(s) have Offtake but no Primary series: ${chain.offtake_only.slice(0,8).map(c=>c.name).join(', ')}${chain.offtake_only.length>8?'…':''}.</p>`:''}`;
+}
+function fy25SecondarySection(){
+  const chains=((D.offtake&&D.offtake.by_chain)||[]).filter(c=>c.secondary_fy25).sort((a,b)=>b.secondary_fy25-a.secondary_fy25);
+  const brands=((D.offtake&&D.offtake.by_brand)||[]).filter(c=>c.secondary_fy25).sort((a,b)=>b.secondary_fy25-a.secondary_fy25);
+  if(!chains.length&&!brands.length) return '';
+  const totSec=(D.offtake&&D.offtake.secondary_total_fy25)||chains.reduce((s,c)=>s+c.secondary_fy25,0);
+  const chainRows=chains.slice(0,10).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.secondary_fy25)}</td>
+    <td>${(c.secondary_fy25/totSec*100).toFixed(1)}%</td></tr>`).join('');
+  const brandRows=brands.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${crc(c.secondary_fy25)}</td>
+    <td>${(c.secondary_fy25/totSec*100).toFixed(1)}%</td></tr>`).join('');
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">FY25 Distributor Secondary — Chain &amp; Brand View (Apr'24-Mar'25)</h3>
+   <p class="note" style="margin:0 0 10px"><b>This is Distributor Secondary (distributor -&gt; retailer), not Primary and not Offtake</b> —
+     FY25 has no real Primary billing or chain-POS Offtake extract anywhere in this project (see CLAUDE.md "The three MT measures").
+     Shown here because it is the only real Apr'24-Mar'25 series available, broken down by chain and brand for the first time
+     (previously only the Rs${crc(totSec)} national monthly total was surfaced). Do not compare these figures directly against
+     FY26/FY27 Primary or Offtake as if they were the same measure.</p>
+   <div class="grid g2">
+     ${card(`Top ${Math.min(10,chains.length)} chains by FY25 Secondary`,'Contribution % of the Rs'+crc(totSec)+' FY25 Secondary total.',
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>FY25 Secondary</th><th>Contribution</th></tr></thead>
+        <tbody>${chainRows||'<tr><td colspan="3">No chain detail.</td></tr>'}</tbody></table></div>`)}
+     ${card(`Top ${Math.min(10,brands.length)} brands by FY25 Secondary`,'Same Rs'+crc(totSec)+' total, by brand.',
+       `<div class="tablewrap"><table><thead><tr><th>Brand</th><th>FY25 Secondary</th><th>Contribution</th></tr></thead>
+        <tbody>${brandRows||'<tr><td colspan="3">No brand detail.</td></tr>'}</tbody></table></div>`)}
+   </div>`;
+}
+function unifiedSalesTrendSection(){
+  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[];
+  const o26M=(D.offtake&&D.offtake.months_fy26)||[];
+  const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
+  const o27M=(D.offtake&&D.offtake.months_fy27)||[];
+  if(!secM.length&&!o26M.length&&!o27M.length) return '';
+  // Primary has no real series for FY25 -- nulls there are a genuine gap, not a chart bug.
+  // (Only the month count is needed here -- the actual Primary/Offtake/Secondary
+  // series are computed once, in renderUnifiedTrendChart(), for the chart itself.)
+  const months=[...secM, ...o26M, ...(p27.months_canon||o27M)];
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Unified Sales Trend — Apr'24 to Aug'26 (${months.length} months)</h3>
+   <p class="note" style="margin:0 0 10px">Three different measures shown on one timeline, never blended into one line:
+     <b>Secondary</b> (Apr'24-Mar'25, the only real series for that window), <b>Primary</b> (Apr'25 onward — none exists for FY25),
+     <b>Offtake</b> (Apr'25 onward). FY27's last month (Aug'26) still includes ~5% EB2B/SIS in the Primary figure (see the
+     Primary-Offtake Gap note above) -- this trend does not re-strip that out.</p>
+   ${card('Primary / Offtake / FY25 Secondary, month by month','Click-through drill is not available on this combined trend view.',cv('unifiedTrendChart'))}`;
+}
+function renderUnifiedTrendChart(){
+  const secM=(D.offtake&&D.offtake.secondary_months_fy25)||[], secV=(D.offtake&&D.offtake.secondary_monthly_fy25)||[];
+  const p26V=(D.primary&&D.primary.monthly_fy26)||[];
+  const o26M=(D.offtake&&D.offtake.months_fy26)||[], o26V=(D.offtake&&D.offtake.monthly_fy26)||[];
+  const p27=(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27)||{};
+  const o27M=(D.offtake&&D.offtake.months_fy27)||[], o27V=(D.offtake&&D.offtake.monthly_fy27)||[];
+  if(!document.getElementById('unifiedTrendChart')) return;
+  const months=[...secM, ...o26M, ...(p27.months_canon||o27M)];
+  const primary=[...secM.map(()=>null), ...p26V, ...(p27.monthly_canon||o27M.map(()=>null))];
+  const offtake=[...secV.map(()=>null), ...o26V, ...o27V];
+  const secondary=[...secV, ...o26M.map(()=>null), ...o27M.map(()=>null)];
+  mkLine('unifiedTrendChart',months,[
+    {label:'Secondary (FY25 only)',data:secondary,dash:[6,4]},
+    {label:'Primary',data:primary},
+    {label:'Offtake',data:offtake}]);
+}
+function renderPogGapCharts(){
+  const g=D.primary_offtake_gap;
+  if(!g) return;
+  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const rows=g[win].by_month.rows;
+  if(!rows.length||!document.getElementById('pogMonthChart')) return;
+  mkLine('pogMonthChart',rows.map(r=>r.month),[
+    {label:'Primary',data:rows.map(r=>r.primary)},
+    {label:'Offtake',data:rows.map(r=>r.offtake)}]);
+}
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
   const dims=['Chain','Brand','SubCategory','Range','PackSize','Article'];
@@ -2973,6 +3126,9 @@ function buildComparison(){
      <th>${dimLab[cmpDim]}</th><th>${yrPair[0]}</th><th>${yrPair[1]}</th><th>YoY</th><th>Contribution</th>
      </tr></thead><tbody>${tableRows||'<tr><td colspan="5">No records for this filter.</td></tr>'}</tbody></table></div>`)}
    ${drillCardHtml('cmpDrill','Primary NSV')}
+   ${primaryOfftakeGapSection()}
+   ${unifiedSalesTrendSection()}
+   ${fy25SecondarySection()}
    ${momSection()}
    ${scorecardSection()}`;
   wireDrillLinks(s);
@@ -2983,6 +3139,8 @@ function buildComparison(){
       {label:yrPair[0],data:top.map(r=>r.a||0),backgroundColor:C.blue+'cc',borderRadius:4},
       {label:yrPair[1],data:top.map(r=>r.b||0),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo(cmpDim,v));
   }
+  renderPogGapCharts();
+  renderUnifiedTrendChart();
   renderDrillChart('cmpDrill','Primary NSV',recFilter());
 }
 function wireCmpButtons(root){
@@ -3471,30 +3629,61 @@ function uniqueBy(recs,key,cols){
   });
   return Object.values(m).sort((a,b)=>b.NSV-a.NSV);
 }
-// per-brand 95%-of-brand-NSV Pareto: within each brand, keep sub-categories
-// (sorted desc) until cumulative NSV crosses 95% of that brand's total;
-// everything past that point is relabelled "Other" for that brand, THEN
-// summed across all brands into the final SubCategory buckets. So a
-// sub-category stays named if it's a material contributor for at least one
-// brand, even if the combined "Other" bucket (all brands' long tails) ends
-// up large.
+// per-CATEGORY 95%-of-category-NSV Pareto (Governed Presentation Hierarchy,
+// 2026-09-13): within EACH Category independently, keep sub-categories
+// (sorted NSV desc, name asc on ties -- deterministic regardless of object
+// iteration order) until cumulative NSV crosses 95% of that CATEGORY's own
+// total; the rest are relabelled "Others" for that Category, THEN summed
+// across every Category into the final SubCategory buckets shown in the
+// chart. So a sub-category stays named if it's a material contributor
+// within its OWN parent Category, even if the combined "Others" bucket
+// (every Category's long tail) ends up large. Negative/zero sub-category
+// NSV (returns, MRN) can never be a "major" contributor and always falls
+// into that Category's Others -- but its SIGNED value is preserved in the
+// Others total (grouping is presentation, never a value change: nothing is
+// deleted, zeroed or abs()'d). Previously grouped per-Brand instead of
+// per-Category; corrected because the business rule is "contribution to
+// the PARENT CATEGORY", not to the brand that happens to sell it.
 function subcatPareto95(recs){
-  const byBrand={};
-  recs.forEach(r=>{ (byBrand[r.Brand]??=[]).push(r); });
+  const byCat={};
+  recs.forEach(r=>{ (byCat[r.Category]??=[]).push(r); });
   const out={};
-  Object.values(byBrand).forEach(rows=>{
+  Object.values(byCat).forEach(rows=>{
     const bySub={};
     rows.forEach(r=>{ const k=r.SubCategory; if(k==null||k!==k)return; bySub[k]=(bySub[k]||0)+r.NSV; });
-    const total=Object.values(bySub).reduce((a,b)=>a+b,0)||1;
-    const sorted=Object.entries(bySub).sort((a,b)=>b[1]-a[1]);
+    const entries=Object.entries(bySub).sort((a,b)=>(b[1]-a[1])||String(a[0]).localeCompare(String(b[0])));
+    const posTotal=entries.reduce((a,[,v])=>a+(v>0?v:0),0);
     let cum=0;
-    sorted.forEach(([sub,val])=>{
-      const label=(cum/total<0.95)?sub:'Other';
+    entries.forEach(([sub,val])=>{
+      const isMajor=val>0 && posTotal>0 && (cum/posTotal)<0.95;
+      const label=isMajor?sub:'Others';
       out[label]=(out[label]||0)+val;
-      cum+=val;
+      if(isMajor) cum+=val;
     });
   });
-  return Object.entries(out).sort((a,b)=>b[1]-a[1]);
+  return Object.entries(out).sort((a,b)=>(b[1]-a[1])||String(a[0]).localeCompare(String(b[0])));
+}
+// ---- 95%-cumulative-contribution grouping for a flat list (e.g. Brand),
+// used where a raw bar/donut of every item would bury the handful that
+// actually matter under a long tail of near-invisible slivers (Governed
+// Presentation Hierarchy, 2026-09-13). Deterministic: value desc, then name
+// asc on ties -- never depends on object/array iteration order. Negative or
+// zero items can never be a "major" contributor and always land in the tail
+// bucket, WITH their sign preserved in tailValue (grouping is presentation
+// only -- nothing is deleted, zeroed or abs()'d). `major` holds the SAME
+// object references passed in, so any existing filter/drill logic on them
+// keeps working unchanged; only the chart-display array is grouped.
+function cumulative95Group(items,nameKey,valueKey,tailLabel){
+  const sorted=[...items].sort((a,b)=>(b[valueKey]-a[valueKey])||String(a[nameKey]).localeCompare(String(b[nameKey])));
+  const posTotal=sorted.reduce((a,x)=>a+(x[valueKey]>0?x[valueKey]:0),0);
+  const major=[],tailMembers=[]; let cum=0;
+  sorted.forEach(x=>{
+    const v=x[valueKey];
+    if(v>0 && posTotal>0 && (cum/posTotal)<0.95){ major.push(x); cum+=v; }
+    else tailMembers.push(x);
+  });
+  const tailValue=tailMembers.reduce((a,x)=>a+x[valueKey],0);
+  return {major,tailMembers,tailLabel,tailValue,tailCount:tailMembers.length};
 }
 
 // ---- Category -> Sub-category drill-down chart, reusable on EVERY tab ----
@@ -3565,7 +3754,8 @@ function dimUnsupportedNote(dims,source){
 let expCharts=[];
 function expDestroy(){expCharts.forEach(c=>c.destroy());expCharts=[];}
 function grp(recs,key){const m={};recs.forEach(r=>{const k=r[key];if(k==null||k!==k)return;m[k]=(m[k]||0)+r.NSV;});
-  return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
+  // value desc, name asc on ties -- deterministic regardless of object iteration order
+  return Object.entries(m).sort((a,b)=>(b[1]-a[1])||String(a[0]).localeCompare(String(b[0])));}
 function expBarH(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
   expCharts.push(new Chart(document.getElementById(id),{type:'bar',

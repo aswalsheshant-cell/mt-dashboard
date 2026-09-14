@@ -1,0 +1,13 @@
+name: "MT Dashboard CodeQL config"
+
+# Excludes vendored third-party libraries and generated build output from
+# analysis. These are not code we author or can modify -- CodeQL findings
+# in them are noise, not actionable defects (see CLAUDE.md's Architecture
+# map: "Chart.js/jsPDF/xlsx vendored locally", "data.js generated -- DO NOT
+# hand-edit").
+paths-ignore:
+  - dashboard/chart.umd.js
+  - dashboard/html2canvas.min.js
+  - dashboard/jspdf.umd.min.js
+  - dashboard/xlsx.core.min.js
+  - dashboard/data.js

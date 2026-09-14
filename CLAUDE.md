@@ -112,6 +112,43 @@ sources: Primary FY27 in `detail_meta.fyx_primary`; Offtake FY27 merged via
 block's — e.g. the Offtake tab checks `o['total_'+fy]`, not the Primary-only
 `fyUnsupported()`.
 
+**Tag convention (read this before assuming a month is misfiled):** this repo's
+FY tag names an FY by its **ending** calendar year — `FY25` = Apr'24–Mar'25,
+`FY26` = Apr'25–Mar'26, `FY27` = Apr'26–Mar'27. A different, equally valid
+Indian convention names the same periods `FY24-25`/`FY25-26`/`FY26-27`. Same
+periods, different label — check which convention a person or a source file
+is using before concluding a date landed in the wrong bucket. Verified dynamic
+(2026-09-13): `fy_tag_from_ym(year, month) = FY{(year+1 if month>=4 else year)
+% 100}` — arithmetic, not a lookup table, so it already extends to any future
+year without a code change; confirmed no `scripts/*.py` file contains a
+hardcoded FY list gating this derivation.
+
+**Before treating any month/dataset as "missing from the dashboard":** query
+`scripts/data_catalog.py` and `docs/DATA_AVAILABILITY_MATRIX.md` first — most
+apparent gaps are either (a) real, already documented, and traceable to an
+exact source-file limitation (e.g. FY25 Apr'24–Mar'25 has real Distributor
+Secondary but no real Primary or Offtake extract anywhere in this repo — not
+a pipeline bug, see that doc's "29-Month Coverage Matrix"), or (b) a wrong
+assumption about which block/key holds that FY (e.g. Aug'25 is FY26, not
+FY25, under THE ONE FY RULE). Never report a month "unavailable" without
+checking the registry and matrix first, and never fabricate a number to fill
+a genuine gap — name the exact missing source file instead.
+
+**New data source checklist** — before treating any newly supplied file as
+production-ready, establish: (1) its grain, (2) its correct business date
+column (invoice/posting date for Primary, offer period for Promotions, claim/
+settlement period for Claims, effective-from/to for rate cards — different
+datasets legitimately use different date columns; do not force one generic
+date field), (3) that the date parses validly, (4) how it maps to THE ONE FY
+RULE, (5) whether it needs effective-dated mapping (a rate or mapping that
+changed mid-period must not be applied retroactively to earlier months
+unless the business rule explicitly requires it), (6) which periods it
+actually covers vs. what was expected, (7) duplicate-record risk, (8) which
+dashboard/KPI it feeds, (9) what validation to add, (10) whether it will
+keep working unattended when the next month/FY arrives. Register the outcome
+in `config/data_source_registry.yml` (existing file — add an entry, do not
+create a parallel registry) before wiring it into any calculation.
+
 ---
 
 ## The three MT measures — naming
@@ -350,6 +387,42 @@ event, not a failure — the workflow below is what makes it harmless.
   diagnosing a restart.
 
 ---
+
+## Before calling anything a new bug
+
+Check `docs/FAILURE_MODE_REGISTER.md` first — it catalogues failure PATTERNS
+already found in this project (synthetic template rows reaching production,
+detail-coverage silently dropping on rebuild, competing pipelines writing
+`data.js`, source-file conflicts, doc-vs-artifact drift, and more), each with
+its preventive control and regression test. A new incident that matches an
+existing FM-NN pattern gets a note added to that row, not a duplicate
+investigation from zero. `config/data_source_registry.yml` +
+`scripts/data_catalog.py` (source lookup), `scripts/ci_validate_datajs.py`
+(release-time checks: baseline invariants, detail-coverage regression, stale
+duplicate-metadata divergence) are the release gates that actually run today
+— treat a WARN from either as something to explain, not ignore.
+
+Before declaring historical data missing, also check `docs/GIT_RECOVERY_MATRIX.md`
+and the Data Availability Matrix — a prior Git-history search may already have
+settled whether it was ever recoverable, so as not to repeat that
+investigation from scratch. Valid recovered data belongs in the current
+canonical source location and registry, reconciled, never a separate legacy
+pipeline (`docs/WORKFLOW_AND_MODEL_AUDIT.md` FM-05/FM-10 explain why two
+pipelines writing the same artifact is itself a standing risk). For Claims,
+Promotions, Provision or Trade Spend specifically, check for lifecycle
+overlap (provision -> claim -> settlement can describe one commercial event)
+before summing sources — see FM-14 in the Failure-Mode Register.
+
+**This project's governance is organized as skills + docs, not a separate
+`agents/` folder.** Before proposing a new specialist agent role, check
+`docs/AGENT_ARCHITECTURE_MAPPING.md` — most roles (source registration, mapping
+governance, allocation, reconciliation, release gating) already exist as a
+`.claude/skills/*` skill or a `docs/*.md` registry; extend that, don't create a
+parallel file under a new name. Before adding a new number to any dashboard
+card or chart, check `docs/METRIC_REGISTRY.md` — reuse a registered measure's
+formula and source rather than recomputing it independently. When tracing a
+wrong number, use `docs/FAILURE_MODE_REGISTER.md`'s routing table to find the
+earliest layer likely responsible before touching the visual.
 
 ## Knowledge base — read before solving an unfamiliar problem
 

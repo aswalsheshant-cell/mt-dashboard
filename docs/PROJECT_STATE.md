@@ -85,6 +85,20 @@ One bounded component per run: implement, validate, commit, stop.
 
 ## Completed Capabilities
 
+- Data discovery layer (2026-09-13): `config/data_source_registry.yml` +
+  `scripts/data_catalog.py` + `docs/DATA_AVAILABILITY_MATRIX.md` +
+  `docs/DATA_LINEAGE.md`. Query this BEFORE concluding a metric/month is
+  unavailable — it fixed a real case where Aug'25 Offtake was wrongly called
+  missing (it's in `dashboard/data.js`'s pre-aggregated block, not the FY27+
+  raw watch folder) and where Aug'26 chain-level Primary was computed with a
+  naive groupby instead of the existing governed allocation tool
+  (`scripts/aug26_data_readiness_gate.py`, now registered under BL-14 in
+  `docs/BUSINESS_LOGIC_REGISTRY.md`). Two known gaps this pass did NOT
+  resolve: Aug'26 Primary total has an unreconciled ~Rs2.1 Cr SOURCE_CONFLICT
+  between two files (see `docs/DATA_LINEAGE.md`), and only Primary/Offtake/
+  chain-allocation/category-mapping are catalogued so far — extend the
+  registry the next time another metric's lineage is actually traced, don't
+  pre-fill entries for ones that haven't been.
 - Primary/Offtake baseline, FY27 coverage gate, like-for-like same-period YoY
 - Target / Achievement % / Gap / Current + Required Run Rate (total, zone, chain)
 - Month-on-Month view (auto-extends as months arrive)
@@ -165,7 +179,7 @@ Every change must leave these unchanged:
 |---|---|
 | Primary NSV FY26 | ₹32,900.36 L |
 | Offtake FY26 / FY27 | ₹31,119.87 L / ₹15,069.86 L |
-| FY27 primary (article-level) | ₹18,581.29 L |
+| FY27 primary (article-level) | ₹22,239.59 L (was ₹18,581.29 L before 2026-09-13 -- intentional: Aug'26 was production-ingested that day, adding ₹36.58 Cr for a 5th month, Apr-Aug now vs. Apr-Jul before. Evidence: `docs/DATA_LINEAGE.md` Aug'26 reconciliation; not a frozen invariant in `config/baselines.json`, so this is documentation catching up to an intended change, not a baseline violation) |
 | Active MT stores | 426 |
 | FY27 target | ₹441.33 Cr |
 | PVM reconciliation | PASS, variance 0.00 |

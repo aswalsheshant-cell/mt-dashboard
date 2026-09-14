@@ -17,6 +17,9 @@ on:
       - 'docs/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   validate-powerbi:
     name: Run Headless Tabular Editor & DAX Validation

@@ -1,0 +1,428 @@
+# Data Source Registry
+#
+# Points to EXISTING datasets already produced by this repo's pipelines -- it
+# does not duplicate them. Added 2026-09-13 to close a real, demonstrated gap:
+# docs/AI_ORCHESTRATOR_READINESS.md (2026-08-07) already flagged "no
+# reverse-tracing infrastructure" and "no tool wrapper" as open items; this
+# registry plus scripts/data_catalog.py is that next increment, not a
+# replacement for anything.
+#
+# What this repo ALREADY has that this file does not duplicate:
+#   - docs/BUSINESS_LOGIC_REGISTRY.md   -- business rules (BL-01..BL-13), owners,
+#                                          Finance-approval status. Authoritative
+#                                          for RULES. This file is authoritative
+#                                          for WHERE DATA LIVES.
+#   - config/analytics_config.json      -- thresholds, RAG bands, per-layer
+#                                          readiness gates (the `readiness` block
+#                                          is itself a coarse availability matrix
+#                                          for derived analytical layers).
+#   - config/baselines.json             -- protected/frozen KPI values, checked
+#                                          by tests/test_baseline_invariants.py.
+#   - docs/PROJECT_STATE.md             -- current phase, blockers, regression
+#                                          baseline. Read this FIRST on resume.
+#
+# modification_allowed: false means "this dataset's historical values must not
+# be silently changed" (frozen_history / approved_current in baselines.json's
+# vocabulary) -- it does NOT mean the registry ENTRY is immutable; extend entries
+# freely as new months/sources are discovered.
+
+schema_version: "1.0"
+updated: "2026-09-13"
+
+datasets:
+
+  offtake_preagg_fy25_fy26:
+    business_name: "Offtake NSV -- pre-aggregated workbooks (FY25 + FY26)"
+    source_path: "dashboard/data.js (offtake.monthly_fy26 / offtake.months_fy26 / offtake.total_fy26)"
+    source_type: "generated JSON (baked from source workbooks by scripts/build_dashboard_data.py; raw workbooks are gitignored)"
+    grain: "month x zone (see offtake.zone_monthly_fy26 for the zone cut)"
+    date_min: "2024-04"
+    date_max: "2026-03"
+    financial_years: ["FY25", "FY26"]
+    primary_keys: ["month"]
+    important_columns: ["monthly_fy26", "months_fy26", "total_fy26", "zone_monthly_fy26"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Only on a full rebuild via build_dashboard_data.py (no --offtake-patch mode covers this pre-FY27 window)"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_dashboard_data.py (full build only)"
+    downstream_outputs: ["dashboard/index.html Executive Cockpit / Inventory & Supply Health tabs", "config/baselines.json offtake_fy26_total check"]
+    last_validated: "2026-09-13 (this session: offtake.monthly_fy26 sums to total_fy26 exactly, Rs31,119.87L)"
+    modification_allowed: false
+    notes: >
+      THIS IS THE FIX FOR THE "Aug'25 Offtake is unavailable" FAILURE MODE.
+      Offtake_Monthly/ (the raw watch folder) only starts Apr'26 because that
+      folder is for the FY27+ --offtake-patch mechanism (see
+      offtake_article_fy27_patch entry below) -- it was never meant to hold
+      FY25/FY26 history. That history already lives here. Confirmed 2026-09-13:
+      offtake.monthly_fy26[offtake.months_fy26.indexOf('Aug-25')] = 2435.71 (Rs
+      24.36 Cr). A search that stops at Offtake_Monthly/ and concludes "no
+      Aug'25 data" is searching the wrong dataset for that period.
+
+  offtake_article_fy27_patch:
+    business_name: "Offtake NSV -- article-level FY27+ monthly patch"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_<YY>.csv"
+    source_type: "CSV, one file per month, store x article grain"
+    grain: "month x store x article x chain"
+    date_min: "2026-04"
+    date_max: "DISCOVER AT RUNTIME -- see scripts/data_catalog.py:get_latest_available('offtake'); as of 2026-09-13 the newest file present is offtake_store_article_Aug_26.csv"
+    financial_years: ["FY27"]
+    primary_keys: ["Month", "Site Code", "Article", "Chain Name"]
+    important_columns: ["NSV", "Sales Qty", "Brand", "Category", "Sub_category", "Chain Name", "Description as per Fountain"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Monthly, on new file drop"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: "offtake_preagg_fy25_fy26 for any month before FY27"
+    existing_pipeline: "scripts/build_dashboard_data.py --offtake-patch"
+    downstream_outputs: ["dashboard/data.js offtake.total_fyNN / monthly_fyNN / months_fyNN"]
+    last_validated: "2026-09-13 (Jul'26 Rs36.21 Cr ex-RBC matches independently-supplied benchmark; Aug'26 Rs39.75 Cr ex-RBC computed fresh)"
+    modification_allowed: false
+    notes: >
+      CRITICAL BUSINESS RULE (see docs/BUSINESS_LOGIC_REGISTRY.md BL-07,
+      corrected 2026-09-13): rows where Store Type == "Brand Counter" must be
+      EXCLUDED before reporting an offtake total. Filter on Store Type, NEVER
+      on Chain Name alone -- Chain Name only forks into "Reliance" vs.
+      "Reliance Brand Counter" from Jul'26 onward; in Apr-Jun'26 both BC and
+      non-BC rows share Chain Name "Reliance" and only Store Type
+      distinguishes them (confirmed 2026-09-13: a Chain-Name-only filter
+      silently keeps ~Rs4-5 Cr/month of real BC rows in Apr-Jun'26 mixed into
+      the total). Store-Type-filtered ex-BC series: Apr 35.89 / May 40.19 /
+      Jun 38.40 / Jul 36.21 / Aug 39.75 Cr -- Jul'26 matches the independently
+      supplied Rs36.18 Cr benchmark.
+
+  primary_article_monthly:
+    business_name: "Primary NSV -- article-level monthly (locked File2 / Query16 schema)"
+    source_path: "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_<Mon>_<YY>.csv"
+    source_type: "CSV, one file per month, invoice-line grain"
+    grain: "invoice line (month x customer x article)"
+    date_min: "2025-04"
+    date_max: "DISCOVER AT RUNTIME -- 16 files present as of 2026-09-13, newest primary_article_Jul_26.csv"
+    financial_years: ["FY25", "FY26", "FY27"]
+    primary_keys: ["Inv No.", "Article Code"]
+    important_columns: ["Inv. Net value(LOC)", "Chain name for Dashboard", "PO Type", "brand", "sub_category", "EAN No.", "FY", "Month"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Monthly, on new file drop"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_dashboard_data.py load_primary_v2()"
+    downstream_outputs: ["dashboard/data.js primary.* / detail_meta.fyx_primary", "PowerBI/PowerQuery/16_Fact_PrimaryArticle.pq"]
+    last_validated: "2026-09-13 via scripts/reconcile_primary_baseline.py -- FY'25-26 subtotal Rs32,900.36L and grand total Rs51,481.65L both match independently-quoted figures exactly"
+    modification_allowed: false
+    notes: >
+      "Chain name for Dashboard" on this file is NOT the same thing as the
+      "Chain name" column on the newer ad-hoc Aug'26 upload below -- see
+      primary_aug26_adhoc's notes and docs/BUSINESS_LOGIC_REGISTRY.md BL-02
+      before comparing chain-level cuts across the two.
+
+  primary_aug26_adhoc:
+    business_name: "Primary NSV -- Aug'26 ad-hoc raw invoice upload (pre-watch-folder)"
+    source_path: "data/monthly/Aug26_primary_detailed.csv (article grain, matches locked File2 schema); PowerBI/RawDataFolders/Primary_Aug26_FY27.csv (Bill-to-customer grain, NOT the same total -- see caveat)"
+    source_type: "CSV"
+    grain: "invoice line (article grain, for Aug26_primary_detailed.csv)"
+    date_min: "2026-08"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Inv No.", "Article Code"]
+    important_columns: ["Inv. Net value(LOC)", "Chain name", "PO Type", "brand / Division Desc.", "EAN No."]
+    business_owner: "MT Analytics"
+    refresh_frequency: "One-off until Aug'26 is folded into the regular Primary_Article_Monthly watch folder"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/aug26_data_readiness_gate.py (governed distributor-to-chain allocation + exception tracking for this exact file -- DO NOT re-derive chain splits with a naive groupby, see BL-14)"
+    downstream_outputs: ["data/monthly/Aug26_chain_summary.csv", "data/monthly/Aug26_zone_summary.csv", "data/monthly/Aug26_metrics.json (all three cross-checked 2026-09-13, agree to the cent)"]
+    last_validated: "2026-09-13 -- re-ran scripts/aug26_data_readiness_gate.py against the CURRENT complete Aug'26 offtake file: 81.4% value coverage (was 42% in the 2026-09-09 baseline record, which used an incomplete offtake upload). Lulu: CONFIRMED PRIMARY_SOURCE_MISSING (checked against secondary evidence and pooled-distributor evidence -- genuinely absent, not a mapping artifact)."
+    modification_allowed: false
+    notes: >
+      CAVEAT: PowerBI/RawDataFolders/Primary_Aug26_FY27.csv (customer-grain)
+      sums to ~Rs38.72 Cr; Aug26_primary_detailed.csv (article-grain, the one
+      the readiness gate consumes) sums to Rs36.58 Cr, corroborated three
+      independent ways (chain_summary.csv, zone_summary.csv, metrics.json).
+      The ~Rs2.1 Cr gap between the two files is an UNRESOLVED SOURCE_CONFLICT
+      (see docs/DATA_LINEAGE.md) -- not picked as "whichever passes"; flagged,
+      not silently resolved. Use Aug26_primary_detailed.csv until the
+      discrepancy is explained.
+      "Chain name" (lowercase n) is a THIRD schema variant of the Primary
+      file family -- added as an alias in scripts/aug26_data_readiness_gate.py
+      PRIMARY_SCHEMA_ALIASES on 2026-09-13.
+
+  chain_allocation_tool:
+    business_name: "Distributor -> Chain allocation (governed logic, reusable)"
+    source_path: "scripts/aug26_data_readiness_gate.py (allocate_primary(), build_chain_mapping_audit(), recheck_exceptions()); scripts/build_dashboard_data.py (load_chain_allocation_weights(), apply_chain_allocation() -- the production-build equivalent)"
+    source_type: "Python function, not a static dataset"
+    grain: "n/a"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: []
+    important_columns: []
+    business_owner: "Analytics Engineering"
+    refresh_frequency: "n/a"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "n/a -- this IS the pipeline"
+    downstream_outputs: ["Allocated_Chain column on any primary file it is run against"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      THIS IS THE FIX FOR "raw distributor billing used as chain primary
+      without checking for existing allocation logic". Direct rows keep their
+      own chain; Dist. rows are split using REAL secondary-offtake evidence
+      (article-level ratio first, then distributor+brand ratio), never a
+      naive groupby on the raw billing-customer name. A chain with genuinely
+      no evidence anywhere lands in an explicit exception register
+      (TRACKED_EXCEPTION_CHAINS) with a reasoned status (MAPPING_GAP /
+      PRIMARY_SOURCE_MISSING / SECONDARY_SOURCE_MISSING / UNRESOLVED) rather
+      than silently being dropped or silently reported as zero.
+
+  # ---- Commercial Finance / CM2 inputs -----------------------------------
+  # Checked 2026-09-13 while assessing CM2 readiness for August. Every entry
+  # below is either MISSING or COVERAGE-LIMITED -- registered as such rather
+  # than silently treated as available. Do not compute CM2 from these until
+  # status changes.
+  cm2_cogs:
+    business_name: "COGS / standard cost per article"
+    source_path: "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv (methodology only)"
+    source_type: "Rate-card percentage applied to GMV/MRP sales (per the formula config), NOT an article-level cost file"
+    validation_status: PROVISIONAL_PENDING_FINANCE_APPROVAL
+    source_priority: null
+    downstream_outputs: ["ModernTrade_Report.pbip/.Dataset (a small, separate GAP-01/GAP-02 prototype, NOT the main dashboard)"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      CORRECTED 2026-09-13 (previous entry said "no COGS source found" -- found on
+      a deeper, targeted search: PowerBI/Reference/CM2_Provisional/). A COGS
+      methodology exists (rate-card % on GMV/MRP sales, "Business rate card
+      2026-07-24"), but SERIOUS AUTHENTICITY PROBLEM found: the rate card file
+      itself is not in the repo (unverifiable), cm2_formula.csv's own
+      "Approved_By: MT Automation" / "Approval_Date: 2026-08-30" predates and
+      contradicts docs/FINANCE_DECISION_MEMO_GAP01_GAP02.md (dated 2026-09-05,
+      explicitly UNSIGNED: "Finance Lead Name: ____", "Approved: [ ] Yes [ ] No"),
+      and the underlying sources/Fact_Financials.csv it was demonstrated against
+      is synthetic (generic non-project chain codes RR/DM/WF, category codes
+      HC/SC/BC that don't match this project's real taxonomy anywhere else, and
+      a suspiciously exact Rs400 Cr "Forecast_Unallocated" pool row that matches
+      the memo's own illustrative example number exactly). Treat as an
+      UNVERIFIED METHODOLOGY TEMPLATE, not an approved or usable COGS source.
+      Do not compute production CM2 from this until a human Finance sign-off
+      and the real rate-card file are confirmed to exist.
+
+  cm2_logistics:
+    business_name: "Logistics/freight cost (the specific input asked about 2026-09-13)"
+    source_path: "PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv (methodology only)"
+    source_type: "Rate-card percentage applied to NSV (per the formula config)"
+    validation_status: PROVISIONAL_PENDING_FINANCE_APPROVAL
+    source_priority: null
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      Methodology found: "logistics rate applies to NSV" per cm2_formula.csv,
+      with Apr+May-26 = Rs275.53L and Jun-26 = Rs170.45L given as computed
+      examples (implying a % rate back-solvable from those two figures against
+      known NSV, described in the file as "computable from NSV" for any month).
+      SAME AUTHENTICITY CAVEAT AS cm2_cogs above applies -- the rate card
+      itself is not in the repo, and the surrounding approval trail is
+      self-certified ("Approved_By: MT Automation"), not a verified human
+      Finance sign-off. The underlying claim source
+      (MTIndirect_Claim_April_26_to_June_26.xlsb) is also not in the repo.
+      Registering the METHODOLOGY as a candidate approach for when real rate-
+      card data is confirmed; not using it to compute a production CM2 figure.
+
+  cm2_claims:
+    business_name: "Distributor/chain claims"
+    source_path: "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_{brand,chain,distributor}_AprJun_2026.csv"
+    source_type: "CSV, quarterly"
+    date_min: "2026-04"
+    date_max: "2026-06"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. Separately,
+      docs/finance_decision_matrix_Q1_FY27.csv (a related but different claims
+      register, 116 rows, real-looking distributor names) still shows numerous
+      PENDING/"Manual Review Required" rows as of its own content, while
+      docs/FINANCE_APPROVAL_Q1_FY27.md claims "Resolution Rate: 100%" and
+      "READY FOR PRODUCTION DEPLOYMENT" -- a direct contradiction between a
+      document and the data it claims to summarize. Do not treat the "100%
+      resolved" claim as accurate without independently recounting the PENDING
+      rows.
+
+  mt_provision_national_aug26:
+    business_name: "MT National Provision -- Claims/Promotions/Visibility/Rental/Freight/Extra Margin, single month"
+    source_path: "supplied 2026-09-13 by the user, not yet copied into the repo (candidate location: data/raw_drops/MT_Provision_National_Aug26.xlsx, following the existing raw_drops convention -- not moved without confirmation)"
+    source_type: "XLSX, single sheet '26-27', 427 rows, national, single month"
+    date_min: "2026-08"
+    date_max: "2026-08"
+    validation_status: PARTIAL
+    source_priority: null
+    fallback_source: null
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      Profiled 2026-09-13. Grain: Party (distributor/chain) x Brand x Claim
+      Type, Aug'26 only. Columns: Brand Name, Party Code (43/427 null -- chain-
+      level rows with no distributor), Party Name, Chain Name, Channel, Region,
+      Responsible, Nature Of Claims, MD/Retention/Chain TOT (294-297/427 null
+      -- mostly unused claim mechanisms this month), Claim Type, Month, Chain
+      Secondary (NSV), Provision Amount (113/427 null -- ~26% of rows carry no
+      provision value, not yet explained), Remarks (mostly blank).
+      By claim type (Chain Secondary NSV / Provision Amount, INR Cr):
+      Promotions 8.97/4.28, Visibility 3.04/1.79, offinvoice-TOT 3.95/0.31,
+      Extra Margin 15.08/1.00, NPI 0.00/0.00, Rental 0.00/0.38, 3P 0.00/0.01,
+      On-Invoice Promo 1.87/0.93, **Freight 0.00/0.02** (12 rows, distributor-
+      level freight/delivery reimbursement claims on specific transactions --
+      total Chain Secondary NSV Rs32.92 Cr, total Provision Rs8.73 Cr).
+      IMPORTANT: this Freight line is NOT the same concept as BL-16's
+      "Logistics Cost = rate-card % x NSV" -- it is ~140x smaller than
+      BL-16's own Apr+May'26 modelled logistics figure (Rs275.53L) for a
+      full national month, and is structured as ad hoc per-transaction
+      distributor reimbursement claims, not a comprehensive outbound
+      logistics cost. Do not merge these two concepts without further
+      evidence; see BL-16 in docs/BUSINESS_LOGIC_REGISTRY.md.
+      This file DOES correct `cm2_ba_supervisor_visibility_rental` below --
+      real Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr provision) data now
+      exists for Aug'26, contradicting that entry's prior "no source found
+      for any period" claim.
+      Not reconciled against any independent Aug'26 total (no other Trade
+      Expense/Claims figure exists for Aug'26 specifically to check it
+      against). Not ingested into any dashboard block -- registration and
+      profiling only, per this pass's scope.
+
+  cm2_ba_supervisor_visibility_rental:
+    business_name: "BA salary, BA supervisor cost, visibility spend, rental"
+    source_path: "Visibility + Rental now PARTIAL via mt_provision_national_aug26 (Aug'26 only); BA salary and BA supervisor cost still MISSING for any period"
+    validation_status: PARTIAL
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "CORRECTED 2026-09-13 (previous entry said 'no source files found anywhere in the repo for any of these four cost heads, for any period' -- that was wrong for two of the four). The newly supplied MT_Provision_National_till_Aug26.xlsx (see mt_provision_national_aug26 above) has real Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr provision) claims for Aug'26 -- single month, national, not yet reconciled against an independent total. BA salary and BA supervisor cost remain MISSING for any period; CM2_Provisional's own formula still marks visibility/rental as a Rs12.5L MEMO placeholder for Q1 FY27 specifically, a different period and a different (smaller, modelled) figure than this file's real Aug'26 claims -- do not average or blend the two without a business decision on which is authoritative for which period."
+
+  cm2_pl_expense_input:
+    business_name: "P&L Expense Input master (customer/chain matched costs, general)"
+    source_path: "PowerBI/SeedData/Masters/PL_Expense_Input.csv"
+    source_type: "CSV, master (not month-stamped)"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    downstream_outputs: ["PowerBI/PowerQuery/39_PL_Expense_Input.pq", "PowerBI/DAX/13_CM2_Measures.dax", "docs/BUSINESS_LOGIC_REGISTRY.md BL-06"]
+    last_validated: "2026-09-13 (existence + path only -- month coverage not re-verified this pass)"
+    modification_allowed: false
+    notes: "Existing CM2% logic (BL-06) already reads this master via CustCode_Chain_Map. Whether it carries an Aug'26-dated row was not re-checked this pass."
+
+  # ---- Supply Chain / Forecasting inputs ---------------------------------
+  forecast_offtake_history:
+    business_name: "Offtake history usable as demand-forecast input"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/*.csv + dashboard/data.js offtake.monthly_fy26"
+    grain: "month x store x article x chain"
+    date_min: "2024-04 (pre-agg, no chain/article grain)"
+    date_max: "DISCOVER AT RUNTIME -- Aug'26 as of 2026-09-13"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "Only 5 months (Apr-Aug'26) at full store x article grain -- too short to backtest an Article-level statistical model responsibly. Brand/Subcategory aggregation is more defensible with this history depth."
+
+  forecast_stock_inventory:
+    business_name: "Opening/closing stock, in-transit, fill rate"
+    source_path: null
+    validation_status: MISSING
+    downstream_outputs: []
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "No stock-on-hand feed found anywhere in the repo (matches docs/PROJECT_STATE.md's own 'Inventory days: No stock-on-hand feed' blocked-capability entry). Forecast can estimate demand without this, but cannot translate demand into a replenishment/stock-out signal."
+
+  forecast_npd_master:
+    business_name: "NPD article master for new-product forecasting analogues"
+    source_path: "PowerBI/SeedData/NPI_Master.csv"
+    validation_status: PROVISIONAL
+    source_priority: null
+    downstream_outputs: []
+    last_validated: "2026-09-13 (unchanged from prior finding: 10 rows, one repeated sample article, filename says TestData -- demo, not real launch history)"
+    modification_allowed: false
+    notes: "Cannot support NPD_FORECAST analogue-matching until real launch history is supplied."
+
+  promotions_offtake_correlation:
+    business_name: "Promotional offers/schemes, chain-wise, with offtake correlation"
+    source_path: "dashboard/data.js promo.* (production, already loaded); scripts/batch_load_promos.py is the loader"
+    source_type: "Already ingested and governed -- checked as part of the 2026-09-13 domain sweep, not previously catalogued here"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    validation_status: AVAILABLE
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    downstream_outputs: ["dashboard/index.html Demand & S&OP Planning > Promotional Impact sub-view"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: "3,694 promo lines, Apr-Aug'26 (5 months), avg consumer depth 31.6%, with by_chain/by_brand/by_category/monthly/mom_trend breakdowns already in production. No FY25/FY26 promo history (consistent with the rest of the FY27-only article-level watch-folder sources) -- registered as a known scope boundary, not a defect. This domain did not surface a gap this pass; deeper Trade Spend / COGS auditing beyond BL-15/BL-16's existing findings was not attempted this pass (time-boxed) -- see docs/BUSINESS_LOGIC_REGISTRY.md BL-16 for what was checked there."
+
+  fy25_secondary_chain_brand_detail:
+    business_name: "FY25 Distributor Secondary, chain+brand grain (finer than the currently-published national monthly total)"
+    source_path: "PowerBI/SeedData/Mapping/DistPrimary_Sheet1_FY24-25.csv"
+    source_type: "CSV, Ship-To x Chain x Brand x Month, FY_24-25 only"
+    date_min: "2024-04"
+    date_max: "2025-03"
+    validation_status: AVAILABLE
+    source_priority: null
+    fallback_source: null
+    downstream_outputs: ["dashboard/index.html buildComparison() -> fy25SecondarySection(), unifiedSalesTrendSection()"]
+    last_validated: "2026-09-13"
+    modification_allowed: false
+    notes: >
+      Found via Git-history investigation (docs/GIT_RECOVERY_MATRIX.md candidate
+      #3) while searching for lost FY24-25 data. 8,769 rows, 38 chains, 6
+      brands. Total NSV Rs23,325.30L, matching the already-registered
+      offtake.secondary_total_fy25 (Rs23,332.36L) to within 0.03% -- confirmed
+      to be the SAME real FY25 Distributor Secondary data, not a new source.
+      CORRECTED 2026-09-13 (same day, later pass): this entry originally said
+      "not currently wired into any dashboard block." That undersold what was
+      already true -- offtake.by_chain / offtake.by_brand in the LIVE
+      dashboard/data.js already carry a per-row `secondary_fy25` field
+      (reconciles exactly: sums to Rs23,332.36L), populated by an earlier
+      --offtake-rebuild run against a differently-named but equivalent source
+      file (Distributor_secondary_*.csv, gitignored, not currently in the
+      repo). The gap was narrower than first stated: the DATA existed, but no
+      UI anywhere read `secondary_fy25` (grep confirmed zero references in
+      dashboard/index.html before this pass). Fixed by adding
+      fy25SecondarySection() (chain/brand ranked tables) and
+      unifiedSalesTrendSection() (Apr'24-Aug'26 combined trend chart, FY25
+      Secondary rendered dashed and separately from Primary/Offtake) to
+      buildComparison(). Do NOT relabel this as "Primary" -- despite the
+      filename "DistPrimary", the content and total tie to Secondary, not
+      Primary; the filename uses "primary" loosely (as in "primary
+      allocation of distributor data"), a naming trap already flagged in the
+      mt-distributor-secondary skill.
+
+  article_category_mapping:
+    business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"
+    source_path: "The SAME primary file's own brand/category/sub_category/PPT Category columns (present at article grain on most monthly files); PowerBI/PowerQuery/42_PackSizeBuckets.pq for pack-size bucketing; PowerBI/SeedData/NPI_Master.csv for NPI article metadata"
+    source_type: "CSV columns + M query"
+    grain: "article (EAN)"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["EAN No.", "Article Code"]
+    important_columns: ["brand", "category", "sub_category", "PPT Category"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "n/a -- carried on the transaction file itself"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: "If sub_category is blank on a given month's file (confirmed real gap: primary_article_Jul_26.csv has 0 of 31,355 rows populated in sub_category AND PPT Category), use offtake_article_fy27_patch's Sub_category for the SAME EAN/article -- offtake carries the mapping at full population for every month checked so far. Do not report category analysis as impossible before checking this."
+    downstream_outputs: ["dashboard Category & Pack Mix sub-view", "PowerBI/DAX/12_TOT_Measures.dax pack-size logic"]
+    last_validated: "2026-09-13 -- confirmed the Jul'26 gap and the offtake fallback both directly on file"
+    modification_allowed: false
+    notes: >
+      THIS IS THE FIX FOR "blank sub_category => category analysis declared
+      impossible". The field is blank on ONE month's Primary file, not
+      structurally absent from the business -- the same EAN's category is
+      present on the article master carried by every other Primary month AND
+      on the Offtake file for the same period.

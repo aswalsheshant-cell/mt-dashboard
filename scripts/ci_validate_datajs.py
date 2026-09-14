@@ -86,6 +86,24 @@ def main():
         print(f"OK  data.js -- FY27 zones: {', '.join(sorted(fy27.keys()))}")
     print("OK  dashboard/data.js is valid JSON")
 
+    cov = (data.get("detail_meta") or {}).get("value_coverage_pct")
+    if cov is not None:
+        if cov < 99.0:
+            print(f"WARN: detail_records value_coverage_pct is {cov}% (<99%) -- "
+                  f"a --detail-max-rows cap may be silently dropping row-group "
+                  f"coverage. Check whether this is expected (dataset genuinely "
+                  f"grew past the cap) or a regression (cap applied where the "
+                  f"prior build was uncapped) before treating this as normal.")
+        else:
+            print(f"OK  detail_records value_coverage_pct: {cov}%")
+
+    if "metadata" in data and data.get("metadata") != data.get("meta"):
+        print("WARN: data.js has 'metadata' and 'meta' with different content. "
+              "'meta' is the block index.html actually reads; 'metadata' is a "
+              "legacy block written by scripts/sync_data_js.py (a deprecated, "
+              "workflow_dispatch-only pipeline -- see docs/DATA_AVAILABILITY_MATRIX.md "
+              "'Known data.js hygiene issue'). Do not trust 'metadata' as authoritative.")
+
     problems = check_baselines(data)
     if problems:
         print(f"FAIL: {len(problems)} baseline invariant(s) broken:")

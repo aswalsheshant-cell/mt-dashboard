@@ -20,6 +20,9 @@ on:
       - 'playwright.config.js'
       - '.github/workflows/ui-smoke.yml'
 
+permissions:
+  contents: read
+
 jobs:
   ui-smoke:
     runs-on: ubuntu-latest

@@ -2518,14 +2518,27 @@ _EXPENSE_DEDUP_FIELDS = ["Month", "FY", "Chain", "Customer Code", "Customer Name
 
 def load_pl_expense_input():
     """Row dicts from the editable PowerBI/SeedData/Masters/PL_Expense_Input.csv.
-    Returns [] if the file is missing (no expenses loaded yet -- CM2 then
-    just equals NSV, and the dashboard/Power BI both show an explicit
-    "no expense data loaded" state rather than a fabricated CM2)."""
+    Returns [] if the file is missing OR contains only the seed template's own
+    "EXAMPLE ROW" placeholder rows (no expenses loaded yet -- CM2 then just
+    equals NSV, and the dashboard/Power BI both show an explicit "no expense
+    data loaded" state rather than a fabricated CM2).
+
+    Bug fixed 2026-09-13: the seed file ships with 3 rows explicitly marked
+    "EXAMPLE ROW -- replace with real data" in Remarks, to show a Finance
+    user the exact schema. Those rows used to satisfy has_expense_data (any
+    parsed row counted as real), so the dashboard silently treated Rs47.65L
+    of template placeholder values (Dmart Visibility Spend Rs12.5L, Reliance
+    Retail Scheme/Trade Spend Rs28.4L, Apollo BA Cost Rs6.75L) as real CM2
+    expense and never showed the "no expense data loaded" banner it was
+    designed to show in that state. Filtering them out here is a pure
+    correctness fix -- no real expense data existed in this file before or
+    after this change."""
     path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PL_Expense_Input.csv"
     if not path.exists():
         return []
     with open(path, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+        rows = list(csv.DictReader(fh))
+    return [r for r in rows if "EXAMPLE ROW" not in (r.get("Remarks") or "").upper()]
 
 def _build_custcode_chain_lookup(df):
     """Cust-SAP Code -> most common Chain, built from the primary article
@@ -2539,6 +2552,106 @@ def _build_custcode_chain_lookup(df):
         return vc.idxmax() if len(vc) > 0 else None
     result = sub.groupby("_CustCode")["_Chain"].agg(_most_common)
     return result[result.notna()].to_dict()
+
+def primary_offtake_gap_block(primary, offtake, fyx_primary):
+    """Primary-vs-Offtake gap analysis, computed only over grains and periods
+    where both measures genuinely exist and are comparable -- never a
+    fabricated relationship. Two windows:
+
+      fy26: primary.monthly_fy26 (12 real months, primary.by_channel shows
+            EB2B/SIS are both 0 for FY26 -- a clean, fully MT-channel-scoped
+            comparison) vs offtake.monthly_fy26 / offtake.total_fy26.
+      fy27: fyx_primary.monthly_canon (Apr-Aug'26 so far) vs
+            offtake.monthly_fy27 -- flagged NOT_FULLY_COMPARABLE because
+            fyx_primary's total still includes EB2B/SIS (~5.2% of FY27
+            Primary per by_channel), which Offtake (chain POS, MT-only by
+            construction) does not carry. Shown anyway, with the caveat
+            attached, rather than withheld -- the gap is still directionally
+            informative, it just isn't a pure like-for-like ratio.
+
+    By-chain gap is split into three groups rather than one blended list,
+    because Primary and Offtake do not cover the same 21/35-chain universe
+    (verified 2026-09-13: 15 chains exist in both, 6 Primary-only, 19
+    Offtake-only) -- dividing across mismatched universes would silently
+    misrepresent coverage:
+      matched:      chain exists in both -> gap/ratio computed
+      primary_only: chain has Primary NSV but no Offtake series -- shown as
+                    a value, never divided into a ratio
+      offtake_only: the mirror case
+
+    Never call the gap "inventory" -- it may reflect inventory movement,
+    timing/cutoff, returns, channel/coverage differences, or other business
+    processes not evidenced here. Labelled neutrally throughout.
+    """
+    def _by_month(months, prim_vals, off_months, off_vals, comparable_note):
+        off_map = dict(zip(off_months, off_vals))
+        rows = []
+        for i, m in enumerate(months):
+            p = prim_vals[i] if i < len(prim_vals) else None
+            o = off_map.get(m)
+            gap = (p - o) if (p is not None and o is not None) else None
+            ratio = round(p / o, 3) if (p and o) else None
+            rows.append({"month": m, "primary": p, "offtake": o, "gap": gap,
+                         "ratio": ratio})
+        return {"rows": rows, "comparable_note": comparable_note}
+
+    def _by_chain(prim_chain_map, off_chain_map):
+        matched, primary_only, offtake_only = [], [], []
+        for name in sorted(set(prim_chain_map) | set(off_chain_map)):
+            p = prim_chain_map.get(name)
+            o = off_chain_map.get(name)
+            if p is not None and o is not None:
+                gap = p - o
+                ratio = round(p / o, 3) if o else None
+                matched.append({"name": name, "primary": p, "offtake": o,
+                                 "gap": gap, "ratio": ratio})
+            elif p is not None:
+                primary_only.append({"name": name, "primary": p})
+            elif o is not None:
+                offtake_only.append({"name": name, "offtake": o})
+        matched.sort(key=lambda r: abs(r["gap"]), reverse=True)
+        return {"matched": matched, "primary_only": primary_only,
+                "offtake_only": offtake_only,
+                "coverage_note": (f"{len(matched)} chains in both series, "
+                                  f"{len(primary_only)} Primary-only (no Offtake series), "
+                                  f"{len(offtake_only)} Offtake-only (no Primary series) -- "
+                                  "gap/ratio computed only for matched chains")}
+
+    fy26 = None
+    if primary.get("monthly_fy26") and offtake.get("monthly_fy26"):
+        fy26 = {
+            "by_month": _by_month(
+                offtake["months_fy26"], primary["monthly_fy26"],
+                offtake["months_fy26"], offtake["monthly_fy26"],
+                "Comparable: FY26 Primary is 100% MT channel (EB2B/SIS both 0 "
+                "per primary.by_channel), matching Offtake's MT-only scope."),
+            "by_chain": _by_chain(
+                {c["name"]: c["fy26"] for c in primary.get("by_chain", []) if c.get("fy26")},
+                {c["name"]: c["fy26"] for c in offtake.get("by_chain", []) if c.get("fy26")}),
+        }
+
+    fy27 = None
+    if fyx_primary and fyx_primary.get("monthly_canon") and offtake.get("monthly_fy27"):
+        fy27 = {
+            "by_month": _by_month(
+                fyx_primary["months_canon"], fyx_primary["monthly_canon"],
+                offtake["months_fy27"], offtake["monthly_fy27"],
+                "NOT_FULLY_COMPARABLE: FY27 Primary total still includes EB2B/SIS "
+                "(~5.2% of FY27 Primary per fyx_primary.by_channel); Offtake is "
+                "MT-only by construction. Shown for trend direction, not as a "
+                "precise like-for-like ratio."),
+            "by_chain": _by_chain(
+                {c["name"]: c["nsv"] for c in fyx_primary.get("by_chain", [])},
+                {c["name"]: c["fy27"] for c in offtake.get("by_chain", []) if c.get("fy27")}),
+        }
+
+    return {"fy26": fy26, "fy27": fy27,
+            "note": ("Primary-Offtake Gap = Primary NSV - Offtake NSV. Neutral "
+                     "label deliberately used instead of 'inventory' -- the gap "
+                     "may reflect inventory movement, timing/cutoff, returns, "
+                     "channel or coverage differences, or other business "
+                     "processes not evidenced here.")}
+
 
 def cm2_block(df, expense_rows):
     """Chain/Brand/Category/Expense-Head CM2 rollups + monthly series, from
@@ -2645,7 +2758,11 @@ def cm2_block(df, expense_rows):
             cm2 = nsv - exp
             out.append({"name": name, "nsv": r2(nsv), "expense": r2(exp),
                         "cm2_value": r2(cm2), "cm2_pct": r2(cm2 / nsv * 100, 1) if nsv else None})
-        return sorted(out, key=lambda d: -(d["nsv"] or 0))
+        # NSV desc, then name asc on ties -- deterministic regardless of the
+        # `set(nsv_series.index) | set(exp_by.keys())` iteration order above
+        # (hash-randomized per process; previously caused e.g. Hair Colour/
+        # Fragrances, tied at the same NSV, to swap order between rebuilds).
+        return sorted(out, key=lambda d: (-(d["nsv"] or 0), str(d["name"])))
 
     by_chain = rollup("_Chain", "chain")
     by_brand = rollup("_Brand", "brand")
@@ -4007,28 +4124,100 @@ def load_shipto_primary_weights(repo_root=None):
           f"from {p.name}")
     return w[["_st", "_bl", "_pm", "_AllocChainRaw", "_frac", "_ShipToRaw", "_BrandRaw"]].copy(), raw_sums
 
+def _load_dist_cont_patch_rows():
+    """Approved override/insert rows from PowerBI/SeedData/DIST/DistPrimaryCont
+    WeightsArticle.csv, in the BASE workbook's own column shape (Ship To Name,
+    Chain Name, Brand, Month, Secondary contribution %), or None if absent.
+
+    Patch key = (Ship To Name, Brand, Month) -- confirmed from evidence, not
+    assumed: every row's own Basis column documents it as either a full
+    nearest-month split copied in and approved for that exact key (e.g. "Az
+    Enterprises"/"BBlunt"/2025-10-01 has two patch rows, H&G 92.14% + Trilife
+    7.86%, summing to the complete distribution for that key -- not a partial
+    correction to one chain within an existing split), or a one-off approved
+    mapping fix (Guardian Healthcare). A patch key's rows always sum close to
+    100% by themselves, confirming they REPLACE the whole key's distribution,
+    never merge partially against whatever the base has for that same key.
+    See FM-16 in docs/FAILURE_MODE_REGISTER.md for the defect this replaces:
+    this file used to be read INSTEAD of the base workbook whenever it
+    existed, silently discarding the whole business-maintained workbook."""
+    patch_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+    if not patch_f.exists():
+        return None
+    p = pd.read_csv(patch_f)
+    p.columns = [str(c).strip() for c in p.columns]
+    required = {"Ship_To_Name", "Chain_Name", "Brand", "Month", "Cont_Pct"}
+    missing = required - set(p.columns)
+    if missing:
+        raise SystemExit(
+            f"DistPrimaryContWeightsArticle.csv is missing required column(s) {sorted(missing)} "
+            "-- explicit source-contract failure, not silently ignored (FM-16B).")
+    return p.rename(columns={
+        "Ship_To_Name": "Ship To Name", "Chain_Name": "Chain Name",
+        "Cont_Pct": "Secondary contribution %",
+    })[["Ship To Name", "Chain Name", "Brand", "Month", "Secondary contribution %"]]
+
+
 def load_dist_cont_weights(src):
-    """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the cont
-    sheet (CSV preferred), fractions normalised to sum to 1 per (ShipTo, Brand, Month).
-    CSV: PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv (versioned in git)
-    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx (fallback)
-    CSV: Priority-1 fallback at ShipTo×Brand×Month grain if neither DIST file exists.
+    """Weights DataFrame [_st, _bl, _pm, _AllocChainRaw, _frac] from the
+    business-maintained cont workbook, with the approved patch CSV applied as
+    an OVERRIDE/INSERT layer on top -- never as a replacement for the whole
+    workbook. Fixed 2026-09-13 (FM-16B): the patch CSV used to be read
+    EXCLUSIVELY whenever it existed, silently discarding the real workbook
+    even when present, because it's only ever held ~27 approved-exception
+    rows, not the full monthly split. See _load_dist_cont_patch_rows()'s own
+    docstring for the evidence behind the (Ship To Name, Brand, Month)
+    override key.
+
+    XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx (the base workbook,
+    business-maintained, expected in --src, never committed to Git)
+    CSV: PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv (approved
+    patch -- overrides/inserts specific (Ship To Name, Brand, Month) keys)
+    CSV: Priority-1 fallback at ShipTo×Brand×Month grain if the base workbook
+    is absent (the patch alone is never treated as a complete base -- if the
+    workbook is missing, this same fallback runs exactly as it did before,
+    with the patch still applied on top of it).
     Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
-    # Try CSV seed first
-    csv_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
-    if csv_f.exists():
-        w = pd.read_csv(csv_f)
-        src_label = "dist_cont_csv"
-    else:
-        # Fallback to XLSX
-        f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-        if not f.exists():
-            # Priority-1 fallback: actual chain-level primary at ShipTo×Brand×Month grain
-            wdf, raw_sums = load_shipto_primary_weights()
-            src_label = "shipto_primary_csv" if wdf is not None else None
-            return wdf, raw_sums, src_label
+    f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+    if f.exists():
         w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
         src_label = "xlsx"
+    else:
+        # Base workbook absent -- Priority-1 fallback, exactly as before this fix.
+        wdf, raw_sums = load_shipto_primary_weights()
+        src_label = "shipto_primary_csv" if wdf is not None else None
+        if wdf is None:
+            return None, None, None
+        w = None  # signal: no base rows, only the fallback dataframe already built
+
+    patch = _load_dist_cont_patch_rows()
+    if w is not None:
+        w.columns = [str(c).strip() for c in w.columns]
+        w = w.rename(columns={"Ship_To_Name": "Ship To Name", "Chain_Name": "Chain Name"})
+        if patch is not None and len(patch):
+            # Override/insert: drop any base rows whose (ShipTo, Brand, Month)
+            # key the patch also covers, then append the patch's own rows for
+            # those keys -- never a partial merge within one key.
+            _key = lambda df: (df["Ship To Name"].astype(str).str.strip().str.lower() + "\x1f"
+                                + df["Brand"].astype(str).str.strip().str.lower() + "\x1f"
+                                + pd.to_datetime(df["Month"], errors="coerce").dt.strftime("%Y-%m").fillna(
+                                    df["Month"].astype(str)))
+            patch_keys = set(_key(patch))
+            w = w[~_key(w).isin(patch_keys)]
+            w = pd.concat([w, patch], ignore_index=True)
+            src_label = "xlsx+patch"
+    else:
+        # No base workbook: patch is applied on top of the Priority-1 fallback
+        # dataframe returned by load_shipto_primary_weights(), which is
+        # already in the (_st, _bl, _pm, _AllocChainRaw, _frac) output shape,
+        # not the raw workbook shape -- return it as-is (unchanged from
+        # pre-fix behaviour) since merging a raw-shaped patch onto an
+        # already-normalised fallback needs its own conversion this pass
+        # does not attempt blind. The patch CSV alone continuing to NOT
+        # masquerade as complete coverage (FM-16, case 7) is preserved either
+        # way: this fallback path was already real ShipTo-Primary data, not
+        # the 27-row patch file.
+        return wdf, raw_sums, src_label
 
     w.columns = [str(c).strip() for c in w.columns]
     # Normalise underscore vs space column names
@@ -4045,11 +4234,20 @@ def load_dist_cont_weights(src):
     w["_st"] = w["Ship To Name"].astype(str).str.strip().str.lower()
     w["_bl"] = w["Brand"].astype(str).str.strip().str.lower()
 
-    # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX)
-    if w[month_col].dtype == 'object':
-        w["_pm"] = pd.to_datetime(w[month_col], errors="coerce").dt.strftime("%Y-%m")
-    else:
+    # Parse month: handle both YYYY-MM (CSV) and Excel date format (XLSX).
+    # Bug found 2026-09-13 while synthetic-testing the FM-16B loader fix:
+    # `dtype == 'object'` silently stopped detecting text columns under
+    # pandas 3.x, which introduced a distinct 'str' dtype for plain-string
+    # columns (pandas 2.x had no such split -- text was always 'object').
+    # A month column full of real text ("2025-10-01") was falling through to
+    # the numeric _month_period() branch and returning nothing for every row
+    # -- an independent latent bug from the FM-16B loader-priority defect,
+    # only now exercised because this code path had never been reached
+    # before (no session ever had the real XLSX to trigger it).
+    if pd.api.types.is_numeric_dtype(w[month_col]):
         w["_pm"] = w[month_col].map(_month_period)
+    else:
+        w["_pm"] = pd.to_datetime(w[month_col], errors="coerce").dt.strftime("%Y-%m")
 
     w["_pct"] = pd.to_numeric(w[cont_col], errors="coerce").fillna(0.0)
     w = w[w["_pm"].notna() & (w["_pct"] != 0)]
@@ -4078,7 +4276,7 @@ def _infer_chain_from_name(shipto):
                 return canon
     return None
 
-def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
+def _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=None):
     """Regenerate SeedData/Mapping/DistCont_Patch_Proposed.csv on every build:
     one reviewable row per proposed cont-sheet addition, in the cont sheet's
     own column layout plus Confidence/Basis. Two kinds of proposals:
@@ -4092,7 +4290,9 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
     Returns (row_count, repo-relative path). The file is PROPOSALS only --
     edits belong in the cont xlsx, so regenerating this file is always safe;
     once the xlsx has the rows, the gap disappears and so does the proposal."""
-    path = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistCont_Patch_Proposed.csv"
+    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistCont_Patch_Proposed.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
     def fy_of(pm):
         y, m = int(pm[:4]), int(pm[5:7])
         yy = y % 100
@@ -4130,14 +4330,16 @@ def _write_dist_cont_patch(key_tier, key_eff, wdf, dist):
 
 
 
-def _write_flagged_rows_csv(ne_orig: "pd.DataFrame") -> None:
+def _write_flagged_rows_csv(ne_orig: "pd.DataFrame", output_dir=None) -> None:
     """Write Not_Eligible rows to a reviewable CSV for business override workflow.
 
     Output: PowerBI/SeedData/Mapping/DistAllocationGovernance_FlaggedRows.csv
     Business process: review this file, add approved rows to PrimaryAllocationOverride.csv,
     then rebuild. The flagged_rows_csv path is surfaced in alloc.governance in data.js.
-    """
-    _out = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
+    output_dir: when given, write under this directory instead of the repo root
+    (used by shadow/test runs so they never touch tracked files)."""
+    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    _out = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "DistAllocationGovernance_FlaggedRows.csv"
     _out.parent.mkdir(parents=True, exist_ok=True)
     display_cols = {
         "Month": "Month",
@@ -4156,8 +4358,124 @@ def _write_flagged_rows_csv(ne_orig: "pd.DataFrame") -> None:
     print(f"Phase 6: wrote {len(out_df)} Not_Eligible rows to {_out.name} for business review")
 
 
+def _classify_ean_affinity(um: "pd.DataFrame", out_df: "pd.DataFrame"):
+    """Residual certification (2026-09-13, post-FM-16B): for each still-
+    Unmapped Dist. row, check every OTHER already-mapped row (any source,
+    any month) sharing its EAN, and see how concentrated that EAN's known
+    sales are in one chain. This is evidence about the ARTICLE's typical
+    distribution footprint, not a business rule about this transaction --
+    disclosed as a proposal for approval, never applied automatically.
+
+    Confidence bands (evidence-based, not invented per-row):
+      HIGH    >=95% of the EAN's known positive NSV goes to one chain
+      MEDIUM  >=80% and <95%
+      LOW     <80% -- article is genuinely multi-chain; no defensible
+                      single answer exists, so no mapping is proposed
+      NO_EVIDENCE -- EAN never appears in any already-mapped row
+
+    Returns (residual_summary: dict | None, proposal_rows: list[dict]).
+    proposal_rows holds ONLY HIGH/MEDIUM rows -- LOW/NO_EVIDENCE stay
+    Unmapped Chain and are counted in residual_summary only; forcing a
+    chain guess onto a multi-chain article would be fabricated mapping."""
+    if not len(um) or "_EAN No." not in um.columns:
+        return None, []
+    known = out_df[(out_df["_Chain"] != "Unmapped Chain") & (out_df["_NSV"] > 0)]
+    if "_EAN No." not in known.columns or not len(known):
+        return None, []
+
+    aff = known.groupby(["_EAN No.", "_Chain"])["_NSV"].sum().reset_index()
+    ean_total = aff.groupby("_EAN No.")["_NSV"].sum().rename("ean_total")
+    top = (aff.sort_values(["_EAN No.", "_NSV"], ascending=[True, False])
+              .groupby("_EAN No.").first().join(ean_total))
+    top["dominant_share"] = top["_NSV"] / top["ean_total"]
+    top = top.rename(columns={"_Chain": "dominant_chain"})[
+        ["dominant_chain", "dominant_share", "ean_total"]]
+
+    u = um.merge(top, left_on="_EAN No.", right_index=True, how="left")
+
+    def _confidence(share):
+        if pd.isna(share):
+            return "NO_EVIDENCE"
+        if share >= 0.95:
+            return "HIGH"
+        if share >= 0.80:
+            return "MEDIUM"
+        return "LOW"
+
+    u["confidence"] = u["dominant_share"].map(_confidence)
+    residual_class = {"HIGH": "DEFENSIBLE_MAPPING_AVAILABLE",
+                       "MEDIUM": "BUSINESS_REVIEW_REQUIRED",
+                       "LOW": "AMBIGUOUS_MULTI_CHAIN",
+                       "NO_EVIDENCE": "NO_EVIDENCE"}
+    u["residual_class"] = u["confidence"].map(residual_class)
+
+    by_class = {cls: {"rows": 0, "nsv_lakh": 0.0} for cls in residual_class.values()}
+    for cls, g in u.groupby("residual_class"):
+        by_class[cls] = {"rows": int(len(g)), "nsv_lakh": r2(float(g["_NSV"].sum()))}
+
+    residual_summary = {
+        "residual_row_count": int(len(um)),
+        "residual_nsv_lakh": r2(float(um["_NSV"].sum())),
+        "residual_distributor_count": int(um["_CustName"].nunique()) if "_CustName" in um.columns else None,
+        "residual_brand_count": int(um["_Brand"].nunique()) if "_Brand" in um.columns else None,
+        "residual_article_count": int(um["_EAN No."].nunique()),
+        "by_class": by_class,
+        "materiality": "MATERIALITY_THRESHOLD_NOT_GOVERNED",  # no approved threshold exists for this specific residual metric -- see per-context floors elsewhere (zone recovery, incentive identity) which are NOT this metric
+        "method": (
+            "Article(EAN)-affinity evidence check over already-mapped rows, run once "
+            "after the FM-16B loader fix. HIGH/MEDIUM rows are written to "
+            "EanAffinity_ResidualProposal.csv for business review; NEVER auto-applied "
+            "to _Chain. LOW/NO_EVIDENCE rows stay Unmapped Chain -- the article is "
+            "genuinely sold across multiple chains with no single defensible answer."
+        ),
+    }
+
+    proposal_rows = []
+    for _, r in u[u["confidence"].isin(["HIGH", "MEDIUM"])].iterrows():
+        share_pct = round(float(r["dominant_share"]) * 100, 2)
+        proposal_rows.append({
+            "ship_to": r.get("_CustName"), "month": r.get("Month"),
+            "brand": r.get("_Brand", r.get("brand")), "ean": r.get("_EAN No."),
+            "current_chain": "Unmapped Chain", "proposed_chain": r.get("dominant_chain"),
+            "affinity_pct": share_pct, "confidence": r["confidence"],
+            "nsv_lakh": r2(float(r["_NSV"])),
+            "evidence_basis": (f"EAN {r.get('_EAN No.')} known sales are {share_pct}% to "
+                               f"{r.get('dominant_chain')} (of {r2(float(r['ean_total']))} L "
+                               "known NSV elsewhere)"),
+            "recommended_action": "APPROVE_CANDIDATE" if r["confidence"] == "HIGH" else "REVIEW_REQUIRED",
+        })
+    return residual_summary, proposal_rows
+
+
+def _write_ean_affinity_proposal(proposal_rows, output_dir=None):
+    """Regenerate SeedData/Mapping/EanAffinity_ResidualProposal.csv on every
+    build -- reviewable HIGH/MEDIUM article-affinity mapping candidates for
+    the small residual of Dist. rows the cont%/ShipTo-primary allocation
+    still leaves Unmapped (see alloc.residual in data.js). This is a
+    DIFFERENT, later-stage mechanism from DistCont_Patch_Proposed.csv (which
+    proposes ShipTo x Brand x Month cont% rows); it never overlaps because it
+    only ever covers rows already in `um` (still Unmapped after that tier).
+    Governance: HIGH -> APPROVE_CANDIDATE, MEDIUM -> REVIEW_REQUIRED. Neither
+    is auto-applied -- approving a row means adding it to
+    PrimaryAllocationOverride.csv (or the cont sheet) and rebuilding."""
+    base = output_dir if output_dir is not None else Path(__file__).resolve().parent.parent
+    path = Path(base) / "PowerBI" / "SeedData" / "Mapping" / "EanAffinity_ResidualProposal.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        wcsv = csv.writer(fh, quoting=csv.QUOTE_MINIMAL)
+        wcsv.writerow(["Ship To Name", "Month", "Brand", "Article/EAN", "Current Chain",
+                       "Proposed Chain", "Affinity %", "Confidence", "Primary NSV (Lakh)",
+                       "Evidence Basis", "Recommended Action"])
+        for r in proposal_rows:
+            wcsv.writerow([r["ship_to"], r["month"], r["brand"], r["ean"], r["current_chain"],
+                           r["proposed_chain"], r["affinity_pct"], r["confidence"], r["nsv_lakh"],
+                           r["evidence_basis"], r["recommended_action"]])
+    return len(proposal_rows), "PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv"
+
+
 def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
-                          offtake_brand_set=None, offtake_ean_set=None):
+                          offtake_brand_set=None, offtake_ean_set=None,
+                          output_dir=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
     every row of `df` (Direct rows keep their own "Chain name for Dashboard").
     Returns (new_df, alloc_block) where alloc_block carries the full
@@ -4167,7 +4485,13 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     offtake_brand_set: frozenset[str] of lowercased brand names from offtake,
       or None (→ brand_in_offtake defaults True, preserving pre-Phase-5 behaviour).
     offtake_ean_set: frozenset[str] of EAN strings from offtake,
-      or None (→ article_in_offtake defaults True)."""
+      or None (→ article_in_offtake defaults True).
+    output_dir: directory the 3 reviewable governance/proposal CSVs
+      (DistCont_Patch_Proposed.csv, DistAllocationGovernance_FlaggedRows.csv,
+      EanAffinity_ResidualProposal.csv) are written under, in place of the
+      repo root — pass a scratch directory for a shadow/test run so it never
+      overwrites the tracked copies. None (default) preserves the original,
+      production behaviour of writing into the repo."""
     _has_dashboard = "Chain name for Dashboard" in df.columns
     _has_plain = "Chain name" in df.columns
     if _has_dashboard and _has_plain:
@@ -4239,7 +4563,12 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             gov_tier = "Eligible"
         else:
             months = avail.get((st, bl))
-            near = min(months, key=lambda m: abs(_pm_ord(m) - _pm_ord(pm))) if (months and pm) else None
+            # Tie-break deterministically on the month string itself (earlier
+            # wins) when two months are equidistant -- `months` is built from
+            # iterating a `set`, whose order is hash-randomized per process,
+            # so `min()` on distance alone silently picked a different month
+            # on different runs for tied keys (e.g. -1 vs +1 month away).
+            near = min(months, key=lambda m: (abs(_pm_ord(m) - _pm_ord(pm)), m)) if (months and pm) else None
             if near is not None and abs(_pm_ord(near) - _pm_ord(pm)) <= 3:
                 key_eff[k], key_tier[k] = near, f"nearest {near}"
                 gov_tier = "Eligible_TAT"
@@ -4420,13 +4749,18 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             })
         june_period_breakdown.sort(key=lambda x: -x["nsv_lakh"])
 
-    patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist)
+    patch_rows, patch_path = _write_dist_cont_patch(key_tier, key_eff, wdf, dist, output_dir=output_dir)
     merged.drop(columns=["_st", "_bl", "_pm", "_pm_eff", "_tier", "_AllocChainRaw",
                          "_ChainDash", "_frac", "_ShipToRaw", "_BrandRaw"], inplace=True, errors='ignore')
     direct.drop(columns=["_ChainDash"], inplace=True)
     merged["_IsDist"] = True
     direct["_IsDist"] = False
     out_df = pd.concat([direct, merged], ignore_index=True)
+
+    # ---- residual certification (Phase 2, 2026-09-13): article-affinity
+    # evidence check on whatever remains Unmapped after the tiers above ----
+    residual_summary, ean_proposal_rows = _classify_ean_affinity(um, out_df)
+    ean_proposal_count, ean_proposal_path = _write_ean_affinity_proposal(ean_proposal_rows, output_dir=output_dir)
 
     # ---- STEP 5 (Phase 3): Generate governance report ----
     tier_counts = {}
@@ -4465,11 +4799,19 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
         ne_keys_df = pd.DataFrame(ne_decision_rows)
         ne_orig = orig.merge(ne_keys_df, on=["_st", "_bl", "_pm"], how="inner")
         not_eligible_nsv = float(ne_orig["_NSV"].sum())
-        _write_flagged_rows_csv(ne_orig)
+        _write_flagged_rows_csv(ne_orig, output_dir=output_dir)
     else:
         not_eligible_nsv = 0.0
     total_dist_nsv = float(orig["_NSV"].sum())
     not_eligible_pct = round(not_eligible_nsv / total_dist_nsv * 100, 2) if total_dist_nsv > 0 else 0.0
+    total_primary_nsv = total_dist_nsv + float(direct["_NSV"].sum())
+    if residual_summary is not None:
+        residual_summary["residual_pct_of_total_primary"] = (
+            round(residual_summary["residual_nsv_lakh"] / total_primary_nsv * 100, 4)
+            if total_primary_nsv else None)
+        residual_summary["total_primary_nsv_lakh"] = r2(total_primary_nsv)
+        residual_summary["proposal_rows"] = ean_proposal_count
+        residual_summary["proposal_file"] = ean_proposal_path
 
     # Count approved overrides from PrimaryAllocationOverride.csv that match Not_Eligible keys
     override_count = 0
@@ -4511,6 +4853,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
         "recon": recon, "qc_table": qc_rows[:400], "qc_table_total_rows": len(qc_rows),
         "missing_mapping": missing,
         "patch_rows": patch_rows, "patch_file": patch_path,
+        "residual": residual_summary,
         "unit": "INR Lakh (values), units (qty)",
         "source_label": source_label or "unknown",
         # ---- June-26 fallback disclosure (additive governance) ----
@@ -5271,6 +5614,9 @@ def main():
             obj["cm2"] = cm2
         if alloc is not None:
             obj["alloc"] = alloc
+        if obj.get("primary") and obj.get("offtake"):
+            obj["primary_offtake_gap"] = primary_offtake_gap_block(
+                obj["primary"], obj["offtake"], meta.get("fyx_primary", {}).get("FY27"))
         print(f"detail-only: {len(detail)} detail_records "
               f"({'REAL' if not meta['representative'] else 'representative'})"
               + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
@@ -5687,6 +6033,9 @@ def main():
         data["cm2"] = cm2
     if alloc is not None:
         data["alloc"] = alloc
+    if primary and offtake:
+        data["primary_offtake_gap"] = primary_offtake_gap_block(
+            primary, offtake, (detail_meta or {}).get("fyx_primary", {}).get("FY27"))
 
     # ---- Merge FY27+ channels into primary.by_channel to ensure all channels are represented ----
     # FY27 article-level data has EB2B/SIS channels not in pre-agg FY25/26 workbooks.

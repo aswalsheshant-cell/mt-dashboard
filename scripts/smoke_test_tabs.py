@@ -2,7 +2,7 @@
 """
 Headless UI Null-Safety Health Check — Automated tab validation without GUI.
 
-Simulates all 19 tab switches, verifies:
+Simulates every dashboard tab switch, verifies:
 - No uncaught JavaScript errors in console
 - All chart canvases render (Chart.js initialization success)
 - No NaN/undefined in KPI cards
@@ -23,6 +23,7 @@ Examples:
 """
 
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -35,35 +36,25 @@ from contextlib import closing
 DASHBOARD_PATH = Path("dashboard/index.html")
 DATA_JS_PATH = Path("dashboard/data.js")
 
-# Expected 19 tabs (16 existing + 3 new)
-EXPECTED_TABS = [
-    "data-explorer",
-    "overview",
-    "primary",
-    "offtake",
-    "pnl",
-    "category-pack",
-    "forecast",
-    "forecast-tracking",  # NEW (Phase 1)
-    "promo-trade-spend",
-    "market-share",
-    "distribution",
-    "performance-comparison",
-    "insights",
-    "cm2",  # NEW (Phase 3)
-    # Total 19 tabs
-]
+
+def load_expected_tabs() -> List[str]:
+    """Parse the canonical tab list directly from dashboard/index.html's own
+    `const TABS=[...]` array, so this smoke test tracks the live dashboard
+    instead of a hardcoded copy that can silently go stale after a tab
+    consolidation. Returns [] (rather than raising) if the file is missing or
+    the array can't be parsed -- validate_files_exist()/validate_tab_structure()
+    report that as a real failure instead of a hard crash."""
+    if not DASHBOARD_PATH.exists():
+        return []
+    content = DASHBOARD_PATH.read_text(encoding="utf-8")
+    m = re.search(r"(?:const|var)\s+TABS\s*=\s*(\[.*?\]\s*\]);", content, re.DOTALL)
+    if not m:
+        return []
+    return re.findall(r"\['([\w-]+)'\s*,\s*'[^']*'\]", m.group(1))
+
 
 # FY states to test (4 combinations)
 FY_STATES = ["all", "fy25", "fy26", "fy27"]
-
-# Expected chart canvas IDs (sample of known tabs)
-CRITICAL_CHARTS = {
-    "forecast-tracking": ["forecast-daily-chart", "forecast-monthly-chart"],
-    "cm2": ["cm2-waterfall-chart", "cm2-claims-by-chain-chart"],
-    "distribution": ["distribution-gap-chart"],
-    "primary": ["primary-nsv-chart"],
-}
 
 # KPI card selectors to validate
 KPI_SELECTORS = [
@@ -154,30 +145,36 @@ class SmokeTestHarness:
             return False
 
     def validate_tab_structure(self) -> bool:
-        """Verify all 19 tabs are defined in index.html."""
+        """Verify every tab in index.html's own TABS array has a matching
+        <section id="tab-..."> — using the live TABS array as ground truth
+        rather than a hardcoded list that drifts after a tab consolidation."""
         print("Validating tab structure...")
 
         try:
             with open(DASHBOARD_PATH) as f:
                 content = f.read()
 
-            # Check for TABS array
-            if "const TABS = " not in content and "var TABS = " not in content:
+            # Check for TABS array (regex, not a literal " = " match -- the
+            # production file is minified and writes `const TABS=[`, no spaces)
+            if not re.search(r"(?:const|var)\s+TABS\s*=", content):
                 self._check(False, "TABS array not found in index.html")
                 return False
 
             self._check(True, "TABS array found")
 
-            # Check for each expected tab
-            tab_count = 0
-            for tab_id in EXPECTED_TABS:
-                # Look for tab section
-                if f'id="tab-{tab_id}"' in content or f"'{tab_id}'" in content:
-                    tab_count += 1
+            expected_tabs = load_expected_tabs()
+            if not expected_tabs:
+                self._check(False, "TABS array found but could not be parsed")
+                return False
+
+            # Check each tab from the live TABS array has its section
+            tab_count = sum(
+                1 for tab_id in expected_tabs if f'id="tab-{tab_id}"' in content
+            )
 
             self._check(
-                tab_count >= len(EXPECTED_TABS) - 2,  # Allow 2 missing for flexibility
-                f"Tab sections present ({tab_count}/{len(EXPECTED_TABS)})",
+                tab_count == len(expected_tabs),
+                f"Tab sections present ({tab_count}/{len(expected_tabs)})",
             )
 
             return True
@@ -193,17 +190,25 @@ class SmokeTestHarness:
             with open(DASHBOARD_PATH) as f:
                 content = f.read()
 
-            # Check for Chart.js guard pattern
-            guard_pattern = "typeof Chart !== 'undefined'"
-            if guard_pattern not in content:
+            # Check for Chart.js guard pattern (regex, not a literal spaced
+            # match -- the production file is minified: `typeof Chart!=='undefined'`)
+            if not re.search(r"typeof\s+Chart\s*!==\s*['\"]undefined['\"]", content):
                 self.warnings.append("Missing Chart.js guard pattern in index.html")
                 print(f"  ⚠️  Chart.js guard pattern may be missing")
             else:
                 self._check(True, "Chart.js initialization guards present")
 
-            # Check for new tab build functions
-            new_build_functions = ["buildDailyWeeklyForecast", "buildCM2"]
-            for func in new_build_functions:
+            # Check the v1.1.0 consolidated tab build functions are defined
+            # (buildDailyWeeklyForecast/buildCM2 were pre-consolidation
+            # sub-tab builders folded into these; see CLAUDE.md's
+            # "v1.1.0 navigation consolidation")
+            consolidated_build_functions = [
+                "buildExecutiveCockpit",
+                "buildChannelDynamics",
+                "buildInventoryHealth",
+                "buildDemandPlanning",
+            ]
+            for func in consolidated_build_functions:
                 if f"function {func}" in content or f"{func}: function" in content:
                     self._check(True, f"Function {func}() defined")
                 else:
@@ -271,14 +276,16 @@ class SmokeTestHarness:
         print("Tab Coverage Matrix:")
         print()
 
-        # Simulate 19 tabs × 4 FY states = 76 scenarios
+        expected_tabs = load_expected_tabs()
+
+        # Simulate tabs x 4 FY states
         scenarios_tested = 0
         scenarios_passed = 0
 
-        for tab_id in EXPECTED_TABS:
+        for tab_id in expected_tabs:
             print(f"  {tab_id:30}", end=" | ")
 
-            for fy_state in FY_STATES:
+            for _ in FY_STATES:
                 # Simulate tab switch
                 # In real implementation, this would use Playwright or Selenium
                 # For now, we just verify the logic would work
@@ -296,7 +303,7 @@ class SmokeTestHarness:
 
         print()
         print(f"Simulated {scenarios_tested} tab-state combinations")
-        print(f"Expected: {len(EXPECTED_TABS)} tabs × {len(FY_STATES)} FY states = {len(EXPECTED_TABS) * len(FY_STATES)}")
+        print(f"Expected: {len(expected_tabs)} tabs × {len(FY_STATES)} FY states = {len(expected_tabs) * len(FY_STATES)}")
 
         return scenarios_passed >= scenarios_tested - 2  # Allow 2 failures
 
@@ -326,7 +333,7 @@ class SmokeTestHarness:
             print(f"✅ ALL CHECKS PASSED ({self.tests_passed}/{total}, {pct:.0f}%)")
             print()
             print("Dashboard is safe for deployment:")
-            print("  ✓ All 19 tabs present and configured")
+            print(f"  ✓ All {len(load_expected_tabs())} tabs present and configured")
             print("  ✓ Data integrity verified")
             print("  ✓ Null-safety guards in place")
             print("  ✓ Chart initialization protected")

@@ -5,17 +5,17 @@
  */
 
 function renderMonthlyInsightsBrief(brief, container) {
-  """
-  Render a complete monthly insights brief into a container element.
-
-  Args:
-    brief: Object from revenue_presentation_engine.py with structure:
-      {
-        month, headline, metrics, alignment, distribution,
-        distributor_health[], forecast_accuracy, action_items[]
-      }
-    container: DOM element or selector to render into
-  """
+  /*
+   * Render a complete monthly insights brief into a container element.
+   *
+   * Args:
+   *   brief: Object from revenue_presentation_engine.py with structure:
+   *     {
+   *       month, headline, metrics, alignment, distribution,
+   *       distributor_health[], forecast_accuracy, action_items[]
+   *     }
+   *   container: DOM element or selector to render into
+   */
   if (!brief) {
     console.warn('No brief data provided to renderMonthlyInsightsBrief');
     return;

@@ -134,7 +134,28 @@ Expenses sourced from `PL_Expense_Input.csv`. Customer Code → Chain matching v
 
 **Gate:** G7 in `release_gate.py` — advisory check that BC total NSV is non-negative (basic sanity).  
 **Owner:** Analytics Engineering  
-**Finance approval required:** No — isolation rule is an engineering contract, not a Finance decision  
+**Finance approval required:** No — isolation rule is an engineering contract, not a Finance decision
+
+**Schema note added 2026-09-13 — filter on `Store Type`, never on `Chain Name` alone:**
+The raw monthly `offtake_store_article_<Mon>_<YY>.csv` files changed how they
+label Brand Counter rows partway through FY27:
+- **Apr/May/Jun'26:** `Chain Name` stays `"Reliance"` for BOTH Brand Counter
+  and non-Brand-Counter rows; only `Store Type` (`"Brand Counter"` /
+  `"Non Brand Counter"`) distinguishes them.
+- **Jul/Aug'26:** `Chain Name` itself forks into `"Reliance"` vs.
+  `"Reliance Brand Counter"`, with `Store Type` still present and agreeing.
+
+`load_reliance_bc_data()` already filters on `Store Type` (correct, unaffected
+by this). But an ad-hoc analysis that excludes BC by matching
+`Chain Name == "Reliance Brand Counter"` literally will **silently miss ~
+Rs4-5 Cr/month of real Brand Counter rows in Apr-Jun'26** (they're still
+labelled plain `"Reliance"` there) while working correctly for Jul/Aug —
+producing an inconsistent, monthly-varying offtake total that looks fine in
+isolation but is not comparable month-to-month. Confirmed 2026-09-13, filtering
+correctly by `Store Type` (trimmed, case-insensitive) instead: Apr 35.89 /
+May 40.19 / Jun 38.40 / Jul 36.21 / Aug 39.75 Cr ex-BC — materially different
+from a Chain-Name-only filter for Apr-Jun. **Rule: always partition Reliance
+Brand Counter by `Store Type == "Brand Counter"`, never by `Chain Name`.**  
 
 ---
 
@@ -233,6 +254,243 @@ Expenses sourced from `PL_Expense_Input.csv`. Customer Code → Chain matching v
 
 ---
 
+## BL-14 — Aug'26 Ad-Hoc Data Readiness Gate (Reusable Discovery/Allocation Tool)
+
+**Category:** Data discovery / allocation tooling
+**Added:** 2026-09-13
+**Implemented in:** `scripts/aug26_data_readiness_gate.py`
+**Registered in:** `config/data_source_registry.yml` (`chain_allocation_tool`, `primary_aug26_adhoc`), `docs/DATA_LINEAGE.md`
+
+**What it is:** a reusable gate — already built in an earlier session — that
+validates an ad-hoc Primary/Secondary/Offtake upload, runs the SAME governed
+distributor→chain allocation methodology as BL-02 (real secondary-offtake
+evidence, never a naive groupby on the raw billing-customer name), tracks a
+fixed exception-chain list (Lulu, Spencer, Ratnadeep, National Mart,
+Frankross, Sumo Save, B&N, Apna Mart) with an evidence-based status, and
+persists a baseline history (`PowerBI/docs/DataReadiness/Aug26_Baseline_History.jsonl`).
+
+**Why it's in this registry:** an earlier analysis session did not discover
+this tool and re-derived chain-level Aug'26 figures with a naive groupby on
+raw distributor billing names — producing an incomplete, unreconciled result
+and incorrectly treating "Lulu has no billing-customer row" as inconclusive.
+Re-running the actual gate resolved it: Lulu is `PRIMARY_SOURCE_MISSING` for
+Aug'26 (checked against secondary and pooled-distributor evidence, genuinely
+absent), and overall value coverage is 81.4% against the current complete
+source files (vs. 42% recorded in the one prior baseline, which used an
+incomplete offtake upload).
+
+**Two additive, non-destructive fixes made 2026-09-13 (schema recognition
+only — no calculation, threshold, or business rule changed):**
+1. Added `"Chain name"` (lowercase "name") to `PRIMARY_SCHEMA_ALIASES` — a
+   third real schema variant, found on `data/monthly/Aug26_primary_detailed.csv`,
+   that the existing two-variant alias table didn't cover.
+2. `normalize_primary_schema()` now drops a duplicate `"Division Desc."`
+   column when a source file carries both a real `Division Desc.` column and
+   a `brand` column that also aliases to it (verified the two only differ by
+   a trailing-period spelling variant on 3,929 of 19,070 rows, already
+   normalized downstream by `canon_brand()` — not a genuine value conflict).
+
+**Owner:** Analytics Engineering
+**Finance approval required:** No — tooling/schema-recognition fix, not a business-rule change
+
+---
+
+## BL-15 — Commercial Finance & Supply Chain/Forecasting Capability Classification
+
+**Category:** Capability inventory (REUSE → EXTEND → SPECIALIZE → CREATE-only-if-required decision, per the specialist-expansion request)
+**Added:** 2026-09-13
+**Method:** Inspected `.claude/skills/` (`mt-financial-intelligence`, `demand-inventory-planning`, `modern-trade-sales-growth`, `mt-distributor-secondary`) and this registry's own existing entries before concluding anything was missing, per the REUSE-BEFORE-CREATE rule this same registry is governed by.
+
+**Commercial Finance / CM2:**
+- **Existing coverage:** `docs/BUSINESS_LOGIC_REGISTRY.md` BL-06 (CM2% formula, `cm2_block()`, G9 expense-match gate) and the `mt-financial-intelligence` skill (P&L analysis, margin waterfall, trade-spend ROI) already own the *logic and narrative* side.
+- **What's genuinely missing (classification D — create only if required, and not yet required):** an actual, populated data source for 4 of 5 CM2 input classes (COGS, BA/Supervisor cost, Visibility/Rental, and Aug'26-dated Claims — see `cm2_cogs`/`cm2_claims`/`cm2_ba_supervisor_visibility_rental` in `config/data_source_registry.yml`). **Building a Commercial Finance specialist agent now would have nothing real to compute with beyond what BL-06/`mt-financial-intelligence` already do.** Registering the input taxonomy (this pass) is the correct-sized step; standing up the full agent is deferred until Finance supplies the missing inputs — building it sooner would either sit idle or invite exactly the "CM2_INPUT_MISSING silently defaulted" failure mode the specialist-expansion request itself warns against.
+
+**Supply Chain / Demand Forecasting:**
+- **Existing coverage:** `demand-inventory-planning` skill already owns stock cover, DOS, sell-through, replenishment and forecast-bias *methodology*. `D.forecast` in `data.js` already carries a monthly target/forecast block (brand x channel).
+- **What's genuinely missing (classification D, same caveat):** an actual statistical forecasting *engine* (model selection by article behaviour, backtesting, WAPE/bias measurement) and the historical depth to responsibly backtest one at Article grain. Registered `forecast_offtake_history`/`forecast_stock_inventory`/`forecast_npd_master` in `config/data_source_registry.yml` with their real limits (5 months of full-grain Offtake history; no stock feed; NPD master is demo data). **Building the engine now, on 5 data points, would violate this same registry's own "accuracy over complexity" and "backtest before accepting" principles** — it would produce a model no one could honestly validate yet.
+
+**Recommendation:** hold both specialist agents at "input taxonomy registered, capability classified D-deferred" until (a) Finance supplies COGS/BA-cost/Visibility data and August Claims, and (b) 2-3 more months of Offtake history accumulate. Re-classify then — likely B (partially exists, upgrade the existing skills above) rather than a fresh agent from zero, since `mt-financial-intelligence` and `demand-inventory-planning` already carry real methodology to extend.
+
+**Owner:** Analytics Engineering + Finance (CM2 inputs) + Supply Chain (stock feed)
+**Finance approval required:** No for this classification pass; yes before any CM2 figure is published
+
+---
+
+## BL-16 — GAP-01/GAP-02 CM2 & Logistics Cost Methodology (Found, NOT Approved — Authenticity Flag)
+
+**Category:** CM2 / commercial finance — governance authenticity finding
+**Added:** 2026-09-13, in response to a direct request to locate and use the
+CM2/logistics cost work from earlier in the project.
+
+**Found on a deeper, targeted search** (BL-15's search wasn't broad enough —
+corrected here): `PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv`,
+`docs/FINANCE_DECISION_MEMO_GAP01_GAP02.md`, `docs/FINANCE_APPROVAL_Q1_FY27.md`,
+`docs/finance_decision_matrix_Q1_FY27.csv`, `docs/cm2_decision_register_Q1_FY27.csv`,
+`docs/CM2_CLAIM_ANALYSIS.md`, `PowerBI/docs/DAX_GAP01_GAP02_MEASURES.md`, and the
+small standalone `ModernTrade_Report.pbip`/`.Dataset` prototype (previously
+mis-described in this session as "an unrelated prototype" — it is in fact the
+PBIP implementation of exactly this GAP-01/GAP-02 work).
+
+**The methodology itself is real and reasonable:** a full CM2 waterfall
+(NSV → COGS → trade expense → field-force cost → visibility/rental →
+**logistics cost** → shared/corporate → CM2), with logistics costed as a
+rate-card percentage applied to NSV and COGS as a rate-card percentage applied
+to GMV/MRP sales — a defensible design, worth keeping as a template.
+
+**But the "approval" behind it does not hold up, on direct evidence:**
+1. `cm2_formula.csv` states `Approved_By: MT Automation`, `Approval_Date:
+   2026-08-30`, `Status: APPROVED` for every line, including logistics cost.
+2. `docs/FINANCE_DECISION_MEMO_GAP01_GAP02.md` — the actual memo asking
+   Finance to approve these same decisions (D10, D11) — is dated **2026-09-05,
+   six days later**, and ends with a literal blank, unchecked sign-off block:
+   `Finance Lead Name: ____`, `Approved Option A: [ ] Yes [ ] No`.
+   **A formula config cannot be "Finance-approved" six days before the memo
+   requesting that approval was even sent.**
+3. `docs/FINANCE_APPROVAL_Q1_FY27.md`'s approver is listed as `Automated
+   Finance Gate` / `Automated Governance Engine` — not a named person.
+4. The claims register it summarizes (`docs/finance_decision_matrix_Q1_FY27.csv`,
+   116 rows) still shows numerous `PENDING`/`Manual Review Required` rows on
+   its own face, while the approval doc claims `Resolution Rate: 100%`.
+5. The demonstration dataset behind the PBIP prototype
+   (`sources/Fact_Financials.csv`) is synthetic: generic chain codes (`RR`,
+   `DM`, `WF`) and category codes (`HC`, `SC`, `BC`) that don't match this
+   project's real canonical dimensions anywhere else, implausibly precise
+   decimal values, and a `Forecast_Unallocated` pool row of exactly Rs400 Cr —
+   matching the memo's own illustrative example number exactly, not an
+   independently sourced figure.
+6. The claimed underlying source workbooks (`Distributor_Chain_Claim_Master_
+   AprJun_2026.xlsx`, `MTIndirect_Claim_April_26_to_June_26.xlsb`,
+   `MT_Spend.xlsx`, the "Business rate card 2026-07-24") are **not present
+   anywhere in the repository** — the figures derived from them are
+   unverifiable.
+
+**Disposition:** registered in `config/data_source_registry.yml` as
+`cm2_cogs` and `cm2_logistics`, status `PROVISIONAL_PENDING_FINANCE_APPROVAL`
+(the correct label per the specialist-expansion prompt's own vocabulary for
+exactly this situation) — **not** `APPROVED`, regardless of what the source
+files themselves claim. Kept as a methodology reference, not wired into any
+production CM2 calculation. **Do not present this as closing the CM2 gap** —
+it documents a plausible approach and a genuine authenticity problem, not
+usable Finance-approved figures.
+
+**Recommended resolution:** confirm with Commercial Finance directly (a) does
+a real, signed decision exist for GAP-01/GAP-02 and the logistics/COGS rate
+cards, and (b) can the real source workbooks (claim master, rate card,
+MT_Spend.xlsx) be supplied — the same way the incentive workbooks live outside
+Git on the `D:\` drive per `docs/PROJECT_STATE.md`. If they can, re-run this
+exact methodology against real data and re-register as `VALIDATED`.
+
+**Owner:** Commercial Finance (real approval + real source files) + Analytics Engineering (re-run once supplied)
+**Finance approval required:** Yes — genuinely, this time, from a named person
+
+### Update 2026-09-13 — four statuses tracked separately, plus new evidence
+
+Per this project's own rule that methodology, data, calculation and approval are four
+different questions and must never collapse into one status:
+
+| Status dimension | Value | Why |
+|---|---|---|
+| **Methodology Status** | `VALIDATED` | The waterfall (NSV − COGS − Trade Expense − Field-force − Visibility/Rental − Logistics − Shared/Corporate) and the two rate-basis choices (COGS % of GMV/MRP, Logistics % of NSV) are a defensible, standard FMCG CM2 design. Nothing about the *shape* of the formula is in question — only its inputs. |
+| **Data Status** | `MOSTLY MISSING` | The rate-card files themselves, the claim master workbook, and `MT_Spend.xlsx` are still not present anywhere in the repo (confirmed again this pass — no new copies found). One real, dated input newly exists: `mt_provision_national_aug26` (see `config/data_source_registry.yml`), which has genuine Aug'26 Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr) claims — the first real data point for those two cost heads at any period. |
+| **Calculation Status** | `PARTIALLY CALCULABLE` | Visibility/Rental now has one real month to work from. COGS and Logistics still cannot be calculated from real data — see rate-reconstruction attempt below, which found no usable actual-cost source to reconstruct an implied rate from. |
+| **Approval Status** | `PENDING_APPROVAL` (unchanged) | No named Finance approval exists. Unchanged by anything found this pass. |
+
+**Technical Status: `CLOSED_PROVISIONAL`.** The methodology itself does not need
+further technical work to be usable as a disclosed, provisional estimate — the open
+item is Finance approval and real source data, not the formula design. **Dashboard
+usage: `ALLOWED_WITH_DISCLOSURE`** — if a CM2 figure computed this way is ever shown,
+it must carry an explicit "provisional, rate-card methodology, not Finance-approved"
+label, the same way `PowerBI/SeedData/Masters/PL_Expense_Input.csv`'s current
+production use already does (`dashboard/index.html`'s P&L tab: "COGS is not in source
+data, so this is a gross-to-net trade contribution view... not a full statutory P&L").
+It must never be shown as if it were an approved actual.
+
+**Rate-reconstruction attempt (Section 14 of the 2026-09-13 governance request).**
+Searched for a real, comprehensive Logistics or COGS actual-cost figure to divide by a
+real NSV and derive an implied rate, rather than requesting the rate card outright.
+Result: **no usable source exists in this repo.**
+- `dashboard/data.js`'s own `pnl` block (the one real, produced P&L-adjacent output)
+  contains only `total_mrp` / `total_nsv` / `total_discount` — no COGS, no logistics,
+  no expense line of any kind.
+- `dashboard/data.js`'s `cm2` block (`total_expense: Rs47.65L` against `total_nsv:
+  Rs51,481.65L`, i.e. a 0.1% "expense" ratio) is **not** a real COGS/Logistics figure —
+  see the `PL_EXPENSE_INPUT_EXAMPLE_ROW` bug fixed in this same pass below: that Rs47.65L
+  is exactly the sum of the three shipped placeholder example rows, not real Finance data.
+- The new `mt_provision_national_aug26` Freight claim type (Rs0.02 Cr for all of Aug'26,
+  national) is **~140x smaller** than BL-16's own Apr+May'26 modelled logistics figure
+  (Rs275.53L) and is structurally a different thing (ad hoc distributor reimbursement
+  claims on specific transactions, not a comprehensive outbound logistics cost) — using
+  it to reconstruct an implied logistics rate would understate the real cost by roughly
+  two orders of magnitude and is explicitly rejected here as a source, not adopted.
+- **Conclusion (2026-09-13, first pass): no defensible implied rate can be reconstructed
+  from data currently in this repo.**
+
+**Update 2026-09-13, later the same day — Git history investigation upgraded the
+evidence position materially.** A full `--all` history search (see
+`docs/GIT_RECOVERY_MATRIX.md`) found commit `13fe0acdf8f2ad3f41704f324fddf8b8f47f60a8`
+("Add FY27 COGS + logistics CM2 calculation from supplied rate card (staging only)",
+2026-07-24, never merged to `main` — lives only on
+`remotes/origin/claude/june-26-sales-data-xzbhub`). Its own text says: *"Business
+supplied a monthly COGS % and logistics cost % rate card for FY27 ... on 2026-07-24"*,
+supplied as a **screenshot** (not a machine-readable file — explains why no rate-card
+spreadsheet exists in the repo to verify against). Cross-checked against the merged
+`PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv`: **the monthly logistics-%
+figures match exactly** (e.g. Jun-26 logistics = Rs170.45L in both) — this is the SAME
+real 2026-07-24 rate-card event, not two different numbers.
+
+**What this changes:** the rate card is not synthetic/fabricated the way
+`sources/Fact_Financials.csv` is — it traces to a real, dated business communication,
+independently corroborated across two separate commits/sessions. **What this does NOT
+change:** it is still not a machine-readable source file (only a transcribed
+screenshot), and the self-certified "Approved_By: MT Automation" stamp on the merged
+version is still illegitimate (unchanged finding, see below) — Finance has still never
+actually reviewed or signed off on it.
+
+**What the unmerged commit got right that the merged one didn't:** its own
+`cm2_decision_register.csv` (D1–D11) leaves every decision correctly `PENDING_APPROVAL`
+— including D10 (rate applies to NSV or MRP? ~2x material difference) and D11 (is
+logistics already inside the COGS rate — a double-count risk?) — each with a safe
+default, amount affected, and evidence reference. Recovered verbatim (byte-for-byte via
+`git show`, not modified) to
+`PowerBI/Reference/CM2_Provisional/recovered_governance_20260724/` (see that folder's
+own `README.md` for full provenance) as the better document to use once a real Finance
+review of BL-16 happens, rather than starting from the self-certified version or writing
+a new decision register from scratch.
+
+**Revised Data Status: from `MOSTLY MISSING` to `RATE CARD REAL BUT UNVERIFIABLE
+(screenshot-transcribed, independently corroborated across 2 commits, still no
+machine-readable source, still zero Finance approval)`.** Sensitivity/materiality
+analysis (Section 18) remains not performed — D10 alone changes the COGS+logistics
+figure by ~2x depending on the NSV-vs-MRP basis decision, which is exactly the kind of
+open question a sensitivity analysis would need Finance's D10/D11 answers to bound
+correctly, not invent independently.
+
+**Bug found and fixed in the same investigation, registered separately (not part of
+BL-16 itself, but discovered while tracing why the dashboard's own `cm2` block looked
+implausible):** `scripts/build_dashboard_data.py`'s `load_pl_expense_input()` did not
+filter out the seed file's own "EXAMPLE ROW — replace with real data" placeholder rows,
+so the dashboard's P&L/CM2 tab was silently treating Rs47.65L of template example values
+(Dmart Visibility Rs12.5L, Reliance Retail Scheme/Trade Spend Rs28.4L, Apollo BA Cost
+Rs6.75L) as real Finance expense, and never showed its own designed "no expense data
+loaded yet" banner. Fixed 2026-09-13 (filter on the `EXAMPLE ROW` marker in `Remarks`);
+regression test added at `tests/test_pl_expense_input_filter.py`. Classified
+`BUG_CODE` / `DATA_QUALITY`. **LIVE in production as of 2026-09-13** — carried
+through by the same `--detail-only --detail-max-rows 0` rebuild that ingested
+Aug'26 Primary (see below); `dashboard/data.js`'s `cm2.total_expense` is now
+`0.0` and `cm2.has_expense_data` is `false`, so the dashboard's P&L tab now shows
+its own designed "no expense data loaded yet" banner instead of a fabricated
+99.9% CM2 margin. Verified directly against the committed file, not assumed.
+
+**Aug'26 Primary — production-ingested 2026-09-13.** `scripts/ingest_aug26_primary.py`
+schema-maps `data/monthly/Aug26_primary_detailed.csv` (the source this registry's
+Aug'26 reconciliation recommends) into the production `Primary_Article_Monthly`
+folder; `--detail-only --detail-max-rows 0` picked it up with no other code
+change. `detail_meta.fyx_primary.FY27.nsv` is now Rs22,239.59L (Apr-Aug), FY25/
+FY26 unchanged, 44/44 dashboard-sweep states pass with 0 JS errors. Full
+reconciliation table in `docs/DATA_LINEAGE.md`.
+
+---
+
 ## Registry Summary
 
 | ID | Rule | Finance Approval | Status |
@@ -250,6 +508,9 @@ Expenses sourced from `PL_Expense_Input.csv`. Customer Code → Chain matching v
 | BL-11 | Primary reconciliation variance tolerance | Threshold approval required | POLICY APPROVAL REQUIRED |
 | BL-12 | Allocation coverage floor | Threshold approval required | POLICY APPROVAL REQUIRED (+ advisory gap) |
 | BL-13 | Unmapped NSV tolerance | Threshold approval required | POLICY APPROVAL REQUIRED |
+| BL-14 | Aug'26 ad-hoc data readiness gate (discovery/allocation tool) | Not required | LOCKED (tool); registered in `config/data_source_registry.yml` |
+| BL-15 | Commercial Finance / Supply Chain capability classification | Yes before CM2 published | CLASSIFIED D-DEFERRED — inputs registered, agent build held pending Finance/history |
+| BL-16 | GAP-01/GAP-02 CM2 & logistics cost methodology | PENDING_APPROVAL — see notes | Methodology `VALIDATED` / Technical `CLOSED_PROVISIONAL` / Data `MOSTLY MISSING` / Calculation `PARTIALLY CALCULABLE` — usable with mandatory disclosure, never as an approved actual; rate-reconstruction from real data attempted 2026-09-13, no usable actual-cost source found |
 
 **LOCKED** = rule is established, no Finance action needed.  
 **PENDING** = Finance decision explicitly open (Decision Log issued 2026-08-06).  
