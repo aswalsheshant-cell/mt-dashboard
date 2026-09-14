@@ -1762,6 +1762,39 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
 # --------------------------------------------------------------------------
 # UNIVERSE (distribution footprint)
 # --------------------------------------------------------------------------
+# Root QC (2026-09-14): several "Chain Name" values in UniverseMT.csv are not
+# retail chains at all -- they are Primary billing Ship-To/DC codes for
+# distributors, each of whom actually serves SEVERAL real chains (confirmed
+# against PowerBI/SeedData/Masters/ShipToMaster.csv's own "Chains Served"
+# column, e.g. "G.V Enterprises" serves Apollo, D-Mart, Lulu and Pothys -- not
+# a single chain called "G.V Enterprises"). For a STORE-COUNT purpose (one
+# physical location needs exactly one label, unlike revenue, which is never
+# split here), ShipToMaster.csv's "Primary Chain" column is a real, governed
+# single answer already present in this repo -- used ONLY as a fallback when
+# canon_chain() has no existing alias for the raw name, never overriding a
+# governed alias.
+def _load_shipto_primary_chain():
+    f = Path("PowerBI/SeedData/Masters/ShipToMaster.csv")
+    if not f.exists():
+        return {}
+    df = pd.read_csv(f)
+    return {str(n).replace("\xa0", " ").strip().lower(): str(c).strip()
+            for n, c in zip(df["Ship To Name"], df["Primary Chain"]) if pd.notna(n) and pd.notna(c)}
+
+# Reviewed spelling-variant links between UniverseMT.csv's "Chain Name" and
+# ShipToMaster.csv's "Ship To Name" for the SAME distributor, checked one at a
+# time (same convention as aug26_data_readiness_gate.py's
+# DISTRIBUTOR_NAME_ALIAS) -- only needed where the two files don't already
+# match case-insensitively.
+_UNIVERSE_SHIPTO_ALIAS = {
+    "az enterprises-h&g": "az enterprises",
+    "az enterprises-mt": "az enterprises",
+    "sri vijaya durga agencies": "sri vijaya durga agencies_mt",
+    "sc business combine": "sc business combine_mt",
+    "m/s kottaram business": "m/s kottaram business corporation-mt",
+}
+
+
 def universe_block(src):
     # Try CSV first (versioned in git), fallback to XLSX
     csv_f = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
@@ -1780,8 +1813,30 @@ def universe_block(src):
     u["active"] = u["Status"].astype(str).str.strip().str.upper().eq("ACTIVE")
     u["zone"] = u["Zone"].map(canon_zone)
     u["chain"] = u["Chain Name"].map(canon_chain)
+
+    # Second-tier resolution: only for rows canon_chain() left unresolved
+    # (raw name not in the governed alias table -- i.e. it passed through
+    # unchanged), try ShipToMaster's Primary Chain.
+    _shipto_primary = _load_shipto_primary_chain()
+    _reclassified = 0
+    for idx, raw in u["Chain Name"].items():
+        key = str(raw).replace("\xa0", " ").strip().lower()
+        if key in _ALIAS_LOOKUP:
+            continue  # already governed via canon_chain() -- leave it
+        lookup_key = _UNIVERSE_SHIPTO_ALIAS.get(key, key)
+        primary = _shipto_primary.get(lookup_key)
+        if primary:
+            u.loc[idx, "chain"] = canon_chain(primary) or primary
+            _reclassified += 1
     act = u[u["active"]]
     out = {"total_stores": int(len(u)), "active_stores": int(len(act))}
+    if _reclassified:
+        out["shipto_reclassified_note"] = (
+            f"{_reclassified} store(s) whose raw Chain Name was actually a distributor Ship-To/DC "
+            "billing code (not a retail chain) were reassigned to that distributor's governed "
+            "Primary Chain per PowerBI/SeedData/Masters/ShipToMaster.csv -- see BUSINESS_LOGIC "
+            "root-QC note, 2026-09-14."
+        )
     out["by_zone"] = sorted([{"name": k, "stores": int(v)}
                              for k, v in act.groupby("zone").size().items() if k],
                             key=lambda d: -d["stores"])
@@ -1790,6 +1845,15 @@ def universe_block(src):
     _chain_counts = sorted([{"name": k, "stores": int(v)}
                             for k, v in act.groupby("chain").size().items() if k],
                            key=lambda d: -d["stores"])
+    # n_chains/chains: verified MT chain count (config/baselines.json). Set
+    # here from the real, post-reclassification chain list -- previously this
+    # field existed in dashboard/data.js with no code path producing it
+    # anywhere in this repo (confirmed 2026-09-14: neither this function nor
+    # scripts/sync_data_js.py set it), so any full rebuild would have silently
+    # dropped it. "Other (below top 20)" is a display bucket, not a chain --
+    # excluded from this count.
+    out["chains"] = [d["name"] for d in _chain_counts]
+    out["n_chains"] = len(_chain_counts)
     out["by_chain"] = _chain_counts[:20]
     _chain_other = sum(d["stores"] for d in _chain_counts[20:])
     if _chain_other > 0:
