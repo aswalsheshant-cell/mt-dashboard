@@ -79,7 +79,17 @@ def extract_offtake_csv(data: dict, out_dir: Path) -> None:
         if monthly_key in offtake_dict:
             zone_monthly = offtake_dict[monthly_key]
             for zone, months_dict in zone_monthly.items():
-                for month, month_data in months_dict.items():
+                # months_dict is a plain list of per-month values, positionally
+                # aligned with offtake['months_fyNN'] -- not a {month: data} dict
+                # (confirmed against the real dashboard/data.js shape; the dict
+                # shape below is preserved for forward compatibility, never
+                # observed in current data).
+                if isinstance(months_dict, list):
+                    month_labels = offtake_dict.get(f'months_{fy}', [])
+                    month_items = zip(month_labels, months_dict)
+                else:
+                    month_items = months_dict.items()
+                for month, month_data in month_items:
                     # Handle both old format (direct NSV) and new format (full month_data dict)
                     if isinstance(month_data, dict):
                         rows.append({

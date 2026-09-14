@@ -79,31 +79,7 @@ jobs:
             --out  "${{ steps.names.outputs.html }}"
 
       - name: Validate output
-        run: |
-          HTML="${{ steps.names.outputs.html }}"
-          python - <<'PY'
-          import sys, os
-          path = os.environ.get("HTML") or sys.argv[1] if len(sys.argv) > 1 else ""
-          import subprocess
-          html_path = "${{ steps.names.outputs.html }}"
-          html = open(html_path).read()
-          errors = []
-          if "__NIELSEN_DATA_PAYLOAD__" in html:
-              errors.append("Placeholder was not replaced — injection failed")
-          if '"MONTHS"' not in html:
-              errors.append("MONTHS key missing from injected payload")
-          if html.count('<canvas id=') < 5:
-              errors.append(f"Expected ≥5 canvas elements, found {html.count('<canvas id=')}")
-          size_kb = len(html) // 1024
-          if size_kb < 150:
-              errors.append(f"Output suspiciously small: {size_kb}KB (expected ~238KB)")
-          if errors:
-              for e in errors: print(f"FAIL: {e}")
-              sys.exit(1)
-          print(f"OK: {html_path} ({size_kb}KB, {html.count('<canvas id=')} canvases)")
-          PY
-        env:
-          HTML: ${{ steps.names.outputs.html }}
+        run: python scripts/validate_nielsen_output.py "${{ steps.names.outputs.html }}"
 
       # Publishes to market-share.html, NOT index.html. Root index.html is the
       # MT Leadership Dashboard's slot: deploy-pages.yml stages dashboard/* to
@@ -176,7 +152,7 @@ jobs:
                   '| Opportunity | 4 scenario cards, WD × PDO scatter, store trend |',
                   '| 90-Day Tracker | Execution checklist with localStorage persistence |',
                   '',
-                  '> Built with `scripts/build_nielsen_dashboard.py` · Chart.js v4.4.3 inlined',
+                  '> Built with `scripts/build_nielsen_dashboard.py` · Chart.js v4.4.3 (external)',
                 ].join('\n'),
                 draft:      false,
                 prerelease: false,
