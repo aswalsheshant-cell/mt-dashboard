@@ -7,11 +7,11 @@ Power BI's Advanced Editor holds exactly ONE query per paste. For each
 section below: New Blank Query > Home > Advanced Editor > paste that
 section's M code > OK > rename the query to the name shown > Close & Apply
 when done with all of them. Having ONE file open (this one) instead of
-24 separate files is the time-saving here.
+30 separate files is the time-saving here.
 
 
 ##############################################################################
-# STEP 01/25  --  SOURCE FILE: 00_Parameters.pq
+# STEP 01/30  --  SOURCE FILE: 00_Parameters.pq
 # RENAME QUERY TO: pRootFolder (Manage Parameters, NOT a Blank Query)
 # NOTE: Home > Transform data > Manage Parameters > New.
 ##############################################################################
@@ -39,7 +39,7 @@ when done with all of them. Having ONE file open (this one) instead of
 
 
 ##############################################################################
-# STEP 02/25  --  SOURCE FILE: 01_fnCombineFolder.pq
+# STEP 02/30  --  SOURCE FILE: 01_fnCombineFolder.pq
 # RENAME QUERY TO: fnCombineFolder
 # NOTE: Blank Query > Advanced Editor > paste > rename.
 ##############################################################################
@@ -122,7 +122,7 @@ in
 
 
 ##############################################################################
-# STEP 03/25  --  SOURCE FILE: 10_Fact_PrimarySales.pq
+# STEP 03/30  --  SOURCE FILE: 10_Fact_PrimarySales.pq
 # RENAME QUERY TO: Fact Primary Sales
 ##############################################################################
 // =====================================================================
@@ -180,7 +180,7 @@ in
 
 
 ##############################################################################
-# STEP 04/25  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
+# STEP 04/30  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
 # RENAME QUERY TO: Fact Offtake Sales
 ##############################################################################
 // =====================================================================
@@ -302,7 +302,7 @@ in
 
 
 ##############################################################################
-# STEP 05/25  --  SOURCE FILE: 12_Fact_PnL.pq
+# STEP 05/30  --  SOURCE FILE: 12_Fact_PnL.pq
 # RENAME QUERY TO: Fact P&L
 ##############################################################################
 // =====================================================================
@@ -331,7 +331,7 @@ in
 
 
 ##############################################################################
-# STEP 06/25  --  SOURCE FILE: 13_Fact_Nielsen.pq
+# STEP 06/30  --  SOURCE FILE: 13_Fact_Nielsen.pq
 # RENAME QUERY TO: Fact Nielsen Market Share
 ##############################################################################
 // =====================================================================
@@ -365,7 +365,7 @@ in
 
 
 ##############################################################################
-# STEP 07/25  --  SOURCE FILE: 14_Fact_TDP.pq
+# STEP 07/30  --  SOURCE FILE: 14_Fact_TDP.pq
 # RENAME QUERY TO: Fact TDP
 ##############################################################################
 // =====================================================================
@@ -413,7 +413,7 @@ in
 
 
 ##############################################################################
-# STEP 08/25  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
+# STEP 08/30  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
 # RENAME QUERY TO: Fact Primary ShipTo
 ##############################################################################
 // =====================================================================
@@ -497,7 +497,7 @@ in
 
 
 ##############################################################################
-# STEP 09/25  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
+# STEP 09/30  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
 # RENAME QUERY TO: Fact Primary Article
 ##############################################################################
 // =====================================================================
@@ -643,7 +643,7 @@ in
 
 
 ##############################################################################
-# STEP 10/25  --  SOURCE FILE: 20_Dim_Masters.pq
+# STEP 10/30  --  SOURCE FILE: 20_Dim_Masters.pq
 # RENAME QUERY TO: Chain Master, Brand Master, Category Master, Article Master, Zone State Master, Store Master, Nielsen Competitor Master
 # NOTE: SEVEN separate queries -- one per '---------- X Master ----------' block in the file below. Each block is its own complete `let...in` query; uncomment/copy ONE block at a time.
 ##############################################################################
@@ -702,7 +702,7 @@ in Typed
 
 
 ##############################################################################
-# STEP 11/25  --  SOURCE FILE: 21_ShipToMaster.pq
+# STEP 11/30  --  SOURCE FILE: 21_ShipToMaster.pq
 # RENAME QUERY TO: Ship-To Master
 ##############################################################################
 // =====================================================================
@@ -725,7 +725,7 @@ in
 
 
 ##############################################################################
-# STEP 12/25  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
+# STEP 12/30  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
 # RENAME QUERY TO: Customer Code Zone Master
 ##############################################################################
 // =====================================================================
@@ -767,7 +767,7 @@ in
 
 
 ##############################################################################
-# STEP 13/25  --  SOURCE FILE: 24_ChannelMap.pq
+# STEP 13/30  --  SOURCE FILE: 24_ChannelMap.pq
 # RENAME QUERY TO: Channel Map Store, Channel Map Chain
 # NOTE: TWO separate queries -- one per block in the file below.
 ##############################################################################
@@ -803,7 +803,7 @@ in
 
 
 ##############################################################################
-# STEP 14/25  --  SOURCE FILE: 30_AssumptionTable.pq
+# STEP 14/30  --  SOURCE FILE: 30_AssumptionTable.pq
 # RENAME QUERY TO: Assumption Table
 ##############################################################################
 // =====================================================================
@@ -827,7 +827,7 @@ in
 
 
 ##############################################################################
-# STEP 15/25  --  SOURCE FILE: 31_Targets.pq
+# STEP 15/30  --  SOURCE FILE: 31_Targets.pq
 # RENAME QUERY TO: Targets
 ##############################################################################
 // =====================================================================
@@ -847,7 +847,7 @@ in
 
 
 ##############################################################################
-# STEP 16/25  --  SOURCE FILE: 32_StoreSOMapping.pq
+# STEP 16/30  --  SOURCE FILE: 32_StoreSOMapping.pq
 # RENAME QUERY TO: Store-SO Mapping
 ##############################################################################
 // =====================================================================
@@ -870,7 +870,7 @@ in
 
 
 ##############################################################################
-# STEP 17/25  --  SOURCE FILE: 33_ForecastOverride.pq
+# STEP 17/30  --  SOURCE FILE: 33_ForecastOverride.pq
 # RENAME QUERY TO: Forecast Override
 ##############################################################################
 // =====================================================================
@@ -894,7 +894,7 @@ in
 
 
 ##############################################################################
-# STEP 18/25  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
+# STEP 18/30  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
 # RENAME QUERY TO: Primary Allocation Map
 ##############################################################################
 // =====================================================================
@@ -928,7 +928,7 @@ in
 
 
 ##############################################################################
-# STEP 19/25  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
+# STEP 19/30  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
 # RENAME QUERY TO: Primary Allocation Override
 ##############################################################################
 // =====================================================================
@@ -950,7 +950,7 @@ in
 
 
 ##############################################################################
-# STEP 20/25  --  SOURCE FILE: 36_SalesTeamMapping.pq
+# STEP 20/30  --  SOURCE FILE: 36_SalesTeamMapping.pq
 # RENAME QUERY TO: Sales Team Mapping
 ##############################################################################
 // =====================================================================
@@ -983,7 +983,7 @@ in
 
 
 ##############################################################################
-# STEP 21/25  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
+# STEP 21/30  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
 # RENAME QUERY TO: GST Rate QC Table
 ##############################################################################
 // =====================================================================
@@ -1032,7 +1032,7 @@ in
 
 
 ##############################################################################
-# STEP 22/25  --  SOURCE FILE: 38_GST_Config.pq
+# STEP 22/30  --  SOURCE FILE: 38_GST_Config.pq
 # RENAME QUERY TO: GST Config
 ##############################################################################
 // =====================================================================
@@ -1063,7 +1063,7 @@ in
 
 
 ##############################################################################
-# STEP 23/25  --  SOURCE FILE: 39_PL_Expense_Input.pq
+# STEP 23/30  --  SOURCE FILE: 39_PL_Expense_Input.pq
 # RENAME QUERY TO: PL Expense Input
 ##############################################################################
 // =====================================================================
@@ -1150,7 +1150,7 @@ in
 
 
 ##############################################################################
-# STEP 24/25  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
+# STEP 24/30  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
 # RENAME QUERY TO: CustCode Chain Map
 # NOTE: Add AFTER Fact Primary Article (query 16) -- depends on it.
 ##############################################################################
@@ -1181,7 +1181,7 @@ in
 
 
 ##############################################################################
-# STEP 25/25  --  SOURCE FILE: 41_DistContWeights.pq
+# STEP 25/30  --  SOURCE FILE: 41_DistContWeights.pq
 # RENAME QUERY TO: Dist Cont Weights
 ##############################################################################
 // =====================================================================
@@ -1441,3 +1441,573 @@ let
     })
 in
     Typed
+
+##############################################################################
+# STEP 26/30  --  SOURCE FILE: 42_PackSizeBuckets.pq
+# RENAME QUERY TO: Pack Size Buckets  (Dimension helper)
+# NOTE: added by scripts/generate_powerbi_quicksetup.py -- see the file's own header comment below for source/grain/dependency detail; not independently re-verified against a live Power BI session.
+##############################################################################
+// =====================================================================
+// QUERY: Pack Size Buckets  (Dimension helper)
+// Joins to Fact Primary Article and Fact Offtake Sales on [Pack Size]
+// Classifies articles into standard ML-bucket tiers used by Category &
+// Pack tab. Works for BOTH primary (net_content column) and offtake
+// (Net Weight column) — both are renamed to [Pack Size] in their facts.
+//
+// Bucket tiers (business-confirmed, keep in sync with dashboard logic):
+//   Micro   : ≤  50 ml/g          (travel, trial, sachets)
+//   Small   : 51 – 150 ml/g
+//   Standard: 151 – 300 ml/g
+//   Large   : 301 – 500 ml/g
+//   XL      : > 500 ml/g          (value packs, combos)
+//   Unknown : blank / non-numeric  (kits, bundles, unit ambiguous)
+//
+// Usage: Home > Manage Relationships — link [Pack Size] here to
+//   Fact Primary Article [net_content] and Fact Offtake Sales [Pack Size].
+// =====================================================================
+let
+    // ---- 1. Collect every distinct Pack Size string from both facts ----
+    //   (this ensures the dimension covers all values, even those without
+    //    a counterpart in one of the fact tables)
+    PrimaryPS = Table.SelectColumns(#"Fact Primary Article", {"net_content"}),
+    PrimaryPS2 = Table.RenameColumns(PrimaryPS, {{"net_content", "Pack Size Raw"}}),
+
+    OfftakePS = Table.SelectColumns(#"Fact Offtake Sales", {"Pack Size"}),
+    OfftakePS2 = Table.RenameColumns(OfftakePS, {{"Pack Size", "Pack Size Raw"}}),
+
+    AllPS = Table.Distinct(Table.Combine({PrimaryPS2, OfftakePS2})),
+
+    // ---- 2. Extract numeric value (strip units: "150ml", "150 g", "150", …) ----
+    AddNumeric = Table.AddColumn(AllPS, "Pack ML", each
+        let raw = Text.Trim(Text.From([Pack Size Raw] ?? "")),
+            digits = Text.Select(raw, {"0".."9", "."}),   // keep digits and decimal
+            n = if digits = "" then null else Number.FromText(digits)
+        in n,
+        type number),
+
+    // ---- 3. Assign bucket ----
+    AddBucket = Table.AddColumn(AddNumeric, "Pack Bucket", each
+        if [Pack ML] = null              then "Unknown"
+        else if [Pack ML] <= 50          then "Micro"
+        else if [Pack ML] <= 150         then "Small"
+        else if [Pack ML] <= 300         then "Standard"
+        else if [Pack ML] <= 500         then "Large"
+        else                                  "XL",
+        type text),
+
+    // ---- 4. Sort order for slicers and charts ----
+    AddSortOrder = Table.AddColumn(AddBucket, "Bucket Sort", each
+        Record.FieldOrDefault(
+            [Unknown=0, Micro=1, Small=2, Standard=3, Large=4, XL=5],
+            [Pack Bucket], 0),
+        type number),
+
+    // ---- 5. Range label for tooltips ("≤ 50 ml", "51–150 ml", …) ----
+    AddLabel = Table.AddColumn(AddSortOrder, "Bucket Label", each
+        Record.FieldOrDefault(
+            [Unknown  = "Unknown / Bundle",
+             Micro    = "≤ 50 ml/g",
+             Small    = "51–150 ml/g",
+             Standard = "151–300 ml/g",
+             Large    = "301–500 ml/g",
+             XL       = "> 500 ml/g"],
+            [Pack Bucket], ""),
+        type text),
+
+    // ---- 6. Final column order ----
+    Final = Table.SelectColumns(AddLabel, {
+        "Pack Size Raw", "Pack ML", "Pack Bucket", "Bucket Sort", "Bucket Label"
+    }),
+
+    Typed = Table.TransformColumnTypes(Final, {
+        {"Pack Size Raw", type text},
+        {"Pack ML", type number},
+        {"Pack Bucket", type text},
+        {"Bucket Sort", Int64.Type},
+        {"Bucket Label", type text}
+    })
+in
+    Typed
+
+##############################################################################
+# STEP 27/30  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
+# RENAME QUERY TO: Secondary Sales Efficiency  (pre-aggregated helper table)
+# NOTE: added by scripts/generate_powerbi_quicksetup.py -- see the file's own header comment below for source/grain/dependency detail; not independently re-verified against a live Power BI session.
+##############################################################################
+// =====================================================================
+// QUERY: Secondary Sales Efficiency  (pre-aggregated helper table)
+// Grain: FY Year x Month x Chain x Brand
+// Computes sell-through (offtake / primary) at chain x brand x month level,
+// returning the core efficiency metrics for the Distribution tab's
+// "Offtake Efficiency" sub-section and the Chain-wise Performance page.
+//
+// Columns:
+//   FY Year, Month, MonthStart, Chain, Brand
+//   Primary NSV      — Lakh, from Fact Primary Article (DIST-allocated)
+//   Offtake NSV      — Lakh, from Fact Offtake Sales
+//   Sell-Through Pct — Offtake NSV / Primary NSV (null-safe, capped at 200%
+//                      to exclude months where primary = 0 but offtake > 0
+//                      due to pipeline stock; un-capped rows surfaced in
+//                      Sell-Through Outlier flag)
+//   Coverage Gap Pct — 1 − Sell-Through (positive = under-liquidation)
+//   Inventory Signal  — "Over-stocked" / "On-track" / "Under-liquidation"
+//                      thresholds: ≥ 120% over-stocked, 80–120% on-track,
+//                      < 80% under-liquidation (adjust in Assumption Table)
+//   Outlier Flag     — true when Primary NSV = 0 and Offtake NSV > 0
+//                      (pipeline / opening-stock liquidation — exclude from
+//                      efficiency KPIs, review in Distribution Gap page)
+//
+// Join: this query aggregates both facts separately then merges — it does NOT
+// require a shared row-level key between primary and offtake. Chain and Brand
+// are the natural join keys; "Reliance Retail" / "Reliance Retail Limited"
+// divergence is resolved by the canonical Chain names established in
+// Fact Primary Article ([Chain]) and Fact Offtake Sales ([Chain]).
+// =====================================================================
+let
+    // ---- 1. Aggregate Primary to Chain x Brand x Month ----
+    PrimSrc = Table.SelectColumns(
+        #"Fact Primary Article",
+        {"FY Year", "Month", "MonthStart", "Chain", "Brand", "Primary NSV"}),
+
+    PrimAgg = Table.Group(PrimSrc,
+        {"FY Year", "Month", "MonthStart", "Chain", "Brand"},
+        {{"Primary NSV", each List.Sum([Primary NSV]), type number}}),
+
+    // ---- 2. Aggregate Offtake to Chain x Brand x Month ----
+    OftSrc = Table.SelectColumns(
+        #"Fact Offtake Sales",
+        {"FY Year", "Month", "MonthStart", "Chain", "Brand", "Offtake NSV"}),
+
+    OftAgg = Table.Group(OftSrc,
+        {"FY Year", "Month", "MonthStart", "Chain", "Brand"},
+        {{"Offtake NSV", each List.Sum([Offtake NSV]), type number}}),
+
+    // ---- 3. Full outer join (keep rows present in either fact) ----
+    Joined = Table.NestedJoin(
+        PrimAgg, {"FY Year", "Month", "MonthStart", "Chain", "Brand"},
+        OftAgg,  {"FY Year", "Month", "MonthStart", "Chain", "Brand"},
+        "Oft", JoinKind.FullOuter),
+
+    Expanded = Table.ExpandTableColumn(Joined, "Oft", {"Offtake NSV"}),
+
+    FillPrim = Table.ReplaceValue(Expanded, null, 0, Replacer.ReplaceValue, {"Primary NSV"}),
+    FillOft  = Table.ReplaceValue(FillPrim,  null, 0, Replacer.ReplaceValue, {"Offtake NSV"}),
+
+    // ---- 4. Outlier flag: offtake from pipeline stock (Primary = 0) ----
+    AddOutlier = Table.AddColumn(FillOft, "Outlier Flag", each
+        [Primary NSV] = 0 and [Offtake NSV] > 0, type logical),
+
+    // ---- 5. Sell-Through Pct (null when Primary=0 to avoid ÷0 distortion) ----
+    AddST = Table.AddColumn(AddOutlier, "Sell-Through Pct", each
+        if [Primary NSV] = 0 then null
+        else Number.Round([Offtake NSV] / [Primary NSV] * 100, 1),
+        type number),
+
+    // ---- 6. Raw (uncapped) for outlier review ----
+    AddSTRaw = Table.AddColumn(AddST, "Sell-Through Raw", each
+        if [Primary NSV] = 0 then null
+        else [Offtake NSV] / [Primary NSV] * 100,
+        type number),
+
+    // ---- 7. Capped Sell-Through (≤ 200%) for efficiency KPI visuals ----
+    AddSTCapped = Table.AddColumn(AddSTRaw, "Sell-Through Capped", each
+        if [Sell-Through Raw] = null then null
+        else Number.Min([Sell-Through Raw], 200),
+        type number),
+
+    // ---- 8. Coverage Gap ----
+    AddGap = Table.AddColumn(AddSTCapped, "Coverage Gap Pct", each
+        if [Sell-Through Pct] = null then null
+        else Number.Round(100 - [Sell-Through Pct], 1),
+        type number),
+
+    // ---- 9. Inventory Signal (thresholds sourced from Assumption Table) ----
+    //   Over-stocked      : ST ≥ 120%  (high offtake vs. primary = inventory clearing)
+    //   On-track          : 80% ≤ ST < 120%
+    //   Under-liquidation : ST < 80%   (slow sell-through = excess stock risk)
+    //   No Primary        : Primary = 0 (outlier/pipeline — review separately)
+    AddSignal = Table.AddColumn(AddGap, "Inventory Signal", each
+        if [Outlier Flag]               then "No Primary Data"
+        else if [Sell-Through Pct] = null then "No Primary Data"
+        else if [Sell-Through Pct] >= 120 then "Over-stocked"
+        else if [Sell-Through Pct] >= 80  then "On-track"
+        else                                   "Under-liquidation",
+        type text),
+
+    // ---- 10. Signal Sort (for consistent legend ordering) ----
+    AddSignalSort = Table.AddColumn(AddSignal, "Signal Sort", each
+        Record.FieldOrDefault(
+            [#"On-track"=1, #"Under-liquidation"=2, #"Over-stocked"=3, #"No Primary Data"=4],
+            [Inventory Signal], 5),
+        type number),
+
+    // ---- 11. Final select and type ----
+    Final = Table.SelectColumns(AddSignalSort, {
+        "FY Year", "Month", "MonthStart", "Chain", "Brand",
+        "Primary NSV", "Offtake NSV",
+        "Sell-Through Pct", "Sell-Through Raw", "Sell-Through Capped",
+        "Coverage Gap Pct", "Inventory Signal", "Signal Sort", "Outlier Flag"
+    }),
+
+    Typed = Table.TransformColumnTypes(Final, {
+        {"FY Year", type text}, {"Month", type text}, {"MonthStart", type date},
+        {"Chain", type text}, {"Brand", type text},
+        {"Primary NSV", type number}, {"Offtake NSV", type number},
+        {"Sell-Through Pct", type number}, {"Sell-Through Raw", type number},
+        {"Sell-Through Capped", type number}, {"Coverage Gap Pct", type number},
+        {"Inventory Signal", type text}, {"Signal Sort", Int64.Type},
+        {"Outlier Flag", type logical}
+    })
+in
+    Typed
+
+##############################################################################
+# STEP 28/30  --  SOURCE FILE: 44_Fact_SecondarySales.pq
+# RENAME QUERY TO: Fact Secondary Sales  (Distributor sell-out registers)
+# NOTE: added by scripts/generate_powerbi_quicksetup.py -- see the file's own header comment below for source/grain/dependency detail; not independently re-verified against a live Power BI session.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Secondary Sales  (Distributor sell-out registers)
+// Grain: Source_Month × Distributor × NSV_Lakh
+//
+// Source: PowerBI/RawDataFolders/SecondarySales_Monthly/
+//         Files: secondary_sales_distributor_Q1_FY27.csv  (and future quarters)
+//
+// Required columns (exact headers — do not rename in source files):
+//   Source_Month  — YYYY-MM  (e.g. 2026-04)
+//   Month_Label   — Apr-2026
+//   FY_Year       — FY27
+//   Distributor   — canonical name matching Fact Primary Article[Distributor]
+//   NSV_Lakh      — secondary sell-out NSV in Lakh (ex-GST where confirmed)
+//   Data_Source   — free-text source tag
+//   Notes         — any provisional flag
+//
+// Refresh: drop a new CSV for each quarter into SecondarySales_Monthly/
+//          and click Refresh — no query edits needed.
+//
+// Note: North distributor registers not yet available (Q1 FY27).
+//       Rows will appear automatically once included in the export.
+// =====================================================================
+let
+    Source = fnCombineFolder(
+        pRootFolder & "\PowerBI\RawDataFolders\SecondarySales_Monthly",
+        {"Source_Month", "Month_Label", "FY_Year", "Distributor",
+         "NSV_Lakh", "Data_Source", "Notes"}
+    ),
+
+    // ── Type coercions ─────────────────────────────────────────────
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Source_Month",  type text},
+        {"Month_Label",   type text},
+        {"FY_Year",       type text},
+        {"Distributor",   type text},
+        {"NSV_Lakh",      type number},
+        {"Data_Source",   type text},
+        {"Notes",         type text}
+    }),
+
+    // ── Derive date fields from YYYY-MM ────────────────────────────
+    WithMonth = Table.AddColumn(Typed, "MonthStart", each
+        try Date.FromText([Source_Month] & "-01") otherwise null,
+        type date),
+
+    WithFY = Table.AddColumn(WithMonth, "FY_Derived", each
+        let m = Date.Month([MonthStart])
+        in if m >= 4 then "FY" & Text.From(Date.Year([MonthStart]) + 1)
+                     else "FY" & Text.From(Date.Year([MonthStart])),
+        type text),
+
+    // ── Provisional flag ───────────────────────────────────────────
+    WithProvisional = Table.AddColumn(WithFY, "Is_Provisional", each
+        Text.Contains([Notes], "provisional") or Text.Contains([Notes], "GST"),
+        type logical),
+
+    // ── NSV in Crore (for cross-table consistency) ─────────────────
+    WithCr = Table.AddColumn(WithProvisional, "NSV_Cr", each
+        [NSV_Lakh] / 100, type number),
+
+    // ── Remove helper columns not needed in the model ──────────────
+    Final = Table.SelectColumns(WithCr, {
+        "Source_Month", "Month_Label", "MonthStart",
+        "FY_Year", "FY_Derived",
+        "Distributor", "NSV_Lakh", "NSV_Cr",
+        "Is_Provisional", "Data_Source"
+    })
+in
+    Final
+
+##############################################################################
+# STEP 29/30  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
+# RENAME QUERY TO: Fact Claim Master  (Chain-level Q1 FY27 expense)
+# NOTE: added by scripts/generate_powerbi_quicksetup.py -- see the file's own header comment below for source/grain/dependency detail; not independently re-verified against a live Power BI session.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Claim Master  (Chain-level Q1 FY27 expense)
+// Grain: Quarter × Chain × Expense Category
+//
+// Source: PowerBI/RawDataFolders/ClaimMaster_Quarterly/
+//         Files: claim_master_chain_AprJun_2026.csv  (and future quarters)
+//
+// Required columns:
+//   Period           — e.g. "Apr-Jun 2026"
+//   FY_Year          — FY27
+//   Quarter          — Q1
+//   Chain            — canonical chain name
+//   Chain_Promo_Lakh — on-invoice promo passed to chain
+//   Rate_Diff_Lakh   — extra margin / rate difference
+//   Freight_Lakh     — freight / transportation
+//   Incentive_Lakh   — incentive
+//   Off_Invoice_Lakh — off-invoice / debit note promo
+//   Visibility_Lakh  — visibility spend
+//   Total_Claim_Lakh — sum of all above
+//
+// Companion queries (same folder, same refresh cycle):
+//   claim_master_brand_AprJun_2026.csv    → loaded in 45b_ClaimBrand
+//   claim_master_distributor_AprJun_2026.csv → loaded in 45c_ClaimDistributor
+//
+// Refresh: drop a new quarterly CSV into ClaimMaster_Quarterly/ → Refresh.
+// =====================================================================
+let
+    Source = fnCombineFolder(
+        pRootFolder & "\PowerBI\RawDataFolders\ClaimMaster_Quarterly",
+        {"Period", "FY_Year", "Quarter", "Chain", "Source_Chain",
+         "Chain_Promo_Lakh", "Rate_Diff_Lakh", "Freight_Lakh",
+         "Incentive_Lakh", "Off_Invoice_Lakh", "Visibility_Lakh",
+         "Total_Claim_Lakh"}
+    ),
+
+    // Filter to chain-level file pattern
+    ChainOnly = Table.SelectRows(Source, each
+        Table.RowCount(Table.SelectRows(Source, each [Chain] <> null)) > 0),
+
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Period",            type text},
+        {"FY_Year",           type text},
+        {"Quarter",           type text},
+        {"Chain",             type text},
+        {"Source_Chain",      type text},
+        {"Chain_Promo_Lakh",  type number},
+        {"Rate_Diff_Lakh",    type number},
+        {"Freight_Lakh",      type number},
+        {"Incentive_Lakh",    type number},
+        {"Off_Invoice_Lakh",  type number},
+        {"Visibility_Lakh",   type number},
+        {"Total_Claim_Lakh",  type number}
+    }),
+
+    // ── Unpivot to long form: Chain × Expense_Category × Amount ────
+    Unpivoted = Table.UnpivotOtherColumns(Typed,
+        {"Period", "FY_Year", "Quarter", "Chain", "Source_Chain"},
+        "Expense_Category_Raw", "Amount_Lakh"),
+
+    // ── Clean category names (strip "_Lakh" suffix) ─────────────────
+    WithCatClean = Table.AddColumn(Unpivoted, "Expense_Category", each
+        let raw = [Expense_Category_Raw]
+        in  if raw = "Chain_Promo_Lakh"  then "Chain Promo (On Invoice)"
+            else if raw = "Rate_Diff_Lakh"   then "Extra Margin / Rate Difference"
+            else if raw = "Freight_Lakh"     then "Freight / Transportation"
+            else if raw = "Incentive_Lakh"   then "Incentive"
+            else if raw = "Off_Invoice_Lakh" then "Off Invoice / Debit Note Promo"
+            else if raw = "Visibility_Lakh"  then "Visibility"
+            else raw,
+        type text),
+
+    // ── Exclude zero rows (cleaner model) ──────────────────────────
+    NonZero = Table.SelectRows(WithCatClean, each [Amount_Lakh] <> 0),
+
+    Final = Table.SelectColumns(NonZero, {
+        "Period", "FY_Year", "Quarter",
+        "Chain", "Source_Chain",
+        "Expense_Category", "Amount_Lakh"
+    })
+in
+    Final
+
+
+// ─────────────────────────────────────────────────────────────────────
+// COMPANION QUERY — paste as a SEPARATE Blank Query named:
+//   45b_ClaimBrand
+// ─────────────────────────────────────────────────────────────────────
+// let
+//     Source = fnCombineFolder(
+//         pRootFolder & "\PowerBI\RawDataFolders\ClaimMaster_Quarterly",
+//         {"Period","FY_Year","Quarter","Brand",
+//          "Apr_Lakh","May_Lakh","Jun_Lakh","Total_Lakh"}
+//     ),
+//     Typed = Table.TransformColumnTypes(Source,{
+//         {"Period",type text},{"FY_Year",type text},{"Quarter",type text},
+//         {"Brand",type text},{"Apr_Lakh",type number},
+//         {"May_Lakh",type number},{"Jun_Lakh",type number},
+//         {"Total_Lakh",type number}
+//     }),
+//     Unpivoted = Table.UnpivotOtherColumns(Typed,
+//         {"Period","FY_Year","Quarter","Brand"},"Month_Key","Amount_Lakh"),
+//     WithMonth = Table.AddColumn(Unpivoted,"Month_Label", each
+//         if [Month_Key]="Apr_Lakh" then "Apr-2026"
+//         else if [Month_Key]="May_Lakh" then "May-2026"
+//         else if [Month_Key]="Jun_Lakh" then "Jun-2026"
+//         else [Month_Key], type text),
+//     Final = Table.SelectColumns(WithMonth,
+//         {"Period","FY_Year","Quarter","Brand","Month_Label","Amount_Lakh"})
+// in  Final
+
+##############################################################################
+# STEP 30/30  --  SOURCE FILE: 46_Dim_PromoCalendar.pq
+# RENAME QUERY TO: Promo Calendar Dimension (Sep 2026+)
+# NOTE: added by scripts/generate_powerbi_quicksetup.py -- see the file's own header comment below for source/grain/dependency detail; not independently re-verified against a live Power BI session.
+##############################################################################
+// ============================================================================
+// Power Query: Promo Calendar Dimension (Sep 2026+)
+// Purpose: Reference dimension for promotional mechanics
+// Input: PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_YYYY.csv
+// Output: Dim_PromoCalendar table (linked to Dim_Brand, Dim_Calendar)
+// ============================================================================
+
+let
+    // Step 1: Read source CSV from watch folder
+    Source = Csv.Document(
+        File.Contents("PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv"),
+        [Delimiter = ",", Columns = 18, Encoding = 65001, QuoteStyle = QuoteStyle.None]
+    ),
+
+    // Step 2: Promote first row as headers
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+
+    // Step 3: Standardize column names and types
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Source_Month", type text},           // "2026-09"
+            {"Chain Name", type text},              // Retail channel name
+            {"Brand", type text},                   // Mamaearth, The Derma Co, etc.
+            {"Category", type text},                // Product category
+            {"Sub_Category", type text},            // Product sub-category
+            {"Range", type text},                   // Product range/line
+            {"EAN Code", type text},                // EAN (may contain decimals)
+            {"Article Code", type text},            // Article/SKU code
+            {"Description", type text},             // Full product description
+            {"MRP", type number},                   // Maximum Retail Price (INR)
+            {"Offer to consumer", type any},        // Offer value/discount
+            {"ME_Contribution_Pct", type number},   // Mamaearth contribution %
+            {"Chain_Contribution_Pct", type number}, // Chain contribution %
+            {"Total_Contribution_Pct", type number}, // Total trade spend allocation %
+            {"Locations", type number},             // Number of store locations
+            {"From ", type date},                   // Promotion start date
+            {"To", type date},                      // Promotion end date
+            {"Promo_Type", type text}               // Promotion type classification
+        }
+    ),
+
+    // Step 4: Add derived columns for Power BI slicing
+    AddDerivedColumns = Table.AddColumn(
+        TypedColumns,
+        "Promo_Month",
+        each Date.Month(
+            Date.FromText([Source_Month] & "-01")
+        ),
+        Int64.Type
+    ),
+
+    AddPromoYear = Table.AddColumn(
+        AddDerivedColumns,
+        "Promo_Year",
+        each Date.Year(
+            Date.FromText([Source_Month] & "-01")
+        ),
+        Int64.Type
+    ),
+
+    AddPromoDuration = Table.AddColumn(
+        AddPromoYear,
+        "Duration_Days",
+        each Duration.Days([To] - [From ]) + 1,
+        Int64.Type
+    ),
+
+    // Step 5: Clean chain name (standardize to match Dim_Chain canonical names)
+    StandardizeChain = Table.ReplaceValue(
+        AddPromoDuration,
+        each [Chain Name],
+        each
+            if Text.Contains([Chain Name], "Dmart", Comparer.OrdinalIgnoreCase) then "D-Mart"
+            else if Text.Contains([Chain Name], "VMM", Comparer.OrdinalIgnoreCase) or
+                    Text.Contains([Chain Name], "Vishal", Comparer.OrdinalIgnoreCase) then "Vishal Mega Mart"
+            else if Text.Contains([Chain Name], "Reliance", Comparer.OrdinalIgnoreCase) then "Reliance Retail"
+            else if Text.Contains([Chain Name], "Apollo", Comparer.OrdinalIgnoreCase) then "Apollo"
+            else if Text.Contains([Chain Name], "More", Comparer.OrdinalIgnoreCase) then "More Retail"
+            else if Text.Contains([Chain Name], "H&G", Comparer.OrdinalIgnoreCase) or
+                    Text.Contains([Chain Name], "Health", Comparer.OrdinalIgnoreCase) then "Health & Glow"
+            else if Text.Contains([Chain Name], "Metro", Comparer.OrdinalIgnoreCase) then "Metro"
+            else if Text.Contains([Chain Name], "Lulu", Comparer.OrdinalIgnoreCase) then "Lulu Hypermarket"
+            else [Chain Name],
+        Replacer.ReplaceText,
+        [{"Chain Name"}]
+    ),
+
+    // Step 6: Add Promo Key for fact table joins
+    AddPromoKey = Table.AddColumn(
+        StandardizeChain,
+        "Promo_Key",
+        each [Source_Month] & "|" & [Chain Name] & "|" & [EAN Code],
+        type text
+    ),
+
+    // Step 7: Remove nulls (EAN codes may be empty for bundle/promotion-only SKUs)
+    RemoveNulls = Table.SelectRows(
+        AddPromoKey,
+        each [EAN Code] <> null and [EAN Code] <> ""
+    ),
+
+    // Step 8: Remove duplicates (in case of file consolidation)
+    RemoveDuplicates = Table.Distinct(
+        RemoveNulls,
+        {"Promo_Key"}
+    ),
+
+    // Step 9: Reorder columns for readability
+    ReorderedColumns = Table.ReorderColumns(
+        RemoveDuplicates,
+        {
+            "Source_Month", "Promo_Month", "Promo_Year", "From ", "To", "Duration_Days",
+            "Chain Name", "Brand", "Category", "Sub_Category", "Range",
+            "EAN Code", "Article Code", "Description", "MRP", "Offer to consumer",
+            "ME_Contribution_Pct", "Chain_Contribution_Pct", "Total_Contribution_Pct",
+            "Locations", "Promo_Type", "Promo_Key"
+        }
+    )
+
+in
+    ReorderedColumns
+
+// ============================================================================
+// RELATIONSHIP SETUP (Manual in Model View):
+// ============================================================================
+// 1. Dim_PromoCalendar[Chain Name] → Dim_Chain[Chain_Name] (One-to-Many)
+//    Direction: Single (1 → *)
+//    Cross-Filter: Single
+//
+// 2. Dim_PromoCalendar[From ] → Dim_Calendar[Date] (One-to-Many, period slice)
+//    Direction: Single (1 → *)
+//    Cross-Filter: Single
+//
+// 3. Dim_PromoCalendar[Brand] → Dim_Brand[Brand_Name] (One-to-Many)
+//    Direction: Single (1 → *)
+//    Cross-Filter: Single
+//
+// ============================================================================
+// MEASUREMENT GUIDANCE (DAX):
+// ============================================================================
+// Planned Trade Spend Allocation:
+// [Planned_ME_Contribution] = SUM(Dim_PromoCalendar[ME_Contribution_Pct])
+//
+// Planned Chain Investment:
+// [Planned_Chain_Contribution] = SUM(Dim_PromoCalendar[Chain_Contribution_Pct])
+//
+// Planned vs. Actual Variance (once Sep billing data arrives):
+// [Trade_Spend_Variance] = [Actual_ME_Contribution] - [Planned_ME_Contribution]
+//
+// Promo Penetration Rate:
+// [SKU_Penetration_Rate] = DISTINCTCOUNT(Dim_PromoCalendar[EAN Code]) / DISTINCTCOUNT(Dim_Brand[EAN])
+//
+// ============================================================================
+
