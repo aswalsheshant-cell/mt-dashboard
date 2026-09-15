@@ -5377,6 +5377,41 @@ def detail_records_real(src, max_rows=20000):
     for c in ("category", "sub_category", "range", "net_content", "Description", "EAN No."):
         df["_" + c] = df[c].astype(str).str.strip().replace({"nan": "", "None": ""})
 
+    # ---- Cross-month EAN backfill for category/sub_category/range/net_content.
+    # Some monthly extracts (found: primary_article_Jul_26.csv, all 31,355 rows)
+    # arrive with sub_category/range/net_content/PPT Category entirely blank
+    # for the whole file, while category and EAN No. are intact -- an upstream
+    # export gap for that month, not missing data: the same EAN (a physical
+    # SKU) carries a stable sub_category/range/net_content in adjacent real
+    # months. Backfill from those real values (99.99% of the affected NSV
+    # matched against Apr/May/Jun/Aug'26 for the Jul'26 gap) rather than
+    # leaving them null or inventing a taxonomy. An EAN with no real value
+    # anywhere in the loaded months (e.g. a SKU that only shipped in the
+    # gapped month) is left blank -- never fabricated.
+    # NOTE: pandas here (3.x) does not always stringify a missing cell to the
+    # literal text "nan"/"None" under .astype(str) the way the loop above's
+    # replace({"nan":"","None":""}) assumes -- for a column that arrives
+    # 100% empty in one source file (e.g. Jul'26), .astype(str) can leave the
+    # cell as an actual missing value instead of the text "nan". fillna("")
+    # catches both representations, so the blank-detection below is correct
+    # either way.
+    for fillcol in ("_category", "_sub_category", "_range", "_net_content"):
+        col = df[fillcol].fillna("")
+        need = (col == "") & (df["_EAN No."] != "")
+        if not need.any():
+            continue
+        lookup = (df.loc[~need & (df["_EAN No."] != ""), ["_EAN No.", fillcol]]
+                    .assign(**{fillcol: lambda x: x[fillcol].fillna("")})
+                    .drop_duplicates("_EAN No.")
+                    .set_index("_EAN No.")[fillcol])
+        lookup = lookup[lookup != ""]
+        filled = df.loc[need, "_EAN No."].map(lookup)
+        n_filled = int(filled.notna().sum())
+        if n_filled:
+            df.loc[need, fillcol] = df.loc[need, fillcol].where(filled.isna(), filled)
+            print(f"detail: backfilled {n_filled}/{int(need.sum())} blank {fillcol} rows "
+                  f"from another month's real value for the same EAN")
+
     # ---- TOT% source columns (Priority 1/2 -- see tot_block's docstring):
     # 'Avg Tot' is the Primary file's own Customer x Article-grain TOT%
     # (0-1 fraction); 'Inv. Tax Amount(LOC)' is the actual per-row tax.
