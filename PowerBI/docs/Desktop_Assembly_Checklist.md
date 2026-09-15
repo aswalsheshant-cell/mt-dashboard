@@ -294,9 +294,23 @@ Conditional format: amber background when `[Primary Provisional Alloc] > 0`.
 
 ## Phase J — Full Reconciliation Checks (in Desktop)
 
+**Note (added after `scripts/reconcile_primary_baseline.py` was run against the
+current `PowerBI/RawDataFolders/Primary_Article_Monthly/` on 2026-09-12):** the
+₹46,560.34 L figure below is **stale** — it equals the current grand total
+(₹51,481.65 L, confirmed against 16 real monthly files) minus
+`primary_article_Jul_26.csv` (₹4,921.31 L) alone. This checklist was written
+2026-08-06, before that month was added to the watch folder. It is not a data
+defect; re-run `python3 scripts/reconcile_primary_baseline.py` against the
+current file set before using any total below as a pass/fail target, and expect
+the Dist/Allocated/Provisional/Unmapped breakdown figures further down this
+Phase to be similarly one month behind until someone re-derives them from the
+current 16-month state.
+
 After Refresh all:
 
-- [ ] Grand total Primary NSV matches source: ₹46,560.34 L (±0.01 L rounding tolerance)
+- [ ] Grand total Primary NSV matches source: ₹46,560.34 L as of 2026-08-06 —
+      **re-verify against current source** (was ₹51,481.65 L across all 16
+      months on file as of 2026-09-12; ±0.01 L rounding tolerance)
 - [ ] Dist NSV total: ₹15,756.23 L
 - [ ] Allocated (approved): ₹14,379.59 L
 - [ ] Provisional (Jun'26): ₹1,376.49 L
