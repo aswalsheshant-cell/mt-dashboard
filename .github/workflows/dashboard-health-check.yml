@@ -102,7 +102,7 @@ jobs:
           fixes = {
               "Fix 1: Unmapped Chain Filter": "filter(c=>c.name!=='Unmapped Chain')",
               "Fix 2: FY Fallback Logic": "fallbackFy",
-              "Fix 3: by_month Defensive": "ch_data.by_month",
+              "Fix 3: Real Store Counts (universe.by_chain)": "_uniStores[name]",
               "Fix 4: Canvas Creation": "createElement('canvas')",
               "Fix 5: Alert Controller": "AlertController.buildAlerts"
           }
