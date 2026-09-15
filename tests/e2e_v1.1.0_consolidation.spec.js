@@ -458,4 +458,60 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
 
     expect(consoleErrors.length, 'no console/page errors during subview switching').toBe(0);
   });
+
+  // TC10 - 2026-09-15 fix: two confirmed-wrong dashboard values found in live
+  // QA. (a) Inventory & Supply Health -> Offtake Velocity's "Top Chains by
+  // Offtake" table showed every chain with 0 stores (reading offtake.by_chain's
+  // nonexistent by_month field) and a steep negative "Growth %" for every
+  // chain (naively comparing FY27's 5-month partial year against FY26's full
+  // 12 months -- a coverage-window artifact, not a real decline; the same
+  // chains correctly show +91-158% like-for-like growth elsewhere on this
+  // dashboard for the identical period). (b) Demand & S&OP Planning's
+  // "TY Target (FY27)" KPI read a forecast field (f.ty_target) that never
+  // existed, showing Rs 0 L right above a Zone table that correctly cascades
+  // the real Rs 441.33 Cr target.
+  test('TC10 - Offtake Velocity real store counts + honest partial-year growth, TY Target not zero', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    await page.evaluate(() => { window.F.FY = ['FY27']; if (typeof window.applyFilters === 'function') window.applyFilters(); });
+
+    await page.evaluate(() => window.show('inventory-health'));
+    await page.waitForTimeout(400);
+    const velocityRows = await page.$$eval('#tab-inventory-health .tbl tbody tr', trs =>
+      trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())));
+    expect(velocityRows.length, 'Top Chains by Offtake table should have rows').toBeGreaterThan(0);
+
+    const dashUniverse = await page.evaluate(() => (window.DASH?.universe?.by_chain || []));
+    const knownStoreChain = dashUniverse.find(c => c.stores > 0);
+    expect(knownStoreChain, 'test premise: universe.by_chain needs at least one chain with real stores').toBeTruthy();
+
+    const matchedRow = velocityRows.find(([name]) => name === knownStoreChain.name);
+    if (matchedRow) {
+      // Column order: Chain, Stores, Offtake (Cr), Growth %
+      expect(matchedRow[1], `${knownStoreChain.name}'s Stores column must be its real universe.by_chain count, not the old dead-field 0`)
+        .toBe(String(knownStoreChain.stores));
+    }
+    // No row may show a fabricated-looking negative/positive Growth % computed
+    // from mismatched FY month coverage -- either a genuine like-for-like
+    // number or an honest "–", never a raw full-year-vs-partial-year ratio.
+    const currMonths = await page.evaluate(() => {
+      const o = window.DASH?.offtake || {};
+      const fyTags = o.fy_tags || [];
+      const fyR = fyTags[fyTags.length - 1] || 'fy26';
+      const priorFy = 'fy' + String(parseInt(fyR.slice(2), 10) - 1).padStart(2, '0');
+      return { curr: (o['months_' + fyR] || []).length, prior: (o['months_' + priorFy] || []).length };
+    });
+    if (currMonths.curr !== currMonths.prior) {
+      for (const row of velocityRows) {
+        expect(row[3], `Growth % must be "–" (not a coverage-mismatch artifact) for ${row[0]} when FY windows differ`).toBe('–');
+      }
+    }
+
+    await page.evaluate(() => window.show('demand-planning'));
+    await page.waitForTimeout(400);
+    const tyTargetText = await page.locator('#tab-demand-planning .kpi-card').first().locator('.kpi-value').innerText();
+    const forecastTarget = await page.evaluate(() => window.DASH?.forecast?.fy27_forecast);
+    expect(forecastTarget, 'test premise: forecast.fy27_forecast must exist and be positive').toBeGreaterThan(0);
+    expect(tyTargetText, 'TY Target (FY27) KPI must not read as Rs 0 L when forecast.fy27_forecast is real')
+      .not.toMatch(/^(Rs\s*0(\.0)?\s*L|₹0(\.0)?\s*L)$/i);
+  });
 });

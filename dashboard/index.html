@@ -1065,7 +1065,14 @@ function buildDemandPlanning(){
   const fy=fyKey();
 
   // KPI Row: Persistent across sub-views
-  const tyTarget=f.ty_target||0, fy26Actual=f.fy26_actual||0, gap=tyTarget-fy26Actual;
+  // f.ty_target never existed in forecast_block()'s output -- the real value
+  // is f.fy27_forecast (the FY27 business target, see forecast.method's own
+  // text). This KPI read the undefined field and fell back to 0 every time,
+  // showing "TY Target (FY27): Rs 0 L" and a nonsense negative "Gap" right
+  // above a Zone table on the same tab that correctly cascades the real
+  // target. f.ty_target kept as a first try in case a future build ever adds
+  // a distinct field under that name.
+  const tyTarget=f.ty_target||f.fy27_forecast||0, fy26Actual=f.fy26_actual||0, gap=tyTarget-fy26Actual;
   s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">TY Target (FY27)</div><div class="kpi-value">${crc(tyTarget)}</div></div><div class="kpi-card"><div class="kpi-label">FY26 Actual</div><div class="kpi-value">${crc(fy26Actual)}</div></div><div class="kpi-card"><div class="kpi-label">Gap (Cr)</div><div class="kpi-value" style="color:${gap>0?'#2D9B7F':'#C0392B'}">${crc(gap)}</div></div><div class="kpi-card"><div class="kpi-label">Required Growth %</div><div class="kpi-value">${gap>0?(gap/fy26Actual*100).toFixed(1)+'%':'–'}</div></div></div>`;
 
   // Sub-view tabs
@@ -1474,26 +1481,24 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
 
 /* ============ INVENTORY & SUPPLY HEALTH (Issue #104: Consolidated Offtake + Impact + Distribution) ============ */
 function buildInventoryHealth(){
-  const o=D.offtake, d=D.detail_meta||{}, s=document.getElementById('tab-inventory-health');
+  const o=D.offtake, u=D.universe||{}, d=D.detail_meta||{}, s=document.getElementById('tab-inventory-health');
   if(!s) return;
   const fy=fyKey();
   // Defensive: handles both nested o.total['fy26'] and legacy o.total_fy26 formats
   const total = o?.total?.[fy] ?? o?.[`total_${fy}`] ?? 0;
   const metrics = o?.metrics ?? { doi: {}, otif: {} };
-  // MONTH_NOW was referenced three times below but never defined anywhere in
-  // this file, so the whole tab died on "ReferenceError: MONTH_NOW is not
-  // defined" and rendered blank. It is a by_month key, so the latest month in
-  // the offtake series is the correct value.
-  // NOTE: the pipeline currently emits offtake.by_chain as a flat
-  // [{name,value}] list with no by_month member, so the store counts below
-  // resolve to '–'/0 until that structure is produced. Guarded rather than
-  // left to throw, per the project's "show – for missing data" rule.
-  const MONTH_NOW = (o && o.months && o.months.length) ? o.months[o.months.length - 1] : null;
   // fyKey() is null unless exactly ONE FY is selected -- the default "All"
   // state. Code below did fy.slice(2) on it and threw. Resolve to the latest FY
   // present in the data (never a hardcoded year: THE ONE FY RULE).
   const _fyTags = (o && o.fy_tags) || (D.primary && D.primary.fy_tags) || [];
   const fyR = fy || _fyTags[_fyTags.length - 1] || 'fy26';
+  // Real per-chain store counts: universe.by_chain (not offtake.by_chain,
+  // which is a flat [{name,value}] list with no by_month/store member -- the
+  // "Active MT Stores" KPI and the "Stores" column below used to read that
+  // absent field and silently resolve to 0/'–' for every chain. universe.by_chain
+  // is the one place this repo actually carries real store counts per chain.
+  const _uniStores={}; (u.by_chain||[]).forEach(c=>{ if(c&&c.name) _uniStores[c.name]=c.stores; });
+  const _activeStores = u.active_stores!=null ? u.active_stores : '–';
   // Pipeline Cover (DOI) / Fill Rate (OTIF): scripts/build_dashboard_data.py
   // emits metrics.doi/{} and metrics.otif/{} as explicit, permanently-empty
   // placeholders (no DOI/OTIF computation exists anywhere in the pipeline
@@ -1501,7 +1506,7 @@ function buildInventoryHealth(){
   // "not built yet", not as "filtered to zero" like the KPIs beside it.
   const _doiVal=(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'Not computed';
   const _otifVal=(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'Not computed';
-  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${(o.by_chain&&Object.keys(o.by_chain).reduce((t,ch)=>(t+Object.keys((o.by_chain[ch]&&o.by_chain[ch].by_month&&o.by_chain[ch].by_month[MONTH_NOW])||{}).length),0))||'–'}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
+  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage'];
@@ -1526,20 +1531,37 @@ function buildInventoryHealth(){
       const _entries=Array.isArray(byChain)
         ? byChain.map(e=>[e&&e.name,e])
         : Object.keys(byChain).map(k=>[k,byChain[k]]);
+      // Prior-FY key is `fy25`/`total_fy25`, not `total_25` -- the old form
+      // never matched, so growth was hardcoded to 0 for every chain.
+      const prior_fy=`fy${(parseInt(fyR.slice(2),10)-1).toString().padStart(2,'0')}`;
+      // Growth % is only a genuine YoY when both FYs cover the same number of
+      // months. FY27 today is a 5-month partial year (Apr-Aug) vs FY26's full
+      // 12 -- comparing the raw totals directly made every chain read as a
+      // steep decline (DMart -35.5%, Reliance -42.2%, Apollo -25.7%, ...)
+      // while the SAME chains correctly show +91-158% like-for-like growth
+      // elsewhere on this dashboard (Commercial Analytics, Performance &
+      // Comparison) for the identical period. This is exactly the failure
+      // mode scripts/build_dashboard_data.py's same_period_block() was built
+      // to prevent ("a part-year FY compared against a full prior FY is not
+      // a YoY -- it is a coverage artefact"); this one chart didn't use it.
+      // No monthly-by-chain breakdown exists in offtake.by_chain to compute
+      // a proper like-for-like split client-side, so show an honest "–"
+      // instead of a wrong number when the windows don't match, rather than
+      // fabricate a same_period calculation this data can't support.
+      const _currMonths=(o[`months_${fyR}`]||[]).length;
+      const _priorMonths=(o[`months_${prior_fy}`]||[]).length;
+      const _likeForLike=_currMonths>0 && _currMonths===_priorMonths;
       const chainData=_entries.filter(([n,e])=>n&&e).map(([name,ch_data])=>{
-        const month_key=ch_data.by_month?.[MONTH_NOW];
-        const stores=month_key?Object.keys(month_key||{}).length:0;
+        const stores=_uniStores[name];
         const nsv=(ch_data.total&&ch_data.total[fyR])||ch_data[`total_${fyR}`]||ch_data[fyR]||ch_data.value||0;
-        // Prior-FY key is `fy25`/`total_fy25`, not `total_25` -- the old form
-        // never matched, so growth was hardcoded to 0 for every chain.
-        const prior_fy=`fy${(parseInt(fyR.slice(2),10)-1).toString().padStart(2,'0')}`;
         const prior=(ch_data.total&&ch_data.total[prior_fy])||ch_data[`total_${prior_fy}`]||ch_data[prior_fy]||0;
-        const growth=(prior>0)?((nsv/prior-1)*100):0;
+        const growth=(_likeForLike && prior>0)?((nsv/prior-1)*100):null;
         return {name,stores,nsv,growth};
       });
       chainData.sort((a,b)=>b.nsv-a.nsv);
 
-      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores}</td><td>${crc(c.nsv)}</td><td>${c.growth.toFixed(1)}%</td></tr>`).join('')}</tbody></table>`);
+      const _growthNote=_likeForLike?'':' · Growth % needs equal month coverage in both years to be a genuine YoY -- not shown for a partial year';
+      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores:'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
 
       const canvasDiv=document.createElement('div');
       canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
