@@ -300,14 +300,34 @@ def canon_state(s):
 # Canonical chain key: collapse the many spellings across the four files onto a
 # single business-facing chain name so primary / offtake / universe / promo join.
 CHAIN_ALIASES = [
-    ("Apollo",            ["apollo", "apollo healthco"]),
+    ("Apollo",            ["apollo", "apollo healthco",
+                            # Verified 2026-09-14 against ShipToMaster.csv and the Apr-Aug'26
+                            # secondary hierarchy file: every "APOLLO HEALTHCO LIMITED-*"
+                            # distributor Ship-To reports its Chain as "Apollo Pharmacy" --
+                            # that is Apollo's own retail-pharmacy format, not a distinct chain.
+                            # Real money: ~Rs9.98 Cr over Apr-Aug'26 was previously stranded
+                            # under this unaliased spelling instead of folding into Apollo.
+                            "apollo pharmacy", "apollo healthco limited"]),
     ("Reliance Retail",   ["reliance retail", "reliance retail limited", "reliance retail ltd.",
-                            "reliance", "reliance ", "rrl"]),
+                            "reliance", "reliance ", "rrl",
+                            # Verified 2026-09-14: ShipToMaster.csv has a governed
+                            # "Reliance Retail Limited-FOC" entry (Direct, Primary
+                            # Chain = Reliance Retail) -- the same entity type as
+                            # UniverseMT.csv's "RRL-FOC-Sample" (RRL = Reliance
+                            # Retail Limited; FOC = free-of-charge/sample door).
+                            # Previously kept as its own standalone label with no
+                            # evidence either way; this resolves it using the same
+                            # real master data used for every other chain here.
+                            "rrl-foc-sample"]),
     ("DMart",             ["dmart", "d-mart", "d-mart ", "dmart "]),
     ("Nykaa (FSN)",       ["fsn", "nykaa ss(fsn)", "nykaa"]),
     ("Wellness Forever",  ["wellness forever"]),
     ("Health & Glow",               ["h&g", "hng", "h\\&g"]),
-    ("Lulu",              ["lulu", "lulu "]),
+    ("Lulu",              ["lulu", "lulu ",
+                            # Verified 2026-09-14 against the same secondary hierarchy file --
+                            # "Lulu Hyper" and "Lulu Hypermarket" are spelling variants of Lulu,
+                            # not separate chains (~Rs3.13 Cr over Apr-Aug'26 combined).
+                            "lulu hyper", "lulu hypermarket"]),
     ("Metro C&C",         ["metro cnc", "metro c&c", "metro ", "metro-cnc-rrl"]),
     ("More Retail",       ["more", "more retail", "more "]),
     ("Sancus (RMT)",        ["rmt-sancus", "sancus(rmt)", "sancus ", "rmt-delhi"]),
@@ -329,8 +349,8 @@ CHAIN_ALIASES = [
     ("Lifestyle",         ["lifestyle", "lifestyle "]),
     ("Trent/Westside",    ["trends"]),
     ("Azorte",            ["azorte", "reliance retail-(azorte)", "reliance retail ltd (azorte)"]),
-    ("DMart",             ["dc-d-mart-offline", "d-mart-store-e-com", "just mark-dmart",
-                            "just mark-d-mart"]),
+    ("DMart",             ["dc-d-mart-offline", "d-mart-offline", "d-mart-store-e-com",
+                            "just mark-dmart", "just mark-d-mart"]),
     ("Reliance Retail",   ["reliance retail-dc", "reliance retail-store"]),
     ("Nykaa (FSN)",       ["nykaa e-retail limited"]),
     ("Metro C&C",         ["metro-cnc"]),
@@ -358,7 +378,6 @@ CHAIN_ALIASES = [
     ("DMart",             ["pragati sales-d-mart", "kiran trading company-solapur-d-mart",
                             "vishal enterprises-d-mart", "vishal enterprises"]),
     ("Shoppers Stop",     ["shoppers stop"]),
-    ("RRL-FOC-Sample",    ["rrl-foc-sample"]),
 ]
 _ALIAS_LOOKUP = {}
 for canon, al in CHAIN_ALIASES:
@@ -546,18 +565,45 @@ def load_chain_allocation_weights(src):
     """Read the secondary-driven Ship-To -> Chain Cont% allocation (CSV seed preferred).
     CSV: PowerBI/SeedData/DIST/ChainAllocationWeights.csv (versioned in git)
     XLSX: Dist_primary_cont_based_on_secondary_MOM.xlsx Sheet2 (fallback)
+    CSV (narrow, approved patch): PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv
     Returns {(ship_to_norm, brand_canon, month_norm): [(chain_raw, fraction), ...]}
-    with fractions normalized to sum to 1 per key. Returns None if neither file exists."""
-    # Try CSV first
+    with fractions normalized to sum to 1 per key. Returns None if none of these exist."""
+    # Try the comprehensive CSV first
     csv_f = Path("PowerBI/SeedData/DIST/ChainAllocationWeights.csv")
     if csv_f.exists():
         s2 = pd.read_csv(csv_f)
     else:
         # Fallback to XLSX
         f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
-        if not f.exists():
-            return None
-        s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+        if f.exists():
+            s2 = pd.read_excel(f, sheet_name="Sheet2", header=1)
+        else:
+            # Neither the comprehensive file nor its XLSX source exists in this
+            # repo (verified 2026-09-14). What DOES exist is a much narrower,
+            # already-APPROVED patch covering 5 distributors x 4 months --
+            # PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv. It has a
+            # pre-computed Cont_Pct (not raw NSV to ratio from) and different
+            # column names, so it needs its own conversion rather than being
+            # forced through the NSV-ratio path below. Using it here is real,
+            # approved data that was previously wired into nothing -- not a
+            # fabricated default (contrast with allocate_dist_enhanced.py's
+            # Tier 3, which was inventing a split; see that file's history).
+            patch_f = Path("PowerBI/SeedData/DIST/DistPrimaryContWeightsArticle.csv")
+            if not patch_f.exists():
+                return None
+            p = pd.read_csv(patch_f)
+            p = p[p["Approval_Status"].astype(str).str.strip().str.lower() == "approved"]
+            weights = {}
+            for key, g in p.groupby([
+                p["Ship_To_Name"].astype(str).str.strip().str.lower(),
+                p["Brand"].map(canon_brand),
+                p["Month"].astype(str).str.strip().str.lower(),
+            ]):
+                tot = g["Cont_Pct"].sum()
+                if tot <= 0:
+                    continue
+                weights[key] = [(row["Chain_Name"], row["Cont_Pct"] / tot) for _, row in g.iterrows()]
+            return weights or None
 
     s2.columns = [str(c).strip() for c in s2.columns]
     s2 = s2.dropna(subset=["NSV"])
@@ -1762,6 +1808,39 @@ def dist_gap_block(src, repo_root, top_n=250, min_target=50):
 # --------------------------------------------------------------------------
 # UNIVERSE (distribution footprint)
 # --------------------------------------------------------------------------
+# Root QC (2026-09-14): several "Chain Name" values in UniverseMT.csv are not
+# retail chains at all -- they are Primary billing Ship-To/DC codes for
+# distributors, each of whom actually serves SEVERAL real chains (confirmed
+# against PowerBI/SeedData/Masters/ShipToMaster.csv's own "Chains Served"
+# column, e.g. "G.V Enterprises" serves Apollo, D-Mart, Lulu and Pothys -- not
+# a single chain called "G.V Enterprises"). For a STORE-COUNT purpose (one
+# physical location needs exactly one label, unlike revenue, which is never
+# split here), ShipToMaster.csv's "Primary Chain" column is a real, governed
+# single answer already present in this repo -- used ONLY as a fallback when
+# canon_chain() has no existing alias for the raw name, never overriding a
+# governed alias.
+def _load_shipto_primary_chain():
+    f = Path("PowerBI/SeedData/Masters/ShipToMaster.csv")
+    if not f.exists():
+        return {}
+    df = pd.read_csv(f)
+    return {str(n).replace("\xa0", " ").strip().lower(): str(c).strip()
+            for n, c in zip(df["Ship To Name"], df["Primary Chain"]) if pd.notna(n) and pd.notna(c)}
+
+# Reviewed spelling-variant links between UniverseMT.csv's "Chain Name" and
+# ShipToMaster.csv's "Ship To Name" for the SAME distributor, checked one at a
+# time (same convention as aug26_data_readiness_gate.py's
+# DISTRIBUTOR_NAME_ALIAS) -- only needed where the two files don't already
+# match case-insensitively.
+_UNIVERSE_SHIPTO_ALIAS = {
+    "az enterprises-h&g": "az enterprises",
+    "az enterprises-mt": "az enterprises",
+    "sri vijaya durga agencies": "sri vijaya durga agencies_mt",
+    "sc business combine": "sc business combine_mt",
+    "m/s kottaram business": "m/s kottaram business corporation-mt",
+}
+
+
 def universe_block(src):
     # Try CSV first (versioned in git), fallback to XLSX
     csv_f = Path("PowerBI/SeedData/Distribution/UniverseMT.csv")
@@ -1780,16 +1859,66 @@ def universe_block(src):
     u["active"] = u["Status"].astype(str).str.strip().str.upper().eq("ACTIVE")
     u["zone"] = u["Zone"].map(canon_zone)
     u["chain"] = u["Chain Name"].map(canon_chain)
+
+    # Second-tier resolution: only for rows canon_chain() left unresolved
+    # (raw name not in the governed alias table -- i.e. it passed through
+    # unchanged), try ShipToMaster's Primary Chain.
+    _shipto_primary = _load_shipto_primary_chain()
+    _reclassified = 0
+    for idx, raw in u["Chain Name"].items():
+        key = str(raw).replace("\xa0", " ").strip().lower()
+        if key in _ALIAS_LOOKUP:
+            continue  # already governed via canon_chain() -- leave it
+        lookup_key = _UNIVERSE_SHIPTO_ALIAS.get(key, key)
+        primary = _shipto_primary.get(lookup_key)
+        if primary:
+            u.loc[idx, "chain"] = canon_chain(primary) or primary
+            _reclassified += 1
     act = u[u["active"]]
     out = {"total_stores": int(len(u)), "active_stores": int(len(act))}
+    if _reclassified:
+        out["shipto_reclassified_note"] = (
+            f"{_reclassified} store(s) whose raw Chain Name was actually a distributor Ship-To/DC "
+            "billing code (not a retail chain) were reassigned to that distributor's governed "
+            "Primary Chain per PowerBI/SeedData/Masters/ShipToMaster.csv -- see BUSINESS_LOGIC "
+            "root-QC note, 2026-09-14."
+        )
     out["by_zone"] = sorted([{"name": k, "stores": int(v)}
                              for k, v in act.groupby("zone").size().items() if k],
                             key=lambda d: -d["stores"])
     out["by_citycat"] = [{"name": k, "stores": int(v)}
                          for k, v in act.groupby(act["City Category"].astype(str).str.strip()).size().items()]
-    out["by_chain"] = sorted([{"name": k, "stores": int(v)}
-                              for k, v in act.groupby("chain").size().items() if k],
-                             key=lambda d: -d["stores"])[:20]
+    _chain_counts = sorted([{"name": k, "stores": int(v)}
+                            for k, v in act.groupby("chain").size().items() if k],
+                           key=lambda d: -d["stores"])
+    # n_chains/chains: verified MT chain count (config/baselines.json). Set
+    # here from the real, post-reclassification chain list -- previously this
+    # field existed in dashboard/data.js with no code path producing it
+    # anywhere in this repo (confirmed 2026-09-14: neither this function nor
+    # scripts/sync_data_js.py set it), so any full rebuild would have silently
+    # dropped it. "Other (below top 20)" is a display bucket, not a chain --
+    # excluded from this count.
+    out["chains"] = [d["name"] for d in _chain_counts]
+    out["n_chains"] = len(_chain_counts)
+    out["by_chain"] = _chain_counts[:20]
+    _chain_other = sum(d["stores"] for d in _chain_counts[20:])
+    if _chain_other > 0:
+        # Root QC (2026-09-14): silently truncating here made by_chain sum to
+        # 415 of 426 active stores with no disclosure -- indistinguishable from
+        # a real 11-store data gap. Disclosed the same way storetype_note
+        # already discloses its own truncation below, rather than fabricating
+        # which of the excluded entities is a real chain vs a distributor
+        # billing point (several -- e.g. "REAL TIME LOGISTICS_MT_BR",
+        # "CHHABRA TRADERS" -- look like the latter; that reclassification is
+        # a business call, not made here).
+        out["by_chain"].append({"name": "Other (below top 20)", "stores": _chain_other})
+        out["by_chain_note"] = (
+            f"{_chain_other} of {len(act)} active stores belong to chains outside the top 20 by "
+            "store count (mostly 1-store entries, some of which read as distributor/logistics "
+            "names rather than retail chains -- e.g. from the raw Chain Name column, not "
+            "reclassified here). Folded into \"Other (below top 20)\" so this total reconciles "
+            "to active_stores; see PowerBI/SeedData/Distribution/UniverseMT.csv for the raw names."
+        )
     _st_col = act["Store Type"].astype(str).str.strip()
     _st_valid = _st_col[_st_col.str.upper().ne("NAN") & _st_col.ne("") & _st_col.ne("NONE")]
     _n_unclassified = int(len(act)) - int(len(_st_valid))
@@ -3094,13 +3223,131 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
                 "re-run the allocation, and this register shrinks on its own.")
     return out
 
+# Status vocabulary for readiness_gate(). PASS/N/A are self-explanatory.
+# AWAITING_BUSINESS_DATA means the implementation is complete and correctly
+# withholds the number until a named external/business input arrives -- it is
+# NOT a software defect, so it must never render or read like one. "BLOCKED"
+# is reserved for a genuine, unresolved technical/software gap -- readiness_gate()
+# does not currently emit it for any gate; it stays available for one that
+# actually needs it (e.g. a required source file failing to parse).
+AWAITING_BUSINESS_DATA = "AWAITING BUSINESS DATA"
+
+# Confirmed by business, 2026-09-14: standard cost = 14% of MRP (COGS) + 3% of
+# MRP (logistics). Applied to detail_records' MRP/NSV (article x chain x month
+# grain, both already in Lakh). This is a standard-cost rate, not an actual
+# SAP COGS extract -- the "measured" text below says so every time it is shown.
+PROFITABILITY_COGS_PCT_OF_MRP = 0.14
+PROFITABILITY_LOGISTICS_PCT_OF_MRP = 0.03
+
+# Fiscal-year month order (Apr=1..Mar=12), matching the exact Month-name
+# strings used in detail_records (mixed abbreviation styles -- verified
+# against the real data, not assumed).
+_FY_MONTH_ORDER = {"April": 1, "May": 2, "June": 3, "July": 4, "Aug": 5, "Sept": 6,
+                    "Oct": 7, "Nov": 8, "Dec": 9, "Jan": 10, "Feb": 11, "March": 12}
+
+
+def profitability_block(detail_records):
+    """Standard-cost margin from detail_records' own MRP/NSV -- no external
+    COGS extract needed now that the business has confirmed the cost rate.
+    See PROFITABILITY_COGS_PCT_OF_MRP/LOGISTICS docstring above for the basis.
+    """
+    if not detail_records:
+        return None
+    by_chain = {}
+    tot_nsv = tot_mrp = tot_cogs = tot_log = 0.0
+    for r in detail_records:
+        nsv = r.get("NSV") or 0.0
+        mrp = r.get("MRP") or 0.0
+        cogs = mrp * PROFITABILITY_COGS_PCT_OF_MRP
+        log = mrp * PROFITABILITY_LOGISTICS_PCT_OF_MRP
+        tot_nsv += nsv; tot_mrp += mrp; tot_cogs += cogs; tot_log += log
+        c = by_chain.setdefault(r.get("Chain") or "Unknown", {"nsv": 0.0, "mrp": 0.0, "cogs": 0.0, "logistics": 0.0})
+        c["nsv"] += nsv; c["mrp"] += mrp; c["cogs"] += cogs; c["logistics"] += log
+
+    def margin_row(nsv, cogs, log):
+        margin = nsv - cogs - log
+        return round(margin, 2), (round(margin / nsv * 100, 2) if nsv else None)
+
+    tot_margin, tot_margin_pct = margin_row(tot_nsv, tot_cogs, tot_log)
+    chain_rows = []
+    for name, v in sorted(by_chain.items(), key=lambda kv: -kv[1]["nsv"]):
+        m, mp = margin_row(v["nsv"], v["cogs"], v["logistics"])
+        chain_rows.append({"name": name, "nsv_lakh": round(v["nsv"], 2), "margin_lakh": m, "margin_pct_of_nsv": mp})
+
+    return {
+        "basis": (f"Standard cost = {PROFITABILITY_COGS_PCT_OF_MRP*100:.0f}% of MRP (COGS) + "
+                  f"{PROFITABILITY_LOGISTICS_PCT_OF_MRP*100:.0f}% of MRP (logistics), confirmed by "
+                  "business 2026-09-14. This is a standard-cost rate applied to detail_records' MRP, "
+                  "not an actual per-article SAP COGS extract."),
+        "total": {"nsv_lakh": round(tot_nsv, 2), "mrp_lakh": round(tot_mrp, 2),
+                  "cogs_lakh": round(tot_cogs, 2), "logistics_lakh": round(tot_log, 2),
+                  "margin_lakh": tot_margin, "margin_pct_of_nsv": tot_margin_pct},
+        "by_chain": chain_rows,
+    }
+
+
+def npd_block(detail_records):
+    """NPD = an article whose first-ever sale AT A GIVEN CHAIN falls in March;
+    it is flagged NPD for the FY immediately following that March (its first
+    full FY of sales). Confirmed by business, 2026-09-14, per chain x article
+    (the same article can be NPD at one chain and not another).
+
+    ASSUMPTION (stated because the source instruction did not spell out
+    every edge case): "March" means the literal calendar month named "March"
+    in detail_records, evaluated once per (Chain, Article) using the EARLIEST
+    FY x Month with NSV > 0 across the whole history available here -- not
+    re-evaluated per FY. If this is not what was meant, this is a one-function
+    change (this docstring names exactly what would need to differ).
+    """
+    if not detail_records:
+        return None
+    first_seen = {}  # (chain, article) -> (fy_start_year, month_order, fy_tag, month_name)
+    for r in detail_records:
+        if not (r.get("NSV") or 0.0) > 0:
+            continue
+        chain, article, fy, month = r.get("Chain"), r.get("Article"), r.get("FY"), r.get("Month")
+        if not (chain and article and fy and month and month in _FY_MONTH_ORDER):
+            continue
+        fy_year = fy_start_year(fy)
+        key = (chain, article)
+        cand = (fy_year, _FY_MONTH_ORDER[month], fy, month)
+        if key not in first_seen or cand < first_seen[key]:
+            first_seen[key] = cand
+
+    by_fy = {}
+    for (chain, article), (fy_year, _mo, fy_tag, month_name) in first_seen.items():
+        if month_name != "March":
+            continue
+        npd_fy = f"FY{int(fy_tag[2:]) + 1}"
+        by_fy.setdefault(npd_fy, []).append({
+            "chain": chain, "article": article,
+            "first_sale_fy": fy_tag, "first_sale_month": month_name,
+        })
+    for fy in by_fy:
+        by_fy[fy].sort(key=lambda r: (r["chain"], r["article"]))
+
+    return {
+        "basis": ("An article-chain pair is flagged NPD for the FY immediately after its first-ever "
+                   "sale at that chain, when that first sale falls in March. Confirmed by business, "
+                   "2026-09-14. Evaluated per chain x article from detail_records' own sales history -- "
+                   "no external NPD master join required."),
+        "by_fy": by_fy,
+        "counts_by_fy": {fy: len(rows) for fy, rows in by_fy.items()},
+    }
+
+
 def readiness_gate(data, cfg=None):
     """Is each analytical layer allowed to present itself as authoritative?
 
     A layer that runs on inputs it needs but does not have produces a number
     that looks finished and is not. Each gate states its precondition, what it
-    measured, and what would unblock it -- so a blocked layer explains itself
-    instead of showing a confident zero.
+    measured, and what would unblock it.
+
+    Status meanings (see AWAITING_BUSINESS_DATA docstring above for the full
+    rationale): PASS = ready to present as authoritative. AWAITING_BUSINESS_DATA
+    = implementation complete, correctly waiting on a named external input --
+    not broken. N/A = out of scope for this reporting surface. BLOCKED = a
+    genuine unresolved technical/software gap.
     """
     cfg = cfg or {}
     rules = (cfg.get("readiness") or {})
@@ -3123,7 +3370,7 @@ def readiness_gate(data, cfg=None):
         floor = (rules["chain_primary"] or {}).get("min_mapping_completeness_pct")
         got = (cur or {}).get("completeness_pct")
         ok = got is not None and floor is not None and got >= floor
-        put("chain_primary", "PASS" if ok else "BLOCKED",
+        put("chain_primary", "PASS" if ok else AWAITING_BUSINESS_DATA,
             f"mapping completeness {got}%" if got is not None else "not measured",
             {"threshold": floor, "value": got})
 
@@ -3137,10 +3384,20 @@ def readiness_gate(data, cfg=None):
             {"threshold": floor, "value": asp})
 
     if "profitability" in rules:
+        # Prefer an actual sourced cost field if one ever arrives; otherwise
+        # fall back to the confirmed standard-cost rate in data["profitability"]
+        # (see profitability_block() -- 14% COGS + 3% logistics of MRP).
         cols = set((data.get("detail_meta") or {}).get("columns") or [])
         has_cost = bool(cols & {"COGS", "Cost", "StdCost", "Margin"})
-        put("profitability", "PASS" if has_cost else "BLOCKED",
-            "cost/margin field present" if has_cost else "no cost or margin field at the reporting grain")
+        prof = data.get("profitability") or {}
+        margin_pct = (prof.get("total") or {}).get("margin_pct_of_nsv")
+        if has_cost:
+            put("profitability", "PASS", "cost/margin field present")
+        elif margin_pct is not None:
+            put("profitability", "PASS",
+                f"margin {margin_pct}% of NSV (standard-cost basis: 14% COGS + 3% logistics of MRP, confirmed by business)")
+        else:
+            put("profitability", AWAITING_BUSINESS_DATA, "no cost or margin field at the reporting grain")
 
     if "scorecard_execution" in rules:
         # compliance/inventory metrics ship as a runtime sidecar the dashboard
@@ -3159,13 +3416,19 @@ def readiness_gate(data, cfg=None):
         covp = r2(doors / univ * 100) if doors and univ else None
         floor = (rules["scorecard_execution"] or {}).get("min_audit_coverage_pct")
         ok = covp is not None and floor is not None and covp >= floor
-        put("scorecard_execution", "PASS" if ok else "BLOCKED",
+        put("scorecard_execution", "PASS" if ok else AWAITING_BUSINESS_DATA,
             f"audit coverage {covp}% ({doors} of {univ} stores)" if covp is not None
             else "no store-audit data in this build",
             {"threshold": floor, "value": covp})
 
     if "npd" in rules:
-        put("npd", "BLOCKED", "NPD master not joined to the transaction grain")
+        npd = data.get("npd") or {}
+        counts = npd.get("counts_by_fy") or {}
+        if counts:
+            summary = "; ".join(f"{fy}: {n} article-chain pairs" for fy, n in sorted(counts.items()))
+            put("npd", "PASS", f"NPD identified from first-sale-in-March rule ({summary})")
+        else:
+            put("npd", AWAITING_BUSINESS_DATA, "NPD master not joined to the transaction grain")
 
     if "sales_consolidation" in rules:
         # DMS/Massit is incentive-scope only by business instruction, so it is
@@ -3185,22 +3448,40 @@ def readiness_gate(data, cfg=None):
             "emerging-brand rule": ((cfg.get("brands") or {}).get("emerging_rule")) is not None,
         }
         miss = [k for k, v in have.items() if not v]
-        put("incentive", "PASS" if not miss else "BLOCKED",
+        put("incentive", "PASS" if not miss else AWAITING_BUSINESS_DATA,
             f"{len(have) - len(miss)} of {len(have)} mandatory inputs present"
             + (f"; missing: {', '.join(miss)}" if miss else ""))
 
     if "persona_reporting" in rules:
         sa = data.get("sales_actuals") or {}
         hs = sa.get("hierarchy_stores")
-        put("persona_reporting", "BLOCKED",
+        put("persona_reporting", AWAITING_BUSINESS_DATA,
             (f"hierarchy covers {hs} stores but carries names, not employee IDs"
              if hs else "store-employee hierarchy not ingested"))
 
-    blocked = [k for k in order if (out.get(k) or {}).get("status") == "BLOCKED"]
+    ready = [k for k in order if (out.get(k) or {}).get("status") == "PASS"]
+    awaiting = [k for k in order if (out.get(k) or {}).get("status") == AWAITING_BUSINESS_DATA]
+    not_applicable = [k for k in order if (out.get(k) or {}).get("status") == "N/A"]
+    genuinely_blocked = [k for k in order if (out.get(k) or {}).get("status") == "BLOCKED"]
+    # Kept for existing callers that log "blocked: <keys>" during a build --
+    # they only print this list, nothing gates on its exact status label.
+    blocked = awaiting + genuinely_blocked
+
+    summary_parts = [f"{len(ready)} of {len(order)} layers ready"]
+    if awaiting:
+        summary_parts.append(f"{len(awaiting)} awaiting business data (not software defects)")
+    if not_applicable:
+        summary_parts.append(f"{len(not_applicable)} not applicable to current scope")
+    if genuinely_blocked:
+        summary_parts.append(f"{len(genuinely_blocked)} blocked on unresolved technical work")
+
     return {"gates": out, "blocked": blocked,
-            "summary": f"{len(order) - len(blocked)} of {len(order)} layers ready",
-            "note": ("A BLOCKED layer is not broken -- its inputs are not in place yet. "
-                     "It reports why rather than presenting an incomplete number as final.")}
+            "summary": "; ".join(summary_parts),
+            "note": ("PASS = ready to present as authoritative. AWAITING BUSINESS DATA = "
+                     "the implementation is complete and correctly withholds the number "
+                     "until a named business or source input arrives -- not a software "
+                     "defect. N/A = out of scope for this reporting surface. BLOCKED = a "
+                     "genuine, unresolved technical/software gap.")}
 
 # --------------------------------------------------------------------------
 # TARGET / ACHIEVEMENT / RUN RATE
@@ -5621,6 +5902,24 @@ def main():
                          "(D.dist_gap) in an existing data.js from the store x article offtake "
                          "extracts in --src + PowerBI ChainMaster formats; leaves all other blocks "
                          "untouched. Idempotent; window grows as more months are added to --src")
+    ap.add_argument("--universe-only", action="store_true",
+                    help="rebuild ONLY the universe block (D.universe) in an existing data.js from "
+                         "PowerBI/SeedData/Distribution/UniverseMT.csv (already in git -- no raw "
+                         "source files needed); also recomputes the readiness gate since "
+                         "scorecard_execution reads universe.active_stores")
+    ap.add_argument("--mapping-health-only", action="store_true",
+                    help="recompute ONLY mapping_health (D.mapping_health) in an existing data.js "
+                         "from the detail_records/alloc already baked into it -- no raw source "
+                         "files needed. Use whenever detail_records has been refreshed (e.g. a new "
+                         "month patched in via --detail-only) so mapping_health's completeness_pct "
+                         "doesn't go stale relative to it; also recomputes the readiness gate since "
+                         "chain_primary reads mapping_health.by_fy")
+    ap.add_argument("--readiness-only", action="store_true",
+                    help="recompute ONLY the readiness gate (D.readiness) in an existing data.js "
+                         "from config/analytics_config.json + the data already baked into it; "
+                         "needs no source files at all. Use after changing readiness_gate()'s "
+                         "logic/thresholds/status labels so a status-semantics fix does not "
+                         "require a full rebuild")
     ap.add_argument("--not-eligible-gate-pct", type=float, default=0.0, dest="not_eligible_gate_pct",
                     help="Fail build if Not_Eligible tier NSV exceeds this %% of total Dist. NSV "
                          "(0 = disabled, the default). Example: --not-eligible-gate-pct 10 fails "
@@ -5630,6 +5929,79 @@ def main():
     a = ap.parse_args()
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
+
+    # ---- lightweight path: rebuild ONLY the universe block from UniverseMT.csv ----
+    if a.universe_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        _, universe = universe_block(src)
+        obj["universe"] = universe
+        cfg = load_analytics_config(_REPO_ROOT)
+        obj["readiness"] = readiness_gate(obj, cfg)
+        print(f"universe-only: {universe['active_stores']} active stores, "
+              f"{len(universe['by_chain'])} chain rows"
+              + (f" ({universe.get('by_chain_note')})" if universe.get("by_chain_note") else ""))
+        print(f"readiness: {obj['readiness']['summary']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        return
+
+    # ---- lightweight path: recompute ONLY mapping_health from detail_records/alloc
+    # already baked into an existing data.js -- no raw source files needed ----
+    if a.mapping_health_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        adf = frame_from_records(obj.get("detail_records"), obj.get("detail_meta"))
+        if adf is None:
+            raise SystemExit("mapping-health-only: detail_records missing or row-capped "
+                              "(value_coverage_pct < 100) -- refusing to compute an understated total.")
+        cfg = load_analytics_config(_REPO_ROOT)
+        mh = mapping_health_block(adf, alloc=obj.get("alloc"), cfg=cfg, repo_root=_REPO_ROOT)
+        if mh is None:
+            raise SystemExit("mapping-health-only: mapping_health_block() returned None "
+                              "(no _Chain column on the frame built from detail_records).")
+        obj["mapping_health"] = mh
+        obj["readiness"] = readiness_gate(obj, cfg)
+        cur_fy = sorted(mh["by_fy"], key=fy_start_year)[-1]
+        print(f"mapping-health-only: {cur_fy} completeness {mh['by_fy'][cur_fy]['completeness_pct']}% "
+              f"({mh['exception_count']} unmapped ship-to parties, Rs {mh['exception_nsv']/100:.2f} Cr)")
+        print(f"readiness: {obj['readiness']['summary']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        return
+
+    # ---- lightweight path: recompute ONLY the readiness gate (+ the two small
+    # derived blocks it now reads, profitability and npd) in an existing data.js ----
+    if a.readiness_only:
+        outp = Path(a.out)
+        txt = outp.read_text()
+        obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
+        cfg = load_analytics_config(_REPO_ROOT)
+        detail_records = obj.get("detail_records")
+        prof = profitability_block(detail_records)
+        npd = npd_block(detail_records)
+        if prof is not None:
+            obj["profitability"] = prof
+        if npd is not None:
+            obj["npd"] = npd
+        obj["readiness"] = readiness_gate(obj, cfg)
+        print(f"readiness-only: {obj['readiness']['summary']}")
+        if prof:
+            print(f"  profitability: margin {prof['total']['margin_pct_of_nsv']}% of NSV "
+                  f"(NSV {prof['total']['nsv_lakh']}L, standard cost {prof['total']['cogs_lakh'] + prof['total']['logistics_lakh']}L)")
+        if npd:
+            print(f"  npd: {npd['counts_by_fy']}")
+        _safe_write_data_js(
+            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            alloc=None, report_dir=str(outp.parent), skip_gate=True,
+        )
+        return
 
     # ---- lightweight path: refresh ONLY detail_records in an existing data.js ----
     if a.detail_only:
@@ -6165,6 +6537,12 @@ def main():
                 print(f"pvm: delta Rs {_pv['delta']/100:.2f} Cr = "
                       + " + ".join(f"{b['driver']} {b['value']/100:.2f}" for b in _pv["buckets"])
                       + f" (recon {_pv['reconciliation']['status']})")
+    _prof = profitability_block(data.get("detail_records"))
+    if _prof is not None:
+        data["profitability"] = _prof
+    _npd = npd_block(data.get("detail_records"))
+    if _npd is not None:
+        data["npd"] = _npd
     data["readiness"] = readiness_gate(data, _cfg)
     print(f"readiness: {data['readiness']['summary']}"
           + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))

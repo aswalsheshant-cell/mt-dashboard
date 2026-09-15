@@ -426,3 +426,63 @@ datasets:
       structurally absent from the business -- the same EAN's category is
       present on the article master carried by every other Primary month AND
       on the Offtake file for the same period.
+
+  mt_universe_store_master:
+    business_name: "MT Universe -- active store master, chain-wise"
+    source_path: "PowerBI/SeedData/Distribution/UniverseMT.csv"
+    source_type: "CSV (versioned in git)"
+    grain: "store (Store Code)"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["Store Code"]
+    important_columns: ["Chain Name", "Status", "Zone", "City Category", "Store Type", "State"]
+    business_owner: "MT Ops"
+    refresh_frequency: "Manual -- update deliberately when a store/chain is added or retired (config/baselines.json n_chains/active_stores)"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: "universe.xlsx / Universe MT.xlsx in --src, if the CSV is absent (see universe_block())"
+    existing_pipeline: "scripts/build_dashboard_data.py universe_block() (also --universe-only partial refresh)"
+    downstream_outputs: ["dashboard/data.js universe block", "scorecard_execution readiness gate (audit-coverage denominator)"]
+    last_validated: "2026-09-14 -- root QC found 426 rows, all Active, 36 raw Chain Name values"
+    modification_allowed: false
+    notes: >
+      Root QC (2026-09-14, prompted by a direct request to deep-dive the
+      PowerBI seed folder): 18 of the 36 raw Chain Name values are NOT retail
+      chains -- they are Primary billing Ship-To/DC codes for distributors
+      (each serving several real chains). See mt_shipto_master below for the
+      resolution. Registering this file now closes a real gap: it was
+      already load-bearing (universe_block() has always read it) but had
+      never been entered in this registry.
+
+  mt_shipto_master:
+    business_name: "Ship-To master -- Direct/Distributor flag, Primary Chain, Chains Served"
+    source_path: "PowerBI/SeedData/Masters/ShipToMaster.csv"
+    source_type: "CSV (versioned in git)"
+    grain: "Ship-To (distributor or direct billing entity)"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["Ship To Name"]
+    important_columns: ["Direct/Distributor", "Primary Chain", "Chains Served", "Zone", "State"]
+    business_owner: "MT Ops"
+    refresh_frequency: "Manual -- part of the PowerBI SeedData build kit, not touched by any --*-only refresh mode of its own"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_dashboard_data.py universe_block() (_load_shipto_primary_chain(), 2026-09-14)"
+    downstream_outputs: ["dashboard/data.js universe.by_chain / universe.chains / universe.n_chains"]
+    last_validated: "2026-09-14 -- cross-checked its Chains Served lists against data/monthly/Aug26_primary_detailed.csv's independent \"Customer Name.1\" pooled-chain hints for the same distributors; the two sources agree closely (e.g. G.V Enterprises: ShipToMaster lists Apollo/D-Mart/Lulu/Pothys, the raw invoice file's pooled hint lists the same four plus two more) -- strong independent corroboration, not a single-source guess."
+    modification_allowed: false
+    notes: >
+      First wired into build_dashboard_data.py in this session, for ONE
+      purpose only: resolving universe_block()'s per-store chain label when
+      canon_chain() has no existing alias for the raw Chain Name (a
+      STORE-COUNT use, where a single physical location needs exactly one
+      label). Primary Chain is a single-valued simplification of a
+      multi-chain reality (Chains Served lists several) -- appropriate here,
+      but this file is NOT used for revenue allocation, which stays on the
+      secondary-evidence-weighted PowerBI/SeedData/DIST/ChainAllocationWeights.csv
+      (see load_chain_allocation_weights()). Do not repurpose Primary Chain
+      for splitting NSV -- that would silently swap an evidence-weighted
+      split for a single-chain assumption.

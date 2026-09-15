@@ -133,11 +133,16 @@ One bounded component per run: implement, validate, commit, stop.
 |---|---|
 | Incentive calculation | 4 of 5 mandatory inputs (see Required Business Inputs) |
 | Persona reporting (KAM/RKAM/BDE) | Employee IDs on the WoA hierarchy |
-| Chain-level Primary | Distributor→chain mapping at 67.65% (₹60.11 Cr unattributed) |
-| NPD tracker | No join key between NPD master and transaction grain |
-| OSA / OOS | Store audit covers 44.4% of stores, wrong period |
-| Profitability | No article-level COGS / standard cost |
+| OSA / OOS | Store audit covers 44.4% of stores, wrong period (`compliance_metrics.json`'s audited chains — DMart/Reliance Retail/More Retail/Spencer's — only partly match the universe's own chain names, and DMart's audited door count (83) exceeds DMart's universe store count (24); the audit's chain grain is not the same as the commercial universe's). The universe-side contamination this QC also found (below) is now fixed. |
 | Inventory days | No stock-on-hand feed |
+
+## Resolved (2026-09-14, business rules confirmed + root QC)
+
+- **Profitability / margin** — standard cost confirmed as 14% of MRP (COGS) + 3% of MRP (logistics), applied to `detail_records` (`profitability_block()` in `build_dashboard_data.py`). FY-to-date: margin 60.68% of NSV. This is a standard-cost rate, not a per-article SAP COGS extract — CM2/P&L are unaffected, they keep their own separate basis.
+- **NPD tracker** — redefined as demand-based, not master-join-based: an article-chain pair is NPD for the FY after its first-ever sale at that chain, when that first sale falls in calendar March (`npd_block()`). FY27: 140 article-chain pairs flagged. No join key to `PowerBI/SeedData/NPI_Master.csv` needed any more for this definition.
+- **Universe chain-wise breakdown** — root-QC'd across the whole PowerBI SeedData folder (not just `UniverseMT.csv` alone). Found `universe.by_chain` summed to 415 of 426 stores because of two real bugs, both fixed in `universe_block()`: (a) a silent `[:20]` truncation with no disclosure (now discloses any excluded tail via an "Other" bucket + note, matching the existing `by_storetype`/`storetype_note` pattern), and (b) 18 of `UniverseMT.csv`'s 36 raw "Chain Name" values were actually Primary-billing Ship-To/DC codes for distributors, not chains — confirmed against `PowerBI/SeedData/Masters/ShipToMaster.csv`'s own governed `Primary Chain`/`Chains Served` columns (e.g. "G.V Enterprises" serves Apollo, D-Mart, Lulu and Pothys; it is not its own chain). 16 of those 18 are reassigned to their distributor's governed Primary Chain — cross-validated independently against `data/monthly/Aug26_primary_detailed.csv`'s "Customer Name.1" pooled-chain hints, which list nearly the same served-chain sets. The remaining 1 ("RRL-FOC-Sample") is now also resolved: ShipToMaster.csv carries a governed "Reliance Retail Limited-FOC" entry (Direct, Primary Chain = Reliance Retail) — the same entity type — so it folds into Reliance Retail too. Result: 16 real chains, reconciling exactly to all 426 stores, no truncation needed. `universe.n_chains`/`universe.chains` are now actually produced by code (previously an orphaned field with no producing path anywhere in the repo — any full rebuild would have silently dropped them). `config/baselines.json`'s `n_chains` invariant corrected 20 → 17 → 16 with the full justification recorded there (owner: MT Ops).
+- **Chain-level Primary mapping** — was reported at 67.65% (stale, from an earlier Aug'26-only raw-invoice analysis run via `aug26_data_readiness_gate.py`). Added `--mapping-health-only` build mode to recompute `mapping_health` from the current, complete `detail_records` (already spans all 5 FY27 months) instead of that one-off snapshot. Real, current completeness: **FY26 99.99%, FY27 99.95%** — independently cross-checked by hand-summing `detail_records` directly. `chain_primary` readiness gate flips BLOCKED → PASS on real, verified evidence, not a relaxed threshold. Residual unmapped: ₹0.12 Cr (FY27) / ₹0.02 Cr (FY26), 10 named ship-to parties, itemized in `mapping_health.exceptions`.
+- **Chain-allocation weights pipeline was silently broken** — `load_chain_allocation_weights()` looked only for `PowerBI/SeedData/DIST/ChainAllocationWeights.csv` (doesn't exist in this repo) with no fallback to the real, already-**Approved** `DistPrimaryContWeightsArticle.csv` sitting in the same folder (5 distributors × 4 months, real Cont% splits). Now falls back to it. While tracing this, found and fixed a genuinely more serious, separate bug: `scripts/allocate_dist_enhanced.py`'s Tier-3 fallback (used when neither explicit weights nor offtake evidence exist for a Dist. row) was **fabricating** a generic "typical Modern Trade distribution" split (DMart/Reliance/"Q-Comm"/"Others" — "Q-Comm" isn't even a chain this business sells through) that also only summed to 85%, silently losing 15% of every such row's value despite the function's own "zero revenue leakage" guarantee. Replaced with the same "Unmapped Chain" (100% of value, honestly tagged, zero leakage) pattern already used elsewhere in this repo — never invent a chain split for real money. Also found and fixed, via a new regression test: Tier 1 (explicit weights) would have crashed the instant it actually matched, because `load_chain_allocation_weights()`'s documented tuple-shaped output `(chain, fraction)` was never compatible with this function's dict-shaped `split["chain"]`/`split["weight"]` reads — a real bug that had simply never fired because Tier 1 had no real weights file to match against until this same pass. New tests: `tests/test_chain_allocation_no_fabrication.py` (6 tests).
 
 ## Required Business Inputs
 
@@ -184,14 +189,14 @@ Every change must leave these unchanged:
 | FY27 target | ₹441.33 Cr |
 | PVM reconciliation | PASS, variance 0.00 |
 | Dashboard sweep | 44 states, 0 NaN/undefined, 0 JS errors |
-| unittest suite | 64 pass, 1 skipped |
+| unittest suite | 66 pass, 1 skipped |
 | Baseline invariants | 7/7 hold (`config/baselines.json`) |
 | Fresh clone | dashboard reproduces fully: 44 states, 0 failures, 0 JS errors |
 | Incentive workbook | 51 employees / 42 VALID grades / 85 slab rows / 3,124 target rows / 67 WoA rows / 267 actual rows; payout NOT CALCULATED |
 | Target file (refreshed) | Rs 33,986.08 L; 77.0% of business target; gap 76% explained |
 | Actual attribution | Rs 14,118.82 L Apr-Jul; all 4 role lines reconcile, difference 0 |
 
-| pytest suite | 13 pass |
+| pytest suite | 105 pass, 1 skipped |
 
 Run: `./scripts/run_dashboard_sweep.sh tests/dashboard_sweep.js`, `python3 -m unittest discover tests`,
 `python3 -m pytest tests -q`, `python3 scripts/ci_validate_datajs.py`,
