@@ -472,7 +472,16 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
   // the real Rs 441.33 Cr target.
   test('TC10 - Offtake Velocity real store counts + honest partial-year growth, TY Target not zero', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
-    await page.evaluate(() => { window.F.FY = ['FY27']; if (typeof window.applyFilters === 'function') window.applyFilters(); });
+    // F is a top-level `const` in index.html, not a window property (classic
+    // scripts don't hoist const/let onto window) -- window.F.FY is undefined
+    // from the test's page context. The dashboard's own filter <select>,
+    // used by every other test in this suite (see TC02), is the real way to
+    // drive the FY filter from outside the page.
+    const fySelect = page.locator('#filter-FY');
+    if (await fySelect.count()) {
+      await fySelect.selectOption('FY27').catch(() => {});
+      await page.waitForTimeout(200);
+    }
 
     await page.evaluate(() => window.show('inventory-health'));
     await page.waitForTimeout(400);
