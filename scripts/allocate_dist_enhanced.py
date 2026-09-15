@@ -9,7 +9,8 @@ is allocated across chains/zones with zero revenue leakage.
 Tiers:
   1. Explicit: Use ChainAllocationWeights.csv if (ship_to, brand, month) exists
   2. Dynamic: If missing, compute split from actual offtake (secondary) POS data
-  3. Category: If no offtake, use default Modern Trade chain-zone weights
+  3. Unmapped: If no offtake evidence either, keep the row as "Unmapped Chain"
+     (100% of its value, zero leakage) -- never invent a split for real money
 """
 import pandas as pd
 import numpy as np
@@ -95,24 +96,6 @@ def compute_dynamic_offtake_weights(
     return weights
 
 
-def get_default_mt_chain_weights() -> List[Dict]:
-    """
-    Fallback chain-zone allocation weights for Modern Trade when no specific
-    offtake data is available.
-
-    Based on typical Modern Trade distribution: DMart 45%, Reliance 30%,
-    Q-Comm 15%, Others 10%.
-    """
-    return [
-        {"chain": "DMart", "zone": "West", "weight": 0.25, "tier": "default_mt"},
-        {"chain": "DMart", "zone": "South-1", "weight": 0.15, "tier": "default_mt"},
-        {"chain": "Reliance", "zone": "South-1", "weight": 0.15, "tier": "default_mt"},
-        {"chain": "Reliance", "zone": "North", "weight": 0.10, "tier": "default_mt"},
-        {"chain": "Q-Comm", "zone": "West", "weight": 0.10, "tier": "default_mt"},
-        {"chain": "Others", "zone": "East", "weight": 0.10, "tier": "default_mt"},
-    ]
-
-
 def apply_chain_allocation_enhanced(
     df_primary: pd.DataFrame,
     weights_dict: Optional[Dict] = None,
@@ -171,7 +154,15 @@ def apply_chain_allocation_enhanced(
 
         # ---- TIER 1: Explicit weights file ----
         if weights_dict and key in weights_dict:
-            splits = weights_dict[key]
+            # weights_dict entries are (chain, fraction) tuples -- the format
+            # build_dashboard_data.py's load_chain_allocation_weights() actually
+            # produces and documents (the same shape its own apply_chain_allocation()
+            # consumes). Normalize to this function's dict-shaped splits (below,
+            # Tier 2/3 already use {"chain","zone","weight"}) -- fixes a real,
+            # previously-untested bug: passing real weights here crashed with
+            # "tuple indices must be integers" the moment Tier 1 actually matched,
+            # because the code below reads split["chain"]/split["weight"].
+            splits = [{"chain": chain, "zone": None, "weight": frac} for chain, frac in weights_dict[key]]
             tier_used = "Tier1_Explicit"
             tier1_count += 1
 
@@ -181,10 +172,19 @@ def apply_chain_allocation_enhanced(
             tier_used = "Tier2_Dynamic"
             tier2_count += 1
 
-        # ---- TIER 3: Default Modern Trade weights ----
+        # ---- TIER 3: no evidence to split this row -- do NOT invent one.
+        # Keep 100% of its value, tagged Unmapped (zero revenue leakage),
+        # matching the same pattern scripts/aug26_data_readiness_gate.py's
+        # allocate_primary() already uses for the identical situation.
+        # A prior version of this tier fabricated a generic "typical Modern
+        # Trade distribution" split (DMart/Reliance/"Q-Comm"/"Others" --
+        # "Q-Comm" is not even a chain this business sells through) that
+        # also only summed to 85%, silently losing 15% of every Tier-3 row's
+        # value despite this function's own "zero revenue leakage" guarantee.
+        # Removed 2026-09-14: never fabricate a chain split for real money. ----
         else:
-            splits = get_default_mt_chain_weights()
-            tier_used = "Tier3_Default"
+            splits = [{"chain": "Unmapped Chain", "zone": None, "weight": 1.0, "tier": "unmapped_no_evidence"}]
+            tier_used = "Tier3_Unmapped"
             tier3_count += 1
 
         # Generate split rows
@@ -222,7 +222,7 @@ def apply_chain_allocation_enhanced(
 
     # Build QC report
     qc = {
-        "method": "3-Tier Allocation Waterfall: Explicit Weights → Dynamic Offtake → Default MT",
+        "method": "3-Tier Allocation Waterfall: Explicit Weights -> Dynamic Offtake -> Unmapped (no fabricated default)",
         "distributor_primary_total_lakh": float(orig_sum),
         "allocated_total_lakh": float(alloc_sum),
         "variance_lakh": float(variance),
@@ -243,4 +243,4 @@ def apply_chain_allocation_enhanced(
 if __name__ == "__main__":
     # Quick test
     print("Enhanced Distributor Allocation Module loaded successfully")
-    print("Tiers: 1=Explicit, 2=Dynamic Offtake, 3=Default MT")
+    print("Tiers: 1=Explicit, 2=Dynamic Offtake, 3=Unmapped (no fabricated default)")

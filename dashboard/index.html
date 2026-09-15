@@ -2805,22 +2805,30 @@ function ragPill(v,band,fmt){
   if(v==null) return '–';
   return `<span class="pill ${ragClass(v,band)}">${fmt?fmt(v):v}</span>`;
 }
-// A blocked layer explains itself instead of showing a confident-looking number.
+// A non-passing layer explains itself instead of showing a confident-looking number.
+// PASS and N/A need no explanatory note; AWAITING BUSINESS DATA and a genuine
+// BLOCKED both do (either way, the reader needs to know why the number is withheld).
 function gateNote(key){
   const g=((D.readiness||{}).gates||{})[key];
-  if(!g||g.status!=='BLOCKED') return '';
+  if(!g||g.status==='PASS'||g.status==='N/A') return '';
+  const isRealBlocker=g.status==='BLOCKED';
   return `<p class="note" style="margin:0 0 16px;border-left:4px solid var(--amber);padding-left:10px">
-    <b>⚠ ${g.label}: not yet reliable.</b> ${g.requires?`Needs ${g.requires}.`:''}
+    <b>${isRealBlocker?'⚠':'⏳'} ${g.label}: ${isRealBlocker?'not yet reliable (technical issue)':'awaiting business data'}.</b> ${g.requires?`Needs ${g.requires}.`:''}
     Measured: ${g.measured}. ${g.unblocks_with?`<br><b>Unblocks with:</b> ${g.unblocks_with}`:''}</p>`;
 }
 function readinessCard(){
   const R=D.readiness; if(!R||!R.gates) return '';
+  // PASS -> green, a genuine unresolved BLOCKED -> red, everything else (N/A,
+  // AWAITING BUSINESS DATA) -> neutral: it is not a software failure, so it
+  // must not render like one. Matches the existing amber/neutral RAG pattern
+  // (ragClass()) already used elsewhere on this page.
+  const pillClass=s=>s==='PASS'?'g':(s==='BLOCKED'?'r':'');
   const rows=Object.entries(R.gates).map(([k,g])=>`<tr>
     <td>${g.label}</td>
-    <td><span class="pill ${g.status==='PASS'?'g':'r'}">${g.status}</span></td>
+    <td><span class="pill ${pillClass(g.status)}">${g.status}</span></td>
     <td>${g.measured||'–'}</td><td>${g.unblocks_with||'–'}</td></tr>`).join('');
   return card('Data readiness gate',
-    `${R.summary}. A layer is BLOCKED when its inputs are not in place — it is not broken, and it is not presenting a half-built number as final.`,
+    `${R.summary}. AWAITING BUSINESS DATA means the software is complete and correctly withholding the number until a named business/source input arrives — it is not broken. N/A means the layer is out of scope for this reporting surface.`,
     `<div class="tablewrap"><table><thead><tr><th>Layer</th><th>Status</th><th>Measured</th><th>Unblocks with</th></tr></thead>
      <tbody>${rows}</tbody></table></div>`);
 }
