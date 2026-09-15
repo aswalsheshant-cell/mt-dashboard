@@ -90,17 +90,139 @@ if ($daxFiles.Count -gt 0) {
     Write-Host "  ℹ No .dax files found in PowerBI/DAX" -ForegroundColor Gray
 }
 
-$pqFiles = Get-ChildItem -Path (Join-Path $RepoRoot "PowerBI/PowerQuery") -Filter "*.pq" -Recurse -ErrorAction SilentlyContinue
-if ($pqFiles.Count -gt 0) {
-    foreach ($pqFile in $pqFiles) {
-        $content = Get-Content -Path $pqFile.FullName -Raw
-        if ($content -match "let" -and $content -match "in") {
-            Write-Host "  ✓ Structural M-code valid: $($pqFile.Name)" -ForegroundColor Green
-        } else {
-            $failures += "Power Query structural error in $($pqFile.Name): Missing 'let' or 'in' clause"
-            Write-Host "  ❌ $($pqFile.Name): Malformed M-code structure" -ForegroundColor Red
+function Test-MStructuralSanity {
+    <#
+    .SYNOPSIS
+    Bounded structural sanity check for a Power Query M file. NOT a grammar
+    parser: it does not build or validate an AST, and a file can pass this
+    and still be semantically invalid M (e.g. a stray comma, a bad operator).
+    See M's lexical spec: https://learn.microsoft.com/en-us/powerquery-m/m-spec-lexical-structure
+
+    Tests reconciled: an earlier version of this check stripped // and /* */
+    comments with a regex BEFORE recognizing strings. That is unsound -- M
+    does not suppress comment tokens inside a string, so a valid string
+    containing "//" (e.g. a URL parameter value) was wrongly treated as a
+    comment start, corrupting the quote count and failing a valid file. And
+    a regex requiring a closing */ cannot detect an UNTERMINATED block
+    comment: if no closing */ exists, the (?s)/\*.*?\*/ pattern simply never
+    matches, so the malformed marker and everything after it silently passed
+    through unchanged. Both were demonstrated with real pwsh fixtures, not
+    assumed.
+
+    Fixed by single-pass lexical scanning (comments and strings recognized
+    together, in one left-to-right character walk) instead of two independent
+    regex substitutions:
+      - "//" and "/* */" are only recognized as comment starts when the
+        scanner is not currently inside a string.
+      - a doubled quote ("") inside a string is treated as M's escaped-quote
+        sequence, not a string terminator.
+      - reaching end-of-file while still inside a string, or still inside a
+        block comment, is itself reported as a structural issue (previously
+        undetectable).
+      - a closing delimiter encountered before its matching opener (e.g.
+        ")(" with equal counts but invalid order) is reported immediately,
+        not just an aggregate open/close count mismatch.
+    #>
+    param([string]$Content)
+
+    if ([string]::IsNullOrWhiteSpace($Content)) {
+        return @("file is empty")
+    }
+
+    $issues = [System.Collections.Generic.List[string]]::new()
+    $depth = @{ '(' = 0; '[' = 0; '{' = 0 }
+    $closerFor = @{ ')' = '('; ']' = '['; '}' = '{' }
+    $inString = $false
+    $inLineComment = $false
+    $inBlockComment = $false
+    $chars = $Content.ToCharArray()
+    $len = $chars.Length
+    $i = 0
+
+    while ($i -lt $len) {
+        $c = $chars[$i]
+        $next = if ($i + 1 -lt $len) { $chars[$i + 1] } else { [char]0 }
+
+        if ($inLineComment) {
+            if ($c -eq "`n") { $inLineComment = $false }
+            $i++; continue
+        }
+        if ($inBlockComment) {
+            if ($c -eq '*' -and $next -eq '/') { $inBlockComment = $false; $i += 2; continue }
+            $i++; continue
+        }
+        if ($inString) {
+            if ($c -eq '"') {
+                if ($next -eq '"') { $i += 2; continue }  # M's doubled-quote escape
+                $inString = $false
+            }
+            $i++; continue
+        }
+
+        # Not inside a string or comment: comment/string starts are only
+        # recognized here, so a "//" or "/* */" inside a string literal
+        # (e.g. a URL) is correctly left alone.
+        if ($c -eq '/' -and $next -eq '/') { $inLineComment = $true; $i += 2; continue }
+        if ($c -eq '/' -and $next -eq '*') { $inBlockComment = $true; $i += 2; continue }
+        if ($c -eq '"') { $inString = $true; $i++; continue }
+
+        # Hashtable.ContainsKey/indexing do NOT coerce a [char] to match a
+        # string key (unlike PowerShell's -eq operator, which does) -- cast
+        # explicitly, or every bracket silently fails to match any key and
+        # depth tracking never increments or decrements at all.
+        $cs = [string]$c
+        if ($depth.ContainsKey($cs)) {
+            $depth[$cs]++
+        } elseif ($closerFor.ContainsKey($cs)) {
+            $opener = $closerFor[$cs]
+            $depth[$opener]--
+            if ($depth[$opener] -lt 0) {
+                $issues.Add("closing '$cs' encountered before its matching '$opener'")
+                $depth[$opener] = 0  # avoid cascading negative-count noise for the rest of the file
+            }
+        }
+        $i++
+    }
+
+    if ($inString) { $issues.Add("unterminated string literal (end of file reached inside an open double-quoted string)") }
+    if ($inBlockComment) { $issues.Add("unterminated block comment (end of file reached inside an open /* ... */ comment)") }
+    foreach ($opener in @('(', '[', '{')) {
+        if ($depth[$opener] -ne 0) {
+            $closer = (@{ '(' = ')'; '[' = ']'; '{' = '}' })[$opener]
+            $issues.Add("unbalanced '$opener$closer' ($($depth[$opener]) net unclosed)")
         }
     }
+    return ,@($issues.ToArray())
+}
+
+$pqFiles = Get-ChildItem -Path (Join-Path $RepoRoot "PowerBI/PowerQuery") -Filter "*.pq" -Recurse -ErrorAction SilentlyContinue
+if ($pqFiles.Count -gt 0) {
+    # M does NOT require a let/in expression to be valid -- per the M language
+    # specification (https://learn.microsoft.com/en-us/powerquery-m/m-spec-basic-concepts),
+    # a valid M document can be a bare literal, a record ([a=1]), a list
+    # ({1,2,3}), a function (x) => x, or a metadata-annotated value (as in
+    # this repo's own 00_Parameters.pq, a Power Query PARAMETER). A previous
+    # version of this check required the literal substrings "let" and "in"
+    # and flagged 00_Parameters.pq as malformed for lacking them -- that was
+    # a false positive, not a real defect in the file.
+    #
+    # Test-MStructuralSanity (above) verifies delimiter and string/comment
+    # well-formedness only -- it is a bounded structural check, not a
+    # grammar parser, and a file can pass it while still being invalid M
+    # (see the function's own docstring for what it does and does not
+    # catch). Full M grammar validation is NOT RUN by this script.
+    foreach ($pqFile in $pqFiles) {
+        $content = Get-Content -Path $pqFile.FullName -Raw
+        $issues = Test-MStructuralSanity -Content $content
+
+        if ($issues.Count -eq 0) {
+            Write-Host "  ✓ Basic structural sanity passed (balanced delimiters/strings/comments -- NOT full M syntax validation): $($pqFile.Name)" -ForegroundColor Green
+        } else {
+            $failures += "Power Query structural issue in $($pqFile.Name): $($issues -join '; ')"
+            Write-Host "  ❌ $($pqFile.Name): $($issues -join '; ')" -ForegroundColor Red
+        }
+    }
+    Write-Host "  ℹ Full M grammar validation: NOT RUN (no M parser available in this environment)" -ForegroundColor Gray
 } else {
     Write-Host "  ℹ No .pq files found in PowerBI/PowerQuery" -ForegroundColor Gray
 }
