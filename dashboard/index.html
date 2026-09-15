@@ -1481,7 +1481,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
 
 /* ============ INVENTORY & SUPPLY HEALTH (Issue #104: Consolidated Offtake + Impact + Distribution) ============ */
 function buildInventoryHealth(){
-  const o=D.offtake, u=D.universe||{}, d=D.detail_meta||{}, s=document.getElementById('tab-inventory-health');
+  const o=D.offtake, u=D.universe||{}, s=document.getElementById('tab-inventory-health');
   if(!s) return;
   const fy=fyKey();
   // Defensive: handles both nested o.total['fy26'] and legacy o.total_fy26 formats
