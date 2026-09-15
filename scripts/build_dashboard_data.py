@@ -5817,6 +5817,110 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
         raise
 
 
+def refresh_derived_blocks(data, src):
+    """Recompute every block that derives from detail_meta's same_period/
+    fyx_primary, or from primary/offtake/pnl/universe/promo directly:
+    insights (like-for-like basis), targets, mapping_health, mom, scorecard,
+    pvm, profitability, npd, readiness.
+
+    Why this exists: main()'s full build computes these once, inline, near
+    the end of the function. Every partial-refresh CLI mode (--detail-only
+    chief among them) updates detail_meta/primary/offtake/etc. but used to
+    leave this downstream layer untouched -- so a --detail-only run that
+    genuinely fixed detail_records (e.g. the 2026-09 chain-alias and
+    Tier-3-unmapped fixes) left targets/insights/scorecard/mom/pvm frozen at
+    whatever a much earlier full build had produced. Concretely this showed
+    "Unmapped Chain" as a ~40%-contribution top-2 revenue driver on the
+    Executive Cockpit and the Performance & Comparison scorecard, long after
+    the real Unmapped-Chain bucket had been fixed down to <0.1% of Primary
+    everywhere else on the dashboard -- see docs/FAILURE_MODE_REGISTER.md.
+
+    Call this after updating any of data['detail_meta'], data['primary'],
+    data['offtake'], data['universe'], data['promo'], data['alloc'] so this
+    layer never drifts from what it describes. Mutates `data` in place;
+    returns nothing. No-ops quietly if primary/offtake aren't present yet
+    (mirrors main()'s own guard).
+    """
+    primary = data.get("primary")
+    offtake = data.get("offtake")
+    pnl = data.get("pnl")
+    universe = data.get("universe")
+    promo = data.get("promo")
+    detail_meta = data.get("detail_meta")
+    if not (primary and offtake):
+        return
+
+    _sp = (detail_meta or {}).get("same_period")
+    if _sp:
+        data["insights"] = insights_block(primary, offtake, pnl, universe, promo, _sp)
+
+    _tgt_rows = load_ty_target(src) or load_targets_csv(_REPO_ROOT)
+    if _tgt_rows:
+        _acts = {}
+        _om = dict(zip(offtake.get("months_" + _tgt_rows[0][0].lower(), []) or [],
+                       offtake.get("monthly_" + _tgt_rows[0][0].lower(), []) or []))
+        if _om:
+            _acts["offtake"] = _om
+        _fx = (detail_meta or {}).get("fyx_primary", {}).get(_tgt_rows[0][0])
+        if _fx:
+            _acts["primary"] = dict(zip(_fx.get("months_canon", []),
+                                        _fx.get("monthly_canon", [])))
+        _tb = targets_block(_tgt_rows, _acts, _sp)
+        if _tb:
+            data["targets"] = _tb
+            _m = _tb["measures"].get(_tb["basis"], {})
+            print(f"targets: {_tb['fy_tag']} basis={_tb['basis']} "
+                  f"FY target Rs {_tb['fy_target']/100:.2f} Cr; PTD achievement "
+                  f"{_m.get('achievement_pct')}% over {_m.get('months_elapsed')} month(s); "
+                  f"required run rate Rs {(_m.get('required_run_rate') or 0)/100:.2f} Cr/mth "
+                  f"({_m.get('run_rate_status')})")
+
+    _cfg = load_analytics_config(_REPO_ROOT)
+    if _cfg:
+        data["config"] = public_config(_cfg)
+    _adf = frame_from_records(data.get("detail_records"), detail_meta)
+    if _adf is not None:
+        _mh = mapping_health_block(_adf, alloc=data.get("alloc"), cfg=_cfg,
+                                   repo_root=_REPO_ROOT)
+        if _mh:
+            data["mapping_health"] = _mh
+            _cf = sorted(_mh["by_fy"], key=fy_start_year)[-1]
+            print(f"mapping_health: {_cf} completeness {_mh['by_fy'][_cf]['completeness_pct']}% "
+                  f"({_mh['exception_count']} unmapped ship-to parties, "
+                  f"Rs {_mh['exception_nsv']/100:.2f} Cr)")
+    if _sp:
+        _mb = mom_block(offtake, (detail_meta or {}).get("fyx_primary"),
+                        data.get("targets"), _adf, _cfg)
+        if _mb:
+            data["mom"] = _mb
+            print(f"mom: {_mb['fy_tag']} over {_mb['n_months']} month(s), "
+                  f"{len(_mb['rows'])} metric rows")
+        _sc = {}
+        for _dim in ("by_zone", "by_chain"):
+            _b = scorecard_block(_sp, data.get("targets"), data.get("mapping_health"), _cfg, _dim)
+            if _b:
+                _sc[_dim] = _b
+        if _sc:
+            data["scorecard"] = _sc
+            print("scorecard: " + ", ".join(f"{k} {len(v['rows'])} rows" for k, v in _sc.items()))
+        if _adf is not None:
+            _pv = pvm_block(_adf, _sp, cfg=_cfg)
+            if _pv:
+                data["pvm"] = _pv
+                print(f"pvm: delta Rs {_pv['delta']/100:.2f} Cr = "
+                      + " + ".join(f"{b['driver']} {b['value']/100:.2f}" for b in _pv["buckets"])
+                      + f" (recon {_pv['reconciliation']['status']})")
+    _prof = profitability_block(data.get("detail_records"))
+    if _prof is not None:
+        data["profitability"] = _prof
+    _npd = npd_block(data.get("detail_records"))
+    if _npd is not None:
+        data["npd"] = _npd
+    data["readiness"] = readiness_gate(data, _cfg)
+    print(f"readiness: {data['readiness']['summary']}"
+          + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))
+
+
 def _convert_nan_to_none(obj):
     """Recursively convert all NaN values to None for clean JSON serialization.
     Handles lists, dicts, and primitive types."""
@@ -5989,6 +6093,11 @@ def main():
         if obj.get("primary") and obj.get("offtake"):
             obj["primary_offtake_gap"] = primary_offtake_gap_block(
                 obj["primary"], obj["offtake"], meta.get("fyx_primary", {}).get("FY27"))
+        # Refresh everything downstream of detail_meta's same_period/fyx_primary
+        # (targets, insights, mapping_health, mom, scorecard, pvm, profitability,
+        # npd, readiness) so it matches the detail_records this run just fixed --
+        # see refresh_derived_blocks()'s docstring for why this used to go stale.
+        refresh_derived_blocks(obj, src)
         print(f"detail-only: {len(detail)} detail_records "
               f"({'REAL' if not meta['representative'] else 'representative'})"
               + (f"; TOT% blended = {tot['blended_tot_pct']}%" if tot else "")
@@ -6434,83 +6543,14 @@ def main():
         # Update primary.by_channel with merged channels
         primary["by_channel"] = list(existing_ch_dict.values())
 
-    # ---- Like-for-like YoY + target/achievement/run-rate ------------------
-    # Both need the article-level same-period window, which only exists once
-    # detail_meta is built, so they are assembled here rather than up with the
-    # first insights pass.
-    _sp = (detail_meta or {}).get("same_period")
-    if _sp:
-        # Recompute insights on the like-for-like basis (see insights_block).
-        data["insights"] = insights_block(primary, offtake, pnl, universe, promo, _sp)
-    _tgt_rows = load_ty_target(src) or load_targets_csv(_REPO_ROOT)
-    if _tgt_rows:
-        # Month-keyed actuals per measure, so targets_block derives the
-        # period-to-date window from the months that actually have actuals.
-        _acts = {}
-        _om = dict(zip(offtake.get("months_" + _tgt_rows[0][0].lower(), []) or [],
-                       offtake.get("monthly_" + _tgt_rows[0][0].lower(), []) or []))
-        if _om:
-            _acts["offtake"] = _om
-        _fx = (detail_meta or {}).get("fyx_primary", {}).get(_tgt_rows[0][0])
-        if _fx:
-            _acts["primary"] = dict(zip(_fx.get("months_canon", []),
-                                        _fx.get("monthly_canon", [])))
-        _tb = targets_block(_tgt_rows, _acts, _sp)
-        if _tb:
-            data["targets"] = _tb
-            _m = _tb["measures"].get(_tb["basis"], {})
-            print(f"targets: {_tb['fy_tag']} basis={_tb['basis']} "
-                  f"FY target Rs {_tb['fy_target']/100:.2f} Cr; PTD achievement "
-                  f"{_m.get('achievement_pct')}% over {_m.get('months_elapsed')} month(s); "
-                  f"required run rate Rs {(_m.get('required_run_rate') or 0)/100:.2f} Cr/mth "
-                  f"({_m.get('run_rate_status')})")
-    # ---- Phase 3: mapping health, MoM, scorecard, PVM, readiness gate --------
-    # Order matters: mapping_health and pvm feed the readiness gate, so the gate
-    # runs last and can report on what the other blocks actually produced.
-    _cfg = load_analytics_config(_REPO_ROOT)
-    if _cfg:
-        data["config"] = public_config(_cfg)
-    _adf = frame_from_records(data.get("detail_records"), detail_meta)
-    if _adf is not None:
-        _mh = mapping_health_block(_adf, alloc=data.get("alloc"), cfg=_cfg,
-                                   repo_root=_REPO_ROOT)
-        if _mh:
-            data["mapping_health"] = _mh
-            _cf = sorted(_mh["by_fy"], key=fy_start_year)[-1]
-            print(f"mapping_health: {_cf} completeness {_mh['by_fy'][_cf]['completeness_pct']}% "
-                  f"({_mh['exception_count']} unmapped ship-to parties, "
-                  f"Rs {_mh['exception_nsv']/100:.2f} Cr)")
-    if _sp:
-        _mb = mom_block(offtake, (detail_meta or {}).get("fyx_primary"),
-                        data.get("targets"), _adf, _cfg)
-        if _mb:
-            data["mom"] = _mb
-            print(f"mom: {_mb['fy_tag']} over {_mb['n_months']} month(s), "
-                  f"{len(_mb['rows'])} metric rows")
-        _sc = {}
-        for _dim in ("by_zone", "by_chain"):
-            _b = scorecard_block(_sp, data.get("targets"), data.get("mapping_health"), _cfg, _dim)
-            if _b:
-                _sc[_dim] = _b
-        if _sc:
-            data["scorecard"] = _sc
-            print("scorecard: " + ", ".join(f"{k} {len(v['rows'])} rows" for k, v in _sc.items()))
-        if _adf is not None:
-            _pv = pvm_block(_adf, _sp, cfg=_cfg)
-            if _pv:
-                data["pvm"] = _pv
-                print(f"pvm: delta Rs {_pv['delta']/100:.2f} Cr = "
-                      + " + ".join(f"{b['driver']} {b['value']/100:.2f}" for b in _pv["buckets"])
-                      + f" (recon {_pv['reconciliation']['status']})")
-    _prof = profitability_block(data.get("detail_records"))
-    if _prof is not None:
-        data["profitability"] = _prof
-    _npd = npd_block(data.get("detail_records"))
-    if _npd is not None:
-        data["npd"] = _npd
-    data["readiness"] = readiness_gate(data, _cfg)
-    print(f"readiness: {data['readiness']['summary']}"
-          + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))
+    # ---- Like-for-like YoY, targets, mapping health, MoM, scorecard, PVM,
+    # profitability, NPD, readiness gate: everything that derives from
+    # detail_meta's same_period/fyx_primary or from primary/offtake/pnl/
+    # universe/promo directly. Shared with --detail-only (and other partial
+    # refreshes) via refresh_derived_blocks() so this layer can't go stale
+    # relative to what a partial refresh just changed -- see that function's
+    # docstring and docs/FAILURE_MODE_REGISTER.md.
+    refresh_derived_blocks(data, src)
 
     # TD-07: populate fy_range now that dims are available
     _fy_list = data.get("dims", {}).get("FY") or []
