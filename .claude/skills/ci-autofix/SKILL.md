@@ -21,22 +21,52 @@ Do not describe options or ask permission — find the root cause, apply the fix
 
 ## Repository CI context
 
-The `qc` workflow (`.github/workflows/qc.yml`) runs these steps in order:
+There is no `qc.yml` workflow — verify this before trusting the paragraph below by
+listing `.github/workflows/*.yml` and diffing against it; workflows here have been
+renamed and split before, so re-confirm rather than assuming it still holds.
 
-1. `pip install -r requirements.txt` + Playwright
-2. `python -m compileall scripts/` — catches syntax errors
-3. `ruff check scripts/build_dashboard_data.py scripts/release_gate.py scripts/test_*.py` — catches undefined names, JSON booleans in Python, bare f-strings
-4. `pytest --collect-only scripts/` — catches import errors and module-level NameErrors
-5. `pytest scripts/test_pipeline.py scripts/test_chain_consolidation.py scripts/test_june_fallback.py scripts/test_dashboard_disclosures.py scripts/test_release_gate.py -v`
-6. `python scripts/demo_release_gate_blocking.py`
-7. `python scripts/qc_dashboard.py --data dashboard/data.js` (BLOCKED items warn, FAIL items fail CI)
+As of this writing, the closest match to a general dashboard QC gate is
+`validate.yml` (**"Dashboard Validation & QC"**), which runs, in order: a Python
+unit test (`tests.unit.test_skills_loader`), a linter that every `uses:` action
+reference is pinned to a full 40-char commit SHA, `python -m py_compile
+scripts/build_dashboard_data.py`, an ESLint pass over `dashboard/index.html`,
+JSON-schema checks on `compliance_metrics.json`/`enriched_metrics.json`/
+`generated_insights.json`, a `dashboard/data.js` structure sanity check, a dashboard
+markup/Phase-2-function presence check, and a local-HTTP-server smoke test. **It does
+not run `ruff`, `pytest`, or any of the scripts below.**
 
-Key files:
-- `scripts/build_dashboard_data.py` — main pipeline generator
-- `scripts/release_gate.py` — governance gate; contains `FINANCE_G10_CONFIG`
-- `scripts/test_*.py` — all pytest test files
-- `requirements.txt` — pinned deps including `ruff==0.12.0`
-- `ruff.toml` — rules: E9 + F, F401 ignored, F811 ignored in test files
+`ruff.toml` and `ruff==0.12.0` (in `requirements.txt`) exist in the repo but `ruff
+check` is not invoked by any current `.github/workflows/*.yml` — confirmed by
+grepping every workflow file for `ruff`. The same is true of `pytest
+--collect-only scripts/`, `scripts/demo_release_gate_blocking.py`, and the pytest
+suite `scripts/test_pipeline.py scripts/test_chain_consolidation.py
+scripts/test_june_fallback.py scripts/test_dashboard_disclosures.py
+scripts/test_release_gate.py` — all exist on disk, none are wired into automated CI
+today, the same "real code, zero CI coverage" situation as the `data_master.json`
+pipeline scripts (see `docs/knowledge/` / project backlog). A "CI failed" report can
+therefore not originate from these five tests or from `ruff`/`compileall` failing in
+GitHub Actions — always fetch the actual failing workflow/job (Step 1 below) rather
+than assuming it's this pipeline.
+
+`scripts/qc_dashboard.py` IS currently invoked, but by `pbi-pbix-generation.yml`
+("Phase 2 — Automated PBIX Generation") and as a `py_compile` syntax check only in
+`pbi-monthly-refresh.yml` — not by a general QC workflow.
+
+Key files (still real, still present, just not all CI-wired — see above):
+- `scripts/build_dashboard_data.py` — main pipeline generator; syntax-checked by
+  `validate.yml` on every push/PR.
+- `scripts/release_gate.py` — governance gate; contains `FINANCE_G10_CONFIG`; not
+  currently exercised by any workflow.
+- `scripts/test_*.py` — all pytest test files; not currently run by any workflow.
+- `requirements.txt` — pinned deps including `ruff==0.12.0` (installed nowhere in CI
+  today).
+- `ruff.toml` — rules: E9 + F, F401 ignored, F811 ignored in test files (dormant
+  config; useful if you run `ruff` locally, not enforced by GitHub Actions).
+
+The failure-taxonomy table below still applies verbatim to `ruff`/`pytest`/Python
+error classes if you're triaging a local run or a workflow that does invoke them
+(including a future one) — treat it as a Python-error playbook, not proof that any
+current workflow runs these tools.
 
 ## Failure taxonomy and fix protocol
 
