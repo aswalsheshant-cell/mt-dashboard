@@ -1312,9 +1312,21 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     const rows27=sorted.filter(c=>(c[primYr]||0)>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
     const sum=sorted.reduce((a,c)=>a+(c[primYr]||0),0);
     const chRows=validChannels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
+    // Cumulative Rank & Running Total: same rows/order as "Top Chains" above,
+    // extended with rank and running % of total -- the SQL RANK()/SUM() OVER()
+    // pattern documented in docs/mt_sql_cookbook.sql. Reuses `sorted`/`sum`
+    // rather than recomputing, so it can never diverge from the card above it.
+    let _running=0;
+    const rankRows=sorted.filter(c=>(c[primYr]||0)>0||fOn('Chain')).map((c,i)=>{
+      const v=c[primYr]||0;
+      _running+=v;
+      const cumPct=sum>0?(100*_running/sum):0;
+      return `<tr><td>${i+1}</td><td>${drillLink('Chain',c.name)}</td><td>${crc(v)}</td><td>${cumPct.toFixed(1)}%</td></tr>`;
+    }).join('');
     content.innerHTML=`
       ${granularityDisclaimer}
       ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
+      ${card('Cumulative Rank & Running Total (by Chain)','Same figures as above, ranked with running % of total NSV',`<table class="tbl"><thead><tr><th>Rank</th><th>Chain</th><th>${yrLab[primYr]||primYr}</th><th>Cumulative %</th></tr></thead><tbody>${rankRows}</tbody></table>`)}
       ${card(`Channel Split (${yrLab[primYr]||primYr})`,`${validChannels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
       <div class="grid g2">
         ${card('Primary Sales Trend','FY25 to FY27 trajectory',cv('chanPrimTrend'))}
