@@ -1058,6 +1058,37 @@ function destroyDemandPlanningCharts(){
   demandPlanningState.charts={};
 }
 
+// Promo depth vs. sell-through correlation: does deeper average discounting
+// at a chain actually line up with higher sell-through (Offtake/Primary) that
+// same period? Pearson r across chains that have BOTH a real promo-depth
+// figure (D.promo.by_chain) and a matched Primary/Offtake pair
+// (D.primary_offtake_gap[fy].by_chain.matched -- "matched" only, never the
+// primary-only/offtake-only lists, so the ratio is real). Correlation only --
+// this cannot isolate promo effect from base demand or seasonality, and is
+// stated as such wherever it's shown.
+function computePromoSellThroughCorrelation(fy){
+  const promoChains=(D.promo&&D.promo.by_chain)||[];
+  const g=D.primary_offtake_gap||{};
+  const fyKeyToUse=fy||(g.fy27?'fy27':(g.fy26?'fy26':null));
+  const matched=(fyKeyToUse&&g[fyKeyToUse]&&g[fyKeyToUse].by_chain&&g[fyKeyToUse].by_chain.matched)||[];
+  const byName={};
+  matched.forEach(m=>{ if(m&&m.name) byName[m.name]=m; });
+  const rows=promoChains.filter(c=>c&&c.name&&c.avg_depth!=null&&byName[c.name]&&byName[c.name].primary>0)
+    .map(c=>{
+      const m=byName[c.name];
+      return {name:c.name,depth:Number(c.avg_depth),promos:c.promos,sellThrough:m.offtake/m.primary*100};
+    });
+  let r=null;
+  if(rows.length>=5){
+    const n=rows.length;
+    const xs=rows.map(x=>x.depth), ys=rows.map(x=>x.sellThrough);
+    const mx=xs.reduce((a,b)=>a+b,0)/n, my=ys.reduce((a,b)=>a+b,0)/n;
+    let cov=0,dx2=0,dy2=0;
+    for(let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; cov+=dx*dy; dx2+=dx*dx; dy2+=dy*dy; }
+    r=(dx2>0&&dy2>0)?cov/Math.sqrt(dx2*dy2):null;
+  }
+  return {rows:rows.sort((a,b)=>b.depth-a.depth),r,n:rows.length,fy:fyKeyToUse};
+}
 /* ============ DEMAND & S&OP PLANNING (Issue #105: Consolidated Forecast + Promo + Market Share) ============ */
 function buildDemandPlanning(){
   const d=D.detail_meta||{},f=D.forecast||{},p=D.primary||{},s=document.getElementById('tab-demand-planning');
@@ -1185,6 +1216,18 @@ function buildDemandPlanning(){
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{x:{title:{display:true,text:'Promo lines'},beginAtZero:true},y:{title:{display:true,text:'Avg depth %'},beginAtZero:true}}}
       });
       demandPlanningState.charts.promo=promoChart;
+
+      const corr=computePromoSellThroughCorrelation(fy);
+      if(corr.rows.length){
+        const corrRows=corr.rows.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${c.depth.toFixed(1)}%</td><td>${c.sellThrough.toFixed(1)}%</td><td>${num(c.promos)}</td></tr>`).join('');
+        const rLabel=corr.r==null?'–':corr.r.toFixed(2);
+        const rStrength=corr.r==null?'':Math.abs(corr.r)>=0.5?'moderate-to-strong':Math.abs(corr.r)>=0.3?'weak-to-moderate':'weak';
+        content.innerHTML+=card('Promo Depth vs. Sell-Through — Correlation',
+          `Pearson r = ${rLabel} across ${corr.n} chain(s) with both a promo depth and a matched Primary/Offtake pair (${corr.fy?corr.fy.toUpperCase():'–'})`,
+          `<table class="tbl"><thead><tr><th>Chain</th><th>Avg Promo Depth %</th><th>Sell-Through % (Offtake/Primary)</th><th>Promo lines</th></tr></thead><tbody>${corrRows}</tbody></table>
+           <p class="note"><b>Correlation, not causation:</b> this measures whether chains with deeper average promo depth also show higher sell-through this period — it does not isolate promo effect from base demand, seasonality or other drivers, and ROI still isn't computable (spend/uplift aren't in the promo source). ${corr.r==null?'r is not meaningful below 5 matched chains.':`r indicates a ${rStrength} relationship.`}</p>`);
+        wireDrillLinks(content);
+      }
     }else if(sv==='market-share'){
       // The previous version hardcoded competitor shares (Honasa 5.8%, HUL 28.3%,
       // P&G 15.2%, ITC 9.1%, Others 41.6%) with FY27 "projections". Those were
