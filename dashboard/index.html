@@ -1463,8 +1463,12 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
   }
   else if(sv==='reliance'){
     // Phase 2: Reliance Brand Counter sub-view with toggle between macro (bulk) and BA (dedicated counters)
+    // Bug fix (2026-09-16): this used to filter r.Brand==='Reliance', but
+    // Reliance is a Chain, never a Brand value (Brand is Mamaearth/The Derma
+    // Co/etc.) -- that condition could never match a single row, so this
+    // sub-view always showed "No Reliance records" regardless of filter.
     const recs=recFilter('Brand');
-    const reliance=recs.filter(r=>r.Brand==='Reliance');
+    const reliance=recs.filter(r=>r.Chain==='Reliance Retail');
     if(!reliance.length) {content.innerHTML=card('Reliance Brand Counter','No Reliance records','<p class="lead">Select a timeframe that includes Reliance sales.</p>');return;}
     const byzone={};
     reliance.forEach(r=>{const z=r.Zone||'Unknown';if(!byzone[z]) byzone[z]={nsv:0,stores:0};byzone[z].nsv+=r.NSV||0;});
