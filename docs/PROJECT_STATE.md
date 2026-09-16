@@ -134,7 +134,7 @@ One bounded component per run: implement, validate, commit, stop.
 | Incentive calculation | 4 of 5 mandatory inputs (see Required Business Inputs) |
 | Persona reporting (KAM/RKAM/BDE) | Employee IDs on the WoA hierarchy |
 | OSA / OOS | Store audit covers 44.4% of stores, wrong period (`compliance_metrics.json`'s audited chains — DMart/Reliance Retail/More Retail/Spencer's — only partly match the universe's own chain names, and DMart's audited door count (83) exceeds DMart's universe store count (24); the audit's chain grain is not the same as the commercial universe's). The universe-side contamination this QC also found (below) is now fixed. |
-| Inventory days | No stock-on-hand feed |
+| Inventory days | No stock-on-hand feed. Min-Max Inventory formula (Min/Max/Order Qty) registered as a candidate methodology, ready to wire — see `forecast_stock_inventory` in `config/data_source_registry.yml`. Still needs: stock-on-hand extract, lead time per chain/distributor, confirmed safety-stock norm |
 
 ## Resolved (2026-09-14, business rules confirmed + root QC)
 
