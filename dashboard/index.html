@@ -3564,10 +3564,30 @@ function buildStores(){
     return;
   }
   const comp=D.compliance, meta=comp.metadata, accounts=comp.accounts||[], doors=comp.doors||[];
+  // Audit-confidence note: PES% is read from a sample of the store universe
+  // (189 of 426 today), not a census. Margin of error for a proportion,
+  // finite-population-corrected since the sample is a large (~44%) share of
+  // the universe, not a negligible one -- FPC = sqrt((N-n)/(N-1)) shrinks the
+  // naive SE by roughly the "how much of the universe is left unsampled"
+  // factor. 95% confidence (z=1.96). Governance threshold read from
+  // config/analytics_config.json's readiness.scorecard_execution gate via
+  // D.config, never hardcoded here a second time.
+  const _n=meta.total_doors_audited, _N=(D.universe&&D.universe.active_stores)||null;
+  let _moeNote='';
+  if(_n && _N && _n<_N && meta.macro_pes_percent!=null){
+    const _p=meta.macro_pes_percent/100;
+    const _se=Math.sqrt(_p*(1-_p)/_n);
+    const _fpc=Math.sqrt((_N-_n)/(_N-1));
+    const _moe=1.96*_se*_fpc*100;
+    const _covPct=(_n/_N*100).toFixed(0);
+    const _minCov=((CFG().readiness||{}).scorecard_execution||{}).min_audit_coverage_pct;
+    _moeNote=`<p class="note">Based on ${_n} of ${_N} stores (${_covPct}% coverage) — at 95% confidence the true PES% likely falls between ${(meta.macro_pes_percent-_moe).toFixed(1)}% and ${Math.min(100,meta.macro_pes_percent+_moe).toFixed(1)}% (±${_moe.toFixed(1)}pp margin of error).${_minCov!=null&&Number(_covPct)<_minCov?` Below the ${_minCov}% coverage this project's own governance sets for reliable chain-level reporting — read this score as directional, not final.`:''}</p>`;
+  }
   const macroCard=card('Macro Promo Execution Score (PES)',
     `${meta.total_doors_audited} doors audited • ${meta.coverage}`,
     `<div class="kpi-row"><span class="kpi-val">${meta.macro_pes_percent}%</span><span class="kpi-lab">Macro PES</span></div>
-     <p class="note">Score = 0.40×Price + 0.30×FSDU + 0.30×OSA compliance</p>`);
+     <p class="note">Score = 0.40×Price + 0.30×FSDU + 0.30×OSA compliance</p>
+     ${_moeNote}`);
   const accountRows=accounts.map(a=>`<tr><td>${a.account_name}</td><td>${a.doors_audited}</td>
     <td><span class="badge" style="background:${a.account_pes_percent>=85?'#4CAF50':a.account_pes_percent>=75?'#FF9800':'#F44336'}">${a.account_pes_percent}%</span></td>
     <td>${a.price_compliance.toFixed(0)}%</td><td>${a.fsdu_compliance.toFixed(0)}%</td><td>${a.osa_compliance.toFixed(0)}%</td></tr>`).join('');
