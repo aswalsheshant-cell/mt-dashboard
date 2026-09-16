@@ -2984,6 +2984,45 @@ function mappingHealthSection(){
      `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>NSV at stake</th><th>Suggested chain</th><th>Confidence</th><th>Status</th></tr></thead>
       <tbody>${pr}</tbody></table></div>`):''}`;
 }
+// SKU NSV Volatility: flags articles whose month-to-month NSV swings hardest,
+// using coefficient of variation (std dev / mean) rather than growth % alone --
+// growth % compares only two points and says nothing about how erratic the
+// months in between were. Respects whatever global filters (FY/Chain/etc.)
+// are active via recFilter(), same as every other analytics block on this tab.
+function computeSkuVolatility(){
+  const recs=recFilter();
+  const byArticle={};
+  recs.forEach(r=>{
+    if(!r.Article) return;
+    const a=byArticle[r.Article]||(byArticle[r.Article]={Brand:r.Brand,Category:r.Category,months:{}});
+    const mk=r.FY+'|'+r.Month;
+    a.months[mk]=(a.months[mk]||0)+(r.NSV||0);
+  });
+  const MIN_MONTHS=3, MIN_AVG_LAKH=5; // below these, a "volatile" read is just noise from a thin series
+  const rows=Object.entries(byArticle).map(([article,v])=>{
+    const vals=Object.values(v.months);
+    const n=vals.length;
+    if(n<MIN_MONTHS) return null;
+    const mean=vals.reduce((a,x)=>a+x,0)/n;
+    if(mean<MIN_AVG_LAKH) return null;
+    const variance=vals.reduce((a,x)=>a+(x-mean)*(x-mean),0)/(n-1); // sample std (n-1)
+    const std=Math.sqrt(variance);
+    return {article,brand:v.Brand,category:v.Category,n,mean,std,cv:std/mean*100};
+  }).filter(Boolean);
+  rows.sort((a,b)=>b.cv-a.cv);
+  return {rows:rows.slice(0,12),min_months:MIN_MONTHS,min_avg_lakh:MIN_AVG_LAKH,n_qualifying:rows.length};
+}
+function skuVolatilitySection(){
+  const V=computeSkuVolatility();
+  if(!V.rows.length) return '';
+  const rows=V.rows.map(r=>`<tr><td>${r.article}</td><td>${r.brand||'–'}</td><td>${r.category||'–'}</td>
+    <td>${r.n}</td><td>${crc(r.mean)}</td><td>${crc(r.std)}</td>
+    <td><span class="pill ${r.cv>=50?'r':r.cv>=25?'':'g'}">${r.cv.toFixed(0)}%</span></td></tr>`).join('');
+  return `<h2 class="sec" style="margin-top:32px">SKU NSV Volatility</h2>
+   <p class="lead">Which articles swing hardest month to month, not just which grew or declined most. Coefficient of variation (CV% = std dev / mean) — high CV% means an erratic month-to-month pattern even if the average looks fine. Only articles with ${V.min_months}+ months of data and average NSV ≥ ${crc(V.min_avg_lakh)} are ranked, to avoid thin-series noise; ${V.n_qualifying} article(s) qualify.</p>
+   ${card('Most volatile SKUs (by CV%)','Ranked highest CV% first — a high CV% with a healthy mean is worth a supply/demand review, not just a growth read.',
+     `<div class="tablewrap"><table><thead><tr><th>Article</th><th>Brand</th><th>Category</th><th>Months</th><th>Avg NSV</th><th>Std Dev</th><th>CV%</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
+}
 function primaryOfftakeGapSection(){
   const g=D.primary_offtake_gap;
   if(!g||(!g.fy26&&!g.fy27)) return '';
@@ -3422,6 +3461,7 @@ function buildAnalytics(){
    ${frames}
    ${pvmSection()}
    ${mappingHealthSection()}
+   ${skuVolatilitySection()}
    <h2 class="sec" style="margin-top:32px">Data Readiness</h2>
    ${readinessCard()}`;
 
