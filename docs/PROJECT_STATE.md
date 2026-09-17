@@ -120,6 +120,37 @@ One bounded component per run: implement, validate, commit, stop.
   sheet an Excel Table, calculated cells are formulas, blocked rows stay blocked
   and never read as zero. Restricted: written to `incentive_working/`, gitignored.
 
+## Dashboard Enhancement Round (2026-09-16) — COMPLETE
+
+Found via a deliberate tab-by-tab, sub-tab-by-sub-tab root-cause audit of
+`dashboard/index.html` (requested specifically to find issues the 44-state
+automated sweep would not catch on its own — it only asserts "no crash," not
+"actually works"). One real bug + 7 proposed additions, all merged to `main`.
+Each item was independently cross-checked against real numbers in Python
+before commit — no fabricated figures. Unrelated to the incentive workbook /
+V1 status above; does not change any Regression Baseline number.
+
+| # | Item | PR | What |
+|---|---|---|---|
+| Fix | Reliance Brand Counter sub-view always empty | [#143](https://github.com/aswalsheshant-cell/mt-dashboard/pull/143) | Filter matched `Brand==='Reliance'` (never true — Reliance is a Chain, not a Brand); fixed to `Chain==='Reliance Retail'`. Recovered 32,505 real transactions, correct zone split. Write-up: `docs/CASE_STUDIES.md` CS-01 |
+| #5 | Data Model doc | [#144](https://github.com/aswalsheshant-cell/mt-dashboard/pull/144) | `docs/DATA_MODEL.md` — names `detail_records` as the fact table in star-schema terms; flags `docs/DATA_JS_SCHEMA.md` as stale (not fixed — see below) |
+| #6 | SQL cookbook | [#145](https://github.com/aswalsheshant-cell/mt-dashboard/pull/145) | `docs/mt_sql_cookbook.sql` — 3 queries verified against a real SQLite load of `detail_records` |
+| #3 | Cumulative Rank & Running Total card | [#146](https://github.com/aswalsheshant-cell/mt-dashboard/pull/146) | Channel & Chain Performance → Primary Sales sub-view; cumulative % crosses 90% at Wellness Forever, matches SQL cookbook exactly |
+| #1 | SKU NSV Volatility card | [#147](https://github.com/aswalsheshant-cell/mt-dashboard/pull/147) | Commercial Analytics tab; coefficient-of-variation ranking, min 3 months / ₹5L avg NSV to qualify |
+| #2 | Promo Depth vs. Sell-Through correlation card | [#148](https://github.com/aswalsheshant-cell/mt-dashboard/pull/148) | Demand & S&OP Planning → Promotional Impact sub-view; Pearson r = -0.157 across 17 matched FY27 chains, labelled correlation-not-causation |
+| #4 | Audit-confidence margin-of-error note | [#149](https://github.com/aswalsheshant-cell/mt-dashboard/pull/149) | Store Audit Scorecard; finite-population-corrected 95% CI (n=189 of N=426 → ±3.8pp), flags when below the governed minimum audit coverage % |
+| #7 | Case study doc | [#150](https://github.com/aswalsheshant-cell/mt-dashboard/pull/150) | `docs/CASE_STUDIES.md` — full CS-01 write-up of the Reliance Brand Counter bug (problem → root cause → fix → verification → reusable methodology) |
+
+**Not actioned this round, flagged as a real finding:** `docs/DATA_JS_SCHEMA.md`
+is significantly stale — documents 14 `data.js` blocks vs. 30 real ones, and
+lists wrong `detail_records` field names (e.g. `article_id` instead of the
+real field) plus two blocks that don't exist (`release_gate_report`, `share`).
+Not fixed in this round; a follow-up task if anyone picks it up next.
+
+Validated: 2026-09-16 — full 44-state sweep clean after every merge; every
+number quoted above was independently reproduced in Python against the live
+`dashboard/data.js` before its commit, not just eyeballed in the browser.
+
 ## Partial Capabilities
 
 - Store-grain sales — dedup runs at chain level; store-grain chain offtake not in the build
