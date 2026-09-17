@@ -40,10 +40,19 @@ echo "=== mt-dashboard session setup (${HOOK_SRC}) ==="
 
 # Always print the recovery context, whichever path the dependency check takes.
 finish() {
+  # environment_health_check.sh is diagnostic-only and always exits 0 by its
+  # own design (see that script's header comment) -- there is no real exit
+  # code to lose here. What matters is whether its TEXT flags a problem
+  # ("LOW MEMORY", "MISSING", "BLOCKED", ...); capture the output instead of
+  # streaming it straight to the terminal so the closing banner below can
+  # reflect what it actually found, rather than unconditionally claiming
+  # "ready" underneath a report that just said otherwise.
+  HEALTH_OUTPUT=""
   if [ -x scripts/environment_health_check.sh ]; then
     echo
     echo "=== resume context ==="
-    SKIP_NPM_PROBE=1 ./scripts/environment_health_check.sh 2>/dev/null || true
+    HEALTH_OUTPUT="$(SKIP_NPM_PROBE=1 ./scripts/environment_health_check.sh 2>&1 || true)"
+    printf '%s\n' "$HEALTH_OUTPUT"
   fi
   if [ -f docs/PROJECT_STATE.md ]; then
     echo
@@ -53,7 +62,11 @@ finish() {
     echo
     echo "  Full state: docs/PROJECT_STATE.md — read it before changing anything."
   fi
-  echo "=== Environment ready ==="
+  if printf '%s' "$HEALTH_OUTPUT" | grep -qE 'LOW MEMORY|LOW DISK|MISSING|BLOCKED|STILL RUNNING'; then
+    echo "=== Environment started -- see flags above before starting heavy work ==="
+  else
+    echo "=== Environment ready ==="
+  fi
   exit 0
 }
 
