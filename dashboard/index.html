@@ -1663,6 +1663,7 @@ function buildInventoryHealth(){
          and emitted as e.g. <code>DASH.offtake.weekly</code>. Until then this
          card stays empty by design — it previously displayed hardcoded
          placeholder weekly figures that were not sourced from any file.</p>`);
+      content.innerHTML+=inventoryClassificationSection();
     }else if(sv==='coverage'){
       // Store Coverage: real store counts by zone from the MT universe
       // (D.universe.by_zone: [{name,stores}], sums to the 426-store baseline).
@@ -3065,6 +3066,95 @@ function skuVolatilitySection(){
    <p class="lead">Which articles swing hardest month to month, not just which grew or declined most. Coefficient of variation (CV% = std dev / mean) — high CV% means an erratic month-to-month pattern even if the average looks fine. Only articles with ${V.min_months}+ months of data and average NSV ≥ ${crc(V.min_avg_lakh)} are ranked, to avoid thin-series noise; ${V.n_qualifying} article(s) qualify.</p>
    ${card('Most volatile SKUs (by CV%)','Ranked highest CV% first — a high CV% with a healthy mean is worth a supply/demand review, not just a growth read.',
      `<div class="tablewrap"><table><thead><tr><th>Article</th><th>Brand</th><th>Category</th><th>Months</th><th>Avg NSV</th><th>Std Dev</th><th>CV%</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
+}
+// Standard FMS (movement frequency) x ABC (value) x RIS (demand pattern)
+// inventory classification -- an external, general-purpose convention (not a
+// Honasa-specific rule), computed here on real NSV/frequency from
+// detail_records. Reuses the exact same per-article monthly-NSV aggregation
+// as computeSkuVolatility() above rather than a second independent read.
+function computeInventoryClassification(){
+  const recs=recFilter();
+  const totalMonths=new Set(recs.map(r=>r.FY+'|'+r.Month)).size;
+  const byArticle={};
+  recs.forEach(r=>{
+    if(!r.Article) return;
+    const a=byArticle[r.Article]||(byArticle[r.Article]={Brand:r.Brand,Category:r.Category,months:{}});
+    const mk=r.FY+'|'+r.Month;
+    a.months[mk]=(a.months[mk]||0)+(r.NSV||0);
+  });
+  const MIN_AVG_LAKH=1; // exclude near-zero articles from classification noise
+  let rows=Object.entries(byArticle).map(([article,v])=>{
+    const vals=Object.values(v.months);
+    const n=vals.length;
+    const total=vals.reduce((a,x)=>a+x,0);
+    const mean=total/n;
+    if(mean<MIN_AVG_LAKH) return null;
+    let cv=0;
+    if(n>=2){
+      const variance=vals.reduce((a,x)=>a+(x-mean)*(x-mean),0)/(n-1);
+      cv=Math.sqrt(variance)/mean*100;
+    }
+    return {article,brand:v.Brand,category:v.Category,n,total,cv};
+  }).filter(Boolean);
+
+  // ABC: rank by NSV desc, classic cumulative-share cutoffs (70% / 90%)
+  rows.sort((a,b)=>b.total-a.total);
+  const grandTotal=rows.reduce((a,r)=>a+r.total,0);
+  let running=0;
+  rows.forEach(r=>{
+    running+=r.total;
+    const cumPct=grandTotal>0?100*running/grandTotal:0;
+    r.valueClass=cumPct<=70?'A':cumPct<=90?'B':'C';
+  });
+
+  // FMS: share of the period's months with any real sale
+  rows.forEach(r=>{
+    const activeShare=totalMonths>0?r.n/totalMonths:0;
+    r.movement=activeShare>=0.8?'F':activeShare>=0.4?'M':'S';
+  });
+
+  // RIS: coefficient of variation of monthly NSV (fewer than 2 active months
+  // can't produce a variance, so it reads as Sporadic by definition)
+  rows.forEach(r=>{
+    r.demandPattern=r.n<2?'S':r.cv<50?'R':r.cv<100?'I':'S';
+  });
+
+  const ACTION={
+    'A-F-R':'Highest priority — keep adequate stock, tight replenishment control',
+    'A-S-S':'High value, low/erratic demand — strategic review before committing stock',
+    'C-F-R':'Routine, easy replenishment — simpler control is enough',
+    'C-S-S':'Potential obsolete — review for disposal/liquidation'
+  };
+  rows.forEach(r=>{ r.action=ACTION[`${r.valueClass}-${r.movement}-${r.demandPattern}`]||'Monitor — no standard rule for this combination yet'; });
+
+  rows.sort((a,b)=>b.total-a.total);
+  const dist={
+    value:{A:rows.filter(r=>r.valueClass==='A').length,B:rows.filter(r=>r.valueClass==='B').length,C:rows.filter(r=>r.valueClass==='C').length},
+    movement:{F:rows.filter(r=>r.movement==='F').length,M:rows.filter(r=>r.movement==='M').length,S:rows.filter(r=>r.movement==='S').length},
+    pattern:{R:rows.filter(r=>r.demandPattern==='R').length,I:rows.filter(r=>r.demandPattern==='I').length,S:rows.filter(r=>r.demandPattern==='S').length}
+  };
+  return {rows:rows.slice(0,20),n_qualifying:rows.length,total_months:totalMonths,dist,min_avg_lakh:MIN_AVG_LAKH};
+}
+function inventoryClassificationSection(){
+  const C=computeInventoryClassification();
+  if(!C.rows.length) return '';
+  const rows=C.rows.map(r=>`<tr><td>${r.article}</td><td>${r.brand||'–'}</td><td>${r.category||'–'}</td>
+    <td>${crc(r.total)}</td><td><span class="pill">${r.valueClass}</span></td>
+    <td><span class="pill">${r.movement}</span></td><td><span class="pill">${r.demandPattern}</span></td>
+    <td style="font-size:12px">${r.action}</td></tr>`).join('');
+  return `<h3 class="sec" style="font-size:15px;margin:24px 0 4px">Article Classification — Value (ABC) × Movement (FMS) × Demand Pattern (RIS)</h3>
+   <p class="note" style="margin:0 0 10px">Standard inventory-classification convention (not a Honasa-specific rule), computed on this period's real NSV and sale-frequency.
+     <b>Value (ABC):</b> cumulative NSV share — A up to 70%, B up to 90%, C the rest.
+     <b>Movement (FMS):</b> share of the ${C.total_months}-month period with any real sale — Fast ≥80%, Medium ≥40%, Slow below.
+     <b>Demand pattern (RIS):</b> coefficient of variation of monthly NSV — Regular &lt;50%, Irregular &lt;100%, Sporadic ≥100% (or under 2 active months).
+     Articles averaging below ${crc(C.min_avg_lakh)}/month are excluded as noise. ${C.n_qualifying} article(s) qualify; top 20 by NSV shown.</p>
+   <div class="kpis">
+     ${kpi('High-value (A) articles',C.dist.value.A,`of ${C.n_qualifying} qualifying`)}
+     ${kpi('Fast-moving articles',C.dist.movement.F,`of ${C.n_qualifying} qualifying`)}
+     ${kpi('Regular-demand articles',C.dist.pattern.R,`of ${C.n_qualifying} qualifying`)}
+   </div>
+   ${card('Article classification & suggested action','Top 20 articles by NSV this period, classified and matched to the standard action for that combination.',
+     `<div class="tablewrap"><table><thead><tr><th>Article</th><th>Brand</th><th>Category</th><th>NSV</th><th>ABC</th><th>FMS</th><th>RIS</th><th>Suggested Action</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
 }
 function primaryOfftakeGapSection(){
   const g=D.primary_offtake_gap;

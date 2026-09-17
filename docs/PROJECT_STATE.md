@@ -151,6 +151,30 @@ Validated: 2026-09-16 — full 44-state sweep clean after every merge; every
 number quoted above was independently reproduced in Python against the live
 `dashboard/data.js` before its commit, not just eyeballed in the browser.
 
+### Follow-on: Article Classification card + 2 candidate methodologies (2026-09-17)
+
+Business shared two supply-chain reference frameworks (Min-Max Inventory,
+FMS/ABC/RIS classification) and an FP&A EBITDA-bridge example. Same
+verify-before-build discipline as the round above:
+
+- **Built and live:** `computeInventoryClassification()` / `inventoryClassificationSection()`
+  in `dashboard/index.html`, Inventory & Supply Health → Demand-Supply Gap
+  sub-view. Classifies every qualifying article on real NSV/frequency this
+  period — Value (ABC, cumulative NSV share), Movement (FMS, share of months
+  with a real sale), Demand pattern (RIS, coefficient of variation) — plus a
+  suggested action per combination. Standard external convention, not a
+  Honasa-specific rule; reuses the same per-article monthly-NSV aggregation
+  `computeSkuVolatility()` already uses. Top row verified exactly against a
+  fresh Python read of `data.js`: n=15 months, total ₹4,668.79L, CV 22.90%.
+  44-state sweep: 0 failures, 0 JS errors.
+- **Registered as candidate methodology, not built (blocked on real data):**
+  Min-Max Inventory (see Blocked Capabilities, `forecast_stock_inventory` in
+  the registry) and the EBITDA Bridge P&L waterfall (see Blocked
+  Capabilities, `cm2_pl_expense_input` in the registry) — both share the
+  same root cause as the existing CM2/stock-on-hand gaps, so building either
+  for real today would mean fabricating a number a store, DC, or Finance
+  reviewer could act on.
+
 ## Partial Capabilities
 
 - Store-grain sales — dedup runs at chain level; store-grain chain offtake not in the build
@@ -166,6 +190,7 @@ number quoted above was independently reproduced in Python against the live
 | Persona reporting (KAM/RKAM/BDE) | Employee IDs on the WoA hierarchy |
 | OSA / OOS | Store audit covers 44.4% of stores, wrong period (`compliance_metrics.json`'s audited chains — DMart/Reliance Retail/More Retail/Spencer's — only partly match the universe's own chain names, and DMart's audited door count (83) exceeds DMart's universe store count (24); the audit's chain grain is not the same as the commercial universe's). The universe-side contamination this QC also found (below) is now fixed. |
 | Inventory days | No stock-on-hand feed. Min-Max Inventory formula (Min/Max/Order Qty) registered as a candidate methodology, ready to wire — see `forecast_stock_inventory` in `config/data_source_registry.yml`. Still needs: stock-on-hand extract, lead time per chain/distributor, confirmed safety-stock norm |
+| EBITDA Bridge (P&L waterfall) | Same gap as CM2 (`cm2.has_expense_data = false`, only template rows in `PL_Expense_Input.csv`, see FM-01) — no real Employee Cost / Sales & Marketing / Other Opex split exists for any period. Bridge chart type + Variance→Driver→Impact→Action framework registered as a candidate methodology on `cm2_pl_expense_input` in `config/data_source_registry.yml`, ready to wire onto the existing P&L tab once Finance supplies real category-level expense actuals |
 
 ## Resolved (2026-09-14, business rules confirmed + root QC)
 

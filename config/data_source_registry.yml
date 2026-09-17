@@ -27,7 +27,7 @@
 # freely as new months/sources are discovered.
 
 schema_version: "1.0"
-updated: "2026-09-16"
+updated: "2026-09-17"
 
 datasets:
 
@@ -314,9 +314,37 @@ datasets:
     validation_status: PARTIAL
     source_priority: SOURCE_OF_TRUTH
     downstream_outputs: ["PowerBI/PowerQuery/39_PL_Expense_Input.pq", "PowerBI/DAX/13_CM2_Measures.dax", "docs/BUSINESS_LOGIC_REGISTRY.md BL-06"]
-    last_validated: "2026-09-13 (existence + path only -- month coverage not re-verified this pass)"
+    last_validated: "2026-09-16 (existence + path only -- month coverage not re-verified this pass)"
     modification_allowed: false
-    notes: "Existing CM2% logic (BL-06) already reads this master via CustCode_Chain_Map. Whether it carries an Aug'26-dated row was not re-checked this pass."
+    notes: >
+      Existing CM2% logic (BL-06) already reads this master via
+      CustCode_Chain_Map. Whether it carries an Aug'26-dated row was not
+      re-checked this pass.
+
+      CANDIDATE METHODOLOGY registered 2026-09-16 (business-shared "EBITDA
+      Bridge" P&L waterfall framework: Revenue -> Gross Profit -> Employee
+      Cost -> Sales & Marketing -> Other Opex -> EBITDA, with a Variance /
+      Driver / Impact / Action read on each step). Same pattern as
+      cm2_logistics/forecast_stock_inventory above -- recorded now, not used
+      to compute anything today. Root cause checked against this repo's
+      actual sources: the bridge needs NSV (available) and expense actuals
+      split into Employee Cost / Sales & Marketing / Other Opex categories
+      for the SAME period -- per docs/METRIC_REGISTRY.md's own CM2 row,
+      `cm2.has_expense_data = false` because only template rows exist in
+      PL_Expense_Input.csv (see FM-01 in docs/FAILURE_MODE_REGISTER.md); no
+      real category-level expense actuals exist yet for any period. Do not
+      build a real EBITDA bridge chart from template/placeholder rows -- it
+      would present fabricated cost drivers as if they were Honasa's own.
+      Needs, from Finance: real Employee Cost / Sales & Marketing / Other
+      Opex actuals at month x chain (or at minimum month) grain in
+      PL_Expense_Input.csv (or an equivalent source), replacing the current
+      template rows. Once that exists, the waterfall/bridge CHART TYPE and
+      the Variance->Driver->Impact->Action structure are straightforward to
+      wire onto the existing P&L tab (`cm2_block()` already computes NSV
+      minus expense rows; only the category-level split and template-row
+      exclusion are missing) -- this is a strictly better read of the exact
+      NSV-minus-expenses relationship `cm2_block()` already models, not a
+      new metric."
 
   # ---- Supply Chain / Forecasting inputs ---------------------------------
   forecast_offtake_history:
