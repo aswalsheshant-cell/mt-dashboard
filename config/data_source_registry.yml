@@ -27,7 +27,7 @@
 # freely as new months/sources are discovered.
 
 schema_version: "1.0"
-updated: "2026-09-13"
+updated: "2026-09-16"
 
 datasets:
 
@@ -337,9 +337,40 @@ datasets:
     source_path: null
     validation_status: MISSING
     downstream_outputs: []
-    last_validated: "2026-09-13"
+    last_validated: "2026-09-16"
     modification_allowed: false
-    notes: "No stock-on-hand feed found anywhere in the repo (matches docs/PROJECT_STATE.md's own 'Inventory days: No stock-on-hand feed' blocked-capability entry). Forecast can estimate demand without this, but cannot translate demand into a replenishment/stock-out signal."
+    notes: >
+      No stock-on-hand feed found anywhere in the repo (matches
+      docs/PROJECT_STATE.md's own 'Inventory days: No stock-on-hand feed'
+      blocked-capability entry). Forecast can estimate demand without this,
+      but cannot translate demand into a replenishment/stock-out signal.
+
+      CANDIDATE METHODOLOGY registered 2026-09-16 (business-supplied Min-Max
+      Inventory framework), same pattern as cm2_logistics above -- the
+      approach is recorded now so it is ready to wire the moment real inputs
+      arrive; it is NOT used to compute anything today.
+        Min Stock  = (Daily Consumption x Lead Time Days) + Safety Stock
+        Max Stock  = Min Stock + (Daily Consumption x Review Period Days)
+        Order Qty  = Max Stock - Current Stock   (triggered when Current Stock <= Min Stock)
+      Input readiness, checked against this repo's actual sources:
+        - Daily Consumption -- AVAILABLE. Derivable from offtake_article_fy27_patch
+          / offtake_preagg_fy25_fy26 (this is exactly what Offtake Velocity
+          already shows, Inventory & Supply Health tab).
+        - Supplier/Distributor Lead Time (days) -- MISSING. No lead-time file
+          or column anywhere in this registry.
+        - Safety Stock policy -- MISSING. No business-confirmed safety-stock
+          norm (fixed units or days-of-cover) exists yet; this is a Supply
+          Chain policy decision, not derivable from transaction data.
+        - Current Stock (opening/closing, per store or per chain) -- MISSING,
+          same gap this entry already tracked (the stock-on-hand feed itself).
+      Do not compute Min/Max/Order Qty from an assumed lead time or safety
+      stock -- that would fabricate a reorder number a real store/DC could
+      act on. Needs, from Supply Chain/Procurement: (1) a stock-on-hand
+      extract (even monthly), (2) lead time per chain/distributor, (3) a
+      confirmed safety-stock norm. dashboard/index.html's Demand-Supply Gap
+      sub-view already has an empty `o.metrics.doi_watchlist` stub waiting
+      for exactly this (build_dashboard_data.py currently emits only
+      `metrics: {doi: {}, otif: {}}` -- no doi_watchlist producer exists yet).
 
   forecast_npd_master:
     business_name: "NPD article master for new-product forecasting analogues"
