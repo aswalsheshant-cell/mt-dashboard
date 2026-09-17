@@ -476,3 +476,30 @@ All other gaps are hygiene items that improve maintainability but do not block p
 ---
 
 **Phase 1 assessment complete.** Ready for Phase 2 (Finance Decision Closure).
+
+---
+
+## Addendum (2026-09-17): GAP-22 registered
+
+The frozen 2026-08-07 assessment above (gaps, counts, priority table) is
+**left unchanged** — this addendum adds one new gap found during a
+documentation-only review of the Power BI CI checks. It does not renumber
+or reopen any gap above.
+
+#### GAP-22: Power BI Semantic-Model Validation Not Executed
+
+| Attribute | Value |
+|-----------|-------|
+| **Gap ID** | `POWERBI_SEMANTIC_VALIDATION_NOT_EXECUTED` |
+| **Category** | Power BI Readiness / CI Governance |
+| **Severity** | MAJOR (does not block source-code CI; blocks Power BI production certification) |
+| **Business Impact** | The Power BI CI check named "Run Headless Tabular Editor & DAX Validation" reads as if it validates the semantic model. It does not — see `PowerBI/docs/CI_VALIDATION_BOUNDARIES.md` for the full breakdown. Risk: a green check could be mistaken for proof that DAX is semantically correct, relationships are valid, a refresh succeeds, or KPIs reconcile to Finance numbers — none of which have been checked. |
+| **Technical Impact** | `scripts/ci/test_powerbi_model.ps1` only performs bracket-balance checks on `.dax` files and `let`/`in` substring checks on `.pq` files; `PowerBI/CI/bpa_rules.json`'s six rules have never been executed against a loaded model, because no `.bim`/`.pbip` file is committed to this repo (by design, per `CLAUDE.md`). |
+| **Evidence** | `PowerBI/docs/CI_VALIDATION_BOUNDARIES.md` (new, this addendum); `scripts/ci/test_powerbi_model.ps1` Steps 3–4 (own output states the limitation); `PowerBI/CI/bpa_rules.json` (six defined, zero executed rules) |
+| **Root Cause** | Same structural cause as GAP-03 (no Windows Power BI Desktop environment to assemble/host a `.pbip`) — this gap is narrower and more specific: it is about the CI *check's own name and scope* overstating what it verifies, independent of when GAP-03 is eventually resolved. |
+| **Owner** | Analytics Engineering (documentation, done here) + Finance/Business (approval of KPI reconciliation, when that phase is reached) |
+| **Recommended Resolution** | Documentation-only for now (this addendum + `CI_VALIDATION_BOUNDARIES.md`). No code, DAX, Power Query, or CI behavior changed. |
+| **Gap Closure Conditions** (all required before this gap can be marked CLOSED): <br>1. A real `.pbip`/TMDL semantic model exists and is source-controlled <br>2. `PowerBI/CI/bpa_rules.json`'s rules are genuinely executed against that model (not just logged as present) <br>3. DAX/model semantic validation runs (not bracket-counting) <br>4. Relationship and model-integrity checks run (cardinality, cross-filter direction, star-schema shape) <br>5. Refresh validation runs where applicable <br>6. KPI reconciliation against Finance-approved control totals is performed (ties to GAP-10) — `INTERNAL_BUSINESS_CONFIRMATION_REQUIRED` <br>7. Validation evidence (run logs, BPA output) is retained, not just a pass/fail exit code <br>8. Required Finance/business approval is recorded (ties to GAP-01/GAP-02/GAP-10) — `INTERNAL_BUSINESS_CONFIRMATION_REQUIRED` <br>9. The CI check/Release Gate is updated to report PASS only once the above evidence exists — until then it should be read as "static checks only," not "semantic-model validated" |
+| **Acceptance Criteria** | All 9 closure conditions above satisfied; `CI_VALIDATION_BOUNDARIES.md` updated to reflect the new, genuinely-validated status; no closure condition satisfied by documentation alone |
+| **Status** | **KNOWN / CONTROLLED GAP** — normal development may continue; source-code CI may still pass; Power BI production certification cannot be claimed until this gap closes |
+| **Related gaps** | GAP-03 (PBIP not assembled — the environment blocker), GAP-10 (KPI reconciliation to Finance — shares closure condition 6) |
