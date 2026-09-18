@@ -400,6 +400,37 @@ datasets:
       for exactly this (build_dashboard_data.py currently emits only
       `metrics: {doi: {}, otif: {}}` -- no doi_watchlist producer exists yet).
 
+  store_audit_compliance:
+    business_name: "Store audit compliance (PES) and supply-chain fill-rate (CFR/OTIF)"
+    source_path: "dashboard/compliance_metrics.json"
+    source_type: "static JSON checked into the repo, fetched at runtime by dashboard/index.html and merged into window.DASH.compliance / window.DASH.inventory_fillrate"
+    grain: "chain (chain_summary) and account (accounts/doors)"
+    validation_status: PROVISIONAL
+    source_priority: null
+    downstream_outputs: ["Store Audit Scorecard tab", "Supply Chain & Inventory tab", "readiness.scorecard_execution gate (via metadata.total_doors_audited)"]
+    last_validated: "2026-09-18 (fix/compliance-data-provenance forensic trace)"
+    modification_allowed: false
+    notes: >
+      No script in this repo generates the compliance.chain_summary block --
+      it appeared fully formed across 3 unrelated commits (none of whose
+      messages mention compliance/audit) with no producer script anywhere in
+      the repo history. Its 'trend' field is an identical
+      [85, 84, 86, 85, <current>] across all 5 chains/zones, a template
+      fingerprint no independent audit history would produce. Separately,
+      compliance.accounts / compliance.doors / inventory_fillrate.accounts
+      are a byte-for-byte match to scripts/sync_compliance_data.py's
+      generate_mock_compliance_data() / generate_mock_fillrate_data() --
+      confirmed synthetic. Same gap as forecast_stock_inventory above for
+      the OTIF/fill-rate half of this domain: no real source exists yet.
+      dashboard/compliance_metrics.json's own metadata now carries
+      is_synthetic=true / data_status=PROVENANCE_UNVERIFIED, and both
+      consuming tabs render an amber provenance banner. sync_compliance_data.py
+      now refuses to overwrite this file without an explicit confirmation
+      flag and writes to a separate *.mock_demo.json path by default.
+      Needs, from Retail Execution / Trade Marketing: a real store-audit
+      extract (PES dimensions: price/FSDU/OSA compliance per door) and a
+      real fill-rate/OTIF feed, at whatever grain they are actually captured.
+
   forecast_npd_master:
     business_name: "NPD article master for new-product forecasting analogues"
     source_path: "PowerBI/SeedData/NPI_Master.csv"

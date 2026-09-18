@@ -4,7 +4,10 @@
       "audit_date": "2026-09-01",
       "total_doors_audited": 189,
       "macro_pes_percent": 85.3,
-      "coverage": "Q3 FY27"
+      "coverage": "Q3 FY27",
+      "is_synthetic": true,
+      "data_status": "PROVENANCE_UNVERIFIED",
+      "provenance_note": "No generator script or registered source produces this block (config/data_source_registry.yml has no compliance/store-audit entry). chain_summary's 'trend' field is identical [85,84,86,85,<current>] across all 5 chains/zones -- a template fingerprint, not independent audit history. See docs/VISUAL_REGISTRY.md and the fix/compliance-data-provenance PR."
     },
     "chain_summary": [
       {
@@ -265,7 +268,10 @@
       "period": "Q3 FY27",
       "macro_cfr_percent": 92.5,
       "macro_otif_percent": 88.2,
-      "total_lost_revenue_lakh": 124.5
+      "total_lost_revenue_lakh": 124.5,
+      "is_synthetic": true,
+      "data_status": "PROVENANCE_UNVERIFIED",
+      "provenance_note": "accounts[] here is a byte-for-byte match to scripts/sync_compliance_data.py's generate_mock_fillrate_data() mock output. config/data_source_registry.yml's forecast_stock_inventory entry is validation_status: MISSING for the same OTIF/fill-rate domain -- no real source is registered anywhere in this repo."
     },
     "accounts": [
       {
