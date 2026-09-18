@@ -92,12 +92,25 @@ never actually active. One-line fix (delete the later, unsafe duplicate) once ap
   Summary"): hardcodes a ≥7-day breach threshold and a flat ₹50L penalty per
   breach with no visible source/config for either number.
 
-### 6. Alerts empty-state is a false "all healthy" on load failure
-`dashboard/index.html:275-276`, `alert_controller.js:59-62`. `window.alertsFeed`
+### 6. Alerts empty-state is a false "all healthy" on load failure — FIXED
+~~`dashboard/index.html:275-276`, `alert_controller.js:59-62`. `window.alertsFeed`
 fetch has a silent `.catch(()=>{})`; a failed fetch renders identically to a
 genuinely empty, healthy alert feed ("No active alerts. All metrics within
 thresholds."). Currently harmless only because the live feed also happens to be
-empty — the failure mode is real regardless.
+empty — the failure mode is real regardless.~~
+
+Fixed on `fix/operational-alerts-feed`: `index.html`'s fetch chain now sets
+`window.alertsFeedStatus` to `loading` / `loaded` / `error`, and
+`alert_controller.js` renders a distinct amber "Alert feed unavailable" message
+(and `–` in the KPI cards) on `error`, instead of the same text used for a
+genuinely empty, healthy feed. A `.finally()` calls `AlertController.onFeedSettled()`
+so a tab already open when the fetch resolves gets repainted with the real
+state instead of the pre-fetch placeholder. `alerts_feed.json` itself is
+still a static, hand-written stub — no generator script for it exists anywhere
+in this repo (`scripts/alerts/evaluate_alerts.py`, named in
+`SPRINT9_PHASE1B_IMPLEMENTATION_REPORT.md`'s own architecture diagram, was never
+actually created). That remains open — see this branch's implementation report
+for why a real generator was not built in this pass.
 
 ### 7. Dead drill-links / dead toggle (functional, not data-integrity)
 - Executive Cockpit's two "target vs achievement" tables (`by_zone`/`by_chain`,
@@ -244,8 +257,10 @@ no download-menu and no click/drill — a consistency gap, not a data error.
 
 3 KPIs + 1 card-feed list, sourced from a **separate global** (`window.alertsFeed`,
 not `D`/`window.DASH`) fetched from `alerts_feed.json`. AUTHORITATIVE when the feed
-loads; **MISLEADING on a silent fetch failure (#6)**. Not filter/FY-aware (by design —
-alerts are current-state, not historical).
+loads; correctly distinguishes a load failure from a genuinely empty feed as of
+the fix at #6. Not filter/FY-aware (by design — alerts are current-state, not
+historical). `alerts_feed.json` is a static stub (0 alerts) with no generator
+script anywhere in this repo — see #6's note.
 
 ### Store Audit Scorecard (`buildStores`) & Supply Chain and Inventory (`buildInventory`)
 

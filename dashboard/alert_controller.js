@@ -56,6 +56,18 @@ window.AlertController = (function () {
     const container = document.getElementById('alertsCardFeed');
     if (!container) return;
 
+    // A failed/pending fetch and a genuinely empty feed must not render the
+    // same message -- "No active alerts" is a claim about real data, and is
+    // false when the data never loaded. See docs/VISUAL_REGISTRY.md issue #6.
+    if (window.alertsFeedStatus === 'error') {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; font-size: 14px;">⚠ Alert feed unavailable — could not load alerts_feed.json. This is not a confirmation that metrics are healthy.</div>';
+      return;
+    }
+    if (window.alertsFeedStatus === 'loading') {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 14px;">Loading alerts…</div>';
+      return;
+    }
+
     if (!activeAlerts || activeAlerts.length === 0) {
       container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 14px;">No active alerts. All metrics within thresholds.</div>';
       return;
@@ -103,13 +115,17 @@ window.AlertController = (function () {
     const s = document.getElementById('tab-alerts');
     if (!s) return;
 
+    const feedUnavailable = window.alertsFeedStatus === 'error' || window.alertsFeedStatus === 'loading';
     const feed = window.alertsFeed || { metadata: { total_alerts: 0, critical_count: 0, warning_count: 0 }, alerts: [] };
     const { total_alerts = 0, critical_count = 0, warning_count = 0 } = feed.metadata || {};
+    // '–' rather than 0 when the feed hasn't actually loaded -- a 0 here reads as
+    // a verified "zero critical issues", not "we don't know yet".
+    const dash = (v) => feedUnavailable ? '–' : v;
 
     const kpiHtml = [
-      { label: 'Total Alerts', value: total_alerts, color: '#6b7280' },
-      { label: 'Critical', value: critical_count, color: '#ef4444' },
-      { label: 'Warnings', value: warning_count, color: '#f59e0b' }
+      { label: 'Total Alerts', value: dash(total_alerts), color: '#6b7280' },
+      { label: 'Critical', value: dash(critical_count), color: '#ef4444' },
+      { label: 'Warnings', value: dash(warning_count), color: '#f59e0b' }
     ].map(kpi => `
       <div style="padding: 16px; background: #f9fafb; border-radius: 8px; border-left: 3px solid ${kpi.color};">
         <div style="color: #666; font-size: 12px; margin-bottom: 4px;">${kpi.label}</div>
@@ -137,6 +153,14 @@ window.AlertController = (function () {
     buildAlerts,
     renderAlertsList,
     updateNavBadge,
+    // Called once the alerts_feed.json fetch settles (index.html's .finally()).
+    // If the Alerts tab was already open and rendered off the pre-fetch
+    // default, this repaints it with the real loaded/error state instead of
+    // leaving the stale "Loading…" placeholder on screen indefinitely.
+    onFeedSettled() {
+      const tab = document.getElementById('tab-alerts');
+      if (tab && tab.innerHTML.trim()) buildAlerts();
+    },
     load() {
       buildAlerts();
     }

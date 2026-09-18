@@ -375,6 +375,59 @@ test.describe('Sprint 9 Phase 1b: Alert Controller & UI Integration', () => {
 
     page.close();
   });
+
+  test('Test 11: Feed load failure is NOT rendered as "all healthy" (VISUAL_REGISTRY #6)', async ({ browser }) => {
+    const page = await browser.newPage();
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+
+    // Simulate the fetch('alerts_feed.json') failure path directly, the same
+    // way index.html's .catch() sets alertsFeedStatus='error'.
+    await page.evaluate(() => {
+      window.alertsFeedStatus = 'error';
+      window.alertsFeed = { metadata: { total_alerts: 0, critical_count: 0, warning_count: 0 }, alerts: [] };
+    });
+
+    await page.locator('nav button').filter({ hasText: /Operational Alerts/i }).click();
+    await page.evaluate(() => {
+      if (window.AlertController && window.AlertController.buildAlerts) {
+        window.AlertController.buildAlerts();
+      }
+    });
+
+    const feedText = await page.locator('#alertsCardFeed').textContent();
+    expect(feedText).toContain('unavailable');
+    expect(feedText).not.toContain('No active alerts');
+
+    // KPI cards must show '–' (unknown), not '0' (a verified zero), when the
+    // feed never loaded -- '0' would read as "confirmed zero critical issues".
+    const tabText = await page.locator('#tab-alerts').textContent();
+    expect(tabText).toContain('–');
+
+    page.close();
+  });
+
+  test('Test 12: Genuinely empty feed (status=loaded) still shows the healthy empty state', async ({ browser }) => {
+    const page = await browser.newPage();
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+
+    await page.evaluate(() => {
+      window.alertsFeedStatus = 'loaded';
+      window.alertsFeed = { metadata: { total_alerts: 0, critical_count: 0, warning_count: 0 }, alerts: [] };
+    });
+
+    await page.locator('nav button').filter({ hasText: /Operational Alerts/i }).click();
+    await page.evaluate(() => {
+      if (window.AlertController && window.AlertController.buildAlerts) {
+        window.AlertController.buildAlerts();
+      }
+    });
+
+    const feedText = await page.locator('#alertsCardFeed').textContent();
+    expect(feedText).toContain('No active alerts');
+    expect(feedText).not.toContain('unavailable');
+
+    page.close();
+  });
 });
 
 // Summary & Exit
