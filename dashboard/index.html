@@ -271,9 +271,19 @@ fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
   if(d.inventory_fillrate) window.DASH.inventory_fillrate=d.inventory_fillrate;
 }).catch(()=>{});
 
-// Load active alerts feed (dynamic sidecar, optional)
+// Load active alerts feed (dynamic sidecar, optional).
+// window.alertsFeedStatus distinguishes "feed loaded, genuinely 0 alerts" (loaded)
+// from "feed never arrived" (error) -- a bare fetch().catch(()=>{}) made both look
+// identical (an empty alerts:[] with no signal), so a load failure silently
+// rendered as "All metrics within thresholds", a false all-clear. See
+// docs/VISUAL_REGISTRY.md issue #6.
 window.alertsFeed={metadata:{total_alerts:0,critical_count:0,warning_count:0},alerts:[]};
-fetch('alerts_feed.json').then(r=>r.json()).then(d=>window.alertsFeed=d).catch(()=>{});
+window.alertsFeedStatus='loading';
+fetch('alerts_feed.json')
+  .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(d=>{ window.alertsFeed=d; window.alertsFeedStatus='loaded'; })
+  .catch(()=>{ window.alertsFeedStatus='error'; })
+  .finally(()=>{ if(window.AlertController && window.AlertController.onFeedSettled) window.AlertController.onFeedSettled(); });
 
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);
