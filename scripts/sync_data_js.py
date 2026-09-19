@@ -26,6 +26,7 @@ import os
 
 # Add scripts directory to path for imports
 sys.path.insert(0, os.path.dirname(__file__))
+from json_boundary import parse_window_dash_strict, serialize_window_dash
 
 
 def load_master(master_path: str) -> dict:
@@ -228,36 +229,34 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
             print(f"  ⚠ Warning: Could not generate correlations: {e}")
 
     if existing_js is not None:
-        # Merge mode: preserve all blocks not controlled by this script
-        try:
-            json_str = existing_js.replace("window.DASH = ", "", 1).strip()
-            if json_str.endswith(";"):
-                json_str = json_str[:-1]
-            existing_dash = json.loads(json_str)
-        except (json.JSONDecodeError, ValueError):
-            existing_dash = {}
+        # Merge mode: preserve all blocks not controlled by this script.
+        # Strict boundary: a NaN/Infinity/-Infinity token in the existing
+        # artifact must raise, not be swallowed into an empty dict -- the
+        # old behavior silently treated "existing file is invalid" the same
+        # as "no existing file," which would overwrite every preserved
+        # block (everything this script doesn't itself control) with
+        # nothing. Failing loudly here protects that data, it doesn't just
+        # protect this script's own output.
+        existing_dash = parse_window_dash_strict(existing_js.strip())
         # Update only sync_blocks, keep everything else
         dash = {**existing_dash, **sync_blocks}
     else:
         dash = sync_blocks
 
-    # Serialize to JSON with proper formatting for readability
-    data_json = json.dumps(dash, indent=2, ensure_ascii=False)
-
-    # Wrap in JavaScript variable assignment (what index.html expects)
-    js_output = f"window.DASH = {data_json};"
+    # Serialize via the centralized strict boundary: non-finite floats are
+    # normalized to null, and allow_nan=False is the last-resort guard if
+    # one somehow still reached this point.
+    js_output = serialize_window_dash(dash, indent=2).rstrip("\n")
 
     return js_output
 
 
 def validate_output(js_content: str) -> bool:
-    """Validate that the generated JS is syntactically sound."""
-    # Extract the JSON part (between "window.DASH = " and ";")
+    """Validate that the generated JS is syntactically sound and strict-JSON clean."""
     try:
-        json_part = js_content.replace("window.DASH = ", "").rstrip(";")
-        json.loads(json_part)
+        parse_window_dash_strict(js_content.strip())
         return True
-    except json.JSONDecodeError as e:
+    except (ValueError, json.JSONDecodeError) as e:
         print(f"✗ JSON validation failed: {e}")
         return False
 
