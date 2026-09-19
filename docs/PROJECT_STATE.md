@@ -83,6 +83,29 @@ profitability or persona reporting — all gated.
 Do NOT start the Power BI incentive dashboard.
 One bounded component per run: implement, validate, commit, stop.
 
+## Open Pull Requests — engineering/data-integrity track (separate from business-input closure)
+
+A parallel technical track (test-isolation, JSON-serialization, and disclosure-state
+fixes) ran alongside the incentive work above, each as its own small PR per this
+project's one-PR-per-fix convention. **None of these are merged and none block or
+change the Next Approved Task above** — recorded here only so a resumed session
+doesn't have to reconstruct their status from conversation history. Verified against
+live GitHub state on 2026-09-19 (PR state, draft flag, CI check runs):
+
+| PR | Branch | State | CI | What |
+|---|---|---|---|---|
+| [#154](https://github.com/aswalsheshant-cell/mt-dashboard/pull/154) | `fix/allocate-dist-primary-test-isolation` | Open, draft | Green (10/10 checks) | Isolates `allocate_dist_primary()`'s governance-CSV writes so tests can't corrupt tracked files under `PowerBI/SeedData/Mapping/` |
+| [#155](https://github.com/aswalsheshant-cell/mt-dashboard/pull/155) | `feat/analytical-integrity-dashboard` | Open, draft | Green | Analytical Integrity Layer Phase 1-3 (SIS surfacing, Metric Contract, Data Quality + Reconciliation engine) — this is the branch most sessions are actively developing on; has further uncommitted local work in progress |
+| [#156](https://github.com/aswalsheshant-cell/mt-dashboard/pull/156) | `fix/operational-alerts-feed` | Open, not draft | Green | Fixes Operational Alerts reporting a false all-clear when the feed fails to load |
+| [#157](https://github.com/aswalsheshant-cell/mt-dashboard/pull/157) | `fix/compliance-data-provenance` | Open, draft | Green | Labels `compliance_metrics.json` as unverified provenance; neutralizes a mock-data landmine |
+| [#158](https://github.com/aswalsheshant-cell/mt-dashboard/pull/158) | `fix/strict-json-boundary` | Open, draft | Green (15/15 checks) | Wires the existing `json_boundary.py` module into all real write/read call sites in `build_dashboard_data.py`, `qc_dashboard.py`, `ci_validate_datajs.py`, `sync_data_js.py` so NaN/Infinity can never reach a persisted `data.js` |
+| [#159](https://github.com/aswalsheshant-cell/mt-dashboard/pull/159) | `fix/cm2-provisional-state` | Open, draft | Green (15/15 checks) | Implements `_cm2_provisional_state()` (a data-presence/self-certification disclosure state referenced by `patch_cm2_provisional.py` since it was first added, but never actually defined) — never computes or asserts a CM2 amount or a Finance approval |
+
+Disposable investigation worktrees for this track (`/tmp/mt-dashboard-*`) live only
+in the container and do not survive a restart — the branches above, already pushed
+to `origin`, are the durable record. No merge decision has been made on any of them;
+that stays with the repo owner.
+
 ## Completed Capabilities
 
 - Data discovery layer (2026-09-13): `config/data_source_registry.yml` +
