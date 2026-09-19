@@ -545,3 +545,34 @@ datasets:
       (see load_chain_allocation_weights()). Do not repurpose Primary Chain
       for splitting NSV -- that would silently swap an evidence-weighted
       split for a single-chain assumption.
+
+  forecast_detail_brand_chain:
+    business_name: "Per-brand/chain forecast detail (Sep-Nov 2026 Dynamic Multi-Brand Forecast)"
+    source_path: "Dynamic_Multi_Brand_Forecast_Sep_Nov_2026.xlsx (private workbook, not committed -- path supplied at ingestion time via --xlsx)"
+    source_type: "Excel workbook (gitignored raw source, outside the repo by design)"
+    grain: "Month x Brand and Month x Chain"
+    date_min: null
+    date_max: null
+    financial_years: ["FY27"]
+    primary_keys: []
+    important_columns: ["Forecast_Database sheet", "Target_Master sheet"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Manual -- one-off per forecast refresh cycle, via scripts/load_forecast_detail.py"
+    validation_status: NOT_CONFIGURED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/load_forecast_detail.py (reads Forecast_Database/Target_Master, normalises via build_dashboard_data.canon_chain/canon_brand, writes forecast.detail)"
+    downstream_outputs: ["dashboard/data.js forecast.detail (by_brand, by_chain, months, monthly_forecast, monthly_target, status)"]
+    last_validated: null
+    modification_allowed: false
+    notes: >
+      Registered 2026-09-19 while root-causing scripts/test_forecast_schema.py's
+      29 setup errors: forecast.detail is absent from the checked-in
+      dashboard/data.js because this private workbook has never been
+      ingested in any environment this repo's tests have run in -- not a
+      code defect, and not something to fabricate. load_forecast_detail.py
+      and its schema test (test_forecast_schema.py) both already existed and
+      were correct; only the registry entry was missing. The 29 dependent
+      tests now skip with an explicit MISSING_SOURCE reason instead of
+      erroring, so a real regression in an environment that DOES have this
+      source isn't masked by tests that can never pass without it.
