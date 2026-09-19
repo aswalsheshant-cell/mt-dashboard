@@ -25,6 +25,7 @@ import argparse, csv, io, json, re, math, datetime, tempfile, shutil
 from pathlib import Path
 
 import pandas as pd
+from json_boundary import serialize_window_dash, parse_window_dash_strict
 from dist_allocation_governance import (
     DistAllocationGovernance,
     QCReconciliation,
@@ -5815,11 +5816,18 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
                         report_dir=None, skip_gate=False):
     """Safe-write data.js: validate via release gate, then atomically replace.
 
+    0. Strictly parse payload_str first (json_boundary.parse_window_dash_strict).
+       A candidate containing a literal NaN/Infinity/-Infinity token is
+       rejected here, before anything touches disk -- the existing
+       production file is never opened, no temp file is written, and the
+       release gate is never called for an already-invalid candidate.
     1. Write candidate to a temp file in the same directory.
     2. Run release gate against alloc metadata.
     3. If gate PASS: move temp → production data.js.
     4. If gate FAIL: leave production data.js intact, delete temp, exit(1).
     """
+    parse_window_dash_strict(payload_str)
+
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -5956,18 +5964,6 @@ def refresh_derived_blocks(data, src):
           + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))
 
 
-def _convert_nan_to_none(obj):
-    """Recursively convert all NaN values to None for clean JSON serialization.
-    Handles lists, dicts, and primitive types."""
-    if isinstance(obj, dict):
-        return {k: _convert_nan_to_none(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [_convert_nan_to_none(item) for item in obj]
-    elif isinstance(obj, float):
-        return None if (math.isnan(obj) or math.isinf(obj)) else obj
-    else:
-        return obj
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
@@ -6048,7 +6044,7 @@ def main():
               + (f" ({universe.get('by_chain_note')})" if universe.get("by_chain_note") else ""))
         print(f"readiness: {obj['readiness']['summary']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -6075,7 +6071,7 @@ def main():
               f"({mh['exception_count']} unmapped ship-to parties, Rs {mh['exception_nsv']/100:.2f} Cr)")
         print(f"readiness: {obj['readiness']['summary']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -6102,7 +6098,7 @@ def main():
         if npd:
             print(f"  npd: {npd['counts_by_fy']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -6147,7 +6143,7 @@ def main():
                   + f"; chain==shipto rows {alloc['rows_chain_equals_shipto']}"
                   + f"; patch proposals {alloc['patch_rows']} -> {alloc['patch_file']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=alloc, report_dir=str(outp.parent),
         )
         return
@@ -6235,7 +6231,7 @@ def main():
               + (f"3-Tier allocation: Tier1={qc.get('tier1_rows', 0)}, Tier2={qc.get('tier2_rows', 0)}, Tier3={qc.get('tier3_rows', 0)}"
                  if qc else "no allocation file found -- chain tags left as-is"))
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -6253,7 +6249,7 @@ def main():
         print(f"forecast-only: FY26 actual {forecast['fy26_actual']} / FY27 TY target "
               f"{forecast['fy27_forecast']} (Lakh) = Rs {forecast['fy27_forecast']/100:.2f} Cr")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         return
@@ -6295,7 +6291,7 @@ def main():
                       f"(now the full {len(new_off.get('months_'+_bt) or [])}-month window)")
 
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         print(f"offtake-rebuild: {len(new_off['months'])} months "
@@ -6463,7 +6459,7 @@ def main():
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         print(f"offtake-patch: fy_tags now {patched['fy_tags']}")
@@ -6482,7 +6478,7 @@ def main():
             raise SystemExit(f"No .xlsb store x article offtake extracts found in --src ({src}).")
         obj["dist_gap"] = dg
         _safe_write_data_js(
-            outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
+            outp, serialize_window_dash(obj, indent=1),
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
         )
         print(f"distgap: {dg['row_count']} products, window {dg['window_label']}, "
@@ -6604,9 +6600,7 @@ def main():
         _check_governance_gate(alloc, gate_pct=a.not_eligible_gate_pct)
 
     # ---- RELEASE GATE: fail-closed before data.js is written ----
-    # Convert all NaN values to None for clean JSON serialization
-    data = _convert_nan_to_none(data)
-    payload = "window.DASH = " + json.dumps(data, indent=1, ensure_ascii=False) + ";\n"
+    payload = serialize_window_dash(data, indent=1)
     _safe_write_data_js(
         out_path=a.out,
         payload_str=payload,
