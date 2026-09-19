@@ -3483,6 +3483,285 @@ def readiness_gate(data, cfg=None):
                      "defect. N/A = out of scope for this reporting surface. BLOCKED = a "
                      "genuine, unresolved technical/software gap.")}
 
+
+def data_quality_reconciliation_block(data, cfg=None, repo_root=None):
+    """Data Quality + Reconciliation layer -- Phase 3 of the Analytical
+    Integrity work (PR #155). Answers, per named dimension, whether the data
+    behind the dashboard's metrics is complete, valid, consistent, unique and
+    timely, and whether it reconciles against known business relationships --
+    traceable to specific records, never a single decorative "health score".
+
+    Reuses existing governed calculations wherever one already exists
+    (sis_reconciliation, alloc's governance, mapping_health's own RAG-banded
+    completeness via rag_of()/config/analytics_config.json) instead of
+    recomputing them. A dimension with no configured threshold anywhere in
+    this repo reports threshold="NOT_CONFIGURED", status="INFORMATIONAL" --
+    this function never invents a business threshold or severity.
+
+    Scope note: dimension checks run on `detail_records`, which is
+    ROW-CAPPED for browser-payload size (see detail_meta.value_coverage_pct);
+    they are illustrative at that same capped scope, not a full-population
+    audit -- exactly the same disclosure _sis_reconciliation() already makes
+    about detail_records vs the full uncapped source.
+
+    Returns (data_quality, reconciliation, quality_issues); safe on missing
+    inputs (returns empty-but-structured output rather than raising).
+    """
+    cfg = cfg or {}
+    repo_root = Path(repo_root or _REPO_ROOT)
+    detail_records = data.get("detail_records") or []
+    detail_meta = data.get("detail_meta") or {}
+    alloc = data.get("alloc") or {}
+    mapping_health = data.get("mapping_health") or {}
+    sis = detail_meta.get("sis_reconciliation") or {}
+    targets = data.get("targets") or {}
+    first_row = detail_records[0] if detail_records else {}
+
+    issues = []
+
+    def add_issue(issue_id, metric_id, dimension, count, affected, source, description,
+                   severity="UNCLASSIFIED", status="INFORMATIONAL", threshold=None,
+                   threshold_source="NOT_CONFIGURED"):
+        issues.append({
+            "issue_id": issue_id, "metric_id": metric_id, "dimension": dimension,
+            "severity": severity, "status": status, "count": count,
+            "affected_entities": affected, "source": source, "description": description,
+            "threshold": threshold, "threshold_source": threshold_source,
+        })
+
+    dims = {}
+
+    # ---- 1. COMPLETENESS -----------------------------------------------
+    # No completeness_pct band exists in config/analytics_config.json's rag
+    # section (checked) -- reports NOT_CONFIGURED/INFORMATIONAL by design.
+    candidate_fields = ["Month", "FY", "Channel", "Zone", "State", "Chain", "Brand", "Category", "Article", "EAN"]
+    present_fields = [f for f in candidate_fields if f in first_row]
+    field_results = {}
+    for f in present_fields:
+        n = len(detail_records)
+        missing = sum(1 for r in detail_records if not r.get(f) and r.get(f) != 0)
+        rate = r2((n - missing) / n * 100) if n else None
+        field_results[f] = {"records_checked": n, "records_passing": n - missing,
+                             "missing": missing, "rate_pct": rate}
+        if missing:
+            add_issue(f"completeness_{f.lower()}", None, "completeness", missing,
+                       f"{missing} of {n} detail_records rows", "detail_records",
+                       f"{f} is blank on {missing} of {n} detail_records rows (row-capped "
+                       f"scope; detail_meta.value_coverage_pct = {detail_meta.get('value_coverage_pct')}).")
+    dims["completeness"] = {"fields": field_results, "records_checked": len(detail_records),
+                             "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                             "status": "INFORMATIONAL"}
+
+    # ---- 2. UNIQUENESS ---------------------------------------------------
+    # Business key is the FULL dimension grain detail_records actually
+    # carries (Month/FY/Channel/Zone/State/Chain/Brand/Category/SubCategory/
+    # Range/PackSize/Article/EAN) -- a coarser key produced false-positive
+    # "duplicates" that were really distinct State-level rows for the same
+    # article (verified against real data before choosing this key: the
+    # coarser 7-field key flagged 99,757 false "duplicates" that were each a
+    # different State; the full grain key finds zero).
+    key_fields = [f for f in ("Month", "FY", "Channel", "Zone", "State", "Chain", "Brand",
+                              "Category", "SubCategory", "Range", "PackSize", "Article", "EAN")
+                  if f in first_row]
+    dup_rows = 0
+    if key_fields:
+        seen = {}
+        for r in detail_records:
+            k = tuple(r.get(f) for f in key_fields)
+            seen[k] = seen.get(k, 0) + 1
+        dup_rows = sum(c - 1 for c in seen.values() if c > 1)
+        if dup_rows:
+            add_issue("uniqueness_duplicate_rows", None, "uniqueness", dup_rows,
+                       f"{dup_rows} duplicate rows on key {key_fields}", "detail_records",
+                       f"{dup_rows} rows share an identical {'/'.join(key_fields)} key.")
+    dims["uniqueness"] = {"business_key": key_fields, "records_checked": len(detail_records),
+                          "duplicate_rows": dup_rows,
+                          "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                          "status": "INFORMATIONAL",
+                          "scope_note": "row-capped detail_records, not the full uncapped source"}
+
+    # ---- 3. VALIDITY / CONFORMITY ----------------------------------------
+    # Checked against a REAL registered master (CategoryMaster.csv) and a
+    # structural EAN format check (8-14 numeric digits, the standard
+    # EAN/GTIN range) -- no allowed-value list is invented here.
+    cat_master = repo_root / "PowerBI" / "SeedData" / "Masters" / "CategoryMaster.csv"
+    valid_categories = None
+    if cat_master.exists():
+        try:
+            with open(cat_master, newline="", encoding="utf-8-sig") as fh:
+                valid_categories = {row["Category"].strip() for row in csv.DictReader(fh) if row.get("Category")}
+        except (OSError, csv.Error, KeyError):
+            valid_categories = None
+    invalid_category = 0
+    if valid_categories and "Category" in first_row:
+        invalid_category = sum(1 for r in detail_records
+                                if r.get("Category") and r["Category"] not in valid_categories)
+    invalid_ean = 0
+    if "EAN" in first_row:
+        # detail_records serializes EAN as a float-string ("8901030123456.0")
+        # -- the same pandas float-conversion artifact already normalised
+        # elsewhere in this file for Cust-SAP Code (see _CustCode's
+        # str.replace(r"\.0$", "")). Strip it before the structural check so
+        # this doesn't misreport every real EAN as invalid.
+        invalid_ean = sum(1 for r in detail_records
+                           if r.get("EAN")
+                           and not re.fullmatch(r"\d{8,14}", re.sub(r"\.0$", "", str(r["EAN"]).strip())))
+    if invalid_category:
+        add_issue("validity_category", None, "validity", invalid_category,
+                   f"{invalid_category} rows with a Category not in CategoryMaster.csv",
+                   "detail_records vs PowerBI/SeedData/Masters/CategoryMaster.csv",
+                   f"{invalid_category} of {len(detail_records)} rows carry a Category value "
+                   f"(e.g. 'Face', 'Body') not present in CategoryMaster.csv's Category column "
+                   f"(which uses longer names, e.g. 'Face Care', 'Hair Care'). This reads as a "
+                   f"taxonomy mismatch between the pipeline's actual Category field and this "
+                   f"registered reference file, not necessarily bad row data -- CategoryMaster.csv "
+                   f"may be stale/unused relative to what detail_records actually produces. Not "
+                   f"resolved here, per this phase's scope (STOP on a business-definition change).")
+    if invalid_ean:
+        add_issue("validity_ean_format", None, "validity", invalid_ean,
+                   f"{invalid_ean} rows with a non-numeric or out-of-range EAN", "detail_records",
+                   f"{invalid_ean} rows have an EAN that isn't 8-14 numeric digits (standard EAN/GTIN format).")
+    dims["validity"] = {"category_master": str(cat_master.relative_to(repo_root)) if cat_master.exists() else None,
+                        "records_checked": len(detail_records),
+                        "invalid_category": invalid_category, "invalid_ean_format": invalid_ean,
+                        "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                        "status": "INFORMATIONAL"}
+
+    # ---- 4. CONSISTENCY ---------------------------------------------------
+    # Same EAN must carry the same Category/Brand across rows -- the exact
+    # principle already established by detail_records_real()'s own EAN
+    # backfill logic ("a physical SKU's taxonomy does not change month to
+    # month"), reused here rather than reinvented.
+    by_ean = {}
+    if "EAN" in first_row:
+        for r in detail_records:
+            ean = r.get("EAN")
+            if not ean:
+                continue
+            slot = by_ean.setdefault(ean, {"Category": set(), "Brand": set()})
+            if r.get("Category"):
+                slot["Category"].add(r["Category"])
+            if r.get("Brand"):
+                slot["Brand"].add(r["Brand"])
+    inconsistent_eans = sum(1 for v in by_ean.values() if len(v["Category"]) > 1 or len(v["Brand"]) > 1)
+    if inconsistent_eans:
+        add_issue("consistency_ean_taxonomy", None, "consistency", inconsistent_eans,
+                   f"{inconsistent_eans} EANs with more than one Category or Brand value", "detail_records",
+                   f"{inconsistent_eans} EAN(s) carry more than one distinct Category or Brand across rows.")
+    dims["consistency"] = {"rule": "same EAN -> same Category and Brand across all rows",
+                           "distinct_eans_checked": len(by_ean), "inconsistent_eans": inconsistent_eans,
+                           "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                           "status": "INFORMATIONAL"}
+
+    # ---- 5. TIMELINESS -----------------------------------------------------
+    # Presence/lag only -- no refresh SLA is configured anywhere in this
+    # repo, so none is invented here.
+    fyx = detail_meta.get("fyx_primary") or {}
+    cur_fy_tag = sorted(fyx, key=fy_start_year)[-1] if fyx else None
+    primary_latest = None
+    if cur_fy_tag:
+        months = (fyx.get(cur_fy_tag) or {}).get("months_canon") or []
+        primary_latest = months[-1] if months else None
+    offtake = data.get("offtake") or {}
+    offtake_latest = None
+    if cur_fy_tag:
+        om = offtake.get("months_" + cur_fy_tag.lower()) or []
+        offtake_latest = om[-1] if om else None
+    in_sync = (primary_latest == offtake_latest) if (primary_latest and offtake_latest) else None
+    if primary_latest and offtake_latest and not in_sync:
+        add_issue("timeliness_primary_offtake_lag", None, "timeliness", 1, f"FY {cur_fy_tag}",
+                   "detail_meta.fyx_primary vs offtake.months_*",
+                   f"Primary's latest loaded month ({primary_latest}) does not match Offtake's ({offtake_latest}).")
+    dims["timeliness"] = {"fy": cur_fy_tag, "primary_latest_month": primary_latest,
+                          "offtake_latest_month": offtake_latest, "in_sync": in_sync,
+                          "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                          "status": "INFORMATIONAL",
+                          "note": "presence/lag only -- no refresh SLA is configured anywhere in this repo"}
+
+    data_quality = {"dimensions": dims,
+                    "computed_at_scope": "row-capped detail_records (see "
+                                         "detail_meta.value_coverage_pct for the cap's value coverage)"}
+
+    # ---- RECONCILIATION -----------------------------------------------
+    # Every check below reuses an existing governed calculation; nothing is
+    # recomputed independently.
+    checks = []
+    if sis:
+        cur_sis_fy = sorted(sis, key=fy_start_year)[-1]
+        gap_status_text = detail_meta.get("sis_gap_status", "")
+        checks.append({
+            "check_id": "SIS_RECONCILIATION", "metric_id": "SIS_RECONCILIATION",
+            "source": "detail_meta.sis_reconciliation / sis_gap_status (reused, not recomputed)",
+            "current_value": (sis.get(cur_sis_fy) or {}).get("summary", {}).get("net_sis_value"),
+            "status": "RESOLVED" if gap_status_text.startswith("RESOLVED") else "UNRESOLVED",
+            "threshold": "N/A (resolved by business confirmation, not a numeric threshold)",
+        })
+    if alloc:
+        gov = alloc.get("governance") or {}
+        # Phase 3.5 audit fix: reconciliation PASS/FAIL must come from the actual
+        # governed reconciliation numbers -- alloc.recon.overall's per-measure
+        # (original vs allocated) variance -- never from rows_chain_equals_shipto
+        # (a source-data-hygiene flag: DIRECT rows whose Chain name happens to
+        # equal the Ship-To name -- unrelated to reconciliation) or rows_unmapped
+        # (a mapping-coverage count, already tracked by MAPPING_COMPLETENESS_
+        # COVERAGE below). Tolerance mirrors the existing convention dashboard/
+        # index.html's allocSectionHtml() already uses for the same field
+        # (isZero = abs(variance) < 0.01) -- not a newly invented threshold.
+        recon_overall = (alloc.get("recon") or {}).get("overall") or {}
+        variances = {m: (recon_overall.get(m) or {}).get("variance")
+                     for m in ("qty", "mrp_sales", "nsv", "tax") if m in recon_overall}
+        recon_pass = bool(variances) and all(
+            v is not None and abs(v) < 0.01 for v in variances.values())
+        checks.append({
+            "check_id": "ALLOCATION_RECONCILIATION", "metric_id": "PRIMARY_NSV",
+            "source": "alloc.recon.overall (reused from allocate_dist_primary(), not recomputed)",
+            "current_value": variances,
+            "status": "PASS" if recon_pass else ("VARIANCE_FLAGGED" if variances else "UNKNOWN"),
+            "threshold": "abs(variance) < 0.01 (existing dashboard/index.html "
+                         "allocSectionHtml() isZero() convention, reused here)",
+        })
+    if mapping_health.get("by_fy"):
+        cur_mh_fy = sorted(mapping_health["by_fy"], key=fy_start_year)[-1]
+        mh_cur = mapping_health["by_fy"][cur_mh_fy]
+        checks.append({
+            "check_id": "MAPPING_COMPLETENESS_COVERAGE", "metric_id": "MAPPING_COMPLETENESS_PCT",
+            "source": "mapping_health.by_fy (reused; its own rag field is already computed via "
+                      "rag_of() against config/analytics_config.json's mapping_completeness_pct "
+                      "band -- green>=95, amber>=85. This IS a documented, configured threshold, "
+                      "not a hardcoded UI constant -- corrects an earlier claim from Phase 2.)",
+            "current_value": mh_cur.get("completeness_pct"),
+            "threshold_source": "config/analytics_config.json rag.mapping_completeness_pct",
+            "green_threshold": 95.0, "amber_threshold": 85.0,
+            "status": mh_cur.get("rag") or "UNKNOWN",
+        })
+    registry_path = repo_root / "config" / "data_source_registry.yml"
+    target_registered = False
+    if registry_path.exists() and targets.get("source"):
+        target_registered = Path(targets["source"]).name in registry_path.read_text(encoding="utf-8")
+    if targets:
+        checks.append({
+            "check_id": "TARGET_SOURCE_LINEAGE", "metric_id": "TARGET_ACHIEVEMENT_PCT",
+            "source": targets.get("source"),
+            "comparison": "is the target source registered in config/data_source_registry.yml?",
+            "current_value": target_registered,
+            "status": "REGISTERED" if target_registered else "NOT_REGISTERED",
+            "threshold": "N/A (governance/lineage check, not a numeric threshold)",
+            "note": ("Actual (offtake/primary) sources ARE registered; the target file is not -- "
+                     "found in Phase 2, confirmed here. Smallest safe follow-up: add a "
+                     "targets_fy2627 entry to config/data_source_registry.yml (documentation-only, "
+                     "no calculation impact) -- not done in this phase.") if not target_registered else None,
+        })
+        if not target_registered:
+            add_issue("reconciliation_target_source_unregistered", "TARGET_ACHIEVEMENT_PCT",
+                       "reconciliation", 1, "PowerBI/SeedData/Targets/FY2627_Targets.csv",
+                       "config/data_source_registry.yml",
+                       "Target source is not registered in config/data_source_registry.yml, "
+                       "unlike the actual (offtake/primary) sources it's compared against.")
+
+    reconciliation = {"checks": checks}
+    return data_quality, reconciliation, issues
+
+
 # --------------------------------------------------------------------------
 # TARGET / ACHIEVEMENT / RUN RATE
 # --------------------------------------------------------------------------
@@ -5954,6 +6233,12 @@ def refresh_derived_blocks(data, src):
     data["readiness"] = readiness_gate(data, _cfg)
     print(f"readiness: {data['readiness']['summary']}"
           + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))
+    _dq, _recon, _issues = data_quality_reconciliation_block(data, _cfg, _REPO_ROOT)
+    data["data_quality"] = _dq
+    data["reconciliation"] = _recon
+    data["quality_issues"] = _issues
+    print(f"data_quality: {len(_dq['dimensions'])} dimension(s) computed, {len(_issues)} issue(s) found; "
+          f"reconciliation: {len(_recon['checks'])} check(s)")
 
 
 def _convert_nan_to_none(obj):
@@ -6095,7 +6380,13 @@ def main():
         if npd is not None:
             obj["npd"] = npd
         obj["readiness"] = readiness_gate(obj, cfg)
+        _dq, _recon, _issues = data_quality_reconciliation_block(obj, cfg, _REPO_ROOT)
+        obj["data_quality"] = _dq
+        obj["reconciliation"] = _recon
+        obj["quality_issues"] = _issues
         print(f"readiness-only: {obj['readiness']['summary']}")
+        print(f"  data_quality: {len(_dq['dimensions'])} dimension(s) computed, {len(_issues)} issue(s) found; "
+              f"reconciliation: {len(_recon['checks'])} check(s)")
         if prof:
             print(f"  profitability: margin {prof['total']['margin_pct_of_nsv']}% of NSV "
                   f"(NSV {prof['total']['nsv_lakh']}L, standard cost {prof['total']['cogs_lakh'] + prof['total']['logistics_lakh']}L)")
