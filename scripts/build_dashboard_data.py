@@ -3698,13 +3698,27 @@ def data_quality_reconciliation_block(data, cfg=None, repo_root=None):
         })
     if alloc:
         gov = alloc.get("governance") or {}
+        # Phase 3.5 audit fix: reconciliation PASS/FAIL must come from the actual
+        # governed reconciliation numbers -- alloc.recon.overall's per-measure
+        # (original vs allocated) variance -- never from rows_chain_equals_shipto
+        # (a source-data-hygiene flag: DIRECT rows whose Chain name happens to
+        # equal the Ship-To name -- unrelated to reconciliation) or rows_unmapped
+        # (a mapping-coverage count, already tracked by MAPPING_COMPLETENESS_
+        # COVERAGE below). Tolerance mirrors the existing convention dashboard/
+        # index.html's allocSectionHtml() already uses for the same field
+        # (isZero = abs(variance) < 0.01) -- not a newly invented threshold.
+        recon_overall = (alloc.get("recon") or {}).get("overall") or {}
+        variances = {m: (recon_overall.get(m) or {}).get("variance")
+                     for m in ("qty", "mrp_sales", "nsv", "tax") if m in recon_overall}
+        recon_pass = bool(variances) and all(
+            v is not None and abs(v) < 0.01 for v in variances.values())
         checks.append({
             "check_id": "ALLOCATION_RECONCILIATION", "metric_id": "PRIMARY_NSV",
-            "source": "alloc (reused from allocate_dist_primary(), not recomputed)",
-            "current_value": gov.get("not_eligible_pct"),
-            "gap": alloc.get("rows_unmapped"),
-            "status": "PASS" if not alloc.get("rows_chain_equals_shipto") else "VARIANCE_FLAGGED",
-            "threshold": "NOT_CONFIGURED",
+            "source": "alloc.recon.overall (reused from allocate_dist_primary(), not recomputed)",
+            "current_value": variances,
+            "status": "PASS" if recon_pass else ("VARIANCE_FLAGGED" if variances else "UNKNOWN"),
+            "threshold": "abs(variance) < 0.01 (existing dashboard/index.html "
+                         "allocSectionHtml() isZero() convention, reused here)",
         })
     if mapping_health.get("by_fy"):
         cur_mh_fy = sorted(mapping_health["by_fy"], key=fy_start_year)[-1]

@@ -127,6 +127,50 @@ def test_reconciliation_gap_status_when_unresolved():
     assert sis_check["status"] == "UNRESOLVED"
 
 
+def test_allocation_reconciliation_passes_on_zero_variance_regardless_of_shipto_flag():
+    """Regression for the Phase 3.5 audit finding: ALLOCATION_RECONCILIATION must
+    derive PASS/VARIANCE_FLAGGED from alloc.recon.overall's per-measure variance,
+    never from rows_chain_equals_shipto (an unrelated source-data-hygiene flag)
+    or rows_unmapped (a mapping-coverage count). A large, non-zero
+    rows_chain_equals_shipto must NOT flip a genuinely zero-variance
+    reconciliation to VARIANCE_FLAGGED -- that was the original bug."""
+    data = {"detail_records": [],
+            "alloc": {
+                "recon": {"overall": {
+                    "qty": {"original": 10128458.0, "allocated": 10128458.0, "variance": 0.0},
+                    "mrp_sales": {"original": 39300.55, "allocated": 39300.55, "variance": 0.0},
+                    "nsv": {"original": 18318.41, "allocated": 18318.41, "variance": 0.0},
+                    "tax": {"original": 2854.27, "allocated": 2854.27, "variance": 0.0},
+                }},
+                "rows_chain_equals_shipto": 87,  # non-zero -- must NOT trigger VARIANCE_FLAGGED
+                "rows_unmapped": 167,
+                "governance": {"not_eligible_pct": 0.0},
+            }}
+    dq, recon, issues = bdd.data_quality_reconciliation_block(data)
+    check = next(c for c in recon["checks"] if c["check_id"] == "ALLOCATION_RECONCILIATION")
+    assert check["status"] == "PASS"
+    assert check["current_value"] == {"qty": 0.0, "mrp_sales": 0.0, "nsv": 0.0, "tax": 0.0}
+
+
+def test_allocation_reconciliation_flags_real_variance():
+    """A genuinely non-zero variance must still be flagged -- the fix must not
+    make this check unconditionally report PASS."""
+    data = {"detail_records": [],
+            "alloc": {
+                "recon": {"overall": {
+                    "qty": {"original": 100.0, "allocated": 100.0, "variance": 0.0},
+                    "mrp_sales": {"original": 500.0, "allocated": 495.0, "variance": -5.0},
+                    "nsv": {"original": 200.0, "allocated": 200.0, "variance": 0.0},
+                    "tax": {"original": 20.0, "allocated": 20.0, "variance": 0.0},
+                }},
+                "rows_chain_equals_shipto": 0,
+                "rows_unmapped": 0,
+            }}
+    dq, recon, issues = bdd.data_quality_reconciliation_block(data)
+    check = next(c for c in recon["checks"] if c["check_id"] == "ALLOCATION_RECONCILIATION")
+    assert check["status"] == "VARIANCE_FLAGGED"
+
+
 def test_mapping_completeness_reuses_existing_rag_threshold():
     data = {"detail_records": [],
             "mapping_health": {"by_fy": {"FY27": {"completeness_pct": 99.9, "rag": "green"}}}}
