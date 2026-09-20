@@ -3323,16 +3323,37 @@ def npd_block(detail_records):
     the pair is NOT an NPI (left truncation, not a negative finding; see
     NIST's distinction between left-truncated and left-censored data).
 
-    Because of this, a cohort FY's own launch count is only trustworthy
-    once at least one full prior FY of history exists to rule out
-    pre-existence -- metrics_by_fy[fy]["history_coverage"] states this:
-    "INCOMPLETE" (this FY IS the dataset's first FY -- its launch count is
-    a floor, not a confirmed total), "PARTIAL" (some but under 12 months
-    of lookback), or "CONFIRMED" (>=12 months of prior history available).
-    yoy_npi_nsv_growth_pct is still computed year over year, but
-    yoy_comparison_valid/yoy_caveat flag when either side of that
-    comparison rests on an INCOMPLETE-coverage FY, so a growth headline
-    is never presented as more solid than the history behind it actually is.
+    LAUNCH CONFIDENCE (per pair, not per cohort FY -- a cohort is not
+    homogeneous): even a launch that clears the history-incomplete guard is
+    not proven to be genuinely new -- a 12-month clean lookback is an
+    operational-confidence threshold, not proof of "first-ever" (an
+    article could have sold before this dataset's Apr-25 start, gone
+    dormant, and resumed after). Each confirmed launch therefore carries
+    history_months_before_first_sale (months between the dataset's
+    earliest available month and THIS pair's own actual first sale) and
+    launch_confirmation_status:
+      "confirmed"      -- >=12 months of lookback behind this pair's own
+                           first sale. Read as "meets this repo's 12-month
+                           operational-confidence rule", never as "proven
+                           via an authoritative launch/NPI master" -- no
+                           such master is consulted here.
+      "observed_only"   -- 1-11 months of lookback. This is the first sale
+                           visible in available history, with insufficient
+                           evidence to rule out an earlier, unobserved one.
+    (A third status, "boundary_unknown", applies to the excluded
+    history_incomplete pairs above -- 0 months of lookback.)
+
+    Because a March-carried launch keeps its ORIGINAL first-sale month for
+    this lookback calculation (not its cohort FY's own start), a cohort can
+    mix "confirmed" and "observed_only" launches -- e.g. FY27 contains both
+    April-26 launches (12 months' lookback, confirmed) and March-26
+    carry-forward launches (only 11 months' lookback, observed_only).
+    metrics_by_fy[fy]["history_coverage"] is therefore derived from the
+    WEAKEST launch actually in that cohort, not from the FY's own start
+    date: "CONFIRMED" only if every launch in the cohort is "confirmed";
+    otherwise "PARTIAL". yoy_comparison_valid/yoy_caveat flag any YoY
+    figure where either side is not "CONFIRMED", so a growth headline is
+    never presented as more solid than the weakest launch behind it.
 
     Classification depends only on the pair's own full sales history in
     this detail_records snapshot, never on any dashboard filter selection --
@@ -3369,14 +3390,17 @@ def npd_block(detail_records):
         if key not in first_seen or cand < first_seen[key]:
             first_seen[key] = cand
 
-    launches = []          # confirmed launches only (history_incomplete pairs excluded)
+    earliest_idx = earliest[0] * 12 + earliest[1]
+    launches = []          # confirmed + observed_only launches (history_incomplete pairs excluded)
     history_incomplete_pairs = []
     for (chain, article), (fy_year, mo, fy_tag, month_name) in first_seen.items():
-        if (fy_year, mo) == earliest:
+        lookback_months = fy_year * 12 + mo - earliest_idx
+        if lookback_months <= 0:
             history_incomplete_pairs.append({
                 "chain": chain, "article": article,
                 "first_observed_fy": fy_tag, "first_observed_month": month_name,
-                "launch_status": "history_incomplete",
+                "launch_status": "boundary_unknown",
+                "history_months_before_first_sale": lookback_months,
             })
             continue
         cohort_fy = f"FY{int(fy_tag[2:]) + 1}" if month_name == "March" else fy_tag
@@ -3384,6 +3408,11 @@ def npd_block(detail_records):
             "chain": chain, "article": article,
             "actual_first_sale_fy": fy_tag, "actual_first_sale_month": month_name,
             "npi_cohort_fy": cohort_fy,
+            "history_months_before_first_sale": lookback_months,
+            # "confirmed" = meets this repo's 12-month operational-confidence
+            # rule; never a claim of proof against an authoritative launch
+            # master (none exists here) -- see the function docstring.
+            "launch_confirmation_status": "confirmed" if lookback_months >= 12 else "observed_only",
         })
     launches.sort(key=lambda r: (r["npi_cohort_fy"], r["chain"], r["article"]))
 
@@ -3419,19 +3448,16 @@ def npd_block(detail_records):
                 active_pairs.add(key)
         launches_count = len(rows)
         active_count = len(active_pairs)
-        # History coverage: a cohort FY's launch count is only trustworthy
-        # once at least one full prior FY of data exists to rule out
-        # pre-existence. lookback_months = months between the dataset's
-        # earliest available month and this FY's own April start.
-        fy_start_idx = fy_start_year(cohort_fy) * 12 + 1
-        earliest_idx = earliest[0] * 12 + earliest[1]
-        lookback_months = fy_start_idx - earliest_idx
-        if lookback_months <= 0:
-            coverage = "INCOMPLETE"
-        elif lookback_months < 12:
-            coverage = "PARTIAL"
-        else:
-            coverage = "CONFIRMED"
+        # History coverage is derived from the WEAKEST launch actually in
+        # this cohort -- a cohort mixes launches with different original
+        # first-sale months (e.g. FY27 = April-26 launches at 12 months'
+        # lookback alongside March-26 carry-forward launches at only 11),
+        # so the FY's own April start date is not a safe proxy for its
+        # weakest member's confidence.
+        n_confirmed = sum(1 for r in rows if r["launch_confirmation_status"] == "confirmed")
+        n_observed_only = launches_count - n_confirmed
+        coverage = "CONFIRMED" if n_observed_only == 0 else "PARTIAL"
+        min_lookback = min((r["history_months_before_first_sale"] for r in rows), default=None)
 
         metrics_by_fy[cohort_fy] = {
             "npi_launches": launches_count,
@@ -3447,7 +3473,9 @@ def npd_block(detail_records):
             # from "better-performing launches" growth.
             "npi_productivity": r2(nsv / active_count) if active_count else None,
             "history_coverage": coverage,
-            "history_lookback_months": lookback_months,
+            "history_min_lookback_months": min_lookback,
+            "confirmed_launch_count": n_confirmed,
+            "observed_only_launch_count": n_observed_only,
         }
 
     fy_order = sorted(metrics_by_fy, key=fy_start_year)
@@ -3463,20 +3491,25 @@ def npd_block(detail_records):
         metrics_by_fy[fy]["yoy_npi_nsv_growth_pct"] = (
             r2((cur - prev) / prev * 100) if prev else None
         )
-        # A YoY comparison is only as solid as its weaker side's history
-        # coverage. This is the specific, evidenced risk this function must
-        # never hide: FY26 (this dataset's first FY) has zero prior-year
-        # lookback, so its launch count is a floor, not a confirmed total --
-        # comparing a later, better-observed FY against it overstates growth.
+        # A YoY comparison is only as solid as its weaker side's WEAKEST
+        # launch, derived (above) per-pair, not assumed from either FY's
+        # calendar start. This is the specific, evidenced risk this
+        # function must never hide: comparing a fully-confirmed FY against
+        # one that still contains observed_only launches overstates growth,
+        # because the weaker FY's true launch count could be lower than
+        # what's observed (some of those launches might not be genuinely
+        # new at all -- see launch_confirmation_status in the docstring).
         weak_fy = prev_fy if metrics_by_fy[prev_fy]["history_coverage"] != "CONFIRMED" else (
             fy if metrics_by_fy[fy]["history_coverage"] != "CONFIRMED" else None)
         if weak_fy:
+            n_obs = metrics_by_fy[weak_fy]["observed_only_launch_count"]
             metrics_by_fy[fy]["yoy_comparison_valid"] = False
             metrics_by_fy[fy]["yoy_caveat"] = (
-                f"{weak_fy}'s NPI launch count has {metrics_by_fy[weak_fy]['history_coverage'].lower()} "
-                "history coverage (not a full prior FY of lookback to rule out pre-existing products) -- "
-                "this YoY growth figure is not a like-for-like comparison and should be labelled "
-                "provisional, not presented as confirmed growth."
+                f"{weak_fy} has {n_obs} of {metrics_by_fy[weak_fy]['npi_launches']} launches at "
+                "launch_confirmation_status=observed_only (under 12 months of lookback behind their "
+                "own first sale -- not proof of a genuinely new product, just the first sale visible "
+                "in available history) -- this YoY growth figure is not a like-for-like comparison "
+                "and should be labelled provisional, not presented as confirmed growth."
             )
         else:
             metrics_by_fy[fy]["yoy_comparison_valid"] = True
@@ -3488,9 +3521,13 @@ def npd_block(detail_records):
                    "forward into the NEXT FY so it gets a full Apr-Mar tracking year. Actual "
                    "launch month is always preserved alongside the cohort FY. Pairs whose first "
                    "observed sale falls in detail_records' own earliest available month are "
-                   "excluded as launch_status=history_incomplete: UNKNOWN whether they are a new "
+                   "excluded as launch_status=boundary_unknown: UNKNOWN whether they are a new "
                    "launch or a pre-existing product (left truncation, not evidence of either), "
-                   "so they are never counted as confirmed_launch and never counted as not-NPI."),
+                   "so they are never counted as a launch and never counted as not-NPI. Every "
+                   "launch that IS counted additionally carries launch_confirmation_status "
+                   "('confirmed' vs 'observed_only') -- see the function docstring; even a "
+                   "confirmed launch is not proof of first-ever, only that this repo's 12-month "
+                   "operational-confidence rule is met."),
         "by_fy": by_fy,
         "counts_by_fy": {fy: len(rows) for fy, rows in by_fy.items()},
         "metrics_by_fy": metrics_by_fy,
@@ -3501,8 +3538,7 @@ def npd_block(detail_records):
             "history_incomplete_reason": (
                 f"first available data month is FY-start-year {earliest[0]}, month-order "
                 f"{earliest[1]} (Apr=1..Mar=12) -- a pair first observed exactly then has "
-                "launch_status=UNKNOWN (history_incomplete), not confirmed_launch and not "
-                "confirmed_preexisting"
+                "launch_status=boundary_unknown, not a launch and not confirmed-preexisting"
             ),
         },
     }

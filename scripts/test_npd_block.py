@@ -107,7 +107,7 @@ def test_history_incomplete_pairs_excluded_from_launches_but_not_lost():
     assert npd["qc"]["pairs_excluded_history_incomplete"] == 2
     # NPI = Unknown, not NPI = No -- the pairs are reported, not discarded.
     assert len(npd["history_incomplete_pairs"]) == 2
-    assert all(p["launch_status"] == "history_incomplete" for p in npd["history_incomplete_pairs"])
+    assert all(p["launch_status"] == "boundary_unknown" for p in npd["history_incomplete_pairs"])
 
 
 def test_same_article_different_chains_are_independent_launches():
@@ -183,36 +183,75 @@ def test_yoy_growth_present_from_second_cohort_fy_onward():
     assert npd["metrics_by_fy"]["FY27"]["yoy_npi_nsv_growth_pct"] == 200.0  # (300-100)/100*100
 
 
-def test_history_coverage_incomplete_for_dataset_first_fy():
-    # FY26 IS the dataset's own first FY (earliest month is April-FY26) --
-    # its cohort's launch count is a floor, not a confirmed total.
+def test_launch_confirmation_status_is_per_pair_not_per_fy():
+    # A launch's confidence depends on ITS OWN first-sale month's lookback,
+    # not on which cohort FY it lands in. April-26 (12 months' lookback
+    # behind Apr-25) is "confirmed"; May-25 (1 month's lookback) in the
+    # SAME FY26 cohort is "observed_only".
     rows = [
-        _row("DMart", "A0", "FY26", "April"),
-        _row("Apollo", "A2", "FY26", "May", nsv=100.0, qty=10.0),
+        _row("DMart", "ANCHOR", "FY26", "April"),          # earliest, excluded
+        _row("Apollo", "EARLY", "FY26", "May", nsv=100.0, qty=10.0),   # 1 month lookback
+        _row("Apollo", "LATER", "FY27", "April", nsv=100.0, qty=10.0),  # 12 months lookback
     ]
     npd = bd.npd_block(rows)
-    assert npd["metrics_by_fy"]["FY26"]["history_coverage"] == "INCOMPLETE"
-    assert npd["metrics_by_fy"]["FY26"]["history_lookback_months"] == 0
+    early = [r for fy in npd["by_fy"].values() for r in fy if r["article"] == "EARLY"][0]
+    later = [r for fy in npd["by_fy"].values() for r in fy if r["article"] == "LATER"][0]
+    assert early["history_months_before_first_sale"] == 1
+    assert early["launch_confirmation_status"] == "observed_only"
+    assert later["history_months_before_first_sale"] == 12
+    assert later["launch_confirmation_status"] == "confirmed"
 
 
-def test_history_coverage_confirmed_after_a_full_prior_fy():
-    # FY27 has a full FY26 (12 months) of prior data behind it.
+def test_march_carryforward_launch_keeps_its_own_lookback_not_cohort_fys():
+    # A March-26 launch carries into the FY27 cohort, but its lookback is
+    # measured from ITS OWN first-sale month (March-26), not from FY27's
+    # own April start -- so it lands at 11 months, one short of "confirmed",
+    # even though it's reported inside the FY27 cohort.
     rows = [
-        _row("DMart", "A0", "FY26", "April"),
-        _row("Apollo", "A3", "FY27", "May", nsv=300.0, qty=30.0),
+        _row("DMart", "ANCHOR", "FY26", "April"),
+        _row("Reliance", "MARCH26", "FY26", "March", nsv=100.0, qty=10.0),
+    ]
+    npd = bd.npd_block(rows)
+    row = npd["by_fy"]["FY27"][0]
+    assert row["npi_cohort_fy"] == "FY27"
+    assert row["history_months_before_first_sale"] == 11
+    assert row["launch_confirmation_status"] == "observed_only"
+
+
+def test_fy_coverage_is_partial_when_cohort_mixes_confirmed_and_observed_only():
+    # FY27 contains BOTH an April-26 launch (12 months, confirmed) and a
+    # March-26 carry-forward launch (11 months, observed_only) -- the
+    # cohort as a whole must not be reported as CONFIRMED just because one
+    # of its members clears the bar.
+    rows = [
+        _row("DMart", "ANCHOR", "FY26", "April"),
+        _row("Reliance", "MARCH26", "FY26", "March", nsv=100.0, qty=10.0),   # -> FY27, observed_only
+        _row("Apollo", "APR26", "FY27", "April", nsv=200.0, qty=20.0),        # -> FY27, confirmed
+    ]
+    npd = bd.npd_block(rows)
+    m = npd["metrics_by_fy"]["FY27"]
+    assert m["history_coverage"] == "PARTIAL"
+    assert m["confirmed_launch_count"] == 1
+    assert m["observed_only_launch_count"] == 1
+
+
+def test_fy_coverage_confirmed_only_when_every_launch_clears_12_months():
+    rows = [
+        _row("DMart", "ANCHOR", "FY26", "April"),
+        _row("Apollo", "APR26", "FY27", "April", nsv=200.0, qty=20.0),   # exactly 12 months, confirmed
     ]
     npd = bd.npd_block(rows)
     assert npd["metrics_by_fy"]["FY27"]["history_coverage"] == "CONFIRMED"
-    assert npd["metrics_by_fy"]["FY27"]["history_lookback_months"] == 12
+    assert npd["metrics_by_fy"]["FY27"]["observed_only_launch_count"] == 0
 
 
-def test_yoy_comparison_flagged_invalid_when_either_side_incomplete():
-    # FY26 is INCOMPLETE (dataset's first FY) -> FY27's YoY vs FY26 must be
-    # flagged, not presented as a confirmed comparison.
+def test_yoy_comparison_flagged_invalid_when_either_side_not_confirmed():
+    # FY26's only launch is observed_only (1 month lookback) -> FY27's YoY
+    # vs FY26 must be flagged, not presented as a confirmed comparison.
     rows = [
         _row("DMart", "A0", "FY26", "April"),
         _row("Apollo", "A2", "FY26", "May", nsv=100.0, qty=10.0),
-        _row("Apollo", "A3", "FY27", "May", nsv=300.0, qty=30.0),
+        _row("Apollo", "A3", "FY27", "April", nsv=300.0, qty=30.0),
     ]
     npd = bd.npd_block(rows)
     assert npd["metrics_by_fy"]["FY27"]["yoy_comparison_valid"] is False
