@@ -5562,7 +5562,7 @@ def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV",
         block[out_key] = sorted(rows, key=lambda d: -(d["curr"] or 0))
     return block
 
-def detail_records_real(src, max_rows=20000):
+def detail_records_real(src, max_rows=20000, output_dir=None):
     """Real 13-column detail_records from File 2 (article-wise primary).
     Looks for primary_article.xlsb/.xlsx in src. Returns None if absent, else
     (recs, channel_totals, coverage) where channel_totals is computed from the
@@ -5572,7 +5572,17 @@ def detail_records_real(src, max_rows=20000):
     A flat threshold silently guts small-ticket channels (e.g. SIS is made of
     many small line items) -- top-N-by-value keeps ~98%+ of total value at a
     fraction of the full row count.
-    """
+
+    output_dir: forwarded to allocate_dist_primary()'s own output_dir -- when
+    given, its governance/proposal CSVs (DistCont_Patch_Proposed.csv,
+    DistAllocationGovernance_FlaggedRows.csv, EanAffinity_ResidualProposal.csv)
+    are written under this directory instead of the repo's tracked
+    PowerBI/SeedData/Mapping/ paths. Default None preserves the original
+    repo-writing behaviour for the real production build. A test that calls
+    detail_records_real() with synthetic/tmp_path data MUST pass a tmp_path
+    here -- otherwise it silently overwrites the tracked governance CSVs with
+    whatever tiny synthetic result it produced (see tests/test_allocate_dist_primary_output_dir.py
+    for the underlying shadow-run fix this threads through to)."""
     def _safe_val(x):
         """Convert NaN/None to None (null in JSON), keep strings and numbers as-is."""
         if x is None or (isinstance(x, float) and math.isnan(x)):
@@ -5724,6 +5734,7 @@ def detail_records_real(src, max_rows=20000):
         df, _wdf, _raw_sums, source_label=_alloc_src,
         offtake_brand_set=_offtake_brand_set,
         offtake_ean_set=_offtake_ean_set,
+        output_dir=output_dir,
     )
     n_shipto_as_chain = int(((df["_Chain"].astype(str).str.strip().str.lower()
                               == df["_CustName"].str.lower()) & (df["_CustName"] != "")).sum())
