@@ -3298,52 +3298,287 @@ def profitability_block(detail_records):
 
 
 def npd_block(detail_records):
-    """NPD = an article whose first-ever sale AT A GIVEN CHAIN falls in March;
-    it is flagged NPD for the FY immediately following that March (its first
-    full FY of sales). Confirmed by business, 2026-09-14, per chain x article
-    (the same article can be NPD at one chain and not another).
+    """NPI launch governance, Chain x EAN grain, FY-based cohort with a
+    March carry-forward rule (replaces the March-only rule confirmed
+    2026-09-14; see git history for that version). Grain changed from
+    Chain x Article text to Chain x EAN on 2026-09-20 (business-confirmed):
+    the same physical product can carry two different Article-text
+    spellings at one chain (a rebrand/rename) but shares one EAN, so
+    counting by Article text double-counted those as two launches. A pair
+    with no EAN at all falls back to Chain x Article text.
 
-    ASSUMPTION (stated because the source instruction did not spell out
-    every edge case): "March" means the literal calendar month named "March"
-    in detail_records, evaluated once per (Chain, Article) using the EARLIEST
-    FY x Month with NSV > 0 across the whole history available here -- not
-    re-evaluated per FY. If this is not what was meant, this is a one-function
-    change (this docstring names exactly what would need to differ).
+    Actual_First_Sale_Month = the earliest FY x Month with a valid
+    commercial transaction for that (Chain, EAN) pair, found by
+    scanning the pair's WHOLE available history, never just the currently
+    selected dashboard period. "Valid commercial transaction" requires
+    NSV > 0 AND Qty > 0: detail_records carries no dedicated return/
+    sample/correction flag, so this is the best available proxy for
+    excluding a return, a zero-value correction, or a sample/free-goods row
+    from establishing a launch -- a negative-Qty return sitting before the
+    real launch cannot move it earlier, and a Qty<=0 row at the true launch
+    month cannot suppress it (the next valid month still wins).
+
+    NPI Reporting Cohort:
+      - Normally the FY containing Actual_First_Sale_Month.
+      - EXCEPT when Actual_First_Sale_Month's month is literally "March":
+        the cohort becomes the NEXT FY, so a March launch is tracked over
+        a full Apr-Mar year instead of one month.
+    Both fields are always recorded together -- Actual_First_Sale_Month is
+    never rewritten to make it agree with the cohort FY.
+
+    Same product (EAN) launching in different chains = separate Chain x EAN
+    launches, each with its own independent launch date and cohort.
+
+    HISTORY-INCOMPLETE GUARD: detail_records' own earliest available FY x
+    Month across ALL rows is the first month this repo has any data for --
+    a pair whose first valid sale falls exactly in that month cannot be
+    told apart from a product that already existed before this data window
+    started. Those pairs get launch_status="history_incomplete" (never
+    "confirmed_launch") and are excluded from launch counts/cohorts/NSV --
+    this is a statement that the launch status is UNKNOWN, not a claim that
+    the pair is NOT an NPI (left truncation, not a negative finding; see
+    NIST's distinction between left-truncated and left-censored data).
+
+    LAUNCH CONFIDENCE (per pair, not per cohort FY -- a cohort is not
+    homogeneous): even a launch that clears the history-incomplete guard is
+    not proven to be genuinely new -- a 12-month clean lookback is an
+    operational-confidence threshold, not proof of "first-ever" (an
+    article could have sold before this dataset's Apr-25 start, gone
+    dormant, and resumed after). Each confirmed launch therefore carries
+    history_months_before_first_sale (months between the dataset's
+    earliest available month and THIS pair's own actual first sale) and
+    launch_confirmation_status:
+      "confirmed"      -- >=12 months of lookback behind this pair's own
+                           first sale. Read as "meets this repo's 12-month
+                           operational-confidence rule", never as "proven
+                           via an authoritative launch/NPI master" -- no
+                           such master is consulted here.
+      "observed_only"   -- 1-11 months of lookback. This is the first sale
+                           visible in available history, with insufficient
+                           evidence to rule out an earlier, unobserved one.
+    (A third status, "boundary_unknown", applies to the excluded
+    history_incomplete pairs above -- 0 months of lookback.)
+
+    Because a March-carried launch keeps its ORIGINAL first-sale month for
+    this lookback calculation (not its cohort FY's own start), a cohort can
+    mix "confirmed" and "observed_only" launches -- e.g. FY27 contains both
+    April-26 launches (12 months' lookback, confirmed) and March-26
+    carry-forward launches (only 11 months' lookback, observed_only).
+    metrics_by_fy[fy]["history_coverage"] is therefore derived from the
+    WEAKEST launch actually in that cohort, not from the FY's own start
+    date: "CONFIRMED" only if every launch in the cohort is "confirmed";
+    otherwise "PARTIAL". yoy_comparison_valid/yoy_caveat flag any YoY
+    figure where either side is not "CONFIRMED", so a growth headline is
+    never presented as more solid than the weakest launch behind it.
+
+    Classification depends only on the pair's own full sales history in
+    this detail_records snapshot, never on any dashboard filter selection --
+    re-running this function against the same data always returns the same
+    cohort for a given pair (immutable within one refresh).
     """
     if not detail_records:
         return None
-    first_seen = {}  # (chain, article) -> (fy_start_year, month_order, fy_tag, month_name)
+
+    earliest = None
     for r in detail_records:
-        if not (r.get("NSV") or 0.0) > 0:
+        fy, month = r.get("FY"), r.get("Month")
+        if not (fy and month and month in _FY_MONTH_ORDER):
             continue
+        cand = (fy_start_year(fy), _FY_MONTH_ORDER[month])
+        if earliest is None or cand < earliest:
+            earliest = cand
+    if earliest is None:
+        return None
+
+    # Launch grain is Chain x EAN (barcode), not Chain x Article text.
+    # Business-confirmed 2026-09-20: the same physical product sometimes
+    # carries two different Article-text spellings at the same chain (a
+    # rebrand/rename) but shares one EAN -- counting each spelling as a
+    # separate launch double-counts the same real product. EAN is also
+    # immune to the text-encoding corruption a handful of Article values
+    # carry. A pair with no EAN at all falls back to Chain + Article text
+    # so it is never silently dropped from the identity layer.
+    def _npi_grain_key(chain, article, ean):
+        return (chain, "EAN", ean) if ean else (chain, "ART", article)
+
+    first_seen = {}        # grain_key -> (fy_start_year, month_order, fy_tag, month_name)
+    pair_article = {}      # grain_key -> a representative Article text, for display only.
+    rows_skipped_missing_identifier = 0
+    for r in detail_records:
         chain, article, fy, month = r.get("Chain"), r.get("Article"), r.get("FY"), r.get("Month")
         if not (chain and article and fy and month and month in _FY_MONTH_ORDER):
+            if not (chain and article):
+                rows_skipped_missing_identifier += 1
+            continue
+        ean = r.get("EAN")
+        grain_key = _npi_grain_key(chain, article, ean)
+        if grain_key not in pair_article:
+            pair_article[grain_key] = article
+        if not ((r.get("NSV") or 0.0) > 0 and (r.get("Qty") or 0.0) > 0):
             continue
         fy_year = fy_start_year(fy)
-        key = (chain, article)
         cand = (fy_year, _FY_MONTH_ORDER[month], fy, month)
-        if key not in first_seen or cand < first_seen[key]:
-            first_seen[key] = cand
+        if grain_key not in first_seen or cand < first_seen[grain_key]:
+            first_seen[grain_key] = cand
+
+    earliest_idx = earliest[0] * 12 + earliest[1]
+    launches = []          # confirmed + observed_only launches (history_incomplete pairs excluded)
+    history_incomplete_pairs = []
+    for grain_key, (fy_year, mo, fy_tag, month_name) in first_seen.items():
+        chain, kind, ident = grain_key
+        ean = ident if kind == "EAN" else None
+        article = pair_article[grain_key]
+        # pair_id is the stable browser-side join key: Chain + EAN, or
+        # Chain + Article text for the rare pair with no EAN at all.
+        pair_id = f"{chain}||{ean}" if ean else f"{chain}||{article}"
+        lookback_months = fy_year * 12 + mo - earliest_idx
+        if lookback_months <= 0:
+            history_incomplete_pairs.append({
+                "chain": chain, "article": article, "ean": ean, "pair_id": pair_id,
+                "first_observed_fy": fy_tag, "first_observed_month": month_name,
+                "launch_status": "boundary_unknown",
+                "history_months_before_first_sale": lookback_months,
+            })
+            continue
+        cohort_fy = f"FY{int(fy_tag[2:]) + 1}" if month_name == "March" else fy_tag
+        launches.append({
+            "chain": chain, "article": article, "ean": ean, "pair_id": pair_id,
+            "actual_first_sale_fy": fy_tag, "actual_first_sale_month": month_name,
+            "npi_cohort_fy": cohort_fy,
+            "history_months_before_first_sale": lookback_months,
+            # "confirmed" = meets this repo's 12-month operational-confidence
+            # rule; never a claim of proof against an authoritative launch
+            # master (none exists here) -- see the function docstring.
+            "launch_confirmation_status": "confirmed" if lookback_months >= 12 else "observed_only",
+        })
+    launches.sort(key=lambda r: (r["npi_cohort_fy"], r["chain"], r["article"]))
 
     by_fy = {}
-    for (chain, article), (fy_year, _mo, fy_tag, month_name) in first_seen.items():
-        if month_name != "March":
+    for row in launches:
+        by_fy.setdefault(row["npi_cohort_fy"], []).append(row)
+
+    # Per-FY universe totals (all chain x article activity in that FY, not
+    # just NPI launches) for contribution % -- reuses the same NSV field,
+    # no separate computation path.
+    fy_total_nsv = {}
+    for r in detail_records:
+        fy = r.get("FY")
+        if fy:
+            fy_total_nsv[fy] = fy_total_nsv.get(fy, 0.0) + (r.get("NSV") or 0.0)
+
+    metrics_by_fy = {}
+    for cohort_fy, rows in by_fy.items():
+        pair_keys = {_npi_grain_key(row["chain"], row["article"], row["ean"]) for row in rows}
+        nsv = 0.0
+        qty = 0.0
+        active_pairs = set()
+        for r in detail_records:
+            if r.get("FY") != cohort_fy:
+                continue
+            key = _npi_grain_key(r.get("Chain"), r.get("Article"), r.get("EAN"))
+            if key not in pair_keys:
+                continue
+            row_nsv = r.get("NSV") or 0.0
+            nsv += row_nsv
+            qty += r.get("Qty") or 0.0
+            if row_nsv > 0:
+                active_pairs.add(key)
+        launches_count = len(rows)
+        active_count = len(active_pairs)
+        # History coverage is derived from the WEAKEST launch actually in
+        # this cohort -- a cohort mixes launches with different original
+        # first-sale months (e.g. FY27 = April-26 launches at 12 months'
+        # lookback alongside March-26 carry-forward launches at only 11),
+        # so the FY's own April start date is not a safe proxy for its
+        # weakest member's confidence.
+        n_confirmed = sum(1 for r in rows if r["launch_confirmation_status"] == "confirmed")
+        n_observed_only = launches_count - n_confirmed
+        coverage = "CONFIRMED" if n_observed_only == 0 else "PARTIAL"
+        min_lookback = min((r["history_months_before_first_sale"] for r in rows), default=None)
+
+        metrics_by_fy[cohort_fy] = {
+            "npi_launches": launches_count,
+            "npi_nsv": r2(nsv),
+            "npi_units": r2(qty),
+            "avg_nsv_per_launch": r2(nsv / launches_count) if launches_count else None,
+            "npi_contribution_pct": (r2(nsv / fy_total_nsv[cohort_fy] * 100)
+                                       if fy_total_nsv.get(cohort_fy) else None),
+            "active_npi_count": active_count,
+            # productivity = NSV per NPI that actually sold in its own cohort
+            # year, distinct from avg_nsv_per_launch (which divides by every
+            # launch, selling or not) -- separates "more launches" growth
+            # from "better-performing launches" growth.
+            "npi_productivity": r2(nsv / active_count) if active_count else None,
+            "history_coverage": coverage,
+            "history_min_lookback_months": min_lookback,
+            "confirmed_launch_count": n_confirmed,
+            "observed_only_launch_count": n_observed_only,
+        }
+
+    fy_order = sorted(metrics_by_fy, key=fy_start_year)
+    for i, fy in enumerate(fy_order):
+        if i == 0:
+            metrics_by_fy[fy]["yoy_npi_nsv_growth_pct"] = None
+            metrics_by_fy[fy]["yoy_comparison_valid"] = False
+            metrics_by_fy[fy]["yoy_caveat"] = "No prior cohort FY to compare against."
             continue
-        npd_fy = f"FY{int(fy_tag[2:]) + 1}"
-        by_fy.setdefault(npd_fy, []).append({
-            "chain": chain, "article": article,
-            "first_sale_fy": fy_tag, "first_sale_month": month_name,
-        })
-    for fy in by_fy:
-        by_fy[fy].sort(key=lambda r: (r["chain"], r["article"]))
+        prev_fy = fy_order[i - 1]
+        prev = metrics_by_fy[prev_fy]["npi_nsv"]
+        cur = metrics_by_fy[fy]["npi_nsv"]
+        metrics_by_fy[fy]["yoy_npi_nsv_growth_pct"] = (
+            r2((cur - prev) / prev * 100) if prev else None
+        )
+        # A YoY comparison is only as solid as its weaker side's WEAKEST
+        # launch, derived (above) per-pair, not assumed from either FY's
+        # calendar start. This is the specific, evidenced risk this
+        # function must never hide: comparing a fully-confirmed FY against
+        # one that still contains observed_only launches overstates growth,
+        # because the weaker FY's true launch count could be lower than
+        # what's observed (some of those launches might not be genuinely
+        # new at all -- see launch_confirmation_status in the docstring).
+        weak_fy = prev_fy if metrics_by_fy[prev_fy]["history_coverage"] != "CONFIRMED" else (
+            fy if metrics_by_fy[fy]["history_coverage"] != "CONFIRMED" else None)
+        if weak_fy:
+            n_obs = metrics_by_fy[weak_fy]["observed_only_launch_count"]
+            metrics_by_fy[fy]["yoy_comparison_valid"] = False
+            metrics_by_fy[fy]["yoy_caveat"] = (
+                f"{weak_fy} has {n_obs} of {metrics_by_fy[weak_fy]['npi_launches']} launches at "
+                "launch_confirmation_status=observed_only (under 12 months of lookback behind their "
+                "own first sale -- not proof of a genuinely new product, just the first sale visible "
+                "in available history) -- this YoY growth figure is not a like-for-like comparison "
+                "and should be labelled provisional, not presented as confirmed growth."
+            )
+        else:
+            metrics_by_fy[fy]["yoy_comparison_valid"] = True
+            metrics_by_fy[fy]["yoy_caveat"] = None
 
     return {
-        "basis": ("An article-chain pair is flagged NPD for the FY immediately after its first-ever "
-                   "sale at that chain, when that first sale falls in March. Confirmed by business, "
-                   "2026-09-14. Evaluated per chain x article from detail_records' own sales history -- "
-                   "no external NPD master join required."),
+        "basis": ("Chain x EAN NPI launch cohort (falls back to Chain x Article text only when "
+                   "a pair has no EAN): the FY containing a pair's actual first "
+                   "valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls "
+                   "forward into the NEXT FY so it gets a full Apr-Mar tracking year. Actual "
+                   "launch month is always preserved alongside the cohort FY. Pairs whose first "
+                   "observed sale falls in detail_records' own earliest available month are "
+                   "excluded as launch_status=boundary_unknown: UNKNOWN whether they are a new "
+                   "launch or a pre-existing product (left truncation, not evidence of either), "
+                   "so they are never counted as a launch and never counted as not-NPI. Every "
+                   "launch that IS counted additionally carries launch_confirmation_status "
+                   "('confirmed' vs 'observed_only') -- see the function docstring; even a "
+                   "confirmed launch is not proof of first-ever, only that this repo's 12-month "
+                   "operational-confidence rule is met."),
         "by_fy": by_fy,
         "counts_by_fy": {fy: len(rows) for fy, rows in by_fy.items()},
+        "metrics_by_fy": metrics_by_fy,
+        "history_incomplete_pairs": history_incomplete_pairs,
+        "qc": {
+            "rows_skipped_missing_chain_or_article": rows_skipped_missing_identifier,
+            "pairs_excluded_history_incomplete": len(history_incomplete_pairs),
+            "history_incomplete_reason": (
+                f"first available data month is FY-start-year {earliest[0]}, month-order "
+                f"{earliest[1]} (Apr=1..Mar=12) -- a pair first observed exactly then has "
+                "launch_status=boundary_unknown, not a launch and not confirmed-preexisting"
+            ),
+        },
     }
 
 
@@ -3437,7 +3672,7 @@ def readiness_gate(data, cfg=None):
         counts = npd.get("counts_by_fy") or {}
         if counts:
             summary = "; ".join(f"{fy}: {n} article-chain pairs" for fy, n in sorted(counts.items()))
-            put("npd", "PASS", f"NPD identified from first-sale-in-March rule ({summary})")
+            put("npd", "PASS", f"NPI identified via FY-cohort rule with March carry-forward ({summary})")
         else:
             put("npd", AWAITING_BUSINESS_DATA, "NPD master not joined to the transaction grain")
 

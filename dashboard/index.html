@@ -3056,6 +3056,233 @@ function computeSkuVolatility(){
   rows.sort((a,b)=>b.cv-a.cv);
   return {rows:rows.slice(0,12),min_months:MIN_MONTHS,min_avg_lakh:MIN_AVG_LAKH,n_qualifying:rows.length};
 }
+// NPI (new-product) launch cohorts.
+//
+// Two-layer design (per explicit review): STATIC IDENTITY, DYNAMIC
+// PERFORMANCE.
+//   - Cohort identity (which Chain x Article pairs exist, their actual
+//     first-sale month, their npi_cohort_fy, their launch_confirmation_status)
+//     comes ONLY from the pre-computed D.npd block (npd_block() in
+//     build_dashboard_data.py), built once from the WHOLE detail_records
+//     history. It is never recomputed from recFilter()/the dashboard's
+//     global filter bar -- selecting a chain, category or month must never
+//     change which pair launched when, or in which FY it's tracked.
+//   - Performance (NSV, units, active count, contribution %, avg/launch,
+//     productivity) IS filter-aware: it's recomputed from recFilter()'s
+//     currently filtered detail_records, restricted to whichever cohort's
+//     pairs are in view. This is the same global filter bar every other
+//     Commercial Analytics card already reads -- no new filter mechanism.
+// A local "cohort FY" selector (separate from the global filter bar's own
+// FY dimension, which selects a REPORTING PERIOD, not a cohort) picks
+// which launch cohort's pairs to look at; it defaults to the global FY
+// filter when that matches an existing cohort, else the latest cohort.
+let npiCohortFySel=null;
+function npiSetCohortFy(fy){ npiCohortFySel=fy; buildAnalytics(); }
+
+// Stable browser-side join key for a detail_records row: RAW Chain (never
+// the dashboard's own canonicalized/bucketed r.Chain) + EAN (barcode),
+// never Article display text.
+//
+// Two independent identity problems were found and fixed while building
+// this, both proving text-based identity is unsafe here:
+//  1. Article text: 31 of FY26's 3,136 cohort pairs carry a corrupted-
+//     encoding (mojibake) Article string, and separately 466 EANs in this
+//     dataset are recorded under more than one Article spelling (a
+//     rebrand/rename) -- text can both under- and over-identify a
+//     product. EAN (a plain digit string) has neither problem.
+//  2. Chain text: this dashboard already runs a load-time normalization
+//     pass (see the `(D.detail_records||[]).forEach(...)` block above)
+//     that consolidates minor/immaterial distributor "chain" values (the
+//     _MCD set, e.g. "SAI SAACHI ASSOCIATES-MT-OR") into a single
+//     "Other (Unallocated Distributors)" bucket, mutating r.Chain in
+//     place -- but preserves the ORIGINAL value on r._origChain first.
+//     npd_block() (Python) never applies that same bucketing, so its
+//     launches carry the RAW chain name. Joining against the mutated
+//     r.Chain therefore silently drops every minor-distributor launch;
+//     r._origChain is the one field both sides actually agree on.
+// FLAGGED, not fixed here: NPI launches at these raw distributor-level
+// "chains" (e.g. "SAI SAACHI ASSOCIATES-MT-OR") are consequently
+// unreachable through the dashboard's own Chain filter dropdown, since
+// that dropdown is built from the POST-bucketing r.Chain values -- a user
+// can never filter the NPI card down to exactly that one distributor.
+// Whether npd_block() should apply the SAME chain consolidation the rest
+// of the dashboard uses (so NPI chain names always match what's
+// selectable) is a real, separate business/product decision, not made
+// unilaterally in this pass.
+function npiRowKey(r){ return (r._origChain||r.Chain)+'||'+(r.EAN||r.Article); }
+
+function computeNpiPerformance(npd,cohortFy){
+  const cohortRows=npd.by_fy[cohortFy]||[];
+  const anyFilterActive=FILT.some(([k])=>F[k].length);
+  // No filter active: use the precomputed metrics directly. This is now a
+  // fast path + validation oracle, not a workaround for a join gap -- the
+  // filtered path below is proven (see tests/test_npi_filter_aware.js's
+  // join-coverage tests) to reconcile back to these same totals when every
+  // chain is selected individually and summed.
+  if(!anyFilterActive){
+    const m=npd.metrics_by_fy[cohortFy];
+    return {
+      rows:cohortRows, launches:m.npi_launches, active_count:m.active_npi_count,
+      nsv:m.npi_nsv, units:m.npi_units,
+      avg_per_launch:m.avg_nsv_per_launch, productivity:m.npi_productivity,
+      contribution_pct:m.npi_contribution_pct,
+      confirmed_count:m.confirmed_launch_count, observed_only_count:m.observed_only_launch_count,
+      filtered_out:0, unmatched_pair_ids:[],
+    };
+  }
+  const cohortPairIds=new Set(cohortRows.map(r=>r.pair_id));
+  // MEMBERSHIP (which launches are "visible") and PERFORMANCE (their NSV/
+  // units/active) are answered from two different windows over REC, per the
+  // locked definition: "NPI Launches = number of unique Chain x Article
+  // launch pairs belonging to the selected NPI FY cohort and current
+  // dimensional filters. Date filters do not reassign cohort membership."
+  //   - Membership ignores FY/Month (date dimensions) and looks at the
+  //     pair's FULL history, not just its cohort-FY transactions -- a pair's
+  //     chain/category/brand/etc. are stable identity facts, so a launch
+  //     with ZERO sales in its own cohort year (e.g. a March carry-forward
+  //     launch that never sold again) must still be counted as a launch
+  //     when its other dimensions match the filter. Found via the
+  //     chain-partition reconciliation test: without this distinction,
+  //     summing NPI Launches across every chain filtered one at a time
+  //     undercounted the true cohort total by exactly the number of such
+  //     zero-activity launches.
+  //   - Performance is still computed ONLY from the cohort's own reporting
+  //     FY (recFilter('FY') deliberately excludes the global FY filter --
+  //     the cohort's OWN FY is the mandatory performance window by
+  //     definition) and, within that, from the exact filtered rows
+  //     (including Month), so a zero-activity launch correctly contributes
+  //     nsv=0, not a fabricated figure.
+  const dateDims=new Set(['FY','Month']);
+  const memberFilters=FILT.filter(([k])=>!dateDims.has(k)&&F[k].length);
+  const visiblePairIds=new Set();
+  if(!memberFilters.length){
+    cohortPairIds.forEach(id=>visiblePairIds.add(id));
+  }else{
+    REC.forEach(r=>{
+      const key=npiRowKey(r);
+      if(!cohortPairIds.has(key)||visiblePairIds.has(key)) return;
+      if(memberFilters.every(([k])=>F[k].includes(String(r[k])))) visiblePairIds.add(key);
+    });
+  }
+  const filtered=recFilter('FY').filter(r=>r.FY===cohortFy);
+  let nsv=0,qty=0,filteredTotalNsv=0; const active=new Set();
+  filtered.forEach(r=>{
+    filteredTotalNsv+=(r.NSV||0);
+    const key=npiRowKey(r);
+    if(!cohortPairIds.has(key)||!visiblePairIds.has(key)) return;
+    const rowNsv=r.NSV||0;
+    nsv+=rowNsv; qty+=(r.Qty||0);
+    if(rowNsv>0) active.add(key);
+  });
+  const visibleRows=cohortRows.filter(r=>visiblePairIds.has(r.pair_id));
+  const confirmed=visibleRows.filter(r=>r.launch_confirmation_status==='confirmed').length;
+  const observedOnly=visibleRows.length-confirmed;
+  return {
+    rows:visibleRows,
+    launches:visibleRows.length,
+    active_count:active.size,
+    nsv, units:qty,
+    avg_per_launch:visibleRows.length?nsv/visibleRows.length:null,
+    productivity:active.size?nsv/active.size:null,
+    contribution_pct:filteredTotalNsv?nsv/filteredTotalNsv*100:null,
+    confirmed_count:confirmed, observed_only_count:observedOnly,
+    // filtered_out = cohort pairs not currently visible under the active
+    // filters (e.g. a different chain selected) -- not a join failure. The
+    // pair_id (Chain+EAN) join used above has zero known mismatches; see
+    // npiJoinCoverage() for the standalone, all-pairs join-integrity check.
+    filtered_out:cohortRows.length-visibleRows.length,
+  };
+}
+
+// Join-integrity invariant, independent of any dashboard filter: every
+// cohort pair_id (from D.npd, computed server-side from full history) must
+// match at least one row in the FULL, unfiltered detail_records via the
+// same Chain+EAN key the filtered performance path uses. A non-empty
+// result here means the browser-side join is dropping real launches --
+// this is a hard failure, not a warning (see tests/test_npi_filter_aware.js).
+function npiJoinCoverage(npd){
+  const allKeys=new Set(REC.map(npiRowKey));
+  const unmatched=[];
+  Object.values(npd.by_fy).forEach(rows=>rows.forEach(r=>{
+    if(!allKeys.has(r.pair_id)) unmatched.push(r);
+  }));
+  return {total:Object.values(npd.by_fy).reduce((a,r)=>a+r.length,0), unmatched};
+}
+
+function npiCohortSection(){
+  const npd=D.npd;
+  if(!npd||!npd.metrics_by_fy||!Object.keys(npd.metrics_by_fy).length) return '';
+  const fys=Object.keys(npd.metrics_by_fy).sort((a,b)=>{
+    const y=t=>parseInt(t.slice(2),10);
+    return y(a)-y(b);
+  });
+  // Default the cohort selector to the global FY filter when it names an
+  // actual cohort; otherwise the latest cohort. A user's own explicit pick
+  // (npiCohortFySel) always wins once set.
+  const globalFy=fOne('FY');
+  const defaultCohort=(globalFy&&fys.includes(globalFy))?globalFy:fys[fys.length-1];
+  const sel=(npiCohortFySel&&fys.includes(npiCohortFySel))?npiCohortFySel:defaultCohort;
+  const selIdx=fys.indexOf(sel);
+  const prevFy=selIdx>0?fys[selIdx-1]:null;
+
+  const perf=computeNpiPerformance(npd,sel);
+  const idFull=npd.metrics_by_fy[sel]; // identity/coverage -- immutable, never filtered
+  const prevPerf=prevFy?computeNpiPerformance(npd,prevFy):null;
+  const anyFilterActive=FILT.some(([k])=>F[k].length);
+
+  const growthPct=(prevPerf&&prevPerf.nsv)?(perf.nsv-prevPerf.nsv)/prevPerf.nsv*100:null;
+  const growthLabel=!prevFy?'no prior cohort to compare':
+    idFull.yoy_comparison_valid===false?'Not comparable — see caveat below':
+    growthPct==null?'–':`${growthPct>=0?'+':''}${growthPct.toFixed(1)}% vs ${prevFy} cohort${anyFilterActive?' (current filters)':''}`;
+
+  const cohortTabs=fys.map(fy=>`<button class="pill" style="cursor:pointer;border:1px solid #ccc;${fy===sel?'font-weight:700':''}" onclick="npiSetCohortFy('${fy}')">${fy} ${npd.metrics_by_fy[fy].history_coverage}</button>`).join(' ');
+
+  const fyRows=fys.map(fy=>{
+    const p=fy===sel?perf:computeNpiPerformance(npd,fy);
+    const r=npd.metrics_by_fy[fy];
+    const prevP=(()=>{const i=fys.indexOf(fy);return i>0?computeNpiPerformance(npd,fys[i-1]):null;})();
+    const g=(prevP&&prevP.nsv)?(p.nsv-prevP.nsv)/prevP.nsv*100:null;
+    const growthCell=!prevP?'–':
+      r.yoy_comparison_valid===false?`<span class="pill" title="${(r.yoy_caveat||'').replace(/"/g,'&quot;')}">Not comparable ⚠</span>`:
+      g==null?'–':`<span class="pill ${g>=0?'g':'r'}">${g>=0?'+':''}${g.toFixed(1)}%</span>`;
+    return `<tr><td>${fy} <span class="pill" style="font-size:10px">${r.history_coverage}</span></td><td>${p.launches} <span class="note" style="font-size:10px">(${p.confirmed_count} confirmed, ${p.observed_only_count} observed-only)</span></td><td>${p.active_count}</td>
+      <td>${crc(p.nsv)}</td><td>${crc(p.units)}</td>
+      <td>${p.avg_per_launch!=null?crc(p.avg_per_launch):'–'}</td>
+      <td>${p.productivity!=null?crc(p.productivity):'–'}</td>
+      <td>${p.contribution_pct!=null?p.contribution_pct.toFixed(1)+'%':'–'}</td>
+      <td>${growthCell}</td></tr>`;
+  }).join('');
+
+  const sampleRows=perf.rows.slice(0,15).map(r=>
+    `<tr><td>${drillLink('Chain',r.chain)}</td><td>${r.article}</td>
+      <td>${r.actual_first_sale_month}-${r.actual_first_sale_fy.slice(2)}</td>
+      <td>${r.npi_cohort_fy}</td><td><span class="pill">${r.launch_confirmation_status}</span></td></tr>`).join('');
+
+  const incomplete=npd.qc?npd.qc.pairs_excluded_history_incomplete:0;
+  const caveatFys=fys.filter(fy=>npd.metrics_by_fy[fy].history_coverage!=='CONFIRMED');
+  return `<h2 class="sec" style="margin-top:32px">NPI Launch Cohorts (New Products)</h2>
+   <p class="lead">Chain × Article launch cohorts, FY-based with a March carry-forward: a pair's cohort is the FY of its first real sale (NSV &amp; Qty &gt; 0), except a March first-sale rolls into the <b>next</b> FY so it gets a full Apr–Mar tracking year instead of one month. Actual launch month is always kept alongside the cohort FY — never rewritten. Same article at two different chains counts as two separate launches.
+     <b>Cohort membership is fixed</b> from the full sales history regardless of dashboard filters; the metrics below reflect whichever chain/category/month/etc. filters are currently active.
+     Every launch is additionally either <b>confirmed</b> (≥12 months of prior data exist behind its own first sale, this dashboard's data-only confidence threshold — not proof against an external launch master, which doesn't exist here) or <b>observed-only</b> (fewer than 12 months — the first sale visible in available history, not provably the product's first-ever sale).
+     ${incomplete?`<br><span class="pill">${incomplete} pair(s) status UNKNOWN</span> — their first observed sale falls in this dataset's very first month, so a genuine new launch can't be told apart from a pre-existing product. Excluded from every count here — never counted as an NPI, never counted as not-NPI.`:''}</p>
+   <p class="note">Cohort: <b>${cohortTabs}</b>${anyFilterActive?` · Performance shown under current dashboard filters (${perf.filtered_out} of ${idFull.npi_launches} ${sel} launches filtered out of view; their cohort identity is unchanged).`:' · No dashboard filters active — figures match the full-history cohort totals.'}</p>
+   ${caveatFys.length?`<p class="note" style="border-left:3px solid #F39C12;padding-left:8px;margin:0 0 10px">
+     <b>⚠ Comparison caveat:</b> ${caveatFys.map(fy=>{const r=npd.metrics_by_fy[fy];return `${fy} has ${r.observed_only_launch_count} of ${r.npi_launches} launches still observed-only`;}).join('; ')}
+     (under 12 months of lookback behind their own first sale — not proof they're genuinely new, just the first sale visible in available history). Any YoY growth involving ${caveatFys.join('/')} is <b>not comparable</b> — do not present it as confirmed NPI growth to leadership without this caveat. Raw launch/NSV/contribution figures for these FYs are still shown below; only the YoY conclusion is suppressed.</p>`:''}
+   <div class="kpis">
+     ${kpi(`${sel} NPI Launches`,perf.launches,`${perf.active_count} active${anyFilterActive?' (filtered)':''}`)}
+     ${kpi(`${sel} NPI NSV`,crc(perf.nsv),`${perf.contribution_pct!=null?perf.contribution_pct.toFixed(1)+'% of '+sel+(anyFilterActive?' filtered':'')+' total NSV':''}`)}
+     ${kpi('Avg NSV / launch',perf.avg_per_launch!=null?crc(perf.avg_per_launch):'–','across visible launches, selling or not')}
+     ${kpi('NPI productivity',perf.productivity!=null?crc(perf.productivity):'–','NSV per launch that actually sold')}
+     ${kpi('YoY NPI NSV growth',growthLabel,'more launches vs better-performing launches — see table')}
+   </div>
+   <div class="grid g2">
+     ${card('NPI cohort performance by FY','History coverage pill shows how much prior-FY lookback exists to confirm each cohort\'s launch count (identity, never filtered). Launches/NSV/Units/etc. reflect current dashboard filters.',
+       `<div class="tablewrap"><table><thead><tr><th>Cohort FY</th><th>Launches</th><th>Active</th><th>NSV</th><th>Units</th><th>Avg/Launch</th><th>Productivity</th><th>Contribution %</th><th>YoY NSV Growth</th></tr></thead><tbody>${fyRows}</tbody></table></div>`)}
+     ${card(`${sel} cohort — sample launches`,`First 15 of ${perf.launches} visible Chain × Article launches in the ${sel} cohort (identity fields never change with filters).`,
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Article</th><th>Actual Launch</th><th>NPI Cohort</th><th>Confidence</th></tr></thead><tbody>${sampleRows||'<tr><td colspan="5">No launches match the current filters.</td></tr>'}</tbody></table></div>`)}
+   </div>`;
+}
 function skuVolatilitySection(){
   const V=computeSkuVolatility();
   if(!V.rows.length) return '';
@@ -3599,6 +3826,7 @@ function buildAnalytics(){
    ${pvmSection()}
    ${mappingHealthSection()}
    ${skuVolatilitySection()}
+   ${npiCohortSection()}
    <h2 class="sec" style="margin-top:32px">Data Readiness</h2>
    ${readinessCard()}`;
 
