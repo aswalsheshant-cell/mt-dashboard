@@ -3074,24 +3074,30 @@ function npiCohortSection(){
   const prevFy=fys.length>1?fys[fys.length-2]:null;
   const prevM=prevFy?npd.metrics_by_fy[prevFy]:null;
   const growthLabel=m.yoy_npi_nsv_growth_pct==null?'no prior cohort to compare':
-    `${m.yoy_npi_nsv_growth_pct>=0?'+':''}${m.yoy_npi_nsv_growth_pct.toFixed(1)}% vs ${prevFy} cohort`;
+    `${m.yoy_npi_nsv_growth_pct>=0?'+':''}${m.yoy_npi_nsv_growth_pct.toFixed(1)}% vs ${prevFy} cohort${m.yoy_comparison_valid===false?' (provisional)':''}`;
   const fyRows=fys.map(fy=>{
     const r=npd.metrics_by_fy[fy];
-    return `<tr><td>${fy}</td><td>${r.npi_launches}</td><td>${r.active_npi_count}</td>
+    const growthCell=r.yoy_npi_nsv_growth_pct==null?'–':
+      `<span class="pill ${r.yoy_comparison_valid===false?'':r.yoy_npi_nsv_growth_pct>=0?'g':'r'}" ${r.yoy_caveat?`title="${r.yoy_caveat.replace(/"/g,'&quot;')}"`:''}>${r.yoy_npi_nsv_growth_pct>=0?'+':''}${r.yoy_npi_nsv_growth_pct.toFixed(1)}%${r.yoy_comparison_valid===false?' ⚠':''}</span>`;
+    return `<tr><td>${fy} <span class="pill" style="font-size:10px">${r.history_coverage}</span></td><td>${r.npi_launches}</td><td>${r.active_npi_count}</td>
       <td>${crc(r.npi_nsv)}</td><td>${crc(r.npi_units)}</td>
       <td>${r.avg_nsv_per_launch!=null?crc(r.avg_nsv_per_launch):'–'}</td>
       <td>${r.npi_productivity!=null?crc(r.npi_productivity):'–'}</td>
       <td>${r.npi_contribution_pct!=null?r.npi_contribution_pct.toFixed(1)+'%':'–'}</td>
-      <td>${r.yoy_npi_nsv_growth_pct!=null?`<span class="pill ${r.yoy_npi_nsv_growth_pct>=0?'g':'r'}">${r.yoy_npi_nsv_growth_pct>=0?'+':''}${r.yoy_npi_nsv_growth_pct.toFixed(1)}%</span>`:'–'}</td></tr>`;
+      <td>${growthCell}</td></tr>`;
   }).join('');
   const sampleRows=(npd.by_fy[latest]||[]).slice(0,15).map(r=>
     `<tr><td>${drillLink('Chain',r.chain)}</td><td>${r.article}</td>
       <td>${r.actual_first_sale_month}-${r.actual_first_sale_fy.slice(2)}</td>
       <td>${r.npi_cohort_fy}</td></tr>`).join('');
-  const censored=npd.qc?npd.qc.pairs_excluded_left_censored:0;
+  const incomplete=npd.qc?npd.qc.pairs_excluded_history_incomplete:0;
+  const caveatFys=fys.filter(fy=>npd.metrics_by_fy[fy].history_coverage!=='CONFIRMED');
   return `<h2 class="sec" style="margin-top:32px">NPI Launch Cohorts (New Products)</h2>
    <p class="lead">Chain × Article launch cohorts, FY-based with a March carry-forward: a pair's cohort is the FY of its first real sale (NSV &amp; Qty &gt; 0), except a March first-sale rolls into the <b>next</b> FY so it gets a full Apr–Mar tracking year instead of one month. Actual launch month is always kept alongside the cohort FY — never rewritten. Same article at two different chains counts as two separate launches.
-     ${censored?`<br><span class="pill">${censored} pair(s) excluded</span> — their first sale falls in this dataset's very first month, so a genuine new launch can't be told apart from a pre-existing product (left-censored, not counted as an NPI).`:''}</p>
+     ${incomplete?`<br><span class="pill">${incomplete} pair(s) status UNKNOWN</span> — their first observed sale falls in this dataset's very first month, so a genuine new launch can't be told apart from a pre-existing product. Excluded from every count here — never counted as an NPI, never counted as not-NPI.`:''}</p>
+   ${caveatFys.length?`<p class="note" style="border-left:3px solid #F39C12;padding-left:8px;margin:0 0 10px">
+     <b>⚠ Comparison caveat:</b> ${caveatFys.map(fy=>`${fy}'s launch count has <b>${npd.metrics_by_fy[fy].history_coverage.toLowerCase()}</b> history coverage`).join('; ')}
+     (fewer than a full prior FY of lookback exists to rule out pre-existing products, so it's a floor, not a confirmed total). Any YoY growth involving ${caveatFys.join('/')} is <b>provisional</b>, not a like-for-like comparison — do not present it as confirmed NPI growth to leadership without this caveat.</p>`:''}
    <div class="kpis">
      ${kpi(`${latest} NPI Launches`,m.npi_launches,`${m.active_npi_count} active`)}
      ${kpi(`${latest} NPI NSV`,crc(m.npi_nsv),`${m.npi_contribution_pct!=null?m.npi_contribution_pct.toFixed(1)+'% of '+latest+' total NSV':''}`)}
@@ -3100,7 +3106,7 @@ function npiCohortSection(){
      ${kpi('YoY NPI NSV growth',growthLabel,'more launches vs better-performing launches — see table')}
    </div>
    <div class="grid g2">
-     ${card('NPI cohort performance by FY','Separates growth from more launches (NPI Launches) from growth from better-performing launches (NPI Productivity).',
+     ${card('NPI cohort performance by FY','History coverage pill shows how much prior-FY lookback exists to confirm each cohort\'s launch count. Table separates growth from more launches (NPI Launches) from growth from better-performing launches (NPI Productivity).',
        `<div class="tablewrap"><table><thead><tr><th>Cohort FY</th><th>Launches</th><th>Active</th><th>NSV</th><th>Units</th><th>Avg/Launch</th><th>Productivity</th><th>Contribution %</th><th>YoY NSV Growth</th></tr></thead><tbody>${fyRows}</tbody></table></div>`)}
      ${card(`${latest} cohort — sample launches`,`First 15 of ${npd.counts_by_fy[latest]} Chain × Article launches in the ${latest} cohort, by chain/article.`,
        `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Article</th><th>Actual Launch</th><th>NPI Cohort</th></tr></thead><tbody>${sampleRows||'<tr><td colspan="4">No launches.</td></tr>'}</tbody></table></div>`)}

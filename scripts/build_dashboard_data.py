@@ -3313,13 +3313,26 @@ def npd_block(detail_records):
     Same article launching in different chains = separate Chain x Article
     launches, each with its own independent launch date and cohort.
 
-    LEFT-CENSORING GUARD: detail_records' own earliest available FY x Month
-    across ALL rows is the first month this repo has any data for -- a pair
-    whose first valid sale falls exactly in that month cannot be told apart
-    from a product that already existed before this data window started.
-    Those pairs are reported separately as "censored" and excluded from
-    launch counts/cohorts/NSV so a data-window artifact can't be reported
-    as a real NPI Launches figure.
+    HISTORY-INCOMPLETE GUARD: detail_records' own earliest available FY x
+    Month across ALL rows is the first month this repo has any data for --
+    a pair whose first valid sale falls exactly in that month cannot be
+    told apart from a product that already existed before this data window
+    started. Those pairs get launch_status="history_incomplete" (never
+    "confirmed_launch") and are excluded from launch counts/cohorts/NSV --
+    this is a statement that the launch status is UNKNOWN, not a claim that
+    the pair is NOT an NPI (left truncation, not a negative finding; see
+    NIST's distinction between left-truncated and left-censored data).
+
+    Because of this, a cohort FY's own launch count is only trustworthy
+    once at least one full prior FY of history exists to rule out
+    pre-existence -- metrics_by_fy[fy]["history_coverage"] states this:
+    "INCOMPLETE" (this FY IS the dataset's first FY -- its launch count is
+    a floor, not a confirmed total), "PARTIAL" (some but under 12 months
+    of lookback), or "CONFIRMED" (>=12 months of prior history available).
+    yoy_npi_nsv_growth_pct is still computed year over year, but
+    yoy_comparison_valid/yoy_caveat flag when either side of that
+    comparison rests on an INCOMPLETE-coverage FY, so a growth headline
+    is never presented as more solid than the history behind it actually is.
 
     Classification depends only on the pair's own full sales history in
     this detail_records snapshot, never on any dashboard filter selection --
@@ -3356,11 +3369,15 @@ def npd_block(detail_records):
         if key not in first_seen or cand < first_seen[key]:
             first_seen[key] = cand
 
-    launches = []          # confirmed launches only (not left-censored)
-    censored_count = 0
+    launches = []          # confirmed launches only (history_incomplete pairs excluded)
+    history_incomplete_pairs = []
     for (chain, article), (fy_year, mo, fy_tag, month_name) in first_seen.items():
         if (fy_year, mo) == earliest:
-            censored_count += 1
+            history_incomplete_pairs.append({
+                "chain": chain, "article": article,
+                "first_observed_fy": fy_tag, "first_observed_month": month_name,
+                "launch_status": "history_incomplete",
+            })
             continue
         cohort_fy = f"FY{int(fy_tag[2:]) + 1}" if month_name == "March" else fy_tag
         launches.append({
@@ -3402,6 +3419,20 @@ def npd_block(detail_records):
                 active_pairs.add(key)
         launches_count = len(rows)
         active_count = len(active_pairs)
+        # History coverage: a cohort FY's launch count is only trustworthy
+        # once at least one full prior FY of data exists to rule out
+        # pre-existence. lookback_months = months between the dataset's
+        # earliest available month and this FY's own April start.
+        fy_start_idx = fy_start_year(cohort_fy) * 12 + 1
+        earliest_idx = earliest[0] * 12 + earliest[1]
+        lookback_months = fy_start_idx - earliest_idx
+        if lookback_months <= 0:
+            coverage = "INCOMPLETE"
+        elif lookback_months < 12:
+            coverage = "PARTIAL"
+        else:
+            coverage = "CONFIRMED"
+
         metrics_by_fy[cohort_fy] = {
             "npi_launches": launches_count,
             "npi_nsv": r2(nsv),
@@ -3415,36 +3446,63 @@ def npd_block(detail_records):
             # launch, selling or not) -- separates "more launches" growth
             # from "better-performing launches" growth.
             "npi_productivity": r2(nsv / active_count) if active_count else None,
+            "history_coverage": coverage,
+            "history_lookback_months": lookback_months,
         }
 
     fy_order = sorted(metrics_by_fy, key=fy_start_year)
     for i, fy in enumerate(fy_order):
         if i == 0:
             metrics_by_fy[fy]["yoy_npi_nsv_growth_pct"] = None
+            metrics_by_fy[fy]["yoy_comparison_valid"] = False
+            metrics_by_fy[fy]["yoy_caveat"] = "No prior cohort FY to compare against."
             continue
-        prev = metrics_by_fy[fy_order[i - 1]]["npi_nsv"]
+        prev_fy = fy_order[i - 1]
+        prev = metrics_by_fy[prev_fy]["npi_nsv"]
         cur = metrics_by_fy[fy]["npi_nsv"]
         metrics_by_fy[fy]["yoy_npi_nsv_growth_pct"] = (
             r2((cur - prev) / prev * 100) if prev else None
         )
+        # A YoY comparison is only as solid as its weaker side's history
+        # coverage. This is the specific, evidenced risk this function must
+        # never hide: FY26 (this dataset's first FY) has zero prior-year
+        # lookback, so its launch count is a floor, not a confirmed total --
+        # comparing a later, better-observed FY against it overstates growth.
+        weak_fy = prev_fy if metrics_by_fy[prev_fy]["history_coverage"] != "CONFIRMED" else (
+            fy if metrics_by_fy[fy]["history_coverage"] != "CONFIRMED" else None)
+        if weak_fy:
+            metrics_by_fy[fy]["yoy_comparison_valid"] = False
+            metrics_by_fy[fy]["yoy_caveat"] = (
+                f"{weak_fy}'s NPI launch count has {metrics_by_fy[weak_fy]['history_coverage'].lower()} "
+                "history coverage (not a full prior FY of lookback to rule out pre-existing products) -- "
+                "this YoY growth figure is not a like-for-like comparison and should be labelled "
+                "provisional, not presented as confirmed growth."
+            )
+        else:
+            metrics_by_fy[fy]["yoy_comparison_valid"] = True
+            metrics_by_fy[fy]["yoy_caveat"] = None
 
     return {
         "basis": ("Chain x Article NPI launch cohort: the FY containing a pair's actual first "
                    "valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls "
                    "forward into the NEXT FY so it gets a full Apr-Mar tracking year. Actual "
                    "launch month is always preserved alongside the cohort FY. Pairs whose first "
-                   "sale falls in detail_records' own earliest available month are excluded as "
-                   "left-censored (cannot be told apart from a pre-existing product)."),
+                   "observed sale falls in detail_records' own earliest available month are "
+                   "excluded as launch_status=history_incomplete: UNKNOWN whether they are a new "
+                   "launch or a pre-existing product (left truncation, not evidence of either), "
+                   "so they are never counted as confirmed_launch and never counted as not-NPI."),
         "by_fy": by_fy,
         "counts_by_fy": {fy: len(rows) for fy, rows in by_fy.items()},
         "metrics_by_fy": metrics_by_fy,
+        "history_incomplete_pairs": history_incomplete_pairs,
         "qc": {
             "rows_skipped_missing_chain_or_article": rows_skipped_missing_identifier,
-            "pairs_excluded_left_censored": censored_count,
-            "left_censored_reason": (
+            "pairs_excluded_history_incomplete": len(history_incomplete_pairs),
+            "history_incomplete_reason": (
                 f"first available data month is FY-start-year {earliest[0]}, month-order "
-                f"{earliest[1]} (Apr=1..Mar=12) -- a pair first seen exactly then cannot be "
-                "distinguished from a pre-existing product"
+                f"{earliest[1]} (Apr=1..Mar=12) -- a pair first observed exactly then has "
+                "launch_status=UNKNOWN (history_incomplete), not confirmed_launch and not "
+                "confirmed_preexisting"
             ),
         },
     }
