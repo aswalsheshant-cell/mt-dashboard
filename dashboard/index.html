@@ -3353,9 +3353,13 @@ function buildComparison(){
   wireChips(s,buildComparison);
   wireCmpButtons(s);
   if(top.length){
+    // r.a null means no prior-year data for this chain/brand (e.g. FY25
+    // Primary genuinely doesn't exist for most chains) -- pass null through
+    // so Chart.js leaves a gap and the valueLabels plugin skips the label,
+    // instead of drawing a fabricated "0" bar that reads as a real zero.
     mkBar('cmpChart',top.map(r=>r.name),[
-      {label:yrPair[0],data:top.map(r=>r.a||0),backgroundColor:C.blue+'cc',borderRadius:4},
-      {label:yrPair[1],data:top.map(r=>r.b||0),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo(cmpDim,v));
+      {label:yrPair[0],data:top.map(r=>r.a??null),backgroundColor:C.blue+'cc',borderRadius:4},
+      {label:yrPair[1],data:top.map(r=>r.b??null),backgroundColor:C.teal,borderRadius:4}],{},v=>drillTo(cmpDim,v));
   }
   renderPogGapCharts();
   renderUnifiedTrendChart();
@@ -4051,22 +4055,58 @@ function galControls(id,dim){
     <label for="gal-${id}-type">Chart <select id="gal-${id}-type" name="gal-${id}-type" aria-label="Chart type for chart ${id}" data-gal="type" data-id="${id}" style="font-family:inherit;font-size:12px;padding:2px 4px">${opt(GAL_TYPES,st.type)}</select></label></span>`;
 }
 function galCardHtml(id,dim,title){ return card(title,galControls(id,dim),cv(id,dim!=='Month'&&dim!=='Chain')); }
+const _GAL_MONTH_SEP='␟';
+function _fyMonthSortKey(fy,month){
+  const fyNum=parseInt(String(fy).replace(/\D/g,''),10)||0;
+  return fyNum*12+MORDER.indexOf(month);
+}
 function galAgg(recs,dim,metric){
+  if(dim==='Month'){
+    // Grouping by month NAME alone silently sums every FY present in recs
+    // into one bucket -- when recs spans >1 FY (the default no-FY-filter
+    // view), April/May/... (which have BOTH a full FY26 year and a partial
+    // FY27 year) come out roughly double the months FY27 hasn't reached yet
+    // (Sept-March, FY26 only), producing a fake "cliff" in the trend that
+    // is a mixed-period artifact, not a real month-on-month drop. Group by
+    // FY+Month instead whenever more than one FY is present, in true
+    // chronological order, so distinct fiscal years never get summed
+    // together on one x-axis point.
+    const fys=new Set(recs.map(r=>r.FY).filter(Boolean));
+    const m={};
+    recs.forEach(r=>{
+      const key=fys.size>1?(r.FY+_GAL_MONTH_SEP+r.Month):r.Month;
+      m[key]=(m[key]||0)+(Number(r[metric])||0);
+    });
+    let e=Object.entries(m).filter(x=>x[0]!=='undefined'&&x[0]!=='null'&&x[0]!=='');
+    if(fys.size>1){
+      e.sort((a,b)=>{
+        const [fyA,moA]=a[0].split(_GAL_MONTH_SEP), [fyB,moB]=b[0].split(_GAL_MONTH_SEP);
+        return _fyMonthSortKey(fyA,moA)-_fyMonthSortKey(fyB,moB);
+      });
+    } else {
+      e.sort((a,b)=>MORDER.indexOf(a[0])-MORDER.indexOf(b[0]));
+    }
+    return e;
+  }
   const m={};recs.forEach(r=>{ m[r[dim]]=(m[r[dim]]||0)+(Number(r[metric])||0); });
   let e=Object.entries(m).filter(x=>x[0]!=='undefined'&&x[0]!=='null'&&x[0]!=='');
-  if(dim==='Month') e.sort((a,b)=>MORDER.indexOf(a[0])-MORDER.indexOf(b[0]));
-  else e.sort((a,b)=>b[1]-a[1]);
-  if(dim==='Article') e=e.slice(0,15);
-  else if(dim!=='Month') e=e.slice(0,15);   // keep categorical charts readable
+  e.sort((a,b)=>b[1]-a[1]);
+  e=e.slice(0,15);   // keep categorical charts readable
   return e;
 }
 function renderGal(id){
   const dim=GAL_DIM_OF[id]; const st=galGet(id,dim);
   const e=galAgg(recFilter(),dim,st.metric);
-  const labels=e.map(x=>x[0]),data=e.map(x=>x[1]);
+  // For Month, a key may be "FY26␟April" (multi-FY view) -- split it into
+  // the raw month (used to filter, since F.Month only ever holds a plain
+  // month name) and a display label that still shows which FY it's from.
+  const isMultiFyMonth=dim==='Month'&&e.some(x=>x[0].includes(_GAL_MONTH_SEP));
+  const monthOf=k=>isMultiFyMonth?k.split(_GAL_MONTH_SEP)[1]:k;
+  const labels=e.map(x=>isMultiFyMonth?x[0].split(_GAL_MONTH_SEP).reverse().join(' '):x[0]);
+  const data=e.map(x=>x[1]);
   const fmt=st.metric==='Qty'?(v=>qtyFmt(v)):(v=>crc(v));
   const isFilterDim=FILT.some(([k])=>k===dim);
-  const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[String(labels[els[0].index])];onFilterChange();}}:undefined;
+  const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[String(monthOf(e[els[0].index][0]))];onFilterChange();}}:undefined;
   const t=st.type;
   let cfg;
   if(t==='doughnut'||t==='pie'){
@@ -4128,11 +4168,41 @@ function buildExplorer(){
     const sisR=recFilter('Channel').filter(r=>String(r.Channel).toUpperCase()==='SIS');
     sis26=sisR.filter(r=>r.FY==='FY26').reduce((a,r)=>a+r.NSV,0);
   }
-  // SIS FY26 Primary — final confirmed figure only. Full investigation /
-  // audit trail (superseded reference values, resolution record) lives in
-  // PowerBI/docs/SIS_Reconciliation.md, not on the live dashboard.
+  // SIS FY26 Primary — final confirmed figure only. Full drill-down below.
   const sisCard=isRep?'':card('SIS — Primary (FY26)','',
     `<div class="val" style="font-size:24px">${cr2(sis26)}</div><div class="sub">${lac2(sis26)}</div>`);
+  // SIS Reconciliation audit trail — surfaces D.detail_meta.sis_reconciliation /
+  // sis_gap_status, computed in build_dashboard_data.py's _sis_reconciliation()
+  // but never rendered until now. Read-only display of already-governed figures;
+  // does not add or change any calculation (sis26 above is untouched).
+  const sisRecon=(D.detail_meta&&D.detail_meta.sis_reconciliation)||null;
+  const sisGapStatus=(D.detail_meta&&D.detail_meta.sis_gap_status)||'';
+  const sisReconDetails=(isRep||!sisRecon||!Object.keys(sisRecon).length)?'':`<details style="margin:14px 0 0">
+   <summary style="cursor:pointer;font-size:15px;font-weight:700;color:var(--teal);padding:6px 0">
+     SIS Reconciliation — audit trail (by FY, chain, month, brand)</summary>
+   <div style="margin:8px 0 0">
+   ${sisGapStatus?`<div class="repbanner" style="background:#e8f5ec;border-color:#b7e0c4;color:#1c6b3a"><b>Status:</b> ${sisGapStatus}</div>`:''}
+   ${Object.keys(sisRecon).sort().map(fy=>{
+     const r=sisRecon[fy]||{}, sm=r.summary||{};
+     const topChains=(r.by_chain||[]).slice(0,5).map(c=>`<tr><td>${c.name}</td><td>${lac2(c.value)}</td></tr>`).join('');
+     const topBrands=(r.by_brand||[]).slice(0,5).map(b=>`<tr><td>${b.name}</td><td>${lac2(b.value)}</td></tr>`).join('');
+     return `<div class="grid g2" style="margin:0 0 6px">
+       ${card(`${fy} summary`,`${num(r.row_count||0)} SIS rows (full uncapped source)`,`<div class="tablewrap"><table>
+         <thead><tr><th>Measure</th><th>Value</th></tr></thead><tbody>
+         <tr><td>Total SIS sales</td><td>${lac2(sm.total_sis_sales||0)}</td></tr>
+         <tr><td>MRN (returns)</td><td>${lac2(sm.mrn_returns||0)}</td></tr>
+         <tr><td>Cancelled invoices</td><td>${lac2(sm.cancelled_invoices||0)}</td></tr>
+         <tr><td><b>Net SIS value</b></td><td><b>${lac2(sm.net_sis_value||0)}</b></td></tr>
+         </tbody></table></div>`)}
+       ${card(`${fy} — top chains / brands`,'',`<div class="tablewrap"><table>
+         <thead><tr><th>Top chains</th><th>Value</th></tr></thead><tbody>${topChains||'<tr><td colspan="2">–</td></tr>'}</tbody></table></div>
+         <div class="tablewrap" style="margin-top:8px"><table>
+         <thead><tr><th>Top brands</th><th>Value</th></tr></thead><tbody>${topBrands||'<tr><td colspan="2">–</td></tr>'}</tbody></table></div>`)}
+     </div>
+     ${(r.exclusions||[]).length?`<p class="note" style="margin:0 0 14px">${r.exclusions.join(' ')}</p>`:''}`;
+   }).join('')}
+   </div>
+  </details>`;
 
   s.innerHTML=`<h2 class="sec">Data Explorer</h2>
    <p class="lead">Filter, drill down and click any chart to slice. All cards, charts and the table below update live. Values ₹ Crore unless noted.</p>
@@ -4145,6 +4215,7 @@ function buildExplorer(){
      ${kpi('Realisation',mrp?((nsv/mrp)*100).toFixed(0)+'%':'–','NSV ÷ MRP')}
    </div>
    ${sisCard}
+   ${sisReconDetails}
    <p class="lead" style="font-size:13px;margin:6px 0 8px"><b>Custom charts</b> — each card below has its own
      <b>Metric</b> (NSV / MRP / Qty) and <b>Chart type</b> (Bar / Column / Line / Area / Donut / Pie) picker; bars stay
      sorted high→low, and clicking a chart still filters the whole view. Use the ⭳ on any card for PNG / CSV / Excel.</p>
