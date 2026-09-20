@@ -3079,21 +3079,46 @@ function computeSkuVolatility(){
 let npiCohortFySel=null;
 function npiSetCohortFy(fy){ npiCohortFySel=fy; buildAnalytics(); }
 
+// Stable browser-side join key for a detail_records row: RAW Chain (never
+// the dashboard's own canonicalized/bucketed r.Chain) + EAN (barcode),
+// never Article display text.
+//
+// Two independent identity problems were found and fixed while building
+// this, both proving text-based identity is unsafe here:
+//  1. Article text: 31 of FY26's 3,136 cohort pairs carry a corrupted-
+//     encoding (mojibake) Article string, and separately 466 EANs in this
+//     dataset are recorded under more than one Article spelling (a
+//     rebrand/rename) -- text can both under- and over-identify a
+//     product. EAN (a plain digit string) has neither problem.
+//  2. Chain text: this dashboard already runs a load-time normalization
+//     pass (see the `(D.detail_records||[]).forEach(...)` block above)
+//     that consolidates minor/immaterial distributor "chain" values (the
+//     _MCD set, e.g. "SAI SAACHI ASSOCIATES-MT-OR") into a single
+//     "Other (Unallocated Distributors)" bucket, mutating r.Chain in
+//     place -- but preserves the ORIGINAL value on r._origChain first.
+//     npd_block() (Python) never applies that same bucketing, so its
+//     launches carry the RAW chain name. Joining against the mutated
+//     r.Chain therefore silently drops every minor-distributor launch;
+//     r._origChain is the one field both sides actually agree on.
+// FLAGGED, not fixed here: NPI launches at these raw distributor-level
+// "chains" (e.g. "SAI SAACHI ASSOCIATES-MT-OR") are consequently
+// unreachable through the dashboard's own Chain filter dropdown, since
+// that dropdown is built from the POST-bucketing r.Chain values -- a user
+// can never filter the NPI card down to exactly that one distributor.
+// Whether npd_block() should apply the SAME chain consolidation the rest
+// of the dashboard uses (so NPI chain names always match what's
+// selectable) is a real, separate business/product decision, not made
+// unilaterally in this pass.
+function npiRowKey(r){ return (r._origChain||r.Chain)+'||'+(r.EAN||r.Article); }
+
 function computeNpiPerformance(npd,cohortFy){
   const cohortRows=npd.by_fy[cohortFy]||[];
   const anyFilterActive=FILT.some(([k])=>F[k].length);
-  // No filter active: use the precomputed metrics directly rather than
-  // re-joining against recFilter()'s records by Chain+Article string --
-  // this guarantees the unfiltered case exactly matches the immutable
-  // identity layer's own totals byte-for-byte, and also sidesteps a real,
-  // pre-existing data-quality issue found while building this: a small
-  // number of Article names in detail_records carry corrupted-encoding
-  // characters (mojibake) that don't always string-match identically
-  // across rows for the same real product -- confirmed via 31 of FY26's
-  // 3,136 pairs (all from chain "SAI SAACHI ASSOCIATES-MT-OR"). That
-  // string-join limitation only affects the FILTERED path below; it's a
-  // detail_records data-quality finding, not something to silently patch
-  // around by fuzzy-matching article names.
+  // No filter active: use the precomputed metrics directly. This is now a
+  // fast path + validation oracle, not a workaround for a join gap -- the
+  // filtered path below is proven (see tests/test_npi_filter_aware.js's
+  // join-coverage tests) to reconcile back to these same totals when every
+  // chain is selected individually and summed.
   if(!anyFilterActive){
     const m=npd.metrics_by_fy[cohortFy];
     return {
@@ -3102,24 +3127,54 @@ function computeNpiPerformance(npd,cohortFy){
       avg_per_launch:m.avg_nsv_per_launch, productivity:m.npi_productivity,
       contribution_pct:m.npi_contribution_pct,
       confirmed_count:m.confirmed_launch_count, observed_only_count:m.observed_only_launch_count,
-      filtered_out:0,
+      filtered_out:0, unmatched_pair_ids:[],
     };
   }
-  const pairKey=r=>r.chain+'||'+r.article; // matches r.Chain+'||'+r.Article below
-  const cohortPairKeys=new Set(cohortRows.map(pairKey));
-  const filtered=recFilter(); // respects the SAME global Chain/Category/Brand/SubCategory/Range/PackSize/Zone/State/Channel/Month/FY filters every other card on this tab uses
-  const visiblePairKeys=new Set();
+  const cohortPairIds=new Set(cohortRows.map(r=>r.pair_id));
+  // MEMBERSHIP (which launches are "visible") and PERFORMANCE (their NSV/
+  // units/active) are answered from two different windows over REC, per the
+  // locked definition: "NPI Launches = number of unique Chain x Article
+  // launch pairs belonging to the selected NPI FY cohort and current
+  // dimensional filters. Date filters do not reassign cohort membership."
+  //   - Membership ignores FY/Month (date dimensions) and looks at the
+  //     pair's FULL history, not just its cohort-FY transactions -- a pair's
+  //     chain/category/brand/etc. are stable identity facts, so a launch
+  //     with ZERO sales in its own cohort year (e.g. a March carry-forward
+  //     launch that never sold again) must still be counted as a launch
+  //     when its other dimensions match the filter. Found via the
+  //     chain-partition reconciliation test: without this distinction,
+  //     summing NPI Launches across every chain filtered one at a time
+  //     undercounted the true cohort total by exactly the number of such
+  //     zero-activity launches.
+  //   - Performance is still computed ONLY from the cohort's own reporting
+  //     FY (recFilter('FY') deliberately excludes the global FY filter --
+  //     the cohort's OWN FY is the mandatory performance window by
+  //     definition) and, within that, from the exact filtered rows
+  //     (including Month), so a zero-activity launch correctly contributes
+  //     nsv=0, not a fabricated figure.
+  const dateDims=new Set(['FY','Month']);
+  const memberFilters=FILT.filter(([k])=>!dateDims.has(k)&&F[k].length);
+  const visiblePairIds=new Set();
+  if(!memberFilters.length){
+    cohortPairIds.forEach(id=>visiblePairIds.add(id));
+  }else{
+    REC.forEach(r=>{
+      const key=npiRowKey(r);
+      if(!cohortPairIds.has(key)||visiblePairIds.has(key)) return;
+      if(memberFilters.every(([k])=>F[k].includes(String(r[k])))) visiblePairIds.add(key);
+    });
+  }
+  const filtered=recFilter('FY').filter(r=>r.FY===cohortFy);
   let nsv=0,qty=0,filteredTotalNsv=0; const active=new Set();
   filtered.forEach(r=>{
     filteredTotalNsv+=(r.NSV||0);
-    const key=r.Chain+'||'+r.Article;
-    if(!cohortPairKeys.has(key)) return;
-    visiblePairKeys.add(key);
+    const key=npiRowKey(r);
+    if(!cohortPairIds.has(key)||!visiblePairIds.has(key)) return;
     const rowNsv=r.NSV||0;
     nsv+=rowNsv; qty+=(r.Qty||0);
     if(rowNsv>0) active.add(key);
   });
-  const visibleRows=cohortRows.filter(r=>visiblePairKeys.has(pairKey(r)));
+  const visibleRows=cohortRows.filter(r=>visiblePairIds.has(r.pair_id));
   const confirmed=visibleRows.filter(r=>r.launch_confirmation_status==='confirmed').length;
   const observedOnly=visibleRows.length-confirmed;
   return {
@@ -3131,11 +3186,27 @@ function computeNpiPerformance(npd,cohortFy){
     productivity:active.size?nsv/active.size:null,
     contribution_pct:filteredTotalNsv?nsv/filteredTotalNsv*100:null,
     confirmed_count:confirmed, observed_only_count:observedOnly,
-    // NOTE: filtered_out over-counts by up to the mojibake-affected pair
-    // count above when a filter is active, since a handful of genuinely
-    // visible pairs can fail the exact string join. Flagged, not hidden.
+    // filtered_out = cohort pairs not currently visible under the active
+    // filters (e.g. a different chain selected) -- not a join failure. The
+    // pair_id (Chain+EAN) join used above has zero known mismatches; see
+    // npiJoinCoverage() for the standalone, all-pairs join-integrity check.
     filtered_out:cohortRows.length-visibleRows.length,
   };
+}
+
+// Join-integrity invariant, independent of any dashboard filter: every
+// cohort pair_id (from D.npd, computed server-side from full history) must
+// match at least one row in the FULL, unfiltered detail_records via the
+// same Chain+EAN key the filtered performance path uses. A non-empty
+// result here means the browser-side join is dropping real launches --
+// this is a hard failure, not a warning (see tests/test_npi_filter_aware.js).
+function npiJoinCoverage(npd){
+  const allKeys=new Set(REC.map(npiRowKey));
+  const unmatched=[];
+  Object.values(npd.by_fy).forEach(rows=>rows.forEach(r=>{
+    if(!allKeys.has(r.pair_id)) unmatched.push(r);
+  }));
+  return {total:Object.values(npd.by_fy).reduce((a,r)=>a+r.length,0), unmatched};
 }
 
 function npiCohortSection(){

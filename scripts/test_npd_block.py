@@ -1,5 +1,6 @@
-"""Regression tests for npd_block() -- NPI launch governance, Chain x Article
-grain, FY-based cohort with March carry-forward (replaces the March-only
+"""Regression tests for npd_block() -- NPI launch governance, Chain x EAN
+grain (falls back to Chain x Article text only when a pair has no EAN),
+FY-based cohort with March carry-forward (replaces the March-only
 rule confirmed 2026-09-14; see git history / this function's docstring).
 
 Covers: cohort assignment (normal + March carry-forward), the
@@ -22,9 +23,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 bd = importlib.import_module("build_dashboard_data")
 
 
-def _row(chain, article, fy, month, nsv=100.0, qty=10.0):
-    return {"Chain": chain, "Article": article, "FY": fy, "Month": month,
-            "NSV": nsv, "Qty": qty}
+def _row(chain, article, fy, month, nsv=100.0, qty=10.0, ean=None):
+    row = {"Chain": chain, "Article": article, "FY": fy, "Month": month,
+           "NSV": nsv, "Qty": qty}
+    if ean is not None:
+        row["EAN"] = ean
+    return row
 
 
 # ── Golden boundary-case table -- the permanent specification ──────────────
@@ -121,6 +125,32 @@ def test_same_article_different_chains_are_independent_launches():
     fy26_articles = {(r["chain"], r["article"]) for r in npd["by_fy"].get("FY26", [])}
     assert ("Reliance Retail", "A9") in fy27_articles
     assert ("More Retail", "A9") in fy26_articles
+
+
+def test_same_ean_two_article_spellings_count_as_one_launch():
+    """A rebrand: the same physical product (one EAN) is billed under two
+    different Article-text spellings at the same chain. This must collapse
+    into ONE launch, not two -- the grain is Chain x EAN, not Chain x
+    Article text. This is also the permanent mojibake regression fixture:
+    the corrupted spelling has zero effect on membership/count/NSV because
+    the join key (EAN) never depends on the Article string's bytes."""
+    rows = [
+        _row("DMart", "ANCHOR", "FY26", "April"),  # history-incomplete anchor
+        _row("Apollo", "1% Hyaluronic Sunscreen Oil-Free 80g", "FY27", "April",
+             nsv=100.0, qty=10.0, ean="8904417324426"),
+        _row("Apollo", "TDC 1% Hyaluronic Sunscreen Oil-Free Matte Gel SPF 50 80g",
+             "FY27", "May", nsv=50.0, qty=5.0, ean="8904417324426"),
+    ]
+    npd = bd.npd_block(rows)
+    apollo_rows = [r for r in npd["by_fy"]["FY27"] if r["chain"] == "Apollo"]
+    assert len(apollo_rows) == 1
+    assert apollo_rows[0]["ean"] == "8904417324426"
+    # Actual first sale is April (the earlier of the two spellings), not May.
+    assert apollo_rows[0]["actual_first_sale_month"] == "April"
+    # NSV in metrics_by_fy sums BOTH spellings' transactions for this EAN.
+    fy27_apollo_nsv = sum(r.get("NSV") or 0 for r in rows
+                          if r["Chain"] == "Apollo" and r["FY"] == "FY27")
+    assert fy27_apollo_nsv == 150.0
 
 
 def test_zero_or_negative_qty_row_does_not_establish_launch():
@@ -292,7 +322,8 @@ def test_empty_input_returns_none():
 def test_real_data_shape_still_reconciles():
     """Sanity check against the real, checked-in dashboard/data.js:
     history-incomplete + all cohort counts must equal the total distinct
-    Chain x Article pairs with a valid transaction."""
+    Chain x EAN pairs (falling back to Chain x Article text only when a
+    pair has no EAN) with a valid transaction."""
     import json
     import re
     data_js = Path(__file__).resolve().parent.parent / "dashboard" / "data.js"
@@ -306,7 +337,9 @@ def test_real_data_shape_still_reconciles():
         return
     npd = bd.npd_block(dr)
     total_launches = sum(npd["counts_by_fy"].values())
-    total_pairs = {(r.get("Chain"), r.get("Article")) for r in dr
+    total_pairs = {(r.get("Chain"), "EAN", r.get("EAN")) if r.get("EAN")
+                   else (r.get("Chain"), "ART", r.get("Article"))
+                   for r in dr
                    if (r.get("NSV") or 0) > 0 and (r.get("Qty") or 0) > 0
                    and r.get("Chain") and r.get("Article")}
     assert total_launches + npd["qc"]["pairs_excluded_history_incomplete"] == len(total_pairs)

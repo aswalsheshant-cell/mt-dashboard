@@ -3287,12 +3287,17 @@ def profitability_block(detail_records):
 
 
 def npd_block(detail_records):
-    """NPI launch governance, Chain x Article grain, FY-based cohort with a
+    """NPI launch governance, Chain x EAN grain, FY-based cohort with a
     March carry-forward rule (replaces the March-only rule confirmed
-    2026-09-14; see git history for that version).
+    2026-09-14; see git history for that version). Grain changed from
+    Chain x Article text to Chain x EAN on 2026-09-20 (business-confirmed):
+    the same physical product can carry two different Article-text
+    spellings at one chain (a rebrand/rename) but shares one EAN, so
+    counting by Article text double-counted those as two launches. A pair
+    with no EAN at all falls back to Chain x Article text.
 
     Actual_First_Sale_Month = the earliest FY x Month with a valid
-    commercial transaction for that (Chain, Article) pair, found by
+    commercial transaction for that (Chain, EAN) pair, found by
     scanning the pair's WHOLE available history, never just the currently
     selected dashboard period. "Valid commercial transaction" requires
     NSV > 0 AND Qty > 0: detail_records carries no dedicated return/
@@ -3310,7 +3315,7 @@ def npd_block(detail_records):
     Both fields are always recorded together -- Actual_First_Sale_Month is
     never rewritten to make it agree with the cohort FY.
 
-    Same article launching in different chains = separate Chain x Article
+    Same product (EAN) launching in different chains = separate Chain x EAN
     launches, each with its own independent launch date and cohort.
 
     HISTORY-INCOMPLETE GUARD: detail_records' own earliest available FY x
@@ -3374,7 +3379,19 @@ def npd_block(detail_records):
     if earliest is None:
         return None
 
-    first_seen = {}       # (chain, article) -> (fy_start_year, month_order, fy_tag, month_name)
+    # Launch grain is Chain x EAN (barcode), not Chain x Article text.
+    # Business-confirmed 2026-09-20: the same physical product sometimes
+    # carries two different Article-text spellings at the same chain (a
+    # rebrand/rename) but shares one EAN -- counting each spelling as a
+    # separate launch double-counts the same real product. EAN is also
+    # immune to the text-encoding corruption a handful of Article values
+    # carry. A pair with no EAN at all falls back to Chain + Article text
+    # so it is never silently dropped from the identity layer.
+    def _npi_grain_key(chain, article, ean):
+        return (chain, "EAN", ean) if ean else (chain, "ART", article)
+
+    first_seen = {}        # grain_key -> (fy_start_year, month_order, fy_tag, month_name)
+    pair_article = {}      # grain_key -> a representative Article text, for display only.
     rows_skipped_missing_identifier = 0
     for r in detail_records:
         chain, article, fy, month = r.get("Chain"), r.get("Article"), r.get("FY"), r.get("Month")
@@ -3382,22 +3399,31 @@ def npd_block(detail_records):
             if not (chain and article):
                 rows_skipped_missing_identifier += 1
             continue
+        ean = r.get("EAN")
+        grain_key = _npi_grain_key(chain, article, ean)
+        if grain_key not in pair_article:
+            pair_article[grain_key] = article
         if not ((r.get("NSV") or 0.0) > 0 and (r.get("Qty") or 0.0) > 0):
             continue
         fy_year = fy_start_year(fy)
-        key = (chain, article)
         cand = (fy_year, _FY_MONTH_ORDER[month], fy, month)
-        if key not in first_seen or cand < first_seen[key]:
-            first_seen[key] = cand
+        if grain_key not in first_seen or cand < first_seen[grain_key]:
+            first_seen[grain_key] = cand
 
     earliest_idx = earliest[0] * 12 + earliest[1]
     launches = []          # confirmed + observed_only launches (history_incomplete pairs excluded)
     history_incomplete_pairs = []
-    for (chain, article), (fy_year, mo, fy_tag, month_name) in first_seen.items():
+    for grain_key, (fy_year, mo, fy_tag, month_name) in first_seen.items():
+        chain, kind, ident = grain_key
+        ean = ident if kind == "EAN" else None
+        article = pair_article[grain_key]
+        # pair_id is the stable browser-side join key: Chain + EAN, or
+        # Chain + Article text for the rare pair with no EAN at all.
+        pair_id = f"{chain}||{ean}" if ean else f"{chain}||{article}"
         lookback_months = fy_year * 12 + mo - earliest_idx
         if lookback_months <= 0:
             history_incomplete_pairs.append({
-                "chain": chain, "article": article,
+                "chain": chain, "article": article, "ean": ean, "pair_id": pair_id,
                 "first_observed_fy": fy_tag, "first_observed_month": month_name,
                 "launch_status": "boundary_unknown",
                 "history_months_before_first_sale": lookback_months,
@@ -3405,7 +3431,7 @@ def npd_block(detail_records):
             continue
         cohort_fy = f"FY{int(fy_tag[2:]) + 1}" if month_name == "March" else fy_tag
         launches.append({
-            "chain": chain, "article": article,
+            "chain": chain, "article": article, "ean": ean, "pair_id": pair_id,
             "actual_first_sale_fy": fy_tag, "actual_first_sale_month": month_name,
             "npi_cohort_fy": cohort_fy,
             "history_months_before_first_sale": lookback_months,
@@ -3431,14 +3457,14 @@ def npd_block(detail_records):
 
     metrics_by_fy = {}
     for cohort_fy, rows in by_fy.items():
-        pair_keys = {(row["chain"], row["article"]) for row in rows}
+        pair_keys = {_npi_grain_key(row["chain"], row["article"], row["ean"]) for row in rows}
         nsv = 0.0
         qty = 0.0
         active_pairs = set()
         for r in detail_records:
             if r.get("FY") != cohort_fy:
                 continue
-            key = (r.get("Chain"), r.get("Article"))
+            key = _npi_grain_key(r.get("Chain"), r.get("Article"), r.get("EAN"))
             if key not in pair_keys:
                 continue
             row_nsv = r.get("NSV") or 0.0
@@ -3516,7 +3542,8 @@ def npd_block(detail_records):
             metrics_by_fy[fy]["yoy_caveat"] = None
 
     return {
-        "basis": ("Chain x Article NPI launch cohort: the FY containing a pair's actual first "
+        "basis": ("Chain x EAN NPI launch cohort (falls back to Chain x Article text only when "
+                   "a pair has no EAN): the FY containing a pair's actual first "
                    "valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls "
                    "forward into the NEXT FY so it gets a full Apr-Mar tracking year. Actual "
                    "launch month is always preserved alongside the cohort FY. Pairs whose first "

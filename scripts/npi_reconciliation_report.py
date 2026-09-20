@@ -16,7 +16,7 @@ Usage:
         --out-dir /tmp/npi-evidence
 
 Writes:
-    <out-dir>/npi_release_reconciliation.csv   -- one row per Chain x Article
+    <out-dir>/npi_release_reconciliation.csv   -- one row per Chain x EAN pair
     <out-dir>/npi_release_summary.json         -- headline QC/reconciliation result
 
 Exits non-zero if any control fails, so this can gate a release the same
@@ -43,18 +43,30 @@ def load_dash(data_path: Path) -> dict:
     return json.loads(m.group(1))
 
 
+def grain_key(chain, article, ean):
+    """Same grain as npd_block(): Chain x EAN, falling back to Chain x
+    Article text only when a pair has no EAN. Kept here as an independent
+    re-implementation (not imported from bd's closure) since this whole
+    module exists to cross-check npd_block(), not re-trust it."""
+    return (chain, "EAN", ean) if ean else (chain, "ART", article)
+
+
+def row_key(row):
+    """grain_key() for an already-built npd launch/history-incomplete row."""
+    return grain_key(row["chain"], row["article"], row.get("ean"))
+
+
 def independent_first_sale_scan(detail_records):
-    """Recomputes first-observed-sale-month per (chain, article) directly
+    """Recomputes first-observed-sale-month per Chain x EAN grain directly
     from detail_records, independently of npd_block()'s internals, as a
     cross-check rather than trusting the same code path twice."""
     first_seen = {}
-    invalid_at_or_before_first_sale = {}
     for r in detail_records:
         chain, article = r.get("Chain"), r.get("Article")
         fy, month = r.get("FY"), r.get("Month")
         if not (chain and article and fy and month and month in bd._FY_MONTH_ORDER):
             continue
-        key = (chain, article)
+        key = grain_key(chain, article, r.get("EAN"))
         idx = (bd.fy_start_year(fy), bd._FY_MONTH_ORDER[month])
         is_valid = (r.get("NSV") or 0.0) > 0 and (r.get("Qty") or 0.0) > 0
         if is_valid:
@@ -88,12 +100,12 @@ def main() -> int:
 
     failures = []
 
-    # Control: unique launch key -- one record per Chain x Article across
+    # Control: unique launch key -- one record per Chain x EAN grain across
     # ALL cohorts combined (a pair must not appear twice).
-    all_launch_keys = [(r["chain"], r["article"]) for rows in npd_fresh["by_fy"].values() for r in rows]
+    all_launch_keys = [row_key(r) for rows in npd_fresh["by_fy"].values() for r in rows]
     duplicate_keys = len(all_launch_keys) - len(set(all_launch_keys))
     if duplicate_keys:
-        failures.append(f"{duplicate_keys} Chain x Article pair(s) appear in more than one cohort")
+        failures.append(f"{duplicate_keys} Chain x EAN pair(s) appear in more than one cohort")
 
     # Control: first-observed-sale reconciliation -- independent scan must
     # agree with every launch's recorded actual_first_sale_fy/month.
@@ -101,7 +113,7 @@ def main() -> int:
     mismatches = 0
     for rows in npd_fresh["by_fy"].values():
         for row in rows:
-            key = (row["chain"], row["article"])
+            key = row_key(row)
             expected_fy_tag_month = independent_first_seen.get(key)
             recorded = (bd.fy_start_year(row["actual_first_sale_fy"]),
                         bd._FY_MONTH_ORDER[row["actual_first_sale_month"]])
@@ -133,17 +145,18 @@ def main() -> int:
     # (NSV>0 and Qty>0) row must exist -- a return/zero-sale row must never
     # be the sole evidence for a launch month. Pre-indexed once (not a
     # nested O(launches x records) scan) for performance on real data volume.
-    valid_at_key_month = set()  # (chain, article, fy_year, month_order)
+    valid_at_key_month = set()  # (grain_key, fy_year, month_order)
     for r in detail_records:
         chain, article, fy, month = r.get("Chain"), r.get("Article"), r.get("FY"), r.get("Month")
         if not (chain and article and fy and month and month in bd._FY_MONTH_ORDER):
             continue
         if (r.get("NSV") or 0.0) > 0 and (r.get("Qty") or 0.0) > 0:
-            valid_at_key_month.add((chain, article, bd.fy_start_year(fy), bd._FY_MONTH_ORDER[month]))
+            valid_at_key_month.add((grain_key(chain, article, r.get("EAN")),
+                                     bd.fy_start_year(fy), bd._FY_MONTH_ORDER[month]))
     invalid_as_launch = 0
     for rows in npd_fresh["by_fy"].values():
         for row in rows:
-            key = (row["chain"], row["article"], bd.fy_start_year(row["actual_first_sale_fy"]),
+            key = (row_key(row), bd.fy_start_year(row["actual_first_sale_fy"]),
                    bd._FY_MONTH_ORDER[row["actual_first_sale_month"]])
             if key not in valid_at_key_month:
                 invalid_as_launch += 1
@@ -154,7 +167,7 @@ def main() -> int:
     # avg/productivity), independently recomputed, not just re-reading npd's
     # own fields back at itself.
     for cohort_fy, m in npd_fresh["metrics_by_fy"].items():
-        pair_keys = {(r["chain"], r["article"]) for r in npd_fresh["by_fy"][cohort_fy]}
+        pair_keys = {row_key(r) for r in npd_fresh["by_fy"][cohort_fy]}
         nsv = qty = 0.0
         active = set()
         fy_total = 0.0
@@ -162,7 +175,7 @@ def main() -> int:
             if r.get("FY") != cohort_fy:
                 continue
             fy_total += r.get("NSV") or 0.0
-            key = (r.get("Chain"), r.get("Article"))
+            key = grain_key(r.get("Chain"), r.get("Article"), r.get("EAN"))
             if key in pair_keys:
                 row_nsv = r.get("NSV") or 0.0
                 nsv += row_nsv
@@ -186,21 +199,21 @@ def main() -> int:
         failures.append("Checked-in dashboard/data.js's npd block does not match a fresh "
                          "recompute from its own detail_records -- artifact is stale.")
 
-    # ---- write the Chain x Article reconciliation CSV ----
+    # ---- write the Chain x EAN reconciliation CSV ----
     csv_path = out_dir / "npi_release_reconciliation.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["chain", "article", "record_type", "actual_first_sale_fy",
+        w.writerow(["chain", "ean", "article", "record_type", "actual_first_sale_fy",
                     "actual_first_sale_month", "npi_cohort_fy",
                     "history_months_before_first_sale", "launch_confirmation_status"])
         for rows in npd_fresh["by_fy"].values():
             for row in rows:
-                w.writerow([row["chain"], row["article"], "launch",
+                w.writerow([row["chain"], row.get("ean"), row["article"], "launch",
                             row["actual_first_sale_fy"], row["actual_first_sale_month"],
                             row["npi_cohort_fy"], row["history_months_before_first_sale"],
                             row["launch_confirmation_status"]])
         for row in npd_fresh["history_incomplete_pairs"]:
-            w.writerow([row["chain"], row["article"], "boundary_unknown",
+            w.writerow([row["chain"], row.get("ean"), row["article"], "boundary_unknown",
                         row["first_observed_fy"], row["first_observed_month"],
                         "", row["history_months_before_first_sale"], "boundary_unknown"])
 
@@ -213,7 +226,7 @@ def main() -> int:
         "npi_model_version": "fy-cohort-march-carryforward-v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "source_data_path": str(data_path),
-        "total_chain_article_pairs": total_pairs,
+        "total_chain_ean_pairs": total_pairs,
         "confirmed_launches": confirmed,
         "observed_only_launches": observed_only,
         "boundary_unknown_pairs": len(npd_fresh["history_incomplete_pairs"]),
