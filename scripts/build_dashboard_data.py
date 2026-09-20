@@ -1172,13 +1172,17 @@ def load_reliance_bc_data(src):
     for fp in files:
         if fp.suffix.lower() == ".csv":
             try:
-                # Use pandas with engine='python' for better variable-width CSV handling
+                # Use pandas with engine='python' for better variable-width CSV handling.
+                # low_memory is a C-engine-only kwarg -- passing it with
+                # engine='python' raises ValueError on every call, which the
+                # bare `except Exception` below silently swallowed, so every
+                # CSV file this function was ever given got silently skipped.
                 try:
                     _frames = {"csv": pd.read_csv(fp, engine='python', encoding='utf-8',
-                                                 low_memory=False, on_bad_lines='warn')}
+                                                 on_bad_lines='warn')}
                 except (UnicodeDecodeError, pd.errors.ParserError):
                     _frames = {"csv": pd.read_csv(fp, engine='python', encoding='latin-1',
-                                                 low_memory=False, on_bad_lines='warn')}
+                                                 on_bad_lines='warn')}
             except Exception:
                 # Skip files that can't be parsed
                 continue
