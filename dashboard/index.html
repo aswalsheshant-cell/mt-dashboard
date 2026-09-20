@@ -3056,6 +3056,56 @@ function computeSkuVolatility(){
   rows.sort((a,b)=>b.cv-a.cv);
   return {rows:rows.slice(0,12),min_months:MIN_MONTHS,min_avg_lakh:MIN_AVG_LAKH,n_qualifying:rows.length};
 }
+// NPI (new-product) launch cohorts -- reads the pre-computed D.npd block
+// (npd_block() in build_dashboard_data.py) rather than recomputing from
+// recFilter()/the dashboard's period selector: cohort assignment must
+// reflect a Chain x Article pair's WHOLE sales history, not whatever
+// period happens to be selected, so it has to come from the one place
+// that ever sees the full detail_records history at build time.
+function npiCohortSection(){
+  const npd=D.npd;
+  if(!npd||!npd.metrics_by_fy||!Object.keys(npd.metrics_by_fy).length) return '';
+  const fys=Object.keys(npd.metrics_by_fy).sort((a,b)=>{
+    const y=t=>parseInt(t.slice(2),10);
+    return y(a)-y(b);
+  });
+  const latest=fys[fys.length-1];
+  const m=npd.metrics_by_fy[latest];
+  const prevFy=fys.length>1?fys[fys.length-2]:null;
+  const prevM=prevFy?npd.metrics_by_fy[prevFy]:null;
+  const growthLabel=m.yoy_npi_nsv_growth_pct==null?'no prior cohort to compare':
+    `${m.yoy_npi_nsv_growth_pct>=0?'+':''}${m.yoy_npi_nsv_growth_pct.toFixed(1)}% vs ${prevFy} cohort`;
+  const fyRows=fys.map(fy=>{
+    const r=npd.metrics_by_fy[fy];
+    return `<tr><td>${fy}</td><td>${r.npi_launches}</td><td>${r.active_npi_count}</td>
+      <td>${crc(r.npi_nsv)}</td><td>${crc(r.npi_units)}</td>
+      <td>${r.avg_nsv_per_launch!=null?crc(r.avg_nsv_per_launch):'–'}</td>
+      <td>${r.npi_productivity!=null?crc(r.npi_productivity):'–'}</td>
+      <td>${r.npi_contribution_pct!=null?r.npi_contribution_pct.toFixed(1)+'%':'–'}</td>
+      <td>${r.yoy_npi_nsv_growth_pct!=null?`<span class="pill ${r.yoy_npi_nsv_growth_pct>=0?'g':'r'}">${r.yoy_npi_nsv_growth_pct>=0?'+':''}${r.yoy_npi_nsv_growth_pct.toFixed(1)}%</span>`:'–'}</td></tr>`;
+  }).join('');
+  const sampleRows=(npd.by_fy[latest]||[]).slice(0,15).map(r=>
+    `<tr><td>${drillLink('Chain',r.chain)}</td><td>${r.article}</td>
+      <td>${r.actual_first_sale_month}-${r.actual_first_sale_fy.slice(2)}</td>
+      <td>${r.npi_cohort_fy}</td></tr>`).join('');
+  const censored=npd.qc?npd.qc.pairs_excluded_left_censored:0;
+  return `<h2 class="sec" style="margin-top:32px">NPI Launch Cohorts (New Products)</h2>
+   <p class="lead">Chain × Article launch cohorts, FY-based with a March carry-forward: a pair's cohort is the FY of its first real sale (NSV &amp; Qty &gt; 0), except a March first-sale rolls into the <b>next</b> FY so it gets a full Apr–Mar tracking year instead of one month. Actual launch month is always kept alongside the cohort FY — never rewritten. Same article at two different chains counts as two separate launches.
+     ${censored?`<br><span class="pill">${censored} pair(s) excluded</span> — their first sale falls in this dataset's very first month, so a genuine new launch can't be told apart from a pre-existing product (left-censored, not counted as an NPI).`:''}</p>
+   <div class="kpis">
+     ${kpi(`${latest} NPI Launches`,m.npi_launches,`${m.active_npi_count} active`)}
+     ${kpi(`${latest} NPI NSV`,crc(m.npi_nsv),`${m.npi_contribution_pct!=null?m.npi_contribution_pct.toFixed(1)+'% of '+latest+' total NSV':''}`)}
+     ${kpi('Avg NSV / launch',m.avg_nsv_per_launch!=null?crc(m.avg_nsv_per_launch):'–','across all launches, selling or not')}
+     ${kpi('NPI productivity',m.npi_productivity!=null?crc(m.npi_productivity):'–','NSV per launch that actually sold')}
+     ${kpi('YoY NPI NSV growth',growthLabel,'more launches vs better-performing launches — see table')}
+   </div>
+   <div class="grid g2">
+     ${card('NPI cohort performance by FY','Separates growth from more launches (NPI Launches) from growth from better-performing launches (NPI Productivity).',
+       `<div class="tablewrap"><table><thead><tr><th>Cohort FY</th><th>Launches</th><th>Active</th><th>NSV</th><th>Units</th><th>Avg/Launch</th><th>Productivity</th><th>Contribution %</th><th>YoY NSV Growth</th></tr></thead><tbody>${fyRows}</tbody></table></div>`)}
+     ${card(`${latest} cohort — sample launches`,`First 15 of ${npd.counts_by_fy[latest]} Chain × Article launches in the ${latest} cohort, by chain/article.`,
+       `<div class="tablewrap"><table><thead><tr><th>Chain</th><th>Article</th><th>Actual Launch</th><th>NPI Cohort</th></tr></thead><tbody>${sampleRows||'<tr><td colspan="4">No launches.</td></tr>'}</tbody></table></div>`)}
+   </div>`;
+}
 function skuVolatilitySection(){
   const V=computeSkuVolatility();
   if(!V.rows.length) return '';
@@ -3595,6 +3645,7 @@ function buildAnalytics(){
    ${pvmSection()}
    ${mappingHealthSection()}
    ${skuVolatilitySection()}
+   ${npiCohortSection()}
    <h2 class="sec" style="margin-top:32px">Data Readiness</h2>
    ${readinessCard()}`;
 
