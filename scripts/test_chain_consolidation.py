@@ -221,22 +221,21 @@ class TestDataJsRegression:
         )
 
     def test_bc_excluded(self, dash):
-        # SEMANTIC_VERSION_CHANGE: this test's own comment describes a wider
-        # "Full BC history Jan-24 to Jul-26" cumulative contract. The current
-        # architecture scopes reliance_bc.total to FY26 only -- confirmed by
-        # the code comment directly above the counter-total computation in
-        # build_dashboard_data.py ("counter total comes to Rs 45.62 Cr,
-        # matching reliance_bc.total_fy26 exactly"). The old wider window
-        # belongs to a retired build vintage; asserting it here would be
-        # restoring a superseded contract, not catching a regression.
+        # OPEN_PERIOD, superseding the prior FY26-only contract: fixing
+        # load_reliance_bc_data()'s non-recursive glob (see the Reliance BC
+        # CSV-loading fix) means FY27's real Apr-Aug'26 data now loads
+        # alongside FY26, so reliance_bc.total correctly sums across every
+        # FY actually present in fy_tags -- not just FY26. Assert that
+        # reconciliation instead of a single-FY or fixed-value snapshot, so
+        # this doesn't go stale again when FY28 data is ingested.
         bc = dash.get("reliance_bc", {})
         assert bc.get("include_in_overall_offtake") is False
-        assert abs(bc.get("total", 0) - bc.get("total_fy26", 0)) < 0.01, (
-            "reliance_bc.total is expected to equal total_fy26 under the "
-            "current FY26-scoped semantic contract"
-        )
-        assert abs(bc.get("total", 0) - 4562.49) < 5.0, (
-            f"reliance_bc.total={bc.get('total')} unexpected for the FY26-scoped contract"
+        fy_tags = bc.get("fy_tags", [])
+        assert fy_tags, "reliance_bc.fy_tags must not be empty"
+        expected_total = sum(bc.get(f"total_{tag}", 0) for tag in fy_tags)
+        assert abs(bc.get("total", 0) - expected_total) < 0.01, (
+            f"reliance_bc.total={bc.get('total')} does not reconcile to the "
+            f"sum of its per-FY subtotals ({fy_tags}) = {expected_total}"
         )
 
     def test_fyx_primary_fy27_value(self, dash):
