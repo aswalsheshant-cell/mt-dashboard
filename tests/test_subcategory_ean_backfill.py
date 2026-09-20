@@ -46,7 +46,7 @@ def _dist_row(ean, sub_category, range_, net_content, category="Face", month="Ap
     return r
 
 
-def test_ean_backfill_fills_from_another_month(tmp_path, monkeypatch):
+def test_ean_backfill_fills_from_another_month(tmp_path):
     """A row with blank sub_category/range/net_content is backfilled from a
     different month's real row for the same EAN."""
     rows = [
@@ -59,15 +59,6 @@ def test_ean_backfill_fills_from_another_month(tmp_path, monkeypatch):
     src.mkdir()
     df.to_csv(src / "primary_article_test.csv", index=False)
 
-    # detail_records_real() calls allocate_dist_primary() without output_dir,
-    # which defaults to writing 3 governance/proposal CSVs under the real repo's
-    # PowerBI/SeedData/Mapping/ (Path(__file__).resolve().parent.parent). Redirect
-    # bdd's own __file__ to an isolated fake repo so this synthetic-data run never
-    # touches the tracked files.
-    fake_repo = tmp_path / "fake_repo"
-    (fake_repo / "PowerBI" / "SeedData" / "Mapping").mkdir(parents=True)
-    monkeypatch.setattr(bdd, "__file__", str(fake_repo / "scripts" / "build_dashboard_data.py"))
-
     result = bdd.detail_records_real(tmp_path, max_rows=1000)
     assert result is not None
     recs = result[0]
@@ -77,7 +68,7 @@ def test_ean_backfill_fills_from_another_month(tmp_path, monkeypatch):
     assert jul_rec["PackSize"] == "100.0"
 
 
-def test_ean_with_no_real_value_anywhere_stays_blank_not_fabricated(tmp_path, monkeypatch):
+def test_ean_with_no_real_value_anywhere_stays_blank_not_fabricated(tmp_path):
     """An EAN that never has a real sub_category in any loaded month must be
     left null -- never invented."""
     rows = [
@@ -89,11 +80,6 @@ def test_ean_with_no_real_value_anywhere_stays_blank_not_fabricated(tmp_path, mo
     src.mkdir()
     df.to_csv(src / "primary_article_test.csv", index=False)
 
-    # See the isolation comment in test_ean_backfill_fills_from_another_month above.
-    fake_repo = tmp_path / "fake_repo"
-    (fake_repo / "PowerBI" / "SeedData" / "Mapping").mkdir(parents=True)
-    monkeypatch.setattr(bdd, "__file__", str(fake_repo / "scripts" / "build_dashboard_data.py"))
-
     result = bdd.detail_records_real(tmp_path, max_rows=1000)
     assert result is not None
     recs = result[0]
@@ -101,7 +87,7 @@ def test_ean_with_no_real_value_anywhere_stays_blank_not_fabricated(tmp_path, mo
     assert rec["SubCategory"] is None
 
 
-def test_real_jul26_file_backfills_to_near_full_coverage(tmp_path, monkeypatch):
+def test_real_jul26_file_backfills_to_near_full_coverage():
     """End-to-end against the real committed source: Jul'26 arrives with
     sub_category blank for all rows; after backfill against the other real
     months, coverage should be ~99.99% (matches the independently-verified
@@ -110,14 +96,6 @@ def test_real_jul26_file_backfills_to_near_full_coverage(tmp_path, monkeypatch):
     jul_file = src_dir / "Primary_Article_Monthly" / "primary_article_Jul_26.csv"
     if not jul_file.exists():
         pytest.skip("primary_article_Jul_26.csv not present in this environment")
-
-    # See the isolation comment in test_ean_backfill_fills_from_another_month above.
-    # This test reads the real source tree but must not let allocate_dist_primary()
-    # write its governance CSVs into the real repo's tracked Mapping/ folder.
-    fake_repo = tmp_path / "fake_repo"
-    (fake_repo / "PowerBI" / "SeedData" / "Mapping").mkdir(parents=True)
-    monkeypatch.setattr(bdd, "__file__", str(fake_repo / "scripts" / "build_dashboard_data.py"))
-
     result = bdd.detail_records_real(src_dir, max_rows=200000)
     assert result is not None
     recs = result[0]
