@@ -1166,19 +1166,30 @@ def load_reliance_bc_data(src):
     the separate analytical tab.  These rows are EXCLUDED from overall
     offtake (already embedded in Reliance's non-BC total); this function
     captures them separately.
-    Returns a dict ready for data.js['reliance_bc'], or None if no data."""
-    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
+    Returns a dict ready for data.js['reliance_bc'], or None if no data.
+    Searches src recursively (like load_offtake_article_files(), its sibling
+    function reading the same source tree) so a --src pointed at a parent of
+    per-month subfolders (e.g. PowerBI/RawDataFolders, with the real CSVs
+    one level down in Offtake_Monthly/) is picked up the same as a flat
+    folder -- previously used a non-recursive glob(), so every production
+    call (always passed the parent dir) silently found zero files and
+    returned None without any error."""
+    files = sorted([*src.rglob("*.xlsb"), *src.rglob("*.csv")])
     frames = []
     for fp in files:
         if fp.suffix.lower() == ".csv":
             try:
-                # Use pandas with engine='python' for better variable-width CSV handling
+                # Use pandas with engine='python' for better variable-width CSV handling.
+                # low_memory is a C-engine-only kwarg -- passing it with
+                # engine='python' raises ValueError on every call, which the
+                # bare `except Exception` below silently swallowed, so every
+                # CSV file this function was ever given got silently skipped.
                 try:
                     _frames = {"csv": pd.read_csv(fp, engine='python', encoding='utf-8',
-                                                 low_memory=False, on_bad_lines='warn')}
+                                                 on_bad_lines='warn')}
                 except (UnicodeDecodeError, pd.errors.ParserError):
                     _frames = {"csv": pd.read_csv(fp, engine='python', encoding='latin-1',
-                                                 low_memory=False, on_bad_lines='warn')}
+                                                 on_bad_lines='warn')}
             except Exception:
                 # Skip files that can't be parsed
                 continue
@@ -6665,7 +6676,20 @@ def main():
                     # kept_fy_tags: FY tags whose months are ENTIRELY in `kept` (not in the
                     # new source).  Only those subtotals are safe to carry forward from old
                     # data; any FY that overlaps with the new source is already in new_list.
-                    new_bc_fy_tags = set(fy_data.keys())  # FYs covered by new source
+                    #
+                    # BUG (fixed here): this used to be set(fy_data.keys()) -- but
+                    # fy_data was built by looping over `combined` (kept + new
+                    # months merged together), so it always included the KEPT
+                    # months' own FY tag too, not just the new source's. That made
+                    # `kept_fy_tags - new_bc_fy_tags` empty whenever a kept FY had
+                    # any overlap with combined (i.e. always, since combined by
+                    # definition contains every kept month) -- so safe_kept_fy_tags
+                    # was silently always empty and no prior-FY data ever got
+                    # carried into the dimensional arrays. Compute new_bc_fy_tags
+                    # from the new source's OWN months (new_bc_months, captured
+                    # before merging) instead.
+                    new_bc_fy_tags = {t.lower() for mo in new_bc_months
+                                       for t in [fy_tag_from_label(mo)] if t}
                     kept_fy_tags = set()
                     for mo in kept:
                         t = fy_tag_from_label(mo)
@@ -6746,6 +6770,45 @@ def main():
                     if existing_bc.get("by_category"):
                         bc_data["by_category"] = _merge_dim(
                             existing_bc["by_category"], bc_data.get("by_category", []), "name")
+
+                    # A safe-kept FY can have a real scalar total_fyNN with NO
+                    # dimensional detail at all (existing_bc.get("by_zone") etc.
+                    # falsy/empty -- e.g. FY26's Brand Counter source no longer
+                    # exists in this repo to recompute a real zone/state/brand/
+                    # category split for it). The four merges above only run
+                    # when there IS existing dimensional data to merge, so that
+                    # FY's total would otherwise silently vanish from every
+                    # dimensional array while still counting in bc_data["total"]
+                    # -- a real, disclosed gap, not something to fabricate a
+                    # split for. Surface it as one explicit "Unallocated" bucket
+                    # per array (same pattern as this repo's existing "Other
+                    # (Unallocated Distributors)" chain bucket) so dimensional
+                    # sums still reconcile to bc.total, honestly.
+                    _undetailed = {t: existing_bc[f"total_{t}"] for t in safe_kept_fy_tags
+                                   if existing_bc.get(f"total_{t}")}
+                    if _undetailed:
+                        _unalloc_total = r2(sum(_undetailed.values()))
+                        _fy_vals = {t: r2(v) for t, v in _undetailed.items()}
+                        if not existing_bc.get("by_zone"):
+                            bc_data.setdefault("by_zone", []).append(
+                                {"name": "Unallocated (prior period, no store-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_zone"].sort(key=lambda d: -d["total"])
+                        if not existing_bc.get("by_state"):
+                            bc_data.setdefault("by_state", []).append(
+                                {"zone": "Unallocated", "state": "Unallocated (prior period, no store-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_state"].sort(key=lambda d: -d["total"])
+                        if not existing_bc.get("by_brand"):
+                            bc_data.setdefault("by_brand", []).append(
+                                {"name": "Unallocated (prior period, no brand-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_brand"].sort(key=lambda d: -d["total"])
+                        if not existing_bc.get("by_category"):
+                            bc_data.setdefault("by_category", []).append(
+                                {"name": "Unallocated (prior period, no category-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_category"].sort(key=lambda d: -d["total"])
             # Carry forward any scalar total_fyNN from an existing block for FY tags
             # the new source doesn't cover (e.g. a manually-entered FY26 figure with
             # no month-level detail to merge granularly). Never overwrites a tag the
