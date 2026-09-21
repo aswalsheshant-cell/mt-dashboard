@@ -14,6 +14,7 @@ import unittest
 from pathlib import Path
 
 import openpyxl
+from openpyxl.utils import get_column_letter
 
 REPO = Path(__file__).resolve().parent.parent
 WB_PATH = REPO / "incentive_working" / "MT_Incentive_Working_FY27.xlsx"
@@ -215,6 +216,40 @@ class IncentiveWorkbook(unittest.TestCase):
     def test_workbook_stays_outside_the_published_dashboard(self):
         self.assertFalse(list((REPO / "dashboard").glob("*Incentive*")))
         self.assertFalse(list((REPO / "dashboard").glob("*.xlsx")))
+
+    # ---- manual-entry status columns are a governed list, not free text ----
+    STATUS_VALIDATIONS = {
+        "05_WoA_Mapping": ("Approval_Status", {"PENDING", "APPROVED", "REJECTED"}),
+        "08_Exceptions": ("Status", {"OPEN", "RESOLVED", "NOT_APPLICABLE"}),
+        "09_Finance_Approval": ("Payout_Status", {"PENDING", "APPROVED", "REJECTED", "NOT_APPLICABLE"}),
+        "12_Rule_Decisions": ("Status", {"ASSUMED", "CONFLICT", "MISSING", "OPEN", "CONFIRMED"}),
+    }
+
+    def test_manual_status_columns_carry_a_governed_dropdown(self):
+        for sheet_name, (col_name, choices) in self.STATUS_VALIDATIONS.items():
+            ws = self.wb[sheet_name]
+            t, hdr, cols = table_of(ws)
+            dvs = list(ws.data_validations.dataValidation)
+            self.assertEqual(len(dvs), 1, f"{sheet_name} should carry exactly one governed dropdown")
+            dv = dvs[0]
+            self.assertEqual(dv.type, "list")
+            got_choices = set(dv.formula1.strip('"').split(","))
+            self.assertEqual(got_choices, choices, f"{sheet_name}!{col_name} dropdown list mismatch")
+            letter = get_column_letter(cols[col_name])
+            self.assertIn(f"{letter}{hdr + 1}", str(dv.sqref),
+                          f"{sheet_name} dropdown must start at the first data row, not the header")
+
+    def test_status_dropdowns_never_reach_formula_or_read_only_sheets(self):
+        """Only a column a human actually types into gets a dropdown -- a
+        formula-driven or generated-only sheet (e.g. tblCalc, tblAchievement,
+        tblControl) must carry none."""
+        untouched = ["00_Control", "01_Employee_Master", "02_Incentive_Criteria",
+                     "03_Targets", "04_Actuals", "06_Achievement", "07_Incentive_Calc",
+                     "10_Summary", "11_Data_Quality", "13_Target_Scope"]
+        for sheet_name in untouched:
+            ws = self.wb[sheet_name]
+            self.assertEqual(len(ws.data_validations.dataValidation), 0,
+                              f"{sheet_name} should carry no data validation")
 
 
 if __name__ == "__main__":
