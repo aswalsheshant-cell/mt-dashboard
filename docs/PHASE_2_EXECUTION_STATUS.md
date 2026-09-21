@@ -1,5 +1,10 @@
 # Phase 2 Execution Status — Same-Store Growth (SSG)
 
+**PHASE 2B = COMPLETE**
+**STATUS = READY_FOR_SOURCE_INGESTION**
+**DEPENDENCY = FY26 Apr'25-Mar'26 Store × Article Offtake**
+**NEXT PHASE = PHASE 2C — CONTROLLED HISTORICAL INGESTION** (see §"Phase 2C" below)
+
 This tracks execution status only. The underlying feasibility analysis lives
 in `docs/PHASE2_SSG_FEASIBILITY.md` (completed 2026-09-20, read-only, not
 re-run from zero here) — this document does not repeat that evidence, it
@@ -156,3 +161,72 @@ is already built and waiting — the cohort-calculation engine and its UI are
 the only pieces still to write, and starting either before the file exists
 would mean building against data that cannot answer the actual question
 asked (a genuine FY27-vs-FY26 comparison).
+
+## Phase 2B closeout (this pass)
+
+Extended the readiness gate from a design-plus-basic-validator into the
+actual intake mechanism, per `docs/PHASE_2_SOURCE_INTAKE_CHECKLIST.md`
+(new this pass):
+
+- Standardized exit codes: `0`=READY, `2`=READY_WITH_GOVERNED_EXCEPTIONS,
+  `3`=BLOCKED_BY_SOURCE_DATA, `4`=BLOCKED_BY_DATA_QUALITY.
+- `READY_FOR_SOURCE_INGESTION` printed alongside `BLOCKED_BY_SOURCE_DATA`
+  when no file is supplied — two complementary signals, not a contradiction.
+- QC JSON artifact (default `docs/phase2_qc/store_history_readiness_report.json`)
+  now carries full provenance: `run_id`, `generated_at_utc`, `git_commit`,
+  `validator_version`, `detected_grain`, source filename/checksum/row
+  count, canonical date range, every check result, and — when a FY27
+  reference is supplied — crosswalk/cohort/match-method counts.
+- **Determinism verified directly, not assumed:** ran the validator twice
+  against the identical file; `run_id` and `generated_at_utc` differed as
+  expected, `git_commit` matched, and every other field in the QC artifact
+  was byte-identical.
+- Crosswalk builder now covers the **union** of FY26 and FY27 store
+  universes (not just FY26 looking forward) — a FY27-only store now
+  correctly gets a `NEW_STORE` row instead of being invisible; added
+  `Cohort_Status` (`COMPARABLE_STORE` / `NEW_STORE` / `UNMATCHED_STORE` /
+  `BLOCKED_FOR_REVIEW`) to every crosswalk row, enforced in code so a
+  low-confidence match can never reach `COMPARABLE_STORE` on its own.
+  `CLOSED_OR_LOST_STORE` and `DATA_INCOMPLETE` are named in
+  `docs/STORE_IDENTITY_GOVERNANCE.md`'s taxonomy but not yet
+  mechanically distinguished from `UNMATCHED_STORE` — see the open note
+  below.
+- 9 new test scenarios added (duplicate store ID, chain migration never
+  auto-matched across the chain boundary, ambiguous name-only match stays
+  `BLOCKED_FOR_REVIEW`, new/comparable cohort classification, cohort and
+  match-method count tallies, checksum determinism) — 32 tests total, all
+  synthetic (still no real FY26 data exists).
+- Found and fixed a real usability gap while smoke-testing end-to-end
+  against real (renamed) FY27 data: `--fy27-reference` raised an
+  unhandled `KeyError` traceback if passed a file still using raw source
+  column names (`Chain Name` instead of the contract's `Chain`) — now
+  fails with a clear `BLOCKED_BY_DATA_QUALITY` message pointing at the
+  intake checklist's rename step, instead of a stack trace.
+
+**Open design note carried into Phase 2C, not implemented now:** a
+reviewer flagged that collapsing "how confident is this identity match"
+and "did the chain relationship change in a way that could distort
+chain-level SSG" into one `Cohort_Status` field risks treating a genuine
+chain migration/acquisition the same as a harmless chain-name
+standardization. The suggested fix — separate `Identity_Status` and
+`Chain_Continuity_Status` fields alongside `Cohort_Status` — is sound and
+should be designed into the crosswalk schema before Phase 2C runs against
+real FY26 data, but wasn't added this pass since no real chain-migration
+case exists yet to design the distinction against without guessing. Track
+it as a Phase 2C task, not a Phase 2B gap.
+
+## Phase 2C — Controlled FY26 Historical Data Ingestion & Identity Certification
+
+**Entry condition:** an approved FY26 source file exists in the governed
+raw landing location (`PowerBI/RawDataFolders/Offtake_Monthly/`).
+
+**Objective:** certify the actual historical data is trustworthy enough to
+enter the analytical system — this is explicitly NOT "build the SSG
+engine." Sequence: source → checksum → contract validation → data
+quality → store identity → chain continuity → financial reconciliation →
+cohort certification. Only a certified cohort may feed a future SSG engine
+(Phase 2D, not yet scoped).
+
+Until the entry condition is met, no further code should be written here —
+per this session's own instruction, the next real project event is the
+FY26 file arriving, not another engineering pass.

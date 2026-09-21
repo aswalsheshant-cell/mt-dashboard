@@ -75,27 +75,40 @@ exact schema (§2), each with a `Match_Method`, `Match_Confidence`, and
 anything below `HIGH` confidence (§4 of the governance doc) — this is
 enforced in code, not left to the caller's discipline.
 
-## 4. Verdict logic
+## 4. Verdict logic and CLI exit codes
 
 ```
-BLOCKED                       any hard-block check (required columns
-                               missing, or the source file itself doesn't
-                               parse) fails
-READY                         all checks pass or WARN, zero rows in
-                               BLOCKED_FOR_REVIEW, zero unexplained
-                               duplicates
-READY_WITH_GOVERNED_EXCEPTIONS  all hard-block checks pass, but some rows
-                               are legitimately PENDING_REVIEW /
-                               BLOCKED_FOR_REVIEW / DATA_INCOMPLETE --
-                               named, counted, and excluded from any SSG
-                               number rather than silently included or
-                               silently dropped
+Verdict                          Exit code   Meaning
+BLOCKED_BY_SOURCE_DATA           3           no --src given, or the file doesn't exist
+BLOCKED_BY_DATA_QUALITY          4           file present, a hard-block check failed
+                                              (required columns missing, or NaN/Infinity found)
+READY                            0           every check passes, zero warnings
+READY_WITH_GOVERNED_EXCEPTIONS   2           no hard-block failures, but some checks WARN --
+                                              named, counted, never silently included or dropped
 ```
+
+When no `--src` is given at all, the CLI prints both
+`READY_FOR_SOURCE_INGESTION` (the gate itself is built, tested, and
+waiting) and `BLOCKED_BY_SOURCE_DATA` (the actual file isn't here) — two
+complementary signals, not a contradiction.
 
 A file with real, honest gaps (some low-confidence store matches, a
-partial month) is `READY_WITH_GOVERNED_EXCEPTIONS`, not `BLOCKED` — the
-gate's job is to make every exception visible and excluded, not to demand
-perfection before any work can start.
+partial month) is `READY_WITH_GOVERNED_EXCEPTIONS`, not `BLOCKED_BY_DATA_QUALITY`
+— the gate's job is to make every exception visible and excluded, not to
+demand perfection before any work can start. The first goal of running it
+is to understand every exception, not to reach exit code 0 — see
+`docs/PHASE_2_SOURCE_INTAKE_CHECKLIST.md` §13.
+
+Every run also writes a machine-readable QC artifact (default
+`docs/phase2_qc/store_history_readiness_report.json`, overridable via
+`--out`) containing: validator version, source filename and SHA-256
+checksum, row count, canonical date range, every individual check's
+result, and — when a `--fy27-reference` file is supplied — the full
+crosswalk candidate count, cohort-status counts, and match-method counts.
+This is read-only reporting: the CLI accepts a `--dry-run` flag (default
+on) for forward-compatibility, though today the validator has no write
+path against production data at all to guard against — it never touches
+`dashboard/data.js`, any source file, or any tracked mapping.
 
 ## 5. Current status
 

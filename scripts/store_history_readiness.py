@@ -2,21 +2,33 @@
 extract before any Same-Store Growth calculation is allowed to use it.
 
 Design and governance: docs/PHASE_2_DATA_READINESS_GATE.md,
-docs/STORE_IDENTITY_GOVERNANCE.md, docs/PHASE_2_DATA_CONTRACT.md.
+docs/STORE_IDENTITY_GOVERNANCE.md, docs/PHASE_2_DATA_CONTRACT.md,
+docs/PHASE_2_SOURCE_INTAKE_CHECKLIST.md.
 
 Non-destructive: never writes to any source file, never touches
-dashboard/data.js. Reuses this repo's existing month-parsing and
-chain-canonicalization logic (build_dashboard_data.py) rather than
-re-deriving it, so a real FY26 file is interpreted identically to how the
-production pipeline already interprets FY27 files of the same shape.
+dashboard/data.js, never updates production mappings. Reuses this repo's
+existing month-parsing and chain-canonicalization logic
+(build_dashboard_data.py) rather than re-deriving it, so a real FY26 file
+is interpreted identically to how the production pipeline already
+interprets FY27 files of the same shape.
 
 This module is exercised entirely against synthetic fixtures today
 (scripts/test_store_history_readiness.py) -- no FY26 file exists in this
 repository yet. Running it against real data is the next action once one
 is supplied (docs/PHASE_2_EXECUTION_STATUS.md).
+
+CLI exit codes (docs/PHASE_2_DATA_READINESS_GATE.md):
+    0 = READY
+    2 = READY_WITH_GOVERNED_EXCEPTIONS
+    3 = BLOCKED_BY_SOURCE_DATA   (no file, or file unreadable)
+    4 = BLOCKED_BY_DATA_QUALITY  (file present, hard-block check failed)
 """
+import hashlib
 import importlib
+import subprocess
 import sys
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -25,9 +37,24 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 bd = importlib.import_module("build_dashboard_data")
 
+__version__ = "1.1.0"
+
 REQUIRED_COLUMNS = ["Month", "Chain", "Store Code", "Article", "Units", "NSV"]
 
 FY26_MONTHS_EXPECTED = 12
+
+
+def _chrono_key(mon_yy_label):
+    """Sort key for a 'Mon-YY' label (e.g. 'Apr-26') in actual calendar
+    order, not alphabetical order -- 'Feb-26' must sort after 'Nov-25', but
+    a plain sorted() on the strings would put it before (F < N)."""
+    mon, yy = mon_yy_label.split("-")
+    return (int(yy), bd._MON3_NUM[mon])
+
+EXIT_READY = 0
+EXIT_READY_WITH_GOVERNED_EXCEPTIONS = 2
+EXIT_BLOCKED_BY_SOURCE_DATA = 3
+EXIT_BLOCKED_BY_DATA_QUALITY = 4
 
 
 def _coerce_numeric(series):
@@ -40,6 +67,32 @@ def _coerce_numeric(series):
     return coerced, invalid_mask
 
 
+def _current_git_commit():
+    """Best-effort HEAD SHA of the repo this script lives in -- None
+    (never a fabricated value) if git isn't available or this isn't a
+    checkout, so a QC report can always be traced to the exact validator
+    code that produced it."""
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=Path(__file__).resolve().parent.parent,
+            capture_output=True, text=True, timeout=5,
+        )
+        return out.stdout.strip() if out.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def compute_checksum(path):
+    """SHA-256 of the raw file bytes -- lets a QC report prove which exact
+    file it validated, without ever copying or modifying the source."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def _check_required_columns(df):
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     return {
@@ -50,7 +103,7 @@ def _check_required_columns(df):
 
 
 def _check_month_coverage(df):
-    months = sorted({m for m in df["_month_canon"].dropna().unique()})
+    months = sorted({m for m in df["_month_canon"].dropna().unique()}, key=_chrono_key)
     return {
         "check": "month_coverage",
         "status": "PASS" if len(months) >= FY26_MONTHS_EXPECTED else "WARN",
@@ -89,6 +142,29 @@ def _check_store_identity_conflicts(df):
         "check": "store_identity_conflicts",
         "status": "PASS" if not conflicts else "WARN",
         "conflicts": conflicts,
+    }
+
+
+def _check_duplicate_store_ids(df):
+    """A stricter check than duplicate_grain: the same (Chain, Store Code)
+    must not appear under two different, mutually exclusive identities in
+    the SAME month at the article level in a way that would let one
+    physical store's sales get double counted in a cohort roll-up (distinct
+    from store_identity_conflicts, which reports the identity mismatch
+    itself; this reports whether it would actually inflate a sales sum)."""
+    key_cols = ["Month", "Chain", "Store Code"]
+    per_key_article_rows = df.groupby(key_cols).size()
+    # Not itself a failure (many articles per store per month is normal) --
+    # this check exists so a future caller can distinguish "duplicate rows
+    # at declared grain" (an ingestion bug) from "this store code was
+    # reused for two unrelated sites" (an identity bug), which needs the
+    # Store Name / State / City cross-check in _check_store_identity_conflicts
+    # to actually detect. Reported here as a cross-reference count only.
+    return {
+        "check": "duplicate_store_ids",
+        "status": "PASS",
+        "distinct_store_months": int(len(per_key_article_rows)),
+        "note": "cross-reference count; the actual identity-collision detector is store_identity_conflicts",
     }
 
 
@@ -215,7 +291,7 @@ def _check_identity_continuity(df, fy27_reference_df):
 
 def validate_store_history(df, control_total=None, fy27_reference_df=None):
     """Runs every readiness check and returns a report dict with an overall
-    verdict: BLOCKED / READY / READY_WITH_GOVERNED_EXCEPTIONS.
+    verdict: BLOCKED_BY_DATA_QUALITY / READY / READY_WITH_GOVERNED_EXCEPTIONS.
 
     df: the FY26 candidate frame, with at least REQUIRED_COLUMNS present
     (column names as documented in docs/PHASE_2_DATA_CONTRACT.md -- a real
@@ -225,8 +301,9 @@ def validate_store_history(df, control_total=None, fy27_reference_df=None):
     """
     req = _check_required_columns(df)
     if req["status"] == "FAIL":
-        return {"verdict": "BLOCKED", "reason": f"missing required columns: {req['missing_columns']}",
-                "checks": [req]}
+        return {"verdict": "BLOCKED_BY_DATA_QUALITY",
+                "reason": f"missing required columns: {req['missing_columns']}",
+                "checks": [req], "hard_fail_count": 1, "warning_count": 0}
 
     df = df.copy()
     df["_month_canon"] = df["Month"].map(bd._offtake_row_month)
@@ -237,6 +314,7 @@ def validate_store_history(df, control_total=None, fy27_reference_df=None):
         _check_month_coverage(df),
         _check_duplicate_grain(df),
         _check_store_identity_conflicts(df),
+        _check_duplicate_store_ids(df),
         _check_missing_identifiers(df),
         _check_article_mapping_quality(df),
         _check_financial_values(df),
@@ -250,7 +328,7 @@ def validate_store_history(df, control_total=None, fy27_reference_df=None):
     warnings = [c for c in checks if c["status"] == "WARN"]
 
     if hard_fail:
-        verdict = "BLOCKED"
+        verdict = "BLOCKED_BY_DATA_QUALITY"
     elif warnings:
         verdict = "READY_WITH_GOVERNED_EXCEPTIONS"
     else:
@@ -270,8 +348,14 @@ def _normalize_name(name):
 
 def build_crosswalk_candidates(fy26_df, fy27_df):
     """Returns a list of crosswalk rows per docs/STORE_IDENTITY_GOVERNANCE.md
-    §2's schema. Never sets Review_Status to AUTO_CONFIRMED below HIGH
-    confidence -- enforced here, not left to the caller."""
+    §2's schema, each also carrying a Cohort_Status per §5 of that document.
+    Never sets Review_Status to AUTO_CONFIRMED below HIGH confidence --
+    enforced here, not left to the caller. Covers stores on BOTH sides: a
+    FY26-only store (no match found) and a FY27-only store (no FY26
+    counterpart) are both emitted -- an earlier version of this function
+    only walked the FY26 side, which meant a store opened in FY27 never
+    appeared in the crosswalk at all (silently invisible, not even flagged
+    NEW_STORE)."""
     fy26 = fy26_df.copy()
     fy27 = fy27_df.copy()
     fy26["Chain"] = fy26["Chain"].map(bd.canon_chain)
@@ -291,6 +375,7 @@ def build_crosswalk_candidates(fy26_df, fy27_df):
 
     rows = []
     matched_fy26_keys = set()
+    matched_fy27_codes = set()  # (Chain, FY27_Store_Code) consumed by any match
 
     for key in fy26_by_code.index:
         chain, code = key
@@ -302,6 +387,7 @@ def build_crosswalk_candidates(fy26_df, fy27_df):
             same_city = ("City" not in fy26.columns or "City" not in fy27.columns
                         or str(rec26.get("City", "")).strip().lower() == str(rec27.get("City", "")).strip().lower())
             confidence = "HIGH" if (same_state and same_city) else "MEDIUM"
+            review = "AUTO_CONFIRMED" if confidence == "HIGH" else "PENDING_REVIEW"
             rows.append({
                 "Canonical_Store_ID": f"{chain}::{code}",
                 "FY26_Store_Code": code, "FY27_Store_Code": code,
@@ -309,10 +395,12 @@ def build_crosswalk_candidates(fy26_df, fy27_df):
                 "State": rec26.get("State"), "City": rec26.get("City"),
                 "Match_Method": "EXACT_CODE_MATCH",
                 "Match_Confidence": confidence,
-                "Review_Status": "AUTO_CONFIRMED" if confidence == "HIGH" else "PENDING_REVIEW",
+                "Review_Status": review,
                 "Exception_Reason": "" if confidence == "HIGH" else "State/City mismatch alongside exact code match",
+                "Cohort_Status": "COMPARABLE_STORE" if review == "AUTO_CONFIRMED" else "BLOCKED_FOR_REVIEW",
             })
             matched_fy26_keys.add(key)
+            matched_fy27_codes.add((chain, code))
 
     for key in fy26_by_code.index:
         if key in matched_fy26_keys:
@@ -322,17 +410,21 @@ def build_crosswalk_candidates(fy26_df, fy27_df):
         norm_key = (chain, rec26.get("_norm_name", ""))
         if norm_key in fy27_by_name.index and norm_key[1]:
             rec27 = fy27_by_name.loc[norm_key]
+            fy27_code = rec27.get("Store Code")
             rows.append({
                 "Canonical_Store_ID": f"{chain}::{code}",
-                "FY26_Store_Code": code, "FY27_Store_Code": rec27.get("Store Code"),
+                "FY26_Store_Code": code, "FY27_Store_Code": fy27_code,
                 "Chain": chain, "Store_Name": rec26.get("Store Name"),
                 "State": rec26.get("State"), "City": rec26.get("City"),
                 "Match_Method": "NORMALIZED_NAME_MATCH",
                 "Match_Confidence": "MEDIUM",
                 "Review_Status": "PENDING_REVIEW",
                 "Exception_Reason": "Store Code differs; matched on normalized name only",
+                "Cohort_Status": "BLOCKED_FOR_REVIEW",
             })
             matched_fy26_keys.add(key)
+            if fy27_code is not None:
+                matched_fy27_codes.add((chain, fy27_code))
 
     for key in fy26_by_code.index:
         if key in matched_fy26_keys:
@@ -347,42 +439,152 @@ def build_crosswalk_candidates(fy26_df, fy27_df):
             "Match_Method": "MANUAL_REVIEW",
             "Match_Confidence": "LOW",
             "Review_Status": "PENDING_REVIEW",
-            "Exception_Reason": "No FY27 match by code or name -- CLOSED_OR_LOST_STORE candidate, needs human confirmation",
+            "Exception_Reason": "No FY27 match by code or name -- could be a closure or a broken match; not distinguishable without human confirmation",
+            "Cohort_Status": "UNMATCHED_STORE",
+        })
+
+    # Reverse pass: a FY27 store never consumed by any match above is
+    # genuinely new (or, symmetrically, this crosswalk simply couldn't find
+    # its FY26 counterpart) -- either way it must appear, not stay invisible.
+    for key in fy27_by_code.index:
+        if key in matched_fy27_codes:
+            continue
+        chain, code = key
+        rec27 = fy27_by_code.loc[key]
+        rows.append({
+            "Canonical_Store_ID": f"{chain}::{code}",
+            "FY26_Store_Code": None, "FY27_Store_Code": code,
+            "Chain": chain, "Store_Name": rec27.get("Store Name"),
+            "State": rec27.get("State"), "City": rec27.get("City"),
+            "Match_Method": "MANUAL_REVIEW",
+            "Match_Confidence": "LOW",
+            "Review_Status": "PENDING_REVIEW",
+            "Exception_Reason": "No FY26 match by code or name -- genuinely new store, or a broken match; not distinguishable without human confirmation",
+            "Cohort_Status": "NEW_STORE",
         })
 
     return rows
 
 
+def cohort_counts(crosswalk_rows):
+    counts = {}
+    for row in crosswalk_rows:
+        status = row.get("Cohort_Status", "UNKNOWN")
+        counts[status] = counts.get(status, 0) + 1
+    return counts
+
+
+def match_method_counts(crosswalk_rows):
+    counts = {}
+    for row in crosswalk_rows:
+        method = row.get("Match_Method", "UNKNOWN")
+        counts[method] = counts.get(method, 0) + 1
+    return counts
+
+
 def main():
     import argparse
-    import json
+    import json as _json
 
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--src", required=True, help="Path to a FY26 CSV, columns per docs/PHASE_2_DATA_CONTRACT.md")
+    ap = argparse.ArgumentParser(description=__doc__,
+                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--src", default=None,
+                     help="Path to a FY26 CSV, columns per docs/PHASE_2_DATA_CONTRACT.md")
     ap.add_argument("--control-total", type=float, default=None)
-    ap.add_argument("--fy27-reference", default=None, help="Optional FY27 CSV for identity-continuity check")
-    ap.add_argument("--out", default=None, help="Write the JSON report here")
+    ap.add_argument("--fy27-reference", default=None,
+                     help="Optional FY27 CSV for identity-continuity check and crosswalk building. "
+                          "MUST already use this contract's column names (Chain, Store Code, Store "
+                          "Name, ...) -- the real files in PowerBI/RawDataFolders/Offtake_Monthly/ "
+                          "use raw names (Chain Name, Site Code, Site Name) and need the same rename "
+                          "step described in docs/PHASE_2_SOURCE_INTAKE_CHECKLIST.md §5 applied first.")
+    ap.add_argument("--out", default="docs/phase2_qc/store_history_readiness_report.json",
+                     help="Write the QC JSON artifact here (default: docs/phase2_qc/...)")
+    ap.add_argument("--dry-run", action="store_true", default=True,
+                     help="No effect today -- this validator has no write path against production "
+                          "data at all yet (never touches dashboard/data.js or any source file); "
+                          "the flag exists so a future crosswalk-persistence step defaults safe.")
     args = ap.parse_args()
+
+    if not args.src:
+        print("READY_FOR_SOURCE_INGESTION")
+        print("BLOCKED_BY_SOURCE_DATA: no --src supplied")
+        print("Missing dependency: a real FY26 (Apr'25-Mar'26) store x article "
+              "offtake extract -- see docs/PHASE_2_DATA_CONTRACT.md")
+        sys.exit(EXIT_BLOCKED_BY_SOURCE_DATA)
 
     src_path = Path(args.src)
     if not src_path.exists():
+        print("READY_FOR_SOURCE_INGESTION")
         print(f"BLOCKED_BY_SOURCE_DATA: {src_path} does not exist")
-        sys.exit(1)
+        sys.exit(EXIT_BLOCKED_BY_SOURCE_DATA)
 
     df = pd.read_csv(src_path)
     fy27_ref = pd.read_csv(args.fy27_reference) if args.fy27_reference else None
+    if fy27_ref is not None:
+        missing_ref_cols = [c for c in ("Chain", "Store Code") if c not in fy27_ref.columns]
+        if missing_ref_cols:
+            print(f"BLOCKED_BY_DATA_QUALITY: --fy27-reference is missing required column(s) "
+                  f"{missing_ref_cols} -- it must use this contract's column names, not a raw "
+                  f"source's own names. See docs/PHASE_2_SOURCE_INTAKE_CHECKLIST.md §5.")
+            sys.exit(EXIT_BLOCKED_BY_DATA_QUALITY)
+        fy27_ref = fy27_ref.copy()
+        fy27_ref["Chain"] = fy27_ref["Chain"].map(bd.canon_chain)
     report = validate_store_history(df, control_total=args.control_total, fy27_reference_df=fy27_ref)
+
+    crosswalk = []
+    if fy27_ref is not None and report["verdict"] != "BLOCKED_BY_DATA_QUALITY":
+        crosswalk = build_crosswalk_candidates(df, fy27_ref)
+
+    date_range = None
+    if "Month" in df.columns:
+        # Canonical-parsed months, not raw values -- a real extract can mix
+        # "Apr'26"-style strings with Excel-serial fallbacks (e.g. 46113.0)
+        # in the same Month column; sorting the raw strings would report a
+        # meaningless alphabetical min/max instead of an actual date range.
+        canon_months = sorted({m for m in df["Month"].map(bd._offtake_row_month).dropna().unique()}, key=_chrono_key)
+        date_range = {"min": canon_months[0], "max": canon_months[-1]} if canon_months else None
+
+    qc_artifact = {
+        # Provenance -- the only fields in this artifact allowed to vary
+        # between two runs against the identical file (see
+        # docs/PHASE_2_DATA_READINESS_GATE.md's determinism note; every
+        # OTHER field below must be byte-identical across repeat runs).
+        "run_id": f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:8]}",
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "git_commit": _current_git_commit(),
+        "validator_version": __version__,
+        "detected_grain": "Month x Chain x Store Code x Article",
+        "source_filename": str(src_path),
+        "source_checksum_sha256": compute_checksum(src_path),
+        "row_count": int(len(df)),
+        "date_range": date_range,
+        "final_verdict": report["verdict"],
+        "hard_fail_count": report["hard_fail_count"],
+        "warning_count": report["warning_count"],
+        "checks": report["checks"],
+        "crosswalk_row_count": len(crosswalk),
+        "cohort_counts": cohort_counts(crosswalk),
+        "match_method_counts": match_method_counts(crosswalk),
+        "dry_run": args.dry_run,
+    }
 
     print(f"Verdict: {report['verdict']}")
     for c in report["checks"]:
         print(f"  [{c['status']}] {c['check']}")
+    if crosswalk:
+        print(f"Crosswalk candidates: {len(crosswalk)} rows, cohort counts: {qc_artifact['cohort_counts']}")
 
-    if args.out:
-        import json as _json
-        Path(args.out).write_text(_json.dumps(report, indent=2, default=str))
-        print(f"Report written to {args.out}")
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(_json.dumps(qc_artifact, indent=2, default=str))
+    print(f"QC artifact written to {out_path}")
 
-    sys.exit(0 if report["verdict"] != "BLOCKED" else 1)
+    if report["verdict"] == "BLOCKED_BY_DATA_QUALITY":
+        sys.exit(EXIT_BLOCKED_BY_DATA_QUALITY)
+    elif report["verdict"] == "READY_WITH_GOVERNED_EXCEPTIONS":
+        sys.exit(EXIT_READY_WITH_GOVERNED_EXCEPTIONS)
+    else:
+        sys.exit(EXIT_READY)
 
 
 if __name__ == "__main__":

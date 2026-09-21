@@ -30,7 +30,7 @@ class TestRequiredColumns:
     def test_missing_required_column_blocks(self):
         df = _frame([_good_row()]).drop(columns=["NSV"])
         report = shr.validate_store_history(df)
-        assert report["verdict"] == "BLOCKED"
+        assert report["verdict"] == "BLOCKED_BY_DATA_QUALITY"
         assert "NSV" in report["reason"]
 
 
@@ -98,7 +98,7 @@ class TestFinancialValues:
         report = shr.validate_store_history(df)
         fv = next(c for c in report["checks"] if c["check"] == "financial_values")
         assert fv["negative_nsv_count"] == 1
-        assert report["verdict"] != "BLOCKED"
+        assert report["verdict"] != "BLOCKED_BY_DATA_QUALITY"
 
     def test_non_numeric_nsv_warns(self):
         df = _frame([_good_row(nsv="not_a_number")])
@@ -112,7 +112,7 @@ class TestNanInfinity:
     def test_infinite_value_fails_hard(self):
         df = _frame([_good_row(nsv=float("inf"))])
         report = shr.validate_store_history(df)
-        assert report["verdict"] == "BLOCKED"
+        assert report["verdict"] == "BLOCKED_BY_DATA_QUALITY"
         ni = next(c for c in report["checks"] if c["check"] == "nan_infinity")
         assert ni["status"] == "FAIL"
         assert ni["infinity_count"] == 1
@@ -210,14 +210,23 @@ class TestCrosswalkBuilder:
         # Never auto-confirmed below HIGH confidence.
         assert rows[0]["Review_Status"] == "PENDING_REVIEW"
 
-    def test_unmatched_store_flagged_manual_review_never_dropped(self):
+    def test_unmatched_stores_on_both_sides_never_dropped(self):
+        """Both the FY26 store with no FY27 counterpart AND the FY27 store
+        with no FY26 counterpart must appear -- an earlier version of the
+        builder only walked the FY26 side, so a store opened in FY27 was
+        silently invisible rather than flagged NEW_STORE."""
         fy26 = _frame([_good_row(code="D001", name="Ghost Store")])
         fy27 = _frame([_good_row(code="D999", name="Completely Different", month="Apr'26")])
         rows = shr.build_crosswalk_candidates(fy26, fy27)
-        assert len(rows) == 1  # the FY26 store is never silently dropped
-        assert rows[0]["Match_Method"] == "MANUAL_REVIEW"
-        assert rows[0]["Match_Confidence"] == "LOW"
-        assert rows[0]["Review_Status"] == "PENDING_REVIEW"
+        assert len(rows) == 2
+        fy26_side = next(r for r in rows if r["FY26_Store_Code"] == "D001")
+        fy27_side = next(r for r in rows if r["FY27_Store_Code"] == "D999")
+        assert fy26_side["Match_Method"] == "MANUAL_REVIEW"
+        assert fy26_side["Cohort_Status"] == "UNMATCHED_STORE"
+        assert fy26_side["FY27_Store_Code"] is None
+        assert fy27_side["Match_Method"] == "MANUAL_REVIEW"
+        assert fy27_side["Cohort_Status"] == "NEW_STORE"
+        assert fy27_side["FY26_Store_Code"] is None
 
     def test_no_fuzzy_match_is_ever_auto_confirmed(self):
         """Governance invariant from docs/STORE_IDENTITY_GOVERNANCE.md: no
@@ -233,3 +242,93 @@ class TestCrosswalkBuilder:
         low_or_medium = [r for r in rows if r["Match_Confidence"] != "HIGH"]
         assert low_or_medium
         assert all(r["Review_Status"] != "AUTO_CONFIRMED" for r in low_or_medium)
+
+    def test_comparable_store_cohort_status(self):
+        fy26 = _frame([_good_row(code="D001", state="Maharashtra", city="Mumbai")])
+        fy27 = _frame([_good_row(code="D001", month="Apr'26", state="Maharashtra", city="Mumbai")])
+        rows = shr.build_crosswalk_candidates(fy26, fy27)
+        assert rows[0]["Cohort_Status"] == "COMPARABLE_STORE"
+
+    def test_new_store_never_calculated_as_comparable(self):
+        """New stores must be excluded from SSG, per docs/PHASE_2_DATA_READINESS_GATE.md
+        -- confirmed here at the cohort-classification level, not left to the
+        (not-yet-built) cohort engine to remember on its own."""
+        fy26 = _frame([_good_row(code="D001")])
+        fy27 = _frame([_good_row(code="D001", month="Apr'26"), _good_row(code="D002", name="Brand New Store", month="Apr'26")])
+        rows = shr.build_crosswalk_candidates(fy26, fy27)
+        new_store = next(r for r in rows if r["FY27_Store_Code"] == "D002")
+        assert new_store["Cohort_Status"] == "NEW_STORE"
+        assert new_store["Cohort_Status"] != "COMPARABLE_STORE"
+
+    def test_ambiguous_match_stays_blocked_for_review(self):
+        """A name-based match (lower confidence than an exact code match)
+        must land in BLOCKED_FOR_REVIEW, never auto-resolved into either
+        COMPARABLE_STORE or UNMATCHED_STORE on its own."""
+        fy26 = _frame([_good_row(code="D777", name="Prince Anwar Shah Road")])
+        fy27 = _frame([_good_row(code="D888", name="prince anwar shah road", month="Apr'26")])
+        rows = shr.build_crosswalk_candidates(fy26, fy27)
+        ambiguous = next(r for r in rows if r["FY26_Store_Code"] == "D777")
+        assert ambiguous["Cohort_Status"] == "BLOCKED_FOR_REVIEW"
+        assert ambiguous["Match_Confidence"] != "HIGH"
+
+    def test_chain_migration_never_matched_across_chains(self):
+        """A store moving from one chain to another between years must
+        never be silently matched across the chain boundary -- Chain is
+        part of the cohort key by design (docs/STORE_IDENTITY_GOVERNANCE.md).
+        It surfaces as an UNMATCHED_STORE on the old chain and a NEW_STORE
+        on the new chain, which is honest (the crosswalk cannot know it's
+        the same physical site without an explicit chain-provided mapping),
+        not a data-quality bug in this validator."""
+        fy26 = _frame([_good_row(chain="Chain A", code="S001", name="High Street Store")])
+        fy27 = _frame([_good_row(chain="Chain B", code="S001", name="High Street Store", month="Apr'26")])
+        rows = shr.build_crosswalk_candidates(fy26, fy27)
+        assert len(rows) == 2
+        chain_a_row = next(r for r in rows if r["Chain"] == "Chain A")
+        chain_b_row = next(r for r in rows if r["Chain"] == "Chain B")
+        assert chain_a_row["Cohort_Status"] == "UNMATCHED_STORE"
+        assert chain_b_row["Cohort_Status"] == "NEW_STORE"
+
+
+class TestCohortAndMatchMethodCounts:
+    def test_cohort_counts_tally_correctly(self):
+        fy26 = _frame([_good_row(code="D001"), _good_row(code="D002", name="Closing Soon", article="ART-002")])
+        fy27 = _frame([_good_row(code="D001", month="Apr'26"), _good_row(code="D003", name="Brand New", month="Apr'26")])
+        rows = shr.build_crosswalk_candidates(fy26, fy27)
+        counts = shr.cohort_counts(rows)
+        assert counts.get("COMPARABLE_STORE") == 1
+        assert counts.get("UNMATCHED_STORE") == 1
+        assert counts.get("NEW_STORE") == 1
+        assert sum(counts.values()) == len(rows)
+
+    def test_match_method_counts_tally_correctly(self):
+        fy26 = _frame([_good_row(code="D001")])
+        fy27 = _frame([_good_row(code="D001", month="Apr'26")])
+        rows = shr.build_crosswalk_candidates(fy26, fy27)
+        counts = shr.match_method_counts(rows)
+        assert counts.get("EXACT_CODE_MATCH") == 1
+
+
+class TestDuplicateStoreIdCheck:
+    def test_reports_distinct_store_months_without_blocking(self):
+        df = _frame([_good_row(code="D001", article="ART-001"), _good_row(code="D001", article="ART-002")])
+        report = shr.validate_store_history(df)
+        dsi = next(c for c in report["checks"] if c["check"] == "duplicate_store_ids")
+        assert dsi["status"] == "PASS"
+        assert dsi["distinct_store_months"] == 1
+
+
+class TestQCArtifactHelpers:
+    def test_checksum_is_deterministic(self, tmp_path):
+        f = tmp_path / "sample.csv"
+        f.write_text("Month,Chain\nApr'25,DMart\n")
+        c1 = shr.compute_checksum(f)
+        c2 = shr.compute_checksum(f)
+        assert c1 == c2
+        assert len(c1) == 64  # sha256 hex digest length
+
+    def test_checksum_changes_with_content(self, tmp_path):
+        f1 = tmp_path / "a.csv"
+        f2 = tmp_path / "b.csv"
+        f1.write_text("Month,Chain\nApr'25,DMart\n")
+        f2.write_text("Month,Chain\nMay'25,DMart\n")
+        assert shr.compute_checksum(f1) != shr.compute_checksum(f2)
