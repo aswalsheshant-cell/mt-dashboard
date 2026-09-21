@@ -1,9 +1,44 @@
 # Phase 2 Execution Status — Same-Store Growth (SSG)
 
 **PHASE 2B = COMPLETE**
+**PHASE 2C = STOPPED — BLOCKED_BY_SOURCE_DATA** (attempted 2026-09-21; see "Phase 2C attempt log" below)
 **STATUS = READY_FOR_SOURCE_INGESTION**
 **DEPENDENCY = FY26 Apr'25-Mar'26 Store × Article Offtake**
 **NEXT PHASE = PHASE 2C — CONTROLLED HISTORICAL INGESTION** (see §"Phase 2C" below)
+
+## Phase 2C attempt log — 2026-09-21
+
+Baseline confirmed: HEAD `4e4721c`, working tree clean, matches the
+documented FY26 Intake-Ready Baseline exactly before this attempt started.
+
+Searched for a real FY26 store×article source beyond the obvious location
+(`PowerBI/RawDataFolders/Offtake_Monthly/`, unchanged since Sep 9-12,
+still only the 5 real FY27 files) — found and ruled out one file worth
+recording rather than silently dismissing:
+
+- `data/raw_drops/_agg/offtake_fy26.json` — real FY26 offtake data
+  (Apr'25-Mar'26 monthly, per-chain), but **chain-level aggregate only**
+  (no Store Code, Article, or Units columns at all) — this is the derived
+  artifact already feeding the chain-level `offtake.total_fy26`/`by_chain`
+  figures already live in production `dashboard/data.js` (its own commit
+  message: "derived offtake aggregate"), not a raw store×article intake
+  candidate. Fails `required_columns` immediately; not the file requested
+  by `docs/PHASE_2_DATA_CONTRACT.md`, and not genuinely ambiguous with it
+  (wrong grain, not a second candidate for the same thing).
+- `test/fixtures/finance_controls_fy26_*.csv` — test fixtures for an
+  unrelated validator, not an offtake source.
+- `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv`
+  — Primary billing data, not Offtake.
+
+Ran `python3 scripts/store_history_readiness.py` (no `--src`, matching the
+real repo state): printed `READY_FOR_SOURCE_INGESTION` +
+`BLOCKED_BY_SOURCE_DATA`, exit code `3`, confirmed live. `git status
+--porcelain` empty before and after — zero mutation.
+
+**Result: STOPPED, exactly per the Phase 2C entry condition not being
+met.** No code, no tests, no production data, no commit beyond this log
+entry. Next action unchanged: obtain the real FY26 file per
+`docs/PHASE_2_DATA_CONTRACT.md` / `docs/PHASE_2_SOURCE_INTAKE_CHECKLIST.md`.
 
 This tracks execution status only. The underlying feasibility analysis lives
 in `docs/PHASE2_SSG_FEASIBILITY.md` (completed 2026-09-20, read-only, not
