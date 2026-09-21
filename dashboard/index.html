@@ -1133,26 +1133,31 @@ function buildDemandPlanning(){
       const _fc=D.forecast||{};
       const _zones=((D.offtake&&D.offtake.by_zone)||[]).filter(z=>z&&z.name);
       const _nat=Number(_fc.fy27_forecast)||0;
+      // Pro-rata base is always the FULL zone set -- a Zone filter narrows which
+      // rows are shown, never what "contribution to national total" means.
       const _base=_zones.reduce((a,z)=>a+(Number(z.fy26)||0),0);
       const forecastData=_zones.map(z=>{
         const fy26=Number(z.fy26)||0, share=_base>0?fy26/_base:0;
         return {zone:z.name,fy26,share,fy27_target:_nat*share,fy27_actual:Number(z.fy27)||0};
       }).sort((a,b)=>b.fy27_target-a.fy27_target);
+      const forecastDisplay=fOn('Zone')?forecastData.filter(z=>fHas('Zone',z.zone)):forecastData;
 
-      if(!forecastData.length){
+      if(!forecastDisplay.length){
         content.innerHTML+=card('Zone Forecast Allocation','no zone data',
-          '<p class="lead">primary.by_zone is empty in this build — rerun the primary refresh.</p>');
+          fOn('Zone')?'<p class="lead">No zone matches the current Zone filter.</p>'
+            :'<p class="lead">primary.by_zone is empty in this build — rerun the primary refresh.</p>');
       }else{
         // FY27 actuals are part-year (only the months the article-level primary
         // covers), so the achievement column is labelled with that window.
         const _mc=((D.detail_meta||{}).fyx_primary||{}).FY27||{};
         const _mcs=(_mc.months_covered||[]).length;
-        const _sub=_nat>0
-          ? `${forecastData.length} zones · FY27 target ${crc(_nat)} cascaded pro-rata on FY26 contribution`
+        const _sub=(_nat>0
+          ? `${forecastDisplay.length} zone${forecastDisplay.length===1?'':'s'} · FY27 target ${crc(_nat)} cascaded pro-rata on FY26 contribution`
             + (_mcs?` · actuals cover ${_mcs} month${_mcs===1?'':'s'} (${_mc.months_covered.join(', ')})`:'')
-          : `${forecastData.length} zones · FY27 target not present in source`;
+          : `${forecastDisplay.length} zones · FY27 target not present in source`)
+          + (fOn('Zone')?` · filtered to ${fLab('Zone')}`:'');
         content.innerHTML+=card('Zone Forecast Allocation',_sub,
-          `<table class="tbl"><thead><tr><th>Zone</th><th>FY26 Actual</th><th>Contribution</th><th>FY27 Target (allocated)</th><th>FY27 Actual to date</th><th>Ach. vs target</th></tr></thead><tbody>${forecastData.map(z=>{const a=z.fy27_target>0?(100*z.fy27_actual/z.fy27_target):null;return `<tr><td>${drillLink('Zone',z.zone)}</td><td>${crc(z.fy26)}</td><td>${(z.share*100).toFixed(1)}%</td><td>${crc(z.fy27_target)}</td><td>${crc(z.fy27_actual)}</td><td style="color:${a==null?'#666':a>=100?'#2D9B7F':a>=60?'#C77D17':'#C0392B'}">${a==null?'–':a.toFixed(1)+'%'}</td></tr>`}).join('')}</tbody></table>`);
+          `<table class="tbl"><thead><tr><th>Zone</th><th>FY26 Actual</th><th>Contribution</th><th>FY27 Target (allocated)</th><th>FY27 Actual to date</th><th>Ach. vs target</th></tr></thead><tbody>${forecastDisplay.map(z=>{const a=z.fy27_target>0?(100*z.fy27_actual/z.fy27_target):null;return `<tr><td>${drillLink('Zone',z.zone)}</td><td>${crc(z.fy26)}</td><td>${(z.share*100).toFixed(1)}%</td><td>${crc(z.fy27_target)}</td><td>${crc(z.fy27_actual)}</td><td style="color:${a==null?'#666':a>=100?'#2D9B7F':a>=60?'#C77D17':'#C0392B'}">${a==null?'–':a.toFixed(1)+'%'}</td></tr>`}).join('')}</tbody></table>`);
         wireDrillLinks(content);
       }
 
@@ -1165,15 +1170,55 @@ function buildDemandPlanning(){
       const forecastChart=new Chart(canvas,{
         type:'bar',
         data:{
-          labels:forecastData.map(z=>z.zone),
+          labels:forecastDisplay.map(z=>z.zone),
           datasets:[
-            {label:'FY26 Actual (Cr)',data:forecastData.map(z=>z.fy26/100),backgroundColor:'#95A5A6'},
-            {label:'FY27 Target (Cr, allocated)',data:forecastData.map(z=>z.fy27_target/100),backgroundColor:'#2D9B7F'}
+            {label:'FY26 Actual (Cr)',data:forecastDisplay.map(z=>z.fy26/100),backgroundColor:'#95A5A6'},
+            {label:'FY27 Target (Cr, allocated)',data:forecastDisplay.map(z=>z.fy27_target/100),backgroundColor:'#2D9B7F'}
           ]
         },
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
       });
       demandPlanningState.charts.forecast=forecastChart;
+
+      // Target vs Actual reliability (WAPE/bias) -- reuses computeForecastAccuracy()
+      // exactly as the Commercial Analytics tab does. No new calculation: this is
+      // the same function, same numbers, surfaced where a planner is actually
+      // looking at Forecast, not duplicated or recomputed.
+      const _acc=computeForecastAccuracy();
+      content.innerHTML+=card('Target vs Actual Reliability',_acc.note||'WMAPE % and bias',
+        `<div style="padding:16px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+           <div style="text-align:center">
+             <div style="font-size:28px;font-weight:bold;color:${_acc.accuracy==null?'var(--muted)':_acc.accuracy>=90?'var(--green)':_acc.accuracy>=75?'var(--amber)':'var(--red)'}">${_acc.accuracy??'–'}%</div>
+             <div style="font-size:12px;color:var(--muted)">Accuracy (100 − WMAPE)</div>
+           </div>
+           <div style="flex:1;min-width:220px">
+             <div style="padding:8px 12px;background:${_acc.bias_status==='On plan'?'var(--green)':_acc.bias_status==null?'var(--muted)':'var(--amber)'}20;border-left:4px solid ${_acc.bias_status==='On plan'?'var(--green)':_acc.bias_status==null?'var(--muted)':'var(--amber)'};border-radius:2px">
+               <strong>${_acc.bias_status??'–'}</strong><br><small>${_acc.bias??'–'}% bias · WMAPE ${_acc.wmape??'–'}%</small>
+             </div>
+           </div>
+         </div>
+         <p class="note">Backtesting and a statistical confidence interval are not shown: this build has only ${(D.detail_meta&&D.detail_meta.fyx_primary&&D.detail_meta.fyx_primary.FY27&&(D.detail_meta.fyx_primary.FY27.months_covered||[]).length)||'a few'} month(s) of article-level history — too short to backtest responsibly (see docs/BUSINESS_LOGIC_REGISTRY.md BL-15).</p>`);
+
+      // Bottom-up brand/chain forecast detail -- real code, waiting on a real
+      // source. D.forecast.detail is NOT_CONFIGURED until
+      // scripts/load_forecast_detail.py has ingested the private multi-brand
+      // workbook (config/data_source_registry.yml: forecast_detail_brand_chain).
+      // Never fabricated here -- shows the exact missing-source reason instead.
+      const _det=(D.forecast||{}).detail;
+      if(_det&&Array.isArray(_det.months)&&_det.months.length){
+        content.innerHTML+=_buildFcDetail(_det);
+        setTimeout(()=>{
+          const charts=_buildFcDetailCharts(_det);
+          if(charts){ demandPlanningState.charts.fcBrand=charts.brand; demandPlanningState.charts.fcChain=charts.chain; }
+        },50);
+      }else{
+        content.innerHTML+=card('Bottom-up Brand/Chain Forecast','source not available',
+          `<p class="lead">No brand/chain-level forecast detail exists in this build.</p>
+           <p class="note">DASH.forecast.detail is not configured (<code>config/data_source_registry.yml</code>:
+           forecast_detail_brand_chain, status NOT_CONFIGURED). To populate this view, run
+           <code>scripts/load_forecast_detail.py --xlsx &lt;Dynamic_Multi_Brand_Forecast file&gt; --out dashboard/data.js</code>
+           against the real multi-brand workbook. Until then this stays empty by design.</p>`);
+      }
     }else if(sv==='promo'){
       // Real promo master: D.promo.by_chain carries {name,promos,avg_depth,brands}.
       // The previous version listed four invented campaigns ("Monsoon Clearance",
@@ -2333,9 +2378,10 @@ function _buildFcDetailCharts(det){
     backgroundColor:(brandColors[i]||'#999')+'cc',
     borderColor:brandColors[i]||'#999',borderWidth:1
   }));
+  let brandChart=null,chainChart=null;
   const bCtx=document.getElementById('fcBrandChart');
   if(bCtx&&typeof Chart!=='undefined'){
-    new Chart(bCtx,{type:'bar',data:{labels:moLabels,datasets:brandDatasets},
+    brandChart=new Chart(bCtx,{type:'bar',data:{labels:moLabels,datasets:brandDatasets},
       options:{responsive:true,plugins:{legend:{position:'bottom'}},
         scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>crc(v)}}}}});
   }
@@ -2345,11 +2391,12 @@ function _buildFcDetailCharts(det){
   const cTotals=(det.by_chain||[]).slice(0,10).map(c=>c.total);
   const cCtx=document.getElementById('fcChainChart');
   if(cCtx&&typeof Chart!=='undefined'){
-    new Chart(cCtx,{type:'bar',data:{labels:cNames,
+    chainChart=new Chart(cCtx,{type:'bar',data:{labels:cNames,
       datasets:[{label:'3-month target',data:cTotals,backgroundColor:C.teal+'bb',borderColor:C.teal,borderWidth:1}]},
       options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
         scales:{x:{ticks:{callback:v=>crc(v)}}}}});
   }
+  return{brand:brandChart,chain:chainChart};
 }
 
 function distFmtFootprintRows(dg){
