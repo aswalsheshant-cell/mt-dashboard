@@ -1,10 +1,124 @@
 # Phase 2 Execution Status — Same-Store Growth (SSG)
 
-**PHASE 2B = COMPLETE**
-**PHASE 2C = STOPPED — BLOCKED_BY_SOURCE_DATA** (attempted 2026-09-21; see "Phase 2C attempt log" below)
+**PHASE 2B = CERTIFIED, unchanged this pass**
+**PHASE 2C = SOURCE SEARCH done, SOURCE CLASSIFICATION done, INGESTION READINESS = READY (harness built), ACTUAL INGESTION = NOT STARTED, reason = BLOCKED_BY_SOURCE_DATA**
 **STATUS = READY_FOR_SOURCE_INGESTION**
 **DEPENDENCY = FY26 Apr'25-Mar'26 Store × Article Offtake**
-**NEXT PHASE = PHASE 2C — CONTROLLED HISTORICAL INGESTION** (see §"Phase 2C" below)
+**NEXT PHASE = once a real source lands: run it through the ingestion-readiness harness built this pass (see §"Phase 2C infrastructure preparation" below)**
+
+## Phase 2C status, by stage — 2026-09-21
+
+This section is the authoritative Phase 2C status split the rest of this
+document (and any future pass) should read first. It separates four
+distinct questions that earlier logs below ran together under one
+"STOPPED" line.
+
+### 1. SOURCE SEARCH — done
+
+Searched beyond the obvious landing location
+(`PowerBI/RawDataFolders/Offtake_Monthly/`, unchanged since Sep 9-12, still
+only the 5 real FY27 files) for anything that could be the requested FY26
+store×article extract. Found and ruled out three candidates — see "Phase
+2C attempt log" below for the per-file detail. **No real FY26
+Apr'25–Mar'26 Store × Article Offtake source exists anywhere in this
+repository.**
+
+### 2. SOURCE CLASSIFICATION — done, machine-checkable now
+
+Built `classify_source()` in `scripts/store_history_readiness.py`
+(7-state machine: `SOURCE_NOT_FOUND`, `SOURCE_WRONG_GRAIN`,
+`SOURCE_SCHEMA_INVALID`, `SOURCE_PERIOD_INCOMPLETE`, `SOURCE_DUPLICATED`,
+`SOURCE_UNRECONCILED`, `SOURCE_AUTHENTICATED`), so this is no longer a
+one-off manual judgment. Verified against the repo's actual state:
+
+```
+$ python3 scripts/store_history_readiness.py --classify data/raw_drops/_agg/offtake_fy26.json
+{"source_status": "SOURCE_WRONG_GRAIN", "reason": "JSON aggregate does not
+contain Store x Article x Units detail required by
+docs/PHASE_2_DATA_CONTRACT.md -- chain/month grain only"}   # exit 3
+```
+
+`data/raw_drops/_agg/offtake_fy26.json` is formally classified
+`SOURCE_WRONG_GRAIN` — it is the derived chain-level aggregate already
+feeding production `dashboard/data.js`'s chain-level FY26 figures, not a
+store×article intake candidate. It is never derived/allocated down to
+store×article grain to manufacture a substitute source — no estimate, no
+proxy, per this repo's "no dummy data" rule.
+
+### 3. INGESTION READINESS — READY (harness built, not yet run against real data)
+
+The full ingestion/validation framework requested for this pass now
+exists, built and tested exclusively against **synthetic fixtures** (no
+real FY26 data was fabricated to test it):
+
+- Source Readiness States (`SOURCE_STATES`, `classify_source()`).
+- FY26 Data Contract enforcement — `REQUIRED_COLUMNS` hard-block, plus a
+  governed alias map (`GOVERNED_COLUMN_ALIASES`, `apply_governed_aliases()`)
+  that renames only explicitly-declared source column names, never guesses.
+- Raw Source Manifest (`build_source_manifest()`) — dataset name, filename,
+  SHA-256, file size, row/column count, period min/max, ingestion
+  timestamp, schema version, source status. Read-only; never modifies the
+  source file.
+- Pre-ingestion validation checks: required columns, empty source, period
+  window (`_check_period_window`), invalid month formats
+  (`_check_invalid_month_formats`), duplicate natural keys, null critical
+  identifiers, unknown chain against the governed alias table
+  (`_check_unknown_master_values`), invalid/NaN/Infinity numeric fields,
+  missing-as-zero distinction, source-total reconciliation.
+- 11 synthetic fixture scenarios exercised by
+  `scripts/test_phase2c_source_classification.py` (30 tests): valid FY26
+  file, missing Store Code, missing Article, missing Units, duplicate
+  records, missing month, unknown chain, unknown store/article, invalid
+  value, wrong-grain aggregate, empty source.
+- Mutation guard: a subprocess-based test proves a failing validation run
+  leaves `dashboard/data.js`, FY27 raw sources, and the Phase 2B baseline
+  byte-unchanged.
+- Determinism: `build_source_manifest()` run twice against the identical
+  file produces identical output except `ingestion_timestamp`.
+- Reconciliation placeholder (`reconciliation_placeholder()`) — returns
+  `BLOCKED_PENDING_POLICY` unless a `governed_tolerance_pct` is explicitly
+  supplied by the caller. Confirmed no reconciliation tolerance is
+  registered anywhere in `config/analytics_config.json` today, so no
+  threshold was invented here.
+- Identity/continuity interfaces prepared as an explicitly **non-production
+  prototype** (`classify_identity_and_continuity()`) — a two-state
+  `Identity_Status`/`Chain_Continuity_Status`/`Cohort_Status` shape, proven
+  by test to NOT be wired into `build_crosswalk_candidates()`. Per the
+  Phase 2B closeout note below, the fuller design stays deferred until real
+  FY26 evidence shows an actual chain-migration/acquisition case to design
+  the distinction against — speculative sub-classification isn't added
+  without one.
+- Release gate (`phase2c_gate_status()`): scans
+  `PowerBI/RawDataFolders/Offtake_Monthly/` for anything beyond the known
+  5 real FY27 files and reports the combined Phase 2B/2C state in one call.
+
+### 4. ACTUAL INGESTION — NOT STARTED
+
+**Reason: `BLOCKED_BY_SOURCE_DATA`.** No genuine FY26 file has been
+ingested, validated, or published to any canonical location.
+`source_authenticated = false`, `fy26_production_ingestion_performed =
+false`, `publication_blocked = true` — confirmed live via:
+
+```
+$ python3 scripts/store_history_readiness.py --gate-status
+{"phase_2b_status": "CERTIFIED", "phase_2c_harness_status": "READY",
+ "fy26_production_ingestion_performed": false, "source_authenticated": false,
+ "publication_blocked": true, "actual_ingestion": "NOT_STARTED",
+ "reason": "BLOCKED_BY_SOURCE_DATA"}   # exit 3
+```
+
+Production `dashboard/data.js`, FY26/FY27 identity/continuity/cohort
+business logic, and the Phase 2B baseline are all unchanged by this pass —
+confirmed via `git status --porcelain` / `git diff --stat`: only
+`scripts/store_history_readiness.py` (extended) and
+`scripts/test_phase2c_source_classification.py` (new) changed.
+
+**Remaining blocker, unchanged: a genuine FY26 (Apr'25–Mar'26) Store ×
+Article Offtake source file.** The moment it lands in
+`PowerBI/RawDataFolders/Offtake_Monthly/`, run
+`python3 scripts/store_history_readiness.py --classify <file>` followed by
+the full `--src ... --fy27-reference ...` validation — the harness is
+ready now; only the file is missing.
 
 ## Phase 2C attempt log — 2026-09-21
 

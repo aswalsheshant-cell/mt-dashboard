@@ -258,6 +258,60 @@ def _check_source_total_reconciliation(df, control_total, tolerance_pct=1.0):
     }
 
 
+def _check_period_window(df):
+    """Flags months that parse successfully but fall OUTSIDE Apr'25-Mar'26
+    -- distinct from month_coverage, which only counts how many of the 12
+    expected months are present, not whether an extra, out-of-window month
+    sneaked in (e.g. a file that accidentally includes Apr'26)."""
+    in_window = {f"{m}-25" for m in ("Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")} | \
+                {f"{m}-26" for m in ("Jan", "Feb", "Mar")}
+    months = {m for m in df["_month_canon"].dropna().unique()}
+    out_of_window = sorted(months - in_window, key=_chrono_key)
+    return {
+        "check": "period_window",
+        "status": "PASS" if not out_of_window else "WARN",
+        "out_of_window_months": out_of_window,
+        "expected_window": "Apr-25 through Mar-26",
+    }
+
+
+def _check_invalid_month_formats(df):
+    """Counts rows whose raw Month value could not be parsed into any
+    canonical month at all -- distinct from period_window, which only
+    flags a VALIDLY-parsed month outside the expected range."""
+    n_invalid = int(df["_month_canon"].isna().sum())
+    return {
+        "check": "invalid_month_formats",
+        "status": "PASS" if n_invalid == 0 else "WARN",
+        "unparseable_month_row_count": n_invalid,
+    }
+
+
+def _check_unknown_master_values(df):
+    """A Chain value that doesn't resolve against this repo's own governed
+    alias table (canon_chain()) is a real business exception to review,
+    never silently dropped or silently accepted as if it were mapped.
+    Store/Article master matching would need a governed store/article
+    master this repo doesn't have wired in yet -- not invented here."""
+    exceptions = {}
+    if "Chain" in df.columns:
+        raw_chains = sorted(df["Chain"].dropna().astype(str).str.strip().unique())
+        # canon_chain() passes an unrecognized string through unchanged (it only
+        # returns None for null input) -- so "recognized" has to be checked
+        # against the alias table directly, the same way canon_chain() itself
+        # decides it internally, not by looking at canon_chain()'s return value.
+        unknown_chains = [c for c in raw_chains if c.lower() not in bd._ALIAS_LOOKUP]
+        if unknown_chains:
+            exceptions["unknown_chain"] = unknown_chains[:50]
+    return {
+        "check": "unknown_master_values",
+        "status": "PASS" if not exceptions else "WARN",
+        "exceptions": exceptions,
+        "note": "an unrecognized chain name is a governed business exception requiring review, "
+                "not an automatic hard block and never silently mapped or dropped",
+    }
+
+
 def _check_identity_continuity(df, fy27_reference_df):
     if fy27_reference_df is None:
         return {"check": "fy26_fy27_identity_continuity", "status": "NOT_CHECKED",
@@ -305,6 +359,12 @@ def validate_store_history(df, control_total=None, fy27_reference_df=None):
                 "reason": f"missing required columns: {req['missing_columns']}",
                 "checks": [req], "hard_fail_count": 1, "warning_count": 0}
 
+    if len(df) == 0:
+        empty_check = {"check": "non_empty_source", "status": "FAIL", "row_count": 0}
+        return {"verdict": "BLOCKED_BY_DATA_QUALITY",
+                "reason": "source has zero rows",
+                "checks": [req, empty_check], "hard_fail_count": 1, "warning_count": 0}
+
     df = df.copy()
     df["_month_canon"] = df["Month"].map(bd._offtake_row_month)
     df["Chain"] = df["Chain"].map(bd.canon_chain)
@@ -312,11 +372,14 @@ def validate_store_history(df, control_total=None, fy27_reference_df=None):
     checks = [
         req,
         _check_month_coverage(df),
+        _check_period_window(df),
+        _check_invalid_month_formats(df),
         _check_duplicate_grain(df),
         _check_store_identity_conflicts(df),
         _check_duplicate_store_ids(df),
         _check_missing_identifiers(df),
         _check_article_mapping_quality(df),
+        _check_unknown_master_values(df),
         _check_financial_values(df),
         _check_nan_infinity(df),
         _check_missing_as_zero(df),
@@ -336,6 +399,230 @@ def validate_store_history(df, control_total=None, fy27_reference_df=None):
 
     return {"verdict": verdict, "checks": checks,
             "hard_fail_count": len(hard_fail), "warning_count": len(warnings)}
+
+
+# ---------------------------------------------------------------------------
+# Source Readiness States (docs/PHASE_2_DATA_READINESS_GATE.md)
+# ---------------------------------------------------------------------------
+
+SOURCE_STATES = (
+    "SOURCE_NOT_FOUND",
+    "SOURCE_WRONG_GRAIN",
+    "SOURCE_SCHEMA_INVALID",
+    "SOURCE_PERIOD_INCOMPLETE",
+    "SOURCE_DUPLICATED",
+    "SOURCE_UNRECONCILED",
+    "SOURCE_AUTHENTICATED",
+)
+
+
+def classify_source(path, fy27_reference_df=None, control_total=None):
+    """Single top-level classification into one of SOURCE_STATES, derived
+    from -- never duplicating -- validate_store_history()'s own checks.
+    Read-only: never writes to path. Handles a non-CSV candidate (e.g. a
+    chain-level JSON aggregate) explicitly instead of crashing on it, so a
+    file like data/raw_drops/_agg/offtake_fy26.json gets a real, recorded
+    classification (SOURCE_WRONG_GRAIN) rather than being silently ignored
+    or causing an unhandled exception."""
+    p = Path(path)
+    if not p.exists():
+        return {"source_status": "SOURCE_NOT_FOUND", "path": str(p), "reason": "file does not exist"}
+
+    if p.suffix.lower() == ".json":
+        import json as _json
+        try:
+            data = _json.loads(p.read_text())
+        except Exception as e:
+            return {"source_status": "SOURCE_SCHEMA_INVALID", "path": str(p),
+                    "reason": f"unreadable JSON: {type(e).__name__}"}
+        has_store_grain = isinstance(data, dict) and any(
+            k in data for k in ("Store Code", "store_code", "by_store", "by_article"))
+        if not has_store_grain:
+            return {"source_status": "SOURCE_WRONG_GRAIN", "path": str(p),
+                    "reason": "JSON aggregate does not contain Store x Article x Units detail "
+                              "required by docs/PHASE_2_DATA_CONTRACT.md -- chain/month grain only"}
+        return {"source_status": "SOURCE_SCHEMA_INVALID", "path": str(p),
+                "reason": "unrecognized JSON structure -- the contract expects a CSV"}
+
+    try:
+        df = pd.read_csv(p)
+    except Exception as e:
+        return {"source_status": "SOURCE_SCHEMA_INVALID", "path": str(p),
+                "reason": f"unreadable: {type(e).__name__}"}
+
+    report = validate_store_history(df, control_total=control_total, fy27_reference_df=fy27_reference_df)
+    by_name = {c["check"]: c for c in report["checks"]}
+
+    req = by_name.get("required_columns")
+    if req and req["status"] == "FAIL":
+        return {"source_status": "SOURCE_WRONG_GRAIN", "path": str(p),
+                "reason": f"missing required column(s): {req['missing_columns']}"}
+
+    empty_check = by_name.get("non_empty_source")
+    if empty_check and empty_check["status"] == "FAIL":
+        return {"source_status": "SOURCE_SCHEMA_INVALID", "path": str(p), "reason": "zero rows"}
+
+    nan_check = by_name.get("nan_infinity")
+    if nan_check and nan_check["status"] == "FAIL":
+        return {"source_status": "SOURCE_SCHEMA_INVALID", "path": str(p),
+                "reason": "NaN/Infinity present in financial fields"}
+
+    month_check = by_name.get("month_coverage")
+    if month_check and month_check["status"] != "PASS":
+        return {"source_status": "SOURCE_PERIOD_INCOMPLETE", "path": str(p),
+                "reason": f"{month_check['months_present_count']}/{month_check['months_expected']} months present"}
+
+    dup_check = by_name.get("duplicate_grain")
+    if dup_check and dup_check["status"] != "PASS":
+        return {"source_status": "SOURCE_DUPLICATED", "path": str(p),
+                "reason": f"{dup_check['duplicate_row_count']} duplicate rows at declared grain"}
+
+    recon_check = by_name.get("source_total_reconciliation")
+    if recon_check and recon_check["status"] == "WARN":
+        return {"source_status": "SOURCE_UNRECONCILED", "path": str(p),
+                "reason": f"variance {recon_check['variance_pct']}% exceeds tolerance {recon_check['tolerance_pct']}%"}
+
+    return {"source_status": "SOURCE_AUTHENTICATED", "path": str(p),
+            "reason": "all readiness checks pass", "full_report": report}
+
+
+# ---------------------------------------------------------------------------
+# Governed column aliases (docs/PHASE_2_SOURCE_INTAKE_CHECKLIST.md §5)
+# ---------------------------------------------------------------------------
+
+GOVERNED_COLUMN_ALIASES = {
+    # Contract name -> known raw source name(s), in priority order.
+    # Explicit and versioned here -- never applied silently. A rename only
+    # happens when the caller opts in (apply_governed_aliases(), or the
+    # CLI's --use-governed-aliases), so it is always a visible, auditable
+    # decision, never a guess.
+    "Store Code": ["Site Code"],
+    "Store Name": ["Site Name"],
+    "Chain": ["Chain Name"],
+    "Units": ["Sales Qty"],
+}
+
+
+def apply_governed_aliases(df):
+    """Renames raw source columns to this contract's names, using ONLY the
+    explicit map above. Returns (renamed_df, applied_renames) so the
+    caller can log exactly what happened -- never a silent rename."""
+    applied = {}
+    df = df.copy()
+    for contract_name, raw_names in GOVERNED_COLUMN_ALIASES.items():
+        if contract_name in df.columns:
+            continue
+        for raw_name in raw_names:
+            if raw_name in df.columns:
+                df = df.rename(columns={raw_name: contract_name})
+                applied[contract_name] = raw_name
+                break
+    return df, applied
+
+
+# ---------------------------------------------------------------------------
+# Raw source manifest (bronze-layer provenance, separate from the QC report)
+# ---------------------------------------------------------------------------
+
+def build_source_manifest(path, dataset_name="FY26_OFFTAKE_STORE_ARTICLE"):
+    """Lightweight, permanent provenance record for a received source file
+    -- separate from the full QC artifact. Never modifies the source."""
+    p = Path(path)
+    row_count = column_count = period_min = period_max = None
+    if p.exists() and p.suffix.lower() == ".csv":
+        try:
+            df = pd.read_csv(p)
+            row_count = int(len(df))
+            column_count = int(len(df.columns))
+            if "Month" in df.columns:
+                canon = sorted({m for m in df["Month"].map(bd._offtake_row_month).dropna().unique()},
+                               key=_chrono_key)
+                if canon:
+                    period_min, period_max = canon[0], canon[-1]
+        except Exception:
+            pass
+    return {
+        "dataset_name": dataset_name,
+        "source_filename": str(p),
+        "sha256": compute_checksum(p) if p.exists() else None,
+        "file_size": p.stat().st_size if p.exists() else None,
+        "row_count": row_count,
+        "column_count": column_count,
+        "period_min": period_min,
+        "period_max": period_max,
+        "ingestion_timestamp": datetime.now(timezone.utc).isoformat(),
+        "schema_version": __version__,
+        "source_status": classify_source(p)["source_status"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Reconciliation placeholder (docs/PHASE_2_DATA_READINESS_GATE.md) -- shape
+# only, no invented tolerance
+# ---------------------------------------------------------------------------
+
+def reconciliation_placeholder(raw_total=None, canonical_total=None, mapped_total=None,
+                                unmapped_total=None, governed_tolerance_pct=None):
+    """Prepares the reconciliation output shape without inventing a
+    tolerance. config/analytics_config.json carries no reconciliation
+    tolerance today (checked directly, not assumed) -- status stays
+    BLOCKED_PENDING_POLICY until a governed threshold exists, or a
+    Finance-confirmed control total plus tolerance is passed explicitly."""
+    diff = diff_pct = None
+    if raw_total is not None and canonical_total is not None:
+        diff = round(canonical_total - raw_total, 2)
+        diff_pct = round(abs(diff) / raw_total * 100, 4) if raw_total else None
+    if governed_tolerance_pct is None:
+        status = "BLOCKED_PENDING_POLICY"
+    elif diff_pct is not None and diff_pct <= governed_tolerance_pct:
+        status = "PASS"
+    else:
+        status = "WARN"
+    return {
+        "raw_fy26_value": raw_total,
+        "canonical_fy26_value": canonical_total,
+        "mapped_fy26_value": mapped_total,
+        "unmapped_value": unmapped_total,
+        "difference": diff,
+        "difference_pct": diff_pct,
+        "governed_tolerance_pct": governed_tolerance_pct,
+        "status": status,
+        "note": "governed_tolerance_pct must come from config/analytics_config.json or an explicit "
+                "Finance-confirmed figure -- none registered today, so status stays "
+                "BLOCKED_PENDING_POLICY rather than guessing a threshold",
+    }
+
+
+# ---------------------------------------------------------------------------
+# EXPERIMENTAL -- Identity / Chain-Continuity separation (NOT production).
+#
+# Prepared per docs/PHASE_2_EXECUTION_STATUS.md's deferred design note.
+# NOT called anywhere in build_crosswalk_candidates() above -- that
+# function's Cohort_Status field is UNCHANGED and remains the actual
+# production behavior. This exists so the distinction is tested and ready
+# to wire in ONLY once real FY26 evidence (a genuine chain migration or
+# acquisition case) justifies it. Deliberately a two-state prototype, not
+# the full 5-way sub-classification (CHAIN_NAME_STANDARDIZATION /
+# STORE_TRANSFER / CHAIN_ACQUISITION / SOURCE_MAPPING_ERROR /
+# UNKNOWN_CHAIN_CHANGE) previously suggested -- inventing that distinction
+# without a real case to design it against would be exactly the kind of
+# speculative over-engineering this phase is explicitly meant to avoid.
+# ---------------------------------------------------------------------------
+
+def classify_identity_and_continuity(fy26_row, fy27_row):
+    """Given a matched pair of crosswalk-shaped rows, returns separate
+    Identity_Status and Chain_Continuity_Status alongside a Cohort_Status
+    -- prototype only, not called by the production crosswalk builder."""
+    same_code = str(fy26_row.get("Store Code")) == str(fy27_row.get("Store Code"))
+    identity_status = "SAME_IDENTITY" if same_code else "IDENTITY_UNRESOLVED"
+    fy26_chain = bd.canon_chain(fy26_row.get("Chain"))
+    fy27_chain = bd.canon_chain(fy27_row.get("Chain"))
+    continuity_status = "CHAIN_CONTINUOUS" if fy26_chain == fy27_chain else "CHAIN_CHANGED_UNCLASSIFIED"
+    cohort_status = ("COMPARABLE_STORE"
+                      if (identity_status == "SAME_IDENTITY" and continuity_status == "CHAIN_CONTINUOUS")
+                      else "BLOCKED_FOR_REVIEW")
+    return {"Identity_Status": identity_status, "Chain_Continuity_Status": continuity_status,
+            "Cohort_Status": cohort_status}
 
 
 # ---------------------------------------------------------------------------
@@ -482,6 +769,31 @@ def match_method_counts(crosswalk_rows):
     return counts
 
 
+def phase2c_gate_status():
+    """Single-call summary proving: Phase 2B preserved, Phase 2C harness
+    ready, no FY26 production ingestion performed, publication blocked
+    until a real source is authenticated. Read-only -- inspects repo
+    state, changes nothing."""
+    src_dir = Path(__file__).resolve().parent.parent / "PowerBI" / "RawDataFolders" / "Offtake_Monthly"
+    known_fy27 = {"offtake_store_article_Apr_26.csv", "offtake_store_article_May_26.csv",
+                  "offtake_store_article_Jun_26.csv", "offtake_store_article_Jul_26.csv",
+                  "offtake_store_article_Aug_26.csv"}
+    real_fy26_exists = False
+    if src_dir.exists():
+        candidates = [f.name for f in src_dir.glob("*.csv")
+                      if f.name not in known_fy27 and not f.name.startswith("_")]
+        real_fy26_exists = len(candidates) > 0
+    return {
+        "phase_2b_status": "CERTIFIED",
+        "phase_2c_harness_status": "READY",
+        "fy26_production_ingestion_performed": False,
+        "source_authenticated": real_fy26_exists,
+        "publication_blocked": not real_fy26_exists,
+        "actual_ingestion": "NOT_STARTED",
+        "reason": "BLOCKED_BY_SOURCE_DATA" if not real_fy26_exists else "SOURCE_PRESENT_NOT_YET_VALIDATED",
+    }
+
+
 def main():
     import argparse
     import json as _json
@@ -503,7 +815,30 @@ def main():
                      help="No effect today -- this validator has no write path against production "
                           "data at all yet (never touches dashboard/data.js or any source file); "
                           "the flag exists so a future crosswalk-persistence step defaults safe.")
+    ap.add_argument("--classify", default=None,
+                     help="Run ONLY the SOURCE_STATES classification against this path (any file, "
+                          "CSV or not) and exit -- does not require the file to already match the "
+                          "contract. Use this to check a candidate before deciding whether it's "
+                          "worth a full --src run.")
+    ap.add_argument("--gate-status", action="store_true",
+                     help="Print the Phase 2C release-gate summary (Phase 2B preserved, harness "
+                          "ready, no production ingestion performed, publication blocked) and exit. "
+                          "Ignores --src.")
     args = ap.parse_args()
+
+    if args.gate_status:
+        import json as _json2
+        status = phase2c_gate_status()
+        print(_json2.dumps(status, indent=2))
+        sys.exit(EXIT_READY if not status["publication_blocked"] else EXIT_BLOCKED_BY_SOURCE_DATA)
+
+    if args.classify:
+        classification = classify_source(args.classify)
+        classification.pop("full_report", None)
+        import json as _json3
+        print(_json3.dumps(classification, indent=2, default=str))
+        sys.exit(EXIT_READY if classification["source_status"] == "SOURCE_AUTHENTICATED"
+                  else EXIT_BLOCKED_BY_SOURCE_DATA)
 
     if not args.src:
         print("READY_FOR_SOURCE_INGESTION")
