@@ -1,0 +1,130 @@
+# Risk Rule Registry -- Phase A (Foundation)
+#
+# See docs/RISK_MANAGEMENT_PHASE_A.md for the full design rationale, taxonomy,
+# and what Phase B-E would add. Read that first if this file looks incomplete
+# for a "risk management system" -- it is deliberately scoped down.
+#
+# GOVERNING RULE: every rule below POINTS AT an existing governed check,
+# threshold or status field. None of them recompute a business number or
+# invent a threshold. No Likelihood x Impact scoring model exists anywhere
+# in this repo (confirmed by search during Phase A discovery, 2026-09-21) --
+# severity here reuses each source's OWN existing vocabulary (RAG bands,
+# MANDATORY/ADVISORY, validation_status, readiness gate status text), never
+# a newly-invented scale. Every rule's approval_status is PROVISIONAL until
+# a named business owner reviews and approves it -- this file does not
+# self-certify.
+#
+# scripts/risk_rule_aggregate.py is the ONLY consumer of this file today.
+
+schema_version: "1.0"
+updated: "2026-09-21"
+
+risk_families:
+  DATA_QUALITY: "Source correctness, completeness, freshness, availability"
+  RECONCILIATION: "Whether a tracked total still ties to its declared baseline"
+  RELEASE_CHANGE: "Release-gate / baseline-drift status"
+  PROCESS_READINESS: "Whether an analytical layer's own stated precondition holds"
+  THIRD_PARTY_SOURCE: "External or business-supplied source dependency status"
+
+rules:
+  - rule_id: RR-BASELINE-DRIFT
+    rule_name: "Frozen or tracked-universe baseline drift"
+    risk_family: RECONCILIATION
+    description: >
+      A config/baselines.json entry no longer matches dashboard/data.js.
+      A frozen_history mismatch is always a hard failure (history must not
+      change); a tracked_universe mismatch is a threshold breach.
+    source_module: "scripts/ci_validate_datajs.py"
+    source_function: "check_baselines()"
+    input: "config/baselines.json"
+    grain: "per baseline entry"
+    severity_vocabulary: "MANDATORY (this repo's release_gate.py vocabulary) -- any failure here is a release blocker"
+    threshold: "per-entry 'tolerance' field in config/baselines.json"
+    owner: "MT Analytics"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
+
+  - rule_id: RR-SOURCE-DEGRADED
+    rule_name: "Registered data source not VALIDATED/AVAILABLE"
+    risk_family: DATA_QUALITY
+    description: >
+      A dataset registered in config/data_source_registry.yml carries a
+      validation_status other than VALIDATED or AVAILABLE (e.g. MISSING,
+      PARTIAL, PROVISIONAL, NOT_CONFIGURED,
+      PROVISIONAL_PENDING_FINANCE_APPROVAL). Mirrors that file's own status
+      field -- never re-derives whether a source is valid.
+    source_module: "config/data_source_registry.yml"
+    source_function: "n/a (direct read)"
+    input: "datasets.*.validation_status"
+    grain: "per registered dataset"
+    severity_vocabulary: "reuses validation_status itself as the severity label"
+    threshold: "n/a -- VALIDATED/AVAILABLE = no risk instance; any other status = one risk instance"
+    owner: "per-dataset business_owner field in the registry"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
+
+  - rule_id: RR-READINESS-GATE
+    rule_name: "Analytical layer readiness gate not PASS/N-A"
+    risk_family: PROCESS_READINESS
+    description: >
+      A layer in DASH.readiness.gates (already computed by readiness_gate()
+      in scripts/build_dashboard_data.py and embedded in dashboard/data.js
+      at build time) is not in PASS or N/A status -- i.e. AWAITING BUSINESS
+      DATA or BLOCKED. Read directly from the built data.js; never
+      recomputed here.
+    source_module: "dashboard/data.js"
+    source_function: "n/a (direct read via scripts/ci_validate_datajs.load_datajs)"
+    input: "DASH.readiness.gates.*"
+    grain: "per readiness gate"
+    severity_vocabulary: "reuses the gate's own status text (PASS / AWAITING BUSINESS DATA / BLOCKED / N/A)"
+    threshold: "per-gate threshold/value already computed and embedded by readiness_gate()"
+    owner: "MT Analytics, or as named in the gate's own unblocks_with text"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
+
+  - rule_id: RR-SSG-SOURCE-BLOCKED
+    rule_name: "SSG/FY26 Same-Store Growth source not authenticated"
+    risk_family: THIRD_PARTY_SOURCE
+    description: >
+      The Same-Store Growth initiative's FY26 Store x Article Offtake
+      source has not been authenticated
+      (docs/PHASE_2_EXECUTION_STATUS.md, PROJECT_STATE = WAITING_FOR_SOURCE).
+      Reads scripts/store_history_readiness.py's own gate function; never
+      re-derives source readiness independently.
+    source_module: "scripts/store_history_readiness.py"
+    source_function: "phase2c_gate_status()"
+    input: "n/a (function call; read-only, inspects repo state)"
+    grain: "single initiative-level status"
+    severity_vocabulary: "reuses BLOCKED_BY_SOURCE_DATA / publication_blocked from that function's own output"
+    threshold: "n/a"
+    owner: "whoever supplies the monthly Offtake_Monthly/offtake_store_article_*.csv drops"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
+
+  - rule_id: RR-FORECAST-RELIABILITY
+    rule_name: "Forecast WAPE/Bias against an approved tolerance"
+    risk_family: PROCESS_READINESS
+    description: >
+      Would flag when computeForecastAccuracy()'s WAPE/bias breaches an
+      approved tolerance. NOT IMPLEMENTED in Phase A: that calculation is
+      client-side JS only (dashboard/index.html), and no WAPE/bias
+      tolerance is registered anywhere in config/analytics_config.json
+      (confirmed absent by search during Phase A discovery). Recomputing
+      it in Python here would create exactly the "second WAPE formula"
+      this registry's own governing rule forbids. Left defined-but-
+      unevaluated so the taxonomy stays complete and the gap stays
+      visible, instead of being silently dropped.
+    source_module: "dashboard/index.html"
+    source_function: "computeForecastAccuracy()"
+    input: "D.targets.measures[basis].monthly"
+    grain: "n/a"
+    severity_vocabulary: "n/a -- no approved tolerance exists"
+    threshold: "NOT_DEFINED -- no reconciliation/WAPE tolerance registered anywhere in this repo (verified 2026-09-21)"
+    owner: "MT Leadership / Finance (to set the tolerance)"
+    status: PROVISIONAL
+    approval_status: NOT_APPROVED
+    evaluation: NOT_IMPLEMENTED_PHASE_A
