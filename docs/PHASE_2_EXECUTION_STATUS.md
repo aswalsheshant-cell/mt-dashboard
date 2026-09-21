@@ -32,24 +32,45 @@ grain lower (store, not chain).
   returns/negative-sales rule (§6) — each one explicitly modeled on a
   precedent already shipped in PR #167 (`comparability` flag,
   `TestNegativeValues`), not invented fresh.
+- **Since the above:** built and tested the actual readiness-gate
+  infrastructure (commit `0cd8126`) so it's ready to run the moment a
+  FY26 file exists, rather than being designed only on paper:
+  - `docs/PHASE_2_DATA_CONTRACT.md` — exact field-level request, plus an
+    audit of what the real FY27 files contain today.
+  - `docs/STORE_IDENTITY_GOVERNANCE.md` — the crosswalk schema and
+    match-method cascade, formalizing §6 above.
+  - `docs/PHASE_2_DATA_READINESS_GATE.md` — the validator's check list,
+    verdict logic, and the folder-structure decision (reuses
+    `PowerBI/RawDataFolders/`, not a new parallel `data/` tree).
+  - `scripts/store_history_readiness.py` — `validate_store_history()`
+    (11 checks) and `build_crosswalk_candidates()` (never auto-confirms
+    below `HIGH` confidence).
+  - `scripts/test_store_history_readiness.py` — 23 tests against
+    synthetic fixtures; caught and fixed one real ordering bug in the
+    crosswalk builder during development (see commit message).
+  - Confirmed the release condition works against this repo's real
+    current state: running the validator with no FY26 file present
+    reports `BLOCKED_BY_SOURCE_DATA`, exit 1, exactly as designed.
 
 ## Remaining
 
 1. Obtain the exact missing input named in the feasibility doc: a real FY26
    (Apr'25–Mar'26) store×article offtake extract, in the same shape as
    `PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_*.csv`.
+   **This is now the only step blocking everything else** — run
+   `python scripts/store_history_readiness.py --src <file> --fy27-reference
+   <a FY27 file>` against it the moment it arrives.
 2. Once supplied: register it in `config/data_source_registry.yml` (per
    `CLAUDE.md`'s "New data source checklist" — grain, date column, FY
    mapping, effective-dating, coverage, duplicate risk, downstream KPI,
    validation, unattended-refresh behavior — all 10 items, before it feeds
    any calculation).
-3. Answer the two open sub-questions the feasibility doc flagged as
-   untested (not blocking, but needed before implementation): whether a
-   zero-sales store gets a real row or no row at all (§4 Q8), and whether
-   any `(Chain, Site Code)` pair repeats within a single month's file
-   (§6 duplicate-store rule) — both need a targeted check against whatever
-   FY26 file arrives, since the FY27 files checked so far didn't surface
-   either case either way.
+3. The two open sub-questions the feasibility doc flagged as untested
+   (whether a zero-sales store gets a real row or no row at all; whether
+   any `(Chain, Site Code)` pair repeats within a single month) are now
+   answered automatically by the readiness gate's `missing_as_zero_treatment`
+   and `duplicate_grain` checks the moment real data runs through it —
+   no separate manual step needed.
 4. Build the store-level `same_period_block()`-equivalent (one grain below
    chain), reusing its exact shared-months and comparability-flag pattern
    rather than a new implementation.
@@ -130,7 +151,8 @@ choice that changes a reported number, not just a technical detail.
 **Not a code change.** The single smallest safe next action is: **request
 the FY26 (Apr'25–Mar'26) store×article offtake extract** from whoever
 supplies the monthly `Offtake_Monthly/offtake_store_article_*.csv` drops.
-Everything else in this document — the cohort function, the UI, the tests —
-is real, scoped, and ready to start the moment that file exists, but
-starting any of it before then would mean building against data that
-cannot answer the actual question asked (a genuine FY27-vs-FY26 comparison).
+The readiness gate itself (`scripts/store_history_readiness.py`, tested)
+is already built and waiting — the cohort-calculation engine and its UI are
+the only pieces still to write, and starting either before the file exists
+would mean building against data that cannot answer the actual question
+asked (a genuine FY27-vs-FY26 comparison).
