@@ -223,6 +223,28 @@ class TestReconciliationPlaceholder:
                                                    governed_tolerance_pct=1.0)
         assert result["status"] == "WARN"
 
+    def test_stage_checks_absent_without_both_operands(self):
+        """A quarantined-vs-unresolved stage check must never be reported
+        as passing (or failing) when one of its two inputs is missing."""
+        result = shr.reconciliation_placeholder(raw_total=1000.0, canonical_total=999.5)
+        assert result["stage_checks"] == {}
+
+    def test_stage_checks_true_when_equations_hold(self):
+        result = shr.reconciliation_placeholder(
+            raw_total=1000.0, validated_total=900.0, rejected_or_quarantined_total=100.0,
+            mapped_total=850.0, unmapped_total=50.0, canonical_total=850.0)
+        assert result["stage_checks"]["raw_equals_validated_plus_quarantined"] is True
+        assert result["stage_checks"]["validated_equals_mapped_plus_unresolved"] is True
+
+    def test_stage_checks_false_when_equations_do_not_hold(self):
+        """A quarantined row silently reappearing as mapped (or vice versa)
+        must surface as a failed stage check, never pass unnoticed."""
+        result = shr.reconciliation_placeholder(
+            raw_total=1000.0, validated_total=900.0, rejected_or_quarantined_total=50.0,
+            mapped_total=850.0, unmapped_total=50.0, canonical_total=850.0)
+        assert result["stage_checks"]["raw_equals_validated_plus_quarantined"] is False
+        assert result["stage_checks"]["validated_equals_mapped_plus_unresolved"] is True
+
 
 class TestIdentityContinuityPrototype:
     """Prototype only -- confirms the interface, and explicitly confirms it

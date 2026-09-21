@@ -562,16 +562,39 @@ def build_source_manifest(path, dataset_name="FY26_OFFTAKE_STORE_ARTICLE"):
 # ---------------------------------------------------------------------------
 
 def reconciliation_placeholder(raw_total=None, canonical_total=None, mapped_total=None,
-                                unmapped_total=None, governed_tolerance_pct=None):
+                                unmapped_total=None, validated_total=None,
+                                rejected_or_quarantined_total=None,
+                                governed_tolerance_pct=None):
     """Prepares the reconciliation output shape without inventing a
     tolerance. config/analytics_config.json carries no reconciliation
     tolerance today (checked directly, not assumed) -- status stays
     BLOCKED_PENDING_POLICY until a governed threshold exists, or a
-    Finance-confirmed control total plus tolerance is passed explicitly."""
+    Finance-confirmed control total plus tolerance is passed explicitly.
+
+    Reports (never enforces) the three-stage identity a real FY26 run is
+    expected to satisfy -- a quarantined row (failed validation) and an
+    unresolved-mapping row (passed validation, chain/store/article not yet
+    governed-matched) are different things and are never conflated as
+    already reconciled:
+        RAW_VALUE       = VALIDATED_VALUE + REJECTED_OR_QUARANTINED_VALUE
+        VALIDATED_VALUE = MAPPED_VALUE + UNRESOLVED_MAPPING_VALUE
+        CANONICAL_VALUE = MAPPED_VALUE, after approved normalization only
+    Each stage_checks entry is computed only when both operands for that
+    equation are supplied -- absent inputs report as absent, never as an
+    implicit zero."""
     diff = diff_pct = None
     if raw_total is not None and canonical_total is not None:
         diff = round(canonical_total - raw_total, 2)
         diff_pct = round(abs(diff) / raw_total * 100, 4) if raw_total else None
+
+    stage_checks = {}
+    if raw_total is not None and validated_total is not None and rejected_or_quarantined_total is not None:
+        stage_checks["raw_equals_validated_plus_quarantined"] = (
+            round(validated_total + rejected_or_quarantined_total, 2) == round(raw_total, 2))
+    if validated_total is not None and mapped_total is not None and unmapped_total is not None:
+        stage_checks["validated_equals_mapped_plus_unresolved"] = (
+            round(mapped_total + unmapped_total, 2) == round(validated_total, 2))
+
     if governed_tolerance_pct is None:
         status = "BLOCKED_PENDING_POLICY"
     elif diff_pct is not None and diff_pct <= governed_tolerance_pct:
@@ -580,11 +603,14 @@ def reconciliation_placeholder(raw_total=None, canonical_total=None, mapped_tota
         status = "WARN"
     return {
         "raw_fy26_value": raw_total,
-        "canonical_fy26_value": canonical_total,
+        "validated_fy26_value": validated_total,
+        "rejected_or_quarantined_value": rejected_or_quarantined_total,
         "mapped_fy26_value": mapped_total,
-        "unmapped_value": unmapped_total,
+        "unresolved_mapping_value": unmapped_total,
+        "canonical_fy26_value": canonical_total,
         "difference": diff,
         "difference_pct": diff_pct,
+        "stage_checks": stage_checks,
         "governed_tolerance_pct": governed_tolerance_pct,
         "status": status,
         "note": "governed_tolerance_pct must come from config/analytics_config.json or an explicit "

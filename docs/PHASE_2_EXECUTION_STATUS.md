@@ -1,10 +1,11 @@
 # Phase 2 Execution Status — Same-Store Growth (SSG)
 
-**PHASE 2B = CERTIFIED, unchanged this pass**
+**PHASE 2B = CERTIFIED, unchanged**
 **PHASE 2C = SOURCE SEARCH done, SOURCE CLASSIFICATION done, INGESTION READINESS = READY (harness built), ACTUAL INGESTION = NOT STARTED, reason = BLOCKED_BY_SOURCE_DATA**
-**STATUS = READY_FOR_SOURCE_INGESTION**
+**PHASE 2D (governance closeout) = READY** — source registry entry, terminal-state permitted/prohibited list, and tightened reconciliation identity are in place; see "Phase 2C/2D terminal state" below.
+**PROJECT_STATE (SSG track) = WAITING_FOR_SOURCE**
 **DEPENDENCY = FY26 Apr'25-Mar'26 Store × Article Offtake**
-**NEXT PHASE = once a real source lands: run it through the ingestion-readiness harness built this pass (see §"Phase 2C infrastructure preparation" below)**
+**NEXT PHASE = once a real source lands: run it through the ingestion-readiness harness (§"Phase 2C status, by stage" below), then re-enter this document at the "Phase 2C/2D terminal state" permitted-actions list — nothing else proceeds automatically**
 
 ## Phase 2C status, by stage — 2026-09-21
 
@@ -119,6 +120,89 @@ Article Offtake source file.** The moment it lands in
 `python3 scripts/store_history_readiness.py --classify <file>` followed by
 the full `--src ... --fy27-reference ...` validation — the harness is
 ready now; only the file is missing.
+
+## Phase 2C/2D terminal state — governance closeout, 2026-09-21
+
+With the ingestion-readiness harness (§ above), the `offtake_fy26_store_article`
+registry entry (`config/data_source_registry.yml`), and the reconciliation
+shape below in place, there is no more infrastructure work this project can
+usefully do without a real source. Rather than continue building on paper,
+this section closes Phase 2C/2D governance and sets an explicit state:
+
+```
+PROJECT_STATE (Same-Store Growth track only) = WAITING_FOR_SOURCE
+```
+
+This applies to the SSG/store-history work only — it does not change
+`docs/PROJECT_STATE.md`'s current active task (business input closure on
+target scope), which is a separate, unrelated thread.
+
+**Permitted actions while `WAITING_FOR_SOURCE`:**
+- Inspect a newly supplied candidate FY26 file.
+- Classify it (`classify_source()`).
+- Compute its SHA-256 / manifest (`build_source_manifest()`).
+- Validate it against the FY26 Data Contract (`validate_store_history()`).
+- Report source or data-quality failures.
+
+**Prohibited until a real FY26 Store × Article source lands and
+`classify_source()` returns `SOURCE_AUTHENTICATED`:**
+- Any production change to `Identity_Status` / `Chain_Continuity_Status` /
+  `Cohort_Status` (the prototype in `classify_identity_and_continuity()`
+  stays a prototype, not wired into `build_crosswalk_candidates()`).
+- Any financial allocation change.
+- New analytics, dashboard changes, or Power BI changes built on this
+  source.
+- Any `dashboard/data.js` rebuild driven by this source.
+- Reconstructing or allocating store×article detail from
+  `data/raw_drops/_agg/offtake_fy26.json` or any other aggregate — that
+  would fabricate a number no real store or article ever reported.
+- Starting Phase 3 (the SSG calculation engine itself) — Phase 2C/2D was
+  always scoped to certifying the *readiness to ingest*, never to
+  building the cohort-growth measure; see "Phase 2C — Controlled FY26
+  Historical Data Ingestion & Identity Certification" below for why that
+  boundary matters (certification comes before calculation).
+
+If a candidate file arrives and does not classify as `SOURCE_AUTHENTICATED`:
+report the exact `source_status` and reason, and stop — do not derive,
+estimate, or work around the gap.
+
+**Reconciliation identity** (`reconciliation_placeholder()`, tightened this
+pass to distinguish a quarantined row from an unresolved-mapping row —
+neither is ever silently treated as already reconciled):
+
+```
+RAW_VALUE       = VALIDATED_VALUE + REJECTED_OR_QUARANTINED_VALUE
+VALIDATED_VALUE = MAPPED_VALUE + UNRESOLVED_MAPPING_VALUE
+CANONICAL_VALUE = MAPPED_VALUE, after approved normalization only
+```
+
+Each equation is only checked when the caller supplies both operands
+(`stage_checks` in the function's return value) — a missing input is
+reported as missing, never assumed to be zero. `governed_tolerance_pct`
+still comes from `config/analytics_config.json` or an explicit
+Finance-confirmed figure only; none is registered there today, so
+`reconciliation_placeholder()` returns `BLOCKED_PENDING_POLICY` by default,
+unchanged from the Phase 2C pass.
+
+**Status summary at terminal state:**
+
+```
+Phase 2B                CERTIFIED
+Phase 2C Harness         READY
+Phase 2D Governance      READY
+FY26 Source              NOT RECEIVED
+Source Authentication    FALSE
+FY26 Actual Ingestion    NOT_STARTED
+Publication               BLOCKED
+Project State (SSG track) WAITING_FOR_SOURCE
+Next Human Action         Obtain genuine Apr'25-Mar'26 Store x Article Offtake extract
+```
+
+Confirmed via the same commands as § above:
+`python3 scripts/store_history_readiness.py --gate-status` (exit 3,
+`publication_blocked: true`) and
+`python3 scripts/store_history_readiness.py --classify data/raw_drops/_agg/offtake_fy26.json`
+(`SOURCE_WRONG_GRAIN`, exit 3).
 
 ## Phase 2C attempt log — 2026-09-21
 
