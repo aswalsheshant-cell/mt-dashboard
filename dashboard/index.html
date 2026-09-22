@@ -2137,6 +2137,43 @@ function buildPnl(){
   // hardcoded -- they come entirely from PowerBI/SeedData/Masters/
   // PL_Expense_Input.csv (see cm2_block in build_dashboard_data.py).
   const cm2D=D.cm2;
+  // FM-25: the TOT%/CM2 KPI cards below (NSV, TOT Value, Total P&L Expense,
+  // CM2 Value, and the "Blended TOT%" text) used to always read
+  // totD.blended_tot_pct/total_passon_value and cm2D.total_nsv/total_expense/
+  // cm2_value/cm2_pct -- server-side totals cm2_block()/tot_block() compute
+  // from a FY26+FY27-combined population (fy_ge(df,"FY26"), no per-FY split)
+  // -- so selecting FY26-only, FY27-only or no filter at all rendered
+  // byte-identical numbers here, even though this same tab's gross-to-net
+  // bridge above DOES honor the filter. Fixed the way FM-21/FM-22 fixed the
+  // same pattern elsewhere: when the global filter names a single FY that
+  // these blocks' own `monthly` (per-FY-per-month) arrays actually cover,
+  // sum that FY's months client-side; otherwise fall back to the combined
+  // view, unchanged, with its existing "FY26-FY27" labelling.
+  const globalFy=fOne('FY');
+  const cm2FyCoverage=[...new Set((cm2D&&cm2D.monthly||[]).map(r=>r.fy))];
+  const totFyCoverage=[...new Set((totD&&totD.monthly||[]).map(r=>r.fy))];
+  const cm2ScopedOk=!!(globalFy && cm2FyCoverage.includes(globalFy));
+  const totScopedOk=!!(globalFy && totFyCoverage.includes(globalFy));
+  let cm2Scoped=null;
+  if(cm2ScopedOk){
+    const rows=cm2D.monthly.filter(r=>r.fy===globalFy);
+    const nsv=rows.reduce((a,r)=>a+(r.nsv||0),0), expense=rows.reduce((a,r)=>a+(r.expense||0),0);
+    cm2Scoped={nsv, expense, cm2_value:nsv-expense,
+               cm2_pct:nsv?Math.round((nsv-expense)/nsv*1000)/10:null,
+               expense_pct_of_nsv:nsv?Math.round(expense/nsv*1000)/10:null};
+  }
+  let totScoped=null;
+  if(totScopedOk){
+    const rows=totD.monthly.filter(r=>r.fy===globalFy);
+    const mrp=rows.reduce((a,r)=>a+(r.mrp||0),0), passon=rows.reduce((a,r)=>a+(r.passon_value||0),0);
+    totScoped={mrp, passon_value:passon, tot_pct:mrp?Math.round(passon/mrp*1000)/10:null};
+  }
+  // filter set, names a real FY, but this specific block's own coverage
+  // doesn't include it (e.g. a future FY not yet in the article-level detail)
+  const cm2FyNote=(globalFy&&!cm2ScopedOk&&cm2D)
+    ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in CM2's own coverage (${cm2FyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
+  const totFyNote=(globalFy&&!totScopedOk&&totD)
+    ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in TOT%'s own coverage (${totFyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
   let cm2Chains=cm2D?consolidateChains(cm2D.by_chain,'nsv'):[];
   if(fOn('Chain')) cm2Chains=cm2Chains.filter(c=>fHas('Chain',c.name));
   const cm2Top=cm2Chains.slice(0,12);
@@ -2167,10 +2204,12 @@ function buildPnl(){
    :`<div class="fynote"><b>${fLab('FY')} actuals not available</b> — the gross-to-net P&amp;L bridge (source ends Mar-26) —
       intentionally blank instead of a stale ${fyDispLabel('FY26')} number. TOT% and CM2 below still cover ${fyDispLabel('FY26')}–${fyDispLabel('FY27')}.</div>`}
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
-   <p class="note" style="margin:0 0 10px">FY26-FY27, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
+   <p class="note" style="margin:0 0 10px">${totScopedOk?fyDispLabel(globalFy):'FY26-FY27'}, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
      TOT% = SUM(Pass-on Value) / SUM(MRP), sourced per row: Primary file's own <b>Avg Tot</b> first, actual
-     <b>Inv. Tax Amount(LOC)</b> second, GST rate table only as a last-resort fallback. Blended TOT%
-     ${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'} · total pass-on value ${crc(totD.total_passon_value)}.</p>
+     <b>Inv. Tax Amount(LOC)</b> second, GST rate table only as a last-resort fallback. ${totScopedOk?fyDispLabel(globalFy):'Blended'} TOT%
+     ${(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)==null?'–':(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'%'} · total pass-on value ${crc(totScopedOk?totScoped.passon_value:totD.total_passon_value)}.
+     ${totScopedOk?'':'The by-chain/by-category tables below are not FY-split; they always show the full FY26-FY27 combined population.'}</p>
+   ${totFyNote}
    ${totBanner}
    <div class="grid g2">
      ${card('TOT% by chain','Higher = more on-invoice margin passed to the chain. Click a chain to drill.',cv('totChart'))}
@@ -2184,7 +2223,7 @@ function buildPnl(){
      <tr><td>Rows calculated using Actual Tax Amount</td><td>${num(mq.rows_tax_calc)}</td></tr>
      <tr><td>Rows using GST Rate Table fallback</td><td>${num(mq.rows_gst_fallback)}</td></tr>
      <tr><td>Fallback % of total MRP</td><td>${mq.fallback_pct_of_mrp==null?'–':mq.fallback_pct_of_mrp+'%'}</td></tr>
-     <tr><td>Blended TOT%</td><td>${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'}</td></tr>
+     <tr><td>Blended TOT% (${totScopedOk?fyDispLabel(globalFy):'FY26-FY27 combined'})</td><td>${(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)==null?'–':(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'%'}</td></tr>
      <tr><td>Rows blank/invalid (MRP, NSV, Avg Tot &amp; Inv. Tax Amount all unusable)</td><td>${num(mq.rows_invalid)}</td></tr>
      </tbody></table></div>`)}
    ${card('GST rate QC table — Category, HSN Code, Pre/Post GST%, Effective From, Confidence, Finance Approved, Impact on TOT%',
@@ -2201,22 +2240,24 @@ function buildPnl(){
    <p class="note" style="margin:0 0 10px">CM2 = NSV − P&amp;L Expenses (NSV is already net of TOT%/tax — see the TOT% section above).
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
-     <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).</p>
+     <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).
+     ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only; the by-chain table stays FY26-FY27 combined.`:''}</p>
+   ${cm2FyNote}
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
         Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
-   :(cm2D.expense_pct_of_nsv!=null&&cm2D.expense_pct_of_nsv<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
+   :((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null&&(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
      <strong>&#9888; Expense coverage thin — CM2% not yet meaningful:</strong>
-     P&amp;L expenses loaded = &#8377;${cm2D.total_expense!=null?cm2D.total_expense.toFixed(2):'&#8211;'} L
-     (${cm2D.expense_pct_of_nsv}% of NSV, ${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows
-     in <code>PL_Expense_Input.csv</code>). CM2% of ${cm2D.cm2_pct!=null?cm2D.cm2_pct+'%':'&#8211;'} will shift
+     P&amp;L expenses loaded (${cm2ScopedOk?fyDispLabel(globalFy):'FY26-FY27'}) = &#8377;${(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense)!=null?(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense).toFixed(2):'&#8211;'} L
+     (${cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv}% of NSV, ${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows
+     in <code>PL_Expense_Input.csv</code>). CM2% of ${(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'%':'&#8211;'} will shift
      substantially once Finance populates the expense master.
      Update <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and re-run <code>--detail-only</code>.
    </div>`:''}
    <div class="kpis">
-     ${kpi('NSV (TOT%-scope)',crc(cm2D.total_nsv),'FY26-FY27, same population as TOT%')}
-     ${kpi('TOT Value',totD?crc(totD.total_passon_value):'–',totD&&totD.blended_tot_pct!=null?totD.blended_tot_pct+'% of MRP':'')}
-     ${kpi('Total P&L Expense',crc(cm2D.total_expense),cm2D.expense_pct_of_nsv!=null?cm2D.expense_pct_of_nsv+'% of NSV':'')}
-     ${kpi('CM2 Value',crc(cm2D.cm2_value),cm2D.cm2_pct!=null?cm2D.cm2_pct+'% of NSV':'')}
+     ${kpi('NSV (TOT%-scope)',crc(cm2ScopedOk?cm2Scoped.nsv:cm2D.total_nsv),cm2ScopedOk?`${fyDispLabel(globalFy)} only`:'FY26-FY27, same population as TOT%')}
+     ${kpi('TOT Value',totD?crc(totScopedOk?totScoped.passon_value:totD.total_passon_value):'–',totD&&(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)!=null?(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'% of MRP':'')}
+     ${kpi('Total P&L Expense',crc(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense),(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV':'')}
+     ${kpi('CM2 Value',crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value),(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV':'')}
      ${kpi('MoM CM2 Movement',cm2Latest&&cm2Latest.mom_cm2_change!=null?crc(cm2Latest.mom_cm2_change):'–',cm2Latest?`${cm2Latest.month} ${cm2Latest.fy}`:'')}
    </div>
    <div class="grid g2">
