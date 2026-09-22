@@ -2534,7 +2534,7 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
         if mrp <= 0:
             continue
         monthly_raw.append({"fy": fy, "month": m, "ord": ordv,
-                            "tot_pct": passon / mrp * 100, "passon_value": passon})
+                            "tot_pct": passon / mrp * 100, "passon_value": passon, "mrp": mrp})
     monthly_raw.sort(key=lambda d: d["ord"])
     monthly = []
     for i, row in enumerate(monthly_raw):
@@ -2543,6 +2543,12 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
             "fy": row["fy"], "month": row["month"],
             "tot_pct": r2(row["tot_pct"], 1),
             "passon_value": r2(row["passon_value"]),
+            # mrp: the exact denominator behind tot_pct/passon_value, so a
+            # client-side FY filter can sum SUM(passon)/SUM(mrp) across a
+            # single FY's months (FM-25) instead of only reading the
+            # blended_tot_pct/by_chain totals below, which are always
+            # FY26+FY27 combined by design (fy_ge(), see module docstring).
+            "mrp": r2(row["mrp"]),
             "mom_tot_delta_pp": r2(row["tot_pct"] - prev["tot_pct"], 1) if prev else None,
             "incremental_passon_impact": r2(row["passon_value"] - prev["passon_value"]) if prev else None,
         })
