@@ -3204,6 +3204,19 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
         "their original chain tag. Value is NOT lost (allocation reconciles to zero "
         "variance) but it cannot be attributed to a named chain, so chain-level primary "
         "is understated by this amount. Work the exception list in value order.")
+    # FM-20: a cumulative % of a NET total always ends at exactly 100%, but a
+    # return/credit row (negative NSV) sorted to the tail can make an EARLIER
+    # row's cumulative_pct read above 100% before the negative tail pulls it
+    # back down -- correct arithmetic, but a real business reviewer read this
+    # as broken math ("Cumulative is increased, kindly adjust") on 2026-09-22.
+    # Disclose it; do not change the formula (capping at 100% or excluding
+    # negative rows would hide real return/credit activity).
+    if any(d["nsv"] < 0 for d in ex):
+        out["note"] += (
+            " Note: a few rows carry negative NSV (returns/credits); because cumulative % "
+            "is measured against the NET total, it can read slightly above 100% partway "
+            "down this list before settling to exactly 100% at the last row -- that is "
+            "expected here, not an error.")
     # Proposals, if a suggestion file exists. These are SUGGESTIONS and are never
     # applied here: assigning a distributor to a chain is a business decision with
     # a named owner, not something a build step may infer.

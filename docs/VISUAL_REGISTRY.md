@@ -251,8 +251,20 @@ alerts are current-state, not historical).
 
 6 visuals total (KPI rows + tables), sourced from `D.compliance`/`D.inventory_fillrate`
 (a separate async fetch from `compliance_metrics.json`, same pattern as Alerts).
-AUTHORITATIVE. Neither tab responds to any filter or FY selector — by-design for a
-point-in-time compliance snapshot, but undocumented as such. One card ("Days of Cover")
+**PROVENANCE_UNVERIFIED, not AUTHORITATIVE** (corrected on `fix/compliance-data-provenance`
+after this claim was found wrong): `compliance.accounts`/`compliance.doors`/
+`inventory_fillrate.accounts` are a byte-for-byte match to
+`scripts/sync_compliance_data.py`'s mock generator, and `compliance.chain_summary`
+(unused by any tab, but its `total_stores` sum feeds `metadata.total_doors_audited`,
+which the Store Audit Scorecard's macro PES card and the `scorecard_execution`
+readiness gate both read) carries an internal template fingerprint — an identical
+`[85,84,86,85,<current>]` trend across all 5 unrelated chains/zones — that no real,
+independent audit history would produce. No script in this repo generates this data
+and `config/data_source_registry.yml` has no entry for it (`forecast_stock_inventory`
+there is `validation_status: MISSING` for the same OTIF/fill-rate domain). Both tabs
+now show an amber provenance banner driven by `metadata.is_synthetic` in the file
+itself. Neither tab responds to any filter or FY selector — by-design for a
+point-in-time snapshot, but undocumented as such. One card ("Days of Cover")
 is a documentation stub only — references `InventoryEngine.calculateDaysOfCover()`,
 which exists (`inventory_engine.js:16-40`) but is never actually invoked anywhere.
 

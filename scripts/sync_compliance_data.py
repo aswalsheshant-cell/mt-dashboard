@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """
-Sprint 8: Store Compliance & Inventory Fill-Rate Sync Engine
+SYNTHETIC DEMO Store Compliance & Inventory Fill-Rate Generator.
 
-Computes Promo Execution Score (PES) audit data and Supply Chain Fill-Rate (CFR/OTIF)
-metrics. Writes compliance and inventory_fillrate JSON to dashboard/compliance_metrics.json.
+This produces MOCK data only -- hardcoded door/account audit numbers, not a
+real audit. No script in this repo computes real PES/CFR/OTIF; there is no
+registered source for one (config/data_source_registry.yml has no entry;
+forecast_stock_inventory there is validation_status: MISSING for the same
+reason). Output is stamped is_synthetic=true / data_status=SYNTHETIC_DEMO.
 
-The dashboard loads this file via fetch() and merges into window.DASH at runtime.
-This pattern keeps the data.js build pipeline clean (one-way: data_master.json → data.js).
-
-Formula: PES = (0.40 × Price_Compliance + 0.30 × FSDU_Compliance + 0.30 × OSA_Compliance) × 100
+Formula (of the mock inputs only): PES = (0.40 x Price_Compliance +
+0.30 x FSDU_Compliance + 0.30 x OSA_Compliance) x 100
 
 USAGE:
-  python scripts/sync_compliance_data.py --output <compliance_metrics.json>
+  python scripts/sync_compliance_data.py [--output <path>]
 
-  Default: python scripts/sync_compliance_data.py
-    (writes: dashboard/compliance_metrics.json)
+  Default output: dashboard/compliance_metrics.mock_demo.json (a demo file,
+  never the live dashboard path). Writing to the live path
+  (dashboard/compliance_metrics.json) requires
+  --i-understand-this-is-mock-data, since that file is fetched at runtime
+  by dashboard/index.html and rendered on the Store Audit Scorecard /
+  Supply Chain & Inventory tabs.
 """
 from __future__ import annotations
 import json
@@ -182,51 +187,85 @@ def generate_mock_fillrate_data() -> dict:
 
 
 
-def sync_compliance_data(output_path: str = "dashboard/compliance_metrics.json") -> None:
-    """
-    Main sync flow:
-    1. Generate compliance and fillrate data
-    2. Write to separate JSON file (compliance_metrics.json)
-    3. Dashboard loads this via fetch() and merges into window.DASH
+PRODUCTION_PATH = "dashboard/compliance_metrics.json"
+DEFAULT_DEMO_PATH = "dashboard/compliance_metrics.mock_demo.json"
 
-    This pattern allows compliance data to be updated independently
-    without modifying the data.js build pipeline.
+
+def generate_mock_output() -> dict:
     """
-    print("[*] Generating compliance audit data...")
+    Combine the two mock generators and stamp the result as synthetic.
+
+    No script in this repo generates real store-audit PES/CFR/OTIF data --
+    config/data_source_registry.yml has no entry for one, and
+    forecast_stock_inventory is registered validation_status: MISSING for
+    the same reason. This function's output must never be mistaken for a
+    real audit, so every call stamps it explicitly.
+    """
     compliance_data = generate_mock_compliance_data()
-
-    print("[*] Generating fill-rate metrics...")
     fillrate_data = generate_mock_fillrate_data()
-
-    # Combine into single output file
     output_data = {**compliance_data, **fillrate_data}
+    for block in ("compliance", "inventory_fillrate"):
+        output_data[block]["metadata"]["is_synthetic"] = True
+        output_data[block]["metadata"]["data_status"] = "SYNTHETIC_DEMO"
+        output_data[block]["metadata"]["source"] = (
+            "scripts/sync_compliance_data.py generate_mock_*() -- hardcoded demo "
+            "values, not a real store audit. See config/data_source_registry.yml."
+        )
+    return output_data
 
-    print(f"[*] Writing compliance metrics to {output_path}...")
+
+def sync_compliance_data(output_path: str, allow_production_overwrite: bool = False) -> None:
+    """
+    Write synthetic demo compliance/fill-rate data to output_path.
+
+    Refuses to touch PRODUCTION_PATH unless allow_production_overwrite is
+    explicitly set -- that file is fetched at runtime by
+    dashboard/index.html and rendered as the Store Audit Scorecard / Supply
+    Chain & Inventory tabs, so an accidental overwrite here would silently
+    replace whatever is there today (real or not) with demo values.
+    """
+    if os.path.abspath(output_path) == os.path.abspath(PRODUCTION_PATH) and not allow_production_overwrite:
+        print(f"[!] Refusing to write synthetic demo data to {output_path} (the live dashboard path).")
+        print(f"    This generator produces MOCK data only (see generate_mock_compliance_data()'s")
+        print(f"    own docstring). Pass --output <path> for a demo file, or --i-understand-this-is-mock-data")
+        print(f"    to overwrite the production path anyway (not recommended).")
+        raise SystemExit(1)
+
+    print("[*] Generating SYNTHETIC DEMO compliance audit data (not a real audit)...")
+    output_data = generate_mock_output()
+
+    print(f"[*] Writing synthetic demo compliance metrics to {output_path}...")
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output_data, f, indent=2)
 
-    # Report
-    compliance = compliance_data["compliance"]
-    fillrate = fillrate_data["inventory_fillrate"]
+    compliance = output_data["compliance"]
+    fillrate = output_data["inventory_fillrate"]
 
     print("\n" + "="*60)
-    print("Sprint 8 Phase 1: Compliance Sync Complete")
+    print("Compliance/Fill-Rate DEMO Sync Complete (SYNTHETIC_DEMO)")
     print("="*60)
-    print(f"✓ Total doors audited: {compliance['metadata']['total_doors_audited']}")
-    print(f"✓ Macro PES score: {compliance['metadata']['macro_pes_percent']}%")
-    print(f"✓ Accounts: {len(compliance['accounts'])}")
-    print(f"✓ Macro CFR: {fillrate['metadata']['macro_cfr_percent']}%")
-    print(f"✓ Macro OTIF: {fillrate['metadata']['macro_otif_percent']}%")
-    print(f"✓ Total Lost Revenue: ₹{fillrate['metadata']['total_lost_revenue_lakh']} Lakh")
+    print(f"✓ Total doors audited (mock): {compliance['metadata']['total_doors_audited']}")
+    print(f"✓ Macro PES score (mock): {compliance['metadata']['macro_pes_percent']}%")
+    print(f"✓ Accounts (mock): {len(compliance['accounts'])}")
+    print(f"✓ Macro CFR (mock): {fillrate['metadata']['macro_cfr_percent']}%")
+    print(f"✓ Macro OTIF (mock): {fillrate['metadata']['macro_otif_percent']}%")
+    print(f"✓ Total Lost Revenue (mock): ₹{fillrate['metadata']['total_lost_revenue_lakh']} Lakh")
     print(f"\n✓ Output file: {output_path}")
-    print("  Dashboard loads this file dynamically and merges into window.DASH")
-    print("  at runtime via fetch(). This keeps data.js build pipeline clean.")
+    print("  is_synthetic=true / data_status=SYNTHETIC_DEMO stamped on both blocks.")
+    print("  This is demo data only -- it must never be presented as a real audit.")
     print("="*60 + "\n")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Sprint 8: Compliance & Fill-Rate Sync")
-    parser.add_argument("--output", default="dashboard/compliance_metrics.json", help="Output compliance metrics JSON path")
+    parser = argparse.ArgumentParser(
+        description="Generate SYNTHETIC DEMO compliance & fill-rate data (mock only, not a real audit)."
+    )
+    parser.add_argument("--output", default=DEFAULT_DEMO_PATH,
+                         help=f"Output path for the demo JSON (default: {DEFAULT_DEMO_PATH})")
+    parser.add_argument("--i-understand-this-is-mock-data", dest="confirm_mock",
+                         action="store_true",
+                         help="Required to write to the live dashboard path "
+                              f"({PRODUCTION_PATH}); has no effect for any other --output path.")
     args = parser.parse_args()
 
-    sync_compliance_data(args.output)
+    sync_compliance_data(args.output, allow_production_overwrite=args.confirm_mock)
