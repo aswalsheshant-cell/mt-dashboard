@@ -6822,6 +6822,13 @@ def main():
         print(f"primary-only: {_nsv_summary} (Lakh); "
               + (f"3-Tier allocation: Tier1={qc.get('tier1_rows', 0)}, Tier2={qc.get('tier2_rows', 0)}, Tier3={qc.get('tier3_rows', 0)}"
                  if qc else "no allocation file found -- chain tags left as-is"))
+        # FM-19-adjacent (see docs/FAILURE_MODE_REGISTER.md FM-17's own closing
+        # note): this branch updates primary/pnl/insights but used to leave
+        # targets/mapping_health/mom/scorecard/pvm/profitability/npd/readiness
+        # frozen -- the exact staleness pattern FM-17 fixed for --detail-only,
+        # just never extended here. refresh_derived_blocks() no-ops safely if
+        # its other inputs aren't present.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -6882,6 +6889,11 @@ def main():
                 print(f"  forecast baseline ({_bt}): {_old} -> {_new_base} Lakh "
                       f"(now the full {len(new_off.get('months_'+_bt) or [])}-month window)")
 
+        # FM-17's own closing note: this branch replaces obj["offtake"]
+        # wholesale, which every refresh_derived_blocks() output derives from
+        # (mom/scorecard/pvm all read offtake) -- refresh so they don't stay
+        # frozen at whatever the last full build (or --detail-only run) saw.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -7102,6 +7114,11 @@ def main():
                 bc_data["fy_tags"] = sorted(new_tags, key=lambda t: fy_start_year(t.upper()))
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
+        # FM-17's own closing note: this branch merges new months into
+        # obj["offtake"], which every refresh_derived_blocks() output derives
+        # from (mom/scorecard/pvm all read offtake) -- refresh so they don't
+        # stay frozen at whatever the last full build (or --detail-only run) saw.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
