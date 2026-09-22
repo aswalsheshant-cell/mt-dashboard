@@ -3930,6 +3930,11 @@ function buildStores(){
     return;
   }
   const comp=D.compliance, meta=comp.metadata, accounts=comp.accounts||[], doors=comp.doors||[];
+  // Provenance banner: this file has no registered source or generator script
+  // (config/data_source_registry.yml has no compliance/store-audit entry) and
+  // its account/door figures are a confirmed match to sync_compliance_data.py's
+  // mock generator. Surface that instead of presenting it as a real audit.
+  const _synthNote=meta.is_synthetic?`<div class="callout" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:6px;margin-bottom:16px;">⚠ Data provenance unverified — this compliance data has no registered source or generator in this repo and matches known demo/mock values. Treat as illustrative, not a certified audit. See docs/VISUAL_REGISTRY.md.</div>`:'';
   // Audit-confidence note: PES% is read from a sample of the store universe
   // (189 of 426 today), not a census. Margin of error for a proportion,
   // finite-population-corrected since the sample is a large (~44%) share of
@@ -3972,7 +3977,7 @@ function buildStores(){
      <tbody>${doorFlagRows}</tbody></table>`);
   s.innerHTML=`<h2 class="sec">Store Audit Scorecard</h2>
    <p class="lead">Promo Execution Score (PES) tracking across audit dimensions.</p>
-   ${macroCard}${accountTable}${doorDetail}`;
+   ${_synthNote}${macroCard}${accountTable}${doorDetail}`;
 }
 
 function buildInventory(){
@@ -3982,6 +3987,7 @@ function buildInventory(){
     return;
   }
   const fr=D.inventory_fillrate, meta=fr.metadata, accounts=fr.accounts||[];
+  const _synthNote=meta.is_synthetic?`<div class="callout" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:6px;margin-bottom:16px;">⚠ Data provenance unverified — this fill-rate data has no registered source in this repo (config/data_source_registry.yml's forecast_stock_inventory entry is MISSING) and matches known demo/mock values. Treat as illustrative, not certified. See docs/VISUAL_REGISTRY.md.</div>`:'';
   const kpiRow=`<div class="kpi-row"><span class="kpi-val">${meta.macro_cfr_percent}%</span><span class="kpi-lab">Macro CFR</span></div>
    <div class="kpi-row"><span class="kpi-val">${meta.macro_otif_percent}%</span><span class="kpi-lab">Macro OTIF</span></div>`;
   const metaCard=card('Supply Chain Fill-Rate Metrics',
@@ -4002,7 +4008,7 @@ function buildInventory(){
     docInfo);
   s.innerHTML=`<h2 class="sec">Supply Chain & Inventory</h2>
    <p class="lead">Fill-rate (CFR/OTIF), lost revenue, and Days of Cover tracking.</p>
-   ${metaCard}${accountTable}${docCard}`;
+   ${_synthNote}${metaCard}${accountTable}${docCard}`;
 }
 
 
