@@ -3517,6 +3517,25 @@ function renderPogGapCharts(){
     {label:'Primary',data:rows.map(r=>r.primary)},
     {label:'Offtake',data:rows.map(r=>r.offtake)}]);
 }
+// Same-period guard for FY-on-FY comparisons built directly from
+// detail_records (buildComparison()'s article-level dimension branch).
+// Comparing full-FY totals when one side is a partial year (e.g. FY26 full
+// 12mo vs FY27 YTD 5mo) reads as an opposite-direction, misleading YoY --
+// exactly the failure mode same_period_block() in build_dashboard_data.py
+// exists to prevent server-side, just not applied to this client-side path.
+// When fyA/fyB cover the same months (including the common full-year vs
+// full-year case), this is a no-op: sharedMonths is null and recs pass
+// through unchanged. Extracted as its own function so it can be tested with
+// fixtures independent of live data (tests/test_fy_same_period_guard.js).
+function sameFYPeriodGuard(recs,fyA,fyB){
+  if(!fyA) return {recs,sharedMonths:null};
+  const monA=new Set(recs.filter(r=>r.FY===fyA).map(r=>r.Month));
+  const monB=new Set(recs.filter(r=>r.FY===fyB).map(r=>r.Month));
+  const same=monA.size===monB.size&&[...monA].every(mo=>monB.has(mo));
+  if(same) return {recs,sharedMonths:null};
+  const sharedMonths=new Set([...monA].filter(mo=>monB.has(mo)));
+  return {recs:recs.filter(r=>sharedMonths.has(r.Month)),sharedMonths};
+}
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
   const dims=['Chain','Brand','SubCategory','Range','PackSize','Article'];
@@ -3570,25 +3589,9 @@ function buildComparison(){
     const recs=recFilter(cmpDim);   // ignore this dimension's own filter so you can still compare across it
     const fys=[...new Set(recs.map(r=>r.FY))].sort();
     const [fyA,fyB]=fys.length>=2?[fys[fys.length-2],fys[fys.length-1]]:[null,fys[0]];
-    // Same-period guard: comparing full-FY totals when one side is a partial
-    // year (e.g. FY26 full 12mo vs FY27 YTD 5mo) reads as an opposite-direction,
-    // misleading YoY -- exactly the failure mode same_period_block() in
-    // build_dashboard_data.py exists to prevent server-side. This branch reads
-    // detail_records directly (not that helper's output), so mirror its logic
-    // here: when the two FYs' month coverage differs, restrict both to the
-    // shared months before summing.
-    let sharedMonths=null;
-    if(fyA){
-      const monA=new Set(recs.filter(r=>r.FY===fyA).map(r=>r.Month));
-      const monB=new Set(recs.filter(r=>r.FY===fyB).map(r=>r.Month));
-      const same=monA.size===monB.size&&[...monA].every(mo=>monB.has(mo));
-      if(!same) sharedMonths=new Set([...monA].filter(mo=>monB.has(mo)));
-    }
+    const {recs:periodRecs,sharedMonths}=sameFYPeriodGuard(recs,fyA,fyB);
     const m={};
-    recs.forEach(r=>{
-      if(sharedMonths&&!sharedMonths.has(r.Month)) return;
-      (m[r[cmpDim]]??={})[r.FY]=(m[r[cmpDim]]?.[r.FY]||0)+r.NSV;
-    });
+    periodRecs.forEach(r=>{ (m[r[cmpDim]]??={})[r.FY]=(m[r[cmpDim]]?.[r.FY]||0)+r.NSV; });
     rows=Object.entries(m).map(([name,v])=>{
       const a=fyA?(v[fyA]||0):null, b=v[fyB]||0;
       return {name, a, b, yoy:(a?Math.round((b/a-1)*1000)/10:null)};
