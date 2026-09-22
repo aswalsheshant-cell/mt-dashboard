@@ -175,6 +175,63 @@ class TestDeterminism(unittest.TestCase):
         self.assertEqual(r1, r2)
 
 
+class TestPatchIntoDatajs(unittest.TestCase):
+    """The one place this module writes anything -- proves it's additive-only."""
+
+    def test_patch_adds_only_risk_snapshot_and_changes_nothing_else(self):
+        """DATA_JS_PATH is the real dashboard/data.js, which this same Phase C
+        pass patches in place -- so it may already carry risk_snapshot by the
+        time this test runs (from a prior --patch-into-datajs call, or from a
+        previous test run against this real file). The invariant that
+        actually matters, and holds regardless of starting state: re-patching
+        touches risk_snapshot and NOTHING else -- never a second key, never a
+        change to any other key's value."""
+        import shutil, tempfile
+        with tempfile.TemporaryDirectory() as td:
+            copy_path = Path(td) / "data.js"
+            shutil.copy(DATA_JS_PATH, copy_path)
+            before = rra.cvd.load_datajs(copy_path)
+
+            rra.patch_into_datajs(copy_path)
+
+            after = rra.cvd.load_datajs(copy_path)
+            self.assertIn("risk_snapshot", after)
+            before_other = {k: v for k, v in before.items() if k != "risk_snapshot"}
+            after_other = {k: v for k, v in after.items() if k != "risk_snapshot"}
+            self.assertEqual(set(after_other.keys()), set(before_other.keys()))
+            for k in before_other:
+                self.assertEqual(json.dumps(before_other[k], sort_keys=True),
+                                 json.dumps(after_other[k], sort_keys=True),
+                                 f"existing key {k!r} was altered by the patch")
+
+    def test_patched_snapshot_matches_a_direct_aggregate_call(self):
+        import shutil, tempfile
+        with tempfile.TemporaryDirectory() as td:
+            copy_path = Path(td) / "data.js"
+            shutil.copy(DATA_JS_PATH, copy_path)
+            direct = rra.aggregate(data_js_path=copy_path)
+            patched_report = rra.patch_into_datajs(copy_path)
+            for a, b in zip(direct["rules"], patched_report["rules"]):
+                self.assertEqual(a["rule_id"], b["rule_id"])
+                self.assertEqual(len(a["instances"]), len(b["instances"]))
+
+    def test_patch_rejects_a_file_that_is_not_a_datajs(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "not_data.js"
+            p.write_text("console.log('nope');")
+            with self.assertRaises(SystemExit):
+                rra.patch_into_datajs(p)
+
+    def test_report_carries_rule_name_and_family_for_dashboard_rendering(self):
+        report = rra.aggregate()
+        for r in report["rules"]:
+            self.assertIn("rule_name", r)
+            self.assertIn("risk_family", r)
+            self.assertTrue(r["rule_name"])
+            self.assertTrue(r["risk_family"])
+
+
 class TestFixtureIsolation(unittest.TestCase):
     """Synthetic fixtures only -- proves the evaluators generalize beyond
     this repo's own current state, and never crash on an edge case."""

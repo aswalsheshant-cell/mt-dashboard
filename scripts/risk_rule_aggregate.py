@@ -1,27 +1,37 @@
 #!/usr/bin/env python3
-"""Risk Rule Aggregator -- Phase A (Foundation).
+"""Risk Rule Aggregator -- Phase A/B/C.
 
 Reads config/risk_rule_registry.yml and, for every rule marked
 `evaluation: IMPLEMENTED`, produces risk instances by READING an existing
 governed check/status -- never by recomputing a business number.
 
-This is Phase A only: no persistent history, no new dashboard tab, no
-release-gate wiring, no Likelihood x Impact scoring (none exists anywhere
-in this repo yet -- see docs/RISK_MANAGEMENT_PHASE_A.md). It prints/writes
-a deterministic snapshot of CURRENT risk instances, keyed so the same
-underlying condition always produces the same Risk_Key across runs
-(RR-<rule>::<entity>) -- the append-only history mechanism that would let
-a Risk_Key be tracked over time is explicitly Phase B, not built here.
+Still no persistent history, no release-gate wiring, no Likelihood x
+Impact scoring (none exists anywhere in this repo yet -- see
+docs/RISK_MANAGEMENT_PHASE_A.md). It prints/writes a deterministic snapshot
+of CURRENT risk instances, keyed so the same underlying condition always
+produces the same Risk_Key across runs (RR-<rule>::<entity>) -- the
+append-only history mechanism that would let a Risk_Key be tracked over
+time is still not built here.
+
+Phase C added --patch-into-datajs: writes this same snapshot into
+dashboard/data.js as DASH.risk_snapshot, additive-only (see
+patch_into_datajs()'s docstring), so the "Risk & Control" sub-view under
+the Operational Alerts tab has something to read.
 
 Usage:
   python scripts/risk_rule_aggregate.py                       # print summary
   python scripts/risk_rule_aggregate.py --out path/to/file.json
   python scripts/risk_rule_aggregate.py --data-js <path> --registry <path>
+  python scripts/risk_rule_aggregate.py --patch-into-datajs    # publish to the dashboard
 """
 from __future__ import annotations
 import argparse
 import json
+import os
+import re
+import shutil
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -232,25 +242,29 @@ def aggregate(registry_path=None, data_js_path=None, source_registry_path=None):
     all_instances = []
     for rule in registry["rules"]:
         rule_id = rule["rule_id"]
+        # Pass-through metadata only (never computed) -- lets a consumer (e.g.
+        # the dashboard tab) render a self-contained table without needing the
+        # registry YAML at runtime.
+        meta = {"rule_name": rule.get("rule_name"), "risk_family": rule.get("risk_family")}
         if rule.get("evaluation") != "IMPLEMENTED":
             rules_report.append({
                 "rule_id": rule_id, "evaluated": False,
                 "reason": rule.get("evaluation", "UNKNOWN"),
-                "instances": [],
+                "instances": [], **meta,
             })
             continue
         evaluator = EVALUATORS.get(rule_id)
         if evaluator is None:
             rules_report.append({
                 "rule_id": rule_id, "evaluated": False,
-                "reason": "NO_EVALUATOR_REGISTERED", "instances": [],
+                "reason": "NO_EVALUATOR_REGISTERED", "instances": [], **meta,
             })
             continue
         instances, note = evaluator(rule, ctx)
         all_instances.extend(instances)
         rules_report.append({
             "rule_id": rule_id, "evaluated": True, "note": note,
-            "instances": instances,
+            "instances": instances, **meta,
         })
 
     return {
@@ -263,15 +277,59 @@ def aggregate(registry_path=None, data_js_path=None, source_registry_path=None):
     }
 
 
+def patch_into_datajs(data_js_path=None, registry_path=None, source_registry_path=None):
+    """Publish the risk snapshot into dashboard/data.js as DASH.risk_snapshot,
+    for Phase C's dashboard sub-view to read client-side.
+
+    dashboard/data.js is otherwise never written by this module -- every
+    evaluator above only reads it. This is the one place that writes, and it
+    is additive only: the existing dict is loaded, exactly one new top-level
+    key is added, and the whole thing is re-serialized with the SAME
+    json.dumps(indent=1) convention build_dashboard_data.py itself uses.
+    Verified (2026-09-22) that a load->dump round-trip of the real data.js is
+    byte-for-byte identical to the original for every untouched key -- so the
+    only diff this produces is the new key's addition, never a reformat of
+    anything else. Writes atomically (temp file + move), the same pattern
+    build_dashboard_data.py's own _safe_write_data_js() uses.
+    """
+    path = Path(data_js_path or DEFAULT_DATA_JS)
+    text = path.read_text(encoding="utf-8")
+    m = re.search(r"window\.DASH\s*=\s*", text)
+    if not m:
+        raise SystemExit(f"{path}: does not look like a data.js (no 'window.DASH =' found)")
+    obj = json.loads(text[m.end():].strip().rstrip(";"))
+
+    report = aggregate(registry_path, path, source_registry_path)
+    obj["risk_snapshot"] = report
+
+    payload = "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n"
+    fd, tmp = tempfile.mkstemp(suffix=".js", dir=path.parent)
+    try:
+        os.close(fd)
+        Path(tmp).write_text(payload, encoding="utf-8")
+        shutil.move(tmp, path)
+    except Exception:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+    return report
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--registry", default=None)
     ap.add_argument("--data-js", default=None)
     ap.add_argument("--source-registry", default=None)
     ap.add_argument("--out", default=None, help="write the full JSON snapshot here (default: print summary only)")
+    ap.add_argument("--patch-into-datajs", action="store_true",
+                     help="also write the snapshot into dashboard/data.js as DASH.risk_snapshot "
+                          "(additive only -- see patch_into_datajs()'s docstring for the safety proof)")
     args = ap.parse_args()
 
-    report = aggregate(args.registry, args.data_js, args.source_registry)
+    if args.patch_into_datajs:
+        report = patch_into_datajs(args.data_js, args.registry, args.source_registry)
+        print(f"Patched risk_snapshot into {args.data_js or DEFAULT_DATA_JS}")
+    else:
+        report = aggregate(args.registry, args.data_js, args.source_registry)
 
     if args.out:
         outp = Path(args.out)
