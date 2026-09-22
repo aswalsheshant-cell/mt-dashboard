@@ -117,11 +117,108 @@ def eval_ssg_source_blocked(rule):
     return instances, f"publication_blocked={status.get('publication_blocked')}"
 
 
+def eval_forecast_method_fallback(rule, data_js_path):
+    """RR-FORECAST-METHOD-FALLBACK: reads DASH.forecast.method's own sentence
+    -- never re-derives which forecast method ran.
+
+    Positive-matches the ONE known fallback signature (forecast_block()'s own
+    "Seasonally-indexed run-rate" text) rather than the authoritative path's
+    wording: the checked-in dashboard/data.js was found, during this rule's
+    own build, to carry an authoritative-looking method string that matches
+    NEITHER function's current exact template (data.js can be a build or two
+    behind this script) -- so requiring an exact match to the authoritative
+    phrase produced a false positive. Matching the fallback's own distinctive,
+    currently-confirmed phrase is the robust direction: anything that isn't
+    positively the known fallback is treated as not-a-risk, never the reverse."""
+    try:
+        data = cvd.load_datajs(data_js_path)
+    except FileNotFoundError:
+        return [], "data.js not found -- nothing to check"
+    method = cvd.dig(data, "forecast.method") or ""
+    is_seasonal_fallback = "Seasonally-indexed run-rate" in method
+    instances = []
+    if is_seasonal_fallback:
+        instances.append(_instance(
+            rule["rule_id"], "current_forecast", "SEASONAL_ESTIMATE", method, rule["owner"]))
+    return instances, ("SEASONAL_ESTIMATE (fallback)" if is_seasonal_fallback
+                        else ("AUTHORITATIVE or unrecognized method text" if method else "forecast.method not present"))
+
+
+def eval_forecast_growth_clamped(rule, data_js_path):
+    """RR-FORECAST-GROWTH-CLAMPED: reads DASH.forecast.growth_assumption_pct
+    -- never recomputes the growth rate or its clamp."""
+    try:
+        data = cvd.load_datajs(data_js_path)
+    except FileNotFoundError:
+        return [], "data.js not found -- nothing to check"
+    method = cvd.dig(data, "forecast.method") or ""
+    growth = cvd.dig(data, "forecast.growth_assumption_pct")
+    is_seasonal_path = "Seasonally-indexed run-rate" in method
+    instances = []
+    if is_seasonal_path and growth is not None and growth >= 60.0:
+        instances.append(_instance(
+            rule["rule_id"], "current_forecast", "CLAMP_HIT",
+            f"growth_assumption_pct={growth} on the seasonal-projection path (clamp ceiling 60.0)",
+            rule["owner"]))
+    return instances, (f"growth_assumption_pct={growth}, seasonal_path={is_seasonal_path}"
+                        if growth is not None else "forecast.growth_assumption_pct not present")
+
+
+def eval_allocation_fallback(rule, data_js_path):
+    """RR-ALLOCATION-FALLBACK: reads DASH.chain_allocation_qc as published by
+    apply_chain_allocation_enhanced() -- never re-runs or re-derives the
+    allocation. Absent is reported as NOT_AVAILABLE, never assumed clean."""
+    try:
+        data = cvd.load_datajs(data_js_path)
+    except FileNotFoundError:
+        return [], "data.js not found -- nothing to check"
+    qc = cvd.dig(data, "chain_allocation_qc")
+    if not qc:
+        return [], "NOT_AVAILABLE -- chain_allocation_qc not present in this build (no --primary-only rebuild with an allocation file has run)"
+    instances = []
+    if qc.get("reconciliation_passed") is False:
+        instances.append(_instance(
+            rule["rule_id"], "chain_allocation", "RECONCILIATION_FAILED",
+            f"variance {qc.get('variance_lakh')} Lakh ({qc.get('variance_pct')}%)", rule["owner"]))
+    total = qc.get("total_dist_rows_processed") or 0
+    tier3 = qc.get("tier3_rows") or 0
+    tier3_pct = round(tier3 / total * 100, 2) if total else None
+    note = (f"reconciliation_passed={qc.get('reconciliation_passed')}, "
+            f"tier3(unmapped)={tier3}/{total} rows ({tier3_pct}% -- informational, no approved tolerance registered)")
+    return instances, note
+
+
+def eval_mapping_completeness_degraded(rule, data_js_path):
+    """RR-MAPPING-COMPLETENESS-DEGRADED: reads DASH.mapping_health.by_fy.*.rag
+    as already computed by mapping_health_block() -- never reapplies the RAG
+    band itself."""
+    try:
+        data = cvd.load_datajs(data_js_path)
+    except FileNotFoundError:
+        return [], "data.js not found -- nothing to check"
+    mh = cvd.dig(data, "mapping_health")
+    if not mh:
+        return [], "NOT_AVAILABLE -- mapping_health not present in this build"
+    instances = []
+    for fy, entry in (mh.get("by_fy") or {}).items():
+        if entry.get("rag") != "green":
+            instances.append(_instance(
+                rule["rule_id"], fy, entry.get("rag"),
+                f"completeness {entry.get('completeness_pct')}%, unmapped NSV Rs {entry.get('unmapped_nsv')} L "
+                f"(exception_count={mh.get('exception_count')}, exception_nsv=Rs {mh.get('exception_nsv')} L)",
+                rule["owner"]))
+    return instances, f"{len(instances)} of {len(mh.get('by_fy') or {})} FY(s) not green"
+
+
 EVALUATORS = {
     "RR-BASELINE-DRIFT": lambda rule, ctx: eval_baseline_drift(rule, ctx["data_js"]),
     "RR-SOURCE-DEGRADED": lambda rule, ctx: eval_source_degraded(rule, ctx["source_registry"]),
     "RR-READINESS-GATE": lambda rule, ctx: eval_readiness_gate(rule, ctx["data_js"]),
     "RR-SSG-SOURCE-BLOCKED": lambda rule, ctx: eval_ssg_source_blocked(rule),
+    "RR-FORECAST-METHOD-FALLBACK": lambda rule, ctx: eval_forecast_method_fallback(rule, ctx["data_js"]),
+    "RR-FORECAST-GROWTH-CLAMPED": lambda rule, ctx: eval_forecast_growth_clamped(rule, ctx["data_js"]),
+    "RR-ALLOCATION-FALLBACK": lambda rule, ctx: eval_allocation_fallback(rule, ctx["data_js"]),
+    "RR-MAPPING-COMPLETENESS-DEGRADED": lambda rule, ctx: eval_mapping_completeness_degraded(rule, ctx["data_js"]),
 }
 
 

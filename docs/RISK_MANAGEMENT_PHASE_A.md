@@ -1,4 +1,9 @@
-# Risk & Control Centre — Phase A (Foundation)
+# Risk & Control Centre — Phase A + B (Foundation + Core MT Risk Rules)
+
+**2026-09-22 update (Phase B):** added 4 real, read-only rules for
+Forecast, Primary Allocation and Master Data Mapping — see "Phase B rules"
+below. The rest of this document (Phase A's rationale, taxonomy, and
+scope limits) is unchanged and still governs.
 
 Scoped-down first slice of a much larger request (a full ISO 31000-style
 Risk Register, KRI registry, Control library, and a "Risk & Control Centre"
@@ -45,7 +50,7 @@ do" below.
 
 ## What Phase A actually is
 
-- **`config/risk_rule_registry.yml`** — 5 rules, each declaring: which
+- **`config/risk_rule_registry.yml`** — 9 rules (5 Phase A + 4 Phase B), each declaring: which
   existing module/function/config it reads, its risk family, its severity
   vocabulary (reused from the source, never invented), its owner, and an
   `evaluation` status (`IMPLEMENTED` or `NOT_IMPLEMENTED_PHASE_A`). No rule
@@ -132,12 +137,47 @@ new scoring invented, no new UI yet"):
   would be a second WAPE formula — exactly what this whole design exists to
   prevent.
 
+## Phase B rules (2026-09-22)
+
+Four more rules, same governing discipline as Phase A — each reads an
+already-computed, already-published field; none recomputes a business
+number:
+
+| Rule | Family | Reads |
+|---|---|---|
+| `RR-FORECAST-METHOD-FALLBACK` | FORECAST_PLANNING | `DASH.forecast.method` — flags the known seasonal-run-rate fallback signature; never re-derives which method ran |
+| `RR-FORECAST-GROWTH-CLAMPED` | FORECAST_PLANNING | `DASH.forecast.growth_assumption_pct` on the seasonal path only — flags when the published growth rate sits at `forecast_block()`'s own 60% sanity clamp (meaning the real computed rate exceeded it and got capped) |
+| `RR-ALLOCATION-FALLBACK` | PRIMARY_ALLOCATION | `DASH.chain_allocation_qc` — `apply_chain_allocation_enhanced()`'s own 3-tier waterfall QC report (Tier1 explicit / Tier2 dynamic / Tier3 unmapped, `reconciliation_passed`) |
+| `RR-MAPPING-COMPLETENESS-DEGRADED` | MASTER_DATA_MAPPING | `DASH.mapping_health.by_fy.*.rag` — `mapping_health_block()`'s own already-RAG-banded per-FY completeness, plus its existing value-ordered exception register |
+
+**A real bug this pass caught and fixed**: `RR-FORECAST-METHOD-FALLBACK`
+was first written to positive-match the *authoritative* path's wording
+("the business's own TY..."). Run against this repo's own checked-in
+`dashboard/data.js`, it false-positived — the live `forecast.method` string
+matches neither `forecast_block()`'s nor `forecast_block_ty()`'s current
+exact template (the checked-in `data.js` can trail the generator source by
+a build or two, and evidently does here). Fixed by positive-matching the
+*fallback's* own distinctive, currently-confirmed phrase
+("Seasonally-indexed run-rate") instead, so an unrecognized or
+differently-worded authoritative string is never misclassified as a risk.
+This is exactly why every rule here is tested against the repo's real,
+current state, not only synthetic fixtures.
+
+`RR-ALLOCATION-FALLBACK` reports `NOT_AVAILABLE` in the currently-checked-in
+build — `chain_allocation_qc` is only published when a `--primary-only`
+rebuild runs with a real allocation weights file, which this environment
+does not have. Not treated as "no risk" — treated as "not evaluable right
+now," per the same discipline as `RR-FORECAST-RELIABILITY`.
+
+`mapping-approval-governor`'s classification output was investigated as a
+candidate Master Data source for this phase but has no persisted,
+predictably-located file in this repo to point at (it is a process/skill,
+not yet a committed artifact) — `RR-MAPPING-COMPLETENESS-DEGRADED` uses
+`mapping_health_block()`'s own exception register instead, which does
+exist and is already published.
+
 ## Recommended next phases (unchanged from the original request's own §42)
 
-- **Phase B — Core MT Risk Engine**: add rules for Forecast (once a
-  Python-side read-path or a WAPE tolerance exists), Primary Allocation
-  fallback exposure, Master Data mapping gaps (via
-  `mapping-approval-governor`'s existing classification output).
 - **Phase C — Risk & Control Centre dashboard**: KPIs, heatmap, trend —
   only after Phase B gives it real rules to visualize, and only after an
   explicit decision on its relationship to the existing Operational Alerts

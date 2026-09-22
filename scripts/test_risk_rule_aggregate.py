@@ -121,6 +121,44 @@ class TestAggregateAgainstRealRepoState(unittest.TestCase):
         self.assertEqual(rule["instances"], [])
         self.assertEqual(rule["reason"], "NOT_IMPLEMENTED_PHASE_A")
 
+    def test_forecast_method_fallback_never_flags_a_string_it_does_not_recognize(self):
+        """Regression: the live data.js's forecast.method does not match
+        either function's current exact template (data.js can trail the
+        generator by a build or two). A rule that positive-matches the
+        authoritative phrase instead of the fallback's own signature would
+        false-positive on this exact file -- this pins that down."""
+        rule = next(r for r in self.report["rules"] if r["rule_id"] == "RR-FORECAST-METHOD-FALLBACK")
+        data = rra.cvd.load_datajs(DATA_JS_PATH)
+        method = rra.cvd.dig(data, "forecast.method") or ""
+        if "Seasonally-indexed run-rate" in method:
+            self.assertEqual(len(rule["instances"]), 1)
+        else:
+            self.assertEqual(rule["instances"], [])
+
+    def test_forecast_growth_clamped_never_flags_the_unclamped_ty_target_path(self):
+        rule = next(r for r in self.report["rules"] if r["rule_id"] == "RR-FORECAST-GROWTH-CLAMPED")
+        data = rra.cvd.load_datajs(DATA_JS_PATH)
+        method = rra.cvd.dig(data, "forecast.method") or ""
+        if "Seasonally-indexed run-rate" not in method:
+            self.assertEqual(rule["instances"], [],
+                             "must never flag a clamp hit outside the seasonal-projection path")
+
+    def test_allocation_fallback_reports_not_available_when_qc_absent(self):
+        rule = next(r for r in self.report["rules"] if r["rule_id"] == "RR-ALLOCATION-FALLBACK")
+        data = rra.cvd.load_datajs(DATA_JS_PATH)
+        qc = rra.cvd.dig(data, "chain_allocation_qc")
+        if not qc:
+            self.assertEqual(rule["instances"], [])
+            self.assertIn("NOT_AVAILABLE", rule["note"])
+
+    def test_mapping_completeness_degraded_matches_mapping_health_rag(self):
+        rule = next(r for r in self.report["rules"] if r["rule_id"] == "RR-MAPPING-COMPLETENESS-DEGRADED")
+        data = rra.cvd.load_datajs(DATA_JS_PATH)
+        mh = rra.cvd.dig(data, "mapping_health") or {}
+        expected = {fy for fy, e in (mh.get("by_fy") or {}).items() if e.get("rag") != "green"}
+        got = {i["entity"] for i in rule["instances"]}
+        self.assertEqual(got, expected)
+
 
 class TestDeterminism(unittest.TestCase):
     def test_same_state_produces_identical_risk_keys_across_runs(self):
@@ -169,6 +207,83 @@ class TestFixtureIsolation(unittest.TestCase):
                                                     Path("/nonexistent/data.js"))
         self.assertEqual(instances, [])
         self.assertIn("not found", note)
+
+    @staticmethod
+    def _fixture_datajs(tmp_path, obj):
+        import json
+        p = Path(tmp_path) / "data.js"
+        p.write_text("window.DASH = " + json.dumps(obj) + ";\n")
+        return p
+
+    def test_forecast_method_fallback_flags_the_seasonal_signature(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = self._fixture_datajs(td, {"forecast": {
+                "method": "Seasonally-indexed run-rate: FY26 monthly seasonality applied "
+                          "to a forward base grown at the realised offtake YoY rate (clamped 0-60%)."}})
+            instances, note = rra.eval_forecast_method_fallback({"rule_id": "RR-FORECAST-METHOD-FALLBACK", "owner": "X"}, p)
+            self.assertEqual(len(instances), 1)
+            self.assertEqual(instances[0]["severity"], "SEASONAL_ESTIMATE")
+
+    def test_forecast_method_fallback_does_not_flag_an_unrelated_method_string(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = self._fixture_datajs(td, {"forecast": {"method": "Some other method entirely."}})
+            instances, note = rra.eval_forecast_method_fallback({"rule_id": "RR-FORECAST-METHOD-FALLBACK", "owner": "X"}, p)
+            self.assertEqual(instances, [])
+
+    def test_forecast_growth_clamped_fires_only_on_seasonal_path_at_ceiling(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = self._fixture_datajs(td, {"forecast": {
+                "method": "Seasonally-indexed run-rate: clamped 0-60%.", "growth_assumption_pct": 60.0}})
+            instances, note = rra.eval_forecast_growth_clamped({"rule_id": "RR-FORECAST-GROWTH-CLAMPED", "owner": "X"}, p)
+            self.assertEqual(len(instances), 1)
+
+    def test_forecast_growth_clamped_ignores_high_growth_on_ty_target_path(self):
+        """A real >=60% TY target growth is a legitimate business ambition on
+        this path (unclamped) -- must never be misread as a clamp artifact."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = self._fixture_datajs(td, {"forecast": {
+                "method": "FY27 = the business's own TY target.", "growth_assumption_pct": 75.0}})
+            instances, note = rra.eval_forecast_growth_clamped({"rule_id": "RR-FORECAST-GROWTH-CLAMPED", "owner": "X"}, p)
+            self.assertEqual(instances, [])
+
+    def test_allocation_fallback_flags_reconciliation_failure(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = self._fixture_datajs(td, {"chain_allocation_qc": {
+                "reconciliation_passed": False, "variance_lakh": 12.5, "variance_pct": 0.3,
+                "tier1_rows": 100, "tier2_rows": 20, "tier3_rows": 5, "total_dist_rows_processed": 125}})
+            instances, note = rra.eval_allocation_fallback({"rule_id": "RR-ALLOCATION-FALLBACK", "owner": "X"}, p)
+            self.assertEqual(len(instances), 1)
+            self.assertEqual(instances[0]["severity"], "RECONCILIATION_FAILED")
+
+    def test_allocation_fallback_reconciled_true_is_zero_instances(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = self._fixture_datajs(td, {"chain_allocation_qc": {
+                "reconciliation_passed": True, "tier1_rows": 100, "tier2_rows": 20,
+                "tier3_rows": 5, "total_dist_rows_processed": 125}})
+            instances, note = rra.eval_allocation_fallback({"rule_id": "RR-ALLOCATION-FALLBACK", "owner": "X"}, p)
+            self.assertEqual(instances, [])
+            self.assertIn("tier3", note)
+
+    def test_mapping_completeness_degraded_flags_non_green_fy_only(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            p = self._fixture_datajs(td, {"mapping_health": {
+                "exception_count": 3, "exception_nsv": 45.0,
+                "by_fy": {
+                    "FY26": {"rag": "green", "completeness_pct": 99.0, "unmapped_nsv": 1.0},
+                    "FY27": {"rag": "amber", "completeness_pct": 88.0, "unmapped_nsv": 45.0},
+                }}})
+            instances, note = rra.eval_mapping_completeness_degraded(
+                {"rule_id": "RR-MAPPING-COMPLETENESS-DEGRADED", "owner": "X"}, p)
+            self.assertEqual(len(instances), 1)
+            self.assertEqual(instances[0]["entity"], "FY27")
+            self.assertEqual(instances[0]["severity"], "amber")
 
 
 if __name__ == "__main__":

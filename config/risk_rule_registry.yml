@@ -25,6 +25,9 @@ risk_families:
   RELEASE_CHANGE: "Release-gate / baseline-drift status"
   PROCESS_READINESS: "Whether an analytical layer's own stated precondition holds"
   THIRD_PARTY_SOURCE: "External or business-supplied source dependency status"
+  FORECAST_PLANNING: "Forecast method/assumption reliability (Phase B)"
+  PRIMARY_ALLOCATION: "Distributor-to-chain allocation fallback/reconciliation exposure (Phase B)"
+  MASTER_DATA_MAPPING: "Chain/distributor mapping coverage and exception value (Phase B)"
 
 rules:
   - rule_id: RR-BASELINE-DRIFT
@@ -128,3 +131,100 @@ rules:
     status: PROVISIONAL
     approval_status: NOT_APPROVED
     evaluation: NOT_IMPLEMENTED_PHASE_A
+
+  # -------------------------------------------------------------------
+  # Phase B -- Forecast / Allocation / Mapping (2026-09-22)
+  # -------------------------------------------------------------------
+
+  - rule_id: RR-FORECAST-METHOD-FALLBACK
+    rule_name: "Forecast produced by auto-projection, not the business TY target"
+    risk_family: FORECAST_PLANNING
+    description: >
+      DASH.forecast.method already records, as a sentence, which of the two
+      methods scripts/build_dashboard_data.py used: the business's own TY
+      (This Year) target file (authoritative), or a seasonally-indexed
+      run-rate projection (used only when the TY target file was not found
+      in --src). Reads that sentence; never re-derives which method ran or
+      recomputes either forecast.
+    source_module: "scripts/build_dashboard_data.py"
+    source_function: "forecast_block() / forecast_block_ty() -- read via DASH.forecast.method"
+    input: "DASH.forecast.method"
+    grain: "single current-forecast status"
+    severity_vocabulary: "binary: AUTHORITATIVE (TY target file used) vs SEASONAL_ESTIMATE (auto-projected fallback)"
+    threshold: "n/a -- string match on the method sentence"
+    owner: "MT Analytics (supply FY2627_TGT_and_sales_team_mapping.xlsb in --src to clear)"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
+
+  - rule_id: RR-FORECAST-GROWTH-CLAMPED
+    rule_name: "Forecast growth assumption hit the sanity clamp"
+    risk_family: FORECAST_PLANNING
+    description: >
+      forecast_block()'s seasonally-projected path clamps its YoY growth
+      input to [0%, 60%] before use (a planning-sanity guard, not a
+      business rule) -- so a published growth_assumption_pct of exactly
+      60.0% under that method means the real computed rate was >=60% and
+      got capped, not that 60% was the genuine planning assumption. Only
+      fires when forecast.method is the seasonal-projection path (the
+      TY-target path's growth_assumption_pct is unclamped and a real >=60%
+      there is a legitimate business ambition, not a clamp artifact).
+    source_module: "scripts/build_dashboard_data.py"
+    source_function: "forecast_block() -- read via DASH.forecast.growth_assumption_pct + .method"
+    input: "DASH.forecast.growth_assumption_pct, DASH.forecast.method"
+    grain: "single current-forecast status"
+    severity_vocabulary: "binary: clamp hit / not hit"
+    threshold: "growth_assumption_pct >= 60.0 (the clamp ceiling itself, defined in forecast_block()'s own code, not invented here)"
+    owner: "MT Analytics"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
+
+  - rule_id: RR-ALLOCATION-FALLBACK
+    rule_name: "Distributor primary allocated via the unmapped fallback tier, or reconciliation variance detected"
+    risk_family: PRIMARY_ALLOCATION
+    description: >
+      scripts/allocate_dist_enhanced.py's 3-tier allocation waterfall
+      (Tier1 explicit weights -> Tier2 dynamic offtake -> Tier3 unmapped,
+      no fabricated default) publishes its own QC report as
+      DASH.chain_allocation_qc when a --primary-only rebuild ran with an
+      allocation file present. Reads reconciliation_passed and the
+      tier1/2/3 row counts directly; never re-runs or re-derives the
+      allocation. Only present in data.js after a rebuild that used this
+      path -- absent is reported as NOT_AVAILABLE, never assumed clean.
+    source_module: "scripts/allocate_dist_enhanced.py"
+    source_function: "apply_chain_allocation_enhanced() -- read via DASH.chain_allocation_qc"
+    input: "DASH.chain_allocation_qc.{reconciliation_passed,tier1_rows,tier2_rows,tier3_rows,total_dist_rows_processed}"
+    grain: "single current-build allocation QC snapshot"
+    severity_vocabulary: "reconciliation_passed (bool, already computed) drives severity; tier3 share is reported as an informational metric only -- no approved fallback-% tolerance is registered anywhere in this repo (verified), so it is never turned into a PASS/FAIL threshold here"
+    threshold: "reconciliation_passed == False is the only pass/fail condition; tier3 share has NOT_DEFINED tolerance"
+    owner: "MT Analytics (distributor-to-chain weights owner)"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
+
+  - rule_id: RR-MAPPING-COMPLETENESS-DEGRADED
+    rule_name: "Chain mapping completeness below green, per FY"
+    risk_family: MASTER_DATA_MAPPING
+    description: >
+      DASH.mapping_health.by_fy.<FY>.rag is already computed by
+      mapping_health_block() against config/analytics_config.json's own
+      mapping_completeness_pct RAG band (green >=95%, amber >=85%, else
+      red) -- reused as-is, per FY, not recomputed. This is a finer grain
+      than RR-READINESS-GATE's chain_primary gate (which only reports the
+      single current-FY pass/fail against the 85% threshold): this rule
+      checks every FY mapping_health has data for. mapping_health.exceptions
+      is this repo's own existing value-ordered unmapped-distributor
+      register (built from the allocation's missing_mapping list) -- its
+      exception_count/exception_nsv are surfaced as supporting evidence,
+      never recomputed.
+    source_module: "scripts/build_dashboard_data.py"
+    source_function: "mapping_health_block() -- read via DASH.mapping_health"
+    input: "DASH.mapping_health.by_fy.*.rag, .exception_count, .exception_nsv"
+    grain: "per FY present in mapping_health.by_fy"
+    severity_vocabulary: "reuses the rag field itself (green/amber/red) -- the same RAG vocabulary config/analytics_config.json already defines"
+    threshold: "config/analytics_config.json rag.mapping_completeness_pct (green 95.0 / amber 85.0) -- already applied by mapping_health_block(), not reapplied here"
+    owner: "MT Analytics (distributor-to-chain mapping owner)"
+    status: ACTIVE
+    approval_status: PROVISIONAL
+    evaluation: IMPLEMENTED
