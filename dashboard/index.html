@@ -3426,10 +3426,24 @@ function inventoryClassificationSection(){
    ${card('Article classification & suggested action','Top 20 articles by NSV this period, classified and matched to the standard action for that combination.',
      `<div class="tablewrap"><table><thead><tr><th>Article</th><th>Brand</th><th>Category</th><th>NSV</th><th>ABC</th><th>FMS</th><th>RIS</th><th>Suggested Action</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
 }
+// FM-22 (FY02/FY03 -- global filter not propagated): both callers below used
+// to always pick fy27 over fy26 whenever fy27 had any rows, regardless of
+// the global FY filter bar -- verified live: selecting FY26 still showed a
+// "Primary-Offtake Gap (FY27)" heading with FY27 data. g only has two
+// literal keys (fy26/fy27, not a generic by_fy dict), so this mirrors
+// mappingHealthSection()'s fix at that same two-key grain: honor the global
+// filter when it names a covered key, else fall back to the previous
+// FY27-preferred default (most-recent-with-data).
+function pogGapWindow(g){
+  const fy=fOne('FY');
+  const fyk=fy?('fy'+fy.slice(2)):null;
+  if(fyk&&g[fyk]&&g[fyk].by_month.rows.length) return fyk;
+  return (g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+}
 function primaryOfftakeGapSection(){
   const g=D.primary_offtake_gap;
   if(!g||(!g.fy26&&!g.fy27)) return '';
-  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const win=pogGapWindow(g);
   const w=g[win];
   const rows=w.by_month.rows;
   const chain=w.by_chain;
@@ -3522,7 +3536,7 @@ function renderUnifiedTrendChart(){
 function renderPogGapCharts(){
   const g=D.primary_offtake_gap;
   if(!g) return;
-  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const win=pogGapWindow(g);
   const rows=g[win].by_month.rows;
   if(!rows.length||!document.getElementById('pogMonthChart')) return;
   mkLine('pogMonthChart',rows.map(r=>r.month),[
