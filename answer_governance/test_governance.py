@@ -305,10 +305,18 @@ class TestEvidenceBuilding:
         g = build_evidence("primary", "Q2", "FY27", dash)
         assert g.status in (ConfidenceStatus.PROVISIONAL, ConfidenceStatus.BLOCKED)
 
-    def test_primary_fy25_preagg(self, dash):
+    def test_primary_fy25_correctly_blocked_no_source(self, dash):
+        """Primary billing for FY25 does not exist in this repo's source data
+        at all -- only Distributor Secondary does (see CLAUDE.md's THE ONE
+        FY RULE / three-measures table: Primary starts FY26). BLOCKED with
+        an honest reason is the correct governed answer here, not a
+        fabricated value -- this is the project's own "never fabricate a
+        number to fill a genuine gap" rule applied to this module."""
         g = build_evidence("primary", "FY", "FY25", dash)
-        assert g.value == 23331.97
-        assert g.status in (ConfidenceStatus.CONFIRMED, ConfidenceStatus.HIGH_CONFIDENCE)
+        assert g.value is None
+        assert g.status == ConfidenceStatus.BLOCKED
+        assert "FY25" in g.reason
+        assert "nsv_fy25" not in dash["primary"]
 
     def test_primary_fy26_preagg(self, dash):
         g = build_evidence("primary", "FY", "FY26", dash)
@@ -316,10 +324,15 @@ class TestEvidenceBuilding:
         assert g.status in (ConfidenceStatus.CONFIRMED, ConfidenceStatus.HIGH_CONFIDENCE)
 
     def test_offtake_q1_fy27(self, dash):
+        # 11448.39 = April+May+June FY27 (offtake.monthly_fy27[:3]), verified
+        # directly against dashboard/data.js -- the code used to return the
+        # whole-FY27-so-far total instead (TD-02), and separately the old
+        # expected literal here (11438.72) predated later real-data
+        # revisions to those same three months.
         g = build_evidence("offtake", "Q1", "FY27", dash)
         assert g.status in (ConfidenceStatus.CONFIRMED, ConfidenceStatus.HIGH_CONFIDENCE)
         assert g.value is not None
-        assert abs(g.value - 11438.72) < 1.0
+        assert abs(g.value - 11448.39) < 1.0
         assert g.coverage.complete is True
         assert any("Brand Counter" in e for e in g.exclusions)
 
@@ -393,17 +406,29 @@ class TestPipelineIsolation:
         pass
 
     def test_primary_totals_unchanged(self, dash):
-        assert dash["primary"]["nsv_fy25"] == 23331.97
+        # nsv_fy25 was never a valid key (TD-04): Primary billing for FY25
+        # does not exist in this repo's source data (THE ONE FY RULE /
+        # three-measures table -- Primary starts FY26). Asserting its
+        # absence is the honest invariant, not asserting a fabricated value.
+        assert "nsv_fy25" not in dash["primary"]
         assert dash["primary"]["nsv_fy26"] == 32900.36
 
     def test_offtake_totals_unchanged(self, dash):
-        assert dash["offtake"]["total_fy25"] == 21840.0
-        assert dash["offtake"]["total_fy26"] == 31082.0
-        assert dash["offtake"]["total_fy27"] == 11438.72
+        # total_fy25 was never a valid key either (TD-05), for the same
+        # reason -- Offtake also starts FY26; only Distributor Secondary
+        # has an FY25 figure (offtake.secondary_total_fy25).
+        assert "total_fy25" not in dash["offtake"]
+        assert dash["offtake"]["total_fy26"] == 31119.87
+        assert dash["offtake"]["total_fy27"] == 19044.99
 
     def test_bc_unchanged(self, dash):
+        # TD-06: 943.68 was a stale snapshot -- reliance_bc.total legitimately
+        # grew as more real Reliance Brand Counter months were loaded
+        # (fy_tags now covers fy26+fy27, not just a narrower early window).
+        # The invariant this test actually protects -- the counter stays
+        # excluded from overall offtake -- is unaffected by that growth.
         bc = dash.get("reliance_bc", {})
-        assert bc.get("total") == 943.68
+        assert bc.get("total") == 7144.66
         assert bc.get("include_in_overall_offtake") is False
 
 

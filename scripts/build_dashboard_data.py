@@ -6386,6 +6386,28 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # FM-05: strip a stray top-level "metadata" key before writing, if
+    # present. Only scripts/sync_data_js.py (a deprecated, workflow_dispatch
+    # -only pipeline reading data_master.json) ever WRITES this key --
+    # build_dashboard_data.py never has and never should; dashboard/
+    # index.html only ever reads "meta", never "metadata". Once such a key
+    # enters data.js (e.g. from a stray sync_data_js.py run at some point),
+    # every partial-refresh mode here just carries it forward unchanged
+    # forever, since json.loads()-then-mutate-specific-keys never prunes an
+    # unrecognized top-level key. Stripped at this single common write
+    # choke point so it can never silently persist or reappear regardless
+    # of which code path produced payload_str.
+    _prefix = "window.DASH = "
+    if payload_str.startswith(_prefix):
+        _body = payload_str[len(_prefix):].rstrip().rstrip(";")
+        try:
+            _obj = json.loads(_body)
+        except json.JSONDecodeError:
+            _obj = None
+        if isinstance(_obj, dict) and "metadata" in _obj:
+            del _obj["metadata"]
+            payload_str = _prefix + json.dumps(_obj, indent=1, ensure_ascii=False) + ";\n"
+
     # Write candidate to temp file (same dir for atomic rename)
     fd, tmp = tempfile.mkstemp(suffix=".js", dir=out_path.parent)
     try:
