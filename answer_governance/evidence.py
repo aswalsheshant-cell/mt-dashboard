@@ -13,7 +13,7 @@ from answer_governance.models import (
     Reconciliation,
 )
 from answer_governance.confidence import classify_confidence
-from answer_governance.period_completeness import check_period
+from answer_governance.period_completeness import check_period, MONTH_NAMES
 
 
 def _safe_float(v: Any) -> Optional[float]:
@@ -108,9 +108,6 @@ def _primary_evidence(
         g.reason = f"No Primary data for {fy_tag} in detail_meta.fyx_primary"
         return g
 
-    g.value = _safe_float(fyx.get("nsv"))
-    g.source_paths = [f"detail_meta.fyx_primary['{fy_tag}']"]
-    g.source_periods = fyx.get("months_covered", [])
     g.formula_reference = (
         "Article-wise Primary NSV, chain-allocated (Dist. rows split by "
         "secondary cont%), computed from the FULL uncapped source."
@@ -125,18 +122,58 @@ def _primary_evidence(
         value_coverage_pct=_safe_float(dm.get("value_coverage_pct")),
     )
 
-    chain_sum = sum(c.get("nsv", 0) or 0 for c in fyx.get("by_chain", []))
-    zone_sum = sum(z.get("nsv", 0) or 0 for z in fyx.get("by_zone", []))
-    total = _safe_float(fyx.get("nsv")) or 0.0
-    chain_var = abs(chain_sum - total)
-    zone_var = abs(zone_sum - total)
-    recon_var = max(chain_var, zone_var)
-    recon_tol = 2.0
-    g.reconciliation = Reconciliation(
-        status="passed" if recon_var <= recon_tol else "variance detected",
-        variance=round(recon_var, 2),
-        tolerance=recon_tol,
-    )
+    # TD-01: this used to always return fyx["nsv"] -- the whole-FY-so-far
+    # total -- regardless of `period`, while `coverage` above correctly
+    # scoped itself to the requested period. Asking for "Q1 FY27" and
+    # "FY27" (no period) returned the identical value. `monthly` is a
+    # fixed 12-slot fiscal-order array (April=index 0 ... March=index 11,
+    # trailing zeros for months not yet loaded); slice it to the requested
+    # period's months instead. When the request covers everything this FY
+    # has loaded (the ordinary full-FY case), `present` == `available` and
+    # the sum is identical to `fyx["nsv"]` -- no behavior change there.
+    monthly = fyx.get("monthly")
+    period_scoped = bool(present) and isinstance(monthly, list) and len(monthly) == 12
+    if period_scoped:
+        idx = [MONTH_NAMES.index(m) for m in present if m in MONTH_NAMES]
+        g.value = round(sum(monthly[i] for i in idx), 2)
+        g.source_paths = [f"detail_meta.fyx_primary['{fy_tag}'].monthly (period-scoped sum)"]
+        g.source_periods = present
+    else:
+        g.value = _safe_float(fyx.get("nsv"))
+        g.source_paths = [f"detail_meta.fyx_primary['{fy_tag}']"]
+        g.source_periods = available
+
+    full_coverage_request = set(present) == set(available) and bool(available)
+
+    if full_coverage_request:
+        chain_sum = sum(c.get("nsv", 0) or 0 for c in fyx.get("by_chain", []))
+        zone_sum = sum(z.get("nsv", 0) or 0 for z in fyx.get("by_zone", []))
+        total = _safe_float(fyx.get("nsv")) or 0.0
+        chain_var = abs(chain_sum - total)
+        zone_var = abs(zone_sum - total)
+        recon_var = max(chain_var, zone_var)
+        recon_tol = 2.0
+        g.reconciliation = Reconciliation(
+            status="passed" if recon_var <= recon_tol else "variance detected",
+            variance=round(recon_var, 2),
+            tolerance=recon_tol,
+        )
+    else:
+        # `by_chain`/`by_zone` only ever carry a full-FY-to-date total per
+        # chain/zone, not a per-period breakdown -- there is nothing to
+        # reconcile a partial-period slice against, so this is correctly
+        # skipped rather than compared to a mismatched population.
+        recon_var = None
+        recon_tol = 2.0
+        g.reconciliation = Reconciliation(
+            status="not applicable — no per-period chain/zone breakdown exists to reconcile a partial-period value against",
+            variance=None,
+            tolerance=None,
+        )
+        g.assumptions.append(
+            f"Chain/zone reconciliation skipped for this {g.period} slice: "
+            "by_chain/by_zone only carry a full-FY-to-date total"
+        )
 
     is_rep = bool(dm.get("representative"))
     alloc_cov = _safe_float(alloc_qc.get("allocated_coverage_pct"))
@@ -150,7 +187,7 @@ def _primary_evidence(
     g.status = classify_confidence(
         metric_exists=True,
         period_complete=complete,
-        reconciliation_passed=(recon_var <= recon_tol),
+        reconciliation_passed=(recon_var is None or recon_var <= recon_tol),
         is_representative=is_rep,
         allocation_coverage_pct=alloc_cov,
         value_coverage_pct=_safe_float(dm.get("value_coverage_pct")),
@@ -164,7 +201,10 @@ def _primary_evidence(
     else:
         missing = [m for m in required if m not in present]
         parts.append(f"missing months: {', '.join(missing)}")
-    parts.append(f"reconciliation variance {recon_var:.2f} L (tolerance {recon_tol} L)")
+    if recon_var is None:
+        parts.append("chain/zone reconciliation not applicable (partial-period slice)")
+    else:
+        parts.append(f"reconciliation variance {recon_var:.2f} L (tolerance {recon_tol} L)")
     if alloc_cov is not None:
         parts.append(f"allocation coverage {alloc_cov}%")
     g.reason = "; ".join(parts)
@@ -182,20 +222,16 @@ def _offtake_evidence(
     months_key = f"months_{fy_tag.lower()}"
     monthly_key = f"monthly_{fy_tag.lower()}"
 
-    val = _safe_float(o.get(total_key))
-    if val is None:
+    total_val = _safe_float(o.get(total_key))
+    if total_val is None:
         g.status = ConfidenceStatus.BLOCKED
         g.reason = f"No Offtake data for {fy_tag} (key '{total_key}' not found)"
         return g
 
-    g.value = val
-    g.source_paths = [f"offtake.{total_key}"]
     g.formula_reference = "Chain-wise sell-out from Offtake master workbook"
 
     months_labels = o.get(months_key, [])
     monthly_vals = o.get(monthly_key, [])
-    g.source_periods = list(months_labels)
-
     available_norm = _offtake_months_to_names(months_labels)
     required, present, complete = check_period(g.period, fy_tag, available_norm)
     g.coverage = Coverage(
@@ -204,15 +240,54 @@ def _offtake_evidence(
         complete=complete,
     )
 
-    chain_sum = sum(c.get(fy_tag.lower(), 0) or 0 for c in o.get("by_chain", []))
-    zone_sum = sum(z.get(fy_tag.lower(), 0) or 0 for z in o.get("by_zone", []))
-    recon_var = max(abs(chain_sum - val), abs(zone_sum - val))
-    recon_tol = 1.0
-    g.reconciliation = Reconciliation(
-        status="passed" if recon_var <= recon_tol else "variance detected",
-        variance=round(recon_var, 2),
-        tolerance=recon_tol,
+    # TD-02: same class of bug as TD-01's primary evidence -- `val` used to
+    # always be the whole-FY-so-far `total_key` figure regardless of
+    # `period`. `months_labels`/`monthly_vals` are parallel arrays (e.g.
+    # 'Apr-26' <-> 3588.51); sum only the requested period's months. A
+    # "FY"/no-period request has present == available_norm, so the sum
+    # equals total_val exactly -- no behavior change there.
+    full_coverage_request = set(present) == set(available_norm) and bool(available_norm)
+    period_scoped = (
+        bool(present) and not full_coverage_request
+        and len(monthly_vals) == len(months_labels)
     )
+    if period_scoped:
+        val = round(sum(
+            mv for name, mv in zip(available_norm, monthly_vals) if name in present
+        ), 2)
+        g.source_paths = [f"offtake.{monthly_key} (period-scoped sum)"]
+        g.source_periods = present
+    else:
+        val = total_val
+        g.source_paths = [f"offtake.{total_key}"]
+        g.source_periods = list(months_labels)
+    g.value = val
+
+    if full_coverage_request:
+        chain_sum = sum(c.get(fy_tag.lower(), 0) or 0 for c in o.get("by_chain", []))
+        zone_sum = sum(z.get(fy_tag.lower(), 0) or 0 for z in o.get("by_zone", []))
+        recon_var = max(abs(chain_sum - total_val), abs(zone_sum - total_val))
+        recon_tol = 1.0
+        g.reconciliation = Reconciliation(
+            status="passed" if recon_var <= recon_tol else "variance detected",
+            variance=round(recon_var, 2),
+            tolerance=recon_tol,
+        )
+    else:
+        # by_chain/by_zone only carry a full-FY-to-date total, not a
+        # per-period breakdown -- nothing to reconcile a partial slice
+        # against.
+        recon_var = None
+        recon_tol = 1.0
+        g.reconciliation = Reconciliation(
+            status="not applicable — no per-period chain/zone breakdown exists to reconcile a partial-period value against",
+            variance=None,
+            tolerance=None,
+        )
+        g.assumptions.append(
+            f"Chain/zone reconciliation skipped for this {g.period} slice: "
+            "by_chain/by_zone only carry a full-FY-to-date total"
+        )
 
     bc = dash.get("reliance_bc", {})
     if bc.get("include_in_overall_offtake") is False:
@@ -223,7 +298,7 @@ def _offtake_evidence(
     g.status = classify_confidence(
         metric_exists=True,
         period_complete=complete,
-        reconciliation_passed=(recon_var <= recon_tol),
+        reconciliation_passed=(recon_var is None or recon_var <= recon_tol),
         reconciliation_variance=recon_var,
         reconciliation_tolerance=recon_tol,
     )
@@ -234,7 +309,10 @@ def _offtake_evidence(
     else:
         missing = [m for m in required if m not in present]
         parts.append(f"missing months: {', '.join(missing)}")
-    parts.append(f"reconciliation variance {recon_var:.2f} L")
+    if recon_var is None:
+        parts.append("chain/zone reconciliation not applicable (partial-period slice)")
+    else:
+        parts.append(f"reconciliation variance {recon_var:.2f} L")
     g.reason = "; ".join(parts)
     return g
 
