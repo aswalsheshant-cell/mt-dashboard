@@ -3037,14 +3037,26 @@ function pvmSection(){
 function mappingHealthSection(){
   const M=D.mapping_health; if(!M||!M.by_fy) return '';
   const fys=Object.keys(M.by_fy);
-  const cur=fys[fys.length-1], b=M.by_fy[cur];
+  // FM-03/FY03 fix: this card used to always show the LATEST fy in
+  // M.by_fy regardless of the global FY filter bar (verified live: FY26
+  // selected produced byte-identical HTML to no filter). Same pattern as
+  // npiCohortSection() -- honor the global filter when it names an actual
+  // FY in this block's own by_fy; otherwise fall back to latest.
+  const globalFy=fOne('FY');
+  const cur=(globalFy&&fys.includes(globalFy))?globalFy:fys[fys.length-1];
+  const b=M.by_fy[cur];
+  const fyNote=(globalFy&&!fys.includes(globalFy))
+    ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in this block's own coverage (${fys.join(', ')}) -- showing ${cur} instead.</p>`:'';
   const ex=(M.exceptions||[]).slice(0,15).map(r=>`<tr><td>${r.ship_to||'–'}</td><td>${r.cust_code||'–'}</td>
     <td>${crc(r.nsv)}</td><td>${r.cumulative_pct==null?'–':r.cumulative_pct.toFixed(1)+'%'}</td>
     <td>${(r.brands||[]).join(', ')||'–'}</td></tr>`).join('');
   const pr=(M.proposals||[]).map(r=>`<tr><td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${r.suggested_chain||'–'}</td>
     <td>${r.confidence||'–'}</td><td><span class="pill">${r.status}</span></td></tr>`).join('');
+  const exNote=M.note+' Note: this register and the proposals below span the whole '
+    +'dataset -- they are not themselves broken out by FY, unlike the completeness KPIs above.';
   return `<h2 class="sec" style="margin-top:32px">Chain Mapping Health</h2>
    <p class="lead">How much primary can actually be attributed to a named chain. Chain-level reporting is only as good as this.</p>
+   ${fyNote}
    <div class="kpis">
      ${kpi(`Mapping completeness (${cur})`,b.completeness_pct==null?'–':b.completeness_pct.toFixed(1)+'%',
         `${ragPill(b.completeness_pct,'mapping_completeness_pct',v=>v.toFixed(1)+'%')} against the ${((CFG().readiness||{}).chain_primary||{}).min_mapping_completeness_pct||'–'}% gate`)}
@@ -3052,7 +3064,7 @@ function mappingHealthSection(){
      ${kpi('Not attributed',crc(b.unmapped_nsv),`${M.exception_count} ship-to parties`)}
    </div>
    ${gateNote('chain_primary')}
-   ${card('Unmapped exception register',M.note,
+   ${card('Unmapped exception register',exNote,
      `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>Cust code</th><th>NSV</th><th>Cumulative</th><th>Brands</th></tr></thead>
       <tbody>${ex||'<tr><td colspan="5">None.</td></tr>'}</tbody></table></div>`)}
    ${pr?card('Proposed mappings — awaiting approval',M.proposals_note,
@@ -3414,10 +3426,24 @@ function inventoryClassificationSection(){
    ${card('Article classification & suggested action','Top 20 articles by NSV this period, classified and matched to the standard action for that combination.',
      `<div class="tablewrap"><table><thead><tr><th>Article</th><th>Brand</th><th>Category</th><th>NSV</th><th>ABC</th><th>FMS</th><th>RIS</th><th>Suggested Action</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
 }
+// FM-22 (FY02/FY03 -- global filter not propagated): both callers below used
+// to always pick fy27 over fy26 whenever fy27 had any rows, regardless of
+// the global FY filter bar -- verified live: selecting FY26 still showed a
+// "Primary-Offtake Gap (FY27)" heading with FY27 data. g only has two
+// literal keys (fy26/fy27, not a generic by_fy dict), so this mirrors
+// mappingHealthSection()'s fix at that same two-key grain: honor the global
+// filter when it names a covered key, else fall back to the previous
+// FY27-preferred default (most-recent-with-data).
+function pogGapWindow(g){
+  const fy=fOne('FY');
+  const fyk=fy?('fy'+fy.slice(2)):null;
+  if(fyk&&g[fyk]&&g[fyk].by_month.rows.length) return fyk;
+  return (g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+}
 function primaryOfftakeGapSection(){
   const g=D.primary_offtake_gap;
   if(!g||(!g.fy26&&!g.fy27)) return '';
-  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const win=pogGapWindow(g);
   const w=g[win];
   const rows=w.by_month.rows;
   const chain=w.by_chain;
@@ -3510,7 +3536,7 @@ function renderUnifiedTrendChart(){
 function renderPogGapCharts(){
   const g=D.primary_offtake_gap;
   if(!g) return;
-  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const win=pogGapWindow(g);
   const rows=g[win].by_month.rows;
   if(!rows.length||!document.getElementById('pogMonthChart')) return;
   mkLine('pogMonthChart',rows.map(r=>r.month),[
@@ -3940,6 +3966,11 @@ function buildStores(){
     return;
   }
   const comp=D.compliance, meta=comp.metadata, accounts=comp.accounts||[], doors=comp.doors||[];
+  // Provenance banner: this file has no registered source or generator script
+  // (config/data_source_registry.yml has no compliance/store-audit entry) and
+  // its account/door figures are a confirmed match to sync_compliance_data.py's
+  // mock generator. Surface that instead of presenting it as a real audit.
+  const _synthNote=meta.is_synthetic?`<div class="callout" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:6px;margin-bottom:16px;">⚠ Data provenance unverified — this compliance data has no registered source or generator in this repo and matches known demo/mock values. Treat as illustrative, not a certified audit. See docs/VISUAL_REGISTRY.md.</div>`:'';
   // Audit-confidence note: PES% is read from a sample of the store universe
   // (189 of 426 today), not a census. Margin of error for a proportion,
   // finite-population-corrected since the sample is a large (~44%) share of
@@ -3982,7 +4013,7 @@ function buildStores(){
      <tbody>${doorFlagRows}</tbody></table>`);
   s.innerHTML=`<h2 class="sec">Store Audit Scorecard</h2>
    <p class="lead">Promo Execution Score (PES) tracking across audit dimensions.</p>
-   ${macroCard}${accountTable}${doorDetail}`;
+   ${_synthNote}${macroCard}${accountTable}${doorDetail}`;
 }
 
 function buildInventory(){
@@ -3992,6 +4023,7 @@ function buildInventory(){
     return;
   }
   const fr=D.inventory_fillrate, meta=fr.metadata, accounts=fr.accounts||[];
+  const _synthNote=meta.is_synthetic?`<div class="callout" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 16px;border-radius:6px;margin-bottom:16px;">⚠ Data provenance unverified — this fill-rate data has no registered source in this repo (config/data_source_registry.yml's forecast_stock_inventory entry is MISSING) and matches known demo/mock values. Treat as illustrative, not certified. See docs/VISUAL_REGISTRY.md.</div>`:'';
   const kpiRow=`<div class="kpi-row"><span class="kpi-val">${meta.macro_cfr_percent}%</span><span class="kpi-lab">Macro CFR</span></div>
    <div class="kpi-row"><span class="kpi-val">${meta.macro_otif_percent}%</span><span class="kpi-lab">Macro OTIF</span></div>`;
   const metaCard=card('Supply Chain Fill-Rate Metrics',
@@ -4012,7 +4044,7 @@ function buildInventory(){
     docInfo);
   s.innerHTML=`<h2 class="sec">Supply Chain & Inventory</h2>
    <p class="lead">Fill-rate (CFR/OTIF), lost revenue, and Days of Cover tracking.</p>
-   ${metaCard}${accountTable}${docCard}`;
+   ${_synthNote}${metaCard}${accountTable}${docCard}`;
 }
 
 
