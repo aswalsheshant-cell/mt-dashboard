@@ -3543,6 +3543,25 @@ function renderPogGapCharts(){
     {label:'Primary',data:rows.map(r=>r.primary)},
     {label:'Offtake',data:rows.map(r=>r.offtake)}]);
 }
+// Same-period guard for FY-on-FY comparisons built directly from
+// detail_records (buildComparison()'s article-level dimension branch).
+// Comparing full-FY totals when one side is a partial year (e.g. FY26 full
+// 12mo vs FY27 YTD 5mo) reads as an opposite-direction, misleading YoY --
+// exactly the failure mode same_period_block() in build_dashboard_data.py
+// exists to prevent server-side, just not applied to this client-side path.
+// When fyA/fyB cover the same months (including the common full-year vs
+// full-year case), this is a no-op: sharedMonths is null and recs pass
+// through unchanged. Extracted as its own function so it can be tested with
+// fixtures independent of live data (tests/test_fy_same_period_guard.js).
+function sameFYPeriodGuard(recs,fyA,fyB){
+  if(!fyA) return {recs,sharedMonths:null};
+  const monA=new Set(recs.filter(r=>r.FY===fyA).map(r=>r.Month));
+  const monB=new Set(recs.filter(r=>r.FY===fyB).map(r=>r.Month));
+  const same=monA.size===monB.size&&[...monA].every(mo=>monB.has(mo));
+  if(same) return {recs,sharedMonths:null};
+  const sharedMonths=new Set([...monA].filter(mo=>monB.has(mo)));
+  return {recs:recs.filter(r=>sharedMonths.has(r.Month)),sharedMonths};
+}
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
   const dims=['Chain','Brand','SubCategory','Range','PackSize','Article'];
@@ -3550,7 +3569,7 @@ function buildComparison(){
   const btns=dims.map(d=>`<button class="fbtn ${d===cmpDim?'':'ghost'}" data-dim="${d}" style="margin:0 8px 10px 0">${dimLab[d]}</button>`).join('');
   const active=activeChipsHtml();
 
-  let rows, yrPair, source;
+  let rows, yrPair, source, articlePartialNote='';
   if(cmpDim==='Chain'||cmpDim==='Brand'){
     if(fyUnsupported()){
       // FYs beyond the pre-agg window (FY27's Apr'26+) still have exact
@@ -3596,13 +3615,16 @@ function buildComparison(){
     const recs=recFilter(cmpDim);   // ignore this dimension's own filter so you can still compare across it
     const fys=[...new Set(recs.map(r=>r.FY))].sort();
     const [fyA,fyB]=fys.length>=2?[fys[fys.length-2],fys[fys.length-1]]:[null,fys[0]];
+    const {recs:periodRecs,sharedMonths}=sameFYPeriodGuard(recs,fyA,fyB);
     const m={};
-    recs.forEach(r=>{ (m[r[cmpDim]]??={})[r.FY]=(m[r[cmpDim]]?.[r.FY]||0)+r.NSV; });
+    periodRecs.forEach(r=>{ (m[r[cmpDim]]??={})[r.FY]=(m[r[cmpDim]]?.[r.FY]||0)+r.NSV; });
     rows=Object.entries(m).map(([name,v])=>{
       const a=fyA?(v[fyA]||0):null, b=v[fyB]||0;
       return {name, a, b, yoy:(a?Math.round((b/a-1)*1000)/10:null)};
     });
     yrPair=[fyA||'–',fyB||'–'];
+    if(sharedMonths) articlePartialNote=`<p class="drillhint" style="margin:4px 0 0">${fyA} and ${fyB} cover different months in this data --
+       YoY uses only the ${sharedMonths.size} shared month(s) (same-period, like-for-like) instead of full-year totals.</p>`;
   }
   rows.sort((a,b)=>(b.b||0)-(a.b||0));
   const tot=rows.reduce((s2,r)=>s2+(r.b||0),0)||1;
@@ -3610,9 +3632,9 @@ function buildComparison(){
   const tableRows=top.map(r=>`<tr><td>${drillLink(cmpDim,r.name)}</td><td>${r.a!=null?crc(r.a):'–'}</td><td>${crc(r.b)}</td>
     <td>${r.yoy!=null?`<span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span>`:'–'}</td>
     <td>${(r.b/tot*100).toFixed(1)}%</td></tr>`).join('');
-  const partialNote=(fyUnsupported()&&FPX(fyTag()))?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
+  const partialNote=((fyUnsupported()&&FPX(fyTag()))?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
      (${(FPX(fyTag())||{}).months_covered?.join(', ')} only) — YoY uses the same ${(FPX(fyTag())||{}).months_covered?.length||3} months
-     from ${PREAGG_FYS[PREAGG_FYS.length-1]||'FY26'} as baseline. Chains with no prior-year data show '–'.</p>`:'';
+     from ${PREAGG_FYS[PREAGG_FYS.length-1]||'FY26'} as baseline. Chains with no prior-year data show '–'.</p>`:'')+articlePartialNote;
   s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2>
    <p class="lead">Rank and compare ${dimLab[cmpDim]} performance. Source: ${source}.</p>
    ${partialNote}
