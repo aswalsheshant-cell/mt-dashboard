@@ -3037,14 +3037,26 @@ function pvmSection(){
 function mappingHealthSection(){
   const M=D.mapping_health; if(!M||!M.by_fy) return '';
   const fys=Object.keys(M.by_fy);
-  const cur=fys[fys.length-1], b=M.by_fy[cur];
+  // FM-03/FY03 fix: this card used to always show the LATEST fy in
+  // M.by_fy regardless of the global FY filter bar (verified live: FY26
+  // selected produced byte-identical HTML to no filter). Same pattern as
+  // npiCohortSection() -- honor the global filter when it names an actual
+  // FY in this block's own by_fy; otherwise fall back to latest.
+  const globalFy=fOne('FY');
+  const cur=(globalFy&&fys.includes(globalFy))?globalFy:fys[fys.length-1];
+  const b=M.by_fy[cur];
+  const fyNote=(globalFy&&!fys.includes(globalFy))
+    ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in this block's own coverage (${fys.join(', ')}) -- showing ${cur} instead.</p>`:'';
   const ex=(M.exceptions||[]).slice(0,15).map(r=>`<tr><td>${r.ship_to||'–'}</td><td>${r.cust_code||'–'}</td>
     <td>${crc(r.nsv)}</td><td>${r.cumulative_pct==null?'–':r.cumulative_pct.toFixed(1)+'%'}</td>
     <td>${(r.brands||[]).join(', ')||'–'}</td></tr>`).join('');
   const pr=(M.proposals||[]).map(r=>`<tr><td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${r.suggested_chain||'–'}</td>
     <td>${r.confidence||'–'}</td><td><span class="pill">${r.status}</span></td></tr>`).join('');
+  const exNote=M.note+' Note: this register and the proposals below span the whole '
+    +'dataset -- they are not themselves broken out by FY, unlike the completeness KPIs above.';
   return `<h2 class="sec" style="margin-top:32px">Chain Mapping Health</h2>
    <p class="lead">How much primary can actually be attributed to a named chain. Chain-level reporting is only as good as this.</p>
+   ${fyNote}
    <div class="kpis">
      ${kpi(`Mapping completeness (${cur})`,b.completeness_pct==null?'–':b.completeness_pct.toFixed(1)+'%',
         `${ragPill(b.completeness_pct,'mapping_completeness_pct',v=>v.toFixed(1)+'%')} against the ${((CFG().readiness||{}).chain_primary||{}).min_mapping_completeness_pct||'–'}% gate`)}
@@ -3052,7 +3064,7 @@ function mappingHealthSection(){
      ${kpi('Not attributed',crc(b.unmapped_nsv),`${M.exception_count} ship-to parties`)}
    </div>
    ${gateNote('chain_primary')}
-   ${card('Unmapped exception register',M.note,
+   ${card('Unmapped exception register',exNote,
      `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>Cust code</th><th>NSV</th><th>Cumulative</th><th>Brands</th></tr></thead>
       <tbody>${ex||'<tr><td colspan="5">None.</td></tr>'}</tbody></table></div>`)}
    ${pr?card('Proposed mappings — awaiting approval',M.proposals_note,
