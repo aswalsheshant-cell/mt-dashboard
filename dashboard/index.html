@@ -2936,6 +2936,12 @@ function momSection(){
      `<div class="tablewrap"><table><thead><tr><th>Metric</th>${hdr}<th>Total / Avg</th></tr></thead><tbody>${body}</tbody></table></div>`)}
    ${na?card('Not shown, and why','These metrics have no source at this grain in this build. Listed rather than shown as zero.',`<ul class="wf">${na}</ul>`):''}`;
 }
+function comparabilityPill(c){
+  if(!c) return '–';
+  const cls={COMPARABLE:'g',NEW_ACCOUNT:'',EXITED:'r',NOT_COMPARABLE:''}[c]||'';
+  const lab={COMPARABLE:'Comparable',NEW_ACCOUNT:'New account',EXITED:'Exited',NOT_COMPARABLE:'Not comparable'}[c]||c;
+  return `<span class="pill ${cls}" title="${c}">${lab}</span>`;
+}
 function scorecardSection(){
   const S=D.scorecard; if(!S) return '';
   const tbl=(blk,label)=>{
@@ -2944,6 +2950,9 @@ function scorecardSection(){
       <td>${drillLink(label,r.name)}</td>
       <td>${crc(r.curr)}</td>
       <td>${ragPill(r.growth_pct,'growth_pct',v=>pct(v))}</td>
+      <td>${r.qty_yoy_pct==null?'–':pct(r.qty_yoy_pct)}</td>
+      <td>${r.nsv_contribution_pct==null?'–':r.nsv_contribution_pct.toFixed(1)+'%'}</td>
+      <td>${comparabilityPill(r.comparability)}</td>
       <td>${crc(r.target)}</td>
       <td>${ragPill(r.achievement_pct,'achievement_pct',v=>v.toFixed(1)+'%')}</td>
       <td>${crc(r.gap)}</td>
@@ -2953,17 +2962,39 @@ function scorecardSection(){
       <td style="min-width:230px">${r.action||'–'}</td></tr>`).join('');
     return card(`${label} scorecard`,blk.note,
       `<div class="tablewrap"><table><thead><tr>
-        <th>${label}</th><th>${blk.curr_fy}</th><th>Growth</th><th>Target</th><th>Ach%</th>
+        <th>${label}</th><th>${blk.curr_fy}</th><th>Growth</th><th>Unit YoY</th><th>NSV Contrib%</th><th>Comparability</th>
+        <th>Target</th><th>Ach%</th>
         <th>Gap</th><th>Curr RR</th><th>Reqd RR</th><th>Status</th><th>Action</th>
        </tr></thead><tbody>${rows}</tbody></table></div>`);
   };
   const z=S.by_zone, c=S.by_chain;
   const ref=z||c; if(!ref) return '';
+  const bubbleCard=(c&&c.rows&&c.rows.length)?card('Account growth vs contribution',
+    'Bubble size = current NSV. Top-right = large and growing (defend); bottom-right = small and growing (invest); '+
+    'top-left = large and declining (fix urgently); bottom-left = small and declining (low priority). Only COMPARABLE accounts plotted.',
+    cv('acctYoyBubble')):'';
   return `<h2 class="sec" style="margin-top:32px">Account &amp; Zone Scorecard</h2>
-   <p class="lead">${ref.curr_fy} vs ${ref.prev_fy}, like-for-like over ${ref.months?ref.months.join(' + '):''}. RAG thresholds from config/analytics_config.json. ₹ Crore.</p>
+   <p class="lead">${ref.curr_fy} vs ${ref.prev_fy}, like-for-like over ${ref.months?ref.months.join(' + '):''}. RAG thresholds from config/analytics_config.json. ₹ Crore. "Comparability" flags whether an account had a genuine prior-year base to grow from — a missing prior year is never shown as 0% or "–100%" growth.</p>
    ${gateNote('chain_primary')}
+   ${bubbleCard}
    ${tbl(z,'Zone')}
    ${tbl(c,'Chain')}`;
+}
+function renderAccountYoyBubble(){
+  const rows=((D.scorecard||{}).by_chain||{}).rows;
+  if(!rows||!rows.length||!document.getElementById('acctYoyBubble')) return;
+  const pts=rows.filter(r=>r.comparability==='COMPARABLE'&&r.growth_pct!=null&&r.nsv_contribution_pct!=null&&r.curr);
+  if(!pts.length) return;
+  const maxCurr=Math.max(...pts.map(r=>r.curr));
+  charts.push(new Chart(document.getElementById('acctYoyBubble'),{type:'bubble',
+    data:{datasets:[{label:'Chain',
+      data:pts.map(r=>({x:r.growth_pct,y:r.nsv_contribution_pct,r:6+Math.sqrt(r.curr/maxCurr)*24,_name:r.name,_curr:r.curr})),
+      backgroundColor:C.teal+'99',borderColor:C.teal,borderWidth:1.5}]},
+    options:{plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>{const d=c.raw;return `${d._name}: ${pct(d.x)} growth, ${d.y.toFixed(1)}% of NSV, ${crc(d._curr)}`;}}}},
+      scales:{x:{title:{display:true,text:'YoY growth %'},grid:{color:'#eee'}},
+              y:{title:{display:true,text:'Share of current NSV %'},beginAtZero:true,grid:{color:'#eee'}}},
+      onClick:(evt,els)=>{if(els.length){const d=pts[els[0].index];drillTo('Chain',d.name);}}}}));
 }
 function pvmSection(){
   const pv=D.pvm; if(!pv) return '';
@@ -3590,6 +3621,7 @@ function buildComparison(){
   }
   renderPogGapCharts();
   renderUnifiedTrendChart();
+  renderAccountYoyBubble();
   renderDrillChart('cmpDrill','Primary NSV',recFilter());
 }
 function wireCmpButtons(root){

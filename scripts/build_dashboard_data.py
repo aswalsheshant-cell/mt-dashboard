@@ -4434,6 +4434,13 @@ def scorecard_block(same_period, targets, mapping_health=None, cfg=None, dim="by
             "current_run_rate": curr_rr, "required_run_rate": req_rr,
             "rag": rag, "status": worst, "action": action,
             "target_basis": t.get("basis"),
+            # From same_period_block(): qty_yoy_pct (units growth, independent of
+            # price/mix) and nsv_contribution_pct (this row's share of the CURRENT
+            # period's total NSV -- distinct from contribution_pct above, which is
+            # the target's prior-year-derived share used to split the FY target).
+            "qty_yoy_pct": r.get("qty_yoy_pct"),
+            "nsv_contribution_pct": r.get("nsv_contribution_pct"),
+            "comparability": r.get("comparability"),
         })
     rows.sort(key=lambda d: -(d.get("curr") or 0))
     return {
@@ -5740,8 +5747,8 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     }
     return out_df, alloc
 
-def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV",
-                      dims=(("by_zone", "_Zone"), ("by_chain", "_Chain"))):
+def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV", qty_col="_Qty",
+                      dims=(("by_zone", "_Zone"), ("by_chain", "_Chain"), ("by_brand", "_Brand"))):
     """LIKE-FOR-LIKE year-on-year, on the months the two latest FYs share.
 
     A part-year FY compared against a full prior FY is not a YoY -- it is a
@@ -5793,18 +5800,38 @@ def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV",
                   f"both FYs carry ({', '.join(shared)}). Article-level primary. "
                   f"Window widens automatically as new months arrive."),
     }
+    has_qty = qty_col in df.columns
     for out_key, col in dims:
         if col not in df.columns:
             continue
         cs = c.groupby(col)[nsv_col].sum()
         vs = v.groupby(col)[nsv_col].sum()
+        cq = c.groupby(col)[qty_col].sum() if has_qty else None
+        vq = v.groupby(col)[qty_col].sum() if has_qty else None
         rows = []
         for name in sorted(set(cs.index) | set(vs.index)):
             if not name:
                 continue
             a, b = float(cs.get(name, 0.0)), float(vs.get(name, 0.0))
-            rows.append({"name": name, "curr": r2(a), "prev": r2(b),
-                         "delta": r2(a - b), "yoy_pct": _pct(a, b)})
+            row = {"name": name, "curr": r2(a), "prev": r2(b),
+                   "delta": r2(a - b), "yoy_pct": _pct(a, b),
+                   "nsv_contribution_pct": r2(a / c_tot * 100) if c_tot else None,
+                   # Governance label, never inferred silently: a missing prior-year
+                   # base must never be READ as zero growth, and an account that
+                   # sold nothing this period must never be read as -100% either --
+                   # both are "no comparable number", not "the number is zero".
+                   "comparability": (
+                       "COMPARABLE" if (a > 0 and b > 0) else
+                       "NEW_ACCOUNT" if (a > 0 and b <= 0) else
+                       "EXITED" if (a <= 0 and b > 0) else
+                       "NOT_COMPARABLE"),
+                   }
+            if has_qty:
+                qa, qb = float(cq.get(name, 0.0)), float(vq.get(name, 0.0))
+                row["qty_curr"] = int(qa)
+                row["qty_prev"] = int(qb)
+                row["qty_yoy_pct"] = _pct(qa, qb)
+            rows.append(row)
         block[out_key] = sorted(rows, key=lambda d: -(d["curr"] or 0))
     return block
 
