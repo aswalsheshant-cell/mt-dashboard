@@ -1,0 +1,240 @@
+name: Production Acceptance Gate
+
+# Phase 18. One always-running workflow (no path filters) so every PR to main
+# gets at least one stable, comprehensive required check -- see
+# docs/PHASE18_PRODUCTION_ACCEPTANCE_GATE.md for why this exists and what it
+# does and does not replace.
+#
+# Design: several parallel jobs, each running one existing, already-proven
+# validation script or test suite (reused, not reimplemented) -- then one
+# final "gate" job (if: always()) that aggregates their results into a
+# single PASS/FAIL. Only that final job's name needs to be added to the
+# branch ruleset's required-checks list; the sub-job names can change
+# without touching ruleset configuration. This mirrors the existing
+# validate-promo-data.yml "report" job pattern already used in this repo.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    name: "Gate: Python Full Test Suite"
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run pytest tests/
+        run: python3 -m pytest tests/ -q
+
+  answer-governance:
+    name: "Gate: Answer Governance Suite"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run pytest answer_governance/
+        run: python3 -m pytest answer_governance/ -q
+
+  historical-baseline:
+    name: "Gate: Historical Baseline Integrity"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Verify FY25/FY26 baseline coverage
+        run: python3 scripts/validate_historical_baseline.py
+
+  schema-validation:
+    name: "Gate: Schema/Data Validation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Run promo/data.js schema validation
+        run: python3 scripts/validate_promo_schema.py --datajs dashboard/data.js
+
+  dashboard-integrity:
+    name: "Gate: Dashboard Integrity"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - name: Validate HTML structure
+        run: |
+          OPEN_BRACES=$(grep -o '{' dashboard/index.html | wc -l)
+          CLOSE_BRACES=$(grep -o '}' dashboard/index.html | wc -l)
+          if [ "$OPEN_BRACES" -ne "$CLOSE_BRACES" ]; then
+            echo "ERROR: Mismatched braces in dashboard/index.html"
+            echo "  Open: $OPEN_BRACES, Close: $CLOSE_BRACES"
+            exit 1
+          fi
+          echo "✓ HTML brace matching verified"
+      - name: Check critical functions present
+        run: |
+          FUNCTIONS=(
+            "buildPromo"
+            "buildPrimary"
+            "buildPnl"
+            "show"
+            "buildPromoCSV"
+            "exportPromoCSV"
+          )
+          for func in "${FUNCTIONS[@]}"; do
+            if grep -q "function $func" dashboard/index.html; then
+              echo "✓ Found: $func()"
+            else
+              echo "✗ Missing: $func()"
+              exit 1
+            fi
+          done
+          echo "All critical functions present"
+      - name: Validate data.js window.DASH wrapper
+        run: |
+          if grep -q 'window\.DASH\s*=' dashboard/data.js; then
+            echo "✓ data.js has window.DASH wrapper"
+          else
+            echo "✗ data.js missing window.DASH wrapper"
+            exit 1
+          fi
+
+  release-validation:
+    name: "Gate: Release Validation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Run release-gate baseline/coverage checks
+        run: python3 scripts/ci_validate_datajs.py
+
+  reconciliation:
+    name: "Gate: Reconciliation (informational)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      # NOT blocking: as of 2026-09-23 this check reports BLOCKED (exit 2) on
+      # the current, already-committed main data.js -- a real, already-known,
+      # unresolved business finding (eB2B/SIS non-MT primary sitting inside MT
+      # zone sales; see the script's own docstring and its "Business owner to
+      # decide" note), not something any given PR introduces. Making this
+      # blocking today would fail every PR permanently until that business
+      # decision is made. It runs and reports on every PR so the finding stays
+      # visible; continue-on-error keeps it from failing the gate. Flip
+      # continue-on-error off (and fold its result into the gate job's
+      # failure condition below) once the underlying business decision is
+      # made and this script reports clean on main.
+      - name: Run MT channel reconciliation (does not block the gate)
+        continue-on-error: true
+        run: python3 scripts/mt_channel_reconciliation.py dashboard/data.js
+
+  browser-regression:
+    name: "Gate: Browser Regression"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65  # v4.0.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify dashboard files exist
+        run: |
+          test -f dashboard/data.js && echo "✓ data.js present" || (echo "✗ data.js missing"; exit 1)
+          test -f dashboard/index.html && echo "✓ index.html present" || (echo "✗ index.html missing"; exit 1)
+      - name: Start HTTP server for tests
+        run: |
+          python3 -m http.server 8765 > /tmp/server.log 2>&1 &
+          for i in {1..10}; do
+            if curl -s http://localhost:8765/dashboard/index.html > /dev/null 2>&1; then
+              echo "✓ Dashboard server is ready"
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "✗ Server failed to start"
+              cat /tmp/server.log
+              exit 1
+            fi
+            sleep 1
+          done
+      - name: Run Playwright v1.1.0 consolidation regression suite
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:8765
+        run: npx playwright test tests/e2e_v1.1.0_consolidation.spec.js --project=chromium
+        timeout-minutes: 10
+
+  gate:
+    name: "Production Acceptance Gate"
+    runs-on: ubuntu-latest
+    needs:
+      - python-tests
+      - answer-governance
+      - historical-baseline
+      - schema-validation
+      - dashboard-integrity
+      - release-validation
+      - reconciliation
+      - browser-regression
+    if: always()
+    steps:
+      - name: Aggregate results
+        run: |
+          echo "=========================================="
+          echo "Production Acceptance Gate"
+          echo "=========================================="
+          echo ""
+          echo "Blocking jobs:"
+          echo "  - Python Full Test Suite:    ${{ needs.python-tests.result }}"
+          echo "  - Answer Governance Suite:   ${{ needs.answer-governance.result }}"
+          echo "  - Historical Baseline:       ${{ needs.historical-baseline.result }}"
+          echo "  - Schema/Data Validation:    ${{ needs.schema-validation.result }}"
+          echo "  - Dashboard Integrity:       ${{ needs.dashboard-integrity.result }}"
+          echo "  - Release Validation:        ${{ needs.release-validation.result }}"
+          echo "  - Browser Regression:        ${{ needs.browser-regression.result }}"
+          echo ""
+          echo "Informational (not blocking):"
+          echo "  - Reconciliation:            ${{ needs.reconciliation.result }}"
+          echo ""
+
+          if [ "${{ needs.python-tests.result }}" != "success" ] || \
+             [ "${{ needs.answer-governance.result }}" != "success" ] || \
+             [ "${{ needs.historical-baseline.result }}" != "success" ] || \
+             [ "${{ needs.schema-validation.result }}" != "success" ] || \
+             [ "${{ needs.dashboard-integrity.result }}" != "success" ] || \
+             [ "${{ needs.release-validation.result }}" != "success" ] || \
+             [ "${{ needs.browser-regression.result }}" != "success" ]; then
+            echo "❌ PRODUCTION ACCEPTANCE GATE: FAIL"
+            exit 1
+          fi
+
+          echo "✅ PRODUCTION ACCEPTANCE GATE: PASS"
