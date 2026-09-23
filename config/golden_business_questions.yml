@@ -1,0 +1,255 @@
+# Golden Business Questions — machine-readable specification.
+# Human-readable evidence and reasoning: docs/GOLDEN_BUSINESS_QUESTIONS.md
+# (this file's field names match that document's table headers 1:1).
+#
+# This is a SPECIFICATION for a future automated test harness, not itself an
+# executable test. Values under `published_data_value` were read live from
+# dashboard/data.js at commit e0d4ceb8e3fd067e6395e5833f7358d1f2369c68 on 2026-09-23.
+# A harness built against this file should re-read the live value, not trust the
+# snapshot below as permanent — see `tolerance` / `status` for how to react to drift.
+
+updated: "2026-09-23"
+certified_sha: "e0d4ceb8e3fd067e6395e5833f7358d1f2369c68"
+
+questions:
+  - id: BQ-01
+    question: "What is FY27 Primary NSV (Apr-Jul, article-level)?"
+    authoritative_source: "detail_meta.fyx_primary.FY27"
+    grain: "month x chain x article"
+    formula: "fyx_primary.FY27.nsv"
+    data_js_path: "detail_meta.fyx_primary.FY27.nsv"
+    published_data_value: 22239.59
+    unit: "INR Lakh"
+    tolerance: 0.01
+    comparison_layers:
+      raw_data: "CITED_FROM_PRIOR_RECONCILIATION"
+      pipeline: "PASS"
+      published_data: "PASS"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "key absent, never rendered as 0"
+    owner: "MT Analytics"
+    evidence: ["docs/DATA_AVAILABILITY_MATRIX.md", "docs/DATA_LINEAGE.md"]
+    status: PASS
+
+  - id: BQ-02
+    question: "What is FY27 Offtake (Apr-Aug)?"
+    authoritative_source: "offtake_block() / offtake_rebuild_block()"
+    grain: "month x chain x article"
+    formula: "offtake.total_fy27"
+    data_js_path: "offtake.total_fy27"
+    published_data_value: 19044.99
+    unit: "INR Lakh"
+    tolerance: 0.01
+    comparison_layers:
+      raw_data: "CITED_FROM_PRIOR_RECONCILIATION (external Jul'26 benchmark match)"
+      pipeline: "PASS"
+      published_data: "PASS"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a, fully available"
+    owner: "MT Analytics"
+    evidence: ["docs/DATA_AVAILABILITY_MATRIX.md"]
+    status: PASS
+
+  - id: BQ-03
+    question: "What is the Primary vs Offtake gap (FY27)?"
+    authoritative_source: "primary_offtake_gap_block()"
+    grain: "month; chain (matched universe only)"
+    formula: "primary - offtake, matched chains/periods only"
+    data_js_path: "primary_offtake_gap.fy27.by_month"
+    published_data_value: "Apr +1488.35 / May +396.32 / Jun +326.92 / Jul +1299.84 / Aug -316.83"
+    unit: "INR Lakh"
+    tolerance: null
+    comparison_layers:
+      raw_data: "N/A - derived measure"
+      pipeline: "PASS"
+      published_data: "PASS, with own NOT_FULLY_COMPARABLE disclosure (EB2B/SIS ~5.2% of FY27 Primary)"
+      power_bi_model: "BLOCKED - DAX version does not restrict to matched universe (classified DIFFERENT in docs/METRIC_REGISTRY.md), would FAIL if compared"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a"
+    owner: "MT Analytics"
+    evidence: ["docs/METRIC_REGISTRY.md"]
+    status: PASS
+
+  - id: BQ-04
+    question: "Top 10 chains by Offtake FY26?"
+    authoritative_source: "offtake_block() -> by_chain"
+    grain: "chain"
+    formula: "sum(offtake) by chain, FY26"
+    data_js_path: "offtake.by_chain"
+    published_data_value: "DMart 10926.76, Reliance Retail 8299.32, Apollo 4880.20, Nykaa(FSN) 2040.92, Wellness Forever 997.16, Health & Glow 870.17, Lulu 747.89, Metro C&C 597.48, Sancus(RMT) 452.84, More Retail 433.40"
+    unit: "INR Lakh"
+    tolerance: null
+    comparison_layers:
+      raw_data: "NOT_RE_DERIVED_THIS_PASS"
+      pipeline: "PASS"
+      published_data: "PASS (presence + plausible ranking); sum-to-total reconciliation not run this pass"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a"
+    owner: "MT Analytics"
+    evidence: ["dashboard/data.js offtake.by_chain"]
+    status: PASS
+
+  - id: BQ-05
+    question: "Brand contribution (general)"
+    authoritative_source: "see BQ-06 (Mamaearth instance)"
+    status: SEE_BQ-06
+
+  - id: BQ-06
+    question: "What is Mamaearth's contribution (Primary FY26)?"
+    authoritative_source: "primary_block() -> by_brand"
+    grain: "brand"
+    formula: "sum(primary NSV) by brand, FY26"
+    data_js_path: "primary.by_brand"
+    published_data_value: 27179.45
+    unit: "INR Lakh"
+    tolerance: 0.01
+    comparison_layers:
+      raw_data: "N/A"
+      pipeline: "PASS"
+      published_data: "PASS - brand-level sum (27179.45+4938.41+634.43+104.38+31.45+0+7.69+4.55) reconciles EXACTLY to primary_nsv_fy26 baseline (32900.36), re-verified live this pass"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a"
+    owner: "MT Analytics"
+    evidence: ["config/baselines.json primary_nsv_fy26"]
+    status: PASS
+
+  - id: BQ-07
+    question: "What is West zone's contribution (Offtake)?"
+    authoritative_source: "offtake_block() -> by_zone"
+    grain: "zone"
+    formula: "sum(offtake) by zone"
+    data_js_path: "offtake.by_zone"
+    published_data_value: "West: fy26=7746.61 vs value=8973.82 (DIVERGENT - see note)"
+    unit: "INR Lakh"
+    tolerance: null
+    comparison_layers:
+      raw_data: "N/A"
+      pipeline: "FLAGGED - divergence between by_zone.fy26 and by_zone.value fields not previously documented"
+      published_data: "BLOCKED - genuine discrepancy found"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS - unknown which field index.html reads"
+    expected_if_missing: "n/a"
+    owner: "MT Analytics"
+    evidence: ["dashboard/data.js offtake.by_zone"]
+    status: BLOCKED
+    blocked_reason: "New finding: by_zone rows carry both fy26 and value keys that diverge for some zones (e.g. South 2: fy26=4214.97 vs value=820.97). Root cause not investigated this pass. Recommend a dedicated follow-up before certifying this BQ."
+
+  - id: BQ-08
+    question: "State contribution?"
+    authoritative_source: "offtake_block() -> by_state (structure exists)"
+    status: BLOCKED
+    blocked_reason: "NOT_YET_EVALUATED - no value pulled or verified this pass."
+    owner: "MT Analytics"
+
+  - id: BQ-09
+    question: "Store universe reconciliation?"
+    authoritative_source: "universe_block()"
+    grain: "store"
+    formula: "count(active stores)"
+    data_js_path: "universe.active_stores"
+    published_data_value: 426
+    unit: "stores"
+    tolerance: 0
+    comparison_layers:
+      raw_data: "CITED - config/baselines.json own audit trail (chain reclassification, 2026-09-14)"
+      pipeline: "PASS"
+      published_data: "PASS - exact match to config/baselines.json active_stores=426, re-verified live"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a"
+    owner: "MT Ops"
+    evidence: ["config/baselines.json"]
+    status: PASS
+
+  - id: BQ-10
+    question: "Distributor allocation reconciliation?"
+    authoritative_source: "allocate_dist_primary()"
+    grain: "distributor x chain"
+    formula: "alloc.chains_allocated_to, alloc.unmapped_nsv"
+    data_js_path: "alloc.chains_allocated_to, alloc.unmapped_nsv"
+    published_data_value: "chains_allocated_to=29, unmapped_nsv=12.13 INR Lakh"
+    unit: "chains / INR Lakh"
+    tolerance: null
+    comparison_layers:
+      raw_data: "N/A"
+      pipeline: "PASS"
+      published_data: "PASS - order-of-magnitude consistent with FM-16B's documented fix (Rs183.18Cr -> Rs0.12Cr)"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a"
+    owner: "MT Analytics"
+    evidence: ["docs/FAILURE_MODE_REGISTER.md FM-16B"]
+    status: PASS
+
+  - id: BQ-11
+    question: "Unallocated Primary?"
+    authoritative_source: "same as BQ-10"
+    data_js_path: "alloc.unmapped_nsv"
+    published_data_value: 12.13
+    unit: "INR Lakh"
+    status: PASS
+    evidence: ["same as BQ-10"]
+
+  - id: BQ-12
+    question: "Missing article mappings?"
+    authoritative_source: "allocate_dist_primary() -> missing_mapping"
+    grain: "row-level"
+    data_js_path: "alloc.missing_mapping"
+    published_data_value: "12 entries"
+    tolerance: null
+    comparison_layers:
+      raw_data: "N/A"
+      pipeline: "PASS"
+      published_data: "PASS - 12 real unmapped rows, disclosed not hidden; FM-19's 14 approved decisions correctly NOT force-applied yet"
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a - missing mapping IS the finding, never converted to zero"
+    owner: "MT Analytics"
+    evidence: ["docs/FAILURE_MODE_REGISTER.md FM-19"]
+    status: PASS
+
+  - id: BQ-13
+    question: "NPD/EPD performance?"
+    authoritative_source: "insights_block() / npd block"
+    status: BLOCKED
+    blocked_reason: "NOT_YET_EVALUATED - block exists in data.js but value not pulled or verified this pass."
+    owner: "MT Analytics"
+
+  - id: BQ-14
+    question: "BA (Reliance Brand Counter) vs non-BA reconciliation?"
+    authoritative_source: "load_reliance_bc_data()"
+    grain: "month"
+    data_js_path: "reliance_bc.total"
+    published_data_value: 7144.66
+    unit: "INR Lakh"
+    tolerance: 0.01
+    comparison_layers:
+      raw_data: "N/A"
+      pipeline: "PASS"
+      published_data: "PASS - re-confirmed live, matches PR #180 TD-06's corrected value exactly. Separate dead key reliance_brand_counters.total=0 found and flagged, NOT the same field."
+      power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
+      dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
+    expected_if_missing: "n/a"
+    owner: "MT Analytics"
+    evidence: ["PR #180 TD-06"]
+    status: PASS
+    note: "reliance_brand_counters (different key, value=0) is BLOCKED: NOT_YET_EVALUATED, separate from this BQ's reliance_bc result."
+
+  - id: BQ-15
+    question: "Nielsen vs internal directional trend?"
+    authoritative_source: "none - no Nielsen source exists anywhere in this repo"
+    status: BLOCKED
+    blocked_reason: "SOURCE_NOT_AVAILABLE. Already documented in docs/METRIC_REGISTRY.md 'Known Source Gaps': zero occurrences of 'Nielsen' anywhere in scripts/build_dashboard_data.py; index.html's market-share sub-view is deliberately empty (a prior fabricated version was removed). Requires Finance/MT Leadership to supply a real source before this can progress."
+    owner: "MT Leadership / Finance"
+    evidence: ["docs/METRIC_REGISTRY.md Known Source Gaps"]
+
+summary:
+  pass: 9
+  blocked_discrepancy_found: 1
+  blocked_not_yet_evaluated: 3
+  blocked_source_unavailable: 1
+  power_bi_layer: "BLOCKED for all 15 - no live workspace reachable from this environment"
