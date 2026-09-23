@@ -1,9 +1,16 @@
 # Phase 18 — Production Acceptance Gate
 
 **Created:** 2026-09-23, direct follow-on to Phase 17
-(`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`, closed same day). **Status: workflow
-built and locally validated, not yet added to the branch ruleset's required
-checks.**
+(`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`, closed same day). **Updated same day —
+STATUS: COMPLETE.** `Production Acceptance Gate` was added to the ruleset's
+required-checks list and behaviorally verified via a real fail→blocked / fix→clean
+test on PR #189 (full evidence in `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`'s "Phase
+18" section). That test also found and fixed a real defect: 4 of the ruleset's
+then-10 required checks were path-filtered and never triggered for PR #189,
+producing a permanent false block (`mergeable_state: "blocked"` even with
+`Production Acceptance Gate` green). All 4 were duplicative of jobs already inside
+`Production Acceptance Gate` and were removed from the required-checks list — down
+to 6 essential required checks total.
 
 ## Why this exists
 
@@ -87,27 +94,38 @@ Phase 17. That's a deliberate part of "one gate covers every PR" — it adds
 roughly 1–2 minutes of CI time (Chromium download + suite run) to every PR,
 which was accepted as the cost of closing the path-filter gap Phase 17 found.
 
-## What this does NOT do yet
+## What this does NOT do
 
-- It does not touch `.github/workflows/validate-promo-data.yml`,
-  `validate.yml`, `codeql.yml`, or `dashboard-health-check.yml`, or remove
-  any of the 9 checks the ruleset currently requires. Those stay exactly as
-  Phase 17 left them.
-- It has not been added to the branch ruleset's required-checks list. That is
-  a deliberate separate step, per this repo's own lesson from Phase 17: prove
-  a check runs and passes on a real PR first (the Test-2 method), then add it
-  as required — never the other way around.
+- It does not touch the internal logic of `validate-promo-data.yml`,
+  `validate.yml`, `codeql.yml`, or `dashboard-health-check.yml`. It does,
+  however, **remove 4 of those workflows' checks from the required-checks
+  list** (`Schema Validation`, `Historical Baseline Integrity`,
+  `Dashboard Integrity Check`, `CI Results Summary`) — found duplicative and
+  a real false-block risk during the enforcement proof; see
+  `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`'s "Phase 18" section. The workflows
+  themselves still run as before, just aren't required any more.
 - It does not change any business logic, financial value, or dashboard code.
+- The reconciliation job's business question (eB2B/SIS zone contamination,
+  Nykaa FSN treatment) is still unresolved — see below, not a Phase 18
+  blocker.
 
-## Completion criteria (not yet met)
+## Completion criteria
 
-- [ ] Workflow runs and all 7 blocking jobs pass on a real PR (not just
-      validated locally).
-- [ ] `Production Acceptance Gate` added to the ruleset's required-checks
-      list, verified live via the same merge-attempt method Phase 17 used —
-      not assumed from the UI.
+- [x] Workflow runs and all 7 blocking jobs pass on a real PR (PR #188, then
+      re-confirmed on PR #189).
+- [x] `Production Acceptance Gate` added to the ruleset's required-checks
+      list, behaviorally verified via a real fail→blocked / fix→clean test
+      (PR #189) — not assumed from the UI. Found and fixed a real defect
+      (4 duplicative, path-filtered required checks) along the way.
 - [ ] Reconciliation job's business question (eB2B/SIS zone contamination,
       Nykaa FSN treatment) resolved, `continue-on-error` removed, and its
-      result folded into the gate's failure condition.
+      result folded into the gate's failure condition. **Not a Phase 18
+      blocker** — this is a separate, standing business decision (also
+      tracked in PR #182's carried-forward open items), independent of
+      whether the CI/governance architecture itself works.
 
-Until all three are checked, this phase is **IN PROGRESS**, not complete.
+**STATUS: COMPLETE.** The CI-governance scope of Phase 18 (an always-running,
+behaviorally-verified required gate covering `pytest tests/` and
+`answer_governance/` for the first time) is done. The reconciliation business
+question remains open as its own separate item, not as unfinished Phase 18
+work.
