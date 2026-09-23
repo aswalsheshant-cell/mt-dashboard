@@ -1493,10 +1493,10 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
       const cell=canDrill
         ? `<a href="#" data-cat-drill="${encodeURIComponent(k)}" style="cursor:pointer;">${k}</a>`
         : k;
-      return `<tr><td>${cell}</td><td>${crc(v.nsv/100)}</td><td>${num(v.qty)}</td><td>${shr.toFixed(1)}%</td></tr>`;
+      return `<tr><td>${cell}</td><td>${crc(v.nsv)}</td><td>${num(v.qty)}</td><td>${shr.toFixed(1)}%</td></tr>`;
     }).join('') + (othersRow?`<tr style="color:var(--muted)" title="${othersRow.members.map(m=>String(m).replace(/"/g,'&quot;')).join(', ')}">
       <td>Others (${othersRow.members.length} sub-categories, &lt;95% cutoff)</td>
-      <td>${crc(othersRow.nsv/100)}</td><td>${num(othersRow.qty)}</td>
+      <td>${crc(othersRow.nsv)}</td><td>${num(othersRow.qty)}</td>
       <td>${totalNsv>0?(100*othersRow.nsv/totalNsv).toFixed(1):'0.0'}%</td></tr>`:'');
 
     content.innerHTML=crumbs+card(`Category & Pack Mix — by ${dimLabel}`,
@@ -1527,7 +1527,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     if(!reliance.length) {content.innerHTML=card('Reliance Brand Counter','No Reliance records','<p class="lead">Select a timeframe that includes Reliance sales.</p>');return;}
     const byzone={};
     reliance.forEach(r=>{const z=r.Zone||'Unknown';if(!byzone[z]) byzone[z]={nsv:0,stores:0};byzone[z].nsv+=r.NSV||0;});
-    const zoneRows=Object.entries(byzone).sort((a,b)=>b[1].nsv-a[1].nsv).map(([zone,{nsv}])=>`<tr><td>${drillLink('Zone',zone)}</td><td>${crc(nsv/100)}</td></tr>`).join('');
+    const zoneRows=Object.entries(byzone).sort((a,b)=>b[1].nsv-a[1].nsv).map(([zone,{nsv}])=>`<tr><td>${drillLink('Zone',zone)}</td><td>${crc(nsv)}</td></tr>`).join('');
     // Phase 2: Add toggle control for Brand Counter view mode
     const toggleHtml=getRelianceBCToggleHtml();
     content.innerHTML=`
