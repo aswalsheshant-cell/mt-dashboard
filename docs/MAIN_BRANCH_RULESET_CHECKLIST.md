@@ -17,6 +17,21 @@ below). If this repository's plan doesn't expose Rulesets, the classic screen
 
 ---
 
+## Step 0 — Check for an existing rule first (do this before creating anything)
+
+Rulesets and classic branch protection **layer together** — GitHub applies the most
+restrictive combination of whatever exists, not just your newest rule. Before
+creating a new ruleset, check both screens for anything already targeting `main`:
+
+- `https://github.com/aswalsheshant-cell/mt-dashboard/settings/rules`
+- `https://github.com/aswalsheshant-cell/mt-dashboard/settings/branches`
+
+This session's own audit (`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`) already found —
+confirmed by you directly in Settings — that **no rule or ruleset exists for `main`
+today**, so this should come up empty. If it doesn't (something shows up that wasn't
+there when the audit was done), stop and compare it against what follows rather than
+creating a second, possibly-conflicting rule blindly.
+
 ## Step 1 — Navigate
 
 `https://github.com/aswalsheshant-cell/mt-dashboard/settings/rules` →
@@ -26,7 +41,7 @@ below). If this repository's plan doesn't expose Rulesets, the classic screen
 
 | Field | Value |
 |---|---|
-| Ruleset name | `main-protection` (or your preferred convention) |
+| Ruleset name | `Protect main - MT Dashboard Production` |
 | Enforcement status | **Active** — not "Evaluate" (Evaluate only logs what *would* have been blocked; it enforces nothing) |
 
 ## Step 3 — Target branches
@@ -78,9 +93,14 @@ engineering one.
     this session's commits, which are unsigned; enabling this would retroactively
     require a workflow change, not just a setting change)*.
 - [ ] **Require status checks to pass** — check this, then:
-  - [x] **Require branches to be up to date before merging** — check this. This is
-    the GitHub-enforced version of the manual discipline this session applied by
-    hand throughout Phase F2 (re-fetching `main` before every merge).
+  - [x] **Require branches to be up to date before merging** — check this (steady-
+    state recommendation). This is the GitHub-enforced version of the manual
+    discipline this session applied by hand throughout the earlier certification
+    merge sequence (re-fetching `main` before every merge). **Note:** at the time
+    you're applying this, all 10 certified PRs from that sequence are already
+    merged — there is no open PR queue behind this repo right now, so turning this
+    on has no "PR #2 goes stale when PR #1 merges, repeat" cost today. It only
+    matters for future PRs, same as any repo.
   - **Add required checks** — search and select each of the following (GitHub's
     picker lists checks by the names it has actually seen reported on this repo;
     select the current/latest instance of each):
@@ -118,23 +138,28 @@ separate publish step.
 
 ## Step 7 — Verify it actually works (don't just trust the checkboxes)
 
-Do these two low-risk tests before considering this done:
+Don't test this against your real `main` with a direct push — unnecessary risk for a
+production branch when a safer proof exists. Do this instead:
 
-1. **Try (and expect to fail) a trivial direct push to `main`** from a local clone:
+1. **Push a harmless commit to a throwaway branch, not `main`:**
    ```
-   git checkout main && git pull
-   echo "# ruleset test" >> /tmp/discard_me.md && cp /tmp/discard_me.md ruleset-test.md
-   git add ruleset-test.md && git commit -m "ruleset test - expect rejection"
-   git push origin main
+   git checkout -b ruleset-test
+   echo "ruleset verification, safe to delete" > RULESET_TEST.md
+   git add RULESET_TEST.md && git commit -m "ruleset verification test"
+   git push -u origin ruleset-test
    ```
-   Expect GitHub to **reject** this push with a message naming the ruleset. If it
-   succeeds, the ruleset isn't actually active — stop and re-check Step 2 and Step 3.
-   **Clean up either way**: `git reset --hard HEAD~1` locally; if the push somehow
-   succeeded, also revert it on `main`.
-2. **Open a real PR with one check still running** and confirm the **Merge** button
-   is disabled/greyed out until all required checks report success. This is the
-   direct behavioral proof that Step 5's required-checks configuration is real, not
-   cosmetic.
+   Open a PR from `ruleset-test` into `main` on GitHub. You should see the PR's merge
+   box list the required checks as pending/running, and the **Merge** button
+   disabled/greyed out until they all report success — this is the direct behavioral
+   proof the ruleset is real, not cosmetic.
+2. **Once you've confirmed that, close the PR without merging** and delete the
+   `ruleset-test` branch (both locally and via `git push origin --delete
+   ruleset-test`, or the "Delete branch" button GitHub shows on a closed PR).
+3. **Optional, only if you want the stronger proof**: on an already-open real PR (or
+   the test PR above before closing it), try clicking Merge while a required check is
+   still pending — GitHub should refuse and show which check is blocking, similar to
+   its documented `Protected branch update failed — Required status check ... is
+   failing` message.
 
 ## Companion action items (referenced above, not part of this checklist itself)
 
