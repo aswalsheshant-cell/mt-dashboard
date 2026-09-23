@@ -1,115 +1,102 @@
 # Main Branch Protection Audit
 
 **Created:** 2026-09-23, Phase 17.1 of "Production Acceptance & Certified Baseline
-Lock." **Scope:** determine whether `main`'s critical controls are actually
-*enforced* by GitHub, not merely documented or assumed. This document does not
-modify any GitHub setting — audit only, per this phase's own non-negotiable rule
-("Do NOT modify GitHub governance automatically unless explicitly authorized").
+Lock." **Updated:** 2026-09-23, same day — human confirmation received. **Scope:**
+determine whether `main`'s critical controls are actually *enforced* by GitHub, not
+merely documented or assumed. This document does not modify any GitHub setting —
+audit only, per this phase's own non-negotiable rule ("Do NOT modify GitHub
+governance automatically unless explicitly authorized").
 
 **Certified baseline this audit is protecting:**
 `e0d4ceb8e3fd067e6395e5833f7358d1f2369c68` (main, 2026-09-23; 17/17 certification
-gates PASS — see `docs/BASELINE_VERSION.md` if present, or the certification report
-in this session's own record).
+gates PASS).
 
-## A hard limitation, stated up front
+## CONFIRMED FINDING (human-verified, 2026-09-23)
 
-**This session has no tool that reads GitHub's branch-protection or repository-ruleset
-API** (`GET /repos/{owner}/{repo}/branches/{branch}/protection` or
-`GET /repos/{owner}/{repo}/rules/branches/{branch}`). The GitHub MCP server available
-in this session exposes PR, issue, commit, workflow-run, and file-content tools, but
-no branch-protection or ruleset read/write endpoint (confirmed by exhaustive
-`ToolSearch` across this session's tool catalog before writing this audit — not
-assumed absent).
+**`main` has no branch protection rule and no repository ruleset. It is completely
+unprotected.** Checked directly by the repository's human owner at
+`github.com/aswalsheshant-cell/mt-dashboard/settings/branches` and
+`.../settings/rules` — no rule/protection entry exists for `main` at all.
 
-Per this phase's own rule — **"No UNKNOWN result is permitted without a documented
-reason"** — every row below that depends on that missing capability is classified
-**NOT_VERIFIABLE_FROM_THIS_SESSION**, with the reason stated, rather than guessed at
-or assumed either PASS or GAP. **This is itself the first finding**: closing it
-requires either (a) a human checking `github.com/aswalsheshant-cell/mt-dashboard/settings/branches`
-and `.../settings/rules` directly and reporting back, or (b) granting this session
-(or a future one) a GitHub App/token scope and MCP tool that can read repository
-rulesets.
+This resolves every row this audit previously marked
+`NOT_VERIFIABLE_FROM_THIS_SESSION` (this session had no tool to read GitHub's
+branch-protection/ruleset API — confirmed by exhaustive `ToolSearch`, and a direct
+unauthenticated API fallback via `WebFetch` returned `403 Forbidden` from this
+environment's outbound proxy). With a human confirming no rule exists, there is
+nothing left to enforce any of the following — every row that was previously
+"unverifiable" is now definitively **GAP**, not because this session guessed, but
+because the human-reported absence of any rule makes every dependent control absent
+by construction.
 
-## What this audit COULD verify from this session's own tools
+## Full control table (updated with the confirmed finding)
 
-| # | Control | Evidence available | Status |
+| # | Control | Evidence | Status |
 |---|---|---|---|
-| 1 | Pull request required before merge | Indirect: every one of the 10 PRs merged in this certification pass (#171–#178, #180, #181) went through `create_pull_request` → CI → `merge_pull_request`; no direct push to `main` was made or attempted by this session at any point in this audit's traceable history | **CONSISTENT WITH PR-required, not proof of an enforced rule** — a session choosing to use PRs is not evidence GitHub would *reject* a direct push |
-| 2 | Required status checks exist and are wired to `pull_request` events | Confirmed directly: `.github/workflows/validate.yml`, `validate-promo-data.yml`, `ui-smoke.yml`, `pbi-windows-ci.yml`, `codeql.yml`, `dashboard-health-check.yml` all declare `on: pull_request` and all ran and reported a conclusion (`success`/`failure`) on every PR this session touched (PR #180's `Promo Data Schema Validation` genuinely went from `failure` to `success` across two head SHAs, proving the check is live, not decorative) | **PASS** (checks exist, run, and are capable of failing — verified, not assumed) |
-| 3 | Whether those checks are *marked required* in branch protection (i.e., whether GitHub would block a merge if one were red) | Not observable from this session — `merge_pull_request` was only ever called after visually confirming all checks were `success`; whether GitHub itself would have refused the merge with a red check is untested this pass, and the tool used (`mcp__github__merge_pull_request`) does not report whether it succeeded *because* checks passed or because nothing required them | **NOT_VERIFIABLE_FROM_THIS_SESSION** — no red-check merge was ever attempted (deliberately, per this session's own governing rule against bypassing checks), so the enforcement boundary itself was never tested |
-| 4 | Direct push to `main` blocked | Not tested — this session never attempted a direct push to `main` (by design, per its own operating rules), so absence of an attempt is not evidence of a working block | **NOT_VERIFIABLE_FROM_THIS_SESSION** |
-| 5 | Force push blocked | Not tested; no force push was attempted | **NOT_VERIFIABLE_FROM_THIS_SESSION** |
-| 6 | Branch deletion blocked | Not tested | **NOT_VERIFIABLE_FROM_THIS_SESSION** |
-| 7 | PR conversations must be resolved before merge | Every merged PR in this pass had 0–3 comments, none left unresolved by the time of merge, but this was a matter of this session's own diligence, not a tested GitHub-enforced gate (no PR was attempted to merge with a deliberately unresolved conversation) | **NOT_VERIFIABLE_FROM_THIS_SESSION** |
-| 8 | "Branch must be up to date with `main` before merge" (or equivalent merge-queue protection) | Every PR in this pass was manually re-merged with the latest `main` before each merge attempt (the entire Phase F2 conflict-resolution sequence exists because of this discipline) — but this was operator discipline, not a tested GitHub-enforced requirement; no attempt was made to merge a stale PR to see if GitHub itself would refuse | **NOT_VERIFIABLE_FROM_THIS_SESSION** — though the operational discipline that substitutes for it is well evidenced (every PR's conflict-resolution branch in this session traces to a fresh `git fetch origin main` immediately before use) |
-| 9 | Code owner / required-reviewer approval | No `CODEOWNERS` file exists in the repository (confirmed: `ls .github/CODEOWNERS` and `find . -iname CODEOWNERS` both return nothing on `main` at `e0d4ceb`) | **GAP** — this is directly verifiable and is a real gap, not a tooling limitation: with no `CODEOWNERS` file, a required-code-owner-review rule (even if configured in branch protection) has nothing to attach to |
-| 10 | Security/code scanning as a merge condition | `CodeQL Security Analysis` (`codeql.yml`) runs on every PR and reported `success` on every PR in this pass; whether a `failure` conclusion would itself block merge (i.e., whether it's a *required* check) is the same unverifiable boundary as row 3 | **PARTIAL** — the scan itself is real and running; its status as a blocking gate is NOT_VERIFIABLE_FROM_THIS_SESSION |
+| 1 | Pull request required before merge | No rule exists → **a direct push to `main` would succeed today**, by anyone with write access. Every PR in this certification pass (#171–#178, #180, #181) went through a PR only because this session chose to, not because GitHub required it | **GAP** |
+| 2 | Required status checks exist and are wired to `pull_request` events | Confirmed directly and unaffected by this finding: `.github/workflows/validate.yml`, `validate-promo-data.yml`, `ui-smoke.yml`, `pbi-windows-ci.yml`, `codeql.yml`, `dashboard-health-check.yml` all run on `pull_request` and are capable of failing (PR #180's `Promo Data Schema Validation` genuinely went `failure` → `success` across two head SHAs) | **PASS** — the checks exist and work; they are just not *required* by anything (see #3) |
+| 3 | Those checks marked *required* in branch protection | No rule exists to mark anything required. **A red check today would not block a merge** — GitHub would allow it | **GAP** |
+| 4 | Direct push to `main` blocked | No rule exists → not blocked | **GAP** |
+| 5 | Force push blocked | No rule exists → not blocked | **GAP** |
+| 6 | Branch deletion blocked | No rule exists → not blocked. `main` itself could be deleted by anyone with admin/write-delete permission | **GAP** |
+| 7 | PR conversations must be resolved before merge | No rule exists → not enforced. Every merged PR in this pass happened to have conversations resolved, but that was this session's discipline, not a gate | **GAP** |
+| 8 | Branch must be up to date with `main` before merge | No rule exists → not enforced. This session manually re-merged `main` into every PR before merging (the entire Phase F2 conflict-resolution sequence), but GitHub itself would have allowed a stale merge | **GAP** |
+| 9 | Code owner / required-reviewer approval | No `CODEOWNERS` file exists (confirmed directly, independent of the ruleset question) — and even if one were added, there is no rule to require its use | **GAP** (two-part: no file, no rule) |
+| 10 | Security/code scanning as a merge condition | `CodeQL Security Analysis` runs and reports real results, but with no rule marking it required, a failing scan would not block merge | **GAP** |
 
-## Required-checks vs. validated-workflow comparison
+## What this changes from the original audit
 
-The prompt's suggested required-check list, checked against what actually exists and
-ran green in this certification pass:
+Nothing about the **code certification** (`e0d4ceb`, 17/17 gates, 224 tests) —
+that stands independent of this finding. What changes is the honesty of the claim
+"main is protected": it was previously reported as *unconfirmed*; it is now
+**confirmed false**. Every merge in this entire certification pass — all 10 PRs —
+succeeded because this session chose to run checks and wait for green, not because
+GitHub would have refused otherwise. That discipline held throughout this session,
+but it is not durable: any future session, human, or automation with write access to
+this repository can push directly to `main`, force-push over history, delete `main`
+outright, or merge a PR with every check red, and nothing GitHub-side would stop it.
 
-| Suggested required check | Exists as a real workflow? | Ran and passed on the final certified head? |
-|---|---|---|
-| Dashboard Validation & QC | Yes — `validate.yml` | Yes (PR #180, #181) |
-| Historical Baseline Integrity | Yes — job inside `validate-promo-data.yml` | Yes (PR #180, #181 — this is the exact check this session's Phase-16-adjacent work fixed) |
-| Promo Data Schema Validation | Yes — `validate-promo-data.yml` (the workflow; "Historical Baseline Integrity" is one job inside it, not a separate workflow) | Yes |
-| Dashboard Health Check | Yes — `dashboard-health-check.yml` | Yes |
-| Dashboard UI Smoke Tests | Yes — `ui-smoke.yml` | Yes |
-| Power BI Windows CI | Yes — `pbi-windows-ci.yml` | Yes |
-| CodeQL | Yes — `codeql.yml` | Yes |
-| `answer_governance` | **Not a separate CI job** — it runs as part of the local `pytest` suite this session ran manually (60/60 passed on final main); **no GitHub Actions workflow in this repo currently invokes `pytest answer_governance/` on a PR event** | **GAP** — this is a real, actionable, low-risk finding: `answer_governance/`'s 60 tests protect governed evidence-building logic and currently have no CI trigger at all, only manual/local execution |
-| `validate_historical_baseline` (the new PR #181 module) | Yes — invoked directly by `validate-promo-data.yml`'s "Verify FY25/FY26 baseline coverage" step (`python3 scripts/validate_historical_baseline.py`) | Yes |
-| Publication-contract validation | Partially — `validate-promo-data.yml`'s `validate-dashboard` job checks the `window.DASH` wrapper and a handful of function names; there is no dedicated "publication contract" schema check beyond that | **PARTIAL** — real but thin |
-
-**New finding from this comparison, not previously flagged:** `pytest tests/` (224
-tests) and `pytest answer_governance/` (60 tests) — the two suites this entire
-certification pass relied on most heavily — have **no CI workflow trigger at all**.
-Every green result reported for them in this certification was produced by a human
-(this session) running `pytest` manually inside the sandboxed environment, not by an
-automated, required GitHub Actions gate. A future PR could regress either suite and
-no required check would catch it before merge.
-
-## Classification summary
+## Classification summary (updated)
 
 | Status | Count | Rows |
 |---|---|---|
-| PASS | 1 | #2 |
-| PARTIAL | 2 | #3 (partial, checks exist)*, #10 |
-| GAP | 2 | #9 (no CODEOWNERS), pytest/answer_governance CI trigger (new finding above) |
-| NOT_VERIFIABLE_FROM_THIS_SESSION | 7 | #1, #3 (enforcement), #4, #5, #6, #7, #8 |
+| PASS | 1 | #2 (checks exist and run) |
+| GAP | 9 | #1, #3, #4, #5, #6, #7, #8, #9, #10 |
+| NOT_VERIFIABLE_FROM_THIS_SESSION | 0 | — (resolved by human confirmation) |
 | BLOCKED | 0 | — |
 | NOT_APPLICABLE | 0 | — |
 
-\* Row #3 appears in both PASS (workflow existence, confirmed) and
-NOT_VERIFIABLE_FROM_THIS_SESSION (whether marked "required," unconfirmed) — split
-deliberately rather than forced into one bucket, per the no-UNKNOWN rule.
+## Recommended next action
 
-## Recommended next action (not executed — audit only)
+This is now a **P0, not a "nice to have"** — the repository has zero GitHub-enforced
+protection on its production branch. Recommended, in order (none executed by this
+session — implementation requires explicit authorization, same as before):
 
-1. **A human with repository admin access** opens
-   `https://github.com/aswalsheshant-cell/mt-dashboard/settings/rules` (or
-   `/settings/branches` if this repo still uses classic branch protection rather than
-   the newer rulesets) and reports back which of rows #1, #3 (enforcement), #4–#8
-   are actually configured. Until that happens, this repository's real protection
-   level is **unknown to any Claude Code session**, not merely to this one.
-2. Add a `.github/CODEOWNERS` file naming at least the repository's primary
-   maintainer for `dashboard/`, `scripts/`, `.github/workflows/`, and `config/` — a
-   real, actionable, zero-ambiguity gap this audit found directly (row #9).
-3. Add a CI workflow trigger for `pytest tests/` and `pytest answer_governance/` on
-   `pull_request` — closing the gap found in the required-checks comparison above.
-   This is scoped as a **design recommendation for Phase 17.2**, not implemented here.
-4. Once a human confirms the live ruleset state, re-run this audit and replace every
-   NOT_VERIFIABLE_FROM_THIS_SESSION row with a real PASS/GAP.
+1. **Create a branch protection rule or ruleset for `main`**, at minimum:
+   - Require a pull request before merging.
+   - Require status checks to pass before merging, and explicitly select as
+     required: `Dashboard Validation & QC`, the `Historical Baseline Integrity` job,
+     `Dashboard Health Check`, `Dashboard UI Smoke Tests`, `Power BI Windows CI
+     Validation`, `CodeQL Security Analysis`.
+   - Require the branch to be up to date with `main` before merging.
+   - Block force pushes.
+   - Block branch deletion.
+   - Require conversation resolution before merging.
+2. Add a `.github/CODEOWNERS` file (still a separate, independently real gap — see
+   row #9) so a future "require code owner review" setting has something to attach to.
+3. Add a CI trigger for `pytest tests/` and `pytest answer_governance/` on
+   `pull_request` (from the original audit's finding — still open, still not
+   implemented) so those two suites — 224 and 60 tests respectively, everything this
+   certification pass relied on most heavily — are enforced automatically rather
+   than only by a human running them by hand.
+4. Once the rule/ruleset exists, re-run this audit against the live configuration to
+   confirm each row moved from GAP to PASS.
 
 ## Verdict for this sub-phase
 
-**GAPS FOUND, NOT BLOCKING CERTIFICATION** — the certified baseline
-(`e0d4ceb8e3fd067e6395e5833f7358d1f2369c68`) is unaffected by this audit; nothing here
-changes its CERTIFIED status. But **"main is protected" cannot be asserted as true
-today** — it can only be asserted as "operationally protected by this session's own
-discipline so far," which is a materially weaker and non-durable claim. Two concrete,
-low-risk, high-value actions are identified (CODEOWNERS, CI trigger for the two
-un-gated pytest suites) and left for explicit human authorization before
-implementation.
+**CONFIRMED GAP, P0 PRIORITY.** The certified baseline
+(`e0d4ceb8e3fd067e6395e5833f7358d1f2369c68`) itself is unaffected — its 17/17
+certification stands. But the claim "main is protected" is now **known to be false**,
+not merely unverified. Until a rule or ruleset is created, this repository's actual
+safety net is entirely operator discipline — real, and held throughout this
+certification pass, but not something GitHub itself backs up. This is the single
+highest-priority action to come out of the entire Phase 17 audit.

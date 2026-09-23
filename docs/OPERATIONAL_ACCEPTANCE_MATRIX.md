@@ -1,6 +1,8 @@
 # Final Operational Acceptance Matrix
 
 **Created:** 2026-09-23, Phase 17.7 — the rollup of Phases 17.1–17.6.
+**Updated:** 2026-09-23, same day — row 5 resolved by human confirmation (see
+`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`).
 **Certified baseline:** `e0d4ceb8e3fd067e6395e5833f7358d1f2369c68`.
 
 | Row | Control | Evidence | Owner | Status | Blocking? | Next action |
@@ -9,7 +11,7 @@
 | 2 | CI validation coverage | All 6 PR-triggered workflows green on final head; `pytest tests/`+`answer_governance/` have no CI trigger (found in Phase 17.1) | MT Analytics | **GAP** | No (not blocking the current certification) | Add a `pull_request` trigger for both pytest suites |
 | 3 | Financial reconciliation | Phase 14: `data.js` diff vs. prior certified state = 66 lines, both fully explained (metadata removal, one harmless key-order swap) | MT Analytics | **PASS** | No | None |
 | 4 | Historical baselines (FY25/FY26) | `scripts/validate_historical_baseline.py` — canonical, live, tested (12/12), merged as PR #181 | MT Analytics | **PASS** | No | None |
-| 5 | Main branch protection (GitHub-enforced) | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` — 7 of 10 controls NOT_VERIFIABLE_FROM_THIS_SESSION (no branch-protection-read tool available); 1 real GAP found (no CODEOWNERS) | **Human with repo admin access** | **BLOCKED** | **Yes — for the "protected main" claim specifically, not for the code certification** | Human checks `Settings → Rules`/`Settings → Branches` directly and reports back |
+| 5 | Main branch protection (GitHub-enforced) | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` — **CONFIRMED by repo owner (2026-09-23): no branch protection rule or ruleset exists for `main` at all.** No PR requirement, no required checks, no force-push/deletion block, nothing GitHub-enforced. Plus 1 independently real GAP (no CODEOWNERS) | **Human with repo admin access** | **GAP — CONFIRMED, P0** | **Yes — main can be pushed to, force-pushed, or deleted directly today; nothing but operator discipline prevents it** | Human creates a branch protection rule/ruleset per `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`'s recommended action list |
 | 6 | Post-merge certification | `docs/POST_MERGE_CERTIFICATION_DESIGN.md` — designed, not implemented; one open design question (drift-comparison baseline storage) | MT Analytics / repo owner | **DESIGNED, NOT BUILT** | No | Human picks option 1/2/3 for the drift-comparison baseline, then implementation PR |
 | 7 | PBIP source control | `ModernTrade_Report.pbip` + `.Report/` tracked in this same Git repo, one source of truth | MT Analytics | **PASS** | No | None |
 | 8 | Power BI live deployment (DEV→TEST→PROD) | `docs/PBIP_PRODUCTION_ACCEPTANCE.md` — no workspace exists yet, `ServiceReadiness.md` says so itself | MT Analytics / IT | **NOT_APPLICABLE_YET** | No (deployment was never in scope for this session) | Human decision to stand up a DEV workspace |
@@ -25,7 +27,7 @@
 |---|---|
 | PASS | 5 (rows 1, 3, 4, 7 — 4 real; row 9 partial counted separately) |
 | PARTIAL | 2 (rows 9, 10) |
-| BLOCKED | 1 (row 5 — the one item that blocks the "protected main" claim, not the code certification itself) |
+| GAP — CONFIRMED, P0 | 1 (row 5 — main is confirmed unprotected; does not affect the code certification itself) |
 | GAP | 1 (row 2) |
 | DESIGNED/DOCUMENTED, NOT IMPLEMENTED | 4 (rows 6, 8, 11, 13) |
 | NOT_YET_EVALUATED | 1 (row 12) |

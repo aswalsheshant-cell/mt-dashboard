@@ -108,11 +108,14 @@ applied to agent design specifically.
 | Does a governed measure catalog exist for the Business Logic Agent to read? | Yes — `docs/METRIC_REGISTRY.md` |
 | Does a QC baseline exist for the QC Agent to check against? | Yes — `config/baselines.json`, `scripts/ci_validate_datajs.py`, `scripts/validate_historical_baseline.py` |
 | Does a privacy boundary exist for every role to respect? | Yes — KA-10, tested |
-| Is `main` protected against a rogue or buggy agent merging something bad? | **Unconfirmed** — see `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`. This is the one precondition this document flags as **not yet satisfied**: implementing the Release Manager Agent's merge authority before branch protection enforcement is confirmed would mean the agent's own discipline is the *only* backstop, with no GitHub-enforced safety net behind it. |
+| Is `main` protected against a rogue or buggy agent merging something bad? | **Confirmed NO** (2026-09-23, repo owner checked directly — see `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`). No branch protection rule or ruleset exists for `main` at all. This is now a **hard blocker, not an open question**: implementing the Release Manager Agent's merge authority today would mean the agent's own discipline is the *only* thing standing between it and a direct push, force-push, or deletion of `main` — there is no GitHub-enforced safety net behind it at all. |
 
 ## Verdict for this sub-phase
 
-**DESIGN READY, IMPLEMENTATION NOT YET RECOMMENDED.** The four-role contract above is
-sound and buildable. The one blocking precondition is Phase 17.1's own open item:
-confirm `main`'s actual GitHub-enforced protection before giving any agent — however
-well-designed — merge authority over it.
+**DESIGN READY, IMPLEMENTATION BLOCKED.** The four-role contract above is sound and
+buildable. The blocking precondition is no longer open — it is **confirmed**: `main`
+has zero GitHub-enforced protection (`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`,
+2026-09-23). The Release Manager Agent role specifically must not be granted merge
+authority until that gap is closed; the other three roles (read-only or
+draft-output-only) are unaffected by this blocker and could proceed to
+implementation design independent of it.
