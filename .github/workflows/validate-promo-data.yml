@@ -123,53 +123,7 @@ jobs:
           python-version: '3.11'
 
       - name: Verify FY25/FY26 baseline coverage
-        run: |
-          python3 << 'EOF'
-          import json
-          import re
-
-          # Extract JSON from data.js
-          with open('dashboard/data.js', 'r') as f:
-              content = f.read()
-
-          match = re.search(r'window\.DASH\s*=\s*(\{.*\})\s*;', content, re.DOTALL)
-          if not match:
-              print("ERROR: Could not extract JSON from data.js")
-              exit(1)
-
-          try:
-              data = json.loads(match.group(1))
-          except json.JSONDecodeError as e:
-              print(f"ERROR: Invalid JSON in data.js: {e}")
-              exit(1)
-
-          # Check for required FY coverage
-          metadata = data.get('metadata', {})
-          coverage = metadata.get('coverage', {})
-          fiscal_years = coverage.get('fiscal_years', [])
-
-          required_years = ['fy25', 'fy26']
-          missing = [fy for fy in required_years if fy not in fiscal_years]
-
-          if missing:
-              print(f"ERROR: Missing required fiscal years: {missing}")
-              exit(1)
-
-          print(f"✓ Fiscal year coverage verified: {fiscal_years}")
-
-          # Verify month counts
-          fy25_months = coverage.get('fy25_months', [])
-          fy26_months = coverage.get('fy26_months', [])
-
-          print(f"✓ FY25: {len(fy25_months)} months")
-          print(f"✓ FY26: {len(fy26_months)} months")
-
-          if len(fy25_months) == 0 or len(fy26_months) == 0:
-              print("ERROR: Insufficient month coverage")
-              exit(1)
-
-          print("✓ Baseline integrity verified")
-          EOF
+        run: python3 scripts/validate_historical_baseline.py
 
   report:
     name: CI Results Summary
