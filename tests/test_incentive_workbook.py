@@ -311,3 +311,67 @@ class SafeMissingSchemaBehavior(unittest.TestCase):
                     self.fail(f"{fn.__name__} leaked a raw StopIteration")
                 except SystemExit:
                     pass  # the correct, actionable failure
+
+
+class QcWoaExc01(unittest.TestCase):
+    """QC-WOA-EXC-01's failure path, tested directly against the pure
+    function -- proves the check actually catches a missing/duplicate/extra
+    key, not just that today's real data happens to satisfy it (that's
+    IncentiveWorkbook.test_every_woa_register_row_is_visible_in_exceptions,
+    the positive case).
+    """
+
+    @staticmethod
+    def _qc():
+        import sys
+        sys.path.insert(0, str(REPO / "scripts"))
+        from build_incentive_workbook import qc_woa_exc_01
+        return qc_woa_exc_01
+
+    def test_passes_on_identical_key_sets(self):
+        qc_woa_exc_01 = self._qc()
+        keys = [("RKAM", "Dimple", "North"), ("SO Name", "Suraj Jha", "East")]
+        result = qc_woa_exc_01(keys, list(keys))
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(result["extra"], [])
+
+    def test_catches_a_row_silently_dropped(self):
+        """The exact bug this QC exists to prevent: 08_Exceptions used to
+        drop INSUFFICIENT_EVIDENCE rows entirely."""
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North"), ("SO Name", "Suraj Jha", "East")]
+        exc = [("RKAM", "Dimple", "North")]  # second row missing
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["missing"], [("SO Name", "Suraj Jha", "East")])
+        self.assertEqual(result["extra"], [])
+
+    def test_catches_a_swap_same_total_count(self):
+        """The failure mode a count-only check (67 == 67) would miss: one
+        row dropped, a different one double-counted, net count unchanged."""
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North"), ("SO Name", "Suraj Jha", "East")]
+        exc = [("RKAM", "Dimple", "North"), ("RKAM", "Dimple", "North")]
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["missing"], [("SO Name", "Suraj Jha", "East")])
+        self.assertEqual(result["extra"], [])
+        self.assertEqual(result["exc_dupes"], [("RKAM", "Dimple", "North")])
+
+    def test_catches_an_extra_key_not_in_register(self):
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North")]
+        exc = [("RKAM", "Dimple", "North"), ("BA Lead", "Ghost Row", "West")]
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(result["extra"], [("BA Lead", "Ghost Row", "West")])
+
+    def test_catches_a_duplicate_in_the_register_itself(self):
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North"), ("RKAM", "Dimple", "North")]
+        exc = [("RKAM", "Dimple", "North")]
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["woa_dupes"], [("RKAM", "Dimple", "North")])
