@@ -111,3 +111,49 @@ def test_mapping_health_reflects_current_detail_records_not_a_stale_snapshot():
     out = bdd.mapping_health_block(df, cfg=None)
     assert out["by_fy"]["FY99"]["completeness_pct"] == pytest.approx(90.0)
     assert out["by_fy"]["FY99"]["unmapped_nsv"] == pytest.approx(10.0)
+
+
+def test_mapping_health_cumulative_pct_discloses_negative_nsv_rows():
+    """FM-20: a return/credit row (negative NSV) sorted to the tail of the
+    exception list can make an earlier row's cumulative_pct read above 100%
+    before the negative tail pulls it back to exactly 100% -- correct
+    arithmetic (cumulative % of a NET total), but read as broken math by a
+    real business reviewer on 2026-09-22 ("Cumulative is increased, kindly
+    adjust"). The note must disclose this when it can happen; the formula
+    itself must NOT change (capping at 100% or dropping negative rows would
+    hide real return/credit activity)."""
+    df = pd.DataFrame([{"_FY": "FY99", "_Chain": "Unmapped Chain", "_NSV": 100.0}])
+    missing = [
+        {"fy": "FY99", "month": "April", "brand": "Mamaearth", "cust_code": "C1",
+         "ship_to": "Big Distributor", "nsv": 90.0, "rows": 1},
+        {"fy": "FY99", "month": "June", "brand": "Mamaearth", "cust_code": "C3",
+         "ship_to": "Credit Note Distributor", "nsv": -2.0, "rows": 1},
+    ]
+    out = bdd.mapping_health_block(df, alloc={"missing_mapping": missing}, cfg=None)
+    cum_pcts = [d["cumulative_pct"] for d in out["exceptions"]]
+    # Sorted descending by nsv: 90 (C1) first, -2 (C3) last. tot_ex = 88.
+    # Row 1's cumulative is measured against the FINAL (smaller) total, so it
+    # reads > 100% even though nothing is double-counted -- exactly the
+    # pattern the real 2026-09-22 export showed (100.8% mid-list, 100.0% at
+    # the end).
+    assert cum_pcts[0] == pytest.approx(100.0 * 90.0 / 88.0, abs=0.01)   # ~102.27%, > 100% (r2()-rounded)
+    assert cum_pcts[-1] == pytest.approx(100.0)   # always ends at exactly 100%
+    assert any(p > 100.0 for p in cum_pcts), "fixture should reproduce the >100% mid-list read"
+    assert "negative NSV" in out["note"] and "returns/credits" in out["note"]
+
+
+def test_mapping_health_note_has_no_negative_nsv_caveat_when_all_positive():
+    """The disclosure must be conditional -- it should NOT appear (and
+    therefore not confuse anyone) when every exception row is a genuine
+    positive-NSV unmapped amount, the common case."""
+    df = pd.DataFrame([{"_FY": "FY99", "_Chain": "Unmapped Chain", "_NSV": 100.0}])
+    missing = [
+        {"fy": "FY99", "month": "April", "brand": "Mamaearth", "cust_code": "C1",
+         "ship_to": "Distributor A", "nsv": 60.0, "rows": 1},
+        {"fy": "FY99", "month": "May", "brand": "Mamaearth", "cust_code": "C2",
+         "ship_to": "Distributor B", "nsv": 40.0, "rows": 1},
+    ]
+    out = bdd.mapping_health_block(df, alloc={"missing_mapping": missing}, cfg=None)
+    cum_pcts = [d["cumulative_pct"] for d in out["exceptions"]]
+    assert all(p <= 100.0 for p in cum_pcts)
+    assert "negative NSV" not in out["note"]
