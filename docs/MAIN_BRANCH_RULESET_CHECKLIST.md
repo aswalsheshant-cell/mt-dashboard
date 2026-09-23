@@ -1,12 +1,56 @@
 # Main Branch Ruleset — Configuration Checklist
 
 **Created:** 2026-09-23, direct follow-up to `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`'s
-P0 finding (`main` currently has zero GitHub-enforced protection, confirmed by the
-repo owner directly in Settings). **This is a checklist for a human with repository
-admin access to apply manually in the GitHub UI. No tool available to this session
-can create or modify a ruleset, and this phase's own governing rule prohibits doing
-so automatically even if one existed — this document does not change anything by
-itself.**
+P0 finding (`main` currently had zero GitHub-enforced protection, confirmed by the
+repo owner directly in Settings). **Steps 0–6 below were applied manually in the
+GitHub UI by the repo owner and are now DONE** — the ruleset
+`Protect main - MT Dashboard Production` exists and is Active. No tool available to
+this session can create or modify a ruleset itself; every actual UI action recorded
+below was performed by the repo owner, with this session verifying the result via the
+API. **Status as of 2026-09-23: ruleset live with 4 required checks; a real
+enforcement gap was found by testing (not assumed), fixed, and a further 5 checks
+were verified safe and are ready to add — see "Verification results" below.**
+
+## Verification results (what actually happened, not the plan)
+
+**Test 1 — proved the ruleset was real, and found a real gap.** A throwaway PR
+(#183) was merged deliberately while its checks were still pending, to prove
+enforcement rather than trust the checkbox. **It merged — which it shouldn't have.**
+Root cause: all 4 originally-required checks live inside `validate-promo-data.yml`,
+which is path-filtered to `data/**`, `raw_promos/**`, and a few named scripts. The
+test PR's only file didn't match any of those paths, so that workflow never
+triggered at all — and GitHub does not block a merge on a required check whose
+source workflow never fires for a given PR (documented behavior, not a bug). This
+means the original 4 checks only protect PRs that touch those specific paths — most
+of `dashboard/` and most of `scripts/` were unprotected. **Fixed immediately**: the
+accidental merge was reverted via a clean PR (#184), not a direct push — `main` is
+back to the exact certified tree.
+
+**Test 2 — audited 5 candidate checks from workflows with no path filter on
+`pull_request`**, before adding any of them, per the correct caution: don't add a
+required check on the assumption it runs everywhere; prove it first with a
+docs-only PR, and don't merge it. PR #185 (`docs/ruleset-required-check-test.md`,
+closed without merging) confirmed all 5 ran to completion and passed:
+
+| Check | Source workflow | Result |
+|---|---|---|
+| `validate` | `validate.yml` (no path filter) | ✅ completed, `success` |
+| `Analyze (python)` | `codeql.yml` (no path filter) | ✅ completed, `success` |
+| `Analyze (javascript-typescript)` | `codeql.yml` (no path filter) | ✅ completed, `success` |
+| `Validate Dashboard Data & Schema` | `dashboard-health-check.yml` (`pull_request` trigger has no path filter — only its `push` trigger does) | ✅ completed, `success` |
+| `Validate HTML Structure & Fixes` | `dashboard-health-check.yml` (same as above) | ✅ completed, `success` |
+
+All 5 are **SAFE_TO_REQUIRE: YES** — confirmed live, not inferred from reading the
+YAML alone. **Action still needed**: add these 5 to the ruleset's required-checks
+list, alongside the original 4 (see the updated table below). This closes the exact
+gap Test 1 found: every PR now has at least one required check that actually runs,
+regardless of which files it touches.
+
+One unrelated finding surfaced during Test 2, not part of the 5 candidates and not
+yet acted on: `github-advanced-security` (a separate, GitHub-native default
+code-scanning check, distinct from this repo's own `codeql.yml`) completed with
+`failure` on a trivial docs-only change. Worth investigating on its own; not added to
+required checks and not blocking this ruleset work.
 
 Use GitHub's current **Rulesets** feature (`Settings → Rules → Rulesets`), not the
 older classic "Branch protection rules" screen — rulesets are the actively developed
@@ -101,28 +145,31 @@ engineering one.
     merged — there is no open PR queue behind this repo right now, so turning this
     on has no "PR #2 goes stale when PR #1 merges, repeat" cost today. It only
     matters for future PRs, same as any repo.
-  - **Add required checks** — search and select each of the following (GitHub's
-    picker lists checks by the names it has actually seen reported on this repo;
-    select the current/latest instance of each):
+  - **Add required checks** — the confirmed, final list (originally-configured 4,
+    plus the 5 verified safe by Test 2 above — **add these 5 now if not already
+    added**):
 
-    | Check to search for | Confirmed exact name (from this session's own CI runs) |
-    |---|---|
-    | Schema Validation | `Schema Validation` (job inside `validate-promo-data.yml`) |
-    | Historical Baseline Integrity | `Historical Baseline Integrity` (job inside `validate-promo-data.yml` — the exact check this session's PR #181 fixed) |
-    | Dashboard Integrity Check | `Dashboard Integrity Check` (job inside `validate-promo-data.yml`) |
-    | CI Results Summary | `CI Results Summary` (rollup job inside `validate-promo-data.yml`) |
-    | Dashboard Validation & QC | Workflow name confirmed; **exact job name not verified by this session** — select whatever check entry GitHub shows for the `validate.yml` workflow |
-    | Dashboard UI Smoke Tests | Workflow name confirmed; exact job name not verified this pass — select the entry for `ui-smoke.yml` |
-    | Power BI Windows CI Validation | Workflow name confirmed; exact job name not verified this pass — select the entry for `pbi-windows-ci.yml` |
-    | CodeQL Security Analysis | Workflow name confirmed; exact job name not verified this pass — select the entry for `codeql.yml` |
-    | Dashboard Health Check | Workflow name confirmed; exact job name not verified this pass — select the entry for `dashboard-health-check.yml` |
+    | Exact check name | Source | Path-filtered? | Verified |
+    |---|---|---|---|
+    | `Schema Validation` | `validate-promo-data.yml` | Yes — `data/**`, `raw_promos/**`, a few scripts | Original 4, live since ruleset creation |
+    | `Historical Baseline Integrity` | `validate-promo-data.yml` | Yes, same as above | Original 4 |
+    | `Dashboard Integrity Check` | `validate-promo-data.yml` | Yes, same as above | Original 4 |
+    | `CI Results Summary` | `validate-promo-data.yml` | Yes, same as above | Original 4 |
+    | `validate` | `validate.yml` | **No** | Confirmed by Test 2, PR #185, `success` |
+    | `Analyze (python)` | `codeql.yml` | **No** | Confirmed by Test 2, `success` |
+    | `Analyze (javascript-typescript)` | `codeql.yml` | **No** | Confirmed by Test 2, `success` |
+    | `Validate Dashboard Data & Schema` | `dashboard-health-check.yml` | **No** (on `pull_request`) | Confirmed by Test 2, `success` |
+    | `Validate HTML Structure & Fixes` | `dashboard-health-check.yml` | **No** (on `pull_request`) | Confirmed by Test 2, `success` |
 
-    **Do not add `answer_governance` or `pytest tests/` here yet** — per
+    The first 4 stay valuable for PRs that touch data/pipeline paths; the last 5 are
+    what actually close the "PR touching neither" gap Test 1 found — **every PR now
+    has at least one required check from the second group that will always run.**
+
+    **Still do not add `answer_governance` or `pytest tests/`** — per
     `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`'s own finding, neither currently has a CI
-    workflow trigger at all. Adding them as *required* checks before they exist as
-    real CI jobs would permanently block every merge (a required check that never
-    reports never becomes green). Build the CI trigger first (see companion action
-    item below), confirm it reports at least once, *then* add it here.
+    workflow trigger at all. Build the CI trigger first (see companion action item
+    below), confirm it reports at least once on a real PR (the same Test-2 method
+    used above, not assumed), *then* add it here.
   - If using **Rulesets** (not classic protection): for each required check, use the
     **"Restrict to source"** option and pin it to **GitHub Actions** — this is the
     protection this audit's earlier research flagged as available ("GitHub supports
@@ -136,30 +183,34 @@ engineering one.
 Click **Create** (or **Save changes**). The ruleset is **Active** immediately — no
 separate publish step.
 
-## Step 7 — Verify it actually works (don't just trust the checkboxes)
+## Step 7 — Verify it actually works (done — this is what was actually run, and why the "optional stronger proof" turned out to be the necessary one)
 
-Don't test this against your real `main` with a direct push — unnecessary risk for a
-production branch when a safer proof exists. Do this instead:
+Don't test this against your real `main` with a direct push — the ruleset's PR
+requirement makes that impossible anyway once it's active. What was actually done,
+in order:
 
-1. **Push a harmless commit to a throwaway branch, not `main`:**
-   ```
-   git checkout -b ruleset-test
-   echo "ruleset verification, safe to delete" > RULESET_TEST.md
-   git add RULESET_TEST.md && git commit -m "ruleset verification test"
-   git push -u origin ruleset-test
-   ```
-   Open a PR from `ruleset-test` into `main` on GitHub. You should see the PR's merge
-   box list the required checks as pending/running, and the **Merge** button
-   disabled/greyed out until they all report success — this is the direct behavioral
-   proof the ruleset is real, not cosmetic.
-2. **Once you've confirmed that, close the PR without merging** and delete the
-   `ruleset-test` branch (both locally and via `git push origin --delete
-   ruleset-test`, or the "Delete branch" button GitHub shows on a closed PR).
-3. **Optional, only if you want the stronger proof**: on an already-open real PR (or
-   the test PR above before closing it), try clicking Merge while a required check is
-   still pending — GitHub should refuse and show which check is blocking, similar to
-   its documented `Protected branch update failed — Required status check ... is
-   failing` message.
+1. **A throwaway branch + PR** (`ruleset-test` → PR #183, `RULESET_TEST.md`) —
+   opened, not merged, checks still pending.
+2. **The "optional, stronger proof" was not optional — it's what actually caught the
+   real gap.** Attempting to merge PR #183 *while its checks were still pending*
+   **succeeded**, when it should have been refused. That's what surfaced the
+   path-filter gap documented in "Verification results" above. A test that only
+   checks whether the merge button *looks* greyed out in the UI would not have
+   caught this — the API-level merge attempt was the test that actually mattered.
+3. **The accidental merge was reverted via a clean revert PR** (#184), not a force-
+   push or direct edit to `main` — `main` confirmed back to the exact certified
+   tree afterward (`GET` on the test file returned "does not exist").
+4. **A second, more careful test** (PR #185, `docs/ruleset-required-check-test.md`,
+   opened as **draft** specifically to remove any risk of an accidental merge) was
+   used to audit the 5 candidate checks before adding them — waited for full
+   completion (not just "started running"), confirmed all 5 reached `success`, then
+   closed without merging. See "Verification results" above for the exact outcome.
+
+**Lesson for any future ruleset check-list change**: the real test is attempting a
+merge while a required check is genuinely pending or absent, not just opening a PR
+and eyeballing the UI. A required check that never triggers looks identical, from
+the merge-box UI, to one that's about to pass — the only way to tell them apart is
+to actually try the merge.
 
 ## Companion action items (referenced above, not part of this checklist itself)
 
@@ -175,9 +226,20 @@ production branch when a safer proof exists. Do this instead:
    `docs/POST_MERGE_CERTIFICATION_DESIGN.md`) — then add it to Step 5's required
    checks once it has reported at least once.
 
-## After this is done
+## Current status (2026-09-23)
 
-Re-open `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` and replace its "CONFIRMED GAP, P0"
-verdict with the actual configured state — ideally verified the same way this
-checklist's Step 7 verifies it (a real rejected push, a real blocked merge), not
-just "the checkboxes are ticked."
+- Ruleset created, Active: ✅ done.
+- Original 4 required checks: ✅ live since creation.
+- Gap found (path-filtered checks don't protect PRs outside their paths): ✅ found by
+  actually testing, not assumed — see "Verification results."
+- Accidental merge from that test: ✅ reverted, `main` confirmed clean.
+- 5 additional checks audited and confirmed `SAFE_TO_REQUIRE: YES`: ✅ done (PR #185).
+- **Remaining action**: add those 5 to the ruleset's required-checks list (not yet
+  done as of this doc's last edit — the repo owner needs to do this in the UI, same
+  as the original ruleset creation).
+- `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` still needs a follow-up pass once the 5
+  checks are added, to move from "CONFIRMED GAP, P0" to the actual final state.
+- Stale test branches (`ruleset-test`, `revert-ruleset-test`, `required-check-audit`)
+  remain on `origin` — branch deletion via `git push --delete` hit a 403 from this
+  environment's outbound proxy; delete them via the GitHub UI's "Delete branch"
+  button whenever convenient (cosmetic only, not a risk).
