@@ -3204,6 +3204,19 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
         "their original chain tag. Value is NOT lost (allocation reconciles to zero "
         "variance) but it cannot be attributed to a named chain, so chain-level primary "
         "is understated by this amount. Work the exception list in value order.")
+    # FM-20: a cumulative % of a NET total always ends at exactly 100%, but a
+    # return/credit row (negative NSV) sorted to the tail can make an EARLIER
+    # row's cumulative_pct read above 100% before the negative tail pulls it
+    # back down -- correct arithmetic, but a real business reviewer read this
+    # as broken math ("Cumulative is increased, kindly adjust") on 2026-09-22.
+    # Disclose it; do not change the formula (capping at 100% or excluding
+    # negative rows would hide real return/credit activity).
+    if any(d["nsv"] < 0 for d in ex):
+        out["note"] += (
+            " Note: a few rows carry negative NSV (returns/credits); because cumulative % "
+            "is measured against the NET total, it can read slightly above 100% partway "
+            "down this list before settling to exactly 100% at the last row -- that is "
+            "expected here, not an error.")
     # Proposals, if a suggestion file exists. These are SUGGESTIONS and are never
     # applied here: assigning a distributor to a chain is a business decision with
     # a named owner, not something a build step may infer.
@@ -6826,6 +6839,13 @@ def main():
         print(f"primary-only: {_nsv_summary} (Lakh); "
               + (f"3-Tier allocation: Tier1={qc.get('tier1_rows', 0)}, Tier2={qc.get('tier2_rows', 0)}, Tier3={qc.get('tier3_rows', 0)}"
                  if qc else "no allocation file found -- chain tags left as-is"))
+        # FM-19-adjacent (see docs/FAILURE_MODE_REGISTER.md FM-17's own closing
+        # note): this branch updates primary/pnl/insights but used to leave
+        # targets/mapping_health/mom/scorecard/pvm/profitability/npd/readiness
+        # frozen -- the exact staleness pattern FM-17 fixed for --detail-only,
+        # just never extended here. refresh_derived_blocks() no-ops safely if
+        # its other inputs aren't present.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -6886,6 +6906,11 @@ def main():
                 print(f"  forecast baseline ({_bt}): {_old} -> {_new_base} Lakh "
                       f"(now the full {len(new_off.get('months_'+_bt) or [])}-month window)")
 
+        # FM-17's own closing note: this branch replaces obj["offtake"]
+        # wholesale, which every refresh_derived_blocks() output derives from
+        # (mom/scorecard/pvm all read offtake) -- refresh so they don't stay
+        # frozen at whatever the last full build (or --detail-only run) saw.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -7106,6 +7131,11 @@ def main():
                 bc_data["fy_tags"] = sorted(new_tags, key=lambda t: fy_start_year(t.upper()))
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
+        # FM-17's own closing note: this branch merges new months into
+        # obj["offtake"], which every refresh_derived_blocks() output derives
+        # from (mom/scorecard/pvm all read offtake) -- refresh so they don't
+        # stay frozen at whatever the last full build (or --detail-only run) saw.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
