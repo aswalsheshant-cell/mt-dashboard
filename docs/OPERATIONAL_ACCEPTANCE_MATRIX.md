@@ -1,18 +1,19 @@
 # Final Operational Acceptance Matrix
 
 **Created:** 2026-09-23, Phase 17.7 — the rollup of Phases 17.1–17.6.
-**Updated:** 2026-09-23, same day — row 5 re-updated: the repo owner created and
-live-tested a ruleset on `main` (see `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`); the
-original "unprotected" finding no longer holds.
+**Updated:** 2026-09-23, same day — row 5 re-updated twice: first for the ruleset
+being created and live-tested; then again for Phase 18, which behaviorally verified
+the positive-blocking case and closed row 2's CI-coverage gap in the same pass (see
+`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`).
 **Certified baseline:** `e0d4ceb8e3fd067e6395e5833f7358d1f2369c68`.
 
 | Row | Control | Evidence | Owner | Status | Blocking? | Next action |
 |---|---|---|---|---|---|---|
 | 1 | Repository integrity (17-pt gate) | This session's Phase 13 certification: 17/17 PASS, 224 pytest passed / 1 skipped / 0 failed | MT Analytics | **PASS** | No | None — maintain via post-merge gate once built |
-| 2 | CI validation coverage | All 6 PR-triggered workflows green on final head; `pytest tests/`+`answer_governance/` have no CI trigger (found in Phase 17.1) | MT Analytics | **GAP** | No (not blocking the current certification) | Add a `pull_request` trigger for both pytest suites |
+| 2 | CI validation coverage | **RESOLVED, Phase 18.** `pytest tests/` (165 tests) and `pytest answer_governance/` (60 tests) now run on every PR via `Production Acceptance Gate`, proven live on PR #188/#189 and added to the ruleset's required checks | MT Analytics | **PASS** | No | None |
 | 3 | Financial reconciliation | Phase 14: `data.js` diff vs. prior certified state = 66 lines, both fully explained (metadata removal, one harmless key-order swap) | MT Analytics | **PASS** | No | None |
 | 4 | Historical baselines (FY25/FY26) | `scripts/validate_historical_baseline.py` — canonical, live, tested (12/12), merged as PR #181 | MT Analytics | **PASS** | No | None |
-| 5 | Main branch protection (GitHub-enforced) | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` — ruleset `Protect main - MT Dashboard Production` (Active) now exists and was live-tested via 3 real merge-attempt PRs (#183/#184, #185, #186/#187), not just configured in the UI. 9 required checks in place. Testing found 2 genuine gaps (path-filtered checks don't cover PRs outside their paths; a merge within ~1s of PR creation can race ahead of check registration), both accepted as documented limitations rather than further engineered around (repo owner decision, 2026-09-23) — not reproduced by normal human GitHub-UI use. CODEOWNERS is deferred/N/A by deliberate decision, not a gap: with one collaborator it would only name that same person, so "code owner approval" would be self-approval with no real control | **Human with repo admin access** | **RESOLVED, WITH 2 ACCEPTED LIMITATIONS** | No — main is no longer unprotected; the 2 accepted limitations are narrow and specific, not "no protection" | None required unless a real incident traces back to one of the 2 accepted limitations; CODEOWNERS revisit only if a second collaborator joins |
+| 5 | Main branch protection (GitHub-enforced) | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` — ruleset `Protect main - MT Dashboard Production` (Active), live-tested via 5 real merge-attempt PRs across Phase 17 (#183/#184, #185, #186/#187) and Phase 18 (#189). **Positive-blocking case now behaviorally verified** (Phase 18: fail→real `405` refusal, fix→real `mergeable_state: clean`), closing Phase 17's one honest gap. Required-checks list corrected from 10 down to 6 essential checks after Phase 18 found 4 duplicative, path-filtered checks that could permanently false-block a PR. Phase 17's 2 accepted limitations (path-filtered checks vs. PRs outside their paths; a sub-1s merge racing check registration) remain accepted, not reproduced by normal human GitHub-UI use. CODEOWNERS is deferred/N/A by deliberate decision, not a gap | **Human with repo admin access** | **RESOLVED AND BEHAVIORALLY VERIFIED** | No — main is protected and proven, not just configured | None required unless a real incident traces back to one of Phase 17's 2 accepted limitations; CODEOWNERS revisit only if a second collaborator joins |
 | 6 | Post-merge certification | `docs/POST_MERGE_CERTIFICATION_DESIGN.md` — designed, not implemented; one open design question (drift-comparison baseline storage) | MT Analytics / repo owner | **DESIGNED, NOT BUILT** | No | Human picks option 1/2/3 for the drift-comparison baseline, then implementation PR |
 | 7 | PBIP source control | `ModernTrade_Report.pbip` + `.Report/` tracked in this same Git repo, one source of truth | MT Analytics | **PASS** | No | None |
 | 8 | Power BI live deployment (DEV→TEST→PROD) | `docs/PBIP_PRODUCTION_ACCEPTANCE.md` — no workspace exists yet, `ServiceReadiness.md` says so itself | MT Analytics / IT | **NOT_APPLICABLE_YET** | No (deployment was never in scope for this session) | Human decision to stand up a DEV workspace |
@@ -26,10 +27,10 @@ original "unprotected" finding no longer holds.
 
 | Status | Count |
 |---|---|
-| PASS | 4 (rows 1, 3, 4, 7) |
-| RESOLVED, WITH ACCEPTED LIMITATIONS | 1 (row 5 — ruleset live and tested; 2 narrow gaps accepted, not P0 any more) |
+| PASS | 5 (rows 1, 2, 3, 4, 7) |
+| RESOLVED AND BEHAVIORALLY VERIFIED | 1 (row 5 — ruleset live, tested, positive case proven; a real defect found and fixed along the way) |
 | PARTIAL | 2 (rows 9, 10) |
-| GAP | 1 (row 2) |
+| GAP | 0 |
 | DESIGNED/DOCUMENTED, NOT IMPLEMENTED | 4 (rows 6, 8, 11, 13) |
 | NOT_YET_EVALUATED | 1 (row 12) |
 

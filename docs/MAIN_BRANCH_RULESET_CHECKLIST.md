@@ -277,27 +277,53 @@ to actually try the merge.
    `docs/POST_MERGE_CERTIFICATION_DESIGN.md`) — then add it to Step 5's required
    checks once it has reported at least once.
 
-## Current status (2026-09-23) — DONE
+## Current status (2026-09-23) — DONE (superseded by Phase 18, see below)
 
 - Ruleset created, Active: ✅ done.
-- All 9 required checks live: ✅ done — original 4 (`Schema Validation`,
-  `Historical Baseline Integrity`, `Dashboard Integrity Check`, `CI Results Summary`)
-  plus the 5 always-triggering ones (`validate`, `Analyze (python)`,
-  `Analyze (javascript-typescript)`, `Validate Dashboard Data & Schema`,
-  `Validate HTML Structure & Fixes`).
-- Two real gaps found by testing (not assumed): path-filter gap (Test 1) and a
-  merge/check-registration race (Test 3) — both documented in "Known limitations
-  (accepted, not further mitigated)" above, and accepted as-is per the repo owner's
-  explicit decision (2026-09-23): don't build further mitigation unless a real
-  incident traces back to either one.
+- Two real gaps found by testing (not assumed) in Phase 17: path-filter gap (Test 1)
+  and a merge/check-registration race (Test 3) — both documented in "Known
+  limitations (accepted, not further mitigated)" above, and accepted as-is per the
+  repo owner's explicit decision (2026-09-23): don't build further mitigation unless
+  a real incident traces back to either one.
 - All three accidental merges this testing produced (#183, #186 — plus their
   reverts #184, #187) were cleaned up; `main` confirmed back to the exact certified
   tree each time, verified via direct file-existence checks, not assumed.
-- `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` still needs a follow-up pass to move from
-  "CONFIRMED GAP, P0" to the actual final state now that the ruleset is genuinely
-  live and verified — this is the next, smaller remaining step.
 - Stale test branches (`ruleset-test`, `revert-ruleset-test`, `required-check-audit`,
-  `ruleset-test-2`, `revert-ruleset-test-2`) remain on `origin` — branch deletion via
-  `git push --delete` hit a 403 from this environment's outbound proxy; delete them
-  via the GitHub UI's "Delete branch" button whenever convenient (cosmetic only, not
-  a risk).
+  `ruleset-test-2`, `revert-ruleset-test-2`, `test/gate-enforcement-verification`)
+  remain on `origin` — branch deletion via `git push --delete` hit a 403 from this
+  environment's outbound proxy; delete them via the GitHub UI's "Delete branch"
+  button whenever convenient (cosmetic only, not a risk).
+
+## Phase 18 update (2026-09-23) — required-checks list corrected, final state
+
+Phase 17 left 9 required checks (the original 4 from `validate-promo-data.yml` +
+5 always-triggering ones) and one honest gap: the positive-blocking case was never
+cleanly proven. Phase 18 added `Production Acceptance Gate`
+(`.github/workflows/production-acceptance-gate.yml`) and, via a real fail→blocked /
+fix→clean test on PR #189, both proved that case **and** found a third real defect:
+4 of the (then-10) required checks were path-filtered and never triggered for a
+test PR touching only `tests/`, producing a permanent false block even with the new
+gate green. Full evidence, exact API responses, and the classification table used to
+decide what was safe to remove: `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`'s "Phase 18"
+section.
+
+**Final required-checks list (6, corrected down from 10):**
+
+| Check | Source | Path-filtered? |
+|---|---|---|
+| `validate` | `validate.yml` | No |
+| `Analyze (python)` | `codeql.yml` | No |
+| `Analyze (javascript-typescript)` | `codeql.yml` | No |
+| `Validate Dashboard Data & Schema` | `dashboard-health-check.yml` | No (on `pull_request`) |
+| `Validate HTML Structure & Fixes` | `dashboard-health-check.yml` | No (on `pull_request`) |
+| `Production Acceptance Gate` | `production-acceptance-gate.yml` | No — wraps `pytest tests/`, `pytest answer_governance/`, and 6 other production checks into one job |
+
+**Removed from required list** (still run, just no longer required — all 4 were
+duplicative of a job already inside `Production Acceptance Gate`):
+`Schema Validation`, `Historical Baseline Integrity`, `Dashboard Integrity Check`,
+`CI Results Summary` (all from `validate-promo-data.yml`).
+
+`docs/MAIN_BRANCH_PROTECTION_AUDIT.md` is now the final, up-to-date state for both
+Phase 17 and Phase 18 — this checklist's own tables above (Step 5) describe the
+Phase 17 configuration as it was applied at the time and are kept for the historical
+narrative, not as the current required-checks list.
