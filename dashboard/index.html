@@ -4049,7 +4049,7 @@ function buildStores(){
     <td><span class="badge ${d.osa_flag?'badge-success':'badge-danger'}">${d.osa_flag?'✓ Pass':'✗ Fail'}</span></td>
     <td>${d.pes_percent}%</td></tr>`).join('');
   const doorDetail=card('Door-Level Audit Detail',
-    `${doors.length} doors (showing first 15)`,
+    doors.length>15?`${doors.length} doors (showing first 15)`:`${doors.length} door${doors.length===1?'':'s'}`,
     `<table class="tbl"><thead><tr><th>Door</th><th>Price</th><th>FSDU</th><th>OSA</th><th>PES%</th></tr></thead>
      <tbody>${doorFlagRows}</tbody></table>`);
   s.innerHTML=`<h2 class="sec">Store Audit Scorecard</h2>
