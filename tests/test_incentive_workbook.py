@@ -29,7 +29,8 @@ ALLOWED_FUNCS = {"IF", "IFERROR", "INDEX", "MATCH", "SUMIFS", "COUNTIFS", "COUNT
                  "OR", "AND", "LEFT", "ROUND"}
 
 EXPECTED_COUNTS = {"tblEmployee": 51, "tblSlab": 85, "tblTarget": 3124,
-                   "tblWoA": 67, "tblAchievement": 51, "tblCalc": 51}
+                   "tblWoA": 67, "tblAchievement": 51, "tblCalc": 51,
+                   "tblExceptions": 87}
 
 
 def load():
@@ -72,6 +73,46 @@ class IncentiveWorkbook(unittest.TestCase):
         for name, n in EXPECTED_COUNTS.items():
             self.assertIn(name, self.tables)
             self.assertEqual(self.rowcount[name], n, f"{name} row count")
+
+    def test_every_woa_register_row_is_visible_in_exceptions(self):
+        """QC-WOA-EXC-01. 08_Exceptions used to filter WoA rows down to just
+        OWNER_ROW_EXCEPTION/SOURCE_DATA_FIX_REQUIRED, silently dropping every
+        INSUFFICIENT_EVIDENCE and OWNER_RULE_APPROVAL row from the one sheet
+        meant to be the complete list of what's open (36 of 67 rows in the
+        FY27 run). Assert the control sheet's WoA-mapping rows and the
+        05_WoA_Mapping table agree on both count and the set of raw names --
+        a key-set check catches a swap that a count-only check would miss.
+        """
+        woa_ws, woa_cols = self.tables["tblWoA"]
+        exc_ws, exc_cols = self.tables["tblExceptions"]
+        _, woa_hdr, _ = table_of(woa_ws)
+        _, exc_hdr, _ = table_of(exc_ws)
+
+        woa_names = {
+            row[woa_cols["WoA_Raw_Name"]].value
+            for row in woa_ws.iter_rows(min_row=woa_hdr + 1)
+        }
+        exc_names = {
+            row[exc_cols["Item"]].value
+            for row in exc_ws.iter_rows(min_row=exc_hdr + 1)
+            if row[exc_cols["Area"]].value == "WoA mapping"
+        }
+        self.assertEqual(len(woa_names), 67)
+        self.assertEqual(woa_names, exc_names)
+
+    def test_basup01_scope_gate_covers_every_ba_supervisor_row(self):
+        """BA Supervisor is not a role category in 01_Employee_Master -- that's
+        a business-scope question (BASUP-01), not a name-matching defect, so
+        it must never be silently folded into an ordinary identity exception.
+        """
+        exc_ws, exc_cols = self.tables["tblExceptions"]
+        _, exc_hdr, _ = table_of(exc_ws)
+        gated = [
+            row for row in exc_ws.iter_rows(min_row=exc_hdr + 1)
+            if row[exc_cols["Area"]].value == "WoA mapping"
+            and "BASUP-01" in (row[exc_cols["Exception_Type"]].value or "")
+        ]
+        self.assertEqual(len(gated), 29)
 
     # ---- formulas ---------------------------------------------------------
     def _formulas(self):

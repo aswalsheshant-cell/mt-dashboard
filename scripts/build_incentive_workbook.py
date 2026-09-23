@@ -391,11 +391,35 @@ def main() -> int:
         kind = ("SOURCE_DATA_FIX_REQUIRED" if g.upper().startswith("#") else "MISSING" if not g else "INVALID")
         exc.append(["Grade", eid, kind, g or "(blank)",
                     "Employee cannot be paid until a valid slab grade is supplied", 1, "HR", "OPEN"])
+    # Every row in the WoA identity register is unresolved (Approval_Status is
+    # never anything but PENDING here -- see build_incentive_identity.py) and
+    # belongs in the control centre, not just the ones this sheet finds most
+    # actionable. Filtering to a curated subset (previously only
+    # OWNER_ROW_EXCEPTION/SOURCE_DATA_FIX_REQUIRED) silently dropped every
+    # INSUFFICIENT_EVIDENCE and OWNER_RULE_APPROVAL row -- 39 of 67 rows in
+    # the FY27 run -- from the one sheet meant to be the complete list of
+    # what's open. See QC-WOA-EXC-01 below, which now fails the build if this
+    # regresses.
     for w in woa:
-        if w.get("Classification") in ("OWNER_ROW_EXCEPTION", "SOURCE_DATA_FIX_REQUIRED"):
-            exc.append(["WoA mapping", w.get("WoA_Raw_Name", ""), w.get("Classification", ""),
-                        w.get("Match_Method", ""), w.get("Why", "")[:120],
-                        w.get("Stores_Assigned", ""), "MT Ops", "OPEN"])
+        scope_gate = w.get("Scope_Gate", "")
+        etype = f"SCOPE_DECISION_REQUIRED ({scope_gate})" if scope_gate else w.get("Classification", "")
+        owner = "MT Leadership / MT Ops" if scope_gate else "MT Ops"
+        exc.append(["WoA mapping", w.get("WoA_Raw_Name", ""), etype,
+                    w.get("Match_Method", ""), w.get("Why", "")[:120],
+                    w.get("Stores_Assigned", ""), owner, "OPEN"])
+
+    # QC-WOA-EXC-01 (BLOCKING): every WoA register row must appear in
+    # 08_Exceptions -- the whole reason this loop stopped filtering. A count
+    # match alone can hide a swap (drop one row, double-count another), so
+    # this also checks the loop produced exactly one exception row per
+    # register row, not just the same total.
+    woa_exc_count = sum(1 for row in exc if row[0] == "WoA mapping")
+    if woa_exc_count != len(woa):
+        raise SystemExit(
+            f"QC-WOA-EXC-01 FAILED: {len(woa)} WoA register rows but "
+            f"{woa_exc_count} landed in 08_Exceptions -- every unresolved "
+            f"register row must be visible in the control sheet. Fix the "
+            f"WoA-mapping loop above, don't suppress this check.")
     exc.append(["Target scope", "RKAM target file", "UNKNOWN_SCOPE",
                 f"{round(tgt_total / biz_target * 100, 1)}% of business target",
                 "Scope and exclusions unconfirmed — blocks every payout row", len(tgts),
