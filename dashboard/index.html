@@ -2137,6 +2137,43 @@ function buildPnl(){
   // hardcoded -- they come entirely from PowerBI/SeedData/Masters/
   // PL_Expense_Input.csv (see cm2_block in build_dashboard_data.py).
   const cm2D=D.cm2;
+  // FM-25: the TOT%/CM2 KPI cards below (NSV, TOT Value, Total P&L Expense,
+  // CM2 Value, and the "Blended TOT%" text) used to always read
+  // totD.blended_tot_pct/total_passon_value and cm2D.total_nsv/total_expense/
+  // cm2_value/cm2_pct -- server-side totals cm2_block()/tot_block() compute
+  // from a FY26+FY27-combined population (fy_ge(df,"FY26"), no per-FY split)
+  // -- so selecting FY26-only, FY27-only or no filter at all rendered
+  // byte-identical numbers here, even though this same tab's gross-to-net
+  // bridge above DOES honor the filter. Fixed the way FM-21/FM-22 fixed the
+  // same pattern elsewhere: when the global filter names a single FY that
+  // these blocks' own `monthly` (per-FY-per-month) arrays actually cover,
+  // sum that FY's months client-side; otherwise fall back to the combined
+  // view, unchanged, with its existing "FY26-FY27" labelling.
+  const globalFy=fOne('FY');
+  const cm2FyCoverage=[...new Set((cm2D&&cm2D.monthly||[]).map(r=>r.fy))];
+  const totFyCoverage=[...new Set((totD&&totD.monthly||[]).map(r=>r.fy))];
+  const cm2ScopedOk=!!(globalFy && cm2FyCoverage.includes(globalFy));
+  const totScopedOk=!!(globalFy && totFyCoverage.includes(globalFy));
+  let cm2Scoped=null;
+  if(cm2ScopedOk){
+    const rows=cm2D.monthly.filter(r=>r.fy===globalFy);
+    const nsv=rows.reduce((a,r)=>a+(r.nsv||0),0), expense=rows.reduce((a,r)=>a+(r.expense||0),0);
+    cm2Scoped={nsv, expense, cm2_value:nsv-expense,
+               cm2_pct:nsv?Math.round((nsv-expense)/nsv*1000)/10:null,
+               expense_pct_of_nsv:nsv?Math.round(expense/nsv*1000)/10:null};
+  }
+  let totScoped=null;
+  if(totScopedOk){
+    const rows=totD.monthly.filter(r=>r.fy===globalFy);
+    const mrp=rows.reduce((a,r)=>a+(r.mrp||0),0), passon=rows.reduce((a,r)=>a+(r.passon_value||0),0);
+    totScoped={mrp, passon_value:passon, tot_pct:mrp?Math.round(passon/mrp*1000)/10:null};
+  }
+  // filter set, names a real FY, but this specific block's own coverage
+  // doesn't include it (e.g. a future FY not yet in the article-level detail)
+  const cm2FyNote=(globalFy&&!cm2ScopedOk&&cm2D)
+    ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in CM2's own coverage (${cm2FyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
+  const totFyNote=(globalFy&&!totScopedOk&&totD)
+    ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in TOT%'s own coverage (${totFyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
   let cm2Chains=cm2D?consolidateChains(cm2D.by_chain,'nsv'):[];
   if(fOn('Chain')) cm2Chains=cm2Chains.filter(c=>fHas('Chain',c.name));
   const cm2Top=cm2Chains.slice(0,12);
@@ -2167,10 +2204,12 @@ function buildPnl(){
    :`<div class="fynote"><b>${fLab('FY')} actuals not available</b> — the gross-to-net P&amp;L bridge (source ends Mar-26) —
       intentionally blank instead of a stale ${fyDispLabel('FY26')} number. TOT% and CM2 below still cover ${fyDispLabel('FY26')}–${fyDispLabel('FY27')}.</div>`}
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
-   <p class="note" style="margin:0 0 10px">FY26-FY27, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
+   <p class="note" style="margin:0 0 10px">${totScopedOk?fyDispLabel(globalFy):'FY26-FY27'}, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
      TOT% = SUM(Pass-on Value) / SUM(MRP), sourced per row: Primary file's own <b>Avg Tot</b> first, actual
-     <b>Inv. Tax Amount(LOC)</b> second, GST rate table only as a last-resort fallback. Blended TOT%
-     ${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'} · total pass-on value ${crc(totD.total_passon_value)}.</p>
+     <b>Inv. Tax Amount(LOC)</b> second, GST rate table only as a last-resort fallback. ${totScopedOk?fyDispLabel(globalFy):'Blended'} TOT%
+     ${(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)==null?'–':(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'%'} · total pass-on value ${crc(totScopedOk?totScoped.passon_value:totD.total_passon_value)}.
+     ${totScopedOk?'':'The by-chain/by-category tables below are not FY-split; they always show the full FY26-FY27 combined population.'}</p>
+   ${totFyNote}
    ${totBanner}
    <div class="grid g2">
      ${card('TOT% by chain','Higher = more on-invoice margin passed to the chain. Click a chain to drill.',cv('totChart'))}
@@ -2184,7 +2223,7 @@ function buildPnl(){
      <tr><td>Rows calculated using Actual Tax Amount</td><td>${num(mq.rows_tax_calc)}</td></tr>
      <tr><td>Rows using GST Rate Table fallback</td><td>${num(mq.rows_gst_fallback)}</td></tr>
      <tr><td>Fallback % of total MRP</td><td>${mq.fallback_pct_of_mrp==null?'–':mq.fallback_pct_of_mrp+'%'}</td></tr>
-     <tr><td>Blended TOT%</td><td>${totD.blended_tot_pct==null?'–':totD.blended_tot_pct+'%'}</td></tr>
+     <tr><td>Blended TOT% (${totScopedOk?fyDispLabel(globalFy):'FY26-FY27 combined'})</td><td>${(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)==null?'–':(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'%'}</td></tr>
      <tr><td>Rows blank/invalid (MRP, NSV, Avg Tot &amp; Inv. Tax Amount all unusable)</td><td>${num(mq.rows_invalid)}</td></tr>
      </tbody></table></div>`)}
    ${card('GST rate QC table — Category, HSN Code, Pre/Post GST%, Effective From, Confidence, Finance Approved, Impact on TOT%',
@@ -2201,22 +2240,24 @@ function buildPnl(){
    <p class="note" style="margin:0 0 10px">CM2 = NSV − P&amp;L Expenses (NSV is already net of TOT%/tax — see the TOT% section above).
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
-     <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).</p>
+     <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).
+     ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only; the by-chain table stays FY26-FY27 combined.`:''}</p>
+   ${cm2FyNote}
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
         Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
-   :(cm2D.expense_pct_of_nsv!=null&&cm2D.expense_pct_of_nsv<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
+   :((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null&&(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
      <strong>&#9888; Expense coverage thin — CM2% not yet meaningful:</strong>
-     P&amp;L expenses loaded = &#8377;${cm2D.total_expense!=null?cm2D.total_expense.toFixed(2):'&#8211;'} L
-     (${cm2D.expense_pct_of_nsv}% of NSV, ${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows
-     in <code>PL_Expense_Input.csv</code>). CM2% of ${cm2D.cm2_pct!=null?cm2D.cm2_pct+'%':'&#8211;'} will shift
+     P&amp;L expenses loaded (${cm2ScopedOk?fyDispLabel(globalFy):'FY26-FY27'}) = &#8377;${(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense)!=null?(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense).toFixed(2):'&#8211;'} L
+     (${cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv}% of NSV, ${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows
+     in <code>PL_Expense_Input.csv</code>). CM2% of ${(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'%':'&#8211;'} will shift
      substantially once Finance populates the expense master.
      Update <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and re-run <code>--detail-only</code>.
    </div>`:''}
    <div class="kpis">
-     ${kpi('NSV (TOT%-scope)',crc(cm2D.total_nsv),'FY26-FY27, same population as TOT%')}
-     ${kpi('TOT Value',totD?crc(totD.total_passon_value):'–',totD&&totD.blended_tot_pct!=null?totD.blended_tot_pct+'% of MRP':'')}
-     ${kpi('Total P&L Expense',crc(cm2D.total_expense),cm2D.expense_pct_of_nsv!=null?cm2D.expense_pct_of_nsv+'% of NSV':'')}
-     ${kpi('CM2 Value',crc(cm2D.cm2_value),cm2D.cm2_pct!=null?cm2D.cm2_pct+'% of NSV':'')}
+     ${kpi('NSV (TOT%-scope)',crc(cm2ScopedOk?cm2Scoped.nsv:cm2D.total_nsv),cm2ScopedOk?`${fyDispLabel(globalFy)} only`:'FY26-FY27, same population as TOT%')}
+     ${kpi('TOT Value',totD?crc(totScopedOk?totScoped.passon_value:totD.total_passon_value):'–',totD&&(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)!=null?(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'% of MRP':'')}
+     ${kpi('Total P&L Expense',crc(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense),(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV':'')}
+     ${kpi('CM2 Value',crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value),(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV':'')}
      ${kpi('MoM CM2 Movement',cm2Latest&&cm2Latest.mom_cm2_change!=null?crc(cm2Latest.mom_cm2_change):'–',cm2Latest?`${cm2Latest.month} ${cm2Latest.fy}`:'')}
    </div>
    <div class="grid g2">
@@ -3037,14 +3078,26 @@ function pvmSection(){
 function mappingHealthSection(){
   const M=D.mapping_health; if(!M||!M.by_fy) return '';
   const fys=Object.keys(M.by_fy);
-  const cur=fys[fys.length-1], b=M.by_fy[cur];
+  // FM-03/FY03 fix: this card used to always show the LATEST fy in
+  // M.by_fy regardless of the global FY filter bar (verified live: FY26
+  // selected produced byte-identical HTML to no filter). Same pattern as
+  // npiCohortSection() -- honor the global filter when it names an actual
+  // FY in this block's own by_fy; otherwise fall back to latest.
+  const globalFy=fOne('FY');
+  const cur=(globalFy&&fys.includes(globalFy))?globalFy:fys[fys.length-1];
+  const b=M.by_fy[cur];
+  const fyNote=(globalFy&&!fys.includes(globalFy))
+    ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in this block's own coverage (${fys.join(', ')}) -- showing ${cur} instead.</p>`:'';
   const ex=(M.exceptions||[]).slice(0,15).map(r=>`<tr><td>${r.ship_to||'–'}</td><td>${r.cust_code||'–'}</td>
     <td>${crc(r.nsv)}</td><td>${r.cumulative_pct==null?'–':r.cumulative_pct.toFixed(1)+'%'}</td>
     <td>${(r.brands||[]).join(', ')||'–'}</td></tr>`).join('');
   const pr=(M.proposals||[]).map(r=>`<tr><td>${r.ship_to}</td><td>${crc(r.nsv)}</td><td>${r.suggested_chain||'–'}</td>
     <td>${r.confidence||'–'}</td><td><span class="pill">${r.status}</span></td></tr>`).join('');
+  const exNote=M.note+' Note: this register and the proposals below span the whole '
+    +'dataset -- they are not themselves broken out by FY, unlike the completeness KPIs above.';
   return `<h2 class="sec" style="margin-top:32px">Chain Mapping Health</h2>
    <p class="lead">How much primary can actually be attributed to a named chain. Chain-level reporting is only as good as this.</p>
+   ${fyNote}
    <div class="kpis">
      ${kpi(`Mapping completeness (${cur})`,b.completeness_pct==null?'–':b.completeness_pct.toFixed(1)+'%',
         `${ragPill(b.completeness_pct,'mapping_completeness_pct',v=>v.toFixed(1)+'%')} against the ${((CFG().readiness||{}).chain_primary||{}).min_mapping_completeness_pct||'–'}% gate`)}
@@ -3052,7 +3105,7 @@ function mappingHealthSection(){
      ${kpi('Not attributed',crc(b.unmapped_nsv),`${M.exception_count} ship-to parties`)}
    </div>
    ${gateNote('chain_primary')}
-   ${card('Unmapped exception register',M.note,
+   ${card('Unmapped exception register',exNote,
      `<div class="tablewrap"><table><thead><tr><th>Ship-to</th><th>Cust code</th><th>NSV</th><th>Cumulative</th><th>Brands</th></tr></thead>
       <tbody>${ex||'<tr><td colspan="5">None.</td></tr>'}</tbody></table></div>`)}
    ${pr?card('Proposed mappings — awaiting approval',M.proposals_note,
@@ -3414,10 +3467,24 @@ function inventoryClassificationSection(){
    ${card('Article classification & suggested action','Top 20 articles by NSV this period, classified and matched to the standard action for that combination.',
      `<div class="tablewrap"><table><thead><tr><th>Article</th><th>Brand</th><th>Category</th><th>NSV</th><th>ABC</th><th>FMS</th><th>RIS</th><th>Suggested Action</th></tr></thead><tbody>${rows}</tbody></table></div>`)}`;
 }
+// FM-22 (FY02/FY03 -- global filter not propagated): both callers below used
+// to always pick fy27 over fy26 whenever fy27 had any rows, regardless of
+// the global FY filter bar -- verified live: selecting FY26 still showed a
+// "Primary-Offtake Gap (FY27)" heading with FY27 data. g only has two
+// literal keys (fy26/fy27, not a generic by_fy dict), so this mirrors
+// mappingHealthSection()'s fix at that same two-key grain: honor the global
+// filter when it names a covered key, else fall back to the previous
+// FY27-preferred default (most-recent-with-data).
+function pogGapWindow(g){
+  const fy=fOne('FY');
+  const fyk=fy?('fy'+fy.slice(2)):null;
+  if(fyk&&g[fyk]&&g[fyk].by_month.rows.length) return fyk;
+  return (g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+}
 function primaryOfftakeGapSection(){
   const g=D.primary_offtake_gap;
   if(!g||(!g.fy26&&!g.fy27)) return '';
-  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const win=pogGapWindow(g);
   const w=g[win];
   const rows=w.by_month.rows;
   const chain=w.by_chain;
@@ -3510,12 +3577,31 @@ function renderUnifiedTrendChart(){
 function renderPogGapCharts(){
   const g=D.primary_offtake_gap;
   if(!g) return;
-  const win=(g.fy27&&g.fy27.by_month.rows.length)?'fy27':'fy26';
+  const win=pogGapWindow(g);
   const rows=g[win].by_month.rows;
   if(!rows.length||!document.getElementById('pogMonthChart')) return;
   mkLine('pogMonthChart',rows.map(r=>r.month),[
     {label:'Primary',data:rows.map(r=>r.primary)},
     {label:'Offtake',data:rows.map(r=>r.offtake)}]);
+}
+// Same-period guard for FY-on-FY comparisons built directly from
+// detail_records (buildComparison()'s article-level dimension branch).
+// Comparing full-FY totals when one side is a partial year (e.g. FY26 full
+// 12mo vs FY27 YTD 5mo) reads as an opposite-direction, misleading YoY --
+// exactly the failure mode same_period_block() in build_dashboard_data.py
+// exists to prevent server-side, just not applied to this client-side path.
+// When fyA/fyB cover the same months (including the common full-year vs
+// full-year case), this is a no-op: sharedMonths is null and recs pass
+// through unchanged. Extracted as its own function so it can be tested with
+// fixtures independent of live data (tests/test_fy_same_period_guard.js).
+function sameFYPeriodGuard(recs,fyA,fyB){
+  if(!fyA) return {recs,sharedMonths:null};
+  const monA=new Set(recs.filter(r=>r.FY===fyA).map(r=>r.Month));
+  const monB=new Set(recs.filter(r=>r.FY===fyB).map(r=>r.Month));
+  const same=monA.size===monB.size&&[...monA].every(mo=>monB.has(mo));
+  if(same) return {recs,sharedMonths:null};
+  const sharedMonths=new Set([...monA].filter(mo=>monB.has(mo)));
+  return {recs:recs.filter(r=>sharedMonths.has(r.Month)),sharedMonths};
 }
 function buildComparison(){
   const s=document.getElementById('tab-comparison');
@@ -3524,7 +3610,7 @@ function buildComparison(){
   const btns=dims.map(d=>`<button class="fbtn ${d===cmpDim?'':'ghost'}" data-dim="${d}" style="margin:0 8px 10px 0">${dimLab[d]}</button>`).join('');
   const active=activeChipsHtml();
 
-  let rows, yrPair, source;
+  let rows, yrPair, source, articlePartialNote='';
   if(cmpDim==='Chain'||cmpDim==='Brand'){
     if(fyUnsupported()){
       // FYs beyond the pre-agg window (FY27's Apr'26+) still have exact
@@ -3570,13 +3656,16 @@ function buildComparison(){
     const recs=recFilter(cmpDim);   // ignore this dimension's own filter so you can still compare across it
     const fys=[...new Set(recs.map(r=>r.FY))].sort();
     const [fyA,fyB]=fys.length>=2?[fys[fys.length-2],fys[fys.length-1]]:[null,fys[0]];
+    const {recs:periodRecs,sharedMonths}=sameFYPeriodGuard(recs,fyA,fyB);
     const m={};
-    recs.forEach(r=>{ (m[r[cmpDim]]??={})[r.FY]=(m[r[cmpDim]]?.[r.FY]||0)+r.NSV; });
+    periodRecs.forEach(r=>{ (m[r[cmpDim]]??={})[r.FY]=(m[r[cmpDim]]?.[r.FY]||0)+r.NSV; });
     rows=Object.entries(m).map(([name,v])=>{
       const a=fyA?(v[fyA]||0):null, b=v[fyB]||0;
       return {name, a, b, yoy:(a?Math.round((b/a-1)*1000)/10:null)};
     });
     yrPair=[fyA||'–',fyB||'–'];
+    if(sharedMonths) articlePartialNote=`<p class="drillhint" style="margin:4px 0 0">${fyA} and ${fyB} cover different months in this data --
+       YoY uses only the ${sharedMonths.size} shared month(s) (same-period, like-for-like) instead of full-year totals.</p>`;
   }
   rows.sort((a,b)=>(b.b||0)-(a.b||0));
   const tot=rows.reduce((s2,r)=>s2+(r.b||0),0)||1;
@@ -3584,9 +3673,9 @@ function buildComparison(){
   const tableRows=top.map(r=>`<tr><td>${drillLink(cmpDim,r.name)}</td><td>${r.a!=null?crc(r.a):'–'}</td><td>${crc(r.b)}</td>
     <td>${r.yoy!=null?`<span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span>`:'–'}</td>
     <td>${(r.b/tot*100).toFixed(1)}%</td></tr>`).join('');
-  const partialNote=(fyUnsupported()&&FPX(fyTag()))?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
+  const partialNote=((fyUnsupported()&&FPX(fyTag()))?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
      (${(FPX(fyTag())||{}).months_covered?.join(', ')} only) — YoY uses the same ${(FPX(fyTag())||{}).months_covered?.length||3} months
-     from ${PREAGG_FYS[PREAGG_FYS.length-1]||'FY26'} as baseline. Chains with no prior-year data show '–'.</p>`:'';
+     from ${PREAGG_FYS[PREAGG_FYS.length-1]||'FY26'} as baseline. Chains with no prior-year data show '–'.</p>`:'')+articlePartialNote;
   s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2>
    <p class="lead">Rank and compare ${dimLab[cmpDim]} performance. Source: ${source}.</p>
    ${partialNote}
