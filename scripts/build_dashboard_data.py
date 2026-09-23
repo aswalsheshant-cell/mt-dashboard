@@ -4096,6 +4096,23 @@ def targets_block(target_rows, actuals, same_period=None):
     """
     if not target_rows:
         return None
+    # FM-23 (FY12 -- month/FY key mismatch): the two interchangeable loaders
+    # this is called with disagree on what the first tuple element IS.
+    # load_targets_csv() returns (fy_tag_string, label, value) -- e.g.
+    # ("FY27", "Apr-26", ...). load_ty_target() returns (date, label, value)
+    # -- e.g. (datetime.date(2026,4,1), "Apr-26", ...), because its OTHER
+    # caller, forecast_block_ty(), needs the real date (calls .year/.month
+    # on it directly) and can't be changed to a tag string without breaking
+    # that caller. Left as `tag == fy` comparing dates, this collapsed
+    # tgt_by_month to just the FIRST month whenever load_ty_target()'s xlsb
+    # path supplied the rows (fy_target understated ~92%, fy_tag rendered as
+    # a raw date object) -- confirmed live with a direct call, dormant in
+    # production only because every build so far has used the CSV fallback
+    # (the xlsb source file is gitignored and not present in this repo).
+    # Normalize here, at the point of consumption, rather than changing
+    # either loader's contract.
+    if hasattr(target_rows[0][0], "year"):
+        target_rows = [(fy_tag_from_ym(d.year, d.month), lbl, v) for d, lbl, v in target_rows]
     fy = target_rows[0][0]
     tgt_by_month = {lbl: v for tag, lbl, v in target_rows if tag == fy}
     fy_target = r2(sum(tgt_by_month.values()))
