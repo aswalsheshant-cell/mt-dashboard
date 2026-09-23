@@ -1,8 +1,9 @@
 # Final Operational Acceptance Matrix
 
 **Created:** 2026-09-23, Phase 17.7 — the rollup of Phases 17.1–17.6.
-**Updated:** 2026-09-23, same day — row 5 resolved by human confirmation (see
-`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`).
+**Updated:** 2026-09-23, same day — row 5 re-updated: the repo owner created and
+live-tested a ruleset on `main` (see `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`); the
+original "unprotected" finding no longer holds.
 **Certified baseline:** `e0d4ceb8e3fd067e6395e5833f7358d1f2369c68`.
 
 | Row | Control | Evidence | Owner | Status | Blocking? | Next action |
@@ -11,7 +12,7 @@
 | 2 | CI validation coverage | All 6 PR-triggered workflows green on final head; `pytest tests/`+`answer_governance/` have no CI trigger (found in Phase 17.1) | MT Analytics | **GAP** | No (not blocking the current certification) | Add a `pull_request` trigger for both pytest suites |
 | 3 | Financial reconciliation | Phase 14: `data.js` diff vs. prior certified state = 66 lines, both fully explained (metadata removal, one harmless key-order swap) | MT Analytics | **PASS** | No | None |
 | 4 | Historical baselines (FY25/FY26) | `scripts/validate_historical_baseline.py` — canonical, live, tested (12/12), merged as PR #181 | MT Analytics | **PASS** | No | None |
-| 5 | Main branch protection (GitHub-enforced) | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` — **CONFIRMED by repo owner (2026-09-23): no branch protection rule or ruleset exists for `main` at all.** No PR requirement, no required checks, no force-push/deletion block, nothing GitHub-enforced. Plus 1 independently real GAP (no CODEOWNERS) | **Human with repo admin access** | **GAP — CONFIRMED, P0** | **Yes — main can be pushed to, force-pushed, or deleted directly today; nothing but operator discipline prevents it** | Human creates a branch protection rule/ruleset per `docs/MAIN_BRANCH_PROTECTION_AUDIT.md`'s recommended action list |
+| 5 | Main branch protection (GitHub-enforced) | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` — ruleset `Protect main - MT Dashboard Production` (Active) now exists and was live-tested via 3 real merge-attempt PRs (#183/#184, #185, #186/#187), not just configured in the UI. 9 required checks in place. Testing found 2 genuine gaps (path-filtered checks don't cover PRs outside their paths; a merge within ~1s of PR creation can race ahead of check registration), both accepted as documented limitations rather than further engineered around (repo owner decision, 2026-09-23) — not reproduced by normal human GitHub-UI use. 1 independent GAP remains: no CODEOWNERS | **Human with repo admin access** | **RESOLVED, WITH 2 ACCEPTED LIMITATIONS** | No — main is no longer unprotected; the 2 accepted limitations are narrow and specific, not "no protection." CODEOWNERS absence is real but not P0 | None required unless a real incident traces back to one of the 2 accepted limitations; CODEOWNERS still open as a separate, lower-priority item |
 | 6 | Post-merge certification | `docs/POST_MERGE_CERTIFICATION_DESIGN.md` — designed, not implemented; one open design question (drift-comparison baseline storage) | MT Analytics / repo owner | **DESIGNED, NOT BUILT** | No | Human picks option 1/2/3 for the drift-comparison baseline, then implementation PR |
 | 7 | PBIP source control | `ModernTrade_Report.pbip` + `.Report/` tracked in this same Git repo, one source of truth | MT Analytics | **PASS** | No | None |
 | 8 | Power BI live deployment (DEV→TEST→PROD) | `docs/PBIP_PRODUCTION_ACCEPTANCE.md` — no workspace exists yet, `ServiceReadiness.md` says so itself | MT Analytics / IT | **NOT_APPLICABLE_YET** | No (deployment was never in scope for this session) | Human decision to stand up a DEV workspace |
@@ -25,9 +26,9 @@
 
 | Status | Count |
 |---|---|
-| PASS | 5 (rows 1, 3, 4, 7 — 4 real; row 9 partial counted separately) |
+| PASS | 4 (rows 1, 3, 4, 7) |
+| RESOLVED, WITH ACCEPTED LIMITATIONS | 1 (row 5 — ruleset live and tested; 2 narrow gaps accepted, not P0 any more) |
 | PARTIAL | 2 (rows 9, 10) |
-| GAP — CONFIRMED, P0 | 1 (row 5 — main is confirmed unprotected; does not affect the code certification itself) |
 | GAP | 1 (row 2) |
 | DESIGNED/DOCUMENTED, NOT IMPLEMENTED | 4 (rows 6, 8, 11, 13) |
 | NOT_YET_EVALUATED | 1 (row 12) |
