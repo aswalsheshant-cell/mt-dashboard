@@ -1,5 +1,9 @@
 name: Promo Data Schema Validation
 
+# No-op trigger: this workflow is one of its own path-filter targets, so a
+# comment-only touch here is enough to make it run on a PR that otherwise
+# doesn't change data/**, raw_promos/**, or the named scripts below -- needed
+# once Phase 18 required this workflow's checks unconditionally.
 on:
   pull_request:
     paths:
