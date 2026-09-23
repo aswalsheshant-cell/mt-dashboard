@@ -1543,14 +1543,17 @@ function buildInventoryHealth(){
   const o=D.offtake, u=D.universe||{}, s=document.getElementById('tab-inventory-health');
   if(!s) return;
   const fy=fyKey();
-  // Defensive: handles both nested o.total['fy26'] and legacy o.total_fy26 formats
-  const total = o?.total?.[fy] ?? o?.[`total_${fy}`] ?? 0;
-  const metrics = o?.metrics ?? { doi: {}, otif: {} };
   // fyKey() is null unless exactly ONE FY is selected -- the default "All"
   // state. Code below did fy.slice(2) on it and threw. Resolve to the latest FY
   // present in the data (never a hardcoded year: THE ONE FY RULE).
   const _fyTags = (o && o.fy_tags) || (D.primary && D.primary.fy_tags) || [];
   const fyR = fy || _fyTags[_fyTags.length - 1] || 'fy26';
+  // Defensive: handles both nested o.total['fy26'] and legacy o.total_fy26 formats.
+  // Must use fyR (not fy) here too -- fy is null in the default "All" state, which
+  // used to make this KPI read Rs0 L even though every table/chart on this same
+  // page (all keyed off fyR) showed real, non-zero offtake.
+  const total = o?.total?.[fyR] ?? o?.[`total_${fyR}`] ?? 0;
+  const metrics = o?.metrics ?? { doi: {}, otif: {} };
   // Real per-chain store counts: universe.by_chain (not offtake.by_chain,
   // which is a flat [{name,value}] list with no by_month/store member -- the
   // "Active MT Stores" KPI and the "Stores" column below used to read that
