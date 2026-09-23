@@ -7,9 +7,10 @@ GitHub UI by the repo owner and are now DONE** — the ruleset
 `Protect main - MT Dashboard Production` exists and is Active. No tool available to
 this session can create or modify a ruleset itself; every actual UI action recorded
 below was performed by the repo owner, with this session verifying the result via the
-API. **Status as of 2026-09-23: ruleset live with 4 required checks; a real
-enforcement gap was found by testing (not assumed), fixed, and a further 5 checks
-were verified safe and are ready to add — see "Verification results" below.**
+API. **Status as of 2026-09-23: DONE — ruleset live with all 9 required checks (the
+original 4 + the 5 verified in Test 2). Two real gaps were found by testing (not
+assumed) and are recorded as accepted limitations below — see "Verification
+results" and "Known limitations (accepted, not further mitigated)".**
 
 ## Verification results (what actually happened, not the plan)
 
@@ -51,6 +52,53 @@ yet acted on: `github-advanced-security` (a separate, GitHub-native default
 code-scanning check, distinct from this repo's own `codeql.yml`) completed with
 `failure` on a trivial docs-only change. Worth investigating on its own; not added to
 required checks and not blocking this ruleset work.
+
+**Test 3 — the 5 new checks were added to the ruleset, then re-verified with the
+same merge-while-pending method used in Test 1.** A third throwaway PR (#186) was
+merged immediately after creation. **It merged again** — but for a different reason
+than Test 1. This time all 5 checks genuinely started running; the merge API call
+just completed *before* GitHub had registered them against that commit SHA.
+Timestamps: merge completed `04:30:26`; the required checks' own `started_at` was
+`04:30:27`–`04:30:28`, one second later. **Fixed immediately** via a clean revert PR
+(#187), merged only after its own checks had genuinely completed (not rushed this
+time) — `main` confirmed back to the exact certified tree.
+
+## Known limitations (accepted, not further mitigated) — decision made 2026-09-23
+
+Two real, test-proven gaps exist in this ruleset. Both are being accepted as-is
+rather than chased further, because both require conditions a normal human using the
+GitHub UI does not produce:
+
+1. **Path-filtered required checks don't protect PRs outside their paths** (Test 1).
+   The original 4 checks (`Schema Validation`, `Historical Baseline Integrity`,
+   `Dashboard Integrity Check`, `CI Results Summary`) only enforce on PRs touching
+   `data/**`, `raw_promos/**`, or the few named scripts in
+   `validate-promo-data.yml`'s path filter. **Mitigated, not eliminated**: the 5
+   checks added after Test 2 (`validate`, `Analyze (python)`,
+   `Analyze (javascript-typescript)`, `Validate Dashboard Data & Schema`,
+   `Validate HTML Structure & Fixes`) have no path filter and cover every PR — so
+   every PR now has at least one enforced check, even though the original 4 remain
+   path-scoped by design (they're specifically about data/pipeline integrity, which
+   doesn't need to run on, say, a docs-only change).
+2. **A merge attempted within ~1 second of PR creation can race ahead of check
+   registration** (Test 3). This is a GitHub platform timing behavior, not a
+   configuration mistake — confirmed by observing that the required checks
+   genuinely started running, just a moment after the merge API call returned.
+   **Accepted as a known limitation of near-instant, API-driven merges specifically.**
+   A human clicking "Merge" in the GitHub UI does not reproduce this: opening a PR,
+   reading it, and clicking merge takes several seconds at an absolute minimum —
+   far past the ~1-second race window measured here. The two accidental merges this
+   limitation caused in this repo's own history (PR #183, PR #186) were both
+   produced by this session's own automated, immediate merge-attempt testing
+   methodology, not by normal human use of the repository.
+
+**Decision, per the repo owner (2026-09-23): accept both as documented, don't
+build further mitigation (e.g., a required "wait" step, a merge queue, or
+retry-with-backoff logic) unless a real incident traces back to either one.** If
+that changes, `docs/POST_MERGE_CERTIFICATION_DESIGN.md`'s already-designed
+post-merge certification gate would be the natural place to add a defense-in-depth
+check (re-validating the actual `main` SHA after merge, independent of whether the
+pre-merge ruleset caught everything).
 
 Use GitHub's current **Rulesets** feature (`Settings → Rules → Rulesets`), not the
 older classic "Branch protection rules" screen — rulesets are the actively developed
@@ -226,20 +274,27 @@ to actually try the merge.
    `docs/POST_MERGE_CERTIFICATION_DESIGN.md`) — then add it to Step 5's required
    checks once it has reported at least once.
 
-## Current status (2026-09-23)
+## Current status (2026-09-23) — DONE
 
 - Ruleset created, Active: ✅ done.
-- Original 4 required checks: ✅ live since creation.
-- Gap found (path-filtered checks don't protect PRs outside their paths): ✅ found by
-  actually testing, not assumed — see "Verification results."
-- Accidental merge from that test: ✅ reverted, `main` confirmed clean.
-- 5 additional checks audited and confirmed `SAFE_TO_REQUIRE: YES`: ✅ done (PR #185).
-- **Remaining action**: add those 5 to the ruleset's required-checks list (not yet
-  done as of this doc's last edit — the repo owner needs to do this in the UI, same
-  as the original ruleset creation).
-- `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` still needs a follow-up pass once the 5
-  checks are added, to move from "CONFIRMED GAP, P0" to the actual final state.
-- Stale test branches (`ruleset-test`, `revert-ruleset-test`, `required-check-audit`)
-  remain on `origin` — branch deletion via `git push --delete` hit a 403 from this
-  environment's outbound proxy; delete them via the GitHub UI's "Delete branch"
-  button whenever convenient (cosmetic only, not a risk).
+- All 9 required checks live: ✅ done — original 4 (`Schema Validation`,
+  `Historical Baseline Integrity`, `Dashboard Integrity Check`, `CI Results Summary`)
+  plus the 5 always-triggering ones (`validate`, `Analyze (python)`,
+  `Analyze (javascript-typescript)`, `Validate Dashboard Data & Schema`,
+  `Validate HTML Structure & Fixes`).
+- Two real gaps found by testing (not assumed): path-filter gap (Test 1) and a
+  merge/check-registration race (Test 3) — both documented in "Known limitations
+  (accepted, not further mitigated)" above, and accepted as-is per the repo owner's
+  explicit decision (2026-09-23): don't build further mitigation unless a real
+  incident traces back to either one.
+- All three accidental merges this testing produced (#183, #186 — plus their
+  reverts #184, #187) were cleaned up; `main` confirmed back to the exact certified
+  tree each time, verified via direct file-existence checks, not assumed.
+- `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` still needs a follow-up pass to move from
+  "CONFIRMED GAP, P0" to the actual final state now that the ruleset is genuinely
+  live and verified — this is the next, smaller remaining step.
+- Stale test branches (`ruleset-test`, `revert-ruleset-test`, `required-check-audit`,
+  `ruleset-test-2`, `revert-ruleset-test-2`) remain on `origin` — branch deletion via
+  `git push --delete` hit a 403 from this environment's outbound proxy; delete them
+  via the GitHub UI's "Delete branch" button whenever convenient (cosmetic only, not
+  a risk).

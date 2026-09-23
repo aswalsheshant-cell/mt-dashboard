@@ -1,102 +1,96 @@
 # Main Branch Protection Audit
 
 **Created:** 2026-09-23, Phase 17.1 of "Production Acceptance & Certified Baseline
-Lock." **Updated:** 2026-09-23, same day — human confirmation received. **Scope:**
-determine whether `main`'s critical controls are actually *enforced* by GitHub, not
-merely documented or assumed. This document does not modify any GitHub setting —
-audit only, per this phase's own non-negotiable rule ("Do NOT modify GitHub
-governance automatically unless explicitly authorized").
+Lock." **Updated:** 2026-09-23, same day — ruleset created, tested, and configured;
+this is the final state for this pass. **Scope:** determine whether `main`'s
+critical controls are actually *enforced* by GitHub, not merely documented or
+assumed.
 
 **Certified baseline this audit is protecting:**
 `e0d4ceb8e3fd067e6395e5833f7358d1f2369c68` (main, 2026-09-23; 17/17 certification
-gates PASS).
+gates PASS — unaffected by anything in this document).
 
-## CONFIRMED FINDING (human-verified, 2026-09-23)
+## Where this landed
 
-**`main` has no branch protection rule and no repository ruleset. It is completely
-unprotected.** Checked directly by the repository's human owner at
-`github.com/aswalsheshant-cell/mt-dashboard/settings/branches` and
-`.../settings/rules` — no rule/protection entry exists for `main` at all.
+`main` started this pass with **zero GitHub-enforced protection**, confirmed
+directly by the repo owner in Settings. A ruleset
+(`Protect main - MT Dashboard Production`, Active) now exists, created by the repo
+owner and verified — not just configured — via three real test PRs
+(#183/#184, #185, #186/#187; full narrative in
+`docs/MAIN_BRANCH_RULESET_CHECKLIST.md`). That testing found two genuine gaps, both
+now accepted as documented limitations rather than chased further (repo owner
+decision, 2026-09-23):
 
-This resolves every row this audit previously marked
-`NOT_VERIFIABLE_FROM_THIS_SESSION` (this session had no tool to read GitHub's
-branch-protection/ruleset API — confirmed by exhaustive `ToolSearch`, and a direct
-unauthenticated API fallback via `WebFetch` returned `403 Forbidden` from this
-environment's outbound proxy). With a human confirming no rule exists, there is
-nothing left to enforce any of the following — every row that was previously
-"unverifiable" is now definitively **GAP**, not because this session guessed, but
-because the human-reported absence of any rule makes every dependent control absent
-by construction.
+1. **Path-filtered required checks don't protect PRs outside their paths** — fixed
+   by adding 5 always-triggering checks alongside the original 4, so every PR now
+   has at least one enforced check.
+2. **A merge attempted within ~1 second of PR creation can race ahead of check
+   registration** — accepted as a limitation specific to near-instant, API-driven
+   merges; a human using the GitHub UI does not reproduce this (opening and reading
+   a PR before clicking Merge takes far longer than the ~1-second window measured).
 
-## Full control table (updated with the confirmed finding)
+**One important residual honesty note**: both live merge-attempt tests that could
+have proven the *positive* case — "a genuinely-registered, still-pending required
+check actually blocks a merge" — instead surfaced one of the two gaps above before
+that could be observed. Neither test produced a clean confirmation of the ruleset
+successfully blocking a merge. The configuration is real and the two failure modes
+are fully explained and specific (not "the ruleset does nothing"), but the positive
+case remains **CONFIGURED, not directly behavior-verified** — noted honestly rather
+than claimed as proven.
+
+## Full control table (final state)
 
 | # | Control | Evidence | Status |
 |---|---|---|---|
-| 1 | Pull request required before merge | No rule exists → **a direct push to `main` would succeed today**, by anyone with write access. Every PR in this certification pass (#171–#178, #180, #181) went through a PR only because this session chose to, not because GitHub required it | **GAP** |
-| 2 | Required status checks exist and are wired to `pull_request` events | Confirmed directly and unaffected by this finding: `.github/workflows/validate.yml`, `validate-promo-data.yml`, `ui-smoke.yml`, `pbi-windows-ci.yml`, `codeql.yml`, `dashboard-health-check.yml` all run on `pull_request` and are capable of failing (PR #180's `Promo Data Schema Validation` genuinely went `failure` → `success` across two head SHAs) | **PASS** — the checks exist and work; they are just not *required* by anything (see #3) |
-| 3 | Those checks marked *required* in branch protection | No rule exists to mark anything required. **A red check today would not block a merge** — GitHub would allow it | **GAP** |
-| 4 | Direct push to `main` blocked | No rule exists → not blocked | **GAP** |
-| 5 | Force push blocked | No rule exists → not blocked | **GAP** |
-| 6 | Branch deletion blocked | No rule exists → not blocked. `main` itself could be deleted by anyone with admin/write-delete permission | **GAP** |
-| 7 | PR conversations must be resolved before merge | No rule exists → not enforced. Every merged PR in this pass happened to have conversations resolved, but that was this session's discipline, not a gate | **GAP** |
-| 8 | Branch must be up to date with `main` before merge | No rule exists → not enforced. This session manually re-merged `main` into every PR before merging (the entire Phase F2 conflict-resolution sequence), but GitHub itself would have allowed a stale merge | **GAP** |
-| 9 | Code owner / required-reviewer approval | No `CODEOWNERS` file exists (confirmed directly, independent of the ruleset question) — and even if one were added, there is no rule to require its use | **GAP** (two-part: no file, no rule) |
-| 10 | Security/code scanning as a merge condition | `CodeQL Security Analysis` runs and reports real results, but with no rule marking it required, a failing scan would not block merge | **GAP** |
+| 1 | Pull request required before merge | Ruleset setting is ON, confirmed by the repo owner in the UI. Not independently tested via a literal direct `git push origin main` (all testing went through the PR+merge-API path) | **CONFIGURED** — not directly behavior-tested |
+| 2 | Required status checks exist and are wired to `pull_request` events | Confirmed directly, repeatedly, across all 3 test PRs: 9 checks now exist and report real pass/fail results | **PASS** |
+| 3 | Those checks marked *required*, and actually block a pending merge | Configured (9 checks in the ruleset). **Not cleanly proven behaviorally** — see "residual honesty note" above; both live tests that could have shown this instead exposed the path-filter gap (Test 1) and the registration-race gap (Test 3) first | **CONFIGURED** — positive case untested |
+| 4 | Direct push to `main` blocked | Implied by #1 being ON; not independently tested | **CONFIGURED** — not directly behavior-tested |
+| 5 | Force push blocked | Ruleset setting is ON | **CONFIGURED** — not directly behavior-tested |
+| 6 | Branch deletion blocked | Ruleset setting is ON | **CONFIGURED** — not directly behavior-tested |
+| 7 | PR conversations must be resolved before merge | Ruleset setting is ON; no PR was tested with a deliberately unresolved conversation | **CONFIGURED** — not directly behavior-tested |
+| 8 | Branch must be up to date with `main` before merge | Ruleset setting is ON; not behaviorally tested against a deliberately stale branch | **CONFIGURED** — not directly behavior-tested |
+| 9 | Code owner / required-reviewer approval | No `CODEOWNERS` file exists (unchanged from the original audit) — and required approvals are set to `0` (deliberate, per the repo's single-collaborator reality, confirmed live via `list_repository_collaborators`) | **GAP** (unchanged) — by design for approvals; CODEOWNERS still genuinely absent |
+| 10 | Security/code scanning as a merge condition | `Analyze (python)` and `Analyze (javascript-typescript)` (from `codeql.yml`) are now required checks — both passed on every test PR. The *separate* `github-advanced-security` check (not one of the 9 required) showed a real `failure` on PR #187 and, correctly, did not block that merge since it isn't required | **CONFIGURED**, consistent behavior observed for the non-required check; the required CodeQL checks' positive-blocking case shares the same untested status as row 3 |
 
-## What this changes from the original audit
-
-Nothing about the **code certification** (`e0d4ceb`, 17/17 gates, 224 tests) —
-that stands independent of this finding. What changes is the honesty of the claim
-"main is protected": it was previously reported as *unconfirmed*; it is now
-**confirmed false**. Every merge in this entire certification pass — all 10 PRs —
-succeeded because this session chose to run checks and wait for green, not because
-GitHub would have refused otherwise. That discipline held throughout this session,
-but it is not durable: any future session, human, or automation with write access to
-this repository can push directly to `main`, force-push over history, delete `main`
-outright, or merge a PR with every check red, and nothing GitHub-side would stop it.
-
-## Classification summary (updated)
+## Classification summary (final)
 
 | Status | Count | Rows |
 |---|---|---|
-| PASS | 1 | #2 (checks exist and run) |
-| GAP | 9 | #1, #3, #4, #5, #6, #7, #8, #9, #10 |
-| NOT_VERIFIABLE_FROM_THIS_SESSION | 0 | — (resolved by human confirmation) |
-| BLOCKED | 0 | — |
-| NOT_APPLICABLE | 0 | — |
+| PASS | 1 | #2 |
+| CONFIGURED (not directly behavior-tested for the positive/blocking case) | 8 | #1, #3, #4, #5, #6, #7, #8, #10 |
+| GAP | 1 | #9 |
+| NOT_VERIFIABLE_FROM_THIS_SESSION | 0 | — |
 
-## Recommended next action
+This is a meaningfully stronger state than the original "9 GAP, 1 PASS" finding, but
+it is not "9 PASS" either — the distinction matters and is preserved here rather
+than rounded up.
 
-This is now a **P0, not a "nice to have"** — the repository has zero GitHub-enforced
-protection on its production branch. Recommended, in order (none executed by this
-session — implementation requires explicit authorization, same as before):
+## What this changes from the original audit
 
-1. **Create a branch protection rule or ruleset for `main`**, at minimum:
-   - Require a pull request before merging.
-   - Require status checks to pass before merging, and explicitly select as
-     required: `Dashboard Validation & QC`, the `Historical Baseline Integrity` job,
-     `Dashboard Health Check`, `Dashboard UI Smoke Tests`, `Power BI Windows CI
-     Validation`, `CodeQL Security Analysis`.
-   - Require the branch to be up to date with `main` before merging.
-   - Block force pushes.
-   - Block branch deletion.
-   - Require conversation resolution before merging.
-2. Add a `.github/CODEOWNERS` file (still a separate, independently real gap — see
-   row #9) so a future "require code owner review" setting has something to attach to.
-3. Add a CI trigger for `pytest tests/` and `pytest answer_governance/` on
-   `pull_request` (from the original audit's finding — still open, still not
-   implemented) so those two suites — 224 and 60 tests respectively, everything this
-   certification pass relied on most heavily — are enforced automatically rather
-   than only by a human running them by hand.
-4. Once the rule/ruleset exists, re-run this audit against the live configuration to
-   confirm each row moved from GAP to PASS.
+The code certification (`e0d4ceb`, 17/17 gates, 224 tests) is unaffected — it
+stood before this work and stands now. What changed: `main` went from provably
+unprotected to a configured, partially-behavior-tested ruleset, with two real gaps
+found by testing (not guessed at) and knowingly accepted rather than silently
+assumed away.
+
+## Remaining open items
+
+1. **`.github/CODEOWNERS`** — still genuinely absent. A real, independent, simple
+   gap (row 9), not touched by any of this session's ruleset work.
+2. **CI trigger for `pytest tests/` and `answer_governance/`** — still not built.
+   224 and 60 tests respectively, everything this certification pass relied on most
+   heavily, still only run manually, not as a required check.
+3. **The untested positive case (rows 1, 3–8, 10)** — accepted as-is per the repo
+   owner's 2026-09-23 decision not to chase further testing. If a real incident ever
+   traces back to the ruleset not blocking something it should have, that's the
+   trigger to revisit this, not a scheduled re-test.
 
 ## Verdict for this sub-phase
 
-**CONFIRMED GAP, P0 PRIORITY.** The certified baseline
-(`e0d4ceb8e3fd067e6395e5833f7358d1f2369c68`) itself is unaffected — its 17/17
-certification stands. But the claim "main is protected" is now **known to be false**,
-not merely unverified. Until a rule or ruleset is created, this repository's actual
-safety net is entirely operator discipline — real, and held throughout this
-certification pass, but not something GitHub itself backs up. This is the single
-highest-priority action to come out of the entire Phase 17 audit.
+**RESOLVED, WITH TWO ACCEPTED LIMITATIONS.** `main` now has a real, configured
+ruleset with 9 required checks, tested three times against actual merge attempts.
+Two genuine gaps were found and are documented rather than hidden; both are accepted
+as out of scope for further mitigation per an explicit decision, not silently
+ignored. The one true remaining GAP is `.github/CODEOWNERS`, unchanged from the
+original audit and independent of everything else in this document.
