@@ -176,10 +176,13 @@ engineering one.
     or the rule will permanently block every merge (nobody else could ever approve).
   - [ ] **Dismiss stale pull request approvals when new commits are pushed** —
     recommended if you set approvals ≥1.
-  - [ ] **Require review from Code Owners** — leave **unchecked** until
-    `.github/CODEOWNERS` exists (see the companion action item below); checking it
-    now with no CODEOWNERS file configured would either do nothing or block every PR
-    depending on GitHub's current behavior — don't rely on that ambiguity.
+  - [ ] **Require review from Code Owners** — leave **unchecked**, deferred/N/A
+    (repo owner decision, 2026-09-23, not just a missing file): with one collaborator,
+    a CODEOWNERS file would name `aswalsheshant-cell` as owner of everything, making
+    "code owner approval" the same person approving their own PR — no practical
+    control gained, and a live risk of a self-approval dead end if GitHub ever
+    required an owner review that only the PR author can satisfy. See the companion
+    action item below.
   - [x] **Require conversation resolution before merging** — check this.
   - [ ] **Require signed commits** *(optional, stricter — not currently practiced by
     this session's commits, which are unsigned; enabling this would retroactively
@@ -262,13 +265,13 @@ to actually try the merge.
 
 ## Companion action items (referenced above, not part of this checklist itself)
 
-1. Add `.github/CODEOWNERS` — a separate, already-identified gap
-   (`docs/MAIN_BRANCH_PROTECTION_AUDIT.md` row 9). Minimal example:
-   ```
-   # Default owner for the whole repo
-   *  @aswalsheshant-cell
-   ```
-   Once this exists, you can revisit Step 5's "Require review from Code Owners" box.
+1. `.github/CODEOWNERS` — **deferred/N/A, not a blocker** (repo owner decision,
+   2026-09-23). With exactly one collaborator (`aswalsheshant-cell`, confirmed live
+   via `list_repository_collaborators`), requiring code-owner approval would mean
+   that person approving their own PR — no real second-reviewer control, just a
+   mechanical checkbox. Revisit only if a second collaborator with repo write access
+   is added; until then, Step 5's "Require review from Code Owners" box stays
+   unchecked by design, not by omission.
 2. Add a `pull_request`-triggered CI workflow for `pytest tests/` and
    `pytest answer_governance/` (design left open in
    `docs/POST_MERGE_CERTIFICATION_DESIGN.md`) — then add it to Step 5's required
