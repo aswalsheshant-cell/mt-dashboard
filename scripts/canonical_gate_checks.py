@@ -104,9 +104,14 @@ def check_numeric_safety():
 
 
 def check_governance_integrity():
-    """Every APPROVED_GOVERNED row must trace to a real, unique registry
-    entry -- an 'unapproved GOVERNED exception' (a result of GOVERNED with
-    no matching registry record) must be structurally impossible."""
+    """Every APPROVED_GOVERNED row must trace to a real, unique, FULLY
+    APPROVED registry entry -- an 'unapproved GOVERNED exception' (a result
+    of GOVERNED with no matching registry record, OR a matching record that
+    was never actually signed off) must be structurally impossible. This is
+    the self-approval guard: adding an ApprovedException to governance.py is
+    not, by itself, enough to make it fire -- approver/approval_reference/
+    approved_at must be populated and approval_status must be exactly
+    "APPROVED", or the entry is inert."""
     problems = []
     registry_ids = {e.exception_id for e in governance.APPROVED_EXCEPTIONS}
     if len(registry_ids) != len(governance.APPROVED_EXCEPTIONS):
@@ -114,6 +119,7 @@ def check_governance_integrity():
 
     required_fields = ["exception_id", "metric", "scope_description", "reason_not_pass",
                         "evidence", "business_impact", "financial_impact", "owner",
+                        "approver", "approval_reference", "approved_at", "approval_status",
                         "temporary_or_permanent", "resolution_phase", "release_blocker",
                         "status"]
     for exc in governance.APPROVED_EXCEPTIONS:
@@ -124,6 +130,11 @@ def check_governance_integrity():
             problems.append(f"{exc.exception_id}: status is {exc.status!r}, expected APPROVED_GOVERNED")
         if exc.temporary_or_permanent not in ("TEMPORARY", "PERMANENT"):
             problems.append(f"{exc.exception_id}: temporary_or_permanent={exc.temporary_or_permanent!r} invalid")
+        if exc.approval_status != "APPROVED":
+            problems.append(f"{exc.exception_id}: approval_status={exc.approval_status!r}, expected APPROVED")
+        if not exc.is_fully_approved():
+            problems.append(f"{exc.exception_id}: fails the self-approval guard (is_fully_approved() == False) "
+                             "-- this entry is in the registry but cannot actually fire")
 
     data = facts.load_datajs()
     rows = build_report(data)

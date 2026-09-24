@@ -166,6 +166,21 @@ Every field below is a real, reviewed field on the `governance.ApprovedException
 
 Acceptance condition met: **`FAIL = 0`, `UNKNOWN = 0`, `PASS + APPROVED_GOVERNED = 100%` of the reconciliation population** (`tests/canonical/test_shadow_reconciliation.py::test_shadow_reconciliation_meets_phase1_acceptance_criterion`).
 
+### Self-approval guard (second certification review round)
+
+The registry above closes "a free-text reason manufactures a pass," but a narrower gap remained: a developer could add a brand-new `ApprovedException` entry directly in `governance.py` and thereby convert a real reconciliation failure into `APPROVED_GOVERNED` with no independent review — the code change itself would be the approval. Closed by adding four required fields — `approval_status`, `approver`, `approval_reference`, `approved_at` — and a guard method, `ApprovedException.is_fully_approved()`, that `find_approved_exception()` now calls before ever returning an entry: all four fields must be populated AND `approval_status` must be the exact string `"APPROVED"`, or the entry is treated as if it did not exist (the caller gets `None`, which becomes `UNKNOWN`, never `APPROVED_GOVERNED`). Proven by 8 new tests (`tests/canonical/test_governance.py`, `tests/canonical/test_gate_checks.py`), including two that construct a fresh, unapproved registry entry and confirm it cannot manufacture a pass no matter how it's added.
+
+Approval record for all 4 live entries:
+
+| Registry ID | Approver | Approval reference | Approved at | Approval status |
+|---|---|---|---|---|
+| `GOV-001` | aswalsheshant-cell (repository owner) | PR #198 Phase 1 Certification Gate review, 2026-09-24 | 2026-09-24 | APPROVED |
+| `GOV-002` | aswalsheshant-cell (repository owner) | PR #198 Phase 1 Certification Gate review, 2026-09-24 | 2026-09-24 | APPROVED |
+| `GOV-003` | aswalsheshant-cell (repository owner) | PR #198 Phase 1 Certification Gate review, 2026-09-24 | 2026-09-24 | APPROVED |
+| `GOV-004` | aswalsheshant-cell (repository owner) | PR #198 Phase 1 Certification Gate review, 2026-09-24 | 2026-09-24 | APPROVED |
+
+This records that the repository owner reviewed and approved this exact registry as part of accepting PR #198 — a real approval event (a PR review/merge decision), not a placeholder. It does not, and cannot, verify the identity of a future editor of `governance.py`; that remains a code-review/branch-protection responsibility, not something this dataclass can enforce on its own. `scripts/canonical_gate_checks.py`'s `governance` check runs `is_fully_approved()` against every live registry entry on every CI run, so an entry that is ever edited into an unapproved state (blank field, or `approval_status` changed away from `"APPROVED"`) fails the gate immediately.
+
 ## Reliance Brand Counter (ADR-003) — availability status, explicit and tested
 
 Per the certification instruction, canonical availability is reported explicitly, per measure, never inferred or silently substituted:

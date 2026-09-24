@@ -38,6 +38,38 @@ def test_numeric_safety_would_catch_a_broken_round_lakh(monkeypatch):
     assert any("round_lakh" in p for p in problems)
 
 
+def test_governance_integrity_would_catch_a_self_approved_registry_entry(monkeypatch):
+    """The self-approval guard, exercised at the CI-gate level: a registry
+    entry present in governance.APPROVED_EXCEPTIONS but missing its
+    approval fields must fail check_governance_integrity(), not just
+    is_fully_approved() in isolation."""
+    from canonical import governance as governance_mod
+
+    self_approved_entry = governance_mod.ApprovedException(
+        exception_id="GOV-997",
+        metric="FAKE_METRIC",
+        scope_matches=lambda scope: True,
+        scope_description="anything",
+        reason_not_pass="a developer's own claim",
+        evidence="none",
+        business_impact="unknown",
+        financial_impact="unknown",
+        owner="Engineering",
+        approver="",
+        approval_reference="",
+        approved_at="",
+        approval_status="APPROVED",
+        temporary_or_permanent="TEMPORARY",
+        resolution_phase="unscheduled",
+        release_blocker=False,
+    )
+    monkeypatch.setattr(governance_mod, "APPROVED_EXCEPTIONS",
+                         governance_mod.APPROVED_EXCEPTIONS + [self_approved_entry])
+    monkeypatch.setattr(gate.governance, "APPROVED_EXCEPTIONS", governance_mod.APPROVED_EXCEPTIONS)
+    problems = gate.check_governance_integrity()
+    assert any("GOV-997" in p and "self-approval guard" in p for p in problems)
+
+
 def test_governance_integrity_would_catch_an_unregistered_governed_row(monkeypatch):
     fake_exception = type(
         "FakeExc", (), {"exception_id": "GOV-999-NOT-REGISTERED", "status": "APPROVED_GOVERNED"}
