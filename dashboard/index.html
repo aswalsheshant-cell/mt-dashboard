@@ -1333,16 +1333,36 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     let validChains=chains&&chains.length&&chains.every(c=>c[primYr]!=null)?chains:[];
     let validChannels=channels&&channels.length&&channels.every(c=>c[primYr]!=null)?channels:[];
 
+    // F3 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md): this is a real
+    // cross-FY fallback -- the exact pattern ADR-001 forbids for the
+    // canonical engine -- kept here because D.primary.by_chain has no
+    // canonical CHAIN_PRIMARY_NSV metric to migrate this table onto yet.
+    // It only fires when EVERY chain (or EVERY channel) genuinely lacks the
+    // selected FY entirely -- a coarse, whole-FY gap, not the per-chain
+    // KI-OFFTAKE-001 pattern -- and it then silently relabels the prior
+    // FY's rows as `primYr` (`{...c,[primYr]:c[fallbackFy]}`). Not currently
+    // triggered in the certified data.js (FY26/FY27 both carry real primary
+    // chain rows), but if a future data gap ever does trigger it, the
+    // usedFallback flags below drive a visible disclosure banner instead of
+    // letting the relabeled numbers render as if they were real primYr
+    // data -- so "silently" stops being true even if this code path does.
+    let usedChainFallback=false, usedChannelFallback=false;
     if(!validChains.length||!validChannels.length){
       // Fallback: try prior FY
       const fallbackFy=primYr==='fy26'?'fy25':primYr==='fy27'?'fy26':'fy25';
       if(!validChains.length && chains&&chains.length){
         validChains=chains.filter(c=>c[fallbackFy]!=null).map(c=>({...c,[primYr]:c[fallbackFy]}));
+        usedChainFallback=validChains.length>0;
       }
       if(!validChannels.length && channels&&channels.length){
         validChannels=channels.filter(c=>c[fallbackFy]!=null).map(c=>({...c,[primYr]:c[fallbackFy]}));
+        usedChannelFallback=validChannels.length>0;
       }
     }
+    const fallbackFyLabel=primYr==='fy26'?'FY25':primYr==='fy27'?'FY26':'FY25';
+    const fallbackDisclaimer=(usedChainFallback||usedChannelFallback)
+      ?`<div class="fynote" style="margin:0 0 14px"><b>No ${(yrLab[primYr]||primYr)} Primary chain data available.</b> Showing ${fallbackFyLabel} figures instead, labeled as ${(yrLab[primYr]||primYr)} below -- treat these as ${fallbackFyLabel} actuals, not real ${(yrLab[primYr]||primYr)} numbers.</div>`
+      :'';
 
     if(!validChains.length||!validChannels.length){
       content.innerHTML=card('Primary Sales','No data available',`<p class="lead">No Primary Sales data available for ${primYr}. Try selecting a different FY filter.</p>`);
@@ -1367,6 +1387,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
       return `<tr><td>${i+1}</td><td>${drillLink('Chain',c.name)}</td><td>${crc(v)}</td><td>${cumPct.toFixed(1)}%</td></tr>`;
     }).join('');
     content.innerHTML=`
+      ${fallbackDisclaimer}
       ${granularityDisclaimer}
       ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
       ${card('Cumulative Rank & Running Total (by Chain)','Same figures as above, ranked with running % of total NSV',`<table class="tbl"><thead><tr><th>Rank</th><th>Chain</th><th>${yrLab[primYr]||primYr}</th><th>Cumulative %</th></tr></thead><tbody>${rankRows}</tbody></table>`)}
