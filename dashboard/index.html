@@ -1613,13 +1613,25 @@ function buildInventoryHealth(){
       const _currMonths=(o[`months_${fyR}`]||[]).length;
       const _priorMonths=(o[`months_${prior_fy}`]||[]).length;
       const _likeForLike=_currMonths>0 && _currMonths===_priorMonths;
+      // Phase 2A (Issue #195 KI-OFFTAKE-001, canonical engine PR #198/#199):
+      // reads ONLY the real <fy>-keyed field, exact match, never falls back
+      // to ch_data.total/.value/0 -- ports
+      // scripts/canonical/offtake.py::chain_offtake_nsv() /
+      // scripts/canonical/policies.py::exact_fy_or_not_available()'s logic
+      // to JS since this runs client-side. A chain with no real entry for
+      // the requested FY returns null (NOT_AVAILABLE), never a fabricated
+      // 0 or a stale all-months-combined figure. Legacy expression kept
+      // below, unused, as rollback reference for one release cycle.
+      const canonicalChainOfftakeNSV=(ch_data,fyKey)=>(fyKey in ch_data && ch_data[fyKey]!=null)?ch_data[fyKey]:null;
+      // LEGACY (kept for rollback reference only, no longer called):
+      // const legacyChainOfftakeNSV=(ch_data,fyKey)=>(ch_data.total&&ch_data.total[fyKey])||ch_data[`total_${fyKey}`]||ch_data[fyKey]||ch_data.value||0;
       const chainData=_entries.filter(([n,e])=>n&&e).map(([name,ch_data])=>{
         const stores=_uniStores[name];
-        const nsv=(ch_data.total&&ch_data.total[fyR])||ch_data[`total_${fyR}`]||ch_data[fyR]||ch_data.value||0;
-        const prior=(ch_data.total&&ch_data.total[prior_fy])||ch_data[`total_${prior_fy}`]||ch_data[prior_fy]||0;
-        const growth=(_likeForLike && prior>0)?((nsv/prior-1)*100):null;
+        const nsv=canonicalChainOfftakeNSV(ch_data,fyR);
+        const prior=canonicalChainOfftakeNSV(ch_data,prior_fy);
+        const growth=(_likeForLike && nsv!=null && prior!=null && prior>0)?((nsv/prior-1)*100):null;
         return {name,stores,nsv,growth};
-      });
+      }).filter(c=>c.nsv!=null); // a chain with no real offtake figure for this FY cannot be ranked "by offtake" -- excluded, not shown as a fabricated 0
       chainData.sort((a,b)=>b.nsv-a.nsv);
 
       const _growthNote=_likeForLike?'':' · Growth % needs equal month coverage in both years to be a genuine YoY -- not shown for a partial year';

@@ -215,7 +215,60 @@ APPROVED_EXCEPTIONS: List[ApprovedException] = [
                           "checklist'; outside the Phase 1-10 engineering sequence until then.",
         release_blocker=False,
     ),
+    ApprovedException(
+        exception_id="GOV-005",
+        metric="CHAIN_OFFTAKE_NSV",
+        scope_matches=lambda scope: (
+            "fy=FY26" in scope
+            and scope.split(",")[0].removeprefix("chain=") in _GOV005_NEWLY_ONBOARDED_CHAINS
+        ),
+        scope_description="chain in {Apna Mart, Azorte, Broadway, Centro, Lifestyle, National Mart, "
+                           "Shoppers Stop, Trent/Westside}, fy=FY26",
+        reason_not_pass=(
+            "A DIFFERENT root cause from GOV-003/KI-OFFTAKE-001, deliberately NOT covered by that "
+            "entry's scope_matches. These 8 chains were onboarded via a later --offtake-patch merge "
+            "run and have no real FY26 entry AND no 'value' fallback field at all in "
+            "offtake.by_chain (build_dashboard_data.py:1499-1504 creates {'name','raw','total':0.0} "
+            "rows for brand-new chains, never populating a 'value' aggregate for them). Canonical "
+            "correctly reports NOT_AVAILABLE; the live dashboard's fallback expression falls through "
+            "every link (no .total dict, no total_fy26, no fy26 key, no value key) to its final "
+            "'|| 0' and silently displays a literal 0 -- not a stale number like GOV-003's case, but "
+            "the ADR-007 missing-as-zero anti-pattern via a different mechanism."
+        ),
+        evidence="docs/PHASE2A_CHAIN_OFFTAKE_LINEAGE.md; direct inspection of dashboard/data.js's "
+                 "offtake.by_chain rows for these 8 chains (shape {'name','raw','total':0.0,'fy27':X}, "
+                 "no 'fy26' or 'value' key); build_dashboard_data.py:1499-1504's --offtake-patch "
+                 "new-chain-row creation path; tests/canonical/test_phase2_chain_offtake.py's "
+                 "test_newly_onboarded_chains_existing_shows_zero_not_a_stale_number.",
+        business_impact=(
+            "These chains genuinely did not exist as reporting partners until FY27 -- NOT_AVAILABLE "
+            "is the correct fact for FY26. The live 'Top Chains by Offtake' table (index.html:1618) "
+            "shows 0 for them in FY26 today, which reads as 'zero sales' rather than 'not yet "
+            "onboarded' -- a real display-accuracy gap, unchanged in production by Phase 2A's shadow "
+            "work, closed only once the consumer switch (Gate 3) ships."
+        ),
+        financial_impact="8 of 35 chains, FY26 only; each a small standalone offtake figure (the same "
+                          "8 chains' combined FY27 offtake is under 40 L total) -- not material to any "
+                          "FY26 total, since FY26's grand total never included them in the first place.",
+        owner="Engineering",
+        approver="aswalsheshant-cell (repository owner)",
+        approval_reference="Phase 2A Gate 1 review, 2026-09-24 -- approved via explicit decision on "
+                            "PR #199 after this exact finding, evidence, and root-cause were presented; "
+                            "recorded in docs/PHASE2A_CHAIN_OFFTAKE_LINEAGE.md and this PR's history.",
+        approved_at="2026-09-24",
+        approval_status="APPROVED",
+        temporary_or_permanent="TEMPORARY",
+        resolution_phase="Phase 2A Gate 3 (CHAIN_OFFTAKE_NSV consumer cutover) -- production-side "
+                          "closure happens together with GOV-003's, when the Inventory tab's chain "
+                          "table switches to the canonical source.",
+        release_blocker=False,
+    ),
 ]
+
+_GOV005_NEWLY_ONBOARDED_CHAINS = frozenset({
+    "Apna Mart", "Azorte", "Broadway", "Centro", "Lifestyle",
+    "National Mart", "Shoppers Stop", "Trent/Westside",
+})
 
 
 def find_approved_exception(metric, scope) -> Optional[ApprovedException]:
