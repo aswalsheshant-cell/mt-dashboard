@@ -773,20 +773,53 @@ def primary_block(df):
         ser = piv[cols].sum(axis=1, min_count=1) if cols else pd.Series(index=range(12), dtype="float64")
         out[f"monthly_{t.lower()}"] = [r2(ser.get(i)) for i in range(12)]
 
-    def dim_rows(index_col, keep_blank=False, sort=True):
-        pv = df.pivot_table(index=index_col, columns="FY", values="NSV", aggfunc="sum").fillna(0)
+    def _fy_get_safe(series, t):
+        """Like fy_get, but distinguishes "no real row for this tag at all"
+        (returns None -- ADR-007 NOT_AVAILABLE) from "one or more raw-FY-label
+        variants had a real value" (sums only those, ignoring NaN gaps in
+        OTHER variants of the same tag rather than letting a single missing
+        variant poison the whole sum via NaN propagation)."""
+        vals = [series.get(k) for k in keys_of[t]]
+        real = [v for v in vals if v is not None and not (isinstance(v, float) and pd.isna(v))]
+        if not real:
+            return None
+        return float(sum(real))
+
+    def dim_rows(index_col, keep_blank=False, sort=True, zero_fill=True):
+        """zero_fill=True (default, unchanged): every dimension value gets
+        every FY tag key, missing combinations filled with a literal 0 --
+        this remains correct for by_channel (see its own explicit "represent
+        every known channel, even at 0" backfill immediately below this
+        function, a deliberate design choice for a small, closed dimension
+        where absence genuinely means zero business that FY).
+
+        zero_fill=False: a dimension value's FY tag is only ever a real
+        number if the source genuinely had rows for it; otherwise the key
+        is written as None (JSON null), matching the canonical engine's
+        NOT_AVAILABLE semantics (scripts/canonical/policies.py's
+        exact_fy_or_not_available already treats a present-but-null field as
+        NOT_AVAILABLE, and JS's `!=null` checks already treat null the same
+        as undefined) -- used for by_zone/by_brand/by_chain, per Phase 2B-A2's
+        F14 finding (docs/SOURCE_MISSINGNESS_LINEAGE.md): the previous
+        pivot_table(...).fillna(0) made "no data this FY" and "genuinely
+        zero this FY" indistinguishable in the published data.js, upstream
+        of every JS/canonical consumer."""
+        pv = df.pivot_table(index=index_col, columns="FY", values="NSV", aggfunc="sum")
         rows = []
         for k in pv.index:
             if not k and not keep_blank:
                 continue
             row = {"name": k}
             for t in tags:
-                row[t.lower()] = r2(fy_get(pv.loc[k], t))
+                v = fy_get(pv.loc[k].fillna(0), t) if zero_fill else _fy_get_safe(pv.loc[k], t)
+                row[t.lower()] = r2(v) if v is not None else None
             if len(lo) >= 2:
                 a, b = row.get(lo[0]), row.get(lo[1])
-                row["yoy"] = r2((b / a - 1) * 100) if a else None
+                row["yoy"] = r2((b / a - 1) * 100) if (a and b is not None) else None
             rows.append(row)
         # sort by the LATEST FY's value so new years take over the ranking
+        # -- None (not-yet-available) sorts as if 0 for ranking purposes
+        # only; the stored value itself is never coerced to 0.
         return sorted(rows, key=lambda d: -(d.get(lo[-1]) or 0)) if (sort and lo) else rows
 
     out["by_channel"] = dim_rows("channel", keep_blank=True, sort=False)
@@ -803,9 +836,9 @@ def primary_block(df):
                 ch_entry[t.lower()] = 0
             out["by_channel"].append(ch_entry)
 
-    out["by_zone"] = dim_rows("zone")
-    out["by_brand"] = dim_rows("brand")
-    out["by_chain"] = dim_rows("chain")
+    out["by_zone"] = dim_rows("zone", zero_fill=False)
+    out["by_brand"] = dim_rows("brand", zero_fill=False)
+    out["by_chain"] = dim_rows("chain", zero_fill=False)
     return df, out
 
 # --------------------------------------------------------------------------
