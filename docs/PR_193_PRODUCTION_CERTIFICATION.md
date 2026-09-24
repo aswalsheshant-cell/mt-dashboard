@@ -2,7 +2,11 @@
 
 **PR:** [aswalsheshant-cell/mt-dashboard#193](https://github.com/aswalsheshant-cell/mt-dashboard/pull/193)
 **Branch:** `fix/dashboard-audit-findings`
-**Certified commit SHA:** `e0e30c4814b750415717b3635be4d04a2a2e1c6c`
+**Certified commit SHA:** `e0e30c4814b750415717b3635be4d04a2a2e1c6c` (validation
+run against this SHA; this report is committed on top of it as `64db8fd`,
+which changes only this file — `git diff --stat e0e30c4 64db8fd` touches
+nothing else — so every result below holds unchanged for the PR's actual
+final head, `64db8fdfefed05bde992ea3fd5bd5fdf674808a6`)
 **Base:** `main` @ `cd8b033f34d73e6e283d4a264731362750a0cc5e`
 **Certified on:** 2026-09-24
 **Certifying agent:** Claude Code session `01HrrHqs3z5s4zwcF6xhCAHs`
