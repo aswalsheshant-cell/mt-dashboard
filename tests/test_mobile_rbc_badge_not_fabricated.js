@@ -9,7 +9,6 @@
 // exercise the code path directly, rather than relying on live data that
 // this file is disconnected from.
 const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
-const path = require('path');
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
