@@ -15,7 +15,7 @@ folded into GOV-003 (different evidence, different mechanism) and was NOT
 self-approved by the agent that found it -- it required an explicit,
 separately-recorded approval decision (see governance.py's GOV-005 entry
 for the full record) before this test could assert a clean Gate 1."""
-from canonical import facts, phase2_chain_offtake as p2, reconcile
+from canonical import phase2_chain_offtake as p2, reconcile
 from canonical.policies import NotAvailable
 
 NEWLY_ONBOARDED_CHAINS_MISSING_FY26 = frozenset({
