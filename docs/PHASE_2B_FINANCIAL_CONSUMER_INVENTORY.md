@@ -6,13 +6,18 @@ document is the inventory and recommended remediation order only — Phase 2B-B
 (actually acting on any finding) requires separate, explicit approval.
 
 **Scope covered exhaustively:** every consumer of `D.offtake.by_chain` (the
-`CHAIN_OFFTAKE_NSV`/`OFFTAKE_NSV` lineage Phase 1/2A built canonical coverage for),
-plus every consumer surfaced by that trace that turned out to touch a second or
-third independent financial-truth source (Primary chain NSV, the pre-built
-Primary-vs-Offtake gap block). **Scope covered at lighter depth, explicitly flagged,
-not silently assumed clean:** P&L NSV (`D.pnl.by_chain`), TOT% (`D.tot.by_chain`),
-Promo (`D.promo.by_chain`), Forecast (`D.forecast`), Category & Pack, Reliance Brand
-Counter, Correlations/elasticity (`corr.by_chain`) — these are real, separate
+`CHAIN_OFFTAKE_NSV`/`OFFTAKE_NSV` lineage Phase 1/2A built canonical coverage for);
+every consumer surfaced by that trace touching a second, third, fourth or fifth
+independent financial-truth source (Primary chain NSV, the pre-built
+Primary-vs-Offtake gap block, `sales_actuals_block()`); `dashboard/mobile.html` in
+full; the `PowerBI/DAX/` and `PowerBI/PowerQuery/` directories for chain-level
+NSV/offtake measures and queries; and `scripts/build_dashboard_data.py`'s chain-level
+writer functions, including the Python-side missing-vs-zero mechanics upstream of
+every JS/DAX consumer (F14 — the deepest finding, not yet empirically resolved).
+**Scope covered at lighter depth, explicitly flagged, not silently assumed clean:**
+P&L NSV (`D.pnl.by_chain`), TOT% (`D.tot.by_chain`), Promo (`D.promo.by_chain`),
+Category & Pack, Reliance Brand Counter (non-canonical paths), Demand Forecast,
+Competitive Landscape, Correlations/elasticity (`corr.by_chain`) — these are real, separate
 financial-truth domains this pass did not attempt to fully re-trace to the same
 depth as the Offtake/Primary chain lineage; see "Deliberately not yet classified"
 below rather than a false `0 UNKNOWN` claim across the whole dashboard.
@@ -101,9 +106,80 @@ below rather than a false `0 UNKNOWN` claim across the whole dashboard.
 
 ---
 
+### F7 — `dashboard/index.html:1555` (`buildInventoryHealth`, "Total Offtake" headline KPI)
+
+| Field | Value |
+|---|---|
+| Function/symbol | `buildInventoryHealth()`, `total` |
+| Input source | `o?.total?.[fyR] ?? o?.[`total_${fyR}`] ?? 0` — both lookups are genuinely FY-specific (nested vs. flat schema variants of the same real field), **not** the KI-OFFTAKE-001 all-months substitution |
+| Output consumer | Inventory & Supply Health tab's headline "Total Offtake" KPI tile (line ~1571) |
+| Missing-data behaviour | The trailing `?? 0` turns an honest gap into a fabricated headline figure: if neither FY-specific field exists, the KPI reads **"₹0.00 Cr"** instead of "–" |
+| Financial impact | **Real and live, on a headline KPI** — more visible than F2's chart-level defect. Currently masked because `total_<fy>` is populated for both certified FYs today, but the display logic itself does not distinguish "genuinely zero" from "not available" |
+| **Classification** | **UNCONTROLLED_FINANCIAL_TRUTH** (the lookup itself is safe; the `?? 0` display coercion is the defect) |
+| Recommended action | Small, low-risk fix: change `?? 0` to `?? null` and render `'–'` when null, mirroring F1's pattern exactly. No shadow comparison needed — this is a display-layer fix, not a calculation change |
+| Evidence | Sub-agent code trace, 2026-09-24 |
+
+### F8 — `dashboard/mobile.html:769` — hardcoded fake growth badge
+
+| Field | Value |
+|---|---|
+| Function/symbol | RBC-Total KPI growth badge |
+| Input source | **None** — `badge.textContent = '▲ +10.7%'` is a **literal hardcoded string**, gated only by `D.yoy_metrics.status==='active'` |
+| Output consumer | Mobile dashboard, RBC-Total KPI tile |
+| Missing-data behaviour | N/A — this isn't a missing-data fallback, it's a fabricated number with no data backing it at all |
+| Financial impact | **Currently dormant** — `D.yoy_metrics` does not exist anywhere in `build_dashboard_data.py` or `data.js`, so the gate never opens. **If that field is ever populated for an unrelated reason, this renders a fixed fake +10.7% forever**, independent of real data — a worse class than any fallback found in this inventory (a permanently wrong number baked into source, not a stale or defaulted one) |
+| **Classification** | **UNCONTROLLED_FINANCIAL_TRUTH** (dormant but severe if triggered) |
+| Recommended action | Remove the hardcoded literal now, regardless of dormancy — a fabricated number waiting on an unrelated future field to activate it is exactly the kind of landmine this inventory exists to find before it fires, not after |
+| Evidence | Sub-agent code trace, 2026-09-24 |
+
+### F9 — `dashboard/mobile.html` — entire "Top Chains" feature is dead (schema mismatch)
+
+| Field | Value |
+|---|---|
+| Function/symbol | Mobile "Top Chains" tables (Overview ~795-818, Primary ~841-868, Offtake ~907-936) |
+| Input source | `D.by_chain` — but `mobile.html` has no `<script src="data.js">` anywhere; `window.DASH`'s real top-level keys are `primary`, `offtake`, `universe`, etc. — there is no top-level `D.by_chain`, `D.offtake_total`, `D.primary_total`, or `D.rbc` |
+| Missing-data behaviour | `if(D.by_chain)` is always false; the tables silently render nothing — not shown as a gap, just empty. `data.nsv\|\|0`/`data.offtake\|\|0` inside those loops (lines 810, 859, 926) are latent (unreachable) missing-to-zero coercions — milder than F1's pre-fix pattern (no wrong nonzero) but would need fixing too if the schema mismatch is ever corrected |
+| Financial impact | None today (dead code) — but "Total Offtake"/"Total Primary" mobile KPIs (`D.primary_total ? ... : '–'`, lines 778, 783, 896) are correctly en-dash-guarded, a genuinely good pattern, currently moot since those fields don't exist either |
+| **Classification** | **DISPLAY_ONLY** (dead, zero current financial impact) with one **UNKNOWN** sub-item — whether `mobile.html` is meant to be wired to `data.js` at all, or is an intentionally separate/unfinished surface, wasn't determined this pass |
+| Recommended action | Not a Phase 2B-B priority (dead code can't display wrong data). Worth a one-line question to the business/product owner: is mobile.html still an active surface? If yes, the schema mismatch needs fixing before any of its financial displays can be trusted; if no, it's cleanup-list material |
+| Evidence | Sub-agent code trace, 2026-09-24 |
+
+### F10 — `PowerBI/DAX/07_PrimaryAllocation_Measures.dax:48-70` — dormant double-allocation risk
+
+| Field | Value |
+|---|---|
+| Function/symbol | `Raw ShipTo Primary = COALESCE(BLANK(), [Ship-to Primary NSV])`, consumed by `Allocated Primary (via Cont%)` |
+| Missing-data behaviour | Documented as a placeholder until an un-split feed exists. If `Allocated Primary (via Cont%)` is ever surfaced while the raw feed stays unpopulated, it multiplies an **already chain-split** NSV by the Cont% allocation a second time — a silent **double-application of an allocation percentage**, producing a wrong nonzero, not a gap |
+| Financial impact | Dormant (not currently surfaced per the sub-agent's trace) but the exact same "landmine waiting on an unrelated trigger" shape as F8 |
+| **Classification** | **UNCONTROLLED_FINANCIAL_TRUTH** (dormant) |
+| Recommended action | Confirm whether `Allocated Primary (via Cont%)` is used in any live Power BI report page; if so, treat as high priority; if not, document the landmine clearly in the DAX file itself so a future editor doesn't surface it without noticing |
+| Evidence | Sub-agent code trace, 2026-09-24 |
+
+### F11-F13 — lower-severity findings (Power BI grain-matched zeros, zone allocation, per-row NSV defaults)
+
+| # | Location | Pattern | Classification | Note |
+|---|---|---|---|---|
+| F11 | `PowerBI/PowerQuery/43_SecondarySalesEfficiency.pq:57-58` | `Table.ReplaceValue(...,null,0,...)` after a `JoinKind.FullOuter` on Chain×Brand×Month | DERIVED_ANALYTIC | A genuine grain-matched zero (row absent from an exact-key join side), not a scope-mismatched substitution — but can't distinguish "genuinely zero" from "month hasn't loaded yet." Lower severity; worth monitoring, not urgent |
+| F12 | `dashboard/index.html:1136,1138-1139` | `Number(z.fy26)\|\|0`, `Number(z.fy27)\|\|0` (Zone Forecast Allocation) | DERIVED_ANALYTIC | Zone-grain (not chain), feeds a forecast-cascade share calc — a zone silently gets 0% share instead of a flagged gap. Secondary-order, not a headline NSV figure |
+| F13 | `dashboard/index.html:1458,3810,4243` (`r.NSV\|\|0`), `PowerBI/DAX/09_ArticleAllocation_Eligibility.dax` (`COALESCE(...,0)`) | Per-row/per-article NSV null-to-zero before aggregation | DISPLAY_ONLY / standard practice | Standard "null cell contributes 0 to a sum" pattern at the finest grain, not a chain/FY-total substitution — outside the KI-OFFTAKE-001 risk class entirely |
+
+### F14 — `scripts/build_dashboard_data.py` — the Python-side root cause (highest priority to verify)
+
+| Field | Value |
+|---|---|
+| Function/symbol | `primary_block()`'s `dim_rows()` (`pv.pivot_table(...).fillna(0)`, line ~777); `offtake_block()`'s `fy_sum` (~878-884) and `offtake_rebuild_block()`'s `dim_rows()` (~2198-2202) |
+| Input source | The raw pivot/aggregation step that produces every `by_chain[]` row, upstream of ANY client-side (JS/DAX) logic |
+| Missing-data behaviour | `fillna(0)` and `sum()` over an empty per-chain-per-FY generator both write a **real, present `0`** — structurally, "no rows at all for this chain this FY" and "rows exist and genuinely sum to zero" become indistinguishable in the emitted JSON **before** any downstream null-check (JS `!=null`, canonical `exact_fy_or_not_available()`) ever sees the data |
+| Financial impact | **Not yet proven to have produced an actual wrong canonical value in the current certified `data.js`** — this session's own empirical checks (Phase 1/2A) confirmed `exact_fy_or_not_available()` correctly returns `NOT_AVAILABLE` for the known cases (GOV-003's 4 chains, GOV-005's 8 chains) because their FY keys are genuinely *absent*, not present-as-zero. Whether some *other*, not-yet-identified chain/FY combination has a fabricated `0` masquerading as a real figure was not verified this pass |
+| **Classification** | **UNKNOWN** (structurally real risk, not empirically confirmed or ruled out) |
+| Recommended action | **Highest-priority item for a dedicated audit before this codebase can honestly claim `0 UNKNOWN` end to end** — this is the one finding that could, if real, mean the canonical engine's core guarantee ("missing never becomes zero") has a gap at its own source, not in any consumer. Needs: for every chain × FY combination the certified data.js reports a real `0.0` (not an absent key), cross-check against the raw monthly source files whether that chain genuinely had zero transactions that FY vs. simply wasn't in the source at all |
+| Evidence | Sub-agent code trace, 2026-09-24, with specific line citations for all three writer functions |
+
+Also confirmed by this trace: `offtake_block()` (line 882, the older/default full-rebuild path) and `offtake_rebuild_block()`'s `dim_rows()` (line 2202) both still unconditionally emit the all-months-combined `total`/`value` field on every row — the exact field F1's canonical fix had to explicitly exclude and F2 (`computeChannelHealth()`) still reads. And `sales_actuals_block()` (line 4248) is a **fourth, genuinely separate** chain-level sales computation (with its own DMS/Massit gap-fill and an explicit `NO_SALES_DATA` bucket, not a silent zero) — live code, but reached only via `scripts/ingest_massit_sales.py`, outside `build_dashboard_data.py`'s own `main()` / the `--offtake-patch`/rebuild CLI flow. Not yet reconciled against F1/F2's sources; noted as a fifth potential "competing truth" candidate alongside F6.
+
 ## Deliberately not yet classified (real domains, not silently assumed clean)
 
-These are genuine financial-truth-bearing surfaces this pass did not trace to F1-F6's
+These are genuine financial-truth-bearing surfaces this pass did not trace to F1-F14's
 depth. Listed so the exit criteria below is honest about what it actually covers,
 rather than claiming whole-dashboard coverage from a keyword sweep:
 
@@ -113,18 +189,15 @@ rather than claiming whole-dashboard coverage from a keyword sweep:
   not deep-traced for cross-FY fallback in this pass.
 - **Promo** (`D.promo.by_chain`) — Promo Intensity by Chain table; not an NSV/offtake
   figure, lower financial-truth relevance.
-- **Forecast** (`D.forecast`, `D.offtake.by_zone` + `D.forecast.fy27_forecast`) — Zone
-  Forecast Allocation table; zone grain, not chain grain; canonical engine has no
-  zone-level metric yet either.
 - **Correlations/elasticity** (`corr.by_chain`) — Commercial Analytics promo-elasticity
   section; derived analytics over Promo/Primary data, not raw Offtake NSV.
 - **Category & Pack Mix, Reliance Brand Counter (non-`RBC_OFFTAKE_NSV`/`RBC_PRIMARY_NSV`
   paths), Demand Forecast, Competitive Landscape** — not searched this pass.
-- **`dashboard/mobile.html`, `PowerBI/DAX/`, `PowerBI/PowerQuery/`,
-  `scripts/build_dashboard_data.py` (functions beyond `offtake_block()`/
-  `offtake_rebuild_block()`)** — delegated to a parallel sweep this same session;
-  see that sweep's findings folded in below if completed before this document's
-  final commit, otherwise flagged here as still open.
+- **`02_PnL_Measures.dax`, `04_Nielsen_Measures.dax`** — COALESCE-to-default patterns
+  found but out of scope (margin-assumption %/market-share, not chain offtake/primary
+  NSV); noted, not traced further.
+- **`sales_actuals_block()`'s reconciliation against F1/F2/F6's sources** (see F14) —
+  a fifth potential competing-truth candidate, not yet compared.
 
 ## Canonical/test infrastructure (all `scripts/canonical/` and `tests/canonical/`)
 
@@ -144,50 +217,81 @@ fully documented in `docs/CANONICAL_ENGINE_PHASE1_REPORT.md`.
 ## Summary against Phase 2B-A exit criteria
 
 ```
-0 UNKNOWN                        NOT MET -- 1 open (F6: D.primary_offtake_gap's
-                                  Python-side missing-data behavior not yet traced)
+0 UNKNOWN                        NOT MET -- 2 open: F6 (D.primary_offtake_gap's
+                                  Python source not traced), F14 (whether Python-
+                                  side fillna(0)/sum-over-empty has produced any
+                                  actual false-real-zero in the certified data.js
+                                  -- not empirically confirmed or ruled out)
 0 unexplained financial truth
-sources                          NOT MET -- F6's structural duplication is explained
-                                  (three independent Primary-vs-Offtake computations
-                                  exist) but not yet fully resolved to a single source
+sources                          NOT MET -- F6 (3 independent Primary-vs-Offtake
+                                  computations) and F14 (a possible source-level
+                                  missing-vs-zero ambiguity upstream of every
+                                  consumer) both real, neither fully resolved
 100% financial consumers
-classified                       PARTIAL -- F1-F6 fully classified; several real
-                                  domains (P&L, TOT%, Promo, Forecast, mobile.html,
-                                  PowerBI) explicitly flagged as not yet covered,
-                                  not silently assumed clean
+classified                       SUBSTANTIALLY EXPANDED -- F1-F14 fully classified
+                                  (offtake/primary chain lineage, mobile.html,
+                                  PowerBI DAX/M, build_dashboard_data.py's chain
+                                  writers). Still explicitly open: P&L, TOT%,
+                                  Promo, Correlations, Category&Pack, Reliance
+                                  (non-canonical paths), Demand Forecast,
+                                  Competitive Landscape, two PowerBI DAX files
+                                  noted but not traced
 Every fallback path explicitly
 identified                       F1 (fixed), F2 (live defect), F3 (dormant), F5
-                                  (dead code) -- all identified with exact expressions
+                                  (dead code), F7 (live KPI defect), F8 (dormant,
+                                  hardcoded fake number), F9 (dead), F10 (dormant
+                                  double-allocation), F11-F13 (lower severity) --
+                                  all identified with exact expressions
 Every missing->zero
-transformation identified        F2's primary-side `p=pri[c]||0`, F3's `c[primYr]||0`
-                                  -- identified; F6 and the "not yet classified" list
-                                  still open
-Issue #200 lineage proven        YES -- F2 above, with more precision than the
-                                  original Phase 2A lineage trace (both the offtake-
-                                  side AND a previously-unnoticed primary-side
-                                  fallback, plus the dead 'Overstocked' filter)
+transformation identified        F2, F3, F7, F9, F12, F13 identified with exact
+                                  expressions; F6 and F14 (the deepest, source-
+                                  level case) still open; remaining "not yet
+                                  classified" domains still open
+Issue #200 lineage proven        YES -- F2, with more precision than the original
+                                  Phase 2A lineage trace (both the offtake-side AND
+                                  a previously-unnoticed primary-side fallback, plus
+                                  the dead 'Overstocked' filter)
 No production behavior changed   YES -- zero files outside this docs/ commit touched
 ```
 
 **Verdict: PHASE 2B-A DISCOVERY INCOMPLETE — do not proceed to Phase 2B-B (remediation)
-on the full dashboard yet.** F2 (Issue #200 / `computeChannelHealth()`) is fully
-proven and ready for its own Phase 2B-B remediation cycle (shadow comparison → gates
-→ cutover, mirroring Phase 2A's exact playbook) independent of the rest. F6 needs one
-more trace (its Python source) before it can be closed out. The "deliberately not yet
-classified" domains need their own dedicated sweep before this repo can honestly claim
-`0 UNCONTROLLED_FINANCIAL_TRUTH` end to end.
+on the full dashboard yet.** Three items are fully proven and ready for independent
+remediation cycles the moment they're approved: **F2** (Issue #200), **F7** (Total
+Offtake KPI's `?? 0`, a small display-layer fix), and **F8** (delete the hardcoded
+fake growth badge in `mobile.html` now, regardless of dormancy — a landmine is still
+a landmine before it fires). **F14 is the highest-priority open item** — if the
+Python-side `fillna(0)`/sum-over-empty pattern has produced even one false-real-zero
+in the certified `data.js`, it would mean the canonical engine's core "missing never
+becomes zero" guarantee has a gap at its own source, undiscovered by any test in
+Phase 1 or 2A (which only exercised the "key genuinely absent" case, not "key present
+with a source-fabricated zero"). This needs empirical verification before it can be
+ruled in or out — the domains in "deliberately not yet classified" still need a
+scoped, per-domain sweep before this repo can honestly claim `0 UNCONTROLLED_FINANCIAL_TRUTH`
+end to end.
 
 ## Recommended remediation order
 
-1. **F2 (`computeChannelHealth()` / Issue #200)** — highest confidence, highest
-   financial-truth risk (a live, provable wrong-number defect, not just dormant risk).
-   Ready to start its own Gate-1-style shadow comparison now.
-2. **F6 (`D.primary_offtake_gap` Python source trace)** — needed to close out the
-   "duplicate calculation" question before deciding whether F2's fix should also
-   consolidate toward one shared Primary-vs-Offtake source.
-3. **F3 (Primary chain cross-FY fallback)** — lower priority, dormant today; worth a
+1. **F14 (Python-side missing-vs-zero root cause)** — verify first, before any UI
+   fix, since it could affect the correctness of figures this whole inventory
+   otherwise treats as trustworthy. For every chain × FY the certified `data.js`
+   shows a real `0.0` (not an absent key), cross-check the raw monthly source: did
+   that chain genuinely have zero transactions, or was it simply absent from the
+   source entirely?
+2. **F2 (`computeChannelHealth()` / Issue #200)** — highest-confidence live UI
+   defect. Ready to start its own Gate-1-style shadow comparison now (produces a
+   ratio, needs its own comparison logic, not a reuse of F1's).
+3. **F7 (Total Offtake KPI `?? 0`)** — small, low-risk, display-layer-only fix
+   (`?? null` + `'–'` render), no shadow comparison needed. Safe to bundle with F2's
+   remediation cycle or do standalone.
+4. **F8 (mobile.html hardcoded fake badge)** — delete now regardless of dormancy;
+   zero risk (the code path is unreachable today), zero benefit to leaving it.
+5. **F6 (`D.primary_offtake_gap` Python source trace) + F10 (PowerBI double-
+   allocation dormancy check)** — both need one more trace each (is the block/measure
+   actually live anywhere) before a remediation decision can be made.
+6. **F3 (Primary chain cross-FY fallback)** — lower priority, dormant today; worth a
    `CHAIN_PRIMARY_NSV` canonical metric if/when this table is migrated.
-4. **The "deliberately not yet classified" domains** — a follow-up Phase 2B-A2 sweep,
-   scoped per-domain (P&L, Promo, Forecast, mobile.html, PowerBI) rather than one
-   more all-at-once pass.
-5. **F5 (dead code)** — cosmetic, no urgency, bundle into any future cleanup pass.
+7. **The "deliberately not yet classified" domains** — a follow-up Phase 2B-A2 sweep,
+   scoped per-domain (P&L, TOT%, Promo, Correlations, Category&Pack, Reliance,
+   Demand Forecast, Competitive Landscape) rather than one more all-at-once pass.
+8. **F5, F9, F11-F13 (dead code / lower-severity patterns)** — cosmetic or low-risk,
+   no urgency, bundle into any future cleanup pass.
