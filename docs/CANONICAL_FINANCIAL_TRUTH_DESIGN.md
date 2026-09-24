@@ -4,6 +4,40 @@
 **Depends on:** `main` @ `ca67f67173dd9c1d71ae715b3abf47a2e072ed63` — the certified baseline from `docs/POST_MERGE_CERTIFICATION_PR193.md` / PR #193 / PR #196.
 **Related governance:** [Issue #194](https://github.com/aswalsheshant-cell/mt-dashboard/issues/194) (infrastructure, kept fully separate — Track C below), [Issue #195](https://github.com/aswalsheshant-cell/mt-dashboard/issues/195) (`KI-OFFTAKE-001`, mapped into this design rather than patched standalone — Track B below).
 
+> **Implementation discovery — Phase 1 correction (PR #198).** This design
+> document originally described `D.reliance_brand_counters` as "real" data
+> ("this block is real and exists in `data.js` today (`total`, `by_zone`,
+> `by_brand`, `fy_tags`)"). Building the Phase 1 canonical engine and
+> checking that claim against the certified `data.js` directly showed this
+> was wrong: `D.reliance_brand_counters` is an **empty availability stub**
+> — `months: []`, `monthly: []`, `total: 0`, `fy_tags: []`, `by_zone: []`,
+> `by_state: []`, `by_brand: []`, and an explicit
+> `note: "Reliance Brand Counter data not available in current extracts."`
+> There is no real Reliance Brand Counter offtake extract in this repo
+> today. This is a correction to a factual claim in the design, made
+> because Phase 1 implementation surfaced evidence the design was
+> following incorrect information — it is **not** a reversal of ADR-003.
+> ADR-003 remains **APPROVED — Option C (Primary + Offtake + Gap, as three
+> separate measures)**; only the *availability status* of one of those
+> three measures changes:
+>
+> - `RBC_PRIMARY_NSV` = **AVAILABLE** (unchanged — real Primary `detail_records` data)
+> - `RBC_OFFTAKE_NSV` = **NOT_AVAILABLE** (corrected from the original "AVAILABLE" claim below — no real source exists to wire in yet)
+> - `RBC_GAP_NSV` = **NOT_AVAILABLE** (per ADR-003 rule 5 — a derived measure requires both operands available, and one is not)
+>
+> Per this repo's "no dummy data" rule, the canonical engine reports this
+> honestly as `NOT_AVAILABLE` rather than computing a substitute. It does
+> **not** fabricate an estimate, and it does **not** allocate Reliance
+> chain-level Offtake down to Brand Counter as a stand-in — that would
+> require a business rule authorizing such an allocation, which does not
+> exist. The specific field values below that describe `RBC_OFFTAKE_NSV`
+> as available data are superseded by this note; they are left in place
+> (rather than rewritten) so the record shows what was designed and what
+> Phase 1 implementation actually found. See
+> `scripts/canonical/availability.py` and
+> `docs/CANONICAL_ENGINE_PHASE1_REPORT.md` for the tested implementation
+> and reconciliation evidence (governance exception `GOV-004`).
+
 ## Why this document exists
 
 PR #193 fixed four business-number defects. Three of the four (channel split, Category/Pack display, Reliance zone display) were each a *display or aggregation-source* bug local to one code path. The fourth (Inventory Total Offtake KPI) and the still-open `KI-OFFTAKE-001` are both symptoms of the same deeper pattern: **the same business number can be computed more than one way in this codebase, and nothing enforces that the two ways agree.** `primary.by_channel` (pre-aggregated) and `detail_records` (article-wise) both claim to describe Primary Channel NSV; `offtake.total_<fy>` and the "Top Chains by Offtake" table's own per-chain fallback both claim to describe Offtake NSV — and PR #193 had to reconcile them by hand, once, for four specific views. That does not scale, and it is exactly the failure mode a semantic-model-style canonical layer exists to prevent: one calculation, many consumers, instead of many calculations hoping to agree.
@@ -353,7 +387,7 @@ Each contract below is filled from the **current, real** source where one exists
 | Field | Value |
 |---|---|
 | Metric ID | `RBC_OFFTAKE_NSV` |
-| Availability Status | **AVAILABLE** as data (`D.reliance_brand_counters` is real) and **APPROVED for wiring in**, per ADR-003 (ADR-003 detail section above) |
+| Availability Status | ~~**AVAILABLE** as data (`D.reliance_brand_counters` is real) and **APPROVED for wiring in**, per ADR-003~~ — **CORRECTED, Phase 1 (see the implementation-discovery note at the top of this document): NOT_AVAILABLE.** `D.reliance_brand_counters` was found to be an empty stub, not real data, when the canonical engine was built. ADR-003's Option C decision (Primary + Offtake + Gap) is unchanged; only this measure's availability status is corrected |
 | Business definition | Consumer/store offtake attributable to Reliance Brand Counter — the sell-out side of `RBC_GAP_NSV`. Split into Total Reliance Offtake (macro) and the ~350 staffed Brand Counter doors (a strict subset, per CLAUDE.md's Reliance Brand Counter Deduplication Safeguard) |
 | Business owner | MT Leadership |
 | Authoritative source | `D.reliance_brand_counters` (`load_reliance_bc_data()`) — this block is real and exists in `data.js` today (`total`, `by_zone`, `by_brand`, `fy_tags`) and, per ADR-003, gets its first dashboard consumer once implemented. Separately, `D.offtake.by_chain` has a "Reliance Retail" row for total chain offtake (not BC-specific; do not conflate the two) |

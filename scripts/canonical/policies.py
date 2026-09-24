@@ -61,4 +61,9 @@ def exact_fy_or_not_available(entity_name, requested_fy, values_by_fy):
 
 
 def is_available(value):
-    return not isinstance(value, NotAvailable)
+    """A value is available iff it is not NotAvailable and not a bare None.
+    None reaching here means a caller had nothing to compare (e.g. 'no
+    existing dashboard consumer for this metric') -- ADR-007's 'missing
+    never becomes zero (or a false real value)' applies to that case
+    exactly as much as to an explicit NotAvailable sentinel."""
+    return value is not None and not isinstance(value, NotAvailable)
