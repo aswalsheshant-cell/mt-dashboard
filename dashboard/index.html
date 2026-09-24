@@ -3755,36 +3755,31 @@ function computePVMMetrics(){
 }
 
 function computeChannelHealth(){
-  // by_chain is an ARRAY on both blocks. This used Object.keys() over it, so
-  // every "chain" was an array index ('0','1','2'…) and each row was
-  // mislabelled. It also read primary[c]['nsv_'+fy] and offtake[c].total,
-  // neither of which exists on these rows -- offtake was therefore always 0,
-  // the ratio always 0, and every chain came back "Overstocked".
-  // Index by name, use keys that exist, and compare the SAME window on both
-  // sides so sell-out vs sell-in is like for like.
-  const SP=(D.detail_meta&&D.detail_meta.same_period)||null;
-  const fy=fyKey();                                    // 'fy26' | 'fy27' | ''
-  const spKey=SP?String(SP.curr_fy).toLowerCase():null;
-  const useSP=!!(SP&&SP.by_chain&&(!fy||fy===spKey));   // SP covers the current FY
-  const offKey=useSP?spKey:fy;
-  const off={};
-  ((D.offtake&&D.offtake.by_chain)||[]).forEach(r=>{
-    if(!r||r.name==null) return;
-    off[r.name]=(offKey&&r[offKey]!=null)?r[offKey]:r.value;
-  });
-  const pri={};
-  if(useSP) SP.by_chain.forEach(r=>{ if(r&&r.name!=null) pri[r.name]=r.curr; });
-  else ((D.primary&&D.primary.by_chain)||[]).forEach(r=>{
-    if(!r||r.name==null) return;
-    pri[r.name]=fy?r[fy]:r.value;
-  });
-  const names=[...new Set([...Object.keys(pri),...Object.keys(off)])];
-  return names.map(c=>{
-    const p=pri[c]||0, o=off[c]||0;
-    // Both sides must be real before a ratio means anything.
+  // Consolidated onto D.primary_offtake_gap (Phase 2B-B item 2, Issue #200 / F2:
+  // docs/SOURCE_MISSINGNESS_LINEAGE.md). The old version read D.primary.by_chain
+  // directly on the Primary side -- which has zero FY27 coverage, since Primary's
+  // pre-aggregated source ends Mar'26 -- and fell back to Offtake's stale,
+  // all-months-combined .value field whenever a FY-keyed value was missing (the
+  // KI-OFFTAKE-001 anti-pattern). D.primary_offtake_gap[win].by_chain.matched
+  // already sources FY27 Primary correctly (via fyx_primary, the real article-
+  // level FY27 extract) and never falls back to .value/.total on either side --
+  // the same governed source computePromoSellThroughCorrelation() and
+  // primaryOfftakeGapSection() already read. pogGapWindow(g) honors the global
+  // FY filter (fixed for the FM-22 class of bug) instead of this function
+  // maintaining a second, independent same-period/fy-selection rule.
+  const g=D.primary_offtake_gap;
+  if(!g||(!g.fy26&&!g.fy27)) return [];
+  const win=pogGapWindow(g);
+  const matched=(g[win]&&g[win].by_chain&&g[win].by_chain.matched)||[];
+  return matched.map(r=>{
+    const p=r.primary, o=r.offtake;
+    // matched[] already guarantees both sides are real, non-fabricated values
+    // (primary_offtake_gap_block() only adds a chain here when both are present) --
+    // this guard is kept explicit to match the original's "both sides must be
+    // real before a ratio means anything" intent.
     const ratio=(p>0&&o>0)?o/p:null;
     return{
-      chain:c, primary:p, offtake:o, health_ratio:ratio,
+      chain:r.name, primary:p, offtake:o, health_ratio:ratio,
       status:ratio==null?'No data':ratio>1.15?'Selling out faster than billed'
              :ratio<0.85?'Billed ahead of sell-out':'Balanced',
       color:ratio==null?'var(--muted)':(ratio>1.15||ratio<0.85)?'var(--amber)':'var(--green)'
@@ -3827,7 +3822,13 @@ function generateAnalyticsInsights(){
       text:`Like-for-like price is ${pct(pvm.asp.pure_price_change_pct)} even though blended ASP is `
            +`${pct(pvm.asp.blended_change_pct)} — the ASP lift is mix and new range, not pricing.`});
   }
-  const overstocked=health.filter(h=>h.status==='Overstocked');
+  // computeChannelHealth() never emits the literal status 'Overstocked' -- its real
+  // values are 'No data'/'Selling out faster than billed'/'Billed ahead of sell-out'/
+  // 'Balanced' (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md's F2 secondary finding:
+  // this filter could never match, so this insight card could never fire). 'Billed
+  // ahead of sell-out' (offtake lagging primary, ratio<0.85) is the status that
+  // actually means overstocked -- billed-in stock sitting unsold.
+  const overstocked=health.filter(h=>h.status==='Billed ahead of sell-out');
   if(overstocked.length>0) insights.push({type:'risk',title:'Inventory Imbalance',text:`${overstocked.length} accounts overstocked; rebalancing needed.`});
   return insights.slice(0,5);
 }
