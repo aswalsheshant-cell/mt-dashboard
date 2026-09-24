@@ -176,6 +176,16 @@ PR #193 CERTIFICATION
 [PASS] No unexpected tracked-file mutation (git status clean; diff limited to listed files)
 [PASS] Git working tree clean
 [PASS] PR diff limited to approved scope (4 defects + their tests + this report)
+[PASS] GitHub CI — 25/26 checks green at c5da242, including all 6 required
+       Production Acceptance Gate checks (validate, Analyze (python),
+       Analyze (javascript-typescript), Validate Dashboard Data & Schema,
+       Validate HTML Structure & Fixes, Production Acceptance Gate)
+[N/A]  github-advanced-security — failed at session setup with
+       "CAPIError: 400 The requested model is not supported" (GitHub's own
+       Copilot backend rejecting its own model choice, before reading any
+       code in this diff). Not a required check; not retriable
+       (rerun_failed_jobs -> 403 This workflow run cannot be retried).
+       Documented on the PR, not treated as blocking.
 
 VERDICT: READY FOR REVIEW
 ```
