@@ -9,6 +9,23 @@
 //      in 'Fact Primary ShipTo'[Primary NSV] -> use [Ship-to Primary NSV].
 //  (B) Feed arrives un-split at Ship-To x Brand total: multiply that total by
 //      the chain Cont% -> use [Allocated Primary (via Cont%)].
+//
+// !! DOUBLE-ALLOCATION LANDMINE (Phase 2B-B F10, docs/PHASE_2B_FINANCIAL_
+// CONSUMER_INVENTORY.md) -- read before adding [Allocated Primary (via
+// Cont%)] to ANY visual, card or table:
+//   Today's data is mode (A) -- already chain-split. [Raw ShipTo Primary]
+//   is a placeholder that COALESCEs to [Ship-to Primary NSV] until a real
+//   un-split feed exists. That means [Allocated Primary (via Cont%)]
+//   currently multiplies an ALREADY chain-split NSV by the Cont% allocation
+//   a SECOND time -- a silent double-application producing a wrong nonzero
+//   per chain, not a gap that would be obvious on the page. It is not used
+//   anywhere today: PowerBI/docs/PageLayouts.md's Page 2B (the only page
+//   built from this file's measures) uses [Ship-to Primary NSV] exclusively
+//   for every KPI, visual and table column -- confirmed by direct search,
+//   2026-09-24. Do NOT wire it into a report page while mode (A) is still
+//   the live data shape. It only becomes safe to surface once the "<--
+//   replace with SUM('Raw Primary'[Primary NSV])" line below is actually
+//   replaced with a real un-split feed (mode B).
 // =====================================================================
 
 // ---------- (A) Already-allocated primary ----------
@@ -52,6 +69,10 @@ COALESCE (
     [Ship-to Primary NSV]
 )
 
+// !! Do not place this on a report page while [Raw ShipTo Primary] still
+// falls back to [Ship-to Primary NSV] (today's mode) -- see the
+// DOUBLE-ALLOCATION LANDMINE note at the top of this file. Use
+// [Ship-to Primary NSV] instead; that is what Page 2B actually uses today.
 Allocated Primary (via Cont%) =
 SUMX (
     SUMMARIZE (
