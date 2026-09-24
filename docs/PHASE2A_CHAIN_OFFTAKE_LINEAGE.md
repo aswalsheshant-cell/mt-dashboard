@@ -101,7 +101,11 @@ canonical.offtake.chain_offtake_nsv_all_chains(data, fy)        scripts/canonica
 
 ---
 
-## Open scope question (raised, not resolved, by this lineage trace)
+## Scope question — RESOLVED
+
+**Decision: "Table only."** Phase 2A migrates exactly consumer #1 below (`index.html:1618`).
+Consumer #2 (`computeChannelHealth()`) is filed separately, not folded into this PR — see
+the tracked follow-up issue this decision produced. Detail as originally raised:
 
 Phase 2A's instruction is to migrate **exactly one production consumer: `CHAIN_OFFTAKE_NSV`**,
 and explicitly **not** to modify unrelated dashboard behavior. This trace found that the
@@ -120,8 +124,32 @@ was not named in Phase 2A's scope and that behaves differently enough (it comput
 ratio/score, not a displayed NSV figure) that its migration would need its own dedicated
 shadow comparison, not a copy-paste of the Inventory table's.
 
-**Recommendation, not yet acted on:** keep Phase 2A scoped to consumer #1 only (matches
-the literal instruction and Issue #195's actual subject), and record consumer #2 as a
-new, separate, tracked finding — its own follow-up issue — rather than silently folding
-it in or silently ignoring it now that it's been found. This preserves Phase 2A's
-narrow scope while not letting a real discovered defect go unrecorded.
+This preserves Phase 2A's narrow scope while not letting a real discovered defect go
+unrecorded — filed as [Issue #200](https://github.com/aswalsheshant-cell/mt-dashboard/issues/200).
+
+---
+
+## Gate 1 result — PASS, with a second real finding and its own governance entry
+
+Running `scripts/canonical/phase2_chain_offtake.py`'s shadow comparison (Chain x FY,
+the real achievable grain — see the module's docstring for why Chain x Month isn't
+possible) against the certified `data.js` surfaced a SECOND real finding, distinct from
+consumer-scope question above: **8 chains onboarded via a later `--offtake-patch` merge
+run** (`build_dashboard_data.py:1499-1504`) have no real FY26 entry *and no `value`
+fallback field at all* in `offtake.by_chain` — a row shape `{"name","raw","total":0.0,"fy27":X}`,
+not the usual `dim_rows()` shape. Legacy's fallback expression therefore falls through
+every link (no `.total` dict, no `total_fy26`, no `fy26` key, no `value` key) to its
+final `|| 0` and silently displays a literal `0` — not a stale number like KI-OFFTAKE-001,
+but the same ADR-007 missing-as-zero anti-pattern via a different mechanism.
+
+This was deliberately **not** folded into `GOV-003` (different root cause, different
+evidence) and was **not** self-approved by the agent that found it — per the self-approval
+guard's own principle, `reconcile_one()` correctly returned `UNKNOWN` for these 8 chains
+until an explicit approval decision was made. That decision was presented with full
+evidence and approved; the resulting registry entry is `GOV-005` in `scripts/canonical/governance.py`.
+
+**Gate 1 final result:** 58 PASS / 12 APPROVED_GOVERNED (4 via `GOV-003`, 8 via `GOV-005`)
+/ 0 FAIL / 0 UNKNOWN — 100% clean population. Conservation check passes within a small,
+documented rounding tolerance (~0.02–0.03 L on ~19,000–31,000 L totals, same class already
+documented for `PRIMARY_NSV`). Edge-case sweep otherwise clean: no duplicate/blank/unmapped
+chain names, no negative values. Proven in `tests/canonical/test_phase2_chain_offtake.py`.

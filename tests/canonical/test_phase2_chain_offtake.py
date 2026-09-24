@@ -2,22 +2,19 @@
 grain (Chain x FY -- see phase2_chain_offtake.py's module docstring for why
 Chain x Month is not achievable with the certified data.js's source grain).
 
-This currently pins a REAL, GENUINE, NOT-YET-APPROVED finding: 8 chains
-(newly onboarded via an --offtake-patch merge run, not present in the
-original full-rebuild dataset) have no real FY26 entry AND no 'value'
-fallback field, so the legacy dashboard expression falls all the way
-through to its final '|| 0' and silently displays 0 -- not a stale
-number, but a literal, wrong zero -- for a chain that simply didn't exist
-yet in FY26, exactly the ADR-007 missing-as-zero anti-pattern this whole
-canonical architecture exists to prevent. This is a DIFFERENT root cause
-than KI-OFFTAKE-001/GOV-003 (which is about a '.value' all-months
-fallback, not a bare '|| 0' with no value field at all) and is therefore
-correctly NOT covered by GOV-003's registry entry -- it needs its own,
-separately reviewed and approved registry entry before Gate 1 can pass.
-
-Until that approval exists, Gate 1 is BLOCKED, and this test file makes
-that a first-class, visible, tested fact rather than a silent finding
-that could be lost between sessions."""
+GATE 1 STATUS: PASS (58 PASS / 12 APPROVED_GOVERNED / 0 FAIL / 0 UNKNOWN,
+100% clean population). This required two governance registry entries:
+GOV-003 (KI-OFFTAKE-001 -- CNC/EB2B/Others/Vijetha missing FY27) and
+GOV-005 (a DIFFERENT root cause found by this migration's wider Chain x FY
+sweep -- 8 chains onboarded via a later --offtake-patch merge run, with no
+real FY26 entry AND no 'value' fallback field at all, so the legacy
+dashboard expression falls through to its final '|| 0' and silently
+displays a literal 0 -- not a stale number, the ADR-007 missing-as-zero
+anti-pattern via a different mechanism). GOV-005 was deliberately NOT
+folded into GOV-003 (different evidence, different mechanism) and was NOT
+self-approved by the agent that found it -- it required an explicit,
+separately-recorded approval decision (see governance.py's GOV-005 entry
+for the full record) before this test could assert a clean Gate 1."""
 from canonical import facts, phase2_chain_offtake as p2, reconcile
 from canonical.policies import NotAvailable
 
@@ -51,24 +48,27 @@ def test_ki_offtake_001_chains_are_governed_via_gov_003(data):
         assert row.exception.exception_id == "GOV-003"
 
 
-def test_gate1_is_currently_blocked_by_a_real_unapproved_finding(data):
-    """Pins today's honest state: Gate 1 does NOT yet meet the release
-    criterion (FAIL=0, UNKNOWN=0). The 8 UNKNOWN rows are exactly the 8
-    newly-onboarded chains missing FY26 -- a real, distinct root cause from
-    GOV-003, correctly NOT auto-approved by it. When a business-reviewed
-    registry entry for this finding is added (with real approver/
-    approval_reference/approved_at, per the self-approval guard), this test
-    must be updated to assert UNKNOWN == 0 instead -- it is intentionally
-    written to fail loudly if that governance work is skipped and someone
-    tries to proceed to Gate 2/3 anyway."""
+def test_newly_onboarded_chains_are_governed_via_gov_005(data):
+    rows = p2.build_shadow_comparison(data)
+    by_scope = {r.scope: r for r in rows}
+    for chain in NEWLY_ONBOARDED_CHAINS_MISSING_FY26:
+        row = by_scope[f"chain={chain}, fy=FY26"]
+        assert row.result == "APPROVED_GOVERNED", f"{chain}: expected APPROVED_GOVERNED, got {row.result}"
+        assert row.exception.exception_id == "GOV-005"
+
+
+def test_gate1_meets_the_release_criterion(data):
+    """FAIL=0, UNKNOWN=0, 100% clean population -- the actual Gate 1
+    acceptance criterion, now met after GOV-005's approval. Every
+    non-PASS row traces to a fully-approved registry entry (GOV-003 or
+    GOV-005), never a bare reason string or a silent pass."""
     rows = p2.build_shadow_comparison(data)
     summary = reconcile.summarize(rows)
-    unknown_chains = {r.scope.split(",")[0].removeprefix("chain=")
-                       for r in rows if r.result == "UNKNOWN"}
-    assert unknown_chains == NEWLY_ONBOARDED_CHAINS_MISSING_FY26, (
-        f"expected exactly the 8 known newly-onboarded chains to be UNKNOWN, got: {unknown_chains}")
-    assert summary["fail"] == 0, "no NEW unexplained variance beyond the known, tracked UNKNOWN set"
-    assert summary["overall"] == "FAIL"  # UNKNOWN > 0 fails the gate, by design
+    assert summary["fail"] == 0
+    assert summary["unknown"] == 0
+    assert summary["clean_population_pct"] == 100.0
+    assert summary["overall"] == "PASS"
+    assert summary["approved_governed"] == len(KI_OFFTAKE_001_CHAINS_MISSING_FY27) + len(NEWLY_ONBOARDED_CHAINS_MISSING_FY26)
 
 
 def test_newly_onboarded_chains_existing_shows_zero_not_a_stale_number(data):
