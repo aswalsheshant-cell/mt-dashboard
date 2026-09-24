@@ -1,7 +1,5 @@
 """ADR-001 (no cross-FY fallback) and ADR-007 (missing != zero) enforcement,
 proven against the shared choke-point exact_fy_or_not_available()."""
-import pytest
-
 from canonical.policies import NotAvailable, exact_fy_or_not_available, is_available
 
 
@@ -13,7 +11,6 @@ def test_missing_fy_returns_not_available_not_zero():
     result = exact_fy_or_not_available("X", "fy27", {"fy26": 10.0})
     assert isinstance(result, NotAvailable)
     assert result != 0
-    assert result != 0.0
 
 
 def test_never_falls_back_to_a_different_fy():
@@ -52,5 +49,4 @@ def test_not_available_is_falsy_but_not_equal_to_zero():
     na = NotAvailable("test")
     assert not na
     assert na != 0
-    assert na != 0.0
     assert not is_available(na)

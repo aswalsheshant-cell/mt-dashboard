@@ -1,6 +1,4 @@
 """ADR-006: canonical storage is INR Lakh; Crore conversion is presentation-only."""
-import math
-
 from canonical.units import format_inr, round_lakh, to_crore
 
 

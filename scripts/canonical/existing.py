@@ -10,7 +10,7 @@ none left after PR #193 except KI-OFFTAKE-001, reproduced here on purpose
 so the reconciliation table shows exactly what the old code returns for
 the affected chains).
 """
-from .fiscal import normalize_fy, data_key
+from .fiscal import data_key
 
 
 def channel_primary_nsv(data, fy):

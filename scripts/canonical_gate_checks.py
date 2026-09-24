@@ -203,13 +203,14 @@ def check_unit_conversion_isolation():
         if path.name.startswith("test_"):
             continue
         code = _strip_docstrings_and_comments(path.read_text())
-        for m in _UNIT_CONVERSION_PATTERN.finditer(code):
+        for match in _UNIT_CONVERSION_PATTERN.finditer(code):
             # variance_pct / clean_population_pct are percentage math, not a
             # Lakh->Crore conversion -- allow only inside reconcile.py where
             # that is the documented, sole use.
             if path.name == "reconcile.py":
                 continue
-            problems.append(f"{path.name}: contains '/ 100'-style division outside units.py")
+            problems.append(f"{path.name}: contains '/ 100'-style division outside units.py "
+                             f"({match.group(0)!r})")
     return problems
 
 

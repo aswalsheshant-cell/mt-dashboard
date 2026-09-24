@@ -11,7 +11,6 @@ Phase 1 implementation-discovery note. This must never be papered over with a
 calculated substitute or an allocation of Reliance chain-level Offtake down to
 Brand Counter (ADR-003)."""
 from canonical import availability
-from canonical.policies import NotAvailable
 
 
 def test_rbc_primary_nsv_is_available(data):
