@@ -6921,6 +6921,20 @@ def main():
 
         pdf, primary = primary_block(allocated)
 
+        # by_channel from the pre-aggregated workbook is a lossy export (every
+        # row tagged Channel="MT", EB2B/SIS hard-zeroed even though real
+        # billing exists there) -- apply_primary_channel_correction() fixes
+        # this using detail_meta['channel_totals'], and both --detail-only and
+        # the full-rebuild path already call it. --primary-only never did,
+        # so a --primary-only-only refresh (the documented refresh_dashboard.sh
+        # Pass 1) silently regressed by_channel back to the uncorrected,
+        # 100%-MT split on every run -- found 2026-09-24 by diffing a real
+        # --primary-only run's by_channel against the certified data.js it
+        # was refreshing. detail_meta isn't touched by this code path, so the
+        # existing one already in data.js (obj["detail_meta"]) is correct to
+        # reuse here -- same pattern as --detail-only's own call.
+        apply_primary_channel_correction(primary, obj.get("detail_meta"))
+
         # Print Zonal Reconciliation Checksum
         if primary and "by_zone" in primary:
             total_nsv = primary.get("nsv_fy26", 0) or primary.get("nsv_fy27", 0) or 0

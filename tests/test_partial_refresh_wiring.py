@@ -75,6 +75,35 @@ def test_refresh_derived_blocks_called_before_write_not_after(mode_flag_list=("p
         )
 
 
+def test_primary_only_calls_apply_primary_channel_correction():
+    """Found 2026-09-24 by actually running --primary-only against the real
+    committed seed (PowerBI/SeedData/Primary/Primary_FY202426_10.csv) and
+    diffing its output against the certified data.js it was refreshing:
+    by_channel silently regressed from the corrected split (MT 30684.99 /
+    EB2B 1965.20 / SIS 250.17) back to the pre-aggregated workbook's raw,
+    lossy "every row tagged MT" export (MT 32900.36 / EB2B 0 / SIS 0) --
+    apply_primary_channel_correction() exists exactly to fix this (see its
+    own docstring and tests/test_primary_channel_correction.py), and both
+    --detail-only and the full-rebuild path already call it, but
+    --primary-only never did. Same "gap FM-17 fixed for --detail-only, never
+    extended to the sibling modes" shape as the rest of this file -- added
+    here as its own dedicated case since it does not fit the generic
+    refresh_derived_blocks() parametrization above."""
+    branch = _branch_source("primary_only")
+    assert "apply_primary_channel_correction(" in branch, (
+        "--primary-only computes primary_block() output but does not call "
+        "apply_primary_channel_correction() -- by_channel silently reverts to "
+        "the pre-aggregated workbook's uncorrected, 100%-MT split on every "
+        "--primary-only-only refresh (the documented refresh_dashboard.sh Pass 1)"
+    )
+    correction_idx = branch.index("apply_primary_channel_correction(")
+    write_idx = branch.index("_safe_write_data_js(")
+    assert correction_idx < write_idx, (
+        "--primary-only: apply_primary_channel_correction() is called AFTER "
+        "_safe_write_data_js(), so the correction never reaches the written file"
+    )
+
+
 @pytest.mark.parametrize("mode_flag", ["forecast_only", "distgap"])
 def test_branches_that_do_not_touch_primary_or_offtake_are_not_required_to_refresh(mode_flag):
     """Documents the deliberate exclusion: these two modes don't update
