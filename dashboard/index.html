@@ -1606,7 +1606,15 @@ function buildInventoryHealth(){
   content.className='subview-content';
   s.appendChild(content);
 
-  const renderInventorySubview=(sv,chains,brands,months,fy)=>{
+  // F5 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md): chains/brands/
+  // months/fy were never referenced anywhere in this function's body -- it
+  // derives everything itself from D/fyR internally -- and the chains
+  // argument at the one call site below was built via Object.keys() on an
+  // ARRAY (by_chain is an array of {name,...} objects, not a dict), the
+  // same class of bug already fixed at the now-canonical Offtake table
+  // (Phase 2A, PR #199). Dead code, zero downstream effect either way --
+  // removed rather than fixed, since nothing ever read the result.
+  const renderInventorySubview=(sv)=>{
     destroyInventoryCharts();
     content.innerHTML='';
 
@@ -1740,7 +1748,7 @@ function buildInventoryHealth(){
     }
   };
 
-  renderInventorySubview(inventoryHealthState.subview,Object.keys(o.by_chain||{}),(D.primary.by_brand||[]).map(b=>b.name),D.month_list||[],fy);
+  renderInventorySubview(inventoryHealthState.subview);
 }
 
 function switchInventorySubview(sv){
@@ -1749,9 +1757,9 @@ function switchInventorySubview(sv){
   if(s){
     Array.from(s.querySelectorAll('.subview-tab')).forEach(b=>b.classList.remove('active'));
     s.querySelector(`[onclick*="'${sv}'"]`)?.classList.add('active');
-    const chains=Object.keys(D.offtake?.by_chain||{});
-    const brands=(D.primary?.by_brand||[]).map(b=>b.name);
-    const fy=fyKey();
+    // F5: chains/brands/fy locals here were never referenced -- this
+    // function just calls buildInventoryHealth(), which recomputes
+    // everything itself from scratch.
     buildInventoryHealth();
   }
 }
