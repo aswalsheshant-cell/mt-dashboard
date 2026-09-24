@@ -22,7 +22,6 @@ data.js. Regenerating data.js from the real primary.xlsx requires the
 actual --src drop, which only the repo owner running --primary-only
 locally has.
 """
-import math
 import sys
 from pathlib import Path
 

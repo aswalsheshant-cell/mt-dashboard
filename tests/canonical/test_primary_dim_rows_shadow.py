@@ -9,7 +9,6 @@ every (chain, FY) cell that differs between the pre-fix and post-fix
 dim_rows() behavior is EXACTLY the intended effect (a fabricated 0 becoming
 None), never an unexpected divergence, and no real (non-fabricated) value
 is ever disturbed."""
-from canonical import facts
 from canonical.primary_dim_rows_shadow import build_report
 
 
