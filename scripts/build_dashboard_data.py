@@ -6269,6 +6269,65 @@ def detail_dims(recs):
     return out
 
 
+def apply_primary_channel_correction(primary, detail_meta):
+    """Correct primary.by_channel using detail_meta['channel_totals'] (the
+    article-wise primary's EXACT, uncapped, business-confirmed channel split
+    -- see sis_gap_status in _build_detail_meta).
+
+    Root cause (found 2026-09-23): the pre-aggregated primary seed/drop
+    (PowerBI/SeedData/Primary/Primary_FY202426_10.csv, consumed by
+    load_primary_v2()) carries EVERY row tagged Channel="MT" -- a lossy
+    export from whatever produced that consolidated file. Its FY26 NSV
+    total (Rs 32,900.36 L) ties out exactly against the article-wise
+    primary's FY26 total, so the aggregate NSV is right, but the Channel
+    dimension on that source is not usable: by_channel ends up 100% MT
+    with EB2B/SIS hard-zeroed, even though real EB2B/SIS billing exists
+    (confirmed against PowerBI/RawDataFolders/Primary_Article_Monthly/
+    *.csv directly: FY26 = MT Rs 30,684.99L / EB2B Rs 1,965.20L / SIS
+    Rs 250.17L, same total to the rupee).
+
+    Two things this does, both driven off detail_meta['channel_totals']
+    ({FY: {Channel: NSV_Lakh}}, already computed pre-cap in
+    detail_records_real()):
+      1. Ensure every channel name detail_meta has ever seen (any FY,
+         including FY27+) exists as an entry in by_channel -- unchanged
+         behaviour from the prior FY27-only merge.
+      2. For any FY tag that's in PREAGG_FY_TAGS (i.e. lives in the
+         pre-agg workbook, not fyx_primary) AND present in channel_totals,
+         overwrite that FY's per-channel values with the article-wise
+         source -- but ONLY when the two sources' FY totals agree to
+         within 0.5%; otherwise leave by_channel exactly as the pre-agg
+         source produced it (never silently override a real disagreement).
+    """
+    if not detail_meta:
+        return
+    ct = detail_meta.get("channel_totals") or {}
+    fyx = detail_meta.get("fyx_primary") or {}
+    if not ct and not fyx:
+        return
+    all_channels = set()
+    for fy_vals in ct.values():
+        all_channels.update(fy_vals.keys())
+    for fy_data in fyx.values():
+        for ch in fy_data.get("by_channel") or []:
+            if ch.get("name"):
+                all_channels.add(ch["name"])
+    existing = {ch["name"]: ch for ch in (primary.get("by_channel") or [])}
+    for name in sorted(all_channels):
+        existing.setdefault(name, {"name": name})
+    for fy_tag, chan_vals in ct.items():
+        if fy_tag not in PREAGG_FY_TAGS:
+            continue  # FY27+ already exact via fyx_primary, not the pre-agg workbook
+        key = fy_tag.lower()  # 'FY26' -> 'fy26'
+        preagg_total = sum(float(ch.get(key, 0) or 0) for ch in existing.values())
+        filetwo_total = sum(chan_vals.values())
+        if preagg_total and abs(filetwo_total - preagg_total) / preagg_total > 0.005:
+            continue  # totals disagree by >0.5% -- don't override, leave pre-agg as-is
+        for name, val in chan_vals.items():
+            existing.setdefault(name, {"name": name})[key] = r2(val)
+    primary["by_channel"] = list(existing.values())
+
+
 def _build_detail_meta(src, max_rows, primary_for_fallback):
     """Shared by both the --detail-only path and the full build: returns
     (detail_records, dims, detail_meta_dict, tot, cm2, alloc). Falls back to
@@ -6761,6 +6820,8 @@ def main():
         if obj.get("primary") and obj.get("offtake"):
             obj["primary_offtake_gap"] = primary_offtake_gap_block(
                 obj["primary"], obj["offtake"], meta.get("fyx_primary", {}).get("FY27"))
+        if obj.get("primary"):
+            apply_primary_channel_correction(obj["primary"], meta)
         # Refresh everything downstream of detail_meta's same_period/fyx_primary
         # (targets, insights, mapping_health, mom, scorecard, pvm, profitability,
         # npd, readiness) so it matches the detail_records this run just fixed --
@@ -7255,30 +7316,10 @@ def main():
         data["primary_offtake_gap"] = primary_offtake_gap_block(
             primary, offtake, (detail_meta or {}).get("fyx_primary", {}).get("FY27"))
 
-    # ---- Merge FY27+ channels into primary.by_channel to ensure all channels are represented ----
-    # FY27 article-level data has EB2B/SIS channels not in pre-agg FY25/26 workbooks.
-    # Merge them so the channel array has ALL channels (MT, EB2B, SIS) for every FY,
-    # with zero values for missing FYs, so the UI shows consistent channel options.
-    if detail_meta and detail_meta.get("fyx_primary"):
-        # Collect all unique channels from all FY27+ sources
-        all_channels_set = set()
-        for fy_data in detail_meta["fyx_primary"].values():
-            if "by_channel" in fy_data:
-                for ch in fy_data["by_channel"]:
-                    all_channels_set.add(ch.get("name"))
-
-        # Current channels in the main primary block
-        existing_ch_dict = {ch["name"]: ch for ch in (primary.get("by_channel") or [])}
-
-        # For each channel in the FY27+ data, ensure it exists in by_channel
-        # with zero values for any missing FYs
-        for ch_name in sorted(all_channels_set):
-            if ch_name not in existing_ch_dict:
-                # Add new channel with zero values for FY25/26
-                existing_ch_dict[ch_name] = {"name": ch_name}
-
-        # Update primary.by_channel with merged channels
-        primary["by_channel"] = list(existing_ch_dict.values())
+    # ---- Merge FY27+ channels into primary.by_channel, and correct FY25/26
+    # values from the article-wise primary's exact channel split (the pre-agg
+    # workbook's Channel tag is unusable -- see apply_primary_channel_correction) ----
+    apply_primary_channel_correction(primary, detail_meta)
 
     # ---- Like-for-like YoY, targets, mapping health, MoM, scorecard, PVM,
     # profitability, NPD, readiness gate: everything that derives from
