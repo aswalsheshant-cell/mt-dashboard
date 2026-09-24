@@ -1329,9 +1329,25 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
 
   if(sv==='primary'){
     // Primary Sales sub-view: top chains, channel split, chain detail
-    // Data validation: ensure chains and channels have the required year property; fallback to prior FY if empty
-    let validChains=chains&&chains.length&&chains.every(c=>c[primYr]!=null)?chains:[];
-    let validChannels=channels&&channels.length&&channels.every(c=>c[primYr]!=null)?channels:[];
+    // Data validation: keep chains/channels that actually have primYr data;
+    // fall back to the prior FY only when NONE of them do.
+    //
+    // Was chains.every(c=>c[primYr]!=null) -- required EVERY chain to carry
+    // a value or the WHOLE table (all 45 chains) was nuked to []. That was
+    // harmless only by accident: before F14 (primary_block()'s dim_rows()
+    // fix, docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md), every chain
+    // always got a fabricated 0 for a missing FY, so every() trivially
+    // passed. The moment F14 landed in a real data.js refresh (2026-09-24)
+    // and correctly nulled 2 of 45 chains with no real FY26 rows, every()
+    // started failing and blanked the entire "Top Chains by Primary NSV"
+    // table to "No data available" -- even though 43 of 45 chains had real
+    // data. filter() matches this function's OWN stated intent just below
+    // ("fires when EVERY chain genuinely lacks the selected FY", not
+    // "when not every chain has it") and matches how every other by-chain
+    // table in this dashboard handles a few missing chains: drop them
+    // individually, never blank the whole table for one.
+    let validChains=(chains||[]).filter(c=>c&&c[primYr]!=null);
+    let validChannels=(channels||[]).filter(c=>c&&c[primYr]!=null);
 
     // F3 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md): this is a real
     // cross-FY fallback -- the exact pattern ADR-001 forbids for the
