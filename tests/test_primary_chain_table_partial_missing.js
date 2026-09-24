@@ -64,7 +64,7 @@ const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
 
     // Case 3: real live data today (43 of 45 chains have fy26) -- the
     // actual regression, on the actual certified data.js.
-    const p = D.primary, o = D.offtake;
+    const p = D.primary;
     const liveChains = (p.by_chain || []).filter(c => c.name !== 'Unmapped Chain');
     renderChannelSubview(liveChains, p.by_brand, p.by_channel, 'fy26', 'FY26', yrLab);
     const liveHtml = document.getElementById('channel-subview-content').innerHTML;
