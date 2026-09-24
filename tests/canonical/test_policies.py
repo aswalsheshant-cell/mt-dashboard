@@ -47,6 +47,4 @@ def test_real_zero_is_available_and_distinct_from_not_available():
 
 def test_not_available_is_falsy_but_not_equal_to_zero():
     na = NotAvailable("test")
-    assert not na
-    assert na != 0
-    assert not is_available(na)
+    assert not na and na != 0 and not is_available(na)
