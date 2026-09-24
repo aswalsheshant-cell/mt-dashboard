@@ -764,11 +764,15 @@
         const kpi1 = el('div', 'kpi');
         const lab1 = el('div', 'lab');
         lab1.textContent = 'RBC Total (Cr)';
-        if (D.yoy_metrics && D.yoy_metrics.status === 'active') {
-          const badge = el('span', 'yoy-badge positive');
-          badge.textContent = '▲ +10.7%';
-          lab1.appendChild(badge);
-        }
+        // F8 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md): this badge used
+        // to render a literal hardcoded '+10.7%' whenever D.yoy_metrics.status
+        // ==='active', with no real growth figure behind it at all -- unlike
+        // the primary/offtake YoY badges below, which read a real field
+        // (top_line.primary_nsv_growth / .offtake_value_growth). No
+        // top_line.rbc_total_growth (or equivalent) field exists anywhere in
+        // build_dashboard_data.py/data.js to read instead, so the badge is
+        // removed rather than wired to a fabricated field name -- restore it
+        // only once a real RBC-total growth figure is added to the pipeline.
         kpi1.appendChild(lab1);
         kpi1.appendChild(el('div', 'val', formatNum(D.rbc.rbc_total)));
         kpiGrid.appendChild(kpi1);

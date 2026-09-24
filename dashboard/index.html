@@ -1552,7 +1552,12 @@ function buildInventoryHealth(){
   // Must use fyR (not fy) here too -- fy is null in the default "All" state, which
   // used to make this KPI read Rs0 L even though every table/chart on this same
   // page (all keyed off fyR) showed real, non-zero offtake.
-  const total = o?.total?.[fyR] ?? o?.[`total_${fyR}`] ?? 0;
+  // Trailing fallback is `?? null`, not `?? 0` (F7, docs/PHASE_2B_FINANCIAL_
+  // CONSUMER_INVENTORY.md): both lookups above are genuinely FY-specific real
+  // fields, so a `0` there would be indistinguishable from "not available" --
+  // crc(null) already renders '-', mirroring F1's canonicalChainOfftakeNSV()
+  // NOT_AVAILABLE pattern for this headline KPI tile.
+  const total = o?.total?.[fyR] ?? o?.[`total_${fyR}`] ?? null;
   const metrics = o?.metrics ?? { doi: {}, otif: {} };
   // Real per-chain store counts: universe.by_chain (not offtake.by_chain,
   // which is a flat [{name,value}] list with no by_month/store member -- the
