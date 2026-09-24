@@ -1,9 +1,9 @@
 # Canonical Engine — Phase 1 Report
 
-**Status:** Phase 1 of `docs/CANONICAL_METRIC_IMPLEMENTATION_PLAN.md` (Canonical metric engine + reconciliation framework). No dashboard UI, `dashboard/data.js` schema, or existing `scripts/build_dashboard_data.py` logic changed — the engine runs in shadow mode only, alongside today's production dashboard, consumed by nothing yet.
+**Status: PHASE 1 CLOSED — merged to `main`.** PR #198 merged as commit `cafd28def8d5ee3880d6a3b5b2051363b4bdd8c4` on 2026-09-24. The canonical engine (`scripts/canonical/`) is now part of `main`, still in shadow mode: no dashboard UI, `dashboard/data.js` schema, or `scripts/build_dashboard_data.py` logic was changed by this merge, and nothing in production consumes it yet. Phase 1 is not being reopened or further expanded — the next unit of work is Phase 2A, a narrow shadow-mode migration of exactly one production consumer (`CHAIN_OFFTAKE_NSV`), tracked separately (see that section at the bottom of this report / the `phase2/chain-offtake-nsv-migration` branch).
 **Depends on:** `main` @ `1b75257c35cd5eab47ffc34bfb5ae53755ae318d` (PR #197's merge — the canonical financial-truth architecture contract).
-**Branch:** `architecture/canonical-metric-engine`
-**Certification gate (this update):** the Phase 1 Certification Gate requested before PR #198 can be marked Ready for Review — a rigorous GOVERNED-reconciliation review (every governed row now traces to a reviewed `governance.py` registry entry, never a bare reason string), corrected Reliance availability reporting, an authorized documentation correction to `docs/CANONICAL_FINANCIAL_TRUTH_DESIGN.md`, a status update on Issue #195 (kept OPEN), a new "Canonical Financial Truth Gate" CI workflow, and source contracts for the Primary and Offtake inputs. See "Final verdict" at the bottom for the outcome.
+**Branch (Phase 1 work):** `architecture/canonical-metric-engine` (merged; can be deleted, its history is preserved in `main`'s merge commit).
+**Certification gate history:** the Phase 1 Certification Gate requested before PR #198 could be marked Ready for Review — a rigorous GOVERNED-reconciliation review (every governed row traces to a reviewed `governance.py` registry entry, never a bare reason string), corrected Reliance availability reporting, an authorized documentation correction to `docs/CANONICAL_FINANCIAL_TRUTH_DESIGN.md`, a status update on Issue #195 (kept OPEN), a new "Canonical Financial Truth Gate" CI workflow, and source contracts for the Primary and Offtake inputs. A second review round closed a self-approval gap in the governance registry (see "Self-approval guard" below) before merge. See "Post-merge verification" near the bottom for the closure evidence.
 
 ---
 
@@ -329,4 +329,50 @@ CANONICAL ENGINE — PHASE 1 CERTIFICATION GATE
 VERDICT: PHASE 1 READY FOR CONSUMER MIGRATION
 ```
 
-**PR #198 may be marked "Ready for Review."** Per explicit instruction: this PR is **NOT** being merged automatically, and Phase 2 (production consumer migration) is **NOT** starting as part of this certification. The next planned step — a future task, not this one — is migrating `CHAIN_OFFTAKE_NSV` as the first live production consumer, which is what will actually close Issue #195.
+**PR #198 was marked Ready for Review, then merged** after a second review round closed a self-approval gap in the governance registry (see "Self-approval guard" under "Shadow reconciliation results" above) and the Production Acceptance Gate + Canonical Financial Truth Gate both ran green.
+
+## Post-merge verification
+
+Re-run on `main` @ `cafd28def8d5ee3880d6a3b5b2051363b4bdd8c4` (the merge commit itself), fresh checkout, before starting any Phase 2 work:
+
+```
+$ python -m py_compile scripts/build_dashboard_data.py scripts/canonical_gate_checks.py scripts/canonical/*.py
+OK
+
+$ python -m pytest tests/canonical/ -q
+88 passed
+
+$ python scripts/canonical_gate_checks.py
+PASS [reconciliation] [numeric-safety] [governance] [fallback-safety]
+PASS [unit-isolation] [availability-metadata] [missing-never-zero] [source-contracts]
+Canonical Financial Truth Gate: PASS
+
+$ python scripts/canonical/shadow_report.py   # summary
+{"total": 48, "pass": 38, "approved_governed": 10, "fail": 0, "unknown": 0,
+ "clean_population_pct": 100.0, "overall": "PASS"}
+
+$ python -c "... availability.rbc_availability_report(data) ..."
+RBC_PRIMARY_NSV  = AVAILABLE
+RBC_OFFTAKE_NSV  = NOT_AVAILABLE
+RBC_GAP_NSV      = NOT_AVAILABLE
+
+$ python scripts/ci_validate_datajs.py
+OK  data.js -- FY27 zones: Central, East, North, Pan India, South 1, South 2, West
+OK  dashboard/data.js is valid JSON
+OK  detail_records value_coverage_pct: 100.0%
+OK  baseline invariants hold (7 checked)
+
+$ git diff --stat 1b75257..cafd28d -- dashboard/index.html dashboard/data.js scripts/build_dashboard_data.py
+(empty -- zero changes to any of the three forbidden files, across the whole PR #198 merge)
+
+$ grep -rn "canonical\." dashboard/ scripts/build_dashboard_data.py
+(no matches -- still zero production consumers)
+```
+
+GitHub CI on the merged PR: **Production Acceptance Gate = success**, **Canonical Financial Truth Gate = success** (all 8 sub-checks green), CodeQL clean (all review threads resolved before merge). The only red check throughout, `github-advanced-security`, is the pre-existing, tracked, unrelated GitHub-side infra issue documented as Issue #194 — not conflated with this PR's financial-logic work, and not a repository-required check (the actual merge blocker resolved before merge was an unrelated-to-CodeQL-severity "conversation must be resolved" rule, closed by fixing the CodeQL findings CodeQL itself raised on this PR's new code).
+
+```
+PHASE 1: CLOSED.
+```
+
+Per instruction: no further Phase 1 expansion. The next work is Phase 2A — a narrow, shadow-mode migration of `CHAIN_OFFTAKE_NSV` as the first and only production consumer this phase — tracked on branch `phase2/chain-offtake-nsv-migration`, not as an extension of this report's scope.
