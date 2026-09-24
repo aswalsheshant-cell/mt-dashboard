@@ -348,15 +348,15 @@ Each contract below is filled from the **current, real** source where one exists
 | Future semantic-model measure | Deferred — requires a store×article×month offtake extract (finer than the current chain-month master) before this contract can be completed |
 | Known exceptions | Gap, not a defect |
 
-### RELIANCE_OFFTAKE_NSV
+### RBC_OFFTAKE_NSV (supersedes the earlier draft `RELIANCE_OFFTAKE_NSV` name — see ADR-003)
 
 | Field | Value |
 |---|---|
-| Metric ID | `RELIANCE_OFFTAKE_NSV` |
-| Availability Status | **AVAILABLE** as data (`D.reliance_brand_counters` is real), but **BLOCKED on ADR-003** for which UI/business meaning it should serve — do not wire it into any view until that decision lands |
-| Business definition | Reliance-specific Offtake, split into Total Reliance Offtake (macro) and the ~350 staffed Brand Counter doors (a strict subset, per CLAUDE.md's Reliance Brand Counter Deduplication Safeguard) |
+| Metric ID | `RBC_OFFTAKE_NSV` |
+| Availability Status | **AVAILABLE** as data (`D.reliance_brand_counters` is real) and **APPROVED for wiring in**, per ADR-003 (ADR-003 detail section above) |
+| Business definition | Consumer/store offtake attributable to Reliance Brand Counter — the sell-out side of `RBC_GAP_NSV`. Split into Total Reliance Offtake (macro) and the ~350 staffed Brand Counter doors (a strict subset, per CLAUDE.md's Reliance Brand Counter Deduplication Safeguard) |
 | Business owner | MT Leadership |
-| Authoritative source | `D.reliance_brand_counters` (`load_reliance_bc_data()`) — this block is real and exists in `data.js` today (`total`, `by_zone`, `by_brand`, `fy_tags`) but has **no current dashboard consumer**. Separately, `D.offtake.by_chain` has a "Reliance Retail" row for total chain offtake |
+| Authoritative source | `D.reliance_brand_counters` (`load_reliance_bc_data()`) — this block is real and exists in `data.js` today (`total`, `by_zone`, `by_brand`, `fy_tags`) and, per ADR-003, gets its first dashboard consumer once implemented. Separately, `D.offtake.by_chain` has a "Reliance Retail" row for total chain offtake (not BC-specific; do not conflate the two) |
 | Source columns | Reliance BC extract, per `load_reliance_bc_data()` |
 | Grain | Zone/Brand × Month, BC-specific |
 | Date grain | Month |
@@ -369,15 +369,77 @@ Each contract below is filled from the **current, real** source where one exists
 | Unit | INR Lakh |
 | ₹/Lac/Cr conversion rule | Display-only via `crc()` |
 | Null policy | Missing cell = 0 |
-| Missing-data policy | `bc_data.june_status` pattern (an explicit coverage-gap note) already exists for BC data — reuse that pattern, don't fabricate a missing month |
+| Missing-data policy | `bc_data.june_status` pattern (an explicit coverage-gap note) already exists for BC data — reuse that pattern, don't fabricate a missing month. Per ADR-003 rule 4: if `RBC_OFFTAKE_NSV` is unavailable for a period, render `NOT_AVAILABLE` — never substitute `RBC_PRIMARY_NSV` for it |
 | Negative-value policy | Real; not floored |
-| Fallback policy | None across FY tags |
+| Fallback policy | None across FY tags; and, per ADR-003 rule 2, never falls back to `RBC_PRIMARY_NSV` |
 | Reconciliation target | `validate_offtake_partition()`'s existing check: BC total must not exceed total Reliance offtake (already implemented, already run) |
 | Tolerance | Exact partition (BC ⊆ total), per the existing validator |
 | Certification test | `validate_offtake_partition()` (exists; not yet wired into `tests/`) |
-| Current consumers | **None in the current UI.** The "Reliance Brand Counter" tab (`renderChannelSubview`'s `reliance` branch) reads `detail_records` filtered to `Chain==='Reliance Retail'` — that is **Primary** data, shown under a tab named for an Offtake-side concept. This naming/data mismatch is worth flagging to the business owner, not silently "fixed" by swapping data sources without confirming which one the tab is actually meant to show |
-| Future semantic-model measure | `[Reliance Offtake NSV]` / `[Reliance BC NSV]` |
-| Known exceptions | The tab-vs-data mismatch above. **Not touched in this design phase** — needs an explicit business decision (is "Reliance Brand Counter" meant to show Primary or Offtake?) before any code changes, consistent with CLAUDE.md's `INTERNAL_BUSINESS_CONFIRMATION_REQUIRED` pattern |
+| Current consumers | **None yet** — greenfield wiring, per ADR-003 |
+| Future semantic-model measure | `[RBC Offtake NSV]` |
+| Known exceptions | None remaining — ADR-003 resolved the prior open question |
+
+### RBC_PRIMARY_NSV (new, per ADR-003)
+
+| Field | Value |
+|---|---|
+| Metric ID | `RBC_PRIMARY_NSV` |
+| Availability Status | **AVAILABLE** — already certified. This is the exact figure PR #193's "Reliance reconciliation" Control validated (₹137.03 Cr / 13,702.51 L, sum-of-zones tied to 0.00 L variance) |
+| Business definition | Primary NSV attributable to Reliance Brand Counter — what Honasa billed into Reliance BC stores (sell-in side of `RBC_GAP_NSV`) |
+| Business owner | MT Leadership |
+| Authoritative source | `detail_records` filtered to `Chain=='Reliance Retail'` — this is what the current "Reliance Brand Counter" tab already shows today (`renderChannelSubview`'s `reliance` branch), now correctly named for what it actually is |
+| Source columns | Same as `PRIMARY_NSV` |
+| Grain | Article × Month × Zone, filtered to Chain = Reliance Retail |
+| Date grain | Month |
+| FY logic | THE ONE FY RULE |
+| Channel rules | Same as `PRIMARY_NSV` (MT/EB2B/SIS all possible on Reliance's Primary billing) |
+| Chain mapping rules | Fixed to Reliance Retail |
+| Brand rules | `canon_brand()` |
+| Store rules | N/A at this grain |
+| Aggregation rule | SUM(NSV) |
+| Unit | INR Lakh |
+| ₹/Lac/Cr conversion rule | Display-only via `crc()` — this is exactly the field PR #193's bug #2 (double `/100` division) affected before the fix |
+| Null policy | Missing cell = 0 |
+| Missing-data policy | Same as `PRIMARY_NSV` |
+| Negative-value policy | Real; not floored |
+| Fallback policy | None across FY tags; never falls back to `RBC_OFFTAKE_NSV` (ADR-003 rule 2) |
+| Reconciliation target | ₹137.03 Cr / 13,702.51 L (certified in `docs/PR_193_PRODUCTION_CERTIFICATION.md`) |
+| Tolerance | ±0.01 L |
+| Certification test | `tests/test_pr193_reconciliation.py::test_reliance_zone_nsv_sums_to_reliance_chain_total`, `::test_reliance_total_matches_certified_screenshot_figure` |
+| Current consumers | `renderChannelSubview()`'s `reliance` branch — today mislabeled as generic "Reliance Brand Counter" data; under ADR-003 this becomes explicitly the Primary half of a three-part view |
+| Future semantic-model measure | `[RBC Primary NSV]` |
+| Known exceptions | None |
+
+### RBC_GAP_NSV (new, per ADR-003)
+
+| Field | Value |
+|---|---|
+| Metric ID | `RBC_GAP_NSV` |
+| Availability Status | **DERIVABLE** once `RBC_PRIMARY_NSV` and `RBC_OFFTAKE_NSV` are both implemented — not a stored fact, a computed measure |
+| Business definition | `RBC_PRIMARY_NSV − RBC_OFFTAKE_NSV` for the same FY/period/scope — the sell-in vs. sell-out signal (inventory build/drawdown indicator) |
+| Business owner | MT Leadership |
+| Authoritative source | Derived from the two measures above; no independent source |
+| Source columns | N/A (derived) |
+| Grain | Whatever grain both operands share (FY × Month, at minimum) |
+| Date grain | Month or FY, matching both operands |
+| FY logic | THE ONE FY RULE; both operands must be for the identical FY (ADR-003 rule 5) |
+| Channel rules | N/A |
+| Chain mapping rules | Fixed to Reliance Retail (inherited from both operands) |
+| Brand rules | N/A at the top-level Gap; may be computed per-brand if both operands support that grain |
+| Store rules | N/A |
+| Aggregation rule | Simple subtraction — never estimated or interpolated when one side is missing |
+| Unit | INR Lakh |
+| ₹/Lac/Cr conversion rule | Display-only via `crc()` |
+| Null policy | If either operand is missing for the period, `RBC_GAP_NSV` is `NOT_AVAILABLE` for that period — never computed against a zero standing in for the missing side |
+| Missing-data policy | Same as above |
+| Negative-value policy | Real and meaningful (a negative gap indicates offtake exceeded primary billing for the period — a genuine business signal, not an error) |
+| Fallback policy | None. ADR-003 rule 5 is explicit: Gap requires both operands, comparable scope, or it doesn't compute |
+| Reconciliation target | `RBC_PRIMARY_NSV − RBC_OFFTAKE_NSV` exactly, for any period both are certified |
+| Tolerance | ±0.01 L (inherits both operands' tolerance) |
+| Certification test | Not yet written — implementation-phase work, once both operand measures are certified |
+| Current consumers | None (new measure) |
+| Future semantic-model measure | `[RBC Gap NSV]` |
+| Known exceptions | `RBC_SELL_THROUGH_PCT` (Gap expressed as a ratio) is explicitly **not** part of this measure and stays disabled per ADR-003 rule 6 until comparability (stores, period, article universe, returns, GST/NSV basis, BC definition) is formally validated |
 
 ---
 
@@ -480,14 +542,36 @@ No other occurrence found. Both real findings (`KI-OFFTAKE-001` itself, and the 
 |---|---|---|---|
 | **ADR-001** | Financial KPIs must never silently fall back to another FY (or an all-FY-combined figure) when the requested FY's own value is absent. The canonical accessor returns the exact-FY value or an explicit `MISSING`/`NOT_AVAILABLE` status — never a substitute number presented as if it were the requested FY's. A genuine side-by-side FY comparison (e.g. Performance & Comparison's FY25-vs-FY26 view) is not "fallback" under this rule as long as both FYs are shown as distinct, labelled columns, never merged into one figure | Silent fallback (current `KI-OFFTAKE-001` behavior) vs. explicit `–`/`NOT_AVAILABLE` | **APPROVED** — directly resolves `KI-OFFTAKE-001`'s root cause; no viable alternative that keeps financial-reporting integrity |
 | **ADR-002** | `OFFTAKE_NSV`'s FY-specific canonical total must be derived from the same fact layer used by `CHAIN_OFFTAKE_NSV`, `by_zone`, and `by_state` — one function producing all of them from the same per-month, per-entity rows, not three independent builder functions (`offtake_block()`, `offtake_rebuild_block()`, `patch_offtake_new_months()`) that can each leave `total`/`value` in a different shape or staleness state, as documented in the Current State section above | Keep 3 separate builder functions with manual consistency discipline vs. one canonical fact table all three derive from | **APPROVED** — the "manual discipline" alternative is exactly what already failed (the `.value` staleness) |
-| **ADR-003** | Business definition of the "Reliance Brand Counter" tab: does it mean (A) Primary — what Honasa billed into Reliance BC stores, (B) Offtake — what consumers bought from Reliance BC stores, or (C) Primary + Offtake + Gap together? Today's tab reads Primary `detail_records` while a real, unused Offtake-side `D.reliance_brand_counters` block sits idle | A: Primary only (current de facto behavior) · B: Offtake only (matches the real unused block and the tab's literal name, "Brand Counter" being an offtake/BA-staffing concept) · C: Both + Primary-Offtake Gap + sell-through trend (enables the fullest MT-relevant view: primary push, offtake pull, and the gap/inventory signal between them) | **PENDING BUSINESS OWNER** — not inferred here. See recommendation below |
+| **ADR-003** | Business definition of the "Reliance Brand Counter" tab: does it mean (A) Primary — what Honasa billed into Reliance BC stores, (B) Offtake — what consumers bought from Reliance BC stores, or (C) Primary + Offtake + Gap together? Today's tab reads Primary `detail_records` while a real, unused Offtake-side `D.reliance_brand_counters` block sits idle | A: Primary only (current de facto behavior) · B: Offtake only (matches the real unused block and the tab's literal name, "Brand Counter" being an offtake/BA-staffing concept) · **C: Both + Primary-Offtake Gap** (enables the fullest MT-relevant view: primary push, offtake pull, and the gap/inventory signal between them) | **APPROVED — Option C**, by the business owner. See the ADR-003 detail below |
 | **ADR-004** | `CATEGORY_OFFTAKE_NSV` remains `NOT_AVAILABLE` unless an authoritative offtake source carrying the required category/article grain is supplied. Never derived from Primary category data, chain-level percentage allocation, or estimation of any kind | Mark unavailable vs. approximate from Primary category mix × offtake chain totals | **APPROVED** (mark unavailable) — an allocated/estimated figure presented as real offtake-by-category would be exactly the kind of fabricated-precision defect this whole audit exists to prevent |
 | **ADR-005** | `STORE_OFFTAKE_NSV` remains `NOT_AVAILABLE` unless an authoritative store-level offtake source exists. Never derived from `universe.by_chain[].stores` (a store **count**, not NSV) or from the Store Audit Scorecard's already-self-flagged demo/unverified PES data | Mark unavailable vs. approximate from chain offtake ÷ store count | **APPROVED** (mark unavailable) — a divided-evenly estimate would misrepresent real store-level variance as if it were measured |
 | **ADR-006** | Canonical financial storage unit is absolute ₹ (equivalently, this codebase's existing INR-Lakh convention, which is already absolute-₹-based, not display-scaled) — Lac/Crore conversion happens only in presentation logic (`crc()` or its future canonical-layer equivalent), never baked into a stored or intermediate value | Keep today's "store in Lakh, format via `crc()`" convention vs. restate everything in absolute ₹ | **APPROVED, with an implementation note**: this codebase already stores everything in INR Lakh (an absolute unit, just scaled by 10⁵ from ₹1) and only converts at display time via `crc()` — PR #193's bug #2 was a violation of exactly this rule (a display-side pre-division before `crc()`'s own conversion), not evidence the storage convention itself is wrong. The canonical layer should keep INR Lakh as the stored/computed unit (consistent with every existing fact/metric in this repo) and enforce, by test, that no intermediate computation divides by 100 before the single presentation-layer conversion |
 | **ADR-007** | Missing financial data must remain `NULL`/`NOT_AVAILABLE`, never silently converted to zero | Silent zero (risk: indistinguishable from "real zero-value transaction period") vs. explicit missing-marker | **APPROVED** — already this repo's own stated practice in several places (e.g. FY25 Primary showing "–", not 0); this ADR makes it a canonical-layer-wide rule rather than a per-view convention some views (like the pre-fix Inventory KPI and `KI-OFFTAKE-001`) violated |
 | **ADR-008** | The canonical metric layer is the sole owner of financial calculations. Dashboard visual code (and, later, Power BI/PBIP) must consume canonical metric values, not independently recompute or re-aggregate them | Keep today's pattern (each view aggregates from `detail_records`/`primary.by_channel`/`offtake.by_chain` independently) vs. one canonical layer, many read-only consumers | **APPROVED** — this is the core fix for the pattern that produced 3 of PR #193's 4 defects (two different aggregation paths for what should have been one number) |
 
-**Note on ADR-003** (recorded for the business owner's decision, not as a recommendation this document is making unilaterally): Option C (Primary + Offtake + Gap) is the only option of the three that would make use of the real, currently-idle `D.reliance_brand_counters` Offtake block *and* keep today's Primary-based view, rather than discarding one of the two real data sources this repo already has. Option A matches current behavior with no data change required. Option B would require building a new view from currently-unused data and retiring the current one. Whichever is chosen, `validate_offtake_partition()` (already implemented, already enforces BC ⊆ total Reliance offtake) becomes directly relevant only under B or C.
+### ADR-003 detail — Reliance Brand Counter, resolved
+
+**Decision:** APPROVED — Option C, Primary + Offtake + Gap. Purpose: provide both sell-in and sell-out visibility for Reliance Brand Counter without blending the two financial facts into one number.
+
+**Canonical measures:**
+
+| Measure | Definition | Source (real, already existing) |
+|---|---|---|
+| `RBC_PRIMARY_NSV` | Primary NSV attributable to Reliance Brand Counter | `detail_records` filtered to `Chain=='Reliance Retail'` — this is the exact figure PR #193's "Reliance reconciliation" Control already certified (₹137.03 Cr / 13,702.51 L total, sum-of-zones reconciled to 0.00 L variance). Supersedes/renames the original `RELIANCE_OFFTAKE_NSV` contract below where that contract described Primary data under an Offtake-sounding name — that mislabeling is exactly what this ADR fixes |
+| `RBC_OFFTAKE_NSV` | Consumer/store offtake attributable to Reliance Brand Counter | `D.reliance_brand_counters` (`load_reliance_bc_data()`) — real, currently idle (zero dashboard consumers, per `docs/CANONICAL_METRIC_DEPENDENCY_MAP.md`). This ADR is what finally wires it in |
+| `RBC_GAP_NSV` | `RBC_PRIMARY_NSV − RBC_OFFTAKE_NSV`, same FY/period, same scope | Derived — computed only when both operands are available and comparable (see rules below) |
+
+**Optional derived measures** (not built in this design phase; named so the canonical engine's schema has room for them): `RBC_SELL_THROUGH_PCT`, `RBC_PRIMARY_MOM_GROWTH`, `RBC_OFFTAKE_MOM_GROWTH`.
+
+**Rules:**
+1. Primary and Offtake remain separate canonical facts — never merged into one stored number.
+2. No Primary→Offtake fallback, and no Offtake→Primary fallback, ever (this is the same discipline as ADR-001, applied specifically here because Reliance is exactly where the two facts currently get confused — the tab's Primary data was being shown under an Offtake-sounding tab name).
+3. No silent cross-FY fallback (ADR-001 applies here too).
+4. Missing data on either side renders `NOT_AVAILABLE`, never zero, and never the other fact standing in for it.
+5. `RBC_GAP_NSV` may only be calculated when both `RBC_PRIMARY_NSV` and `RBC_OFFTAKE_NSV` are available for a comparable scope (same FY, same period).
+6. **`RBC_SELL_THROUGH_PCT` (Offtake ÷ Primary) stays disabled** until comparability is formally validated across: same stores, same period, same article universe, same return treatment, same GST/NSV basis, and the same Reliance BC definition (macro vs. staffed-counter-doors — the ~350-door distinction this repo's dedup rule already tracks via `is_brand_counter`/`include_in_overall_offtake`). A sell-through percentage computed before that validation could look precise while silently comparing two different populations — worse than not showing it at all. `Primary`, `Offtake`, `Gap` alone is the correct initial scope.
+
+This directly resolves the ADR-003 row above and the `RELIANCE_OFFTAKE_NSV` metric contract's prior `BLOCKED` status.
 
 ---
 
@@ -529,7 +613,7 @@ Verified directly (not asserted): `git diff --stat main` against this entire bra
 ```
 DESIGN ACCEPTANCE GATE — Canonical Financial Truth Layer
 [x] Current-state data lineage documented (Current State section, code-verified)
-[x] Seven metric contracts documented
+[x] Seven (now nine, per ADR-003) metric contracts documented
 [x] Every metric has authoritative source (or explicit NOT_CURRENTLY_AVAILABLE)
 [x] Every metric has explicit grain (or explicit N/A for unavailable metrics)
 [x] FY logic defined (THE ONE FY RULE, reused — not redefined)
@@ -537,29 +621,19 @@ DESIGN ACCEPTANCE GATE — Canonical Financial Truth Layer
 [x] Null/missing logic defined (ADR-007)
 [x] Negative handling defined (real, never floored — per metric contract)
 [x] Cross-FY fallback policy defined (ADR-001)
-[ ] Reliance BC business meaning resolved (ADR-003 — PENDING BUSINESS OWNER)
+[x] Reliance BC business meaning resolved (ADR-003 — APPROVED, Option C)
 [x] Unavailable metrics honestly marked unavailable (ADR-004, ADR-005)
 [x] Dashboard consumers mapped (docs/CANONICAL_METRIC_DEPENDENCY_MAP.md)
 [x] KI-OFFTAKE-001 incorporated (root-cause mapped, absorbed into CHAIN_OFFTAKE_NSV, not patched)
 [x] No code/data/dashboard changes (verified via git diff --stat)
 
-VERDICT: BLOCKED — BUSINESS DECISION REQUIRED (ADR-003 only)
+VERDICT: DESIGN READY FOR REVIEW
 ```
 
-Every item is resolved except one: what "Reliance Brand Counter" is supposed to mean. That is a real business-definition question this audit surfaced, not a technical gap — the three options (and the tradeoffs of each) are recorded above for MT Leadership to decide. Nothing else blocks this design from being merged as the architecture contract once that one decision is made; the other 13 gate items are already `APPROVED`/complete and do not need to be re-litigated when ADR-003 resolves.
+All 14 gate items are resolved. ADR-003 (Reliance Brand Counter) is approved as Option C — Primary + Offtake + Gap, as three separate canonical measures (`RBC_PRIMARY_NSV`, `RBC_OFFTAKE_NSV`, `RBC_GAP_NSV`) that are never blended into one number, with a sell-through ratio explicitly deferred until comparability is validated. This design document, together with `docs/CANONICAL_METRIC_DEPENDENCY_MAP.md` and `docs/CANONICAL_METRIC_IMPLEMENTATION_PLAN.md`, forms the complete architecture contract for review.
 
 ## Next step (not started by this document)
 
-Once ADR-003 is resolved: mark this Design Acceptance Gate fully passed, merge this PR as the architecture contract, and open a new implementation PR scoped to **only** the canonical metric engine and reconciliation layer (no UI changes) — Phase 1 of the phased rollout below. Phases 2 onward (reconciliation tests, then Executive Cockpit, Performance/Comparison, Inventory/Alerts, Reliance views, and finally PBIP) are each their own gated PR, comparing old output vs. canonical output and blocking on unexplained variance, not implemented together.
-
-```
-Phase 1  Canonical contracts + pure calculation layer
-Phase 2  Automated reconciliation tests (old output vs. canonical output)
-Phase 3  Executive Cockpit migration
-Phase 4  Performance / Comparison migration
-Phase 5  Inventory / Alerts migration (closes KI-OFFTAKE-001 / Issue #195)
-Phase 6  Reliance views (per whatever ADR-003 resolves to)
-Phase 7  Power BI / PBIP semantic model alignment
-```
+Once this PR is reviewed and merged as the architecture contract: open a new implementation PR scoped to **only** Phase 1 of `docs/CANONICAL_METRIC_IMPLEMENTATION_PLAN.md` — the canonical metric engine and reconciliation framework, no UI changes, no dashboard code touched. Each subsequent phase in that plan is its own gated PR, comparing old output vs. canonical output and blocking on unexplained variance, never implemented together with another phase.
 
 The AI insight layer remains downstream of all of this — it explains certified canonical numbers, it never independently calculates them.
