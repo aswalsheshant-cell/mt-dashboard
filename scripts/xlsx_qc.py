@@ -334,6 +334,21 @@ def scan(sheets: dict, keys=(), allowed=(), variant_columns=None) -> list:
 
 
 # ---------------------------------------------------------------- CLI
+_CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def csv_safe(value) -> str:
+    """Text for a CSV cell that Excel will show literally, never evaluate.
+
+    Sheet names, headers and key values come from the scanned workbook, so a
+    hostile file could plant '=HYPERLINK(...)' and have it run when the CSV
+    report is opened. A leading ' makes Excel treat the cell as text. Applied
+    to the CSV report only: the workbook, console output and JSON keep the
+    raw value."""
+    v = "" if value is None else str(value)
+    return "'" + v if v.startswith(_CSV_FORMULA_PREFIXES) else v
+
+
 def _split(spec: str, flag: str):
     if ":" not in spec:
         raise WorkbookQCError("BAD_ARGUMENT", f"{flag} '{spec}' must be SHEET:COLUMN")
@@ -385,7 +400,8 @@ def main(argv=None) -> int:
             print(f"        {c}")
     print(f"\n{len(fails)} FAIL, {len(findings) - len(fails)} WARN -> {'FAIL' if fails else 'PASS'}")
     if a.out:
-        rows = [asdict(f) | {"cells": "; ".join(f.cells)} for f in findings]
+        rows = [{k: csv_safe(v) for k, v in (asdict(f) | {"cells": "; ".join(f.cells)}).items()}
+                for f in findings]
         if a.out.lower().endswith(".json"):
             Path(a.out).write_text(json.dumps([asdict(f) for f in findings], indent=2), encoding="utf-8")
         else:

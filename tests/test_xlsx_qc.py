@@ -177,3 +177,56 @@ def test_header_row_override(tmp_path):
     p = _book(tmp_path / "ov.xlsx", rows)
     assert xlsx_qc.main([str(p), "--header-row", "Data:2", "--key", "Data:Code"]) == 1
     assert xlsx_qc.main([str(p), "--header-row", "Data:99"]) == 2
+
+
+def _strbook(path, rows, sheet="Data"):
+    """Like _book, but every str is stored as literal text (a hostile file can
+    hold '=1+1' as a string; openpyxl would otherwise save it as a formula)."""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = sheet
+    for r, row in enumerate(rows, 1):
+        for c, v in enumerate(row, 1):
+            cell = ws.cell(row=r, column=c, value=v)
+            if isinstance(v, str):
+                cell.data_type = "s"
+    wb.save(path)
+    return path
+
+
+DANGEROUS = ["=1+1", "+SUM(A1:A2)", "-1+1", "@SUM(A1:A2)", "\t=cmd", "\r=cmd"]
+
+
+def test_csv_report_neutralises_formula_prefixes(tmp_path):
+    # Workbook-controlled text reaches the CSV via sheet names, headers and
+    # duplicate-key values. Opened in Excel, none of it may run as a formula.
+    import csv as _csv
+    rows = [["=HYPERLINK(\"http://x\",\"k\")", "Zone"]]
+    rows += [[v, "West"] for v in DANGEROUS for _ in (0, 1)]   # every value duplicated
+    p = _strbook(tmp_path / "inj.xlsx", rows, sheet="=Sheet")
+    out = tmp_path / "r.csv"
+    hdr = rows[0][0]
+    assert xlsx_qc.main([str(p), "--key", f"=Sheet:{hdr}", "--out", str(out)]) == 1
+    with open(out, newline="", encoding="utf-8") as fh:
+        cells = [c for r in _csv.reader(fh) for c in r]
+    risky = [c for c in cells if c[:1] in ("=", "+", "-", "@", "\t", "\r")]
+    assert risky == [], risky
+    assert any(c.startswith("'=Sheet") for c in cells)          # sheet name kept, as text
+    assert any(c.startswith("'=HYPERLINK") for c in cells)      # header kept, as text
+
+
+def test_csv_sanitiser_leaves_ordinary_text_alone():
+    for v in ["West", "S1 | A -> rows 3, 5", "12.5", "", "a=b", "Hyaluronic Acid"]:
+        assert xlsx_qc.csv_safe(v) == v
+    for v in DANGEROUS:
+        assert xlsx_qc.csv_safe(v) == "'" + v
+
+
+def test_json_report_keeps_raw_values(tmp_path):
+    import json as _json
+    rows = [["Code"], ["=1+1"], ["=1+1"]]
+    p = _strbook(tmp_path / "j.xlsx", rows)
+    out = tmp_path / "r.json"
+    xlsx_qc.main([str(p), "--key", "Data:Code", "--out", str(out)])
+    data = _json.loads(out.read_text())
+    assert data[0]["cells"][0].startswith("=1+1")            # JSON is data, not a spreadsheet
