@@ -117,6 +117,26 @@ def main() -> int:
             print(f"FAIL: --approval-date '{args.approval_date}' is not a valid ISO date")
             return 4
 
+    if args.status in ("REJECTED", "NOT_APPLICABLE"):
+        # REJECTED/NOT_APPLICABLE are terminal resolutions, same as APPROVED
+        # (see transitions.ALLOWED_TRANSITIONS) -- they must not close a
+        # required decision on zero evidence, or the gate can be satisfied
+        # with no human input at all by flipping every decision to
+        # NOT_APPLICABLE. No --selected-response is required here: these
+        # statuses don't carry one by this tool's convention.
+        missing = [name for name, val in [
+            ("--approved-by", args.approved_by),
+            ("--approval-date", args.approval_date),
+            ("--evidence-reference", args.evidence_reference),
+        ] if not val or not str(val).strip()]
+        if missing:
+            print(f"FAIL: --status {args.status} requires all of: {', '.join(missing)} (none may be blank) -- "
+                  f"a decision may not be resolved without recording who decided it and why")
+            return 4
+        if not _is_iso_date(args.approval_date):
+            print(f"FAIL: --approval-date '{args.approval_date}' is not a valid ISO date")
+            return 4
+
     current_status = entry["current_status"]
     current_response = entry.get("selected_response")
     new_response = args.selected_response if args.status == "APPROVED" else None
@@ -178,17 +198,24 @@ def main() -> int:
         entry["approval_date"] = args.approval_date
         entry["evidence_reference"] = args.evidence_reference
         entry["business_rule_result"] = f"selected_response={args.selected_response}"
+    elif args.status in ("REJECTED", "NOT_APPLICABLE"):
+        # Terminal resolution, same evidence requirement as APPROVED (enforced
+        # above) -- no selected_response by this tool's convention, but the
+        # who/when/why of the resolution IS recorded, never left null.
+        entry["selected_response"] = None
+        entry["approved_by"] = args.approved_by
+        entry["approval_date"] = args.approval_date
+        entry["evidence_reference"] = args.evidence_reference
+        entry["business_rule_result"] = None
     else:
+        # CLARIFICATION_REQUIRED / PENDING_* -- still open, not a resolution,
+        # so approver/date/evidence are correctly left unset (or cleared if a
+        # decision is being reopened from a prior state).
         entry["selected_response"] = None
         entry["business_rule_result"] = None
-        # approved_by/approval_date/evidence_reference deliberately left as-is
-        # (or None) -- CLARIFICATION_REQUIRED etc. don't require them, and if
-        # a decision is being moved OFF a prior APPROVED via --status REJECTED
-        # or similar, the amendment history above already preserved the facts.
-        if args.status not in ("APPROVED",):
-            entry["approved_by"] = None
-            entry["approval_date"] = None
-            entry["evidence_reference"] = None
+        entry["approved_by"] = None
+        entry["approval_date"] = None
+        entry["evidence_reference"] = None
     if args.notes:
         entry["notes"] = args.notes
 

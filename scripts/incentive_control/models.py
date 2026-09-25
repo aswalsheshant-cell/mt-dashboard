@@ -166,11 +166,33 @@ class DecisionRecord:
         )
 
     def is_resolved(self) -> bool:
-        """A decision that no longer blocks the gate -- APPROVED, REJECTED, or
-        NOT_APPLICABLE. Resolved does not mean APPROVED: a REJECTED or
-        NOT_APPLICABLE decision closes the item without authorizing a
-        calculation basis."""
+        """A decision whose current_status is a resolved one -- APPROVED,
+        REJECTED, or NOT_APPLICABLE. This checks status only; it does NOT
+        mean the resolution is evidenced. Use is_resolved_with_evidence()
+        for anything that decides whether a decision may stop blocking the
+        gate -- see that method's docstring for why."""
         return self.current_status in RESOLVED_STATUSES
+
+    def is_resolved_with_evidence(self) -> bool:
+        """The gate-closing check. A decision only genuinely stops blocking
+        the gate -- whether APPROVED, REJECTED, or NOT_APPLICABLE -- when it
+        carries the same evidence trail an APPROVED decision requires.
+        REJECTED/NOT_APPLICABLE do not authorize a calculation basis, but
+        they still permanently resolve a required decision (both are
+        terminal in transitions.ALLOWED_TRANSITIONS), so recording one on
+        zero evidence must not be possible: that would let every required
+        decision be closed with a single one-flag CLI command and no human
+        evidence anywhere, defeating the fail-closed guarantee this whole
+        module exists to provide."""
+        if self.current_status == "APPROVED":
+            return self.is_fully_approved()
+        if self.current_status in ("REJECTED", "NOT_APPLICABLE"):
+            return (
+                bool(self.approved_by and self.approved_by.strip())
+                and bool(self.approval_date and self.approval_date.strip())
+                and bool(self.evidence_reference and self.evidence_reference.strip())
+            )
+        return False
 
 
 # ---------------------------------------------------------------------------

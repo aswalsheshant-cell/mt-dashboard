@@ -107,16 +107,21 @@ def validate_register(records: List[DecisionRecord]) -> ValidationReport:
                 f"once the response was unambiguous, not stayed CLARIFICATION_REQUIRED"
             )
 
-        # 4/5/6. APPROVED without approver / date / evidence
-        if r.current_status == "APPROVED":
+        # 4/5/6. APPROVED/REJECTED/NOT_APPLICABLE without approver / date / evidence.
+        # REJECTED and NOT_APPLICABLE are terminal resolutions too (see
+        # transitions.ALLOWED_TRANSITIONS) -- closing a required decision on
+        # zero evidence must fail validation exactly like an unevidenced
+        # APPROVED would, or the gate can be satisfied with no human input at all.
+        if r.current_status in ("APPROVED", "REJECTED", "NOT_APPLICABLE"):
             if not r.approved_by or not r.approved_by.strip():
-                problems.append(f"{r.decision_id}: APPROVED without approved_by")
+                problems.append(f"{r.decision_id}: {r.current_status} without approved_by")
             if not r.approval_date or not r.approval_date.strip():
-                problems.append(f"{r.decision_id}: APPROVED without approval_date")
+                problems.append(f"{r.decision_id}: {r.current_status} without approval_date")
             elif not _is_iso_date(r.approval_date):
                 problems.append(f"{r.decision_id}: approval_date '{r.approval_date}' is not a valid ISO date")
             if not r.evidence_reference or not r.evidence_reference.strip():
-                problems.append(f"{r.decision_id}: APPROVED without evidence_reference")
+                problems.append(f"{r.decision_id}: {r.current_status} without evidence_reference")
+        if r.current_status == "APPROVED":
             if not r.selected_response or not r.selected_response.strip():
                 problems.append(f"{r.decision_id}: APPROVED without selected_response")
 
