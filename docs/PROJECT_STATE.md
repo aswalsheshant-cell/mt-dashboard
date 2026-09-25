@@ -195,6 +195,37 @@ Jun/Jul/Aug'26 `AssumptionTable.csv` rows (Required Business Inputs #7 above) �
 enforced by a release gate now, so it can't be missed silently, but not something
 this project can produce itself.
 
+### Selective recovery from a closed branch — PR #14 (2026-09-25)
+
+Branch `claude/offline-ai-data-analyst-iiincp` (last commit `aac1543`,
+2026-07-24) holds useful work that never reached `main`:
+[PR #14](https://github.com/aswalsheshant-cell/mt-dashboard/pull/14) was closed
+without merge on 2026-08-23. The session behind it stopped on a usage-credit
+limit, not on context compaction. The branch shares **no git history** with
+current `main`, so it cannot be merged or cherry-picked as-is.
+
+- **Status of the branch:** historical evidence only. Do not merge, rebase,
+  modify or delete it. Nothing on it is approved production truth. Its own
+  checkpoint file `ai-agent/SESSION_STATE.md` is stale (last updated 07-10;
+  8 later commits are not reflected), and its "95 tests pass" claim has not
+  been re-verified.
+- **Recovered so far:** filter-value normalisation (the branch's `normVal`),
+  rebuilt against current `main` — duplicate filter choices that differ only
+  by case or spacing now collapse to one. On current data this affects Range
+  (2 pairs) and Article (3 pairs); Zone/State have no variants today, so the
+  original West/WEST case is preventive. Display/matching only — no record or
+  total changes. Test: `tests/test_filter_value_normalisation.js`.
+- **Candidates, not yet recovered — audit component by component
+  (KEEP / REBUILD / ALREADY_REPLACED / OBSOLETE / BLOCKED) before any port:**
+  offline AI analyst module (`scripts/ai_analyst/`), its Excel QC scanner
+  (`xlsx_qc.py`), the AI Analyst dashboard tab, `scripts/audit_jun26_mapping.py`,
+  `PowerBI/docs/Jun26_Onboarding_Execution_Log.md`.
+- **Not to be recovered:** the branch's Power BI DAX / Power Query changes —
+  the current Power BI kit has moved past them. Compare only if a specific
+  business rule is shown to be missing from current assets.
+- **Blocked:** "METock" workbook QC — `BLOCKED_INPUT`, needs the source
+  `.xlsx` (never in the repo). Does not block the rest of the recovery.
+
 ## Partial Capabilities
 
 - Store-grain sales — dedup runs at chain level; store-grain chain offtake not in the build
