@@ -175,6 +175,26 @@ verify-before-build discipline as the round above:
   for real today would mean fabricating a number a store, DC, or Finance
   reviewer could act on.
 
+### Phase 2B — Canonical Financial Truth remediation, closed (2026-09-24/25)
+
+`docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md`'s full inventory (F1-F22 across two
+discovery passes) is now fully resolved or explicitly closed with no action needed.
+Regenerated `dashboard/data.js` from real raw source for the first time this session
+(PR #209) — found and fixed two independent, pre-existing bugs along the way
+(`--primary-only` never re-applying the `by_channel` correction; a chain-table
+`every()`/`filter()` bug F14's own already-merged fix exposed). Follow-up pass (item
+7 of the remediation order) fixed F19 (Reliance Brand Counter period-leakage — found
+to be dormant/dead code, not live, correcting the original discovery agent's
+severity call), F21 (Power BI P&L silently defaulting a missing month to a
+fabricated 50% Gross Margin — now fails closed, plus a new release gate), and F17/
+F15 (two more dormant hardcoded/fabricated-data landmines). PRs #209, #210, #211 —
+full detail and evidence in the inventory doc itself, not duplicated here.
+
+**What's left is a business input, not code:** Finance must supply the
+Jun/Jul/Aug'26 `AssumptionTable.csv` rows (Required Business Inputs #7 above) —
+enforced by a release gate now, so it can't be missed silently, but not something
+this project can produce itself.
+
 ## Partial Capabilities
 
 - Store-grain sales — dedup runs at chain level; store-grain chain offtake not in the build
@@ -212,6 +232,14 @@ verify-before-build discipline as the round above:
 4. Target basis confirmation — Primary or Offtake (89.0% vs 109.8% achievement)
 5. Jul-26 DMS extract — completes the Apr–Jul incentive window
 6. Business-rule confirmations C1–C6, payout caps, nested lower-is-better slab rule
+7. Power BI P&L (`PowerBI/SeedData/Masters/AssumptionTable.csv`) — approved
+   Gross Margin %/Trade Spend %/Visibility/Scheme Spend rows for Jun/Jul/Aug'26
+   (real Primary/Offtake monthly data already exists for all three; only the
+   Assumption Table itself is missing them). Unrelated to the incentive
+   workbook — this is the Power BI trade-P&L build kit's own gap (F21,
+   `docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md`). Enforced by
+   `scripts/check_assumption_coverage.py` / the "Assumption Coverage Gate"
+   CI check (PR #211) — do not fabricate, interpolate, or estimate these
 
 ## Current Assumptions
 
