@@ -3337,7 +3337,7 @@ function computeNpiPerformance(npd,cohortFy){
     REC.forEach(r=>{
       const key=npiRowKey(r);
       if(!cohortPairIds.has(key)||visiblePairIds.has(key)) return;
-      if(memberFilters.every(([k])=>F[k].includes(String(r[k])))) visiblePairIds.add(key);
+      if(memberFilters.every(([k])=>F[k].includes(normVal(k,r[k])))) visiblePairIds.add(key);
     });
   }
   const filtered=recFilter('FY').filter(r=>r.FY===cohortFy);
@@ -4193,13 +4193,50 @@ const MORDER=(D.primary&&D.primary.month_labels)||['April','May','June','July','
 // AND'd, same as before.
 const F={}; FILT.forEach(([k])=>F[k]=[]);
 const fOn =k=>F[k].length>0;                                 // dimension filtered at all?
-const fHas=(k,v)=>!F[k].length||F[k].includes(String(v));    // does value v pass dimension k?
+// Filter-value normalisation (recovered from the closed offline-AI branch, PR #14,
+// rebuilt against current main). Source spellings that differ only by case or
+// spacing -- e.g. "West"/"WEST", "Hyaluronic Acid"/"Hyaluronic acid",
+// "TDC  1%"/"TDC 1%" -- collapse to ONE filter choice. The choice shown is the
+// spelling carrying the most NSV. Display/matching only: records, NSV and every
+// total are untouched. FY and Month are controlled vocabularies, left as-is.
+const _NORM_SKIP=new Set(['FY','Month']);
+const _normKey=v=>String(v).trim().replace(/\s+/g,' ').toLowerCase();
+const _CANON=(function(){
+  const out={};
+  FILT.forEach(([k])=>{
+    if(_NORM_SKIP.has(k)) return;
+    const nsvBy={};                       // normalised key -> {raw spelling -> NSV}
+    REC.forEach(r=>{
+      const v=r[k]; if(v==null||v!==v) return;
+      const raw=String(v), nk=_normKey(raw);
+      const b=nsvBy[nk]||(nsvBy[nk]={});
+      b[raw]=(b[raw]||0)+(r.NSV||0);
+    });
+    const byRaw=new Map(), byKey=new Map();
+    Object.entries(nsvBy).forEach(([nk,b])=>{
+      const best=Object.keys(b).sort((x,y)=>b[y]-b[x]||x.localeCompare(y))[0];
+      byKey.set(nk,best.trim().replace(/\s+/g,' '));
+      Object.keys(b).forEach(raw=>byRaw.set(raw,byKey.get(nk)));
+    });
+    out[k]={byRaw,byKey};
+  });
+  return out;
+})();
+function normVal(k,v){
+  if(v==null) return '';
+  const raw=String(v), c=_CANON[k];
+  if(!c) return raw;                      // FY / Month / unknown dim: unchanged
+  if(c.byRaw.has(raw)) return c.byRaw.get(raw);
+  const nk=_normKey(raw);                 // value from a pre-aggregated block, not in REC
+  return c.byKey.has(nk)?c.byKey.get(nk):raw.trim().replace(/\s+/g,' ');
+}
+const fHas=(k,v)=>!F[k].length||F[k].includes(normVal(k,v));  // does value v pass dimension k?
 const fLab=k=>F[k].join(', ');                               // display label ('' when unfiltered)
 const fOne=k=>F[k].length===1?F[k][0]:null;                  // exactly-one selection or null
 
 // records passing all active filters (optionally ignoring one key for cascading options)
 function recFilter(except){
-  return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(String(r[k])) ));
+  return REC.filter(r=>FILT.every(([k])=> k===except || !F[k].length || F[k].includes(normVal(k,r[k])) ));
 }
 // FY dropdown: derived from the data, never hardcoded, so a new FY (FY28+)
 // flows in automatically the moment its rows arrive. The pre-aggregated
@@ -4225,11 +4262,11 @@ const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum
 function optsFor(key){
   if(key==='FY') return FY_ALL;
   const recs=REC;  // Use full REC instead of recFilter(key) to ensure all unique values appear (e.g., Central zone from any FY)
-  const vals=[...new Set(recs.map(r=>r[key]))].filter(v=>v!=null&&v===v&&String(v).trim()!=='');
+  const vals=[...new Set(recs.filter(r=>r[key]!=null&&r[key]===r[key]).map(r=>normVal(key,r[key])))].filter(v=>v.trim()!=='');
   if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
   else{
     const contrib={};
-    recs.forEach(r=>{const v=r[key];contrib[v]=(contrib[v]||0)+(r.NSV||0);});
+    recs.forEach(r=>{if(r[key]==null)return;const v=normVal(key,r[key]);contrib[v]=(contrib[v]||0)+(r.NSV||0);});
     vals.sort((a,b)=>(contrib[b]||0)-(contrib[a]||0)||String(a).localeCompare(String(b)));
   }
   return vals;
@@ -4281,7 +4318,7 @@ function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
 // the raw row-level records for whatever's currently filtered.
 function drillTo(key,value){
   if(!FILT.some(([k])=>k===key) || value==null) return;
-  F[key]=[String(value)];   // drill = FOCUS on the clicked value (replaces the dimension's selection)
+  F[key]=[normVal(key,value)];   // drill = FOCUS on the clicked value (replaces the dimension's selection)
   onFilterChange();
 }
 function drillLink(key,label){
@@ -4451,7 +4488,7 @@ function expBarH(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
   expCharts.push(new Chart(document.getElementById(id),{type:'bar',
     data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
-    options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=[String(labels[els[0].index])];onFilterChange();}},
+    options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=[normVal(key,labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.x)}}},
       scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},y:{grid:{display:false}}}}}));
 }
@@ -4459,7 +4496,7 @@ function expDonut(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
   expCharts.push(new Chart(document.getElementById(id),{type:'doughnut',
     data:{labels,datasets:[{data,backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},
-    options:{cutout:'58%',onClick:(e,els)=>{if(els.length){F[key]=[String(labels[els[0].index])];onFilterChange();}},
+    options:{cutout:'58%',onClick:(e,els)=>{if(els.length){F[key]=[normVal(key,labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{position:'right'},..._labelOpts(true),tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
         return `${c.label}: ${crc(c.parsed)} (${(c.parsed/t*100).toFixed(0)}%)`;}}}}}}));
 }
@@ -4554,7 +4591,7 @@ function renderGal(id){
   const data=e.map(x=>x[1]);
   const fmt=st.metric==='Qty'?(v=>qtyFmt(v)):(v=>crc(v));
   const isFilterDim=FILT.some(([k])=>k===dim);
-  const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[String(monthOf(e[els[0].index][0]))];onFilterChange();}}:undefined;
+  const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[normVal(dim,monthOf(e[els[0].index][0]))];onFilterChange();}}:undefined;
   const t=st.type;
   let cfg;
   if(t==='doughnut'||t==='pie'){
