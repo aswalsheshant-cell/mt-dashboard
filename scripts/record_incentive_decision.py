@@ -48,6 +48,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from incentive_control.gate import evaluate_gate  # noqa: E402
+from incentive_control.models import compute_content_hash  # noqa: E402
 from incentive_control.register_io import (  # noqa: E402
     RegisterLoadError,
     load_register,
@@ -198,6 +199,11 @@ def main() -> int:
         entry["approval_date"] = args.approval_date
         entry["evidence_reference"] = args.evidence_reference
         entry["business_rule_result"] = f"selected_response={args.selected_response}"
+        entry["content_hash"] = compute_content_hash(
+            entry.get("affected_period"), entry.get("affected_entity"),
+            entry.get("affected_value_l"), entry.get("affected_store_count"),
+            entry["allowed_responses"],
+        )
     elif args.status in ("REJECTED", "NOT_APPLICABLE"):
         # Terminal resolution, same evidence requirement as APPROVED (enforced
         # above) -- no selected_response by this tool's convention, but the
@@ -207,6 +213,11 @@ def main() -> int:
         entry["approval_date"] = args.approval_date
         entry["evidence_reference"] = args.evidence_reference
         entry["business_rule_result"] = None
+        entry["content_hash"] = compute_content_hash(
+            entry.get("affected_period"), entry.get("affected_entity"),
+            entry.get("affected_value_l"), entry.get("affected_store_count"),
+            entry["allowed_responses"],
+        )
     else:
         # CLARIFICATION_REQUIRED / PENDING_* -- still open, not a resolution,
         # so approver/date/evidence are correctly left unset (or cleared if a
@@ -216,6 +227,7 @@ def main() -> int:
         entry["approved_by"] = None
         entry["approval_date"] = None
         entry["evidence_reference"] = None
+        entry["content_hash"] = None
     if args.notes:
         entry["notes"] = args.notes
 

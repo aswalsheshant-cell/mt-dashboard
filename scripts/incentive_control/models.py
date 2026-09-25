@@ -14,8 +14,9 @@ reinvented.
 """
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Sequence
 
 
 # ---------------------------------------------------------------------------
@@ -44,6 +45,29 @@ UNRESOLVED_STATUSES = {
     "BLOCKED_CONFLICT",
     "CLARIFICATION_REQUIRED",
 }
+
+def compute_content_hash(
+    affected_period: Optional[str],
+    affected_entity: Optional[str],
+    affected_value_l: Optional[float],
+    affected_store_count: Optional[int],
+    allowed_responses: Sequence[str],
+) -> str:
+    """Fingerprint over a decision's CONTENT fields -- never its resolution
+    fields (status/response/approver/date/evidence). record_incentive_decision.py
+    has no flag to change any of these five, so this hash can only drift
+    from what's on disk via a hand-edit that bypasses the sanctioned CLI --
+    which is exactly the case is_resolved_with_evidence() must catch rather
+    than trust a stale approval attached to changed content."""
+    payload = "|".join([
+        affected_period or "",
+        affected_entity or "",
+        "" if affected_value_l is None else repr(float(affected_value_l)),
+        "" if affected_store_count is None else str(int(affected_store_count)),
+        ",".join(sorted(allowed_responses)),
+    ])
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
 
 GATE_STATES = {
     "READY_FOR_SHADOW_CALCULATION",
@@ -150,6 +174,7 @@ class DecisionRecord:
     affected_value_l: Optional[float] = None
     affected_store_count: Optional[int] = None
     notes: Optional[str] = None
+    content_hash: Optional[str] = None
 
     def is_fully_approved(self) -> bool:
         """Mirrors scripts/canonical/governance.py's ApprovedException.is_fully_approved():
@@ -185,14 +210,34 @@ class DecisionRecord:
         evidence anywhere, defeating the fail-closed guarantee this whole
         module exists to provide."""
         if self.current_status == "APPROVED":
-            return self.is_fully_approved()
-        if self.current_status in ("REJECTED", "NOT_APPLICABLE"):
-            return (
+            if not self.is_fully_approved():
+                return False
+        elif self.current_status in ("REJECTED", "NOT_APPLICABLE"):
+            if not (
                 bool(self.approved_by and self.approved_by.strip())
                 and bool(self.approval_date and self.approval_date.strip())
                 and bool(self.evidence_reference and self.evidence_reference.strip())
-            )
-        return False
+            ):
+                return False
+        else:
+            return False
+
+        # Content-integrity check, same for every resolved status: the
+        # sanctioned CLI has no flag to change affected_period/entity/
+        # value_l/store_count/allowed_responses, so it always stamps
+        # content_hash to match them at resolution time. A missing hash
+        # (resolved before this control existed, or never stamped) or a
+        # mismatch (content changed since resolution -- almost certainly a
+        # hand-edit outside the CLI) both fail closed: re-resolution is
+        # required rather than trusting a stale approval.
+        if not self.content_hash:
+            return False
+        current_hash = compute_content_hash(
+            self.affected_period, self.affected_entity,
+            self.affected_value_l, self.affected_store_count,
+            self.allowed_responses,
+        )
+        return self.content_hash == current_hash
 
 
 # ---------------------------------------------------------------------------

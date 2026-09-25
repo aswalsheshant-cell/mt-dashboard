@@ -179,6 +179,29 @@ def test_step7i_malformed_approval_date_fails(tmp_path):
     assert "not a valid ISO date" in out
 
 
+def test_step7n_cli_stamps_content_hash_and_hand_edit_after_is_caught(tmp_path):
+    """End-to-end: approve via the real CLI (content_hash auto-stamped),
+    then simulate a hand-edit to content outside the CLI, then confirm the
+    real readiness report catches it."""
+    reg = _fresh_register(tmp_path)
+    code, out = _approve(reg, "NC-01", "H1_ONLY", "synthetic-e2e-nc01-hash")
+    assert code == 0, out
+    data = json.loads(reg.read_text())
+    nc01 = next(d for d in data["decisions"] if d["decision_id"] == "NC-01")
+    assert nc01["content_hash"], "CLI must stamp content_hash on APPROVED"
+
+    # Simulate a hand-edit bypassing the CLI (which has no flag to do this)
+    nc01["affected_value_l"] = 999999.99
+    reg.write_text(json.dumps(data))
+
+    records = load_register(reg)
+    result = evaluate_gate(records)
+    assert result.state != "READY_FOR_SHADOW_CALCULATION" or any(
+        b["decision_id"] == "NC-01" for b in result.blocking
+    )
+    assert any(r.decision_id == "NC-01" and not r.is_resolved_with_evidence() for r in records)
+
+
 def test_step7k_not_applicable_without_evidence_rejected_by_cli(tmp_path):
     """Regression test for a confirmed critical defect found in a code
     audit: --status NOT_APPLICABLE (or REJECTED) with no --approved-by/

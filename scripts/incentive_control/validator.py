@@ -31,6 +31,7 @@ from .models import (
     UNRESOLVED_STATUSES,
     VALID_STATUSES,
     DecisionRecord,
+    compute_content_hash,
 )
 
 
@@ -124,6 +125,31 @@ def validate_register(records: List[DecisionRecord]) -> ValidationReport:
         if r.current_status == "APPROVED":
             if not r.selected_response or not r.selected_response.strip():
                 problems.append(f"{r.decision_id}: APPROVED without selected_response")
+
+        # content_hash integrity: record_incentive_decision.py has no flag to
+        # change affected_period/entity/value_l/store_count/allowed_responses,
+        # so a resolved decision missing this hash, or carrying one that
+        # doesn't match its current content, means the register was
+        # hand-edited outside the sanctioned CLI after resolution.
+        if r.current_status in ("APPROVED", "REJECTED", "NOT_APPLICABLE"):
+            if not r.content_hash:
+                problems.append(
+                    f"{r.decision_id}: {r.current_status} without content_hash -- resolved "
+                    f"before this control existed or hand-edited outside record_incentive_decision.py; "
+                    f"re-resolve via the CLI to stamp it"
+                )
+            else:
+                expected = compute_content_hash(
+                    r.affected_period, r.affected_entity,
+                    r.affected_value_l, r.affected_store_count,
+                    r.allowed_responses,
+                )
+                if r.content_hash != expected:
+                    problems.append(
+                        f"{r.decision_id}: content_hash mismatch -- affected_period/entity/value_l/"
+                        f"store_count/allowed_responses changed since this decision was resolved "
+                        f"(hand-edited outside the CLI); re-approval required, not silently accepted"
+                    )
 
         # 10. malformed dates (even outside APPROVED, a populated date must be valid)
         if r.approval_date and not _is_iso_date(r.approval_date):
