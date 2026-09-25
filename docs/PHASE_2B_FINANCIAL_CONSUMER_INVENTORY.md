@@ -284,6 +284,35 @@ implement anything.
    migrated onto the canonical engine.
 7. **The "deliberately not yet classified" domains, plus `sales_actuals_block()`'s
    missing-data policy** — a follow-up, scoped sweep per domain rather than one more
-   all-at-once pass.
+   all-at-once pass. **Done — see Phase 2B-C below.**
 8. **F5, F9, F11-F13 (dead code / lower-severity patterns)** — cosmetic or low-risk,
-   no urgency, bundle into any future cleanup pass.
+   no urgency, bundle into any future cleanup pass. **Done** (PR #208: F5 dead-param
+   cleanup, F9 mobile.html wired to real data; F11-F13 needed no code change per
+   their own recommendation above).
+
+---
+
+## Phase 2B-C — Follow-up sweep (item 7) and its remediation
+
+Read-only discovery pass, 2026-09-25, tracing the 8-9 domains item 7 above named as
+undone. Findings continue the F-numbering (F15 onward). Two were real, live-today
+defects; the rest were dormant landmines or already clean. All four items this pass
+recommended fixing are now **RESOLVED**.
+
+| # | Domain | Classification | Resolution |
+|---|---|---|---|
+| F15 | `generate_correlations_block()` (`scripts/promo_offtake_correlation.py`) hardcoded `avg_lift=0` and a wrong `elasticity=avg_discount/100` formula, feeding a fully-built but unreachable "Promo Elasticity Executive Brief" (no canvas elements in the DOM, no button opens the brief modal) | UNCONTROLLED_FINANCIAL_TRUTH, dormant (unreachable today, severe if a future edit reconnects it) | **RESOLVED**, PR #211. Source now emits `None`/`NOT_AVAILABLE_UNTIL_VALIDATED_LIFT_SOURCE`/`methodology_validated:False` instead of a fabricated number; `avg_discount`/`count` (genuinely observed) preserved. JS-side `elasticityMethodologyValidated()` guard added at every render/export entry point as defense-in-depth against a future reconnection. |
+| F16 | Promo Intensity (`D.promo.by_chain`) / Promo-vs-Sell-Through correlation card | Clean | No action needed. |
+| F17 | P&L bridge (`buildPnl()`) hardcoded the literal `'FY26'` instead of reading `pnl_block()`'s real `fy_tag`; `D.pnl`'s defensive default shape (`{chains,totals,blended}`) didn't match the real `{by_chain,fy_tag,...}` shape | Originally reported **dormant** ("source hasn't extended past FY26 yet") — **corrected to LIVE, confirmed 2026-09-25 against the real committed `data.js`**: `pl.fy_tag` is genuinely `"FY27"` today. On unfixed `main`, the default (no-filter) view rendered the real FY27 P&L bridge (₹99.58 Cr NSV) captioned "FY26"; selecting FY26 showed the same FY27 data under the same wrong label; selecting FY27 explicitly hid that real data behind a false "actuals not available" message. UNCONTROLLED_FINANCIAL_TRUTH (live) / DISPLAY_ONLY (crash risk, still dormant) | **RESOLVED**, PR #211 — the fix itself was already correct before this correction; only the severity classification was wrong. Verified live-fixed: default and FY27-filtered views now correctly show "FY27" with the real ₹99.58 Cr figure; FY26 filter now correctly shows "not available" (the bridge's real source has no FY26 data at all). |
+| F18 | Category & Pack Mix | Clean (same pattern as the original F13) | No action needed. |
+| F19 | Reliance Brand Counter zone/state/brand/category tables (`buildRelianceBC()`) fell back to `.total` (all-time) when a row had no entry for the selected/default FY — the real "Unallocated" buckets (FY26-only, ₹4,562.49L) rendered as if FY27 | Originally reported LIVE; **corrected to DORMANT** — `buildRelianceBC()` has zero call sites in `index.html` and its DOM container doesn't exist in the template (would crash if invoked). The real, live RBC subview (`renderChannelSubview()`'s `sv==='reliance'`) and `mobile.html`'s `rbcTotal()` were already independently clean. See PR #210's description for the full correction. | **RESOLVED**, PR #210. Fixed anyway per the "never leave a landmine even if dormant" principle (same as F8/F10). |
+| F20 | Demand Forecast / Competitive Landscape / Market Share | Clean (dead fallbacks / already-honest "not available" states) | No action needed. |
+| F21 | `PowerBI/DAX/02_PnL_Measures.dax` silently defaulted a month with no `AssumptionTable.csv` row to a hardcoded 50% Gross Margin / 0% Trade Spend — the seed file only covers Apr'26/May'26 against real Primary/Offtake coverage through Aug'26 | UNCONTROLLED_FINANCIAL_TRUTH, live in the inputs (not confirmed seen in a rendered report — no `.pbix` exists) | **RESOLVED (code/governance)**, PR #211. DAX now fails closed to `BLANK()`; new `scripts/check_assumption_coverage.py` + `.github/workflows/assumption-coverage-gate.yml` block the build (`BLOCKED_FINANCE_INPUT`) until Finance supplies the missing months. **The underlying data gap itself (Jun/Jul/Aug'26 assumptions) is a standing Business blocker, not closed by this PR** — see `docs/PROJECT_STATE.md`'s Required Business Inputs. |
+| F22 | `sales_actuals_block()`'s reconciliation against F1/F2/F6's sources (the "fifth competing-truth candidate" the original doc flagged) | Closed by inspection | It is used only by `scripts/ingest_massit_sales.py` and a non-financial readiness check — zero references in `dashboard/index.html` or `dashboard/data.js`. Nothing on the dashboard for it to compete with; no code change needed. |
+
+**Phase 2B-C exit:** all 7 originally-open items are closed (6 needed no action or were
+already resolved elsewhere; F15/F17/F19/F21 got real fixes with regression tests).
+Phase 2B is **closed at the code/governance level** once PR #210 and PR #211 merge.
+The one thing that remains open is exactly what it always was — a Finance business
+input (the missing monthly Assumption Table rows) — now made impossible to miss by
+a release gate instead of resting on someone noticing a suspicious 50.0% margin.

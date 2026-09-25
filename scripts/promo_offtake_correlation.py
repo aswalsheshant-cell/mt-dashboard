@@ -372,14 +372,27 @@ def generate_correlations_block(data_master_path_or_dict):
                 discounts = [i['discount'] for i in instances]
                 avg_discount = sum(discounts) / len(discounts)
 
+                # F15 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up
+                # sweep, 2026-09-25): this used to hardcode avg_lift=0 (a
+                # placeholder presented as a real observation) and compute
+                # 'elasticity' as avg_discount/100 -- not lift/discount, the
+                # actual elasticity formula this file's own docstring and
+                # CorrelationAnalyzer.calculate_elasticity() define, just
+                # above, unused here for lack of a monthly offtake-by-chain
+                # source to compute a real lift against. avg_discount/count
+                # are real, observed values (kept); lift/elasticity/roc_index
+                # are not computable without that source, so they stay None,
+                # never a fabricated number that could reach an executive
+                # brief looking legitimate.
                 elasticity[chain_name][tier] = {
                     'avg_discount': round(avg_discount, 2),
                     'count': len(instances),
-                    'elasticity': round(avg_discount / 100, 3),  # Normalized
-                    'avg_lift': 0,  # Placeholder; awaits monthly offtake data
-                    'std_dev': 0,
-                    'min_lift': 0,
-                    'max_lift': 0
+                    'elasticity': None,
+                    'avg_lift': None,
+                    'std_dev': None,
+                    'min_lift': None,
+                    'max_lift': None,
+                    'status': 'NOT_AVAILABLE_UNTIL_VALIDATED_LIFT_SOURCE'
                 }
 
     # Detect anomalies from available data
@@ -398,29 +411,40 @@ def generate_correlations_block(data_master_path_or_dict):
                         'note': 'Discount depth >70% (monitor ROI closely)'
                     })
 
-    # Summary insights
+    # F15: highest_roi_tier/optimal_depth_range/avg_discount_tier_N were
+    # hardcoded literals (never actually derived from `elasticity` above) --
+    # the same fabrication pattern as avg_lift, just one level up. None of
+    # these are computable without a real, validated elasticity source.
     summary = {
-        'highest_roi_tier': 'tier_2',
-        'optimal_depth_range': '45–55%',
-        'avg_discount_tier_1': 0,
-        'avg_discount_tier_2': 0,
-        'avg_discount_tier_3': 0,
+        'highest_roi_tier': None,
+        'optimal_depth_range': None,
+        'avg_discount_tier_1': None,
+        'avg_discount_tier_2': None,
+        'avg_discount_tier_3': None,
         'total_chains_analyzed': len(elasticity),
-        'data_availability': 'Monthly promo data available; monthly offtake awaiting integration'
+        'data_availability': ('Monthly promo discount depth available (real); monthly '
+                               'offtake-by-chain data required to compute real lift/'
+                               'elasticity does not exist yet'),
+        'status': 'NOT_AVAILABLE_UNTIL_VALIDATED_LIFT_SOURCE',
+        'methodology_validated': False,
+        'reason': ('Elasticity/lift figures require monthly offtake matched to promo '
+                   'periods (CorrelationAnalyzer.calculate_elasticity(), unused here '
+                   'for lack of that source) plus a reviewed methodology sign-off -- '
+                   'neither exists yet. Do not use avg_lift/elasticity/roc_index/'
+                   'highest_roi_tier/optimal_depth_range until methodology_validated '
+                   'is true.')
     }
 
-    # Build output structure
+    # Build output structure. roc_index ("return on chain") is derived from
+    # elasticity, which has no real source yet -- stays None, not a sum over
+    # None values (which would raise) or a silent 0 (which would look real).
     by_chain = []
     for chain_name, tiers in elasticity.items():
-        entry = {
+        by_chain.append({
             'name': chain_name,
             'elasticity_tiers': dict(tiers),
-            'roc_index': sum(
-                t.get('elasticity', 0) for t in tiers.values()
-            ) / len(tiers) if tiers else 0
-        }
-        entry['roc_index'] = round(entry['roc_index'], 3)
-        by_chain.append(entry)
+            'roc_index': None
+        })
 
     return {
         'correlations': {
@@ -429,7 +453,8 @@ def generate_correlations_block(data_master_path_or_dict):
             'summary': summary,
             'version': '1.0',
             'generated_at': None,  # Will be set by sync script
-            'status': 'PARTIAL_CORRELATION_AVAILABLE'
+            'status': 'NOT_AVAILABLE_UNTIL_VALIDATED_LIFT_SOURCE',
+            'methodology_validated': False
         }
     }
 
