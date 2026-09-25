@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FY27 Incentive Decision Register",
+  "description": "Machine-readable contract for the FY27 incentive decision-closure gate (Phase 3A). This is the SCHEMA only -- it contains no real Leadership/Finance decisions, no employee data, no compensation figures. The real register lives in the gitignored incentive_working/ directory (FY27_INCENTIVE_DECISION_REGISTER.json) and must validate against this file. See incentive_working/FY27_INCENTIVE_DECISION_REGISTER.md for the human-readable rendering and full evidence per decision.",
+  "type": "object",
+  "required": ["schema_version", "decisions"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/decision" }
+    }
+  },
+  "definitions": {
+    "decision": {
+      "type": "object",
+      "required": [
+        "decision_id",
+        "decision_owner",
+        "affected_period",
+        "allowed_responses",
+        "current_status",
+        "selected_response",
+        "approved_by",
+        "approval_date",
+        "evidence_reference",
+        "business_rule_result",
+        "implementation_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "description": "Must be a known decision family ID. See REQUIRED_DECISIONS in scripts/incentive_control/models.py for the current canonical list.",
+          "enum": [
+            "NC-01", "TG-01", "TG-02", "TG-03", "TG-04", "TG-05",
+            "GRAIN-01", "DM-01", "BASUP-01", "D1A", "D1B", "RES-01"
+          ]
+        },
+        "decision_owner": {
+          "type": "string",
+          "enum": ["MT Leadership", "Finance", "MT Ops"]
+        },
+        "consulted_owner": { "type": ["string", "null"] },
+        "affected_period": { "type": "string" },
+        "affected_entity": { "type": ["string", "null"] },
+        "affected_value_l": {
+          "type": ["number", "null"],
+          "description": "Rupees Lakh, when the decision has a discrete Rs exposure. null for basis decisions (D1A/D1B) which are not a line item. Consumers must NOT sum affected_value_l across decisions -- several decisions share underlying rows (see overlap_of in the register's own documentation) and this schema does not encode which; that lives in target_scope_decision_pack.md section D0."
+        },
+        "affected_store_count": { "type": ["integer", "null"], "minimum": 0 },
+        "allowed_responses": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "The exact, deterministic token set this decision accepts. selected_response, when set, must be one of these."
+        },
+        "current_status": {
+          "type": "string",
+          "enum": [
+            "PENDING_LEADERSHIP",
+            "PENDING_FINANCE",
+            "APPROVED",
+            "REJECTED",
+            "NOT_APPLICABLE",
+            "BLOCKED_CONFLICT",
+            "CLARIFICATION_REQUIRED"
+          ]
+        },
+        "selected_response": {
+          "type": ["string", "null"],
+          "description": "Must be null unless current_status is APPROVED, REJECTED, or NOT_APPLICABLE, and must then be one of allowed_responses."
+        },
+        "approved_by": {
+          "type": ["string", "null"],
+          "description": "Required (non-blank) when current_status == APPROVED. Never set by an automated agent -- only by a person recording a real response."
+        },
+        "approval_date": {
+          "type": ["string", "null"],
+          "format": "date",
+          "description": "Required (ISO 8601 date) when current_status == APPROVED."
+        },
+        "evidence_reference": {
+          "type": ["string", "null"],
+          "description": "Required (non-blank) when current_status == APPROVED -- the email/thread/document where the response was recorded."
+        },
+        "business_rule_result": {
+          "type": ["string", "null"],
+          "description": "Must be null while current_status is any PENDING_*, BLOCKED_CONFLICT, or CLARIFICATION_REQUIRED value -- an unresolved decision produces no business-rule result."
+        },
+        "implementation_status": {
+          "type": "string",
+          "enum": ["NOT_STARTED", "IN_PROGRESS", "IMPLEMENTED", "NOT_APPLICABLE"]
+        },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

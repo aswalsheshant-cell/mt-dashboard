@@ -75,3 +75,4 @@ Massit*.csv
 *FOCUS_PACK*.csv
 employee_master*.csv
 incentive_working/
+logs/incentive_decision_audit.jsonl
