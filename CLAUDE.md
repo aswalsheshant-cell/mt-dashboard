@@ -359,6 +359,19 @@ event, not a failure — the workflow below is what makes it harmless.
   continuing any edit. If the branch's work has already merged, don't stack
   new commits on merged history — branch fresh from `main` instead (see
   Conventions below).
+- **A dead or unreadable session is recovered from Git, never from the chat.**
+  When a session stops (usage credits, failed compaction, lost container),
+  a new session starts with: `git fetch`; branch, HEAD and working tree as
+  above; read this file and `docs/PROJECT_STATE.md`; inspect the branch's PR
+  and CI; then treat every claim in the old chat ("tests pass", "PR is open",
+  "next step is X") as UNVERIFIED until Git, the PR or a re-run confirms it.
+  Before a long session gets risky, leave a handoff where the next session
+  will look (the PR description, or `PROJECT_STATE.md` if continuity meaning
+  changed): branch, HEAD, what is done, current blocker, exact next approved
+  action, tests last run with results, files changed. Worked example: the
+  PR #14 recovery note in `docs/PROJECT_STATE.md` (that session stopped on
+  credits, not compaction; its checkpoint file on the unmerged branch had gone
+  stale).
 - **Checkpoint by committing, not by waiting.** For work with real
   milestones (an allocation methodology validated against source data, a
   `data.js` rebuild reconciled, the 12-tab × FY sweep passed), commit as soon
