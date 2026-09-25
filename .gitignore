@@ -23,6 +23,11 @@ docs/PHASE_3_RESULTS_*.json
 # skill-suite: local backups of diverged install targets
 work/skill-suite-backups/
 
+# scripts/sync_compliance_data.py's synthetic demo output (never the live
+# dashboard/compliance_metrics.json path -- see that script's --output default)
+dashboard/compliance_metrics.mock_demo.json
+dashboard/*.mock_demo.json
+
 # Generated PPTX output — produced by scripts/export_slides.js and build_*_presentation.js
 MT_Leadership_Report.pptx
 Central_Zone_Leadership_Pack_*.pptx
@@ -70,3 +75,4 @@ Massit*.csv
 *FOCUS_PACK*.csv
 employee_master*.csv
 incentive_working/
+logs/incentive_decision_audit.jsonl

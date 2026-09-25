@@ -3,61 +3,104 @@
 // Logic: if a raw P&L actual exists use it; otherwise resolve the most
 // specific matching row in 'Assumption Table' (Month>Chain>Brand>Category),
 // falling back to "ALL". All divisions use DIVIDE().
+//
+// F21 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up sweep,
+// 2026-09-25): this used to COALESCE a missing month to a hardcoded 50%
+// Gross Margin / 0% Trade Spend -- 'AssumptionTable.csv' only has rows for
+// Apr'26 and May'26 (each remarked "Default portfolio assumption - update
+// with actuals when available"), so every month since silently computed
+// CM%/Gross Margin off a made-up default with no on-screen disclosure.
+// Fail-closed now: a month with no Assumption Table row returns BLANK()
+// all the way through Gross Margin/Trade Spend/Total Spend/Contribution
+// Margin/CM% -- never a fabricated number -- and `Assumption Status` names
+// the exact gap for a QC card. `scripts/check_assumption_coverage.py` is
+// the release-gate half of this fix: it fails the build with
+// BLOCKED_FINANCE_INPUT before a missing month can even reach here.
 // =====================================================================
+
+// ---- Helper: is there ANY Assumption Table row for the selected month? ----
+// Single source of truth for "does Finance's input exist for this month",
+// independent of which specific % or spend column a caller reads next --
+// AssumptionTable.csv always populates GM%/Trade Spend%/Visibility/Scheme
+// together per row, so one row-existence check covers all four safely.
+_Assumption Available =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+    NOT ISBLANK ( _m )
+        && CALCULATE ( COUNTROWS ( 'Assumption Table' ),
+               FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ) > 0
+
+// Finance-facing QC status -- put this on a card in the P&L page so a
+// missing month is visibly flagged, not silently absorbed into "0.0%".
+Assumption Status =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( _m ), "NO MONTH SELECTED",
+        [_Assumption Available], "OK",
+        "ASSUMPTION_MISSING — FINANCE_INPUT_REQUIRED: " & _m
+            & " has no approved Assumption Table row. Gross Margin, Trade Spend, "
+            & "Contribution Margin and CM% for this month are BLANK, not estimated."
+    )
 
 // ---- Helper: resolve an assumption value with ALL-fallback ----
 // Returns the % / spend for the current Month x Chain x Brand x Category
-// context, preferring the most specific row, else the ALL row.
+// context, preferring the most specific row, else the ALL row. Returns
+// BLANK() (not a hardcoded default) when the month itself has no row at
+// all -- MAX()/SUM() over an empty filtered table already returns BLANK(),
+// so removing the old COALESCE(...,default) is the entire fix here.
 _Assumption Gross Margin % =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 VAR _ch = SELECTEDVALUE ( 'Chain Master'[Chain], "ALL" )
 VAR _br = SELECTEDVALUE ( 'Brand Master'[Brand], "ALL" )
 VAR _cat = SELECTEDVALUE ( 'Category Master'[Category], "ALL" )
-VAR _specific =
+RETURN
     CALCULATE ( MAX ( 'Assumption Table'[Gross Margin %] ),
         FILTER ( ALL ( 'Assumption Table' ),
             'Assumption Table'[Month] = _m
             && ( 'Assumption Table'[Chain] = _ch || 'Assumption Table'[Chain] = "ALL" )
             && ( 'Assumption Table'[Brand] = _br || 'Assumption Table'[Brand] = "ALL" )
             && ( 'Assumption Table'[Category] = _cat || 'Assumption Table'[Category] = "ALL" ) ) )
-RETURN COALESCE ( _specific, 0.50 )
 
 _Assumption Trade Spend % =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 RETURN
-COALESCE (
     CALCULATE ( MAX ( 'Assumption Table'[Trade Spend %] ),
-        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )
 
 _Assumption Visibility Spend =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 RETURN
-COALESCE (
     CALCULATE ( SUM ( 'Assumption Table'[Visibility Spend] ),
-        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )
 
 _Assumption Scheme Spend =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 RETURN
-COALESCE (
     CALCULATE ( SUM ( 'Assumption Table'[Scheme Spend] ),
-        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )
 
 // ---- P&L line items ----
 Net Sales = [NSV]                                   // NSV = Net Sales Value (offtake)
 Gross Sales = COALESCE ( [Total MRP Sales], DIVIDE ( [NSV], 1 - 0.0 ) )  // use MRP Sales as gross proxy
 
-Gross Margin = [NSV] * [_Assumption Gross Margin %]
+// Explicit IF guards below (not just relying on DAX's number*BLANK=BLANK /
+// number-BLANK=number arithmetic quirks) so the fail-closed behavior is
+// stated plainly for a Finance/Power BI reviewer, not implied. The
+// subtraction/addition below would otherwise silently treat a genuinely
+// missing month as a real zero (BLANK acts as 0 under + and -, unlike *).
+Gross Margin = IF ( [_Assumption Available], [NSV] * [_Assumption Gross Margin %], BLANK () )
 Gross Margin % = DIVIDE ( [Gross Margin], [NSV] )
 
-Trade Spend = [NSV] * [_Assumption Trade Spend %]
+Trade Spend = IF ( [_Assumption Available], [NSV] * [_Assumption Trade Spend %], BLANK () )
 Visibility Spend = [_Assumption Visibility Spend]
 Scheme Spend = [_Assumption Scheme Spend]
-Total Spend = [Trade Spend] + [Visibility Spend] + [Scheme Spend]
+Total Spend = IF ( [_Assumption Available], [Trade Spend] + [Visibility Spend] + [Scheme Spend], BLANK () )
 
 Spend % of NSV = DIVIDE ( [Total Spend], [NSV] )
 
-Contribution Margin = [Gross Margin] - [Total Spend]
+Contribution Margin = IF ( [_Assumption Available], [Gross Margin] - [Total Spend], BLANK () )
 CM % = DIVIDE ( [Contribution Margin], [NSV] )
 
 // ---- ranking helper for the profitability page ----
@@ -65,11 +108,16 @@ Chain CM Rank =
 RANKX ( ALLSELECTED ( 'Chain Master'[Chain] ), [Contribution Margin],, DESC )
 
 // ---- "growth profitable or only sales-led?" flag ----
+// F21: cm blank (missing assumption month) must not fall through to the
+// generic "Needs attention" catch-all -- blank compares as 0 numerically,
+// so g>0 && cm>=0.25 would silently read as false and misclassify a
+// missing month as a real, bad one instead of a data gap.
 Profitability Flag =
 VAR g = [MoM Growth %]
 VAR cm = [CM %]
 RETURN
     SWITCH ( TRUE (),
+        ISBLANK ( cm ), "ASSUMPTION_MISSING",
         g > 0 && cm >= 0.25, "Profitable Growth",
         g > 0 && cm < 0.25,  "Sales-led (watch margin)",
         g <= 0 && cm >= 0.25, "Margin-protected decline",

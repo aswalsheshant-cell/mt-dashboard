@@ -227,36 +227,58 @@ def process_enriched_metrics(zones_df: pd.DataFrame, chains_df: pd.DataFrame) ->
     }
 
 
-def process_generated_insights(alerts_df: pd.DataFrame, opportunities_df: pd.DataFrame, headline_data: dict) -> dict:
-    """Transforms operational alerts and opportunities into generated_insights.json schema."""
+def process_generated_insights(alerts_df: pd.DataFrame, opportunities_df: pd.DataFrame, headline_data: dict, period: str = "") -> dict:
+    """Transforms operational alerts and opportunities into generated_insights.json schema.
+
+    Reshaped to match schemas/generated_insights.schema.json's actual contract
+    (top-level 'insights' array required; 'alerts' items shaped alert_id/
+    severity(critical|warning|info)/message/metric_name/... ) -- the previous
+    shape (executive_summary/alerts/growth_opportunities, severity HIGH/MEDIUM)
+    never matched the schema and made every run fail validation. This file is
+    not currently fetched or rendered anywhere in dashboard/index.html, so the
+    shape mismatch never reached the UI -- it only ever broke this script's
+    own validation step.
+    """
+    now_iso = datetime.now(timezone.utc).isoformat()
+    insight_records = [{
+        "type": "trend",
+        "title": headline_data.get("headline", "Modern Trade Performance Update"),
+        "text": headline_data.get("evidence", "Refer to regional scorecards for details.")
+                + " " + headline_data.get("implication", "Maintain current execution focus."),
+        "confidence": 0.5,
+        "timestamp": now_iso,
+    }]
+    for _, row in opportunities_df.iterrows():
+        insight_records.append({
+            "type": "opportunity",
+            "title": f"{row['chain_name']} — {row['category']}",
+            "text": str(row.get("primary_driver", "")).strip(),
+            "confidence": 0.5,
+            "affected_chains": [str(row["chain_name"]).strip()],
+            "impact_value_lakh": round(float(row["potential_uplift_inr_cr"]) * 100, 2),
+            "priority": "medium",
+            "timestamp": now_iso,
+        })
+
+    _severity_map = {"HIGH": "critical", "MEDIUM": "warning", "LOW": "info"}
     alert_records = []
     for _, row in alerts_df.iterrows():
         alert_records.append({
-            "type": str(row["type"]).strip(),
-            "severity": str(row["severity"]).strip(),
-            "target": str(row["target"]).strip(),
+            "alert_id": str(row["type"]).strip(),
+            "severity": _severity_map.get(str(row["severity"]).strip().upper(), "info"),
             "message": str(row["message"]).strip(),
-            "recommended_action": str(row.get("recommended_action", "")).strip()
-        })
-
-    opp_records = []
-    for _, row in opportunities_df.iterrows():
-        opp_records.append({
-            "chain_name": str(row["chain_name"]).strip(),
-            "category": str(row["category"]).strip(),
-            "potential_uplift_inr_cr": round(float(row["potential_uplift_inr_cr"]), 2),
-            "primary_driver": str(row.get("primary_driver", "")).strip()
+            "metric_name": str(row["type"]).strip(),
+            "affected_entities": [str(row["target"]).strip()],
         })
 
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "executive_summary": {
-            "headline": headline_data.get("headline", "Modern Trade Performance Update"),
-            "evidence": headline_data.get("evidence", "Refer to regional scorecards for details."),
-            "implication": headline_data.get("implication", "Maintain current execution focus.")
-        },
+        "insights": insight_records,
         "alerts": alert_records,
-        "growth_opportunities": opp_records
+        "metadata": {
+            "generated_at": now_iso,
+            "period": period,
+            "total_insights": len(insight_records),
+        },
     }
 
 
@@ -327,6 +349,17 @@ def create_synthetic_raw_data():
     return audits_df, zones_df, chains_df, alerts_df, opps_df, headline_data
 
 
+# dashboard/index.html fetches compliance_metrics.json and enriched_metrics.json
+# at runtime and renders them on the Store Audit Scorecard / Supply Chain &
+# Inventory tabs (see dashboard/index.html's fetch() calls). Mirrors the same
+# fail-closed guard scripts/sync_compliance_data.py uses (PR #157,
+# "neutralize mock-data landmine"): this pipeline has no real-alerts/
+# opportunities loader at all (alerts_df/opps_df below are ALWAYS the
+# synthetic fixture, even on the --audits/--zones/--chains "real" path), and
+# the daily cron invocation (.github/workflows/daily-sidecar-refresh.yml)
+# never passes --audits/--zones/--chains -- so without this guard, every
+# scheduled run would silently commit fabricated numbers as if real the
+# moment its schema bug stopped blocking it.
 def main():
     parser = argparse.ArgumentParser(description="Populate and validate Modern Trade sidecar JSON files from Local, S3, or Azure.")
 
@@ -339,6 +372,11 @@ def main():
     parser.add_argument("--zones", help="File path / S3 URI / Blob name for zones", default=None)
     parser.add_argument("--chains", help="File path / S3 URI / Blob name for chains", default=None)
     parser.add_argument("--period", help="Audit period label (e.g. Q3 FY27)", default="Q3 FY27")
+    parser.add_argument("--i-understand-this-is-mock-data", action="store_true", dest="allow_mock_write",
+                        help="Required to write synthetic/demo values to the live dashboard/*.json paths "
+                             "when no real --audits/--zones/--chains source is given. Without it, the "
+                             "pipeline refuses to write and exits cleanly (0) -- not an error, the correct "
+                             "steady state until a real source is wired up (see docs/PROJECT_STATE.md).")
 
     # Cloud credentials
     parser.add_argument("--aws-region", default=os.getenv("AWS_REGION", "ap-south-1"),
@@ -354,7 +392,17 @@ def main():
     print(f"  MODERN TRADE SIDECAR PIPELINE [SOURCE: {args.source.upper()}]")
     print("==================================================")
 
-    if args.audits and args.zones and args.chains:
+    has_real_compliance_source = bool(args.audits and args.zones and args.chains)
+
+    if not has_real_compliance_source and not args.allow_mock_write:
+        print("No real --audits/--zones/--chains source provided, and --i-understand-this-is-mock-data")
+        print("was not passed. Refusing to write synthetic demo data over the live dashboard/*.json")
+        print("paths (dashboard/index.html fetches and renders these at runtime).")
+        print("This is the correct, expected steady state -- not a failure -- until a real store-audit")
+        print("source is wired up. Nothing was written; nothing changed.")
+        return
+
+    if has_real_compliance_source:
         print(f"Loading tabular datasets from {args.source.upper()}...")
         kwargs = {
             "region": args.aws_region,
@@ -364,14 +412,36 @@ def main():
         audits_df = load_dataset(args.source, args.audits, **kwargs)
         zones_df = load_dataset(args.source, args.zones, **kwargs)
         chains_df = load_dataset(args.source, args.chains, **kwargs)
-        _, _, _, alerts_df, opps_df, headline_data = create_synthetic_raw_data()
     else:
-        print("No input sources provided. Generating sidecars from structured pipeline defaults...")
-        audits_df, zones_df, chains_df, alerts_df, opps_df, headline_data = create_synthetic_raw_data()
+        print("No real source provided but --i-understand-this-is-mock-data was passed: "
+              "generating SYNTHETIC DEMO compliance/enriched data (not a real audit).")
+        audits_df, zones_df, chains_df, _, _, _ = create_synthetic_raw_data()
+
+    # alerts_df/opps_df/headline_data have no real-data loader in this script
+    # at all -- always synthetic, on every path. insights_payload is stamped
+    # accordingly below, unconditionally.
+    _, _, _, alerts_df, opps_df, headline_data = create_synthetic_raw_data()
 
     compliance_payload = process_compliance_metrics(audits_df, args.period)
     enriched_payload = process_enriched_metrics(zones_df, chains_df)
-    insights_payload = process_generated_insights(alerts_df, opps_df, headline_data)
+    insights_payload = process_generated_insights(alerts_df, opps_df, headline_data, args.period)
+
+    if not has_real_compliance_source:
+        _synth_note = ("pipeline_generate_sidecars.py, run with --i-understand-this-is-mock-data and no "
+                        "real --audits/--zones/--chains source -- hardcoded demo values, not a real audit.")
+        for block in ("compliance", "inventory_fillrate"):
+            compliance_payload[block]["metadata"]["is_synthetic"] = True
+            compliance_payload[block]["metadata"]["data_status"] = "SYNTHETIC_DEMO"
+            compliance_payload[block]["metadata"]["source"] = _synth_note
+        enriched_payload["metadata"] = {
+            "is_synthetic": True, "data_status": "SYNTHETIC_DEMO", "source": _synth_note,
+        }
+    insights_payload["metadata"]["is_synthetic"] = True
+    insights_payload["metadata"]["data_status"] = "SYNTHETIC_DEMO"
+    insights_payload["metadata"]["source"] = (
+        "pipeline_generate_sidecars.py has no real alerts/opportunities loader on any path -- "
+        "always the synthetic fixture. Not currently fetched/rendered by dashboard/index.html."
+    )
 
     validate_and_write(compliance_payload, "compliance_metrics.schema.json", "compliance_metrics.json")
     validate_and_write(enriched_payload, "enriched_metrics.schema.json", "enriched_metrics.json")

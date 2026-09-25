@@ -601,6 +601,11 @@
     </nav>
   </div>
 
+  <!-- F9 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md): this file had no
+       <script src="data.js"> anywhere, so window.DASH was always {} and the
+       "Dashboard data not loaded" message always showed -- confirmed mobile.html
+       is an active surface (2026-09-24) and wired up below. -->
+  <script src="data.js?v=20260703-3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(e => console.log('SW registration failed:', e));
@@ -634,12 +639,17 @@
       const brandSet = new Set();
       const zoneSet = new Set();
 
-      // Collect available FY values
+      // Collect available FY values. D.primary.fy_tags only covers the
+      // pre-aggregated FYs (FY25/FY26 today) -- FY27+ lives only in
+      // detail_meta.fyx_primary (the real article-level source), so was
+      // never offered as a filter option even though real FY27 data exists
+      // and every render function above can use it (primaryTotal() etc.).
       if (D.primary && D.primary.fy_tags) {
         D.primary.fy_tags.forEach(fy => {
           fySet.add('FY' + fy.slice(2).toUpperCase());
         });
       }
+      Object.keys((D.detail_meta && D.detail_meta.fyx_primary) || {}).forEach(tag => fySet.add(tag));
 
       // Collect available brands and zones from primary or detail data
       if (D.primary && D.primary.by_brand) {
@@ -653,11 +663,16 @@
         });
       }
 
-      // Populate FY dropdown
-      fySet.forEach(fy => {
+      // Populate FY dropdown, sorted chronologically (Set insertion order
+      // above is already FY25/FY26 then FY27, but sort explicitly rather
+      // than rely on that).
+      [...fySet].sort().forEach(fy => {
         const opt = document.createElement('option');
         opt.value = fy.toLowerCase();
-        opt.textContent = fy.replace('fy', 'FY\'') + (fy === 'FY25' ? ' (24-25)' : fy === 'FY26' ? ' (25-26)' : ' (26-27)');
+        // fy is always "FY25"/"FY26"/"FY27" here (uppercase) -- the previous
+        // fy.replace('fy', ...) used a lowercase 'fy' needle against this
+        // uppercase string, so it silently never matched anything.
+        opt.textContent = "FY'" + fy.slice(2) + (fy === 'FY25' ? ' (24-25)' : fy === 'FY26' ? ' (25-26)' : ' (26-27)');
         fySelect.appendChild(opt);
       });
 
@@ -743,11 +758,71 @@
       return e;
     }
 
+    // F9: every real NSV/total field in data.js is already in INR Lakh (e.g.
+    // D.primary.nsv_fy26 = 32900.36, matching CLAUDE.md's documented FY26
+    // Rs32,900.36 L baseline) -- this function's old thresholds (1e7/1e5)
+    // assumed raw rupees, so a real value like 32900.36 fell through to the
+    // no-unit branch and printed a bare "32900" with no currency label at
+    // all. Rewritten to mirror index.html's crc() exactly (same INR Lakh/Cr
+    // convention, same thresholds) rather than inventing a second formatter.
     function formatNum(n) {
       if (n == null) return '–';
-      if (n >= 10000000) return (n / 10000000).toFixed(1) + 'Cr';
-      if (n >= 100000) return (n / 100000).toFixed(1) + 'L';
-      return n.toFixed(0);
+      const av = Math.abs(n);
+      return av < 100 ? '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 1 }) + ' L'
+                       : '₹' + (n / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Cr';
+    }
+
+    // F9: FY-aware accessors for the real data.js fields, honoring the
+    // filter tray's FY selection (filters.fy, e.g. 'fy26'/'fy27'/'') the
+    // same way index.html's fyKey()/FPX()/PREAGG_FYS pattern does -- never a
+    // fabricated 0 or a stale all-FYs total, matching this repo's governed
+    // no-fallback accessor convention (docs/SOURCE_MISSINGNESS_LINEAGE.md).
+    function fyxPrimary27() {
+      const f = D.detail_meta && D.detail_meta.fyx_primary;
+      return (f && f.FY27 && f.FY27.nsv != null) ? f.FY27 : null;
+    }
+    function primaryTotal(fy) {
+      if (fy === 'fy27') { const f = fyxPrimary27(); return f ? f.nsv : null; }
+      if (fy === 'fy26' || !fy) {
+        if (!fy) { const f = fyxPrimary27(); if (f) return f.nsv; }
+        return D.primary && D.primary.nsv_fy26 != null ? D.primary.nsv_fy26 : null;
+      }
+      return null;
+    }
+    function offtakeTotal(fy) {
+      if (!D.offtake) return null;
+      if (!fy) return D.offtake.total != null ? D.offtake.total : null;
+      const v = D.offtake['total_' + fy];
+      return v != null ? v : null;
+    }
+    function rbcTotal(fy) {
+      if (!D.reliance_bc) return null;
+      if (!fy) return D.reliance_bc.total != null ? D.reliance_bc.total : null;
+      const v = D.reliance_bc['total_' + fy];
+      return v != null ? v : null;
+    }
+    // Governed, no-fallback chain accessor -- reads ONLY the real fy-keyed
+    // field, never .value/.total (the KI-OFFTAKE-001 anti-pattern F1 fixed
+    // in index.html); mirrors canonicalChainOfftakeNSV() there.
+    function offtakeByChain(fy) {
+      const tags = (D.offtake && D.offtake.fy_tags) || [];
+      const key = fy || tags[tags.length - 1] || 'fy26';
+      return ((D.offtake && D.offtake.by_chain) || [])
+        .filter(c => c && c.name != null && c[key] != null)
+        .map(c => ({ name: c.name, nsv: c[key] }));
+    }
+    // Primary's pre-aggregated source only covers FY25/FY26 (fy26 field on
+    // by_chain rows); FY27 lives only in the real article-level
+    // detail_meta.fyx_primary.FY27.by_chain (name/nsv shape) -- same split
+    // every FY27-aware view in index.html handles (FPX()/fyBeyondPreagg()).
+    function primaryByChain(fy) {
+      if (fy === 'fy27' || (!fy && fyxPrimary27())) {
+        const f = fyxPrimary27();
+        return f ? (f.by_chain || []).map(c => ({ name: c.name, nsv: c.nsv })) : [];
+      }
+      return ((D.primary && D.primary.by_chain) || [])
+        .filter(c => c && c.name != null && c.fy26 != null)
+        .map(c => ({ name: c.name, nsv: c.fy26 }));
     }
 
     function renderOverview() {
@@ -758,34 +833,35 @@
       hdr.appendChild(el('h2', '', 'Executive Summary'));
       sec.appendChild(hdr);
 
-      if (D.rbc && D.rbc.rbc_total) {
+      // F9: RBC/Primary/Offtake totals + chain table now read the real
+      // data.js fields, honoring the filter tray's FY selection -- see
+      // primaryTotal()/offtakeTotal()/rbcTotal()/offtakeByChain() above.
+      const _fy = filters.fy;
+      const _rbcTotal = rbcTotal(_fy);
+      if (_rbcTotal != null) {
         const kpiGrid = el('div', 'kpis');
 
         const kpi1 = el('div', 'kpi');
         const lab1 = el('div', 'lab');
         lab1.textContent = 'RBC Total (Cr)';
-        if (D.yoy_metrics && D.yoy_metrics.status === 'active') {
-          const badge = el('span', 'yoy-badge positive');
-          badge.textContent = '▲ +10.7%';
-          lab1.appendChild(badge);
-        }
         kpi1.appendChild(lab1);
-        kpi1.appendChild(el('div', 'val', formatNum(D.rbc.rbc_total)));
+        kpi1.appendChild(el('div', 'val', formatNum(_rbcTotal)));
         kpiGrid.appendChild(kpi1);
 
         const kpi2 = el('div', 'kpi');
         kpi2.appendChild(el('div', 'lab', 'Primary NSV (Cr)'));
-        kpi2.appendChild(el('div', 'val', D.primary_total ? formatNum(D.primary_total) : '–'));
+        kpi2.appendChild(el('div', 'val', formatNum(primaryTotal(_fy))));
         kpiGrid.appendChild(kpi2);
 
         const kpi3 = el('div', 'kpi');
         kpi3.appendChild(el('div', 'lab', 'Offtake NSV (Cr)'));
-        kpi3.appendChild(el('div', 'val', D.offtake_total ? formatNum(D.offtake_total) : '–'));
+        kpi3.appendChild(el('div', 'val', formatNum(offtakeTotal(_fy))));
         kpiGrid.appendChild(kpi3);
 
         const kpi4 = el('div', 'kpi');
         kpi4.appendChild(el('div', 'lab', 'Active Stores'));
-        kpi4.appendChild(el('div', 'val', D.store_count ? D.store_count.toLocaleString() : '–'));
+        const activeStores = D.universe && D.universe.active_stores;
+        kpi4.appendChild(el('div', 'val', activeStores != null ? activeStores.toLocaleString() : '–'));
         kpiGrid.appendChild(kpi4);
 
         sec.appendChild(kpiGrid);
@@ -793,7 +869,10 @@
 
       const card = el('div', 'card');
       card.appendChild(el('h3', '', 'Top Chains'));
-      if (D.by_chain) {
+      // Offtake-ranked (matches index.html's "Top Chains by Offtake" table) --
+      // D.by_chain never existed; this was previously always-empty dead code.
+      const topChains = offtakeByChain(_fy).sort((a, b) => b.nsv - a.nsv).slice(0, 5);
+      if (topChains.length) {
         const tbl = el('table');
         const thead = el('thead');
         const tr = el('tr');
@@ -803,11 +882,11 @@
         tbl.appendChild(thead);
 
         const tbody = el('tbody');
-        Object.entries(D.by_chain).slice(0, 5).forEach(([chain, data]) => {
+        topChains.forEach(c => {
           const tr = el('tr');
-          tr.appendChild(el('td', '', chain));
+          tr.appendChild(el('td', '', c.name));
           const td2 = el('td', '');
-          td2.textContent = formatNum(data.nsv || 0);
+          td2.textContent = formatNum(c.nsv);
           tr.appendChild(td2);
           tbody.appendChild(tr);
         });
@@ -815,6 +894,8 @@
         const wrap = el('div', 'tablewrap');
         wrap.appendChild(tbl);
         card.appendChild(wrap);
+      } else {
+        card.appendChild(el('p', 'note', 'No chain-level Offtake data available for this selection.'));
       }
       sec.appendChild(card);
       content.appendChild(sec);
@@ -826,38 +907,45 @@
 
       const hdr = el('div');
       const h2 = el('h2', '', 'Primary Analytics');
-      if (D.yoy_metrics && D.yoy_metrics.status === 'active' && D.yoy_metrics.top_line) {
-        const badge = el('span', 'yoy-badge positive');
-        const pct = D.yoy_metrics.top_line.primary_nsv_growth || 0;
+      // F9: D.yoy_metrics never existed anywhere in the pipeline -- this
+      // badge could never fire. D.detail_meta.same_period is the real,
+      // governed like-for-like YoY (same_period_block() -- article-level
+      // primary, shared-months window, never a naive partial-vs-full-FY
+      // comparison). Shown only when no FY filter is active or the filter
+      // matches same_period's own curr_fy, since same_period is a single
+      // fixed latest-vs-prior comparison, not per-FY-selectable.
+      const sp = D.detail_meta && D.detail_meta.same_period;
+      const spFyKey = sp ? 'fy' + String(sp.curr_fy).slice(2).toLowerCase() : null;
+      if (sp && sp.yoy_pct != null && (!filters.fy || filters.fy === spFyKey)) {
+        const pct = sp.yoy_pct;
         const isPos = pct >= 0;
-        badge.className = 'yoy-badge ' + (isPos ? 'positive' : 'negative');
-        badge.textContent = (isPos ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(1) + '%';
+        const badge = el('span', 'yoy-badge ' + (isPos ? 'positive' : 'negative'));
+        badge.textContent = (isPos ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(1) + '% (like-for-like)';
         h2.appendChild(badge);
       }
       hdr.appendChild(h2);
       hdr.appendChild(el('p', 'lead', 'Distributor & direct sales by chain'));
       sec.appendChild(hdr);
 
-      if (D.by_chain) {
+      const primChains = primaryByChain(filters.fy).sort((a, b) => b.nsv - a.nsv);
+      if (primChains.length) {
         const card = el('div', 'card');
         card.appendChild(el('h3', '', 'By Chain'));
         const tbl = el('table');
         const thead = el('thead');
         const tr = el('tr');
         tr.appendChild(el('th', '', 'Chain'));
-        tr.appendChild(el('th', '', 'Qty'));
         tr.appendChild(el('th', '', 'NSV (Cr)'));
         thead.appendChild(tr);
         tbl.appendChild(thead);
 
         const tbody = el('tbody');
-        Object.entries(D.by_chain).forEach(([chain, data]) => {
+        primChains.forEach(c => {
           const tr = el('tr');
-          tr.appendChild(el('td', '', chain));
-          tr.appendChild(el('td', '', (data.qty || 0).toLocaleString()));
-          const td3 = el('td', '');
-          td3.textContent = formatNum(data.nsv || 0);
-          tr.appendChild(td3);
+          tr.appendChild(el('td', '', c.name));
+          const td2 = el('td', '');
+          td2.textContent = formatNum(c.nsv);
+          tr.appendChild(td2);
           tbody.appendChild(tr);
         });
         tbl.appendChild(tbody);
@@ -865,6 +953,8 @@
         wrap.appendChild(tbl);
         card.appendChild(wrap);
         sec.appendChild(card);
+      } else {
+        sec.appendChild(el('p', 'note', 'No chain-level Primary data available for this selection.'));
       }
       content.appendChild(sec);
     }
@@ -875,14 +965,13 @@
 
       const hdr = el('div');
       const h2 = el('h2', '', 'Offtake Analytics');
-      if (D.yoy_metrics && D.yoy_metrics.status === 'active' && D.yoy_metrics.top_line) {
-        const badge = el('span', 'yoy-badge positive');
-        const pct = D.yoy_metrics.top_line.offtake_value_growth || 0;
-        const isPos = pct >= 0;
-        badge.className = 'yoy-badge ' + (isPos ? 'positive' : 'negative');
-        badge.textContent = (isPos ? '▲' : '▼') + ' ' + Math.abs(pct).toFixed(1) + '%';
-        h2.appendChild(badge);
-      }
+      // F9: D.yoy_metrics never existed, so this badge could never fire.
+      // Unlike Primary, no real same-period-style Offtake YoY exists
+      // anywhere in the pipeline -- comparing total_fy27 (Apr-Aug, partial)
+      // against total_fy26 (full 12 months) directly would be exactly the
+      // misleading full-year-vs-partial-year comparison this repo's F3/
+      // sameFYPeriodGuard fixes exist to prevent, so no badge is shown here
+      // rather than fabricate one from mismatched windows.
       hdr.appendChild(h2);
       hdr.appendChild(el('p', 'lead', 'Store-level conversion and sell-through'));
       sec.appendChild(hdr);
@@ -893,37 +982,34 @@
       const lab1 = el('div', 'lab');
       lab1.textContent = 'Offtake Total (Cr)';
       kpi1.appendChild(lab1);
-      kpi1.appendChild(el('div', 'val', D.offtake_total ? formatNum(D.offtake_total) : '–'));
+      kpi1.appendChild(el('div', 'val', formatNum(offtakeTotal(filters.fy))));
       kpiGrid.appendChild(kpi1);
 
-      const kpi2 = el('div', 'kpi');
-      kpi2.appendChild(el('div', 'lab', 'Active Counters'));
-      const counterCount = D.rbc ? (D.rbc.counter_count || 0) : 0;
-      kpi2.appendChild(el('div', 'val', counterCount.toLocaleString()));
-      kpiGrid.appendChild(kpi2);
+      // F9: "Active Counters" (D.rbc.counter_count) had no real backing
+      // field anywhere in data.js -- removed rather than show a fabricated
+      // count. RBC's real fields (total, by_zone/by_state/by_brand) don't
+      // include a counter/door count.
 
       sec.appendChild(kpiGrid);
 
       const card = el('div', 'card');
-      card.appendChild(el('h3', '', 'Offtake Trend'));
-      const note = el('p', 'note');
-      note.textContent = 'Monthly offtake values by chain';
-      card.appendChild(note);
-      if (D.by_chain) {
+      card.appendChild(el('h3', '', 'Top Chains by Offtake'));
+      const offChains = offtakeByChain(filters.fy).sort((a, b) => b.nsv - a.nsv).slice(0, 5);
+      if (offChains.length) {
         const tbl = el('table');
         const thead = el('thead');
         const tr = el('tr');
         tr.appendChild(el('th', '', 'Chain'));
-        tr.appendChild(el('th', '', 'Offtake'));
+        tr.appendChild(el('th', '', 'Offtake (Cr)'));
         thead.appendChild(tr);
         tbl.appendChild(thead);
 
         const tbody = el('tbody');
-        Object.entries(D.by_chain).slice(0, 5).forEach(([chain, data]) => {
+        offChains.forEach(c => {
           const tr = el('tr');
-          tr.appendChild(el('td', '', chain));
+          tr.appendChild(el('td', '', c.name));
           const td2 = el('td', '');
-          td2.textContent = formatNum(data.offtake || 0);
+          td2.textContent = formatNum(c.nsv);
           tr.appendChild(td2);
           tbody.appendChild(tr);
         });
@@ -931,6 +1017,8 @@
         const wrap = el('div', 'tablewrap');
         wrap.appendChild(tbl);
         card.appendChild(wrap);
+      } else {
+        card.appendChild(el('p', 'note', 'No chain-level Offtake data available for this selection.'));
       }
       sec.appendChild(card);
       content.appendChild(sec);
@@ -942,42 +1030,14 @@
 
       const hdr = el('div');
       const h2 = el('h2', '', 'Key Insights');
-      if (D.yoy_metrics && D.yoy_metrics.status === 'active') {
-        const badge = el('span', 'yoy-badge positive');
-        badge.textContent = '⚡ YoY Active';
-        h2.appendChild(badge);
-      }
+      // F9: D.yoy_metrics never existed anywhere in the pipeline, so this
+      // header badge and the "YoY summary card" below it could never fire --
+      // removed rather than fabricate an annual growth comparison. D.insights
+      // (below) is the real, governed insights feed and needs no synthetic
+      // supplement.
       hdr.appendChild(h2);
       hdr.appendChild(el('p', 'lead', 'Recent trends and performance deltas'));
       sec.appendChild(hdr);
-
-      // YoY summary card
-      if (D.yoy_metrics && D.yoy_metrics.status === 'active' && D.yoy_metrics.top_line) {
-        const yoy = D.yoy_metrics.top_line;
-        const summaryCard = el('div', 'insight-card win');
-        const tag = el('div', 'tag');
-        tag.textContent = 'YEAR-OVER-YEAR';
-        summaryCard.appendChild(tag);
-        const h4 = el('h4', '');
-        h4.textContent = 'Annual Growth Comparison';
-        summaryCard.appendChild(h4);
-
-        const details = [];
-        if (yoy.rbc_total_growth_pct != null) {
-          details.push(`RBC: ${yoy.rbc_total_growth_pct >= 0 ? '▲' : '▼'} ${Math.abs(yoy.rbc_total_growth_pct).toFixed(1)}%`);
-        }
-        if (yoy.primary_nsv_growth != null) {
-          details.push(`Primary: ${yoy.primary_nsv_growth >= 0 ? '▲' : '▼'} ${Math.abs(yoy.primary_nsv_growth).toFixed(1)}%`);
-        }
-        if (yoy.offtake_value_growth != null) {
-          details.push(`Offtake: ${yoy.offtake_value_growth >= 0 ? '▲' : '▼'} ${Math.abs(yoy.offtake_value_growth).toFixed(1)}%`);
-        }
-
-        const p = el('p', '');
-        p.textContent = details.length > 0 ? details.join(' • ') : 'YoY metrics data in collection mode.';
-        summaryCard.appendChild(p);
-        sec.appendChild(summaryCard);
-      }
 
       if (D.insights && Array.isArray(D.insights) && D.insights.length > 0) {
         D.insights.slice(0, 3).forEach(ins => {
@@ -986,10 +1046,14 @@
           tag.textContent = (ins.type || 'info').toUpperCase();
           card.appendChild(tag);
           const h4 = el('h4', '');
-          h4.textContent = ins.headline || 'Insight';
+          // F9: real D.insights rows carry title/text (confirmed against
+          // data.js), not headline/detail -- this read the wrong field
+          // names, so every card would have shown a blank title/body even
+          // once D.insights itself was reachable.
+          h4.textContent = ins.title || 'Insight';
           card.appendChild(h4);
           const p = el('p', '');
-          p.textContent = ins.detail || '';
+          p.textContent = ins.text || '';
           card.appendChild(p);
           sec.appendChild(card);
         });

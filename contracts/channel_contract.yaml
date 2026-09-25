@@ -1,0 +1,20 @@
+# Source contract: Channel mapping field, referenced by primary_contract.yaml.
+# This is a closed list -- the MT business channel taxonomy is stable and a
+# new value here is far more likely to be a data-entry/mapping defect than a
+# genuine new channel. A closed-list violation should block, not warn.
+name: channel
+description: >
+  The Channel field on every Primary detail_records row (dashboard/data.js).
+  Reused as-is by the canonical engine's CHANNEL_PRIMARY_NSV grouping key.
+closed_list: true
+allowed_values:
+  - MT   # Modern Trade
+  - EB2B # eB2B
+  - SIS  # Shop-in-Shop
+notes: >
+  Verified against the certified dashboard/data.js at Phase 1 (2026-09):
+  exactly these 3 values appear across all 160,834 detail_records rows,
+  both FY26 and FY27. If a 4th value ever appears, treat it as a mapping
+  defect to investigate (per CLAUDE.md's "New data source checklist"), not
+  as this contract being stale -- update this file only after confirming
+  the new value is a real, business-approved channel.

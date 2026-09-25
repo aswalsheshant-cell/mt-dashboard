@@ -1,0 +1,89 @@
+# Source contract: Offtake input to the canonical engine.
+# Source: dashboard/data.js -> offtake (chain-month master, populated by
+# offtake_block()/offtake_rebuild_block() in scripts/build_dashboard_data.py).
+# Every OFFTAKE_NSV and CHAIN_OFFTAKE_NSV canonical metric is built on this.
+name: offtake_by_chain
+grain: >
+  offtake.by_chain: one row per Chain, with one field per FY
+  ("fy26", "fy27", ...) carrying that chain's FY total -- NOT a
+  Chain x Month grain in this block (that finer grain lives in
+  offtake.monthly_<fy> / offtake.zone_monthly_<fy> separately, out of scope
+  for this contract). offtake['total_<fy>'] is the flat, FY-specific total
+  across all chains for that FY.
+fiscal_period:
+  rule: THE ONE FY RULE (see CLAUDE.md).
+  field_pattern: "fy<YY> (lowercase, e.g. fy26, fy27) for by_chain rows; total_fy<YY> / monthly_fy<YY> / months_fy<YY> at the offtake-block level"
+  observed_values_as_of_phase1: [fy26, fy27]
+duplicates:
+  natural_key: name
+  policy: >
+    offtake.by_chain must not contain two rows with the same 'name' --
+    unlike Primary's article-wise grain, this block IS pre-aggregated to
+    one row per chain, so a duplicate chain name is always a build defect,
+    never a legitimate repeat.
+fields:
+  name:
+    type: string
+    required: true
+    nullable: false
+    ref: chain_contract.yaml
+  "fy<YY>":
+    type: number
+    required: false
+    nullable: true
+    unit: INR_LAKH
+    negative_allowed: false
+    notes: >
+      THE FIELD THIS CONTRACT EXISTS TO GOVERN. Present only for FYs this
+      chain has real data for -- a chain legitimately covered in FY26 but
+      not yet in FY27 simply omits the "fy27" key. This is normal and must
+      be read as NOT_AVAILABLE for that FY (via
+      scripts/canonical/policies.exact_fy_or_not_available()), never
+      defaulted to 0 and never satisfied by any other field on the same row
+      (see the forbidden fields below -- this is KI-OFFTAKE-001 / Issue #195's
+      exact root cause).
+  value:
+    type: number
+    required: false
+    nullable: true
+    forbidden_as_fy_substitute: true
+    notes: >
+      An all-months-combined aggregate with NO FY subscript. Legitimate to
+      exist on the row (some display paths use it as a headline, non-FY-
+      specific figure) but MUST NEVER be read as a stand-in for a missing
+      "fy<YY>" key -- doing so is exactly the bug KI-OFFTAKE-001 (Issue #195)
+      documents. scripts/canonical/facts.offtake_chain_fy_values()
+      structurally excludes this field for that reason.
+  total:
+    type: number
+    required: false
+    nullable: true
+    forbidden_as_fy_substitute: true
+    notes: Same caveat as 'value' -- ambiguous, non-FY-keyed, never a substitute for a missing fy<YY> key.
+  raw:
+    type: any
+    required: false
+    nullable: true
+    notes: Internal/debug field, excluded from every canonical metric.
+  "secondary_fy<YY>":
+    type: number
+    required: false
+    nullable: true
+    notes: >
+      Distributor Secondary data (a different measure entirely -- see
+      CLAUDE.md's "three MT measures" table). Out of scope for OFFTAKE_NSV /
+      CHAIN_OFFTAKE_NSV; must never be summed into an Offtake total.
+offtake_block_totals:
+  "total_fy<YY>":
+    type: number
+    required: false
+    nullable: true
+    unit: INR_LAKH
+    notes: The flat FY total OFFTAKE_NSV is built from (facts.offtake_fy_total()).
+notes: >
+  Per ADR-006, all NSV/total figures here are already in INR Lakh; no
+  re-scaling happens in the canonical engine outside
+  scripts/canonical/units.py. Per ADR-007, a chain/FY combination absent
+  from this structure is NOT_AVAILABLE, distinct from a real 0.0 (a chain
+  that genuinely had zero offtake that FY, if such a row is ever present
+  with fy<YY>: 0).

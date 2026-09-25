@@ -1,0 +1,189 @@
+name: Canonical Financial Truth Gate
+
+# Phase 1 certification gate for the canonical metric engine
+# (scripts/canonical/, PR #198 -- see docs/CANONICAL_FINANCIAL_TRUTH_DESIGN.md
+# and docs/CANONICAL_ENGINE_PHASE1_REPORT.md). This is an ADDITIONAL,
+# uniquely named gate -- it does not replace or weaken
+# production-acceptance-gate.yml or any other existing check.
+#
+# This gate fails on: a canonical test failure, a reconciliation FAIL, an
+# UNKNOWN reconciliation, an unapproved GOVERNED exception, NaN/Infinity in
+# a canonical value, missing-as-zero financial treatment, a cross-FY
+# fallback, an unauthorized Lakh<->Crore conversion outside units.py,
+# missing source lineage/grain documentation, or a missing availability
+# status for any ADR-003 Reliance Brand Counter measure. See
+# scripts/canonical_gate_checks.py's module docstring for exactly what each
+# structural check verifies and why.
+#
+# Design mirrors production-acceptance-gate.yml: several parallel named
+# jobs, each one real, independently-failing check, then one final "gate"
+# job (if: always()) that aggregates them into a single PASS/FAIL. Only the
+# final job's name needs to be added to a branch ruleset's required-checks
+# list.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-tests:
+    name: "Canonical Gate: Test Suite"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run pytest tests/canonical/
+        run: python3 -m pytest tests/canonical/ -v
+
+  canonical-reconciliation:
+    name: "Canonical Gate: Reconciliation (FAIL=0, UNKNOWN=0)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run shadow reconciliation
+        run: python3 scripts/canonical/shadow_report.py
+      - name: Run reconciliation structural check
+        run: python3 scripts/canonical_gate_checks.py reconciliation
+
+  canonical-numeric-safety:
+    name: "Canonical Gate: NaN/Infinity Safety"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run numeric safety structural check
+        run: python3 scripts/canonical_gate_checks.py numeric-safety
+
+  canonical-governance-integrity:
+    name: "Canonical Gate: Governance Integrity (no unapproved GOVERNED)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run governance integrity structural check
+        run: python3 scripts/canonical_gate_checks.py governance
+
+  canonical-fallback-and-unit-safety:
+    name: "Canonical Gate: No Cross-FY Fallback / Unit Conversion"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run fallback-safety and unit-isolation structural checks
+        run: python3 scripts/canonical_gate_checks.py fallback-safety unit-isolation missing-never-zero
+
+  canonical-availability-metadata:
+    name: "Canonical Gate: Availability/Lineage Metadata"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run availability-metadata structural check
+        run: python3 scripts/canonical_gate_checks.py availability-metadata
+
+  canonical-source-contracts:
+    name: "Canonical Gate: Primary/Offtake Source Contracts"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run source-contracts structural check
+        run: python3 scripts/canonical_gate_checks.py source-contracts
+
+  canonical-no-production-impact:
+    name: "Canonical Gate: Zero Production/Dashboard Impact (shadow mode)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - name: Confirm no dashboard file wires up the canonical engine yet
+        run: |
+          if grep -rn "canonical\." dashboard/ scripts/build_dashboard_data.py; then
+            echo "ERROR: canonical engine has a production consumer -- Phase 1 must stay shadow-mode only"
+            exit 1
+          fi
+          echo "✓ No dashboard/build_dashboard_data.py consumer of scripts/canonical/ found"
+
+  gate:
+    name: "Canonical Financial Truth Gate"
+    runs-on: ubuntu-latest
+    needs:
+      - canonical-tests
+      - canonical-reconciliation
+      - canonical-numeric-safety
+      - canonical-governance-integrity
+      - canonical-fallback-and-unit-safety
+      - canonical-availability-metadata
+      - canonical-source-contracts
+      - canonical-no-production-impact
+    if: always()
+    steps:
+      - name: Aggregate results
+        run: |
+          echo "=========================================="
+          echo "Canonical Financial Truth Gate"
+          echo "=========================================="
+          echo ""
+          echo "  - Test Suite:                ${{ needs.canonical-tests.result }}"
+          echo "  - Reconciliation:            ${{ needs.canonical-reconciliation.result }}"
+          echo "  - Numeric Safety:            ${{ needs.canonical-numeric-safety.result }}"
+          echo "  - Governance Integrity:      ${{ needs.canonical-governance-integrity.result }}"
+          echo "  - Fallback/Unit Safety:      ${{ needs.canonical-fallback-and-unit-safety.result }}"
+          echo "  - Availability Metadata:     ${{ needs.canonical-availability-metadata.result }}"
+          echo "  - Source Contracts:          ${{ needs.canonical-source-contracts.result }}"
+          echo "  - Zero Production Impact:    ${{ needs.canonical-no-production-impact.result }}"
+          echo ""
+
+          if [ "${{ needs.canonical-tests.result }}" != "success" ] || \
+             [ "${{ needs.canonical-reconciliation.result }}" != "success" ] || \
+             [ "${{ needs.canonical-numeric-safety.result }}" != "success" ] || \
+             [ "${{ needs.canonical-governance-integrity.result }}" != "success" ] || \
+             [ "${{ needs.canonical-fallback-and-unit-safety.result }}" != "success" ] || \
+             [ "${{ needs.canonical-availability-metadata.result }}" != "success" ] || \
+             [ "${{ needs.canonical-source-contracts.result }}" != "success" ] || \
+             [ "${{ needs.canonical-no-production-impact.result }}" != "success" ]; then
+            echo "❌ CANONICAL FINANCIAL TRUTH GATE: FAIL"
+            exit 1
+          fi
+
+          echo "✅ CANONICAL FINANCIAL TRUTH GATE: PASS"

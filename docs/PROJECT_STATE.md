@@ -58,8 +58,10 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`ec55115` — Fail with an actionable message when an incentive input is missing
-Validated: 2026-09-11 — fresh-clone reproducibility PASS
+`a49e998` — PR #218 merged; recovery stream #216–#219 complete
+Validated: 2026-09-25 — production certification on merged `main`
+(READY_WITH_GOVERNED_BLOCKERS; see "Production certification — 2026-09-25" below).
+Previous: `ec55115`, 2026-09-11, fresh-clone reproducibility PASS.
 
 > A milestone's own commit hash does not exist while this file is being written
 > for it, so this section is corrected in the **next** commit. Check it against
@@ -175,6 +177,104 @@ verify-before-build discipline as the round above:
   for real today would mean fabricating a number a store, DC, or Finance
   reviewer could act on.
 
+### Phase 2B — Canonical Financial Truth remediation, closed (2026-09-24/25)
+
+`docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md`'s full inventory (F1-F22 across two
+discovery passes) is now fully resolved or explicitly closed with no action needed.
+Regenerated `dashboard/data.js` from real raw source for the first time this session
+(PR #209) — found and fixed two independent, pre-existing bugs along the way
+(`--primary-only` never re-applying the `by_channel` correction; a chain-table
+`every()`/`filter()` bug F14's own already-merged fix exposed). Follow-up pass (item
+7 of the remediation order) fixed F19 (Reliance Brand Counter period-leakage — found
+to be dormant/dead code, not live, correcting the original discovery agent's
+severity call), F21 (Power BI P&L silently defaulting a missing month to a
+fabricated 50% Gross Margin — now fails closed, plus a new release gate), and F17/
+F15 (two more dormant hardcoded/fabricated-data landmines). PRs #209, #210, #211 —
+full detail and evidence in the inventory doc itself, not duplicated here.
+
+**What's left is a business input, not code:** Finance must supply the
+Jun/Jul/Aug'26 `AssumptionTable.csv` rows (Required Business Inputs #7 above) —
+enforced by a release gate now, so it can't be missed silently, but not something
+this project can produce itself.
+
+### Selective recovery from a closed branch — PR #14 (2026-09-25)
+
+Branch `claude/offline-ai-data-analyst-iiincp` (last commit `aac1543`,
+2026-07-24) holds useful work that never reached `main`:
+[PR #14](https://github.com/aswalsheshant-cell/mt-dashboard/pull/14) was closed
+without merge on 2026-08-23. The session behind it stopped on a usage-credit
+limit, not on context compaction. The branch shares **no git history** with
+current `main`, so it cannot be merged or cherry-picked as-is.
+
+- **Status of the branch:** historical evidence only. Do not merge, rebase,
+  modify or delete it. Nothing on it is approved production truth. Its own
+  checkpoint file `ai-agent/SESSION_STATE.md` is stale (last updated 07-10;
+  8 later commits are not reflected), and its "95 tests pass" claim has not
+  been re-verified.
+- **Recovered so far:** filter-value normalisation (the branch's `normVal`),
+  rebuilt against current `main` — duplicate filter choices that differ only
+  by case or spacing now collapse to one. On current data this affects Range
+  (2 pairs) and Article (3 pairs); Zone/State have no variants today, so the
+  original West/WEST case is preventive. Display/matching only — no record or
+  total changes. Test: `tests/test_filter_value_normalisation.js`.
+- **Candidates, not yet recovered — audit component by component
+  (KEEP / REBUILD / ALREADY_REPLACED / OBSOLETE / BLOCKED) before any port:**
+  offline AI analyst module (`scripts/ai_analyst/`), its Excel QC scanner
+  (`xlsx_qc.py`), the AI Analyst dashboard tab, `scripts/audit_jun26_mapping.py`,
+  `PowerBI/docs/Jun26_Onboarding_Execution_Log.md`.
+- **AI Analyst (NL query engine, `ai_analyst/` package, 13th tab) — ARCHIVED
+  as reference, 2026-09-25.** No verified business requirement for
+  natural-language querying exists today: `docs/CANONICAL_METRIC_IMPLEMENTATION_PLAN.md`
+  places an NL "AI Insight Agent" at Phase 9, gated on Phases 1–8 certified plus
+  one full reporting cycle, and it may only consume certified measures, never
+  compute them. Its old 95 passing tests are not a reason to port it. Revisit
+  only if MT Leadership raises the need; then design fresh against the
+  canonical engine. The Excel QC scanner was recovered separately (PR #218).
+- **Not to be recovered:** the branch's Power BI DAX / Power Query changes —
+  the current Power BI kit has moved past them. Compare only if a specific
+  business rule is shown to be missing from current assets.
+- **Blocked:** "METock" workbook QC — `BLOCKED_INPUT`, needs the source
+  `.xlsx` (never in the repo). Does not block the rest of the recovery.
+
+### Production certification — 2026-09-25 (main `a49e998`)
+
+**Verdict: READY_WITH_GOVERNED_BLOCKERS.** Code, tests, gates and deploy are
+green on merged `main`. What remains is business input, owner decisions and PR
+housekeeping, each listed below with an owner — none is an unexplained failure.
+
+Recovery PRs merged, one approval each: #217 `a77b899` → #216 `54fa67d` →
+#219 `50ec081` → #218 `a49e998`. Across all four, `dashboard/data.js`,
+`config/`, `PowerBI/` and seed data are byte-identical to pre-recovery `8b5797d`.
+
+Evidence (run on `a49e998`): `pytest tests/` 368 passed; `pytest scripts/` 389
+passed (excl. `test_json_serialization.py`, see CB-02); `tests/canonical/` 100;
+`answer_governance/` 60; every `canonical_gate_checks.py` gate PASS
+(reconciliation, numeric-safety, governance, fallback-safety, unit-isolation,
+missing-never-zero, availability-metadata, source-contracts);
+`validate_historical_baseline.py`, `validate_promo_schema.py`,
+`ci_validate_datajs.py` (7 baseline invariants) PASS; 18 JS test files 0
+failing; 44-state sweep 0 failures / 0 JS errors; smoke test 7/7 governed
+baselines. Post-merge CI on `main`: Validation & QC, CodeQL, Power BI Windows
+CI, GitHub Pages deploy all success.
+
+| ID | Blocker | Class | Evidence | Owner | Next action / exit condition |
+|---|---|---|---|---|---|
+| CB-01 | FY27 zone rollup in `data.js` carries Rs 11.64 Cr eB2B + SIS (non-MT) primary; Nykaa (FSN) billed via eB2B | BLOCKED_INPUT + BLOCKED_HUMAN_DECISION | `scripts/mt_channel_reconciliation.py dashboard/data.js` → BLOCKED (exit 2); runs non-blocking in the Production Acceptance Gate by design. **Doc drift:** `docs/ISSUE_MT_CHANNEL_CONTAMINATION.md` says CLOSED — true for the July deck, not for the dashboard's zone rollup | MT Leadership (Nykaa treatment); MT Analytics (source file) | Supply full July-26 article-wise primary; decide Nykaa treatment; re-run check until exit 0, then make that CI step blocking |
+| CB-02 | `scripts/test_json_serialization.py` cannot import `_cm2_provisional_state` | MERGE_REQUIRED (owner approval) | Scratch merge of #159 + #158 onto `a49e998`: file 38 passed, `scripts/` 427 passed, no data/config change. #159 alone: 16 failures (needs #158's strict JSON boundary) | Repo owner | Approve #159 and #158 (each separately, after re-verify on then-current `main`) |
+| CB-03 | METock workbook QC | BLOCKED_INPUT | Workbook never supplied; scanner ready (`scripts/xlsx_qc.py --allowed`) | Workbook owner | Supply the `.xlsx` |
+| CB-04 | 9 open PRs share no history with `main`: #119, #129–#136 | BLOCKED_HUMAN_DECISION | `git merge-base` finds none (history rewritten after they opened, same as PR #14) | Repo owner | Per PR: close as superseded, or rebuild on `main` |
+| CB-05 | 10 open PRs mergeable but unreviewed: #156, #158, #159, #160, #165, #168, #169, #170, #215 clean; #179 conflicts | BLOCKED_HUMAN_DECISION | `git merge-tree` against `a49e998`; 4–151 commits behind | Repo owner | Review in order: #215 (flagged CRITICAL), CB-02 pair, then the rest |
+| CB-06 | FY27 incentive business inputs (Next Approved Task) | BLOCKED_HUMAN_DECISION | Unchanged by this work | MT Leadership / Finance | See Next Approved Task |
+| CB-07 | `main` has no branch protection | BLOCKED_HUMAN_DECISION | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` | Repo owner | Add a ruleset (Settings access) |
+| CB-08 | Live GitHub Pages fetch from this container | BLOCKED_ENVIRONMENT | Egress proxy `connect_rejected`; Pages deploy workflow succeeded for every merge | — | Check the live URL from a browser |
+| CB-09 | `github-advanced-security` intermittent `CAPIError 400 model not supported` | BLOCKED_ENVIRONMENT | Failed before scanning on some 25-Sep runs; later runs (#218) passed | GitHub | None; re-runs on next push |
+| CB-10 | Skills that do not load: `github-qc-before-answer` (file is `skill.md`), `deep-research-solve` (cause not yet found) | Housekeeping | Missing from the session skill list | Repo owner | Small skills gap-fill PR via `agent-skill-governance` |
+
+Deferred until the blockers above are dispositioned: recovery of the five
+historical Claude chats (each checked against certified `main`, never trusted
+from the chat), and any optional local-AI work (e.g. AMD/Lemonade) —
+OPTIONAL_POST_CERTIFICATION.
+
 ## Partial Capabilities
 
 - Store-grain sales — dedup runs at chain level; store-grain chain offtake not in the build
@@ -212,6 +312,14 @@ verify-before-build discipline as the round above:
 4. Target basis confirmation — Primary or Offtake (89.0% vs 109.8% achievement)
 5. Jul-26 DMS extract — completes the Apr–Jul incentive window
 6. Business-rule confirmations C1–C6, payout caps, nested lower-is-better slab rule
+7. Power BI P&L (`PowerBI/SeedData/Masters/AssumptionTable.csv`) — approved
+   Gross Margin %/Trade Spend %/Visibility/Scheme Spend rows for Jun/Jul/Aug'26
+   (real Primary/Offtake monthly data already exists for all three; only the
+   Assumption Table itself is missing them). Unrelated to the incentive
+   workbook — this is the Power BI trade-P&L build kit's own gap (F21,
+   `docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md`). Enforced by
+   `scripts/check_assumption_coverage.py` / the "Assumption Coverage Gate"
+   CI check (PR #211) — do not fabricate, interpolate, or estimate these
 
 ## Current Assumptions
 
