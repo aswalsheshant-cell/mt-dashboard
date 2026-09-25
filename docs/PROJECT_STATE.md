@@ -238,9 +238,21 @@ current `main`, so it cannot be merged or cherry-picked as-is.
 
 ### Production certification — 2026-09-25 (main `a49e998`)
 
-**Verdict: READY_WITH_GOVERNED_BLOCKERS.** Code, tests, gates and deploy are
-green on merged `main`. What remains is business input, owner decisions and PR
-housekeeping, each listed below with an owner — none is an unexplained failure.
+**Verdict: READY_WITH_GOVERNED_BLOCKERS.** Read the status lines separately —
+they are not one "all green":
+
+- Code, tests and deploy: **PASS** (details below).
+- Canonical Financial Truth Gate (`canonical_gate_checks.py`, all eight checks):
+  **PASS**.
+- MT channel reconciliation control (`scripts/mt_channel_reconciliation.py`):
+  **BLOCKED** (exit 2) — FY27 zone data contains Rs 11.64 Cr of non-MT primary.
+  See CB-01. This control runs non-blocking in CI by design, which is why CI is
+  green while this finding is open. No financial value was changed.
+- Business-data readiness: **READY_WITH_GOVERNED_BLOCKERS** (CB-01 is the
+  material one).
+
+What remains is business input, owner decisions and PR housekeeping, each listed
+below with an owner — none is an unexplained failure.
 
 Recovery PRs merged, one approval each: #217 `a77b899` → #216 `54fa67d` →
 #219 `50ec081` → #218 `a49e998`. Across all four, `dashboard/data.js`,
@@ -260,7 +272,7 @@ CI, GitHub Pages deploy all success.
 | ID | Blocker | Class | Evidence | Owner | Next action / exit condition |
 |---|---|---|---|---|---|
 | CB-01 | FY27 zone rollup in `data.js` carries Rs 11.64 Cr eB2B + SIS (non-MT) primary; Nykaa (FSN) billed via eB2B | BLOCKED_INPUT + BLOCKED_HUMAN_DECISION | `scripts/mt_channel_reconciliation.py dashboard/data.js` → BLOCKED (exit 2); runs non-blocking in the Production Acceptance Gate by design. **Doc drift:** `docs/ISSUE_MT_CHANNEL_CONTAMINATION.md` says CLOSED — true for the July deck, not for the dashboard's zone rollup | MT Leadership (Nykaa treatment); MT Analytics (source file) | Supply full July-26 article-wise primary; decide Nykaa treatment; re-run check until exit 0, then make that CI step blocking |
-| CB-02 | `scripts/test_json_serialization.py` cannot import `_cm2_provisional_state` | MERGE_REQUIRED (owner approval) | Scratch merge of #159 + #158 onto `a49e998`: file 38 passed, `scripts/` 427 passed, no data/config change. #159 alone: 16 failures (needs #158's strict JSON boundary) | Repo owner | Approve #159 and #158 (each separately, after re-verify on then-current `main`) |
+| CB-02 | `scripts/test_json_serialization.py` cannot import `_cm2_provisional_state` | #159: MERGE_REQUIRED (owner approval). #158: BLOCKED_HUMAN_DECISION | Re-tested 2026-09-25 on `2f347e9`: #159 alone — `tests/` 368 passed (unchanged), own tests 10/10, file 16 failed/12 passed; #158 + #159 — file 28 passed, `scripts/` 427 passed, but `tests/` **1 failed**: #158 conflicts with main's `test_fm05_metadata_stripped.py::test_malformed_payload_falls_back_to_writing_unchanged` (main: write a malformed payload as-is; #158: refuse it). No data/config/Power BI change in any combination. Evidence on PR #158 | Repo owner | Approve #159; choose for #158: (1) adopt fail-closed and update the FM-05 test/register as a reviewed rule change, or (2) narrow #158 to keep write-as-is |
 | CB-03 | METock workbook QC | BLOCKED_INPUT | Workbook never supplied; scanner ready (`scripts/xlsx_qc.py --allowed`) | Workbook owner | Supply the `.xlsx` |
 | CB-04 | 9 open PRs share no history with `main`: #119, #129–#136 | BLOCKED_HUMAN_DECISION | `git merge-base` finds none (history rewritten after they opened, same as PR #14) | Repo owner | Per PR: close as superseded, or rebuild on `main` |
 | CB-05 | 10 open PRs mergeable but unreviewed: #156, #158, #159, #160, #165, #168, #169, #170, #215 clean; #179 conflicts | BLOCKED_HUMAN_DECISION | `git merge-tree` against `a49e998`; 4–151 commits behind | Repo owner | Review in order: #215 (flagged CRITICAL), CB-02 pair, then the rest |
