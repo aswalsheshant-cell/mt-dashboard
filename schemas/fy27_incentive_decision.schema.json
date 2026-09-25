@@ -94,7 +94,34 @@
           "type": "string",
           "enum": ["NOT_STARTED", "IN_PROGRESS", "IMPLEMENTED", "NOT_APPLICABLE"]
         },
-        "notes": { "type": ["string", "null"] }
+        "notes": { "type": ["string", "null"] },
+        "revision_history": {
+          "type": "array",
+          "description": "Phase 3B (STEP 5): optional, backward-compatible. Populated only when an already-APPROVED decision's response changes -- the prior approval is preserved here, never overwritten in place. Absent or empty on a decision that has never been amended.",
+          "items": { "$ref": "#/definitions/revision" }
+        }
+      }
+    },
+    "revision": {
+      "type": "object",
+      "required": [
+        "decision_version",
+        "previous_response",
+        "new_response",
+        "changed_by",
+        "changed_date",
+        "change_evidence",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "decision_version": { "type": "integer", "minimum": 2, "description": "1 is the original approval (not itself a revision entry); this is the version the change moved TO." },
+        "previous_response": { "type": "string" },
+        "new_response": { "type": "string" },
+        "changed_by": { "type": "string" },
+        "changed_date": { "type": "string", "format": "date" },
+        "change_evidence": { "type": "string", "description": "A NEW evidence reference for this specific change -- never the original approval's evidence_reference reused." },
+        "reason": { "type": "string" }
       }
     }
   }

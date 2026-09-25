@@ -73,3 +73,37 @@ def load_register(path: Path) -> List[DecisionRecord]:
             notes=d.get("notes"),
         ))
     return records
+
+
+def load_register_raw(path: Path) -> dict:
+    """Schema-validated raw dict (unlike load_register(), keeps every field
+    -- including revision_history -- so a caller can modify one decision
+    and write the whole structure back without losing anything)."""
+    path = Path(path)
+    if not path.is_file():
+        raise RegisterLoadError(f"Register file not found: {path}")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise RegisterLoadError(f"{path}: invalid JSON -- {e}") from e
+    schema = load_schema()
+    try:
+        jsonschema.validate(instance=data, schema=schema)
+    except jsonschema.ValidationError as e:
+        raise RegisterLoadError(f"{path}: FAIL_SCHEMA -- {e.message} (at {'/'.join(str(p) for p in e.absolute_path)})") from e
+    return data
+
+
+def save_register_raw(path: Path, data: dict) -> None:
+    """Schema-validates before writing -- refuses to persist a register
+    that would fail load_register_raw() on the next read. Fail-closed: an
+    invalid update never reaches disk."""
+    schema = load_schema()
+    try:
+        jsonschema.validate(instance=data, schema=schema)
+    except jsonschema.ValidationError as e:
+        raise RegisterLoadError(
+            f"refusing to write {path}: resulting register would FAIL_SCHEMA -- "
+            f"{e.message} (at {'/'.join(str(p) for p in e.absolute_path)})"
+        ) from e
+    Path(path).write_text(json.dumps(data, indent=2, sort_keys=False) + "\n", encoding="utf-8")
