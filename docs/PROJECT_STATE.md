@@ -58,8 +58,10 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`ec55115` — Fail with an actionable message when an incentive input is missing
-Validated: 2026-09-11 — fresh-clone reproducibility PASS
+`a49e998` — PR #218 merged; recovery stream #216–#219 complete
+Validated: 2026-09-25 — production certification on merged `main`
+(READY_WITH_GOVERNED_BLOCKERS; see "Production certification — 2026-09-25" below).
+Previous: `ec55115`, 2026-09-11, fresh-clone reproducibility PASS.
 
 > A milestone's own commit hash does not exist while this file is being written
 > for it, so this section is corrected in the **next** commit. Check it against
@@ -233,6 +235,45 @@ current `main`, so it cannot be merged or cherry-picked as-is.
   business rule is shown to be missing from current assets.
 - **Blocked:** "METock" workbook QC — `BLOCKED_INPUT`, needs the source
   `.xlsx` (never in the repo). Does not block the rest of the recovery.
+
+### Production certification — 2026-09-25 (main `a49e998`)
+
+**Verdict: READY_WITH_GOVERNED_BLOCKERS.** Code, tests, gates and deploy are
+green on merged `main`. What remains is business input, owner decisions and PR
+housekeeping, each listed below with an owner — none is an unexplained failure.
+
+Recovery PRs merged, one approval each: #217 `a77b899` → #216 `54fa67d` →
+#219 `50ec081` → #218 `a49e998`. Across all four, `dashboard/data.js`,
+`config/`, `PowerBI/` and seed data are byte-identical to pre-recovery `8b5797d`.
+
+Evidence (run on `a49e998`): `pytest tests/` 368 passed; `pytest scripts/` 389
+passed (excl. `test_json_serialization.py`, see CB-02); `tests/canonical/` 100;
+`answer_governance/` 60; every `canonical_gate_checks.py` gate PASS
+(reconciliation, numeric-safety, governance, fallback-safety, unit-isolation,
+missing-never-zero, availability-metadata, source-contracts);
+`validate_historical_baseline.py`, `validate_promo_schema.py`,
+`ci_validate_datajs.py` (7 baseline invariants) PASS; 18 JS test files 0
+failing; 44-state sweep 0 failures / 0 JS errors; smoke test 7/7 governed
+baselines. Post-merge CI on `main`: Validation & QC, CodeQL, Power BI Windows
+CI, GitHub Pages deploy all success.
+
+| ID | Blocker | Class | Evidence | Owner | Next action / exit condition |
+|---|---|---|---|---|---|
+| CB-01 | FY27 zone rollup in `data.js` carries Rs 11.64 Cr eB2B + SIS (non-MT) primary; Nykaa (FSN) billed via eB2B | BLOCKED_INPUT + BLOCKED_HUMAN_DECISION | `scripts/mt_channel_reconciliation.py dashboard/data.js` → BLOCKED (exit 2); runs non-blocking in the Production Acceptance Gate by design. **Doc drift:** `docs/ISSUE_MT_CHANNEL_CONTAMINATION.md` says CLOSED — true for the July deck, not for the dashboard's zone rollup | MT Leadership (Nykaa treatment); MT Analytics (source file) | Supply full July-26 article-wise primary; decide Nykaa treatment; re-run check until exit 0, then make that CI step blocking |
+| CB-02 | `scripts/test_json_serialization.py` cannot import `_cm2_provisional_state` | MERGE_REQUIRED (owner approval) | Scratch merge of #159 + #158 onto `a49e998`: file 38 passed, `scripts/` 427 passed, no data/config change. #159 alone: 16 failures (needs #158's strict JSON boundary) | Repo owner | Approve #159 and #158 (each separately, after re-verify on then-current `main`) |
+| CB-03 | METock workbook QC | BLOCKED_INPUT | Workbook never supplied; scanner ready (`scripts/xlsx_qc.py --allowed`) | Workbook owner | Supply the `.xlsx` |
+| CB-04 | 9 open PRs share no history with `main`: #119, #129–#136 | BLOCKED_HUMAN_DECISION | `git merge-base` finds none (history rewritten after they opened, same as PR #14) | Repo owner | Per PR: close as superseded, or rebuild on `main` |
+| CB-05 | 10 open PRs mergeable but unreviewed: #156, #158, #159, #160, #165, #168, #169, #170, #215 clean; #179 conflicts | BLOCKED_HUMAN_DECISION | `git merge-tree` against `a49e998`; 4–151 commits behind | Repo owner | Review in order: #215 (flagged CRITICAL), CB-02 pair, then the rest |
+| CB-06 | FY27 incentive business inputs (Next Approved Task) | BLOCKED_HUMAN_DECISION | Unchanged by this work | MT Leadership / Finance | See Next Approved Task |
+| CB-07 | `main` has no branch protection | BLOCKED_HUMAN_DECISION | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` | Repo owner | Add a ruleset (Settings access) |
+| CB-08 | Live GitHub Pages fetch from this container | BLOCKED_ENVIRONMENT | Egress proxy `connect_rejected`; Pages deploy workflow succeeded for every merge | — | Check the live URL from a browser |
+| CB-09 | `github-advanced-security` intermittent `CAPIError 400 model not supported` | BLOCKED_ENVIRONMENT | Failed before scanning on some 25-Sep runs; later runs (#218) passed | GitHub | None; re-runs on next push |
+| CB-10 | Skills that do not load: `github-qc-before-answer` (file is `skill.md`), `deep-research-solve` (cause not yet found) | Housekeeping | Missing from the session skill list | Repo owner | Small skills gap-fill PR via `agent-skill-governance` |
+
+Deferred until the blockers above are dispositioned: recovery of the five
+historical Claude chats (each checked against certified `main`, never trusted
+from the chat), and any optional local-AI work (e.g. AMD/Lemonade) —
+OPTIONAL_POST_CERTIFICATION.
 
 ## Partial Capabilities
 
