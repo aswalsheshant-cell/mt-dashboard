@@ -68,5 +68,6 @@ jobs:
             exit 1
           fi
       - name: CLI check -- synthetic fully-approved fixture reports READY_FOR_SHADOW_CALCULATION
-        run: python3 scripts/incentive_decision_gate.py \
+        run: |
+          python3 scripts/incentive_decision_gate.py \
             --register tests/fixtures/incentive_decisions/synthetic_fully_approved_offtake.json
