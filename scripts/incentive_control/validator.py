@@ -28,7 +28,6 @@ from typing import List
 
 from .models import (
     REQUIRED_DECISIONS,
-    RESOLVED_STATUSES,
     UNRESOLVED_STATUSES,
     VALID_STATUSES,
     DecisionRecord,
@@ -77,9 +76,7 @@ def validate_register(records: List[DecisionRecord]) -> ValidationReport:
 
     for r in records:
         if r.decision_id not in REQUIRED_DECISIONS:
-            continue  # already flagged above; downstream checks need the config entry
-
-        config = REQUIRED_DECISIONS[r.decision_id]
+            continue  # already flagged above; downstream checks all read the record directly
 
         # 14. blank required fields
         if not r.decision_owner or not r.decision_owner.strip():

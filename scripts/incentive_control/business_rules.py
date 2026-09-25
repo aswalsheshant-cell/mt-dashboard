@@ -9,7 +9,7 @@ text, a free-text response, a historical guess, or a hardcoded default.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from .gate import assert_ready_for_shadow_calculation
 from .models import DecisionRecord
