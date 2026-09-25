@@ -2110,15 +2110,26 @@ function buildRelianceBC(){
     zones=zones.filter(z=>fHas('Zone',z.name));
     states=states.filter(r=>fHas('Zone',r.zone));
   }
-  const zoneVal=z=>(z[fyk]||z.total||0);
-  const stateVal=r=>(r[fyk]||r.total||0);
-  const brandVal=b=>(b[fyk]||b.total||0);
-  const stRows=states.filter(r=>stateVal(r)>0).map(r=>
+  // F19: no fallback to z.total (all-time) or any other period when the
+  // selected FY has no real row for this zone/state/brand/category -- that
+  // silently relabeled FY26-only money (the "Unallocated" buckets: real
+  // FY26 sell-out with no store-level detail to allocate down to FY27) as
+  // if it belonged to whatever FY was currently selected/default. `!=null`
+  // (not `||`) so a genuine real 0 for the selected FY is never mistaken
+  // for missing and swapped for a different period's number.
+  const zoneVal=z=>(z[fyk]!=null?z[fyk]:null);
+  const stateVal=r=>(r[fyk]!=null?r[fyk]:null);
+  const brandVal=b=>(b[fyk]!=null?b[fyk]:null);
+  const catVal=c=>(c[fyk]!=null?c[fyk]:null);
+  const zonesInPeriod=zones.filter(z=>zoneVal(z)>0);
+  const statesInPeriod=states.filter(r=>stateVal(r)>0);
+  const brandsInPeriod=brands.filter(b=>brandVal(b)>0);
+  const catsInPeriod=cats.filter(c=>catVal(c)>0);
+  const stRows=statesInPeriod.map(r=>
     `<tr><td>${r.state}</td><td>${r.zone}</td><td>${crc(stateVal(r))}</td></tr>`).join('');
-  const brandRows=brands.filter(b=>brandVal(b)>0).map(b=>
+  const brandRows=brandsInPeriod.map(b=>
     `<tr><td>${b.name}</td><td>${crc(brandVal(b))}</td><td>${total>0?((brandVal(b)/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
-  const catVal=c=>(c[fyk]||c.total||0);
-  const catRows=cats.filter(c=>(c.total||0)>0).map(c=>
+  const catRows=catsInPeriod.map(c=>
     `<tr><td>${c.name}</td><td>${crc(catVal(c))}</td><td>${total>0?((catVal(c)/total)*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
   const bcCoverage=bc.data_complete_through?`Data through ${bc.data_complete_through}.`:'';
   const bcJuneNote=bc.june_status
@@ -2134,8 +2145,8 @@ function buildRelianceBC(){
    <div class="kpis">
      ${kpi('BC Offtake',crc(total),yrLab[fyk]||fyk)}
      ${kpi('Months Covered',months.length,months.length?months[0]+' – '+months[months.length-1]:'none')}
-     ${kpi('Zones',zones.length,'with BC presence')}
-     ${kpi('Brands',brands.length,'tracked in BC')}
+     ${kpi('Zones',zonesInPeriod.length,'with BC presence')}
+     ${kpi('Brands',brandsInPeriod.length,'tracked in BC')}
    </div>
    <div class="grid g2">
      ${card('Monthly BC offtake trend',months.length+' month(s).',cv('bcTrend'))}
@@ -2156,7 +2167,7 @@ function buildRelianceBC(){
      <em>Classification: is_brand_counter=${bc.is_brand_counter}, include_in_overall_offtake=${bc.include_in_overall_offtake}, parent_chain="${bc.parent_chain||'Reliance Retail'}"</em>
    </div>`;
   mkLine('bcTrend',months,[{label:'BC Offtake',data:monthly,borderColor:C.amber,backgroundColor:C.amber+'22',fill:true}]);
-  mkBarH('bcZone',zones.map(z=>z.name),zones.map(z=>zoneVal(z)),C.amber);
+  mkBarH('bcZone',zonesInPeriod.map(z=>z.name),zonesInPeriod.map(z=>zoneVal(z)),C.amber);
 }
 
 /* ---------------- P&L ---------------- */
