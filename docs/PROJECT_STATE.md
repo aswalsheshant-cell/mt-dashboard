@@ -220,6 +220,14 @@ current `main`, so it cannot be merged or cherry-picked as-is.
   offline AI analyst module (`scripts/ai_analyst/`), its Excel QC scanner
   (`xlsx_qc.py`), the AI Analyst dashboard tab, `scripts/audit_jun26_mapping.py`,
   `PowerBI/docs/Jun26_Onboarding_Execution_Log.md`.
+- **AI Analyst (NL query engine, `ai_analyst/` package, 13th tab) — ARCHIVED
+  as reference, 2026-09-25.** No verified business requirement for
+  natural-language querying exists today: `docs/CANONICAL_METRIC_IMPLEMENTATION_PLAN.md`
+  places an NL "AI Insight Agent" at Phase 9, gated on Phases 1–8 certified plus
+  one full reporting cycle, and it may only consume certified measures, never
+  compute them. Its old 95 passing tests are not a reason to port it. Revisit
+  only if MT Leadership raises the need; then design fresh against the
+  canonical engine. The Excel QC scanner was recovered separately (PR #218).
 - **Not to be recovered:** the branch's Power BI DAX / Power Query changes —
   the current Power BI kit has moved past them. Compare only if a specific
   business rule is shown to be missing from current assets.
