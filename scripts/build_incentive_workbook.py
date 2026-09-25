@@ -20,6 +20,7 @@ Usage:
 """
 from __future__ import annotations
 import argparse, csv, json, re, sys
+from collections import Counter
 from datetime import date
 from pathlib import Path
 
@@ -157,6 +158,30 @@ def require(path, describe):
             "\nSupply the real file. Nothing is guessed or substituted -- see\n"
             "CLAUDE.md 'No dummy data'.\n")
     return p
+
+
+def qc_woa_exc_01(woa_keys, exc_keys):
+    """QC-WOA-EXC-01: every WoA identity-register row must be visible in
+    08_Exceptions exactly once, under its own identity.
+
+    A count match alone (len(woa_keys) == len(exc_keys)) can hide a swap --
+    one row silently dropped, a different one double-counted, same total.
+    Key-set equality on (WoA_Role_Column, WoA_Raw_Name, Zone) -- the same
+    natural key build_incentive_identity.py aggregates WoA rows on -- plus
+    an explicit duplicate check on each side is what a 100%-completeness
+    control actually requires. Pure function (no file I/O) so the failure
+    path has direct unit coverage, not just "today's data happens to pass".
+    """
+    woa_set, exc_set = set(woa_keys), set(exc_keys)
+    missing = sorted(woa_set - exc_set)   # in the register, absent from 08_Exceptions
+    extra = sorted(exc_set - woa_set)     # in 08_Exceptions, not traceable to a register row
+    woa_dupes = [k for k, n in Counter(woa_keys).items() if n > 1]
+    exc_dupes = [k for k, n in Counter(exc_keys).items() if n > 1]
+    ok = (len(woa_keys) == len(exc_keys) and not missing and not extra
+          and not woa_dupes and not exc_dupes)
+    return {"ok": ok, "woa_count": len(woa_keys), "exc_count": len(exc_keys),
+            "missing": missing, "extra": extra,
+            "woa_dupes": woa_dupes, "exc_dupes": exc_dupes}
 
 
 def main() -> int:
@@ -391,11 +416,46 @@ def main() -> int:
         kind = ("SOURCE_DATA_FIX_REQUIRED" if g.upper().startswith("#") else "MISSING" if not g else "INVALID")
         exc.append(["Grade", eid, kind, g or "(blank)",
                     "Employee cannot be paid until a valid slab grade is supplied", 1, "HR", "OPEN"])
+    # Every row in the WoA identity register is unresolved (Approval_Status is
+    # never anything but PENDING here -- see build_incentive_identity.py) and
+    # belongs in the control centre, not just the ones this sheet finds most
+    # actionable. Filtering to a curated subset (previously only
+    # OWNER_ROW_EXCEPTION/SOURCE_DATA_FIX_REQUIRED) silently dropped every
+    # INSUFFICIENT_EVIDENCE and OWNER_RULE_APPROVAL row -- 39 of 67 rows in
+    # the FY27 run -- from the one sheet meant to be the complete list of
+    # what's open. See QC-WOA-EXC-01 below, which now fails the build if this
+    # regresses.
+    woa_keys, exc_keys = [], []
     for w in woa:
-        if w.get("Classification") in ("OWNER_ROW_EXCEPTION", "SOURCE_DATA_FIX_REQUIRED"):
-            exc.append(["WoA mapping", w.get("WoA_Raw_Name", ""), w.get("Classification", ""),
-                        w.get("Match_Method", ""), w.get("Why", "")[:120],
-                        w.get("Stores_Assigned", ""), "MT Ops", "OPEN"])
+        key = (w.get("WoA_Role_Column", ""), w.get("WoA_Raw_Name", ""), w.get("Zone", ""))
+        woa_keys.append(key)
+        scope_gate = w.get("Scope_Gate", "")
+        etype = f"SCOPE_DECISION_REQUIRED ({scope_gate})" if scope_gate else w.get("Classification", "")
+        owner = "MT Leadership / MT Ops" if scope_gate else "MT Ops"
+        exc.append(["WoA mapping", w.get("WoA_Raw_Name", ""), etype,
+                    w.get("Match_Method", ""), w.get("Why", "")[:120],
+                    w.get("Stores_Assigned", ""), owner, "OPEN"])
+        exc_keys.append(key)  # built in lockstep with exc.append above -- one key per exception row
+
+    # QC-WOA-EXC-01 (BLOCKING): every WoA register row must appear in
+    # 08_Exceptions, exactly once, under its own identity -- not just the
+    # same total count. A bare count match (67 == 67) can hide a swap: one
+    # row silently dropped and a different one double-counted still nets to
+    # the same number. See qc_woa_exc_01() below for the actual check
+    # (factored out so the failure path -- missing/extra/duplicate keys --
+    # has direct unit coverage, not just "today's data happens to pass").
+    qc = qc_woa_exc_01(woa_keys, exc_keys)
+    if not qc["ok"]:
+        raise SystemExit(
+            f"QC-WOA-EXC-01 FAILED (BLOCKING, 100% completeness required):\n"
+            f"  register rows = {qc['woa_count']}, exception rows = {qc['exc_count']}\n"
+            f"  missing from 08_Exceptions ({len(qc['missing'])}): {qc['missing'][:5]}\n"
+            f"  extra in 08_Exceptions, not in register ({len(qc['extra'])}): {qc['extra'][:5]}\n"
+            f"  duplicate keys in register ({len(qc['woa_dupes'])}): {qc['woa_dupes'][:5]}\n"
+            f"  duplicate keys in 08_Exceptions ({len(qc['exc_dupes'])}): {qc['exc_dupes'][:5]}\n"
+            f"  Every unresolved register row must be visible in the control "
+            f"sheet exactly once. Fix the WoA-mapping loop above, don't "
+            f"suppress this check.")
     exc.append(["Target scope", "RKAM target file", "UNKNOWN_SCOPE",
                 f"{round(tgt_total / biz_target * 100, 1)}% of business target",
                 "Scope and exclusions unconfirmed — blocks every payout row", len(tgts),

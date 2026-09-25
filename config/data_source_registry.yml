@@ -27,7 +27,7 @@
 # freely as new months/sources are discovered.
 
 schema_version: "1.0"
-updated: "2026-09-17"
+updated: "2026-09-21"
 
 datasets:
 
@@ -400,6 +400,37 @@ datasets:
       for exactly this (build_dashboard_data.py currently emits only
       `metrics: {doi: {}, otif: {}}` -- no doi_watchlist producer exists yet).
 
+  store_audit_compliance:
+    business_name: "Store audit compliance (PES) and supply-chain fill-rate (CFR/OTIF)"
+    source_path: "dashboard/compliance_metrics.json"
+    source_type: "static JSON checked into the repo, fetched at runtime by dashboard/index.html and merged into window.DASH.compliance / window.DASH.inventory_fillrate"
+    grain: "chain (chain_summary) and account (accounts/doors)"
+    validation_status: PROVISIONAL
+    source_priority: null
+    downstream_outputs: ["Store Audit Scorecard tab", "Supply Chain & Inventory tab", "readiness.scorecard_execution gate (via metadata.total_doors_audited)"]
+    last_validated: "2026-09-18 (fix/compliance-data-provenance forensic trace)"
+    modification_allowed: false
+    notes: >
+      No script in this repo generates the compliance.chain_summary block --
+      it appeared fully formed across 3 unrelated commits (none of whose
+      messages mention compliance/audit) with no producer script anywhere in
+      the repo history. Its 'trend' field is an identical
+      [85, 84, 86, 85, <current>] across all 5 chains/zones, a template
+      fingerprint no independent audit history would produce. Separately,
+      compliance.accounts / compliance.doors / inventory_fillrate.accounts
+      are a byte-for-byte match to scripts/sync_compliance_data.py's
+      generate_mock_compliance_data() / generate_mock_fillrate_data() --
+      confirmed synthetic. Same gap as forecast_stock_inventory above for
+      the OTIF/fill-rate half of this domain: no real source exists yet.
+      dashboard/compliance_metrics.json's own metadata now carries
+      is_synthetic=true / data_status=PROVENANCE_UNVERIFIED, and both
+      consuming tabs render an amber provenance banner. sync_compliance_data.py
+      now refuses to overwrite this file without an explicit confirmation
+      flag and writes to a separate *.mock_demo.json path by default.
+      Needs, from Retail Execution / Trade Marketing: a real store-audit
+      extract (PES dimensions: price/FSDU/OSA compliance per door) and a
+      real fill-rate/OTIF feed, at whatever grain they are actually captured.
+
   forecast_npd_master:
     business_name: "NPD article master for new-product forecasting analogues"
     source_path: "PowerBI/SeedData/NPI_Master.csv"
@@ -545,3 +576,79 @@ datasets:
       (see load_chain_allocation_weights()). Do not repurpose Primary Chain
       for splitting NSV -- that would silently swap an evidence-weighted
       split for a single-chain assumption.
+
+  forecast_detail_brand_chain:
+    business_name: "Per-brand/chain forecast detail (Sep-Nov 2026 Dynamic Multi-Brand Forecast)"
+    source_path: "Dynamic_Multi_Brand_Forecast_Sep_Nov_2026.xlsx (private workbook, not committed -- path supplied at ingestion time via --xlsx)"
+    source_type: "Excel workbook (gitignored raw source, outside the repo by design)"
+    grain: "Month x Brand and Month x Chain"
+    date_min: null
+    date_max: null
+    financial_years: ["FY27"]
+    primary_keys: []
+    important_columns: ["Forecast_Database sheet", "Target_Master sheet"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Manual -- one-off per forecast refresh cycle, via scripts/load_forecast_detail.py"
+    validation_status: NOT_CONFIGURED
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/load_forecast_detail.py (reads Forecast_Database/Target_Master, normalises via build_dashboard_data.canon_chain/canon_brand, writes forecast.detail)"
+    downstream_outputs: ["dashboard/data.js forecast.detail (by_brand, by_chain, months, monthly_forecast, monthly_target, status)"]
+    last_validated: null
+    modification_allowed: false
+    notes: >
+      Registered 2026-09-19 while root-causing scripts/test_forecast_schema.py's
+      29 setup errors: forecast.detail is absent from the checked-in
+      dashboard/data.js because this private workbook has never been
+      ingested in any environment this repo's tests have run in -- not a
+      code defect, and not something to fabricate. load_forecast_detail.py
+      and its schema test (test_forecast_schema.py) both already existed and
+      were correct; only the registry entry was missing. The 29 dependent
+      tests now skip with an explicit MISSING_SOURCE reason instead of
+      erroring, so a real regression in an environment that DOES have this
+      source isn't masked by tests that can never pass without it.
+
+  offtake_fy26_store_article:
+    business_name: "Offtake NSV -- FY26 (Apr'25-Mar'26) store x article grain, requested for Same-Store Growth"
+    source_path: null
+    source_type: "CSV expected, same shape as offtake_article_fy27_patch"
+    grain: "month x store x article x chain (Month, Store Code, Article, Chain)"
+    date_min: "2025-04"
+    date_max: "2026-03"
+    financial_years: ["FY26"]
+    primary_keys: ["Month", "Store Code", "Article", "Chain"]
+    important_columns: ["Units", "NSV", "Store Name", "State", "City"]
+    business_owner: "whoever supplies the monthly Offtake_Monthly/offtake_store_article_*.csv drops (same ownership as offtake_article_fy27_patch)"
+    refresh_frequency: "One-off backfill once supplied, then N/A (a single historical FY, not an ongoing monthly feed like FY27)"
+    validation_status: MISSING
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/store_history_readiness.py (classify_source() / validate_store_history() -- built and tested against synthetic fixtures only, not yet run against a real file)"
+    downstream_outputs: []
+    last_validated: "2026-09-21 (classify_source() confirms no candidate file anywhere in the repo resolves to SOURCE_AUTHENTICATED)"
+    modification_allowed: false
+    notes: >
+      Registered 2026-09-21 as part of Phase 2C/2D governance closeout
+      (docs/PHASE_2_EXECUTION_STATUS.md). This is the single hard dependency
+      blocking Same-Store Growth (docs/PHASE2_SSG_FEASIBILITY.md) -- see that
+      doc and docs/PHASE_2_DATA_CONTRACT.md for the full field-level request.
+
+      data/raw_drops/_agg/offtake_fy26.json was inspected and formally
+      rejected as the source for this entry: it is real FY26 offtake data,
+      but chain-level aggregate only (no Store Code/Article/Units), already
+      routed to offtake_preagg_fy25_fy26 above. It is never derived or
+      allocated down to store x article grain to manufacture a substitute
+      for this entry -- that would fabricate a number no real store or
+      article ever reported, which this repo's "no dummy data" rule forbids.
+
+      PROJECT_STATE for this entry: WAITING_FOR_SOURCE. Permitted work
+      against this entry while missing: inspecting a newly supplied
+      candidate file, classifying it (classify_source()), computing its
+      SHA-256/manifest (build_source_manifest()), validating it against the
+      FY26 Data Contract, and reporting source/data-quality failures.
+      Prohibited until a real file lands here and source_status becomes
+      SOURCE_AUTHENTICATED: any cohort/Identity_Status/Chain_Continuity_Status
+      production change, financial allocation change, new analytics, or
+      dashboard/Power BI change built on this source -- see
+      docs/PHASE_2_EXECUTION_STATUS.md's "Phase 2C/2D terminal state" section
+      for the full permitted/prohibited list.

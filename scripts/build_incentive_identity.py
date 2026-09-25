@@ -31,7 +31,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 # Values that look like a person but are not one.
-PLACEHOLDERS = re.compile(r"^\s*(vacant|tbd|na|n/?a|open|blank|-+)\b", re.I)
+PLACEHOLDERS = re.compile(r"^\s*(vacant|tbd|na|n/?a|open|blank|-+)(?:[\s_]|$)", re.I)
 # Grades the slab master defines. Nothing outside this list may be entered.
 GRADE_OPTIONS = {
     "RKAM": ["Asst RKAM", "RKAM", "Sr RKAM"],
@@ -298,6 +298,13 @@ def main() -> int:
             "Ambiguity_Flag": "YES" if method == "AMBIGUOUS" else "NO",
             "Classification": cls,
             "Why": why,
+            # BASUP-01: 'BA Supervisor' is not a role category in
+            # 01_Employee_Master (no BDO_BDE/RKAM/NKAM/BA_Leads/Analyst/BA_Ops
+            # designation maps to it). That's a business-scope question --
+            # is this population incentive-eligible at all -- not a name-
+            # matching defect, so it's tracked separately from Classification
+            # rather than overloading that field's name-match semantics.
+            "Scope_Gate": "BASUP-01" if col == "BA Supervisor" else "",
             # Owner fields — never populated here.
             "Approved_Employee_ID": "", "Approval_Status": "PENDING",
             "Approved_By": "", "Approval_Date": "", "Notes": "",

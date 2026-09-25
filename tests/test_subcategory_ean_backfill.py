@@ -59,7 +59,7 @@ def test_ean_backfill_fills_from_another_month(tmp_path):
     src.mkdir()
     df.to_csv(src / "primary_article_test.csv", index=False)
 
-    result = bdd.detail_records_real(tmp_path, max_rows=1000)
+    result = bdd.detail_records_real(tmp_path, max_rows=1000, output_dir=tmp_path / "shadow_output")
     assert result is not None
     recs = result[0]
     jul_rec = next(r for r in recs if r["Month"] == "July")
@@ -80,14 +80,14 @@ def test_ean_with_no_real_value_anywhere_stays_blank_not_fabricated(tmp_path):
     src.mkdir()
     df.to_csv(src / "primary_article_test.csv", index=False)
 
-    result = bdd.detail_records_real(tmp_path, max_rows=1000)
+    result = bdd.detail_records_real(tmp_path, max_rows=1000, output_dir=tmp_path / "shadow_output")
     assert result is not None
     recs = result[0]
     rec = next(r for r in recs if r["EAN"] == "9999999999999")
     assert rec["SubCategory"] is None
 
 
-def test_real_jul26_file_backfills_to_near_full_coverage():
+def test_real_jul26_file_backfills_to_near_full_coverage(tmp_path):
     """End-to-end against the real committed source: Jul'26 arrives with
     sub_category blank for all rows; after backfill against the other real
     months, coverage should be ~99.99% (matches the independently-verified
@@ -96,7 +96,7 @@ def test_real_jul26_file_backfills_to_near_full_coverage():
     jul_file = src_dir / "Primary_Article_Monthly" / "primary_article_Jul_26.csv"
     if not jul_file.exists():
         pytest.skip("primary_article_Jul_26.csv not present in this environment")
-    result = bdd.detail_records_real(src_dir, max_rows=200000)
+    result = bdd.detail_records_real(src_dir, max_rows=200000, output_dir=tmp_path / "shadow_output")
     assert result is not None
     recs = result[0]
     jul27 = [r for r in recs if r["Month"] == "July" and r["FY"] == "FY27"]

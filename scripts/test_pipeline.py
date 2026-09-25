@@ -22,6 +22,19 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 bd = importlib.import_module("build_dashboard_data")
 
+BASELINES_JSON = Path(__file__).resolve().parent.parent / "config" / "baselines.json"
+
+
+def _governed_baseline(key):
+    """Look up a check from the single governed baseline registry
+    (config/baselines.json) by its key, instead of keeping a private
+    hardcoded copy of the same figure in this test file."""
+    checks = json.loads(BASELINES_JSON.read_text())["checks"]
+    for c in checks:
+        if c["key"] == key:
+            return c
+    raise KeyError(f"{key!r} not found in {BASELINES_JSON}")
+
 # ── FY mapping ──────────────────────────────────────────────────────────────
 
 class TestFYMapping:
@@ -346,16 +359,45 @@ class TestDataJSRegression:
         return json.loads(txt[m.end():].rstrip().rstrip(";"))
 
     def test_fy25_unchanged(self, dash):
-        assert dash["offtake"]["total_fy25"] == 21840.0
+        # STALE_TEST_EXPECTATION: FY25 has no real Offtake source in this
+        # repo (THE ONE FY RULE coverage notes); this hardcoded value was a
+        # since-reverted fabrication (docs/FAILURE_MODE_REGISTER.md FM-13).
+        # Assert its correct absence instead of a specific number.
+        assert dash["offtake"].get("total_fy25") is None, (
+            "offtake.total_fy25 is no longer None -- if a real FY25 source "
+            "was registered, update this test with its provenance; do not "
+            "just restore the old fabricated 21840.0"
+        )
 
     def test_fy26_unchanged(self, dash):
-        assert dash["offtake"]["total_fy26"] == 31082.0
+        # DUPLICATED_BASELINE: read the one governed value instead of a
+        # private, already-drifted hardcoded copy (was 31082.0).
+        baseline = _governed_baseline("offtake_fy26_total")
+        actual = dash["offtake"]["total_fy26"]
+        assert abs(actual - baseline["expected"]) <= baseline["tolerance"], (
+            f"offtake.total_fy26={actual} but config/baselines.json's "
+            f"offtake_fy26_total={baseline['expected']}"
+        )
 
     def test_fy27_has_four_months(self, dash):
-        assert len(dash["offtake"]["months_fy27"]) == 4
+        # OPEN_PERIOD: months_fy27 grows every time a new month is ingested
+        # (was hardcoded to ==4; the repo is now at 5 months). Assert the
+        # structural invariants instead of a snapshot count.
+        months = dash["offtake"]["months_fy27"]
+        assert len(months) >= 1
+        assert len(set(months)) == len(months), f"months_fy27 has duplicates: {months!r}"
 
     def test_fy27_months_order(self, dash):
-        assert dash["offtake"]["months_fy27"] == ["Apr-26", "May-26", "Jun-26", "Jul-26"]
+        # OPEN_PERIOD, same reasoning as test_fy27_has_four_months: assert
+        # chronological ordering and FY27 membership instead of an exact list.
+        months = dash["offtake"]["months_fy27"]
+        mon_num = {m: i for i, m in enumerate(
+            ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])}
+        ordered = [(int(lbl.split("-")[1]), mon_num[lbl.split("-")[0]]) for lbl in months]
+        assert ordered == sorted(ordered), f"months_fy27 must be chronological, got {months!r}"
+        assert all(bd.fy_tag_from_label(m) == "FY27" for m in months), (
+            f"months_fy27 contains a month outside FY27: {months!r}"
+        )
 
     def test_fy27_total_reasonable(self, dash):
         total = dash["offtake"]["total_fy27"]
@@ -456,26 +498,52 @@ class TestDataJSRegression:
             f"monthly sum {monthly_sum} != total {fp['nsv']}")
 
     def test_primary_fy25_fy26_unchanged(self, dash):
-        """Pre-aggregated Primary FY25/FY26 values must not change.
+        """Primary FY25 must stay absent (no real source); FY26 must match
+        the governed baseline.
 
-        FY25 = ₹23,331.97 L (correct value restored; matches monthly sum).
-        FY26 = ₹32,900.00 L (unchanged).
+        STALE_TEST_EXPECTATION (FY25) + DUPLICATED_BASELINE (FY26): FY25 has
+        no real Primary billing extract in this repo (FM-13 -- a synthetic
+        derivation was correctly reverted); FY26 is closed (frozen_history)
+        and already governed by config/baselines.json, so it's read from
+        there instead of a second hardcoded copy.
         """
         p = dash.get("primary", {})
-        assert p.get("nsv_fy25") == 23331.97
-        assert p.get("nsv_fy26") == 32900
+        assert "nsv_fy25" not in p, (
+            "primary.nsv_fy25 reappeared -- FY25 has no real Primary source; "
+            "see docs/FAILURE_MODE_REGISTER.md FM-13 before treating this as "
+            "a legitimate restore"
+        )
+        baseline = _governed_baseline("primary_nsv_fy26")
+        actual = p.get("nsv_fy26")
+        assert actual is not None and abs(actual - baseline["expected"]) <= baseline["tolerance"], (
+            f"primary.nsv_fy26={actual} but config/baselines.json's "
+            f"primary_nsv_fy26={baseline['expected']}"
+        )
 
     # ── months_canon / monthly_canon tests ──
 
     def test_primary_fy27_has_months_canon(self, dash):
-        """fyx_primary.FY27 must carry months_canon (canonical Mon-YY labels)."""
+        """fyx_primary.FY27 must carry months_canon (canonical Mon-YY labels),
+        chronological and entirely within FY27.
+
+        OPEN_PERIOD: this was hardcoded to the 4-month snapshot
+        ['Apr-26','May-26','Jun-26','Jul-26']; the repo is now 5 months in
+        (docs/PROJECT_STATE.md's Regression Baseline table). Assert the
+        structural contract instead of the exact list.
+        """
         fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
         if not fp:
             pytest.skip("No FY27 primary data")
         assert "months_canon" in fp, "months_canon missing from FY27 fyx_primary"
-        assert fp["months_canon"] == ["Apr-26", "May-26", "Jun-26", "Jul-26"], (
-            f"months_canon={fp['months_canon']} expected ['Apr-26','May-26','Jun-26','Jul-26']"
+        months = fp["months_canon"]
+        assert months, "months_canon must not be empty"
+        assert all(bd.fy_tag_from_label(m) == "FY27" for m in months), (
+            f"months_canon contains a month outside FY27: {months!r}"
         )
+        mon_num = {m: i for i, m in enumerate(
+            ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])}
+        ordered = [(int(lbl.split("-")[1]), mon_num[lbl.split("-")[0]]) for lbl in months]
+        assert ordered == sorted(ordered), f"months_canon must be chronological, got {months!r}"
 
     def test_primary_fy27_months_canon_matches_monthly_canon(self, dash):
         """monthly_canon must be parallel to months_canon and sum to total NSV."""

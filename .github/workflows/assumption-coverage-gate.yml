@@ -1,0 +1,53 @@
+name: Assumption Coverage Gate
+
+# F21 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up sweep,
+# 2026-09-25): PowerBI/DAX/02_PnL_Measures.dax used to silently default a
+# reporting month with no PowerBI/SeedData/Masters/AssumptionTable.csv row
+# to a hardcoded 50% Gross Margin / 0% Trade Spend. The DAX now fails
+# closed (BLANK(), never a fabricated number) -- this gate is the other
+# half: it fails the BUILD, not just the report, the moment a real
+# reporting month has no approved Assumption Table row, per
+# scripts/check_assumption_coverage.py.
+#
+# This is an ADDITIONAL, narrowly-scoped, uniquely named gate -- it does not
+# replace or widen any other workflow (mirrors
+# canonical-financial-truth-gate.yml's own stated design). Paths are scoped
+# tightly to what can actually change assumption coverage, NOT the broad
+# scripts/**/docs/** globs pbi-windows-ci.yml uses -- an unrelated Python
+# script or doc change elsewhere in the repo must not be blocked by a
+# Finance input gap it has nothing to do with.
+#
+# This gate is EXPECTED to fail today: AssumptionTable.csv covers Apr'26/
+# May'26 only, while real monthly Primary/Offtake drops already exist
+# through Aug'26 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md F21). That is
+# not a code defect to work around -- it is a real, outstanding Finance
+# input (see docs/PROJECT_STATE.md's Required Business Inputs). Do not
+# relax, skip, or work around this gate to force it green; it turns green
+# on its own the moment Finance supplies the missing month(s).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'PowerBI/SeedData/Masters/AssumptionTable.csv'
+      - 'PowerBI/RawDataFolders/Primary_Article_Monthly/**'
+      - 'PowerBI/RawDataFolders/Offtake_Monthly/**'
+      - 'scripts/check_assumption_coverage.py'
+      - '.github/workflows/assumption-coverage-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assumption-coverage:
+    name: "Assumption Coverage Gate: AssumptionTable.csv vs real reporting months"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Check AssumptionTable.csv covers every real reporting month
+        run: python3 scripts/check_assumption_coverage.py

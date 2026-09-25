@@ -165,6 +165,20 @@ current **or previous** month.)
 `Spend % of NSV`, `Contribution Margin`, `CM %`, `Total Primary NSV`,
 `Total Offtake NSV`, `Primary vs Offtake Gap`, `Forecast vs Actual %`.
 
+- **Assumption status banner** (card/text box, place directly above the KPI
+  row so it's seen before the numbers below it): `[Assumption Status]` —
+  reads "OK" (green) for a month with an approved Assumption Table row, or
+  the full "ASSUMPTION_MISSING — FINANCE_INPUT_REQUIRED: ..." text (red) for
+  a month with none. When it reads ASSUMPTION_MISSING, `Gross Margin`,
+  `Trade Spend`, `Total Spend`, `Contribution Margin` and `CM %` for that
+  month are genuinely BLANK on every card/visual above and in the P&L table
+  below — not zero, not the prior month's figure — per F21
+  (`docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md`). Conditional-format the
+  card background off `[_Assumption Available]`, the same pattern as the TOT
+  Status Banner below. `scripts/check_assumption_coverage.py` fails the
+  build before a missing month reaches this report at all — this card is
+  the in-report confirmation of the same fact, not a substitute for it.
+
 **Visuals:**
 - **Chain NSV vs CM %** (combo): Axis `Chain`, column `NSV`, line `CM %`.
 - **Chain spend %** (stacked bar): `Chain` × Trade/Visibility/Scheme spend.
@@ -437,7 +451,7 @@ Conditional format Impacted Rows: 0 → green, >0 → red.
 - Negative Sales | Fix source row / credit note
 - Missing EAN | Update ArticleMaster.csv
 - Missing TDP | Add SKU to TDP_Monthly file
-- Missing PnL Assumptions | Add month row to AssumptionTable.csv
+- Missing PnL Assumptions | Add an approved ALL/ALL/ALL row to AssumptionTable.csv for the missing month(s) — `scripts/check_assumption_coverage.py` (Assumption Coverage Gate, F21) blocks the build until this is done; do not estimate or carry forward a prior month's figures
 
 ---
 

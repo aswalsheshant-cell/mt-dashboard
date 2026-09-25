@@ -29,7 +29,8 @@ ALLOWED_FUNCS = {"IF", "IFERROR", "INDEX", "MATCH", "SUMIFS", "COUNTIFS", "COUNT
                  "OR", "AND", "LEFT", "ROUND"}
 
 EXPECTED_COUNTS = {"tblEmployee": 51, "tblSlab": 85, "tblTarget": 3124,
-                   "tblWoA": 67, "tblAchievement": 51, "tblCalc": 51}
+                   "tblWoA": 67, "tblAchievement": 51, "tblCalc": 51,
+                   "tblExceptions": 87}
 
 
 def load():
@@ -72,6 +73,46 @@ class IncentiveWorkbook(unittest.TestCase):
         for name, n in EXPECTED_COUNTS.items():
             self.assertIn(name, self.tables)
             self.assertEqual(self.rowcount[name], n, f"{name} row count")
+
+    def test_every_woa_register_row_is_visible_in_exceptions(self):
+        """QC-WOA-EXC-01. 08_Exceptions used to filter WoA rows down to just
+        OWNER_ROW_EXCEPTION/SOURCE_DATA_FIX_REQUIRED, silently dropping every
+        INSUFFICIENT_EVIDENCE and OWNER_RULE_APPROVAL row from the one sheet
+        meant to be the complete list of what's open (36 of 67 rows in the
+        FY27 run). Assert the control sheet's WoA-mapping rows and the
+        05_WoA_Mapping table agree on both count and the set of raw names --
+        a key-set check catches a swap that a count-only check would miss.
+        """
+        woa_ws, woa_cols = self.tables["tblWoA"]
+        exc_ws, exc_cols = self.tables["tblExceptions"]
+        _, woa_hdr, _ = table_of(woa_ws)
+        _, exc_hdr, _ = table_of(exc_ws)
+
+        woa_names = {
+            row[woa_cols["WoA_Raw_Name"]].value
+            for row in woa_ws.iter_rows(min_row=woa_hdr + 1)
+        }
+        exc_names = {
+            row[exc_cols["Item"]].value
+            for row in exc_ws.iter_rows(min_row=exc_hdr + 1)
+            if row[exc_cols["Area"]].value == "WoA mapping"
+        }
+        self.assertEqual(len(woa_names), 67)
+        self.assertEqual(woa_names, exc_names)
+
+    def test_basup01_scope_gate_covers_every_ba_supervisor_row(self):
+        """BA Supervisor is not a role category in 01_Employee_Master -- that's
+        a business-scope question (BASUP-01), not a name-matching defect, so
+        it must never be silently folded into an ordinary identity exception.
+        """
+        exc_ws, exc_cols = self.tables["tblExceptions"]
+        _, exc_hdr, _ = table_of(exc_ws)
+        gated = [
+            row for row in exc_ws.iter_rows(min_row=exc_hdr + 1)
+            if row[exc_cols["Area"]].value == "WoA mapping"
+            and "BASUP-01" in (row[exc_cols["Exception_Type"]].value or "")
+        ]
+        self.assertEqual(len(gated), 29)
 
     # ---- formulas ---------------------------------------------------------
     def _formulas(self):
@@ -270,3 +311,67 @@ class SafeMissingSchemaBehavior(unittest.TestCase):
                     self.fail(f"{fn.__name__} leaked a raw StopIteration")
                 except SystemExit:
                     pass  # the correct, actionable failure
+
+
+class QcWoaExc01(unittest.TestCase):
+    """QC-WOA-EXC-01's failure path, tested directly against the pure
+    function -- proves the check actually catches a missing/duplicate/extra
+    key, not just that today's real data happens to satisfy it (that's
+    IncentiveWorkbook.test_every_woa_register_row_is_visible_in_exceptions,
+    the positive case).
+    """
+
+    @staticmethod
+    def _qc():
+        import sys
+        sys.path.insert(0, str(REPO / "scripts"))
+        from build_incentive_workbook import qc_woa_exc_01
+        return qc_woa_exc_01
+
+    def test_passes_on_identical_key_sets(self):
+        qc_woa_exc_01 = self._qc()
+        keys = [("RKAM", "Dimple", "North"), ("SO Name", "Suraj Jha", "East")]
+        result = qc_woa_exc_01(keys, list(keys))
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(result["extra"], [])
+
+    def test_catches_a_row_silently_dropped(self):
+        """The exact bug this QC exists to prevent: 08_Exceptions used to
+        drop INSUFFICIENT_EVIDENCE rows entirely."""
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North"), ("SO Name", "Suraj Jha", "East")]
+        exc = [("RKAM", "Dimple", "North")]  # second row missing
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["missing"], [("SO Name", "Suraj Jha", "East")])
+        self.assertEqual(result["extra"], [])
+
+    def test_catches_a_swap_same_total_count(self):
+        """The failure mode a count-only check (67 == 67) would miss: one
+        row dropped, a different one double-counted, net count unchanged."""
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North"), ("SO Name", "Suraj Jha", "East")]
+        exc = [("RKAM", "Dimple", "North"), ("RKAM", "Dimple", "North")]
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["missing"], [("SO Name", "Suraj Jha", "East")])
+        self.assertEqual(result["extra"], [])
+        self.assertEqual(result["exc_dupes"], [("RKAM", "Dimple", "North")])
+
+    def test_catches_an_extra_key_not_in_register(self):
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North")]
+        exc = [("RKAM", "Dimple", "North"), ("BA Lead", "Ghost Row", "West")]
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(result["extra"], [("BA Lead", "Ghost Row", "West")])
+
+    def test_catches_a_duplicate_in_the_register_itself(self):
+        qc_woa_exc_01 = self._qc()
+        woa = [("RKAM", "Dimple", "North"), ("RKAM", "Dimple", "North")]
+        exc = [("RKAM", "Dimple", "North")]
+        result = qc_woa_exc_01(woa, exc)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["woa_dupes"], [("RKAM", "Dimple", "North")])

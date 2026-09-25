@@ -1,0 +1,109 @@
+name: Incentive Decision Control Gate
+
+# Phase 3A (FY27 Incentive Decision Closure Gate) + Phase 3B (response
+# ingestion) -- CI for the fail-closed decision-register schema, validator,
+# closure gate, and the response-ingestion helper (record_incentive_decision.py,
+# transitions.py, incentive_readiness_report.py) under scripts/incentive_control/.
+# Runs ONLY against synthetic fixtures in tests/fixtures/incentive_decisions/
+# and tests/incentive_control/ -- it must never require, read, or reference
+# incentive_working/ (gitignored, restricted: real Leadership/Finance
+# decisions and employee data live there and are never committed).
+#
+# This is an ADDITIONAL, narrowly-scoped, uniquely named gate -- it does
+# not replace or widen any other workflow (mirrors
+# assumption-coverage-gate.yml's and canonical-financial-truth-gate.yml's
+# own stated design). Paths are scoped to exactly what can change this
+# framework's behaviour.
+#
+# Expected result: the synthetic-fixture tests pass, and the CLI gate
+# correctly reports BLOCKED_* / READY_FOR_SHADOW_CALCULATION for the
+# synthetic scenarios they encode -- this workflow is a test of the
+# CONTROL MACHINERY, not a report on real FY27 decisions.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/incentive_control/**'
+      - 'scripts/validate_incentive_decisions.py'
+      - 'scripts/incentive_decision_gate.py'
+      - 'scripts/record_incentive_decision.py'
+      - 'scripts/incentive_readiness_report.py'
+      - 'schemas/fy27_incentive_decision.schema.json'
+      - 'tests/incentive_control/**'
+      - 'tests/fixtures/incentive_decisions/**'
+      - 'docs/FY27_INCENTIVE_RESPONSE_OPERATING_PROCEDURE.md'
+      - '.github/workflows/incentive-decision-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  incentive-decision-control:
+    name: "Incentive Decision Control Gate: schema + validator + closure gate (synthetic)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Confirm incentive_working/ is not required for this gate
+        run: |
+          if [ -d incentive_working ]; then
+            echo "incentive_working/ present in a CI checkout -- unexpected (it is gitignored)."
+            exit 1
+          fi
+          echo "OK: incentive_working/ absent from this checkout, as expected."
+      - name: Run Phase 3A + 3B synthetic test suite
+        run: python3 -m pytest tests/incentive_control/ -v
+      - name: CLI check -- synthetic all-pending fixture reports BLOCKED_LEADERSHIP_DECISION
+        run: |
+          set +e
+          python3 scripts/incentive_decision_gate.py \
+            --register tests/fixtures/incentive_decisions/synthetic_all_pending.json
+          code=$?
+          set -e
+          if [ "$code" -ne 3 ]; then
+            echo "Expected exit code 3 (BLOCKED_*) for the all-pending fixture, got $code"
+            exit 1
+          fi
+      - name: CLI check -- synthetic fully-approved fixture reports READY_FOR_SHADOW_CALCULATION
+        run: |
+          python3 scripts/incentive_decision_gate.py \
+            --register tests/fixtures/incentive_decisions/synthetic_fully_approved_offtake.json
+      - name: CLI check -- readiness report matches gate state on both fixtures
+        run: |
+          set +e
+          python3 scripts/incentive_readiness_report.py \
+            --register tests/fixtures/incentive_decisions/synthetic_all_pending.json
+          code=$?
+          set -e
+          if [ "$code" -ne 3 ]; then
+            echo "Expected exit code 3 for the all-pending fixture, got $code"
+            exit 1
+          fi
+          python3 scripts/incentive_readiness_report.py \
+            --register tests/fixtures/incentive_decisions/synthetic_fully_approved_offtake.json
+      - name: CLI check -- ingestion helper end-to-end against a throwaway synthetic copy
+        run: |
+          cp tests/fixtures/incentive_decisions/synthetic_all_pending.json /tmp/ci-smoke-register.json
+          python3 scripts/record_incentive_decision.py \
+            --register /tmp/ci-smoke-register.json --decision-id NC-01 --status APPROVED \
+            --selected-response H1_ONLY --approved-by "CI Smoke Test" \
+            --approval-date 2026-10-01 --evidence-reference "ci-smoke-nc01"
+          set +e
+          python3 scripts/record_incentive_decision.py \
+            --register /tmp/ci-smoke-register.json --decision-id NC-01 --status APPROVED \
+            --selected-response H2_PENDING --approved-by "CI Smoke Test" \
+            --approval-date 2026-10-02 --evidence-reference "ci-smoke-nc01-v2"
+          code=$?
+          set -e
+          if [ "$code" -ne 3 ]; then
+            echo "Expected exit code 3 (AMENDMENT_REQUIRED) for an unreasoned change to an APPROVED decision, got $code"
+            exit 1
+          fi
+          rm -f /tmp/ci-smoke-register.json

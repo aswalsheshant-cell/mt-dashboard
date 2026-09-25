@@ -773,20 +773,53 @@ def primary_block(df):
         ser = piv[cols].sum(axis=1, min_count=1) if cols else pd.Series(index=range(12), dtype="float64")
         out[f"monthly_{t.lower()}"] = [r2(ser.get(i)) for i in range(12)]
 
-    def dim_rows(index_col, keep_blank=False, sort=True):
-        pv = df.pivot_table(index=index_col, columns="FY", values="NSV", aggfunc="sum").fillna(0)
+    def _fy_get_safe(series, t):
+        """Like fy_get, but distinguishes "no real row for this tag at all"
+        (returns None -- ADR-007 NOT_AVAILABLE) from "one or more raw-FY-label
+        variants had a real value" (sums only those, ignoring NaN gaps in
+        OTHER variants of the same tag rather than letting a single missing
+        variant poison the whole sum via NaN propagation)."""
+        vals = [series.get(k) for k in keys_of[t]]
+        real = [v for v in vals if v is not None and not (isinstance(v, float) and pd.isna(v))]
+        if not real:
+            return None
+        return float(sum(real))
+
+    def dim_rows(index_col, keep_blank=False, sort=True, zero_fill=True):
+        """zero_fill=True (default, unchanged): every dimension value gets
+        every FY tag key, missing combinations filled with a literal 0 --
+        this remains correct for by_channel (see its own explicit "represent
+        every known channel, even at 0" backfill immediately below this
+        function, a deliberate design choice for a small, closed dimension
+        where absence genuinely means zero business that FY).
+
+        zero_fill=False: a dimension value's FY tag is only ever a real
+        number if the source genuinely had rows for it; otherwise the key
+        is written as None (JSON null), matching the canonical engine's
+        NOT_AVAILABLE semantics (scripts/canonical/policies.py's
+        exact_fy_or_not_available already treats a present-but-null field as
+        NOT_AVAILABLE, and JS's `!=null` checks already treat null the same
+        as undefined) -- used for by_zone/by_brand/by_chain, per Phase 2B-A2's
+        F14 finding (docs/SOURCE_MISSINGNESS_LINEAGE.md): the previous
+        pivot_table(...).fillna(0) made "no data this FY" and "genuinely
+        zero this FY" indistinguishable in the published data.js, upstream
+        of every JS/canonical consumer."""
+        pv = df.pivot_table(index=index_col, columns="FY", values="NSV", aggfunc="sum")
         rows = []
         for k in pv.index:
             if not k and not keep_blank:
                 continue
             row = {"name": k}
             for t in tags:
-                row[t.lower()] = r2(fy_get(pv.loc[k], t))
+                v = fy_get(pv.loc[k].fillna(0), t) if zero_fill else _fy_get_safe(pv.loc[k], t)
+                row[t.lower()] = r2(v) if v is not None else None
             if len(lo) >= 2:
                 a, b = row.get(lo[0]), row.get(lo[1])
-                row["yoy"] = r2((b / a - 1) * 100) if a else None
+                row["yoy"] = r2((b / a - 1) * 100) if (a and b is not None) else None
             rows.append(row)
         # sort by the LATEST FY's value so new years take over the ranking
+        # -- None (not-yet-available) sorts as if 0 for ranking purposes
+        # only; the stored value itself is never coerced to 0.
         return sorted(rows, key=lambda d: -(d.get(lo[-1]) or 0)) if (sort and lo) else rows
 
     out["by_channel"] = dim_rows("channel", keep_blank=True, sort=False)
@@ -803,9 +836,9 @@ def primary_block(df):
                 ch_entry[t.lower()] = 0
             out["by_channel"].append(ch_entry)
 
-    out["by_zone"] = dim_rows("zone")
-    out["by_brand"] = dim_rows("brand")
-    out["by_chain"] = dim_rows("chain")
+    out["by_zone"] = dim_rows("zone", zero_fill=False)
+    out["by_brand"] = dim_rows("brand", zero_fill=False)
+    out["by_chain"] = dim_rows("chain", zero_fill=False)
     return df, out
 
 # --------------------------------------------------------------------------
@@ -1166,19 +1199,30 @@ def load_reliance_bc_data(src):
     the separate analytical tab.  These rows are EXCLUDED from overall
     offtake (already embedded in Reliance's non-BC total); this function
     captures them separately.
-    Returns a dict ready for data.js['reliance_bc'], or None if no data."""
-    files = sorted([*src.glob("*.xlsb"), *src.glob("*.csv")])
+    Returns a dict ready for data.js['reliance_bc'], or None if no data.
+    Searches src recursively (like load_offtake_article_files(), its sibling
+    function reading the same source tree) so a --src pointed at a parent of
+    per-month subfolders (e.g. PowerBI/RawDataFolders, with the real CSVs
+    one level down in Offtake_Monthly/) is picked up the same as a flat
+    folder -- previously used a non-recursive glob(), so every production
+    call (always passed the parent dir) silently found zero files and
+    returned None without any error."""
+    files = sorted([*src.rglob("*.xlsb"), *src.rglob("*.csv")])
     frames = []
     for fp in files:
         if fp.suffix.lower() == ".csv":
             try:
-                # Use pandas with engine='python' for better variable-width CSV handling
+                # Use pandas with engine='python' for better variable-width CSV handling.
+                # low_memory is a C-engine-only kwarg -- passing it with
+                # engine='python' raises ValueError on every call, which the
+                # bare `except Exception` below silently swallowed, so every
+                # CSV file this function was ever given got silently skipped.
                 try:
                     _frames = {"csv": pd.read_csv(fp, engine='python', encoding='utf-8',
-                                                 low_memory=False, on_bad_lines='warn')}
+                                                 on_bad_lines='warn')}
                 except (UnicodeDecodeError, pd.errors.ParserError):
                     _frames = {"csv": pd.read_csv(fp, engine='python', encoding='latin-1',
-                                                 low_memory=False, on_bad_lines='warn')}
+                                                 on_bad_lines='warn')}
             except Exception:
                 # Skip files that can't be parsed
                 continue
@@ -2523,7 +2567,7 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
         if mrp <= 0:
             continue
         monthly_raw.append({"fy": fy, "month": m, "ord": ordv,
-                            "tot_pct": passon / mrp * 100, "passon_value": passon})
+                            "tot_pct": passon / mrp * 100, "passon_value": passon, "mrp": mrp})
     monthly_raw.sort(key=lambda d: d["ord"])
     monthly = []
     for i, row in enumerate(monthly_raw):
@@ -2532,6 +2576,12 @@ def tot_block(g, qc_table, default_cutover, qc_raw_rows=None, qc_summary=None):
             "fy": row["fy"], "month": row["month"],
             "tot_pct": r2(row["tot_pct"], 1),
             "passon_value": r2(row["passon_value"]),
+            # mrp: the exact denominator behind tot_pct/passon_value, so a
+            # client-side FY filter can sum SUM(passon)/SUM(mrp) across a
+            # single FY's months (FM-25) instead of only reading the
+            # blended_tot_pct/by_chain totals below, which are always
+            # FY26+FY27 combined by design (fy_ge(), see module docstring).
+            "mrp": r2(row["mrp"]),
             "mom_tot_delta_pp": r2(row["tot_pct"] - prev["tot_pct"], 1) if prev else None,
             "incremental_passon_impact": r2(row["passon_value"] - prev["passon_value"]) if prev else None,
         })
@@ -3318,6 +3368,19 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
         "their original chain tag. Value is NOT lost (allocation reconciles to zero "
         "variance) but it cannot be attributed to a named chain, so chain-level primary "
         "is understated by this amount. Work the exception list in value order.")
+    # FM-20: a cumulative % of a NET total always ends at exactly 100%, but a
+    # return/credit row (negative NSV) sorted to the tail can make an EARLIER
+    # row's cumulative_pct read above 100% before the negative tail pulls it
+    # back down -- correct arithmetic, but a real business reviewer read this
+    # as broken math ("Cumulative is increased, kindly adjust") on 2026-09-22.
+    # Disclose it; do not change the formula (capping at 100% or excluding
+    # negative rows would hide real return/credit activity).
+    if any(d["nsv"] < 0 for d in ex):
+        out["note"] += (
+            " Note: a few rows carry negative NSV (returns/credits); because cumulative % "
+            "is measured against the NET total, it can read slightly above 100% partway "
+            "down this list before settling to exactly 100% at the last row -- that is "
+            "expected here, not an error.")
     # Proposals, if a suggestion file exists. These are SUGGESTIONS and are never
     # applied here: assigning a distributor to a chain is a business decision with
     # a named owner, not something a build step may infer.
@@ -3412,52 +3475,287 @@ def profitability_block(detail_records):
 
 
 def npd_block(detail_records):
-    """NPD = an article whose first-ever sale AT A GIVEN CHAIN falls in March;
-    it is flagged NPD for the FY immediately following that March (its first
-    full FY of sales). Confirmed by business, 2026-09-14, per chain x article
-    (the same article can be NPD at one chain and not another).
+    """NPI launch governance, Chain x EAN grain, FY-based cohort with a
+    March carry-forward rule (replaces the March-only rule confirmed
+    2026-09-14; see git history for that version). Grain changed from
+    Chain x Article text to Chain x EAN on 2026-09-20 (business-confirmed):
+    the same physical product can carry two different Article-text
+    spellings at one chain (a rebrand/rename) but shares one EAN, so
+    counting by Article text double-counted those as two launches. A pair
+    with no EAN at all falls back to Chain x Article text.
 
-    ASSUMPTION (stated because the source instruction did not spell out
-    every edge case): "March" means the literal calendar month named "March"
-    in detail_records, evaluated once per (Chain, Article) using the EARLIEST
-    FY x Month with NSV > 0 across the whole history available here -- not
-    re-evaluated per FY. If this is not what was meant, this is a one-function
-    change (this docstring names exactly what would need to differ).
+    Actual_First_Sale_Month = the earliest FY x Month with a valid
+    commercial transaction for that (Chain, EAN) pair, found by
+    scanning the pair's WHOLE available history, never just the currently
+    selected dashboard period. "Valid commercial transaction" requires
+    NSV > 0 AND Qty > 0: detail_records carries no dedicated return/
+    sample/correction flag, so this is the best available proxy for
+    excluding a return, a zero-value correction, or a sample/free-goods row
+    from establishing a launch -- a negative-Qty return sitting before the
+    real launch cannot move it earlier, and a Qty<=0 row at the true launch
+    month cannot suppress it (the next valid month still wins).
+
+    NPI Reporting Cohort:
+      - Normally the FY containing Actual_First_Sale_Month.
+      - EXCEPT when Actual_First_Sale_Month's month is literally "March":
+        the cohort becomes the NEXT FY, so a March launch is tracked over
+        a full Apr-Mar year instead of one month.
+    Both fields are always recorded together -- Actual_First_Sale_Month is
+    never rewritten to make it agree with the cohort FY.
+
+    Same product (EAN) launching in different chains = separate Chain x EAN
+    launches, each with its own independent launch date and cohort.
+
+    HISTORY-INCOMPLETE GUARD: detail_records' own earliest available FY x
+    Month across ALL rows is the first month this repo has any data for --
+    a pair whose first valid sale falls exactly in that month cannot be
+    told apart from a product that already existed before this data window
+    started. Those pairs get launch_status="history_incomplete" (never
+    "confirmed_launch") and are excluded from launch counts/cohorts/NSV --
+    this is a statement that the launch status is UNKNOWN, not a claim that
+    the pair is NOT an NPI (left truncation, not a negative finding; see
+    NIST's distinction between left-truncated and left-censored data).
+
+    LAUNCH CONFIDENCE (per pair, not per cohort FY -- a cohort is not
+    homogeneous): even a launch that clears the history-incomplete guard is
+    not proven to be genuinely new -- a 12-month clean lookback is an
+    operational-confidence threshold, not proof of "first-ever" (an
+    article could have sold before this dataset's Apr-25 start, gone
+    dormant, and resumed after). Each confirmed launch therefore carries
+    history_months_before_first_sale (months between the dataset's
+    earliest available month and THIS pair's own actual first sale) and
+    launch_confirmation_status:
+      "confirmed"      -- >=12 months of lookback behind this pair's own
+                           first sale. Read as "meets this repo's 12-month
+                           operational-confidence rule", never as "proven
+                           via an authoritative launch/NPI master" -- no
+                           such master is consulted here.
+      "observed_only"   -- 1-11 months of lookback. This is the first sale
+                           visible in available history, with insufficient
+                           evidence to rule out an earlier, unobserved one.
+    (A third status, "boundary_unknown", applies to the excluded
+    history_incomplete pairs above -- 0 months of lookback.)
+
+    Because a March-carried launch keeps its ORIGINAL first-sale month for
+    this lookback calculation (not its cohort FY's own start), a cohort can
+    mix "confirmed" and "observed_only" launches -- e.g. FY27 contains both
+    April-26 launches (12 months' lookback, confirmed) and March-26
+    carry-forward launches (only 11 months' lookback, observed_only).
+    metrics_by_fy[fy]["history_coverage"] is therefore derived from the
+    WEAKEST launch actually in that cohort, not from the FY's own start
+    date: "CONFIRMED" only if every launch in the cohort is "confirmed";
+    otherwise "PARTIAL". yoy_comparison_valid/yoy_caveat flag any YoY
+    figure where either side is not "CONFIRMED", so a growth headline is
+    never presented as more solid than the weakest launch behind it.
+
+    Classification depends only on the pair's own full sales history in
+    this detail_records snapshot, never on any dashboard filter selection --
+    re-running this function against the same data always returns the same
+    cohort for a given pair (immutable within one refresh).
     """
     if not detail_records:
         return None
-    first_seen = {}  # (chain, article) -> (fy_start_year, month_order, fy_tag, month_name)
+
+    earliest = None
     for r in detail_records:
-        if not (r.get("NSV") or 0.0) > 0:
+        fy, month = r.get("FY"), r.get("Month")
+        if not (fy and month and month in _FY_MONTH_ORDER):
             continue
+        cand = (fy_start_year(fy), _FY_MONTH_ORDER[month])
+        if earliest is None or cand < earliest:
+            earliest = cand
+    if earliest is None:
+        return None
+
+    # Launch grain is Chain x EAN (barcode), not Chain x Article text.
+    # Business-confirmed 2026-09-20: the same physical product sometimes
+    # carries two different Article-text spellings at the same chain (a
+    # rebrand/rename) but shares one EAN -- counting each spelling as a
+    # separate launch double-counts the same real product. EAN is also
+    # immune to the text-encoding corruption a handful of Article values
+    # carry. A pair with no EAN at all falls back to Chain + Article text
+    # so it is never silently dropped from the identity layer.
+    def _npi_grain_key(chain, article, ean):
+        return (chain, "EAN", ean) if ean else (chain, "ART", article)
+
+    first_seen = {}        # grain_key -> (fy_start_year, month_order, fy_tag, month_name)
+    pair_article = {}      # grain_key -> a representative Article text, for display only.
+    rows_skipped_missing_identifier = 0
+    for r in detail_records:
         chain, article, fy, month = r.get("Chain"), r.get("Article"), r.get("FY"), r.get("Month")
         if not (chain and article and fy and month and month in _FY_MONTH_ORDER):
+            if not (chain and article):
+                rows_skipped_missing_identifier += 1
+            continue
+        ean = r.get("EAN")
+        grain_key = _npi_grain_key(chain, article, ean)
+        if grain_key not in pair_article:
+            pair_article[grain_key] = article
+        if not ((r.get("NSV") or 0.0) > 0 and (r.get("Qty") or 0.0) > 0):
             continue
         fy_year = fy_start_year(fy)
-        key = (chain, article)
         cand = (fy_year, _FY_MONTH_ORDER[month], fy, month)
-        if key not in first_seen or cand < first_seen[key]:
-            first_seen[key] = cand
+        if grain_key not in first_seen or cand < first_seen[grain_key]:
+            first_seen[grain_key] = cand
+
+    earliest_idx = earliest[0] * 12 + earliest[1]
+    launches = []          # confirmed + observed_only launches (history_incomplete pairs excluded)
+    history_incomplete_pairs = []
+    for grain_key, (fy_year, mo, fy_tag, month_name) in first_seen.items():
+        chain, kind, ident = grain_key
+        ean = ident if kind == "EAN" else None
+        article = pair_article[grain_key]
+        # pair_id is the stable browser-side join key: Chain + EAN, or
+        # Chain + Article text for the rare pair with no EAN at all.
+        pair_id = f"{chain}||{ean}" if ean else f"{chain}||{article}"
+        lookback_months = fy_year * 12 + mo - earliest_idx
+        if lookback_months <= 0:
+            history_incomplete_pairs.append({
+                "chain": chain, "article": article, "ean": ean, "pair_id": pair_id,
+                "first_observed_fy": fy_tag, "first_observed_month": month_name,
+                "launch_status": "boundary_unknown",
+                "history_months_before_first_sale": lookback_months,
+            })
+            continue
+        cohort_fy = f"FY{int(fy_tag[2:]) + 1}" if month_name == "March" else fy_tag
+        launches.append({
+            "chain": chain, "article": article, "ean": ean, "pair_id": pair_id,
+            "actual_first_sale_fy": fy_tag, "actual_first_sale_month": month_name,
+            "npi_cohort_fy": cohort_fy,
+            "history_months_before_first_sale": lookback_months,
+            # "confirmed" = meets this repo's 12-month operational-confidence
+            # rule; never a claim of proof against an authoritative launch
+            # master (none exists here) -- see the function docstring.
+            "launch_confirmation_status": "confirmed" if lookback_months >= 12 else "observed_only",
+        })
+    launches.sort(key=lambda r: (r["npi_cohort_fy"], r["chain"], r["article"]))
 
     by_fy = {}
-    for (chain, article), (fy_year, _mo, fy_tag, month_name) in first_seen.items():
-        if month_name != "March":
+    for row in launches:
+        by_fy.setdefault(row["npi_cohort_fy"], []).append(row)
+
+    # Per-FY universe totals (all chain x article activity in that FY, not
+    # just NPI launches) for contribution % -- reuses the same NSV field,
+    # no separate computation path.
+    fy_total_nsv = {}
+    for r in detail_records:
+        fy = r.get("FY")
+        if fy:
+            fy_total_nsv[fy] = fy_total_nsv.get(fy, 0.0) + (r.get("NSV") or 0.0)
+
+    metrics_by_fy = {}
+    for cohort_fy, rows in by_fy.items():
+        pair_keys = {_npi_grain_key(row["chain"], row["article"], row["ean"]) for row in rows}
+        nsv = 0.0
+        qty = 0.0
+        active_pairs = set()
+        for r in detail_records:
+            if r.get("FY") != cohort_fy:
+                continue
+            key = _npi_grain_key(r.get("Chain"), r.get("Article"), r.get("EAN"))
+            if key not in pair_keys:
+                continue
+            row_nsv = r.get("NSV") or 0.0
+            nsv += row_nsv
+            qty += r.get("Qty") or 0.0
+            if row_nsv > 0:
+                active_pairs.add(key)
+        launches_count = len(rows)
+        active_count = len(active_pairs)
+        # History coverage is derived from the WEAKEST launch actually in
+        # this cohort -- a cohort mixes launches with different original
+        # first-sale months (e.g. FY27 = April-26 launches at 12 months'
+        # lookback alongside March-26 carry-forward launches at only 11),
+        # so the FY's own April start date is not a safe proxy for its
+        # weakest member's confidence.
+        n_confirmed = sum(1 for r in rows if r["launch_confirmation_status"] == "confirmed")
+        n_observed_only = launches_count - n_confirmed
+        coverage = "CONFIRMED" if n_observed_only == 0 else "PARTIAL"
+        min_lookback = min((r["history_months_before_first_sale"] for r in rows), default=None)
+
+        metrics_by_fy[cohort_fy] = {
+            "npi_launches": launches_count,
+            "npi_nsv": r2(nsv),
+            "npi_units": r2(qty),
+            "avg_nsv_per_launch": r2(nsv / launches_count) if launches_count else None,
+            "npi_contribution_pct": (r2(nsv / fy_total_nsv[cohort_fy] * 100)
+                                       if fy_total_nsv.get(cohort_fy) else None),
+            "active_npi_count": active_count,
+            # productivity = NSV per NPI that actually sold in its own cohort
+            # year, distinct from avg_nsv_per_launch (which divides by every
+            # launch, selling or not) -- separates "more launches" growth
+            # from "better-performing launches" growth.
+            "npi_productivity": r2(nsv / active_count) if active_count else None,
+            "history_coverage": coverage,
+            "history_min_lookback_months": min_lookback,
+            "confirmed_launch_count": n_confirmed,
+            "observed_only_launch_count": n_observed_only,
+        }
+
+    fy_order = sorted(metrics_by_fy, key=fy_start_year)
+    for i, fy in enumerate(fy_order):
+        if i == 0:
+            metrics_by_fy[fy]["yoy_npi_nsv_growth_pct"] = None
+            metrics_by_fy[fy]["yoy_comparison_valid"] = False
+            metrics_by_fy[fy]["yoy_caveat"] = "No prior cohort FY to compare against."
             continue
-        npd_fy = f"FY{int(fy_tag[2:]) + 1}"
-        by_fy.setdefault(npd_fy, []).append({
-            "chain": chain, "article": article,
-            "first_sale_fy": fy_tag, "first_sale_month": month_name,
-        })
-    for fy in by_fy:
-        by_fy[fy].sort(key=lambda r: (r["chain"], r["article"]))
+        prev_fy = fy_order[i - 1]
+        prev = metrics_by_fy[prev_fy]["npi_nsv"]
+        cur = metrics_by_fy[fy]["npi_nsv"]
+        metrics_by_fy[fy]["yoy_npi_nsv_growth_pct"] = (
+            r2((cur - prev) / prev * 100) if prev else None
+        )
+        # A YoY comparison is only as solid as its weaker side's WEAKEST
+        # launch, derived (above) per-pair, not assumed from either FY's
+        # calendar start. This is the specific, evidenced risk this
+        # function must never hide: comparing a fully-confirmed FY against
+        # one that still contains observed_only launches overstates growth,
+        # because the weaker FY's true launch count could be lower than
+        # what's observed (some of those launches might not be genuinely
+        # new at all -- see launch_confirmation_status in the docstring).
+        weak_fy = prev_fy if metrics_by_fy[prev_fy]["history_coverage"] != "CONFIRMED" else (
+            fy if metrics_by_fy[fy]["history_coverage"] != "CONFIRMED" else None)
+        if weak_fy:
+            n_obs = metrics_by_fy[weak_fy]["observed_only_launch_count"]
+            metrics_by_fy[fy]["yoy_comparison_valid"] = False
+            metrics_by_fy[fy]["yoy_caveat"] = (
+                f"{weak_fy} has {n_obs} of {metrics_by_fy[weak_fy]['npi_launches']} launches at "
+                "launch_confirmation_status=observed_only (under 12 months of lookback behind their "
+                "own first sale -- not proof of a genuinely new product, just the first sale visible "
+                "in available history) -- this YoY growth figure is not a like-for-like comparison "
+                "and should be labelled provisional, not presented as confirmed growth."
+            )
+        else:
+            metrics_by_fy[fy]["yoy_comparison_valid"] = True
+            metrics_by_fy[fy]["yoy_caveat"] = None
 
     return {
-        "basis": ("An article-chain pair is flagged NPD for the FY immediately after its first-ever "
-                   "sale at that chain, when that first sale falls in March. Confirmed by business, "
-                   "2026-09-14. Evaluated per chain x article from detail_records' own sales history -- "
-                   "no external NPD master join required."),
+        "basis": ("Chain x EAN NPI launch cohort (falls back to Chain x Article text only when "
+                   "a pair has no EAN): the FY containing a pair's actual first "
+                   "valid commercial sale (NSV>0 and Qty>0), except a March first-sale rolls "
+                   "forward into the NEXT FY so it gets a full Apr-Mar tracking year. Actual "
+                   "launch month is always preserved alongside the cohort FY. Pairs whose first "
+                   "observed sale falls in detail_records' own earliest available month are "
+                   "excluded as launch_status=boundary_unknown: UNKNOWN whether they are a new "
+                   "launch or a pre-existing product (left truncation, not evidence of either), "
+                   "so they are never counted as a launch and never counted as not-NPI. Every "
+                   "launch that IS counted additionally carries launch_confirmation_status "
+                   "('confirmed' vs 'observed_only') -- see the function docstring; even a "
+                   "confirmed launch is not proof of first-ever, only that this repo's 12-month "
+                   "operational-confidence rule is met."),
         "by_fy": by_fy,
         "counts_by_fy": {fy: len(rows) for fy, rows in by_fy.items()},
+        "metrics_by_fy": metrics_by_fy,
+        "history_incomplete_pairs": history_incomplete_pairs,
+        "qc": {
+            "rows_skipped_missing_chain_or_article": rows_skipped_missing_identifier,
+            "pairs_excluded_history_incomplete": len(history_incomplete_pairs),
+            "history_incomplete_reason": (
+                f"first available data month is FY-start-year {earliest[0]}, month-order "
+                f"{earliest[1]} (Apr=1..Mar=12) -- a pair first observed exactly then has "
+                "launch_status=boundary_unknown, not a launch and not confirmed-preexisting"
+            ),
+        },
     }
 
 
@@ -3551,7 +3849,7 @@ def readiness_gate(data, cfg=None):
         counts = npd.get("counts_by_fy") or {}
         if counts:
             summary = "; ".join(f"{fy}: {n} article-chain pairs" for fy, n in sorted(counts.items()))
-            put("npd", "PASS", f"NPD identified from first-sale-in-March rule ({summary})")
+            put("npd", "PASS", f"NPI identified via FY-cohort rule with March carry-forward ({summary})")
         else:
             put("npd", AWAITING_BUSINESS_DATA, "NPD master not joined to the transaction grain")
 
@@ -3607,6 +3905,285 @@ def readiness_gate(data, cfg=None):
                      "until a named business or source input arrives -- not a software "
                      "defect. N/A = out of scope for this reporting surface. BLOCKED = a "
                      "genuine, unresolved technical/software gap.")}
+
+
+def data_quality_reconciliation_block(data, cfg=None, repo_root=None):
+    """Data Quality + Reconciliation layer -- Phase 3 of the Analytical
+    Integrity work (PR #155). Answers, per named dimension, whether the data
+    behind the dashboard's metrics is complete, valid, consistent, unique and
+    timely, and whether it reconciles against known business relationships --
+    traceable to specific records, never a single decorative "health score".
+
+    Reuses existing governed calculations wherever one already exists
+    (sis_reconciliation, alloc's governance, mapping_health's own RAG-banded
+    completeness via rag_of()/config/analytics_config.json) instead of
+    recomputing them. A dimension with no configured threshold anywhere in
+    this repo reports threshold="NOT_CONFIGURED", status="INFORMATIONAL" --
+    this function never invents a business threshold or severity.
+
+    Scope note: dimension checks run on `detail_records`, which is
+    ROW-CAPPED for browser-payload size (see detail_meta.value_coverage_pct);
+    they are illustrative at that same capped scope, not a full-population
+    audit -- exactly the same disclosure _sis_reconciliation() already makes
+    about detail_records vs the full uncapped source.
+
+    Returns (data_quality, reconciliation, quality_issues); safe on missing
+    inputs (returns empty-but-structured output rather than raising).
+    """
+    cfg = cfg or {}
+    repo_root = Path(repo_root or _REPO_ROOT)
+    detail_records = data.get("detail_records") or []
+    detail_meta = data.get("detail_meta") or {}
+    alloc = data.get("alloc") or {}
+    mapping_health = data.get("mapping_health") or {}
+    sis = detail_meta.get("sis_reconciliation") or {}
+    targets = data.get("targets") or {}
+    first_row = detail_records[0] if detail_records else {}
+
+    issues = []
+
+    def add_issue(issue_id, metric_id, dimension, count, affected, source, description,
+                   severity="UNCLASSIFIED", status="INFORMATIONAL", threshold=None,
+                   threshold_source="NOT_CONFIGURED"):
+        issues.append({
+            "issue_id": issue_id, "metric_id": metric_id, "dimension": dimension,
+            "severity": severity, "status": status, "count": count,
+            "affected_entities": affected, "source": source, "description": description,
+            "threshold": threshold, "threshold_source": threshold_source,
+        })
+
+    dims = {}
+
+    # ---- 1. COMPLETENESS -----------------------------------------------
+    # No completeness_pct band exists in config/analytics_config.json's rag
+    # section (checked) -- reports NOT_CONFIGURED/INFORMATIONAL by design.
+    candidate_fields = ["Month", "FY", "Channel", "Zone", "State", "Chain", "Brand", "Category", "Article", "EAN"]
+    present_fields = [f for f in candidate_fields if f in first_row]
+    field_results = {}
+    for f in present_fields:
+        n = len(detail_records)
+        missing = sum(1 for r in detail_records if not r.get(f) and r.get(f) != 0)
+        rate = r2((n - missing) / n * 100) if n else None
+        field_results[f] = {"records_checked": n, "records_passing": n - missing,
+                             "missing": missing, "rate_pct": rate}
+        if missing:
+            add_issue(f"completeness_{f.lower()}", None, "completeness", missing,
+                       f"{missing} of {n} detail_records rows", "detail_records",
+                       f"{f} is blank on {missing} of {n} detail_records rows (row-capped "
+                       f"scope; detail_meta.value_coverage_pct = {detail_meta.get('value_coverage_pct')}).")
+    dims["completeness"] = {"fields": field_results, "records_checked": len(detail_records),
+                             "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                             "status": "INFORMATIONAL"}
+
+    # ---- 2. UNIQUENESS ---------------------------------------------------
+    # Business key is the FULL dimension grain detail_records actually
+    # carries (Month/FY/Channel/Zone/State/Chain/Brand/Category/SubCategory/
+    # Range/PackSize/Article/EAN) -- a coarser key produced false-positive
+    # "duplicates" that were really distinct State-level rows for the same
+    # article (verified against real data before choosing this key: the
+    # coarser 7-field key flagged 99,757 false "duplicates" that were each a
+    # different State; the full grain key finds zero).
+    key_fields = [f for f in ("Month", "FY", "Channel", "Zone", "State", "Chain", "Brand",
+                              "Category", "SubCategory", "Range", "PackSize", "Article", "EAN")
+                  if f in first_row]
+    dup_rows = 0
+    if key_fields:
+        seen = {}
+        for r in detail_records:
+            k = tuple(r.get(f) for f in key_fields)
+            seen[k] = seen.get(k, 0) + 1
+        dup_rows = sum(c - 1 for c in seen.values() if c > 1)
+        if dup_rows:
+            add_issue("uniqueness_duplicate_rows", None, "uniqueness", dup_rows,
+                       f"{dup_rows} duplicate rows on key {key_fields}", "detail_records",
+                       f"{dup_rows} rows share an identical {'/'.join(key_fields)} key.")
+    dims["uniqueness"] = {"business_key": key_fields, "records_checked": len(detail_records),
+                          "duplicate_rows": dup_rows,
+                          "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                          "status": "INFORMATIONAL",
+                          "scope_note": "row-capped detail_records, not the full uncapped source"}
+
+    # ---- 3. VALIDITY / CONFORMITY ----------------------------------------
+    # Checked against a REAL registered master (CategoryMaster.csv) and a
+    # structural EAN format check (8-14 numeric digits, the standard
+    # EAN/GTIN range) -- no allowed-value list is invented here.
+    cat_master = repo_root / "PowerBI" / "SeedData" / "Masters" / "CategoryMaster.csv"
+    valid_categories = None
+    if cat_master.exists():
+        try:
+            with open(cat_master, newline="", encoding="utf-8-sig") as fh:
+                valid_categories = {row["Category"].strip() for row in csv.DictReader(fh) if row.get("Category")}
+        except (OSError, csv.Error, KeyError):
+            valid_categories = None
+    invalid_category = 0
+    if valid_categories and "Category" in first_row:
+        invalid_category = sum(1 for r in detail_records
+                                if r.get("Category") and r["Category"] not in valid_categories)
+    invalid_ean = 0
+    if "EAN" in first_row:
+        # detail_records serializes EAN as a float-string ("8901030123456.0")
+        # -- the same pandas float-conversion artifact already normalised
+        # elsewhere in this file for Cust-SAP Code (see _CustCode's
+        # str.replace(r"\.0$", "")). Strip it before the structural check so
+        # this doesn't misreport every real EAN as invalid.
+        invalid_ean = sum(1 for r in detail_records
+                           if r.get("EAN")
+                           and not re.fullmatch(r"\d{8,14}", re.sub(r"\.0$", "", str(r["EAN"]).strip())))
+    if invalid_category:
+        add_issue("validity_category", None, "validity", invalid_category,
+                   f"{invalid_category} rows with a Category not in CategoryMaster.csv",
+                   "detail_records vs PowerBI/SeedData/Masters/CategoryMaster.csv",
+                   f"{invalid_category} of {len(detail_records)} rows carry a Category value "
+                   f"(e.g. 'Face', 'Body') not present in CategoryMaster.csv's Category column "
+                   f"(which uses longer names, e.g. 'Face Care', 'Hair Care'). This reads as a "
+                   f"taxonomy mismatch between the pipeline's actual Category field and this "
+                   f"registered reference file, not necessarily bad row data -- CategoryMaster.csv "
+                   f"may be stale/unused relative to what detail_records actually produces. Not "
+                   f"resolved here, per this phase's scope (STOP on a business-definition change).")
+    if invalid_ean:
+        add_issue("validity_ean_format", None, "validity", invalid_ean,
+                   f"{invalid_ean} rows with a non-numeric or out-of-range EAN", "detail_records",
+                   f"{invalid_ean} rows have an EAN that isn't 8-14 numeric digits (standard EAN/GTIN format).")
+    dims["validity"] = {"category_master": str(cat_master.relative_to(repo_root)) if cat_master.exists() else None,
+                        "records_checked": len(detail_records),
+                        "invalid_category": invalid_category, "invalid_ean_format": invalid_ean,
+                        "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                        "status": "INFORMATIONAL"}
+
+    # ---- 4. CONSISTENCY ---------------------------------------------------
+    # Same EAN must carry the same Category/Brand across rows -- the exact
+    # principle already established by detail_records_real()'s own EAN
+    # backfill logic ("a physical SKU's taxonomy does not change month to
+    # month"), reused here rather than reinvented.
+    by_ean = {}
+    if "EAN" in first_row:
+        for r in detail_records:
+            ean = r.get("EAN")
+            if not ean:
+                continue
+            slot = by_ean.setdefault(ean, {"Category": set(), "Brand": set()})
+            if r.get("Category"):
+                slot["Category"].add(r["Category"])
+            if r.get("Brand"):
+                slot["Brand"].add(r["Brand"])
+    inconsistent_eans = sum(1 for v in by_ean.values() if len(v["Category"]) > 1 or len(v["Brand"]) > 1)
+    if inconsistent_eans:
+        add_issue("consistency_ean_taxonomy", None, "consistency", inconsistent_eans,
+                   f"{inconsistent_eans} EANs with more than one Category or Brand value", "detail_records",
+                   f"{inconsistent_eans} EAN(s) carry more than one distinct Category or Brand across rows.")
+    dims["consistency"] = {"rule": "same EAN -> same Category and Brand across all rows",
+                           "distinct_eans_checked": len(by_ean), "inconsistent_eans": inconsistent_eans,
+                           "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                           "status": "INFORMATIONAL"}
+
+    # ---- 5. TIMELINESS -----------------------------------------------------
+    # Presence/lag only -- no refresh SLA is configured anywhere in this
+    # repo, so none is invented here.
+    fyx = detail_meta.get("fyx_primary") or {}
+    cur_fy_tag = sorted(fyx, key=fy_start_year)[-1] if fyx else None
+    primary_latest = None
+    if cur_fy_tag:
+        months = (fyx.get(cur_fy_tag) or {}).get("months_canon") or []
+        primary_latest = months[-1] if months else None
+    offtake = data.get("offtake") or {}
+    offtake_latest = None
+    if cur_fy_tag:
+        om = offtake.get("months_" + cur_fy_tag.lower()) or []
+        offtake_latest = om[-1] if om else None
+    in_sync = (primary_latest == offtake_latest) if (primary_latest and offtake_latest) else None
+    if primary_latest and offtake_latest and not in_sync:
+        add_issue("timeliness_primary_offtake_lag", None, "timeliness", 1, f"FY {cur_fy_tag}",
+                   "detail_meta.fyx_primary vs offtake.months_*",
+                   f"Primary's latest loaded month ({primary_latest}) does not match Offtake's ({offtake_latest}).")
+    dims["timeliness"] = {"fy": cur_fy_tag, "primary_latest_month": primary_latest,
+                          "offtake_latest_month": offtake_latest, "in_sync": in_sync,
+                          "threshold": "NOT_CONFIGURED", "threshold_source": "NOT_CONFIGURED",
+                          "status": "INFORMATIONAL",
+                          "note": "presence/lag only -- no refresh SLA is configured anywhere in this repo"}
+
+    data_quality = {"dimensions": dims,
+                    "computed_at_scope": "row-capped detail_records (see "
+                                         "detail_meta.value_coverage_pct for the cap's value coverage)"}
+
+    # ---- RECONCILIATION -----------------------------------------------
+    # Every check below reuses an existing governed calculation; nothing is
+    # recomputed independently.
+    checks = []
+    if sis:
+        cur_sis_fy = sorted(sis, key=fy_start_year)[-1]
+        gap_status_text = detail_meta.get("sis_gap_status", "")
+        checks.append({
+            "check_id": "SIS_RECONCILIATION", "metric_id": "SIS_RECONCILIATION",
+            "source": "detail_meta.sis_reconciliation / sis_gap_status (reused, not recomputed)",
+            "current_value": (sis.get(cur_sis_fy) or {}).get("summary", {}).get("net_sis_value"),
+            "status": "RESOLVED" if gap_status_text.startswith("RESOLVED") else "UNRESOLVED",
+            "threshold": "N/A (resolved by business confirmation, not a numeric threshold)",
+        })
+    if alloc:
+        gov = alloc.get("governance") or {}
+        # Phase 3.5 audit fix: reconciliation PASS/FAIL must come from the actual
+        # governed reconciliation numbers -- alloc.recon.overall's per-measure
+        # (original vs allocated) variance -- never from rows_chain_equals_shipto
+        # (a source-data-hygiene flag: DIRECT rows whose Chain name happens to
+        # equal the Ship-To name -- unrelated to reconciliation) or rows_unmapped
+        # (a mapping-coverage count, already tracked by MAPPING_COMPLETENESS_
+        # COVERAGE below). Tolerance mirrors the existing convention dashboard/
+        # index.html's allocSectionHtml() already uses for the same field
+        # (isZero = abs(variance) < 0.01) -- not a newly invented threshold.
+        recon_overall = (alloc.get("recon") or {}).get("overall") or {}
+        variances = {m: (recon_overall.get(m) or {}).get("variance")
+                     for m in ("qty", "mrp_sales", "nsv", "tax") if m in recon_overall}
+        recon_pass = bool(variances) and all(
+            v is not None and abs(v) < 0.01 for v in variances.values())
+        checks.append({
+            "check_id": "ALLOCATION_RECONCILIATION", "metric_id": "PRIMARY_NSV",
+            "source": "alloc.recon.overall (reused from allocate_dist_primary(), not recomputed)",
+            "current_value": variances,
+            "status": "PASS" if recon_pass else ("VARIANCE_FLAGGED" if variances else "UNKNOWN"),
+            "threshold": "abs(variance) < 0.01 (existing dashboard/index.html "
+                         "allocSectionHtml() isZero() convention, reused here)",
+        })
+    if mapping_health.get("by_fy"):
+        cur_mh_fy = sorted(mapping_health["by_fy"], key=fy_start_year)[-1]
+        mh_cur = mapping_health["by_fy"][cur_mh_fy]
+        checks.append({
+            "check_id": "MAPPING_COMPLETENESS_COVERAGE", "metric_id": "MAPPING_COMPLETENESS_PCT",
+            "source": "mapping_health.by_fy (reused; its own rag field is already computed via "
+                      "rag_of() against config/analytics_config.json's mapping_completeness_pct "
+                      "band -- green>=95, amber>=85. This IS a documented, configured threshold, "
+                      "not a hardcoded UI constant -- corrects an earlier claim from Phase 2.)",
+            "current_value": mh_cur.get("completeness_pct"),
+            "threshold_source": "config/analytics_config.json rag.mapping_completeness_pct",
+            "green_threshold": 95.0, "amber_threshold": 85.0,
+            "status": mh_cur.get("rag") or "UNKNOWN",
+        })
+    registry_path = repo_root / "config" / "data_source_registry.yml"
+    target_registered = False
+    if registry_path.exists() and targets.get("source"):
+        target_registered = Path(targets["source"]).name in registry_path.read_text(encoding="utf-8")
+    if targets:
+        checks.append({
+            "check_id": "TARGET_SOURCE_LINEAGE", "metric_id": "TARGET_ACHIEVEMENT_PCT",
+            "source": targets.get("source"),
+            "comparison": "is the target source registered in config/data_source_registry.yml?",
+            "current_value": target_registered,
+            "status": "REGISTERED" if target_registered else "NOT_REGISTERED",
+            "threshold": "N/A (governance/lineage check, not a numeric threshold)",
+            "note": ("Actual (offtake/primary) sources ARE registered; the target file is not -- "
+                     "found in Phase 2, confirmed here. Smallest safe follow-up: add a "
+                     "targets_fy2627 entry to config/data_source_registry.yml (documentation-only, "
+                     "no calculation impact) -- not done in this phase.") if not target_registered else None,
+        })
+        if not target_registered:
+            add_issue("reconciliation_target_source_unregistered", "TARGET_ACHIEVEMENT_PCT",
+                       "reconciliation", 1, "PowerBI/SeedData/Targets/FY2627_Targets.csv",
+                       "config/data_source_registry.yml",
+                       "Target source is not registered in config/data_source_registry.yml, "
+                       "unlike the actual (offtake/primary) sources it's compared against.")
+
+    reconciliation = {"checks": checks}
+    return data_quality, reconciliation, issues
+
 
 # --------------------------------------------------------------------------
 # TARGET / ACHIEVEMENT / RUN RATE
@@ -3683,6 +4260,23 @@ def targets_block(target_rows, actuals, same_period=None):
     """
     if not target_rows:
         return None
+    # FM-23 (FY12 -- month/FY key mismatch): the two interchangeable loaders
+    # this is called with disagree on what the first tuple element IS.
+    # load_targets_csv() returns (fy_tag_string, label, value) -- e.g.
+    # ("FY27", "Apr-26", ...). load_ty_target() returns (date, label, value)
+    # -- e.g. (datetime.date(2026,4,1), "Apr-26", ...), because its OTHER
+    # caller, forecast_block_ty(), needs the real date (calls .year/.month
+    # on it directly) and can't be changed to a tag string without breaking
+    # that caller. Left as `tag == fy` comparing dates, this collapsed
+    # tgt_by_month to just the FIRST month whenever load_ty_target()'s xlsb
+    # path supplied the rows (fy_target understated ~92%, fy_tag rendered as
+    # a raw date object) -- confirmed live with a direct call, dormant in
+    # production only because every build so far has used the CSV fallback
+    # (the xlsb source file is gitignored and not present in this repo).
+    # Normalize here, at the point of consumption, rather than changing
+    # either loader's contract.
+    if hasattr(target_rows[0][0], "year"):
+        target_rows = [(fy_tag_from_ym(d.year, d.month), lbl, v) for d, lbl, v in target_rows]
     fy = target_rows[0][0]
     tgt_by_month = {lbl: v for tag, lbl, v in target_rows if tag == fy}
     fy_target = r2(sum(tgt_by_month.values()))
@@ -4034,6 +4628,13 @@ def scorecard_block(same_period, targets, mapping_health=None, cfg=None, dim="by
             "current_run_rate": curr_rr, "required_run_rate": req_rr,
             "rag": rag, "status": worst, "action": action,
             "target_basis": t.get("basis"),
+            # From same_period_block(): qty_yoy_pct (units growth, independent of
+            # price/mix) and nsv_contribution_pct (this row's share of the CURRENT
+            # period's total NSV -- distinct from contribution_pct above, which is
+            # the target's prior-year-derived share used to split the FY target).
+            "qty_yoy_pct": r.get("qty_yoy_pct"),
+            "nsv_contribution_pct": r.get("nsv_contribution_pct"),
+            "comparability": r.get("comparability"),
         })
     rows.sort(key=lambda d: -(d.get("curr") or 0))
     return {
@@ -5340,8 +5941,8 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     }
     return out_df, alloc
 
-def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV",
-                      dims=(("by_zone", "_Zone"), ("by_chain", "_Chain"))):
+def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV", qty_col="_Qty",
+                      dims=(("by_zone", "_Zone"), ("by_chain", "_Chain"), ("by_brand", "_Brand"))):
     """LIKE-FOR-LIKE year-on-year, on the months the two latest FYs share.
 
     A part-year FY compared against a full prior FY is not a YoY -- it is a
@@ -5393,22 +5994,42 @@ def same_period_block(df, fy_col="_FY", m_col="_M", nsv_col="_NSV",
                   f"both FYs carry ({', '.join(shared)}). Article-level primary. "
                   f"Window widens automatically as new months arrive."),
     }
+    has_qty = qty_col in df.columns
     for out_key, col in dims:
         if col not in df.columns:
             continue
         cs = c.groupby(col)[nsv_col].sum()
         vs = v.groupby(col)[nsv_col].sum()
+        cq = c.groupby(col)[qty_col].sum() if has_qty else None
+        vq = v.groupby(col)[qty_col].sum() if has_qty else None
         rows = []
         for name in sorted(set(cs.index) | set(vs.index)):
             if not name:
                 continue
             a, b = float(cs.get(name, 0.0)), float(vs.get(name, 0.0))
-            rows.append({"name": name, "curr": r2(a), "prev": r2(b),
-                         "delta": r2(a - b), "yoy_pct": _pct(a, b)})
+            row = {"name": name, "curr": r2(a), "prev": r2(b),
+                   "delta": r2(a - b), "yoy_pct": _pct(a, b),
+                   "nsv_contribution_pct": r2(a / c_tot * 100) if c_tot else None,
+                   # Governance label, never inferred silently: a missing prior-year
+                   # base must never be READ as zero growth, and an account that
+                   # sold nothing this period must never be read as -100% either --
+                   # both are "no comparable number", not "the number is zero".
+                   "comparability": (
+                       "COMPARABLE" if (a > 0 and b > 0) else
+                       "NEW_ACCOUNT" if (a > 0 and b <= 0) else
+                       "EXITED" if (a <= 0 and b > 0) else
+                       "NOT_COMPARABLE"),
+                   }
+            if has_qty:
+                qa, qb = float(cq.get(name, 0.0)), float(vq.get(name, 0.0))
+                row["qty_curr"] = int(qa)
+                row["qty_prev"] = int(qb)
+                row["qty_yoy_pct"] = _pct(qa, qb)
+            rows.append(row)
         block[out_key] = sorted(rows, key=lambda d: -(d["curr"] or 0))
     return block
 
-def detail_records_real(src, max_rows=20000):
+def detail_records_real(src, max_rows=20000, output_dir=None):
     """Real 13-column detail_records from File 2 (article-wise primary).
     Looks for primary_article.xlsb/.xlsx in src. Returns None if absent, else
     (recs, channel_totals, coverage) where channel_totals is computed from the
@@ -5418,7 +6039,17 @@ def detail_records_real(src, max_rows=20000):
     A flat threshold silently guts small-ticket channels (e.g. SIS is made of
     many small line items) -- top-N-by-value keeps ~98%+ of total value at a
     fraction of the full row count.
-    """
+
+    output_dir: forwarded to allocate_dist_primary()'s own output_dir -- when
+    given, its governance/proposal CSVs (DistCont_Patch_Proposed.csv,
+    DistAllocationGovernance_FlaggedRows.csv, EanAffinity_ResidualProposal.csv)
+    are written under this directory instead of the repo's tracked
+    PowerBI/SeedData/Mapping/ paths. Default None preserves the original
+    repo-writing behaviour for the real production build. A test that calls
+    detail_records_real() with synthetic/tmp_path data MUST pass a tmp_path
+    here -- otherwise it silently overwrites the tracked governance CSVs with
+    whatever tiny synthetic result it produced (see tests/test_allocate_dist_primary_output_dir.py
+    for the underlying shadow-run fix this threads through to)."""
     def _safe_val(x):
         """Convert NaN/None to None (null in JSON), keep strings and numbers as-is."""
         if x is None or (isinstance(x, float) and math.isnan(x)):
@@ -5570,6 +6201,7 @@ def detail_records_real(src, max_rows=20000):
         df, _wdf, _raw_sums, source_label=_alloc_src,
         offtake_brand_set=_offtake_brand_set,
         offtake_ean_set=_offtake_ean_set,
+        output_dir=output_dir,
     )
     n_shipto_as_chain = int(((df["_Chain"].astype(str).str.strip().str.lower()
                               == df["_CustName"].str.lower()) & (df["_CustName"] != "")).sum())
@@ -5795,6 +6427,65 @@ def detail_dims(recs):
     return out
 
 
+def apply_primary_channel_correction(primary, detail_meta):
+    """Correct primary.by_channel using detail_meta['channel_totals'] (the
+    article-wise primary's EXACT, uncapped, business-confirmed channel split
+    -- see sis_gap_status in _build_detail_meta).
+
+    Root cause (found 2026-09-23): the pre-aggregated primary seed/drop
+    (PowerBI/SeedData/Primary/Primary_FY202426_10.csv, consumed by
+    load_primary_v2()) carries EVERY row tagged Channel="MT" -- a lossy
+    export from whatever produced that consolidated file. Its FY26 NSV
+    total (Rs 32,900.36 L) ties out exactly against the article-wise
+    primary's FY26 total, so the aggregate NSV is right, but the Channel
+    dimension on that source is not usable: by_channel ends up 100% MT
+    with EB2B/SIS hard-zeroed, even though real EB2B/SIS billing exists
+    (confirmed against PowerBI/RawDataFolders/Primary_Article_Monthly/
+    *.csv directly: FY26 = MT Rs 30,684.99L / EB2B Rs 1,965.20L / SIS
+    Rs 250.17L, same total to the rupee).
+
+    Two things this does, both driven off detail_meta['channel_totals']
+    ({FY: {Channel: NSV_Lakh}}, already computed pre-cap in
+    detail_records_real()):
+      1. Ensure every channel name detail_meta has ever seen (any FY,
+         including FY27+) exists as an entry in by_channel -- unchanged
+         behaviour from the prior FY27-only merge.
+      2. For any FY tag that's in PREAGG_FY_TAGS (i.e. lives in the
+         pre-agg workbook, not fyx_primary) AND present in channel_totals,
+         overwrite that FY's per-channel values with the article-wise
+         source -- but ONLY when the two sources' FY totals agree to
+         within 0.5%; otherwise leave by_channel exactly as the pre-agg
+         source produced it (never silently override a real disagreement).
+    """
+    if not detail_meta:
+        return
+    ct = detail_meta.get("channel_totals") or {}
+    fyx = detail_meta.get("fyx_primary") or {}
+    if not ct and not fyx:
+        return
+    all_channels = set()
+    for fy_vals in ct.values():
+        all_channels.update(fy_vals.keys())
+    for fy_data in fyx.values():
+        for ch in fy_data.get("by_channel") or []:
+            if ch.get("name"):
+                all_channels.add(ch["name"])
+    existing = {ch["name"]: ch for ch in (primary.get("by_channel") or [])}
+    for name in sorted(all_channels):
+        existing.setdefault(name, {"name": name})
+    for fy_tag, chan_vals in ct.items():
+        if fy_tag not in PREAGG_FY_TAGS:
+            continue  # FY27+ already exact via fyx_primary, not the pre-agg workbook
+        key = fy_tag.lower()  # 'FY26' -> 'fy26'
+        preagg_total = sum(float(ch.get(key, 0) or 0) for ch in existing.values())
+        filetwo_total = sum(chan_vals.values())
+        if preagg_total and abs(filetwo_total - preagg_total) / preagg_total > 0.005:
+            continue  # totals disagree by >0.5% -- don't override, leave pre-agg as-is
+        for name, val in chan_vals.items():
+            existing.setdefault(name, {"name": name})[key] = r2(val)
+    primary["by_channel"] = list(existing.values())
+
+
 def _build_detail_meta(src, max_rows, primary_for_fallback):
     """Shared by both the --detail-only path and the full build: returns
     (detail_records, dims, detail_meta_dict, tot, cm2, alloc). Falls back to
@@ -5948,6 +6639,28 @@ def _safe_write_data_js(out_path, payload_str, alloc=None, gate_config=None,
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # FM-05: strip a stray top-level "metadata" key before writing, if
+    # present. Only scripts/sync_data_js.py (a deprecated, workflow_dispatch
+    # -only pipeline reading data_master.json) ever WRITES this key --
+    # build_dashboard_data.py never has and never should; dashboard/
+    # index.html only ever reads "meta", never "metadata". Once such a key
+    # enters data.js (e.g. from a stray sync_data_js.py run at some point),
+    # every partial-refresh mode here just carries it forward unchanged
+    # forever, since json.loads()-then-mutate-specific-keys never prunes an
+    # unrecognized top-level key. Stripped at this single common write
+    # choke point so it can never silently persist or reappear regardless
+    # of which code path produced payload_str.
+    _prefix = "window.DASH = "
+    if payload_str.startswith(_prefix):
+        _body = payload_str[len(_prefix):].rstrip().rstrip(";")
+        try:
+            _obj = json.loads(_body)
+        except json.JSONDecodeError:
+            _obj = None
+        if isinstance(_obj, dict) and "metadata" in _obj:
+            del _obj["metadata"]
+            payload_str = _prefix + json.dumps(_obj, indent=1, ensure_ascii=False) + ";\n"
+
     # Write candidate to temp file (same dir for atomic rename)
     fd, tmp = tempfile.mkstemp(suffix=".js", dir=out_path.parent)
     try:
@@ -6079,6 +6792,12 @@ def refresh_derived_blocks(data, src):
     data["readiness"] = readiness_gate(data, _cfg)
     print(f"readiness: {data['readiness']['summary']}"
           + (f"; blocked: {', '.join(data['readiness']['blocked'])}" if data["readiness"]["blocked"] else ""))
+    _dq, _recon, _issues = data_quality_reconciliation_block(data, _cfg, _REPO_ROOT)
+    data["data_quality"] = _dq
+    data["reconciliation"] = _recon
+    data["quality_issues"] = _issues
+    print(f"data_quality: {len(_dq['dimensions'])} dimension(s) computed, {len(_issues)} issue(s) found; "
+          f"reconciliation: {len(_recon['checks'])} check(s)")
 
 
 def _convert_nan_to_none(obj):
@@ -6220,7 +6939,13 @@ def main():
         if npd is not None:
             obj["npd"] = npd
         obj["readiness"] = readiness_gate(obj, cfg)
+        _dq, _recon, _issues = data_quality_reconciliation_block(obj, cfg, _REPO_ROOT)
+        obj["data_quality"] = _dq
+        obj["reconciliation"] = _recon
+        obj["quality_issues"] = _issues
         print(f"readiness-only: {obj['readiness']['summary']}")
+        print(f"  data_quality: {len(_dq['dimensions'])} dimension(s) computed, {len(_issues)} issue(s) found; "
+              f"reconciliation: {len(_recon['checks'])} check(s)")
         if prof:
             print(f"  profitability: margin {prof['total']['margin_pct_of_nsv']}% of NSV "
                   f"(NSV {prof['total']['nsv_lakh']}L, standard cost {prof['total']['cogs_lakh'] + prof['total']['logistics_lakh']}L)")
@@ -6253,6 +6978,8 @@ def main():
         if obj.get("primary") and obj.get("offtake"):
             obj["primary_offtake_gap"] = primary_offtake_gap_block(
                 obj["primary"], obj["offtake"], meta.get("fyx_primary", {}).get("FY27"))
+        if obj.get("primary"):
+            apply_primary_channel_correction(obj["primary"], meta)
         # Refresh everything downstream of detail_meta's same_period/fyx_primary
         # (targets, insights, mapping_health, mom, scorecard, pvm, profitability,
         # npd, readiness) so it matches the detail_records this run just fixed --
@@ -6319,6 +7046,20 @@ def main():
 
         pdf, primary = primary_block(allocated)
 
+        # by_channel from the pre-aggregated workbook is a lossy export (every
+        # row tagged Channel="MT", EB2B/SIS hard-zeroed even though real
+        # billing exists there) -- apply_primary_channel_correction() fixes
+        # this using detail_meta['channel_totals'], and both --detail-only and
+        # the full-rebuild path already call it. --primary-only never did,
+        # so a --primary-only-only refresh (the documented refresh_dashboard.sh
+        # Pass 1) silently regressed by_channel back to the uncorrected,
+        # 100%-MT split on every run -- found 2026-09-24 by diffing a real
+        # --primary-only run's by_channel against the certified data.js it
+        # was refreshing. detail_meta isn't touched by this code path, so the
+        # existing one already in data.js (obj["detail_meta"]) is correct to
+        # reuse here -- same pattern as --detail-only's own call.
+        apply_primary_channel_correction(primary, obj.get("detail_meta"))
+
         # Print Zonal Reconciliation Checksum
         if primary and "by_zone" in primary:
             total_nsv = primary.get("nsv_fy26", 0) or primary.get("nsv_fy27", 0) or 0
@@ -6359,6 +7100,13 @@ def main():
         print(f"primary-only: {_nsv_summary} (Lakh); "
               + (f"3-Tier allocation: Tier1={qc.get('tier1_rows', 0)}, Tier2={qc.get('tier2_rows', 0)}, Tier3={qc.get('tier3_rows', 0)}"
                  if qc else "no allocation file found -- chain tags left as-is"))
+        # FM-19-adjacent (see docs/FAILURE_MODE_REGISTER.md FM-17's own closing
+        # note): this branch updates primary/pnl/insights but used to leave
+        # targets/mapping_health/mom/scorecard/pvm/profitability/npd/readiness
+        # frozen -- the exact staleness pattern FM-17 fixed for --detail-only,
+        # just never extended here. refresh_derived_blocks() no-ops safely if
+        # its other inputs aren't present.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -6419,6 +7167,11 @@ def main():
                 print(f"  forecast baseline ({_bt}): {_old} -> {_new_base} Lakh "
                       f"(now the full {len(new_off.get('months_'+_bt) or [])}-month window)")
 
+        # FM-17's own closing note: this branch replaces obj["offtake"]
+        # wholesale, which every refresh_derived_blocks() output derives from
+        # (mom/scorecard/pvm all read offtake) -- refresh so they don't stay
+        # frozen at whatever the last full build (or --detail-only run) saw.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -6488,7 +7241,20 @@ def main():
                     # kept_fy_tags: FY tags whose months are ENTIRELY in `kept` (not in the
                     # new source).  Only those subtotals are safe to carry forward from old
                     # data; any FY that overlaps with the new source is already in new_list.
-                    new_bc_fy_tags = set(fy_data.keys())  # FYs covered by new source
+                    #
+                    # BUG (fixed here): this used to be set(fy_data.keys()) -- but
+                    # fy_data was built by looping over `combined` (kept + new
+                    # months merged together), so it always included the KEPT
+                    # months' own FY tag too, not just the new source's. That made
+                    # `kept_fy_tags - new_bc_fy_tags` empty whenever a kept FY had
+                    # any overlap with combined (i.e. always, since combined by
+                    # definition contains every kept month) -- so safe_kept_fy_tags
+                    # was silently always empty and no prior-FY data ever got
+                    # carried into the dimensional arrays. Compute new_bc_fy_tags
+                    # from the new source's OWN months (new_bc_months, captured
+                    # before merging) instead.
+                    new_bc_fy_tags = {t.lower() for mo in new_bc_months
+                                       for t in [fy_tag_from_label(mo)] if t}
                     kept_fy_tags = set()
                     for mo in kept:
                         t = fy_tag_from_label(mo)
@@ -6569,6 +7335,45 @@ def main():
                     if existing_bc.get("by_category"):
                         bc_data["by_category"] = _merge_dim(
                             existing_bc["by_category"], bc_data.get("by_category", []), "name")
+
+                    # A safe-kept FY can have a real scalar total_fyNN with NO
+                    # dimensional detail at all (existing_bc.get("by_zone") etc.
+                    # falsy/empty -- e.g. FY26's Brand Counter source no longer
+                    # exists in this repo to recompute a real zone/state/brand/
+                    # category split for it). The four merges above only run
+                    # when there IS existing dimensional data to merge, so that
+                    # FY's total would otherwise silently vanish from every
+                    # dimensional array while still counting in bc_data["total"]
+                    # -- a real, disclosed gap, not something to fabricate a
+                    # split for. Surface it as one explicit "Unallocated" bucket
+                    # per array (same pattern as this repo's existing "Other
+                    # (Unallocated Distributors)" chain bucket) so dimensional
+                    # sums still reconcile to bc.total, honestly.
+                    _undetailed = {t: existing_bc[f"total_{t}"] for t in safe_kept_fy_tags
+                                   if existing_bc.get(f"total_{t}")}
+                    if _undetailed:
+                        _unalloc_total = r2(sum(_undetailed.values()))
+                        _fy_vals = {t: r2(v) for t, v in _undetailed.items()}
+                        if not existing_bc.get("by_zone"):
+                            bc_data.setdefault("by_zone", []).append(
+                                {"name": "Unallocated (prior period, no store-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_zone"].sort(key=lambda d: -d["total"])
+                        if not existing_bc.get("by_state"):
+                            bc_data.setdefault("by_state", []).append(
+                                {"zone": "Unallocated", "state": "Unallocated (prior period, no store-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_state"].sort(key=lambda d: -d["total"])
+                        if not existing_bc.get("by_brand"):
+                            bc_data.setdefault("by_brand", []).append(
+                                {"name": "Unallocated (prior period, no brand-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_brand"].sort(key=lambda d: -d["total"])
+                        if not existing_bc.get("by_category"):
+                            bc_data.setdefault("by_category", []).append(
+                                {"name": "Unallocated (prior period, no category-level detail available)",
+                                 "total": _unalloc_total, **_fy_vals})
+                            bc_data["by_category"].sort(key=lambda d: -d["total"])
             # Carry forward any scalar total_fyNN from an existing block for FY tags
             # the new source doesn't cover (e.g. a manually-entered FY26 figure with
             # no month-level detail to merge granularly). Never overwrites a tag the
@@ -6587,6 +7392,11 @@ def main():
                 bc_data["fy_tags"] = sorted(new_tags, key=lambda t: fy_start_year(t.upper()))
             obj["reliance_bc"] = bc_data
             print(f"  reliance_bc: {bc_data['total']} Lakh, months={bc_data['months']}")
+        # FM-17's own closing note: this branch merges new months into
+        # obj["offtake"], which every refresh_derived_blocks() output derives
+        # from (mom/scorecard/pvm all read offtake) -- refresh so they don't
+        # stay frozen at whatever the last full build (or --detail-only run) saw.
+        refresh_derived_blocks(obj, src)
         _safe_write_data_js(
             outp, "window.DASH = " + json.dumps(obj, indent=1, ensure_ascii=False) + ";\n",
             alloc=None, report_dir=str(outp.parent), skip_gate=True,
@@ -6678,30 +7488,10 @@ def main():
         data["primary_offtake_gap"] = primary_offtake_gap_block(
             primary, offtake, (detail_meta or {}).get("fyx_primary", {}).get("FY27"))
 
-    # ---- Merge FY27+ channels into primary.by_channel to ensure all channels are represented ----
-    # FY27 article-level data has EB2B/SIS channels not in pre-agg FY25/26 workbooks.
-    # Merge them so the channel array has ALL channels (MT, EB2B, SIS) for every FY,
-    # with zero values for missing FYs, so the UI shows consistent channel options.
-    if detail_meta and detail_meta.get("fyx_primary"):
-        # Collect all unique channels from all FY27+ sources
-        all_channels_set = set()
-        for fy_data in detail_meta["fyx_primary"].values():
-            if "by_channel" in fy_data:
-                for ch in fy_data["by_channel"]:
-                    all_channels_set.add(ch.get("name"))
-
-        # Current channels in the main primary block
-        existing_ch_dict = {ch["name"]: ch for ch in (primary.get("by_channel") or [])}
-
-        # For each channel in the FY27+ data, ensure it exists in by_channel
-        # with zero values for any missing FYs
-        for ch_name in sorted(all_channels_set):
-            if ch_name not in existing_ch_dict:
-                # Add new channel with zero values for FY25/26
-                existing_ch_dict[ch_name] = {"name": ch_name}
-
-        # Update primary.by_channel with merged channels
-        primary["by_channel"] = list(existing_ch_dict.values())
+    # ---- Merge FY27+ channels into primary.by_channel, and correct FY25/26
+    # values from the article-wise primary's exact channel split (the pre-agg
+    # workbook's Channel tag is unusable -- see apply_primary_channel_correction) ----
+    apply_primary_channel_correction(primary, detail_meta)
 
     # ---- Like-for-like YoY, targets, mapping health, MoM, scorecard, PVM,
     # profitability, NPD, readiness gate: everything that derives from

@@ -1,0 +1,125 @@
+# Source contract: Primary input to the canonical engine.
+# Source: dashboard/data.js -> detail_records (article-wise, populated by
+# scripts/build_dashboard_data.py's detail_records_real(); certified per
+# docs/POST_MERGE_CERTIFICATION_PR193.md). Every PRIMARY_NSV,
+# CHANNEL_PRIMARY_NSV and RBC_PRIMARY_NSV canonical metric is built on this.
+name: primary_detail_records
+grain: >
+  One row per Month x Channel x Zone x State x Chain x Brand x Category x
+  SubCategory x Range x PackSize x Article x EAN. Article-wise, the finest
+  grain this repo's Primary data carries -- not pre-aggregated.
+fiscal_period:
+  rule: THE ONE FY RULE (see CLAUDE.md) -- Apr-Dec of calendar year Y is
+    FY(Y+1); Jan-Mar of calendar year Y is FY(Y). Derived, never a fixed
+    lookup table.
+  field: FY
+  # Open-ended by design -- new FY tags appear automatically as new months'
+  # data is loaded. Listed here for documentation, not as a closed allowlist.
+  observed_values_as_of_phase1: [FY26, FY27]
+duplicates:
+  natural_key: null
+  policy: >
+    No single-column or short composite key is guaranteed unique at this
+    grain (e.g. the same Article/Chain/Month combination can legitimately
+    appear more than once across different Zone/State splits, and
+    Range/PackSize/EAN are not always populated). Duplicate-row detection is
+    therefore NOT "no two rows may be identical" -- it is "the same exact
+    full-row tuple (every field below) must not appear more than once,"
+    which would indicate a genuine double-load of the same billing line.
+  full_row_duplicate_check: required
+fields:
+  Month:
+    type: string
+    required: true
+    nullable: false
+  FY:
+    type: string
+    required: true
+    nullable: false
+    pattern: "^FY\\d{2}$"
+  Channel:
+    type: string
+    required: true
+    nullable: false
+    ref: channel_contract.yaml
+  Zone:
+    type: string
+    required: true
+    nullable: false
+  State:
+    type: string
+    required: true
+    nullable: false
+  Chain:
+    type: string
+    required: true
+    nullable: false
+    ref: chain_contract.yaml
+  Brand:
+    type: string
+    required: true
+    nullable: false
+  Category:
+    type: string
+    required: true
+    nullable: false
+  SubCategory:
+    type: string
+    required: false
+    nullable: true
+  Range:
+    type: string
+    required: false
+    nullable: true
+  PackSize:
+    type: string
+    required: false
+    nullable: true
+  Article:
+    type: string
+    required: true
+    nullable: false
+  EAN:
+    type: string
+    required: false
+    nullable: true
+  NSV:
+    type: number
+    required: true
+    nullable: false
+    unit: INR_LAKH
+    negative_allowed: true  # returns/credit notes are legitimate negative NSV lines
+    zero_allowed: true      # a real zero-NSV line is valid; missing NSV is NOT the same as 0 (ADR-007)
+  MRP:
+    type: number
+    required: false
+    nullable: true
+    unit: INR
+    negative_allowed: false
+  Qty:
+    type: integer
+    required: false
+    nullable: true
+    negative_allowed: true  # returns can carry negative quantity
+notes: >
+  Per ADR-006, NSV here is already in INR Lakh (this repo's absolute-INR
+  convention) -- the canonical engine never re-scales it; Lakh<->Crore
+  conversion happens only at presentation time (scripts/canonical/units.py).
+  Per ADR-007, a missing NSV value must never be treated as 0 by any reader
+  of this contract -- a row with NSV present and equal to 0.0 is a real
+  fact; a row where the NSV field itself is absent/null is a data-quality
+  defect to flag, not silently sum as 0.
+known_exceptions: >
+  As of the Phase 1 certification run (2026-09), exactly one row in the
+  certified dashboard/data.js violates this contract's Category/
+  SubCategory/Range/PackSize required-ness: Article="TDC-FOC Product 18%",
+  Chain=Apollo, FY27, with negative NSV/MRP/Qty -- a free-of-cost/scheme
+  adjustment line, not a catalog SKU, so it carries no real category
+  taxonomy. This is a pre-existing characteristic of the certified data,
+  not introduced by the canonical engine, and is recorded here rather than
+  silently patched or silently ignored (scripts/canonical/contract_validation.py
+  reports it; tests/canonical/test_contract_validation.py pins the count at
+  exactly 1 so a NEW, different violation still fails the gate). Fixing the
+  underlying source data (should this line carry a real category, or is a
+  null category the correct representation for a scheme/FOC adjustment) is
+  a business/source-data question, out of scope for Phase 1.

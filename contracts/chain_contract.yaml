@@ -1,0 +1,72 @@
+# Source contract: Chain mapping field, referenced by primary_contract.yaml
+# and offtake_contract.yaml (offtake.by_chain[].name uses the same
+# vocabulary). This is an OPEN list -- the MT chain roster genuinely grows
+# (new retail chains onboarded) -- so an unrecognized value is NOT a
+# violation on its own. What the contract enforces is shape: non-null,
+# non-empty string, and (per CLAUDE.md's dashboard-qa-sentinel convention)
+# flags the literal placeholder "Unmapped Chain" as worth surfacing, not
+# silently accepted as a real chain in any chain-level KPI or chart.
+name: chain
+description: >
+  The Chain field on Primary detail_records rows, and offtake.by_chain[].name
+  in dashboard/data.js. Both use the same chain vocabulary.
+closed_list: false
+placeholder_values:
+  - "Unmapped Chain"  # a real value seen in detail_records: rows whose chain
+                       # mapping did not resolve. Legitimate to exist in the
+                       # raw fact table; must be excluded from any chain-level
+                       # display/KPI (existing dashboard convention, reused
+                       # unchanged by the canonical engine).
+known_chains_as_of_phase1:
+  # Snapshot for reference only, not an enforced allowlist -- taken from the
+  # certified dashboard/data.js at Phase 1 (2026-09). New chains are expected
+  # to appear here over time; that is not a contract violation.
+  - Apna Mart
+  - Apollo
+  - Arambagh
+  - Ascent Wellness
+  - Azorte
+  - B&N
+  - Broadway
+  - CARREFOUR
+  - DMart
+  - Dabur New U
+  - Deal Share
+  - Eremedium
+  - Frankross
+  - G N R C Medishop Pvt Ltd
+  - Grace Super MKT
+  - Guardian
+  - Health & Glow
+  - Hypermax City Private Limited
+  - Lifestyle
+  - Lulu
+  - Max Hyper
+  - Medanta
+  - Metro C&C
+  - More Retail
+  - National Mart
+  - Nykaa (FSN)
+  - Octopolis Technologies Pvt Ltd
+  - Pothys
+  - Ratnadeep
+  - Relay
+  - Reliance Retail
+  - SAI SAACHI ASSOCIATES-MT-OR
+  - Sancus (RMT)
+  - Sarvana
+  - Sasta Sundar
+  - Shoppers Stop
+  - Sohum Shoppe
+  - Spencer
+  - Sumo Save
+  - Today's Basket
+  - Trent
+  - Trilife
+  - Unmapped Chain
+  - V-Mart
+  - VMM
+  - Vijetha
+  - WH-Smith
+  - Walmart
+  - Wellness Forever
