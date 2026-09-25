@@ -27,7 +27,6 @@ Exit codes: 0 = READY (every required month covered), 3 = BLOCKED_FINANCE_INPUT.
 import csv
 import re
 import sys
-from datetime import date
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
