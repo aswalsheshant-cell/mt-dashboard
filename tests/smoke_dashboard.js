@@ -1,9 +1,15 @@
-const { chromium } = require('playwright');
+const fs = require('fs');
+const path = require('path');
+const { launchChromium } = require('./browser_launch');
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080/';
-const FY_OPTIONS = ['FY25', 'FY26', 'FY27'];
+// Protected values come from the ONE governed baseline file (also used by
+// scripts/ci_validate_datajs.py) -- never a number typed into this test.
+const BASELINES_PATH = process.env.BASELINES_PATH ||
+  path.join(__dirname, '..', 'config', 'baselines.json');
 
 (async () => {
-  const browser = await chromium.launch({ headless: true });
+  const baselineChecks = JSON.parse(fs.readFileSync(BASELINES_PATH, 'utf8')).checks;
+  const browser = await launchChromium();
   const page = await browser.newPage();
   const consoleErrors = [];
   const pageErrors = [];
@@ -22,22 +28,22 @@ const FY_OPTIONS = ['FY25', 'FY26', 'FY27'];
   console.log(`\n🔍 Navigating to ${BASE_URL}...`);
   await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-  // 1. Verify global window.DASH payload existence
-  const dashHealth = await page.evaluate(() => {
+  // 1. Verify global window.DASH payload existence, and that the numbers the
+  //    browser actually loaded match config/baselines.json (same rule as
+  //    ci_validate_datajs.py: exact within tolerance; tracked_universe > 0).
+  const dashHealth = await page.evaluate((checks) => {
     if (!window.DASH) return { loaded: false, reason: 'window.DASH is undefined' };
-
-    // Check offtake block
-    let offtakeUnits = 0;
-    if (window.DASH.offtake && window.DASH.offtake.by_chain) {
-      offtakeUnits = window.DASH.offtake.by_chain.reduce((sum, c) => sum + (c.total || 0), 0);
-    }
-    return {
-      loaded: true,
-      hasOfftake: Boolean(window.DASH.offtake),
-      totalUnits: offtakeUnits,
-      fyTags: window.DASH.fy_tags || []
-    };
-  });
+    const dig = (o, p) => p.split('.').reduce((a, k) => (a == null ? undefined : a[k]), o);
+    const baseline = checks.map(c => {
+      const actual = dig(window.DASH, c.path);
+      let ok;
+      if (typeof actual !== 'number' || !isFinite(actual)) ok = false;
+      else if (c.class === 'tracked_universe') ok = actual > 0 && Math.abs(actual - c.expected) <= (c.tolerance ?? 0.01);
+      else ok = Math.abs(actual - c.expected) <= (c.tolerance ?? 0.01);
+      return { key: c.key, path: c.path, expected: c.expected, actual: actual === undefined ? null : actual, ok };
+    });
+    return { loaded: true, baseline };
+  }, baselineChecks);
 
   if (!dashHealth.loaded) {
     console.error(`❌ Fatal: ${dashHealth.reason}`);
@@ -45,8 +51,9 @@ const FY_OPTIONS = ['FY25', 'FY26', 'FY27'];
   }
 
   console.log(`✅ window.DASH loaded.`);
-  console.log(`   Offtake units: ${dashHealth.totalUnits}`);
-  console.log(`   FY coverage: ${dashHealth.fyTags.join(', ')}`);
+  const baselineFails = dashHealth.baseline.filter(b => !b.ok);
+  dashHealth.baseline.forEach(b =>
+    console.log(`   ${b.ok ? '✅' : '❌'} ${b.key}: ${b.actual} (expected ${b.expected})`));
 
   // 2. Discover and test tabs
   const tabSelector = 'nav button, .nav-item, [role="tab"]';
@@ -82,19 +89,27 @@ const FY_OPTIONS = ['FY25', 'FY26', 'FY27'];
     }
   }
 
-  // 4. Test FY filter if visible
+  // 4. FY filter. The FY filter is the global bar's <select id="filter-FY">;
+  //    its options come from the data (THE ONE FY RULE), not a fixed list.
+  //    A missing control is a defect, not a skip.
   console.log(`\n🔄 Testing FY filters...`);
-  for (const fy of FY_OPTIONS) {
-    try {
-      const fyButton = await page.$(`button:has-text("${fy}")`);
-      if (fyButton) {
-        await fyButton.click();
-        await page.waitForTimeout(300);
-        console.log(`  ✅ [${fy}] Filter works`);
-      }
-    } catch (_) {
-      // Filter not present, skip
-    }
+  let fyTested = 0, fyFailures = 0;
+  const fyValues = await page.$$eval('#filter-FY option', os => os.map(o => o.value).filter(Boolean));
+  if (!fyValues.length) {
+    console.error('  ❌ FY filter (#filter-FY) not found or has no FY options');
+    fyFailures++;
+  }
+  for (const fy of fyValues) {
+    await page.selectOption('#filter-FY', fy);            // toggles fy on
+    await page.waitForTimeout(300);
+    const t = await page.evaluate(() => document.body.innerText);
+    const bad = (t.match(/\bNaN\b/g) || []).length + (t.match(/\bundefined\b/g) || []).length;
+    const selected = await page.evaluate(v => typeof F !== 'undefined' && F.FY.length === 1 && F.FY[0] === v, fy);
+    if (bad || !selected) { console.error(`  ❌ [${fy}] ${bad} NaN/undefined, applied=${selected}`); fyFailures++; }
+    else console.log(`  ✅ [${fy}] Filter applied, clean`);
+    await page.selectOption('#filter-FY', '');             // clear
+    await page.waitForTimeout(200);
+    fyTested++;
   }
 
   // 5. Final Evaluation
@@ -103,12 +118,14 @@ const FY_OPTIONS = ['FY25', 'FY26', 'FY27'];
   console.log(`Uncaught JS errors: ${pageErrors.length}`);
   console.log(`Console errors:     ${consoleErrors.length}`);
   console.log(`Text artifacts:     ${totalDefects}`);
-  console.log(`Offtake baseline:   ${dashHealth.totalUnits} (Expected: 4512)`);
+  console.log(`FY filters tested:  ${fyTested} (failures: ${fyFailures})`);
+  console.log(`Baseline checks:    ${dashHealth.baseline.length - baselineFails.length}/${dashHealth.baseline.length} match config/baselines.json`);
   console.log('===================================================');
 
   await browser.close();
 
-  const success = pageErrors.length === 0 && consoleErrors.length === 0 && totalDefects === 0;
+  const success = pageErrors.length === 0 && consoleErrors.length === 0 && totalDefects === 0 &&
+    fyFailures === 0 && baselineFails.length === 0 && tabsTestedCount > 0;
   if (success) {
     console.log('✅ SMOKE TEST PASSED');
     process.exit(0);
@@ -117,6 +134,10 @@ const FY_OPTIONS = ['FY25', 'FY26', 'FY27'];
     if (consoleErrors.length > 0) {
       console.error('\nConsole errors:');
       consoleErrors.forEach(e => console.error(`  - ${e}`));
+    }
+    if (baselineFails.length > 0) {
+      console.error('\nBaseline mismatches (config/baselines.json):');
+      baselineFails.forEach(b => console.error(`  - ${b.key} (${b.path}): got ${b.actual}, expected ${b.expected}`));
     }
     if (pageErrors.length > 0) {
       console.error('\nPage errors:');
