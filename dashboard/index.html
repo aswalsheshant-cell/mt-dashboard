@@ -284,7 +284,13 @@ const id = (eid) => document.getElementById(eid);
 D.primary   = D.primary   || {by_chain:[],by_zone:[],by_state:[],n_chains:0,n_skus:0};
 D.forecast  = D.forecast  || {method:'',total_fy:0,by_chain:[],by_zone:[]};
 D.universe  = D.universe  || {by_zone:[],by_chain:[],chains:[],n_chains:0};
-D.pnl       = D.pnl       || {chains:[],totals:{},blended:{}};
+// F17 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up sweep): the
+// old default ({chains,totals,blended}) never matched pnl_block()'s real
+// shape ({by_chain,fy_tag,total_mrp,total_nsv,total_discount,
+// blended_discount_pct}) -- if D.pnl were ever genuinely absent, buildPnl()
+// would crash on chains.filter (chains would be undefined) instead of
+// degrading gracefully like every other block's default here.
+D.pnl       = D.pnl       || {by_chain:[],fy_tag:null,total_mrp:0,total_nsv:0,total_discount:0,blended_discount_pct:null};
 D.promo     = D.promo     || {n_promos:0,avg_depth:0,by_chain:[],lines:[]};
 D.tot       = D.tot       || {blended_tot_pct:null,total_passon_value:0,chains:[]};
 D.cm2       = D.cm2       || {monthly:[],qc:{},by_chain:[]};
@@ -2156,11 +2162,21 @@ function buildRelianceBC(){
 /* ---------------- P&L ---------------- */
 function buildPnl(){
   const pl=D.pnl,s=document.getElementById('tab-pnl');
-  // The gross-to-net bridge is FY26-only (its source ends Mar'26), but the
-  // TOT% and CM2 sections below run on the article-level detail which spans
-  // FY26-27 -- so when the FY filter excludes FY26, swap ONLY the bridge for
-  // an honest note and keep TOT%/CM2 visible instead of blanking the tab.
-  const fy26ok=!(fOn('FY') && !fHas('FY','FY26'));
+  // The gross-to-net bridge is single-FY-only (its pre-aggregated source
+  // currently ends Mar'26, i.e. FY26), but the TOT% and CM2 sections below
+  // run on the article-level detail which spans FY26-27 -- so when the FY
+  // filter excludes the bridge's own FY, swap ONLY the bridge for an honest
+  // note and keep TOT%/CM2 visible instead of blanking the tab.
+  //
+  // F17 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up sweep):
+  // pnl_block() already returns the real latest FY it computed as
+  // `fy_tag` (label-driven, THE ONE FY RULE) -- this used to hardcode the
+  // literal 'FY26' here instead of reading it. Dormant today (the source
+  // hasn't been extended past FY26 yet), but the moment it is, this would
+  // have silently kept gating/labelling everything as FY26 while the real
+  // bridge data quietly became FY27 underneath it.
+  const plFy=pl.fy_tag||'FY26';
+  const fy26ok=!(fOn('FY') && !fHas('FY',plFy));
   let chains=pl.by_chain;
   if(fOn('Chain')) chains=chains.filter(c=>fHas('Chain',c.name));
   const top=chains.filter(c=>c.nsv>50 || fOn('Chain')).slice(0,12);
@@ -2250,24 +2266,24 @@ function buildPnl(){
   const cm2Qc=(cm2D&&cm2D.qc)||{};
   const cm2NoData=!cm2D||!cm2D.has_expense_data;
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
-   ${fy26ok?`<p class="lead">${fyDispLabel('FY26')}. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
+   ${fy26ok?`<p class="lead">${fyDispLabel(plFy)}. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
    ${dimNote}
    <div class="kpis">
-     ${kpi('Gross MRP Value',crc(totMrp),fOn('Chain')?'filtered scope':'FY26, all chains')}
+     ${kpi('Gross MRP Value',crc(totMrp),fOn('Chain')?'filtered scope':fyDispLabel(plFy)+', all chains')}
      ${kpi('Net NSV',crc(totNsv),'realised revenue')}
      ${kpi('MRP→NSV Gap',crc(totMrp-totNsv),totMrp?`${((totMrp-totNsv)/totMrp*100).toFixed(1)}% blended`:'')}
      ${kpi('Promo Lines',D.promo.n_promos,`${D.promo.avg_depth}% avg consumer depth`)}
    </div>
    <div class="grid g2">
-     ${card('Gross-to-net by chain (FY26)','Net NSV vs the MRP→NSV gap (margin + taxes + trade). Click a chain to drill.',cv('plBridge'))}
+     ${card('Gross-to-net by chain ('+fyDispLabel(plFy)+')','Net NSV vs the MRP→NSV gap (margin + taxes + trade). Click a chain to drill.',cv('plBridge'))}
      ${card('Trade-discount intensity (%) by chain','Higher = deeper gross-to-net gap — review spend ROI. Click to drill.',cv('plDisc'))}
    </div>
-   ${card('Chain-wise trade P&amp;L','MRP value, net NSV, the gap, and promo activity per chain (FY26). Click a chain to drill.',`<div class="tablewrap"><table>
+   ${card('Chain-wise trade P&amp;L','MRP value, net NSV, the gap, and promo activity per chain ('+fyDispLabel(plFy)+'). Click a chain to drill.',`<div class="tablewrap"><table>
      <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Gap</th><th>Gap %</th><th>Promos</th><th>Avg depth</th></tr></thead>
      <tbody>${rows||'<tr><td colspan="7">No chains for this filter.</td></tr>'}</tbody></table></div>`)}`
-   :`<div class="fynote"><b>${fLab('FY')} actuals not available</b> — the gross-to-net P&amp;L bridge (source ends Mar-26) —
-      intentionally blank instead of a stale ${fyDispLabel('FY26')} number. TOT% and CM2 below still cover ${fyDispLabel('FY26')}–${fyDispLabel('FY27')}.</div>`}
+   :`<div class="fynote"><b>${fLab('FY')} actuals not available</b> — the gross-to-net P&amp;L bridge (source: ${fyDispLabel(plFy)} only) —
+      intentionally blank instead of a stale ${fyDispLabel(plFy)} number. TOT% and CM2 below still cover their own real coverage.</div>`}
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
    <p class="note" style="margin:0 0 10px">${totScopedOk?fyDispLabel(globalFy):'FY26-FY27'}, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
      TOT% = SUM(Pass-on Value) / SUM(MRP), sourced per row: Primary file's own <b>Avg Tot</b> first, actual
@@ -4817,9 +4833,32 @@ function show(id){
   });
 })();
 
+// F15 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up sweep,
+// 2026-09-25): every function below (charts + Executive Brief) is
+// currently unreachable in the live app -- no wired button opens the brief
+// modal, no canvas elements for these charts exist in the DOM template --
+// but scripts/promo_offtake_correlation.py has no real offtake-by-chain
+// source to compute genuine lift/elasticity from, so several of these
+// functions fell through to a hardcoded/fabricated number the moment
+// reconnected (a literal 0.3 "elasticity" default below, a 0.35 "macro
+// elasticity" OR-fallback in generateExecutiveBrief() that fires even with
+// real-but-null chain data, etc.). This guard is defense-in-depth: it stops
+// a future reconnection from ever exposing a fabricated number that looks
+// legitimate, regardless of which function gets wired up first -- without
+// requiring the whole feature to be built for real now.
+function elasticityMethodologyValidated(){
+  return !!(D.correlations && D.correlations.methodology_validated===true);
+}
+const ELASTICITY_NOT_AVAILABLE_TEXT='Not available — no validated promo-lift data source yet (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md F15)';
+
 function renderElasticityCurves(chains){
   const canvas=id('chart-elasticity');if(!canvas)return;
   const ctx=canvas.getContext('2d');
+  if(!elasticityMethodologyValidated()){
+    ctx.font='14px sans-serif';ctx.fillStyle='#888';
+    ctx.fillText(ELASTICITY_NOT_AVAILABLE_TEXT,10,canvas.height/2);
+    return;
+  }
 
   // Mock data: tier_1, tier_2, tier_3 elasticity curves per top 5 chains
   const topChains=chains.slice(0,5).map(c=>c.name);
@@ -4851,6 +4890,11 @@ function renderElasticityCurves(chains){
 function renderROIHeatmap(chains){
   const canvas=id('chart-heatmap');if(!canvas)return;
   const ctx=canvas.getContext('2d');
+  if(!elasticityMethodologyValidated()){
+    ctx.font='14px sans-serif';ctx.fillStyle='#888';
+    ctx.fillText(ELASTICITY_NOT_AVAILABLE_TEXT,10,canvas.height/2);
+    return;
+  }
 
   // Simple bar chart representing ROI efficiency by tier
   const tiers=['tier_1 (30-50%)','tier_2 (50-70%)','tier_3 (70%+)'];
@@ -4876,6 +4920,11 @@ function renderROIHeatmap(chains){
 function renderWaterfall(chains){
   const canvas=id('chart-waterfall');if(!canvas)return;
   const ctx=canvas.getContext('2d');
+  if(!elasticityMethodologyValidated()){
+    ctx.font='14px sans-serif';ctx.fillStyle='#888';
+    ctx.fillText(ELASTICITY_NOT_AVAILABLE_TEXT,10,canvas.height/2);
+    return;
+  }
 
   // Decomposition by discount tier, read from correlations.by_chain[].elasticity_tiers
   // -- the same real source the elasticity / heatmap / scatter charts on this
@@ -4905,6 +4954,11 @@ function renderWaterfall(chains){
 function renderScatterTrend(chains,flags){
   const canvas=id('chart-scatter');if(!canvas)return;
   const ctx=canvas.getContext('2d');
+  if(!elasticityMethodologyValidated()){
+    ctx.font='14px sans-serif';ctx.fillStyle='#888';
+    ctx.fillText(ELASTICITY_NOT_AVAILABLE_TEXT,10,canvas.height/2);
+    return;
+  }
 
   // Scatter: each chain point at (discount depth, offtake lift)
   const points=chains.map(c=>{
@@ -4934,6 +4988,10 @@ function renderScatterTrend(chains,flags){
 }
 
 function exportOfftakeCorrelations(){
+  if(!elasticityMethodologyValidated()){
+    alert('Promo elasticity export is not available — no validated promo-lift data source yet.');
+    return;
+  }
   const corr=D.correlations||{};
   const chains=corr.by_chain||[];
 
@@ -4975,6 +5033,18 @@ function onGlobalFilterChange(){
 
 /* ---- Executive Brief Generator ---- */
 function generateExecutiveBrief(){
+  if(!elasticityMethodologyValidated()){
+    return{
+      title:'Promo Elasticity Executive Brief',
+      generated_at:new Date().toLocaleDateString(),
+      not_available:true,
+      macro_elasticity:'–',
+      avg_optimal_tier:'Not available',
+      top_roi_chains:[],
+      dilution_risks:[],
+      key_insights:[ELASTICITY_NOT_AVAILABLE_TEXT+'. This brief will populate once a validated monthly offtake-by-chain source and a reviewed elasticity methodology exist.']
+    };
+  }
   const corr=D.correlations||{};
   const chains=(corr.by_chain||[]).slice(0,10);
   const summary=corr.summary||{};
