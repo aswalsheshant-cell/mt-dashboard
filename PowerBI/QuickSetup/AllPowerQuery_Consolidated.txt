@@ -1144,7 +1144,12 @@ let
         type date),
     RemoveHelpers = Table.RemoveColumns(AddMonthStart, {"_FyTag", "_FyStartYear", "_MonthNum"}),
 
-    Cleaned = Table.SelectRows(RemoveHelpers, each [Expense Amount (INR Lakh)] <> null)
+    // The seed file ships 3 template rows marked "EXAMPLE ROW" in Remarks to show
+    // Finance the schema. They are never real expense -- same rule as the HTML
+    // loader's load_pl_expense_input() (FM-01, FM-33). Real rows are untouched.
+    NoTemplateRows = Table.SelectRows(RemoveHelpers, each
+        [Remarks] = null or not Text.Contains(Text.Upper([Remarks]), "EXAMPLE ROW")),
+    Cleaned = Table.SelectRows(NoTemplateRows, each [Expense Amount (INR Lakh)] <> null)
 in
     Cleaned
 
