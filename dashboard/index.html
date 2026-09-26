@@ -45,7 +45,7 @@
   .kpi .sub{font-size:12px;margin-top:4px;color:var(--muted)}
   .up{color:var(--green);font-weight:700}.down{color:var(--red);font-weight:700}
   .grid{display:grid;gap:16px}
-  .g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
   @media(max-width:880px){.g2,.g3{grid-template-columns:1fr}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
   .card h3{margin:0 0 2px;font-size:14px}
@@ -225,7 +225,7 @@
   <div id="filterbar" class="filterbar"></div>
   <button class="fbtn ghost" id="exportZonalSummary" title="Export zonal breakdown to CSV (filtered by current zone/chain selection)" style="margin-left:auto;align-self:center">⭳ Export Zonal Summary</button>
   <div class="alert-badge-container" style="margin-left: 12px; align-self: center; position: relative;">
-    <span class="alert-badge" style="display: inline-block; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 11px; font-weight: 700; min-width: 20px; position: relative;">0</span>
+    <span class="alert-badge" style="display: none; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 11px; font-weight: 700; min-width: 20px; position: relative;"></span>
   </div>
 </div>
 <div class="wrap">
@@ -3470,7 +3470,8 @@ function npiCohortSection(){
      ${kpi(`${sel} NPI NSV`,crc(perf.nsv),`${perf.contribution_pct!=null?perf.contribution_pct.toFixed(1)+'% of '+sel+(anyFilterActive?' filtered':'')+' total NSV':''}`)}
      ${kpi('Avg NSV / launch',perf.avg_per_launch!=null?crc(perf.avg_per_launch):'–','across visible launches, selling or not')}
      ${kpi('NPI productivity',perf.productivity!=null?crc(perf.productivity):'–','NSV per launch that actually sold')}
-     ${kpi('YoY NPI NSV growth',growthLabel,'more launches vs better-performing launches — see table')}
+     ${kpi('YoY NPI NSV growth',growthPct!=null&&prevFy&&idFull.yoy_comparison_valid!==false?growthLabel:'–',
+           growthPct!=null&&prevFy&&idFull.yoy_comparison_valid!==false?'more launches vs better-performing launches — see table':(growthLabel==='–'?'not available':growthLabel))}
    </div>
    <div class="grid g2">
      ${card('NPI cohort performance by FY','History coverage pill shows how much prior-FY lookback exists to confirm each cohort\'s launch count (identity, never filtered). Launches/NSV/Units/etc. reflect current dashboard filters.',

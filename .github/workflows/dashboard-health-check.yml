@@ -112,7 +112,11 @@ jobs:
               # CM2 is "not available" (–) where no expense rows exist, never NSV as "100%".
               "Fix 7: CM2 availability gate": "const cm2Avail=",
               # SKU quadrants are "Not available" without real Units / margin / store count.
-              "Fix 8: SKU quadrant availability gate": "SKUs are not placed in a quadrant without them"
+              "Fix 8: SKU quadrant availability gate": "SKUs are not placed in a quadrant without them",
+              # Wide tables scroll inside their card instead of widening the page.
+              "Fix 9: grid columns can shrink": ".g2{grid-template-columns:repeat(2,minmax(0,1fr))}",
+              # Header alert badge starts hidden; alert_controller.js sets it from the feed.
+              "Fix 10: alert badge not hard-coded": 'class="alert-badge" style="display: none;'
           }
 
           # Patterns that must NOT come back.
@@ -135,6 +139,12 @@ jobs:
               else:
                   print(f"❌ {fix_name}")
                   missing.append(fix_name)
+
+          # alert_controller.js: the badge is outside <nav>; a nav-scoped selector never matches it.
+          ctl = Path('dashboard/alert_controller.js').read_text()
+          if "querySelector('nav .alert-badge')" in ctl:
+              print("❌ Alert badge selector scoped to <nav> (badge never updates)")
+              missing.append("Alert badge selector scoped to <nav>")
 
           if missing:
               print(f"\n❌ {len(missing)} fix(es) missing")
