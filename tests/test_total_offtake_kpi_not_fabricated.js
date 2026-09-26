@@ -3,10 +3,10 @@
 // a fabricated 0 (`?? 0`) when neither o.total[fyR] nor o.total_fyR existed,
 // rendering "Rs 0.00 Cr" instead of an honest "-". Fixed to `?? null`,
 // mirroring F1's NOT_AVAILABLE pattern -- crc(null) already renders '-'.
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));

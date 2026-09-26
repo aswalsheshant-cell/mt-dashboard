@@ -287,7 +287,9 @@ Always run, and report results:
 1. `python -m py_compile scripts/build_dashboard_data.py`
 2. Serve `dashboard/` on a local HTTP server and sweep **every tab × 4 FY
    states** (no-filter / FY25 / FY26 / FY27) with a headless browser
-   (Playwright at `/opt/node22`, chromium at `/opt/pw-browsers/chromium`):
+   (Playwright at `/opt/node22`; browser tests launch Chromium through
+   `tests/browser_launch.js`, which finds `/opt/pw-browsers/chromium` in the cloud
+   container — never hard-code that path in a test):
    assert **no** NaN / `undefined` / empty-broken cards / JS errors / card overlap.
    `tests/dashboard_sweep.js` reads the tab list from the page's own `TABS`
    array, so the state count follows the dashboard rather than a number written

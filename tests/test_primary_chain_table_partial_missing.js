@@ -22,10 +22,10 @@
 // missing chains must not blank the table (only they are excluded), and
 // the true whole-FY-missing case (F3's actual scenario) must still trigger
 // the cross-FY fallback correctly.
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));

@@ -2,16 +2,12 @@
  * Sprint 8 E2E Test Suite: Store Compliance & Inventory Fill-Rate
  * Validates PES audit data, fill-rate metrics, DOC calculations, and UI rendering
  */
-const { chromium } = require('@playwright/test');
+const { launchChromium } = require('./tests/browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 const BASE_URL = 'http://localhost:8000/dashboard';
 
 async function runTests() {
-  const browser = await chromium.launch({
-    executablePath: '/opt/pw-browsers/chromium',
-    headless: true,
-    args: ['--no-sandbox'],
-  });
+  const browser = await launchChromium({ args: ['--no-sandbox'] });
 
   const page = await browser.newPage();
   const results = [];

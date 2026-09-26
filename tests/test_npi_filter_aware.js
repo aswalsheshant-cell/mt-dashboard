@@ -5,12 +5,12 @@
 // must respond to the same global filter bar every other Commercial
 // Analytics card uses. Boots the real page in headless Chromium, same
 // pattern as tests/test_contribution_grouping.js.
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 function approxEqual(a, b, eps = 0.01) { return Math.abs(a - b) < eps; }
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));

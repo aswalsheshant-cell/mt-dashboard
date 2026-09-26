@@ -10,10 +10,10 @@
 // is unchanged. This test proves both: the disclosure fires exactly when
 // the fallback fires, never otherwise, and the underlying table values are
 // unaffected either way (same relabeled numbers as before this fix).
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
