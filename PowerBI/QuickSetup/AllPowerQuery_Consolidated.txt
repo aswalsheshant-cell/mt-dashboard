@@ -1107,28 +1107,40 @@ let
     }),
 
     // FY text -> internal tag -> start calendar year, mirroring
-    // build_dashboard_data.py's _fylabel() + _FY_START_YEAR exactly (two
-    // separate steps -- do NOT collapse into a single digit-counting
-    // heuristic, "FY26" the short form means a DIFFERENT thing than the
-    // "26" in "FY25-26" would if read as a bare number).
-    AddFyTag = Table.AddColumn(Typed, "_FyTag", each
-        let fyText = Text.Upper(Text.Trim(Text.From([FY])))
-        in  if Text.Contains(fyText, "23-24") then "FY24"
-            else if Text.Contains(fyText, "24-25") then "FY25"
-            else if Text.Contains(fyText, "25-26") then "FY26"
-            else if Text.Contains(fyText, "26-27") then "FY27"
-            else if fyText = "FY24" then "FY24"
-            else if fyText = "FY25" then "FY25"
-            else if fyText = "FY26" then "FY26"
-            else if fyText = "FY27" then "FY27"
-            else null,
-        type text),
+    // build_dashboard_data.py's _fylabel() + fy_start_year() step for step
+    // (THE ONE FY RULE): arithmetic, no list of years, so FY28, FY29, ...
+    // work without a code change. Two separate forms -- do NOT collapse into
+    // a single digit-counting heuristic: "FY26" (short) names the FY ending
+    // in 2026, and so does "FY25-26" (span, named by its END year).
+    //   span:  first "dd-dd" anywhere, second = first + 1 -> "FY" & second
+    //          ("FY25-26", "FY'25-26", "FY_25-26", "2025-26")
+    //   short: whole text (spaces removed) is "FY" + optional 0 + 2 digits
+    //          ("FY26", "FY 26", "FY026")
+    //   anything else (including a missing FY) -> null.
+    // tests/powerbi/pq39_fy_parser_cases.pq runs this exact function over
+    // tests/powerbi/fy_parser_cases.csv in Desktop (text kept identical by
+    // tests/test_pq39_fy_parser.py).
+    fnFyTag = (fy as any) as nullable text =>
+        let
+            _s = if fy = null then "" else Text.Remove(Text.Upper(Text.Trim(Text.From(fy))), {" "}),
+            _isDD = (t as text) as logical =>
+                Text.Length(t) = 2 and List.AllTrue(List.Transform(Text.ToList(t), each Text.Contains("0123456789", _))),
+            _spans = List.Select(Text.PositionOf(_s, "-", Occurrence.All), each
+                _ >= 2 and _ + 3 <= Text.Length(_s)
+                and _isDD(Text.Middle(_s, _ - 2, 2)) and _isDD(Text.Middle(_s, _ + 1, 2))),
+            _p = List.First(_spans, null),
+            _a = if _p = null then null else Number.FromText(Text.Middle(_s, _p - 2, 2)),
+            _b = if _p = null then null else Number.FromText(Text.Middle(_s, _p + 1, 2)),
+            _span = if _p <> null and _b = Number.Mod(_a + 1, 100) then "FY" & Text.PadStart(Text.From(_b), 2, "0") else null,
+            _body = if Text.StartsWith(_s, "FY") then Text.Middle(_s, 2) else null,
+            _digits = if _body <> null and Text.Length(_body) = 3 and Text.StartsWith(_body, "0") then Text.Middle(_body, 1) else _body,
+            _short = if _digits <> null and _isDD(_digits) then "FY" & _digits else null
+        in
+            if _span <> null then _span else _short,
+    AddFyTag = Table.AddColumn(Typed, "_FyTag", each fnFyTag([FY]), type text),
     AddFyStartYear = Table.AddColumn(AddFyTag, "_FyStartYear", each
-        if [_FyTag] = "FY24" then 2023
-        else if [_FyTag] = "FY25" then 2024
-        else if [_FyTag] = "FY26" then 2025
-        else if [_FyTag] = "FY27" then 2026
-        else null,
+        if [_FyTag] = null then null
+        else 2000 + Number.FromText(Text.Middle([_FyTag], 2)) - 1,
         Int64.Type),
     AddMonthNum = Table.AddColumn(AddFyStartYear, "_MonthNum", each
         Record.FieldOrDefault(
