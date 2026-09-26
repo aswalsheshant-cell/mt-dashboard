@@ -2280,13 +2280,22 @@ function buildPnl(){
   let cm2Chains=cm2D?consolidateChains(cm2D.by_chain,'nsv'):[];
   if(fOn('Chain')) cm2Chains=cm2Chains.filter(c=>fHas('Chain',c.name));
   const cm2Top=cm2Chains.slice(0,12);
-  const cm2Rows=cm2Chains.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
-     <td>${crc(c.expense)}</td><td>${crc(c.cm2_value)}</td><td>${c.cm2_pct==null?'–':c.cm2_pct+'%'}</td></tr>`).join('');
+  // CM2 is a margin only where expense rows were actually loaded; with none it
+  // would just repeat NSV as "100%", so show – (not available) instead.
+  const cm2ChainHasExp=c=>!!(cm2D&&cm2D.has_expense_data&&c.expense);
+  const cm2Rows=cm2Chains.map(c=>{const ok=cm2ChainHasExp(c);return `<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
+     <td>${ok?crc(c.expense):'–'}</td><td>${ok?crc(c.cm2_value):'–'}</td><td>${ok&&c.cm2_pct!=null?c.cm2_pct+'%':'–'}</td></tr>`;}).join('');
   const cm2HeadRows=(cm2D&&cm2D.by_expense_head||[]).map(h=>`<tr><td>${h.name}</td><td>${crc(h.amount)}</td></tr>`).join('');
   const cm2Monthly=(cm2D&&cm2D.monthly||[]);
   const cm2Latest=cm2Monthly.length?cm2Monthly[cm2Monthly.length-1]:null;
   const cm2Qc=(cm2D&&cm2D.qc)||{};
   const cm2NoData=!cm2D||!cm2D.has_expense_data;
+  const cm2ScopeExpense=cm2ScopedOk?cm2Scoped.expense:(cm2D?cm2D.total_expense:0);
+  const cm2Avail=!cm2NoData&&cm2ScopeExpense>0;   // expense rows exist in the FY scope shown
+  const cm2LoadedHeads=(cm2D&&cm2D.by_expense_head||[]).filter(h=>h.amount)
+    .map(h=>`${h.name} (&#8377;${Number(h.amount).toFixed(2)} L)`).join(', ');
+  const cm2LoadedMonths=cm2Monthly.filter(r=>r.expense).map(r=>`${r.month} ${r.fy}`).join(', ');
+  const cm2ChartChains=cm2Top.filter(cm2ChainHasExp);
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    ${fy26ok?`<p class="lead">${fyDispLabel(plFy)}. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -2346,25 +2355,25 @@ function buildPnl(){
      <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).
      ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only; the by-chain table stays FY26-FY27 combined.`:''}</p>
    ${cm2FyNote}
-   ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 currently equals NSV (0 expenses matched).
-        Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
-   :((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null&&(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)<5)?`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
-     <strong>&#9888; Expense coverage thin — CM2% not yet meaningful:</strong>
-     P&amp;L expenses loaded (${cm2ScopedOk?fyDispLabel(globalFy):'FY26-FY27'}) = &#8377;${(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense)!=null?(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense).toFixed(2):'&#8211;'} L
-     (${cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv}% of NSV, ${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows
-     in <code>PL_Expense_Input.csv</code>). CM2% of ${(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'%':'&#8211;'} will shift
-     substantially once Finance populates the expense master.
-     Update <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and re-run <code>--detail-only</code>.
-   </div>`:''}
+   ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 is shown as &#8211; (not available):
+        with 0 expenses matched it would only repeat NSV. Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
+   :`<div class="note" style="background:#fff3cd;border-left:4px solid #e65100;padding:.75rem 1rem;margin-bottom:1rem;border-radius:6px;font-size:.85rem;">
+     <strong>&#9888; Partial cost coverage &#8212; CM2 deducts only the expenses loaded:</strong>
+     ${cm2LoadedHeads||'&#8211;'}; months with expense rows: ${cm2LoadedMonths||'&#8211;'}
+     (${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows in <code>PL_Expense_Input.csv</code>).
+     Any cost head not listed here is not deducted, so CM2 is overstated by that amount until it is loaded.
+     ${cm2Avail?'':`<br><b>No expense rows for ${cm2ScopedOk?fyDispLabel(globalFy):'this selection'}</b> &#8212; CM2 is not available for it.`}
+   </div>`}
    <div class="kpis">
      ${kpi('NSV (TOT%-scope)',crc(cm2ScopedOk?cm2Scoped.nsv:cm2D.total_nsv),cm2ScopedOk?`${fyDispLabel(globalFy)} only`:'FY26-FY27, same population as TOT%')}
      ${kpi('TOT Value',totD?crc(totScopedOk?totScoped.passon_value:totD.total_passon_value):'–',totD&&(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)!=null?(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'% of MRP':'')}
-     ${kpi('Total P&L Expense',crc(cm2ScopedOk?cm2Scoped.expense:cm2D.total_expense),(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV':'')}
-     ${kpi('CM2 Value',crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value),(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV':'')}
-     ${kpi('MoM CM2 Movement',cm2Latest&&cm2Latest.mom_cm2_change!=null?crc(cm2Latest.mom_cm2_change):'–',cm2Latest?`${cm2Latest.month} ${cm2Latest.fy}`:'')}
+     ${kpi('Total P&L Expense',cm2Avail?crc(cm2ScopeExpense):'–',cm2Avail?((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV (partial coverage)':''):'not loaded')}
+     ${kpi('CM2 Value',cm2Avail?crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value):'–',cm2Avail?((cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV &#8212; partial costs only':''):'Not available &#8212; no expense data')}
+     ${kpi('MoM CM2 Movement',cm2Avail&&cm2Latest&&cm2Latest.expense&&cm2Latest.mom_cm2_change!=null?crc(cm2Latest.mom_cm2_change):'–',cm2Latest?`${cm2Latest.month} ${cm2Latest.fy}`:'')}
    </div>
    <div class="grid g2">
-     ${card('Chain-wise CM2','NSV, matched P&L expense and resulting CM2 per chain. Click a chain to drill.',cv('cm2Chart'))}
+     ${card('Chain-wise CM2',cm2ChartChains.length?'Chains with loaded P&L expense: CM2 and expense per chain. Click a chain to drill.':'',
+       cm2ChartChains.length?cv('cm2Chart'):'<p class="note" style="margin:8px 0">Not available &#8212; no chain has expense rows loaded.</p>')}
      ${card('Chain-wise CM2 detail','',`<div class="tablewrap"><table>
        <thead><tr><th>Chain</th><th>NSV</th><th>Expense</th><th>CM2 Value</th><th>CM2%</th></tr></thead>
        <tbody>${cm2Rows||'<tr><td colspan="5">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
@@ -2401,10 +2410,10 @@ function buildPnl(){
     const tch=charts[charts.length-1];tch.options.scales.x.ticks.callback=v=>v+'%';
     tch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';tch.update();
   }
-  if(cm2D){
-    mkBar('cm2Chart',cm2Top.map(c=>c.name),[
-      {label:'CM2 Value',data:cm2Top.map(c=>c.cm2_value),backgroundColor:C.teal,borderRadius:4,stack:'s'},
-      {label:'Expense',data:cm2Top.map(c=>c.expense),backgroundColor:C.red,borderRadius:4,stack:'s'}],
+  if(cm2D&&cm2ChartChains.length){
+    mkBar('cm2Chart',cm2ChartChains.map(c=>c.name),[
+      {label:'CM2 Value',data:cm2ChartChains.map(c=>c.cm2_value),backgroundColor:C.teal,borderRadius:4,stack:'s'},
+      {label:'Expense',data:cm2ChartChains.map(c=>c.expense),backgroundColor:C.red,borderRadius:4,stack:'s'}],
       {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}}}}},
       v=>drillTo('Chain',v));
   }
