@@ -179,6 +179,75 @@ def test_step7i_malformed_approval_date_fails(tmp_path):
     assert "not a valid ISO date" in out
 
 
+def test_step7n_cli_stamps_content_hash_and_hand_edit_after_is_caught(tmp_path):
+    """End-to-end: approve via the real CLI (content_hash auto-stamped),
+    then simulate a hand-edit to content outside the CLI, then confirm the
+    real readiness report catches it."""
+    reg = _fresh_register(tmp_path)
+    code, out = _approve(reg, "NC-01", "H1_ONLY", "synthetic-e2e-nc01-hash")
+    assert code == 0, out
+    data = json.loads(reg.read_text())
+    nc01 = next(d for d in data["decisions"] if d["decision_id"] == "NC-01")
+    assert nc01["content_hash"], "CLI must stamp content_hash on APPROVED"
+
+    # Simulate a hand-edit bypassing the CLI (which has no flag to do this)
+    nc01["affected_value_l"] = 999999.99
+    reg.write_text(json.dumps(data))
+
+    records = load_register(reg)
+    result = evaluate_gate(records)
+    assert result.state != "READY_FOR_SHADOW_CALCULATION" or any(
+        b["decision_id"] == "NC-01" for b in result.blocking
+    )
+    assert any(r.decision_id == "NC-01" and not r.is_resolved_with_evidence() for r in records)
+
+
+def test_step7k_not_applicable_without_evidence_rejected_by_cli(tmp_path):
+    """Regression test for a confirmed critical defect found in a code
+    audit: --status NOT_APPLICABLE (or REJECTED) with no --approved-by/
+    --approval-date/--evidence-reference used to succeed silently, exit 0,
+    and closed the decision with zero evidence -- doing this for all 12
+    required decisions reached READY_FOR_SHADOW_CALCULATION with no human
+    evidence anywhere. The CLI must now refuse it exactly like an
+    unevidenced APPROVED."""
+    reg = _fresh_register(tmp_path)
+    code, out = _record(reg, "NC-01", status="NOT_APPLICABLE")
+    assert code == 4
+    assert "requires all of" in out
+    data = json.loads(reg.read_text())
+    nc01 = next(d for d in data["decisions"] if d["decision_id"] == "NC-01")
+    assert nc01["current_status"] == "PENDING_LEADERSHIP"  # not written
+
+
+def test_step7l_full_exploit_reproduction_now_closed(tmp_path):
+    """The exact exploit found in the code audit: resolve all 12 decisions
+    as NOT_APPLICABLE with zero evidence, one CLI call each. Must no longer
+    reach READY_FOR_SHADOW_CALCULATION."""
+    reg = _fresh_register(tmp_path)
+    for decision_id in list(ALL_LEADERSHIP_RESPONSES) + list(ALL_FINANCE_RESPONSES):
+        code, out = _record(reg, decision_id, status="NOT_APPLICABLE")
+        assert code == 4, f"{decision_id} should have been refused, got {code}: {out}"
+    result = evaluate_gate(load_register(reg))
+    assert result.state != "READY_FOR_SHADOW_CALCULATION"
+
+
+def test_step7m_not_applicable_with_evidence_succeeds_and_resolves(tmp_path):
+    """The legitimate path: NOT_APPLICABLE WITH evidence still works and
+    still resolves the decision without authorizing a calculation basis."""
+    reg = _fresh_register(tmp_path)
+    code, out = _record(
+        reg, "TG-05", status="NOT_APPLICABLE",
+        approved_by="Synthetic Approver", approval_date="2026-10-01",
+        evidence_reference="synthetic-e2e-tg05-not-applicable",
+    )
+    assert code == 0, out
+    data = json.loads(reg.read_text())
+    tg05 = next(d for d in data["decisions"] if d["decision_id"] == "TG-05")
+    assert tg05["current_status"] == "NOT_APPLICABLE"
+    assert tg05["approved_by"] == "Synthetic Approver"
+    assert tg05["selected_response"] is None  # still no calculation basis authorized
+
+
 def test_step7j_ambiguous_response_recorded_as_clarification_required(tmp_path):
     reg = _fresh_register(tmp_path)
     code, out = _record(reg, "TG-03", status="CLARIFICATION_REQUIRED",
