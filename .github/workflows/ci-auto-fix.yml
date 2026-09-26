@@ -28,137 +28,104 @@ jobs:
       - name: Detect recent workflow failures
         id: detect
         shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}   # gh cannot list runs in Actions without it
         run: |
-          import subprocess
+          # Detection only: lists workflow runs that failed in the last 24 hours.
+          # Sets step outputs status = failures_found | no_failures | detection_failed
+          # and count, so later steps report what was actually found.
           import json
-          from datetime import datetime, timedelta
+          import os
+          import subprocess
+          import sys
+          from datetime import datetime, timedelta, timezone
 
-          # Get recent workflow runs
+          def output(**kv):
+              path = os.environ.get("GITHUB_OUTPUT")
+              if path:
+                  with open(path, "a") as fh:
+                      for k, v in kv.items():
+                          fh.write(f"{k}={v}\n")
+
           result = subprocess.run(
-              ['gh', 'run', 'list', '--json', 'name,status,conclusion,createdAt'],
-              capture_output=True, text=True, cwd='${{ github.workspace }}'
-          )
-
-          if result.returncode != 0:
-              print("Could not fetch workflow runs (GitHub CLI may not be available)")
-              exit(0)
-
+              ["gh", "run", "list", "--limit", "100",
+               "--json", "name,status,conclusion,createdAt,url"],
+              capture_output=True, text=True, cwd=os.environ.get("GITHUB_WORKSPACE", "."))
           try:
+              if result.returncode != 0:
+                  raise RuntimeError(result.stderr.strip() or f"gh exited {result.returncode}")
               runs = json.loads(result.stdout)
-          except:
-              print("No recent workflow runs found")
-              exit(0)
+          except Exception as exc:
+              # Not a pass: nothing was checked. Say so visibly.
+              print(f"::warning::Could not list workflow runs, so no failures were checked: {exc}")
+              output(status="detection_failed", count="unknown")
+              sys.exit(0)
 
-          # Filter failures from last 24 hours
-          failures = []
-          cutoff = datetime.utcnow() - timedelta(hours=24)
-
-          for run in runs:
-              if run.get('conclusion') == 'failure':
-                  created = datetime.fromisoformat(run['createdAt'].replace('Z', '+00:00'))
-                  if created > cutoff:
-                      failures.append({
-                          'name': run['name'],
-                          'status': run['status'],
-                          'createdAt': run['createdAt']
-                      })
-
+          cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+          failures = [
+              {"name": r["name"], "createdAt": r["createdAt"], "url": r.get("url", "")}
+              for r in runs
+              if r.get("conclusion") == "failure"
+              and datetime.fromisoformat(r["createdAt"].replace("Z", "+00:00")) > cutoff
+          ]
           if failures:
-              print(f"Found {len(failures)} recent failures:")
+              print(f"Found {len(failures)} workflow run(s) that failed in the last 24 hours:")
               for f in failures:
-                  print(f"  - {f['name']} at {f['createdAt']}")
-
-              # Log for remediation
-              with open('/tmp/ci_failures.json', 'w') as out:
+                  print(f"  - {f['name']} at {f['createdAt']}  {f['url']}")
+              with open("/tmp/ci_failures.json", "w") as out:
                   json.dump(failures, out, indent=2)
+              output(status="failures_found", count=str(len(failures)))
           else:
-              print("✓ No recent failures detected")
+              print(f"No failed workflow runs in the last 24 hours ({len(runs)} runs checked).")
+              output(status="no_failures", count="0")
 
       - name: Analyze failure patterns
-        if: failure()
+        if: steps.detect.outputs.status == 'failures_found'
         run: |
           python3 << 'EOF'
           import json
-          import os
 
-          failure_file = '/tmp/ci_failures.json'
-          if not os.path.exists(failure_file):
-              print("✓ No failures to analyze")
-              exit(0)
-
-          with open(failure_file, 'r') as f:
+          with open('/tmp/ci_failures.json') as f:
               failures = json.load(f)
 
-          print("\n📋 FAILURE ANALYSIS")
+          print("FAILURE ANALYSIS (pointers only -- the job log is the evidence)")
           print("=" * 60)
-
-          dashboard_failures = [f for f in failures if 'Dashboard' in f['name']]
-          pbi_failures = [f for f in failures if 'Power BI' in f['name']]
-
-          if dashboard_failures:
-              print(f"\n❌ Dashboard Validation failures: {len(dashboard_failures)}")
-              print("   Likely causes:")
-              print("   - Markup check failing (check Phase 2 functions exist)")
-              print("   - JSON schema validation issue")
-              print("   - Data.js integrity problem")
-              print("\n   Auto-fix: Run './scripts/refresh_dashboard.sh' or update validate.yml")
-
-          if pbi_failures:
-              print(f"\n❌ Power BI CI failures: {len(pbi_failures)}")
-              print("   Likely causes:")
-              print("   - Missing test harness files")
-              print("   - Test data not available in CI environment")
-              print("   - PowerBI validation script not found")
-              print("\n   Auto-fix: Make test harnesses optional (continue-on-error: true)")
-
-          print("\n" + "=" * 60)
-          print("💡 Recommendation: Deploy CI workflow fixes to main branch")
+          for name in sorted({f['name'] for f in failures}):
+              n = sum(1 for f in failures if f['name'] == name)
+              print(f"  {name}: {n} failed run(s) in 24 h")
+          print("")
+          print("  Next step: open each failed run's job log and find the first real error.")
+          print("  Do not add continue-on-error: true to make a check pass -- that hides")
+          print("  the failure without fixing it (see FM-28, pbi-windows-ci.yml).")
+          print("  This workflow does not change any file, open a PR, or push a fix.")
           EOF
 
-      - name: Create remediation checklist
+      - name: Print remediation checklist
+        if: steps.detect.outputs.status == 'failures_found'
         run: |
-          cat > /tmp/ci_remediation_checklist.md << 'EOF'
-          # CI Failure Remediation Checklist
+          cat << 'EOF'
+          # CI failure checklist (printed to this log only -- nothing was fixed)
 
-          ## Recent Failures
-          - [ ] Dashboard Validation & QC — Verify markup checks
-          - [ ] Power BI Windows CI — Verify test harnesses are optional
-
-          ## Action Items
-          1. **For Dashboard Validation**
-             - Check that Phase 2 functions are present in index.html
-             - Verify 'function maskSiteCode' exists
-             - Verify 'function getGranularityBadge' exists
-             - Verify 'function wireRelianceBCToggle' exists
-
-          2. **For Power BI Windows CI**
-             - Ensure all test files have 'continue-on-error: true'
-             - Make test harnesses optional (skip if missing)
-             - Don't fail on missing optional validation scripts
-
-          ## Prevention
-          - Add `continue-on-error: true` to optional validation steps
-          - Check for Phase 2 functions, not Phase 3 references
-          - Mock or skip tests that require unavailable data in CI
-
-          **Status**: Auto-remediation applied to both workflows
-          **Next review**: Check if failures resolve on next push
+          - [ ] Open each failed run listed above and read its job log
+          - [ ] Classify the first real error: required validator, optional
+                diagnostic, or environment (e.g. CB-09 CAPIError on code scanning)
+          - [ ] Reproduce locally, write a failing test, fix the root cause
+          - [ ] Never make a failing check pass with continue-on-error: true
           EOF
-          cat /tmp/ci_remediation_checklist.md
 
       - name: Summary
+        if: always()
+        env:
+          STATUS: ${{ steps.detect.outputs.status }}
+          COUNT: ${{ steps.detect.outputs.count }}
         run: |
           echo "=========================================="
-          echo "CI Auto-Fix Check Complete"
+          echo "CI failure check -- detection only"
           echo "=========================================="
-          echo ""
-          echo "Actions taken:"
-          echo "  ✓ Detected recent workflow failures"
-          echo "  ✓ Analyzed failure patterns"
-          echo "  ✓ Logged remediation checklist"
-          echo ""
-          echo "Workflow fixes deployed:"
-          echo "  ✓ Dashboard Validation — updated markup checks"
-          echo "  ✓ Power BI Windows CI — made tests optional"
-          echo ""
-          echo "Next: Monitor next scheduled run (6 hours from now)"
+          case "$STATUS" in
+            failures_found)   echo "Found $COUNT failed workflow run(s) in the last 24 hours (listed above)." ;;
+            no_failures)      echo "No failed workflow runs in the last 24 hours." ;;
+            detection_failed) echo "Could not list workflow runs -- nothing was checked (see the warning above)." ;;
+            *)                echo "Detection step did not report a result." ;;
+          esac
+          echo "This job changes nothing: no file edits, no commits, no pushes, no PRs."
