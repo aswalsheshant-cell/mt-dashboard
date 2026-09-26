@@ -4,10 +4,10 @@
 // "Hyaluronic Acid"/"Hyaluronic acid", "TDC  1%"/"TDC 1%") must show as ONE
 // filter choice, and picking that choice must return the rows of EVERY
 // spelling -- without changing any record, NSV value or total.
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
