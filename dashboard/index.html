@@ -3753,7 +3753,13 @@ function buildComparison(){
           const _a=(_prevMap[x.name]??null);
           return {name:x.name,a:_a,b:x.nsv,yoy:(_a!=null&&_a>0)?Math.round((x.nsv/_a-1)*1000)/10:null};
         });
-        yrPair=[`${_prevFY} ${_pLbl}`,`${fyTag()} ${_pLbl}`];
+        // The prior-FY series covers the SAME months one (or more) FYs earlier, so
+        // its label is the current label shifted back by the FY gap -- "FY26
+        // Apr-25–Aug-25 vs FY27 Apr-26–Aug-26", not Apr-26 on both.
+        const _fyGap=(+String(fyTag()).slice(2))-(+String(_prevFY).slice(2));
+        const _shiftLbl=l=>String(l).replace(/-(\d{2})$/,(m,y)=>'-'+String((+y-_fyGap+100)%100).padStart(2,'0'));
+        const _pLblPrev=_canon.length?_shiftLbl(_canon[0])+'–'+_shiftLbl(_canon[_canon.length-1]):_pLbl;
+        yrPair=[`${_prevFY} ${_pLblPrev}`,`${fyTag()} ${_pLbl}`];
       } else {
         s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2><div style="margin:0 0 14px">${btns}</div>${fyNoDataNote('the chain/brand Primary source')}${drillCardHtml('cmpDrill','Primary NSV')}`;
         wireCmpButtons(s); renderDrillChart('cmpDrill','Primary NSV',recFilter()); return;
