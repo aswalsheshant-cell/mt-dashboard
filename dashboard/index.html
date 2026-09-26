@@ -272,8 +272,15 @@ fetch('compliance_metrics.json').then(r=>r.json()).then(d=>{
 }).catch(()=>{});
 
 // Load active alerts feed (dynamic sidecar, optional)
+// alertsFeedStatus (loading/loaded/error) keeps a failed load from rendering as
+// a genuine all-clear ("No active alerts. All metrics within thresholds.").
 window.alertsFeed={metadata:{total_alerts:0,critical_count:0,warning_count:0},alerts:[]};
-fetch('alerts_feed.json').then(r=>r.json()).then(d=>window.alertsFeed=d).catch(()=>{});
+window.alertsFeedStatus='loading';
+fetch('alerts_feed.json')
+  .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(d=>{ window.alertsFeed=d; window.alertsFeedStatus='loaded'; })
+  .catch(()=>{ window.alertsFeedStatus='error'; })
+  .finally(()=>{ if(window.AlertController && window.AlertController.onFeedSettled) window.AlertController.onFeedSettled(); });
 
 const D = window.DASH;
 const id = (eid) => document.getElementById(eid);

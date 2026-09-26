@@ -55,14 +55,20 @@ jobs:
         shell: pwsh
         env:
           PYTHONIOENCODING: utf-8
-        continue-on-error: true
         run: |
           Write-Host "Checking for Python validation scripts..." -ForegroundColor Cyan
           $harness_found = $false
 
+          # A pwsh step fails only on its LAST native exit code, so each script's
+          # exit code is checked right after it runs. eval_harness.py checks the
+          # retired data_master.json pipeline (its 15-25 MB size range and FY25
+          # Primary expectation predate the current data.js), so its failure is
+          # shown as a warning annotation, not hidden and not blocking.
+          # validate_data_integrity.py checks dashboard/data.js and is required.
           if (Test-Path "scripts/eval_harness.py") {
-            Write-Host "Running eval_harness.py..." -ForegroundColor Green
+            Write-Host "Running eval_harness.py (informational)..." -ForegroundColor Green
             python scripts/eval_harness.py
+            if ($LASTEXITCODE -ne 0) { Write-Host "::warning::eval_harness.py exited $LASTEXITCODE (informational: retired data_master.json pipeline)" }
             $harness_found = $true
           } else {
             Write-Host "⚠ eval_harness.py not found (skipped)" -ForegroundColor Yellow
@@ -71,6 +77,7 @@ jobs:
           if (Test-Path "tests/validate_data_integrity.py") {
             Write-Host "Running validate_data_integrity.py..." -ForegroundColor Green
             python tests/validate_data_integrity.py
+            if ($LASTEXITCODE -ne 0) { Write-Host "::error::validate_data_integrity.py failed (exit $LASTEXITCODE)"; exit $LASTEXITCODE }
             $harness_found = $true
           } else {
             Write-Host "⚠ validate_data_integrity.py not found (skipped)" -ForegroundColor Yellow
@@ -88,9 +95,11 @@ jobs:
             Write-Host "✓ Test file found at tests/test_article_uniqueness.py" -ForegroundColor Green
             if ((Test-Path "PowerBI/RawDataFolders/Primary_Derived_FY25/Primary_Article_Synthesized_FY25.csv") -or (Test-Path "data_mappings/Chain_Article_EAN_Mapping_CORRECTED_v2.csv")) {
               python -m pytest tests/test_article_uniqueness.py -v
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             } else {
               Write-Host "⚠ Data files not found in CI environment (expected on fresh runners). Tests will skip gracefully." -ForegroundColor Yellow
               python -m pytest tests/test_article_uniqueness.py -v
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             }
           } else {
             Write-Host "Skipped: test_article_uniqueness.py not found" -ForegroundColor Yellow
@@ -98,7 +107,6 @@ jobs:
 
       - name: Execute Power BI Watch Folder & DAX Validation
         shell: pwsh
-        continue-on-error: true
         run: |
           if (Test-Path ".\scripts\ci\test_powerbi_model.ps1") {
             Write-Host "Running Power BI model validation..." -ForegroundColor Green
