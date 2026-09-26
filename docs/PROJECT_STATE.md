@@ -58,10 +58,11 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`a49e998` — PR #218 merged; recovery stream #216–#219 complete
-Validated: 2026-09-25 — production certification on merged `main`
-(READY_WITH_GOVERNED_BLOCKERS; see "Production certification — 2026-09-25" below).
-Previous: `ec55115`, 2026-09-11, fresh-clone reproducibility PASS.
+`259135f` — PR #241 merged; closeout stream #225–#241 complete
+Validated: 2026-09-26 — every PR in the stream merged only after its six required
+checks passed on the tested head, with `main` byte-identical to that head after
+merge (see "Closeout — 2026-09-26" below).
+Previous: `a49e998`, 2026-09-25, production certification (READY_WITH_GOVERNED_BLOCKERS).
 
 > A milestone's own commit hash does not exist while this file is being written
 > for it, so this section is corrected in the **next** commit. Check it against
@@ -286,6 +287,49 @@ Deferred until the blockers above are dispositioned: recovery of the five
 historical Claude chats (each checked against certified `main`, never trusted
 from the chat), and any optional local-AI work (e.g. AMD/Lemonade) —
 OPTIONAL_POST_CERTIFICATION.
+
+### Closeout — 2026-09-26 (main `259135f`)
+
+One fresh branch and one approval per PR; each merged only with the six required
+checks green on the tested head and `main` identical to it afterwards.
+`github-advanced-security` failed on every run with `CAPIError 400 The requested
+model is not supported` (read in each log; not a required check -- CB-09).
+
+| PR | Change | FM |
+|---|---|---|
+| #225 `4a63a39` | Power BI Windows CI no longer hides validation failures | FM-28 |
+| #226 `f16b762` | Failed alert-feed load no longer reads "all healthy" | -- |
+| #228 `83ef4bb` | Every browser test launches Chromium through `tests/browser_launch.js` | FM-29 |
+| #230 `2c7825a` / #231 `4f85622` | PPTX hook and session banner truthful; ci-auto-fix never claims remediation | FM-30/31 |
+| #232 `c8ba4aa` / #233 `a3c6c72` | CM2 "Not available" without expense (HTML and Power BI); DAX filter context keeps Month/FY | FM-32/33 |
+| #234 `f3b9d64` | PQ 39 FY parser follows THE ONE FY RULE (FY28+) | FM-34 |
+| #235 `4bfd90f` | SKU quadrants: no fabricated 45% margin | FM-35 |
+| #236 `370cdf3` | Alert badge follows the feed; no page-wide overflow when zoomed | FM-36 |
+| #237 `2e0f1e8` | Primary baseline figures reconciled by month window; cited script exists | FM-11 note |
+| #238 `17b3f81` | Reliability skill's mandatory checks fail closed | FM-27 note |
+| #239 `a39d55c` | `eval_harness.py` retired; required Windows validator not skippable | FM-28 note |
+| #240 `c54a9bd` | QuickSetup files generated from PQ/DAX sources, `--check` in CI | FM-37 |
+| #241 `259135f` | Comparison chart labels the prior FY with its own months | FM-38 |
+
+Closed with evidence notes: issues #195, #200 (fixed by #199 / #204); PRs #131,
+#132, #133, #156 (rebuilt as #225/#231/#230/#226), #160, #179 (outdated).
+
+Certification blockers -- changes since 2026-09-25:
+
+| ID | Update |
+|---|---|
+| CB-04 | #131, #132, #133 closed. #130, #135, #136 rebuilt and merged as #238, #240, #237 -- the old PRs can be closed as superseded (owner approval). #129 needs a fresh Node 24 pin audit (runners force Node-20 actions onto Node 24 since 2026-09-23); reading the upstream `actions/*` repos needs owner approval for read-only access. #134 is an owner policy decision. #119 stays gated on #120 (266-line owner register). |
+| CB-05 | #156, #160, #179 closed; #215 merged (`4aad204`). #158/#159 no longer open. Still open, 135-160 commits behind: #165, #168, #169, #170 -- owner decides keep/rebuild/close. |
+| CB-09 | Now fails on every run (not intermittent); still not a required check; issue #194. |
+| CB-10 | RESOLVED -- merged in #222 (`624d779`). |
+
+Open, owned elsewhere:
+- **#229** MT Direct DN claims -- HOLD: code ready; data/business not (Nykaa/FSN, Tnsi, Jul/Aug completeness, MT_Spend, indirect claims, COGS/logistics).
+- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Case 1 now, 2-8 after #229 data); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows).
+- **Promo stack** (PQ 46 / DAX 15): excluded from QuickSetup -- reads tables no query builds and a one-month relative path; needs its own fix (owner decision).
+- **Not-shown metrics** (Stock days, OSA/OOS, Promo ROI): need a stock-on-hand feed, a store audit at >=60% coverage for the reporting months, and promo spend per promo -- business inputs.
+- **Three browser tests** (`test_sprint8_compliance_inventory.js`, `smoke_dashboard.js`, `test_smoke_dashboard_governed.js`) expect servers on ports 8000/8080 instead of `SWEEP_PORT`; they pass with those servers running.
+- Issues **#120** (owner register), **#113** (dead code, next in the plan), **#194** (GitHub).
 
 ## Partial Capabilities
 
