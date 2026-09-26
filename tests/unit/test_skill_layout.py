@@ -10,7 +10,7 @@ Catches the failure patterns found on 2026-09-26:
   * an agent in .claude/agents listing a skill that is not installed
 
 The layout checks are stdlib only; the suite validator and sync check need
-PyYAML, which validate.yml installs (same pin as requirements.txt).
+PyYAML, which validate.yml installs from requirements.txt.
 """
 import re
 import subprocess

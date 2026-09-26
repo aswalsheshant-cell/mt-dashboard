@@ -71,6 +71,7 @@ def load_register(path: Path) -> List[DecisionRecord]:
             affected_value_l=d.get("affected_value_l"),
             affected_store_count=d.get("affected_store_count"),
             notes=d.get("notes"),
+            content_hash=d.get("content_hash"),
         ))
     return records
 
