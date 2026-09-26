@@ -1281,9 +1281,11 @@ function buildChannelDynamics(){
   const fp27=beyond?FPX(fyTag()):null;
   const primOk=!beyond||!!fp27;
 
-  let chains=(p.by_chain||[]).filter(c=>c.name!=='Unmapped Chain'), brands=p.by_brand, channels=p.by_channel;
+  // Unmapped Chain stays visible (owner decision 2026-09-26): hiding it made the
+  // chain rows stop adding up to Primary. See tests/test_unmapped_chain_visible.js.
+  let chains=(p.by_chain||[]), brands=p.by_brand, channels=p.by_channel;
   if(fp27){
-    chains=consolidateChains(fp27.by_chain).filter(c=>c.name!=='Unmapped Chain').map(c=>({name:c.name,[fy]:c.nsv}));
+    chains=consolidateChains(fp27.by_chain).map(c=>({name:c.name,[fy]:c.nsv}));
     brands=fp27.by_brand.map(b=>({name:b.name,[fy]:b.nsv}));
     channels=fp27.by_channel.map(c=>({name:c.name,[fy]:c.nsv}));
   }
@@ -1394,7 +1396,9 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     const sorted=validChains.slice().sort((a,b)=>(b[primYr]||0)-(a[primYr]||0));
     const selectedChain=fOne('Chain'); // Phase 2: Check if single chain is filtered
     const granularityDisclaimer=renderGranularityDisclaimer(selectedChain); // Phase 2: Add granularity note
-    const rows27=sorted.filter(c=>(c[primYr]||0)>0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
+    // !==0, not >0: negative return/credit chains are real NSV (FM-20) and must
+    // show, so the rows add up to the FY total.
+    const rows27=sorted.filter(c=>(c[primYr]||0)!==0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
     const sum=sorted.reduce((a,c)=>a+(c[primYr]||0),0);
     const chRows=validChannels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
     // Cumulative Rank & Running Total: same rows/order as "Top Chains" above,
@@ -1402,7 +1406,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     // pattern documented in docs/mt_sql_cookbook.sql. Reuses `sorted`/`sum`
     // rather than recomputing, so it can never diverge from the card above it.
     let _running=0;
-    const rankRows=sorted.filter(c=>(c[primYr]||0)>0||fOn('Chain')).map((c,i)=>{
+    const rankRows=sorted.filter(c=>(c[primYr]||0)!==0||fOn('Chain')).map((c,i)=>{
       const v=c[primYr]||0;
       _running+=v;
       const cumPct=sum>0?(100*_running/sum):0;

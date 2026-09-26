@@ -100,14 +100,25 @@ jobs:
           html = Path('dashboard/index.html').read_text()
 
           fixes = {
-              "Fix 1: Unmapped Chain Filter": "filter(c=>c.name!=='Unmapped Chain')",
+              # Owner decision 2026-09-26: Unmapped Chain is shown, not filtered out
+              # (the rows must add up to Primary). Marker comment in buildChannelDynamics.
+              "Fix 1: Unmapped Chain visible": "Unmapped Chain stays visible",
               "Fix 2: FY Fallback Logic": "fallbackFy",
               "Fix 3: Real Store Counts (universe.by_chain)": "_uniStores[name]",
               "Fix 4: Canvas Creation": "createElement('canvas')",
               "Fix 5: Alert Controller": "AlertController.buildAlerts"
           }
 
+          # Patterns that must NOT come back.
+          forbidden = {
+              "Unmapped Chain hidden from the chain view": "filter(c=>c.name!=='Unmapped Chain')",
+          }
+
           missing = []
+          for fix_name, pattern in forbidden.items():
+              if pattern in html:
+                  print(f"❌ {fix_name}")
+                  missing.append(fix_name)
           for fix_name, pattern in fixes.items():
               if pattern in html:
                   print(f"✅ {fix_name}")
