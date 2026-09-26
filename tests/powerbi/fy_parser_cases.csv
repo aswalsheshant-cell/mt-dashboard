@@ -1,0 +1,27 @@
+FY,Month,Expected FY Tag,Expected MonthStart,Note
+FY24,Apr,FY24,2023-04-01,short form: first month of FY24
+FY25,May,FY25,2024-05-01,short form
+FY26,Dec,FY26,2025-12-01,short form: last month before rollover
+FY27,Jan,FY27,2027-01-01,Jan-Mar rollover: Jan of FY27 is calendar 2027
+FY28,Feb,FY28,2028-02-01,Jan-Mar rollover; FY28 was null before this fix
+FY29,Mar,FY29,2029-03-01,Jan-Mar rollover: last month of FY29
+FY30,Apr,FY30,2029-04-01,FY30 starts in April 2029
+FY23-24,Jun,FY24,2023-06-01,span form names the END year
+FY24-25,Jul,FY25,2024-07-01,span form
+FY25-26,Aug,FY26,2025-08-01,span form
+FY26-27,Sep,FY27,2026-09-01,span form
+FY27-28,Oct,FY28,2027-10-01,span form; was null before this fix
+FY28-29,Nov,FY29,2028-11-01,span form
+FY29-30,Mar,FY30,2030-03-01,span form + Jan-Mar rollover
+FY'25-26,January,FY26,2026-01-01,SAP export spelling; full month name
+FY_26-27,Apr,FY27,2026-04-01,source-workbook spelling
+2027-28,Apr,FY28,2027-04-01,bare year span
+fy27,apr,FY27,2026-04-01,lower case input
+FY 28,Sept,FY28,2027-09-01,space inside tag; Sept spelling
+FY028,Jun,FY28,2027-06-01,leading zero in short form
+FY25-27,Apr,,,invalid: span years not consecutive
+FY2027,Apr,,,invalid: four-digit short form is not an FY tag
+FY,Apr,,,invalid: no year
+Q1 FY27 plan,Apr,,,invalid: free text
+,Apr,,,missing FY
+FY27,Foo,FY27,,valid FY but unknown month: MonthStart stays empty
