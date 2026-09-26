@@ -55,18 +55,29 @@ for f in .github/workflows/*.yml .github/workflows/*.yaml; do
   [ "$size" -lt 10 ] && echo "FAIL empty: $f ($size bytes)"
 done
 
-# YAML parses and has on: trigger
-python - <<'EOF'
+# YAML syntax + presence of an 'on:' trigger key only. This is NOT full
+# GitHub Actions semantic validation (job structure, action references,
+# expression syntax, required inputs are unchecked) -- only that the file
+# parses as YAML and declares a trigger. Exits nonzero on any failure, so
+# it can gate a merge; a caller that ignores the exit code is the bug.
+python3 - <<'EOF'
 import glob, yaml, pathlib, sys
+
 errors = []
-for path in glob.glob(".github/workflows/*.yml"):
+paths = sorted(glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"))
+for path in paths:
     try:
         doc = yaml.safe_load(pathlib.Path(path).read_text())
         if not isinstance(doc, dict) or ("on" not in doc and True not in doc):
             errors.append(f"{path}: missing 'on:' key")
     except yaml.YAMLError as e:
         errors.append(f"{path}: parse error — {e}")
-[print(e) for e in errors] or print("✓ all workflows valid")
+
+if errors:
+    for e in errors:
+        print(f"FAIL {e}")
+    sys.exit(1)
+print(f"OK {len(paths)} workflow file(s) parse as YAML and declare an 'on:' trigger")
 EOF
 ```
 
@@ -96,9 +107,9 @@ When any workflow reports `startup_failure`:
 ### Step 1 — Inspect the workflow file
 ```bash
 wc -c .github/workflows/<name>.yml          # < 10 bytes = empty = Category A
-python -m py_compile .github/workflows/...  # syntax check
-python -c "import yaml; yaml.safe_load(open('.github/workflows/<name>.yml'))"
+python3 -c "import yaml; yaml.safe_load(open('.github/workflows/<name>.yml'))"  # YAML syntax only; raises (nonzero exit) on parse error
 ```
+`py_compile` is for Python source files -- it does not apply to YAML and was never doing anything useful here.
 - Empty file → fix: replace with valid content (Category A)
 - Parse error → fix: correct the YAML (Category A)
 
