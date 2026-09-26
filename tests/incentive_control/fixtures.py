@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
 
-from incentive_control.models import REQUIRED_DECISIONS  # noqa: E402
+from incentive_control.models import REQUIRED_DECISIONS, compute_content_hash  # noqa: E402
 
 SYNTHETIC_APPROVER = "SYNTHETIC_FIXTURE_APPROVER"
 SYNTHETIC_EVIDENCE = "synthetic-test-fixture-evidence-001"
@@ -37,6 +37,7 @@ def pending_decision(decision_id: str) -> dict:
         "business_rule_result": None,
         "implementation_status": "NOT_STARTED",
         "notes": "synthetic test fixture -- not a real decision",
+        "content_hash": None,
     }
 
 
@@ -54,6 +55,11 @@ def approved_decision(decision_id: str, response: str, **overrides) -> dict:
         # explicitly via overrides instead.
         "evidence_reference": f"{SYNTHETIC_EVIDENCE}-{decision_id.lower()}",
         "business_rule_result": f"synthetic rule result for {response}",
+        "content_hash": compute_content_hash(
+            d["affected_period"], d["affected_entity"],
+            d["affected_value_l"], d["affected_store_count"],
+            d["allowed_responses"],
+        ),
     })
     d.update(overrides)
     return d

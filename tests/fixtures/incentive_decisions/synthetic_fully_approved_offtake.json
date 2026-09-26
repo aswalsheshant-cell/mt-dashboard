@@ -22,7 +22,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-nc-01",
       "business_rule_result": "synthetic rule result for H1_ONLY",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "3637f9067168c701"
     },
     {
       "decision_id": "TG-01",
@@ -46,7 +47,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-tg-01",
       "business_rule_result": "synthetic rule result for TARGET_REQUIRED",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "2bad5b5d7d011dcd"
     },
     {
       "decision_id": "TG-02",
@@ -70,7 +72,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-tg-02",
       "business_rule_result": "synthetic rule result for TARGET_REQUIRED",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "2bad5b5d7d011dcd"
     },
     {
       "decision_id": "TG-03",
@@ -94,7 +97,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-tg-03",
       "business_rule_result": "synthetic rule result for TARGET_REQUIRED",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "2bad5b5d7d011dcd"
     },
     {
       "decision_id": "TG-04",
@@ -118,7 +122,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-tg-04",
       "business_rule_result": "synthetic rule result for TARGET_REQUIRED",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "2bad5b5d7d011dcd"
     },
     {
       "decision_id": "TG-05",
@@ -142,7 +147,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-tg-05",
       "business_rule_result": "synthetic rule result for TARGET_REQUIRED",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "2bad5b5d7d011dcd"
     },
     {
       "decision_id": "GRAIN-01",
@@ -163,7 +169,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-grain-01",
       "business_rule_result": "synthetic rule result for STATE_BRAND_MEASUREMENT_APPROVED",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "34f4b1b67b7294f2"
     },
     {
       "decision_id": "DM-01",
@@ -186,7 +193,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-dm-01",
       "business_rule_result": "synthetic rule result for IN_SCOPE_EMPLOYEE_ATTRIBUTION",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "94809ac6b5196a90"
     },
     {
       "decision_id": "BASUP-01",
@@ -208,7 +216,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-basup-01",
       "business_rule_result": "synthetic rule result for INCENTIVE_ELIGIBLE",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "7450cd2ede84673f"
     },
     {
       "decision_id": "D1A",
@@ -229,7 +238,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-d1a",
       "business_rule_result": "synthetic rule result for OFFTAKE",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "9395b7d769441c6c"
     },
     {
       "decision_id": "D1B",
@@ -251,7 +261,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-d1b",
       "business_rule_result": "synthetic rule result for OFFTAKE",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "73e7bfa8cd88b3c6"
     },
     {
       "decision_id": "RES-01",
@@ -279,7 +290,8 @@
       "evidence_reference": "synthetic-test-fixture-evidence-001-res-01",
       "business_rule_result": "synthetic rule result for SOURCE_BASIS_DIFFERENCE",
       "implementation_status": "NOT_STARTED",
-      "notes": "synthetic test fixture -- not a real decision"
+      "notes": "synthetic test fixture -- not a real decision",
+      "content_hash": "f1e30baab72f47b8"
     }
   ]
 }
