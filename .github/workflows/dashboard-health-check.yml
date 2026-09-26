@@ -108,13 +108,16 @@ jobs:
               "Fix 4: Canvas Creation": "createElement('canvas')",
               "Fix 5: Alert Controller": "AlertController.buildAlerts",
               # A failed alerts_feed.json load must not read as "all metrics healthy".
-              "Fix 6: Alert feed load state": "window.alertsFeedStatus='error'"
+              "Fix 6: Alert feed load state": "window.alertsFeedStatus='error'",
+              # CM2 is "not available" (–) where no expense rows exist, never NSV as "100%".
+              "Fix 7: CM2 availability gate": "const cm2Avail="
           }
 
           # Patterns that must NOT come back.
           forbidden = {
               "Unmapped Chain hidden from the chain view": "filter(c=>c.name!=='Unmapped Chain')",
               "Alert feed load failure swallowed": ".then(d=>window.alertsFeed=d).catch(()=>{})",
+              "CM2 shown as NSV when no expenses": "CM2 currently equals NSV (0 expenses matched)",
           }
 
           missing = []
