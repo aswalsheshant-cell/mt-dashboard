@@ -256,6 +256,44 @@ datasets:
       resolved" claim as accurate without independently recounting the PENDING
       rows.
 
+  mt_direct_dn_claims:
+    business_name: "MT Direct debit-note (DN) claims -- chain-billed Promotion / Visibility / Off-Invoice / Listing Fees / Extra Margin"
+    source_path: "supplied 2026-09-26 by the user as MT-DN_1.xlsx (Finance DN register, Sheet1 = DN lines, Sheet2 = pivot); workbook kept outside Git like the other source workbooks. Loaded rows live in PowerBI/SeedData/Masters/PL_Expense_Input.csv (Source = 'MT Direct DN register (Mon-yy)')."
+    source_type: "XLSX, one row per DN; loaded as Month x FY x Customer Code x Expense Head"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    downstream_outputs: ["PowerBI/SeedData/Masters/PL_Expense_Input.csv", "dashboard/data.js cm2 block (after build_dashboard_data.py --detail-only)", "PowerBI/PowerQuery/39_PL_Expense_Input.pq"]
+    loader: "scripts/ingest_mt_direct_dn.py (idempotent: replaces only its own tagged rows)"
+    last_validated: "2026-09-26"
+    modification_allowed: false
+    notes: >
+      Checklist (CLAUDE.md "New data source checklist"): grain = one DN line;
+      business date = "Expense Related to Month" (claim period), not DN receipt
+      or doc date; FY from that month by THE ONE FY RULE -- the workbook's own
+      "Pertain to FY" is overridden on 14 rows that say 2025-26 for May-Aug 2026
+      claims; amount = Base Amount excl. GST (decision D2), GST kept only in
+      Remarks. Reconciliation 2026-09-26: 989 rows = Rs1,532.42 L; 11 exact
+      duplicate rows (a repeated block, rows 977-987 of Sheet1: 10 Nykaa, 1
+      Guardian) = Rs51.66 L dropped -- the 978 unique rows = Rs1,480.75 L,
+      equal to the workbook's own Sheet2 pivot Grand Total to the paisa.
+      Held out: all 48 Nykaa SS (FSN) rows (Rs206.04 L unique) -- channel
+      "GT_ e B2B" in the register and customer 1103979 = EB2B (Confirmed) in
+      CustomerCode_Zone_State_Mapping.csv; not MT Direct, and the Nykaa/FSN
+      channel decision (CB-01) is open. Loaded: Rs1,274.71 L in 64 rows, FY27
+      Apr-Aug 2026. Chains resolve through canon_chain(); 'Wellness' (1100049)
+      via the Confirmed customer master to Wellness Forever. Unresolved:
+      Tnsi Retail Pvt Ltd (1100027, Rs5.20 L) -- not in any master, loaded under
+      its own name so it shows as unmapped in the CM2 QC, not guessed.
+      Coverage caveat: Jul/Aug 2026 are lower than Apr-Jun and may still be
+      receiving DNs. FM-14 lifecycle overlap: do NOT also load
+      mt_provision_national_aug26 (Aug'26 provisions) or claim settlements for
+      the same chain x month x head -- a provision and its later DN describe
+      one commercial event. MT Indirect (distributor) claims (cm2_claims) are a
+      different payer stream and are not in this file.
+
   mt_provision_national_aug26:
     business_name: "MT National Provision -- Claims/Promotions/Visibility/Rental/Freight/Extra Margin, single month"
     source_path: "supplied 2026-09-13 by the user, not yet copied into the repo (candidate location: data/raw_drops/MT_Provision_National_Aug26.xlsx, following the existing raw_drops convention -- not moved without confirmation)"
