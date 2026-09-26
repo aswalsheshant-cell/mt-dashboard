@@ -40,10 +40,14 @@ echo "=== mt-dashboard session setup (${HOOK_SRC}) ==="
 
 # Always print the recovery context, whichever path the dependency check takes.
 finish() {
+  # The health check is diagnostic-only and always exits 0, so its TEXT is what
+  # says whether something is wrong. Keep it, so the closing banner reflects it.
+  HEALTH_OUTPUT=""
   if [ -x scripts/environment_health_check.sh ]; then
     echo
     echo "=== resume context ==="
-    SKIP_NPM_PROBE=1 ./scripts/environment_health_check.sh 2>/dev/null || true
+    HEALTH_OUTPUT="$(SKIP_NPM_PROBE=1 ./scripts/environment_health_check.sh 2>/dev/null || true)"
+    printf '%s\n' "$HEALTH_OUTPUT"
   fi
   if [ -f docs/PROJECT_STATE.md ]; then
     echo
@@ -53,7 +57,16 @@ finish() {
     echo
     echo "  Full state: docs/PROJECT_STATE.md — read it before changing anything."
   fi
-  echo "=== Environment ready ==="
+  # Environment problems only. Business-input notices ("incentive ingest
+  # BLOCKED", "incentive working absent") are expected by design and do not
+  # make the environment unready.
+  ENV_PROBLEMS="$(printf '%s\n' "$HEALTH_OUTPUT" | grep -E \
+    '\*\* LOW (MEMORY|DISK)|MISSING|INVALID|STILL RUNNING|python deps +missing:|^ +(node|pandas|chromium) +absent' || true)"
+  if [ -n "$ENV_PROBLEMS" ]; then
+    echo "=== Environment started with problems -- see the flagged lines above before heavy work ==="
+  else
+    echo "=== Environment ready ==="
+  fi
   exit 0
 }
 
