@@ -110,6 +110,31 @@ def test_percent_measures_divide_so_blank_stays_blank():
         assert "DIVIDE" in m[name], name
 
 
+DIMENSIONS = {"Chain": "_chain", "Brand": "_brand", "Category": "_cat"}
+
+
+def test_dimension_expense_keeps_date_and_fy_filters():
+    """Review finding on #233: FILTER(ALL('PL Expense Input'), ...) also clears the
+    Date Table filters that reach the expense table through its relationship, so a
+    chain's CM2 for one month or FY deducted that chain's expense from every
+    period. Only the resolved-dimension column may be filtered, intersected with
+    the current context."""
+    m = _measures(DAX.read_text(encoding="utf-8"))
+    for dim, var in DIMENSIONS.items():
+        b = re.sub(r"\s+", " ", m[f"Total P&L Expense (by {dim})"])
+        assert "ALL ( 'PL Expense Input' )" not in b, f"by {dim}: ALL() drops Month/FY filters"
+        assert re.search(rf"KEEPFILTERS \( TREATAS \( {{ {var} }}, 'PL Expense Input'\[Resolved {dim}\] \) \)", b), \
+            f"by {dim}: filter only 'PL Expense Input'[Resolved {dim}], intersected with the current context"
+
+
+def test_mapped_filter_does_not_overwrite_an_outer_chain_filter():
+    """A plain CALCULATE(..., NOT ISBLANK([Resolved Chain])) replaces any filter
+    already on [Resolved Chain] -- it would undo the chain filter above and give
+    every chain the total mapped expense. It must intersect (KEEPFILTERS)."""
+    b = re.sub(r"\s+", " ", _measures(DAX.read_text(encoding="utf-8"))["Total P&L Expense (Mapped)"])
+    assert re.search(r"KEEPFILTERS \( NOT ISBLANK \( 'PL Expense Input'\[Resolved Chain\] \) \)", b), b
+
+
 def _qs_section(path, source_file):
     t = path.read_text(encoding="utf-8")
     parts = re.split(r"\n#{20,}\n# STEP \d+/\d+\s+--\s+SOURCE FILE: (\S+)\n(?:#.*\n)*#{20,}\n", t)
@@ -127,7 +152,7 @@ def test_quicksetup_copies_match_canonical():
 
 def test_model_case_queries_cover_all_four_cases():
     text = CASES.read_text(encoding="utf-8")
-    for case in ("CASE 1", "CASE 2", "CASE 3", "CASE 4"):
+    for case in ("CASE 1", "CASE 2", "CASE 3", "CASE 4", "CASE 5", "CASE 6", "CASE 7", "CASE 8"):
         assert case in text, case
     for measure in ("CM2 Value", "Chain-wise CM2", "Total P&L Expense (Unmapped)"):
         assert f"[{measure}]" in text, measure

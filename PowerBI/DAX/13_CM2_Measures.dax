@@ -61,8 +61,10 @@
 Total Expense Amount Loaded =
 SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] )   // everything loaded, mapped or not
 
+// KEEPFILTERS: intersect with any filter already on [Resolved Chain] (e.g. the
+// chain filter in Total P&L Expense (by Chain)) instead of replacing it.
 Total P&L Expense (Mapped) =
-CALCULATE ( [Total Expense Amount Loaded], NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ) )
+CALCULATE ( [Total Expense Amount Loaded], KEEPFILTERS ( NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ) ) )
 
 Total P&L Expense (Unmapped) =
 [Total Expense Amount Loaded] - [Total P&L Expense (Mapped)]
@@ -99,13 +101,17 @@ RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), _cur - _prev )
 // ---------- CHAIN / BRAND / CATEGORY-WISE CM2 ----------
 // 'PL Expense Input' has NO modelled relationship to 'Fact Primary Article'
 // (the matching is fallback-priority logic, not a clean 1:many key) -- these
-// measures bridge the two tables explicitly via SELECTEDVALUE + FILTER, one
+// measures bridge the two tables explicitly via SELECTEDVALUE + TREATAS, one
 // per dimension, matching how the request names them as separate items.
+// Only the resolved-dimension column is filtered, and KEEPFILTERS intersects it
+// with the current context: Month/FY filters arriving through the Date Table
+// relationship stay active. (FILTER(ALL('PL Expense Input'), ...) cleared them,
+// so one month's CM2 could deduct a chain's expense from every month -- FM-33.)
 Total P&L Expense (by Chain) =
 VAR _chain = SELECTEDVALUE ( 'Fact Primary Article'[Chain] )
 RETURN
     IF ( ISBLANK ( _chain ), [Total P&L Expense],
-        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Chain] = _chain ) )
+        CALCULATE ( [Total P&L Expense], KEEPFILTERS ( TREATAS ( { _chain }, 'PL Expense Input'[Resolved Chain] ) ) )
     )
 
 Chain-wise CM2 =   // BLANK for a chain with no mapped expense rows (not its NSV)
@@ -117,7 +123,7 @@ Total P&L Expense (by Brand) =
 VAR _brand = SELECTEDVALUE ( 'Fact Primary Article'[Brand] )
 RETURN
     IF ( ISBLANK ( _brand ), [Total P&L Expense],
-        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Brand] = _brand ) )
+        CALCULATE ( [Total P&L Expense], KEEPFILTERS ( TREATAS ( { _brand }, 'PL Expense Input'[Resolved Brand] ) ) )
     )
 
 Brand-wise CM2 =   // BLANK for a brand with no mapped expense rows (not its NSV)
@@ -129,7 +135,7 @@ Total P&L Expense (by Category) =
 VAR _cat = SELECTEDVALUE ( 'Fact Primary Article'[Category] )
 RETURN
     IF ( ISBLANK ( _cat ), [Total P&L Expense],
-        CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Category] = _cat ) )
+        CALCULATE ( [Total P&L Expense], KEEPFILTERS ( TREATAS ( { _cat }, 'PL Expense Input'[Resolved Category] ) ) )
     )
 
 Category-wise CM2 =   // BLANK for a category with no mapped expense rows (not its NSV)

@@ -77,3 +77,83 @@ ROW (
         )
     )
 )
+
+// =====================================================================
+// Filter-context cases (review of #233): the chain / brand / category
+// expense measures must keep Month and FY filters. They used
+// FILTER(ALL('PL Expense Input'), ...), which also cleared the Date Table
+// filters reaching the expense table, so one month could carry every
+// month's expense. Needs expense rows in at least two months (e.g. #229).
+// =====================================================================
+
+// CASE 5 -- same chain, two months: each month carries only its own expense
+// EXPECT: for every Chain x Month, ChainExpense = MonthRowsExpense (the rows
+//         loaded for that chain in that month); Leak = 0 on every row.
+EVALUATE
+FILTER (
+    ADDCOLUMNS (
+        SUMMARIZECOLUMNS ( 'Fact Primary Article'[Chain], 'Date Table'[MonthStart] ),
+        "ChainExpense", [Total P&L Expense (by Chain)],
+        "MonthRowsExpense",
+            VAR _c = 'Fact Primary Article'[Chain]
+            VAR _m = 'Date Table'[MonthStart]
+            RETURN CALCULATE ( SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] ),
+                REMOVEFILTERS (),
+                'PL Expense Input'[Resolved Chain] = _c, 'PL Expense Input'[MonthStart] = _m )
+    ),
+    NOT ISBLANK ( [ChainExpense] ) || NOT ISBLANK ( [MonthRowsExpense] )
+)
+
+EVALUATE
+ROW ( "Leak", COUNTROWS ( FILTER (
+    ADDCOLUMNS (
+        SUMMARIZECOLUMNS ( 'Fact Primary Article'[Chain], 'Date Table'[MonthStart] ),
+        "E", [Total P&L Expense (by Chain)],
+        "R", VAR _c = 'Fact Primary Article'[Chain] VAR _m = 'Date Table'[MonthStart]
+             RETURN CALCULATE ( SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] ), REMOVEFILTERS (),
+                 'PL Expense Input'[Resolved Chain] = _c, 'PL Expense Input'[MonthStart] = _m )
+    ),
+    ROUND ( COALESCE ( [E], 0 ) - COALESCE ( [R], 0 ), 4 ) <> 0 ) ) )
+
+// CASE 6 -- FY filter does not leak another FY's expense
+// EXPECT: "2026-27" (FY27) = FY27 rows only; "2025-26" (FY26) = BLANK expense
+//         and BLANK CM2 while all loaded rows are FY27 (true for #229's
+//         Apr-Aug 2026 load). 'Date Table'[FY Year] is from DAX/00_DateTable.dax.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date Table'[FY Year],
+    "Expense",      [Total P&L Expense],
+    "TopChainExp",  CALCULATE ( [Total P&L Expense (by Chain)], TOPN ( 1, VALUES ( 'Fact Primary Article'[Chain] ), [Total Primary Article NSV] ) ),
+    "CM2",          [CM2 Value]
+)
+
+// CASE 7 -- brand and category keep the month filter too
+// EXPECT: Leak = 0 for both (same check as CASE 5 on Resolved Brand / Category).
+EVALUATE
+ROW (
+    "BrandLeak", COUNTROWS ( FILTER (
+        ADDCOLUMNS ( SUMMARIZECOLUMNS ( 'Fact Primary Article'[Brand], 'Date Table'[MonthStart] ),
+            "E", [Total P&L Expense (by Brand)],
+            "R", VAR _b = 'Fact Primary Article'[Brand] VAR _m = 'Date Table'[MonthStart]
+                 RETURN CALCULATE ( SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] ), REMOVEFILTERS (),
+                     'PL Expense Input'[Resolved Brand] = _b, NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ),
+                     'PL Expense Input'[MonthStart] = _m ) ),
+        ROUND ( COALESCE ( [E], 0 ) - COALESCE ( [R], 0 ), 4 ) <> 0 ) ),
+    "CategoryLeak", COUNTROWS ( FILTER (
+        ADDCOLUMNS ( SUMMARIZECOLUMNS ( 'Fact Primary Article'[Category], 'Date Table'[MonthStart] ),
+            "E", [Total P&L Expense (by Category)],
+            "R", VAR _k = 'Fact Primary Article'[Category] VAR _m = 'Date Table'[MonthStart]
+                 RETURN CALCULATE ( SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] ), REMOVEFILTERS (),
+                     'PL Expense Input'[Resolved Category] = _k, NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ),
+                     'PL Expense Input'[MonthStart] = _m ) ),
+        ROUND ( COALESCE ( [E], 0 ) - COALESCE ( [R], 0 ), 4 ) <> 0 ) )
+)
+
+// CASE 8 -- no expense in the selected period still returns BLANK
+// EXPECT: for a month with NSV but no expense rows, ChainExpense and ChainCM2
+//         are BLANK for every chain (never the chain's NSV). Violations = 0.
+EVALUATE
+ROW ( "Violations", COUNTROWS ( FILTER (
+    ADDCOLUMNS ( SUMMARIZECOLUMNS ( 'Fact Primary Article'[Chain], 'Date Table'[MonthStart] ),
+        "E", [Total P&L Expense (by Chain)], "C", [Chain-wise CM2] ),
+    ISBLANK ( [E] ) && NOT ISBLANK ( [C] ) ) ) )
