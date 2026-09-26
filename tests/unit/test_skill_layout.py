@@ -9,7 +9,8 @@ Catches the failure patterns found on 2026-09-26:
     on its own
   * an agent in .claude/agents listing a skill that is not installed
 
-Stdlib only, so it runs in validate.yml without extra installs.
+The layout checks are stdlib only; the suite validator and sync check need
+PyYAML, which validate.yml installs (same pin as requirements.txt).
 """
 import re
 import subprocess
