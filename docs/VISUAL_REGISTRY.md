@@ -99,6 +99,12 @@ genuinely empty, healthy alert feed ("No active alerts. All metrics within
 thresholds."). Currently harmless only because the live feed also happens to be
 empty — the failure mode is real regardless.
 
+**Status: FIXED on branch `claude/alerts-feed-load-state` (rebuild of old PR
+#156), not yet merged.** `window.alertsFeedStatus` (loading/loaded/error); a
+failed or non-200 load shows "Alert feed unavailable … not a confirmation that
+metrics are healthy" and `–` in the 3 KPI cards; the tab repaints when the fetch
+settles. Regression test: `tests/test_alerts_feed_load_state.js`.
+
 ### 7. Dead drill-links / dead toggle (functional, not data-integrity)
 - Executive Cockpit's two "target vs achievement" tables (`by_zone`/`by_chain`,
   `dashboard/index.html:900-911`) render `drillLink` spans but `buildExecutiveCockpit`
@@ -244,7 +250,7 @@ no download-menu and no click/drill — a consistency gap, not a data error.
 
 3 KPIs + 1 card-feed list, sourced from a **separate global** (`window.alertsFeed`,
 not `D`/`window.DASH`) fetched from `alerts_feed.json`. AUTHORITATIVE when the feed
-loads; **MISLEADING on a silent fetch failure (#6)**. Not filter/FY-aware (by design —
+loads; on a failed load it now says the feed is unavailable and shows `–` (#6, fixed). Not filter/FY-aware (by design —
 alerts are current-state, not historical).
 
 ### Store Audit Scorecard (`buildStores`) & Supply Chain and Inventory (`buildInventory`)

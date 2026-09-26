@@ -56,6 +56,17 @@ window.AlertController = (function () {
     const container = document.getElementById('alertsCardFeed');
     if (!container) return;
 
+    // "No active alerts" is a claim about loaded data -- never show it when the
+    // feed failed or has not arrived yet.
+    if (window.alertsFeedStatus === 'error') {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; font-size: 14px;">⚠ Alert feed unavailable — could not load alerts_feed.json. This is not a confirmation that metrics are healthy.</div>';
+      return;
+    }
+    if (window.alertsFeedStatus === 'loading') {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 14px;">Loading alerts…</div>';
+      return;
+    }
+
     if (!activeAlerts || activeAlerts.length === 0) {
       container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 14px;">No active alerts. All metrics within thresholds.</div>';
       return;
@@ -105,11 +116,14 @@ window.AlertController = (function () {
 
     const feed = window.alertsFeed || { metadata: { total_alerts: 0, critical_count: 0, warning_count: 0 }, alerts: [] };
     const { total_alerts = 0, critical_count = 0, warning_count = 0 } = feed.metadata || {};
+    // '–' rather than 0 until the feed has actually loaded: 0 reads as "verified none".
+    const feedLoaded = !window.alertsFeedStatus || window.alertsFeedStatus === 'loaded';
+    const shown = (v) => feedLoaded ? v : '–';
 
     const kpiHtml = [
-      { label: 'Total Alerts', value: total_alerts, color: '#6b7280' },
-      { label: 'Critical', value: critical_count, color: '#ef4444' },
-      { label: 'Warnings', value: warning_count, color: '#f59e0b' }
+      { label: 'Total Alerts', value: shown(total_alerts), color: '#6b7280' },
+      { label: 'Critical', value: shown(critical_count), color: '#ef4444' },
+      { label: 'Warnings', value: shown(warning_count), color: '#f59e0b' }
     ].map(kpi => `
       <div style="padding: 16px; background: #f9fafb; border-radius: 8px; border-left: 3px solid ${kpi.color};">
         <div style="color: #666; font-size: 12px; margin-bottom: 4px;">${kpi.label}</div>
@@ -137,6 +151,12 @@ window.AlertController = (function () {
     buildAlerts,
     renderAlertsList,
     updateNavBadge,
+    // Called when the alerts_feed.json fetch settles (index.html). Repaints the
+    // tab if it was already rendered, so "Loading alerts…" never sticks.
+    onFeedSettled() {
+      const tab = document.getElementById('tab-alerts');
+      if (tab && tab.innerHTML.trim()) buildAlerts();
+    },
     load() {
       buildAlerts();
     }

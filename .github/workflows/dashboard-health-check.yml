@@ -106,12 +106,15 @@ jobs:
               "Fix 2: FY Fallback Logic": "fallbackFy",
               "Fix 3: Real Store Counts (universe.by_chain)": "_uniStores[name]",
               "Fix 4: Canvas Creation": "createElement('canvas')",
-              "Fix 5: Alert Controller": "AlertController.buildAlerts"
+              "Fix 5: Alert Controller": "AlertController.buildAlerts",
+              # A failed alerts_feed.json load must not read as "all metrics healthy".
+              "Fix 6: Alert feed load state": "window.alertsFeedStatus='error'"
           }
 
           # Patterns that must NOT come back.
           forbidden = {
               "Unmapped Chain hidden from the chain view": "filter(c=>c.name!=='Unmapped Chain')",
+              "Alert feed load failure swallowed": ".then(d=>window.alertsFeed=d).catch(()=>{})",
           }
 
           missing = []
@@ -130,7 +133,7 @@ jobs:
               print(f"\n❌ {len(missing)} fix(es) missing")
               exit(1)
           else:
-              print(f"\n✅ All 5 fixes verified")
+              print(f"\n✅ All {len(fixes)} fixes verified")
           PYEOF
 
   notify-on-failure:
