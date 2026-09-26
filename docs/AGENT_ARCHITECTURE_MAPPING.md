@@ -79,3 +79,19 @@ approval per merge).
 
 The existing rule stands: add a new agent file only for a role that no skill already
 covers, and only when a real capability sits behind it.
+
+## Skill `pr-deep-review` (added 2026-09-26)
+
+Added at the repo owner's request after the #225/#226 rebuilds. It is a **skill, not a
+new agent file**, and is not preloaded into `integrated-builder` (loaded only for PR or
+release review, to keep context small). Why it is not a duplicate:
+
+| Existing skill | What it owns | What `pr-deep-review` adds |
+|---|---|---|
+| `change-verification` | Proving claims about a change (evidence, failing test first, closeout) | Finding what a PR's diff breaks or hides before approval; judging old PRs still-live / superseded / rebuild-required |
+| `steward` | Whether to act now on an incoming comment or CI event | The review itself |
+| `repo-hygiene-sentinel` | Stale branches and merged-PR clutter | Content review of the PR, not branch housekeeping |
+
+Its "verification-harness integrity" section covers the pattern seen in both rebuilds:
+a CI step reporting green over a failure (#225, FM-28) and a new test bypassing the
+shared `tests/browser_launch.js` launcher (#226).

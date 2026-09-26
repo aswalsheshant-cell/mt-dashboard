@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.2.0",
-  "installed_at": "2026-09-26T00:08:33Z",
+  "suite_version": "1.3.0",
+  "installed_at": "2026-09-26T05:17:03Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.claude/skills",
   "target_key": "project-claude",
@@ -98,6 +98,17 @@
       "sha256": {
         "SKILL.md": "acb43e21ac8f307d9b8f3cfcfc552ee2b45d28d73ea6c873bc48038b2c79480d",
         "references/repo-verification-map.md": "2183f075c332124726f164a95db1e30f0de062e92855aa690d8ebd9b4f822fd7"
+      }
+    },
+    "pr-deep-review": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "d32c050037f5484faf51a3c881f8dc38daa45a00bbb92e9711693de54b97f4d0",
+        "references/data-impact-checklist.md": "20ce17003fad3f6a2bfd1658dc41d9f956b7a527a06a0d54428c44f894c0e552",
+        "references/finding-classification.md": "e817cafebd0c96cd1f0ab7da198fd98f58fadf01ee34282eb1088c9589eda1e9",
+        "references/github-actions-checklist.md": "7ae630d029bfc4cc1c737a4bedd1ed96842c5772d85c48ae28e3577334165d9f",
+        "references/merge-preview-template.md": "09a039e9506ed3d864e68c86305a6646376b440848fedfd8dbf1dbc6e41105c2",
+        "references/review-checklist.md": "436134b547b12b5dfe1704a89dbdfa1b201276b73a25bebb3d97098e2539e1a1"
       }
     }
   }
