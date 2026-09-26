@@ -8,7 +8,8 @@ Catches the failure patterns found on 2026-09-26:
   * a skill script that edits the generated dashboard/data.js or commits/pushes
     on its own
 
-Stdlib only, so it runs in validate.yml without extra installs.
+The layout checks are stdlib only; the suite validator and sync check need
+PyYAML, which validate.yml installs (same pin as requirements.txt).
 """
 import re
 import subprocess
