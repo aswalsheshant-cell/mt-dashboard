@@ -23,7 +23,11 @@ This runbook covers:
 
 ### System Requirements
 - **OS:** Windows 10/11 (Power BI Desktop is Windows-only)
-- **Power BI Desktop:** June 2025 or later
+- **Power BI Desktop:** June 2025 or later — an unattended install template
+  (winget, with a Chocolatey fallback) is at
+  `PowerBI/docs/Install-PowerBIDesktop.ps1`. It's a starting point, not a
+  validated rollout script — test on one VM before wider deployment via
+  Intune/Group Policy/SCCM.
 - **RAM:** 8 GB minimum
 - **Disk:** 10 GB free (for PBIP + temp files)
 - **Network:** Direct internet access (no proxy blocking Power BI Service)
