@@ -110,14 +110,15 @@ def evaluate_gate(records: List[DecisionRecord]) -> GateResult:
             })
             continue
 
-        if record.current_status in ("REJECTED", "NOT_APPLICABLE"):
-            continue  # resolved, even though not APPROVED -- does not block
-
-        if not record.is_fully_approved():
+        if not record.is_resolved_with_evidence():
             blocking.append({
                 "decision_id": decision_id,
                 "blocked_state": cfg["blocked_state"],
-                "reason": f"current_status={record.current_status}, not a fully-approved record",
+                "reason": (
+                    f"current_status={record.current_status}, not resolved with evidence "
+                    "(APPROVED/REJECTED/NOT_APPLICABLE all require approver, date, and "
+                    "evidence_reference -- none may close on a status flip alone)"
+                ),
             })
 
     if not blocking:

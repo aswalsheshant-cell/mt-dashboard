@@ -95,11 +95,64 @@ def test_extract_approved_rules_returns_decision_results_when_ready():
     assert canonical_measurement_basis(records) == "PRIMARY"
 
 
-def test_rejected_and_not_applicable_do_not_block_the_gate():
+def test_content_hash_mismatch_reblocks_an_approved_decision():
+    """A hand-edit to a decision's CONTENT (affected_value_l/period/entity/
+    store_count/allowed_responses) after it was APPROVED must re-block the
+    gate, even though current_status still says APPROVED and every
+    evidence field is still populated. record_incentive_decision.py has no
+    flag to change these content fields at all, so a mismatch here means
+    the register was edited outside the sanctioned CLI -- the whole point
+    of stamping content_hash at resolution time."""
+    data = fully_approved_register("OFFTAKE")
+    for i, d in enumerate(data["decisions"]):
+        if d["decision_id"] == "NC-01":
+            data["decisions"][i]["affected_value_l"] = 999999.99  # tampered post-approval
+    records = _records_from_dict(data)
+    result = evaluate_gate(records)
+    assert result.state != "READY_FOR_SHADOW_CALCULATION"
+    assert any(b["decision_id"] == "NC-01" for b in result.blocking)
+
+
+def test_missing_content_hash_on_approved_decision_blocks_the_gate():
+    """A decision resolved before this control existed (no content_hash at
+    all) must not be trusted by default -- fail closed, not open."""
+    data = fully_approved_register("OFFTAKE")
+    for i, d in enumerate(data["decisions"]):
+        if d["decision_id"] == "NC-01":
+            data["decisions"][i]["content_hash"] = None
+    records = _records_from_dict(data)
+    result = evaluate_gate(records)
+    assert result.state != "READY_FOR_SHADOW_CALCULATION"
+    assert any(b["decision_id"] == "NC-01" for b in result.blocking)
+
+
+def test_rejected_and_not_applicable_do_not_block_the_gate_when_evidenced():
     """A decision resolved as REJECTED or NOT_APPLICABLE closes it without
-    authorizing a value -- confirm the gate treats that as resolved, not
-    as still-pending, so a genuinely N/A account doesn't block everything
-    forever."""
+    authorizing a value -- confirm the gate treats an EVIDENCED one as
+    resolved, not as still-pending, so a genuinely N/A account doesn't
+    block everything forever. Evidence is still required, though -- see
+    test_not_applicable_without_evidence_still_blocks_the_gate below."""
+    data = fully_approved_register("OFFTAKE")
+    for i, d in enumerate(data["decisions"]):
+        if d["decision_id"] == "TG-05":
+            data["decisions"][i]["current_status"] = "NOT_APPLICABLE"
+            data["decisions"][i]["selected_response"] = None
+            data["decisions"][i]["approved_by"] = "SYNTHETIC_FIXTURE_APPROVER"
+            data["decisions"][i]["approval_date"] = "2099-01-01"
+            data["decisions"][i]["evidence_reference"] = "synthetic-test-fixture-evidence-001-tg05-na"
+            data["decisions"][i]["business_rule_result"] = None
+    records = _records_from_dict(data)
+    result = evaluate_gate(records)
+    assert result.state == "READY_FOR_SHADOW_CALCULATION"
+
+
+def test_not_applicable_without_evidence_still_blocks_the_gate():
+    """Regression test for a confirmed critical defect: before this fix,
+    REJECTED/NOT_APPLICABLE bypassed is_fully_approved() entirely, so all
+    12 required decisions could be closed with zero evidence anywhere and
+    the gate would still return READY_FOR_SHADOW_CALCULATION. Flipping a
+    decision's status alone -- with no approver, date, or evidence -- must
+    never resolve it."""
     data = fully_approved_register("OFFTAKE")
     for i, d in enumerate(data["decisions"]):
         if d["decision_id"] == "TG-05":
@@ -111,4 +164,5 @@ def test_rejected_and_not_applicable_do_not_block_the_gate():
             data["decisions"][i]["business_rule_result"] = None
     records = _records_from_dict(data)
     result = evaluate_gate(records)
-    assert result.state == "READY_FOR_SHADOW_CALCULATION"
+    assert result.state != "READY_FOR_SHADOW_CALCULATION"
+    assert any(b["decision_id"] == "TG-05" for b in result.blocking)
