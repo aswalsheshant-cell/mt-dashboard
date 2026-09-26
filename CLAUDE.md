@@ -229,10 +229,12 @@ Power BI side of this same consolidation is mapped in
 
 *Maintenance note:* the pre-consolidation builder functions (`buildOfftake`,
 `buildOfftakeImpact`, `buildDistribution`, `buildForecast`, `buildPromo`,
-`buildShare`) and their DOM containers are still present in `index.html`.
-They are reachable only by `LEGACY_TAB_ROUTES`'s redirect target, not as
-user-facing navigation surfaces in their own right — don't treat them as a
-second, parallel UI to maintain.
+`buildShare`) were removed in PR #112, and their orphaned helpers (Executive
+Brief modal, promo filter/export helpers, `D.dist_gap` helpers, forecast detail
+and offtake-impact charts) in Issue #113. `LEGACY_TAB_ROUTES` still redirects
+the old IDs to the consolidated tabs. `buildPrimary`, `buildCategory` and
+`buildRelianceBC` remain in `index.html` with no live caller — don't treat them
+as a second, parallel UI to maintain.
 
 ---
 

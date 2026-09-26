@@ -136,7 +136,8 @@ Already known: `buildPrimary()`, `buildCategory()` (neither in the `BUILD` map, 
 live caller). **Newly confirmed dead this pass:**
 - `buildRelianceBC()` (`dashboard/index.html:1916`) — also targets a DOM id
   (`tab-reliance-bc`) that doesn't exist in the template.
-- Six unused render helpers, never called from any live path:
+- Six unused render helpers, never called from any live path (**removed
+  2026-09-26 by Issue #113** -- see "Confirmed dead code" below):
   `renderMultiSelect` (2494), `renderAnomalyBadge` (2747), `renderElasticityCurves`
   (4069), `renderROIHeatmap` (4100), `renderWaterfall` (4125), `renderScatterTrend`
   (4154).
@@ -285,12 +286,19 @@ which exists (`inventory_engine.js:16-40`) but is never actually invoked anywher
 | `buildPrimary` | 1615 | Not in `BUILD` map; targets nonexistent `#tab-primary` |
 | `buildCategory` | 2328 | Not in `BUILD` map; targets nonexistent `#tab-category` |
 | `buildRelianceBC` | 1916 | Not in `BUILD` map; targets nonexistent `#tab-reliance-bc` |
-| `renderMultiSelect` | 2494 | No call sites anywhere |
-| `renderAnomalyBadge` | 2747 | No call sites anywhere |
-| `renderElasticityCurves` | 4069 | No call sites anywhere |
-| `renderROIHeatmap` | 4100 | No call sites anywhere |
-| `renderWaterfall` | 4125 | No call sites anywhere |
-| `renderScatterTrend` | 4154 | No call sites anywhere |
+
+**Update 2026-09-26 (Issue #113):** the six render helpers that were listed here
+(`renderMultiSelect`, `renderAnomalyBadge`, `renderElasticityCurves`,
+`renderROIHeatmap`, `renderWaterfall`, `renderScatterTrend`) were removed together
+with the rest of their Sprint 6 groups: the Executive Brief modal (DOM, CSS, 6
+functions), the promo filter/export/anomaly helpers, the `D.dist_gap` helpers (not
+the live Demand-Supply Gap subview), the forecast detail helpers and
+`onGlobalFilterChange()`. Guard: `tests/test_promo_elasticity_guard.js`.
+Still dead, left for a separate decision: `buildPrimary`, `buildCategory`,
+`buildRelianceBC` (above; `buildRelianceBC` is exercised directly by
+`tests/test_reliance_bc_period_leakage.js`), `monthUnsupportedNote`, `expBarH`,
+`expDonut`, `expLine` (`index.html`) and `exportMonthlyInsightPDF`
+(`monthly-insights.js`). Line numbers in this table are from the original audit.
 
 All 11 `TABS`/`BUILD` entries verified to match 1:1 — every live tab does have a
 real, reachable builder function; the dead functions above are pure surplus, not a

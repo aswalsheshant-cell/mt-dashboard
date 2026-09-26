@@ -84,17 +84,29 @@ jobs:
           # for it only ever produced a false failure. The behavioral equivalent
           # (does the consolidated dashboard actually work) is covered by the
           # Playwright sweep in ui-smoke.yml, not a function-name grep.
+          # Issue #113 (2026-09-26): this list is show() plus the 11 functions the
+          # BUILD map in index.html calls to render each tab. The old list named
+          # buildPromo (gone since PR #112 -- the substring grep "passed" only because
+          # it matched "function buildPromoCSV"), buildPrimary (no caller since the
+          # v1.1.0 merge) and the dead promo CSV helpers #113 removed. The match is
+          # now exact ("function NAME(") so a prefix can no longer pass for a name.
           FUNCTIONS=(
-            "buildPromo"
-            "buildPrimary"
-            "buildPnl"
             "show"
-            "buildPromoCSV"
-            "exportPromoCSV"
+            "buildExplorer"
+            "buildExecutiveCockpit"
+            "buildChannelDynamics"
+            "buildInventoryHealth"
+            "buildDemandPlanning"
+            "buildPnl"
+            "buildComparison"
+            "buildAnalytics"
+            "buildAlerts"
+            "buildStores"
+            "buildInventory"
           )
 
           for func in "${FUNCTIONS[@]}"; do
-            if grep -q "function $func" dashboard/index.html; then
+            if grep -qE "function $func *\(" dashboard/index.html; then
               echo "✓ Found: $func()"
             else
               echo "✗ Missing: $func()"
