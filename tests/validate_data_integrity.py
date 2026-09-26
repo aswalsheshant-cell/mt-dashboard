@@ -6,11 +6,17 @@ Assertions locked after the Aug-2026 canonical chain alignment release:
   1.  Exactly 45 unique canonical chains in primary.by_chain
   2.  Exactly 6 zones in primary.by_zone (no Pan India)
   3.  FY26 baseline sum = ₹32,900.36L ± 0.1 %
-  4.  FY27 chain total > 0 (data present)
+  4.  FY27 Primary total > 0, read from detail_meta.fyx_primary.FY27.nsv
+      (FY27 is article-level only; primary.by_chain has no fy27 key -- THE
+      ONE FY RULE coverage split in CLAUDE.md)
   5.  No legacy chain names (Dmart, H&G, Vishal Mega Mart, RMT-Sancus, …)
-  6.  Offtake: no Pan India in zone_monthly_fy27
+  6.  Offtake: by_zone adds up to the offtake total for FY26 and FY27
+      ("Pan India" is a real zone for chains with no region -- a subtotal
+      would make the sum exceed the total)
   7.  primary.by_channel contains MT, EB2B, SIS
-  8.  No None / NaN in fy26 values across primary.by_chain
+  8.  No NaN in fy26 across primary.by_chain; null is allowed and means the
+      chain has no FY26 source rows (missing is not zero --
+      tests/test_primary_dim_rows_missing_not_zero.py)
   9.  dims.Zone matches the authorised 6-zone set
  10.  primary.n_chains reported == actual chain count
 
@@ -107,22 +113,26 @@ def check_fy26_total(primary: dict, failures: list) -> None:
         print(f"  ✓  FY26 total: ₹{total:,.2f}L  (within ±{FY26_TOLERANCE_PCT}% of ₹{EXPECTED_FY26_TOTAL_L:,.2f}L)")
 
 
-def check_fy27_present(primary: dict, failures: list) -> None:
-    chains = primary.get("by_chain", [])
-    total = sum(float(c.get("fy27") or 0) for c in chains)
+def check_fy27_present(data: dict, failures: list) -> None:
+    fy27 = data.get("detail_meta", {}).get("fyx_primary", {}).get("FY27") or {}
+    total = float(fy27.get("nsv") or 0)
     if total <= 0:
-        failures.append("FY27 TOTAL: sum across all chains is 0 — FY27 data missing")
+        failures.append("FY27 TOTAL: detail_meta.fyx_primary.FY27.nsv is missing or 0 — FY27 data missing")
     else:
         print(f"  ✓  FY27 total: ₹{total:,.2f}L")
 
 
 def check_no_fy26_nulls(primary: dict, failures: list) -> None:
     chains = primary.get("by_chain", [])
-    bad = [c.get("name", "?") for c in chains if is_nan_or_none(c.get("fy26"))]
+    bad = [c.get("name", "?") for c in chains
+           if c.get("fy26") is not None and is_nan_or_none(c.get("fy26"))]
+    missing = [c.get("name", "?") for c in chains if c.get("fy26") is None]
     if bad:
-        failures.append(f"NULL/NaN FY26: chains with missing fy26 value: {bad}")
+        failures.append(f"NaN FY26: chains with a NaN fy26 value: {bad}")
     else:
-        print(f"  ✓  No null/NaN in fy26 across {len(chains)} chains")
+        print(f"  ✓  No NaN in fy26 across {len(chains)} chains")
+    if missing:
+        print(f"  –  No FY26 source rows (null, shown as –): {missing}")
 
 
 def check_zones(primary: dict, failures: list) -> None:
@@ -138,12 +148,21 @@ def check_zones(primary: dict, failures: list) -> None:
 
 
 def check_offtake_zones(offtake: dict, failures: list) -> None:
-    # Check by_zone aggregation (UI-facing; raw zone_monthly_fy27 intentionally retains Pan India as source)
-    by_zone_names = {z.get("name") for z in offtake.get("by_zone", [])}
-    if "Pan India" in by_zone_names:
-        failures.append("OFFTAKE: 'Pan India' present in by_zone — remove from UI aggregation to avoid double-count")
-    else:
-        print(f"  ✓  Offtake by_zone: {sorted(by_zone_names)} (no Pan India)")
+    # "Pan India" is a real by_zone row (chains with no regional split), not a
+    # subtotal: the zones, Pan India included, add up to the offtake total.
+    # A double count would show up as a sum above the total.
+    by_zone = offtake.get("by_zone", [])
+    for fy in ("fy26", "fy27"):
+        total = offtake.get(f"total_{fy}")
+        if total is None:
+            failures.append(f"OFFTAKE: offtake.total_{fy} missing")
+            continue
+        zone_sum = sum(float(z.get(fy) or 0) for z in by_zone)
+        if abs(zone_sum - float(total)) > 0.05:   # parts and total are each rounded to 2 dp
+            failures.append(f"OFFTAKE {fy.upper()}: by_zone sums to ₹{zone_sum:,.2f}L "
+                            f"but offtake.total_{fy} is ₹{float(total):,.2f}L")
+        else:
+            print(f"  ✓  Offtake by_zone {fy.upper()}: ₹{zone_sum:,.2f}L = total ₹{float(total):,.2f}L")
 
 
 def check_channels(primary: dict, failures: list) -> None:
@@ -205,7 +224,7 @@ def main() -> int:
     check_chain_count(primary, failures)
     check_no_legacy_names(primary, failures)
     check_fy26_total(primary, failures)
-    check_fy27_present(primary, failures)
+    check_fy27_present(data, failures)
     check_no_fy26_nulls(primary, failures)
     check_zones(primary, failures)
     check_channels(primary, failures)
