@@ -7,7 +7,7 @@
 // Cases: feed fails (404, aborted), feed genuinely empty, and the tab opened
 // while the fetch is still pending (must repaint when it settles).
 // Needs the dashboard served at 127.0.0.1:$SWEEP_PORT (default 8899).
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // shared launcher (PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH)
 const BASE = `http://127.0.0.1:${process.env.SWEEP_PORT || 8899}/index.html`;
 const ALL_CLEAR = 'No active alerts. All metrics within thresholds.';
 const EMPTY = JSON.stringify({ metadata: { total_alerts: 0, critical_count: 0, warning_count: 0 }, alerts: [] });
@@ -43,7 +43,7 @@ async function openAlerts(b, route) {
 }
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
 
   for (const route of ['404', 'abort']) {
     const { pg, errs, read } = await openAlerts(b, route);
