@@ -14,6 +14,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 bdd = importlib.import_module("build_dashboard_data")
@@ -48,14 +50,25 @@ def test_payload_without_metadata_key_is_unaffected(tmp_path):
     assert obj == {"meta": {"real": True}, "primary": {"nsv_fy26": 1.0}}
 
 
-def test_malformed_payload_falls_back_to_writing_unchanged(tmp_path):
-    """A payload that isn't the expected 'window.DASH = {...};' shape (or
-    doesn't parse) must still be written as-is, not dropped or corrupted --
-    this guard fails closed, never closed-off."""
+@pytest.mark.parametrize("payload", [
+    "not a valid data.js payload at all",            # wrong shape
+    'window.DASH = {"primary": {"nsv_fy26": NaN}};\n',  # non-JSON constant
+])
+def test_malformed_payload_is_rejected_and_existing_file_untouched(tmp_path, payload):
+    """Fail closed (owner decision, 2026-09-26; precedent #76/#92/#180): a
+    candidate that is not strict 'window.DASH = {...};' JSON is refused with
+    an explicit error BEFORE any disk I/O, so the last known-good data.js stays
+    byte-identical and no temp/partial file is left behind. This replaces the
+    old write-it-unchanged expectation, which would have shipped malformed
+    output on the 8 build modes that skip the release gate."""
     out = tmp_path / "data.js"
-    payload = "not a valid data.js payload at all"
-    bdd._safe_write_data_js(str(out), payload, skip_gate=True)
-    assert out.read_text(encoding="utf-8") == payload
+    out.write_text("window.DASH = " + json.dumps({"meta": {"real": True}}) + ";\n",
+                   encoding="utf-8")
+    before = out.read_bytes()
+    with pytest.raises(ValueError):
+        bdd._safe_write_data_js(str(out), payload, skip_gate=True)
+    assert out.read_bytes() == before
+    assert [p.name for p in tmp_path.iterdir()] == ["data.js"]
 
 
 def test_production_data_js_has_no_stray_metadata_key():

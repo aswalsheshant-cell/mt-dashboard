@@ -12,21 +12,26 @@ visible in review.
 The functions are importable without side effects so tests exercise this exact
 code rather than a second copy of the same logic that could drift from it.
 """
+import argparse
 import json
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from json_boundary import parse_window_dash_strict
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_BASELINE = REPO / "config" / "baselines.json"
 
 
 def load_datajs(path=None):
-    """Parse window.DASH out of data.js."""
+    """Parse window.DASH out of data.js via the strict boundary -- a literal
+    NaN/Infinity/-Infinity token means data.js was written by a path that
+    bypassed json_boundary.serialize_window_dash(), and this CI gate must
+    fail on it rather than silently accepting non-standard JSON."""
     text = Path(path or REPO / "dashboard" / "data.js").read_text()
-    m = re.search(r"window\.DASH\s*=\s*", text)
-    body = text[m.end():] if m else text
-    return json.loads(body.strip().rstrip(";"))
+    return parse_window_dash_strict(text.strip())
 
 
 def dig(d, path):
@@ -68,10 +73,15 @@ def check_baselines(data, baseline_path=None):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data", default=None,
+                    help="Path to the data.js candidate to validate (default: dashboard/data.js)")
+    args = ap.parse_args()
+
     print("Validating dashboard/data.js...")
     try:
-        data = load_datajs()
-    except json.JSONDecodeError as e:
+        data = load_datajs(args.data)
+    except (json.JSONDecodeError, ValueError) as e:
         print(f"FAIL: JSON parse error: {e}")
         return 1
 

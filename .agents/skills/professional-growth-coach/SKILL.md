@@ -66,6 +66,12 @@ Applied practice is the whole point. A groupby on a tutorial CSV teaches syntax;
 same groupby on a real offtake extract teaches grain, nulls and duplicate keys, which is
 the actual skill.
 
+For the Mon-Wed sessions specifically, `references/ai-prompt-toolkit.md` has nine
+ready-to-paste AI prompts (explain-like-I'm-5, analogies, a study-plan generator, a quiz
+loop, mnemonics, and others) mapped onto each of the six blocks below — pick one or two
+a day, never all nine on one topic. These compress the ramp-up; they do not replace the
+Thursday real-output step.
+
 Spacing beats volume: twenty minutes daily for five days beats three hours on Sunday,
 because retrieval on separate days is what moves a technique into memory. Reviewing a
 note is not practice — reproducing the technique from memory is.

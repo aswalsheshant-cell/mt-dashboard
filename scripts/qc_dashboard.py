@@ -13,6 +13,9 @@ from __future__ import annotations
 import argparse, glob, json, math, os, re, sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from json_boundary import parse_window_dash_strict
+
 REPO = Path(__file__).resolve().parent.parent
 DATA_JS = REPO / "dashboard" / "data.js"
 
@@ -30,12 +33,15 @@ def qc(status: str, check: str, detail: str = "", value=None):
 
 def load_dash(path: Path) -> dict:
     txt = path.read_text(encoding="utf-8")
-    m = re.search(r"window\.DASH\s*=\s*", txt)
-    if not m:
+    if not re.search(r"window\.DASH\s*=\s*", txt):
         raise ValueError("window.DASH not found in data.js")
-    raw = txt[m.end():].rstrip().rstrip(";")
-    raw = re.sub(r"\bNaN\b", "null", raw)
-    return json.loads(raw)
+    # Strict boundary: a NaN/Infinity/-Infinity token here means data.js was
+    # written by a path that bypassed json_boundary.serialize_window_dash()
+    # (see scripts/build_dashboard_data.py) -- QC must fail loudly, not
+    # silently coerce it to null. A regex-based NaN->null rewrite used to
+    # live here; that erased the distinction between "genuinely missing"
+    # and "invalid non-finite number reached production."
+    return parse_window_dash_strict(txt.strip())
 
 
 def _isnum(v):
