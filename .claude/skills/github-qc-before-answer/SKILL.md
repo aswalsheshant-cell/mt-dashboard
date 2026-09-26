@@ -1,3 +1,8 @@
+---
+name: github-qc-before-answer
+description: Use before stating any Primary, Offtake, Distributor Secondary, conversion or chain-level sales figure in chat, a PPT or an email. Fetches the number from dashboard/data.js or scripts/data/july_mt_chart_series.json on main in the same turn, labels it QC VERIFIED or NOT IN REPO, and names the missing source file instead of estimating.
+---
+
 # GitHub QC — Mandatory Repository Check Before Answering
 
 **Trigger:** Any question about a sales number, primary, offtake, conversion, chain
@@ -36,36 +41,39 @@ This gives **exact** Jul-26 primary and offtake by chain (slide 16 / chart22):
 **File:** `dashboard/data.js` on `main` — extract the `primary.by_chain` block
 and `detail_meta.fyx_primary.FY27.by_chain`.
 
-Use local file if already cloned:
+Use local file if already cloned (parse the JSON — a plain text search for
+`"by_chain"` finds an earlier block, not `primary.by_chain`):
 ```bash
 python3 -c "
-import re
-with open('dashboard/data.js') as f:
-    c = f.read()
-# primary.by_chain
-idx = c.find('\"by_chain\"')
-print(c[idx:idx+2000])
-# detail_meta FY27 chain totals
-idx2 = c.find('fyx_primary')
-print(c[idx2:idx2+3000])
+import json
+t = open('dashboard/data.js').read()
+d = json.loads(t[t.index('{'):t.rindex('}')+1])
+print([c for c in d['primary']['by_chain'] if 'Reliance' in c['name']])             # FY26 annual (Rs Lac)
+print([c for c in d['detail_meta']['fyx_primary']['FY27']['by_chain'] if 'Reliance' in c['name']])
+print(d['detail_meta']['fyx_primary']['FY27']['months_covered'])                    # FY27 months included
 "
 ```
 
 This gives:
-- Reliance FY25 annual primary, FY26 annual primary
-- Reliance FY27 Apr–Jul 26 combined primary (₹47.53 Cr as of Jul-26 build)
+- Reliance FY26 annual primary (`primary.by_chain[].fy26`, Rs Lac)
+- Reliance FY27 year-to-date primary (`detail_meta.fyx_primary.FY27.by_chain[].nsv`) —
+  always state the months it covers; it grows every month, so never quote an old value
+- **No FY25 primary.** `primary.fy_tags` is `['fy26']` only; FY25 has no real Primary
+  extract (`docs/DATA_AVAILABILITY_MATRIX.md`). Answer FY25 with `[QC: NOT IN REPO]`.
 
 ### Step 3 — Fetch monthly offtake (Reliance BC series)
 
-Extract `reliance_bc.monthly` from `dashboard/data.js`. This gives month-by-month
-Reliance brand-counter offtake from Jan-24 to the latest month.
+Extract `reliance_bc.monthly` (with `reliance_bc.months`) from `dashboard/data.js`. This
+is the Reliance **brand-counter** (staffed door) offtake series — a partition kept for
+audit, not total Reliance offtake. Never add it to Reliance offtake or subtract it from
+Reliance primary (CLAUDE.md, Reliance Brand Counter deduplication safeguard).
 
 ```bash
 python3 -c "
-with open('dashboard/data.js') as f:
-    c = f.read()
-idx = c.find('reliance_bc')
-print(c[idx:idx+2000])
+import json
+t = open('dashboard/data.js').read()
+bc = json.loads(t[t.index('{'):t.rindex('}')+1])['reliance_bc']
+print(list(zip(bc['months'], bc['monthly'])))
 "
 ```
 
@@ -77,20 +85,26 @@ rather than estimating.
 
 ---
 
-## What is and is not in the repository (as of Jul-26 build)
+## What is and is not in the repository
+
+Values change with every monthly build, so this table lists **where** each figure lives,
+not the figure. Fetch it in the current turn.
 
 | Data point | Available? | Source |
 |---|---|---|
-| Reliance Primary FY25 annual | ✅ ₹64.43 Cr | `primary.by_chain` |
-| Reliance Primary FY26 annual | ✅ ₹83.49 Cr | `primary.by_chain` |
-| Reliance Primary FY27 Apr–Jul 26 | ✅ ₹47.53 Cr | `detail_meta.fyx_primary` |
-| Reliance Primary Jul-26 (monthly) | ✅ ₹15.66 Cr | `july_mt_chart_series.json` |
+| Reliance Primary FY25 annual | ❌ No real source (FY25 has Distributor Secondary only) | `docs/DATA_AVAILABILITY_MATRIX.md` |
+| Reliance Primary FY26 annual | ✅ | `primary.by_chain[].fy26` |
+| Reliance Primary FY27 year-to-date | ✅ (state months covered) | `detail_meta.fyx_primary.FY27.by_chain` |
+| Reliance Primary Jul-26 (monthly) | ✅ | `july_mt_chart_series.json` |
 | Reliance Primary FY26 monthly (Apr-25 → Mar-26) | ✅ Full series validated | `Primary_ShipTo_FY25-26_to_May26.csv` |
 | National Primary monthly FY26 | ✅ Full series | `primary.monthly_fy26` |
-| Reliance Offtake monthly Jan-24 → latest | ✅ Brand-counter series | `reliance_bc.monthly` |
-| Total Reliance Offtake Jul-26 | ✅ ₹8.06 Cr | `july_mt_chart_series.json` |
+| Reliance brand-counter offtake monthly | ✅ Partition only | `reliance_bc.monthly` |
+| Total Reliance Offtake Jul-26 | ✅ | `july_mt_chart_series.json` |
 
-### Step 2b — Reliance Primary FY26 Monthly (validated, reconciled to ₹83.49 Cr annual)
+### Step 2b — Reliance Primary FY26 monthly (closed year; reconciled to ₹83.49 Cr annual)
+
+FY26 is closed, so this table is a **check value**: if a fresh fetch differs, report the
+difference — do not quote this table over the fetched number.
 
 Source: `PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv`
 Chain tag: `Reliance Retail` (includes Direct + Distributor-allocated)
@@ -111,14 +125,9 @@ Chain tag: `Reliance Retail` (includes Direct + Distributor-allocated)
 | Mar-26 | 699.38 | 6.99 |
 | **FY26 Total** | **8348.90** | **83.49** |
 
-FY27 partial (same source):
-
-| Month | ₹ Lac | ₹ Cr |
-|---|---|---|
-| Apr-26 | 1063.36 | 10.63 |
-| May-26 | 1007.66 | 10.08 |
-| Jun-26 | n/a (use article CSVs: ₹893.67 Lac / ₹8.94 Cr) | — |
-| Jul-26 | ₹15.66 Cr (use `july_mt_chart_series.json`) | validated |
+FY27 months are not listed here — they change as each month is loaded. Fetch them from
+`detail_meta.fyx_primary.FY27.monthly` (national) or the article CSVs in
+`PowerBI/RawDataFolders/Primary_Article_Monthly/`.
 
 ---
 
@@ -128,15 +137,15 @@ After completing the QC, present findings as:
 
 ```
 [QC VERIFIED — source: <file name on main branch>]
-Reliance Primary Jul-26: ₹15.66 Cr
-Source: july_mt_chart_series.json → slide16/chart22
+Reliance Primary <month>: ₹<value fetched this turn> Cr
+Source: <file> → <key or slide/chart>
 ```
 
 For any figure the QC cannot locate, write:
 
 ```
 [QC: NOT IN REPO — Reliance Primary <month>: no monthly chain-level data stored]
-Available: FY annual total only (FY26 = ₹83.49 Cr)
+Available: <what the repo does hold, fetched this turn>
 Required file to get monthly: Primary source workbook (e.g. MT_Primary_FY26.xlsb)
 ```
 

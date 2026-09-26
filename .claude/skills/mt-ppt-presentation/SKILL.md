@@ -1,3 +1,8 @@
+---
+name: mt-ppt-presentation
+description: Use when creating or updating a .pptx, designing slide layouts, adding charts or data visuals to slides, writing a presentation script, or turning MT business analysis into a leadership or QBR storyline in PowerPoint.
+---
+
 # Skill: mt-ppt-presentation
 # Domain: PowerPoint Presentation Design & Business Communication
 

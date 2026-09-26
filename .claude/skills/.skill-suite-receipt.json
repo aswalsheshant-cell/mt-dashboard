@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.1.0",
-  "installed_at": "2026-09-10T04:14:16Z",
+  "suite_version": "1.2.0",
+  "installed_at": "2026-09-26T00:08:33Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.claude/skills",
   "target_key": "project-claude",
@@ -91,6 +91,13 @@
         "references/compression-algorithm.md": "ac5ed4c20d7902d03879554946700e667fdeb0630b0a8313ef43073c52abd75a",
         "references/decision-types.md": "aa0ce0d55e263e29498eb2051f81f567ca0f0d67b21dcb4b081bc852400fe09f",
         "references/policy-schema.md": "224a28031492e76cd2ef826a8dae1a3648ec15af00fdc3200c75a7f681cafa81"
+      }
+    },
+    "change-verification": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "acb43e21ac8f307d9b8f3cfcfc552ee2b45d28d73ea6c873bc48038b2c79480d",
+        "references/repo-verification-map.md": "2183f075c332124726f164a95db1e30f0de062e92855aa690d8ebd9b4f822fd7"
       }
     }
   }

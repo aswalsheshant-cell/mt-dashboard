@@ -1,3 +1,8 @@
+---
+name: repo-hygiene-sentinel
+description: Use when asked to review stale or lingering pull requests, remote branches already merged into main, orphaned local branches or merged-PR clutter. Reports and recommends cleanup commands only; never deletes a branch, closes a PR or force-pushes without explicit approval for that item.
+---
+
 # Repo Hygiene & Stale Branch Sentinel
 
 Periodically scan for lingering pull requests, abandoned branches, and stale context badges to keep the repository clean and prevent context clutter.

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.1.0",
+  "suite_version": "1.2.0",
   "description": "Modern Trade analytics and professional capability skill suite. Canonical source; installed copies are generated artifacts.",
   "targets": {
     "project-codex": ".agents/skills",
@@ -151,6 +151,19 @@
         "sales-data-reconciliation",
         "fmcg-decision-leader",
         "business-ai-automation"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "change-verification",
+      "version": "1.0.0",
+      "source": "skills/change-verification",
+      "dependencies": [],
+      "handoffs": [
+        "steward",
+        "sales-data-reconciliation",
+        "business-ai-automation",
+        "fmcg-decision-leader"
       ],
       "sha256": {}
     }

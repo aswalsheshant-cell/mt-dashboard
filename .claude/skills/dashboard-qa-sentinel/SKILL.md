@@ -1,7 +1,13 @@
+---
+name: dashboard-qa-sentinel
+description: Use after dashboard/index.html, scripts/build_dashboard_data.py or the data.js schema changes, or before a leadership call, to run read-only health checks (raw NaN in data.js, offtake total present, Unmapped Chain not hidden, canvas pattern, FY27+ gating, alert wiring) and report failures with the governed fix route. Never edits data.js, never commits or pushes.
+---
+
 # Dashboard QA Sentinel
 
-Autonomous monitoring and auto-fix for MT Dashboard runtime & data integrity issues.
-Detects and resolves issues before they reach leadership calls.
+Read-only monitoring for MT Dashboard runtime & data integrity issues.
+Detects issues before they reach leadership calls and routes each one to its governed fix.
+It never changes files, commits or pushes on its own.
 
 ## Trigger Conditions (Auto-Activate)
 
@@ -12,85 +18,72 @@ Detects and resolves issues before they reach leadership calls.
 
 ## Detection Protocol
 
-On each trigger, automatically run 30-second audit:
+On each trigger, run the read-only 30-second audit:
 
 ```python
 CHECKS = {
     'nan_regression': '/:\s*NaN\b/ in data.js',
     'json_validity': 'JSON.parse(data.js) succeeds',
     'chain_count': 'primary.by_chain.length > 0',
-    'offtake_total': 'offtake.total exists and has fy keys',
-    'unmapped_filter': 'No Unmapped Chain in output chains',
+    'offtake_total': 'offtake.total is a positive number (or non-empty FY object)',
+    'unmapped_visible': 'No chain view filters out Unmapped Chain',
     'canvas_pattern': 'createElement("canvas") in HTML',
     'fix_integrity': 'All 5 fixes present in code'
 }
 ```
 
-## Auto-Fix Rules
+## Fix Routing (report, then fix on a branch — never auto-fix)
 
-**If Check Fails → Auto-Fix Without Asking:**
+`dashboard/data.js` is generated (CLAUDE.md: "DO NOT hand-edit"). A fix to it made by
+regex is overwritten by the next rebuild and hides the real bug. Every fix below is
+proposed to the user, made on a feature branch, passes the validation sweep in
+CLAUDE.md, and merges only with explicit approval.
 
 ### Rule 1: NaN Regression (Critical)
 - **Detect**: Raw `NaN` in data.js
-- **Fix**: Run regex `s/:\s*NaN\b/: null/g` on data.js
-- **Log**: "Fixed NaN regression: X→null"
-- **Action**: Commit & push immediately
+- **Route**: find where `scripts/build_dashboard_data.py` produces it, fix the generator,
+  rebuild, confirm FY25/FY26 blocks are unchanged. Never `sed` data.js.
 
 ### Rule 2: Offtake Schema Mismatch (Critical)
-- **Detect**: `offtake.total` missing or empty
-- **Fix**: Regenerate `data.js` using `build_dashboard_data.py --offtake-patch`
-- **Log**: "Offtake schema regenerated"
-- **Action**: Commit & push
+- **Detect**: `offtake.total` missing, empty or not a positive number
+- **Route**: rebuild with `build_dashboard_data.py --offtake-patch --src <dir>` using the
+  real source files. If the source is missing, name the file (BLOCKED_INPUT).
 
-### Rule 3: Unmapped Chain Leak (Medium)
-- **Detect**: `Unmapped Chain` in output primary chains
-- **Fix**: Add `.filter(c=>c.name!=='Unmapped Chain')` to buildChannelDynamics
-- **Log**: "Unmapped chain filter restored"
-- **Action**: Commit & push
+### Rule 3: Unmapped Chain Hidden (Medium)
+- **Detect**: a chain view filters out `Unmapped Chain`
+- **Route**: Unmapped Chain is a real NSV bucket (FAILURE_MODE_REGISTER FM-17/19/20).
+  Hiding it makes chain totals stop tying to Primary. Reduce it through mapping
+  governance (FM-19); whether to show it in a view is a business display decision.
 
 ### Rule 4: Canvas Element Missing (Medium)
 - **Detect**: `getContext('2d')` on non-canvas in `render*Chart()`
-- **Fix**: Inject canvas creation:
+- **Route**: create the canvas in the chart's container before the `mk*` call:
   ```javascript
   const cvDiv = document.getElementById('cvXXX');
   const cv = document.createElement('canvas');
   cvDiv.appendChild(cv);
   ```
-- **Log**: "Canvas creation pattern added to renderXXXChart"
-- **Action**: Commit & push
 
-### Rule 5: FY Fallback Missing (Low)
-- **Detect**: FY27 selected but no fallback logic in buildChannelDynamics
-- **Fix**: Add fallback:
-  ```javascript
-  if (!data[primYr]) {
-    data = {...data, [primYr]: data[fallbackFy]};
-  }
-  ```
-- **Log**: "FY fallback logic restored"
-- **Action**: Commit & push
+### Rule 5: FY27+ Gating Missing (Low)
+- **Detect**: FY27+ rendering without the `fyBeyondPreagg()` / `FPX(tag)` gate
+- **Route**: restore the gate (CLAUDE.md, THE ONE FY RULE). When an FY has no data,
+  show `–` or "not in source". **Never** copy another FY's numbers into the missing FY —
+  that presents FY26 figures as FY27 (fabricated data).
 
 ## Decision Tree
 
 ```
 Issue Detected?
-├─ YES + Critical + Auto-Fixable
-│  └─ Apply Fix → Test → Commit → Notify User
-├─ YES + Critical + Requires Input
-│  └─ Flag to User (ask: "approve this fix?")
-└─ NO
-   └─ Silent pass, log success
+├─ YES → Report (issue, failed assertion, governed route) → wait for user approval
+│        → fix on a branch → validation sweep → PR (never push to main)
+└─ NO  → Pass, log success
 ```
 
 ## Notification Format
 
-**On Success** (auto-fix applied):
+**On Pass**:
 ```
-✅ Dashboard QA Sentinel: Auto-fixed [ISSUE]
-   Issue: [Description]
-   Fix: [Code change]
-   Commit: [SHA]
-   Action: Pushed to [branch]
+✅ Dashboard QA Sentinel: [n]/[n] checks passed (read-only; no files changed)
 ```
 
 **On Failure** (requires human):
@@ -102,35 +95,15 @@ Issue Detected?
    Action: Awaiting your approval
 ```
 
-## Activation Instructions
+## How to Run
 
-### 1. Enable in CI/CD (GitHub Actions)
-   Add step to `.github/workflows/dashboard-health-check.yml`:
-   ```yaml
-   - name: Run Dashboard QA Sentinel
-     if: failure()
-     uses: claude-code-remote://sentinel
-     with:
-       action: auto-fix
-       branch: ${{ github.head_ref }}
-   ```
+```bash
+node .claude/skills/dashboard-qa-sentinel/auto-fix.js   # read-only; exit 1 if a critical check fails
+```
 
-### 2. Enable Locally (Pre-Commit Hook)
-   Add to `.git/hooks/pre-commit`:
-   ```bash
-   node scripts/verify_data_health.js || \
-   (echo "Running QA Sentinel auto-fix..." && \
-    node .claude/skills/dashboard-qa-sentinel/auto-fix.js && \
-    git add dashboard/data.js dashboard/index.html && \
-    echo "✅ Auto-fixes applied")
-   ```
-
-### 3. Manual Trigger (On-Demand)
-   ```bash
-   npm run sentinel:check     # Run checks only
-   npm run sentinel:fix       # Apply all fixes
-   npm run sentinel:report    # Generate report
-   ```
+The script keeps its old file name so existing references still work, but it only reads
+`dashboard/data.js` and `dashboard/index.html` and writes the report below. Do not wire it
+into a pre-commit hook or workflow that stages, commits or pushes files.
 
 ## Monitoring Dashboard
 
@@ -142,38 +115,19 @@ Check `/tmp/dashboard_qa_sentinel_report.json` after each run:
   "checks_run": 8,
   "passed": 7,
   "failed": 1,
-  "auto_fixed": 1,
   "issues": [
     {
       "check": "nan_regression",
-      "status": "FIXED",
-      "detail": "Replaced 23 NaN with null"
+      "status": "FAILED",
+      "detail": "Raw NaN found in dashboard/data.js"
     }
   ]
 }
 ```
 
-## Response Format for Auto-Fixes
-
-Every fix commit MUST include:
-
-```
-fix(dashboard): [Issue Name]
-
-Sentinel auto-fix: [Description]
-
-Checks run: [count]
-Passed: [count]
-Failed: [count]
-Fixed: [description]
-
-Co-Authored-By: Dashboard QA Sentinel <noreply@anthropic.com>
-Claude-Session: [link]
-```
-
 ## Limitations & Manual Escalation
 
-**Cannot Auto-Fix (Escalate to User):**
+**Always escalate to the user (in addition to every rule above):**
 - P&L/Compliance data missing (separate build path)
 - Power BI schema changes (requires manual mapping)
 - New tab rendering (architectural change)
@@ -185,7 +139,7 @@ Claude-Session: [link]
 
 Issue: [Description]
 Root cause: [Analysis]
-Why auto-fix blocked: [Reason]
+Why it needs you: [Reason]
 Recommended action: [Next step]
 Estimated effort: [Low/Medium/High]
 ```
@@ -202,6 +156,6 @@ Estimated effort: [Low/Medium/High]
 ## Success Metrics
 
 - **Mean Time to Detection (MTTD)**: < 2 minutes (CI runs)
-- **Mean Time to Resolution (MTTR)**: < 5 minutes (auto-fix)
-- **False Positive Rate**: < 5% (only real regressions fixed)
+- **Mean Time to Report**: < 5 minutes (issue + governed route in front of the user)
+- **False Positive Rate**: < 5% (only real regressions reported)
 - **Leadership Call Readiness**: 100% (zero data surprises)

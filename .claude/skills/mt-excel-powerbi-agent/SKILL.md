@@ -1,3 +1,8 @@
+---
+name: mt-excel-powerbi-agent
+description: Use when building or fixing Excel formulas (SUMIFS, XLOOKUP, named tables), Power Pivot / Power BI models, DAX measures or Power Query steps for MT Offtake and Primary analysis, or when an Excel/Power BI approach keeps failing and needs a PL-300-style pattern. Knowledge base only: never changes data.js, seed data or baselines.
+---
+
 # MT Excel + Power BI Agent — Deep Knowledge Base
 
 Integrated knowledge across four learning domains, auto-applied whenever the agent encounters
