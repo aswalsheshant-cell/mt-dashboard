@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Python Unit Tests
         run: |
-          python3 -m unittest tests.unit.test_skills_loader -v
+          python3 -m unittest tests.unit.test_skills_loader tests.unit.test_skill_layout -v
 
       - name: Lint action SHA pins
         run: |

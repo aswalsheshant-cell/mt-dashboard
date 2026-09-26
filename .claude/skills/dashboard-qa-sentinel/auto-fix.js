@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 /**
- * Dashboard QA Sentinel — Auto-Fix Engine
- * Automatically detects and resolves dashboard regressions
+ * Dashboard QA Sentinel — read-only check engine
+ * Detects dashboard regressions and reports them. It never writes data.js or
+ * index.html and never runs git: data.js is generated (CLAUDE.md "DO NOT
+ * hand-edit"), and every fix goes through the generator + validation sweep on
+ * a branch. Exit code: 0 = all critical checks pass, 1 = a critical check failed.
+ * (File name kept so existing references keep working.)
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync } = require('child_process');   // read-only git query only
 
 const BASE = path.join(__dirname, '../../..');
 const DATA_JS = path.join(BASE, 'dashboard/data.js');
@@ -15,13 +19,10 @@ const REPORT_FILE = '/tmp/dashboard_qa_sentinel_report.json';
 
 class DashboardQASentinel {
   constructor() {
-    this.fixes_applied = [];
     this.report = {
       timestamp: new Date().toISOString(),
       branch: this.getCurrentBranch(),
       checks: [],
-      fixes_applied: [],
-      auto_fixed: 0,
       requires_human_review: []
     };
   }
@@ -45,14 +46,15 @@ class DashboardQASentinel {
     const hasNaN = /:\s*NaN\b/.test(content);
 
     if (hasNaN) {
-      this.log('NaN regression detected - applying fix');
-      const fixed = content.replace(/:\s*NaN\b/g, ': null');
-      fs.writeFileSync(DATA_JS, fixed);
-      this.fixes_applied.push('NaN → null conversion');
-      this.report.auto_fixed++;
-      return true;
+      // Report only. The NaN comes from the generator; fixing data.js by hand
+      // hides the bug and is overwritten on the next rebuild.
+      this.report.requires_human_review.push({
+        issue: 'Raw NaN found in dashboard/data.js',
+        fix: 'Find the NaN source in scripts/build_dashboard_data.py, fix it, rebuild, run the validation sweep'
+      });
+      return false;
     }
-    return false;
+    return true;
   }
 
   // Check 2: Offtake Schema
@@ -63,8 +65,11 @@ class DashboardQASentinel {
       if (!match) return false;
 
       const data = JSON.parse(match[1]);
-      const hasOfftakeTotal = typeof data.offtake?.total === 'object' &&
-                              Object.keys(data.offtake.total || {}).length > 0;
+      // offtake.total is the FY26 national total (a number, Rs Lac); older
+      // builds used an object keyed by FY. Either shape is valid; empty is not.
+      const t = data.offtake?.total;
+      const hasOfftakeTotal = (typeof t === 'number' && Number.isFinite(t) && t > 0) ||
+                              (t !== null && typeof t === 'object' && Object.keys(t).length > 0);
 
       if (!hasOfftakeTotal) {
         this.log('Offtake schema missing - requires full rebuild');
@@ -80,22 +85,19 @@ class DashboardQASentinel {
     }
   }
 
-  // Check 3: Unmapped Chain Filter
+  // Check 3: Unmapped Chain stays visible
+  // "Unmapped Chain" is a real NSV bucket (FAILURE_MODE_REGISTER FM-17/19/20).
+  // Filtering it out of the chain view makes chain totals stop adding up to
+  // Primary, so the regression is a filter that HIDES it, not a missing one.
   checkUnmappedChainFilter() {
     const html = fs.readFileSync(INDEX_HTML, 'utf8');
+    const hides = /filter\(\s*c\s*=>\s*c\.name\s*!==?\s*['"]Unmapped Chain['"]\s*\)/.test(html);
 
-    // Find buildChannelDynamics function
-    const match = html.match(/function buildChannelDynamics\(\)\{[^}]*by_chain[^}]*/);
-    if (!match) return false;
-
-    // Check if filter is present
-    const hasFilter = html.includes("filter(c=>c.name!=='Unmapped Chain')");
-
-    if (!hasFilter) {
-      this.log('Unmapped chain filter missing - requires manual code fix');
+    if (hides) {
+      this.log('Unmapped Chain is filtered out of a chain view - requires manual code fix');
       this.report.requires_human_review.push({
-        issue: 'Unmapped chain filter not found in buildChannelDynamics',
-        fix: 'Add: .filter(c=>c.name!=="Unmapped Chain") to chains initialization'
+        issue: 'A chain view filters out "Unmapped Chain", so chain totals no longer tie to Primary',
+        fix: 'Remove the filter; reduce Unmapped Chain through mapping governance (FM-19), not by hiding it'
       });
       return false;
     }
@@ -121,13 +123,14 @@ class DashboardQASentinel {
   // Check 5: FY Fallback Logic
   checkFYFallback() {
     const html = fs.readFileSync(INDEX_HTML, 'utf8');
-    const hasFYFallback = html.includes('fallbackFy') || html.includes('fallback');
+    // FY27+ must be gated (fyBeyondPreagg / FPX), never filled with another FY's numbers.
+    const hasFYFallback = html.includes('fyBeyondPreagg');
 
     if (!hasFYFallback) {
-      this.log('FY fallback logic missing - requires manual code fix');
+      this.log('FY27+ gating (fyBeyondPreagg) missing - requires manual code fix');
       this.report.requires_human_review.push({
-        issue: 'FY fallback logic not found',
-        fix: 'Add fallback mapping when primYr data is unavailable'
+        issue: 'fyBeyondPreagg() gate not found in index.html',
+        fix: 'Restore the THE ONE FY RULE gate; show "–" / not-in-source, never copy another FY'
       });
       return false;
     }
@@ -158,7 +161,7 @@ class DashboardQASentinel {
     const checks = [
       { name: 'NaN Regression', fn: () => this.checkNaN(), critical: true },
       { name: 'Offtake Schema', fn: () => this.checkOfftakeSchema(), critical: true },
-      { name: 'Unmapped Chain Filter', fn: () => this.checkUnmappedChainFilter(), critical: false },
+      { name: 'Unmapped Chain Visible', fn: () => this.checkUnmappedChainFilter(), critical: false },
       { name: 'Canvas Pattern', fn: () => this.checkCanvasPattern(), critical: false },
       { name: 'FY Fallback', fn: () => this.checkFYFallback(), critical: false },
       { name: 'Alert Controller', fn: () => this.checkAlertController(), critical: false }
@@ -186,27 +189,6 @@ class DashboardQASentinel {
     this.log(`Results: ${passCount}/${checks.length} passed`);
   }
 
-  commitFixes() {
-    if (this.fixes_applied.length === 0) {
-      this.log('No fixes to commit');
-      return;
-    }
-
-    try {
-      execSync('git add dashboard/data.js dashboard/index.html', { cwd: BASE });
-      const msg = `fix(dashboard): Sentinel auto-fix applied\n\nFixed issues:\n${
-        this.fixes_applied.map(f => `- ${f}`).join('\n')
-      }\n\nCo-Authored-By: Dashboard QA Sentinel <noreply@anthropic.com>`;
-
-      execSync(`git commit -m "${msg.replace(/"/g, '\\"')}"`, { cwd: BASE });
-      execSync('git push', { cwd: BASE });
-
-      this.log(`Committed ${this.fixes_applied.length} fix(es) and pushed`, 'success');
-    } catch (e) {
-      this.log(`Commit/push failed: ${e.message}`, 'error');
-    }
-  }
-
   generateReport() {
     fs.writeFileSync(REPORT_FILE, JSON.stringify(this.report, null, 2));
     this.log(`Report written to ${REPORT_FILE}`);
@@ -214,14 +196,10 @@ class DashboardQASentinel {
 
   run() {
     this.runAllChecks();
-    this.commitFixes();
     this.generateReport();
 
     console.log('');
     console.log('='.repeat(60));
-    if (this.report.auto_fixed > 0) {
-      this.log(`Dashboard QA Sentinel: Fixed ${this.report.auto_fixed} issue(s)`, 'success');
-    }
     if (this.report.requires_human_review.length > 0) {
       this.log(`${this.report.requires_human_review.length} issue(s) require manual review`, 'warn');
       this.report.requires_human_review.forEach(item => {
@@ -229,8 +207,9 @@ class DashboardQASentinel {
       });
     }
     console.log('='.repeat(60));
+    return this.report.checks.some(c => c.critical && !c.passed) ? 1 : 0;
   }
 }
 
 const sentinel = new DashboardQASentinel();
-sentinel.run();
+process.exitCode = sentinel.run();

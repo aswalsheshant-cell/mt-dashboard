@@ -268,7 +268,7 @@ CI, GitHub Pages deploy all success.
 | CB-07 | `main` has no branch protection | BLOCKED_HUMAN_DECISION | `docs/MAIN_BRANCH_PROTECTION_AUDIT.md` | Repo owner | Add a ruleset (Settings access) |
 | CB-08 | Live GitHub Pages fetch from this container | BLOCKED_ENVIRONMENT | Egress proxy `connect_rejected`; Pages deploy workflow succeeded for every merge | — | Check the live URL from a browser |
 | CB-09 | `github-advanced-security` intermittent `CAPIError 400 model not supported` | BLOCKED_ENVIRONMENT | Failed before scanning on some 25-Sep runs; later runs (#218) passed | GitHub | None; re-runs on next push |
-| CB-10 | Skills that do not load: `github-qc-before-answer` (file is `skill.md`), `deep-research-solve` (cause not yet found) | Housekeeping | Missing from the session skill list | Repo owner | Small skills gap-fill PR via `agent-skill-governance` |
+| CB-10 | Skills that did not load or were unsafe (FM-27) | RESOLVED on branch `claude/skill-change-verification` (pending merge) | `github-qc-before-answer` renamed to `SKILL.md` with frontmatter and stale figures removed; 4 skills given descriptions; Codex copy synced; `dashboard-qa-sentinel` made read-only; `tests/unit/test_skill_layout.py` in `validate.yml`. `deep-research-solve` was never broken: `disable-model-invocation: true` makes it user-invoked (`/deep-research-solve`) by design | Repo owner | Approve the skills PR; decide whether the Channel & Chain view should show FY27 `Unmapped Chain` (Rs10.13 L) |
 
 Deferred until the blockers above are dispositioned: recovery of the five
 historical Claude chats (each checked against certified `main`, never trusted
