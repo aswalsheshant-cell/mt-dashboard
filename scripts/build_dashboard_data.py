@@ -2787,6 +2787,8 @@ def _cm2_provisional_state(expense_rows, formula_path=None):
                 float(raw_amount)
                 has_any_amount = True
         except (TypeError, ValueError):
+            # Deliberate: an unparseable amount is not counted, so a file with no
+            # parseable amount is classified INVALID_DATA below (never guessed).
             pass
         if (r.get("Month") or "").strip() and (r.get("FY") or "").strip():
             has_any_period = True
