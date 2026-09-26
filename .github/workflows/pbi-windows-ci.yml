@@ -56,36 +56,19 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
         run: |
-          Write-Host "Checking for Python validation scripts..." -ForegroundColor Cyan
-          $harness_found = $false
-
-          # A pwsh step fails only on its LAST native exit code, so each script's
-          # exit code is checked right after it runs. eval_harness.py checks the
-          # retired data_master.json pipeline (its 15-25 MB size range and FY25
-          # Primary expectation predate the current data.js), so its failure is
-          # shown as a warning annotation, not hidden and not blocking.
-          # validate_data_integrity.py checks dashboard/data.js and is required.
-          if (Test-Path "scripts/eval_harness.py") {
-            Write-Host "Running eval_harness.py (informational)..." -ForegroundColor Green
-            python scripts/eval_harness.py
-            if ($LASTEXITCODE -ne 0) { Write-Host "::warning::eval_harness.py exited $LASTEXITCODE (informational: retired data_master.json pipeline)" }
-            $harness_found = $true
-          } else {
-            Write-Host "⚠ eval_harness.py not found (skipped)" -ForegroundColor Yellow
+          # A pwsh step fails only on its LAST native exit code, so the exit code
+          # is checked right after the script runs. validate_data_integrity.py
+          # checks dashboard/data.js and is required: a missing file fails the
+          # step instead of being skipped. (eval_harness.py -- the retired
+          # data_master.json verifier -- was removed 2026-09-26; its live checks
+          # are covered by scripts/ci_validate_datajs.py and the pytest suite.)
+          if (-not (Test-Path "tests/validate_data_integrity.py")) {
+            Write-Host "::error::tests/validate_data_integrity.py not found (required validator)"
+            exit 1
           }
-
-          if (Test-Path "tests/validate_data_integrity.py") {
-            Write-Host "Running validate_data_integrity.py..." -ForegroundColor Green
-            python tests/validate_data_integrity.py
-            if ($LASTEXITCODE -ne 0) { Write-Host "::error::validate_data_integrity.py failed (exit $LASTEXITCODE)"; exit $LASTEXITCODE }
-            $harness_found = $true
-          } else {
-            Write-Host "⚠ validate_data_integrity.py not found (skipped)" -ForegroundColor Yellow
-          }
-
-          if (-not $harness_found) {
-            Write-Host "ℹ No Python validation harnesses found (optional for this environment)" -ForegroundColor Cyan
-          }
+          Write-Host "Running validate_data_integrity.py..." -ForegroundColor Green
+          python tests/validate_data_integrity.py
+          if ($LASTEXITCODE -ne 0) { Write-Host "::error::validate_data_integrity.py failed (exit $LASTEXITCODE)"; exit $LASTEXITCODE }
 
       - name: Run Article Uniqueness & Assortment Governance Pytest Suite
         shell: pwsh
