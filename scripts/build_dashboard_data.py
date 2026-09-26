@@ -2719,6 +2719,133 @@ def load_pl_expense_input():
         rows = list(csv.DictReader(fh))
     return [r for r in rows if "EXAMPLE ROW" not in (r.get("Remarks") or "").upper()]
 
+
+def _cm2_provisional_state(expense_rows, formula_path=None):
+    """Governance/disclosure flags merged into data.js's cm2 block (see
+    scripts/patch_cm2_provisional.py, which imports this). This is a
+    data-presence and self-certification disclosure state -- it never
+    computes or alters a CM2 amount, and never asserts a Finance-approved
+    formula.
+
+    data_quality classifies expense_rows itself:
+      EMPTY_DATA             -- no rows at all. Note: load_pl_expense_input()
+                                 already collapses "file missing" and "file
+                                 has only EXAMPLE ROW placeholders" into the
+                                 same [] return, so this function cannot
+                                 distinguish a MISSING source file from a
+                                 genuinely EMPTY one -- that distinction is
+                                 lost before this function ever sees the
+                                 data, by design of the existing, separately
+                                 tested loader (see FM-01 in
+                                 docs/FAILURE_MODE_REGISTER.md). Not
+                                 repaired here to avoid touching that
+                                 already-correct, already-tested function.
+      INVALID_DATA            -- rows exist but none have a parseable
+                                 Expense Amount -- fail closed rather than
+                                 silently treating garbage as configured.
+      UNKNOWN_PERIOD          -- rows exist with real amounts but none have
+                                 both Month and FY set, so the period this
+                                 expense belongs to cannot be established.
+      KNOWN_PROVISIONAL_DATA  -- at least one row's Remarks is marked
+                                 PROVISIONAL or ESTIMATE, reusing the exact
+                                 same free-text Remarks-marker convention
+                                 load_pl_expense_input() already uses for
+                                 "EXAMPLE ROW" -- not a new mechanism.
+      KNOWN_CONFIGURED_DATA   -- real, parseable, dated expense rows with no
+                                 provisional marker.
+
+    formula_status never claims Finance approval regardless of input.
+    docs/BUSINESS_LOGIC_REGISTRY.md's BL-16 found the one candidate formula
+    config (PowerBI/Reference/CM2_Provisional/config/cm2_formula.csv)
+    self-certified by "MT Automation", not real Finance sign-off. Reading
+    that file's own Status column and reporting "APPROVED" would fabricate
+    an approval that was never actually given. formula_path is accepted for
+    a future real approval record (e.g. a signed decision memo) but is NOT
+    read from here -- no such record exists in this repo today.
+    """
+    if not isinstance(expense_rows, (list, tuple)):
+        return {
+            "formula_status": "NOT_INDEPENDENTLY_VERIFIED",
+            "provisional": True,
+            "provisional_label": "PROVISIONAL -- invalid expense input",
+            "provisional_reasons": ["expense_rows was not a list/tuple -- treated as invalid input, not real data."],
+            "example_data_only": True,
+            "data_quality": "INVALID_DATA",
+        }
+
+    example_data_only = len(expense_rows) == 0
+    has_any_amount = False
+    has_any_period = False
+    provisional_rows = 0
+    for r in expense_rows:
+        if not isinstance(r, dict):
+            continue
+        raw_amount = r.get("Expense Amount (INR Lakh)")
+        raw_amount = raw_amount.strip() if isinstance(raw_amount, str) else raw_amount
+        try:
+            if raw_amount not in (None, ""):
+                float(raw_amount)
+                has_any_amount = True
+        except (TypeError, ValueError):
+            # Deliberate: an unparseable amount is not counted, so a file with no
+            # parseable amount is classified INVALID_DATA below (never guessed).
+            pass
+        if (r.get("Month") or "").strip() and (r.get("FY") or "").strip():
+            has_any_period = True
+        remarks = (r.get("Remarks") or "").upper()
+        if "PROVISIONAL" in remarks or "ESTIMATE" in remarks:
+            provisional_rows += 1
+
+    if example_data_only:
+        data_quality = "EMPTY_DATA"
+    elif not has_any_amount:
+        data_quality = "INVALID_DATA"
+    elif not has_any_period:
+        data_quality = "UNKNOWN_PERIOD"
+    elif provisional_rows > 0:
+        data_quality = "KNOWN_PROVISIONAL_DATA"
+    else:
+        data_quality = "KNOWN_CONFIGURED_DATA"
+
+    reasons = []
+    if data_quality == "EMPTY_DATA":
+        reasons.append(
+            "No real Finance expense rows loaded (PL_Expense_Input.csv is "
+            "missing or contains only EXAMPLE ROW placeholders) -- CM2 "
+            "equals NSV, not a real contribution figure."
+        )
+    elif data_quality == "INVALID_DATA":
+        reasons.append(
+            "Expense rows are present but none have a parseable Expense "
+            "Amount (INR Lakh) -- treated as invalid, not real data."
+        )
+    elif data_quality == "UNKNOWN_PERIOD":
+        reasons.append(
+            "Expense rows are present but none have both Month and FY set "
+            "-- the period this expense belongs to cannot be determined."
+        )
+    elif data_quality == "KNOWN_PROVISIONAL_DATA":
+        reasons.append(
+            f"{provisional_rows} row(s) marked PROVISIONAL/ESTIMATE in "
+            "Remarks -- not yet a confirmed Finance actual."
+        )
+    reasons.append(
+        "CM2 methodology approval is self-certified only (see "
+        "docs/BUSINESS_LOGIC_REGISTRY.md BL-16) -- not confirmed by Finance."
+    )
+    return {
+        "formula_status": "NOT_INDEPENDENTLY_VERIFIED",
+        "provisional": True,
+        "provisional_label": (
+            "PROVISIONAL -- CM2 methodology not Finance-approved"
+            + (" and no real expense data loaded" if example_data_only else "")
+        ),
+        "provisional_reasons": reasons,
+        "example_data_only": example_data_only,
+        "data_quality": data_quality,
+    }
+
+
 def _build_custcode_chain_lookup(df):
     """Cust-SAP Code -> most common Chain, built from the primary article
     data itself, so an expense row that only gives a Customer Code (no
