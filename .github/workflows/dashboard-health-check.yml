@@ -116,7 +116,9 @@ jobs:
               # Wide tables scroll inside their card instead of widening the page.
               "Fix 9: grid columns can shrink": ".g2{grid-template-columns:repeat(2,minmax(0,1fr))}",
               # Header alert badge starts hidden; alert_controller.js sets it from the feed.
-              "Fix 10: alert badge not hard-coded": 'class="alert-badge" style="display: none;'
+              "Fix 10: alert badge not hard-coded": 'class="alert-badge" style="display: none;',
+              # Prior-FY comparison series is labelled with its own months (FY26 Apr-25..., not Apr-26).
+              "Fix 11: prior-FY comparison label shifted": "const _pLblPrev="
           }
 
           # Patterns that must NOT come back.
@@ -126,6 +128,7 @@ jobs:
               "CM2 shown as NSV when no expenses": "CM2 currently equals NSV (0 expenses matched)",
               "SKU quadrant default margin": "Gross_Margin_Pct??45",
               "SKU quadrant default store count": "stores_count||100",
+              "Same month label on both comparison years": "yrPair=[`${_prevFY} ${_pLbl}`",
           }
 
           missing = []
