@@ -3614,10 +3614,87 @@ function computePORiskSummary(){
   return{breach_count:breach,penalty_exposure:penalty,max_aging:Math.max(...aging_vals,0)};
 }
 
+// Phase C: Operational Alerts becomes a 2-sub-view tab (Alerts | Risk &
+// Control), same pattern as Channel & Chain Performance / Inventory &
+// Supply Health / Demand & S&OP Planning -- keeps tab count at 11 rather
+// than adding a 12th top-level nav entry.
+let alertsState={subview:'alerts'};
 function buildAlerts(){
-  if(window.AlertController && window.AlertController.buildAlerts){
-    window.AlertController.buildAlerts();
+  const s=document.getElementById('tab-alerts');
+  if(!s) return;
+  const subviews=['alerts','risk-control'];
+  const labels={alerts:'Alerts','risk-control':'Risk & Control'};
+  const tabs=`<div class="subview-tabs">${subviews.map(sv=>`<button class="subview-tab ${alertsState.subview===sv?'active':''}" onclick="switchAlertsSubview('${sv}')">${labels[sv]}</button>`).join('')}</div>`;
+  s.innerHTML=tabs+'<div id="alerts-subview-body"></div>';
+  if(alertsState.subview==='alerts'){
+    if(window.AlertController && window.AlertController.buildAlerts){
+      window.AlertController.buildAlerts('alerts-subview-body');
+    }
+  }else if(alertsState.subview==='risk-control'){
+    renderRiskControlSubview();
   }
+}
+function switchAlertsSubview(sv){
+  alertsState.subview=sv;
+  const s=document.getElementById('tab-alerts');
+  if(s){
+    Array.from(s.querySelectorAll('.subview-tab')).forEach(b=>b.classList.remove('active'));
+    s.querySelector(`[onclick*="'${sv}'"]`)?.classList.add('active');
+    buildAlerts();
+  }
+}
+
+// Risk & Control Centre -- Phase C. Reads DASH.risk_snapshot as published by
+// scripts/risk_rule_aggregate.py --patch-into-datajs (a read-only observer
+// of existing governed checks -- see docs/RISK_MANAGEMENT_PHASE_A.md). This
+// view computes NOTHING itself: every number here is a pass-through of what
+// the snapshot already says, formatted for display. Absent snapshot is shown
+// as exactly that, never silently hidden or zero-filled.
+function renderRiskControlSubview(){
+  const body=document.getElementById('alerts-subview-body');
+  if(!body) return;
+  const rs=D.risk_snapshot;
+  if(!rs){
+    body.innerHTML=card('Risk & Control Centre','snapshot not available',
+      `<p class="lead">No risk snapshot in this build (DASH.risk_snapshot is absent).</p>
+       <p class="note">Run <code>python scripts/risk_rule_aggregate.py --patch-into-datajs</code>
+       after a data.js rebuild to populate this view.</p>`);
+    return;
+  }
+  const allInstances=[];
+  (rs.rules||[]).forEach(r=>(r.instances||[]).forEach(i=>allInstances.push(
+    {...i, rule_name:r.rule_name, risk_family:r.risk_family})));
+  const genAt=rs.generated_at_utc?new Date(rs.generated_at_utc).toLocaleString('en-IN'):'–';
+  const kpiRow=`<div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Open Risk Instances</div><div class="kpi-value" style="color:${rs.open_risk_instance_count>0?'#C0392B':'#2D9B7F'}">${rs.open_risk_instance_count}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Rules Evaluated</div><div class="kpi-value">${rs.evaluated_rule_count}/${rs.rule_count}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Snapshot Generated</div><div class="kpi-value" style="font-size:15px">${genAt}</div></div>
+  </div>`;
+  const byFamily={};
+  allInstances.forEach(i=>{byFamily[i.risk_family]=(byFamily[i.risk_family]||0)+1;});
+  const familyRows=Object.entries(byFamily).sort((a,b)=>b[1]-a[1])
+    .map(([f,n])=>`<tr><td>${f}</td><td>${n}</td></tr>`).join('');
+  const familyCard=Object.keys(byFamily).length
+    ? card('Open Risk Instances by Family','',
+        `<table class="tbl"><thead><tr><th>Risk Family</th><th>Count</th></tr></thead><tbody>${familyRows}</tbody></table>`)
+    : '';
+  const instRows=allInstances.map(i=>`<tr>
+      <td>${i.risk_family||''}</td><td>${i.rule_name||i.rule_id}</td>
+      <td>${i.entity||''}</td><td>${i.severity||''}</td>
+      <td style="max-width:420px">${i.detail||''}</td><td>${i.owner||''}</td>
+    </tr>`).join('');
+  const instTable=allInstances.length
+    ? `<table class="tbl"><thead><tr><th>Family</th><th>Rule</th><th>Entity</th><th>Severity</th><th>Detail</th><th>Owner</th></tr></thead><tbody>${instRows}</tbody></table>`
+    : '<p class="lead" style="color:#2D9B7F">No open risk instances.</p>';
+  const skipped=(rs.rules||[]).filter(r=>!r.evaluated);
+  const skipNote=skipped.length
+    ? `<p class="note">${skipped.length} rule${skipped.length===1?'':'s'} not yet evaluable: `
+      +skipped.map(r=>`${r.rule_id} (${r.reason})`).join(', ')+'.</p>'
+    : '';
+  const instancesCard=card('Open Risk Instances',
+    'Read-only snapshot — observes existing governed checks, never recomputes a business number',
+    instTable+skipNote);
+  body.innerHTML=kpiRow+familyCard+instancesCard;
 }
 
 function buildStores(){

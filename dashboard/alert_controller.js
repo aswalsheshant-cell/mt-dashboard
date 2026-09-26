@@ -128,8 +128,13 @@ window.AlertController = (function () {
     container.innerHTML = alertCards;
   }
 
-  function buildAlerts() {
-    const s = document.getElementById('tab-alerts');
+  function buildAlerts(containerId) {
+    // Phase C (Risk & Control Centre): index.html's buildAlerts() now owns a
+    // subview-tab strip (Alerts | Risk & Control) inside #tab-alerts and
+    // passes a sub-container id here so this module's own render doesn't
+    // overwrite that strip. containerId defaults to 'tab-alerts' so calling
+    // this directly (or via AlertController.load()) is unchanged.
+    const s = document.getElementById(containerId || 'tab-alerts');
     if (!s) return;
 
     const feed = window.alertsFeed || { metadata: { total_alerts: 0, critical_count: 0, warning_count: 0 }, alerts: [] };
