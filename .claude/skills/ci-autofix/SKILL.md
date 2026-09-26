@@ -21,22 +21,27 @@ Do not describe options or ask permission — find the root cause, apply the fix
 
 ## Repository CI context
 
-The `qc` workflow (`.github/workflows/qc.yml`) runs these steps in order:
+There is **no `qc.yml`** in this repo, and **no workflow runs `ruff`, `compileall` or
+`pytest --collect-only scripts/`** (checked 2026-09-26 by grepping every file in
+`.github/workflows/`). Workflows get renamed and split, so re-list
+`.github/workflows/*.yml` before trusting this section, and always read the failing
+run's own job log. The workflows behind the six required checks:
 
-1. `pip install -r requirements.txt` + Playwright
-2. `python -m compileall scripts/` — catches syntax errors
-3. `ruff check scripts/build_dashboard_data.py scripts/release_gate.py scripts/test_*.py` — catches undefined names, JSON booleans in Python, bare f-strings
-4. `pytest --collect-only scripts/` — catches import errors and module-level NameErrors
-5. `pytest scripts/test_pipeline.py scripts/test_chain_consolidation.py scripts/test_june_fallback.py scripts/test_dashboard_disclosures.py scripts/test_release_gate.py -v`
-6. `python scripts/demo_release_gate_blocking.py`
-7. `python scripts/qc_dashboard.py --data dashboard/data.js` (BLOCKED items warn, FAIL items fail CI)
+| Workflow file | Workflow name | What fails it |
+|---|---|---|
+| `production-acceptance-gate.yml` | Production Acceptance Gate | `pytest tests/`, `pytest answer_governance/`, `scripts/validate_historical_baseline.py`, `scripts/validate_promo_schema.py`, `scripts/ci_validate_datajs.py`, HTML/critical-function/`data.js` wrapper checks, Playwright `tests/e2e_v1.1.0_consolidation.spec.js` |
+| `validate.yml` | Dashboard Validation & QC (`validate`) | skill unit tests, action SHA-pin lint, `py_compile`, ESLint on `dashboard/index.html`, JSON-schema checks, `data.js` integrity, dashboard markup |
+| `dashboard-health-check.yml` | Dashboard Health Check | `scripts/verify_data_health.js`, JSON integrity, primary-data regressions, the required-fixes string check in `index.html` |
+| `codeql.yml` | CodeQL (`Analyze (python)`, `Analyze (javascript-typescript)`) | code-scanning findings |
 
-Key files:
-- `scripts/build_dashboard_data.py` — main pipeline generator
-- `scripts/release_gate.py` — governance gate; contains `FINANCE_G10_CONFIG`
-- `scripts/test_*.py` — all pytest test files
-- `requirements.txt` — pinned deps including `ruff==0.12.0`
-- `ruff.toml` — rules: E9 + F, F401 ignored, F811 ignored in test files
+Also worth knowing: `canonical-financial-truth-gate.yml` (`pytest tests/canonical/` and
+structural gates), `pbi-windows-ci.yml` (data integrity, article uniqueness, Power BI
+M/DAX checker -- no `continue-on-error`, FM-28) and `ui-smoke.yml`. The
+`github-advanced-security` check failing with `CAPIError: 400 The requested model is
+not supported` is an environment block (CB-09), not a code failure.
+
+Key files: `scripts/build_dashboard_data.py` (the only generator of `data.js`),
+`requirements.txt`, and `ruff.toml` (for a local `ruff check`; CI does not run it).
 
 ## Failure taxonomy and fix protocol
 
