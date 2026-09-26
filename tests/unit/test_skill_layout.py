@@ -7,6 +7,7 @@ Catches the failure patterns found on 2026-09-26:
     because `sync_skills.py --check` only checks project-claude by default
   * a skill script that edits the generated dashboard/data.js or commits/pushes
     on its own
+  * an agent in .claude/agents listing a skill that is not installed
 
 The layout checks are stdlib only; the suite validator and sync check need
 PyYAML, which validate.yml installs from requirements.txt.
@@ -82,6 +83,22 @@ class SkillLayoutTest(unittest.TestCase):
                 states = re.findall(r"^\s{2}(\w+)\s+([\w-]+)$", r.stdout, re.M)
                 self.assertTrue(states, r.stdout[-2000:])
                 self.assertEqual([f"{st} {n}" for st, n in states if st != "clean"], [])
+
+    def test_agents_name_real_skills(self):
+        """Every .claude/agents/*.md has name + description, and each skill in its
+        `skills:` list is installed in .claude/skills (else it silently loads none)."""
+        agents = sorted((ROOT / ".claude" / "agents").glob("*.md"))
+        bad = []
+        for f in agents:
+            text = f.read_text(encoding="utf-8")
+            fm = _frontmatter(text)
+            if fm.get("name") != f.stem or not fm.get("description"):
+                bad.append(f"{f.name}: needs name '{f.stem}' and a description")
+            block = re.search(r"^skills:\s*\n((?:\s+-\s*\S+\s*\n)+)", text, re.M)
+            for skill in re.findall(r"-\s*(\S+)", block.group(1)) if block else []:
+                if not (ROOT / ".claude" / "skills" / skill / "SKILL.md").is_file():
+                    bad.append(f"{f.name}: skill '{skill}' is not installed")
+        self.assertEqual(bad, [])
 
     def test_sentinel_script_is_read_only(self):
         src = (ROOT / ".claude/skills/dashboard-qa-sentinel/auto-fix.js").read_text(encoding="utf-8")

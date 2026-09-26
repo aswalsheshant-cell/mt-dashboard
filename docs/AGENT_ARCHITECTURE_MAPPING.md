@@ -60,3 +60,22 @@ cascade, a Visual Registry auditing every card in `index.html`, a validated
 promotion-incrementality methodology, PBIP/TMDL work against an actual Power BI
 Desktop session — is real, valuable, but separately-scoped work, not something to
 wave into existence by writing a markdown file that describes it.
+
+## First `.claude/agents/` file: `integrated-builder` (added 2026-09-26)
+
+Added at the repo owner's explicit request, with three skills supplied as a curated
+package (ECC, Paperclip and Univer sources; MIT, MIT and Apache-2.0 notices kept in each
+skill folder). It is **not** one of the 17 proposed roles above and does not replace an
+existing skill: it is a general build agent that preloads `change-verification`,
+`ecc-agent-engineering`, `paperclip-agent-operations` and `univer-office-integration`,
+and carries this repository's rules (CLAUDE.md first, no hand-edits to `data.js`, one
+approval per merge).
+
+| Skill | Status in this project |
+|---|---|
+| `ecc-agent-engineering` | Usable now: agent/tool design, recovery, verification |
+| `paperclip-agent-operations` | Design/setup only: no Paperclip instance or credential exists here; the upstream file-upload helper was deliberately not installed |
+| `univer-office-integration` | Design only: the dashboard does not use Univer; adding it would be a new dependency to propose first |
+
+The existing rule stands: add a new agent file only for a role that no skill already
+covers, and only when a real capability sits behind it.
