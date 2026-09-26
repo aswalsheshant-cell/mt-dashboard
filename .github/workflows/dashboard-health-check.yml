@@ -110,7 +110,9 @@ jobs:
               # A failed alerts_feed.json load must not read as "all metrics healthy".
               "Fix 6: Alert feed load state": "window.alertsFeedStatus='error'",
               # CM2 is "not available" (–) where no expense rows exist, never NSV as "100%".
-              "Fix 7: CM2 availability gate": "const cm2Avail="
+              "Fix 7: CM2 availability gate": "const cm2Avail=",
+              # SKU quadrants are "Not available" without real Units / margin / store count.
+              "Fix 8: SKU quadrant availability gate": "SKUs are not placed in a quadrant without them"
           }
 
           # Patterns that must NOT come back.
@@ -118,6 +120,8 @@ jobs:
               "Unmapped Chain hidden from the chain view": "filter(c=>c.name!=='Unmapped Chain')",
               "Alert feed load failure swallowed": ".then(d=>window.alertsFeed=d).catch(()=>{})",
               "CM2 shown as NSV when no expenses": "CM2 currently equals NSV (0 expenses matched)",
+              "SKU quadrant default margin": "Gross_Margin_Pct??45",
+              "SKU quadrant default store count": "stores_count||100",
           }
 
           missing = []
