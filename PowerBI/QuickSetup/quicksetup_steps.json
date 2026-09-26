@@ -1,0 +1,166 @@
+{
+  "_comment": "Input for scripts/build_quicksetup.py. Every file in source_dir must have an entry in 'steps' (its instruction lines) or in 'excluded' (with the reason) -- a new source file fails `--check` until someone decides which.",
+  "pq": {
+    "source_dir": "PowerBI/PowerQuery",
+    "glob": "*.pq",
+    "out": "PowerBI/QuickSetup/AllPowerQuery_Consolidated.txt",
+    "preamble": "==============================================================================\nCONSOLIDATED POWER QUERY REFERENCE -- all queries, in the order to add them\n==============================================================================\n\nThis file is a READ-ALONG REFERENCE, not something to paste as a whole.\nPower BI's Advanced Editor holds exactly ONE query per paste. For each\nsection below: New Blank Query > Home > Advanced Editor > paste that\nsection's M code > OK > rename the query to the name shown > Close & Apply\nwhen done with all of them. Having ONE file open (this one) instead of\n{n_files} separate files is the time-saving here.\n\n",
+    "steps": {
+      "00_Parameters.pq": [
+        "# RENAME QUERY TO: pRootFolder (Manage Parameters, NOT a Blank Query)",
+        "# NOTE: Home > Transform data > Manage Parameters > New."
+      ],
+      "01_fnCombineFolder.pq": [
+        "# RENAME QUERY TO: fnCombineFolder",
+        "# NOTE: Blank Query > Advanced Editor > paste > rename."
+      ],
+      "10_Fact_PrimarySales.pq": [
+        "# RENAME QUERY TO: Fact Primary Sales"
+      ],
+      "11_Fact_OfftakeSales.pq": [
+        "# RENAME QUERY TO: Fact Offtake Sales"
+      ],
+      "12_Fact_PnL.pq": [
+        "# RENAME QUERY TO: Fact P&L"
+      ],
+      "13_Fact_Nielsen.pq": [
+        "# RENAME QUERY TO: Fact Nielsen Market Share"
+      ],
+      "14_Fact_TDP.pq": [
+        "# RENAME QUERY TO: Fact TDP"
+      ],
+      "15_Fact_PrimaryShipTo.pq": [
+        "# RENAME QUERY TO: Fact Primary ShipTo"
+      ],
+      "16_Fact_PrimaryArticle.pq": [
+        "# RENAME QUERY TO: Fact Primary Article"
+      ],
+      "20_Dim_Masters.pq": [
+        "# RENAME QUERY TO: Chain Master, Brand Master, Category Master, Article Master, Zone State Master, Store Master, Nielsen Competitor Master",
+        "# NOTE: SEVEN separate queries -- one per '---------- X Master ----------' block in the file below. Each block is its own complete `let...in` query; uncomment/copy ONE block at a time."
+      ],
+      "21_ShipToMaster.pq": [
+        "# RENAME QUERY TO: Ship-To Master"
+      ],
+      "22_CustomerCodeZoneMaster.pq": [
+        "# RENAME QUERY TO: Customer Code Zone Master"
+      ],
+      "24_ChannelMap.pq": [
+        "# RENAME QUERY TO: Channel Map Store, Channel Map Chain",
+        "# NOTE: TWO separate queries -- one per block in the file below."
+      ],
+      "30_AssumptionTable.pq": [
+        "# RENAME QUERY TO: Assumption Table"
+      ],
+      "31_Targets.pq": [
+        "# RENAME QUERY TO: Targets"
+      ],
+      "32_StoreSOMapping.pq": [
+        "# RENAME QUERY TO: Store-SO Mapping"
+      ],
+      "33_ForecastOverride.pq": [
+        "# RENAME QUERY TO: Forecast Override"
+      ],
+      "34_PrimaryAllocationMap.pq": [
+        "# RENAME QUERY TO: Primary Allocation Map"
+      ],
+      "35_PrimaryAllocationOverride.pq": [
+        "# RENAME QUERY TO: Primary Allocation Override"
+      ],
+      "36_SalesTeamMapping.pq": [
+        "# RENAME QUERY TO: Sales Team Mapping"
+      ],
+      "37_GST_Rate_QC_Table.pq": [
+        "# RENAME QUERY TO: GST Rate QC Table"
+      ],
+      "38_GST_Config.pq": [
+        "# RENAME QUERY TO: GST Config"
+      ],
+      "39_PL_Expense_Input.pq": [
+        "# RENAME QUERY TO: PL Expense Input"
+      ],
+      "40_CustCode_Chain_Map.pq": [
+        "# RENAME QUERY TO: CustCode Chain Map",
+        "# NOTE: Add AFTER Fact Primary Article (query 16) -- depends on it."
+      ],
+      "41_DistContWeights.pq": [
+        "# RENAME QUERY TO: Dist Cont Weights"
+      ],
+      "42_PackSizeBuckets.pq": [
+        "# RENAME QUERY TO: Pack Size Buckets",
+        "# NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both."
+      ],
+      "43_SecondarySalesEfficiency.pq": [
+        "# RENAME QUERY TO: Secondary Sales Efficiency",
+        "# NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both."
+      ],
+      "44_Fact_SecondarySales.pq": [
+        "# RENAME QUERY TO: Fact Secondary Sales"
+      ],
+      "45_Fact_ClaimMaster.pq": [
+        "# RENAME QUERY TO: Fact Claim Master"
+      ]
+    },
+    "excluded": {
+      "46_Dim_PromoCalendar.pq": "Not usable in Desktop yet: loads File.Contents(\"PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv\") -- a relative path fixed to one month, not pRootFolder + the folder -- and its relationship notes name tables this model does not have (Dim_Brand, Dim_Calendar, Dim_Chain). Needs its own fix before it can be a setup step."
+    }
+  },
+  "dax": {
+    "source_dir": "PowerBI/DAX",
+    "glob": "*.dax",
+    "out": "PowerBI/QuickSetup/AllDAX_Consolidated.txt",
+    "preamble": "==============================================================================\nCONSOLIDATED DAX REFERENCE -- all measures/columns, in the order to add them\n==============================================================================\n\nThis file is a READ-ALONG REFERENCE, not something to paste as a whole.\nPower BI's New Measure formula bar holds exactly ONE measure at a time.\nFor each measure below: select the _Measures table > New Measure > paste\nONE 'Name = Expression' block (including any VAR/RETURN lines that belong\nto it) > Enter. Having ONE file open (this one) instead of {n_files} separate\nfiles, with the calculated-column exceptions called out up front, is the\ntime-saving here.\n\n*** READ THIS FIRST -- 6 blocks below are CALCULATED COLUMNS, not measures:\n    - 'Fact Primary Article'[TOT Method]              (in 12_TOT_Measures)\n    - 'Fact Primary Article'[TOT Pass-on Value]       (in 12_TOT_Measures)\n    - 'PL Expense Input'[Resolved Chain]              (in 13_CM2_Measures)\n    - 'PL Expense Input'[Resolved Brand]              (in 13_CM2_Measures)\n    - 'PL Expense Input'[Resolved Category]           (in 13_CM2_Measures)\n    - 'PL Expense Input'[Bad Brand Or Category]       (in 13_CM2_Measures)\n    They are already commented out (//) in those two files below, exactly\n    so you don't accidentally paste them as measures. Add each one via\n    its OWN table (select the table > New column), not via New Measure.\n    Every other measure in 12/13 IS a normal measure for _Measures.\n\n",
+    "steps": {
+      "00_DateTable.dax": [
+        "# TARGET: Date Table (calculated TABLE, not a measure)",
+        "# NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below."
+      ],
+      "01_CoreMeasures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "02_PnL_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "03_Forecast_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "04_Nielsen_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "05_TDP_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "06_DataQuality_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "07_PrimaryAllocation_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "08_ForecastQC_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "09_ArticleAllocation_Eligibility.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "10_SIS_Reconciliation.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "11_ExportDisplay_Measures.dax": [
+        "# TARGET: _Measures table"
+      ],
+      "12_TOT_Measures.dax": [
+        "# TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures."
+      ],
+      "13_CM2_Measures.dax": [
+        "# TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures."
+      ],
+      "14_SecondarySales_Measures.dax": [
+        "# TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)",
+        "# NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar."
+      ]
+    },
+    "excluded": {
+      "15_Promo_Measures.dax": "Not usable in this model yet: it reads tables no query builds (Fact_Secondary_TOT_Hierarchy; Fact_ClaimMaster -- query 45 builds 'Fact Claim Master') and Dim_PromoCalendar from the excluded query 46. Needs its own fix before it can be a setup step."
+    }
+  }
+}

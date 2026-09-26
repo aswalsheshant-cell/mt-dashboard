@@ -7,11 +7,14 @@ Power BI's Advanced Editor holds exactly ONE query per paste. For each
 section below: New Blank Query > Home > Advanced Editor > paste that
 section's M code > OK > rename the query to the name shown > Close & Apply
 when done with all of them. Having ONE file open (this one) instead of
-24 separate files is the time-saving here.
+29 separate files is the time-saving here.
+
+*** NOT INCLUDED -- these source files are deliberately left out of this setup:
+    - 46_Dim_PromoCalendar.pq: Not usable in Desktop yet: loads File.Contents("PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv") -- a relative path fixed to one month, not pRootFolder + the folder -- and its relationship notes name tables this model does not have (Dim_Brand, Dim_Calendar, Dim_Chain). Needs its own fix before it can be a setup step.
 
 
 ##############################################################################
-# STEP 01/25  --  SOURCE FILE: 00_Parameters.pq
+# STEP 01/29  --  SOURCE FILE: 00_Parameters.pq
 # RENAME QUERY TO: pRootFolder (Manage Parameters, NOT a Blank Query)
 # NOTE: Home > Transform data > Manage Parameters > New.
 ##############################################################################
@@ -38,8 +41,9 @@ when done with all of them. Having ONE file open (this one) instead of
 "C:\MT-Dashboard" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 
 
+
 ##############################################################################
-# STEP 02/25  --  SOURCE FILE: 01_fnCombineFolder.pq
+# STEP 02/29  --  SOURCE FILE: 01_fnCombineFolder.pq
 # RENAME QUERY TO: fnCombineFolder
 # NOTE: Blank Query > Advanced Editor > paste > rename.
 ##############################################################################
@@ -121,8 +125,9 @@ in
     fnCombineFolder
 
 
+
 ##############################################################################
-# STEP 03/25  --  SOURCE FILE: 10_Fact_PrimarySales.pq
+# STEP 03/29  --  SOURCE FILE: 10_Fact_PrimarySales.pq
 # RENAME QUERY TO: Fact Primary Sales
 ##############################################################################
 // =====================================================================
@@ -130,6 +135,13 @@ in
 // Source = every file in RawDataFolders\Primary_Weekly
 // Primary is maintained WEEKLY (date/week-wise) so MoM is built by rolling
 // the weekly rows up to Month via the Date table.
+//
+// MVP STATUS: DEFERRED — RawDataFolders\Primary_Weekly is empty (no weekly
+// files have been loaded yet). This query returns 0 rows and is structurally
+// correct. Drop weekly CSV/Excel files into Primary_Weekly and refresh to
+// activate. Weekly data is NOT required for the MVP release; article-level
+// monthly primary (Query 16) and ShipTo monthly (RawDataFolders\Primary_ShipTo_Monthly)
+// cover all current reporting needs.
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Primary_Weekly"),
@@ -179,8 +191,9 @@ in
     AddMonthStart
 
 
+
 ##############################################################################
-# STEP 04/25  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
+# STEP 04/29  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
 # RENAME QUERY TO: Fact Offtake Sales
 ##############################################################################
 // =====================================================================
@@ -301,8 +314,9 @@ in
     Cleaned
 
 
+
 ##############################################################################
-# STEP 05/25  --  SOURCE FILE: 12_Fact_PnL.pq
+# STEP 05/29  --  SOURCE FILE: 12_Fact_PnL.pq
 # RENAME QUERY TO: Fact P&L
 ##############################################################################
 // =====================================================================
@@ -330,8 +344,9 @@ in
     Grouped
 
 
+
 ##############################################################################
-# STEP 06/25  --  SOURCE FILE: 13_Fact_Nielsen.pq
+# STEP 06/29  --  SOURCE FILE: 13_Fact_Nielsen.pq
 # RENAME QUERY TO: Fact Nielsen Market Share
 ##############################################################################
 // =====================================================================
@@ -364,8 +379,9 @@ in
     AddMonthStart
 
 
+
 ##############################################################################
-# STEP 07/25  --  SOURCE FILE: 14_Fact_TDP.pq
+# STEP 07/29  --  SOURCE FILE: 14_Fact_TDP.pq
 # RENAME QUERY TO: Fact TDP
 ##############################################################################
 // =====================================================================
@@ -412,8 +428,9 @@ in
     AddMonthStart
 
 
+
 ##############################################################################
-# STEP 08/25  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
+# STEP 08/29  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
 # RENAME QUERY TO: Fact Primary ShipTo
 ##############################################################################
 // =====================================================================
@@ -496,8 +513,9 @@ in
     Cleaned
 
 
+
 ##############################################################################
-# STEP 09/25  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
+# STEP 09/29  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
 # RENAME QUERY TO: Fact Primary Article
 ##############################################################################
 // =====================================================================
@@ -611,24 +629,43 @@ let
     Merged = Table.NestedJoin(DistKeys2, {"ShipTo Key", "Brand Key", "MonthStart"},
         #"Dist Cont Weights", {"ShipTo Key", "Brand Key", "MonthStart"},
         "W", JoinKind.LeftOuter),
-    ExpandedW = Table.ExpandTableColumn(Merged, "W", {"Chain Name", "Frac"}),
+    ExpandedW = Table.ExpandTableColumn(Merged, "W",
+        {"Chain Name", "Frac", "Source Type", "Approval Status", "Provisional Flag"}),
     // scale measures by cont% (unmatched rows keep Frac=1 and go to "Unmapped Chain")
-    FillFrac = Table.ReplaceValue(ExpandedW, null, 1, Replacer.ReplaceValue, {"Frac"}),
-    Alloc1 = Table.AddColumn(FillFrac, "Primary Qty Alloc", each ([Primary Qty] ?? 0) * [Frac], type number),
+    FillFrac      = Table.ReplaceValue(ExpandedW, null, 1,       Replacer.ReplaceValue, {"Frac"}),
+    FillSrcType   = Table.ReplaceValue(FillFrac,  null, "Unmapped (no ShipTo data)",
+                        Replacer.ReplaceValue, {"Source Type"}),
+    FillApproval  = Table.ReplaceValue(FillSrcType, null, "Unmapped",
+                        Replacer.ReplaceValue, {"Approval Status"}),
+    FillProv      = Table.ReplaceValue(FillApproval, null, false, Replacer.ReplaceValue, {"Provisional Flag"}),
+    Alloc1 = Table.AddColumn(FillProv, "Primary Qty Alloc", each ([Primary Qty] ?? 0) * [Frac], type number),
     Alloc2 = Table.AddColumn(Alloc1, "Primary NSV Alloc", each ([Primary NSV] ?? 0) * [Frac], type number),
     Alloc3 = Table.AddColumn(Alloc2, "Primary MRP Alloc", each ([Primary MRP] ?? 0) * [Frac], type number),
     Alloc4 = Table.AddColumn(Alloc3, "Primary Tax Alloc", each
         if [Primary Tax Amount] = null then null else [Primary Tax Amount] * [Frac], type number),
     DistChain = Table.AddColumn(Alloc4, "Chain", each
         if [Chain Name] <> null then [Chain Name] else "Unmapped Chain", type text),
+    // Allocation Status: readable label for the QC page and DAX measures
+    DistAllocStatus = Table.AddColumn(DistChain, "Allocation Status", each
+        if [Chain Name] = null        then "Unmapped"
+        else if [Provisional Flag]    then "Provisional"
+        else "Allocated", type text),
     DistSwap = Table.RemoveColumns(
         Table.RenameColumns(
-            Table.RemoveColumns(DistChain, {"Primary Qty", "Primary NSV", "Primary MRP", "Primary Tax Amount"}),
+            Table.RemoveColumns(DistAllocStatus, {"Primary Qty", "Primary NSV", "Primary MRP", "Primary Tax Amount"}),
             {{"Primary Qty Alloc", "Primary Qty"}, {"Primary NSV Alloc", "Primary NSV"},
              {"Primary MRP Alloc", "Primary MRP"}, {"Primary Tax Alloc", "Primary Tax Amount"}}),
-        {"ShipTo Key", "Brand Key", "Chain Name", "Frac"}),
+        {"ShipTo Key", "Brand Key", "Chain Name", "Frac", "Approval Status"}),
 
-    Combined = Table.Combine({Table.RemoveColumns(DirectFinal, {"Is Dist"}),
+    // Add matching governance columns to Direct rows (no allocation applied)
+    DirectWithGov = Table.AddColumn(
+        Table.AddColumn(
+          Table.AddColumn(DirectFinal,
+            "Source Type", each null, type text),
+          "Provisional Flag", each false, type logical),
+        "Allocation Status", each "Direct", type text),
+
+    Combined = Table.Combine({Table.RemoveColumns(DirectWithGov, {"Is Dist"}),
                               Table.RemoveColumns(DistSwap, {"Is Dist"})}),
 
     // article key: EAN -> cleaned Description (the current format has no Article Code)
@@ -642,8 +679,9 @@ in
     FixBrand
 
 
+
 ##############################################################################
-# STEP 10/25  --  SOURCE FILE: 20_Dim_Masters.pq
+# STEP 10/29  --  SOURCE FILE: 20_Dim_Masters.pq
 # RENAME QUERY TO: Chain Master, Brand Master, Category Master, Article Master, Zone State Master, Store Master, Nielsen Competitor Master
 # NOTE: SEVEN separate queries -- one per '---------- X Master ----------' block in the file below. Each block is its own complete `let...in` query; uncomment/copy ONE block at a time.
 ##############################################################################
@@ -701,8 +739,9 @@ in Typed
 // in T
 
 
+
 ##############################################################################
-# STEP 11/25  --  SOURCE FILE: 21_ShipToMaster.pq
+# STEP 11/29  --  SOURCE FILE: 21_ShipToMaster.pq
 # RENAME QUERY TO: Ship-To Master
 ##############################################################################
 // =====================================================================
@@ -724,8 +763,9 @@ in
     Trimmed
 
 
+
 ##############################################################################
-# STEP 12/25  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
+# STEP 12/29  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
 # RENAME QUERY TO: Customer Code Zone Master
 ##############################################################################
 // =====================================================================
@@ -766,8 +806,9 @@ in
     Trimmed
 
 
+
 ##############################################################################
-# STEP 13/25  --  SOURCE FILE: 24_ChannelMap.pq
+# STEP 13/29  --  SOURCE FILE: 24_ChannelMap.pq
 # RENAME QUERY TO: Channel Map Store, Channel Map Chain
 # NOTE: TWO separate queries -- one per block in the file below.
 ##############################################################################
@@ -802,8 +843,9 @@ in
 //     Deduped
 
 
+
 ##############################################################################
-# STEP 14/25  --  SOURCE FILE: 30_AssumptionTable.pq
+# STEP 14/29  --  SOURCE FILE: 30_AssumptionTable.pq
 # RENAME QUERY TO: Assumption Table
 ##############################################################################
 // =====================================================================
@@ -826,8 +868,9 @@ in
     Typed
 
 
+
 ##############################################################################
-# STEP 15/25  --  SOURCE FILE: 31_Targets.pq
+# STEP 15/29  --  SOURCE FILE: 31_Targets.pq
 # RENAME QUERY TO: Targets
 ##############################################################################
 // =====================================================================
@@ -846,8 +889,9 @@ in
     AddAbs
 
 
+
 ##############################################################################
-# STEP 16/25  --  SOURCE FILE: 32_StoreSOMapping.pq
+# STEP 16/29  --  SOURCE FILE: 32_StoreSOMapping.pq
 # RENAME QUERY TO: Store-SO Mapping
 ##############################################################################
 // =====================================================================
@@ -869,8 +913,9 @@ in
     Trimmed
 
 
+
 ##############################################################################
-# STEP 17/25  --  SOURCE FILE: 33_ForecastOverride.pq
+# STEP 17/29  --  SOURCE FILE: 33_ForecastOverride.pq
 # RENAME QUERY TO: Forecast Override
 ##############################################################################
 // =====================================================================
@@ -893,8 +938,9 @@ in
     Typed
 
 
+
 ##############################################################################
-# STEP 18/25  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
+# STEP 18/29  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
 # RENAME QUERY TO: Primary Allocation Map
 ##############################################################################
 // =====================================================================
@@ -927,8 +973,9 @@ in
     Grouped
 
 
+
 ##############################################################################
-# STEP 19/25  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
+# STEP 19/29  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
 # RENAME QUERY TO: Primary Allocation Override
 ##############################################################################
 // =====================================================================
@@ -949,8 +996,9 @@ in
     Typed
 
 
+
 ##############################################################################
-# STEP 20/25  --  SOURCE FILE: 36_SalesTeamMapping.pq
+# STEP 20/29  --  SOURCE FILE: 36_SalesTeamMapping.pq
 # RENAME QUERY TO: Sales Team Mapping
 ##############################################################################
 // =====================================================================
@@ -982,8 +1030,9 @@ in
     Typed
 
 
+
 ##############################################################################
-# STEP 21/25  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
+# STEP 21/29  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
 # RENAME QUERY TO: GST Rate QC Table
 ##############################################################################
 // =====================================================================
@@ -1031,8 +1080,9 @@ in
     Typed
 
 
+
 ##############################################################################
-# STEP 22/25  --  SOURCE FILE: 38_GST_Config.pq
+# STEP 22/29  --  SOURCE FILE: 38_GST_Config.pq
 # RENAME QUERY TO: GST Config
 ##############################################################################
 // =====================================================================
@@ -1062,8 +1112,9 @@ in
     Typed
 
 
+
 ##############################################################################
-# STEP 23/25  --  SOURCE FILE: 39_PL_Expense_Input.pq
+# STEP 23/29  --  SOURCE FILE: 39_PL_Expense_Input.pq
 # RENAME QUERY TO: PL Expense Input
 ##############################################################################
 // =====================================================================
@@ -1166,8 +1217,9 @@ in
     Cleaned
 
 
+
 ##############################################################################
-# STEP 24/25  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
+# STEP 24/29  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
 # RENAME QUERY TO: CustCode Chain Map
 # NOTE: Add AFTER Fact Primary Article (query 16) -- depends on it.
 ##############################################################################
@@ -1197,60 +1249,230 @@ in
     Grouped
 
 
+
 ##############################################################################
-# STEP 25/25  --  SOURCE FILE: 41_DistContWeights.pq
+# STEP 25/29  --  SOURCE FILE: 41_DistContWeights.pq
 # RENAME QUERY TO: Dist Cont Weights
 ##############################################################################
 // =====================================================================
-// QUERY: Dist Cont Weights
-// Source: RawDataFolders\Dist_primary_cont_based_on_secondary_MOM.xlsx
-//         sheet "Dist Primary Conv to Chain Art"
-// Role: the business's secondary-derived monthly Distributor -> Chain split,
-// used by 'Fact Primary Article' (query 16) to allocate PO Type='Dist.'
-// primary rows (whose "Chain name for Dashboard" is blank) onto real chains
-// at Customer x Article grain. Key = Ship To Name x Brand x Month; NOTE the
-// sheet has NO Cust-SAP Code column -- the code<->ship-to bridge lives in
-// the primary file itself, so the join is on the normalised Ship To Name.
+// QUERY: Dist Cont Weights  v2.0
+// Source priority chain:
+//   P1 = SeedData\Mapping\DistCont_Patch_Approved_2026-07-04.csv
+//        Finance-approved exact overrides (Secondary contribution % in 0-100 format)
+//   P2 = RawDataFolders\Primary_ShipTo_Monthly\Primary_ShipTo_FY25-26_to_May26.csv
+//        Dist. rows only; Cont% already 0-1 fractions; covers May'25 – May'26
+//   P3 = Jun'26 nearest-month fallback (May'26 data promoted to Jun'26)
+//        PROVISIONAL – awaiting Finance approval of Jun'26 DistCont patch
+//   P4 = "Unmapped Chain" emitted by Query 16 for any key not covered here
 //
-// Fractions are NORMALISED to sum to exactly 1 per key, so the allocation
-// reconciles to the input by construction. Keys whose RAW cont% sum
-// deviates from 100 are surfaced via the [Raw Pct Sum] column -- put a
-// table visual on it filtered to ABS([Raw Pct Sum]-100) > 0.5 for QC
-// rule 19 ("flag the variance before allocation").
+// For an exact (ShipTo Key × Brand Key × MonthStart) match, P1 overrides P2.
+// Fractions are normalised to sum = 1 per group (same guarantee as the old query).
+// Governance columns (Source Type, Approval Status, Provisional Flag, etc.) are
+// propagated into 'Fact Primary Article' (query 16) and surfaced on the QC page.
+//
+// REPLACED: Dist_primary_cont_based_on_secondary_MOM.xlsx (gitignored, never
+// committed). The two CSV sources above are checked into the repo and are the
+// authoritative allocation inputs going forward.
 // =====================================================================
 let
-    Source = Excel.Workbook(
-        File.Contents(pRootFolder & "\RawDataFolders\Dist_primary_cont_based_on_secondary_MOM.xlsx"),
-        null, true),
-    Sheet = Source{[Item="Dist Primary Conv to Chain Art", Kind="Sheet"]}[Data],
-    // row 1 of the sheet is blank padding; row 2 is the real header
-    Skipped = Table.Skip(Sheet, 1),
-    Promoted = Table.PromoteHeaders(Skipped, [PromoteAllScalars=true]),
-    Picked = Table.SelectColumns(Promoted, {
+    // ── Load Timestamp (shared across all rows this refresh) ──────────────
+    LoadTs = DateTime.ToText(DateTime.LocalNow(), "yyyy-MM-dd HH:mm"),
+
+    // ── CONSTANT: Jun'26 and May'26 month starts ──────────────────────────
+    Jun26Start = #date(2026, 6, 1),
+    May26Start = #date(2026, 5, 1),
+
+    // ======================================================================
+    // P1: Finance-Approved Patch
+    //     Secondary contribution % is in 0-100 format → divide by 100
+    // ======================================================================
+    PatchRaw = Csv.Document(
+        File.Contents(pRootFolder & "\SeedData\Mapping\DistCont_Patch_Approved_2026-07-04.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    PatchHeaders = Table.PromoteHeaders(PatchRaw, [PromoteAllScalars = true]),
+    PatchPicked = Table.SelectColumns(PatchHeaders, {
         "Ship To Name", "Chain Name", "Brand", "Revised month", "Secondary contribution %"
     }, MissingField.UseNull),
-    Typed = Table.TransformColumnTypes(Picked, {
-        {"Ship To Name", type text}, {"Chain Name", type text}, {"Brand", type text},
-        {"Revised month", type date}, {"Secondary contribution %", type number}
+    PatchTyped = Table.TransformColumnTypes(PatchPicked, {
+        {"Ship To Name",               type text},
+        {"Chain Name",                 type text},
+        {"Brand",                      type text},
+        {"Revised month",              type date},
+        {"Secondary contribution %",   type number}
     }),
-    Cleaned = Table.SelectRows(Typed, each [Ship To Name] <> null and [Chain Name] <> null
-        and [Secondary contribution %] <> null and [Secondary contribution %] <> 0),
-    AddKeys = Table.AddColumn(Cleaned, "ShipTo Key", each Text.Lower(Text.Trim([Ship To Name])), type text),
-    AddBrandKey = Table.AddColumn(AddKeys, "Brand Key", each Text.Lower(Text.Trim([Brand])), type text),
-    AddMonthStart = Table.AddColumn(AddBrandKey, "MonthStart", each Date.StartOfMonth([Revised month]), type date),
-    // normalise cont% to fractions summing to exactly 1 per key
-    Grouped = Table.Group(AddMonthStart, {"ShipTo Key", "Brand Key", "MonthStart"}, {
-        {"Raw Pct Sum", each List.Sum([#"Secondary contribution %"]), type number},
-        {"Rows", each _, type table}
+    PatchCleaned = Table.SelectRows(PatchTyped,
+        each [Ship To Name] <> null and [Chain Name] <> null
+          and [#"Secondary contribution %"] <> null
+          and [#"Secondary contribution %"] <> 0),
+    PatchAddShipToKey = Table.AddColumn(PatchCleaned, "ShipTo Key",
+        each Text.Lower(Text.Trim([Ship To Name])), type text),
+    PatchAddBrandKey = Table.AddColumn(PatchAddShipToKey, "Brand Key",
+        each Text.Lower(Text.Trim([Brand])), type text),
+    PatchAddMonthStart = Table.AddColumn(PatchAddBrandKey, "MonthStart",
+        each Date.StartOfMonth([Revised month]), type date),
+    // Divide by 100 to get raw 0-1 contribution for normalisation
+    PatchRawCont = Table.AddColumn(PatchAddMonthStart, "RawCont",
+        each [#"Secondary contribution %"] / 100, type number),
+    // Governance
+    PatchGov1 = Table.AddColumn(PatchRawCont,
+        "Source File", each "DistCont_Patch_Approved_2026-07-04.csv", type text),
+    PatchGov2 = Table.AddColumn(PatchGov1,
+        "Source Type", each "Approved Patch", type text),
+    PatchGov3 = Table.AddColumn(PatchGov2,
+        "Approval Status", each "Approved", type text),
+    PatchGov4 = Table.AddColumn(PatchGov3,
+        "Allocation Method", each "Exact Match – Approved Patch", type text),
+    PatchGov5 = Table.AddColumn(PatchGov4,
+        "Provisional Flag", each false, type logical),
+    PatchGov6 = Table.AddColumn(PatchGov5,
+        "Fallback Flag", each false, type logical),
+    PatchGov7 = Table.AddColumn(PatchGov6,
+        "Fallback Source Month", each null, type date),
+    PatchFinal = Table.SelectColumns(PatchGov7, {
+        "ShipTo Key", "Brand Key", "MonthStart",
+        "Ship To Name", "Chain Name", "Brand", "RawCont",
+        "Source File", "Source Type", "Approval Status",
+        "Allocation Method", "Provisional Flag", "Fallback Flag", "Fallback Source Month"
     }),
-    Expanded = Table.ExpandTableColumn(Grouped, "Rows",
-        {"Ship To Name", "Chain Name", "Secondary contribution %"}),
-    AddFrac = Table.AddColumn(Expanded, "Frac", each
-        [#"Secondary contribution %"] / [Raw Pct Sum], type number),
-    Final = Table.SelectColumns(AddFrac,
-        {"ShipTo Key", "Brand Key", "MonthStart", "Chain Name", "Frac", "Raw Pct Sum"})
+
+    // ======================================================================
+    // P2: ShipTo CSV — Dist. rows only
+    //     Cont% is already in 0-1 fraction form; Chain column = Chain Name
+    // ======================================================================
+    ShipToRaw = Csv.Document(
+        File.Contents(pRootFolder & "\RawDataFolders\Primary_ShipTo_Monthly\Primary_ShipTo_FY25-26_to_May26.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    ShipToHeaders = Table.PromoteHeaders(ShipToRaw, [PromoteAllScalars = true]),
+    ShipToPicked = Table.SelectColumns(ShipToHeaders, {
+        "Ship To Name", "Direct/Distributor", "Chain", "Brand", "MonthStart", "Cont%"
+    }, MissingField.UseNull),
+    ShipToTyped = Table.TransformColumnTypes(ShipToPicked, {
+        {"Ship To Name",         type text},
+        {"Direct/Distributor",   type text},
+        {"Chain",                type text},
+        {"Brand",                type text},
+        {"MonthStart",           type date},
+        {"Cont%",                type number}
+    }),
+    // Keep only Distributor rows with a valid chain and non-zero contribution
+    ShipToDistOnly = Table.SelectRows(ShipToTyped,
+        each [Direct/Distributor] <> null
+          and Text.Lower(Text.Trim([Direct/Distributor])) = "dist."
+          and [Chain] <> null
+          and [#"Cont%"] <> null and [#"Cont%"] <> 0),
+    ShipToRenChain = Table.RenameColumns(ShipToDistOnly, {{"Chain", "Chain Name"}}),
+    ShipToAddShipToKey = Table.AddColumn(ShipToRenChain, "ShipTo Key",
+        each Text.Lower(Text.Trim([Ship To Name])), type text),
+    ShipToAddBrandKey = Table.AddColumn(ShipToAddShipToKey, "Brand Key",
+        each Text.Lower(Text.Trim([Brand])), type text),
+    // Rename Cont% to RawCont (already 0-1 fraction, no scaling needed)
+    ShipToRawCont = Table.RenameColumns(ShipToAddBrandKey, {{"Cont%", "RawCont"}}),
+    // Governance
+    ShipToGov1 = Table.AddColumn(ShipToRawCont,
+        "Source File", each "Primary_ShipTo_FY25-26_to_May26.csv", type text),
+    ShipToGov2 = Table.AddColumn(ShipToGov1,
+        "Source Type", each "ShipTo CSV", type text),
+    ShipToGov3 = Table.AddColumn(ShipToGov2,
+        "Approval Status", each "Approved", type text),
+    ShipToGov4 = Table.AddColumn(ShipToGov3,
+        "Allocation Method", each "Exact Match – ShipTo CSV", type text),
+    ShipToGov5 = Table.AddColumn(ShipToGov4,
+        "Provisional Flag", each false, type logical),
+    ShipToGov6 = Table.AddColumn(ShipToGov5,
+        "Fallback Flag", each false, type logical),
+    ShipToGov7 = Table.AddColumn(ShipToGov6,
+        "Fallback Source Month", each null, type date),
+    ShipToFinal = Table.SelectColumns(ShipToGov7, {
+        "ShipTo Key", "Brand Key", "MonthStart",
+        "Ship To Name", "Chain Name", "Brand", "RawCont",
+        "Source File", "Source Type", "Approval Status",
+        "Allocation Method", "Provisional Flag", "Fallback Flag", "Fallback Source Month"
+    }),
+
+    // ======================================================================
+    // PRIORITY MERGE: P1 overrides P2 for exact (ShipTo Key × Brand Key × MonthStart)
+    // Remove ShipTo rows whose group key is entirely covered by the Approved Patch
+    // ======================================================================
+    PatchKeyGroups = Table.Distinct(Table.SelectColumns(PatchFinal,
+        {"ShipTo Key", "Brand Key", "MonthStart"})),
+    ShipToNotOverridden = Table.Join(
+        ShipToFinal,  {"ShipTo Key", "Brand Key", "MonthStart"},
+        PatchKeyGroups, {"ShipTo Key", "Brand Key", "MonthStart"},
+        JoinKind.LeftAnti),
+    CombinedBase = Table.Combine({PatchFinal, ShipToNotOverridden}),
+
+    // ======================================================================
+    // P3: Jun'26 nearest-month fallback
+    // The ShipTo CSV ends May'26. For any (ShipTo Key × Brand Key) with May'26 data
+    // but no Jun'26 data, copy May'26 rows to Jun'26 and mark as Provisional.
+    // These rows must be superseded by a Finance-approved DistCont patch for Jun'26.
+    // ======================================================================
+    May26Rows = Table.SelectRows(CombinedBase, each [MonthStart] = May26Start),
+    Jun26Rows = Table.SelectRows(CombinedBase, each [MonthStart] = Jun26Start),
+    // Keys already covered for Jun'26 (from Approved Patch, if any)
+    Jun26Keys = Table.Distinct(Table.SelectColumns(Jun26Rows, {"ShipTo Key", "Brand Key"})),
+    // May'26 rows whose ShipTo+Brand key has no Jun'26 coverage
+    May26ForFallback = Table.Join(
+        May26Rows,  {"ShipTo Key", "Brand Key"},
+        Jun26Keys,  {"ShipTo Key", "Brand Key"},
+        JoinKind.LeftAnti),
+    Jun26Fallback = Table.TransformColumns(May26ForFallback, {
+        {"MonthStart",        each Jun26Start,
+            type date},
+        {"Source File",       each "Primary_ShipTo_FY25-26_to_May26.csv (Jun'26 fallback from May'26)",
+            type text},
+        {"Source Type",       each "Nearest-Month Fallback",
+            type text},
+        {"Approval Status",   each "Provisional – Jun'26 gap; awaiting Finance approval",
+            type text},
+        {"Allocation Method", each "Nearest-Month Fallback – May'26 applied to Jun'26",
+            type text},
+        {"Provisional Flag",  each true,
+            type logical},
+        {"Fallback Flag",     each true,
+            type logical},
+        {"Fallback Source Month", each May26Start,
+            type date}
+    }),
+
+    // ======================================================================
+    // COMBINE all sources; normalise fractions per group
+    // ======================================================================
+    AllRows = Table.Combine({CombinedBase, Jun26Fallback}),
+
+    Grouped = Table.Group(AllRows, {"ShipTo Key", "Brand Key", "MonthStart"}, {
+        {"Raw Pct Sum", each List.Sum([RawCont]), type number},
+        {"Rows",        each _, type table}
+    }),
+    Expanded = Table.ExpandTableColumn(Grouped, "Rows", {
+        "Ship To Name", "Chain Name", "Brand", "RawCont",
+        "Source File", "Source Type", "Approval Status",
+        "Allocation Method", "Provisional Flag", "Fallback Flag", "Fallback Source Month"
+    }),
+    // Normalised fraction: sums to 1 per group by construction
+    AddFrac = Table.AddColumn(Expanded, "Frac",
+        each [RawCont] / [Raw Pct Sum], type number),
+
+    AddLoadTs = Table.AddColumn(AddFrac, "Load Timestamp", each LoadTs, type text),
+
+    Final = Table.SelectColumns(AddLoadTs, {
+        "ShipTo Key", "Brand Key", "MonthStart",
+        "Ship To Name", "Chain Name", "Brand",
+        "Frac", "Raw Pct Sum",
+        "Source File", "Source Type", "Approval Status",
+        "Allocation Method", "Provisional Flag", "Fallback Flag",
+        "Fallback Source Month", "Load Timestamp"
+    })
 in
     Final
+
+
+
+##############################################################################
+# STEP 26/29  --  SOURCE FILE: 42_PackSizeBuckets.pq
+# RENAME QUERY TO: Pack Size Buckets
+# NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
+##############################################################################
 // =====================================================================
 // QUERY: Pack Size Buckets  (Dimension helper)
 // Joins to Fact Primary Article and Fact Offtake Sales on [Pack Size]
@@ -1332,6 +1554,14 @@ let
     })
 in
     Typed
+
+
+
+##############################################################################
+# STEP 27/29  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
+# RENAME QUERY TO: Secondary Sales Efficiency
+# NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
+##############################################################################
 // =====================================================================
 // QUERY: Secondary Sales Efficiency  (pre-aggregated helper table)
 // Grain: FY Year x Month x Chain x Brand
@@ -1458,3 +1688,195 @@ let
     })
 in
     Typed
+
+
+
+##############################################################################
+# STEP 28/29  --  SOURCE FILE: 44_Fact_SecondarySales.pq
+# RENAME QUERY TO: Fact Secondary Sales
+##############################################################################
+// =====================================================================
+// QUERY: Fact Secondary Sales  (Distributor sell-out registers)
+// Grain: Source_Month × Distributor × NSV_Lakh
+//
+// Source: PowerBI/RawDataFolders/SecondarySales_Monthly/
+//         Files: secondary_sales_distributor_Q1_FY27.csv  (and future quarters)
+//
+// Required columns (exact headers — do not rename in source files):
+//   Source_Month  — YYYY-MM  (e.g. 2026-04)
+//   Month_Label   — Apr-2026
+//   FY_Year       — FY27
+//   Distributor   — canonical name matching Fact Primary Article[Distributor]
+//   NSV_Lakh      — secondary sell-out NSV in Lakh (ex-GST where confirmed)
+//   Data_Source   — free-text source tag
+//   Notes         — any provisional flag
+//
+// Refresh: drop a new CSV for each quarter into SecondarySales_Monthly/
+//          and click Refresh — no query edits needed.
+//
+// Note: North distributor registers not yet available (Q1 FY27).
+//       Rows will appear automatically once included in the export.
+// =====================================================================
+let
+    Source = fnCombineFolder(
+        pRootFolder & "\PowerBI\RawDataFolders\SecondarySales_Monthly",
+        {"Source_Month", "Month_Label", "FY_Year", "Distributor",
+         "NSV_Lakh", "Data_Source", "Notes"}
+    ),
+
+    // ── Type coercions ─────────────────────────────────────────────
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Source_Month",  type text},
+        {"Month_Label",   type text},
+        {"FY_Year",       type text},
+        {"Distributor",   type text},
+        {"NSV_Lakh",      type number},
+        {"Data_Source",   type text},
+        {"Notes",         type text}
+    }),
+
+    // ── Derive date fields from YYYY-MM ────────────────────────────
+    WithMonth = Table.AddColumn(Typed, "MonthStart", each
+        try Date.FromText([Source_Month] & "-01") otherwise null,
+        type date),
+
+    WithFY = Table.AddColumn(WithMonth, "FY_Derived", each
+        let m = Date.Month([MonthStart])
+        in if m >= 4 then "FY" & Text.From(Date.Year([MonthStart]) + 1)
+                     else "FY" & Text.From(Date.Year([MonthStart])),
+        type text),
+
+    // ── Provisional flag ───────────────────────────────────────────
+    WithProvisional = Table.AddColumn(WithFY, "Is_Provisional", each
+        Text.Contains([Notes], "provisional") or Text.Contains([Notes], "GST"),
+        type logical),
+
+    // ── NSV in Crore (for cross-table consistency) ─────────────────
+    WithCr = Table.AddColumn(WithProvisional, "NSV_Cr", each
+        [NSV_Lakh] / 100, type number),
+
+    // ── Remove helper columns not needed in the model ──────────────
+    Final = Table.SelectColumns(WithCr, {
+        "Source_Month", "Month_Label", "MonthStart",
+        "FY_Year", "FY_Derived",
+        "Distributor", "NSV_Lakh", "NSV_Cr",
+        "Is_Provisional", "Data_Source"
+    })
+in
+    Final
+
+
+
+##############################################################################
+# STEP 29/29  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
+# RENAME QUERY TO: Fact Claim Master
+##############################################################################
+// =====================================================================
+// QUERY: Fact Claim Master  (Chain-level Q1 FY27 expense)
+// Grain: Quarter × Chain × Expense Category
+//
+// Source: PowerBI/RawDataFolders/ClaimMaster_Quarterly/
+//         Files: claim_master_chain_AprJun_2026.csv  (and future quarters)
+//
+// Required columns:
+//   Period           — e.g. "Apr-Jun 2026"
+//   FY_Year          — FY27
+//   Quarter          — Q1
+//   Chain            — canonical chain name
+//   Chain_Promo_Lakh — on-invoice promo passed to chain
+//   Rate_Diff_Lakh   — extra margin / rate difference
+//   Freight_Lakh     — freight / transportation
+//   Incentive_Lakh   — incentive
+//   Off_Invoice_Lakh — off-invoice / debit note promo
+//   Visibility_Lakh  — visibility spend
+//   Total_Claim_Lakh — sum of all above
+//
+// Companion queries (same folder, same refresh cycle):
+//   claim_master_brand_AprJun_2026.csv    → loaded in 45b_ClaimBrand
+//   claim_master_distributor_AprJun_2026.csv → loaded in 45c_ClaimDistributor
+//
+// Refresh: drop a new quarterly CSV into ClaimMaster_Quarterly/ → Refresh.
+// =====================================================================
+let
+    Source = fnCombineFolder(
+        pRootFolder & "\PowerBI\RawDataFolders\ClaimMaster_Quarterly",
+        {"Period", "FY_Year", "Quarter", "Chain", "Source_Chain",
+         "Chain_Promo_Lakh", "Rate_Diff_Lakh", "Freight_Lakh",
+         "Incentive_Lakh", "Off_Invoice_Lakh", "Visibility_Lakh",
+         "Total_Claim_Lakh"}
+    ),
+
+    // Filter to chain-level file pattern
+    ChainOnly = Table.SelectRows(Source, each
+        Table.RowCount(Table.SelectRows(Source, each [Chain] <> null)) > 0),
+
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Period",            type text},
+        {"FY_Year",           type text},
+        {"Quarter",           type text},
+        {"Chain",             type text},
+        {"Source_Chain",      type text},
+        {"Chain_Promo_Lakh",  type number},
+        {"Rate_Diff_Lakh",    type number},
+        {"Freight_Lakh",      type number},
+        {"Incentive_Lakh",    type number},
+        {"Off_Invoice_Lakh",  type number},
+        {"Visibility_Lakh",   type number},
+        {"Total_Claim_Lakh",  type number}
+    }),
+
+    // ── Unpivot to long form: Chain × Expense_Category × Amount ────
+    Unpivoted = Table.UnpivotOtherColumns(Typed,
+        {"Period", "FY_Year", "Quarter", "Chain", "Source_Chain"},
+        "Expense_Category_Raw", "Amount_Lakh"),
+
+    // ── Clean category names (strip "_Lakh" suffix) ─────────────────
+    WithCatClean = Table.AddColumn(Unpivoted, "Expense_Category", each
+        let raw = [Expense_Category_Raw]
+        in  if raw = "Chain_Promo_Lakh"  then "Chain Promo (On Invoice)"
+            else if raw = "Rate_Diff_Lakh"   then "Extra Margin / Rate Difference"
+            else if raw = "Freight_Lakh"     then "Freight / Transportation"
+            else if raw = "Incentive_Lakh"   then "Incentive"
+            else if raw = "Off_Invoice_Lakh" then "Off Invoice / Debit Note Promo"
+            else if raw = "Visibility_Lakh"  then "Visibility"
+            else raw,
+        type text),
+
+    // ── Exclude zero rows (cleaner model) ──────────────────────────
+    NonZero = Table.SelectRows(WithCatClean, each [Amount_Lakh] <> 0),
+
+    Final = Table.SelectColumns(NonZero, {
+        "Period", "FY_Year", "Quarter",
+        "Chain", "Source_Chain",
+        "Expense_Category", "Amount_Lakh"
+    })
+in
+    Final
+
+
+// ─────────────────────────────────────────────────────────────────────
+// COMPANION QUERY — paste as a SEPARATE Blank Query named:
+//   45b_ClaimBrand
+// ─────────────────────────────────────────────────────────────────────
+// let
+//     Source = fnCombineFolder(
+//         pRootFolder & "\PowerBI\RawDataFolders\ClaimMaster_Quarterly",
+//         {"Period","FY_Year","Quarter","Brand",
+//          "Apr_Lakh","May_Lakh","Jun_Lakh","Total_Lakh"}
+//     ),
+//     Typed = Table.TransformColumnTypes(Source,{
+//         {"Period",type text},{"FY_Year",type text},{"Quarter",type text},
+//         {"Brand",type text},{"Apr_Lakh",type number},
+//         {"May_Lakh",type number},{"Jun_Lakh",type number},
+//         {"Total_Lakh",type number}
+//     }),
+//     Unpivoted = Table.UnpivotOtherColumns(Typed,
+//         {"Period","FY_Year","Quarter","Brand"},"Month_Key","Amount_Lakh"),
+//     WithMonth = Table.AddColumn(Unpivoted,"Month_Label", each
+//         if [Month_Key]="Apr_Lakh" then "Apr-2026"
+//         else if [Month_Key]="May_Lakh" then "May-2026"
+//         else if [Month_Key]="Jun_Lakh" then "Jun-2026"
+//         else [Month_Key], type text),
+//     Final = Table.SelectColumns(WithMonth,
+//         {"Period","FY_Year","Quarter","Brand","Month_Label","Amount_Lakh"})
+// in  Final
