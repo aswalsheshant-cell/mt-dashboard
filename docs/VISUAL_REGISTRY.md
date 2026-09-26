@@ -88,6 +88,8 @@ never actually active. One-line fix (delete the later, unsafe duplicate) once ap
   "SKU Portfolio Quadrants" chart): silently substitutes 100 stores / 45% gross
   margin when the real fields are missing — the chart gives no indication which
   points used a real vs. a guessed value.
+  **Update 2026-09-26:** fixed as FM-35 (branch `claude/sku-quadrants-truthful`) —
+  no defaults; the card says "Not available" and names the missing fields.
 - `dashboard/index.html:3393-3403` (`computePORiskSummary`, "Open PO SLA Risk
   Summary"): hardcodes a ≥7-day breach threshold and a flat ₹50L penalty per
   breach with no visible source/config for either number.
