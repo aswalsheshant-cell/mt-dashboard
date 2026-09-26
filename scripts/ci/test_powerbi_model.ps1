@@ -94,7 +94,10 @@ $pqFiles = Get-ChildItem -Path (Join-Path $RepoRoot "PowerBI/PowerQuery") -Filte
 if ($pqFiles.Count -gt 0) {
     foreach ($pqFile in $pqFiles) {
         $content = Get-Content -Path $pqFile.FullName -Raw
-        if ($content -match "let" -and $content -match "in") {
+        # A Power Query parameter (e.g. 00_Parameters.pq) is a value tagged
+        # `meta [IsParameterQuery=true, ...]` -- valid M with no let/in.
+        $isParameterQuery = $content -match 'meta\s*\[\s*IsParameterQuery\s*=\s*true'
+        if ($isParameterQuery -or ($content -match "let" -and $content -match "in")) {
             Write-Host "  ✓ Structural M-code valid: $($pqFile.Name)" -ForegroundColor Green
         } else {
             $failures += "Power Query structural error in $($pqFile.Name): Missing 'let' or 'in' clause"
