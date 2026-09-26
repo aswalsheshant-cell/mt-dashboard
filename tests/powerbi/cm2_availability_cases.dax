@@ -1,0 +1,79 @@
+// =====================================================================
+// CM2 availability -- the four model cases (FM-33)
+// Run in DAX Studio connected to the Power BI Desktop model (or paste each
+// EVALUATE into Power BI Desktop's DAX query view). CI has no DAX engine, so
+// tests/test_powerbi_cm2_truthful.py checks the measure STRUCTURE; these
+// queries check the BEHAVIOUR on the real model. Run each block on its own.
+//
+// Data needed:
+//   CASE 1 -- today's seed file (only the 3 EXAMPLE ROW template rows).
+//   CASE 2 -- at least one real expense row (e.g. after PR #229 is approved).
+//   CASE 3 -- an expense row whose chain does not resolve (in #229: Tnsi
+//             Retail Pvt Ltd, customer 1100027).
+//   CASE 4 -- expense rows for some chains but not others (#229 again).
+// =====================================================================
+
+// CASE 1 -- no expense rows (template rows must be gone, CM2 BLANK, not NSV)
+// EXPECT: RowsLoaded = BLANK (0 rows), ExpenseLoaded = BLANK, CM2 = BLANK,
+//         CM2Pct = BLANK, NSV = a real number.
+EVALUATE
+ROW (
+    "RowsLoaded",    COUNTROWS ( 'PL Expense Input' ),
+    "ExpenseLoaded", [Total Expense Amount Loaded],
+    "NSV",           [Total Primary Article NSV],
+    "CM2",           [CM2 Value],
+    "CM2Pct",        [CM2 %]
+)
+
+// CASE 2 -- valid (mapped) expense rows, by month
+// EXPECT: in months WITH expense, CM2 = NSV - Expense exactly;
+//         in months WITHOUT expense, Expense and CM2 are BLANK (never CM2 = NSV).
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date Table'[MonthStart],
+    "NSV",     [Total Primary Article NSV],
+    "Expense", [Total P&L Expense],
+    "CM2",     [CM2 Value],
+    "Check",   IF ( ISBLANK ( [Total P&L Expense] ),
+                    IF ( ISBLANK ( [CM2 Value] ), "OK blank", "FAIL shows CM2 without expense" ),
+                    IF ( [CM2 Value] = [Total Primary Article NSV] - [Total P&L Expense], "OK", "FAIL arithmetic" ) )
+)
+ORDER BY 'Date Table'[MonthStart]
+
+// CASE 3 -- unmapped expense only (rows whose chain does not resolve)
+// EXPECT: Unmapped > 0, Mapped = BLANK, CM2 = BLANK -- unmapped rows are
+//         reported in QC but never deducted, and never turn into CM2 = NSV.
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "Unmapped", [Total P&L Expense (Unmapped)],
+        "Mapped",   [Total P&L Expense],
+        "CM2",      [CM2 Value]
+    ),
+    FILTER ( ALL ( 'PL Expense Input' ), ISBLANK ( 'PL Expense Input'[Resolved Chain] ) )
+)
+
+// CASE 4 -- one dimension member without expense while another has it
+// EXPECT: chains with expense show CM2 = NSV - expense; chains without
+//         expense show BLANK expense AND BLANK CM2. The Violations query
+//         below must return 0.
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Fact Primary Article'[Chain],
+    "NSV",          [Total Primary Article NSV],
+    "ChainExpense", [Total P&L Expense (by Chain)],
+    "ChainCM2",     [Chain-wise CM2],
+    "ChainCM2Pct",  [Chain-wise CM2 %]
+)
+ORDER BY [NSV] DESC
+
+EVALUATE
+ROW (
+    "Violations",
+    COUNTROWS (
+        FILTER (
+            VALUES ( 'Fact Primary Article'[Chain] ),
+            ISBLANK ( [Total P&L Expense (by Chain)] ) && NOT ISBLANK ( [Chain-wise CM2] )
+        )
+    )
+)

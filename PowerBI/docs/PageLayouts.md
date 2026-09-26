@@ -242,9 +242,10 @@ rest of the file's measures to `_Measures` (see `README.md` step 8).
   Margin Pass-on Value]` (TOT Value), `[TOT %]`, `[Total P&L Expense]`,
   `[Expense % of NSV]`, `[CM2 Value]`, `[CM2 %]`, `[MoM CM2 Change]`.
 - **No-expense-data note** (conditional text box, e.g. bound to
-  `[Total Expense Amount Loaded] = 0`): "No expense data loaded yet — CM2
-  currently equals NSV. Populate PL_Expense_Input.csv with real monthly P&L
-  expenses to see actual CM2."
+  `ISBLANK ( [Total P&L Expense] )`): "No expense data loaded yet — CM2 is
+  shown blank (not available). Populate PL_Expense_Input.csv with real monthly
+  P&L expenses to see actual CM2." (`[CM2 Value]` and the chain/brand/category
+  CM2 measures return BLANK, never NSV, when no expense is loaded -- FM-33.)
 - **Chain-wise CM2** (bar or table): `Chain` × `[Chain-wise CM2]` /
   `[Chain-wise CM2 %]`.
 - **Brand-wise CM2** / **Category-wise CM2**: same pattern with `Brand` /

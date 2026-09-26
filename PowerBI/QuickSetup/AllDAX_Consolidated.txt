@@ -1435,8 +1435,12 @@ Total P&L Expense = [Total P&L Expense (Mapped)]   // headline KPI -- matches th
 Expense % of NSV =
 DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100
 
+// Availability gate (FM-33): [Total P&L Expense] is BLANK when no mapped expense
+// row exists in the current filter context. CM2 is then BLANK (shown as "–"),
+// never NSV read as a 100% margin -- missing expense is not zero expense.
 CM2 Value =
-[Total Primary Article NSV] - [Total P&L Expense]
+VAR _exp = [Total P&L Expense]
+RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
 
 CM2 % =
 DIVIDE ( [CM2 Value], [Total Primary Article NSV] ) * 100
@@ -1445,12 +1449,12 @@ DIVIDE ( [CM2 Value], [Total Primary Article NSV] ) * 100
 MoM Expense Change =
 VAR _cur = [Total P&L Expense]
 VAR _prev = CALCULATE ( [Total P&L Expense], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
-RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), _cur - _prev )
 
 MoM CM2 Change =
 VAR _cur = [CM2 Value]
 VAR _prev = CALCULATE ( [CM2 Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
-RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )
+RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), _cur - _prev )
 
 // ---------- CHAIN / BRAND / CATEGORY-WISE CM2 ----------
 // 'PL Expense Input' has NO modelled relationship to 'Fact Primary Article'
@@ -1464,7 +1468,9 @@ RETURN
         CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Chain] = _chain ) )
     )
 
-Chain-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Chain)]
+Chain-wise CM2 =   // BLANK for a chain with no mapped expense rows (not its NSV)
+VAR _exp = [Total P&L Expense (by Chain)]
+RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
 Chain-wise CM2 % = DIVIDE ( [Chain-wise CM2], [Total Primary Article NSV] ) * 100
 
 Total P&L Expense (by Brand) =
@@ -1474,7 +1480,9 @@ RETURN
         CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Brand] = _brand ) )
     )
 
-Brand-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Brand)]
+Brand-wise CM2 =   // BLANK for a brand with no mapped expense rows (not its NSV)
+VAR _exp = [Total P&L Expense (by Brand)]
+RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
 Brand-wise CM2 % = DIVIDE ( [Brand-wise CM2], [Total Primary Article NSV] ) * 100
 
 Total P&L Expense (by Category) =
@@ -1484,7 +1492,9 @@ RETURN
         CALCULATE ( [Total P&L Expense], FILTER ( ALL ( 'PL Expense Input' ), 'PL Expense Input'[Resolved Category] = _cat ) )
     )
 
-Category-wise CM2 = [Total Primary Article NSV] - [Total P&L Expense (by Category)]
+Category-wise CM2 =   // BLANK for a category with no mapped expense rows (not its NSV)
+VAR _exp = [Total P&L Expense (by Category)]
+RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
 Category-wise CM2 % = DIVIDE ( [Category-wise CM2], [Total Primary Article NSV] ) * 100
 
 // ---------- EXPENSE HEAD-WISE BREAKUP ----------
