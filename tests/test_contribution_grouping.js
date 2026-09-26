@@ -16,12 +16,12 @@
 //   test_negative_subcategory_not_abs
 //   test_category_total_unchanged
 //   test_equal_value_sort_deterministic
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 function approxEqual(a, b, eps = 1e-6) { return Math.abs(a - b) < eps; }
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));

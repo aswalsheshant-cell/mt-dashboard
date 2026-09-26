@@ -22,10 +22,10 @@
 // The OLD replica below is an exact copy of computeChannelHealth()'s
 // pre-fix body (the one this commit replaces in dashboard/index.html), kept
 // here only for this comparison -- not used by the production pipeline.
-const { chromium } = require('/home/user/mt-dashboard/node_modules/playwright');
+const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
