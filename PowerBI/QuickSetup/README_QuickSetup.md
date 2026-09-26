@@ -13,11 +13,19 @@ opening 24+ separate `.pq`/`.dax` files one at a time.
 
 ## What's in this folder
 
-- **`AllPowerQuery_Consolidated.txt`** — all 25 Power Query steps, in the
+- **`AllPowerQuery_Consolidated.txt`** — all 29 Power Query steps, in the
   order to add them, each with the exact query name to rename it to.
-- **`AllDAX_Consolidated.txt`** — all measures across the 13 DAX files (plus
-  the Date Table), in order, with the 6 calculated-column exceptions flagged
-  in a warning banner at the top so you see them before you start pasting.
+- **`AllDAX_Consolidated.txt`** — all measures across the 14 DAX measure files
+  (plus the Date Table), in order, with the 6 calculated-column exceptions
+  flagged in a warning banner at the top so you see them before you start pasting.
+
+**Both files are generated — do not edit them by hand.** They are built from
+`PowerBI/PowerQuery/*.pq` and `PowerBI/DAX/*.dax` by
+`python scripts/build_quicksetup.py`; the per-step instructions live in
+`quicksetup_steps.json`. CI runs `--check` and fails if either file no longer
+matches its sources. A source file that is not ready for setup is listed at
+the top of the generated file under **NOT INCLUDED**, with the reason
+(today: the promo pair `46_Dim_PromoCalendar.pq` / `15_Promo_Measures.dax`).
 
 Open one of these two files side-by-side with Power BI Desktop and work
 top to bottom — that's the whole time-saving versus the full build kit.
@@ -27,16 +35,16 @@ top to bottom — that's the whole time-saving versus the full build kit.
 1. Copy the whole `PowerBI/` folder to a fixed path (e.g. `C:\MT-Dashboard`).
 2. **Parameter:** Home ▸ Manage Parameters ▸ New ▸ `pRootFolder` ▸ your path.
    (STEP 01 in `AllPowerQuery_Consolidated.txt`.)
-3. **Queries:** for STEP 02 through STEP 25 in that file — New Blank Query ▸
+3. **Queries:** for STEP 02 through STEP 29 in that file — New Blank Query ▸
    Advanced Editor ▸ paste ▸ OK ▸ rename to the name shown ▸ next step.
-   A few steps (20, 24) contain more than one query — each `---------- X
-   ----------` block is its own complete query.
+   Two steps (files `20_Dim_Masters.pq`, `24_ChannelMap.pq`) contain more than
+   one query — each `---------- X ----------` block is its own complete query.
 4. Close & Apply.
 5. **Date table:** Modeling ▸ New table ▸ paste STEP 01 of
    `AllDAX_Consolidated.txt` whole ▸ mark as date table on `[Date]`.
 6. **Relationships:** build per `PowerBI/docs/DataModel.md`.
 7. **Measures:** create a `_Measures` table (Enter Data, one blank column,
-   delete the column after). For STEP 02 through STEP 14 in
+   delete the column after). For STEP 02 through STEP 15 in
    `AllDAX_Consolidated.txt` — New Measure ▸ paste ONE `Name = Expression`
    block (including any `VAR`/`RETURN` lines under it) ▸ Enter ▸ next measure.
    **Skip the 6 commented-out blocks flagged at the top of that file** — add
