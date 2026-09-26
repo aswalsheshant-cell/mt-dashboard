@@ -31,6 +31,7 @@ from .models import (
     UNRESOLVED_STATUSES,
     VALID_STATUSES,
     DecisionRecord,
+    compute_content_hash,
 )
 
 
@@ -107,18 +108,48 @@ def validate_register(records: List[DecisionRecord]) -> ValidationReport:
                 f"once the response was unambiguous, not stayed CLARIFICATION_REQUIRED"
             )
 
-        # 4/5/6. APPROVED without approver / date / evidence
-        if r.current_status == "APPROVED":
+        # 4/5/6. APPROVED/REJECTED/NOT_APPLICABLE without approver / date / evidence.
+        # REJECTED and NOT_APPLICABLE are terminal resolutions too (see
+        # transitions.ALLOWED_TRANSITIONS) -- closing a required decision on
+        # zero evidence must fail validation exactly like an unevidenced
+        # APPROVED would, or the gate can be satisfied with no human input at all.
+        if r.current_status in ("APPROVED", "REJECTED", "NOT_APPLICABLE"):
             if not r.approved_by or not r.approved_by.strip():
-                problems.append(f"{r.decision_id}: APPROVED without approved_by")
+                problems.append(f"{r.decision_id}: {r.current_status} without approved_by")
             if not r.approval_date or not r.approval_date.strip():
-                problems.append(f"{r.decision_id}: APPROVED without approval_date")
+                problems.append(f"{r.decision_id}: {r.current_status} without approval_date")
             elif not _is_iso_date(r.approval_date):
                 problems.append(f"{r.decision_id}: approval_date '{r.approval_date}' is not a valid ISO date")
             if not r.evidence_reference or not r.evidence_reference.strip():
-                problems.append(f"{r.decision_id}: APPROVED without evidence_reference")
+                problems.append(f"{r.decision_id}: {r.current_status} without evidence_reference")
+        if r.current_status == "APPROVED":
             if not r.selected_response or not r.selected_response.strip():
                 problems.append(f"{r.decision_id}: APPROVED without selected_response")
+
+        # content_hash integrity: record_incentive_decision.py has no flag to
+        # change affected_period/entity/value_l/store_count/allowed_responses,
+        # so a resolved decision missing this hash, or carrying one that
+        # doesn't match its current content, means the register was
+        # hand-edited outside the sanctioned CLI after resolution.
+        if r.current_status in ("APPROVED", "REJECTED", "NOT_APPLICABLE"):
+            if not r.content_hash:
+                problems.append(
+                    f"{r.decision_id}: {r.current_status} without content_hash -- resolved "
+                    f"before this control existed or hand-edited outside record_incentive_decision.py; "
+                    f"re-resolve via the CLI to stamp it"
+                )
+            else:
+                expected = compute_content_hash(
+                    r.affected_period, r.affected_entity,
+                    r.affected_value_l, r.affected_store_count,
+                    r.allowed_responses,
+                )
+                if r.content_hash != expected:
+                    problems.append(
+                        f"{r.decision_id}: content_hash mismatch -- affected_period/entity/value_l/"
+                        f"store_count/allowed_responses changed since this decision was resolved "
+                        f"(hand-edited outside the CLI); re-approval required, not silently accepted"
+                    )
 
         # 10. malformed dates (even outside APPROVED, a populated date must be valid)
         if r.approval_date and not _is_iso_date(r.approval_date):

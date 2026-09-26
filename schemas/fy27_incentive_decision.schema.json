@@ -95,6 +95,10 @@
           "enum": ["NOT_STARTED", "IN_PROGRESS", "IMPLEMENTED", "NOT_APPLICABLE"]
         },
         "notes": { "type": ["string", "null"] },
+        "content_hash": {
+          "type": ["string", "null"],
+          "description": "Optional, backward-compatible (added alongside PR #215's evidence-gap fix). A fingerprint over affected_period/affected_entity/affected_value_l/affected_store_count/allowed_responses, stamped by record_incentive_decision.py whenever a decision is resolved (APPROVED/REJECTED/NOT_APPLICABLE). record_incentive_decision.py has no flag to change these content fields at all, so a mismatch between this and the content actually present means the register was hand-edited outside the sanctioned CLI -- is_resolved_with_evidence() then treats the decision as unresolved again, rather than trusting a stale approval attached to changed content."
+        },
         "revision_history": {
           "type": "array",
           "description": "Phase 3B (STEP 5): optional, backward-compatible. Populated only when an already-APPROVED decision's response changes -- the prior approval is preserved here, never overwritten in place. Absent or empty on a decision that has never been amended.",
