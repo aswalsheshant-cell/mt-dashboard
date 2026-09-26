@@ -3885,21 +3885,43 @@ function computeChannelHealth(){
     .sort((a,b)=>b.health_ratio-a.health_ratio).slice(0,8);
 }
 
+// SKU quadrants need real Units + Gross_Margin_Pct on the detail rows and a real
+// store count for ROS. No defaults: the old `?? 45` margin / `|| 100` stores
+// placed every SKU at 45% and ROS 0 under "Delist Review"-style labels (FM-35).
+// detail_records is article x chain x month, so rows are grouped per article;
+// an article is placed only when ALL its in-scope rows carry both fields, and
+// its margin is the NSV-weighted mean (= total margin / total NSV).
 function computeSKUQuadrants(){
   const cat=fOne('Category');
-  const recs=REC.filter(r=>(!cat||r.Category===cat));
-  if(!recs.length) return[];
-  const ros_vals=recs.map(r=>(r.Units||0)/(D.primary?.stores_count||100));
-  const margin_vals=recs.map(r=>(r.Gross_Margin_Pct??45));
-  const ros_med=ros_vals.sort((a,b)=>a-b)[Math.floor(ros_vals.length/2)]||50;
-  const mgn_med=margin_vals.sort((a,b)=>a-b)[Math.floor(margin_vals.length/2)]||45;
-  return recs.map(r=>{
-    const ros=(r.Units||0)/(D.primary?.stores_count||100);
-    const mgn=r.Gross_Margin_Pct??45;
-    const q=(ros>=ros_med&&mgn>=mgn_med)?'Q1':(ros>=ros_med)?'Q2':(mgn>=mgn_med)?'Q3':'Q4';
-    const colors={Q1:'var(--green)',Q2:'var(--amber)',Q3:'var(--blue)',Q4:'var(--red)'};
-    return{sku:r.Article,ros,margin_pct:mgn,quadrant:q,nsv:r.NSV||0,color:colors[q]};
+  const recs=REC.filter(r=>(!cat||r.Category===cat)&&r.Article);
+  const num=v=>typeof v==='number'&&isFinite(v);
+  const stores=D.primary?D.primary.stores_count:undefined;
+  const missing=[];
+  if(!recs.some(r=>num(r.Units))) missing.push('detail_records[].Units');
+  if(!recs.some(r=>num(r.Gross_Margin_Pct))) missing.push('detail_records[].Gross_Margin_Pct');
+  if(!(num(stores)&&stores>0)) missing.push('primary.stores_count');
+  const by={};
+  recs.forEach(r=>{
+    const a=by[r.Article]||(by[r.Article]={sku:r.Article,units:0,nsv:0,mgnNsv:0,complete:true});
+    a.nsv+=r.NSV||0;
+    if(!num(r.Units)||!num(r.Gross_Margin_Pct)){a.complete=false;return;}
+    a.units+=r.Units; a.mgnNsv+=r.Gross_Margin_Pct*(r.NSV||0);
+  });
+  const all=Object.values(by);
+  const out={rows:[],missing,skus_total:all.length,skus_complete:0};
+  if(missing.length) return out;
+  const ok=all.filter(a=>a.complete&&a.nsv>0);
+  out.skus_complete=ok.length;
+  if(!ok.length) return out;
+  const pts=ok.map(a=>({sku:a.sku,ros:a.units/stores,margin_pct:a.mgnNsv/a.nsv,nsv:a.nsv}));
+  const med=v=>{const s=v.slice().sort((x,y)=>x-y);return s[Math.floor(s.length/2)];};
+  const ros_med=med(pts.map(p=>p.ros)), mgn_med=med(pts.map(p=>p.margin_pct));
+  const colors={Q1:'var(--green)',Q2:'var(--amber)',Q3:'var(--blue)',Q4:'var(--red)'};
+  out.rows=pts.map(p=>{
+    const q=(p.ros>=ros_med&&p.margin_pct>=mgn_med)?'Q1':(p.ros>=ros_med)?'Q2':(p.margin_pct>=mgn_med)?'Q3':'Q4';
+    return Object.assign(p,{quadrant:q,color:colors[q]});
   }).sort((a,b)=>b.nsv-a.nsv).slice(0,50);
+  return out;
 }
 
 function generateAnalyticsInsights(){
@@ -3978,17 +4000,27 @@ function renderQuadrantChart(){
   const cvDiv=document.getElementById('cvQuadrant');
   if(!cvDiv) return;
   cvDiv.innerHTML='';
+  if(window._chartQuadrant){ window._chartQuadrant.destroy(); window._chartQuadrant=null; }
+  const res=computeSKUQuadrants();
+  if(!res.rows.length){
+    // Not available: no bubble and no quadrant/action label without real inputs.
+    cvDiv.style.height='auto';
+    cvDiv.innerHTML=`<p class="note" style="margin:8px 0">Not available &#8212; ${res.missing.length
+      ?`needs ${res.missing.join(', ')}, which ${res.missing.length>1?'are':'is'} not in the loaded data.`
+      :'no SKU in this scope has Units and Gross_Margin_Pct on every row.'} SKUs are not placed in a quadrant without them.</p>`;
+    return;
+  }
+  cvDiv.style.height='';
+  cvDiv.innerHTML=`<p class="note" style="margin:0 0 4px">${res.rows.length} SKUs shown (top by NSV) &#8212; ${res.skus_complete} of ${res.skus_total} SKUs have Units and Gross_Margin_Pct on every row; the rest are not placed.</p><div style="position:relative;height:270px"></div>`;
   const cv=document.createElement('canvas');
-  cvDiv.appendChild(cv);
-  const quads=computeSKUQuadrants();
+  cvDiv.lastElementChild.appendChild(cv);
   const ctx=cv.getContext('2d');
-  if(window._chartQuadrant) window._chartQuadrant.destroy();
   window._chartQuadrant=new Chart(ctx,{
     type:'bubble',
     data:{
-      datasets:quads.map(q=>({label:q.sku,data:[{x:q.ros,y:q.margin_pct,r:Math.sqrt(q.nsv)/2}],backgroundColor:q.color}))
+      datasets:res.rows.map(q=>({label:q.sku,data:[{x:q.ros,y:q.margin_pct,r:Math.sqrt(q.nsv)/2}],backgroundColor:q.color}))
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{max:100},y:{max:100}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:100}}}
   });
 }
 
