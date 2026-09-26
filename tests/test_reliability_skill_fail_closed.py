@@ -14,7 +14,6 @@ Found 2026-09-26:
 The skill's own code blocks are extracted and executed against fixture repos.
 """
 import re
-import shutil
 import subprocess
 from pathlib import Path
 
