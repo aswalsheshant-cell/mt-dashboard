@@ -109,7 +109,7 @@ datasets:
     fallback_source: null
     existing_pipeline: "scripts/build_dashboard_data.py load_primary_v2()"
     downstream_outputs: ["dashboard/data.js primary.* / detail_meta.fyx_primary", "PowerBI/PowerQuery/16_Fact_PrimaryArticle.pq"]
-    last_validated: "2026-09-13 via scripts/reconcile_primary_baseline.py -- FY'25-26 subtotal Rs32,900.36L and grand total Rs51,481.65L both match independently-quoted figures exactly"
+    last_validated: "2026-09-26 via scripts/reconcile_primary_baseline.py (tests/test_primary_baseline_reconciliation.py) -- FY26 Apr'25-Mar'26 Rs32,900.36L, Apr'25-Jun'26 Rs46,560.34L and Apr'25-Jul'26 Rs51,481.65L each match their documented figure exactly; all 17 files to Aug'26 total Rs55,139.95L (grows monthly, not a baseline)"
     modification_allowed: false
     notes: >
       "Chain name for Dashboard" on this file is NOT the same thing as the
