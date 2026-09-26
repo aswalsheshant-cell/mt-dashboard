@@ -27,6 +27,7 @@ from pathlib import Path
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
 REPO = Path(__file__).resolve().parent.parent
@@ -60,6 +61,25 @@ def sheet(wb, name, headers, rows, table_name, widths=None, note=None):
         ws.column_dimensions[get_column_letter(c)].width = (widths or {}).get(h, max(12, min(34, len(h) + 4)))
     ws.freeze_panes = ws.cell(r0 + 1, 1)
     return ws
+
+
+def add_status_validation(ws, headers, col_name, choices, r0, n_rows, buffer=200):
+    """Restrict a manually-typed status column to a governed list -- never free
+    text where the business vocabulary is a closed set (KA-02 auditability).
+    Only ever applied to a column an owner actually types into; every other
+    column in this workbook is formula-driven or generated and gets no
+    validation. `buffer` extends past today's row count so a row added by
+    hand in Excel before the next regenerate still carries the same list."""
+    col = headers.index(col_name) + 1
+    letter = get_column_letter(col)
+    dv = DataValidation(type="list", formula1='"' + ",".join(choices) + '"', allow_blank=True)
+    dv.error = f"Choose one of: {', '.join(choices)}"
+    dv.errorTitle = "Invalid status"
+    dv.prompt = f"Allowed values: {', '.join(choices)}"
+    dv.promptTitle = col_name
+    last_row = r0 + max(n_rows, 1) + buffer
+    dv.add(f"{letter}{r0 + 1}:{letter}{last_row}")
+    ws.add_data_validation(dv)
 
 
 def _num(v):
@@ -320,13 +340,14 @@ def main() -> int:
                       w.get("Approved_Employee_ID", ""), w.get("Approval_Status", "PENDING"),
                       "MT Ops"])
     wrows.sort(key=lambda r: -(r[8] or 0))
-    sheet(wb, "05_WoA_Mapping",
-          ["WoA_Role_Column", "WoA_Raw_Name", "Zone", "Stores_Assigned", "Candidate_Employee_ID",
-           "Candidate_Employee_Name", "Match_Method", "Classification", "Actual_At_Stake_L",
-           "Approved_Employee_ID", "Approval_Status", "Owner"], wrows, "tblWoA",
-          note="Candidates only — Approved_Employee_ID stays blank until MT Ops fills it (KA-04). "
-               "Actual_At_Stake_L is the Apr-Jul role credit each signature releases; rows are sorted "
-               "by it so the most valuable approvals are at the top.")
+    woa_headers = ["WoA_Role_Column", "WoA_Raw_Name", "Zone", "Stores_Assigned", "Candidate_Employee_ID",
+                   "Candidate_Employee_Name", "Match_Method", "Classification", "Actual_At_Stake_L",
+                   "Approved_Employee_ID", "Approval_Status", "Owner"]
+    ws05 = sheet(wb, "05_WoA_Mapping", woa_headers, wrows, "tblWoA",
+                 note="Candidates only — Approved_Employee_ID stays blank until MT Ops fills it (KA-04). "
+                      "Actual_At_Stake_L is the Apr-Jul role credit each signature releases; rows are sorted "
+                      "by it so the most valuable approvals are at the top.")
+    add_status_validation(ws05, woa_headers, "Approval_Status", ["PENDING", "APPROVED", "REJECTED"], 3, len(wrows))
 
     # ---- 06_Achievement (formula-driven, gates named per KA-15) -------------
     ws = wb.create_sheet("06_Achievement")
@@ -486,18 +507,20 @@ def main() -> int:
                         f"{r['Stores']} stores, Rs {float(r['Actual_L']):,.0f} L",
                         "Sales with no ownership row — is this population inside the incentive "
                         "measurement scope?", r["Stores"], "MT Leadership / MT Ops", "OPEN"])
-    sheet(wb, "08_Exceptions",
-          ["Area", "Item", "Exception_Type", "Current_Value", "Why_It_Blocks",
-           "Rows_Or_Stores_Affected", "Owner", "Status"], exc, "tblExceptions",
-          {"Why_It_Blocks": 58, "Item": 30},
-          note="The working control centre. Every open row here blocks something downstream.")
+    exc_headers = ["Area", "Item", "Exception_Type", "Current_Value", "Why_It_Blocks",
+                   "Rows_Or_Stores_Affected", "Owner", "Status"]
+    ws08 = sheet(wb, "08_Exceptions", exc_headers, exc, "tblExceptions",
+                 {"Why_It_Blocks": 58, "Item": 30},
+                 note="The working control centre. Every open row here blocks something downstream.")
+    add_status_validation(ws08, exc_headers, "Status", ["OPEN", "RESOLVED", "NOT_APPLICABLE"], 3, len(exc))
 
     # ---- 09_Finance_Approval / 10_Summary / 11_Data_Quality / 12_Rule_Decisions
-    sheet(wb, "09_Finance_Approval",
-          ["Batch_ID", "Period", "Employee_Count", "Total_Calculated", "Prepared_By",
-           "Reviewed_By", "Approved_By", "Approval_Date", "Payout_Status", "Remarks"], [],
-          "tblApproval",
-          note="EMPTY BY DESIGN. Nothing reaches approval while calculation status is BLOCKED.")
+    appr_headers = ["Batch_ID", "Period", "Employee_Count", "Total_Calculated", "Prepared_By",
+                    "Reviewed_By", "Approved_By", "Approval_Date", "Payout_Status", "Remarks"]
+    ws09 = sheet(wb, "09_Finance_Approval", appr_headers, [], "tblApproval",
+                 note="EMPTY BY DESIGN. Nothing reaches approval while calculation status is BLOCKED.")
+    add_status_validation(ws09, appr_headers, "Payout_Status",
+                           ["PENDING", "APPROVED", "REJECTED", "NOT_APPLICABLE"], 3, 0)
 
     gv = sum(1 for e in emps if e["_grade"] in slab_desig)
     # The source total for store actuals. It cannot be summed off the attribution rows:
@@ -599,13 +622,15 @@ def main() -> int:
                       "Are stores with no WoA deployment (D-Mart estate) inside the incentive "
                       "measurement scope?", "OPEN", "All field roles", "MT Leadership / MT Ops",
                       "–", stores_outside, "", "", "", "", ""])
-    sheet(wb, "12_Rule_Decisions",
-          ["Decision_ID", "Question", "Status", "Affected_Roles", "Owner", "Value_At_Stake_L",
-           "Affected_Count", "Decision", "Effective_From", "Confirmed_By", "Rule_Version",
-           "Supersedes"], drows, "tblDecisions",
-          {"Question": 76, "Affected_Roles": 20},
-          note="Open business decisions with their owner and what they are worth (KA-13). "
-               "Decision / Effective_From / Confirmed_By / Rule_Version are for the owner to fill (KA-14).")
+    dec_headers = ["Decision_ID", "Question", "Status", "Affected_Roles", "Owner", "Value_At_Stake_L",
+                   "Affected_Count", "Decision", "Effective_From", "Confirmed_By", "Rule_Version",
+                   "Supersedes"]
+    ws12 = sheet(wb, "12_Rule_Decisions", dec_headers, drows, "tblDecisions",
+                 {"Question": 76, "Affected_Roles": 20},
+                 note="Open business decisions with their owner and what they are worth (KA-13). "
+                      "Decision / Effective_From / Confirmed_By / Rule_Version are for the owner to fill (KA-14).")
+    add_status_validation(ws12, dec_headers, "Status", ["ASSUMED", "CONFLICT", "MISSING", "OPEN", "CONFIRMED"],
+                           3, len(drows))
 
     # ---- 13_Target_Scope -----------------------------------------------------
     srows = []
