@@ -38,12 +38,15 @@ OUTPUT
   PowerBI/PowerQuery/16_Fact_PrimaryArticle.pq (Power BI equivalent, same rules)
 ```
 
-**Verified 2026-09-13** (`scripts/reconcile_primary_baseline.py`): summing
-`Inv. Net value(LOC)` across all 16 monthly files currently on disk reproduces
-both Rs32,900.36L (FY26 subtotal) and Rs51,481.65L (16-month grand total)
-exactly. A third figure, Rs46,560.34L (`PowerBI/docs/Desktop_Assembly_Checklist.md`
-Phase J), is explained as stale-by-one-month (see that file's own note), not a
-defect.
+**Verified 2026-09-26** (`scripts/reconcile_primary_baseline.py`, run in CI by
+`tests/test_primary_baseline_reconciliation.py`): each documented Primary figure is a
+total over a stated month window, recomputed from the monthly files
+(`Inv. Net value(LOC)` / 1e5) -- FY26 Apr'25–Mar'26 = Rs32,900.36L; Apr'25–Jun'26
+= Rs46,560.34L (`PowerBI/docs/Desktop_Assembly_Checklist.md` Phase J snapshot);
+Apr'25–Jul'26 = Rs51,481.65L (#119 frozen 16-month baseline). All match exactly.
+The all-months total (17 files to Aug'26: Rs55,139.95L) grows every month and is
+not a baseline. The source FY column spells FY27 two ways (`FY'26-27`, `FY27`);
+both normalise to FY27 and agree with each file's month.
 
 **Aug'26 Primary total -- RECONCILED 2026-09-13 (was SOURCE_CONFLICT).**
 Two Aug'26 sources exist and disagreed by ~Rs2.14 Cr (Rs213.30L). Row-level
