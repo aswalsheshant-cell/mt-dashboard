@@ -2,3 +2,67 @@ Month,FY,Chain,Customer Code,Customer Name,Zone,State,Brand,Category,Sub Categor
 April,FY25-26,Dmart,1101911,Avenue Supermarts Ltd.-DC-1050,North,Haryana,Mamaearth,Face,,Visibility Spend,Fixed,12.5,EXAMPLE ROW -- replace with real data. FY format must be "FYyy-yy" (e.g. FY25-26) so it matches the Primary file's own FY tagging,Trade Marketing MIS,Finance Team,2026-01-05
 April,FY25-26,Reliance Retail,,,West,Maharashtra,Mamaearth,,,Scheme / Trade Spend,Variable,28.4,"EXAMPLE ROW -- Chain-level, no Customer Code available",Sales Ops,Finance Team,2026-01-05
 April,FY25-26,Apollo,,,South,Telangana,,,,BA Cost,Fixed,6.75,"EXAMPLE ROW -- Chain-only, applies across all brands/categories",HR/Trade,Finance Team,2026-01-05
+April,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Off-Invoice,Variable,4.0926,"10 DN(s), base excl. GST (GST 0.7367 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Promotion,Variable,59.5843,"14 DN(s), base excl. GST (GST 0.3950 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Visibility,Fixed,38.5497,"76 DN(s), base excl. GST (GST 6.9389 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Listing Fees,Fixed,0.7000,"14 DN(s), base excl. GST (GST 0.1260 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Off-Invoice,Variable,3.0003,"26 DN(s), base excl. GST (GST 0.5401 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Promotion,Variable,7.4003,"68 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Walmart,1100031,Wal-Mart,,,,,,Promotion,Variable,1.4279,"7 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Wellness Forever,1100049,Wellness,,,,,,Promotion,Variable,9.5114,"1 DN(s), base excl. GST (GST 1.7121 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Guardian,1100050,Guardian,,,,,,Visibility,Fixed,1.5600,"2 DN(s), base excl. GST (GST 0.2808 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Apollo,1100061,Apollo,,,,,,Off-Invoice,Variable,19.4853,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Apollo,1100061,Apollo,,,,,,Promotion,Variable,107.5244,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,V-Mart,1101731,V-Mart,,,,,,Promotion,Variable,0.0012,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Health & Glow,8200195,H&G,,,,,,Promotion,Variable,2.7139,"8 DN(s), base excl. GST (GST 0.4885 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+April,FY26-27,Health & Glow,8200195,H&G,,,,,,Visibility,Fixed,4.6400,"9 DN(s), base excl. GST (GST 0.8352 L held separately)",MT Direct DN register (Apr-26),MT Analytics,2026-09-26
+May,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Off-Invoice,Variable,9.0528,"9 DN(s), base excl. GST (GST 1.6295 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Promotion,Variable,127.7317,"10 DN(s), base excl. GST (GST 0.2337 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Visibility,Fixed,38.9102,"83 DN(s), base excl. GST (GST 7.0038 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Tnsi Retail Pvt Ltd,1100027,Tnsi Retail Pvt Ltd,,,,,,Visibility,Fixed,0.7000,"1 DN(s), base excl. GST (GST 0.1260 L held separately); chain not resolved to a Primary chain -- shows as unmapped in CM2 QC",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Off-Invoice,Variable,2.7956,"28 DN(s), base excl. GST (GST 0.5032 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Promotion,Variable,3.6921,"52 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Trent,1100030,Trent,,,,,,Promotion,Variable,0.1582,"3 DN(s), base excl. GST (GST 0.0285 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Trent,1100030,Trent,,,,,,Visibility,Fixed,1.0000,"2 DN(s), base excl. GST (GST 0.1800 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Walmart,1100031,Wal-Mart,,,,,,Promotion,Variable,0.7374,"8 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Guardian,1100050,Guardian,,,,,,Promotion,Variable,0.1225,"1 DN(s), base excl. GST (GST 0.0221 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Guardian,1100050,Guardian,,,,,,Visibility,Fixed,1.5600,"2 DN(s), base excl. GST (GST 0.2808 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Apollo,1100061,Apollo,,,,,,Off-Invoice,Variable,17.6319,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Apollo,1100061,Apollo,,,,,,Promotion,Variable,123.5972,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,V-Mart,1101731,V-Mart,,,,,,Promotion,Variable,0.0011,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Health & Glow,8200195,H&G,,,,,,Promotion,Variable,4.2328,"13 DN(s), base excl. GST (GST 0.7619 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+May,FY26-27,Health & Glow,8200195,H&G,,,,,,Visibility,Fixed,4.6400,"9 DN(s), base excl. GST (GST 0.8352 L held separately)",MT Direct DN register (May-26),MT Analytics,2026-09-26
+June,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Promotion,Variable,53.2474,"9 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Visibility,Fixed,66.5596,"109 DN(s), base excl. GST (GST 11.9807 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,DMart,1100024,Dmart,,,,,,Promotion,Variable,17.9943,"6 DN(s), base excl. GST (GST 3.2390 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Tnsi Retail Pvt Ltd,1100027,Tnsi Retail Pvt Ltd,,,,,,Visibility,Fixed,1.5000,"1 DN(s), base excl. GST (GST 0.2700 L held separately); chain not resolved to a Primary chain -- shows as unmapped in CM2 QC",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Off-Invoice,Variable,3.6624,"28 DN(s), base excl. GST (GST 0.6592 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Promotion,Variable,2.7018,"63 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Trent,1100030,Trent,,,,,,Promotion,Variable,0.1984,"3 DN(s), base excl. GST (GST 0.0357 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Trent,1100030,Trent,,,,,,Visibility,Fixed,1.0000,"2 DN(s), base excl. GST (GST 0.1800 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Guardian,1100050,Guardian,,,,,,Promotion,Variable,0.1172,"1 DN(s), base excl. GST (GST 0.0211 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Guardian,1100050,Guardian,,,,,,Visibility,Fixed,1.5600,"2 DN(s), base excl. GST (GST 0.2808 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Apollo,1100061,Apollo,,,,,,Off-Invoice,Variable,13.6419,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Apollo,1100061,Apollo,,,,,,Promotion,Variable,114.2220,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Apollo,1100061,Apollo,,,,,,Visibility,Fixed,86.6220,"1 DN(s), base excl. GST (GST 15.5920 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Health & Glow,8200195,H&G,,,,,,Promotion,Variable,9.2242,"13 DN(s), base excl. GST (GST 1.6604 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+June,FY26-27,Health & Glow,8200195,H&G,,,,,,Visibility,Fixed,4.6400,"9 DN(s), base excl. GST (GST 0.8352 L held separately)",MT Direct DN register (Jun-26),MT Analytics,2026-09-26
+July,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Off-Invoice,Variable,20.9729,"10 DN(s), base excl. GST (GST 3.7751 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Promotion,Variable,38.6730,"7 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Tnsi Retail Pvt Ltd,1100027,Tnsi Retail Pvt Ltd,,,,,,Visibility,Fixed,1.5000,"1 DN(s), base excl. GST (GST 0.2700 L held separately); chain not resolved to a Primary chain -- shows as unmapped in CM2 QC",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Off-Invoice,Variable,8.1239,"47 DN(s), base excl. GST (GST 1.4623 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Promotion,Variable,14.9461,"68 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Guardian,1100050,Guardian,,,,,,Promotion,Variable,0.1040,"1 DN(s), base excl. GST (GST 0.0187 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Guardian,1100050,Guardian,,,,,,Visibility,Fixed,1.5600,"2 DN(s), base excl. GST (GST 0.2808 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Apollo,1100061,Apollo,,,,,,Off-Invoice,Variable,9.7464,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Apollo,1100061,Apollo,,,,,,Promotion,Variable,95.4967,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,V-Mart,1101731,V-Mart,,,,,,Promotion,Variable,0.7516,"2 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Health & Glow,8200195,H&G,,,,,,Extra Margin,Variable,0.9760,"1 DN(s), base excl. GST (GST 0.1757 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+July,FY26-27,Health & Glow,8200195,H&G,,,,,,Visibility,Fixed,4.6400,"9 DN(s), base excl. GST (GST 0.8352 L held separately)",MT Direct DN register (Jul-26),MT Analytics,2026-09-26
+August,FY26-27,Reliance Retail,1100022,Reliance,,,,,,Promotion,Variable,78.7524,"1 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Aug-26),MT Analytics,2026-09-26
+August,FY26-27,Tnsi Retail Pvt Ltd,1100027,Tnsi Retail Pvt Ltd,,,,,,Visibility,Fixed,1.5000,"1 DN(s), base excl. GST (GST 0.2700 L held separately); chain not resolved to a Primary chain -- shows as unmapped in CM2 QC",MT Direct DN register (Aug-26),MT Analytics,2026-09-26
+August,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Off-Invoice,Variable,8.5534,"51 DN(s), base excl. GST (GST 1.5396 L held separately)",MT Direct DN register (Aug-26),MT Analytics,2026-09-26
+August,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Promotion,Variable,2.5268,"11 DN(s), base excl. GST (GST 0.0000 L held separately)",MT Direct DN register (Aug-26),MT Analytics,2026-09-26
+August,FY26-27,Metro C&C,1100029,Metro C&C,,,,,,Visibility,Fixed,7.5000,"5 DN(s), base excl. GST (GST 1.3500 L held separately)",MT Direct DN register (Aug-26),MT Analytics,2026-09-26
+August,FY26-27,Guardian,1100050,Guardian,,,,,,Promotion,Variable,0.1040,"1 DN(s), base excl. GST (GST 0.0187 L held separately)",MT Direct DN register (Aug-26),MT Analytics,2026-09-26
+August,FY26-27,Health & Glow,8200195,H&G,,,,,,Visibility,Fixed,4.6400,"9 DN(s), base excl. GST (GST 0.8352 L held separately)",MT Direct DN register (Aug-26),MT Analytics,2026-09-26
