@@ -2238,7 +2238,14 @@ function buildPnl(){
     ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in CM2's own coverage (${cm2FyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
   const totFyNote=(globalFy&&!totScopedOk&&totD)
     ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in TOT%'s own coverage (${totFyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
-  let cm2Chains=cm2D?consolidateChains(cm2D.by_chain,'nsv'):[];
+  // by_chain spans FY26+FY27 NSV while expenses may cover one FY only; with a
+  // single FY selected use that FY's own like-for-like rollup (by_chain_fy).
+  const cm2ChainFy=(cm2ScopedOk&&cm2D&&cm2D.by_chain_fy&&cm2D.by_chain_fy[globalFy])||null;
+  const cm2ExpFys=Object.keys((cm2D&&cm2D.by_chain_fy)||{});
+  const cm2MixedFy=!cm2ChainFy&&cm2D&&cm2D.has_expense_data&&cm2FyCoverage.some(f=>!cm2ExpFys.includes(f));
+  let cm2Chains=cm2D?consolidateChains(cm2ChainFy||cm2D.by_chain,'nsv'):[];
+  // A single FY with no expense rows of its own: no chain has a CM2 for it.
+  if(cm2ScopedOk&&!cm2ChainFy&&cm2D&&cm2D.by_chain_fy) cm2Chains=cm2Chains.map(c=>Object.assign({},c,{expense:0}));
   if(fOn('Chain')) cm2Chains=cm2Chains.filter(c=>fHas('Chain',c.name));
   const cm2Top=cm2Chains.slice(0,12);
   // CM2 is a margin only where expense rows were actually loaded; with none it
@@ -2314,7 +2321,8 @@ function buildPnl(){
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
      <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).
-     ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only; the by-chain table stays FY26-FY27 combined.`:''}</p>
+     ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only${cm2ChainFy?', and so does the by-chain table':'; the by-chain table stays FY26-FY27 combined'}.`:''}</p>
+   ${cm2MixedFy?`<p class="drillhint" style="margin:4px 0 0"><b>Not like-for-like:</b> expenses are loaded for ${cm2ExpFys.join(', ')} only, but this combined view divides them by ${cm2FyCoverage.join('+')} NSV, which understates the expense % and overstates CM2%. Select FY ${cm2ExpFys.join('/')} in the filter for a like-for-like CM2.</p>`:''}
    ${cm2FyNote}
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 is shown as &#8211; (not available):
         with 0 expenses matched it would only repeat NSV. Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
@@ -2323,6 +2331,7 @@ function buildPnl(){
      ${cm2LoadedHeads||'&#8211;'}; months with expense rows: ${cm2LoadedMonths||'&#8211;'}
      (${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows in <code>PL_Expense_Input.csv</code>).
      Any cost head not listed here is not deducted, so CM2 is overstated by that amount until it is loaded.
+     ${cm2D.qc&&(cm2D.qc.partial_months||[]).length?`<br><b>Partial months:</b> ${cm2D.qc.partial_months.join(', ')} &#8212; the expense register for these months is incomplete, so their CM2 is overstated further.`:''}
      ${cm2Avail?'':`<br><b>No expense rows for ${cm2ScopedOk?fyDispLabel(globalFy):'this selection'}</b> &#8212; CM2 is not available for it.`}
    </div>`}
    <div class="kpis">

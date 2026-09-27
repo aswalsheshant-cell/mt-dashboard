@@ -57,6 +57,16 @@ HEADS = {
     "listing fees": ("Listing Fees", "Fixed"),
     "extra-margin": ("Extra Margin", "Variable"),
 }
+# Owner decisions (MT Leadership, 2026-09-27). A customer code that no master
+# resolves gets its chain here -- only with a dated owner decision, never a guess.
+OWNER_CHAIN_DECISIONS = {
+    "1100027": ("WH-Smith", "Tnsi Retail Pvt Ltd = WH-Smith, owner decision 2026-09-27"),
+}
+# Claim months whose DN register the owner confirmed is still incomplete. Rows
+# for these months carry PARTIAL_MARK in Remarks; cm2_block() reads that marker
+# and the P&L tab names the months. Remove a month once its full register lands.
+PARTIAL_MONTHS = {"2026-07", "2026-08"}   # owner decision 2026-09-27
+PARTIAL_MARK = "PARTIAL MONTH -- DN register incomplete"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July",
           "August", "September", "October", "November", "December"]
 
@@ -142,6 +152,10 @@ def build_rows(df: pd.DataFrame, today: str):
         name = g["Customer"].iloc[0].strip()
         m = master.get(code)
         chain, ok = resolve_chain(name, m, canon_chain, known)
+        decision = OWNER_CHAIN_DECISIONS.get(code)
+        if not ok and decision:
+            chain, ok = decision[0], canon_chain(decision[0]) in known
+        partial = f"{month:%Y-%m}" in PARTIAL_MONTHS
         if not ok:
             unresolved[f"{name} ({code})"] = unresolved.get(f"{name} ({code})", 0) + float(g["Base"].sum()) / 1e5
         rows.append({
@@ -151,7 +165,9 @@ def build_rows(df: pd.DataFrame, today: str):
             "Expense Head": head, "Expense Type": etype,
             "Expense Amount (INR Lakh)": f"{g['Base'].sum() / 1e5:.4f}",
             "Remarks": f"{len(g)} DN(s), base excl. GST (GST {g['GST'].astype(float).sum() / 1e5:.4f} L held separately)"
-                       + ("" if ok else "; chain not resolved to a Primary chain -- shows as unmapped in CM2 QC"),
+                       + (f"; chain per {decision[1]}" if decision and ok else "")
+                       + ("" if ok else "; chain not resolved to a Primary chain -- shows as unmapped in CM2 QC")
+                       + (f"; {PARTIAL_MARK}" if partial else ""),
             "Source": f"{SOURCE_TAG} ({month:%b-%y})",
             "Updated By": "MT Analytics", "Updated Date": today,
         })

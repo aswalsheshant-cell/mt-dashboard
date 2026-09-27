@@ -3040,6 +3040,7 @@ def cm2_block(df, expense_rows):
           "unmapped_chain_customer": 0, "unmapped_brand_category": 0,
           "blank_month": 0, "blank_expense_head": 0, "duplicate_rows": 0,
           "rows_loaded": len(expense_rows)}
+    partial = set()   # (fy, month) whose source register the owner marked incomplete
 
     for r in expense_rows:
         raw_amount = (r.get("Expense Amount (INR Lakh)") or "").strip()
@@ -3064,6 +3065,12 @@ def cm2_block(df, expense_rows):
             qc["blank_month"] += 1
             qc["unmapped_expense"] += amount
             continue
+
+        # Rows tagged "PARTIAL MONTH" (e.g. scripts/ingest_mt_direct_dn.py's
+        # PARTIAL_MARK) come from a register the owner confirmed is incomplete:
+        # the month is disclosed as partial, never silently read as complete.
+        if "PARTIAL MONTH" in (r.get("Remarks") or "").upper():
+            partial.add((fy, m))
 
         head = (r.get("Expense Head") or "").strip()
         if not head:
@@ -3105,15 +3112,19 @@ def cm2_block(df, expense_rows):
     qc["total_expense"] = r2(qc["total_expense"])
     qc["mapped_expense"] = r2(qc["mapped_expense"])
     qc["unmapped_expense"] = r2(qc["unmapped_expense"])
+    qc["partial_months"] = [f"{mm} {ff}" for ff, mm in
+                            sorted(partial, key=lambda k: month_ord(k[1], k[0]) or 0)]
     qc["mapped_pct_of_total"] = r2(qc["mapped_expense"] / qc["total_expense"] * 100, 1) if qc["total_expense"] else None
 
     # ---- NSV base: same TOT%-valid, FY26/FY27-only population as tot_block ----
     base = df[fy_ge(df["_FY"]) & (df["_method"] != "invalid")]
 
-    def rollup(dim_col, expense_dim_key):
-        nsv_series = base.groupby(dim_col)["_NSV"].sum()
+    def rollup(dim_col, expense_dim_key, frame=None, exps=None):
+        frame = base if frame is None else frame
+        exps = parsed if exps is None else exps
+        nsv_series = frame.groupby(dim_col)["_NSV"].sum()
         exp_by = {}
-        for e in parsed:
+        for e in exps:
             key = e.get(expense_dim_key)
             if key is None:
                 continue
@@ -3136,6 +3147,15 @@ def cm2_block(df, expense_rows):
         return sorted(out, key=lambda d: (-(d["nsv"] or 0), str(d["name"])))
 
     by_chain = rollup("_Chain", "chain")
+    # by_chain above spans every FY in `base` (FY26+FY27) while expenses may
+    # cover one FY only, which understates a chain's expense %. by_chain_fy is
+    # the same rollup per FY (like-for-like NSV and expense), for FY-filtered views.
+    by_chain_fy = {}
+    for fy_tag in sorted({e["fy"] for e in parsed}):
+        fy_rows = rollup("_Chain", "chain", base[base["_FY"] == fy_tag],
+                         [e for e in parsed if e["fy"] == fy_tag])
+        if fy_rows:
+            by_chain_fy[fy_tag] = fy_rows
     by_brand = rollup("_Brand", "brand")
     by_category = rollup("_category", "category")
 
@@ -3182,7 +3202,7 @@ def cm2_block(df, expense_rows):
         "expense_pct_of_nsv": r2(total_expense / total_nsv * 100, 1) if total_nsv else None,
         "cm2_value": r2(cm2_value),
         "cm2_pct": r2(cm2_value / total_nsv * 100, 1) if total_nsv else None,
-        "by_chain": by_chain, "by_brand": by_brand, "by_category": by_category,
+        "by_chain": by_chain, "by_chain_fy": by_chain_fy, "by_brand": by_brand, "by_category": by_category,
         "by_expense_head": by_expense_head,
         "monthly": monthly,
         "has_expense_data": len(parsed) > 0,

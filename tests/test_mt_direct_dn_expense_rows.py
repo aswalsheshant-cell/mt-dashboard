@@ -4,7 +4,10 @@ Guards the committed rows (no source workbook needed) and the loader's rules on 
 small synthetic frame (tmp only, never written to the repo):
   * 64 rows, Rs1,274.71 L excl. GST, all FY27 Apr-Aug 2026, no duplicate CM2 keys
   * no Nykaa / EB2B customer (1103979) rows -- held out, channel "GT_ e B2B"
-  * every chain resolves to a Primary chain except Tnsi Retail (unmapped, not guessed)
+  * every chain resolves to a Primary chain; Tnsi Retail (1100027) = WH-Smith by
+    owner decision 2026-09-27 (loader OWNER_CHAIN_DECISIONS), never guessed
+  * Jul/Aug 2026 rows carry the PARTIAL MONTH marker (owner decision 2026-09-27)
+  * FM-14: no provision row shares a Month x Chain x Expense Head with a DN row
   * the 3 template rows are untouched and the file is otherwise a pure append
   * loader: drops exact duplicates, holds out non-MT-Direct, FY from the claim month
 """
@@ -43,10 +46,31 @@ def test_no_eb2b_nykaa_rows_loaded():
     assert not [r for r in rows if r["Customer Code"] == "1103979" or "NYKAA" in r["Customer Name"].upper()]
 
 
-def test_chains_resolve_except_tnsi():
+def test_all_chains_resolve_tnsi_is_wh_smith():
     known = dn.primary_chains()
     unresolved = {r["Chain"] for r in _dn_rows() if bd.canon_chain(r["Chain"]) not in known}
-    assert unresolved == {"Tnsi Retail Pvt Ltd"}
+    assert unresolved == set()
+    tnsi = [r for r in _dn_rows() if r["Customer Code"] == "1100027"]
+    assert {r["Chain"] for r in tnsi} == {"WH-Smith"}
+    assert round(sum(float(r["Expense Amount (INR Lakh)"]) for r in tnsi), 2) == 5.20
+    assert all("owner decision 2026-09-27" in r["Remarks"] for r in tnsi)
+    assert dn.OWNER_CHAIN_DECISIONS["1100027"][0] == "WH-Smith"
+
+
+def test_partial_months_marked_only_on_jul_aug():
+    for r in _dn_rows():
+        marked = dn.PARTIAL_MARK in r["Remarks"]
+        assert marked == (r["Month"] in ("July", "August")), (r["Month"], r["Remarks"])
+
+
+def test_no_provision_row_overlaps_a_dn_row():
+    # FM-14: a provision and its later DN describe one commercial event.
+    with open(SEED, newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    key = lambda r: (r["Month"].strip().lower(), bd.canon_chain(r["Chain"]), r["Expense Head"].strip().lower())
+    dn_keys = {key(r) for r in rows if (r.get("Source") or "").startswith(dn.SOURCE_TAG)}
+    prov = [r for r in rows if "provision" in ((r.get("Source") or "") + (r.get("Remarks") or "")).lower()]
+    assert not [r for r in prov if key(r) in dn_keys]
 
 
 def test_file_is_template_plus_append():
@@ -79,3 +103,11 @@ def test_loader_rules_on_synthetic_frame():
     assert by_chain["Reliance Retail"]["Expense Amount (INR Lakh)"] == "1.0000"   # base excl. GST
     assert by_chain["Wellness Forever"]["Expense Head"] == "Visibility"
     assert rep["written_lakh"] == 1.5
+    assert dn.PARTIAL_MARK not in by_chain["Reliance Retail"]["Remarks"]          # May: complete
+
+
+def test_loader_owner_decisions_on_synthetic_frame():
+    tnsi = ["2026-27", "1100027", "2026-07-01", None, None, "MT Direct", "Tnsi Retail Pvt Ltd", "SYN-4", 150000.0, 27000.0, 177000.0, "syn", "Visibility"]
+    rows, rep = dn.build_rows(_frame([tnsi]), "2026-09-27")
+    assert rows[0]["Chain"] == "WH-Smith" and rep["unresolved_chain_lakh"] == {}
+    assert dn.PARTIAL_MARK in rows[0]["Remarks"]                                   # July: partial
