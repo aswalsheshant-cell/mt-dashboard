@@ -107,6 +107,24 @@ and its all-channel NSV ties to `detail_meta.fyx_primary` for that month. The
 filled table goes in the B1 PR description, so next month's refresh has the same
 check.
 
+**Rebuild dry-run on `main` `374de1f` (2026-09-27, isolated worktree, nothing
+committed).** Before any B1a change, `--detail-only` was run from the tracked files
+to prove the baseline reproduces:
+
+| Run | Result vs committed `data.js` |
+|---|---|
+| `--src Primary_Article_Monthly` (default row cap) | `detail_records` 160,834 → 40,000, coverage 100% → 92.9% (the FM-03 trap). Every other block, incl. `fyx_primary` FY27 and all FY25/FY26 blocks, identical |
+| same + `--detail-max-rows 0` | 160,834 rows, 100% coverage; everything identical **except** `alloc.governance` |
+| same, `--src` = primary + `Offtake_Monthly/offtake_store_article_*_26.csv` | same single difference |
+
+The one difference is labelling only, no amounts: 12 distributor-allocation rows
+(₹12.13 L) read `Article_Not_Listed` 7 / `Brand_Not_Listed` 5 in the committed file
+and `Not_Eligible` 12 (`flagged_rows` 0 → 12) on rebuild. Those tiers depend on the
+offtake universe `build_offtake_universe(src)` reads; the 2026-09-25 build (#209) saw a
+different set. The B1a PR must: run with `--detail-max-rows 0`, show this
+`alloc.governance` change separately from the MT-only zone change, and not present
+it as part of the channel fix.
+
 **Exit condition.**
 - `python3 scripts/mt_channel_reconciliation.py dashboard/data.js` exits **0**:
   zone rollup = MT-only total; no non-MT account in MT views.
