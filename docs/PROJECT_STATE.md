@@ -71,6 +71,13 @@ Previous: `259135f`, 2026-09-26, closeout stream #225–#241; `a49e998`,
 
 ## Next Approved Task
 
+**Feature freeze from `f960e1f` (2026-09-27).** Only work that clears a blocker in
+`docs/COMPLETION_BLOCKER_PACK.md` (B1 CB-01, B2 #120/#119, B3 #229, B4 AssumptionTable,
+B5 Power BI Desktop checks, B6 incentive decisions) or fixes a newly reproduced
+defect is merged. Closed as outside the certified scope (branches kept): #129, #130,
+#135, #136 (superseded by #243, #238, #240, #237) and #134, #165, #168, #169, #170.
+Open PRs now: #119 (gated on #120) and #229 (HOLD).
+
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,
 each with an owner and a value, are in `08_Exceptions` and `12_Rule_Decisions`:
