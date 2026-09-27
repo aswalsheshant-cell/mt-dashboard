@@ -3487,14 +3487,15 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
         if r.get("month"): a["months"].add(r["month"])
         if r.get("brand"): a["brands"].add(r["brand"])
     ex = sorted(agg.values(), key=lambda d: -d["nsv"])
-    tot_ex = sum(d["nsv"] for d in ex) or 1.0
+    tot_ex = sum(d["nsv"] for d in ex)
     run = 0.0
     for d in ex:
         run += d["nsv"]
         d["nsv"] = r2(d["nsv"]); d["months"] = sorted(d["months"]); d["brands"] = sorted(d["brands"])
-        d["cumulative_pct"] = r2(run / tot_ex * 100)
+        d["cumulative_pct"] = r2(run / tot_ex * 100) if tot_ex else None
     out["exceptions"] = ex[:60]
     out["exception_count"] = len(ex)
+    # An empty register is Rs 0, not the old `or 1.0` divide-by-zero guard (Rs 1 L).
     out["exception_nsv"] = r2(tot_ex)
     out["note"] = (
         "Distributor rows with no matching entry in the cont% allocation master keep "

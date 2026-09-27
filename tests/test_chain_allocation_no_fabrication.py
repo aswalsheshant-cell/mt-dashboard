@@ -157,3 +157,13 @@ def test_mapping_health_note_has_no_negative_nsv_caveat_when_all_positive():
     cum_pcts = [d["cumulative_pct"] for d in out["exceptions"]]
     assert all(p <= 100.0 for p in cum_pcts)
     assert "negative NSV" not in out["note"]
+
+
+def test_mapping_health_empty_exception_register_is_zero_not_one():
+    """Once every unmapped ship-to is resolved (2026-09-27 register), the
+    exception register is empty. exception_nsv must then read 0 -- the old
+    `sum(...) or 1.0` divide-by-zero guard leaked out as a fabricated Rs 1 L."""
+    df = pd.DataFrame([{"_FY": "FY99", "_Chain": "DMart", "_NSV": 100.0}])
+    out = bdd.mapping_health_block(df, alloc={"missing_mapping": []}, cfg=None)
+    assert out["exception_count"] == 0
+    assert out["exception_nsv"] == 0
