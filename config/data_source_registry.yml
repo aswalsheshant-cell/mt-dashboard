@@ -300,12 +300,42 @@ datasets:
 
   cm2_ba_supervisor_visibility_rental:
     business_name: "BA salary, BA supervisor cost, visibility spend, rental"
-    source_path: "Visibility + Rental now PARTIAL via mt_provision_national_aug26 (Aug'26 only); BA salary and BA supervisor cost still MISSING for any period"
+    source_path: "Visibility + Rental now PARTIAL via mt_provision_national_aug26 (Aug'26 only); BA, D-Mart merchandiser and supervisor cost: source workbook MT_Spend.xlsx ABSENT (not in repo or any Git history); Q1 FY27 totals exist only as SECONDARY_EVIDENCE in PowerBI/Reference/CM2_Provisional/recovered_governance_20260724/cm2_expense_taxonomy_v0.2-DRAFT.csv"
     validation_status: PARTIAL
     downstream_outputs: []
     last_validated: "2026-09-13"
     modification_allowed: false
     notes: "CORRECTED 2026-09-13 (previous entry said 'no source files found anywhere in the repo for any of these four cost heads, for any period' -- that was wrong for two of the four). The newly supplied MT_Provision_National_till_Aug26.xlsx (see mt_provision_national_aug26 above) has real Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr provision) claims for Aug'26 -- single month, national, not yet reconciled against an independent total. BA salary and BA supervisor cost remain MISSING for any period; CM2_Provisional's own formula still marks visibility/rental as a Rs12.5L MEMO placeholder for Q1 FY27 specifically, a different period and a different (smaller, modelled) figure than this file's real Aug'26 claims -- do not average or blend the two without a business decision on which is authoritative for which period."
+    field_force_status_2026_09_27: >
+      CORRECTED 2026-09-27. The earlier wording "BA salary and BA supervisor
+      cost still MISSING for any period" was half right: the SOURCE FILE is
+      missing, but quantified Q1 FY27 evidence exists. Outcome B of the
+      source check: recovered/secondary evidence, NOT an authoritative actual.
+      (1) MT_Spend.xlsx is not tracked and never was: `git log --all` over
+      *MT_Spend*/*mt_spend* returns nothing, and docs/GIT_RECOVERY_MATRIX.md
+      row 5 reached the same negative result. (2) What exists is summary
+      totals only, written into cm2_expense_taxonomy_v0.2-DRAFT.csv
+      (recovered verbatim from commit 13fe0ac, 2026-07-24), all
+      PENDING_APPROVAL, Rs lakh, Q1 FY27 (Apr-Jun'26):
+      BA (sheet 'BA ', MONTH x CHAIN x EMPLOYEE, Chain Name on every row):
+      CTC 368.99, Reimbursement 0.52, Incentive 26.01 naive
+      (Salary rows 14.80 + Incentive rows 11.13 + Expense rows 0.08 --
+      DOUBLE-COUNT RISK, payout rule undecided);
+      Merchandiser (sheet 'D-Mart', chain implied by sheet name, not a column):
+      CTC 279.49, Reimbursement 7.77, Incentive 1.74 (entirely on
+      Payout='Expense' rows -- incentive vs reimbursement undecided);
+      Supervisor (sheet 'Sups', MONTH x ZONE x EMPLOYEE, NO Chain column,
+      Channel Hybrid 112 / MT 52 / GT 37 rows): CTC 44.46,
+      Reimbursement 9.93, Incentive 2.06 naive (1.15 + 0.89 + 0.03).
+      Other MT people (FLOATER, BDE, TEAM LEADER, SALES OFFICER, PROMOTER,
+      Lead/Senior Supervisor): head declared, no total recorded.
+      (3) Not recoverable from these totals: row counts, employee keys,
+      month split, chain split, source sign detail, file fingerprint.
+      CM2 eligibility: NONE until the workbook is supplied through controlled
+      intake (fingerprint, row-level reconciliation to the totals above) and
+      Finance + HR decide the incentive payout rule; supervisor cost stays
+      SHARED/UNALLOCATED by zone unless an approved allocation key exists.
+      Never rebuild row-level data from these summary totals.
 
   cm2_pl_expense_input:
     business_name: "P&L Expense Input master (customer/chain matched costs, general)"
