@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.3.0",
-  "installed_at": "2026-09-26T05:17:04Z",
-  "source": "/home/user/mt-dashboard/skill-suite",
-  "target": "/home/user/mt-dashboard/.agents/skills",
+  "suite_version": "1.4.0",
+  "installed_at": "2026-09-27T10:11:42Z",
+  "source": "/tmp/claude-0/wt254/skill-suite",
+  "target": "/tmp/claude-0/wt254/.agents/skills",
   "target_key": "project-codex",
   "skills": {
     "modern-trade-sales-growth": {
@@ -109,6 +109,19 @@
         "references/github-actions-checklist.md": "7ae630d029bfc4cc1c737a4bedd1ed96842c5772d85c48ae28e3577334165d9f",
         "references/merge-preview-template.md": "09a039e9506ed3d864e68c86305a6646376b440848fedfd8dbf1dbc6e41105c2",
         "references/review-checklist.md": "436134b547b12b5dfe1704a89dbdfa1b201276b73a25bebb3d97098e2539e1a1"
+      }
+    },
+    "mt-designation-incentives": {
+      "version": "1.1.1",
+      "sha256": {
+        "SKILL.md": "e04d2f9118291cfe6b9607cdef5123a9dca1dc42cb69a8b4f5f485a7e80f9a9d",
+        "references/acceptance-cases.md": "c58165dc506aad7281d6e7a7f0c0db395a59012317b46d90dbd2c1010c3db8a5",
+        "references/calculation.md": "3a9df1f998079c79af952abeb8bd51f888f218534fca70104c89b7a93e1f93d3",
+        "references/designations.md": "88524eb34e1ffa82a3e1716ca5160621b7854f255e2ab357b50aed0e2e779243",
+        "references/integration.md": "c934cbe7069d5ffcdfecc14f31429e843605a9f47a931f80471d66c1a9887680",
+        "references/q1-target-correlation.md": "4a3ea643958208c7b64886aad100d68665e30d0d61e0d26f252639ff88a1b24d",
+        "references/source-provenance.json": "f99d801b8c6a602a99291b08df2c71c019b3699f5a4e43f77b968e6b610e8f44",
+        "references/tracking-contract.md": "d1e57992a4517329d0a876b9ca88f3ea319832f050d4a390ac807656da97f71c"
       }
     }
   }
