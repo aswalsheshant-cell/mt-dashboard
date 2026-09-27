@@ -122,7 +122,16 @@ the exclusion.
 
 `July'26 primary and distributor secondary.xlsb` (article-wise primary, uncapped) —
 the source `scripts/build_dashboard_data.py` reads for `fyx_primary`. It is
-gitignored and absent from the working tree. With it, zone primary can be recut with
+gitignored and absent from the working tree.
+
+**Update 2026-09-27:** not absent after all. The same article-wise primary, split
+by month, has been tracked since 2026-09-14 at
+`PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_{Apr..Aug}_26.csv`
+(`Channel` on every row; totals tie exactly to `fyx_primary`, ₹22,239.59 L), and
+`detail_records_real()` reads it when no `.xlsb` is supplied. What remains for the
+dashboard is MT Leadership's OK to show Nykaa (FSN) as pending outside MT, then the
+`Channel == 'MT'` filter before zone aggregation — see
+`docs/COMPLETION_BLOCKER_PACK.md` B1. With it, zone primary can be recut with
 `Channel == 'MT'` applied before aggregation.
 
 ### Indicative impact (ESTIMATE — sampled, MT-biased, do not publish)

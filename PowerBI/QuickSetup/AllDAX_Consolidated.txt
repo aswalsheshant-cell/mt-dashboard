@@ -6,7 +6,7 @@ This file is a READ-ALONG REFERENCE, not something to paste as a whole.
 Power BI's New Measure formula bar holds exactly ONE measure at a time.
 For each measure below: select the _Measures table > New Measure > paste
 ONE 'Name = Expression' block (including any VAR/RETURN lines that belong
-to it) > Enter. Having ONE file open (this one) instead of 14 separate
+to it) > Enter. Having ONE file open (this one) instead of 15 separate
 files, with the calculated-column exceptions called out up front, is the
 time-saving here.
 
@@ -22,9 +22,12 @@ time-saving here.
     its OWN table (select the table > New column), not via New Measure.
     Every other measure in 12/13 IS a normal measure for _Measures.
 
+*** NOT INCLUDED -- these source files are deliberately left out of this setup:
+    - 15_Promo_Measures.dax: Not usable in this model yet: it reads tables no query builds (Fact_Secondary_TOT_Hierarchy; Fact_ClaimMaster -- query 45 builds 'Fact Claim Master') and Dim_PromoCalendar from the excluded query 46. Needs its own fix before it can be a setup step.
+
 
 ##############################################################################
-# STEP 01/14  --  SOURCE FILE: 00_DateTable.dax
+# STEP 01/15  --  SOURCE FILE: 00_DateTable.dax
 # TARGET: Date Table (calculated TABLE, not a measure)
 # NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below.
 ##############################################################################
@@ -75,8 +78,9 @@ ADDCOLUMNS(
 // -----------------------------------------------------------------
 
 
+
 ##############################################################################
-# STEP 02/14  --  SOURCE FILE: 01_CoreMeasures.dax
+# STEP 02/15  --  SOURCE FILE: 01_CoreMeasures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -92,8 +96,37 @@ Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
 Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
 Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
 
+// ---------- RELIANCE BRAND COUNTER (RBC) ISOLATION ----------
+Total MT NSV =
+    CALCULATE (
+        [Total Offtake NSV],
+        'Chain Master'[Channel] = "MT"
+    )
+
+Total RBC NSV =
+    CALCULATE (
+        [Total Offtake NSV],
+        'Chain Master'[Channel] = "RBC"
+    )
+
+RBC % of Total =
+    DIVIDE (
+        [Total RBC NSV],
+        [Total MT NSV] + [Total RBC NSV]
+    )
+
+Combined MT Total NSV =
+    [Total MT NSV] + [Total RBC NSV]
+
+Is RBC =
+    IF (
+        HASONEVALUE ( 'Chain Master'[Channel] ) && VALUES ( 'Chain Master'[Channel] ) = "RBC",
+        "RBC (Brand Counter)",
+        "MT (Modern Trade)"
+    )
+
 // Headline NSV used by most visuals (Offtake basis). Swap to Primary if needed.
-NSV = [Total Offtake NSV]
+NSV = [Total MT NSV]
 
 // ---------- INDIAN FORMAT HELPERS (display measures) ----------
 NSV (Cr) = DIVIDE ( [NSV], 10000000 )
@@ -165,6 +198,30 @@ IF ( ISINSCOPE ( 'Chain Master'[Chain] ),
     RANKX ( ALLSELECTED ( 'Brand Master'[Brand] ), [NSV],, DESC )
 )
 
+// ---------- CHAIN CONCENTRATION & TOP MOVERS ----------
+Top 3 Concentration % =
+VAR top3Total =
+    SUMX (
+        TOPN ( 3, ALLSELECTED ( 'Chain Master'[Chain] ), [Total MT NSV], DESC ),
+        [Total MT NSV]
+    )
+RETURN
+    DIVIDE ( top3Total, [Total MT NSV] )
+
+Top Chain =
+    CONCATENATEX (
+        TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [Total MT NSV], DESC ),
+        'Chain Master'[Chain],
+        ""
+    )
+
+Top 3 Chains =
+    CONCATENATEX (
+        TOPN ( 3, ALLSELECTED ( 'Chain Master'[Chain] ), [Total MT NSV], DESC ),
+        'Chain Master'[Chain],
+        ", "
+    )
+
 // ---------- PRIMARY vs OFFTAKE ----------
 Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]
 Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total Offtake NSV], [Total Offtake NSV] )
@@ -203,9 +260,118 @@ Top Growing Category =
 VAR t = TOPN ( 1, ALLSELECTED ( 'Category Master'[Category] ), [MoM Growth %], DESC )
 RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
 
+// =====================================================================
+// TARGET / ACHIEVEMENT / RUN RATE
+// Mirrors scripts/build_dashboard_data.py targets_block() so the Power BI
+// report and the web dashboard state the same numbers from the same rules.
+// [TY Target] is defined in 03_Forecast_Measures.dax (Targets[Target NSV]).
+//
+// BASIS: the target file is NSV and does not name its measure. The Forecast
+// page compares it to OFFTAKE, so these default to offtake. Swap
+// [Total Offtake NSV] for [Total Primary NSV] below to move the basis --
+// change it in "Actual (Basis)" only; everything else follows.
+// =====================================================================
+
+Actual (Basis) = [Total Offtake NSV]
+
+// ---------- PERIOD TO DATE (only months that actually have actuals) ----------
+// The PTD window is DERIVED from where actuals exist, so it widens on its own
+// as each new month lands -- no hardcoded month count to maintain.
+Last Actual Month =
+    CALCULATE (
+        MAX ( 'Date Table'[MonthStart] ),
+        FILTER ( ALL ( 'Date Table' ), [Actual (Basis)] > 0 )
+    )
+
+Target PTD =
+    CALCULATE (
+        [TY Target],
+        FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] <= [Last Actual Month] )
+    )
+
+Actual PTD =
+    CALCULATE (
+        [Actual (Basis)],
+        FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] <= [Last Actual Month] )
+    )
+
+// ---------- ACHIEVEMENT ----------
+Achievement % = DIVIDE ( [Actual PTD], [Target PTD] )
+
+Gap to Target = [Actual PTD] - [Target PTD]
+
+Gap to Target % = DIVIDE ( [Gap to Target], [Target PTD] )
+
+Achievement Status =
+    VAR _a = [Achievement %]
+    RETURN
+        SWITCH (
+            TRUE (),
+            ISBLANK ( _a ), "No target",
+            _a >= 1.00, "Met",
+            _a >= 0.90, "Near",
+            "Missed"
+        )
+
+// ---------- RUN RATE ----------
+Months Elapsed =
+    CALCULATE (
+        DISTINCTCOUNT ( 'Date Table'[MonthStart] ),
+        FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] <= [Last Actual Month] ),
+        FILTER ( ALL ( 'Date Table' ), NOT ISBLANK ( [TY Target] ) )
+    )
+
+Months In FY = CALCULATE ( DISTINCTCOUNT ( Targets[MonthStart] ), ALL ( 'Date Table' ) )
+
+Months Remaining = [Months In FY] - [Months Elapsed]
+
+Current Run Rate = DIVIDE ( [Actual PTD], [Months Elapsed] )
+
+// What the remaining months must average to still land the full-year target.
+Required Run Rate =
+    DIVIDE (
+        CALCULATE ( [TY Target], ALL ( 'Date Table' ) ) - [Actual PTD],
+        [Months Remaining]
+    )
+
+Run Rate Status =
+    VAR _req = [Required Run Rate]
+    VAR _cur = [Current Run Rate]
+    VAR _ratio = DIVIDE ( _req, _cur )
+    RETURN
+        SWITCH (
+            TRUE (),
+            _cur = 0 || ISBLANK ( _ratio ), "No actuals",
+            _ratio <= 1.00, "Ahead",
+            _ratio <= 1.05, "On Track",
+            _ratio <= 1.15, "At Risk",
+            "Critical"
+        )
+
+// ---------- LIKE-FOR-LIKE YoY ----------
+// A part-year FY against a full prior FY is not a YoY. Compare only the
+// months the current FY actually carries.
+Actual LY Same Period =
+    CALCULATE (
+        [Actual (Basis)],
+        FILTER (
+            ALL ( 'Date Table' ),
+            'Date Table'[MonthStart]
+                <= EDATE ( [Last Actual Month], -12 )
+                && 'Date Table'[FY Year]
+                    = CALCULATE ( MAX ( 'Date Table'[FY Year] ),
+                        FILTER ( ALL ( 'Date Table' ),
+                            'Date Table'[MonthStart] = EDATE ( [Last Actual Month], -12 ) ) )
+        )
+    )
+
+YoY % (Like-for-Like) =
+    DIVIDE ( [Actual PTD] - [Actual LY Same Period], [Actual LY Same Period] )
+
+
 
 ##############################################################################
-# STEP 03/14  --  SOURCE FILE: 02_PnL_Measures.dax
+# STEP 03/15  --  SOURCE FILE: 02_PnL_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -213,61 +379,104 @@ RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
 // Logic: if a raw P&L actual exists use it; otherwise resolve the most
 // specific matching row in 'Assumption Table' (Month>Chain>Brand>Category),
 // falling back to "ALL". All divisions use DIVIDE().
+//
+// F21 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up sweep,
+// 2026-09-25): this used to COALESCE a missing month to a hardcoded 50%
+// Gross Margin / 0% Trade Spend -- 'AssumptionTable.csv' only has rows for
+// Apr'26 and May'26 (each remarked "Default portfolio assumption - update
+// with actuals when available"), so every month since silently computed
+// CM%/Gross Margin off a made-up default with no on-screen disclosure.
+// Fail-closed now: a month with no Assumption Table row returns BLANK()
+// all the way through Gross Margin/Trade Spend/Total Spend/Contribution
+// Margin/CM% -- never a fabricated number -- and `Assumption Status` names
+// the exact gap for a QC card. `scripts/check_assumption_coverage.py` is
+// the release-gate half of this fix: it fails the build with
+// BLOCKED_FINANCE_INPUT before a missing month can even reach here.
 // =====================================================================
+
+// ---- Helper: is there ANY Assumption Table row for the selected month? ----
+// Single source of truth for "does Finance's input exist for this month",
+// independent of which specific % or spend column a caller reads next --
+// AssumptionTable.csv always populates GM%/Trade Spend%/Visibility/Scheme
+// together per row, so one row-existence check covers all four safely.
+_Assumption Available =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+    NOT ISBLANK ( _m )
+        && CALCULATE ( COUNTROWS ( 'Assumption Table' ),
+               FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ) > 0
+
+// Finance-facing QC status -- put this on a card in the P&L page so a
+// missing month is visibly flagged, not silently absorbed into "0.0%".
+Assumption Status =
+VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( _m ), "NO MONTH SELECTED",
+        [_Assumption Available], "OK",
+        "ASSUMPTION_MISSING — FINANCE_INPUT_REQUIRED: " & _m
+            & " has no approved Assumption Table row. Gross Margin, Trade Spend, "
+            & "Contribution Margin and CM% for this month are BLANK, not estimated."
+    )
 
 // ---- Helper: resolve an assumption value with ALL-fallback ----
 // Returns the % / spend for the current Month x Chain x Brand x Category
-// context, preferring the most specific row, else the ALL row.
+// context, preferring the most specific row, else the ALL row. Returns
+// BLANK() (not a hardcoded default) when the month itself has no row at
+// all -- MAX()/SUM() over an empty filtered table already returns BLANK(),
+// so removing the old COALESCE(...,default) is the entire fix here.
 _Assumption Gross Margin % =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 VAR _ch = SELECTEDVALUE ( 'Chain Master'[Chain], "ALL" )
 VAR _br = SELECTEDVALUE ( 'Brand Master'[Brand], "ALL" )
 VAR _cat = SELECTEDVALUE ( 'Category Master'[Category], "ALL" )
-VAR _specific =
+RETURN
     CALCULATE ( MAX ( 'Assumption Table'[Gross Margin %] ),
         FILTER ( ALL ( 'Assumption Table' ),
             'Assumption Table'[Month] = _m
             && ( 'Assumption Table'[Chain] = _ch || 'Assumption Table'[Chain] = "ALL" )
             && ( 'Assumption Table'[Brand] = _br || 'Assumption Table'[Brand] = "ALL" )
             && ( 'Assumption Table'[Category] = _cat || 'Assumption Table'[Category] = "ALL" ) ) )
-RETURN COALESCE ( _specific, 0.50 )
 
 _Assumption Trade Spend % =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 RETURN
-COALESCE (
     CALCULATE ( MAX ( 'Assumption Table'[Trade Spend %] ),
-        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )
 
 _Assumption Visibility Spend =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 RETURN
-COALESCE (
     CALCULATE ( SUM ( 'Assumption Table'[Visibility Spend] ),
-        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )
 
 _Assumption Scheme Spend =
 VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )
 RETURN
-COALESCE (
     CALCULATE ( SUM ( 'Assumption Table'[Scheme Spend] ),
-        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) ), 0 )
+        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )
 
 // ---- P&L line items ----
 Net Sales = [NSV]                                   // NSV = Net Sales Value (offtake)
 Gross Sales = COALESCE ( [Total MRP Sales], DIVIDE ( [NSV], 1 - 0.0 ) )  // use MRP Sales as gross proxy
 
-Gross Margin = [NSV] * [_Assumption Gross Margin %]
+// Explicit IF guards below (not just relying on DAX's number*BLANK=BLANK /
+// number-BLANK=number arithmetic quirks) so the fail-closed behavior is
+// stated plainly for a Finance/Power BI reviewer, not implied. The
+// subtraction/addition below would otherwise silently treat a genuinely
+// missing month as a real zero (BLANK acts as 0 under + and -, unlike *).
+Gross Margin = IF ( [_Assumption Available], [NSV] * [_Assumption Gross Margin %], BLANK () )
 Gross Margin % = DIVIDE ( [Gross Margin], [NSV] )
 
-Trade Spend = [NSV] * [_Assumption Trade Spend %]
+Trade Spend = IF ( [_Assumption Available], [NSV] * [_Assumption Trade Spend %], BLANK () )
 Visibility Spend = [_Assumption Visibility Spend]
 Scheme Spend = [_Assumption Scheme Spend]
-Total Spend = [Trade Spend] + [Visibility Spend] + [Scheme Spend]
+Total Spend = IF ( [_Assumption Available], [Trade Spend] + [Visibility Spend] + [Scheme Spend], BLANK () )
 
 Spend % of NSV = DIVIDE ( [Total Spend], [NSV] )
 
-Contribution Margin = [Gross Margin] - [Total Spend]
+Contribution Margin = IF ( [_Assumption Available], [Gross Margin] - [Total Spend], BLANK () )
 CM % = DIVIDE ( [Contribution Margin], [NSV] )
 
 // ---- ranking helper for the profitability page ----
@@ -275,11 +484,16 @@ Chain CM Rank =
 RANKX ( ALLSELECTED ( 'Chain Master'[Chain] ), [Contribution Margin],, DESC )
 
 // ---- "growth profitable or only sales-led?" flag ----
+// F21: cm blank (missing assumption month) must not fall through to the
+// generic "Needs attention" catch-all -- blank compares as 0 numerically,
+// so g>0 && cm>=0.25 would silently read as false and misclassify a
+// missing month as a real, bad one instead of a data gap.
 Profitability Flag =
 VAR g = [MoM Growth %]
 VAR cm = [CM %]
 RETURN
     SWITCH ( TRUE (),
+        ISBLANK ( cm ), "ASSUMPTION_MISSING",
         g > 0 && cm >= 0.25, "Profitable Growth",
         g > 0 && cm < 0.25,  "Sales-led (watch margin)",
         g <= 0 && cm >= 0.25, "Margin-protected decline",
@@ -287,8 +501,9 @@ RETURN
     )
 
 
+
 ##############################################################################
-# STEP 04/14  --  SOURCE FILE: 03_Forecast_Measures.dax
+# STEP 04/15  --  SOURCE FILE: 03_Forecast_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -386,8 +601,9 @@ IF ( [Has Actual],
 Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
 
 
+
 ##############################################################################
-# STEP 05/14  --  SOURCE FILE: 04_Nielsen_Measures.dax
+# STEP 05/15  --  SOURCE FILE: 04_Nielsen_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -437,8 +653,9 @@ Share Gain Flag =
 IF ( [Our Brand Growth %] > [Category Value Growth %], "Gaining Share", "Losing Share" )
 
 
+
 ##############################################################################
-# STEP 06/14  --  SOURCE FILE: 05_TDP_Measures.dax
+# STEP 06/15  --  SOURCE FILE: 05_TDP_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -511,8 +728,9 @@ RETURN
 MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )
 
 
+
 ##############################################################################
-# STEP 07/14  --  SOURCE FILE: 06_DataQuality_Measures.dax
+# STEP 07/15  --  SOURCE FILE: 06_DataQuality_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -579,9 +797,177 @@ Total DQ Issues =
     + [Unmapped Chain] + [Unmapped Brand] + [Unmapped Category] + [Unmapped Zone]
 Data Health % = 1 - DIVIDE ( [Total DQ Issues], [Total Fact Rows] )
 
+// =====================================================================
+// PRIMARY ARTICLE — DATA QUALITY CHECKS  (Fact Primary Article)
+// =====================================================================
+
+// ---- Missing key fields on Primary Article fact ----
+Primary Missing Month =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[MonthStart] ) ) )
+
+Primary Missing Chain =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article',
+        ISBLANK ( 'Fact Primary Article'[Chain] ) || 'Fact Primary Article'[Chain] = "" ) )
+
+Primary Missing Brand =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article',
+        ISBLANK ( 'Fact Primary Article'[Brand] ) || 'Fact Primary Article'[Brand] = "" ) )
+
+Primary Blank NSV =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[Primary NSV] ) ) )
+
+Primary Negative NSV =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    FILTER ( 'Fact Primary Article', 'Fact Primary Article'[Primary NSV] < 0 ) )
+
+// ---- Distributor allocation quality ----
+// Unmapped Dist rows: PO Type = Dist. but no ShipTo match found in Q41
+Primary Unmapped Dist =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped" )
+
+// Provisional rows: Jun'26 nearest-month fallback, awaiting Finance approval
+Primary Provisional Alloc =
+CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Provisional Flag] = TRUE () )
+
+// Provisional NSV value exposed for the finance review disclosure
+Primary Provisional NSV =
+CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Provisional Flag] = TRUE () )
+
+// Coverage: share of Dist rows that received an approved allocation
+Primary Dist Coverage % =
+VAR _distRows =
+    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" } )
+VAR _mapped =
+    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" } )
+RETURN DIVIDE ( _mapped, _distRows )
+
+// ---- Combined Primary DQ summary ----
+Primary Total DQ Issues =
+[Primary Missing Month] + [Primary Missing Chain] + [Primary Missing Brand]
+    + [Primary Blank NSV] + [Primary Unmapped Dist]
+
+Primary Article Total Rows = COUNTROWS ( 'Fact Primary Article' )
+
+Primary Data Health % =
+1 - DIVIDE ( [Primary Total DQ Issues], [Primary Article Total Rows] )
+
+// ---- Negative Frac QC (Source: ShipTo CSV correction/reversal entries) ----
+// 8 source rows have negative Cont% in the ShipTo CSV (reversal/credit entries).
+// These produce negative allocated NSV on 157 article-level rows across 4 distributors.
+// Total impact: approx -0.2093 L (0.0013% of total Dist NSV). Not a code defect —
+// the normalisation is mathematically valid (fracs still sum to 1 per group).
+// Finance must decide whether to zero-floor negatives or keep them for reconciliation.
+Primary Negative Frac Rows =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Primary NSV] < 0,
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+)
+
+Primary Negative Frac NSV =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Primary NSV] < 0,
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+)
+
+// Human-readable flag for the QC card
+Primary Negative Frac Flag =
+VAR _rows = [Primary Negative Frac Rows]
+RETURN
+    IF ( _rows > 0,
+        "⚠ " & _rows & " rows with negative allocated NSV (reversal entries in ShipTo CSV – Finance review required)",
+        "No negative-frac rows"
+    )
+
+// =====================================================================
+// FY26 RECONCILIATION & DATA QUALITY GATES
+// Validates Power BI offtake data against dashboard canonical reference
+// =====================================================================
+
+// Expected FY26 Offtake (from dashboard data_master.json)
+Expected FY26 Offtake =
+VAR expectedCr = 311.28  // ₹ Crore (43 chains, verified)
+RETURN expectedCr * 10000000  // Convert to base unit (smallest denomination)
+
+// Actual FY26 Offtake (from Power BI fact)
+Actual FY26 Offtake =
+CALCULATE (
+    [Total MT NSV],
+    'Date Table'[Fiscal Year] = 2026
+)
+
+// Variance Alert (should be < ±0.05 Cr tolerance)
+FY26 Offtake Variance =
+VAR actual = [Actual FY26 Offtake] / 10000000  // Convert to Crore
+VAR expected = [Expected FY26 Offtake] / 10000000
+RETURN actual - expected
+
+// Status Flag: Green/Red
+FY26 Status =
+VAR variance = [FY26 Offtake Variance]
+RETURN
+    IF (
+        ABS ( variance ) < 0.05,
+        "🟢 OK — Aligned with dashboard",
+        "🔴 MISMATCH — Variance: " & FORMAT ( variance, "+0.00;-0.00;0.00" ) & " Cr"
+    )
+
+// Expected FY26 RBC (from dashboard)
+Expected FY26 RBC =
+VAR expectedCr = 45.62  // ₹ Crore (Reliance Brand Counter)
+RETURN expectedCr * 10000000
+
+// Actual FY26 RBC
+Actual FY26 RBC =
+CALCULATE (
+    [Total RBC NSV],
+    'Date Table'[Fiscal Year] = 2026
+)
+
+// RBC Variance
+FY26 RBC Variance =
+VAR actual = [Actual FY26 RBC] / 10000000
+VAR expected = [Expected FY26 RBC] / 10000000
+RETURN actual - expected
+
+// RBC Status
+FY26 RBC Status =
+VAR variance = [FY26 RBC Variance]
+RETURN
+    IF (
+        ABS ( variance ) < 0.01,
+        "🟢 OK — Aligned with dashboard",
+        "🔴 MISMATCH — Variance: " & FORMAT ( variance, "+0.00;-0.00;0.00" ) & " Cr"
+    )
+
+// Combined total (MT + RBC)
+Expected FY26 Combined = [Expected FY26 Offtake] + [Expected FY26 RBC]
+Actual FY26 Combined = [Actual FY26 Offtake] + [Actual FY26 RBC]
+FY26 Combined Variance = ([Actual FY26 Combined] - [Expected FY26 Combined]) / 10000000
+
+FY26 Combined Status =
+VAR variance = [FY26 Combined Variance]
+RETURN
+    IF (
+        ABS ( variance ) < 0.05,
+        "🟢 OK — ₹356.90 Cr target",
+        "🔴 MISMATCH — Variance: " & FORMAT ( variance, "+0.00;-0.00;0.00" ) & " Cr"
+    )
+
+
 
 ##############################################################################
-# STEP 08/14  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
+# STEP 08/15  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -738,9 +1124,83 @@ VAR _bad =
     )
 RETURN COALESCE ( _bad, 0 )
 
+// =====================================================================
+// DIST ALLOCATION SOURCE BREAKDOWN  (Fact Primary Article)
+// Source Type column is populated by Query 41 and propagated via Query 16.
+// Use these measures on the QC page to monitor allocation coverage and
+// confirm the Jun'26 provisional rows are eventually replaced by a Finance-
+// approved DistCont patch.
+// =====================================================================
+
+// --- NSV by allocation source ---
+Dist NSV – Approved Patch =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "Approved Patch"
+)
+
+Dist NSV – ShipTo CSV =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "ShipTo CSV"
+)
+
+Dist NSV – Provisional Fallback =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Source Type] = "Nearest-Month Fallback"
+)
+
+Dist NSV – Unmapped =
+CALCULATE (
+    SUM ( 'Fact Primary Article'[Primary NSV] ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped"
+)
+
+// --- Coverage % (share of Dist NSV that has an approved allocation) ---
+Dist Allocation Coverage % =
+VAR _total =
+    CALCULATE (
+        SUM ( 'Fact Primary Article'[Primary NSV] ),
+        'Fact Primary Article'[Is Dist] = TRUE ()
+    )
+VAR _covered =
+    CALCULATE (
+        SUM ( 'Fact Primary Article'[Primary NSV] ),
+        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+    )
+RETURN DIVIDE ( _covered, _total )
+
+// --- Provisional row flag (for Jun'26 disclosure) ---
+Has Provisional Allocation =
+IF (
+    CALCULATE (
+        COUNTROWS ( 'Fact Primary Article' ),
+        'Fact Primary Article'[Provisional Flag] = TRUE ()
+    ) > 0,
+    "⚠ Provisional allocation active – Finance approval pending",
+    "All allocations approved"
+)
+
+// --- Unmapped Dist rows count (QC threshold: target = 0) ---
+Unmapped Dist Rows =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] = "Unmapped"
+)
+
+// --- Is Dist flag (derived from PO Type; matches Query 16 logic) ---
+// Exposed as a measure for use in filters where the column isn't available.
+Dist Row Count =
+CALCULATE (
+    COUNTROWS ( 'Fact Primary Article' ),
+    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" }
+)
+
+
 
 ##############################################################################
-# STEP 09/14  --  SOURCE FILE: 08_ForecastQC_Measures.dax
+# STEP 09/15  --  SOURCE FILE: 08_ForecastQC_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -811,8 +1271,9 @@ CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
         NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) ) ) )
 
 
+
 ##############################################################################
-# STEP 10/14  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
+# STEP 10/15  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -976,8 +1437,9 @@ CALCULATE ( [Chain Allocated Primary NSV],
         'Date Table'[MonthStart] = [Allowed Primary Month (date)] ) )
 
 
+
 ##############################################################################
-# STEP 11/14  --  SOURCE FILE: 10_SIS_Reconciliation.dax
+# STEP 11/15  --  SOURCE FILE: 10_SIS_Reconciliation.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1054,8 +1516,9 @@ Offtake Channel Coverage % =
 // slicer to list stores whose channel didn't resolve.
 
 
+
 ##############################################################################
-# STEP 12/14  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
+# STEP 12/15  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1159,8 +1622,9 @@ RETURN
 // See docs/ExportAndVisualSettings.md for the full per-visual walkthrough.
 
 
+
 ##############################################################################
-# STEP 13/14  --  SOURCE FILE: 12_TOT_Measures.dax
+# STEP 13/15  --  SOURCE FILE: 12_TOT_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -1354,8 +1818,9 @@ RETURN
 // the CSV via the HTML dashboard's Python rebuild to update it.
 
 
+
 ##############################################################################
-# STEP 14/14  --  SOURCE FILE: 13_CM2_Measures.dax
+# STEP 14/15  --  SOURCE FILE: 13_CM2_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -1538,144 +2003,155 @@ VAR _grouped =
     )
 RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 
+
+
+##############################################################################
+# STEP 15/15  --  SOURCE FILE: 14_SecondarySales_Measures.dax
+# TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)
+# NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar.
+##############################################################################
 // =====================================================================
-// == FILE: 06_DataQuality_Measures.dax  — PRIMARY ARTICLE ADDITIONS ==
+// SECONDARY SALES MEASURES
+//
+// All measures read from 'Fact Secondary Sales' (query 44_Fact_SecondarySales.pq).
+// Grain: Source_Month × Distributor × NSV_Lakh.
+//
+// Cross-table measures compare secondary sell-out NSV against primary
+// (from 'Fact Primary Article') to derive sell-through ratio.
+// All ratio measures use DIVIDE() — never plain division.
+//
+// FY filter: measures respect the Date[FY Year] slicer via the
+// MonthStart → Date table relationship established in the model.
 // =====================================================================
 
-// ---- Missing key fields on Primary Article fact ----
-Primary Missing Month =
-CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[MonthStart] ) ) )
 
-Primary Missing Chain =
-CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-    FILTER ( 'Fact Primary Article',
-        ISBLANK ( 'Fact Primary Article'[Chain] ) || 'Fact Primary Article'[Chain] = "" ) )
+// ── Core KPIs ─────────────────────────────────────────────────────────────
 
-Primary Missing Brand =
-CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-    FILTER ( 'Fact Primary Article',
-        ISBLANK ( 'Fact Primary Article'[Brand] ) || 'Fact Primary Article'[Brand] = "" ) )
-
-Primary Blank NSV =
-CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-    FILTER ( 'Fact Primary Article', ISBLANK ( 'Fact Primary Article'[Primary NSV] ) ) )
-
-Primary Negative NSV =
-CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-    FILTER ( 'Fact Primary Article', 'Fact Primary Article'[Primary NSV] < 0 ) )
-
-Primary Unmapped Dist =
-CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-    'Fact Primary Article'[Allocation Status] = "Unmapped" )
-
-Primary Provisional Alloc =
-CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-    'Fact Primary Article'[Provisional Flag] = TRUE () )
-
-Primary Provisional NSV =
-CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ),
-    'Fact Primary Article'[Provisional Flag] = TRUE () )
-
-Primary Dist Coverage % =
-VAR _distRows =
-    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" } )
-VAR _mapped =
-    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),
-        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" } )
-RETURN DIVIDE ( _mapped, _distRows )
-
-Primary Total DQ Issues =
-[Primary Missing Month] + [Primary Missing Chain] + [Primary Missing Brand]
-    + [Primary Blank NSV] + [Primary Unmapped Dist]
-
-Primary Article Total Rows = COUNTROWS ( 'Fact Primary Article' )
-
-Primary Data Health % =
-1 - DIVIDE ( [Primary Total DQ Issues], [Primary Article Total Rows] )
-
-Primary Negative Frac Rows =
-CALCULATE (
-    COUNTROWS ( 'Fact Primary Article' ),
-    'Fact Primary Article'[Primary NSV] < 0,
-    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
+[Secondary NSV Lakh] =
+SUMX (
+    FILTER (
+        'Fact Secondary Sales',
+        'Fact Secondary Sales'[Is_Provisional] = FALSE()
+    ),
+    'Fact Secondary Sales'[NSV_Lakh]
 )
 
-Primary Negative Frac NSV =
-CALCULATE (
-    SUM ( 'Fact Primary Article'[Primary NSV] ),
-    'Fact Primary Article'[Primary NSV] < 0,
-    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
-)
+[Secondary NSV Lakh (Incl Provisional)] =
+SUM ( 'Fact Secondary Sales'[NSV_Lakh] )
 
-Primary Negative Frac Flag =
-VAR _rows = [Primary Negative Frac Rows]
+[Secondary NSV Cr] =
+DIVIDE ( [Secondary NSV Lakh], 100 )
+
+[Secondary Distributor Count] =
+DISTINCTCOUNT ( 'Fact Secondary Sales'[Distributor] )
+
+
+// ── Month-over-Month ───────────────────────────────────────────────────────
+
+[Secondary NSV MoM Δ Lakh] =
+VAR _cur  = [Secondary NSV Lakh]
+VAR _prev =
+    CALCULATE (
+        [Secondary NSV Lakh],
+        DATEADD ( 'Date'[Date], -1, MONTH )
+    )
 RETURN
-    IF ( _rows > 0,
-        "⚠ " & _rows & " rows with negative allocated NSV (reversal entries in ShipTo CSV – Finance review required)",
-        "No negative-frac rows"
+    IF ( ISBLANK ( _prev ), BLANK (), _cur - _prev )
+
+[Secondary NSV MoM % Δ] =
+VAR _cur  = [Secondary NSV Lakh]
+VAR _prev =
+    CALCULATE (
+        [Secondary NSV Lakh],
+        DATEADD ( 'Date'[Date], -1, MONTH )
+    )
+RETURN
+    DIVIDE ( _cur - _prev, _prev )
+
+
+// ── Sell-Through (Secondary ÷ Primary) ────────────────────────────────────
+// "Sell-through" = what proportion of primary dispatched was sold through
+// by the distributor to the MT store. Healthy range: 75–110%.
+// Values > 110% indicate pipeline drawdown; < 75% = under-liquidation.
+
+[Sell-Through %] =
+VAR _secondary = [Secondary NSV Lakh]
+VAR _primary   = [Total Primary Article NSV]      // from 01_CoreMeasures.dax
+RETURN
+    DIVIDE ( _secondary, _primary )
+
+[Sell-Through % (Capped 200)] =
+VAR _raw = [Sell-Through %]
+RETURN
+    IF ( _raw > 2, 2, _raw )
+
+[Sell-Through Signal] =
+VAR _st = [Sell-Through %]
+RETURN
+    IF (
+        ISBLANK ( _st ), "–",
+        IF ( _st >= 1.10, "Pipeline Drawdown",
+        IF ( _st >= 0.75, "On-Track",
+             "Under-Liquidation" ))
     )
 
-// =====================================================================
-// == FILE: 07_PrimaryAllocation_Measures.dax  — DIST BREAKDOWN ADDS ==
-// =====================================================================
 
-Dist NSV – Approved Patch =
-CALCULATE (
-    SUM ( 'Fact Primary Article'[Primary NSV] ),
-    'Fact Primary Article'[Source Type] = "Approved Patch"
+// ── Distributor-level ranking ──────────────────────────────────────────────
+
+[Secondary NSV Rank] =
+RANKX (
+    ALLSELECTED ( 'Fact Secondary Sales'[Distributor] ),
+    [Secondary NSV Lakh],
+    ,
+    DESC,
+    DENSE
 )
 
-Dist NSV – ShipTo CSV =
-CALCULATE (
-    SUM ( 'Fact Primary Article'[Primary NSV] ),
-    'Fact Primary Article'[Source Type] = "ShipTo CSV"
+[Secondary NSV Distributor Share %] =
+DIVIDE (
+    [Secondary NSV Lakh],
+    CALCULATE ( [Secondary NSV Lakh], ALLSELECTED ( 'Fact Secondary Sales'[Distributor] ) )
 )
 
-Dist NSV – Provisional Fallback =
+
+// ── Q1 FY27 aggregates (period-fixed, for scorecards) ─────────────────────
+
+[Q1 FY27 Secondary NSV Lakh] =
 CALCULATE (
-    SUM ( 'Fact Primary Article'[Primary NSV] ),
-    'Fact Primary Article'[Source Type] = "Nearest-Month Fallback"
+    [Secondary NSV Lakh],
+    'Date'[FY Year] = "FY27",
+    'Date'[Quarter] = "Q1"
 )
 
-Dist NSV – Unmapped =
-CALCULATE (
-    SUM ( 'Fact Primary Article'[Primary NSV] ),
-    'Fact Primary Article'[Allocation Status] = "Unmapped"
-)
+[Q1 FY27 Secondary NSV Cr] =
+DIVIDE ( [Q1 FY27 Secondary NSV Lakh], 100 )
 
-Dist Allocation Coverage % =
-VAR _total =
-    CALCULATE (
-        SUM ( 'Fact Primary Article'[Primary NSV] ),
-        'Fact Primary Article'[Is Dist] = TRUE ()
+
+// ── Claim context (from Fact Claim Master) ────────────────────────────────
+// Claim as % of secondary sell-out NSV (a different ratio to the
+// claim-as-%-of-primary-NSV computed in 13_CM2_Measures.dax).
+
+[Claim % of Secondary NSV] =
+VAR _claim    = SUM ( 'Fact Claim Master'[Amount_Lakh] )
+VAR _secondary = [Secondary NSV Lakh]
+RETURN
+    DIVIDE ( _claim, _secondary )
+
+
+// ── Display labels ────────────────────────────────────────────────────────
+
+[Secondary NSV Label] =
+VAR _val = [Secondary NSV Lakh]
+RETURN
+    IF (
+        ISBLANK ( _val ), "–",
+        IF ( _val >= 100,
+            "₹" & FORMAT ( DIVIDE ( _val, 100 ), "0.0" ) & " Cr",
+            "₹" & FORMAT ( _val, "0.0" ) & " L"
+        )
     )
-VAR _covered =
-    CALCULATE (
-        SUM ( 'Fact Primary Article'[Primary NSV] ),
-        'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional" }
-    )
-RETURN DIVIDE ( _covered, _total )
 
-Has Provisional Allocation =
-IF (
-    CALCULATE (
-        COUNTROWS ( 'Fact Primary Article' ),
-        'Fact Primary Article'[Provisional Flag] = TRUE ()
-    ) > 0,
-    "⚠ Provisional allocation active – Finance approval pending",
-    "All allocations approved"
-)
-
-Unmapped Dist Rows =
-CALCULATE (
-    COUNTROWS ( 'Fact Primary Article' ),
-    'Fact Primary Article'[Allocation Status] = "Unmapped"
-)
-
-Dist Row Count =
-CALCULATE (
-    COUNTROWS ( 'Fact Primary Article' ),
-    'Fact Primary Article'[Allocation Status] IN { "Allocated", "Provisional", "Unmapped" }
-)
+[Sell-Through Label] =
+VAR _st = [Sell-Through %]
+RETURN
+    IF ( ISBLANK ( _st ), "–", FORMAT ( _st, "0.0%" ) )

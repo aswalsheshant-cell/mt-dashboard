@@ -36,7 +36,7 @@ Download these exact files to a local directory (e.g., `~/mt-sources/`):
 | `Primary FY-2024-26.xlsx` | ~10 MB | Row-level primary sell-in data |
 | `Chain Offtake Master.xlsx` | ~2 MB | Chain-wise and zone-wise sell-out pivots |
 | `Universe MT.xlsx` | ~1 MB | Store distribution by chain and zone |
-| `Promo Master -MT.xlsx` | ~500 KB | Promo calendar and trade-spend allocation |
+| `Promo Master -MT.xlsx` | ~500 KB | Promo offer calendar (chain, brand, offer depth) — no promo spend |
 
 ### 1.3 Verify Downloads
 

@@ -12,14 +12,32 @@
 window.AlertController = (function () {
   let activeAlerts = [];
 
+  // The badge sits in the header bar, outside <nav>: the old 'nav .alert-badge'
+  // selector never matched, so the hard-coded red "0" stayed on screen whatever
+  // the feed said. Now: a count only when there are critical alerts, hidden on a
+  // clean feed, and "!" (never a number) when the feed failed to load.
   function updateNavBadge() {
-    const feed = window.alertsFeed || { metadata: { critical_count: 0 } };
-    const criticalCount = feed.metadata?.critical_count || 0;
-    const badge = document.querySelector('nav .alert-badge');
-    if (badge) {
-      badge.textContent = criticalCount;
-      badge.classList.toggle('active', criticalCount > 0);
+    const badge = document.querySelector('.alert-badge');
+    if (!badge) return;
+    const status = window.alertsFeedStatus;
+    const feed = window.alertsFeed || { metadata: {} };
+    const criticalCount = Number(feed.metadata?.critical_count) || 0;
+    if (status === 'error') {
+      badge.textContent = '!';
+      badge.style.background = '#6b7280';
+      badge.title = 'Alert feed failed to load - critical alert count unknown';
+      badge.style.display = 'inline-block';
+    } else if (status === 'loaded' && criticalCount > 0) {
+      badge.textContent = String(criticalCount);
+      badge.style.background = '#ef4444';
+      badge.title = `${criticalCount} critical alert${criticalCount > 1 ? 's' : ''} - see Operational Alerts`;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.textContent = '';
+      badge.title = '';
+      badge.style.display = 'none';
     }
+    badge.classList.toggle('active', status === 'loaded' && criticalCount > 0);
   }
 
   function getSeverityColor(severity) {
@@ -154,6 +172,7 @@ window.AlertController = (function () {
     // Called when the alerts_feed.json fetch settles (index.html). Repaints the
     // tab if it was already rendered, so "Loading alerts…" never sticks.
     onFeedSettled() {
+      updateNavBadge();
       const tab = document.getElementById('tab-alerts');
       if (tab && tab.innerHTML.trim()) buildAlerts();
     },

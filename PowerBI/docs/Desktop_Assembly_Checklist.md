@@ -296,7 +296,15 @@ Conditional format: amber background when `[Primary Provisional Alloc] > 0`.
 
 After Refresh all:
 
-- [ ] Grand total Primary NSV matches source: ₹46,560.34 L (±0.01 L rounding tolerance)
+> **These figures are the Apr'25–Jun'26 snapshot (15 month files).** The watch
+> folder grows every month, so the grand total changes too. For whatever months
+> are in your `Primary_Article_Monthly\` folder, run
+> `python scripts/reconcile_primary_baseline.py`: it prints the total for each
+> month and checks every documented figure against its own month window
+> (on 2026-09-26: Apr'25–Aug'26, 17 files = ₹55,139.95 L). The Dist / Allocated /
+> Provisional / Unmapped lines below were not recomputed for later months.
+
+- [ ] Grand total Primary NSV (Apr'25–Jun'26 files) matches source: ₹46,560.34 L (±0.01 L rounding tolerance)
 - [ ] Dist NSV total: ₹15,756.23 L
 - [ ] Allocated (approved): ₹14,379.59 L
 - [ ] Provisional (Jun'26): ₹1,376.49 L

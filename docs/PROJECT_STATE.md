@@ -58,16 +58,25 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`a49e998` — PR #218 merged; recovery stream #216–#219 complete
-Validated: 2026-09-25 — production certification on merged `main`
-(READY_WITH_GOVERNED_BLOCKERS; see "Production certification — 2026-09-25" below).
-Previous: `ec55115`, 2026-09-11, fresh-clone reproducibility PASS.
+`154b370` — PR #244 merged; final certification of the closeout (see "Final
+certification — 2026-09-26" below). Verdict: READY_WITH_GOVERNED_BLOCKERS.
+Validated: 2026-09-26 — every gate re-run fresh on `154b370`; post-merge CI on
+`main` all green; `gh-pages` publishes the same 24 dashboard files.
+Previous: `259135f`, 2026-09-26, closeout stream #225–#241; `a49e998`,
+2026-09-25, production certification.
 
 > A milestone's own commit hash does not exist while this file is being written
 > for it, so this section is corrected in the **next** commit. Check it against
 > `git log --oneline -1` on resume; the hook prints both.
 
 ## Next Approved Task
+
+**Feature freeze from `f960e1f` (2026-09-27).** Only work that clears a blocker in
+`docs/COMPLETION_BLOCKER_PACK.md` (B1 CB-01, B2 #120/#119, B3 #229, B4 AssumptionTable,
+B5 Power BI Desktop checks, B6 incentive decisions) or fixes a newly reproduced
+defect is merged. Closed as outside the certified scope (branches kept): #129, #130,
+#135, #136 (superseded by #243, #238, #240, #237) and #134, #165, #168, #169, #170.
+Open PRs now: #119 (gated on #120) and #229 (HOLD).
 
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,
@@ -286,6 +295,104 @@ Deferred until the blockers above are dispositioned: recovery of the five
 historical Claude chats (each checked against certified `main`, never trusted
 from the chat), and any optional local-AI work (e.g. AMD/Lemonade) —
 OPTIONAL_POST_CERTIFICATION.
+
+### Closeout — 2026-09-26 (main `259135f`)
+
+One fresh branch and one approval per PR; each merged only with the six required
+checks green on the tested head and `main` identical to it afterwards.
+`github-advanced-security` failed on every run with `CAPIError 400 The requested
+model is not supported` (read in each log; not a required check -- CB-09).
+
+| PR | Change | FM |
+|---|---|---|
+| #225 `4a63a39` | Power BI Windows CI no longer hides validation failures | FM-28 |
+| #226 `f16b762` | Failed alert-feed load no longer reads "all healthy" | -- |
+| #228 `83ef4bb` | Every browser test launches Chromium through `tests/browser_launch.js` | FM-29 |
+| #230 `2c7825a` / #231 `4f85622` | PPTX hook and session banner truthful; ci-auto-fix never claims remediation | FM-30/31 |
+| #232 `c8ba4aa` / #233 `a3c6c72` | CM2 "Not available" without expense (HTML and Power BI); DAX filter context keeps Month/FY | FM-32/33 |
+| #234 `f3b9d64` | PQ 39 FY parser follows THE ONE FY RULE (FY28+) | FM-34 |
+| #235 `4bfd90f` | SKU quadrants: no fabricated 45% margin | FM-35 |
+| #236 `370cdf3` | Alert badge follows the feed; no page-wide overflow when zoomed | FM-36 |
+| #237 `2e0f1e8` | Primary baseline figures reconciled by month window; cited script exists | FM-11 note |
+| #238 `17b3f81` | Reliability skill's mandatory checks fail closed | FM-27 note |
+| #239 `a39d55c` | `eval_harness.py` retired; required Windows validator not skippable | FM-28 note |
+| #240 `c54a9bd` | QuickSetup files generated from PQ/DAX sources, `--check` in CI | FM-37 |
+| #241 `259135f` | Comparison chart labels the prior FY with its own months | FM-38 |
+
+Closed with evidence notes: issues #195, #200 (fixed by #199 / #204); PRs #131,
+#132, #133, #156 (rebuilt as #225/#231/#230/#226), #160, #179 (outdated).
+
+Certification blockers -- changes since 2026-09-25:
+
+| ID | Update |
+|---|---|
+| CB-04 | #131, #132, #133 closed. #130, #135, #136 rebuilt and merged as #238, #240, #237 -- the old PRs can be closed as superseded (owner approval). #129 needs a fresh Node 24 pin audit (runners force Node-20 actions onto Node 24 since 2026-09-23); reading the upstream `actions/*` repos needs owner approval for read-only access. #134 is an owner policy decision. #119 stays gated on #120 (266-line owner register). |
+| CB-05 | #156, #160, #179 closed; #215 merged (`4aad204`). #158/#159 no longer open. Still open, 135-160 commits behind: #165, #168, #169, #170 -- owner decides keep/rebuild/close. |
+| CB-09 | Now fails on every run (not intermittent); still not a required check; issue #194. |
+| CB-10 | RESOLVED -- merged in #222 (`624d779`). |
+
+Open, owned elsewhere:
+- **#229** MT Direct DN claims -- HOLD: code ready; data/business not (Nykaa/FSN, Tnsi, Jul/Aug completeness, MT_Spend, indirect claims, COGS/logistics).
+- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Case 1 now, 2-8 after #229 data); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows).
+- **Promo stack** (PQ 46 / DAX 15): excluded from QuickSetup -- reads tables no query builds and a one-month relative path; needs its own fix (owner decision).
+- **Not-shown metrics** (Stock days, OSA/OOS, Promo ROI): need a stock-on-hand feed, a store audit at >=60% coverage for the reporting months, and promo spend per promo -- business inputs.
+- **Three browser tests** (`test_sprint8_compliance_inventory.js`, `smoke_dashboard.js`, `test_smoke_dashboard_governed.js`) expect servers on ports 8000/8080 instead of `SWEEP_PORT`; they pass with those servers running.
+- Issues **#120** (owner register), **#194** (GitHub). #113 closed by #244.
+
+### Final certification — 2026-09-26 (main `154b370`)
+
+**Verdict: READY_WITH_GOVERNED_BLOCKERS** (unchanged from 2026-09-25). Code,
+tests, CI and deploy: **PASS**. What is left is business input and owner
+decisions, each below with an owner; there is no unexplained failure.
+
+Merged after the closeout table above, one approval each, `main` identical to the
+tested head after every merge:
+
+| PR | Change | FM |
+|---|---|---|
+| #242 `46738b4` | PROJECT_STATE and Failure-Mode Register reconciled with #225–#241 | -- |
+| #243 `7f01f97` | All 86 action pins moved to verified Node 24 releases (3 old pins did not exist upstream) | FM-39 |
+| #244 `154b370` | Issue #113: 876 lines of dead dashboard code removed; required gate's function check no longer false-passes | FM-28 note |
+
+Evidence, all run fresh on `154b370`:
+
+| Check | Result |
+|---|---|
+| `pytest tests/` | 441 passed, 26 skipped |
+| `pytest scripts/` | 427 passed, 29 skipped (incl. `test_json_serialization.py` 28/28 -- CB-02 no longer reproduces) |
+| `tests/canonical/` / `answer_governance/` | 100 passed / 60 passed |
+| Canonical Financial Truth Gate, all 8 checks | PASS |
+| `validate_historical_baseline.py`, `validate_promo_schema.py`, `ci_validate_datajs.py` (7 invariants, detail coverage 100%), `tests/validate_data_integrity.py` (10/10) | PASS |
+| `reconcile_primary_baseline.py` | MATCH: FY26 Rs32,900.36 L; Apr'25-Jun'26 Rs46,560.34 L; Apr'25-Jul'26 Rs51,481.65 L |
+| `mt_channel_reconciliation.py` | BLOCKED (exit 2), unchanged: Rs 11.64 Cr eB2B + SIS in FY27 zone rollup -- CB-01 |
+| Browser tests (`tests/*.js`) | 26/26; sweep 44 states, 0 failing, 0 JS errors; 9 subviews x 4 FY + 12 legacy routes = 48 states, 0 failing |
+| Power BI (`scripts/ci/test_powerbi_model.ps1`, pwsh 7) | all checks passed; Windows CI on `154b370` success |
+| Drift | `data.js` byte-identical to `a49e998`, `259135f`, `46738b4`; `build_quicksetup.py --check` clean; `audit_action_pins.py` 0 pins off node24 |
+| Post-merge CI on `154b370` | Pages deploy, Health Check, Validation & QC, Power BI Windows, Promo schema, CodeQL, UI Smoke -- all success |
+| Deployed copy | `gh-pages` `87e244b` ("publish dashboard [154b370]"): 24/24 dashboard files byte-identical to `main` (live URL not reachable from the container -- CB-08) |
+
+Blocker updates since the closeout table:
+
+| ID | Update |
+|---|---|
+| CB-01 | Unchanged (Rs 11.64 Cr). Still needs full July-26 article-wise primary and the Nykaa treatment decision. |
+| CB-02 | RESOLVED -- `scripts/test_json_serialization.py` 28/28 on `154b370`. |
+| CB-04 | #129 rebuilt and merged as #243. #129, #130, #135, #136 are superseded by #243, #238, #240, #237 -- close on owner approval. #134 owner policy decision. #119 gated on #120. |
+| CB-05 | #165, #168, #169, #170 still open and far behind `main` -- owner decides keep, rebuild or close. |
+| CB-09 | Unchanged: `github-advanced-security` fails on every run with `CAPIError 400` (issue #194); not a required check. |
+
+Open PRs (11): #229 HOLD (MT Direct DN claims, needs data and business answers);
+#119 (gated on #120); #129, #130, #135, #136 (superseded); #134 (policy);
+#165, #168, #169, #170 (owner decision). Open issues (2): #120, #194.
+
+Manual, outside CI: Power BI Desktop runs of `tests/powerbi/cm2_availability_cases.dax`
+(Case 1) and `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows).
+Finance input: AssumptionTable Jun-Aug'26 rows (Required Business Inputs #7);
+the Assumption Coverage Gate reports `BLOCKED_FINANCE_INPUT` until they arrive.
+
+Still-dead dashboard code, left for a separate decision: `buildPrimary`,
+`buildCategory`, `buildRelianceBC`, `monthUnsupportedNote`, `expBarH`,
+`expDonut`, `expLine`, `exportMonthlyInsightPDF` (see `docs/VISUAL_REGISTRY.md`).
 
 ## Partial Capabilities
 

@@ -1,18 +1,54 @@
-// Regression test for F15's JS-side defense-in-depth guard
-// (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md follow-up sweep,
-// 2026-09-25): the Promo Elasticity charts + Executive Brief are currently
-// unreachable in the live app (no wired button, no canvas elements in the
-// DOM template), but several of these functions fell through to a
-// hardcoded/fabricated number (e.g. a literal 0.3 "elasticity" default, a
-// 0.35 "macro elasticity" OR-fallback that fires even with real-but-null
-// chain data) the moment reconnected. elasticityMethodologyValidated()
-// gates every one of them on D.correlations.methodology_validated === true
-// -- this proves the gate blocks when unvalidated (today's real state) and
-// does NOT block once validated (so a future real fix isn't permanently
-// disabled by this guard).
+// Regression test for F15 (docs/PHASE_2B_FINANCIAL_CONSUMER_INVENTORY.md
+// follow-up sweep, 2026-09-25) -- contract changed by Issue #113 (2026-09-26).
+//
+// Before #113: the Promo Elasticity charts + Executive Brief were unreachable
+// dead code (no wired button, no canvas in the DOM template) that fell through
+// to fabricated numbers if reconnected (a literal 0.3 "elasticity" default, a
+// 0.35 "macro elasticity" OR-fallback). An elasticityMethodologyValidated()
+// guard gated them, and this test exercised that guard.
+//
+// Issue #113 removed that dead UI outright (Sprint 6 commit 4a2fe00; its last
+// caller went with buildOfftakeImpact() in PR #112). The risk the guard
+// covered -- a fabricated elasticity reaching a user -- is now closed at the
+// source, so the contract becomes:
+//   1. the real data is still unvalidated (the reason the feature stays off);
+//   2. the removed functions, the brief modal and its constant are gone;
+//   3. no dashboard code reads D.correlations unless it also checks
+//      methodology_validated === true (a future rebuild must re-add the gate);
+//   4. the live, unrelated "Promo Depth vs. Sell-Through -- Correlation" card
+//      (computePromoSellThroughCorrelation, reads D.promo, not D.correlations)
+//      is kept -- same name family, different feature;
+//   5. the tab and legacy routes that used to host the dead UI load cleanly.
+// The pipeline side (scripts/promo_offtake_correlation.py never fabricates
+// lift/elasticity) stays covered by tests/test_promo_elasticity_not_fabricated.py.
+const fs = require('fs');
+const path = require('path');
 const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH -> bundled -> PLAYWRIGHT_BROWSERS_PATH
 
+const REMOVED = [
+  'renderElasticityCurves', 'renderROIHeatmap', 'renderWaterfall', 'renderScatterTrend',
+  'exportOfftakeCorrelations', 'getFilteredCorrelationData', 'elasticityMethodologyValidated',
+  'generateExecutiveBrief', 'showExecutiveBriefModal', 'closeExecutiveBriefModal',
+  'exportExecutiveBriefImage', 'exportExecutiveBriefPDF', 'copyExecutiveBriefToClipboard',
+  'onGlobalFilterChange', 'ELASTICITY_NOT_AVAILABLE_TEXT',
+];
+
 (async () => {
+  let pass = 0, fail = 0;
+  function check(name, cond, detail) {
+    if (cond) { pass++; console.log(`  PASS ${name}`); }
+    else { fail++; console.log(`  FAIL ${name}${detail !== undefined ? ' -- ' + JSON.stringify(detail) : ''}`); }
+  }
+
+  // Static: every first-party dashboard script (not vendored libs, not data.js).
+  const dash = path.join(__dirname, '..', 'dashboard');
+  const files = ['index.html', ...fs.readdirSync(dash).filter(f => f.endsWith('.js') && f !== 'data.js' && !f.endsWith('.min.js') && f !== 'chart.umd.js')];
+  const ungated = files.filter(f => {
+    const t = fs.readFileSync(path.join(dash, f), 'utf8');
+    return /\bD(ASH)?\.correlations\b/.test(t) && !/methodology_validated\s*===\s*true/.test(t);
+  });
+  check('test_no_ungated_reader_of_D_correlations', ungated.length === 0, ungated);
+
   const b = await launchChromium();
   const pg = await b.newPage();
   const errs = [];
@@ -20,109 +56,32 @@ const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH ->
   await pg.goto(`http://127.0.0.1:${process.env.SWEEP_PORT || 8899}/index.html`, { waitUntil: 'load' });
   await pg.waitForFunction(() => typeof D !== 'undefined' && !!D.universe, { timeout: 30000 });
 
-  let pass = 0, fail = 0;
-  function check(name, cond, detail) {
-    if (cond) { pass++; console.log(`  PASS ${name}`); }
-    else { fail++; console.log(`  FAIL ${name}${detail !== undefined ? ' -- ' + JSON.stringify(detail) : ''}`); }
-  }
-
-  // Real, current data state: proves the guard is actually engaged today,
-  // not just in a synthetic fixture.
   const realState = await pg.evaluate(() => ({
     validated: D.correlations ? D.correlations.methodology_validated : undefined,
-    hasCorrelations: !!D.correlations,
   }));
-  check('test_real_data_is_not_validated_today',
-    realState.validated !== true, realState);
+  check('test_real_data_is_not_validated_today', realState.validated !== true, realState);
 
-  const chartCalls = await pg.evaluate(() => {
-    // inject the canvases these functions expect (none exist in the real
-    // DOM -- confirmed dead code) so their logic can be exercised directly.
-    ['chart-elasticity', 'chart-heatmap', 'chart-waterfall', 'chart-scatter'].forEach(cid => {
-      if (!document.getElementById(cid)) {
-        const c = document.createElement('canvas');
-        c.id = cid; c.width = 400; c.height = 200;
-        document.body.appendChild(c);
-      }
+  const live = await pg.evaluate((names) => ({
+    stillDefined: names.filter(n => { try { return typeof eval(n) !== 'undefined'; } catch (e) { return false; } }),
+    briefModal: !!document.getElementById('executiveBriefModal'),
+    sellThroughKept: typeof computePromoSellThroughCorrelation === 'function',
+  }), REMOVED);
+  check('test_dead_elasticity_and_brief_code_is_removed', live.stillDefined.length === 0, live.stillDefined);
+  check('test_executive_brief_modal_is_removed', live.briefModal === false);
+  check('test_live_promo_sell_through_correlation_is_kept', live.sellThroughKept === true);
+
+  // The tab that absorbed Promo/Forecast/Share, and the legacy routes whose
+  // builders once owned the removed helpers, must still render without errors.
+  for (const route of ['demand-planning', 'inventory-health', 'promo', 'offtake-impact', 'distribution', 'forecast']) {
+    await pg.evaluate(r => show(r), route);
+    await pg.waitForTimeout(600);
+    const s = await pg.evaluate(() => {
+      const sec = document.querySelector('section.active');
+      const txt = sec ? sec.innerText : '';
+      return { id: sec && sec.id, len: txt.length, bad: /\bNaN\b|\bundefined\b|\[object Object\]/.test(txt) };
     });
-
-    const savedCorr = D.correlations;
-    const fakeChains = [{ name: 'X', elasticity_tiers: { tier_1: { elasticity: 0.5, avg_lift: 10, avg_discount: 40, count: 3 } } }];
-
-    let calls;
-    const OrigChart = window.Chart;
-    function CountingChart(...args) { calls++; return new OrigChart(...args); }
-    CountingChart.prototype = OrigChart.prototype;
-
-    // Case 1: unvalidated -- must NOT build a single chart.
-    D.correlations = { methodology_validated: false, by_chain: fakeChains };
-    calls = 0; window.Chart = CountingChart;
-    renderElasticityCurves(fakeChains);
-    renderROIHeatmap(fakeChains);
-    renderWaterfall(fakeChains);
-    renderScatterTrend(fakeChains, []);
-    window.Chart = OrigChart;
-    const callsWhenUnvalidated = calls;
-
-    // Case 2: validated -- must build all 4 (guard doesn't permanently
-    // disable the feature, only gates it on real validation).
-    D.correlations = { methodology_validated: true, by_chain: fakeChains };
-    calls = 0; window.Chart = CountingChart;
-    renderElasticityCurves(fakeChains);
-    renderROIHeatmap(fakeChains);
-    renderWaterfall(fakeChains);
-    renderScatterTrend(fakeChains, []);
-    window.Chart = OrigChart;
-    const callsWhenValidated = calls;
-
-    D.correlations = savedCorr;
-    // clean up injected charts so they don't linger for later tests in a
-    // shared browser context
-    charts.splice(0, charts.length).forEach(c => { try { c.destroy(); } catch (e) {} });
-
-    return { callsWhenUnvalidated, callsWhenValidated };
-  });
-
-  check('test_unvalidated_blocks_all_four_chart_functions',
-    chartCalls.callsWhenUnvalidated === 0, chartCalls);
-  check('test_validated_allows_all_four_chart_functions',
-    chartCalls.callsWhenValidated === 4, chartCalls);
-
-  const briefResult = await pg.evaluate(() => {
-    const savedCorr = D.correlations;
-    D.correlations = { methodology_validated: false, by_chain: [] };
-    const unvalidatedBrief = generateExecutiveBrief();
-
-    D.correlations = {
-      methodology_validated: true,
-      by_chain: [{ name: 'Reliance Retail', elasticity_tiers: { tier_2: { elasticity: 0.6, avg_discount: 55 } } }],
-      summary: { optimal_depth_range: '45-55%' },
-    };
-    const validatedBrief = generateExecutiveBrief();
-
-    D.correlations = savedCorr;
-    return { unvalidatedBrief, validatedBrief };
-  });
-
-  check('test_unvalidated_brief_is_explicitly_not_available',
-    briefResult.unvalidatedBrief.not_available === true && briefResult.unvalidatedBrief.macro_elasticity === '–',
-    briefResult.unvalidatedBrief);
-  check('test_validated_brief_computes_normally',
-    briefResult.validatedBrief.not_available !== true && typeof briefResult.validatedBrief.macro_elasticity === 'string',
-    briefResult.validatedBrief);
-
-  // exportOfftakeCorrelations() alerts and refuses when unvalidated.
-  let dialogText = null;
-  pg.once('dialog', async d => { dialogText = d.message(); await d.accept(); });
-  await pg.evaluate(() => {
-    const saved = D.correlations;
-    D.correlations = { methodology_validated: false, by_chain: [] };
-    exportOfftakeCorrelations();
-    D.correlations = saved;
-  });
-  await pg.waitForTimeout(100);
-  check('test_export_alerts_and_refuses_when_unvalidated',
-    dialogText !== null && /not available/i.test(dialogText), dialogText);
+    check(`test_route_${route}_renders_cleanly`, !!s.id && s.len > 50 && !s.bad, s);
+  }
 
   check('test_no_js_errors', errs.length === 0, errs);
 

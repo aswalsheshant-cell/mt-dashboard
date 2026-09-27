@@ -136,8 +136,8 @@ python scripts/ingest_claims_and_secondary.py \
 # Step 2: Export updated CSVs to watch folders
 python scripts/automate_pbi_refresh.py --mode primary-only --no-qc
 
-# Step 3: Verify data
-python scripts/eval_harness.py
+# Step 3: Verify data (eval_harness.py was retired 2026-09-26 -- it checked the old data_master.json pipeline)
+python scripts/ci_validate_datajs.py
 
 # Step 4: Commit & push
 git add PowerBI/RawDataFolders/

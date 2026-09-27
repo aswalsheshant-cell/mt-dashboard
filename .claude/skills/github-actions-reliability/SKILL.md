@@ -48,34 +48,47 @@ Before touching any file, classify the failure into exactly one primary category
 
 ### 1. Workflow Checks
 ```bash
+# Fails closed: any finding below makes the block exit 1, so it can gate a merge.
+rc=0
+
 # No empty workflow files
 for f in .github/workflows/*.yml .github/workflows/*.yaml; do
   [ -f "$f" ] || continue
   size=$(wc -c < "$f")
-  [ "$size" -lt 10 ] && echo "FAIL empty: $f ($size bytes)"
+  if [ "$size" -lt 10 ]; then echo "FAIL empty: $f ($size bytes)"; rc=1; fi
 done
 
-# YAML parses and has on: trigger
-python - <<'EOF'
+# YAML syntax + an 'on:' trigger key only -- NOT full GitHub Actions semantics
+# (job structure, action refs, expressions are unchecked).
+python3 - <<'EOF' || rc=1
 import glob, yaml, pathlib, sys
 errors = []
-for path in glob.glob(".github/workflows/*.yml"):
+paths = sorted(glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"))
+for path in paths:
     try:
         doc = yaml.safe_load(pathlib.Path(path).read_text())
         if not isinstance(doc, dict) or ("on" not in doc and True not in doc):
             errors.append(f"{path}: missing 'on:' key")
     except yaml.YAMLError as e:
         errors.append(f"{path}: parse error — {e}")
-[print(e) for e in errors] or print("✓ all workflows valid")
+for e in errors:
+    print(f"FAIL {e}")
+if errors:
+    sys.exit(1)
+print(f"OK {len(paths)} workflow file(s) parse as YAML and declare an 'on:' trigger")
 EOF
+exit $rc
 ```
 
 ### 2. Repository Asset Checks
 ```bash
-for f in dashboard/index.html dashboard/data.js requirements.txt .github/labeler.yml environment.yml; do
-  [ -f "$f" ] && echo "✓ $f" || echo "MISSING: $f"
+rc=0
+for f in dashboard/index.html dashboard/data.js requirements.txt environment.yml; do
+  if [ -f "$f" ]; then echo "✓ $f"; else echo "MISSING: $f"; rc=1; fi
 done
+exit $rc
 ```
+(`.github/labeler.yml` was dropped from this list: the file does not exist and no workflow uses it.)
 
 ### 3. Environment Checks (via GitHub API through MCP tools)
 - Verify `Development` environment exists in Settings → Environments
@@ -96,9 +109,9 @@ When any workflow reports `startup_failure`:
 ### Step 1 — Inspect the workflow file
 ```bash
 wc -c .github/workflows/<name>.yml          # < 10 bytes = empty = Category A
-python -m py_compile .github/workflows/...  # syntax check
-python -c "import yaml; yaml.safe_load(open('.github/workflows/<name>.yml'))"
+python3 -c "import yaml; yaml.safe_load(open('.github/workflows/<name>.yml'))"  # YAML syntax; raises (non-zero exit) on a parse error
 ```
+(`py_compile` compiles Python source; it says nothing about a YAML file, so it is not used here.)
 - Empty file → fix: replace with valid content (Category A)
 - Parse error → fix: correct the YAML (Category A)
 
