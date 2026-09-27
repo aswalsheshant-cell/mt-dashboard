@@ -281,7 +281,9 @@ figures.
 **Also confirm the existing rows.** The Apr'26 and May'26 `ALL/ALL/ALL` rows on
 `main` read "Default portfolio assumption - update with actuals when available"
 (GM 52%, Trade Spend 8%), and the two May'26 chain rows carry no approval
-reference either. The gate counts Apr and May as covered because of them. Finance
+reference either. Until 2026-09-27 the gate counted Apr and May as covered because of
+them; it now reports them as UNAPPROVED (a month counts only when its ALL/ALL/ALL row
+has `Approved: <reference>` in Remarks). Finance
 should confirm them as approved or send replacements, so the gate's READY means
 approved, not placeholder. They are not changed until Finance answers.
 
