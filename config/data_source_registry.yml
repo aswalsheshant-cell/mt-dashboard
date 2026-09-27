@@ -586,6 +586,51 @@ datasets:
       allocation of distributor data"), a naming trap already flagged in the
       mt-distributor-secondary skill.
 
+  distributor_secondary_register_fy27:
+    business_name: "FY27 Distributor Secondary register (distributor / chain / brand x month), Apr-Aug'26"
+    source_path: "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_{distributor,chain,brand}_Q1_FY27.csv (Apr-Jun'26) + secondary_sales_{distributor,chain,brand}_Jul_Aug_FY27.csv (Jul-Aug'26); Jul-Aug article grain + exceptions in PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/05_ARTICLE_REGISTER_Jul_Aug_2026.csv / 06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv"
+    source_type: "CSV. Jul-Aug'26 built from Distributor_Chain_Brand_Article_Billing_{July,August}_2026.xlsx (sheet 'Billing Detail', one row per invoice line; gitignored source)"
+    grain: "month x distributor (and month x chain, month x brand); Jul-Aug also month x distributor x chain x brand x article"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Source_Month", "Distributor"]
+    important_columns: ["Source_Month", "FY_Year", "Distributor", "NSV_Lakh", "Data_Source", "Notes"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Monthly, when the distributor billing workbook arrives"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_secondary_register.py --src <folder with the monthly billing xlsx> (Jul-Aug'26); Q1 from scripts/export_pbi_csvs.py --blocks secondary"
+    downstream_outputs: ["PowerBI/PowerQuery/44_Fact_SecondarySales.pq (watch folder SecondarySales_Monthly)"]
+    last_validated: "2026-09-27 -- Jul'26 source Rs927.06L reconciles to the Jul'26 rows already in 01_FULL_HIERARCHY_Apr_Jul_2026.csv (Rs927.05L, same 11 distributors); register by invoice month Jul Rs930.82L / Aug Rs798.16L (source Aug register Rs801.93L; Rs3.77L of AZ invoices dated July moved to July); distributor, chain, brand and article files agree per month within Rs0.01L rounding"
+    modification_allowed: false
+    notes: >
+      Business date = Invoice Date. Jul'26: Kottaram dates are stored
+      day/month swapped (e.g. 2026-02-07 = 2 Jul) -- 80 lines / Rs12.28L
+      repaired into July, logged. Aug'26 register carries 394 AZ lines
+      (Rs3.77L) invoiced in July; their 37 bills do not appear in the July
+      register, so they are counted in July (invoice month), not dropped.
+      GST basis: Just Mark, Kiran Trading, Mark Enterprises ('Invoice value')
+      and United Marketing ('Item amount') do not state ex-GST in the source;
+      their rows carry a Notes flag that 44_Fact_SecondarySales.pq reads as
+      Is_Provisional. Coverage: North distributors not supplied for either
+      month; Sai Saachi and Srijan have no July register; Sai Saachi, Srijan,
+      United Marketing have no August register; no row is written for a
+      missing register (missing, not zero). July VA billing is inside the SVDA
+      consolidated report (source excluded the VA file to avoid duplicates).
+      TROY Tradex is new in Aug'26. Distributor names follow the Q1 register
+      (e.g. 'Kiran Trading Co.' -> 'Kiran Trading', 'Sri Vijaya Durga
+      Agencies_Mt' -> 'SVDA'); chains use build_dashboard_data.canon_chain().
+      DO NOT USE the August rows of
+      SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv as
+      distributor secondary: that file's 2026-08 block (Rs3,308.45L, 260
+      names such as 'Avenue Supermarts Ltd.-DC-8009', 'Apollo Healthco
+      Limited_Faridabad') is ship-to billing, not distributor sell-out -- the
+      August CONFLICT already recorded in docs/DATA_AVAILABILITY_MATRIX.md. It
+      is left unchanged because scripts/apply_alias_vector.py and
+      scripts/synthesize_fy25_article_primary.py read it.
+
   article_category_mapping:
     business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"
     source_path: "The SAME primary file's own brand/category/sub_category/PPT Category columns (present at article grain on most monthly files); PowerBI/PowerQuery/42_PackSizeBuckets.pq for pack-size bucketing; PowerBI/SeedData/NPI_Master.csv for NPI article metadata"

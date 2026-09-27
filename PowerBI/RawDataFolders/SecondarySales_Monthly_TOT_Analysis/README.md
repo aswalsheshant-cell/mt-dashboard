@@ -91,6 +91,23 @@ AZ Enterprises         Apollo        35.47    51.38    40.79    28.89
 → SVDA: Balanced (43–60% DMart, 28–36% Reliance) = lower risk
 → AZ Enterprises: Apollo allocation declining (35% → 29%) = channel shift
 
+### 6. `05_ARTICLE_REGISTER_Jul_Aug_2026.csv` (added 2026-09-27)
+Jul-Aug 2026 distributor secondary at **Month x Distributor x Chain x Brand x Article** grain, built by
+`scripts/build_secondary_register.py` from the monthly billing workbooks. Columns: `Source_Month`
+(invoice month), `Register_Month` (the workbook the line came from), `FY_Year`, `Distributor_Code`,
+`Distributor` (Q1 register name), `Distributor_Source`, `Chain` (canon_chain), `Chain_Source`, `Brand`,
+`EAN` (blank where the register has none), `Article`, `Billing_Basis`, `Quantity`, `NSV_Value`, `Lines`,
+`Date_Flag`, `NSV_Lakh`. Jul Rs930.82L / Aug Rs798.16L.
+
+**Do not add it to `01_FULL_HIERARCHY_Apr_Jul_2026.csv`:** July is in both files (same source; 01 has
+Rs927.05L by register month, 05 has Rs930.82L by invoice month -- the Rs3.77L gap is AZ July invoices
+reported in the August register). Use 01 for Apr-Jun and 05 for Jul-Aug.
+
+### 7. `06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv` (added 2026-09-27)
+QC log for 05: repaired dates, late-reported invoices moved to their invoice month, possible duplicate
+kept, EAN missing in source, billing basis without a stated GST treatment, and distributors with no
+register that month (missing, not zero).
+
 ## Key Metrics & Patterns
 
 ### Distributor Concentration
