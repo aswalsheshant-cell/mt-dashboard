@@ -242,15 +242,26 @@ datasets:
     validation_status: PARTIAL
     source_priority: SOURCE_OF_TRUTH
     fallback_source: null
-    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq"]
-    last_validated: "2026-09-13"
+    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv"]
+    loader: "scripts/build_distributor_claim_expense_seed.py (deterministic Q1 chain x expense-head seed; never invents Apr/May/Jun allocation)"
+    last_validated: "2026-09-27"
     modification_allowed: false
     notes: >
-      Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. Separately,
-      docs/finance_decision_matrix_Q1_FY27.csv (a related but different claims
-      register, 116 rows, real-looking distributor names) still shows numerous
-      PENDING/"Manual Review Required" rows as of its own content, while
-      docs/FINANCE_APPROVAL_Q1_FY27.md claims "Resolution Rate: 100%" and
+      Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. The tracked
+      chain master reconciles to Rs449.7696 L total. The governed expense seed
+      PL_Distributor_Claim_Input_Q1_FY27.csv carries 32 non-zero chain x
+      expense-head rows totaling Rs449.7694 L; the Rs0.0002 L difference is
+      source-category rounding only, and negative claim/credit rows are retained.
+      The seed deliberately has NO Month field and is NOT appended to the monthly
+      PL_Expense_Input.csv: the tracked repo does not preserve a complete
+      month x distributor x chain x expense-head fact table, so spreading Q1
+      claims across Apr/May/Jun would fabricate financial timing. Load these
+      distributor claims into monthly CM2 only when real month-level chain evidence
+      is supplied or Finance explicitly approves a period-grain treatment.
+      Separately, docs/finance_decision_matrix_Q1_FY27.csv (a related but
+      different claims register, 116 rows, real-looking distributor names) still
+      shows numerous PENDING/"Manual Review Required" rows as of its own content,
+      while docs/FINANCE_APPROVAL_Q1_FY27.md claims "Resolution Rate: 100%" and
       "READY FOR PRODUCTION DEPLOYMENT" -- a direct contradiction between a
       document and the data it claims to summarize. Do not treat the "100%
       resolved" claim as accurate without independently recounting the PENDING
