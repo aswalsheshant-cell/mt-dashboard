@@ -101,7 +101,6 @@ CHHABRA TRADERS_Ship To,Dist.,Spencers,Mamaearth,2025-10-01,FY_25-26,MT,25.64,Me
 CHHABRA TRADERS_Ship To,Dist.,Vishal Mega Mart,Mamaearth,2026-04-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
 CHHABRA TRADERS_Ship To,Dist.,Vishal Mega Mart,Mamaearth,2026-05-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
 CHHABRA TRADERS_Ship To,Dist.,Vishal Mega Mart,Mamaearth,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-03 secondary split (nearest month with data)
-CHHABRA TRADERS_Ship To,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-07-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
 CHHABRA TRADERS_Ship To,Dist.,D-Mart,The Derma Co.,2026-06-01,FY_26-27,MT,1.04,Medium,Copied from 2026-05 secondary split (nearest month with data)
 CHHABRA TRADERS_Ship To,Dist.,Lulu,The Derma Co.,2026-06-01,FY_26-27,MT,98.96,Medium,Copied from 2026-05 secondary split (nearest month with data)
 CHOUDHARY ENTERPRISES-MT-MP,Dist.,Vishal Mega Mart,Mamaearth,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
@@ -165,9 +164,6 @@ G.V Enterprises,Dist.,Lulu,The Derma Co.,2026-06-01,FY_26-27,MT,7.5292,Medium,Co
 G.V Enterprises,Dist.,Apollo,The Derma Co.,2026-08-01,FY_26-27,MT,5.2295,Medium,Copied from 2026-05 secondary split (nearest month with data)
 G.V Enterprises,Dist.,D-Mart,The Derma Co.,2026-08-01,FY_26-27,MT,87.2413,Medium,Copied from 2026-05 secondary split (nearest month with data)
 G.V Enterprises,Dist.,Lulu,The Derma Co.,2026-08-01,FY_26-27,MT,7.5292,Medium,Copied from 2026-05 secondary split (nearest month with data)
-Guardian Healthcare Services Pvt Ltd(DL),Dist.,Guardian,Aqualogica,2025-11-01,FY_25-26,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
-Guardian Healthcare Services Pvt Ltd(DL),Dist.,Guardian,Mamaearth,2025-11-01,FY_25-26,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
-Guardian Healthcare Services Pvt Ltd(DL),Dist.,Guardian,The Derma Co.,2025-11-01,FY_25-26,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
 JUST MARK-Dmart_ship to,Dist.,D-Mart,Mamaearth,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 JUST MARK-Dmart_ship to,Dist.,D-Mart,Mamaearth,2026-07-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 JUST MARK-Dmart_ship to,Dist.,D-Mart,Mamaearth,2026-08-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
@@ -201,7 +197,6 @@ MARK ENTERPRISE,Dist.,Apollo,Mamaearth,2026-07-01,FY_26-27,MT,100.0,Medium,Copie
 MARK ENTERPRISE,Dist.,Apollo,Mamaearth,2026-08-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 MARK ENTERPRISE,Dist.,Apollo,The Derma Co.,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 MARK ENTERPRISE,Dist.,Apollo,The Derma Co.,2026-08-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
-PLANET SERVICES-MT-DL,Dist.,<<FILL: chain unknown>>,The Derma Co.,2026-08-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
 PRAGATI SALES-Apollo,Dist.,Apollo,Mamaearth,2026-07-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 PRAGATI SALES-Apollo,Dist.,Apollo,Mamaearth,2026-08-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 PRAGATI SALES-D-MART,Dist.,D-Mart,Mamaearth,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
@@ -217,7 +212,6 @@ SAI SAACHI ASSOCIATES-MT-OR,Dist.,Vishal Mega Mart,The Derma Co.,2026-04-01,FY_2
 Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Aqualogica,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Aqualogica,2026-07-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Aqualogica,2026-08-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
-Sancus Networks Private Limited-RMT,Dist.,Sancus (RMT),BBLUNT,2026-08-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
 Sancus Networks Private Limited-RMT,Dist.,Medanta,Mamaearth,2026-06-01,FY_26-27,MT,0.47,Medium,Copied from 2026-05 secondary split (nearest month with data)
 Sancus Networks Private Limited-RMT,Dist.,More Retail,Mamaearth,2026-06-01,FY_26-27,MT,15.44,Medium,Copied from 2026-05 secondary split (nearest month with data)
 Sancus Networks Private Limited-RMT,Dist.,RMT-Sancus,Mamaearth,2026-06-01,FY_26-27,MT,80.95,Medium,Copied from 2026-05 secondary split (nearest month with data)
@@ -272,9 +266,7 @@ Sri Vijaya Durga Agencies_Mt,Dist.,Apollo,The Derma Co.,2026-08-01,FY_26-27,MT,1
 Sri Vijaya Durga Agencies_Mt,Dist.,D-Mart,The Derma Co.,2026-08-01,FY_26-27,MT,40.58,Medium,Copied from 2026-05 secondary split (nearest month with data)
 Sri Vijaya Durga Agencies_Mt,Dist.,Health & Glow,The Derma Co.,2026-08-01,FY_26-27,MT,5.57,Medium,Copied from 2026-05 secondary split (nearest month with data)
 Sri Vijaya Durga Agencies_Mt,Dist.,Reliance Retail,The Derma Co.,2026-08-01,FY_26-27,MT,40.91,Medium,Copied from 2026-05 secondary split (nearest month with data)
-SRIJAN ENTERPRISES-MT-JH,Dist.,<<FILL: chain unknown>>,Mamaearth,2026-08-01,FY_26-27,MT,100,REQUIRED,No secondary data for this ship-to in ANY month -- business input required
 TROY TRADEX,Dist.,Dmart,Mamaearth,2026-08-01,FY_26-27,MT,100.0,Medium,Copied from 2026-07 secondary split (nearest month with data)
-United Marketing_Mt,Dist.,Apollo,Mamaearth,2026-07-01,FY_26-27,MT,100,LOW,Name inference: ship-to name contains this chain -- CONFIRM before use
 United Marketing_Mt-Ship to,Dist.,Apollo,Mamaearth,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-05 secondary split (nearest month with data)
 VENKATESHWARA AGENCIES-TG,Dist.,Health & Glow,Dr. Sheth's,2026-06-01,FY_26-27,MT,100.0,Medium,Copied from 2026-04 secondary split (nearest month with data)
 VENKATESHWARA AGENCIES-TG,Dist.,Apollo,Aqualogica,2026-06-01,FY_26-27,MT,4.5395,Medium,Copied from 2026-05 secondary split (nearest month with data)
