@@ -1,5 +1,1 @@
 Ship To Name,Month,Brand,Article/EAN,Current Chain,Proposed Chain,Affinity %,Confidence,Primary NSV (Lakh),Evidence Basis,Recommended Action
-CHHABRA TRADERS_Ship To,Jul'26,Mamaearth,8904417312294.0,Unmapped Chain,Reliance Retail,86.29,MEDIUM,0.18,EAN 8904417312294.0 known sales are 86.29% to Reliance Retail (of 400.76 L known NSV elsewhere),REVIEW_REQUIRED
-Guardian Healthcare Services Pvt Ltd(DL),Nov'25,Mamaearth,8904417315660.0,Unmapped Chain,Apollo,89.71,MEDIUM,0.07,EAN 8904417315660.0 known sales are 89.71% to Apollo (of 215.46 L known NSV elsewhere),REVIEW_REQUIRED
-Guardian Healthcare Services Pvt Ltd(DL),Nov'25,The Derma Co,8906087775645.0,Unmapped Chain,DMart,86.2,MEDIUM,0.01,EAN 8906087775645.0 known sales are 86.2% to DMart (of 2594.8 L known NSV elsewhere),REVIEW_REQUIRED
-Guardian Healthcare Services Pvt Ltd(DL),Nov'25,The Derma Co,8906087775645.0,Unmapped Chain,DMart,86.2,MEDIUM,0.04,EAN 8906087775645.0 known sales are 86.2% to DMart (of 2594.8 L known NSV elsewhere),REVIEW_REQUIRED
