@@ -39,7 +39,15 @@ def _all_row(month):
     return {"Month": month, "Chain": "ALL", "Brand": "ALL", "Category": "ALL",
             "Gross Margin %": "0.52", "Trade Spend %": "0.08", "Visibility Spend": "0",
             "Scheme Spend": "0", "Other Spend": "0", "Contribution Margin %": "0.30",
-            "Remarks": "test fixture"}
+            "Remarks": "Approved: TEST-REF-001 2026-09-27"}
+
+
+def _default_row(month):
+    """Shaped like the real Apr/May'26 rows on main: an ALL/ALL/ALL row whose
+    Remarks carry no Finance approval reference."""
+    row = _all_row(month)
+    row["Remarks"] = "Default portfolio assumption - update with actuals when available"
+    return row
 
 
 def test_missing_months_reported_and_blocks(tmp_path, monkeypatch):
@@ -124,6 +132,48 @@ def test_missing_assumption_table_file_itself_blocks(tmp_path, monkeypatch):
     assert exit_code == 3
 
 
+def test_default_row_without_approval_blocks(tmp_path, monkeypatch, capsys):
+    """B4 (docs/COMPLETION_BLOCKER_PACK.md): a month whose only ALL/ALL/ALL row
+    is a default/placeholder assumption with no approval reference is NOT
+    covered -- the gate must say UNAPPROVED, separately from MISSING."""
+    assumption = tmp_path / "AssumptionTable.csv"
+    _write_assumption_table(assumption, [_default_row("Apr'26"), _all_row("May'26")])
+    primary_dir = tmp_path / "Primary_Article_Monthly"
+    _touch_monthly_files(primary_dir, ["primary_article_Apr_26.csv", "primary_article_May_26.csv"])
+    monkeypatch.setattr(cac, "ASSUMPTION_TABLE", assumption)
+    monkeypatch.setattr(cac, "MONTHLY_SOURCE_DIRS", [primary_dir])
+
+    exit_code = cac.main()
+    out = capsys.readouterr().out
+
+    assert exit_code == 3
+    assert "UNAPPROVED" in out and "Apr'26" in out
+    assert "May'26" not in out.split("UNAPPROVED", 1)[1].splitlines()[0]
+
+
+def test_month_status_separates_missing_unapproved_approved(tmp_path, monkeypatch):
+    assumption = tmp_path / "AssumptionTable.csv"
+    _write_assumption_table(assumption, [_default_row("Apr'26"), _all_row("May'26")])
+    monkeypatch.setattr(cac, "ASSUMPTION_TABLE", assumption)
+
+    status = cac.find_month_status()
+
+    assert status.get("Apr'26") == "UNAPPROVED"
+    assert status.get("May'26") == "APPROVED"
+    assert "Jun'26" not in status  # MISSING = no ALL/ALL/ALL row at all
+
+
+def test_approval_marker_needs_a_reference(tmp_path, monkeypatch):
+    """'Approved:' with nothing after it is not an approval reference."""
+    assumption = tmp_path / "AssumptionTable.csv"
+    row = _all_row("Apr'26")
+    row["Remarks"] = "Approved:"
+    _write_assumption_table(assumption, [row])
+    monkeypatch.setattr(cac, "ASSUMPTION_TABLE", assumption)
+
+    assert cac.find_month_status().get("Apr'26") == "UNAPPROVED"
+
+
 def test_real_repo_state_matches_documented_gap():
     """Confirms this script's real, unmocked verdict against the actual
     committed repo state matches the documented F21 finding: Jun/Jul/Aug'26
@@ -140,3 +190,14 @@ def test_real_repo_state_matches_documented_gap():
         f"Expected the documented F21 gap (Jun/Jul/Aug'26 missing); got {missing}. "
         "If Finance has since supplied these, update this test to match."
     )
+
+
+def test_real_repo_state_apr_may_are_unapproved_defaults():
+    """B4 finding (2026-09-27): the committed Apr/May'26 ALL/ALL/ALL rows are
+    'Default portfolio assumption' with no approval reference, so they must
+    not count as covered. When Finance confirms or replaces them with an
+    'Approved: <ref>' Remarks, update this test."""
+    status = cac.find_month_status()
+
+    assert status.get("Apr'26") == "UNAPPROVED", status
+    assert status.get("May'26") == "UNAPPROVED", status
