@@ -489,15 +489,28 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
       trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())));
     expect(velocityRows.length, 'Top Chains by Offtake table should have rows').toBeGreaterThan(0);
 
-    const dashUniverse = await page.evaluate(() => (window.DASH?.universe?.by_chain || []));
-    const knownStoreChain = dashUniverse.find(c => c.stores > 0);
-    expect(knownStoreChain, 'test premise: universe.by_chain needs at least one chain with real stores').toBeTruthy();
-
-    const matchedRow = velocityRows.find(([name]) => name === knownStoreChain.name);
-    if (matchedRow) {
+    // Stores = real POS stores (distinct offtake Site Code) selling in the
+    // FY's latest month, from offtake.pos_stores -- NOT universe.by_chain,
+    // which counts Primary SAP billing codes (PR #256: DMart showed 24 billing
+    // codes instead of 507 stores). Exact match, rendered en-IN, '*' suffix
+    // where part of the chain's offtake has no Site Code.
+    const pos = await page.evaluate(() => {
+      const o = window.DASH?.offtake || {};
+      const fyTags = o.fy_tags || [];
+      const fyR = fyTags[fyTags.length - 1] || 'fy26';
+      return (o.pos_stores && o.pos_stores[fyR]) || null;
+    });
+    expect(pos, 'test premise: offtake.pos_stores must exist for the latest FY').toBeTruthy();
+    const knownStoreChain = Object.entries(pos.by_chain).find(([, v]) => v.latest > 0);
+    expect(knownStoreChain, 'test premise: pos_stores needs at least one chain with real stores').toBeTruthy();
+    for (const [name, ps] of Object.entries(pos.by_chain)) {
+      const matchedRow = velocityRows.find(([n]) => n === name);
+      if (!matchedRow) continue;
       // Column order: Chain, Stores, Offtake (Cr), Growth %
-      expect(matchedRow[1], `${knownStoreChain.name}'s Stores column must be its real universe.by_chain count, not the old dead-field 0`)
-        .toBe(String(knownStoreChain.stores));
+      const expected = ps.latest == null ? '–'
+        : ps.latest.toLocaleString('en-IN') + (ps.no_site_pct > 0 ? '*' : '');
+      expect(matchedRow[1], `${name}'s Stores column must be its real POS store count (offtake.pos_stores), not SAP billing codes`)
+        .toBe(expected);
     }
     // No row may show a fabricated-looking negative/positive Growth % computed
     // from mismatched FY month coverage -- either a genuine like-for-like
