@@ -3404,6 +3404,16 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
                     })
         except (ValueError, KeyError):
             props = []
+        # A suggestion only belongs in the approval queue while its ship-to is
+        # still unmapped. The suggestion file lists each distributor's FULL
+        # NSV; once the cont% sheet or an approved override maps it, showing
+        # it as "awaiting approval" invites a blanket override of real splits
+        # (found 2026-09-27: all 10 rows were already mapped, 35% of their
+        # NSV would have been re-pointed). Keep only still-unmapped ship-tos.
+        _still_unmapped = {str(e.get("ship_to") or "").strip().lower() for e in ex}
+        _n_all = len(props)
+        props = [p for p in props if str(p.get("ship_to") or "").strip().lower() in _still_unmapped]
+        out["proposals_already_mapped_count"] = _n_all - len(props)
         if props:
             out["proposals"] = props
             out["proposals_nsv"] = r2(sum(p["nsv"] for p in props))
@@ -3411,7 +3421,8 @@ def mapping_health_block(df, fy_col="_FY", chain_col="_Chain", nsv_col="_NSV",
                 "PROPOSED ONLY — not applied. Source: data/unmapped_chains_bridge_suggested.csv. "
                 "Approving a distributor-to-chain mapping is a business decision with a named "
                 "owner; the build never infers one. Approve rows into the mapping master, "
-                "re-run the allocation, and this register shrinks on its own.")
+                "re-run the allocation, and this register shrinks on its own. NSV shown is the "
+                "distributor's full-period total, not only its unmapped rows.")
     return out
 
 # Status vocabulary for readiness_gate(). PASS/N/A are self-explanatory.
@@ -5483,9 +5494,58 @@ def _write_ean_affinity_proposal(proposal_rows, output_dir=None):
     return len(proposal_rows), "PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv"
 
 
+# Approval evidence an override row must carry before it can execute:
+# "Approved: <owner role / reference> <YYYY-MM-DD>". Same fail-closed idea as
+# the AssumptionTable gate -- a well-formed row alone is not an approval.
+OVERRIDE_APPROVAL = re.compile(r"\bApproved:\s*\S.*?\b\d{4}-\d{2}-\d{2}\b", re.IGNORECASE)
+
+
+def _load_unmapped_overrides(path=None):
+    """FM-19: owner-approved chain overrides from PrimaryAllocationOverride.csv,
+    as {(ship_to_lower, brand_lower, 'YYYY-MM'): chain}.
+
+    Scope decided by the mapping owner on 2026-09-27 (option A): an override
+    applies ONLY to a (Ship To, Brand, Month) key that the cont% sheet cannot
+    map at all (neither exact nor nearest month). It never re-points NSV the
+    sheet already splits. Only single-chain (100%) overrides are supported;
+    a split, a duplicate key, a missing column or a row without approval
+    evidence in Remarks stops the build instead of being guessed."""
+    if path is None:
+        path = (Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData"
+                / "Masters" / "PrimaryAllocationOverride.csv")
+    path = Path(path)
+    if not path.exists():
+        return {}
+    ov = pd.read_csv(path, dtype=str)
+    ov.columns = [str(c).strip() for c in ov.columns]
+    need = {"Month", "Ship To Name", "Chain", "Brand", "Override Cont%", "Remarks"}
+    if not need <= set(ov.columns):
+        raise SystemExit(f"{path.name} is missing column(s) {sorted(need - set(ov.columns))} (FM-19).")
+    ov = ov.dropna(how="all")
+    if ov.empty:
+        return {}
+    pct = pd.to_numeric(ov["Override Cont%"], errors="coerce")
+    if not (pct == 100).all():
+        raise SystemExit(f"{path.name}: only single-chain overrides (Override Cont% = 100) are "
+                         "supported; a split needs its own approved rule (FM-19).")
+    unapproved = ~ov["Remarks"].fillna("").astype(str).map(lambda r: bool(OVERRIDE_APPROVAL.search(r)))
+    if unapproved.any():
+        raise SystemExit(f"{path.name}: {int(unapproved.sum())} row(s) lack approval evidence in Remarks "
+                         "('Approved: <reference> <YYYY-MM-DD>') -- not executed (FM-19).")
+    st = ov["Ship To Name"].astype(str).str.strip().str.lower()
+    bl = ov["Brand"].astype(str).str.strip().str.lower()
+    pm = pd.to_datetime(ov["Month"], errors="coerce").dt.strftime("%Y-%m")
+    if pm.isna().any():
+        raise SystemExit(f"{path.name}: unparseable Month value(s) (FM-19).")
+    keys = list(zip(st, bl, pm))
+    if len(set(keys)) != len(keys):
+        raise SystemExit(f"{path.name}: duplicate (Ship To, Brand, Month) key (FM-19).")
+    return dict(zip(keys, ov["Chain"].astype(str).str.strip()))
+
+
 def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
                           offtake_brand_set=None, offtake_ean_set=None,
-                          output_dir=None):
+                          output_dir=None, override_csv=None):
     """Explode PO Type='Dist.' rows across chains by cont% and set _Chain on
     every row of `df` (Direct rows keep their own "Chain name for Dashboard").
     Returns (new_df, alloc_block) where alloc_block carries the full
@@ -5565,6 +5625,7 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     else:
         _key_eans = {}
 
+    overrides = _load_unmapped_overrides(override_csv)
     key_eff, key_tier = {}, {}
     for k in set(zip(dist["_st"], dist["_bl"], dist["_pm"])):
         st, bl, pm = k
@@ -5582,6 +5643,10 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
             if near is not None and abs(_pm_ord(near) - _pm_ord(pm)) <= 3:
                 key_eff[k], key_tier[k] = near, f"nearest {near}"
                 gov_tier = "Eligible_TAT"
+            elif k in overrides:
+                # FM-19: owner-approved chain for a key the sheet cannot map
+                key_eff[k], key_tier[k] = pm, "approved_override"
+                gov_tier = "Eligible_Override"
             else:
                 key_eff[k], key_tier[k] = None, "unmapped"
                 gov_tier = "Not_Eligible"
@@ -5614,7 +5679,14 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     dist["_pm_eff"] = [key_eff[k] for k in kseries]
     dist["_tier"] = [key_tier[k] for k in kseries]
 
-    merged = dist.merge(wdf.rename(columns={"_pm": "_pm_eff"}), on=["_st", "_bl", "_pm_eff"], how="left")
+    _ov_keys = sorted(k for k, t in key_tier.items() if t == "approved_override")
+    wmerge = wdf
+    if _ov_keys:
+        wmerge = pd.concat([wdf, pd.DataFrame({
+            "_st": [k[0] for k in _ov_keys], "_bl": [k[1] for k in _ov_keys],
+            "_pm": [k[2] for k in _ov_keys], "_frac": 1.0,
+            "_AllocChainRaw": [overrides[k] for k in _ov_keys]})], ignore_index=True)
+    merged = dist.merge(wmerge.rename(columns={"_pm": "_pm_eff"}), on=["_st", "_bl", "_pm_eff"], how="left")
     matched = merged["_frac"].notna()
     for c in _ALLOC_MEASURES:
         merged[c] = merged[c].astype("float64")   # Qty reads back int64; fractional split needs float
@@ -5709,6 +5781,9 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
         elif t.startswith("nearest"):
             row["eligibility_tier"] = "Eligible_TAT"
             row["eligibility_confidence_pct"] = 90.0
+        elif t == "approved_override":
+            row["eligibility_tier"] = "Eligible_Override"
+            row["eligibility_confidence_pct"] = 100.0
         else:  # unmapped
             row["eligibility_tier"] = "Not_Eligible"
             row["eligibility_confidence_pct"] = 100.0
@@ -5728,6 +5803,9 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
     cont_bad = {" | ".join(map(str, k)): v for k, v in (raw_sums or {}).items() if abs(v - 100) > 0.5}
     is_near = merged["_tier"].str.startswith("nearest")
     rows_nearest = int(is_near.sum())
+    is_ov = merged["_tier"] == "approved_override"
+    override_applied_rows = int(is_ov.sum())
+    override_applied_nsv = r2(float(merged.loc[is_ov, "_NSV"].sum()))
     nearest_nsv = r2(float(merged.loc[is_near, "_NSV"].sum()))
 
     # ---- June-26 fallback disclosure (additive governance; no value change) ----
@@ -5855,6 +5933,9 @@ def allocate_dist_primary(df, wdf, raw_sums, source_label=None,
         "unmapped_ship_to_names": _unmapped_shipto_names[:20],   # top-20 by name for QC
         "rows_nearest": rows_nearest,
         "nearest_nsv": nearest_nsv,
+        # FM-19: rows mapped by an owner-approved override (unmapped keys only)
+        "override_applied_rows": override_applied_rows,
+        "override_applied_nsv": override_applied_nsv,
         # TD-08: top-level convenience alias so QC panel and tests can reference directly
         "june_fallback_key_count": june_fallback_keys,   # integer count of ShipTo×Brand keys using nearest-month for June-26
         "missing_avg_tot_rows": int(orig["_AvgTot"].isna().sum()),
