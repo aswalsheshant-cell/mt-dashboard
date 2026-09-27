@@ -49,7 +49,7 @@ const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH ->
       const s = cm2Section();
       return { fy: fy || 'all', cm2: kpiVal(s, 'CM2 Value'), exp: kpiVal(s, 'Total P&L Expense'),
                has100: /100(\.0)?% of NSV/.test(s), banner: /No expense data loaded/.test(s),
-               partial: /Partial cost coverage/.test(s), text: s.slice(0, 1500),
+               partial: /Partial cost coverage/.test(s), text: s.slice(0, 4000),
                chart: !!cm2Chart(), pcts: pctCells() };
     };
     const out = { real: [], partial: [], committed: [] };
@@ -132,6 +132,12 @@ const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH ->
     check(`committed, FY=${s.fy}: partial-coverage note names Jul/Aug as partial months`,
           /Partial months:\s*July FY27, Aug FY27/.test(s.text), s.text.slice(0, 900));
     check(`committed, FY=${s.fy}: no "100% of NSV"`, !s.has100, s.text.slice(0, 400));
+    check(`committed, FY=${s.fy}: names the cost buckets not in CM2 yet`,
+          /Not in CM2 yet:/.test(s.text) && /distributor claims/.test(s.text) && /COGS and logistics/.test(s.text), s.text.slice(0, 1200));
+    if (s.fy !== 'FY26') {
+      check(`committed, FY=${s.fy}: channel scope line gives MT-channel CM2`,
+            /Channel scope FY27[\s\S]*MT-channel NSV only[\s\S]*CM2 is 94(\.0)?%/.test(s.text), s.text.slice(0, 1400));
+    }
     if (s.fy === 'FY27') {
       check('committed, FY=FY27: CM2 Value is a real figure', s.cm2 && s.cm2 !== '–', s.cm2);
       check('committed, FY=FY27: by-chain table is FY27 like-for-like (Reliance CM2% from by_chain_fy)',

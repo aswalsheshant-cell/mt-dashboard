@@ -2332,6 +2332,8 @@ function buildPnl(){
      (${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows in <code>PL_Expense_Input.csv</code>).
      Any cost head not listed here is not deducted, so CM2 is overstated by that amount until it is loaded.
      ${cm2D.qc&&(cm2D.qc.partial_months||[]).length?`<br><b>Partial months:</b> ${cm2D.qc.partial_months.join(', ')} &#8212; the expense register for these months is incomplete, so their CM2 is overstated further.`:''}
+     ${(cm2D.not_loaded||[]).length?`<br><b>Not in CM2 yet:</b> ${cm2D.not_loaded.map(b=>`${b.bucket} (${b.why})`).join('; ')}.`:''}
+     ${Object.entries(cm2D.scope_fy||{}).filter(([f])=>!cm2ScopedOk||f===globalFy).filter(([,v])=>v.non_mt_nsv>0).map(([f,v])=>`<br><b>Channel scope ${fyDispLabel(f)}:</b> NSV includes non-MT sales of ${crc(v.non_mt_nsv)} (${Object.entries(v.nsv_by_channel).filter(([c])=>c!=='MT').map(([c,x])=>`${c} ${crc(x)}`).join(', ')}) with no expense rows. On MT-channel NSV only (${crc(v.mt_nsv)}), CM2 is <b>${v.cm2_pct_mt!=null?v.cm2_pct_mt+'%':'&#8211;'}</b>. Which base is the headline is pending CB-01.`).join('')}
      ${cm2Avail?'':`<br><b>No expense rows for ${cm2ScopedOk?fyDispLabel(globalFy):'this selection'}</b> &#8212; CM2 is not available for it.`}
    </div>`}
    <div class="kpis">

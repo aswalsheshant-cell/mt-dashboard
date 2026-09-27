@@ -3024,6 +3024,29 @@ def primary_offtake_gap_block(primary, offtake, fyx_primary):
                      "processes not evidenced here.")}
 
 
+# Cost buckets CM2 does NOT deduct yet, and why (named on the P&L tab so a
+# partial CM2 is never read as full Finance CM2). Each entry is dropped from
+# the "not loaded" list automatically once rows with a matching Expense Head
+# appear in PL_Expense_Input.csv. Sources: config/data_source_registry.yml.
+CM2_NOT_YET_LOADED = [
+    {"bucket": "MT Indirect / distributor claims", "heads": ["distributor claim", "indirect claim"],
+     "why": "Q1 FY27 claims (Rs 449.77 L, registry cm2_claims / PR #252) are quarter-level; not split into months without real monthly data or a Finance-approved method"},
+    {"bucket": "Field force (BA, merchandiser, supervisor)", "heads": ["ba cost", "field force", "merchandiser", "supervisor"],
+     "why": "MT_Spend.xlsx not supplied; Q1 CTC figures are secondary evidence only (registry cm2_ba_supervisor_visibility_rental)"},
+    {"bucket": "COGS and logistics", "heads": ["cogs", "logistics", "freight"],
+     "why": "rate card not Finance-approved (BL-16)"},
+    {"bucket": "Provisions", "heads": ["provision"],
+     "why": "not loaded; a provision and its later DN are one event (FM-14), so never add both"},
+]
+
+
+def cm2_not_loaded(loaded_heads):
+    """CM2_NOT_YET_LOADED buckets with no matching Expense Head loaded yet."""
+    lh = [(h or "").lower() for h in loaded_heads]
+    return [{"bucket": b["bucket"], "why": b["why"]} for b in CM2_NOT_YET_LOADED
+            if not any(k in h for k in b["heads"] for h in lh)]
+
+
 def cm2_block(df, expense_rows):
     """Chain/Brand/Category/Expense-Head CM2 rollups + monthly series, from
     the row-level article-level primary detail `df` (already carries _NSV,
@@ -3119,6 +3142,28 @@ def cm2_block(df, expense_rows):
     # ---- NSV base: same TOT%-valid, FY26/FY27-only population as tot_block ----
     base = df[fy_ge(df["_FY"]) & (df["_method"] != "invalid")]
 
+    # ---- Channel scope per FY. The NSV base is all channels (MT + EB2B + SIS);
+    # the loaded expenses are MT Direct claims. Report both so the P&L tab can
+    # show CM2 on MT-channel NSV beside the all-channel figure. Which one is
+    # the headline is CB-01's decision, not this function's.
+    scope_fy = {}
+    if "_Chan" in base.columns:
+        chan_fy = base.groupby(["_FY", "_Chan"])["_NSV"].sum()
+        mt_chains = set(base.loc[base["_Chan"] == "MT", "_Chain"].dropna())
+        for fy_tag in sorted({e["fy"] for e in parsed}):
+            by_ch = {ch: r2(v) for (f, ch), v in chan_fy.items() if f == fy_tag}
+            mt_nsv = float(chan_fy.get((fy_tag, "MT"), 0.0))
+            exp_all = sum(e["amount"] for e in parsed if e["fy"] == fy_tag)
+            exp_mt = sum(e["amount"] for e in parsed if e["fy"] == fy_tag and e["chain"] in mt_chains)
+            scope_fy[fy_tag] = {
+                "nsv_by_channel": by_ch,
+                "non_mt_nsv": r2(sum(v for ch, v in by_ch.items() if ch != "MT")),
+                "mt_nsv": r2(mt_nsv), "expense": r2(exp_all), "expense_on_mt_chains": r2(exp_mt),
+                "cm2_pct_mt": r2((mt_nsv - exp_mt) / mt_nsv * 100, 1) if mt_nsv else None,
+            }
+
+    not_loaded = cm2_not_loaded({e["head"] for e in parsed})
+
     def rollup(dim_col, expense_dim_key, frame=None, exps=None):
         frame = base if frame is None else frame
         exps = parsed if exps is None else exps
@@ -3202,7 +3247,8 @@ def cm2_block(df, expense_rows):
         "expense_pct_of_nsv": r2(total_expense / total_nsv * 100, 1) if total_nsv else None,
         "cm2_value": r2(cm2_value),
         "cm2_pct": r2(cm2_value / total_nsv * 100, 1) if total_nsv else None,
-        "by_chain": by_chain, "by_chain_fy": by_chain_fy, "by_brand": by_brand, "by_category": by_category,
+        "by_chain": by_chain, "by_chain_fy": by_chain_fy, "scope_fy": scope_fy, "not_loaded": not_loaded,
+        "by_brand": by_brand, "by_category": by_category,
         "by_expense_head": by_expense_head,
         "monthly": monthly,
         "has_expense_data": len(parsed) > 0,
