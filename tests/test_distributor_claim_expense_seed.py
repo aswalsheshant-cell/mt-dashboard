@@ -49,7 +49,10 @@ def test_zero_heads_removed_and_negative_credit_rows_preserved():
 
     assert all(v != 0 for v in values)
     assert any(v < 0 for v in values)
-    assert sum(v < 0 for v in values) == 3
+    # 4 negative expense-head cells in the source (Frankross, Sastasundar, Spar,
+    # Trilife Rate_Diff_Lakh). Only 3 chain *totals* are negative: Frankross's
+    # negative rate difference is netted inside a positive chain total.
+    assert sum(v < 0 for v in values) == 4
 
 
 def test_generator_reproduces_committed_seed():
@@ -62,7 +65,7 @@ def test_generator_reproduces_committed_seed():
     assert report["source_total_lakh"] == 449.7696
     assert report["written_total_lakh"] == 449.7694
     assert report["rounding_variance_lakh"] == -0.0002
-    assert report["negative_rows_preserved"] == 3
+    assert report["negative_rows_preserved"] == 4
 
 
 def test_distributor_claim_seed_is_not_silently_mixed_into_monthly_pl_input():
