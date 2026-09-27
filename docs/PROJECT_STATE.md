@@ -82,8 +82,13 @@ Open PRs now: #119 (gated on #120) and #229 (HOLD).
 `tests/powerbi/cm2_availability_cases.dax` Case 1 PASS (RowsLoaded/ExpenseLoaded/CM2/CM2Pct
 BLANK, NSV a real number); `tests/powerbi/pq39_fy_parser_cases.pq` `Failures` = 0 rows.
 Reported by the MT Channel Analyst Lead in the session; no screenshot or copied output yet.
-B5 closes only when that evidence is attached (pack B5 exit condition). CM2 Cases 2-4
-still wait for B3 (#229) data. Open: B1, B2, B3, B4, B6, and B5 evidence.
+B5 closes only when that evidence is attached (pack B5 exit condition). The evidence must
+be from that `6b49e3a` run: #229 (merged later, `3aa6895`) loaded real rows into
+`PL_Expense_Input.csv`, so on today's `main` Case 1 no longer applies (RowsLoaded > 0 is the
+expected result now, not a failure). The FY parser file is unchanged since `6b49e3a`. With
+#229 data on `main`, CM2 Cases 2-6 can now be run (follow-up, not part of the B5 exit
+condition). Open: B1, B2, B3 (partial CM2 live since #229; closure not yet decided), B4, B6,
+and B5 evidence.
 
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,
@@ -340,7 +345,7 @@ Certification blockers -- changes since 2026-09-25:
 
 Open, owned elsewhere:
 - **#229** MT Direct DN claims -- HOLD: code ready; data/business not (Nykaa/FSN, Tnsi, Jul/Aug completeness, MT_Spend, indirect claims, COGS/logistics).
-- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Case 1 now, 2-8 after #229 data); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows). **Case 1 and FY parser PASS reported 2026-09-27; evidence pending (B5).**
+- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Case 1 now, 2-8 after #229 data); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows). **Case 1 and FY parser PASS reported 2026-09-27 on `6b49e3a` (pre-#229); evidence pending (B5). Cases 2-6 now runnable on `main`.**
 - **Promo stack** (PQ 46 / DAX 15): excluded from QuickSetup -- reads tables no query builds and a one-month relative path; needs its own fix (owner decision).
 - **Not-shown metrics** (Stock days, OSA/OOS, Promo ROI): need a stock-on-hand feed, a store audit at >=60% coverage for the reporting months, and promo spend per promo -- business inputs.
 - **Three browser tests** (`test_sprint8_compliance_inventory.js`, `smoke_dashboard.js`, `test_smoke_dashboard_governed.js`) expect servers on ports 8000/8080 instead of `SWEEP_PORT`; they pass with those servers running.
