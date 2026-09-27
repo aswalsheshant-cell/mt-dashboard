@@ -483,7 +483,29 @@ datasets:
     downstream_outputs: ["dashboard/index.html Demand & S&OP Planning > Promotional Impact sub-view"]
     last_validated: "2026-09-13"
     modification_allowed: false
-    notes: "3,694 promo lines, Apr-Aug'26 (5 months), avg consumer depth 31.6%, with by_chain/by_brand/by_category/monthly/mom_trend breakdowns already in production. No FY25/FY26 promo history (consistent with the rest of the FY27-only article-level watch-folder sources) -- registered as a known scope boundary, not a defect. This domain did not surface a gap this pass; deeper Trade Spend / COGS auditing beyond BL-15/BL-16's existing findings was not attempted this pass (time-boxed) -- see docs/BUSINESS_LOGIC_REGISTRY.md BL-16 for what was checked there."
+    notes: "3,694 promo lines, Apr-Aug'26 (5 months), avg consumer depth 31.6%, with by_chain/by_brand/by_category/monthly/mom_trend breakdowns already in production. No FY25/FY26 promo history (consistent with the rest of the FY27-only article-level watch-folder sources) -- registered as a known scope boundary, not a defect. Deeper Trade Spend / COGS auditing beyond BL-15/BL-16's existing findings was not attempted in the 2026-09-13 pass (time-boxed) -- see docs/BUSINESS_LOGIC_REGISTRY.md BL-16. 2026-09-27 data-contract clarification: AVAILABLE applies to offer depth/intensity only (see available_fields); promo spend, baseline, uplift and ROI have NO source here (see not_available_fields) -- older docs that called this a 'trade-spend calendar' were wrong and were corrected."
+    # Data contract (2026-09-27). Column names as read by scripts/batch_load_promos.py
+    # and promo_block(). Nothing in not_available_fields may be shown as a number,
+    # entered by hand into the promo file, or defaulted to 0.
+    contract_status: PARTIAL
+    grain: "Promo line = Chain x Brand x offer, per month (article/EAN not read by the loaders)"
+    business_date: "Month column, else the month in the filename. Period/To cells are NOT used: Excel swapped day/month on entry in at least one file (July Period reads Jan-07)."
+    available_fields:
+      - "Chain Name -> canonical chain"
+      - "Brand -> canonical brand"
+      - "Category"
+      - "Month (or filename month)"
+      - "Offer to consumer (free text) + MRP -> discount depth % (parse_offer_depth); unparseable offers stay blank, not 0"
+    not_available_fields:
+      - "Promo spend (trade spend, visibility/display spend, other promo investment) -- needs a governed, Finance-approved spend source"
+      - "Funding source and approval status per promo event"
+      - "Promo event ID and exact start/end dates (reliable)"
+      - "Regular vs promo selling price per article"
+      - "Baseline sales (expected sales without the promo)"
+      - "Incremental sales / uplift %"
+      - "Incremental contribution"
+      - "Promo ROI (revenue-based or contribution-based)"
+    derived_only: "Uplift and ROI are OUTPUTS, never source columns: uplift = actual offtake vs an approved baseline; ROI = incremental benefit vs governed spend. See docs/METRIC_REGISTRY.md 'Promo measurement contract'."
 
   fy25_secondary_chain_brand_detail:
     business_name: "FY25 Distributor Secondary, chain+brand grain (finer than the currently-published national monthly total)"

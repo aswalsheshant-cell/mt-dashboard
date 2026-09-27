@@ -122,6 +122,50 @@ for either HTML or Power BI.
 | Forecast QC (`QC Tie-Out`, `QC Mapping Coverage %`, `QC SO Coverage %`, `QC Unmapped SO Stores`) | `08_ForecastQC_Measures.dax`, PageLayouts.md Page 5 | `targets_block()` (the real forecast computation) produces achievement/run-rate/DERIVED zone-chain splits only — no Sales-Person-to-Store ownership join, no coverage counters, anywhere in `build_dashboard_data.py`. `Store_SO_Mapping.csv` is a real, registered file (`config/data_source_registry.yml`), but nothing currently joins it against the forecast for QC purposes | **D — source data exists (`Store_SO_Mapping.csv`), the transformation/join does not** (different from Nielsen/TDP: this one doesn't need a new source, it needs new Python logic — out of scope for this phase) |
 | Promo spend / uplift / ROI | `15_Promo_Measures.dax` | `promo_block()` computes depth/intensity/correlation only; `index.html`'s own code comment records that a prior version's fabricated 4-campaign spend/uplift/ROI numbers were removed | **C — metric definition exists, source does not** |
 
+## Promo measurement contract (2026-09-27) — defined, NOT computed
+
+**Why this section exists.** Older docs described Promo Master as a
+"trade-spend calendar", while this registry records promo spend/uplift/ROI as
+a Known Source Gap (row above). Both cannot be true. They were checked against
+the loaders (`scripts/batch_load_promos.py`, `promo_block()`): the promo source
+carries Chain, Brand, Category, Month and a free-text offer (+ MRP) — **no
+spend, no baseline**. The stale descriptions were corrected, and the source
+contract is now recorded in `config/data_source_registry.yml` →
+`promotions_offtake_correlation` (`contract_status: PARTIAL`,
+`available_fields` / `not_available_fields`).
+
+These six measures are **defined here so nobody invents a different formula
+later**. None is computed anywhere today, and none may be shown as a number,
+typed into the promo file by hand, or defaulted to 0 until its inputs exist.
+They are deliberately kept out of the main table above (that table lists only
+measures that are computed today).
+
+| Measure_ID | Formula (when inputs exist) | Grain | Inputs needed | Owner / approval | Missing-value behaviour | Status |
+|---|---|---|---|---|---|---|
+| `PROMO_SPEND` | SUM(trade spend + visibility/display spend + other promo investment) per promo event | Promo event x Chain x Brand (x Article where given) x Month | A governed promo spend source, registered first (CLAUDE.md "New data source checklist") | Finance | Blank / "Not available" — never 0 | NOT_AVAILABLE — no source |
+| `PROMO_BASELINE` | Expected offtake without the promo, by one documented method, in this order: (A) matched control stores/SKUs → (B) same SKU x Chain comparable non-promo periods, seasonality-adjusted → (C) same SKU x Chain non-promo average → (D) Brand x Chain non-promo average → else NO_BASELINE. Every row carries `Baseline_Method` and `Baseline_Confidence` (HIGH / MEDIUM / LOW / NOT_COMPUTABLE) | Promo event x Chain x SKU x period | Promo event dates (reliable), non-promo history, store/SKU identity | MT Analytics method, MT Leadership sign-off | NO_BASELINE stays blank, never 0 | NOT_AVAILABLE — method not approved, event dates not reliable |
+| `PROMO_INCREMENTAL_SALES` | Actual promo-period **Offtake** − `PROMO_BASELINE` (same measure on both sides; never Offtake vs Primary) | as baseline | `OFFTAKE_NSV` + `PROMO_BASELINE` | as baseline | Blank when baseline is missing | NOT_AVAILABLE |
+| `PROMO_UPLIFT_PCT` | `PROMO_INCREMENTAL_SALES / PROMO_BASELINE x 100`. **Not** "promo month − previous month" | as baseline | as above | as baseline | Blank when baseline is missing or 0 | NOT_AVAILABLE |
+| `PROMO_ROI_REVENUE` | `(Incremental revenue − PROMO_SPEND) / PROMO_SPEND x 100`, labelled "Revenue-based Promo ROI", never "profit ROI" | Promo event (rolled up by Chain/Brand/Mechanic) | `PROMO_SPEND` + `PROMO_INCREMENTAL_SALES` | Finance | Blank when spend OR baseline is missing; LOW/NOT_COMPUTABLE baselines never feed a leadership ROI | NOT_AVAILABLE |
+| `PROMO_ROI_CONTRIBUTION` | `(Incremental units x contribution per unit − PROMO_SPEND) / PROMO_SPEND x 100` | as above | the above + a Finance-approved contribution basis (see `CM2` / BL-16, not approved) | Finance | Blank until the cost basis is certified; PROVISIONAL at best until then | NOT_AVAILABLE |
+
+**What the dashboard may show today:** `PROMO_INTENSITY` (count, average
+depth) and the promo depth vs sell-through correlation, labelled as
+association only (it already is: "Correlation, not causation" on the
+Promotional Impact card).
+
+**Known limitation of today's correlation (for a later, separate PR):**
+`computePromoSellThroughCorrelation()` defines sell-through as
+Offtake / Primary. That ratio mixes two different measures, so it moves with
+the Primary–Offtake gap (pipeline fill, timing) as well as with promotions. A
+later change should either move to an Offtake-only basis or say this on the
+card, and could add Spearman rho and the sample size beside Pearson r. Not
+changed here — this section changes no calculation.
+
+**Power BI:** `15_Promo_Measures.dax` still defines spend/uplift/ROI measures
+(classified POWER_BI_ONLY above). They have no real input and must stay
+unused until the inputs in this table exist.
+
 ## Cross-references
 
 - `config/data_source_registry.yml` — dataset-level lineage (source path, grain, date

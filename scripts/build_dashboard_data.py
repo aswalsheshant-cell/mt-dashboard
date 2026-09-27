@@ -9,7 +9,10 @@ Sources (Honasa / Mamaearth Modern Trade, FY24-25 & FY25-26):
   - Primary FY-2024-26.xlsx            -> row-level primary sell-in (NSV, MRP)
   - Chain Offtake Master ... .xlsx     -> chain-wise & zone-wise sell-out pivots
   - Universe MT.xlsx                   -> store universe (distribution footprint)
-  - Promo Master -MT.xlsx              -> promo / trade-spend calendar
+  - Promo Master -MT.xlsx              -> promo offer calendar (chain, brand, offer
+                                          depth). Carries NO promo spend -- see
+                                          config/data_source_registry.yml
+                                          promotions_offtake_correlation.
 
 All monetary values in the sources are in INR Lakh. The dashboard presents
 them in INR Crore (Lakh / 100) wherever the magnitude warrants it; the raw

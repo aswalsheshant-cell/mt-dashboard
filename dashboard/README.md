@@ -321,7 +321,7 @@ Built from the Honasa MT working files (FY24-26), kept in Google Drive (not comm
 - **Primary FY-2024-26.xlsx** — row-level primary sell-in (NSV, MRP, chain, brand, zone, channel)
 - **Chain Offtake Master File State Wise FY 24-26.xlsx** — chain-wise & zone/state offtake pivots
 - **Universe MT.xlsx** — MT store universe (distribution footprint)
-- **Promo Master -MT.xlsx** — promo / trade-spend calendar
+- **Promo Master -MT.xlsx** — promo offer calendar (chain, brand, offer depth). It does **not** carry promo spend, so promo uplift and ROI are not shown (see `docs/METRIC_REGISTRY.md` → Promo measurement contract)
 
 All monetary values are **INR Lakh** in the data and displayed as **INR Crore** (Cr = Lakh / 100)
 where labelled.
