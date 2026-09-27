@@ -21,4 +21,15 @@ MONTHLY REFRESH PROCEDURE:
   3. Drop new CSV files here (replace existing for same period, append for new period)
   4. In Power BI Desktop: Home → Refresh
 
-PENDING: North distributor registers (Q1 FY27) — once received, re-run step 1-4.
+JUL-AUG 2026 (added 2026-09-27):
+  secondary_sales_{distributor,chain,brand}_Jul_Aug_FY27.csv are built from the monthly
+  Distributor_Chain_Brand_Article_Billing_<Month>_2026.xlsx workbooks:
+    python scripts/build_secondary_register.py --src <folder with those xlsx files>
+  Month = Invoice Date. Date repairs, late-reported invoices, GST-basis flags and missing
+  registers are listed in SecondarySales_Monthly_TOT_Analysis/06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv.
+  For Sep'26 onward: add the month name to MONTHS/COVERED in that script, then re-run.
+
+DO NOT USE the 2026-08 rows of secondary_sales_tot_hierarchy_Apr_Aug_2026.csv as distributor
+secondary: they are ship-to billing (Avenue Supermarts DCs, Apollo Healthco branches), not sell-out.
+
+PENDING: North distributor registers (Q1 FY27, Jul'26, Aug'26) — once received, re-run.
