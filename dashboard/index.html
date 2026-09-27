@@ -3220,7 +3220,10 @@ function buildComparison(){
         const _canon=fp.months_canon||[];
         const _pLbl=_canon.length?_canon[0]+'–'+_canon[_canon.length-1]:fp.months_covered.join('–');
         source=`article-wise primary (${fyTag()} YTD: ${fp.months_covered.join(' & ')}); ${_prevFY} same-period baseline from article detail (${_covPct}% coverage)`;
-        rows=arr27.filter(x=>x.nsv>0).map(x=>{
+        // Keep every chain with real non-zero NSV, including net-negative ones
+        // (returns > billing): dropping them overstated the Total card vs the
+        // governed FY total (FY27: Rs 222.44 Cr shown vs Rs 222.40 Cr real).
+        rows=arr27.filter(x=>x.nsv!=null&&x.nsv!==0).map(x=>{
           const _a=(_prevMap[x.name]??null);
           return {name:x.name,a:_a,b:x.nsv,yoy:(_a!=null&&_a>0)?Math.round((x.nsv/_a-1)*1000)/10:null};
         });
@@ -3238,7 +3241,7 @@ function buildComparison(){
     } else {
       source='Primary (chain-level, secondary-allocated for Distributors)';
       const arr=cmpDim==='Chain'?D.primary.by_chain:D.primary.by_brand;
-      rows=arr.filter(x=>(x.fy26||0)>0||(x.fy25||0)>0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
+      rows=arr.filter(x=>(x.fy26||0)!==0||(x.fy25||0)!==0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
       yrPair=[fyDispLabel('FY25'),fyDispLabel('FY26')];
     }
   } else {
@@ -3258,11 +3261,11 @@ function buildComparison(){
        YoY uses only the ${sharedMonths.size} shared month(s) (same-period, like-for-like) instead of full-year totals.</p>`;
   }
   rows.sort((a,b)=>(b.b||0)-(a.b||0));
-  const tot=rows.reduce((s2,r)=>s2+(r.b||0),0)||1;
+  const tot=rows.reduce((s2,r)=>s2+(r.b||0),0);
   const top=rows.slice(0,15);
   const tableRows=top.map(r=>`<tr><td>${drillLink(cmpDim,r.name)}</td><td>${r.a!=null?crc(r.a):'–'}</td><td>${crc(r.b)}</td>
     <td>${r.yoy!=null?`<span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span>`:'–'}</td>
-    <td>${(r.b/tot*100).toFixed(1)}%</td></tr>`).join('');
+    <td>${tot?(r.b/tot*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
   const partialNote=((fyUnsupported()&&FPX(fyTag()))?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
      (${(FPX(fyTag())||{}).months_covered?.join(', ')} only) — YoY uses the same ${(FPX(fyTag())||{}).months_covered?.length||3} months
      from ${PREAGG_FYS[PREAGG_FYS.length-1]||'FY26'} as baseline. Chains with no prior-year data show '–'.</p>`:'')+articlePartialNote;
