@@ -1,0 +1,372 @@
+{
+  "review_date": "2026-09-27",
+  "repository": "aswalsheshant-cell/mt-dashboard",
+  "repository_commit": "10044f142ff48d1bc663526cc696416e3849567d",
+  "scope": "Read-only source structure, role/frequency/component inventory and selected communication conditions. Not a re-certification of all rates or payouts.",
+  "slab_rows": 85,
+  "designation_count": 13,
+  "roles": {
+    "Analyst": {
+      "group": "Analyst",
+      "rows": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "Primary Sales Overall"
+        ],
+        [
+          "Quarterly",
+          "Primary Sales - Emerging brands"
+        ]
+      ]
+    },
+    "Asst RKAM": {
+      "group": "RKAM",
+      "rows": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "Primary Sales Overall"
+        ],
+        [
+          "Quarterly",
+          "Primary Sales - Emerging brands"
+        ],
+        [
+          "Annual",
+          "Primary Sales Overall"
+        ],
+        [
+          "Annual",
+          "Primary Sales - Emerging brands"
+        ]
+      ]
+    },
+    "RKAM": {
+      "group": "RKAM",
+      "rows": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "Primary Sales Overall"
+        ],
+        [
+          "Quarterly",
+          "Primary Sales - Emerging brands"
+        ],
+        [
+          "Annual",
+          "Primary Sales Overall"
+        ],
+        [
+          "Annual",
+          "Primary Sales - Emerging brands"
+        ]
+      ]
+    },
+    "Sr RKAM": {
+      "group": "RKAM",
+      "rows": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "Primary Sales Overall"
+        ],
+        [
+          "Quarterly",
+          "Primary Sales - Emerging brands"
+        ],
+        [
+          "Annual",
+          "Primary Sales Overall"
+        ],
+        [
+          "Annual",
+          "Primary Sales - Emerging brands"
+        ]
+      ]
+    },
+    "Asst NKAM": {
+      "group": "NKAM",
+      "rows": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "Primary Sales Overall"
+        ],
+        [
+          "Quarterly",
+          "Primary Sales - Emerging brands"
+        ],
+        [
+          "Annual",
+          "Primary Sales Overall"
+        ],
+        [
+          "Annual",
+          "Primary Sales - Emerging brands"
+        ]
+      ]
+    },
+    "NKAM": {
+      "group": "NKAM",
+      "rows": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "Primary Sales Overall"
+        ],
+        [
+          "Quarterly",
+          "Primary Sales - Emerging brands"
+        ],
+        [
+          "Annual",
+          "Primary Sales Overall"
+        ],
+        [
+          "Annual",
+          "Primary Sales - Emerging brands"
+        ]
+      ]
+    },
+    "Sr NKAM": {
+      "group": "NKAM",
+      "rows": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "Primary Sales Overall"
+        ],
+        [
+          "Quarterly",
+          "Primary Sales - Emerging brands"
+        ],
+        [
+          "Annual",
+          "Primary Sales Overall"
+        ],
+        [
+          "Annual",
+          "Primary Sales - Emerging brands"
+        ]
+      ]
+    },
+    "BDO": {
+      "group": "BDO_BDE",
+      "rows": [
+        56,
+        57,
+        58,
+        59,
+        60
+      ],
+      "components": [
+        [
+          "Monthly",
+          "Primary Sales"
+        ],
+        [
+          "Quarterly",
+          "Any 1 Focus Pack WoA L3M avg"
+        ]
+      ]
+    },
+    "BDE": {
+      "group": "BDO_BDE",
+      "rows": [
+        61,
+        62,
+        63,
+        64,
+        65
+      ],
+      "components": [
+        [
+          "Monthly",
+          "Primary Sales"
+        ],
+        [
+          "Quarterly",
+          "Any 1 Focus Pack WoA L3M avg"
+        ]
+      ]
+    },
+    "Sr BDE": {
+      "group": "BDO_BDE",
+      "rows": [
+        66,
+        67,
+        68,
+        69,
+        70
+      ],
+      "components": [
+        [
+          "Monthly",
+          "Primary Sales"
+        ],
+        [
+          "Quarterly",
+          "Any 1 Focus Pack WoA L3M avg"
+        ]
+      ]
+    },
+    "Sr National BA Ops": {
+      "group": "BA_Ops",
+      "rows": [
+        71,
+        72,
+        73,
+        74,
+        75,
+        76
+      ],
+      "components": [
+        [
+          "Quarterly",
+          "MT manned stores offtake target L3M avg"
+        ],
+        [
+          "Quarterly",
+          "MT - Any 1 Focus Pack WoA L3M avg"
+        ],
+        [
+          "Quarterly",
+          "MT - BA & Promoter attrition L3M absolute"
+        ]
+      ]
+    },
+    "BA Lead - Sr Exec": {
+      "group": "BA_Leads",
+      "rows": [
+        77,
+        78,
+        79,
+        80,
+        81,
+        82
+      ],
+      "components": [
+        [
+          "Monthly",
+          "GT Secondary target - LM"
+        ],
+        [
+          "Monthly",
+          "MT - Outlets above 2 lakhs MRP L3M avg"
+        ],
+        [
+          "Monthly",
+          "MT - BA Attrition LM absolute"
+        ]
+      ]
+    },
+    "BA Lead - Asst Mgr": {
+      "group": "BA_Leads",
+      "rows": [
+        83,
+        84,
+        85,
+        86,
+        87,
+        88
+      ],
+      "components": [
+        [
+          "Monthly",
+          "GT Secondary target - LM"
+        ],
+        [
+          "Monthly",
+          "MT - Outlets above 2 lakhs MRP L3M avg"
+        ],
+        [
+          "Monthly",
+          "MT - BA Attrition LM absolute"
+        ]
+      ]
+    }
+  },
+  "local_sources": [
+    {
+      "filename": "INCENTIVE SLAB.xlsx",
+      "sha256": "f394cd4ace86aae9218795b8dcaa3b2a876db53c3b0c80265ab96cf5b18b6d0e"
+    },
+    {
+      "filename": "MT Team Incentive Structure FY2026-27.xlsx",
+      "sha256": "ca466ceb8d3ce99b2f879f34a9ad77683a0781c7bc567afe2bdc3512f4cf1516"
+    },
+    {
+      "filename": "MT Team incentive structure - FY 26-27.eml",
+      "sha256": "89fa99c4c3dafd9fe12286d45fc2549d9ccb552244573440eab7b21a54d38c66"
+    },
+    {
+      "filename": "MT Team incentive structure - FY 26-27 (1).eml",
+      "sha256": "9732aa72ddabd456e43eef62ed5c2b708410b4c2f2c643952255b21038800f21"
+    },
+    {
+      "filename": "MT Team incentive structure - FY 26-27 (2).eml",
+      "sha256": "58ececba55e2402f6fdabfb1cf72391fe95f1a0613ba3e31c4a85d535d3332e8"
+    }
+  ]
+}

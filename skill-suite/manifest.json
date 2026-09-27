@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.3.0",
+  "suite_version": "1.4.0",
   "description": "Modern Trade analytics and professional capability skill suite. Canonical source; installed copies are generated artifacts.",
   "targets": {
     "project-codex": ".agents/skills",
@@ -176,6 +176,19 @@
         "change-verification",
         "steward",
         "sales-data-reconciliation"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "mt-designation-incentives",
+      "version": "1.0.0",
+      "source": "skills/mt-designation-incentives",
+      "dependencies": [],
+      "handoffs": [
+        "sales-data-reconciliation",
+        "business-ai-automation",
+        "change-verification",
+        "agent-skill-governance"
       ],
       "sha256": {}
     }
