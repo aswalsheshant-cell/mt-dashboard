@@ -104,7 +104,8 @@ jobs:
               # (the rows must add up to Primary). Marker comment in buildChannelDynamics.
               "Fix 1: Unmapped Chain visible": "Unmapped Chain stays visible",
               "Fix 2: FY Fallback Logic": "fallbackFy",
-              "Fix 3: Real Store Counts (universe.by_chain)": "_uniStores[name]",
+              # Stores column = real POS stores (offtake Site Code), not the 426 SAP billing codes (PR #256).
+              "Fix 3: Real Store Counts (offtake.pos_stores)": "_posFy.by_chain[name]",
               "Fix 4: Canvas Creation": "createElement('canvas')",
               "Fix 5: Alert Controller": "AlertController.buildAlerts",
               # A failed alerts_feed.json load must not read as "all metrics healthy".

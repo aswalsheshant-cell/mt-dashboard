@@ -22,7 +22,16 @@ FY RULE in CLAUDE.md). "Covered" = the Assumption Table has an ALL/ALL/ALL
 value for any query, matching what `_Assumption Gross Margin %`'s ALL
 fallback in the DAX actually reads.
 
-Exit codes: 0 = READY (every required month covered), 3 = BLOCKED_FINANCE_INPUT.
+B4 (docs/COMPLETION_BLOCKER_PACK.md, 2026-09-27): a row being present is not
+the same as a row being approved. The committed Apr/May'26 ALL/ALL/ALL rows
+read "Default portfolio assumption - update with actuals" with no approval
+reference, yet were counted as covered. A month is now APPROVED only when its
+ALL/ALL/ALL row's Remarks carry "Approved: <reference>" (the Finance approval
+reference, e.g. "Approved: FIN-123 2026-09-30"); a row without it is
+UNAPPROVED, and a month with no ALL/ALL/ALL row is MISSING. Both block.
+
+Exit codes: 0 = READY (every required month covered by an approved row),
+3 = BLOCKED_FINANCE_INPUT.
 """
 import csv
 import re
@@ -37,6 +46,7 @@ MONTHLY_SOURCE_DIRS = [
 ]
 MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 ASSUMPTION_TABLE_START = (2026, 4)  # Apr'26 -- this table's own first row; see docstring
+APPROVAL_MARKER = re.compile(r"\bapproved\s*:\s*\S+", re.IGNORECASE)
 
 
 def _month_num(abbr):
@@ -102,6 +112,21 @@ def find_covered_months():
     return covered
 
 
+def find_month_status():
+    """Month label -> "APPROVED" / "UNAPPROVED" for every month that has an
+    ALL/ALL/ALL row. A month absent from the result is MISSING. One approved
+    ALL/ALL/ALL row is enough for its month."""
+    status = {}
+    with ASSUMPTION_TABLE.open(newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("Chain") == "ALL" and row.get("Brand") == "ALL" and row.get("Category") == "ALL":
+                month = (row.get("Month") or "").strip()
+                approved = bool(APPROVAL_MARKER.search(row.get("Remarks") or ""))
+                if approved or month not in status:
+                    status[month] = "APPROVED" if approved else "UNAPPROVED"
+    return status
+
+
 def main():
     if not ASSUMPTION_TABLE.is_file():
         print(f"BLOCKED_FINANCE_INPUT: {ASSUMPTION_TABLE} not found")
@@ -112,22 +137,27 @@ def main():
         print("OK: no real monthly Primary/Offtake source found yet -- nothing to require")
         return 0
 
-    covered = find_covered_months()
+    status = find_month_status()
     required_labels = [month_label(y, m) for (y, m) in required]
-    missing = [lab for lab in required_labels if lab not in covered]
+    missing = [lab for lab in required_labels if lab not in status]
+    unapproved = [lab for lab in required_labels if status.get(lab) == "UNAPPROVED"]
 
-    if missing:
-        print(f"BLOCKED_FINANCE_INPUT: AssumptionTable missing {', '.join(missing)}")
+    if missing or unapproved:
+        if missing:
+            print(f"BLOCKED_FINANCE_INPUT: AssumptionTable missing {', '.join(missing)}")
+        if unapproved:
+            print(f"BLOCKED_FINANCE_INPUT: UNAPPROVED (no 'Approved: <reference>' in Remarks) {', '.join(unapproved)}")
         print(
             "Do not fabricate, interpolate, or estimate these -- Finance must supply "
-            "the approved Gross Margin %/Trade Spend %/Visibility/Scheme figures for "
-            "each missing month (see PowerBI/SeedData/Masters/AssumptionTable.csv)."
+            "or confirm the approved Gross Margin %/Trade Spend %/Visibility/Scheme "
+            "figures for each month, with the approval reference in Remarks "
+            "(see PowerBI/SeedData/Masters/AssumptionTable.csv)."
         )
         return 3
 
     print(
-        f"OK: AssumptionTable covers all {len(required_labels)} required months "
-        f"({required_labels[0]}..{required_labels[-1]})"
+        f"OK: AssumptionTable covers all {len(required_labels)} required months with "
+        f"approved rows ({required_labels[0]}..{required_labels[-1]})"
     )
     return 0
 

@@ -32,7 +32,7 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 
 | # | Blocker | Owner | What we need | Exit condition |
 |---|---|---|---|---|
-| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership + MT Analytics | Nykaa (FSN) decision; FY27 article-wise primary, Apr–Aug'26 | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking |
+| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | B1a: OK to show Nykaa as pending (inputs already in repo); B1b: Nykaa option | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking |
 | B2 | #120 → #119 — historical Primary chain backfill | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
 | B3 | #229 — CM2 expense load (HOLD) | Finance + MT Leadership | Nykaa SS treatment, Tnsi chain, full Jul/Aug register, coverage label, scope of other costs | Rebuilt from current `main`; CM2 shows its expense coverage; all checks green |
 | B4 | Power BI P&L assumptions, Jun–Aug'26 | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
@@ -65,10 +65,65 @@ mixes FSN B2C marketplace and Nykaa SS eB2B at article level:
 Record the owner as "MT Leadership" (role, not a name). A one-letter reply is not
 a decision; the confirmation must name the option.
 
-**Data (MT Analytics).** FY27 article-wise primary, uncapped, with the Channel
-column, for **Apr, May, Jun, Jul and Aug'26** (the files
-`scripts/build_dashboard_data.py` reads for `fyx_primary`; local D: drive, not in
-Git).
+**Split into two parts (2026-09-27).** B1 bundles two different questions:
+
+- **B1a — what belongs in MT** (technical): answered by the `Channel` field in the
+  source files. It does not depend on the Nykaa choice, because MT totals are the
+  same under A, B and C.
+- **B1b — where Nykaa is reported outside MT** (reporting policy): the A/B/C
+  choice above.
+
+B1a can close on the files alone **if MT Leadership agrees** that, until B1b is
+decided, Nykaa (FSN) is shown outside MT as `PENDING_DECISION` rather than under
+eB2B. That agreement is itself a question in the MT Leadership email below; the
+agent never picks a Nykaa bucket on its own.
+
+**Data — already in the repo (found 2026-09-27).** The FY27 article-wise primary
+for **Apr–Aug'26** is tracked at
+`PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_{Mon}_26.csv`
+(committed 2026-09-14; `detail_records_real()` reads these when no `.xlsb` is in
+`--src`). Every required column is present, `Channel` is filled on every row, and
+each month ties exactly to `detail_meta.fyx_primary` (total ₹22,239.59 L). **No
+file request to MT Analytics is needed for B1a.** The earlier note that the source
+was "absent from the working tree" was out of date (FM-09 pattern).
+
+**Input contract (checked before any rebuild).** A file that fails a column is
+not used, and the gap is reported, never filled:
+
+| Month | Expected file | Present | Channel column | Rows | SHA-256 | Accepted |
+|---|---|---|---|---|---|---|
+| Apr'26 | `primary_article_Apr_26.csv` | ✅ | ✅ 0 blank | 30,757 | `f63066b9…33e45a2` | ✅ ₹5,076.86 L = fyx |
+| May'26 | `primary_article_May_26.csv` | ✅ | ✅ 0 blank | 19,399 | `0c10f2d6…cac95c6` | ✅ ₹4,415.74 L = fyx |
+| Jun'26 | `primary_article_Jun_26.csv` | ✅ | ✅ 0 blank | 23,192 | `1de0ad86…d516d121d` | ✅ ₹4,167.38 L = fyx |
+| Jul'26 | `primary_article_Jul_26.csv` | ✅ | ✅ 0 blank | 31,355 | `497e55d2…1720545e` | ✅ ₹4,921.31 L = fyx |
+| Aug'26 | `primary_article_Aug_26.csv` | ✅ | ✅ 0 blank | 19,070 | `959124f7…5f3b686` | ✅ ₹3,658.30 L = fyx |
+
+Checked 2026-09-27 on `main` `b9dcdc9`. Full SHA-256 values are in the commit that
+filled this table. Channel split (₹ L): MT 21,075.63 · EB2B 1,080.68 · SIS 83.27 —
+the same split `mt_channel_reconciliation.py` reports.
+
+Accepted = present, has `Channel`, parses, month matches THE ONE FY RULE (FY27),
+and its all-channel NSV ties to `detail_meta.fyx_primary` for that month. The
+filled table goes in the B1 PR description, so next month's refresh has the same
+check.
+
+**Rebuild dry-run on `main` `374de1f` (2026-09-27, isolated worktree, nothing
+committed).** Before any B1a change, `--detail-only` was run from the tracked files
+to prove the baseline reproduces:
+
+| Run | Result vs committed `data.js` |
+|---|---|
+| `--src Primary_Article_Monthly` (default row cap) | `detail_records` 160,834 → 40,000, coverage 100% → 92.9% (the FM-03 trap). Every other block, incl. `fyx_primary` FY27 and all FY25/FY26 blocks, identical |
+| same + `--detail-max-rows 0` | 160,834 rows, 100% coverage; everything identical **except** `alloc.governance` |
+| same, `--src` = primary + `Offtake_Monthly/offtake_store_article_*_26.csv` | same single difference |
+
+The one difference is labelling only, no amounts: 12 distributor-allocation rows
+(₹12.13 L) read `Article_Not_Listed` 7 / `Brand_Not_Listed` 5 in the committed file
+and `Not_Eligible` 12 (`flagged_rows` 0 → 12) on rebuild. Those tiers depend on the
+offtake universe `build_offtake_universe(src)` reads; the 2026-09-25 build (#209) saw a
+different set. The B1a PR must: run with `--detail-max-rows 0`, show this
+`alloc.governance` change separately from the MT-only zone change, and not present
+it as part of the channel fix.
 
 **Exit condition.**
 - `python3 scripts/mt_channel_reconciliation.py dashboard/data.js` exits **0**:
@@ -85,29 +140,25 @@ Git).
 > Correcting the FY27 zone view removes ₹11.64 Cr of non-MT primary from MT;
 > Nykaa (FSN) is ₹10.41 Cr of it. MT totals are the same whichever option you
 > choose, but zone conversion changes (East 73.8% → 85.2%).
-> Please confirm how Nykaa (FSN) should be reported outside MT:
+> Two questions:
+> 1) May we correct the MT zone totals now, with Nykaa (FSN) shown outside MT as
+>    "pending decision" until you choose below? (MT totals do not depend on the choice.)
+> 2) How should Nykaa (FSN) be reported outside MT?
 > A) all under eB2B (same as the July deck; includes FSN B2C, which the feed cannot separate)
 > B) split FSN B2C and Nykaa SS eB2B — needs a separated feed
 > C) Nykaa (FSN) as its own channel line
 > Decision owner will be recorded as "MT Leadership".
 > Thanks
 
-**Ready-to-send — MT Analytics**
-
-> Subject: Files needed — FY27 article-wise primary, Apr–Aug'26
->
-> Hi,
-> To correct the MT zone totals we need the full (uncapped) article-wise primary
-> files for Apr, May, Jun, Jul and Aug 2026, with the Channel column included —
-> the same files used for the FY27 dashboard build. Please share them in the
-> usual D: drive location.
-> Thanks
+**MT Analytics — no request needed.** The files are already in the repo (above).
+Ask only if a month's source is re-issued or corrected.
 
 **Agent prompt — once both arrive**
 
-> CB-01 inputs have arrived: MT Leadership confirmed Option <A/B/C> (owner "MT
-> Leadership", date <date>), and the FY27 article-wise primary files for Apr–Aug'26
-> are in <path>. On a fresh branch from `main`: (1) snapshot the FY25/FY26 blocks
+> CB-01 inputs have arrived: MT Leadership confirmed Option <A/B/C> — or agreed
+> that Nykaa (FSN) shows as PENDING_DECISION outside MT until B1b is decided —
+> (owner "MT Leadership", date <date>), and the FY27 article-wise primary files for Apr–Aug'26
+> are in `PowerBI/RawDataFolders/Primary_Article_Monthly/` (already tracked). On a fresh branch from `main`: (1) snapshot the FY25/FY26 blocks
 > of `dashboard/data.js`; (2) in `scripts/build_dashboard_data.py` apply
 > `Channel == 'MT'` before any zone aggregation and route Nykaa (FSN) per the
 > confirmed option; (3) rebuild FY27 only with the documented partial-refresh
@@ -129,6 +180,15 @@ Distributor × Brand × Chain lines in the approval register are still blank.
 **Decision (mapping business owner).** Return
 `ProvisionalMapping_OwnerApproval_Apr25_Jul26.xlsx` with every line marked
 Approve / Reject / Amend (Amend = give the correct chain).
+
+**Make the review easy, not different.** The register already sent stays the
+record. If the owner wants help, give a read-only companion view generated from
+the same file: lines sorted by value (largest first, showing how many lines cover
+80% of ₹9,455.20 L), with distributor, brand, proposed chain, amount and evidence
+per line, and only three allowed answers — Approve / Reject / Amend. The
+`mapping-approval-governor` skill can group lines that share one rule, so the
+owner can approve a rule once instead of line by line; it never fills in an
+answer. Partial returns are accepted; only the open lines go back.
 
 **Exit condition.**
 - Returned file fingerprinted (SHA-256) and kept unchanged as evidence before
@@ -170,6 +230,18 @@ Approve / Reject / Amend (Amend = give the correct chain).
 **What happened.** #229 loads MT Direct debit-note claims: ₹1,274.71 L excl. GST,
 FY27 Apr–Aug'26, 64 rows, reconciled to the paisa against the register's own
 pivot. It stays HOLD because CM2 would read ~94% with most costs still missing.
+
+**First decision — one sentence from Finance:** *"FY27 CM2 includes ___, from
+___, for ___ months."* Then fill:
+
+| Included expense heads | Excluded heads | Source per head | Period covered | Allocation grain | Double-count rule |
+|---|---|---|---|---|---|
+| | | | | | |
+
+Two valid answers: **full CM2** (wait until every in-scope head has a source) or
+**partial CM2** (load what exists; the dashboard states exactly which heads are
+loaded and never presents it as final margin). Missing ≠ zero and partial ≠
+complete either way. #229 is rebuilt only after this is written down.
 
 **Decisions / inputs.**
 
@@ -217,6 +289,22 @@ and Scheme Spend rows for Jun, Jul and Aug 2026 in
 exist for those months; only the assumptions are missing. Do not estimate or
 interpolate.
 
+**Input contract.** Rows in the file's existing columns — `Month, Chain, Brand,
+Category, Gross Margin %, Trade Spend %, Visibility Spend, Scheme Spend, Other
+Spend, Contribution Margin %, Remarks` — with at least one `ALL/ALL/ALL` row per
+month (that is the row the gate counts), percentages as decimals (0.52 = 52%),
+and the Finance approval reference and date in `Remarks`. No verbal or "rough"
+figures.
+
+**Also confirm the existing rows.** The Apr'26 and May'26 `ALL/ALL/ALL` rows on
+`main` read "Default portfolio assumption - update with actuals when available"
+(GM 52%, Trade Spend 8%), and the two May'26 chain rows carry no approval
+reference either. Until 2026-09-27 the gate counted Apr and May as covered because of
+them; it now reports them as UNAPPROVED (a month counts only when its ALL/ALL/ALL row
+has `Approved: <reference>` in Remarks). Finance
+should confirm them as approved or send replacements, so the gate's READY means
+approved, not placeholder. They are not changed until Finance answers.
+
 **Exit condition.** `scripts/check_assumption_coverage.py` passes and the
 Assumption Coverage Gate no longer reports `BLOCKED_FINANCE_INPUT`.
 
@@ -228,7 +316,9 @@ Assumption Coverage Gate no longer reports `BLOCKED_FINANCE_INPUT`.
 > The Power BI trade P&L needs your approved Gross Margin %, Trade Spend %,
 > Visibility and Scheme Spend for June, July and August 2026. Sales data for
 > these months is already in; only the assumption rows are missing. We will not
-> estimate them.
+> estimate them. Please also confirm whether the April and May 2026 rows now in
+> the file (GM 52%, Trade Spend 8%, marked "default assumption") are approved, or
+> send the approved values. An approval reference per month is all we need.
 > Thanks
 
 **Agent prompt.** "Finance-approved AssumptionTable rows for Jun–Aug'26 are at
@@ -248,8 +338,12 @@ them. Two runs on the Windows machine:
 | CM2 Case 1 | `tests/powerbi/cm2_availability_cases.dax` | DAX Studio (or DAX query view) on the Desktop model; run the CASE 1 block alone | RowsLoaded, ExpenseLoaded, CM2, CM2Pct = BLANK; NSV = a real number |
 | FY parser | `tests/powerbi/pq39_fy_parser_cases.pq` | Transform data → New Source → Blank Query → Advanced Editor → paste; delete the query afterwards | `Failures` step returns **0 rows** |
 
-**Exit condition.** Both as expected; result (screenshot or copied output) noted
-under CB in `PROJECT_STATE.md`. Cases 2–4 of the CM2 file wait for B3 data.
+**Exit condition.** Both as expected, **with durable evidence**: a screenshot of
+each result (attached to the B5 PR as a comment) or the copied output saved as a
+small text file under `docs/evidence/`, with date, model/`main` commit and the
+exact values. A result reported only in chat is recorded as "PASS reported,
+evidence pending" and does not close B5. Cases 2–4 of the CM2 file wait for B3
+data.
 
 ---
 
@@ -267,6 +361,13 @@ locally (not in Git).
 | d | 28 WoA signatures + 3 exceptions | MT Ops |
 | e | 9 unpayable grades (5 `#N/A`, 4 blank) | HR |
 | f | Target basis: Primary or Offtake; C1–C6; caps; proration | MT Leadership + Finance |
+
+**One decision session, not six email threads.** Run a 30–45 minute session
+with MT Leadership, Finance, MT Ops and HR. For each row show only: decision,
+financial impact, options, owner, answer required. No employee names, IDs or
+payout amounts go into this repo; person-level detail stays in the local working
+pack. A visible BLOCKED status is safer than a polished payout on an assumed
+denominator.
 
 **Exit condition.** Every decision recorded with its owner role. **No incentive
 payout is calculated until then**, and NPD, OSA/OOS, profitability, persona

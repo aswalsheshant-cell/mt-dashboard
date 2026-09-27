@@ -256,6 +256,48 @@ datasets:
       resolved" claim as accurate without independently recounting the PENDING
       rows.
 
+  mt_direct_dn_claims:
+    business_name: "MT Direct debit-note (DN) claims -- chain-billed Promotion / Visibility / Off-Invoice / Listing Fees / Extra Margin"
+    source_path: "supplied 2026-09-26 by the user as MT-DN_1.xlsx (Finance DN register, Sheet1 = DN lines, Sheet2 = pivot); workbook kept outside Git like the other source workbooks. Loaded rows live in PowerBI/SeedData/Masters/PL_Expense_Input.csv (Source = 'MT Direct DN register (Mon-yy)')."
+    source_type: "XLSX, one row per DN; loaded as Month x FY x Customer Code x Expense Head"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    downstream_outputs: ["PowerBI/SeedData/Masters/PL_Expense_Input.csv", "dashboard/data.js cm2 block (after build_dashboard_data.py --detail-only)", "PowerBI/PowerQuery/39_PL_Expense_Input.pq"]
+    loader: "scripts/ingest_mt_direct_dn.py (idempotent: replaces only its own tagged rows)"
+    last_validated: "2026-09-27"
+    modification_allowed: false
+    notes: >
+      Checklist (CLAUDE.md "New data source checklist"): grain = one DN line;
+      business date = "Expense Related to Month" (claim period), not DN receipt
+      or doc date; FY from that month by THE ONE FY RULE -- the workbook's own
+      "Pertain to FY" is overridden on 14 rows that say 2025-26 for May-Aug 2026
+      claims; amount = Base Amount excl. GST (decision D2), GST kept only in
+      Remarks. Reconciliation 2026-09-26: 989 rows = Rs1,532.42 L; 11 exact
+      duplicate rows (a repeated block, rows 977-987 of Sheet1: 10 Nykaa, 1
+      Guardian) = Rs51.66 L dropped -- the 978 unique rows = Rs1,480.75 L,
+      equal to the workbook's own Sheet2 pivot Grand Total to the paisa.
+      Held out: all 48 Nykaa SS (FSN) rows (Rs206.04 L unique) -- channel
+      "GT_ e B2B" in the register and customer 1103979 = EB2B (Confirmed) in
+      CustomerCode_Zone_State_Mapping.csv; not MT Direct, and the Nykaa/FSN
+      channel decision (CB-01) is open. Loaded: Rs1,274.71 L in 64 rows, FY27
+      Apr-Aug 2026. Chains resolve through canon_chain(); 'Wellness' (1100049)
+      via the Confirmed customer master to Wellness Forever.
+      Owner decisions 2026-09-27 (MT Leadership, in chat): (1) Nykaa SS (FSN)
+      Rs206.04 L stays EXCLUDED until CB-01 is decided; (2) Tnsi Retail Pvt Ltd
+      (1100027, Rs5.20 L) = WH-Smith -- recorded in the loader's
+      OWNER_CHAIN_DECISIONS, not in the customer master; (3) Jul-26 and Aug-26
+      are PARTIAL: their rows carry "PARTIAL MONTH" in Remarks (loader
+      PARTIAL_MONTHS), cm2_block() lists them in cm2.qc.partial_months and the
+      P&L tab names them. Drop a month from PARTIAL_MONTHS once its full
+      register is loaded. FM-14 lifecycle overlap: do NOT also load
+      mt_provision_national_aug26 (Aug'26 provisions) or claim settlements for
+      the same chain x month x head -- a provision and its later DN describe
+      one commercial event. MT Indirect (distributor) claims (cm2_claims) are a
+      different payer stream and are not in this file.
+
   mt_provision_national_aug26:
     business_name: "MT National Provision -- Claims/Promotions/Visibility/Rental/Freight/Extra Margin, single month"
     source_path: "supplied 2026-09-13 by the user, not yet copied into the repo (candidate location: data/raw_drops/MT_Provision_National_Aug26.xlsx, following the existing raw_drops convention -- not moved without confirmation)"
@@ -300,12 +342,42 @@ datasets:
 
   cm2_ba_supervisor_visibility_rental:
     business_name: "BA salary, BA supervisor cost, visibility spend, rental"
-    source_path: "Visibility + Rental now PARTIAL via mt_provision_national_aug26 (Aug'26 only); BA salary and BA supervisor cost still MISSING for any period"
+    source_path: "Visibility + Rental now PARTIAL via mt_provision_national_aug26 (Aug'26 only); BA, D-Mart merchandiser and supervisor cost: source workbook MT_Spend.xlsx ABSENT (not in repo or any Git history); Q1 FY27 totals exist only as SECONDARY_EVIDENCE in PowerBI/Reference/CM2_Provisional/recovered_governance_20260724/cm2_expense_taxonomy_v0.2-DRAFT.csv"
     validation_status: PARTIAL
     downstream_outputs: []
     last_validated: "2026-09-13"
     modification_allowed: false
     notes: "CORRECTED 2026-09-13 (previous entry said 'no source files found anywhere in the repo for any of these four cost heads, for any period' -- that was wrong for two of the four). The newly supplied MT_Provision_National_till_Aug26.xlsx (see mt_provision_national_aug26 above) has real Visibility (Rs3.04 Cr) and Rental (Rs0.38 Cr provision) claims for Aug'26 -- single month, national, not yet reconciled against an independent total. BA salary and BA supervisor cost remain MISSING for any period; CM2_Provisional's own formula still marks visibility/rental as a Rs12.5L MEMO placeholder for Q1 FY27 specifically, a different period and a different (smaller, modelled) figure than this file's real Aug'26 claims -- do not average or blend the two without a business decision on which is authoritative for which period."
+    field_force_status_2026_09_27: >
+      CORRECTED 2026-09-27. The earlier wording "BA salary and BA supervisor
+      cost still MISSING for any period" was half right: the SOURCE FILE is
+      missing, but quantified Q1 FY27 evidence exists. Outcome B of the
+      source check: recovered/secondary evidence, NOT an authoritative actual.
+      (1) MT_Spend.xlsx is not tracked and never was: `git log --all` over
+      *MT_Spend*/*mt_spend* returns nothing, and docs/GIT_RECOVERY_MATRIX.md
+      row 5 reached the same negative result. (2) What exists is summary
+      totals only, written into cm2_expense_taxonomy_v0.2-DRAFT.csv
+      (recovered verbatim from commit 13fe0ac, 2026-07-24), all
+      PENDING_APPROVAL, Rs lakh, Q1 FY27 (Apr-Jun'26):
+      BA (sheet 'BA ', MONTH x CHAIN x EMPLOYEE, Chain Name on every row):
+      CTC 368.99, Reimbursement 0.52, Incentive 26.01 naive
+      (Salary rows 14.80 + Incentive rows 11.13 + Expense rows 0.08 --
+      DOUBLE-COUNT RISK, payout rule undecided);
+      Merchandiser (sheet 'D-Mart', chain implied by sheet name, not a column):
+      CTC 279.49, Reimbursement 7.77, Incentive 1.74 (entirely on
+      Payout='Expense' rows -- incentive vs reimbursement undecided);
+      Supervisor (sheet 'Sups', MONTH x ZONE x EMPLOYEE, NO Chain column,
+      Channel Hybrid 112 / MT 52 / GT 37 rows): CTC 44.46,
+      Reimbursement 9.93, Incentive 2.06 naive (1.15 + 0.89 + 0.03).
+      Other MT people (FLOATER, BDE, TEAM LEADER, SALES OFFICER, PROMOTER,
+      Lead/Senior Supervisor): head declared, no total recorded.
+      (3) Not recoverable from these totals: row counts, employee keys,
+      month split, chain split, source sign detail, file fingerprint.
+      CM2 eligibility: NONE until the workbook is supplied through controlled
+      intake (fingerprint, row-level reconciliation to the totals above) and
+      Finance + HR decide the incentive payout rule; supervisor cost stays
+      SHARED/UNALLOCATED by zone unless an approved allocation key exists.
+      Never rebuild row-level data from these summary totals.
 
   cm2_pl_expense_input:
     business_name: "P&L Expense Input master (customer/chain matched costs, general)"
@@ -453,7 +525,29 @@ datasets:
     downstream_outputs: ["dashboard/index.html Demand & S&OP Planning > Promotional Impact sub-view"]
     last_validated: "2026-09-13"
     modification_allowed: false
-    notes: "3,694 promo lines, Apr-Aug'26 (5 months), avg consumer depth 31.6%, with by_chain/by_brand/by_category/monthly/mom_trend breakdowns already in production. No FY25/FY26 promo history (consistent with the rest of the FY27-only article-level watch-folder sources) -- registered as a known scope boundary, not a defect. This domain did not surface a gap this pass; deeper Trade Spend / COGS auditing beyond BL-15/BL-16's existing findings was not attempted this pass (time-boxed) -- see docs/BUSINESS_LOGIC_REGISTRY.md BL-16 for what was checked there."
+    notes: "3,694 promo lines, Apr-Aug'26 (5 months), avg consumer depth 31.6%, with by_chain/by_brand/by_category/monthly/mom_trend breakdowns already in production. No FY25/FY26 promo history (consistent with the rest of the FY27-only article-level watch-folder sources) -- registered as a known scope boundary, not a defect. Deeper Trade Spend / COGS auditing beyond BL-15/BL-16's existing findings was not attempted in the 2026-09-13 pass (time-boxed) -- see docs/BUSINESS_LOGIC_REGISTRY.md BL-16. 2026-09-27 data-contract clarification: AVAILABLE applies to offer depth/intensity only (see available_fields); promo spend, baseline, uplift and ROI have NO source here (see not_available_fields) -- older docs that called this a 'trade-spend calendar' were wrong and were corrected."
+    # Data contract (2026-09-27). Column names as read by scripts/batch_load_promos.py
+    # and promo_block(). Nothing in not_available_fields may be shown as a number,
+    # entered by hand into the promo file, or defaulted to 0.
+    contract_status: PARTIAL
+    grain: "Promo line = Chain x Brand x offer, per month (article/EAN not read by the loaders)"
+    business_date: "Month column, else the month in the filename. Period/To cells are NOT used: Excel swapped day/month on entry in at least one file (July Period reads Jan-07)."
+    available_fields:
+      - "Chain Name -> canonical chain"
+      - "Brand -> canonical brand"
+      - "Category"
+      - "Month (or filename month)"
+      - "Offer to consumer (free text) + MRP -> discount depth % (parse_offer_depth); unparseable offers stay blank, not 0"
+    not_available_fields:
+      - "Promo spend (trade spend, visibility/display spend, other promo investment) -- needs a governed, Finance-approved spend source"
+      - "Funding source and approval status per promo event"
+      - "Promo event ID and exact start/end dates (reliable)"
+      - "Regular vs promo selling price per article"
+      - "Baseline sales (expected sales without the promo)"
+      - "Incremental sales / uplift %"
+      - "Incremental contribution"
+      - "Promo ROI (revenue-based or contribution-based)"
+    derived_only: "Uplift and ROI are OUTPUTS, never source columns: uplift = actual offtake vs an approved baseline; ROI = incremental benefit vs governed spend. See docs/METRIC_REGISTRY.md 'Promo measurement contract'."
 
   fy25_secondary_chain_brand_detail:
     business_name: "FY25 Distributor Secondary, chain+brand grain (finer than the currently-published national monthly total)"
@@ -491,6 +585,51 @@ datasets:
       Primary; the filename uses "primary" loosely (as in "primary
       allocation of distributor data"), a naming trap already flagged in the
       mt-distributor-secondary skill.
+
+  distributor_secondary_register_fy27:
+    business_name: "FY27 Distributor Secondary register (distributor / chain / brand x month), Apr-Aug'26"
+    source_path: "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_{distributor,chain,brand}_Q1_FY27.csv (Apr-Jun'26) + secondary_sales_{distributor,chain,brand}_Jul_Aug_FY27.csv (Jul-Aug'26); Jul-Aug article grain + exceptions in PowerBI/RawDataFolders/SecondarySales_Monthly_TOT_Analysis/05_ARTICLE_REGISTER_Jul_Aug_2026.csv / 06_REGISTER_EXCEPTIONS_Jul_Aug_2026.csv"
+    source_type: "CSV. Jul-Aug'26 built from Distributor_Chain_Brand_Article_Billing_{July,August}_2026.xlsx (sheet 'Billing Detail', one row per invoice line; gitignored source)"
+    grain: "month x distributor (and month x chain, month x brand); Jul-Aug also month x distributor x chain x brand x article"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Source_Month", "Distributor"]
+    important_columns: ["Source_Month", "FY_Year", "Distributor", "NSV_Lakh", "Data_Source", "Notes"]
+    business_owner: "MT Analytics"
+    refresh_frequency: "Monthly, when the distributor billing workbook arrives"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_secondary_register.py --src <folder with the monthly billing xlsx> (Jul-Aug'26); Q1 from scripts/export_pbi_csvs.py --blocks secondary"
+    downstream_outputs: ["PowerBI/PowerQuery/44_Fact_SecondarySales.pq (watch folder SecondarySales_Monthly)"]
+    last_validated: "2026-09-27 -- Jul'26 source Rs927.06L reconciles to the Jul'26 rows already in 01_FULL_HIERARCHY_Apr_Jul_2026.csv (Rs927.05L, same 11 distributors); register by invoice month Jul Rs930.82L / Aug Rs798.16L (source Aug register Rs801.93L; Rs3.77L of AZ invoices dated July moved to July); distributor, chain, brand and article files agree per month within Rs0.01L rounding"
+    modification_allowed: false
+    notes: >
+      Business date = Invoice Date. Jul'26: Kottaram dates are stored
+      day/month swapped (e.g. 2026-02-07 = 2 Jul) -- 80 lines / Rs12.28L
+      repaired into July, logged. Aug'26 register carries 394 AZ lines
+      (Rs3.77L) invoiced in July; their 37 bills do not appear in the July
+      register, so they are counted in July (invoice month), not dropped.
+      GST basis: Just Mark, Kiran Trading, Mark Enterprises ('Invoice value')
+      and United Marketing ('Item amount') do not state ex-GST in the source;
+      their rows carry a Notes flag that 44_Fact_SecondarySales.pq reads as
+      Is_Provisional. Coverage: North distributors not supplied for either
+      month; Sai Saachi and Srijan have no July register; Sai Saachi, Srijan,
+      United Marketing have no August register; no row is written for a
+      missing register (missing, not zero). July VA billing is inside the SVDA
+      consolidated report (source excluded the VA file to avoid duplicates).
+      TROY Tradex is new in Aug'26. Distributor names follow the Q1 register
+      (e.g. 'Kiran Trading Co.' -> 'Kiran Trading', 'Sri Vijaya Durga
+      Agencies_Mt' -> 'SVDA'); chains use build_dashboard_data.canon_chain().
+      DO NOT USE the August rows of
+      SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv as
+      distributor secondary: that file's 2026-08 block (Rs3,308.45L, 260
+      names such as 'Avenue Supermarts Ltd.-DC-8009', 'Apollo Healthco
+      Limited_Faridabad') is ship-to billing, not distributor sell-out -- the
+      August CONFLICT already recorded in docs/DATA_AVAILABILITY_MATRIX.md. It
+      is left unchanged because scripts/apply_alias_vector.py and
+      scripts/synthesize_fy25_article_primary.py read it.
 
   article_category_mapping:
     business_name: "Article/EAN -> Brand/Category/Sub-category recovery when the raw sub_category field is blank"

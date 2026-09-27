@@ -1571,12 +1571,12 @@ function buildInventoryHealth(){
   // NOT_AVAILABLE pattern for this headline KPI tile.
   const total = o?.total?.[fyR] ?? o?.[`total_${fyR}`] ?? null;
   const metrics = o?.metrics ?? { doi: {}, otif: {} };
-  // Real per-chain store counts: universe.by_chain (not offtake.by_chain,
-  // which is a flat [{name,value}] list with no by_month/store member -- the
-  // "Active MT Stores" KPI and the "Stores" column below used to read that
-  // absent field and silently resolve to 0/'–' for every chain. universe.by_chain
-  // is the one place this repo actually carries real store counts per chain.
-  const _uniStores={}; (u.by_chain||[]).forEach(c=>{ if(c&&c.name) _uniStores[c.name]=c.stores; });
+  // Top Chains "Stores" column: universe.by_chain counts Primary SAP billing
+  // codes (one DC ship-to can serve hundreds of stores), so it understated
+  // chains on DC supply (DMart 24, Apollo 20). offtake.pos_stores carries the real POS
+  // store count (distinct Site Code) per FY from store x article offtake;
+  // an FY or chain without store-level Site Code shows '–', never 0.
+  const _posFy=(o&&o.pos_stores&&o.pos_stores[fyR])||null;
   const _activeStores = u.active_stores!=null ? u.active_stores : '–';
   // Pipeline Cover (DOI) / Fill Rate (OTIF): scripts/build_dashboard_data.py
   // emits metrics.doi/{} and metrics.otif/{} as explicit, permanently-empty
@@ -1651,16 +1651,19 @@ function buildInventoryHealth(){
       // LEGACY (kept for rollback reference only, no longer called):
       // const legacyChainOfftakeNSV=(ch_data,fyKey)=>(ch_data.total&&ch_data.total[fyKey])||ch_data[`total_${fyKey}`]||ch_data[fyKey]||ch_data.value||0;
       const chainData=_entries.filter(([n,e])=>n&&e).map(([name,ch_data])=>{
-        const stores=_uniStores[name];
+        const _ps=_posFy&&_posFy.by_chain?_posFy.by_chain[name]:null;
+        const stores=_ps&&_ps.latest!=null?_ps.latest:null;
+        const storesPartial=stores!=null&&_ps.no_site_pct>0?_ps.no_site_pct:null;
         const nsv=canonicalChainOfftakeNSV(ch_data,fyR);
         const prior=canonicalChainOfftakeNSV(ch_data,prior_fy);
         const growth=(_likeForLike && nsv!=null && prior!=null && prior>0)?((nsv/prior-1)*100):null;
-        return {name,stores,nsv,growth};
+        return {name,stores,storesPartial,nsv,growth};
       }).filter(c=>c.nsv!=null); // a chain with no real offtake figure for this FY cannot be ranked "by offtake" -- excluded, not shown as a fabricated 0
       chainData.sort((a,b)=>b.nsv-a.nsv);
 
       const _growthNote=_likeForLike?'':' · Growth % needs equal month coverage in both years to be a genuine YoY -- not shown for a partial year';
-      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores:'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
+      const _storeNote=_posFy?` · Stores = POS stores (distinct Site Code) selling in ${_posFy.latest_month}, not SAP billing codes; * = part of the chain's offtake has no Site Code; – = no store code in source (e.g. Reliance offtake is DC-level)`:' · Stores need store-level offtake (Site Code), not available for this FY';
+      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}${_storeNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores${_posFy?' ('+_posFy.latest_month+')':''}</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores.toLocaleString('en-IN')+(c.storesPartial!=null?`<span title="${c.storesPartial}% of this chain's offtake has no Site Code">*</span>`:''):'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
 
       const canvasDiv=document.createElement('div');
       canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
@@ -2235,7 +2238,14 @@ function buildPnl(){
     ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in CM2's own coverage (${cm2FyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
   const totFyNote=(globalFy&&!totScopedOk&&totD)
     ?`<p class="drillhint" style="margin:4px 0 0">${globalFy} is not in TOT%'s own coverage (${totFyCoverage.join(', ')||'none'}) -- showing the combined FY26-FY27 total instead.</p>`:'';
-  let cm2Chains=cm2D?consolidateChains(cm2D.by_chain,'nsv'):[];
+  // by_chain spans FY26+FY27 NSV while expenses may cover one FY only; with a
+  // single FY selected use that FY's own like-for-like rollup (by_chain_fy).
+  const cm2ChainFy=(cm2ScopedOk&&cm2D&&cm2D.by_chain_fy&&cm2D.by_chain_fy[globalFy])||null;
+  const cm2ExpFys=Object.keys((cm2D&&cm2D.by_chain_fy)||{});
+  const cm2MixedFy=!cm2ChainFy&&cm2D&&cm2D.has_expense_data&&cm2FyCoverage.some(f=>!cm2ExpFys.includes(f));
+  let cm2Chains=cm2D?consolidateChains(cm2ChainFy||cm2D.by_chain,'nsv'):[];
+  // A single FY with no expense rows of its own: no chain has a CM2 for it.
+  if(cm2ScopedOk&&!cm2ChainFy&&cm2D&&cm2D.by_chain_fy) cm2Chains=cm2Chains.map(c=>Object.assign({},c,{expense:0}));
   if(fOn('Chain')) cm2Chains=cm2Chains.filter(c=>fHas('Chain',c.name));
   const cm2Top=cm2Chains.slice(0,12);
   // CM2 is a margin only where expense rows were actually loaded; with none it
@@ -2311,7 +2321,8 @@ function buildPnl(){
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
      <code>--detail-only</code> to refresh CM2 dashboard-wide (and in Power BI — <code>DAX/13_CM2_Measures.dax</code> reads the same file).
-     ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only; the by-chain table stays FY26-FY27 combined.`:''}</p>
+     ${cm2ScopedOk?`The KPI cards below show ${fyDispLabel(globalFy)} only${cm2ChainFy?', and so does the by-chain table':'; the by-chain table stays FY26-FY27 combined'}.`:''}</p>
+   ${cm2MixedFy?`<p class="drillhint" style="margin:4px 0 0"><b>Not like-for-like:</b> expenses are loaded for ${cm2ExpFys.join(', ')} only, but this combined view divides them by ${cm2FyCoverage.join('+')} NSV, which understates the expense % and overstates CM2%. Select FY ${cm2ExpFys.join('/')} in the filter for a like-for-like CM2.</p>`:''}
    ${cm2FyNote}
    ${cm2NoData?`<div class="repbanner"><b>No expense data loaded yet.</b> CM2 is shown as &#8211; (not available):
         with 0 expenses matched it would only repeat NSV. Populate PL_Expense_Input.csv with real monthly P&amp;L expenses to see actual CM2.</div>`
@@ -2320,6 +2331,9 @@ function buildPnl(){
      ${cm2LoadedHeads||'&#8211;'}; months with expense rows: ${cm2LoadedMonths||'&#8211;'}
      (${cm2D.qc&&cm2D.qc.rows_loaded!=null?cm2D.qc.rows_loaded:0} rows in <code>PL_Expense_Input.csv</code>).
      Any cost head not listed here is not deducted, so CM2 is overstated by that amount until it is loaded.
+     ${cm2D.qc&&(cm2D.qc.partial_months||[]).length?`<br><b>Partial months:</b> ${cm2D.qc.partial_months.join(', ')} &#8212; the expense register for these months is incomplete, so their CM2 is overstated further.`:''}
+     ${(cm2D.not_loaded||[]).length?`<br><b>Not in CM2 yet:</b> ${cm2D.not_loaded.map(b=>`${b.bucket} (${b.why})`).join('; ')}.`:''}
+     ${Object.entries(cm2D.scope_fy||{}).filter(([f])=>!cm2ScopedOk||f===globalFy).filter(([,v])=>v.non_mt_nsv>0).map(([f,v])=>`<br><b>Channel scope ${fyDispLabel(f)}:</b> NSV includes non-MT sales of ${crc(v.non_mt_nsv)} (${Object.entries(v.nsv_by_channel).filter(([c])=>c!=='MT').map(([c,x])=>`${c} ${crc(x)}`).join(', ')}) with no expense rows. On MT-channel NSV only (${crc(v.mt_nsv)}), CM2 is <b>${v.cm2_pct_mt!=null?v.cm2_pct_mt+'%':'&#8211;'}</b>. Which base is the headline is pending CB-01.`).join('')}
      ${cm2Avail?'':`<br><b>No expense rows for ${cm2ScopedOk?fyDispLabel(globalFy):'this selection'}</b> &#8212; CM2 is not available for it.`}
    </div>`}
    <div class="kpis">
@@ -3217,7 +3231,10 @@ function buildComparison(){
         const _canon=fp.months_canon||[];
         const _pLbl=_canon.length?_canon[0]+'–'+_canon[_canon.length-1]:fp.months_covered.join('–');
         source=`article-wise primary (${fyTag()} YTD: ${fp.months_covered.join(' & ')}); ${_prevFY} same-period baseline from article detail (${_covPct}% coverage)`;
-        rows=arr27.filter(x=>x.nsv>0).map(x=>{
+        // Keep every chain with real non-zero NSV, including net-negative ones
+        // (returns > billing): dropping them overstated the Total card vs the
+        // governed FY total (FY27: Rs 222.44 Cr shown vs Rs 222.40 Cr real).
+        rows=arr27.filter(x=>x.nsv!=null&&x.nsv!==0).map(x=>{
           const _a=(_prevMap[x.name]??null);
           return {name:x.name,a:_a,b:x.nsv,yoy:(_a!=null&&_a>0)?Math.round((x.nsv/_a-1)*1000)/10:null};
         });
@@ -3235,7 +3252,7 @@ function buildComparison(){
     } else {
       source='Primary (chain-level, secondary-allocated for Distributors)';
       const arr=cmpDim==='Chain'?D.primary.by_chain:D.primary.by_brand;
-      rows=arr.filter(x=>(x.fy26||0)>0||(x.fy25||0)>0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
+      rows=arr.filter(x=>(x.fy26||0)!==0||(x.fy25||0)!==0).map(x=>({name:x.name,a:x.fy25,b:x.fy26,yoy:x.yoy}));
       yrPair=[fyDispLabel('FY25'),fyDispLabel('FY26')];
     }
   } else {
@@ -3255,11 +3272,11 @@ function buildComparison(){
        YoY uses only the ${sharedMonths.size} shared month(s) (same-period, like-for-like) instead of full-year totals.</p>`;
   }
   rows.sort((a,b)=>(b.b||0)-(a.b||0));
-  const tot=rows.reduce((s2,r)=>s2+(r.b||0),0)||1;
+  const tot=rows.reduce((s2,r)=>s2+(r.b||0),0);
   const top=rows.slice(0,15);
   const tableRows=top.map(r=>`<tr><td>${drillLink(cmpDim,r.name)}</td><td>${r.a!=null?crc(r.a):'–'}</td><td>${crc(r.b)}</td>
     <td>${r.yoy!=null?`<span class="pill ${r.yoy>=0?'g':'r'}">${pct(r.yoy)}</span>`:'–'}</td>
-    <td>${(r.b/tot*100).toFixed(1)}%</td></tr>`).join('');
+    <td>${tot?(r.b/tot*100).toFixed(1)+'%':'–'}</td></tr>`).join('');
   const partialNote=((fyUnsupported()&&FPX(fyTag()))?`<p class="drillhint" style="margin:4px 0 0">FY27 is a partial year
      (${(FPX(fyTag())||{}).months_covered?.join(', ')} only) — YoY uses the same ${(FPX(fyTag())||{}).months_covered?.length||3} months
      from ${PREAGG_FYS[PREAGG_FYS.length-1]||'FY26'} as baseline. Chains with no prior-year data show '–'.</p>`:'')+articlePartialNote;
