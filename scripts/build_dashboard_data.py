@@ -1054,7 +1054,7 @@ def _read_offtake_csv_ragged_leading_block(fp):
     return pd.DataFrame(good_rows, columns=header)
 
 
-def load_offtake_article_files(src):
+def load_offtake_article_files(src, site_sink=None):
     """Aggregates NEW monthly store x article offtake extracts (.xlsb, one
     workbook per calendar month, each carrying a Brand Counter sheet plus a
     general/non-brand-counter sheet) into chain-month / (zone,state)-month
@@ -1067,7 +1067,12 @@ def load_offtake_article_files(src):
     Searches src recursively, so a --src pointed at a parent of per-month
     subfolders (e.g. data/raw_drops/offtake_fy26/Apr'25/*.csv) is picked up
     the same as a flat folder of monthly files.
-    Returns (chain_month, zone_state_month); both {} if no offtake extracts found."""
+    Returns (chain_month, zone_state_month); both {} if no offtake extracts found.
+    Optional site_sink (dict): when given, also collects the real POS store
+    identity per (chain, month) -- {(chain, mo): {"sites": set(Site Code),
+    "nsv": total, "nsv_no_site": NSV on rows with a blank Site Code}} -- on
+    the SAME rows the NSV above uses (Reliance Brand Counter already
+    excluded), for pos_store_block(). Return value is unchanged."""
     files = sorted([*src.rglob("*.xlsb"), *src.rglob("*.xlsx"), *src.rglob("*.csv")])
     chain_month, zsm = {}, {}
     for fp in files:
@@ -1144,6 +1149,15 @@ def load_offtake_article_files(src):
                     df.loc[mask, "_month"] = df.loc[mask].apply(_month_plus_year, axis=1)
             df["_nsv"] = pd.to_numeric(df["NSV"], errors="coerce").fillna(0.0)
             df = df[df["_month"].notna() & df["_chain"].notna()]
+            if site_sink is not None and "Site Code" in df.columns:
+                _sc = df["Site Code"].astype(str).str.strip()
+                _sc = _sc.str.replace(r"\.0$", "", regex=True)
+                _no_site = df["Site Code"].isna() | _sc.isin(["", "nan", "None", "none", "<NA>"])
+                for (chain, mo), g in df.assign(_sc=_sc, _ns=_no_site).groupby(["_chain", "_month"]):
+                    e = site_sink.setdefault((chain, mo), {"sites": set(), "nsv": 0.0, "nsv_no_site": 0.0})
+                    e["sites"].update(g.loc[~g["_ns"], "_sc"])
+                    e["nsv"] += float(g["_nsv"].sum())
+                    e["nsv_no_site"] += float(g.loc[g["_ns"], "_nsv"].sum())
             for (chain, mo), v in df.groupby(["_chain", "_month"])["_nsv"].sum().items():
                 chain_month.setdefault(chain, {})
                 chain_month[chain][mo] = chain_month[chain].get(mo, 0.0) + float(v)
@@ -1446,6 +1460,53 @@ def validate_offtake_partition(offtake, reliance_bc=None):
         result['partition_check'] = "INFO: No Reliance BC detected in data.js"
 
     return result
+
+
+def pos_store_block(site_sink, existing=None):
+    """Real POS store counts per chain from the store x article offtake
+    extracts' Site Code -- the chain's own store identity (see
+    docs/PHASE2_SSG_FEASIBILITY.md / STORE_IDENTITY_GOVERNANCE.md: store key =
+    (Chain, Site Code)). NOT the 426-row UniverseMT.csv, which lists Primary
+    billing SAP ship-to codes (one DC code can serve hundreds of stores);
+    universe.* is left untouched.
+
+    Per FY tag touched by site_sink (THE ONE FY RULE, fy_tag_from_label):
+      latest_month        = last loaded month of that FY
+      by_chain[chain]     = {"latest": distinct sites selling in latest_month,
+                             "fy_distinct": distinct sites across the FY's months,
+                             "no_site_pct": % of that chain's FY NSV on rows
+                             with a blank Site Code}
+    A chain whose rows carry no Site Code at all (e.g. Reliance Retail non-
+    counter offtake arrives at DC level) gets latest/fy_distinct = None --
+    shown as '-', never 0. FY tags not in site_sink are kept from `existing`
+    (idempotent: a touched FY is fully recomputed, never added to)."""
+    out = {k: v for k, v in (existing or {}).items() if k.startswith("fy")}
+    by_fy = {}
+    for (chain, mo), e in site_sink.items():
+        tag = fy_tag_from_label(mo)
+        if tag:
+            by_fy.setdefault(tag.lower(), {}).setdefault(chain, {})[mo] = e
+    for tag, chains in by_fy.items():
+        months = sorted({mo for cm in chains.values() for mo in cm},
+                        key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
+        latest = months[-1]
+        rows = {}
+        for chain, cm in chains.items():
+            fy_sites = set().union(*(e["sites"] for e in cm.values()))
+            nsv = sum(e["nsv"] for e in cm.values())
+            no_site = sum(e["nsv_no_site"] for e in cm.values())
+            lat = cm.get(latest)
+            rows[chain] = {
+                "latest": (len(lat["sites"]) if lat and lat["sites"] else None),
+                "fy_distinct": (len(fy_sites) if fy_sites else None),
+                "no_site_pct": (r2(no_site / nsv * 100) if nsv > 0 else None),
+            }
+        out[tag] = {"months": months, "latest_month": latest,
+                    "by_chain": dict(sorted(rows.items()))}
+    out["basis"] = ("Distinct POS Site Code per chain from store x article offtake "
+                    "(Reliance Brand Counter rows excluded, same rows as offtake NSV). "
+                    "Not the 426 SAP billing-code universe.")
+    return out
 
 
 def patch_offtake_new_months(offtake, chain_month, zsm):
@@ -7273,7 +7334,8 @@ def main():
         outp = Path(a.out)
         txt = outp.read_text()
         obj = json.loads(txt[txt.index("{"): txt.rstrip().rstrip(";").rindex("}") + 1])
-        chain_month, zsm = load_offtake_article_files(src)
+        _site_sink = {}
+        chain_month, zsm = load_offtake_article_files(src, site_sink=_site_sink)
         if not chain_month:
             raise SystemExit(
                 f"No offtake extracts found in --src ({src}).\n"
@@ -7284,6 +7346,8 @@ def main():
                                key=lambda mo: (int(mo.split("-")[1]), _MON3_NUM[mo.split("-")[0]]))
         print(f"offtake source months found: {months_found}")
         patched = patch_offtake_new_months(obj["offtake"], chain_month, zsm)
+        if _site_sink:
+            patched["pos_stores"] = pos_store_block(_site_sink, patched.get("pos_stores"))
         obj["offtake"] = patched
         # Also extract Reliance Brand Counter data for the separate tab
         bc_data = load_reliance_bc_data(src)

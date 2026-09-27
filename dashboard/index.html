@@ -1571,12 +1571,12 @@ function buildInventoryHealth(){
   // NOT_AVAILABLE pattern for this headline KPI tile.
   const total = o?.total?.[fyR] ?? o?.[`total_${fyR}`] ?? null;
   const metrics = o?.metrics ?? { doi: {}, otif: {} };
-  // Real per-chain store counts: universe.by_chain (not offtake.by_chain,
-  // which is a flat [{name,value}] list with no by_month/store member -- the
-  // "Active MT Stores" KPI and the "Stores" column below used to read that
-  // absent field and silently resolve to 0/'–' for every chain. universe.by_chain
-  // is the one place this repo actually carries real store counts per chain.
-  const _uniStores={}; (u.by_chain||[]).forEach(c=>{ if(c&&c.name) _uniStores[c.name]=c.stores; });
+  // Top Chains "Stores" column: universe.by_chain counts Primary SAP billing
+  // codes (one DC ship-to can serve hundreds of stores), so it understated
+  // chains on DC supply (DMart 24, Apollo 20). offtake.pos_stores carries the real POS
+  // store count (distinct Site Code) per FY from store x article offtake;
+  // an FY or chain without store-level Site Code shows '–', never 0.
+  const _posFy=(o&&o.pos_stores&&o.pos_stores[fyR])||null;
   const _activeStores = u.active_stores!=null ? u.active_stores : '–';
   // Pipeline Cover (DOI) / Fill Rate (OTIF): scripts/build_dashboard_data.py
   // emits metrics.doi/{} and metrics.otif/{} as explicit, permanently-empty
@@ -1651,16 +1651,19 @@ function buildInventoryHealth(){
       // LEGACY (kept for rollback reference only, no longer called):
       // const legacyChainOfftakeNSV=(ch_data,fyKey)=>(ch_data.total&&ch_data.total[fyKey])||ch_data[`total_${fyKey}`]||ch_data[fyKey]||ch_data.value||0;
       const chainData=_entries.filter(([n,e])=>n&&e).map(([name,ch_data])=>{
-        const stores=_uniStores[name];
+        const _ps=_posFy&&_posFy.by_chain?_posFy.by_chain[name]:null;
+        const stores=_ps&&_ps.latest!=null?_ps.latest:null;
+        const storesPartial=stores!=null&&_ps.no_site_pct>0?_ps.no_site_pct:null;
         const nsv=canonicalChainOfftakeNSV(ch_data,fyR);
         const prior=canonicalChainOfftakeNSV(ch_data,prior_fy);
         const growth=(_likeForLike && nsv!=null && prior!=null && prior>0)?((nsv/prior-1)*100):null;
-        return {name,stores,nsv,growth};
+        return {name,stores,storesPartial,nsv,growth};
       }).filter(c=>c.nsv!=null); // a chain with no real offtake figure for this FY cannot be ranked "by offtake" -- excluded, not shown as a fabricated 0
       chainData.sort((a,b)=>b.nsv-a.nsv);
 
       const _growthNote=_likeForLike?'':' · Growth % needs equal month coverage in both years to be a genuine YoY -- not shown for a partial year';
-      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores:'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
+      const _storeNote=_posFy?` · Stores = POS stores (distinct Site Code) selling in ${_posFy.latest_month}, not SAP billing codes; * = part of the chain's offtake has no Site Code; – = no store code in source (e.g. Reliance offtake is DC-level)`:' · Stores need store-level offtake (Site Code), not available for this FY';
+      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}${_storeNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores${_posFy?' ('+_posFy.latest_month+')':''}</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores.toLocaleString('en-IN')+(c.storesPartial!=null?`<span title="${c.storesPartial}% of this chain's offtake has no Site Code">*</span>`:''):'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
 
       const canvasDiv=document.createElement('div');
       canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
