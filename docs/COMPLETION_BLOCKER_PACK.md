@@ -32,7 +32,7 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 
 | # | Blocker | Owner | What we need | Exit condition |
 |---|---|---|---|---|
-| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership + MT Analytics | B1a: FY27 article-wise primary Apr–Aug'26 (+ OK to show Nykaa as pending); B1b: Nykaa option | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking |
+| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | B1a: OK to show Nykaa as pending (inputs already in repo); B1b: Nykaa option | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking |
 | B2 | #120 → #119 — historical Primary chain backfill | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
 | B3 | #229 — CM2 expense load (HOLD) | Finance + MT Leadership | Nykaa SS treatment, Tnsi chain, full Jul/Aug register, coverage label, scope of other costs | Rebuilt from current `main`; CM2 shows its expense coverage; all checks green |
 | B4 | Power BI P&L assumptions, Jun–Aug'26 | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
@@ -78,21 +78,29 @@ decided, Nykaa (FSN) is shown outside MT as `PENDING_DECISION` rather than under
 eB2B. That agreement is itself a question in the MT Leadership email below; the
 agent never picks a Nykaa bucket on its own.
 
-**Data (MT Analytics).** FY27 article-wise primary, uncapped, with the Channel
-column, for **Apr, May, Jun, Jul and Aug'26** (the files
-`scripts/build_dashboard_data.py` reads for `fyx_primary`; local D: drive, not in
-Git).
+**Data — already in the repo (found 2026-09-27).** The FY27 article-wise primary
+for **Apr–Aug'26** is tracked at
+`PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_{Mon}_26.csv`
+(committed 2026-09-14; `detail_records_real()` reads these when no `.xlsb` is in
+`--src`). Every required column is present, `Channel` is filled on every row, and
+each month ties exactly to `detail_meta.fyx_primary` (total ₹22,239.59 L). **No
+file request to MT Analytics is needed for B1a.** The earlier note that the source
+was "absent from the working tree" was out of date (FM-09 pattern).
 
 **Input contract (checked before any rebuild).** A file that fails a column is
 not used, and the gap is reported, never filled:
 
 | Month | Expected file | Present | Channel column | Rows | SHA-256 | Accepted |
 |---|---|---|---|---|---|---|
-| Apr'26 | article-wise primary, uncapped | ☐ | ☐ | | | ☐ |
-| May'26 | article-wise primary, uncapped | ☐ | ☐ | | | ☐ |
-| Jun'26 | article-wise primary, uncapped | ☐ | ☐ | | | ☐ |
-| Jul'26 | `July'26 primary and distributor secondary.xlsb` | ☐ | ☐ | | | ☐ |
-| Aug'26 | article-wise primary, uncapped | ☐ | ☐ | | | ☐ |
+| Apr'26 | `primary_article_Apr_26.csv` | ✅ | ✅ 0 blank | 30,757 | `f63066b9…33e45a2` | ✅ ₹5,076.86 L = fyx |
+| May'26 | `primary_article_May_26.csv` | ✅ | ✅ 0 blank | 19,399 | `0c10f2d6…cac95c6` | ✅ ₹4,415.74 L = fyx |
+| Jun'26 | `primary_article_Jun_26.csv` | ✅ | ✅ 0 blank | 23,192 | `1de0ad86…d516d121d` | ✅ ₹4,167.38 L = fyx |
+| Jul'26 | `primary_article_Jul_26.csv` | ✅ | ✅ 0 blank | 31,355 | `497e55d2…1720545e` | ✅ ₹4,921.31 L = fyx |
+| Aug'26 | `primary_article_Aug_26.csv` | ✅ | ✅ 0 blank | 19,070 | `959124f7…5f3b686` | ✅ ₹3,658.30 L = fyx |
+
+Checked 2026-09-27 on `main` `b9dcdc9`. Full SHA-256 values are in the commit that
+filled this table. Channel split (₹ L): MT 21,075.63 · EB2B 1,080.68 · SIS 83.27 —
+the same split `mt_channel_reconciliation.py` reports.
 
 Accepted = present, has `Channel`, parses, month matches THE ONE FY RULE (FY27),
 and its all-channel NSV ties to `detail_meta.fyx_primary` for that month. The
@@ -124,23 +132,15 @@ check.
 > Decision owner will be recorded as "MT Leadership".
 > Thanks
 
-**Ready-to-send — MT Analytics**
-
-> Subject: Files needed — FY27 article-wise primary, Apr–Aug'26
->
-> Hi,
-> To correct the MT zone totals we need the full (uncapped) article-wise primary
-> files for Apr, May, Jun, Jul and Aug 2026, with the Channel column included —
-> the same files used for the FY27 dashboard build. Please share them in the
-> usual D: drive location.
-> Thanks
+**MT Analytics — no request needed.** The files are already in the repo (above).
+Ask only if a month's source is re-issued or corrected.
 
 **Agent prompt — once both arrive**
 
 > CB-01 inputs have arrived: MT Leadership confirmed Option <A/B/C> — or agreed
 > that Nykaa (FSN) shows as PENDING_DECISION outside MT until B1b is decided —
 > (owner "MT Leadership", date <date>), and the FY27 article-wise primary files for Apr–Aug'26
-> are in <path>. On a fresh branch from `main`: (1) snapshot the FY25/FY26 blocks
+> are in `PowerBI/RawDataFolders/Primary_Article_Monthly/` (already tracked). On a fresh branch from `main`: (1) snapshot the FY25/FY26 blocks
 > of `dashboard/data.js`; (2) in `scripts/build_dashboard_data.py` apply
 > `Channel == 'MT'` before any zone aggregation and route Nykaa (FSN) per the
 > confirmed option; (3) rebuild FY27 only with the documented partial-refresh
