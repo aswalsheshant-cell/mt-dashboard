@@ -368,5 +368,19 @@
       "filename": "MT Team incentive structure - FY 26-27 (2).eml",
       "sha256": "58ececba55e2402f6fdabfb1cf72391fe95f1a0613ba3e31c4a85d535d3332e8"
     }
-  ]
+  ],
+  "q1_target_lineage_review": {
+    "file": "Q1 Incentive for MT team.xlsx",
+    "sha256": "228d95cd62b55a25df3df929f9f6ad5911882d225a04b6a7e8ef2165ca5c9bdf",
+    "sheet": "Raw_Data",
+    "range": "A3:L111",
+    "period": "FY27 Q1: 2026-04-01 through 2026-06-30",
+    "scope": "Historical target/chase relationship, aggregate Analyst-NKAM arithmetic tie-outs and coverage exceptions; no approval or payout certification",
+    "hash_status": "USER_SUPPLIED_NOT_RECOMPUTED (workbook not in repo; recompute when the local file is available)"
+  },
+  "rkam_channel_scope_amendment": {
+    "source": "Stated by the MT Channel Analyst Lead on 2026-09-27 after the FY27 Q1 review",
+    "rule": "Exclude EB2B and SIS targets and actuals for RKAM family overall primary and emerging brands; retain in NKAM",
+    "status": "Working scope rule; to be recorded through the existing incentive decision procedure. Not MT Leadership or Finance approval; no decision register entry changed"
+  }
 }

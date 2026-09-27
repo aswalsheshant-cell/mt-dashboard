@@ -29,3 +29,7 @@ Add employee names only to restricted outputs when needed. Do not publish per-pe
 Track per-component statuses and coverage counts before aggregating. Designation summaries group only matching component/basis/unit/period scopes. Do not sum percentages, add different measures, or average individual achievement percentages. Show ready/blocked/not-eligible counts independently of valid-zero counts. Summary outputs may contain no private person-level information when shared broadly.
 
 Store records in the existing restricted incentive_working area or approved private output path. Version source hashes, policy and calculation logic; reruns with identical inputs must be identical apart from run metadata. Changes to prior periods generate an amendment trail instead of rewriting the certified result.
+
+## Channel scope evidence
+
+For RKAM primary overall/emerging tracking retain Channel_Scope_Rule, Canonical_Channel, Source_Channel_Field, Target_Scope_Already_Filtered, Eligible_Target, Eligible_Actual, EB2B_Excluded_Target/Actual, SIS_Excluded_Target/Actual, Unresolved_Channel_Target/Actual and exclusion evidence. Apply the user’s RKAM EB2B/SIS exclusion symmetrically; preserve NKAM inclusion. These are logical fields mapped to the existing output contract, not permission to replace its schema.

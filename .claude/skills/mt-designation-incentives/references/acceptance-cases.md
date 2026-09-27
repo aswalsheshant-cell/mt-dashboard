@@ -26,3 +26,14 @@ Run these on synthetic data when extending the tracker/calculator. This list is 
 | Candidate evidence known only from a chat | Request durable source reference; do not mark approved/paid |
 
 Test each accepted slab at, immediately below and immediately above every boundary using the approved precision; test missing grades, joins, exclusions and returns. Reconcile the full population, not just matched rows. Keep source-to-rule-to-result evidence. Changes affecting Excel or Power BI additionally need their actual calculation-engine checks.
+
+## RKAM EB2B/SIS scope cases
+
+1. Exclude both channels from RKAM target and actual for overall and emerging, but retain them for NKAM.
+2. An already excluded target is not reduced again.
+3. Unknown channel mapping or missing target split stays unresolved.
+4. Emerging subset plus channel filter excludes EB2B/SIS even for an emerging brand.
+5. Excluded-channel returns remain in the excluded signed total.
+6. Historical unfiltered RKAM percentages are not presented as corrected results.
+7. Analyst is not automatically given the RKAM exclusion.
+8. Summing BDO/BDE + RKAM + NKAM + Analyst into a company total fails (`ROLE_VIEW_NON_ADDITIVITY`).

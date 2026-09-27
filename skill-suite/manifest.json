@@ -181,7 +181,7 @@
     },
     {
       "name": "mt-designation-incentives",
-      "version": "1.0.0",
+      "version": "1.1.1",
       "source": "skills/mt-designation-incentives",
       "dependencies": [],
       "handoffs": [
