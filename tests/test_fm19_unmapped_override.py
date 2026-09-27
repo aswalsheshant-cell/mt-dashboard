@@ -111,11 +111,17 @@ def test_split_override_fails_loudly(tmp_path):
 
 
 def test_repo_override_file_rows_are_single_chain_and_documented():
+    # Contract extended 2026-09-27: two evidence columns added so an owner
+    # decision that disagrees with the EAN-affinity inference is recorded in
+    # governed data, not only in a PR description.
     p = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "PrimaryAllocationOverride.csv"
     ov = pd.read_csv(p)
-    assert list(ov.columns) == ["Month", "Ship To Name", "Chain", "Brand", "Override Cont%", "Remarks"]
+    assert list(ov.columns) == ["Month", "Ship To Name", "Chain", "Brand", "Override Cont%", "Remarks",
+                                "Evidence_Alignment", "Evidence_Reference"]
     assert (ov["Override Cont%"] == 100).all()
-    assert ov["Remarks"].str.contains("Approved").all()
+    assert ov["Remarks"].apply(lambda r: bool(bd.OVERRIDE_APPROVAL.search(str(r)))).all()
+    assert set(ov["Evidence_Alignment"]) <= {"AGREES", "CONFLICTS", "NO_INDEPENDENT_EVIDENCE"}
+    assert ov["Evidence_Reference"].notna().all()
 
 
 def test_mapping_health_lists_only_still_unmapped_proposals(tmp_path):
@@ -132,3 +138,35 @@ def test_mapping_health_lists_only_still_unmapped_proposals(tmp_path):
     mh = bd.mapping_health_block(df, alloc=alloc, repo_root=tmp_path)
     assert [p["ship_to"] for p in mh["proposals"]] == ["Still Unmapped Dist"]
     assert mh["proposals_already_mapped_count"] == 1
+
+
+@pytest.mark.parametrize("remark", [None, "", "looks right", "Approved:", "Approved: owner"])
+def test_override_without_approval_evidence_fails_closed(tmp_path, remark):
+    ov = _override(tmp_path, [["2026-08", "Gamma Agencies", "Apollo", "BBLUNT", 100, remark]])
+    with pytest.raises(SystemExit):
+        _run(tmp_path, ov)
+
+
+def test_override_file_without_remarks_column_fails_closed(tmp_path):
+    p = tmp_path / "PrimaryAllocationOverride.csv"
+    pd.DataFrame([["2026-08", "Gamma Agencies", "Apollo", "BBLUNT", 100]],
+                 columns=["Month", "Ship To Name", "Chain", "Brand", "Override Cont%"]).to_csv(p, index=False)
+    with pytest.raises(SystemExit):
+        _run(tmp_path, p)
+
+
+def test_nearest_month_cont_split_beats_an_override(tmp_path):
+    # Alpha/Mamaearth has cont% data for Apr only; a Jun row resolves to the
+    # nearest month (Apr, 2 months away). An override for Jun must not win.
+    df = _df()
+    df.loc[0, "Month"] = "Jun'26"
+    df.loc[0, "_M"] = "June"
+    ov = _override(tmp_path, [["2026-06", "Alpha Distributors", "Apollo", "Mamaearth", 100,
+                               "Approved: owner 2026-09-27"]])
+    w, rs = _wdf()
+    out, alloc = bd.allocate_dist_primary(df, w, rs, source_label="test",
+                                          output_dir=tmp_path / "out", override_csv=ov)
+    got = _chain_nsv(out)
+    assert ("Alpha Distributors", "Mamaearth", "Apollo") not in got
+    assert got[("Alpha Distributors", "Mamaearth", "DMart")] == pytest.approx(70.0)
+    assert alloc["override_applied_rows"] == 0

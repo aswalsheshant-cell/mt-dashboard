@@ -5494,6 +5494,12 @@ def _write_ean_affinity_proposal(proposal_rows, output_dir=None):
     return len(proposal_rows), "PowerBI/SeedData/Mapping/EanAffinity_ResidualProposal.csv"
 
 
+# Approval evidence an override row must carry before it can execute:
+# "Approved: <owner role / reference> <YYYY-MM-DD>". Same fail-closed idea as
+# the AssumptionTable gate -- a well-formed row alone is not an approval.
+OVERRIDE_APPROVAL = re.compile(r"\bApproved:\s*\S.*?\b\d{4}-\d{2}-\d{2}\b", re.IGNORECASE)
+
+
 def _load_unmapped_overrides(path=None):
     """FM-19: owner-approved chain overrides from PrimaryAllocationOverride.csv,
     as {(ship_to_lower, brand_lower, 'YYYY-MM'): chain}.
@@ -5502,8 +5508,8 @@ def _load_unmapped_overrides(path=None):
     applies ONLY to a (Ship To, Brand, Month) key that the cont% sheet cannot
     map at all (neither exact nor nearest month). It never re-points NSV the
     sheet already splits. Only single-chain (100%) overrides are supported;
-    a split, a duplicate key or a missing column stops the build instead of
-    being guessed."""
+    a split, a duplicate key, a missing column or a row without approval
+    evidence in Remarks stops the build instead of being guessed."""
     if path is None:
         path = (Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData"
                 / "Masters" / "PrimaryAllocationOverride.csv")
@@ -5512,7 +5518,7 @@ def _load_unmapped_overrides(path=None):
         return {}
     ov = pd.read_csv(path, dtype=str)
     ov.columns = [str(c).strip() for c in ov.columns]
-    need = {"Month", "Ship To Name", "Chain", "Brand", "Override Cont%"}
+    need = {"Month", "Ship To Name", "Chain", "Brand", "Override Cont%", "Remarks"}
     if not need <= set(ov.columns):
         raise SystemExit(f"{path.name} is missing column(s) {sorted(need - set(ov.columns))} (FM-19).")
     ov = ov.dropna(how="all")
@@ -5522,6 +5528,10 @@ def _load_unmapped_overrides(path=None):
     if not (pct == 100).all():
         raise SystemExit(f"{path.name}: only single-chain overrides (Override Cont% = 100) are "
                          "supported; a split needs its own approved rule (FM-19).")
+    unapproved = ~ov["Remarks"].fillna("").astype(str).map(lambda r: bool(OVERRIDE_APPROVAL.search(r)))
+    if unapproved.any():
+        raise SystemExit(f"{path.name}: {int(unapproved.sum())} row(s) lack approval evidence in Remarks "
+                         "('Approved: <reference> <YYYY-MM-DD>') -- not executed (FM-19).")
     st = ov["Ship To Name"].astype(str).str.strip().str.lower()
     bl = ov["Brand"].astype(str).str.strip().str.lower()
     pm = pd.to_datetime(ov["Month"], errors="coerce").dt.strftime("%Y-%m")
