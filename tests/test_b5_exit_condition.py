@@ -29,8 +29,20 @@ EXPENSE = ROOT / "PowerBI/SeedData/Masters/PL_Expense_Input.csv"
 
 
 def _b5_section(text):
+    """From '## B5' to the next heading: every line up to '## B6', so leftover
+    text after a table separator ('|---|') cannot hide outside the check."""
     start = text.index("## B5")
-    return text[start:text.index("\n---", start)]
+    return text[start:text.index("\n## ", start + 1)]
+
+
+def test_b5_section_has_no_superseded_case1_condition():
+    b5 = _b5_section(PACK.read_text(encoding="utf-8"))
+    for stale in ("run the CASE 1 block alone", "Both as expected",
+                  "Cases 2–4 of the CM2 file wait for B3", "CM2 Case 1 as expected"):
+        assert stale not in b5, f"superseded B5 wording still present: {stale!r}"
+    assert b5.count("**Exit condition.**") == 1, "B5 must state exactly one exit condition"
+    row = next(l for l in PACK.read_text(encoding="utf-8").splitlines() if l.startswith("| B5 |"))
+    assert "Cases 2–8" in row and "BLOCKED_PENDING_DESKTOP_EVIDENCE" in row
 
 
 def test_run_sheet_cases_exist_in_governed_files():

@@ -364,17 +364,6 @@ attached to the B5 PR. A result reported only in chat does not close B5. Any
 FAIL keeps B5 open as a defect; the expectation is never re-worded to fit a
 result.
 
----|---|---|---|
-| CM2 Case 1 | `tests/powerbi/cm2_availability_cases.dax` | DAX Studio (or DAX query view) on the Desktop model; run the CASE 1 block alone | RowsLoaded, ExpenseLoaded, CM2, CM2Pct = BLANK; NSV = a real number |
-| FY parser | `tests/powerbi/pq39_fy_parser_cases.pq` | Transform data → New Source → Blank Query → Advanced Editor → paste; delete the query afterwards | `Failures` step returns **0 rows** |
-
-**Exit condition.** Both as expected, **with durable evidence**: a screenshot of
-each result (attached to the B5 PR as a comment) or the copied output saved as a
-small text file under `docs/evidence/`, with date, model/`main` commit and the
-exact values. A result reported only in chat is recorded as "PASS reported,
-evidence pending" and does not close B5. Cases 2–4 of the CM2 file wait for B3
-data.
-
 ---
 
 ## B6 — Incentive V1 business decisions
