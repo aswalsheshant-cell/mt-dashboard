@@ -1820,24 +1820,48 @@ in
 //   Visibility_Lakh  — visibility spend
 //   Total_Claim_Lakh — sum of all above
 //
-// Companion queries (same folder, same refresh cycle):
-//   claim_master_brand_AprJun_2026.csv    → loaded in 45b_ClaimBrand
-//   claim_master_distributor_AprJun_2026.csv → loaded in 45c_ClaimDistributor
+// Only claim_master_chain_*.csv is read. The same folder also holds the brand
+// and distributor claim files; combining the whole folder would add their
+// totals to this chain fact. Only the six components are unpivoted:
+// Total_Claim_Lakh is their sum, and the chain CSV's extra Entity /
+// Amount_Lakh columns repeat it, so unpivoting them would count every claim
+// twice in SUM('Fact Claim Master'[Amount_Lakh]).
+// (Defect fix 2026-09-27, sibling of the #261 fix to 44_Fact_SecondarySales:
+// the query previously passed a column list as fnCombineFolder's HeaderRow
+// number argument and used a "\PowerBI\RawDataFolders" path under
+// pRootFolder, which already points at the PowerBI folder - see 00_Parameters.pq.)
 //
-// Refresh: drop a new quarterly CSV into ClaimMaster_Quarterly/ → Refresh.
+// The brand file has a commented example query below; no distributor-claim
+// query exists in this kit.
+//
+// Refresh: drop a new claim_master_chain_<period>.csv into ClaimMaster_Quarterly/ → Refresh.
 // =====================================================================
 let
-    Source = fnCombineFolder(
-        pRootFolder & "\PowerBI\RawDataFolders\ClaimMaster_Quarterly",
-        {"Period", "FY_Year", "Quarter", "Chain", "Source_Chain",
-         "Chain_Promo_Lakh", "Rate_Diff_Lakh", "Freight_Lakh",
-         "Incentive_Lakh", "Off_Invoice_Lakh", "Visibility_Lakh",
-         "Total_Claim_Lakh"}
-    ),
+    IdColumns = {"Period", "FY_Year", "Quarter", "Chain", "Source_Chain"},
+    ExpenseComponents = {"Chain_Promo_Lakh", "Rate_Diff_Lakh", "Freight_Lakh",
+                         "Incentive_Lakh", "Off_Invoice_Lakh", "Visibility_Lakh"},
+    RequiredColumns = IdColumns & ExpenseComponents & {"Total_Claim_Lakh"},
 
-    // Filter to chain-level file pattern
-    ChainOnly = Table.SelectRows(Source, each
-        Table.RowCount(Table.SelectRows(Source, each [Chain] <> null)) > 0),
+    // ── Chain claim files only (name filter before parsing) ─────────
+    Files = Folder.Files(pRootFolder & "\RawDataFolders\ClaimMaster_Quarterly"),
+    ChainFiles = Table.SelectRows(Files, each
+        Text.StartsWith(Text.Lower([Name]), "claim_master_chain_")
+        and Text.Lower([Extension]) = ".csv"),
+
+    Parsed = Table.AddColumn(ChainFiles, "Data", each
+        let
+            t = Table.PromoteHeaders(
+                    Csv.Document([Content], [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+                    [PromoteAllScalars=true])
+        in
+            // drops Entity / Amount_Lakh; a renamed header fails the refresh
+            Table.SelectColumns(t, RequiredColumns, MissingField.Error)),
+
+    Source =
+        if Table.RowCount(Parsed) = 0 then
+            #table(RequiredColumns, {})
+        else
+            Table.Combine(Parsed[Data]),
 
     Typed = Table.TransformColumnTypes(Source, {
         {"Period",            type text},
@@ -1854,9 +1878,8 @@ let
         {"Total_Claim_Lakh",  type number}
     }),
 
-    // ── Unpivot to long form: Chain × Expense_Category × Amount ────
-    Unpivoted = Table.UnpivotOtherColumns(Typed,
-        {"Period", "FY_Year", "Quarter", "Chain", "Source_Chain"},
+    // ── Unpivot the six components only (never Total_Claim_Lakh) ──
+    Unpivoted = Table.Unpivot(Typed, ExpenseComponents,
         "Expense_Category_Raw", "Amount_Lakh"),
 
     // ── Clean category names (strip "_Lakh" suffix) ─────────────────
@@ -1888,19 +1911,23 @@ in
 //   45b_ClaimBrand
 // ─────────────────────────────────────────────────────────────────────
 // let
-//     Source = fnCombineFolder(
-//         pRootFolder & "\PowerBI\RawDataFolders\ClaimMaster_Quarterly",
-//         {"Period","FY_Year","Quarter","Brand",
-//          "Apr_Lakh","May_Lakh","Jun_Lakh","Total_Lakh"}
-//     ),
+//     Files = Folder.Files(pRootFolder & "\RawDataFolders\ClaimMaster_Quarterly"),
+//     BrandFiles = Table.SelectRows(Files, each
+//         Text.StartsWith(Text.Lower([Name]), "claim_master_brand_")
+//         and Text.Lower([Extension]) = ".csv"),
+//     Source = Table.Combine(List.Transform(BrandFiles[Content], each
+//         Table.SelectColumns(Table.PromoteHeaders(Csv.Document(_,
+//             [Delimiter=",", Encoding=65001]), [PromoteAllScalars=true]),
+//             {"Period","FY_Year","Quarter","Brand",
+//              "Apr_Lakh","May_Lakh","Jun_Lakh","Total_Lakh"}, MissingField.Error))),
 //     Typed = Table.TransformColumnTypes(Source,{
 //         {"Period",type text},{"FY_Year",type text},{"Quarter",type text},
 //         {"Brand",type text},{"Apr_Lakh",type number},
 //         {"May_Lakh",type number},{"Jun_Lakh",type number},
 //         {"Total_Lakh",type number}
 //     }),
-//     Unpivoted = Table.UnpivotOtherColumns(Typed,
-//         {"Period","FY_Year","Quarter","Brand"},"Month_Key","Amount_Lakh"),
+//     Unpivoted = Table.Unpivot(Typed,        // months only, never Total_Lakh
+//         {"Apr_Lakh","May_Lakh","Jun_Lakh"},"Month_Key","Amount_Lakh"),
 //     WithMonth = Table.AddColumn(Unpivoted,"Month_Label", each
 //         if [Month_Key]="Apr_Lakh" then "Apr-2026"
 //         else if [Month_Key]="May_Lakh" then "May-2026"
