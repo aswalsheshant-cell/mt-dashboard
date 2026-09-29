@@ -36,7 +36,7 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 | B2 | #120 → #119 — historical Primary chain backfill | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
 | B3 | #229 — CM2 expense load (HOLD) | Finance + MT Leadership | Nykaa SS treatment, Tnsi chain, full Jul/Aug register, coverage label, scope of other costs | Rebuilt from current `main`; CM2 shows its expense coverage; all checks green |
 | B4 | Power BI P&L assumptions, Jun–Aug'26 | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
-| B5 | Power BI Desktop runtime checks | MT Channel Analyst Lead (Windows) | Two manual runs | CM2 Case 1 as expected; FY parser `Failures` = 0 rows |
+| B5 | Power BI Desktop runtime checks — `BLOCKED_PENDING_DESKTOP_EVIDENCE` | MT Channel Analyst Lead (Windows) | One Desktop session per `docs/evidence/B5_RUN_SHEET.md` | FY parser `Failures` = 0 rows; CM2 Cases 2–8 on the current model as expected (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0); durable evidence file |
 | B6 | Incentive V1 business decisions | MT Leadership, Finance, MT Ops, HR | Decisions (a)–(e) + target basis, C1–C6, caps, proration | Every decision recorded; no payout calculated before that |
 
 Not a blocker: issue #194 (`github-advanced-security` fails with a GitHub-side
@@ -330,20 +330,39 @@ run `scripts/check_assumption_coverage.py` and the gate, open a draft PR and sto
 
 ## B5 — Power BI Desktop runtime checks
 
-CI checks the structure of the DAX and Power Query; only Power BI Desktop can run
-them. Two runs on the Windows machine:
+**Status: `BLOCKED_PENDING_DESKTOP_EVIDENCE`.** CI checks the structure of the DAX
+and Power Query; only Power BI Desktop can run them.
 
-| Check | File | How | Expected |
-|---|---|---|---|
-| CM2 Case 1 | `tests/powerbi/cm2_availability_cases.dax` | DAX Studio (or DAX query view) on the Desktop model; run the CASE 1 block alone | RowsLoaded, ExpenseLoaded, CM2, CM2Pct = BLANK; NSV = a real number |
-| FY parser | `tests/powerbi/pq39_fy_parser_cases.pq` | Transform data → New Source → Blank Query → Advanced Editor → paste; delete the query afterwards | `Failures` step returns **0 rows** |
+**Exit condition changed 2026-09-29 (owner decision, B5 only).** The original
+condition was CM2 Case 1 plus the FY parser. Case 1 ("no expense rows, CM2
+BLANK") describes the model as it was before #229 (`6b49e3a`). #229
+(`3aa6895`) loaded 64 real expense rows (₹1,274.71 L, Apr–Aug 2026), so on the
+current model Case 1's precondition no longer exists. The Case 1 PASS reported
+on `6b49e3a` stays on record as `PASS_REPORTED_EVIDENCE_NOT_RETAINED`; it is
+not re-run and not counted towards closure. B5 is now judged on the current
+model:
 
-**Exit condition.** Both as expected, **with durable evidence**: a screenshot of
-each result (attached to the B5 PR as a comment) or the copied output saved as a
-small text file under `docs/evidence/`, with date, model/`main` commit and the
-exact values. A result reported only in chat is recorded as "PASS reported,
-evidence pending" and does not close B5. Cases 2–4 of the CM2 file wait for B3
-data.
+| Check | File | Expected (from the governed test file) |
+|---|---|---|
+| FY parser | `tests/powerbi/pq39_fy_parser_cases.pq` | `Failures` step returns **0 rows** |
+| CM2 Case 2 | `tests/powerbi/cm2_availability_cases.dax` | months with expense: `CM2 = NSV − Expense`; months without: Expense and CM2 BLANK; no `FAIL` rows |
+| CM2 Case 3 | same | `Unmapped > 0`, Mapped BLANK, CM2 BLANK — or `NOT_EXERCISED` if the model has 0 unmapped rows (count recorded) |
+| CM2 Case 4 | same | chains with expense: `ChainCM2 = NSV − ChainExpense`; without: both BLANK; `Violations` = 0 |
+| CM2 Case 5 | same | **`Leak` = 0** |
+| CM2 Case 6 | same | FY26 Expense and CM2 BLANK; FY27 Expense = mapped part of the ₹1,274.71 L load |
+| CM2 Case 7 | same | **`BrandLeak` = 0** and **`CategoryLeak` = 0** |
+| CM2 Case 8 | same | **`Violations` = 0** |
+
+Step-by-step procedure, per-case PASS rules and load cross-checks:
+`docs/evidence/B5_RUN_SHEET.md`.
+
+**Exit condition.** Every check above as expected, **with durable evidence**: the
+filled-in copy of `docs/evidence/B5_EVIDENCE_TEMPLATE.md` saved as
+`docs/evidence/B5_powerbi_runtime_<date>.md` (commit SHA, Desktop version,
+model file, expected vs actual, PASS/FAIL per case), plus a screenshot per step
+attached to the B5 PR. A result reported only in chat does not close B5. Any
+FAIL keeps B5 open as a defect; the expectation is never re-worded to fit a
+result.
 
 ---
 
