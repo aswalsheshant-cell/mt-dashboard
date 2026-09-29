@@ -4952,6 +4952,12 @@ def insights_block(primary, offtake, pnl, universe, promo, same_period=None):
         primary[f"nsv_{_cf}"] = same_period["curr"]
         primary[f"nsv_{_pf}"] = same_period["prev"]
         primary["fy_tags"] = [_pf, _cf]
+        # Brand mix needs the same re-base: the pre-aggregated by_brand only
+        # carries its own FYs, so without this the Portfolio-mix card read the
+        # current FY as 0 and said "Mamaearth is 0% of MT primary".
+        if same_period.get("by_brand"):
+            primary["by_brand"] = [{"name": r["name"], _cf: r["curr"], _pf: r["prev"]}
+                                   for r in same_period["by_brand"]]
         _win = f" ({'+'.join(same_period.get('months') or [])} like-for-like)"
     pc = {c["name"]: c for c in primary["by_chain"]}
     oc = {c["name"]: c for c in offtake["by_chain"]}
@@ -5030,11 +5036,11 @@ def insights_block(primary, offtake, pnl, universe, promo, same_period=None):
                             f"(₹{ppsk:.1f} L/store) — large headroom to lift productivity per door."})
     # 7. Brand mix
     bm = sorted(primary["by_brand"], key=lambda d: -(d.get(_curr_fy) or 0))
-    if bm:
+    if bm and (bm[0].get(_curr_fy) or 0) > 0:     # no current-FY brand value -> no card, never "0%"
         lead = bm[0]
         bshare = (lead.get(_curr_fy) or 0) / (primary.get(f"nsv_{_curr_fy}") or 1) * 100
         ins.append({"type": "watch", "title": "Portfolio mix",
-                    "text": f"{lead['name']} is {bshare:.0f}% of {_prev_fy.upper()}-{_curr_fy.upper()} MT primary. "
+                    "text": f"{lead['name']} is {bshare:.0f}% of {_curr_fy.upper()} MT primary{_win}. "
                             f"Scale Aqualogica / The Derma Co to broaden the portfolio in MT."})
     # 8. Forecast headline handled in forecast tab
     return ins
