@@ -913,13 +913,19 @@ function buildExecutiveCockpit(){
      <div class="tag">${i.type==='win'?'Opportunity':i.type==='risk'?'Risk':'Watch'}</div>
      <h4>${i.title}</h4><p>${i.text}</p></div>`).join('');
 
-  // Build way forward recommendations
+  // Build way forward recommendations. Brand share and store count come from
+  // data.js (same-period brand contribution, universe active stores) -- they
+  // used to be typed in as "~83%" (an FY26-only figure) and "12,000+" (no source).
+  const _spB=(D.detail_meta&&D.detail_meta.same_period&&D.detail_meta.same_period.by_brand||[])[0];
+  const _spFy=(D.detail_meta&&D.detail_meta.same_period&&D.detail_meta.same_period.curr_fy)||'';
+  const _brandMix=_spB&&_spB.nsv_contribution_pct!=null?`${_spB.name} is ${Math.round(_spB.nsv_contribution_pct)}% of ${_spFy} MT primary`:'MT primary is concentrated in one brand';
+  const _nStores=D.universe&&D.universe.active_stores!=null?`${num(D.universe.active_stores)} active stores in the MT universe`:'Active MT stores';
   const wf=[
     `<b>Defend the core, grow the mid-tier:</b> protect Dmart &amp; Reliance with assured fill-rate and visibility while pushing Apollo, Nykaa and Wellness Forever to reduce top-2 concentration.`,
     `<b>Sell-in to sell-out discipline:</b> use the Primary-vs-Offtake gap as a monthly control — tighten ordering where primary &gt; offtake, accelerate refills where offtake &gt; primary.`,
-    `<b>Broaden the portfolio:</b> Mamaearth is ~83% of MT primary — set explicit MT targets for Aqualogica &amp; The Derma Co to de-risk single-brand dependence.`,
+    `<b>Broaden the portfolio:</b> ${_brandMix} — set explicit MT targets for Aqualogica &amp; The Derma Co to de-risk single-brand dependence.`,
     `<b>Trade-spend ROI:</b> review the deepest gross-to-net chains and promo-heavy accounts against offtake lift; redeploy from low-ROI promos to high-velocity SKUs.`,
-    `<b>Activate distribution:</b> 12,000+ active stores — lift throughput per door in under-productive chains via assortment and planogram compliance before adding new doors.`,
+    `<b>Activate distribution:</b> ${_nStores} — lift throughput per door in under-productive chains via assortment and planogram compliance before adding new doors.`,
     `<b>Zone playbook:</b> back the fastest-growing zones (East/North offtake) with targeted JBPs while arresting any declining scaled accounts.`,
   ].map(x=>`<li>${x}</li>`).join('');
 
@@ -4395,7 +4401,12 @@ function show(id){
 (function init(){
   document.getElementById('hTitle').textContent=D.meta.title;
   document.getElementById('hPeriod').textContent=D.meta.period;
-  const _genAt=D.meta&&D.meta.generated_at?` | Built: ${D.meta.generated_at}`:'';
+  // meta.generated_at is stamped only by a full rebuild; the partial-refresh
+  // modes that load newer months leave it alone. Say what it is, and show the
+  // latest month the data actually carries next to it.
+  const _mcX=Object.values((D.detail_meta&&D.detail_meta.fyx_primary)||{}).map(v=>v&&v.months_canon||[]).filter(m=>m.length).pop();
+  const _thru=_mcX?` | Primary data through: ${_mcX[_mcX.length-1]}`:'';
+  const _genAt=(D.meta&&D.meta.generated_at?` | Last full build: ${D.meta.generated_at}`:'')+_thru;
   const _fyR=D.meta&&D.meta.fy_range?` | ${D.meta.fy_range}`:'';
   document.getElementById('foot').innerHTML=`${D.meta.unit_note}<br>Source: ${D.meta.source}${_fyR}${_genAt}`;
   const nav=document.getElementById('nav');
