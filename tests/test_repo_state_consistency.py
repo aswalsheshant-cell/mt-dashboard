@@ -35,6 +35,13 @@ def _pr_numbers(line):
 def test_registry_shape():
     open_nums = {p["number"] for p in STATE["open_prs"]}
     assert not open_nums & set(STATE["merged_prs"]), "a PR cannot be both open and merged"
+    superseded = {p["number"]: p for p in STATE.get("closed_superseded", [])}
+    assert not open_nums & set(superseded), "a PR cannot be both open and closed-superseded"
+    assert not set(STATE["merged_prs"]) & set(superseded), "a superseded PR was closed, not merged"
+    for n, p in superseded.items():
+        succ = p["superseded_by"]
+        assert succ in open_nums or succ in STATE["merged_prs"], f"#{n}'s successor #{succ} is neither open nor merged"
+        assert p.get("branch_kept"), f"#{n}: record the evidence branch that was kept"
     for p in STATE["open_prs"]:
         assert p["status"] in {"HOLD", "FROZEN_EVIDENCE", "READY", "BLOCKED"}, p
         assert p.get("blocker") and p.get("reason"), f"#{p['number']} needs a blocker and a reason"
@@ -59,9 +66,10 @@ def test_next_approved_task_lists_exactly_the_open_prs():
 
 def test_merged_prs_never_called_open_or_hold_in_current_text():
     current = _section(PS, "## Next Approved Task") + _section(PACK, "## Summary")
-    for n in STATE["merged_prs"]:
+    closed = list(STATE["merged_prs"]) + [p["number"] for p in STATE.get("closed_superseded", [])]
+    for n in closed:
         for bad in (rf"#{n}\s*\(HOLD\)", rf"#{n}\s*—[^|\n]*\(HOLD\)", rf"#{n}\s+HOLD"):
-            assert not re.search(bad, current), f"#{n} is merged but current-state text calls it HOLD"
+            assert not re.search(bad, current), f"#{n} is closed but current-state text calls it HOLD"
 
 
 def test_blocker_pack_rows_match_registry():

@@ -11,7 +11,7 @@
 # BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
 
 as_of: "2026-09-30"
-main_snapshot: 5bedeeb72bf80f53949f71af22ecb0b0c054f08b   # main when this file was last reconciled
+main_snapshot: acd6e6b2bd4c6eb7fa379b5cfda56f347f7ed8dd   # main when this file was last reconciled
 
 # PRs held on a blocker (HOLD / FROZEN_EVIDENCE). Short-lived fix PRs under
 # review are not listed: they would read stale the moment they merge.
@@ -21,11 +21,6 @@ open_prs:
     frozen_sha: 51487b6d874ba5a63495202c44688cdcfcd65175
     blocker: B2
     reason: "Historical Primary chain backfill evidence; do not rebase or rewrite. Integrate from a fresh main branch only after the #120 owner register is returned."
-  - number: 252
-    status: HOLD
-    blocker: B3
-    stacked_on_merged: 229
-    reason: "Distributor-claim Q1 seed. Base branch is the merged #229 branch; rebuild on current main before review. Finance: monthly timing and Direct DN overlap rule."
   - number: 267
     status: HOLD
     blocker: B3
@@ -38,7 +33,15 @@ open_issues:
     blocker: CB-09
 
 # PRs that are merged. Current-state text must never call these open or HOLD.
-merged_prs: [229, 247, 259, 260, 261, 262, 263, 264]
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266]
+
+# PRs closed WITHOUT merging because another PR replaced them. The branch is kept
+# as evidence. Current-state text must never call these open or HOLD.
+closed_superseded:
+  - number: 252
+    superseded_by: 267
+    closed: "2026-09-30"
+    branch_kept: claude/cm2-distributor-claim-seed
 
 blockers:
   B1:
