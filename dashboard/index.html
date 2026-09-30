@@ -1420,11 +1420,11 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     // Guardrail #3: Canvas instantiation with state tracking
     // Primary Sales Trend: draw the series chosen above
     const _trendCol=[C.teal,C.amber,C.blue||C.teal];
+    // mkLine() returns nothing; the chart is tracked in charts[] for destroyCharts()
     if(_trend.length){
-      const lc=mkLine('chanPrimTrend',_stdM,_trend.map((t,i)=>({
+      mkLine('chanPrimTrend',_stdM,_trend.map((t,i)=>({
         label:`${t.tag} (${t.first} to ${t.last})`,data:t.data,
         borderColor:_trendCol[i%_trendCol.length],backgroundColor:_trendCol[i%_trendCol.length]+'22'})));
-      channelDynamicsState.charts.trend=lc;
     }
 
     const dc = mkDonut('chanChanSplit',validChannels.map(c=>c.name),validChannels.map(c=>c[primYr]),true);
