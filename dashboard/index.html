@@ -687,7 +687,7 @@ async function exportPageImage(format){
   header.innerHTML=`<div style="font-size:20px;font-weight:800;color:#1F2933;font-family:Aptos,'Segoe UI',Calibri,sans-serif">
       ${(D.meta&&D.meta.title)||'MT Leadership Dashboard'} — ${tabLabel(currentTab)}</div>
     <div style="font-size:12px;color:#6b7682;margin-top:4px">Active filters: ${activeFiltersSummary()}</div>
-    <div style="font-size:11px;color:#6b7682;margin-top:2px">${D.meta&&D.meta.period||''}</div>`;
+    <div style="font-size:11px;color:#6b7682;margin-top:2px">${dataPeriodLabel()}</div>`;
   const footer=document.createElement('div');
   footer.style.cssText='margin-top:16px;border-top:1px solid #e4e0d8;padding-top:8px;font-size:10.5px;color:#6b7682';
   footer.textContent=`Source: MT Dashboard | Exported on ${ts.human} | ${DASH_VERSION}`;
@@ -946,7 +946,7 @@ function buildExecutiveCockpit(){
     }
   }
   s.innerHTML = `<h2 class="sec">Executive Cockpit</h2>
-   <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.</p>
+   <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:dataPeriodLabel()} · Modern Trade · All values ₹ Crore unless noted.</p>
    ${dimNote}
    <div class="kpis">
      ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':_SPC?`${_SPC.curr_fy} to date ${crc(_SPC.curr)} · <span class="${cls(_SPC.yoy_pct)}">${arrow(_SPC.yoy_pct)} ${pct(_SPC.yoy_pct)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'prior-year baseline not in source')
@@ -1271,7 +1271,7 @@ function buildChannelDynamics(){
   const tabNav=subviews.map(sv=>`<button class="subview-tab ${sv===channelDynamicsState.subview?'active':''}" data-subview="${sv}">${subviewLabels[sv]}</button>`).join('');
 
   s.innerHTML=`<h2 class="sec">Channel & Chain Performance</h2>
-   <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:D.meta.period} · Modern Trade · All values ₹ Crore unless noted.${augWarning}</p>
+   <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:dataPeriodLabel()} · Modern Trade · All values ₹ Crore unless noted.${augWarning}</p>
    <div style="border-bottom:1px solid var(--line);display:flex;gap:8px;padding-bottom:8px;margin-bottom:16px;flex-wrap:wrap">${tabNav}</div>
    <div id="channel-subview-content"></div>`;
 
@@ -1383,6 +1383,28 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
       const cumPct=sum>0?(100*_running/sum):0;
       return `<tr><td>${i+1}</td><td>${drillLink('Chain',c.name)}</td><td>${crc(v)}</td><td>${cumPct.toFixed(1)}%</td></tr>`;
     }).join('');
+    // Primary Sales Trend series: one line per FY that has monthly Primary,
+    // from the block that owns that FY -- pre-aggregated primary.monthly_fyNN
+    // for FYs it covers, detail_meta.fyx_primary (FPX) for later FYs. With an
+    // FY filter only that FY is drawn. The subtitle is built from what is
+    // plotted: it used to carry a fixed FY25-to-FY27 range over an FY26-only line
+    // in every filter state, while the FY27 months sat unused in FPX.
+    const _stdM=D.primary.month_labels||['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
+    const _trendAll=FY_ALL.map(tag=>{
+      const pre=(D.primary['monthly_'+tag.toLowerCase()]||[]);
+      if(pre.some(v=>v)) return {tag,data:pre.map(v=>v==null?null:v),first:fyStartMonth(tag,0),last:fyStartMonth(tag,pre.length-1)};
+      const fx=FPX(tag);
+      if(fx&&fx.months_canon&&fx.months_canon.length){
+        const byM={}; fx.months_canon.forEach((m,i)=>{byM[m]=(fx.monthly_canon||[])[i];});
+        const data=_stdM.map((_,i)=>{const v=byM[fyStartMonth(tag,i)]; return v==null?null:v;});
+        return {tag,data,first:fx.months_canon[0],last:fx.months_canon[fx.months_canon.length-1]};
+      }
+      return null;
+    }).filter(Boolean);
+    const _trend=fy?_trendAll.filter(t=>t.tag.toLowerCase()===fy):_trendAll;
+    const _trendSub=_trend.length
+      ?_trend.map(t=>`${t.tag} (${t.first} to ${t.last})`).join(' vs ')+' · ₹ by month'
+      :`No monthly Primary in source for ${fyTag()||'this selection'}`;
     content.innerHTML=`
       ${fallbackDisclaimer}
       ${granularityDisclaimer}
@@ -1390,54 +1412,19 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
       ${card('Cumulative Rank & Running Total (by Chain)','Same figures as above, ranked with running % of total NSV',`<table class="tbl"><thead><tr><th>Rank</th><th>Chain</th><th>${yrLab[primYr]||primYr}</th><th>Cumulative %</th></tr></thead><tbody>${rankRows}</tbody></table>`)}
       ${card(`Channel Split (${yrLab[primYr]||primYr})`,`${validChannels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
       <div class="grid g2">
-        ${card('Primary Sales Trend','FY25 to FY27 trajectory',cv('chanPrimTrend'))}
+        ${_trend.length?card('Primary Sales Trend',_trendSub,cv('chanPrimTrend')):card('Primary Sales Trend',_trendSub,'<p class="lead">Primary billing extracts in this repo start Apr\'25 (FY26); FY25 has Distributor Secondary only. See docs/DATA_AVAILABILITY_MATRIX.md.</p>')}
         ${card('Channel Contribution','% share by channel',cv('chanChanSplit',true))}
       </div>`;
     wireDrillLinks(content);
 
     // Guardrail #3: Canvas instantiation with state tracking
-    const o=D.offtake;
-    const _fp27 = FPX('FY27');
-    const _fy27pri = {};
-    if (_fp27 && _fp27.months_canon) {
-      _fp27.months_canon.forEach((m, i) => { _fy27pri[m] = (_fp27.monthly_canon || [])[i]; });
-    }
-    // Primary Sales Trend: show available FYs
-    const has_fy26 = (D.primary.monthly_fy26 || []).some(v => v);
-    const has_fy27 = (D.primary.monthly_fy27 || []).some(v => v);
-
-    let trendSeries = [];
-
-    if (has_fy26 || has_fy27) {
-      // Use standard 12-month calendar (Apr-Mar) for month labels
-      const stdMonths = D.primary.month_labels || ['April','May','June','July','Aug','Sept','Oct','Nov','Dec','Jan','Feb','March'];
-
-      if (has_fy26) {
-        trendSeries.push({
-          label:'FY26 (Apr-25 to Mar-26)',
-          data: D.primary.monthly_fy26 || [],
-          borderColor: C.teal,
-          backgroundColor: C.teal+'22'
-        });
-      }
-
-      if (has_fy27) {
-        trendSeries.push({
-          label:'FY27 (Actual to date)',
-          data: D.primary.monthly_fy27 || [],
-          borderColor: C.amber,
-          backgroundColor: C.amber+'22'
-        });
-      }
-
-      if (trendSeries.length > 0) {
-        const lc = mkLine('chanPrimTrend', stdMonths, trendSeries);
-        channelDynamicsState.charts.trend = lc;
-      }
-    } else {
-      // No primary data available
-      const emptyMsg = '<p class="lead">Primary sales data not available for this period.</p>';
-      content.innerHTML += card('Primary Sales Trend','No data', emptyMsg);
+    // Primary Sales Trend: draw the series chosen above
+    const _trendCol=[C.teal,C.amber,C.blue||C.teal];
+    // mkLine() returns nothing; the chart is tracked in charts[] for destroyCharts()
+    if(_trend.length){
+      mkLine('chanPrimTrend',_stdM,_trend.map((t,i)=>({
+        label:`${t.tag} (${t.first} to ${t.last})`,data:t.data,
+        borderColor:_trendCol[i%_trendCol.length],backgroundColor:_trendCol[i%_trendCol.length]+'22'})));
     }
 
     const dc = mkDonut('chanChanSplit',validChannels.map(c=>c.name),validChannels.map(c=>c[primYr]),true);
@@ -3797,6 +3784,13 @@ function recFilter(except){
 // correctly show 0 records for it.
 const FYX=(D.detail_meta&&D.detail_meta.fyx_primary)||{};
 function fyNum(t){ return parseInt(String(t).slice(2),10)||0; }  // 'FY27' -> 27
+// i-th month (0 = April) of an FY tag as 'Mon-YY', by THE ONE FY RULE:
+// FY27 starts Apr-26, so i=0 -> 'Apr-26', i=9 -> 'Jan-27'.
+function fyStartMonth(tag,i){
+  const M=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const y=fyNum(tag)-1+(i>=9?1:0);
+  return M[i]+'-'+String(y).padStart(2,'0');
+}
 // Display label: 'FY25' -> "FY25"; 'FY26' -> "FY26"; 'FY27' -> "FY27" (simpler, clearer for business use)
 function fyDispLabel(tag){
   if(tag==null||tag==='') return '';
@@ -3809,6 +3803,21 @@ const PREAGG_FYS=(function(){
   return [...s];
 })();
 const FY_ALL=[...new Set([...PREAGG_FYS,...Object.keys(FYX)])].sort((a,b)=>fyNum(a)-fyNum(b));
+// Header / lead period, derived from what data.js actually carries: the FY span
+// of Primary and Offtake and the latest month of each. It replaces meta.period,
+// whose fixed zone-month count ("FY25–27 (N zone-months)") was written once by the
+// deprecated scripts/sync_data_js.py and never refreshed by the builder.
+function dataPeriodLabel(){
+  const offFys=Object.keys(D.offtake||{}).filter(k=>/^total_fy\d\d$/.test(k)).map(k=>'FY'+k.slice(-2));
+  const fys=[...new Set([...FY_ALL,...offFys])].sort((a,b)=>fyNum(a)-fyNum(b));
+  const span=fys.length>1?`${fys[0]}–${fys[fys.length-1]}`:(fys[0]||'');
+  const last=a=>a&&a.length?a[a.length-1]:null;
+  const pTag=[...FY_ALL].reverse().find(t=>FPX(t)&&(FPX(t).months_canon||[]).length);
+  const pm=pTag?last(FPX(pTag).months_canon):null;
+  const om=last(D.offtake&&D.offtake.months);
+  const parts=[span,pm&&`Primary through ${pm}`,om&&`Offtake through ${om}`].filter(Boolean);
+  return parts.length?parts.join(' · '):((D.meta&&D.meta.fy_range)||'–');
+}
 function optsFor(key){
   if(key==='FY') return FY_ALL;
   const recs=REC;  // Use full REC instead of recFilter(key) to ensure all unique values appear (e.g., Central zone from any FY)
@@ -4400,7 +4409,7 @@ function show(id){
 }
 (function init(){
   document.getElementById('hTitle').textContent=D.meta.title;
-  document.getElementById('hPeriod').textContent=D.meta.period;
+  document.getElementById('hPeriod').textContent=dataPeriodLabel();
   // meta.generated_at is stamped only by a full rebuild; the partial-refresh
   // modes that load newer months leave it alone. Say what it is, and show the
   // latest month the data actually carries next to it.
