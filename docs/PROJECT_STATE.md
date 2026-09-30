@@ -79,7 +79,7 @@ this file or the blocker pack contradicts it.
 B5 Power BI Desktop checks, B6 incentive decisions) or fixes a newly reproduced
 defect is merged. Closed as outside the certified scope (branches kept): #129, #130,
 #135, #136 (superseded by #243, #238, #240, #237) and #134, #165, #168, #169, #170.
-Open PRs now: #119 (frozen evidence, gated on #120) and #252 (HOLD: Finance; stacked on the already-merged MT Direct DN branch, to be rebuilt on current `main`). Open issues: #120, #194.
+Open PRs held on blockers: #119 (frozen evidence, gated on #120), #252 (HOLD: stacked on the already-merged MT Direct DN branch; superseded for review) and #267 (HOLD: Finance; #252 rebuilt on current `main`). Open issues: #120, #194.
 
 **B5 — `BLOCKED_PENDING_DESKTOP_EVIDENCE` (exit condition changed 2026-09-29, owner decision).**
 History: on 2026-09-27 the MT Channel Analyst Lead reported CM2 Case 1 and the FY parser

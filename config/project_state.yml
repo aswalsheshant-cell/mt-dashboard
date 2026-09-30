@@ -13,6 +13,8 @@
 as_of: "2026-09-30"
 main_snapshot: 5bedeeb72bf80f53949f71af22ecb0b0c054f08b   # main when this file was last reconciled
 
+# PRs held on a blocker (HOLD / FROZEN_EVIDENCE). Short-lived fix PRs under
+# review are not listed: they would read stale the moment they merge.
 open_prs:
   - number: 119
     status: FROZEN_EVIDENCE
@@ -24,6 +26,10 @@ open_prs:
     blocker: B3
     stacked_on_merged: 229
     reason: "Distributor-claim Q1 seed. Base branch is the merged #229 branch; rebuild on current main before review. Finance: monthly timing and Direct DN overlap rule."
+  - number: 267
+    status: HOLD
+    blocker: B3
+    reason: "#252 rebuilt on current main (same 4 files; seed byte-identical). Finance: monthly timing and Direct DN overlap rule."
 
 open_issues:
   - number: 120
@@ -46,7 +52,7 @@ blockers:
   B3:
     state: BLOCKED_EXTERNAL_EVIDENCE
     owner: Finance + MT Leadership
-    needs: "Full Jul/Aug'26 DN register; FY27 CM2 scope; distributor-claim monthly timing and Direct DN overlap rule (#252); Nykaa SS after B1"
+    needs: "Full Jul/Aug'26 DN register; FY27 CM2 scope; distributor-claim monthly timing and Direct DN overlap rule (#267, rebuild of #252); Nykaa SS after B1"
   B4:
     state: BLOCKED_EXTERNAL_EVIDENCE
     owner: Finance

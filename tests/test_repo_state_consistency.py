@@ -49,7 +49,7 @@ def test_registry_shape():
 
 def test_next_approved_task_lists_exactly_the_open_prs():
     nat = _section(PS, "## Next Approved Task")
-    line = next(l for l in nat.splitlines() if l.startswith("Open PRs now:"))
+    line = next(l for l in nat.splitlines() if l.startswith("Open PRs held on blockers:"))
     # each open PR is written "#NNN (status...)"; other #refs on the line are context
     listed = {int(n) for n in re.findall(r"#(\d+) \(", line.split("Open issues")[0])}
     assert listed == {p["number"] for p in STATE["open_prs"]}, f"PROJECT_STATE lists {sorted(listed)}"
