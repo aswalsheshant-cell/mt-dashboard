@@ -7,8 +7,6 @@ import importlib.util
 import sys
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("ghstate", ROOT / "scripts/check_github_state_consistency.py")
 gh = importlib.util.module_from_spec(spec)
