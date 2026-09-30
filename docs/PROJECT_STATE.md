@@ -58,12 +58,15 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`154b370` — PR #244 merged; final certification of the closeout (see "Final
-certification — 2026-09-26" below). Verdict: READY_WITH_GOVERNED_BLOCKERS.
-Validated: 2026-09-26 — every gate re-run fresh on `154b370`; post-merge CI on
-`main` all green; `gh-pages` publishes the same 24 dashboard files.
-Previous: `259135f`, 2026-09-26, closeout stream #225–#241; `a49e998`,
-2026-09-25, production certification.
+`5bedeeb` — PR #264 merged 2026-09-29 (Executive Cockpit portfolio-mix fix).
+Before it, same day: #263 `f91116f` (B5 exit condition), #247 `eba446a`, #262
+`16eaa6e`; 2026-09-27: #261, #260, #259, #229 `3aa6895`. Each merged on the
+owner's direct approval with every required check green on its head.
+Previous certification: `154b370`, 2026-09-26 (see "Final certification —
+2026-09-26" below; its "Open PRs" list is history, not current state).
+Current open PRs, issues and blocker states are machine-readable in
+`config/project_state.yml`; `tests/test_repo_state_consistency.py` fails when
+this file or the blocker pack contradicts it.
 
 > A milestone's own commit hash does not exist while this file is being written
 > for it, so this section is corrected in the **next** commit. Check it against
@@ -72,11 +75,11 @@ Previous: `259135f`, 2026-09-26, closeout stream #225–#241; `a49e998`,
 ## Next Approved Task
 
 **Feature freeze from `f960e1f` (2026-09-27).** Only work that clears a blocker in
-`docs/COMPLETION_BLOCKER_PACK.md` (B1 CB-01, B2 #120/#119, B3 #229, B4 AssumptionTable,
+`docs/COMPLETION_BLOCKER_PACK.md` (B1 CB-01, B2 #120/#119, B3 CM2 expense scope — #229 merged, #252 distributor claims open, B4 AssumptionTable,
 B5 Power BI Desktop checks, B6 incentive decisions) or fixes a newly reproduced
 defect is merged. Closed as outside the certified scope (branches kept): #129, #130,
 #135, #136 (superseded by #243, #238, #240, #237) and #134, #165, #168, #169, #170.
-Open PRs now: #119 (gated on #120) and #229 (HOLD).
+Open PRs held on blockers: #119 (frozen evidence, gated on #120), #252 (HOLD: stacked on the already-merged MT Direct DN branch; superseded for review) and #267 (HOLD: Finance; #252 rebuilt on current `main`). Open issues: #120, #194.
 
 **B5 — `BLOCKED_PENDING_DESKTOP_EVIDENCE` (exit condition changed 2026-09-29, owner decision).**
 History: on 2026-09-27 the MT Channel Analyst Lead reported CM2 Case 1 and the FY parser
@@ -87,7 +90,7 @@ Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–8 on th
 model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0),
 recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
 `docs/evidence/B5_RUN_SHEET.md`. Needs one Power BI Desktop session on Windows.
-Open: B1, B2, B3 (partial CM2 live since #229; closure not yet decided), B4, B5, B6.
+Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims #252 and the rest of CM2 scope wait on Finance), B4, B5, B6.
 
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,
@@ -258,6 +261,9 @@ current `main`, so it cannot be merged or cherry-picked as-is.
 
 ### Production certification — 2026-09-25 (main `a49e998`)
 
+> Historical record as of this section's date. PR and blocker states below are
+> not current -- see "Next Approved Task" and `config/project_state.yml`.
+
 **Verdict: READY_WITH_GOVERNED_BLOCKERS.** Read the status lines separately —
 they are not one "all green":
 
@@ -309,6 +315,9 @@ OPTIONAL_POST_CERTIFICATION.
 
 ### Closeout — 2026-09-26 (main `259135f`)
 
+> Historical record as of this section's date. PR and blocker states below are
+> not current -- see "Next Approved Task" and `config/project_state.yml`.
+
 One fresh branch and one approval per PR; each merged only with the six required
 checks green on the tested head and `main` identical to it afterwards.
 `github-advanced-security` failed on every run with `CAPIError 400 The requested
@@ -351,6 +360,9 @@ Open, owned elsewhere:
 - Issues **#120** (owner register), **#194** (GitHub). #113 closed by #244.
 
 ### Final certification — 2026-09-26 (main `154b370`)
+
+> Historical record as of this section's date. PR and blocker states below are
+> not current -- see "Next Approved Task" and `config/project_state.yml`.
 
 **Verdict: READY_WITH_GOVERNED_BLOCKERS** (unchanged from 2026-09-25). Code,
 tests, CI and deploy: **PASS**. What is left is business input and owner
