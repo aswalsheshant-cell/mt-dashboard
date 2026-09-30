@@ -7725,6 +7725,9 @@ def main():
     _fy_list = data.get("dims", {}).get("FY") or []
     if _fy_list:
         data["meta"]["fy_range"] = f"{_fy_list[0]}–{_fy_list[-1]}" if len(_fy_list) > 1 else _fy_list[0]
+        # period follows the FYs actually built, never a fixed literal (the old
+        # "FY 2024-25 vs FY 2025-26" literal and a fixed zone-month count went stale)
+        data["meta"]["period"] = data["meta"]["fy_range"]
     dg = dist_gap_block(src, _REPO_ROOT)
     if dg is not None:
         data["dist_gap"] = dg

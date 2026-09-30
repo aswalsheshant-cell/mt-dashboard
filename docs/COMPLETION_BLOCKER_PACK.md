@@ -34,8 +34,8 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 |---|---|---|---|---|
 | B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | B1a: OK to show Nykaa as pending (inputs already in repo); B1b: Nykaa option | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking |
 | B2 | #120 → #119 — historical Primary chain backfill | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
-| B3 | #229 — CM2 expense load (HOLD) | Finance + MT Leadership | Nykaa SS treatment, Tnsi chain, full Jul/Aug register, coverage label, scope of other costs | Rebuilt from current `main`; CM2 shows its expense coverage; all checks green |
-| B4 | Power BI P&L assumptions, Jun–Aug'26 | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
+| B3 | CM2 expense scope — MT Direct DN loaded by #229 (merged `3aa6895`, Jul/Aug PARTIAL); distributor claims #252 (HOLD) and other cost heads not loaded | Finance + MT Leadership | Full Jul/Aug DN register; FY27 CM2 scope (indirect claims, field force, COGS, logistics); distributor-claim monthly timing and Direct DN overlap rule; Nykaa SS after B1 | Each in-scope head loaded from an approved source or named as not loaded; no quarterly claim spread to months without an approved basis; FY25/FY26 unchanged; all checks green |
+| B4 | Power BI P&L assumptions, Apr–Aug'26 (Apr/May present but unapproved; Jun–Aug missing) | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
 | B5 | Power BI Desktop runtime checks — `BLOCKED_PENDING_DESKTOP_EVIDENCE` | MT Channel Analyst Lead (Windows) | One Desktop session per `docs/evidence/B5_RUN_SHEET.md` | FY parser `Failures` = 0 rows; CM2 Cases 2–8 on the current model as expected (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0); durable evidence file |
 | B6 | Incentive V1 business decisions | MT Leadership, Finance, MT Ops, HR | Decisions (a)–(e) + target basis, C1–C6, caps, proration | Every decision recorded; no payout calculated before that |
 
@@ -225,7 +225,20 @@ answer. Partial returns are accepted; only the open lines go back.
 
 ---
 
-## B3 — #229: CM2 expense load (HOLD)
+## B3 — CM2 expense scope (MT Direct DN merged via #229; distributor claims #252 on HOLD)
+
+**Current state (2026-09-30).** #229 merged on 2026-09-27 (`3aa6895`) with the
+owner decisions of that day: 64 MT Direct DN rows, ₹1,274.71 L excl. GST,
+Apr–Aug'26; Nykaa (FSN) excluded until CB-01; Tnsi Retail (1100027) = WH-Smith;
+Jul/Aug marked PARTIAL; the P&L tab names the loaded heads and the cost buckets
+not loaded. What remains open is Finance's, below (questions 1 and 3 are
+answered). Distributor claims are PR #252: a Q1 FY27 seed at Quarter × Chain ×
+Expense Head (32 rows, ₹449.77 L), not in CM2, never spread into months without
+real monthly data or a Finance-approved method, and overlapping MT Direct DN on
+four chains (DMart, Reliance, H&G, Apollo; see the #252 PR body).
+#252 is stacked on the merged #229 branch; it is rebuilt on current `main`
+before any review. The history below is kept as written.
+
 
 **What happened.** #229 loads MT Direct debit-note claims: ₹1,274.71 L excl. GST,
 FY27 Apr–Aug'26, 64 rows, reconciled to the paisa against the register's own
@@ -281,7 +294,9 @@ checks green; FY25/FY26 unchanged.
 
 ---
 
-## B4 — Power BI P&L assumptions, Jun–Aug'26
+## B4 — Power BI P&L assumptions, Apr–Aug'26
+
+**Current state (2026-09-30).** `scripts/check_assumption_coverage.py` exits 3: Jun, Jul, Aug'26 MISSING; Apr, May'26 PRESENT_BUT_UNAPPROVED.
 
 **What we need (Finance).** Approved Gross Margin %, Trade Spend %, Visibility
 and Scheme Spend rows for Jun, Jul and Aug 2026 in

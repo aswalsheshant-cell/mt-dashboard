@@ -1,5 +1,12 @@
 # data.js JSON Schema Documentation
 
+> **STALE — do not use as the schema of record (2026-09-30).** Written 2026-08-08 for
+> 14 top-level blocks; `dashboard/data.js` on `main` `5bedeeb` has 32. Block-level
+> descriptions below may still help, but check keys against `data.js` itself and
+> `docs/DATA_MODEL.md` (verified against `data.js`). Regenerating this file is
+> deferred backlog (owner: repo maintainer), not a production defect.
+
+
 **Issued:** 2026-08-08  
 **Scope:** Structure of `window.DASH` object embedded in `dashboard/data.js`  
 **Audience:** Frontend developers, data analysts, Power BI teams  

@@ -378,8 +378,8 @@ Examples:
     if not args.no_pbi_refresh:
         log("INFO", "Power BI PBIX generation trigger (Phase 2.5)")
         log("INFO", "  Note: Requires Windows self-hosted runner + Power BI Desktop 2024.09+")
-        log("INFO", "  [TODO] Sep 5-8: Set up Windows runner")
-        log("INFO", "  [TODO] Sep 10-12: Enable PBIX generation + DAX validation via COM API")
+        log("INFO", "  Windows CI (.github/workflows/pbi-windows-ci.yml) runs the structural checks.")
+        log("INFO", "  DAX/M runtime checks need Power BI Desktop: blocker B5, docs/evidence/B5_RUN_SHEET.md")
 
     log("INFO", "═" * 70)
     log("OK", "Pipeline completed successfully!")

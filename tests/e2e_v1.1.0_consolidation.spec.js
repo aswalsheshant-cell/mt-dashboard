@@ -536,4 +536,44 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     expect(tyTargetText, 'TY Target (FY27) KPI must not read as Rs 0 L when forecast.fy27_forecast is real')
       .not.toMatch(/^(Rs\s*0(\.0)?\s*L|₹0(\.0)?\s*L)$/i);
   });
+  // Found 2026-09-30 in dashboard QC: the Primary Sales Trend card read "FY25 to
+  // FY27 trajectory" in every FY state while it plotted FY26 only, and the FY27
+  // months (detail_meta.fyx_primary) were fetched but never drawn. The header
+  // read "FY25–27 (140 zone-months)", a fixed count from a deprecated script.
+  // The subtitle and header must describe the data actually plotted/loaded.
+  test('TC11 - Primary Sales Trend label and header follow the plotted data (All/FY25/FY26/FY27)', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    const hdr = await page.locator('#hPeriod').innerText();
+    expect(hdr, 'header must not carry a fixed zone-month count').not.toMatch(/zone-month/i);
+    const fyx = await page.evaluate(() => window.DASH.detail_meta.fyx_primary.FY27);
+    expect(hdr).toContain(`Primary through ${fyx.months_canon[fyx.months_canon.length - 1]}`);
+
+    for (const fy of ['', 'FY25', 'FY26', 'FY27']) {
+      const r = await page.evaluate(async (f) => {
+        F.FY = f ? [f] : []; show('channel-dynamics');
+        await new Promise(res => setTimeout(res, 900));
+        const card = [...document.querySelectorAll('#channel-subview-content .card')]
+          .find(c => /Primary Sales Trend/.test(c.innerText));
+        const ch = Chart.getChart('chanPrimTrend');
+        return { text: card ? card.innerText : '',
+                 sets: ch ? ch.data.datasets.map(d => ({ label: d.label, n: d.data.filter(v => v != null).length,
+                                                          sum: d.data.reduce((a, v) => a + (v || 0), 0) })) : [] };
+      }, fy);
+      const tag = fy || 'All';
+      expect(r.text, `${tag}: no hard-coded FY range in the subtitle`).not.toContain('FY25 to FY27');
+      for (const s of r.sets) expect(r.text, `${tag}: subtitle names every plotted series`).toContain(s.label);
+      if (fy === 'FY25') {
+        expect(r.sets.length, 'FY25: no Primary series (no FY25 billing extract in repo)').toBe(0);
+        expect(r.text).toContain('No monthly Primary in source for FY25');
+      } else {
+        const want = fy ? [fy] : ['FY26', 'FY27'];
+        expect(r.sets.map(s => s.label.slice(0, 4)), `${tag}: plotted FYs`).toEqual(want);
+      }
+      const s27 = r.sets.find(s => s.label.startsWith('FY27'));
+      if (s27) {
+        expect(s27.n, 'FY27 plots every month fyx_primary carries').toBe(fyx.months_canon.length);
+        expect(Math.abs(s27.sum - fyx.nsv), 'FY27 series sums to fyx_primary.FY27.nsv').toBeLessThan(0.05);
+      }
+    }
+  });
 });
