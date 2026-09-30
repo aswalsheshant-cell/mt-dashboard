@@ -58,8 +58,9 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-`5bedeeb` — PR #264 merged 2026-09-29 (Executive Cockpit portfolio-mix fix).
-Before it, same day: #263 `f91116f` (B5 exit condition), #247 `eba446a`, #262
+`acd6e6b` — PR #266 merged 2026-09-30 (serializer test stub), after #265 `5ecb582`
+(project-state reconciliation; header and Primary trend labels follow the data).
+2026-09-29: #264 `5bedeeb` (Executive Cockpit portfolio-mix fix); #263 `f91116f` (B5 exit condition), #247 `eba446a`, #262
 `16eaa6e`; 2026-09-27: #261, #260, #259, #229 `3aa6895`. Each merged on the
 owner's direct approval with every required check green on its head.
 Previous certification: `154b370`, 2026-09-26 (see "Final certification —
@@ -75,11 +76,11 @@ this file or the blocker pack contradicts it.
 ## Next Approved Task
 
 **Feature freeze from `f960e1f` (2026-09-27).** Only work that clears a blocker in
-`docs/COMPLETION_BLOCKER_PACK.md` (B1 CB-01, B2 #120/#119, B3 CM2 expense scope — #229 merged, #252 distributor claims open, B4 AssumptionTable,
+`docs/COMPLETION_BLOCKER_PACK.md` (B1 CB-01, B2 #120/#119, B3 CM2 expense scope — #229 merged, distributor claims in #267, B4 AssumptionTable,
 B5 Power BI Desktop checks, B6 incentive decisions) or fixes a newly reproduced
 defect is merged. Closed as outside the certified scope (branches kept): #129, #130,
 #135, #136 (superseded by #243, #238, #240, #237) and #134, #165, #168, #169, #170.
-Open PRs held on blockers: #119 (frozen evidence, gated on #120), #252 (HOLD: stacked on the already-merged MT Direct DN branch; superseded for review) and #267 (HOLD: Finance; #252 rebuilt on current `main`). Open issues: #120, #194.
+Open PRs held on blockers: #119 (frozen evidence, gated on #120) and #267 (HOLD: Finance; distributor-claim seed on current `main`). #252 was closed 2026-09-30 as superseded by #267 (not merged; branch kept). Open issues: #120, #194.
 
 **B5 — `BLOCKED_PENDING_DESKTOP_EVIDENCE` (exit condition changed 2026-09-29, owner decision).**
 History: on 2026-09-27 the MT Channel Analyst Lead reported CM2 Case 1 and the FY parser
@@ -90,7 +91,7 @@ Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–8 on th
 model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0),
 recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
 `docs/evidence/B5_RUN_SHEET.md`. Needs one Power BI Desktop session on Windows.
-Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims #252 and the rest of CM2 scope wait on Finance), B4, B5, B6.
+Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims (#267) and the rest of CM2 scope wait on Finance), B4, B5, B6.
 
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,

@@ -1,0 +1,40 @@
+name: Repo State Consistency
+
+# config/project_state.yml is the machine-readable current state (open / merged /
+# superseded PRs, open issues, blockers). This job checks it against GitHub
+# itself, read-only, so a PR closed or merged without updating the file shows
+# up as a red check instead of silently stale docs. The daily run catches state
+# changes that happen without a push (a PR closed on GitHub).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  repo-state:
+    name: Repo state vs GitHub
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.11"
+      - name: Install PyYAML
+        run: python -m pip install --quiet pyyaml pytest
+      - name: Docs agree with config/project_state.yml
+        run: python -m pytest -q tests/test_repo_state_consistency.py tests/test_github_state_consistency.py
+      - name: config/project_state.yml agrees with GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/check_github_state_consistency.py
