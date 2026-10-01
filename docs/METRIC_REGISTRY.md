@@ -166,6 +166,24 @@ changed here — this section changes no calculation.
 (classified POWER_BI_ONLY above). They have no real input and must stay
 unused until the inputs in this table exist.
 
+## PO fill rate (2026-10-01) — computed in a seed summary, not on the dashboard yet
+
+Source: `po_billing_fill_rate` in `config/data_source_registry.yml`; builder
+`scripts/build_po_fill_rate_summary.py`; outputs in `PowerBI/SeedData/Forecast/`;
+tests `tests/test_po_fill_rate_summary.py`. Business month = SO Date month
+(THE ONE FY RULE). Not in `data.js` or `index.html` yet (feature freeze).
+
+| Measure_ID | Formula | Grain | Missing-value behaviour | Status |
+|---|---|---|---|---|
+| `PO_FILL_RATE_QTY` | `SUM(Billed_Qty) / SUM(PO_Qty) x 100`, billable lines only (ZFOC excluded) | Month x Channel x Customer group x Zone x Chain x Brand x Category | Blank when PO_Qty = 0, never 0 | COMPUTED (Apr'25-Aug'26) |
+| `PO_FILL_RATE_VALUE` | `SUM(Billed_Value_L) / SUM(PO_Value_L) x 100` | as above | as above | COMPUTED |
+| `PO_LINE_FILL_PCT` | `SUM(Lines_Fully_Billed) / SUM(SO_Lines) x 100` | as above | as above | COMPUTED (inputs committed; not yet shown) |
+| `PO_VS_TARGET_PCT` | `PO value / FY27 monthly target x 100`, all channels and MT-only shown separately | Month, total business only | Blank for months with no target | COMPUTED (Apr-Aug'26) |
+| `OTIF` | needs requested-delivery date + delivered date + delivered qty | — | Not shown | NOT AVAILABLE — this extract has neither date |
+
+`PO_VS_TARGET_PCT` compares ordered value with the target; it is not forecast
+accuracy at SKU or chain grain. That needs a demand forecast file at that grain.
+
 ## Cross-references
 
 - `config/data_source_registry.yml` — dataset-level lineage (source path, grain, date
