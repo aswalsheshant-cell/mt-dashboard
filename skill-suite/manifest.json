@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.4.0",
+  "suite_version": "1.5.0",
   "description": "Modern Trade analytics and professional capability skill suite. Canonical source; installed copies are generated artifacts.",
   "targets": {
     "project-codex": ".agents/skills",
@@ -189,6 +189,65 @@
         "business-ai-automation",
         "change-verification",
         "agent-skill-governance"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "mt-dashboard-orchestrator",
+      "version": "1.0.0",
+      "source": "skills/mt-dashboard-orchestrator",
+      "dependencies": [],
+      "handoffs": [
+        "sales-data-reconciliation",
+        "mapping-approval-governor",
+        "change-verification",
+        "pr-deep-review",
+        "business-ai-automation",
+        "data-freshness-coverage",
+        "source-lineage-reproducibility",
+        "session-handoff-recovery",
+        "steward"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "data-freshness-coverage",
+      "version": "1.0.0",
+      "source": "skills/data-freshness-coverage",
+      "dependencies": [],
+      "handoffs": [
+        "sales-data-reconciliation",
+        "business-ai-automation",
+        "change-verification",
+        "source-lineage-reproducibility"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "source-lineage-reproducibility",
+      "version": "1.0.0",
+      "source": "skills/source-lineage-reproducibility",
+      "dependencies": [],
+      "handoffs": [
+        "sales-data-reconciliation",
+        "business-ai-automation",
+        "change-verification",
+        "data-freshness-coverage",
+        "mapping-approval-governor"
+      ],
+      "sha256": {}
+    },
+    {
+      "name": "session-handoff-recovery",
+      "version": "1.0.0",
+      "source": "skills/session-handoff-recovery",
+      "dependencies": [],
+      "handoffs": [
+        "change-verification",
+        "pr-deep-review",
+        "steward",
+        "sales-data-reconciliation",
+        "mapping-approval-governor"
       ],
       "sha256": {}
     }
