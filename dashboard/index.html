@@ -46,7 +46,15 @@
   .up{color:var(--green);font-weight:700}.down{color:var(--red);font-weight:700}
   .grid{display:grid;gap:16px}
   .g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-  @media(max-width:880px){.g2,.g3{grid-template-columns:1fr}}
+  @media(max-width:880px){.g2,.g3{grid-template-columns:minmax(0,1fr)}}
+  /* KPI rows built by Inventory, Demand, Analytics and Store tabs: they used
+     class names with no rules, so values and labels ran together as bare text. */
+  .kpi-row{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;margin:6px 0 18px}
+  .kpi-card{flex:1 1 170px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow)}
+  .kpi-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .kpi-value{font-size:26px;font-weight:800;margin-top:5px;line-height:1.1}
+  .kpi-val{font-size:20px;font-weight:800;margin-right:6px}
+  .kpi-lab{font-size:12px;color:var(--muted)}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
   .card h3{margin:0 0 2px;font-size:14px}
   .card .note{margin:0 0 12px;font-size:12px;color:var(--muted)}
@@ -337,9 +345,12 @@ Chart.defaults.maintainAspectRatio=false;
 // dashboard-wide: below Rs 100 L shows "Rs X.X L", at/above shows "Rs Y.YY Cr" --
 // e.g. crc(75.5)='₹75.5 L', crc(250.17)='₹2.50 Cr', crc(31080)='₹310.80 Cr'.
 const cr = v => v==null?'–':(v/100).toLocaleString('en-IN',{maximumFractionDigits:1});  // raw Cr number, no unit (internal use)
+// Sign before the symbol ('-₹1.95 Cr', not '₹-1.95 Cr'); a value that rounds
+// to zero prints without a sign ('₹0 L', not '₹-0 L').
 const crc = v => { if(v==null) return '–'; const av=Math.abs(v);
-  return av<100 ? '₹'+v.toLocaleString('en-IN',{maximumFractionDigits:1})+' L'
-                : '₹'+(v/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr'; };
+  const body = av<100 ? av.toLocaleString('en-IN',{maximumFractionDigits:1})+' L'
+                      : (av/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr';
+  return (v<0 && !/^0( L)?$/.test(body) ? '-₹' : '₹')+body; };
 const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
 // Deterministic, DOM-safe id fragment from an arbitrary label/value. Every form
@@ -872,9 +883,15 @@ function targetSection(){
        <td>${m.achievement_pct!=null?m.achievement_pct.toFixed(1)+'%':'–'}</td><td>${crc(m.gap)}</td>
        <td>${crc(m.current_run_rate)}</td><td>${crc(m.required_run_rate)}</td><td>${st||'–'}</td></tr>${altRows}</tbody></table></div>`):'';
   const dimNote=m.dim_target_basis?`<p class="note" style="margin:0 0 16px"><b>Zone and chain targets are DERIVED, not business-set.</b> ${m.dim_target_basis}</p>`:'';
-  const dimCard=(dim,label)=>{const rows=(m[dim]||[]).map(r=>Object.assign({_dim:label},r));
-    return rows.length?card(`${label} — target vs achievement (DERIVED split)`,
-      `Sorted by actual. Click to drill.`,
+  // Zone/chain rows carry PRIMARY actuals in every measure (their split is
+  // built from same-period primary), so show them from the primary measure:
+  // target and actual then use one measure. Under an offtake headline they
+  // used to read as offtake (West ₹57.60 Cr primary vs ₹42.71 Cr offtake).
+  const dm=(T.measures.primary&&(T.measures.primary.by_zone||T.measures.primary.by_chain))?T.measures.primary:m;
+  const dmBasis=dm===m?T.basis:'primary';
+  const dimCard=(dim,label)=>{const rows=(dm[dim]||[]).map(r=>Object.assign({_dim:label},r));
+    return rows.length?card(`${label} — target vs achievement (DERIVED split, ${dmBasis} basis)`,
+      `Sorted by actual. Click to drill.${dmBasis!==T.basis?` Actuals here are ${dmBasis}; the ${T.basis} headline above has no zone/chain split for this window.`:''}`,
       `<div class="tablewrap"><table><thead><tr><th>${label}</th><th>Target</th><th>Actual</th><th>Ach%</th><th>Gap</th><th>Contrib%</th></tr></thead>
        <tbody>${targetRows(rows)}</tbody></table></div>`):'';};
   return `<h2 class="sec" style="margin-top:32px">Target, Achievement &amp; Run Rate</h2>
@@ -907,6 +924,12 @@ function buildExecutiveCockpit(){
   if(fOn('Channel')) channels=channels.filter(c=>fHas('Channel',c.name));
   const primYr=fy&&primOk?fy:'fy26', offYr=fy&&offOk?fy:'fy26';
   const dimNote=dimUnsupportedNote(['Category','SubCategory','Range','PackSize','Article'],'the Executive Cockpit aggregates (see Category & Pack)');
+  // Offtake KPI follows the Chain filter from offtake.by_chain (ties to
+  // total_fyNN); it used to show the all-chain total labelled "filtered scope".
+  const _offChainSel=fOn('Chain')?(o.by_chain||[]).filter(c=>fHas('Chain',c.name)):null;
+  // KPI cards, trend and target tables have no zone/brand/channel/state split;
+  // say so instead of silently showing the all-MT number.
+  const dimNote2=dimUnsupportedNote(['Month','Zone','State','Brand','Channel'],'the Cockpit KPI cards, trend and target tables (the channel donut and drill chart do apply it)');
 
   // Build insights cards
   const insightCards=D.insights.map(i=>`<div class="icard ${i.type}">
@@ -947,11 +970,11 @@ function buildExecutiveCockpit(){
   }
   s.innerHTML = `<h2 class="sec">Executive Cockpit</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:dataPeriodLabel()} · Modern Trade · All values ₹ Crore unless noted.</p>
-   ${dimNote}
+   ${dimNote}${dimNote2}
    <div class="kpis">
-     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':_SPC?`${_SPC.curr_fy} to date ${crc(_SPC.curr)} · <span class="${cls(_SPC.yoy_pct)}">${arrow(_SPC.yoy_pct)} ${pct(_SPC.yoy_pct)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'prior-year baseline not in source')
+     ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':fOn('Chain')?'selected chain(s)':_SPC?`${_SPC.curr_fy} to date ${crc(_SPC.curr)} · <span class="${cls(_SPC.yoy_pct)}">${arrow(_SPC.yoy_pct)} ${pct(_SPC.yoy_pct)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'prior-year baseline not in source')
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
-     ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(o['total_'+offYr]||0),fy?'filtered scope':_offSP!=null?`${_SPC.curr_fy} to date ${crc(o['total_'+String(_SPC.curr_fy).toLowerCase()])} · <span class="${cls(_offSP)}">${arrow(_offSP)} ${pct(_offSP)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'sell-out')
+     ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(_offChainSel?_offChainSel.reduce((a,c)=>a+(c[offYr]||0),0):(o['total_'+offYr]||0)),_offChainSel?'selected chain(s)':fy?'selected FY':_offSP!=null?`${_SPC.curr_fy} to date ${crc(o['total_'+String(_SPC.curr_fy).toLowerCase()])} · <span class="${cls(_offSP)}">${arrow(_offSP)} ${pct(_offSP)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'sell-out')
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
      ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
@@ -961,7 +984,7 @@ function buildExecutiveCockpit(){
        : kpi('FY27 Forecast','–','forecast data not yet loaded')}
    </div>
    <div class="grid g2">
-     ${card(`Primary vs Offtake — monthly trend (${fyDispLabel('FY25')} → ${fyDispLabel('FY27')})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('cockpitTrend'))}
+     ${card(`Primary vs Offtake — monthly trend (${(D.offtake.months||[])[0]||'–'} to ${(D.offtake.months||[]).slice(-1)[0]||'–'})`,'Sell-in (primary) tracks sell-out (offtake); gaps flag inventory build-up or refill need. <span class="drillhint">Click a chain/channel/brand chart on any tab to filter this view.</span>',cv('cockpitTrend'))}
      ${card(`Channel split (${yrLab[primYr]} primary)`,'MT is the core; EB2B &amp; SIS are emerging. · click to drill',cv('cockpitChannel',true))}
    </div>
    ${drillCardHtml('cockpitDrill','Primary NSV')}
@@ -970,25 +993,24 @@ function buildExecutiveCockpit(){
    <div class="ins">${insightCards}</div>
    ${card('Recommended Actions','Prioritised for the next planning cycle.',`<ol class="wf">${wf}</ol>`)}`;
 
-  // Build Primary series for cockpit trend chart
-  const _fp27ov = FPX('FY27');
-  const _fy27pri = {};
-  if (_fp27ov && _fp27ov.months_canon) {
-    _fp27ov.months_canon.forEach((m, i) => { _fy27pri[m] = (_fp27ov.monthly_canon || [])[i]; });
-  }
-  const _prim25Arr = o.months.map((m, i) => i < 12 ? ((p.monthly_fy25 || [])[i] || null) : null);
-  const _prim26_27Arr = o.months.map((m, i) => {
-    if (i < 11) return null;
-    if (i === 11) return (p.monthly_fy25 || [])[11] ?? null;
-    if (i < 24) return (p.monthly_fy26 || [])[i - 12] ?? null;
-    return (_fy27pri[m] !== undefined) ? _fy27pri[m] : null;
+  // Primary series for the cockpit trend, keyed by calendar month ('Apr-25').
+  // It used to map offtake.months by position assuming they start at Apr-24;
+  // they start at Apr-25, so FY26 Apr-Aug primary was drawn at Apr-Aug-26 and
+  // FY27 primary never appeared. Each FY now comes from the block that owns it
+  // (pre-aggregated monthly_fyNN, else detail_meta.fyx_primary), matched by label.
+  const _primByM={};
+  FY_ALL.forEach(tag=>{
+    const pre=p['monthly_'+tag.toLowerCase()]||[];
+    if(pre.some(v=>v)){ pre.forEach((v,i)=>{ if(v!=null) _primByM[fyStartMonth(tag,i)]=v; }); return; }
+    const fx=FPX(tag);
+    if(fx&&fx.months_canon) fx.months_canon.forEach((m,i)=>{ const v=(fx.monthly_canon||[])[i]; if(v!=null) _primByM[m]=v; });
   });
+  const _primArr=o.months.map(m=>_primByM[m]!==undefined?_primByM[m]:null);
   // Sell-out line only when offtake.monthly is genuinely offtake (see
   // OFFTAKE_MONTHLY_OK). Drawing primary twice under two labels is worse than
   // showing primary alone with the reason stated.
   const _cockpitSeries=[
-    {label:`Primary ${fyDispLabel('FY25')}`,data:_prim25Arr,borderColor:C.blue,dash:[5,4]},
-    {label:'Primary FY25-27',data:_prim26_27Arr,borderColor:C.teal,backgroundColor:C.teal+'22'},
+    {label:'Primary (sell-in)',data:_primArr,borderColor:C.teal,backgroundColor:C.teal+'22'},
   ];
   if(OFFTAKE_MONTHLY_OK){
     _cockpitSeries.unshift({label:'Offtake (sell-out)',data:o.monthly,
@@ -1081,7 +1103,7 @@ function buildDemandPlanning(){
   // target. f.ty_target kept as a first try in case a future build ever adds
   // a distinct field under that name.
   const tyTarget=f.ty_target||f.fy27_forecast||0, fy26Actual=f.fy26_actual||0, gap=tyTarget-fy26Actual;
-  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">TY Target (FY27)</div><div class="kpi-value">${crc(tyTarget)}</div></div><div class="kpi-card"><div class="kpi-label">FY26 Actual</div><div class="kpi-value">${crc(fy26Actual)}</div></div><div class="kpi-card"><div class="kpi-label">Gap (Cr)</div><div class="kpi-value" style="color:${gap>0?'#2D9B7F':'#C0392B'}">${crc(gap)}</div></div><div class="kpi-card"><div class="kpi-label">Required Growth %</div><div class="kpi-value">${gap>0?(gap/fy26Actual*100).toFixed(1)+'%':'–'}</div></div></div>`;
+  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the forecast, promo and market-share sources')}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">TY Target (FY27)</div><div class="kpi-value">${crc(tyTarget)}</div></div><div class="kpi-card"><div class="kpi-label">FY26 Actual</div><div class="kpi-value">${crc(fy26Actual)}</div></div><div class="kpi-card"><div class="kpi-label">Gap (Cr)</div><div class="kpi-value" style="color:${gap>0?'#2D9B7F':'#C0392B'}">${crc(gap)}</div></div><div class="kpi-card"><div class="kpi-label">Required Growth %</div><div class="kpi-value">${gap>0?(gap/fy26Actual*100).toFixed(1)+'%':'–'}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['forecast','promo','market-share'];
@@ -1199,10 +1221,12 @@ function buildDemandPlanning(){
         const corrRows=corr.rows.map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${c.depth.toFixed(1)}%</td><td>${c.sellThrough.toFixed(1)}%</td><td>${num(c.promos)}</td></tr>`).join('');
         const rLabel=corr.r==null?'–':corr.r.toFixed(2);
         const rStrength=corr.r==null?'':Math.abs(corr.r)>=0.5?'moderate-to-strong':Math.abs(corr.r)>=0.3?'weak-to-moderate':'weak';
-        content.innerHTML+=card('Promo Depth vs. Sell-Through — Correlation',
+        // insertAdjacentHTML, not innerHTML+=: re-parsing content detached the
+        // scatter canvas drawn above, leaving a blank 300px box.
+        content.insertAdjacentHTML('beforeend',card('Promo Depth vs. Sell-Through — Correlation',
           `Pearson r = ${rLabel} across ${corr.n} chain(s) with both a promo depth and a matched Primary/Offtake pair (${corr.fy?corr.fy.toUpperCase():'–'})`,
           `<table class="tbl"><thead><tr><th>Chain</th><th>Avg Promo Depth %</th><th>Sell-Through % (Offtake/Primary)</th><th>Promo lines</th></tr></thead><tbody>${corrRows}</tbody></table>
-           <p class="note"><b>Correlation, not causation:</b> this measures whether chains with deeper average promo depth also show higher sell-through this period — it does not isolate promo effect from base demand, seasonality or other drivers, and ROI still isn't computable (spend/uplift aren't in the promo source). ${corr.r==null?'r is not meaningful below 5 matched chains.':`r indicates a ${rStrength} relationship.`}</p>`);
+           <p class="note"><b>Correlation, not causation:</b> this measures whether chains with deeper average promo depth also show higher sell-through this period — it does not isolate promo effect from base demand, seasonality or other drivers, and ROI still isn't computable (spend/uplift aren't in the promo source). ${corr.r==null?'r is not meaningful below 5 matched chains.':`r indicates a ${rStrength} relationship.`}</p>`));
         wireDrillLinks(content);
       }
     }else if(sv==='market-share'){
@@ -1371,7 +1395,10 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     // show, so the rows add up to the FY total.
     const rows27=sorted.filter(c=>(c[primYr]||0)!==0||fOn('Chain')).map(c=>`<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c[primYr])}</td></tr>`).join('');
     const sum=sorted.reduce((a,c)=>a+(c[primYr]||0),0);
-    const chRows=validChannels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${sum>0?(100*(ch[primYr]||0)/sum).toFixed(1):'–'}%</td></tr>`).join('');
+    // Share of the channels' own total: dividing by the chain sum gave 251.7%
+    // with Chain=DMart, because the channel rows are not chain-filtered.
+    const chSum=validChannels.reduce((a,c)=>a+(c[primYr]||0),0);
+    const chRows=validChannels.map(ch=>`<tr><td>${ch.name}</td><td>${crc(ch[primYr])}</td><td>${chSum>0?(100*(ch[primYr]||0)/chSum).toFixed(1):'–'}%</td></tr>`).join('');
     // Cumulative Rank & Running Total: same rows/order as "Top Chains" above,
     // extended with rank and running % of total -- the SQL RANK()/SUM() OVER()
     // pattern documented in docs/mt_sql_cookbook.sql. Reuses `sorted`/`sum`
@@ -1408,9 +1435,10 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     content.innerHTML=`
       ${fallbackDisclaimer}
       ${granularityDisclaimer}
+      ${dimUnsupportedNote(['Zone','State','Brand'],'the chain Primary tables and trend')}
       ${card('Top Chains by Primary NSV',`${sorted.length} chains`,`<table class="tbl"><thead><tr><th>Chain</th><th>${yrLab[primYr]||primYr}</th></tr></thead><tbody>${rows27}</tbody></table>`)}
       ${card('Cumulative Rank & Running Total (by Chain)','Same figures as above, ranked with running % of total NSV',`<table class="tbl"><thead><tr><th>Rank</th><th>Chain</th><th>${yrLab[primYr]||primYr}</th><th>Cumulative %</th></tr></thead><tbody>${rankRows}</tbody></table>`)}
-      ${card(`Channel Split (${yrLab[primYr]||primYr})`,`${validChannels.length} channels`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
+      ${card(`Channel Split (${yrLab[primYr]||primYr})`,`${validChannels.length} channels${dimUnsupportedNote(['Chain','Zone','Brand','State'],'the channel split')}`,`<table class="tbl"><thead><tr><th>Channel</th><th>NSV</th><th>Share</th></tr></thead><tbody>${chRows}</tbody></table>`)}
       <div class="grid g2">
         ${_trend.length?card('Primary Sales Trend',_trendSub,cv('chanPrimTrend')):card('Primary Sales Trend',_trendSub,'<p class="lead">Primary billing extracts in this repo start Apr\'25 (FY26); FY25 has Distributor Secondary only. See docs/DATA_AVAILABILITY_MATRIX.md.</p>')}
         ${card('Channel Contribution','% share by channel',cv('chanChanSplit',true))}
@@ -1529,17 +1557,31 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
     // sub-view always showed "No Reliance records" regardless of filter.
     const recs=recFilter('Brand');
     const reliance=recs.filter(r=>r.Chain==='Reliance Retail');
-    if(!reliance.length) {content.innerHTML=card('Reliance Brand Counter','No Reliance records','<p class="lead">Select a timeframe that includes Reliance sales.</p>');return;}
+    if(!reliance.length) {content.innerHTML=card('Reliance Brand Counter','No Reliance records',fOn('Chain')&&!fHas('Chain','Reliance Retail')?'<p class="lead">The Chain filter excludes Reliance Retail. Add it to the Chain filter or clear the filter.</p>':'<p class="lead">Select a timeframe that includes Reliance sales.</p>');return;}
     const byzone={};
     reliance.forEach(r=>{const z=r.Zone||'Unknown';if(!byzone[z]) byzone[z]={nsv:0,stores:0};byzone[z].nsv+=r.NSV||0;});
     const zoneRows=Object.entries(byzone).sort((a,b)=>b[1].nsv-a[1].nsv).map(([zone,{nsv}])=>`<tr><td>${drillLink('Zone',zone)}</td><td>${crc(nsv)}</td></tr>`).join('');
     // Phase 2: Add toggle control for Brand Counter view mode
     const toggleHtml=getRelianceBCToggleHtml();
+    // Brand Counter view: the staffed-counter offtake breakout (D.reliance_bc),
+    // for the selected FY. The toggle used to restyle its buttons only; both
+    // views showed the same Primary table.
+    const bc=D.reliance_bc||{};
+    const bcKey=fy||null;
+    const bcZones=(bc.by_zone||[]).map(z=>({name:z.name,v:bcKey?z[bcKey]:z.total})).filter(z=>z.v!=null&&z.v!==0).sort((a,b)=>b.v-a.v);
+    const bcTotal=bcKey?bc['total_'+bcKey]:bc.total;
+    const bcRows=bcZones.map(z=>`<tr><td>${z.name}</td><td>${crc(z.v)}</td></tr>`).join('');
+    const bcCard=bcZones.length
+      ?card('Reliance Brand Counter offtake by zone',`${bcKey?yrLab[bcKey]||bcKey.toUpperCase():'All FYs'} · total ${crc(bcTotal)} · already inside Reliance offtake, never added again`,`<table class="tbl"><thead><tr><th>Zone</th><th>BC offtake (Cr)</th></tr></thead><tbody>${bcRows}</tbody></table>`)
+      :card('Reliance Brand Counter offtake by zone','No Brand Counter offtake in source for this FY','<p class="lead">Brand Counter data covers '+((bc.fy_tags||[]).map(t=>String(t).toUpperCase()).join(', ')||'–')+'.</p>');
     content.innerHTML=`
       ${toggleHtml}
-      ${card('Reliance by Zone',`${reliance.length} Reliance transactions`,`<table class="tbl"><thead><tr><th>Zone</th><th>NSV (Cr)</th></tr></thead><tbody>${zoneRows}</tbody></table>`)}`;
+      ${dimUnsupportedNote(['Brand'],'this Reliance view')}
+      <div id="bcMacroView" style="display:${relianceBCViewMode==='ba'?'none':'block'}">${card('Reliance Primary NSV by Zone (all doors)',`${reliance.length} Reliance billing rows (Primary, article-level detail)`,`<table class="tbl"><thead><tr><th>Zone</th><th>NSV (Cr)</th></tr></thead><tbody>${zoneRows}</tbody></table>`)}</div>
+      <div id="bcBAView" style="display:${relianceBCViewMode==='ba'?'block':'none'}">${bcCard}</div>`;
     wireDrillLinks(content);
     wireRelianceBCToggle(); // Phase 2: Wire up the toggle buttons
+    if(relianceBCViewMode==='ba'){ const b=document.getElementById('bcBABtn'); if(b) b.onclick(); }  // keep the chosen view across re-renders
   }
 }
 
@@ -1578,7 +1620,7 @@ function buildInventoryHealth(){
   // "not built yet", not as "filtered to zero" like the KPIs beside it.
   const _doiVal=(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'Not computed';
   const _otifVal=(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'Not computed';
-  s.innerHTML=`<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
+  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage'];
@@ -2263,7 +2305,7 @@ function buildPnl(){
    ${dimNote}
    <div class="kpis">
      ${kpi('Gross MRP Value',crc(totMrp),fOn('Chain')?'filtered scope':fyDispLabel(plFy)+', all chains')}
-     ${kpi('Net NSV',crc(totNsv),'realised revenue')}
+     ${kpi('Net NSV',crc(totNsv),`bridge source: partial ${plFy} window from the last full build (months not recorded) · not the ${plFy} Primary to-date total`)}
      ${kpi('MRP→NSV Gap',crc(totMrp-totNsv),totMrp?`${((totMrp-totNsv)/totMrp*100).toFixed(1)}% blended`:'')}
      ${kpi('Promo Lines',D.promo.n_promos,`${D.promo.avg_depth}% avg consumer depth`)}
    </div>
@@ -2277,16 +2319,16 @@ function buildPnl(){
    :`<div class="fynote"><b>${fLab('FY')} actuals not available</b> — the gross-to-net P&amp;L bridge (source: ${fyDispLabel(plFy)} only) —
       intentionally blank instead of a stale ${fyDispLabel(plFy)} number. TOT% and CM2 below still cover their own real coverage.</div>`}
    ${totD?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">Chain-wise TOT% (On-Invoice Margin Pass-on)</h3>
-   <p class="note" style="margin:0 0 10px">${totScopedOk?fyDispLabel(globalFy):'FY26-FY27'}, article-level detail (File 2) — independent source from the FY26-only P&amp;L bridge above.
+   <p class="note" style="margin:0 0 10px">${totScopedOk?fyDispLabel(globalFy):'FY26-FY27'}, article-level detail (File 2) — independent source from the ${plFy} P&amp;L bridge above.
      TOT% = SUM(Pass-on Value) / SUM(MRP), sourced per row: Primary file's own <b>Avg Tot</b> first, actual
      <b>Inv. Tax Amount(LOC)</b> second, GST rate table only as a last-resort fallback. ${totScopedOk?fyDispLabel(globalFy):'Blended'} TOT%
      ${(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)==null?'–':(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'%'} · total pass-on value ${crc(totScopedOk?totScoped.passon_value:totD.total_passon_value)}.
-     ${totScopedOk?'':'The by-chain/by-category tables below are not FY-split; they always show the full FY26-FY27 combined population.'}</p>
+     The by-chain/by-category tables below are not FY-split: they always show the full FY26-FY27 combined population${totScopedOk?`, even with ${fyDispLabel(globalFy)} selected (the figure in this line is ${fyDispLabel(globalFy)}-only)`:''}.</p>
    ${totFyNote}
    ${totBanner}
    <div class="grid g2">
-     ${card('TOT% by chain','Higher = more on-invoice margin passed to the chain. Click a chain to drill.',cv('totChart'))}
-     ${card('Chain-wise TOT% detail','MRP, NSV, Tax and On-Invoice Margin Pass-on Value per chain.',`<div class="tablewrap"><table>
+     ${card('TOT% by chain (FY26-FY27 combined)','Higher = more on-invoice margin passed to the chain. Click a chain to drill.',cv('totChart'))}
+     ${card('Chain-wise TOT% detail (FY26-FY27 combined)','MRP, NSV, Tax and On-Invoice Margin Pass-on Value per chain.',`<div class="tablewrap"><table>
        <thead><tr><th>Chain</th><th>MRP</th><th>NSV</th><th>Tax</th><th>TOT%</th><th>Pass-on Value</th></tr></thead>
        <tbody>${totRows||'<tr><td colspan="6">No chains for this filter.</td></tr>'}</tbody></table></div>`)}
    </div>
@@ -2639,7 +2681,7 @@ function pvmSection(){
   };
   const a=pv.asp||{};
   return `<h2 class="sec" style="margin-top:32px">Price-Volume-Mix — value bridge &amp; drivers</h2>
-   <p class="lead">The detail behind the decomposition chart above. What actually drove the ${crc(pv.delta)} change, ${pv.prev_fy} → ${pv.curr_fy} over ${pv.n_months} months. Decomposed at ${pv.grain.toLowerCase()} grain.</p>
+   <p class="lead">The detail behind the decomposition chart above. What actually drove the ${crc(pv.delta)} change, ${pv.prev_fy} → ${pv.curr_fy} over ${pv.n_months} months.${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the precomputed Price-Volume-Mix bridge')} Decomposed at ${pv.grain.toLowerCase()} grain.</p>
    ${gateNote('pvm')}
    <div class="kpis">
      ${kpi(`${pv.prev_fy} → ${pv.curr_fy}`,crc(pv.delta),`${pct(pv.delta_pct)} on value · ${pct(pv.qty_delta_pct)} on units`)}
@@ -2880,6 +2922,14 @@ function npiJoinCoverage(npd){
   return {total:Object.values(npd.by_fy).reduce((a,r)=>a+r.length,0), unmatched};
 }
 
+// Launch month as a calendar label by THE ONE FY RULE: Apr-Dec of FY27 is
+// 2026 ('Apr-26'), Jan-Mar is 2027. It used to append the FY's own year to
+// every month, so an April FY27 launch read 'April-27'.
+function npiLaunchMonthLabel(month,fy){
+  if(!month||!fy) return '–';
+  const m3=String(month).slice(0,3), jfm=['Jan','Feb','Mar'].includes(m3);
+  return m3+'-'+String(fyNum(fy)-(jfm?0:1)).padStart(2,'0');
+}
 function npiCohortSection(){
   const npd=D.npd;
   if(!npd||!npd.metrics_by_fy||!Object.keys(npd.metrics_by_fy).length) return '';
@@ -2917,7 +2967,7 @@ function npiCohortSection(){
       r.yoy_comparison_valid===false?`<span class="pill" title="${(r.yoy_caveat||'').replace(/"/g,'&quot;')}">Not comparable ⚠</span>`:
       g==null?'–':`<span class="pill ${g>=0?'g':'r'}">${g>=0?'+':''}${g.toFixed(1)}%</span>`;
     return `<tr><td>${fy} <span class="pill" style="font-size:10px">${r.history_coverage}</span></td><td>${p.launches} <span class="note" style="font-size:10px">(${p.confirmed_count} confirmed, ${p.observed_only_count} observed-only)</span></td><td>${p.active_count}</td>
-      <td>${crc(p.nsv)}</td><td>${crc(p.units)}</td>
+      <td>${crc(p.nsv)}</td><td>${num(p.units)}</td>
       <td>${p.avg_per_launch!=null?crc(p.avg_per_launch):'–'}</td>
       <td>${p.productivity!=null?crc(p.productivity):'–'}</td>
       <td>${p.contribution_pct!=null?p.contribution_pct.toFixed(1)+'%':'–'}</td>
@@ -2926,7 +2976,7 @@ function npiCohortSection(){
 
   const sampleRows=perf.rows.slice(0,15).map(r=>
     `<tr><td>${drillLink('Chain',r.chain)}</td><td>${r.article}</td>
-      <td>${r.actual_first_sale_month}-${r.actual_first_sale_fy.slice(2)}</td>
+      <td>${npiLaunchMonthLabel(r.actual_first_sale_month,r.actual_first_sale_fy)}</td>
       <td>${r.npi_cohort_fy}</td><td><span class="pill">${r.launch_confirmation_status}</span></td></tr>`).join('');
 
   const incomplete=npd.qc?npd.qc.pairs_excluded_history_incomplete:0;
@@ -3276,6 +3326,7 @@ function buildComparison(){
   s.innerHTML=`<h2 class="sec">Performance &amp; Comparison</h2>
    <p class="lead">Rank and compare ${dimLab[cmpDim]} performance. Source: ${source}.</p>
    ${partialNote}
+   ${dimUnsupportedNote(['Month','Zone','State','Chain','Brand','Channel'],'the comparison KPI tiles and target tables')}
    <div style="margin:0 0 14px">${btns}</div>
    ${active?`<div style="margin:0 0 14px">${active}</div>`:''}
    <div class="kpis">
@@ -4329,7 +4380,7 @@ function getRelianceBCToggleHtml(){
   return `
     <div class="drill-ctrl">
       <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-right:10px">View:</label>
-      <button class="fbtn" id="bcMacroBtn" style="background:var(--teal);border:1px solid var(--teal);padding:7px 12px;font-size:12px" data-mode="macro">Total Reliance Offtake (Macro)</button>
+      <button class="fbtn" id="bcMacroBtn" style="background:var(--teal);border:1px solid var(--teal);padding:7px 12px;font-size:12px" data-mode="macro">Total Reliance (Primary, all doors)</button>
       <button class="fbtn ghost" id="bcBABtn" style="background:#fff;color:var(--teal-d);border:1px solid var(--teal);padding:7px 12px;font-size:12px;margin-left:4px" data-mode="ba">Dedicated Brand Counters (350 BA Doors)</button>
     </div>
     <div class="drill-bc" id="bcDisclaimer" style="display:none">
@@ -4350,6 +4401,8 @@ function wireRelianceBCToggle(){
     baBtn.style.background='#fff';
     baBtn.style.color='var(--teal-d)';
     if(disclaimer) disclaimer.style.display='none';
+    const mv=document.getElementById('bcMacroView'), bv=document.getElementById('bcBAView');
+    if(mv) mv.style.display='block'; if(bv) bv.style.display='none';
   };
   baBtn.onclick=()=>{
     relianceBCViewMode='ba';
@@ -4358,6 +4411,8 @@ function wireRelianceBCToggle(){
     macroBtn.style.background='#fff';
     macroBtn.style.color='var(--teal-d)';
     if(disclaimer) disclaimer.style.display='block';
+    const mv=document.getElementById('bcMacroView'), bv=document.getElementById('bcBAView');
+    if(mv) mv.style.display='none'; if(bv) bv.style.display='block';
   };
 }
 /* ============ END PHASE 2 HELPERS ============ */
