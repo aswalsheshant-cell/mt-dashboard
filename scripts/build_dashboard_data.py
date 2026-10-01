@@ -3979,15 +3979,23 @@ def readiness_gate(data, cfg=None):
                     comp = (json.loads(_cf.read_text(encoding="utf-8")) or {}).get("compliance") or {}
                 except json.JSONDecodeError:
                     comp = {}
-        doors = ((comp.get("metadata") or {}).get("total_doors_audited"))
-        univ = ((data.get("universe") or {}).get("active_stores"))
-        covp = r2(doors / univ * 100) if doors and univ else None
+        meta = comp.get("metadata") or {}
         floor = (rules["scorecard_execution"] or {}).get("min_audit_coverage_pct")
-        ok = covp is not None and floor is not None and covp >= floor
-        put("scorecard_execution", "PASS" if ok else AWAITING_BUSINESS_DATA,
-            f"audit coverage {covp}% ({doors} of {univ} stores)" if covp is not None
-            else "no store-audit data in this build",
-            {"threshold": floor, "value": covp})
+        if meta.get("is_synthetic"):
+            # A sidecar that marks itself synthetic (mock generator output, no
+            # registered source) is never counted as audit coverage.
+            put("scorecard_execution", AWAITING_BUSINESS_DATA,
+                "no governed store-audit source (the compliance sidecar is synthetic and is not counted)",
+                {"threshold": floor, "value": None})
+        else:
+            doors = meta.get("total_doors_audited")
+            univ = ((data.get("universe") or {}).get("active_stores"))
+            covp = r2(doors / univ * 100) if doors and univ else None
+            ok = covp is not None and floor is not None and covp >= floor
+            put("scorecard_execution", "PASS" if ok else AWAITING_BUSINESS_DATA,
+                f"audit coverage {covp}% ({doors} of {univ} stores)" if covp is not None
+                else "no store-audit data in this build",
+                {"threshold": floor, "value": covp})
 
     if "npd" in rules:
         npd = data.get("npd") or {}
@@ -4645,6 +4653,16 @@ def _mom_pcts(vals):
         out.append(r2((b / a - 1) * 100) if (a not in (None, 0) and b is not None) else None)
     return out
 
+# Metrics the MoM view cannot show, and why. Reasons name the missing source;
+# they never quote a synthetic sidecar as if it were a real snapshot.
+MOM_UNAVAILABLE = [
+    {"metric": "Stock / inventory days", "reason": "No monthly stock-on-hand feed in this build."},
+    {"metric": "OSA / OOS / Fill rate", "reason": "No governed store-audit or delivery-date source in this build (the compliance sidecar is synthetic and is not used). See readiness.scorecard_execution."},
+    {"metric": "NPD", "reason": "NPD master is not joined to the transaction grain. See readiness.npd."},
+    {"metric": "Promo ROI", "reason": "Promo data is not aligned to this FY's month grain in this build."},
+]
+
+
 def mom_block(offtake, fyx, targets, df=None, cfg=None):
     """Month-on-month view for the current FY, one row per metric.
 
@@ -4702,12 +4720,7 @@ def mom_block(offtake, fyx, targets, df=None, cfg=None):
     return {
         "fy_tag": fy, "months": months, "n_months": len(months), "basis": basis,
         "rows": rows,
-        "unavailable": [
-            {"metric": "Stock / inventory days", "reason": "No monthly stock-on-hand feed in this build."},
-            {"metric": "OSA / OOS / Fill rate", "reason": "Store audit is a single Q3 FY27 snapshot over 189 of 426 stores, not a monthly series. See readiness.scorecard_execution."},
-            {"metric": "NPD", "reason": "NPD master is not joined to the transaction grain. See readiness.npd."},
-            {"metric": "Promo ROI", "reason": "Promo data is not aligned to this FY's month grain in this build."},
-        ],
+        "unavailable": MOM_UNAVAILABLE,
         "note": ("Months are derived from the actuals present, so the view extends itself "
                  "as new months land. MoM % is suppressed on ratio and gap rows, where a "
                  "month-on-month percentage of a percentage would mislead."),

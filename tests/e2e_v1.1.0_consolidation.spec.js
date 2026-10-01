@@ -653,4 +653,35 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     for (const t of r.titles) expect(t, 'every chart sits in a titled card').not.toBe('');
     if (/No active alerts/.test(r.alerts)) expect(r.alerts).toContain('Feed generated');
   });
+
+  // TC14: synthetic sidecar values must never render as KPI numbers. The
+  // compliance/fill-rate sidecar (dashboard/compliance_metrics.json) marks
+  // itself is_synthetic: true (mock generator output, no registered source).
+  // A provenance banner next to the numbers is not enough: the tab must say
+  // "Not available" and show none of the mock figures.
+  test('TC14 - Synthetic store-audit / fill-rate values are withheld, not shown', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => window.DASH && window.DASH.compliance && window.DASH.inventory_fillrate, null, { timeout: 30000 });
+    const r = await page.evaluate(async () => {
+      const W = ms => new Promise(res => setTimeout(res, ms));
+      const c = window.DASH.compliance.metadata, f = window.DASH.inventory_fillrate.metadata;
+      const out = { synthetic: !!(c.is_synthetic && f.is_synthetic), tabs: {} };
+      for (const tab of ['stores', 'inventory']) {
+        show(tab); await W(500);
+        out.tabs[tab] = document.getElementById('tab-' + tab).innerText;
+      }
+      out.mock = [c.macro_pes_percent, f.macro_cfr_percent, f.macro_otif_percent, f.total_lost_revenue_lakh]
+        .map(v => String(v));
+      out.readiness = JSON.stringify((window.DASH.readiness || {}).gates || {});
+      out.momNote = JSON.stringify((window.DASH.mom || {}).unavailable || []);
+      return out;
+    });
+    expect(r.synthetic, 'test premise: the sidecar is still marked synthetic').toBe(true);
+    for (const [tab, txt] of Object.entries(r.tabs)) {
+      expect(txt, `${tab}: says the data is not available`).toMatch(/Not available/);
+      for (const v of r.mock) expect(txt, `${tab}: mock value ${v} must not be shown`).not.toContain(v);
+    }
+    expect(r.readiness, 'readiness gate must not count synthetic audit doors').not.toMatch(/189 of 426/);
+    expect(r.momNote, 'MoM note must not describe the mock as a real snapshot').not.toMatch(/Q3 FY27|189 of 426/);
+  });
 });
