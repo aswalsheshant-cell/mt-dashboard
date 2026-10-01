@@ -1,0 +1,71 @@
+# Machine-readable current project state.
+#
+# One place for "which PRs/issues are open and what each blocker waits on".
+# docs/PROJECT_STATE.md ("Next Approved Task") and docs/COMPLETION_BLOCKER_PACK.md
+# (Summary table) must agree with this file: tests/test_repo_state_consistency.py
+# fails when they don't. Update this file FIRST when a PR merges or a blocker
+# moves, then the two docs. GitHub is the truth; this file is checked against it
+# by a person at each merge (the test cannot call GitHub).
+#
+# Terminal states: RESOLVED_AND_VALIDATED, BLOCKED_EXTERNAL_EVIDENCE,
+# BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
+
+as_of: "2026-10-01"
+main_snapshot: e4bcfcb74599754ebe42b01fb60201628056b228   # main when this file was last reconciled
+
+# PRs held on a blocker (HOLD / FROZEN_EVIDENCE). Short-lived fix PRs under
+# review are not listed: they would read stale the moment they merge.
+open_prs:
+  - number: 119
+    status: FROZEN_EVIDENCE
+    frozen_sha: 51487b6d874ba5a63495202c44688cdcfcd65175
+    blocker: B2
+    reason: "Historical Primary chain backfill evidence; do not rebase or rewrite. Integrate from a fresh main branch only after the #120 owner register is returned."
+  - number: 267
+    status: HOLD
+    blocker: B3
+    reason: "#252 rebuilt on current main (same 4 files; seed byte-identical). Finance: monthly timing and Direct DN overlap rule."
+
+open_issues:
+  - number: 120
+    blocker: B2
+  - number: 194
+    blocker: CB-09
+
+# PRs that are merged. Current-state text must never call these open or HOLD.
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273]
+
+# PRs closed WITHOUT merging because another PR replaced them. The branch is kept
+# as evidence. Current-state text must never call these open or HOLD.
+closed_superseded:
+  - number: 252
+    superseded_by: 267
+    closed: "2026-09-30"
+    branch_kept: claude/cm2-distributor-claim-seed
+
+blockers:
+  B1:
+    state: BLOCKED_OWNER_DECISION
+    owner: MT Leadership
+    needs: "Nykaa (FSN) / eB2B / SIS treatment in MT views, and whether FY26 is restated on the same MT-channel basis"
+  B2:
+    state: BLOCKED_OWNER_DECISION
+    owner: Business owner of the mapping (issue #120)
+    needs: "266-line approval register (Approve/Reject/Amend) for the Rs 9,455.1997 L provisional bucket"
+  B3:
+    state: BLOCKED_EXTERNAL_EVIDENCE
+    owner: Finance + MT Leadership
+    needs: "Full Jul/Aug'26 DN register; FY27 CM2 scope; distributor-claim monthly timing and Direct DN overlap rule (#267, rebuild of #252); Nykaa SS after B1"
+  B4:
+    state: BLOCKED_EXTERNAL_EVIDENCE
+    owner: Finance
+    needs: "Approved AssumptionTable rows: Jun/Jul/Aug'26 missing; Apr/May'26 present but unapproved"
+  B5:
+    state: BLOCKED_ENVIRONMENT
+    doc_status: BLOCKED_PENDING_DESKTOP_EVIDENCE
+    owner: MT Channel Analyst Lead (Windows, Power BI Desktop)
+    needs: "FY parser + CM2 Cases 2-8 + L3M/L6M rolling averages (step 9, #273) evidence file per docs/evidence/B5_RUN_SHEET.md"
+  B6:
+    state: BLOCKED_OWNER_DECISION
+    owner: MT Leadership, Finance, MT Ops, HR
+    needs: "Decisions (a)-(e), target basis, C1-C6, caps, proration; no payout before that"

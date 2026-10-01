@@ -81,19 +81,25 @@ YoY Growth % =
 DIVIDE ( [NSV] - [Last Year Same Month NSV], [Last Year Same Month NSV] )
 
 // ---------- ROLLING AVERAGES ----------
+// Averages over the months that have data: a month before the source starts is
+// missing, not zero, so it must not pull the average down. A month that sold 0
+// still counts (0 is not BLANK). tests/test_powerbi_rolling_average.py
 L3M Average Sales =
 VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
 RETURN
     CALCULATE (
-        DIVIDE ( [NSV], 3 ),
+        AVERAGEX ( FILTER ( VALUES ( 'Date Table'[MonthStart] ), NOT ISBLANK ( [NSV] ) ), [NSV] ),
         DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -3, MONTH )
     )
 
+// Averages over the months that have data: a month before the source starts is
+// missing, not zero, so it must not pull the average down. A month that sold 0
+// still counts (0 is not BLANK). tests/test_powerbi_rolling_average.py
 L6M Average Sales =
 VAR _curMonth = MAX ( 'Date Table'[MonthStart] )
 RETURN
     CALCULATE (
-        DIVIDE ( [NSV], 6 ),
+        AVERAGEX ( FILTER ( VALUES ( 'Date Table'[MonthStart] ), NOT ISBLANK ( [NSV] ) ), [NSV] ),
         DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -6, MONTH )
     )
 

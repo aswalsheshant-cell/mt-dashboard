@@ -3,7 +3,8 @@
 **What this is.** The B5 exit condition from `docs/COMPLETION_BLOCKER_PACK.md`,
 turned into steps you can follow on the Windows machine. Owner decision
 2026-09-29: B5 is judged on the **current** model, meaning the FY parser plus
-CM2 Cases 2–8. The old CM2 Case 1 ("no expense rows") needed the model as it
+CM2 Cases 2–8; owner decision 2026-10-01 added the L3M/L6M rolling-average
+check (step 9, #273) to the same session. The old CM2 Case 1 ("no expense rows") needed the model as it
 was before #229. #229 loaded real expense rows, so Case 1 no longer applies.
 
 **Status until this sheet is run:** `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
@@ -121,12 +122,26 @@ are in `tests/powerbi/cm2_availability_cases.dax`.
 | Record | The `Violations` value |
 | PASS rule | PASS only if **`Violations = 0`** |
 
+## 9. Rolling averages — L3M / L6M (added 2026-10-01, owner decision, #273)
+
+#273 changed `L3M Average Sales` and `L6M Average Sales` to average over the
+months that have data (a missing month is not ₹0; an empty window is BLANK).
+CI checks the formula only; this step checks the behaviour on the real model.
+
+| | |
+|---|---|
+| File | `tests/powerbi/rolling_average_cases.dax` |
+| Block | `// CASE 1` (Mismatches), `// CASE 2` (first month), `// CASE 3` (third month). `// CASE 4` lists genuine 0-NSV months, for the record only. |
+| Expected (from the file) | CASE 1: **`Mismatches = 0`** (BLANK also means 0). CASE 2: `L3M` and `L6M` both BLANK. CASE 3: `L3M = Expected`. |
+| Record | CASE 1 `Months` and `Mismatches`; CASE 2 `FirstMonth`, `L3M`, `L6M`; CASE 3 `Month`, `L3M`, `Expected`; CASE 4 row count. |
+| PASS rule | PASS only if CASE 1 `Mismatches = 0` (or BLANK), CASE 2 both BLANK, and CASE 3 `L3M = Expected` (to 0.01). |
+
 ---
 
 ## When B5 closes
 
 B5 is CLEARED only when all of these hold:
-- the evidence file is filled in for the FY parser and Cases 2, 4, 5, 6, 7 and 8, every one PASS;
+- the evidence file is filled in for the FY parser, Cases 2, 4, 5, 6, 7 and 8, and the rolling-average step (9), every one PASS;
 - Case 3 is PASS, or `NOT_EXERCISED` with the 0-row count recorded;
 - the screenshots are attached to the B5 PR.
 

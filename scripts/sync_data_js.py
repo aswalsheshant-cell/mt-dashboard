@@ -55,7 +55,8 @@ def generate_data_js(master: dict, existing_js: str | None = None) -> str:
         meta["title"] = "Modern Trade Leadership Dashboard"
     if "period" not in meta:
         fys = meta.get("coverage", {}).get("fiscal_years", [])
-        meta["period"] = f"FY{fys[0][-2:]}–{fys[-1][-2:]} (140 zone-months)" if fys else "Multi-year"
+        # FY span only: a fixed zone-month count here went stale and misled the header
+        meta["period"] = f"FY{fys[0][-2:]}–{fys[-1][-2:]}" if fys else "Multi-year"
     if "fy_range" not in meta:
         fys = meta.get("coverage", {}).get("fiscal_years", [])
         meta["fy_range"] = "–".join([f"FY{fy[-2:]}" for fy in fys]) if fys else "FY25–27"
@@ -339,7 +340,7 @@ Source:      {args.source} (LOCKED_MULTI_YEAR_V2)
 Output:      {args.output} (production-ready)
 Generated:   {datetime.now().isoformat()}
 
-Coverage:    FY25 (4m) + FY26 (12m) + FY27 (4m) = 120 zone-months
+Coverage:    see meta.coverage in the output (derived from the source, not fixed here)
 Zones:       6 (Central, East, North, South 1, South 2, West)
 Status:      ✓ READY FOR DEPLOYMENT
 

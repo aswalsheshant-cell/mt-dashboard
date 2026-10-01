@@ -86,7 +86,11 @@ window.AlertController = (function () {
     }
 
     if (!activeAlerts || activeAlerts.length === 0) {
-      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 14px;">No active alerts. All metrics within thresholds.</div>';
+      // Say how old the feed is: nothing in this repo regenerates alerts_feed.json,
+      // so an all-clear from an old feed must not read as live monitoring.
+      const gen = (feed.metadata && feed.metadata.generated_at) || '';
+      const genNote = gen ? ' Feed generated ' + String(gen).slice(0, 10) + ' — it has no live PES / CFR / OTIF source yet, so check the date before relying on it.' : '';
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 14px;">No active alerts. All metrics within thresholds.' + genNote + '</div>';
       return;
     }
 

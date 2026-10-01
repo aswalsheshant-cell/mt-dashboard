@@ -120,7 +120,8 @@ def test_all_six_build_modes_reach_centralized_serializer(tmp_path, monkeypatch,
     elif mode == "offtake-patch":
         monkeypatch.setattr(
             bd, "load_offtake_article_files",
-            lambda *args: ({"Chain": {"Apr-26": 1}}, {}),
+            # **kwargs: the real loader takes site_sink= since #256
+            lambda *args, **kwargs: ({"Chain": {"Apr-26": 1}}, {}),
         )
         monkeypatch.setattr(bd, "patch_offtake_new_months", lambda *args: {"fy_tags": []})
         monkeypatch.setattr(bd, "load_reliance_bc_data", lambda *args: None)

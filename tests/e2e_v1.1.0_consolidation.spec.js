@@ -536,4 +536,121 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     expect(tyTargetText, 'TY Target (FY27) KPI must not read as Rs 0 L when forecast.fy27_forecast is real')
       .not.toMatch(/^(Rs\s*0(\.0)?\s*L|₹0(\.0)?\s*L)$/i);
   });
+  // Found 2026-09-30 in dashboard QC: the Primary Sales Trend card read "FY25 to
+  // FY27 trajectory" in every FY state while it plotted FY26 only, and the FY27
+  // months (detail_meta.fyx_primary) were fetched but never drawn. The header
+  // read "FY25–27 (140 zone-months)", a fixed count from a deprecated script.
+  // The subtitle and header must describe the data actually plotted/loaded.
+  test('TC11 - Primary Sales Trend label and header follow the plotted data (All/FY25/FY26/FY27)', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    const hdr = await page.locator('#hPeriod').innerText();
+    expect(hdr, 'header must not carry a fixed zone-month count').not.toMatch(/zone-month/i);
+    const fyx = await page.evaluate(() => window.DASH.detail_meta.fyx_primary.FY27);
+    expect(hdr).toContain(`Primary through ${fyx.months_canon[fyx.months_canon.length - 1]}`);
+
+    for (const fy of ['', 'FY25', 'FY26', 'FY27']) {
+      const r = await page.evaluate(async (f) => {
+        F.FY = f ? [f] : []; show('channel-dynamics');
+        await new Promise(res => setTimeout(res, 900));
+        const card = [...document.querySelectorAll('#channel-subview-content .card')]
+          .find(c => /Primary Sales Trend/.test(c.innerText));
+        const ch = Chart.getChart('chanPrimTrend');
+        return { text: card ? card.innerText : '',
+                 sets: ch ? ch.data.datasets.map(d => ({ label: d.label, n: d.data.filter(v => v != null).length,
+                                                          sum: d.data.reduce((a, v) => a + (v || 0), 0) })) : [] };
+      }, fy);
+      const tag = fy || 'All';
+      expect(r.text, `${tag}: no hard-coded FY range in the subtitle`).not.toContain('FY25 to FY27');
+      for (const s of r.sets) expect(r.text, `${tag}: subtitle names every plotted series`).toContain(s.label);
+      if (fy === 'FY25') {
+        expect(r.sets.length, 'FY25: no Primary series (no FY25 billing extract in repo)').toBe(0);
+        expect(r.text).toContain('No monthly Primary in source for FY25');
+      } else {
+        const want = fy ? [fy] : ['FY26', 'FY27'];
+        expect(r.sets.map(s => s.label.slice(0, 4)), `${tag}: plotted FYs`).toEqual(want);
+      }
+      const s27 = r.sets.find(s => s.label.startsWith('FY27'));
+      if (s27) {
+        expect(s27.n, 'FY27 plots every month fyx_primary carries').toBe(fyx.months_canon.length);
+        expect(Math.abs(s27.sum - fyx.nsv), 'FY27 series sums to fyx_primary.FY27.nsv').toBeLessThan(0.05);
+      }
+    }
+  });
+  // Dashboard QC 2026-10-01 (two independent review passes). Each check below
+  // was a reproduced defect on main fba9b89.
+  test('TC12 - Chart/table/filter QC regressions (trend months, promo chart, Reliance BC toggle, NPI, channel share, KPI styles)', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    const r = await page.evaluate(async () => {
+      const W = ms => new Promise(res => setTimeout(res, ms));
+      const out = {};
+      // 1. Cockpit trend: primary keyed by calendar month, not array position.
+      F.FY = []; show('executive-cockpit'); await W(900);
+      const c = Chart.getChart('cockpitTrend'); const L = c.data.labels;
+      const prim = c.data.datasets.find(d => /Primary/.test(d.label)).data;
+      const fx = DASH.detail_meta.fyx_primary.FY27;
+      out.trendApr26 = prim[L.indexOf(fx.months_canon[0])]; out.fx0 = fx.monthly_canon[0];
+      out.trendSets = c.data.datasets.map(d => d.label);
+      // 2. Promo scatter keeps its chart after the correlation card is added.
+      show('demand-planning'); await W(700);
+      document.querySelectorAll('#tab-demand-planning .subview-tab')[1].click(); await W(900);
+      out.promoCharts = [...document.querySelectorAll('#tab-demand-planning canvas')].map(cv => !!Chart.getChart(cv));
+      // 3. Reliance Brand Counter toggle switches the table.
+      F.FY = ['FY27']; show('channel-dynamics'); await W(700);
+      document.querySelectorAll('#tab-channel-dynamics .subview-tab')[2].click(); await W(700);
+      document.getElementById('bcBABtn').click(); await W(200);
+      out.bc = { macro: document.getElementById('bcMacroView').style.display, ba: document.getElementById('bcBAView').style.display,
+                 txt: document.getElementById('bcBAView').innerText };
+      // 4. NPI units are counts; FY27 April launches read Apr-26.
+      F.FY = []; show('analytics'); await W(1200);
+      const th = [...document.querySelectorAll('#tab-analytics th')].find(h => h.innerText.trim() === 'Units');
+      const i = th ? [...th.parentNode.children].indexOf(th) : -1;
+      out.units = th ? [...th.closest('table').querySelectorAll('tbody tr')].map(tr => tr.children[i].innerText) : [];
+      out.badLaunch = /\b(April|Apr)-27\b/.test(document.getElementById('tab-analytics').innerText);
+      // 5. Channel split shares stay a share of the channels' own total.
+      F.Chain = ['DMart']; show('channel-dynamics'); await W(600);
+      document.querySelectorAll('#tab-channel-dynamics .subview-tab')[0].click(); await W(800);
+      const h = [...document.querySelectorAll('.card h3')].find(x => /Channel Split/.test(x.innerText));
+      out.shares = [...h.closest('.card').querySelectorAll('tbody tr')].map(tr => parseFloat(tr.children[2].innerText));
+      F.Chain = [];
+      // 6. KPI rows are styled cards.
+      show('inventory-health'); await W(800);
+      const k = document.querySelector('.kpi-card');
+      out.kpiBorder = k ? getComputedStyle(k).borderTopWidth : null;
+      return out;
+    });
+    expect(Math.abs(r.trendApr26 - r.fx0), 'cockpit trend: FY27 first month plots FY27 primary').toBeLessThan(0.01);
+    expect(r.trendSets.join('|')).not.toContain('FY25');
+    expect(r.promoCharts.length).toBeGreaterThan(0);
+    expect(r.promoCharts.every(Boolean), 'promo scatter canvas keeps its Chart').toBe(true);
+    expect(r.bc.macro).toBe('none'); expect(r.bc.ba).toBe('block');
+    expect(r.bc.txt).toContain('Brand Counter offtake');
+    expect(r.units.length).toBeGreaterThan(0);
+    for (const u of r.units) expect(u, 'NPI units are counts, not rupees').not.toContain('₹');
+    expect(r.badLaunch, 'FY27 April launch must read Apr-26').toBe(false);
+    const tot = r.shares.reduce((a, v) => a + (v || 0), 0);
+    expect(Math.abs(tot - 100), 'channel shares sum to ~100% with a chain filter').toBeLessThan(0.5);
+    expect(r.kpiBorder).toBe('1px');
+  });
+  // Cosmetic QC follow-up 2026-10-01: four charts were bare canvases with no
+  // title; an empty alerts feed gave no hint how old it was.
+  test('TC13 - Charts sit in titled cards; empty alerts feed states its date', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    const r = await page.evaluate(async () => {
+      const W = ms => new Promise(res => setTimeout(res, ms));
+      const titles = [];
+      for (const [tab, i] of [['inventory-health', 0], ['inventory-health', 2], ['demand-planning', 0], ['demand-planning', 1]]) {
+        F.FY = []; show(tab); await W(800);
+        document.querySelectorAll('#tab-' + tab + ' .subview-tab')[i].click(); await W(900);
+        for (const cv of document.querySelectorAll('#tab-' + tab + ' canvas')) {
+          const card = cv.closest('.card');
+          titles.push(card && card.querySelector('h3') ? card.querySelector('h3').innerText.trim() : '');
+        }
+      }
+      show('alerts'); await W(800);
+      return { titles, alerts: document.getElementById('tab-alerts').innerText };
+    });
+    expect(r.titles.length).toBeGreaterThan(0);
+    for (const t of r.titles) expect(t, 'every chart sits in a titled card').not.toBe('');
+    if (/No active alerts/.test(r.alerts)) expect(r.alerts).toContain('Feed generated');
+  });
 });
