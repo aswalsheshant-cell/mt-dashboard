@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-"""Allocate the Q1 FY27 distributor claims to Apr/May/Jun'26 (Finance-approved basis).
+"""Allocate the Q1 FY27 distributor claims to Apr/May/Jun'26 (Finance A1/A2 decision basis).
 
 Decision (Finance, DA, 2026-10-01; Finance pack A1/A2):
   A1  Distributor claims and MT Direct DN are ADDITIVE (separate costs).
   A2  Include distributor claims in monthly AND quarterly CM2.
-      Quarterly: the Q1 total Rs 449.77 L is the ACTUAL / APPROVED figure, at
+      Quarterly: the Q1 total Rs 449.77 L is the ACTUAL source amount, at
       the Quarter x Chain x Expense Head grain (PL_Distributor_Claim_Input_Q1_FY27.csv,
       unchanged by this script).
       Monthly: the source carries no claim month, so each Q1 Chain x Expense
       Head claim is allocated by that chain's Apr/May/Jun share of Q1
       distributor secondary (basis 3 in the pack). Rows are ALLOCATED /
       PROVISIONAL, never presented as a Finance posting.
+
+Status is kept in three separate parts, so no record claims more than it has:
+  Source amount status   ACTUAL (the Q1 claim master)
+  Business treatment     A1/A2 DECISION RECEIVED (DA, 2026-10-01)
+  Approval evidence      PENDING FORMAL REFERENCE (name, role, reference)
+  Monthly timing         ALLOCATED_PROVISIONAL per row
 
 Rules enforced here:
   * Apr + May + Jun = the exact Q1 claim, per Chain x Expense Head line, to

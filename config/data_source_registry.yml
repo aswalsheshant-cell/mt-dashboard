@@ -243,7 +243,7 @@ datasets:
     source_priority: SOURCE_OF_TRUTH
     fallback_source: null
     downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv"]
-    loader: "scripts/build_distributor_claim_expense_seed.py (deterministic Q1 chain x expense-head seed, ACTUAL); scripts/build_distributor_claim_monthly_allocation.py (Finance-approved monthly split, ALLOCATED_PROVISIONAL)"
+    loader: "scripts/build_distributor_claim_expense_seed.py (deterministic Q1 chain x expense-head seed, ACTUAL); scripts/build_distributor_claim_monthly_allocation.py (monthly split on the Finance A1/A2 decision, ALLOCATED_PROVISIONAL; formal approval reference PENDING)"
     last_validated: "2026-09-27"
     modification_allowed: false
     notes: >

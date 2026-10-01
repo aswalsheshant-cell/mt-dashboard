@@ -1,4 +1,4 @@
-"""Q1 FY27 distributor claims allocated to months on the Finance-approved basis.
+"""Q1 FY27 distributor claims allocated to months on the Finance A1/A2 decision basis.
 
 Finance (DA), 2026-10-01: A1 = additive with MT Direct DN; A2 = include in
 monthly and quarterly CM2. Quarterly Rs 449.77 L stays the ACTUAL figure; the
