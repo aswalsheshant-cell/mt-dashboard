@@ -227,6 +227,14 @@ answer. Partial returns are accepted; only the open lines go back.
 
 ## B3 — CM2 expense scope (MT Direct DN merged via #229; distributor claims #267 on HOLD)
 
+**Finance decision 2026-10-01 (DA).** A1: distributor claims and MT Direct DN are
+**additive**. A2: include distributor claims in monthly and quarterly CM2.
+Quarterly Q1 ₹449.77 L stays ACTUAL. Monthly is split per Chain × Expense Head by
+the chain's Apr/May/Jun distributor-secondary share (ALLOCATED_PROVISIONAL), with
+each line reconciling to its Q1 claim and no equal ÷3 split. #267 now carries
+that allocation file. Wiring it into dashboard / Power BI CM2 is a separate PR.
+Still open for B3: A3 (Jul/Aug DN register complete?) and A4 (other cost heads).
+
 **Current state (2026-09-30).** #229 merged on 2026-09-27 (`3aa6895`) with the
 owner decisions of that day: 64 MT Direct DN rows, ₹1,274.71 L excl. GST,
 Apr–Aug'26; Nykaa (FSN) excluded until CB-01; Tnsi Retail (1100027) = WH-Smith;

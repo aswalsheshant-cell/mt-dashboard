@@ -242,8 +242,8 @@ datasets:
     validation_status: PARTIAL
     source_priority: SOURCE_OF_TRUTH
     fallback_source: null
-    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv"]
-    loader: "scripts/build_distributor_claim_expense_seed.py (deterministic Q1 chain x expense-head seed; never invents Apr/May/Jun allocation)"
+    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv"]
+    loader: "scripts/build_distributor_claim_expense_seed.py (deterministic Q1 chain x expense-head seed, ACTUAL); scripts/build_distributor_claim_monthly_allocation.py (Finance-approved monthly split, ALLOCATED_PROVISIONAL)"
     last_validated: "2026-09-27"
     modification_allowed: false
     notes: >
@@ -258,6 +258,16 @@ datasets:
       claims across Apr/May/Jun would fabricate financial timing. Load these
       distributor claims into monthly CM2 only when real month-level chain evidence
       is supplied or Finance explicitly approves a period-grain treatment.
+      FINANCE DECISION 2026-10-01 (DA, Finance pack A1/A2): A1 = distributor
+      claims are ADDITIVE to MT Direct DN; A2 = include in monthly and quarterly
+      CM2. The quarterly seed stays the ACTUAL figure. The monthly file
+      PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv splits each Chain x
+      Expense Head claim by that chain's Apr/May/Jun distributor-secondary share
+      (status ALLOCATED_PROVISIONAL); each line reconciles to its Q1 claim; no
+      equal /3 split; a chain with no secondary (Spar, Rs -0.02 L) stays one
+      UNALLOCATED_TIMING row. Eight secondary spellings canon_chain() does not
+      resolve are matched by PROPOSED_DRIVER_ALIASES in that script (driver
+      only, approved with the PR, not added to CHAIN_ALIASES).
       Separately, docs/finance_decision_matrix_Q1_FY27.csv (a related but
       different claims register, 116 rows, real-looking distributor names) still
       shows numerous PENDING/"Manual Review Required" rows as of its own content,
