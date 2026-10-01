@@ -52,6 +52,30 @@ def validate_payload(data: dict) -> list[str]:
     return warnings
 
 
+REQUIRED_STATUS = "GOVERNED"
+REQUIRED_REFERENCES = ("source_reference", "validation_reference")
+
+
+def governance_errors(data: dict) -> list[str]:
+    """Blocking problems: a payload with any of these is never built or published.
+
+    Market share is published on a public page, so it must come from a real,
+    registered Nielsen extract. A sample/demo file, or one whose source and
+    validation are not recorded, fails closed (2026-10-01: data/nielsen_aug26.json
+    was a SAMPLE and was published as "August 2026").
+    """
+    errors = []
+    comment = str(data.get("_comment", ""))
+    if "sample" in comment.lower():
+        errors.append(f"payload is marked SAMPLE (_comment: {comment!r})")
+    if data.get("data_status") != REQUIRED_STATUS:
+        errors.append(f"data_status is {data.get('data_status')!r}, must be {REQUIRED_STATUS!r}")
+    for key in REQUIRED_REFERENCES:
+        if not str(data.get(key, "")).strip():
+            errors.append(f"{key} is missing (name the Nielsen report / the validation evidence)")
+    return errors
+
+
 def load_payload(data_path: Path) -> dict:
     if not data_path.exists():
         raise FileNotFoundError(f"Data file not found: {data_path}")
@@ -127,6 +151,12 @@ def build(template_path: Path, data_path: Path, output_path: Path) -> None:
 
     data = load_payload(data_path)
 
+    blocking = governance_errors(data)
+    if blocking:
+        for e in blocking:
+            print(f"[x] {e}", file=sys.stderr)
+        raise SystemExit(f"Not built: {data_path.name} is not a governed Nielsen payload.")
+
     warnings = validate_payload(data)
     for w in warnings:
         print(f"[!] {w}")
@@ -176,7 +206,18 @@ def main() -> None:
         "--out", "-o", type=Path,
         help="Output path (default: dist/Nielsen_MS_Dashboard_<period>.html)"
     )
+    parser.add_argument(
+        "--check-only", action="store_true",
+        help="Only run the governance check (exit 2 if the payload may not be published)"
+    )
     args = parser.parse_args()
+
+    if args.check_only:
+        errors = governance_errors(load_payload(args.data))
+        for e in errors:
+            print(f"[x] {e}", file=sys.stderr)
+        print(f"[{'x' if errors else '✓'}] governance check: {args.data}")
+        sys.exit(2 if errors else 0)
 
     if not args.out:
         period = args.data.stem.replace("nielsen_", "").upper()
