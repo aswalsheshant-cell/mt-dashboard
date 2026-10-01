@@ -47,7 +47,7 @@ blockers:
   B1:
     state: BLOCKED_OWNER_DECISION
     owner: MT Leadership
-    needs: "Nykaa (FSN) / eB2B / SIS treatment in MT views, and whether FY26 is restated on the same MT-channel basis"
+    needs: "Decisions received 2026-10-01 (DA, MT Leadership): 1 MT-only, 2 = A Nykaa under eB2B (applied: FY27 zones MT-only, channel control exit 0), 3 = B restate FY26 to MT basis (NOT applied: needs full name/role and signed approval reference, then its own PR). Then make the CI channel step blocking."
   B2:
     state: BLOCKED_OWNER_DECISION
     owner: Business owner of the mapping (issue #120)

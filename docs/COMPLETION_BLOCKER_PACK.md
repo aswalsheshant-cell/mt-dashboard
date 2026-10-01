@@ -46,6 +46,14 @@ Not a blocker: issue #194 (`github-advanced-security` fails with a GitHub-side
 
 ## B1 — CB-01: non-MT sales inside MT zone totals
 
+**Decision received 2026-10-01 (MT Leadership, DA).** 1 = MT-only views; 2 = A
+(Nykaa (FSN) under eB2B); 3 = B (restate FY26 on the MT basis, ₹30,684.99 L).
+Decisions 1 and 2 are applied to FY27: `fyx_primary.FY27.by_zone` is MT-only,
+non-MT is kept under its own channel (`non_mt_by_zone`, `non_mt_accounts`), and
+`mt_channel_reconciliation.py` exits 0. Decision 3 changes a protected baseline
+(₹32,900.36 L) and is **not applied** until a full name/role and a signed approval
+reference are recorded; it then gets its own PR.
+
 **What happened.** FY27 zone totals (Apr–Aug'26) are all-channel. ₹11.64 Cr of
 non-MT primary sits inside them: Nykaa (FSN) ₹10.41 Cr (billed eB2B), other eB2B
 + SIS ₹1.23 Cr (Eremedium, Azorte, Shoppers Stop). "Pan India" offtake

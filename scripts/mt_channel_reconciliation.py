@@ -148,7 +148,13 @@ def main() -> int:
         print("  (none of these are named as MT accounts in the deck, but their")
         print("   value sits inside the zone rollup above)")
 
-    misclassified = [o for o in offenders if o[4]]
+    # B1 decision 2026-10-01 (Decision 2 = A): an account billed only through
+    # eB2B/SIS is reported under that channel. When data.js declares it in
+    # fyx_primary.non_mt_accounts it is no longer presented as an MT account.
+    declared = {a["name"]: a["channel"] for a in fx.get("non_mt_accounts", [])}
+    for chain in sorted(set(declared) & {o[0] for o in offenders}):
+        print(f"  {chain}: reported under {declared[chain]} (fyx_primary.non_mt_accounts), not as MT")
+    misclassified = [o for o in offenders if o[4] and o[0] not in declared]
     for chain, mt, eb, si, _ in misclassified:
         failures.append(
             f"{chain} is presented as an MT zone account but bills through "
@@ -196,16 +202,25 @@ def main() -> int:
     print(f"  detail_records covers {cover:.2f}% of exact FY27 value")
     print(f"  sampled MT share {smp.get(MT, 0.0) / smp_tot * 100:.2f}% vs exact "
           f"{by_ch.get(MT, 0.0) / total * 100:.2f}%  -> bias {bias:+.2f} pp (MT-heavy)")
-    print("\n  fyx_primary gives an EXACT channel split, but only at FY level.")
-    print("  A month x zone x channel primary cut is NOT available in this dataset.")
-    print("  Correcting July zone primary exactly therefore requires re-running")
-    print("  scripts/build_dashboard_data.py against the full article-wise primary")
-    print("  source with a Channel filter applied.")
-    warnings.append(
-        "July zone x channel primary is not derivable exactly from data.js; "
-        "the source workbook is required.")
+    # detail_records is exact when it carries 100% of the value (rebuilt with
+    # --detail-max-rows 0); only a capped build makes the month cut an estimate.
+    # tolerance: ~47k detail rows are each rounded to 2 dp, the FY total once
+    exact = data["detail_meta"].get("value_coverage_pct", 0) >= 99.99 \
+        and abs(smp_tot - total) < 5.0
+    if exact:
+        print("\n  detail_records is uncapped (100% value coverage), so the month x zone x")
+        print("  channel cut below is EXACT, not an estimate.")
+    else:
+        print("\n  fyx_primary gives an EXACT channel split, but only at FY level.")
+        print("  A month x zone x channel primary cut is NOT available in this dataset.")
+        print("  Correcting July zone primary exactly therefore requires re-running")
+        print("  scripts/build_dashboard_data.py against the full article-wise primary")
+        print("  source with a Channel filter applied.")
+        warnings.append(
+            "July zone x channel primary is not derivable exactly from data.js; "
+            "the source workbook is required.")
 
-    print("\n  ESTIMATE ONLY (sampled, MT-biased — do NOT publish):")
+    print("\n  " + ("EXACT (uncapped detail):" if exact else "ESTIMATE ONLY (sampled, MT-biased — do NOT publish):"))
     jz = collections.defaultdict(lambda: collections.defaultdict(float))
     for r in recs:
         if r.get("FY") == "FY27" and r.get("Month") == "July":
@@ -237,6 +252,8 @@ def main() -> int:
         print("Warnings:")
         for w in warnings:
             print(f"  - {w}")
+    if not failures and not warnings:
+        return 0
     print("\nTo clear the verdict:")
     print("  1. Supply the full article-wise primary source for July 2026 so that")
     print("     month x zone x channel can be cut exactly.")
