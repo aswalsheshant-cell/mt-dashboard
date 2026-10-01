@@ -121,7 +121,12 @@ def test_scripts_test_file_counts_as_regression_test():
                                   "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
                                   "PowerBI/QuickSetup/AllDAX_Consolidated.txt",
                                   "config/baselines.json",
-                                  "config/data_source_registry.yml"])
+                                  "config/data_source_registry.yml",
+                                  # the enforcement itself
+                                  ".github/workflows/pr-scope-gate.yml",
+                                  ".github/workflows/production-acceptance-gate.yml",
+                                  "scripts/check_pr_scope.py",
+                                  "tests/test_pr_scope_gate.py"])
 def test_housekeeping_touching_product_code_fails(path):
     ok, msg = run("Freeze classification: HOUSEKEEPING", ["docs/x.md", path])
     assert not ok and path in msg
@@ -159,3 +164,40 @@ def test_cli_exit_codes(tmp_path, monkeypatch):
     assert gate.main(["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed)]) == 0
     body.write_text("no declaration", encoding="utf-8")
     assert gate.main(["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed)]) == 1
+
+
+# ---- self-bypass (review of 034d7f1) ------------------------------------------
+
+def test_pr_cannot_switch_the_freeze_off_for_itself(tmp_path, monkeypatch):
+    """The PR's own project_state.yml says active: false; the base says true.
+    The gate is judged on the base copy, so the PR still needs a declaration."""
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    base = tmp_path / "base_state.yml"
+    base.write_text(yaml.safe_dump({**STATE, "feature_freeze": {"active": True}}), encoding="utf-8")
+    pr_copy = tmp_path / "pr_state.yml"           # what the PR changed; must be ignored
+    pr_copy.write_text(yaml.safe_dump({**STATE, "feature_freeze": {"active": False}}), encoding="utf-8")
+    body, changed = tmp_path / "b.txt", tmp_path / "c.txt"
+    body.write_text("turn the freeze off", encoding="utf-8")
+    changed.write_text("config/project_state.yml\n", encoding="utf-8")
+    args = ["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed)]
+    assert gate.main(args + ["--state-file", str(base)]) == 1
+    assert gate.main(args + ["--state-file", str(pr_copy)]) == 0    # why the base copy matters
+
+
+def test_pr_cannot_add_itself_a_blocker(tmp_path):
+    # blockers / open issues come from the base state too
+    ok, _ = run("Freeze classification: BLOCKER_FIX (B9)", ["docs/x.md"])
+    assert not ok
+
+
+def test_workflow_runs_base_code_only():
+    wf = (ROOT / ".github/workflows/pr-scope-gate.yml").read_text(encoding="utf-8")
+    trig = wf.split("on:", 1)[1].split("permissions:", 1)[0]
+    assert "pull_request_target" in trig and "\n  pull_request:" not in trig
+    assert "persist-credentials: false" in wf
+    assert "ref:" not in wf, "the job must check out the base branch, never the PR head"
+    assert "--state-file config/project_state.yml" in wf
+    script = wf.split("run: |", 1)[1]
+    assert "git diff --name-only" in script
+    # nothing from the PR head is executed: only the base checkout's checker runs
+    assert "pr/head" in script and "checkout pr" not in script and "pip install -r" not in script

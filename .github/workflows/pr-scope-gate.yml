@@ -3,11 +3,16 @@ name: PR Scope Gate
 # Feature freeze: every PR must declare "Freeze classification: BLOCKER_FIX |
 # CORRECTNESS_FIX | HOUSEKEEPING | DEFERRED" in its body, and the declaration
 # must match the diff (scripts/check_pr_scope.py). Added after PR #272 was
-# fully green in CI while outside the freeze scope. Not a required check until
-# the repo owner adds it to branch protection.
+# fully green in CI while outside the freeze scope.
+#
+# SECURITY / TRUST BOUNDARY: pull_request_target runs THIS workflow, the
+# checker and config/project_state.yml from the BASE branch, so a PR cannot
+# switch the freeze off, edit the checker or skip this job to pass itself.
+# The PR head is fetched only so `git diff` can list its changed files. PR code
+# is never checked out or executed, no secret is used, permissions are read-only.
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main]
     types: [opened, edited, synchronize, reopened, ready_for_review]
 
@@ -20,9 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0  (base branch)
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: "3.11"
@@ -33,11 +39,15 @@ jobs:
           # PR text goes through env vars, never inline in the script
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          # list the PR's files only; nothing from the PR head is checked out or run
+          git fetch --no-tags --quiet origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"
           printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr_body.txt"
           git diff --name-only "$BASE_SHA...$HEAD_SHA" > "$RUNNER_TEMP/changed.txt"
           python scripts/check_pr_scope.py --title "$PR_TITLE" \
             --body-file "$RUNNER_TEMP/pr_body.txt" \
-            --changed-files-file "$RUNNER_TEMP/changed.txt"
+            --changed-files-file "$RUNNER_TEMP/changed.txt" \
+            --state-file config/project_state.yml

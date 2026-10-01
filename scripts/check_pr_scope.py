@@ -20,11 +20,17 @@ must carry exactly one line
   HOUSEKEEPING     the diff touches none of PROTECTED: dashboard/, PowerBI/DAX/,
                    PowerBI/PowerQuery/, PowerBI/SeedData/, PowerBI/RawDataFolders/,
                    PowerBI/QuickSetup/, scripts/build_dashboard_data.py,
-                   config/baselines.json, config/data_source_registry.yml
+                   config/baselines.json, config/data_source_registry.yml,
+                   .github/workflows/, this checker and its tests
   DEFERRED         fails on purpose: a deferred PR must not merge
 
 A title starting with "[DEFERRED" also fails. With the freeze off, every PR
 passes (the declaration is then optional).
+
+Trust boundary: in CI this script, config/project_state.yml and the workflow
+all come from the BASE branch (pull_request_target); the PR's files are only
+listed by `git diff`, never read or executed. So a PR cannot switch the freeze
+off, add itself a blocker, or edit the checker to pass itself.
 
 Exit codes: 0 pass, 1 fail. Reads only local files; no network.
 
@@ -51,7 +57,9 @@ DECLARATION = re.compile(r"Freeze classification:\s*\**\s*`?([A-Z_]+)`?", re.I)
 # data and the governed definitions of both.
 PROTECTED = ("dashboard/", "PowerBI/DAX/", "PowerBI/PowerQuery/", "scripts/build_dashboard_data.py",
              "PowerBI/SeedData/", "PowerBI/RawDataFolders/", "PowerBI/QuickSetup/",
-             "config/baselines.json", "config/data_source_registry.yml")
+             "config/baselines.json", "config/data_source_registry.yml",
+             # the enforcement itself: CI workflows, this checker and its tests
+             ".github/workflows/", "scripts/check_pr_scope.py", "tests/test_pr_scope_gate.py")
 TEST_PATH = re.compile(r"(?<![\w/.-])((?:tests/[\w./-]+)|(?:scripts/test_[\w.-]+\.py))")
 
 
@@ -109,8 +117,10 @@ def main(argv=None) -> int:
     ap.add_argument("--title", required=True)
     ap.add_argument("--body-file", required=True, type=Path)
     ap.add_argument("--changed-files-file", required=True, type=Path)
+    ap.add_argument("--state-file", type=Path, default=STATE_FILE,
+                    help="project_state.yml to judge against: the BASE branch copy in CI")
     a = ap.parse_args(argv)
-    state = yaml.safe_load(STATE_FILE.read_text(encoding="utf-8")) or {}
+    state = yaml.safe_load(a.state_file.read_text(encoding="utf-8")) or {}
     body = a.body_file.read_text(encoding="utf-8") if a.body_file.exists() else ""
     changed = [ln.strip() for ln in a.changed_files_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
     ok, msg = check(a.title, body, changed, state)
