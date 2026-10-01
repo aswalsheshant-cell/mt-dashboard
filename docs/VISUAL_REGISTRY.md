@@ -93,6 +93,12 @@ never actually active. One-line fix (delete the later, unsafe duplicate) once ap
 - `dashboard/index.html:3393-3403` (`computePORiskSummary`, "Open PO SLA Risk
   Summary"): hardcodes a ≥7-day breach threshold and a flat ₹50L penalty per
   breach with no visible source/config for either number.
+  **Update 2026-10-01:** fixed on `claude/po-sla-not-available` — with no open-PO
+  source (`D.po` absent, as today) the card says "Not available" instead of
+  "0 POs / ₹0L"; the ₹50L constant is gone (penalty "not computed" until an
+  approved rate exists) and a breach threshold is read only from
+  `config.po_sla.breach_days`. Regression test: TC15 in
+  `tests/e2e_v1.1.0_consolidation.spec.js`.
 
 ### 6. Alerts empty-state is a false "all healthy" on load failure
 `dashboard/index.html:275-276`, `alert_controller.js:59-62`. `window.alertsFeed`
