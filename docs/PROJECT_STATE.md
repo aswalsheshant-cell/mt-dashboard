@@ -80,7 +80,7 @@ this file or the blocker pack contradicts it.
 B5 Power BI Desktop checks, B6 incentive decisions) or fixes a newly reproduced
 defect is merged. Closed as outside the certified scope (branches kept): #129, #130,
 #135, #136 (superseded by #243, #238, #240, #237) and #134, #165, #168, #169, #170.
-Open PRs held on blockers: #119 (frozen evidence, gated on #120) and #267 (HOLD: Finance; distributor-claim seed on current `main`). #252 was closed 2026-09-30 as superseded by #267 (not merged; branch kept). Open issues: #120, #194.
+Open PRs held on blockers: #119 (frozen evidence, gated on #120) and #267 (HOLD: Finance decided A1/A2 on 2026-10-01; monthly allocation added, CM2 wiring is a separate PR). #252 was closed 2026-09-30 as superseded by #267 (not merged; branch kept). Open issues: #120, #194.
 
 **B5 — `BLOCKED_PENDING_DESKTOP_EVIDENCE` (exit condition changed 2026-09-29, owner decision).**
 History: on 2026-09-27 the MT Channel Analyst Lead reported CM2 Case 1 and the FY parser
@@ -91,7 +91,7 @@ Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–8 on th
 model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0),
 plus the L3M/L6M rolling-average check (`Mismatches` = 0; added 2026-10-01, #273), recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
 `docs/evidence/B5_RUN_SHEET.md`. Needs one Power BI Desktop session on Windows.
-Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims (#267) and the rest of CM2 scope wait on Finance), B4, B5, B6.
+Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims (#267): Finance decided A1 additive / A2 monthly allocation on 2026-10-01; the rest of CM2 scope waits on Finance), B4, B5, B6.
 
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,

@@ -242,15 +242,42 @@ datasets:
     validation_status: PARTIAL
     source_priority: SOURCE_OF_TRUTH
     fallback_source: null
-    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq"]
-    last_validated: "2026-09-13"
+    downstream_outputs: ["PowerBI/PowerQuery/45_Fact_ClaimMaster.pq", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Input_Q1_FY27.csv", "PowerBI/SeedData/Masters/PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv"]
+    loader: "scripts/build_distributor_claim_expense_seed.py (deterministic Q1 chain x expense-head seed, ACTUAL); scripts/build_distributor_claim_monthly_allocation.py (monthly split on the Finance A1/A2 decision, ALLOCATED_PROVISIONAL; formal approval reference PENDING)"
+    last_validated: "2026-09-27"
     modification_allowed: false
     notes: >
-      Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. Separately,
-      docs/finance_decision_matrix_Q1_FY27.csv (a related but different claims
-      register, 116 rows, real-looking distributor names) still shows numerous
-      PENDING/"Manual Review Required" rows as of its own content, while
-      docs/FINANCE_APPROVAL_Q1_FY27.md claims "Resolution Rate: 100%" and
+      Covers Apr-Jun 2026 (Q1 FY27) only -- no Aug'26 claims data. The tracked
+      chain master reconciles to Rs449.7696 L total. The governed expense seed
+      PL_Distributor_Claim_Input_Q1_FY27.csv carries 32 non-zero chain x
+      expense-head rows totaling Rs449.7694 L; the Rs0.0002 L difference is
+      source-category rounding only, and negative claim/credit rows are retained.
+      The seed deliberately has NO Month field and is NOT appended to the monthly
+      PL_Expense_Input.csv: the tracked repo does not preserve a complete
+      month x distributor x chain x expense-head fact table, so spreading Q1
+      claims across Apr/May/Jun would fabricate financial timing. Load these
+      distributor claims into monthly CM2 only when real month-level chain evidence
+      is supplied or Finance explicitly approves a period-grain treatment.
+      FINANCE DECISION 2026-10-01 (DA, Finance pack A1/A2): A1 = distributor
+      claims are ADDITIVE to MT Direct DN; A2 = include in monthly and quarterly
+      CM2. The quarterly seed stays the ACTUAL figure. The monthly file
+      PL_Distributor_Claim_Monthly_Allocated_Q1_FY27.csv splits each Chain x
+      Expense Head claim by that chain's Apr/May/Jun distributor-secondary share
+      (status ALLOCATED_PROVISIONAL); each line reconciles to its Q1 claim; no
+      equal /3 split; a chain with no secondary (Spar, Rs -0.02 L) stays one
+      UNALLOCATED_TIMING row. Seven secondary spellings canon_chain() does not
+      resolve are listed in PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv;
+      each is used only after its own Owner_Decision = Approve with approver,
+      date and reference (driver only, not added to CHAIN_ALIASES). Until then
+      those names are left out of the driver (Ratnadeep then has no driver and
+      stays UNALLOCATED_TIMING). The formal Finance approval reference is
+      PENDING. CM2 integration rule: the quarterly seed is a control table, the
+      monthly file is the reporting fact; Q1 / FY CM2 sums the monthly rows once
+      and never adds the quarterly seed again (zero-difference reconciliation).
+      Separately, docs/finance_decision_matrix_Q1_FY27.csv (a related but
+      different claims register, 116 rows, real-looking distributor names) still
+      shows numerous PENDING/"Manual Review Required" rows as of its own content,
+      while docs/FINANCE_APPROVAL_Q1_FY27.md claims "Resolution Rate: 100%" and
       "READY FOR PRODUCTION DEPLOYMENT" -- a direct contradiction between a
       document and the data it claims to summarize. Do not treat the "100%
       resolved" claim as accurate without independently recounting the PENDING

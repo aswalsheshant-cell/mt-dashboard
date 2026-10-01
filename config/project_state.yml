@@ -24,7 +24,7 @@ open_prs:
   - number: 267
     status: HOLD
     blocker: B3
-    reason: "#252 rebuilt on current main (same 4 files; seed byte-identical). Finance: monthly timing and Direct DN overlap rule."
+    reason: "#252 rebuilt on current main. Finance decided 2026-10-01 (DA): A1 additive, A2 monthly split by Chain x Month distributor secondary (ALLOCATED_PROVISIONAL), quarterly Rs 449.77 L ACTUAL. Monthly allocation file added; wiring into dashboard / Power BI CM2 is a separate PR."
 
 open_issues:
   - number: 120
