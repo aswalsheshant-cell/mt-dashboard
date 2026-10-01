@@ -448,6 +448,17 @@ Chart.register({
         const x=arc.x+Math.cos(ang)*r, y=arc.y+Math.sin(ang)*r;
         ctx.fillText(`${(share*100).toFixed(0)}%`, x, y);
       });
+      // total in the ring's hole: the sum of the slices drawn, so it always matches them
+      const a0=meta.data[0];
+      if(a0&&a0.innerRadius>0){
+        const tot=data.reduce((a,b)=>a+(b||0),0), lbl=fmt(tot);
+        ctx.fillStyle='#1f2a36'; ctx.font='bold 13px Aptos, Segoe UI, Calibri, sans-serif';
+        if(ctx.measureText(lbl).width<a0.innerRadius*1.8){
+          ctx.fillText(lbl,a0.x,a0.y-7);
+          ctx.fillStyle='#6b7785'; ctx.font='10.5px Aptos, Segoe UI, Calibri, sans-serif';
+          ctx.fillText('Total',a0.x,a0.y+9);
+        }
+      }
     } else if(chart.config.type==='bar'){
       const horiz=chart.options.indexAxis==='y';
       const sc=chart.options.scales||{}, area=chart.chartArea;
@@ -484,7 +495,10 @@ Chart.register({
       } else {
         const per=slot!=null?slot/metas.length:null;
         metas.forEach(m=>{ const ds=chart.data.datasets[m.index]; lastRight=-Infinity;
-          m.data.forEach((bar,i)=>{ const v=ds.data[i]; if(v==null) return; put(fmt(v),bar,v,per); }); });
+          // opt.total (horizontal ranking bars): also show the bar's share of the whole, not just of the bars shown
+          // (a negative bar, e.g. net returns, has no meaningful share: value only)
+          const shareOf=v=>{ if(!(v>0)) return ''; const p=v/opt.total*100; return ` · ${p<0.1?'<0.1':p<10?p.toFixed(1):p.toFixed(0)}%`; };
+          m.data.forEach((bar,i)=>{ const v=ds.data[i]; if(v==null) return; put(fmt(v)+(horiz&&opt.total>0?shareOf(v):''),bar,v,per); }); });
       }
     } else if(chart.config.type==='line'){
       ctx.textAlign='center'; ctx.textBaseline='bottom';
@@ -531,12 +545,14 @@ function mkBar(id,labels,datasets,opts={},onClick){
       scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>opts.money===false?num(v):crc(v)}},
               x:{grid:{display:false}}}},_drillOpts(onClick),opts.cfg||{})}));
 }
-function mkBarH(id,labels,data,color,money=true,onClick){
+// total (optional): the full total the bars are part of; adds "· NN%" share labels
+function mkBarH(id,labels,data,color,money=true,onClick,total){
+  const share=total>0?v=>v>0?` (${v/total*100<0.1?'<0.1':(v/total*100).toFixed(1)}% of total)`:'':()=>'';
   charts.push(new Chart(document.getElementById(id),{type:'bar',
     data:{labels,datasets:[{data,backgroundColor:color||C.teal,borderRadius:4}]},
     options:Object.assign({indexAxis:'y',plugins:{legend:{display:false},
-      ..._labelOpts(money),
-      tooltip:{callbacks:{label:c=>money?crc(c.parsed.x):num(c.parsed.x)}}},
+      valueLabels:{money,total:total>0?total:null},
+      tooltip:{callbacks:{label:c=>(money?crc(c.parsed.x):num(c.parsed.x))+share(c.parsed.x)}}},
       scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>money?crc(v):num(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}},_drillOpts(onClick))}));
 }
 function mkLine(id,labels,datasets,onClick){
@@ -870,7 +886,7 @@ function renderDrillChart(chartId,baseTitle,baseRecs){
   mkBarH(chartId,labels,data,C.teal,true,val=>{
     if(nextDepth<DRILL_HIER.length){ st.path.push({dim,val}); show(currentTab); }
     else drillTo(dim,val);
-  });
+  },totalNsv);
 }
 
 /* ---------------- OVERVIEW ---------------- */
@@ -4071,7 +4087,7 @@ function renderCatDrillChart(canvasId,recs){
     labels=c.map(x=>x[0]); data=c.map(x=>x[1]);
     onClick=v=>{ catChartDrill=v; show(currentTab); };
   }
-  if(labels.length) mkBarH(canvasId,labels,data,C.teal,true,onClick);
+  if(labels.length) mkBarH(canvasId,labels,data,C.teal,true,onClick,data.reduce((a,b)=>a+(b||0),0));
 }
 
 // ---- FY/Month filter-awareness for tabs backed by PRE-AGGREGATED blocks ----
