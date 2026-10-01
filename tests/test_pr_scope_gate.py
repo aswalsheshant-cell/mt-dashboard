@@ -114,7 +114,14 @@ def test_scripts_test_file_counts_as_regression_test():
 @pytest.mark.parametrize("path", ["dashboard/index.html", "dashboard/data.js",
                                   "PowerBI/DAX/01_CoreMeasures.dax",
                                   "PowerBI/PowerQuery/39_PL_Expense_Input.pq",
-                                  "scripts/build_dashboard_data.py"])
+                                  "scripts/build_dashboard_data.py",
+                                  # financial / source data and governed definitions
+                                  "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
+                                  "PowerBI/SeedData/Masters/AssumptionTable.csv",
+                                  "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
+                                  "PowerBI/QuickSetup/AllDAX_Consolidated.txt",
+                                  "config/baselines.json",
+                                  "config/data_source_registry.yml"])
 def test_housekeeping_touching_product_code_fails(path):
     ok, msg = run("Freeze classification: HOUSEKEEPING", ["docs/x.md", path])
     assert not ok and path in msg

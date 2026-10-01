@@ -17,8 +17,10 @@ must carry exactly one line
                    or an open issue listed there (e.g. #120)
   CORRECTNESS_FIX  the body names a regression test file (tests/... or
                    scripts/test_*.py) that is changed or added in this PR
-  HOUSEKEEPING     the diff touches no dashboard/, PowerBI/DAX/,
-                   PowerBI/PowerQuery/ or scripts/build_dashboard_data.py
+  HOUSEKEEPING     the diff touches none of PROTECTED: dashboard/, PowerBI/DAX/,
+                   PowerBI/PowerQuery/, PowerBI/SeedData/, PowerBI/RawDataFolders/,
+                   PowerBI/QuickSetup/, scripts/build_dashboard_data.py,
+                   config/baselines.json, config/data_source_registry.yml
   DEFERRED         fails on purpose: a deferred PR must not merge
 
 A title starting with "[DEFERRED" also fails. With the freeze off, every PR
@@ -45,8 +47,11 @@ STATE_FILE = ROOT / "config" / "project_state.yml"
 
 CLASSES = ("BLOCKER_FIX", "CORRECTNESS_FIX", "HOUSEKEEPING", "DEFERRED")
 DECLARATION = re.compile(r"Freeze classification:\s*\**\s*`?([A-Z_]+)`?", re.I)
-# Paths a HOUSEKEEPING PR may not touch: product behaviour and its data.
-PROTECTED = ("dashboard/", "PowerBI/DAX/", "PowerBI/PowerQuery/", "scripts/build_dashboard_data.py")
+# Paths a HOUSEKEEPING PR may not touch: product behaviour, financial / source
+# data and the governed definitions of both.
+PROTECTED = ("dashboard/", "PowerBI/DAX/", "PowerBI/PowerQuery/", "scripts/build_dashboard_data.py",
+             "PowerBI/SeedData/", "PowerBI/RawDataFolders/", "PowerBI/QuickSetup/",
+             "config/baselines.json", "config/data_source_registry.yml")
 TEST_PATH = re.compile(r"(?<![\w/.-])((?:tests/[\w./-]+)|(?:scripts/test_[\w.-]+\.py))")
 
 
@@ -96,7 +101,7 @@ def check(title: str, body: str, changed: list[str], state: dict) -> tuple[bool,
     if touched:
         return False, ("FAIL: HOUSEKEEPING may not change product code or data; this PR touches "
                        + ", ".join(touched))
-    return True, "PASS: HOUSEKEEPING (no dashboard, DAX, Power Query or data-build change)"
+    return True, "PASS: HOUSEKEEPING (no product code, financial data or governed definition changed)"
 
 
 def main(argv=None) -> int:
