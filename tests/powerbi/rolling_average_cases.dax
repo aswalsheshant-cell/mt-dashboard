@@ -1,0 +1,69 @@
+// =====================================================================
+// L3M / L6M averages -- missing month is not zero (01_CoreMeasures.dax)
+// Run in DAX Studio connected to the Power BI Desktop model (or paste each
+// EVALUATE into Power BI Desktop's DAX query view). CI has no DAX engine, so
+// tests/test_powerbi_rolling_average.py checks the measure STRUCTURE; these
+// queries check the BEHAVIOUR on the real model. Run each block on its own.
+// =====================================================================
+
+// CASE 1 -- every month: the measure must equal a hand-built average over the
+// months in the window that have rows. Covers a window with 2 loaded months
+// (first months after the source starts) and a full window of 3 / 6.
+// EXPECT: Mismatches = 0 (BLANK also accepted: means no month disagreed).
+EVALUATE
+VAR _rows =
+    ADDCOLUMNS (
+        VALUES ( 'Date Table'[MonthStart] ),
+        "L3M", [L3M Average Sales],
+        "L6M", [L6M Average Sales],
+        "L3M_Expected",
+            VAR _m = 'Date Table'[MonthStart]
+            VAR _win = FILTER ( ALL ( 'Date Table'[MonthStart] ),
+                                'Date Table'[MonthStart] >= EDATE ( _m, -3 ) && 'Date Table'[MonthStart] < _m )
+            RETURN AVERAGEX ( FILTER ( _win, NOT ISBLANK ( CALCULATE ( [NSV] ) ) ), CALCULATE ( [NSV] ) ),
+        "L6M_Expected",
+            VAR _m = 'Date Table'[MonthStart]
+            VAR _win = FILTER ( ALL ( 'Date Table'[MonthStart] ),
+                                'Date Table'[MonthStart] >= EDATE ( _m, -6 ) && 'Date Table'[MonthStart] < _m )
+            RETURN AVERAGEX ( FILTER ( _win, NOT ISBLANK ( CALCULATE ( [NSV] ) ) ), CALCULATE ( [NSV] ) )
+    )
+RETURN
+ROW (
+    "Months",     COUNTROWS ( _rows ),
+    "Mismatches", COUNTROWS ( FILTER ( _rows,
+                      ABS ( [L3M] - [L3M_Expected] ) > 0.01 || ABS ( [L6M] - [L6M_Expected] ) > 0.01
+                      || ISBLANK ( [L3M] ) <> ISBLANK ( [L3M_Expected] ) ) )
+)
+
+// CASE 2 -- the first month that has data: its window holds no loaded month.
+// EXPECT: L3M = BLANK and L6M = BLANK (not 0).
+EVALUATE
+VAR _first = CALCULATE ( MIN ( 'Date Table'[MonthStart] ), FILTER ( ALL ( 'Date Table'[MonthStart] ), NOT ISBLANK ( [NSV] ) ) )
+RETURN
+ROW (
+    "FirstMonth", _first,
+    "L3M",        CALCULATE ( [L3M Average Sales], 'Date Table'[MonthStart] = _first ),
+    "L6M",        CALCULATE ( [L6M Average Sales], 'Date Table'[MonthStart] = _first )
+)
+
+// CASE 3 -- the third month with data: its L3M window holds only 2 loaded
+// months, so the average divides by 2, not 3.
+// EXPECT: L3M = (NSV month 1 + NSV month 2) / 2.
+EVALUATE
+VAR _loaded = FILTER ( ALL ( 'Date Table'[MonthStart] ), NOT ISBLANK ( [NSV] ) )
+VAR _m1 = MINX ( _loaded, 'Date Table'[MonthStart] )
+VAR _m3 = EDATE ( _m1, 2 )
+RETURN
+ROW (
+    "Month",    _m3,
+    "L3M",      CALCULATE ( [L3M Average Sales], 'Date Table'[MonthStart] = _m3 ),
+    "Expected", DIVIDE ( CALCULATE ( [NSV], 'Date Table'[MonthStart] = _m1 )
+                         + CALCULATE ( [NSV], 'Date Table'[MonthStart] = EDATE ( _m1, 1 ) ), 2 )
+)
+
+// CASE 4 -- a month that genuinely sold 0 stays in the average. Only runnable
+// if the model has such a month; otherwise record "not present in data".
+// EXPECT: ZeroMonths listed; for each, CASE 1 already proves L3M includes it.
+EVALUATE
+FILTER ( ADDCOLUMNS ( VALUES ( 'Date Table'[MonthStart] ), "NSV", [NSV] ),
+         NOT ISBLANK ( [NSV] ) && [NSV] = 0 )
