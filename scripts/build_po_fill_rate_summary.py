@@ -111,6 +111,9 @@ def build(df: pd.DataFrame, max_month: pd.Timestamp):
     qc = {"rows_read": int(len(df))}
     df = fix_swapped_columns(df, qc)
     df["Extract_Month"] = df["Month"].map(extract_month)
+    late = df["Extract_Month"] > max_month
+    qc["rows_dropped_after_max_month"] = int(late.sum())            # e.g. every Sep-26 extract row
+    df = df[~late].copy()            # dropped before any other rule, so nothing below reads them
     df["SO_Month"] = pd.to_datetime(df["SO Date"], format="%d-%m-%Y", errors="coerce").dt.to_period("M").dt.to_timestamp()
     if df["SO_Month"].isna().any() or df[["SO Qty", "SO Net Value"]].isna().any().any():
         raise SystemExit("unparseable SO Date, SO Qty or SO Net Value -- stop and fix the source")
@@ -124,10 +127,6 @@ def build(df: pd.DataFrame, max_month: pd.Timestamp):
     qc["blank_invoice_lines_read_as_not_billed"] = int(blank.sum())
     qc["blank_invoice_extracts"] = sorted(set(df.loc[blank, "Month"]), key=extract_month)
     df[["Invoice Qty", "NET Value"]] = df[["Invoice Qty", "NET Value"]].fillna(0.0)
-
-    late = df["Extract_Month"] > max_month
-    qc["rows_dropped_after_max_month"] = int(late.sum())            # e.g. every Sep-26 extract row
-    df = df[~late]
 
     n = len(df)
     df = df.drop_duplicates()
@@ -207,7 +206,8 @@ def main(argv=None):
     if any(Path(p).resolve().is_relative_to(ROOT) for p in paths):
         raise SystemExit("raw PO extract must stay outside the repository (customer-level data, public repo)")
     raw, prints = load(paths)
-    raw_tot = {c: float(raw[c].sum()) for c in NUM_COLS}
+    keep = raw["Month"].map(extract_month) <= pd.Timestamp(a.max_month + "-01")
+    raw_tot = {c: float(raw.loc[keep, c].sum()) for c in NUM_COLS}   # never totals that include a dropped month
     df, qc = build(raw, pd.Timestamp(a.max_month + "-01"))
     fr, reasons = summarise(df)
     tgt = po_vs_target(df)
@@ -219,7 +219,7 @@ def main(argv=None):
     tgt.to_csv(a.out_dir / "PO_vs_Target_Monthly_FY27.csv", index=False)
     month_tot = fr.groupby("Month", sort=False)[["PO_Qty", "Billed_Qty", "PO_Value_L", "Billed_Value_L"]].sum()
     qc.update({
-        "source_parts": prints, "raw_totals_all_rows": raw_tot,
+        "source_parts": prints, "raw_totals_kept_extracts": raw_tot,
         "months_kept": [month_label(m) for m in sorted(df["SO_Month"].unique())],
         "summary_totals": {k: round(float(v), 4) for k, v in fr[["PO_Qty", "Billed_Qty", "PO_Value_L", "Billed_Value_L"]].sum().items()},
         "lines_check": {"summary_lines": int(fr["SO_Lines"].sum()), "lines_kept": qc["lines_kept"]},

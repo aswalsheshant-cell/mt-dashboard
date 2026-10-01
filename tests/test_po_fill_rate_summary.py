@@ -42,8 +42,12 @@ def qc():
 def test_months_are_apr25_to_aug26_and_no_september_26(fr, qc):
     assert sorted(set(fr["Month"]), key=MONTHS.index) == MONTHS
     assert qc["months_kept"] == MONTHS
-    for f in (FR, REASONS, TARGET, QC):
+    for f in (FR, REASONS, TARGET):
         assert "Sep-26" not in f.read_text(encoding="utf-8")
+    q = dict(qc)
+    q.pop("source_parts")                     # raw file names say "..._to_Sep26_part_NN"; no data
+    text = json.dumps(q)
+    assert "Sep-26" not in text and "Sep'26" not in text
 
 
 def test_fy_tag_follows_the_one_fy_rule(fr):

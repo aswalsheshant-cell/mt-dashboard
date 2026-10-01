@@ -4,7 +4,8 @@
  "article_customer_swap_extracts": [
   "Dec'25"
  ],
- "blank_invoice_lines_read_as_not_billed": 49297,
+ "rows_dropped_after_max_month": 19450,
+ "blank_invoice_lines_read_as_not_billed": 45847,
  "blank_invoice_extracts": [
   "Jan'26",
   "Feb'26",
@@ -13,10 +14,8 @@
   "May'26",
   "June'26",
   "July'26",
-  "Aug'26",
-  "Sep'26"
+  "Aug'26"
  ],
- "rows_dropped_after_max_month": 19450,
  "exact_duplicate_rows_removed": 154,
  "carry_over_rows_merged": 2253,
  "free_goods_lines_excluded": 1889,
@@ -44,11 +43,11 @@
    "sha256": "8eec1fcd8ad125ebdd8fa7676d5c0c71cd56c78731af5823ebecb65b473230a8"
   }
  ],
- "raw_totals_all_rows": {
-  "SO Qty": 42966692.0,
-  "SO Net Value": 7391362471.71,
-  "Invoice Qty": 35454817.0,
-  "NET Value": 6100343769.500001
+ "raw_totals_kept_extracts": {
+  "SO Qty": 40567617.0,
+  "SO Net Value": 6947529973.45,
+  "Invoice Qty": 33303320.0,
+  "NET Value": 5705986216.26
  },
  "months_kept": [
   "Apr-25",
