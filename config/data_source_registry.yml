@@ -472,6 +472,11 @@ datasets:
       for exactly this (build_dashboard_data.py currently emits only
       `metrics: {doi: {}, otif: {}}` -- no doi_watchlist producer exists yet).
 
+      2026-10-01: the FILL-RATE part of this entry now has a real source,
+      registered separately as po_billing_fill_rate (PO received vs billed,
+      Apr'25-Aug'26). Stock-on-hand, in-transit and OTIF are still MISSING, so
+      this entry stays MISSING and DOI stays withheld.
+
   store_audit_compliance:
     business_name: "Store audit compliance (PES) and supply-chain fill-rate (CFR/OTIF)"
     source_path: "dashboard/compliance_metrics.json"
@@ -746,6 +751,61 @@ datasets:
       tests now skip with an explicit MISSING_SOURCE reason instead of
       erroring, so a real regression in an environment that DOES have this
       source isn't masked by tests that can never pass without it.
+
+  po_billing_fill_rate:
+    business_name: "PO received vs PO billed (sales-order fill rate), Apr'25-Aug'26"
+    source_path: "PowerBI/SeedData/Forecast/PO_Fill_Rate_Monthly_Apr25_to_Aug26.csv (aggregated summary only; raw SO-line extract kept OUTSIDE Git -- public repo, customer-level data)"
+    source_type: "SAP PO vs Billing extract, 5 CSV parts (PO_VS_Billing_FR_Apr25_to_Sep26_part_01..05), supplied by the MT Channel Analyst Lead 2026-10-01"
+    grain: "Raw: one row per sales-order line (SO No x Article x Item cat). Committed: Month x FY x Channel x Customer group x Zone x Chain x Brand x Category"
+    business_date: "SO Date (order date). The file's own Month column is the extract month and is NOT used as the business month (3,389 rows are open orders repeated in the next extract)."
+    date_min: "2025-04"
+    date_max: "2026-08"
+    financial_years: ["FY26", "FY27"]
+    important_columns: ["SO Qty (PO received)", "Invoice Qty (PO billed)", "SO Net Value", "NET Value", "Reason for Rejection Desc"]
+    business_owner: "MT Channel Analyst Lead (extract); Supply Chain for rejection-reason meaning"
+    refresh_frequency: "Monthly: rerun scripts/build_po_fill_rate_summary.py with ALL parts supplied so far (it de-duplicates carry-over lines itself)"
+    validation_status: PARTIAL
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_po_fill_rate_summary.py -> PowerBI/SeedData/Forecast/ (fill-rate summary, unfilled-reason summary, PO vs FY27 target, QC json)"
+    downstream_outputs: []
+    last_validated: "2026-10-01"
+    modification_allowed: false
+    source_fingerprints:
+        - "PO_VS_Billing_FR_Apr25_to_Sep26_part_01.csv  sha256 9971b4107fd50b051ed0430f85679ef1bd2a8443085c5f04f518ee20ac3cb380"
+        - "PO_VS_Billing_FR_Apr25_to_Sep26_part_04.csv  sha256 feaf950ec14894dac6c032d80eace68990ccef8b2052ba720281b6632b665928"
+        - "PO_VS_Billing_FR_Apr25_to_Sep26_part_02.csv  sha256 d447f324a4482a41e58c888e9e52fc332e7559ec3bbf047ebb69fdfe8ba2d9eb"
+        - "PO_VS_Billing_FR_Apr25_to_Sep26_part_05.csv  sha256 4363777cbf5cd579040893a35391675482f446b60ca979fcf35a6013d053743e"
+        - "PO_VS_Billing_FR_Apr25_to_Sep26_part_03.csv  sha256 8eec1fcd8ad125ebdd8fa7676d5c0c71cd56c78731af5823ebecb65b473230a8"
+    notes: >
+      PARTIAL because it gives FILL RATE (qty and value billed vs ordered) but
+      not OTIF: there is no requested-delivery date and no delivered date, so
+      "on time" cannot be proven. OTIF stays NOT AVAILABLE.
+
+      Data-quality rules found in the source and handled by the builder (each
+      checked on every run, the build stops if a check fails): (1) carry-over
+      lines merged, latest status kept, 2,253 rows; (2) exact duplicates 154
+      rows; (3) Jan'26+ extracts leave unbilled lines blank instead of 0
+      (49,297 lines) -- read as not billed only because no extract mixes blank
+      and 0; (4) the whole Dec'25 extract has Article and Customer No swapped
+      (25,460 rows), swapped back after an EAN and customer-code cross-check;
+      (5) free goods (ZFOC) kept out of the rate. Sep'26 (19,450 rows) is not
+      stored: September data stays out of this repository.
+
+      Result: 384,667 order lines, PO Rs 68,984.75 L, billed Rs 57,007.72 L,
+      fill rate 82.91% on qty / 82.64% on value. Chains via the governed
+      canon_chain(); distributors it does not map (PO Rs 15,169 L) keep their own
+      name with Chain_Resolved = N -- never guessed onto a chain.
+
+      Corroboration, not a reconciliation: billed value by SO month runs +1% to
+      +7% above Primary NSV in data.js (FY27 Apr-Aug +0.95%, FY26 +5.0%; Mar'26
+      +19%, year-end timing). Different basis: SO date vs invoice date, gross of
+      returns/cancellations. Primary NSV stays the sales figure of record; this
+      file is used for fill rate and demand only.
+
+      PO demand vs FY27 target is total-level only (the target file has no
+      chain/zone split): PowerBI/SeedData/Forecast/PO_vs_Target_Monthly_FY27.csv.
+      Not wired into dashboard/data.js or the HTML yet (feature freeze).
 
   offtake_fy26_store_article:
     business_name: "Offtake NSV -- FY26 (Apr'25-Mar'26) store x article grain, requested for Same-Store Growth"

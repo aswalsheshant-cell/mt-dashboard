@@ -1,0 +1,190 @@
+{
+ "rows_read": 408413,
+ "article_customer_swap_fixed_rows": 25460,
+ "article_customer_swap_extracts": [
+  "Dec'25"
+ ],
+ "blank_invoice_lines_read_as_not_billed": 49297,
+ "blank_invoice_extracts": [
+  "Jan'26",
+  "Feb'26",
+  "March'26",
+  "Apr'26",
+  "May'26",
+  "June'26",
+  "July'26",
+  "Aug'26",
+  "Sep'26"
+ ],
+ "rows_dropped_after_max_month": 19450,
+ "exact_duplicate_rows_removed": 154,
+ "carry_over_rows_merged": 2253,
+ "free_goods_lines_excluded": 1889,
+ "free_goods_qty_excluded": 483146.0,
+ "lines_kept": 384667,
+ "source_parts": [
+  {
+   "file": "1c83fd2e-PO_VS_Billing_FR_Apr25_to_Sep26_part_01.csv",
+   "sha256": "9971b4107fd50b051ed0430f85679ef1bd2a8443085c5f04f518ee20ac3cb380"
+  },
+  {
+   "file": "5aeaf34a-PO_VS_Billing_FR_Apr25_to_Sep26_part_04.csv",
+   "sha256": "feaf950ec14894dac6c032d80eace68990ccef8b2052ba720281b6632b665928"
+  },
+  {
+   "file": "659b0150-PO_VS_Billing_FR_Apr25_to_Sep26_part_02.csv",
+   "sha256": "d447f324a4482a41e58c888e9e52fc332e7559ec3bbf047ebb69fdfe8ba2d9eb"
+  },
+  {
+   "file": "bcf5998a-PO_VS_Billing_FR_Apr25_to_Sep26_part_05.csv",
+   "sha256": "4363777cbf5cd579040893a35391675482f446b60ca979fcf35a6013d053743e"
+  },
+  {
+   "file": "bf094f2d-PO_VS_Billing_FR_Apr25_to_Sep26_part_03.csv",
+   "sha256": "8eec1fcd8ad125ebdd8fa7676d5c0c71cd56c78731af5823ebecb65b473230a8"
+  }
+ ],
+ "raw_totals_all_rows": {
+  "SO Qty": 42966692.0,
+  "SO Net Value": 7391362471.71,
+  "Invoice Qty": 35454817.0,
+  "NET Value": 6100343769.500001
+ },
+ "months_kept": [
+  "Apr-25",
+  "May-25",
+  "Jun-25",
+  "Jul-25",
+  "Aug-25",
+  "Sep-25",
+  "Oct-25",
+  "Nov-25",
+  "Dec-25",
+  "Jan-26",
+  "Feb-26",
+  "Mar-26",
+  "Apr-26",
+  "May-26",
+  "Jun-26",
+  "Jul-26",
+  "Aug-26"
+ ],
+ "summary_totals": {
+  "PO_Qty": 39789026.0,
+  "Billed_Qty": 32988130.0,
+  "PO_Value_L": 68984.751,
+  "Billed_Value_L": 57007.7195
+ },
+ "lines_check": {
+  "summary_lines": 384667,
+  "lines_kept": 384667
+ },
+ "fr_qty_pct_overall": 82.91,
+ "fr_value_pct_overall": 82.64,
+ "unresolved_chain_po_value_L": 15169.15,
+ "month_totals": {
+  "Apr-25": {
+   "PO_Qty": 2671445.0,
+   "Billed_Qty": 2052994.0,
+   "PO_Value_L": 4370.5172,
+   "Billed_Value_L": 3346.9853
+  },
+  "Apr-26": {
+   "PO_Qty": 3294641.0,
+   "Billed_Qty": 2921865.0,
+   "PO_Value_L": 5628.8473,
+   "Billed_Value_L": 4947.4424
+  },
+  "Aug-25": {
+   "PO_Qty": 1521694.0,
+   "Billed_Qty": 1289269.0,
+   "PO_Value_L": 2616.2118,
+   "Billed_Value_L": 2218.4808
+  },
+  "Aug-26": {
+   "PO_Qty": 2239195.0,
+   "Billed_Qty": 2007938.0,
+   "PO_Value_L": 4166.6609,
+   "Billed_Value_L": 3740.0519
+  },
+  "Dec-25": {
+   "PO_Qty": 2697811.0,
+   "Billed_Qty": 1863331.0,
+   "PO_Value_L": 4484.5841,
+   "Billed_Value_L": 3019.7178
+  },
+  "Feb-26": {
+   "PO_Qty": 2051702.0,
+   "Billed_Qty": 1822343.0,
+   "PO_Value_L": 3375.7539,
+   "Billed_Value_L": 2995.1132
+  },
+  "Jan-26": {
+   "PO_Qty": 2645035.0,
+   "Billed_Qty": 2169128.0,
+   "PO_Value_L": 4577.2835,
+   "Billed_Value_L": 3743.7103
+  },
+  "Jul-25": {
+   "PO_Qty": 1779341.0,
+   "Billed_Qty": 1506158.0,
+   "PO_Value_L": 3022.3487,
+   "Billed_Value_L": 2542.4035
+  },
+  "Jul-26": {
+   "PO_Qty": 3146704.0,
+   "Billed_Qty": 2727063.0,
+   "PO_Value_L": 5946.7716,
+   "Billed_Value_L": 5072.1337
+  },
+  "Jun-25": {
+   "PO_Qty": 1618726.0,
+   "Billed_Qty": 1369448.0,
+   "PO_Value_L": 2669.7417,
+   "Billed_Value_L": 2270.778
+  },
+  "Jun-26": {
+   "PO_Qty": 2925282.0,
+   "Billed_Qty": 2445631.0,
+   "PO_Value_L": 5196.5139,
+   "Billed_Value_L": 4349.03
+  },
+  "Mar-26": {
+   "PO_Qty": 2135969.0,
+   "Billed_Qty": 1933798.0,
+   "PO_Value_L": 3840.6246,
+   "Billed_Value_L": 3463.217
+  },
+  "May-25": {
+   "PO_Qty": 1704062.0,
+   "Billed_Qty": 1457840.0,
+   "PO_Value_L": 2812.7788,
+   "Billed_Value_L": 2403.8622
+  },
+  "May-26": {
+   "PO_Qty": 2787053.0,
+   "Billed_Qty": 2398606.0,
+   "PO_Value_L": 5021.0698,
+   "Billed_Value_L": 4342.112
+  },
+  "Nov-25": {
+   "PO_Qty": 2650778.0,
+   "Billed_Qty": 1955729.0,
+   "PO_Value_L": 4615.3764,
+   "Billed_Value_L": 3373.1281
+  },
+  "Oct-25": {
+   "PO_Qty": 2217152.0,
+   "Billed_Qty": 1704680.0,
+   "PO_Value_L": 3755.5617,
+   "Billed_Value_L": 2848.5905
+  },
+  "Sep-25": {
+   "PO_Qty": 1702436.0,
+   "Billed_Qty": 1362309.0,
+   "PO_Value_L": 2884.1051,
+   "Billed_Value_L": 2330.9628
+  }
+ },
+ "not_measurable": "OTIF / on-time: the extract has no requested-delivery or delivered date."
+}
