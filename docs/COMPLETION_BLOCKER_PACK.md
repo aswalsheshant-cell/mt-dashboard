@@ -232,7 +232,12 @@ answer. Partial returns are accepted; only the open lines go back.
 Quarterly Q1 ₹449.77 L stays ACTUAL. Monthly is split per Chain × Expense Head by
 the chain's Apr/May/Jun distributor-secondary share (ALLOCATED_PROVISIONAL), with
 each line reconciling to its Q1 claim and no equal ÷3 split. #267 now carries
-that allocation file. Wiring it into dashboard / Power BI CM2 is a separate PR.
+that allocation file. Still needed before #267 merges: the formal Finance approval
+reference (name, role, reference; DA's initials are recorded) and a decision on
+each of the 7 driver aliases in `ClaimDriver_Alias_Decisions_Q1_FY27.csv` (until
+then they are not used). Wiring into dashboard / Power BI CM2 is a separate PR:
+the quarterly seed is a control table, the monthly file is the reporting fact,
+and Q1 / FY CM2 never adds both.
 Still open for B3: A3 (Jul/Aug DN register complete?) and A4 (other cost heads).
 
 **Current state (2026-09-30).** #229 merged on 2026-09-27 (`3aa6895`) with the

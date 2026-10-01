@@ -97,13 +97,44 @@ def test_rounding_residual_keeps_line_exact():
     seed_rows = [{"FY": "FY26-27", "Quarter": "Q1", "Chain": "DMart", "Expense Head": "X", "Expense Type": "Variable",
                   "Expense Amount (INR Lakh)": "10.0", "Source": "t"}]
     k = alloc.driver_key("DMart")
-    r = alloc.allocate(seed_rows, {k: {"Apr-2026": 1.0, "May-2026": 1.0, "Jun-2026": 1.0}}, {k: {"DMART"}})
+    r = alloc.allocate(seed_rows, {k: {"Apr-2026": 1.0, "May-2026": 1.0, "Jun-2026": 1.0}}, {k: {"DMART"}}, {})
     assert abs(sum(float(x["Expense Amount (INR Lakh)"]) for x in r) - 10.0) < 1e-9
 
 
-def test_proposed_aliases_are_not_governed_aliases():
+def test_aliases_live_in_a_decision_table_not_governed_aliases():
     # driver-only aliases must not leak into the governed CHAIN_ALIASES table
     import build_dashboard_data as bdd
-    for raw in alloc.PROPOSED_DRIVER_ALIASES:
-        assert raw.lower() not in bdd._ALIAS_LOOKUP, f"{raw} is already governed; drop it from the proposal"
-    assert "VISHAL" not in alloc.PROPOSED_DRIVER_ALIASES   # ambiguous: see CHAIN_ALIASES comment
+    names = set(alloc.APPROVED_ALIASES) | set(alloc.PENDING_ALIASES)
+    assert len(names) == 7
+    for raw in names:
+        assert raw.lower() not in bdd._ALIAS_LOOKUP, f"{raw} is already governed; drop it from the table"
+    assert "VISHAL" not in names   # ambiguous: see CHAIN_ALIASES comment
+
+
+def _table(tmp_path, decision, approver="", date="", ref=""):
+    p = tmp_path / "aliases.csv"
+    p.write_text("Secondary_Name,Proposed_Chain,Evidence,Owner_Decision,Approver,Approval_Date,Approval_Reference\n"
+                 f"MRL,More Retail,initials,{decision},{approver},{date},{ref}\n", encoding="utf-8")
+    return alloc.load_alias_decisions(p)
+
+
+def test_alias_used_only_with_full_approval(tmp_path):
+    assert _table(tmp_path, "") == ({}, {"MRL": "More Retail"})
+    assert _table(tmp_path, "Approve") == ({}, {"MRL": "More Retail"})            # no approver/date/ref
+    assert _table(tmp_path, "Approve", "X (Finance)", "2026-10-02") == ({}, {"MRL": "More Retail"})
+    assert _table(tmp_path, "Approve", "X (Finance)", "2026-10-02", "mail 1") == ({"MRL": "More Retail"}, {})
+
+
+def test_pending_alias_is_left_out_of_the_driver_and_named(out):
+    pending = set(alloc.PENDING_ALIASES)
+    for r in out:
+        used = set(filter(None, r["Driver Source Names"].split("; ")))
+        assert not (used & pending), f"{r['Chain']} uses a pending alias {used & pending}"
+    if pending:
+        held = {n for r in out for n in r["Driver Names Pending Alias"].split("; ") if n}
+        assert held == pending & held and held
+
+
+def test_approval_reference_is_not_claimed():
+    # initials alone are not an audit record; the reference stays PENDING until supplied
+    assert "reference PENDING" in alloc.APPROVAL

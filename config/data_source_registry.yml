@@ -265,9 +265,15 @@ datasets:
       Expense Head claim by that chain's Apr/May/Jun distributor-secondary share
       (status ALLOCATED_PROVISIONAL); each line reconciles to its Q1 claim; no
       equal /3 split; a chain with no secondary (Spar, Rs -0.02 L) stays one
-      UNALLOCATED_TIMING row. Eight secondary spellings canon_chain() does not
-      resolve are matched by PROPOSED_DRIVER_ALIASES in that script (driver
-      only, approved with the PR, not added to CHAIN_ALIASES).
+      UNALLOCATED_TIMING row. Seven secondary spellings canon_chain() does not
+      resolve are listed in PowerBI/SeedData/Mapping/ClaimDriver_Alias_Decisions_Q1_FY27.csv;
+      each is used only after its own Owner_Decision = Approve with approver,
+      date and reference (driver only, not added to CHAIN_ALIASES). Until then
+      those names are left out of the driver (Ratnadeep then has no driver and
+      stays UNALLOCATED_TIMING). The formal Finance approval reference is
+      PENDING. CM2 integration rule: the quarterly seed is a control table, the
+      monthly file is the reporting fact; Q1 / FY CM2 sums the monthly rows once
+      and never adds the quarterly seed again (zero-difference reconciliation).
       Separately, docs/finance_decision_matrix_Q1_FY27.csv (a related but
       different claims register, 116 rows, real-looking distributor names) still
       shows numerous PENDING/"Manual Review Required" rows as of its own content,
