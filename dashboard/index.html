@@ -450,17 +450,42 @@ Chart.register({
       });
     } else if(chart.config.type==='bar'){
       const horiz=chart.options.indexAxis==='y';
+      const sc=chart.options.scales||{}, area=chart.chartArea;
+      const stacked=!!((sc.x&&sc.x.stacked)||(sc.y&&sc.y.stacked)||chart.data.datasets.some(d=>d.stack));
       ctx.textAlign=horiz?'left':'center'; ctx.textBaseline=horiz?'middle':'bottom';
-      chart.data.datasets.forEach((ds,di)=>{
-        const meta=chart.getDatasetMeta(di);
-        if(meta.hidden) return;
-        meta.data.forEach((bar,i)=>{
-          const v=ds.data[i]; if(v==null) return;
-          const label=fmt(v);
-          if(horiz) ctx.fillText(label, bar.x+(v<0?-4:4), bar.y);
-          else ctx.fillText(label, bar.x, bar.y-4);
-        });
-      });
+      // Draw one label per bar slot without collisions:
+      //  - stacked bars: a single total at the end of the stack, not one per segment
+      //  - a label wider than its bar slot is skipped (tooltip still has it)
+      //  - a horizontal label that would run past the plot edge goes inside the bar
+      const put=(label,bar,v,slotW)=>{
+        const w=ctx.measureText(label).width;
+        if(horiz){
+          let x=bar.x+(v<0?-4:4);
+          if(v>=0 && x+w>area.right){ if(bar.x-bar.base<w+8) return; ctx.save(); ctx.fillStyle='#fff'; ctx.textAlign='right'; ctx.fillText(label,bar.x-4,bar.y); ctx.restore(); return; }
+          ctx.fillText(label,x,bar.y);
+        } else {
+          const left=bar.x-w/2;
+          if(left<lastRight+3) return;            // would touch the previous label
+          ctx.fillText(label,bar.x,bar.y-4); lastRight=bar.x+w/2;
+        }
+      };
+      let lastRight=-Infinity;
+      const metas=chart.data.datasets.map((ds,di)=>chart.getDatasetMeta(di)).filter(m=>!m.hidden);
+      if(!metas.length){ ctx.restore(); return; }
+      const n=chart.data.labels.length;
+      const slot=!horiz&&n>0?(area.right-area.left)/n:null;
+      if(stacked){
+        for(let i=0;i<n;i++){
+          let tot=0,any=false,edge=null;
+          metas.forEach(m=>{ const v=chart.data.datasets[m.index].data[i]; if(v==null) return; any=true; tot+=v;
+            const el=m.data[i]; if(!el) return; edge=edge==null?el:(horiz?(el.x>edge.x?el:edge):(el.y<edge.y?el:edge)); });
+          if(any&&edge) put(fmt(tot),edge,tot,slot);
+        }
+      } else {
+        const per=slot!=null?slot/metas.length:null;
+        metas.forEach(m=>{ const ds=chart.data.datasets[m.index]; lastRight=-Infinity;
+          m.data.forEach((bar,i)=>{ const v=ds.data[i]; if(v==null) return; put(fmt(v),bar,v,per); }); });
+      }
     } else if(chart.config.type==='line'){
       ctx.textAlign='center'; ctx.textBaseline='bottom';
       chart.data.datasets.forEach((ds,di)=>{
@@ -487,6 +512,15 @@ Chart.register({
     ctx.restore();
   }
 });
+// Puts a chart in a titled card (same look as card()+cv()); these four charts
+// used to be bare canvases under the tables with no title.
+function chartInCard(container,title,sub){
+  const c=document.createElement('div'); c.className='card';
+  c.innerHTML=`<h3>${title}</h3><p class="note">${sub}</p>`;
+  const box=document.createElement('div'); box.style.cssText='width:100%;height:300px;position:relative;';
+  const cv=document.createElement('canvas'); box.appendChild(cv); c.appendChild(box); container.appendChild(c);
+  return cv;
+}
 function _labelOpts(money){ return {valueLabels:{money}}; }
 function mkBar(id,labels,datasets,opts={},onClick){
   charts.push(new Chart(document.getElementById(id),{type:'bar',
@@ -503,7 +537,7 @@ function mkBarH(id,labels,data,color,money=true,onClick){
     options:Object.assign({indexAxis:'y',plugins:{legend:{display:false},
       ..._labelOpts(money),
       tooltip:{callbacks:{label:c=>money?crc(c.parsed.x):num(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>money?crc(v):num(v)}},y:{grid:{display:false}}}},_drillOpts(onClick))}));
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>money?crc(v):num(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}},_drillOpts(onClick))}));
 }
 function mkLine(id,labels,datasets,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'line',
@@ -867,7 +901,7 @@ function targetSection(){
         `<span class="${cls(m.gap)}">${arrow(m.gap)} ${crc(Math.abs(m.gap||0))} gap (${pct(m.gap_pct)})</span>`)}
      ${kpi('Current run rate',crc(m.current_run_rate),'per month, actuals to date')}
      ${kpi('Required run rate',crc(m.required_run_rate),`per month for the remaining ${m.months_remaining}`)}
-     ${kpi('Status',`<span class="pill ${stCls}">${st||'–'}</span>`,`full-year target ${crc(m.fy_target)} · ${crc(m.fy_gap)} still to deliver`)}
+     ${kpi('Run-rate status',`<span class="pill ${stCls}">${st||'–'}</span>`,`current ${crc(m.current_run_rate)}/mth vs required ${crc(m.required_run_rate)}/mth · full-year target ${crc(m.fy_target)} · ${crc(m.fy_gap)} still to deliver`)}
    </div>`;
   // Both measures side by side: the target file does not itself say which one
   // it is set against, so neither is hidden.
@@ -1155,11 +1189,7 @@ function buildDemandPlanning(){
         wireDrillLinks(content);
       }
 
-      const canvasDiv=document.createElement('div');
-      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
-      const canvas=document.createElement('canvas');
-      canvasDiv.appendChild(canvas);
-      content.appendChild(canvasDiv);
+      const canvas=chartInCard(content,'Zone forecast — FY26 actual vs FY27 allocated target','₹ Crore by zone. Target is the business total split by FY26 contribution (DERIVED).');
 
       const forecastChart=new Chart(canvas,{
         type:'bar',
@@ -1170,7 +1200,7 @@ function buildDemandPlanning(){
             {label:'FY27 Target (Cr, allocated)',data:forecastData.map(z=>z.fy27_target/100),backgroundColor:'#2D9B7F'}
           ]
         },
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN')+' Cr'}}}}
       });
       demandPlanningState.charts.forecast=forecastChart;
     }else if(sv==='promo'){
@@ -1194,11 +1224,7 @@ function buildDemandPlanning(){
         wireDrillLinks(content);
       }
 
-      const canvasDiv=document.createElement('div');
-      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
-      const canvas=document.createElement('canvas');
-      canvasDiv.appendChild(canvas);
-      content.appendChild(canvasDiv);
+      const canvas=chartInCard(content,'Promo lines vs average promo depth, by chain','Each point is a chain. Depth = average offer depth %; no spend or uplift in the promo source.');
 
       const promoChart=new Chart(canvas,{
         type:'scatter',
@@ -1533,7 +1559,7 @@ function renderChannelSubview(chains,brands,channels,primYr,fy,yrLab){
       <td>${totalNsv>0?(100*othersRow.nsv/totalNsv).toFixed(1):'0.0'}%</td></tr>`:'');
 
     content.innerHTML=crumbs+card(`Category & Pack Mix — by ${dimLabel}`,
-      `${rows.length}${othersRow?' + Others':''} ${dimLabel.toLowerCase()}${rows.length===1?'':'s'} shown`+
+      `${rows.length}${othersRow?' + Others':''} ${rows.length===1?dimLabel.toLowerCase():dimLabel.toLowerCase().replace(/y$/,'ie')+'s'} shown`+
       (dimKey==='SubCategory'?' (95% cumulative NSV of this Category; long tail grouped into Others)':'')+
       ` · ${num(recs.length)} records`,
       `<table class="tbl"><thead><tr><th>${dimLabel}</th><th>NSV</th><th>Qty</th><th>Share</th></tr></thead><tbody>${body}</tbody></table>`);
@@ -1700,11 +1726,7 @@ function buildInventoryHealth(){
       const _storeNote=_posFy?` · Stores = POS stores (distinct Site Code) selling in ${_posFy.latest_month}, not SAP billing codes; * = part of the chain's offtake has no Site Code; – = no store code in source (e.g. Reliance offtake is DC-level)`:' · Stores need store-level offtake (Site Code), not available for this FY';
       content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}${_storeNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores${_posFy?' ('+_posFy.latest_month+')':''}</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores.toLocaleString('en-IN')+(c.storesPartial!=null?`<span title="${c.storesPartial}% of this chain's offtake has no Site Code">*</span>`:''):'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
 
-      const canvasDiv=document.createElement('div');
-      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
-      const canvas=document.createElement('canvas');
-      canvasDiv.appendChild(canvas);
-      content.appendChild(canvasDiv);
+      const canvas=chartInCard(content,'Top 8 chains by offtake','₹ Crore, selected FY.');
 
       const velocityChart=new Chart(canvas,{
         type:'bar',
@@ -1712,7 +1734,7 @@ function buildInventoryHealth(){
           labels:chainData.slice(0,8).map(c=>c.name),
           datasets:[{label:'Offtake (Cr)',data:chainData.slice(0,8).map(c=>c.nsv/100),backgroundColor:'#2D9B7F'}]
         },
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN')+' Cr'}}}}
       });
       inventoryHealthState.charts.velocity=velocityChart;
     }else if(sv==='gap'){
@@ -1759,17 +1781,13 @@ function buildInventoryHealth(){
 
       content.innerHTML+=card('Store Distribution by Zone',`${zoneData.length} zones`,`<table class="tbl"><thead><tr><th>Zone</th><th>Stores</th></tr></thead><tbody>${zoneData.map(z=>`<tr><td>${z.zone}</td><td>${z.stores}</td></tr>`).join('')}</tbody></table>`);
 
-      const canvasDiv=document.createElement('div');
-      canvasDiv.style.cssText='width:100%;height:300px;position:relative;margin:20px 0;';
-      const canvas=document.createElement('canvas');
-      canvasDiv.appendChild(canvas);
-      content.appendChild(canvasDiv);
+      const canvas=chartInCard(content,'Store coverage by zone','Active MT stores in the universe, by zone.');
 
       const coverageChart=new Chart(canvas,{
         type:'doughnut',
         data:{
           labels:zoneData.map(z=>z.zone),
-          datasets:[{data:zoneData.map(z=>z.stores),backgroundColor:['#2D9B7F','#3498DB','#E74C3C','#F39C12','#9B59B6','#1ABC9C']}]
+          datasets:[{data:zoneData.map(z=>z.stores),backgroundColor:['#2D9B7F','#3498DB','#E74C3C','#F39C12','#9B59B6','#7F8C8D','#C0392B']}]
         },
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}}}
       });
@@ -4100,7 +4118,7 @@ function expBarH(id,key,entries){
     data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
     options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=[normVal(key,labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},y:{grid:{display:false}}}}}));
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>crc(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}}}));
 }
 function expDonut(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
@@ -4217,7 +4235,7 @@ function renderGal(id){
     cfg={type:'bar',data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
       options:{indexAxis:horiz?'y':'x',onClick,plugins:{legend:{display:false},..._labelOpts(true),
         tooltip:{callbacks:{label:c=>fmt(horiz?c.parsed.x:c.parsed.y)}}},
-        scales:horiz?{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},y:{grid:{display:false}}}
+        scales:horiz?{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>fmt(v)}},y:{grid:{display:false},ticks:{autoSkip:false,font:{size:10}}}}
                     :{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},x:{grid:{display:false}}}}};
   }
   expCharts.push(new Chart(document.getElementById(id),cfg));

@@ -631,4 +631,26 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     expect(Math.abs(tot - 100), 'channel shares sum to ~100% with a chain filter').toBeLessThan(0.5);
     expect(r.kpiBorder).toBe('1px');
   });
+  // Cosmetic QC follow-up 2026-10-01: four charts were bare canvases with no
+  // title; an empty alerts feed gave no hint how old it was.
+  test('TC13 - Charts sit in titled cards; empty alerts feed states its date', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    const r = await page.evaluate(async () => {
+      const W = ms => new Promise(res => setTimeout(res, ms));
+      const titles = [];
+      for (const [tab, i] of [['inventory-health', 0], ['inventory-health', 2], ['demand-planning', 0], ['demand-planning', 1]]) {
+        F.FY = []; show(tab); await W(800);
+        document.querySelectorAll('#tab-' + tab + ' .subview-tab')[i].click(); await W(900);
+        for (const cv of document.querySelectorAll('#tab-' + tab + ' canvas')) {
+          const card = cv.closest('.card');
+          titles.push(card && card.querySelector('h3') ? card.querySelector('h3').innerText.trim() : '');
+        }
+      }
+      show('alerts'); await W(800);
+      return { titles, alerts: document.getElementById('tab-alerts').innerText };
+    });
+    expect(r.titles.length).toBeGreaterThan(0);
+    for (const t of r.titles) expect(t, 'every chart sits in a titled card').not.toBe('');
+    if (/No active alerts/.test(r.alerts)) expect(r.alerts).toContain('Feed generated');
+  });
 });
