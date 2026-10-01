@@ -89,7 +89,7 @@ real expense rows, so Case 1 ("no expense rows") no longer applies to the curren
 it stays recorded as `PASS_REPORTED_EVIDENCE_NOT_RETAINED` and is not counted.
 Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–8 on the current
 model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0),
-recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
+plus the L3M/L6M rolling-average check (`Mismatches` = 0; added 2026-10-01, #273), recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
 `docs/evidence/B5_RUN_SHEET.md`. Needs one Power BI Desktop session on Windows.
 Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims (#267) and the rest of CM2 scope wait on Finance), B4, B5, B6.
 

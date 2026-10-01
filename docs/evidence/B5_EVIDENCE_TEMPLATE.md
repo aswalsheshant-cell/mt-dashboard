@@ -26,8 +26,9 @@ run. Procedure and PASS rules: `B5_RUN_SHEET.md`.
 | 7a | CM2 Case 7 — brand | `BrandLeak` = 0 | `<value>` | `<PASS/FAIL>` | `<link>` |
 | 7b | CM2 Case 7 — category | `CategoryLeak` = 0 | `<value>` | `<PASS/FAIL>` | `<link>` |
 | 8 | CM2 Case 8 — no expense, no CM2 | `Violations` = 0 | `<value>` | `<PASS/FAIL>` | `<link>` |
+| 9 | L3M / L6M rolling averages (`rolling_average_cases.dax`) | CASE 1 `Mismatches` = 0; CASE 2 L3M, L6M BLANK; CASE 3 L3M = Expected | `<Mismatches; CASE 2 values; CASE 3 L3M vs Expected>` | `<PASS/FAIL>` | `<link>` |
 
 **B5 verdict:** `<CLEARED / OPEN — reason>`
 
-CLEARED only if rows 1, 2, 4, 5, 6, 7a, 7b and 8 are PASS and row 3 is PASS or
+CLEARED only if rows 1, 2, 4, 5, 6, 7a, 7b, 8 and 9 are PASS and row 3 is PASS or
 `NOT_EXERCISED` with the 0-row count above.

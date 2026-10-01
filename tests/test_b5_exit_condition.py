@@ -1,5 +1,6 @@
 """B5 exit condition (owner decision 2026-09-29): FY parser + CM2 Cases 2-8 on
-the current model, with durable evidence.
+the current model, with durable evidence; plus the L3M/L6M rolling-average
+check (step 9), owner decision 2026-10-01 (#273).
 
 Guards:
   * the run sheet covers every case it names, and those cases exist in the
@@ -25,6 +26,7 @@ PACK = ROOT / "docs/COMPLETION_BLOCKER_PACK.md"
 STATE = ROOT / "docs/PROJECT_STATE.md"
 DAX = ROOT / "tests/powerbi/cm2_availability_cases.dax"
 PQ = ROOT / "tests/powerbi/pq39_fy_parser_cases.pq"
+ROLLING = ROOT / "tests/powerbi/rolling_average_cases.dax"
 EXPENSE = ROOT / "PowerBI/SeedData/Masters/PL_Expense_Input.csv"
 
 
@@ -52,6 +54,12 @@ def test_run_sheet_cases_exist_in_governed_files():
         assert f"CM2 Case {n}" in sheet, f"run sheet does not cover CM2 Case {n}"
     assert "Failures" in PQ.read_text(encoding="utf-8")
     assert "pq39_fy_parser_cases.pq" in sheet
+    # step 9 (owner decision 2026-10-01, #273): L3M/L6M on the real model
+    assert "rolling_average_cases.dax" in sheet
+    rolling = ROLLING.read_text(encoding="utf-8")
+    for n in (1, 2, 3):
+        assert f"// CASE {n}" in rolling, f"rolling-average CASE {n} missing"
+    assert '"Mismatches"' in rolling and "`Mismatches = 0`" in sheet
 
 
 def test_required_zero_rules_are_stated():
@@ -82,7 +90,7 @@ def test_evidence_template_has_required_fields():
     for field in ("git SHA", "Power BI Desktop version", "Model file", "Date run",
                   "| Expected |", "| Actual |", "| Result |", "Evidence reference"):
         assert field in t, f"template missing '{field}'"
-    for row in ("| 1 |", "| 2 |", "| 3 |", "| 4 |", "| 5 |", "| 6 |", "| 7a |", "| 7b |", "| 8 |"):
+    for row in ("| 1 |", "| 2 |", "| 3 |", "| 4 |", "| 5 |", "| 6 |", "| 7a |", "| 7b |", "| 8 |", "| 9 |"):
         assert row in t, f"template missing evidence row {row}"
 
 
@@ -98,7 +106,7 @@ def test_b5_not_cleared_without_evidence():
         return
     # evidence exists: every required row must be PASS (row 3 may be NOT_EXERCISED)
     latest = evidence[-1].read_text(encoding="utf-8")
-    for row in ("1", "2", "4", "5", "6", "7a", "7b", "8"):
+    for row in ("1", "2", "4", "5", "6", "7a", "7b", "8", "9"):
         line = re.search(rf"^\| {row} \|.*$", latest, re.M)
         assert line and "| PASS |" in line.group(0), f"{evidence[-1].name}: row {row} is not PASS"
     line3 = re.search(r"^\| 3 \|.*$", latest, re.M)

@@ -11,7 +11,7 @@
 # BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
 
 as_of: "2026-10-01"
-main_snapshot: 799ffa0eb65e6ba2269316db7f4d813f4276f80a   # main when this file was last reconciled
+main_snapshot: e4bcfcb74599754ebe42b01fb60201628056b228   # main when this file was last reconciled
 
 # PRs held on a blocker (HOLD / FROZEN_EVIDENCE). Short-lived fix PRs under
 # review are not listed: they would read stale the moment they merge.
@@ -33,7 +33,7 @@ open_issues:
     blocker: CB-09
 
 # PRs that are merged. Current-state text must never call these open or HOLD.
-merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270]
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273]
 
 # PRs closed WITHOUT merging because another PR replaced them. The branch is kept
 # as evidence. Current-state text must never call these open or HOLD.
@@ -64,7 +64,7 @@ blockers:
     state: BLOCKED_ENVIRONMENT
     doc_status: BLOCKED_PENDING_DESKTOP_EVIDENCE
     owner: MT Channel Analyst Lead (Windows, Power BI Desktop)
-    needs: "FY parser + CM2 Cases 2-8 evidence file per docs/evidence/B5_RUN_SHEET.md"
+    needs: "FY parser + CM2 Cases 2-8 + L3M/L6M rolling averages (step 9, #273) evidence file per docs/evidence/B5_RUN_SHEET.md"
   B6:
     state: BLOCKED_OWNER_DECISION
     owner: MT Leadership, Finance, MT Ops, HR
