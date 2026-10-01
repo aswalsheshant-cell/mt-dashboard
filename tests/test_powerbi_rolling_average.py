@@ -70,7 +70,7 @@ def _evaluate(body, months):
     if LOADED_MONTHS.search(flat):
         loaded = [v for v in months if v is not None]
         return sum(loaded) / len(loaded) if loaded else None
-    pytest.fail("measure shape not recognised; update this test with the new shape")
+    raise AssertionError("measure shape not recognised; update this test with the new shape")
 
 
 # (window months oldest -> newest, expected average). None = month has no rows.
