@@ -10,8 +10,8 @@
 # Terminal states: RESOLVED_AND_VALIDATED, BLOCKED_EXTERNAL_EVIDENCE,
 # BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
 
-as_of: "2026-09-30"
-main_snapshot: acd6e6b2bd4c6eb7fa379b5cfda56f347f7ed8dd   # main when this file was last reconciled
+as_of: "2026-10-01"
+main_snapshot: 799ffa0eb65e6ba2269316db7f4d813f4276f80a   # main when this file was last reconciled
 
 # PRs held on a blocker (HOLD / FROZEN_EVIDENCE). Short-lived fix PRs under
 # review are not listed: they would read stale the moment they merge.
@@ -33,7 +33,7 @@ open_issues:
     blocker: CB-09
 
 # PRs that are merged. Current-state text must never call these open or HOLD.
-merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266]
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270]
 
 # PRs closed WITHOUT merging because another PR replaced them. The branch is kept
 # as evidence. Current-state text must never call these open or HOLD.
