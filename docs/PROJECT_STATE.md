@@ -87,8 +87,8 @@ History: on 2026-09-27 the MT Channel Analyst Lead reported CM2 Case 1 and the F
 as PASS on `main` `6b49e3a`; no evidence was attached. #229 (`3aa6895`) then loaded 64
 real expense rows, so Case 1 ("no expense rows") no longer applies to the current model;
 it stays recorded as `PASS_REPORTED_EVIDENCE_NOT_RETAINED` and is not counted.
-Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–8 on the current
-model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0),
+Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–9 on the current
+model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0, Case 9 comparability: no-FY and FY26 CM2 BLANK, FY27 CM2 = NSV − expense; added with #287),
 plus the L3M/L6M rolling-average check (`Mismatches` = 0; added 2026-10-01, #273), recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
 `docs/evidence/B5_RUN_SHEET.md`. Needs one Power BI Desktop session on Windows.
 Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims (#267) and the rest of CM2 scope wait on Finance), B4, B5, B6.
@@ -354,7 +354,7 @@ Certification blockers -- changes since 2026-09-25:
 
 Open, owned elsewhere:
 - **#229** MT Direct DN claims -- HOLD: code ready; data/business not (Nykaa/FSN, Tnsi, Jul/Aug completeness, MT_Spend, indirect claims, COGS/logistics).
-- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Case 1 now, 2-8 after #229 data); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows). **B5 exit condition is now FY parser + CM2 Cases 2–8 on the current model (2026-09-29); `BLOCKED_PENDING_DESKTOP_EVIDENCE` — see `docs/evidence/B5_RUN_SHEET.md`.**
+- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Cases 2–9 on the current model; Case 1 is superseded); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows). **B5 exit condition is now FY parser + CM2 Cases 2–9 on the current model (2026-09-29, Case 9 added 2026-10-02); `BLOCKED_PENDING_DESKTOP_EVIDENCE` — see `docs/evidence/B5_RUN_SHEET.md`.**
 - **Promo stack** (PQ 46 / DAX 15): excluded from QuickSetup -- reads tables no query builds and a one-month relative path; needs its own fix (owner decision).
 - **Not-shown metrics** (Stock days, OSA/OOS, Promo ROI): need a stock-on-hand feed, a store audit at >=60% coverage for the reporting months, and promo spend per promo -- business inputs.
 - **Three browser tests** (`test_sprint8_compliance_inventory.js`, `smoke_dashboard.js`, `test_smoke_dashboard_governed.js`) expect servers on ports 8000/8080 instead of `SWEEP_PORT`; they pass with those servers running.
@@ -410,8 +410,8 @@ Open PRs (11): #229 HOLD (MT Direct DN claims, needs data and business answers);
 #165, #168, #169, #170 (owner decision). Open issues (2): #120, #194.
 
 Manual, outside CI: Power BI Desktop runs of `tests/powerbi/cm2_availability_cases.dax`
-and `tests/powerbi/pq39_fy_parser_cases.pq` -- B5 now requires the FY parser plus CM2 Cases 2–8
-on the current model (2026-09-29), run per `docs/evidence/B5_RUN_SHEET.md`; `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+and `tests/powerbi/pq39_fy_parser_cases.pq` -- B5 now requires the FY parser plus CM2 Cases 2–9
+on the current model (2026-09-29; Case 9 added 2026-10-02), run per `docs/evidence/B5_RUN_SHEET.md`; `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
 Finance input: AssumptionTable Jun-Aug'26 rows (Required Business Inputs #7);
 the Assumption Coverage Gate reports `BLOCKED_FINANCE_INPUT` until they arrive.
 

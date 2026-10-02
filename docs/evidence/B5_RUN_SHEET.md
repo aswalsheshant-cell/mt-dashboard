@@ -3,7 +3,8 @@
 **What this is.** The B5 exit condition from `docs/COMPLETION_BLOCKER_PACK.md`,
 turned into steps you can follow on the Windows machine. Owner decision
 2026-09-29: B5 is judged on the **current** model, meaning the FY parser plus
-CM2 Cases 2–8; owner decision 2026-10-01 added the L3M/L6M rolling-average
+CM2 Cases 2–9 (Case 9, the multi-FY comparability check, was added with the CM2
+fix, #287); owner decision 2026-10-01 added the L3M/L6M rolling-average
 check (step 9, #273) to the same session. The old CM2 Case 1 ("no expense rows") needed the model as it
 was before #229. #229 loaded real expense rows, so Case 1 no longer applies.
 
