@@ -9,15 +9,18 @@ governance in `docs/knowledge/KA-10-sensitive-data-boundary.md` (business-approv
 
 ## Enforcement: restricted-source firewall (added 2026-10-01)
 
-On 2026-10-01 this public repository tracked 56 raw extract files and one seed
-file with employee IDs and names, against the matrix below (`.gitignore`
+On 2026-10-01 this repository tracked 56 raw extract files and one seed
+file with employee IDs and names, against the matrix below. It was public then and
+has since been made private; that does not remove the files from Git history, so
+the control below still applies (`.gitignore`
 re-includes `PowerBI/**/*.csv`). `scripts/restricted_source_firewall.py` with
 `config/restricted_source_policy.yml` now fails the test suite
 (`tests/test_restricted_source_firewall.py`, inside the required Production
 Acceptance Gate) when a NEW restricted file is tracked, a CSV carries an employee
 identifier column, or a listed file changes. The 57 files already tracked are
 pinned as `known_debt` by SHA-256. Removing them from Git or history, and the
-repository's visibility, are owner decision I-2; the firewall deletes nothing.
+repository's visibility going forward, are owner decision I-2; the firewall
+deletes nothing.
 
 ## Classification matrix
 
