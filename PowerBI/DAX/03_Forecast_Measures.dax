@@ -10,11 +10,18 @@
 // Allocation identity:  Σ(all dims) Forecast = TY Target  (variance = 0).
 // =====================================================================
 
+// ---------- FY labels: the ONLY place an FY text is typed ----------
+// Date Table[FY Year] and Targets[FY Year] use "YY-YY" text (Apr-Mar).
+// TY FY Label       = the year being targeted/forecast (FY27). Roll to "27-28" when FY28 starts.
+// Baseline FY Label = the frozen FY26 baseline year (31,119.88 L offtake). Do NOT roll it.
+TY FY Label = "26-27"
+Baseline FY Label = "25-26"
+
 // ---------- Authoritative totals ----------
-TY Target = CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = "26-27" )
+TY Target = CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = [TY FY Label] )
 TY Target (Cr) = DIVIDE ( [TY Target], 10000000 )
 
-FY26 Actual Offtake = CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = "25-26" )
+FY26 Actual Offtake = CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = [Baseline FY Label] )
 FY26 Actual Offtake (Cr) = DIVIDE ( [FY26 Actual Offtake], 10000000 )
 
 // ---------- Allocation key = dimension share of FY26 offtake ----------

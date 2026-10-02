@@ -107,7 +107,7 @@ DIVIDE (
 [Q1 FY27 Secondary NSV Lakh] =
 CALCULATE (
     [Secondary NSV Lakh],
-    'Date Table'[FY Year] = "26-27",
+    'Date Table'[FY Year] = [TY FY Label],
     'Date Table'[Quarter] = "Q1"
 )
 

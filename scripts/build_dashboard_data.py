@@ -2924,7 +2924,7 @@ def _build_custcode_chain_lookup(df):
     result = sub.groupby("_CustCode")["_Chain"].agg(_most_common)
     return result[result.notna()].to_dict()
 
-def primary_offtake_gap_block(primary, offtake, fyx_primary):
+def primary_offtake_gap_block(primary, offtake, fyx_all):
     """Primary-vs-Offtake gap analysis, computed only over grains and periods
     where both measures genuinely exist and are comparable -- never a
     fabricated relationship. Two windows:
@@ -2932,7 +2932,8 @@ def primary_offtake_gap_block(primary, offtake, fyx_primary):
       fy26: primary.monthly_fy26 (12 real months, primary.by_channel shows
             EB2B/SIS are both 0 for FY26 -- a clean, fully MT-channel-scoped
             comparison) vs offtake.monthly_fy26 / offtake.total_fy26.
-      fy27: fyx_primary.monthly_canon (Apr-Aug'26 so far) vs
+      fyNN (every FY in fyx_all, e.g. fy27, fy28 when its months arrive):
+            fyx_all[FYNN].monthly_canon (Apr-Aug'26 so far for FY27) vs
             offtake.monthly_fy27 -- flagged NOT_FULLY_COMPARABLE because
             fyx_primary's total still includes EB2B/SIS (~5.2% of FY27
             Primary per by_channel), which Offtake (chain POS, MT-only by
@@ -3001,22 +3002,27 @@ def primary_offtake_gap_block(primary, offtake, fyx_primary):
                 {c["name"]: c["fy26"] for c in offtake.get("by_chain", []) if c.get("fy26")}),
         }
 
-    fy27 = None
-    if fyx_primary and fyx_primary.get("monthly_canon") and offtake.get("monthly_fy27"):
-        fy27 = {
-            "by_month": _by_month(
-                fyx_primary["months_canon"], fyx_primary["monthly_canon"],
-                offtake["months_fy27"], offtake["monthly_fy27"],
-                "NOT_FULLY_COMPARABLE: FY27 Primary total still includes EB2B/SIS "
-                "(~5.2% of FY27 Primary per fyx_primary.by_channel); Offtake is "
-                "MT-only by construction. Shown for trend direction, not as a "
-                "precise like-for-like ratio."),
-            "by_chain": _by_chain(
-                {c["name"]: c["nsv"] for c in fyx_primary.get("by_chain", [])},
-                {c["name"]: c["fy27"] for c in offtake.get("by_chain", []) if c.get("fy27")}),
-        }
+    # One window per FY that has article-level Primary (fyx_all, keyed 'FY27',
+    # 'FY28', ...) AND Offtake monthly data -- no hardcoded FY27.
+    fyx_windows = {}
+    for tag in sorted(fyx_all or {}):
+        fyx = fyx_all[tag]
+        k = tag.lower()
+        if fyx and fyx.get("monthly_canon") and offtake.get(f"monthly_{k}"):
+            fyx_windows[k] = {
+                "by_month": _by_month(
+                    fyx["months_canon"], fyx["monthly_canon"],
+                    offtake[f"months_{k}"], offtake[f"monthly_{k}"],
+                    f"NOT_FULLY_COMPARABLE: {tag} Primary total still includes EB2B/SIS "
+                    "(~5.2% of FY27 Primary per fyx_primary.by_channel); Offtake is "
+                    "MT-only by construction. Shown for trend direction, not as a "
+                    "precise like-for-like ratio."),
+                "by_chain": _by_chain(
+                    {c["name"]: c["nsv"] for c in fyx.get("by_chain", [])},
+                    {c["name"]: c[k] for c in offtake.get("by_chain", []) if c.get(k)}),
+            }
 
-    return {"fy26": fy26, "fy27": fy27,
+    return {"fy26": fy26, "fy27": fyx_windows.pop("fy27", None), **fyx_windows,
             "note": ("Primary-Offtake Gap = Primary NSV - Offtake NSV. Neutral "
                      "label deliberately used instead of 'inventory' -- the gap "
                      "may reflect inventory movement, timing/cutoff, returns, "
@@ -7212,7 +7218,7 @@ def main():
             obj["alloc"] = alloc
         if obj.get("primary") and obj.get("offtake"):
             obj["primary_offtake_gap"] = primary_offtake_gap_block(
-                obj["primary"], obj["offtake"], meta.get("fyx_primary", {}).get("FY27"))
+                obj["primary"], obj["offtake"], meta.get("fyx_primary") or {})
         if obj.get("primary"):
             apply_primary_channel_correction(obj["primary"], meta)
         # Refresh everything downstream of detail_meta's same_period/fyx_primary
@@ -7724,7 +7730,7 @@ def main():
         data["alloc"] = alloc
     if primary and offtake:
         data["primary_offtake_gap"] = primary_offtake_gap_block(
-            primary, offtake, (detail_meta or {}).get("fyx_primary", {}).get("FY27"))
+            primary, offtake, (detail_meta or {}).get("fyx_primary") or {})
 
     # ---- Merge FY27+ channels into primary.by_channel, and correct FY25/26
     # values from the article-wise primary's exact channel split (the pre-agg

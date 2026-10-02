@@ -39,7 +39,7 @@ time-saving here.
 // =====================================================================
 Date Table =
 VAR _Start = DATE(2024, 4, 1)        // first day of earliest FY you report
-VAR _End   = DATE(2028, 3, 31)       // last day of the latest FY you forecast
+VAR _End   = DATE(YEAR(TODAY()) + IF(MONTH(TODAY()) >= 4, 2, 1), 3, 31)  // end of the FY after the current one (Oct-26 -> 31-Mar-28), rolls itself
 RETURN
 ADDCOLUMNS(
     CALENDAR(_Start, _End),
@@ -528,11 +528,18 @@ RETURN
 // Allocation identity:  Σ(all dims) Forecast = TY Target  (variance = 0).
 // =====================================================================
 
+// ---------- FY labels: the ONLY place an FY text is typed ----------
+// Date Table[FY Year] and Targets[FY Year] use "YY-YY" text (Apr-Mar).
+// TY FY Label       = the year being targeted/forecast (FY27). Roll to "27-28" when FY28 starts.
+// Baseline FY Label = the frozen FY26 baseline year (31,119.88 L offtake). Do NOT roll it.
+TY FY Label = "26-27"
+Baseline FY Label = "25-26"
+
 // ---------- Authoritative totals ----------
-TY Target = CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = "26-27" )
+TY Target = CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = [TY FY Label] )
 TY Target (Cr) = DIVIDE ( [TY Target], 10000000 )
 
-FY26 Actual Offtake = CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = "25-26" )
+FY26 Actual Offtake = CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = [Baseline FY Label] )
 FY26 Actual Offtake (Cr) = DIVIDE ( [FY26 Actual Offtake], 10000000 )
 
 // ---------- Allocation key = dimension share of FY26 offtake ----------
@@ -913,7 +920,7 @@ RETURN expectedCr * 10000000  // Convert to base unit (smallest denomination)
 Actual FY26 Offtake =
 CALCULATE (
     [Total MT NSV],
-    'Date Table'[FY Year] = "25-26"
+    'Date Table'[FY Year] = [Baseline FY Label]
 )
 
 // Variance Alert (should be < ±0.05 Cr tolerance)
@@ -941,7 +948,7 @@ RETURN expectedCr * 10000000
 Actual FY26 RBC =
 CALCULATE (
     [Total RBC NSV],
-    'Date Table'[FY Year] = "25-26"
+    'Date Table'[FY Year] = [Baseline FY Label]
 )
 
 // RBC Variance
@@ -1268,8 +1275,9 @@ CALCULATE ( CONCATENATEX ( VALUES ( 'Sales Team Mapping'[Sales Person] ), 'Sales
 
 // ---- Missing dimension mapping (months / brand / category) ----
 QC Missing Month Mapping =
-VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = "26-27" )
-VAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = "26-27" )
+VAR _ty = [TY FY Label]
+VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = _ty )
+VAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = _ty )
 RETURN _dateMonths - _tgtMonths
 QC Missing Brand Mapping =
 CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
@@ -2155,7 +2163,7 @@ DIVIDE (
 [Q1 FY27 Secondary NSV Lakh] =
 CALCULATE (
     [Secondary NSV Lakh],
-    'Date Table'[FY Year] = "26-27",
+    'Date Table'[FY Year] = [TY FY Label],
     'Date Table'[Quarter] = "Q1"
 )
 

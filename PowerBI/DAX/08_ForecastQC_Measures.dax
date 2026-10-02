@@ -53,8 +53,9 @@ CALCULATE ( CONCATENATEX ( VALUES ( 'Sales Team Mapping'[Sales Person] ), 'Sales
 
 // ---- Missing dimension mapping (months / brand / category) ----
 QC Missing Month Mapping =
-VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = "26-27" )
-VAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = "26-27" )
+VAR _ty = [TY FY Label]
+VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = _ty )
+VAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = _ty )
 RETURN _dateMonths - _tgtMonths
 QC Missing Brand Mapping =
 CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),

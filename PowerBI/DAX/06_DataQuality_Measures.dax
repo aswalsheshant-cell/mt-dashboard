@@ -168,7 +168,7 @@ RETURN expectedCr * 10000000  // Convert to base unit (smallest denomination)
 Actual FY26 Offtake =
 CALCULATE (
     [Total MT NSV],
-    'Date Table'[FY Year] = "25-26"
+    'Date Table'[FY Year] = [Baseline FY Label]
 )
 
 // Variance Alert (should be < ±0.05 Cr tolerance)
@@ -196,7 +196,7 @@ RETURN expectedCr * 10000000
 Actual FY26 RBC =
 CALCULATE (
     [Total RBC NSV],
-    'Date Table'[FY Year] = "25-26"
+    'Date Table'[FY Year] = [Baseline FY Label]
 )
 
 // RBC Variance
