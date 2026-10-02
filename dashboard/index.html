@@ -2296,6 +2296,12 @@ function buildPnl(){
   const cm2ChainFy=(cm2ScopedOk&&cm2D&&cm2D.by_chain_fy&&cm2D.by_chain_fy[globalFy])||null;
   const cm2ExpFys=Object.keys((cm2D&&cm2D.by_chain_fy)||{});
   const cm2MixedFy=!cm2ChainFy&&cm2D&&cm2D.has_expense_data&&cm2FyCoverage.some(f=>!cm2ExpFys.includes(f));
+  // Comparability: CM2 is only a margin when the expense covers every FY that has NSV in
+  // the selection. With no FY filter, FY26 NSV (no expense rows) + FY27-only expense is
+  // not like-for-like, so the margin (value, %, expense %, per-chain CM2, chart) is withheld
+  // -- shown as – -- instead of a 97.7% that only reflects the missing FY26 cost.
+  const CM2_NLFL='Not like-for-like — select a comparable FY';
+  const cm2NotComparable=!!cm2MixedFy;
   let cm2Chains=cm2D?consolidateChains(cm2ChainFy||cm2D.by_chain,'nsv'):[];
   // A single FY with no expense rows of its own: no chain has a CM2 for it.
   if(cm2ScopedOk&&!cm2ChainFy&&cm2D&&cm2D.by_chain_fy) cm2Chains=cm2Chains.map(c=>Object.assign({},c,{expense:0}));
@@ -2304,8 +2310,8 @@ function buildPnl(){
   // CM2 is a margin only where expense rows were actually loaded; with none it
   // would just repeat NSV as "100%", so show – (not available) instead.
   const cm2ChainHasExp=c=>!!(cm2D&&cm2D.has_expense_data&&c.expense);
-  const cm2Rows=cm2Chains.map(c=>{const ok=cm2ChainHasExp(c);return `<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
-     <td>${ok?crc(c.expense):'–'}</td><td>${ok?crc(c.cm2_value):'–'}</td><td>${ok&&c.cm2_pct!=null?c.cm2_pct+'%':'–'}</td></tr>`;}).join('');
+  const cm2Rows=cm2Chains.map(c=>{const ok=cm2ChainHasExp(c), cmp=ok&&!cm2NotComparable;return `<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
+     <td>${ok?crc(c.expense):'–'}</td><td>${cmp?crc(c.cm2_value):'–'}</td><td>${cmp&&c.cm2_pct!=null?c.cm2_pct+'%':'–'}</td></tr>`;}).join('');
   const cm2HeadRows=(cm2D&&cm2D.by_expense_head||[]).map(h=>`<tr><td>${h.name}</td><td>${crc(h.amount)}</td></tr>`).join('');
   const cm2Monthly=(cm2D&&cm2D.monthly||[]);
   const cm2Latest=cm2Monthly.length?cm2Monthly[cm2Monthly.length-1]:null;
@@ -2316,7 +2322,7 @@ function buildPnl(){
   const cm2LoadedHeads=(cm2D&&cm2D.by_expense_head||[]).filter(h=>h.amount)
     .map(h=>`${h.name} (&#8377;${Number(h.amount).toFixed(2)} L)`).join(', ');
   const cm2LoadedMonths=cm2Monthly.filter(r=>r.expense).map(r=>`${r.month} ${r.fy}`).join(', ');
-  const cm2ChartChains=cm2Top.filter(cm2ChainHasExp);
+  const cm2ChartChains=cm2NotComparable?[]:cm2Top.filter(cm2ChainHasExp);
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    ${fy26ok?`<p class="lead">${fyDispLabel(plFy)}. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -2392,13 +2398,13 @@ function buildPnl(){
    <div class="kpis">
      ${kpi('NSV (TOT%-scope)',crc(cm2ScopedOk?cm2Scoped.nsv:cm2D.total_nsv),cm2ScopedOk?`${fyDispLabel(globalFy)} only`:'FY26-FY27, same population as TOT%')}
      ${kpi('TOT Value',totD?crc(totScopedOk?totScoped.passon_value:totD.total_passon_value):'–',totD&&(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)!=null?(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'% of MRP':'')}
-     ${kpi('Total P&L Expense',cm2Avail?crc(cm2ScopeExpense):'–',cm2Avail?((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV (partial coverage)':''):'not loaded')}
-     ${kpi('CM2 Value',cm2Avail?crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value):'–',cm2Avail?((cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV &#8212; partial costs only':''):'Not available &#8212; no expense data')}
+     ${kpi('Total P&L Expense',cm2Avail?crc(cm2ScopeExpense):'–',cm2Avail?(cm2NotComparable?CM2_NLFL:((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV (partial coverage)':'')):'not loaded')}
+     ${kpi('CM2 (loaded costs only)',cm2Avail&&!cm2NotComparable?crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value):'–',cm2Avail?(cm2NotComparable?CM2_NLFL:((cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV &#8212; partial costs only':'')):'Not available &#8212; no expense data')}
      ${kpi('MoM CM2 Movement',cm2Avail&&cm2Latest&&cm2Latest.expense&&cm2Latest.mom_cm2_change!=null?crc(cm2Latest.mom_cm2_change):'–',cm2Latest?`${cm2Latest.month} ${cm2Latest.fy}`:'')}
    </div>
    <div class="grid g2">
      ${card('Chain-wise CM2',cm2ChartChains.length?'Chains with loaded P&L expense: CM2 and expense per chain. Click a chain to drill.':'',
-       cm2ChartChains.length?cv('cm2Chart'):'<p class="note" style="margin:8px 0">Not available &#8212; no chain has expense rows loaded.</p>')}
+       cm2ChartChains.length?cv('cm2Chart'):(cm2NotComparable?`<p class="note" style="margin:8px 0">${CM2_NLFL}.</p>`:'<p class="note" style="margin:8px 0">Not available &#8212; no chain has expense rows loaded.</p>'))}
      ${card('Chain-wise CM2 detail','',`<div class="tablewrap"><table>
        <thead><tr><th>Chain</th><th>NSV</th><th>Expense</th><th>CM2 Value</th><th>CM2%</th></tr></thead>
        <tbody>${cm2Rows||'<tr><td colspan="5">No chains for this filter.</td></tr>'}</tbody></table></div>`)}

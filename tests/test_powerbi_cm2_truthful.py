@@ -152,7 +152,43 @@ def test_quicksetup_copies_match_canonical():
 
 def test_model_case_queries_cover_all_four_cases():
     text = CASES.read_text(encoding="utf-8")
-    for case in ("CASE 1", "CASE 2", "CASE 3", "CASE 4", "CASE 5", "CASE 6", "CASE 7", "CASE 8"):
+    for case in ("CASE 1", "CASE 2", "CASE 3", "CASE 4", "CASE 5", "CASE 6", "CASE 7", "CASE 8", "CASE 9"):
         assert case in text, case
     for measure in ("CM2 Value", "Chain-wise CM2", "Total P&L Expense (Unmapped)"):
         assert f"[{measure}]" in text, measure
+
+
+# ---- comparability: expense must cover the same FYs as the NSV (CM2 PR, 2026-10-02) ----
+# Found on main 606e2ba: with no FY filter the dashboard showed CM2 = NSV(FY26+FY27)
+# - FY27-only expense (97.7%). The same shape existed here: [CM2 Value] only checked
+# that SOME expense exists, so FY26 NSV with no expense rows was read as 100% margin.
+
+COMPARABLE_GATED = ["CM2 Value", "Chain-wise CM2", "Brand-wise CM2", "Category-wise CM2"]
+
+
+def test_cm2_comparable_measure_checks_every_fy_with_nsv_has_expense():
+    m = _measures(DAX.read_text(encoding="utf-8"))
+    assert "CM2 Comparable" in m, "missing [CM2 Comparable]"
+    b = re.sub(r"\s+", " ", m["CM2 Comparable"])
+    assert "VALUES ( 'Date Table'[FY Year] )" in b, "must iterate the FYs in the current filter"
+    assert "NOT ISBLANK ( [Total Primary Article NSV] ) && ISBLANK ( [Total P&L Expense] )" in b, \
+        "an FY with NSV but no expense rows is what makes the selection non-comparable"
+    assert re.search(r"RETURN IF \( _missingFY = 0, 1, 0 \)", b), b
+
+
+def test_cm2_values_are_blank_when_not_comparable():
+    m = _measures(DAX.read_text(encoding="utf-8"))
+    bad = [n for n in COMPARABLE_GATED
+           if n not in m or not re.search(r"IF \( \[CM2 Comparable\] = 0, BLANK \(\)",
+                                          re.sub(r"\s+", " ", m[n]))]
+    assert bad == [], f"CM2 measures that still compute a margin across non-comparable FYs: {bad}"
+
+
+def test_expense_pct_is_blank_when_not_comparable():
+    b = re.sub(r"\s+", " ", _measures(DAX.read_text(encoding="utf-8"))["Expense % of NSV"])
+    assert re.search(r"IF \( _cmp = 0, BLANK \(\)", b) and "VAR _cmp = [CM2 Comparable]" in b, b
+
+
+def test_comparability_case_is_in_the_model_queries():
+    text = CASES.read_text(encoding="utf-8")
+    assert "CASE 9" in text and "[CM2 Comparable]" in text
