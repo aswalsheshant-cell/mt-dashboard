@@ -198,6 +198,9 @@ def test_workflow_runs_base_code_only():
     assert "ref:" not in wf, "the job must check out the base branch, never the PR head"
     assert "--state-file config/project_state.yml" in wf
     script = wf.split("run: |", 1)[1]
-    assert "git diff --name-only" in script
-    # nothing from the PR head is executed: only the base checkout's checker runs
-    assert "pr/head" in script and "checkout pr" not in script and "pip install -r" not in script
+    # changed files come from the API: a `git fetch` of the PR ref needs credentials that
+    # persist-credentials: false removed, and fails on a private repo (PR #284, 2026-10-01)
+    assert "pulls/${PR_NUMBER}/files" in script and "git fetch" not in script
+    assert "test -s" in script, "an empty file list must fail, not pass"
+    # nothing from the PR is executed: only the base checkout's checker runs
+    assert "checkout pr" not in script and "pip install -r" not in script
