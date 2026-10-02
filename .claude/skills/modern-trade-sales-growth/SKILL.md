@@ -1,6 +1,6 @@
 ---
 name: modern-trade-sales-growth
-description: Use when the user asks why Modern Trade sales moved, where growth is available, how to close a gap to target, what an opportunity is worth in rupees, or what action to take on a chain, zone, category or article. Handles MT performance diagnosis and forward-looking uplift sizing. Excludes data trustworthiness and hands off to `sales-data-reconciliation` when totals, mappings or grain are in doubt; excludes stock, replenishment and forecast mechanics and hands off to `demand-inventory-planning` when the constraint is supply; excludes leadership wording and hands off to `executive-commercial-storytelling` when the deliverable is a slide, summary or narrative.
+description: Use when the user asks why Modern Trade sales moved, where growth is available, how to close a gap to target, a sales growth plan, growth plan for a chain or brand, chain or channel analyst view of Primary and Offtake, what an opportunity is worth in rupees, or what action to take on a chain, zone, category or article. Handles MT performance diagnosis and forward-looking uplift sizing. Excludes data trustworthiness and hands off to `sales-data-reconciliation` when totals, mappings or grain are in doubt; excludes stock, replenishment and forecast mechanics and hands off to `demand-inventory-planning` when the constraint is supply; excludes leadership wording and hands off to `executive-commercial-storytelling` when the deliverable is a slide, summary or narrative.
 ---
 
 # Role and mandate

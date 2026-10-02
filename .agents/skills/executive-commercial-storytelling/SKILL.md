@@ -1,6 +1,6 @@
 ---
 name: executive-commercial-storytelling
-description: Use when a finding must be communicated upward — a QBR point, executive summary, leadership update, slide title, review deck, storyboard, speaker notes, or wording for NKAM, RKAM or management. Handles narrative structure, slide architecture and deck construction for commercial reviews. Excludes deriving the finding itself and hands off to `modern-trade-sales-growth` or `demand-inventory-planning` when the underlying analysis is not yet done; excludes number validation and hands off to `sales-data-reconciliation` when any figure on the artifact is unverified.
+description: Use when a finding must be communicated upward — a QBR point, QBR insights or commentary, monthly business review, what to put in the QBR, chain or brand performance commentary, executive summary, leadership update, slide title, review deck, storyboard, speaker notes, or wording for NKAM, RKAM or management. Handles narrative structure, slide architecture and deck construction for commercial reviews. Excludes deriving the finding itself and hands off to `modern-trade-sales-growth` or `demand-inventory-planning` when the underlying analysis is not yet done; excludes number validation and hands off to `sales-data-reconciliation` when any figure on the artifact is unverified.
 ---
 
 # Role and mandate
