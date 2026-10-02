@@ -7,6 +7,18 @@ governance in `docs/knowledge/KA-10-sensitive-data-boundary.md` (business-approv
 `tests/test_published_assets_privacy.py`, confirmed passing on the certified baseline:
 2 passed, 1 skipped). Nothing here overrides or loosens KA-10.
 
+## Enforcement: restricted-source firewall (added 2026-10-01)
+
+On 2026-10-01 this public repository tracked 56 raw extract files and one seed
+file with employee IDs and names, against the matrix below (`.gitignore`
+re-includes `PowerBI/**/*.csv`). `scripts/restricted_source_firewall.py` with
+`config/restricted_source_policy.yml` now fails the test suite
+(`tests/test_restricted_source_firewall.py`, inside the required Production
+Acceptance Gate) when a NEW restricted file is tracked, a CSV carries an employee
+identifier column, or a listed file changes. The 57 files already tracked are
+pinned as `known_debt` by SHA-256. Removing them from Git or history, and the
+repository's visibility, are owner decision I-2; the firewall deletes nothing.
+
 ## Classification matrix
 
 | Data class | Sensitivity | Approved storage | Approved processing | External AI allowed? | GitHub allowed? | Power BI allowed? | Export restrictions | Retention |
