@@ -201,6 +201,8 @@ def test_workflow_runs_base_code_only():
     # changed files come from the API: a `git fetch` of the PR ref needs credentials that
     # persist-credentials: false removed, and fails on a private repo (PR #284, 2026-10-01)
     assert "pulls/${PR_NUMBER}/files" in script and "git fetch" not in script
+    # that endpoint needs pull-requests: read; contents: read alone returns HTTP 403 (run 36954765462)
+    assert "pull-requests: read" in wf.split("permissions:")[1].split("jobs:")[0]
     assert "test -s" in script, "an empty file list must fail, not pass"
     # nothing from the PR is executed: only the base checkout's checker runs
     assert "checkout pr" not in script and "pip install -r" not in script
