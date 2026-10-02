@@ -42,6 +42,9 @@ only in chat does not count.
    - `[Unmapped Chain Or Customer Rows]`
    - `[Total Expense Amount Loaded]` (expected ₹1,274.71 L)
 
+A script can run the DAX cases for you and fill the evidence file from the real results:
+see `B5_RUNNER.md` (the FY parser and the screenshots stay manual).
+
 DAX cases run in **DAX Studio** connected to the open model, or in Desktop's
 **DAX query view**. Run each `EVALUATE` block **on its own**. The case blocks
 are in `tests/powerbi/cm2_availability_cases.dax`.
