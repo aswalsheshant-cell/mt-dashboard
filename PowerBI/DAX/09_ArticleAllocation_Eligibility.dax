@@ -140,7 +140,9 @@ CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
 QC Allocated Article Count =
 CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
     FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ) )
-QC Mapping Coverage % =
+// Renamed from "QC Mapping Coverage %" (2026-10-01): 08_ForecastQC_Measures.dax already uses
+// that name for a different measure, so Power BI refused this one on install.
+QC Allocated Coverage % =
 DIVIDE ( [QC Allocated Primary Total], [QC Orig Primary (Dist-Brand)] )
 QC Blocked Coverage % =
 DIVIDE ( [QC Blocked Primary Total], [QC Orig Primary (Dist-Brand)] )
