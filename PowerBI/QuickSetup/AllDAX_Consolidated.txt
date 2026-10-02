@@ -92,8 +92,11 @@ ADDCOLUMNS(
 // ---------- BASE TOTALS ----------
 Total Offtake NSV = SUM ( 'Fact Offtake Sales'[Offtake NSV] )
 Total Offtake Qty = SUM ( 'Fact Offtake Sales'[Offtake Qty] )
-Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
-Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
+// Primary reads 'Fact Primary Article' (monthly, loaded). 'Fact Primary Sales' (weekly) is a
+// deferred query that loads 0 rows (see PowerQuery/10), so summing it left Primary blank.
+// No Reliance Brand Counter exclusion here: Primary is gross billing (counter rule = Offtake only).
+Total Primary NSV = SUM ( 'Fact Primary Article'[Primary NSV] )
+Total Primary Qty = SUM ( 'Fact Primary Article'[Primary Qty] )
 Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
 
 // ---------- RELIANCE BRAND COUNTER (RBC) ISOLATION ----------
@@ -229,8 +232,9 @@ Top 3 Chains =
     )
 
 // ---------- PRIMARY vs OFFTAKE ----------
-Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]
-Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total Offtake NSV], [Total Offtake NSV] )
+// Offtake side = [Total MT NSV] (Reliance Brand Counter removed) so staffed-counter POS is not double counted.
+Primary vs Offtake Gap = [Total Primary NSV] - [Total MT NSV]
+Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total MT NSV], [Total MT NSV] )
 
 // ---------- GROWTH ARROW (for tables / cards) ----------
 MoM Arrow =
@@ -278,7 +282,7 @@ RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
 // change it in "Actual (Basis)" only; everything else follows.
 // =====================================================================
 
-Actual (Basis) = [Total Offtake NSV]
+Actual (Basis) = [Total MT NSV]
 
 // ---------- PERIOD TO DATE (only months that actually have actuals) ----------
 // The PTD window is DERIVED from where actuals exist, so it widens on its own
@@ -902,14 +906,14 @@ RETURN
 
 // Expected FY26 Offtake (from dashboard data_master.json)
 Expected FY26 Offtake =
-VAR expectedCr = 311.28  // ₹ Crore (43 chains, verified)
+VAR expectedCr = 311.1988  // ₹ Crore = 31,119.88 L (config/baselines.json offtake FY26, MT only)
 RETURN expectedCr * 10000000  // Convert to base unit (smallest denomination)
 
 // Actual FY26 Offtake (from Power BI fact)
 Actual FY26 Offtake =
 CALCULATE (
     [Total MT NSV],
-    'Date Table'[Fiscal Year] = 2026
+    'Date Table'[FY Year] = "25-26"
 )
 
 // Variance Alert (should be < ±0.05 Cr tolerance)
@@ -937,7 +941,7 @@ RETURN expectedCr * 10000000
 Actual FY26 RBC =
 CALCULATE (
     [Total RBC NSV],
-    'Date Table'[Fiscal Year] = 2026
+    'Date Table'[FY Year] = "25-26"
 )
 
 // RBC Variance
@@ -2052,8 +2056,8 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 // (from 'Fact Primary Article') to derive sell-through ratio.
 // All ratio measures use DIVIDE() — never plain division.
 //
-// FY filter: measures respect the Date[FY Year] slicer via the
-// MonthStart → Date table relationship established in the model.
+// FY filter: measures respect the 'Date Table'[FY Year] slicer via the
+// MonthStart → Date Table relationship established in the model.
 // =====================================================================
 
 
@@ -2085,7 +2089,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     IF ( ISBLANK ( _prev ), BLANK (), _cur - _prev )
@@ -2095,7 +2099,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     DIVIDE ( _cur - _prev, _prev )
@@ -2151,8 +2155,8 @@ DIVIDE (
 [Q1 FY27 Secondary NSV Lakh] =
 CALCULATE (
     [Secondary NSV Lakh],
-    'Date'[FY Year] = "FY27",
-    'Date'[Quarter] = "Q1"
+    'Date Table'[FY Year] = "26-27",
+    'Date Table'[Quarter] = "Q1"
 )
 
 [Q1 FY27 Secondary NSV Cr] =

@@ -161,14 +161,14 @@ RETURN
 
 // Expected FY26 Offtake (from dashboard data_master.json)
 Expected FY26 Offtake =
-VAR expectedCr = 311.28  // ₹ Crore (43 chains, verified)
+VAR expectedCr = 311.1988  // ₹ Crore = 31,119.88 L (config/baselines.json offtake FY26, MT only)
 RETURN expectedCr * 10000000  // Convert to base unit (smallest denomination)
 
 // Actual FY26 Offtake (from Power BI fact)
 Actual FY26 Offtake =
 CALCULATE (
     [Total MT NSV],
-    'Date Table'[Fiscal Year] = 2026
+    'Date Table'[FY Year] = "25-26"
 )
 
 // Variance Alert (should be < ±0.05 Cr tolerance)
@@ -196,7 +196,7 @@ RETURN expectedCr * 10000000
 Actual FY26 RBC =
 CALCULATE (
     [Total RBC NSV],
-    'Date Table'[Fiscal Year] = 2026
+    'Date Table'[FY Year] = "25-26"
 )
 
 // RBC Variance

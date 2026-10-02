@@ -7,8 +7,11 @@
 // ---------- BASE TOTALS ----------
 Total Offtake NSV = SUM ( 'Fact Offtake Sales'[Offtake NSV] )
 Total Offtake Qty = SUM ( 'Fact Offtake Sales'[Offtake Qty] )
-Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
-Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
+// Primary reads 'Fact Primary Article' (monthly, loaded). 'Fact Primary Sales' (weekly) is a
+// deferred query that loads 0 rows (see PowerQuery/10), so summing it left Primary blank.
+// No Reliance Brand Counter exclusion here: Primary is gross billing (counter rule = Offtake only).
+Total Primary NSV = SUM ( 'Fact Primary Article'[Primary NSV] )
+Total Primary Qty = SUM ( 'Fact Primary Article'[Primary Qty] )
 Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
 
 // ---------- RELIANCE BRAND COUNTER (RBC) ISOLATION ----------
@@ -144,8 +147,9 @@ Top 3 Chains =
     )
 
 // ---------- PRIMARY vs OFFTAKE ----------
-Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]
-Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total Offtake NSV], [Total Offtake NSV] )
+// Offtake side = [Total MT NSV] (Reliance Brand Counter removed) so staffed-counter POS is not double counted.
+Primary vs Offtake Gap = [Total Primary NSV] - [Total MT NSV]
+Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total MT NSV], [Total MT NSV] )
 
 // ---------- GROWTH ARROW (for tables / cards) ----------
 MoM Arrow =
@@ -193,7 +197,7 @@ RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
 // change it in "Actual (Basis)" only; everything else follows.
 // =====================================================================
 
-Actual (Basis) = [Total Offtake NSV]
+Actual (Basis) = [Total MT NSV]
 
 // ---------- PERIOD TO DATE (only months that actually have actuals) ----------
 // The PTD window is DERIVED from where actuals exist, so it widens on its own
