@@ -54,16 +54,23 @@ CALCULATETABLE (
 )
 
 // CASE 4 -- one dimension member without expense while another has it
+// Run FOR ONE FY (FY27 here): with no FY filter the selection is NOT
+// like-for-like (FY26 NSV, FY27-only expense) and every CM2 is BLANK -- that is
+// checked in CASE 9. Changed with the CM2 comparability fix; the arithmetic
+// expectation below is unchanged, it now applies per comparable FY.
 // EXPECT: chains with expense show CM2 = NSV - expense; chains without
 //         expense show BLANK expense AND BLANK CM2. The Violations query
 //         below must return 0.
 EVALUATE
-SUMMARIZECOLUMNS (
-    'Fact Primary Article'[Chain],
-    "NSV",          [Total Primary Article NSV],
-    "ChainExpense", [Total P&L Expense (by Chain)],
-    "ChainCM2",     [Chain-wise CM2],
-    "ChainCM2Pct",  [Chain-wise CM2 %]
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        'Fact Primary Article'[Chain],
+        "NSV",          [Total Primary Article NSV],
+        "ChainExpense", [Total P&L Expense (by Chain)],
+        "ChainCM2",     [Chain-wise CM2],
+        "ChainCM2Pct",  [Chain-wise CM2 %]
+    ),
+    'Date Table'[FY Year] = "2026-27"
 )
 ORDER BY [NSV] DESC
 
@@ -72,7 +79,7 @@ ROW (
     "Violations",
     COUNTROWS (
         FILTER (
-            VALUES ( 'Fact Primary Article'[Chain] ),
+            CALCULATETABLE ( VALUES ( 'Fact Primary Article'[Chain] ), 'Date Table'[FY Year] = "2026-27" ),
             ISBLANK ( [Total P&L Expense (by Chain)] ) && NOT ISBLANK ( [Chain-wise CM2] )
         )
     )
@@ -157,3 +164,33 @@ ROW ( "Violations", COUNTROWS ( FILTER (
     ADDCOLUMNS ( SUMMARIZECOLUMNS ( 'Fact Primary Article'[Chain], 'Date Table'[MonthStart] ),
         "E", [Total P&L Expense (by Chain)], "C", [Chain-wise CM2] ),
     ISBLANK ( [E] ) && NOT ISBLANK ( [C] ) ) ) )
+
+// CASE 9 -- comparability: expense must cover the same FYs as the NSV (CM2 fix)
+// Needs expense rows for FY27 only (true for #229's Apr-Aug 2026 load) and NSV in
+// both FY26 and FY27. 'Date Table'[FY Year] labels are "2025-26" / "2026-27".
+// EXPECT:
+//   No FY filter: Comparable = 0, ExpensePct = BLANK, CM2 = BLANK, CM2Pct = BLANK
+//                 (NSV and Expense themselves still show; only the margin is withheld).
+//   FY27:         Comparable = 1, ExpensePct and CM2Pct real numbers,
+//                 CM2 = NSV - Expense exactly.
+//   FY26:         Comparable = 0, Expense = BLANK, CM2 = BLANK (never CM2 = NSV).
+EVALUATE
+UNION (
+    ROW ( "Scope", "No FY filter",
+        "Comparable", [CM2 Comparable], "NSV", [Total Primary Article NSV], "Expense", [Total P&L Expense],
+        "ExpensePct", [Expense % of NSV], "CM2", [CM2 Value], "CM2Pct", [CM2 %] ),
+    ROW ( "Scope", "FY27",
+        "Comparable", CALCULATE ( [CM2 Comparable], 'Date Table'[FY Year] = "2026-27" ),
+        "NSV", CALCULATE ( [Total Primary Article NSV], 'Date Table'[FY Year] = "2026-27" ),
+        "Expense", CALCULATE ( [Total P&L Expense], 'Date Table'[FY Year] = "2026-27" ),
+        "ExpensePct", CALCULATE ( [Expense % of NSV], 'Date Table'[FY Year] = "2026-27" ),
+        "CM2", CALCULATE ( [CM2 Value], 'Date Table'[FY Year] = "2026-27" ),
+        "CM2Pct", CALCULATE ( [CM2 %], 'Date Table'[FY Year] = "2026-27" ) ),
+    ROW ( "Scope", "FY26",
+        "Comparable", CALCULATE ( [CM2 Comparable], 'Date Table'[FY Year] = "2025-26" ),
+        "NSV", CALCULATE ( [Total Primary Article NSV], 'Date Table'[FY Year] = "2025-26" ),
+        "Expense", CALCULATE ( [Total P&L Expense], 'Date Table'[FY Year] = "2025-26" ),
+        "ExpensePct", CALCULATE ( [Expense % of NSV], 'Date Table'[FY Year] = "2025-26" ),
+        "CM2", CALCULATE ( [CM2 Value], 'Date Table'[FY Year] = "2025-26" ),
+        "CM2Pct", CALCULATE ( [CM2 %], 'Date Table'[FY Year] = "2025-26" ) )
+)
