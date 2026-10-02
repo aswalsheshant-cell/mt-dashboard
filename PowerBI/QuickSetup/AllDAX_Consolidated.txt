@@ -54,6 +54,8 @@ ADDCOLUMNS(
         RETURN IF(MONTH([Date]) >= 4,
                  FORMAT(y, "00") & "-" & FORMAT(y + 1 - 2000, "00"),
                  FORMAT(y - 1, "00") & "-" & FORMAT(y - 2000, "00")),
+    // Same tag the HTML dashboard uses (FY name = ENDING calendar year): Apr-26..Mar-27 = FY27
+    "FY Tag",          "FY" & FORMAT(MOD(IF(MONTH([Date]) >= 4, YEAR([Date]) + 1, YEAR([Date])), 100), "00"),
     "Quarter",
         VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
         RETURN "Q" & ROUNDUP(fm / 3, 0),
@@ -980,6 +982,35 @@ RETURN
         "🟢 OK — ₹356.90 Cr target",
         "🔴 MISMATCH — Variance: " & FORMAT ( variance, "+0.00;-0.00;0.00" ) & " Cr"
     )
+
+
+// =====================================================================
+// FY CONSISTENCY  (THE ONE FY RULE)
+// Every fact's [FY Year] is derived from its month by fnFYLabel (Power Query),
+// so it must equal 'Date Table'[FY Year] for the same month. These count rows
+// where it does not. Target = 0 on every line. Anything above 0 means a fact
+// query was changed to copy the source FY text again.
+// =====================================================================
+FY Mismatch Offtake =
+COUNTROWS ( FILTER ( 'Fact Offtake Sales',
+    'Fact Offtake Sales'[FY Year] <> RELATED ( 'Date Table'[FY Year] ) ) )
+
+FY Mismatch Primary Article =
+COUNTROWS ( FILTER ( 'Fact Primary Article',
+    'Fact Primary Article'[FY Year] <> RELATED ( 'Date Table'[FY Year] ) ) )
+
+FY Mismatch Primary ShipTo =
+COUNTROWS ( FILTER ( 'Fact Primary ShipTo',
+    'Fact Primary ShipTo'[FY Year] <> RELATED ( 'Date Table'[FY Year] ) ) )
+
+FY Mismatch Total =
+COALESCE ( [FY Mismatch Offtake], 0 ) + COALESCE ( [FY Mismatch Primary Article], 0 )
+    + COALESCE ( [FY Mismatch Primary ShipTo], 0 )
+
+FY Consistency Status =
+IF ( [FY Mismatch Total] = 0,
+    "🟢 OK — every fact FY matches the Date Table",
+    "🔴 " & FORMAT ( [FY Mismatch Total], "#,0" ) & " fact rows have an FY that differs from their month" )
 
 
 

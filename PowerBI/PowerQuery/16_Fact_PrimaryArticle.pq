@@ -154,6 +154,14 @@ let
         else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
 
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"})
+    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+
+    // FY Year is DERIVED from the month (MonthStart) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(FixBrand, "FY Year New",
+        each if [MonthStart] = null then [FY Year] else fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    FixBrand
+    FYDerived

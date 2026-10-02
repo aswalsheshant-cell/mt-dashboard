@@ -14,6 +14,10 @@
         "# RENAME QUERY TO: fnCombineFolder",
         "# NOTE: Blank Query > Advanced Editor > paste > rename."
       ],
+      "02_fnFYLabel.pq": [
+        "# RENAME QUERY TO: fnFYLabel",
+        "# NOTE: Blank Query > Advanced Editor > paste > rename. Add it BEFORE the Fact queries (they call it)."
+      ],
       "10_Fact_PrimarySales.pq": [
         "# RENAME QUERY TO: Fact Primary Sales"
       ],

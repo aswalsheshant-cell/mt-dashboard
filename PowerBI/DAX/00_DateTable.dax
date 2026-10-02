@@ -21,6 +21,8 @@ ADDCOLUMNS(
         RETURN IF(MONTH([Date]) >= 4,
                  FORMAT(y, "00") & "-" & FORMAT(y + 1 - 2000, "00"),
                  FORMAT(y - 1, "00") & "-" & FORMAT(y - 2000, "00")),
+    // Same tag the HTML dashboard uses (FY name = ENDING calendar year): Apr-26..Mar-27 = FY27
+    "FY Tag",          "FY" & FORMAT(MOD(IF(MONTH([Date]) >= 4, YEAR([Date]) + 1, YEAR([Date])), 100), "00"),
     "Quarter",
         VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
         RETURN "Q" & ROUNDUP(fm / 3, 0),

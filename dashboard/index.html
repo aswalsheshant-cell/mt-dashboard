@@ -3893,11 +3893,40 @@ function dataPeriodLabel(){
   const parts=[span,pm&&`Primary through ${pm}`,om&&`Offtake through ${om}`].filter(Boolean);
   return parts.length?parts.join(' · '):((D.meta&&D.meta.fy_range)||'–');
 }
+// ONE FY RULE for the filter bar: the Month dropdown only offers months that
+// really exist in the project for the selected FY (any block: detail records,
+// Primary, Offtake, article-wise FY27+). Keyed by FY tag -> Set of 3-letter
+// month keys, so 'Aug' / 'August' / 'Aug-26' all meet. Derived, never hardcoded,
+// so FY28+ months appear the moment their rows arrive.
+const _m3=s=>String(s==null?'':s).trim().slice(0,3).toLowerCase();
+let _mbfCache=null;
+function monthsByFY(){
+  if(_mbfCache) return _mbfCache;
+  const m={}, add=(fy,lab)=>{ if(fy&&lab!=null&&lab!==''){ (m[fy]=m[fy]||new Set()).add(_m3(lab)); } };
+  REC.forEach(r=>add(r.FY,r.Month));
+  const o=D.offtake||{};
+  Object.keys(o).forEach(k=>{ const x=/^months_(fy\d\d)$/.exec(k); if(x&&Array.isArray(o[k])) o[k].forEach(l=>add(x[1].toUpperCase(),l)); });
+  Object.keys(FYX).forEach(t=>((FYX[t]&&FYX[t].months_canon)||[]).forEach(l=>add(t,l)));
+  const p=D.primary||{};
+  (p.fy_tags||[]).forEach(t=>{ if(Array.isArray(p['monthly_'+t])) (p.month_labels||[]).forEach(l=>add(String(t).toUpperCase(),l)); });
+  return (_mbfCache=m);
+}
+// months available for the currently selected FY(s); null = no FY selected (all months)
+function monthsForSelectedFY(){
+  if(!F.FY.length) return null;
+  const ok=new Set(); const m=monthsByFY();
+  F.FY.forEach(t=>(m[t]||new Set()).forEach(x=>ok.add(x)));
+  return ok;
+}
 function optsFor(key){
   if(key==='FY') return FY_ALL;
   const recs=REC;  // Use full REC instead of recFilter(key) to ensure all unique values appear (e.g., Central zone from any FY)
   const vals=[...new Set(recs.filter(r=>r[key]!=null&&r[key]===r[key]).map(r=>normVal(key,r[key])))].filter(v=>v.trim()!=='');
-  if(key==='Month') vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
+  if(key==='Month'){
+    vals.sort((a,b)=>MORDER.indexOf(a)-MORDER.indexOf(b));
+    const ok=monthsForSelectedFY();
+    if(ok){ const v=vals.filter(x=>ok.has(_m3(x))); return v.length?v:MORDER.filter(x=>ok.has(_m3(x))); }
+  }
   else{
     const contrib={};
     recs.forEach(r=>{if(r[key]==null)return;const v=normVal(key,r[key]);contrib[v]=(contrib[v]||0)+(r.NSV||0);});
@@ -3943,7 +3972,12 @@ function renderFilterBar(){
     onFilterChange();
   });
 }
-function onFilterChange(){ renderFilterBar(); show(currentTab||'overview'); }
+function onFilterChange(){
+  // Keep Month consistent with FY: drop selected months the chosen FY does not have.
+  const ok=monthsForSelectedFY();
+  if(ok && F.Month.length) F.Month=F.Month.filter(x=>ok.has(_m3(x)));
+  renderFilterBar(); show(currentTab||'overview');
+}
 
 // cross-tab drill-down: click any chart bar/segment/table-row on ANY tab to
 // set that one filter and re-render the SAME tab narrowed to it -- drilling

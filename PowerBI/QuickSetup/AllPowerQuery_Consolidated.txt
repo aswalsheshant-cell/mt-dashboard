@@ -7,14 +7,14 @@ Power BI's Advanced Editor holds exactly ONE query per paste. For each
 section below: New Blank Query > Home > Advanced Editor > paste that
 section's M code > OK > rename the query to the name shown > Close & Apply
 when done with all of them. Having ONE file open (this one) instead of
-29 separate files is the time-saving here.
+30 separate files is the time-saving here.
 
 *** NOT INCLUDED -- these source files are deliberately left out of this setup:
     - 46_Dim_PromoCalendar.pq: Not usable in Desktop yet: loads File.Contents("PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv") -- a relative path fixed to one month, not pRootFolder + the folder -- and its relationship notes name tables this model does not have (Dim_Brand, Dim_Calendar, Dim_Chain). Needs its own fix before it can be a setup step.
 
 
 ##############################################################################
-# STEP 01/29  --  SOURCE FILE: 00_Parameters.pq
+# STEP 01/30  --  SOURCE FILE: 00_Parameters.pq
 # RENAME QUERY TO: pRootFolder (Manage Parameters, NOT a Blank Query)
 # NOTE: Home > Transform data > Manage Parameters > New.
 ##############################################################################
@@ -43,7 +43,7 @@ when done with all of them. Having ONE file open (this one) instead of
 
 
 ##############################################################################
-# STEP 02/29  --  SOURCE FILE: 01_fnCombineFolder.pq
+# STEP 02/30  --  SOURCE FILE: 01_fnCombineFolder.pq
 # RENAME QUERY TO: fnCombineFolder
 # NOTE: Blank Query > Advanced Editor > paste > rename.
 ##############################################################################
@@ -127,7 +127,41 @@ in
 
 
 ##############################################################################
-# STEP 03/29  --  SOURCE FILE: 10_Fact_PrimarySales.pq
+# STEP 03/30  --  SOURCE FILE: 02_fnFYLabel.pq
+# RENAME QUERY TO: fnFYLabel
+# NOTE: Blank Query > Advanced Editor > paste > rename. Add it BEFORE the Fact queries (they call it).
+##############################################################################
+// =====================================================================
+// FUNCTION: fnFYLabel   (THE ONE FY RULE, Power Query side)
+// Returns the model's FY label ("25-26") for a date, Indian FY Apr-Mar:
+//   Apr-Dec of year Y -> "YY-(YY+1)"      e.g. Apr-26 -> "26-27"
+//   Jan-Mar of year Y -> "(YY-1)-YY"      e.g. Mar-26 -> "25-26"
+// Same text as 'Date Table'[FY Year] and Targets[FY Year], so a fact's own
+// [FY Year] column always agrees with the date slicer. Every fact query
+// DERIVES [FY Year] from its month column with this function instead of
+// copying whatever text the source file carried (FY'25-26 / FY26 / FY_24-25 /
+// 25-26 ...). No year is typed anywhere, so FY28+ works on its own.
+//
+// Usage:  each fnFYLabel([MonthStart])
+// =====================================================================
+let
+    fnFYLabel = (d as nullable date) as nullable text =>
+        if d = null then null
+        else
+            let
+                y = Date.Year(d),
+                m = Date.Month(d),
+                startYear = if m >= 4 then y else y - 1
+            in
+                Text.PadStart(Text.From(Number.Mod(startYear, 100)), 2, "0") & "-" &
+                Text.PadStart(Text.From(Number.Mod(startYear + 1, 100)), 2, "0")
+in
+    fnFYLabel
+
+
+
+##############################################################################
+# STEP 04/30  --  SOURCE FILE: 10_Fact_PrimarySales.pq
 # RENAME QUERY TO: Fact Primary Sales
 ##############################################################################
 // =====================================================================
@@ -186,14 +220,22 @@ let
 
     // MonthStart = first day of the month, used to relate to the Date table at month grain
     AddMonthStart = Table.AddColumn(Cleaned, "MonthStart",
-        each Date.StartOfMonth([Week Start Date]), type date)
+        each Date.StartOfMonth([Week Start Date]), type date),
+
+    // FY Year is DERIVED from the month (MonthStart) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(AddMonthStart, "FY Year New",
+        each if [MonthStart] = null then [FY Year] else fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    AddMonthStart
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 04/29  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
+# STEP 05/30  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
 # RENAME QUERY TO: Fact Offtake Sales
 ##############################################################################
 // =====================================================================
@@ -309,14 +351,22 @@ let
                 in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null)
+    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null),
+
+    // FY Year is DERIVED from the month (MonthStart) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(Cleaned, "FY Year New",
+        each if [MonthStart] = null then [FY Year] else fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    Cleaned
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 05/29  --  SOURCE FILE: 12_Fact_PnL.pq
+# STEP 06/30  --  SOURCE FILE: 12_Fact_PnL.pq
 # RENAME QUERY TO: Fact P&L
 ##############################################################################
 // =====================================================================
@@ -346,7 +396,7 @@ in
 
 
 ##############################################################################
-# STEP 06/29  --  SOURCE FILE: 13_Fact_Nielsen.pq
+# STEP 07/30  --  SOURCE FILE: 13_Fact_Nielsen.pq
 # RENAME QUERY TO: Fact Nielsen Market Share
 ##############################################################################
 // =====================================================================
@@ -374,14 +424,22 @@ let
             monthNum = Record.FieldOrDefault(
                 [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
         in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
-        type date)
+        type date),
+
+    // FY Year is DERIVED from the month (MonthStart) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(AddMonthStart, "FY Year New",
+        each if [MonthStart] = null then [FY Year] else fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    AddMonthStart
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 07/29  --  SOURCE FILE: 14_Fact_TDP.pq
+# STEP 08/30  --  SOURCE FILE: 14_Fact_TDP.pq
 # RENAME QUERY TO: Fact TDP
 ##############################################################################
 // =====================================================================
@@ -423,14 +481,22 @@ let
             monthNum = Record.FieldOrDefault(
                 [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
         in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
-        type date)
+        type date),
+
+    // FY Year is DERIVED from the month (MonthStart) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(AddMonthStart, "FY Year New",
+        each if [MonthStart] = null then [FY Year] else fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    AddMonthStart
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 08/29  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
+# STEP 09/30  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
 # RENAME QUERY TO: Fact Primary ShipTo
 ##############################################################################
 // =====================================================================
@@ -508,14 +574,22 @@ let
             in if mn = null then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null)
+    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null),
+
+    // FY Year is DERIVED from the month (MonthStartCalc) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(Cleaned, "FY Year New",
+        each if [MonthStartCalc] = null then [FY Year] else fnFYLabel([MonthStartCalc]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    Cleaned
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 09/29  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
+# STEP 10/30  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
 # RENAME QUERY TO: Fact Primary Article
 ##############################################################################
 // =====================================================================
@@ -674,14 +748,22 @@ let
         else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
 
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"})
+    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+
+    // FY Year is DERIVED from the month (MonthStart) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(FixBrand, "FY Year New",
+        each if [MonthStart] = null then [FY Year] else fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    FixBrand
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 10/29  --  SOURCE FILE: 20_Dim_Masters.pq
+# STEP 11/30  --  SOURCE FILE: 20_Dim_Masters.pq
 # RENAME QUERY TO: Chain Master, Brand Master, Category Master, Article Master, Zone State Master, Store Master, Nielsen Competitor Master
 # NOTE: SEVEN separate queries -- one per '---------- X Master ----------' block in the file below. Each block is its own complete `let...in` query; uncomment/copy ONE block at a time.
 ##############################################################################
@@ -741,7 +823,7 @@ in Typed
 
 
 ##############################################################################
-# STEP 11/29  --  SOURCE FILE: 21_ShipToMaster.pq
+# STEP 12/30  --  SOURCE FILE: 21_ShipToMaster.pq
 # RENAME QUERY TO: Ship-To Master
 ##############################################################################
 // =====================================================================
@@ -765,7 +847,7 @@ in
 
 
 ##############################################################################
-# STEP 12/29  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
+# STEP 13/30  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
 # RENAME QUERY TO: Customer Code Zone Master
 ##############################################################################
 // =====================================================================
@@ -808,7 +890,7 @@ in
 
 
 ##############################################################################
-# STEP 13/29  --  SOURCE FILE: 24_ChannelMap.pq
+# STEP 14/30  --  SOURCE FILE: 24_ChannelMap.pq
 # RENAME QUERY TO: Channel Map Store, Channel Map Chain
 # NOTE: TWO separate queries -- one per block in the file below.
 ##############################################################################
@@ -845,7 +927,7 @@ in
 
 
 ##############################################################################
-# STEP 14/29  --  SOURCE FILE: 30_AssumptionTable.pq
+# STEP 15/30  --  SOURCE FILE: 30_AssumptionTable.pq
 # RENAME QUERY TO: Assumption Table
 ##############################################################################
 // =====================================================================
@@ -870,7 +952,7 @@ in
 
 
 ##############################################################################
-# STEP 15/29  --  SOURCE FILE: 31_Targets.pq
+# STEP 16/30  --  SOURCE FILE: 31_Targets.pq
 # RENAME QUERY TO: Targets
 ##############################################################################
 // =====================================================================
@@ -891,7 +973,7 @@ in
 
 
 ##############################################################################
-# STEP 16/29  --  SOURCE FILE: 32_StoreSOMapping.pq
+# STEP 17/30  --  SOURCE FILE: 32_StoreSOMapping.pq
 # RENAME QUERY TO: Store-SO Mapping
 ##############################################################################
 // =====================================================================
@@ -915,7 +997,7 @@ in
 
 
 ##############################################################################
-# STEP 17/29  --  SOURCE FILE: 33_ForecastOverride.pq
+# STEP 18/30  --  SOURCE FILE: 33_ForecastOverride.pq
 # RENAME QUERY TO: Forecast Override
 ##############################################################################
 // =====================================================================
@@ -940,7 +1022,7 @@ in
 
 
 ##############################################################################
-# STEP 18/29  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
+# STEP 19/30  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
 # RENAME QUERY TO: Primary Allocation Map
 ##############################################################################
 // =====================================================================
@@ -975,7 +1057,7 @@ in
 
 
 ##############################################################################
-# STEP 19/29  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
+# STEP 20/30  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
 # RENAME QUERY TO: Primary Allocation Override
 ##############################################################################
 // =====================================================================
@@ -998,7 +1080,7 @@ in
 
 
 ##############################################################################
-# STEP 20/29  --  SOURCE FILE: 36_SalesTeamMapping.pq
+# STEP 21/30  --  SOURCE FILE: 36_SalesTeamMapping.pq
 # RENAME QUERY TO: Sales Team Mapping
 ##############################################################################
 // =====================================================================
@@ -1032,7 +1114,7 @@ in
 
 
 ##############################################################################
-# STEP 21/29  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
+# STEP 22/30  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
 # RENAME QUERY TO: GST Rate QC Table
 ##############################################################################
 // =====================================================================
@@ -1082,7 +1164,7 @@ in
 
 
 ##############################################################################
-# STEP 22/29  --  SOURCE FILE: 38_GST_Config.pq
+# STEP 23/30  --  SOURCE FILE: 38_GST_Config.pq
 # RENAME QUERY TO: GST Config
 ##############################################################################
 // =====================================================================
@@ -1114,7 +1196,7 @@ in
 
 
 ##############################################################################
-# STEP 23/29  --  SOURCE FILE: 39_PL_Expense_Input.pq
+# STEP 24/30  --  SOURCE FILE: 39_PL_Expense_Input.pq
 # RENAME QUERY TO: PL Expense Input
 ##############################################################################
 // =====================================================================
@@ -1219,7 +1301,7 @@ in
 
 
 ##############################################################################
-# STEP 24/29  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
+# STEP 25/30  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
 # RENAME QUERY TO: CustCode Chain Map
 # NOTE: Add AFTER Fact Primary Article (query 16) -- depends on it.
 ##############################################################################
@@ -1251,7 +1333,7 @@ in
 
 
 ##############################################################################
-# STEP 25/29  --  SOURCE FILE: 41_DistContWeights.pq
+# STEP 26/30  --  SOURCE FILE: 41_DistContWeights.pq
 # RENAME QUERY TO: Dist Cont Weights
 ##############################################################################
 // =====================================================================
@@ -1469,7 +1551,7 @@ in
 
 
 ##############################################################################
-# STEP 26/29  --  SOURCE FILE: 42_PackSizeBuckets.pq
+# STEP 27/30  --  SOURCE FILE: 42_PackSizeBuckets.pq
 # RENAME QUERY TO: Pack Size Buckets
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1558,7 +1640,7 @@ in
 
 
 ##############################################################################
-# STEP 27/29  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
+# STEP 28/30  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
 # RENAME QUERY TO: Secondary Sales Efficiency
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1692,7 +1774,7 @@ in
 
 
 ##############################################################################
-# STEP 28/29  --  SOURCE FILE: 44_Fact_SecondarySales.pq
+# STEP 29/30  --  SOURCE FILE: 44_Fact_SecondarySales.pq
 # RENAME QUERY TO: Fact Secondary Sales
 ##############################################################################
 // =====================================================================
@@ -1797,7 +1879,7 @@ in
 
 
 ##############################################################################
-# STEP 29/29  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
+# STEP 30/30  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
 # RENAME QUERY TO: Fact Claim Master
 ##############################################################################
 // =====================================================================

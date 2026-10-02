@@ -73,6 +73,14 @@ let
             in if mn = null then null else #date(2000 + Number.FromText(yy), mn, 1),
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null)
+    Cleaned = Table.SelectRows(AddMonthStart, each [Primary NSV] <> null),
+
+    // FY Year is DERIVED from the month (MonthStartCalc) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(Cleaned, "FY Year New",
+        each if [MonthStartCalc] = null then [FY Year] else fnFYLabel([MonthStartCalc]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    Cleaned
+    FYDerived

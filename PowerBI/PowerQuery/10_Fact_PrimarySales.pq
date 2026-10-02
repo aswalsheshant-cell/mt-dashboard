@@ -54,6 +54,14 @@ let
 
     // MonthStart = first day of the month, used to relate to the Date table at month grain
     AddMonthStart = Table.AddColumn(Cleaned, "MonthStart",
-        each Date.StartOfMonth([Week Start Date]), type date)
+        each Date.StartOfMonth([Week Start Date]), type date),
+
+    // FY Year is DERIVED from the month (MonthStart) with fnFYLabel -- never copied from
+    // the source file -- so it always matches 'Date Table'[FY Year]. Falls back to
+    // the source text only when the month itself is missing.
+    FYNew = Table.AddColumn(AddMonthStart, "FY Year New",
+        each if [MonthStart] = null then [FY Year] else fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    AddMonthStart
+    FYDerived
