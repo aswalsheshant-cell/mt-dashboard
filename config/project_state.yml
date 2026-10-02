@@ -72,7 +72,7 @@ blockers:
     state: BLOCKED_ENVIRONMENT
     doc_status: BLOCKED_PENDING_DESKTOP_EVIDENCE
     owner: MT Channel Analyst Lead (Windows, Power BI Desktop)
-    needs: "FY parser + CM2 Cases 2-8 + L3M/L6M rolling averages (step 9, #273) evidence file per docs/evidence/B5_RUN_SHEET.md"
+    needs: "FY parser + CM2 Cases 2-9 + L3M/L6M rolling averages (step 9, #273) evidence file per docs/evidence/B5_RUN_SHEET.md"
   B6:
     state: BLOCKED_OWNER_DECISION
     owner: MT Leadership, Finance, MT Ops, HR
