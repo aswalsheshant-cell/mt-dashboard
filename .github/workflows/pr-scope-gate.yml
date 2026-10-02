@@ -12,7 +12,7 @@ name: PR Scope Gate
 # from `git fetch`: checkout runs with persist-credentials: false, so a git fetch
 # of the PR ref fails on a private repo ("could not read Username"). PR code is
 # never fetched, checked out or executed; the only credential is the auto-issued,
-# read-only GITHUB_TOKEN, used for that one API call. Permissions are read-only.
+# read-only GITHUB_TOKEN (contents + pull-requests: read), used for that one API call.
 
 on:
   pull_request_target:
@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read   # GET pulls/N/files (file names only); without it the API returns 403
 
 jobs:
   pr-scope:
