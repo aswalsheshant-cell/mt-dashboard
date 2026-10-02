@@ -32,7 +32,7 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 
 | # | Blocker | Owner | What we need | Exit condition |
 |---|---|---|---|---|
-| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | B1a: OK to show Nykaa as pending (inputs already in repo); B1b: Nykaa option | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking |
+| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | B1a: OK to show Nykaa as pending (inputs already in repo); B1b: Nykaa option | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking (done: #289) |
 | B2 | #120 → #119 — historical Primary chain backfill | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
 | B3 | CM2 expense scope — MT Direct DN loaded by #229 (merged `3aa6895`, Jul/Aug PARTIAL); distributor claims #267 (HOLD; rebuild of #252, which is closed) and other cost heads not loaded | Finance + MT Leadership | Full Jul/Aug DN register; FY27 CM2 scope (indirect claims, field force, COGS, logistics); distributor-claim monthly timing and Direct DN overlap rule; Nykaa SS after B1 | Each in-scope head loaded from an approved source or named as not loaded; no quarterly claim spread to months without an approved basis; FY25/FY26 unchanged; all checks green |
 | B4 | Power BI P&L assumptions, Apr–Aug'26 (Apr/May present but unapproved; Jun–Aug missing) | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
@@ -174,7 +174,8 @@ Ask only if a month's source is re-issued or corrected.
 > until it exits 0; (6) run the full validation (pytest, canonical gate, 44-state
 > sweep, subviews, `ci_validate_datajs.py`); (7) record the decision under CB-01
 > in `PROJECT_STATE.md`; (8) open a draft PR and stop. Making the CI step blocking
-> is a second, separate PR.
+> was a second, separate PR and is already done (#289; `reconciliation` is in the
+> Production Acceptance Gate `needs:` list).
 
 ---
 

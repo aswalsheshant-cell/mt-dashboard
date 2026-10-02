@@ -202,6 +202,46 @@ jobs:
         run: npx playwright test tests/e2e_v1.1.0_consolidation.spec.js --project=chromium
         timeout-minutes: 10
 
+  js-regression:
+    name: "Gate: JS Regression + 44-State Sweep"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5.0.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Serve dashboard on 8899
+        run: |
+          (cd dashboard && python3 -m http.server 8899 > /tmp/server-js.log 2>&1 &)
+          for i in {1..10}; do
+            curl -s http://127.0.0.1:8899/index.html > /dev/null 2>&1 && break
+            [ $i -eq 10 ] && { echo "Server failed to start"; cat /tmp/server-js.log; exit 1; }
+            sleep 1
+          done
+      - name: Run every tests/test_*.js regression test
+        env:
+          SWEEP_PORT: "8899"
+          BASE_URL: http://127.0.0.1:8899/
+        run: |
+          # Keep going after a failure so one run lists every broken test.
+          failed=0
+          for f in tests/test_*.js; do
+            echo "::group::$f"
+            node "$f" || { echo "FAILED: $f"; failed=1; }
+            echo "::endgroup::"
+          done
+          exit $failed
+      - name: Run full tab x FY sweep (11 tabs x 4 FY states)
+        env:
+          SWEEP_PORT: "8899"
+        run: node tests/dashboard_sweep.js
+
   gate:
     name: "Production Acceptance Gate"
     runs-on: ubuntu-latest
@@ -214,6 +254,7 @@ jobs:
       - release-validation
       - reconciliation
       - browser-regression
+      - js-regression
     if: always()
     steps:
       - name: Aggregate results
@@ -231,6 +272,7 @@ jobs:
           echo "  - Release Validation:        ${{ needs.release-validation.result }}"
           echo "  - Browser Regression:        ${{ needs.browser-regression.result }}"
           echo "  - MT Channel Reconciliation: ${{ needs.reconciliation.result }}"
+          echo "  - JS Regression + Sweep:     ${{ needs.js-regression.result }}"
           echo ""
 
           if [ "${{ needs.python-tests.result }}" != "success" ] || \
@@ -240,7 +282,8 @@ jobs:
              [ "${{ needs.dashboard-integrity.result }}" != "success" ] || \
              [ "${{ needs.release-validation.result }}" != "success" ] || \
              [ "${{ needs.browser-regression.result }}" != "success" ] || \
-             [ "${{ needs.reconciliation.result }}" != "success" ]; then
+             [ "${{ needs.reconciliation.result }}" != "success" ] || \
+             [ "${{ needs.js-regression.result }}" != "success" ]; then
             echo "❌ PRODUCTION ACCEPTANCE GATE: FAIL"
             exit 1
           fi

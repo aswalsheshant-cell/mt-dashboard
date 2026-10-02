@@ -23,6 +23,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
 
+      - name: Pre-deploy check (data.js must pass baselines)
+        # Deploy runs on every push to main and does not wait for the PR gate.
+        # This stops a bad data.js (wrong JSON, missing offtake, baseline drift)
+        # from being published. Stdlib only, takes about a second.
+        run: python3 scripts/ci_validate_datajs.py
+
       - name: Stage dashboard files
         run: |
           mkdir -p _site

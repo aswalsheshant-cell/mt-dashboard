@@ -47,7 +47,7 @@ const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH ->
   await pg.waitForTimeout(300);
   const postNav = await pg.evaluate(() => {
     const kpiCards = [...document.querySelectorAll('#tab-inventory-health .kpi-card')];
-    const totalOfftakeCard = kpiCards.find(c => c.querySelector('.kpi-label')?.textContent.trim() === 'Total Offtake');
+    const totalOfftakeCard = kpiCards.find(c => (c.querySelector('.kpi-label')?.textContent.trim() || '').startsWith('Total Offtake'));
     return { renderedValue: totalOfftakeCard ? totalOfftakeCard.querySelector('.kpi-value').textContent.trim() : null };
   });
   const result = { ...preNav, ...postNav };
