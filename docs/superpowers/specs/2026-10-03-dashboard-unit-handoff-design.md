@@ -4,7 +4,7 @@ Date: 2026-10-03. Status: design for owner review; no implementation or blocker 
 
 ## Intended outcome
 
-The HTML dashboard and Power BI model must report the same value when they use the same source rows, metric, FY/month, channel scope, and unit. Primary, distributor secondary, and Offtake are different business measures and must not be forced to equal one another. No source row, file, historical mapping, approved value, or visible number may be removed or altered to make a reconciliation pass. Differences are recorded with lineage and left visible until explained.
+The HTML dashboard and Power BI model must report the same value when they use the same source rows, metric, FY/month, channel scope, and unit. Primary, distributor secondary, and Offtake are different business measures and must not be forced to equal one another. No source row, file, historical mapping, or approved value may be removed or altered to make a reconciliation pass. A corrected display number may change only with a source-to-output explanation. Differences are recorded with lineage and left visible until explained.
 
 This design also gives Claude Code and ChatGPT/Codex one shared, durable handoff contract. Git and the live PR/CI state remain authoritative; a human owns merge and business approvals.
 
