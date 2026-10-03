@@ -61,3 +61,12 @@ top to bottom — that's the whole time-saving versus the full build kit.
 FY24-26 history, and `PowerBI/RawDataFolders/Primary_Article_Monthly/`
 already has its own Apr/May'26 files — so the first refresh after setup
 picks up FY27 automatically, no extra step needed.
+
+## Governed CM2 project draft
+
+The new checked-in `ModernTrade_Report.pbip` CM2 page uses `Fact_CM2` contract v2,
+`Dim_CM2Month` and the `RepoRoot` parameter. Its source is ignored local
+`.local/cm2/cm2-powerbi.csv`. The consolidated manual kits below are legacy
+assembly aids and do not install that page. Do not treat their daily date key or
+legacy CM2 arithmetic as the governed contract. See `../docs/DataModel.md` and
+`../docs/PageLayouts.md`. Desktop validation remains pending and B5 is blocked.

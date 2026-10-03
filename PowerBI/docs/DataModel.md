@@ -161,3 +161,44 @@ no `Hierarchy` object was ever defined, so the report-level drill icons would
 not have appeared without this step. See `PageLayouts.md` for the specific
 visuals each hierarchy should be dropped onto.
 ```
+
+## Governed CM2 PBIP draft (2026-10-03)
+
+The checked-in project now contains `Fact_CM2`, `Dim_CM2Month`, a local `RepoRoot`
+Power Query parameter, and a separate CM2 page. This remains an unverified Desktop
+draft: static tests do not demonstrate runtime parity. B5 remains
+`BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+
+Set `RepoRoot` locally to the repository directory. Generate contract **v2** using
+`scripts/cm2_reporting.py::write_cm2_powerbi_export` into the ignored
+`.local/cm2/cm2-powerbi.csv`. Do not use the old Task 3 v1 scratch CSV. Keep the
+workbook, raw rows and generated CSV local. Never commit Desktop `.pbi` caches.
+The import fails on unsupported schema versions, preserves signs and all record
+types, and does not substitute missing claims with zero. Amounts are INR lakh.
+
+`Dim_CM2Month.month` is unique (distinct month/FY rows from the validated contract),
+with a one-to-many, single-direction relationship to `Fact_CM2.month`. The Finance
+sample's Date dimension is separate. FY/month slicers use the CM2 month table;
+Chain/Brand slicers use the CM2 fact. No category margin is supported.
+
+NSV, coverage, tax and weighted effective GST require one view and SALES rows,
+preventing duplicated sales across alternative cuts. Effective GST divides sums
+of tax by sums of NSV, only when every selected sales aggregate has a permitted
+source rate status. Review/missing-tax aggregates suppress the ratio. Exception
+rows retain signed claims/BA and no invented sales/tax denominator. Both cuts
+show their own coverage and source-status set, including PARTIAL_REGISTER.
+Claims and provision BA remain separate. Modeled CM2 is always BLANK until a
+governed formula is implemented. Matched comparison intersects FY/month/chain
+keys, applies one denominator and remains an observed claim gap, not profit.
+Brand attribution is an NSV-share estimate, never source-coded actual.
+
+The pre-existing Finance sample is retained separately, including its own server
+CSV dependencies. It is not a governed CM2 model and whole-model refresh still
+requires its source availability. The manual PowerBI/DAX and QuickSetup kits are
+legacy manual assembly guides, not the installed CM2 contract. Follow the PBIP
+files for this draft; do not install the legacy CM2 kit over them.
+
+Desktop opening, refresh, relationship cardinality and selected Apr/Aug values
+remain pending. See task-5-report.md for the parser observations and approval
+review block. No signed publication, push, merge or production release is allowed
+on the strength of these structural checks.

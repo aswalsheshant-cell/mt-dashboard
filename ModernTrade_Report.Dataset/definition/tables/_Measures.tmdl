@@ -115,3 +115,112 @@ table _Measures
 		    )
 		```
 		displayFolder: GAP-02 Contribution Margin
+
+	measure 'CM2 Provision Claim' =
+		CALCULATE(SUM(Fact_CM2[claim_amount]), KEEPFILTERS(Fact_CM2[view] = "provision"))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Recorded DN Claim' =
+		CALCULATE(SUM(Fact_CM2[claim_amount]), KEEPFILTERS(Fact_CM2[view] = "recorded_dn"))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Provision BA' =
+		CALCULATE(SUM(Fact_CM2[ba_amount]), KEEPFILTERS(Fact_CM2[view] = "provision"))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 NSV' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[nsv]), Fact_CM2[record_type] = "SALES"))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Covered NSV' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[covered_nsv]), Fact_CM2[record_type] = "SALES"))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Coverage Pct' =
+		DIVIDE([CM2 Covered NSV], [CM2 NSV])
+		formatString: 0.00%
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Source Tax' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[tax]), Fact_CM2[record_type] = "SALES"))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 GST QC' =
+		CONCATENATEX(VALUES(Fact_CM2[gst_qc_status]), Fact_CM2[gst_qc_status], ", ")
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Source Status' =
+		CONCATENATEX(VALUES(Fact_CM2[source_status]), Fact_CM2[source_status], ", ")
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Status' =
+		"NOT_AVAILABLE | COGS basis unresolved | PENDING_FINANCE"
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Scope' =
+		"MT | INR lakh | Brand: NSV-share allocated estimate | Category unsupported"
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Modeled' =
+		BLANK()
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Effective GST Pct' =
+		IF(HASONEVALUE(Fact_CM2[view]) && CALCULATE(COUNTROWS(Fact_CM2), Fact_CM2[record_type] = "SALES", Fact_CM2[effective_gst_pct_status] = "NOT_AVAILABLE") = 0, DIVIDE([CM2 Source Tax], [CM2 NSV]))
+		formatString: 0.00%
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Unallocated Claim' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[claim_amount]), Fact_CM2[record_type] = "UNALLOCATED_CLAIM"))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Unallocated BA' =
+		CALCULATE(SUM(Fact_CM2[ba_amount]), Fact_CM2[view] = "provision", Fact_CM2[record_type] = "UNALLOCATED_BA")
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Matched NSV' =
+		VAR ProvisionKeys = CALCULATETABLE(SUMMARIZE(Fact_CM2, Fact_CM2[fy], Fact_CM2[month], Fact_CM2[chain]), REMOVEFILTERS(Fact_CM2[view]), Fact_CM2[view] = "provision", Fact_CM2[record_type] = "SALES", Fact_CM2[source_status] <> "NOT_AVAILABLE")
+		VAR DNKeys = CALCULATETABLE(SUMMARIZE(Fact_CM2, Fact_CM2[fy], Fact_CM2[month], Fact_CM2[chain]), REMOVEFILTERS(Fact_CM2[view]), Fact_CM2[view] = "recorded_dn", Fact_CM2[record_type] = "SALES", Fact_CM2[source_status] <> "NOT_AVAILABLE")
+		VAR Matched = INTERSECT(ProvisionKeys, DNKeys)
+		RETURN CALCULATE(SUM(Fact_CM2[nsv]), REMOVEFILTERS(Fact_CM2[view]), Fact_CM2[view] = "provision", Fact_CM2[record_type] = "SALES", KEEPFILTERS(Matched))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Matched Claim Gap' =
+		VAR ProvisionKeys = CALCULATETABLE(SUMMARIZE(Fact_CM2, Fact_CM2[fy], Fact_CM2[month], Fact_CM2[chain]), REMOVEFILTERS(Fact_CM2[view]), Fact_CM2[view] = "provision", Fact_CM2[record_type] = "SALES", Fact_CM2[source_status] <> "NOT_AVAILABLE")
+		VAR DNKeys = CALCULATETABLE(SUMMARIZE(Fact_CM2, Fact_CM2[fy], Fact_CM2[month], Fact_CM2[chain]), REMOVEFILTERS(Fact_CM2[view]), Fact_CM2[view] = "recorded_dn", Fact_CM2[record_type] = "SALES", Fact_CM2[source_status] <> "NOT_AVAILABLE")
+		VAR Matched = INTERSECT(ProvisionKeys, DNKeys)
+		VAR P = CALCULATE([CM2 Provision Claim], REMOVEFILTERS(Fact_CM2[view]), Fact_CM2[record_type] = "SALES", KEEPFILTERS(Matched))
+		VAR D = CALCULATE([CM2 Recorded DN Claim], REMOVEFILTERS(Fact_CM2[view]), Fact_CM2[record_type] = "SALES", KEEPFILTERS(Matched))
+		RETURN IF(COUNTROWS(Matched) > 0, D - P)
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Matched Claim Gap Pct' =
+		DIVIDE([CM2 Matched Claim Gap], [CM2 Matched NSV])
+		formatString: 0.00%
+		displayFolder: Governed CM2 Draft
+
+	measure NSV_Actual_INR = SUM(Fact_Financials[NSV_Actual_INR])
+		displayFolder: Finance sample
+
+	measure NSV_Pool_INR = SUM(Fact_Financials[NSV_Pool_INR])
+		displayFolder: Finance sample
+
+	measure COGS_INR = SUM(Fact_Financials[COGS_INR])
+		displayFolder: Finance sample
+
+	measure Variable_Trade_Spend_INR = SUM(Fact_Financials[Variable_Trade_Spend_INR])
+		displayFolder: Finance sample
+
+	measure Freight_Logistics_INR = SUM(Fact_Financials[Freight_Logistics_INR])
+		displayFolder: Finance sample

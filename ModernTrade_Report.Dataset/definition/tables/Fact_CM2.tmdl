@@ -1,0 +1,222 @@
+table Fact_CM2
+
+	column schema_version
+		dataType: string
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column view
+		dataType: string
+		summarizeBy: none
+		sourceColumn: view
+
+	column record_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: record_type
+
+	column fy
+		dataType: string
+		summarizeBy: none
+		sourceColumn: fy
+
+	column month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: month
+
+	column chain
+		dataType: string
+		summarizeBy: none
+		sourceColumn: chain
+
+	column brand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: brand
+
+	column channel
+		dataType: string
+		summarizeBy: none
+		sourceColumn: channel
+
+	column nsv
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: nsv
+
+	column tax
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: tax
+
+	column mrp
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: mrp
+
+	column effective_gst_pct
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: effective_gst_pct
+
+	column gst_qc_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: gst_qc_status
+
+	column effective_gst_pct_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: effective_gst_pct_status
+
+	column claim_amount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: claim_amount
+
+	column ba_amount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: ba_amount
+
+	column covered_nsv
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: covered_nsv
+
+	column coverage_pct
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: coverage_pct
+
+	column coverage_pct_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: coverage_pct_status
+
+	column source_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: source_status
+
+	column status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: status
+
+	column cm2_value
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: cm2_value
+
+	column cm2_pct
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: cm2_pct
+
+	column cm2_pct_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cm2_pct_status
+
+	column allocation_basis
+		dataType: string
+		summarizeBy: none
+		sourceColumn: allocation_basis
+
+	column category_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: category_status
+
+	column cogs_basis_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cogs_basis_status
+
+	column approval_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: approval_status
+
+	column assumption_version
+		dataType: string
+		summarizeBy: none
+		sourceColumn: assumption_version
+
+	column included_claim_heads
+		dataType: string
+		summarizeBy: none
+		sourceColumn: included_claim_heads
+
+	column source_version
+		dataType: string
+		summarizeBy: none
+		sourceColumn: source_version
+
+	column timing_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: timing_status
+
+	column tax_row_count
+		dataType: int64
+		summarizeBy: sum
+		sourceColumn: tax_row_count
+
+	column gst_valid_5_count
+		dataType: int64
+		summarizeBy: sum
+		sourceColumn: gst_valid_5_count
+
+	column gst_valid_18_count
+		dataType: int64
+		summarizeBy: sum
+		sourceColumn: gst_valid_18_count
+
+	column gst_zero_tax_count
+		dataType: int64
+		summarizeBy: sum
+		sourceColumn: gst_zero_tax_count
+
+	column gst_review_count
+		dataType: int64
+		summarizeBy: sum
+		sourceColumn: gst_review_count
+
+	column gst_missing_tax_count
+		dataType: int64
+		summarizeBy: sum
+		sourceColumn: gst_missing_tax_count
+
+	column reviewed_amount
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: reviewed_amount
+
+	column reviewed_nsv
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: reviewed_nsv
+
+	column reviewed_tax
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: reviewed_tax
+
+	column missing_tax_nsv
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: missing_tax_nsv
+
+	partition Fact_CM2 = m
+		mode: import
+		source =
+			let
+			    Source = Csv.Document(File.Contents(RepoRoot & "/.local/cm2/cm2-powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+			    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+			    Typed = Table.TransformColumnTypes(Headers, {{"schema_version", type text}, {"view", type text}, {"record_type", type text}, {"fy", type text}, {"month", type text}, {"chain", type text}, {"brand", type text}, {"channel", type text}, {"nsv", type number}, {"tax", type number}, {"mrp", type number}, {"effective_gst_pct", type number}, {"gst_qc_status", type text}, {"effective_gst_pct_status", type text}, {"claim_amount", type number}, {"ba_amount", type number}, {"covered_nsv", type number}, {"coverage_pct", type number}, {"coverage_pct_status", type text}, {"source_status", type text}, {"status", type text}, {"cm2_value", type number}, {"cm2_pct", type number}, {"cm2_pct_status", type text}, {"allocation_basis", type text}, {"category_status", type text}, {"cogs_basis_status", type text}, {"approval_status", type text}, {"assumption_version", type text}, {"included_claim_heads", type text}, {"source_version", type text}, {"timing_status", type text}, {"tax_row_count", Int64.Type}, {"gst_valid_5_count", Int64.Type}, {"gst_valid_18_count", Int64.Type}, {"gst_zero_tax_count", Int64.Type}, {"gst_review_count", Int64.Type}, {"gst_missing_tax_count", Int64.Type}, {"reviewed_amount", type number}, {"reviewed_nsv", type number}, {"reviewed_tax", type number}, {"missing_tax_nsv", type number}}, "en-US"),
+			    Validated = if List.AllTrue(List.Transform(Typed[schema_version], each _ = "2")) then Typed else error "CM2 contract v2 required"
+			in
+			    Validated

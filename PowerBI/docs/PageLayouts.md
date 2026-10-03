@@ -469,3 +469,20 @@ optional to recreate; not data pages.)
 - **TDP Level** = { Brand, Category, Sub-category, Chain, Zone, State, Article,
   Pack Size } → drives Page 10 axis.
 Use Modeling ▸ New parameter ▸ Fields.
+
+## Checked-in CM2 governed draft page
+
+`CM2Governed` is a real PBIR page with table visuals for two alternative claim
+views, their covered NSV, tax/QC and source statuses, a matched-key claim bridge,
+and an exception reconciliation. FY/month/chain/brand slicers share the fact
+population. Amounts are INR lakh; brand amounts are NSV-share allocated estimates.
+The page explicitly displays the unresolved COGS/PENDING_FINANCE status and blank
+modeled CM2. Category profitability is unsupported. July/August source flags
+remain visible. Provision BA is separate from provision and recorded-DN claims.
+
+`FinanceSample` retains the old Finance measure references and label; original
+hand-authored JSON is archived in `PowerBI/Reference/FinanceSample-original-report.json`.
+It is not relabeled as governed CM2. The draft uses documented PBIR page/visual
+files, but successful Desktop opening, refresh and rendering are still pending.
+Do not call this page runtime parity or use it as B5 clearance. The matched bridge
+is an observed claim difference, not an approved economic variance.

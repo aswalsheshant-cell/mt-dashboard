@@ -1,0 +1,8 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/1.3.0/schema.json",
+  "name": "CM2Governed",
+  "displayName": "CM2 governed draft - unavailable modeled margin",
+  "displayOption": "FitToPage",
+  "height": 1060,
+  "width": 1440
+}

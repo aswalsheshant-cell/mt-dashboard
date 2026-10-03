@@ -1,0 +1,93 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "Status",
+  "position": {
+    "x": 20,
+    "y": 250,
+    "z": 0,
+    "height": 220,
+    "width": 1400,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "view"
+                }
+              },
+              "queryRef": "Fact_CM2.view",
+              "nativeQueryRef": "view"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Source Status"
+                }
+              },
+              "queryRef": "_Measures.CM2 Source Status",
+              "nativeQueryRef": "CM2 Source Status"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 GST QC"
+                }
+              },
+              "queryRef": "_Measures.CM2 GST QC",
+              "nativeQueryRef": "CM2 GST QC"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Status"
+                }
+              },
+              "queryRef": "_Measures.CM2 Status",
+              "nativeQueryRef": "CM2 Status"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Scope"
+                }
+              },
+              "queryRef": "_Measures.CM2 Scope",
+              "nativeQueryRef": "CM2 Scope"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "Views",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "z": 0,
+    "height": 220,
+    "width": 1400,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "view"
+                }
+              },
+              "queryRef": "Fact_CM2.view",
+              "nativeQueryRef": "view"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Provision Claim"
+                }
+              },
+              "queryRef": "_Measures.CM2 Provision Claim",
+              "nativeQueryRef": "CM2 Provision Claim"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Recorded DN Claim"
+                }
+              },
+              "queryRef": "_Measures.CM2 Recorded DN Claim",
+              "nativeQueryRef": "CM2 Recorded DN Claim"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Provision BA"
+                }
+              },
+              "queryRef": "_Measures.CM2 Provision BA",
+              "nativeQueryRef": "CM2 Provision BA"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 NSV"
+                }
+              },
+              "queryRef": "_Measures.CM2 NSV",
+              "nativeQueryRef": "CM2 NSV"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Covered NSV"
+                }
+              },
+              "queryRef": "_Measures.CM2 Covered NSV",
+              "nativeQueryRef": "CM2 Covered NSV"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Coverage Pct"
+                }
+              },
+              "queryRef": "_Measures.CM2 Coverage Pct",
+              "nativeQueryRef": "CM2 Coverage Pct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Source Tax"
+                }
+              },
+              "queryRef": "_Measures.CM2 Source Tax",
+              "nativeQueryRef": "CM2 Source Tax"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Effective GST Pct"
+                }
+              },
+              "queryRef": "_Measures.CM2 Effective GST Pct",
+              "nativeQueryRef": "CM2 Effective GST Pct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Modeled"
+                }
+              },
+              "queryRef": "_Measures.CM2 Modeled",
+              "nativeQueryRef": "CM2 Modeled"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

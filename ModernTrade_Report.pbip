@@ -8,6 +8,6 @@
     }
   ],
   "settings": {
-    "enableAutoAuth": true
+    "enableAutoRecovery": true
   }
 }

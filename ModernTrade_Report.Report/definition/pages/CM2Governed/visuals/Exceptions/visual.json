@@ -1,0 +1,121 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "Exceptions",
+  "position": {
+    "x": 20,
+    "y": 700,
+    "z": 0,
+    "height": 220,
+    "width": 1400,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "view"
+                }
+              },
+              "queryRef": "Fact_CM2.view",
+              "nativeQueryRef": "view"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "fy"
+                }
+              },
+              "queryRef": "Fact_CM2.fy",
+              "nativeQueryRef": "fy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "month"
+                }
+              },
+              "queryRef": "Fact_CM2.month",
+              "nativeQueryRef": "month"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "chain"
+                }
+              },
+              "queryRef": "Fact_CM2.chain",
+              "nativeQueryRef": "chain"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "record_type"
+                }
+              },
+              "queryRef": "Fact_CM2.record_type",
+              "nativeQueryRef": "record_type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact_CM2"
+                    }
+                  },
+                  "Property": "source_status"
+                }
+              },
+              "queryRef": "Fact_CM2.source_status",
+              "nativeQueryRef": "source_status"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Unallocated Claim"
+                }
+              },
+              "queryRef": "_Measures.CM2 Unallocated Claim",
+              "nativeQueryRef": "CM2 Unallocated Claim"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
