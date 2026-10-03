@@ -1,7 +1,7 @@
 # Provisional NPI first-observed-sale comparison design
 
-Date: 2026-10-03  
-Repository: `aswalsheshant-cell/mt-dashboard`  
+Date: 2026-10-03
+Repository: `aswalsheshant-cell/mt-dashboard`
 Status: design for review; no dashboard implementation or B5 sign-off
 
 ## Intent and boundary
