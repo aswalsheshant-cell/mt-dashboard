@@ -10,8 +10,8 @@
 # Terminal states: RESOLVED_AND_VALIDATED, BLOCKED_EXTERNAL_EVIDENCE,
 # BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
 
-as_of: "2026-10-01"
-main_snapshot: e4bcfcb74599754ebe42b01fb60201628056b228   # main when this file was last reconciled
+as_of: "2026-10-03"
+main_snapshot: 84864ce4076164aee5cbc79493bb7f086743eb90   # main checked on 2026-10-03
 
 # Feature freeze (docs/COMPLETION_BLOCKER_PACK.md). While active, every PR must
 # declare "Freeze classification: BLOCKER_FIX | CORRECTNESS_FIX | HOUSEKEEPING |
@@ -32,7 +32,7 @@ open_prs:
   - number: 267
     status: HOLD
     blocker: B3
-    reason: "#252 rebuilt on current main (same 4 files; seed byte-identical). Finance: monthly timing and Direct DN overlap rule."
+    reason: "#252 rebuilt on main (same 4 files; seed byte-identical). Formal Finance approval reference and seven alias decisions remain pending; do not merge."
 
 open_issues:
   - number: 120
@@ -41,7 +41,7 @@ open_issues:
     blocker: CB-09
 
 # PRs that are merged. Current-state text must never call these open or HOLD.
-merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273]
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273, 274, 275, 276, 283, 284, 285, 286, 287, 288, 289, 290]
 
 # PRs closed WITHOUT merging because another PR replaced them. The branch is kept
 # as evidence. Current-state text must never call these open or HOLD.
@@ -55,7 +55,7 @@ blockers:
   B1:
     state: BLOCKED_OWNER_DECISION
     owner: MT Leadership
-    needs: "Decisions received 2026-10-01 (DA, MT Leadership): 1 MT-only, 2 = A Nykaa under eB2B (applied: FY27 zones MT-only, channel control exit 0), 3 = B restate FY26 to MT basis (NOT applied: needs full name/role and signed approval reference, then its own PR). Then make the CI channel step blocking."
+    needs: "FY27 MT-only zones and blocking CI channel reconciliation are applied (#276). FY26 baseline restatement remains unapplied until MT Leadership supplies a full name/role and signed approval reference, then a separate reviewed PR."
   B2:
     state: BLOCKED_OWNER_DECISION
     owner: Business owner of the mapping (issue #120)
@@ -77,3 +77,4 @@ blockers:
     state: BLOCKED_OWNER_DECISION
     owner: MT Leadership, Finance, MT Ops, HR
     needs: "Decisions (a)-(e), target basis, C1-C6, caps, proration; no payout before that"
+
