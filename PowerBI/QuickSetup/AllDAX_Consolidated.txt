@@ -229,8 +229,8 @@ Top 3 Chains =
     )
 
 // ---------- PRIMARY vs OFFTAKE ----------
-Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]
-Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total Offtake NSV], [Total Offtake NSV] )
+Primary vs Offtake Gap = [Total Primary NSV] - [Total MT NSV]
+Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total MT NSV], [Total MT NSV] )
 
 // ---------- GROWTH ARROW (for tables / cards) ----------
 MoM Arrow =
@@ -274,11 +274,11 @@ RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
 //
 // BASIS: the target file is NSV and does not name its measure. The Forecast
 // page compares it to OFFTAKE, so these default to offtake. Swap
-// [Total Offtake NSV] for [Total Primary NSV] below to move the basis --
+// [Total MT NSV] for [Total Primary NSV] below to move the basis --
 // change it in "Actual (Basis)" only; everything else follows.
 // =====================================================================
 
-Actual (Basis) = [Total Offtake NSV]
+Actual (Basis) = [Total MT NSV]
 
 // ---------- PERIOD TO DATE (only months that actually have actuals) ----------
 // The PTD window is DERIVED from where actuals exist, so it widens on its own
@@ -2108,7 +2108,7 @@ RETURN
 
 [Sell-Through %] =
 VAR _secondary = [Secondary NSV Lakh]
-VAR _primary   = [Total Primary Article NSV]      // from 01_CoreMeasures.dax
+VAR _primary   = DIVIDE ( [Total Primary Article NSV], 100000 )  // model rupees -> lakh
 RETURN
     DIVIDE ( _secondary, _primary )
 

@@ -64,7 +64,7 @@ RETURN
 
 [Sell-Through %] =
 VAR _secondary = [Secondary NSV Lakh]
-VAR _primary   = [Total Primary Article NSV]      // from 01_CoreMeasures.dax
+VAR _primary   = DIVIDE ( [Total Primary Article NSV], 100000 )  // model rupees -> lakh
 RETURN
     DIVIDE ( _secondary, _primary )
 
@@ -143,3 +143,4 @@ RETURN
 VAR _st = [Sell-Through %]
 RETURN
     IF ( ISBLANK ( _st ), "–", FORMAT ( _st, "0.0%" ) )
+
