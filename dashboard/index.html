@@ -671,6 +671,11 @@ function chartExportRows(chart){
   return [header,...labels.map((lab,i)=>[lab,...dsets.map(d=>d.data[i]??''),...(totFor?totFor(lab):[])])];
 }
 function exportChart(canvasId,format){
+  if(canvasId==='cm2SourceChart'&&format!=='png'){
+    const selected=cm2SelectedViews(), rows=cm2ViewExportRows(selected), filename=exportFilename('P&L','Governed CM2 views');
+    if(format==='csv')downloadRowsCSV(rows,filename);else downloadRowsXLSX(rows,filename,selected.scope+' · NOT_AVAILABLE modeled CM2');
+    return;
+  }
   const c=findChartByCanvasId(canvasId);
   if(!c){ alert('Chart not available to export (it may be empty for this filter).'); return; }
   const titleEl=c.canvas.closest('.card')?.querySelector('h3');
@@ -2196,7 +2201,90 @@ function buildRelianceBC(){
 }
 
 /* ---------------- P&L ---------------- */
+// Governed workbook cuts: every visual and export starts with these same rows.
+function cm2SelectedViews(){
+  const views=D.cm2&&D.cm2.views;
+  if(!views)return null;
+  const monthNames=['Jan','Feb','Mar','April','May','June','July','Aug','Sep','Oct','Nov','Dec'];
+  const scope=r=>fHas('FY',r.fy)&&fHas('Month',monthNames[Number(r.month.slice(5,7))-1])&&fHas('Chain',r.chain);
+  const unsupported=Object.keys(F).filter(k=>!['FY','Month','Chain','Brand'].includes(k)&&fOn(k));
+  const out={views,unsupported,scope: ['FY','Month','Chain','Brand',...unsupported].map(k=>`${k}: ${F[k].join(', ')||'all'}`).join(' · ')};
+  for(const name of ['provision','recorded_dn']){
+    const cut=views[name]||{};
+    out[name]={rows:(cut.rows||[]).filter(r=>scope(r)&&fHas('Brand',r.brand)),
+      exceptions:(cut.exception_rows||[]).filter(scope),source_available:cut.source_available};
+  }
+  const keys=new Set((views.matched_bridge&&views.matched_bridge.keys||[]).map(k=>JSON.stringify(k)));
+  out.matched={};
+  for(const name of ['provision','recorded_dn'])out.matched[name]=out[name].rows.filter(r=>keys.has(JSON.stringify([r.month,r.chain])));
+  return out;
+}
+const cm2Sum=(rows,key)=>rows.reduce((sum,r)=>sum+(Number(r[key])||0),0);
+const cm2LoadedSum=(rows,key)=>rows.some(r=>r[key]!=null)?cm2Sum(rows,key):null;
+const cm2Money=value=>value==null?'–':`₹${Number(value).toFixed(2)} L`;
+const cm2Escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function cm2ViewExportRows(selected){
+  const fields=['view','record_type','fy','month','chain','brand','nsv','tax','mrp','claim_amount','ba_amount','covered_nsv','source_status','gst_qc_status','reviewed_amount','reviewed_nsv','reviewed_tax','missing_tax_nsv','status','cm2_value','cm2_pct','allocation_basis','cogs_basis_status','approval_status','assumption_version','source_version','timing_status','selected_scope','matched_nsv','provision_claims','recorded_dn_claims','claim_difference'];
+  const output=[fields];
+  for(const name of ['provision','recorded_dn'])for(const row of [...selected[name].rows,...selected[name].exceptions]){
+    const r={...row,view:name,status:selected.unsupported.length?'UNSUPPORTED_SCOPE':row.status,
+      cm2_value:null,cm2_pct:null,selected_scope:selected.scope,
+      allocation_basis:row.record_type==='SALES'&&fOn('Brand')?'NSV-share allocated estimate':row.allocation_basis};
+    output.push(fields.map(k=>r[k]??''));
+  }
+  const provision=cm2LoadedSum(selected.matched.provision,'claim_amount');
+  const dn=cm2LoadedSum(selected.matched.recorded_dn,'claim_amount');
+  const bridge={view:'matched_bridge',record_type:'MATCHED_BRIDGE',selected_scope:selected.scope,
+    status:selected.unsupported.length?'UNSUPPORTED_SCOPE':'NOT_COMPARABLE',
+    matched_nsv:cm2LoadedSum(selected.matched.provision,'nsv'),provision_claims:provision,
+    recorded_dn_claims:dn,claim_difference:provision!=null&&dn!=null?dn-provision:null};
+  output.push(fields.map(k=>bridge[k]??''));
+  return output;
+}
+function cm2ViewsHtml(selected){
+  if(!selected)return '';
+  const label=fOn('Brand')?'NSV-share allocated estimate — source claims lack brand coding':'Chain-month source amounts; brand rows carry NSV-share allocations';
+  const cutHtml=(name,title)=>{
+    const {rows,exceptions}=selected[name];
+    const nsv=cm2LoadedSum(rows,'nsv'), covered=cm2LoadedSum(rows,'covered_nsv'), review=cm2LoadedSum(rows,'reviewed_amount'), missing=cm2LoadedSum(rows,'missing_tax_nsv');
+    const tax=cm2LoadedSum(rows,'tax');
+    const bad=rows.some(r=>r.gst_review_count||r.gst_missing_tax_count||['REVIEW_RATE_OR_BASE','MISSING_TAX','NOT_AVAILABLE'].includes(r.gst_qc_status));
+    const rate=rows.length&&!bad&&nsv?`${(tax/nsv*100).toFixed(2)}%`:'–';
+    const partial=rows.concat(exceptions).filter(r=>r.source_status==='PARTIAL_REGISTER').map(r=>r.month);
+    const body=rows.map(r=>`<tr title="${cm2Escape(`${selected.scope}; ${label}; ${r.source_status}; ${r.status}; ${r.cogs_basis_status}; ${r.source_version}`)}"><td>${cm2Escape(r.fy)}</td><td>${cm2Escape(r.month)}</td><td>${drillLink('Chain',r.chain)}</td><td>${cm2Escape(r.brand)}</td><td>${cm2Money(r.nsv)}</td><td>${cm2Money(r.tax)}</td><td>${cm2Money(r.claim_amount)}</td><td>${cm2Money(r.ba_amount)}</td><td>${cm2Money(r.covered_nsv)}</td><td>${cm2Escape(r.source_status)}</td><td>${cm2Escape(r.gst_qc_status)}</td><td>${selected.unsupported.length?'UNSUPPORTED_SCOPE':cm2Escape(r.status)}</td><td>–</td></tr>`).join('');
+    return `<div class="card"><h3>${title}</h3><p>${cm2Escape(selected.scope)} · MT only · INR Lakh · ${label}</p>
+      <p>Modeled CM2: <b>–</b> · ${selected.unsupported.length?'UNSUPPORTED_SCOPE — '+cm2Escape(selected.unsupported.join(', ')):'NOT_AVAILABLE — COGS base '+cm2Escape(selected.views.assumptions&&selected.views.assumptions.cogs_basis_status||'unresolved')} · PENDING_FINANCE</p>
+      <p>Assumptions: COGS 16%, logistics 3%, fallback TOT/MD 30%; not applied. Source versions: ${cm2Escape([...new Set(rows.map(r=>r.source_version))].join(', ')||'absent')}.</p>
+      <div class="kpis">${kpi('Selected MT NSV',cm2Money(nsv),'signed source rows')}${kpi('Covered NSV',cm2Money(covered),nsv?`${(covered/nsv*100).toFixed(2)}% · own cut coverage`:'coverage unavailable')}${kpi('Claims',cm2Money(cm2LoadedSum(rows,'claim_amount')),selected[name].source_available?'loaded source only':'NOT_AVAILABLE — no source')}${name==='provision'?kpi('Provision BA',cm2Money(cm2LoadedSum(rows,'ba_amount')),'separate provision head'):''}</div>
+      <p>Recorded tax ${cm2Money(tax)} · Effective billed GST ${rate} · GST QC: ${cm2Escape([...new Set(rows.map(r=>r.gst_qc_status))].join(', ')||'NOT_AVAILABLE')}; reviewed exposure ${cm2Money(review)}, signed reviewed NSV ${cm2Money(cm2LoadedSum(rows,'reviewed_nsv'))}, reviewed tax ${cm2Money(cm2LoadedSum(rows,'reviewed_tax'))}, missing-tax NSV ${cm2Money(missing)}.</p>
+      ${partial.length?`<p class="repbanner">PARTIAL_REGISTER: ${cm2Escape([...new Set(partial)].join(', '))}; July/August register incomplete. No certified CM2 movement.</p>`:''}
+      <div class="tablewrap"><table><thead><tr><th>FY</th><th>Month</th><th>Chain</th><th>Brand</th><th>NSV</th><th>Tax</th><th>Claims</th><th>BA</th><th>Covered NSV</th><th>Source status</th><th>GST QC</th><th>CM2 status</th><th>Modeled CM2</th></tr></thead><tbody>${body||'<tr><td colspan="13">No source rows for this selection — NOT_AVAILABLE.</td></tr>'}</tbody></table></div>
+      <p>Unallocated exceptions (no brand attribution): ${exceptions.map(r=>`${cm2Escape(r.month)} ${cm2Escape(r.chain)} ${cm2Escape(r.record_type)} ${cm2Money(r.claim_amount??r.ba_amount)} ${cm2Escape(r.status)} ${cm2Escape(r.source_status)}`).join('; ')||'none in selected FY/month/chain'}</p></div>`;
+  };
+  const matched=selected.matched, nsv=cm2LoadedSum(matched.provision,'nsv'), pc=cm2LoadedSum(matched.provision,'claim_amount'), dn=cm2LoadedSum(matched.recorded_dn,'claim_amount');
+  return `<section id="cm2Views"><h3 class="sec">Workbook CM2 views — alternative claim cuts</h3><p>Provision and recorded Direct DN replace each other; never add them. ${cm2Escape(selected.scope)}. ${label}.</p>${cutHtml('provision','Provision basis — modeled CM2')}${cutHtml('recorded_dn','Recorded Direct DN basis — modeled CM2')}<div class="card"><h3>Matched claim bridge — NOT_COMPARABLE</h3><p>${cm2Escape(selected.scope)} · matched NSV ${cm2Money(nsv)} · provision ${cm2Money(pc)} · recorded DN ${cm2Money(dn)} · DN minus provision ${cm2Money(dn!=null&&pc!=null?dn-pc:null)} · NOT_COMPARABLE: plan basis and recorded register timing differ. Margin gap unavailable. Chart uses these matched keys only.</p>${selected.matched.provision.length||selected.matched.recorded_dn.length?cv('cm2SourceChart'):'<p>No matched source rows for this selection — NOT_AVAILABLE.</p>'}</div><button data-cm2-export="csv">Download CM2 CSV</button> <button data-cm2-export="xlsx">Download CM2 XLSX</button></section>`;
+}
+function wireCm2Views(selected){
+  if(!selected)return;
+  document.querySelectorAll('#cm2Views [data-cm2-export]').forEach(btn=>btn.onclick=()=>{
+    const rows=cm2ViewExportRows(selected), filename=exportFilename('P&L','Governed CM2 views');
+    if(btn.dataset.cm2Export==='csv')downloadRowsCSV(rows,filename);else downloadRowsXLSX(rows,filename,selected.scope+' · NOT_AVAILABLE modeled CM2');
+  });
+  const matched=selected.matched;
+  const months=[...new Set([...matched.provision,...matched.recorded_dn].map(r=>r.month))].sort();
+  if(months.length){
+    mkBar('cm2SourceChart',months,[{label:'Provision claims (alternative cut)',data:months.map(m=>cm2LoadedSum(matched.provision.filter(r=>r.month===m),'claim_amount')),backgroundColor:C.teal},{label:'Recorded Direct DN (alternative cut)',data:months.map(m=>cm2LoadedSum(matched.recorded_dn.filter(r=>r.month===m),'claim_amount')),backgroundColor:C.red}]);
+    const chart=charts[charts.length-1];
+    chart.options.plugins.tooltip.callbacks.label=c=>{
+      const name=c.datasetIndex===0||c.dataset===chart.data.datasets[0]?'provision':'recorded_dn';
+      const source=matched[name].filter(r=>r.month===c.label);
+      return `${c.dataset.label}: ${cm2Money(c.raw)} · ${selected.scope} · ${[...new Set(source.map(r=>r.source_status))].join(', ')||'NOT_AVAILABLE'} · ${fOn('Brand')?'NSV-share allocated estimate · ':''}${selected.unsupported.length?'UNSUPPORTED_SCOPE':'NOT_AVAILABLE'} modeled CM2`;
+    };chart.update();
+  }
+}
+
 function buildPnl(){
+  const governedCm2=cm2SelectedViews();
   const pl=D.pnl,s=document.getElementById('tab-pnl');
   // The gross-to-net bridge is single-FY-only (its pre-aggregated source
   // currently ends Mar'26, i.e. FY26), but the TOT% and CM2 sections below
@@ -2375,7 +2463,7 @@ function buildPnl(){
      Default GST cutover date: ${totD.gst_cutover_default} (editable — <code>PowerBI/SeedData/Masters/GST_Config.csv</code>).
      QC table: <code>PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv</code> (editable — several categories are LOW-confidence
      best-effort assumptions pending Finance/Tax confirmation; see that file's Confidence/Note/Finance_Approved columns).</p></details>`:''}
-   ${cm2D?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">P&amp;L / CM2 (Contribution Margin 2)</h3>
+   ${cm2D&&!governedCm2?`<h3 class="sec" style="font-size:15px;margin:20px 0 4px">P&amp;L / CM2 (Contribution Margin 2) — separate recorded-DN loaded-cost view</h3>
    <p class="note" style="margin:0 0 10px">CM2 = NSV − P&amp;L Expenses (NSV is already net of TOT%/tax — see the TOT% section above).
      Expenses are never hardcoded — maintained month-on-month in <code>PowerBI/SeedData/Masters/PL_Expense_Input.csv</code> and
      matched to this same article-level data (Customer Code first, Chain fallback). Edit that file and re-run
@@ -2423,7 +2511,9 @@ function buildPnl(){
      <tr><td>Blank Expense Head (rows)</td><td>${num(cm2Qc.blank_expense_head||0)}</td></tr>
      <tr><td>Duplicate expense rows</td><td>${num(cm2Qc.duplicate_rows||0)}</td></tr>
      </tbody></table></div>`)}`:''}
+   ${cm2ViewsHtml(governedCm2)}
    ${drillCardHtml('plDrill','Primary NSV')}`;
+  wireCm2Views(governedCm2);
   wireDrillLinks(s);
   if(fy26ok){
     mkBar('plBridge',top.map(c=>c.name),[
@@ -2441,7 +2531,7 @@ function buildPnl(){
     const tch=charts[charts.length-1];tch.options.scales.x.ticks.callback=v=>v+'%';
     tch.options.plugins.tooltip.callbacks.label=c=>c.parsed.x+'%';tch.update();
   }
-  if(cm2D&&cm2ChartChains.length){
+  if(cm2D&&!governedCm2&&cm2ChartChains.length){
     mkBar('cm2Chart',cm2ChartChains.map(c=>c.name),[
       {label:'CM2 Value',data:cm2ChartChains.map(c=>c.cm2_value),backgroundColor:C.teal,borderRadius:4,stack:'s'},
       {label:'Expense',data:cm2ChartChains.map(c=>c.expense),backgroundColor:C.red,borderRadius:4,stack:'s'}],
