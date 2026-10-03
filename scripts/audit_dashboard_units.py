@@ -40,6 +40,7 @@ def audit_csv(
     governed_total = Decimal(0)
     rbc_excluded_total = Decimal(0)
     rbc_excluded_rows = 0
+    rbc_excluded_chains = Counter()
     rows = 0
     null_amount_rows = 0
     months = Counter()
@@ -77,6 +78,7 @@ def audit_csv(
                         governed_month_totals[month] += amount
             if excluded:
                 rbc_excluded_rows += 1
+                rbc_excluded_chains[(record.get("Chain Name") or "<blank>").strip() or "<blank>"] += 1
             if "Month" in columns:
                 months[month] += 1
             if mrp_column and rows % sample_stride == 0 and amount is not None:
@@ -94,6 +96,7 @@ def audit_csv(
         "governed_raw_sum": str(governed_total),
         "rbc_excluded_rows": rbc_excluded_rows,
         "rbc_excluded_raw_sum": str(rbc_excluded_total),
+        "rbc_excluded_chains": dict(rbc_excluded_chains),
         "rupees_if_rupees": str(total),
         "rupees_if_lakh": str(total * Decimal(100000)),
         "median_nsv_mrp_raw": median(ratios) if ratios else None,
