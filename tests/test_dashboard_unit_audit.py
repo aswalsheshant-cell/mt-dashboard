@@ -63,6 +63,7 @@ def test_offtake_keeps_gross_rows_and_reports_governed_rbc_scope(tmp_path):
     assert result["governed_raw_sum"] == "1.3"
     assert result["rbc_excluded_rows"] == 1
     assert result["rbc_excluded_raw_sum"] == "0.5"
+    assert result["rbc_excluded_chains"] == {"Reliance Retail": 1}
     assert result["month_totals_raw"] == {"Apr'26": "2.0", "May'26": "-0.2"}
     assert result["month_totals_governed_raw"] == {"Apr'26": "1.5", "May'26": "-0.2"}
     assert "Jun'26" not in result["month_totals_governed_raw"]
