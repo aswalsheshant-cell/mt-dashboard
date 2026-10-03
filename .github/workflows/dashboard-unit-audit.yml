@@ -1,0 +1,35 @@
+name: Dashboard Unit Source Audit
+
+on:
+  push:
+    branches:
+      - codex/dashboard-unit-audit-*
+
+permissions:
+  contents: read
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify the read-only auditor
+        run: |
+          python -m pip install pytest
+          python -m pytest tests/test_dashboard_unit_audit.py -q
+      - name: Audit committed source files
+        shell: bash
+        run: |
+          python scripts/audit_dashboard_units.py --repo-root . --out "$RUNNER_TEMP/dashboard-unit-audit.json"
+          cat "$RUNNER_TEMP/dashboard-unit-audit.json"
+      - name: Preserve aggregate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-unit-source-audit
+          path: ${{ runner.temp }}/dashboard-unit-audit.json
+          retention-days: 7
+
