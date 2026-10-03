@@ -36,6 +36,7 @@
 - Create: scripts/audit_dashboard_units.py
 - Create: tests/test_dashboard_unit_audit.py
 - Create: docs/evidence/dashboard_unit_audit_README.md
+- Create: .github/workflows/dashboard-unit-audit.yml (temporary, branch-scoped aggregate artifact runner)
 
 **Interfaces:**
 - CLI: python scripts/audit_dashboard_units.py --repo-root PATH --out PATH
@@ -45,7 +46,7 @@
 - [ ] Run python -m pytest tests/test_dashboard_unit_audit.py -q and confirm the tests fail before implementation.
 - [ ] Implement the read-only CLI. Read only required CSV columns; stream large monthly files. Use existing FY and RBC rules rather than creating new ones.
 - [ ] Run the tests and confirm PASS.
-- [ ] Run the audit on an authenticated checkout or a dedicated CI runner with the committed source files. Keep row-level confidential data out of logs. Save the aggregate JSON outside published dashboard assets.
+- [ ] Run the audit on an authenticated checkout. If local Git authentication is unavailable, use the branch-scoped dashboard-unit-audit workflow on push: run the script against committed inputs, write aggregate JSON under the runner temporary directory, and upload only that JSON as a short-lived private artifact. Keep row-level data out of logs and published dashboard assets. Retrieve and review the artifact before any model edit.
 - [ ] Review source hashes, row counts, monthly totals, and the attachment's sampled NSV-to-MRP ratio. Record which inputs are conclusively lakh, rupee, or unresolved. Commit the script and tests; do not change model calculations yet.
 
 ### Task 2: Power BI import normalization
