@@ -42,3 +42,35 @@ def test_real_pbip_page_and_descriptors():
     payload = '\n'.join(p.read_text(encoding="utf-8") for p in visuals)
     assert 'CM2 Provision Claim' in payload and 'CM2 Recorded DN Claim' in payload
 
+
+def _measure(name):
+    import re
+    text = (MODEL/'tables/_Measures.tmdl').read_text(encoding='utf-8')
+    return re.search(r"\tmeasure '"+re.escape(name)+r"' =\n(.*?)(?=\n\tmeasure |\Z)", text, re.S).group(1)
+
+def test_brand_preserves_exception_visual_population():
+    page=json.loads((ROOT/'ModernTrade_Report.Report/definition/pages/CM2Governed/page.json').read_text())
+    assert {'source':'Filterbrand','target':'Exceptions','type':'NoFilter'} in page.get('visualInteractions',[])
+    assert 'REMOVEFILTERS(Fact_CM2[brand])' in _measure('CM2 Unallocated BA')
+
+def test_exception_row_types_and_ba_binding():
+    for name,kind in [('CM2 Unallocated Claim','UNALLOCATED_CLAIM'),('CM2 Unallocated BA','UNALLOCATED_BA')]:
+        assert f'KEEPFILTERS(Fact_CM2[record_type] = "{kind}")' in _measure(name)
+        assert 'REMOVEFILTERS(Fact_CM2[brand])' in _measure(name)
+    visual=(ROOT/'ModernTrade_Report.Report/definition/pages/CM2Governed/visuals/Exceptions/visual.json').read_text()
+    assert 'CM2 Unallocated BA' in visual
+
+def test_monetary_qc_is_scoped_and_visible():
+    visual=(ROOT/'ModernTrade_Report.Report/definition/pages/CM2Governed/visuals/Status/visual.json').read_text()
+    for name,field in [('CM2 Reviewed Amount','reviewed_amount'),('CM2 Reviewed NSV','reviewed_nsv'),('CM2 Reviewed Tax','reviewed_tax'),('CM2 Missing Tax NSV','missing_tax_nsv')]:
+        dax=_measure(name)
+        assert f'SUM(Fact_CM2[{field}])' in dax
+        assert 'HASONEVALUE(Fact_CM2[view])' in dax and '"SALES"' in dax
+        assert name in visual
+
+def test_finance_sums_are_measures_not_context_transition_columns():
+    fact=(MODEL/'tables/Fact_Financials.tmdl').read_text()
+    measures=(MODEL/'tables/_Measures.tmdl').read_text(encoding='utf-8')
+    for name in ['NSV_Actual_INR_Sum','COGS_INR_Sum','Trade_Spend_INR_Sum','Freight_INR_Sum']:
+        assert f'column {name}' not in fact
+        assert f'measure {name} = SUM(' in measures

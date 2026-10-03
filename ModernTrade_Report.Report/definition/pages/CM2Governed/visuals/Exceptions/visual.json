@@ -112,6 +112,20 @@
               },
               "queryRef": "_Measures.CM2 Unallocated Claim",
               "nativeQueryRef": "CM2 Unallocated Claim"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Unallocated BA"
+                }
+              },
+              "queryRef": "_Measures.CM2 Unallocated BA",
+              "nativeQueryRef": "CM2 Unallocated BA"
             }
           ]
         }

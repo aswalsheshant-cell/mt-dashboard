@@ -178,12 +178,12 @@ table _Measures
 		displayFolder: Governed CM2 Draft
 
 	measure 'CM2 Unallocated Claim' =
-		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[claim_amount]), Fact_CM2[record_type] = "UNALLOCATED_CLAIM"))
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[claim_amount]), KEEPFILTERS(Fact_CM2[record_type] = "UNALLOCATED_CLAIM"), REMOVEFILTERS(Fact_CM2[brand])))
 		formatString: #,##0.00
 		displayFolder: Governed CM2 Draft
 
 	measure 'CM2 Unallocated BA' =
-		CALCULATE(SUM(Fact_CM2[ba_amount]), Fact_CM2[view] = "provision", Fact_CM2[record_type] = "UNALLOCATED_BA")
+		CALCULATE(SUM(Fact_CM2[ba_amount]), KEEPFILTERS(Fact_CM2[view] = "provision"), KEEPFILTERS(Fact_CM2[record_type] = "UNALLOCATED_BA"), REMOVEFILTERS(Fact_CM2[brand]))
 		formatString: #,##0.00
 		displayFolder: Governed CM2 Draft
 
@@ -223,4 +223,40 @@ table _Measures
 		displayFolder: Finance sample
 
 	measure Freight_Logistics_INR = SUM(Fact_Financials[Freight_Logistics_INR])
+		displayFolder: Finance sample
+
+	measure 'CM2 Reviewed Amount' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[reviewed_amount]), KEEPFILTERS(Fact_CM2[record_type] = "SALES")))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Reviewed NSV' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[reviewed_nsv]), KEEPFILTERS(Fact_CM2[record_type] = "SALES")))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Reviewed Tax' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[reviewed_tax]), KEEPFILTERS(Fact_CM2[record_type] = "SALES")))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure 'CM2 Missing Tax NSV' =
+		IF(HASONEVALUE(Fact_CM2[view]), CALCULATE(SUM(Fact_CM2[missing_tax_nsv]), KEEPFILTERS(Fact_CM2[record_type] = "SALES")))
+		formatString: #,##0.00
+		displayFolder: Governed CM2 Draft
+
+	measure NSV_Actual_INR_Sum = SUM(Fact_Financials[NSV_Actual_INR])
+		formatString: #,##0.00
+		displayFolder: Finance sample
+
+	measure COGS_INR_Sum = SUM(Fact_Financials[COGS_INR])
+		formatString: #,##0.00
+		displayFolder: Finance sample
+
+	measure Trade_Spend_INR_Sum = SUM(Fact_Financials[Variable_Trade_Spend_INR])
+		formatString: #,##0.00
+		displayFolder: Finance sample
+
+	measure Freight_INR_Sum = SUM(Fact_Financials[Freight_Logistics_INR])
+		formatString: #,##0.00
 		displayFolder: Finance sample

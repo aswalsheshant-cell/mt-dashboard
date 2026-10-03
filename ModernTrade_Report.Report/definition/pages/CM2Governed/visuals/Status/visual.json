@@ -84,6 +84,62 @@
               },
               "queryRef": "_Measures.CM2 Scope",
               "nativeQueryRef": "CM2 Scope"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Reviewed Amount"
+                }
+              },
+              "queryRef": "_Measures.CM2 Reviewed Amount",
+              "nativeQueryRef": "CM2 Reviewed Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Reviewed NSV"
+                }
+              },
+              "queryRef": "_Measures.CM2 Reviewed NSV",
+              "nativeQueryRef": "CM2 Reviewed NSV"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Reviewed Tax"
+                }
+              },
+              "queryRef": "_Measures.CM2 Reviewed Tax",
+              "nativeQueryRef": "CM2 Reviewed Tax"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Missing Tax NSV"
+                }
+              },
+              "queryRef": "_Measures.CM2 Missing Tax NSV",
+              "nativeQueryRef": "CM2 Missing Tax NSV"
             }
           ]
         }

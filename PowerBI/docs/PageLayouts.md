@@ -486,3 +486,9 @@ It is not relabeled as governed CM2. The draft uses documented PBIR page/visual
 files, but successful Desktop opening, refresh and rendering are still pending.
 Do not call this page runtime parity or use it as B5 clearance. The matched bridge
 is an observed claim difference, not an approved economic variance.
+
+The Exceptions table is deliberately insulated from the Brand slicer and displays
+separate signed Claim and BA amounts by view/month/chain/record type. Its scope is
+all brands for the selected FY/month/chain. The Status table now includes four
+monetary GST QC exposures for the selected sales population. Runtime rendering
+and filter behavior still require Desktop evidence.

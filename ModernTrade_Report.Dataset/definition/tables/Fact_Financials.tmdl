@@ -61,29 +61,9 @@ table Fact_Financials
 		summarizeBy: sum
 		sourceColumn: Freight_Logistics_INR
 
-	column NSV_Actual_INR_Sum = CALCULATE(SUM('Fact_Financials'[NSV_Actual_INR]))
-		dataType: double
-		formatString: #,##0.00
-		lineageTag: f4a2b3c4-0004-4000-8000-000000000010
-		summarizeBy: none
 
-	column COGS_INR_Sum = CALCULATE(SUM('Fact_Financials'[COGS_INR]))
-		dataType: double
-		formatString: #,##0.00
-		lineageTag: f4a2b3c4-0004-4000-8000-000000000011
-		summarizeBy: none
 
-	column Trade_Spend_INR_Sum = CALCULATE(SUM('Fact_Financials'[Variable_Trade_Spend_INR]))
-		dataType: double
-		formatString: #,##0.00
-		lineageTag: f4a2b3c4-0004-4000-8000-000000000012
-		summarizeBy: none
 
-	column Freight_INR_Sum = CALCULATE(SUM('Fact_Financials'[Freight_Logistics_INR]))
-		dataType: double
-		formatString: #,##0.00
-		lineageTag: f4a2b3c4-0004-4000-8000-000000000013
-		summarizeBy: none
 
 	partition Fact_Financials = m
 		mode: import

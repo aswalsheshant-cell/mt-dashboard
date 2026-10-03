@@ -4,5 +4,12 @@
   "displayName": "CM2 governed draft - unavailable modeled margin",
   "displayOption": "FitToPage",
   "height": 1060,
-  "width": 1440
+  "width": 1440,
+  "visualInteractions": [
+    {
+      "source": "Filterbrand",
+      "target": "Exceptions",
+      "type": "NoFilter"
+    }
+  ]
 }

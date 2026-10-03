@@ -202,3 +202,12 @@ Desktop opening, refresh, relationship cardinality and selected Apr/Aug values
 remain pending. See task-5-report.md for the parser observations and approval
 review block. No signed publication, push, merge or production release is allowed
 on the strength of these structural checks.
+
+Review corrections (2026-10-04): the Brand slicer does not filter the Exceptions
+visual, because unallocated records intentionally have no brand. Exception
+measures preserve row record type and show Claim and BA separately, retaining
+FY/month/chain selection. Monetary tax-QC exposures (reviewed amount, NSV, tax,
+and missing-tax NSV) are bound on the Status visual for the selected sales/view.
+The Finance sample's four *_Sum calculated columns were moved to SUM measures
+following a real Desktop circular-dependency error. This fix awaits Desktop
+reopen; no refresh evidence or B5 clearance is claimed.

@@ -81,3 +81,44 @@ To resume Desktop UI after the automatic review rejection, user approval is
 required for reopening this local PBIP to continue parser validation. Approval
 is requested because automatic review blocked the action, not because file
 editing or static validation requires permission.
+
+## 2026-10-04 — one approved reopen and review fixes
+
+The user explicitly authorized one fresh open after the prior auto-review block.
+Selected returned Store Desktop window 2492252 and used the native Open dialog
+via @oai/sky. The single open progressed past the earlier PBIP/TMDL errors to
+`Loading data model`, then showed this exact error (visible in tool screenshots):
+
+> There's a problem with the definition content in your Power BI Project.
+> A circular dependency was detected: Fact_Financials[Freight_INR_Sum],
+> Fact_Financials[Trade_Spend_INR_Sum], Fact_Financials[Freight_INR_Sum].
+
+Stopped after observing that result. No second open, refresh, login, publication
+or further UI input. The installed engine remains available but project opening
+is not successful. The last auto-review denial is historical; this fresh attempt
+was allowed and failed on the circular dependency above.
+
+Added four regression tests before editing. Command:
+`python -m pytest tests/test_powerbi_cm2_views_structure.py -q -p no:cacheprovider`.
+RED: 4 new failures / 4 existing passes. Implemented:
+
+- Brand slicer has a NoFilter interaction to Exceptions, preserving blank-brand
+  source exception rows in that visual while normal sales visuals remain filtered.
+- Unallocated measures intersect existing record_type filters with KEEPFILTERS,
+  remove only Brand filtering, and preserve FY/month/chain/view. Exceptions now
+  binds separate signed Claim and BA measures. The bridge's unallocated BA also
+  retains its amount under Brand selection.
+- Status visual binds selected-sales/view-scoped reviewed_amount, reviewed_nsv,
+  reviewed_tax and missing_tax_nsv measures (INR lakh).
+- Four inherited Fact_Financials *_Sum calculated columns used context-transition
+  CALCULATE and caused the Desktop circular dependency. Moved them to true SUM
+  measures in _Measures, preserving names and source columns. No source data edits.
+
+NoFilter structure checked against Microsoft's documented PBIR interaction
+schema: https://github.com/microsoft/json-schemas/blob/main/fabric/item/report/definition/page/1.0.0/schema.json
+
+GREEN: `python -m pytest tests/test_powerbi_cm2_views_structure.py tests/test_powerbi_unique_measure_names.py tests/test_powerbi_rolling_average.py tests/test_powerbi_cm2_truthful.py -q -p no:cacheprovider`
+returned 37 passed. `git diff --check` passed. The four new tests inspect the
+structural remedies; runtime interaction and DAX evidence remains pending.
+The circular-dependency fix has not been reopened in Desktop under the one-attempt
+limit. B5 stays BLOCKED_PENDING_DESKTOP_EVIDENCE. Local checkpoint only, no push.
