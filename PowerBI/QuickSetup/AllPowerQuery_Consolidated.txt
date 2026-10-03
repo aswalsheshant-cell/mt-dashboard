@@ -210,8 +210,9 @@ in
 //   Sales Qty, MRP Sales Value, NSV, Per pc, With Tax, Margin, Revised Month,
 //   Month, Year, PPT Category
 //
-// Offtake is maintained MONTHLY (store x article). NSV = offtake net value
-// (rupees). This is the secondary/offtake validation base for the article
+// Offtake is maintained MONTHLY (store x article). Source NSV is in lakh;
+// convert it to the model's absolute-rupee contract at import. MRP Sales Value
+// already arrives in rupees. This is the secondary/offtake validation base for the article
 // eligibility gate (DAX 09) — no allocation logic changed here.
 // =====================================================================
 let
@@ -276,7 +277,13 @@ let
         {"SO Emp Code", type text}, {"Sales Person", type text}, {"PPT Category", type text}
     }),
 
-    Trimmed = Table.TransformColumns(Typed, {
+    // Source NSV is lakh (docs/DATA_LINEAGE.md); model currency is absolute rupees.
+    // Keep negative returns signed and nulls null. MRP Sales is already rupees.
+    Scaled = Table.TransformColumns(Typed, {
+        {"Offtake NSV", each if _ = null then null else _ * 100000, type number}
+    }),
+
+    Trimmed = Table.TransformColumns(Scaled, {
         {"Store Code", each Text.Trim(Text.From(_)), type text},
         {"Article Code", each Text.Trim(Text.From(_)), type text},
         {"EAN Code", each Text.Trim(Text.From(_)), type text},
