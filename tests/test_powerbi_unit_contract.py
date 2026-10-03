@@ -10,6 +10,9 @@ OFFTAKE = ROOT / "PowerBI" / "PowerQuery" / "11_Fact_OfftakeSales.pq"
 SECONDARY_DAX = ROOT / "PowerBI" / "DAX" / "14_SecondarySales_Measures.dax"
 EFFICIENCY_PQ = ROOT / "PowerBI" / "PowerQuery" / "43_SecondarySalesEfficiency.pq"
 CORE_DAX = ROOT / "PowerBI" / "DAX" / "01_CoreMeasures.dax"
+DATE_DAX = ROOT / "PowerBI" / "DAX" / "00_DateTable.dax"
+FY_FUNCTION = ROOT / "PowerBI" / "PowerQuery" / "02_fnFYLabel.pq"
+QUICKSETUP_CONFIG = ROOT / "PowerBI" / "QuickSetup" / "quicksetup_steps.json"
 
 
 def _code(path):
@@ -88,4 +91,24 @@ def test_efficiency_does_not_turn_missing_months_into_zero_sales():
     assert "[Offtake NSV] = null" in code
     assert "[Primary NSV] = null" in code
     assert '"No Offtake Data"' in code
+
+
+def test_fy_function_is_available_and_date_table_uses_two_digit_fy():
+    fn = _code(FY_FUNCTION)
+    assert "if m >= 4 then y else y - 1" in fn
+    assert "Number.Mod(startYear, 100)" in fn
+    assert '"02_fnFYLabel.pq"' in QUICKSETUP_CONFIG.read_text(encoding="utf-8")
+    date = _code(DATE_DAX)
+    assert 'FORMAT(MOD(y, 100), "00")' in date
+    assert 'FORMAT(MOD(y - 1, 100), "00")' in date
+
+
+def test_primary_kpi_uses_loaded_article_fact_and_secondary_date_refs_resolve():
+    core = _code(CORE_DAX)
+    assert "Total Primary NSV = SUM ( 'Fact Primary Article'[Primary NSV] )" in core
+    assert "Total Primary Qty = SUM ( 'Fact Primary Article'[Primary Qty] )" in core
+    secondary = _code(SECONDARY_DAX)
+    assert "'Date'[" not in secondary
+    assert "'Date Table'[Date]" in secondary
+    assert "'Date Table'[FY Year] = \"26-27\"" in secondary
 

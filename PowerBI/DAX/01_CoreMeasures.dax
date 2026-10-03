@@ -7,8 +7,10 @@
 // ---------- BASE TOTALS ----------
 Total Offtake NSV = SUM ( 'Fact Offtake Sales'[Offtake NSV] )
 Total Offtake Qty = SUM ( 'Fact Offtake Sales'[Offtake Qty] )
-Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
-Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
+// The monthly Article fact is loaded; the legacy weekly Primary Sales query is deferred.
+// Primary stays gross billing, including Reliance Brand Counter.
+Total Primary NSV = SUM ( 'Fact Primary Article'[Primary NSV] )
+Total Primary Qty = SUM ( 'Fact Primary Article'[Primary Qty] )
 Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
 
 // ---------- RELIANCE BRAND COUNTER (RBC) ISOLATION ----------

@@ -8,8 +8,8 @@
 // (from 'Fact Primary Article') to derive sell-through ratio.
 // All ratio measures use DIVIDE() — never plain division.
 //
-// FY filter: measures respect the Date[FY Year] slicer via the
-// MonthStart → Date table relationship established in the model.
+// FY filter: measures respect the Date Table[FY Year] slicer via the
+// MonthStart → Date Table relationship established in the model.
 // =====================================================================
 
 
@@ -41,7 +41,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     IF ( ISBLANK ( _prev ), BLANK (), _cur - _prev )
@@ -51,7 +51,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     DIVIDE ( _cur - _prev, _prev )
@@ -107,8 +107,8 @@ DIVIDE (
 [Q1 FY27 Secondary NSV Lakh] =
 CALCULATE (
     [Secondary NSV Lakh],
-    'Date'[FY Year] = "FY27",
-    'Date'[Quarter] = "Q1"
+    'Date Table'[FY Year] = "26-27",
+    'Date Table'[Quarter] = "Q1"
 )
 
 [Q1 FY27 Secondary NSV Cr] =

@@ -52,8 +52,8 @@ ADDCOLUMNS(
     "FY Year",
         VAR y = YEAR([Date])
         RETURN IF(MONTH([Date]) >= 4,
-                 FORMAT(y, "00") & "-" & FORMAT(y + 1 - 2000, "00"),
-                 FORMAT(y - 1, "00") & "-" & FORMAT(y - 2000, "00")),
+                 FORMAT(MOD(y, 100), "00") & "-" & FORMAT(MOD(y + 1, 100), "00"),
+                 FORMAT(MOD(y - 1, 100), "00") & "-" & FORMAT(MOD(y, 100), "00")),
     "Quarter",
         VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
         RETURN "Q" & ROUNDUP(fm / 3, 0),
@@ -92,8 +92,10 @@ ADDCOLUMNS(
 // ---------- BASE TOTALS ----------
 Total Offtake NSV = SUM ( 'Fact Offtake Sales'[Offtake NSV] )
 Total Offtake Qty = SUM ( 'Fact Offtake Sales'[Offtake Qty] )
-Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
-Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
+// The monthly Article fact is loaded; the legacy weekly Primary Sales query is deferred.
+// Primary stays gross billing, including Reliance Brand Counter.
+Total Primary NSV = SUM ( 'Fact Primary Article'[Primary NSV] )
+Total Primary Qty = SUM ( 'Fact Primary Article'[Primary Qty] )
 Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
 
 // ---------- RELIANCE BRAND COUNTER (RBC) ISOLATION ----------
@@ -2052,8 +2054,8 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 // (from 'Fact Primary Article') to derive sell-through ratio.
 // All ratio measures use DIVIDE() — never plain division.
 //
-// FY filter: measures respect the Date[FY Year] slicer via the
-// MonthStart → Date table relationship established in the model.
+// FY filter: measures respect the Date Table[FY Year] slicer via the
+// MonthStart → Date Table relationship established in the model.
 // =====================================================================
 
 
@@ -2085,7 +2087,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     IF ( ISBLANK ( _prev ), BLANK (), _cur - _prev )
@@ -2095,7 +2097,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     DIVIDE ( _cur - _prev, _prev )
@@ -2151,8 +2153,8 @@ DIVIDE (
 [Q1 FY27 Secondary NSV Lakh] =
 CALCULATE (
     [Secondary NSV Lakh],
-    'Date'[FY Year] = "FY27",
-    'Date'[Quarter] = "Q1"
+    'Date Table'[FY Year] = "26-27",
+    'Date Table'[Quarter] = "Q1"
 )
 
 [Q1 FY27 Secondary NSV Cr] =
