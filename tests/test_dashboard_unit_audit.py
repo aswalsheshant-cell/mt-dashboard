@@ -44,6 +44,30 @@ def test_missing_amount_column_fails_without_changing_source(tmp_path):
     assert source.read_bytes() == before
 
 
+def test_offtake_keeps_gross_rows_and_reports_governed_rbc_scope(tmp_path):
+    source = tmp_path / "offtake_store_article_Apr_26.csv"
+    source.write_text(
+        "Month,Chain Name,Store Type,NSV,MRP Sales Value\n"
+        "Apr'26,Reliance Retail,Non-Brand Counter,1.5,300000\n"
+        "Apr'26,Reliance Retail,Brand Counter,0.5,100000\n"
+        "May'26,D-Mart,Brand Counter,-0.2,40000\n",
+        encoding="utf-8",
+    )
+    before = source.read_bytes()
+
+    result = audit_csv(source, "NSV", "MRP Sales Value", sample_stride=1, exclude_reliance_bc=True)
+
+    assert source.read_bytes() == before
+    assert result["rows"] == 3
+    assert result["raw_sum"] == "1.8"
+    assert result["governed_raw_sum"] == "1.3"
+    assert result["rbc_excluded_rows"] == 1
+    assert result["rbc_excluded_raw_sum"] == "0.5"
+    assert result["month_totals_raw"] == {"Apr'26": "2.0", "May'26": "-0.2"}
+    assert result["month_totals_governed_raw"] == {"Apr'26": "1.5", "May'26": "-0.2"}
+    assert "Jun'26" not in result["month_totals_governed_raw"]
+
+
 def test_source_audit_skips_templates_and_reports_each_file_without_mutation(tmp_path):
     root = tmp_path / "repo"
     offtake = root / "PowerBI" / "RawDataFolders" / "Offtake_Monthly"
@@ -53,7 +77,8 @@ def test_source_audit_skips_templates_and_reports_each_file_without_mutation(tmp
         folder.mkdir(parents=True)
     (offtake / "_TEMPLATE_Offtake_Monthly.csv").write_text("NSV\n999\n", encoding="utf-8")
     (offtake / "offtake_store_article_Apr_26.csv").write_text(
-        "Month,NSV,MRP Sales Value\nApr'26,1.5,300000\n", encoding="utf-8"
+        "Month,Chain Name,Store Type,NSV,MRP Sales Value\n"
+        "Apr'26,D-Mart,Non-Brand Counter,1.5,300000\n", encoding="utf-8"
     )
     (primary / "primary_article_Apr_26.csv").write_text(
         "Month,Inv. Net value(LOC),Total MRP sales\nApr'26,200000,400000\n", encoding="utf-8"
@@ -88,7 +113,7 @@ def test_report_refuses_published_dashboard_destination(tmp_path):
 def test_cli_writes_only_aggregate_json(tmp_path):
     root = tmp_path / "repo"
     specs = (
-        ("Offtake_Monthly", "offtake_store_article_Apr_26.csv", "NSV,MRP Sales Value", "1.5,300000"),
+        ("Offtake_Monthly", "offtake_store_article_Apr_26.csv", "Chain Name,Store Type,NSV,MRP Sales Value", "D-Mart,Non-Brand Counter,1.5,300000"),
         ("Primary_Article_Monthly", "primary_article_Apr_26.csv", "Inv. Net value(LOC),Total MRP sales", "200000,400000"),
         ("Primary_ShipTo_Monthly", "Primary_ShipTo_FY24-25.csv", "Primary NSV,MRP Value", "100000,200000"),
     )
