@@ -201,7 +201,8 @@ def load_workbook_cuts(path: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataF
         frames = tuple(pd.DataFrame(cuts[kind], columns=_CUT_COLUMNS)
                        for kind in ('PROVISION_CLAIM', 'PROVISION_BA', 'DIRECT_DN_ACTUAL'))
         for frame in frames:
-            frame.attrs.update(chain_aliases=aliases.copy(), workbook_primary=primary.copy())
+            frame.attrs.update(chain_aliases=aliases.copy(), workbook_primary=primary.copy(),
+                               source_version=hashlib.sha256(Path(path).read_bytes()).hexdigest())
         return frames
     finally:
         w.close()
@@ -254,3 +255,187 @@ def claim_coverage(primary: pd.DataFrame, claims: pd.DataFrame) -> dict:
                 no_sales_claim_amount=no_sales_amount, unmapped_claim_amount=unmapped_amount,
                 allocated_claim_amount=allocated,
                 source_total=float(pd.to_numeric(claims.amount_lakh).sum()), unallocated=unallocated)
+
+
+CM2_SCHEMA_VERSION = '2'
+CM2_EXPORT_FIELDS = (
+    'schema_version', 'view', 'record_type', 'fy', 'month', 'chain', 'brand',
+    'channel', 'nsv', 'tax', 'mrp', 'effective_gst_pct', 'gst_qc_status',
+    'effective_gst_pct_status', 'claim_amount', 'ba_amount', 'covered_nsv',
+    'coverage_pct', 'coverage_pct_status', 'source_status', 'status',
+    'cm2_value', 'cm2_pct', 'cm2_pct_status', 'allocation_basis',
+    'category_status', 'cogs_basis_status', 'approval_status',
+    'assumption_version', 'included_claim_heads', 'source_version',
+    'timing_status', 'tax_row_count', 'gst_valid_5_count', 'gst_valid_18_count',
+    'gst_zero_tax_count', 'gst_review_count', 'gst_missing_tax_count',
+    'reviewed_amount', 'reviewed_nsv', 'reviewed_tax', 'missing_tax_nsv',
+)
+
+
+def build_cm2_views(primary, provision_claims, provision_ba, direct_dn, *, cogs_basis_status):
+    """Public aggregate contract. Brand attribution is a signed NSV-share estimate.
+
+    Finance has not approved a COGS base: even a caller-supplied approval label
+    cannot enable margin arithmetic without an implemented governed formula.
+    None cuts mean absent evidence; empty cuts mean loaded, recorded zero rows.
+    """
+    import calendar
+    for cut, expected in ((provision_claims, 'PROVISION_CLAIM'),
+                          (provision_ba, 'PROVISION_BA'), (direct_dn, 'DIRECT_DN_ACTUAL')):
+        if cut is not None and 'source_type' in cut and not cut.source_type.eq(expected).all():
+            raise ValueError(f'Expected exclusively {expected} source rows')
+    basis = build_tax_basis(primary)
+    months = {m: i for names in (calendar.month_abbr, calendar.month_name)
+              for i, m in enumerate(names) if m}
+    months['Sept'] = 9  # canonical dashboard label
+    month_number = basis['_M'].map(months)
+    if month_number.isna().any() or not basis['_FY'].astype(str).str.fullmatch(r'FY\d{2}').all():
+        raise ValueError('Invalid Primary FY/month key')
+    years = 2000 + basis['_FY'].astype(str).str[2:].astype(int) - month_number.ge(4).astype(int)
+    basis['month'] = years.astype(str) + '-' + month_number.astype(int).astype(str).str.zfill(2)
+    aliases = next((c.attrs.get('chain_aliases', {}) for c in
+                    (provision_claims, direct_dn) if c is not None), {})
+    basis['chain'] = basis['_Chain'].map(lambda s: aliases.get(s, s))
+    mt = basis.loc[basis['_Chan'].eq('MT')].copy()
+    sales = mt[['month', 'chain', '_NSV']].rename(columns={'_NSV': 'nsv'})
+    empty = pd.DataFrame(columns=['month', 'chain', 'amount_lakh', 'source_row'])
+    views = {'contract_version': CM2_SCHEMA_VERSION, 'unit': 'INR Lakh',
+             'channel_basis': 'MT', 'all_channel_source': tax_summary(basis),
+             'assumptions': {'cogs_basis_status': cogs_basis_status,
+                 'formula_status': 'NOT_AVAILABLE', 'approval_status': 'PENDING_FINANCE',
+                 'cogs_rate': .16, 'logistics_rate': .03,
+                 'rates_applied': False, 'version': 'unapproved-workbook-assumptions-v1'}}
+    coverage = {}
+    for name, claims, ba in [('provision', provision_claims, provision_ba),
+                             ('recorded_dn', direct_dn, None)]:
+        cut = claims if claims is not None else empty
+        cov = claim_coverage(sales, cut)
+        coverage[name] = cov
+        totals = sales.groupby(['month', 'chain']).nsv.sum()
+        amounts = cut.groupby(['month', 'chain']).amount_lakh.sum()
+        ba_cut = ba if ba is not None else empty
+        ba_cov = claim_coverage(sales, ba_cut)
+        ba_totals = ba_cut.groupby(['month', 'chain']).amount_lakh.sum()
+        rows = []
+        for (fy, month, chain, brand), group in mt.groupby(
+                ['_FY', 'month', 'chain', '_Brand'], dropna=False, sort=True):
+            key = (month, chain)
+            covered = key in cov['covered_keys']
+            source_rows = cut.loc[cut.month.eq(month) & cut.chain.eq(chain)]
+            statuses = set(source_rows.get('source_status', []))
+            source_status = ('PARTIAL_REGISTER' if 'PARTIAL_REGISTER' in statuses
+                             else ('PROVISION' if name == 'provision' else 'RECORDED_DN')
+                             if covered else 'NOT_AVAILABLE')
+            raw = tax_summary(group)
+            share = raw['nsv'] / float(totals[key]) if totals[key] != 0 else None
+            rows.append(dict(fy=fy, month=month, chain=chain, brand=brand,
+                channel='MT', nsv=raw['nsv'], tax=raw['tax'], mrp=raw['mrp'],
+                effective_gst_pct=raw['effective_gst_pct'], gst_qc_status=raw['gst_qc_status'],
+                effective_gst_pct_status=raw['gst_qc_status'] if raw['effective_gst_pct'] is not None else 'NOT_AVAILABLE',
+                claim_amount=float(amounts[key])*share if covered else None,
+                ba_amount=float(ba_totals[key])*share if key in ba_cov['covered_keys'] else None,
+                covered_nsv=raw['nsv'] if covered else 0.,
+                coverage_pct=100. if covered else 0., coverage_pct_status='AVAILABLE',
+                source_status=source_status, status='NOT_AVAILABLE',
+                cm2_value=None, cm2_pct=None, cm2_pct_status='NOT_AVAILABLE',
+                allocation_basis='NSV_SHARE_ESTIMATE', category_status='UNSUPPORTED_SCOPE'))
+            rows[-1].update(cogs_basis_status=cogs_basis_status,
+                approval_status='PENDING_FINANCE', assumption_version='unapproved-workbook-assumptions-v1',
+                included_claim_heads='|'.join(sorted(set(source_rows.get('head', [])))),
+                source_version=claims.attrs.get('source_version', 'UNVERSIONED_INPUT') if claims is not None else 'ABSENT',
+                timing_status='PARTIAL_REGISTER' if source_status == 'PARTIAL_REGISTER' else 'NOT_CERTIFIED')
+            counts = raw['status_counts']
+            rows[-1].update(schema_version=CM2_SCHEMA_VERSION, record_type='SALES',
+                tax_row_count=len(group), gst_valid_5_count=counts.get('VALID_5_PERCENT', 0),
+                gst_valid_18_count=counts.get('VALID_18_PERCENT', 0),
+                gst_zero_tax_count=counts.get('ZERO_TAX', 0),
+                gst_review_count=counts.get('REVIEW_RATE_OR_BASE', 0),
+                gst_missing_tax_count=counts.get('MISSING_TAX', 0),
+                **{k: raw[k] for k in ('reviewed_amount', 'reviewed_nsv', 'reviewed_tax', 'missing_tax_nsv')})
+        # Local row lineage is deliberately excluded from the public contract.
+        def public_unallocated(c):
+            totals = {}
+            for row in c['unallocated']:
+                key = (row['month'], row['chain'], row['status'])
+                totals[key] = totals.get(key, 0.) + row['amount_lakh']
+            return [dict(month=m, chain=ch, status=s, amount_lakh=amount)
+                    for (m, ch, s), amount in sorted(totals.items())]
+        public_cov = {k:v for k,v in cov.items() if k != 'unallocated'}
+        views[name] = dict(status='NOT_AVAILABLE', source_available=claims is not None,
+            rows=rows, coverage=public_cov, unallocated=public_unallocated(cov),
+            ba_unallocated=public_unallocated(ba_cov), ba_source_total=ba_cov['source_total'])
+        exception_rows = []
+        for bucket, source, kind, measure in (
+            ('unallocated', claims, 'UNALLOCATED_CLAIM', 'claim_amount'),
+            ('ba_unallocated', ba, 'UNALLOCATED_BA', 'ba_amount')):
+            for entry in views[name][bucket]:
+                year, month_number = map(int, entry['month'].split('-'))
+                evidence = source.loc[source.month.eq(entry['month']) & source.chain.eq(entry['chain'])]
+                partial = 'PARTIAL_REGISTER' in set(evidence.get('source_status', []))
+                row = {field: None for field in CM2_EXPORT_FIELDS if field != 'view'}
+                row.update(schema_version=CM2_SCHEMA_VERSION, record_type=kind,
+                    fy=f'FY{(year + (month_number >= 4)) % 100:02d}',
+                    month=entry['month'], chain=entry['chain'], channel='MT',
+                    status=entry['status'], source_status='PARTIAL_REGISTER' if partial else 'PROVISION' if name == 'provision' else 'RECORDED_DN',
+                    covered_nsv=0., coverage_pct_status='NOT_AVAILABLE',
+                    effective_gst_pct_status='NOT_AVAILABLE', gst_qc_status='NOT_AVAILABLE',
+                    cm2_pct_status='NOT_AVAILABLE', cogs_basis_status=cogs_basis_status,
+                    approval_status='PENDING_FINANCE', allocation_basis='UNALLOCATED',
+                    category_status='UNSUPPORTED_SCOPE', timing_status='PARTIAL_REGISTER' if partial else 'NOT_CERTIFIED',
+                    assumption_version='unapproved-workbook-assumptions-v1',
+                    included_claim_heads='|'.join(sorted(set(evidence.get('head', [])))),
+                    source_version=source.attrs.get('source_version', 'UNVERSIONED_INPUT'),
+                    **{measure:entry['amount_lakh']})
+                for field in ('tax_row_count','gst_valid_5_count','gst_valid_18_count',
+                              'gst_zero_tax_count','gst_review_count','gst_missing_tax_count'):
+                    row[field] = 0
+                exception_rows.append(row)
+        views[name]['exception_rows'] = exception_rows
+    matched = set(coverage['provision']['covered_keys']) & set(coverage['recorded_dn']['covered_keys'])
+    denominator = float(sales.loc[[tuple(r) in matched for r in sales[['month','chain']].values], 'nsv'].sum())
+    def matched_amount(c):
+        if c is None:
+            return None
+        return float(c.loc[[tuple(r) in matched for r in c[['month','chain']].values], 'amount_lakh'].sum())
+    pc, dn = matched_amount(provision_claims), matched_amount(direct_dn)
+    gap = dn-pc if pc is not None and dn is not None else None
+    views['matched_bridge'] = dict(key_count=len(matched), keys=sorted(matched), nsv=denominator,
+        provision_claims=pc, recorded_dn_claims=dn, claim_difference=gap,
+        claim_gap_pct=100*gap/denominator if gap is not None and denominator else None,
+        claim_gap_pct_status='OBSERVED_CLAIM_GAP' if denominator and gap is not None else 'NOT_AVAILABLE',
+        status='NOT_COMPARABLE', reason='Plan basis and recorded register timing differ')
+    workbook = next((c.attrs.get('workbook_primary') for c in (provision_claims, direct_dn)
+                     if c is not None and 'workbook_primary' in c.attrs), None)
+    # Workbook groups minor brands into "Other brands". Compare monetary
+    # populations on canonical chain/month, retaining every signed raw brand.
+    if workbook is not None:
+        keys = set(map(tuple, workbook[['month','chain']].values))
+        scoped = mt.loc[[tuple(r) in keys for r in mt[['month','chain']].values]]
+        raw_nsv, rounded_nsv = float(scoped._NSV.sum()), float(workbook.nsv.sum())
+    else:
+        raw_nsv, rounded_nsv = float(mt._NSV.sum()), None
+    views['rounding_bridge'] = dict(raw_nsv=raw_nsv, workbook_nsv=rounded_nsv,
+        raw_minus_workbook_nsv=raw_nsv-rounded_nsv if rounded_nsv is not None else None,
+        scope='WORKBOOK_CHAIN_MONTH_KEYS' if workbook is not None else 'ALL_MT')
+    return views
+
+
+def write_cm2_powerbi_export(views: dict, path: Path) -> None:
+    """Versioned sales and aggregate exceptions; never lose claim/BA amounts.
+
+    Consumers must filter record_type for sales/GST denominators. Exception
+    rows carry no brand, NSV or tax; signed claim and BA totals are conserved.
+    The full fixed schema is written even when the population is empty.
+    """
+    import csv
+    rows = [dict(view=name, **r) for name in ('provision', 'recorded_dn')
+            for r in views[name]['rows'] + views[name]['exception_rows']]
+    def write(stream):
+        writer = csv.DictWriter(stream, fieldnames=CM2_EXPORT_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+    if hasattr(path, 'write'):
+        write(path)
+    else:
+        with Path(path).open('w', newline='', encoding='utf-8') as stream:
+            write(stream)

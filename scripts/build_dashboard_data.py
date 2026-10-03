@@ -3047,7 +3047,7 @@ def cm2_not_loaded(loaded_heads):
             if not any(k in h for k in b["heads"] for h in lh)]
 
 
-def cm2_block(df, expense_rows):
+def _legacy_cm2_block(df, expense_rows):
     """Chain/Brand/Category/Expense-Head CM2 rollups + monthly series, from
     the row-level article-level primary detail `df` (already carries _NSV,
     _Chain, _Brand, _category, _CustCode, _method, _FY, _M from the TOT%
@@ -3180,8 +3180,6 @@ def cm2_block(df, expense_rows):
                 continue
             nsv = float(nsv_series.get(name, 0.0))
             exp = exp_by.get(name, 0.0)
-            if nsv <= 0 and exp <= 0:
-                continue
             cm2 = nsv - exp
             out.append({"name": name, "nsv": r2(nsv), "expense": r2(exp),
                         "cm2_value": r2(cm2), "cm2_pct": r2(cm2 / nsv * 100, 1) if nsv else None})
@@ -3268,6 +3266,48 @@ def cm2_block(df, expense_rows):
             "allocation is invented for rows that don't."
         ),
     }
+
+CM2_WORKBOOK = None
+CM2_POWERBI_EXPORT = None
+
+
+def cm2_block(df, expense_rows, *, workbook_path=None, export_path=None):
+    """Preserve legacy keys during migration; govern all new modeled cells."""
+    from cm2_reporting import build_cm2_views, load_workbook_cuts, write_cm2_powerbi_export
+    workbook_path = workbook_path or CM2_WORKBOOK
+    export_path = export_path or CM2_POWERBI_EXPORT
+    cuts = load_workbook_cuts(Path(workbook_path)) if workbook_path else (None, None, None)
+    base = df[fy_ge(df['_FY']) & df['_method'].ne('invalid')].copy()
+    views = build_cm2_views(base, *cuts, cogs_basis_status='UNRESOLVED')
+    result = _legacy_cm2_block(df, expense_rows)
+    result['views'] = views
+    # The old arithmetic is loaded-expense contribution only. Whole-population
+    # and dimension-only totals mix fiscal periods or lack attributed expenses.
+    result.update(cm2_value=None, cm2_pct=None, cm2_pct_status='NOT_AVAILABLE',
+                  status='NOT_AVAILABLE', expense_pct_of_nsv_status='OBSERVED_LOADED_EXPENSE')
+    for dimension in ('by_chain', 'by_brand', 'by_category'):
+        for row in result[dimension]:
+            row.update(cm2_value=None, cm2_pct=None, cm2_pct_status='NOT_AVAILABLE', status='NOT_AVAILABLE')
+    for rows in result['by_chain_fy'].values():
+        for row in rows:
+            row.update(cm2_pct_status='LOADED_EXPENSE_CONTRIBUTION', status='PROVISIONAL_LOADED_COST')
+            if row['expense'] == 0:
+                row.update(cm2_value=None, cm2_pct=None, cm2_pct_status='NOT_AVAILABLE', status='NOT_AVAILABLE')
+    for row in result['scope_fy'].values():
+        row.update(cm2_pct_mt_status='LOADED_EXPENSE_CONTRIBUTION', status='PROVISIONAL_LOADED_COST')
+    for row in result['monthly']:
+        available = row['expense'] != 0
+        row.update(cm2_pct_status='LOADED_EXPENSE_CONTRIBUTION' if available else 'NOT_AVAILABLE',
+                   status='PARTIAL_REGISTER' if f"{row['month']} {row['fy']}" in result['qc']['partial_months'] else 'PROVISIONAL_LOADED_COST' if available else 'NOT_AVAILABLE',
+                   mom_cm2_change=None)
+        if not available:
+            row.update(cm2_value=None, cm2_pct=None)
+    result['methodology'] = ('Legacy values show NSV less loaded expenses only. '
+        'Governed modeled CM2 is unavailable pending Finance approval of the COGS base. '
+        'Provision and recorded DN views are alternative claim valuations; recorded tax is source data.')
+    if export_path:
+        write_cm2_powerbi_export(views, Path(export_path))
+    return result
 
 # --------------------------------------------------------------------------
 # P&L (chain-wise gross-to-net + trade spend)
@@ -7050,6 +7090,8 @@ def refresh_derived_blocks(data, src):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", default=".")
+    ap.add_argument('--cm2-workbook', type=Path, help='Local provision/DN workbook; read only')
+    ap.add_argument('--cm2-powerbi-export', type=Path, help='Local non-identifying CM2 aggregate CSV')
     ap.add_argument("--out", default="../dashboard/data.js")
     ap.add_argument("--detail-max-rows", type=int, default=40000,
                     help="cap detail_records to the top-N groups BY VALUE (preserves total-value "
@@ -7110,6 +7152,8 @@ def main():
                          "and is not in the offtake universe. Set per-environment in CI to enforce "
                          "data quality without breaking local builds that lack source files.")
     a = ap.parse_args()
+    global CM2_WORKBOOK, CM2_POWERBI_EXPORT
+    CM2_WORKBOOK, CM2_POWERBI_EXPORT = a.cm2_workbook, a.cm2_powerbi_export
     src = Path(a.src)
     _REPO_ROOT = Path(__file__).resolve().parent.parent
 
