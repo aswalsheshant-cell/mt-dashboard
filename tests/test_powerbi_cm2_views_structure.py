@@ -30,6 +30,22 @@ def test_governed_measures():
     assert 'AVERAGE(' not in governed and '1.18' not in governed
     assert '[CM2 Provision Claim] + [CM2 Recorded DN Claim]' not in governed
 
+
+def test_cm2_dax_is_deeper_than_tmdl_measure_properties():
+    import re
+    text = (MODEL / 'tables/_Measures.tmdl').read_text(encoding='utf-8')
+    blocks = re.split(r'(?m)(?=^\tmeasure )', text)[1:]
+    cm2_blocks = [block for block in blocks if block.startswith("\tmeasure 'CM2 ")]
+    assert len(cm2_blocks) >= 15
+    for block in cm2_blocks:
+        lines = block.splitlines()
+        properties = [i for i, line in enumerate(lines)
+                      if re.match(r'^\t\t(?:formatString|displayFolder):', line)]
+        assert properties, lines[0]
+        for line in lines[1:properties[0]]:
+            if line.strip():
+                assert line.startswith('\t\t\t'), (lines[0], line)
+
 def test_real_pbip_page_and_descriptors():
     assert (MODEL.parent / 'definition.pbism').exists()
     root = ROOT / 'ModernTrade_Report.Report/definition'
