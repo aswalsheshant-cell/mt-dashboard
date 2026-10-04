@@ -404,6 +404,11 @@ function storeUniverse(){
   const masterFor=n=>{if(!M)return null;const std=(M.alias&&M.alias[nrm(n)])||n;return M.by_chain&&M.by_chain[std]!=null?M.by_chain[std]:null;};
   return {fy,month:blk&&blk.latest_month,byChain,total,tentative,pos:total-tentative,master:M?M.total:null,masterFor,ok:!!blk};
 }
+// store availability card: stores counted as available against the stores in the store master
+function availKpi(U){
+  if(!U||!U.ok||!U.master)return '';
+  return kpi('Store Availability',Math.round(U.total/U.master*100)+'%',`${num(U.total)} counted of ${num(U.master)} in the store master`);
+}
 // the line above the store KPI: actual universe (store master) against the stores counted as available
 function storeUniverseStrip(U){
   if(!U||!U.ok)return '';
@@ -1040,7 +1045,7 @@ function buildExecutiveCockpit(){
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(_offChainSel?_offChainSel.reduce((a,c)=>a+(c[offYr]||0),0):(o['total_'+offYr]||0)),_offChainSel?'selected chain(s)':fy?'selected FY':_offSP!=null?`${_SPC.curr_fy} to date ${crc(o['total_'+String(_SPC.curr_fy).toLowerCase()])} · <span class="${cls(_offSP)}">${arrow(_offSP)} ${pct(_offSP)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'sell-out')
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
-     ${(()=>{const U=storeUniverse();return U.ok?kpi('Active MT Stores',num(U.total),`${U.month||''} POS stores${U.tentative?` incl. ~${num(U.tentative)} tentative (Reliance, More Retail)`:''} · FSN NA · ${num(u.total_stores)} in UniverseMT file`):kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`);})()}
+     ${(()=>{const U=storeUniverse();return U.ok?kpi('Active MT Stores',num(U.total),`${U.month||''} POS stores${U.tentative?` incl. ~${num(U.tentative)} tentative (Reliance, More Retail)`:''} · FSN NA`)+availKpi(U):kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`);})()}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
      ${f.fy27_forecast!=null
        ? kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
@@ -1720,7 +1725,7 @@ function buildInventoryHealth(){
   // "not built yet", not as "filtered to zero" like the KPIs beside it.
   const _doiVal=(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'Not computed';
   const _otifVal=(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'Not computed';
-  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}${storeUniverseStrip(_U)}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
+  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}${storeUniverseStrip(_U)}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div>${_U.ok&&_U.master?`<div class="kpi-card"><div class="kpi-label">Store Availability</div><div class="kpi-value">${Math.round(_U.total/_U.master*100)}%</div><div class="note">${num(_U.total)} counted of ${num(_U.master)} in the store master</div></div>`:''}<div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage'];

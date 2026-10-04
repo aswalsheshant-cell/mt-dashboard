@@ -26,6 +26,10 @@ const { launchChromium } = require('./browser_launch');
   const num = s => (s.match(/ACTIVE MT STORES \| ([\d,]+)/i) || [])[1];
   if (num(seen['executive-cockpit'].kpi || '') !== num(seen['inventory-health'].kpi || '')) fails.push('the two tabs show different store counts');
   if (seen['executive-cockpit'].strip !== seen['inventory-health'].strip) fails.push('the universe line differs between tabs');
+  for (const tab of ['executive-cockpit', 'inventory-health']) {
+    if (!/STORE AVAILABILITY/i.test(seen[tab].txt)) fails.push(`${tab}: Store Availability card missing`);
+    if (/426/.test(seen[tab].kpi || '')) fails.push(`${tab}: the 426 reference should be gone from the store tile`);
+  }
   const inv = seen['inventory-health'].txt;
   if (!/Reliance Retail\t[\d,–]+\t~1,000 \(tentative\)/.test(inv)) fails.push('Reliance Retail should read ~1,000 (tentative)');
   if (!/More Retail\t[\d,–]+\t~400 \(tentative\)/.test(inv)) fails.push('More Retail should read ~400 (tentative)');
