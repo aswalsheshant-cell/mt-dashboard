@@ -40,14 +40,22 @@ const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH ->
       const k = [...document.querySelectorAll('#tab-pnl .kpi')].find(el => el.querySelector('.lab').textContent.trim() === label);
       return k ? k.querySelector('.val').textContent.trim() : null;
     };
-    const cm2Chart = () => charts.find(c => c.canvas && c.canvas.id === 'cm2Chart') || null;
+    const kpiSub = (label) => {
+      const k = [...document.querySelectorAll('#tab-pnl .kpi')].find(el => el.querySelector('.lab').textContent.trim() === label);
+      const sub = k && k.querySelector('.sub');
+      return sub ? sub.textContent.trim() : '';
+    };
+    // A chart object from an earlier render can linger in `charts` after its canvas left the page;
+    // only a canvas still in the document counts as drawn.
+    const cm2Chart = () => charts.find(c => c.canvas && c.canvas.id === 'cm2Chart' && document.body.contains(c.canvas)) || null;
     const tableCm2Pct = () => [...document.querySelectorAll('#tab-pnl table')]
       .find(t => /CM2%/.test(t.tHead ? t.tHead.innerText : ''));
     const pctCells = () => { const t = tableCm2Pct(); return t ? [...t.tBodies[0].rows].map(tr => tr.cells[4] && tr.cells[4].innerText.trim()) : []; };
     const snap = (fy) => {
       F.FY = fy ? [fy] : []; buildPnl();
       const s = cm2Section();
-      return { fy: fy || 'all', cm2: kpiVal(s, 'CM2 Value'), exp: kpiVal(s, 'Total P&L Expense'),
+      return { fy: fy || 'all', cm2: kpiVal(s, 'CM2 (loaded costs only)'), exp: kpiVal(s, 'Total P&L Expense'),
+               cm2Sub: kpiSub('CM2 (loaded costs only)'), expSub: kpiSub('Total P&L Expense'),
                has100: /100(\.0)?% of NSV/.test(s), banner: /No expense data loaded/.test(s),
                partial: /Partial cost coverage/.test(s), text: s.slice(0, 4000),
                chart: !!cm2Chart(), pcts: pctCells() };
@@ -111,7 +119,16 @@ const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH ->
   }
   // Scenario 2: partial expenses (one FY, one chain, two heads).
   for (const s of r.partial) {
-    const inScope = s.fy === 'all' || s.fy === r.fyE;
+    // Only the one FY that has expense rows is comparable. With no FY filter the
+    // FY with no expense rows still carries NSV, so the margin is withheld.
+    const inScope = s.fy === r.fyE;
+    if (s.fy === 'all') {
+      check('partial, FY=all: CM2 Value withheld (–), FY with NSV has no expense rows', s.cm2 === '–', s.cm2);
+      check('partial, FY=all: says Not like-for-like — select a comparable FY',
+            /Not like-for-like — select a comparable FY/.test(s.cm2Sub), s.cm2Sub);
+      check('partial, FY=all: expense % of NSV withheld', /Not like-for-like/.test(s.expSub) && !/% of NSV/.test(s.expSub), s.expSub);
+      check('partial, FY=all: no CM2 chart', !s.chart);
+    }
     check(`partial, FY=${s.fy}: partial-coverage note names the loaded heads`,
           s.partial && /Promotion/.test(s.text) && /Visibility/.test(s.text), s.text.slice(0, 600));
     if (inScope) {
@@ -139,12 +156,22 @@ const { launchChromium } = require('./browser_launch');   // PW_CHROMIUM_PATH ->
             /Channel scope FY27[\s\S]*MT-channel NSV only[\s\S]*CM2 is 94(\.0)?%/.test(s.text), s.text.slice(0, 1400));
     }
     if (s.fy === 'FY27') {
-      check('committed, FY=FY27: CM2 Value is a real figure', s.cm2 && s.cm2 !== '–', s.cm2);
+      check('committed, FY=FY27: CM2 (loaded costs only) is a real figure', s.cm2 && s.cm2 !== '–', s.cm2);
+      check('committed, FY=FY27: sub-label says partial costs only, never a full margin', /partial costs only/.test(s.cm2Sub), s.cm2Sub);
       check('committed, FY=FY27: by-chain table is FY27 like-for-like (Reliance CM2% from by_chain_fy)',
             r.fy27Reliance && s.pcts.includes(r.fy27Reliance.cm2_pct + '%'), { pcts: s.pcts.slice(0, 5), rel: r.fy27Reliance });
       check('committed, FY=FY27: no mixed-FY warning', !/Not like-for-like/.test(s.text));
     } else if (s.fy === 'all') {
       check('committed, FY=all: mixed-FY warning shown (FY27 expenses over FY26+FY27 NSV)', /Not like-for-like/.test(s.text), s.text.slice(0, 900));
+      // The misstatement this fixes: FY27-only expense subtracted from FY26+FY27 NSV read as CM2 97.7%.
+      check('committed, FY=all: CM2 Value withheld (–), never NSV less FY27-only expense', s.cm2 === '–', s.cm2);
+      check('committed, FY=all: card says Not like-for-like — select a comparable FY',
+            /Not like-for-like — select a comparable FY/.test(s.cm2Sub), s.cm2Sub);
+      check('committed, FY=all: Total P&L Expense % withheld (no 2.3% of FY26+FY27 NSV)',
+            /Not like-for-like — select a comparable FY/.test(s.expSub) && !/\d+(\.\d+)?% of NSV/.test(s.expSub), s.expSub);
+      check('committed, FY=all: no 97.7% / "% of NSV — partial costs" CM2 text', !/97\.7%/.test(s.text.split('Chain-wise CM2')[0]) && !/partial costs only/.test(s.cm2Sub), s.cm2Sub);
+      check('committed, FY=all: no CM2 chart (it would stack FY26+FY27 NSV against FY27 expense)', !s.chart);
+      check('committed, FY=all: chain CM2% column all –', s.pcts.length > 0 && s.pcts.every(p => p === '–'), s.pcts.slice(0, 5));
     } else {
       check(`committed, FY=${s.fy} (no expense rows): CM2 Value shows –`, s.cm2 === '–', s.cm2);
       check(`committed, FY=${s.fy} (no expense rows): chain CM2% column all –`, s.pcts.length > 0 && s.pcts.every(p => p === '–'), s.pcts.slice(0, 5));

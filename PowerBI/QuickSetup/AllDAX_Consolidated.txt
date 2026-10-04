@@ -52,8 +52,8 @@ ADDCOLUMNS(
     "FY Year",
         VAR y = YEAR([Date])
         RETURN IF(MONTH([Date]) >= 4,
-                 FORMAT(y, "00") & "-" & FORMAT(y + 1 - 2000, "00"),
-                 FORMAT(y - 1, "00") & "-" & FORMAT(y - 2000, "00")),
+                 FORMAT(MOD(y, 100), "00") & "-" & FORMAT(MOD(y + 1, 100), "00"),
+                 FORMAT(MOD(y - 1, 100), "00") & "-" & FORMAT(MOD(y, 100), "00")),
     "Quarter",
         VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
         RETURN "Q" & ROUNDUP(fm / 3, 0),
@@ -92,8 +92,10 @@ ADDCOLUMNS(
 // ---------- BASE TOTALS ----------
 Total Offtake NSV = SUM ( 'Fact Offtake Sales'[Offtake NSV] )
 Total Offtake Qty = SUM ( 'Fact Offtake Sales'[Offtake Qty] )
-Total Primary NSV = SUM ( 'Fact Primary Sales'[Primary NSV] )
-Total Primary Qty = SUM ( 'Fact Primary Sales'[Primary Qty] )
+// The monthly Article fact is loaded; the legacy weekly Primary Sales query is deferred.
+// Primary stays gross billing, including Reliance Brand Counter.
+Total Primary NSV = SUM ( 'Fact Primary Article'[Primary NSV] )
+Total Primary Qty = SUM ( 'Fact Primary Article'[Primary Qty] )
 Total MRP Sales   = SUM ( 'Fact Offtake Sales'[MRP Sales] )
 
 // ---------- RELIANCE BRAND COUNTER (RBC) ISOLATION ----------
@@ -229,8 +231,8 @@ Top 3 Chains =
     )
 
 // ---------- PRIMARY vs OFFTAKE ----------
-Primary vs Offtake Gap = [Total Primary NSV] - [Total Offtake NSV]
-Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total Offtake NSV], [Total Offtake NSV] )
+Primary vs Offtake Gap = [Total Primary NSV] - [Total MT NSV]
+Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total MT NSV], [Total MT NSV] )
 
 // ---------- GROWTH ARROW (for tables / cards) ----------
 MoM Arrow =
@@ -274,11 +276,11 @@ RETURN CONCATENATEX ( t, 'Category Master'[Category], ", " )
 //
 // BASIS: the target file is NSV and does not name its measure. The Forecast
 // page compares it to OFFTAKE, so these default to offtake. Swap
-// [Total Offtake NSV] for [Total Primary NSV] below to move the basis --
+// [Total MT NSV] for [Total Primary NSV] below to move the basis --
 // change it in "Actual (Basis)" only; everything else follows.
 // =====================================================================
 
-Actual (Basis) = [Total Offtake NSV]
+Actual (Basis) = [Total MT NSV]
 
 // ---------- PERIOD TO DATE (only months that actually have actuals) ----------
 // The PTD window is DERIVED from where actuals exist, so it widens on its own
@@ -1424,7 +1426,9 @@ CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
 QC Allocated Article Count =
 CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),
     FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ) )
-QC Mapping Coverage % =
+// Renamed from "QC Mapping Coverage %" (2026-10-01): 08_ForecastQC_Measures.dax already uses
+// that name for a different measure, so Power BI refused this one on install.
+QC Allocated Coverage % =
 DIVIDE ( [QC Allocated Primary Total], [QC Orig Primary (Dist-Brand)] )
 QC Blocked Coverage % =
 DIVIDE ( [QC Blocked Primary Total], [QC Orig Primary (Dist-Brand)] )
@@ -1905,15 +1909,36 @@ Total P&L Expense = [Total P&L Expense (Mapped)]   // headline KPI -- matches th
 // ---------- CM2 (overall / KPI cards) ----------
 // [Total Primary Article NSV] comes from DAX/12_TOT_Measures.dax (already
 // scoped to TOT-valid FY26/FY27 rows).
+// Comparability gate: CM2 only means something when the expense covers the same
+// financial years as the NSV it is subtracted from. 1 = every FY that has NSV in the
+// current filter also has mapped expense rows; 0 = at least one FY has NSV but no
+// expense rows (e.g. no FY filter: FY26 NSV + FY27-only expense). Missing expense is
+// NOT zero expense, so the margin is withheld (BLANK) rather than shown. Month-level
+// and single-FY selections with expense stay comparable and are unchanged.
+CM2 Comparable =
+VAR _missingFY =
+    COUNTROWS (
+        FILTER (
+            VALUES ( 'Date Table'[FY Year] ),
+            NOT ISBLANK ( [Total Primary Article NSV] ) && ISBLANK ( [Total P&L Expense] )
+        )
+    )
+RETURN IF ( _missingFY = 0, 1, 0 )
+
 Expense % of NSV =
-DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100
+VAR _cmp = [CM2 Comparable]
+RETURN IF ( _cmp = 0, BLANK (), DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100 )
 
 // Availability gate (FM-33): [Total P&L Expense] is BLANK when no mapped expense
 // row exists in the current filter context. CM2 is then BLANK (shown as "–"),
 // never NSV read as a 100% margin -- missing expense is not zero expense.
+// Also BLANK when [CM2 Comparable] = 0 (see above): this is CM2 on LOADED costs only,
+// not full contribution margin -- COGS/logistics, distributor claims, field force and
+// provisions are not in PL_Expense_Input yet.
 CM2 Value =
 VAR _exp = [Total P&L Expense]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 
 CM2 % =
 DIVIDE ( [CM2 Value], [Total Primary Article NSV] ) * 100
@@ -1947,7 +1972,8 @@ RETURN
 
 Chain-wise CM2 =   // BLANK for a chain with no mapped expense rows (not its NSV)
 VAR _exp = [Total P&L Expense (by Chain)]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 Chain-wise CM2 % = DIVIDE ( [Chain-wise CM2], [Total Primary Article NSV] ) * 100
 
 Total P&L Expense (by Brand) =
@@ -1959,7 +1985,8 @@ RETURN
 
 Brand-wise CM2 =   // BLANK for a brand with no mapped expense rows (not its NSV)
 VAR _exp = [Total P&L Expense (by Brand)]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 Brand-wise CM2 % = DIVIDE ( [Brand-wise CM2], [Total Primary Article NSV] ) * 100
 
 Total P&L Expense (by Category) =
@@ -1971,7 +1998,8 @@ RETURN
 
 Category-wise CM2 =   // BLANK for a category with no mapped expense rows (not its NSV)
 VAR _exp = [Total P&L Expense (by Category)]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 Category-wise CM2 % = DIVIDE ( [Category-wise CM2], [Total Primary Article NSV] ) * 100
 
 // ---------- EXPENSE HEAD-WISE BREAKUP ----------
@@ -2026,8 +2054,8 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 // (from 'Fact Primary Article') to derive sell-through ratio.
 // All ratio measures use DIVIDE() — never plain division.
 //
-// FY filter: measures respect the Date[FY Year] slicer via the
-// MonthStart → Date table relationship established in the model.
+// FY filter: measures respect the Date Table[FY Year] slicer via the
+// MonthStart → Date Table relationship established in the model.
 // =====================================================================
 
 
@@ -2059,7 +2087,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     IF ( ISBLANK ( _prev ), BLANK (), _cur - _prev )
@@ -2069,7 +2097,7 @@ VAR _cur  = [Secondary NSV Lakh]
 VAR _prev =
     CALCULATE (
         [Secondary NSV Lakh],
-        DATEADD ( 'Date'[Date], -1, MONTH )
+        DATEADD ( 'Date Table'[Date], -1, MONTH )
     )
 RETURN
     DIVIDE ( _cur - _prev, _prev )
@@ -2082,7 +2110,7 @@ RETURN
 
 [Sell-Through %] =
 VAR _secondary = [Secondary NSV Lakh]
-VAR _primary   = [Total Primary Article NSV]      // from 01_CoreMeasures.dax
+VAR _primary   = DIVIDE ( [Total Primary Article NSV], 100000 )  // model rupees -> lakh
 RETURN
     DIVIDE ( _secondary, _primary )
 
@@ -2125,8 +2153,8 @@ DIVIDE (
 [Q1 FY27 Secondary NSV Lakh] =
 CALCULATE (
     [Secondary NSV Lakh],
-    'Date'[FY Year] = "FY27",
-    'Date'[Quarter] = "Q1"
+    'Date Table'[FY Year] = "26-27",
+    'Date Table'[Quarter] = "Q1"
 )
 
 [Q1 FY27 Secondary NSV Cr] =

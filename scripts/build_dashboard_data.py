@@ -6452,6 +6452,14 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
         def _aggx(col, fx=fx):
             s = fx.groupby(col)["_NSV"].sum().sort_values(ascending=False)
             return [{"name": k, "nsv": r2(float(v))} for k, v in s.items() if k]
+        # B1 / CB-01 (MT Leadership, 2026-10-01): zone sales are MT accounts only.
+        # eB2B and SIS keep their own channel lines (by_channel) and are never
+        # rolled into a geographic zone. Nykaa (FSN) bills eB2B, so it sits under
+        # eB2B (Decision 2 = A). nsv / by_chain / by_channel stay all-channel.
+        fx_mt = fx[fx["_Chan"] == "MT"]
+        _nonmt = fx[fx["_Chan"].isin(["EB2B", "SIS"])]
+        _acct = _nonmt.groupby(["_Chain", "_Chan"])["_NSV"].sum()
+        _mt_chains = set(fx_mt["_Chain"])
         mser = fx.groupby("_M")["_NSV"].sum()
         _months_present = [m for m in _ORDER if m in set(fx["_M"])]
         # Canonical "Mon-YY" labels (e.g. "Apr-26") matching MONTHS/offtake format so
@@ -6471,7 +6479,18 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
             "months_canon": _months_canon,
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
             "monthly_canon": [r2(float(mser.get(m, 0.0))) for m in _months_present],
-            "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone"),
+            "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone", fx=fx_mt),
+            "by_zone_basis": ("MT channel only (B1/CB-01, MT Leadership decision 2026-10-01): "
+                              "eB2B and SIS are reported under their own channel in by_channel, "
+                              "never inside a zone. sum(by_zone) = by_channel MT."),
+            "non_mt_by_zone": [
+                {"name": z, **{c: r2(float(v)) for c, v in g.groupby("_Chan")["_NSV"].sum().items()}}
+                for z, g in _nonmt.groupby("_Zone") if z],
+            # accounts billed only outside MT; reported under that channel, never as MT accounts
+            "non_mt_accounts": [
+                {"name": c, "channel": ch, "nsv": r2(float(v))}
+                for (c, ch), v in _acct.sort_values(ascending=False).items()
+                if c and c not in _mt_chains],
             "by_channel": _aggx("_Chan"), "by_brand": _aggx("_Brand"),
             "unit": "INR Lakh",
             "note": (f"EXACT {_tag} primary actuals from the FULL (uncapped) article-wise "

@@ -140,7 +140,7 @@ Primary NSV · Primary Qty · **Secondary Offtake NSV (same month)** ·
 7. **List: new articles (first offtake) where primary allowed only one month prior**
    (filter `New Article Flag` ≠ blank)
 8. **Final reconciliation separates valid allocation vs exception/unallocated**
-   (`QC Mapping Coverage %` + `QC Blocked Coverage %` = 100%)
+   (`QC Allocated Coverage %` + `QC Blocked Coverage %` = 100%)
 
 Measures: `DAX/09_ArticleAllocation_Eligibility.dax`. Eligibility runs against
 `Fact Offtake Sales` (present); article primary needs `Fact Primary Article`
@@ -218,7 +218,7 @@ Grain: Month × Distributor × Brand (add Chain as an optional drill row).
 | Allocated Primary NSV | `QC Allocated Primary Total` |
 | Blocked Primary NSV | `QC Blocked Primary Total` |
 | Variance | `QC Reconciliation Variance` *(must = 0)* |
-| Coverage % | `QC Mapping Coverage %` |
+| Coverage % | `QC Allocated Coverage %` |
 | Blocked % | `QC Blocked Coverage %` |
 | Blocked Article Count | `QC Blocked Article Count` |
 
