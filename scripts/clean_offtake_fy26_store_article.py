@@ -162,6 +162,7 @@ def build(src_dirs, article_master, qc):
     # one set of attributes per store: most frequent zone, state, city; the full (not truncated) name
     for col in ("Zone", "State", "City"):
         a[col] = a["sid"].map(a.dropna(subset=[col]).groupby("sid")[col].agg(mode_prefer))
+    a["Zone"] = [vc.apply_zone_rules(s, c, z) for s, c, z in zip(a["State"], a["City"], a["Zone"])]      # owner's zone rules
     names = a.dropna(subset=["Site Name"]).groupby("sid")["Site Name"].agg(lambda s: list(s.value_counts().index))
 
     def full_name(lst):

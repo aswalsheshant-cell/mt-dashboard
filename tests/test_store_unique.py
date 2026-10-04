@@ -54,6 +54,20 @@ def test_state_and_zone_follow_the_offtake_data():
     g = o.groupby("sid").agg(State=("State", mode), Zone=("Zone", mode))
     g["State"] = g["State"].map(lambda x: vc.std_state(x)[0])
     g = g[g["State"].notna() & (g["State"] != "Pan India") & g.index.isin(m.index)]
+    g["Zone"] = [vc.apply_zone_rules(st, c, z) for st, c, z in zip(g["State"], o.groupby("sid")["City"].agg(mode).reindex(g.index), g["Zone"])]      # the owner's zone rules sit on top of the offtake zone
     assert len(g) > 5000
     bad = g[(g["State"] != m.loc[g.index, "State"]) | (g["Zone"] != m.loc[g.index, "Zone"])]
     assert len(bad) / len(g) < 0.02, bad.head(10).index.tolist()           # only stores whose Aug rows disagree with their own earlier months can differ
+
+
+def test_zone_rules_from_the_owner():
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import visit_cities as vc
+    assert vc.apply_zone_rules("Andhra Pradesh", "Guntur", "South-1") == "South-2" and vc.apply_zone_rules("Odisha", "Cuttack", "North") == "East"
+    assert vc.apply_zone_rules("Rajasthan", "Jaipur", "Central") == "North" and vc.apply_zone_rules("Chhattisgarh", "Raipur", "West") == "Central"
+    assert [vc.apply_zone_rules("Maharashtra", c, "West") for c in ("Nagpur", "Pune", "Wakad", "Mumbai", "Nashik")] == ["Central", "Central", "Central", "West", "West"]
+    m = pd.read_csv(MASTERS / "Store_City_Master.csv", dtype=str)
+    z = m.groupby("State")["Zone"].nunique()
+    assert list(z[z > 1].index) == ["Maharashtra"]                                      # the only divided state
+    assert set(m.loc[m.State == "Chhattisgarh", "Zone"]) == {"Central"} and set(m.loc[m.State == "Andhra Pradesh", "Zone"]) == {"South-2"}

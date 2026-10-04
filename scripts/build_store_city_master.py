@@ -97,6 +97,7 @@ def states_from_offtake(df, stores):
                 continue
         df.at[i, "State"] = None if grp else std
         df.at[i, "State Note"] = "state and zone from the store list (no offtake store in this city)"
+    df["Zone"] = [vc.apply_zone_rules(s, c, z) for s, c, z in zip(df["State"], df["City Final"], df["Zone"])]      # owner's zone rules
     return df
 
 
@@ -147,7 +148,7 @@ def qc(out):
     add("ERROR", "same city spelt with different capitals", [v for v in low if len(v) > 1])
     # warnings: things to confirm, not build failures
     sz = out.dropna(subset=["State", "Zone"]).groupby("State")["Zone"].agg(lambda s: sorted(set(s)))
-    add("WARN", "state carried in more than one zone (confirm the zone for these)", [f"{k}: {', '.join(v)}" for k, v in sz.items() if len(v) > 1])
+    add("WARN", "state carried in more than one zone (Maharashtra is divided on purpose: Vidarbha and Pune Central, the rest West)", [f"{k}: {', '.join(v)}" for k, v in sz.items() if len(v) > 1 and k != "Maharashtra"])
     dn = out[out["Store Name"].notna()]
     dd = dn[dn.duplicated(["Chain Name", "Store Name", "City Final"], keep=False) & dn["City Final"].notna()]
     add("ERROR", "same chain + store name + city on more than one row (one store must be one row)", dd["Store Key"])

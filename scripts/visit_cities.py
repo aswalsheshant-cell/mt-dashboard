@@ -145,6 +145,23 @@ def classify(city):
     return None, ("Not considered" if isinstance(city, str) and city else "City not available"), None
 
 
+# Zone rules from the owner (2026-10-04): one zone per state, except Maharashtra, which is divided.
+STATE_ZONE = {"Andhra Pradesh": "South-2", "Odisha": "East", "Rajasthan": "North", "Chhattisgarh": "Central"}
+CENTRAL_MAHARASHTRA = {"nagpur", "amravati", "akola", "wardha", "chandrapur", "yavatmal", "gondia", "bhandara", "buldhana", "washim", "gadchiroli", "achalpur", "wani", "hinganghat",
+                       "khamgaon", "ballarpur", "warora", "umred", "nagpu", "pune", "pcmc", "pimpri chinchwad", "pimpri-chinchwad", "pimpri", "chinchwad",
+                       "dapodi", "kondhwa", "wakad", "jagtap chowk", "salunkhe vihar", "sinhagud", "kumar pacific"}      # Vidarbha, and Pune city with its localities (spellings as in the files)
+
+
+def apply_zone_rules(state, city, zone):
+    """The zone after the owner's rules: Andhra Pradesh South-2, Odisha East, Rajasthan North, Chhattisgarh Central; Maharashtra is Central for Vidarbha and Pune, West elsewhere."""
+    if state in STATE_ZONE:
+        return STATE_ZONE[state]
+    if state == "Maharashtra":
+        c = str(city or "").lower().strip()
+        return "Central" if c in CENTRAL_MAHARASHTRA or any(c.startswith(k + " ") for k in CENTRAL_MAHARASHTRA) else "West"
+    return zone
+
+
 def norm_zone(z):
     z = clean(z)
     return ZONE_FIX.get(z.upper().replace(" ", "-"), z.title()) if z else None
