@@ -541,3 +541,7 @@ On resume: the SessionStart hook prints repo state, resources, asset presence
 and this file's next task. Verify restricted inputs are present before any
 incentive work — never reconstruct them from memory.
 
+
+## Repo clean-up 2026-10-04
+Removed 14 superseded draft decks from the repo root (about 18 MB): the May26 leadership deck, `MT_Jul26_Honasa_Final` and `Finalv13` to `Finalv19`, `Updated_v18`, `Honasa_Enriched`, `MT_July26_offtake_analysis_V22`, `MT_Jul26_CommandCenter` and `MT_Jul26_Enriched_Command_Centre`.
+Kept the latest of each family (`Finalv20`, `offtake_analysis_V23`, `July_MT_Command_Centre_REWORKED`) and the one-pager files used by `generate_ppt.yml`. The old files stay in Git history (restore with `git checkout <commit> -- <file>`). Note: GitHub's repo size does not shrink until history is rewritten, which needs explicit approval.
