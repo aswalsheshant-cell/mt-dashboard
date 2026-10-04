@@ -1,0 +1,51 @@
+# Agent decision policy -- what an agent may decide alone, and what needs a human.
+# Read by scripts/agent_governance.py. Change a rule here (with a reason in review),
+# never inside the agent.
+#
+# STATUS: baseline built from docs/AI_ORCHESTRATOR_GOVERNANCE.md and the
+# fmcg-decision-leader skill. Not yet reconciled to the LinkedIn posts on agent
+# governance (they could not be opened from the cloud session).
+
+version: 1
+
+# Fail closed: an action_class not listed below needs a human.
+default_level: HUMAN_APPROVAL
+
+# Flip to true only after a human confirms GitHub branch protection on main
+# (see docs/MAIN_BRANCH_PROTECTION_AUDIT.md). Until then merge_pr is BLOCKED.
+main_branch_protection_confirmed: false
+
+labels: [GO, GO WITH CONDITIONS, HOLD, ESCALATE, REJECT]
+labels_needing_evidence: [GO, GO WITH CONDITIONS, REJECT]
+
+# AUTO            agent may act; no log needed
+# AUTO_LOG        agent may act; a decision record with evidence is mandatory
+# HUMAN_APPROVAL  agent may only propose; a named approver must be on the record
+# FORBIDDEN       never, even with approval from the agent's side
+action_classes:
+  read_only:                 {level: AUTO}
+  draft_text:                {level: AUTO}
+  run_validation:            {level: AUTO_LOG}
+  branch_commit:             {level: AUTO_LOG}
+  draft_pr:                  {level: AUTO_LOG}
+  merge_pr:                  {level: HUMAN_APPROVAL, blocked_until: main_branch_protection_confirmed}
+  modify_baseline:           {level: HUMAN_APPROVAL}
+  modify_financial_block:    {level: HUMAN_APPROVAL}
+  modify_master_data:        {level: HUMAN_APPROVAL}
+  change_incentive_rule:     {level: HUMAN_APPROVAL}
+  publish_external:          {level: HUMAN_APPROVAL}
+  override_failed_control:   {level: FORBIDDEN}
+  create_release_or_tag:     {level: FORBIDDEN}
+
+# Any path touched that matches one of these forces HUMAN_APPROVAL,
+# whatever the action_class says.
+protected_paths:
+  - config/baselines.json
+  - dashboard/data.js
+  - PowerBI/SeedData/**
+  - UniverseMT.csv
+  - Store_SO_Mapping.csv
+  - "**/data_master.json"
+  - config/agent_decision_policy.yml
+
+required_fields: [id, ts, actor, action_class, label, rule, owner, validation_check]

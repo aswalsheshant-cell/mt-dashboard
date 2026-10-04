@@ -119,3 +119,34 @@ has zero GitHub-enforced protection (`docs/MAIN_BRANCH_PROTECTION_AUDIT.md`,
 authority until that gap is closed; the other three roles (read-only or
 draft-output-only) are unaffected by this blocker and could proceed to
 implementation design independent of it.
+
+---
+
+## Decision governance layer (added 2026-10-04)
+
+**Status: baseline. Not yet reconciled to the LinkedIn agent-governance posts** (the
+posts could not be opened from the cloud session; paste their text to reconcile).
+
+The four roles above say *who* may do what. This layer makes the rules *enforced
+outside the agent*, so an agent cannot decide its own permissions.
+
+| Piece | File | What it does |
+|---|---|---|
+| Policy | `config/agent_decision_policy.yml` | Action classes → AUTO / AUTO_LOG / HUMAN_APPROVAL / FORBIDDEN; protected paths; `main_branch_protection_confirmed` flag |
+| Evaluator | `scripts/agent_governance.py evaluate` | Returns ALLOWED / NEEDS_APPROVAL / BLOCKED with reasons. Unknown action = needs a human |
+| Decision log | `governance/decision_log.jsonl` | Hash-chained, append-only. `record()` refuses anything not ALLOWED |
+| Check | `scripts/agent_governance.py check` | Fails if a record is edited, deleted, or breaks the policy |
+| Tests | `tests/test_agent_governance.py` | 14 tests |
+
+Every record uses the five labels from `fmcg-decision-leader` (GO / GO WITH CONDITIONS /
+HOLD / ESCALATE / REJECT) plus: actor, action_class, evidence, rule, owner,
+validation_check, and approver where a human is required.
+
+**Hard stops in the policy:** merge is BLOCKED until a human confirms branch protection
+on `main`; releases/tags and overriding a failed control are FORBIDDEN; touching
+`config/baselines.json`, `dashboard/data.js`, seed/master data or the policy file itself
+always needs a named approver.
+
+**Not done yet:** the check is not wired into CI (needs a workflow change with pinned
+SHAs per CLAUDE.md) and nothing forces an agent to call `record()` — that needs a hook
+or the agent's own instructions to be updated once the policy is agreed.
