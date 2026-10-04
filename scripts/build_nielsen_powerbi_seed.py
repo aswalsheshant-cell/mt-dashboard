@@ -68,6 +68,24 @@ def monthly_rows(snap, kind, months):
                    "" if vol is None else round(vol, 3), "" if ppml is None else round(ppml, 4)]
 
 
+def brand_cut_rows(snap, kind, months):
+    """Brand x month: share, price, distribution and productivity (the Nielsen Cuts tab), plus one '(Category)' row per month for the category price."""
+    cat = CATEGORY[kind]
+    brands = sorted({p for (f, p) in snap["data"] if f == FACTS["value"] and p != cat and p.strip().upper() != "BRAND"})
+    r = lambda v, d: "" if v is None else round(v, d)   # noqa: E731
+    for m in months:
+        for p in [cat] + brands:
+            value = get(snap, "value", p, m)
+            if value is None:
+                continue
+            is_cat = p == cat
+            name = "(Category)" if is_cat else brand_label(p)
+            yield [pbi_month(m), fy_label(m), CAT_NAME[kind], BRAND_FIX.get(name, name), "Yes" if is_cat else "No", "IN URB MT", r(value, 4),
+                   "" if is_cat else frac(get(snap, "ms", p, m)), "" if is_cat else frac(get(snap, "ms_vol", p, m)), r(get(snap, "ppml", p, m), 4),
+                   r(get(snap, "wd", p, m), 3), r(get(snap, "nd", p, m), 3), r(get(snap, "stores", p, m), 0), r(get(snap, "pdo", p, m), 0),
+                   r(get(snap, "sah", p, m), 3), SOURCE]
+
+
 def pack_rows(folder: Path, label: str, kind: str, months):
     name = {"facewash": "FW", "shampoo": "Shampoo"}[kind]
     for m in months:
@@ -128,6 +146,10 @@ def main() -> int:
               "Value Market Share %", "Volume Market Share %", "Data Source Name", "Volume 000 L", "Price Per Ml"]
     rows = list(monthly_rows(fw, "facewash", fw["months"])) + list(monthly_rows(sh, "shampoo", sh["months"]))
     write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Monthly" / f"nielsen_urban_mt_{slug}.csv", header, rows)
+    bc_header = ["Month", "FY Year", "Nielsen Category", "Brand", "Is Category Row", "Zone", "Value Cr", "Value Share %", "Volume Share %", "Price Per Ml",
+                 "WD %", "ND %", "Stores", "Sales Per Store Rs", "SAH %", "Data Source Name"]
+    bcr = list(brand_cut_rows(fw, "facewash", fw["months"])) + list(brand_cut_rows(sh, "shampoo", sh["months"]))
+    write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Brand_Cut_Monthly" / f"nielsen_brand_cut_urban_mt_{slug}.csv", bc_header, bcr)
     months = [a.month, shift(a.month, -12)]
     prow = list(pack_rows(folder, a.label, "facewash", months)) + list(pack_rows(folder, a.label, "shampoo", months))
     write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Pack_Monthly" / f"nielsen_pack_urban_mt_{slug}.csv",

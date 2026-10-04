@@ -89,6 +89,17 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
     if (shotDir) await page.screenshot({ path: path.join(shotDir, 'nielsen-cuts.png'), fullPage: true });
   }
 
+  // ---- CSV download of the open tab's tables
+  if (mode === 'aug') {
+    await page.click('.tab-btn:nth-child(1)');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('button[onclick="downloadTables()"]')]);
+    const csvPath = await dl.path();
+    const csv = fs.readFileSync(csvPath, 'utf8');
+    check(/Nielsen_Nielsen_Cuts_Aug26\.csv$/.test(dl.suggestedFilename()), 'csv: file name ' + dl.suggestedFilename());
+    check(csv.includes('Brand') && csv.includes('Mamaearth') && csv.split('\n').length > 60, 'csv: tables missing');
+    for (const bad of ['NaN', 'undefined', '[object Object]']) check(!csv.includes(bad), 'csv: ' + bad);
+  }
+
   // ---- Opportunity
   await page.click('.tab-btn:nth-child(2)');
   await page.waitForSelector('#opp-grid .opp');

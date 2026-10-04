@@ -30,6 +30,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact Account Category` | Month × Chain × Category (retailer-side sales vs Honasa) | `Date Table[MonthStart]` → `[MonthStart]`; `Chain Master[Chain]` → `[Chain]` |
 | `Fact Account Category Geo` | Month × Chain × Zone × State × City × Category | `Date Table[MonthStart]` → `[MonthStart]`; `Chain Master[Chain]` → `[Chain]` |
 | `Fact Account Assortment` | Month × Chain × Category (distinct Honasa articles) | `Date Table[MonthStart]` → `[MonthStart]`; `Chain Master[Chain]` → `[Chain]` |
+| `Fact Nielsen Brand Cut` | Month × Nielsen Cat × Brand (+ a "(Category)" row): share, price per ml, WD, ND, stores, sales per store, SAH | `Date Table[MonthStart]` → `[MonthStart]`; `Nielsen Competitor Master[Brand]` → `[Brand]` (brand rows) |
 | `Nielsen Deck State Exposure` | State (typed from the review deck) | none (stand-alone seed table) |
 | `Store City Master` | Store Key (standard chain \| site code), one row per store, with City Final, Visit City, Visit Status, Nearest Listed City | `Fact Offtake Sales[Match Key]` → `[Match Key]` (add Match Key as a calculated column on the fact; formula in query 49) |
 | `Store Key Alias` | Alias Match Key -> Store Match Key (stores listed under more than one code) | none; the fact's Match Key is built through it with LOOKUPVALUE (formula in query 56) |

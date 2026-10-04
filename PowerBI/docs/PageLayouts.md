@@ -397,6 +397,11 @@ to `IN URB MT`. Facewash and Shampoo are both Aug 26, so Month selects the same 
   `Pack Our Contribution %`. KPI cards: `Packs Not Present`, `Pack Gap Amount`.
 - **State x chain exposure** (table): `Nielsen Deck State Exposure` (typed from the review deck, Jun'26, not a workbook cut).
 
+**Nielsen brand cuts (Nielsen Cuts tab of the report; `DAX/18_Nielsen_Brand_Cut_Measures.dax`, table `Fact Nielsen Brand Cut`):** slicers Nielsen Category, Month; filter `Is Category Row` = No on brand visuals.
+- **Brand cut table:** `Brand` x `Cut Value Share %`, `Cut Value Less Volume Share pp`, `Cut Brand Price Per Ml`, `Cut Price Index`, `Cut Price Per Ml YoY %`, `Cut WD %`, `Cut WD Change pp`, `Cut ND %`, `Cut Stores`, `Cut Sales Per Store Rs`, `Cut Share Per WD Point`, `Cut SAH %`; Top N 10 on `Cut Value Share %`.
+- **Scatter:** x `Cut WD %`, y `Cut Value Share %`, bubble `Cut Brand Value Cr` (who earns more share per distribution point).
+- **KPI cards (Mamaearth):** `Cut Price Index`, `Cut WD Less ND pp`, `Cut Share At 95 WD %`, `Cut Share Headroom pp`, `Cut Value Of One Share Point Cr`.
+
 **Account share block (Aug-26 update; Lulu, More Retail, Wellness Forever, Reliance Retail, Reliance Brand Counter):** measures in `DAX/17_Account_Share_Measures.dax`, tables `Fact Account Category`, `Fact Account Category Geo`, `Fact Account Assortment`.
 - **Chain share MoM** (line): `Date Table[MonthStart]` x `Account Share %` per `Chain`; More Retail only from Jun 26 (see `Account Scope Note`).
 - **Account vs our sales** (clustered column): `Account Sales Lakh` and `Our Account Sales Lakh` by month, with `Account MoM %`.

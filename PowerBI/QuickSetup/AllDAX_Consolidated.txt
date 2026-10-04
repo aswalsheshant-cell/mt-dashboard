@@ -6,7 +6,7 @@ This file is a READ-ALONG REFERENCE, not something to paste as a whole.
 Power BI's New Measure formula bar holds exactly ONE measure at a time.
 For each measure below: select the _Measures table > New Measure > paste
 ONE 'Name = Expression' block (including any VAR/RETURN lines that belong
-to it) > Enter. Having ONE file open (this one) instead of 17 separate
+to it) > Enter. Having ONE file open (this one) instead of 18 separate
 files, with the calculated-column exceptions called out up front, is the
 time-saving here.
 
@@ -27,7 +27,7 @@ time-saving here.
 
 
 ##############################################################################
-# STEP 01/17  --  SOURCE FILE: 00_DateTable.dax
+# STEP 01/18  --  SOURCE FILE: 00_DateTable.dax
 # TARGET: Date Table (calculated TABLE, not a measure)
 # NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below.
 ##############################################################################
@@ -80,7 +80,7 @@ ADDCOLUMNS(
 
 
 ##############################################################################
-# STEP 02/17  --  SOURCE FILE: 01_CoreMeasures.dax
+# STEP 02/18  --  SOURCE FILE: 01_CoreMeasures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -379,7 +379,7 @@ YoY % (Like-for-Like) =
 
 
 ##############################################################################
-# STEP 03/17  --  SOURCE FILE: 02_PnL_Measures.dax
+# STEP 03/18  --  SOURCE FILE: 02_PnL_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -511,7 +511,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 04/17  --  SOURCE FILE: 03_Forecast_Measures.dax
+# STEP 04/18  --  SOURCE FILE: 03_Forecast_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -611,7 +611,7 @@ Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
 
 
 ##############################################################################
-# STEP 05/17  --  SOURCE FILE: 04_Nielsen_Measures.dax
+# STEP 05/18  --  SOURCE FILE: 04_Nielsen_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -766,7 +766,7 @@ COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Pack Size ml] ), [Brand 
 
 
 ##############################################################################
-# STEP 06/17  --  SOURCE FILE: 05_TDP_Measures.dax
+# STEP 06/18  --  SOURCE FILE: 05_TDP_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -841,7 +841,7 @@ MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )
 
 
 ##############################################################################
-# STEP 07/17  --  SOURCE FILE: 06_DataQuality_Measures.dax
+# STEP 07/18  --  SOURCE FILE: 06_DataQuality_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1078,7 +1078,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 08/17  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
+# STEP 08/18  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1311,7 +1311,7 @@ CALCULATE (
 
 
 ##############################################################################
-# STEP 09/17  --  SOURCE FILE: 08_ForecastQC_Measures.dax
+# STEP 09/18  --  SOURCE FILE: 08_ForecastQC_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1384,7 +1384,7 @@ CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
 
 
 ##############################################################################
-# STEP 10/17  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
+# STEP 10/18  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1552,7 +1552,7 @@ CALCULATE ( [Chain Allocated Primary NSV],
 
 
 ##############################################################################
-# STEP 11/17  --  SOURCE FILE: 10_SIS_Reconciliation.dax
+# STEP 11/18  --  SOURCE FILE: 10_SIS_Reconciliation.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1631,7 +1631,7 @@ Offtake Channel Coverage % =
 
 
 ##############################################################################
-# STEP 12/17  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
+# STEP 12/18  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1737,7 +1737,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 13/17  --  SOURCE FILE: 12_TOT_Measures.dax
+# STEP 13/18  --  SOURCE FILE: 12_TOT_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -1933,7 +1933,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 14/17  --  SOURCE FILE: 13_CM2_Measures.dax
+# STEP 14/18  --  SOURCE FILE: 13_CM2_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -2143,7 +2143,7 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 
 
 ##############################################################################
-# STEP 15/17  --  SOURCE FILE: 14_SecondarySales_Measures.dax
+# STEP 15/18  --  SOURCE FILE: 14_SecondarySales_Measures.dax
 # TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)
 # NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar.
 ##############################################################################
@@ -2296,7 +2296,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 16/17  --  SOURCE FILE: 16_PriceVolume_Measures.dax
+# STEP 16/18  --  SOURCE FILE: 16_PriceVolume_Measures.dax
 # TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2436,7 +2436,7 @@ Universe Availability % = DIVIDE ( [Universe Stores], [Universe Master Stores] )
 
 
 ##############################################################################
-# STEP 17/17  --  SOURCE FILE: 17_Account_Share_Measures.dax
+# STEP 17/18  --  SOURCE FILE: 17_Account_Share_Measures.dax
 # TARGET: _Measures table (needs queries 53-55 and Date Table)
 # NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
 ##############################################################################
@@ -2511,3 +2511,48 @@ Account Scope Note = SELECTEDVALUE ( 'Fact Account Category'[Scope], "More than 
 Account Geo Sales Lakh = SUM ( 'Fact Account Category Geo'[Account Sales Rs L] )
 Our Geo Sales Lakh = SUM ( 'Fact Account Category Geo'[Honasa Sales Rs L] )
 Account Geo Share % = DIVIDE ( [Our Geo Sales Lakh], [Account Geo Sales Lakh] )
+
+
+
+##############################################################################
+# STEP 18/18  --  SOURCE FILE: 18_Nielsen_Brand_Cut_Measures.dax
+# TARGET: _Measures table (needs query 57 and Date Table)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// NIELSEN BRAND CUTS  (table: 'Fact Nielsen Brand Cut'; the Nielsen Cuts tab of the market-share report)
+// Use with Nielsen Category and Brand slicers and one month. WD, ND and SAH are percentage points; shares are decimals.
+// The "(Category)" row (Is Category Row = "Yes") holds the category value and price per ml; brand visuals should filter it out.
+// =====================================================================
+Cut Brand Value Cr = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Category Value Cr = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "Yes", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )
+Cut Value Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Value Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Volume Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Volume Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+// value share above volume share = the brand sells at a price above the category average
+Cut Value Less Volume Share pp = ( [Cut Value Share %] - [Cut Volume Share %] ) * 100
+
+Cut Brand Price Per Ml = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Price Per Ml] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Category Price Per Ml =
+CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Price Per Ml] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "Yes", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )
+// 100 = the category price per ml
+Cut Price Index = DIVIDE ( [Cut Brand Price Per Ml], [Cut Category Price Per Ml] ) * 100
+Cut Price Per Ml YoY % =
+VAR _ly = CALCULATE ( [Cut Brand Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN DIVIDE ( [Cut Brand Price Per Ml] - _ly, _ly )
+
+Cut WD % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[WD %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut ND % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[ND %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut WD Change pp = [Cut WD %] - CALCULATE ( [Cut WD %], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+// weighted above numeric distribution = in the larger stores first; the gap is the smaller stores still open
+Cut WD Less ND pp = [Cut WD %] - [Cut ND %]
+Cut Stores = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Stores] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Sales Per Store Rs = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Sales Per Store Rs] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut SAH % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[SAH %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+
+// share earned per point of weighted distribution (percentage points of share per WD point)
+Cut Share Per WD Point = DIVIDE ( [Cut Value Share %] * 100, [Cut WD %] )
+// ceiling for the distribution lever: where we are listed we hold SAH; at 95% WD the share would be about SAH x 0.95 (only when WD is below 95)
+Cut Share At 95 WD % = IF ( [Cut WD %] < 95, [Cut SAH %] / 100 * 0.95 )
+Cut Share Headroom pp = IF ( ISBLANK ( [Cut Share At 95 WD %] ), BLANK (), ( [Cut Share At 95 WD %] - [Cut Value Share %] ) * 100 )
+// rupee value of one share point in this category, Rs Cr a month
+Cut Value Of One Share Point Cr = DIVIDE ( [Cut Category Value Cr], 100 )

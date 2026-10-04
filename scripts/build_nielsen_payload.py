@@ -125,7 +125,7 @@ def premium_share(path: Path, kind: str, month: str, min_size: float) -> float |
 def brand_rows(snap, category, month, months, *, top=None):
     ya, pm = shift(month, -12), shift(month, -1)
     brands = sorted({p for (f, p) in snap["data"] if f == FACTS["value"] and p != category},
-                    key=lambda p: -(get(snap, "value", p, month) or 0))
+                    key=lambda p: (-(get(snap, "value", p, month) or 0), p))     # ties by name: the same payload every run
     rows = []
     for p in brands[:top] if top else brands:
         ms, ms_py, ms_pm = get(snap, "ms", p, month), get(snap, "ms", p, ya), get(snap, "ms", p, pm)

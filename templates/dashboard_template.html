@@ -170,6 +170,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
   <div class="hdr-r">
     <span class="chip" id="gov-chip"></span>
     <button class="theme-btn" onclick="toggleTheme()">&#9681; Theme</button>
+    <button class="theme-btn" onclick="downloadTables()" title="Every table on the open tab, as one CSV for Excel">&#8681; Tables (CSV)</button>
   </div>
 </div>
 
@@ -451,6 +452,23 @@ const el=id=>document.getElementById(id);
 function kpi(l,v,c,cc){return `<div class="kpi"><div class="kpi-l">${esc(l)}</div><div class="kpi-v">${v}</div><div class="kpi-c ${cc||'mut'}">${c||'&nbsp;'}</div></div>`;}
 
 /* ── theme + tabs + view switch ── */
+/* every table on the open tab as one CSV (title row, header, rows): opens in Excel */
+function downloadTables(){
+  const panel=document.querySelector('.panel.active');if(!panel)return;
+  const q=v=>'"'+String(v).replace(/\s+/g,' ').trim().replace(/"/g,'""')+'"';
+  const lines=[];
+  panel.querySelectorAll('table').forEach(t=>{
+    if(!t.offsetParent)return;                                   // hidden by the Facewash / Shampoo view
+    let title='';for(let n=t.closest('.tbl-wrap')||t;n&&!title;n=n.previousElementSibling){if(n.matches&&n.matches('.sub,h3,.blk-t,.blk-h'))title=n.textContent;}
+    lines.push(q(title||'Table'));
+    t.querySelectorAll('tr').forEach(r=>lines.push([...r.children].map(c=>q(c.innerText)).join(',')));
+    lines.push('');
+  });
+  const tab=(document.querySelector('.tab-btn.active')||{}).textContent||'tab';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='Nielsen_'+tab.replace(/[^A-Za-z0-9]+/g,'_')+'_'+(MONTHS[MONTHS.length-1]||'').replace(' ','')+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+}
 function toggleTheme(){const r=document.documentElement;r.setAttribute('data-theme',r.getAttribute('data-theme')==='dark'?'light':'dark');}
 const panels=[...document.querySelectorAll('.panel')],tabBtns=[...document.querySelectorAll('.tab-btn')],inited={};
 function showTab(i){

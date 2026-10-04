@@ -277,6 +277,11 @@ def facewash_plan(view):
 
 
 def main():
+    import argparse
+    global NIELSEN
+    ap = argparse.ArgumentParser(description="Build data/account_share/Account_View.json")
+    ap.add_argument("--payload", type=Path, default=NIELSEN, help="Nielsen payload used for the Facewash plan (default: the Aug-26 payload)")
+    NIELSEN = ap.parse_args().payload
     view = build()
     path = AS / "Account_View.json"
     path.write_text(json.dumps(view, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
