@@ -48,4 +48,25 @@ protected_paths:
   - "**/data_master.json"
   - config/agent_decision_policy.yml
 
+# Identity + least privilege: an actor not listed here is BLOCKED, and a listed
+# actor may only use the action classes written next to its name.
+agents:
+  business-logic-agent:   {allowed: [read_only, draft_text]}
+  insight-agent:          {allowed: [read_only, draft_text]}
+  qc-agent:               {allowed: [read_only, draft_text, run_validation, branch_commit]}
+  release-manager-agent:  {allowed: [read_only, run_validation, draft_pr, merge_pr]}
+  claude-code:            {allowed: [read_only, draft_text, run_validation, branch_commit, draft_pr]}
+
+# Humans who may approve a HUMAN_APPROVAL action. An agent can never approve its own
+# action. EMPTY ON PURPOSE: INTERNAL_BUSINESS_CONFIRMATION_REQUIRED -- the MT
+# Leadership / Finance owner must supply the names. While empty, no approval can be
+# satisfied, so every HUMAN_APPROVAL action stays NEEDS_APPROVAL (fails closed).
+approvers: []
+
+# Evidence must be checkable by the governance layer, not just typed by the agent:
+#   {"type": "file",   "path": "<repo path>", "sha256": "<hash of that file>"}
+#   {"type": "commit", "sha": "<git commit sha>"}
+# A plain-text sentence is not evidence.
+evidence_types: [file, commit]
+
 required_fields: [id, ts, actor, action_class, label, rule, owner, validation_check]

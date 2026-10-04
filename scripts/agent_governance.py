@@ -16,6 +16,7 @@ import argparse
 import fnmatch
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -61,7 +62,18 @@ def evaluate(decision, policy=None):
     elif label in policy["labels_needing_evidence"] and not decision.get("evidence"):
         problems.append(f"label {label} needs at least one evidence reference")
 
-    cls = decision.get("action_class")
+    actor, cls = decision.get("actor"), decision.get("action_class")
+    agent = policy.get("agents", {}).get(actor)
+    if actor and not agent:
+        problems.append(f"actor {actor!r} is not a registered agent")
+    elif agent and cls not in agent["allowed"]:
+        problems.append(f"{actor} is not allowed to use {cls}")
+
+    for item in decision.get("evidence") or []:
+        if not (isinstance(item, dict) and item.get("type") in policy["evidence_types"]):
+            problems.append("evidence must be a verifiable {type: file|commit} entry, not free text")
+            break
+
     spec = policy["action_classes"].get(cls)
     level = spec["level"] if spec else policy["default_level"]
     if not spec:
@@ -86,9 +98,35 @@ def evaluate(decision, policy=None):
 
     if problems:
         return {"verdict": BLOCKED, "level": level, "reasons": problems + notes}
-    if level == "HUMAN_APPROVAL" and not decision.get("approver"):
-        return {"verdict": NEEDS_APPROVAL, "level": level, "reasons": notes + ["named approver required"]}
+    appr = decision.get("approver")
+    if level == "HUMAN_APPROVAL":
+        if appr and appr == actor:
+            return {"verdict": BLOCKED, "level": level, "reasons": ["an agent cannot approve its own action"]}
+        if not appr or appr not in (policy.get("approvers") or []):
+            why = "approver is not on the approved list" if appr else "named approver required"
+            return {"verdict": NEEDS_APPROVAL, "level": level, "reasons": notes + [why]}
     return {"verdict": ALLOWED, "level": level, "reasons": notes}
+
+
+def verify_evidence(decision, repo=None):
+    """Check evidence against the repo itself (I/O). Returns a list of problems."""
+    repo = Path(repo or REPO)
+    out = []
+    for item in decision.get("evidence") or []:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") == "file":
+            f = repo / item.get("path", "")
+            if not f.is_file():
+                out.append(f"evidence file not found: {item.get('path')}")
+            elif hashlib.sha256(f.read_bytes()).hexdigest() != item.get("sha256"):
+                out.append(f"evidence file changed since it was recorded: {item.get('path')}")
+        elif item.get("type") == "commit":
+            ok = subprocess.run(["git", "-C", str(repo), "cat-file", "-e", f"{item.get('sha')}^{{commit}}"],
+                                capture_output=True).returncode == 0
+            if not ok:
+                out.append(f"evidence commit not found: {item.get('sha')}")
+    return out
 
 
 def _hash(record):
@@ -96,11 +134,14 @@ def _hash(record):
     return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
 
 
-def record(decision, log_path=None, policy=None):
+def record(decision, log_path=None, policy=None, repo=None):
     """Append a decision to the log. Refuses anything not ALLOWED."""
     result = evaluate(decision, policy)
     if result["verdict"] != ALLOWED:
         raise PermissionError(f"{result['verdict']}: " + "; ".join(result["reasons"]))
+    bad = verify_evidence(decision, repo)
+    if bad:
+        raise PermissionError("BLOCKED: " + "; ".join(bad))
     path = Path(log_path or LOG_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
     prev = "GENESIS"
@@ -115,7 +156,7 @@ def record(decision, log_path=None, policy=None):
     return rec
 
 
-def check_log(log_path=None, policy=None):
+def check_log(log_path=None, policy=None, repo=None):
     """Return a list of problems. Empty list = log is clean (or not started yet)."""
     path = Path(log_path or LOG_PATH)
     if not path.exists():
@@ -136,6 +177,8 @@ def check_log(log_path=None, policy=None):
         res = evaluate(rec, policy)
         if res["verdict"] != ALLOWED:
             problems.append(f"line {n} ({rec.get('id')}): {res['verdict']} - " + "; ".join(res["reasons"]))
+        for bad in verify_evidence(rec, repo):
+            problems.append(f"line {n} ({rec.get('id')}): {bad}")
         prev = rec.get("hash")
     return problems
 

@@ -124,8 +124,12 @@ implementation design independent of it.
 
 ## Decision governance layer (added 2026-10-04)
 
-**Status: baseline. Not yet reconciled to the LinkedIn agent-governance posts** (the
-posts could not be opened from the cloud session; paste their text to reconcile).
+**Status: baseline v2.** Built around one principle taken from the supplied governance
+papers (read as PDFs; the LinkedIn posts themselves could not be opened): *the agent is
+an untrusted part. Governance sits outside it and must hold even if the agent is wrong.*
+The two other supplied papers (identity-system theory) gave no rule to apply to an MT
+analytics agent, so nothing was built from them. The PDFs are marked proprietary and are
+not copied into this repo.
 
 The four roles above say *who* may do what. This layer makes the rules *enforced
 outside the agent*, so an agent cannot decide its own permissions.
@@ -136,11 +140,18 @@ outside the agent*, so an agent cannot decide its own permissions.
 | Evaluator | `scripts/agent_governance.py evaluate` | Returns ALLOWED / NEEDS_APPROVAL / BLOCKED with reasons. Unknown action = needs a human |
 | Decision log | `governance/decision_log.jsonl` | Hash-chained, append-only. `record()` refuses anything not ALLOWED |
 | Check | `scripts/agent_governance.py check` | Fails if a record is edited, deleted, or breaks the policy |
-| Tests | `tests/test_agent_governance.py` | 14 tests |
+| Tests | `tests/test_agent_governance.py` | 21 tests |
 
 Every record uses the five labels from `fmcg-decision-leader` (GO / GO WITH CONDITIONS /
 HOLD / ESCALATE / REJECT) plus: actor, action_class, evidence, rule, owner,
 validation_check, and approver where a human is required.
+
+**Untrusted-agent controls (v2):** (1) only registered actors, each limited to its own
+action classes; (2) an agent can never approve its own action; (3) approvers must be on
+the `approvers` list, which is **empty until the MT Leadership / Finance owner supplies
+names** (`INTERNAL_BUSINESS_CONFIRMATION_REQUIRED`), so human-approval actions stay
+NEEDS_APPROVAL; (4) evidence must be a checkable `file`+sha256 or `commit` entry, and the
+check re-verifies it against the repo, so a typed sentence or a changed file fails.
 
 **Hard stops in the policy:** merge is BLOCKED until a human confirms branch protection
 on `main`; releases/tags and overriding a failed control are FORBIDDEN; touching
