@@ -49,9 +49,9 @@ def validate_payload(data: dict) -> list[str]:
     if sh:
         me = next((b for b in sh.get("brands", []) if b.get("n") == "Mamaearth"), None)
         sales, cat = sh.get("mamaearth_sales_cr"), sh.get("category_cr")
-        if me and sales and cat and abs(sales / cat * 100 - me.get("ms", 0)) > 0.2:
+        if me and sales and cat and me.get("ms") is not None and abs(sales / cat * 100 - me["ms"]) > 0.2:
             warnings.append(f"Shampoo share {me.get('ms')}% does not match sales/category ({sales / cat * 100:.2f}%)")
-        if sum(b.get("ms", 0) for b in sh.get("brands", [])) > 100:
+        if sum((b.get("ms") or 0) for b in sh.get("brands", [])) > 100:
             warnings.append("Shampoo brand shares sum above 100%")
 
     # Brand market share sum (rough check — should be < 100%)
@@ -199,6 +199,7 @@ def to_js_payload(data: dict, extras: dict | None = None) -> str:
             "budget": a.get("budget", "—"),
             "due":    a.get("due", ""),
             "desc":   a.get("desc", ""),
+            **({"check": a["check"]} if a.get("check") else {}),
         }
 
     def remap_gate(g: dict) -> dict:
@@ -206,6 +207,7 @@ def to_js_payload(data: dict, extras: dict | None = None) -> str:
             "date":   g.get("date", ""),
             "q":      g.get("q", ""),
             "impact": g.get("impact", ""),
+            **({"check": g["check"]} if g.get("check") else {}),
         }
 
     normalized = {
@@ -225,13 +227,21 @@ def to_js_payload(data: dict, extras: dict | None = None) -> str:
             "reporting_period": data.get("reporting_period", ""),
         },
     }
-    if extras is not None:
+    if extras is not None or "fw_all" in data:
+        extras = extras or {}
         months = data["months"]
+        # A payload that carries its own detail (built from a Nielsen workbook) wins over the
+        # older stand-alone files in data/nielsen/, which are only the fallback.
         cat = extras.get("fw_cat_nsv") or {}
-        normalized["FW_ALL"] = extras.get("fw_all", [])
-        normalized["FW_CAT_NSV"] = [cat.get(m) for m in months]
+        normalized["FW_ALL"] = data.get("fw_all") or extras.get("fw_all", [])
+        normalized["FW_CAT_NSV"] = data.get("fw_cat_nsv") or [cat.get(m) for m in months]
         normalized["SHAMPOO"] = data.get("shampoo")
-        normalized["SH_PACK_FILE"] = extras.get("sh_pack_file")
+        normalized["SH_PACK_FILE"] = data.get("sh_pack_file") or extras.get("sh_pack_file")
+        normalized["FW_CAT_INFO"] = data.get("fw_cat")
+        normalized["FW_PACKS_ME"] = data.get("fw_packs_mamaearth")
+        normalized["FW_PREMIUM"] = data.get("fw_premium_mix")
+        normalized["MARKET"] = data.get("market", "")
+        normalized["UNIT"] = data.get("unit", "")
         normalized["GOV"] = {
             "data_status": data.get("data_status", ""),
             "source_reference": data.get("source_reference", ""),

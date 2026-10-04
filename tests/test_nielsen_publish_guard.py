@@ -40,7 +40,11 @@ def _governed(base):
 
 
 def test_sample_payload_is_rejected():
-    errs = bn.governance_errors(json.loads(SAMPLE.read_text(encoding="utf-8")))
+    # The old SAMPLE file was replaced by the governed Aug-26 payload (2026-10-04);
+    # the guard is still proven on a payload carrying the same marker.
+    d = json.loads(SAMPLE.read_text(encoding="utf-8"))
+    d["_comment"] = "SAMPLE -- replace with actual Nielsen Aug 26 extract before building"
+    errs = bn.governance_errors(d)
     assert any("SAMPLE" in e for e in errs)
 
 
@@ -57,8 +61,12 @@ def test_governed_payload_passes():
 
 def test_build_writes_nothing_for_sample(tmp_path):
     out = tmp_path / "out.html"
+    src = tmp_path / "sample.json"
+    d = json.loads(SAMPLE.read_text(encoding="utf-8"))
+    d["_comment"] = "SAMPLE -- replace with actual Nielsen Aug 26 extract before building"
+    src.write_text(json.dumps(d), encoding="utf-8")
     with pytest.raises(SystemExit):
-        bn.build(bn.DEFAULT_TEMPLATE, SAMPLE, out)
+        bn.build(bn.DEFAULT_TEMPLATE, src, out)
     assert not out.exists()
 
 

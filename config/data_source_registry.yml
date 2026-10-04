@@ -747,6 +747,32 @@ datasets:
       erroring, so a real regression in an environment that DOES have this
       source isn't masked by tests that can never pass without it.
 
+  nielsen_market_share_monthly:
+    business_name: "Nielsen Retail Intelligence -- Facewash and Shampoo market share, IN URB MT (Sales Value in Rs Crore)"
+    source_path: "data/nielsen/Nielsen_*_Aug26.csv (extracted from Nielson_FW_Report_Aug26.xlsb and Nielson_Shampoo_Report_Aug26.xlsb, which stay outside Git)"
+    source_type: "xlsb workbooks -> CSV via scripts/extract_nielsen_report.py"
+    grain: "market x fact x brand x month (snapshot); category / Mamaearth x base pack (pack sheets)"
+    date_min: "2023-08"
+    date_max: "2026-08"
+    financial_years: ["FY24", "FY25", "FY26", "FY27"]
+    important_columns: ["Markets", "Facts", "Products", "monthly columns Aug 23..Aug 26"]
+    business_owner: "MT leadership analytics (Nielsen pull)"
+    refresh_frequency: "Monthly, when the new Nielsen workbooks arrive"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/extract_nielsen_report.py -> scripts/build_nielsen_payload.py -> data/nielsen_<mon>26.json -> scripts/build_nielsen_dashboard.py"
+    downstream_outputs: ["Nielsen market-share dashboard (templates/dashboard_template.html)"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      Market is the workbook's own IN URB MT, not all-India and not the
+      internal MT offtake universe, so Nielsen share is not comparable to
+      internal Offtake_Monthly. Both categories are Aug 26. Mamaearth
+      Facewash 36-month value tie-out to Mamaearth_FW_Monthly_Trend.csv had
+      0 mismatches. Pack sheets: Facewash has value; Shampoo has volume only.
+      Replaces the May 2026 shampoo slide figures, which did not tie to the
+      workbook.
+
   offtake_fy26_store_article:
     business_name: "Offtake NSV -- FY26 (Apr'25-Mar'26) store x article grain, requested for Same-Store Growth"
     source_path: null

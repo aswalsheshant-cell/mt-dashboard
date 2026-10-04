@@ -206,7 +206,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
       <div class="only-fw">
         <div class="sub">NSV &#8377;Cr (bars) &middot; weighted distribution % (line)</div>
         <div class="cw" style="height:170px"><canvas id="c-nsvwd"></canvas></div>
-        <div class="sub">Facewash pack split <span class="note">&middot; source file not in the repo, unverified</span></div>
+        <div class="sub">Facewash pack split <span class="note pk-basis-fw">&middot; source not confirmed</span></div>
         <div id="fw-packs"></div>
       </div>
     </section>
@@ -215,7 +215,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
       <div class="blk-h"><div class="blk-t">Shampoo</div><div class="blk-p" id="sh-period"></div></div>
       <div class="kpis" id="sh-kpis"></div>
 
-      <div class="sub">Brand scoreboard &middot; 8 listed brands</div>
+      <div class="sub">Brand scoreboard &middot; <span id="sh-n">listed brands</span></div>
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>Brand</th><th id="sh-h-py">PY</th><th id="sh-h-pm">PM</th><th id="sh-h-now">Now</th><th>&Delta; bps YoY</th></tr></thead>
         <tbody id="sh-tbody"></tbody>
@@ -228,7 +228,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
       <div id="bridge-wrap-sh"></div>
 
       <div class="only-sh">
-        <div class="sub">Pack structure <span class="note">&middot; Nielsen pack file, Jul 2026, category level</span></div>
+        <div class="sub">Pack structure <span class="note pk-basis-sh">&middot; Nielsen pack file, category level</span></div>
         <div id="sh-packs"></div>
       </div>
     </section>
@@ -236,8 +236,8 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
 
   <details id="both-packs"><summary>Pack architecture, both categories</summary>
     <div class="ms-grid" style="margin-top:6px">
-      <div class="blk"><div class="sub" style="margin-top:0">Facewash <span class="note">&middot; unverified</span></div><div id="fw-packs-b"></div></div>
-      <div class="blk"><div class="sub" style="margin-top:0">Shampoo <span class="note">&middot; pack file, Jul 2026</span></div><div id="sh-packs-b"></div></div>
+      <div class="blk"><div class="sub" style="margin-top:0">Facewash <span class="note pk-basis-fw">&middot; Nielsen pack file</span></div><div id="fw-packs-b"></div></div>
+      <div class="blk"><div class="sub" style="margin-top:0">Shampoo <span class="note pk-basis-sh">&middot; Nielsen pack file</span></div><div id="sh-packs-b"></div></div>
     </div>
   </details>
 
@@ -273,7 +273,9 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
 const DASHBOARD_DATA = /* __NIELSEN_DATA_PAYLOAD__ */ {};
 const {MONTHS,MS_,NSV_,WD_,STORES_,BRANDS,FW_PACKS,AUG_ACTIONS,SEP_ACTIONS,GATES}=DASHBOARD_DATA;
 const FW_ALL=DASHBOARD_DATA.FW_ALL||[], FW_CAT=DASHBOARD_DATA.FW_CAT_NSV||[], SH=DASHBOARD_DATA.SHAMPOO||null,
-      PACKF=DASHBOARD_DATA.SH_PACK_FILE||null, GOV=DASHBOARD_DATA.GOV||{}, META=DASHBOARD_DATA._meta||{};
+      PACKF=DASHBOARD_DATA.SH_PACK_FILE||null, GOV=DASHBOARD_DATA.GOV||{}, META=DASHBOARD_DATA._meta||{},
+      FW_INFO=DASHBOARD_DATA.FW_CAT_INFO||null, FW_ME_PACKS=DASHBOARD_DATA.FW_PACKS_ME||null, FW_PREM=DASHBOARD_DATA.FW_PREMIUM||null,
+      MARKET=DASHBOARD_DATA.MARKET||'', UNIT=DASHBOARD_DATA.UNIT||'';
 const AC='#2563EB',GREY='#94A3B8',RED='#DC2626',GREEN='#059669',AMBER='#D97706';
 const OWN=['Mamaearth','The Derma Co'];          // Honasa brands in the Facewash file
 Chart.defaults.animation=false;
@@ -339,7 +341,11 @@ function ppFor(b){return ok(ppFile[norm(b.n)])?ppFile[norm(b.n)]:(ok(b.ms)&&ok(b
 const shMe=SH?(SH.brands||[]).find(b=>b.n==='Mamaearth'):null;
 const sh=SH?{ms:shMe&&shMe.ms,bps:shMe&&shMe.yoy_bps,sales:SH.mamaearth_sales_cr,salesYoY:SH.mamaearth_sales_yoy_pct,salesMoM:SH.mamaearth_sales_mom_pct,
   cat:SH.category_cr,catYoY:SH.category_yoy_pct,catMoM:SH.category_mom_pct,listed:(SH.brands||[]).reduce((a,b)=>a+(ok(b.ms)?b.ms:0),0)}:null;
-if(sh){sh.ppValue=ok(sh.cat)?sh.cat/100:null;sh.rank=rankOf(SH.brands||[],'ms','Mamaearth');}
+if(sh){sh.ppValue=ok(sh.cat)?sh.cat/100:null;sh.rank=rankOf(SH.brands||[],'ms','Mamaearth');
+  sh.wd=shMe&&shMe.wd;sh.wdPY=shMe&&shMe.wd_py;sh.nd=shMe&&shMe.nd;sh.stores=shMe&&shMe.stores;sh.pdo=shMe&&shMe.pdo;
+  sh.ppml=shMe&&shMe.ppml;sh.msVol=shMe&&shMe.ms_vol;sh.catPpml=SH.category_ppml;
+  sh.hasReach=ok(sh.wd)&&ok(sh.stores);
+  sh.sameMonth=!!(SH.month&&SH.month===MONTHS[last]);}
 
 /* ── scorecards ── */
 function buildKpis(){
@@ -354,12 +360,13 @@ function buildKpis(){
     kpi('1 pp share =',ok(fw.ppValue)?'₹'+f1(fw.ppValue,2)+' Cr':'–','per month','mut')].join('');
   el('sh-kpis').innerHTML=sh?[
     kpi('Share',f1(sh.ms)+'%',sg(sh.bps,0,' bps YoY'),cls(sh.bps)),
-    kpi('Position',sh.rank?sh.rank+' of '+(SH.brands||[]).length+' listed':'–','smallest listed brand','mut'),
+    kpi('Position',sh.rank?'#'+sh.rank+' of '+(SH.brands||[]).length+' listed':'–','','mut'),
     kpi('Sales ₹Cr',f1(sh.sales,2),sg(sh.salesYoY,1,'% YoY'),cls(sh.salesYoY)),
     kpi('Category ₹Cr',f1(sh.cat,1),sg(sh.catYoY,1,'% YoY'),cls(sh.catYoY)),
     kpi('Sales MoM',sg(sh.salesMoM,1,'%'),'category '+sg(sh.catMoM,1,'%'),cls(sh.salesMoM)),
-    kpi('WD / stores','–','no shampoo distribution data','mut'),
-    kpi('₹ per store','–','needs store count','mut'),
+    kpi('WD %',sh.hasReach?f1(sh.wd):'–',sh.hasReach?sg(ok(sh.wdPY)?sh.wd-sh.wdPY:null,1,'pp YoY'):'no distribution data',sh.hasReach?cls(ok(sh.wdPY)?sh.wd-sh.wdPY:null):'mut'),
+    kpi('Stores selling',n0(sh.stores),ok(sh.nd)?'ND '+f1(sh.nd)+'%':'','mut'),
+    kpi('₹ per store',n0(sh.pdo),ok(sh.ppml)&&ok(sh.catPpml)?'₹/ml '+f1(sh.ppml,2)+' vs cat '+f1(sh.catPpml,2):'','mut'),
     kpi('1 pp share =',ok(sh.ppValue)?'₹'+f1(sh.ppValue,2)+' Cr':'–','per month','mut')].join(''):'<div class="note">No Shampoo data in this payload.</div>';
 }
 
@@ -374,7 +381,9 @@ function buildFwTable(){
 function buildShTable(){
   if(!sh)return;
   el('sh-h-py').textContent=SH.period_prev_year||'PY';el('sh-h-pm').textContent=SH.period_prev_month||'PM';el('sh-h-now').textContent=SH.period||'Now';
-  el('sh-tbody').innerHTML=(SH.brands||[]).map(b=>`<tr${b.n==='Mamaearth'?' class="hl"':''}><td>${esc(b.n)}</td><td>${f1(b.ms_py)}</td><td>${f1(b.ms_pm)}</td><td>${f1(b.ms)}%</td>
+  const rows=[...(SH.brands||[])].sort((a,c)=>(c.ms||0)-(a.ms||0)),top=rows.slice(0,10);if(!top.some(b=>b.n==='Mamaearth')){const m=rows.find(b=>b.n==='Mamaearth');if(m)top.push(m);}
+  el('sh-n').textContent='top '+top.length+' of '+rows.length+' listed brands';
+  el('sh-tbody').innerHTML=top.map(b=>`<tr${b.n==='Mamaearth'?' class="hl"':''}><td>${esc(b.n)}</td><td>${f1(b.ms_py)}</td><td>${f1(b.ms_pm)}</td><td>${ok(b.ms)?f1(b.ms)+'%':'–'}</td>
     <td><span class="pill ${b.yoy_bps>0?'pill-up':b.yoy_bps<0?'pill-dn':'pill-0'}">${sg(b.yoy_bps,0)}</span></td></tr>`).join('');
 }
 
@@ -394,11 +403,13 @@ function bridge(id,rows,unit,fmt,minAbs){
 }
 
 /* ── pack bars ── */
-function packBars(id,packs,note){
+function packBars(id,packs,note,mine){
   const w=el(id);if(!w)return;
   if(!packs||!packs.length){w.innerHTML='<div class="note">'+esc(note||'Not available')+'</div>';return;}
-  w.innerHTML=packs.map(p=>`<div class="pack-row"><div class="pack-size">${esc(p.sz)}</div><div class="pack-bg"><div class="pack-fill" style="width:${Math.max(0,Math.min(100,p.val))}%"></div></div>
-    <div class="pack-val">${f1(p.val)}%</div><div class="pack-yoy ${cls(p.yoy)}">${sg(p.yoy,1,'%')}</div></div>`).join('');
+  w.innerHTML=packs.map(p=>{const m=mine&&ok(mine[p.sz])?mine[p.sz]:null;
+    return `<div class="pack-row"><div class="pack-size">${esc(p.sz)}</div><div class="pack-bg"><div class="pack-fill" style="width:${Math.max(0,Math.min(100,p.val))}%"></div>${m!=null?`<div class="pack-fill" style="width:${Math.max(0,Math.min(100,m))}%;height:35%;margin-top:-6px;background:var(--accent)"></div>`:''}</div>
+    <div class="pack-val">${f1(p.val)}%${m!=null?' · '+f1(m)+'%':''}</div><div class="pack-yoy ${cls(p.yoy)}">${sg(p.yoy,1,'%')}</div></div>`;}).join('')
+    +(mine?'<div class="note">Grey bar: category mix. Blue: Mamaearth mix (second figure).</div>':'');
 }
 
 /* ── charts ── */
@@ -472,21 +483,33 @@ function insightList(){
   const ent=FW_ALL.filter(b=>!OWN.includes(b.n)&&ok(b.ms)&&ok(b.ms_py)&&b.ms-b.ms_py>=1).sort((a,b)=>(b.ms-b.ms_py)-(a.ms-a.ms_py));
   if(ent.length)L.push(ins('Facewash','Skin-care brands are gaining',ent.map(b=>`${esc(b.n)} ${f1(b.ms_py)}→${f1(b.ms)}%`).join(', ')+' (each +1 pp or more).','Track these monthly; they overlap the same shoppers.','warn',['fw']));
 
+  if(FW_PREM&&ok(FW_PREM.mamaearth)&&ok(FW_PREM.category))
+    L.push(ins('Facewash','Premium packs (≥'+FW_PREM.min_ml+' ml) are '+f1(FW_PREM.mamaearth)+'% of Mamaearth value vs '+f1(FW_PREM.category)+'% for the category',`Pack-size mix from the Nielsen pack file; this is already ahead of the 18% premium-mix target in the tracker.`,'Reset the tracker target against this measure, or define premium differently.','info',['fw']));
+  const mA=allByName['Mamaearth']||{};
+  if(ok(mA.ms_vol)&&ok(mA.ms)&&mA.ms_vol!==mA.ms)
+    L.push(ins('Facewash','Value share '+f1(mA.ms)+'% vs volume share '+f1(mA.ms_vol)+'%',`Mamaearth sells at a ${mA.ms>mA.ms_vol?'higher':'lower'} price per ml than the category (₹${f1(mA.ppml,2)} vs ${FW_INFO&&ok(FW_INFO.ppml)?'₹'+f1(FW_INFO.ppml,2):'–'}).`,'Read price and volume together before judging share moves.','info',['fw']));
   if(sh){
     if(ok(sh.catYoY)&&sh.catYoY<0&&ok(sh.salesYoY)&&sh.salesYoY>0)
       L.push(ins('Shampoo','Growth is share taken, not market lift',`Sales ${sg(sh.salesYoY,1,'%')} YoY and share ${sg(sh.bps,0,' bps')} to ${f1(sh.ms)}%, in a category that fell ${f1(Math.abs(sh.catYoY),1)}%.`,'Hold the listings that drove this; the category will not carry growth.','good',['both','sh']));
-    if(ok(sh.ppValue))L.push(ins('Shampoo','Smallest listed brand, with the largest rupee headroom',`The ${(SH.brands||[]).length} listed brands cover ${f1(sh.listed)}% of the category; Mamaearth is ${f1(sh.ms)}%. Each +1 pp is ₹${f1(sh.ppValue,2)} Cr a month.`,'Size a chain-wise shampoo target against this.','warn',['sh']));
+    if(ok(sh.catYoY)&&sh.catYoY>=0&&ok(sh.salesYoY)&&ok(sh.sales)&&ok(sh.cat)){const g=sh.sales-sh.sales/(1+sh.salesYoY/100),cg=sh.cat-sh.cat/(1+sh.catYoY/100);
+      if(cg>0)L.push(ins('Shampoo','Mamaearth grew '+f1(sh.salesYoY,0)+'% in a category that grew '+f1(sh.catYoY,0)+'%',`Mamaearth added ₹${f1(g,2)} Cr of the category's ₹${f1(cg,1)} Cr gain (${f1(g/cg*100,0)}%) from a ${f1(sh.ms-(ok(sh.bps)?sh.bps/100:0))}% share base.`,'Keep the listings that drove this; the share gain is the story.','good',['both','sh']));}
+    if(ok(sh.ppValue))L.push(ins('Shampoo','Rank #'+(sh.rank||'–')+' in shampoo: each share point is worth ₹'+f1(sh.ppValue,2)+' Cr a month',`Mamaearth holds ${f1(sh.ms)}% of a ₹${f1(sh.cat,0)} Cr category.`,'Size a chain-wise shampoo target against this.','warn',['sh']));
     const dn=(SH.brands||[]).filter(b=>b.yoy_bps<=-50),up=(SH.brands||[]).filter(b=>b.yoy_bps>=50&&b.n!=='Mamaearth');
     if(dn.length)L.push(ins('Shampoo','Legacy leaders are ceding share',dn.map(b=>esc(b.n)+' '+sg(b.yoy_bps,0)).join(', ')+' bps'+(up.length?'; gaining: '+up.map(b=>esc(b.n)+' '+sg(b.yoy_bps,0)).join(', ')+' bps':'')+'.','Target the shoppers moving away from these brands.','info',['sh']));
     if(PACKF&&PACKF.buckets&&PACKF.buckets.length){
       const big=PACKF.buckets.find(b=>b.sz==='>200ml'),small=PACKF.buckets.filter(b=>b.sz!=='>200ml'&&ok(b.yoy));
       if(big)L.push(ins('Shampoo','Large packs are '+f1(big.val,0)+'% of category pack value',`Packs over 200 ml ${sg(big.yoy,1,'%')} YoY${small.length?'; the smaller buckets '+small.map(b=>b.sz+' '+sg(b.yoy,0,'%')).join(', '):''}${PACKF.top&&PACKF.top.length?'. Largest packs: '+PACKF.top.slice(0,3).map(p=>n0(parseFloat(p.sz))+' ml '+f1(p.share,0)+'%').join(', '):''}.`,
         'Check Mamaearth’s own pack mix against this; the file is category level.','warn',['sh']));}
-    L.push(ins('Shampoo','Distribution cannot be sized','The repo has no shampoo weighted distribution, numeric distribution or store count.','Ask for the shampoo distribution cut with the next Nielsen pull.','alert',['sh']));
+    if(sh.hasReach){
+      const dv=allByName['Dove'];const bs=(SH.brands||[]).filter(b=>b.n!=='Mamaearth'&&ok(b.wd)&&ok(b.stores)).sort((a,b)=>b.ms-a.ms)[0];
+      L.push(ins('Shampoo','Reach is the gap: WD '+f1(sh.wd)+'%, '+n0(sh.stores)+' stores',`Mamaearth shampoo is in ${n0(sh.stores)} stores at ₹${n0(sh.pdo)} each${ok(sh.wdPY)?`; WD ${sg(sh.wd-sh.wdPY,1,' pp')} YoY`:''}${bs?`. ${esc(bs.n)} (largest) reaches ${f1(bs.wd)}% WD, ${n0(bs.stores)} stores`:''}.`,
+        'List shampoo in the facewash stores where it is missing, starting with the largest chains.','warn',['both','sh']));
+      if(ok(sh.msVol)&&ok(sh.ms))L.push(ins('Shampoo','Volume share '+f1(sh.msVol)+'% vs value share '+f1(sh.ms)+'%',`Mamaearth sells ₹${f1(sh.ppml,2)} per ml against ₹${f1(sh.catPpml,2)} for the category; the gap is price mix, not only volume.`,'Check whether the pack mix (mostly >200 ml) is the reason for the lower price per ml.','info',['sh']));}
+    else L.push(ins('Shampoo','Distribution cannot be sized','This payload has no shampoo weighted distribution, numeric distribution or store count.','Ask for the shampoo distribution cut with the next Nielsen pull.','alert',['sh']));
   }
   if(sh&&ok(sh.ppValue)&&ok(fw.ppValue))
-    L.push(ins('Both','A shampoo share point is worth '+f1(sh.ppValue/fw.ppValue,1)+'× a facewash point',`₹${f1(sh.ppValue,2)} Cr vs ₹${f1(fw.ppValue,2)} Cr a month, while Mamaearth holds ${f1(fw.ms)}% of Facewash and ${f1(sh.ms)}% of Shampoo.`,'Weigh shampoo higher when choosing where to push; read as indicative (different months and universes).','alert',['both']));
-  if(sh)L.push(ins('Both','Periods differ',`Facewash is ${esc(MONTHS[last])}; Shampoo is ${esc(SH.period)} (${esc(SH.basis)}). Compare direction, not level.`,'Refresh Shampoo with the July pull.','info',['both']));
+    L.push(ins('Both','A shampoo share point is worth '+f1(sh.ppValue/fw.ppValue,1)+'× a facewash point',`₹${f1(sh.ppValue,2)} Cr vs ₹${f1(fw.ppValue,2)} Cr a month, while Mamaearth holds ${f1(fw.ms)}% of Facewash and ${f1(sh.ms)}% of Shampoo.`,(sh.sameMonth?'Weigh shampoo higher when choosing where to push; same market and month, so the ratio is comparable.':'Weigh shampoo higher when choosing where to push; read as indicative (different months and universes).'),'alert',['both']));
+  if(sh&&!sh.sameMonth)L.push(ins('Both','Periods differ',`Facewash is ${esc(MONTHS[last])}; Shampoo is ${esc(SH.period)} (${esc(SH.basis)}). Compare direction, not level.`,'Refresh Shampoo with the July pull.','info',['both']));
   return L;
 }
 function buildInsights(){
@@ -506,15 +529,22 @@ function buildOpp(){
     const up=(him.pdo-fw.pdo)*fw.stores/1e7;
     cards.push(['₹'+f1(up,1)+' Cr','Productivity: match Himalaya per store',`(₹${n0(him.pdo)} − ₹${n0(fw.pdo)}) × ${n0(fw.stores)} stores; a ${f1((him.pdo/fw.pdo-1)*100,0)}% gap.`,`If half the gap closes: ₹${f1(up/2,1)} Cr.`]);}
   if(sh&&ok(sh.ppValue))cards.push(['₹'+f1(sh.ppValue,1)+' Cr','Shampoo: +1 pp of share',`${f1(sh.cat,0)} Cr category ÷ 100, ${esc(SH.period)} base.`,`+0.5 pp: ₹${f1(sh.ppValue/2,1)} Cr.`]);
+  if(sh&&sh.hasReach&&ok(sh.pdo)&&ok(fw.stores)&&fw.stores>sh.stores){const ex=fw.stores-sh.stores,ub=ex*sh.pdo/1e7;
+    cards.push(['₹'+f1(ub,1)+' Cr','Shampoo reach: match the facewash store count',`${n0(ex)} more stores × ₹${n0(sh.pdo)} per store.`,`Upper bound. At half the per-store sales: ₹${f1(ub/2,1)} Cr.`]);}
   if(ok(fw.ppValue))cards.push(['₹'+f1(fw.ppValue,2)+' Cr','Facewash: +1 pp of share',`${f1(fw.cat,1)} Cr category ÷ 100, ${esc(MONTHS[last])} base.`,`+0.5 pp: ₹${f1(fw.ppValue/2,2)} Cr.`]);
   el('opp-grid').innerHTML=cards.map(c=>`<div class="opp"><div class="opp-n">${c[0]}</div><div class="opp-l">${c[1]}</div><div class="opp-d">${c[2]}</div><div class="opp-s">${c[3]}</div></div>`).join('')||'<div class="note">Not enough data to size.</div>';
-  el('foot-opp').textContent='Not shown: premium-pack mix and shampoo cross-sell sizing. The repo holds no price or pack-mix basis for them. Monthly run-rate, not annualised; sized against the latest month in each category.';
+  el('foot-opp').textContent='Monthly run-rate, not annualised; sized against the latest month in each category. Shampoo cross-sell sizing is not shown (no store-level overlap in the Nielsen file).';
 }
 
 /* ── tracker ── */
 const STORE_KEY='ms-tracker-v1';let checks={};try{checks=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');}catch(e){}
+const CHK={fw_wd:()=>fw.wd,fw_nsv:()=>fw.nsv,fw_pdo:()=>fw.pdo,fw_wd_vs_garnier:()=>{const g=BRANDS.find(b=>b.n==='Garnier');return g&&ok(g.wd)&&ok(fw.wd)?fw.wd-g.wd:null;},
+  fw_premium_mix:()=>FW_PREM&&FW_PREM.mamaearth};
+function chip(a){const c=a.check;if(!c||!CHK[c.metric])return '';const v=CHK[c.metric]();if(!ok(v))return '<span class="st na">no data</span>';
+  const met=c.op==='>='?v>=c.target:c.op==='>'?v>c.target:false;
+  return `<span class="st ${met?'met':'notmet'}" title="${esc(c.label||'')}">${met?'Met':'Not yet'} · ${f1(v,v>=1000?0:1)} vs ${c.target}</span>`;}
 function trackerItems(id,list){el(id).innerHTML=(list||[]).map((a,i)=>{const k=id+'_'+i,c=!!checks[k];
-  return `<div class="t-item${c?' done':''}" id="ti-${k}"><div class="t-check${c?' checked':''}" onclick="toggleCheck('${k}')"></div><div><div class="t-title">${esc(a.title)}</div>
+  return `<div class="t-item${c?' done':''}" id="ti-${k}"><div class="t-check${c?' checked':''}" onclick="toggleCheck('${k}')"></div><div><div class="t-title">${esc(a.title)} ${chip(a)}</div>
   <div class="t-meta"><span>${esc(a.owner)}</span><span>${esc(a.budget)}</span><span>Due: ${esc(a.due)}</span></div><div class="t-desc">${esc(a.desc)}</div></div></div>`;}).join('');}
 function toggleCheck(k){checks[k]=!checks[k];try{localStorage.setItem(STORE_KEY,JSON.stringify(checks));}catch(e){}
   const it=el('ti-'+k);it.classList.toggle('done',checks[k]);it.querySelector('.t-check').classList.toggle('checked',checks[k]);updateProg();}
@@ -529,17 +559,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   el('hdr-periods').textContent='Facewash '+(MONTHS[last]||'–')+(SH?' · Shampoo '+SH.period:'');
   el('fw-period').textContent=(MONTHS[last]||'')+' · vs '+(ya>=0?MONTHS[ya]:'last year');
   el('sh-period').textContent=SH?SH.period+' · '+SH.basis:'';
-  el('period-note').textContent=SH?'Different months: Facewash '+MONTHS[last]+', Shampoo '+SH.period+'. Compare direction, not level.':'';
+  el('period-note').textContent=SH&&!sh.sameMonth?'Different months: Facewash '+MONTHS[last]+', Shampoo '+SH.period+'. Compare direction, not level.':(MARKET?'Market: '+MARKET+(UNIT?' · '+UNIT:'')+'. Both categories are the same month.':'');
   buildKpis();buildFwTable();buildShTable();
   bridge('bridge-wrap',FW_ALL.filter(b=>ok(b.ms)&&ok(b.ms_py)).map(b=>({n:b.n,d:ppFor(b)})),'pp',d=>sg(d,1),0.2);
   if(SH)bridge('bridge-wrap-sh',(SH.brands||[]).map(b=>({n:b.n,d:b.yoy_bps})),'bps',d=>sg(d,0),0);
-  packBars('fw-packs',FW_PACKS,'Not available');packBars('fw-packs-b',FW_PACKS,'Not available');
-  const pk=PACKF&&PACKF.buckets;packBars('sh-packs',pk,'No shampoo pack file in this build');packBars('sh-packs-b',pk,'No shampoo pack file in this build');
+  packBars('fw-packs',FW_PACKS,'Not available',FW_ME_PACKS);packBars('fw-packs-b',FW_PACKS,'Not available',FW_ME_PACKS);
+  const pk=PACKF&&PACKF.buckets,shMine=SH&&SH.mamaearth_packs;packBars('sh-packs',pk,'No shampoo pack file in this build',shMine);packBars('sh-packs-b',pk,'No shampoo pack file in this build',shMine);
+  if(PACKF&&PACKF.basis)document.querySelectorAll('.pk-basis-sh').forEach(e=>e.textContent=PACKF.basis+' share, '+(PACKF.period||''));
+  document.querySelectorAll('.pk-basis-fw').forEach(e=>e.textContent=FW_ME_PACKS?'· value share, category vs Mamaearth':'· source file not in the repo, unverified');
   trackerItems('aug-items',AUG_ACTIONS);trackerItems('sep-items',SEP_ACTIONS);
   el('gate-items').innerHTML=(GATES||[]).map(g=>`<div class="gate-item"><div class="gate-date">${esc(g.date)}</div><div class="gate-q">${esc(g.q)}</div><div class="gate-i">${esc(g.impact)}</div></div>`).join('');
   el('trk-note').textContent='Targets and budgets are the team’s plan; check them against the Opportunity sizing.';
   updateProg();buildOpp();
-  el('foot-ms').textContent='Facewash: data/nielsen brand and trend files (Nielsen Retail Intelligence, Urban MT per the original dashboard header; scope is not documented in the files). Shampoo brand shares: May 2026 slide figures; pack file: Jul 2026 category level. A blank source cell is shown as a dash, never zero.';
+  el('foot-ms').textContent=(MARKET?'Market '+MARKET+(UNIT?', '+UNIT:'')+'. ':'')+'Source: '+(GOV.source_reference||'Nielsen files in data/nielsen')+'. A blank source cell is shown as a dash, never zero.';
   document.querySelectorAll('#seg button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
   initShare();setView('both');inited[0]=true;
 });

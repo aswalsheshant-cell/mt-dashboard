@@ -8,6 +8,14 @@ const { launchChromium } = require('./browser_launch');
 
 const htmlPath = path.resolve(process.argv[2] || '');
 const shotDir = process.argv[3] ? path.resolve(process.argv[3]) : null;
+// 'jul' (default) = the July payload, 'aug' = the governed Aug-26 Nielsen payload.
+const mode = process.argv[4] || 'jul';
+const EXPECT = {
+  jul: { both: ['+2.4pp YoY', '+6.4pp YoY', '+25.6% YoY', '+18% YoY', '7,025', '#4', 'same as last yr', '₹0.82 Cr', '₹2.76 Cr', 'Honasa Facewash share: 12.2%'],
+         sh: ['pack structure', '73.1%', 'distribution cannot be sized', '+91'], opp: ['₹5.1 Cr', '₹2.8 Cr', '7,280 more stores'], stale: true },
+  aug: { both: ['+2.6pp YoY', '+5.9pp YoY', '+25.2% YoY', '+40.7% YoY', '13,132', '#4', '₹0.82 Cr', 'Honasa Facewash share: 13.7%', 'Market: IN URB MT', '+86 bps YoY', '8,966', '₹1.80 Cr', 'Reach is the gap'],
+         sh: ['pack structure', '83.1%', '81.8', 'reach is the gap'], opp: ['Shampoo reach', 'Facewash: +1 pp of share'], stale: false }
+}[mode];
 const failures = [];
 const check = (cond, msg) => { if (!cond) failures.push(msg); };
 
@@ -41,10 +49,10 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
   check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), 'both: horizontal overflow');
   check(t.includes('Pond\'s') && !t.includes("Pond'S"), "brand name Pond's must not be mangled");
   // figures computed from the real files (Jul 26 vs Jul 25)
-  for (const needle of ['+2.4pp YoY', '+6.4pp YoY', '+25.6% YoY', '+18% YoY', '7,025', '#4', 'same as last yr', '₹0.82 Cr', '₹2.76 Cr', 'Honasa Facewash share: 12.2%']) {
+  for (const needle of EXPECT.both) {
     check(t.includes(needle), `both: expected "${needle}"`);
   }
-  for (const stale of ['+10.1pp', '+32.3%', '+11.6%', '+1 vs']) check(!t.includes(stale), `both: stale figure ${stale}`);
+  for (const stale of EXPECT.stale ? ['+10.1pp', '+32.3%', '+11.6%', '+1 vs'] : []) check(!t.includes(stale), `both: stale figure ${stale}`);
   const insBoth = await page.$$eval('#ins-grid .ins', n => n.length);
   check(insBoth >= 6, `both: expected >=6 insights, got ${insBoth}`);
   if (shotDir) { fs.mkdirSync(shotDir, { recursive: true }); await page.screenshot({ path: path.join(shotDir, 'both.png'), fullPage: true }); }
@@ -60,16 +68,16 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
   await page.click('#seg button[data-view="sh"]');
   t = await clean('sh');
   check(await vis('#blk-sh') && !(await vis('#blk-fw')), 'sh: only the Shampoo block');
-  for (const needle of ['pack structure', '73.1%', 'distribution cannot be sized', '+91']) check(t.toLowerCase().includes(needle), `sh: expected "${needle}"`);
-  check(!t.includes('41.2%') && !t.includes('41.8%'), 'sh: the unsupported 41% pack figure must not appear');
+  for (const needle of EXPECT.sh) check(t.toLowerCase().includes(needle), `sh: expected "${needle}"`);
+  if (EXPECT.stale) check(!t.includes('41.2%') && !t.includes('41.8%'), 'sh: the unsupported 41% pack figure must not appear');
   if (shotDir) await page.screenshot({ path: path.join(shotDir, 'shampoo.png'), fullPage: true });
 
   // ---- Opportunity
   await page.click('.tab-btn:nth-child(2)');
   await page.waitForSelector('#opp-grid .opp');
   t = await clean('opportunity');
-  for (const needle of ['₹5.1 Cr', '₹2.8 Cr', '7,280 more stores']) check(t.includes(needle), `opportunity: expected "${needle}"`);
-  check(!t.includes('₹6.2 Cr') && !t.includes('₹3.8 Cr'), 'opportunity: stale tiles must not appear');
+  for (const needle of EXPECT.opp) check(t.includes(needle), `opportunity: expected "${needle}"`);
+  if (EXPECT.stale) check(!t.includes('₹6.2 Cr') && !t.includes('₹3.8 Cr'), 'opportunity: stale tiles must not appear');
   if (shotDir) await page.screenshot({ path: path.join(shotDir, 'opportunity.png'), fullPage: true });
 
   // ---- Tracker + dark theme
