@@ -246,6 +246,7 @@ def to_js_payload(data: dict, extras: dict | None = None) -> str:
         normalized["DECK"] = data.get("deck")
         normalized["PRICE_VOLUME"] = data.get("price_volume")
         normalized["VISIT_CITIES"] = data.get("visit_cities")
+        normalized["ACCOUNT"] = data.get("account_share")
         normalized["FW_PACK_BRAND"] = data.get("fw_pack_brand")
         normalized["SH_PACK_BRAND"] = data.get("sh_pack_brand")
         normalized["MARKET"] = data.get("market", "")

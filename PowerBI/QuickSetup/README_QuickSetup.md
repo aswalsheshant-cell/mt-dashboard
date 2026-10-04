@@ -13,9 +13,9 @@ opening 24+ separate `.pq`/`.dax` files one at a time.
 
 ## What's in this folder
 
-- **`AllPowerQuery_Consolidated.txt`** — all 36 Power Query steps, in the
+- **`AllPowerQuery_Consolidated.txt`** — all 39 Power Query steps, in the
   order to add them, each with the exact query name to rename it to.
-- **`AllDAX_Consolidated.txt`** — all measures across the 16 DAX measure files
+- **`AllDAX_Consolidated.txt`** — all measures across the 17 DAX measure files
   (plus the Date Table), in order, with the 6 calculated-column exceptions
   flagged in a warning banner at the top so you see them before you start pasting.
 
@@ -35,7 +35,7 @@ top to bottom — that's the whole time-saving versus the full build kit.
 1. Copy the whole `PowerBI/` folder to a fixed path (e.g. `C:\MT-Dashboard`).
 2. **Parameter:** Home ▸ Manage Parameters ▸ New ▸ `pRootFolder` ▸ your path.
    (STEP 01 in `AllPowerQuery_Consolidated.txt`.)
-3. **Queries:** for STEP 02 through STEP 36 in that file — New Blank Query ▸
+3. **Queries:** for STEP 02 through STEP 39 in that file — New Blank Query ▸
    Advanced Editor ▸ paste ▸ OK ▸ rename to the name shown ▸ next step.
    Two steps (files `20_Dim_Masters.pq`, `24_ChannelMap.pq`) contain more than
    one query — each `---------- X ----------` block is its own complete query.
@@ -44,7 +44,7 @@ top to bottom — that's the whole time-saving versus the full build kit.
    `AllDAX_Consolidated.txt` whole ▸ mark as date table on `[Date]`.
 6. **Relationships:** build per `PowerBI/docs/DataModel.md`.
 7. **Measures:** create a `_Measures` table (Enter Data, one blank column,
-   delete the column after). For STEP 02 through STEP 16 in
+   delete the column after). For STEP 02 through STEP 17 in
    `AllDAX_Consolidated.txt` — New Measure ▸ paste ONE `Name = Expression`
    block (including any `VAR`/`RETURN` lines under it) ▸ Enter ▸ next measure.
    **Skip the 6 commented-out blocks flagged at the top of that file** — add

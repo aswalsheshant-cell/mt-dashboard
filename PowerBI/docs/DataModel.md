@@ -27,6 +27,9 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact P&L` | Month × Chain × Brand × Category (derived) | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone (optional `Volume 000 L`, `Price Per Ml`) | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Nielsen Pack` | Month × Nielsen Cat × Pack Size | `Date Table[MonthStart]` → `[MonthStart]`; `Category Master[Nielsen Category]` → `[Nielsen Category]` |
+| `Fact Account Category` | Month × Chain × Category (retailer-side sales vs Honasa) | `Date Table[MonthStart]` → `[MonthStart]`; `Chain Master[Chain]` → `[Chain]` |
+| `Fact Account Category Geo` | Month × Chain × Zone × State × City × Category | `Date Table[MonthStart]` → `[MonthStart]`; `Chain Master[Chain]` → `[Chain]` |
+| `Fact Account Assortment` | Month × Chain × Category (distinct Honasa articles) | `Date Table[MonthStart]` → `[MonthStart]`; `Chain Master[Chain]` → `[Chain]` |
 | `Nielsen Deck State Exposure` | State (typed from the review deck) | none (stand-alone seed table) |
 | `Store City Master` | Store Key (standard chain \| site code), one row per store, with City Final, Visit City, Visit Status, Nearest Listed City | `Fact Offtake Sales[Match Key]` → `[Match Key]` (add Match Key as a calculated column on the fact; formula in query 49) |
 | `Visit City List` | City (corporate-visit cities, Region, aliases) | `Visit City List[City]` 1 → * `Store City Master[Visit City]` |

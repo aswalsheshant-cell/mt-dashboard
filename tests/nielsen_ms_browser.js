@@ -109,6 +109,28 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
     if (shotDir) await page.screenshot({ path: path.join(shotDir, 'pricevolume.png'), fullPage: true });
   }
 
+  // ---- Account Share & Plan
+  await page.click('.tab-btn:nth-child(6)');
+  t = await clean('account-share');
+  if (mode === 'aug') {
+    for (const needle of ['Share inside each chain', 'More Retail', 'Wellness Forever', 'White space', 'Plan to lift Facewash', 'Distribution', 'Pack gaps', 'Differs: check', 'Dmart', 'Reliance Retail'])
+      check(t.toLowerCase().includes(needle.toLowerCase()), `account: expected "${needle}"`);
+    // zone and state cuts for Lulu and More Retail
+    for (const [chain, level] of [['Lulu', 'Zone'], ['Lulu', 'State'], ['More Retail', 'State']]) {
+      await page.selectOption('#t5-chain', chain);
+      await page.selectOption('#t5-level', level);
+      const rows = await page.$$eval('#t5-tbody tr', n => n.length);
+      check(rows >= 5, `account: ${chain} ${level} top 5 has ${rows} rows`);
+    }
+    await page.selectOption('#t5-chain', 'Wellness Forever');
+    await page.selectOption('#t5-level', 'State');
+    check((await page.$eval('#t5-note', n => n.innerText)).includes('no state cut'), 'account: Wellness has no state cut and says so');
+    await page.selectOption('#fl-flag', 'White space');
+    check((await page.$$eval('#fl-tbody tr', n => n.length)) > 3, 'account: white space rows missing');
+    await clean('account-share-after-select');
+    if (shotDir) await page.screenshot({ path: path.join(shotDir, 'account.png'), fullPage: true });
+  }
+
   // ---- narrow screen
   await page.setViewportSize({ width: 420, height: 800 });
   await page.click('.tab-btn:nth-child(1)');

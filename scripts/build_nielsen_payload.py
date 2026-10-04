@@ -360,6 +360,8 @@ def build_payload(root: Path, label: str, month: str, tracker_from: Path) -> dic
         "sh_pack_brand": pack_brand(folder, label, "shampoo", month),
         "chains": chain_block(folder, label),
         "deck": json.loads((folder / "Deck_MT_Review_Big3_v3_1.json").read_text(encoding="utf-8")) if (folder / "Deck_MT_Review_Big3_v3_1.json").exists() else None,
+        "account_share": (json.loads((root / "data" / "account_share" / "Account_View.json").read_text(encoding="utf-8"))
+                          if (root / "data" / "account_share" / "Account_View.json").exists() else None),
         "visit_cities": (json.loads((folder / f"Visit_Cities_{label}.json").read_text(encoding="utf-8"))
                          if (folder / f"Visit_Cities_{label}.json").exists() else None),
         "price_volume": (json.loads((folder / f"Price_Volume_{label}.json").read_text(encoding="utf-8"))

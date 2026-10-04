@@ -17,7 +17,7 @@ const { launchChromium } = require('./browser_launch');
     await pg.waitForTimeout(400);
     const t = await pg.evaluate(() => document.getElementById('tab-demand-planning').innerText);
     for (const bad of ['NaN', 'undefined', '[object Object]']) if (t.includes(bad)) fails.push(`${fy || 'no-filter'}: ${bad}`);
-    for (const need of ['Competitive Market Share', 'IN URB MT', 'Which chains carried the growth', 'packs: where we are present and not present', 'Dmart'])
+    for (const need of ['Competitive Market Share', 'IN URB MT', 'Which chains carried the growth', 'Our share inside each chain', 'Plan to lift Facewash share', 'packs: where we are present and not present', 'Dmart'])
       if (!t.toLowerCase().includes(need.toLowerCase())) fails.push(`${fy || 'no-filter'}: missing "${need}"`);
     if (!/12\.8%/.test(t)) fails.push(`${fy || 'no-filter'}: facewash share 12.8% not shown`);
     const canv = await pg.$('#nielsenTrend');

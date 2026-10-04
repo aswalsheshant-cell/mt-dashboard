@@ -842,3 +842,27 @@ datasets:
       dashboard/Power BI change built on this source -- see
       docs/PHASE_2_EXECUTION_STATUS.md's "Phase 2C/2D terminal state" section
       for the full permitted/prohibited list.
+
+  retailer_category_share_monthly:
+    business_name: "Retailer-side category sales (Lulu, More Retail, Wellness Forever) -- chain's own category sales vs Honasa sales, Rs lakh without GST"
+    source_path: "data/account_share/*.csv (built by scripts/build_account_share.py from Compiled_Monthly_Files_Jan_to_Aug26_Updated.xlsx, More_MS_Till_May26_version_1.xlsb, More_MS_Till_Aug26_Updated.xlsx, Wellness_MS_Jun-Aug26_Updated.xlsb, which stay outside Git)"
+    source_type: "retailer-supplied xlsx/xlsb -> CSV"
+    grain: "chain x month x category (Lulu also state and city; More by DC city; Wellness category only)"
+    date_min: "2026-01"
+    date_max: "2026-08"
+    financial_years: ["FY26", "FY27"]
+    important_columns: ["Chain", "Month", "Category", "Common Category", "Account Sales Rs L", "Honasa Sales Rs L", "Share %"]
+    business_owner: "MT leadership analytics (account share)"
+    refresh_frequency: "Monthly, when the retailer files arrive"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/build_account_share.py -> scripts/build_account_view.py -> data/account_share/Account_View.json -> scripts/build_nielsen_payload.py -> dashboards; PowerBI/SeedData/Account (scripts/build_nielsen_powerbi_seed.py)"
+    downstream_outputs: ["Nielsen dashboard 'Account Share & Plan' tab", "dashboard/nielsen.js -> MT dashboard Market Share card", "PowerBI queries 53-55 and DAX 17"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      Lulu and More cover only categories and stores where Honasa sells, so white space is read inside that scope; Wellness lists all
+      categories. More Retail has a scope break before and after Jun 26, so MoM uses Jun-Aug only (dashed lines on charts). Lulu has
+      store-level state and a city readable from the store name; More has DC city only; Wellness has none. Dmart and Reliance appear only as
+      quarterly figures typed from the review deck. Store_City_Corrections.csv (Lulu 9260 -> Thrissur) is applied in the store master build.
+      UniverseMT.csv supplied again is identical to the repo copy and has no city column.

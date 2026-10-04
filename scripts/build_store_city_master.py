@@ -164,6 +164,13 @@ def build(master_path, months):
     # one spelling per city: the most frequent capitalisation among the stores
     spell = allr["City Final"].dropna().groupby(allr["City Final"].dropna().str.lower()).agg(lambda s: s.value_counts().index[0])
     allr["City Final"] = allr["City Final"].map(lambda c: spell[c.lower()] if isinstance(c, str) else c)
+    # corrections confirmed from a retailer's own store list (Store_City_Corrections.csv): the city is set and the source says so
+    corr_path = OUT / "Store_City_Corrections.csv"
+    if corr_path.exists():
+        for _, c in pd.read_csv(corr_path, dtype=str).iterrows():
+            hit = (allr["Chain"] == c["Chain Name"]) & (allr["code"] == vc.norm_code(c["Site Code"]))
+            allr.loc[hit, "City Final"] = c["City"]
+            allr.loc[hit, "City Source"] = "Correction: " + c["Basis"][:60]
     allr = resolve_states(allr)
     cls = allr["City Final"].map(vc.classify)
     allr["Visit City"] = cls.map(lambda t: t[0])

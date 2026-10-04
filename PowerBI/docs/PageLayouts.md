@@ -397,6 +397,13 @@ to `IN URB MT`. Facewash and Shampoo are both Aug 26, so Month selects the same 
   `Pack Our Contribution %`. KPI cards: `Packs Not Present`, `Pack Gap Amount`.
 - **State x chain exposure** (table): `Nielsen Deck State Exposure` (typed from the review deck, Jun'26, not a workbook cut).
 
+**Account share block (Aug-26 update):** measures in `DAX/17_Account_Share_Measures.dax`, tables `Fact Account Category`, `Fact Account Category Geo`, `Fact Account Assortment`.
+- **Chain share MoM** (line): `Date Table[MonthStart]` x `Account Share %` per `Chain`; More Retail only from Jun 26 (see `Account Scope Note`).
+- **Account vs our sales** (clustered column): `Account Sales Lakh` and `Our Account Sales Lakh` by month, with `Account MoM %`.
+- **White space / low assortment** (table): `Account Category` x `Category % Of Chain`, `Account Share %`, `Our Articles`, `White Space Flag`, `Share Gap Lakh`.
+- **Top 5 categories by Zone and State** (bar, one per Chain): `Fact Account Category Geo[Zone/State]` x `Account Sales Lakh`, Top N 5 on `Account Sales Lakh`. Lulu and More only; Wellness has no state cut.
+- **Facewash plan**: card `Face Wash Account Share %` per chain next to Nielsen `Market Share %`; plan levers are in the Nielsen dashboard tab.
+
 **Price & Volume block (same page or a page 9b):** measures in `DAX/16_PriceVolume_Measures.dax`.
 - **Market growth split** (table, Nielsen): `Nielsen Category` x Brand with `Nielsen Volume Effect YoY`, `Nielsen Price Mix Effect YoY`,
   `Nielsen Price Per Ml`. Needs `Volume 000 L` and `Price Per Ml` in the Nielsen drop file (present in `nielsen_urban_mt_aug26.csv`).

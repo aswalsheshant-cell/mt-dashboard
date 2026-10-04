@@ -135,6 +135,15 @@ def main() -> int:
     pb = list(pack_brand_rows(folder, a.label, "facewash", months)) + list(pack_brand_rows(folder, a.label, "shampoo", months))
     write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Pack_Brand_Monthly" / f"nielsen_pack_brand_urban_mt_{slug}.csv",
           ["Month", "FY Year", "Nielsen Category", "Pack Size ml", "Brand", "Value Cr", "Volume L", "WD %", "Data Source Name"], pb)
+    # account (retailer) category share: the aggregates of build_account_share.py, copied to the seed folder the queries read
+    acct = a.root / "data" / "account_share"
+    if (acct / "Account_Category_Monthly.csv").exists():
+        import shutil
+        dest = a.root / "PowerBI" / "SeedData" / "Account"
+        dest.mkdir(parents=True, exist_ok=True)
+        for name in ("Account_Category_Monthly.csv", "Account_Category_Geo.csv", "Account_Assortment.csv", "Account_Category_Map.csv"):
+            shutil.copyfile(acct / name, dest / name)
+            print(f"wrote PowerBI/SeedData/Account/{name}")
     deck_path = folder / "Deck_MT_Review_Big3_v3_1.json"
     if deck_path.exists():
         deck = json.loads(deck_path.read_text(encoding="utf-8"))

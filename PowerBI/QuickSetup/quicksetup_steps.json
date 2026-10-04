@@ -127,6 +127,18 @@
       "52_Store_Universe_Overrides.pq": [
         "# RENAME QUERY TO: Store Universe Overrides",
         "# NOTE: Seed table; same file feeds dashboard/store_universe.js."
+      ],
+      "53_Fact_Account_Category.pq": [
+        "# RENAME QUERY TO: Fact Account Category",
+        "# NOTE: Seed table from SeedData\\Account; account-share measures are in DAX 17."
+      ],
+      "54_Fact_Account_Category_Geo.pq": [
+        "# RENAME QUERY TO: Fact Account Category Geo",
+        "# NOTE: Seed table from SeedData\\Account; account-share measures are in DAX 17."
+      ],
+      "55_Fact_Account_Assortment.pq": [
+        "# RENAME QUERY TO: Fact Account Assortment",
+        "# NOTE: Seed table from SeedData\\Account; account-share measures are in DAX 17."
       ]
     },
     "excluded": {
@@ -188,6 +200,10 @@
       ],
       "16_PriceVolume_Measures.dax": [
         "# TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "17_Account_Share_Measures.dax": [
+        "# TARGET: _Measures table (needs queries 53-55 and Date Table)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
       ]
     },
