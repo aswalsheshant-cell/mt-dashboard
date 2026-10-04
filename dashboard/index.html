@@ -1141,6 +1141,12 @@ function renderStoreCuts(content){
   content.innerHTML+=card('LFL vs NFL by chain','Lost = stores that sold last year and nothing this year',`<table class="tbl"><thead><tr><th>Chain</th><th>LFL stores</th><th>New stores</th><th>Restarted</th><th>LFL NSV</th><th>New NSV</th><th>Restarted NSV</th><th>LFL growth</th><th>Lost</th></tr></thead><tbody>${ch.slice(0,15).map(r=>`<tr><td>${esc(r.Chain)}</td>${lfl(r)}<td>${r.lost_stores==null?'–':num(r.lost_stores)}</td></tr>`).join('')}</tbody></table>`);
   const pk=(S.by_pack||[]).slice(0,10);
   content.innerHTML+=card('Pack size table','Share, stores selling and MoM',`<table class="tbl"><thead><tr><th>Pack</th><th>NSV</th><th>Share</th><th>Stores selling</th><th>MoM</th></tr></thead><tbody>${pk.map(x=>`<tr><td>${esc(x.pack)}</td><td>${crc(x.nsv)}</td><td>${ok(x.share_pct)?x.share_pct.toFixed(1)+'%':'–'}</td><td>${num(x.stores)}</td><td>${pc(x.mom_pct)}</td></tr>`).join('')}</tbody></table>`);
+  const MV=S.movers;
+  if(MV&&Array.isArray(MV.top_gainers)){
+    const mr=r=>`<tr><td>${esc(r.store)}</td><td>${esc(r.state)}</td><td>${crc(r.ly)}</td><td>${crc(r.ty)}</td><td>${pc(r.growth_pct)}</td><td>${num(r.ly_months)}</td></tr>`;
+    const mh='<thead><tr><th>Store</th><th>State</th><th>Last year</th><th>This year</th><th>Growth</th><th>LY months</th></tr></thead>';
+    content.innerHTML+=card('Biggest store movers (same stores)',`Only stores with ${MV.min_ly_months}+ months of sales last year: ${num(MV.eligible_stores)} stores. ${num(MV.thin_history_stores)} stores with less history are left out of store-level growth. Ranked by rupee change.`,`<table class="tbl">${mh}<tbody><tr><td colspan="6"><b>Top 10 gainers</b></td></tr>${MV.top_gainers.map(mr).join('')}<tr><td colspan="6"><b>Top 10 decliners</b></td></tr>${MV.top_decliners.map(mr).join('')}</tbody></table>`);
+  }
   const top=st.slice(0,8),c1=chartInCard(content,'State cut: NSV by store type','LFL, new, restarted and no-last-year-data stores, top 8 states.');
   inventoryHealthState.charts.storecutsState=new Chart(c1,{type:'bar',data:{labels:top.map(r=>r.State),datasets:[
     {label:'LFL stores',data:top.map(r=>r.lfl_ty),backgroundColor:'#118DFF'},{label:'New stores',data:top.map(r=>r.new_ty),backgroundColor:'#E66C37'},{label:'Restarted stores',data:top.map(r=>r.restart_ty),backgroundColor:'#F2A65A'},{label:'No LY store data',data:top.map(r=>r.noly_ty),backgroundColor:'#C8C6C4'}]},

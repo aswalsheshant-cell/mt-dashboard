@@ -114,3 +114,5 @@ Reliance Retail non-counter is kept out of LFL (last year is state-level only). 
 Monthly refresh: run `python scripts/build_store_cuts.py`, copy both CSVs to `RawDataFolders/Store_Cuts`, Refresh.
 
 NFL is split in two (column `NFL Kind`): **New** = no sales anywhere last year; **Restarted** = sold last year in another month (Sep-Mar). Apr-Aug FY27: 1,463 new stores (Rs 4.9 Cr), 1,265 restarted (Rs 10.7 Cr). Measures: `New Stores`, `Restarted Stores`, `New Stores NSV Cr`, `Restarted Stores NSV Cr`.
+
+Store-level growth rule: shown only for stores with 3 or more months of sales last year (`LY Months Sold`, `Growth Basis` = Enough history / Thin history). Apr-Aug FY27: 8,284 LFL stores qualify, 365 are left out. Use `Store Growth % (3+ months)` and `LFL Growth % (3+ months)` on store lists and rankings (`Pan India` online accounts are not shown as stores in the web movers list). Web dashboard: "Biggest store movers" card.

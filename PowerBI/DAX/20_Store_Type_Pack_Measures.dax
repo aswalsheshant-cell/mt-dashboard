@@ -40,6 +40,22 @@ Lost Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact 
 NFL Share Of NSV % = DIVIDE ( [NFL NSV Cr], [Store Type NSV This Year Cr] )
 
 // Same-store growth in rupees: how much of the growth the old stores gave (the rest comes from new stores)
+// Store-level growth rule: only stores with 3 or more months of sales last year (Growth Basis = "Enough history"). Use these on store lists and rankings.
+LFL NSV (3+ months) Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "LFL", 'Fact Store Type'[Growth Basis] = "Enough history" ), 10000000 )
+
+LFL NSV LY (3+ months) Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = "LFL", 'Fact Store Type'[Growth Basis] = "Enough history" ), 10000000 )
+
+LFL Growth % (3+ months) = DIVIDE ( [LFL NSV (3+ months) Cr] - [LFL NSV LY (3+ months) Cr], [LFL NSV LY (3+ months) Cr] )
+
+Store Growth % (3+ months) =
+    IF (
+        SELECTEDVALUE ( 'Fact Store Type'[Growth Basis] ) = "Thin history",
+        BLANK (),
+        DIVIDE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ) - SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ) )
+    )
+
 LFL Growth Cr = [LFL NSV Cr] - [LFL NSV LY Cr]
 
 Store Type Insight =

@@ -22,6 +22,7 @@ LY_FILE = ROOT / "data" / "offtake_fy26" / "Store_Month_NSV_FY26.csv"
 LINKS = ROOT / "data" / "offtake_fy26" / "Store_Key_Links_FY26.csv"
 OUT = ROOT / "data" / "store_cuts_aug26.json"
 JS_OUT = ROOT / "dashboard" / "store_cuts.js"
+MIN_LY_MONTHS = 3   # store-level growth is shown only for stores with at least this many months of sales last year
 LY_MONTHS = ["Apr'25", "May'25", "Jun'25", "Jul'25", "Aug'25"]
 
 
@@ -38,8 +39,10 @@ def build():
     ly_all["Key"] = ly_all["Store Key"].map(lambda k: links.get(k, k))
     sold_other_ly_months = set(ly_all[~ly_all["Month"].isin(LY_MONTHS) & (ly_all["NSV"] > 0)]["Key"])
     lys = ly.groupby("Key")["NSV"].sum()
+    ly_months = ly[ly["NSV"] > 0].groupby("Key")["Month"].nunique()
     lych = ly.groupby("Key")["Chain Name"].first()
     st["LY"] = st.index.map(lys).astype(float)
+    st["LY Months"] = st.index.map(ly_months).fillna(0).astype(int)
     reliance_no_ly = st["Chain"].eq("Reliance Retail")          # last year only at state level
     st["Type"] = "LFL"
     st.loc[st["LY"].isna() | (st["LY"] <= 0), "Type"] = "NFL"
@@ -52,7 +55,7 @@ def build():
     lost_df = pd.DataFrame({"Chain": lych.reindex(lost.index), "LY": lost})
 
     def roll(by):
-        g = st.rename(columns={"NFL Kind": "Kind"}).groupby(by + ["Type", "Kind"]).agg(Stores=("TY", "size"), TY=("TY", "sum"), LY=("LY", "sum")).reset_index()
+        g = st.rename(columns={"NFL Kind": "Kind"}).assign(Reliable=st["LY Months"] >= MIN_LY_MONTHS).groupby(by + ["Type", "Kind", "Reliable"]).agg(Stores=("TY", "size"), TY=("TY", "sum"), LY=("LY", "sum")).reset_index()
         rows = []
         for key, grp in g.groupby(by):
             key = key if isinstance(key, tuple) else (key,)
@@ -66,6 +69,10 @@ def build():
                 r[f"{tag}_stores"] = int(x["Stores"].sum())
                 r[f"{tag}_ty"] = round(float(x["TY"].sum()), 2)
             r["lfl_ly"] = round(float(grp[grp["Type"] == "LFL"]["LY"].sum()), 2)
+            ok = grp[(grp["Type"] == "LFL") & (grp["Reliable"])]
+            r["lfl3_ty"] = round(float(ok["TY"].sum()), 2)
+            r["lfl3_ly"] = round(float(ok["LY"].sum()), 2)
+            r["lfl3_growth_pct"] = round((r["lfl3_ty"] / r["lfl3_ly"] - 1) * 100, 1) if r["lfl3_ly"] > 0 else None
             r["ty_total"] = round(float(grp["TY"].sum()), 2)
             r["lfl_growth_pct"] = round((r["lfl_ty"] / r["lfl_ly"] - 1) * 100, 1) if r["lfl_ly"] > 0 else None
             lc = lost_df.groupby("Chain") if by == ["Chain"] else None
@@ -82,7 +89,15 @@ def build():
               "mom_pct": round((aug.get(r["Net Weight"], 0) / jul.get(r["Net Weight"], 0) - 1) * 100, 1) if jul.get(r["Net Weight"], 0) > 0 else None}
              for _, r in pk.sort_values("NSV", ascending=False).iterrows()]
     cat = d.groupby(["Category", "Net Weight"])["NSV"].sum().reset_index()
+    mv = st[(st["Type"] == "LFL") & (st["LY Months"] >= MIN_LY_MONTHS) & (st["LY"] > 0)].copy()
+    mv["g"] = (mv["TY"] / mv["LY"] - 1) * 100
+    mv["gain"] = mv["TY"] - mv["LY"]
+    row = lambda i, r: {"store": i, "chain": r["Chain"], "state": r["State"], "ly": round(float(r["LY"]), 2), "ty": round(float(r["TY"]), 2), "growth_pct": round(float(r["g"]), 0), "ly_months": int(r["LY Months"])}
+    movers = {"min_ly_months": MIN_LY_MONTHS, "eligible_stores": int(len(mv)), "thin_history_stores": int(((st["Type"] == "LFL") & (st["LY Months"] < MIN_LY_MONTHS)).sum()),
+              "top_gainers": [row(i, r) for i, r in mv[mv["State"] != "Pan India"].sort_values("gain", ascending=False).head(10).iterrows()],
+              "top_decliners": [row(i, r) for i, r in mv[mv["State"] != "Pan India"].sort_values("gain").head(10).iterrows()]}   # Pan India = an online account, not a store
     out = {
+        "movers": movers,
         "period": "Apr-Aug FY27 vs Apr-Aug FY26", "unit": "Rs lakh", "total_ty": round(float(d["NSV"].sum()), 2),
         "stores": {t: int((st["Type"] == t).sum()) for t in ("LFL", "NFL", "No LY store data")} | {"New": int((st["NFL Kind"] == "New").sum()), "Restarted": int((st["NFL Kind"] == "Restarted").sum())},
         "lost": {"stores": int(len(lost_df)), "ly_nsv": round(float(lost_df["LY"].sum()), 2)},
@@ -105,6 +120,8 @@ def write_powerbi_seed(st):
     SEED.mkdir(parents=True, exist_ok=True)
     a = st.reset_index().rename(columns={"sid": "Store Key", "Type": "Store Type"})
     a["NFL Kind"] = a["NFL Kind"].replace("", "Not NFL")
+    a["LY Months Sold"] = a["LY Months"]
+    a["Growth Basis"] = a["LY Months"].map(lambda m: "Enough history" if m >= MIN_LY_MONTHS else "Thin history")
     a["NSV This Year Rs"] = (a["TY"] * 100000).round(0)
     a["NSV Last Year Same Months Rs"] = (a["LY"].fillna(0) * 100000).round(0)
     a = a[["Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
@@ -113,9 +130,11 @@ def write_powerbi_seed(st):
     lost["Zone"] = "Not available"
     lost["Store Type"] = "Lost"
     lost["NFL Kind"] = "Not NFL"
+    lost["LY Months Sold"] = 0
+    lost["Growth Basis"] = "Thin history"
     lost["NSV This Year Rs"] = 0
     lost["NSV Last Year Same Months Rs"] = (lost["LY"] * 100000).round(0)
-    lost = lost[["Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
+    lost = lost[["Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "LY Months Sold", "Growth Basis", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
     pd.concat([a, lost], ignore_index=True).assign(**{"Period": "Apr-Aug FY27 vs Apr-Aug FY26"}).to_csv(SEED / "store_type_aug26.csv", index=False)
     b = st.attrs["pack_month"].copy()
     b["Month"] = b["file"].map(MONTH_LABEL)

@@ -1,4 +1,193 @@
 {
+ "movers": {
+  "min_ly_months": 3,
+  "eligible_stores": 8284,
+  "thin_history_stores": 365,
+  "top_gainers": [
+   {
+    "store": "Lulu|9401",
+    "chain": "Lulu",
+    "state": "UP/UK",
+    "ly": 29.53,
+    "ty": 99.42,
+    "growth_pct": 237.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Lulu|9416",
+    "chain": "Lulu",
+    "state": "Tamil Nadu",
+    "ly": 34.58,
+    "ty": 97.25,
+    "growth_pct": 181.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Lulu|9426",
+    "chain": "Lulu",
+    "state": "Telangana",
+    "ly": 11.22,
+    "ty": 67.4,
+    "growth_pct": 501.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Lulu|9211",
+    "chain": "Lulu",
+    "state": "Kerala",
+    "ly": 28.06,
+    "ty": 61.98,
+    "growth_pct": 121.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Lulu|9226",
+    "chain": "Lulu",
+    "state": "Kerala",
+    "ly": 14.38,
+    "ty": 37.06,
+    "growth_pct": 158.0,
+    "ly_months": 5
+   },
+   {
+    "store": "More Retail|KOLKATA",
+    "chain": "More Retail",
+    "state": "West Bengal",
+    "ly": 27.18,
+    "ty": 49.35,
+    "growth_pct": 82.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Lulu|9201",
+    "chain": "Lulu",
+    "state": "Kerala",
+    "ly": 34.88,
+    "ty": 55.42,
+    "growth_pct": 59.0,
+    "ly_months": 5
+   },
+   {
+    "store": "D-Mart|4204",
+    "chain": "D-Mart",
+    "state": "Maharashtra",
+    "ly": 12.74,
+    "ty": 31.02,
+    "growth_pct": 144.0,
+    "ly_months": 5
+   },
+   {
+    "store": "D-Mart|4135",
+    "chain": "D-Mart",
+    "state": "Maharashtra",
+    "ly": 21.97,
+    "ty": 40.16,
+    "growth_pct": 83.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Lulu|9260",
+    "chain": "Lulu",
+    "state": "Kerala",
+    "ly": 6.9,
+    "ty": 25.02,
+    "growth_pct": 263.0,
+    "ly_months": 5
+   }
+  ],
+  "top_decliners": [
+   {
+    "store": "Walmart CNC|4724",
+    "chain": "Walmart CNC",
+    "state": "Maharashtra",
+    "ly": 10.84,
+    "ty": 1.32,
+    "growth_pct": -88.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Walmart CNC|4716",
+    "chain": "Walmart CNC",
+    "state": "Chhattisgarh",
+    "ly": 7.19,
+    "ty": 1.83,
+    "growth_pct": -75.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Walmart CNC|4719",
+    "chain": "Walmart CNC",
+    "state": "Jammu & Kasmir",
+    "ly": 9.77,
+    "ty": 4.61,
+    "growth_pct": -53.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Health & Glow|135",
+    "chain": "Health & Glow",
+    "state": "Tamil Nadu",
+    "ly": 8.09,
+    "ty": 4.01,
+    "growth_pct": -50.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Health & Glow|299",
+    "chain": "Health & Glow",
+    "state": "Karnataka",
+    "ly": 4.84,
+    "ty": 1.5,
+    "growth_pct": -69.0,
+    "ly_months": 5
+   },
+   {
+    "store": "D-Mart|5222",
+    "chain": "D-Mart",
+    "state": "Andhra Pradesh",
+    "ly": 10.72,
+    "ty": 7.42,
+    "growth_pct": -31.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Health & Glow|85",
+    "chain": "Health & Glow",
+    "state": "Tamil Nadu",
+    "ly": 8.37,
+    "ty": 5.22,
+    "growth_pct": -38.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Walmart CNC|4814",
+    "chain": "Walmart CNC",
+    "state": "Andhra Pradesh",
+    "ly": 3.9,
+    "ty": 0.77,
+    "growth_pct": -80.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Health & Glow|298",
+    "chain": "Health & Glow",
+    "state": "Tamil Nadu",
+    "ly": 5.46,
+    "ty": 2.33,
+    "growth_pct": -57.0,
+    "ly_months": 5
+   },
+   {
+    "store": "Walmart CNC|4727",
+    "chain": "Walmart CNC",
+    "state": "Uttar Pradesh",
+    "ly": 5.94,
+    "ty": 2.81,
+    "growth_pct": -53.0,
+    "ly_months": 5
+   }
+  ]
+ },
  "period": "Apr-Aug FY27 vs Apr-Aug FY26",
  "unit": "Rs lakh",
  "total_ty": 18971.68,
@@ -27,6 +216,9 @@
    "restart_stores": 70,
    "restart_ty": 590.49,
    "lfl_ly": 4176.1,
+   "lfl3_ty": 6355.36,
+   "lfl3_ly": 4170.7,
+   "lfl3_growth_pct": 52.4,
    "ty_total": 7017.13,
    "lfl_growth_pct": 53.3,
    "lost_stores": 1
@@ -44,6 +236,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 4708.35,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -61,6 +256,9 @@
    "restart_stores": 465,
    "restart_ty": 186.22,
    "lfl_ly": 1397.39,
+   "lfl3_ty": 3317.41,
+   "lfl3_ly": 1392.07,
+   "lfl3_growth_pct": 138.3,
    "ty_total": 3616.22,
    "lfl_growth_pct": 141.6,
    "lost_stores": 27
@@ -78,6 +276,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 874.4,
+   "lfl3_ty": 806.31,
+   "lfl3_ly": 874.4,
+   "lfl3_growth_pct": -7.8,
    "ty_total": 1035.14,
    "lfl_growth_pct": -7.8,
    "lost_stores": 0
@@ -95,6 +296,9 @@
    "restart_stores": 1,
    "restart_ty": 9.39,
    "lfl_ly": 224.56,
+   "lfl3_ty": 603.84,
+   "lfl3_ly": 224.56,
+   "lfl3_growth_pct": 168.9,
    "ty_total": 625.07,
    "lfl_growth_pct": 168.9,
    "lost_stores": 7
@@ -112,6 +316,9 @@
    "restart_stores": 16,
    "restart_ty": 9.3,
    "lfl_ly": 383.57,
+   "lfl3_ty": 426.16,
+   "lfl3_ly": 383.04,
+   "lfl3_growth_pct": 11.3,
    "ty_total": 442.34,
    "lfl_growth_pct": 12.0,
    "lost_stores": 27
@@ -129,6 +336,9 @@
    "restart_stores": 4,
    "restart_ty": 3.62,
    "lfl_ly": 374.22,
+   "lfl3_ty": 303.61,
+   "lfl3_ly": 374.22,
+   "lfl3_growth_pct": -18.9,
    "ty_total": 309.97,
    "lfl_growth_pct": -18.9,
    "lost_stores": 26
@@ -146,6 +356,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 222.23,
+   "lfl3_ty": 265.71,
+   "lfl3_ly": 222.23,
+   "lfl3_growth_pct": 19.6,
    "ty_total": 265.71,
    "lfl_growth_pct": 19.6,
    "lost_stores": 1
@@ -163,6 +376,9 @@
    "restart_stores": 108,
    "restart_ty": 202.19,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 223.59,
    "lfl_growth_pct": null,
    "lost_stores": 11
@@ -180,6 +396,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 146.35,
+   "lfl3_ty": 194.03,
+   "lfl3_ly": 146.35,
+   "lfl3_growth_pct": 32.6,
    "ty_total": 215.45,
    "lfl_growth_pct": 32.6,
    "lost_stores": 10
@@ -197,6 +416,9 @@
    "restart_stores": 25,
    "restart_ty": 8.11,
    "lfl_ly": 63.8,
+   "lfl3_ty": 112.44,
+   "lfl3_ly": 63.08,
+   "lfl3_growth_pct": 78.2,
    "ty_total": 166.95,
    "lfl_growth_pct": 84.4,
    "lost_stores": 7
@@ -214,6 +436,9 @@
    "restart_stores": 268,
    "restart_ty": 45.64,
    "lfl_ly": 8.68,
+   "lfl3_ty": 15.12,
+   "lfl3_ly": 8.68,
+   "lfl3_growth_pct": 74.2,
    "ty_total": 64.4,
    "lfl_growth_pct": 74.2,
    "lost_stores": 1
@@ -231,6 +456,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 72.17,
+   "lfl3_ty": 51.11,
+   "lfl3_ly": 72.15,
+   "lfl3_growth_pct": -29.2,
    "ty_total": 51.12,
    "lfl_growth_pct": -29.2,
    "lost_stores": 1
@@ -248,6 +476,9 @@
    "restart_stores": 13,
    "restart_ty": 7.46,
    "lfl_ly": 16.79,
+   "lfl3_ty": 32.48,
+   "lfl3_ly": 16.77,
+   "lfl3_growth_pct": 93.7,
    "ty_total": 43.71,
    "lfl_growth_pct": 95.8,
    "lost_stores": 12
@@ -265,6 +496,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 95.19,
+   "lfl3_ty": 36.9,
+   "lfl3_ly": 95.19,
+   "lfl3_growth_pct": -61.2,
    "ty_total": 36.9,
    "lfl_growth_pct": -61.2,
    "lost_stores": 1
@@ -282,6 +516,9 @@
    "restart_stores": 53,
    "restart_ty": 2.84,
    "lfl_ly": 5.5,
+   "lfl3_ty": 18.58,
+   "lfl3_ly": 5.22,
+   "lfl3_growth_pct": 255.9,
    "ty_total": 33.54,
    "lfl_growth_pct": 306.5,
    "lost_stores": 12
@@ -299,6 +536,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 5.76,
+   "lfl3_ty": 10.24,
+   "lfl3_ly": 5.76,
+   "lfl3_growth_pct": 77.8,
    "ty_total": 25.79,
    "lfl_growth_pct": 77.8,
    "lost_stores": 0
@@ -316,6 +556,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 10.76,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 17.53,
    "lfl_growth_pct": 31.7,
    "lost_stores": 62
@@ -333,6 +576,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 16.49,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -350,6 +596,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 15.26,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -367,6 +616,9 @@
    "restart_stores": 5,
    "restart_ty": 1.22,
    "lfl_ly": 4.86,
+   "lfl3_ty": 6.2,
+   "lfl3_ly": 4.58,
+   "lfl3_growth_pct": 35.4,
    "ty_total": 9.29,
    "lfl_growth_pct": 61.7,
    "lost_stores": 8
@@ -384,6 +636,9 @@
    "restart_stores": 29,
    "restart_ty": 4.56,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 8.04,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -401,6 +656,9 @@
    "restart_stores": 190,
    "restart_ty": 1.3,
    "lfl_ly": 0.28,
+   "lfl3_ty": 0.01,
+   "lfl3_ly": 0.01,
+   "lfl3_growth_pct": 0.0,
    "ty_total": 5.31,
    "lfl_growth_pct": 46.4,
    "lost_stores": 215
@@ -418,6 +676,9 @@
    "restart_stores": 3,
    "restart_ty": 0.19,
    "lfl_ly": 2.03,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 5.02,
    "lfl_growth_pct": 12.3,
    "lost_stores": 4
@@ -435,6 +696,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 4.54,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -452,6 +716,9 @@
    "restart_stores": 15,
    "restart_ty": 1.04,
    "lfl_ly": 3.98,
+   "lfl3_ty": 2.29,
+   "lfl3_ly": 3.96,
+   "lfl3_growth_pct": -42.2,
    "ty_total": 3.84,
    "lfl_growth_pct": -35.9,
    "lost_stores": 7
@@ -469,6 +736,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 2.68,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -486,6 +756,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 1.13,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -503,6 +776,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 0.54,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -520,6 +796,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 0.45,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -537,6 +816,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 0.18,
    "lfl_growth_pct": null,
    "lost_stores": 0
@@ -556,6 +838,9 @@
    "restart_stores": 45,
    "restart_ty": 98.03,
    "lfl_ly": 1707.88,
+   "lfl3_ty": 2568.82,
+   "lfl3_ly": 1704.45,
+   "lfl3_growth_pct": 50.7,
    "ty_total": 2938.38,
    "lfl_growth_pct": 52.0,
    "lost_stores": null
@@ -573,6 +858,9 @@
    "restart_stores": 100,
    "restart_ty": 115.02,
    "lfl_ly": 1094.12,
+   "lfl3_ty": 1789.19,
+   "lfl3_ly": 1092.99,
+   "lfl3_growth_pct": 63.7,
    "ty_total": 2250.4,
    "lfl_growth_pct": 64.5,
    "lost_stores": null
@@ -590,6 +878,9 @@
    "restart_stores": 99,
    "restart_ty": 50.65,
    "lfl_ly": 702.42,
+   "lfl3_ty": 1122.43,
+   "lfl3_ly": 691.07,
+   "lfl3_growth_pct": 62.4,
    "ty_total": 1361.92,
    "lfl_growth_pct": 62.7,
    "lost_stores": null
@@ -607,6 +898,9 @@
    "restart_stores": 119,
    "restart_ty": 114.23,
    "lfl_ly": 554.71,
+   "lfl3_ty": 1010.29,
+   "lfl3_ly": 554.37,
+   "lfl3_growth_pct": 82.2,
    "ty_total": 1345.37,
    "lfl_growth_pct": 83.1,
    "lost_stores": null
@@ -624,6 +918,9 @@
    "restart_stores": 20,
    "restart_ty": 53.45,
    "lfl_ly": 672.31,
+   "lfl3_ty": 1025.33,
+   "lfl3_ly": 672.15,
+   "lfl3_growth_pct": 52.5,
    "ty_total": 1331.72,
    "lfl_growth_pct": 52.7,
    "lost_stores": null
@@ -641,6 +938,9 @@
    "restart_stores": 64,
    "restart_ty": 60.54,
    "lfl_ly": 541.68,
+   "lfl3_ty": 882.84,
+   "lfl3_ly": 541.14,
+   "lfl3_growth_pct": 63.1,
    "ty_total": 1215.51,
    "lfl_growth_pct": 63.9,
    "lost_stores": null
@@ -658,6 +958,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 874.4,
+   "lfl3_ty": 806.31,
+   "lfl3_ly": 874.4,
+   "lfl3_growth_pct": -7.8,
    "ty_total": 1035.14,
    "lfl_growth_pct": -7.8,
    "lost_stores": null
@@ -675,6 +978,9 @@
    "restart_stores": 146,
    "restart_ty": 223.47,
    "lfl_ly": 297.16,
+   "lfl3_ty": 457.63,
+   "lfl3_ly": 295.9,
+   "lfl3_growth_pct": 54.7,
    "ty_total": 910.92,
    "lfl_growth_pct": 58.4,
    "lost_stores": null
@@ -692,6 +998,9 @@
    "restart_stores": 315,
    "restart_ty": 26.67,
    "lfl_ly": 249.42,
+   "lfl3_ty": 426.72,
+   "lfl3_ly": 248.17,
+   "lfl3_growth_pct": 71.9,
    "ty_total": 860.42,
    "lfl_growth_pct": 74.7,
    "lost_stores": null
@@ -709,6 +1018,9 @@
    "restart_stores": 23,
    "restart_ty": 75.19,
    "lfl_ly": 267.28,
+   "lfl3_ty": 456.13,
+   "lfl3_ly": 266.57,
+   "lfl3_growth_pct": 71.1,
    "ty_total": 825.27,
    "lfl_growth_pct": 74.9,
    "lost_stores": null
@@ -726,6 +1038,9 @@
    "restart_stores": 12,
    "restart_ty": 37.53,
    "lfl_ly": 309.29,
+   "lfl3_ty": 563.09,
+   "lfl3_ly": 308.81,
+   "lfl3_growth_pct": 82.3,
    "ty_total": 767.49,
    "lfl_growth_pct": 83.5,
    "lost_stores": null
@@ -743,6 +1058,9 @@
    "restart_stores": 30,
    "restart_ty": 44.29,
    "lfl_ly": 277.3,
+   "lfl3_ty": 404.91,
+   "lfl3_ly": 275.12,
+   "lfl3_growth_pct": 47.2,
    "ty_total": 575.36,
    "lfl_growth_pct": 52.8,
    "lost_stores": null
@@ -760,6 +1078,9 @@
    "restart_stores": 14,
    "restart_ty": 6.36,
    "lfl_ly": 140.23,
+   "lfl3_ty": 345.93,
+   "lfl3_ly": 140.14,
+   "lfl3_growth_pct": 146.8,
    "ty_total": 526.44,
    "lfl_growth_pct": 147.8,
    "lost_stores": null
@@ -777,6 +1098,9 @@
    "restart_stores": 42,
    "restart_ty": 8.74,
    "lfl_ly": 73.82,
+   "lfl3_ty": 181.08,
+   "lfl3_ly": 73.82,
+   "lfl3_growth_pct": 145.3,
    "ty_total": 373.35,
    "lfl_growth_pct": 145.8,
    "lost_stores": null
@@ -794,6 +1118,9 @@
    "restart_stores": 9,
    "restart_ty": 8.4,
    "lfl_ly": 31.24,
+   "lfl3_ty": 69.52,
+   "lfl3_ly": 31.11,
+   "lfl3_growth_pct": 123.5,
    "ty_total": 345.09,
    "lfl_growth_pct": 126.9,
    "lost_stores": null
@@ -811,6 +1138,9 @@
    "restart_stores": 81,
    "restart_ty": 46.55,
    "lfl_ly": 26.8,
+   "lfl3_ty": 53.36,
+   "lfl3_ly": 26.48,
+   "lfl3_growth_pct": 101.5,
    "ty_total": 299.57,
    "lfl_growth_pct": 114.5,
    "lost_stores": null
@@ -828,6 +1158,9 @@
    "restart_stores": 15,
    "restart_ty": 5.0,
    "lfl_ly": 4.15,
+   "lfl3_ty": 10.41,
+   "lfl3_ly": 3.75,
+   "lfl3_growth_pct": 177.6,
    "ty_total": 285.66,
    "lfl_growth_pct": 190.1,
    "lost_stores": null
@@ -845,6 +1178,9 @@
    "restart_stores": 68,
    "restart_ty": 10.91,
    "lfl_ly": 7.62,
+   "lfl3_ty": 13.03,
+   "lfl3_ly": 7.61,
+   "lfl3_growth_pct": 71.2,
    "ty_total": 274.72,
    "lfl_growth_pct": 75.3,
    "lost_stores": null
@@ -862,6 +1198,9 @@
    "restart_stores": 12,
    "restart_ty": 4.92,
    "lfl_ly": 39.39,
+   "lfl3_ty": 58.72,
+   "lfl3_ly": 39.38,
+   "lfl3_growth_pct": 49.1,
    "ty_total": 248.86,
    "lfl_growth_pct": 49.3,
    "lost_stores": null
@@ -879,6 +1218,9 @@
    "restart_stores": 14,
    "restart_ty": 21.41,
    "lfl_ly": 91.94,
+   "lfl3_ty": 149.17,
+   "lfl3_ly": 91.93,
+   "lfl3_growth_pct": 62.3,
    "ty_total": 245.03,
    "lfl_growth_pct": 62.3,
    "lost_stores": null
@@ -896,6 +1238,9 @@
    "restart_stores": 2,
    "restart_ty": 0.5,
    "lfl_ly": 11.34,
+   "lfl3_ty": 20.64,
+   "lfl3_ly": 11.34,
+   "lfl3_growth_pct": 82.0,
    "ty_total": 196.21,
    "lfl_growth_pct": 82.0,
    "lost_stores": null
@@ -913,6 +1258,9 @@
    "restart_stores": 6,
    "restart_ty": 52.56,
    "lfl_ly": 0.29,
+   "lfl3_ty": 0.35,
+   "lfl3_ly": 0.24,
+   "lfl3_growth_pct": 45.8,
    "ty_total": 172.16,
    "lfl_growth_pct": 89.7,
    "lost_stores": null
@@ -930,6 +1278,9 @@
    "restart_stores": 5,
    "restart_ty": 2.08,
    "lfl_ly": 47.17,
+   "lfl3_ty": 64.37,
+   "lfl3_ly": 47.16,
+   "lfl3_growth_pct": 36.5,
    "ty_total": 157.35,
    "lfl_growth_pct": 36.5,
    "lost_stores": null
@@ -947,6 +1298,9 @@
    "restart_stores": 6,
    "restart_ty": 6.18,
    "lfl_ly": 13.31,
+   "lfl3_ty": 30.23,
+   "lfl3_ly": 13.23,
+   "lfl3_growth_pct": 128.5,
    "ty_total": 137.76,
    "lfl_growth_pct": 129.1,
    "lost_stores": null
@@ -964,6 +1318,9 @@
    "restart_stores": 2,
    "restart_ty": 0.01,
    "lfl_ly": 23.84,
+   "lfl3_ty": 30.17,
+   "lfl3_ly": 23.84,
+   "lfl3_growth_pct": 26.6,
    "ty_total": 87.65,
    "lfl_growth_pct": 26.6,
    "lost_stores": null
@@ -981,6 +1338,9 @@
    "restart_stores": 11,
    "restart_ty": 0.64,
    "lfl_ly": 17.71,
+   "lfl3_ty": 11.85,
+   "lfl3_ly": 17.71,
+   "lfl3_growth_pct": -33.1,
    "ty_total": 81.43,
    "lfl_growth_pct": -33.1,
    "lost_stores": null
@@ -998,6 +1358,9 @@
    "restart_stores": 1,
    "restart_ty": 0.01,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 45.65,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1015,6 +1378,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 24.55,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1032,6 +1398,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 17.36,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1049,6 +1418,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.33,
+   "lfl3_ty": 0.66,
+   "lfl3_ly": 0.33,
+   "lfl3_growth_pct": 100.0,
    "ty_total": 13.55,
    "lfl_growth_pct": 100.0,
    "lost_stores": null
@@ -1066,6 +1438,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 9.77,
+   "lfl3_ty": 4.61,
+   "lfl3_ly": 9.77,
+   "lfl3_growth_pct": -52.8,
    "ty_total": 8.16,
    "lfl_growth_pct": -52.8,
    "lost_stores": null
@@ -1083,6 +1458,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 3.48,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1100,6 +1478,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 3.42,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1117,6 +1498,9 @@
    "restart_stores": 1,
    "restart_ty": 0.02,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 2.55,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1134,6 +1518,9 @@
    "restart_stores": 2,
    "restart_ty": 0.15,
    "lfl_ly": 1.24,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 2.16,
    "lfl_growth_pct": 8.9,
    "lost_stores": null
@@ -1151,6 +1538,9 @@
    "restart_stores": 1,
    "restart_ty": 0.04,
    "lfl_ly": 0.47,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 1.21,
    "lfl_growth_pct": -6.4,
    "lost_stores": null
@@ -1168,6 +1558,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 0.19,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1185,6 +1578,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 0.12,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1202,6 +1598,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 0.08,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1219,6 +1618,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 0.0,
+   "lfl3_ty": 0.0,
+   "lfl3_ly": 0.0,
+   "lfl3_growth_pct": null,
    "ty_total": 0.01,
    "lfl_growth_pct": null,
    "lost_stores": null
@@ -1238,6 +1640,9 @@
    "restart_stores": 64,
    "restart_ty": 114.35,
    "lfl_ly": 2223.07,
+   "lfl3_ty": 3380.34,
+   "lfl3_ly": 2221.54,
+   "lfl3_growth_pct": 52.2,
    "ty_total": 4179.94,
    "lfl_growth_pct": 52.6,
    "lost_stores": null
@@ -1255,6 +1660,9 @@
    "restart_stores": 235,
    "restart_ty": 235.97,
    "lfl_ly": 1789.53,
+   "lfl3_ty": 3145.42,
+   "lfl3_ly": 1787.49,
+   "lfl3_growth_pct": 76.0,
    "ty_total": 4123.94,
    "lfl_growth_pct": 76.8,
    "lost_stores": null
@@ -1272,6 +1680,9 @@
    "restart_stores": 352,
    "restart_ty": 451.1,
    "lfl_ly": 1054.85,
+   "lfl3_ty": 1695.68,
+   "lfl3_ly": 1050.23,
+   "lfl3_growth_pct": 61.5,
    "ty_total": 3683.07,
    "lfl_growth_pct": 65.3,
    "lost_stores": null
@@ -1289,6 +1700,9 @@
    "restart_stores": 164,
    "restart_ty": 111.02,
    "lfl_ly": 1245.34,
+   "lfl3_ty": 2005.27,
+   "lfl3_ly": 1232.2,
+   "lfl3_growth_pct": 62.7,
    "ty_total": 2579.28,
    "lfl_growth_pct": 63.1,
    "lost_stores": null
@@ -1306,6 +1720,9 @@
    "restart_stores": 418,
    "restart_ty": 55.58,
    "lfl_ly": 331.75,
+   "lfl3_ty": 578.06,
+   "lfl3_ly": 329.95,
+   "lfl3_growth_pct": 75.2,
    "ty_total": 2014.3,
    "lfl_growth_pct": 78.0,
    "lost_stores": null
@@ -1323,6 +1740,9 @@
    "restart_stores": 32,
    "restart_ty": 105.54,
    "lfl_ly": 569.69,
+   "lfl3_ty": 946.72,
+   "lfl3_ly": 567.13,
+   "lfl3_growth_pct": 66.9,
    "ty_total": 1356.01,
    "lfl_growth_pct": 69.9,
    "lost_stores": null
@@ -1340,6 +1760,9 @@
    "restart_stores": 0,
    "restart_ty": 0.0,
    "lfl_ly": 874.4,
+   "lfl3_ty": 806.31,
+   "lfl3_ly": 874.4,
+   "lfl3_growth_pct": -7.8,
    "ty_total": 1035.14,
    "lfl_growth_pct": -7.8,
    "lost_stores": null

@@ -33,7 +33,7 @@ def test_powerbi_queries_type_columns_that_exist_in_the_seed_files():
 def test_dax_only_reads_columns_the_queries_build():
     import re
     dax = (Path(__file__).resolve().parents[1] / "PowerBI" / "DAX" / "20_Store_Type_Pack_Measures.dax").read_text(encoding="utf-8")
-    st = {"Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "NSV This Year Rs", "NSV Last Year Same Months Rs", "Period"}
+    st = {"Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "LY Months Sold", "Growth Basis", "NSV This Year Rs", "NSV Last Year Same Months Rs", "Period"}
     pk = {"Month", "FY Year", "Category", "Pack", "NSV Rs", "Stores Selling", "MonthStart", "Pack Sort"}
     for tbl, cols in (("Fact Store Type", st), ("Fact Pack Size", pk)):
         used = set(re.findall(rf"'{tbl}'\[([^\]]+)\]", dax))
@@ -54,3 +54,11 @@ def test_nfl_splits_into_new_and_restarted():
     assert s["New"] + s["Restarted"] == s["NFL"]
     for k in ("by_chain", "by_state"):
         assert abs(sum(r["new_ty"] + r["restart_ty"] for r in D[k]) - sum(r["nfl_ty"] for r in D[k])) < 0.05
+
+
+def test_store_movers_only_use_stores_with_enough_history():
+    m = D["movers"]
+    assert m["min_ly_months"] == 3 and m["eligible_stores"] > 0
+    for r in m["top_gainers"] + m["top_decliners"]:
+        assert r["ly_months"] >= 3 and r["ly"] > 0
+    assert m["eligible_stores"] + m["thin_history_stores"] == D["stores"]["LFL"]
