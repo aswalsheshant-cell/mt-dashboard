@@ -27,6 +27,29 @@
     {"sz":"180–200ml", "val":41.2,"yoy":22.6,"clr":"#059669"},
     {"sz":">200ml",    "val":15.8,"yoy":17.1,"clr":"#047857"}
   ],
+  "shampoo": {
+    "period": "May 2026",
+    "period_prev_month": "Apr 2026",
+    "period_prev_year": "May 2025",
+    "basis": "Nielsen MS Val, Urban, Bottles",
+    "source_note": "Transcribed from scripts/build_shampoo_nielsen_slide.py (the May'26 Nielsen shampoo slide); no raw Nielsen shampoo export is in the repo. One month older than the Facewash period.",
+    "mamaearth_sales_cr": 6.94,
+    "mamaearth_sales_mom_pct": 4.0,
+    "mamaearth_sales_yoy_pct": 52.2,
+    "category_cr": 276.0,
+    "category_mom_pct": -3.3,
+    "category_yoy_pct": -2.8,
+    "brands": [
+      {"n":"Dove","ms_py":14.5,"ms_pm":13.1,"ms":13.3,"yoy_bps":-120},
+      {"n":"Head & Shoulders","ms_py":12.6,"ms_pm":12.0,"ms":11.7,"yoy_bps":-89},
+      {"n":"Clinic Plus","ms_py":9.7,"ms_pm":9.6,"ms":9.7,"yoy_bps":-3},
+      {"n":"L'Oreal Paris","ms_py":8.1,"ms_pm":9.4,"ms":9.3,"yoy_bps":119},
+      {"n":"Sunsilk","ms_py":8.4,"ms_pm":7.8,"ms":7.5,"yoy_bps":-91},
+      {"n":"Tresemme","ms_py":6.1,"ms_pm":6.6,"ms":6.8,"yoy_bps":66},
+      {"n":"Pantene","ms_py":3.9,"ms_pm":3.6,"ms":3.5,"yoy_bps":-42},
+      {"n":"Mamaearth","ms_py":1.6,"ms_pm":2.3,"ms":2.5,"yoy_bps":91}
+    ]
+  },
   "aug_actions": [
     {"title":"Hero-EAN OSA Audit — All Chains","owner":"NKAM · Dist team","budget":"₹0 (ops)","due":"Aug 15","desc":"Audit top-10 Facewash SKUs across 500+ stores; flag gaps in real-time"},
     {"title":"Close 2,000 New WD Stores","owner":"ASM East + West","budget":"₹0.3 Cr scheme","due":"Aug 25","desc":"Priority: Reliance, DMart, Star — target 91.2% WD by month-end"},
