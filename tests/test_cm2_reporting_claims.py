@@ -104,15 +104,6 @@ def test_rejects_missing_contract_and_conflicting_aliases(tmp_path, fault):
     w.save(path)
     with pytest.raises(ValueError):
         reporting.load_workbook_cuts(path)
-@pytest.fixture
-def tmp_path():
-    # Use files in an existing ignored directory because this Windows
-    # sandbox restricts new mode-0700 directories used by pytest.
-    folder = Path(__file__).resolve().parents[1] / '.superpowers'
-    before = set(folder.glob('synthetic-*.xlsx'))
-    yield folder
-    for path in set(folder.glob('synthetic-*.xlsx')) - before:
-        path.unlink()
 
 def test_provision_no_sales_control_keeps_claim_and_ba_split(tmp_path):
     path = workbook(tmp_path)
