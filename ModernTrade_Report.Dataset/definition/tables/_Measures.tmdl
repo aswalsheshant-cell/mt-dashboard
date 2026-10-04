@@ -344,3 +344,125 @@ table _Measures
 	measure 'Fact_PrimaryArticle Allocated Output Rows' =
 			COUNTROWS(Fact_PrimaryArticle)
 		displayFolder: Full report coverage
+
+	measure 'Primary NSV INR' =
+			IF(COUNTROWS(Fact_PrimaryArticle) = 0, BLANK(), SUM(Fact_PrimaryArticle[Primary NSV]))
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'Offtake NSV INR (All)' =
+			IF(COUNTROWS(Fact_OfftakeSales) = 0, BLANK(), SUM(Fact_OfftakeSales[Offtake NSV]))
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'Reliance Brand Counter Offtake NSV INR' =
+			VAR Rows = CALCULATETABLE(Fact_OfftakeSales, Fact_OfftakeSales[Chain] = "Reliance Brand Counter")
+			RETURN IF(COUNTROWS(Rows) = 0, BLANK(), SUMX(Rows, Fact_OfftakeSales[Offtake NSV]))
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'MT Offtake NSV INR' =
+			VAR Rows = CALCULATETABLE(Fact_OfftakeSales, Fact_OfftakeSales[Chain] <> "Reliance Brand Counter")
+			RETURN IF(COUNTROWS(Rows) = 0, BLANK(), SUMX(Rows, Fact_OfftakeSales[Offtake NSV]))
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'MT Offtake NSV INR LY Same Months' =
+			CALCULATE([MT Offtake NSV INR], DATEADD('Dim_Date'[Date], -1, YEAR))
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'MT Offtake YoY Comparable' =
+			VAR Cur = [Fact_OfftakeSales Covered Months]
+			VAR Prior = CALCULATE([Fact_OfftakeSales Covered Months], DATEADD('Dim_Date'[Date], -1, YEAR))
+			VAR CurSet = SUMMARIZE(Fact_OfftakeSales, 'Dim_Date'[FiscalMonth])
+			VAR PriorSet = CALCULATETABLE(SUMMARIZE(Fact_OfftakeSales, 'Dim_Date'[FiscalMonth]), DATEADD('Dim_Date'[Date], -1, YEAR))
+			RETURN IF(Cur > 0 && Cur = Prior && COUNTROWS(EXCEPT(CurSet, PriorSet)) = 0 && COUNTROWS(EXCEPT(PriorSet, CurSet)) = 0, 1, 0)
+		displayFolder: Full report measures
+
+	measure 'MT Offtake YoY Pct' =
+			IF([MT Offtake YoY Comparable] = 1, DIVIDE([MT Offtake NSV INR] - [MT Offtake NSV INR LY Same Months], [MT Offtake NSV INR LY Same Months]), BLANK())
+		formatString: 0.0%
+		displayFolder: Full report measures
+
+	measure 'MT Offtake YoY Label' =
+			VAR Cur = [Fact_OfftakeSales Covered Months]
+			VAR Prior = CALCULATE([Fact_OfftakeSales Covered Months], DATEADD('Dim_Date'[Date], -1, YEAR))
+			RETURN IF(Cur = 0, "Unavailable - no offtake rows in the selection", IF([MT Offtake YoY Comparable] = 1, "Like-for-like: " & Cur & " month(s) vs the same month(s) last year", "Not comparable - " & Cur & " covered month(s) vs " & Prior & " last year; growth withheld"))
+		displayFolder: Full report measures
+
+	measure 'Primary NSV INR LY Same Months' =
+			CALCULATE([Primary NSV INR], DATEADD('Dim_Date'[Date], -1, YEAR))
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'Primary YoY Comparable' =
+			VAR Cur = [Fact_PrimaryArticle Covered Months]
+			VAR Prior = CALCULATE([Fact_PrimaryArticle Covered Months], DATEADD('Dim_Date'[Date], -1, YEAR))
+			VAR CurSet = SUMMARIZE(Fact_PrimaryArticle, 'Dim_Date'[FiscalMonth])
+			VAR PriorSet = CALCULATETABLE(SUMMARIZE(Fact_PrimaryArticle, 'Dim_Date'[FiscalMonth]), DATEADD('Dim_Date'[Date], -1, YEAR))
+			RETURN IF(Cur > 0 && Cur = Prior && COUNTROWS(EXCEPT(CurSet, PriorSet)) = 0 && COUNTROWS(EXCEPT(PriorSet, CurSet)) = 0, 1, 0)
+		displayFolder: Full report measures
+
+	measure 'Primary YoY Pct' =
+			IF([Primary YoY Comparable] = 1, DIVIDE([Primary NSV INR] - [Primary NSV INR LY Same Months], [Primary NSV INR LY Same Months]), BLANK())
+		formatString: 0.0%
+		displayFolder: Full report measures
+
+	measure 'Primary YoY Label' =
+			VAR Cur = [Fact_PrimaryArticle Covered Months]
+			VAR Prior = CALCULATE([Fact_PrimaryArticle Covered Months], DATEADD('Dim_Date'[Date], -1, YEAR))
+			RETURN IF(Cur = 0, "Unavailable - no primary rows in the selection", IF([Primary YoY Comparable] = 1, "Like-for-like: " & Cur & " month(s) vs the same month(s) last year", "Not comparable - " & Cur & " covered month(s) vs " & Prior & " last year; growth withheld"))
+		displayFolder: Full report measures
+
+	measure 'Primary to MT Offtake Gap INR' =
+			VAR P = [Primary NSV INR]
+			VAR O = [MT Offtake NSV INR]
+			VAR SameCount = [Fact_PrimaryArticle Covered Months] = [Fact_OfftakeSales Covered Months]
+			VAR PrimaryOnly = COUNTROWS(EXCEPT(VALUES(Fact_PrimaryArticle[MonthStart]), VALUES(Fact_OfftakeSales[MonthStart])))
+			VAR OfftakeOnly = COUNTROWS(EXCEPT(VALUES(Fact_OfftakeSales[MonthStart]), VALUES(Fact_PrimaryArticle[MonthStart])))
+			RETURN IF(NOT ISBLANK(P) && NOT ISBLANK(O) && SameCount && PrimaryOnly = 0 && OfftakeOnly = 0, P - O)
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'Primary to MT Offtake Gap Label' =
+			IF(ISBLANK([Primary to MT Offtake Gap INR]), "Withheld - Primary and MT offtake do not cover the same months, or one is unavailable", "Primary (gross billing) minus MT offtake (excludes Reliance Brand Counter): two different measures, same months only")
+		displayFolder: Full report measures
+
+	measure 'Offtake Duplicate Key Rows' =
+			IF(COUNTROWS(Fact_OfftakeSales) = 0, BLANK(), COUNTROWS(Fact_OfftakeSales) - COUNTROWS(SUMMARIZE(Fact_OfftakeSales, Fact_OfftakeSales[MonthStart], Fact_OfftakeSales[Store Code], Fact_OfftakeSales[Article Code])))
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'Offtake Key Status' =
+			IF(COUNTROWS(Fact_OfftakeSales) = 0, "Unavailable - no offtake rows", IF([Offtake Duplicate Key Rows] > 0, [Offtake Duplicate Key Rows] & " duplicate-key row(s) kept as source rows; totals include them", "No duplicate month/store/article keys"))
+		displayFolder: Full report measures
+
+	measure 'Offtake Reporting Stores' =
+			VAR Stores = CALCULATE(DISTINCTCOUNT(Fact_OfftakeSales[Store Key]), Fact_OfftakeSales[Chain] <> "Reliance Brand Counter")
+			RETURN IF(Stores = 0, BLANK(), Stores)
+		formatString: #,##0
+		displayFolder: Full report measures
+
+	measure 'Nielsen Value Share Pct' =
+			VAR Market = SUM(Fact_Nielsen[Market Value Sales])
+			VAR Ours = SUM(Fact_Nielsen[Our Brand Sales])
+			RETURN IF(COUNTROWS(Fact_Nielsen) = 0, BLANK(), DIVIDE(Ours, Market))
+		formatString: 0.0%
+		displayFolder: Full report measures
+
+	measure 'Forecast Source Status' =
+			"Unavailable - no target or forecast table is loaded in this model; forecast figures stay in the dashboard until a governed source is added"
+		displayFolder: Full report measures
+
+	measure 'Alerts Source Status' =
+			"Unavailable - alert thresholds are computed in the dashboard pipeline; no governed alert source is loaded in this model"
+		displayFolder: Full report measures
+
+	measure 'NPI Source Status' =
+			"Unavailable - NPI launch cohorts are computed in the dashboard pipeline; this model has no NPI fact"
+		displayFolder: Full report measures
+
+	measure 'NPI YoY Label' =
+			"Provisional - observed-only cohorts; not confirmed NPI growth. Confirmed NPI YoY is shown only where the dashboard marks the comparison valid"
+		displayFolder: Full report measures
