@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def _period(value, row):
-    return _parse_period(value.strip(), row.get('Year', '').strip(), row.get('FY', row.get('FY Year', '')).strip())
+    return _parse_period((value or '').strip(), (row.get('Year') or '').strip(), (row.get('FY') or row.get('FY Year') or '').strip())
 
 
 @lru_cache(maxsize=8192)
@@ -44,7 +44,8 @@ def _parse_period(value, year, fy):
 def inspect_sources(repo_root: Path, manifest_path: Path) -> dict:
     """Return physical rows, coverage and key issues, never changing inputs.
 
-    available means readable files cover required periods; it is not Finance
+    available means readable files cover any required periods and dependencies;
+    current_period_status is unassessed until a period is selected. Neither is Finance
     approval or model readiness. A missing/unreadable source has null row_count.
     Derived queries expose dependencies and null counts until model execution.
     """
@@ -56,9 +57,13 @@ def inspect_sources(repo_root: Path, manifest_path: Path) -> dict:
         raise ValueError('Duplicate source IDs in manifest')
     results = {}
     for source in definitions:
-        files = sorted({p for pattern in source.get('paths', []) for p in repo_root.glob(pattern)
-                        if p.is_file() and not p.name.startswith('_')})
-        issues, periods, keys = [], set(), Counter()
+        matches = {pattern: [p for p in repo_root.glob(pattern)
+                             if p.is_file() and not p.name.startswith('_')]
+                   for pattern in source.get('paths', [])}
+        files = sorted({p for paths in matches.values() for p in paths})
+        missing_paths = sorted(pattern for pattern, paths in matches.items() if not paths)
+        issues = [{'type': 'missing_file', 'path': pattern} for pattern in missing_paths]
+        periods, keys = set(), Counter()
         count = 0
         readable = False
         for path in files:
@@ -78,6 +83,9 @@ def inspect_sources(repo_root: Path, manifest_path: Path) -> dict:
                         if not any(v for v in row.values()):
                             continue
                         count += 1
+                        if None in row or any(value is None for value in row.values()):
+                            issues.append({'type': 'malformed_row', 'file': path.relative_to(repo_root).as_posix(), 'row': reader.line_num})
+                            continue
                         for column in source.get('period_columns', []):
                             value = row.get(column, '') or ''
                             period = _period(value, row)
@@ -104,23 +112,62 @@ def inspect_sources(repo_root: Path, manifest_path: Path) -> dict:
                 issues.append({'type': 'duplicate_key', 'key': list(key), 'occurrences': occurrences})
         required = source.get('required_periods', manifest.get('required_periods', [])) if source.get('period_columns') else []
         missing_periods = sorted(set(required) - periods)
+        available = readable and not missing_periods and not any(i['type'] in ('read_error', 'unsupported_format', 'missing_file', 'malformed_row') for i in issues)
+        current_status = ('unassessed' if not required else 'available' if available else 'unavailable') if source.get('period_columns') else 'not_applicable'
         results[source['id']] = {
             'files': [p.relative_to(repo_root).as_posix() for p in files],
             'periods': sorted(periods), 'row_count': count if readable else None,
-            'key_issues': issues, 'available': readable and not missing_periods and not any(i['type'] in ('read_error', 'unsupported_format') for i in issues),
+            'key_issues': issues, 'available': available,
+            'missing_paths': missing_paths, 'current_period_status': current_status,
+            'current_period_available': current_status == 'available',
             'missing_periods': missing_periods, 'grain': source.get('grain'),
             'dimensions': source.get('dimensions', []), 'dependencies': source.get('dependencies', []),
             'inspection_basis': 'physical_source_rows' if files else 'no_physical_source',
         }
-    # Derived query output cannot be counted without executing its transformations.
-    for source in definitions:
-        if source.get('dependencies') and not source.get('paths'):
-            entry = results[source['id']]
-            dependencies = [results[d] for d in source['dependencies']]
-            entry.update(available=all(d['available'] for d in dependencies),
-                         files=sorted({f for d in dependencies for f in d['files']}),
-                         periods=sorted(set.intersection(*(set(d['periods']) for d in dependencies))),
-                         inspection_basis='dependency_coverage_only')
+    # Resolve the dependency graph independently of manifest order. Physical
+    # inputs keep their own files/counts; their readiness also needs dependencies.
+    by_id = {source['id']: source for source in definitions}
+    resolved, visiting = set(), set()
+
+    def resolve(source_id):
+        if source_id in resolved:
+            return
+        if source_id in visiting:
+            raise ValueError(f'Cyclic source dependency: {source_id}')
+        if source_id not in by_id:
+            raise ValueError(f'Unknown source dependency: {source_id}')
+        visiting.add(source_id)
+        source, entry = by_id[source_id], results[source_id]
+        dependency_ids = source.get('dependencies', [])
+        for dependency_id in dependency_ids:
+            resolve(dependency_id)
+        if dependency_ids:
+            dependencies = [results[d] for d in dependency_ids]
+            unavailable = [d for d in dependency_ids if not results[d]['available']]
+            entry['key_issues'].extend({'type': 'unavailable_dependency', 'source': d} for d in unavailable)
+            if not source.get('paths'):
+                entry.update(available=not unavailable,
+                             files=sorted({f for d in dependencies for f in d['files']}),
+                             periods=sorted(set.intersection(*(set(d['periods']) for d in dependencies))),
+                             inspection_basis='dependency_coverage_only')
+            else:
+                entry['available'] = entry['available'] and not unavailable
+            period_dependencies = [d for d in dependencies if d['current_period_status'] != 'not_applicable']
+            required = source.get('required_periods', manifest.get('required_periods', []))
+            if source.get('period_columns') or period_dependencies:
+                entry['missing_periods'] = sorted(set(entry['missing_periods']) | {p for d in period_dependencies for p in d['missing_periods']})
+                if not required:
+                    entry['current_period_status'] = 'unassessed'
+                elif entry['available'] and all(d['current_period_available'] for d in period_dependencies):
+                    entry['current_period_status'] = 'available'
+                else:
+                    entry['current_period_status'] = 'unavailable'
+                entry['current_period_available'] = entry['current_period_status'] == 'available'
+        visiting.remove(source_id)
+        resolved.add(source_id)
+
+    for source_id in ids:
+        resolve(source_id)
     return {'schema_version': 1, 'required_periods': manifest.get('required_periods', []), 'sources': results}
 
 

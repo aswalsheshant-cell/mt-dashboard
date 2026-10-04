@@ -95,3 +95,61 @@ def test_expense_fiscal_year_text_resolves_april_and_january(tmp_path):
     result = inspect(tmp_path, contract(['2025-04', '2026-01']))['sales']
     assert result['available'] is True
     assert result['periods'] == ['2025-04', '2026-01']
+
+def test_historical_source_without_selected_period_is_unassessed(tmp_path):
+    folder = tmp_path / 'PowerBI/RawDataFolders/Offtake_Monthly'
+    folder.mkdir(parents=True)
+    (folder / 'old.csv').write_text('Month,Store\n2026-04,A\n')
+    result = inspect(tmp_path, contract())['sales']
+    assert result['available'] is True
+    assert result['current_period_status'] == 'unassessed'
+    assert result['current_period_available'] is False
+
+
+def test_missing_required_file_in_multi_file_source_fails_closed(tmp_path):
+    (tmp_path / 'present.csv').write_text('Month,Store\n2026-09,A\n')
+    manifest = contract(['2026-09'])
+    manifest['sources'][0]['paths'] = ['present.csv', 'missing.csv']
+    result = inspect(tmp_path, manifest)['sales']
+    assert result['available'] is False
+    assert result['missing_paths'] == ['missing.csv']
+    assert any(i['type'] == 'missing_file' for i in result['key_issues'])
+
+
+def test_physical_source_dependency_propagates_without_losing_rows(tmp_path):
+    (tmp_path / 'sales.csv').write_text('Month,Store\n2026-09,A\n')
+    manifest = contract(['2026-09'])
+    manifest['sources'][0]['paths'] = ['sales.csv']
+    manifest['sources'][0]['dependencies'] = ['weights']
+    manifest['sources'].append({'id': 'weights', 'paths': ['weights.csv'], 'period_columns': ['Month']})
+    result = inspect(tmp_path, manifest)['sales']
+    assert result['available'] is False
+    assert result['current_period_available'] is False
+    assert result['row_count'] == 1
+    assert result['files'] == ['sales.csv']
+    assert any(i['type'] == 'unavailable_dependency' for i in result['key_issues'])
+    config = json.loads((ROOT / 'PowerBI/full_report_sources.json').read_text())
+    assert 'DistContWeights' in next(s for s in config['sources'] if s['id'] == 'Fact_PrimaryArticle')['dependencies']
+
+
+def test_short_csv_row_is_diagnosed_and_other_sources_are_inspected(tmp_path):
+    (tmp_path / 'bad.csv').write_text('Month,Year,Store\n2026-09\n')
+    (tmp_path / 'good.csv').write_text('Month,Store\n2026-09,A\n')
+    manifest = contract(['2026-09'])
+    manifest['sources'][0]['paths'] = ['bad.csv']
+    manifest['sources'].append({'id': 'other', 'paths': ['good.csv'], 'period_columns': ['Month']})
+    result = inspect(tmp_path, manifest)
+    assert result['sales']['available'] is False
+    assert any(i['type'] == 'malformed_row' for i in result['sales']['key_issues'])
+    assert result['other']['current_period_available'] is True
+
+def test_forward_dependencies_propagate_current_period_unassessment(tmp_path):
+    (tmp_path / 'sales.csv').write_text('Month,Store\n2026-04,A\n')
+    manifest = contract()
+    manifest['sources'][0]['paths'] = ['sales.csv']
+    manifest['sources'] = [{'id': 'outer', 'dependencies': ['inner']}, {'id': 'inner', 'dependencies': ['sales']}] + manifest['sources']
+    result = inspect(tmp_path, manifest)
+    assert result['outer']['available'] is True
+    assert result['outer']['current_period_status'] == 'unassessed'
+    assert result['outer']['current_period_available'] is False
+    assert result['outer']['row_count'] is None

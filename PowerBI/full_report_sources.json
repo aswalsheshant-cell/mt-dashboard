@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "required_periods": [],
-  "coverage_policy": "No reporting period inferred from system date. Set required_periods (YYYY-MM) for the selected report period; historical availability never proves current-period completeness. available is physical readability/period coverage, not approval.",
+  "coverage_policy": "No reporting period inferred from system date. Set required_periods (YYYY-MM) for the selected report period. current_period_status is unassessed and current_period_available=false until selected for period-bearing sources. available is physical readability/selected-period and dependency coverage, not approval. Every paths pattern is required; unmatched patterns are missing_file diagnostics.",
   "sources": [
     {
       "id": "Fact_PrimarySales",
@@ -174,7 +174,9 @@
         "Inv. Date",
         "Month"
       ],
-      "dependencies": [],
+      "dependencies": [
+        "DistContWeights"
+      ],
       "notes": "Repeated articles are valid transactions; no artificial source uniqueness key. INR net value; allocation expands rows under query 41."
     },
     {
