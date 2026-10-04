@@ -243,7 +243,9 @@ def chain_block(folder: Path, label: str):
     gap = [{**r, "Gap_NSV_lakh_at_all_chain_mix": float(r["Gap_NSV_lakh_at_all_chain_mix"]),
             "Share_of_all_chain_NSV_pct": float(r["Share_of_all_chain_NSV_pct"]), "Share_in_this_chain_pct": float(r["Share_in_this_chain_pct"])}
            for r in load_csv_rows(folder / f"Chain_Category_Gap_{label}.csv")]
-    return {"contribution": contrib, "range_pack": pack, "category_gap": gap}
+    packs = [{**r, "NSV_lakh": float(r["NSV_lakh"]), "States_present": int(r["States_present"]), "States_in_chain": int(r["States_in_chain"])}
+             for r in load_csv_rows(folder / f"Chain_Pack_Presence_{label}.csv")]
+    return {"contribution": contrib, "range_pack": pack, "category_gap": gap, "pack_presence": packs}
 
 
 def build_payload(root: Path, label: str, month: str, tracker_from: Path) -> dict:

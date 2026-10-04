@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""Write the Power BI drop-folder files for the Nielsen cut, from the same CSVs the dashboard uses.
+
+  PowerBI/RawDataFolders/Nielsen_Monthly/nielsen_urban_mt_<label>.csv       -> Fact Nielsen Market Share
+  PowerBI/RawDataFolders/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_<label>.csv -> Fact Nielsen Pack
+  PowerBI/SeedData/Masters/Nielsen_Deck_StateExposure.csv                    -> Nielsen Deck State Exposure
+
+Share columns are decimals (0.128 = 12.8%), values are absolute rupees (Cr x 1e7), as in
+_TEMPLATE_Nielsen_Monthly.csv. A blank source cell stays blank. Reads data/nielsen/*.csv only.
+
+    python scripts/build_nielsen_powerbi_seed.py --label Aug26 --month "Aug 26"
+"""
+import argparse
+import csv
+import json
+from pathlib import Path
+
+from build_nielsen_payload import (CATEGORY, FACTS, PACK_FACT, _pack_facts, get, load_snapshot, shift)
+from build_nielsen_dashboard import brand_label
+
+ROOT = Path(__file__).resolve().parent.parent
+CR = 1e7
+CAT_NAME = {"facewash": "Facewash", "shampoo": "Shampoo"}
+BRAND_FIX = {"The Derma Co": "The Derma Co."}        # spelling used in NielsenCompetitorMaster.csv
+SOURCE = "Nielsen Retail Intelligence IN URB MT"
+MON = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def pbi_month(label: str) -> str:
+    mon, yy = label.split()
+    return f"{mon}'{yy}"
+
+
+def fy_label(label: str) -> str:
+    """'Aug 26' -> '26-27' (Apr-Dec of year Y is FY Y-(Y+1); Jan-Mar of Y is (Y-1)-Y)."""
+    mon, yy = label.split()
+    y = int(yy)
+    start = y if MON.index(mon) >= 3 else y - 1
+    return f"{start % 100:02d}-{(start + 1) % 100:02d}"
+
+
+def frac(v):
+    return "" if v is None else round(v / 100, 6)
+
+
+def rupees(v):
+    return "" if v is None else round(v * CR, 2)
+
+
+def monthly_rows(snap, kind, months):
+    cat = CATEGORY[kind]
+    brands = sorted({p for (f, p) in snap["data"] if f == FACTS["value"] and p != cat and p.strip().upper() != "BRAND"})
+    for m in months:
+        market = get(snap, "value", cat, m)
+        for p in brands:
+            value = get(snap, "value", p, m)
+            ms, ms_vol = get(snap, "ms", p, m), get(snap, "ms_vol", p, m)
+            if value is None and ms is None:
+                continue                                   # brand not reported that month
+            name = brand_label(p)
+            yield [pbi_month(m), fy_label(m), CAT_NAME[kind], BRAND_FIX.get(name, name), "IN URB MT",
+                   rupees(market), rupees(value), frac(ms), frac(ms_vol), SOURCE]
+
+
+def pack_rows(folder: Path, label: str, kind: str, months):
+    name = {"facewash": "FW", "shampoo": "Shampoo"}[kind]
+    fact = PACK_FACT[kind][1]
+    basis = "Value Cr" if kind == "facewash" else "Volume L"
+    for m in months:
+        cat = _pack_facts(folder / f"Nielsen_{name}_PacksCategory_{label}.csv", m)
+        me = _pack_facts(folder / f"Nielsen_{name}_PacksMamaearth_{label}.csv", m)
+        for size, v in sorted(cat.items()):
+            c = v.get(fact)
+            if not c or c <= 0:
+                continue
+            mine = (me.get(size) or {}).get(fact) or 0.0
+            yield [pbi_month(m), fy_label(m), CAT_NAME[kind], f"{size:g}", basis, round(c, 4), round(mine, 4),
+                   "" if v.get("wd") is None else round(v["wd"], 3), SOURCE]
+
+
+def write(path: Path, header, rows):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = list(rows)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        w = csv.writer(handle)
+        w.writerow(header)
+        w.writerows(rows)
+    print(f"wrote {path.relative_to(ROOT)} ({len(rows)} rows)")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--label", required=True)
+    ap.add_argument("--month", required=True, help='latest month, e.g. "Aug 26"')
+    ap.add_argument("--root", type=Path, default=ROOT)
+    a = ap.parse_args()
+    folder = a.root / "data" / "nielsen"
+    fw = load_snapshot(folder / f"Nielsen_FW_Snapshot_{a.label}.csv")
+    sh = load_snapshot(folder / f"Nielsen_Shampoo_Snapshot_{a.label}.csv")
+    slug = a.label.lower()
+    header = ["Month", "FY Year", "Nielsen Category", "Brand", "Zone", "Market Value Sales", "Our Brand Sales",
+              "Value Market Share %", "Volume Market Share %", "Data Source Name"]
+    rows = list(monthly_rows(fw, "facewash", fw["months"])) + list(monthly_rows(sh, "shampoo", sh["months"]))
+    write(a.root / "PowerBI" / "RawDataFolders" / "Nielsen_Monthly" / f"nielsen_urban_mt_{slug}.csv", header, rows)
+    months = [a.month, shift(a.month, -12)]
+    prow = list(pack_rows(folder, a.label, "facewash", months)) + list(pack_rows(folder, a.label, "shampoo", months))
+    write(a.root / "PowerBI" / "RawDataFolders" / "Nielsen_Pack_Monthly" / f"nielsen_pack_urban_mt_{slug}.csv",
+          ["Month", "FY Year", "Nielsen Category", "Pack Size ml", "Basis", "Category Amount", "Our Amount", "Category WD %", "Data Source Name"], prow)
+    deck_path = folder / "Deck_MT_Review_Big3_v3_1.json"
+    if deck_path.exists():
+        deck = json.loads(deck_path.read_text(encoding="utf-8"))
+        cols = ["state", "mkt_fw", "mkt_sh", "me_fw", "me_sh", "dmart_fw", "dmart_sh", "rel_fw", "rel_sh", "apollo_fw", "apollo_sh", "lever"]
+        names = ["State", "Market FW Cr", "Market SH Cr", "ME Share FW %", "ME Share SH %", "Dmart FW %", "Dmart SH %", "Reliance FW %",
+                 "Reliance SH %", "Apollo FW %", "Apollo SH %", "Main Lever"]
+        write(a.root / "PowerBI" / "SeedData" / "Masters" / "Nielsen_Deck_StateExposure.csv", names + ["Source", "Period"],
+              [[("" if s[c] is None else s[c]) for c in cols] + ["MT_Review_Big3_v3_1.pptx (typed from deck)", deck["period"]] for s in deck["state_exposure"]])
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

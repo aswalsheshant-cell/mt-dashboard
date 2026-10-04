@@ -7990,6 +7990,736 @@
     "Status": "Under-weight",
     "Gap_NSV_lakh_at_all_chain_mix": 9.2
    }
+  ],
+  "pack_presence": [
+   {
+    "Chain": "APOLLO",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 487.11,
+    "States_present": 24,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "APOLLO",
+    "Category": "Face wash",
+    "Pack": "200",
+    "NSV_lakh": 167.354,
+    "States_present": 24,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "APOLLO",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 101.34,
+    "States_present": 24,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "APOLLO",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 50.137,
+    "States_present": 23,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "DMART",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 1242.574,
+    "States_present": 17,
+    "States_in_chain": 17
+   },
+   {
+    "Chain": "DMART",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 842.517,
+    "States_present": 17,
+    "States_in_chain": 17
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 301.535,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Face wash",
+    "Pack": "50",
+    "NSV_lakh": 165.681,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 5.276,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 0.545,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "H&G",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 5.472,
+    "States_present": 9,
+    "States_in_chain": 10
+   },
+   {
+    "Chain": "H&G",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 4.355,
+    "States_present": 10,
+    "States_in_chain": 10
+   },
+   {
+    "Chain": "H&G",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 0.571,
+    "States_present": 8,
+    "States_in_chain": 10
+   },
+   {
+    "Chain": "LULU",
+    "Category": "Face wash",
+    "Pack": "200",
+    "NSV_lakh": 35.4,
+    "States_present": 5,
+    "States_in_chain": 5
+   },
+   {
+    "Chain": "LULU",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 28.204,
+    "States_present": 5,
+    "States_in_chain": 5
+   },
+   {
+    "Chain": "LULU",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 21.037,
+    "States_present": 5,
+    "States_in_chain": 5
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 30.729,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Face wash",
+    "Pack": "50",
+    "NSV_lakh": 19.797,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 12.327,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 4.111,
+    "States_present": 10,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Face wash",
+    "Pack": "200",
+    "NSV_lakh": 3.449,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Face wash",
+    "Pack": "225",
+    "NSV_lakh": 0.042,
+    "States_present": 1,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "MORE RETAIL",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 29.889,
+    "States_present": 7,
+    "States_in_chain": 8
+   },
+   {
+    "Chain": "MORE RETAIL",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 21.656,
+    "States_present": 8,
+    "States_in_chain": 8
+   },
+   {
+    "Chain": "MORE RETAIL",
+    "Category": "Face wash",
+    "Pack": "50",
+    "NSV_lakh": 11.468,
+    "States_present": 8,
+    "States_in_chain": 8
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 988.804,
+    "States_present": 25,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Face wash",
+    "Pack": "200",
+    "NSV_lakh": 164.848,
+    "States_present": 25,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 139.147,
+    "States_present": 25,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Face wash",
+    "Pack": "50",
+    "NSV_lakh": 108.181,
+    "States_present": 25,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 17.119,
+    "States_present": 23,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Face wash",
+    "Pack": "225",
+    "NSV_lakh": 0.086,
+    "States_present": 4,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 20.819,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Face wash",
+    "Pack": "200",
+    "NSV_lakh": 15.179,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 13.818,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 3.257,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Face wash",
+    "Pack": "50",
+    "NSV_lakh": 0.125,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "VMM",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 33.8,
+    "States_present": 19,
+    "States_in_chain": 20
+   },
+   {
+    "Chain": "VMM",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 26.107,
+    "States_present": 20,
+    "States_in_chain": 20
+   },
+   {
+    "Chain": "VMM",
+    "Category": "Face wash",
+    "Pack": "50",
+    "NSV_lakh": 18.124,
+    "States_present": 19,
+    "States_in_chain": 20
+   },
+   {
+    "Chain": "VMM",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 0.146,
+    "States_present": 10,
+    "States_in_chain": 20
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Face wash",
+    "Pack": "100",
+    "NSV_lakh": 50.463,
+    "States_present": 4,
+    "States_in_chain": 4
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Face wash",
+    "Pack": "150",
+    "NSV_lakh": 0.142,
+    "States_present": 2,
+    "States_in_chain": 4
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Face wash",
+    "Pack": "250",
+    "NSV_lakh": 0.044,
+    "States_present": 1,
+    "States_in_chain": 4
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Face wash",
+    "Pack": "50",
+    "NSV_lakh": 0.04,
+    "States_present": 1,
+    "States_in_chain": 4
+   },
+   {
+    "Chain": "APOLLO",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 495.609,
+    "States_present": 23,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "APOLLO",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 40.103,
+    "States_present": 22,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "APOLLO",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 36.918,
+    "States_present": 23,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "APOLLO",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 24.71,
+    "States_present": 24,
+    "States_in_chain": 24
+   },
+   {
+    "Chain": "DMART",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 697.258,
+    "States_present": 17,
+    "States_in_chain": 17
+   },
+   {
+    "Chain": "DMART",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 627.77,
+    "States_present": 17,
+    "States_in_chain": 17
+   },
+   {
+    "Chain": "DMART",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 61.004,
+    "States_present": 8,
+    "States_in_chain": 17
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 44.769,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Shampoo",
+    "Pack": "180",
+    "NSV_lakh": 9.603,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 7.499,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Shampoo",
+    "Pack": "100",
+    "NSV_lakh": 7.498,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "FSN",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 3.357,
+    "States_present": 0,
+    "States_in_chain": 0
+   },
+   {
+    "Chain": "H&G",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 2.921,
+    "States_present": 9,
+    "States_in_chain": 10
+   },
+   {
+    "Chain": "H&G",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 2.826,
+    "States_present": 9,
+    "States_in_chain": 10
+   },
+   {
+    "Chain": "H&G",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 0.193,
+    "States_present": 7,
+    "States_in_chain": 10
+   },
+   {
+    "Chain": "LULU",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 59.748,
+    "States_present": 5,
+    "States_in_chain": 5
+   },
+   {
+    "Chain": "LULU",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 15.176,
+    "States_present": 5,
+    "States_in_chain": 5
+   },
+   {
+    "Chain": "LULU",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 6.0,
+    "States_present": 5,
+    "States_in_chain": 5
+   },
+   {
+    "Chain": "LULU",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 1.398,
+    "States_present": 5,
+    "States_in_chain": 5
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 31.49,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 14.567,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Shampoo",
+    "Pack": "650",
+    "NSV_lakh": 4.448,
+    "States_present": 9,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 3.279,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "METRO CNC",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 2.246,
+    "States_present": 11,
+    "States_in_chain": 11
+   },
+   {
+    "Chain": "MORE RETAIL",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 15.66,
+    "States_present": 7,
+    "States_in_chain": 8
+   },
+   {
+    "Chain": "MORE RETAIL",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 5.022,
+    "States_present": 6,
+    "States_in_chain": 8
+   },
+   {
+    "Chain": "MORE RETAIL",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 4.914,
+    "States_present": 7,
+    "States_in_chain": 8
+   },
+   {
+    "Chain": "MORE RETAIL",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 0.95,
+    "States_present": 5,
+    "States_in_chain": 8
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 1227.129,
+    "States_present": 25,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Shampoo",
+    "Pack": "650",
+    "NSV_lakh": 299.848,
+    "States_present": 25,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 106.322,
+    "States_present": 25,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Shampoo",
+    "Pack": "100",
+    "NSV_lakh": 8.906,
+    "States_present": 24,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Shampoo",
+    "Pack": "50",
+    "NSV_lakh": 4.453,
+    "States_present": 24,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 2.601,
+    "States_present": 22,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "RELIANCE",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 0.881,
+    "States_present": 9,
+    "States_in_chain": 25
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 25.468,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 8.227,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 4.266,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 1.531,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "SANCUS(RMT)",
+    "Category": "Shampoo",
+    "Pack": "1000",
+    "NSV_lakh": 0.018,
+    "States_present": 1,
+    "States_in_chain": 1
+   },
+   {
+    "Chain": "VMM",
+    "Category": "Shampoo",
+    "Pack": "600",
+    "NSV_lakh": 20.668,
+    "States_present": 19,
+    "States_in_chain": 20
+   },
+   {
+    "Chain": "VMM",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 19.827,
+    "States_present": 20,
+    "States_in_chain": 20
+   },
+   {
+    "Chain": "VMM",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 0.249,
+    "States_present": 11,
+    "States_in_chain": 20
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Shampoo",
+    "Pack": "250",
+    "NSV_lakh": 14.527,
+    "States_present": 4,
+    "States_in_chain": 4
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Shampoo",
+    "Pack": "200",
+    "NSV_lakh": 3.122,
+    "States_present": 4,
+    "States_in_chain": 4
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Shampoo",
+    "Pack": "400",
+    "NSV_lakh": 1.661,
+    "States_present": 4,
+    "States_in_chain": 4
+   },
+   {
+    "Chain": "WELLNESS FOREVER",
+    "Category": "Shampoo",
+    "Pack": "100",
+    "NSV_lakh": 0.053,
+    "States_present": 3,
+    "States_in_chain": 4
+   }
   ]
  },
  "deck": {

@@ -761,7 +761,7 @@ datasets:
     validation_status: VALIDATED
     source_priority: SOURCE_OF_TRUTH
     existing_pipeline: "scripts/extract_nielsen_report.py -> scripts/build_nielsen_payload.py -> data/nielsen_<mon>26.json -> scripts/build_nielsen_dashboard.py"
-    downstream_outputs: ["Nielsen market-share dashboard (templates/dashboard_template.html)"]
+    downstream_outputs: ["Nielsen market-share dashboard (templates/dashboard_template.html)", "dashboard/nielsen.js -> MT dashboard Demand & S&OP > Market Share", "PowerBI/RawDataFolders/Nielsen_Monthly + Nielsen_Pack_Monthly (scripts/build_nielsen_powerbi_seed.py)"]
     last_validated: "2026-10-04"
     modification_allowed: false
     notes: >

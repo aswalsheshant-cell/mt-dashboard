@@ -304,7 +304,12 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Category vol (000 L)</th><th>YoY %</th><th>ME vol (000 L)</th><th>ME share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="shp-tbody"></tbody></table></div>
   </div>
 
-  <div class="sec"><h3>5. Chain x range x pack: states still to fill <span class="note">&middot; internal offtake Apr-Aug, Mamaearth shampoo and face wash</span></h3>
+  <div class="sec" id="sec-pm"><h3>5. Big packs by chain: sold or not sold <span class="note">&middot; Nielsen pack size vs where Mamaearth sells it (internal offtake Apr-Aug)</span></h3>
+    <div class="note" id="pm-note"></div>
+    <div id="pm-wrap"></div>
+  </div>
+
+  <div class="sec"><h3>5b. Chain x range x pack: states still to fill <span class="note">&middot; internal offtake Apr-Aug, Mamaearth shampoo and face wash</span></h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chain</th><th class="l">Category</th><th class="l">Range</th><th>Pack</th><th>NSV &#8377;L</th><th>States present</th><th class="l">States missing</th></tr></thead><tbody id="rp-tbody"></tbody></table></div>
   </div>
 
@@ -656,6 +661,18 @@ function buildPacks(){
   el('pk-note').textContent='Gap = category pack size x (our overall share - our share in that pack). It is what we would sell if we held our overall share in the pack. Not every pack is a fit for the brand (check that it is a format we can make, for example sachet or bulk sizes); read it as a list to check, not a target. '+(SH_GAP?SH_GAP.note:'');
   tbody('fwp-tbody',packRows(FW_GAP,'cr'),x=>x);tbody('shp-tbody',packRows(SH_GAP,'vol'),x=>x);
 }
+function buildPackMatrix(){
+  const P=(CHAINS&&CHAINS.pack_presence)||[],C=(CHAINS&&CHAINS.contribution||[]).slice(0,6).map(c=>c.Chain);
+  if(!P.length||!C.length||(!FW_GAP&&!SH_GAP)){hide('sec-pm');return;}
+  const mk1=(G,cat,title)=>{
+    if(!G)return '';
+    const rows=G.rows.filter(r=>r.cat_share>=1||r.me_amount>0&&r.cat_share>=0.3).sort((a,b)=>b.cat_share-a.cat_share);
+    const cell=(ch,size)=>{const x=P.find(p=>p.Chain===ch&&p.Category===cat&&p.Pack===String(size));
+      return x?`<span class="st ${x.States_in_chain>0&&x.States_present<x.States_in_chain?'warn':'ok'}">${n0(x.NSV_lakh)} L${x.States_in_chain>0?' &middot; '+x.States_present+'/'+x.States_in_chain:''}</span>`:'<span class="st notmet">Not sold</span>';};
+    return `<div class="sub">${title}</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Our share in pack %</th>${C.map(c=>`<th>${esc(pretty(c))}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.size)}</td><td>${f1(r.cat_share,1)}</td><td>${f1(r.me_share_in_pack,1)}</td>${C.map(c=>`<td>${cell(c,r.size)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;};
+  el('pm-wrap').innerHTML=mk1(FW_GAP,'Face wash','Facewash &middot; packs above 1% of category value, and any pack we sell')+mk1(SH_GAP,'Shampoo','Shampoo &middot; packs above 1% of category volume, and any pack we sell');
+  el('pm-note').textContent='Each cell is the chain NSV (Rs lakh) and states where the pack sells out of the states the chain operates in (green = all states, amber = some states). Not sold = no Mamaearth sales of that pack in the chain Apr-Aug. A pack that is big in Nielsen and Not sold everywhere (for example Shampoo 1000 ml, Facewash 240 ml) is a pack we do not make or have not listed.';
+}
 function buildChainPacks(){
   const R=(CHAINS&&CHAINS.range_pack||[]).filter(r=>r.States_present<r.States_in_chain&&r.NSV_lakh>=5).sort((a,b)=>b.NSV_lakh-a.NSV_lakh).slice(0,30);
   const cap=pretty;
@@ -694,7 +711,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   trackerItems('aug-items',AUG_ACTIONS);trackerItems('sep-items',SEP_ACTIONS);
   el('gate-items').innerHTML=(GATES||[]).map(g=>`<div class="gate-item"><div class="gate-date">${esc(g.date)}</div><div class="gate-q">${esc(g.q)}</div><div class="gate-i">${esc(g.impact)}</div></div>`).join('');
   el('trk-note').textContent='Targets and budgets are the team’s plan; check them against the Opportunity sizing.';
-  updateProg();buildOpp();buildChains();buildPacks();buildChainPacks();buildDeckBits();
+  updateProg();buildOpp();buildChains();buildPacks();buildPackMatrix();buildChainPacks();buildDeckBits();
   el('cp-note').textContent=CHAINS?'Chain and pack figures: internal offtake Apr-Aug and Nielsen '+MARKET+'; deck figures are labelled.':'';
   el('foot-cp').textContent='Internal offtake NSV is Rs lakh, ex Reliance Brand Counter (offtake basis only). Nielsen = consumer offtake in '+(MARKET||'the report market')+'. Deck figures are typed from MT_Review_Big3_v3_1.pptx (Nielsen Jun\'26 state cut) and are not in the Aug-26 workbooks.';
   el('foot-ms').textContent=(MARKET?'Market '+MARKET+(UNIT?', '+UNIT:'')+'. ':'')+'Source: '+(GOV.source_reference||'Nielsen files in data/nielsen')+'. A blank source cell is shown as a dash, never zero.';

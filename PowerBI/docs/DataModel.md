@@ -26,6 +26,8 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact Offtake Sales` | Month × Store × Article | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact P&L` | Month × Chain × Brand × Category (derived) | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone | `Date Table[MonthStart]` → `[MonthStart]` |
+| `Fact Nielsen Pack` | Month × Nielsen Cat × Pack Size | `Date Table[MonthStart]` → `[MonthStart]`; `Category Master[Nielsen Category]` → `[Nielsen Category]` |
+| `Nielsen Deck State Exposure` | State (typed from the review deck) | none (stand-alone seed table) |
 | `Fact TDP` | Month × Chain × Article | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Primary ShipTo` | Month × Ship-To × Chain × Brand | `Date Table[MonthStart]` → `[MonthStartCalc]` |
 | `Fact Primary Article` | Month × Customer(Ship-to) × Chain × Brand × Article — DIST rows pre-exploded across chains by cont% (query 41); `[Chain]` is the allocated "Chain name for Dashboard", never a Ship To Name; unmatched rows carry "Unmapped Chain" | `Date Table[MonthStart]` → `[MonthStart]` |

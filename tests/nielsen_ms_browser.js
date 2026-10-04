@@ -90,8 +90,11 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
   await page.click('.tab-btn:nth-child(4)');
   t = await clean('chains');
   if (mode === 'aug') {
-    for (const needle of ['Which chains carried the growth', 'Dmart', 'Not present', 'Under-indexed', 'Does not tie', 'Maharashtra', 'Named plays', 'States present'])
+    for (const needle of ['Which chains carried the growth', 'Dmart', 'Not present', 'Under-indexed', 'Does not tie', 'Maharashtra', 'Named plays', 'States present', 'Big packs by chain', 'Not sold'])
       check(t.toLowerCase().includes(needle.toLowerCase()), `chains: expected "${needle}"`);
+    // big packs must be visible whatever their status (Facewash 200/240 ml, Shampoo 250/400/600/650/1000 ml)
+    const pm = await page.$eval('#pm-wrap', n => n.innerText);
+    for (const sz of ['200', '240', '250', '400', '600', '650', '1000']) check(new RegExp('(^|\\n)' + sz + '\\t').test(pm), `chains: pack ${sz} ml missing from the big-pack grid`);
     const rows = await page.$$eval('#fwp-tbody tr', n => n.length);
     check(rows >= 5, `chains: facewash pack table has ${rows} rows`);
     if (shotDir) await page.screenshot({ path: path.join(shotDir, 'chains.png'), fullPage: true });

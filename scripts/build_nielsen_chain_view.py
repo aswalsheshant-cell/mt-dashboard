@@ -100,6 +100,24 @@ def range_pack_presence(d):
     return pd.DataFrame(rows).sort_values(["Chain", "Category", "NSV_lakh"], ascending=[True, True, False])
 
 
+def chain_pack_presence(d, min_chain_nsv=100.0):
+    """Every pack size Mamaearth sells in each chain (all ranges together), face wash and shampoo."""
+    rows = []
+    for chain, g in d[~d.bc].groupby("Chain"):
+        if g.NSV.sum() < min_chain_nsv:
+            continue
+        all_states = sorted(s for s in g.State.unique() if s and s not in ("nan", "Pan India"))
+        for label, (cat, sub) in FOCUS.items():
+            h = g[(g.Sub_category == sub) & (g.Brand == "Mamaearth") & g["Net Weight"].notna()]
+            for pack, x in h.groupby(h["Net Weight"].map(lambda v: f"{int(v)}")):
+                if x.NSV.sum() <= 0:
+                    continue
+                # chains that report Pan India only (no state) get States_in_chain = 0: NSV is shown, state count is not
+                rows.append({"Chain": chain, "Category": label, "Pack": pack, "NSV_lakh": round(x.NSV.sum(), 3),
+                             "States_present": x[(x.NSV > 0) & (x.State != "Pan India")].State.nunique(), "States_in_chain": len(all_states)})
+    return pd.DataFrame(rows).sort_values(["Category", "Chain", "NSV_lakh"], ascending=[True, True, False])
+
+
 def chain_category_gap(d, min_chain_nsv=100.0):
     """Sub-categories that earn >= 2% of our all-chain NSV but are absent or under-weight in a chain."""
     x = d[~d.bc]
@@ -135,6 +153,7 @@ def main():
     contrib.to_csv(OUT / f"Chain_Contribution_{a.label}.csv", index=False)
     range_pack_presence(d).to_csv(OUT / f"Chain_Range_Pack_Presence_{a.label}.csv", index=False)
     chain_category_gap(d).to_csv(OUT / f"Chain_Category_Gap_{a.label}.csv", index=False)
+    chain_pack_presence(d).to_csv(OUT / f"Chain_Pack_Presence_{a.label}.csv", index=False)
     print(f"total offtake (ex Brand Counter) this year {tty:.1f} L, last year same months {tly:.1f} L")
     print(contrib.head(8).to_string())
 

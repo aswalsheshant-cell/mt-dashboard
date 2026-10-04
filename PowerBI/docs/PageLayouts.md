@@ -383,6 +383,21 @@ field.
 
 **Important categories:** Facewash, Shampoo, Sunscreen, Face Serum (others as data allows).
 
+**Data now in the kit (Aug-26 update):** `RawDataFolders/Nielsen_Monthly/nielsen_urban_mt_aug26.csv`
+holds real Facewash and Shampoo history for market IN URB MT (Aug 23 to Aug 26); set the Zone slicer
+to `IN URB MT`. Facewash and Shampoo are both Aug 26, so Month selects the same period for both.
+
+**Added visuals on this page (Chains & Packs block):**
+- **Chain contribution** (bar): `Chain Master[Chain]` x `Chain Contribution To Growth pp`; table with
+  `Total MT NSV`, `Chain Share of NSV %`, `Chain Growth %`, `Chain Share of Growth %`. Top 6 chains by `Total MT NSV`.
+  Internal Offtake (Reliance Brand Counter excluded); read as direction next to the Nielsen share gain.
+- **Pack presence** (table): `Fact Nielsen Pack[Pack Size ml]` x `Pack Category Mix %`, `Pack Our Share In Pack %`,
+  `Pack Presence Status`, `Pack Gap Amount`; conditional colour on `Pack Presence Status`
+  (Not present red, Under-indexed amber, Present green). One table per `Nielsen Category`; Facewash is value (Rs Cr),
+  Shampoo is volume (litres). KPI cards: `Packs Not Present`, `Pack Gap Amount`.
+- **State x chain exposure** (table): `Nielsen Deck State Exposure` (typed from the review deck, Jun'26, not a workbook cut).
+
+
 ---
 
 ## Page 10 — TDP Distribution Analysis

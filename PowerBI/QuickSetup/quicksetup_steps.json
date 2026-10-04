@@ -103,6 +103,14 @@
       ],
       "45_Fact_ClaimMaster.pq": [
         "# RENAME QUERY TO: Fact Claim Master"
+      ],
+      "47_Fact_Nielsen_Pack.pq": [
+        "# RENAME QUERY TO: Fact Nielsen Pack",
+        "# NOTE: Needs fnCombineFolder. Pack presence measures in DAX 04 read this table."
+      ],
+      "48_Nielsen_Deck_StateExposure.pq": [
+        "# RENAME QUERY TO: Nielsen Deck State Exposure",
+        "# NOTE: Seed table typed from the review deck; not a Nielsen workbook cut."
       ]
     },
     "excluded": {
@@ -168,4 +176,3 @@
     }
   }
 }
-

@@ -299,6 +299,23 @@ def build(template_path: Path, data_path: Path, output_path: Path) -> None:
         print(f"    {len(warnings)} warning(s) above — review before distributing")
 
 
+def emit_js(data_path: Path, out_path: Path) -> None:
+    """Write dashboard/nielsen.js (window.NIELSEN = payload) for the MT dashboard's Market Share view.
+
+    Same governance guard as build(): an ungoverned payload writes nothing.
+    """
+    data = load_payload(data_path)
+    blocking = governance_errors(data)
+    if blocking:
+        for e in blocking:
+            print(f"[x] {e}", file=sys.stderr)
+        raise SystemExit(f"Not written: {data_path.name} is not a governed Nielsen payload.")
+    data.pop("_comment", None)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text("window.NIELSEN=" + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
+    print(f"[✓] Wrote {out_path} ({out_path.stat().st_size // 1024} KB)")
+
+
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -321,7 +338,15 @@ def main() -> None:
         "--check-only", action="store_true",
         help="Only run the governance check (exit 2 if the payload may not be published)"
     )
+    parser.add_argument(
+        "--emit-js", type=Path,
+        help="Also write window.NIELSEN data for the MT dashboard (e.g. dashboard/nielsen.js)"
+    )
     args = parser.parse_args()
+
+    if args.emit_js:
+        emit_js(args.data, args.emit_js)
+        return
 
     if args.check_only:
         errors = governance_errors(load_payload(args.data))
