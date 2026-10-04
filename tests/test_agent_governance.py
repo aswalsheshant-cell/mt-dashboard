@@ -139,5 +139,45 @@ class LogTests(unittest.TestCase):
         self.assertTrue(any("chain broken" in p for p in g.check_log(self.log)))
 
 
+class AuditTests(unittest.TestCase):
+    """A protected-path commit with no approved decision is an ungoverned operation."""
+
+    def setUp(self):
+        import subprocess
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        self.log = self.repo / "log.jsonl"
+        run = lambda *a: subprocess.run(["git", "-C", str(self.repo), *a], check=True, capture_output=True, text=True).stdout.strip()
+        run("init", "-q"); run("config", "user.email", "t@t"); run("config", "user.name", "t")
+        (self.repo / "README").write_text("x"); run("add", "."); run("commit", "-qm", "base")
+        self.base = run("rev-parse", "HEAD")
+        (self.repo / "config").mkdir(); (self.repo / "config/baselines.json").write_text("{}")
+        run("add", "."); run("commit", "-qm", "change baseline")
+        self.sha = run("rev-parse", "HEAD")
+        (self.repo / "notes.txt").write_text("n"); run("add", "."); run("commit", "-qm", "harmless")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _decision(self, **kw):
+        d = dec(paths=["config/baselines.json"], approver="Owner",
+                evidence=[{"type": "commit", "sha": self.sha}])
+        d.update(kw)
+        return d
+
+    def test_protected_commit_without_record_is_flagged(self):
+        out = g.audit_range(self.base, "HEAD", self.log, pol(), self.repo)
+        self.assertEqual(len(out), 1)          # the harmless commit is not flagged
+        self.assertIn(self.sha[:10], out[0])
+
+    def test_approved_record_covers_the_commit(self):
+        g.record(self._decision(), self.log, pol(), self.repo)
+        self.assertEqual(g.audit_range(self.base, "HEAD", self.log, pol(), self.repo), [])
+
+    def test_record_that_misses_the_touched_file_does_not_cover(self):
+        g.record(self._decision(paths=["config/other.json"]), self.log, pol(), self.repo)
+        self.assertEqual(len(g.audit_range(self.base, "HEAD", self.log, pol(), self.repo)), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -140,7 +140,8 @@ outside the agent*, so an agent cannot decide its own permissions.
 | Evaluator | `scripts/agent_governance.py evaluate` | Returns ALLOWED / NEEDS_APPROVAL / BLOCKED with reasons. Unknown action = needs a human |
 | Decision log | `governance/decision_log.jsonl` | Hash-chained, append-only. `record()` refuses anything not ALLOWED |
 | Check | `scripts/agent_governance.py check` | Fails if a record is edited, deleted, or breaks the policy |
-| Tests | `tests/test_agent_governance.py` | 21 tests |
+| Audit | `scripts/agent_governance.py audit --base main` | Every commit that touches a protected path must be covered by an approved decision that lists that commit. Otherwise it is reported as an ungoverned change |
+| Tests | `tests/test_agent_governance.py` | 24 tests |
 
 Every record uses the five labels from `fmcg-decision-leader` (GO / GO WITH CONDITIONS /
 HOLD / ESCALATE / REJECT) plus: actor, action_class, evidence, rule, owner,
@@ -152,6 +153,13 @@ the `approvers` list, which is **empty until the MT Leadership / Finance owner s
 names** (`INTERNAL_BUSINESS_CONFIRMATION_REQUIRED`), so human-approval actions stay
 NEEDS_APPROVAL; (4) evidence must be a checkable `file`+sha256 or `commit` entry, and the
 check re-verifies it against the repo, so a typed sentence or a changed file fails.
+
+**Governed vs merely permitted (v3):** an action can be allowed by the permission rules
+and still be ungoverned, if no decision record travels with it. `check` tests the log;
+`audit` tests that real commits match the log. Suggested use: run `audit` before any
+merge to `main`. Note: the first two commits on this branch change the protected policy
+file with no approver on record, so `audit` flags them. That is correct, and it clears
+only when a listed human approves.
 
 **Hard stops in the policy:** merge is BLOCKED until a human confirms branch protection
 on `main`; releases/tags and overriding a failed control are FORBIDDEN; touching
@@ -181,6 +189,11 @@ were removed from the links. Nothing from these sources is copied into the repo.
 | 9 | PDF: Model-Centric Safety Cannot Fix OS-Layer Failures (Part 5) | READ, applied | governance outside the model; agent is untrusted |
 | 10 | PDF: Axiom Sea | READ, nothing to apply | identity-system theory |
 | 11 | PDF: The Lattice Layer | READ, nothing to apply | identity-system theory |
+| 12 | PDF: NATV, Non-Adversarial Threat Vector (GIC 1 of 4) | READ, applied | harm with no attacker: defaults, side effects, two tools interacting |
+| 13 | PDF: Co-Architecture and the Detection Method (GIC 2 of 4) | READ, applied | humans set the rules, the machine tests whether they hold; a mismatch is the signal |
+| 14 | PDF: GIC Case Study (GIC 3 of 4) | READ, applied | a system can be fully permitted, logged and monitored and still be ungoverned |
+| 15 | PDF: Identity Theory | READ, applied | every operation must carry the identity that governs it; compliance as a built-in property |
+| 16 | PDF: HER Law | READ, nothing to apply | physics analogy for identity continuity |
 
 **Open for the later discussion:** approver names; branch-protection confirmation;
 whether to add signed approvals (post 7); and what the policy should do when a rule is

@@ -10,6 +10,7 @@ agent cannot talk its way past them. Three jobs:
 
 CLI:
   python scripts/agent_governance.py check [--log PATH]
+  python scripts/agent_governance.py audit --base main [--head HEAD]
   python scripts/agent_governance.py evaluate decision.json
 """
 import argparse
@@ -183,11 +184,57 @@ def check_log(log_path=None, policy=None, repo=None):
     return problems
 
 
+def _git(repo, *args):
+    r = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise RuntimeError(r.stderr.strip() or "git failed")
+    return r.stdout.split()
+
+
+def audit_range(base, head="HEAD", log_path=None, policy=None, repo=None):
+    """Reconcile real changes against the decision log.
+
+    Every commit in base..head that touches a protected path must be covered by a
+    logged, approved decision: the record lists that commit as evidence and lists
+    each protected file the commit touched. A commit with no such record is an
+    ungoverned operation -- it happened, but no decision governed it.
+    Returns a list of problems (empty = every protected change is governed).
+    """
+    policy = policy or load_policy()
+    repo = repo or REPO
+    path = Path(log_path or LOG_PATH)
+    records = []
+    if path.exists():
+        records = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    problems = []
+    for sha in _git(repo, "rev-list", f"{base}..{head}"):
+        files = _git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", "-m", "--root", sha)
+        touched = [f for f in files if _is_protected(f, policy["protected_paths"])]
+        if not touched:
+            continue
+        covered = False
+        for rec in records:
+            shas = [e.get("sha", "") for e in rec.get("evidence", []) if isinstance(e, dict) and e.get("type") == "commit"]
+            if any(sha.startswith(x) or x.startswith(sha) for x in shas if x) \
+                    and set(touched) <= set(rec.get("paths", [])) \
+                    and evaluate(rec, policy)["verdict"] == ALLOWED:
+                covered = True
+                break
+        if not covered:
+            problems.append(f"commit {sha[:10]} changed protected file(s) {', '.join(touched)} "
+                            f"with no approved decision record")
+    return problems
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("check")
     c.add_argument("--log", default=None)
+    a = sub.add_parser("audit", help="every protected-path commit in base..head must have an approved decision")
+    a.add_argument("--base", required=True)
+    a.add_argument("--head", default="HEAD")
+    a.add_argument("--log", default=None)
     e = sub.add_parser("evaluate")
     e.add_argument("decision_json")
     args = ap.parse_args(argv)
@@ -197,6 +244,12 @@ def main(argv=None):
         for p in problems:
             print("FAIL", p)
         print("PASS: decision log clean" if not problems else f"{len(problems)} problem(s)")
+        return 1 if problems else 0
+    if args.cmd == "audit":
+        problems = audit_range(args.base, args.head, args.log)
+        for p in problems:
+            print("UNGOVERNED", p)
+        print("PASS: all protected changes are governed" if not problems else f"{len(problems)} ungoverned change(s)")
         return 1 if problems else 0
     result = evaluate(json.loads(Path(args.decision_json).read_text()))
     print(json.dumps(result, indent=2))
