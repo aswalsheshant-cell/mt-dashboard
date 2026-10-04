@@ -20,13 +20,12 @@ table Dim_Category
 		mode: import
 		source = ```
 			let
-			    Combined = Table.Combine({Table.RenameColumns(Table.SelectColumns(qFact_PrimarySales, {"Category"}), {{"Category", "Category_ID"}}),
-			        Table.RenameColumns(Table.SelectColumns(qFact_OfftakeSales, {"Category"}), {{"Category", "Category_ID"}}),
-			        Table.RenameColumns(Table.SelectColumns(qFact_TDP, {"Category"}), {{"Category", "Category_ID"}}),
-			        Table.RenameColumns(Table.SelectColumns(qFact_PrimaryArticle, {"Category"}), {{"Category", "Category_ID"}})}),
+			    Combined = Table.Combine({Table.RenameColumns(Table.SelectColumns(qFact_PrimarySales, {"Category Key", "Category"}), {{"Category Key", "Category_ID"}, {"Category", "Category_Name"}}),
+			        Table.RenameColumns(Table.SelectColumns(qFact_OfftakeSales, {"Category Key", "Category"}), {{"Category Key", "Category_ID"}, {"Category", "Category_Name"}}),
+			        Table.RenameColumns(Table.SelectColumns(qFact_TDP, {"Category Key", "Category"}), {{"Category Key", "Category_ID"}, {"Category", "Category_Name"}}),
+			        Table.RenameColumns(Table.SelectColumns(qFact_PrimaryArticle, {"Category Key", "Category"}), {{"Category Key", "Category_ID"}, {"Category", "Category_Name"}})}),
 			    Valid = Table.SelectRows(Combined, each Record.Field(_, "Category_ID") <> null),
 			    Unique = fnDimension(Valid, "Category_ID"),
-			    Labels = Table.AddColumn(Unique, "Category_Name", each [Category_ID], type text),
-			    Final = Table.AddColumn(Labels, "Sub_Category", each null, type text)
+			    Final = Table.AddColumn(Unique, "Sub_Category", each null, type text)
 			in Table.Distinct(Final, {"Category_ID"})
 			```

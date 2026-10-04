@@ -105,6 +105,21 @@ table Fact_TDP
 		summarizeBy: none
 		sourceColumn: Refresh Date
 
+	column 'Chain Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain Key
+
+	column 'Category Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category Key
+
+	column 'Brand Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand Key
+
 	partition Fact_TDP = m
 		mode: import
 		source = ```

@@ -160,6 +160,26 @@ table Fact_PrimaryArticle
 		summarizeBy: none
 		sourceColumn: Refresh Date
 
+	column 'Chain Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain Key
+
+	column 'Category Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category Key
+
+	column 'Brand Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand Key
+
+	column 'Source Record ID'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Source Record ID
+
 	partition Fact_PrimaryArticle = m
 		mode: import
 		source = ```

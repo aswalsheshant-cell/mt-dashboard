@@ -310,7 +310,7 @@ table _Measures
 		displayFolder: Full report coverage
 
 	measure 'Fact_PrimaryArticle Source Rows' =
-			COUNTROWS(Fact_PrimaryArticle)
+			DISTINCTCOUNT(Fact_PrimaryArticle[Source Record ID])
 		displayFolder: Full report coverage
 
 	measure 'Fact_PrimaryArticle Covered Months' =
@@ -339,4 +339,8 @@ table _Measures
 
 	measure 'Finance Sample Source Status' =
 			"Unavailable - legacy sample server source is not a governed input"
+		displayFolder: Full report coverage
+
+	measure 'Fact_PrimaryArticle Allocated Output Rows' =
+			COUNTROWS(Fact_PrimaryArticle)
 		displayFolder: Full report coverage

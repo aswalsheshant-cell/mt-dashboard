@@ -4,8 +4,12 @@ expression pRootFolder = ```
 	RepoRoot & "/PowerBI"
 	```
 
+expression fnRelationshipKey = ```
+	(value as any) as nullable text => if value = null then null else Text.Upper(Text.Trim(Text.From(value)), "en-US")
+	```
+
 expression fnCompositeKey = ```
-	(values as list) as text => Text.FromBinary(Json.FromValue(List.Transform(values, each if _ = null then null else Text.Trim(Text.From(_)))), TextEncoding.Utf8)
+	(values as list) as text => fnRelationshipKey(Text.FromBinary(Json.FromValue(List.Transform(values, each fnRelationshipKey(_))), TextEncoding.Utf8))
 	```
 
 expression fnMonthStart = ```
@@ -29,10 +33,12 @@ expression fnDimension = ```
 	(rows as table, key as text) as table =>
 	let
 	    Attributes = List.RemoveItems(Table.ColumnNames(rows), {key}),
+	    Canonical = Table.TransformColumns(rows, {{key, each fnRelationshipKey(_), type nullable text}}),
 	    // One row per key. Conflicting labels are explicitly null, never an arbitrary winner.
-	    Grouped = Table.Group(rows, {key}, List.Transform(Attributes, (name) =>
-	        {name, (group) => let values = List.Distinct(List.RemoveNulls(Table.Column(group, name)))
-	                          in if List.Count(values) = 1 then values{0} else null, type nullable text})),
+	    Grouped = Table.Group(Canonical, {key}, List.Transform(Attributes, (name) =>
+	        {name, (group) => let values = List.Sort(List.Distinct(List.RemoveNulls(Table.Column(group, name)))),
+	                                spellings = List.Distinct(List.Transform(values, each fnRelationshipKey(_)))
+	                          in if List.Count(spellings) = 1 then values{0} else null, type nullable text})),
 	    Unique = Table.Distinct(Grouped, {key}),
 	    Checked = if Table.RowCount(Unique) <> Table.RowCount(Grouped)
 	              then error Error.Record("DuplicateDimensionKey", key, null) else Unique
@@ -82,20 +88,22 @@ expression fnCombineFolder = ```
 	                            in
 	                                promotedHeaders
 	                in
-	                    promoted
+	                    Table.AddIndexColumn(promoted, "Source Row Number", 1, 1, Int64.Type)
 	            ),
 
 	            // stamp source file + refresh timestamp on every row
 	            AddMeta = Table.AddColumn(AddParsed, "WithMeta", each
 	                Table.AddColumn(
-	                    Table.AddColumn([Parsed], "Data Source File", (r) => [Name], type text),
+	                    Table.AddColumn(
+	                        Table.AddColumn([Parsed], "Source Record ID", (r) => fnCompositeKey({FolderPath, [Name], r[Source Row Number]}), type text),
+	                        "Data Source File", (r) => [Name], type text),
 	                    "Refresh Date", (r) => DateTime.LocalNow(), type datetime
 	                )
 	            ),
 
 	            Combined =
 	                if Table.RowCount(AddMeta) = 0 then
-	                    #table({"Data Source File","Refresh Date"}, {})
+	                    #table({"Data Source File","Refresh Date", "Source Row Number", "Source Record ID"}, {})
 	                else
 	                    Table.Combine(AddMeta[WithMeta])
 	        in
@@ -349,7 +357,11 @@ expression qFact_PrimarySales = ```
 	    WithChain = Table.TransformColumns(WithArticle, {{"Chain", each if _ = null then null else Text.Trim(Text.From(_)), type text}}),
 	    WithStore = Table.AddColumn(WithChain, "Store Key", each fnCompositeKey({[Chain], [Store Code]}), type text),
 	    WithGeography = Table.AddColumn(WithStore, "Geography Key", each fnCompositeKey({[Zone], Record.FieldOrDefault(_, "State", null), Record.FieldOrDefault(_, "City", null)}), type text),
-	    FinalModel = WithGeography
+	    RelationshipKeys0 = Table.AddColumn(WithGeography, "Chain Key", each fnRelationshipKey([Chain]), type nullable text),
+	    RelationshipKeys1 = Table.AddColumn(RelationshipKeys0, "Category Key", each fnRelationshipKey([Category]), type nullable text),
+	    RelationshipKeys2 = Table.AddColumn(RelationshipKeys1, "Brand Key", each fnRelationshipKey([Brand]), type nullable text),
+	    CanonicalKeys = Table.TransformColumns(RelationshipKeys2, {{"Article Key", each fnRelationshipKey(_), type nullable text}, {"Store Key", each fnRelationshipKey(_), type nullable text}, {"Geography Key", each fnRelationshipKey(_), type nullable text}}),
+	    FinalModel = CanonicalKeys
 	in
 	    FinalModel
 	```
@@ -445,7 +457,11 @@ expression qFact_OfftakeSales = ```
 	    WithChain = Table.TransformColumns(Cleaned, {{"Chain", each if _ = null then null else Text.Trim(Text.From(_)), type text}}),
 	    WithStore = Table.AddColumn(WithChain, "Store Key", each fnCompositeKey({[Chain], [Store Code]}), type text),
 	    WithGeography = Table.AddColumn(WithStore, "Geography Key", each fnCompositeKey({[Zone], Record.FieldOrDefault(_, "State", null), Record.FieldOrDefault(_, "City", null)}), type text),
-	    FinalModel = WithGeography
+	    RelationshipKeys0 = Table.AddColumn(WithGeography, "Chain Key", each fnRelationshipKey([Chain]), type nullable text),
+	    RelationshipKeys1 = Table.AddColumn(RelationshipKeys0, "Category Key", each fnRelationshipKey([Category]), type nullable text),
+	    RelationshipKeys2 = Table.AddColumn(RelationshipKeys1, "Brand Key", each fnRelationshipKey([Brand]), type nullable text),
+	    CanonicalKeys = Table.TransformColumns(RelationshipKeys2, {{"Article Key", each fnRelationshipKey(_), type nullable text}, {"Store Key", each fnRelationshipKey(_), type nullable text}, {"Geography Key", each fnRelationshipKey(_), type nullable text}}),
+	    FinalModel = CanonicalKeys
 	in
 	    FinalModel
 	```
@@ -469,7 +485,9 @@ expression qFact_Nielsen = ```
 	    }),
 	    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each fnMonthStart([Month]), type date),
 	    WithGeography = Table.AddColumn(AddMonthStart, "Geography Key", each fnCompositeKey({[Zone], Record.FieldOrDefault(_, "State", null), Record.FieldOrDefault(_, "City", null)}), type text),
-	    FinalModel = WithGeography
+	    RelationshipKeys0 = Table.AddColumn(WithGeography, "Brand Key", each fnRelationshipKey([Brand]), type nullable text),
+	    CanonicalKeys = Table.TransformColumns(RelationshipKeys0, {{"Geography Key", each fnRelationshipKey(_), type nullable text}}),
+	    FinalModel = CanonicalKeys
 	in
 	    FinalModel
 	```
@@ -506,7 +524,11 @@ expression qFact_TDP = ```
 	    WithArticle = Table.AddColumn(AddMonthStart, "Article Key", each if Record.FieldOrDefault(_, "EAN Code", null) <> null and Text.Trim([EAN Code]) <> "" then "EAN:" & Text.Trim([EAN Code]) else if [Article Code] <> null and Text.Trim([Article Code]) <> "" then "CODE:" & Text.Trim([Article Code]) else if [Article Description] <> null then "DESC:" & Text.Upper(Text.Trim([Article Description])) else null, type text),
 	    WithChain = Table.TransformColumns(WithArticle, {{"Chain", each if _ = null then null else Text.Trim(Text.From(_)), type text}}),
 	    WithGeography = Table.AddColumn(WithChain, "Geography Key", each fnCompositeKey({[Zone], Record.FieldOrDefault(_, "State", null), Record.FieldOrDefault(_, "City", null)}), type text),
-	    FinalModel = WithGeography
+	    RelationshipKeys0 = Table.AddColumn(WithGeography, "Chain Key", each fnRelationshipKey([Chain]), type nullable text),
+	    RelationshipKeys1 = Table.AddColumn(RelationshipKeys0, "Category Key", each fnRelationshipKey([Category]), type nullable text),
+	    RelationshipKeys2 = Table.AddColumn(RelationshipKeys1, "Brand Key", each fnRelationshipKey([Brand]), type nullable text),
+	    CanonicalKeys = Table.TransformColumns(RelationshipKeys2, {{"Article Key", each fnRelationshipKey(_), type nullable text}, {"Geography Key", each fnRelationshipKey(_), type nullable text}}),
+	    FinalModel = CanonicalKeys
 	in
 	    FinalModel
 	```
@@ -525,7 +547,7 @@ expression qFact_PrimaryArticle = ```
 	        "EAN No.", "net_content", "brand", "PPT Category",
 	        "category", "sub_category", "range", "Description", "MRP",
 	        "Inv Qty", "Inv. Net value(LOC)", "Inv. Tax Amount(LOC)", "Total MRP sales", "Avg Tot",
-	        "MTD-Sale type", "PO Type", "Chain name for Dashboard", "Zone", "State", "Data Source File", "Refresh Date"
+	        "MTD-Sale type", "PO Type", "Chain name for Dashboard", "Zone", "State", "Data Source File", "Refresh Date", "Source Record ID"
 	    }, MissingField.UseNull),
 
 	    Renamed = Table.RenameColumns(Picked, {
@@ -628,7 +650,11 @@ expression qFact_PrimaryArticle = ```
 	    FixBrand = Table.ReplaceValue(AddKey, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
 	    WithChain = Table.TransformColumns(FixBrand, {{"Chain", each if _ = null then null else Text.Trim(Text.From(_)), type text}}),
 	    WithGeography = Table.AddColumn(WithChain, "Geography Key", each fnCompositeKey({[Zone], Record.FieldOrDefault(_, "State", null), Record.FieldOrDefault(_, "City", null)}), type text),
-	    FinalModel = WithGeography
+	    RelationshipKeys0 = Table.AddColumn(WithGeography, "Chain Key", each fnRelationshipKey([Chain]), type nullable text),
+	    RelationshipKeys1 = Table.AddColumn(RelationshipKeys0, "Category Key", each fnRelationshipKey([Category]), type nullable text),
+	    RelationshipKeys2 = Table.AddColumn(RelationshipKeys1, "Brand Key", each fnRelationshipKey([Brand]), type nullable text),
+	    CanonicalKeys = Table.TransformColumns(RelationshipKeys2, {{"Article Key", each fnRelationshipKey(_), type nullable text}, {"Geography Key", each fnRelationshipKey(_), type nullable text}}),
+	    FinalModel = CanonicalKeys
 	in
 	    FinalModel
 	```

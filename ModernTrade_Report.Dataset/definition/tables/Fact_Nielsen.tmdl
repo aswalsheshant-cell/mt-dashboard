@@ -70,6 +70,11 @@ table Fact_Nielsen
 		summarizeBy: none
 		sourceColumn: Refresh Date
 
+	column 'Brand Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand Key
+
 	partition Fact_Nielsen = m
 		mode: import
 		source = ```

@@ -91,3 +91,56 @@ def test_legacy_sample_is_explicitly_unavailable():
     assert 'data-server' not in fact
     assert '#table(type table' in fact and ', {})' in fact
     assert 'Unavailable' in fact
+
+def _expression(name):
+    text=(MODEL/'expressions.tmdl').read_text(encoding='utf-8')
+    match=re.search(r'(?m)^expression '+re.escape(name)+r' = ```\n(.*?)\n\t```', text, re.S)
+    assert match, name
+    return match.group(1)
+
+
+def test_case_variant_keys_use_one_canonicalizer_without_deleting_facts():
+    import json
+    canonical=_expression('fnRelationshipKey')
+    assert 'Text.Upper(Text.Trim(Text.From(value)), "en-US")' in canonical
+    assert 'fnRelationshipKey' in _expression('fnCompositeKey')
+    assert 'Canonical = Table.TransformColumns(rows' in _expression('fnDimension')
+    assert 'Table.Group(Canonical, {key}' in _expression('fnDimension')
+    for fact in FACTS[:-1]:
+        query=_expression('q'+fact)
+        assert 'CanonicalKeys = Table.TransformColumns' in query
+        assert 'FinalModel = CanonicalKeys' in query
+        for key in ('Brand Key',):
+            assert f'"{key}"' in query
+        assert 'Table.Distinct' not in query, 'case normalization must not discard facts'
+    # Actual source spellings called out in the review, including composite store/geography keys.
+    variants=[('FSN','Fsn'),('Metro CNC','Metro Cnc'),('VMM','Vmm')]
+    normalize=lambda value: None if value is None else str(value).strip().upper()
+    for a,b in variants:
+        assert normalize(a)==normalize(b)
+        composite=lambda x: json.dumps([normalize(x),normalize('site-01')])
+        assert composite(a)==composite(b)
+    rel=(MODEL/'relationships.tmdl').read_text(encoding='utf-8')
+    assert 'Fact_PrimaryArticle.\'Chain Key\'' in rel
+    assert 'Fact_OfftakeSales.\'Brand Key\'' in rel
+
+
+def test_source_record_identity_survives_multiple_chain_allocations():
+    combine=_expression('fnCombineFolder')
+    assert 'Table.AddIndexColumn(promoted, "Source Row Number", 1, 1, Int64.Type)' in combine
+    assert '"Source Record ID"' in combine
+    query=_expression('qFact_PrimaryArticle')
+    assert '"Source Record ID"' in query[:query.index('Merged = Table.NestedJoin')]
+    assert 'Table.ExpandTableColumn(Merged, "W"' in query
+    fact=(MODEL/'tables/Fact_PrimaryArticle.tmdl').read_text(encoding='utf-8')
+    assert "column 'Source Record ID'" in fact
+    measures=(MODEL/'tables/_Measures.tmdl').read_text(encoding='utf-8')
+    assert 'DISTINCTCOUNT(Fact_PrimaryArticle[Source Record ID])' in measures
+    assert "measure 'Fact_PrimaryArticle Allocated Output Rows'" in measures
+    # One source record splits into two rows; originals count 1 while outputs count 2.
+    source={'id':'file.csv:1','nsv':100}
+    allocated=[dict(source, chain=chain, nsv=source['nsv']*fraction)
+               for chain,fraction in [('FSN',.4),('VMM',.6)]]
+    assert len({row['id'] for row in allocated})==1
+    assert len(allocated)==2
+    assert sum(row['nsv'] for row in allocated)==source['nsv']

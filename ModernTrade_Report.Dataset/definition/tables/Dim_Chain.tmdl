@@ -20,13 +20,12 @@ table Dim_Chain
 		mode: import
 		source = ```
 			let
-			    Combined = Table.Combine({Table.RenameColumns(Table.SelectColumns(qFact_PrimarySales, {"Chain"}), {{"Chain", "Chain_ID"}}),
-			        Table.RenameColumns(Table.SelectColumns(qFact_OfftakeSales, {"Chain"}), {{"Chain", "Chain_ID"}}),
-			        Table.RenameColumns(Table.SelectColumns(qFact_TDP, {"Chain"}), {{"Chain", "Chain_ID"}}),
-			        Table.RenameColumns(Table.SelectColumns(qFact_PrimaryArticle, {"Chain"}), {{"Chain", "Chain_ID"}})}),
+			    Combined = Table.Combine({Table.RenameColumns(Table.SelectColumns(qFact_PrimarySales, {"Chain Key", "Chain"}), {{"Chain Key", "Chain_ID"}, {"Chain", "Chain_Name"}}),
+			        Table.RenameColumns(Table.SelectColumns(qFact_OfftakeSales, {"Chain Key", "Chain"}), {{"Chain Key", "Chain_ID"}, {"Chain", "Chain_Name"}}),
+			        Table.RenameColumns(Table.SelectColumns(qFact_TDP, {"Chain Key", "Chain"}), {{"Chain Key", "Chain_ID"}, {"Chain", "Chain_Name"}}),
+			        Table.RenameColumns(Table.SelectColumns(qFact_PrimaryArticle, {"Chain Key", "Chain"}), {{"Chain Key", "Chain_ID"}, {"Chain", "Chain_Name"}})}),
 			    Valid = Table.SelectRows(Combined, each Record.Field(_, "Chain_ID") <> null),
 			    Unique = fnDimension(Valid, "Chain_ID"),
-			    Labels = Table.AddColumn(Unique, "Chain_Name", each [Chain_ID], type text),
-			    Final = Table.AddColumn(Labels, "Channel_Tier", each null, type text)
+			    Final = Table.AddColumn(Unique, "Channel_Tier", each null, type text)
 			in Table.Distinct(Final, {"Chain_ID"})
 			```

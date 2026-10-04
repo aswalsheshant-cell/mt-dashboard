@@ -34,22 +34,22 @@ relationship full-Fact_PrimarySales-Dim_Date
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_PrimarySales-Dim_Chain
-	fromColumn: Fact_PrimarySales.Chain
+	fromColumn: Fact_PrimarySales.'Chain Key'
 	toColumn: Dim_Chain.Chain_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_PrimarySales-Dim_Category
-	fromColumn: Fact_PrimarySales.Category
+	fromColumn: Fact_PrimarySales.'Category Key'
 	toColumn: Dim_Category.Category_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_PrimarySales-Dim_Brand
-	fromColumn: Fact_PrimarySales.Brand
-	toColumn: Dim_Brand.Brand
+	fromColumn: Fact_PrimarySales.'Brand Key'
+	toColumn: Dim_Brand.'Brand Key'
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
@@ -83,22 +83,22 @@ relationship full-Fact_OfftakeSales-Dim_Date
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_OfftakeSales-Dim_Chain
-	fromColumn: Fact_OfftakeSales.Chain
+	fromColumn: Fact_OfftakeSales.'Chain Key'
 	toColumn: Dim_Chain.Chain_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_OfftakeSales-Dim_Category
-	fromColumn: Fact_OfftakeSales.Category
+	fromColumn: Fact_OfftakeSales.'Category Key'
 	toColumn: Dim_Category.Category_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_OfftakeSales-Dim_Brand
-	fromColumn: Fact_OfftakeSales.Brand
-	toColumn: Dim_Brand.Brand
+	fromColumn: Fact_OfftakeSales.'Brand Key'
+	toColumn: Dim_Brand.'Brand Key'
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
@@ -132,8 +132,8 @@ relationship full-Fact_Nielsen-Dim_Date
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_Nielsen-Dim_Brand
-	fromColumn: Fact_Nielsen.Brand
-	toColumn: Dim_Brand.Brand
+	fromColumn: Fact_Nielsen.'Brand Key'
+	toColumn: Dim_Brand.'Brand Key'
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
@@ -153,22 +153,22 @@ relationship full-Fact_TDP-Dim_Date
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_TDP-Dim_Chain
-	fromColumn: Fact_TDP.Chain
+	fromColumn: Fact_TDP.'Chain Key'
 	toColumn: Dim_Chain.Chain_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_TDP-Dim_Category
-	fromColumn: Fact_TDP.Category
+	fromColumn: Fact_TDP.'Category Key'
 	toColumn: Dim_Category.Category_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_TDP-Dim_Brand
-	fromColumn: Fact_TDP.Brand
-	toColumn: Dim_Brand.Brand
+	fromColumn: Fact_TDP.'Brand Key'
+	toColumn: Dim_Brand.'Brand Key'
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
@@ -195,22 +195,22 @@ relationship full-Fact_PrimaryArticle-Dim_Date
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_PrimaryArticle-Dim_Chain
-	fromColumn: Fact_PrimaryArticle.Chain
+	fromColumn: Fact_PrimaryArticle.'Chain Key'
 	toColumn: Dim_Chain.Chain_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_PrimaryArticle-Dim_Category
-	fromColumn: Fact_PrimaryArticle.Category
+	fromColumn: Fact_PrimaryArticle.'Category Key'
 	toColumn: Dim_Category.Category_ID
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
 
 relationship full-Fact_PrimaryArticle-Dim_Brand
-	fromColumn: Fact_PrimaryArticle.Brand
-	toColumn: Dim_Brand.Brand
+	fromColumn: Fact_PrimaryArticle.'Brand Key'
+	toColumn: Dim_Brand.'Brand Key'
 	fromCardinality: many
 	toCardinality: one
 	crossFilteringBehavior: oneDirection
