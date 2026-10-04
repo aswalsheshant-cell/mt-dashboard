@@ -46,12 +46,31 @@ IF ( [Our Brand Growth %] > [Category Value Growth %], "Gaining Share", "Losing 
 
 // =====================================================================
 // NIELSEN PACK PRESENCE  (table: 'Fact Nielsen Pack')
-// Basis column: Facewash = value (Rs Cr); Shampoo = volume (litres, the pack file has no value).
+// Value basis (Rs Cr) for both categories; volume columns are there for price per ml and volume share.
 // Status: Not present = no Mamaearth sales in the pack; Under-indexed = our share in the pack is
 // below half of our overall share in the category; else Present.
 // =====================================================================
-Pack Category Amount = SUM ( 'Fact Nielsen Pack'[Category Amount] )
-Pack Our Amount      = SUM ( 'Fact Nielsen Pack'[Our Amount] )
+Pack Category Amount = SUM ( 'Fact Nielsen Pack'[Category Value Cr] )
+Pack Our Amount      = SUM ( 'Fact Nielsen Pack'[Our Value Cr] )
+Pack Category Volume L = SUM ( 'Fact Nielsen Pack'[Category Volume L] )
+
+// Rs per ml = Rs Cr x 1e7 / (litres x 1000)
+Pack Price Per Ml = DIVIDE ( [Pack Category Amount] * 10000000, [Pack Category Volume L] * 1000 )
+
+Pack Volume Share % =
+DIVIDE (
+    [Pack Category Volume L],
+    CALCULATE ( [Pack Category Volume L],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+// the pack's share of Mamaearth's own value (our contribution)
+Pack Our Contribution % =
+DIVIDE (
+    [Pack Our Amount],
+    CALCULATE ( [Pack Our Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
 
 Pack Category Mix % =
 DIVIDE (

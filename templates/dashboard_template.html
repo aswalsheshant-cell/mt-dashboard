@@ -104,7 +104,7 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color
 .pack-size{width:88px;font-weight:600;flex-shrink:0;}
 .pack-bg{flex:1;background:var(--border);border-radius:3px;height:14px;overflow:hidden;}
 .pack-fill{height:100%;border-radius:3px;background:var(--accent);}
-.pack-val{width:48px;text-align:right;font-variant-numeric:tabular-nums;}
+.pack-val{width:96px;white-space:nowrap;line-height:1.25;text-align:right;font-variant-numeric:tabular-nums;}
 .pack-yoy{width:54px;text-align:right;font-size:11px;font-weight:600;}
 details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent);margin:8px 0 4px;}
 
@@ -298,10 +298,10 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
   <div class="sec"><h3>4. Packs: where we are present and where not</h3>
     <div class="note" id="pk-note"></div>
     <div class="kp3" id="pk-kpis"></div>
-    <div class="sub">Facewash &middot; all packs, by category value</div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Category &#8377;Cr</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="fwp-tbody"></tbody></table></div>
-    <div class="sub">Shampoo &middot; all packs, by category volume <span class="note">&middot; indicative &#8377; at category average price</span></div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Category vol (000 L)</th><th>YoY %</th><th>ME vol (000 L)</th><th>ME share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="shp-tbody"></tbody></table></div>
+    <div class="sub">Facewash &middot; all packs: value, contribution and price</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="fwp-tbody"></tbody></table></div>
+    <div class="sub">Shampoo &middot; all packs: value, contribution and price</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="shp-tbody"></tbody></table></div>
   </div>
 
   <div class="sec" id="sec-pm"><h3>5. Big packs by chain: sold or not sold <span class="note">&middot; Nielsen pack size vs where Mamaearth sells it (internal offtake Apr-Aug)</span></h3>
@@ -470,7 +470,7 @@ function packBars(id,packs,note,mine){
   if(!packs||!packs.length){w.innerHTML='<div class="note">'+esc(note||'Not available')+'</div>';return;}
   w.innerHTML=packs.map(p=>{const m=mine&&ok(mine[p.sz])?mine[p.sz]:null;
     return `<div class="pack-row"><div class="pack-size">${esc(p.sz)}</div><div class="pack-bg"><div class="pack-fill" style="width:${Math.max(0,Math.min(100,p.val))}%${mine?';background:#94A3B8':''}"></div>${m!=null?`<div class="pack-fill" style="width:${Math.max(0,Math.min(100,m))}%;height:35%;margin-top:-6px;background:var(--accent)"></div>`:''}</div>
-    <div class="pack-val">${f1(p.val)}%${m!=null?' · '+f1(m)+'%':''}</div><div class="pack-yoy ${cls(p.yoy)}">${sg(p.yoy,1,'%')}</div></div>`;}).join('')
+    <div class="pack-val">${f1(p.val)}%${m!=null?' · '+f1(m)+'%':''}${p.amt!=null?'<br><span class="note">₹'+f1(p.amt,2)+' Cr</span>':''}</div><div class="pack-yoy ${cls(p.yoy)}">${sg(p.yoy,1,'%')}</div></div>`;}).join('')
     +(mine?'<div class="note">Grey bar: category mix. Blue: Mamaearth mix (second figure).</div>':'');
 }
 
@@ -644,11 +644,11 @@ function buildChains(){
   }else{hide('deck-state');}
 }
 const yo=v=>!ok(v)?'–':Math.abs(v)>500?'new':sg(v,0,'%');
-function packRows(G,unit){
-  const rows=(G&&G.rows||[]).slice().sort((a,b)=>b.cat_share-a.cat_share),main=rows.filter(r=>r.cat_share>=0.2),rest=rows.filter(r=>r.cat_share<0.2),d=unit==='cr'?2:1;
-  const out=main.map(r=>`<tr><td>${esc(r.size)}</td><td>${f1(r.cat_share,1)}</td><td>${f1(r.cat_amount,d)}</td><td>${yo(r.cat_yoy)}</td><td>${f1(r.me_amount,d)}</td><td>${f1(r.me_share_in_pack,1)}</td><td>${ok(r.wd)?f1(r.wd,0):'–'}</td><td class="l">${chipFor(r.status)}</td><td>${r.opp_cr>0?f1(r.opp_cr,2):'–'}</td></tr>`);
-  if(rest.length){const sh=rest.reduce((a,r)=>a+r.cat_share,0),np=rest.filter(r=>r.status!=='Present').length,op=rest.reduce((a,r)=>a+(r.opp_cr||0),0);
-    out.push(`<tr><td>${rest.length} small packs</td><td>${f1(sh,1)}</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td class="l">${np} not present</td><td>${f1(op,2)}</td></tr>`);}
+function packRows(G){
+  const rows=(G&&G.rows||[]).slice().sort((a,b)=>b.cat_share-a.cat_share),main=rows.filter(r=>r.cat_share>=0.2),rest=rows.filter(r=>r.cat_share<0.2);
+  const out=main.map(r=>`<tr><td>${esc(r.size)}</td><td>${f1(r.cat_amount,2)}</td><td>${f1(r.cat_share,1)}</td><td>${f1(r.vol_share,1)}</td><td>${f1(r.price_ml,2)}</td><td>${yo(r.cat_yoy)}</td><td>${f1(r.me_amount,2)}</td><td>${f1(r.me_mix,1)}</td><td>${f1(r.me_share_in_pack,1)}</td><td>${ok(r.wd)?f1(r.wd,0):'–'}</td><td class="l">${chipFor(r.status)}</td><td>${r.opp_cr>0?f1(r.opp_cr,2):'–'}</td></tr>`);
+  if(rest.length){const sh=rest.reduce((a,r)=>a+r.cat_share,0),va=rest.reduce((a,r)=>a+r.cat_amount,0),np=rest.filter(r=>r.status!=='Present').length,op=rest.reduce((a,r)=>a+(r.opp_cr||0),0);
+    out.push(`<tr><td>${rest.length} small packs</td><td>${f1(va,2)}</td><td>${f1(sh,1)}</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td class="l">${np} not present</td><td>${f1(op,2)}</td></tr>`);}
   return out;
 }
 function buildPacks(){
@@ -656,10 +656,10 @@ function buildPacks(){
   const sum=(G,s)=>G?G.rows.filter(r=>r.status===s).length:0,opp=G=>G?G.rows.reduce((a,r)=>a+(r.opp_cr||0),0):0,big=G=>G?G.rows.filter(r=>r.status!=='Present'&&r.cat_share>=1).sort((a,b)=>b.opp_cr-a.opp_cr)[0]:null;
   const kp=[];
   if(FW_GAP){const b=big(FW_GAP);kp.push(kpi('Facewash packs not present',String(sum(FW_GAP,'Not present')),'of '+FW_GAP.rows.length+' sold in the category','mut'),kpi('Facewash gap ₹Cr / month',f1(opp(FW_GAP),2),b?'biggest: '+b.size+' ml ('+f1(b.cat_share,1)+'% of value)':'','mut'));}
-  if(SH_GAP){const b=big(SH_GAP);kp.push(kpi('Shampoo packs not present',String(sum(SH_GAP,'Not present')),'of '+SH_GAP.rows.length+' sold in the category','mut'),kpi('Shampoo gap ₹Cr / month',f1(opp(SH_GAP),1),b?'biggest: '+b.size+' ml ('+f1(b.cat_share,1)+'% of volume)':'','mut'));}
+  if(SH_GAP){const b=big(SH_GAP);kp.push(kpi('Shampoo packs not present',String(sum(SH_GAP,'Not present')),'of '+SH_GAP.rows.length+' sold in the category','mut'),kpi('Shampoo gap ₹Cr / month',f1(opp(SH_GAP),1),b?'biggest: '+b.size+' ml ('+f1(b.cat_share,1)+'% of value)':'','mut'));}
   el('pk-kpis').innerHTML=kp.join('');
-  el('pk-note').textContent='Gap = category pack size x (our overall share - our share in that pack). It is what we would sell if we held our overall share in the pack. Not every pack is a fit for the brand (check that it is a format we can make, for example sachet or bulk sizes); read it as a list to check, not a target. '+(SH_GAP?SH_GAP.note:'');
-  tbody('fwp-tbody',packRows(FW_GAP,'cr'),x=>x);tbody('shp-tbody',packRows(SH_GAP,'vol'),x=>x);
+  el('pk-note').textContent='Gap = category pack size x (our overall share - our share in that pack). It is what we would sell if we held our overall share in the pack. Not every pack is a fit for the brand (check that it is a format we can make, for example sachet or bulk sizes); read it as a list to check, not a target. '+(SH_GAP?SH_GAP.note:'')+' Contribution % is the pack\'s share of category value; ME contribution % is the pack\'s share of our own value.';
+  tbody('fwp-tbody',packRows(FW_GAP),x=>x);tbody('shp-tbody',packRows(SH_GAP),x=>x);
 }
 function buildPackMatrix(){
   const P=(CHAINS&&CHAINS.pack_presence)||[],C=(CHAINS&&CHAINS.contribution||[]).slice(0,6).map(c=>c.Chain);
@@ -670,7 +670,7 @@ function buildPackMatrix(){
     const cell=(ch,size)=>{const x=P.find(p=>p.Chain===ch&&p.Category===cat&&p.Pack===String(size));
       return x?`<span class="st ${x.States_in_chain>0&&x.States_present<x.States_in_chain?'warn':'ok'}">${n0(x.NSV_lakh)} L${x.States_in_chain>0?' &middot; '+x.States_present+'/'+x.States_in_chain:''}</span>`:'<span class="st notmet">Not sold</span>';};
     return `<div class="sub">${title}</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Our share in pack %</th>${C.map(c=>`<th>${esc(pretty(c))}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.size)}</td><td>${f1(r.cat_share,1)}</td><td>${f1(r.me_share_in_pack,1)}</td>${C.map(c=>`<td>${cell(c,r.size)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;};
-  el('pm-wrap').innerHTML=mk1(FW_GAP,'Face wash','Facewash &middot; packs above 1% of category value, and any pack we sell')+mk1(SH_GAP,'Shampoo','Shampoo &middot; packs above 1% of category volume, and any pack we sell');
+  el('pm-wrap').innerHTML=mk1(FW_GAP,'Face wash','Facewash &middot; packs above 1% of category value, and any pack we sell')+mk1(SH_GAP,'Shampoo','Shampoo &middot; packs above 1% of category value, and any pack we sell');
   el('pm-note').textContent='Each cell is the chain NSV (Rs lakh) and states where the pack sells out of the states the chain operates in (green = all states, amber = some states). Not sold = no Mamaearth sales of that pack in the chain Apr-Aug. A pack that is big in Nielsen and Not sold everywhere (for example Shampoo 1000 ml, Facewash 240 ml) is a pack we do not make or have not listed.';
 }
 function buildChainPacks(){
@@ -707,14 +707,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   packBars('fw-packs',FW_PACKS,'Not available',FW_ME_PACKS);packBars('fw-packs-b',FW_PACKS,'Not available',FW_ME_PACKS);
   // named pack sizes (the big ones show up individually); falls back to the size buckets for older payloads
   const named=G=>{if(!G||!G.rows)return null;const rows=G.rows.filter(r=>r.cat_share>=1||(r.me_amount>0&&r.cat_share>=0.3)).sort((a,b)=>b.cat_share-a.cat_share);
-    return {packs:rows.map(r=>({sz:r.size+' ml',val:r.cat_share,yoy:r.cat_yoy})),mine:Object.fromEntries(rows.map(r=>[r.size+' ml',r.me_mix]))};};
+    return {packs:rows.map(r=>({sz:r.size+' ml',val:r.cat_share,yoy:r.cat_yoy,amt:r.cat_amount})),mine:Object.fromEntries(rows.map(r=>[r.size+' ml',r.me_mix]))};};
   const nf=named(FW_GAP),ns=named(SH_GAP);
   if(nf){packBars('fw-packs',nf.packs,'Not available',nf.mine);packBars('fw-packs-b',nf.packs,'Not available',nf.mine);}
   const pk=PACKF&&PACKF.buckets,shMine=SH&&SH.mamaearth_packs;
   if(ns){packBars('sh-packs',ns.packs,'No shampoo pack file in this build',ns.mine);packBars('sh-packs-b',ns.packs,'No shampoo pack file in this build',ns.mine);}
   else{packBars('sh-packs',pk,'No shampoo pack file in this build',shMine);packBars('sh-packs-b',pk,'No shampoo pack file in this build',shMine);}
-  if(PACKF&&PACKF.basis)document.querySelectorAll('.pk-basis-sh').forEach(e=>e.textContent='· every big pack, share of category '+PACKF.basis+(PACKF.basis==='volume'?' (the shampoo pack file has no value, so larger packs may weigh more in rupees)':'')+'; grey = category, blue = Mamaearth mix');
-  document.querySelectorAll('.pk-basis-fw').forEach(e=>e.textContent=FW_ME_PACKS?'· every big pack, share of category value; grey = category, blue = Mamaearth mix':'· source file not in the repo, unverified');
+  if(PACKF&&PACKF.basis)document.querySelectorAll('.pk-basis-sh').forEach(e=>e.textContent='· every big pack, contribution to '+PACKF.basis+'; grey = category, blue = Mamaearth\'s own mix');
+  document.querySelectorAll('.pk-basis-fw').forEach(e=>e.textContent=FW_ME_PACKS?'· every big pack, contribution to value; grey = category, blue = Mamaearth\'s own mix':'· source file not in the repo, unverified');
   trackerItems('aug-items',AUG_ACTIONS);trackerItems('sep-items',SEP_ACTIONS);
   el('gate-items').innerHTML=(GATES||[]).map(g=>`<div class="gate-item"><div class="gate-date">${esc(g.date)}</div><div class="gate-q">${esc(g.q)}</div><div class="gate-i">${esc(g.impact)}</div></div>`).join('');
   el('trk-note').textContent='Targets and budgets are the team’s plan; check them against the Opportunity sizing.';

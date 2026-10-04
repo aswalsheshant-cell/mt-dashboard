@@ -46,9 +46,9 @@ def test_fy_label_follows_the_one_fy_rule():
 
 def test_pack_file_has_both_basis_and_ties_to_category_total():
     data = rows(PACKS)
-    assert {x["Basis"] for x in data} == {"Value Cr", "Volume L"}
-    fw = [float(x["Category Amount"]) for x in data if x["Month"] == "Aug'26" and x["Nielsen Category"] == "Facewash"]
-    assert sum(fw) == pytest.approx(82.086, rel=0.01)
+    fw = [float(x["Category Value Cr"]) for x in data if x["Month"] == "Aug'26" and x["Nielsen Category"] == "Facewash"]
+    sh = [float(x["Category Value Cr"]) for x in data if x["Month"] == "Aug'26" and x["Nielsen Category"] == "Shampoo"]
+    assert sum(fw) == pytest.approx(82.086, rel=0.01) and sum(sh) == pytest.approx(180.303, rel=0.01)
 
 
 def test_queries_and_measures_reference_existing_columns():
@@ -56,7 +56,7 @@ def test_queries_and_measures_reference_existing_columns():
     for col in rows(PACKS)[0]:
         assert f'"{col}"' in pq, col
     dax = (PBI / "DAX" / "04_Nielsen_Measures.dax").read_text(encoding="utf-8")
-    for m in ("Pack Presence Status", "Pack Gap Amount", "Chain Share of Growth %", "Chain Contribution To Growth pp"):
+    for m in ("Pack Presence Status", "Pack Gap Amount", "Pack Price Per Ml", "Pack Our Contribution %", "Chain Share of Growth %", "Chain Contribution To Growth pp"):
         assert re.search(rf"^{re.escape(m)}\s*=", dax, re.M), m
     assert "DIVIDE" in dax and "'Chain Master'[Channel]" not in dax.split("CHAIN CONTRIBUTION")[1]   # uses [Total MT NSV], which already excludes RBC
 

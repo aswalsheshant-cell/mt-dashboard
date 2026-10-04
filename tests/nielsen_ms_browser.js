@@ -14,7 +14,7 @@ const EXPECT = {
   jul: { both: ['+2.4pp YoY', '+6.4pp YoY', '+25.6% YoY', '+18% YoY', '7,025', '#4', 'same as last yr', '₹0.82 Cr', '₹2.76 Cr', 'Honasa Facewash share: 12.2%'],
          sh: ['pack structure', '73.1%', 'distribution cannot be sized', '+91'], opp: ['₹5.1 Cr', '₹2.8 Cr', '7,280 more stores'], stale: true },
   aug: { both: ['+2.6pp YoY', '+5.9pp YoY', '+25.2% YoY', '+40.7% YoY', '13,132', '#4', '₹0.82 Cr', 'Honasa Facewash share: 13.7%', 'Market: IN URB MT', '+86 bps YoY', '8,966', '₹1.80 Cr', 'Reach is the gap'],
-         sh: ['pack structure', '25.6%', '1000 ml', '81.8', 'reach is the gap'], opp: ['Shampoo reach', 'Facewash: +1 pp of share'], stale: false }
+         sh: ['pack structure', '25.2%', '1000 ml', '81.8', 'reach is the gap'], opp: ['Shampoo reach', 'Facewash: +1 pp of share'], stale: false }
 }[mode];
 const failures = [];
 const check = (cond, msg) => { if (!cond) failures.push(msg); };

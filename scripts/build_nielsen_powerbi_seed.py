@@ -15,7 +15,7 @@ import csv
 import json
 from pathlib import Path
 
-from build_nielsen_payload import (CATEGORY, FACTS, PACK_FACT, _pack_facts, get, load_snapshot, shift)
+from build_nielsen_payload import (CATEGORY, FACTS, _pack_facts, get, load_snapshot, shift)
 from build_nielsen_dashboard import brand_label
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -64,17 +64,16 @@ def monthly_rows(snap, kind, months):
 
 def pack_rows(folder: Path, label: str, kind: str, months):
     name = {"facewash": "FW", "shampoo": "Shampoo"}[kind]
-    fact = PACK_FACT[kind][1]
-    basis = "Value Cr" if kind == "facewash" else "Volume L"
     for m in months:
         cat = _pack_facts(folder / f"Nielsen_{name}_PacksCategory_{label}.csv", m)
         me = _pack_facts(folder / f"Nielsen_{name}_PacksMamaearth_{label}.csv", m)
         for size, v in sorted(cat.items()):
-            c = v.get(fact)
+            c = v.get("value")
             if not c or c <= 0:
                 continue
-            mine = (me.get(size) or {}).get(fact) or 0.0
-            yield [pbi_month(m), fy_label(m), CAT_NAME[kind], f"{size:g}", basis, round(c, 4), round(mine, 4),
+            mine = me.get(size) or {}
+            yield [pbi_month(m), fy_label(m), CAT_NAME[kind], f"{size:g}", round(c, 4), round(mine.get("value") or 0.0, 4),
+                   "" if v.get("volume") is None else round(v["volume"], 2), round(mine.get("volume") or 0.0, 2),
                    "" if v.get("wd") is None else round(v["wd"], 3), SOURCE]
 
 
@@ -105,7 +104,7 @@ def main() -> int:
     months = [a.month, shift(a.month, -12)]
     prow = list(pack_rows(folder, a.label, "facewash", months)) + list(pack_rows(folder, a.label, "shampoo", months))
     write(a.root / "PowerBI" / "RawDataFolders" / "Nielsen_Pack_Monthly" / f"nielsen_pack_urban_mt_{slug}.csv",
-          ["Month", "FY Year", "Nielsen Category", "Pack Size ml", "Basis", "Category Amount", "Our Amount", "Category WD %", "Data Source Name"], prow)
+          ["Month", "FY Year", "Nielsen Category", "Pack Size ml", "Category Value Cr", "Our Value Cr", "Category Volume L", "Our Volume L", "Category WD %", "Data Source Name"], prow)
     deck_path = folder / "Deck_MT_Review_Big3_v3_1.json"
     if deck_path.exists():
         deck = json.loads(deck_path.read_text(encoding="utf-8"))

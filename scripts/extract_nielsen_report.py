@@ -20,7 +20,7 @@ from pathlib import Path
 
 MONTH = re.compile(r"^[A-Z][a-z]{2} \d{2}$")
 # Facts kept from the pack sheets (the full sheets are ~2,400 rows each and not needed).
-PACK_FACTS = ("Sales Value in Cr.", "Sales (Vol (KG/LT/000NO))", "Wghtd Dist Handling", "Wghtd Dist Out of Stock")
+PACK_FACTS = ("Sales Value in Cr.", "Sales Value (Crs.)", "Sales (Vol (KG/LT/000NO))", "Wghtd Dist Handling", "Wghtd Dist Out of Stock")
 SNAPSHOT_SHEETS = {"facewash": "SFW Snapshot", "shampoo": "Shampoo Snapshot"}
 CATEGORY_NAME = {"facewash": "FACE WASH", "shampoo": "BOTTLES"}
 OWN_BRAND = "MAMAEARTH"

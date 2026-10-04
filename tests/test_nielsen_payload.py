@@ -79,10 +79,15 @@ def test_pack_gap_flags_absent_packs_and_ties_to_category(aug):
     assert sum(r["cat_share"] for r in g["rows"]) == pytest.approx(100, abs=0.5)
     by = {r["size"]: r for r in g["rows"]}
     assert by["150"]["status"] == "Present" and by["125"]["status"] == "Not present"
+    assert by["200"]["me_share_in_pack"] > 20 and 1.0 < by["150"]["price_ml"] < 1.5
     assert all(r["opp_cr"] == 0 for r in g["rows"] if r["status"] == "Present")
     assert sum(r["cat_amount"] for r in g["rows"]) == pytest.approx(aug["fw_pack_total_cr"], rel=0.01)
     s = aug["sh_pack_gap"]
-    assert s["basis"] == "volume" and "indicative" in s["note"]
+    assert s["basis"] == "value"
+    assert sum(r["cat_amount"] for r in s["rows"]) == pytest.approx(aug["shampoo"]["category_cr"], rel=0.01)   # shampoo packs carry value
+    big = {r["size"]: r for r in s["rows"]}
+    assert big["1000"]["status"] == "Not present" and big["400"]["status"] == "Present"
+    assert big["400"]["me_mix"] > 50 and big["650"]["price_ml"] == pytest.approx(0.671, abs=0.01)
 
 
 def test_chain_contribution_sums_and_excludes_nothing_from_primary(aug):

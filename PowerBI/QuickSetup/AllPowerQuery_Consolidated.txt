@@ -2028,9 +2028,9 @@ in
 // Source = RawDataFolders\Nielsen_Pack_Monthly
 // Written by scripts/build_nielsen_powerbi_seed.py from the Nielsen pack sheets
 // (Category x Basepack and Brand x Basepack, Mamaearth only).
-//   Basis      : "Value Cr" for Facewash, "Volume L" for Shampoo (the shampoo pack
-//                sheets carry volume, WD and out-of-stock but no value)
-//   Category Amount / Our Amount : in that basis; Category WD % : weighted distribution of the pack
+//   Category Value Cr / Our Value Cr   : pack value (Rs Crore), category and Mamaearth
+//   Category Volume L / Our Volume L   : pack volume in litres
+//   Category WD %                      : weighted distribution of the pack
 // Relate Date Table[MonthStart] -> [MonthStart]; Nielsen Category -> Category Master[Nielsen Category].
 // =====================================================================
 let
@@ -2040,9 +2040,10 @@ let
         {"FY Year", type text},
         {"Nielsen Category", type text},
         {"Pack Size ml", type number},
-        {"Basis", type text},
-        {"Category Amount", type number},
-        {"Our Amount", type number},
+        {"Category Value Cr", type number},
+        {"Our Value Cr", type number},
+        {"Category Volume L", type number},
+        {"Our Volume L", type number},
         {"Category WD %", type number},
         {"Data Source Name", type text}
     }),
