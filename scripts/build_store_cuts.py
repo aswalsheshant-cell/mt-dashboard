@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LY_FILE = ROOT / "data" / "offtake_fy26" / "Store_Month_NSV_FY26.csv"
 LINKS = ROOT / "data" / "offtake_fy26" / "Store_Key_Links_FY26.csv"
 OUT = ROOT / "data" / "store_cuts_aug26.json"
+JS_OUT = ROOT / "dashboard" / "store_cuts.js"
 LY_MONTHS = ["Apr'25", "May'25", "Jun'25", "Jul'25", "Aug'25"]
 
 
@@ -118,6 +119,7 @@ def main():
     qc = ROOT / "data" / "qc"
     qc.mkdir(exist_ok=True)
     st.reset_index().rename(columns={"sid": "Store Key"}).to_csv(qc / "store_cuts_store_type.csv", index=False)
+    JS_OUT.write_text("window.STORE_CUTS=" + json.dumps(out, separators=(",", ":")) + ";\n", encoding="utf-8")
     write_powerbi_seed(st)
     print("total", out["total_ty"], out["stores"], out["lost"])
 

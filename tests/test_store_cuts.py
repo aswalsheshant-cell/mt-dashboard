@@ -38,3 +38,12 @@ def test_dax_only_reads_columns_the_queries_build():
     for tbl, cols in (("Fact Store Type", st), ("Fact Pack Size", pk)):
         used = set(re.findall(rf"'{tbl}'\[([^\]]+)\]", dax))
         assert used <= cols, (tbl, used - cols)
+
+
+def test_html_dashboard_has_the_store_cuts_sub_view():
+    root = Path(__file__).resolve().parents[1] / "dashboard"
+    html = (root / "index.html").read_text(encoding="utf-8")
+    assert '<script src="store_cuts.js"></script>' in html and "renderStoreCuts(content)" in html and "storecuts:'State, Pack & Store Type'" in html
+    js = (root / "store_cuts.js").read_text(encoding="utf-8")
+    assert js.startswith("window.STORE_CUTS=")
+    assert json.loads(js[len("window.STORE_CUTS="):].rstrip().rstrip(";")) == D

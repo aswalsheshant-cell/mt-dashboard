@@ -939,10 +939,10 @@ datasets:
     source_priority: DERIVED
     fallback_source: null
     existing_pipeline: "scripts/build_store_cuts.py; tests/test_store_cuts.py"
-    downstream_outputs: ["data/store_cuts_aug26.json", "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv", "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv", "PowerBI PQ 58-59, DAX 20"]
+    downstream_outputs: ["data/store_cuts_aug26.json", "dashboard/store_cuts.js", "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv", "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv", "PowerBI PQ 58-59, DAX 20"]
     last_validated: "2026-10-04 (every chain, state, zone and pack split ties to FY27 Apr-Aug offtake 18,971.69 L; Brand Counter left out)"
     modification_allowed: false
     notes: >
       LFL = sold this year and in the same months last year; NFL = no sales last year in those months; Lost = sold last year, nothing this year.
       Reliance Retail non-counter has last-year sales at state level only, so it is "No LY store data" and is not in LFL. Pack size is FY27 only
-      (the FY26 store file has no pack). Not wired into the web dashboard yet.
+      (the FY26 store file has no pack). Shown in the web dashboard: Inventory & Supply Health > State, Pack & Store Type (dashboard/store_cuts.js).
