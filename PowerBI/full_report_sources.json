@@ -1,0 +1,639 @@
+{
+  "schema_version": 1,
+  "required_periods": [],
+  "coverage_policy": "No reporting period inferred from system date. Set required_periods (YYYY-MM) for the selected report period; historical availability never proves current-period completeness. available is physical readability/period coverage, not approval.",
+  "sources": [
+    {
+      "id": "Fact_PrimarySales",
+      "query": "PowerBI/PowerQuery/10_Fact_PrimarySales.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/Primary_Weekly/*"
+      ],
+      "grain": "week/store/article",
+      "dimensions": [
+        "date",
+        "chain",
+        "geography",
+        "brand",
+        "category",
+        "article",
+        "store"
+      ],
+      "key_columns": [
+        "Week Start Date",
+        "Store Code",
+        "Article Code"
+      ],
+      "period_columns": [
+        "Week Start Date"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "Fact_OfftakeSales",
+      "query": "PowerBI/PowerQuery/11_Fact_OfftakeSales.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/Offtake_Monthly/*"
+      ],
+      "grain": "month/site/article source rows",
+      "dimensions": [
+        "date",
+        "chain",
+        "geography",
+        "brand",
+        "category",
+        "article",
+        "store"
+      ],
+      "key_columns": [
+        "Month",
+        "Year",
+        "Site Code",
+        "Article"
+      ],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": "Quantity is source units; source NSV scale/tax basis requires reconciliation (query 11 does not rescale NSV). CSV row count is before Power Query transformations."
+    },
+    {
+      "id": "Fact_PnL",
+      "query": "PowerBI/PowerQuery/12_Fact_PnL.pq",
+      "paths": [],
+      "grain": "month/chain/brand/category",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand",
+        "category"
+      ],
+      "key_columns": [],
+      "period_columns": [],
+      "dependencies": [
+        "Fact_OfftakeSales"
+      ],
+      "notes": "Derived NSV base, modeled costs from assumptions; not approved actual P&L."
+    },
+    {
+      "id": "Fact_Nielsen",
+      "query": "PowerBI/PowerQuery/13_Fact_Nielsen.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/Nielsen_Monthly/*"
+      ],
+      "grain": "month/category/brand/zone",
+      "dimensions": [
+        "date",
+        "category",
+        "brand",
+        "geography"
+      ],
+      "key_columns": [
+        "Month",
+        "Nielsen Category",
+        "Brand",
+        "Zone"
+      ],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "Fact_TDP",
+      "query": "PowerBI/PowerQuery/14_Fact_TDP.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/TDP_Monthly/*"
+      ],
+      "grain": "month/chain/geography/article",
+      "dimensions": [
+        "date",
+        "chain",
+        "geography",
+        "brand",
+        "category",
+        "article"
+      ],
+      "key_columns": [
+        "Month",
+        "Chain",
+        "Zone",
+        "State",
+        "Article Code"
+      ],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "Fact_PrimaryShipTo",
+      "query": "PowerBI/PowerQuery/15_Fact_PrimaryShipTo.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/*"
+      ],
+      "grain": "month/ship-to/chain/brand",
+      "dimensions": [
+        "date",
+        "chain",
+        "geography",
+        "brand"
+      ],
+      "key_columns": [
+        "MonthStart",
+        "Ship To Name",
+        "Chain",
+        "Brand"
+      ],
+      "period_columns": [
+        "MonthStart"
+      ],
+      "dependencies": [],
+      "notes": "Source NSV in lakh; overlapping historical composites must be reviewed before modeling."
+    },
+    {
+      "id": "Fact_PrimaryArticle",
+      "query": "PowerBI/PowerQuery/16_Fact_PrimaryArticle.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/Primary_Article_Monthly/*"
+      ],
+      "grain": "invoice line before allocation; month/customer/chain/brand/article after allocation",
+      "dimensions": [
+        "date",
+        "chain",
+        "geography",
+        "brand",
+        "category",
+        "article"
+      ],
+      "key_columns": [],
+      "period_columns": [
+        "Inv. Date",
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": "Repeated articles are valid transactions; no artificial source uniqueness key. INR net value; allocation expands rows under query 41."
+    },
+    {
+      "id": "Dim_Masters",
+      "query": "PowerBI/PowerQuery/20_Dim_Masters.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/ChainMaster.csv",
+        "PowerBI/SeedData/Masters/BrandMaster.csv",
+        "PowerBI/SeedData/Masters/CategoryMaster.csv",
+        "PowerBI/SeedData/Masters/ArticleMaster.csv",
+        "PowerBI/SeedData/Masters/ZoneStateMaster.csv",
+        "PowerBI/SeedData/Masters/StoreMaster.csv",
+        "PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv"
+      ],
+      "grain": "separate master blocks; each must be modeled separately",
+      "dimensions": [
+        "chain",
+        "brand",
+        "category",
+        "article",
+        "geography",
+        "store"
+      ],
+      "key_columns": [],
+      "period_columns": [],
+      "dependencies": [],
+      "notes": "Composite query file contains separate master definitions; per-master keys validated by dedicated entries below."
+    },
+    {
+      "id": "ShipToMaster",
+      "query": "PowerBI/PowerQuery/21_ShipToMaster.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/ShipToMaster.csv"
+      ],
+      "grain": "Ship To Name",
+      "dimensions": [
+        "chain",
+        "geography"
+      ],
+      "key_columns": [
+        "Ship To Name"
+      ],
+      "period_columns": [],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "CustomerCodeZoneMaster",
+      "query": "PowerBI/PowerQuery/22_CustomerCodeZoneMaster.pq",
+      "paths": [
+        "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv"
+      ],
+      "grain": "Customer Code",
+      "dimensions": [
+        "chain",
+        "geography"
+      ],
+      "key_columns": [
+        "Customer Code"
+      ],
+      "period_columns": [],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "ChannelMap",
+      "query": "PowerBI/PowerQuery/24_ChannelMap.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/ChannelMap_Store.csv"
+      ],
+      "grain": "Store Code",
+      "dimensions": [
+        "store"
+      ],
+      "key_columns": [
+        "Store Code"
+      ],
+      "period_columns": [],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "AssumptionTable",
+      "query": "PowerBI/PowerQuery/30_AssumptionTable.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/AssumptionTable.csv"
+      ],
+      "grain": "Month / Chain / Brand / Category",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand",
+        "category"
+      ],
+      "key_columns": [
+        "Month",
+        "Chain",
+        "Brand",
+        "Category"
+      ],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "Targets",
+      "query": "PowerBI/PowerQuery/31_Targets.pq",
+      "paths": [
+        "PowerBI/SeedData/Targets/FY2627_Targets.csv"
+      ],
+      "grain": "MonthStart",
+      "dimensions": [
+        "date"
+      ],
+      "key_columns": [
+        "MonthStart"
+      ],
+      "period_columns": [
+        "MonthStart"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "StoreSOMapping",
+      "query": "PowerBI/PowerQuery/32_StoreSOMapping.pq",
+      "paths": [
+        "PowerBI/SeedData/Mapping/Store_SO_Mapping.csv"
+      ],
+      "grain": "Month / Store Code",
+      "dimensions": [
+        "date",
+        "store"
+      ],
+      "key_columns": [
+        "Month",
+        "Store Code"
+      ],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "ForecastOverride",
+      "query": "PowerBI/PowerQuery/33_ForecastOverride.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/ForecastOverride.csv"
+      ],
+      "grain": "Month / Chain / Brand / Category / Article Code",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand",
+        "category",
+        "article"
+      ],
+      "key_columns": [
+        "Month",
+        "Chain",
+        "Brand",
+        "Category",
+        "Article Code"
+      ],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "PrimaryAllocationOverride",
+      "query": "PowerBI/PowerQuery/35_PrimaryAllocationOverride.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv"
+      ],
+      "grain": "Month / Ship To Name / Chain / Brand",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand"
+      ],
+      "key_columns": [
+        "Month",
+        "Ship To Name",
+        "Chain",
+        "Brand"
+      ],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "GST_Rate_QC_Table",
+      "query": "PowerBI/PowerQuery/37_GST_Rate_QC_Table.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv"
+      ],
+      "grain": "Category / HSN_Code / Effective_From",
+      "dimensions": [
+        "date",
+        "category"
+      ],
+      "key_columns": [
+        "Category",
+        "HSN_Code",
+        "Effective_From"
+      ],
+      "period_columns": [],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "GST_Config",
+      "query": "PowerBI/PowerQuery/38_GST_Config.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/GST_Config.csv"
+      ],
+      "grain": "GST_Cutover_Date",
+      "dimensions": [
+        "date"
+      ],
+      "key_columns": [
+        "GST_Cutover_Date"
+      ],
+      "period_columns": [],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "PL_Expense_Input",
+      "query": "PowerBI/PowerQuery/39_PL_Expense_Input.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/PL_Expense_Input.csv"
+      ],
+      "grain": "expense source row",
+      "dimensions": [
+        "date",
+        "chain",
+        "geography",
+        "brand",
+        "category"
+      ],
+      "key_columns": [],
+      "period_columns": [
+        "Month"
+      ],
+      "dependencies": [],
+      "notes": ""
+    },
+    {
+      "id": "PrimaryAllocationMap",
+      "query": "PowerBI/PowerQuery/34_PrimaryAllocationMap.pq",
+      "paths": [],
+      "grain": "month/ship-to/chain/brand",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand"
+      ],
+      "key_columns": [],
+      "period_columns": [],
+      "dependencies": [
+        "Fact_PrimaryShipTo"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "SalesTeamMapping",
+      "query": "PowerBI/PowerQuery/36_SalesTeamMapping.pq",
+      "paths": [],
+      "grain": "month/store/employee allocation slot",
+      "dimensions": [
+        "date",
+        "store"
+      ],
+      "key_columns": [],
+      "period_columns": [],
+      "dependencies": [
+        "StoreSOMapping"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "CustCode_Chain_Map",
+      "query": "PowerBI/PowerQuery/40_CustCode_Chain_Map.pq",
+      "paths": [],
+      "grain": "customer -> most common chain",
+      "dimensions": [
+        "chain"
+      ],
+      "key_columns": [],
+      "period_columns": [],
+      "dependencies": [
+        "Fact_PrimaryArticle"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "DistContWeights",
+      "query": "PowerBI/PowerQuery/41_DistContWeights.pq",
+      "paths": [
+        "PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv",
+        "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv"
+      ],
+      "grain": "ship-to/brand/month/chain allocation weight",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand"
+      ],
+      "key_columns": [],
+      "period_columns": [
+        "MonthStart",
+        "Revised month"
+      ],
+      "dependencies": [],
+      "notes": "Priority patch, CSV fallback, and June nearest-month fallback are applied in M; physical rows are not final weights."
+    },
+    {
+      "id": "PackSizeBuckets",
+      "query": "PowerBI/PowerQuery/42_PackSizeBuckets.pq",
+      "paths": [],
+      "grain": "distinct pack size",
+      "dimensions": [
+        "article"
+      ],
+      "key_columns": [],
+      "period_columns": [],
+      "dependencies": [
+        "Fact_PrimaryArticle",
+        "Fact_OfftakeSales"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "SecondarySalesEfficiency",
+      "query": "PowerBI/PowerQuery/43_SecondarySalesEfficiency.pq",
+      "paths": [],
+      "grain": "month/chain/brand primary vs offtake",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand"
+      ],
+      "key_columns": [],
+      "period_columns": [],
+      "dependencies": [
+        "Fact_PrimaryArticle",
+        "Fact_OfftakeSales"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "Fact_SecondarySales",
+      "query": "PowerBI/PowerQuery/44_Fact_SecondarySales.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_*.csv"
+      ],
+      "grain": "month/distributor",
+      "dimensions": [
+        "date"
+      ],
+      "key_columns": [
+        "Source_Month",
+        "Distributor"
+      ],
+      "period_columns": [
+        "Source_Month"
+      ],
+      "dependencies": [],
+      "notes": "Distributor is not dashboard chain. NSV_Lakh remains lakh."
+    },
+    {
+      "id": "Fact_ClaimMaster",
+      "query": "PowerBI/PowerQuery/45_Fact_ClaimMaster.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_chain_*.csv"
+      ],
+      "grain": "quarter/chain wide monthly claims; month/chain after unpivot",
+      "dimensions": [
+        "date",
+        "chain"
+      ],
+      "key_columns": [
+        "Period",
+        "Chain"
+      ],
+      "period_columns": [
+        "Period"
+      ],
+      "dependencies": [],
+      "notes": "Quarter/chain source claims, prorated monthly in Power Query; source coverage records quarter months, not actual monthly claim posting. NSV/claims in lakh."
+    },
+    {
+      "id": "Dim_PromoCalendar",
+      "query": "PowerBI/PowerQuery/46_Dim_PromoCalendar.pq",
+      "paths": [
+        "PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv"
+      ],
+      "grain": "month/chain/EAN promotion record",
+      "dimensions": [
+        "date",
+        "chain",
+        "brand",
+        "category",
+        "article"
+      ],
+      "key_columns": [
+        "Source_Month",
+        "Chain Name",
+        "EAN Code"
+      ],
+      "period_columns": [
+        "Source_Month"
+      ],
+      "dependencies": [],
+      "notes": "Promotion offers do not establish causal promotional uplift."
+    },
+    {
+      "id": "ArticleMaster",
+      "query": "PowerBI/PowerQuery/20_Dim_Masters.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/ArticleMaster.csv"
+      ],
+      "grain": "one row per Article Code",
+      "dimensions": [
+        "article",
+        "brand",
+        "category"
+      ],
+      "key_columns": [
+        "Article Code"
+      ],
+      "period_columns": [],
+      "dependencies": []
+    },
+    {
+      "id": "StoreMaster",
+      "query": "PowerBI/PowerQuery/20_Dim_Masters.pq",
+      "paths": [
+        "PowerBI/SeedData/Masters/StoreMaster.csv"
+      ],
+      "grain": "one row per Store Code",
+      "dimensions": [
+        "store",
+        "chain",
+        "geography"
+      ],
+      "key_columns": [
+        "Store Code"
+      ],
+      "period_columns": [],
+      "dependencies": []
+    }
+  ]
+}
