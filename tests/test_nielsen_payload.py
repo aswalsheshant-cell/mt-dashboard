@@ -69,3 +69,36 @@ def test_aug_dashboard_builds_and_passes_browser(tmp_path):
     r = subprocess.run(["node", str(ROOT / "tests/nielsen_ms_browser.js"), str(out), "", "aug"],
                        capture_output=True, text=True, cwd=ROOT, timeout=240)
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+# ---------------------------------------------------------------- chains and packs
+
+def test_pack_gap_flags_absent_packs_and_ties_to_category(aug):
+    g = aug["fw_pack_gap"]
+    assert g["basis"] == "value" and g["rows"]
+    assert sum(r["cat_share"] for r in g["rows"]) == pytest.approx(100, abs=0.5)
+    by = {r["size"]: r for r in g["rows"]}
+    assert by["150"]["status"] == "Present" and by["125"]["status"] == "Not present"
+    assert all(r["opp_cr"] == 0 for r in g["rows"] if r["status"] == "Present")
+    assert sum(r["cat_amount"] for r in g["rows"]) == pytest.approx(aug["fw_pack_total_cr"], rel=0.01)
+    s = aug["sh_pack_gap"]
+    assert s["basis"] == "volume" and "indicative" in s["note"]
+
+
+def test_chain_contribution_sums_and_excludes_nothing_from_primary(aug):
+    rows = aug["chains"]["contribution"]
+    assert rows[0]["Chain"] == "DMART"
+    assert sum(r["share_ty_pct"] for r in rows) == pytest.approx(100, abs=0.1)
+    assert sum(r["share_of_growth_pct"] for r in rows) == pytest.approx(100, abs=0.1)
+
+
+def test_deck_block_is_labelled_as_transcribed(aug):
+    d = aug["deck"]
+    assert d["status"] == "TRANSCRIBED_FROM_DECK" and len(d["state_exposure"]) == 9 and len(d["plays"]) == 7
+
+
+def test_chain_view_state_names_are_unified():
+    import build_nielsen_chain_view as cv
+    assert cv.norm_state("Delhi/ NCR") == cv.norm_state("DELHI NCR") == "Delhi NCR"
+    assert cv.norm_state("UP") == cv.norm_state("Uttar Pradesh") and cv.norm_state("TELANGANA") == "Telangana"
+    assert cv.norm_chain("Ratandeep") == "RATNADEEP"

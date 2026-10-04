@@ -168,6 +168,83 @@ def attach_checks(items: list[dict], key: str) -> list[dict]:
         out.append(item)
     return out
 
+def _pack_facts(path: Path, month: str):
+    """pack size -> {value|volume, wd, oos, ya} for one pack sheet."""
+    with Path(path).open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    ya = shift(month, -12)
+    out = {}
+    for r in rows:
+        size = num(r.get("BASEPACKSIZE"))
+        if size is None:
+            continue
+        slot = out.setdefault(size, {})
+        key = {"Sales Value in Cr.": "value", "Sales (Vol (KG/LT/000NO))": "volume",
+               "Wghtd Dist Handling": "wd", "Wghtd Dist Out of Stock": "oos"}.get(r["Facts"])
+        if key:
+            slot[key] = num(r.get(month))
+            slot[key + "_ya"] = num(r.get(ya))
+    return out
+
+
+def pack_gap(folder: Path, label: str, kind: str, month: str, own_share: float, category_cr: float, own_ppml: float | None):
+    """Every pack size: category size, Mamaearth presence, and a pack-level gap.
+
+    own_share is Mamaearth's overall share on the same basis as the pack fact (value share for
+    Facewash, volume share for Shampoo). Status: Not present (no Mamaearth sales in the pack),
+    Under-indexed (pack share below half of the overall share), else Present. The opportunity is
+    category pack size x (overall share - pack share): what Mamaearth would sell if it held its
+    overall share in that pack. For Shampoo the pack file has volume only, so the Rs figure uses
+    the category average price and is indicative.
+    """
+    name = {"facewash": "FW", "shampoo": "Shampoo"}[kind]
+    fact = PACK_FACT[kind][1]
+    cat = _pack_facts(folder / f"Nielsen_{name}_PacksCategory_{label}.csv", month)
+    me = _pack_facts(folder / f"Nielsen_{name}_PacksMamaearth_{label}.csv", month)
+    total = sum((v.get(fact) or 0) for v in cat.values())
+    rows = []
+    for size, v in sorted(cat.items()):
+        c = v.get(fact)
+        if not c or c <= 0:
+            continue
+        m = (me.get(size) or {}).get(fact) or 0.0
+        share_in_pack = m / c * 100
+        pack_share = c / total * 100
+        status = "Not present" if m <= 0 else "Under-indexed" if share_in_pack < own_share * 0.5 else "Present"
+        gap = max(own_share - share_in_pack, 0.0)
+        cat_cr = c if kind == "facewash" else category_cr * pack_share / 100
+        scale = 1000.0 if kind == "shampoo" else 1.0          # pack volume is in litres; shown in thousand litres
+        rows.append({"size": f"{size:g}", "cat_share": round(pack_share, 2), "cat_amount": round(c / scale, 3),
+                     "cat_yoy": pct_change(c, v.get(fact + "_ya")), "me_amount": round(m / scale, 3) if m else 0.0,
+                     "me_share_in_pack": round(share_in_pack, 2), "me_mix": None, "wd": v.get("wd"), "oos": v.get("oos"),
+                     "status": status, "opp_cr": round(cat_cr * gap / 100, 3) if status != "Present" else 0.0})
+    me_total = sum((v.get(fact) or 0) for v in me.values())
+    for r in rows:
+        r["me_mix"] = round(float(r["me_amount"]) * (1000.0 if kind == "shampoo" else 1.0) / me_total * 100, 2) if me_total else None
+    return {"basis": fact, "own_share": round(own_share, 2), "category_cr": category_cr, "month": month,
+            "rows": rows, "own_ppml": own_ppml,
+            "note": ("Value basis (Nielsen pack file has value)." if kind == "facewash" else
+                     "Volume basis; the pack file has no value, so Rs is at the category average price (indicative).")}
+
+
+def load_csv_rows(path: Path):
+    path = Path(path)
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def chain_block(folder: Path, label: str):
+    contrib = [{k: (float(v) if k not in ("Chain",) and v not in ("", None) else (v or None)) for k, v in r.items()}
+               for r in load_csv_rows(folder / f"Chain_Contribution_{label}.csv")]
+    pack = [{**r, "NSV_lakh": float(r["NSV_lakh"]), "States_present": int(r["States_present"]), "States_in_chain": int(r["States_in_chain"])}
+            for r in load_csv_rows(folder / f"Chain_Range_Pack_Presence_{label}.csv")]
+    gap = [{**r, "Gap_NSV_lakh_at_all_chain_mix": float(r["Gap_NSV_lakh_at_all_chain_mix"]),
+            "Share_of_all_chain_NSV_pct": float(r["Share_of_all_chain_NSV_pct"]), "Share_in_this_chain_pct": float(r["Share_in_this_chain_pct"])}
+           for r in load_csv_rows(folder / f"Chain_Category_Gap_{label}.csv")]
+    return {"contribution": contrib, "range_pack": pack, "category_gap": gap}
+
 
 def build_payload(root: Path, label: str, month: str, tracker_from: Path) -> dict:
     root = Path(root)
@@ -236,6 +313,10 @@ def build_payload(root: Path, label: str, month: str, tracker_from: Path) -> dic
                        "category": series(sh, "value", shc, sh["months"])},
             "mamaearth_packs": own_pack_buckets(folder / f"Nielsen_Shampoo_PacksMamaearth_{label}.csv", "shampoo", month),
             "brands": sh_all},
+        "fw_pack_gap": pack_gap(folder, label, "facewash", month, get(fw, "ms", OWN, month), get(fw, "value", fwc, month), get(fw, "ppml", OWN, month)),
+        "sh_pack_gap": pack_gap(folder, label, "shampoo", month, get(sh, "ms_vol", OWN, month), get(sh, "value", shc, month), get(sh, "ppml", OWN, month)),
+        "chains": chain_block(folder, label),
+        "deck": json.loads((folder / "Deck_MT_Review_Big3_v3_1.json").read_text(encoding="utf-8")) if (folder / "Deck_MT_Review_Big3_v3_1.json").exists() else None,
         "aug_actions": attach_checks(tracker["aug_actions"], "title"), "sep_actions": attach_checks(tracker["sep_actions"], "title"),
         "gates": attach_checks(tracker["gates"], "q"),
     }

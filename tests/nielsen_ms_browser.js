@@ -86,6 +86,17 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
   await page.click('.theme-btn');
   await clean('dark');
 
+  // ---- Chains & Packs
+  await page.click('.tab-btn:nth-child(4)');
+  t = await clean('chains');
+  if (mode === 'aug') {
+    for (const needle of ['Which chains carried the growth', 'Dmart', 'Not present', 'Under-indexed', 'Does not tie', 'Maharashtra', 'Named plays', 'States present'])
+      check(t.toLowerCase().includes(needle.toLowerCase()), `chains: expected "${needle}"`);
+    const rows = await page.$$eval('#fwp-tbody tr', n => n.length);
+    check(rows >= 5, `chains: facewash pack table has ${rows} rows`);
+    if (shotDir) await page.screenshot({ path: path.join(shotDir, 'chains.png'), fullPage: true });
+  }
+
   // ---- narrow screen
   await page.setViewportSize({ width: 420, height: 800 });
   await page.click('.tab-btn:nth-child(1)');
