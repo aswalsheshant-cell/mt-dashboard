@@ -1,13 +1,10 @@
 """In-house distribution view (from our offtake, not TDP): ties to the offtake total and is labelled as not TDP."""
 import json
-import sys
 from pathlib import Path
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
-import build_tdp_inhouse as bt  # noqa: E402
 
 H = json.loads((ROOT / "dashboard" / "tdp_inhouse.js").read_text(encoding="utf-8")[len("window.TDP_INHOUSE="):].rstrip().rstrip(";"))
 

@@ -88,7 +88,6 @@ def build():
             r["lfl3_growth_pct"] = round((r["lfl3_ty"] / r["lfl3_ly"] - 1) * 100, 1) if r["lfl3_ly"] > 0 else None
             r["ty_total"] = round(float(grp["TY"].sum()), 2)
             r["lfl_growth_pct"] = round((r["lfl_ty"] / r["lfl_ly"] - 1) * 100, 1) if r["lfl_ly"] > 0 else None
-            lc = lost_df.groupby("Chain") if by == ["Chain"] else None
             r["lost_stores"] = int(len(lost_df[lost_df["Chain"] == r["Chain"]])) if by == ["Chain"] else None
             rows.append(r)
         return sorted(rows, key=lambda r: -r["ty_total"])

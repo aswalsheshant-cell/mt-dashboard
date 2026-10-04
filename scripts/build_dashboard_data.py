@@ -5352,6 +5352,7 @@ def load_dist_cont_weights(src):
     with the patch still applied on top of it).
     Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
     f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+    wdf = raw_sums = None      # set below only on the fallback path; declared here so every return path sees them
     if f.exists():
         w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
         src_label = "xlsx"
@@ -6431,6 +6432,7 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
     # rows across chains by the secondary-derived cont%). Row-level, BEFORE
     # any grouping, so Customer x Article grain survives into everything
     # downstream (TOT%, CM2, detail_records, the Customer x Article table).
+    _wdf = _raw_sums = _alloc_src = None
     _wdf, _raw_sums, _alloc_src = load_dist_cont_weights(src)
     _offtake_brand_set, _offtake_ean_set = build_offtake_universe(src)
     df, alloc = allocate_dist_primary(

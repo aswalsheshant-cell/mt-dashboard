@@ -56,7 +56,7 @@ js = CH + f"new Chart(document.getElementById('b1'),{{data:{{labels:{json.dumps(
 page("p8", body, js, "powerbi_preview_8_brand_category.html")
 
 # ================================================================ Stores and Beats
-cities = sorted(VC := R.VC["cities"], key=lambda c: -c["NSV_total_exBC"])
+cities = sorted(R.VC["cities"], key=lambda c: -c["NSV_total_exBC"])
 considered = [c for c in cities if c.get("Beats")]
 crow = "".join(f"<tr><td>{c['City']}</td><td>{c['Region']}</td><td>{cr(c['NSV_total_exBC'])}</td><td>{c['Stores']:,}</td><td>{pc((c['NSV_Aug'] / c['NSV_Jul'] - 1) * 100 if c['NSV_Jul'] else None)}</td><td>{c['Beats']}</td></tr>" for c in considered[:10])
 vs = master["Visit Status"].value_counts().to_dict()
