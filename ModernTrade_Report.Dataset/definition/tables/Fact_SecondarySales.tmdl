@@ -1,0 +1,62 @@
+table Fact_SecondarySales
+
+	column Source_Month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Source_Month
+
+	column Month_Label
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Month_Label
+
+	column FY_Year
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FY_Year
+
+	column Distributor
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Distributor
+
+	column NSV_Lakh
+		dataType: double
+		summarizeBy: none
+		sourceColumn: NSV_Lakh
+
+	column Data_Source
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data_Source
+
+	column MonthStart
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+	column FY_Derived
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FY_Derived
+
+	column NSV_Cr
+		dataType: double
+		summarizeBy: none
+		sourceColumn: NSV_Cr
+
+	column Is_Provisional
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: Is_Provisional
+
+	column 'Data Source File'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source File
+
+	partition Fact_SecondarySales = m
+		mode: import
+		source = ```
+			qFact_SecondarySales
+			```

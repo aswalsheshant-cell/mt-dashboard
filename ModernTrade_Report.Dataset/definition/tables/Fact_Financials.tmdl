@@ -65,23 +65,8 @@ table Fact_Financials
 
 
 
+	annotation FullReportSourceStatus = Unavailable - legacy sample server source is not a governed input
+
 	partition Fact_Financials = m
 		mode: import
-		source = ```
-			let
-			    Source = Csv.Document(File.Contents("\\data-server\MT\Primary\Fact_Financials.csv"), [Delimiter=",", Columns=9, Encoding=65001, QuoteStyle=QuoteStyle.None]),
-			    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-			    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
-			        {"Date", type date},
-			        {"Chain_ID", type text},
-			        {"Category_ID", type text},
-			        {"Scenario", type text},
-			        {"NSV_Actual_INR", type number},
-			        {"NSV_Pool_INR", type number},
-			        {"COGS_INR", type number},
-			        {"Variable_Trade_Spend_INR", type number},
-			        {"Freight_Logistics_INR", type number}
-			    })
-			in
-			    #"Changed Type"
-			```
+		source = #table(type table [Date=date, Chain_ID=text, Category_ID=text, Scenario=text, NSV_Actual_INR=number, NSV_Pool_INR=number, COGS_INR=number, Variable_Trade_Spend_INR=number, Freight_Logistics_INR=number], {})

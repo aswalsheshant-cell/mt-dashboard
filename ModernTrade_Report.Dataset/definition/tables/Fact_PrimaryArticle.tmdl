@@ -1,0 +1,167 @@
+table Fact_PrimaryArticle
+
+	column 'FY Year'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FY Year
+
+	column Month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Month
+
+	column Channel
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Channel
+
+	column 'Customer Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Customer Code
+
+	column 'Ship To Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Ship To Name
+
+	column 'EAN Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: EAN Code
+
+	column net_content
+		dataType: string
+		summarizeBy: none
+		sourceColumn: net_content
+
+	column Brand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand
+
+	column 'PPT Category'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PPT Category
+
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	column 'Sub-category'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Sub-category
+
+	column Range
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Range
+
+	column 'Article Description'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Description
+
+	column 'Article MRP'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Article MRP
+
+	column 'Primary Qty'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Primary Qty
+
+	column 'Primary NSV'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Primary NSV
+
+	column 'Primary Tax Amount'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Primary Tax Amount
+
+	column 'Primary MRP'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Primary MRP
+
+	column 'Avg TOT'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Avg TOT
+
+	column 'MTD-Sale type'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: MTD-Sale type
+
+	column 'PO Type'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PO Type
+
+	column Zone
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Zone
+
+	column State
+		dataType: string
+		summarizeBy: none
+		sourceColumn: State
+
+	column MonthStart
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+	column Chain
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain
+
+	column 'Article Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Key
+
+	column 'Source Type'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Source Type
+
+	column 'Provisional Flag'
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: Provisional Flag
+
+	column 'Allocation Status'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Allocation Status
+
+	column 'Geography Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Geography Key
+
+	column 'Data Source File'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source File
+
+	column 'Refresh Date'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: Refresh Date
+
+	partition Fact_PrimaryArticle = m
+		mode: import
+		source = ```
+			qFact_PrimaryArticle
+			```

@@ -1,41 +1,55 @@
 table Dim_Date
-	lineageTag: c21a8f90-84c1-4f10-9112-a1b2c3d4e001
 
 	column Date
 		dataType: dateTime
-		formatString: yyyy-mm-dd
-		lineageTag: d1a2b3c4-0001-4000-8000-000000000001
 		summarizeBy: none
 		sourceColumn: Date
 		isKey
 
 	column YearMonth
 		dataType: int64
-		formatString: 0
-		lineageTag: d1a2b3c4-0001-4000-8000-000000000002
 		summarizeBy: none
 		sourceColumn: YearMonth
 
 	column Year
 		dataType: int64
-		formatString: 0
-		lineageTag: d1a2b3c4-0001-4000-8000-000000000003
 		summarizeBy: none
 		sourceColumn: Year
 
 	column MonthName
 		dataType: string
-		lineageTag: d1a2b3c4-0001-4000-8000-000000000004
 		summarizeBy: none
 		sourceColumn: MonthName
+
+	column FiscalYear
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FiscalYear
+
+	column FiscalMonth
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: FiscalMonth
+
+	column FiscalQuarter
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FiscalQuarter
 
 	partition Dim_Date = m
 		mode: import
 		source = ```
 			let
-			    Source = Csv.Document(File.Contents("\\data-server\MT\Primary\Dim_Date.csv"), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.None]),
-			    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-			    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Date", type date}, {"YearMonth", Int64.Type}, {"Year", Int64.Type}, {"MonthName", type text}})
-			in
-			    #"Changed Type"
+			    Periods = List.RemoveNulls(List.Combine({qFact_PrimarySales[MonthStart],qFact_OfftakeSales[MonthStart],qFact_Nielsen[MonthStart],qFact_TDP[MonthStart],qFact_PrimaryArticle[MonthStart],qFact_SecondarySales[MonthStart]})),
+			    Start = if List.IsEmpty(Periods) then #date(2024, 1, 1) else Date.StartOfYear(List.Min(Periods)),
+			    End = if List.IsEmpty(Periods) then #date(2027, 12, 31) else Date.EndOfYear(List.Max(Periods)),
+			    Dates = Table.FromColumns({List.Dates(Start, Duration.Days(End-Start)+1, #duration(1,0,0,0))}, {"Date"}),
+			    Typed = Table.TransformColumnTypes(Dates, {{"Date", type date}}),
+			    Year = Table.AddColumn(Typed, "Year", each Date.Year([Date]), Int64.Type),
+			    YearMonth = Table.AddColumn(Year, "YearMonth", each Date.Year([Date])*100+Date.Month([Date]), Int64.Type),
+			    MonthName = Table.AddColumn(YearMonth, "MonthName", each Date.ToText([Date], "MMM", "en-IN"), type text),
+			    FY = Table.AddColumn(MonthName, "FiscalYear", each "FY" & Text.From(if Date.Month([Date]) >= 4 then Date.Year([Date])+1 else Date.Year([Date])), type text),
+			    FM = Table.AddColumn(FY, "FiscalMonth", each Number.Mod(Date.Month([Date])+8,12)+1, Int64.Type),
+			    FQ = Table.AddColumn(FM, "FiscalQuarter", each "Q" & Text.From(Number.RoundUp([FiscalMonth]/3)), type text)
+			in FQ
 			```

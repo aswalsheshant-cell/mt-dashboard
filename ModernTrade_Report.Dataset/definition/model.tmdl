@@ -21,3 +21,26 @@ ref table Fact_Financials
 ref table Fact_CM2
 ref table Dim_CM2Month
 ref expression RepoRoot
+
+ref table Fact_PrimarySales
+ref table Fact_OfftakeSales
+ref table Fact_Nielsen
+ref table Fact_TDP
+ref table Fact_PrimaryArticle
+ref table Fact_SecondarySales
+ref table Dim_Article
+ref table Dim_Store
+ref table Dim_Geography
+ref table Dim_Brand
+ref expression pRootFolder
+ref expression fnCompositeKey
+ref expression fnMonthStart
+ref expression fnDimension
+ref expression fnCombineFolder
+ref expression 'Dist Cont Weights'
+ref expression qFact_PrimarySales
+ref expression qFact_OfftakeSales
+ref expression qFact_Nielsen
+ref expression qFact_TDP
+ref expression qFact_PrimaryArticle
+ref expression qFact_SecondarySales

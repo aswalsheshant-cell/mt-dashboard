@@ -1,0 +1,21 @@
+table Dim_Brand
+
+	column Brand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand
+		isKey
+
+	partition Dim_Brand = m
+		mode: import
+		source = ```
+			let
+			    Combined = Table.Combine({Table.SelectColumns(qFact_PrimarySales, {"Brand"}),
+			        Table.SelectColumns(qFact_OfftakeSales, {"Brand"}),
+			        Table.SelectColumns(qFact_Nielsen, {"Brand"}),
+			        Table.SelectColumns(qFact_TDP, {"Brand"}),
+			        Table.SelectColumns(qFact_PrimaryArticle, {"Brand"})}),
+			    Valid = Table.SelectRows(Combined, each Record.Field(_, "Brand") <> null),
+			    Unique = fnDimension(Valid, "Brand")
+			in Table.Distinct(Unique, {"Brand"})
+			```

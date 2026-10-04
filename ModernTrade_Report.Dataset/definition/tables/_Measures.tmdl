@@ -260,3 +260,83 @@ table _Measures
 	measure Freight_INR_Sum = SUM(Fact_Financials[Freight_Logistics_INR])
 		formatString: #,##0.00
 		displayFolder: Finance sample
+
+	measure 'Fact_PrimarySales Source Rows' =
+			COUNTROWS(Fact_PrimarySales)
+		displayFolder: Full report coverage
+
+	measure 'Fact_PrimarySales Covered Months' =
+			COUNTROWS(FILTER(VALUES(Fact_PrimarySales[MonthStart]), NOT ISBLANK(Fact_PrimarySales[MonthStart])))
+		displayFolder: Full report coverage
+
+	measure 'Fact_PrimarySales Source Status' =
+			IF(COUNTROWS(Fact_PrimarySales) > 0, "Source rows loaded; period coverage and approval unassessed", "Unavailable - no source rows")
+		displayFolder: Full report coverage
+
+	measure 'Fact_OfftakeSales Source Rows' =
+			COUNTROWS(Fact_OfftakeSales)
+		displayFolder: Full report coverage
+
+	measure 'Fact_OfftakeSales Covered Months' =
+			COUNTROWS(FILTER(VALUES(Fact_OfftakeSales[MonthStart]), NOT ISBLANK(Fact_OfftakeSales[MonthStart])))
+		displayFolder: Full report coverage
+
+	measure 'Fact_OfftakeSales Source Status' =
+			IF(COUNTROWS(Fact_OfftakeSales) > 0, "Source rows loaded; period coverage and approval unassessed", "Unavailable - no source rows")
+		displayFolder: Full report coverage
+
+	measure 'Fact_Nielsen Source Rows' =
+			COUNTROWS(Fact_Nielsen)
+		displayFolder: Full report coverage
+
+	measure 'Fact_Nielsen Covered Months' =
+			COUNTROWS(FILTER(VALUES(Fact_Nielsen[MonthStart]), NOT ISBLANK(Fact_Nielsen[MonthStart])))
+		displayFolder: Full report coverage
+
+	measure 'Fact_Nielsen Source Status' =
+			IF(COUNTROWS(Fact_Nielsen) > 0, "Source rows loaded; period coverage and approval unassessed", "Unavailable - no source rows")
+		displayFolder: Full report coverage
+
+	measure 'Fact_TDP Source Rows' =
+			COUNTROWS(Fact_TDP)
+		displayFolder: Full report coverage
+
+	measure 'Fact_TDP Covered Months' =
+			COUNTROWS(FILTER(VALUES(Fact_TDP[MonthStart]), NOT ISBLANK(Fact_TDP[MonthStart])))
+		displayFolder: Full report coverage
+
+	measure 'Fact_TDP Source Status' =
+			IF(COUNTROWS(Fact_TDP) > 0, "Source rows loaded; period coverage and approval unassessed", "Unavailable - no source rows")
+		displayFolder: Full report coverage
+
+	measure 'Fact_PrimaryArticle Source Rows' =
+			COUNTROWS(Fact_PrimaryArticle)
+		displayFolder: Full report coverage
+
+	measure 'Fact_PrimaryArticle Covered Months' =
+			COUNTROWS(FILTER(VALUES(Fact_PrimaryArticle[MonthStart]), NOT ISBLANK(Fact_PrimaryArticle[MonthStart])))
+		displayFolder: Full report coverage
+
+	measure 'Fact_PrimaryArticle Source Status' =
+			IF(COUNTROWS(Fact_PrimaryArticle) > 0, "Source rows loaded; period coverage and approval unassessed", "Unavailable - no source rows")
+		displayFolder: Full report coverage
+
+	measure 'Fact_SecondarySales Source Rows' =
+			COUNTROWS(Fact_SecondarySales)
+		displayFolder: Full report coverage
+
+	measure 'Fact_SecondarySales Covered Months' =
+			COUNTROWS(FILTER(VALUES(Fact_SecondarySales[MonthStart]), NOT ISBLANK(Fact_SecondarySales[MonthStart])))
+		displayFolder: Full report coverage
+
+	measure 'Fact_SecondarySales Source Status' =
+			IF(COUNTROWS(Fact_SecondarySales) > 0, "Source rows loaded; period coverage and approval unassessed", "Unavailable - no source rows")
+		displayFolder: Full report coverage
+
+	measure 'Offtake Source Status' =
+			IF(COUNTROWS(Fact_OfftakeSales) > 0, "Loaded; units/tax basis unresolved - not comparable to primary", "Unavailable - no offtake source rows")
+		displayFolder: Full report coverage
+
+	measure 'Finance Sample Source Status' =
+			"Unavailable - legacy sample server source is not a governed input"
+		displayFolder: Full report coverage

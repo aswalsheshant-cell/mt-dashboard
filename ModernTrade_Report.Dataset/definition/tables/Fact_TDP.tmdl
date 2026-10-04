@@ -1,0 +1,112 @@
+table Fact_TDP
+
+	column Month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Month
+
+	column 'FY Year'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FY Year
+
+	column Chain
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain
+
+	column Zone
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Zone
+
+	column State
+		dataType: string
+		summarizeBy: none
+		sourceColumn: State
+
+	column Brand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand
+
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	column 'Sub-category'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Sub-category
+
+	column 'Pack Size'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Pack Size
+
+	column 'Article Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Code
+
+	column 'Article Description'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Description
+
+	column 'ACV %'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: ACV %
+
+	column AIC
+		dataType: double
+		summarizeBy: none
+		sourceColumn: AIC
+
+	column 'Numeric Distribution'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Numeric Distribution
+
+	column 'Weighted Distribution'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Weighted Distribution
+
+	column 'Data Source Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source Name
+
+	column MonthStart
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+	column 'Article Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Key
+
+	column 'Geography Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Geography Key
+
+	column 'Data Source File'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source File
+
+	column 'Refresh Date'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: Refresh Date
+
+	partition Fact_TDP = m
+		mode: import
+		source = ```
+			qFact_TDP
+			```

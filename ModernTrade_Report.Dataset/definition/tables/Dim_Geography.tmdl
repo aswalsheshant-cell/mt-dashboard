@@ -1,0 +1,36 @@
+table Dim_Geography
+
+	column 'Geography Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Geography Key
+		isKey
+
+	column Zone
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Zone
+
+	column State
+		dataType: string
+		summarizeBy: none
+		sourceColumn: State
+
+	column City
+		dataType: string
+		summarizeBy: none
+		sourceColumn: City
+
+	partition Dim_Geography = m
+		mode: import
+		source = ```
+			let
+			    Combined = Table.Combine({Table.SelectColumns(qFact_PrimarySales, {"Geography Key", "Zone", "State", "City"}, MissingField.UseNull),
+			        Table.SelectColumns(qFact_OfftakeSales, {"Geography Key", "Zone", "State", "City"}, MissingField.UseNull),
+			        Table.SelectColumns(qFact_Nielsen, {"Geography Key", "Zone", "State", "City"}, MissingField.UseNull),
+			        Table.SelectColumns(qFact_TDP, {"Geography Key", "Zone", "State", "City"}, MissingField.UseNull),
+			        Table.SelectColumns(qFact_PrimaryArticle, {"Geography Key", "Zone", "State", "City"}, MissingField.UseNull)}),
+			    Valid = Table.SelectRows(Combined, each Record.Field(_, "Geography Key") <> null),
+			    Unique = fnDimension(Valid, "Geography Key")
+			in Table.Distinct(Unique, {"Geography Key"})
+			```
