@@ -969,3 +969,27 @@ datasets:
     notes: >
       Request wording: docs/NIELSEN_DATA_REQUEST.md section 1. Until a real file arrives the tab shows Nielsen weighted / numeric distribution
       for face wash, labelled as a different measure from TDP.
+
+  tdp_inhouse_from_offtake:
+    business_name: "In-house distribution view from our offtake (stores selling, SKUs selling, SKU listings) - NOT TDP"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_26.csv (restricted, outside Git) + PowerBI/SeedData/Masters/Store_City_Master.csv -> scripts/build_tdp_inhouse.py -> dashboard/tdp_inhouse.js and PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv"
+    source_type: "derived from the registered offtake store x article file"
+    grain: "month x chain / state / pack (Level column)"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Month", "Level", "Name"]
+    important_columns: ["Stores Selling", "SKUs Selling", "SKU Listings", "Stores In Master"]
+    business_owner: "MT Analytics (Channel Analyst Lead)"
+    refresh_frequency: "Monthly, after the offtake store x article file is refreshed"
+    validation_status: PASS
+    source_priority: DERIVED
+    fallback_source: null
+    existing_pipeline: "scripts/build_tdp_inhouse.py; tests/test_tdp_inhouse.py"
+    downstream_outputs: ["dashboard/tdp_inhouse.js", "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv", "Inventory & Supply Health > TDP & Distribution", "PowerBI PQ 61, DAX 20"]
+    last_validated: "2026-10-04 (every level ties to the FY27 Apr-Aug offtake total by month; Brand Counter left out)"
+    modification_allowed: false
+    notes: >
+      A stand-in until the real TDP file (tdp_monthly) arrives. It has no ACV % and no weighted distribution (those need each store's category sales),
+      so it is always labelled "From our offtake, not TDP". Store reach = stores selling / stores in the store master; the master also holds stores first seen
+      in the offtake files, so reach reads high. Reach and SKUs per store are blank for chains whose source has no store codes.

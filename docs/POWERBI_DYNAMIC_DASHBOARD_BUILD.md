@@ -116,3 +116,8 @@ Monthly refresh: run `python scripts/build_store_cuts.py`, copy both CSVs to `Ra
 NFL is split in two (column `NFL Kind`): **New** = no sales anywhere last year; **Restarted** = sold last year in another month (Sep-Mar). Apr-Aug FY27: 1,463 new stores (Rs 4.9 Cr), 1,265 restarted (Rs 10.7 Cr). Measures: `New Stores`, `Restarted Stores`, `New Stores NSV Cr`, `Restarted Stores NSV Cr`.
 
 Store-level growth rule: shown only for stores with 3 or more months of sales last year (`LY Months Sold`, `Growth Basis` = Enough history / Thin history). Apr-Aug FY27: 8,284 LFL stores qualify, 365 are left out. Use `Store Growth % (3+ months)` and `LFL Growth % (3+ months)` on store lists and rankings (`Pan India` online accounts are not shown as stores in the web movers list). Web dashboard: "Biggest store movers" card.
+
+### Zone, brand, sub-category sales and the in-house distribution view
+- Queries 60 (`Fact Sales Cuts`) and 61 (`Fact Inhouse Distribution`), measures at the end of DAX 20 (`Cut NSV Cr`, `Cut Share %`, `Cut LFL NSV Cr`, `Cut MoM %`, `Inhouse ...`). Seeds: `sales_cuts_fy27.csv`, `inhouse_distribution_fy27.csv` in `SeedData/Store_Cuts` (copy to `RawDataFolders/Store_Cuts`).
+- Page 9 gets three more visuals: zone table (NSV, share, LFL, YoY, MoM), brand table and sub-category table. Brand and sub-category have no last-year figure (the FY26 store file has none), so no YoY there. Zone YoY uses the main offtake fact.
+- TDP page: `Fact Inhouse Distribution` is "From our offtake, not TDP". Filter `Level` to one value on every visual. Swap to `Fact TDP` (query 14) when the real file arrives.

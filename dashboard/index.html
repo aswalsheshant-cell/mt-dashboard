@@ -228,6 +228,7 @@
 <script src="store_universe.js"></script>
 <script src="store_cuts.js"></script>
 <script src="tdp.js"></script>
+<script src="tdp_inhouse.js"></script>
 <script src="inventory_engine.js"></script>
 <script src="alert_controller.js"></script>
 <script>
@@ -1145,17 +1146,43 @@ function renderTdp(content){
     return;
   }
   const need=(T&&T.needed)||'PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv';
-  content.innerHTML+=card('TDP: source file not supplied yet','TDP is not estimated',`<p class="lead">Needed: <b>${esc(need)}</b> (monthly, one row per article, chain and state, with ACV %, AIC, Numeric Distribution and Weighted Distribution). Column list and template: <code>_TEMPLATE_TDP_Monthly.csv</code>; request wording: <code>docs/NIELSEN_DATA_REQUEST.md</code>. Drop the file, run <code>python scripts/build_tdp.py</code>, and this view fills in (TDP, ACV, ND, WD by chain, brand, state and month). The Power BI measures are already written (DAX 05).</p>`);
+  content.innerHTML+=card('TDP: source file not supplied yet','TDP is not estimated',`<p class="lead">Real TDP needs: <b>${esc(need)}</b> (monthly, one row per article, chain and state, with ACV %, AIC, Numeric Distribution and Weighted Distribution). Column list and template: <code>_TEMPLATE_TDP_Monthly.csv</code>; request wording: <code>docs/NIELSEN_DATA_REQUEST.md</code>. Drop the file, run <code>python scripts/build_tdp.py</code>, and this view fills in (TDP, ACV, ND, WD by chain, brand, state and month). The Power BI measures are already written (DAX 05).</p>`);
+  const H=window.TDP_INHOUSE;
+  const draws=[];
+  if(H&&Array.isArray(H.total)&&H.total.length){draws.push(renderTdpInhouse(content,H));}
   if(N&&N.data_status==='GOVERNED'&&Array.isArray(N.fw_all)){
     const me=N.fw_all.find(b=>b.n==='Mamaearth')||{};
     content.innerHTML+=`<p class="lead">Nearest real distribution data today: Nielsen ${esc(N.market)} face wash, ${esc(N.reporting_period)}. This is brand distribution (WD / ND), not TDP.</p>
      <div class="kpi-row">${kpi('Mamaearth weighted distribution',f1(me.wd)+'%','in the larger stores')}${kpi('Mamaearth numeric distribution',f1(me.nd)+'%','all stores')}${kpi('WD ÷ ND',ok(me.wd)&&ok(me.nd)&&me.nd>0?(me.wd/me.nd).toFixed(2):'–','above 1 = strong in big stores first')}${kpi('Share where listed (SAH)',f1(me.sah)+'%','share among stores that stock us')}</div>`;
     content.innerHTML+=card('Face wash brands: weighted and numeric distribution','Nielsen, urban MT',`<table class="tbl"><thead><tr><th>Brand</th><th>Weighted dist %</th><th>Numeric dist %</th><th>WD ÷ ND</th><th>Share where listed %</th></tr></thead><tbody>${N.fw_all.slice(0,8).map(b=>`<tr><td>${esc(b.n)}</td><td>${f1(b.wd)}</td><td>${f1(b.nd)}</td><td>${ok(b.wd)&&ok(b.nd)&&b.nd>0?(b.wd/b.nd).toFixed(2):'–'}</td><td>${f1(b.sah)}</td></tr>`).join('')}</tbody></table>`);
     if(Array.isArray(N.wd)&&Array.isArray(N.months)){
-      const cv=chartInCard(content,'Mamaearth weighted distribution by month (Nielsen)','Face wash, urban MT.');
-      inventoryHealthState.charts.tdpWd=new Chart(cv,{type:'line',data:{labels:N.months,datasets:[{label:'Weighted distribution %',data:N.wd,borderColor:'#118DFF',backgroundColor:'#118DFF',pointRadius:2,tension:.25}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
+      draws.push(()=>{const cv=chartInCard(content,'Mamaearth weighted distribution by month (Nielsen)','Face wash, urban MT.');
+      inventoryHealthState.charts.tdpWd=new Chart(cv,{type:'line',data:{labels:N.months,datasets:[{label:'Weighted distribution %',data:N.wd,borderColor:'#118DFF',backgroundColor:'#118DFF',pointRadius:2,tension:.25}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});});
     }
   }
+  draws.forEach(f=>f&&f());   // charts last: card() writes innerHTML, which would wipe a canvas made earlier
+}
+
+// In-house distribution view from our own offtake (dashboard/tdp_inhouse.js, scripts/build_tdp_inhouse.py). NOT TDP: no ACV % and no weighted distribution.
+// Stores selling = distinct stores with offtake; SKU listings = distinct store x SKU pairs; SKUs per store = listings / stores (like AIC).
+function renderTdpInhouse(content,H){
+  const ok=v=>typeof v==='number'&&isFinite(v),f1=v=>ok(v)?v.toFixed(1):'–',pc=v=>ok(v)?(v>0?'+':'')+v.toFixed(1)+'%':'–';
+  const esc=x=>String(x==null||x===''?'–':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const T=H.total,cur=T[T.length-1],prev=T[T.length-2]||null,mom=(a,b)=>prev&&b>0?(a/b-1)*100:null;
+  const last=cur.month,at=(rows)=>rows.filter(r=>r.month===last);
+  content.innerHTML+=`<p class="lead"><b>${esc(H.label)}</b> · ${esc(H.period)} · Brand Counter left out. Stores selling = stores with offtake in the month. SKU listings = distinct store × SKU pairs (our in-house distribution points). SKUs per store = listings ÷ stores. Store reach % = stores selling ÷ stores in the store master (the master also holds stores first seen in the offtake files, so reach reads high; use it for direction).</p>
+   <div class="kpi-row">${kpi('Stores selling',num(cur.stores),`${esc(last)} · MoM ${pc(prev?mom(cur.stores,prev.stores):null)}`)}${kpi('SKUs selling',num(cur.skus),`MoM ${pc(prev?mom(cur.skus,prev.skus):null)}`)}${kpi('SKU listings',num(cur.listings),`MoM ${pc(prev?mom(cur.listings,prev.listings):null)}`)}${kpi('SKUs per store',f1(cur.skus_per_store),'listings ÷ stores')}</div>`;
+  const tr=r=>`<td>${num(r.stores)}</td><td>${num(r.skus)}</td><td>${num(r.listings)}</td><td>${f1(r.skus_per_store)}</td>`;
+  const mrows=T.map((r,i)=>`<tr><td>${esc(r.month)}</td>${tr(r)}<td>${i?pc(T[i-1].listings>0?(r.listings/T[i-1].listings-1)*100:null):'–'}</td></tr>`).join('');
+  content.innerHTML+=card('In-house distribution by month',esc(H.label),`<table class="tbl"><thead><tr><th>Month</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>SKUs per store</th><th>Listings MoM</th></tr></thead><tbody>${mrows}</tbody></table>`);
+  const crow=at(H.by_chain).sort((a,b)=>b.listings-a.listings).slice(0,15).map(r=>`<tr><td>${esc(r.chain)}</td>${tr(r)}<td>${num(r.master_stores)}</td><td>${r.reach_pct==null?'–':f1(r.reach_pct)+'%'}</td></tr>`).join('');
+  content.innerHTML+=card('By chain',`${esc(last)} · reach and SKUs per store show – where the chain's source has no store codes (Reliance Retail, Nykaa FSN, More Retail, V-Mart and others)`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>SKUs per store</th><th>Stores in master</th><th>Store reach</th></tr></thead><tbody>${crow}</tbody></table>`);
+  const srow=at(H.by_state).sort((a,b)=>b.listings-a.listings).slice(0,15).map(r=>`<tr><td>${esc(r.state)}</td>${tr(r)}<td>${num(r.master_stores)}</td><td>${f1(r.reach_pct)}${r.reach_pct==null?'':'%'}</td></tr>`).join('');
+  content.innerHTML+=card('By state',esc(last),`<table class="tbl"><thead><tr><th>State</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>SKUs per store</th><th>Stores in master</th><th>Store reach</th></tr></thead><tbody>${srow}</tbody></table>`);
+  const prow=at(H.by_pack).sort((a,b)=>b.listings-a.listings).slice(0,12);
+  content.innerHTML+=card('By pack size',`${esc(last)} · stores selling each pack and SKU listings`,`<table class="tbl"><thead><tr><th>Pack</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>NSV</th></tr></thead><tbody>${prow.map(r=>`<tr><td>${esc(r.pack)}</td><td>${num(r.stores)}</td><td>${num(r.skus)}</td><td>${num(r.listings)}</td><td>${crc(r.nsv)}</td></tr>`).join('')}</tbody></table>`);
+  return ()=>{const cv=chartInCard(content,'SKU listings and stores selling by month','In-house distribution points (listings) and stores selling. Not TDP.');
+  inventoryHealthState.charts.tdpInhouse=new Chart(cv,{type:'bar',data:{labels:T.map(r=>r.month),datasets:[{label:'SKU listings',data:T.map(r=>r.listings),backgroundColor:'#118DFF',yAxisID:'y'},{type:'line',label:'Stores selling',data:T.map(r=>r.stores),borderColor:'#E66C37',backgroundColor:'#E66C37',yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true},y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false}}}}});};
 }
 
 // State, pack size and LFL / NFL store cuts (offtake, Apr-Aug FY27 vs same months last year) from dashboard/store_cuts.js,
@@ -1176,6 +1203,13 @@ function renderStoreCuts(content){
   content.innerHTML+=card('LFL vs NFL by chain','Lost = stores that sold last year and nothing this year',`<table class="tbl"><thead><tr><th>Chain</th><th>LFL stores</th><th>New stores</th><th>Restarted</th><th>LFL NSV</th><th>New NSV</th><th>Restarted NSV</th><th>LFL growth</th><th>Lost</th></tr></thead><tbody>${ch.slice(0,15).map(r=>`<tr><td>${esc(r.Chain)}</td>${lfl(r)}<td>${r.lost_stores==null?'–':num(r.lost_stores)}</td></tr>`).join('')}</tbody></table>`);
   const pk=(S.by_pack||[]).slice(0,10);
   content.innerHTML+=card('Pack size table','Share, stores selling and MoM',`<table class="tbl"><thead><tr><th>Pack</th><th>NSV</th><th>Share</th><th>Stores selling</th><th>MoM</th></tr></thead><tbody>${pk.map(x=>`<tr><td>${esc(x.pack)}</td><td>${crc(x.nsv)}</td><td>${ok(x.share_pct)?x.share_pct.toFixed(1)+'%':'–'}</td><td>${num(x.stores)}</td><td>${pc(x.mom_pct)}</td></tr>`).join('')}</tbody></table>`);
+  // Sales by zone, brand and sub-category (this year, split by store type). Last year has no brand or sub-category in the store file: growth only for zones.
+  const sc=(rows,key,head,extra)=>`<table class="tbl"><thead><tr><th>${head}</th>${extra?'<th>'+extra+'</th>':''}<th>NSV</th><th>Share</th><th>LFL stores NSV</th><th>New</th><th>Restarted</th><th>MoM (Aug vs Jul)</th>${key==='zone'?'<th>YoY (dashboard zone totals)</th>':''}<th>Stores</th></tr></thead><tbody>${(rows||[]).map(r=>`<tr><td>${esc(r[key])}</td>${extra?'<td>'+esc(r.category)+'</td>':''}<td>${crc(r.ty)}</td><td>${ok(r.share_pct)?r.share_pct.toFixed(1)+'%':'–'}</td><td>${crc(r.lfl_ty)}</td><td>${crc(r.new_ty)}</td><td>${crc(r.restart_ty)}</td><td>${pc(r.mom_pct)}</td>${key==='zone'?'<td>'+pc(r.yoy_pct)+'</td>':''}<td>${num(r.stores)}</td></tr>`).join('')}</tbody></table>`;
+  if(Array.isArray(S.zone_sales)){
+    content.innerHTML+=card('Sales by zone','Store-file zones (owner zone rules). Zone YoY uses the dashboard zone totals for the same five months, which differ slightly for West, North and Central.',sc(S.zone_sales,'zone','Zone'));
+    content.innerHTML+=card('Sales by brand','This year only: last year has no brand in the store file, so no brand YoY.',sc(S.brand_sales,'brand','Brand'));
+    content.innerHTML+=card('Sales by sub-category',`Top 15 of ${(S.subcat_sales||[]).length} sub-categories · this year only: last year has no sub-category in the store file.`,sc((S.subcat_sales||[]).slice(0,15),'subcategory','Sub-category','Category'));
+  }
   const MV=S.movers;
   if(MV&&Array.isArray(MV.top_gainers)){
     const mr=r=>`<tr><td>${esc(r.store)}</td><td>${esc(r.state)}</td><td>${crc(r.ly)}</td><td>${crc(r.ty)}</td><td>${pc(r.growth_pct)}</td><td>${num(r.ly_months)}</td></tr>`;

@@ -26,6 +26,19 @@ MIN_LY_MONTHS = 3   # store-level growth is shown only for stores with at least 
 LY_MONTHS = ["Apr'25", "May'25", "Jun'25", "Jul'25", "Aug'25"]
 
 
+def zone_dashboard_totals():
+    """Apr-Aug NSV (Rs lakh) by zone from the dashboard's own zone totals: this year and the same five months last year, so the growth compares like with like.
+    Zone names follow the dashboard ('South 1'); returned with a hyphen ('South-1') to match the store files. {} when data.js or the keys are missing."""
+    try:
+        txt = (ROOT / "dashboard" / "data.js").read_text(encoding="utf-8")
+        o = json.loads(txt[txt.index("{"):txt.rindex("}") + 1])["offtake"]
+        ly = {z.replace("South ", "South-"): round(sum(v[:5]), 2) for z, v in o["zone_monthly_fy26"].items()}
+        ty = {z.replace("South ", "South-"): round(sum(v[:5]), 2) for z, v in o["zone_monthly_fy27"].items()}
+        return {z: (ty.get(z), ly[z]) for z in ly}
+    except (OSError, KeyError, ValueError):
+        return {}
+
+
 def build():
     d = vc.load_offtake(vc.MONTHS)
     d = d[~d["bc"]].copy()
@@ -96,7 +109,36 @@ def build():
     movers = {"min_ly_months": MIN_LY_MONTHS, "eligible_stores": int(len(mv)), "thin_history_stores": int(((st["Type"] == "LFL") & (st["LY Months"] < MIN_LY_MONTHS)).sum()),
               "top_gainers": [row(i, r) for i, r in mv[mv["State"] != "Pan India"].sort_values("gain", ascending=False).head(10).iterrows()],
               "top_decliners": [row(i, r) for i, r in mv[mv["State"] != "Pan India"].sort_values("gain").head(10).iterrows()]}   # Pan India = an online account, not a store
+    # Sales by zone, brand and sub-category (this year, Apr-Aug), each split by store type. Last year has no brand or sub-category in the store file,
+    # so brand / sub-category growth is not possible; zone growth comes from the dashboard's zone totals (same five months).
+    tp = st["Type"].where(st["Type"] != "NFL", "NFL " + st["NFL Kind"])
+    d = d.assign(SType=d["sid"].map(tp))
+    zone_tot = zone_dashboard_totals()
+
+    def dim_sales(col, label):
+        rows = []
+        for name, g in d.groupby(col, dropna=False):
+            r = {label: ("Not stated" if pd.isna(name) else str(name)), "ty": round(float(g["NSV"].sum()), 2), "stores": int(g["sid"].nunique())}
+            for t, tag in (("LFL", "lfl"), ("NFL New", "new"), ("NFL Restarted", "restart"), ("No LY store data", "noly")):
+                r[f"{tag}_ty"] = round(float(g[g["SType"] == t]["NSV"].sum()), 2)
+            jul, aug = float(g[g["file"] == "Jul"]["NSV"].sum()), float(g[g["file"] == "Aug"]["NSV"].sum())
+            r["jul"], r["aug"] = round(jul, 2), round(aug, 2)
+            r["mom_pct"] = round((aug / jul - 1) * 100, 1) if jul > 0 else None
+            r["share_pct"] = round(r["ty"] / float(d["NSV"].sum()) * 100, 1)
+            rows.append(r)
+        return sorted(rows, key=lambda r: -r["ty"])
+
+    zone_sales = dim_sales("Zone", "zone")
+    for r in zone_sales:
+        t_z, ly_z = zone_tot.get(r["zone"], (None, None))
+        r["dash_ty"], r["dash_ly"] = t_z, ly_z      # the dashboard's zone totals for the same five months (its zone rules differ slightly from the store files)
+        r["yoy_pct"] = round((t_z / ly_z - 1) * 100, 1) if t_z and ly_z else None
+    sub = dim_sales("Sub_category", "subcategory")
+    cat_of = d.groupby("Sub_category")["Category"].agg(lambda s_: s_.mode().iat[0] if s_.notna().any() else None)
+    for r in sub:
+        r["category"] = cat_of.get(r["subcategory"])
     out = {
+        "zone_sales": zone_sales, "brand_sales": dim_sales("Brand", "brand"), "subcat_sales": sub,
         "movers": movers,
         "period": "Apr-Aug FY27 vs Apr-Aug FY26", "unit": "Rs lakh", "total_ty": round(float(d["NSV"].sum()), 2),
         "stores": {t: int((st["Type"] == t).sum()) for t in ("LFL", "NFL", "No LY store data")} | {"New": int((st["NFL Kind"] == "New").sum()), "Restarted": int((st["NFL Kind"] == "Restarted").sum())},
@@ -106,6 +148,7 @@ def build():
                              for _, r in cat.dropna().sort_values("NSV", ascending=False).head(30).iterrows()],
     }
     st.attrs["lost"] = lost_df
+    st.attrs["rows"] = d
     st.attrs["pack_month"] = (d.groupby(["file", "Category", "Net Weight"], dropna=False).agg(NSV=("NSV", "sum"), Stores=("sid", "nunique")).reset_index())
     return out, st
 
@@ -136,6 +179,15 @@ def write_powerbi_seed(st):
     lost["NSV Last Year Same Months Rs"] = (lost["LY"] * 100000).round(0)
     lost = lost[["Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "LY Months Sold", "Growth Basis", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
     pd.concat([a, lost], ignore_index=True).assign(**{"Period": "Apr-Aug FY27 vs Apr-Aug FY26"}).to_csv(SEED / "store_type_aug26.csv", index=False)
+    r = st.attrs["rows"].assign(SType=lambda x: x["sid"].map(st["Type"].where(st["Type"] != "NFL", "NFL " + st["NFL Kind"])))
+    r["Month"] = r["file"].map(MONTH_LABEL)
+    c = (r.groupby(["Month", "Zone", "Brand", "Category", "Sub_category", "SType"], dropna=False).agg(**{"NSV Rs": ("NSV", "sum"), "Stores Selling": ("sid", "nunique")}).reset_index()
+         .rename(columns={"Sub_category": "Sub Category", "SType": "Store Type"}))
+    c["NSV Rs"] = (c["NSV Rs"] * 100000).round(0)
+    for col in ("Zone", "Brand", "Category", "Sub Category"):
+        c[col] = c[col].fillna("Not stated")
+    c.insert(1, "FY Year", "FY27")
+    c.to_csv(SEED / "sales_cuts_fy27.csv", index=False)
     b = st.attrs["pack_month"].copy()
     b["Month"] = b["file"].map(MONTH_LABEL)
     b["FY Year"] = "FY27"

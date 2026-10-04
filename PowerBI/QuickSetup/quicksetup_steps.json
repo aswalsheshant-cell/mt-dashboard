@@ -155,6 +155,14 @@
       "59_Fact_Pack_Size.pq": [
         "# RENAME QUERY TO: Fact Pack Size",
         "# NOTE: Needs pRootFolder; same Store_Cuts folder; relate MonthStart to Date Table; measures in DAX 20."
+],
+      "60_Fact_Sales_Cuts.pq": [
+        "# RENAME QUERY TO: Fact Sales Cuts",
+        "# NOTE: Needs pRootFolder; same Store_Cuts folder (sales_cuts_fy27.csv); relate MonthStart to Date Table; measures in DAX 20."
+      ],
+      "61_Fact_Inhouse_Distribution.pq": [
+        "# RENAME QUERY TO: Fact Inhouse Distribution",
+        "# NOTE: Needs pRootFolder; same Store_Cuts folder (inhouse_distribution_fy27.csv); filter Level on every visual; not TDP; measures in DAX 20."
       ]
     },
     "excluded": {
