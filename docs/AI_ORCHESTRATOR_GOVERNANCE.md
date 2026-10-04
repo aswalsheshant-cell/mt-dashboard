@@ -161,3 +161,28 @@ always needs a named approver.
 **Not done yet:** the check is not wired into CI (needs a workflow change with pinned
 SHAs per CLAUDE.md) and nothing forces an agent to call `record()` — that needs a hook
 or the agent's own instructions to be updated once the policy is agreed.
+
+### Source register (for the reconciliation discussion)
+
+Sources supplied for this governance layer. LinkedIn is blocked from the cloud session,
+so posts marked UNREAD have not been compared with the policy yet. Tracking parameters
+were removed from the links. Nothing from these sources is copied into the repo.
+
+| # | Source | Status | Topic (from the link title only) |
+|---|---|---|---|
+| 1 | linkedin.com/posts/judiaevans_oslayerproblem-suif-trustworthyai-activity-7509669743130439680-8QBP | UNREAD | OS layer, SUIF, trustworthy AI |
+| 2 | linkedin.com/posts/judiaevans_oslayerproblem-governancearchitecture-governedstate-activity-7511759942903603201-udNo | UNREAD | governance architecture, governed state |
+| 3 | linkedin.com/posts/judiaevans_oslayerproblem-aigovernance-trustworthyai-activity-7508665592577523712-EgKv | UNREAD | AI governance |
+| 4 | linkedin.com/posts/judiaevans_oslayerproblem-ai-governance-activity-7507967118382874625-2fWo | UNREAD | AI governance |
+| 5 | linkedin.com/posts/judiaevans_aiinfrastructure-oslayerproblem-substrategovernance-activity-7507214883286016000-4AXE | UNREAD | AI infrastructure, substrate governance |
+| 6 | linkedin.com/posts/judiaevans_ai-artificialintelligence-aigovernance-activity-7506248692706754560-Jq5N | UNREAD | AI governance |
+| 7 | linkedin.com/posts/judiaevans_identitysecurity-decentralizedidentity-verifiablecredentials-activity-7504526399802675200-H1Vc | UNREAD | identity security, verifiable credentials |
+| 8 | linkedin.com/posts/judiaevans_when-foundational-rules-are-missing-system-activity-7465366594563686400-ntmC | UNREAD | what happens when foundational rules are missing |
+| 9 | PDF: Model-Centric Safety Cannot Fix OS-Layer Failures (Part 5) | READ, applied | governance outside the model; agent is untrusted |
+| 10 | PDF: Axiom Sea | READ, nothing to apply | identity-system theory |
+| 11 | PDF: The Lattice Layer | READ, nothing to apply | identity-system theory |
+
+**Open for the later discussion:** approver names; branch-protection confirmation;
+whether to add signed approvals (post 7); and what the policy should do when a rule is
+missing (post 8). Today the answer is fail closed: an unknown action class or an unlisted
+approver is never allowed.
