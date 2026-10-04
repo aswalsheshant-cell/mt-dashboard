@@ -18,10 +18,7 @@ SRC = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_Universe_Overrides.csv"
 OUT = ROOT / "dashboard" / "store_universe.js"
 MASTER = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_City_Master.csv"
 STATUSES = {"TENTATIVE", "NA"}
-# dashboard chain name -> chain name in the store master (compared ignoring case, spaces and punctuation)
-MASTER_NAME = {"DMart": "Dmart", "Reliance Retail": "Reliance", "Nykaa (FSN)": "FSN", "Health & Glow": "H&G", "Metro C&C": "Metro Cnc",
-               "Sancus (RMT)": "Sancus(Rmt)", "Frankross": "Frankros", "Trent/Westside": "Trent", "WH-Smith": "Wh-Smith", "Walmart": "Walmart CNC",
-               "B&N": "BEAUTY & NUTRIE", "Ratnadeep": "Ratandeep"}
+import visit_cities as vc
 
 
 def _norm(s):
@@ -29,7 +26,7 @@ def _norm(s):
 
 
 def master_counts(path=MASTER):
-    """Stores per chain in the maintained store master (chain-level pseudo keys and Reliance Brand Counter left out of the total)."""
+    """Stores per standard chain in the maintained store master (chain-level pseudo keys left out; Reliance Brand Counter kept apart)."""
     if not Path(path).exists():
         return None
     with Path(path).open(encoding="utf-8", newline="") as h:
@@ -37,7 +34,7 @@ def master_counts(path=MASTER):
     by = {}
     for r in rows:
         by[r["Chain Name"]] = by.get(r["Chain Name"], 0) + 1
-    total = sum(v for k, v in by.items() if _norm(k) != _norm("Reliance Brand Counter"))
+    total = sum(v for k, v in by.items() if k != "Reliance Brand Counter")
     return {"total": total, "by_chain": by}
 
 
@@ -57,10 +54,8 @@ def build(src=SRC):
     mc = master_counts()
     out = {"overrides": overrides}
     if mc:
-        norm = {_norm(k): v for k, v in mc["by_chain"].items()}
-        out["master"] = {"total": mc["total"], "by_dashboard_chain": {d: norm.get(_norm(m)) for d, m in MASTER_NAME.items() if norm.get(_norm(m)) is not None},
-                         "by_chain_norm": norm,
-                         "note": "Stores in the maintained store master (Jan-Jun 26 store list plus stores added from the offtake files); Reliance Brand Counter staffed counters not included."}
+        out["master"] = {"total": mc["total"], "by_chain": mc["by_chain"], "alias": vc.CHAIN_LOOKUP,
+                         "note": "Stores in the maintained store master (Jan-Jun 26 store list plus stores added from the offtake files); Reliance Brand Counter staffed counters not included. alias maps a chain spelling (letters and digits only, lower case) to the standard chain name."}
     return out
 
 

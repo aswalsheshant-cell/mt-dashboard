@@ -39,6 +39,65 @@ ZONE_FIX = {"WEST": "West", "SOUTH-1": "South-1", "SOUTH-2": "South-2", "NORTH":
             "SOUTH1": "South-1", "SOUTH2": "South-2"}
 
 
+def _n(s):
+    return "".join(ch for ch in str(s).lower() if ch.isalnum())
+
+
+# One standard spelling per chain (ChainMaster.csv spelling where the chain is there). Any chain not listed stops the build:
+# a new spelling must be added here on purpose, never slip through as a second chain.
+CHAIN_STANDARD = {
+    "Apna Mart": ["apnamart"], "Apollo": ["apollo"], "Arambagh": ["arambagh"], "Azorte": ["azorte"], "B&N": ["beautynutrie", "bn"],
+    "Broadway": ["broadway"], "Centro": ["centro"], "D-Mart": ["dmart"], "Nykaa FSN": ["fsn", "nykaafsn"], "Frank Ross": ["frankros", "frankross"],
+    "Guardian": ["guardian"], "Health & Glow": ["hg", "healthglow"], "Lifestyle": ["lifestyle"], "Lulu": ["lulu"], "Metro CNC": ["metrocnc", "metrocc"],
+    "More Retail": ["moreretail"], "National Mart": ["nationalmart"], "Ratnadeep": ["ratnadeep", "ratandeep", "ratanadeep"],
+    "Reliance Retail": ["reliance", "relianceretail"], "Reliance Brand Counter": ["reliancebrandcounter"], "SSL": ["ssl"],
+    "RMT-Sancus": ["sancusrmt", "rmtsancus"], "SastaSundar": ["sastasundar"], "Shoppers Stop": ["shoppersstop"], "Spencers": ["spencer", "spencers"],
+    "Sumo Save": ["sumosave"], "Trends": ["trends"], "Trent": ["trent", "trentwestside"], "Vijetha": ["vijetha"], "V-Mart": ["vmart"], "Vishal Mega Mart": ["vmm", "vishalmegamart"],
+    "Walmart CNC": ["walmartcnc", "walmart"], "WH-Smith": ["whsmith"], "Wellness Forever": ["wellnessforever"],
+}
+CHAIN_LOOKUP = {k: std for std, keys in CHAIN_STANDARD.items() for k in keys}
+
+
+def std_chain(raw):
+    """Standard chain name, or None if the spelling is not known (the caller must stop, not guess)."""
+    return CHAIN_LOOKUP.get(_n(raw)) if raw is not None else None
+
+
+STATE_STANDARD = {
+    "andhrapradesh": "Andhra Pradesh", "bihar": "Bihar", "chhattisgarh": "Chhattisgarh", "chhatisgarh": "Chhattisgarh", "delhi": "Delhi NCR",
+    "delhincr": "Delhi NCR", "goa": "Goa", "gujarat": "Gujarat", "haryana": "Haryana", "hayana": "Haryana", "himachalpradesh": "Himachal Pradesh",
+    "jharkhand": "Jharkhand", "jammukashmir": "Jammu & Kashmir", "jammukasmir": "Jammu & Kashmir", "jammuandkashmir": "Jammu & Kashmir",
+    "karnataka": "Karnataka", "kerala": "Kerala", "madhyapradesh": "Madhya Pradesh", "mp": "Madhya Pradesh", "maharashtra": "Maharashtra",
+    "mumbai": "Maharashtra", "northeast": "Northeast", "odisha": "Odisha", "orissa": "Odisha", "punjab": "Punjab", "rajasthan": "Rajasthan",
+    "tamilnadu": "Tamil Nadu", "telangana": "Telangana", "up": "Uttar Pradesh", "uttarpradesh": "Uttar Pradesh", "uttarakhand": "Uttarakhand",
+    "westbengal": "West Bengal", "panindia": "Pan India",
+}
+STATE_GROUPS = {"upuk", "punjabjkhp"}          # regional groupings in the source (not a state): the state is taken from the store's city
+
+
+# a "city" that is really a state or region name (Reliance rows carry the state in the city field): not a city
+STATE_AS_CITY = {k for k in STATE_STANDARD if k not in ("mumbai", "delhi", "goa", "delhincr")} | STATE_GROUPS | {"northeast"}
+
+
+def is_state_name(city):
+    return isinstance(city, str) and _n(city) in STATE_AS_CITY
+
+
+def std_state(raw):
+    """(state, is_group). A grouping such as UP/UK returns (None, True)."""
+    k = _n(raw) if raw is not None else ""
+    if k in STATE_GROUPS:
+        return None, True
+    return STATE_STANDARD.get(k), False
+
+
+def norm_code(code):
+    if code is None or (isinstance(code, float) and pd.isna(code)):
+        return None
+    c = re.sub(r"\.0$", "", re.sub(r"\s+", " ", str(code)).strip()).upper()
+    return None if c in ("", "NOT AVAILABLE", "NA", "NAN", "NONE", "0") else c
+
+
 def clean(s):
     if s is None or (isinstance(s, float) and pd.isna(s)):
         return None
@@ -105,16 +164,21 @@ def load_offtake(months=MONTHS):
         d["file"] = m
         frames.append(d)
     d = pd.concat(frames, ignore_index=True)
-    d["Chain"] = d["Chain Name"].map(lambda s: re.sub(r"\s+", " ", str(s)).strip().upper())
+    d["Chain Raw"] = d["Chain Name"].map(lambda s: re.sub(r"\s+", " ", str(s)).strip())
+    d["Chain"] = d["Chain Raw"].map(std_chain)
+    unknown = sorted(d.loc[d["Chain"].isna(), "Chain Raw"].unique())
+    if unknown:
+        raise ValueError(f"chain spelling(s) not in CHAIN_STANDARD: {unknown} (add them on purpose in scripts/visit_cities.py)")
     d["bc"] = d["Store Type"].astype(str).str.strip().eq("Brand Counter")
     for c in ("City", "State", "Site Name"):
         d[c] = d[c].map(clean)
     d["Zone"] = d["Zone"].map(norm_zone)
-    d["Site Code"] = d["Site Code"].map(lambda v: None if pd.isna(v) else re.sub(r"\.0$", "", str(v).strip()))
-    key = d["Unique Code"].astype(str).str.strip()
-    d["sid"] = key
-    nocode = d["Site Code"].isna()
-    d.loc[nocode & d["Site Name"].notna(), "sid"] = key + "|" + d["Site Name"]
-    d.loc[nocode & d["Site Name"].isna() & d["City"].notna(), "sid"] = key + "|" + d["City"]
-    d.loc[nocode & d["Site Name"].isna() & d["City"].isna(), "sid"] = key + "|NO-CITY|" + d["State"].fillna("")
+    d["code"] = d["Site Code"].map(norm_code)
+    d["Offtake Key"] = d["Unique Code"].astype(str).str.strip()
+    # one identity per store: standard chain + site code; chain + name or chain + city where the file has no code
+    d["sid"] = d["Chain"] + "|" + d["code"].fillna("")
+    nocode = d["code"].isna()
+    d.loc[nocode & d["Site Name"].notna(), "sid"] = d["Chain"] + "|" + d["Site Name"]
+    d.loc[nocode & d["Site Name"].isna() & d["City"].notna(), "sid"] = d["Chain"] + "|" + d["City"]
+    d.loc[nocode & d["Site Name"].isna() & d["City"].isna(), "sid"] = d["Chain"] + "|NO-CITY|" + d["State"].fillna("")
     return d

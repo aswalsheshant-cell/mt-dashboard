@@ -28,7 +28,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone (optional `Volume 000 L`, `Price Per Ml`) | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Nielsen Pack` | Month × Nielsen Cat × Pack Size | `Date Table[MonthStart]` → `[MonthStart]`; `Category Master[Nielsen Category]` → `[Nielsen Category]` |
 | `Nielsen Deck State Exposure` | State (typed from the review deck) | none (stand-alone seed table) |
-| `Store City Master` | Store Key (chain + site code), with City Final, Visit City, Visit Status, Nearest Listed City | `Fact Offtake Sales[Store Key]` → `[Store Key]` (add Store Key as a calculated column on the fact) |
+| `Store City Master` | Store Key (standard chain \| site code), one row per store, with City Final, Visit City, Visit Status, Nearest Listed City | `Fact Offtake Sales[Match Key]` → `[Match Key]` (add Match Key as a calculated column on the fact; formula in query 49) |
 | `Visit City List` | City (corporate-visit cities, Region, aliases) | `Visit City List[City]` 1 → * `Store City Master[Visit City]` |
 | `Store Universe Overrides` | Chain (Reliance Retail, More Retail, Nykaa (FSN)) with Store Count and Status | none (stand-alone seed table; `[Offtake Chain]` is matched by the universe measures) |
 | `Fact TDP` | Month × Chain × Article | `Date Table[MonthStart]` → `[MonthStart]` |

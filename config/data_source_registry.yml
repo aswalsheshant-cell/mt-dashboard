@@ -792,6 +792,8 @@ datasets:
     notes: >
       No employee, SO or ASE columns. City Final uses the master city when it is a city the offtake files also use,
       else the offtake city (the store list holds localities for some chains, for example Frankros). Visit Status:
+      One row per store; one standard spelling per chain (scripts/visit_cities.py CHAIN_STANDARD) and per state; the build stops on any
+      QC error (Store_City_Master_QC.csv). Chain x city totals with no store code or name are not stores (workbook sheet Chain_City_Totals).
       Considered / Near listed city (Navi Mumbai, Thane, Mohali, Panchkula, Ernakulam, Howrah -> nearest listed city) /
       Not considered / City not available. About 61% of Apr-Aug NSV matches a store in the Jan-Jun file; the rest are new
       stores added from the offtake files. Reliance (non-counter) has store names in Apr-Jun only; Jul-Aug is state level.

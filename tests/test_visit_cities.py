@@ -1,6 +1,7 @@
 """Corporate-visit city rules, the maintained store master, and the city summary."""
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -56,13 +57,58 @@ def test_store_master_is_clean_and_complete():
     assert any(x["City Final"] == "Thane" and x["Nearest Listed City"] == "Mumbai" for x in r)
 
 
-def test_master_city_beats_offtake_locality_rules():
+def test_every_chain_has_one_standard_spelling():
     r = rows()
-    from_master = [x for x in r if x["City Source"] == "Master"]
-    assert len(from_master) > 5000
-    # Frankros keeps the offtake city (the store list holds localities)
-    fr = [x for x in r if x["Chain Name"] == "Frankros" and x["City Source"] == "Offtake file"]
-    assert fr and {x["City Final"] for x in fr} == {"Kolkata"} or len(fr) > 100
+    names = {x["Chain Name"] for x in r}
+    assert names <= set(vc.CHAIN_STANDARD), sorted(names - set(vc.CHAIN_STANDARD))
+    norm = {}
+    for n in names:
+        norm.setdefault(vc._n(n), set()).add(n)
+    assert all(len(v) == 1 for v in norm.values())
+    assert not [n for n in names if re.search(r"rswb|hinop|eb$| fl$|tb$|san$", n.lower())]    # the glued-code names of the first version
+    assert vc.std_chain("Ratandeep") == vc.std_chain("Ratanadeep") == vc.std_chain("RATNADEEP") == "Ratnadeep"
+    assert vc.std_chain("Sasta SundarRSWB") is None                                         # a glued code is an unknown chain, not a new chain
+
+
+def test_one_row_per_chain_and_store_code():
+    seen = set()
+    for x in rows():
+        if x["Site Code"]:
+            k = (x["Chain Name"], x["Site Code"])
+            assert k not in seen, f"{k} appears on two rows"
+            seen.add(k)
+
+
+def test_states_cities_and_text_are_standard():
+    r = rows()
+    states = {x["State"] for x in r if x["State"]}
+    assert states <= set(vc.STATE_STANDARD.values()), sorted(states - set(vc.STATE_STANDARD.values()))
+    assert not {"UP", "Up", "UP/UK", "MP", "KARNATAKA", "Delhi/ Ncr", "Punjab/J&K/Hp"} & states
+    for col in ("Chain Name", "Store Name", "City Final", "State", "Zone"):
+        for x in r:
+            v = x[col]
+            assert v == v.strip() and "  " not in v, (col, v)
+    cities = [x["City Final"] for x in r if x["City Final"]]
+    low = {}
+    for c in cities:
+        low.setdefault(c.lower(), set()).add(c)
+    assert all(len(v) == 1 for v in low.values())
+    assert not [c for c in cities if vc.is_state_name(c)]                                    # a state name is not a city
+
+
+def test_store_master_qc_report_has_no_errors():
+    qc = list(csv.DictReader((ROOT / "PowerBI/SeedData/Masters/Store_City_Master_QC.csv").open(encoding="utf-8")))
+    assert not [q for q in qc if q["Severity"] == "ERROR"]
+
+
+def test_unknown_chain_and_bad_values_are_caught_by_the_gate():
+    import build_store_city_master as bm
+    import pandas as pd
+    df = pd.DataFrame([{"Store Key": "A|1", "Chain Name": "Sasta SundarRSWB", "Site Code": "1", "Store Name": "x", "City Final": "Pune", "State": "Maharashtra", "Zone": "West", "State Note": None},
+                       {"Store Key": "A|1", "Chain Name": "Apollo", "Site Code": "1", "Store Name": "x ", "City Final": "pune", "State": "UP", "Zone": "West", "State Note": None}])
+    errors = [f[1] for f in bm.qc(df) if f[0] == "ERROR"]
+    assert "Store Key is not unique" in errors and "chain name not a standard chain" in errors
+    assert "state is not a standard state" in errors and any("spaces" in e for e in errors)
 
 
 def test_city_summary_ties_to_the_visit_json():

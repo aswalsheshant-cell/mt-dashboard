@@ -26,6 +26,7 @@ import visit_cities as vc
 
 ROOT = vc.ROOT
 MASTER = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_City_Master.csv"
+MASTER_QC = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_City_Master_QC.csv"
 LY_JSON = ROOT / "data" / "raw_drops" / "_agg" / "offtake_fy26.json"
 LYM = ["Apr-25", "May-25", "Jun-25", "Jul-25", "Aug-25", "Sep-25"]
 HF = Font(bold=True, color="FFFFFF")
@@ -95,9 +96,14 @@ def build(months, label, out_xlsx, payload_path):
     s = pd.concat([piv, units, bcs], axis=1).reset_index().rename(columns={"sid": "Store Key"})
     s = s.merge(mas, on="Store Key", how="left")
     s["Total"] = s[months].sum(axis=1, min_count=1)
-    s["Chain"] = s["Chain Name"].fillna(s["Store Key"])
+    s["Chain"] = s["Chain Name"].fillna(s["Store Key"].str.split("|").str[0])
     s["Visit Status"] = s["Visit Status"].fillna("City not available")
     s["bc"] = s["bc"].fillna(False).astype(bool)
+    # chain x city sales that carry neither a store code nor a store name are totals, not stores: kept out of store counts and beats
+    s["is_agg"] = s["Site Code"].isna() & s["Store Name"].isna()
+    agg = s[s["is_agg"] & (s["Visit Status"] != "City not available") & s["Total"].notna()].copy()
+    s_all = s
+    s = s[~s["is_agg"] | (s["Visit Status"] == "City not available")].copy()
 
     cons = s[(s["Visit Status"] == "Considered") & s["Total"].notna()].copy()
     cons["Matched"] = cons["Visit City"]
@@ -134,7 +140,7 @@ def build(months, label, out_xlsx, payload_path):
     ly_raw = json.loads(LY_JSON.read_text(encoding="utf-8"))["by_chain"]
     lyu = {}
     for k, v in ly_raw.items():
-        k = {"RATANDEEP": "RATNADEEP"}.get(k.upper(), k.upper())
+        k = vc.std_chain(k) or k.upper()
         for mo, val in v.items():
             lyu.setdefault(k, {})
             lyu[k][mo] = lyu[k].get(mo, 0) + (val or 0)
@@ -148,7 +154,7 @@ def build(months, label, out_xlsx, payload_path):
 
     # master coverage
     on_master = set(mas.loc[mas["Source"] != "Offtake file, not in master", "Store Key"])
-    sold = s[s["Total"].notna() & ~s["bc"]]
+    sold = s[s["Total"].notna() & ~s["bc"] & ~s["is_agg"]]
     cov = {"stores_sold": int(len(sold)), "in_master_file": int(sold["Store Key"].isin(on_master).sum()),
            "nsv_in_master_pct": float(sold.loc[sold["Store Key"].isin(on_master), "Total"].sum() / sold["Total"].sum() * 100)}
 
@@ -167,7 +173,7 @@ def build(months, label, out_xlsx, payload_path):
         ("3. Beat_Options: three options for every planned store (A chain-wise, B sales tiers, C mixed). Beat_Summary shows what each beat looks like. Final beat and area: GT / EBO to fill.", False),
         ("4. City_Top_Articles: top 10 articles per planned city; stock availability and SOS columns are blank to fill.", False),
         ("5. Pack_Brand: for Facewash and Shampoo, which brands sell which pack size (Nielsen, IN URB MT), with Mamaearth's place in each pack.", False),
-        ("6. Chain_NoCity: sales where no store city exists (chain / state level only). Chain_LastYear: chain level Apr-Sep 2025 vs this year. Master_Gaps: stores that sold but were not in the store master file.", False),
+        ("6. Chain_City_Totals: chain x city sales with no store code or store name (for example Reliance Retail Apr-Jun by city); kept out of store counts and beats. Chain_NoCity: sales where no store city exists (chain / state level only). Chain_LastYear: chain level Apr-Sep 2025 vs this year. Master_Gaps: stores that sold but were not in the store master file.", False),
         ("", False),
         ("BASIS", True),
         ("NSV is Rs lakh as in the source files. Months come from the file names. Store city comes from the maintained store master (Store_City_Master.csv); where the master holds only a locality, or the store is new, the offtake file city is used (City Source column).", False),
@@ -196,7 +202,7 @@ def build(months, label, out_xlsx, payload_path):
     ws = wb.create_sheet("City_Summary")
     mcols = [f"NSV {m}-26 (Rs L, excl BC)" for m in months]
     cols = ["Region", "City (as supplied)", "Beats planned", "Stores with sales"] + mcols + [f"MoM {m}" for m in months[1:]] + [
-        "Total NSV excl BC", "Brand Counter NSV (separate)", "Near-listed NSV (not in totals)"] + [f"Last year {m}" for m in LYM] + ["Sep-26 (to add)", "Considered?", "Size rank"]
+        "Total NSV excl BC", "Brand Counter NSV (separate)", "Near-listed NSV (not in totals)", "Chain-city totals NSV (no store rows)"] + [f"Last year {m}" for m in LYM] + ["Sep-26 (to add)", "Considered?", "Size rank"]
     grey = [c for c in cols if c.startswith("Last year") or c.startswith("Sep-26")]
     header(ws, 1, cols, grey)
     allc = [(r, c) for r, cs in vc.REGIONS.items() for c in cs]
@@ -218,6 +224,9 @@ def build(months, label, out_xlsx, payload_path):
         ws.cell(row=r, column=tcol, value=f"=SUM({L(base)}{r}:{L(base + ncol_m - 1)}{r})")
         ws.cell(row=r, column=tcol + 1, value=fv(g[g.bc]["Total"].sum()) if len(g) else None)
         ws.cell(row=r, column=tcol + 2, value=fv(nl["Total"].sum()) if len(nl) else None)
+        ag = agg[agg["Visit City"] == city]
+        ws.cell(row=r, column=tcol + 3, value=fv(ag["Total"].sum()) if len(ag) else None)
+        tcol += 1
         for j in range(tcol + 3, tcol + 3 + len(LYM) + 1):
             ws.cell(row=r, column=j).fill = GFILL
         ws.cell(row=r, column=tcol + 3 + len(LYM) + 1, value="Considered" if len(g) else "Considered (no sales in files)")
@@ -229,7 +238,7 @@ def build(months, label, out_xlsx, payload_path):
                              "NSV_total_exBC": fv(exb["Total"].sum()), "NSV_BC": fv(g[g.bc]["Total"].sum()),
                              "Near_listed_NSV": fv(nl["Total"].sum()), "Near_listed_stores": int(len(nl)), "Top8": city in top8})
     ws.cell(row=len(allc) + 3, column=2, value="Yellow = top 8 listed cities by NSV (5 beats). Grey = data not in the repo yet. Near-listed NSV is not added to the city totals.")
-    widths(ws, [16, 18, 9, 10] + [13] * ncol_m + [9] * (ncol_m - 1) + [14, 16, 16] + [11] * 7 + [26, 8])
+    widths(ws, [16, 18, 9, 10] + [13] * ncol_m + [9] * (ncol_m - 1) + [14, 16, 16, 16] + [11] * 7 + [26, 8])
 
     # Store list
     ws = wb.create_sheet("Store_List")
@@ -245,7 +254,7 @@ def build(months, label, out_xlsx, payload_path):
     for i, (_, r) in enumerate(sl.iterrows(), 2):
         region = r["Visit Region"] if isinstance(r["Visit Region"], str) else vc.CITY_REGION.get(r["Nearest Listed City"])
         vals = [r["Visit Status"], r["Visit City"], r["Nearest Listed City"], region, r["Zone"], r["State"], r["City Final"], r["City Source"],
-                r["City (store list)"], r["City (offtake file)"], r["Chain"].title() if isinstance(r["Chain"], str) else None, r["Store Type"], r["Site Code"], r["Store Name"]]
+                r["City (store list)"], r["City (offtake file)"], r["Chain"], r["Store Type"], r["Site Code"], r["Store Name"]]
         for j, v in enumerate(vals, 1):
             ws.cell(row=i, column=j, value=fv(v))
         c0 = len(vals) + 1
@@ -256,7 +265,7 @@ def build(months, label, out_xlsx, payload_path):
         tc = c0 + nm + nm - 1
         ws.cell(row=i, column=tc, value=f"=SUM({L(c0)}{i}:{L(c0 + nm - 1)}{i})")
         ws.cell(row=i, column=tc + 1, value=fv(r["Units"]))
-        y = chain_yoy.get(str(r["Chain"]).upper())
+        y = chain_yoy.get(str(r["Chain"]))
         ws.cell(row=i, column=tc + 2, value=fv(y)).number_format = "0%"
         for j in range(tc + 3, tc + 3 + len(LYM) + 1):
             ws.cell(row=i, column=j).fill = GFILL
@@ -284,7 +293,7 @@ def build(months, label, out_xlsx, payload_path):
     header(ws, 1, cols, ["Final beat (GT / EBO to fill)", "Area / route (GT / EBO to fill)"])
     bs = beats.sort_values(["Visit Region", "Matched", "A", "Total"], ascending=[True, True, True, False])
     for i, (_, r) in enumerate(bs.iterrows(), 2):
-        vals = [r["Visit Region"], r["Matched"], int(r["n"]), r["Chain"].title(), r["Store Type"], r["Site Code"], r["Store Name"], fv(r["Total"]), f"A{int(r['A'])}", f"B{int(r['B'])}", f"C{int(r['C'])}", None, None]
+        vals = [r["Visit Region"], r["Matched"], int(r["n"]), r["Chain"], r["Store Type"], r["Site Code"], r["Store Name"], fv(r["Total"]), f"A{int(r['A'])}", f"B{int(r['B'])}", f"C{int(r['C'])}", None, None]
         for j, v in enumerate(vals, 1):
             ws.cell(row=i, column=j, value=fv(v))
         ws.cell(row=i, column=12).fill = GFILL
@@ -301,7 +310,7 @@ def build(months, label, out_xlsx, payload_path):
         for opt, lab in (("A", "A chain-wise"), ("B", "B sales-tier"), ("C", "C mixed")):
             for b, x in g.groupby(opt):
                 top = x.sort_values("Total", ascending=False).head(3)
-                chains = ", ".join(f"{str(k).title()} ({v})" for k, v in x.Chain.value_counts().head(4).items())
+                chains = ", ".join(f"{k} ({v})" for k, v in x.Chain.value_counts().head(4).items())
                 vals = [g["Visit Region"].iloc[0], city, lab, f"{opt}{int(b)}", len(x), fv(x["Total"].sum()), (x["Total"].sum() / tot_c) if tot_c else None, chains,
                         "; ".join(f"{(n or 'NA')} ({t:.1f})" for n, t in zip(top["Store Name"], top["Total"])), int(x.bc.sum())]
                 for j, v in enumerate(vals, 1):
@@ -369,11 +378,20 @@ def build(months, label, out_xlsx, payload_path):
         r_ += 2
     widths(ws, [14, 14, 14, 12, 18] + [13] * 14)
 
+    ws = wb.create_sheet("Chain_City_Totals")
+    cols = ["Chain", "City (final)", "State", "Consider city?", "Nearest listed city"] + [f"NSV {m}-26 (Rs L)" for m in months] + ["Total", "Note"]
+    header(ws, 1, cols)
+    for i, (_, r) in enumerate(agg.sort_values("Total", ascending=False).iterrows(), 2):
+        vals = [r["Chain"], r["City Final"], r["State"], r["Visit Status"], r["Nearest Listed City"]] + [fv(r[m]) for m in months] + [f"=SUM(F{i}:{L(5 + nm)}{i})", "Chain-city total: no store code or store name in the source, so not counted as a store"]
+        for j, v in enumerate(vals, 1):
+            ws.cell(row=i, column=j, value=fv(v))
+    widths(ws, [22, 18, 16, 16, 16] + [13] * nm + [12, 70])
+
     ws = wb.create_sheet("Chain_NoCity")
     cols = ["Chain", "State"] + [f"NSV {m}-26 (Rs L)" for m in months] + ["Total", "Note"]
     header(ws, 1, cols)
     for i, r in enumerate(nc.itertuples(index=False), 2):
-        vals = [str(r[0]).title(), r[1]] + [fv(r[2 + k]) for k in range(nm)] + [f"=SUM(C{i}:{L(2 + nm)}{i})", "Store city not in the sources; state / chain level only"]
+        vals = [str(r[0]), r[1]] + [fv(r[2 + k]) for k in range(nm)] + [f"=SUM(C{i}:{L(2 + nm)}{i})", "Store city not in the sources; state / chain level only"]
         for j, v in enumerate(vals, 1):
             ws.cell(row=i, column=j, value=v)
     widths(ws, [26, 20] + [13] * nm + [14, 50])
@@ -382,11 +400,10 @@ def build(months, label, out_xlsx, payload_path):
     cols = ["Chain"] + [f"LY {x}" for x in LYM] + [f"TY {m}-26" for m in months] + ["TY Sep-26 (to add)"] + [f"YoY {m}" for m in months]
     header(ws, 1, cols, ["TY Sep-26 (to add)"])
     ty_up = ty.copy()
-    ty_up.index = ty_up.index.str.upper()
     names = sorted(set(lyu) | set(ty_up.index), key=lambda c: -(ty_up.loc[c].sum() if c in ty_up.index else 0))
     names = [c for c in names if (c in lyu and any(lyu[c].values())) or (c in ty_up.index and ty_up.loc[c].notna().any())]
     for i, ch in enumerate(names, 2):
-        ws.cell(row=i, column=1, value=ch.title())
+        ws.cell(row=i, column=1, value=ch)
         for k, mo in enumerate(LYM):
             ws.cell(row=i, column=2 + k, value=fv(lyu.get(ch, {}).get(mo)))
         for k, m in enumerate(months):
@@ -409,6 +426,50 @@ def build(months, label, out_xlsx, payload_path):
         for j, v in enumerate([r["Store Key"], r["Chain"], r["State"], r["City (offtake file)"], r["Store Name"], fv(r["Total"]), "Add to the store master"], 1):
             ws.cell(row=i, column=j, value=fv(v))
     widths(ws, [34, 18, 16, 20, 34, 14, 22])
+    # ---------------------------------------------------------------- QC gate: the file is not written if a check fails
+    checks = []
+    sl_all = s[s["Total"].notna()]
+    checks.append(("One row per store in Store_List (Store Key unique)", int(sl["Store Key"].duplicated().sum()), 0))
+    coded = sl[sl["Site Code"].notna()]
+    checks.append(("One row per chain + store code", int(coded.duplicated(["Chain", "Site Code"]).sum()), 0))
+    chains_used = set(s_all["Chain"].dropna()) | set(nc["Chain"].dropna()) | set(lyu) | set(ty.index)
+    checks.append(("Every chain is a standard chain name", len(chains_used - set(vc.CHAIN_STANDARD)), 0))
+    norm_chain = {}
+    for c in chains_used:
+        norm_chain.setdefault(vc._n(c), set()).add(c)
+    checks.append(("No chain spelt two ways", sum(len(v) > 1 for v in norm_chain.values()), 0))
+    bad_text = sum(int(((x := sl[c].dropna().astype(str)) != x.str.strip()).sum()) for c in ("Chain", "Store Name", "City Final", "State", "Zone"))
+    checks.append(("No stray spaces in chain, store, city, state, zone", bad_text, 0))
+    sd = sl.dropna(subset=["State"])
+    checks.append(("Every state is a standard state", len(set(sd["State"]) - set(vc.STATE_STANDARD.values())), 0))
+    off_total = float(off["NSV"].sum())
+    listed_total = float(s_all["Total"].sum())
+    checks.append(("Sales tie out: stores + no-city rows = offtake files (Rs lakh difference)", round(abs(listed_total - off_total), 3), 0))
+    checks.append(("Every Store_List row is a real store (has a store code or a store name)", int((sl["Site Code"].isna() & sl["Store Name"].isna()).sum()), 0))
+    checks.append(("Chain_NoCity sales equal the no-city rows in the master (Rs lakh difference)", round(abs(float(nc["Total"].sum()) - float(nocity["Total"].sum())), 3), 0))
+    checks.append(("Listed-city stores all carry a visit city and region", int((sl[sl["Visit Status"] == "Considered"][["Visit City", "Visit Region"]].isna().any(axis=1)).sum()), 0))
+    checks.append(("Near-listed stores all name the nearest listed city", int(sl[sl["Visit Status"] == "Near listed city"]["Nearest Listed City"].isna().sum()), 0))
+    failed = [c for c in checks if c[1] != c[2]]
+    ws = wb.create_sheet("QC", 1)
+    header(ws, 1, ["Check", "Found", "Expected", "Result"])
+    for i, (name, got, exp) in enumerate(checks, 2):
+        ws.cell(row=i, column=1, value=name)
+        ws.cell(row=i, column=2, value=got)
+        ws.cell(row=i, column=3, value=exp)
+        c = ws.cell(row=i, column=4, value="PASS" if got == exp else "FAIL")
+        c.fill = GREEN if got == exp else RED
+    r0 = len(checks) + 4
+    ws.cell(row=r0, column=1, value="To confirm (not errors): from the store master QC report").font = Font(bold=True)
+    qcf = MASTER_QC
+    if qcf.exists():
+        qdf = pd.read_csv(qcf, dtype=str).fillna("")
+        for j, (_, q) in enumerate(qdf[qdf["Severity"] == "WARN"].iterrows(), r0 + 1):
+            ws.cell(row=j, column=1, value=q["Check"])
+            ws.cell(row=j, column=2, value=q["Count"])
+            ws.cell(row=j, column=4, value=q["Examples"][:200])
+    widths(ws, [86, 10, 10, 10])
+    if failed:
+        raise SystemExit("QC failed, workbook not written: " + "; ".join(f"{n} (found {g}, expected {e})" for n, g, e in failed))
     wb.save(out_xlsx)
 
     summary = pd.DataFrame(summary_rows)

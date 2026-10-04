@@ -2105,22 +2105,26 @@ in
 // chain-wise store list workbook (Jan-Jun 26) plus stores that sold in later offtake months (Source column).
 // No employee, SO or ASE columns.
 //
-// Key columns: Store Key = Chain Name & Site Code (matches the offtake file's Unique column; stores without a code
-// use Chain Name | Store Name). City Final = master city, or the offtake city where the master holds only a locality.
-// Visit Status = Considered / Near listed city / Not considered / City not available, against Visit_City_List.csv.
-// Relate Fact Offtake Sales[Store Key] -> Store City Master[Store Key]. Add Store Key to Fact Offtake Sales as a calculated
-// column:  Store Key = 'Fact Offtake Sales'[Chain] & 'Fact Offtake Sales'[Store Code]   (check match % with [Visit Master Match %]).
+// One row per store. Store Key = standard chain name | site code (chain | store name or chain | city where there is no code).
+// Chain Name is ONE standard spelling per chain (scripts/visit_cities.py CHAIN_STANDARD); Chain (as in source) keeps the spelling in the file.
+// State is one standard spelling (State (as in source) keeps the original; State Note explains any change). City Final = master city,
+// or the offtake city where the master holds only a locality. Visit Status = Considered / Near listed city / Not considered /
+// City not available, against Visit_City_List.csv.
+// Relate Fact Offtake Sales to this table on [Match Key]: add a calculated column to the fact
+//   Match Key = UPPER ( TRIM ( 'Fact Offtake Sales'[Chain] ) ) & "|" & UPPER ( TRIM ( 'Fact Offtake Sales'[Store Code] ) )
+// (Match Key = chain as spelt in the offtake file, upper case | site code). Stores without a code have no Match Key.
+// Check the join with [Visit Master Match %] before using the city measures.
 // =====================================================================
 let
     Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Store_City_Master.csv"),
         [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
     Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
     Typed = Table.TransformColumnTypes(Headers, {
-        {"Store Key", type text}, {"Chain Name", type text}, {"Site Code", type text}, {"Store Name", type text},
-        {"Zone", type text}, {"State", type text},
+        {"Store Key", type text}, {"Chain Name", type text}, {"Chain (as in source)", type text}, {"Site Code", type text}, {"Store Name", type text},
+        {"Zone", type text}, {"State", type text}, {"State (as in source)", type text}, {"State Note", type text},
         {"City (store list)", type text}, {"City (offtake file)", type text}, {"City Final", type text}, {"City Source", type text},
         {"Visit City", type text}, {"Visit Region", type text}, {"Visit Status", type text}, {"Nearest Listed City", type text},
-        {"Store Type", type text}, {"Dup Rows", Int64.Type}, {"Source", type text}
+        {"Store Type", type text}, {"Match Key", type text}, {"Source", type text}
     })
 in
     Typed

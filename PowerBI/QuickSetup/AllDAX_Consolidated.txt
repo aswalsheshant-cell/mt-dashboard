@@ -2386,7 +2386,7 @@ RETURN IF ( [Subcat Presence Status] IN { "Absent", "Under-weight" },
     _gap * CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )
 
 // ---------- CORPORATE-VISIT CITIES (tables: 'Store City Master', 'Visit City List') ----------
-// Needs 'Fact Offtake Sales'[Store Key] (calculated column, see 49_Store_City_Master.pq) related to 'Store City Master'[Store Key].
+// Needs 'Fact Offtake Sales'[Match Key] (calculated column, see 49_Store_City_Master.pq) related to 'Store City Master'[Match Key].
 Visit Stores = DISTINCTCOUNT ( 'Store City Master'[Store Key] )
 
 Visit City NSV =

@@ -401,7 +401,7 @@ function storeUniverse(){
   Object.entries(ov).forEach(([n,o])=>{byChain[n]=Object.assign({},byChain[n],{count:o.count,status:o.status,note:o.note});});
   Object.values(byChain).forEach(c=>{if(typeof c.count==='number'){total+=c.count;if(c.status==='TENTATIVE')tentative+=c.count;}});
   const M=(window.STORE_UNIVERSE&&window.STORE_UNIVERSE.master)||null,nrm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const masterFor=n=>M?(M.by_dashboard_chain&&M.by_dashboard_chain[n]!=null?M.by_dashboard_chain[n]:(M.by_chain_norm&&M.by_chain_norm[nrm(n)]!=null?M.by_chain_norm[nrm(n)]:null)):null;
+  const masterFor=n=>{if(!M)return null;const std=(M.alias&&M.alias[nrm(n)])||n;return M.by_chain&&M.by_chain[std]!=null?M.by_chain[std]:null;};
   return {fy,month:blk&&blk.latest_month,byChain,total,tentative,pos:total-tentative,master:M?M.total:null,masterFor,ok:!!blk};
 }
 // the line above the store KPI: actual universe (store master) against the stores counted as available
