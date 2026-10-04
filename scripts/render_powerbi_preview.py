@@ -110,4 +110,88 @@ body2 = f"""{NAV}<div class='top'><h1>Brand detail · Mamaearth Facewash</h1><di
 js2 = f"""Chart.defaults.animation=false;Chart.defaults.font.family='Segoe UI';
 new Chart(document.getElementById('c3'),{{type:'line',data:{{labels:{json.dumps(P['months'])},datasets:[{{label:'Mamaearth value share %',data:{json.dumps(P['ms'])},borderColor:'#118DFF',backgroundColor:'rgba(17,141,255,.15)',fill:true,pointRadius:1}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{display:false}}}},scales:{{x:{{ticks:{{maxTicksLimit:8}}}},y:{{ticks:{{callback:v=>v+'%'}}}}}}}}}});"""
 page("p2", body2, js2, "powerbi_preview_2_brand_drillthrough.html")
+
+
+# ================================================================ more pages
+import csv
+CC = list(csv.DictReader((ROOT / "data" / "nielsen" / "Chain_Contribution_Aug26.csv").open(encoding="utf-8")))[:8]
+VC = json.loads((ROOT / "data" / "nielsen" / "Visit_Cities_Aug26.json").read_text(encoding="utf-8"))
+AV = json.loads((ROOT / "data" / "account_share" / "Account_View.json").read_text(encoding="utf-8"))
+asp = {c["name"].upper(): c for c in PV["internal"]["chains"]}
+FOOT = "<div class='foot'>DESIGN PREVIEW drawn from the repo's real numbers. Not a Power BI screenshot.</div>"
+pretty = lambda n: {"DMART": "D-Mart", "RELIANCE": "Reliance Retail"}.get(n, n.title())
+
+
+def top(title, extra=""):
+    return f"{NAV}<div class='top'><h1>{title}</h1>{extra}</div>"
+
+
+# ---- page 3: Chain performance
+rows = "".join(f"<tr><td>{pretty(c['Chain'])}</td><td>{float(c['ty']) / 100:,.1f}</td><td>{float(c['growth_pct']):+.0f}%</td><td>{float(c['share_ty_pct']):.1f}%</td><td>{float(c['share_of_growth_pct']):.0f}%</td><td>{float(c['mamaearth_pct_of_chain']):.0f}%</td><td>{asp.get(c['Chain'], {}).get('asp_index', '–')}</td><td>{asp.get(c['Chain'], {}).get('realisation_pct', '–')}</td></tr>" for c in CC)
+d = CC[0]
+body3 = top("Chain Performance", SLICERS()) + f"""
+<div class='card' style='left:80px;top:66px;width:700px;height:420px'><h3>NSV, growth and share of growth by chain: one chart, three insights<span class='ico'>⤒ ⤓ ⇊ ⤢</span></h3>
+ <div class='bc'><b>All chains</b> ▸ Chain ▸ Store &nbsp;<span style='color:#888'>(drill down to the stores of one chain)</span></div><div class='pick'><span>Measure ▾ NSV Rs Cr</span><span>By ▾ Chain</span><span>Line: YoY %</span><span>Bubble: share of growth</span></div>
+ <div style='height:310px'><canvas id='c4'></canvas></div></div>
+<div class='card' style='left:792px;top:66px;width:524px;height:420px'><h3>Chain table (matrix): sales, mix, price<span class='ico'>⤒ ⤓ ⇊</span></h3>
+ <table><tr><th>Chain</th><th>NSV Cr</th><th>YoY</th><th>Share</th><th>Of growth</th><th>Our % of chain</th><th>ASP idx</th><th>Real. %</th></tr>{rows}</table>
+ <div class='sub' style='margin-top:8px'>Click a row to cross-filter the chart; right-click ▸ Drill through ▸ Chain detail.</div></div>
+<div class='card' style='left:80px;top:498px;width:1236px;height:150px'><h3>Insights for the selected chain (D-Mart)<span class='ico'>···</span></h3>
+ <div style='display:flex;gap:26px;font-size:12px'><div><b>SALES</b><br>Rs {float(d['ty']) / 100:,.1f} Cr · {float(d['growth_pct']):+.0f}% YoY</div><div><b>MIX</b><br>{float(d['share_ty_pct']):.0f}% of MT NSV · carries {float(d['share_of_growth_pct']):.0f}% of the growth</div><div><b>PRICE</b><br>ASP index {asp['DMART']['asp_index']} · realisation {asp['DMART']['realisation_pct']}% of MRP</div><div><b>OUR SHARE</b><br>Mamaearth is {float(d['mamaearth_pct_of_chain']):.0f}% of the chain's NSV</div></div></div>""" + FOOT
+js3 = f"""Chart.defaults.animation=false;new Chart(document.getElementById('c4'),{{data:{{labels:{json.dumps([pretty(c['Chain']) for c in CC])},datasets:[{{type:'bar',label:'NSV Rs Cr',data:{json.dumps([round(float(c['ty']) / 100, 1) for c in CC])},backgroundColor:'#118DFF',yAxisID:'y'}},{{type:'line',label:'YoY %',data:{json.dumps([round(float(c['growth_pct']), 0) for c in CC])},borderColor:'#E66C37',backgroundColor:'#E66C37',yAxisID:'y1',pointRadius:5}},{{type:'line',label:'Share of growth %',data:{json.dumps([round(float(c['share_of_growth_pct']), 0) for c in CC])},borderColor:'#8764B8',backgroundColor:'#8764B8',yAxisID:'y1',borderDash:[5,4],pointRadius:4}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom'}}}},scales:{{y1:{{position:'right',grid:{{drawOnChartArea:false}},ticks:{{callback:v=>v+'%'}}}}}}}}}});"""
+page("p3", body3, js3, "powerbi_preview_3_chain.html")
+
+# ---- page 4: zone and state, drilled into West
+wcities = sorted([c for c in VC["cities"] if c["Region"] == "West"], key=lambda c: -c["NSV_total_exBC"])
+tw = ty[w]
+sr = "".join(f"<tr><td>{c['City']}</td><td>{c['NSV_total_exBC'] / 100:.1f}</td><td>{c['Stores']}</td><td>{(c['NSV_Aug'] / c['NSV_Jul'] - 1) * 100:+.0f}%</td><td>{c['Beats']}</td></tr>" for c in wcities)
+body4 = top("Zone and State · drilled into West", SLICERS("").replace("Zone <b>All</b>","Zone <b>West</b>")) + f"""
+<div class='card' style='left:80px;top:66px;width:640px;height:440px'><h3>West by state: NSV (Apr–Aug FY27) and share of the zone<span class='ico'>⤒ ⤓ ⇊ ⤢</span></h3>
+ <div class='bc'>All MT ▸ <b>West</b> ▸ State ▸ City ▸ Store &nbsp;<span style='color:#888'>(you are one level down; ⤒ goes back up)</span></div><div class='pick'><span>Measure ▾ NSV Rs Cr</span><span>By ▾ State</span><span>Line: share of zone %</span></div><div style='height:330px'><canvas id='c5'></canvas></div><div class='sub'>"Mumbai" is a state label used in the offtake file for some chains; the real state list is cleaned in the Power BI model.</div></div>
+<div class='card' style='left:732px;top:66px;width:584px;height:440px'><h3>West cities (visit-city list): NSV, stores, MoM, beats<span class='ico'>⤒ ⤓ ⇊</span></h3>
+ <table><tr><th>City</th><th>NSV Apr–Aug Rs L</th><th>Stores</th><th>MoM Aug</th><th>Beats</th></tr>{sr}</table>
+ <div class='sub' style='margin-top:8px'>Mumbai includes Thane and Navi Mumbai; Pune is West. Right-click a city ▸ Drill through ▸ Store list with last-year NSV and YoY.</div></div>
+<div class='tip' style='left:300px;top:150px'><h4>Maharashtra · Apr–Aug FY27</h4>
+ <div class='head'><small>Sales</small>NSV Rs {states_w[0][1]:,.1f} Cr · FY26 full year Rs {next(x for x in O['by_state'] if x['state'] == 'Maharashtra')['fy26'] / 100:,.1f} Cr</div>
+ <div class='head m'><small>Mix</small>{states_w[0][1] / tw * 100:.0f}% of the West zone · {states_w[0][1] / mt_ty * 100:.0f}% of the MT total</div>
+ <div class='head p'><small>Reach</small>{sum(c['Stores'] for c in wcities if c['City'] in ('Mumbai', 'Pune', 'Nashik')):,} stores in Mumbai, Pune and Nashik</div></div>""" + FOOT
+js4 = f"""Chart.defaults.animation=false;new Chart(document.getElementById('c5'),{{data:{{labels:{json.dumps([x[0] for x in states_w])},datasets:[{{type:'bar',label:'NSV Rs Cr',data:{json.dumps([round(x[1], 1) for x in states_w])},backgroundColor:'#118DFF',yAxisID:'y'}},{{type:'line',label:'Share of West %',data:{json.dumps([round(x[1] / tw * 100, 1) for x in states_w])},borderColor:'#E66C37',backgroundColor:'#E66C37',yAxisID:'y1',pointRadius:5}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom'}}}},scales:{{y1:{{position:'right',grid:{{drawOnChartArea:false}},ticks:{{callback:v=>v+'%'}}}}}}}}}});"""
+page("p4", body4, js4, "powerbi_preview_4_zone_state.html")
+
+# ---- page 5: Nielsen cuts
+fw = sorted(P["fw_all"], key=lambda b: -b["ms"])[:7]
+nr = "".join(f"<tr><td>{b['n']}</td><td>{b['ms']:.1f}</td><td>{b['pp']:+.1f}</td><td>{b['ppml']:.2f}</td><td>{b['ppml'] / cat['ppml'] * 100:.0f}</td><td>{b['wd']:.1f}</td><td>{b['nd']:.1f}</td><td>{b['sah']:.1f}</td></tr>" for b in fw)
+packs = [x for x in P["fw_pack_gap"]["rows"] if x["cat_share"] >= 1][:7]
+body5 = top("Nielsen Cuts · Facewash", "<div class='chip'>Category <b>Facewash</b></div><div class='chip'>Market <b>IN URB MT</b></div><div class='chip'>Month <b>Aug 26</b></div><div class='chip'>View <b>Both ▾</b></div>") + f"""
+<div class='card' style='left:80px;top:66px;width:520px;height:330px'><h3>Mamaearth share trend (face wash, urban MT)<span class='ico'>⤒ ⤓</span></h3><div style='height:270px'><canvas id='c6'></canvas></div></div>
+<div class='card' style='left:612px;top:66px;width:704px;height:330px'><h3>Brand cut: share, price, distribution, productivity<span class='ico'>⤒ ⤓ ⇊</span></h3>
+ <table><tr><th>Brand</th><th>Share %</th><th>Δ pp YoY</th><th>Rs / ml</th><th>Price idx</th><th>WD %</th><th>ND %</th><th>SAH %</th></tr>{nr}</table>
+ <div class='sub' style='margin-top:8px'>WD above ND = in the larger stores first. SAH = share where the brand is listed.</div></div>
+<div class='card' style='left:80px;top:408px;width:760px;height:260px'><h3>Pack presence: category value by pack and Mamaearth's own mix<span class='ico'>⤒ ⤓</span></h3><div style='height:200px'><canvas id='c7'></canvas></div></div>
+<div class='card' style='left:852px;top:408px;width:464px;height:260px'><h3>Insights<span class='ico'>···</span></h3>
+ <div class='head'><small>Price</small>Index {idx:.0f}: we sell above the category price</div><div class='head m'><small>Reach</small>WD {me['wd']:.1f}% but ND {me['nd']:.1f}%: smaller stores still open</div><div class='head p'><small>Headroom</small>Share at 95% WD {sah95:.1f}% ({sah95 - me['ms']:+.1f} pp); 125 and 240 ml not sold</div></div>""" + FOOT
+colors = ["#118DFF", "#12239E", "#E66C37", "#6B007B", "#E044A7", "#744EC2"]
+tops = [next(b for b in P["brands"] if b["n"] == n) for n in ("Mamaearth",)]
+js5 = f"""Chart.defaults.animation=false;
+new Chart(document.getElementById('c6'),{{type:'line',data:{{labels:{json.dumps(P['months'])},datasets:[{{label:'Mamaearth',data:{json.dumps(P['ms'])},borderColor:'#118DFF',pointRadius:0,borderWidth:3}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom'}}}},scales:{{x:{{ticks:{{maxTicksLimit:7}}}},y:{{ticks:{{callback:v=>v+'%'}}}}}}}}}});
+new Chart(document.getElementById('c7'),{{type:'bar',data:{{labels:{json.dumps([x['size'] + ' ml' for x in packs])},datasets:[{{label:'Category value share %',data:{json.dumps([x['cat_share'] for x in packs])},backgroundColor:'#C8C6C4'}},{{label:'Mamaearth own mix %',data:{json.dumps([x['me_mix'] for x in packs])},backgroundColor:'#118DFF'}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom'}}}}}}}});"""
+page("p5", body5, js5, "powerbi_preview_5_nielsen.html")
+
+# ---- page 6: chain share and plan
+cols6 = {"Lulu": "#118DFF", "More Retail": "#E66C37", "Wellness Forever": "#107C10", "Reliance Retail": "#8764B8", "Reliance Brand Counter": "#E044A7"}
+allm = sorted({x["month"] for c in AV["chains"].values() for x in c["series"]}, key=lambda m: (int(m.split()[1]), ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].index(m.split()[0])))
+ds = []
+for n, c in AV["chains"].items():
+    by = {x["month"]: x for x in c["series"]}
+    ds.append({"label": n, "data": [by[m]["fw_share"] if m in by else None for m in allm], "borderColor": cols6.get(n), "backgroundColor": cols6.get(n), "tension": .25, "spanGaps": True, "pointRadius": 2})
+t6 = "".join(f"<tr><td>{n}</td><td>{c['share_latest']:.1f}</td><td>{c['fw_share_latest']:.1f}</td><td>{c['account_mom_pct']:+.0f}%</td><td>{c['honasa_mom_pct']:+.0f}%</td></tr>" for n, c in AV["chains"].items())
+fl = [f for f in AV["flags"] if f["flag"] in ("White space", "Low assortment")][:5]
+lv = AV["facewash_plan"]["levers"][:4]
+body6 = top("Chain Share and Plan", "<div class='chip'>Chain <b>All 4 ▾</b></div><div class='chip'>Month <b>Aug 26</b></div><div class='chip'>Level <b>Chain ▾</b></div>") + f"""
+<div class='card' style='left:80px;top:66px;width:640px;height:330px'><h3>Face wash share inside each chain's own category (%)<span class='ico'>⤒ ⤓ ⇊</span></h3><div class='pick'><span>Chain ▾ Lulu · More · Wellness · Reliance · Brand Counter</span></div><div style='height:250px'><canvas id='c8'></canvas></div><div class='sub'>Dashed in the report: More Retail months on the smaller scope.</div></div>
+<div class='card' style='left:732px;top:66px;width:584px;height:330px'><h3>Account sales vs ours, MoM<span class='ico'>⤒ ⤓</span></h3><table><tr><th>Chain</th><th>Our share %</th><th>Face wash %</th><th>Account MoM</th><th>Our MoM</th></tr>{t6}</table><div class='sub' style='margin-top:6px'>Reliance values are gross sales as supplied: compare shares, not rupees.</div></div>
+<div class='card' style='left:80px;top:408px;width:640px;height:260px'><h3>White space and low assortment (only categories that matter to us)<span class='ico'>⤒ ⤓</span></h3><table><tr><th>Chain</th><th>Category</th><th>Flag</th><th>% of chain</th><th>Our share %</th><th>Articles</th></tr>{''.join(f"<tr><td>{f['chain']}</td><td>{f['category']}</td><td>{f['flag']}</td><td>{f['pct_of_chain']:.1f}</td><td>{f['share']:.2f}</td><td>{f['articles'] if f['articles'] is not None else '–'}</td></tr>" for f in fl)}</table></div>
+<div class='card' style='left:732px;top:408px;width:584px;height:260px'><h3>Plan to lift Facewash share (Rs Cr / month, upper bound)<span class='ico'>⤒ ⤓</span></h3><table><tr><th>Lever</th><th>Rs Cr / month</th><th>Owner</th><th>Timeline</th></tr>{''.join(f"<tr><td>{l['lever']}</td><td>{l['size_cr_month']:.2f}</td><td>{l['owner']}</td><td>{l['timeline']}</td></tr>" for l in lv)}</table><div class='sub' style='margin-top:6px'>Total {AV['facewash_plan']['total_cr_month']:.2f} Cr a month: levers overlap, so it is not a forecast.</div></div>""" + FOOT
+js6 = f"""Chart.defaults.animation=false;new Chart(document.getElementById('c8'),{{type:'line',data:{{labels:{json.dumps(allm)},datasets:{json.dumps(ds)}}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom',labels:{{boxWidth:10}}}}}},scales:{{y:{{ticks:{{callback:v=>v+'%'}}}}}}}}}});"""
+page("p6", body6, js6, "powerbi_preview_6_chain_share.html")
 print("wrote", OUT)

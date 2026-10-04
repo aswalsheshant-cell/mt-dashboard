@@ -90,3 +90,10 @@ Tick each line; the right-hand column says what to see before moving on.
 
 ## 5. Not done yet (needs Desktop)
 Everything in sections 2 to 4 inside Power BI. The queries, measures, seeds and this checklist are in the repo and tested for structure only.
+
+## Design previews (look only, not Power BI screenshots)
+
+Drawn by `scripts/render_powerbi_preview.py` from the repo's real numbers.
+Files: `docs/images/powerbi_preview_1_cockpit`, `2_brand_drillthrough`, `3_chain`,
+`4_zone_state`, `5_nielsen`, `6_chain_share` (.html and .png).
+Rebuild: `python scripts/render_powerbi_preview.py`.
