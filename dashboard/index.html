@@ -227,6 +227,7 @@
 <script src="nielsen.js"></script>
 <script src="store_universe.js"></script>
 <script src="store_cuts.js"></script>
+<script src="tdp.js"></script>
 <script src="inventory_engine.js"></script>
 <script src="alert_controller.js"></script>
 <script>
@@ -1123,6 +1124,40 @@ function destroyInventoryCharts(){
   inventoryHealthState.charts={};
 }
 
+// TDP & Distribution from dashboard/tdp.js (scripts/build_tdp.py reads PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv).
+// TDP = sum of ACV % across SKUs. No TDP file has been supplied yet, so until one is dropped in this shows the file needed and, next to it,
+// the real Nielsen weighted / numeric distribution for face wash (a different measure, labelled as such). Nothing is estimated.
+function renderTdp(content){
+  const ok=v=>typeof v==='number'&&isFinite(v),f1=v=>ok(v)?v.toFixed(1):'–',pc=v=>ok(v)?(v>0?'+':'')+v.toFixed(1)+'%':'–';
+  const esc=x=>String(x==null||x===''?'–':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const T=window.TDP,N=window.NIELSEN;
+  if(T&&T.status==='LOADED'){
+    const rows=(a,k)=>(a||[]).slice(0,15).map(r=>`<tr><td>${esc(r[k])}</td><td>${f1(r.tdp)}</td><td>${f1(r.acv)}</td><td>${f1(r.nd)}</td><td>${f1(r.wd)}</td><td>${ok(r.wd_nd_ratio)?r.wd_nd_ratio.toFixed(2):'–'}</td><td>${num(r.articles)}</td></tr>`).join('');
+    const hd=k=>`<thead><tr><th>${k}</th><th>TDP</th><th>ACV %</th><th>Numeric dist %</th><th>Weighted dist %</th><th>WD ÷ ND</th><th>Articles</th></tr></thead>`;
+    const bm=(T.by_month||[]),cur=bm[bm.length-1]||{};
+    content.innerHTML+=`<p class="lead">TDP ${esc(T.latest)} · ${esc((T.files||[]).join(', '))} · TDP = sum of ACV % across SKUs. ${num(T.rows_dropped_duplicate)} duplicate rows and ${num(T.rows_dropped_bad_acv)} rows with no ACV % were left out.</p>
+     <div class="kpi-row">${kpi('TDP',f1(cur.tdp),`${esc(T.latest)} · MoM ${pc(T.mom_tdp_pct)}`)}${kpi('Average ACV %',f1(cur.acv),'shelf reach of a SKU')}${kpi('Numeric distribution',f1(cur.nd)+'%','outlets stocking us')}${kpi('Weighted distribution',f1(cur.wd)+'%','sales-weighted reach')}</div>`;
+    content.innerHTML+=card('TDP by chain',`${esc(T.latest)}`,`<table class="tbl">${hd('Chain')}<tbody>${rows(T.by_chain,'Chain')}</tbody></table>`);
+    content.innerHTML+=card('TDP by brand',`${esc(T.latest)}`,`<table class="tbl">${hd('Brand')}<tbody>${rows(T.by_brand,'Brand')}</tbody></table>`);
+    content.innerHTML+=card('TDP by state',`${esc(T.latest)}`,`<table class="tbl">${hd('State')}<tbody>${rows(T.by_state,'State')}</tbody></table>`);
+    const cv=chartInCard(content,'TDP by month','Sum of ACV % across SKUs.');
+    inventoryHealthState.charts.tdp=new Chart(cv,{type:'bar',data:{labels:bm.map(r=>r.Month),datasets:[{label:'TDP',data:bm.map(r=>r.tdp),backgroundColor:'#118DFF'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    return;
+  }
+  const need=(T&&T.needed)||'PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv';
+  content.innerHTML+=card('TDP: source file not supplied yet','TDP is not estimated',`<p class="lead">Needed: <b>${esc(need)}</b> (monthly, one row per article, chain and state, with ACV %, AIC, Numeric Distribution and Weighted Distribution). Column list and template: <code>_TEMPLATE_TDP_Monthly.csv</code>; request wording: <code>docs/NIELSEN_DATA_REQUEST.md</code>. Drop the file, run <code>python scripts/build_tdp.py</code>, and this view fills in (TDP, ACV, ND, WD by chain, brand, state and month). The Power BI measures are already written (DAX 05).</p>`);
+  if(N&&N.data_status==='GOVERNED'&&Array.isArray(N.fw_all)){
+    const me=N.fw_all.find(b=>b.n==='Mamaearth')||{};
+    content.innerHTML+=`<p class="lead">Nearest real distribution data today: Nielsen ${esc(N.market)} face wash, ${esc(N.reporting_period)}. This is brand distribution (WD / ND), not TDP.</p>
+     <div class="kpi-row">${kpi('Mamaearth weighted distribution',f1(me.wd)+'%','in the larger stores')}${kpi('Mamaearth numeric distribution',f1(me.nd)+'%','all stores')}${kpi('WD ÷ ND',ok(me.wd)&&ok(me.nd)&&me.nd>0?(me.wd/me.nd).toFixed(2):'–','above 1 = strong in big stores first')}${kpi('Share where listed (SAH)',f1(me.sah)+'%','share among stores that stock us')}</div>`;
+    content.innerHTML+=card('Face wash brands: weighted and numeric distribution','Nielsen, urban MT',`<table class="tbl"><thead><tr><th>Brand</th><th>Weighted dist %</th><th>Numeric dist %</th><th>WD ÷ ND</th><th>Share where listed %</th></tr></thead><tbody>${N.fw_all.slice(0,8).map(b=>`<tr><td>${esc(b.n)}</td><td>${f1(b.wd)}</td><td>${f1(b.nd)}</td><td>${ok(b.wd)&&ok(b.nd)&&b.nd>0?(b.wd/b.nd).toFixed(2):'–'}</td><td>${f1(b.sah)}</td></tr>`).join('')}</tbody></table>`);
+    if(Array.isArray(N.wd)&&Array.isArray(N.months)){
+      const cv=chartInCard(content,'Mamaearth weighted distribution by month (Nielsen)','Face wash, urban MT.');
+      inventoryHealthState.charts.tdpWd=new Chart(cv,{type:'line',data:{labels:N.months,datasets:[{label:'Weighted distribution %',data:N.wd,borderColor:'#118DFF',backgroundColor:'#118DFF',pointRadius:2,tension:.25}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});
+    }
+  }
+}
+
 // State, pack size and LFL / NFL store cuts (offtake, Apr-Aug FY27 vs same months last year) from dashboard/store_cuts.js,
 // written by scripts/build_store_cuts.py. Fixed period: the FY / Month filters do not apply. Values are Rs lakh (crc() shows L / Cr).
 function renderStoreCuts(content){
@@ -1767,8 +1802,8 @@ function buildInventoryHealth(){
   s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}${storeUniverseStrip(_U)}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div>${_U.ok&&_U.master?`<div class="kpi-card"><div class="kpi-label">Store Availability</div><div class="kpi-value">${Math.round(_U.total/_U.master*100)}%</div><div class="note">${num(_U.total)} counted of ${num(_U.master)} in the store master</div></div>`:''}<div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
 
   // Sub-view tabs
-  const subviews=['velocity','gap','coverage','storecuts'];
-  const subviewLabels={velocity:'Offtake Velocity',gap:'Demand-Supply Gap',coverage:'Store Coverage',storecuts:'State, Pack & Store Type'};
+  const subviews=['velocity','gap','coverage','storecuts','tdp'];
+  const subviewLabels={velocity:'Offtake Velocity',gap:'Demand-Supply Gap',coverage:'Store Coverage',storecuts:'State, Pack & Store Type',tdp:'TDP & Distribution'};
   const tabs=`<div class="subview-tabs">${subviews.map(sv=>`<button class="subview-tab ${inventoryHealthState.subview===sv?'active':''}" onclick="switchInventorySubview('${sv}')">${subviewLabels[sv]}</button>`).join('')}</div>`;
   s.innerHTML+=tabs;
 
@@ -1885,6 +1920,8 @@ function buildInventoryHealth(){
       content.innerHTML+=inventoryClassificationSection();
     }else if(sv==='storecuts'){
       renderStoreCuts(content);
+    }else if(sv==='tdp'){
+      renderTdp(content);
     }else if(sv==='coverage'){
       // Store Coverage: real store counts by zone from the MT universe
       // (D.universe.by_zone: [{name,stores}], sums to the 426-store baseline).

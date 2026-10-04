@@ -946,3 +946,26 @@ datasets:
       LFL = sold this year and in the same months last year; NFL = no sales last year in those months; Lost = sold last year, nothing this year.
       Reliance Retail non-counter has last-year sales at state level only, so it is "No LY store data" and is not in LFL. Pack size is FY27 only
       (the FY26 store file has no pack). Shown in the web dashboard: Inventory & Supply Health > State, Pack & Store Type (dashboard/store_cuts.js).
+
+  tdp_monthly:
+    business_name: "TDP / ACV / distribution monthly (Total Distribution Points)"
+    source_path: "PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv (not supplied) -> scripts/build_tdp.py -> dashboard/tdp.js"
+    source_type: "CSV expected (Nielsen RMS or equivalent); template _TEMPLATE_TDP_Monthly.csv"
+    grain: "month x chain x state x article"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["Month", "Chain", "State", "Article Code"]
+    important_columns: ["ACV %", "AIC", "Numeric Distribution", "Weighted Distribution"]
+    business_owner: "MT Analytics (Channel Analyst Lead) to obtain from Nielsen / RKAM"
+    refresh_frequency: "Monthly"
+    validation_status: MISSING
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_tdp.py; PowerBI/PowerQuery/14_Fact_TDP.pq; PowerBI/DAX/05_TDP_Measures.dax; tests/test_tdp.py (synthetic fixtures inside the test only)"
+    downstream_outputs: ["dashboard/tdp.js", "Inventory & Supply Health > TDP & Distribution", "PowerBI DAX 05"]
+    last_validated: "2026-10-04 (no file supplied: the dashboard shows NOT_SUPPLIED and the file needed; nothing estimated)"
+    modification_allowed: false
+    notes: >
+      Request wording: docs/NIELSEN_DATA_REQUEST.md section 1. Until a real file arrives the tab shows Nielsen weighted / numeric distribution
+      for face wash, labelled as a different measure from TDP.
