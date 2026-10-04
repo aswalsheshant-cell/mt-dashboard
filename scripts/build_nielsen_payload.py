@@ -225,6 +225,47 @@ def pack_gap(folder: Path, label: str, kind: str, month: str, own_share: float, 
             "own_ppml": own_ppml, "note": "Value basis (Rs Cr) from the Nielsen Category x Basepack and Brand x Basepack sheets."}
 
 
+def pack_brand(folder: Path, label: str, kind: str, month: str, min_share=0.3, top_brands=8):
+    """Which brands sell which pack size (value, Rs Cr): for each pack the leading brands and Mamaearth's place."""
+    name = {"facewash": "FW", "shampoo": "Shampoo"}[kind]
+    vfact = PACK_FACT[kind][0]
+    with (folder / f"Nielsen_{name}_PackBrand_{label}.csv").open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    by_pack, wd = {}, {}
+    for r in rows:
+        size = num(r["BASEPACKSIZE"])
+        if size is None:
+            continue
+        brand = brand_label(r["BRAND"])
+        if r["Facts"] == vfact:
+            by_pack.setdefault(size, {})[brand] = num(r.get(month)) or 0.0
+        elif r["Facts"] == "Wghtd Dist Handling":
+            wd[(size, brand)] = num(r.get(month))
+    total = sum(sum(b.values()) for b in by_pack.values())
+    packs, presence = [], {}
+    for size, b in sorted(by_pack.items(), key=lambda kv: -sum(kv[1].values())):
+        value = sum(b.values())
+        if value <= 0:
+            continue
+        for brand, v in b.items():
+            if v > 0:
+                presence.setdefault(brand, []).append((size, v))
+        if value / total * 100 < min_share:
+            continue
+        ranked = sorted(((v, br) for br, v in b.items() if v > 0), reverse=True)
+        lead = [{"n": br, "value": round(v, 3), "share_in_pack": round(v / value * 100, 1), "wd": wd.get((size, br))} for v, br in ranked[:top_brands]]
+        me = brand_label(OWN)
+        if me not in {x["n"] for x in lead}:
+            v = b.get(me, 0.0)
+            lead.append({"n": me, "value": round(v, 3), "share_in_pack": round(v / value * 100, 1), "wd": wd.get((size, me))})
+        packs.append({"size": f"{size:g}", "cat_value": round(value, 3), "cat_share": round(value / total * 100, 2),
+                      "brands_selling": len(ranked), "leader": lead[0]["n"] if lead else None, "brands": lead})
+    brands = [{"n": br, "value": round(sum(v for _, v in pk), 3), "packs": len(pk),
+               "top_packs": [f"{s:g}" for s, _ in sorted(pk, key=lambda x: -x[1])[:4]]}
+              for br, pk in sorted(presence.items(), key=lambda kv: -sum(v for _, v in kv[1]))]
+    return {"month": month, "basis": "value", "category_cr": round(total, 3), "packs": packs, "brands": brands}
+
+
 def load_csv_rows(path: Path):
     path = Path(path)
     if not path.exists():
@@ -315,13 +356,20 @@ def build_payload(root: Path, label: str, month: str, tracker_from: Path) -> dic
             "brands": sh_all},
         "fw_pack_gap": pack_gap(folder, label, "facewash", month, get(fw, "ms", OWN, month), get(fw, "value", fwc, month), get(fw, "ppml", OWN, month)),
         "sh_pack_gap": pack_gap(folder, label, "shampoo", month, get(sh, "ms", OWN, month), get(sh, "value", shc, month), get(sh, "ppml", OWN, month)),
+        "fw_pack_brand": pack_brand(folder, label, "facewash", month),
+        "sh_pack_brand": pack_brand(folder, label, "shampoo", month),
         "chains": chain_block(folder, label),
         "deck": json.loads((folder / "Deck_MT_Review_Big3_v3_1.json").read_text(encoding="utf-8")) if (folder / "Deck_MT_Review_Big3_v3_1.json").exists() else None,
+        "visit_cities": (json.loads((folder / f"Visit_Cities_{label}.json").read_text(encoding="utf-8"))
+                         if (folder / f"Visit_Cities_{label}.json").exists() else None),
         "price_volume": (json.loads((folder / f"Price_Volume_{label}.json").read_text(encoding="utf-8"))
                          if (folder / f"Price_Volume_{label}.json").exists() else None),
         "aug_actions": attach_checks(tracker["aug_actions"], "title"), "sep_actions": attach_checks(tracker["sep_actions"], "title"),
         "gates": attach_checks(tracker["gates"], "q"),
     }
+    for key, cat_value in (("fw_pack_brand", payload["fw_cat"]["value"]), ("sh_pack_brand", payload["shampoo"]["category_cr"])):
+        pb = payload[key]
+        pb["coverage_pct"] = round(pb["category_cr"] / cat_value * 100, 1) if cat_value else None     # brands listed in the sheet vs category value
     return payload
 
 

@@ -111,6 +111,18 @@
       "48_Nielsen_Deck_StateExposure.pq": [
         "# RENAME QUERY TO: Nielsen Deck State Exposure",
         "# NOTE: Seed table typed from the review deck; not a Nielsen workbook cut."
+      ],
+      "49_Store_City_Master.pq": [
+        "# RENAME QUERY TO: Store City Master",
+        "# NOTE: Seed table; add Store Key as a calculated column on Fact Offtake Sales and relate it (see the header comment)."
+      ],
+      "50_Visit_City_List.pq": [
+        "# RENAME QUERY TO: Visit City List",
+        "# NOTE: Seed table, one row per corporate-visit city."
+      ],
+      "51_Fact_Nielsen_Pack_Brand.pq": [
+        "# RENAME QUERY TO: Fact Nielsen Pack Brand",
+        "# NOTE: Needs fnCombineFolder; pack-wise brand measures in DAX 04 read this table."
       ]
     },
     "excluded": {

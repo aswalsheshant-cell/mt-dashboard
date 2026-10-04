@@ -407,6 +407,12 @@ to `IN URB MT`. Facewash and Shampoo are both Aug 26, so Month selects the same 
 - **Category presence** (matrix, chain x `Sub-category`): `Subcat Share In Chain %`, `Subcat Share All Chains %`, `Subcat Presence Status`, `Subcat Gap NSV`.
   Nielsen sizes only Facewash and Shampoo; other categories need a Nielsen export in `Nielsen_Monthly` before their market size shows.
 
+**Visit cities and pack-wise brands (added):**
+- **Visit cities** (table): `Visit City List[Region]`, `[City]` x `Visit Stores`, `Visit City NSV`, `Visit City NSV MoM %`, `Near Listed NSV`. Slicer on `Store City Master[Visit Status]`
+  (Considered / Near listed city / Not considered / City not available). Navi Mumbai, Thane, Mohali, Panchkula, Ernakulam and Howrah are Near listed city,
+  with `Store City Master[Nearest Listed City]` showing where they roll up. Card: `Visit Master Match %`.
+- **Pack-wise brands** (matrix): rows `Fact Nielsen Pack Brand[Pack Size ml]`, columns `Brand`, value `Brand Share In Pack %`; Mamaearth highlighted, blank = not sold.
+
 
 ---
 

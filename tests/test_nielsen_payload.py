@@ -133,3 +133,15 @@ def test_competitor_master_is_append_only_and_covers_the_seed():
     seed = list(_csv.DictReader((ROOT / "PowerBI/SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv").open(encoding="utf-8")))
     latest = {(r["Nielsen Category"], r["Brand"]) for r in seed if r["Month"] == "Aug'26" and r["Value Market Share %"]}
     assert latest <= have
+
+
+def test_pack_brand_shows_who_sells_each_pack(aug):
+    fw, sh = aug["fw_pack_brand"], aug["sh_pack_brand"]
+    p = {x["size"]: x for x in fw["packs"]}
+    assert p["200"]["brands_selling"] <= 8 and p["200"]["leader"] == "Himalaya"
+    assert next(b for b in p["240"]["brands"] if b["n"] == "Mamaearth")["value"] == 0
+    assert 85 <= fw["coverage_pct"] <= 100 and 85 <= sh["coverage_pct"] <= 100
+    q = {x["size"]: x for x in sh["packs"]}
+    assert q["400"]["leader"] == "Mamaearth" and q["1000"]["brands_selling"] >= 5
+    for pack in fw["packs"]:
+        assert sum(b["share_in_pack"] for b in pack["brands"]) <= 100.5

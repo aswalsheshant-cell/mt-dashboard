@@ -768,28 +768,6 @@
    "sah_py": 0.755
   },
   {
-   "n": "Nivea Men",
-   "nsv": 0.003,
-   "ms": 0.004,
-   "ms_py": null,
-   "ms_pm": null,
-   "pp": null,
-   "yoy_bps": null,
-   "yoy": null,
-   "stores": 65.333,
-   "wd": 0.063,
-   "nd": 0.289,
-   "nd_py": null,
-   "wd_py": null,
-   "pdo": 444.799,
-   "ppml": 2.822,
-   "ppml_py": null,
-   "ms_vol": 0.002,
-   "ms_vol_py": null,
-   "sah": 5.556,
-   "sah_py": null
-  },
-  {
    "n": "Cerave",
    "nsv": 0.003,
    "ms": 0.003,
@@ -809,6 +787,28 @@
    "ms_vol": 0.001,
    "ms_vol_py": null,
    "sah": 0.884,
+   "sah_py": null
+  },
+  {
+   "n": "Nivea Men",
+   "nsv": 0.003,
+   "ms": 0.004,
+   "ms_py": null,
+   "ms_pm": null,
+   "pp": null,
+   "yoy_bps": null,
+   "yoy": null,
+   "stores": 65.333,
+   "wd": 0.063,
+   "nd": 0.289,
+   "nd_py": null,
+   "wd_py": null,
+   "pdo": 444.799,
+   "ppml": 2.822,
+   "ppml_py": null,
+   "ms_vol": 0.002,
+   "ms_vol_py": null,
+   "sah": 5.556,
    "sah_py": null
   },
   {
@@ -3299,6 +3299,1744 @@
   ],
   "own_ppml": 0.615,
   "note": "Value basis (Rs Cr) from the Nielsen Category x Basepack and Brand x Basepack sheets."
+ },
+ "fw_pack_brand": {
+  "month": "Aug 26",
+  "basis": "value",
+  "category_cr": 77.039,
+  "packs": [
+   {
+    "size": "150",
+    "cat_value": 31.606,
+    "cat_share": 41.03,
+    "brands_selling": 18,
+    "leader": "Garnier",
+    "brands": [
+     {
+      "n": "Garnier",
+      "value": 5.975,
+      "share_in_pack": 18.9,
+      "wd": 68.643
+     },
+     {
+      "n": "Mamaearth",
+      "value": 5.531,
+      "share_in_pack": 17.5,
+      "wd": 76.385
+     },
+     {
+      "n": "Pond's",
+      "value": 5.178,
+      "share_in_pack": 16.4,
+      "wd": 81.302
+     },
+     {
+      "n": "Himalaya",
+      "value": 4.217,
+      "share_in_pack": 13.3,
+      "wd": 85.695
+     },
+     {
+      "n": "Joy",
+      "value": 4.008,
+      "share_in_pack": 12.7,
+      "wd": 70.662
+     },
+     {
+      "n": "Lakme",
+      "value": 1.975,
+      "share_in_pack": 6.2,
+      "wd": 59.356
+     },
+     {
+      "n": "Clean & Clear",
+      "value": 1.431,
+      "share_in_pack": 4.5,
+      "wd": 25.864
+     },
+     {
+      "n": "Biotique",
+      "value": 1.31,
+      "share_in_pack": 4.1,
+      "wd": 49.59
+     }
+    ]
+   },
+   {
+    "size": "100",
+    "cat_value": 20.229,
+    "cat_share": 26.26,
+    "brands_selling": 20,
+    "leader": "Himalaya",
+    "brands": [
+     {
+      "n": "Himalaya",
+      "value": 5.654,
+      "share_in_pack": 27.9,
+      "wd": 96.028
+     },
+     {
+      "n": "Garnier",
+      "value": 3.105,
+      "share_in_pack": 15.3,
+      "wd": 85.283
+     },
+     {
+      "n": "Pond's",
+      "value": 2.971,
+      "share_in_pack": 14.7,
+      "wd": 90.106
+     },
+     {
+      "n": "Mamaearth",
+      "value": 2.057,
+      "share_in_pack": 10.2,
+      "wd": 75.158
+     },
+     {
+      "n": "Nivea",
+      "value": 1.738,
+      "share_in_pack": 8.6,
+      "wd": 79.228
+     },
+     {
+      "n": "Clean & Clear",
+      "value": 1.441,
+      "share_in_pack": 7.1,
+      "wd": 77.721
+     },
+     {
+      "n": "Lakme",
+      "value": 0.853,
+      "share_in_pack": 4.2,
+      "wd": 67.41
+     },
+     {
+      "n": "Patanjali",
+      "value": 0.582,
+      "share_in_pack": 2.9,
+      "wd": 54.774
+     }
+    ]
+   },
+   {
+    "size": "50",
+    "cat_value": 12.678,
+    "cat_share": 16.46,
+    "brands_selling": 17,
+    "leader": "Himalaya",
+    "brands": [
+     {
+      "n": "Himalaya",
+      "value": 3.689,
+      "share_in_pack": 29.1,
+      "wd": 96.905
+     },
+     {
+      "n": "Garnier",
+      "value": 2.478,
+      "share_in_pack": 19.5,
+      "wd": 81.272
+     },
+     {
+      "n": "Pond's",
+      "value": 2.177,
+      "share_in_pack": 17.2,
+      "wd": 88.758
+     },
+     {
+      "n": "Clean & Clear",
+      "value": 1.101,
+      "share_in_pack": 8.7,
+      "wd": 82.185
+     },
+     {
+      "n": "Mamaearth",
+      "value": 1.084,
+      "share_in_pack": 8.6,
+      "wd": 64.785
+     },
+     {
+      "n": "Nivea",
+      "value": 0.953,
+      "share_in_pack": 7.5,
+      "wd": 77.508
+     },
+     {
+      "n": "Joy",
+      "value": 0.29,
+      "share_in_pack": 2.3,
+      "wd": 19.494
+     },
+     {
+      "n": "Lakme",
+      "value": 0.251,
+      "share_in_pack": 2.0,
+      "wd": 20.659
+     }
+    ]
+   },
+   {
+    "size": "200",
+    "cat_value": 5.889,
+    "cat_share": 7.64,
+    "brands_selling": 6,
+    "leader": "Himalaya",
+    "brands": [
+     {
+      "n": "Himalaya",
+      "value": 3.509,
+      "share_in_pack": 59.6,
+      "wd": 83.033
+     },
+     {
+      "n": "Mamaearth",
+      "value": 1.797,
+      "share_in_pack": 30.5,
+      "wd": 36.97
+     },
+     {
+      "n": "Pond's",
+      "value": 0.553,
+      "share_in_pack": 9.4,
+      "wd": 22.363
+     },
+     {
+      "n": "Lotus",
+      "value": 0.026,
+      "share_in_pack": 0.4,
+      "wd": 4.977
+     },
+     {
+      "n": "Biotique",
+      "value": 0.003,
+      "share_in_pack": 0.1,
+      "wd": 0.365
+     },
+     {
+      "n": "Cetaphil",
+      "value": 0.001,
+      "share_in_pack": 0.0,
+      "wd": 0.013
+     }
+    ]
+   },
+   {
+    "size": "125",
+    "cat_value": 2.387,
+    "cat_share": 3.1,
+    "brands_selling": 2,
+    "leader": "Simple",
+    "brands": [
+     {
+      "n": "Simple",
+      "value": 2.268,
+      "share_in_pack": 95.0,
+      "wd": 50.545
+     },
+     {
+      "n": "The Derma Co",
+      "value": 0.119,
+      "share_in_pack": 5.0,
+      "wd": 23.199
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "240",
+    "cat_value": 2.068,
+    "cat_share": 2.68,
+    "brands_selling": 1,
+    "leader": "Clean & Clear",
+    "brands": [
+     {
+      "n": "Clean & Clear",
+      "value": 2.068,
+      "share_in_pack": 100.0,
+      "wd": 66.999
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "118",
+    "cat_value": 0.48,
+    "cat_share": 0.62,
+    "brands_selling": 1,
+    "leader": "Cetaphil",
+    "brands": [
+     {
+      "n": "Cetaphil",
+      "value": 0.48,
+      "share_in_pack": 100.0,
+      "wd": 13.159
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "236",
+    "cat_value": 0.444,
+    "cat_share": 0.58,
+    "brands_selling": 2,
+    "leader": "Cetaphil",
+    "brands": [
+     {
+      "n": "Cetaphil",
+      "value": 0.444,
+      "share_in_pack": 100.0,
+      "wd": 8.001
+     },
+     {
+      "n": "Cerave",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": 0.015
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "60",
+    "cat_value": 0.34,
+    "cat_share": 0.44,
+    "brands_selling": 3,
+    "leader": "Patanjali",
+    "brands": [
+     {
+      "n": "Patanjali",
+      "value": 0.328,
+      "share_in_pack": 96.5,
+      "wd": 14.202
+     },
+     {
+      "n": "Himalaya",
+      "value": 0.011,
+      "share_in_pack": 3.2,
+      "wd": 0.514
+     },
+     {
+      "n": "Lotus",
+      "value": 0.001,
+      "share_in_pack": 0.3,
+      "wd": 0.064
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   }
+  ],
+  "brands": [
+   {
+    "n": "Himalaya",
+    "value": 17.224,
+    "packs": 8,
+    "top_packs": [
+     "100",
+     "150",
+     "50",
+     "200"
+    ]
+   },
+   {
+    "n": "Garnier",
+    "value": 11.564,
+    "packs": 4,
+    "top_packs": [
+     "150",
+     "100",
+     "50",
+     "25"
+    ]
+   },
+   {
+    "n": "Pond's",
+    "value": 10.965,
+    "packs": 7,
+    "top_packs": [
+     "150",
+     "100",
+     "50",
+     "200"
+    ]
+   },
+   {
+    "n": "Mamaearth",
+    "value": 10.516,
+    "packs": 7,
+    "top_packs": [
+     "150",
+     "100",
+     "200",
+     "50"
+    ]
+   },
+   {
+    "n": "Clean & Clear",
+    "value": 6.053,
+    "packs": 7,
+    "top_packs": [
+     "240",
+     "100",
+     "150",
+     "50"
+    ]
+   },
+   {
+    "n": "Joy",
+    "value": 4.797,
+    "packs": 5,
+    "top_packs": [
+     "150",
+     "100",
+     "50",
+     "15"
+    ]
+   },
+   {
+    "n": "Lakme",
+    "value": 3.084,
+    "packs": 6,
+    "top_packs": [
+     "150",
+     "100",
+     "50",
+     "12"
+    ]
+   },
+   {
+    "n": "Nivea",
+    "value": 2.798,
+    "packs": 4,
+    "top_packs": [
+     "100",
+     "50",
+     "150",
+     "75"
+    ]
+   },
+   {
+    "n": "Simple",
+    "value": 2.512,
+    "packs": 4,
+    "top_packs": [
+     "125",
+     "100",
+     "50",
+     "150"
+    ]
+   },
+   {
+    "n": "Biotique",
+    "value": 1.435,
+    "packs": 5,
+    "top_packs": [
+     "150",
+     "100",
+     "50",
+     "200"
+    ]
+   },
+   {
+    "n": "Cetaphil",
+    "value": 0.927,
+    "packs": 5,
+    "top_packs": [
+     "118",
+     "236",
+     "59",
+     "200"
+    ]
+   },
+   {
+    "n": "Patanjali",
+    "value": 0.911,
+    "packs": 3,
+    "top_packs": [
+     "100",
+     "60",
+     "150"
+    ]
+   },
+   {
+    "n": "Everyuth",
+    "value": 0.859,
+    "packs": 2,
+    "top_packs": [
+     "150",
+     "50"
+    ]
+   },
+   {
+    "n": "VLCC",
+    "value": 0.823,
+    "packs": 7,
+    "top_packs": [
+     "150",
+     "100",
+     "50",
+     "25"
+    ]
+   },
+   {
+    "n": "The Derma Co",
+    "value": 0.693,
+    "packs": 6,
+    "top_packs": [
+     "150",
+     "100",
+     "80",
+     "125"
+    ]
+   },
+   {
+    "n": "Glow & Lovely",
+    "value": 0.508,
+    "packs": 4,
+    "top_packs": [
+     "100",
+     "50",
+     "150",
+     "20"
+    ]
+   },
+   {
+    "n": "Lotus",
+    "value": 0.506,
+    "packs": 8,
+    "top_packs": [
+     "150",
+     "100",
+     "120",
+     "200"
+    ]
+   },
+   {
+    "n": "Medimix",
+    "value": 0.388,
+    "packs": 3,
+    "top_packs": [
+     "150",
+     "100",
+     "50"
+    ]
+   },
+   {
+    "n": "Jovees",
+    "value": 0.224,
+    "packs": 5,
+    "top_packs": [
+     "120",
+     "300",
+     "50",
+     "100"
+    ]
+   },
+   {
+    "n": "Dot & Key",
+    "value": 0.12,
+    "packs": 3,
+    "top_packs": [
+     "100",
+     "175",
+     "80"
+    ]
+   },
+   {
+    "n": "Minimalist",
+    "value": 0.098,
+    "packs": 3,
+    "top_packs": [
+     "100",
+     "120",
+     "250"
+    ]
+   },
+   {
+    "n": "Wow",
+    "value": 0.032,
+    "packs": 2,
+    "top_packs": [
+     "100",
+     "150"
+    ]
+   },
+   {
+    "n": "Cerave",
+    "value": 0.002,
+    "packs": 2,
+    "top_packs": [
+     "88",
+     "236"
+    ]
+   }
+  ],
+  "coverage_pct": 93.9
+ },
+ "sh_pack_brand": {
+  "month": "Aug 26",
+  "basis": "value",
+  "category_cr": 171.625,
+  "packs": [
+   {
+    "size": "650",
+    "cat_value": 43.828,
+    "cat_share": 25.54,
+    "brands_selling": 10,
+    "leader": "Dove",
+    "brands": [
+     {
+      "n": "Dove",
+      "value": 12.731,
+      "share_in_pack": 29.0,
+      "wd": 90.333
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 9.597,
+      "share_in_pack": 21.9,
+      "wd": 73.216
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 6.589,
+      "share_in_pack": 15.0,
+      "wd": 88.265
+     },
+     {
+      "n": "Clinic Plus",
+      "value": 4.495,
+      "share_in_pack": 10.3,
+      "wd": 84.768
+     },
+     {
+      "n": "Sunsilk",
+      "value": 4.152,
+      "share_in_pack": 9.5,
+      "wd": 87.088
+     },
+     {
+      "n": "Pantene",
+      "value": 2.385,
+      "share_in_pack": 5.4,
+      "wd": 76.967
+     },
+     {
+      "n": "Himalaya",
+      "value": 2.152,
+      "share_in_pack": 4.9,
+      "wd": 68.618
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.893,
+      "share_in_pack": 2.0,
+      "wd": 43.667
+     }
+    ]
+   },
+   {
+    "size": "1000",
+    "cat_value": 31.831,
+    "cat_share": 18.55,
+    "brands_selling": 10,
+    "leader": "Dove",
+    "brands": [
+     {
+      "n": "Dove",
+      "value": 8.924,
+      "share_in_pack": 28.0,
+      "wd": 61.008
+     },
+     {
+      "n": "Tresemme",
+      "value": 5.624,
+      "share_in_pack": 17.7,
+      "wd": 59.797
+     },
+     {
+      "n": "Clinic Plus",
+      "value": 4.976,
+      "share_in_pack": 15.6,
+      "wd": 58.452
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 4.314,
+      "share_in_pack": 13.6,
+      "wd": 51.815
+     },
+     {
+      "n": "Sunsilk",
+      "value": 3.98,
+      "share_in_pack": 12.5,
+      "wd": 58.13
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 2.657,
+      "share_in_pack": 8.3,
+      "wd": 51.701
+     },
+     {
+      "n": "Pantene",
+      "value": 1.149,
+      "share_in_pack": 3.6,
+      "wd": 41.891
+     },
+     {
+      "n": "Ayur",
+      "value": 0.143,
+      "share_in_pack": 0.4,
+      "wd": 3.106
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "180",
+    "cat_value": 21.231,
+    "cat_share": 12.37,
+    "brands_selling": 14,
+    "leader": "Dove",
+    "brands": [
+     {
+      "n": "Dove",
+      "value": 4.785,
+      "share_in_pack": 22.5,
+      "wd": 96.498
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 4.727,
+      "share_in_pack": 22.3,
+      "wd": 96.055
+     },
+     {
+      "n": "Sunsilk",
+      "value": 2.224,
+      "share_in_pack": 10.5,
+      "wd": 93.411
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 1.971,
+      "share_in_pack": 9.3,
+      "wd": 73.326
+     },
+     {
+      "n": "Tresemme",
+      "value": 1.784,
+      "share_in_pack": 8.4,
+      "wd": 81.424
+     },
+     {
+      "n": "Patanjali",
+      "value": 1.601,
+      "share_in_pack": 7.5,
+      "wd": 77.948
+     },
+     {
+      "n": "Himalaya",
+      "value": 1.477,
+      "share_in_pack": 7.0,
+      "wd": 84.163
+     },
+     {
+      "n": "Pantene",
+      "value": 1.164,
+      "share_in_pack": 5.5,
+      "wd": 85.212
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.045,
+      "share_in_pack": 0.2,
+      "wd": 3.781
+     }
+    ]
+   },
+   {
+    "size": "340",
+    "cat_value": 21.124,
+    "cat_share": 12.31,
+    "brands_selling": 12,
+    "leader": "Dove",
+    "brands": [
+     {
+      "n": "Dove",
+      "value": 4.581,
+      "share_in_pack": 21.7,
+      "wd": 93.725
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 3.795,
+      "share_in_pack": 18.0,
+      "wd": 85.796
+     },
+     {
+      "n": "Tresemme",
+      "value": 2.497,
+      "share_in_pack": 11.8,
+      "wd": 90.071
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 2.328,
+      "share_in_pack": 11.0,
+      "wd": 77.585
+     },
+     {
+      "n": "Meera",
+      "value": 2.089,
+      "share_in_pack": 9.9,
+      "wd": 20.807
+     },
+     {
+      "n": "Himalaya",
+      "value": 1.496,
+      "share_in_pack": 7.1,
+      "wd": 79.845
+     },
+     {
+      "n": "Pantene",
+      "value": 1.233,
+      "share_in_pack": 5.8,
+      "wd": 75.124
+     },
+     {
+      "n": "Sunsilk",
+      "value": 0.752,
+      "share_in_pack": 3.6,
+      "wd": 60.648
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "400",
+    "cat_value": 8.439,
+    "cat_share": 4.92,
+    "brands_selling": 10,
+    "leader": "Mamaearth",
+    "brands": [
+     {
+      "n": "Mamaearth",
+      "value": 6.026,
+      "share_in_pack": 71.4,
+      "wd": 65.595
+     },
+     {
+      "n": "Himalaya Baby Care",
+      "value": 1.365,
+      "share_in_pack": 16.2,
+      "wd": 75.676
+     },
+     {
+      "n": "Dabur Vatika",
+      "value": 0.458,
+      "share_in_pack": 5.4,
+      "wd": 38.499
+     },
+     {
+      "n": "Nyle",
+      "value": 0.324,
+      "share_in_pack": 3.8,
+      "wd": 47.308
+     },
+     {
+      "n": "Himalaya",
+      "value": 0.132,
+      "share_in_pack": 1.6,
+      "wd": 4.857
+     },
+     {
+      "n": "Pantene",
+      "value": 0.12,
+      "share_in_pack": 1.4,
+      "wd": 7.862
+     },
+     {
+      "n": "Sunsilk",
+      "value": 0.008,
+      "share_in_pack": 0.1,
+      "wd": 0.404
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 0.004,
+      "share_in_pack": 0.0,
+      "wd": 0.12
+     }
+    ]
+   },
+   {
+    "size": "355",
+    "cat_value": 6.801,
+    "cat_share": 3.96,
+    "brands_selling": 1,
+    "leader": "Clinic Plus",
+    "brands": [
+     {
+      "n": "Clinic Plus",
+      "value": 6.801,
+      "share_in_pack": 100.0,
+      "wd": 87.15
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "580",
+    "cat_value": 6.639,
+    "cat_share": 3.87,
+    "brands_selling": 2,
+    "leader": "Tresemme",
+    "brands": [
+     {
+      "n": "Tresemme",
+      "value": 5.436,
+      "share_in_pack": 81.9,
+      "wd": 86.534
+     },
+     {
+      "n": "Indulekha",
+      "value": 1.203,
+      "share_in_pack": 18.1,
+      "wd": 65.696
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "200",
+    "cat_value": 4.778,
+    "cat_share": 2.78,
+    "brands_selling": 16,
+    "leader": "L'Oreal Paris",
+    "brands": [
+     {
+      "n": "L'Oreal Paris",
+      "value": 1.444,
+      "share_in_pack": 30.2,
+      "wd": 27.775
+     },
+     {
+      "n": "Himalaya Baby Care",
+      "value": 1.121,
+      "share_in_pack": 23.5,
+      "wd": 78.849
+     },
+     {
+      "n": "Johnson's",
+      "value": 0.815,
+      "share_in_pack": 17.1,
+      "wd": 79.751
+     },
+     {
+      "n": "Indulekha",
+      "value": 0.413,
+      "share_in_pack": 8.6,
+      "wd": 59.435
+     },
+     {
+      "n": "Himalaya",
+      "value": 0.365,
+      "share_in_pack": 7.6,
+      "wd": 12.868
+     },
+     {
+      "n": "Kesh King",
+      "value": 0.242,
+      "share_in_pack": 5.1,
+      "wd": 21.309
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.1,
+      "share_in_pack": 2.1,
+      "wd": 10.141
+     },
+     {
+      "n": "Pantene",
+      "value": 0.09,
+      "share_in_pack": 1.9,
+      "wd": 6.415
+     }
+    ]
+   },
+   {
+    "size": "175",
+    "cat_value": 4.004,
+    "cat_share": 2.33,
+    "brands_selling": 4,
+    "leader": "Clinic Plus",
+    "brands": [
+     {
+      "n": "Clinic Plus",
+      "value": 3.176,
+      "share_in_pack": 79.3,
+      "wd": 95.549
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 0.649,
+      "share_in_pack": 16.2,
+      "wd": 16.625
+     },
+     {
+      "n": "Dove",
+      "value": 0.177,
+      "share_in_pack": 4.4,
+      "wd": 7.408
+     },
+     {
+      "n": "Dabur Vatika",
+      "value": 0.002,
+      "share_in_pack": 0.0,
+      "wd": 0.248
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "350",
+    "cat_value": 3.585,
+    "cat_share": 2.09,
+    "brands_selling": 1,
+    "leader": "Sunsilk",
+    "brands": [
+     {
+      "n": "Sunsilk",
+      "value": 3.585,
+      "share_in_pack": 100.0,
+      "wd": 70.221
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "80",
+    "cat_value": 1.949,
+    "cat_share": 1.14,
+    "brands_selling": 11,
+    "leader": "Clinic Plus",
+    "brands": [
+     {
+      "n": "Clinic Plus",
+      "value": 0.553,
+      "share_in_pack": 28.4,
+      "wd": 70.868
+     },
+     {
+      "n": "Sunsilk",
+      "value": 0.394,
+      "share_in_pack": 20.2,
+      "wd": 66.476
+     },
+     {
+      "n": "Himalaya",
+      "value": 0.33,
+      "share_in_pack": 16.9,
+      "wd": 52.262
+     },
+     {
+      "n": "Meera",
+      "value": 0.241,
+      "share_in_pack": 12.4,
+      "wd": 17.069
+     },
+     {
+      "n": "Dove",
+      "value": 0.115,
+      "share_in_pack": 5.9,
+      "wd": 6.108
+     },
+     {
+      "n": "Tresemme",
+      "value": 0.098,
+      "share_in_pack": 5.0,
+      "wd": 42.187
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 0.094,
+      "share_in_pack": 4.8,
+      "wd": 6.193
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 0.062,
+      "share_in_pack": 3.2,
+      "wd": 2.255
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "100",
+    "cat_value": 1.924,
+    "cat_share": 1.12,
+    "brands_selling": 16,
+    "leader": "Himalaya Baby Care",
+    "brands": [
+     {
+      "n": "Himalaya Baby Care",
+      "value": 1.122,
+      "share_in_pack": 58.3,
+      "wd": 86.168
+     },
+     {
+      "n": "Johnson's",
+      "value": 0.488,
+      "share_in_pack": 25.4,
+      "wd": 77.849
+     },
+     {
+      "n": "Indulekha",
+      "value": 0.153,
+      "share_in_pack": 8.0,
+      "wd": 8.747
+     },
+     {
+      "n": "Patanjali",
+      "value": 0.03,
+      "share_in_pack": 1.6,
+      "wd": 2.397
+     },
+     {
+      "n": "Ayur",
+      "value": 0.026,
+      "share_in_pack": 1.4,
+      "wd": 3.688
+     },
+     {
+      "n": "Sunsilk",
+      "value": 0.02,
+      "share_in_pack": 1.0,
+      "wd": 0.207
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.02,
+      "share_in_pack": 1.0,
+      "wd": 6.035
+     },
+     {
+      "n": "Tresemme",
+      "value": 0.017,
+      "share_in_pack": 0.9,
+      "wd": 1.467
+     }
+    ]
+   },
+   {
+    "size": "360",
+    "cat_value": 1.811,
+    "cat_share": 1.06,
+    "brands_selling": 5,
+    "leader": "Sunsilk",
+    "brands": [
+     {
+      "n": "Sunsilk",
+      "value": 0.927,
+      "share_in_pack": 51.2,
+      "wd": 15.719
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 0.538,
+      "share_in_pack": 29.7,
+      "wd": 49.474
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 0.312,
+      "share_in_pack": 17.2,
+      "wd": 11.586
+     },
+     {
+      "n": "Pantene",
+      "value": 0.034,
+      "share_in_pack": 1.9,
+      "wd": 1.816
+     },
+     {
+      "n": "Dove",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": 0.024
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "640",
+    "cat_value": 1.547,
+    "cat_share": 0.9,
+    "brands_selling": 3,
+    "leader": "L'Oreal Paris",
+    "brands": [
+     {
+      "n": "L'Oreal Paris",
+      "value": 0.785,
+      "share_in_pack": 50.7,
+      "wd": 9.479
+     },
+     {
+      "n": "Dabur Vatika",
+      "value": 0.762,
+      "share_in_pack": 49.3,
+      "wd": 64.546
+     },
+     {
+      "n": "Dove",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": 0.025
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "600",
+    "cat_value": 1.411,
+    "cat_share": 0.82,
+    "brands_selling": 4,
+    "leader": "Kesh King",
+    "brands": [
+     {
+      "n": "Kesh King",
+      "value": 1.195,
+      "share_in_pack": 84.7,
+      "wd": 60.403
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.167,
+      "share_in_pack": 11.8,
+      "wd": 6.816
+     },
+     {
+      "n": "Tresemme",
+      "value": 0.045,
+      "share_in_pack": 3.2,
+      "wd": 0.74
+     },
+     {
+      "n": "Meera",
+      "value": 0.004,
+      "share_in_pack": 0.3,
+      "wd": 0.042
+     }
+    ]
+   },
+   {
+    "size": "250",
+    "cat_value": 1.269,
+    "cat_share": 0.74,
+    "brands_selling": 3,
+    "leader": "Mamaearth",
+    "brands": [
+     {
+      "n": "Mamaearth",
+      "value": 0.984,
+      "share_in_pack": 77.5,
+      "wd": 73.4
+     },
+     {
+      "n": "L'Oreal Professional",
+      "value": 0.264,
+      "share_in_pack": 20.8,
+      "wd": 2.28
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 0.021,
+      "share_in_pack": 1.7,
+      "wd": 0.554
+     }
+    ]
+   },
+   {
+    "size": "750",
+    "cat_value": 0.978,
+    "cat_share": 0.57,
+    "brands_selling": 1,
+    "leader": "Head & Shoulders",
+    "brands": [
+     {
+      "n": "Head & Shoulders",
+      "value": 0.978,
+      "share_in_pack": 100.0,
+      "wd": 38.037
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "185",
+    "cat_value": 0.868,
+    "cat_share": 0.51,
+    "brands_selling": 1,
+    "leader": "Tresemme",
+    "brands": [
+     {
+      "n": "Tresemme",
+      "value": 0.868,
+      "share_in_pack": 100.0,
+      "wd": 75.423
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "75",
+    "cat_value": 0.86,
+    "cat_share": 0.5,
+    "brands_selling": 3,
+    "leader": "Dove",
+    "brands": [
+     {
+      "n": "Dove",
+      "value": 0.653,
+      "share_in_pack": 75.9,
+      "wd": 67.607
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 0.112,
+      "share_in_pack": 13.0,
+      "wd": 6.005
+     },
+     {
+      "n": "Pantene",
+      "value": 0.095,
+      "share_in_pack": 11.0,
+      "wd": 19.476
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "800",
+    "cat_value": 0.858,
+    "cat_share": 0.5,
+    "brands_selling": 2,
+    "leader": "Nyle",
+    "brands": [
+     {
+      "n": "Nyle",
+      "value": 0.742,
+      "share_in_pack": 86.5,
+      "wd": 55.821
+     },
+     {
+      "n": "L'Oreal Paris",
+      "value": 0.116,
+      "share_in_pack": 13.5,
+      "wd": 3.637
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "72",
+    "cat_value": 0.809,
+    "cat_share": 0.47,
+    "brands_selling": 2,
+    "leader": "Head & Shoulders",
+    "brands": [
+     {
+      "n": "Head & Shoulders",
+      "value": 0.807,
+      "share_in_pack": 99.8,
+      "wd": 77.069
+     },
+     {
+      "n": "Pantene",
+      "value": 0.002,
+      "share_in_pack": 0.2,
+      "wd": 0.502
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "500",
+    "cat_value": 0.739,
+    "cat_share": 0.43,
+    "brands_selling": 4,
+    "leader": "Johnson's",
+    "brands": [
+     {
+      "n": "Johnson's",
+      "value": 0.416,
+      "share_in_pack": 56.3,
+      "wd": 58.878
+     },
+     {
+      "n": "Ayur",
+      "value": 0.134,
+      "share_in_pack": 18.1,
+      "wd": 3.553
+     },
+     {
+      "n": "Head & Shoulders",
+      "value": 0.115,
+      "share_in_pack": 15.6,
+      "wd": 6.985
+     },
+     {
+      "n": "Pantene",
+      "value": 0.074,
+      "share_in_pack": 10.0,
+      "wd": 5.952
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   },
+   {
+    "size": "675",
+    "cat_value": 0.583,
+    "cat_share": 0.34,
+    "brands_selling": 2,
+    "leader": "Head & Shoulders",
+    "brands": [
+     {
+      "n": "Head & Shoulders",
+      "value": 0.422,
+      "share_in_pack": 72.4,
+      "wd": 6.018
+     },
+     {
+      "n": "Pantene",
+      "value": 0.161,
+      "share_in_pack": 27.6,
+      "wd": 4.98
+     },
+     {
+      "n": "Mamaearth",
+      "value": 0.0,
+      "share_in_pack": 0.0,
+      "wd": null
+     }
+    ]
+   }
+  ],
+  "brands": [
+   {
+    "n": "Dove",
+    "value": 32.038,
+    "packs": 16,
+    "top_packs": [
+     "650",
+     "1000",
+     "180",
+     "340"
+    ]
+   },
+   {
+    "n": "L'Oreal Paris",
+    "value": 22.749,
+    "packs": 23,
+    "top_packs": [
+     "650",
+     "1000",
+     "340",
+     "180"
+    ]
+   },
+   {
+    "n": "Head & Shoulders",
+    "value": 21.362,
+    "packs": 18,
+    "top_packs": [
+     "650",
+     "180",
+     "340",
+     "1000"
+    ]
+   },
+   {
+    "n": "Clinic Plus",
+    "value": 20.738,
+    "packs": 15,
+    "top_packs": [
+     "355",
+     "1000",
+     "650",
+     "175"
+    ]
+   },
+   {
+    "n": "Sunsilk",
+    "value": 16.942,
+    "packs": 14,
+    "top_packs": [
+     "650",
+     "1000",
+     "350",
+     "180"
+    ]
+   },
+   {
+    "n": "Tresemme",
+    "value": 16.827,
+    "packs": 17,
+    "top_packs": [
+     "1000",
+     "580",
+     "340",
+     "180"
+    ]
+   },
+   {
+    "n": "Mamaearth",
+    "value": 8.246,
+    "packs": 8,
+    "top_packs": [
+     "400",
+     "250",
+     "650",
+     "600"
+    ]
+   },
+   {
+    "n": "Pantene",
+    "value": 6.571,
+    "packs": 15,
+    "top_packs": [
+     "650",
+     "340",
+     "180",
+     "1000"
+    ]
+   },
+   {
+    "n": "Himalaya",
+    "value": 5.981,
+    "packs": 9,
+    "top_packs": [
+     "650",
+     "340",
+     "180",
+     "200"
+    ]
+   },
+   {
+    "n": "Meera",
+    "value": 4.175,
+    "packs": 10,
+    "top_packs": [
+     "340",
+     "180",
+     "650",
+     "80"
+    ]
+   },
+   {
+    "n": "Himalaya Baby Care",
+    "value": 3.657,
+    "packs": 6,
+    "top_packs": [
+     "400",
+     "100",
+     "200",
+     "40"
+    ]
+   },
+   {
+    "n": "Indulekha",
+    "value": 2.556,
+    "packs": 5,
+    "top_packs": [
+     "580",
+     "340",
+     "200",
+     "180"
+    ]
+   },
+   {
+    "n": "Dabur Vatika",
+    "value": 2.176,
+    "packs": 7,
+    "top_packs": [
+     "640",
+     "340",
+     "400",
+     "180"
+    ]
+   },
+   {
+    "n": "Kesh King",
+    "value": 1.877,
+    "packs": 5,
+    "top_packs": [
+     "600",
+     "340",
+     "200",
+     "80"
+    ]
+   },
+   {
+    "n": "Johnson's",
+    "value": 1.79,
+    "packs": 6,
+    "top_packs": [
+     "200",
+     "100",
+     "500",
+     "50"
+    ]
+   },
+   {
+    "n": "Patanjali",
+    "value": 1.772,
+    "packs": 5,
+    "top_packs": [
+     "180",
+     "450",
+     "200",
+     "100"
+    ]
+   },
+   {
+    "n": "Nyle",
+    "value": 1.167,
+    "packs": 7,
+    "top_packs": [
+     "800",
+     "400",
+     "180",
+     "90"
+    ]
+   },
+   {
+    "n": "L'Oreal Professional",
+    "value": 0.654,
+    "packs": 4,
+    "top_packs": [
+     "300",
+     "250",
+     "1500",
+     "230"
+    ]
+   },
+   {
+    "n": "Ayur",
+    "value": 0.347,
+    "packs": 4,
+    "top_packs": [
+     "1000",
+     "500",
+     "200",
+     "100"
+    ]
+   }
+  ],
+  "coverage_pct": 95.2
  },
  "chains": {
   "contribution": [
@@ -9161,6 +10899,627 @@
    }
   ],
   "headroom_cr_text": "approximately Rs 40-45 Cr across seven named state x account plays (Nielsen consumer-offtake sizing; overlaps internal NSV estimates, not additive)"
+ },
+ "visit_cities": {
+  "months": [
+   "Apr 26",
+   "May 26",
+   "Jun 26",
+   "Jul 26",
+   "Aug 26"
+  ],
+  "top8": [
+   "Hyderabad",
+   "Pune",
+   "Mumbai",
+   "Kolkata",
+   "Ahmedabad",
+   "Indore",
+   "Bhopal",
+   "Vadodara"
+  ],
+  "coverage": {
+   "stores_sold": 12360,
+   "in_master_file": 8427,
+   "nsv_in_master_pct": 60.9356616106109
+  },
+  "stats": {
+   "stores_in_list": 12177,
+   "gaps": 4202,
+   "near_stores": 132,
+   "near_listed": [
+    {
+     "city": "Navi Mumbai",
+     "nearest_listed": "Mumbai",
+     "state": "Mumbai",
+     "stores": 17,
+     "nsv_total": 261.6127
+    },
+    {
+     "city": "Thane",
+     "nearest_listed": "Mumbai",
+     "state": "Mumbai",
+     "stores": 60,
+     "nsv_total": 254.2569
+    },
+    {
+     "city": "Mohali",
+     "nearest_listed": "Chandigarh",
+     "state": "Punjab",
+     "stores": 14,
+     "nsv_total": 55.8937
+    },
+    {
+     "city": "Howrah",
+     "nearest_listed": "Kolkata",
+     "state": "West Bengal",
+     "stores": 22,
+     "nsv_total": 11.9986
+    },
+    {
+     "city": "Panchkula",
+     "nearest_listed": "Chandigarh",
+     "state": "Haryana",
+     "stores": 11,
+     "nsv_total": 8.0188
+    },
+    {
+     "city": "Mohali",
+     "nearest_listed": "Chandigarh",
+     "state": "Punjab/J&K/Hp",
+     "stores": 3,
+     "nsv_total": 0.5868
+    },
+    {
+     "city": "Kurali (SAS Nagar/Mohali)",
+     "nearest_listed": "Chandigarh",
+     "state": "Punjab",
+     "stores": 1,
+     "nsv_total": 0.3306
+    },
+    {
+     "city": "New Chandigarh (Mohali)",
+     "nearest_listed": "Chandigarh",
+     "state": "Punjab",
+     "stores": 1,
+     "nsv_total": 0.3104
+    },
+    {
+     "city": "Thane",
+     "nearest_listed": "Mumbai",
+     "state": "Maharashtra",
+     "stores": 2,
+     "nsv_total": 0.2271
+    },
+    {
+     "city": "Ernakulam",
+     "nearest_listed": "Cochin",
+     "state": "Kerala",
+     "stores": 1,
+     "nsv_total": 0.1146
+    }
+   ],
+   "status_counts": {
+    "Not considered": 8538,
+    "Considered": 3507,
+    "Near listed city": 132
+   }
+  },
+  "cities": [
+   {
+    "Region": "North + Central",
+    "City": "Ludhiana",
+    "Beats": 3,
+    "Stores": 17,
+    "NSV_Apr": 10.9928,
+    "NSV_May": 12.4733,
+    "NSV_Jun": 11.772,
+    "NSV_Jul": 13.1254,
+    "NSV_Aug": 12.1939,
+    "NSV_total_exBC": 60.5574,
+    "NSV_BC": 6.7257,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Varanasi",
+    "Beats": 3,
+    "Stores": 24,
+    "NSV_Apr": 1.1385,
+    "NSV_May": 1.2349,
+    "NSV_Jun": 0.811,
+    "NSV_Jul": 0.9187,
+    "NSV_Aug": 0.6762,
+    "NSV_total_exBC": 4.7794,
+    "NSV_BC": 25.1998,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Kanpur",
+    "Beats": 3,
+    "Stores": 30,
+    "NSV_Apr": 1.5361,
+    "NSV_May": 1.3815,
+    "NSV_Jun": 1.4892,
+    "NSV_Jul": 1.5656,
+    "NSV_Aug": 1.1922,
+    "NSV_total_exBC": 7.1646,
+    "NSV_BC": 32.4434,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Prayagraj",
+    "Beats": 3,
+    "Stores": 33,
+    "NSV_Apr": 4.0829,
+    "NSV_May": 4.3141,
+    "NSV_Jun": 4.0236,
+    "NSV_Jul": 4.3242,
+    "NSV_Aug": 3.8403,
+    "NSV_total_exBC": 20.585,
+    "NSV_BC": 15.3925,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Jodhpur",
+    "Beats": 3,
+    "Stores": 15,
+    "NSV_Apr": 4.7101,
+    "NSV_May": 5.2155,
+    "NSV_Jun": 5.0171,
+    "NSV_Jul": 5.8234,
+    "NSV_Aug": 5.1743,
+    "NSV_total_exBC": 25.9405,
+    "NSV_BC": 28.4162,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Agra",
+    "Beats": 3,
+    "Stores": 13,
+    "NSV_Apr": 8.0267,
+    "NSV_May": 3.5155,
+    "NSV_Jun": 2.4227,
+    "NSV_Jul": 2.795,
+    "NSV_Aug": 2.3962,
+    "NSV_total_exBC": 19.1562,
+    "NSV_BC": 12.3454,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Dehradun",
+    "Beats": 3,
+    "Stores": 37,
+    "NSV_Apr": 5.2207,
+    "NSV_May": 5.1925,
+    "NSV_Jun": 5.508,
+    "NSV_Jul": 4.9213,
+    "NSV_Aug": 5.2516,
+    "NSV_total_exBC": 26.094,
+    "NSV_BC": 28.2378,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Amritsar",
+    "Beats": 3,
+    "Stores": 62,
+    "NSV_Apr": 19.2762,
+    "NSV_May": 22.4795,
+    "NSV_Jun": 21.2462,
+    "NSV_Jul": 23.6535,
+    "NSV_Aug": 23.0618,
+    "NSV_total_exBC": 109.7173,
+    "NSV_BC": 11.7247,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Kota",
+    "Beats": 3,
+    "Stores": 10,
+    "NSV_Apr": 11.3999,
+    "NSV_May": 12.3339,
+    "NSV_Jun": 11.8229,
+    "NSV_Jul": 13.3687,
+    "NSV_Aug": 11.5938,
+    "NSV_total_exBC": 60.5192,
+    "NSV_BC": 4.4181,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Jammu",
+    "Beats": 3,
+    "Stores": 23,
+    "NSV_Apr": 3.871,
+    "NSV_May": 1.9941,
+    "NSV_Jun": 1.1932,
+    "NSV_Jul": 0.5826,
+    "NSV_Aug": 0.0015,
+    "NSV_total_exBC": 7.6424,
+    "NSV_BC": 14.4374,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Bikaner",
+    "Beats": 3,
+    "Stores": 5,
+    "NSV_Apr": 4.1339,
+    "NSV_May": 5.109,
+    "NSV_Jun": 4.8525,
+    "NSV_Jul": 6.0878,
+    "NSV_Aug": 5.9712,
+    "NSV_total_exBC": 26.1545,
+    "NSV_BC": 0.0,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "North + Central",
+    "City": "Chandigarh",
+    "Beats": 3,
+    "Stores": 16,
+    "NSV_Apr": 10.7492,
+    "NSV_May": 11.9908,
+    "NSV_Jun": 10.1579,
+    "NSV_Jul": 12.6765,
+    "NSV_Aug": 11.9614,
+    "NSV_total_exBC": 57.5357,
+    "NSV_BC": 12.8422,
+    "Near_listed_NSV": 65.1403,
+    "Near_listed_stores": 30,
+    "Top8": false
+   },
+   {
+    "Region": "West",
+    "City": "Mumbai",
+    "Beats": 5,
+    "Stores": 183,
+    "NSV_Apr": 103.0231,
+    "NSV_May": 72.4981,
+    "NSV_Jun": 82.3015,
+    "NSV_Jul": 57.2207,
+    "NSV_Aug": 65.3972,
+    "NSV_total_exBC": 380.4406,
+    "NSV_BC": 99.6542,
+    "Near_listed_NSV": 516.0968,
+    "Near_listed_stores": 79,
+    "Top8": true
+   },
+   {
+    "Region": "West",
+    "City": "Pune",
+    "Beats": 5,
+    "Stores": 141,
+    "NSV_Apr": 85.1609,
+    "NSV_May": 106.1381,
+    "NSV_Jun": 109.556,
+    "NSV_Jul": 102.1981,
+    "NSV_Aug": 99.9682,
+    "NSV_total_exBC": 503.0212,
+    "NSV_BC": 27.6538,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": true
+   },
+   {
+    "Region": "West",
+    "City": "Ahmedabad",
+    "Beats": 5,
+    "Stores": 134,
+    "NSV_Apr": 47.3553,
+    "NSV_May": 57.2686,
+    "NSV_Jun": 54.1617,
+    "NSV_Jul": 52.3366,
+    "NSV_Aug": 52.3866,
+    "NSV_total_exBC": 263.5089,
+    "NSV_BC": 43.5941,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": true
+   },
+   {
+    "Region": "West",
+    "City": "Indore",
+    "Beats": 5,
+    "Stores": 74,
+    "NSV_Apr": 39.6511,
+    "NSV_May": 45.6709,
+    "NSV_Jun": 40.1349,
+    "NSV_Jul": 45.6659,
+    "NSV_Aug": 44.8611,
+    "NSV_total_exBC": 215.9839,
+    "NSV_BC": 7.2132,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": true
+   },
+   {
+    "Region": "West",
+    "City": "Bhopal",
+    "Beats": 5,
+    "Stores": 41,
+    "NSV_Apr": 27.8388,
+    "NSV_May": 30.6862,
+    "NSV_Jun": 26.4467,
+    "NSV_Jul": 28.6806,
+    "NSV_Aug": 26.9143,
+    "NSV_total_exBC": 140.5665,
+    "NSV_BC": 25.5055,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": true
+   },
+   {
+    "Region": "West",
+    "City": "Vadodara",
+    "Beats": 5,
+    "Stores": 70,
+    "NSV_Apr": 26.5443,
+    "NSV_May": 31.3897,
+    "NSV_Jun": 31.8901,
+    "NSV_Jul": 30.278,
+    "NSV_Aug": 28.5838,
+    "NSV_total_exBC": 148.6859,
+    "NSV_BC": 17.1258,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": true
+   },
+   {
+    "Region": "West",
+    "City": "Nashik",
+    "Beats": 3,
+    "Stores": 61,
+    "NSV_Apr": 19.7535,
+    "NSV_May": 23.9041,
+    "NSV_Jun": 22.8484,
+    "NSV_Jul": 18.3488,
+    "NSV_Aug": 20.9538,
+    "NSV_total_exBC": 105.8086,
+    "NSV_BC": 2.1393,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "West",
+    "City": "Jabalpur",
+    "Beats": 3,
+    "Stores": 11,
+    "NSV_Apr": 8.5621,
+    "NSV_May": 10.5749,
+    "NSV_Jun": 9.9249,
+    "NSV_Jul": 11.107,
+    "NSV_Aug": 9.9396,
+    "NSV_total_exBC": 50.1085,
+    "NSV_BC": 15.889,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "South",
+    "City": "Hyderabad",
+    "Beats": 5,
+    "Stores": 674,
+    "NSV_Apr": 153.7495,
+    "NSV_May": 194.4752,
+    "NSV_Jun": 178.9609,
+    "NSV_Jul": 168.8547,
+    "NSV_Aug": 165.7257,
+    "NSV_total_exBC": 861.7661,
+    "NSV_BC": 31.7509,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": true
+   },
+   {
+    "Region": "South",
+    "City": "Madurai",
+    "Beats": 3,
+    "Stores": 68,
+    "NSV_Apr": 8.7645,
+    "NSV_May": 10.9813,
+    "NSV_Jun": 10.0808,
+    "NSV_Jul": 9.27,
+    "NSV_Aug": 9.5977,
+    "NSV_total_exBC": 48.6943,
+    "NSV_BC": 0.0,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "South",
+    "City": "Trivandrum",
+    "Beats": 3,
+    "Stores": 21,
+    "NSV_Apr": 14.9845,
+    "NSV_May": 12.6365,
+    "NSV_Jun": 14.2469,
+    "NSV_Jul": 20.1846,
+    "NSV_Aug": 19.015,
+    "NSV_total_exBC": 81.0675,
+    "NSV_BC": 10.2615,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "South",
+    "City": "Cochin",
+    "Beats": 3,
+    "Stores": 129,
+    "NSV_Apr": 27.8404,
+    "NSV_May": 30.4015,
+    "NSV_Jun": 24.4558,
+    "NSV_Jul": 37.6901,
+    "NSV_Aug": 28.5058,
+    "NSV_total_exBC": 148.8936,
+    "NSV_BC": 12.1141,
+    "Near_listed_NSV": 0.1146,
+    "Near_listed_stores": 1,
+    "Top8": false
+   },
+   {
+    "Region": "South",
+    "City": "Trichy",
+    "Beats": 3,
+    "Stores": 40,
+    "NSV_Apr": 2.3832,
+    "NSV_May": 2.5485,
+    "NSV_Jun": 2.5942,
+    "NSV_Jul": 2.8038,
+    "NSV_Aug": 2.8409,
+    "NSV_total_exBC": 13.1707,
+    "NSV_BC": 14.0403,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "East",
+    "City": "Kolkata",
+    "Beats": 5,
+    "Stores": 1267,
+    "NSV_Apr": 46.7928,
+    "NSV_May": 57.7937,
+    "NSV_Jun": 54.8465,
+    "NSV_Jul": 53.3605,
+    "NSV_Aug": 54.3536,
+    "NSV_total_exBC": 267.1471,
+    "NSV_BC": 83.8711,
+    "Near_listed_NSV": 11.9986,
+    "Near_listed_stores": 22,
+    "Top8": true
+   },
+   {
+    "Region": "East",
+    "City": "Siliguri",
+    "Beats": 3,
+    "Stores": 52,
+    "NSV_Apr": 3.2687,
+    "NSV_May": 3.1428,
+    "NSV_Jun": 3.7404,
+    "NSV_Jul": 3.5632,
+    "NSV_Aug": 3.2443,
+    "NSV_total_exBC": 16.9594,
+    "NSV_BC": 42.1718,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "East",
+    "City": "Guwahati",
+    "Beats": 3,
+    "Stores": 47,
+    "NSV_Apr": 1.6289,
+    "NSV_May": 1.6363,
+    "NSV_Jun": 1.9283,
+    "NSV_Jul": 2.58,
+    "NSV_Aug": 0.534,
+    "NSV_total_exBC": 8.3075,
+    "NSV_BC": 34.4883,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "East",
+    "City": "Bhubaneswar",
+    "Beats": 3,
+    "Stores": 114,
+    "NSV_Apr": 6.7755,
+    "NSV_May": 7.2232,
+    "NSV_Jun": 5.96,
+    "NSV_Jul": 5.1435,
+    "NSV_Aug": 6.0599,
+    "NSV_total_exBC": 31.162,
+    "NSV_BC": 55.1268,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "East",
+    "City": "Ranchi",
+    "Beats": 3,
+    "Stores": 37,
+    "NSV_Apr": 1.0498,
+    "NSV_May": 1.1849,
+    "NSV_Jun": 1.7319,
+    "NSV_Jul": 1.7522,
+    "NSV_Aug": 1.3318,
+    "NSV_total_exBC": 7.0505,
+    "NSV_BC": 56.5054,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "East",
+    "City": "Jamshedpur",
+    "Beats": 3,
+    "Stores": 19,
+    "NSV_Apr": 0.4126,
+    "NSV_May": 0.4174,
+    "NSV_Jun": 0.5269,
+    "NSV_Jul": 0.6176,
+    "NSV_Aug": 0.4563,
+    "NSV_total_exBC": 2.4307,
+    "NSV_BC": 27.5654,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   },
+   {
+    "Region": "East",
+    "City": "Cuttack",
+    "Beats": 3,
+    "Stores": 39,
+    "NSV_Apr": 4.7811,
+    "NSV_May": 4.2329,
+    "NSV_Jun": 3.5318,
+    "NSV_Jul": 2.7283,
+    "NSV_Aug": 2.3181,
+    "NSV_total_exBC": 17.5921,
+    "NSV_BC": 7.4751,
+    "Near_listed_NSV": 0.0,
+    "Near_listed_stores": 0,
+    "Top8": false
+   }
+  ],
+  "note": "Store master: PowerBI/SeedData/Masters/Store_City_Master.csv. NSV Rs lakh, offtake basis (Brand Counter separate)."
  },
  "price_volume": {
   "month": "Aug 26",

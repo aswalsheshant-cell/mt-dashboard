@@ -83,6 +83,27 @@ def pack_rows(folder: Path, label: str, kind: str, months):
                    "" if v.get("wd") is None else round(v["wd"], 3), SOURCE]
 
 
+def pack_brand_rows(folder: Path, label: str, kind: str, months):
+    """Brand x pack size: value (Rs Cr), volume (L) and weighted distribution, all brands in the Nielsen sheet."""
+    import csv as _csv
+    name = {"facewash": "FW", "shampoo": "Shampoo"}[kind]
+    vfact = {"facewash": "Sales Value in Cr.", "shampoo": "Sales Value (Crs.)"}[kind]
+    with (folder / f"Nielsen_{name}_PackBrand_{label}.csv").open(encoding="utf-8-sig", newline="") as h:
+        data = list(_csv.DictReader(h))
+    for m in months:
+        cell = {}
+        for r in data:
+            if not r["BASEPACKSIZE"] or not r.get(m, "").strip():
+                continue
+            slot = cell.setdefault((float(r["BASEPACKSIZE"]), brand_label(r["BRAND"])), {})
+            slot[{vfact: "v", "Sales (Vol (KG/LT/000NO))": "q", "Wghtd Dist Handling": "w"}.get(r["Facts"], "x")] = float(r[m])
+        for (size, brand), v in sorted(cell.items()):
+            if not v.get("v"):
+                continue
+            yield [pbi_month(m), fy_label(m), CAT_NAME[kind], f"{size:g}", BRAND_FIX.get(brand, brand), round(v["v"], 4),
+                   round(v.get("q", 0), 2), round(v["w"], 3) if "w" in v else "", SOURCE]
+
+
 def write(path: Path, header, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
     rows = list(rows)
@@ -111,6 +132,9 @@ def main() -> int:
     prow = list(pack_rows(folder, a.label, "facewash", months)) + list(pack_rows(folder, a.label, "shampoo", months))
     write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Pack_Monthly" / f"nielsen_pack_urban_mt_{slug}.csv",
           ["Month", "FY Year", "Nielsen Category", "Pack Size ml", "Category Value Cr", "Our Value Cr", "Category Volume L", "Our Volume L", "Category WD %", "Data Source Name"], prow)
+    pb = list(pack_brand_rows(folder, a.label, "facewash", months)) + list(pack_brand_rows(folder, a.label, "shampoo", months))
+    write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Pack_Brand_Monthly" / f"nielsen_pack_brand_urban_mt_{slug}.csv",
+          ["Month", "FY Year", "Nielsen Category", "Pack Size ml", "Brand", "Value Cr", "Volume L", "WD %", "Data Source Name"], pb)
     deck_path = folder / "Deck_MT_Review_Big3_v3_1.json"
     if deck_path.exists():
         deck = json.loads(deck_path.read_text(encoding="utf-8"))

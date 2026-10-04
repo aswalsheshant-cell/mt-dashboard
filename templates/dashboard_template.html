@@ -305,6 +305,11 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="shp-tbody"></tbody></table></div>
   </div>
 
+  <div class="sec" id="sec-pb"><h3>4b. Pack-wise brands: who sells which pack <span class="note">&middot; Nielsen Brand x Basepack, brand share of each pack's value (%)</span></h3>
+    <div class="note" id="pb-note"></div>
+    <div id="pb-wrap"></div>
+  </div>
+
   <div class="sec" id="sec-pm"><h3>5. Big packs by chain: sold or not sold <span class="note">&middot; Nielsen pack size vs where Mamaearth sells it (internal offtake Apr-Aug)</span></h3>
     <div class="note" id="pm-note"></div>
     <div id="pm-wrap"></div>
@@ -317,6 +322,14 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
   <div class="sec"><h3>6. Categories strong elsewhere but thin in a chain <span class="note">&middot; our own sub-category mix, internal offtake</span></h3>
     <div class="note" id="cg-note"></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chain</th><th class="l">Sub-category</th><th>Share of all-chain NSV %</th><th>Share in this chain %</th><th class="l">Status</th><th>Gap &#8377;L at all-chain mix</th></tr></thead><tbody id="cg-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="sec-vc"><h3>6b. Corporate-visit cities and the store master <span class="note">&middot; store master with city details, internal offtake Apr-Aug</span></h3>
+    <div class="note" id="vc-note"></div>
+    <div class="kp3" id="vc-kpis"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Region</th><th class="l">City</th><th>Beats</th><th>Stores</th><th>NSV Apr-Aug &#8377;L</th><th>Latest month &#8377;L</th><th>MoM %</th><th>Brand Counter &#8377;L</th><th>Near-listed &#8377;L</th></tr></thead><tbody id="vc-tbody"></tbody></table></div>
+    <div class="sub">Near-listed cities (third option): not on the visit list, next to a listed city</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">City</th><th class="l">Nearest listed city</th><th class="l">State</th><th>Stores</th><th>NSV Apr-Aug &#8377;L</th></tr></thead><tbody id="vn-tbody"></tbody></table></div>
   </div>
 
   <div class="sec"><h3>7. Named plays from the review deck</h3>
@@ -367,7 +380,7 @@ const FW_ALL=DASHBOARD_DATA.FW_ALL||[], FW_CAT=DASHBOARD_DATA.FW_CAT_NSV||[], SH
       PACKF=DASHBOARD_DATA.SH_PACK_FILE||null, GOV=DASHBOARD_DATA.GOV||{}, META=DASHBOARD_DATA._meta||{},
       FW_INFO=DASHBOARD_DATA.FW_CAT_INFO||null, FW_ME_PACKS=DASHBOARD_DATA.FW_PACKS_ME||null, FW_PREM=DASHBOARD_DATA.FW_PREMIUM||null,
       MARKET=DASHBOARD_DATA.MARKET||'', UNIT=DASHBOARD_DATA.UNIT||'',
-      FW_GAP=DASHBOARD_DATA.FW_PACK_GAP||null, SH_GAP=DASHBOARD_DATA.SH_PACK_GAP||null, CHAINS=DASHBOARD_DATA.CHAINS||null, DECK=DASHBOARD_DATA.DECK||null, PV=DASHBOARD_DATA.PRICE_VOLUME||null;
+      FW_GAP=DASHBOARD_DATA.FW_PACK_GAP||null, SH_GAP=DASHBOARD_DATA.SH_PACK_GAP||null, CHAINS=DASHBOARD_DATA.CHAINS||null, DECK=DASHBOARD_DATA.DECK||null, FW_PB=DASHBOARD_DATA.FW_PACK_BRAND||null, SH_PB=DASHBOARD_DATA.SH_PACK_BRAND||null, PV=DASHBOARD_DATA.PRICE_VOLUME||null, VC=DASHBOARD_DATA.VISIT_CITIES||null;
 const AC='#2563EB',GREY='#94A3B8',RED='#DC2626',GREEN='#059669',AMBER='#D97706';
 const OWN=['Mamaearth','The Derma Co'];          // Honasa brands in the Facewash file
 Chart.defaults.animation=false;
@@ -694,6 +707,29 @@ function buildPacks(){
   el('pk-note').textContent='Gap = category pack size x (our overall share - our share in that pack). It is what we would sell if we held our overall share in the pack. Not every pack is a fit for the brand (check that it is a format we can make, for example sachet or bulk sizes); read it as a list to check, not a target. '+(SH_GAP?SH_GAP.note:'')+' Contribution % is the pack\'s share of category value; ME contribution % is the pack\'s share of our own value.';
   tbody('fwp-tbody',packRows(FW_GAP),x=>x);tbody('shp-tbody',packRows(SH_GAP),x=>x);
 }
+function buildVisit(){
+  if(!VC||!VC.cities){hide('sec-vc');return;}
+  const C=VC.cities,mons=VC.months||[],last=mons.length?mons[mons.length-1].replace(/ \d+$/,''):'',prev=mons.length>1?mons[mons.length-2].replace(/ \d+$/,''):'';
+  const sc=(VC.stats&&VC.stats.status_counts)||{},cov=VC.coverage||{};
+  el('vc-kpis').innerHTML=[kpi('Listed cities with sales',String(C.filter(c=>c.Stores>0).length)+' of '+C.length,'','mut'),kpi('Stores in listed cities',n0(sc['Considered']),'Considered','mut'),
+    kpi('Near-listed stores',n0(sc['Near listed city']),'third option','mut'),kpi('In store master file',n0(cov.in_master_file)+' of '+n0(cov.stores_sold),f1(cov.nsv_in_master_pct,0)+'% of NSV','mut')].join('');
+  el('vc-note').textContent=(VC.note||'')+' Top 8 cities by NSV get 5 beats, others 3. Latest month '+(last||'–')+' vs '+(prev||'–')+'.';
+  tbody('vc-tbody',C.slice().sort((a,b)=>(b.NSV_total_exBC||0)-(a.NSV_total_exBC||0)),c=>{const a=c['NSV_'+last],b=c['NSV_'+prev];const mom=ok(a)&&ok(b)&&b>0?(a/b-1)*100:null;
+    return `<tr><td class="l">${esc(c.Region)}</td><td class="l">${esc(c.City)}${c.Top8?' <span class="st ok">top 8</span>':''}</td><td>${c.Beats}</td><td>${n0(c.Stores)}</td><td>${n0(c.NSV_total_exBC)}</td><td>${n0(a)}</td><td>${sg(mom,0)}</td><td>${n0(c.NSV_BC)}</td><td>${ok(c.Near_listed_NSV)&&c.Near_listed_NSV>0?n0(c.Near_listed_NSV):'–'}</td></tr>`;});
+  tbody('vn-tbody',(VC.stats&&VC.stats.near_listed)||[],n=>`<tr><td class="l">${esc(n.city)}</td><td class="l">${esc(n.nearest_listed)}</td><td class="l">${esc(n.state)}</td><td>${n0(n.stores)}</td><td>${n0(n.nsv_total)}</td></tr>`);
+}
+function buildPackBrand(){
+  if(!FW_PB&&!SH_PB){hide('sec-pb');return;}
+  const one=(PB,title)=>{if(!PB||!PB.packs)return '';
+    const cols=PB.brands.slice(0,9).map(b=>b.n);if(!cols.includes('Mamaearth'))cols.push('Mamaearth');
+    const rows=PB.packs.filter(p=>p.cat_share>=0.5);
+    const cell=(p,n)=>{const b=p.brands.find(x=>x.n===n);if(!b||!(b.value>0))return '<span class="st na">–</span>';
+      return `<span class="st ${n==='Mamaearth'?'ok':b.share_in_pack>=30?'warn':'na'}" title="₹${f1(b.value,2)} Cr">${f1(b.share_in_pack,0)}%</span>`;};
+    return `<div class="sub">${title} <span class="note">&middot; brands listed cover ${f1(PB.coverage_pct,0)}% of category value; blank = not sold in the pack</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Brands selling</th><th class="l">Leader</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(p=>`<tr><td>${esc(p.size)}</td><td>${f1(p.cat_share,1)}</td><td>${p.brands_selling}</td><td class="l">${esc(p.leader||'–')}</td>${cols.map(c=>`<td>${cell(p,c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <div class="note">Where each brand plays (packs sold, top packs): ${PB.brands.slice(0,10).map(b=>esc(b.n)+' '+b.packs+' packs ('+b.top_packs.slice(0,3).join(', ')+' ml)').join('; ')}.</div>`;};
+  el('pb-wrap').innerHTML=one(FW_PB,'Facewash')+one(SH_PB,'Shampoo');
+  el('pb-note').textContent='Read across a row to see who owns the pack and where Mamaearth stands; a pack with one or two brands is a niche or a gap nobody has filled. Blue = Mamaearth, amber = a brand holding 30% or more of the pack.';
+}
 function buildPackMatrix(){
   const P=(CHAINS&&CHAINS.pack_presence)||[],C=(CHAINS&&CHAINS.contribution||[]).slice(0,6).map(c=>c.Chain);
   if(!P.length||!C.length||(!FW_GAP&&!SH_GAP)){hide('sec-pm');return;}
@@ -772,7 +808,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   trackerItems('aug-items',AUG_ACTIONS);trackerItems('sep-items',SEP_ACTIONS);
   el('gate-items').innerHTML=(GATES||[]).map(g=>`<div class="gate-item"><div class="gate-date">${esc(g.date)}</div><div class="gate-q">${esc(g.q)}</div><div class="gate-i">${esc(g.impact)}</div></div>`).join('');
   el('trk-note').textContent='Targets and budgets are the team’s plan; check them against the Opportunity sizing.';
-  updateProg();buildOpp();buildChains();buildPacks();buildPackMatrix();buildChainPacks();buildPriceVolume();buildDeckBits();
+  updateProg();buildOpp();buildChains();buildPacks();buildPackBrand();buildVisit();buildPackMatrix();buildChainPacks();buildPriceVolume();buildDeckBits();
   el('cp-note').textContent=CHAINS?'Chain and pack figures: internal offtake Apr-Aug and Nielsen '+MARKET+'; deck figures are labelled.':'';
   el('foot-cp').textContent='Internal offtake NSV is Rs lakh, ex Reliance Brand Counter (offtake basis only). Nielsen = consumer offtake in '+(MARKET||'the report market')+'. Deck figures are typed from MT_Review_Big3_v3_1.pptx (Nielsen Jun\'26 state cut) and are not in the Aug-26 workbooks.';
   el('foot-ms').textContent=(MARKET?'Market '+MARKET+(UNIT?', '+UNIT:'')+'. ':'')+'Source: '+(GOV.source_reference||'Nielsen files in data/nielsen')+'. A blank source cell is shown as a dash, never zero.';

@@ -1,0 +1,33 @@
+Region,City,Beats Planned (rule),Aliases,Near Listed (not on list)
+North + Central,Ludhiana,,,
+North + Central,Varanasi,,,
+North + Central,Kanpur,,,
+North + Central,Prayagraj,,Allahabad; Pryagraj,
+North + Central,Jodhpur,,,
+North + Central,Agra,,,
+North + Central,Dehradun,,,
+North + Central,Amritsar,,,
+North + Central,Kota,,,
+North + Central,Jammu,,,
+North + Central,Bikaner,,,
+North + Central,Chandigarh,,,Mohali; Panchkula; Kurali (Sas Nagar/Mohali); New Chandigarh (Mohali)
+West,Mumbai,,,Navi Mumbai; Thane
+West,Pune,,,
+West,Ahmedabad,,,
+West,Indore,,,
+West,Bhopal,,,
+West,Vadodara,,Baroda,
+West,Nashik,,,
+West,Jabalpur,,,
+South,Hyderabad,,Kapra Hyderabad,
+South,Madurai,,,
+South,Trivandrum,,Thiruvananthapuram,
+South,Cochin,,Kochi,Ernakulam
+South,Trichy,,Tiruchirappalli,
+East,Kolkata,,,Howrah
+East,Siliguri,,,
+East,Guwahati,,,
+East,Bhubaneswar,,,
+East,Ranchi,,,
+East,Jamshedpur,,,
+East,Cuttack,,,

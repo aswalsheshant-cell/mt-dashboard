@@ -744,6 +744,25 @@ DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV Growth], ALL ( 'Chain Master
 Chain Contribution To Growth pp =
 DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV LY], ALL ( 'Chain Master'[Chain] ) ) ) * 100
 
+// =====================================================================
+// PACK-WISE BRANDS  (table: 'Fact Nielsen Pack Brand')
+// =====================================================================
+Brand Pack Value Cr = SUM ( 'Fact Nielsen Pack Brand'[Value Cr] )
+
+Brand Share In Pack % =
+DIVIDE (
+    [Brand Pack Value Cr],
+    CALCULATE ( [Brand Pack Value Cr],
+        ALLEXCEPT ( 'Fact Nielsen Pack Brand', 'Fact Nielsen Pack Brand'[MonthStart],
+            'Fact Nielsen Pack Brand'[Nielsen Category], 'Fact Nielsen Pack Brand'[Pack Size ml] ) )
+)
+
+Brands Selling In Pack =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Brand] ), [Brand Pack Value Cr] > 0 ) )
+
+Packs Brand Sells =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Pack Size ml] ), [Brand Pack Value Cr] > 0 ) )
+
 
 
 ##############################################################################
@@ -2365,3 +2384,24 @@ Subcat Gap NSV =
 VAR _gap = MAX ( [Subcat Share All Chains %] - COALESCE ( [Subcat Share In Chain %], 0 ), 0 )
 RETURN IF ( [Subcat Presence Status] IN { "Absent", "Under-weight" },
     _gap * CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )
+
+// ---------- CORPORATE-VISIT CITIES (tables: 'Store City Master', 'Visit City List') ----------
+// Needs 'Fact Offtake Sales'[Store Key] (calculated column, see 49_Store_City_Master.pq) related to 'Store City Master'[Store Key].
+Visit Stores = DISTINCTCOUNT ( 'Store City Master'[Store Key] )
+
+Visit City NSV =
+CALCULATE ( [Total MT NSV], 'Store City Master'[Visit Status] = "Considered" )
+
+Near Listed NSV =
+CALCULATE ( [Total MT NSV], 'Store City Master'[Visit Status] = "Near listed city" )
+
+// share of MT NSV that is attached to a store in the master (should be close to 100%)
+Visit Master Match % =
+DIVIDE (
+    CALCULATE ( [Total MT NSV], NOT ISBLANK ( 'Store City Master'[Store Key] ) ),
+    [Total MT NSV]
+)
+
+Visit City NSV MoM % =
+VAR _pm = CALCULATE ( [Visit City NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN DIVIDE ( [Visit City NSV] - _pm, _pm )

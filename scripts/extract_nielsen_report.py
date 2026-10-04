@@ -72,6 +72,25 @@ def pack_rows(rows: list[list], *, brand_sheet: bool) -> list[list]:
     return keep
 
 
+PACK_BRAND_FACTS = ("Sales Value in Cr.", "Sales Value (Crs.)", "Sales (Vol (KG/LT/000NO))", "Wghtd Dist Handling")
+
+
+def pack_brand_rows(rows: list[list], months_keep: list[str]) -> list[list]:
+    """Brand x Basepack for ALL brands (not just Mamaearth), value / volume / WD, for the months given only.
+
+    Kept small on purpose: which brands sell which pack size, this month and a year ago.
+    """
+    rows = clean(rows)
+    header = rows[0]
+    fact, brand, size = header.index("Facts"), header.index("BRAND"), header.index("BASEPACKSIZE")
+    idx = [header.index(m) for m in months_keep if m in header]
+    keep = [["Facts", "BRAND", "BASEPACKSIZE"] + [header[i] for i in idx]]
+    for row in rows[1:]:
+        if row[fact] in PACK_BRAND_FACTS and row[brand] not in (None, ""):
+            keep.append([row[fact], row[brand], row[size]] + [row[i] for i in idx])
+    return keep
+
+
 def write_csv(path: Path, rows: list[list]) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -90,6 +109,12 @@ def extract(category: str, workbook: Path, label: str, out: Path) -> list[Path]:
     for sheet, brand_sheet, tag in (("Category x Basepack", False, "PacksCategory"), ("Brand x Basepack", True, "PacksMamaearth")):
         path = out / f"Nielsen_{name}_{tag}_{label}.csv"
         write_csv(path, pack_rows(read_sheet(workbook, sheet), brand_sheet=brand_sheet)); written.append(path)
+    snap_header = snapshot_rows(snap)[0]
+    latest = month_columns(snap_header)[-1]
+    mon, yy = latest.split()
+    ya = f"{mon} {int(yy) - 1:02d}"
+    path = out / f"Nielsen_{name}_PackBrand_{label}.csv"
+    write_csv(path, pack_brand_rows(read_sheet(workbook, "Brand x Basepack"), [ya, latest])); written.append(path)
     return written
 
 

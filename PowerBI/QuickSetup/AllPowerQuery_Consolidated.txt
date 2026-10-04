@@ -7,14 +7,14 @@ Power BI's Advanced Editor holds exactly ONE query per paste. For each
 section below: New Blank Query > Home > Advanced Editor > paste that
 section's M code > OK > rename the query to the name shown > Close & Apply
 when done with all of them. Having ONE file open (this one) instead of
-32 separate files is the time-saving here.
+35 separate files is the time-saving here.
 
 *** NOT INCLUDED -- these source files are deliberately left out of this setup:
     - 46_Dim_PromoCalendar.pq: Not usable in Desktop yet: loads File.Contents("PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv") -- a relative path fixed to one month, not pRootFolder + the folder -- and its relationship notes name tables this model does not have (Dim_Brand, Dim_Calendar, Dim_Chain). Needs its own fix before it can be a setup step.
 
 
 ##############################################################################
-# STEP 01/32  --  SOURCE FILE: 00_Parameters.pq
+# STEP 01/35  --  SOURCE FILE: 00_Parameters.pq
 # RENAME QUERY TO: pRootFolder (Manage Parameters, NOT a Blank Query)
 # NOTE: Home > Transform data > Manage Parameters > New.
 ##############################################################################
@@ -43,7 +43,7 @@ when done with all of them. Having ONE file open (this one) instead of
 
 
 ##############################################################################
-# STEP 02/32  --  SOURCE FILE: 01_fnCombineFolder.pq
+# STEP 02/35  --  SOURCE FILE: 01_fnCombineFolder.pq
 # RENAME QUERY TO: fnCombineFolder
 # NOTE: Blank Query > Advanced Editor > paste > rename.
 ##############################################################################
@@ -127,7 +127,7 @@ in
 
 
 ##############################################################################
-# STEP 03/32  --  SOURCE FILE: 02_fnFYLabel.pq
+# STEP 03/35  --  SOURCE FILE: 02_fnFYLabel.pq
 # RENAME QUERY TO: fnFYLabel
 # NOTE: Add before Fact Offtake Sales; its FY Year is derived from MonthStart.
 ##############################################################################
@@ -161,7 +161,7 @@ in
 
 
 ##############################################################################
-# STEP 04/32  --  SOURCE FILE: 10_Fact_PrimarySales.pq
+# STEP 04/35  --  SOURCE FILE: 10_Fact_PrimarySales.pq
 # RENAME QUERY TO: Fact Primary Sales
 ##############################################################################
 // =====================================================================
@@ -227,7 +227,7 @@ in
 
 
 ##############################################################################
-# STEP 05/32  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
+# STEP 05/35  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
 # RENAME QUERY TO: Fact Offtake Sales
 ##############################################################################
 // =====================================================================
@@ -394,7 +394,7 @@ in
 
 
 ##############################################################################
-# STEP 06/32  --  SOURCE FILE: 12_Fact_PnL.pq
+# STEP 06/35  --  SOURCE FILE: 12_Fact_PnL.pq
 # RENAME QUERY TO: Fact P&L
 ##############################################################################
 // =====================================================================
@@ -424,7 +424,7 @@ in
 
 
 ##############################################################################
-# STEP 07/32  --  SOURCE FILE: 13_Fact_Nielsen.pq
+# STEP 07/35  --  SOURCE FILE: 13_Fact_Nielsen.pq
 # RENAME QUERY TO: Fact Nielsen Market Share
 ##############################################################################
 // =====================================================================
@@ -464,7 +464,7 @@ in
 
 
 ##############################################################################
-# STEP 08/32  --  SOURCE FILE: 14_Fact_TDP.pq
+# STEP 08/35  --  SOURCE FILE: 14_Fact_TDP.pq
 # RENAME QUERY TO: Fact TDP
 ##############################################################################
 // =====================================================================
@@ -513,7 +513,7 @@ in
 
 
 ##############################################################################
-# STEP 09/32  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
+# STEP 09/35  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
 # RENAME QUERY TO: Fact Primary ShipTo
 ##############################################################################
 // =====================================================================
@@ -598,7 +598,7 @@ in
 
 
 ##############################################################################
-# STEP 10/32  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
+# STEP 10/35  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
 # RENAME QUERY TO: Fact Primary Article
 ##############################################################################
 // =====================================================================
@@ -764,7 +764,7 @@ in
 
 
 ##############################################################################
-# STEP 11/32  --  SOURCE FILE: 20_Dim_Masters.pq
+# STEP 11/35  --  SOURCE FILE: 20_Dim_Masters.pq
 # RENAME QUERY TO: Chain Master, Brand Master, Category Master, Article Master, Zone State Master, Store Master, Nielsen Competitor Master
 # NOTE: SEVEN separate queries -- one per '---------- X Master ----------' block in the file below. Each block is its own complete `let...in` query; uncomment/copy ONE block at a time.
 ##############################################################################
@@ -824,7 +824,7 @@ in Typed
 
 
 ##############################################################################
-# STEP 12/32  --  SOURCE FILE: 21_ShipToMaster.pq
+# STEP 12/35  --  SOURCE FILE: 21_ShipToMaster.pq
 # RENAME QUERY TO: Ship-To Master
 ##############################################################################
 // =====================================================================
@@ -848,7 +848,7 @@ in
 
 
 ##############################################################################
-# STEP 13/32  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
+# STEP 13/35  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
 # RENAME QUERY TO: Customer Code Zone Master
 ##############################################################################
 // =====================================================================
@@ -891,7 +891,7 @@ in
 
 
 ##############################################################################
-# STEP 14/32  --  SOURCE FILE: 24_ChannelMap.pq
+# STEP 14/35  --  SOURCE FILE: 24_ChannelMap.pq
 # RENAME QUERY TO: Channel Map Store, Channel Map Chain
 # NOTE: TWO separate queries -- one per block in the file below.
 ##############################################################################
@@ -928,7 +928,7 @@ in
 
 
 ##############################################################################
-# STEP 15/32  --  SOURCE FILE: 30_AssumptionTable.pq
+# STEP 15/35  --  SOURCE FILE: 30_AssumptionTable.pq
 # RENAME QUERY TO: Assumption Table
 ##############################################################################
 // =====================================================================
@@ -953,7 +953,7 @@ in
 
 
 ##############################################################################
-# STEP 16/32  --  SOURCE FILE: 31_Targets.pq
+# STEP 16/35  --  SOURCE FILE: 31_Targets.pq
 # RENAME QUERY TO: Targets
 ##############################################################################
 // =====================================================================
@@ -974,7 +974,7 @@ in
 
 
 ##############################################################################
-# STEP 17/32  --  SOURCE FILE: 32_StoreSOMapping.pq
+# STEP 17/35  --  SOURCE FILE: 32_StoreSOMapping.pq
 # RENAME QUERY TO: Store-SO Mapping
 ##############################################################################
 // =====================================================================
@@ -998,7 +998,7 @@ in
 
 
 ##############################################################################
-# STEP 18/32  --  SOURCE FILE: 33_ForecastOverride.pq
+# STEP 18/35  --  SOURCE FILE: 33_ForecastOverride.pq
 # RENAME QUERY TO: Forecast Override
 ##############################################################################
 // =====================================================================
@@ -1023,7 +1023,7 @@ in
 
 
 ##############################################################################
-# STEP 19/32  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
+# STEP 19/35  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
 # RENAME QUERY TO: Primary Allocation Map
 ##############################################################################
 // =====================================================================
@@ -1058,7 +1058,7 @@ in
 
 
 ##############################################################################
-# STEP 20/32  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
+# STEP 20/35  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
 # RENAME QUERY TO: Primary Allocation Override
 ##############################################################################
 // =====================================================================
@@ -1081,7 +1081,7 @@ in
 
 
 ##############################################################################
-# STEP 21/32  --  SOURCE FILE: 36_SalesTeamMapping.pq
+# STEP 21/35  --  SOURCE FILE: 36_SalesTeamMapping.pq
 # RENAME QUERY TO: Sales Team Mapping
 ##############################################################################
 // =====================================================================
@@ -1115,7 +1115,7 @@ in
 
 
 ##############################################################################
-# STEP 22/32  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
+# STEP 22/35  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
 # RENAME QUERY TO: GST Rate QC Table
 ##############################################################################
 // =====================================================================
@@ -1165,7 +1165,7 @@ in
 
 
 ##############################################################################
-# STEP 23/32  --  SOURCE FILE: 38_GST_Config.pq
+# STEP 23/35  --  SOURCE FILE: 38_GST_Config.pq
 # RENAME QUERY TO: GST Config
 ##############################################################################
 // =====================================================================
@@ -1197,7 +1197,7 @@ in
 
 
 ##############################################################################
-# STEP 24/32  --  SOURCE FILE: 39_PL_Expense_Input.pq
+# STEP 24/35  --  SOURCE FILE: 39_PL_Expense_Input.pq
 # RENAME QUERY TO: PL Expense Input
 ##############################################################################
 // =====================================================================
@@ -1302,7 +1302,7 @@ in
 
 
 ##############################################################################
-# STEP 25/32  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
+# STEP 25/35  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
 # RENAME QUERY TO: CustCode Chain Map
 # NOTE: Add AFTER Fact Primary Article (query 16) -- depends on it.
 ##############################################################################
@@ -1334,7 +1334,7 @@ in
 
 
 ##############################################################################
-# STEP 26/32  --  SOURCE FILE: 41_DistContWeights.pq
+# STEP 26/35  --  SOURCE FILE: 41_DistContWeights.pq
 # RENAME QUERY TO: Dist Cont Weights
 ##############################################################################
 // =====================================================================
@@ -1552,7 +1552,7 @@ in
 
 
 ##############################################################################
-# STEP 27/32  --  SOURCE FILE: 42_PackSizeBuckets.pq
+# STEP 27/35  --  SOURCE FILE: 42_PackSizeBuckets.pq
 # RENAME QUERY TO: Pack Size Buckets
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1641,7 +1641,7 @@ in
 
 
 ##############################################################################
-# STEP 28/32  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
+# STEP 28/35  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
 # RENAME QUERY TO: Secondary Sales Efficiency
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1776,7 +1776,7 @@ in
 
 
 ##############################################################################
-# STEP 29/32  --  SOURCE FILE: 44_Fact_SecondarySales.pq
+# STEP 29/35  --  SOURCE FILE: 44_Fact_SecondarySales.pq
 # RENAME QUERY TO: Fact Secondary Sales
 ##############################################################################
 // =====================================================================
@@ -1881,7 +1881,7 @@ in
 
 
 ##############################################################################
-# STEP 30/32  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
+# STEP 30/35  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
 # RENAME QUERY TO: Fact Claim Master
 ##############################################################################
 // =====================================================================
@@ -2024,7 +2024,7 @@ in
 
 
 ##############################################################################
-# STEP 31/32  --  SOURCE FILE: 47_Fact_Nielsen_Pack.pq
+# STEP 31/35  --  SOURCE FILE: 47_Fact_Nielsen_Pack.pq
 # RENAME QUERY TO: Fact Nielsen Pack
 # NOTE: Needs fnCombineFolder. Pack presence measures in DAX 04 read this table.
 ##############################################################################
@@ -2066,7 +2066,7 @@ in
 
 
 ##############################################################################
-# STEP 32/32  --  SOURCE FILE: 48_Nielsen_Deck_StateExposure.pq
+# STEP 32/35  --  SOURCE FILE: 48_Nielsen_Deck_StateExposure.pq
 # RENAME QUERY TO: Nielsen Deck State Exposure
 # NOTE: Seed table typed from the review deck; not a Nielsen workbook cut.
 ##############################################################################
@@ -2091,3 +2091,89 @@ let
     })
 in
     Typed
+
+
+
+##############################################################################
+# STEP 33/35  --  SOURCE FILE: 49_Store_City_Master.pq
+# RENAME QUERY TO: Store City Master
+# NOTE: Seed table; add Store Key as a calculated column on Fact Offtake Sales and relate it (see the header comment).
+##############################################################################
+// =====================================================================
+// QUERY: Store City Master  (grain = Store Key; one row per store)
+// Source = SeedData\Masters\Store_City_Master.csv, built by scripts/build_store_city_master.py from the
+// chain-wise store list workbook (Jan-Jun 26) plus stores that sold in later offtake months (Source column).
+// No employee, SO or ASE columns.
+//
+// Key columns: Store Key = Chain Name & Site Code (matches the offtake file's Unique column; stores without a code
+// use Chain Name | Store Name). City Final = master city, or the offtake city where the master holds only a locality.
+// Visit Status = Considered / Near listed city / Not considered / City not available, against Visit_City_List.csv.
+// Relate Fact Offtake Sales[Store Key] -> Store City Master[Store Key]. Add Store Key to Fact Offtake Sales as a calculated
+// column:  Store Key = 'Fact Offtake Sales'[Chain] & 'Fact Offtake Sales'[Store Code]   (check match % with [Visit Master Match %]).
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Store_City_Master.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Store Key", type text}, {"Chain Name", type text}, {"Site Code", type text}, {"Store Name", type text},
+        {"Zone", type text}, {"State", type text},
+        {"City (store list)", type text}, {"City (offtake file)", type text}, {"City Final", type text}, {"City Source", type text},
+        {"Visit City", type text}, {"Visit Region", type text}, {"Visit Status", type text}, {"Nearest Listed City", type text},
+        {"Store Type", type text}, {"Dup Rows", Int64.Type}, {"Source", type text}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 34/35  --  SOURCE FILE: 50_Visit_City_List.pq
+# RENAME QUERY TO: Visit City List
+# NOTE: Seed table, one row per corporate-visit city.
+##############################################################################
+// =====================================================================
+// QUERY: Visit City List  (the corporate-visit cities, one row per city)
+// Source = SeedData\Masters\Visit_City_List.csv: Region, City, aliases (Cochin = Kochi etc.) and the near-listed cities that roll up to it.
+// Relate Visit City List[City] -> Store City Master[Visit City] (1 to many).
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Visit_City_List.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Region", type text}, {"City", type text}, {"Beats Planned (rule)", type text},
+        {"Aliases", type text}, {"Near Listed (not on list)", type text}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 35/35  --  SOURCE FILE: 51_Fact_Nielsen_Pack_Brand.pq
+# RENAME QUERY TO: Fact Nielsen Pack Brand
+# NOTE: Needs fnCombineFolder; pack-wise brand measures in DAX 04 read this table.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Nielsen Pack Brand  (grain = Month x Nielsen Category x Pack Size x Brand)
+// Source = RawDataFolders\Nielsen_Pack_Brand_Monthly (copy the file from SeedData\Nielsen\Nielsen_Pack_Brand_Monthly)
+// Which brands sell which pack size: Nielsen Brand x Basepack, all brands in the sheet. Value in Rs Crore, volume in litres.
+// Relate Date Table[MonthStart] -> [MonthStart]; Brand -> Nielsen Competitor Master[Brand].
+// =====================================================================
+let
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Pack_Brand_Monthly"),
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Month", type text}, {"FY Year", type text}, {"Nielsen Category", type text}, {"Pack Size ml", type number},
+        {"Brand", type text}, {"Value Cr", type number}, {"Volume L", type number}, {"WD %", type number}, {"Data Source Name", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.BetweenDelimiters([Month], "", "'"),
+            yy = Text.AfterDelimiter([Month], "'"),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart

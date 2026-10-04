@@ -773,6 +773,29 @@ datasets:
       Replaces the May 2026 shampoo slide figures, which did not tie to the
       workbook.
 
+  store_city_master:
+    business_name: "Store master with city details -- chain-wise store list Jan-Jun 26, plus stores added from the monthly offtake files"
+    source_path: "PowerBI/SeedData/Masters/Store_City_Master.csv (built by scripts/build_store_city_master.py from Final_Jan26_to_June26_chainwise_storelist.xlsb, which stays outside Git)"
+    source_type: "xlsb workbook -> CSV; offtake store x article CSVs for new stores"
+    grain: "one row per store (Store Key = chain + site code)"
+    financial_years: ["FY26", "FY27"]
+    primary_keys: ["Store Key"]
+    important_columns: ["Chain Name", "Site Code", "Store Name", "Zone", "State", "City Final", "Visit City", "Visit Status", "Nearest Listed City"]
+    business_owner: "MT leadership analytics (store master)"
+    refresh_frequency: "Monthly, or when new stores appear (Master_Gaps sheet of the city workbook lists them)"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/build_store_city_master.py -> scripts/build_visit_city_plan.py -> data/nielsen/Visit_Cities_<label>.json -> dashboards"
+    downstream_outputs: ["Nielsen dashboard Chains & Packs (visit cities)", "dashboard/nielsen.js", "PowerBI query 49 Store City Master, 50 Visit City List", "city beat workbook (not committed)"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      No employee, SO or ASE columns. City Final uses the master city when it is a city the offtake files also use,
+      else the offtake city (the store list holds localities for some chains, for example Frankros). Visit Status:
+      Considered / Near listed city (Navi Mumbai, Thane, Mohali, Panchkula, Ernakulam, Howrah -> nearest listed city) /
+      Not considered / City not available. About 61% of Apr-Aug NSV matches a store in the Jan-Jun file; the rest are new
+      stores added from the offtake files. Reliance (non-counter) has store names in Apr-Jun only; Jul-Aug is state level.
+
   offtake_fy26_store_article:
     business_name: "Offtake NSV -- FY26 (Apr'25-Mar'26) store x article grain, requested for Same-Store Growth"
     source_path: null

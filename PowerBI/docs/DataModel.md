@@ -28,6 +28,8 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone (optional `Volume 000 L`, `Price Per Ml`) | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Nielsen Pack` | Month × Nielsen Cat × Pack Size | `Date Table[MonthStart]` → `[MonthStart]`; `Category Master[Nielsen Category]` → `[Nielsen Category]` |
 | `Nielsen Deck State Exposure` | State (typed from the review deck) | none (stand-alone seed table) |
+| `Store City Master` | Store Key (chain + site code), with City Final, Visit City, Visit Status, Nearest Listed City | `Fact Offtake Sales[Store Key]` → `[Store Key]` (add Store Key as a calculated column on the fact) |
+| `Visit City List` | City (corporate-visit cities, Region, aliases) | `Visit City List[City]` 1 → * `Store City Master[Visit City]` |
 | `Fact TDP` | Month × Chain × Article | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Primary ShipTo` | Month × Ship-To × Chain × Brand | `Date Table[MonthStart]` → `[MonthStartCalc]` |
 | `Fact Primary Article` | Month × Customer(Ship-to) × Chain × Brand × Article — DIST rows pre-exploded across chains by cont% (query 41); `[Chain]` is the allocated "Chain name for Dashboard", never a Ship To Name; unmatched rows carry "Unmapped Chain" | `Date Table[MonthStart]` → `[MonthStart]` |
