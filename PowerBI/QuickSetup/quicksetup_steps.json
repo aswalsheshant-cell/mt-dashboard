@@ -217,6 +217,10 @@
       "18_Nielsen_Brand_Cut_Measures.dax": [
         "# TARGET: _Measures table (needs query 57 and Date Table)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "19_Dynamic_Drill_Measures.dax": [
+        "# TARGET: _Measures table (needs the core, price/volume measures and Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
       ]
     },
     "excluded": {
