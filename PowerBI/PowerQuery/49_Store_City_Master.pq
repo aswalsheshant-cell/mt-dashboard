@@ -12,6 +12,8 @@
 // Relate Fact Offtake Sales to this table on [Match Key]: add a calculated column to the fact
 //   Match Key = UPPER ( TRIM ( 'Fact Offtake Sales'[Chain] ) ) & "|" & UPPER ( TRIM ( 'Fact Offtake Sales'[Store Code] ) )
 // (Match Key = chain as spelt in the offtake file, upper case | site code). Stores without a code have no Match Key.
+// A store listed under more than one code is ONE row here (Other Site Codes lists the other codes); the codes are in 56_Store_Key_Alias.pq, which gives the
+// Match Key formula to use on the fact so the sales of every code land on that one row.
 // Check the join with [Visit Master Match %] before using the city measures.
 // =====================================================================
 let
@@ -23,7 +25,8 @@ let
         {"Zone", type text}, {"State", type text}, {"State (as in source)", type text}, {"State Note", type text},
         {"City (store list)", type text}, {"City (offtake file)", type text}, {"City Final", type text}, {"City Source", type text},
         {"Visit City", type text}, {"Visit Region", type text}, {"Visit Status", type text}, {"Nearest Listed City", type text},
-        {"Store Type", type text}, {"Match Key", type text}, {"Source", type text}
+        {"Store Type", type text}, {"Match Key", type text}, {"Source", type text},
+        {"Other Site Codes", type text}, {"Merged Rows", Int64.Type}
     })
 in
     Typed

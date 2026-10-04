@@ -120,16 +120,60 @@ def qc(out):
     sz = out.dropna(subset=["State", "Zone"]).groupby("State")["Zone"].agg(lambda s: sorted(set(s)))
     add("WARN", "state carried in more than one zone (confirm the zone for these)", [f"{k}: {', '.join(v)}" for k, v in sz.items() if len(v) > 1])
     dn = out[out["Store Name"].notna()]
-    dd = dn[dn.duplicated(["Chain Name", "Store Name", "City Final"], keep=False)]
-    add("WARN", "same chain + store name + city under different codes (possible duplicate store)", dd["Store Key"])
+    dd = dn[dn.duplicated(["Chain Name", "Store Name", "City Final"], keep=False) & dn["City Final"].notna()]
+    add("ERROR", "same chain + store name + city on more than one row (one store must be one row)", dd["Store Key"])
     add("WARN", "state changed to the city's main state", out.loc[out["State Note"].notna() & out["State Note"].str.contains("also appears", na=False), "Store Key"])
     add("WARN", "no city for the store", out.loc[out["City Final"].isna(), "Store Key"])
     return f
 
 
+def merge_same_store(out):
+    """One row per store: the same chain + store name + city under more than one code (a re-coded store, a case-only spelling of a pseudo store)
+    is one store. The row from the store list with the lowest code stays; the other keys go to Store_Key_Aliases.csv (offtake sales follow them)
+    and their codes are kept in 'Other Site Codes'. Rows without a store name, or without a city and a state, are never merged."""
+    norm = lambda x: re.sub(r"[^a-z0-9]", "", str(x).lower())   # noqa: E731
+    out = out.copy()
+    place = out["City Final"].str.lower().fillna("state:" + out["State"].str.lower())      # a store with no city is matched on its state
+    ok = out["Store Name"].notna() & place.notna()
+    out["_g"] = None
+    out.loc[ok, "_g"] = out.loc[ok, "Chain Name"] + "|" + out.loc[ok, "Store Name"].map(norm) + "|" + place[ok]
+    out["_p"] = out["Source"].eq(NEW_SOURCE).astype(int) * 2 + out["Site Code"].isna().astype(int)      # store-list rows with a code first
+    out["Other Site Codes"] = None
+    out["Merged Rows"] = 1
+    drop, alias = [], []
+
+    def join(keep, rest):
+        out.at[keep, "Other Site Codes"] = "; ".join(out.loc[rest, "Site Code"].dropna().astype(str)) or None
+        out.at[keep, "Merged Rows"] = len(rest) + 1
+        for i in rest:
+            alias.append({"Alias Store Key": out.at[i, "Store Key"], "Alias Match Key": out.at[i, "Match Key"], "Alias Site Code": out.at[i, "Site Code"],
+                          "Store Key": out.at[keep, "Store Key"], "Store Match Key": out.at[keep, "Match Key"], "Reason": "same chain + store name + city"})
+        drop.extend(rest)
+
+    for g, x in out[ok].groupby("_g"):
+        if len(x) < 2:
+            continue
+        x = x.sort_values(["_p", "Site Code", "Store Key"], na_position="last")
+        listed = x[x["Source"] != NEW_SOURCE]
+        if norm(x["Store Name"].iloc[0]) == norm(x["City Final"].iloc[0]) and len(listed) > 1:
+            # the name is just the town, and the retailer's own store list holds more than one store with it: they stay separate stores and the
+            # code goes into the name so each is unique; offtake-only keys of the same name cannot be told apart, so they are merged among themselves
+            for i in listed.index:
+                out.at[i, "Store Name"] = f"{out.at[i, 'Store Name']} ({out.at[i, 'Site Code']})"
+            rest = x[x["Source"] == NEW_SOURCE]
+            if len(rest) > 1:
+                join(rest.index[0], list(rest.index[1:]))
+            if len(rest):
+                out.at[rest.index[0], "Store Name"] = f"{out.at[rest.index[0], 'Store Name']} (offtake key)"
+            continue
+        join(x.index[0], list(x.index[1:]))
+    out = out.drop(index=drop).drop(columns=["_g", "_p"]).reset_index(drop=True)
+    return out, alias
+
+
 def build(master_path, months):
     m = read_master(master_path)
-    off = vc.load_offtake(months)
+    off = vc.load_offtake(months, aliases=False)      # raw keys: the merge below writes the alias file
     m["sid"] = m.apply(sid_of, axis=1)
     dup_master = int(m.duplicated("sid", keep=False).sum())
     m = m.drop_duplicates("sid", keep="first")
@@ -185,8 +229,9 @@ def build(master_path, months):
     cols = ["Store Key", "Chain Name", "Chain (as in source)", "Site Code", "Store Name", "Zone", "State", "State (as in source)", "State Note", "City (store list)",
             "City (offtake file)", "City Final", "City Source", "Visit City", "Visit Region", "Visit Status", "Nearest Listed City", "Store Type", "Match Key", "Source"]
     out = out[cols].sort_values(["Chain Name", "State", "City Final", "Store Name"], na_position="last").reset_index(drop=True)
+    out, aliases = merge_same_store(out)
     findings = qc(out)
-    return out, findings, {"dup_in_master_file": dup_master, "from_master": len(m), "added": int((out["Source"] == NEW_SOURCE).sum())}
+    return out, findings, {"dup_in_master_file": dup_master, "from_master": len(m), "added": int((out["Source"] == NEW_SOURCE).sum()), "merged": len(aliases), "aliases": aliases}
 
 
 def main():
@@ -203,10 +248,11 @@ def main():
     if errors:
         raise SystemExit(f"Not written: {len(errors)} QC error(s) above (see Store_City_Master_QC.csv).")
     out.to_csv(OUT / "Store_City_Master.csv", index=False)
+    pd.DataFrame(stats["aliases"], columns=["Alias Store Key", "Alias Match Key", "Alias Site Code", "Store Key", "Store Match Key", "Reason"]).to_csv(OUT / "Store_Key_Aliases.csv", index=False)
     cities = [{"Region": r, "City": c, "Beats Planned (rule)": "", "Aliases": "; ".join(k.title() for k, v in vc.ALIASES.items() if v == c),
                "Near Listed (not on list)": "; ".join(k.title() for k, v in vc.NEAR.items() if v == c)} for r, cs in vc.REGIONS.items() for c in cs]
     pd.DataFrame(cities).to_csv(OUT / "Visit_City_List.csv", index=False)
-    print(f"store master rows: {len(out)}  (store list {stats['from_master']}, added from offtake {stats['added']}, duplicate rows in the store list collapsed {stats['dup_in_master_file']})")
+    print(f"store master rows: {len(out)}  (store list {stats['from_master']}, added from offtake {stats['added']}, duplicate rows in the store list collapsed {stats['dup_in_master_file']}, same store under more than one code merged {stats['merged']})")
     print(out["Visit Status"].value_counts().to_string())
 
 

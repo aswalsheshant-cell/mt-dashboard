@@ -139,6 +139,10 @@
       "55_Fact_Account_Assortment.pq": [
         "# RENAME QUERY TO: Fact Account Assortment",
         "# NOTE: Seed table from SeedData\\Account; account-share measures are in DAX 17."
+      ],
+      "56_Store_Key_Alias.pq": [
+        "# RENAME QUERY TO: Store Key Alias",
+        "# NOTE: Lookup for stores listed under more than one code; the Match Key formula for the fact is in the query header."
       ]
     },
     "excluded": {

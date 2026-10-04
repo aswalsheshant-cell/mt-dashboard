@@ -149,7 +149,18 @@ def norm_zone(z):
     return ZONE_FIX.get(z.upper().replace(" ", "-"), z.title()) if z else None
 
 
-def load_offtake(months=MONTHS):
+ALIASES_CSV = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_Key_Aliases.csv"
+
+
+def load_aliases():
+    """{alias Store Key: Store Key}: store keys that are the same store (same chain + store name + city) and were merged into one by build_store_city_master.py."""
+    if not ALIASES_CSV.exists():
+        return {}
+    a = pd.read_csv(ALIASES_CSV, dtype=str)
+    return dict(zip(a["Alias Store Key"], a["Store Key"]))
+
+
+def load_offtake(months=MONTHS, aliases=True, year="26"):
     """Store x article offtake rows for the months given, one frame, with a store id (sid).
 
     sid = chain + site code where the file has a code; chain + site name, or chain + city, where it does not.
@@ -159,7 +170,7 @@ def load_offtake(months=MONTHS):
             "Category", "Sub_category", "Sales Qty", "NSV"]
     frames = []
     for m in months:
-        d = pd.read_csv(RAW / f"offtake_store_article_{m}_26.csv", low_memory=False, usecols=lambda c: c in cols)
+        d = pd.read_csv(RAW / f"offtake_store_article_{m}_{year}.csv", low_memory=False, usecols=lambda c: c in cols)
         d = d.rename(columns={"Unique": "Unique Code"})
         d["file"] = m
         frames.append(d)
@@ -181,4 +192,7 @@ def load_offtake(months=MONTHS):
     d.loc[nocode & d["Site Name"].notna(), "sid"] = d["Chain"] + "|" + d["Site Name"]
     d.loc[nocode & d["Site Name"].isna() & d["City"].notna(), "sid"] = d["Chain"] + "|" + d["City"]
     d.loc[nocode & d["Site Name"].isna() & d["City"].isna(), "sid"] = d["Chain"] + "|NO-CITY|" + d["State"].fillna("")
+    if aliases:     # two keys for one store (same chain + name + city) count once
+        a = load_aliases()
+        d["sid"] = d["sid"].map(lambda k: a.get(k, k))
     return d

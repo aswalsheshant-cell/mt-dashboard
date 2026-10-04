@@ -347,6 +347,10 @@ def main() -> None:
         "--emit-js", type=Path,
         help="Also write window.NIELSEN data for the MT dashboard (e.g. dashboard/nielsen.js)"
     )
+    parser.add_argument(
+        "--standalone", action="store_true",
+        help="Inline Chart.js so the single HTML file works when emailed or opened from Downloads (without it the page needs chart.umd.js beside it)"
+    )
     args = parser.parse_args()
 
     if args.emit_js:
@@ -366,6 +370,13 @@ def main() -> None:
 
     try:
         build(args.template, args.data, args.out)
+        if args.standalone:
+            lib = (REPO_ROOT / "dashboard" / "chart.umd.js").read_text(encoding="utf-8").replace("</script", "<\\/script")
+            html = args.out.read_text(encoding="utf-8")
+            if '<script src="chart.umd.js"></script>' not in html:
+                raise RuntimeError("no chart.umd.js reference to inline")
+            args.out.write_text(html.replace('<script src="chart.umd.js"></script>', "<script>" + lib + "</script>", 1), encoding="utf-8")
+            print("[✓] Chart.js inlined: the file is standalone")
     except Exception as e:
         print(f"[!] Build failed: {e}", file=sys.stderr)
         sys.exit(1)

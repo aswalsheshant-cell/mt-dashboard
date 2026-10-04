@@ -18388,14 +18388,14 @@
    "Bhopal"
   ],
   "coverage": {
-   "stores_sold": 11448,
-   "in_master_file": 10631,
-   "nsv_in_master_pct": 97.87944153876657
+   "stores_sold": 11373,
+   "in_master_file": 10620,
+   "nsv_in_master_pct": 99.02474288664536
   },
   "stats": {
-   "stores_in_list": 11925,
-   "gaps": 1160,
-   "near_stores": 147,
+   "stores_in_list": 11872,
+   "gaps": 1096,
+   "near_stores": 146,
    "near_listed": [
     {
      "city": "Thane",
@@ -18422,7 +18422,7 @@
      "city": "Howrah",
      "nearest_listed": "Kolkata",
      "state": "West Bengal",
-     "stores": 22,
+     "stores": 21,
      "nsv_total": 11.9904
     },
     {
@@ -18455,9 +18455,9 @@
     }
    ],
    "status_counts": {
-    "Not considered": 8185,
-    "Considered": 3593,
-    "Near listed city": 147
+    "Not considered": 8165,
+    "Considered": 3561,
+    "Near listed city": 146
    }
   },
   "cities": [
@@ -18753,7 +18753,7 @@
     "Region": "West",
     "City": "Nashik",
     "Beats": 3,
-    "Stores": 61,
+    "Stores": 60,
     "NSV_Apr": 21.4607,
     "NSV_May": 23.9041,
     "NSV_Jun": 22.8484,
@@ -18785,7 +18785,7 @@
     "Region": "South",
     "City": "Hyderabad",
     "Beats": 5,
-    "Stores": 667,
+    "Stores": 665,
     "NSV_Apr": 162.3415,
     "NSV_May": 194.1313,
     "NSV_Jun": 178.5363,
@@ -18833,7 +18833,7 @@
     "Region": "South",
     "City": "Cochin",
     "Beats": 3,
-    "Stores": 129,
+    "Stores": 128,
     "NSV_Apr": 27.9648,
     "NSV_May": 30.4015,
     "NSV_Jun": 24.4558,
@@ -18865,7 +18865,7 @@
     "Region": "East",
     "City": "Kolkata",
     "Beats": 5,
-    "Stores": 1438,
+    "Stores": 1410,
     "NSV_Apr": 51.1815,
     "NSV_May": 57.6478,
     "NSV_Jun": 54.7127,
@@ -18874,7 +18874,7 @@
     "NSV_total_exBC": 273.6989,
     "NSV_BC": 83.8711,
     "Near_listed_NSV": 11.9904,
-    "Near_listed_stores": 22,
+    "Near_listed_stores": 21,
     "Top8": true
    },
    {

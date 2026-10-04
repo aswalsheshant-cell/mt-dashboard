@@ -29,6 +29,19 @@ MASTER = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_City_Master.csv"
 MASTER_QC = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_City_Master_QC.csv"
 LY_JSON = ROOT / "data" / "raw_drops" / "_agg" / "offtake_fy26.json"
 LYM = ["Apr-25", "May-25", "Jun-25", "Jul-25", "Aug-25", "Sep-25"]
+
+
+def load_ly_store():
+    """Last-year NSV per store and month from FY26 store x article files (offtake_store_article_<Mon>_25.csv in the same folder), if they were supplied.
+    Returns (frame indexed by store key with one column per month label such as 'Apr-25', list of months found). Nothing is estimated: a month with no file stays blank."""
+    have = [m for m in LYM if (vc.RAW / f"offtake_store_article_{m[:3]}_25.csv").exists()]
+    if not have:
+        return None, []
+    d = vc.load_offtake([m[:3] for m in have], year="25")
+    d = d[~d.bc]
+    t = d.groupby(["sid", "file"])["NSV"].sum().unstack()
+    t.columns = [f"{c}-25" for c in t.columns]
+    return t, have
 HF = Font(bold=True, color="FFFFFF")
 HFILL = PatternFill("solid", fgColor="1F3864")
 GFILL = PatternFill("solid", fgColor="BFBFBF")
@@ -137,6 +150,7 @@ def build(months, label, out_xlsx, payload_path):
 
     near = s[(s["Visit Status"] == "Near listed city") & s["Total"].notna()].copy()
 
+    ly_store, ly_have = load_ly_store()
     ly_raw = json.loads(LY_JSON.read_text(encoding="utf-8"))["by_chain"]
     lyu = {}
     for k, v in ly_raw.items():
@@ -188,7 +202,8 @@ def build(months, label, out_xlsx, payload_path):
         ("D. No address or pincode exists in the masters, so beats are groups of stores, not routes. Modern-trade stores only; GT and EBO outlets are not in these files.", False),
         ("", False),
         ("NOT AVAILABLE IN THE REPO (columns left blank, nothing estimated)", True),
-        ("1. Last-year store-level sales (Apr-Sep 2025): needs the FY26 store x article offtake file (registry entry offtake_fy26_store_article, MISSING). The store master file lists stores only (no sales). Chain-level last year is in Chain_LastYear, and each store row shows its chain's YoY % for context (not a store figure).", False),
+        ((f"1. Last-year store-level sales (Apr-Sep 2025) are filled for {', '.join(ly_have)} from the FY26 store x article files; any other month stays grey and blank. Brand counters are left out of LY, as in this year's city totals." if ly_have else
+          "1. Last-year store-level sales (Apr-Sep 2025): needs the FY26 store x article offtake files, one per month named offtake_store_article_Apr_25.csv ... _Sep_25.csv, in PowerBI/RawDataFolders/Offtake_Monthly (registry entry offtake_fy26_store_article, MISSING). The store master file lists stores only (no sales). Nothing is estimated: the LY columns stay grey until the files are there. Chain-level last year is in Chain_LastYear, and each store row shows its chain's YoY % for context (not a store figure)."), False),
         ("2. Sep 2026 store-level offtake: not received yet; columns are ready.", False),
         ("3. Stock availability and SOS by article and store: no source in the repo.", False),
     ]
@@ -203,7 +218,7 @@ def build(months, label, out_xlsx, payload_path):
     mcols = [f"NSV {m}-26 (Rs L, excl BC)" for m in months]
     cols = ["Region", "City (as supplied)", "Beats planned", "Stores with sales"] + mcols + [f"MoM {m}" for m in months[1:]] + [
         "Total NSV excl BC", "Brand Counter NSV (separate)", "Near-listed NSV (not in totals)", "Chain-city totals NSV (no store rows)"] + [f"Last year {m}" for m in LYM] + ["Sep-26 (to add)", "Considered?", "Size rank"]
-    grey = [c for c in cols if c.startswith("Last year") or c.startswith("Sep-26")]
+    grey = [c for c in cols if (c.startswith("Last year") and c[10:] not in ly_have) or c.startswith("Sep-26")]
     header(ws, 1, cols, grey)
     allc = [(r, c) for r, cs in vc.REGIONS.items() for c in cs]
     ncol_m = len(months)
@@ -228,7 +243,12 @@ def build(months, label, out_xlsx, payload_path):
         ws.cell(row=r, column=tcol + 3, value=fv(ag["Total"].sum()) if len(ag) else None)
         tcol += 1
         for j in range(tcol + 3, tcol + 3 + len(LYM) + 1):
-            ws.cell(row=r, column=j).fill = GFILL
+            k = j - (tcol + 3)
+            if k < len(LYM) and LYM[k] in ly_have:       # last-year store sales supplied: sum over the city's stores, brand counters left out
+                v = ly_store.reindex(exb["Store Key"])[LYM[k]].sum(min_count=1) if len(exb) else None
+                ws.cell(row=r, column=j, value=fv(v))
+            else:
+                ws.cell(row=r, column=j).fill = GFILL
         ws.cell(row=r, column=tcol + 3 + len(LYM) + 1, value="Considered" if len(g) else "Considered (no sales in files)")
         ws.cell(row=r, column=tcol + 3 + len(LYM) + 2, value=rank_pos.get(city))
         if city in top8:
@@ -243,9 +263,9 @@ def build(months, label, out_xlsx, payload_path):
     # Store list
     ws = wb.create_sheet("Store_List")
     cols = ["Consider city?", "Visit city (supplied list)", "Nearest listed city", "Region", "Zone", "State", "City (final)", "City source", "City (store list)", "City (offtake file)",
-            "Chain", "Store type", "Store code", "Store name"] + [f"NSV {m}-26 (Rs L)" for m in months] + [f"MoM {m}" for m in months[1:]] + [
+            "Chain", "Store type", "Store code", "Store name", "Other store codes (same store)"] + [f"NSV {m}-26 (Rs L)" for m in months] + [f"MoM {m}" for m in months[1:]] + [
         "Total NSV", "Units", "Chain YoY % (chain level, context)"] + [f"LY {m}" for m in LYM] + ["Sep-26 (to add)"]
-    grey = [c for c in cols if c.startswith("LY") or c.startswith("Sep-26")]
+    grey = [c for c in cols if (c.startswith("LY ") and c[3:] not in ly_have) or c.startswith("Sep-26")]
     header(ws, 1, cols, grey)
     sl = s[s["Visit Status"].isin(["Considered", "Near listed city", "Not considered"]) & s["Total"].notna()].copy()
     sl["o"] = sl["Visit Status"].map({"Considered": 0, "Near listed city": 1, "Not considered": 2})
@@ -254,7 +274,7 @@ def build(months, label, out_xlsx, payload_path):
     for i, (_, r) in enumerate(sl.iterrows(), 2):
         region = r["Visit Region"] if isinstance(r["Visit Region"], str) else vc.CITY_REGION.get(r["Nearest Listed City"])
         vals = [r["Visit Status"], r["Visit City"], r["Nearest Listed City"], region, r["Zone"], r["State"], r["City Final"], r["City Source"],
-                r["City (store list)"], r["City (offtake file)"], r["Chain"], r["Store Type"], r["Site Code"], r["Store Name"]]
+                r["City (store list)"], r["City (offtake file)"], r["Chain"], r["Store Type"], r["Site Code"], r["Store Name"], r["Other Site Codes"]]
         for j, v in enumerate(vals, 1):
             ws.cell(row=i, column=j, value=fv(v))
         c0 = len(vals) + 1
@@ -268,10 +288,14 @@ def build(months, label, out_xlsx, payload_path):
         y = chain_yoy.get(str(r["Chain"]))
         ws.cell(row=i, column=tc + 2, value=fv(y)).number_format = "0%"
         for j in range(tc + 3, tc + 3 + len(LYM) + 1):
-            ws.cell(row=i, column=j).fill = GFILL
+            k = j - (tc + 3)
+            if k < len(LYM) and LYM[k] in ly_have:
+                ws.cell(row=i, column=j, value=fv(ly_store[LYM[k]].get(r["Store Key"]) if r["Store Key"] in ly_store.index else None))
+            else:
+                ws.cell(row=i, column=j).fill = GFILL
         ws.cell(row=i, column=1).fill = GREEN if r["Visit Status"] == "Considered" else AMBER if r["Visit Status"] == "Near listed city" else RED
     ws.auto_filter.ref = f"A1:{L(len(cols))}{len(sl) + 1}"
-    widths(ws, [16, 16, 14, 14, 10, 16, 18, 14, 18, 18, 16, 16, 12, 34] + [11] * nm + [8] * (nm - 1) + [12, 10, 14] + [10] * 7)
+    widths(ws, [16, 16, 14, 14, 10, 16, 18, 14, 18, 18, 16, 16, 12, 34, 18] + [11] * nm + [8] * (nm - 1) + [12, 10, 14] + [10] * 7)
 
     # Near-listed sheet
     ws = wb.create_sheet("Near_Listed")
