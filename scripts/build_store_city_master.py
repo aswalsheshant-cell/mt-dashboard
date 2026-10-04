@@ -71,6 +71,35 @@ def tidy_city(c):
     return c.title() if isinstance(c, str) and (c.isupper() or c.islower()) else c
 
 
+def states_from_offtake(df, stores):
+    """State and zone follow the offtake data we maintain: a store that sells uses the state and zone of its own offtake rows (standard spelling).
+    A store only in the retailer's store list takes the state and zone the offtake uses for stores in the same city; with no such city it keeps
+    the store list's own state and zone. State Note says which of the three applied."""
+    o = stores.set_index("sid")
+    df = df.copy()
+    ost = df["sid"].map(o["OState"].map(lambda x: vc.std_state(x)[0]))
+    ost = ost.where(ost.notna() & (ost != "Pan India"))
+    ozn = df["sid"].map(o["OZone"].map(vc.norm_zone))
+    df["State"], df["Zone"] = ost, ozn.where(ost.notna())
+    df["State Note"] = None
+    df.loc[ost.notna(), "State Note"] = "state and zone from the offtake file"
+    has = df["State"].notna() & df["Zone"].notna() & df["City Final"].notna()
+    key = df["City Final"].str.lower()
+    by_city = df[has].groupby(key[has]).agg(St=("State", lambda x: x.value_counts().index[0]), Zn=("Zone", lambda x: x.value_counts().index[0]))
+    for i, r in df[ost.isna()].iterrows():
+        k = key[i] if isinstance(key[i], str) else None
+        std, grp = vc.std_state(r["State (as in source)"])
+        if k in by_city.index:
+            c = by_city.loc[k]
+            if grp or std is None or std == c["St"]:
+                df.at[i, "State"], df.at[i, "Zone"] = c["St"], c["Zn"]
+                df.at[i, "State Note"] = f"state and zone as the offtake file has them for {r['City Final']}"
+                continue
+        df.at[i, "State"] = None if grp else std
+        df.at[i, "State Note"] = "state and zone from the store list (no offtake store in this city)"
+    return df
+
+
 def resolve_states(df):
     """Standard state per row; groups and two-state cities resolved from the stores of the same city."""
     std = df["State (as in source)"].map(vc.std_state)
@@ -122,7 +151,7 @@ def qc(out):
     dn = out[out["Store Name"].notna()]
     dd = dn[dn.duplicated(["Chain Name", "Store Name", "City Final"], keep=False) & dn["City Final"].notna()]
     add("ERROR", "same chain + store name + city on more than one row (one store must be one row)", dd["Store Key"])
-    add("WARN", "state changed to the city's main state", out.loc[out["State Note"].notna() & out["State Note"].str.contains("also appears", na=False), "Store Key"])
+    add("WARN", "state and zone taken from the offtake data for a store-list-only store", out.loc[out["State Note"].notna() & out["State Note"].str.contains("as the offtake file has them", na=False), "Store Key"])
     add("WARN", "no city for the store", out.loc[out["City Final"].isna(), "Store Key"])
     return f
 
@@ -215,7 +244,7 @@ def build(master_path, months):
             hit = (allr["Chain"] == c["Chain Name"]) & (allr["code"] == vc.norm_code(c["Site Code"]))
             allr.loc[hit, "City Final"] = c["City"]
             allr.loc[hit, "City Source"] = "Correction: " + c["Basis"][:60]
-    allr = resolve_states(allr)
+    allr = states_from_offtake(allr, stores)
     cls = allr["City Final"].map(vc.classify)
     allr["Visit City"] = cls.map(lambda t: t[0])
     allr["Visit Status"] = cls.map(lambda t: t[1])

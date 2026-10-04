@@ -1465,6 +1465,15 @@ def validate_offtake_partition(offtake, reliance_bc=None):
     return result
 
 
+def _store_alias_map():
+    """{ALIAS MATCH KEY: canonical Match Key} from PowerBI/SeedData/Masters/Store_Key_Aliases.csv: one store listed under two codes counts once."""
+    f = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "Store_Key_Aliases.csv"
+    if not f.exists():
+        return {}
+    d = pd.read_csv(f, dtype=str).dropna(subset=["Alias Match Key", "Store Match Key"])
+    return dict(zip(d["Alias Match Key"], d["Store Match Key"]))
+
+
 def pos_store_block(site_sink, existing=None):
     """Real POS store counts per chain from the store x article offtake
     extracts' Site Code -- the chain's own store identity (see
@@ -1485,6 +1494,12 @@ def pos_store_block(site_sink, existing=None):
     (idempotent: a touched FY is fully recomputed, never added to)."""
     out = {k: v for k, v in (existing or {}).items() if k.startswith("fy")}
     by_fy = {}
+    _al = _store_alias_map()
+
+    def _canon(chain, code):
+        k = f"{str(chain).strip().upper()}|{str(code).strip().upper()}"
+        return _al.get(k, k).split("|", 1)[1]
+    site_sink = {ck: dict(e, sites={_canon(ck[0], c) for c in e["sites"]}) for ck, e in site_sink.items()}
     for (chain, mo), e in site_sink.items():
         tag = fy_tag_from_label(mo)
         if tag:

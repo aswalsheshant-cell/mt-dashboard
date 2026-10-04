@@ -39,3 +39,19 @@ def test_offtake_keys_follow_the_alias(monkeypatch):
     a = vc.load_aliases()
     assert a and all(k != v for k, v in a.items())
     assert "Apollo|25876" in a and a["Apollo|25876"] == "Apollo|18692"
+
+
+def test_state_and_zone_follow_the_offtake_data():
+    """A store that sells carries the state and zone of its own offtake rows (standard spelling)."""
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import visit_cities as vc
+    m = pd.read_csv(MASTERS / "Store_City_Master.csv", dtype=str).set_index("Store Key")
+    o = vc.load_offtake(["Aug"])
+    mode = lambda s: s.dropna().mode().iloc[0] if s.notna().any() else None   # noqa: E731
+    g = o.groupby("sid").agg(State=("State", mode), Zone=("Zone", mode))
+    g["State"] = g["State"].map(lambda x: vc.std_state(x)[0])
+    g = g[g["State"].notna() & (g["State"] != "Pan India") & g.index.isin(m.index)]
+    assert len(g) > 5000
+    bad = g[(g["State"] != m.loc[g.index, "State"]) | (g["Zone"] != m.loc[g.index, "Zone"])]
+    assert len(bad) / len(g) < 0.02, bad.head(10).index.tolist()           # only stores whose Aug rows disagree with their own earlier months can differ

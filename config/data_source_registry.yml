@@ -880,7 +880,7 @@ datasets:
 
   offtake_aug26_storewise_refresh:
     business_name: "Aug-26 store-wise offtake (all accounts and Reliance Brand Counter), re-supplied -- replaces the earlier Aug-26 extract"
-    source_path: "Aug26_offtake_storewise.xlsb (sheets All Account and RBC), outside Git; split into offtake_store_article_Aug_26.csv by scripts/split_offtake_store_article_xlsb.py. The CSV tracked in PowerBI/RawDataFolders/Offtake_Monthly is the EARLIER Aug-26 extract, pinned by SHA-256 in config/restricted_source_policy.yml (owner decision I-2), so the refreshed CSV is not committed: put it in that folder locally before a Power BI refresh or a rebuild"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv (split by scripts/split_offtake_store_article_xlsb.py from Aug26_offtake_storewise.xlsb, sheets All Account and RBC, which stays outside Git). Committed on the owner's instruction 2026-10-04; its SHA-256 is re-pinned in config/restricted_source_policy.yml"
     source_type: "xlsb workbook -> month CSV"
     grain: "store x article, Aug-26"
     date_min: "2026-08"

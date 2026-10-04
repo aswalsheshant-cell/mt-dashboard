@@ -768,28 +768,6 @@
    "sah_py": 0.755
   },
   {
-   "n": "Cerave",
-   "nsv": 0.003,
-   "ms": 0.003,
-   "ms_py": null,
-   "ms_pm": 0.007,
-   "pp": null,
-   "yoy_bps": null,
-   "yoy": null,
-   "stores": 26.097,
-   "wd": 0.373,
-   "nd": 0.115,
-   "nd_py": null,
-   "wd_py": null,
-   "pdo": 1041.003,
-   "ppml": 4.232,
-   "ppml_py": null,
-   "ms_vol": 0.001,
-   "ms_vol_py": null,
-   "sah": 0.884,
-   "sah_py": null
-  },
-  {
    "n": "Nivea Men",
    "nsv": 0.003,
    "ms": 0.004,
@@ -809,6 +787,28 @@
    "ms_vol": 0.002,
    "ms_vol_py": null,
    "sah": 5.556,
+   "sah_py": null
+  },
+  {
+   "n": "Cerave",
+   "nsv": 0.003,
+   "ms": 0.003,
+   "ms_py": null,
+   "ms_pm": 0.007,
+   "pp": null,
+   "yoy_bps": null,
+   "yoy": null,
+   "stores": 26.097,
+   "wd": 0.373,
+   "nd": 0.115,
+   "nd_py": null,
+   "wd_py": null,
+   "pdo": 1041.003,
+   "ppml": 4.232,
+   "ppml_py": null,
+   "ms_vol": 0.001,
+   "ms_vol_py": null,
+   "sah": 0.884,
    "sah_py": null
   },
   {
@@ -18422,8 +18422,8 @@
      "city": "Howrah",
      "nearest_listed": "Kolkata",
      "state": "West Bengal",
-     "stores": 21,
-     "nsv_total": 11.9904
+     "stores": 20,
+     "nsv_total": 11.9132
     },
     {
      "city": "Panchkula",
@@ -18452,6 +18452,13 @@
      "state": "Kerala",
      "stores": 1,
      "nsv_total": 0.1133
+    },
+    {
+     "city": "Howrah",
+     "nearest_listed": "Kolkata",
+     "state": "Bihar",
+     "stores": 1,
+     "nsv_total": 0.0772
     }
    ],
    "status_counts": {

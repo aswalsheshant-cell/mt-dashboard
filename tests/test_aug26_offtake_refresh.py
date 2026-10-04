@@ -1,7 +1,6 @@
 """Aug-26 store-wise offtake refresh (file re-supplied 2026-10-04): checked on the published data.js and the derived chain view.
 
-The refreshed store x article CSV itself is not committed: the restricted-source firewall pins the tracked Aug-26 file by SHA-256
-(config/restricted_source_policy.yml, owner decision I-2), so the refresh lives in data.js and the derived aggregates.
+The refreshed store x article CSV is committed (owner's instruction 2026-10-04) and re-pinned in config/restricted_source_policy.yml.
 """
 import json
 from pathlib import Path
@@ -36,3 +35,10 @@ def test_derived_chain_view_has_the_missing_chains():
     cc = pd.read_csv(ROOT / "data" / "nielsen" / "Chain_Contribution_Aug26.csv")
     names = {str(c).strip().upper() for c in cc["Chain"]}
     assert {"VMM", "V-MART"} <= names or {"VISHAL MEGA MART", "V-MART"} <= names or any("VMM" in n or "VISHAL" in n for n in names)
+
+
+def test_committed_aug_csv_is_the_refreshed_file():
+    aug = pd.read_csv(ROOT / "PowerBI" / "RawDataFolders" / "Offtake_Monthly" / "offtake_store_article_Aug_26.csv", usecols=["Chain Name", "NSV", "SO/ASE Emp Code", "SO/ASE Name"], low_memory=False)
+    by = aug.assign(c=aug["Chain Name"].str.strip()).groupby("c")["NSV"].sum()
+    assert by["Vmm"] == pytest.approx(41.52, abs=0.01) and by["V-Mart"] == pytest.approx(14.97, abs=0.01) and by["Dmart"] == pytest.approx(1388.74, abs=0.01)
+    assert aug["SO/ASE Emp Code"].isna().all() and aug["SO/ASE Name"].isna().all()           # no employee values in the committed file
