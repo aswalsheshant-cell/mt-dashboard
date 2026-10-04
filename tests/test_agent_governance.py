@@ -101,6 +101,25 @@ class EvaluateTests(unittest.TestCase):
         self.assertEqual(g.evaluate(dec(label="MAYBE"))["verdict"], g.BLOCKED)
 
 
+class PolicyHealthTests(unittest.TestCase):
+    def test_real_policy_is_healthy_today(self):
+        # Fails on purpose once review_by passes -- that is the control working.
+        self.assertEqual(g.check_policy(), [])
+
+    def test_stale_review_date_fails(self):
+        import datetime
+        out = g.check_policy(today=datetime.date(2030, 1, 1))
+        self.assertTrue(any("review date" in p for p in out))
+
+    def test_rule_without_invariant_fails(self):
+        p = g.load_policy()
+        p["action_classes"]["modify_baseline"].pop("invariant")
+        p["protected_paths"].append({"path": "x.csv", "invariant": "INV-99"})
+        out = g.check_policy(p)
+        mine = [o for o in out if "modify_baseline" in o or "x.csv" in o]
+        self.assertEqual(len(mine), 2)
+
+
 class LogTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

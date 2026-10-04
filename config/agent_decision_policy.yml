@@ -8,6 +8,22 @@
 
 version: 1
 
+# Time: a control nobody re-reads drifts. `check` fails once today is past this date.
+# Re-review the whole file (and the approvers list) and move the date forward.
+review_by: "2027-01-04"
+
+# Why each rule exists. Every rule below must cite one of these, so no rule is
+# unexplained. CLAUDE.md Core Invariants are the source for INV-1, INV-2, INV-5.
+invariants:
+  INV-1: "Raw seed data and masters are never deleted or overwritten without human confirmation"
+  INV-2: "Verified baselines and FY25/FY26 history survive every build"
+  INV-3: "No agent creates or asserts a new financial number"
+  INV-4: "main changes only through a human-backed, protected merge"
+  INV-5: "No GitHub release or git tag is created"
+  INV-6: "The rules cannot be changed by the agent they govern"
+  INV-7: "A failed control is never overridden"
+  INV-8: "Every agent action that changes state leaves checkable evidence"
+
 # Fail closed: an action_class not listed below needs a human.
 default_level: HUMAN_APPROVAL
 
@@ -25,28 +41,28 @@ labels_needing_evidence: [GO, GO WITH CONDITIONS, REJECT]
 action_classes:
   read_only:                 {level: AUTO}
   draft_text:                {level: AUTO}
-  run_validation:            {level: AUTO_LOG}
-  branch_commit:             {level: AUTO_LOG}
-  draft_pr:                  {level: AUTO_LOG}
-  merge_pr:                  {level: HUMAN_APPROVAL, blocked_until: main_branch_protection_confirmed}
-  modify_baseline:           {level: HUMAN_APPROVAL}
-  modify_financial_block:    {level: HUMAN_APPROVAL}
-  modify_master_data:        {level: HUMAN_APPROVAL}
-  change_incentive_rule:     {level: HUMAN_APPROVAL}
-  publish_external:          {level: HUMAN_APPROVAL}
-  override_failed_control:   {level: FORBIDDEN}
-  create_release_or_tag:     {level: FORBIDDEN}
+  run_validation:            {level: AUTO_LOG, invariant: INV-8}
+  branch_commit:             {level: AUTO_LOG, invariant: INV-8}
+  draft_pr:                  {level: AUTO_LOG, invariant: INV-8}
+  merge_pr:                  {level: HUMAN_APPROVAL, blocked_until: main_branch_protection_confirmed, invariant: INV-4}
+  modify_baseline:           {level: HUMAN_APPROVAL, invariant: INV-2}
+  modify_financial_block:    {level: HUMAN_APPROVAL, invariant: INV-3}
+  modify_master_data:        {level: HUMAN_APPROVAL, invariant: INV-1}
+  change_incentive_rule:     {level: HUMAN_APPROVAL, invariant: INV-3}
+  publish_external:          {level: HUMAN_APPROVAL, invariant: INV-3}
+  override_failed_control:   {level: FORBIDDEN, invariant: INV-7}
+  create_release_or_tag:     {level: FORBIDDEN, invariant: INV-5}
 
 # Any path touched that matches one of these forces HUMAN_APPROVAL,
 # whatever the action_class says.
 protected_paths:
-  - config/baselines.json
-  - dashboard/data.js
-  - PowerBI/SeedData/**
-  - UniverseMT.csv
-  - Store_SO_Mapping.csv
-  - "**/data_master.json"
-  - config/agent_decision_policy.yml
+  - {path: config/baselines.json,            invariant: INV-2}
+  - {path: dashboard/data.js,                invariant: INV-3}
+  - {path: "PowerBI/SeedData/**",            invariant: INV-1}
+  - {path: UniverseMT.csv,                   invariant: INV-1}
+  - {path: Store_SO_Mapping.csv,             invariant: INV-1}
+  - {path: "**/data_master.json",            invariant: INV-1}
+  - {path: config/agent_decision_policy.yml, invariant: INV-6}
 
 # Identity + least privilege: an actor not listed here is BLOCKED, and a listed
 # actor may only use the action classes written next to its name.

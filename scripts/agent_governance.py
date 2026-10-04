@@ -14,6 +14,7 @@ CLI:
   python scripts/agent_governance.py evaluate decision.json
 """
 import argparse
+import datetime
 import fnmatch
 import hashlib
 import json
@@ -32,6 +33,10 @@ ALLOWED, NEEDS_APPROVAL, BLOCKED = "ALLOWED", "NEEDS_APPROVAL", "BLOCKED"
 
 def load_policy(path=None):
     return yaml.safe_load(Path(path or POLICY_PATH).read_text())
+
+
+def _patterns(policy):
+    return [e["path"] if isinstance(e, dict) else e for e in policy["protected_paths"]]
 
 
 def _is_protected(path, patterns):
@@ -89,7 +94,7 @@ def evaluate(decision, policy=None):
         return {"verdict": BLOCKED, "level": level,
                 "reasons": problems + [f"{cls} is blocked until {gate} is true in the policy"]}
 
-    hit = [p for p in decision.get("paths", []) if _is_protected(p, policy["protected_paths"])]
+    hit = [p for p in decision.get("paths", []) if _is_protected(p, _patterns(policy))]
     if hit:
         level = "HUMAN_APPROVAL"
         notes.append("protected path(s) touched: " + ", ".join(hit))
@@ -184,6 +189,23 @@ def check_log(log_path=None, policy=None, repo=None):
     return problems
 
 
+def check_policy(policy=None, today=None):
+    """Policy health: every rule explains itself, and the file has been re-reviewed in time."""
+    policy = policy or load_policy()
+    today = today or datetime.date.today()
+    known, out = set(policy.get("invariants", {})), []
+    for name, spec in policy["action_classes"].items():
+        if spec["level"] != "AUTO" and spec.get("invariant") not in known:
+            out.append(f"action_class {name} cites no known invariant")
+    for e in policy["protected_paths"]:
+        if not (isinstance(e, dict) and e.get("invariant") in known):
+            out.append(f"protected path {e} cites no known invariant")
+    review = policy.get("review_by")
+    if not review or datetime.date.fromisoformat(str(review)) < today:
+        out.append(f"policy review date {review} has passed: re-review the policy and approvers, then move review_by")
+    return out
+
+
 def _git(repo, *args):
     r = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True)
     if r.returncode != 0:
@@ -209,7 +231,7 @@ def audit_range(base, head="HEAD", log_path=None, policy=None, repo=None):
     problems = []
     for sha in _git(repo, "rev-list", f"{base}..{head}"):
         files = _git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", "-m", "--root", sha)
-        touched = [f for f in files if _is_protected(f, policy["protected_paths"])]
+        touched = [f for f in files if _is_protected(f, _patterns(policy))]
         if not touched:
             continue
         covered = False
@@ -240,10 +262,10 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     if args.cmd == "check":
-        problems = check_log(args.log)
+        problems = check_policy() + check_log(args.log)
         for p in problems:
             print("FAIL", p)
-        print("PASS: decision log clean" if not problems else f"{len(problems)} problem(s)")
+        print("PASS: policy and decision log clean" if not problems else f"{len(problems)} problem(s)")
         return 1 if problems else 0
     if args.cmd == "audit":
         problems = audit_range(args.base, args.head, args.log)

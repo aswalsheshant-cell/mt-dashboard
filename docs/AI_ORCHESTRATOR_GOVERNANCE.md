@@ -141,7 +141,8 @@ outside the agent*, so an agent cannot decide its own permissions.
 | Decision log | `governance/decision_log.jsonl` | Hash-chained, append-only. `record()` refuses anything not ALLOWED |
 | Check | `scripts/agent_governance.py check` | Fails if a record is edited, deleted, or breaks the policy |
 | Audit | `scripts/agent_governance.py audit --base main` | Every commit that touches a protected path must be covered by an approved decision that lists that commit. Otherwise it is reported as an ungoverned change |
-| Tests | `tests/test_agent_governance.py` | 24 tests |
+| Policy health | `check_policy()` (run by `check`) | Fails if any rule or protected path cites no known invariant (`INV-1`..`INV-8`), or if today is past `review_by` in the policy file |
+| Tests | `tests/test_agent_governance.py` | 27 tests |
 
 Every record uses the five labels from `fmcg-decision-leader` (GO / GO WITH CONDITIONS /
 HOLD / ESCALATE / REJECT) plus: actor, action_class, evidence, rule, owner,
@@ -160,6 +161,12 @@ and still be ungoverned, if no decision record travels with it. `check` tests th
 merge to `main`. Note: the first two commits on this branch change the protected policy
 file with no approver on record, so `audit` flags them. That is correct, and it clears
 only when a listed human approves.
+
+**Time and traceability (v4):** a control nobody re-reads drifts, so the policy carries a
+`review_by` date and `check` fails once it passes. Every non-AUTO rule and every protected
+path also names the invariant it protects (`invariants:` list in the policy), so no rule
+is unexplained. When `review_by` is reached, re-read the whole policy and the approvers
+list, then move the date forward.
 
 **Hard stops in the policy:** merge is BLOCKED until a human confirms branch protection
 on `main`; releases/tags and overriding a failed control are FORBIDDEN; touching
@@ -194,8 +201,16 @@ were removed from the links. Nothing from these sources is copied into the repo.
 | 14 | PDF: GIC Case Study (GIC 3 of 4) | READ, applied | a system can be fully permitted, logged and monitored and still be ungoverned |
 | 15 | PDF: Identity Theory | READ, applied | every operation must carry the identity that governs it; compliance as a built-in property |
 | 16 | PDF: HER Law | READ, nothing to apply | physics analogy for identity continuity |
+| 17 | PDF: The OS Layer Problem, Part 2 (how bias forms the OS layer) | READ, applied | model cannot govern itself; govern from outside |
+| 18 | PDF: OS Layers Create Systemic Vulnerabilities, Part 3 | READ, applied | drift compounds over time -> review dates |
+| 19 | PDF: GIC, the Identity Constraint Surface | READ, nothing to apply | identity-system theory |
+| 20 | PDF: The Integration Layer | READ, nothing to apply | identity-system theory |
+| 21 | PDF: HER Law, the Generative Substrate (48 pages) | PARTLY READ (structure, conclusion) | its conclusion: state the condition first, then the rule -> invariants per rule |
+| 22 | PDF: The Sandbox Is Already Open (GIC 4) | READ, NOT YET BUILT | boundary erosion: humans stop checking, scope creeps. Planned: report + limit on unreviewed auto decisions |
+| 23 | PDF: H/E/R Law, a friendly challenge | PARTLY READ, nothing to apply | physics deck |
+| 24 | linkedin.com/posts/judiaevans_identitygovernance-aigovernance-identityarchitecture-activity-7460869589506117632-yJiR | UNREAD (screenshot of one slide only) | identity as the root invariant |
 
-**Open for the later discussion:** approver names; branch-protection confirmation;
+**Open for the later discussion:** boundary-erosion control (source 22); approver names; branch-protection confirmation;
 whether to add signed approvals (post 7); and what the policy should do when a rule is
 missing (post 8). Today the answer is fail closed: an unknown action class or an unlisted
 approver is never allowed.
