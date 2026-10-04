@@ -115,7 +115,9 @@ def _baseline(dash: dict, kind: str, tag: str) -> dict[str, float]:
         block = ((dash.get("detail_meta") or {}).get("fyx_primary") or {}).get(tag) or {}
         labels, values = block.get("months_canon") or [], block.get("monthly_canon") or []
     elif kind == "rbc":
-        block = dash.get("reliance_brand_counters") or {}
+        # The displayed Brand Counter breakout is reliance_bc. The older
+        # reliance_brand_counters audit block is empty ("not available") and is not a baseline.
+        block = dash.get("reliance_bc") or {}
         labels, values = block.get("months") or [], block.get("monthly") or []
     else:
         raise ValueError(kind)

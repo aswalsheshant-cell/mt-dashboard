@@ -55,6 +55,8 @@ def _dash(**overrides):
                      "yoy_comparison_valid": False, "observed_only_launch_count": 140,
                      "yoy_caveat": "FY26 launches are observed-only"},
         }},
+        # Displayed Brand Counter breakout; the legacy reliance_brand_counters block is empty.
+        "reliance_bc": {"months": ["Aug-26"], "monthly": [20.0]},
         "reliance_brand_counters": {"months": [], "monthly": [], "note": "not available"},
     }
     dash.update(overrides)
@@ -99,11 +101,19 @@ def test_reliance_brand_counter_is_isolated_for_offtake_only(repo):
     rows = _import().reconcile_context(repo, "2026-08", {})
     rbc = _row(rows, "Reliance Brand Counter offtake")
     assert rbc["source_amount"] == pytest.approx(20.0)
-    # The dashboard audit block is empty: no comparison is invented.
-    assert rbc["expected_report_amount"] is None
-    assert rbc["status"] == "NO_DASHBOARD_BASELINE"
+    # Compared with the displayed reliance_bc block, not the empty legacy audit block.
+    assert rbc["expected_report_amount"] == pytest.approx(20.0)
+    assert rbc["status"] == "MATCH"
     # Primary is gross: nothing is excluded from it.
     assert "Brand Counter" not in _row(rows, "Primary NSV")["metric"].replace("(gross, no Reliance Brand Counter exclusion)", "")
+
+
+def test_brand_counter_without_a_dashboard_month_is_not_invented(repo):
+    dash = _dash()
+    dash["reliance_bc"] = {"months": [], "monthly": []}
+    (repo / "dashboard/data.js").write_text("window.DASH = " + json.dumps(dash) + ";", encoding="utf-8")
+    rbc = _row(_import().reconcile_context(repo, "2026-08", {}), "Reliance Brand Counter offtake")
+    assert rbc["status"] == "NO_DASHBOARD_BASELINE" and rbc["expected_report_amount"] is None
 
 
 def test_missing_source_month_is_blank_never_zero(repo):
