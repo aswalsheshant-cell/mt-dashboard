@@ -155,10 +155,15 @@ def inspect_sources(repo_root: Path, manifest_path: Path) -> dict:
             period_dependencies = [d for d in dependencies if d['current_period_status'] != 'not_applicable']
             required = source.get('required_periods', manifest.get('required_periods', []))
             if source.get('period_columns') or period_dependencies:
-                entry['missing_periods'] = sorted(set(entry['missing_periods']) | {p for d in period_dependencies for p in d['missing_periods']})
+                # A dependency's readiness may concern its own period override.
+                # Check its observed coverage against this consumer's selection.
+                uncovered = {p for d in period_dependencies for p in required
+                             if p not in d['periods'] or p in d['missing_periods']}
+                entry['missing_periods'] = sorted(set(entry['missing_periods']) | uncovered)
+                entry['available'] = entry['available'] and not uncovered
                 if not required:
                     entry['current_period_status'] = 'unassessed'
-                elif entry['available'] and all(d['current_period_available'] for d in period_dependencies):
+                elif entry['available'] and not entry['missing_periods']:
                     entry['current_period_status'] = 'available'
                 else:
                     entry['current_period_status'] = 'unavailable'

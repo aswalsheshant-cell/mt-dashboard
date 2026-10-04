@@ -153,3 +153,16 @@ def test_forward_dependencies_propagate_current_period_unassessment(tmp_path):
     assert result['outer']['current_period_status'] == 'unassessed'
     assert result['outer']['current_period_available'] is False
     assert result['outer']['row_count'] is None
+
+def test_consumer_selected_period_is_checked_against_dependency_coverage(tmp_path):
+    (tmp_path / 'august.csv').write_text('Month,Store\n2026-08,A\n')
+    manifest = {'sources': [
+        {'id': 'september_view', 'dependencies': ['sales'], 'required_periods': ['2026-09']},
+        {'id': 'sales', 'paths': ['august.csv'], 'period_columns': ['Month'], 'required_periods': ['2026-08']},
+    ]}
+    result = inspect(tmp_path, manifest)
+    assert result['sales']['current_period_available'] is True
+    assert result['september_view']['periods'] == ['2026-08']
+    assert result['september_view']['current_period_available'] is False
+    assert result['september_view']['current_period_status'] == 'unavailable'
+    assert result['september_view']['missing_periods'] == ['2026-09']
