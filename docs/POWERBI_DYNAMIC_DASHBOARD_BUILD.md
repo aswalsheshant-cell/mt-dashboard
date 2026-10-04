@@ -104,7 +104,7 @@ LFL = sold this year and in the same months last year; NFL = no sales last year;
 Reliance Retail non-counter is kept out of LFL (last year is state-level only). Pack size is FY27 only (last year has no pack in the store-month file).
 
 ### Page 7 in Power BI Desktop (tick-box)
-- [ ] Copy `PowerBI/SeedData/Store_Cuts/*.csv` into `RawDataFolders/Store_Cuts` (already copied in the repo).
+- [ ] Copy `PowerBI/SeedData/Store_Cuts/*.csv` into `RawDataFolders/Store_Cuts`.
 - [ ] Paste PQ 58 (`Fact Store Type`) and PQ 59 (`Fact Pack Size`); relate `Fact Pack Size[MonthStart]` to `Date Table[MonthStart]`.
 - [ ] Paste DAX 20 into `_Measures`.
 - [ ] Visuals: stacked column State x (LFL NSV Cr, NFL NSV Cr, No LY Store Data NSV Cr) + line LFL Growth %; table Chain x LFL Stores, NFL Stores, LFL NSV Cr, LFL Growth %, Lost Stores; column Pack x Pack Share % + line Pack MoM % (sort by `Pack Sort`); insight cards `Store Type Insight` and `Pack Insight`.
