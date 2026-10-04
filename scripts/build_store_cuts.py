@@ -31,10 +31,12 @@ def build():
     d["Net Weight"] = pd.to_numeric(d["Net Weight"], errors="coerce")
     st = d.groupby("sid").agg(Chain=("Chain", "first"), State=("State", lambda s: s.mode().iat[0] if s.notna().any() else None),
                               Zone=("Zone", lambda s: s.mode().iat[0] if s.notna().any() else None), TY=("NSV", "sum"))
-    ly = pd.read_csv(LY_FILE)
-    ly = ly[ly["Month"].isin(LY_MONTHS)]
+    ly_all = pd.read_csv(LY_FILE)
+    ly = ly_all[ly_all["Month"].isin(LY_MONTHS)].copy()
     links = dict(pd.read_csv(LINKS)[["LY Store Key", "Store Key"]].values) if LINKS.exists() else {}
     ly["Key"] = ly["Store Key"].map(lambda k: links.get(k, k))
+    ly_all["Key"] = ly_all["Store Key"].map(lambda k: links.get(k, k))
+    sold_other_ly_months = set(ly_all[~ly_all["Month"].isin(LY_MONTHS) & (ly_all["NSV"] > 0)]["Key"])
     lys = ly.groupby("Key")["NSV"].sum()
     lych = ly.groupby("Key")["Chain Name"].first()
     st["LY"] = st.index.map(lys).astype(float)
@@ -42,17 +44,25 @@ def build():
     st["Type"] = "LFL"
     st.loc[st["LY"].isna() | (st["LY"] <= 0), "Type"] = "NFL"
     st.loc[reliance_no_ly, "Type"] = "No LY store data"
+    # NFL splits in two: Restarted = sold in another month of last year (Sep-Mar), so not a new store; New = no sales anywhere last year
+    st["NFL Kind"] = ""
+    nfl = st["Type"].eq("NFL")
+    st.loc[nfl, "NFL Kind"] = ["Restarted" if k in sold_other_ly_months else "New" for k in st.index[nfl]]
     lost = lys[~lys.index.isin(st.index) & (lys > 0)]
     lost_df = pd.DataFrame({"Chain": lych.reindex(lost.index), "LY": lost})
 
     def roll(by):
-        g = st.groupby(by + ["Type"]).agg(Stores=("TY", "size"), TY=("TY", "sum"), LY=("LY", "sum")).reset_index()
+        g = st.rename(columns={"NFL Kind": "Kind"}).groupby(by + ["Type", "Kind"]).agg(Stores=("TY", "size"), TY=("TY", "sum"), LY=("LY", "sum")).reset_index()
         rows = []
         for key, grp in g.groupby(by):
             key = key if isinstance(key, tuple) else (key,)
             r = dict(zip(by, key))
             for t, tag in (("LFL", "lfl"), ("NFL", "nfl"), ("No LY store data", "noly")):
                 x = grp[grp["Type"] == t]
+                r[f"{tag}_stores"] = int(x["Stores"].sum())
+                r[f"{tag}_ty"] = round(float(x["TY"].sum()), 2)
+            for kind, tag in (("New", "new"), ("Restarted", "restart")):
+                x = grp[(grp["Type"] == "NFL") & (grp["Kind"] == kind)]
                 r[f"{tag}_stores"] = int(x["Stores"].sum())
                 r[f"{tag}_ty"] = round(float(x["TY"].sum()), 2)
             r["lfl_ly"] = round(float(grp[grp["Type"] == "LFL"]["LY"].sum()), 2)
@@ -74,7 +84,7 @@ def build():
     cat = d.groupby(["Category", "Net Weight"])["NSV"].sum().reset_index()
     out = {
         "period": "Apr-Aug FY27 vs Apr-Aug FY26", "unit": "Rs lakh", "total_ty": round(float(d["NSV"].sum()), 2),
-        "stores": {t: int((st["Type"] == t).sum()) for t in ("LFL", "NFL", "No LY store data")},
+        "stores": {t: int((st["Type"] == t).sum()) for t in ("LFL", "NFL", "No LY store data")} | {"New": int((st["NFL Kind"] == "New").sum()), "Restarted": int((st["NFL Kind"] == "Restarted").sum())},
         "lost": {"stores": int(len(lost_df)), "ly_nsv": round(float(lost_df["LY"].sum()), 2)},
         "by_chain": roll(["Chain"]), "by_state": roll(["State"]), "by_zone": roll(["Zone"]), "by_pack": packs,
         "pack_by_category": [{"category": r["Category"], "pack": int(r["Net Weight"]), "nsv": round(float(r["NSV"]), 2)}
@@ -91,19 +101,21 @@ MONTH_LABEL = {"Apr": "Apr'26", "May": "May'26", "Jun": "Jun'26", "Jul": "Jul'26
 
 
 def write_powerbi_seed(st):
-    """Two small seed tables for Power BI (NSV in rupees: the offtake lakh x 100,000). One row per store (LFL / NFL / No LY store data / Lost) and one row per month x category x pack."""
+    """Two small seed tables for Power BI (NSV in rupees: the offtake lakh x 100,000). One row per store (LFL / NFL / No LY store data / Lost; NFL Kind = New or Restarted) and one row per month x category x pack."""
     SEED.mkdir(parents=True, exist_ok=True)
     a = st.reset_index().rename(columns={"sid": "Store Key", "Type": "Store Type"})
+    a["NFL Kind"] = a["NFL Kind"].replace("", "Not NFL")
     a["NSV This Year Rs"] = (a["TY"] * 100000).round(0)
     a["NSV Last Year Same Months Rs"] = (a["LY"].fillna(0) * 100000).round(0)
-    a = a[["Store Key", "Chain", "State", "Zone", "Store Type", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
+    a = a[["Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
     lost = st.attrs["lost"].reset_index().rename(columns={"Key": "Store Key", "index": "Store Key"})
     lost["State"] = "Not available"
     lost["Zone"] = "Not available"
     lost["Store Type"] = "Lost"
+    lost["NFL Kind"] = "Not NFL"
     lost["NSV This Year Rs"] = 0
     lost["NSV Last Year Same Months Rs"] = (lost["LY"] * 100000).round(0)
-    lost = lost[["Store Key", "Chain", "State", "Zone", "Store Type", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
+    lost = lost[["Store Key", "Chain", "State", "Zone", "Store Type", "NFL Kind", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
     pd.concat([a, lost], ignore_index=True).assign(**{"Period": "Apr-Aug FY27 vs Apr-Aug FY26"}).to_csv(SEED / "store_type_aug26.csv", index=False)
     b = st.attrs["pack_month"].copy()
     b["Month"] = b["file"].map(MONTH_LABEL)

@@ -2622,6 +2622,15 @@ LFL Growth % = DIVIDE ( [LFL NSV Cr] - [LFL NSV LY Cr], [LFL NSV LY Cr] )
 NFL NSV Cr =
     DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "NFL" ), 10000000 )
 
+New Stores NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[NFL Kind] = "New" ), 10000000 )
+
+Restarted Stores NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[NFL Kind] = "Restarted" ), 10000000 )
+
+New Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[NFL Kind] = "New" )
+Restarted Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[NFL Kind] = "Restarted" )
+
 No LY Store Data NSV Cr =
     DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "No LY store data" ), 10000000 )
 
@@ -2643,7 +2652,7 @@ Store Type Insight =
     IF (
         ISBLANK ( [LFL NSV LY Cr] ),
         "No like-for-like base for this selection (Reliance Retail has no store-level last year)",
-        "Same stores " & FORMAT ( [LFL Growth %], "+0%;-0%" ) & " · new stores add Rs " & FORMAT ( [NFL NSV Cr], "0.0" ) & " Cr · "
+        "Same stores " & FORMAT ( [LFL Growth %], "+0%;-0%" ) & " · " & FORMAT ( [New Stores], "#,0" ) & " new stores add Rs " & FORMAT ( [New Stores NSV Cr], "0.0" ) & " Cr, " & FORMAT ( [Restarted Stores], "#,0" ) & " restarted add Rs " & FORMAT ( [Restarted Stores NSV Cr], "0.0" ) & " Cr · "
             & FORMAT ( [Lost Stores], "#,0" ) & " stores sold last year, nothing this year"
     )
 

@@ -112,3 +112,5 @@ Reliance Retail non-counter is kept out of LFL (last year is state-level only). 
 - [ ] Store type table does not follow the Date slicer (fixed period Apr-Aug FY27 vs same months last year). Put the period in the page title.
 - [ ] Check: sum of Store Type NSV This Year Cr = 189.72 Cr (FY27 Apr-Aug); LFL NSV Cr = 127.0; Reliance Retail shows no LFL.
 Monthly refresh: run `python scripts/build_store_cuts.py`, copy both CSVs to `RawDataFolders/Store_Cuts`, Refresh.
+
+NFL is split in two (column `NFL Kind`): **New** = no sales anywhere last year; **Restarted** = sold last year in another month (Sep-Mar). Apr-Aug FY27: 1,463 new stores (Rs 4.9 Cr), 1,265 restarted (Rs 10.7 Cr). Measures: `New Stores`, `Restarted Stores`, `New Stores NSV Cr`, `Restarted Stores NSV Cr`.
