@@ -803,7 +803,7 @@ datasets:
 
   offtake_fy26_store_article:
     business_name: "Offtake NSV -- FY26 (Apr'25-Mar'26) store x article grain, requested for Same-Store Growth"
-    source_path: null
+    source_path: "data/raw_drops/offtake_fy26/<Mon'YY>/<chain>.csv as supplied (Oct25_to_Mar26.zip, Apr25_to_Sept25.zip; ignored folder, outside Git) -> scripts/clean_offtake_fy26_store_article.py -> data/offtake_fy26/Store_Month_NSV_FY26.csv (tracked store x month aggregate) and local clean monthly files"
     source_type: "CSV expected, same shape as offtake_article_fy27_patch"
     grain: "month x store x article x chain (Month, Store Code, Article, Chain)"
     date_min: "2025-04"
@@ -813,12 +813,12 @@ datasets:
     important_columns: ["Units", "NSV", "Store Name", "State", "City"]
     business_owner: "whoever supplies the monthly Offtake_Monthly/offtake_store_article_*.csv drops (same ownership as offtake_article_fy27_patch)"
     refresh_frequency: "One-off backfill once supplied, then N/A (a single historical FY, not an ongoing monthly feed like FY27)"
-    validation_status: MISSING
+    validation_status: PARTIAL
     source_priority: SOURCE_OF_TRUTH
     fallback_source: null
     existing_pipeline: "scripts/store_history_readiness.py (classify_source() / validate_store_history() -- built and tested against synthetic fixtures only, not yet run against a real file)"
-    downstream_outputs: []
-    last_validated: "2026-09-21 (classify_source() confirms no candidate file anywhere in the repo resolves to SOURCE_AUTHENTICATED)"
+    downstream_outputs: ["data/offtake_fy26/Store_Month_NSV_FY26.csv", "data/qc/offtake_fy26_*.csv", "city workbook last-year columns (scripts/build_visit_city_plan.py)"]
+    last_validated: "2026-10-04 (files received; cleaned; every chain x month ties to the FY26 baseline; store_history_readiness.py verdict READY_WITH_GOVERNED_EXCEPTIONS, classify_source() = SOURCE_DUPLICATED at the contract grain because 46,920 rows (2.3%) have no store code: see notes)"
     modification_allowed: false
     notes: >
       Registered 2026-09-21 as part of Phase 2C/2D governance closeout
@@ -845,6 +845,22 @@ datasets:
       dashboard/Power BI change built on this source -- see
       docs/PHASE_2_EXECUTION_STATUS.md's "Phase 2C/2D terminal state" section
       for the full permitted/prohibited list.
+
+      UPDATE 2026-10-04 -- FILES RECEIVED (Apr'25-Mar'26, 12 months x up to 25 chain files, 2,190,950 rows). Not SOURCE_AUTHENTICATED yet: the owner
+      decides that. What was done (data/qc/offtake_fy26_QC.csv, scripts/clean_offtake_fy26_store_article.py, tests/test_clean_offtake_fy26.py):
+        * every chain x month NSV ties to data/raw_drops/_agg/offtake_fy26.json within 0.005 L (files 31,119.88 L vs baseline 31,119.87 L; Brand Counter by month
+          ties); so the files and the published FY26 baseline are the same data;
+        * six header layouts read by name; the Reliance file holds two stacked tables (Brand Counter block re-aligned, 292,293 rows);
+        * 2,022 B&N EANs and article codes had been turned into 8.90609E+12 by Excel: repaired from the same article code or name (2,021) and one row left;
+        * one spelling each of zone, state, city, store name (30-character truncations take the full name), and one brand / category / sub category / range /
+          name per EAN (this year's article master first); 118,518 repeated lines added into one row per month x chain x store x EAN (totals unchanged);
+        * 31,966 identical lines with a store identity (251.59 L, 0.7% of NSV) look like double loads but are in the published baseline, so they are ADDED INTO
+          one row, not removed; the list is in data/qc/offtake_fy26_duplicate_lines.csv (RMT-Sancus 175 L, More Retail 63 L, ...). Owner decision needed:
+          keep (baseline unchanged) or remove (FY26 baseline would fall by 251.59 L);
+        * 4,174 negative NSV rows (-29.21 L, 4,049 of them RMT-Sancus) are credit notes and are kept;
+        * 46,920 rows (2.3%) have no store code (Reliance Retail non-counter is state-level, Arambagh, Ratnadeep, Vijetha, Nykaa FSN, some B&N / V-Mart / RMT):
+          they are keyed by name, city or state and cannot be matched store by store. That is the contract gap behind SOURCE_DUPLICATED.
+      Permitted use now: last-year columns in the city workbook (Excel, not committed). Same-Store Growth production calculation stays gated.
 
   retailer_category_share_monthly:
     business_name: "Retailer-side category sales (Lulu, More Retail, Wellness Forever, Reliance Retail, Reliance Brand Counter) -- chain's own category sales vs Honasa sales, Rs lakh"

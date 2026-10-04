@@ -10,7 +10,7 @@ One report, one command. The HTML (Nielsen Cuts, Opportunity, 90-Day Tracker, Ch
 | Store x article offtake for the month (`PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_26.csv`) | chain contribution, price and volume, city plan, store counts | those blocks stay as they were |
 | Lulu, More Retail, Wellness, Reliance retailer files | Chain Share & Plan | the committed account files are used |
 | Store list workbook | store master (unique stores, state and zone follow the offtake) | the committed master is used |
-| Last-year store files `offtake_store_article_<Mon>_25.csv` | last-year columns in the city workbook | those columns stay grey, nothing is estimated |
+| Last-year store files (FY26, one folder per month, one CSV per chain) | last-year columns in the city workbook | those columns stay grey, nothing is estimated. Run `python scripts/clean_offtake_fy26_store_article.py --src <unzipped folders>` first: it checks and cleans them and writes `data/offtake_fy26/Store_Month_NSV_FY26.csv` and `data/qc/offtake_fy26_*.csv` |
 
 ## Run
 ```

@@ -53,6 +53,7 @@ def test_last_year_store_sales_load_only_from_real_files(tmp_path, monkeypatch):
     import build_visit_city_plan as bvp
     import visit_cities as vc
     monkeypatch.setattr(vc, "RAW", tmp_path)
+    monkeypatch.setattr(bvp, "LY_AGG", tmp_path / "none.csv")
     assert bvp.load_ly_store() == (None, [])
     hdr = "Unique Code,Zone,State,City,Chain Name,Store Type,Site Code,Site Name,EAN,Brand,Category,Sub_category,Sales Qty,NSV"
     row = "x,West,Maharashtra,Pune,Dmart,Non Brand Counter,D1,Dmart Pune,1,Mamaearth,Face,Face Wash,2,1.5"

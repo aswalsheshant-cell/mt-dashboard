@@ -31,17 +31,28 @@ LY_JSON = ROOT / "data" / "raw_drops" / "_agg" / "offtake_fy26.json"
 LYM = ["Apr-25", "May-25", "Jun-25", "Jul-25", "Aug-25", "Sep-25"]
 
 
+LY_AGG = ROOT / "data" / "offtake_fy26" / "Store_Month_NSV_FY26.csv"
+
+
 def load_ly_store():
-    """Last-year NSV per store and month from FY26 store x article files (offtake_store_article_<Mon>_25.csv in the same folder), if they were supplied.
-    Returns (frame indexed by store key with one column per month label such as 'Apr-25', list of months found). Nothing is estimated: a month with no file stays blank."""
+    """Last-year NSV per store and month. Source: data/offtake_fy26/Store_Month_NSV_FY26.csv (written by scripts/clean_offtake_fy26_store_article.py from the
+    cleaned FY26 store x article files), else offtake_store_article_<Mon>_25.csv files in the offtake folder. Brand Counter stores are kept (the city totals leave them out themselves).
+    Returns (frame indexed by store key, one column per month label such as 'Apr-25'; list of months found). Nothing is estimated: a month with no data stays blank."""
+    if LY_AGG.exists():
+        d = pd.read_csv(LY_AGG)
+        d["Month"] = d["Month"].map(lambda m: m.replace("'", "-"))
+        t = d.pivot_table(index="Store Key", columns="Month", values="NSV", aggfunc="sum")
+        have = [m for m in LYM if m in t.columns]
+        return t, have
     have = [m for m in LYM if (vc.RAW / f"offtake_store_article_{m[:3]}_25.csv").exists()]
     if not have:
         return None, []
     d = vc.load_offtake([m[:3] for m in have], year="25")
-    d = d[~d.bc]
     t = d.groupby(["sid", "file"])["NSV"].sum().unstack()
     t.columns = [f"{c}-25" for c in t.columns]
     return t, have
+
+
 HF = Font(bold=True, color="FFFFFF")
 HFILL = PatternFill("solid", fgColor="1F3864")
 GFILL = PatternFill("solid", fgColor="BFBFBF")
@@ -213,11 +224,12 @@ def build(months, label, out_xlsx, payload_path):
         c.alignment = Alignment(wrap_text=True, vertical="top")
     ws.column_dimensions["A"].width = 150
 
+    ly_same = all(LYM[i] in ly_have for i in range(len(months)))        # last year is there for every month of this year
     # City summary
     ws = wb.create_sheet("City_Summary")
     mcols = [f"NSV {m}-26 (Rs L, excl BC)" for m in months]
     cols = ["Region", "City (as supplied)", "Beats planned", "Stores with sales"] + mcols + [f"MoM {m}" for m in months[1:]] + [
-        "Total NSV excl BC", "Brand Counter NSV (separate)", "Near-listed NSV (not in totals)", "Chain-city totals NSV (no store rows)"] + [f"Last year {m}" for m in LYM] + ["Sep-26 (to add)", "Considered?", "Size rank"]
+        "Total NSV excl BC", "Brand Counter NSV (separate)", "Near-listed NSV (not in totals)", "Chain-city totals NSV (no store rows)"] + [f"Last year {m}" for m in LYM] + ["Sep-26 (to add)", "Considered?", "Size rank", "YoY % (same months, stores selling)"]
     grey = [c for c in cols if (c.startswith("Last year") and c[10:] not in ly_have) or c.startswith("Sep-26")]
     header(ws, 1, cols, grey)
     allc = [(r, c) for r, cs in vc.REGIONS.items() for c in cs]
@@ -251,6 +263,8 @@ def build(months, label, out_xlsx, payload_path):
                 ws.cell(row=r, column=j).fill = GFILL
         ws.cell(row=r, column=tcol + 3 + len(LYM) + 1, value="Considered" if len(g) else "Considered (no sales in files)")
         ws.cell(row=r, column=tcol + 3 + len(LYM) + 2, value=rank_pos.get(city))
+        if ly_same:      # this year's months against the same months last year, only for stores that sold this year
+            ws.cell(row=r, column=tcol + 3 + len(LYM) + 3, value=f'=IFERROR({L(tcol - 1)}{r}/SUM({L(tcol + 3)}{r}:{L(tcol + 2 + ncol_m)}{r})-1,"")').number_format = "0.0%"
         if city in top8:
             ws.cell(row=r, column=2).fill = YFILL
         summary_rows.append({"Region": reg, "City": city, "Beats": (5 if city in top8 else 3) if len(g) else 0, "Stores": len(g),
@@ -258,13 +272,13 @@ def build(months, label, out_xlsx, payload_path):
                              "NSV_total_exBC": fv(exb["Total"].sum()), "NSV_BC": fv(g[g.bc]["Total"].sum()),
                              "Near_listed_NSV": fv(nl["Total"].sum()), "Near_listed_stores": int(len(nl)), "Top8": city in top8})
     ws.cell(row=len(allc) + 3, column=2, value="Yellow = top 8 listed cities by NSV (5 beats). Grey = data not in the repo yet. Near-listed NSV is not added to the city totals.")
-    widths(ws, [16, 18, 9, 10] + [13] * ncol_m + [9] * (ncol_m - 1) + [14, 16, 16, 16] + [11] * 7 + [26, 8])
+    widths(ws, [16, 18, 9, 10] + [13] * ncol_m + [9] * (ncol_m - 1) + [14, 16, 16, 16] + [11] * 7 + [26, 8, 14])
 
     # Store list
     ws = wb.create_sheet("Store_List")
     cols = ["Consider city?", "Visit city (supplied list)", "Nearest listed city", "Region", "Zone", "State", "City (final)", "City source", "City (store list)", "City (offtake file)",
             "Chain", "Store type", "Store code", "Store name", "Other store codes (same store)"] + [f"NSV {m}-26 (Rs L)" for m in months] + [f"MoM {m}" for m in months[1:]] + [
-        "Total NSV", "Units", "Chain YoY % (chain level, context)"] + [f"LY {m}" for m in LYM] + ["Sep-26 (to add)"]
+        "Total NSV", "Units", "Chain YoY % (chain level, context)"] + [f"LY {m}" for m in LYM] + ["Sep-26 (to add)", "Store YoY % (same months)"]
     grey = [c for c in cols if (c.startswith("LY ") and c[3:] not in ly_have) or c.startswith("Sep-26")]
     header(ws, 1, cols, grey)
     sl = s[s["Visit Status"].isin(["Considered", "Near listed city", "Not considered"]) & s["Total"].notna()].copy()
@@ -293,9 +307,11 @@ def build(months, label, out_xlsx, payload_path):
                 ws.cell(row=i, column=j, value=fv(ly_store[LYM[k]].get(r["Store Key"]) if r["Store Key"] in ly_store.index else None))
             else:
                 ws.cell(row=i, column=j).fill = GFILL
+        if ly_same:
+            ws.cell(row=i, column=tc + 3 + len(LYM) + 1, value=f'=IFERROR({L(tc)}{i}/SUM({L(tc + 3)}{i}:{L(tc + 2 + nm)}{i})-1,"")').number_format = "0.0%"
         ws.cell(row=i, column=1).fill = GREEN if r["Visit Status"] == "Considered" else AMBER if r["Visit Status"] == "Near listed city" else RED
     ws.auto_filter.ref = f"A1:{L(len(cols))}{len(sl) + 1}"
-    widths(ws, [16, 16, 14, 14, 10, 16, 18, 14, 18, 18, 16, 16, 12, 34, 18] + [11] * nm + [8] * (nm - 1) + [12, 10, 14] + [10] * 7)
+    widths(ws, [16, 16, 14, 14, 10, 16, 18, 14, 18, 18, 16, 16, 12, 34, 18] + [11] * nm + [8] * (nm - 1) + [12, 10, 14] + [10] * 7 + [12])
 
     # Near-listed sheet
     ws = wb.create_sheet("Near_Listed")
