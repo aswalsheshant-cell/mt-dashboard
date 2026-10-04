@@ -797,7 +797,7 @@ datasets:
       One store = one row: the same chain + store name + city under more than one code (a re-coded store, a case-only spelling) is merged, the other
       codes are in "Other Site Codes" and Store_Key_Aliases.csv, and offtake sales follow the alias (scripts/visit_cities.py load_aliases). Where the name is
       only the town and the retailer's own list holds more than one such store, they stay separate and the code goes into the name.
-      Considered / Near listed city (Navi Mumbai, Thane, Mohali, Panchkula, Ernakulam, Howrah -> nearest listed city) /
+      Considered (Thane and Navi Mumbai count as Mumbai, owner decision 2026-10-04) / Near listed city (Mohali, Panchkula, Ernakulam, Howrah -> nearest listed city) /
       Not considered / City not available. About 61% of Apr-Aug NSV matches a store in the Jan-Jun file; the rest are new
       stores added from the offtake files. Reliance (non-counter) has store names in Apr-Jun only; Jul-Aug is state level.
 

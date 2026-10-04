@@ -39,9 +39,11 @@ def test_three_consider_values_and_near_listed_sheet(book):
     sl = book["Store_List"]
     assert set(sl["Consider city?"]) == {"Considered", "Near listed city", "Not considered"}
     near = book["Near_Listed"]
-    assert {"Thane", "Navi Mumbai", "Mohali", "Panchkula", "Ernakulam", "Howrah"} <= set(near["City (as in file)"])
+    assert {"Mohali", "Panchkula", "Ernakulam", "Howrah"} <= set(near["City (as in file)"]) and not {"Thane", "Navi Mumbai"} & set(near["City (as in file)"])
     assert set(near["Nearest listed city"]) <= set(vc.CITY_REGION)
-    assert book["Beat_Options"]["City"].isin(vc.CITY_REGION).all()                           # near-listed cities are not in the beats
+    bo = book["Beat_Options"].dropna(subset=["Region"])                                      # the two count cells under the table have no region
+    assert bo["City"].isin(vc.CITY_REGION).all()                                             # near-listed cities are not in the beats
+    assert len(bo) == bo.drop_duplicates(["Chain", "Store code", "Store name"]).shape[0]       # no store twice (the Store count column is a formula, read blank here)
 
 
 def test_states_are_standard_in_the_store_list(book):

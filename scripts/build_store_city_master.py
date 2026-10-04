@@ -203,6 +203,10 @@ def merge_same_store(out):
 def build(master_path, months):
     m = read_master(master_path)
     off = vc.load_offtake(months, aliases=False)      # raw keys: the merge below writes the alias file
+    # the store list holds the staffed Brand Counter stores under "Reliance Retail": a store that sells as a Brand Counter belongs to that chain
+    bc_codes = set(off.loc[off["Chain"] == "Reliance Brand Counter", "code"].dropna())
+    is_bc = (m["Chain"] == "Reliance Retail") & m["code"].isin(bc_codes)
+    m.loc[is_bc, "Chain"] = "Reliance Brand Counter"
     m["sid"] = m.apply(sid_of, axis=1)
     dup_master = int(m.duplicated("sid", keep=False).sum())
     m = m.drop_duplicates("sid", keep="first")
@@ -259,6 +263,16 @@ def build(master_path, months):
             "City (offtake file)", "City Final", "City Source", "Visit City", "Visit Region", "Visit Status", "Nearest Listed City", "Store Type", "Match Key", "Source"]
     out = out[cols].sort_values(["Chain Name", "State", "City Final", "Store Name"], na_position="last").reset_index(drop=True)
     out, aliases = merge_same_store(out)
+    # one store, more than one spelling of the chain in the offtake files (Reliance / Reliance Brand Counter, SSL / Shoppers Stop): the other Match Keys are aliases
+    mk = off.dropna(subset=["code"]).assign(MK=lambda x: x["Chain Raw"].str.upper() + "|" + x["code"]).drop_duplicates(["sid", "MK"])
+    main = out.set_index("Store Key")["Match Key"].to_dict()
+    have = {a["Alias Match Key"] for a in aliases}
+    for _, r in mk.iterrows():
+        canon = main.get(r["sid"])
+        if canon and r["MK"] != canon and r["MK"] not in have:
+            aliases.append({"Alias Store Key": "", "Alias Match Key": r["MK"], "Alias Site Code": r["code"], "Store Key": r["sid"], "Store Match Key": canon,
+                            "Reason": "same store, chain written another way in the offtake files"})
+            have.add(r["MK"])
     findings = qc(out)
     return out, findings, {"dup_in_master_file": dup_master, "from_master": len(m), "added": int((out["Source"] == NEW_SOURCE).sum()), "merged": len(aliases), "aliases": aliases}
 

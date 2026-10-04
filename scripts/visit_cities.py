@@ -4,8 +4,8 @@ Shared by build_store_city_master.py and build_visit_city_plan.py so the city ru
 
 Status of a store's city against the corporate-visit list:
   Considered        city is on the list (spelling aliases applied)
-  Near listed city  city is NOT on the list but sits next to a listed one (Navi Mumbai, Thane, Mohali,
-                    Panchkula, Ernakulam, Howrah); the nearest listed city is recorded as a third option
+  Near listed city  city is NOT on the list but sits next to a listed one (Mohali, Panchkula, Ernakulam, Howrah); the nearest
+                    listed city is recorded as a third option. Thane and Navi Mumbai are not near-listed: they are in the Mumbai beats.
   Not considered    any other city
   City not available  the source has no city for the store
 """
@@ -30,9 +30,10 @@ REGIONS = {
 CITY_REGION = {c: r for r, cs in REGIONS.items() for c in cs}
 LISTED = {c.lower(): c for c in CITY_REGION}
 ALIASES = {"allahabad": "Prayagraj", "pryagraj": "Prayagraj", "thiruvananthapuram": "Trivandrum", "kochi": "Cochin",
-           "tiruchirappalli": "Trichy", "baroda": "Vadodara", "kapra hyderabad": "Hyderabad"}
+           "tiruchirappalli": "Trichy", "baroda": "Vadodara", "kapra hyderabad": "Hyderabad",
+           "thane": "Mumbai", "navi mumbai": "Mumbai"}       # Thane and Navi Mumbai join the Mumbai beats (owner decision 2026-10-04)
 # not on the list, but next to a listed city -> the nearest listed city
-NEAR = {"navi mumbai": "Mumbai", "thane": "Mumbai", "mohali": "Chandigarh", "panchkula": "Chandigarh",
+NEAR = {"mohali": "Chandigarh", "panchkula": "Chandigarh",
         "kurali (sas nagar/mohali)": "Chandigarh", "new chandigarh (mohali)": "Chandigarh", "ernakulam": "Cochin", "howrah": "Kolkata"}
 BAD = ("&", "kasmir", "kashmir")
 ZONE_FIX = {"WEST": "West", "SOUTH-1": "South-1", "SOUTH-2": "South-2", "NORTH": "North", "EAST": "East", "CENTRAL": "Central",
@@ -50,8 +51,8 @@ CHAIN_STANDARD = {
     "Broadway": ["broadway"], "Centro": ["centro"], "D-Mart": ["dmart"], "Nykaa FSN": ["fsn", "nykaafsn"], "Frank Ross": ["frankros", "frankross"],
     "Guardian": ["guardian"], "Health & Glow": ["hg", "healthglow"], "Lifestyle": ["lifestyle"], "Lulu": ["lulu"], "Metro CNC": ["metrocnc", "metrocc"],
     "More Retail": ["moreretail"], "National Mart": ["nationalmart"], "Ratnadeep": ["ratnadeep", "ratandeep", "ratanadeep"],
-    "Reliance Retail": ["reliance", "relianceretail"], "Reliance Brand Counter": ["reliancebrandcounter"], "SSL": ["ssl"],
-    "RMT-Sancus": ["sancusrmt", "rmtsancus"], "SastaSundar": ["sastasundar"], "Shoppers Stop": ["shoppersstop"], "Spencers": ["spencer", "spencers"],
+    "Reliance Retail": ["reliance", "relianceretail"], "Reliance Brand Counter": ["reliancebrandcounter"],
+    "RMT-Sancus": ["sancusrmt", "rmtsancus"], "SastaSundar": ["sastasundar"], "Shoppers Stop": ["shoppersstop", "ssl"], "Spencers": ["spencer", "spencers"],
     "Sumo Save": ["sumosave"], "Trends": ["trends"], "Trent": ["trent", "trentwestside"], "Vijetha": ["vijetha"], "V-Mart": ["vmart"], "Vishal Mega Mart": ["vmm", "vishalmegamart"],
     "Walmart CNC": ["walmartcnc", "walmart"], "WH-Smith": ["whsmith"], "Wellness Forever": ["wellnessforever"],
 }
@@ -156,7 +157,7 @@ def load_aliases():
     """{alias Store Key: Store Key}: store keys that are the same store (same chain + store name + city) and were merged into one by build_store_city_master.py."""
     if not ALIASES_CSV.exists():
         return {}
-    a = pd.read_csv(ALIASES_CSV, dtype=str)
+    a = pd.read_csv(ALIASES_CSV, dtype=str).dropna(subset=["Alias Store Key"])      # rows with a blank Alias Store Key only add a Match Key spelling
     return dict(zip(a["Alias Store Key"], a["Store Key"]))
 
 
@@ -181,6 +182,8 @@ def load_offtake(months=MONTHS, aliases=True, year="26"):
     if unknown:
         raise ValueError(f"chain spelling(s) not in CHAIN_STANDARD: {unknown} (add them on purpose in scripts/visit_cities.py)")
     d["bc"] = d["Store Type"].astype(str).str.strip().eq("Brand Counter")
+    # a staffed Brand Counter store is one store: Apr-Jun files label its rows "Reliance", Jul-Aug files "Reliance Brand Counter"
+    d.loc[d["bc"] & (d["Chain"] == "Reliance Retail"), "Chain"] = "Reliance Brand Counter"
     for c in ("City", "State", "Site Name"):
         d[c] = d[c].map(clean)
     d["Zone"] = d["Zone"].map(norm_zone)

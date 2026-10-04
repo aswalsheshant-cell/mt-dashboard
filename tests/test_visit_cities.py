@@ -29,8 +29,12 @@ def test_listed_cities_and_aliases():
     assert sum(len(c) for c in vc.REGIONS.values()) == 32                                   # Guwahati counted once
 
 
-@pytest.mark.parametrize("city,near", [("Navi Mumbai", "Mumbai"), ("Thane", "Mumbai"), ("Mohali", "Chandigarh"), ("Panchkula", "Chandigarh"),
-                                       ("Ernakulam", "Cochin"), ("Howrah", "Kolkata"), ("NAVI MUMBAI", "Mumbai")])
+def test_thane_and_navi_mumbai_are_in_the_mumbai_beats():
+    for c in ("Thane", "Navi Mumbai", "NAVI MUMBAI", "Thane West"):
+        assert vc.classify(c) == ("Mumbai", "Considered", "Mumbai"), c
+
+
+@pytest.mark.parametrize("city,near", [("Mohali", "Chandigarh"), ("Panchkula", "Chandigarh"), ("Ernakulam", "Cochin"), ("Howrah", "Kolkata")])
 def test_near_listed_cities_get_the_third_option(city, near):
     visit, status, nearest = vc.classify(city)
     assert (visit, status, nearest) == (None, "Near listed city", near)
@@ -54,7 +58,7 @@ def test_store_master_is_clean_and_complete():
             assert x["Visit City"] and x["Visit Region"]
         if x["Visit Status"] == "Near listed city":
             assert x["Nearest Listed City"] and not x["Visit City"]
-    assert any(x["City Final"] == "Thane" and x["Nearest Listed City"] == "Mumbai" for x in r)
+    assert any(x["City Final"] == "Thane" and x["Visit City"] == "Mumbai" and x["Visit Status"] == "Considered" for x in r)
 
 
 def test_every_chain_has_one_standard_spelling():
@@ -115,7 +119,7 @@ def test_city_summary_ties_to_the_visit_json():
     data = json.loads((ROOT / "data" / "nielsen" / "Visit_Cities_Aug26.json").read_text(encoding="utf-8"))
     assert len(data["cities"]) == 32 and len(data["top8"]) == 8
     near = {n["city"] for n in data["stats"]["near_listed"]}
-    assert {"Thane", "Navi Mumbai", "Mohali", "Panchkula", "Ernakulam", "Howrah"} <= near
+    assert {"Mohali", "Panchkula", "Ernakulam", "Howrah"} <= near and not {"Thane", "Navi Mumbai"} & near
     assert data["stats"]["status_counts"]["Considered"] == sum(c["Stores"] for c in data["cities"])
     assert all(c["Beats"] in (0, 3, 5) for c in data["cities"])
     assert sum(1 for c in data["cities"] if c["Beats"] == 5) == 8
@@ -126,4 +130,4 @@ def test_visit_city_list_matches_the_rules():
         lst = list(csv.DictReader(h))
     assert [x["City"] for x in lst if x["Region"] == "East"] == vc.REGIONS["East"]
     mumbai = next(x for x in lst if x["City"] == "Mumbai")
-    assert "Navi Mumbai" in mumbai["Near Listed (not on list)"] and "Thane" in mumbai["Near Listed (not on list)"]
+    assert "Navi Mumbai" in mumbai["Aliases"] and "Thane" in mumbai["Aliases"]            # they are in the Mumbai beats

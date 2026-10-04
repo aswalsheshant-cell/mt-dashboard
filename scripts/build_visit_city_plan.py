@@ -193,9 +193,9 @@ def build(months, label, out_xlsx, payload_path):
         (f"Months in this file: {', '.join(m + ' 26' for m in months)}. Sep 2026 and last-year store sales are to be added (see NOT AVAILABLE below).", False),
         ("", False),
         ("HOW TO READ", True),
-        ("1. Store_List: every store with a city. 'Consider city?' has three values: Considered (on your list), Near listed city (Navi Mumbai, Thane, Mohali, Panchkula, Ernakulam, Howrah: the nearest listed city is shown) and Not considered.", False),
+        ("1. Store_List: every store with a city. 'Consider city?' has three values: Considered (on your list), Near listed city (Mohali, Panchkula, Ernakulam, Howrah: the nearest listed city is shown; Thane and Navi Mumbai are in the Mumbai beats) and Not considered.", False),
         ("2. City_Summary: planned cities, region, stores, NSV by month and MoM. Near_Listed shows the six near-listed cities and the listed city each one rolls up to, so the team can decide whether to add them to that city's beats.", False),
-        ("3. Beat_Options: three options for every planned store (A chain-wise, B sales tiers, C mixed). Beat_Summary shows what each beat looks like. Final beat and area: GT / EBO to fill.", False),
+        ("3. Beat_Options: three options for every planned store (A chain-wise, B sales tiers, C mixed). Beat_Summary shows what each beat looks like. Final beat and area: GT / EBO to fill. Store count column: 1 = the store's first row, a value above 1 turns red (a duplicate); the Stores and Duplicates cells under the table count them. Thane and Navi Mumbai stores are in the Mumbai beats.", False),
         ("4. City_Top_Articles: top 10 articles per planned city; stock availability and SOS columns are blank to fill.", False),
         ("5. Pack_Brand: for Facewash and Shampoo, which brands sell which pack size (Nielsen, IN URB MT), with Mamaearth's place in each pack.", False),
         ("6. Chain_City_Totals: chain x city sales with no store code or store name (for example Reliance Retail Apr-Jun by city); kept out of store counts and beats. Chain_NoCity: sales where no store city exists (chain / state level only). Chain_LastYear: chain level Apr-Sep 2025 vs this year. Master_Gaps: stores that sold but were not in the store master file.", False),
@@ -328,18 +328,26 @@ def build(months, label, out_xlsx, payload_path):
 
     # Beat options
     ws = wb.create_sheet("Beat_Options")
-    cols = ["Region", "City", "Beats in city", "Chain", "Store type", "Store code", "Store name", "Total NSV (Rs L)", "Option A: chain-wise beat", "Option B: sales-tier beat", "Option C: mixed beat",
-            "Final beat (GT / EBO to fill)", "Area / route (GT / EBO to fill)"]
+    cols = ["Region", "City", "Beats in city", "Chain", "Store type", "Store count", "Store code", "Store name", "Total NSV (Rs L)", "Option A: chain-wise beat", "Option B: sales-tier beat",
+            "Option C: mixed beat", "Final beat (GT / EBO to fill)", "Area / route (GT / EBO to fill)"]
     header(ws, 1, cols, ["Final beat (GT / EBO to fill)", "Area / route (GT / EBO to fill)"])
     bs = beats.sort_values(["Visit Region", "Matched", "A", "Total"], ascending=[True, True, True, False])
     for i, (_, r) in enumerate(bs.iterrows(), 2):
-        vals = [r["Visit Region"], r["Matched"], int(r["n"]), r["Chain"], r["Store Type"], r["Site Code"], r["Store Name"], fv(r["Total"]), f"A{int(r['A'])}", f"B{int(r['B'])}", f"C{int(r['C'])}", None, None]
+        # Store count: how many times this store (chain + code + name) has appeared down to this row; 1 = first time, above 1 turns red (a duplicate)
+        vals = [r["Visit Region"], r["Matched"], int(r["n"]), r["Chain"], r["Store Type"], f"=SUMPRODUCT(($D$2:D{i}=D{i})*($G$2:G{i}=G{i})*($H$2:H{i}=H{i}))", r["Site Code"], r["Store Name"],
+                fv(r["Total"]), f"A{int(r['A'])}", f"B{int(r['B'])}", f"C{int(r['C'])}", None, None]
         for j, v in enumerate(vals, 1):
-            ws.cell(row=i, column=j, value=fv(v))
-        ws.cell(row=i, column=12).fill = GFILL
+            ws.cell(row=i, column=j, value=v if j == 6 else fv(v))
         ws.cell(row=i, column=13).fill = GFILL
+        ws.cell(row=i, column=14).fill = GFILL
     ws.auto_filter.ref = f"A1:{L(len(cols))}{len(bs) + 1}"
-    widths(ws, [14, 14, 8, 16, 16, 12, 36, 14, 12, 12, 12, 18, 22])
+    from openpyxl.formatting.rule import CellIsRule
+    ws.conditional_formatting.add(f"F2:F{len(bs) + 1}", CellIsRule(operator="greaterThan", formula=["1"], fill=PatternFill("solid", bgColor="FF0000", fgColor="FF0000")))
+    ws.cell(row=len(bs) + 3, column=5, value="Stores:")
+    ws.cell(row=len(bs) + 3, column=6, value=f"=COUNTIF(F2:F{len(bs) + 1},1)")
+    ws.cell(row=len(bs) + 4, column=5, value="Duplicates (red):")
+    ws.cell(row=len(bs) + 4, column=6, value=f'=COUNTIF(F2:F{len(bs) + 1},">1")')
+    widths(ws, [14, 14, 8, 16, 16, 8, 12, 36, 14, 12, 12, 12, 18, 22])
 
     ws = wb.create_sheet("Beat_Summary")
     cols = ["Region", "City", "Option", "Beat", "Stores", "NSV (Rs L)", "% of city NSV", "Chains in beat", "Top 3 stores by NSV", "Brand Counter stores"]
@@ -489,6 +497,10 @@ def build(months, label, out_xlsx, payload_path):
     checks.append(("Chain_NoCity sales equal the no-city rows in the master (Rs lakh difference)", round(abs(float(nc["Total"].sum()) - float(nocity["Total"].sum())), 3), 0))
     checks.append(("Listed-city stores all carry a visit city and region", int((sl[sl["Visit Status"] == "Considered"][["Visit City", "Visit Region"]].isna().any(axis=1)).sum()), 0))
     checks.append(("Near-listed stores all name the nearest listed city", int(sl[sl["Visit Status"] == "Near listed city"]["Nearest Listed City"].isna().sum()), 0))
+    checks.append(("Beat_Options: no store (chain + code + name) appears twice", int(beats.duplicated(["Chain", "Site Code", "Store Name"]).sum()), 0))
+    checks.append(("Store counts tie: Beat_Options rows = City_Summary stores with sales", int(len(beats)) - int(sum(x["Stores"] for x in summary_rows)), 0))
+    cc = coded.assign(_n=coded["Store Name"].fillna("").str.lower().str.replace(r"[^a-z0-9]", "", regex=True))
+    checks.append(("No store code + store name under two chains (the same store spelt as two chains)", int((cc.groupby(["Site Code", "_n"])["Chain"].nunique() > 1).sum()), 0))
     failed = [c for c in checks if c[1] != c[2]]
     ws = wb.create_sheet("QC", 1)
     header(ws, 1, ["Check", "Found", "Expected", "Result"])

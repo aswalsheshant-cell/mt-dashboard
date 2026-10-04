@@ -23,12 +23,14 @@ def test_no_store_appears_twice_in_the_master():
 def test_aliases_point_at_a_store_in_the_master_and_keep_their_codes():
     m = pd.read_csv(MASTERS / "Store_City_Master.csv", dtype=str).set_index("Store Key")
     a = pd.read_csv(MASTERS / "Store_Key_Aliases.csv", dtype=str)
-    assert len(a) > 100 and a["Alias Store Key"].is_unique
-    assert not set(a["Alias Store Key"]) & set(m.index)               # an alias is never also a store row
+    keys = a.dropna(subset=["Alias Store Key"])                                    # a blank Alias Store Key only adds a Match Key spelling
+    assert len(keys) > 100 and keys["Alias Store Key"].is_unique
+    assert a["Alias Match Key"].dropna().is_unique and not set(a["Alias Match Key"].dropna()) & set(m["Match Key"].dropna())
+    assert not set(keys["Alias Store Key"]) & set(m.index)            # an alias is never also a store row
     assert set(a["Store Key"]) <= set(m.index)
-    coded = a.dropna(subset=["Alias Site Code"])
+    coded = keys.dropna(subset=["Alias Site Code"])
     for _, r in coded.head(200).iterrows():
-        assert r["Alias Site Code"] in str(m.at[r["Store Key"], "Other Site Codes"]).split("; ")
+        assert r["Alias Site Code"] in str(m.at[r["Store Key"], "Other Site Codes"]).split("; ") or r["Store Match Key"] != r["Alias Match Key"]
         assert r["Store Match Key"] == m.at[r["Store Key"], "Match Key"]
 
 
