@@ -194,4 +194,27 @@ body6 = top("Chain Share and Plan", "<div class='chip'>Chain <b>All 4 ▾</b></d
 <div class='card' style='left:732px;top:408px;width:584px;height:260px'><h3>Plan to lift Facewash share (Rs Cr / month, upper bound)<span class='ico'>⤒ ⤓</span></h3><table><tr><th>Lever</th><th>Rs Cr / month</th><th>Owner</th><th>Timeline</th></tr>{''.join(f"<tr><td>{l['lever']}</td><td>{l['size_cr_month']:.2f}</td><td>{l['owner']}</td><td>{l['timeline']}</td></tr>" for l in lv)}</table><div class='sub' style='margin-top:6px'>Total {AV['facewash_plan']['total_cr_month']:.2f} Cr a month: levers overlap, so it is not a forecast.</div></div>""" + FOOT
 js6 = f"""Chart.defaults.animation=false;new Chart(document.getElementById('c8'),{{type:'line',data:{{labels:{json.dumps(allm)},datasets:{json.dumps(ds)}}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom',labels:{{boxWidth:10}}}}}},scales:{{y:{{ticks:{{callback:v=>v+'%'}}}}}}}}}});"""
 page("p6", body6, js6, "powerbi_preview_6_chain_share.html")
+# ---- page 7: state, pack size, LFL / NFL stores
+SC = json.load((ROOT / "data" / "store_cuts_aug26.json").open())
+sst = [r for r in SC["by_state"] if r["State"]][:8]
+lfl_t = sum(r["lfl_ty"] for r in SC["by_chain"]); lfl_l = sum(r["lfl_ly"] for r in SC["by_chain"])
+nfl_t = sum(r["nfl_ty"] for r in SC["by_chain"]); noly_t = sum(r["noly_ty"] for r in SC["by_chain"])
+ch7 = [r for r in SC["by_chain"] if r["lfl_stores"] + r["nfl_stores"] > 0][:8]
+t7 = "".join(f"<tr><td>{r['Chain']}</td><td>{r['lfl_stores']:,}</td><td>{r['nfl_stores']:,}</td><td>{r['lfl_ty'] / 100:.1f}</td><td>{r['nfl_ty'] / 100:.1f}</td><td>{'–' if r['lfl_growth_pct'] is None else format(r['lfl_growth_pct'], '+.0f') + '%'}</td><td>{r['lost_stores']}</td></tr>" for r in ch7)
+pk7 = SC["by_pack"][:8]
+body7 = top("State, Pack Size and Store Type", "<div class='chip'>FY <b>FY27</b></div><div class='chip'>Month <b>Apr–Aug 26</b></div><div class='chip'>Store type <b>All ▾</b></div><div class='chip'>Pack <b>All ▾</b></div>") + f"""
+<div class='card' style='left:80px;top:66px;width:640px;height:330px'><h3>State cut: NSV split by LFL and NFL stores (Rs Cr)<span class='ico'>⤒ ⤓ ⇊ ⤢</span></h3>
+ <div class='bc'>All MT ▸ <b>State</b> ▸ City ▸ Store</div><div class='pick'><span>Measure ▾ NSV Rs Cr</span><span>Split ▾ Store type</span><span>Line: LFL growth %</span></div><div style='height:240px'><canvas id='c9'></canvas></div></div>
+<div class='card' style='left:732px;top:66px;width:584px;height:330px'><h3>LFL vs NFL by chain<span class='ico'>⤒ ⤓ ⇊</span></h3>
+ <table><tr><th>Chain</th><th>LFL stores</th><th>NFL stores</th><th>LFL NSV Cr</th><th>NFL NSV Cr</th><th>LFL growth</th><th>Lost</th></tr>{t7}</table>
+ <div class='sub' style='margin-top:8px'>LFL = sold this year and in the same months last year. NFL = no sales last year. Lost = sold last year, nothing this year. Reliance Retail has no store-level last year, so it is kept out of LFL.</div></div>
+<div class='card' style='left:80px;top:408px;width:760px;height:260px'><h3>Pack size cut: NSV share and MoM (g / ml)<span class='ico'>⤒ ⤓</span></h3><div style='height:200px'><canvas id='c10'></canvas></div></div>
+<div class='card' style='left:852px;top:408px;width:464px;height:260px'><h3>Insights<span class='ico'>···</span></h3>
+ <div class='head'><small>Sales</small>LFL stores Rs {lfl_t / 100:,.1f} Cr vs Rs {lfl_l / 100:,.1f} Cr last year: {(lfl_t / lfl_l - 1) * 100:+.0f}%</div>
+ <div class='head m'><small>Mix</small>New stores (NFL) add Rs {nfl_t / 100:,.1f} Cr, {nfl_t / SC['total_ty'] * 100:.0f}% of NSV</div>
+ <div class='head p'><small>Reach</small>{SC['lost']['stores']:,} stores sold last year, nothing this year (Rs {SC['lost']['ly_nsv'] / 100:,.1f} Cr last year)</div></div>""" + FOOT
+js7 = f"""Chart.defaults.animation=false;
+new Chart(document.getElementById('c9'),{{data:{{labels:{json.dumps([r['State'] for r in sst])},datasets:[{{type:'bar',label:'LFL stores',data:{json.dumps([round(r['lfl_ty'] / 100, 1) for r in sst])},backgroundColor:'#118DFF',stack:'a'}},{{type:'bar',label:'NFL stores',data:{json.dumps([round(r['nfl_ty'] / 100, 1) for r in sst])},backgroundColor:'#E66C37',stack:'a'}},{{type:'bar',label:'No LY store data',data:{json.dumps([round(r['noly_ty'] / 100, 1) for r in sst])},backgroundColor:'#C8C6C4',stack:'a'}},{{type:'line',label:'LFL growth %',data:{json.dumps([r['lfl_growth_pct'] for r in sst])},borderColor:'#6B007B',backgroundColor:'#6B007B',yAxisID:'y1'}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom',labels:{{boxWidth:10}}}}}},scales:{{x:{{stacked:true}},y:{{stacked:true}},y1:{{position:'right',grid:{{drawOnChartArea:false}},ticks:{{callback:v=>v+'%'}}}}}}}}}});
+new Chart(document.getElementById('c10'),{{data:{{labels:{json.dumps([x['pack'] for x in pk7])},datasets:[{{type:'bar',label:'Share of NSV %',data:{json.dumps([x['share_pct'] for x in pk7])},backgroundColor:'#118DFF'}},{{type:'line',label:'MoM Aug vs Jul %',data:{json.dumps([x['mom_pct'] for x in pk7])},borderColor:'#E66C37',backgroundColor:'#E66C37',yAxisID:'y1'}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{position:'bottom',labels:{{boxWidth:10}}}}}},scales:{{y:{{beginAtZero:true,max:30,ticks:{{callback:v=>v+'%'}}}},y1:{{position:'right',grid:{{drawOnChartArea:false}},ticks:{{callback:v=>v+'%'}}}}}}}}}});"""
+page("p7", body7, js7, "powerbi_preview_7_state_pack_lfl.html")
 print("wrote", OUT)

@@ -97,3 +97,8 @@ Drawn by `scripts/render_powerbi_preview.py` from the repo's real numbers.
 Files: `docs/images/powerbi_preview_1_cockpit`, `2_brand_drillthrough`, `3_chain`,
 `4_zone_state`, `5_nielsen`, `6_chain_share` (.html and .png).
 Rebuild: `python scripts/render_powerbi_preview.py`.
+
+Page 7 `7_state_pack_lfl`: State cut, pack size, LFL / NFL stores. Data from
+`python scripts/build_store_cuts.py` -> `data/store_cuts_aug26.json`.
+LFL = sold this year and in the same months last year; NFL = no sales last year; Lost = sold last year, nothing this year.
+Reliance Retail non-counter is kept out of LFL (last year is state-level only). Pack size is FY27 only (last year has no pack in the store-month file).

@@ -184,7 +184,7 @@ def load_offtake(months=MONTHS, aliases=True, year="26"):
     NSV is Rs lakh as in the source. April rows carry an Excel date code in Month, so the month comes from the file name.
     """
     cols = ["Unique", "Unique Code", "Zone", "State", "City", "Chain Name", "Store Type", "Site Code", "Site Name", "EAN", "Brand",
-            "Category", "Sub_category", "Sales Qty", "NSV"]
+            "Category", "Sub_category", "Sales Qty", "NSV", "Net Weight"]
     frames = []
     for m in months:
         d = pd.read_csv(RAW / f"offtake_store_article_{m}_{year}.csv", low_memory=False, usecols=lambda c: c in cols)
