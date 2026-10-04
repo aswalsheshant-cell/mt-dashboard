@@ -54,3 +54,19 @@ def test_store_keys_follow_the_store_master(agg):
     coded = set(m.loc[m["Site Code"].notna(), "Store Key"])
     ly_coded = agg[agg["Chain Name"].isin(["Apollo", "D-Mart", "Health & Glow", "Lulu", "Wellness Forever"])].drop_duplicates("Store Key")
     assert ly_coded["Store Key"].isin(coded).mean() > 0.6          # last-year stores that still exist this year use the same key
+
+
+def test_last_year_store_links_point_at_this_years_master_and_leave_no_duplicate_name(agg):
+    links = pd.read_csv(ROOT / "data" / "offtake_fy26" / "Store_Key_Links_FY26.csv")
+    m = pd.read_csv(ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_City_Master.csv", dtype=str)
+    assert len(links) >= 1 and links["LY Store Key"].is_unique
+    assert not set(links["LY Store Key"]) & set(agg["Store Key"])             # a linked key no longer appears in the aggregate
+    assert set(links["Store Key"]) <= set(agg["Store Key"]) | set(m["Store Key"])
+    qc = pd.read_csv(ROOT / "data" / "qc" / "offtake_fy26_QC.csv")
+    row = qc[qc["Check"].str.startswith("no chain + store name + city under two store keys in last year")].iloc[0]
+    assert row["Severity"] == "PASS" and int(row["Count"]) == 0
+
+
+def test_reliance_retail_last_year_is_state_level_only(agg):
+    r = agg[agg["Chain Name"] == "Reliance Retail"]
+    assert r["Store Key"].str.contains("|NO-CITY|", regex=False).all()          # no store identity last year: compared by state, never spread over stores

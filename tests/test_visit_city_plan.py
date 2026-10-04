@@ -62,3 +62,11 @@ def test_last_year_store_sales_load_only_from_real_files(tmp_path, monkeypatch):
     (tmp_path / "offtake_store_article_Apr_25.csv").write_text(f"{hdr}\n{row}\n{row}\n", encoding="utf-8")
     t, have = bvp.load_ly_store()
     assert have == ["Apr-25"] and float(t.loc["D-Mart|D1", "Apr-25"]) == 3.0
+
+
+def test_reliance_state_sheet_and_like_for_like_city_yoy(book):
+    assert "Reliance_State_YoY" in book
+    rs = book["Reliance_State_YoY"].dropna(subset=["State"])
+    assert len(rs) >= 15 and "Andhra Pradesh" in set(rs["State"])
+    cs = book["City_Summary"]
+    assert any(c.startswith("NSV this year, stores with last-year sales") for c in cs.columns)

@@ -860,6 +860,11 @@ datasets:
         * 4,174 negative NSV rows (-29.21 L, 4,049 of them RMT-Sancus) are credit notes and are kept;
         * 46,920 rows (2.3%) have no store code (Reliance Retail non-counter is state-level, Arambagh, Ratnadeep, Vijetha, Nykaa FSN, some B&N / V-Mart / RMT):
           they are keyed by name, city or state and cannot be matched store by store. That is the contract gap behind SOURCE_DUPLICATED.
+      RESOLVED 2026-10-04 (owner asked for a permanent fix): (1) last-year store keys are linked to this year's store master when chain + store name + state match
+      (new code) and merged with each other otherwise (data/offtake_fy26/Store_Key_Links_FY26.csv); the QC check "no chain + store name + city under two store keys"
+      is an ERROR in the cleaner, so it cannot come back; six pairs stay separate on purpose (this year's master holds them as different stores, a shared company
+      name). (2) Reliance Retail non-counter has NO store identity last year (state-level), so store-level last year does not exist; the city workbook compares it by
+      state (sheet Reliance_State_YoY) and the city YoY is like-for-like (only stores that have last-year sales).
       Permitted use now: last-year columns in the city workbook (Excel, not committed). Same-Store Growth production calculation stays gated.
 
   retailer_category_share_monthly:

@@ -229,7 +229,7 @@ def build(months, label, out_xlsx, payload_path):
     ws = wb.create_sheet("City_Summary")
     mcols = [f"NSV {m}-26 (Rs L, excl BC)" for m in months]
     cols = ["Region", "City (as supplied)", "Beats planned", "Stores with sales"] + mcols + [f"MoM {m}" for m in months[1:]] + [
-        "Total NSV excl BC", "Brand Counter NSV (separate)", "Near-listed NSV (not in totals)", "Chain-city totals NSV (no store rows)"] + [f"Last year {m}" for m in LYM] + ["Sep-26 (to add)", "Considered?", "Size rank", "YoY % (same months, stores selling)"]
+        "Total NSV excl BC", "Brand Counter NSV (separate)", "Near-listed NSV (not in totals)", "Chain-city totals NSV (no store rows)"] + [f"Last year {m}" for m in LYM] + ["Sep-26 (to add)", "Considered?", "Size rank", "NSV this year, stores with last-year sales (Rs L)", "YoY % (same months, stores with last-year sales)"]
     grey = [c for c in cols if (c.startswith("Last year") and c[10:] not in ly_have) or c.startswith("Sep-26")]
     header(ws, 1, cols, grey)
     allc = [(r, c) for r, cs in vc.REGIONS.items() for c in cs]
@@ -263,8 +263,10 @@ def build(months, label, out_xlsx, payload_path):
                 ws.cell(row=r, column=j).fill = GFILL
         ws.cell(row=r, column=tcol + 3 + len(LYM) + 1, value="Considered" if len(g) else "Considered (no sales in files)")
         ws.cell(row=r, column=tcol + 3 + len(LYM) + 2, value=rank_pos.get(city))
-        if ly_same:      # this year's months against the same months last year, only for stores that sold this year
-            ws.cell(row=r, column=tcol + 3 + len(LYM) + 3, value=f'=IFERROR({L(tcol - 1)}{r}/SUM({L(tcol + 3)}{r}:{L(tcol + 2 + ncol_m)}{r})-1,"")').number_format = "0.0%"
+        if ly_same:      # same stores, same months: this year's NSV of the stores that also have last-year sales (Reliance Retail non-counter has none: state level, see Reliance_State_YoY)
+            cmp_ty = exb.loc[exb["Store Key"].isin(ly_store.index), months].sum().sum() if len(exb) else 0
+            ws.cell(row=r, column=tcol + 3 + len(LYM) + 3, value=fv(cmp_ty))
+            ws.cell(row=r, column=tcol + 3 + len(LYM) + 4, value=f'=IFERROR({L(tcol + 3 + len(LYM) + 3)}{r}/SUM({L(tcol + 3)}{r}:{L(tcol + 2 + ncol_m)}{r})-1,"")').number_format = "0.0%"
         if city in top8:
             ws.cell(row=r, column=2).fill = YFILL
         summary_rows.append({"Region": reg, "City": city, "Beats": (5 if city in top8 else 3) if len(g) else 0, "Stores": len(g),
@@ -272,7 +274,7 @@ def build(months, label, out_xlsx, payload_path):
                              "NSV_total_exBC": fv(exb["Total"].sum()), "NSV_BC": fv(g[g.bc]["Total"].sum()),
                              "Near_listed_NSV": fv(nl["Total"].sum()), "Near_listed_stores": int(len(nl)), "Top8": city in top8})
     ws.cell(row=len(allc) + 3, column=2, value="Yellow = top 8 listed cities by NSV (5 beats). Grey = data not in the repo yet. Near-listed NSV is not added to the city totals.")
-    widths(ws, [16, 18, 9, 10] + [13] * ncol_m + [9] * (ncol_m - 1) + [14, 16, 16, 16] + [11] * 7 + [26, 8, 14])
+    widths(ws, [16, 18, 9, 10] + [13] * ncol_m + [9] * (ncol_m - 1) + [14, 16, 16, 16] + [11] * 7 + [26, 8, 18, 16])
 
     # Store list
     ws = wb.create_sheet("Store_List")
@@ -307,7 +309,9 @@ def build(months, label, out_xlsx, payload_path):
                 ws.cell(row=i, column=j, value=fv(ly_store[LYM[k]].get(r["Store Key"]) if r["Store Key"] in ly_store.index else None))
             else:
                 ws.cell(row=i, column=j).fill = GFILL
-        if ly_same:
+        if ly_same and r["Chain"] == "Reliance Retail" and not r["bc"] and r["Store Key"] not in ly_store.index:
+            ws.cell(row=i, column=tc + 3 + len(LYM) + 1, value="state level: see Reliance_State_YoY")
+        elif ly_same:
             ws.cell(row=i, column=tc + 3 + len(LYM) + 1, value=f'=IFERROR({L(tc)}{i}/SUM({L(tc + 3)}{i}:{L(tc + 2 + nm)}{i})-1,"")').number_format = "0.0%"
         ws.cell(row=i, column=1).fill = GREEN if r["Visit Status"] == "Considered" else AMBER if r["Visit Status"] == "Near listed city" else RED
     ws.auto_filter.ref = f"A1:{L(len(cols))}{len(sl) + 1}"
@@ -465,6 +469,40 @@ def build(months, label, out_xlsx, payload_path):
         ws.cell(row=n + 1, column=c, value=f"=SUM({L(c)}2:{L(c)}{n})")
     ws.cell(row=n + 3, column=1, value="Chain level, all India, Rs lakh, offtake basis (Reliance Brand Counter excluded). Last year: data/raw_drops/_agg/offtake_fy26.json.")
     widths(ws, [26] + [11] * (7 + nm + nm))
+
+    # Reliance Retail (non-counter): last year came state by state with no store, so the comparison is made by state, the only grain both years share
+    ws = wb.create_sheet("Reliance_State_YoY")
+    ly_m = [m for m in LYM if m in ly_have][:len(months)]
+    if ly_same and LY_AGG.exists():
+        lyd = pd.read_csv(LY_AGG)
+        lyd = lyd[lyd["Chain Name"] == "Reliance Retail"]
+        lyd = lyd.assign(State=lyd["Store Key"].str.replace(r"^Reliance Retail\|NO-CITY\|", "", regex=True), M=lyd["Month"].str.replace("'", "-"))
+        lyp = lyd.pivot_table(index="State", columns="M", values="NSV", aggfunc="sum")
+        rel = off[(off["Chain"] == "Reliance Retail") & ~off["bc"]].copy()
+        rel["St"] = rel["State"].map(lambda x: vc.std_state(x)[0] if x else None).fillna(rel["State"])
+        typ = rel.pivot_table(index="St", columns="file", values="NSV", aggfunc="sum").reindex(columns=months)
+        sts = sorted(set(typ.index) | set(lyp.index))
+        nmm = len(months)
+        cols = ["State"] + [f"NSV {m}-26 (Rs L)" for m in months] + [f"LY {m}" for m in ly_m] + ["NSV this year", "NSV last year", "YoY %"]
+        header(ws, 1, cols)
+        for i, st_ in enumerate(sts, 2):
+            ws.cell(row=i, column=1, value=st_)
+            for k, m in enumerate(months):
+                ws.cell(row=i, column=2 + k, value=fv(typ[m].get(st_)) if st_ in typ.index else None)
+            for k, m in enumerate(ly_m):
+                ws.cell(row=i, column=2 + nmm + k, value=fv(lyp[m].get(st_)) if st_ in lyp.index and m in lyp.columns else None)
+            ws.cell(row=i, column=2 + 2 * nmm, value=f"=SUM({L(2)}{i}:{L(1 + nmm)}{i})")
+            ws.cell(row=i, column=3 + 2 * nmm, value=f"=SUM({L(2 + nmm)}{i}:{L(1 + 2 * nmm)}{i})")
+            ws.cell(row=i, column=4 + 2 * nmm, value=f'=IFERROR({L(2 + 2 * nmm)}{i}/{L(3 + 2 * nmm)}{i}-1,"")').number_format = "0.0%"
+        n_ = len(sts) + 1
+        ws.cell(row=n_ + 1, column=1, value="Total")
+        for j in range(2, 4 + 2 * nmm):
+            ws.cell(row=n_ + 1, column=j, value=f"=SUM({L(j)}2:{L(j)}{n_})")
+        ws.cell(row=n_ + 1, column=4 + 2 * nmm, value=f'=IFERROR({L(2 + 2 * nmm)}{n_ + 1}/{L(3 + 2 * nmm)}{n_ + 1}-1,"")').number_format = "0.0%"
+        ws.cell(row=n_ + 3, column=1, value="Reliance Retail non-counter reached us last year by state with no store or city, so store-level last year does not exist. This sheet compares the same months by state (brand counters excluded). Brand Counter stores are compared store by store in Store_List.")
+        widths(ws, [20] + [13] * (2 * nmm) + [14, 14, 10])
+    else:
+        ws.cell(row=1, column=1, value="Last-year data is not loaded (data/offtake_fy26/Store_Month_NSV_FY26.csv).")
 
     ws = wb.create_sheet("Master_Gaps")
     cols = ["Store key", "Chain", "State", "City (offtake file)", "Store name", "Total NSV (Rs L)", "Action"]

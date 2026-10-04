@@ -16,6 +16,7 @@ PASS,every row has a numeric NSV,0.0,
 WARN,Month_Std tag disagrees with the folder (folder used),469.0,BEAUTY___NUTRIE.csv Aug'25 tag Aug'26
 WARN,state names not in the standard list (kept as written),3.0,Punjab/J&K/HP; Punjab/J&K/Hp; UP/UK
 INFO,rows whose store key was merged into the store master's one store (aliases),2274.0,
+INFO,"last-year store keys linked to this year's master store (same chain + name + city, new code) or merged with each other",5.0,5 to the master
 INFO,"chain article codes written in Excel scientific notation (digits lost): blanked, then taken from another row of the same chain and EAN",2022.0,
 INFO,EANs written in Excel scientific notation (digits lost) repaired from the same article code or article name,2021.0,of 2022
 PASS,EANs still not a real EAN after the repair (kept by article code),0.0,
@@ -28,7 +29,7 @@ INFO,"EANs that had more than one Description as per Fountain (one now: this yea
 INFO,"EANs that had more than one Net Weight (one now: this year's article master, else most frequent)",555.0,
 INFO,rows still without a chain article code (the EAN identifies the product),52326.0,
 WARN,"identical lines with a store identity (suspected double loads): added into one row, NOT removed (they are in the FY26 baseline)",31966.0,251.59 L
-INFO,rows in -> rows out (one per month x chain x store x article),2190950.0,-> 2072432 (118518 repeated lines added into their row)
+INFO,rows in -> rows out (one per month x chain x store x article),2190950.0,-> 2072426 (118524 repeated lines added into their row)
 PASS,one row per month x chain x store x EAN,0.0,
 PASS,one row per month x chain x store x article code where there is no EAN,0.0,
 PASS,one Zone per store,0.0,
@@ -51,4 +52,5 @@ PASS,input quantity = output quantity,0.0,
 PASS,every chain x month NSV ties to data/raw_drops/_agg/offtake_fy26.json (within 0.01 L),0.005,files 31119.88 L vs baseline 31119.80 L
 PASS,Brand Counter NSV by month ties to the baseline,0.0044,
 PASS,no chain x month with baseline sales is missing from the files,0.0,[]
-WARN,"same chain + store name + city under different store keys in last year only (listed, not merged)",64.0,
+PASS,"no chain + store name + city under two store keys in last year, except where this year's store master holds them as different stores",0.0,
+INFO,"same chain + store name + city, different codes, kept separate because this year's store master holds them as different stores (a shared company name such as Baniya Ki Dukaan)",6.0,

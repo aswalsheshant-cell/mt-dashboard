@@ -107,6 +107,50 @@ def one_spelling(series):
     return series.map(lambda v: best[v.lower()] if isinstance(v, str) else v)
 
 
+MASTER = ROOT / "PowerBI" / "SeedData" / "Masters" / "Store_City_Master.csv"
+LINKS_CSV = ROOT / "data" / "offtake_fy26" / "Store_Key_Links_FY26.csv"
+
+
+def link_stores(a, qc):
+    """One store, one key, across both years. A last-year store key that is not in this year's store master but has the same chain + store name + city as a master store
+    (a re-coded store) takes the master's key; last-year keys that share chain + name + city with each other are merged (the coded one stays). A name that is only the
+    town does not say which store, so those are never linked. Returns the links written to data/offtake_fy26/Store_Key_Links_FY26.csv."""
+    norm = lambda x: re.sub(r"[^a-z0-9]", "", str(x).lower())   # noqa: E731
+    names = a.dropna(subset=["Site Name"]).groupby("sid")["Site Name"].agg(lambda s: sorted(s.value_counts().index, key=len)[-1])
+    city = a.dropna(subset=["City"]).groupby("sid")["City"].agg(lambda s: s.value_counts().index[0])
+    state = a.dropna(subset=["State"]).groupby("sid")["State"].agg(lambda s: s.value_counts().index[0])
+    info = pd.DataFrame({"name": names, "city": city, "state": state}).dropna(subset=["name", "city"])
+    info["chain"] = [k.split("|", 1)[0] for k in info.index]
+    info["generic"] = [norm(n) == norm(c) for n, c in zip(info["name"], info["city"])]
+    info["key"] = info["chain"] + "|" + info["name"].map(norm) + "|" + info["city"].str.lower()
+    info["skey"] = info["chain"] + "|" + info["name"].map(norm) + "|" + info["state"].fillna("").str.lower()      # the master spells cities its own way: link on the state
+    master_keys, mmap = set(), {}
+    if MASTER.exists():
+        m = pd.read_csv(MASTER, dtype=str)
+        master_keys = set(m["Store Key"])
+        mm = m.dropna(subset=["Store Name", "City Final"])
+        mm = mm.assign(key=mm["Chain Name"] + "|" + mm["Store Name"].map(norm) + "|" + mm["State"].fillna("").str.lower(),
+                       generic=[norm(n) == norm(c) for n, c in zip(mm["Store Name"], mm["City Final"])])
+        mm = mm[~mm["generic"]]
+        once = mm.groupby("key")["Store Key"].agg(lambda s: list(s))
+        mmap = {k: v[0] for k, v in once.items() if len(v) == 1}
+    links = {}
+    for sid, r in info[~info["generic"]].iterrows():
+        if sid not in master_keys and r["skey"] in mmap and mmap[r["skey"]] != sid:
+            links[sid] = (mmap[r["skey"]], "same chain + store name + state as one store in this year's store master")
+    rest = info[~info["generic"] & ~info.index.isin(links) & ~info.index.isin(master_keys)]
+    for key, g in rest.groupby("key"):
+        if len(g) > 1:
+            keep = sorted(g.index, key=lambda s: (s.split("|", 1)[1].isdigit() is False, s))[0]
+            for s in g.index:
+                if s != keep:
+                    links[s] = (keep, "same chain + store name + city in last year's files")
+    a["sid"] = a["sid"].map(lambda k: links[k][0] if k in links else k)
+    qc.append(("INFO", "last-year store keys linked to this year's master store (same chain + name + city, new code) or merged with each other",
+               len(links), f"{sum(1 for v in links.values() if v[1].startswith('same chain + store name + state as'))} to the master"))
+    return links
+
+
 def build(src_dirs, article_master, qc):
     frames = []
     for src in src_dirs:
@@ -159,6 +203,7 @@ def build(src_dirs, article_master, qc):
     n_alias = int(a["sid"].isin(alias).sum())
     a["sid"] = a["sid"].map(lambda k: alias.get(k, k))
     qc.append(("INFO", "rows whose store key was merged into the store master's one store (aliases)", n_alias, ""))
+    a.attrs["links"] = link_stores(a, qc)
     # one set of attributes per store: most frequent zone, state, city; the full (not truncated) name
     for col in ("Zone", "State", "City"):
         a[col] = a["sid"].map(a.dropna(subset=[col]).groupby("sid")[col].agg(mode_prefer))
@@ -330,12 +375,21 @@ def main():
     qc.append(("INFO", "rows in -> rows out (one per month x chain x store x article)", len(raw), f"-> {len(c)} ({len(raw) - len(c)} repeated lines added into their row)"))
     checks(raw, c, qc)
     t, r = tie_out(c, a.ly_json, qc)
-    # same store name + city under different codes (not merged: only the current store master's aliases are applied)
+    # after the links: no chain + store name + city under two store keys, unless this year's store master itself holds them as different stores
+    mkeys = set(pd.read_csv(MASTER, dtype=str)["Store Key"]) if MASTER.exists() else set()
     nm = c[c["Site Name"].notna() & c["City"].notna()].drop_duplicates("sid")
-    nm = nm.assign(k=nm["chain"] + "|" + nm["Site Name"].str.lower().str.replace(r"[^a-z0-9]", "", regex=True) + "|" + nm["City"].str.lower())
-    qc.append(("WARN", "same chain + store name + city under different store keys in last year only (listed, not merged)", int(nm.duplicated("k").sum()), ""))
+    flat = lambda x: x.str.lower().str.replace(r"[^a-z0-9]", "", regex=True)   # noqa: E731
+    nm = nm[flat(nm["Site Name"]) != flat(nm["City"])]
+    nm = nm.assign(k=nm["chain"] + "|" + flat(nm["Site Name"]) + "|" + nm["City"].str.lower())
+    grp = nm[nm.duplicated("k", keep=False)].groupby("k")["sid"].agg(list)
+    open_ = [k for k, v in grp.items() if any(s_ not in mkeys for s_ in v)]
+    kept = [k for k, v in grp.items() if all(s_ in mkeys for s_ in v)]
+    qc.append(("PASS" if not open_ else "ERROR", "no chain + store name + city under two store keys in last year, except where this year's store master holds them as different stores", len(open_), "; ".join(open_[:3])))
+    qc.append(("INFO", "same chain + store name + city, different codes, kept separate because this year's store master holds them as different stores (a shared company name such as Baniya Ki Dukaan)", len(kept), ""))
     errors = [x for x in qc if x[0] == "ERROR"]
     a.qc_dir.mkdir(parents=True, exist_ok=True)
+    links = raw.attrs.get("links", {})
+    pd.DataFrame([{"LY Store Key": k, "Store Key": v[0], "Reason": v[1]} for k, v in sorted(links.items())], columns=["LY Store Key", "Store Key", "Reason"]).to_csv(LINKS_CSV, index=False)
     pd.DataFrame(qc, columns=["Severity", "Check", "Count", "Detail"]).to_csv(a.qc_dir / "offtake_fy26_QC.csv", index=False)
     for sev, name, n, ex in qc:
         print(f"[{sev}] {name}: {n}  {ex[:140]}")
