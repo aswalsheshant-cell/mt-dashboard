@@ -120,10 +120,10 @@
    {
     "month": "Aug",
     "name": "Aug",
-    "units": 2073235,
-    "nsv_cr": 37.999,
-    "asp": 183.29,
-    "realisation_pct": 41.5,
+    "units": 2104435,
+    "nsv_cr": 37.267,
+    "asp": 177.09,
+    "realisation_pct": 40.8,
     "asp_index": 100
    }
   ],
@@ -155,151 +155,151 @@
    {
     "from": "Jul",
     "to": "Aug",
-    "value_change_cr": 3.89,
-    "volume_cr": 3.04,
-    "price_cr": 0.84,
+    "value_change_cr": 3.15,
+    "volume_cr": 3.6,
+    "price_cr": -0.45,
     "reads_as": "volume-led"
    }
   ],
   "span": {
    "from": "Apr",
    "to": "Aug",
-   "value_change_cr": 4.4,
-   "volume_cr": 2.0,
-   "price_cr": 2.4
+   "value_change_cr": 3.67,
+   "volume_cr": 2.54,
+   "price_cr": 1.13
   },
   "zones_latest": [
    {
     "name": "West",
-    "units": 499356,
-    "nsv_cr": 8.483,
-    "asp": 169.88,
-    "realisation_pct": 41.4,
-    "asp_index": 93
+    "units": 499399,
+    "nsv_cr": 8.298,
+    "asp": 166.15,
+    "realisation_pct": 40.1,
+    "asp_index": 94
    },
    {
     "name": "North",
-    "units": 444337,
-    "nsv_cr": 8.411,
-    "asp": 189.29,
-    "realisation_pct": 41.1,
+    "units": 455361,
+    "nsv_cr": 8.284,
+    "asp": 181.93,
+    "realisation_pct": 40.6,
     "asp_index": 103
    },
    {
     "name": "South-1",
-    "units": 437643,
-    "nsv_cr": 8.307,
-    "asp": 189.81,
-    "realisation_pct": 41.9,
+    "units": 439794,
+    "nsv_cr": 8.094,
+    "asp": 184.04,
+    "realisation_pct": 41.1,
     "asp_index": 104
    },
    {
     "name": "South-2",
-    "units": 294106,
-    "nsv_cr": 5.207,
-    "asp": 177.04,
-    "realisation_pct": 42.4,
-    "asp_index": 97
+    "units": 294387,
+    "nsv_cr": 5.109,
+    "asp": 173.55,
+    "realisation_pct": 42.0,
+    "asp_index": 98
    },
    {
     "name": "East",
-    "units": 237659,
-    "nsv_cr": 4.873,
-    "asp": 205.03,
-    "realisation_pct": 41.6,
-    "asp_index": 112
+    "units": 253622,
+    "nsv_cr": 4.866,
+    "asp": 191.86,
+    "realisation_pct": 41.9,
+    "asp_index": 108
    },
    {
     "name": "Central",
-    "units": 160134,
-    "nsv_cr": 2.719,
-    "asp": 169.8,
-    "realisation_pct": 40.4,
-    "asp_index": 93
+    "units": 161872,
+    "nsv_cr": 2.616,
+    "asp": 161.61,
+    "realisation_pct": 38.7,
+    "asp_index": 91
    }
   ],
   "zones_cumulative": [
    {
     "name": "West",
-    "units": 2643740,
-    "nsv_cr": 43.193,
-    "asp": 163.38,
-    "realisation_pct": 41.0,
+    "units": 2643783,
+    "nsv_cr": 43.008,
+    "asp": 162.68,
+    "realisation_pct": 40.7,
     "asp_index": 93
    },
    {
     "name": "South-1",
-    "units": 2219354,
-    "nsv_cr": 41.359,
-    "asp": 186.36,
-    "realisation_pct": 42.5,
+    "units": 2221505,
+    "nsv_cr": 41.146,
+    "asp": 185.22,
+    "realisation_pct": 42.4,
     "asp_index": 106
    },
    {
     "name": "North",
-    "units": 2138338,
-    "nsv_cr": 38.563,
-    "asp": 180.34,
-    "realisation_pct": 41.1,
+    "units": 2149362,
+    "nsv_cr": 38.436,
+    "asp": 178.83,
+    "realisation_pct": 41.0,
     "asp_index": 102
    },
    {
     "name": "South-2",
-    "units": 1499720,
-    "nsv_cr": 25.912,
-    "asp": 172.78,
+    "units": 1500001,
+    "nsv_cr": 25.814,
+    "asp": 172.1,
     "realisation_pct": 42.6,
     "asp_index": 98
    },
    {
     "name": "East",
-    "units": 1048582,
-    "nsv_cr": 20.139,
-    "asp": 192.06,
+    "units": 1064545,
+    "nsv_cr": 20.133,
+    "asp": 189.12,
     "realisation_pct": 42.3,
-    "asp_index": 109
+    "asp_index": 108
    },
    {
     "name": "Central",
-    "units": 662418,
-    "nsv_cr": 10.885,
-    "asp": 164.32,
-    "realisation_pct": 39.9,
+    "units": 664156,
+    "nsv_cr": 10.782,
+    "asp": 162.34,
+    "realisation_pct": 39.5,
     "asp_index": 93
    }
   ],
   "brands": [
    {
     "name": "Mamaearth",
-    "units": 7262457,
-    "nsv_cr": 126.363,
-    "asp": 173.99,
+    "units": 7293617,
+    "nsv_cr": 126.12,
+    "asp": 172.92,
     "realisation_pct": 40.8,
     "asp_index": 99
    },
    {
     "name": "The Derma Co.",
-    "units": 2814460,
-    "nsv_cr": 50.432,
-    "asp": 179.19,
-    "realisation_pct": 43.2,
-    "asp_index": 102
+    "units": 2814501,
+    "nsv_cr": 49.956,
+    "asp": 177.49,
+    "realisation_pct": 42.7,
+    "asp_index": 101
    },
    {
     "name": "Aqualogica",
     "units": 117646,
-    "nsv_cr": 2.792,
-    "asp": 237.28,
-    "realisation_pct": 55.1,
+    "nsv_cr": 2.777,
+    "asp": 236.08,
+    "realisation_pct": 54.9,
     "asp_index": 135
    },
    {
     "name": "BBLUNT",
     "units": 14148,
     "nsv_cr": 0.372,
-    "asp": 262.78,
+    "asp": 262.77,
     "realisation_pct": 61.7,
-    "asp_index": 149
+    "asp_index": 150
    },
    {
     "name": "Dr. Sheth's",
@@ -307,31 +307,31 @@
     "nsv_cr": 0.094,
     "asp": 274.41,
     "realisation_pct": 59.4,
-    "asp_index": 156
+    "asp_index": 157
    }
   ],
   "chains": [
    {
     "name": "Dmart",
     "units": 4574385,
-    "nsv_cr": 70.463,
-    "asp": 154.04,
-    "realisation_pct": 39.4,
-    "asp_index": 87
+    "nsv_cr": 70.171,
+    "asp": 153.4,
+    "realisation_pct": 39.0,
+    "asp_index": 88
    },
    {
     "name": "Reliance",
     "units": 2446510,
-    "nsv_cr": 47.995,
-    "asp": 196.18,
-    "realisation_pct": 42.1,
-    "asp_index": 111
+    "nsv_cr": 47.079,
+    "asp": 192.43,
+    "realisation_pct": 42.0,
+    "asp_index": 110
    },
    {
     "name": "Apollo",
-    "units": 2066251,
-    "nsv_cr": 36.253,
-    "asp": 175.45,
+    "units": 2066250,
+    "nsv_cr": 36.162,
+    "asp": 175.01,
     "realisation_pct": 39.9,
     "asp_index": 100
    },
@@ -341,7 +341,7 @@
     "nsv_cr": 6.251,
     "asp": 284.06,
     "realisation_pct": 57.4,
-    "asp_index": 161
+    "asp_index": 162
    },
    {
     "name": "Wellness Forever",
@@ -357,7 +357,7 @@
     "nsv_cr": 3.1,
     "asp": 294.54,
     "realisation_pct": 46.6,
-    "asp_index": 167
+    "asp_index": 168
    },
    {
     "name": "Metro Cnc",
@@ -365,7 +365,7 @@
     "nsv_cr": 2.658,
     "asp": 188.34,
     "realisation_pct": 50.9,
-    "asp_index": 107
+    "asp_index": 108
    },
    {
     "name": "Sancus(Rmt)",
@@ -373,7 +373,7 @@
     "nsv_cr": 2.236,
     "asp": 190.37,
     "realisation_pct": 41.6,
-    "asp_index": 108
+    "asp_index": 109
    },
    {
     "name": "More Retail",
@@ -385,11 +385,19 @@
    },
    {
     "name": "VMM",
-    "units": 75661,
-    "nsv_cr": 1.254,
-    "asp": 165.78,
-    "realisation_pct": 52.2,
-    "asp_index": 94
+    "units": 99543,
+    "nsv_cr": 1.67,
+    "asp": 167.73,
+    "realisation_pct": 52.6,
+    "asp_index": 96
+   },
+   {
+    "name": "V-Mart",
+    "units": 29716,
+    "nsv_cr": 0.644,
+    "asp": 216.73,
+    "realisation_pct": 46.6,
+    "asp_index": 124
    },
    {
     "name": "Spencer",
@@ -397,23 +405,15 @@
     "nsv_cr": 0.511,
     "asp": 216.99,
     "realisation_pct": 51.9,
-    "asp_index": 123
-   },
-   {
-    "name": "V-Mart",
-    "units": 22397,
-    "nsv_cr": 0.494,
-    "asp": 220.7,
-    "realisation_pct": 47.6,
-    "asp_index": 125
+    "asp_index": 124
    }
   ],
   "total": {
    "name": "MT",
-   "units": 10212153,
-   "nsv_cr": 180.052,
-   "asp": 176.31,
-   "realisation_pct": 41.7,
+   "units": 10243353,
+   "nsv_cr": 179.319,
+   "asp": 175.06,
+   "realisation_pct": 41.5,
    "asp_index": 100
   }
  }

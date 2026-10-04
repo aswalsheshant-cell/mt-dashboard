@@ -14,21 +14,27 @@ Blocks
 
 Rules (also written in the JSON, so the page can show them):
   white space      account category is at least 2% of the chain's category sales and our share is under 0.5%
-  low assortment   our articles in the category <= 3 (Lulu, More only) and our share is under the chain average
+  low assortment   our articles in the category <= 3 (Lulu, More, Reliance) and our share is under the chain average
   below average    our share is under half of our chain-wide share (category at least 2% of the chain)
   strong           our share is at least 1.5 times our chain-wide share
-Sizes are indicative: gap = account category sales per month x (our chain-wide share - our category share), never counted twice across
-categories that overlap.
+  relevant         a flag or "proven elsewhere" line is shown only for a category that is at least 0.5% of our own sales across these chains
+                   (Jun-Aug 26) and is not "Other". A category we only sell a trace of in one chain is listed under "not highlighted", never flagged.
+Sizes are indicative: gap = account category sales per month x (our share in the rest of our range, i.e. without Face Wash and Shampoo, minus our
+category share), never counted twice across categories that overlap. Reliance values are gross sales as supplied (about 0.45 of that is our NSV).
 """
 import json
 from pathlib import Path
 
 import pandas as pd
 
+from build_account_share import RELEVANT_MIN_PCT
+
 ROOT = Path(__file__).resolve().parent.parent
 AS = ROOT / "data" / "account_share"
 NIELSEN = ROOT / "data" / "nielsen_aug26.json"
-RULES = {"white_space_min_pct_of_chain": 2.0, "white_space_share_under": 0.5, "low_assortment_articles": 3, "strong_x": 1.5, "below_x": 0.5}
+RULES = {"white_space_min_pct_of_chain": 2.0, "white_space_share_under": 0.5, "low_assortment_articles": 3, "strong_x": 1.5, "below_x": 0.5,
+         "relevant_min_pct_of_our_sales": RELEVANT_MIN_PCT}
+CHAINS = ("Lulu", "More Retail", "Wellness Forever", "Reliance Retail", "Reliance Brand Counter")
 MON = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 
@@ -59,8 +65,15 @@ def build():
     geo = pd.read_csv(AS / "Account_Category_Geo.csv")
     art = pd.read_csv(AS / "Account_Assortment.csv")
     cat = monthly[monthly["Level"] == "Category"]
-    out = {"rules": RULES, "months": {}, "chains": {}, "top5": [], "flags": [], "proven_elsewhere": [], "together": [], "store_map_check": []}
-    for chain in ("Lulu", "More Retail", "Wellness Forever"):
+    rel_m = cat[cat["Month"].isin(["Jun 26", "Jul 26", "Aug 26"])]
+    mix = rel_m.groupby("Common Category")["Honasa Sales Rs L"].sum()
+    mix_pct = (mix / mix.sum() * 100).to_dict()
+    relevant = {k for k, v in mix_pct.items() if v >= RULES["relevant_min_pct_of_our_sales"] and k != "Other"}
+    assert relevant == set(cat.loc[cat["Relevant For Us"] == "Yes", "Common Category"]), "Relevant For Us column and the view disagree: rebuild Account_Category_Monthly.csv"
+    sells_in = rel_m[rel_m["Honasa Sales Rs L"] > 0].groupby("Common Category")["Chain"].agg(lambda x: sorted(set(x))).to_dict()
+    out = {"rules": RULES, "relevant": sorted(relevant),
+           "not_highlighted": [{"common": k, "our_pct": r(v, 2), "chains": sells_in.get(k, [])} for k, v in sorted(mix_pct.items(), key=lambda kv: -kv[1]) if k not in relevant], "months": {}, "chains": {}, "top5": [], "flags": [], "proven_elsewhere": [], "together": [], "store_map_check": []}
+    for chain in CHAINS:
         c = cat[cat["Chain"] == chain]
         months = consistent_months(c, chain)
         all_months = sorted(c["Month"].unique(), key=mk)
@@ -90,7 +103,7 @@ def build():
         prevc = c[c["Month"] == prev].set_index("Category")
         for name, row in lastc.sort_values("Account Sales Rs L", ascending=False).head(5).iterrows():
             p = prevc.loc[name] if name in prevc.index else None
-            out["top5"].append({"chain": chain, "level": "Chain", "name": "All", "month": last, "category": name, "common": row["Common Category"],
+            out["top5"].append({"chain": chain, "level": "Chain", "name": "All", "month": last, "category": name, "common": row["Common Category"], "relevant": row["Common Category"] in relevant,
                                 "account": r(row["Account Sales Rs L"]), "honasa": r(row["Honasa Sales Rs L"]), "share": r(row["Share %"]),
                                 "account_mom": r((row["Account Sales Rs L"] / p["Account Sales Rs L"] - 1) * 100, 1) if p is not None and p["Account Sales Rs L"] > 0 else None,
                                 "honasa_mom": r((row["Honasa Sales Rs L"] / p["Honasa Sales Rs L"] - 1) * 100, 1) if p is not None and p["Honasa Sales Rs L"] > 0 else None})
@@ -98,12 +111,16 @@ def build():
         l3d = c[c["Month"].isin(l3)].groupby(["Category", "Common Category"]).agg(a=("Account Sales Rs L", "sum"), h=("Honasa Sales Rs L", "sum")).reset_index()
         chain_a, chain_h = l3d["a"].sum(), l3d["h"].sum()
         chain_share = share(chain_h, chain_a)
+        rest = l3d[~l3d["Common Category"].isin(["Face Wash & Cleanser", "Shampoo"])]
+        rest_share = share(rest["h"].sum(), rest["a"].sum()) or chain_share      # the rest of our range: the realistic target for a thin category
         art_c = art[(art["Chain"] == chain) & (art["Month"] == last)].set_index("Category")["Articles"] if chain != "Wellness Forever" else pd.Series(dtype=float)
         for _, x in l3d.iterrows():
             pct = x["a"] / chain_a * 100
             s = share(x["h"], x["a"]) or 0.0
             n_art = int(art_c.get(x["Category"], 0)) if len(art_c) else None
             flag = None
+            if x["Common Category"] not in relevant:
+                continue                                  # not a category for us: never highlighted
             if pct >= RULES["white_space_min_pct_of_chain"] and s < RULES["white_space_share_under"]:
                 flag = "White space"
             elif n_art is not None and 0 < n_art <= RULES["low_assortment_articles"] and pct >= RULES["white_space_min_pct_of_chain"] and s < chain_share:
@@ -113,7 +130,8 @@ def build():
             elif pct >= RULES["white_space_min_pct_of_chain"] and s >= chain_share * RULES["strong_x"]:
                 flag = "Strong"
             if flag:
-                gap = max(chain_share - s, 0) / 100 * x["a"] / len(l3) if flag != "Strong" else 0.0
+                target = chain_share if x["Common Category"] in ("Face Wash & Cleanser", "Shampoo") else rest_share
+                gap = max(target - s, 0) / 100 * x["a"] / len(l3) if flag != "Strong" else 0.0
                 out["flags"].append({"chain": chain, "category": x["Category"], "common": x["Common Category"], "flag": flag,
                                      "pct_of_chain": r(pct, 1), "account_avg_month": r(x["a"] / len(l3)), "honasa_avg_month": r(x["h"] / len(l3)),
                                      "share": r(s), "chain_share": r(chain_share), "articles": n_art, "gap_l_month": r(gap), "l3m": l3})
@@ -127,7 +145,8 @@ def build():
                 agg = d.groupby("Category").agg(a=("Account Sales Rs L", "sum"), h=("Honasa Sales Rs L", "sum")).reset_index().sort_values("a", ascending=False).head(5)
                 for _, x in agg.iterrows():
                     out["top5"].append({"chain": chain, "level": level, "name": name, "month": last, "category": x["Category"],
-                                        "common": g[g["Category"] == x["Category"]]["Common Category"].iloc[0], "account": r(x["a"]), "honasa": r(x["h"]),
+                                        "common": g[g["Category"] == x["Category"]]["Common Category"].iloc[0], "relevant": g[g["Category"] == x["Category"]]["Common Category"].iloc[0] in relevant,
+                                        "account": r(x["a"]), "honasa": r(x["h"]),
                                         "share": r(share(x["h"], x["a"])), "account_mom": None, "honasa_mom": None,
                                         "pct_of_geo": r(x["a"] / tot_a * 100, 1)})
     # proven elsewhere: common category share >= 3% in one chain, below 1% in another
@@ -135,7 +154,7 @@ def build():
     comm["share"] = comm["h"] / comm["a"] * 100
     chain_tot = comm.groupby("Chain")["a"].sum()
     for cc, d in comm.groupby("Common Category"):
-        if cc == "Other" or len(d) < 2:
+        if cc not in relevant or len(d) < 2:
             continue
         best = d.sort_values("share", ascending=False).iloc[0]
         if best["share"] < 3:
@@ -147,17 +166,17 @@ def build():
     # chains side by side, face wash and shampoo
     deck = json.loads((ROOT / "data" / "nielsen" / "Deck_MT_Review_Big3_v3_1.json").read_text(encoding="utf-8"))
     fs = deck["fair_share"]
-    for chain in ("Lulu", "More Retail", "Wellness Forever"):
+    for chain in CHAINS:
         ch = out["chains"][chain]
         sh = comm[(comm["Chain"] == chain) & (comm["Common Category"] == "Shampoo")]
-        out["together"].append({"chain": chain, "basis": "Monthly, account report", "period": ch["latest"], "fw_share": ch["fw_share_latest"],
+        out["together"].append({"chain": chain, "basis": "Monthly, account report" if not chain.startswith("Reliance") else "Monthly, Reliance file (gross sales)", "period": ch["latest"], "fw_share": ch["fw_share_latest"],
                                 "fw_account": ch["fw_account_latest"], "fw_honasa": ch["fw_honasa_latest"],
                                 "sh_share": r(share(cat[(cat.Chain == chain) & (cat["Common Category"] == "Shampoo") & (cat.Month == ch["latest"])]["Honasa Sales Rs L"].sum(),
                                                     cat[(cat.Chain == chain) & (cat["Common Category"] == "Shampoo") & (cat.Month == ch["latest"])]["Account Sales Rs L"].sum())),
                                 "total_share": ch["share_latest"], "scope": ch["scope"]})
     out["together"].append({"chain": "Dmart", "basis": "Quarterly, review deck", "period": fs["quarters_dmart"][-1], "fw_share": fs["dmart_fw"][-1], "sh_share": fs["dmart_sh"][-1],
                             "scope": "Honasa value as % of the retailer's own category (NSV)"})
-    out["together"].append({"chain": "Reliance Retail", "basis": "Quarterly, review deck", "period": fs["quarters_reliance"][-1], "fw_share": fs["reliance_fw"][-1], "sh_share": fs["reliance_sh"][-1],
+    out["together"].append({"chain": "Reliance Retail (deck)", "basis": "Quarterly, review deck", "period": fs["quarters_reliance"][-1], "fw_share": fs["reliance_fw"][-1], "sh_share": fs["reliance_sh"][-1],
                             "scope": "Honasa value as % of the retailer's own category (MRP)"})
     sm = pd.read_csv(AS / "Account_Store_Map.csv")
     out["store_map_check"] = json.loads(sm.fillna("").to_json(orient="records"))
@@ -170,10 +189,32 @@ def build():
          "scope": "Sub-categories where Honasa sells to May 26; full account category report from Jun 26 (not comparable across the break)"},
         {"file": "Wellness_MS_Jun-Aug26_Updated", "chain": "Wellness Forever", "months": "Mar-Aug 26", "grain": "category x month (Honasa and overall)",
          "store_city": "No: category level only, no store, zone, state or city", "zone_state": "No", "articles": "No", "scope": "All 63 categories in the account file"},
+        {"file": "RIL_BA_Store_MS_Aug26 (Article MS Source)", "chain": "Reliance Retail", "months": "Nov 25-Aug 26", "grain": "article x state x month, Reliance (RRL) and Honasa (HCL)",
+         "store_city": "No store code or city in this sheet: zone and state only (the 10-month detail)", "zone_state": "Yes", "articles": "Yes, Honasa articles",
+         "scope": "Reliance stores outside the brand counters; RRL Others (categories outside the file's own pivots) left out; gross sales Rs lakh as supplied"},
+        {"file": "RIL_BA_Store_MS_Aug26 (BA Store)", "chain": "Reliance Brand Counter", "months": "Jan-Aug 26", "grain": "store x article x month for the staffed brand-counter (BA) stores",
+         "store_city": "Yes: about 323 stores with store code, name, zone, state and city (184 cities, 4 stores without a city); kept out of this page, counts only",
+         "zone_state": "Yes", "articles": "Yes", "scope": "Staffed counters only, kept apart from Reliance Retail and never added to it"},
         {"file": "UniverseMT.csv", "chain": "All MT", "months": "Current", "grain": "store (426 stores)", "store_city": "No city: store code, chain, zone, state, tier and store type only",
          "zone_state": "Yes", "articles": "No", "scope": "Same file already in the repo (identical, 426 rows)"}]
     out["facewash_plan"] = facewash_plan(out)
     return out
+
+
+def reliance_nsv_factor(view):
+    """Our Reliance NSV (store x article offtake, brand counters left out) / our gross sales in the Reliance file, Jun-Aug 26. None if the offtake files are not there."""
+    raw = ROOT / "PowerBI" / "RawDataFolders" / "Offtake_Monthly"
+    nsv, gross = 0.0, 0.0
+    ch = view["chains"]["Reliance Retail"]
+    for mon in ("Jun", "Jul", "Aug"):
+        f = raw / f"offtake_store_article_{mon}_26.csv"
+        if not f.exists():
+            return None
+        d = pd.read_csv(f, usecols=["Chain Name", "Store Type", "NSV"], low_memory=False)
+        d = d[d["Chain Name"].astype(str).str.strip().str.lower().eq("reliance") & ~d["Store Type"].astype(str).str.strip().eq("Brand Counter")]
+        nsv += d["NSV"].sum()
+    gross = sum(x["honasa"] for x in ch["series"] if x["month"] in ("Jun 26", "Jul 26", "Aug 26"))
+    return nsv / gross if gross else None
 
 
 def facewash_plan(view):
@@ -214,15 +255,22 @@ def facewash_plan(view):
                            "action": "List Facewash 200 ml in Dmart in the 250/600 ml-led architecture (the range logic of the deck)", "size_cr_month": r(gain),
                            "method": f"Dmart Facewash NSV per month x 200 ml share of Facewash NSV in chains that sell it ({ratio * 100:.0f}%) x 50% haircut",
                            "owner": "NKAM Dmart", "timeline": "Listing cycle Nov-Dec 26", "kpi": "200 ml in Dmart stores"})
-    # 4 chain share: lift face wash share inside accounts toward the best account
-    best = max((c["fw_share_latest"] for c in view["chains"].values() if c["fw_share_latest"] is not None), default=None)
-    for name, c in view["chains"].items():
+    # 4 chain share: lift face wash share inside accounts toward the best account (the staffed brand counters are not a benchmark)
+    accts = {n: c for n, c in view["chains"].items() if n != "Reliance Brand Counter"}
+    best = max((c["fw_share_latest"] for c in accts.values() if c["fw_share_latest"] is not None), default=None)
+    for name, c in accts.items():
         if c["fw_share_latest"] is None or c["fw_account_l3m_avg"] is None or best is None or c["fw_share_latest"] >= best - 0.01:
             continue                                    # the best account is the benchmark, not a lever
         add = 3.0
+        factor, basis = 1.0, ""
+        if name == "Reliance Retail":                   # the Reliance file is gross sales; our NSV is about 0.4 of it, so size in NSV
+            factor = reliance_nsv_factor(view)
+            if factor is None:
+                continue
+            basis = f" x {factor:.2f} (our NSV / gross sales in the Reliance file, Jun-Aug 26)"
         levers.append({"lever": f"Account share: {name}", "evidence": f"Face wash & cleanser share {c['fw_share_latest']:.1f}% of {name}'s category (Rs {c['fw_account_l3m_avg']:.0f} L a month); best account {best:.1f}%",
-                       "action": f"Shelf share and range depth in {name}: facings, hero SKUs in every store, end-cap in the lowest-share states", "size_cr_month": r(add / 100 * c["fw_account_l3m_avg"] / 100),
-                       "method": f"+{add:.0f} pp of the account's Face Wash category (L3M average)", "owner": f"NKAM {name}", "timeline": "Oct-Nov 26", "kpi": f"Share in {name} +{add:.0f} pp"})
+                       "action": f"Shelf share and range depth in {name}: facings, hero SKUs in every store, end-cap in the lowest-share states", "size_cr_month": r(add / 100 * c["fw_account_l3m_avg"] * factor / 100),
+                       "method": f"+{add:.0f} pp of the account's Face Wash category (L3M average){basis}", "owner": f"NKAM {name}", "timeline": "Oct-Nov 26", "kpi": f"Share in {name} +{add:.0f} pp"})
     return {"levers": levers, "total_cr_month": r(sum(x["size_cr_month"] or 0 for x in levers)),
             "note": "Levers overlap (a listing also lifts WD and account share), so the total is an upper bound, not a forecast.",
             "nielsen": {"share": me and me["ms"], "share_yoy_pp": me and me["pp"], "wd": me and me["wd"], "category_cr": cat_cr}}

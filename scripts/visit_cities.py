@@ -69,7 +69,7 @@ STATE_STANDARD = {
     "jharkhand": "Jharkhand", "jammukashmir": "Jammu & Kashmir", "jammukasmir": "Jammu & Kashmir", "jammuandkashmir": "Jammu & Kashmir",
     "karnataka": "Karnataka", "kerala": "Kerala", "madhyapradesh": "Madhya Pradesh", "mp": "Madhya Pradesh", "maharashtra": "Maharashtra",
     "mumbai": "Maharashtra", "northeast": "Northeast", "odisha": "Odisha", "orissa": "Odisha", "punjab": "Punjab", "rajasthan": "Rajasthan",
-    "tamilnadu": "Tamil Nadu", "telangana": "Telangana", "up": "Uttar Pradesh", "uttarpradesh": "Uttar Pradesh", "uttarakhand": "Uttarakhand",
+    "tamilnadu": "Tamil Nadu", "tn": "Tamil Nadu", "cg": "Chhattisgarh", "telangana": "Telangana", "up": "Uttar Pradesh", "uttarpradesh": "Uttar Pradesh", "uttarakhand": "Uttarakhand",
     "westbengal": "West Bengal", "panindia": "Pan India",
 }
 STATE_GROUPS = {"upuk", "punjabjkhp"}          # regional groupings in the source (not a state): the state is taken from the store's city

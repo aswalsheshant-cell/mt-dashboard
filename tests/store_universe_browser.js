@@ -11,8 +11,21 @@ const { launchChromium } = require('./browser_launch');
   await p.waitForTimeout(3500);
   const fails = [], seen = {};
   for (const t of ['executive-cockpit', 'inventory-health']) {
+    await p.evaluate(() => { window.__suOpen = false; });   // each tab starts closed
     await p.evaluate(id => show(id), t);
     await p.waitForTimeout(300);
+    // the store universe line stays closed until the user clicks it
+    const closed = await p.evaluate(id => {
+      const d = document.getElementById('tab-' + id).querySelector('details.note');
+      return d ? { open: d.open, text: d.innerText } : null;
+    }, t);
+    if (!closed) fails.push(`${t}: store universe toggle missing`);
+    else {
+      if (closed.open) fails.push(`${t}: store universe should be closed by default`);
+      if (/tentative/.test(closed.text)) fails.push(`${t}: store universe detail shown without a click`);
+      await p.evaluate(id => document.getElementById('tab-' + id).querySelector('details.note > summary').click(), t);
+      await p.waitForTimeout(150);
+    }
     const r = await p.evaluate(id => {
       const e = document.getElementById('tab-' + id), txt = e.innerText;
       const k = [...e.querySelectorAll('.kpi,.kpi-card')].map(x => x.innerText.replace(/\n+/g, ' | ')).find(x => /ACTIVE MT STORES/i.test(x));

@@ -1,358 +1,1023 @@
-Month,Category,Articles,Stores,Chain,Common Category
-Apr 26,Baby Bath,2,15,Lulu,Baby Care
-Apr 26,Baby Cream,1,9,Lulu,Baby Care
-Apr 26,Baby Lotions,1,13,Lulu,Baby Care
-Apr 26,Baby Oil,1,8,Lulu,Baby Care
-Apr 26,Baby Powder,1,3,Lulu,Baby Care
-Apr 26,Baby Shampoos,1,15,Lulu,Baby Care
-Apr 26,Baby Soap,1,13,Lulu,Baby Care
-Apr 26,Bath Soaps,5,14,Lulu,Body Wash & Soap
-Apr 26,Body Lotion,4,16,Lulu,Body Lotion & Care
-Apr 26,Conditioners,4,16,Lulu,Conditioner
-Apr 26,Eye Care,1,4,Lulu,Face Moisturiser & Cream
-Apr 26,Face Mask,4,12,Lulu,Face Mask & Scrub
-Apr 26,Face Wash,29,17,Lulu,Face Wash & Cleanser
-Apr 26,Facial Cleanser,3,11,Lulu,Face Wash & Cleanser
-Apr 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub
-Apr 26,Fairness/Whtng.Cream,7,14,Lulu,Face Moisturiser & Cream
-Apr 26,Hair Gel,1,6,Lulu,Hair Treatment & Styling
-Apr 26,Hair Oils,4,17,Lulu,Hair Oil
-Apr 26,Hair Treatments&Mask,2,17,Lulu,Hair Treatment & Styling
-Apr 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling
-Apr 26,Lip Balms,7,16,Lulu,Lip Care
-Apr 26,Moistur.Cream/Fluid,22,17,Lulu,Face Moisturiser & Cream
-Apr 26,Other Baby care,1,14,Lulu,Baby Care
-Apr 26,Other Facial Care,17,16,Lulu,Face Moisturiser & Cream
-Apr 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream
-Apr 26,Shampoo,11,17,Lulu,Shampoo
-Apr 26,Shower Gel&Body Wash,4,13,Lulu,Body Wash & Soap
-Apr 26,Sun Care,19,17,Lulu,Sun Care
-Apr 26,Tooth Paste,1,10,Lulu,Oral Care
-Aug 26,Baby Bath,2,17,Lulu,Baby Care
-Aug 26,Baby Cream,1,7,Lulu,Baby Care
-Aug 26,Baby Lotions,1,13,Lulu,Baby Care
-Aug 26,Baby Oil,1,9,Lulu,Baby Care
-Aug 26,Baby Powder,1,3,Lulu,Baby Care
-Aug 26,Baby Shampoos,1,15,Lulu,Baby Care
-Aug 26,Baby Soap,1,17,Lulu,Baby Care
-Aug 26,Bath Soaps,5,18,Lulu,Body Wash & Soap
-Aug 26,Body Lotion,5,19,Lulu,Body Lotion & Care
-Aug 26,Conditioners,4,18,Lulu,Conditioner
-Aug 26,Eye Care,1,10,Lulu,Face Moisturiser & Cream
-Aug 26,Face Mask,5,15,Lulu,Face Mask & Scrub
-Aug 26,Face Wash,29,19,Lulu,Face Wash & Cleanser
-Aug 26,Facial Cleanser,3,7,Lulu,Face Wash & Cleanser
-Aug 26,Facial Scrub,1,12,Lulu,Face Mask & Scrub
-Aug 26,Fairness/Whtng.Cream,6,15,Lulu,Face Moisturiser & Cream
-Aug 26,Female & Unisex Deo,6,12,Lulu,Deodorant
-Aug 26,Hair Gel,1,9,Lulu,Hair Treatment & Styling
-Aug 26,Hair Oils,4,17,Lulu,Hair Oil
-Aug 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling
-Aug 26,Henna Colorants,1,4,Lulu,Hair Treatment & Styling
-Aug 26,Lip Balms,8,18,Lulu,Lip Care
-Aug 26,Moistur.Cream/Fluid,24,19,Lulu,Face Moisturiser & Cream
-Aug 26,Other Baby care,1,10,Lulu,Baby Care
-Aug 26,Other Facial Care,22,19,Lulu,Face Moisturiser & Cream
-Aug 26,Other Skin Care,1,6,Lulu,Face Moisturiser & Cream
-Aug 26,Shampoo,14,19,Lulu,Shampoo
-Aug 26,Shower Gel&Body Wash,4,14,Lulu,Body Wash & Soap
-Aug 26,Sun Care,21,19,Lulu,Sun Care
-Aug 26,Tooth Paste,1,14,Lulu,Oral Care
-Feb 26,Baby Bath,2,15,Lulu,Baby Care
-Feb 26,Baby Cream,1,9,Lulu,Baby Care
-Feb 26,Baby Lotions,1,13,Lulu,Baby Care
-Feb 26,Baby Oil,1,11,Lulu,Baby Care
-Feb 26,Baby Powder,1,5,Lulu,Baby Care
-Feb 26,Baby Shampoos,1,15,Lulu,Baby Care
-Feb 26,Baby Soap,1,14,Lulu,Baby Care
-Feb 26,Bath Soaps,5,15,Lulu,Body Wash & Soap
-Feb 26,Body Lotion,4,16,Lulu,Body Lotion & Care
-Feb 26,Conditioners,4,16,Lulu,Conditioner
-Feb 26,Eye Care,1,2,Lulu,Face Moisturiser & Cream
-Feb 26,Face Mask,4,9,Lulu,Face Mask & Scrub
-Feb 26,Face Wash,29,17,Lulu,Face Wash & Cleanser
-Feb 26,Facial Cleanser,3,11,Lulu,Face Wash & Cleanser
-Feb 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub
-Feb 26,Fairness/Whtng.Cream,7,15,Lulu,Face Moisturiser & Cream
-Feb 26,Hair Gel,1,6,Lulu,Hair Treatment & Styling
-Feb 26,Hair Oils,4,17,Lulu,Hair Oil
-Feb 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling
-Feb 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling
-Feb 26,Lip Balms,7,16,Lulu,Lip Care
-Feb 26,Moistur.Cream/Fluid,21,17,Lulu,Face Moisturiser & Cream
-Feb 26,Other Baby care,1,11,Lulu,Baby Care
-Feb 26,Other Facial Care,17,16,Lulu,Face Moisturiser & Cream
-Feb 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream
-Feb 26,Shampoo,11,17,Lulu,Shampoo
-Feb 26,Shower Gel&Body Wash,5,12,Lulu,Body Wash & Soap
-Feb 26,Sun Care,19,16,Lulu,Sun Care
-Feb 26,Tooth Paste,1,13,Lulu,Oral Care
-Jan 26,Baby Bath,2,15,Lulu,Baby Care
-Jan 26,Baby Cream,1,8,Lulu,Baby Care
-Jan 26,Baby Lotions,1,13,Lulu,Baby Care
-Jan 26,Baby Oil,1,8,Lulu,Baby Care
-Jan 26,Baby Powder,1,5,Lulu,Baby Care
-Jan 26,Baby Shampoos,1,15,Lulu,Baby Care
-Jan 26,Baby Soap,1,14,Lulu,Baby Care
-Jan 26,Bath Soaps,5,13,Lulu,Body Wash & Soap
-Jan 26,Body Lotion,4,15,Lulu,Body Lotion & Care
-Jan 26,Conditioners,4,15,Lulu,Conditioner
-Jan 26,Eye Care,1,2,Lulu,Face Moisturiser & Cream
-Jan 26,Face Mask,3,10,Lulu,Face Mask & Scrub
-Jan 26,Face Wash,29,16,Lulu,Face Wash & Cleanser
-Jan 26,Facial Cleanser,3,13,Lulu,Face Wash & Cleanser
-Jan 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub
-Jan 26,Fairness/Whtng.Cream,7,15,Lulu,Face Moisturiser & Cream
-Jan 26,Hair Gel,1,7,Lulu,Hair Treatment & Styling
-Jan 26,Hair Oils,5,16,Lulu,Hair Oil
-Jan 26,Hair Treatments&Mask,2,15,Lulu,Hair Treatment & Styling
-Jan 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling
-Jan 26,Lip Balms,8,16,Lulu,Lip Care
-Jan 26,Moistur.Cream/Fluid,23,16,Lulu,Face Moisturiser & Cream
-Jan 26,Other Baby care,1,13,Lulu,Baby Care
-Jan 26,Other Facial Care,17,15,Lulu,Face Moisturiser & Cream
-Jan 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream
-Jan 26,Shampoo,11,16,Lulu,Shampoo
-Jan 26,Shower Gel&Body Wash,5,12,Lulu,Body Wash & Soap
-Jan 26,Sun Care,18,16,Lulu,Sun Care
-Jan 26,Tooth Paste,1,13,Lulu,Oral Care
-Jul 26,Baby Bath,2,14,Lulu,Baby Care
-Jul 26,Baby Cream,1,7,Lulu,Baby Care
-Jul 26,Baby Lotions,1,13,Lulu,Baby Care
-Jul 26,Baby Oil,1,6,Lulu,Baby Care
-Jul 26,Baby Powder,1,3,Lulu,Baby Care
-Jul 26,Baby Shampoos,1,17,Lulu,Baby Care
-Jul 26,Baby Soap,1,17,Lulu,Baby Care
-Jul 26,Bath Soaps,5,18,Lulu,Body Wash & Soap
-Jul 26,Body Lotion,5,19,Lulu,Body Lotion & Care
-Jul 26,Conditioners,4,18,Lulu,Conditioner
-Jul 26,Eye Care,1,9,Lulu,Face Moisturiser & Cream
-Jul 26,Face Mask,6,15,Lulu,Face Mask & Scrub
-Jul 26,Face Wash,29,19,Lulu,Face Wash & Cleanser
-Jul 26,Facial Cleanser,2,8,Lulu,Face Wash & Cleanser
-Jul 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub
-Jul 26,Fairness/Whtng.Cream,6,15,Lulu,Face Moisturiser & Cream
-Jul 26,Female & Unisex Deo,6,12,Lulu,Deodorant
-Jul 26,Hair Gel,1,8,Lulu,Hair Treatment & Styling
-Jul 26,Hair Oils,4,16,Lulu,Hair Oil
-Jul 26,Hair Treatments&Mask,2,15,Lulu,Hair Treatment & Styling
-Jul 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling
-Jul 26,Lip Balms,8,19,Lulu,Lip Care
-Jul 26,Moistur.Cream/Fluid,23,19,Lulu,Face Moisturiser & Cream
-Jul 26,Other Baby care,1,12,Lulu,Baby Care
-Jul 26,Other Facial Care,22,19,Lulu,Face Moisturiser & Cream
-Jul 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream
-Jul 26,Shampoo,14,19,Lulu,Shampoo
-Jul 26,Shower Gel&Body Wash,4,16,Lulu,Body Wash & Soap
-Jul 26,Sun Care,21,19,Lulu,Sun Care
-Jul 26,Tooth Paste,1,14,Lulu,Oral Care
-Jun 26,Baby Bath,2,15,Lulu,Baby Care
-Jun 26,Baby Cream,1,8,Lulu,Baby Care
-Jun 26,Baby Lotions,1,12,Lulu,Baby Care
-Jun 26,Baby Oil,1,7,Lulu,Baby Care
-Jun 26,Baby Powder,1,2,Lulu,Baby Care
-Jun 26,Baby Shampoos,1,14,Lulu,Baby Care
-Jun 26,Baby Soap,1,15,Lulu,Baby Care
-Jun 26,Bath Soaps,5,17,Lulu,Body Wash & Soap
-Jun 26,Body Lotion,5,18,Lulu,Body Lotion & Care
-Jun 26,Conditioners,4,19,Lulu,Conditioner
-Jun 26,Eye Care,1,8,Lulu,Face Moisturiser & Cream
-Jun 26,Face Mask,6,16,Lulu,Face Mask & Scrub
-Jun 26,Face Wash,29,19,Lulu,Face Wash & Cleanser
-Jun 26,Facial Cleanser,1,7,Lulu,Face Wash & Cleanser
-Jun 26,Facial Scrub,1,15,Lulu,Face Mask & Scrub
-Jun 26,Fairness/Whtng.Cream,6,15,Lulu,Face Moisturiser & Cream
-Jun 26,Female & Unisex Deo,6,11,Lulu,Deodorant
-Jun 26,Hair Gel,1,10,Lulu,Hair Treatment & Styling
-Jun 26,Hair Oils,4,16,Lulu,Hair Oil
-Jun 26,Hair Treatments&Mask,2,13,Lulu,Hair Treatment & Styling
-Jun 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling
-Jun 26,Lip Balms,8,19,Lulu,Lip Care
-Jun 26,Moistur.Cream/Fluid,23,19,Lulu,Face Moisturiser & Cream
-Jun 26,Other Baby care,1,12,Lulu,Baby Care
-Jun 26,Other Facial Care,22,18,Lulu,Face Moisturiser & Cream
-Jun 26,Other Skin Care,1,8,Lulu,Face Moisturiser & Cream
-Jun 26,Shampoo,14,19,Lulu,Shampoo
-Jun 26,Shower Gel&Body Wash,4,14,Lulu,Body Wash & Soap
-Jun 26,Sun Care,21,19,Lulu,Sun Care
-Jun 26,Tooth Paste,1,15,Lulu,Oral Care
-Mar 26,Baby Bath,2,15,Lulu,Baby Care
-Mar 26,Baby Cream,1,10,Lulu,Baby Care
-Mar 26,Baby Lotions,1,13,Lulu,Baby Care
-Mar 26,Baby Oil,1,9,Lulu,Baby Care
-Mar 26,Baby Powder,1,4,Lulu,Baby Care
-Mar 26,Baby Shampoos,1,15,Lulu,Baby Care
-Mar 26,Baby Soap,1,15,Lulu,Baby Care
-Mar 26,Bath Soaps,5,16,Lulu,Body Wash & Soap
-Mar 26,Body Lotion,4,17,Lulu,Body Lotion & Care
-Mar 26,Conditioners,4,16,Lulu,Conditioner
-Mar 26,Eye Care,1,3,Lulu,Face Moisturiser & Cream
-Mar 26,Face Mask,4,13,Lulu,Face Mask & Scrub
-Mar 26,Face Wash,29,17,Lulu,Face Wash & Cleanser
-Mar 26,Facial Cleanser,2,11,Lulu,Face Wash & Cleanser
-Mar 26,Facial Scrub,1,15,Lulu,Face Mask & Scrub
-Mar 26,Fairness/Whtng.Cream,7,16,Lulu,Face Moisturiser & Cream
-Mar 26,Hair Gel,1,6,Lulu,Hair Treatment & Styling
-Mar 26,Hair Oils,4,17,Lulu,Hair Oil
-Mar 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling
-Mar 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling
-Mar 26,Lip Balms,7,16,Lulu,Lip Care
-Mar 26,Moistur.Cream/Fluid,22,17,Lulu,Face Moisturiser & Cream
-Mar 26,Other Baby care,1,14,Lulu,Baby Care
-Mar 26,Other Facial Care,17,16,Lulu,Face Moisturiser & Cream
-Mar 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream
-Mar 26,Shampoo,11,17,Lulu,Shampoo
-Mar 26,Shower Gel&Body Wash,4,12,Lulu,Body Wash & Soap
-Mar 26,Sun Care,19,17,Lulu,Sun Care
-Mar 26,Tooth Paste,1,13,Lulu,Oral Care
-May 26,Baby Bath,2,15,Lulu,Baby Care
-May 26,Baby Cream,1,10,Lulu,Baby Care
-May 26,Baby Lotions,1,14,Lulu,Baby Care
-May 26,Baby Oil,1,8,Lulu,Baby Care
-May 26,Baby Powder,1,1,Lulu,Baby Care
-May 26,Baby Shampoos,1,17,Lulu,Baby Care
-May 26,Baby Soap,1,14,Lulu,Baby Care
-May 26,Bath Soaps,5,16,Lulu,Body Wash & Soap
-May 26,Body Lotion,5,18,Lulu,Body Lotion & Care
-May 26,Conditioners,4,18,Lulu,Conditioner
-May 26,Eye Care,1,6,Lulu,Face Moisturiser & Cream
-May 26,Face Mask,6,16,Lulu,Face Mask & Scrub
-May 26,Face Wash,29,18,Lulu,Face Wash & Cleanser
-May 26,Facial Cleanser,2,13,Lulu,Face Wash & Cleanser
-May 26,Facial Scrub,1,15,Lulu,Face Mask & Scrub
-May 26,Fairness/Whtng.Cream,7,15,Lulu,Face Moisturiser & Cream
-May 26,Female & Unisex Deo,6,8,Lulu,Deodorant
-May 26,Hair Gel,1,8,Lulu,Hair Treatment & Styling
-May 26,Hair Oils,4,18,Lulu,Hair Oil
-May 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling
-May 26,Henna Colorants,1,6,Lulu,Hair Treatment & Styling
-May 26,Lip Balms,8,18,Lulu,Lip Care
-May 26,Moistur.Cream/Fluid,24,18,Lulu,Face Moisturiser & Cream
-May 26,Other Baby care,1,13,Lulu,Baby Care
-May 26,Other Facial Care,22,17,Lulu,Face Moisturiser & Cream
-May 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream
-May 26,Shampoo,13,18,Lulu,Shampoo
-May 26,Shower Gel&Body Wash,4,14,Lulu,Body Wash & Soap
-May 26,Sun Care,21,18,Lulu,Sun Care
-May 26,Tooth Paste,1,16,Lulu,Oral Care
-Aug 26,Baby / Baby Hygiene,16,9,More Retail,Baby Care
-Aug 26,Hair Care / Conditioner,1,8,More Retail,Conditioner
-Aug 26,Hair Care / Hair Oil,1,8,More Retail,Hair Oil
-Aug 26,Hair Care / Shampoo,7,8,More Retail,Shampoo
-Aug 26,Hair Care / Treatment & Styling,4,4,More Retail,Hair Treatment & Styling
-Aug 26,Insecticide / Repellant / Fly Insecticide / Repellant,1,1,More Retail,Other
-Aug 26,OTC / Pain & Relief,1,4,More Retail,Other
-Aug 26,Oral Care / Tooth Paste,1,5,More Retail,Oral Care
-Aug 26,Personal Wash / Soap,2,5,More Retail,Body Wash & Soap
-Aug 26,Skin Care / Body Care,3,6,More Retail,Body Lotion & Care
-Aug 26,Skin Care / Face Care,12,7,More Retail,Face Moisturiser & Cream
-Aug 26,Skin Care / Facial Cleanser,16,10,More Retail,Face Wash & Cleanser
-Jul 26,Baby / Baby Hygiene,18,9,More Retail,Baby Care
-Jul 26,Hair Care / Conditioner,1,8,More Retail,Conditioner
-Jul 26,Hair Care / Hair Oil,1,8,More Retail,Hair Oil
-Jul 26,Hair Care / Shampoo,7,9,More Retail,Shampoo
-Jul 26,Hair Care / Treatment & Styling,4,4,More Retail,Hair Treatment & Styling
-Jul 26,Insecticide / Repellant / Fly Insecticide / Repellant,1,2,More Retail,Other
-Jul 26,OTC / Pain & Relief,1,5,More Retail,Other
-Jul 26,Oral Care / Tooth Paste,1,5,More Retail,Oral Care
-Jul 26,Personal Wash / Soap,2,5,More Retail,Body Wash & Soap
-Jul 26,Skin Care / Body Care,3,6,More Retail,Body Lotion & Care
-Jul 26,Skin Care / Face Care,12,8,More Retail,Face Moisturiser & Cream
-Jul 26,Skin Care / Facial Cleanser,16,10,More Retail,Face Wash & Cleanser
-Jun 26,Baby / Baby Hygiene,18,9,More Retail,Baby Care
-Jun 26,Hair Care / Conditioner,1,8,More Retail,Conditioner
-Jun 26,Hair Care / Hair Oil,1,8,More Retail,Hair Oil
-Jun 26,Hair Care / Shampoo,7,9,More Retail,Shampoo
-Jun 26,Hair Care / Treatment & Styling,4,4,More Retail,Hair Treatment & Styling
-Jun 26,Insecticide / Repellant / Fly Insecticide / Repellant,1,1,More Retail,Other
-Jun 26,Insecticide / Repellant / Multi-function Insecticide / Repellant,1,1,More Retail,Other
-Jun 26,OTC / Pain & Relief,1,5,More Retail,Other
-Jun 26,Oral Care / Tooth Paste,1,5,More Retail,Oral Care
-Jun 26,Personal Wash / Soap,2,5,More Retail,Body Wash & Soap
-Jun 26,Skin Care / Body Care,3,6,More Retail,Body Lotion & Care
-Jun 26,Skin Care / Face Care,12,8,More Retail,Face Moisturiser & Cream
-Jun 26,Skin Care / Facial Cleanser,16,10,More Retail,Face Wash & Cleanser
-Aug 26,Baby / Baby Hygiene / Baby Hair Oil,1,4,More Retail,Baby Care
-Aug 26,Baby / Baby Hygiene / Baby Massage Oil,1,1,More Retail,Baby Care
-Aug 26,Baby / Baby Hygiene / Baby Moisturizer,7,6,More Retail,Baby Care
-Aug 26,Baby / Baby Hygiene / Baby Powder,1,4,More Retail,Baby Care
-Aug 26,Baby / Baby Hygiene / Baby Shampoo,1,3,More Retail,Baby Care
-Aug 26,Baby / Baby Hygiene / Baby Soap,2,9,More Retail,Baby Care
-Aug 26,Baby / Baby Hygiene / Baby Toothbrush,1,7,More Retail,Baby Care
-Aug 26,Baby / Baby Hygiene / Others,2,2,More Retail,Baby Care
-Aug 26,Hair Care / Conditioner / Rinsing Off,1,8,More Retail,Conditioner
-Aug 26,Hair Care / Hair Oil / Others,1,8,More Retail,Hair Oil
-Aug 26,Hair Care / Shampoo / Functional Shampoo,2,6,More Retail,Shampoo
-Aug 26,Hair Care / Shampoo / Premium Beauty,4,6,More Retail,Shampoo
-Aug 26,Hair Care / Shampoo / Regular Shampoo,1,8,More Retail,Shampoo
-Aug 26,Hair Care / Treatment & Styling / Mousse Serum & Cream,4,4,More Retail,Face Serum & Treatment
-Aug 26,Insecticide / Repellant / Fly Insecticide / Repellant / Spray FIK,1,1,More Retail,Hair Treatment & Styling
-Aug 26,OTC / Pain & Relief / Cough and Cold,1,4,More Retail,Other
-Aug 26,Oral Care / Tooth Paste / Kids Toothpaste,1,5,More Retail,Oral Care
-Aug 26,Personal Wash / Soap / Premium Soap,2,5,More Retail,Body Wash & Soap
-Aug 26,Skin Care / Body Care / Cream & Lotion Body,2,6,More Retail,Body Lotion & Care
-Aug 26,Skin Care / Body Care / Others,1,5,More Retail,Body Lotion & Care
-Aug 26,Skin Care / Face Care / Cream & Lotion Body,2,7,More Retail,Face Moisturiser & Cream
-Aug 26,Skin Care / Face Care / Fairness,1,6,More Retail,Face Moisturiser & Cream
-Aug 26,Skin Care / Face Care / Moisturising,1,4,More Retail,Face Moisturiser & Cream
-Aug 26,Skin Care / Face Care / Others,1,2,More Retail,Face Moisturiser & Cream
-Aug 26,Skin Care / Face Care / Sunscreen,7,6,More Retail,Sun Care
-Aug 26,Skin Care / Facial Cleanser / Facewashes,14,10,More Retail,Face Wash & Cleanser
-Aug 26,Skin Care / Facial Cleanser / Mask/ pack,2,2,More Retail,Face Wash & Cleanser
-Jul 26,Baby / Baby Hygiene / Baby Hair Oil,1,4,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Baby Massage Oil,1,2,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Baby Moisturizer,7,5,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Baby Powder,1,5,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Baby Shampoo,1,4,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Baby Soap,2,9,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Baby Toothbrush,1,6,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Baby Wash,2,3,More Retail,Baby Care
-Jul 26,Baby / Baby Hygiene / Others,2,2,More Retail,Baby Care
-Jul 26,Hair Care / Conditioner / Rinsing Off,1,8,More Retail,Conditioner
-Jul 26,Hair Care / Hair Oil / Others,1,8,More Retail,Hair Oil
-Jul 26,Hair Care / Shampoo / Functional Shampoo,2,7,More Retail,Shampoo
-Jul 26,Hair Care / Shampoo / Premium Beauty,4,6,More Retail,Shampoo
-Jul 26,Hair Care / Shampoo / Regular Shampoo,1,8,More Retail,Shampoo
-Jul 26,Hair Care / Treatment & Styling / Mousse Serum & Cream,4,4,More Retail,Face Serum & Treatment
-Jul 26,Insecticide / Repellant / Fly Insecticide / Repellant / Spray FIK,1,2,More Retail,Hair Treatment & Styling
-Jul 26,OTC / Pain & Relief / Cough and Cold,1,5,More Retail,Other
-Jul 26,Oral Care / Tooth Paste / Kids Toothpaste,1,5,More Retail,Oral Care
-Jul 26,Personal Wash / Soap / Premium Soap,2,5,More Retail,Body Wash & Soap
-Jul 26,Skin Care / Body Care / Cream & Lotion Body,2,6,More Retail,Body Lotion & Care
-Jul 26,Skin Care / Body Care / Others,1,5,More Retail,Body Lotion & Care
-Jul 26,Skin Care / Face Care / Cream & Lotion Body,2,7,More Retail,Face Moisturiser & Cream
-Jul 26,Skin Care / Face Care / Fairness,1,7,More Retail,Face Moisturiser & Cream
-Jul 26,Skin Care / Face Care / Moisturising,1,4,More Retail,Face Moisturiser & Cream
-Jul 26,Skin Care / Face Care / Others,1,3,More Retail,Face Moisturiser & Cream
-Jul 26,Skin Care / Face Care / Sunscreen,7,7,More Retail,Sun Care
-Jul 26,Skin Care / Facial Cleanser / Facewashes,14,10,More Retail,Face Wash & Cleanser
-Jul 26,Skin Care / Facial Cleanser / Mask/ pack,2,2,More Retail,Face Wash & Cleanser
-Jun 26,Baby / Baby Hygiene / Baby Hair Oil,1,4,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Baby Massage Oil,1,2,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Baby Moisturizer,7,5,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Baby Powder,1,5,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Baby Shampoo,1,3,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Baby Soap,2,9,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Baby Toothbrush,1,6,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Baby Wash,2,3,More Retail,Baby Care
-Jun 26,Baby / Baby Hygiene / Others,2,2,More Retail,Baby Care
-Jun 26,Hair Care / Conditioner / Rinsing Off,1,8,More Retail,Conditioner
-Jun 26,Hair Care / Hair Oil / Others,1,8,More Retail,Hair Oil
-Jun 26,Hair Care / Shampoo / Functional Shampoo,2,7,More Retail,Shampoo
-Jun 26,Hair Care / Shampoo / Premium Beauty,4,5,More Retail,Shampoo
-Jun 26,Hair Care / Shampoo / Regular Shampoo,1,8,More Retail,Shampoo
-Jun 26,Hair Care / Treatment & Styling / Mousse Serum & Cream,4,4,More Retail,Face Serum & Treatment
-Jun 26,Insecticide / Repellant / Fly Insecticide / Repellant / Spray FIK,1,1,More Retail,Hair Treatment & Styling
-Jun 26,Insecticide / Repellant / Multi-function Insecticide / Repellant / Others,1,1,More Retail,Other
-Jun 26,OTC / Pain & Relief / Cough and Cold,1,5,More Retail,Other
-Jun 26,Oral Care / Tooth Paste / Kids Toothpaste,1,5,More Retail,Oral Care
-Jun 26,Personal Wash / Soap / Premium Soap,2,5,More Retail,Body Wash & Soap
-Jun 26,Skin Care / Body Care / Cream & Lotion Body,2,6,More Retail,Body Lotion & Care
-Jun 26,Skin Care / Body Care / Others,1,5,More Retail,Body Lotion & Care
-Jun 26,Skin Care / Face Care / Cream & Lotion Body,2,8,More Retail,Face Moisturiser & Cream
-Jun 26,Skin Care / Face Care / Fairness,1,6,More Retail,Face Moisturiser & Cream
-Jun 26,Skin Care / Face Care / Moisturising,1,4,More Retail,Face Moisturiser & Cream
-Jun 26,Skin Care / Face Care / Others,1,1,More Retail,Face Moisturiser & Cream
-Jun 26,Skin Care / Face Care / Sunscreen,7,7,More Retail,Sun Care
-Jun 26,Skin Care / Facial Cleanser / Facewashes,14,10,More Retail,Face Wash & Cleanser
-Jun 26,Skin Care / Facial Cleanser / Mask/ pack,2,2,More Retail,Face Wash & Cleanser
+Month,Category,Articles,Stores,Chain,Common Category,Relevant For Us
+Apr 26,Baby Bath,2,15,Lulu,Baby Care,Yes
+Apr 26,Baby Cream,1,9,Lulu,Baby Care,Yes
+Apr 26,Baby Lotions,1,13,Lulu,Baby Care,Yes
+Apr 26,Baby Oil,1,8,Lulu,Baby Care,Yes
+Apr 26,Baby Powder,1,3,Lulu,Baby Care,Yes
+Apr 26,Baby Shampoos,1,15,Lulu,Baby Care,Yes
+Apr 26,Baby Soap,1,13,Lulu,Baby Care,Yes
+Apr 26,Bath Soaps,5,14,Lulu,Body Wash & Soap,Yes
+Apr 26,Body Lotion,4,16,Lulu,Body Lotion & Care,Yes
+Apr 26,Conditioners,4,16,Lulu,Conditioner,Yes
+Apr 26,Eye Care,1,4,Lulu,Face Moisturiser & Cream,Yes
+Apr 26,Face Mask,4,12,Lulu,Face Mask & Scrub,Yes
+Apr 26,Face Wash,29,17,Lulu,Face Wash & Cleanser,Yes
+Apr 26,Facial Cleanser,3,11,Lulu,Face Wash & Cleanser,Yes
+Apr 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub,Yes
+Apr 26,Fairness/Whtng.Cream,7,14,Lulu,Face Moisturiser & Cream,Yes
+Apr 26,Hair Gel,1,6,Lulu,Hair Treatment & Styling,No
+Apr 26,Hair Oils,4,17,Lulu,Hair Oil,Yes
+Apr 26,Hair Treatments&Mask,2,17,Lulu,Hair Treatment & Styling,No
+Apr 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling,No
+Apr 26,Lip Balms,7,16,Lulu,Lip Care,No
+Apr 26,Moistur.Cream/Fluid,22,17,Lulu,Face Moisturiser & Cream,Yes
+Apr 26,Other Baby care,1,14,Lulu,Baby Care,Yes
+Apr 26,Other Facial Care,17,16,Lulu,Face Moisturiser & Cream,Yes
+Apr 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream,Yes
+Apr 26,Shampoo,11,17,Lulu,Shampoo,Yes
+Apr 26,Shower Gel&Body Wash,4,13,Lulu,Body Wash & Soap,Yes
+Apr 26,Sun Care,19,17,Lulu,Sun Care,Yes
+Apr 26,Tooth Paste,1,10,Lulu,Oral Care,No
+Aug 26,Baby Bath,2,17,Lulu,Baby Care,Yes
+Aug 26,Baby Cream,1,7,Lulu,Baby Care,Yes
+Aug 26,Baby Lotions,1,13,Lulu,Baby Care,Yes
+Aug 26,Baby Oil,1,9,Lulu,Baby Care,Yes
+Aug 26,Baby Powder,1,3,Lulu,Baby Care,Yes
+Aug 26,Baby Shampoos,1,15,Lulu,Baby Care,Yes
+Aug 26,Baby Soap,1,17,Lulu,Baby Care,Yes
+Aug 26,Bath Soaps,5,18,Lulu,Body Wash & Soap,Yes
+Aug 26,Body Lotion,5,19,Lulu,Body Lotion & Care,Yes
+Aug 26,Conditioners,4,18,Lulu,Conditioner,Yes
+Aug 26,Eye Care,1,10,Lulu,Face Moisturiser & Cream,Yes
+Aug 26,Face Mask,5,15,Lulu,Face Mask & Scrub,Yes
+Aug 26,Face Wash,29,19,Lulu,Face Wash & Cleanser,Yes
+Aug 26,Facial Cleanser,3,7,Lulu,Face Wash & Cleanser,Yes
+Aug 26,Facial Scrub,1,12,Lulu,Face Mask & Scrub,Yes
+Aug 26,Fairness/Whtng.Cream,6,15,Lulu,Face Moisturiser & Cream,Yes
+Aug 26,Female & Unisex Deo,6,12,Lulu,Deodorant,No
+Aug 26,Hair Gel,1,9,Lulu,Hair Treatment & Styling,No
+Aug 26,Hair Oils,4,17,Lulu,Hair Oil,Yes
+Aug 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling,No
+Aug 26,Henna Colorants,1,4,Lulu,Hair Treatment & Styling,No
+Aug 26,Lip Balms,8,18,Lulu,Lip Care,No
+Aug 26,Moistur.Cream/Fluid,24,19,Lulu,Face Moisturiser & Cream,Yes
+Aug 26,Other Baby care,1,10,Lulu,Baby Care,Yes
+Aug 26,Other Facial Care,22,19,Lulu,Face Moisturiser & Cream,Yes
+Aug 26,Other Skin Care,1,6,Lulu,Face Moisturiser & Cream,Yes
+Aug 26,Shampoo,14,19,Lulu,Shampoo,Yes
+Aug 26,Shower Gel&Body Wash,4,14,Lulu,Body Wash & Soap,Yes
+Aug 26,Sun Care,21,19,Lulu,Sun Care,Yes
+Aug 26,Tooth Paste,1,14,Lulu,Oral Care,No
+Feb 26,Baby Bath,2,15,Lulu,Baby Care,Yes
+Feb 26,Baby Cream,1,9,Lulu,Baby Care,Yes
+Feb 26,Baby Lotions,1,13,Lulu,Baby Care,Yes
+Feb 26,Baby Oil,1,11,Lulu,Baby Care,Yes
+Feb 26,Baby Powder,1,5,Lulu,Baby Care,Yes
+Feb 26,Baby Shampoos,1,15,Lulu,Baby Care,Yes
+Feb 26,Baby Soap,1,14,Lulu,Baby Care,Yes
+Feb 26,Bath Soaps,5,15,Lulu,Body Wash & Soap,Yes
+Feb 26,Body Lotion,4,16,Lulu,Body Lotion & Care,Yes
+Feb 26,Conditioners,4,16,Lulu,Conditioner,Yes
+Feb 26,Eye Care,1,2,Lulu,Face Moisturiser & Cream,Yes
+Feb 26,Face Mask,4,9,Lulu,Face Mask & Scrub,Yes
+Feb 26,Face Wash,29,17,Lulu,Face Wash & Cleanser,Yes
+Feb 26,Facial Cleanser,3,11,Lulu,Face Wash & Cleanser,Yes
+Feb 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub,Yes
+Feb 26,Fairness/Whtng.Cream,7,15,Lulu,Face Moisturiser & Cream,Yes
+Feb 26,Hair Gel,1,6,Lulu,Hair Treatment & Styling,No
+Feb 26,Hair Oils,4,17,Lulu,Hair Oil,Yes
+Feb 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling,No
+Feb 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling,No
+Feb 26,Lip Balms,7,16,Lulu,Lip Care,No
+Feb 26,Moistur.Cream/Fluid,21,17,Lulu,Face Moisturiser & Cream,Yes
+Feb 26,Other Baby care,1,11,Lulu,Baby Care,Yes
+Feb 26,Other Facial Care,17,16,Lulu,Face Moisturiser & Cream,Yes
+Feb 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream,Yes
+Feb 26,Shampoo,11,17,Lulu,Shampoo,Yes
+Feb 26,Shower Gel&Body Wash,5,12,Lulu,Body Wash & Soap,Yes
+Feb 26,Sun Care,19,16,Lulu,Sun Care,Yes
+Feb 26,Tooth Paste,1,13,Lulu,Oral Care,No
+Jan 26,Baby Bath,2,15,Lulu,Baby Care,Yes
+Jan 26,Baby Cream,1,8,Lulu,Baby Care,Yes
+Jan 26,Baby Lotions,1,13,Lulu,Baby Care,Yes
+Jan 26,Baby Oil,1,8,Lulu,Baby Care,Yes
+Jan 26,Baby Powder,1,5,Lulu,Baby Care,Yes
+Jan 26,Baby Shampoos,1,15,Lulu,Baby Care,Yes
+Jan 26,Baby Soap,1,14,Lulu,Baby Care,Yes
+Jan 26,Bath Soaps,5,13,Lulu,Body Wash & Soap,Yes
+Jan 26,Body Lotion,4,15,Lulu,Body Lotion & Care,Yes
+Jan 26,Conditioners,4,15,Lulu,Conditioner,Yes
+Jan 26,Eye Care,1,2,Lulu,Face Moisturiser & Cream,Yes
+Jan 26,Face Mask,3,10,Lulu,Face Mask & Scrub,Yes
+Jan 26,Face Wash,29,16,Lulu,Face Wash & Cleanser,Yes
+Jan 26,Facial Cleanser,3,13,Lulu,Face Wash & Cleanser,Yes
+Jan 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub,Yes
+Jan 26,Fairness/Whtng.Cream,7,15,Lulu,Face Moisturiser & Cream,Yes
+Jan 26,Hair Gel,1,7,Lulu,Hair Treatment & Styling,No
+Jan 26,Hair Oils,5,16,Lulu,Hair Oil,Yes
+Jan 26,Hair Treatments&Mask,2,15,Lulu,Hair Treatment & Styling,No
+Jan 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling,No
+Jan 26,Lip Balms,8,16,Lulu,Lip Care,No
+Jan 26,Moistur.Cream/Fluid,23,16,Lulu,Face Moisturiser & Cream,Yes
+Jan 26,Other Baby care,1,13,Lulu,Baby Care,Yes
+Jan 26,Other Facial Care,17,15,Lulu,Face Moisturiser & Cream,Yes
+Jan 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream,Yes
+Jan 26,Shampoo,11,16,Lulu,Shampoo,Yes
+Jan 26,Shower Gel&Body Wash,5,12,Lulu,Body Wash & Soap,Yes
+Jan 26,Sun Care,18,16,Lulu,Sun Care,Yes
+Jan 26,Tooth Paste,1,13,Lulu,Oral Care,No
+Jul 26,Baby Bath,2,14,Lulu,Baby Care,Yes
+Jul 26,Baby Cream,1,7,Lulu,Baby Care,Yes
+Jul 26,Baby Lotions,1,13,Lulu,Baby Care,Yes
+Jul 26,Baby Oil,1,6,Lulu,Baby Care,Yes
+Jul 26,Baby Powder,1,3,Lulu,Baby Care,Yes
+Jul 26,Baby Shampoos,1,17,Lulu,Baby Care,Yes
+Jul 26,Baby Soap,1,17,Lulu,Baby Care,Yes
+Jul 26,Bath Soaps,5,18,Lulu,Body Wash & Soap,Yes
+Jul 26,Body Lotion,5,19,Lulu,Body Lotion & Care,Yes
+Jul 26,Conditioners,4,18,Lulu,Conditioner,Yes
+Jul 26,Eye Care,1,9,Lulu,Face Moisturiser & Cream,Yes
+Jul 26,Face Mask,6,15,Lulu,Face Mask & Scrub,Yes
+Jul 26,Face Wash,29,19,Lulu,Face Wash & Cleanser,Yes
+Jul 26,Facial Cleanser,2,8,Lulu,Face Wash & Cleanser,Yes
+Jul 26,Facial Scrub,1,14,Lulu,Face Mask & Scrub,Yes
+Jul 26,Fairness/Whtng.Cream,6,15,Lulu,Face Moisturiser & Cream,Yes
+Jul 26,Female & Unisex Deo,6,12,Lulu,Deodorant,No
+Jul 26,Hair Gel,1,8,Lulu,Hair Treatment & Styling,No
+Jul 26,Hair Oils,4,16,Lulu,Hair Oil,Yes
+Jul 26,Hair Treatments&Mask,2,15,Lulu,Hair Treatment & Styling,No
+Jul 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling,No
+Jul 26,Lip Balms,8,19,Lulu,Lip Care,No
+Jul 26,Moistur.Cream/Fluid,23,19,Lulu,Face Moisturiser & Cream,Yes
+Jul 26,Other Baby care,1,12,Lulu,Baby Care,Yes
+Jul 26,Other Facial Care,22,19,Lulu,Face Moisturiser & Cream,Yes
+Jul 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream,Yes
+Jul 26,Shampoo,14,19,Lulu,Shampoo,Yes
+Jul 26,Shower Gel&Body Wash,4,16,Lulu,Body Wash & Soap,Yes
+Jul 26,Sun Care,21,19,Lulu,Sun Care,Yes
+Jul 26,Tooth Paste,1,14,Lulu,Oral Care,No
+Jun 26,Baby Bath,2,15,Lulu,Baby Care,Yes
+Jun 26,Baby Cream,1,8,Lulu,Baby Care,Yes
+Jun 26,Baby Lotions,1,12,Lulu,Baby Care,Yes
+Jun 26,Baby Oil,1,7,Lulu,Baby Care,Yes
+Jun 26,Baby Powder,1,2,Lulu,Baby Care,Yes
+Jun 26,Baby Shampoos,1,14,Lulu,Baby Care,Yes
+Jun 26,Baby Soap,1,15,Lulu,Baby Care,Yes
+Jun 26,Bath Soaps,5,17,Lulu,Body Wash & Soap,Yes
+Jun 26,Body Lotion,5,18,Lulu,Body Lotion & Care,Yes
+Jun 26,Conditioners,4,19,Lulu,Conditioner,Yes
+Jun 26,Eye Care,1,8,Lulu,Face Moisturiser & Cream,Yes
+Jun 26,Face Mask,6,16,Lulu,Face Mask & Scrub,Yes
+Jun 26,Face Wash,29,19,Lulu,Face Wash & Cleanser,Yes
+Jun 26,Facial Cleanser,1,7,Lulu,Face Wash & Cleanser,Yes
+Jun 26,Facial Scrub,1,15,Lulu,Face Mask & Scrub,Yes
+Jun 26,Fairness/Whtng.Cream,6,15,Lulu,Face Moisturiser & Cream,Yes
+Jun 26,Female & Unisex Deo,6,11,Lulu,Deodorant,No
+Jun 26,Hair Gel,1,10,Lulu,Hair Treatment & Styling,No
+Jun 26,Hair Oils,4,16,Lulu,Hair Oil,Yes
+Jun 26,Hair Treatments&Mask,2,13,Lulu,Hair Treatment & Styling,No
+Jun 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling,No
+Jun 26,Lip Balms,8,19,Lulu,Lip Care,No
+Jun 26,Moistur.Cream/Fluid,23,19,Lulu,Face Moisturiser & Cream,Yes
+Jun 26,Other Baby care,1,12,Lulu,Baby Care,Yes
+Jun 26,Other Facial Care,22,18,Lulu,Face Moisturiser & Cream,Yes
+Jun 26,Other Skin Care,1,8,Lulu,Face Moisturiser & Cream,Yes
+Jun 26,Shampoo,14,19,Lulu,Shampoo,Yes
+Jun 26,Shower Gel&Body Wash,4,14,Lulu,Body Wash & Soap,Yes
+Jun 26,Sun Care,21,19,Lulu,Sun Care,Yes
+Jun 26,Tooth Paste,1,15,Lulu,Oral Care,No
+Mar 26,Baby Bath,2,15,Lulu,Baby Care,Yes
+Mar 26,Baby Cream,1,10,Lulu,Baby Care,Yes
+Mar 26,Baby Lotions,1,13,Lulu,Baby Care,Yes
+Mar 26,Baby Oil,1,9,Lulu,Baby Care,Yes
+Mar 26,Baby Powder,1,4,Lulu,Baby Care,Yes
+Mar 26,Baby Shampoos,1,15,Lulu,Baby Care,Yes
+Mar 26,Baby Soap,1,15,Lulu,Baby Care,Yes
+Mar 26,Bath Soaps,5,16,Lulu,Body Wash & Soap,Yes
+Mar 26,Body Lotion,4,17,Lulu,Body Lotion & Care,Yes
+Mar 26,Conditioners,4,16,Lulu,Conditioner,Yes
+Mar 26,Eye Care,1,3,Lulu,Face Moisturiser & Cream,Yes
+Mar 26,Face Mask,4,13,Lulu,Face Mask & Scrub,Yes
+Mar 26,Face Wash,29,17,Lulu,Face Wash & Cleanser,Yes
+Mar 26,Facial Cleanser,2,11,Lulu,Face Wash & Cleanser,Yes
+Mar 26,Facial Scrub,1,15,Lulu,Face Mask & Scrub,Yes
+Mar 26,Fairness/Whtng.Cream,7,16,Lulu,Face Moisturiser & Cream,Yes
+Mar 26,Hair Gel,1,6,Lulu,Hair Treatment & Styling,No
+Mar 26,Hair Oils,4,17,Lulu,Hair Oil,Yes
+Mar 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling,No
+Mar 26,Henna Colorants,1,5,Lulu,Hair Treatment & Styling,No
+Mar 26,Lip Balms,7,16,Lulu,Lip Care,No
+Mar 26,Moistur.Cream/Fluid,22,17,Lulu,Face Moisturiser & Cream,Yes
+Mar 26,Other Baby care,1,14,Lulu,Baby Care,Yes
+Mar 26,Other Facial Care,17,16,Lulu,Face Moisturiser & Cream,Yes
+Mar 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream,Yes
+Mar 26,Shampoo,11,17,Lulu,Shampoo,Yes
+Mar 26,Shower Gel&Body Wash,4,12,Lulu,Body Wash & Soap,Yes
+Mar 26,Sun Care,19,17,Lulu,Sun Care,Yes
+Mar 26,Tooth Paste,1,13,Lulu,Oral Care,No
+May 26,Baby Bath,2,15,Lulu,Baby Care,Yes
+May 26,Baby Cream,1,10,Lulu,Baby Care,Yes
+May 26,Baby Lotions,1,14,Lulu,Baby Care,Yes
+May 26,Baby Oil,1,8,Lulu,Baby Care,Yes
+May 26,Baby Powder,1,1,Lulu,Baby Care,Yes
+May 26,Baby Shampoos,1,17,Lulu,Baby Care,Yes
+May 26,Baby Soap,1,14,Lulu,Baby Care,Yes
+May 26,Bath Soaps,5,16,Lulu,Body Wash & Soap,Yes
+May 26,Body Lotion,5,18,Lulu,Body Lotion & Care,Yes
+May 26,Conditioners,4,18,Lulu,Conditioner,Yes
+May 26,Eye Care,1,6,Lulu,Face Moisturiser & Cream,Yes
+May 26,Face Mask,6,16,Lulu,Face Mask & Scrub,Yes
+May 26,Face Wash,29,18,Lulu,Face Wash & Cleanser,Yes
+May 26,Facial Cleanser,2,13,Lulu,Face Wash & Cleanser,Yes
+May 26,Facial Scrub,1,15,Lulu,Face Mask & Scrub,Yes
+May 26,Fairness/Whtng.Cream,7,15,Lulu,Face Moisturiser & Cream,Yes
+May 26,Female & Unisex Deo,6,8,Lulu,Deodorant,No
+May 26,Hair Gel,1,8,Lulu,Hair Treatment & Styling,No
+May 26,Hair Oils,4,18,Lulu,Hair Oil,Yes
+May 26,Hair Treatments&Mask,2,16,Lulu,Hair Treatment & Styling,No
+May 26,Henna Colorants,1,6,Lulu,Hair Treatment & Styling,No
+May 26,Lip Balms,8,18,Lulu,Lip Care,No
+May 26,Moistur.Cream/Fluid,24,18,Lulu,Face Moisturiser & Cream,Yes
+May 26,Other Baby care,1,13,Lulu,Baby Care,Yes
+May 26,Other Facial Care,22,17,Lulu,Face Moisturiser & Cream,Yes
+May 26,Other Skin Care,1,7,Lulu,Face Moisturiser & Cream,Yes
+May 26,Shampoo,13,18,Lulu,Shampoo,Yes
+May 26,Shower Gel&Body Wash,4,14,Lulu,Body Wash & Soap,Yes
+May 26,Sun Care,21,18,Lulu,Sun Care,Yes
+May 26,Tooth Paste,1,16,Lulu,Oral Care,No
+Aug 26,Baby / Baby Hygiene,16,9,More Retail,Baby Care,Yes
+Aug 26,Hair Care / Conditioner,1,8,More Retail,Conditioner,Yes
+Aug 26,Hair Care / Hair Oil,1,8,More Retail,Hair Oil,Yes
+Aug 26,Hair Care / Shampoo,7,8,More Retail,Shampoo,Yes
+Aug 26,Hair Care / Treatment & Styling,4,4,More Retail,Hair Treatment & Styling,No
+Aug 26,Insecticide / Repellant / Fly Insecticide / Repellant,1,1,More Retail,Other,No
+Aug 26,OTC / Pain & Relief,1,4,More Retail,Other,No
+Aug 26,Oral Care / Tooth Paste,1,5,More Retail,Oral Care,No
+Aug 26,Personal Wash / Soap,2,5,More Retail,Body Wash & Soap,Yes
+Aug 26,Skin Care / Body Care,3,6,More Retail,Body Lotion & Care,Yes
+Aug 26,Skin Care / Face Care,12,7,More Retail,Face Moisturiser & Cream,Yes
+Aug 26,Skin Care / Facial Cleanser,16,10,More Retail,Face Wash & Cleanser,Yes
+Jul 26,Baby / Baby Hygiene,18,9,More Retail,Baby Care,Yes
+Jul 26,Hair Care / Conditioner,1,8,More Retail,Conditioner,Yes
+Jul 26,Hair Care / Hair Oil,1,8,More Retail,Hair Oil,Yes
+Jul 26,Hair Care / Shampoo,7,9,More Retail,Shampoo,Yes
+Jul 26,Hair Care / Treatment & Styling,4,4,More Retail,Hair Treatment & Styling,No
+Jul 26,Insecticide / Repellant / Fly Insecticide / Repellant,1,2,More Retail,Other,No
+Jul 26,OTC / Pain & Relief,1,5,More Retail,Other,No
+Jul 26,Oral Care / Tooth Paste,1,5,More Retail,Oral Care,No
+Jul 26,Personal Wash / Soap,2,5,More Retail,Body Wash & Soap,Yes
+Jul 26,Skin Care / Body Care,3,6,More Retail,Body Lotion & Care,Yes
+Jul 26,Skin Care / Face Care,12,8,More Retail,Face Moisturiser & Cream,Yes
+Jul 26,Skin Care / Facial Cleanser,16,10,More Retail,Face Wash & Cleanser,Yes
+Jun 26,Baby / Baby Hygiene,18,9,More Retail,Baby Care,Yes
+Jun 26,Hair Care / Conditioner,1,8,More Retail,Conditioner,Yes
+Jun 26,Hair Care / Hair Oil,1,8,More Retail,Hair Oil,Yes
+Jun 26,Hair Care / Shampoo,7,9,More Retail,Shampoo,Yes
+Jun 26,Hair Care / Treatment & Styling,4,4,More Retail,Hair Treatment & Styling,No
+Jun 26,Insecticide / Repellant / Fly Insecticide / Repellant,1,1,More Retail,Other,No
+Jun 26,Insecticide / Repellant / Multi-function Insecticide / Repellant,1,1,More Retail,Other,No
+Jun 26,OTC / Pain & Relief,1,5,More Retail,Other,No
+Jun 26,Oral Care / Tooth Paste,1,5,More Retail,Oral Care,No
+Jun 26,Personal Wash / Soap,2,5,More Retail,Body Wash & Soap,Yes
+Jun 26,Skin Care / Body Care,3,6,More Retail,Body Lotion & Care,Yes
+Jun 26,Skin Care / Face Care,12,8,More Retail,Face Moisturiser & Cream,Yes
+Jun 26,Skin Care / Facial Cleanser,16,10,More Retail,Face Wash & Cleanser,Yes
+Aug 26,Baby / Baby Hygiene / Baby Hair Oil,1,4,More Retail,Baby Care,Yes
+Aug 26,Baby / Baby Hygiene / Baby Massage Oil,1,1,More Retail,Baby Care,Yes
+Aug 26,Baby / Baby Hygiene / Baby Moisturizer,7,6,More Retail,Baby Care,Yes
+Aug 26,Baby / Baby Hygiene / Baby Powder,1,4,More Retail,Baby Care,Yes
+Aug 26,Baby / Baby Hygiene / Baby Shampoo,1,3,More Retail,Baby Care,Yes
+Aug 26,Baby / Baby Hygiene / Baby Soap,2,9,More Retail,Baby Care,Yes
+Aug 26,Baby / Baby Hygiene / Baby Toothbrush,1,7,More Retail,Baby Care,Yes
+Aug 26,Baby / Baby Hygiene / Others,2,2,More Retail,Baby Care,Yes
+Aug 26,Hair Care / Conditioner / Rinsing Off,1,8,More Retail,Conditioner,Yes
+Aug 26,Hair Care / Hair Oil / Others,1,8,More Retail,Hair Oil,Yes
+Aug 26,Hair Care / Shampoo / Functional Shampoo,2,6,More Retail,Shampoo,Yes
+Aug 26,Hair Care / Shampoo / Premium Beauty,4,6,More Retail,Shampoo,Yes
+Aug 26,Hair Care / Shampoo / Regular Shampoo,1,8,More Retail,Shampoo,Yes
+Aug 26,Hair Care / Treatment & Styling / Mousse Serum & Cream,4,4,More Retail,Face Serum & Treatment,Yes
+Aug 26,Insecticide / Repellant / Fly Insecticide / Repellant / Spray FIK,1,1,More Retail,Hair Treatment & Styling,No
+Aug 26,OTC / Pain & Relief / Cough and Cold,1,4,More Retail,Other,No
+Aug 26,Oral Care / Tooth Paste / Kids Toothpaste,1,5,More Retail,Oral Care,No
+Aug 26,Personal Wash / Soap / Premium Soap,2,5,More Retail,Body Wash & Soap,Yes
+Aug 26,Skin Care / Body Care / Cream & Lotion Body,2,6,More Retail,Body Lotion & Care,Yes
+Aug 26,Skin Care / Body Care / Others,1,5,More Retail,Body Lotion & Care,Yes
+Aug 26,Skin Care / Face Care / Cream & Lotion Body,2,7,More Retail,Body Lotion & Care,Yes
+Aug 26,Skin Care / Face Care / Fairness,1,6,More Retail,Face Moisturiser & Cream,Yes
+Aug 26,Skin Care / Face Care / Moisturising,1,4,More Retail,Face Moisturiser & Cream,Yes
+Aug 26,Skin Care / Face Care / Others,1,2,More Retail,Face Moisturiser & Cream,Yes
+Aug 26,Skin Care / Face Care / Sunscreen,7,6,More Retail,Sun Care,Yes
+Aug 26,Skin Care / Facial Cleanser / Facewashes,14,10,More Retail,Face Wash & Cleanser,Yes
+Aug 26,Skin Care / Facial Cleanser / Mask/ pack,2,2,More Retail,Face Wash & Cleanser,Yes
+Jul 26,Baby / Baby Hygiene / Baby Hair Oil,1,4,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Baby Massage Oil,1,2,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Baby Moisturizer,7,5,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Baby Powder,1,5,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Baby Shampoo,1,4,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Baby Soap,2,9,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Baby Toothbrush,1,6,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Baby Wash,2,3,More Retail,Baby Care,Yes
+Jul 26,Baby / Baby Hygiene / Others,2,2,More Retail,Baby Care,Yes
+Jul 26,Hair Care / Conditioner / Rinsing Off,1,8,More Retail,Conditioner,Yes
+Jul 26,Hair Care / Hair Oil / Others,1,8,More Retail,Hair Oil,Yes
+Jul 26,Hair Care / Shampoo / Functional Shampoo,2,7,More Retail,Shampoo,Yes
+Jul 26,Hair Care / Shampoo / Premium Beauty,4,6,More Retail,Shampoo,Yes
+Jul 26,Hair Care / Shampoo / Regular Shampoo,1,8,More Retail,Shampoo,Yes
+Jul 26,Hair Care / Treatment & Styling / Mousse Serum & Cream,4,4,More Retail,Face Serum & Treatment,Yes
+Jul 26,Insecticide / Repellant / Fly Insecticide / Repellant / Spray FIK,1,2,More Retail,Hair Treatment & Styling,No
+Jul 26,OTC / Pain & Relief / Cough and Cold,1,5,More Retail,Other,No
+Jul 26,Oral Care / Tooth Paste / Kids Toothpaste,1,5,More Retail,Oral Care,No
+Jul 26,Personal Wash / Soap / Premium Soap,2,5,More Retail,Body Wash & Soap,Yes
+Jul 26,Skin Care / Body Care / Cream & Lotion Body,2,6,More Retail,Body Lotion & Care,Yes
+Jul 26,Skin Care / Body Care / Others,1,5,More Retail,Body Lotion & Care,Yes
+Jul 26,Skin Care / Face Care / Cream & Lotion Body,2,7,More Retail,Body Lotion & Care,Yes
+Jul 26,Skin Care / Face Care / Fairness,1,7,More Retail,Face Moisturiser & Cream,Yes
+Jul 26,Skin Care / Face Care / Moisturising,1,4,More Retail,Face Moisturiser & Cream,Yes
+Jul 26,Skin Care / Face Care / Others,1,3,More Retail,Face Moisturiser & Cream,Yes
+Jul 26,Skin Care / Face Care / Sunscreen,7,7,More Retail,Sun Care,Yes
+Jul 26,Skin Care / Facial Cleanser / Facewashes,14,10,More Retail,Face Wash & Cleanser,Yes
+Jul 26,Skin Care / Facial Cleanser / Mask/ pack,2,2,More Retail,Face Wash & Cleanser,Yes
+Jun 26,Baby / Baby Hygiene / Baby Hair Oil,1,4,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Baby Massage Oil,1,2,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Baby Moisturizer,7,5,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Baby Powder,1,5,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Baby Shampoo,1,3,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Baby Soap,2,9,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Baby Toothbrush,1,6,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Baby Wash,2,3,More Retail,Baby Care,Yes
+Jun 26,Baby / Baby Hygiene / Others,2,2,More Retail,Baby Care,Yes
+Jun 26,Hair Care / Conditioner / Rinsing Off,1,8,More Retail,Conditioner,Yes
+Jun 26,Hair Care / Hair Oil / Others,1,8,More Retail,Hair Oil,Yes
+Jun 26,Hair Care / Shampoo / Functional Shampoo,2,7,More Retail,Shampoo,Yes
+Jun 26,Hair Care / Shampoo / Premium Beauty,4,5,More Retail,Shampoo,Yes
+Jun 26,Hair Care / Shampoo / Regular Shampoo,1,8,More Retail,Shampoo,Yes
+Jun 26,Hair Care / Treatment & Styling / Mousse Serum & Cream,4,4,More Retail,Face Serum & Treatment,Yes
+Jun 26,Insecticide / Repellant / Fly Insecticide / Repellant / Spray FIK,1,1,More Retail,Hair Treatment & Styling,No
+Jun 26,Insecticide / Repellant / Multi-function Insecticide / Repellant / Others,1,1,More Retail,Other,No
+Jun 26,OTC / Pain & Relief / Cough and Cold,1,5,More Retail,Other,No
+Jun 26,Oral Care / Tooth Paste / Kids Toothpaste,1,5,More Retail,Oral Care,No
+Jun 26,Personal Wash / Soap / Premium Soap,2,5,More Retail,Body Wash & Soap,Yes
+Jun 26,Skin Care / Body Care / Cream & Lotion Body,2,6,More Retail,Body Lotion & Care,Yes
+Jun 26,Skin Care / Body Care / Others,1,5,More Retail,Body Lotion & Care,Yes
+Jun 26,Skin Care / Face Care / Cream & Lotion Body,2,8,More Retail,Body Lotion & Care,Yes
+Jun 26,Skin Care / Face Care / Fairness,1,6,More Retail,Face Moisturiser & Cream,Yes
+Jun 26,Skin Care / Face Care / Moisturising,1,4,More Retail,Face Moisturiser & Cream,Yes
+Jun 26,Skin Care / Face Care / Others,1,1,More Retail,Face Moisturiser & Cream,Yes
+Jun 26,Skin Care / Face Care / Sunscreen,7,7,More Retail,Sun Care,Yes
+Jun 26,Skin Care / Facial Cleanser / Facewashes,14,10,More Retail,Face Wash & Cleanser,Yes
+Jun 26,Skin Care / Facial Cleanser / Mask/ pack,2,2,More Retail,Face Wash & Cleanser,Yes
+Apr 26,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Apr 26,Amla Hair Oil,2,,Reliance Retail,Hair Oil,Yes
+Apr 26,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Apr 26,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+Apr 26,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Apr 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Apr 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Apr 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Apr 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Apr 26,Bb Cream,1,,Reliance Retail,Other,No
+Apr 26,Body Wash/Shower Gel,12,,Reliance Retail,Body Wash & Soap,Yes
+Apr 26,Face Scrubs/Masks,5,,Reliance Retail,Face Mask & Scrub,Yes
+Apr 26,Face Serum,17,,Reliance Retail,Face Serum & Treatment,Yes
+Apr 26,Face Wash,42,,Reliance Retail,Face Wash & Cleanser,Yes
+Apr 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Apr 26,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+Apr 26,Foundation,2,,Reliance Retail,Other,No
+Apr 26,Hair - Conditioner,12,,Reliance Retail,Conditioner,Yes
+Apr 26,Hair - Leave On,2,,Reliance Retail,Hair Treatment & Styling,No
+Apr 26,Hair Color Cream Kit,3,,Reliance Retail,Hair Treatment & Styling,No
+Apr 26,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+Apr 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+Apr 26,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Apr 26,Kajal,1,,Reliance Retail,Other,No
+Apr 26,Lip Balm,6,,Reliance Retail,Lip Care,No
+Apr 26,Moisturizing Cream,34,,Reliance Retail,Face Moisturiser & Cream,Yes
+Apr 26,Moisturizing Lotion,11,,Reliance Retail,Body Lotion & Care,Yes
+Apr 26,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+Apr 26,Onion Hair Oil,3,,Reliance Retail,Hair Oil,Yes
+Apr 26,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Apr 26,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Apr 26,Shampoo Herbal,21,,Reliance Retail,Shampoo,Yes
+Apr 26,Sheet Mask,4,,Reliance Retail,Face Mask & Scrub,Yes
+Apr 26,Soaps Moisturiser,10,,Reliance Retail,Face Moisturiser & Cream,Yes
+Apr 26,Sunscreens,32,,Reliance Retail,Sun Care,Yes
+Apr 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Aug 26,Aloe Vera Gel,2,,Reliance Retail,Face Moisturiser & Cream,Yes
+Aug 26,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Aug 26,Baby Hygn Others,4,,Reliance Retail,Baby Care,Yes
+Aug 26,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Aug 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Aug 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Aug 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Aug 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Aug 26,Bb Cream,1,,Reliance Retail,Other,No
+Aug 26,Body Wash/Shower Gel,10,,Reliance Retail,Body Wash & Soap,Yes
+Aug 26,Face Make-Up Others,2,,Reliance Retail,Other,No
+Aug 26,Face Scrubs/Masks,4,,Reliance Retail,Face Mask & Scrub,Yes
+Aug 26,Face Serum,15,,Reliance Retail,Face Serum & Treatment,Yes
+Aug 26,Face Wash,37,,Reliance Retail,Face Wash & Cleanser,Yes
+Aug 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Aug 26,Fairness - Women,5,,Reliance Retail,Face Moisturiser & Cream,Yes
+Aug 26,Hair - Conditioner,8,,Reliance Retail,Conditioner,Yes
+Aug 26,Hair - Leave On,1,,Reliance Retail,Hair Treatment & Styling,No
+Aug 26,Hair Color Cream Kit,2,,Reliance Retail,Hair Treatment & Styling,No
+Aug 26,Hair Mask,5,,Reliance Retail,Hair Treatment & Styling,No
+Aug 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+Aug 26,Hair Serum,2,,Reliance Retail,Hair Treatment & Styling,No
+Aug 26,Kajal,1,,Reliance Retail,Other,No
+Aug 26,Lip Balm,4,,Reliance Retail,Lip Care,No
+Aug 26,Lipstick,1,,Reliance Retail,Lip Care,No
+Aug 26,Moisturizing Cream,25,,Reliance Retail,Face Moisturiser & Cream,Yes
+Aug 26,Moisturizing Lotion,9,,Reliance Retail,Body Lotion & Care,Yes
+Aug 26,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+Aug 26,Onion Hair Oil,3,,Reliance Retail,Hair Oil,Yes
+Aug 26,Perfume - Men,1,,Reliance Retail,Fragrance,No
+Aug 26,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Aug 26,Shampoo Herbal,21,,Reliance Retail,Shampoo,Yes
+Aug 26,Sheet Mask,6,,Reliance Retail,Face Mask & Scrub,Yes
+Aug 26,Soaps Beauty,1,,Reliance Retail,Beauty Soap,No
+Aug 26,Soaps Moisturiser,10,,Reliance Retail,Face Moisturiser & Cream,Yes
+Aug 26,Sunscreens,27,,Reliance Retail,Sun Care,Yes
+Aug 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Dec 25,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Dec 25,Amla Hair Oil,1,,Reliance Retail,Hair Oil,Yes
+Dec 25,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Dec 25,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+Dec 25,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Dec 25,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Dec 25,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Dec 25,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Dec 25,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Dec 25,Baby Wipes,1,,Reliance Retail,Baby Care,Yes
+Dec 25,Bb Cream,1,,Reliance Retail,Other,No
+Dec 25,Body Wash/Shower Gel,12,,Reliance Retail,Body Wash & Soap,Yes
+Dec 25,Face Scrubs/Masks,6,,Reliance Retail,Face Mask & Scrub,Yes
+Dec 25,Face Serum,18,,Reliance Retail,Face Serum & Treatment,Yes
+Dec 25,Face Wash,40,,Reliance Retail,Face Wash & Cleanser,Yes
+Dec 25,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Dec 25,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+Dec 25,Foundation,2,,Reliance Retail,Other,No
+Dec 25,Hair - Conditioner,13,,Reliance Retail,Conditioner,Yes
+Dec 25,Hair - Leave On,3,,Reliance Retail,Hair Treatment & Styling,No
+Dec 25,Hair Color Cream Kit,6,,Reliance Retail,Hair Treatment & Styling,No
+Dec 25,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+Dec 25,Hair Oil Others,5,,Reliance Retail,Hair Oil,Yes
+Dec 25,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Dec 25,Kajal,1,,Reliance Retail,Other,No
+Dec 25,Lip Balm,6,,Reliance Retail,Lip Care,No
+Dec 25,Lipstick,5,,Reliance Retail,Lip Care,No
+Dec 25,Makeup Remover,1,,Reliance Retail,Other,No
+Dec 25,Moisturizing Cream,34,,Reliance Retail,Face Moisturiser & Cream,Yes
+Dec 25,Moisturizing Lotion,10,,Reliance Retail,Body Lotion & Care,Yes
+Dec 25,Mos Rep Crm/Lotions,2,,Reliance Retail,Other,No
+Dec 25,Onion Hair Oil,4,,Reliance Retail,Hair Oil,Yes
+Dec 25,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Dec 25,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Dec 25,Shampoo Herbal,20,,Reliance Retail,Shampoo,Yes
+Dec 25,Sheet Mask,4,,Reliance Retail,Face Mask & Scrub,Yes
+Dec 25,Soaps Moisturiser,13,,Reliance Retail,Face Moisturiser & Cream,Yes
+Dec 25,Sunscreens,31,,Reliance Retail,Sun Care,Yes
+Dec 25,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Feb 26,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Feb 26,Amla Hair Oil,1,,Reliance Retail,Hair Oil,Yes
+Feb 26,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Feb 26,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+Feb 26,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Feb 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Feb 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Feb 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Feb 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Feb 26,Baby Wipes,1,,Reliance Retail,Baby Care,Yes
+Feb 26,Bb Cream,1,,Reliance Retail,Other,No
+Feb 26,Body Wash/Shower Gel,11,,Reliance Retail,Body Wash & Soap,Yes
+Feb 26,Compact Powder,4,,Reliance Retail,Other,No
+Feb 26,Eye Liner,1,,Reliance Retail,Other,No
+Feb 26,Face Scrubs/Masks,6,,Reliance Retail,Face Mask & Scrub,Yes
+Feb 26,Face Serum,19,,Reliance Retail,Face Serum & Treatment,Yes
+Feb 26,Face Wash,42,,Reliance Retail,Face Wash & Cleanser,Yes
+Feb 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Feb 26,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+Feb 26,Foundation,4,,Reliance Retail,Other,No
+Feb 26,Hair - Conditioner,13,,Reliance Retail,Conditioner,Yes
+Feb 26,Hair - Leave On,3,,Reliance Retail,Hair Treatment & Styling,No
+Feb 26,Hair Color Cream Kit,5,,Reliance Retail,Hair Treatment & Styling,No
+Feb 26,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+Feb 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+Feb 26,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Feb 26,Kajal,3,,Reliance Retail,Other,No
+Feb 26,Lip Balm,6,,Reliance Retail,Lip Care,No
+Feb 26,Lipstick,19,,Reliance Retail,Lip Care,No
+Feb 26,Makeup Remover,1,,Reliance Retail,Other,No
+Feb 26,Mascara,1,,Reliance Retail,Other,No
+Feb 26,Moisturizing Cream,33,,Reliance Retail,Face Moisturiser & Cream,Yes
+Feb 26,Moisturizing Lotion,9,,Reliance Retail,Body Lotion & Care,Yes
+Feb 26,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+Feb 26,Onion Hair Oil,4,,Reliance Retail,Hair Oil,Yes
+Feb 26,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Feb 26,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Feb 26,Shampoo Herbal,22,,Reliance Retail,Shampoo,Yes
+Feb 26,Sheet Mask,4,,Reliance Retail,Face Mask & Scrub,Yes
+Feb 26,Soaps Moisturiser,11,,Reliance Retail,Face Moisturiser & Cream,Yes
+Feb 26,Sunscreens,32,,Reliance Retail,Sun Care,Yes
+Feb 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Jan 26,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jan 26,Amla Hair Oil,1,,Reliance Retail,Hair Oil,Yes
+Jan 26,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Jan 26,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+Jan 26,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Jan 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Jan 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Jan 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Jan 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Jan 26,Body Wash/Shower Gel,13,,Reliance Retail,Body Wash & Soap,Yes
+Jan 26,Face Scrubs/Masks,6,,Reliance Retail,Face Mask & Scrub,Yes
+Jan 26,Face Serum,18,,Reliance Retail,Face Serum & Treatment,Yes
+Jan 26,Face Wash,43,,Reliance Retail,Face Wash & Cleanser,Yes
+Jan 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Jan 26,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jan 26,Hair - Conditioner,13,,Reliance Retail,Conditioner,Yes
+Jan 26,Hair - Leave On,3,,Reliance Retail,Hair Treatment & Styling,No
+Jan 26,Hair Color Cream Kit,6,,Reliance Retail,Hair Treatment & Styling,No
+Jan 26,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+Jan 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+Jan 26,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Jan 26,Kajal,1,,Reliance Retail,Other,No
+Jan 26,Lip Balm,6,,Reliance Retail,Lip Care,No
+Jan 26,Moisturizing Cream,31,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jan 26,Moisturizing Lotion,9,,Reliance Retail,Body Lotion & Care,Yes
+Jan 26,Mos Rep Crm/Lotions,2,,Reliance Retail,Other,No
+Jan 26,Onion Hair Oil,3,,Reliance Retail,Hair Oil,Yes
+Jan 26,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Jan 26,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Jan 26,Shampoo Herbal,22,,Reliance Retail,Shampoo,Yes
+Jan 26,Sheet Mask,4,,Reliance Retail,Face Mask & Scrub,Yes
+Jan 26,Soaps Moisturiser,10,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jan 26,Sunscreens,31,,Reliance Retail,Sun Care,Yes
+Jan 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Jul 26,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jul 26,Amla Hair Oil,2,,Reliance Retail,Hair Oil,Yes
+Jul 26,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Jul 26,Baby Hygn Others,4,,Reliance Retail,Baby Care,Yes
+Jul 26,Baby Lotion/Cream,6,,Reliance Retail,Baby Care,Yes
+Jul 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Jul 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Jul 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Jul 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Jul 26,Body Wash/Shower Gel,12,,Reliance Retail,Body Wash & Soap,Yes
+Jul 26,Face Scrubs/Masks,4,,Reliance Retail,Face Mask & Scrub,Yes
+Jul 26,Face Serum,18,,Reliance Retail,Face Serum & Treatment,Yes
+Jul 26,Face Wash,40,,Reliance Retail,Face Wash & Cleanser,Yes
+Jul 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Jul 26,Fairness - Women,5,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jul 26,Hair - Conditioner,10,,Reliance Retail,Conditioner,Yes
+Jul 26,Hair - Leave On,2,,Reliance Retail,Hair Treatment & Styling,No
+Jul 26,Hair Color Cream Kit,2,,Reliance Retail,Hair Treatment & Styling,No
+Jul 26,Hair Mask,5,,Reliance Retail,Hair Treatment & Styling,No
+Jul 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+Jul 26,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Jul 26,Kajal,1,,Reliance Retail,Other,No
+Jul 26,Lip Balm,6,,Reliance Retail,Lip Care,No
+Jul 26,Lipstick,1,,Reliance Retail,Lip Care,No
+Jul 26,Moisturizing Cream,30,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jul 26,Moisturizing Lotion,8,,Reliance Retail,Body Lotion & Care,Yes
+Jul 26,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+Jul 26,Onion Hair Oil,3,,Reliance Retail,Hair Oil,Yes
+Jul 26,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Jul 26,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Jul 26,Shampoo Herbal,21,,Reliance Retail,Shampoo,Yes
+Jul 26,Sheet Mask,6,,Reliance Retail,Face Mask & Scrub,Yes
+Jul 26,Soaps Beauty,1,,Reliance Retail,Beauty Soap,No
+Jul 26,Soaps Moisturiser,8,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jul 26,Sunscreens,31,,Reliance Retail,Sun Care,Yes
+Jul 26,Toners/Astringents,1,,Reliance Retail,Toner,No
+Jul 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Jun 26,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jun 26,Amla Hair Oil,2,,Reliance Retail,Hair Oil,Yes
+Jun 26,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+Jun 26,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Jun 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Jun 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Jun 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Jun 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Jun 26,Body Wash/Shower Gel,11,,Reliance Retail,Body Wash & Soap,Yes
+Jun 26,Cough/Cold,1,,Reliance Retail,Other,No
+Jun 26,Face Scrubs/Masks,7,,Reliance Retail,Face Mask & Scrub,Yes
+Jun 26,Face Serum,18,,Reliance Retail,Face Serum & Treatment,Yes
+Jun 26,Face Wash,39,,Reliance Retail,Face Wash & Cleanser,Yes
+Jun 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Jun 26,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jun 26,Hair - Conditioner,12,,Reliance Retail,Conditioner,Yes
+Jun 26,Hair - Leave On,2,,Reliance Retail,Hair Treatment & Styling,No
+Jun 26,Hair Color Cream Kit,3,,Reliance Retail,Hair Treatment & Styling,No
+Jun 26,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+Jun 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+Jun 26,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Jun 26,Kajal,2,,Reliance Retail,Other,No
+Jun 26,Lip Balm,5,,Reliance Retail,Lip Care,No
+Jun 26,Lipstick,11,,Reliance Retail,Lip Care,No
+Jun 26,Moisturizing Cream,28,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jun 26,Moisturizing Lotion,8,,Reliance Retail,Body Lotion & Care,Yes
+Jun 26,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+Jun 26,Onion Hair Oil,3,,Reliance Retail,Hair Oil,Yes
+Jun 26,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Jun 26,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Jun 26,Shampoo Herbal,21,,Reliance Retail,Shampoo,Yes
+Jun 26,Sheet Mask,4,,Reliance Retail,Face Mask & Scrub,Yes
+Jun 26,Soaps Beauty,1,,Reliance Retail,Beauty Soap,No
+Jun 26,Soaps Moisturiser,10,,Reliance Retail,Face Moisturiser & Cream,Yes
+Jun 26,Sunscreens,31,,Reliance Retail,Sun Care,Yes
+Jun 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Mar 26,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Mar 26,Amla Hair Oil,2,,Reliance Retail,Hair Oil,Yes
+Mar 26,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Mar 26,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+Mar 26,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Mar 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Mar 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Mar 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+Mar 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Mar 26,Bb Cream,1,,Reliance Retail,Other,No
+Mar 26,Body Wash/Shower Gel,12,,Reliance Retail,Body Wash & Soap,Yes
+Mar 26,Compact Powder,4,,Reliance Retail,Other,No
+Mar 26,Face Scrubs/Masks,6,,Reliance Retail,Face Mask & Scrub,Yes
+Mar 26,Face Serum,19,,Reliance Retail,Face Serum & Treatment,Yes
+Mar 26,Face Wash,41,,Reliance Retail,Face Wash & Cleanser,Yes
+Mar 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Mar 26,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+Mar 26,Foundation,7,,Reliance Retail,Other,No
+Mar 26,Hair - Conditioner,11,,Reliance Retail,Conditioner,Yes
+Mar 26,Hair - Leave On,3,,Reliance Retail,Hair Treatment & Styling,No
+Mar 26,Hair Color Cream Kit,5,,Reliance Retail,Hair Treatment & Styling,No
+Mar 26,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+Mar 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+Mar 26,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Mar 26,Kajal,2,,Reliance Retail,Other,No
+Mar 26,Lip Balm,6,,Reliance Retail,Lip Care,No
+Mar 26,Lipstick,19,,Reliance Retail,Lip Care,No
+Mar 26,Makeup Remover,1,,Reliance Retail,Other,No
+Mar 26,Mascara,1,,Reliance Retail,Other,No
+Mar 26,Moisturizing Cream,33,,Reliance Retail,Face Moisturiser & Cream,Yes
+Mar 26,Moisturizing Lotion,9,,Reliance Retail,Body Lotion & Care,Yes
+Mar 26,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+Mar 26,Onion Hair Oil,3,,Reliance Retail,Hair Oil,Yes
+Mar 26,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Mar 26,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Mar 26,Shampoo Herbal,23,,Reliance Retail,Shampoo,Yes
+Mar 26,Sheet Mask,4,,Reliance Retail,Face Mask & Scrub,Yes
+Mar 26,Soaps Moisturiser,11,,Reliance Retail,Face Moisturiser & Cream,Yes
+Mar 26,Sunscreens,32,,Reliance Retail,Sun Care,Yes
+Mar 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+May 26,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+May 26,Amla Hair Oil,2,,Reliance Retail,Hair Oil,Yes
+May 26,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+May 26,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+May 26,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+May 26,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+May 26,Baby Shampoo,2,,Reliance Retail,Baby Care,Yes
+May 26,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+May 26,Bb Cream,1,,Reliance Retail,Other,No
+May 26,Body Wash/Shower Gel,11,,Reliance Retail,Body Wash & Soap,Yes
+May 26,Face Scrubs/Masks,6,,Reliance Retail,Face Mask & Scrub,Yes
+May 26,Face Serum,18,,Reliance Retail,Face Serum & Treatment,Yes
+May 26,Face Wash,40,,Reliance Retail,Face Wash & Cleanser,Yes
+May 26,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+May 26,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+May 26,Foundation,2,,Reliance Retail,Other,No
+May 26,Hair - Conditioner,11,,Reliance Retail,Conditioner,Yes
+May 26,Hair - Leave On,3,,Reliance Retail,Hair Treatment & Styling,No
+May 26,Hair Color Cream Kit,4,,Reliance Retail,Hair Treatment & Styling,No
+May 26,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+May 26,Hair Oil Others,4,,Reliance Retail,Hair Oil,Yes
+May 26,Hair Serum,2,,Reliance Retail,Hair Treatment & Styling,No
+May 26,Kajal,1,,Reliance Retail,Other,No
+May 26,Lip Balm,5,,Reliance Retail,Lip Care,No
+May 26,Moisturizing Cream,30,,Reliance Retail,Face Moisturiser & Cream,Yes
+May 26,Moisturizing Lotion,9,,Reliance Retail,Body Lotion & Care,Yes
+May 26,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+May 26,Onion Hair Oil,3,,Reliance Retail,Hair Oil,Yes
+May 26,Perfume - Men,3,,Reliance Retail,Fragrance,No
+May 26,Perfume - Women,4,,Reliance Retail,Fragrance,No
+May 26,Shampoo Herbal,21,,Reliance Retail,Shampoo,Yes
+May 26,Sheet Mask,6,,Reliance Retail,Face Mask & Scrub,Yes
+May 26,Soaps Beauty,1,,Reliance Retail,Beauty Soap,No
+May 26,Soaps Moisturiser,10,,Reliance Retail,Face Moisturiser & Cream,Yes
+May 26,Sunscreens,30,,Reliance Retail,Sun Care,Yes
+May 26,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Nov 25,Aloe Vera Gel,3,,Reliance Retail,Face Moisturiser & Cream,Yes
+Nov 25,Amla Hair Oil,1,,Reliance Retail,Hair Oil,Yes
+Nov 25,Baby Hair Oil,1,,Reliance Retail,Baby Care,Yes
+Nov 25,Baby Hygn Others,3,,Reliance Retail,Baby Care,Yes
+Nov 25,Baby Lotion/Cream,5,,Reliance Retail,Baby Care,Yes
+Nov 25,Baby Massage Oil,1,,Reliance Retail,Baby Care,Yes
+Nov 25,Baby Powder,2,,Reliance Retail,Baby Care,Yes
+Nov 25,Baby Shampoo,3,,Reliance Retail,Baby Care,Yes
+Nov 25,Baby Soap,4,,Reliance Retail,Baby Care,Yes
+Nov 25,Baby Wipes,1,,Reliance Retail,Baby Care,Yes
+Nov 25,Body Wash/Shower Gel,11,,Reliance Retail,Body Wash & Soap,Yes
+Nov 25,Face Scrubs/Masks,5,,Reliance Retail,Face Mask & Scrub,Yes
+Nov 25,Face Serum,18,,Reliance Retail,Face Serum & Treatment,Yes
+Nov 25,Face Wash,41,,Reliance Retail,Face Wash & Cleanser,Yes
+Nov 25,Facial Kit,3,,Reliance Retail,Face Mask & Scrub,Yes
+Nov 25,Fairness - Women,4,,Reliance Retail,Face Moisturiser & Cream,Yes
+Nov 25,Foundation,1,,Reliance Retail,Other,No
+Nov 25,Hair - Conditioner,13,,Reliance Retail,Conditioner,Yes
+Nov 25,Hair - Leave On,3,,Reliance Retail,Hair Treatment & Styling,No
+Nov 25,Hair Color Cream Kit,6,,Reliance Retail,Hair Treatment & Styling,No
+Nov 25,Hair Mask,6,,Reliance Retail,Hair Treatment & Styling,No
+Nov 25,Hair Oil Others,5,,Reliance Retail,Hair Oil,Yes
+Nov 25,Hair Serum,3,,Reliance Retail,Hair Treatment & Styling,No
+Nov 25,Kajal,1,,Reliance Retail,Other,No
+Nov 25,Lip Balm,6,,Reliance Retail,Lip Care,No
+Nov 25,Makeup Remover,1,,Reliance Retail,Other,No
+Nov 25,Moisturizing Cream,32,,Reliance Retail,Face Moisturiser & Cream,Yes
+Nov 25,Moisturizing Lotion,11,,Reliance Retail,Body Lotion & Care,Yes
+Nov 25,Mos Rep Crm/Lotions,3,,Reliance Retail,Other,No
+Nov 25,Onion Hair Oil,4,,Reliance Retail,Hair Oil,Yes
+Nov 25,Perfume - Men,3,,Reliance Retail,Fragrance,No
+Nov 25,Perfume - Women,5,,Reliance Retail,Fragrance,No
+Nov 25,Shampoo Herbal,19,,Reliance Retail,Shampoo,Yes
+Nov 25,Sheet Mask,4,,Reliance Retail,Face Mask & Scrub,Yes
+Nov 25,Soaps Moisturiser,12,,Reliance Retail,Face Moisturiser & Cream,Yes
+Nov 25,Sunscreens,32,,Reliance Retail,Sun Care,Yes
+Nov 25,Toners/Astringents,1,,Reliance Retail,Toner,No
+Nov 25,Tooth Paste Kids,1,,Reliance Retail,Oral Care,No
+Apr 26,Aloe Vera Gel,3,45,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Apr 26,Amla Hair Oil,1,3,Reliance Brand Counter,Hair Oil,Yes
+Apr 26,Baby Hygn Others,3,260,Reliance Brand Counter,Baby Care,Yes
+Apr 26,Baby Lotion/Cream,5,241,Reliance Brand Counter,Baby Care,Yes
+Apr 26,Baby Massage Oil,1,19,Reliance Brand Counter,Baby Care,Yes
+Apr 26,Baby Powder,2,172,Reliance Brand Counter,Baby Care,Yes
+Apr 26,Baby Shampoo,2,276,Reliance Brand Counter,Baby Care,Yes
+Apr 26,Baby Soap,4,301,Reliance Brand Counter,Baby Care,Yes
+Apr 26,Bb Cream,1,1,Reliance Brand Counter,Other,No
+Apr 26,Body Wash/Shower Gel,12,315,Reliance Brand Counter,Body Wash & Soap,Yes
+Apr 26,Face Scrubs/Masks,4,296,Reliance Brand Counter,Face Mask & Scrub,Yes
+Apr 26,Face Serum,17,260,Reliance Brand Counter,Face Serum & Treatment,Yes
+Apr 26,Face Wash,42,322,Reliance Brand Counter,Face Wash & Cleanser,Yes
+Apr 26,Facial Kit,3,261,Reliance Brand Counter,Face Mask & Scrub,Yes
+Apr 26,Fairness - Women,4,245,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Apr 26,Foundation,2,1,Reliance Brand Counter,Other,No
+Apr 26,Hair - Conditioner,12,303,Reliance Brand Counter,Conditioner,Yes
+Apr 26,Hair - Leave On,2,3,Reliance Brand Counter,Hair Treatment & Styling,No
+Apr 26,Hair Color Cream Kit,2,31,Reliance Brand Counter,Hair Treatment & Styling,No
+Apr 26,Hair Mask,6,168,Reliance Brand Counter,Hair Treatment & Styling,No
+Apr 26,Hair Oil Others,4,113,Reliance Brand Counter,Hair Oil,Yes
+Apr 26,Hair Serum,3,149,Reliance Brand Counter,Hair Treatment & Styling,No
+Apr 26,Kajal,1,137,Reliance Brand Counter,Other,No
+Apr 26,Lip Balm,5,73,Reliance Brand Counter,Lip Care,No
+Apr 26,Moisturizing Cream,33,321,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Apr 26,Moisturizing Lotion,11,321,Reliance Brand Counter,Body Lotion & Care,Yes
+Apr 26,Mos Rep Crm/Lotions,2,74,Reliance Brand Counter,Other,No
+Apr 26,Onion Hair Oil,3,305,Reliance Brand Counter,Hair Oil,Yes
+Apr 26,Perfume - Men,3,16,Reliance Brand Counter,Fragrance,No
+Apr 26,Perfume - Women,5,34,Reliance Brand Counter,Fragrance,No
+Apr 26,Shampoo Herbal,19,321,Reliance Brand Counter,Shampoo,Yes
+Apr 26,Sheet Mask,4,238,Reliance Brand Counter,Face Mask & Scrub,Yes
+Apr 26,Soaps Moisturiser,10,302,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Apr 26,Sunscreens,31,320,Reliance Brand Counter,Sun Care,Yes
+Apr 26,Tooth Paste Kids,1,224,Reliance Brand Counter,Oral Care,No
+Aug 26,Aloe Vera Gel,2,176,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Aug 26,Baby Hygn Others,4,232,Reliance Brand Counter,Baby Care,Yes
+Aug 26,Baby Lotion/Cream,5,228,Reliance Brand Counter,Baby Care,Yes
+Aug 26,Baby Massage Oil,1,11,Reliance Brand Counter,Baby Care,Yes
+Aug 26,Baby Powder,2,66,Reliance Brand Counter,Baby Care,Yes
+Aug 26,Baby Shampoo,2,262,Reliance Brand Counter,Baby Care,Yes
+Aug 26,Baby Soap,4,256,Reliance Brand Counter,Baby Care,Yes
+Aug 26,Bb Cream,1,2,Reliance Brand Counter,Other,No
+Aug 26,Body Wash/Shower Gel,10,283,Reliance Brand Counter,Body Wash & Soap,Yes
+Aug 26,Face Make-Up Others,2,2,Reliance Brand Counter,Other,No
+Aug 26,Face Scrubs/Masks,4,245,Reliance Brand Counter,Face Mask & Scrub,Yes
+Aug 26,Face Serum,15,298,Reliance Brand Counter,Face Serum & Treatment,Yes
+Aug 26,Face Wash,36,320,Reliance Brand Counter,Face Wash & Cleanser,Yes
+Aug 26,Facial Kit,3,248,Reliance Brand Counter,Face Mask & Scrub,Yes
+Aug 26,Fairness - Women,4,258,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Aug 26,Hair - Conditioner,8,292,Reliance Brand Counter,Conditioner,Yes
+Aug 26,Hair - Leave On,1,2,Reliance Brand Counter,Hair Treatment & Styling,No
+Aug 26,Hair Color Cream Kit,2,3,Reliance Brand Counter,Hair Treatment & Styling,No
+Aug 26,Hair Mask,5,16,Reliance Brand Counter,Hair Treatment & Styling,No
+Aug 26,Hair Oil Others,4,122,Reliance Brand Counter,Hair Oil,Yes
+Aug 26,Hair Serum,2,20,Reliance Brand Counter,Hair Treatment & Styling,No
+Aug 26,Kajal,1,111,Reliance Brand Counter,Other,No
+Aug 26,Lip Balm,4,71,Reliance Brand Counter,Lip Care,No
+Aug 26,Lipstick,1,1,Reliance Brand Counter,Lip Care,No
+Aug 26,Moisturizing Cream,23,318,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Aug 26,Moisturizing Lotion,9,315,Reliance Brand Counter,Body Lotion & Care,Yes
+Aug 26,Mos Rep Crm/Lotions,2,176,Reliance Brand Counter,Other,No
+Aug 26,Onion Hair Oil,3,287,Reliance Brand Counter,Hair Oil,Yes
+Aug 26,Perfume - Men,1,1,Reliance Brand Counter,Fragrance,No
+Aug 26,Perfume - Women,5,13,Reliance Brand Counter,Fragrance,No
+Aug 26,Shampoo Herbal,17,320,Reliance Brand Counter,Shampoo,Yes
+Aug 26,Sheet Mask,6,288,Reliance Brand Counter,Face Mask & Scrub,Yes
+Aug 26,Soaps Beauty,1,144,Reliance Brand Counter,Beauty Soap,No
+Aug 26,Soaps Moisturiser,10,301,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Aug 26,Sunscreens,27,318,Reliance Brand Counter,Sun Care,Yes
+Aug 26,Tooth Paste Kids,1,227,Reliance Brand Counter,Oral Care,No
+Feb 26,Aloe Vera Gel,3,129,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Feb 26,Amla Hair Oil,1,21,Reliance Brand Counter,Hair Oil,Yes
+Feb 26,Baby Hygn Others,3,290,Reliance Brand Counter,Baby Care,Yes
+Feb 26,Baby Lotion/Cream,5,241,Reliance Brand Counter,Baby Care,Yes
+Feb 26,Baby Massage Oil,1,51,Reliance Brand Counter,Baby Care,Yes
+Feb 26,Baby Powder,2,249,Reliance Brand Counter,Baby Care,Yes
+Feb 26,Baby Shampoo,2,279,Reliance Brand Counter,Baby Care,Yes
+Feb 26,Baby Soap,4,311,Reliance Brand Counter,Baby Care,Yes
+Feb 26,Baby Wipes,1,2,Reliance Brand Counter,Baby Care,Yes
+Feb 26,Bb Cream,1,2,Reliance Brand Counter,Other,No
+Feb 26,Body Wash/Shower Gel,11,314,Reliance Brand Counter,Body Wash & Soap,Yes
+Feb 26,Compact Powder,4,1,Reliance Brand Counter,Other,No
+Feb 26,Eye Liner,1,1,Reliance Brand Counter,Other,No
+Feb 26,Face Scrubs/Masks,5,302,Reliance Brand Counter,Face Mask & Scrub,Yes
+Feb 26,Face Serum,19,293,Reliance Brand Counter,Face Serum & Treatment,Yes
+Feb 26,Face Wash,40,322,Reliance Brand Counter,Face Wash & Cleanser,Yes
+Feb 26,Facial Kit,3,265,Reliance Brand Counter,Face Mask & Scrub,Yes
+Feb 26,Fairness - Women,4,283,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Feb 26,Foundation,4,1,Reliance Brand Counter,Other,No
+Feb 26,Hair - Conditioner,12,293,Reliance Brand Counter,Conditioner,Yes
+Feb 26,Hair - Leave On,3,31,Reliance Brand Counter,Hair Treatment & Styling,No
+Feb 26,Hair Color Cream Kit,5,49,Reliance Brand Counter,Hair Treatment & Styling,No
+Feb 26,Hair Mask,6,204,Reliance Brand Counter,Hair Treatment & Styling,No
+Feb 26,Hair Oil Others,4,146,Reliance Brand Counter,Hair Oil,Yes
+Feb 26,Hair Serum,3,193,Reliance Brand Counter,Hair Treatment & Styling,No
+Feb 26,Kajal,3,126,Reliance Brand Counter,Other,No
+Feb 26,Lip Balm,5,115,Reliance Brand Counter,Lip Care,No
+Feb 26,Lipstick,18,1,Reliance Brand Counter,Lip Care,No
+Feb 26,Makeup Remover,1,1,Reliance Brand Counter,Other,No
+Feb 26,Mascara,1,1,Reliance Brand Counter,Other,No
+Feb 26,Moisturizing Cream,33,318,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Feb 26,Moisturizing Lotion,7,316,Reliance Brand Counter,Body Lotion & Care,Yes
+Feb 26,Mos Rep Crm/Lotions,3,126,Reliance Brand Counter,Other,No
+Feb 26,Onion Hair Oil,3,297,Reliance Brand Counter,Hair Oil,Yes
+Feb 26,Perfume - Men,3,121,Reliance Brand Counter,Fragrance,No
+Feb 26,Perfume - Women,5,169,Reliance Brand Counter,Fragrance,No
+Feb 26,Shampoo Herbal,20,321,Reliance Brand Counter,Shampoo,Yes
+Feb 26,Sheet Mask,4,198,Reliance Brand Counter,Face Mask & Scrub,Yes
+Feb 26,Soaps Moisturiser,11,306,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Feb 26,Sunscreens,31,322,Reliance Brand Counter,Sun Care,Yes
+Feb 26,Tooth Paste Kids,1,164,Reliance Brand Counter,Oral Care,No
+Jan 26,Aloe Vera Gel,3,221,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jan 26,Amla Hair Oil,1,14,Reliance Brand Counter,Hair Oil,Yes
+Jan 26,Baby Hygn Others,3,291,Reliance Brand Counter,Baby Care,Yes
+Jan 26,Baby Lotion/Cream,5,272,Reliance Brand Counter,Baby Care,Yes
+Jan 26,Baby Massage Oil,1,49,Reliance Brand Counter,Baby Care,Yes
+Jan 26,Baby Powder,2,204,Reliance Brand Counter,Baby Care,Yes
+Jan 26,Baby Shampoo,2,280,Reliance Brand Counter,Baby Care,Yes
+Jan 26,Baby Soap,4,306,Reliance Brand Counter,Baby Care,Yes
+Jan 26,Body Wash/Shower Gel,13,312,Reliance Brand Counter,Body Wash & Soap,Yes
+Jan 26,Face Scrubs/Masks,5,315,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jan 26,Face Serum,18,276,Reliance Brand Counter,Face Serum & Treatment,Yes
+Jan 26,Face Wash,41,322,Reliance Brand Counter,Face Wash & Cleanser,Yes
+Jan 26,Facial Kit,3,273,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jan 26,Fairness - Women,4,272,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jan 26,Hair - Conditioner,12,310,Reliance Brand Counter,Conditioner,Yes
+Jan 26,Hair - Leave On,3,33,Reliance Brand Counter,Hair Treatment & Styling,No
+Jan 26,Hair Color Cream Kit,6,47,Reliance Brand Counter,Hair Treatment & Styling,No
+Jan 26,Hair Mask,6,199,Reliance Brand Counter,Hair Treatment & Styling,No
+Jan 26,Hair Oil Others,4,141,Reliance Brand Counter,Hair Oil,Yes
+Jan 26,Hair Serum,3,209,Reliance Brand Counter,Hair Treatment & Styling,No
+Jan 26,Kajal,1,75,Reliance Brand Counter,Other,No
+Jan 26,Lip Balm,5,119,Reliance Brand Counter,Lip Care,No
+Jan 26,Moisturizing Cream,30,319,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jan 26,Moisturizing Lotion,9,320,Reliance Brand Counter,Body Lotion & Care,Yes
+Jan 26,Mos Rep Crm/Lotions,2,73,Reliance Brand Counter,Other,No
+Jan 26,Onion Hair Oil,3,310,Reliance Brand Counter,Hair Oil,Yes
+Jan 26,Perfume - Men,3,98,Reliance Brand Counter,Fragrance,No
+Jan 26,Perfume - Women,5,142,Reliance Brand Counter,Fragrance,No
+Jan 26,Shampoo Herbal,20,322,Reliance Brand Counter,Shampoo,Yes
+Jan 26,Sheet Mask,4,192,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jan 26,Soaps Moisturiser,10,304,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jan 26,Sunscreens,31,322,Reliance Brand Counter,Sun Care,Yes
+Jan 26,Tooth Paste Kids,1,163,Reliance Brand Counter,Oral Care,No
+Jul 26,Aloe Vera Gel,3,106,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jul 26,Amla Hair Oil,1,2,Reliance Brand Counter,Hair Oil,Yes
+Jul 26,Baby Hygn Others,4,230,Reliance Brand Counter,Baby Care,Yes
+Jul 26,Baby Lotion/Cream,6,211,Reliance Brand Counter,Baby Care,Yes
+Jul 26,Baby Massage Oil,1,19,Reliance Brand Counter,Baby Care,Yes
+Jul 26,Baby Powder,2,80,Reliance Brand Counter,Baby Care,Yes
+Jul 26,Baby Shampoo,2,275,Reliance Brand Counter,Baby Care,Yes
+Jul 26,Baby Soap,4,261,Reliance Brand Counter,Baby Care,Yes
+Jul 26,Body Wash/Shower Gel,12,289,Reliance Brand Counter,Body Wash & Soap,Yes
+Jul 26,Face Scrubs/Masks,5,225,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jul 26,Face Serum,17,290,Reliance Brand Counter,Face Serum & Treatment,Yes
+Jul 26,Face Wash,40,321,Reliance Brand Counter,Face Wash & Cleanser,Yes
+Jul 26,Facial Kit,3,250,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jul 26,Fairness - Women,4,253,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jul 26,Hair - Conditioner,10,298,Reliance Brand Counter,Conditioner,Yes
+Jul 26,Hair - Leave On,2,5,Reliance Brand Counter,Hair Treatment & Styling,No
+Jul 26,Hair Color Cream Kit,2,8,Reliance Brand Counter,Hair Treatment & Styling,No
+Jul 26,Hair Mask,5,35,Reliance Brand Counter,Hair Treatment & Styling,No
+Jul 26,Hair Oil Others,4,123,Reliance Brand Counter,Hair Oil,Yes
+Jul 26,Hair Serum,3,25,Reliance Brand Counter,Hair Treatment & Styling,No
+Jul 26,Kajal,1,102,Reliance Brand Counter,Other,No
+Jul 26,Lip Balm,5,80,Reliance Brand Counter,Lip Care,No
+Jul 26,Lipstick,1,1,Reliance Brand Counter,Lip Care,No
+Jul 26,Moisturizing Cream,30,319,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jul 26,Moisturizing Lotion,8,317,Reliance Brand Counter,Body Lotion & Care,Yes
+Jul 26,Mos Rep Crm/Lotions,2,199,Reliance Brand Counter,Other,No
+Jul 26,Onion Hair Oil,3,284,Reliance Brand Counter,Hair Oil,Yes
+Jul 26,Perfume - Men,3,8,Reliance Brand Counter,Fragrance,No
+Jul 26,Perfume - Women,5,25,Reliance Brand Counter,Fragrance,No
+Jul 26,Shampoo Herbal,17,321,Reliance Brand Counter,Shampoo,Yes
+Jul 26,Sheet Mask,5,256,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jul 26,Soaps Beauty,1,144,Reliance Brand Counter,Beauty Soap,No
+Jul 26,Soaps Moisturiser,8,302,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jul 26,Sunscreens,31,320,Reliance Brand Counter,Sun Care,Yes
+Jul 26,Tooth Paste Kids,1,229,Reliance Brand Counter,Oral Care,No
+Jun 26,Aloe Vera Gel,3,26,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jun 26,Amla Hair Oil,1,3,Reliance Brand Counter,Hair Oil,Yes
+Jun 26,Baby Hygn Others,3,259,Reliance Brand Counter,Baby Care,Yes
+Jun 26,Baby Lotion/Cream,5,203,Reliance Brand Counter,Baby Care,Yes
+Jun 26,Baby Massage Oil,1,19,Reliance Brand Counter,Baby Care,Yes
+Jun 26,Baby Powder,2,118,Reliance Brand Counter,Baby Care,Yes
+Jun 26,Baby Shampoo,2,261,Reliance Brand Counter,Baby Care,Yes
+Jun 26,Baby Soap,4,280,Reliance Brand Counter,Baby Care,Yes
+Jun 26,Body Wash/Shower Gel,11,306,Reliance Brand Counter,Body Wash & Soap,Yes
+Jun 26,Face Scrubs/Masks,4,253,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jun 26,Face Serum,17,287,Reliance Brand Counter,Face Serum & Treatment,Yes
+Jun 26,Face Wash,39,320,Reliance Brand Counter,Face Wash & Cleanser,Yes
+Jun 26,Facial Kit,3,261,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jun 26,Fairness - Women,4,244,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jun 26,Hair - Conditioner,11,292,Reliance Brand Counter,Conditioner,Yes
+Jun 26,Hair - Leave On,2,16,Reliance Brand Counter,Hair Treatment & Styling,No
+Jun 26,Hair Color Cream Kit,3,19,Reliance Brand Counter,Hair Treatment & Styling,No
+Jun 26,Hair Mask,6,151,Reliance Brand Counter,Hair Treatment & Styling,No
+Jun 26,Hair Oil Others,4,127,Reliance Brand Counter,Hair Oil,Yes
+Jun 26,Hair Serum,3,61,Reliance Brand Counter,Hair Treatment & Styling,No
+Jun 26,Kajal,2,153,Reliance Brand Counter,Other,No
+Jun 26,Lip Balm,5,75,Reliance Brand Counter,Lip Care,No
+Jun 26,Lipstick,10,1,Reliance Brand Counter,Lip Care,No
+Jun 26,Moisturizing Cream,26,319,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jun 26,Moisturizing Lotion,8,316,Reliance Brand Counter,Body Lotion & Care,Yes
+Jun 26,Mos Rep Crm/Lotions,3,153,Reliance Brand Counter,Other,No
+Jun 26,Onion Hair Oil,3,291,Reliance Brand Counter,Hair Oil,Yes
+Jun 26,Perfume - Men,3,32,Reliance Brand Counter,Fragrance,No
+Jun 26,Perfume - Women,5,59,Reliance Brand Counter,Fragrance,No
+Jun 26,Shampoo Herbal,18,320,Reliance Brand Counter,Shampoo,Yes
+Jun 26,Sheet Mask,6,250,Reliance Brand Counter,Face Mask & Scrub,Yes
+Jun 26,Soaps Beauty,1,104,Reliance Brand Counter,Beauty Soap,No
+Jun 26,Soaps Moisturiser,10,294,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Jun 26,Sunscreens,31,319,Reliance Brand Counter,Sun Care,Yes
+Jun 26,Tooth Paste Kids,1,225,Reliance Brand Counter,Oral Care,No
+Mar 26,Aloe Vera Gel,3,82,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Mar 26,Amla Hair Oil,1,11,Reliance Brand Counter,Hair Oil,Yes
+Mar 26,Baby Hygn Others,3,276,Reliance Brand Counter,Baby Care,Yes
+Mar 26,Baby Lotion/Cream,5,259,Reliance Brand Counter,Baby Care,Yes
+Mar 26,Baby Massage Oil,1,62,Reliance Brand Counter,Baby Care,Yes
+Mar 26,Baby Powder,2,228,Reliance Brand Counter,Baby Care,Yes
+Mar 26,Baby Shampoo,2,281,Reliance Brand Counter,Baby Care,Yes
+Mar 26,Baby Soap,4,308,Reliance Brand Counter,Baby Care,Yes
+Mar 26,Bb Cream,1,3,Reliance Brand Counter,Other,No
+Mar 26,Body Wash/Shower Gel,12,314,Reliance Brand Counter,Body Wash & Soap,Yes
+Mar 26,Compact Powder,4,1,Reliance Brand Counter,Other,No
+Mar 26,Face Scrubs/Masks,5,292,Reliance Brand Counter,Face Mask & Scrub,Yes
+Mar 26,Face Serum,19,281,Reliance Brand Counter,Face Serum & Treatment,Yes
+Mar 26,Face Wash,39,322,Reliance Brand Counter,Face Wash & Cleanser,Yes
+Mar 26,Facial Kit,3,224,Reliance Brand Counter,Face Mask & Scrub,Yes
+Mar 26,Fairness - Women,4,232,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Mar 26,Foundation,7,1,Reliance Brand Counter,Other,No
+Mar 26,Hair - Conditioner,11,289,Reliance Brand Counter,Conditioner,Yes
+Mar 26,Hair - Leave On,3,31,Reliance Brand Counter,Hair Treatment & Styling,No
+Mar 26,Hair Color Cream Kit,5,43,Reliance Brand Counter,Hair Treatment & Styling,No
+Mar 26,Hair Mask,6,178,Reliance Brand Counter,Hair Treatment & Styling,No
+Mar 26,Hair Oil Others,4,136,Reliance Brand Counter,Hair Oil,Yes
+Mar 26,Hair Serum,3,192,Reliance Brand Counter,Hair Treatment & Styling,No
+Mar 26,Kajal,2,115,Reliance Brand Counter,Other,No
+Mar 26,Lip Balm,5,104,Reliance Brand Counter,Lip Care,No
+Mar 26,Lipstick,18,1,Reliance Brand Counter,Lip Care,No
+Mar 26,Makeup Remover,1,1,Reliance Brand Counter,Other,No
+Mar 26,Mascara,1,1,Reliance Brand Counter,Other,No
+Mar 26,Moisturizing Cream,33,320,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Mar 26,Moisturizing Lotion,8,321,Reliance Brand Counter,Body Lotion & Care,Yes
+Mar 26,Mos Rep Crm/Lotions,2,129,Reliance Brand Counter,Other,No
+Mar 26,Onion Hair Oil,3,292,Reliance Brand Counter,Hair Oil,Yes
+Mar 26,Perfume - Men,3,97,Reliance Brand Counter,Fragrance,No
+Mar 26,Perfume - Women,5,140,Reliance Brand Counter,Fragrance,No
+Mar 26,Shampoo Herbal,20,321,Reliance Brand Counter,Shampoo,Yes
+Mar 26,Sheet Mask,4,166,Reliance Brand Counter,Face Mask & Scrub,Yes
+Mar 26,Soaps Moisturiser,10,306,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+Mar 26,Sunscreens,31,321,Reliance Brand Counter,Sun Care,Yes
+Mar 26,Tooth Paste Kids,1,96,Reliance Brand Counter,Oral Care,No
+May 26,Aloe Vera Gel,3,29,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+May 26,Amla Hair Oil,1,2,Reliance Brand Counter,Hair Oil,Yes
+May 26,Baby Hygn Others,3,242,Reliance Brand Counter,Baby Care,Yes
+May 26,Baby Lotion/Cream,5,208,Reliance Brand Counter,Baby Care,Yes
+May 26,Baby Massage Oil,1,31,Reliance Brand Counter,Baby Care,Yes
+May 26,Baby Powder,2,170,Reliance Brand Counter,Baby Care,Yes
+May 26,Baby Shampoo,2,270,Reliance Brand Counter,Baby Care,Yes
+May 26,Baby Soap,4,304,Reliance Brand Counter,Baby Care,Yes
+May 26,Bb Cream,1,1,Reliance Brand Counter,Other,No
+May 26,Body Wash/Shower Gel,11,311,Reliance Brand Counter,Body Wash & Soap,Yes
+May 26,Face Scrubs/Masks,5,285,Reliance Brand Counter,Face Mask & Scrub,Yes
+May 26,Face Serum,18,265,Reliance Brand Counter,Face Serum & Treatment,Yes
+May 26,Face Wash,39,319,Reliance Brand Counter,Face Wash & Cleanser,Yes
+May 26,Facial Kit,3,265,Reliance Brand Counter,Face Mask & Scrub,Yes
+May 26,Fairness - Women,4,255,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+May 26,Foundation,2,1,Reliance Brand Counter,Other,No
+May 26,Hair - Conditioner,11,299,Reliance Brand Counter,Conditioner,Yes
+May 26,Hair - Leave On,3,4,Reliance Brand Counter,Hair Treatment & Styling,No
+May 26,Hair Color Cream Kit,3,29,Reliance Brand Counter,Hair Treatment & Styling,No
+May 26,Hair Mask,6,236,Reliance Brand Counter,Hair Treatment & Styling,No
+May 26,Hair Oil Others,4,117,Reliance Brand Counter,Hair Oil,Yes
+May 26,Hair Serum,2,132,Reliance Brand Counter,Hair Treatment & Styling,No
+May 26,Kajal,1,128,Reliance Brand Counter,Other,No
+May 26,Lip Balm,5,87,Reliance Brand Counter,Lip Care,No
+May 26,Moisturizing Cream,28,319,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+May 26,Moisturizing Lotion,8,316,Reliance Brand Counter,Body Lotion & Care,Yes
+May 26,Mos Rep Crm/Lotions,2,154,Reliance Brand Counter,Other,No
+May 26,Onion Hair Oil,3,305,Reliance Brand Counter,Hair Oil,Yes
+May 26,Perfume - Men,3,15,Reliance Brand Counter,Fragrance,No
+May 26,Perfume - Women,4,39,Reliance Brand Counter,Fragrance,No
+May 26,Shampoo Herbal,18,320,Reliance Brand Counter,Shampoo,Yes
+May 26,Sheet Mask,6,252,Reliance Brand Counter,Face Mask & Scrub,Yes
+May 26,Soaps Beauty,1,32,Reliance Brand Counter,Beauty Soap,No
+May 26,Soaps Moisturiser,8,294,Reliance Brand Counter,Face Moisturiser & Cream,Yes
+May 26,Sunscreens,30,319,Reliance Brand Counter,Sun Care,Yes
+May 26,Tooth Paste Kids,1,222,Reliance Brand Counter,Oral Care,No

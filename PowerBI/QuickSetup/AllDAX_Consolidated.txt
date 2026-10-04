@@ -2443,6 +2443,8 @@ Universe Availability % = DIVIDE ( [Universe Stores], [Universe Master Stores] )
 // =====================================================================
 // ACCOUNT (RETAILER) CATEGORY SHARE  (tables: 'Fact Account Category', 'Fact Account Category Geo', 'Fact Account Assortment')
 // Account sales = the chain's own category sales; our sales = Honasa sales in the same categories, Rs lakh without GST.
+// Reliance Retail and Reliance Brand Counter (the staffed counters) come from the Reliance file: gross sales as supplied, so compare shares, not rupees.
+// Never add Reliance Retail and Reliance Brand Counter together; they are two separate sets of stores.
 // Lulu and More Retail cover the categories and stores where we sell; More Retail months before Jun 26 are on a smaller scope:
 // read More Retail month on month only within Jun-Aug 26 (the Scope column says which scope a row is on).
 // For "Level" use "Category" (class level for More Retail) unless you want More Retail sub-classes.
@@ -2476,26 +2478,36 @@ CALCULATE ( [Account Share %], ALL ( 'Fact Account Category'[Category], 'Fact Ac
 Our Articles In Category = MAX ( 'Fact Account Assortment'[Articles] )
 
 // white space: category is 2% or more of the chain and our share is under 0.5%; low assortment: 3 or fewer articles and below the chain share
+// only categories that matter to us (at least 0.5% of our own sales across the chains, not "Other") are ever flagged: [Relevant For Us] = "No" gives a blank
 Account White Space Flag =
+VAR _rel = SELECTEDVALUE ( 'Fact Account Category'[Relevant For Us], "Yes" )
 VAR _pct = [Account Category % Of Chain]
 VAR _share = COALESCE ( [Account Share %], 0 )
 VAR _chain = [Account Chain Share %]
 VAR _art = [Our Articles In Category]
 RETURN
-    IF ( ISBLANK ( _pct ) || _pct < 0.02, BLANK (),
+    IF ( _rel = "No" || ISBLANK ( _pct ) || _pct < 0.02, BLANK (),
         IF ( _share < 0.005, "White space",
             IF ( NOT ISBLANK ( _art ) && _art <= 3 && _share < _chain, "Low assortment",
                 IF ( _share < _chain * 0.5, "Below chain average",
                     IF ( _share >= _chain * 1.5, "Strong", BLANK () ) ) ) ) )
 
-// gap to the chain-wide share, Rs lakh a month, for white space / low assortment / below average rows
+// our share in the rest of our range (without Face Wash and Shampoo): the realistic target for a thin category
+Account Rest Of Range Share % =
+CALCULATE ( [Account Share %], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ),
+    NOT ( 'Fact Account Category'[Common Category] IN { "Face Wash & Cleanser", "Shampoo" } ) )
+
+// gap to that target, Rs lakh a month, for white space / low assortment / below average rows (Face Wash and Shampoo use the chain-wide share)
 Account Share Gap Lakh =
+VAR _c = SELECTEDVALUE ( 'Fact Account Category'[Common Category] )
+VAR _target = IF ( _c IN { "Face Wash & Cleanser", "Shampoo" }, [Account Chain Share %], [Account Rest Of Range Share %] )
+RETURN
 IF ( [Account White Space Flag] IN { "White space", "Low assortment", "Below chain average" },
-    MAX ( [Account Chain Share %] - COALESCE ( [Account Share %], 0 ), 0 ) * [Account Sales Lakh] )
+    MAX ( _target - COALESCE ( [Account Share %], 0 ), 0 ) * [Account Sales Lakh] )
 
 Account Scope Note = SELECTEDVALUE ( 'Fact Account Category'[Scope], "More than one scope selected" )
 
-// zone / state / city cuts (Lulu and More Retail only; Wellness Forever has category level only)
+// zone / state / city cuts (Lulu, More Retail and Reliance; Wellness Forever has category level only)
 Account Geo Sales Lakh = SUM ( 'Fact Account Category Geo'[Account Sales Rs L] )
 Our Geo Sales Lakh = SUM ( 'Fact Account Category Geo'[Honasa Sales Rs L] )
 Account Geo Share % = DIVIDE ( [Our Geo Sales Lakh], [Account Geo Sales Lakh] )

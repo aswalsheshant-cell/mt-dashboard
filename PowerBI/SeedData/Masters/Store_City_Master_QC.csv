@@ -1,5 +1,5 @@
 Severity,Check,Count,Examples
 WARN,state carried in more than one zone (confirm the zone for these),10,"Bihar: East, North; Chhattisgarh: Central, East, North, West; Delhi NCR: North, South-1; Jharkhand: East, North; Karnataka: East, South-1, South-2; Madhya Pradesh: Central, West"
 WARN,same chain + store name + city under different codes (possible duplicate store),205,Apollo|18692; Apollo|25876; Apollo|14273; Apollo|17083; Apollo|18650; Apollo|25223
-WARN,state changed to the city's main state,54,Apollo|26537; Apollo|26889; Apollo|27653; Apollo|26810; Apollo|25876; Apollo|25878
-WARN,no city for the store,238,Apna Mart|NO-CITY|Jharkhand; Apna Mart|NO-CITY|West Bengal; Apollo|11813; Apollo|17330; Apollo|10119; Apollo|11472
+WARN,state changed to the city's main state,56,Apollo|26537; Apollo|26889; Apollo|27653; Apollo|26810; Apollo|25876; Apollo|25878
+WARN,no city for the store,231,Apna Mart|NO-CITY|Jharkhand; Apna Mart|NO-CITY|West Bengal; Apollo|11813; Apollo|17330; Apollo|10119; Apollo|11472

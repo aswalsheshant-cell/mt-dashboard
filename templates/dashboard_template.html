@@ -174,12 +174,12 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
 </div>
 
 <nav class="tab-nav">
-  <button class="tab-btn active" onclick="showTab(0)">Market Share</button>
+  <button class="tab-btn active" onclick="showTab(0)">Nielsen Cuts</button>
   <button class="tab-btn" onclick="showTab(1)">Opportunity</button>
   <button class="tab-btn" onclick="showTab(2)">90-Day Tracker</button>
   <button class="tab-btn" onclick="showTab(3)">Chains &amp; Packs</button>
   <button class="tab-btn" onclick="showTab(4)">Price &amp; Volume</button>
-  <button class="tab-btn" onclick="showTab(5)">Account Share &amp; Plan</button>
+  <button class="tab-btn" onclick="showTab(5)">Chain Share &amp; Plan</button>
 </nav>
 
 <!-- ============ TAB 0: MARKET SHARE (Both | Facewash | Shampoo) ============ -->
@@ -249,6 +249,38 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
     </div>
   </details>
 
+  <div class="blk-t" style="margin:18px 0 4px">All Nielsen cuts, Facewash and Shampoo <span class="note">&middot; brand, price, distribution, volume, pack and state, each with its basis</span></div>
+  <div class="sec" id="sec-bc"><h3>1. Brand cuts: price, distribution and productivity <span class="note">&middot; Nielsen, this month vs a year ago</span></h3>
+    <div class="note" id="bc-note"></div>
+    <div id="bc-fw"><div class="sub">Facewash &middot; brands by share</div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Brand</th><th>Share %</th><th>&Delta; pp YoY</th><th>Volume share %</th><th>&#8377; / ml</th><th>Price index</th><th>&#8377; / ml YoY %</th><th>WD %</th><th>&Delta; WD pp</th><th>ND %</th><th>Stores</th><th>&#8377; / store</th><th>Share / WD pt</th><th>SAH %</th></tr></thead><tbody id="bcf-tbody"></tbody></table></div></div>
+    <div id="bc-sh"><div class="sub">Shampoo &middot; brands by share</div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Brand</th><th>Share %</th><th>&Delta; bps YoY</th><th>Volume share %</th><th>&#8377; / ml</th><th>Price index</th><th>&#8377; / ml YoY %</th><th>WD %</th><th>&Delta; WD pp</th><th>ND %</th><th>Stores</th><th>&#8377; / store</th><th>Share / WD pt</th><th>SAH %</th></tr></thead><tbody id="bcs-tbody"></tbody></table></div></div>
+  </div>
+
+  <div class="sec" id="pv-n"><h3>2. Market: how much of the growth was volume and how much price <span class="note">&middot; Nielsen consumer offtake, this month vs a year ago</span></h3>
+    <div class="note" id="pv-n-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Category</th><th class="l">Brand</th><th>Value &#8377;Cr</th><th>Value YoY %</th><th>Volume YoY %</th><th>Price / ml YoY %</th><th>Volume effect &#8377;Cr</th><th>Price / mix effect &#8377;Cr</th><th class="l">Reads as</th></tr></thead><tbody id="pvn-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="sec-pk"><h3>3. Packs: where we are present and where not</h3>
+    <div class="note" id="pk-note"></div>
+    <div class="kp3" id="pk-kpis"></div>
+    <div class="sub">Facewash &middot; all packs: value, contribution and price</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="fwp-tbody"></tbody></table></div>
+    <div class="sub">Shampoo &middot; all packs: value, contribution and price</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="shp-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="sec-pb"><h3>4. Pack-wise brands: who sells which pack <span class="note">&middot; Nielsen Brand x Basepack, brand share of each pack's value (%)</span></h3>
+    <div class="note" id="pb-note"></div>
+    <div id="pb-wrap"></div>
+  </div>
+
+  <div class="sec" id="deck-state"><h3>5. State x chain exposure <span class="note">&middot; Nielsen Jun'26 market and our share, from the review deck</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>State</th><th>Mkt FW &#8377;Cr</th><th>Mkt SH &#8377;Cr</th><th>ME share FW %</th><th>ME share SH %</th><th>Dmart % FW/SH</th><th>Reliance % FW/SH</th><th>Apollo % FW/SH</th><th class="l">Main lever</th></tr></thead><tbody id="st-tbody"></tbody></table></div>
+  </div>
+
   <div class="ins-h">Key insights <span class="note" id="ins-note"></span></div>
   <div class="ins-grid" id="ins-grid"></div>
   <div class="foot" id="foot-ms"></div>
@@ -278,7 +310,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
 
 <!-- ============ TAB 3: CHAINS & PACKS ============ -->
 <div class="panel" id="p3">
-  <div class="bar"><div class="blk-t">Chains, packs and gaps</div><div class="note" id="cp-note"></div></div>
+  <div class="bar"><div class="blk-t">Chains, big packs and gaps <span class="note">&middot; our internal offtake (Nielsen cuts are in the Nielsen Cuts tab)</span></div><div class="note" id="cp-note"></div></div>
 
   <div class="sec"><h3>1. Which chains carried the growth</h3>
     <div class="note" id="ch-note"></div>
@@ -287,45 +319,21 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
     <div class="sub">Share of total growth, top chains (pp of last year's base)</div><div id="ch-bridge"></div>
   </div>
 
-  <div class="sec" id="deck-fair"><h3>2. Our share inside each chain's own category <span class="note">&middot; from the review deck</span></h3>
-    <div class="note" id="fair-note"></div>
-    <div class="g2"><div class="blk"><div class="sub" style="margin-top:0">Facewash &middot; Honasa % of the chain's category</div><div class="cw" style="height:190px"><canvas id="c-fair-fw"></canvas></div></div>
-      <div class="blk"><div class="sub" style="margin-top:0">Shampoo &middot; Honasa % of the chain's category</div><div class="cw" style="height:190px"><canvas id="c-fair-sh"></canvas></div></div></div>
-  </div>
-
-  <div class="sec" id="deck-state"><h3>3. State x chain exposure <span class="note">&middot; Nielsen Jun'26 market and our share, from the review deck</span></h3>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>State</th><th>Mkt FW &#8377;Cr</th><th>Mkt SH &#8377;Cr</th><th>ME share FW %</th><th>ME share SH %</th><th>Dmart % FW/SH</th><th>Reliance % FW/SH</th><th>Apollo % FW/SH</th><th class="l">Main lever</th></tr></thead><tbody id="st-tbody"></tbody></table></div>
-  </div>
-
-  <div class="sec"><h3>4. Packs: where we are present and where not</h3>
-    <div class="note" id="pk-note"></div>
-    <div class="kp3" id="pk-kpis"></div>
-    <div class="sub">Facewash &middot; all packs: value, contribution and price</div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="fwp-tbody"></tbody></table></div>
-    <div class="sub">Shampoo &middot; all packs: value, contribution and price</div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="shp-tbody"></tbody></table></div>
-  </div>
-
-  <div class="sec" id="sec-pb"><h3>4b. Pack-wise brands: who sells which pack <span class="note">&middot; Nielsen Brand x Basepack, brand share of each pack's value (%)</span></h3>
-    <div class="note" id="pb-note"></div>
-    <div id="pb-wrap"></div>
-  </div>
-
-  <div class="sec" id="sec-pm"><h3>5. Big packs by chain: sold or not sold <span class="note">&middot; Nielsen pack size vs where Mamaearth sells it (internal offtake Apr-Aug)</span></h3>
+  <div class="sec" id="sec-pm"><h3>2. Big packs by chain: sold or not sold <span class="note">&middot; Nielsen pack size vs where Mamaearth sells it (internal offtake Apr-Aug)</span></h3>
     <div class="note" id="pm-note"></div>
     <div id="pm-wrap"></div>
   </div>
 
-  <div class="sec"><h3>5b. Chain x range x pack: states still to fill <span class="note">&middot; internal offtake Apr-Aug, Mamaearth shampoo and face wash</span></h3>
+  <div class="sec"><h3>2b. Chain x range x pack: states still to fill <span class="note">&middot; internal offtake Apr-Aug, Mamaearth shampoo and face wash</span></h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chain</th><th class="l">Category</th><th class="l">Range</th><th>Pack</th><th>NSV &#8377;L</th><th>States present</th><th class="l">States missing</th></tr></thead><tbody id="rp-tbody"></tbody></table></div>
   </div>
 
-  <div class="sec"><h3>6. Categories strong elsewhere but thin in a chain <span class="note">&middot; our own sub-category mix, internal offtake</span></h3>
+  <div class="sec"><h3>3. Categories strong elsewhere but thin in a chain <span class="note">&middot; our own sub-category mix, internal offtake</span></h3>
     <div class="note" id="cg-note"></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chain</th><th class="l">Sub-category</th><th>Share of all-chain NSV %</th><th>Share in this chain %</th><th class="l">Status</th><th>Gap &#8377;L at all-chain mix</th></tr></thead><tbody id="cg-tbody"></tbody></table></div>
   </div>
 
-  <div class="sec" id="sec-vc"><h3>6b. Corporate-visit cities and the store master <span class="note">&middot; store master with city details, internal offtake Apr-Aug</span></h3>
+  <div class="sec" id="sec-vc"><h3>3b. Corporate-visit cities and the store master <span class="note">&middot; store master with city details, internal offtake Apr-Aug</span></h3>
     <div class="note" id="vc-note"></div>
     <div class="kp3" id="vc-kpis"></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Region</th><th class="l">City</th><th>Beats</th><th>Stores</th><th>NSV Apr-Aug &#8377;L</th><th>Latest month &#8377;L</th><th>MoM %</th><th>Brand Counter &#8377;L</th><th>Near-listed &#8377;L</th></tr></thead><tbody id="vc-tbody"></tbody></table></div>
@@ -333,12 +341,12 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">City</th><th class="l">Nearest listed city</th><th class="l">State</th><th>Stores</th><th>NSV Apr-Aug &#8377;L</th></tr></thead><tbody id="vn-tbody"></tbody></table></div>
   </div>
 
-  <div class="sec"><h3>7. Named plays from the review deck</h3>
+  <div class="sec"><h3>4. Named plays from the review deck</h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Priority</th><th class="l">Play</th><th class="l">Evidence</th><th class="l">Action</th></tr></thead><tbody id="pl-tbody"></tbody></table></div>
     <div class="note" id="pl-note"></div>
   </div>
 
-  <div class="sec"><h3>8. Deck figures checked against the Nielsen workbook</h3>
+  <div class="sec"><h3>5. Deck figures checked against the Nielsen workbook</h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Deck figure</th><th>Deck</th><th>Workbook</th><th class="l">Result</th></tr></thead><tbody id="tie-tbody"></tbody></table></div>
   </div>
   <div class="foot" id="foot-cp"></div>
@@ -348,26 +356,21 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
 <div class="panel" id="p4">
   <div class="bar"><div class="blk-t">Price, volume and realisation</div><div class="note" id="pv-note"></div></div>
 
-  <div class="sec" id="pv-n"><h3>1. Market: how much of the growth was volume and how much price <span class="note">&middot; Nielsen consumer offtake, this month vs a year ago</span></h3>
-    <div class="note" id="pv-n-note"></div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Category</th><th class="l">Brand</th><th>Value &#8377;Cr</th><th>Value YoY %</th><th>Volume YoY %</th><th>Price / ml YoY %</th><th>Volume effect &#8377;Cr</th><th>Price / mix effect &#8377;Cr</th><th class="l">Reads as</th></tr></thead><tbody id="pvn-tbody"></tbody></table></div>
-  </div>
-
-  <div class="sec" id="pv-i"><h3>2. Our MT offtake: units, price per unit and realisation <span class="note">&middot; internal store x article files</span></h3>
+  <div class="sec" id="pv-i"><h3>1. Our MT offtake: units, price per unit and realisation <span class="note">&middot; internal store x article files</span></h3>
     <div class="note" id="pv-i-note"></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Month</th><th>Units</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>Realisation % of MRP</th><th class="l">Change vs previous month</th><th>Volume effect &#8377;Cr</th><th>Price / mix effect &#8377;Cr</th></tr></thead><tbody id="pvi-tbody"></tbody></table></div>
   </div>
 
-  <div class="sec" id="pv-l"><h3>3. Realisation ladder by chain <span class="note">&middot; NSV as % of MRP sales, Apr-Aug cumulative</span></h3>
+  <div class="sec" id="pv-l"><h3>2. Realisation ladder by chain <span class="note">&middot; NSV as % of MRP sales, Apr-Aug cumulative</span></h3>
     <div class="note">Higher realisation means we keep more of the shelf price (less trade margin and discount). A low ASP index with low realisation is a value-pack, high-margin-to-trade chain.</div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>ASP index</th><th>Realisation %</th><th class="l">Ladder</th></tr></thead><tbody id="pvl-tbody"></tbody></table></div>
   </div>
 
-  <div class="sec" id="pv-z"><h3>4. Zone price index <span class="note">&middot; zone ASP / MT ASP x 100</span></h3>
+  <div class="sec" id="pv-z"><h3>3. Zone price index <span class="note">&middot; zone ASP / MT ASP x 100</span></h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Zone</th><th>NSV &#8377;Cr (latest month)</th><th>ASP &#8377;/unit</th><th>Price index (latest)</th><th>Realisation %</th><th>Price index (Apr-Aug)</th></tr></thead><tbody id="pvz-tbody"></tbody></table></div>
   </div>
 
-  <div class="sec" id="pv-b"><h3>5. Brand price position <span class="note">&middot; Apr-Aug</span></h3>
+  <div class="sec" id="pv-b"><h3>4. Brand price position <span class="note">&middot; Apr-Aug</span></h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Brand</th><th>Units</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>Realisation %</th></tr></thead><tbody id="pvb-tbody"></tbody></table></div>
   </div>
   <div class="foot" id="foot-pv"></div>
@@ -375,7 +378,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
 
 <!-- ============ TAB 5: ACCOUNT SHARE & FACEWASH PLAN ============ -->
 <div class="panel" id="p5">
-  <div class="bar"><div class="blk-t">Share inside each chain, white space and the Facewash plan</div><div class="note" id="ac-note"></div></div>
+  <div class="bar"><div class="blk-t">Share inside Lulu, More, Wellness and Reliance: white space and the Facewash plan</div><div class="note" id="ac-note"></div></div>
 
   <div class="sec" id="ac-s1"><h3>1. Our share of each chain's own category, after Nielsen <span class="note">&middot; account sales vs our sales, month on month</span></h3>
     <div class="note" id="ac-s1-note"></div>
@@ -388,6 +391,13 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
   <div class="sec" id="ac-s2"><h3>2. Chains side by side: Face Wash and Shampoo <span class="note">&middot; account and ours together</span></h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th class="l">Period</th><th>Face wash share %</th><th>Shampoo share %</th><th>Face wash: account &#8377;L</th><th>Face wash: ours &#8377;L</th><th class="l">Basis</th></tr></thead><tbody id="tg-tbody"></tbody></table></div>
   </div>
+
+  <div class="sec" id="deck-fair"><h3>2b. Dmart and Reliance, quarterly <span class="note">&middot; Honasa % of the chain's own category, from the review deck</span></h3>
+    <div class="note" id="fair-note"></div>
+    <div class="g2"><div class="blk"><div class="sub" style="margin-top:0">Facewash &middot; Honasa % of the chain's category</div><div class="cw" style="height:190px"><canvas id="c-fair-fw"></canvas></div></div>
+      <div class="blk"><div class="sub" style="margin-top:0">Shampoo &middot; Honasa % of the chain's category</div><div class="cw" style="height:190px"><canvas id="c-fair-sh"></canvas></div></div></div>
+  </div>
+
 
   <div class="sec" id="ac-s3"><h3>3. Top 5 categories: account sales and ours <span class="note">&middot; chain, zone or state, latest month</span></h3>
     <div class="bar" style="gap:8px;flex-wrap:wrap"><select id="t5-chain"></select><select id="t5-level"><option>Chain</option><option>Zone</option><option>State</option></select><select id="t5-name"></select></div>
@@ -455,6 +465,8 @@ function setView(v){
   el('ms-grid').className='ms-grid v-'+v;
   document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   el('both-packs').style.display=v==='both'?'':'none';
+  if(el('bc-fw'))el('bc-fw').style.display=v==='sh'?'none':'';
+  if(el('bc-sh')&&SH)el('bc-sh').style.display=v==='fw'?'none':'';
   buildInsights();
   requestAnimationFrame(()=>charts.forEach(c=>c.resize()));
 }
@@ -595,6 +607,23 @@ function initOpportunity(){
       scales:{x:{grid:{display:false},ticks:{color:k.tick,maxRotation:45,font:{size:9}},border:{display:false}},y:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>n0(v)},border:{display:false}}}}});
 }
 
+/* ── Nielsen brand cuts: price, distribution and productivity, Facewash and Shampoo shown separately ── */
+function brandRows(list,catPpml,unit){
+  const rows=(list||[]).filter(b=>ok(b.ms)).sort((a,b)=>b.ms-a.ms);
+  const top=rows.slice(0,10);if(!top.some(b=>b.n==='Mamaearth')){const m=rows.find(b=>b.n==='Mamaearth');if(m)top.push(m);}
+  return top.map(b=>({b,idx:ok(b.ppml)&&ok(catPpml)&&catPpml>0?b.ppml/catPpml*100:null,pp:unit==='bps'?b.yoy_bps:ppFor(b),
+    ppy:ok(b.ppml)&&ok(b.ppml_py)&&b.ppml_py>0?(b.ppml/b.ppml_py-1)*100:null,dwd:ok(b.wd)&&ok(b.wd_py)?b.wd-b.wd_py:null,spw:spd(b)}));
+}
+function bcRow(x,unit){const b=x.b,own=b.n==='Mamaearth';
+  return `<tr${own?' style="font-weight:600"':''}><td class="l">${esc(b.n)}</td><td>${f1(b.ms)}</td><td class="${cls(x.pp)}">${sg(x.pp,unit==='bps'?0:1)}</td><td>${f1(b.ms_vol)}</td><td>${f1(b.ppml,2)}</td><td>${ok(x.idx)?Math.round(x.idx):'–'}</td><td class="${cls(x.ppy)}">${sg(x.ppy,1)}</td><td>${f1(b.wd)}</td><td class="${cls(x.dwd)}">${sg(x.dwd,1)}</td><td>${f1(b.nd)}</td><td>${n0(b.stores)}</td><td>${n0(b.pdo)}</td><td>${ok(x.spw)?x.spw.toFixed(3):'–'}</td><td>${f1(b.sah)}</td></tr>`;}
+function buildBrandCuts(){
+  const fcat=FW_INFO&&ok(FW_INFO.ppml)?FW_INFO.ppml:null,scat=SH&&ok(SH.category_ppml)?SH.category_ppml:null;
+  tbody('bcf-tbody',brandRows(FW_ALL,fcat,'pp'),x=>bcRow(x,'pp'));
+  tbody('bcs-tbody',SH?brandRows(SH.brands,scat,'bps'):[],x=>bcRow(x,'bps'));
+  el('bc-note').textContent='Price index = the brand\'s price per ml / the category\'s price per ml x 100 (100 = category average). WD = weighted distribution, ND = numeric distribution, SAH = share among the stores that stock the brand, Share / WD pt = share earned per point of weighted distribution. Top 10 brands by share plus Mamaearth; the full lists are in the brand scoreboards above.';
+  if(!SH)hide('bc-sh');
+}
+
 /* ── key insights: every number is computed from the payload ── */
 function ins(tag,title,text,action,kind,views){return{tag,title,text,action,kind,views};}
 function insightList(){
@@ -659,6 +688,23 @@ function insightList(){
       if(ok(sh.msVol)&&ok(sh.ms))L.push(ins('Shampoo','Volume share '+f1(sh.msVol)+'% vs value share '+f1(sh.ms)+'%',`Mamaearth sells ₹${f1(sh.ppml,2)} per ml against ₹${f1(sh.catPpml,2)} for the category; the gap is price mix, not only volume.`,'Check whether the pack mix (mostly >200 ml) is the reason for the lower price per ml.','info',['sh']));}
     else L.push(ins('Shampoo','Distribution cannot be sized','This payload has no shampoo weighted distribution, numeric distribution or store count.','Ask for the shampoo distribution cut with the next Nielsen pull.','alert',['sh']));
   }
+  /* price, depth and headroom cuts, Facewash and Shampoo */
+  const cutIns=(name,list,catPpml,views,unit)=>{
+    const m=(list||[]).find(b=>b.n==='Mamaearth');if(!m)return;
+    if(ok(m.ppml)&&ok(catPpml)&&catPpml>0){const ix=m.ppml/catPpml*100,ch=ok(m.ppml_py)&&m.ppml_py>0?(m.ppml/m.ppml_py-1)*100:null;
+      L.push(ins(name,'Price position: index '+Math.round(ix)+' against the category',`Mamaearth ₹${f1(m.ppml,2)} per ml vs category ₹${f1(catPpml,2)}${ok(ch)?`; our price per ml moved ${sg(ch,1,'%')} YoY`:''}. ${ix>=110?'We are a premium brand here: the share is earned at a price above average.':ix<=90?'We price below the category; a price rise has room only if share holds.':'We sit close to the category price.'}`,
+        'Read price per ml next to the pack mix before any promo or price move.',ix>=110?'info':'info',views));}
+    if(ok(m.wd)&&ok(m.nd)){const gap=m.wd-m.nd;
+      L.push(ins(name,'We are in '+f1(m.wd,0)+'% of weighted distribution but '+f1(m.nd,0)+'% of stores',`The ${f1(gap,0)} point gap means we are in the larger stores first; the smaller stores are still open.`,'Use the distributor route for the smaller stores; keep the chain listings for the large ones.',gap>=15?'warn':'info',views));}
+    if(ok(m.sah)&&ok(m.ms)&&ok(m.wd)&&m.wd<95){const full=m.sah*0.95;
+      L.push(ins(name,'Where we are listed we hold '+f1(m.sah,1)+'%, overall '+f1(m.ms,1)+'%',`If the stores we are missing sold like the stores we are in, a 95% weighted distribution would give about ${f1(full,1)}% share (${sg(full-m.ms,1,' pp')}).`,'This is the ceiling for the distribution lever; the Facewash plan sizes it in rupees.',full>m.ms?'good':'info',views));}
+    const wdUp=(list||[]).filter(b=>ok(b.wd)&&ok(b.wd_py)&&b.n!=='Mamaearth').sort((a,b)=>(b.wd-b.wd_py)-(a.wd-a.wd_py))[0];
+    if(wdUp&&wdUp.wd-wdUp.wd_py>=2)L.push(ins(name,esc(wdUp.n)+' added '+f1(wdUp.wd-wdUp.wd_py,1)+' WD points in a year',`WD ${f1(wdUp.wd_py)}% → ${f1(wdUp.wd)}%${ok(wdUp.ms)&&ok(wdUp.ms_py)?`; its share ${f1(wdUp.ms_py)}% → ${f1(wdUp.ms)}%`:''}.`,'Check which chains it was listed in and whether it is taking our shelf.','warn',views));
+    const movers=(list||[]).filter(b=>b.n!=='Mamaearth'&&ok(b.ppml)&&ok(b.ppml_py)&&b.ppml_py>0&&b.ms>=2).map(b=>({n:b.n,c:(b.ppml/b.ppml_py-1)*100})).filter(x=>Math.abs(x.c)>=8).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c)).slice(0,3);
+    if(movers.length)L.push(ins(name,'Price per ml moved 8% or more: '+movers.map(x=>esc(x.n)+' '+sg(x.c,0,'%')).join(', '),'Brands with at least 2% share. A drop is a price cut, pack change or promo; a rise is a price rise or a move to bigger or premium packs.','Look at pack-wise brands below before reading this as a price war.','info',views));
+  };
+  cutIns('Facewash',FW_ALL,FW_INFO&&FW_INFO.ppml,['fw'],'pp');
+  if(SH)cutIns('Shampoo',SH.brands,SH.category_ppml,['sh'],'bps');
   if(sh&&ok(sh.ppValue)&&ok(fw.ppValue))
     L.push(ins('Both','A shampoo share point is worth '+f1(sh.ppValue/fw.ppValue,1)+'× a facewash point',`₹${f1(sh.ppValue,2)} Cr vs ₹${f1(fw.ppValue,2)} Cr a month, while Mamaearth holds ${f1(fw.ms)}% of Facewash and ${f1(sh.ms)}% of Shampoo.`,(sh.sameMonth?'Weigh shampoo higher when choosing where to push; same market and month, so the ratio is comparable.':'Weigh shampoo higher when choosing where to push; read as indicative (different months and universes).'),'alert',['both']));
   if(sh&&!sh.sameMonth)L.push(ins('Both','Periods differ',`Facewash is ${esc(MONTHS[last])}; Shampoo is ${esc(SH.period)} (${esc(SH.basis)}). Compare direction, not level.`,'Refresh Shampoo with the July pull.','info',['both']));
@@ -765,10 +811,10 @@ function buildVisit(){
 function buildAccount(){
   if(!ACCT||!ACCT.chains){['ac-s1','ac-s2','ac-s3','ac-s4','ac-s5','ac-s6'].forEach(hide);el('ac-note').textContent='Account share data is not in this payload.';return;}
   const chains=Object.keys(ACCT.chains),k=cd();
-  el('ac-note').textContent='Retailer-side files: Lulu, More Retail, Wellness Forever (monthly); Dmart and Reliance from the review deck (quarterly). Value Rs lakh without GST.';
+  el('ac-note').textContent='Monthly: Lulu, More Retail, Wellness Forever and Reliance (retailer files). Dmart: quarterly, from the review deck. Value Rs lakh; Reliance is gross sales as supplied, so compare shares, not rupees.';
   tbody('ac-tbody',chains,n=>{const c=ACCT.chains[n];return `<tr><td class="l">${esc(n)}</td><td class="l">${esc(c.latest)}</td><td>${n0(c.account_latest)}</td><td>${n0(c.honasa_latest)}</td><td>${f1(c.share_latest,2)}</td><td>${sg(c.share_change_pp,2)}</td><td>${sg(c.account_mom_pct,1)}</td><td>${sg(c.honasa_mom_pct,1)}</td><td>${f1(c.fw_share_latest,1)}</td><td class="l wrap">${esc(c.scope)}</td></tr>`;});
-  el('ac-s1-note').textContent='Share = our sales / the chain\'s own category sales. Lulu and More cover the categories where we sell, so the share is a share of what the chain sells where we are present; Wellness lists every category. More Retail months before Jun 26 cover fewer categories and are not comparable with Jun-Aug: they are dashed on the charts and MoM uses Jun-Aug only.';
-  const cols={'Lulu':'#2563EB','More Retail':'#D97706','Wellness Forever':'#059669'};
+  el('ac-s1-note').textContent='Share = our sales / the chain\'s own category sales. Lulu and More cover the categories where we sell, so the share is a share of what the chain sells where we are present; Wellness lists every category. More Retail months before Jun 26 cover fewer categories and are not comparable with Jun-Aug: they are dashed on the charts and MoM uses Jun-Aug only. Reliance Retail is the Reliance stores outside the brand counters (RRL Others, the categories outside the file\'s own pivots, left out); Reliance Brand Counter is the staffed counter stores, kept apart and never added to Reliance Retail.';
+  const cols={'Lulu':'#2563EB','More Retail':'#D97706','Wellness Forever':'#059669','Reliance Retail':'#7C3AED','Reliance Brand Counter':'#DB2777'};
   const allM=[...new Set(chains.flatMap(n=>ACCT.chains[n].series.map(s=>s.month)))].sort((a,b)=>{const m=x=>{const [mo,y]=x.split(' ');return +y*12+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mo);};return m(a)-m(b);});
   const line=(id,key)=>mk(id,{type:'line',data:{labels:allM,datasets:chains.map(n=>{const by=Object.fromEntries(ACCT.chains[n].series.map(s=>[s.month,s]));
       return {label:n,data:allM.map(m=>by[m]?by[m][key]:null),borderColor:cols[n]||GREY,backgroundColor:'transparent',tension:.25,pointRadius:2,spanGaps:true,
@@ -784,10 +830,10 @@ function buildAccount(){
   const fillNames=()=>{const names=[...new Set(T.filter(x=>x.chain===selC.value&&x.level===selL.value).map(x=>x.name))];selN.innerHTML=names.map(n=>`<option>${esc(n)}</option>`).join('')||'<option>–</option>';drawT5();};
   const drawT5=()=>{const rows=T.filter(x=>x.chain===selC.value&&x.level===selL.value&&x.name===selN.value);
     el('t5-note').textContent=rows.length?`${selC.value} · ${selL.value==='Chain'?'whole chain':selL.value+' '+selN.value} · ${rows[0].month}. Account and our sales side by side; MoM is shown at chain level.`:`${selC.value} has no ${selL.value.toLowerCase()} cut in its file (Wellness Forever: category level only; More Retail: DC city, Jun-Aug).`;
-    tbody('t5-tbody',rows,x=>`<tr><td class="l">${esc(x.category)}</td><td class="l">${esc(x.common)}</td><td>${n0(x.account)}</td><td>${n0(x.honasa)}</td><td>${f1(x.share,2)}</td><td>${x.pct_of_geo!=null?f1(x.pct_of_geo,1):'–'}</td><td>${sg(x.account_mom,1)}</td><td>${sg(x.honasa_mom,1)}</td></tr>`);};
+    tbody('t5-tbody',rows,x=>`<tr><td class="l">${esc(x.category)}</td><td class="l">${esc(x.common)}</td><td>${n0(x.account)}</td><td>${n0(x.honasa)}</td><td>${f1(x.share,2)}</td><td>${x.pct_of_geo!=null?f1(x.pct_of_geo,1):'–'}</td><td>${sg(x.account_mom,1)}</td><td>${sg(x.honasa_mom,1)}</td></tr>`.replace('<tr>',x.relevant===false?'<tr style="opacity:.55" title="Not a category for us: shown for size only, never flagged">':'<tr>'));};
   selC.onchange=selL.onchange=fillNames;selN.onchange=drawT5;fillNames();
   // flags
-  el('fl-note').textContent='White space: the category is 2% or more of the chain\'s category sales and our share is under 0.5%. Low assortment: 3 or fewer of our articles and share under the chain average. Below chain average: under half our chain-wide share. Strong: 1.5 times or more. Lulu and More only list categories where we sell; a category where we are absent from the whole account needs the account\'s full category report.';
+  el('fl-note').textContent='White space: the category is 2% or more of the chain\'s category sales and our share is under 0.5%. Low assortment: 3 or fewer of our articles and share under the chain average. Below chain average: under half our chain-wide share. Strong: 1.5 times or more. Lulu and More only list categories where we sell; a category where we are absent from the whole account needs the account\'s full category report. Only categories that matter to us are flagged (at least '+f1((ACCT.rules||{}).relevant_min_pct_of_our_sales,1)+'% of our own sales across these chains). Not highlighted: '+((ACCT.not_highlighted||[]).map(x=>x.common+' ('+f1(x.our_pct,2)+'% of our sales)').join(', ')||'none')+'.';
   const fc=el('fl-chain');fc.innerHTML='<option>All chains</option>'+chains.map(n=>`<option>${esc(n)}</option>`).join('');
   const drawFl=()=>{const rows=(ACCT.flags||[]).filter(x=>(fc.value==='All chains'||x.chain===fc.value)&&(el('fl-flag').value==='All flags'||x.flag===el('fl-flag').value)).sort((a,b)=>(b.gap_l_month||0)-(a.gap_l_month||0));
     tbody('fl-tbody',rows,x=>`<tr><td class="l">${esc(x.chain)}</td><td class="l">${esc(x.category)}</td><td class="l"><span class="st ${x.flag==='Strong'?'ok':x.flag==='White space'?'notmet':'warn'}">${esc(x.flag)}</span></td><td>${f1(x.pct_of_chain,1)}</td><td>${n0(x.account_avg_month)}</td><td>${f1(x.honasa_avg_month,1)}</td><td>${f1(x.share,2)}</td><td>${f1(x.chain_share,2)}</td><td>${x.articles!=null?x.articles:'–'}</td><td>${x.gap_l_month>0?f1(x.gap_l_month,1):'–'}</td></tr>`);};
@@ -802,7 +848,7 @@ function buildAccount(){
   el('fp-note').textContent=(P.note||'')+' Gate review: Nielsen share and WD each month; account share from the retailer files; pack listings from the offtake files.';
   tbody('av-tbody',ACCT.availability||[],x=>`<tr><td class="l">${esc(x.file)}</td><td class="l">${esc(x.chain)}</td><td class="l wrap">${esc(x.months)}</td><td class="l wrap">${esc(x.store_city)}</td><td class="l">${esc(x.zone_state)}</td><td class="l wrap">${esc(x.articles)}</td><td class="l wrap">${esc(x.scope)}</td></tr>`);
   tbody('sm-tbody',ACCT.store_map_check||[],x=>`<tr><td class="l">${esc(x['Store Code'])}</td><td class="l">${esc(x['Store Name'])}</td><td class="l">${esc(x['City (from store name)']||'–')}</td><td class="l">${esc(x['City (store master)']||'–')}</td><td class="l">${esc(x['State']||'–')}</td><td class="l">${esc(x['Zone']||'–')}</td><td class="l"><span class="st ${x.Check==='Same city'?'ok':x.Check&&x.Check.startsWith('Differs')?'notmet':'warn'}">${esc(x.Check||'')}</span></td></tr>`);
-  el('foot-ac').textContent='Sources: Compiled_Monthly_Files (Lulu), More_MS_Till_Aug26, Wellness_MS, the review deck (Dmart, Reliance) and the Nielsen '+(MARKET||'')+' payload for the Facewash plan. No store or employee names are in this page.';
+  el('foot-ac').textContent='Sources: Compiled_Monthly_Files (Lulu), More_MS_Till_Aug26, Wellness_MS, RIL_BA_Store_MS (Reliance), the review deck (Dmart) and the Nielsen '+(MARKET||'')+' payload for the Facewash plan. No store or employee names are in this page.';
 }
 function buildPackBrand(){
   if(!FW_PB&&!SH_PB){hide('sec-pb');return;}
@@ -877,7 +923,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   el('fw-period').textContent=(MONTHS[last]||'')+' · vs '+(ya>=0?MONTHS[ya]:'last year');
   el('sh-period').textContent=SH?SH.period+' · '+SH.basis:'';
   el('period-note').textContent=SH&&!sh.sameMonth?'Different months: Facewash '+MONTHS[last]+', Shampoo '+SH.period+'. Compare direction, not level.':(MARKET?'Market: '+MARKET+(UNIT?' · '+UNIT:'')+'. Both categories are the same month.':'');
-  buildKpis();buildFwTable();buildShTable();
+  buildKpis();buildFwTable();buildShTable();buildBrandCuts();
   bridge('bridge-wrap',FW_ALL.filter(b=>ok(b.ms)&&ok(b.ms_py)).map(b=>({n:b.n,d:ppFor(b)})),'pp',d=>sg(d,1),0.2);
   if(SH)bridge('bridge-wrap-sh',(SH.brands||[]).map(b=>({n:b.n,d:b.yoy_bps})),'bps',d=>sg(d,0),0);
   packBars('fw-packs',FW_PACKS,'Not available',FW_ME_PACKS);packBars('fw-packs-b',FW_PACKS,'Not available',FW_ME_PACKS);

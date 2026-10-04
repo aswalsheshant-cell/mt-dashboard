@@ -72,6 +72,23 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
   if (EXPECT.stale) check(!t.includes('41.2%') && !t.includes('41.8%'), 'sh: the unsupported 41% pack figure must not appear');
   if (shotDir) await page.screenshot({ path: path.join(shotDir, 'shampoo.png'), fullPage: true });
 
+  // ---- Nielsen Cuts: every Nielsen-sourced cut is on this one tab (brand, price, distribution, market, packs, pack-wise brands, state)
+  if (mode === 'aug') {
+    await page.click('#seg button[data-view="both"]');
+    t = await clean('nielsen-cuts');
+    for (const needle of ['Brand cuts', 'Price index', 'SAH', 'Market: how much of the growth', 'Packs: where we are present', 'Pack-wise brands', 'State x chain exposure', 'Not present', 'Under-indexed', 'Maharashtra', 'Reads as', 'weighted distribution'])
+      check(t.toLowerCase().includes(needle.toLowerCase()), `nielsen cuts: expected "${needle}"`);
+    check((await page.$$eval('#bcf-tbody tr', n => n.length)) >= 8, 'nielsen cuts: Facewash brand cut has too few rows');
+    check((await page.$$eval('#bcs-tbody tr', n => n.length)) >= 8, 'nielsen cuts: Shampoo brand cut has too few rows');
+    await page.click('#seg button[data-view="fw"]');
+    check(await vis('#bc-fw') && !(await vis('#bc-sh')), 'nielsen cuts: Facewash view must hide the Shampoo brand cut');
+    check((await page.$eval('#ins-grid', n => n.innerText)).includes('Price position'), 'nielsen cuts: Facewash price-position insight missing');
+    await page.click('#seg button[data-view="sh"]');
+    check(await vis('#bc-sh') && !(await vis('#bc-fw')), 'nielsen cuts: Shampoo view must hide the Facewash brand cut');
+    await page.click('#seg button[data-view="fw"]');
+    if (shotDir) await page.screenshot({ path: path.join(shotDir, 'nielsen-cuts.png'), fullPage: true });
+  }
+
   // ---- Opportunity
   await page.click('.tab-btn:nth-child(2)');
   await page.waitForSelector('#opp-grid .opp');
@@ -90,13 +107,13 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
   await page.click('.tab-btn:nth-child(4)');
   t = await clean('chains');
   if (mode === 'aug') {
-    for (const needle of ['Which chains carried the growth', 'Dmart', 'Not present', 'Under-indexed', 'Does not tie', 'Maharashtra', 'Named plays', 'States present', 'Big packs by chain', 'Not sold', 'Pack-wise brands', 'Corporate-visit cities', 'Near-listed', 'Thane'])
+    for (const needle of ['Which chains carried the growth', 'Dmart', 'Does not tie', 'Named plays', 'States present', 'Big packs by chain', 'Not sold', 'Corporate-visit cities', 'Near-listed', 'Thane'])
       check(t.toLowerCase().includes(needle.toLowerCase()), `chains: expected "${needle}"`);
     // big packs must be visible whatever their status (Facewash 200/240 ml, Shampoo 250/400/600/650/1000 ml)
     const pm = await page.$eval('#pm-wrap', n => n.innerText);
     for (const sz of ['200', '240', '250', '400', '600', '650', '1000']) check(new RegExp('(^|\\n)' + sz + '\\t').test(pm), `chains: pack ${sz} ml missing from the big-pack grid`);
     const rows = await page.$$eval('#fwp-tbody tr', n => n.length);
-    check(rows >= 5, `chains: facewash pack table has ${rows} rows`);
+    check(rows >= 5, `chains: facewash pack table has ${rows} rows (it now sits in the Nielsen Cuts tab)`);
     if (shotDir) await page.screenshot({ path: path.join(shotDir, 'chains.png'), fullPage: true });
   }
 
@@ -104,19 +121,19 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
   await page.click('.tab-btn:nth-child(5)');
   t = await clean('price-volume');
   if (mode === 'aug') {
-    for (const needle of ['Realisation ladder by chain', 'Zone price index', 'Volume effect', 'Reads as', 'South-1', 'Dmart'])
+    for (const needle of ['Realisation ladder by chain', 'Zone price index', 'Volume effect', 'South-1', 'Dmart'])
       check(t.toLowerCase().includes(needle.toLowerCase()), `price-volume: expected "${needle}"`);
     if (shotDir) await page.screenshot({ path: path.join(shotDir, 'pricevolume.png'), fullPage: true });
   }
 
-  // ---- Account Share & Plan
+  // ---- Chain Share & Plan
   await page.click('.tab-btn:nth-child(6)');
   t = await clean('account-share');
   if (mode === 'aug') {
-    for (const needle of ['Share inside each chain', 'More Retail', 'Wellness Forever', 'White space', 'Plan to lift Facewash', 'Distribution', 'Pack gaps', 'Differs: check', 'Dmart', 'Reliance Retail'])
+    for (const needle of ['Share inside Lulu, More, Wellness and Reliance', 'More Retail', 'Wellness Forever', 'White space', 'Plan to lift Facewash', 'Distribution', 'Pack gaps', 'Differs: check', 'Dmart', 'Reliance Retail', 'Reliance Brand Counter', 'Not highlighted', 'Dmart and Reliance, quarterly'])
       check(t.toLowerCase().includes(needle.toLowerCase()), `account: expected "${needle}"`);
     // zone and state cuts for Lulu and More Retail
-    for (const [chain, level] of [['Lulu', 'Zone'], ['Lulu', 'State'], ['More Retail', 'State']]) {
+    for (const [chain, level] of [['Lulu', 'Zone'], ['Lulu', 'State'], ['More Retail', 'State'], ['Reliance Retail', 'Zone'], ['Reliance Retail', 'State'], ['Reliance Brand Counter', 'State']]) {
       await page.selectOption('#t5-chain', chain);
       await page.selectOption('#t5-level', level);
       const rows = await page.$$eval('#t5-tbody tr', n => n.length);
@@ -125,6 +142,11 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
     await page.selectOption('#t5-chain', 'Wellness Forever');
     await page.selectOption('#t5-level', 'State');
     check((await page.$eval('#t5-note', n => n.innerText)).includes('no state cut'), 'account: Wellness has no state cut and says so');
+    // categories that do not matter to us are never flagged
+    await page.selectOption('#fl-chain', 'All chains');
+    await page.selectOption('#fl-flag', 'All flags');
+    const flagged = await page.$eval('#fl-tbody', n => n.innerText);
+    for (const bad of ['Soaps Beauty', 'Hair Serum', 'Perfume', 'Insecticide', 'Tooth']) check(!flagged.includes(bad), `account: "${bad}" is not a category for us and must not be flagged`);
     await page.selectOption('#fl-flag', 'White space');
     check((await page.$$eval('#fl-tbody tr', n => n.length)) > 3, 'account: white space rows missing');
     await clean('account-share-after-select');

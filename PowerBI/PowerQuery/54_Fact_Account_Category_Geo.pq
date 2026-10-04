@@ -1,7 +1,7 @@
 // =====================================================================
-// QUERY: Fact Account Category Geo  (grain = Chain x Month x Zone x State x City x Category (Lulu)
+// QUERY: Fact Account Category Geo  (grain = Chain x Month x Zone x State x City x Category; city is the store city for Lulu, the DC city for More Retail, the store city for Reliance Brand Counter)
 // Source = SeedData\Account\Account_Category_Geo.csv, built by scripts/build_account_share.py from the retailer-side files
-// (Lulu compiled monthly files, More MS, Wellness MS). Value is Rs lakh without GST. Share % = our sales / the chain's own category sales.
+// (Lulu compiled monthly files, More MS, Reliance BA store file; Wellness Forever has no zone or state). Value is Rs lakh without GST (Reliance: gross sales as supplied). Share % = our sales / the chain's own category sales.
 // Scope: Lulu and More Retail cover the categories and stores where Honasa sells; More Retail months before Jun 26 cover fewer categories
 // (see the Scope column), so compare More Retail only within Jun-Aug 26. Relate Date Table[MonthStart] -> [MonthStart]; Chain -> Chain Master[Chain].
 // =====================================================================
@@ -10,7 +10,7 @@ let
         [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
     Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
     Typed = Table.TransformColumnTypes(Headers, {
-        {" store state, city read from the store name; More Retail: DC city, Jun-Aug 26):Chain", type text},
+        {"Chain", type text},
         {"Month", type text},
         {"Zone", type text},
         {"State", type text},
@@ -21,7 +21,8 @@ let
         {"Stores", type number},
         {"Common Category", type text},
         {"Share %", type number},
-        {"Source", type text}
+        {"Source", type text},
+        {"Relevant For Us", type text}
     }),
     AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
         let

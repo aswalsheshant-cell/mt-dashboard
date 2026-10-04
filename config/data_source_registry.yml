@@ -844,14 +844,14 @@ datasets:
       for the full permitted/prohibited list.
 
   retailer_category_share_monthly:
-    business_name: "Retailer-side category sales (Lulu, More Retail, Wellness Forever) -- chain's own category sales vs Honasa sales, Rs lakh without GST"
-    source_path: "data/account_share/*.csv (built by scripts/build_account_share.py from Compiled_Monthly_Files_Jan_to_Aug26_Updated.xlsx, More_MS_Till_May26_version_1.xlsb, More_MS_Till_Aug26_Updated.xlsx, Wellness_MS_Jun-Aug26_Updated.xlsb, which stay outside Git)"
+    business_name: "Retailer-side category sales (Lulu, More Retail, Wellness Forever, Reliance Retail, Reliance Brand Counter) -- chain's own category sales vs Honasa sales, Rs lakh"
+    source_path: "data/account_share/*.csv (built by scripts/build_account_share.py from Compiled_Monthly_Files_Jan_to_Aug26_Updated.xlsx, More_MS_Till_May26_version_1.xlsb, More_MS_Till_Aug26_Updated.xlsx, Wellness_MS_Jun-Aug26_Updated.xlsb, RIL_BA_Store_MS_-_Aug26.xlsb, which stay outside Git)"
     source_type: "retailer-supplied xlsx/xlsb -> CSV"
     grain: "chain x month x category (Lulu also state and city; More by DC city; Wellness category only)"
-    date_min: "2026-01"
+    date_min: "2025-11"
     date_max: "2026-08"
     financial_years: ["FY26", "FY27"]
-    important_columns: ["Chain", "Month", "Category", "Common Category", "Account Sales Rs L", "Honasa Sales Rs L", "Share %"]
+    important_columns: ["Chain", "Month", "Category", "Common Category", "Account Sales Rs L", "Honasa Sales Rs L", "Share %", "Relevant For Us"]
     business_owner: "MT leadership analytics (account share)"
     refresh_frequency: "Monthly, when the retailer files arrive"
     validation_status: VALIDATED
@@ -866,3 +866,35 @@ datasets:
       store-level state and a city readable from the store name; More has DC city only; Wellness has none. Dmart and Reliance appear only as
       quarterly figures typed from the review deck. Store_City_Corrections.csv (Lulu 9260 -> Thrissur) is applied in the store master build.
       UniverseMT.csv supplied again is identical to the repo copy and has no city column.
+      Reliance (RIL_BA_Store_MS_-_Aug26.xlsb): RRL = Reliance's own category sales, HCL = Honasa, gross sales in Rs lakh as supplied (our NSV
+      is about 0.45 of it, so compare shares, not rupees). Sheet "Article MS Source" = Reliance stores outside the brand counters (Nov 25-Aug 26,
+      zone and state, no store or city) -> chain "Reliance Retail"; sheet "BA Store" = the staffed brand-counter stores (Jan-Aug 26, store, city) ->
+      chain "Reliance Brand Counter", counts only, kept apart and never added to Reliance Retail. "RRL Others" (categories outside the file's own
+      pivots) is left out, as the file does. Ties to the workbook's Aug26 Check sheet and TOP Category MS pivot are QC checks in the builder.
+      Our sales above the account's category (item classed differently, e.g. Reliance Perfume) keep their sales in the totals and have a blank share.
+      A category is flagged (white space, proven elsewhere) only when it is at least 0.5% of our own sales across the chains and not "Other"
+      (column Relevant For Us); the rest are shown for size only.
+
+  offtake_aug26_storewise_refresh:
+    business_name: "Aug-26 store-wise offtake (all accounts and Reliance Brand Counter), re-supplied -- replaces the earlier Aug-26 extract"
+    source_path: "Aug26_offtake_storewise.xlsb (sheets All Account and RBC), outside Git; split into offtake_store_article_Aug_26.csv by scripts/split_offtake_store_article_xlsb.py. The CSV tracked in PowerBI/RawDataFolders/Offtake_Monthly is the EARLIER Aug-26 extract, pinned by SHA-256 in config/restricted_source_policy.yml (owner decision I-2), so the refreshed CSV is not committed: put it in that folder locally before a Power BI refresh or a rebuild"
+    source_type: "xlsb workbook -> month CSV"
+    grain: "store x article, Aug-26"
+    date_min: "2026-08"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    important_columns: ["Chain Name", "Store Type", "Site Code", "Article", "NSV", "Sales Qty"]
+    business_owner: "MT leadership analytics (offtake)"
+    refresh_frequency: "Monthly"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/build_dashboard_data.py --offtake-patch -> dashboard/data.js (offtake block, FY27); store master and Nielsen chain / price-volume views rebuilt from the same CSV"
+    downstream_outputs: ["dashboard/data.js offtake FY27", "Store_City_Master.csv", "Nielsen chain contribution, pack presence, price and volume", "Power BI Offtake_Monthly"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      Compared with the earlier Aug-26 file: Reliance (non-counter) 1,188.52 -> 1,096.95 L, Dmart 1,417.87 -> 1,388.74, Apollo 734.22 -> 725.13
+      (restated), and two chains that were missing are now in: Vishal Mega Mart (Vmm) 41.52 L and V-Mart 14.97 L. Reliance Brand Counter 728.38 L is
+      unchanged and stays out of the offtake total (CLAUDE.md). Aug-26 offtake ex counters: 3,975.13 -> 3,901.83 L; FY27 total 19,044.99 -> 18,971.69 L.
+      FY25 and FY26 blocks are unchanged (31,119.87 L FY26). The source writes some chain names with a trailing space ("Reliance ", "Azorte "):
+      the loaders strip it.

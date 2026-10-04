@@ -1,31 +1,31 @@
 Chain,Category,Range,Pack,NSV_lakh,States_present,States_in_chain,Missing_states
 APOLLO,Face wash,Rice,150,357.196,24,24,
-APOLLO,Face wash,Vitamin C,150,129.789,23,24,Jammu & Kashmir
-APOLLO,Face wash,Ubtan,200,126.186,24,24,
-APOLLO,Face wash,Vitamin C,250,50.137,23,24,Jammu & Kashmir
+APOLLO,Face wash,Vitamin C,150,129.368,23,24,Jammu & Kashmir
+APOLLO,Face wash,Ubtan,200,126.052,24,24,
+APOLLO,Face wash,Vitamin C,250,50.017,23,24,Jammu & Kashmir
 APOLLO,Face wash,Rice,200,41.168,23,24,Jammu & Kashmir
-APOLLO,Face wash,Ubtan,100,33.891,24,24,
-APOLLO,Face wash,Tea Tree,100,22.341,24,24,
-APOLLO,Face wash,Rice,100,20.594,22,24,Chhattisgarh; Jammu & Kashmir
-APOLLO,Face wash,Vitamin C,100,13.725,23,24,Jammu & Kashmir
-APOLLO,Face wash,Charcoal,100,10.5,24,24,
-APOLLO,Face wash,Aloe Vera,100,0.278,2,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Maharashtra; Northeast; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
-APOLLO,Face wash,Neem,150,0.125,3,24,Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Northeast; Punjab; Rajasthan; Tamil Nadu; Uttar Pradesh; Uttarakhand; West Bengal
+APOLLO,Face wash,Ubtan,100,33.872,24,24,
+APOLLO,Face wash,Tea Tree,100,22.299,24,24,
+APOLLO,Face wash,Rice,100,20.584,22,24,Chhattisgarh; Jammu & Kashmir
+APOLLO,Face wash,Vitamin C,100,13.706,23,24,Jammu & Kashmir
+APOLLO,Face wash,Charcoal,100,10.457,24,24,
+APOLLO,Face wash,Aloe Vera,100,0.277,2,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Maharashtra; Northeast; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
+APOLLO,Face wash,Neem,150,0.123,3,24,Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Northeast; Punjab; Rajasthan; Tamil Nadu; Uttar Pradesh; Uttarakhand; West Bengal
 APOLLO,Face wash,Multani Mitti,100,0.009,1,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Northeast; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
 APOLLO,Face wash,Beetroot,100,0.002,1,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Northeast; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
-APOLLO,Shampoo,Onion,400,258.036,23,24,Jammu & Kashmir
-APOLLO,Shampoo,Rosemary,400,213.9,23,24,Jammu & Kashmir
-APOLLO,Shampoo,Solution Oriented,200,36.918,23,24,Jammu & Kashmir
-APOLLO,Shampoo,Onion,600,23.199,22,24,Jammu & Kashmir; Northeast
-APOLLO,Shampoo,Rosemary,600,16.904,19,24,Bihar; Himachal Pradesh; Jammu & Kashmir; Northeast; Uttarakhand
-APOLLO,Shampoo,Onion,250,14.352,24,24,
+APOLLO,Shampoo,Onion,400,257.969,23,24,Jammu & Kashmir
+APOLLO,Shampoo,Rosemary,400,213.848,23,24,Jammu & Kashmir
+APOLLO,Shampoo,Solution Oriented,200,36.819,23,24,Jammu & Kashmir
+APOLLO,Shampoo,Onion,600,23.191,22,24,Jammu & Kashmir; Northeast
+APOLLO,Shampoo,Rosemary,600,16.895,19,24,Bihar; Himachal Pradesh; Jammu & Kashmir; Northeast; Uttarakhand
+APOLLO,Shampoo,Onion,250,14.184,24,24,
 APOLLO,Shampoo,Rice,400,12.717,10,24,Bihar; Chandigarh; Chhattisgarh; Goa; Gujarat; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Madhya Pradesh; Maharashtra; Northeast; Odisha; Rajasthan; Uttarakhand
-APOLLO,Shampoo,Milky,400,10.946,21,24,Chandigarh; Himachal Pradesh; Jammu & Kashmir
-APOLLO,Shampoo,Rosemary,250,3.321,23,24,Jammu & Kashmir
-APOLLO,Shampoo,Lemon,250,3.181,9,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Goa; Gujarat; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Northeast; Odisha; Rajasthan
-APOLLO,Shampoo,Bhringamla,250,2.339,15,24,Chandigarh; Delhi NCR; Haryana; Himachal Pradesh; Jammu & Kashmir; Punjab; Rajasthan; Uttar Pradesh; Uttarakhand
-APOLLO,Shampoo,Rice,250,1.215,3,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Northeast; Odisha; Punjab; Rajasthan; Uttar Pradesh; Uttarakhand; West Bengal
-APOLLO,Shampoo,Tea Tree,250,0.187,10,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Gujarat; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Northeast; Odisha; Rajasthan; Tamil Nadu
+APOLLO,Shampoo,Milky,400,10.807,21,24,Chandigarh; Himachal Pradesh; Jammu & Kashmir
+APOLLO,Shampoo,Rosemary,250,3.287,23,24,Jammu & Kashmir
+APOLLO,Shampoo,Lemon,250,3.159,9,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Goa; Gujarat; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Northeast; Odisha; Rajasthan
+APOLLO,Shampoo,Bhringamla,250,2.34,15,24,Chandigarh; Delhi NCR; Haryana; Himachal Pradesh; Jammu & Kashmir; Punjab; Rajasthan; Uttar Pradesh; Uttarakhand
+APOLLO,Shampoo,Rice,250,1.199,3,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Northeast; Odisha; Punjab; Rajasthan; Uttar Pradesh; Uttarakhand; West Bengal
+APOLLO,Shampoo,Tea Tree,250,0.185,10,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Gujarat; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Northeast; Odisha; Rajasthan; Tamil Nadu
 APOLLO,Shampoo,Kerala Thaali,250,0.115,2,24,Andhra Pradesh; Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Karnataka; Madhya Pradesh; Maharashtra; Northeast; Odisha; Punjab; Rajasthan; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
 APOLLO,Shampoo,Coco Soft,400,0.008,1,24,Bihar; Chandigarh; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Northeast; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
 ARAMBAGH,Face wash,Rice,150,2.489,1,1,
@@ -46,12 +46,12 @@ ARAMBAGH,Shampoo,Rosemary,400,1.694,1,1,
 ARAMBAGH,Shampoo,Onion,250,0.556,1,1,
 ARAMBAGH,Shampoo,Onion,100,0.046,1,1,
 DMART,Face wash,Rice,150,742.083,17,17,
-DMART,Face wash,Rice,100,410.599,16,17,Goa
+DMART,Face wash,Rice,100,410.638,16,17,Goa
 DMART,Face wash,Ubtan,150,403.126,17,17,
-DMART,Face wash,Ubtan,100,177.94,16,17,Madhya Pradesh
-DMART,Face wash,Vitamin C,100,119.504,16,17,Goa
+DMART,Face wash,Ubtan,100,177.967,16,17,Madhya Pradesh
+DMART,Face wash,Vitamin C,100,119.51,16,17,Goa
 DMART,Face wash,Vitamin C,150,97.364,16,17,Madhya Pradesh
-DMART,Face wash,Multani Mitti,100,78.177,15,17,Goa; Telangana
+DMART,Face wash,Multani Mitti,100,77.789,15,17,Goa; Telangana
 DMART,Face wash,Aloe Vera,100,25.763,6,17,Delhi NCR; Goa; Haryana; Madhya Pradesh; Northeast; Odisha; Punjab; Rajasthan; Telangana; Uttar Pradesh; Uttarakhand
 DMART,Face wash,Beetroot,100,21.139,13,17,Goa; Northeast; Odisha; Uttarakhand
 DMART,Face wash,Tea Tree,100,6.404,11,17,Goa; Haryana; Madhya Pradesh; Northeast; Odisha; Uttarakhand
@@ -193,40 +193,40 @@ RELIANCE,Face wash,Rice,150,501.897,25,25,
 RELIANCE,Face wash,Ubtan,150,393.278,25,25,
 RELIANCE,Face wash,Rice,200,92.62,25,25,
 RELIANCE,Face wash,Rice,50,73.04,25,25,
-RELIANCE,Face wash,Ubtan,200,72.228,25,25,
+RELIANCE,Face wash,Ubtan,200,69.944,25,25,
 RELIANCE,Face wash,Vitamin C,100,65.597,25,25,
 RELIANCE,Face wash,Tea Tree,150,38.732,25,25,
-RELIANCE,Face wash,Vitamin C,150,29.98,24,25,Goa
+RELIANCE,Face wash,Vitamin C,150,29.25,24,25,Goa
 RELIANCE,Face wash,Ubtan,50,28.367,25,25,
-RELIANCE,Face wash,Multani Mitti,150,22.72,24,25,Goa
+RELIANCE,Face wash,Multani Mitti,150,22.003,23,25,Goa; Jammu & Kashmir
 RELIANCE,Face wash,Ubtan,100,20.682,24,25,Jammu and Kashmir
-RELIANCE,Face wash,Rice,100,19.961,24,25,Goa
+RELIANCE,Face wash,Rice,100,19.276,23,25,Goa; Jammu & Kashmir
 RELIANCE,Face wash,Vitamin C,250,17.119,23,25,Jammu & Kashmir; Jammu and Kashmir
-RELIANCE,Face wash,Beetroot,100,8.486,24,25,Goa
-RELIANCE,Face wash,Charcoal,100,8.245,24,25,Goa
+RELIANCE,Face wash,Beetroot,100,8.342,24,25,Goa
+RELIANCE,Face wash,Charcoal,100,7.961,23,25,Goa; Jammu & Kashmir
 RELIANCE,Face wash,Multani Mitti,100,6.416,24,25,Goa
-RELIANCE,Face wash,Aloe Vera,100,4.308,23,25,Goa; Jammu and Kashmir
-RELIANCE,Face wash,Multani Mitti,50,3.495,24,25,Goa
-RELIANCE,Face wash,Vitamin C,50,3.279,23,25,Goa; Jammu & Kashmir
+RELIANCE,Face wash,Aloe Vera,100,4.266,22,25,Goa; Jammu & Kashmir; Jammu and Kashmir
+RELIANCE,Face wash,Multani Mitti,50,3.495,23,25,Goa; Jammu & Kashmir
 RELIANCE,Face wash,Tea Tree,100,3.168,10,25,Bihar; Chhattisgarh; Goa; Gujarat; Haryana; Hayana; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Odisha; Punjab; Rajasthan; Uttarakhand; West Bengal
-RELIANCE,Face wash,Chia Seed,100,2.284,24,25,Goa
-RELIANCE,Face wash,Neem,150,2.197,21,25,Goa; Himachal Pradesh; Jammu and Kashmir; Uttarakhand
+RELIANCE,Face wash,Vitamin C,50,3.125,23,25,Goa; Jammu & Kashmir
+RELIANCE,Face wash,Chia Seed,100,2.284,22,25,Goa; Jammu & Kashmir; Uttarakhand
+RELIANCE,Face wash,Neem,150,2.135,20,25,Goa; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Uttarakhand
 RELIANCE,Face wash,Vitamin C,225,0.061,3,25,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Goa; Haryana; Hayana; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Northeast; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 RELIANCE,Face wash,Ubtan,225,0.025,4,25,Andhra Pradesh; Bihar; Chhattisgarh; Goa; Haryana; Hayana; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Northeast; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-RELIANCE,Shampoo,Onion,400,569.691,25,25,
-RELIANCE,Shampoo,Rosemary,400,397.745,25,25,
-RELIANCE,Shampoo,Onion,650,184.197,25,25,
-RELIANCE,Shampoo,Rice,400,121.873,25,25,
-RELIANCE,Shampoo,Rosemary,650,115.651,25,25,
+RELIANCE,Shampoo,Onion,400,552.082,25,25,
+RELIANCE,Shampoo,Rosemary,400,384.584,25,25,
+RELIANCE,Shampoo,Onion,650,172.609,25,25,
+RELIANCE,Shampoo,Rice,400,118.573,25,25,
+RELIANCE,Shampoo,Rosemary,650,111.036,25,25,
 RELIANCE,Shampoo,Lemon,400,99.834,25,25,
 RELIANCE,Shampoo,Onion,250,82.622,25,25,
 RELIANCE,Shampoo,Solution Oriented,400,37.986,25,25,
 RELIANCE,Shampoo,Rosemary,250,11.878,21,25,Chhattisgarh; Goa; Himachal Pradesh; Tamil Nadu
 RELIANCE,Shampoo,Lemon,100,8.906,24,25,Goa
-RELIANCE,Shampoo,Rice,250,5.873,23,25,Goa; Jammu & Kashmir
+RELIANCE,Shampoo,Rice,250,5.772,22,25,Goa; Himachal Pradesh; Jammu & Kashmir
 RELIANCE,Shampoo,Kerala Thaali,250,5.369,4,25,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Goa; Gujarat; Haryana; Hayana; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Madhya Pradesh; Northeast; Odisha; Punjab; Rajasthan; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
 RELIANCE,Shampoo,Onion,50,4.453,24,25,Telangana
-RELIANCE,Shampoo,Solution Oriented,200,2.601,22,25,Chhattisgarh; Madhya Pradesh; Northeast
+RELIANCE,Shampoo,Solution Oriented,200,2.601,20,25,Chhattisgarh; Goa; Jammu & Kashmir; Madhya Pradesh; Northeast
 RELIANCE,Shampoo,Onion,600,0.881,9,25,Bihar; Chhattisgarh; Goa; Hayana; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Kerala; Madhya Pradesh; Northeast; Odisha; Punjab; Rajasthan; Uttarakhand; West Bengal
 RELIANCE,Shampoo,Tea Tree,250,0.336,11,25,Goa; Gujarat; Haryana; Hayana; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Karnataka; Madhya Pradesh; Northeast; Odisha; Telangana; Uttarakhand
 RELIANCE,Shampoo,Lemon,250,0.183,10,25,Andhra Pradesh; Chhattisgarh; Goa; Gujarat; Haryana; Hayana; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Madhya Pradesh; Northeast; Odisha; Tamil Nadu; Telangana
@@ -310,19 +310,19 @@ TRENT,Face wash,Ubtan,100,0.001,1,4,Gujarat; Karnataka; Maharashtra
 TRENT,Shampoo,Onion,400,0.092,2,4,Gujarat; Maharashtra
 TRENT,Shampoo,Onion,600,0.073,4,4,
 TRENT,Shampoo,Rosemary,600,0.065,4,4,
-V-MART,Face wash,Ubtan,150,9.682,19,20,Jammu & Kashmir
-V-MART,Face wash,Vitamin C,150,9.267,20,20,
-V-MART,Face wash,Rice,150,8.811,19,20,Jammu & Kashmir
+V-MART,Face wash,Ubtan,150,13.969,19,20,Jammu & Kashmir
+V-MART,Face wash,Rice,150,12.681,19,20,Jammu & Kashmir
+V-MART,Face wash,Vitamin C,150,12.049,20,20,
 V-MART,Face wash,Ubtan,419,4.277,17,20,Haryana; Jammu & Kashmir; Uttarakhand
 V-MART,Face wash,Vitamin C,419,2.595,17,20,Haryana; Jammu & Kashmir; Uttarakhand
 V-MART,Face wash,Rice,419,1.585,12,20,Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Odisha; Rajasthan; Uttarakhand; West Bengal
-V-MART,Face wash,Tea Tree,250,0.181,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Face wash,Ubtan,100,0.139,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Face wash,Tea Tree,100,0.132,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Face wash,Vitamin C,100,0.118,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Face wash,Rice,100,0.073,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Face wash,Aloe Vera,100,0.061,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Face wash,Charcoal,100,0.056,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Face wash,Tea Tree,250,0.194,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Face wash,Tea Tree,100,0.186,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Face wash,Ubtan,100,0.171,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Face wash,Vitamin C,100,0.132,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Face wash,Rice,100,0.113,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Face wash,Charcoal,100,0.071,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Face wash,Aloe Vera,100,0.066,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Face wash,Tea Tree,285,0.041,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Face wash,Ubtan,285,0.025,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Face wash,Vitamin C,285,0.02,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
@@ -331,19 +331,20 @@ V-MART,Face wash,Rice,285,0.017,1,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi 
 V-MART,Face wash,Retinol,100,0.016,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
 V-MART,Face wash,Tea Tree,599,0.016,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Face wash,Aloe Vera,269,0.007,1,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
+V-MART,Face wash,Neem,150,0.003,1,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Northeast; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
+V-MART,Shampoo,Onion,650,1.167,5,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Shampoo,Onion,862,0.926,5,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Onion,650,0.8,5,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Onion,400,0.616,7,20,Andhra Pradesh; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttarakhand
-V-MART,Shampoo,Rosemary,400,0.543,10,20,Andhra Pradesh; Chhattisgarh; Delhi NCR; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Tamil Nadu; Telangana
+V-MART,Shampoo,Onion,400,0.896,7,20,Andhra Pradesh; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttarakhand
+V-MART,Shampoo,Rosemary,400,0.74,10,20,Andhra Pradesh; Chhattisgarh; Delhi NCR; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Tamil Nadu; Telangana
+V-MART,Shampoo,Rice,400,0.679,5,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Shampoo,Rosemary,600,0.515,4,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Shampoo,Rosemary,799,0.515,4,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Shampoo,Rice,533,0.387,5,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Rice,400,0.335,5,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Rosemary,600,0.294,4,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Onion,600,0.271,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Rice,250,0.093,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Onion,250,0.084,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Bhringamla,250,0.074,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
-V-MART,Shampoo,Solution Oriented,200,0.063,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Shampoo,Onion,600,0.315,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Shampoo,Rice,250,0.123,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Shampoo,Onion,250,0.105,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Shampoo,Bhringamla,250,0.079,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
+V-MART,Shampoo,Solution Oriented,200,0.073,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Shampoo,Onion,533,0.058,4,20,Andhra Pradesh; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttarakhand; West Bengal
 V-MART,Shampoo,Rosemary,533,0.051,5,20,Andhra Pradesh; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Rajasthan; Tamil Nadu; Telangana; Uttarakhand; West Bengal
 V-MART,Shampoo,Onion,799,0.045,2,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Northeast; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
@@ -351,25 +352,25 @@ V-MART,Shampoo,Rice,310,0.035,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NC
 V-MART,Shampoo,Bhringamla,310,0.021,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Shampoo,Solution Oriented,221,0.013,3,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand
 V-MART,Shampoo,Onion,310,0.009,1,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Haryana; Jammu & Kashmir; Jharkhand; Karnataka; Kerala; Madhya Pradesh; Maharashtra; Odisha; Punjab; Rajasthan; Tamil Nadu; Telangana; Uttar Pradesh; Uttarakhand; West Bengal
-VMM,Face wash,Ubtan,150,16.537,19,20,Telangana
-VMM,Face wash,Rice,150,13.01,17,20,Chhattisgarh; Rajasthan; Telangana
-VMM,Face wash,Rice,100,10.083,18,20,Maharashtra; Telangana
-VMM,Face wash,Rice,50,7.279,19,20,Telangana
-VMM,Face wash,Vitamin C,50,6.419,18,20,Maharashtra; Telangana
-VMM,Face wash,Ubtan,100,5.967,18,20,Maharashtra; Telangana
-VMM,Face wash,Vitamin C,100,5.533,19,20,Maharashtra
-VMM,Face wash,Ubtan,50,4.427,19,20,Telangana
-VMM,Face wash,Charcoal,100,4.361,18,20,Kerala; Telangana
+VMM,Face wash,Ubtan,150,20.453,19,20,Telangana
+VMM,Face wash,Rice,150,18.864,17,20,Chhattisgarh; Rajasthan; Telangana
+VMM,Face wash,Rice,100,13.64,18,20,Maharashtra; Telangana
+VMM,Face wash,Rice,50,9.328,19,20,Telangana
+VMM,Face wash,Vitamin C,50,8.594,18,20,Maharashtra; Telangana
+VMM,Face wash,Ubtan,100,8.241,18,20,Maharashtra; Telangana
+VMM,Face wash,Vitamin C,100,7.426,19,20,Maharashtra
+VMM,Face wash,Ubtan,50,5.978,19,20,Telangana
+VMM,Face wash,Charcoal,100,5.814,18,20,Kerala; Telangana
 VMM,Face wash,Vitamin C,150,4.253,17,20,Chhattisgarh; Jammu and Kashmir; Telangana
-VMM,Face wash,Tea Tree,100,0.102,10,20,Andhra Pradesh; Chhattisgarh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Rajasthan; Telangana
-VMM,Face wash,Vitamin C,250,0.093,10,20,Bihar; Chhattisgarh; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Odisha; West Bengal
-VMM,Face wash,Aloe Vera,100,0.061,9,20,Andhra Pradesh; Chhattisgarh; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Northeast; Rajasthan; Telangana
-VMM,Face wash,Charcoal,250,0.053,6,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Odisha; Telangana; West Bengal
-VMM,Shampoo,Onion,600,11.935,19,20,Telangana
-VMM,Shampoo,Onion,250,10.448,20,20,
-VMM,Shampoo,Rosemary,250,9.379,19,20,Telangana
-VMM,Shampoo,Rosemary,600,8.733,18,20,Kerala; Telangana
-VMM,Shampoo,Onion,400,0.249,11,20,Bihar; Chhattisgarh; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Kerala; Madhya Pradesh; Maharashtra; Telangana
+VMM,Face wash,Tea Tree,100,0.112,10,20,Andhra Pradesh; Chhattisgarh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Rajasthan; Telangana
+VMM,Face wash,Vitamin C,250,0.11,10,20,Bihar; Chhattisgarh; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Odisha; West Bengal
+VMM,Face wash,Charcoal,250,0.067,6,20,Andhra Pradesh; Bihar; Chhattisgarh; Delhi NCR; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Odisha; Telangana; West Bengal
+VMM,Face wash,Aloe Vera,100,0.064,9,20,Andhra Pradesh; Chhattisgarh; Himachal Pradesh; Jammu & Kashmir; Jharkhand; Kerala; Madhya Pradesh; Maharashtra; Northeast; Rajasthan; Telangana
+VMM,Shampoo,Onion,600,15.631,19,20,Telangana
+VMM,Shampoo,Onion,250,14.241,20,20,
+VMM,Shampoo,Rosemary,250,12.507,19,20,Telangana
+VMM,Shampoo,Rosemary,600,11.47,18,20,Kerala; Telangana
+VMM,Shampoo,Onion,400,0.279,11,20,Bihar; Chhattisgarh; Himachal Pradesh; Jammu & Kashmir; Jammu and Kashmir; Kerala; Madhya Pradesh; Maharashtra; Telangana
 WALMART CNC,Face wash,Rice,150,4.318,6,9,Andhra Pradesh; Maharashtra; Telangana
 WALMART CNC,Face wash,Vitamin C,150,3.59,6,9,Andhra Pradesh; Maharashtra; Telangana
 WALMART CNC,Face wash,Ubtan,100,2.624,9,9,

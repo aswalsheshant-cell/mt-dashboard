@@ -1,4 +1,4 @@
-"""Account (retailer) category share: Lulu, More Retail, Wellness Forever, and the Facewash plan built on them."""
+"""Account (retailer) category share: Lulu, More Retail, Wellness Forever, Reliance, and the Facewash plan built on them."""
 import csv
 import json
 import sys
@@ -33,7 +33,7 @@ def test_lulu_honasa_totals_tie_to_the_source_files(monthly):
 def test_shares_are_valid_and_one_row_per_chain_month_category(monthly):
     assert (monthly["Share %"].dropna() <= 100.0001).all()
     assert not monthly.duplicated(["Chain", "Month", "Level", "Category"]).any()
-    assert set(monthly.Chain) == {"Lulu", "More Retail", "Wellness Forever"}
+    assert set(monthly.Chain) == {"Lulu", "More Retail", "Wellness Forever", "Reliance Retail", "Reliance Brand Counter"}
 
 
 def test_more_retail_scope_break_is_flagged_and_mom_uses_one_scope(monthly, view):
@@ -49,6 +49,8 @@ def test_common_categories_are_sensible():
     assert cc("Shower Gel&Body Wash") == "Body Wash & Soap" and cc("Baby Hair Oil") == "Baby Care" and cc("Baby Sunscreen") == "Baby Care"
     assert cc("Face Wash") == cc("FACE CLEANSERS") == cc("Skin Care / Facial Cleanser") == "Face Wash & Cleanser"
     assert cc("Hair Shampoo") == "Shampoo" and cc("Sun Care") == "Sun Care" and cc("Insect Repellents") == "Other"
+    assert cc("Perfume - Women") == "Fragrance" and cc("Soaps Beauty") == "Beauty Soap" and cc("Hair Serum") == "Hair Treatment & Styling"
+    assert cc("Moisturizing Lotion") == "Body Lotion & Care" and cc("Moisturizing Cream") == "Face Moisturiser & Cream"
 
 
 def test_flags_follow_the_stated_rules(view):
@@ -74,7 +76,7 @@ def test_top5_has_chain_zone_and_state_cuts_with_account_and_ours(view):
 
 def test_four_plus_chains_side_by_side(view):
     names = [t["chain"] for t in view["together"]]
-    assert names[:3] == ["Lulu", "More Retail", "Wellness Forever"] and "Dmart" in names and "Reliance Retail" in names
+    assert names[:5] == ["Lulu", "More Retail", "Wellness Forever", "Reliance Retail", "Reliance Brand Counter"] and "Dmart" in names and "Reliance Retail (deck)" in names
 
 
 def test_facewash_plan_levers_have_evidence_and_sizes(view):
@@ -112,3 +114,54 @@ def test_powerbi_account_seeds_match_the_data_and_queries_exist():
         assert (pbi / "PowerQuery" / f"{q}.pq").exists()
     dax = (pbi / "DAX" / "17_Account_Share_Measures.dax").read_text(encoding="utf-8")
     assert "Account Share %" in dax and "White Space Flag" in dax
+
+
+def test_reliance_ties_to_the_workbook_and_the_counters_stay_apart(monthly):
+    cat = monthly[monthly.Level == "Category"]
+    ret = cat[cat.Chain == "Reliance Retail"].groupby("Month")["Honasa Sales Rs L"].sum()
+    bc = cat[cat.Chain == "Reliance Brand Counter"].groupby("Month")["Honasa Sales Rs L"].sum()
+    assert ret["Aug 26"] == pytest.approx(2602.857, abs=0.01)         # workbook sheet Aug26 Check: Offtake Data
+    assert bc["Aug 26"] == pytest.approx(1600.298, abs=0.01)          # workbook sheet Aug26 Check: Brand Counter Stores
+    fw = cat[(cat.Chain == "Reliance Retail") & (cat.Category == "Face Wash") & (cat.Month == "Jan 26")].iloc[0]
+    assert fw["Account Sales Rs L"] == pytest.approx(3018.972, abs=0.01) and fw["Honasa Sales Rs L"] == pytest.approx(618.992, abs=0.01)
+    assert not any(c.strip() == "Reliance" for c in monthly.Chain.unique())            # never one combined Reliance line
+
+
+def test_reliance_in_the_view_with_zone_and_state_cuts(view):
+    for chain in ("Reliance Retail", "Reliance Brand Counter"):
+        c = view["chains"][chain]
+        assert c["latest"] == "Aug 26" and c["share_latest"] and c["fw_share_latest"] and c["account_mom_pct"] is not None
+    levels = {(t["chain"], t["level"]) for t in view["top5"]}
+    assert {("Reliance Retail", "Zone"), ("Reliance Retail", "State"), ("Reliance Brand Counter", "State")} <= levels
+    names = [a["chain"] for a in view["availability"]]
+    assert "Reliance Retail" in names and "Reliance Brand Counter" in names
+
+
+def test_categories_that_do_not_matter_to_us_are_never_flagged(view):
+    skip = {x["common"] for x in view["not_highlighted"]}
+    assert {"Other", "Fragrance"} & skip or "Other" in skip
+    for f in view["flags"]:
+        assert f["common"] in view["relevant"], f
+    for p in view["proven_elsewhere"]:
+        assert p["common"] in view["relevant"], p
+    flagged = " ".join(f["category"].lower() for f in view["flags"])
+    for bad in ("soaps beauty", "hair serum", "perfume", "insect", "tooth"):
+        assert bad not in flagged
+    for t in view["top5"]:
+        assert "relevant" in t
+
+
+def test_the_staffed_counters_are_not_a_benchmark_or_a_lever(view):
+    assert not [l for l in view["facewash_plan"]["levers"] if "Brand Counter" in l["lever"]]
+
+
+def test_powerbi_queries_name_only_real_csv_columns():
+    """A typed column that is not in the CSV breaks the refresh in Power BI Desktop."""
+    import re
+    pbi = ROOT / "PowerBI"
+    for q, csvname in (("53_Fact_Account_Category", "Account_Category_Monthly"), ("54_Fact_Account_Category_Geo", "Account_Category_Geo"),
+                       ("55_Fact_Account_Assortment", "Account_Assortment")):
+        header = next(csv.reader((pbi / "SeedData" / "Account" / f"{csvname}.csv").open(encoding="utf-8")))
+        typed = re.findall(r'\{"([^"]+)", type', (pbi / "PowerQuery" / f"{q}.pq").read_text(encoding="utf-8"))
+        assert typed and set(typed) <= set(header), (q, sorted(set(typed) - set(header)))
+        assert "Relevant For Us" in typed
