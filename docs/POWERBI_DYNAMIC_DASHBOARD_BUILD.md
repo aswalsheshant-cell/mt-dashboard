@@ -121,3 +121,22 @@ Store-level growth rule: shown only for stores with 3 or more months of sales la
 - Queries 60 (`Fact Sales Cuts`) and 61 (`Fact Inhouse Distribution`), measures at the end of DAX 20 (`Cut NSV Cr`, `Cut Share %`, `Cut LFL NSV Cr`, `Cut MoM %`, `Inhouse ...`). Seeds: `sales_cuts_fy27.csv`, `inhouse_distribution_fy27.csv` in `SeedData/Store_Cuts` (copy to `RawDataFolders/Store_Cuts`).
 - Page 9 gets three more visuals: zone table (NSV, share, LFL, YoY, MoM), brand table and sub-category table. Brand and sub-category have no last-year figure (the FY26 store file has none), so no YoY there. Zone YoY uses the main offtake fact.
 - TDP page: `Fact Inhouse Distribution` is "From our offtake, not TDP". Filter `Level` to one value on every visual. Swap to `Fact TDP` (query 14) when the real file arrives.
+
+## Design previews: all 15 pages (look only, not Power BI screenshots)
+Drawn from the repo's real numbers. Rebuild: `python scripts/render_powerbi_preview_rest.py` (it also runs `render_powerbi_preview.py`), then take screenshots of the HTML files.
+
+| Plan page | Preview file (docs/images) |
+|---|---|
+| 1 Executive Cockpit | `powerbi_preview_1_cockpit` |
+| 2 Chain Performance | `powerbi_preview_3_chain` |
+| 3 Zone and State | `powerbi_preview_4_zone_state` |
+| 4 Brand and Category | `powerbi_preview_8_brand_category` |
+| 5 Nielsen Cuts | `powerbi_preview_5_nielsen` |
+| 6 Chain Share and Plan | `powerbi_preview_6_chain_share` |
+| 7 Stores and Beats | `powerbi_preview_9_stores_beats` |
+| 8 Data Quality | `powerbi_preview_10_data_quality` |
+| 9 State, Pack Size and Store Type | `powerbi_preview_7_state_pack_lfl` |
+| T1, T2, T3 Tooltips (one image) | `powerbi_preview_11_tooltips` |
+| D1 Drill-through Store | `powerbi_preview_12_drill_store` |
+| D2 Drill-through Chain | `powerbi_preview_13_drill_chain` |
+| D3 Drill-through Brand | `powerbi_preview_2_brand_drillthrough` |
