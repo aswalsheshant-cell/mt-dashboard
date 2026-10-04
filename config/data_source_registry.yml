@@ -855,8 +855,8 @@ datasets:
         * one spelling each of zone, state, city, store name (30-character truncations take the full name), and one brand / category / sub category / range /
           name per EAN (this year's article master first); 118,518 repeated lines added into one row per month x chain x store x EAN (totals unchanged);
         * 31,966 identical lines with a store identity (251.59 L, 0.7% of NSV) look like double loads but are in the published baseline, so they are ADDED INTO
-          one row, not removed; the list is in data/qc/offtake_fy26_duplicate_lines.csv (RMT-Sancus 175 L, More Retail 63 L, ...). Owner decision needed:
-          keep (baseline unchanged) or remove (FY26 baseline would fall by 251.59 L);
+          one row, not removed; the list is in data/qc/offtake_fy26_duplicate_lines.csv (RMT-Sancus 175 L, More Retail 63 L, ...). OWNER DECISION 2026-10-04:
+          KEEP them; the FY26 baseline does not change (31,119.87 L). They stay added into one row and stay listed for audit;
         * 4,174 negative NSV rows (-29.21 L, 4,049 of them RMT-Sancus) are credit notes and are kept;
         * 46,920 rows (2.3%) have no store code (Reliance Retail non-counter is state-level, Arambagh, Ratnadeep, Vijetha, Nykaa FSN, some B&N / V-Mart / RMT):
           they are keyed by name, city or state and cannot be matched store by store. That is the contract gap behind SOURCE_DUPLICATED.

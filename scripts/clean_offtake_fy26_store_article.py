@@ -17,7 +17,7 @@ What the cleaning does (every step is counted in the QC files; nothing is estima
      brand, category, sub category, range and article name (per EAN: this year's article master first, then the most frequent value).
   4. Lines that repeat the same chain x store x month x article are added into one row (quantity, MRP value and NSV are summed; MRP is value / quantity).
      Totals do not change. Identical lines WITH a store identity are listed as suspected double loads (offtake_fy26_duplicate_lines.csv) but NOT removed:
-     they are in the published FY26 baseline, which has to keep tying (31,119.87 L).
+     they are in the published FY26 baseline, which has to keep tying (31,119.87 L). Owner decision 2026-10-04: keep them, baseline unchanged.
   5. Tie-out: every chain x month NSV (Brand Counter apart) against data/raw_drops/_agg/offtake_fy26.json, and input NSV = output NSV.
 
     python scripts/clean_offtake_fy26_store_article.py --src <unzipped folder(s)> --out data/raw_drops/offtake_fy26_clean
