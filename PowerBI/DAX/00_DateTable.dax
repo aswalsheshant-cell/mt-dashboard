@@ -19,8 +19,8 @@ ADDCOLUMNS(
     "FY Year",
         VAR y = YEAR([Date])
         RETURN IF(MONTH([Date]) >= 4,
-                 FORMAT(y, "00") & "-" & FORMAT(y + 1 - 2000, "00"),
-                 FORMAT(y - 1, "00") & "-" & FORMAT(y - 2000, "00")),
+                 FORMAT(MOD(y, 100), "00") & "-" & FORMAT(MOD(y + 1, 100), "00"),
+                 FORMAT(MOD(y - 1, 100), "00") & "-" & FORMAT(MOD(y, 100), "00")),
     "Quarter",
         VAR fm = IF(MONTH([Date]) >= 4, MONTH([Date]) - 3, MONTH([Date]) + 9)
         RETURN "Q" & ROUNDUP(fm / 3, 0),
@@ -43,3 +43,4 @@ ADDCOLUMNS(
 //   Date Table[MonthStart] -> Fact TDP[MonthStart]
 //   Date Table[MonthStart] -> Targets[MonthStart]
 // -----------------------------------------------------------------
+

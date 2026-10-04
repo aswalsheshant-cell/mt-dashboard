@@ -58,6 +58,10 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
+Main snapshot checked 2026-10-03: `84864ce4076164aee5cbc79493bb7f086743eb90`
+(#290 documentation merge). This identifies the repository state, not a live
+Power BI Desktop validation; B5 remains blocked pending retained evidence.
+
 `acd6e6b` — PR #266 merged 2026-09-30 (serializer test stub), after #265 `5ecb582`
 (project-state reconciliation; header and Primary trend labels follow the data).
 2026-09-29: #264 `5bedeeb` (Executive Cockpit portfolio-mix fix); #263 `f91116f` (B5 exit condition), #247 `eba446a`, #262
@@ -536,3 +540,4 @@ is warranted or attempted.
 On resume: the SessionStart hook prints repo state, resources, asset presence
 and this file's next task. Verify restricted inputs are present before any
 incentive work — never reconstruct them from memory.
+

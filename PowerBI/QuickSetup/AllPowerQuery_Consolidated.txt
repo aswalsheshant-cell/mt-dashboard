@@ -7,14 +7,14 @@ Power BI's Advanced Editor holds exactly ONE query per paste. For each
 section below: New Blank Query > Home > Advanced Editor > paste that
 section's M code > OK > rename the query to the name shown > Close & Apply
 when done with all of them. Having ONE file open (this one) instead of
-29 separate files is the time-saving here.
+30 separate files is the time-saving here.
 
 *** NOT INCLUDED -- these source files are deliberately left out of this setup:
     - 46_Dim_PromoCalendar.pq: Not usable in Desktop yet: loads File.Contents("PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv") -- a relative path fixed to one month, not pRootFolder + the folder -- and its relationship notes name tables this model does not have (Dim_Brand, Dim_Calendar, Dim_Chain). Needs its own fix before it can be a setup step.
 
 
 ##############################################################################
-# STEP 01/29  --  SOURCE FILE: 00_Parameters.pq
+# STEP 01/30  --  SOURCE FILE: 00_Parameters.pq
 # RENAME QUERY TO: pRootFolder (Manage Parameters, NOT a Blank Query)
 # NOTE: Home > Transform data > Manage Parameters > New.
 ##############################################################################
@@ -43,7 +43,7 @@ when done with all of them. Having ONE file open (this one) instead of
 
 
 ##############################################################################
-# STEP 02/29  --  SOURCE FILE: 01_fnCombineFolder.pq
+# STEP 02/30  --  SOURCE FILE: 01_fnCombineFolder.pq
 # RENAME QUERY TO: fnCombineFolder
 # NOTE: Blank Query > Advanced Editor > paste > rename.
 ##############################################################################
@@ -127,7 +127,41 @@ in
 
 
 ##############################################################################
-# STEP 03/29  --  SOURCE FILE: 10_Fact_PrimarySales.pq
+# STEP 03/30  --  SOURCE FILE: 02_fnFYLabel.pq
+# RENAME QUERY TO: fnFYLabel
+# NOTE: Add before Fact Offtake Sales; its FY Year is derived from MonthStart.
+##############################################################################
+// =====================================================================
+// FUNCTION: fnFYLabel   (THE ONE FY RULE, Power Query side)
+// Returns the model's FY label ("25-26") for a date, Indian FY Apr-Mar:
+//   Apr-Dec of year Y -> "YY-(YY+1)"      e.g. Apr-26 -> "26-27"
+//   Jan-Mar of year Y -> "(YY-1)-YY"      e.g. Mar-26 -> "25-26"
+// Same text as 'Date Table'[FY Year] and Targets[FY Year], so a fact's own
+// [FY Year] column always agrees with the date slicer. Every fact query
+// DERIVES [FY Year] from its month column with this function instead of
+// copying whatever text the source file carried (FY'25-26 / FY26 / FY_24-25 /
+// 25-26 ...). No year is typed anywhere, so FY28+ works on its own.
+//
+// Usage:  each fnFYLabel([MonthStart])
+// =====================================================================
+let
+    fnFYLabel = (d as nullable date) as nullable text =>
+        if d = null then null
+        else
+            let
+                y = Date.Year(d),
+                m = Date.Month(d),
+                startYear = if m >= 4 then y else y - 1
+            in
+                Text.PadStart(Text.From(Number.Mod(startYear, 100)), 2, "0") & "-" &
+                Text.PadStart(Text.From(Number.Mod(startYear + 1, 100)), 2, "0")
+in
+    fnFYLabel
+
+
+
+##############################################################################
+# STEP 04/30  --  SOURCE FILE: 10_Fact_PrimarySales.pq
 # RENAME QUERY TO: Fact Primary Sales
 ##############################################################################
 // =====================================================================
@@ -193,7 +227,7 @@ in
 
 
 ##############################################################################
-# STEP 04/29  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
+# STEP 05/30  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
 # RENAME QUERY TO: Fact Offtake Sales
 ##############################################################################
 // =====================================================================
@@ -210,8 +244,9 @@ in
 //   Sales Qty, MRP Sales Value, NSV, Per pc, With Tax, Margin, Revised Month,
 //   Month, Year, PPT Category
 //
-// Offtake is maintained MONTHLY (store x article). NSV = offtake net value
-// (rupees). This is the secondary/offtake validation base for the article
+// Offtake is maintained MONTHLY (store x article). Source NSV is in lakh;
+// convert it to the model's absolute-rupee contract at import. MRP Sales Value
+// already arrives in rupees. This is the secondary/offtake validation base for the article
 // eligibility gate (DAX 09) — no allocation logic changed here.
 // =====================================================================
 let
@@ -276,7 +311,13 @@ let
         {"SO Emp Code", type text}, {"Sales Person", type text}, {"PPT Category", type text}
     }),
 
-    Trimmed = Table.TransformColumns(Typed, {
+    // Source NSV is lakh (docs/DATA_LINEAGE.md); model currency is absolute rupees.
+    // Keep negative returns signed and nulls null. MRP Sales is already rupees.
+    Scaled = Table.TransformColumns(Typed, {
+        {"Offtake NSV", each if _ = null then null else _ * 100000, type number}
+    }),
+
+    Trimmed = Table.TransformColumns(Scaled, {
         {"Store Code", each Text.Trim(Text.From(_)), type text},
         {"Article Code", each Text.Trim(Text.From(_)), type text},
         {"EAN Code", each Text.Trim(Text.From(_)), type text},
@@ -284,8 +325,19 @@ let
         {"Brand", each Text.Trim(Text.From(_)), type text}
     }),
 
+    // The early FY27 CSVs call both Reliance streams "Reliance"; later files
+    // name the Brand Counter stream explicitly. Keep every row and map them to
+    // separate Chain Master members so MT excludes only the duplicate breakout.
+    AddGovernedChain = Table.AddColumn(Trimmed, "Governed Chain", each
+        if Text.Contains(Text.Lower([Chain] ?? ""), "reliance") then
+            if Text.Lower(Text.Trim([Store Type] ?? "")) = "brand counter"
+            then "Reliance Brand Counter" else "Reliance Retail"
+        else [Chain], type text),
+    RemoveOldChain = Table.RemoveColumns(AddGovernedChain, {"Chain"}),
+    RenameChain = Table.RenameColumns(RemoveOldChain, {{"Governed Chain", "Chain"}}),
+
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(Trimmed, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+    FixBrand = Table.ReplaceValue(RenameChain, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
 
     // constant audit column
     AddSource = Table.AddColumn(FixBrand, "Data Source Name", each "Chain Offtake Store Wise", type text),
@@ -296,27 +348,53 @@ let
         else if [Article Code] <> null and Text.Trim([Article Code]) <> "" then "CODE:" & [Article Code]
         else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
 
-    // period = "Month" (April'24 / Apr'24 text or a date). "Revised Month" kept
-    // as an alternate period column if you later prefer the adjusted month.
+    // Month has quoted labels, bare names and Excel serials across these CSVs.
+    // The monthly file name supplies a year for bare names; disagreement or
+    // missing period fails refresh rather than silently orphaning the row.
     AddMonthStart = Table.AddColumn(AddKey, "MonthStart", each
-        let v = [Month]
-        in  if v = null then null
-            else if Value.Is(v, type date) then Date.StartOfMonth(v)
-            else
-                let m = Text.Start(Text.BeforeDelimiter(Text.From(v), "'"), 3),
-                    yy = Text.AfterDelimiter(Text.From(v), "'"),
-                    mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-                in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
+        let
+            v = [Month],
+            label = if v = null then "" else Text.Trim(Text.From(v)),
+            serial = try Number.FromText(label) otherwise null,
+            labelMonth = if Text.Contains(label, "'") then
+                Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12],
+                    Text.Proper(Text.Start(label, 3)), null) else null,
+            labelYear = if labelMonth = null then null
+                else try Number.FromText(Text.Trim(Text.AfterDelimiter(label, "'"))) otherwise null,
+            fromLabel = if Value.Is(v, type date) then Date.StartOfMonth(v)
+                else if serial <> null then try Date.StartOfMonth(Date.From(serial)) otherwise null
+                else if labelMonth <> null and labelYear <> null then #date(2000 + labelYear, labelMonth, 1)
+                else null,
+            file = Text.From([Data Source File] ?? ""),
+            filePeriod = try Text.BetweenDelimiters(file, "offtake_store_article_", ".csv") otherwise null,
+            parts = if filePeriod = null then {} else Text.Split(filePeriod, "_"),
+            fileMonth = if List.Count(parts) = 2 then
+                Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12],
+                    Text.Proper(parts{0}), null) else null,
+            fileYear = if List.Count(parts) = 2 then try Number.FromText(parts{1}) otherwise null else null,
+            fromFile = if fileMonth <> null and fileYear <> null then #date(2000 + fileYear, fileMonth, 1) else null,
+            result = if fromLabel <> null then fromLabel else fromFile
+        in
+            if result = null then error Error.Record("OfftakeMonth", "Unparseable source month", [File=file, Month=label])
+            else if fromFile <> null and result <> fromFile then
+                error Error.Record("OfftakeMonth", "Source month disagrees with file name", [File=file, Month=label])
+            else result,
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null)
+    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null),
+
+    // Derive FY from the parsed month, as in the Date Table; do not trust the
+    // inconsistent source FY text after a month was recovered from the file.
+    FYNew = Table.AddColumn(Cleaned, "FY Year New", each fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    Cleaned
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 05/29  --  SOURCE FILE: 12_Fact_PnL.pq
+# STEP 06/30  --  SOURCE FILE: 12_Fact_PnL.pq
 # RENAME QUERY TO: Fact P&L
 ##############################################################################
 // =====================================================================
@@ -346,7 +424,7 @@ in
 
 
 ##############################################################################
-# STEP 06/29  --  SOURCE FILE: 13_Fact_Nielsen.pq
+# STEP 07/30  --  SOURCE FILE: 13_Fact_Nielsen.pq
 # RENAME QUERY TO: Fact Nielsen Market Share
 ##############################################################################
 // =====================================================================
@@ -381,7 +459,7 @@ in
 
 
 ##############################################################################
-# STEP 07/29  --  SOURCE FILE: 14_Fact_TDP.pq
+# STEP 08/30  --  SOURCE FILE: 14_Fact_TDP.pq
 # RENAME QUERY TO: Fact TDP
 ##############################################################################
 // =====================================================================
@@ -430,7 +508,7 @@ in
 
 
 ##############################################################################
-# STEP 08/29  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
+# STEP 09/30  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
 # RENAME QUERY TO: Fact Primary ShipTo
 ##############################################################################
 // =====================================================================
@@ -515,7 +593,7 @@ in
 
 
 ##############################################################################
-# STEP 09/29  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
+# STEP 10/30  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
 # RENAME QUERY TO: Fact Primary Article
 ##############################################################################
 // =====================================================================
@@ -681,7 +759,7 @@ in
 
 
 ##############################################################################
-# STEP 10/29  --  SOURCE FILE: 20_Dim_Masters.pq
+# STEP 11/30  --  SOURCE FILE: 20_Dim_Masters.pq
 # RENAME QUERY TO: Chain Master, Brand Master, Category Master, Article Master, Zone State Master, Store Master, Nielsen Competitor Master
 # NOTE: SEVEN separate queries -- one per '---------- X Master ----------' block in the file below. Each block is its own complete `let...in` query; uncomment/copy ONE block at a time.
 ##############################################################################
@@ -741,7 +819,7 @@ in Typed
 
 
 ##############################################################################
-# STEP 11/29  --  SOURCE FILE: 21_ShipToMaster.pq
+# STEP 12/30  --  SOURCE FILE: 21_ShipToMaster.pq
 # RENAME QUERY TO: Ship-To Master
 ##############################################################################
 // =====================================================================
@@ -765,7 +843,7 @@ in
 
 
 ##############################################################################
-# STEP 12/29  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
+# STEP 13/30  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
 # RENAME QUERY TO: Customer Code Zone Master
 ##############################################################################
 // =====================================================================
@@ -808,7 +886,7 @@ in
 
 
 ##############################################################################
-# STEP 13/29  --  SOURCE FILE: 24_ChannelMap.pq
+# STEP 14/30  --  SOURCE FILE: 24_ChannelMap.pq
 # RENAME QUERY TO: Channel Map Store, Channel Map Chain
 # NOTE: TWO separate queries -- one per block in the file below.
 ##############################################################################
@@ -845,7 +923,7 @@ in
 
 
 ##############################################################################
-# STEP 14/29  --  SOURCE FILE: 30_AssumptionTable.pq
+# STEP 15/30  --  SOURCE FILE: 30_AssumptionTable.pq
 # RENAME QUERY TO: Assumption Table
 ##############################################################################
 // =====================================================================
@@ -870,7 +948,7 @@ in
 
 
 ##############################################################################
-# STEP 15/29  --  SOURCE FILE: 31_Targets.pq
+# STEP 16/30  --  SOURCE FILE: 31_Targets.pq
 # RENAME QUERY TO: Targets
 ##############################################################################
 // =====================================================================
@@ -891,7 +969,7 @@ in
 
 
 ##############################################################################
-# STEP 16/29  --  SOURCE FILE: 32_StoreSOMapping.pq
+# STEP 17/30  --  SOURCE FILE: 32_StoreSOMapping.pq
 # RENAME QUERY TO: Store-SO Mapping
 ##############################################################################
 // =====================================================================
@@ -915,7 +993,7 @@ in
 
 
 ##############################################################################
-# STEP 17/29  --  SOURCE FILE: 33_ForecastOverride.pq
+# STEP 18/30  --  SOURCE FILE: 33_ForecastOverride.pq
 # RENAME QUERY TO: Forecast Override
 ##############################################################################
 // =====================================================================
@@ -940,7 +1018,7 @@ in
 
 
 ##############################################################################
-# STEP 18/29  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
+# STEP 19/30  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
 # RENAME QUERY TO: Primary Allocation Map
 ##############################################################################
 // =====================================================================
@@ -975,7 +1053,7 @@ in
 
 
 ##############################################################################
-# STEP 19/29  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
+# STEP 20/30  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
 # RENAME QUERY TO: Primary Allocation Override
 ##############################################################################
 // =====================================================================
@@ -998,7 +1076,7 @@ in
 
 
 ##############################################################################
-# STEP 20/29  --  SOURCE FILE: 36_SalesTeamMapping.pq
+# STEP 21/30  --  SOURCE FILE: 36_SalesTeamMapping.pq
 # RENAME QUERY TO: Sales Team Mapping
 ##############################################################################
 // =====================================================================
@@ -1032,7 +1110,7 @@ in
 
 
 ##############################################################################
-# STEP 21/29  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
+# STEP 22/30  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
 # RENAME QUERY TO: GST Rate QC Table
 ##############################################################################
 // =====================================================================
@@ -1082,7 +1160,7 @@ in
 
 
 ##############################################################################
-# STEP 22/29  --  SOURCE FILE: 38_GST_Config.pq
+# STEP 23/30  --  SOURCE FILE: 38_GST_Config.pq
 # RENAME QUERY TO: GST Config
 ##############################################################################
 // =====================================================================
@@ -1114,7 +1192,7 @@ in
 
 
 ##############################################################################
-# STEP 23/29  --  SOURCE FILE: 39_PL_Expense_Input.pq
+# STEP 24/30  --  SOURCE FILE: 39_PL_Expense_Input.pq
 # RENAME QUERY TO: PL Expense Input
 ##############################################################################
 // =====================================================================
@@ -1219,7 +1297,7 @@ in
 
 
 ##############################################################################
-# STEP 24/29  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
+# STEP 25/30  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
 # RENAME QUERY TO: CustCode Chain Map
 # NOTE: Add AFTER Fact Primary Article (query 16) -- depends on it.
 ##############################################################################
@@ -1251,7 +1329,7 @@ in
 
 
 ##############################################################################
-# STEP 25/29  --  SOURCE FILE: 41_DistContWeights.pq
+# STEP 26/30  --  SOURCE FILE: 41_DistContWeights.pq
 # RENAME QUERY TO: Dist Cont Weights
 ##############################################################################
 // =====================================================================
@@ -1469,7 +1547,7 @@ in
 
 
 ##############################################################################
-# STEP 26/29  --  SOURCE FILE: 42_PackSizeBuckets.pq
+# STEP 27/30  --  SOURCE FILE: 42_PackSizeBuckets.pq
 # RENAME QUERY TO: Pack Size Buckets
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1558,7 +1636,7 @@ in
 
 
 ##############################################################################
-# STEP 27/29  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
+# STEP 28/30  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
 # RENAME QUERY TO: Secondary Sales Efficiency
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1571,8 +1649,8 @@ in
 //
 // Columns:
 //   FY Year, Month, MonthStart, Chain, Brand
-//   Primary NSV      — Lakh, from Fact Primary Article (DIST-allocated)
-//   Offtake NSV      — Lakh, from Fact Offtake Sales
+//   Primary NSV      — Rupees, from Fact Primary Article (DIST-allocated)
+//   Offtake NSV      — Rupees, from Fact Offtake Sales (source lakh scaled at import)
 //   Sell-Through Pct — Offtake NSV / Primary NSV (null-safe, capped at 200%
 //                      to exclude months where primary = 0 but offtake > 0
 //                      due to pipeline stock; un-capped rows surfaced in
@@ -1581,7 +1659,7 @@ in
 //   Inventory Signal  — "Over-stocked" / "On-track" / "Under-liquidation"
 //                      thresholds: ≥ 120% over-stocked, 80–120% on-track,
 //                      < 80% under-liquidation (adjust in Assumption Table)
-//   Outlier Flag     — true when Primary NSV = 0 and Offtake NSV > 0
+//   Outlier Flag     — true when Primary NSV is missing/zero and Offtake NSV > 0
 //                      (pipeline / opening-stock liquidation — exclude from
 //                      efficiency KPIs, review in Distribution Gap page)
 //
@@ -1618,22 +1696,21 @@ let
 
     Expanded = Table.ExpandTableColumn(Joined, "Oft", {"Offtake NSV"}),
 
-    FillPrim = Table.ReplaceValue(Expanded, null, 0, Replacer.ReplaceValue, {"Primary NSV"}),
-    FillOft  = Table.ReplaceValue(FillPrim,  null, 0, Replacer.ReplaceValue, {"Offtake NSV"}),
-
     // ---- 4. Outlier flag: offtake from pipeline stock (Primary = 0) ----
-    AddOutlier = Table.AddColumn(FillOft, "Outlier Flag", each
-        [Primary NSV] = 0 and [Offtake NSV] > 0, type logical),
+    AddOutlier = Table.AddColumn(Expanded, "Outlier Flag", each
+        if [Offtake NSV] = null then false
+        else ([Primary NSV] = null or [Primary NSV] = 0) and [Offtake NSV] > 0,
+        type logical),
 
     // ---- 5. Sell-Through Pct (null when Primary=0 to avoid ÷0 distortion) ----
     AddST = Table.AddColumn(AddOutlier, "Sell-Through Pct", each
-        if [Primary NSV] = 0 then null
+        if [Primary NSV] = null or [Offtake NSV] = null or [Primary NSV] = 0 then null
         else Number.Round([Offtake NSV] / [Primary NSV] * 100, 1),
         type number),
 
     // ---- 6. Raw (uncapped) for outlier review ----
     AddSTRaw = Table.AddColumn(AddST, "Sell-Through Raw", each
-        if [Primary NSV] = 0 then null
+        if [Primary NSV] = null or [Offtake NSV] = null or [Primary NSV] = 0 then null
         else [Offtake NSV] / [Primary NSV] * 100,
         type number),
 
@@ -1655,7 +1732,8 @@ let
     //   Under-liquidation : ST < 80%   (slow sell-through = excess stock risk)
     //   No Primary        : Primary = 0 (outlier/pipeline — review separately)
     AddSignal = Table.AddColumn(AddGap, "Inventory Signal", each
-        if [Outlier Flag]               then "No Primary Data"
+        if [Offtake NSV] = null          then "No Offtake Data"
+        else if [Outlier Flag]          then "No Primary Data"
         else if [Sell-Through Pct] = null then "No Primary Data"
         else if [Sell-Through Pct] >= 120 then "Over-stocked"
         else if [Sell-Through Pct] >= 80  then "On-track"
@@ -1665,7 +1743,8 @@ let
     // ---- 10. Signal Sort (for consistent legend ordering) ----
     AddSignalSort = Table.AddColumn(AddSignal, "Signal Sort", each
         Record.FieldOrDefault(
-            [#"On-track"=1, #"Under-liquidation"=2, #"Over-stocked"=3, #"No Primary Data"=4],
+            [#"On-track"=1, #"Under-liquidation"=2, #"Over-stocked"=3,
+             #"No Primary Data"=4, #"No Offtake Data"=5],
             [Inventory Signal], 5),
         type number),
 
@@ -1692,7 +1771,7 @@ in
 
 
 ##############################################################################
-# STEP 28/29  --  SOURCE FILE: 44_Fact_SecondarySales.pq
+# STEP 29/30  --  SOURCE FILE: 44_Fact_SecondarySales.pq
 # RENAME QUERY TO: Fact Secondary Sales
 ##############################################################################
 // =====================================================================
@@ -1797,7 +1876,7 @@ in
 
 
 ##############################################################################
-# STEP 29/29  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
+# STEP 30/30  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
 # RENAME QUERY TO: Fact Claim Master
 ##############################################################################
 // =====================================================================

@@ -14,6 +14,10 @@
         "# RENAME QUERY TO: fnCombineFolder",
         "# NOTE: Blank Query > Advanced Editor > paste > rename."
       ],
+      "02_fnFYLabel.pq": [
+        "# RENAME QUERY TO: fnFYLabel",
+        "# NOTE: Add before Fact Offtake Sales; its FY Year is derived from MonthStart."
+      ],
       "10_Fact_PrimarySales.pq": [
         "# RENAME QUERY TO: Fact Primary Sales"
       ],
@@ -164,3 +168,4 @@
     }
   }
 }
+
