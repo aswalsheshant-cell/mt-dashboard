@@ -9162,6 +9162,426 @@
   ],
   "headroom_cr_text": "approximately Rs 40-45 Cr across seven named state x account plays (Nielsen consumer-offtake sizing; overlaps internal NSV estimates, not additive)"
  },
+ "price_volume": {
+  "month": "Aug 26",
+  "month_ya": "Aug 25",
+  "nielsen": {
+   "facewash": [
+    {
+     "name": "Category",
+     "value_cr": 82.086,
+     "value_cr_ya": 73.042,
+     "value_yoy": 12.3819,
+     "volume_000l": 551.278,
+     "volume_000l_ya": 513.664,
+     "volume_yoy": 7.3227,
+     "ppml": 1.489,
+     "ppml_ya": 1.422,
+     "price_yoy": 4.7117,
+     "vol_effect_cr": 5.349,
+     "price_effect_cr": 3.695,
+     "value_change_cr": 9.044,
+     "reads_as": "volume-led"
+    },
+    {
+     "name": "Mamaearth",
+     "value_cr": 10.516,
+     "value_cr_ya": 7.475,
+     "value_yoy": 40.6823,
+     "volume_000l": 64.742,
+     "volume_000l_ya": 50.871,
+     "volume_yoy": 27.267,
+     "ppml": 1.624,
+     "ppml_ya": 1.469,
+     "price_yoy": 10.5514,
+     "vol_effect_cr": 2.038,
+     "price_effect_cr": 1.003,
+     "value_change_cr": 3.041,
+     "reads_as": "volume-led"
+    }
+   ],
+   "shampoo": [
+    {
+     "name": "Category",
+     "value_cr": 180.303,
+     "value_cr_ya": 166.823,
+     "value_yoy": 8.0804,
+     "volume_000l": 2647.762,
+     "volume_000l_ya": 2259.821,
+     "volume_yoy": 17.1669,
+     "ppml": 0.681,
+     "ppml_ya": 0.738,
+     "price_yoy": -7.7236,
+     "vol_effect_cr": 28.63,
+     "price_effect_cr": -15.15,
+     "value_change_cr": 13.48,
+     "reads_as": "volume-led"
+    },
+    {
+     "name": "Mamaearth",
+     "value_cr": 8.245,
+     "value_cr_ya": 6.19,
+     "value_yoy": 33.1987,
+     "volume_000l": 134.085,
+     "volume_000l_ya": 97.341,
+     "volume_yoy": 37.7477,
+     "ppml": 0.615,
+     "ppml_ya": 0.636,
+     "price_yoy": -3.3019,
+     "vol_effect_cr": 2.337,
+     "price_effect_cr": -0.282,
+     "value_change_cr": 2.055,
+     "reads_as": "volume-led"
+    }
+   ]
+  },
+  "internal": {
+   "months": [
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug"
+   ],
+   "basis": "Honasa MT offtake, store x article files; Brand Counter, discontinued brands and non-MT chains (FSN etc.) left out. NSV Rs Cr; realisation = NSV as % of MRP sales.",
+   "monthly": [
+    {
+     "month": "Apr",
+     "name": "Apr",
+     "units": 1956675,
+     "nsv_cr": 33.597,
+     "asp": 171.7,
+     "realisation_pct": 41.6,
+     "asp_index": 100
+    },
+    {
+     "month": "May",
+     "name": "May",
+     "units": 2197203,
+     "nsv_cr": 38.115,
+     "asp": 173.47,
+     "realisation_pct": 41.7,
+     "asp_index": 100
+    },
+    {
+     "month": "Jun",
+     "name": "Jun",
+     "units": 2081624,
+     "nsv_cr": 36.23,
+     "asp": 174.05,
+     "realisation_pct": 41.2,
+     "asp_index": 100
+    },
+    {
+     "month": "Jul",
+     "name": "Jul",
+     "units": 1903416,
+     "nsv_cr": 34.112,
+     "asp": 179.21,
+     "realisation_pct": 42.2,
+     "asp_index": 100
+    },
+    {
+     "month": "Aug",
+     "name": "Aug",
+     "units": 2073235,
+     "nsv_cr": 37.999,
+     "asp": 183.29,
+     "realisation_pct": 41.5,
+     "asp_index": 100
+    }
+   ],
+   "steps": [
+    {
+     "from": "Apr",
+     "to": "May",
+     "value_change_cr": 4.52,
+     "volume_cr": 4.13,
+     "price_cr": 0.39,
+     "reads_as": "volume-led"
+    },
+    {
+     "from": "May",
+     "to": "Jun",
+     "value_change_cr": -1.88,
+     "volume_cr": -2.0,
+     "price_cr": 0.12,
+     "reads_as": "volume-led"
+    },
+    {
+     "from": "Jun",
+     "to": "Jul",
+     "value_change_cr": -2.12,
+     "volume_cr": -3.1,
+     "price_cr": 0.98,
+     "reads_as": "volume-led"
+    },
+    {
+     "from": "Jul",
+     "to": "Aug",
+     "value_change_cr": 3.89,
+     "volume_cr": 3.04,
+     "price_cr": 0.84,
+     "reads_as": "volume-led"
+    }
+   ],
+   "span": {
+    "from": "Apr",
+    "to": "Aug",
+    "value_change_cr": 4.4,
+    "volume_cr": 2.0,
+    "price_cr": 2.4
+   },
+   "zones_latest": [
+    {
+     "name": "West",
+     "units": 499356,
+     "nsv_cr": 8.483,
+     "asp": 169.88,
+     "realisation_pct": 41.4,
+     "asp_index": 93
+    },
+    {
+     "name": "North",
+     "units": 444337,
+     "nsv_cr": 8.411,
+     "asp": 189.29,
+     "realisation_pct": 41.1,
+     "asp_index": 103
+    },
+    {
+     "name": "South-1",
+     "units": 437643,
+     "nsv_cr": 8.307,
+     "asp": 189.81,
+     "realisation_pct": 41.9,
+     "asp_index": 104
+    },
+    {
+     "name": "South-2",
+     "units": 294106,
+     "nsv_cr": 5.207,
+     "asp": 177.04,
+     "realisation_pct": 42.4,
+     "asp_index": 97
+    },
+    {
+     "name": "East",
+     "units": 237659,
+     "nsv_cr": 4.873,
+     "asp": 205.03,
+     "realisation_pct": 41.6,
+     "asp_index": 112
+    },
+    {
+     "name": "Central",
+     "units": 160134,
+     "nsv_cr": 2.719,
+     "asp": 169.8,
+     "realisation_pct": 40.4,
+     "asp_index": 93
+    }
+   ],
+   "zones_cumulative": [
+    {
+     "name": "West",
+     "units": 2643740,
+     "nsv_cr": 43.193,
+     "asp": 163.38,
+     "realisation_pct": 41.0,
+     "asp_index": 93
+    },
+    {
+     "name": "South-1",
+     "units": 2219354,
+     "nsv_cr": 41.359,
+     "asp": 186.36,
+     "realisation_pct": 42.5,
+     "asp_index": 106
+    },
+    {
+     "name": "North",
+     "units": 2138338,
+     "nsv_cr": 38.563,
+     "asp": 180.34,
+     "realisation_pct": 41.1,
+     "asp_index": 102
+    },
+    {
+     "name": "South-2",
+     "units": 1499720,
+     "nsv_cr": 25.912,
+     "asp": 172.78,
+     "realisation_pct": 42.6,
+     "asp_index": 98
+    },
+    {
+     "name": "East",
+     "units": 1048582,
+     "nsv_cr": 20.139,
+     "asp": 192.06,
+     "realisation_pct": 42.3,
+     "asp_index": 109
+    },
+    {
+     "name": "Central",
+     "units": 662418,
+     "nsv_cr": 10.885,
+     "asp": 164.32,
+     "realisation_pct": 39.9,
+     "asp_index": 93
+    }
+   ],
+   "brands": [
+    {
+     "name": "Mamaearth",
+     "units": 7262457,
+     "nsv_cr": 126.363,
+     "asp": 173.99,
+     "realisation_pct": 40.8,
+     "asp_index": 99
+    },
+    {
+     "name": "The Derma Co.",
+     "units": 2814460,
+     "nsv_cr": 50.432,
+     "asp": 179.19,
+     "realisation_pct": 43.2,
+     "asp_index": 102
+    },
+    {
+     "name": "Aqualogica",
+     "units": 117646,
+     "nsv_cr": 2.792,
+     "asp": 237.28,
+     "realisation_pct": 55.1,
+     "asp_index": 135
+    },
+    {
+     "name": "BBLUNT",
+     "units": 14148,
+     "nsv_cr": 0.372,
+     "asp": 262.78,
+     "realisation_pct": 61.7,
+     "asp_index": 149
+    },
+    {
+     "name": "Dr. Sheth's",
+     "units": 3440,
+     "nsv_cr": 0.094,
+     "asp": 274.41,
+     "realisation_pct": 59.4,
+     "asp_index": 156
+    }
+   ],
+   "chains": [
+    {
+     "name": "Dmart",
+     "units": 4574385,
+     "nsv_cr": 70.463,
+     "asp": 154.04,
+     "realisation_pct": 39.4,
+     "asp_index": 87
+    },
+    {
+     "name": "Reliance",
+     "units": 2446510,
+     "nsv_cr": 47.995,
+     "asp": 196.18,
+     "realisation_pct": 42.1,
+     "asp_index": 111
+    },
+    {
+     "name": "Apollo",
+     "units": 2066251,
+     "nsv_cr": 36.253,
+     "asp": 175.45,
+     "realisation_pct": 39.9,
+     "asp_index": 100
+    },
+    {
+     "name": "LULU",
+     "units": 220051,
+     "nsv_cr": 6.251,
+     "asp": 284.06,
+     "realisation_pct": 57.4,
+     "asp_index": 161
+    },
+    {
+     "name": "Wellness Forever",
+     "units": 196703,
+     "nsv_cr": 4.424,
+     "asp": 224.91,
+     "realisation_pct": 59.0,
+     "asp_index": 128
+    },
+    {
+     "name": "H&G",
+     "units": 105267,
+     "nsv_cr": 3.1,
+     "asp": 294.54,
+     "realisation_pct": 46.6,
+     "asp_index": 167
+    },
+    {
+     "name": "Metro Cnc",
+     "units": 141105,
+     "nsv_cr": 2.658,
+     "asp": 188.34,
+     "realisation_pct": 50.9,
+     "asp_index": 107
+    },
+    {
+     "name": "Sancus(Rmt)",
+     "units": 117450,
+     "nsv_cr": 2.236,
+     "asp": 190.37,
+     "realisation_pct": 41.6,
+     "asp_index": 108
+    },
+    {
+     "name": "More Retail",
+     "units": 110405,
+     "nsv_cr": 2.155,
+     "asp": 195.15,
+     "realisation_pct": 54.1,
+     "asp_index": 111
+    },
+    {
+     "name": "VMM",
+     "units": 75661,
+     "nsv_cr": 1.254,
+     "asp": 165.78,
+     "realisation_pct": 52.2,
+     "asp_index": 94
+    },
+    {
+     "name": "Spencer",
+     "units": 23557,
+     "nsv_cr": 0.511,
+     "asp": 216.99,
+     "realisation_pct": 51.9,
+     "asp_index": 123
+    },
+    {
+     "name": "V-Mart",
+     "units": 22397,
+     "nsv_cr": 0.494,
+     "asp": 220.7,
+     "realisation_pct": 47.6,
+     "asp_index": 125
+    }
+   ],
+   "total": {
+    "name": "MT",
+    "units": 10212153,
+    "nsv_cr": 180.052,
+    "asp": 176.31,
+    "realisation_pct": 41.7,
+    "asp_index": 100
+   }
+  }
+ },
  "aug_actions": [
   {
    "title": "Hero-EAN OSA Audit — All Chains",

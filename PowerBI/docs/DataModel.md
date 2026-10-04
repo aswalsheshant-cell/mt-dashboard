@@ -25,7 +25,7 @@ noted. Keep auto-detect relationships OFF and create these explicitly.
 | `Fact Primary Sales` | Week × Store × Article | `Date Table[Date]` → `[Week Start Date]` |
 | `Fact Offtake Sales` | Month × Store × Article | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact P&L` | Month × Chain × Brand × Category (derived) | `Date Table[MonthStart]` → `[MonthStart]` |
-| `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone | `Date Table[MonthStart]` → `[MonthStart]` |
+| `Fact Nielsen` | Month × Nielsen Cat × Brand × Zone (optional `Volume 000 L`, `Price Per Ml`) | `Date Table[MonthStart]` → `[MonthStart]` |
 | `Fact Nielsen Pack` | Month × Nielsen Cat × Pack Size | `Date Table[MonthStart]` → `[MonthStart]`; `Category Master[Nielsen Category]` → `[Nielsen Category]` |
 | `Nielsen Deck State Exposure` | State (typed from the review deck) | none (stand-alone seed table) |
 | `Fact TDP` | Month × Chain × Article | `Date Table[MonthStart]` → `[MonthStart]` |

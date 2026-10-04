@@ -107,3 +107,29 @@ def test_chain_view_state_names_are_unified():
     assert cv.norm_state("Delhi/ NCR") == cv.norm_state("DELHI NCR") == "Delhi NCR"
     assert cv.norm_state("UP") == cv.norm_state("Uttar Pradesh") and cv.norm_state("TELANGANA") == "Telangana"
     assert cv.norm_chain("Ratandeep") == "RATNADEEP"
+
+
+# ----------------------------------------------------------- price and volume
+
+def test_price_volume_effects_add_up_to_the_value_change(aug):
+    pv = aug["price_volume"]
+    for cat in ("facewash", "shampoo"):
+        for r in pv["nielsen"][cat]:
+            assert r["vol_effect_cr"] + r["price_effect_cr"] == pytest.approx(r["value_change_cr"], abs=0.01), (cat, r["name"])
+    me = next(r for r in pv["nielsen"]["facewash"] if r["name"] == "Mamaearth")
+    assert me["value_yoy"] == pytest.approx(40.7, abs=0.1)
+    i = pv["internal"]
+    assert i["months"] == ["Apr", "May", "Jun", "Jul", "Aug"]
+    assert i["span"]["volume_cr"] + i["span"]["price_cr"] == pytest.approx(i["span"]["value_change_cr"], abs=0.02)
+    assert sum(z["nsv_cr"] for z in i["zones_latest"]) == pytest.approx(i["monthly"][-1]["nsv_cr"], abs=0.02)
+    assert all(not b["name"].replace(".", "").isdigit() for b in i["brands"])
+
+
+def test_competitor_master_is_append_only_and_covers_the_seed():
+    import csv as _csv
+    master = list(_csv.DictReader((ROOT / "PowerBI/SeedData/Masters/NielsenCompetitorMaster.csv").open(encoding="utf-8")))
+    have = {(r["Nielsen Category"], r["Brand"]) for r in master}
+    assert ("Facewash", "Himalaya") in have and ("Facewash", "Mamaearth") in have       # original rows kept
+    seed = list(_csv.DictReader((ROOT / "PowerBI/SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv").open(encoding="utf-8")))
+    latest = {(r["Nielsen Category"], r["Brand"]) for r in seed if r["Month"] == "Aug'26" and r["Value Market Share %"]}
+    assert latest <= have

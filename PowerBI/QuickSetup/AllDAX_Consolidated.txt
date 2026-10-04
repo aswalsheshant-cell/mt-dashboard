@@ -6,7 +6,7 @@ This file is a READ-ALONG REFERENCE, not something to paste as a whole.
 Power BI's New Measure formula bar holds exactly ONE measure at a time.
 For each measure below: select the _Measures table > New Measure > paste
 ONE 'Name = Expression' block (including any VAR/RETURN lines that belong
-to it) > Enter. Having ONE file open (this one) instead of 15 separate
+to it) > Enter. Having ONE file open (this one) instead of 16 separate
 files, with the calculated-column exceptions called out up front, is the
 time-saving here.
 
@@ -27,7 +27,7 @@ time-saving here.
 
 
 ##############################################################################
-# STEP 01/15  --  SOURCE FILE: 00_DateTable.dax
+# STEP 01/16  --  SOURCE FILE: 00_DateTable.dax
 # TARGET: Date Table (calculated TABLE, not a measure)
 # NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below.
 ##############################################################################
@@ -80,7 +80,7 @@ ADDCOLUMNS(
 
 
 ##############################################################################
-# STEP 02/15  --  SOURCE FILE: 01_CoreMeasures.dax
+# STEP 02/16  --  SOURCE FILE: 01_CoreMeasures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -379,7 +379,7 @@ YoY % (Like-for-Like) =
 
 
 ##############################################################################
-# STEP 03/15  --  SOURCE FILE: 02_PnL_Measures.dax
+# STEP 03/16  --  SOURCE FILE: 02_PnL_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -511,7 +511,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 04/15  --  SOURCE FILE: 03_Forecast_Measures.dax
+# STEP 04/16  --  SOURCE FILE: 03_Forecast_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -611,7 +611,7 @@ Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
 
 
 ##############################################################################
-# STEP 05/15  --  SOURCE FILE: 04_Nielsen_Measures.dax
+# STEP 05/16  --  SOURCE FILE: 04_Nielsen_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -747,7 +747,7 @@ DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV LY], ALL ( 'Chain Master'[Ch
 
 
 ##############################################################################
-# STEP 06/15  --  SOURCE FILE: 05_TDP_Measures.dax
+# STEP 06/16  --  SOURCE FILE: 05_TDP_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -822,7 +822,7 @@ MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )
 
 
 ##############################################################################
-# STEP 07/15  --  SOURCE FILE: 06_DataQuality_Measures.dax
+# STEP 07/16  --  SOURCE FILE: 06_DataQuality_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1059,7 +1059,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 08/15  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
+# STEP 08/16  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1292,7 +1292,7 @@ CALCULATE (
 
 
 ##############################################################################
-# STEP 09/15  --  SOURCE FILE: 08_ForecastQC_Measures.dax
+# STEP 09/16  --  SOURCE FILE: 08_ForecastQC_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1365,7 +1365,7 @@ CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
 
 
 ##############################################################################
-# STEP 10/15  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
+# STEP 10/16  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1533,7 +1533,7 @@ CALCULATE ( [Chain Allocated Primary NSV],
 
 
 ##############################################################################
-# STEP 11/15  --  SOURCE FILE: 10_SIS_Reconciliation.dax
+# STEP 11/16  --  SOURCE FILE: 10_SIS_Reconciliation.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1612,7 +1612,7 @@ Offtake Channel Coverage % =
 
 
 ##############################################################################
-# STEP 12/15  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
+# STEP 12/16  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1718,7 +1718,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 13/15  --  SOURCE FILE: 12_TOT_Measures.dax
+# STEP 13/16  --  SOURCE FILE: 12_TOT_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -1914,7 +1914,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 14/15  --  SOURCE FILE: 13_CM2_Measures.dax
+# STEP 14/16  --  SOURCE FILE: 13_CM2_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -2124,7 +2124,7 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 
 
 ##############################################################################
-# STEP 15/15  --  SOURCE FILE: 14_SecondarySales_Measures.dax
+# STEP 15/16  --  SOURCE FILE: 14_SecondarySales_Measures.dax
 # TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)
 # NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar.
 ##############################################################################
@@ -2273,3 +2273,95 @@ RETURN
 VAR _st = [Sell-Through %]
 RETURN
     IF ( ISBLANK ( _st ), "–", FORMAT ( _st, "0.0%" ) )
+
+
+
+##############################################################################
+# STEP 16/16  --  SOURCE FILE: 16_PriceVolume_Measures.dax
+# TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// PRICE / VOLUME, REALISATION, ZONE PRICE INDEX, CATEGORY PRESENCE
+// Tables: 'Fact Offtake Sales' (units, NSV, MRP sales), 'Chain Master', 'Fact Nielsen'.
+// Offtake basis: MT only, so Reliance Brand Counter is left out (Primary is never touched).
+// value = units x ASP:  volume effect = ASP_base x change in units;
+//                       price / mix effect = units_now x change in ASP.  The two add up to the NSV change.
+// =====================================================================
+
+// ---------- INTERNAL MT OFFTAKE ----------
+MT Offtake Qty = CALCULATE ( [Total Offtake Qty], 'Chain Master'[Channel] = "MT" )
+MT MRP Sales   = CALCULATE ( [Total MRP Sales],   'Chain Master'[Channel] = "MT" )
+
+MT ASP = DIVIDE ( [Total MT NSV], [MT Offtake Qty] )
+
+// NSV as a share of MRP sales: how much of the shelf price we keep
+MT Realisation % = DIVIDE ( [Total MT NSV], [MT MRP Sales] )
+
+MT Offtake Qty PM = CALCULATE ( [MT Offtake Qty], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+MT ASP PM         = CALCULATE ( [MT ASP],         DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+
+MT Volume Effect MoM =
+IF ( ISBLANK ( [MT ASP PM] ), BLANK (), [MT ASP PM] * ( [MT Offtake Qty] - [MT Offtake Qty PM] ) )
+
+MT Price Mix Effect MoM =
+IF ( ISBLANK ( [MT ASP PM] ), BLANK (), [MT Offtake Qty] * ( [MT ASP] - [MT ASP PM] ) )
+
+MT Price Volume Check MoM =
+[MT Volume Effect MoM] + [MT Price Mix Effect MoM] - ( [Total MT NSV] - CALCULATE ( [Total MT NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )
+
+MT Volume Effect YoY =
+VAR _asp = CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+VAR _qty = CALCULATE ( [MT Offtake Qty], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _asp ), BLANK (), _asp * ( [MT Offtake Qty] - _qty ) )
+
+MT Price Mix Effect YoY =
+VAR _asp = CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _asp ), BLANK (), [MT Offtake Qty] * ( [MT ASP] - _asp ) )
+
+// zone (or chain / brand) ASP against the MT average, 100 = average
+Zone Price Index =
+DIVIDE ( [MT ASP], CALCULATE ( [MT ASP], ALL ( 'Fact Offtake Sales'[Zone] ) ) ) * 100
+
+Chain Price Index =
+DIVIDE ( [MT ASP], CALCULATE ( [MT ASP], ALL ( 'Chain Master'[Chain] ) ) ) * 100
+
+// ---------- NIELSEN (consumer offtake, IN URB MT) ----------
+// Fact Nielsen[Volume 000 L] and [Price Per Ml] are loaded when the drop file carries them.
+Nielsen Volume 000 L = SUM ( 'Fact Nielsen'[Volume 000 L] )
+
+// Rs per ml = Rs / ( thousand litres x 1000 x 1000 )
+Nielsen Price Per Ml = DIVIDE ( [Our Brand Sales], [Nielsen Volume 000 L] * 1000000 )
+
+Nielsen Volume Effect YoY =
+VAR _vol = CALCULATE ( [Nielsen Volume 000 L], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+VAR _ppml = CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _ppml ), BLANK (), ( [Nielsen Volume 000 L] - _vol ) * _ppml * 1000000 )
+
+Nielsen Price Mix Effect YoY =
+VAR _ppml = CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _ppml ), BLANK (), [Nielsen Volume 000 L] * ( [Nielsen Price Per Ml] - _ppml ) * 1000000 )
+
+// ---------- CATEGORY PRESENCE (our own mix; Nielsen sizes only Facewash and Shampoo) ----------
+// A sub-category that earns a real share of our NSV in all chains but little in one chain is a
+// presence gap. Market size by category needs a Nielsen export for that category.
+Subcat Share In Chain % =
+DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )
+
+Subcat Share All Chains % =
+DIVIDE (
+    CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ) ),
+    CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ), ALL ( 'Fact Offtake Sales'[Sub-category] ) )
+)
+
+Subcat Presence Status =
+VAR _all = [Subcat Share All Chains %]
+VAR _in = COALESCE ( [Subcat Share In Chain %], 0 )
+RETURN
+    IF ( ISBLANK ( _all ) || _all < 0.02, BLANK (),
+        IF ( _in <= 0, "Absent", IF ( _in < _all * 0.6, "Under-weight", "Present" ) ) )
+
+Subcat Gap NSV =
+VAR _gap = MAX ( [Subcat Share All Chains %] - COALESCE ( [Subcat Share In Chain %], 0 ), 0 )
+RETURN IF ( [Subcat Presence Status] IN { "Absent", "Under-weight" },
+    _gap * CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )

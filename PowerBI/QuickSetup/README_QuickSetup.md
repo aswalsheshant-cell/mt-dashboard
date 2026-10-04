@@ -15,7 +15,7 @@ opening 24+ separate `.pq`/`.dax` files one at a time.
 
 - **`AllPowerQuery_Consolidated.txt`** — all 32 Power Query steps, in the
   order to add them, each with the exact query name to rename it to.
-- **`AllDAX_Consolidated.txt`** — all measures across the 14 DAX measure files
+- **`AllDAX_Consolidated.txt`** — all measures across the 16 DAX measure files
   (plus the Date Table), in order, with the 6 calculated-column exceptions
   flagged in a warning banner at the top so you see them before you start pasting.
 
@@ -44,7 +44,7 @@ top to bottom — that's the whole time-saving versus the full build kit.
    `AllDAX_Consolidated.txt` whole ▸ mark as date table on `[Date]`.
 6. **Relationships:** build per `PowerBI/docs/DataModel.md`.
 7. **Measures:** create a `_Measures` table (Enter Data, one blank column,
-   delete the column after). For STEP 02 through STEP 15 in
+   delete the column after). For STEP 02 through STEP 16 in
    `AllDAX_Consolidated.txt` — New Measure ▸ paste ONE `Name = Expression`
    block (including any `VAR`/`RETURN` lines under it) ▸ Enter ▸ next measure.
    **Skip the 6 commented-out blocks flagged at the top of that file** — add

@@ -11,8 +11,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import build_nielsen_powerbi_seed as seed  # noqa: E402
 
 PBI = ROOT / "PowerBI"
-MONTHLY = PBI / "RawDataFolders" / "Nielsen_Monthly" / "nielsen_urban_mt_aug26.csv"
-PACKS = PBI / "RawDataFolders" / "Nielsen_Pack_Monthly" / "nielsen_pack_urban_mt_aug26.csv"
+MONTHLY = PBI / "SeedData" / "Nielsen" / "Nielsen_Monthly" / "nielsen_urban_mt_aug26.csv"
+PACKS = PBI / "SeedData" / "Nielsen" / "Nielsen_Pack_Monthly" / "nielsen_pack_urban_mt_aug26.csv"
 
 
 def rows(path):

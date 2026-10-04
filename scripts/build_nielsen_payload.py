@@ -317,6 +317,8 @@ def build_payload(root: Path, label: str, month: str, tracker_from: Path) -> dic
         "sh_pack_gap": pack_gap(folder, label, "shampoo", month, get(sh, "ms", OWN, month), get(sh, "value", shc, month), get(sh, "ppml", OWN, month)),
         "chains": chain_block(folder, label),
         "deck": json.loads((folder / "Deck_MT_Review_Big3_v3_1.json").read_text(encoding="utf-8")) if (folder / "Deck_MT_Review_Big3_v3_1.json").exists() else None,
+        "price_volume": (json.loads((folder / f"Price_Volume_{label}.json").read_text(encoding="utf-8"))
+                         if (folder / f"Price_Volume_{label}.json").exists() else None),
         "aug_actions": attach_checks(tracker["aug_actions"], "title"), "sep_actions": attach_checks(tracker["sep_actions"], "title"),
         "gates": attach_checks(tracker["gates"], "q"),
     }

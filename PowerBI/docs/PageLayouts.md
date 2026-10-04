@@ -383,7 +383,7 @@ field.
 
 **Important categories:** Facewash, Shampoo, Sunscreen, Face Serum (others as data allows).
 
-**Data now in the kit (Aug-26 update):** `RawDataFolders/Nielsen_Monthly/nielsen_urban_mt_aug26.csv`
+**Data now in the kit (Aug-26 update):** `SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv` (copy into `RawDataFolders/Nielsen_Monthly/` to load it)
 holds real Facewash and Shampoo history for market IN URB MT (Aug 23 to Aug 26); set the Zone slicer
 to `IN URB MT`. Facewash and Shampoo are both Aug 26, so Month selects the same period for both.
 
@@ -396,6 +396,16 @@ to `IN URB MT`. Facewash and Shampoo are both Aug 26, so Month selects the same 
   (Not present red, Under-indexed amber, Present green). One table per `Nielsen Category`, value basis (Rs Cr); add `Pack Price Per Ml`, `Pack Volume Share %`,
   `Pack Our Contribution %`. KPI cards: `Packs Not Present`, `Pack Gap Amount`.
 - **State x chain exposure** (table): `Nielsen Deck State Exposure` (typed from the review deck, Jun'26, not a workbook cut).
+
+**Price & Volume block (same page or a page 9b):** measures in `DAX/16_PriceVolume_Measures.dax`.
+- **Market growth split** (table, Nielsen): `Nielsen Category` x Brand with `Nielsen Volume Effect YoY`, `Nielsen Price Mix Effect YoY`,
+  `Nielsen Price Per Ml`. Needs `Volume 000 L` and `Price Per Ml` in the Nielsen drop file (present in `nielsen_urban_mt_aug26.csv`).
+- **Our MT price / volume** (table by Month): `MT Offtake Qty`, `Total MT NSV`, `MT ASP`, `MT Realisation %`, `MT Volume Effect MoM`, `MT Price Mix Effect MoM`;
+  check card `MT Price Volume Check MoM` must be 0.
+- **Realisation ladder** (bar): `Chain Master[Chain]` x `MT Realisation %`, sorted high to low, with `Chain Price Index`.
+- **Zone price index** (table): `Zone` x `MT ASP`, `Zone Price Index`, `MT Realisation %`.
+- **Category presence** (matrix, chain x `Sub-category`): `Subcat Share In Chain %`, `Subcat Share All Chains %`, `Subcat Presence Status`, `Subcat Gap NSV`.
+  Nielsen sizes only Facewash and Shampoo; other categories need a Nielsen export in `Nielsen_Monthly` before their market size shows.
 
 
 ---

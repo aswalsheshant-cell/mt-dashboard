@@ -433,7 +433,10 @@ in
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Monthly"),
-    Typed = Table.TransformColumnTypes(Source, {
+    // Volume 000 L and Price Per Ml are optional (older drops lack them); add them as null when missing
+    WithOptional = List.Accumulate({"Volume 000 L", "Price Per Ml"}, Source,
+        (tbl, col) => if Table.HasColumns(tbl, col) then tbl else Table.AddColumn(tbl, col, each null, type number)),
+    Typed = Table.TransformColumnTypes(WithOptional, {
         {"Month", type text},
         {"FY Year", type text},
         {"Nielsen Category", type text},
@@ -443,7 +446,9 @@ let
         {"Our Brand Sales", type number},
         {"Value Market Share %", type number},
         {"Volume Market Share %", type number},
-        {"Data Source Name", type text}
+        {"Data Source Name", type text},
+        {"Volume 000 L", type number},
+        {"Price Per Ml", type number}
     }),
     AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
         let

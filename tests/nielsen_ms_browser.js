@@ -100,6 +100,15 @@ const check = (cond, msg) => { if (!cond) failures.push(msg); };
     if (shotDir) await page.screenshot({ path: path.join(shotDir, 'chains.png'), fullPage: true });
   }
 
+  // ---- Price & Volume
+  await page.click('.tab-btn:nth-child(5)');
+  t = await clean('price-volume');
+  if (mode === 'aug') {
+    for (const needle of ['Realisation ladder by chain', 'Zone price index', 'Volume effect', 'Reads as', 'South-1', 'Dmart'])
+      check(t.toLowerCase().includes(needle.toLowerCase()), `price-volume: expected "${needle}"`);
+    if (shotDir) await page.screenshot({ path: path.join(shotDir, 'pricevolume.png'), fullPage: true });
+  }
+
   // ---- narrow screen
   await page.setViewportSize({ width: 420, height: 800 });
   await page.click('.tab-btn:nth-child(1)');

@@ -169,6 +169,10 @@
       "14_SecondarySales_Measures.dax": [
         "# TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)",
         "# NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar."
+      ],
+      "16_PriceVolume_Measures.dax": [
+        "# TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
       ]
     },
     "excluded": {

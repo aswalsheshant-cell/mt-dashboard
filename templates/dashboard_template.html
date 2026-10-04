@@ -178,6 +178,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
   <button class="tab-btn" onclick="showTab(1)">Opportunity</button>
   <button class="tab-btn" onclick="showTab(2)">90-Day Tracker</button>
   <button class="tab-btn" onclick="showTab(3)">Chains &amp; Packs</button>
+  <button class="tab-btn" onclick="showTab(4)">Price &amp; Volume</button>
 </nav>
 
 <!-- ============ TAB 0: MARKET SHARE (Both | Facewash | Shampoo) ============ -->
@@ -240,7 +241,7 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
     </section>
   </div>
 
-  <details id="both-packs"><summary>Pack architecture, both categories</summary>
+  <details id="both-packs" open><summary>Pack architecture, both categories: value contribution by pack</summary>
     <div class="ms-grid" style="margin-top:6px">
       <div class="blk"><div class="sub" style="margin-top:0">Facewash <span class="note pk-basis-fw">&middot; Nielsen pack file</span></div><div id="fw-packs-b"></div></div>
       <div class="blk"><div class="sub" style="margin-top:0">Shampoo <span class="note pk-basis-sh">&middot; Nielsen pack file</span></div><div id="sh-packs-b"></div></div>
@@ -329,6 +330,35 @@ details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent
   <div class="foot" id="foot-cp"></div>
 </div>
 
+<!-- ============ TAB 4: PRICE & VOLUME ============ -->
+<div class="panel" id="p4">
+  <div class="bar"><div class="blk-t">Price, volume and realisation</div><div class="note" id="pv-note"></div></div>
+
+  <div class="sec" id="pv-n"><h3>1. Market: how much of the growth was volume and how much price <span class="note">&middot; Nielsen consumer offtake, this month vs a year ago</span></h3>
+    <div class="note" id="pv-n-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Category</th><th class="l">Brand</th><th>Value &#8377;Cr</th><th>Value YoY %</th><th>Volume YoY %</th><th>Price / ml YoY %</th><th>Volume effect &#8377;Cr</th><th>Price / mix effect &#8377;Cr</th><th class="l">Reads as</th></tr></thead><tbody id="pvn-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="pv-i"><h3>2. Our MT offtake: units, price per unit and realisation <span class="note">&middot; internal store x article files</span></h3>
+    <div class="note" id="pv-i-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Month</th><th>Units</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>Realisation % of MRP</th><th class="l">Change vs previous month</th><th>Volume effect &#8377;Cr</th><th>Price / mix effect &#8377;Cr</th></tr></thead><tbody id="pvi-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="pv-l"><h3>3. Realisation ladder by chain <span class="note">&middot; NSV as % of MRP sales, Apr-Aug cumulative</span></h3>
+    <div class="note">Higher realisation means we keep more of the shelf price (less trade margin and discount). A low ASP index with low realisation is a value-pack, high-margin-to-trade chain.</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>ASP index</th><th>Realisation %</th><th class="l">Ladder</th></tr></thead><tbody id="pvl-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="pv-z"><h3>4. Zone price index <span class="note">&middot; zone ASP / MT ASP x 100</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Zone</th><th>NSV &#8377;Cr (latest month)</th><th>ASP &#8377;/unit</th><th>Price index (latest)</th><th>Realisation %</th><th>Price index (Apr-Aug)</th></tr></thead><tbody id="pvz-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="pv-b"><h3>5. Brand price position <span class="note">&middot; Apr-Aug</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Brand</th><th>Units</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>Realisation %</th></tr></thead><tbody id="pvb-tbody"></tbody></table></div>
+  </div>
+  <div class="foot" id="foot-pv"></div>
+</div>
+
 <script>
 /* ── DATA PAYLOAD (injected by build_nielsen_dashboard.py) ── */
 const DASHBOARD_DATA = /* __NIELSEN_DATA_PAYLOAD__ */ {};
@@ -337,7 +367,7 @@ const FW_ALL=DASHBOARD_DATA.FW_ALL||[], FW_CAT=DASHBOARD_DATA.FW_CAT_NSV||[], SH
       PACKF=DASHBOARD_DATA.SH_PACK_FILE||null, GOV=DASHBOARD_DATA.GOV||{}, META=DASHBOARD_DATA._meta||{},
       FW_INFO=DASHBOARD_DATA.FW_CAT_INFO||null, FW_ME_PACKS=DASHBOARD_DATA.FW_PACKS_ME||null, FW_PREM=DASHBOARD_DATA.FW_PREMIUM||null,
       MARKET=DASHBOARD_DATA.MARKET||'', UNIT=DASHBOARD_DATA.UNIT||'',
-      FW_GAP=DASHBOARD_DATA.FW_PACK_GAP||null, SH_GAP=DASHBOARD_DATA.SH_PACK_GAP||null, CHAINS=DASHBOARD_DATA.CHAINS||null, DECK=DASHBOARD_DATA.DECK||null;
+      FW_GAP=DASHBOARD_DATA.FW_PACK_GAP||null, SH_GAP=DASHBOARD_DATA.SH_PACK_GAP||null, CHAINS=DASHBOARD_DATA.CHAINS||null, DECK=DASHBOARD_DATA.DECK||null, PV=DASHBOARD_DATA.PRICE_VOLUME||null;
 const AC='#2563EB',GREY='#94A3B8',RED='#DC2626',GREEN='#059669',AMBER='#D97706';
 const OWN=['Mamaearth','The Derma Co'];          // Honasa brands in the Facewash file
 Chart.defaults.animation=false;
@@ -409,6 +439,9 @@ if(sh){sh.ppValue=ok(sh.cat)?sh.cat/100:null;sh.rank=rankOf(SH.brands||[],'ms','
   sh.hasReach=ok(sh.wd)&&ok(sh.stores);
   sh.sameMonth=!!(SH.month&&SH.month===MONTHS[last]);}
 
+/* pack gap KPI: category packs above 1% of value that we do not sell, and the monthly value gap */
+function gapKpi(G){if(!G||!G.rows)return '';const big=G.rows.filter(r=>r.cat_share>=1&&r.status==='Not present'),opp=G.rows.reduce((a,r)=>a+(r.opp_cr||0),0);
+  return kpi('Pack gap ₹Cr / month',f1(opp,2),big.length?big.length+' big pack'+(big.length>1?'s':'')+' not sold: '+big.slice(0,3).map(r=>r.size+' ml').join(', '):'no big pack missing',big.length?'dn':'mut');}
 /* ── scorecards ── */
 function buildKpis(){
   el('fw-kpis').innerHTML=[
@@ -419,7 +452,7 @@ function buildKpis(){
     kpi('WD %',f1(fw.wd),sg(fw.wdDpp,1,'pp YoY'),cls(fw.wdDpp)),
     kpi('Stores selling',n0(fw.stores),sg(fw.storesYoY,1,'% YoY'),cls(fw.storesYoY)),
     kpi('₹ per store',n0(fw.pdo),sg(fw.pdoYoY,0,'% YoY'),cls(fw.pdoYoY)),
-    kpi('1 pp share =',ok(fw.ppValue)?'₹'+f1(fw.ppValue,2)+' Cr':'–','per month','mut')].join('');
+    kpi('1 pp share =',ok(fw.ppValue)?'₹'+f1(fw.ppValue,2)+' Cr':'–','per month','mut'),gapKpi(FW_GAP)].join('');
   el('sh-kpis').innerHTML=sh?[
     kpi('Share',f1(sh.ms)+'%',sg(sh.bps,0,' bps YoY'),cls(sh.bps)),
     kpi('Position',sh.rank?'#'+sh.rank+' of '+(SH.brands||[]).length+' listed':'–','','mut'),
@@ -429,7 +462,7 @@ function buildKpis(){
     kpi('WD %',sh.hasReach?f1(sh.wd):'–',sh.hasReach?sg(ok(sh.wdPY)?sh.wd-sh.wdPY:null,1,'pp YoY'):'no distribution data',sh.hasReach?cls(ok(sh.wdPY)?sh.wd-sh.wdPY:null):'mut'),
     kpi('Stores selling',n0(sh.stores),ok(sh.nd)?'ND '+f1(sh.nd)+'%':'','mut'),
     kpi('₹ per store',n0(sh.pdo),ok(sh.ppml)&&ok(sh.catPpml)?'₹/ml '+f1(sh.ppml,2)+' vs cat '+f1(sh.catPpml,2):'','mut'),
-    kpi('1 pp share =',ok(sh.ppValue)?'₹'+f1(sh.ppValue,2)+' Cr':'–','per month','mut')].join(''):'<div class="note">No Shampoo data in this payload.</div>';
+    kpi('1 pp share =',ok(sh.ppValue)?'₹'+f1(sh.ppValue,2)+' Cr':'–','per month','mut'),gapKpi(SH_GAP)].join(''):'<div class="note">No Shampoo data in this payload.</div>';
 }
 
 /* ── tables ── */
@@ -673,12 +706,33 @@ function buildPackMatrix(){
   el('pm-wrap').innerHTML=mk1(FW_GAP,'Face wash','Facewash &middot; packs above 1% of category value, and any pack we sell')+mk1(SH_GAP,'Shampoo','Shampoo &middot; packs above 1% of category value, and any pack we sell');
   el('pm-note').textContent='Each cell is the chain NSV (Rs lakh) and states where the pack sells out of the states the chain operates in (green = all states, amber = some states). Not sold = no Mamaearth sales of that pack in the chain Apr-Aug. A pack that is big in Nielsen and Not sold everywhere (for example Shampoo 1000 ml, Facewash 240 ml) is a pack we do not make or have not listed.';
 }
+function buildPriceVolume(){
+  if(!PV){['pv-n','pv-i','pv-l','pv-z','pv-b'].forEach(hide);el('pv-note').textContent='Price and volume data is not in this payload.';return;}
+  const N=PV.nielsen||{},I=PV.internal||null,cap=pretty;
+  const rows=[];[['Facewash',N.facewash],['Shampoo',N.shampoo]].forEach(([c,a])=>(a||[]).forEach(r=>rows.push([c,r])));
+  tbody('pvn-tbody',rows,([c,r])=>`<tr><td class="l">${c}</td><td class="l">${esc(r.name)}</td><td>${f1(r.value_cr,2)}</td><td>${sg(r.value_yoy,1)}</td><td>${sg(r.volume_yoy,1)}</td><td>${sg(r.price_yoy,1)}</td><td>${sg(r.vol_effect_cr,2)}</td><td>${sg(r.price_effect_cr,2)}</td><td class="l">${esc(r.reads_as)}</td></tr>`);
+  const lines=rows.filter(([c,r])=>r.name==='Mamaearth').map(([c,r])=>`${c}: value ${sg(r.value_yoy,0,'%')} = volume ${sg(r.volume_yoy,0,'%')} and price per ml ${sg(r.price_yoy,0,'%')}`);
+  const cat=rows.filter(([c,r])=>r.name==='Category').map(([c,r])=>`${c} category price per ml ${sg(r.price_yoy,0,'%')}`);
+  el('pv-n-note').textContent=(lines.concat(cat).join('. ')||'')+'. Volume effect = last year price per ml x change in volume; price / mix effect = this year volume x change in price per ml. Price per ml changes with pack mix too, so a fall can mean more large packs, not a price cut.';
+  if(I){
+    el('pv-i-note').textContent=I.basis;
+    const steps=Object.fromEntries((I.steps||[]).map(s=>[s.to,s]));
+    tbody('pvi-tbody',I.monthly||[],m=>{const s=steps[m.month];return `<tr><td class="l">${esc(m.month)}</td><td>${n0(m.units)}</td><td>${f1(m.nsv_cr,2)}</td><td>${f1(m.asp,1)}</td><td>${f1(m.realisation_pct,1)}</td><td class="l">${s?esc(s.from+' to '+s.to+': '+sg(s.value_change_cr,2)+' Cr, '+s.reads_as):'–'}</td><td>${s?sg(s.volume_cr,2):'–'}</td><td>${s?sg(s.price_cr,2):'–'}</td></tr>`;});
+    const ladder=(I.chains||[]).slice().sort((a,b)=>b.realisation_pct-a.realisation_pct),mx=Math.max(...ladder.map(c=>c.realisation_pct),1);
+    tbody('pvl-tbody',ladder,c=>`<tr><td class="l">${esc(c.name)}</td><td>${f1(c.nsv_cr,2)}</td><td>${f1(c.asp,1)}</td><td>${n0(c.asp_index)}</td><td>${f1(c.realisation_pct,1)}</td><td class="l"><div style="background:var(--border);border-radius:3px;height:8px;width:160px"><div style="background:var(--accent);height:8px;border-radius:3px;width:${Math.round(c.realisation_pct/mx*100)}%"></div></div></td></tr>`);
+    const zc=Object.fromEntries((I.zones_cumulative||[]).map(z=>[z.name,z]));
+    tbody('pvz-tbody',I.zones_latest||[],z=>`<tr><td class="l">${esc(z.name)}</td><td>${f1(z.nsv_cr,2)}</td><td>${f1(z.asp,1)}</td><td>${n0(z.asp_index)}</td><td>${f1(z.realisation_pct,1)}</td><td>${zc[z.name]?n0(zc[z.name].asp_index):'–'}</td></tr>`);
+    tbody('pvb-tbody',I.brands||[],b=>`<tr><td class="l">${esc(b.name)}</td><td>${n0(b.units)}</td><td>${f1(b.nsv_cr,2)}</td><td>${f1(b.asp,1)}</td><td>${f1(b.realisation_pct,1)}</td></tr>`);
+    el('pv-note').textContent=`Our MT: ${I.months[0]} to ${I.months[I.months.length-1]}, value ${sg(I.span.value_change_cr,2)} Cr = volume ${sg(I.span.volume_cr,2)} + price / mix ${sg(I.span.price_cr,2)}.`;
+  }else{['pv-i','pv-l','pv-z','pv-b'].forEach(hide);}
+  el('foot-pv').textContent='Market block: Nielsen '+(MARKET||'')+', value and volume as reported. Internal blocks: Honasa MT offtake store x article files, NSV Rs lakh converted to Rs Cr; Reliance Brand Counter, discontinued brands and non-MT chains left out (offtake basis only). Realisation = NSV / MRP sales.';
+}
 function buildChainPacks(){
   const R=(CHAINS&&CHAINS.range_pack||[]).filter(r=>r.States_present<r.States_in_chain&&r.NSV_lakh>=5).sort((a,b)=>b.NSV_lakh-a.NSV_lakh).slice(0,30);
   const cap=pretty;
   tbody('rp-tbody',R,r=>`<tr><td>${esc(cap(r.Chain))}</td><td class="l">${esc(r.Category)}</td><td class="l">${esc(r.Range)}</td><td>${esc(r.Pack)}</td><td>${n0(r.NSV_lakh)}</td><td>${r.States_present} of ${r.States_in_chain}</td><td class="l wrap">${esc(r.Missing_states||'–')}</td></tr>`);
   const G=(CHAINS&&CHAINS.category_gap||[]);
-  el('cg-note').textContent='"Strong" here means the sub-category earns at least 2% of our NSV across all chains; "thin" means the chain sells under 60% of that weight. Market size by category is not in the repo, so this is our own mix, not the retailer\'s category size.';
+  el('cg-note').textContent='Nielsen category size is loaded for Facewash and Shampoo only. For Sunscreen, Face Serum, Body Wash and the rest, drop a Nielsen export (month x category x brand, same layout as Nielsen_Monthly) and the same view can size the market. Until then: "Strong" here means the sub-category earns at least 2% of our NSV across all chains; "thin" means the chain sells under 60% of that weight. Market size by category is not in the repo, so this is our own mix, not the retailer\'s category size.';
   tbody('cg-tbody',G.slice(0,25),r=>`<tr><td>${esc(cap(r.Chain))}</td><td class="l">${esc(r.Sub_category)}</td><td>${f1(r.Share_of_all_chain_NSV_pct)}</td><td>${f1(r.Share_in_this_chain_pct)}</td><td class="l">${chipFor(r.Status==='Absent'?'Not present':'Under-weight')}</td><td>${n0(r.Gap_NSV_lakh_at_all_chain_mix)}</td></tr>`);
 }
 function buildDeckBits(){
@@ -718,7 +772,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   trackerItems('aug-items',AUG_ACTIONS);trackerItems('sep-items',SEP_ACTIONS);
   el('gate-items').innerHTML=(GATES||[]).map(g=>`<div class="gate-item"><div class="gate-date">${esc(g.date)}</div><div class="gate-q">${esc(g.q)}</div><div class="gate-i">${esc(g.impact)}</div></div>`).join('');
   el('trk-note').textContent='Targets and budgets are the team’s plan; check them against the Opportunity sizing.';
-  updateProg();buildOpp();buildChains();buildPacks();buildPackMatrix();buildChainPacks();buildDeckBits();
+  updateProg();buildOpp();buildChains();buildPacks();buildPackMatrix();buildChainPacks();buildPriceVolume();buildDeckBits();
   el('cp-note').textContent=CHAINS?'Chain and pack figures: internal offtake Apr-Aug and Nielsen '+MARKET+'; deck figures are labelled.':'';
   el('foot-cp').textContent='Internal offtake NSV is Rs lakh, ex Reliance Brand Counter (offtake basis only). Nielsen = consumer offtake in '+(MARKET||'the report market')+'. Deck figures are typed from MT_Review_Big3_v3_1.pptx (Nielsen Jun\'26 state cut) and are not in the Aug-26 workbooks.';
   el('foot-ms').textContent=(MARKET?'Market '+MARKET+(UNIT?', '+UNIT:'')+'. ':'')+'Source: '+(GOV.source_reference||'Nielsen files in data/nielsen')+'. A blank source cell is shown as a dash, never zero.';

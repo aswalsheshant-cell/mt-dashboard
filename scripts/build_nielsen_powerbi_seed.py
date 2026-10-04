@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Write the Power BI drop-folder files for the Nielsen cut, from the same CSVs the dashboard uses.
 
-  PowerBI/RawDataFolders/Nielsen_Monthly/nielsen_urban_mt_<label>.csv       -> Fact Nielsen Market Share
-  PowerBI/RawDataFolders/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_<label>.csv -> Fact Nielsen Pack
+  PowerBI/SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_<label>.csv       -> Fact Nielsen Market Share
+  PowerBI/SeedData/Nielsen/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_<label>.csv -> Fact Nielsen Pack
   PowerBI/SeedData/Masters/Nielsen_Deck_StateExposure.csv                    -> Nielsen Deck State Exposure
+
+Files are written under SeedData (market aggregates, tracked) and are copied into the RawDataFolders drop folders
+(which the restricted-source policy keeps out of Git) to load them.
 
 Share columns are decimals (0.128 = 12.8%), values are absolute rupees (Cr x 1e7), as in
 _TEMPLATE_Nielsen_Monthly.csv. A blank source cell stays blank. Reads data/nielsen/*.csv only.
@@ -58,8 +61,11 @@ def monthly_rows(snap, kind, months):
             if value is None and ms is None:
                 continue                                   # brand not reported that month
             name = brand_label(p)
+            vol = snap["data"].get(("Sales (Vol (KG/LT/000NO)) (000)", p), {}).get(m)
+            ppml = get(snap, "ppml", p, m)
             yield [pbi_month(m), fy_label(m), CAT_NAME[kind], BRAND_FIX.get(name, name), "IN URB MT",
-                   rupees(market), rupees(value), frac(ms), frac(ms_vol), SOURCE]
+                   rupees(market), rupees(value), frac(ms), frac(ms_vol), SOURCE,
+                   "" if vol is None else round(vol, 3), "" if ppml is None else round(ppml, 4)]
 
 
 def pack_rows(folder: Path, label: str, kind: str, months):
@@ -98,12 +104,12 @@ def main() -> int:
     sh = load_snapshot(folder / f"Nielsen_Shampoo_Snapshot_{a.label}.csv")
     slug = a.label.lower()
     header = ["Month", "FY Year", "Nielsen Category", "Brand", "Zone", "Market Value Sales", "Our Brand Sales",
-              "Value Market Share %", "Volume Market Share %", "Data Source Name"]
+              "Value Market Share %", "Volume Market Share %", "Data Source Name", "Volume 000 L", "Price Per Ml"]
     rows = list(monthly_rows(fw, "facewash", fw["months"])) + list(monthly_rows(sh, "shampoo", sh["months"]))
-    write(a.root / "PowerBI" / "RawDataFolders" / "Nielsen_Monthly" / f"nielsen_urban_mt_{slug}.csv", header, rows)
+    write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Monthly" / f"nielsen_urban_mt_{slug}.csv", header, rows)
     months = [a.month, shift(a.month, -12)]
     prow = list(pack_rows(folder, a.label, "facewash", months)) + list(pack_rows(folder, a.label, "shampoo", months))
-    write(a.root / "PowerBI" / "RawDataFolders" / "Nielsen_Pack_Monthly" / f"nielsen_pack_urban_mt_{slug}.csv",
+    write(a.root / "PowerBI" / "SeedData" / "Nielsen" / "Nielsen_Pack_Monthly" / f"nielsen_pack_urban_mt_{slug}.csv",
           ["Month", "FY Year", "Nielsen Category", "Pack Size ml", "Category Value Cr", "Our Value Cr", "Category Volume L", "Our Volume L", "Category WD %", "Data Source Name"], prow)
     deck_path = folder / "Deck_MT_Review_Big3_v3_1.json"
     if deck_path.exists():

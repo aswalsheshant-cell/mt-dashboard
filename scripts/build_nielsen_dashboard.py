@@ -244,6 +244,7 @@ def to_js_payload(data: dict, extras: dict | None = None) -> str:
         normalized["SH_PACK_GAP"] = data.get("sh_pack_gap")
         normalized["CHAINS"] = data.get("chains")
         normalized["DECK"] = data.get("deck")
+        normalized["PRICE_VOLUME"] = data.get("price_volume")
         normalized["MARKET"] = data.get("market", "")
         normalized["UNIT"] = data.get("unit", "")
         normalized["GOV"] = {
