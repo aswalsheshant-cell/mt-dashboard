@@ -2405,3 +2405,30 @@ DIVIDE (
 Visit City NSV MoM % =
 VAR _pm = CALCULATE ( [Visit City NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
 RETURN DIVIDE ( [Visit City NSV] - _pm, _pm )
+
+// ---------- ONE STORE UNIVERSE (Executive Cockpit and Inventory & Supply Health use the same count) ----------
+// POS stores = distinct Store Code selling in the selected month(s). Chains in 'Store Universe Overrides' are taken from that table
+// instead: TENTATIVE counts are added, NA chains (Nykaa / FSN) are not counted.
+Universe POS Stores =
+CALCULATE (
+    DISTINCTCOUNT ( 'Fact Offtake Sales'[Store Code] ),
+    NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Store Universe Overrides'[Offtake Chain] ) )
+)
+
+Universe Tentative Stores =
+CALCULATE ( SUM ( 'Store Universe Overrides'[Store Count] ), 'Store Universe Overrides'[Status] = "TENTATIVE" )
+
+Universe Stores = [Universe POS Stores] + COALESCE ( [Universe Tentative Stores], 0 )
+
+Universe Stores Note =
+"Includes ~" & FORMAT ( COALESCE ( [Universe Tentative Stores], 0 ), "#,0" ) & " tentative stores (Reliance Retail, More Retail); Nykaa / FSN is NA"
+
+// actual universe (stores in the maintained store master, Brand Counter counters left out) against the stores counted as available
+Universe Master Stores =
+CALCULATE (
+    DISTINCTCOUNT ( 'Store City Master'[Store Key] ),
+    NOT ( CONTAINSSTRING ( 'Store City Master'[Store Key], "|NO-CITY" ) ),
+    'Store City Master'[Chain Name] <> "Reliance Brand Counter"
+)
+
+Universe Availability % = DIVIDE ( [Universe Stores], [Universe Master Stores] )

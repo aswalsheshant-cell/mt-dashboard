@@ -123,6 +123,10 @@
       "51_Fact_Nielsen_Pack_Brand.pq": [
         "# RENAME QUERY TO: Fact Nielsen Pack Brand",
         "# NOTE: Needs fnCombineFolder; pack-wise brand measures in DAX 04 read this table."
+      ],
+      "52_Store_Universe_Overrides.pq": [
+        "# RENAME QUERY TO: Store Universe Overrides",
+        "# NOTE: Seed table; same file feeds dashboard/store_universe.js."
       ]
     },
     "excluded": {

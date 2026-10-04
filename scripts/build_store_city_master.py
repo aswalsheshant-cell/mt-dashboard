@@ -39,6 +39,7 @@ def read_master(path: Path) -> pd.DataFrame:
     head = next(i for i, r in enumerate(rows) if "Chain Name" in r)
     cols = rows[head]
     want = {n: cols.index(n) for n in ("Chain Name", "Site Code", "Site Name", "Zone", "State", "City")}
+    want["Key"] = want["City"] + 1          # the list's own key column (chain + site code), unlabeled in the file
     out = pd.DataFrame([[r[i] if i < len(r) else None for i in want.values()] for r in rows[head + 1:]], columns=list(want))
     out = out.dropna(subset=["Chain Name"])
     out["Chain"] = out["Chain Name"].map(lambda s: re.sub(r"\s+", " ", str(s)).strip().upper())
@@ -46,10 +47,12 @@ def read_master(path: Path) -> pd.DataFrame:
     for c in ("Site Name", "State", "City"):
         out[c] = out[c].map(vc.clean)
     out["Zone"] = out["Zone"].map(vc.norm_zone)
+    out["Key"] = out["Key"].map(lambda v: None if v is None or (isinstance(v, float) and pd.isna(v)) else re.sub(r"\s+", " ", str(v)).strip())
+    out["Chain Raw"] = out["Chain Name"].map(lambda s: re.sub(r"\s+", " ", str(s)).strip())
     return out.drop(columns=["Chain Name"])
 
 
-def master_key(r, chain_display):
+def master_key(r, chain_display):   # chain_display here is the exact key prefix used by the offtake files
     code = r["Site Code"]
     if code and code.lower() not in ("not available", "na", "nan"):
         return f"{chain_display}{code}"
@@ -59,11 +62,10 @@ def master_key(r, chain_display):
 def build(master_path, months):
     m = read_master(master_path)
     off = vc.load_offtake(months)
-    # display chain as in the offtake 'Unique' key prefix, so Store Key matches offtake keys
-    disp = off.drop_duplicates("Chain").set_index("Chain")["Unique Code"].astype(str)
-    disp = {c: re.sub(r"\d.*$|\|.*$", "", k) if k.lower().startswith(c[:3].lower()) else c.title() for c, k in disp.items()}
-    m["Chain Display"] = m["Chain"].map(lambda c: disp.get(c, c.title()))
-    m["Store Key"] = m.apply(lambda r: master_key(r, r["Chain Display"]), axis=1)
+    # Store Key = the list's own key (chain + site code), which is what the offtake files call Unique; chain name as spelled in the offtake
+    disp = off.groupby("Chain")["Chain Name"].agg(lambda s: re.sub(r"\s+", " ", str(s.mode().iloc[0])).strip()).to_dict()
+    m["Chain Display"] = [disp.get(c, raw) for c, raw in zip(m["Chain"], m["Chain Raw"])]
+    m["Store Key"] = [k if k else master_key(r, r["Chain Display"]) for k, (_, r) in zip(m["Key"], m.iterrows())]
     m["Dup Rows"] = m.groupby("Store Key")["Store Key"].transform("size")
     m = m.drop_duplicates("Store Key", keep="first")
 

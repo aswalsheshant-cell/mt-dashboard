@@ -225,6 +225,7 @@
 
 <script src="data.js?v=20260703-3"></script>
 <script src="nielsen.js"></script>
+<script src="store_universe.js"></script>
 <script src="inventory_engine.js"></script>
 <script src="alert_controller.js"></script>
 <script>
@@ -389,6 +390,33 @@ const cls = v => v==null?'':(v>=0?'up':'down');
 const arrow = v => v==null?'':(v>=0?'▲':'▼');
 const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
 
+// One store universe for the Executive Cockpit and Inventory & Supply Health: POS stores per chain from the latest
+// store x article offtake month (data.js offtake.pos_stores), plus the overrides in store_universe.js
+// (TENTATIVE = working estimate that is counted; NA = not applicable, not counted). data.js is not changed.
+function storeUniverse(){
+  const ps=(D.offtake&&D.offtake.pos_stores)||{},tags=Object.keys(ps).filter(k=>ps[k]&&ps[k].by_chain),fy=tags[tags.length-1],blk=ps[fy]||null;
+  const ov=(window.STORE_UNIVERSE&&window.STORE_UNIVERSE.overrides)||{};
+  const byChain={};let total=0,tentative=0;
+  Object.entries((blk&&blk.by_chain)||{}).forEach(([n,c])=>{byChain[n]={count:c.latest,status:c.latest!=null?'POS':'NO_CODE',partial:c.no_site_pct};});
+  Object.entries(ov).forEach(([n,o])=>{byChain[n]=Object.assign({},byChain[n],{count:o.count,status:o.status,note:o.note});});
+  Object.values(byChain).forEach(c=>{if(typeof c.count==='number'){total+=c.count;if(c.status==='TENTATIVE')tentative+=c.count;}});
+  const M=(window.STORE_UNIVERSE&&window.STORE_UNIVERSE.master)||null,nrm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const masterFor=n=>M?(M.by_dashboard_chain&&M.by_dashboard_chain[n]!=null?M.by_dashboard_chain[n]:(M.by_chain_norm&&M.by_chain_norm[nrm(n)]!=null?M.by_chain_norm[nrm(n)]:null)):null;
+  return {fy,month:blk&&blk.latest_month,byChain,total,tentative,pos:total-tentative,master:M?M.total:null,masterFor,ok:!!blk};
+}
+// the line above the store KPI: actual universe (store master) against the stores counted as available
+function storeUniverseStrip(U){
+  if(!U||!U.ok)return '';
+  const cov=U.master?Math.round(U.total/U.master*100):null;
+  return `<div class="note" style="margin:6px 0 10px"><b>Store universe:</b> ${U.master!=null?num(U.master)+' stores in the store master':'store master not loaded'} · <b>available:</b> ${num(U.pos)} selling in ${U.month||'the latest month'} (POS store codes)${U.tentative?` + ~${num(U.tentative)} tentative (Reliance Retail ~1,000, More Retail ~400)`:''} = <b>${num(U.total)}</b> counted${cov!=null?` (${cov}% of the universe)`:''} · Nykaa / FSN: NA (online)</div>`;
+}
+function storeCountCell(c){
+  if(!c)return '–';
+  if(c.status==='NA')return `<span title="${(c.note||'').replace(/"/g,'&quot;')}">NA</span>`;
+  if(c.status==='TENTATIVE')return `~${Number(c.count).toLocaleString('en-IN')} <span title="${(c.note||'').replace(/"/g,'&quot;')}">(tentative)</span>`;
+  if(c.count==null)return '–';
+  return Number(c.count).toLocaleString('en-IN')+(c.partial>0?`<span title="${c.partial}% of this chain's offtake has no Site Code">*</span>`:'');
+}
 function kpi(lab,val,sub){return `<div class="kpi"><div class="lab">${lab}</div><div class="val">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
 function card(title,note,inner,extraCls){
   // any card whose content includes a <table> automatically gets an "Export
@@ -977,7 +1005,8 @@ function buildExecutiveCockpit(){
   const _spB=(D.detail_meta&&D.detail_meta.same_period&&D.detail_meta.same_period.by_brand||[])[0];
   const _spFy=(D.detail_meta&&D.detail_meta.same_period&&D.detail_meta.same_period.curr_fy)||'';
   const _brandMix=_spB&&_spB.nsv_contribution_pct!=null?`${_spB.name} is ${Math.round(_spB.nsv_contribution_pct)}% of ${_spFy} MT primary`:'MT primary is concentrated in one brand';
-  const _nStores=D.universe&&D.universe.active_stores!=null?`${num(D.universe.active_stores)} active stores in the MT universe`:'Active MT stores';
+  const _U0=storeUniverse();
+  const _nStores=_U0.ok?`${num(_U0.total)} active MT stores (${_U0.month||'latest month'}, incl. ~${num(_U0.tentative)} tentative)`:D.universe&&D.universe.active_stores!=null?`${num(D.universe.active_stores)} active stores in the MT universe`:'Active MT stores';
   const wf=[
     `<b>Defend the core, grow the mid-tier:</b> protect Dmart &amp; Reliance with assured fill-rate and visibility while pushing Apollo, Nykaa and Wellness Forever to reduce top-2 concentration.`,
     `<b>Sell-in to sell-out discipline:</b> use the Primary-vs-Offtake gap as a monthly control — tighten ordering where primary &gt; offtake, accelerate refills where offtake &gt; primary.`,
@@ -1005,13 +1034,13 @@ function buildExecutiveCockpit(){
   }
   s.innerHTML = `<h2 class="sec">Executive Cockpit</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:dataPeriodLabel()} · Modern Trade · All values ₹ Crore unless noted.</p>
-   ${dimNote}${dimNote2}
+   ${dimNote}${dimNote2}${storeUniverseStrip(storeUniverse())}
    <div class="kpis">
      ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':fOn('Chain')?'selected chain(s)':_SPC?`${_SPC.curr_fy} to date ${crc(_SPC.curr)} · <span class="${cls(_SPC.yoy_pct)}">${arrow(_SPC.yoy_pct)} ${pct(_SPC.yoy_pct)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'prior-year baseline not in source')
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(_offChainSel?_offChainSel.reduce((a,c)=>a+(c[offYr]||0),0):(o['total_'+offYr]||0)),_offChainSel?'selected chain(s)':fy?'selected FY':_offSP!=null?`${_SPC.curr_fy} to date ${crc(o['total_'+String(_SPC.curr_fy).toLowerCase()])} · <span class="${cls(_offSP)}">${arrow(_offSP)} ${pct(_offSP)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'sell-out')
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
-     ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
+     ${(()=>{const U=storeUniverse();return U.ok?kpi('Active MT Stores',num(U.total),`${U.month||''} POS stores${U.tentative?` incl. ~${num(U.tentative)} tentative (Reliance, More Retail)`:''} · FSN NA · ${num(u.total_stores)} in UniverseMT file`):kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`);})()}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
      ${f.fy27_forecast!=null
        ? kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
@@ -1682,7 +1711,8 @@ function buildInventoryHealth(){
   // store count (distinct Site Code) per FY from store x article offtake;
   // an FY or chain without store-level Site Code shows '–', never 0.
   const _posFy=(o&&o.pos_stores&&o.pos_stores[fyR])||null;
-  const _activeStores = u.active_stores!=null ? u.active_stores : '–';
+  const _U=storeUniverse();
+  const _activeStores = _U.ok ? `${num(_U.total)}<div class="note">${_U.month||''} POS stores${_U.tentative?` incl. ~${num(_U.tentative)} tentative`:''} · FSN NA</div>` : (u.active_stores!=null ? u.active_stores : '–');
   // Pipeline Cover (DOI) / Fill Rate (OTIF): scripts/build_dashboard_data.py
   // emits metrics.doi/{} and metrics.otif/{} as explicit, permanently-empty
   // placeholders (no DOI/OTIF computation exists anywhere in the pipeline
@@ -1690,7 +1720,7 @@ function buildInventoryHealth(){
   // "not built yet", not as "filtered to zero" like the KPIs beside it.
   const _doiVal=(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'Not computed';
   const _otifVal=(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'Not computed';
-  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
+  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}${storeUniverseStrip(_U)}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
 
   // Sub-view tabs
   const subviews=['velocity','gap','coverage'];
@@ -1757,18 +1787,19 @@ function buildInventoryHealth(){
       // const legacyChainOfftakeNSV=(ch_data,fyKey)=>(ch_data.total&&ch_data.total[fyKey])||ch_data[`total_${fyKey}`]||ch_data[fyKey]||ch_data.value||0;
       const chainData=_entries.filter(([n,e])=>n&&e).map(([name,ch_data])=>{
         const _ps=_posFy&&_posFy.by_chain?_posFy.by_chain[name]:null;
+        const _uc=_U.byChain[name]||null;
         const stores=_ps&&_ps.latest!=null?_ps.latest:null;
         const storesPartial=stores!=null&&_ps.no_site_pct>0?_ps.no_site_pct:null;
         const nsv=canonicalChainOfftakeNSV(ch_data,fyR);
         const prior=canonicalChainOfftakeNSV(ch_data,prior_fy);
         const growth=(_likeForLike && nsv!=null && prior!=null && prior>0)?((nsv/prior-1)*100):null;
-        return {name,stores,storesPartial,nsv,growth};
+        return {name,stores,storesPartial,nsv,growth,uc:_uc};
       }).filter(c=>c.nsv!=null); // a chain with no real offtake figure for this FY cannot be ranked "by offtake" -- excluded, not shown as a fabricated 0
       chainData.sort((a,b)=>b.nsv-a.nsv);
 
       const _growthNote=_likeForLike?'':' · Growth % needs equal month coverage in both years to be a genuine YoY -- not shown for a partial year';
-      const _storeNote=_posFy?` · Stores = POS stores (distinct Site Code) selling in ${_posFy.latest_month}, not SAP billing codes; * = part of the chain's offtake has no Site Code; – = no store code in source (e.g. Reliance offtake is DC-level)`:' · Stores need store-level offtake (Site Code), not available for this FY';
-      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}${_storeNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores${_posFy?' ('+_posFy.latest_month+')':''}</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores.toLocaleString('en-IN')+(c.storesPartial!=null?`<span title="${c.storesPartial}% of this chain's offtake has no Site Code">*</span>`:''):'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
+      const _storeNote=_posFy?` · Stores = POS stores (distinct Site Code) selling in ${_posFy.latest_month}, not SAP billing codes; * = part of the chain's offtake has no Site Code; – = no store code in source; ~ (tentative) = working estimate counted in the universe (Reliance Retail, More Retail: offtake has no usable store codes); NA = not applicable (Nykaa / FSN is online). The Active MT Stores tile uses the same counts`:' · Stores need store-level offtake (Site Code), not available for this FY';
+      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}${_storeNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>In store master</th><th>Stores${_posFy?' ('+_posFy.latest_month+')':''}</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${_U.masterFor(c.name)!=null?num(_U.masterFor(c.name)):'–'}</td><td>${c.uc&&(c.uc.status==='TENTATIVE'||c.uc.status==='NA')?storeCountCell(c.uc):(c.stores!=null?c.stores.toLocaleString('en-IN')+(c.storesPartial!=null?`<span title="${c.storesPartial}% of this chain's offtake has no Site Code">*</span>`:''):'–')}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
 
       const canvas=chartInCard(content,'Top 8 chains by offtake','₹ Crore, selected FY.');
 
