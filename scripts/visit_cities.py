@@ -148,12 +148,11 @@ def classify(city):
 # Zone rules from the owner (2026-10-04): one zone per state, except Maharashtra, which is divided.
 STATE_ZONE = {"Andhra Pradesh": "South-2", "Odisha": "East", "Rajasthan": "North", "Chhattisgarh": "Central"}
 CENTRAL_MAHARASHTRA = {"nagpur", "amravati", "akola", "wardha", "chandrapur", "yavatmal", "gondia", "bhandara", "buldhana", "washim", "gadchiroli", "achalpur", "wani", "hinganghat",
-                       "khamgaon", "ballarpur", "warora", "umred", "nagpu", "pune", "pcmc", "pimpri chinchwad", "pimpri-chinchwad", "pimpri", "chinchwad",
-                       "dapodi", "kondhwa", "wakad", "jagtap chowk", "salunkhe vihar", "sinhagud", "kumar pacific"}      # Vidarbha, and Pune city with its localities (spellings as in the files)
+                       "khamgaon", "ballarpur", "warora", "umred", "nagpu"}      # Vidarbha only; Pune and the rest of Maharashtra are West (owner, 2026-10-04)
 
 
 def apply_zone_rules(state, city, zone):
-    """The zone after the owner's rules: Andhra Pradesh South-2, Odisha East, Rajasthan North, Chhattisgarh Central; Maharashtra is Central for Vidarbha and Pune, West elsewhere."""
+    """The zone after the owner's rules: Andhra Pradesh South-2, Odisha East, Rajasthan North, Chhattisgarh Central; Maharashtra is Central for Vidarbha, West elsewhere (Pune included)."""
     if state in STATE_ZONE:
         return STATE_ZONE[state]
     if state == "Maharashtra":

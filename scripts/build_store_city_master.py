@@ -148,7 +148,7 @@ def qc(out):
     add("ERROR", "same city spelt with different capitals", [v for v in low if len(v) > 1])
     # warnings: things to confirm, not build failures
     sz = out.dropna(subset=["State", "Zone"]).groupby("State")["Zone"].agg(lambda s: sorted(set(s)))
-    add("WARN", "state carried in more than one zone (Maharashtra is divided on purpose: Vidarbha and Pune Central, the rest West)", [f"{k}: {', '.join(v)}" for k, v in sz.items() if len(v) > 1 and k != "Maharashtra"])
+    add("WARN", "state carried in more than one zone (Maharashtra is divided on purpose: Vidarbha Central, the rest West)", [f"{k}: {', '.join(v)}" for k, v in sz.items() if len(v) > 1 and k != "Maharashtra"])
     dn = out[out["Store Name"].notna()]
     dd = dn[dn.duplicated(["Chain Name", "Store Name", "City Final"], keep=False) & dn["City Final"].notna()]
     add("ERROR", "same chain + store name + city on more than one row (one store must be one row)", dd["Store Key"])
@@ -242,6 +242,9 @@ def build(master_path, months):
     # one spelling per city: the most frequent capitalisation among the stores
     spell = allr["City Final"].dropna().groupby(allr["City Final"].dropna().str.lower()).agg(lambda s: s.value_counts().index[0])
     allr["City Final"] = allr["City Final"].map(lambda c: spell[c.lower()] if isinstance(c, str) else c)
+    # obvious typos in the files (one spelling per city)
+    CITY_FIX = {"nagpu": "Nagpur", "aurngabad": "Aurangabad", "kola pur": "Kolhapur", "lathur": "Latur", "koparkhairane": "Kopar Khairane"}
+    allr["City Final"] = allr["City Final"].map(lambda c: CITY_FIX.get(c.lower(), c) if isinstance(c, str) else c)
     # corrections confirmed from a retailer's own store list (Store_City_Corrections.csv): the city is set and the source says so
     corr_path = OUT / "Store_City_Corrections.csv"
     if corr_path.exists():

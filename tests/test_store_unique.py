@@ -66,7 +66,7 @@ def test_zone_rules_from_the_owner():
     import visit_cities as vc
     assert vc.apply_zone_rules("Andhra Pradesh", "Guntur", "South-1") == "South-2" and vc.apply_zone_rules("Odisha", "Cuttack", "North") == "East"
     assert vc.apply_zone_rules("Rajasthan", "Jaipur", "Central") == "North" and vc.apply_zone_rules("Chhattisgarh", "Raipur", "West") == "Central"
-    assert [vc.apply_zone_rules("Maharashtra", c, "West") for c in ("Nagpur", "Pune", "Wakad", "Mumbai", "Nashik")] == ["Central", "Central", "Central", "West", "West"]
+    assert [vc.apply_zone_rules("Maharashtra", c, "West") for c in ("Nagpur", "Pune", "Wakad", "Mumbai", "Nashik")] == ["Central", "West", "West", "West", "West"]
     m = pd.read_csv(MASTERS / "Store_City_Master.csv", dtype=str)
     z = m.groupby("State")["Zone"].nunique()
     assert list(z[z > 1].index) == ["Maharashtra"]                                      # the only divided state
