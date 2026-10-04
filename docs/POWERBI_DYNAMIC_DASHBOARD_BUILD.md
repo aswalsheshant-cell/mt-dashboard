@@ -37,6 +37,7 @@ One chart answers several questions, and every drill step shows 2 to 3 insights 
 | 6 | Chain Share and Plan | Share inside Lulu, More, Wellness, Reliance; white space table | Category by zone and state: account vs ours |
 | 7 | Stores and Beats | Visit cities, Store City Master, store count | City > store: NSV, last-year NSV, YoY |
 | 8 | Data Quality | Totals tie, duplicates, month coverage | each check with its count |
+| 9 | State, Pack Size and Store Type (preview file 7) | State bars split LFL / NFL; chain table; pack bar + MoM | State > City > Store: LFL growth, new stores, lost stores |
 | T1-T3 | Tooltip pages | 3 text heads + mini chart | hover only |
 | D1-D3 | Drill-through: Store, Chain, Brand | Sales trend, Mix, Price and reach | right-click, Drill through |
 
@@ -71,7 +72,7 @@ Tick each line; the right-hand column says what to see before moving on.
 
 **F. Pages**
 - [ ] Theme: View > Themes > Browse > `theme\HonasaMT_Theme.json`.
-- [ ] Build pages 1 to 8 from section 3 and `PageLayouts.md`. Use the hierarchy (not the bare field) on the axis. | drill arrows at the chart corner
+- [ ] Build pages 1 to 9 from section 3 and `PageLayouts.md`. Use the hierarchy (not the bare field) on the axis. | drill arrows at the chart corner
 - [ ] Sync slicers FY, Month, Chain, Zone, Category across pages.
 - [ ] Edit interactions: the decomposition tree and KPI cards should not filter the trend chart.
 

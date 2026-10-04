@@ -30,6 +30,7 @@ Offtake data for the month also goes into `dashboard/data.js`:
 2. `node tests/nielsen_ms_browser.js dist/Nielsen_MS_<label>_Dashboard.html <screenshot-folder> aug` (the aug mode checks need the new month's expected figures updated in the test)
 3. `node tests/dashboard_sweep.js` with the dashboard served over HTTP (44 states).
 4. Power BI: copy `PowerBI/SeedData/Nielsen/*` into the matching `RawDataFolders/Nielsen_*` drop folders, Refresh. Brand cuts are in `Nielsen_Brand_Cut_Monthly` (query 57, measures in DAX 18).
+5. Store cuts (state, pack size, LFL / NFL): after the new month's offtake file is in `Offtake_Monthly`, run `python scripts/build_store_cuts.py`, copy `PowerBI/SeedData/Store_Cuts/*.csv` into `RawDataFolders/Store_Cuts`, Refresh. Add the new month to `vc.MONTHS` and the last-year months to `LY_MONTHS` in the script first.
 
 ## Rules that keep it the same every month
 - Value is Rs crore (Nielsen) or Rs lakh (internal and retailer files); Reliance retailer files are gross sales, so compare shares not rupees.

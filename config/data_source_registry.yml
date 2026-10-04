@@ -922,3 +922,27 @@ datasets:
       unchanged and stays out of the offtake total (CLAUDE.md). Aug-26 offtake ex counters: 3,975.13 -> 3,901.83 L; FY27 total 19,044.99 -> 18,971.69 L.
       FY25 and FY26 blocks are unchanged (31,119.87 L FY26). The source writes some chain names with a trailing space ("Reliance ", "Azorte "):
       the loaders strip it.
+
+  store_cuts_lfl_pack:
+    business_name: "Offtake store cuts: state, pack size, LFL / NFL / lost stores (Apr-Aug FY27 vs same months FY26)"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_26.csv (restricted, outside Git) + data/offtake_fy26/Store_Month_NSV_FY26.csv + Store_Key_Links_FY26.csv -> scripts/build_store_cuts.py -> data/store_cuts_aug26.json and PowerBI/SeedData/Store_Cuts/*.csv"
+    source_type: "derived from two registered offtake sources"
+    grain: "store (type per store); month x category x pack (pack file)"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Store Key"]
+    important_columns: ["Store Type", "NSV This Year Rs", "NSV Last Year Same Months Rs", "Pack"]
+    business_owner: "MT Analytics (Channel Analyst Lead)"
+    refresh_frequency: "Monthly, after the offtake store x article file is refreshed"
+    validation_status: PASS
+    source_priority: DERIVED
+    fallback_source: null
+    existing_pipeline: "scripts/build_store_cuts.py; tests/test_store_cuts.py"
+    downstream_outputs: ["data/store_cuts_aug26.json", "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv", "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv", "PowerBI PQ 58-59, DAX 20"]
+    last_validated: "2026-10-04 (every chain, state, zone and pack split ties to FY27 Apr-Aug offtake 18,971.69 L; Brand Counter left out)"
+    modification_allowed: false
+    notes: >
+      LFL = sold this year and in the same months last year; NFL = no sales last year in those months; Lost = sold last year, nothing this year.
+      Reliance Retail non-counter has last-year sales at state level only, so it is "No LY store data" and is not in LFL. Pack size is FY27 only
+      (the FY26 store file has no pack). Not wired into the web dashboard yet.
