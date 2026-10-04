@@ -13,7 +13,6 @@ t = (ROOT / "dashboard" / "data.js").read_text()
 O = json.loads(t[t.index("{"): t.rstrip().rstrip(";").rindex("}") + 1])["offtake"]
 P = json.loads((ROOT / "data" / "nielsen_aug26.json").read_text(encoding="utf-8"))
 PV = json.loads((ROOT / "data" / "nielsen" / "Price_Volume_Aug26.json").read_text(encoding="utf-8"))
-CHART = (ROOT / "dashboard" / "chart.umd.js").read_text(encoding="utf-8").replace("</script", "<\\/script")
 
 # ---- real numbers, Rs lakh -> Rs crore
 months = O["months_fy27"]
@@ -53,7 +52,8 @@ table{border-collapse:collapse;font-size:11px;width:100%}th{background:#f3f2f1;t
 
 
 def page(title, body, js, name):
-    html = f"<!doctype html><html><head><meta charset='utf-8'><style>{CSS}</style><script>{CHART}</script></head><body>{body}<script>{js}</script></body></html>"
+    # Chart.js is linked from the dashboard folder, not pasted into each page: pasting the 200 KB minified library made code scanning report hundreds of alerts on vendored code
+    html = f"<!doctype html><html><head><meta charset='utf-8'><style>{CSS}</style><script src='../../dashboard/chart.umd.js'></script></head><body>{body}<script>{js}</script></body></html>"
     (OUT / name).write_text(html, encoding="utf-8")
 
 
