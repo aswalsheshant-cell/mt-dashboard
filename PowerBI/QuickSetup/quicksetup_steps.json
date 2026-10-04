@@ -147,6 +147,14 @@
       "57_Fact_Nielsen_Brand_Cut.pq": [
         "# RENAME QUERY TO: Fact Nielsen Brand Cut",
         "# NOTE: Needs fnCombineFolder; copy SeedData\\Nielsen\\Nielsen_Brand_Cut_Monthly into RawDataFolders\\Nielsen_Brand_Cut_Monthly; measures in DAX 18."
+      ],
+      "58_Fact_Store_Type.pq": [
+        "# RENAME QUERY TO: Fact Store Type",
+        "# NOTE: Needs pRootFolder; copy SeedData\\Store_Cuts into RawDataFolders\\Store_Cuts; measures in DAX 20."
+      ],
+      "59_Fact_Pack_Size.pq": [
+        "# RENAME QUERY TO: Fact Pack Size",
+        "# NOTE: Needs pRootFolder; same Store_Cuts folder; relate MonthStart to Date Table; measures in DAX 20."
       ]
     },
     "excluded": {
@@ -220,6 +228,10 @@
       ],
       "19_Dynamic_Drill_Measures.dax": [
         "# TARGET: _Measures table (needs the core, price/volume measures and Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "20_Store_Type_Pack_Measures.dax": [
+        "# TARGET: _Measures table (needs queries 58 and 59)",
         "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
       ]
     },

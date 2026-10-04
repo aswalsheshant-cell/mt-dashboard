@@ -18,3 +18,23 @@ def test_chain_state_pack_all_tie_to_total():
 def test_reliance_retail_kept_out_of_lfl():
     r = next(x for x in D["by_chain"] if x["Chain"] == "Reliance Retail")
     assert r["lfl_stores"] == 0 and r["noly_stores"] > 0
+
+
+def test_powerbi_queries_type_columns_that_exist_in_the_seed_files():
+    import re
+    import pandas as pd
+    root = Path(__file__).resolve().parents[1] / "PowerBI"
+    for pq, csv in (("58_Fact_Store_Type.pq", "store_type_aug26.csv"), ("59_Fact_Pack_Size.pq", "pack_size_monthly_fy27.csv")):
+        typed = re.findall(r'\{"([^"]+)", type', (root / "PowerQuery" / pq).read_text(encoding="utf-8"))
+        cols = set(pd.read_csv(root / "SeedData" / "Store_Cuts" / csv, nrows=1).columns)
+        assert typed and set(typed) <= cols, (pq, set(typed) - cols)
+
+
+def test_dax_only_reads_columns_the_queries_build():
+    import re
+    dax = (Path(__file__).resolve().parents[1] / "PowerBI" / "DAX" / "20_Store_Type_Pack_Measures.dax").read_text(encoding="utf-8")
+    st = {"Store Key", "Chain", "State", "Zone", "Store Type", "NSV This Year Rs", "NSV Last Year Same Months Rs", "Period"}
+    pk = {"Month", "FY Year", "Category", "Pack", "NSV Rs", "Stores Selling", "MonthStart", "Pack Sort"}
+    for tbl, cols in (("Fact Store Type", st), ("Fact Pack Size", pk)):
+        used = set(re.findall(rf"'{tbl}'\[([^\]]+)\]", dax))
+        assert used <= cols, (tbl, used - cols)

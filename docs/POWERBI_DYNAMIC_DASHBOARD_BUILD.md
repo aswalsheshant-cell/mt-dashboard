@@ -102,3 +102,12 @@ Page 7 `7_state_pack_lfl`: State cut, pack size, LFL / NFL stores. Data from
 `python scripts/build_store_cuts.py` -> `data/store_cuts_aug26.json`.
 LFL = sold this year and in the same months last year; NFL = no sales last year; Lost = sold last year, nothing this year.
 Reliance Retail non-counter is kept out of LFL (last year is state-level only). Pack size is FY27 only (last year has no pack in the store-month file).
+
+### Page 7 in Power BI Desktop (tick-box)
+- [ ] Copy `PowerBI/SeedData/Store_Cuts/*.csv` into `RawDataFolders/Store_Cuts` (already copied in the repo).
+- [ ] Paste PQ 58 (`Fact Store Type`) and PQ 59 (`Fact Pack Size`); relate `Fact Pack Size[MonthStart]` to `Date Table[MonthStart]`.
+- [ ] Paste DAX 20 into `_Measures`.
+- [ ] Visuals: stacked column State x (LFL NSV Cr, NFL NSV Cr, No LY Store Data NSV Cr) + line LFL Growth %; table Chain x LFL Stores, NFL Stores, LFL NSV Cr, LFL Growth %, Lost Stores; column Pack x Pack Share % + line Pack MoM % (sort by `Pack Sort`); insight cards `Store Type Insight` and `Pack Insight`.
+- [ ] Store type table does not follow the Date slicer (fixed period Apr-Aug FY27 vs same months last year). Put the period in the page title.
+- [ ] Check: sum of Store Type NSV This Year Cr = 189.72 Cr (FY27 Apr-Aug); LFL NSV Cr = 127.0; Reliance Retail shows no LFL.
+Monthly refresh: run `python scripts/build_store_cuts.py`, copy both CSVs to `RawDataFolders/Store_Cuts`, Refresh.

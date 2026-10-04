@@ -79,7 +79,37 @@ def build():
         "pack_by_category": [{"category": r["Category"], "pack": int(r["Net Weight"]), "nsv": round(float(r["NSV"]), 2)}
                              for _, r in cat.dropna().sort_values("NSV", ascending=False).head(30).iterrows()],
     }
+    st.attrs["lost"] = lost_df
+    st.attrs["pack_month"] = (d.groupby(["file", "Category", "Net Weight"], dropna=False).agg(NSV=("NSV", "sum"), Stores=("sid", "nunique")).reset_index())
     return out, st
+
+
+SEED = ROOT / "PowerBI" / "SeedData" / "Store_Cuts"
+RAW_FOLDER = ROOT / "PowerBI" / "RawDataFolders" / "Store_Cuts"
+MONTH_LABEL = {"Apr": "Apr'26", "May": "May'26", "Jun": "Jun'26", "Jul": "Jul'26", "Aug": "Aug'26"}
+
+
+def write_powerbi_seed(st):
+    """Two small seed tables for Power BI (NSV in rupees: the offtake lakh x 100,000). One row per store (LFL / NFL / No LY store data / Lost) and one row per month x category x pack."""
+    SEED.mkdir(parents=True, exist_ok=True)
+    a = st.reset_index().rename(columns={"sid": "Store Key", "Type": "Store Type"})
+    a["NSV This Year Rs"] = (a["TY"] * 100000).round(0)
+    a["NSV Last Year Same Months Rs"] = (a["LY"].fillna(0) * 100000).round(0)
+    a = a[["Store Key", "Chain", "State", "Zone", "Store Type", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
+    lost = st.attrs["lost"].reset_index().rename(columns={"Key": "Store Key", "index": "Store Key"})
+    lost["State"] = "Not available"
+    lost["Zone"] = "Not available"
+    lost["Store Type"] = "Lost"
+    lost["NSV This Year Rs"] = 0
+    lost["NSV Last Year Same Months Rs"] = (lost["LY"] * 100000).round(0)
+    lost = lost[["Store Key", "Chain", "State", "Zone", "Store Type", "NSV This Year Rs", "NSV Last Year Same Months Rs"]]
+    pd.concat([a, lost], ignore_index=True).assign(**{"Period": "Apr-Aug FY27 vs Apr-Aug FY26"}).to_csv(SEED / "store_type_aug26.csv", index=False)
+    b = st.attrs["pack_month"].copy()
+    b["Month"] = b["file"].map(MONTH_LABEL)
+    b["FY Year"] = "FY27"
+    b["Pack"] = b["Net Weight"].map(lambda v: f"{int(v)}" if pd.notna(v) else "Not stated")
+    b["NSV Rs"] = (b["NSV"] * 100000).round(0)
+    b[["Month", "FY Year", "Category", "Pack", "NSV Rs", "Stores"]].rename(columns={"Stores": "Stores Selling"}).to_csv(SEED / "pack_size_monthly_fy27.csv", index=False)
 
 
 def main():
@@ -88,6 +118,7 @@ def main():
     qc = ROOT / "data" / "qc"
     qc.mkdir(exist_ok=True)
     st.reset_index().rename(columns={"sid": "Store Key"}).to_csv(qc / "store_cuts_store_type.csv", index=False)
+    write_powerbi_seed(st)
     print("total", out["total_ty"], out["stores"], out["lost"])
 
 
