@@ -469,7 +469,7 @@ function packBars(id,packs,note,mine){
   const w=el(id);if(!w)return;
   if(!packs||!packs.length){w.innerHTML='<div class="note">'+esc(note||'Not available')+'</div>';return;}
   w.innerHTML=packs.map(p=>{const m=mine&&ok(mine[p.sz])?mine[p.sz]:null;
-    return `<div class="pack-row"><div class="pack-size">${esc(p.sz)}</div><div class="pack-bg"><div class="pack-fill" style="width:${Math.max(0,Math.min(100,p.val))}%"></div>${m!=null?`<div class="pack-fill" style="width:${Math.max(0,Math.min(100,m))}%;height:35%;margin-top:-6px;background:var(--accent)"></div>`:''}</div>
+    return `<div class="pack-row"><div class="pack-size">${esc(p.sz)}</div><div class="pack-bg"><div class="pack-fill" style="width:${Math.max(0,Math.min(100,p.val))}%${mine?';background:#94A3B8':''}"></div>${m!=null?`<div class="pack-fill" style="width:${Math.max(0,Math.min(100,m))}%;height:35%;margin-top:-6px;background:var(--accent)"></div>`:''}</div>
     <div class="pack-val">${f1(p.val)}%${m!=null?' · '+f1(m)+'%':''}</div><div class="pack-yoy ${cls(p.yoy)}">${sg(p.yoy,1,'%')}</div></div>`;}).join('')
     +(mine?'<div class="note">Grey bar: category mix. Blue: Mamaearth mix (second figure).</div>':'');
 }
@@ -560,7 +560,7 @@ function insightList(){
     if(dn.length)L.push(ins('Shampoo','Legacy leaders are ceding share',dn.map(b=>esc(b.n)+' '+sg(b.yoy_bps,0)).join(', ')+' bps'+(up.length?'; gaining: '+up.map(b=>esc(b.n)+' '+sg(b.yoy_bps,0)).join(', ')+' bps':'')+'.','Target the shoppers moving away from these brands.','info',['sh']));
     if(PACKF&&PACKF.buckets&&PACKF.buckets.length){
       const big=PACKF.buckets.find(b=>b.sz==='>200ml'),small=PACKF.buckets.filter(b=>b.sz!=='>200ml'&&ok(b.yoy));
-      if(big)L.push(ins('Shampoo','Large packs are '+f1(big.val,0)+'% of category pack value',`Packs over 200 ml ${sg(big.yoy,1,'%')} YoY${small.length?'; the smaller buckets '+small.map(b=>b.sz+' '+sg(b.yoy,0,'%')).join(', '):''}${PACKF.top&&PACKF.top.length?'. Largest packs: '+PACKF.top.slice(0,3).map(p=>n0(parseFloat(p.sz))+' ml '+f1(p.share,0)+'%').join(', '):''}.`,
+      if(big)L.push(ins('Shampoo','Large packs are '+f1(big.val,0)+'% of category pack '+(PACKF.basis||'value'),`Packs over 200 ml ${sg(big.yoy,1,'%')} YoY${small.length?'; the smaller buckets '+small.map(b=>b.sz+' '+sg(b.yoy,0,'%')).join(', '):''}${PACKF.top&&PACKF.top.length?'. Largest packs: '+PACKF.top.slice(0,3).map(p=>n0(parseFloat(p.sz))+' ml '+f1(p.share,0)+'%').join(', '):''}.`,
         'Check Mamaearth’s own pack mix against this; the file is category level.','warn',['sh']));}
     if(sh.hasReach){
       const dv=allByName['Dove'];const bs=(SH.brands||[]).filter(b=>b.n!=='Mamaearth'&&ok(b.wd)&&ok(b.stores)).sort((a,b)=>b.ms-a.ms)[0];
@@ -705,9 +705,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   bridge('bridge-wrap',FW_ALL.filter(b=>ok(b.ms)&&ok(b.ms_py)).map(b=>({n:b.n,d:ppFor(b)})),'pp',d=>sg(d,1),0.2);
   if(SH)bridge('bridge-wrap-sh',(SH.brands||[]).map(b=>({n:b.n,d:b.yoy_bps})),'bps',d=>sg(d,0),0);
   packBars('fw-packs',FW_PACKS,'Not available',FW_ME_PACKS);packBars('fw-packs-b',FW_PACKS,'Not available',FW_ME_PACKS);
-  const pk=PACKF&&PACKF.buckets,shMine=SH&&SH.mamaearth_packs;packBars('sh-packs',pk,'No shampoo pack file in this build',shMine);packBars('sh-packs-b',pk,'No shampoo pack file in this build',shMine);
-  if(PACKF&&PACKF.basis)document.querySelectorAll('.pk-basis-sh').forEach(e=>e.textContent=PACKF.basis+' share, '+(PACKF.period||''));
-  document.querySelectorAll('.pk-basis-fw').forEach(e=>e.textContent=FW_ME_PACKS?'· value share, category vs Mamaearth':'· source file not in the repo, unverified');
+  // named pack sizes (the big ones show up individually); falls back to the size buckets for older payloads
+  const named=G=>{if(!G||!G.rows)return null;const rows=G.rows.filter(r=>r.cat_share>=1||(r.me_amount>0&&r.cat_share>=0.3)).sort((a,b)=>b.cat_share-a.cat_share);
+    return {packs:rows.map(r=>({sz:r.size+' ml',val:r.cat_share,yoy:r.cat_yoy})),mine:Object.fromEntries(rows.map(r=>[r.size+' ml',r.me_mix]))};};
+  const nf=named(FW_GAP),ns=named(SH_GAP);
+  if(nf){packBars('fw-packs',nf.packs,'Not available',nf.mine);packBars('fw-packs-b',nf.packs,'Not available',nf.mine);}
+  const pk=PACKF&&PACKF.buckets,shMine=SH&&SH.mamaearth_packs;
+  if(ns){packBars('sh-packs',ns.packs,'No shampoo pack file in this build',ns.mine);packBars('sh-packs-b',ns.packs,'No shampoo pack file in this build',ns.mine);}
+  else{packBars('sh-packs',pk,'No shampoo pack file in this build',shMine);packBars('sh-packs-b',pk,'No shampoo pack file in this build',shMine);}
+  if(PACKF&&PACKF.basis)document.querySelectorAll('.pk-basis-sh').forEach(e=>e.textContent='· every big pack, share of category '+PACKF.basis+(PACKF.basis==='volume'?' (the shampoo pack file has no value, so larger packs may weigh more in rupees)':'')+'; grey = category, blue = Mamaearth mix');
+  document.querySelectorAll('.pk-basis-fw').forEach(e=>e.textContent=FW_ME_PACKS?'· every big pack, share of category value; grey = category, blue = Mamaearth mix':'· source file not in the repo, unverified');
   trackerItems('aug-items',AUG_ACTIONS);trackerItems('sep-items',SEP_ACTIONS);
   el('gate-items').innerHTML=(GATES||[]).map(g=>`<div class="gate-item"><div class="gate-date">${esc(g.date)}</div><div class="gate-q">${esc(g.q)}</div><div class="gate-i">${esc(g.impact)}</div></div>`).join('');
   el('trk-note').textContent='Targets and budgets are the team’s plan; check them against the Opportunity sizing.';
