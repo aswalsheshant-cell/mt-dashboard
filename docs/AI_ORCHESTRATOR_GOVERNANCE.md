@@ -142,7 +142,8 @@ outside the agent*, so an agent cannot decide its own permissions.
 | Check | `scripts/agent_governance.py check` | Fails if a record is edited, deleted, or breaks the policy |
 | Audit | `scripts/agent_governance.py audit --base main` | Every commit that touches a protected path must be covered by an approved decision that lists that commit. Otherwise it is reported as an ungoverned change |
 | Policy health | `check_policy()` (run by `check`) | Fails if any rule or protected path cites no known invariant (`INV-1`..`INV-8`), or if today is past `review_by` in the policy file |
-| Tests | `tests/test_agent_governance.py` | 27 tests |
+| Report | `scripts/agent_governance.py report` | Plain summary: decisions by level, label and agent; share needing a human; automatic decisions since the last human review |
+| Tests | `tests/test_agent_governance.py` | 31 tests |
 
 Every record uses the five labels from `fmcg-decision-leader` (GO / GO WITH CONDITIONS /
 HOLD / ESCALATE / REJECT) plus: actor, action_class, evidence, rule, owner,
@@ -167,6 +168,13 @@ only when a listed human approves.
 path also names the invariant it protects (`invariants:` list in the policy), so no rule
 is unexplained. When `review_by` is reached, re-read the whole policy and the approvers
 list, then move the date forward.
+
+**Boundary erosion (v5):** the approver is the role `mt-analyst-lead` (a role, so no
+personal data is stored). `max_unreviewed_auto_decisions` is 50: once 50 automatic
+(AUTO_LOG) decisions pile up with no human review, `check` fails until the approver logs a
+`log_review`. Known limit: an approver is still a name in a file, so an agent could type
+it into a record. Fixing that means tying each approval to a commit authored by the
+approver's own git identity. That is not built yet and needs that identity from the owner.
 
 **Hard stops in the policy:** merge is BLOCKED until a human confirms branch protection
 on `main`; releases/tags and overriding a failed control are FORBIDDEN; touching
@@ -206,11 +214,13 @@ were removed from the links. Nothing from these sources is copied into the repo.
 | 19 | PDF: GIC, the Identity Constraint Surface | READ, nothing to apply | identity-system theory |
 | 20 | PDF: The Integration Layer | READ, nothing to apply | identity-system theory |
 | 21 | PDF: HER Law, the Generative Substrate (48 pages) | PARTLY READ (structure, conclusion) | its conclusion: state the condition first, then the rule -> invariants per rule |
-| 22 | PDF: The Sandbox Is Already Open (GIC 4) | READ, NOT YET BUILT | boundary erosion: humans stop checking, scope creeps. Planned: report + limit on unreviewed auto decisions |
+| 22 | PDF: The Sandbox Is Already Open (GIC 4) | READ, applied (v5) | boundary erosion: humans stop checking, scope creeps. Built: report + limit of 50 unreviewed automatic decisions |
 | 23 | PDF: H/E/R Law, a friendly challenge | PARTLY READ, nothing to apply | physics deck |
+| 25 | linkedin.com/posts/judiaevans_aigovernance-agenticai-aisecurity-activity-7462562767330484224-jRbo | UNREAD | AI governance, agentic AI, AI security |
+| 26 | Screenshot: index of the 15-part "OS Layer Problem" series | READ | Parts 1, 4, 6-11 not yet read; 12-15 not yet published. Part 6 (architectural requirements), 7 (architecture above the model) and 11 (organizational blueprint) matter most |
 | 24 | linkedin.com/posts/judiaevans_identitygovernance-aigovernance-identityarchitecture-activity-7460869589506117632-yJiR | UNREAD (screenshot of one slide only) | identity as the root invariant |
 
-**Open for the later discussion:** boundary-erosion control (source 22); approver names; branch-protection confirmation;
+**Open for the later discussion:** boundary-erosion control is BUILT (v5); still open: approval tied to the approver's git identity; approver names; branch-protection confirmation;
 whether to add signed approvals (post 7); and what the policy should do when a rule is
 missing (post 8). Today the answer is fail closed: an unknown action class or an unlisted
 approver is never allowed.

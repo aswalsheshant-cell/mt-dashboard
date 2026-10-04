@@ -81,10 +81,12 @@ class EvaluateTests(unittest.TestCase):
         r = g.evaluate(dec(paths=["config/baselines.json"], approver="qc-agent"), pol(approvers=["qc-agent"]))
         self.assertEqual(r["verdict"], g.BLOCKED)
 
-    def test_approver_must_be_on_list_and_list_is_empty_by_default(self):
+    def test_approver_must_be_on_list(self):
         d = dec(paths=["config/baselines.json"], approver="Anyone")
-        self.assertEqual(g.evaluate(d)["verdict"], g.NEEDS_APPROVAL)          # real policy: empty list
-        self.assertEqual(g.evaluate(d, pol())["verdict"], g.NEEDS_APPROVAL)   # not on list
+        self.assertEqual(g.evaluate(d)["verdict"], g.NEEDS_APPROVAL)          # real policy
+        self.assertEqual(g.evaluate(d, pol())["verdict"], g.NEEDS_APPROVAL)   # test policy
+        real = dec(paths=["config/baselines.json"], approver="mt-analyst-lead")
+        self.assertEqual(g.evaluate(real)["verdict"], g.ALLOWED)              # the real owner role
 
     def test_free_text_evidence_rejected(self):
         self.assertEqual(g.evaluate(dec(evidence=["tests passed"]))["verdict"], g.BLOCKED)
@@ -99,6 +101,40 @@ class EvaluateTests(unittest.TestCase):
 
     def test_bad_label_blocked(self):
         self.assertEqual(g.evaluate(dec(label="MAYBE"))["verdict"], g.BLOCKED)
+
+
+class ReviewLimitTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.log = Path(self.tmp.name) / "log.jsonl"
+        self.p = pol(max_unreviewed_auto_decisions=3)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _auto(self, i):
+        g.record(dec(id=f"A{i}"), self.log, self.p)
+
+    def test_real_policy_limit_is_50(self):
+        self.assertEqual(g.load_policy()["max_unreviewed_auto_decisions"], 50)
+
+    def test_pile_up_fails_then_human_review_clears_it(self):
+        for i in range(3):
+            self._auto(i)
+        self.assertTrue(any("human review" in x for x in g.check_log(self.log, self.p)))
+        g.record(dec(id="R1", actor="claude-code", action_class="log_review", approver="Owner", label="GO"), self.log, self.p)
+        self.assertEqual(g.check_log(self.log, self.p), [])
+
+    def test_unlisted_person_does_not_reset_the_count(self):
+        for i in range(3):
+            self._auto(i)
+        recs = g._read_records(self.log)
+        recs.append(dec(id="R2", action_class="log_review", approver="Stranger"))
+        self.assertEqual(g.unreviewed_auto_count(recs, self.p), 3)
+
+    def test_report_mentions_the_limit(self):
+        self._auto(1)
+        self.assertIn("1 of 3 allowed", g.report(self.log, self.p))
 
 
 class PolicyHealthTests(unittest.TestCase):

@@ -11,6 +11,7 @@ agent cannot talk its way past them. Three jobs:
 CLI:
   python scripts/agent_governance.py check [--log PATH]
   python scripts/agent_governance.py audit --base main [--head HEAD]
+  python scripts/agent_governance.py report
   python scripts/agent_governance.py evaluate decision.json
 """
 import argparse
@@ -167,7 +168,8 @@ def check_log(log_path=None, policy=None, repo=None):
     path = Path(log_path or LOG_PATH)
     if not path.exists():
         return []
-    problems, prev = [], "GENESIS"
+    policy = policy or load_policy()
+    problems, prev, parsed = [], "GENESIS", []
     for n, line in enumerate(path.read_text().splitlines(), 1):
         if not line.strip():
             continue
@@ -186,6 +188,11 @@ def check_log(log_path=None, policy=None, repo=None):
         for bad in verify_evidence(rec, repo):
             problems.append(f"line {n} ({rec.get('id')}): {bad}")
         prev = rec.get("hash")
+        parsed.append(rec)
+    n, cap = unreviewed_auto_count(parsed, policy), policy["max_unreviewed_auto_decisions"]
+    if n >= cap:
+        problems.append(f"{n} automatic decisions since the last human review (limit {cap}): "
+                        f"a listed approver must log a log_review")
     return problems
 
 
@@ -200,10 +207,53 @@ def check_policy(policy=None, today=None):
     for e in policy["protected_paths"]:
         if not (isinstance(e, dict) and e.get("invariant") in known):
             out.append(f"protected path {e} cites no known invariant")
+    cap = policy.get("max_unreviewed_auto_decisions")
+    if not isinstance(cap, int) or cap < 1:
+        out.append("max_unreviewed_auto_decisions must be a whole number of at least 1")
     review = policy.get("review_by")
     if not review or datetime.date.fromisoformat(str(review)) < today:
         out.append(f"policy review date {review} has passed: re-review the policy and approvers, then move review_by")
     return out
+
+
+def unreviewed_auto_count(records, policy=None):
+    """AUTO_LOG decisions logged since the last human review (log_review + listed approver)."""
+    policy = policy or load_policy()
+    approvers = policy.get("approvers") or []
+    count = 0
+    for rec in records:
+        if rec.get("action_class") == "log_review" and rec.get("approver") in approvers \
+                and rec.get("approver") != rec.get("actor"):
+            count = 0
+        elif policy["action_classes"].get(rec.get("action_class"), {}).get("level") == "AUTO_LOG":
+            count += 1
+    return count
+
+
+def _read_records(log_path=None):
+    path = Path(log_path or LOG_PATH)
+    if not path.exists():
+        return []
+    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+
+
+def report(log_path=None, policy=None):
+    """Plain summary for the owner: what agents decided, and how long since a human looked."""
+    policy = policy or load_policy()
+    recs = _read_records(log_path)
+    by_level, by_label, by_actor = {}, {}, {}
+    for r in recs:
+        lvl = policy["action_classes"].get(r.get("action_class"), {}).get("level", "UNKNOWN")
+        by_level[lvl] = by_level.get(lvl, 0) + 1
+        by_label[r.get("label")] = by_label.get(r.get("label"), 0) + 1
+        by_actor[r.get("actor")] = by_actor.get(r.get("actor"), 0) + 1
+    n, cap = unreviewed_auto_count(recs, policy), policy["max_unreviewed_auto_decisions"]
+    human = by_level.get("HUMAN_APPROVAL", 0)
+    lines = [f"Decisions logged: {len(recs)}",
+             f"By level: {by_level or 'none'}", f"By label: {by_label or 'none'}", f"By agent: {by_actor or 'none'}",
+             f"Share needing a human: {human}/{len(recs)}" if recs else "Share needing a human: n/a",
+             f"Automatic decisions since last human review: {n} of {cap} allowed"]
+    return "\n".join(lines)
 
 
 def _git(repo, *args):
@@ -253,6 +303,7 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("check")
     c.add_argument("--log", default=None)
+    sub.add_parser("report", help="summary of logged decisions and time since last human review")
     a = sub.add_parser("audit", help="every protected-path commit in base..head must have an approved decision")
     a.add_argument("--base", required=True)
     a.add_argument("--head", default="HEAD")
@@ -267,6 +318,9 @@ def main(argv=None):
             print("FAIL", p)
         print("PASS: policy and decision log clean" if not problems else f"{len(problems)} problem(s)")
         return 1 if problems else 0
+    if args.cmd == "report":
+        print(report())
+        return 0
     if args.cmd == "audit":
         problems = audit_range(args.base, args.head, args.log)
         for p in problems:

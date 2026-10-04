@@ -23,6 +23,7 @@ invariants:
   INV-6: "The rules cannot be changed by the agent they govern"
   INV-7: "A failed control is never overridden"
   INV-8: "Every agent action that changes state leaves checkable evidence"
+  INV-9: "A human looks at what agents decided, often enough that oversight does not quietly lapse"
 
 # Fail closed: an action_class not listed below needs a human.
 default_level: HUMAN_APPROVAL
@@ -50,6 +51,7 @@ action_classes:
   modify_master_data:        {level: HUMAN_APPROVAL, invariant: INV-1}
   change_incentive_rule:     {level: HUMAN_APPROVAL, invariant: INV-3}
   publish_external:          {level: HUMAN_APPROVAL, invariant: INV-3}
+  log_review:                {level: HUMAN_APPROVAL, invariant: INV-9}
   override_failed_control:   {level: FORBIDDEN, invariant: INV-7}
   create_release_or_tag:     {level: FORBIDDEN, invariant: INV-5}
 
@@ -71,13 +73,19 @@ agents:
   insight-agent:          {allowed: [read_only, draft_text]}
   qc-agent:               {allowed: [read_only, draft_text, run_validation, branch_commit]}
   release-manager-agent:  {allowed: [read_only, run_validation, draft_pr, merge_pr]}
-  claude-code:            {allowed: [read_only, draft_text, run_validation, branch_commit, draft_pr]}
+  claude-code:            {allowed: [read_only, draft_text, run_validation, branch_commit, draft_pr, log_review]}
 
-# Humans who may approve a HUMAN_APPROVAL action. An agent can never approve its own
-# action. EMPTY ON PURPOSE: INTERNAL_BUSINESS_CONFIRMATION_REQUIRED -- the MT
-# Leadership / Finance owner must supply the names. While empty, no approval can be
-# satisfied, so every HUMAN_APPROVAL action stays NEEDS_APPROVAL (fails closed).
-approvers: []
+# Humans who may approve a HUMAN_APPROVAL action. Listed by ROLE, not by name or email,
+# so no personal data sits in the repo. An agent can never approve its own action.
+# LIMIT: today this is a name in a file. A record could be written with this role typed
+# in by an agent. Closing that needs the approval tied to a commit authored by the human's
+# own git identity (planned; needs that identity from the owner).
+approvers: [mt-analyst-lead]
+
+# Boundary erosion: humans stop looking, and automatic decisions pile up unreviewed.
+# `check` fails once this many AUTO_LOG decisions are logged since the last human review
+# (a `log_review` record carrying an approver from the list above).
+max_unreviewed_auto_decisions: 50
 
 # Evidence must be checkable by the governance layer, not just typed by the agent:
 #   {"type": "file",   "path": "<repo path>", "sha256": "<hash of that file>"}
