@@ -50,8 +50,8 @@ Build measures that are filter-aware, time-intelligent, and testable.
 
 ```dax
 METRIC_NSV = 
-COMMENT: Primary Net Sales Value in ₹ Lakh. Grain: Chain × Month × Brand × Pack_Size.
-COMMENT: Filters applied: Chain, Date (Month), Brand, Category. All Offtake grain ignored.
+// Primary Net Sales Value in ₹ Lakh. Grain: Chain × Month × Brand × Pack_Size.
+// Filters applied: Chain, Date (Month), Brand, Category. All Offtake grain ignored.
 SUMX(
     SUMMARIZE(
         'Primary_Raw',
@@ -68,8 +68,8 @@ SUMX(
 
 ```dax
 METRIC_GM_PCT = 
-COMMENT: Gross Margin %. = (Gross Margin ₹ / NSV ₹) × 100.
-COMMENT: Returns BLANK if NSV = 0 (avoids #DIV/0! error).
+// Gross Margin %. = (Gross Margin ₹ / NSV ₹) × 100.
+// Returns BLANK if NSV = 0 (avoids #DIV/0! error).
 VAR gmLakhs = SUMX('P&L_Raw', 'P&L_Raw'[GM_Lakhs])
 VAR nsvLakhs = [METRIC_NSV]
 RETURN
@@ -80,23 +80,12 @@ DIVIDE(gmLakhs, nsvLakhs, BLANK()) * 100
 
 ```dax
 METRIC_NSV_YTD = 
-COMMENT: Cumulative NSV from FY start (Apr 1) to selected month.
-COMMENT: Resets when user changes FY filter.
-VAR selectedFY = MAX('Date'[FY])
-VAR SelectedMonth = MAX('Date'[Month_Num])  // 1=Jan, ..., 12=Dec
-VAR FYStartMonth = 4  // Apr = start of FY
-VAR AdjustedMonthInFY = IF(SelectedMonth >= FYStartMonth, SelectedMonth - FYStartMonth + 1, SelectedMonth + 9)
-RETURN
+// Cumulative NSV from FY start (Apr 1) to selected month.
+// Resets when user changes FY filter.
+// Date table must be marked as a date table. "3/31" = FY year-end (Apr-Mar FY).
 CALCULATE(
     [METRIC_NSV],
-    FILTER(
-        'Date',
-        'Date'[FY] = selectedFY &&
-        IF('Date'[Month_Num] >= FYStartMonth,
-            'Date'[Month_Num] <= SelectedMonth,
-            'Date'[Month_Num] >= FYStartMonth || 'Date'[Month_Num] <= SelectedMonth
-        )
-    )
+    DATESYTD('Date'[Date], "3/31")
 )
 ```
 
@@ -104,7 +93,7 @@ CALCULATE(
 
 ```dax
 METRIC_NSV_YoY = 
-COMMENT: NSV growth vs same month prior year. Returns % (not decimal; show as %).
+// NSV growth vs same month prior year. Returns % (not decimal; show as %).
 VAR currentNSV = [METRIC_NSV]
 VAR priorYearNSV = CALCULATE(
     [METRIC_NSV],
@@ -118,13 +107,14 @@ DIVIDE(currentNSV - priorYearNSV, priorYearNSV, BLANK()) * 100
 
 ```dax
 METRIC_STORE_RANK = 
-COMMENT: Rank each store by Offtake (descending) within selected chain.
-COMMENT: Ties handled: DENSE_RANK (no gaps).
+// Rank each store by Offtake (descending) within selected chain.
+// DENSE ranking: ties share a rank, no gaps.
 RANKX(
     ALLSELECTED('Store'[Store_Code]),
     [METRIC_OFFTAKE_QTY],
     ,
-    DESC
+    DESC,
+    DENSE
 )
 ```
 
@@ -132,11 +122,13 @@ RANKX(
 
 ```dax
 METRIC_MARKET_SHARE_PCT = 
-COMMENT: Mamaearth NSV / Total Market NSV (including competitors).
-COMMENT: Requires 'Universe' dimension with Total Market NSV.
+// Mamaearth NSV / Total Market NSV (including competitors).
+// Use ONLY when numerator and denominator come from the same measurement basis
+// (e.g. both from the same panel/POS source). Do not divide internal Primary NSV
+// by an external market total.
 VAR mamaEarthNSV = [METRIC_NSV]
 VAR marketNSV = CALCULATE(
-    SUMX('Universe_Raw', 'Universe_Raw'[Total_Market_NSV_Lakhs]),
+    SUM('Universe_Raw'[Total_Market_NSV_Lakhs]),
     ALLEXCEPT('Universe_Raw', 'Universe_Raw'[Month], 'Universe_Raw'[Chain])
 )
 RETURN
@@ -147,8 +139,8 @@ DIVIDE(mamaEarthNSV, marketNSV, BLANK()) * 100
 
 ```dax
 METRIC_TRADE_SPEND_ROI = 
-COMMENT: NSV / Trade Spend (ratio). Shows productivity of promotional investment.
-COMMENT: ROI >= 3.0x is efficient; < 1.5x signals repricing/reallocation needed.
+// NSV / Trade Spend (ratio). Shows productivity of promotional investment.
+// Do not hard-code 'good' or 'bad' ROI thresholds here; they come from Finance / MT Leadership.
 VAR nsvLakhs = [METRIC_NSV]
 VAR spendLakhs = SUMX('P&L_Raw', 'P&L_Raw'[Trade_Spend_Lakhs])
 RETURN
@@ -159,14 +151,20 @@ DIVIDE(nsvLakhs, spendLakhs, BLANK())
 
 ```dax
 METRIC_OFFTAKE_MA12 = 
-COMMENT: 12-month moving average of offtake quantity.
-COMMENT: Smooths seasonal variation for trend detection.
-VAR selectedDate = MAX('Date'[Date])
-VAR priorMonths = DATESBETWEEN('Date'[Date], DATEADD(selectedDate, -11, MONTH), selectedDate)
+// 12-month moving average of offtake quantity.
+// Smooths seasonal variation for trend detection.
+// Needs a 'Date'[Month_Start] column (first day of each month).
+// Returns BLANK until 12 months of history are in view (no part-window averages).
+VAR months =
+    CALCULATETABLE (
+        VALUES ( 'Date'[Month_Start] ),
+        DATESINPERIOD ( 'Date'[Date], MAX ( 'Date'[Date] ), -12, MONTH )
+    )
 RETURN
-CALCULATE(
-    AVERAGEX(priorMonths, [METRIC_OFFTAKE_QTY]),
-    ALLEXCEPT('Offtake_Raw', 'Offtake_Raw'[Chain], 'Offtake_Raw'[Brand])
+IF (
+    COUNTROWS ( months ) < 12,
+    BLANK (),
+    AVERAGEX ( months, [METRIC_OFFTAKE_QTY] )
 )
 ```
 
@@ -174,8 +172,8 @@ CALCULATE(
 
 ```dax
 METRIC_STORE_PCT_OF_CHAIN = 
-COMMENT: Each store's offtake as % of chain total.
-COMMENT: Example: "This store is 2.3% of chain offtake."
+// Each store's offtake as % of chain total.
+// Example: "This store is 2.3% of chain offtake."
 VAR storeOfftake = [METRIC_OFFTAKE_QTY]
 VAR chainTotal = CALCULATE(
     [METRIC_OFFTAKE_QTY],
@@ -189,8 +187,8 @@ DIVIDE(storeOfftake, chainTotal, BLANK()) * 100
 
 ```dax
 METRIC_NSV_RETAIL_ONLY = 
-COMMENT: NSV from retail channels only (excludes institutional/online).
-COMMENT: Filters on 'Store'[Channel] = "Retail".
+// NSV from retail channels only (excludes institutional/online).
+// Filters on 'Store'[Channel] = "Retail".
 CALCULATE(
     [METRIC_NSV],
     'Store'[Channel] = "Retail"
@@ -226,8 +224,9 @@ let
         Source,
         "FY",
         each
-            let month = Date.Month([Date])
-            let year = Date.Year([Date])
+            let
+                month = Date.Month([Date]),
+                year = Date.Year([Date])
             in
             if month >= 4 then "FY" & Text.From(year - 2000 + 1)
             else "FY" & Text.From(year - 2000)
@@ -236,7 +235,7 @@ let
         AddFY,
         "Month_Label",
         each
-            Text.ProperCase(Text.Start(Date.MonthName([Date]), 3)) & "-" & 
+            Text.Proper(Text.Start(Date.MonthName([Date]), 3)) & "-" & 
             Text.End(Text.From(Date.Year([Date])), 2)
     )
 in
@@ -270,21 +269,25 @@ in
 
 ```m
 let
-    StartDate = #date(2024, 4, 1),  // FY25 start
-    EndDate = #date(2027, 3, 31),   // FY27 end
+    StartDate = #date(2024, 4, 1),  // FY25 start (first data month)
+    // End = last day of the current FY, so new FYs appear without editing the query
+    Today = Date.From(DateTime.LocalNow()),
+    EndDate = #date(if Date.Month(Today) >= 4 then Date.Year(Today) + 1 else Date.Year(Today), 3, 31),
     DayCount = Duration.Days(EndDate - StartDate) + 1,
     Dates = List.Dates(StartDate, DayCount, #duration(1, 0, 0, 0)),
     Table = Table.FromList(Dates, Splitter.SplitByNothing(), {"Date"}, null, ExtraValues.Error),
     SetType = Table.TransformColumnTypes(Table, {{"Date", type date}}),
     AddYear = Table.AddColumn(SetType, "Year", each Date.Year([Date])),
     AddMonth = Table.AddColumn(AddYear, "Month_Num", each Date.Month([Date])),
-    AddMonthName = Table.AddColumn(AddMonth, "Month", each Text.ProperCase(Text.Start(Date.MonthName([Date]), 3))),
+    AddMonthStart = Table.AddColumn(AddMonth, "Month_Start", each Date.StartOfMonth([Date]), type date),
+    AddMonthName = Table.AddColumn(AddMonthStart, "Month", each Text.Proper(Text.Start(Date.MonthName([Date]), 3))),
     AddFY = Table.AddColumn(
         AddMonthName,
         "FY",
         each
-            let m = [Month_Num]
-            let y = [Year]
+            let
+                m = [Month_Num],
+                y = [Year]
             in if m >= 4 then "FY" & Text.From(y - 2000 + 1) else "FY" & Text.From(y - 2000)
     ),
     AddQuarter = Table.AddColumn(
@@ -292,8 +295,8 @@ let
         "Quarter",
         each
             let m = [Month_Num]
-            in if m >= 4 then "Q" & Text.From(RoundUp((m - 3) / 3)) & " " & [FY]
-               else "Q" & Text.From(RoundUp(m / 3)) & " " & [FY]
+            in if m >= 4 then "Q" & Text.From(Number.RoundUp((m - 3) / 3)) & " " & [FY]
+               else "Q" & Text.From(Number.RoundUp(m / 3)) & " " & [FY]
     )
 in
     AddQuarter
@@ -310,10 +313,10 @@ let
         {"Column"},
         {{"Count", each Table.RowCount(_)}}
     ),
-    Filter = Table.SelectRows(NullCount, each [Count] > 0)
+    NullColumns = Table.SelectRows(NullCount, each [Count] > 0)
 in
-    if Table.RowCount(Filter) > 0 then
-        error "Data quality issue: nulls detected in " & Text.Combine(Filter[Column], ", ")
+    if Table.RowCount(NullColumns) > 0 then
+        error "Data quality issue: nulls detected in " & Text.Combine(NullColumns[Column], ", ")
     else
         Source
 ```
@@ -323,12 +326,12 @@ in
 | ❌ Anti-Pattern | ✓ Better Approach |
 |-----------------|------------------|
 | `=SUM([Column])` (implicit, unfiltered) | `CALCULATE(SUM(...), explicit filter)` |
-| Hardcoded year `="FY" & 2027` | `="FY" & (YEAR(TODAY()) + 1)` (dynamic) |
-| `ALL()` without exception | `ALLEXCEPT(Table, [Keep_These_Dims])` |
+| Hardcoded year `="FY" & 2027` | Derive FY from the date: month >= 4 gives year + 1, else year |
+| `ALL(Table)` when only one column should be cleared | `ALL(Table[Column])`, `ALLEXCEPT` or `ALLSELECTED`, whichever matches the intent |
 | `VAR` with no comment | `VAR varName = ... // Purpose: [explain]` |
 | Complex nested IFs | Extract into separate measure + variable |
 | Measure referencing other measures in M | All calculations in DAX; M loads only |
-| No division guard `=A/B` | `DIVIDE(A, B, 0)` or `IFERROR(., 0)` |
+| No division guard `=A/B` | `DIVIDE(A, B)` returns BLANK; never turn a missing value into 0 |
 | Circular relationships | Always one-to-many; use bridge for many-to-many |
 
 ## Testing DAX Measures
@@ -343,7 +346,7 @@ in
 6. **Historical consistency:** Does YTD measure for a closed month match archived report?
 
 ## Response Format
-- Show complete DAX measure with COMMENT lines
+- Show complete DAX measure with `//` comments
 - State expected filters and edge cases
 - Provide M script example for data prep step
 - Recommend test cases before deployment
