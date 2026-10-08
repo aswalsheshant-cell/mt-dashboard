@@ -506,10 +506,10 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     for (const [name, ps] of Object.entries(pos.by_chain)) {
       const matchedRow = velocityRows.find(([n]) => n === name);
       if (!matchedRow) continue;
-      // Column order: Chain, Stores, Offtake (Cr), Growth %
+      // Column order: Chain, In store master, Stores, Offtake (Cr), Growth %  ("In store master" was added next to Stores)
       const expected = ps.latest == null ? '–'
         : ps.latest.toLocaleString('en-IN') + (ps.no_site_pct > 0 ? '*' : '');
-      expect(matchedRow[1], `${name}'s Stores column must be its real POS store count (offtake.pos_stores), not SAP billing codes`)
+      expect(matchedRow[2], `${name}'s Stores column must be its real POS store count (offtake.pos_stores), not SAP billing codes`)
         .toBe(expected);
     }
     // No row may show a fabricated-looking negative/positive Growth % computed
@@ -524,7 +524,7 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     });
     if (currMonths.curr !== currMonths.prior) {
       for (const row of velocityRows) {
-        expect(row[3], `Growth % must be "–" (not a coverage-mismatch artifact) for ${row[0]} when FY windows differ`).toBe('–');
+        expect(row[4], `Growth % must be "–" (not a coverage-mismatch artifact) for ${row[0]} when FY windows differ`).toBe('–');
       }
     }
 
