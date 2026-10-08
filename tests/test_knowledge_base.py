@@ -61,7 +61,7 @@ class TestKnowledgeBase(unittest.TestCase):
 
     def test_internal_beats_external_rule_is_stated(self):
         idx = (KB / "INDEX.md").read_text(encoding="utf-8")
-        self.assertIn("INTERNAL_BUSINESS_CONFIRMATION_REQUIRED", idx)
+        self.assertIn("never fill the gap from an", idx)
 
 
 if __name__ == "__main__":

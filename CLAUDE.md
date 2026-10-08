@@ -455,8 +455,8 @@ only then an authoritative external source.
 **The rule that governs the whole base:** external knowledge says HOW to build and
 govern something; it never says WHAT our rule is. Target basis, employee grade,
 incentive policy, payout rules and ownership mappings come from Finance / HR / MT
-Leadership. When one is unresolved, return
-`INTERNAL_BUSINESS_CONFIRMATION_REQUIRED` rather than filling the gap externally.
+Leadership. When one is unresolved, flag it clearly and move on — never
+fill the gap from an external source or fabricate numbers.
 
 `tests/test_knowledge_base.py` fails when an article loses its sources, goes past
 its review date, or picks up a real employee identifier.

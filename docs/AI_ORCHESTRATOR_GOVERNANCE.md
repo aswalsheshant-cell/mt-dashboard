@@ -13,12 +13,9 @@ compute, or assert a new financial truth.** Every number any agent ever surfaces
 must trace to a value already produced by `scripts/build_dashboard_data.py` and
 present in `dashboard/data.js`, or to a value already registered in
 `docs/METRIC_REGISTRY.md`/`config/baselines.json`. An agent that cannot find a
-governed source for a number must say so (`BLOCKED` or
-`INTERNAL_BUSINESS_CONFIRMATION_REQUIRED`, per this repo's own existing knowledge-base
-convention in `docs/knowledge/INDEX.md`) — never estimate, interpolate, or invent one.
-This is not a new rule invented for this document; it is this repository's existing
-"No dummy data" rule (CLAUDE.md) and the knowledge base's own escalation convention,
-applied to agent design specifically.
+governed source for a number must say so — never estimate, interpolate, or
+invent one. This is this repository's existing "No dummy data" rule
+(CLAUDE.md), applied to agent design specifically.
 
 ---
 
