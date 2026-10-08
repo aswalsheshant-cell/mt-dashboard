@@ -159,11 +159,14 @@ def test_workflow_is_read_only_and_pinned():
 def test_cli_exit_codes(tmp_path, monkeypatch):
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     body, changed = tmp_path / "b.txt", tmp_path / "c.txt"
+    state = tmp_path / "state.yml"      # a frozen state of its own: the real config/project_state.yml may have the freeze lifted
+    state.write_text(yaml.safe_dump({**STATE, "feature_freeze": {"active": True}}), encoding="utf-8")
+    args = ["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed), "--state-file", str(state)]
     changed.write_text("docs/x.md\n", encoding="utf-8")
     body.write_text("Freeze classification: HOUSEKEEPING", encoding="utf-8")
-    assert gate.main(["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed)]) == 0
+    assert gate.main(args) == 0
     body.write_text("no declaration", encoding="utf-8")
-    assert gate.main(["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed)]) == 1
+    assert gate.main(args) == 1
 
 
 # ---- self-bypass (review of 034d7f1) ------------------------------------------

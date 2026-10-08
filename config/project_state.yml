@@ -17,8 +17,9 @@ main_snapshot: 84864ce4076164aee5cbc79493bb7f086743eb90   # main checked on 2026
 # declare "Freeze classification: BLOCKER_FIX | CORRECTNESS_FIX | HOUSEKEEPING |
 # DEFERRED"; scripts/check_pr_scope.py enforces it. Set active: false to lift.
 feature_freeze:
-  active: true
+  active: false          # lifted by the repo owner on 2026-10-08 (personal project; owner approval recorded in docs/PROJECT_STATE.md)
   since: f960e1f
+  lifted: "2026-10-08"
   declared_in: docs/COMPLETION_BLOCKER_PACK.md
 
 # PRs held on a blocker (HOLD / FROZEN_EVIDENCE). Short-lived fix PRs under
