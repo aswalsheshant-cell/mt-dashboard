@@ -60,7 +60,7 @@
       "label": "OSA / OOS / fill-rate columns on the scorecard",
       "requires": "Store-audit coverage across the reporting universe in the reporting period",
       "min_audit_coverage_pct": 60.0,
-      "unblocks_with": "A store audit covering the reporting months. compliance_metrics.json today audits 189 doors of a 426-store universe (44%) and is labelled Q3 FY27 while the reporting window is Apr-Jul'26. Root-QC (2026-09-14) also found the audit's own chain identities (DMart/Reliance Retail/More Retail/Spencer's) only partly match the commercial universe's chain names, and universe.by_chain sums to 415 of the 426-store total -- see the diagnostic report for both gaps."
+      "unblocks_with": "A real store-audit extract (door, chain, audit date, price / FSDU / OSA result) covering the reporting months, registered in config/data_source_registry.yml (store_audit_compliance). The current dashboard/compliance_metrics.json is synthetic demo data and is not counted. Root-QC (2026-09-14) also found the demo file's chain identities only partly match the commercial universe, and universe.by_chain sums to 415 of the 426-store total -- see the diagnostic report."
     },
     "npd": {
       "label": "NPD tracker",
