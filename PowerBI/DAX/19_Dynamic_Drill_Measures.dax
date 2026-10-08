@@ -1,0 +1,32 @@
+// =====================================================================
+// DYNAMIC DRILL: measures that make one chart answer more than one question and let a tooltip / drill-through page show 3 heads at once.
+// Model NSV is in rupees (Total MT NSV); shown in Rs crore here. Works at any level of the Geography / Product / Chain / Time hierarchies.
+// Heads: SALES (value, MoM, YoY), MIX (share of the selection, share of growth), PRICE (ASP, realisation), REACH (stores selling).
+// =====================================================================
+Drill NSV Cr = DIVIDE ( [Total MT NSV], 10000000 )
+Drill Stores Selling = DISTINCTCOUNT ( 'Fact Offtake Sales'[Store Code] )
+
+// share of everything currently selected (the parent level when you drill down): 100% at the top, the slice of the parent one level down
+Drill Share Of Selection % = DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALLSELECTED () ) )
+
+// growth in rupees against the same month last year, and the part of the whole selection's growth this slice carries
+Drill YoY Change Cr = DIVIDE ( [Total MT NSV] - [Last Year Same Month NSV], 10000000 )
+Drill Share Of Growth % =
+VAR _all = CALCULATE ( [Total MT NSV] - [Last Year Same Month NSV], ALLSELECTED () )
+RETURN DIVIDE ( [Total MT NSV] - [Last Year Same Month NSV], _all )
+
+// one line per head, for tooltip pages and card visuals (text measures)
+Drill Head Sales =
+"NSV Rs " & FORMAT ( [Drill NSV Cr], "#,##0.00" ) & " Cr · MoM " & FORMAT ( [MoM Growth %], "+0.0%;-0.0%;0.0%" ) & " · YoY " & FORMAT ( [YoY Growth %], "+0.0%;-0.0%;0.0%" )
+Drill Head Mix =
+FORMAT ( [Drill Share Of Selection %], "0.0%" ) & " of the selection · carries " & FORMAT ( [Drill Share Of Growth %], "0%" ) & " of the YoY growth"
+Drill Head Price =
+"ASP Rs " & FORMAT ( [MT ASP], "#,##0.0" ) & " per unit · realisation " & FORMAT ( [MT Realisation %], "0%" ) & " of MRP"
+Drill Head Reach =
+FORMAT ( [Drill Stores Selling], "#,##0" ) & " stores selling · Rs " & FORMAT ( DIVIDE ( [Total MT NSV], [Drill Stores Selling] ) / 100000, "#,##0.00" ) & " L per store"
+
+// the verdict word on the tooltip: growing faster or slower than the selection as a whole
+Drill Pace Flag =
+VAR _ours = [YoY Growth %]
+VAR _all = CALCULATE ( [YoY Growth %], ALLSELECTED () )
+RETURN IF ( ISBLANK ( _ours ) || ISBLANK ( _all ), BLANK (), IF ( _ours >= _all, "Growing faster than the selection", "Growing slower than the selection" ) )

@@ -419,7 +419,7 @@ class TestPipelineIsolation:
         # has an FY25 figure (offtake.secondary_total_fy25).
         assert "total_fy25" not in dash["offtake"]
         assert dash["offtake"]["total_fy26"] == 31119.87
-        assert dash["offtake"]["total_fy27"] == 19044.99
+        assert dash["offtake"]["total_fy27"] == 18971.69        # Aug-26 re-supplied 2026-10-04 (was 19044.99)
 
     def test_bc_unchanged(self, dash):
         # TD-06: 943.68 was a stale snapshot -- reliance_bc.total legitimately

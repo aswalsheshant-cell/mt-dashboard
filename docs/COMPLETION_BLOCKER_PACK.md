@@ -32,11 +32,11 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 
 | # | Blocker | Owner | What we need | Exit condition |
 |---|---|---|---|---|
-| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | B1a: OK to show Nykaa as pending (inputs already in repo); B1b: Nykaa option | `mt_channel_reconciliation.py` exits 0; FY25/FY26 unchanged; CI step made blocking |
+| B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | Signed approval reference and owner name/role for proposed FY26 restatement; FY27 MT-only and Nykaa eB2B treatment already applied | Keep blocking MT channel reconciliation green; restate FY26 only in its own reviewed PR after formal approval |
 | B2 | #120 → #119 — historical Primary chain backfill | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
 | B3 | CM2 expense scope — MT Direct DN loaded by #229 (merged `3aa6895`, Jul/Aug PARTIAL); distributor claims #267 (HOLD; rebuild of #252, which is closed) and other cost heads not loaded | Finance + MT Leadership | Full Jul/Aug DN register; FY27 CM2 scope (indirect claims, field force, COGS, logistics); distributor-claim monthly timing and Direct DN overlap rule; Nykaa SS after B1 | Each in-scope head loaded from an approved source or named as not loaded; no quarterly claim spread to months without an approved basis; FY25/FY26 unchanged; all checks green |
 | B4 | Power BI P&L assumptions, Apr–Aug'26 (Apr/May present but unapproved; Jun–Aug missing) | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
-| B5 | Power BI Desktop runtime checks — `BLOCKED_PENDING_DESKTOP_EVIDENCE` | MT Channel Analyst Lead (Windows) | One Desktop session per `docs/evidence/B5_RUN_SHEET.md` | FY parser `Failures` = 0 rows; CM2 Cases 2–8 on the current model as expected (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0); L3M/L6M rolling averages `Mismatches` = 0; durable evidence file |
+| B5 | Power BI Desktop runtime checks — `BLOCKED_PENDING_DESKTOP_EVIDENCE` | MT Channel Analyst Lead (Windows) | One Desktop session per `docs/evidence/B5_RUN_SHEET.md` | FY parser `Failures` = 0 rows; CM2 Cases 2–9 on the current model as expected (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0, Case 9 comparability: no-FY and FY26 CM2 BLANK, FY27 CM2 = NSV − expense); L3M/L6M rolling averages `Mismatches` = 0; durable evidence file |
 | B6 | Incentive V1 business decisions | MT Leadership, Finance, MT Ops, HR | Decisions (a)–(e) + target basis, C1–C6, caps, proration | Every decision recorded; no payout calculated before that |
 
 Not a blocker: issue #194 (`github-advanced-security` fails with a GitHub-side
@@ -45,6 +45,14 @@ Not a blocker: issue #194 (`github-advanced-security` fails with a GitHub-side
 ---
 
 ## B1 — CB-01: non-MT sales inside MT zone totals
+
+**Decision received 2026-10-01 (MT Leadership, DA).** 1 = MT-only views; 2 = A
+(Nykaa (FSN) under eB2B); 3 = B (restate FY26 on the MT basis, ₹30,684.99 L).
+Decisions 1 and 2 are applied to FY27: `fyx_primary.FY27.by_zone` is MT-only,
+non-MT is kept under its own channel (`non_mt_by_zone`, `non_mt_accounts`), and
+`mt_channel_reconciliation.py` exits 0. Decision 3 changes a protected baseline
+(₹32,900.36 L) and is **not applied** until a full name/role and a signed approval
+reference are recorded; it then gets its own PR.
 
 **What happened.** FY27 zone totals (Apr–Aug'26) are all-channel. ₹11.64 Cr of
 non-MT primary sits inside them: Nykaa (FSN) ₹10.41 Cr (billed eB2B), other eB2B
@@ -418,3 +426,4 @@ reconciliation, canonical financial gate, Power BI validation, browser sweep,
 generated-file drift checks and open PR/issue disposition. Update
 `PROJECT_STATE.md` once. Move beyond READY_WITH_GOVERNED_BLOCKERS only if no
 blocker above remains open.
+
