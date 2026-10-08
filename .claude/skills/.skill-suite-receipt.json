@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.4.0",
-  "installed_at": "2026-09-27T10:11:42Z",
-  "source": "/tmp/claude-0/wt254/skill-suite",
-  "target": "/tmp/claude-0/wt254/.claude/skills",
+  "suite_version": "1.5.0",
+  "installed_at": "2026-10-01T21:43:48Z",
+  "source": "/home/user/mt-dashboard/skill-suite",
+  "target": "/home/user/mt-dashboard/.claude/skills",
   "target_key": "project-claude",
   "skills": {
     "modern-trade-sales-growth": {
@@ -122,6 +122,30 @@
         "references/q1-target-correlation.md": "4a3ea643958208c7b64886aad100d68665e30d0d61e0d26f252639ff88a1b24d",
         "references/source-provenance.json": "f99d801b8c6a602a99291b08df2c71c019b3699f5a4e43f77b968e6b610e8f44",
         "references/tracking-contract.md": "d1e57992a4517329d0a876b9ca88f3ea319832f050d4a390ac807656da97f71c"
+      }
+    },
+    "mt-dashboard-orchestrator": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "c8c12aedd0eaea2ef8a6f91ba8d19ed553d7a95c1dace67dc89791f4c6b2dfa2"
+      }
+    },
+    "data-freshness-coverage": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "51f9cca7d110a75099e51dd3a1e843215bf74ddfd7c58d4adef1b2059162bddb"
+      }
+    },
+    "source-lineage-reproducibility": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "4250e6c3d46214f247fa56de2dd202b9db245cd3c520b5c0b7ba841267d4b9b8"
+      }
+    },
+    "session-handoff-recovery": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "ff561e878c913fca58feae354898d906d5148de496b8a11d67aa097dc5ddf8ca"
       }
     }
   }
