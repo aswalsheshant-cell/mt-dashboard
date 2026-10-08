@@ -503,9 +503,15 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     expect(pos, 'test premise: offtake.pos_stores must exist for the latest FY').toBeTruthy();
     const knownStoreChain = Object.entries(pos.by_chain).find(([, v]) => v.latest > 0);
     expect(knownStoreChain, 'test premise: pos_stores needs at least one chain with real stores').toBeTruthy();
+    // Owner overrides (dashboard/store_universe.js): Reliance Retail and More Retail have no usable store codes in the offtake file, so the
+    // Stores cell shows the working estimate as "~N (tentative)"; Nykaa / FSN (online) shows "NA". Those cells are not POS counts by design.
+    const overrides = await page.evaluate(() => (window.STORE_UNIVERSE && window.STORE_UNIVERSE.overrides) || {});
     for (const [name, ps] of Object.entries(pos.by_chain)) {
       const matchedRow = velocityRows.find(([n]) => n === name);
       if (!matchedRow) continue;
+      const ov = Object.entries(overrides).find(([k]) => k.toLowerCase().replace(/[^a-z0-9]/g, '') === name.toLowerCase().replace(/[^a-z0-9]/g, ''));
+      if (ov && ov[1].status === 'TENTATIVE') { expect(matchedRow[2], `${name} shows its owner estimate`).toMatch(/^~[\d,]+ \(tentative\)/); continue; }
+      if (ov && ov[1].status === 'NA') { expect(matchedRow[2], `${name} is not applicable`).toMatch(/^NA/); continue; }
       // Column order: Chain, In store master, Stores, Offtake (Cr), Growth %  ("In store master" was added next to Stores)
       const expected = ps.latest == null ? '–'
         : ps.latest.toLocaleString('en-IN') + (ps.no_site_pct > 0 ? '*' : '');
