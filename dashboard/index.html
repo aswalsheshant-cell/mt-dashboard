@@ -224,6 +224,11 @@
 <footer id="foot"></footer>
 
 <script src="data.js?v=20260703-3"></script>
+<script src="nielsen.js"></script>
+<script src="store_universe.js"></script>
+<script src="store_cuts.js"></script>
+<script src="tdp.js"></script>
+<script src="tdp_inhouse.js"></script>
 <script src="inventory_engine.js"></script>
 <script src="alert_controller.js"></script>
 <script>
@@ -388,6 +393,39 @@ const cls = v => v==null?'':(v>=0?'up':'down');
 const arrow = v => v==null?'':(v>=0?'▲':'▼');
 const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
 
+// One store universe for the Executive Cockpit and Inventory & Supply Health: POS stores per chain from the latest
+// store x article offtake month (data.js offtake.pos_stores), plus the overrides in store_universe.js
+// (TENTATIVE = working estimate that is counted; NA = not applicable, not counted). data.js is not changed.
+function storeUniverse(){
+  const ps=(D.offtake&&D.offtake.pos_stores)||{},tags=Object.keys(ps).filter(k=>ps[k]&&ps[k].by_chain),fy=tags[tags.length-1],blk=ps[fy]||null;
+  const ov=(window.STORE_UNIVERSE&&window.STORE_UNIVERSE.overrides)||{};
+  const byChain={};let total=0,tentative=0;
+  Object.entries((blk&&blk.by_chain)||{}).forEach(([n,c])=>{byChain[n]={count:c.latest,status:c.latest!=null?'POS':'NO_CODE',partial:c.no_site_pct};});
+  Object.entries(ov).forEach(([n,o])=>{byChain[n]=Object.assign({},byChain[n],{count:o.count,status:o.status,note:o.note});});
+  Object.values(byChain).forEach(c=>{if(typeof c.count==='number'){total+=c.count;if(c.status==='TENTATIVE')tentative+=c.count;}});
+  const M=(window.STORE_UNIVERSE&&window.STORE_UNIVERSE.master)||null,nrm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const masterFor=n=>{if(!M)return null;const std=(M.alias&&M.alias[nrm(n)])||n;return M.by_chain&&M.by_chain[std]!=null?M.by_chain[std]:null;};
+  return {fy,month:blk&&blk.latest_month,byChain,total,tentative,pos:total-tentative,master:M?M.total:null,masterFor,ok:!!blk};
+}
+// store availability card: stores counted as available against the stores in the store master
+function availKpi(U){
+  if(!U||!U.ok||!U.master)return '';
+  return kpi('Store Availability',Math.round(U.total/U.master*100)+'%',`${num(U.total)} counted of ${num(U.master)} in the store master`);
+}
+// the line above the store KPI: actual universe (store master) against the stores counted as available
+function storeUniverseStrip(U){
+  if(!U||!U.ok)return '';
+  const cov=U.master?Math.round(U.total/U.master*100):null;
+  // closed until clicked; the open state is kept while filters re-render the tab
+  return `<details class="note" style="margin:6px 0 10px"${window.__suOpen?' open':''} ontoggle="window.__suOpen=this.open"><summary style="cursor:pointer"><b>Store universe</b> · ${U.master!=null?num(U.total)+' of '+num(U.master)+' stores counted':'click to see'}${cov!=null?` (${cov}%)`:''} <span style="opacity:.7">· click to ${window.__suOpen?'hide':'show'} details</span></summary><div style="margin-top:6px"><b>Store universe:</b> ${U.master!=null?num(U.master)+' stores in the store master':'store master not loaded'} · <b>available:</b> ${num(U.pos)} selling in ${U.month||'the latest month'} (POS store codes)${U.tentative?` + ~${num(U.tentative)} tentative (Reliance Retail ~1,000, More Retail ~400)`:''} = <b>${num(U.total)}</b> counted${cov!=null?` (${cov}% of the universe)`:''} · Nykaa / FSN: NA (online)</div></details>`;
+}
+function storeCountCell(c){
+  if(!c)return '–';
+  if(c.status==='NA')return `<span title="${(c.note||'').replace(/"/g,'&quot;')}">NA</span>`;
+  if(c.status==='TENTATIVE')return `~${Number(c.count).toLocaleString('en-IN')} <span title="${(c.note||'').replace(/"/g,'&quot;')}">(tentative)</span>`;
+  if(c.count==null)return '–';
+  return Number(c.count).toLocaleString('en-IN')+(c.partial>0?`<span title="${c.partial}% of this chain's offtake has no Site Code">*</span>`:'');
+}
 function kpi(lab,val,sub){return `<div class="kpi"><div class="lab">${lab}</div><div class="val">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;}
 function card(title,note,inner,extraCls){
   // any card whose content includes a <table> automatically gets an "Export
@@ -976,7 +1014,8 @@ function buildExecutiveCockpit(){
   const _spB=(D.detail_meta&&D.detail_meta.same_period&&D.detail_meta.same_period.by_brand||[])[0];
   const _spFy=(D.detail_meta&&D.detail_meta.same_period&&D.detail_meta.same_period.curr_fy)||'';
   const _brandMix=_spB&&_spB.nsv_contribution_pct!=null?`${_spB.name} is ${Math.round(_spB.nsv_contribution_pct)}% of ${_spFy} MT primary`:'MT primary is concentrated in one brand';
-  const _nStores=D.universe&&D.universe.active_stores!=null?`${num(D.universe.active_stores)} active stores in the MT universe`:'Active MT stores';
+  const _U0=storeUniverse();
+  const _nStores=_U0.ok?`${num(_U0.total)} active MT stores (${_U0.month||'latest month'}, incl. ~${num(_U0.tentative)} tentative)`:D.universe&&D.universe.active_stores!=null?`${num(D.universe.active_stores)} active stores in the MT universe`:'Active MT stores';
   const wf=[
     `<b>Defend the core, grow the mid-tier:</b> protect Dmart &amp; Reliance with assured fill-rate and visibility while pushing Apollo, Nykaa and Wellness Forever to reduce top-2 concentration.`,
     `<b>Sell-in to sell-out discipline:</b> use the Primary-vs-Offtake gap as a monthly control — tighten ordering where primary &gt; offtake, accelerate refills where offtake &gt; primary.`,
@@ -1004,13 +1043,13 @@ function buildExecutiveCockpit(){
   }
   s.innerHTML = `<h2 class="sec">Executive Cockpit</h2>
    <p class="lead">${fy?`${yrLab[fy]||fLab('FY')} (filtered)`:dataPeriodLabel()} · Modern Trade · All values ₹ Crore unless noted.</p>
-   ${dimNote}${dimNote2}
+   ${dimNote}${dimNote2}${storeUniverseStrip(storeUniverse())}
    <div class="kpis">
      ${primOk? kpi(`Primary NSV (${yrLab[primYr]})`,crc(chains.reduce((a,c)=>a+(c[primYr]||0),0)),fp27?`${fp27.months_covered.join(' + ')} actuals · article-wise primary`:fy?'filtered scope':fOn('Chain')?'selected chain(s)':_SPC?`${_SPC.curr_fy} to date ${crc(_SPC.curr)} · <span class="${cls(_SPC.yoy_pct)}">${arrow(_SPC.yoy_pct)} ${pct(_SPC.yoy_pct)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'prior-year baseline not in source')
        : kpi('Primary NSV','No FY27 actuals',`use ${yrLab.fy26} or see Forecast`)}
      ${offOk? kpi(`Offtake (${yrLab[offYr]})`,crc(_offChainSel?_offChainSel.reduce((a,c)=>a+(c[offYr]||0),0):(o['total_'+offYr]||0)),_offChainSel?'selected chain(s)':fy?'selected FY':_offSP!=null?`${_SPC.curr_fy} to date ${crc(o['total_'+String(_SPC.curr_fy).toLowerCase()])} · <span class="${cls(_offSP)}">${arrow(_offSP)} ${pct(_offSP)}</span> vs ${_SPC.prev_fy} same ${_SPC.n_months} mth`:'sell-out')
        : kpi('Offtake','No '+fLab('FY')+' actuals','use FY26 or see Forecast')}
-     ${kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`)}
+     ${(()=>{const U=storeUniverse();return U.ok?kpi('Active MT Stores',num(U.total),`${U.month||''} POS stores${U.tentative?` incl. ~${num(U.tentative)} tentative (Reliance, More Retail)`:''} · FSN NA`)+availKpi(U):kpi('Active MT Stores',num(u.active_stores),`${num(u.total_stores)} in universe`);})()}
      ${kpi('Chains Tracked',chains.length,`${fp27?brands.length:p.n_brands} brands${fOn('Chain')?' · filtered':''}`)}
      ${f.fy27_forecast!=null
        ? kpi(isTY?'FY27 (TY) Target':'FY27 Forecast',crc(f.fy27_forecast),
@@ -1084,6 +1123,152 @@ function destroyChannelDynamicsCharts(){
 function destroyInventoryCharts(){
   Object.values(inventoryHealthState.charts).forEach(c=>{if(c&&c.destroy) c.destroy();});
   inventoryHealthState.charts={};
+}
+
+// TDP & Distribution from dashboard/tdp.js (scripts/build_tdp.py reads PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv).
+// TDP = sum of ACV % across SKUs. No TDP file has been supplied yet, so until one is dropped in this shows the file needed and, next to it,
+// the real Nielsen weighted / numeric distribution for face wash (a different measure, labelled as such). Nothing is estimated.
+function renderTdp(content){
+  const ok=v=>typeof v==='number'&&isFinite(v),f1=v=>ok(v)?v.toFixed(1):'–',pc=v=>ok(v)?(v>0?'+':'')+v.toFixed(1)+'%':'–';
+  const esc=x=>String(x==null||x===''?'–':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const T=window.TDP,N=window.NIELSEN;
+  if(T&&T.status==='LOADED'){
+    const rows=(a,k)=>(a||[]).slice(0,15).map(r=>`<tr><td>${esc(r[k])}</td><td>${f1(r.tdp)}</td><td>${f1(r.acv)}</td><td>${f1(r.nd)}</td><td>${f1(r.wd)}</td><td>${ok(r.wd_nd_ratio)?r.wd_nd_ratio.toFixed(2):'–'}</td><td>${num(r.articles)}</td></tr>`).join('');
+    const hd=k=>`<thead><tr><th>${k}</th><th>TDP</th><th>ACV %</th><th>Numeric dist %</th><th>Weighted dist %</th><th>WD ÷ ND</th><th>Articles</th></tr></thead>`;
+    const bm=(T.by_month||[]),cur=bm[bm.length-1]||{};
+    content.innerHTML+=`<p class="lead">TDP ${esc(T.latest)} · ${esc((T.files||[]).join(', '))} · TDP = sum of ACV % across SKUs. ${num(T.rows_dropped_duplicate)} duplicate rows and ${num(T.rows_dropped_bad_acv)} rows with no ACV % were left out.</p>
+     <div class="kpi-row">${kpi('TDP',f1(cur.tdp),`${esc(T.latest)} · MoM ${pc(T.mom_tdp_pct)}`)}${kpi('Average ACV %',f1(cur.acv),'shelf reach of a SKU')}${kpi('Numeric distribution',f1(cur.nd)+'%','outlets stocking us')}${kpi('Weighted distribution',f1(cur.wd)+'%','sales-weighted reach')}</div>`;
+    content.innerHTML+=card('TDP by chain',`${esc(T.latest)}`,`<table class="tbl">${hd('Chain')}<tbody>${rows(T.by_chain,'Chain')}</tbody></table>`);
+    content.innerHTML+=card('TDP by brand',`${esc(T.latest)}`,`<table class="tbl">${hd('Brand')}<tbody>${rows(T.by_brand,'Brand')}</tbody></table>`);
+    content.innerHTML+=card('TDP by state',`${esc(T.latest)}`,`<table class="tbl">${hd('State')}<tbody>${rows(T.by_state,'State')}</tbody></table>`);
+    const cv=chartInCard(content,'TDP by month','Sum of ACV % across SKUs.');
+    inventoryHealthState.charts.tdp=new Chart(cv,{type:'bar',data:{labels:bm.map(r=>r.Month),datasets:[{label:'TDP',data:bm.map(r=>r.tdp),backgroundColor:'#118DFF'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    return;
+  }
+  const need=(T&&T.needed)||'PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv';
+  content.innerHTML+=card('TDP: source file not supplied yet','TDP is not estimated',`<p class="lead">Real TDP needs: <b>${esc(need)}</b> (monthly, one row per article, chain and state, with ACV %, AIC, Numeric Distribution and Weighted Distribution). Column list and template: <code>_TEMPLATE_TDP_Monthly.csv</code>; request wording: <code>docs/NIELSEN_DATA_REQUEST.md</code>. Drop the file, run <code>python scripts/build_tdp.py</code>, and this view fills in (TDP, ACV, ND, WD by chain, brand, state and month). The Power BI measures are already written (DAX 05).</p>`);
+  const H=window.TDP_INHOUSE;
+  const draws=[];
+  if(H&&Array.isArray(H.total)&&H.total.length){draws.push(renderTdpInhouse(content,H));}
+  if(N&&N.data_status==='GOVERNED'&&Array.isArray(N.fw_all)){
+    const me=N.fw_all.find(b=>b.n==='Mamaearth')||{};
+    content.innerHTML+=`<p class="lead">Nearest real distribution data today: Nielsen ${esc(N.market)} face wash, ${esc(N.reporting_period)}. This is brand distribution (WD / ND), not TDP.</p>
+     <div class="kpi-row">${kpi('Mamaearth weighted distribution',f1(me.wd)+'%','in the larger stores')}${kpi('Mamaearth numeric distribution',f1(me.nd)+'%','all stores')}${kpi('WD ÷ ND',ok(me.wd)&&ok(me.nd)&&me.nd>0?(me.wd/me.nd).toFixed(2):'–','above 1 = strong in big stores first')}${kpi('Share where listed (SAH)',f1(me.sah)+'%','share among stores that stock us')}</div>`;
+    content.innerHTML+=card('Face wash brands: weighted and numeric distribution','Nielsen, urban MT',`<table class="tbl"><thead><tr><th>Brand</th><th>Weighted dist %</th><th>Numeric dist %</th><th>WD ÷ ND</th><th>Share where listed %</th></tr></thead><tbody>${N.fw_all.slice(0,8).map(b=>`<tr><td>${esc(b.n)}</td><td>${f1(b.wd)}</td><td>${f1(b.nd)}</td><td>${ok(b.wd)&&ok(b.nd)&&b.nd>0?(b.wd/b.nd).toFixed(2):'–'}</td><td>${f1(b.sah)}</td></tr>`).join('')}</tbody></table>`);
+    if(Array.isArray(N.wd)&&Array.isArray(N.months)){
+      draws.push(()=>{const cv=chartInCard(content,'Mamaearth weighted distribution by month (Nielsen)','Face wash, urban MT.');
+      inventoryHealthState.charts.tdpWd=new Chart(cv,{type:'line',data:{labels:N.months,datasets:[{label:'Weighted distribution %',data:N.wd,borderColor:'#118DFF',backgroundColor:'#118DFF',pointRadius:2,tension:.25}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'}}}}});});
+    }
+  }
+  draws.forEach(f=>f&&f());   // charts last: card() writes innerHTML, which would wipe a canvas made earlier
+}
+
+// In-house distribution view from our own offtake (dashboard/tdp_inhouse.js, scripts/build_tdp_inhouse.py). NOT TDP: no ACV % and no weighted distribution.
+// Stores selling = distinct stores with offtake; SKU listings = distinct store x SKU pairs; SKUs per store = listings / stores (like AIC).
+function renderTdpInhouse(content,H){
+  const ok=v=>typeof v==='number'&&isFinite(v),f1=v=>ok(v)?v.toFixed(1):'–',pc=v=>ok(v)?(v>0?'+':'')+v.toFixed(1)+'%':'–';
+  const esc=x=>String(x==null||x===''?'–':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const T=H.total,cur=T[T.length-1],prev=T[T.length-2]||null,mom=(a,b)=>prev&&b>0?(a/b-1)*100:null;
+  const last=cur.month,at=(rows)=>rows.filter(r=>r.month===last);
+  content.innerHTML+=`<p class="lead"><b>${esc(H.label)}</b> · ${esc(H.period)} · Brand Counter left out. Stores selling = stores with offtake in the month. SKU listings = distinct store × SKU pairs (our in-house distribution points). SKUs per store = listings ÷ stores. Store reach % = stores selling ÷ stores in the store master (the master also holds stores first seen in the offtake files, so reach reads high; use it for direction).</p>
+   <div class="kpi-row">${kpi('Stores selling',num(cur.stores),`${esc(last)} · MoM ${pc(prev?mom(cur.stores,prev.stores):null)}`)}${kpi('SKUs selling',num(cur.skus),`MoM ${pc(prev?mom(cur.skus,prev.skus):null)}`)}${kpi('SKU listings',num(cur.listings),`MoM ${pc(prev?mom(cur.listings,prev.listings):null)}`)}${kpi('SKUs per store',f1(cur.skus_per_store),'listings ÷ stores')}</div>`;
+  const tr=r=>`<td>${num(r.stores)}</td><td>${num(r.skus)}</td><td>${num(r.listings)}</td><td>${f1(r.skus_per_store)}</td>`;
+  const mrows=T.map((r,i)=>`<tr><td>${esc(r.month)}</td>${tr(r)}<td>${i?pc(T[i-1].listings>0?(r.listings/T[i-1].listings-1)*100:null):'–'}</td></tr>`).join('');
+  content.innerHTML+=card('In-house distribution by month',esc(H.label),`<table class="tbl"><thead><tr><th>Month</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>SKUs per store</th><th>Listings MoM</th></tr></thead><tbody>${mrows}</tbody></table>`);
+  const crow=at(H.by_chain).sort((a,b)=>b.listings-a.listings).slice(0,15).map(r=>`<tr><td>${esc(r.chain)}</td>${tr(r)}<td>${num(r.master_stores)}</td><td>${r.reach_pct==null?'–':f1(r.reach_pct)+'%'}</td></tr>`).join('');
+  content.innerHTML+=card('By chain',`${esc(last)} · reach and SKUs per store show – where the chain's source has no store codes (Reliance Retail, Nykaa FSN, More Retail, V-Mart and others)`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>SKUs per store</th><th>Stores in master</th><th>Store reach</th></tr></thead><tbody>${crow}</tbody></table>`);
+  const srow=at(H.by_state).sort((a,b)=>b.listings-a.listings).slice(0,15).map(r=>`<tr><td>${esc(r.state)}</td>${tr(r)}<td>${num(r.master_stores)}</td><td>${f1(r.reach_pct)}${r.reach_pct==null?'':'%'}</td></tr>`).join('');
+  content.innerHTML+=card('By state',esc(last),`<table class="tbl"><thead><tr><th>State</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>SKUs per store</th><th>Stores in master</th><th>Store reach</th></tr></thead><tbody>${srow}</tbody></table>`);
+  const prow=at(H.by_pack).sort((a,b)=>b.listings-a.listings).slice(0,12);
+  content.innerHTML+=card('By pack size',`${esc(last)} · stores selling each pack and SKU listings`,`<table class="tbl"><thead><tr><th>Pack</th><th>Stores selling</th><th>SKUs selling</th><th>SKU listings</th><th>NSV</th></tr></thead><tbody>${prow.map(r=>`<tr><td>${esc(r.pack)}</td><td>${num(r.stores)}</td><td>${num(r.skus)}</td><td>${num(r.listings)}</td><td>${crc(r.nsv)}</td></tr>`).join('')}</tbody></table>`);
+  return ()=>{const cv=chartInCard(content,'SKU listings and stores selling by month','In-house distribution points (listings) and stores selling. Not TDP.');
+  inventoryHealthState.charts.tdpInhouse=new Chart(cv,{type:'bar',data:{labels:T.map(r=>r.month),datasets:[{label:'SKU listings',data:T.map(r=>r.listings),backgroundColor:'#118DFF',yAxisID:'y'},{type:'line',label:'Stores selling',data:T.map(r=>r.stores),borderColor:'#E66C37',backgroundColor:'#E66C37',yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true},y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false}}}}});};
+}
+
+// State, pack size and LFL / NFL store cuts (offtake, Apr-Aug FY27 vs same months last year) from dashboard/store_cuts.js,
+// written by scripts/build_store_cuts.py. Fixed period: the FY / Month filters do not apply. Values are Rs lakh (crc() shows L / Cr).
+function renderStoreCuts(content){
+  const S=window.STORE_CUTS;
+  if(!S||!Array.isArray(S.by_chain)){content.innerHTML+=card('State, Pack & Store Type','Not available','<p class="lead">store_cuts.js is missing. Run scripts/build_store_cuts.py.</p>');return;}
+  const ok=v=>typeof v==='number'&&isFinite(v),pc=v=>ok(v)?(v>0?'+':'')+v.toFixed(0)+'%':'–';
+  const sum=(a,k)=>a.reduce((t,r)=>t+(+r[k]||0),0);
+  const lflTy=sum(S.by_chain,'lfl_ty'),lflLy=sum(S.by_chain,'lfl_ly'),newTy=sum(S.by_chain,'new_ty'),reTy=sum(S.by_chain,'restart_ty');
+  const g=lflLy>0?(lflTy/lflLy-1)*100:null,lost=S.lost||{};
+  const st=(S.by_state||[]).filter(r=>r.State),ch=(S.by_chain||[]).filter(r=>r.lfl_stores+r.nfl_stores+r.noly_stores>0);
+  const esc=x=>String(x==null||x===''?'–':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const lfl=(r)=>(r.lfl_stores+r.nfl_stores===0&&r.noly_stores>0)?`<td colspan="7">No last-year store data (state-level only): ${num(r.noly_stores)} stores · ${crc(r.noly_ty)} NSV, not in LFL</td>`:`<td>${num(r.lfl_stores)}</td><td>${num(r.new_stores)}</td><td>${num(r.restart_stores)}</td><td>${crc(r.lfl_ty)}</td><td>${crc(r.new_ty)}</td><td>${crc(r.restart_ty)}</td><td>${pc(r.lfl_growth_pct)}</td>`;
+  content.innerHTML+=`<p class="lead">${esc(S.period)} · Offtake, Brand Counter left out · fixed period (the FY and Month filters do not apply). LFL = sold this year and in the same months last year. NFL = no sales last year in those months: New (none anywhere last year) or Restarted (sold in Sep-Mar). Lost = sold last year, nothing this year. Reliance Retail has last year at state level only, so it is kept out of LFL.</p>
+   <div class="kpi-row">${kpi('LFL stores NSV',crc(lflTy),`${num(S.stores&&S.stores.LFL)} stores · ${pc(g)} vs last year`)}${kpi('New stores NSV',crc(newTy),`${num(S.stores&&S.stores.New)} stores with no sales last year at all`)}${kpi('Restarted stores NSV',crc(reTy),`${num(S.stores&&S.stores.Restarted)} stores that sold last year in other months (Sep-Mar)`)}${kpi('Lost stores',num(lost.stores),`${crc(lost.ly_nsv)} last year, nothing this year`)}${kpi('No LY store data',num(S.stores&&S.stores['No LY store data']),'Reliance Retail non-counter')}</div>`;
+  content.innerHTML+=card('LFL vs NFL by state',`Top ${Math.min(st.length,15)} states by NSV`,`<table class="tbl"><thead><tr><th>State</th><th>LFL stores</th><th>New stores</th><th>Restarted</th><th>LFL NSV</th><th>New NSV</th><th>Restarted NSV</th><th>LFL growth</th></tr></thead><tbody>${st.slice(0,15).map(r=>`<tr><td>${esc(r.State)}</td>${lfl(r)}</tr>`).join('')}</tbody></table>`);
+  content.innerHTML+=card('LFL vs NFL by chain','Lost = stores that sold last year and nothing this year',`<table class="tbl"><thead><tr><th>Chain</th><th>LFL stores</th><th>New stores</th><th>Restarted</th><th>LFL NSV</th><th>New NSV</th><th>Restarted NSV</th><th>LFL growth</th><th>Lost</th></tr></thead><tbody>${ch.slice(0,15).map(r=>`<tr><td>${esc(r.Chain)}</td>${lfl(r)}<td>${r.lost_stores==null?'–':num(r.lost_stores)}</td></tr>`).join('')}</tbody></table>`);
+  const pk=(S.by_pack||[]).slice(0,10);
+  content.innerHTML+=card('Pack size table','Share, stores selling and MoM',`<table class="tbl"><thead><tr><th>Pack</th><th>NSV</th><th>Share</th><th>Stores selling</th><th>MoM</th></tr></thead><tbody>${pk.map(x=>`<tr><td>${esc(x.pack)}</td><td>${crc(x.nsv)}</td><td>${ok(x.share_pct)?x.share_pct.toFixed(1)+'%':'–'}</td><td>${num(x.stores)}</td><td>${pc(x.mom_pct)}</td></tr>`).join('')}</tbody></table>`);
+  // Sales by zone, brand and sub-category (this year, split by store type). Last year has no brand or sub-category in the store file: growth only for zones.
+  const sc=(rows,key,head,extra)=>`<table class="tbl"><thead><tr><th>${head}</th>${extra?'<th>'+extra+'</th>':''}<th>NSV</th><th>Share</th><th>LFL stores NSV</th><th>New</th><th>Restarted</th><th>MoM (Aug vs Jul)</th>${key==='zone'?'<th>YoY (dashboard zone totals)</th>':''}<th>Stores</th></tr></thead><tbody>${(rows||[]).map(r=>`<tr><td>${esc(r[key])}</td>${extra?'<td>'+esc(r.category)+'</td>':''}<td>${crc(r.ty)}</td><td>${ok(r.share_pct)?r.share_pct.toFixed(1)+'%':'–'}</td><td>${crc(r.lfl_ty)}</td><td>${crc(r.new_ty)}</td><td>${crc(r.restart_ty)}</td><td>${pc(r.mom_pct)}</td>${key==='zone'?'<td>'+pc(r.yoy_pct)+'</td>':''}<td>${num(r.stores)}</td></tr>`).join('')}</tbody></table>`;
+  if(Array.isArray(S.zone_sales)){
+    content.innerHTML+=card('Sales by zone','Store-file zones (owner zone rules). Zone YoY uses the dashboard zone totals for the same five months, which differ slightly for West, North and Central.',sc(S.zone_sales,'zone','Zone'));
+    content.innerHTML+=card('Sales by brand','This year only: last year has no brand in the store file, so no brand YoY.',sc(S.brand_sales,'brand','Brand'));
+    content.innerHTML+=card('Sales by sub-category',`Top 15 of ${(S.subcat_sales||[]).length} sub-categories · this year only: last year has no sub-category in the store file.`,sc((S.subcat_sales||[]).slice(0,15),'subcategory','Sub-category','Category'));
+  }
+  const MV=S.movers;
+  if(MV&&Array.isArray(MV.top_gainers)){
+    const mr=r=>`<tr><td>${esc(r.store)}</td><td>${esc(r.state)}</td><td>${crc(r.ly)}</td><td>${crc(r.ty)}</td><td>${pc(r.growth_pct)}</td><td>${num(r.ly_months)}</td></tr>`;
+    const mh='<thead><tr><th>Store</th><th>State</th><th>Last year</th><th>This year</th><th>Growth</th><th>LY months</th></tr></thead>';
+    content.innerHTML+=card('Biggest store movers (same stores)',`Only stores with ${MV.min_ly_months}+ months of sales last year: ${num(MV.eligible_stores)} stores. ${num(MV.thin_history_stores)} stores with less history are left out of store-level growth. Ranked by rupee change.`,`<table class="tbl">${mh}<tbody><tr><td colspan="6"><b>Top 10 gainers</b></td></tr>${MV.top_gainers.map(mr).join('')}<tr><td colspan="6"><b>Top 10 decliners</b></td></tr>${MV.top_decliners.map(mr).join('')}</tbody></table>`);
+  }
+  const top=st.slice(0,8),c1=chartInCard(content,'State cut: NSV by store type','LFL, new, restarted and no-last-year-data stores, top 8 states.');
+  inventoryHealthState.charts.storecutsState=new Chart(c1,{type:'bar',data:{labels:top.map(r=>r.State),datasets:[
+    {label:'LFL stores',data:top.map(r=>r.lfl_ty),backgroundColor:'#118DFF'},{label:'New stores',data:top.map(r=>r.new_ty),backgroundColor:'#E66C37'},{label:'Restarted stores',data:top.map(r=>r.restart_ty),backgroundColor:'#F2A65A'},{label:'No LY store data',data:top.map(r=>r.noly_ty),backgroundColor:'#C8C6C4'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>crc(v)}}}}});
+  const c2=chartInCard(content,'Pack size cut: share of NSV (g / ml)','Pack size is FY27 only; last year has no pack in the store file. MoM is Aug vs Jul.');
+  inventoryHealthState.charts.storecutsPack=new Chart(c2,{type:'bar',data:{labels:pk.map(x=>x.pack),datasets:[{label:'Share of NSV %',data:pk.map(x=>x.share_pct),backgroundColor:'#118DFF'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y}% of NSV · MoM ${pc(pk[c.dataIndex].mom_pct)}`}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
+}
+
+// Nielsen market share (Facewash + Shampoo) from dashboard/nielsen.js, written by
+// scripts/build_nielsen_dashboard.py --emit-js. Only governed payloads are written.
+// Latest Nielsen month is shown; the FY filter does not apply to it.
+function renderNielsenShare(content,N){
+  const ok=v=>typeof v==='number'&&isFinite(v),f1=(v,d=1)=>ok(v)?v.toFixed(d):'–',sg=(v,d=1,u='')=>ok(v)?(v>0?'+':'')+v.toFixed(d)+u:'–',n0=v=>ok(v)?Math.round(v).toLocaleString('en-IN'):'–';
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const pretty=s=>String(s||'').split(' ').map(w=>w.length<=3?w.toUpperCase():w.charAt(0)+w.slice(1).toLowerCase()).join(' ');
+  const L=(N.months||[]).length-1,mon=(N.months||[])[L]||'–',ya=(N.months||[]).indexOf(mon.replace(/\d+$/,m=>String(+m-1).padStart(2,'0')));
+  const sh=N.shampoo||{},me=(N.fw_all||[]).find(b=>b.n==='Mamaearth')||{},shMe=(sh.brands||[]).find(b=>b.n==='Mamaearth')||{};
+  const fwShare=N.ms?N.ms[L]:null,dpp=ya>=0&&N.ms?fwShare-N.ms[ya]:null,shShare=shMe.ms;
+  const chip=cls=>`<span style="display:inline-block;font-size:10px;font-weight:700;border-radius:10px;padding:1px 8px;background:${cls==='Present'?'#E3F4EA':cls==='Under-indexed'||cls==='Under-weight'?'#FDF0D8':'#FBE4E1'};color:${cls==='Present'?'#1E7B4B':cls==='Under-indexed'||cls==='Under-weight'?'#9A6700':'#B3261E'}">${esc(cls)}</span>`;
+  const brandTbl=(rows,delta,unit)=>`<table class="tbl"><thead><tr><th>Brand</th><th>Share %</th><th>Δ ${unit} YoY</th><th>NSV ₹ Cr</th><th>WD %</th></tr></thead><tbody>${rows.map(b=>`<tr><td>${esc(b.n)}</td><td>${f1(b.ms)}</td><td>${delta(b)}</td><td>${f1(b.nsv)}</td><td>${f1(b.wd)}</td></tr>`).join('')}</tbody></table>`;
+  const fwTop=(N.fw_all||[]).filter(b=>ok(b.ms)).sort((a,b)=>b.ms-a.ms).slice(0,8),shTop=(sh.brands||[]).filter(b=>ok(b.ms)).sort((a,b)=>b.ms-a.ms).slice(0,8);
+  content.innerHTML=`<div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Facewash share · ${esc(mon)}</div><div class="kpi-value">${f1(fwShare)}%</div><div class="note">${sg(dpp,1,' pp YoY')}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Shampoo share · ${esc(sh.month||'–')}</div><div class="kpi-value">${f1(shShare)}%</div><div class="note">${sg(shMe.yoy_bps,0,' bps YoY')}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Facewash WD % / stores</div><div class="kpi-value">${f1(N.wd?N.wd[L]:null)}</div><div class="note">${n0(N.stores?N.stores[L]:null)} stores</div></div>
+      <div class="kpi-card"><div class="kpi-label">Shampoo WD % / stores</div><div class="kpi-value">${f1(shMe.wd)}</div><div class="note">${n0(shMe.stores)} stores</div></div></div>`+
+    card('Competitive Market Share — Nielsen '+esc(N.market||''),esc(N.unit||'')+'. Source: '+esc(N.source_reference||'')+'. Latest month only; the FY filter does not apply.',
+      `<div class="chartbox">${chartDlHtml('nielsenTrend')}<canvas id="nielsenTrend"></canvas></div>
+       <div class="grid g2"><div><h4>Facewash · top 8 brands</h4>${brandTbl(fwTop,b=>sg(b.pp,1,' pp'),'pp')}</div>
+       <div><h4>Shampoo · top 8 brands</h4>${brandTbl(shTop,b=>sg(b.yoy_bps,0,' bps'),'bps')}</div></div>`)+
+    (N.price_volume?card('Price and volume: how much of the growth was volume','Nielsen consumer offtake, '+esc(N.market||'')+', this month vs a year ago. Price per ml also moves with pack mix.',
+      `<table class="tbl"><thead><tr><th>Category</th><th>Brand</th><th>Value YoY %</th><th>Volume YoY %</th><th>Price/ml YoY %</th><th>Volume effect ₹ Cr</th><th>Price / mix effect ₹ Cr</th></tr></thead><tbody>${[['Facewash',N.price_volume.nielsen.facewash],['Shampoo',N.price_volume.nielsen.shampoo]].map(([c,a])=>(a||[]).map(r=>`<tr><td>${c}</td><td>${esc(r.name)}</td><td>${sg(r.value_yoy,1)}</td><td>${sg(r.volume_yoy,1)}</td><td>${sg(r.price_yoy,1)}</td><td>${sg(r.vol_effect_cr,2)}</td><td>${sg(r.price_effect_cr,2)}</td></tr>`).join('')).join('')}</tbody></table>`):'')+
+    (N.account_share&&N.account_share.chains?card('Our share inside each chain, and the Facewash plan','Retailer-side files (Lulu, More Retail, Wellness Forever, Reliance), Rs lakh; Reliance is gross sales as supplied and its brand counters are a separate line, so compare shares, not rupees. Lulu and More cover categories where we sell; More Retail months before Jun 26 are on a smaller scope. Full detail, white space and zone / state cuts: Chain Share &amp; Plan tab of market-share.html.',
+      `<table class="tbl"><thead><tr><th>Chain</th><th>Month</th><th>Account sales ₹L</th><th>Our sales ₹L</th><th>Share %</th><th>Account MoM %</th><th>Our MoM %</th><th>Face wash share %</th></tr></thead><tbody>${Object.entries(N.account_share.chains).map(([n,c])=>`<tr><td>${esc(n)}</td><td>${esc(c.latest)}</td><td>${n0(c.account_latest)}</td><td>${n0(c.honasa_latest)}</td><td>${f1(c.share_latest,2)}</td><td>${sg(c.account_mom_pct,1)}</td><td>${sg(c.honasa_mom_pct,1)}</td><td>${f1(c.fw_share_latest,1)}</td></tr>`).join('')}</tbody></table>
+       <h4>Plan to lift Facewash share</h4><table class="tbl"><thead><tr><th>Lever</th><th>Action</th><th>₹ Cr / month</th><th>Owner</th><th>Timeline</th></tr></thead><tbody>${((N.account_share.facewash_plan||{}).levers||[]).map(l=>`<tr><td>${esc(l.lever)}</td><td>${esc(l.action)}</td><td>${f1(l.size_cr_month,2)}</td><td>${esc(l.owner)}</td><td>${esc(l.timeline)}</td></tr>`).join('')}</tbody></table>
+       <p class="note">Levers overlap, so the total (₹${f1((N.account_share.facewash_plan||{}).total_cr_month,2)} Cr a month) is an upper bound, not a forecast.</p>`):'')+
+    (N.visit_cities&&N.visit_cities.cities?card('Corporate-visit cities and the store master','Store master with city details; internal offtake Apr–Aug, Rs lakh, Brand Counter separate. Thane and Navi Mumbai are in the Mumbai beats; near-listed cities (Mohali, Panchkula, Ernakulam, Howrah) are a third option and are not added to the listed city.',
+      `<table class="tbl"><thead><tr><th>Region</th><th>City</th><th>Beats</th><th>Stores</th><th>NSV Apr–Aug ₹L</th><th>Near-listed ₹L</th></tr></thead><tbody>${N.visit_cities.cities.slice().sort((a,b)=>(b.NSV_total_exBC||0)-(a.NSV_total_exBC||0)).slice(0,12).map(c=>`<tr><td>${esc(c.Region)}</td><td>${esc(c.City)}</td><td>${c.Beats}</td><td>${n0(c.Stores)}</td><td>${n0(c.NSV_total_exBC)}</td><td>${c.Near_listed_NSV>0?n0(c.Near_listed_NSV):'–'}</td></tr>`).join('')}</tbody></table><p class="note">${n0(N.visit_cities.coverage.in_master_file)} of ${n0(N.visit_cities.coverage.stores_sold)} selling stores are in the Jan–Jun 26 store list (${f1(N.visit_cities.coverage.nsv_in_master_pct,0)}% of NSV). Full city and store list: Chains &amp; Packs tab of market-share.html and the city workbook.</p>`):'')+
+    card('Which chains carried the growth','Honasa internal offtake, ex Reliance Brand Counter (offtake basis only). Internal NSV is not Nielsen consumer offtake: read the link to share gain as direction.',
+      `<table class="tbl"><thead><tr><th>Chain</th><th>NSV ₹L</th><th>Share %</th><th>Last yr ₹L</th><th>Growth %</th><th>Share of growth %</th></tr></thead><tbody>${((N.chains||{}).contribution||[]).slice(0,6).map(c=>`<tr><td>${esc(pretty(c.Chain))}</td><td>${n0(c.ty)}</td><td>${f1(c.share_ty_pct)}</td><td>${n0(c.ly)}</td><td>${sg(c.growth_pct,0)}</td><td>${f1(c.share_of_growth_pct,0)}</td></tr>`).join('')||'<tr><td colspan="6">No chain data.</td></tr>'}</tbody></table>`)+
+    ['fw_pack_gap','sh_pack_gap'].map(k=>{const G=N[k];if(!G)return '';const rows=(G.rows||[]).filter(r=>r.cat_share>=1||r.me_amount>0&&r.cat_share>=0.3).sort((a,b)=>b.cat_share-a.cat_share).slice(0,10);
+      return card((k==='fw_pack_gap'?'Facewash':'Shampoo')+' packs: where we are present and not present',esc((G.note||'')+' Packs above 1% of the category, and any pack we sell.'),
+        `<table class="tbl"><thead><tr><th>Pack ml</th><th>Category share %</th><th>Our share in pack %</th><th>Status</th><th>Gap ₹ Cr / month</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.size)}</td><td>${f1(r.cat_share)}</td><td>${f1(r.me_share_in_pack)}</td><td>${chip(r.status)}</td><td>${r.opp_cr>0?f1(r.opp_cr,2):'–'}</td></tr>`).join('')||'<tr><td colspan="5">No packs.</td></tr>'}</tbody></table>`);}).join('')+
+    card('Chain × range × pack: states still to fill','Internal offtake, Mamaearth shampoo and face wash.',
+      `<table class="tbl"><thead><tr><th>Chain</th><th>Category</th><th>Range</th><th>Pack</th><th>NSV ₹L</th><th>States</th><th>Missing</th></tr></thead><tbody>${((N.chains||{}).range_pack||[]).filter(r=>r.States_present<r.States_in_chain&&r.NSV_lakh>=20).sort((a,b)=>b.NSV_lakh-a.NSV_lakh).slice(0,10).map(r=>`<tr><td>${esc(pretty(r.Chain))}</td><td>${esc(r.Category)}</td><td>${esc(r.Range)}</td><td>${esc(r.Pack)}</td><td>${n0(r.NSV_lakh)}</td><td>${r.States_present} of ${r.States_in_chain}</td><td>${esc((r.Missing_states||'–').slice(0,70))}</td></tr>`).join('')||'<tr><td colspan="7">None.</td></tr>'}</tbody></table>`)+
+    `<p class="note">Full Nielsen cut with trend, pack tables, deck state exposure and the 90-day tracker: <code>market-share.html</code> (built from the same governed payload).</p>`;
+  const k=document.getElementById('nielsenTrend');
+  if(k&&N.months){const fwSer=N.ms||[],shSer=(sh.series&&sh.series.ms)||[],shMonths=sh.months||[];
+    demandPlanningState.charts.nielsen=new Chart(k,{type:'line',data:{labels:N.months,datasets:[
+      {label:'Facewash share %',data:fwSer,borderColor:'#2563EB',backgroundColor:'transparent',tension:.3,pointRadius:1.5},
+      {label:'Shampoo share %',data:N.months.map(m=>{const i=shMonths.indexOf(m);return i>=0&&ok(shSer[i])?shSer[i]:null;}),borderColor:'#059669',backgroundColor:'transparent',tension:.3,pointRadius:1.5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f1(c.parsed.y)+'%'}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}});}
 }
 
 function destroyDemandPlanningCharts(){
@@ -1261,6 +1446,7 @@ function buildDemandPlanning(){
       // invented -- there is no share/market_share/competitors block anywhere in
       // DASH. On a leadership surface those numbers could be quoted in a review,
       // so they are removed and the required source is named instead.
+      if(window.NIELSEN&&window.NIELSEN.data_status==='GOVERNED'){renderNielsenShare(content,window.NIELSEN);return;}
       content.innerHTML+=card('Competitive Market Share','source not available',
         `<p class="lead">No market-share data exists in this build.</p>
          <p class="note">To populate this view, supply a Nielsen / RMS market-share export
@@ -1638,7 +1824,8 @@ function buildInventoryHealth(){
   // store count (distinct Site Code) per FY from store x article offtake;
   // an FY or chain without store-level Site Code shows '–', never 0.
   const _posFy=(o&&o.pos_stores&&o.pos_stores[fyR])||null;
-  const _activeStores = u.active_stores!=null ? u.active_stores : '–';
+  const _U=storeUniverse();
+  const _activeStores = _U.ok ? `${num(_U.total)}<div class="note">${_U.month||''} POS stores${_U.tentative?` incl. ~${num(_U.tentative)} tentative`:''} · FSN NA</div>` : (u.active_stores!=null ? u.active_stores : '–');
   // Pipeline Cover (DOI) / Fill Rate (OTIF): scripts/build_dashboard_data.py
   // emits metrics.doi/{} and metrics.otif/{} as explicit, permanently-empty
   // placeholders (no DOI/OTIF computation exists anywhere in the pipeline
@@ -1646,11 +1833,11 @@ function buildInventoryHealth(){
   // "not built yet", not as "filtered to zero" like the KPIs beside it.
   const _doiVal=(metrics&&metrics.avg_fill_rate)?Number(metrics.avg_fill_rate).toFixed(1):'Not computed';
   const _otifVal=(metrics&&metrics.otif_pct)?Number(metrics.otif_pct).toFixed(1)+'%':'Not computed';
-  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div><div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
+  s.innerHTML=`${dimUnsupportedNote(['Month','Channel','Zone','State','Chain','Brand','Category','SubCategory','Range','PackSize','Article'],'the offtake velocity, gap and coverage aggregates')}${storeUniverseStrip(_U)}<div class="kpi-row"><div class="kpi-card"><div class="kpi-label">Total Offtake (${(()=>{const ms=(o&&o['months_'+fyR])||[];return ms.length?fyR.toUpperCase()+' '+ms[0]+' to '+ms[ms.length-1]:fyR.toUpperCase();})()})</div><div class="kpi-value">${crc(total)}</div></div><div class="kpi-card"><div class="kpi-label">Active MT Stores</div><div class="kpi-value">${_activeStores}</div></div>${_U.ok&&_U.master?`<div class="kpi-card"><div class="kpi-label">Store Availability</div><div class="kpi-value">${Math.round(_U.total/_U.master*100)}%</div><div class="note">${num(_U.total)} counted of ${num(_U.master)} in the store master</div></div>`:''}<div class="kpi-card"><div class="kpi-label">Pipeline Cover (DOI)</div><div class="kpi-value">${_doiVal}</div></div><div class="kpi-card"><div class="kpi-label">Fill Rate (OTIF)</div><div class="kpi-value">${_otifVal}</div></div></div>`;
 
   // Sub-view tabs
-  const subviews=['velocity','gap','coverage'];
-  const subviewLabels={velocity:'Offtake Velocity',gap:'Demand-Supply Gap',coverage:'Store Coverage'};
+  const subviews=['velocity','gap','coverage','storecuts','tdp'];
+  const subviewLabels={velocity:'Offtake Velocity',gap:'Demand-Supply Gap',coverage:'Store Coverage',storecuts:'State, Pack & Store Type',tdp:'TDP & Distribution'};
   const tabs=`<div class="subview-tabs">${subviews.map(sv=>`<button class="subview-tab ${inventoryHealthState.subview===sv?'active':''}" onclick="switchInventorySubview('${sv}')">${subviewLabels[sv]}</button>`).join('')}</div>`;
   s.innerHTML+=tabs;
 
@@ -1713,18 +1900,19 @@ function buildInventoryHealth(){
       // const legacyChainOfftakeNSV=(ch_data,fyKey)=>(ch_data.total&&ch_data.total[fyKey])||ch_data[`total_${fyKey}`]||ch_data[fyKey]||ch_data.value||0;
       const chainData=_entries.filter(([n,e])=>n&&e).map(([name,ch_data])=>{
         const _ps=_posFy&&_posFy.by_chain?_posFy.by_chain[name]:null;
+        const _uc=_U.byChain[name]||null;
         const stores=_ps&&_ps.latest!=null?_ps.latest:null;
         const storesPartial=stores!=null&&_ps.no_site_pct>0?_ps.no_site_pct:null;
         const nsv=canonicalChainOfftakeNSV(ch_data,fyR);
         const prior=canonicalChainOfftakeNSV(ch_data,prior_fy);
         const growth=(_likeForLike && nsv!=null && prior!=null && prior>0)?((nsv/prior-1)*100):null;
-        return {name,stores,storesPartial,nsv,growth};
+        return {name,stores,storesPartial,nsv,growth,uc:_uc};
       }).filter(c=>c.nsv!=null); // a chain with no real offtake figure for this FY cannot be ranked "by offtake" -- excluded, not shown as a fabricated 0
       chainData.sort((a,b)=>b.nsv-a.nsv);
 
       const _growthNote=_likeForLike?'':' · Growth % needs equal month coverage in both years to be a genuine YoY -- not shown for a partial year';
-      const _storeNote=_posFy?` · Stores = POS stores (distinct Site Code) selling in ${_posFy.latest_month}, not SAP billing codes; * = part of the chain's offtake has no Site Code; – = no store code in source (e.g. Reliance offtake is DC-level)`:' · Stores need store-level offtake (Site Code), not available for this FY';
-      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}${_storeNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>Stores${_posFy?' ('+_posFy.latest_month+')':''}</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${c.stores!=null?c.stores.toLocaleString('en-IN')+(c.storesPartial!=null?`<span title="${c.storesPartial}% of this chain's offtake has no Site Code">*</span>`:''):'–'}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
+      const _storeNote=_posFy?` · Stores = POS stores (distinct Site Code) selling in ${_posFy.latest_month}, not SAP billing codes; * = part of the chain's offtake has no Site Code; – = no store code in source; ~ (tentative) = working estimate counted in the universe (Reliance Retail, More Retail: offtake has no usable store codes); NA = not applicable (Nykaa / FSN is online). The Active MT Stores tile uses the same counts`:' · Stores need store-level offtake (Site Code), not available for this FY';
+      content.innerHTML+=card('Top Chains by Offtake',`${chainData.length} chains${_growthNote}${_storeNote}`,`<table class="tbl"><thead><tr><th>Chain</th><th>In store master</th><th>Stores${_posFy?' ('+_posFy.latest_month+')':''}</th><th>Offtake (Cr)</th><th>Growth %</th></tr></thead><tbody>${chainData.slice(0,10).map(c=>`<tr><td>${c.name}</td><td>${_U.masterFor(c.name)!=null?num(_U.masterFor(c.name)):'–'}</td><td>${c.uc&&(c.uc.status==='TENTATIVE'||c.uc.status==='NA')?storeCountCell(c.uc):(c.stores!=null?c.stores.toLocaleString('en-IN')+(c.storesPartial!=null?`<span title="${c.storesPartial}% of this chain's offtake has no Site Code">*</span>`:''):'–')}</td><td>${crc(c.nsv)}</td><td>${c.growth!=null?c.growth.toFixed(1)+'%':'–'}</td></tr>`).join('')}</tbody></table>`);
 
       const canvas=chartInCard(content,'Top 8 chains by offtake','₹ Crore, selected FY.');
 
@@ -1764,6 +1952,10 @@ function buildInventoryHealth(){
          card stays empty by design — it previously displayed hardcoded
          placeholder weekly figures that were not sourced from any file.</p>`);
       content.innerHTML+=inventoryClassificationSection();
+    }else if(sv==='storecuts'){
+      renderStoreCuts(content);
+    }else if(sv==='tdp'){
+      renderTdp(content);
     }else if(sv==='coverage'){
       // Store Coverage: real store counts by zone from the MT universe
       // (D.universe.by_zone: [{name,stores}], sums to the 426-store baseline).
@@ -2296,6 +2488,12 @@ function buildPnl(){
   const cm2ChainFy=(cm2ScopedOk&&cm2D&&cm2D.by_chain_fy&&cm2D.by_chain_fy[globalFy])||null;
   const cm2ExpFys=Object.keys((cm2D&&cm2D.by_chain_fy)||{});
   const cm2MixedFy=!cm2ChainFy&&cm2D&&cm2D.has_expense_data&&cm2FyCoverage.some(f=>!cm2ExpFys.includes(f));
+  // Comparability: CM2 is only a margin when the expense covers every FY that has NSV in
+  // the selection. With no FY filter, FY26 NSV (no expense rows) + FY27-only expense is
+  // not like-for-like, so the margin (value, %, expense %, per-chain CM2, chart) is withheld
+  // -- shown as – -- instead of a 97.7% that only reflects the missing FY26 cost.
+  const CM2_NLFL='Not like-for-like — select a comparable FY';
+  const cm2NotComparable=!!cm2MixedFy;
   let cm2Chains=cm2D?consolidateChains(cm2ChainFy||cm2D.by_chain,'nsv'):[];
   // A single FY with no expense rows of its own: no chain has a CM2 for it.
   if(cm2ScopedOk&&!cm2ChainFy&&cm2D&&cm2D.by_chain_fy) cm2Chains=cm2Chains.map(c=>Object.assign({},c,{expense:0}));
@@ -2304,8 +2502,8 @@ function buildPnl(){
   // CM2 is a margin only where expense rows were actually loaded; with none it
   // would just repeat NSV as "100%", so show – (not available) instead.
   const cm2ChainHasExp=c=>!!(cm2D&&cm2D.has_expense_data&&c.expense);
-  const cm2Rows=cm2Chains.map(c=>{const ok=cm2ChainHasExp(c);return `<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
-     <td>${ok?crc(c.expense):'–'}</td><td>${ok?crc(c.cm2_value):'–'}</td><td>${ok&&c.cm2_pct!=null?c.cm2_pct+'%':'–'}</td></tr>`;}).join('');
+  const cm2Rows=cm2Chains.map(c=>{const ok=cm2ChainHasExp(c), cmp=ok&&!cm2NotComparable;return `<tr><td>${drillLink('Chain',c.name)}</td><td>${crc(c.nsv)}</td>
+     <td>${ok?crc(c.expense):'–'}</td><td>${cmp?crc(c.cm2_value):'–'}</td><td>${cmp&&c.cm2_pct!=null?c.cm2_pct+'%':'–'}</td></tr>`;}).join('');
   const cm2HeadRows=(cm2D&&cm2D.by_expense_head||[]).map(h=>`<tr><td>${h.name}</td><td>${crc(h.amount)}</td></tr>`).join('');
   const cm2Monthly=(cm2D&&cm2D.monthly||[]);
   const cm2Latest=cm2Monthly.length?cm2Monthly[cm2Monthly.length-1]:null;
@@ -2316,7 +2514,7 @@ function buildPnl(){
   const cm2LoadedHeads=(cm2D&&cm2D.by_expense_head||[]).filter(h=>h.amount)
     .map(h=>`${h.name} (&#8377;${Number(h.amount).toFixed(2)} L)`).join(', ');
   const cm2LoadedMonths=cm2Monthly.filter(r=>r.expense).map(r=>`${r.month} ${r.fy}`).join(', ');
-  const cm2ChartChains=cm2Top.filter(cm2ChainHasExp);
+  const cm2ChartChains=cm2NotComparable?[]:cm2Top.filter(cm2ChainHasExp);
   s.innerHTML=`<h2 class="sec">P&amp;L — Chain-wise Gross-to-Net &amp; Trade Spend</h2>
    ${fy26ok?`<p class="lead">${fyDispLabel(plFy)}. Bridge from gross MRP value to net NSV, plus promo intensity per chain.
      <b>Note:</b> COGS is not in source data, so this is a gross-to-net trade contribution view (retail margin + taxes + trade terms), not a full statutory P&amp;L.</p>
@@ -2392,13 +2590,13 @@ function buildPnl(){
    <div class="kpis">
      ${kpi('NSV (TOT%-scope)',crc(cm2ScopedOk?cm2Scoped.nsv:cm2D.total_nsv),cm2ScopedOk?`${fyDispLabel(globalFy)} only`:'FY26-FY27, same population as TOT%')}
      ${kpi('TOT Value',totD?crc(totScopedOk?totScoped.passon_value:totD.total_passon_value):'–',totD&&(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)!=null?(totScopedOk?totScoped.tot_pct:totD.blended_tot_pct)+'% of MRP':'')}
-     ${kpi('Total P&L Expense',cm2Avail?crc(cm2ScopeExpense):'–',cm2Avail?((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV (partial coverage)':''):'not loaded')}
-     ${kpi('CM2 Value',cm2Avail?crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value):'–',cm2Avail?((cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV &#8212; partial costs only':''):'Not available &#8212; no expense data')}
+     ${kpi('Total P&L Expense',cm2Avail?crc(cm2ScopeExpense):'–',cm2Avail?(cm2NotComparable?CM2_NLFL:((cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)!=null?(cm2ScopedOk?cm2Scoped.expense_pct_of_nsv:cm2D.expense_pct_of_nsv)+'% of NSV (partial coverage)':'')):'not loaded')}
+     ${kpi('CM2 (loaded costs only)',cm2Avail&&!cm2NotComparable?crc(cm2ScopedOk?cm2Scoped.cm2_value:cm2D.cm2_value):'–',cm2Avail?(cm2NotComparable?CM2_NLFL:((cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)!=null?(cm2ScopedOk?cm2Scoped.cm2_pct:cm2D.cm2_pct)+'% of NSV &#8212; partial costs only':'')):'Not available &#8212; no expense data')}
      ${kpi('MoM CM2 Movement',cm2Avail&&cm2Latest&&cm2Latest.expense&&cm2Latest.mom_cm2_change!=null?crc(cm2Latest.mom_cm2_change):'–',cm2Latest?`${cm2Latest.month} ${cm2Latest.fy}`:'')}
    </div>
    <div class="grid g2">
      ${card('Chain-wise CM2',cm2ChartChains.length?'Chains with loaded P&L expense: CM2 and expense per chain. Click a chain to drill.':'',
-       cm2ChartChains.length?cv('cm2Chart'):'<p class="note" style="margin:8px 0">Not available &#8212; no chain has expense rows loaded.</p>')}
+       cm2ChartChains.length?cv('cm2Chart'):(cm2NotComparable?`<p class="note" style="margin:8px 0">${CM2_NLFL}.</p>`:'<p class="note" style="margin:8px 0">Not available &#8212; no chain has expense rows loaded.</p>'))}
      ${card('Chain-wise CM2 detail','',`<div class="tablewrap"><table>
        <thead><tr><th>Chain</th><th>NSV</th><th>Expense</th><th>CM2 Value</th><th>CM2%</th></tr></thead>
        <tbody>${cm2Rows||'<tr><td colspan="5">No chains for this filter.</td></tr>'}</tbody></table></div>`)}

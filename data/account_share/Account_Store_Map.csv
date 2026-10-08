@@ -1,0 +1,21 @@
+Chain,Store Code,Store Name,City (from store name),State,Zone,Format,City (store master),Check
+Lulu,9201,"Lulu Hypermarket, Kochi",Kochi,Kerala,South-1,Hyper,Kochi,Same city
+Lulu,9211,"Lulu Hypermarket ,Trivandrum",Trivandrum,Kerala,South-1,Hyper,Thiruvananthapuram,Same city
+Lulu,9216,LuLu Express Freshmarket,,Kerala,South-1,Daily,Kochi,City not in the store name
+Lulu,9226,"Lulu Hypermarket, Kottayam",Kottayam,Kerala,South-1,Hyper,Kottayam,Same city
+Lulu,9240,"Lulu Daily, Maradu, Kochi",Kochi,Kerala,South-1,Daily,Kochi,Same city
+Lulu,9256,"Lulu Hypermarket, Palakkad",Palakkad,Kerala,South-1,Hyper,Palakkad,Same city
+Lulu,9260,"Lulu Hypermarket,Thrissur",Thrissur,Kerala,South-1,Hyper,Thrissur,Same city
+Lulu,9270,"Lulu Hypermarket,Calicut",Calicut,Kerala,South-1,Hyper,Kozhikode,Same city
+Lulu,9276,"Lulu Daily Focus, Calicut",Calicut,Kerala,South-1,Daily,Calicut,Same city
+Lulu,9285,"Lulu Daily, Kottiyam",Kottiyam,Kerala,South-1,Daily,Thiruvananthapuram,Differs: check
+Lulu,9401,"Lulu Hypermarket , Lucknow",Lucknow,Uttar Pradesh,North,Hyper,Lucknow,Same city
+Lulu,9411,"Lulu Hypermarket , Bangalore",Bangalore,Karnataka,South-1,Hyper,Bangalore,Same city
+Lulu,9416,"Lulu Hypermarket, Coimbatore",Coimbatore,Tamil Nadu,South-1,Hyper,Coimbatore,Same city
+Lulu,9420,Lulu Daily,,Karnataka,South-1,Daily,Bangalore,City not in the store name
+Lulu,9426,"Lulu Hypermarket,Hyderabad",Hyderabad,Telangana,South-2,Hyper,Hyderabad,Same city
+Lulu,9435,"Lulu Daily, Lulu Connect, REO",,Karnataka,South-1,Daily,Bangalore,City not in the store name
+Lulu,9445,"Lulu Daily, M5 Ecity Mall",,Karnataka,South-1,Daily,Bangalore,City not in the store name
+Lulu,9448,Lulu Hypermarket - Gopalan Gra,,,,,Gopalan Gra,City not in the store name
+Lulu,9450,Lulu Daily - Global Malls Divi,,Karnataka,South-1,Daily,Bangalore,City not in the store name
+Lulu,9501,"Lulu Hypermarket, Lucknow",Lucknow,Uttar Pradesh,North,Hyper,Lucknow,Same city

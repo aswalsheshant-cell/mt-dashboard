@@ -43,3 +43,106 @@ DIVIDE ( [Our Brand Sales] - CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Tabl
 // "are we growing faster than the category?" (share gain check)
 Share Gain Flag =
 IF ( [Our Brand Growth %] > [Category Value Growth %], "Gaining Share", "Losing Share" )
+
+// =====================================================================
+// NIELSEN PACK PRESENCE  (table: 'Fact Nielsen Pack')
+// Value basis (Rs Cr) for both categories; volume columns are there for price per ml and volume share.
+// Status: Not present = no Mamaearth sales in the pack; Under-indexed = our share in the pack is
+// below half of our overall share in the category; else Present.
+// =====================================================================
+Pack Category Amount = SUM ( 'Fact Nielsen Pack'[Category Value Cr] )
+Pack Our Amount      = SUM ( 'Fact Nielsen Pack'[Our Value Cr] )
+Pack Category Volume L = SUM ( 'Fact Nielsen Pack'[Category Volume L] )
+
+// Rs per ml = Rs Cr x 1e7 / (litres x 1000)
+Pack Price Per Ml = DIVIDE ( [Pack Category Amount] * 10000000, [Pack Category Volume L] * 1000 )
+
+Pack Volume Share % =
+DIVIDE (
+    [Pack Category Volume L],
+    CALCULATE ( [Pack Category Volume L],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+// the pack's share of Mamaearth's own value (our contribution)
+Pack Our Contribution % =
+DIVIDE (
+    [Pack Our Amount],
+    CALCULATE ( [Pack Our Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+Pack Category Mix % =
+DIVIDE (
+    [Pack Category Amount],
+    CALCULATE ( [Pack Category Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+Pack Our Share In Pack % = DIVIDE ( [Pack Our Amount], [Pack Category Amount] )
+
+Pack Our Overall Share % =
+DIVIDE (
+    CALCULATE ( [Pack Our Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) ),
+    CALCULATE ( [Pack Category Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+Pack Presence Status =
+VAR _cat = [Pack Category Amount]
+VAR _our = [Pack Our Amount]
+VAR _inPack = [Pack Our Share In Pack %]
+VAR _overall = [Pack Our Overall Share %]
+RETURN
+    IF ( ISBLANK ( _cat ) || _cat <= 0, BLANK (),
+        IF ( COALESCE ( _our, 0 ) <= 0, "Not present",
+            IF ( _inPack < _overall * 0.5, "Under-indexed", "Present" ) ) )
+
+// what we would sell if we held our overall share in a pack where we are not present / under-indexed
+Pack Gap Amount =
+VAR _gapShare = MAX ( [Pack Our Overall Share %] - COALESCE ( [Pack Our Share In Pack %], 0 ), 0 )
+RETURN IF ( [Pack Presence Status] = "Present", 0, [Pack Category Amount] * _gapShare )
+
+Packs Not Present =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack'[Pack Size ml] ), [Pack Presence Status] = "Not present" ) )
+
+// =====================================================================
+// CHAIN CONTRIBUTION TO GROWTH  (internal Offtake, MT basis: Reliance Brand Counter excluded)
+// Read as the internal driver of growth next to the Nielsen share gain; internal NSV is not
+// Nielsen consumer offtake, so this is direction, not a split of the share change.
+// =====================================================================
+Chain NSV LY =
+CALCULATE ( [Total MT NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+Chain NSV Growth = [Total MT NSV] - [Chain NSV LY]
+
+Chain Growth % = DIVIDE ( [Chain NSV Growth], [Chain NSV LY] )
+
+Chain Share of NSV % =
+DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ) ) )
+
+Chain Share of Growth % =
+DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV Growth], ALL ( 'Chain Master'[Chain] ) ) )
+
+Chain Contribution To Growth pp =
+DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV LY], ALL ( 'Chain Master'[Chain] ) ) ) * 100
+
+// =====================================================================
+// PACK-WISE BRANDS  (table: 'Fact Nielsen Pack Brand')
+// =====================================================================
+Brand Pack Value Cr = SUM ( 'Fact Nielsen Pack Brand'[Value Cr] )
+
+Brand Share In Pack % =
+DIVIDE (
+    [Brand Pack Value Cr],
+    CALCULATE ( [Brand Pack Value Cr],
+        ALLEXCEPT ( 'Fact Nielsen Pack Brand', 'Fact Nielsen Pack Brand'[MonthStart],
+            'Fact Nielsen Pack Brand'[Nielsen Category], 'Fact Nielsen Pack Brand'[Pack Size ml] ) )
+)
+
+Brands Selling In Pack =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Brand] ), [Brand Pack Value Cr] > 0 ) )
+
+Packs Brand Sells =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Pack Size ml] ), [Brand Pack Value Cr] > 0 ) )

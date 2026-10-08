@@ -1465,6 +1465,15 @@ def validate_offtake_partition(offtake, reliance_bc=None):
     return result
 
 
+def _store_alias_map():
+    """{ALIAS MATCH KEY: canonical Match Key} from PowerBI/SeedData/Masters/Store_Key_Aliases.csv: one store listed under two codes counts once."""
+    f = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "Store_Key_Aliases.csv"
+    if not f.exists():
+        return {}
+    d = pd.read_csv(f, dtype=str).dropna(subset=["Alias Match Key", "Store Match Key"])
+    return dict(zip(d["Alias Match Key"], d["Store Match Key"]))
+
+
 def pos_store_block(site_sink, existing=None):
     """Real POS store counts per chain from the store x article offtake
     extracts' Site Code -- the chain's own store identity (see
@@ -1485,6 +1494,12 @@ def pos_store_block(site_sink, existing=None):
     (idempotent: a touched FY is fully recomputed, never added to)."""
     out = {k: v for k, v in (existing or {}).items() if k.startswith("fy")}
     by_fy = {}
+    _al = _store_alias_map()
+
+    def _canon(chain, code):
+        k = f"{str(chain).strip().upper()}|{str(code).strip().upper()}"
+        return _al.get(k, k).split("|", 1)[1]
+    site_sink = {ck: dict(e, sites={_canon(ck[0], c) for c in e["sites"]}) for ck, e in site_sink.items()}
     for (chain, mo), e in site_sink.items():
         tag = fy_tag_from_label(mo)
         if tag:
@@ -5350,6 +5365,7 @@ def load_dist_cont_weights(src):
     with the patch still applied on top of it).
     Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
     f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+    wdf = raw_sums = None      # set below only on the fallback path; declared here so every return path sees them
     if f.exists():
         w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
         src_label = "xlsx"
@@ -6429,6 +6445,7 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
     # rows across chains by the secondary-derived cont%). Row-level, BEFORE
     # any grouping, so Customer x Article grain survives into everything
     # downstream (TOT%, CM2, detail_records, the Customer x Article table).
+    _wdf = _raw_sums = _alloc_src = None
     _wdf, _raw_sums, _alloc_src = load_dist_cont_weights(src)
     _offtake_brand_set, _offtake_ean_set = build_offtake_universe(src)
     df, alloc = allocate_dist_primary(
@@ -6465,6 +6482,14 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
         def _aggx(col, fx=fx):
             s = fx.groupby(col)["_NSV"].sum().sort_values(ascending=False)
             return [{"name": k, "nsv": r2(float(v))} for k, v in s.items() if k]
+        # B1 / CB-01 (MT Leadership, 2026-10-01): zone sales are MT accounts only.
+        # eB2B and SIS keep their own channel lines (by_channel) and are never
+        # rolled into a geographic zone. Nykaa (FSN) bills eB2B, so it sits under
+        # eB2B (Decision 2 = A). nsv / by_chain / by_channel stay all-channel.
+        fx_mt = fx[fx["_Chan"] == "MT"]
+        _nonmt = fx[fx["_Chan"].isin(["EB2B", "SIS"])]
+        _acct = _nonmt.groupby(["_Chain", "_Chan"])["_NSV"].sum()
+        _mt_chains = set(fx_mt["_Chain"])
         mser = fx.groupby("_M")["_NSV"].sum()
         _months_present = [m for m in _ORDER if m in set(fx["_M"])]
         # Canonical "Mon-YY" labels (e.g. "Apr-26") matching MONTHS/offtake format so
@@ -6484,7 +6509,18 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
             "months_canon": _months_canon,
             "monthly": [r2(float(mser.get(m, 0.0))) for m in _ORDER],
             "monthly_canon": [r2(float(mser.get(m, 0.0))) for m in _months_present],
-            "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone"),
+            "by_chain": _aggx("_Chain"), "by_zone": _aggx("_Zone", fx=fx_mt),
+            "by_zone_basis": ("MT channel only (B1/CB-01, MT Leadership decision 2026-10-01): "
+                              "eB2B and SIS are reported under their own channel in by_channel, "
+                              "never inside a zone. sum(by_zone) = by_channel MT."),
+            "non_mt_by_zone": [
+                {"name": z, **{c: r2(float(v)) for c, v in g.groupby("_Chan")["_NSV"].sum().items()}}
+                for z, g in _nonmt.groupby("_Zone") if z],
+            # accounts billed only outside MT; reported under that channel, never as MT accounts
+            "non_mt_accounts": [
+                {"name": c, "channel": ch, "nsv": r2(float(v))}
+                for (c, ch), v in _acct.sort_values(ascending=False).items()
+                if c and c not in _mt_chains],
             "by_channel": _aggx("_Chan"), "by_brand": _aggx("_Brand"),
             "unit": "INR Lakh",
             "note": (f"EXACT {_tag} primary actuals from the FULL (uncapped) article-wise "

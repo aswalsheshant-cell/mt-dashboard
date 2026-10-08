@@ -15,7 +15,7 @@ on:
         default: ""
 
 permissions:
-  contents: write   # needed to create releases
+  contents: write   # needed to push market-share.html (no releases: CLAUDE.md "ZERO GitHub Releases")
 
 jobs:
   build:
@@ -72,6 +72,13 @@ jobs:
           echo "html=$HTML"    >> "$GITHUB_OUTPUT"
           echo "tag=nielsen-dashboard-${STEM,,}" >> "$GITHUB_OUTPUT"
 
+      # Fail closed before anything is built or published: a SAMPLE payload, or
+      # one without data_status GOVERNED and its source/validation references,
+      # never reaches market-share.html (scripts/build_nielsen_dashboard.py
+      # governance_errors(); the build step checks again).
+      - name: Governance guard (no sample or unregistered payload)
+        run: python scripts/build_nielsen_dashboard.py --check-only --data "${{ steps.resolve.outputs.data_file }}"
+
       - name: Build dashboard
         run: |
           python scripts/build_nielsen_dashboard.py \
@@ -106,87 +113,3 @@ jobs:
           name: nielsen-dashboard-${{ steps.names.outputs.stem }}
           path: ${{ steps.names.outputs.html }}
           retention-days: 90
-
-      - name: Create GitHub Release
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8.0.0
-        with:
-          script: |
-            const fs   = require('fs');
-            const path = require('path');
-
-            const htmlPath = '${{ steps.names.outputs.html }}';
-            const tag      = '${{ steps.names.outputs.tag }}';
-            const stem     = '${{ steps.names.outputs.stem }}';
-
-            // Create (or update) the release
-            let release;
-            try {
-              const existing = await github.rest.repos.getReleaseByTag({
-                owner: context.repo.owner,
-                repo:  context.repo.repo,
-                tag,
-              });
-              release = existing.data;
-              console.log(`Updating existing release: ${tag}`);
-            } catch {
-              const res = await github.rest.repos.createRelease({
-                owner:            context.repo.owner,
-                repo:             context.repo.repo,
-                tag_name:         tag,
-                name:             `Nielsen MS Dashboard — ${stem}`,
-                body:             [
-                  `## Nielsen Market Share Intelligence Dashboard`,
-                  `**Period:** ${stem}  |  **Built:** ${new Date().toISOString().slice(0,10)}`,
-                  '',
-                  '### How to use',
-                  '1. Download `Nielsen_MS_Dashboard_*.html` from **Assets** below.',
-                  '2. Double-click to open in Chrome / Edge — works fully offline.',
-                  '3. `Ctrl+P` → Save as PDF for executive distribution.',
-                  '',
-                  '### What\'s inside',
-                  '| Tab | Content |',
-                  '|-----|---------|',
-                  '| Overview | 6 KPI cards, trend chart, NSV × WD combo |',
-                  '| Market Share | Brand benchmark bar, competitive table, share bridge |',
-                  '| Pack Size | FW & Shampoo donut + bar breakdown |',
-                  '| Opportunity | 4 scenario cards, WD × PDO scatter, store trend |',
-                  '| 90-Day Tracker | Execution checklist with localStorage persistence |',
-                  '',
-                  '> Built with `scripts/build_nielsen_dashboard.py` · Chart.js v4.4.3 (external)',
-                ].join('\n'),
-                draft:      false,
-                prerelease: false,
-              });
-              release = res.data;
-              console.log(`Created release: ${tag} (id=${release.id})`);
-            }
-
-            // Upload the HTML file as a release asset
-            const content = fs.readFileSync(htmlPath);
-            const assetName = path.basename(htmlPath);
-
-            // Delete stale asset with same name if re-running
-            const assets = await github.rest.repos.listReleaseAssets({
-              owner:      context.repo.owner,
-              repo:       context.repo.repo,
-              release_id: release.id,
-            });
-            for (const asset of assets.data) {
-              if (asset.name === assetName) {
-                await github.rest.repos.deleteReleaseAsset({
-                  owner:    context.repo.owner,
-                  repo:     context.repo.repo,
-                  asset_id: asset.id,
-                });
-                console.log(`Deleted stale asset: ${assetName}`);
-              }
-            }
-
-            await github.rest.repos.uploadReleaseAsset({
-              owner:      context.repo.owner,
-              repo:       context.repo.repo,
-              release_id: release.id,
-              name:       assetName,
-              data:       content,
-            });
-            console.log(`Uploaded: ${assetName} (${(content.length/1024).toFixed(0)}KB)`);

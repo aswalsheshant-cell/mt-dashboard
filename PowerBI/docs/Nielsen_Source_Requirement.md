@@ -1,7 +1,7 @@
 # Nielsen Market Share — Source Requirement
 
-**Status:** DEFERRED — automated source not available  
-**Current state:** Three hardcoded slide data points in `scripts/build_dashboard_data.py`  
+**Status:** PARTLY AUTOMATED (updated 2026-10-04) — real Nielsen workbook cut for Facewash and Shampoo, market IN URB MT  
+**Current state:** `PowerBI/SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv` and `Nielsen_Pack_Monthly/nielsen_pack_urban_mt_aug26.csv`, built by `scripts/build_nielsen_powerbi_seed.py` from `data/nielsen/*.csv` (extracted from the two Aug-26 Nielsen workbooks). Other categories (Sunscreen, Face Serum) still need a Nielsen export, and state / chain level share needs a state-level Nielsen cut (the deck's Jun'26 state table is typed into `SeedData/Masters/Nielsen_Deck_StateExposure.csv`, labelled as deck figures)  
 
 ---
 

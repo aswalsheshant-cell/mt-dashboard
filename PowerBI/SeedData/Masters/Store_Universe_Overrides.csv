@@ -1,0 +1,4 @@
+Chain,Offtake Chain,Store Count,Status,Note,Source,As Of
+Reliance Retail,Reliance,1000,TENTATIVE,"Reliance offtake arrives state-wise with no store codes; about 1,000 stores is a working estimate. Reliance Brand Counter (staffed counters, offtake only) is separate and not included.",Business estimate (MT analytics lead),2026-10-04
+More Retail,More Retail,400,TENTATIVE,The offtake file has store codes for only a few stores; about 400 stores is a working estimate.,Business estimate (MT analytics lead),2026-10-04
+Nykaa (FSN),Fsn,,NA,Online / e-commerce: a store count does not apply.,Business rule (MT analytics lead),2026-10-04
