@@ -6,7 +6,7 @@ This file is a READ-ALONG REFERENCE, not something to paste as a whole.
 Power BI's New Measure formula bar holds exactly ONE measure at a time.
 For each measure below: select the _Measures table > New Measure > paste
 ONE 'Name = Expression' block (including any VAR/RETURN lines that belong
-to it) > Enter. Having ONE file open (this one) instead of 15 separate
+to it) > Enter. Having ONE file open (this one) instead of 20 separate
 files, with the calculated-column exceptions called out up front, is the
 time-saving here.
 
@@ -27,7 +27,7 @@ time-saving here.
 
 
 ##############################################################################
-# STEP 01/15  --  SOURCE FILE: 00_DateTable.dax
+# STEP 01/20  --  SOURCE FILE: 00_DateTable.dax
 # TARGET: Date Table (calculated TABLE, not a measure)
 # NOTE: Modeling > New table > paste the WHOLE file as one calculated table. Then mark as date table on [Date]. NOT part of the _Measures bulk-paste below.
 ##############################################################################
@@ -80,7 +80,7 @@ ADDCOLUMNS(
 
 
 ##############################################################################
-# STEP 02/15  --  SOURCE FILE: 01_CoreMeasures.dax
+# STEP 02/20  --  SOURCE FILE: 01_CoreMeasures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -379,7 +379,7 @@ YoY % (Like-for-Like) =
 
 
 ##############################################################################
-# STEP 03/15  --  SOURCE FILE: 02_PnL_Measures.dax
+# STEP 03/20  --  SOURCE FILE: 02_PnL_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -511,7 +511,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 04/15  --  SOURCE FILE: 03_Forecast_Measures.dax
+# STEP 04/20  --  SOURCE FILE: 03_Forecast_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -611,7 +611,7 @@ Actual or Forecast = IF ( [Has Actual], [Actual NSV], [Final Forecast] )
 
 
 ##############################################################################
-# STEP 05/15  --  SOURCE FILE: 04_Nielsen_Measures.dax
+# STEP 05/20  --  SOURCE FILE: 04_Nielsen_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -660,10 +660,113 @@ DIVIDE ( [Our Brand Sales] - CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Tabl
 Share Gain Flag =
 IF ( [Our Brand Growth %] > [Category Value Growth %], "Gaining Share", "Losing Share" )
 
+// =====================================================================
+// NIELSEN PACK PRESENCE  (table: 'Fact Nielsen Pack')
+// Value basis (Rs Cr) for both categories; volume columns are there for price per ml and volume share.
+// Status: Not present = no Mamaearth sales in the pack; Under-indexed = our share in the pack is
+// below half of our overall share in the category; else Present.
+// =====================================================================
+Pack Category Amount = SUM ( 'Fact Nielsen Pack'[Category Value Cr] )
+Pack Our Amount      = SUM ( 'Fact Nielsen Pack'[Our Value Cr] )
+Pack Category Volume L = SUM ( 'Fact Nielsen Pack'[Category Volume L] )
+
+// Rs per ml = Rs Cr x 1e7 / (litres x 1000)
+Pack Price Per Ml = DIVIDE ( [Pack Category Amount] * 10000000, [Pack Category Volume L] * 1000 )
+
+Pack Volume Share % =
+DIVIDE (
+    [Pack Category Volume L],
+    CALCULATE ( [Pack Category Volume L],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+// the pack's share of Mamaearth's own value (our contribution)
+Pack Our Contribution % =
+DIVIDE (
+    [Pack Our Amount],
+    CALCULATE ( [Pack Our Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+Pack Category Mix % =
+DIVIDE (
+    [Pack Category Amount],
+    CALCULATE ( [Pack Category Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+Pack Our Share In Pack % = DIVIDE ( [Pack Our Amount], [Pack Category Amount] )
+
+Pack Our Overall Share % =
+DIVIDE (
+    CALCULATE ( [Pack Our Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) ),
+    CALCULATE ( [Pack Category Amount],
+        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )
+)
+
+Pack Presence Status =
+VAR _cat = [Pack Category Amount]
+VAR _our = [Pack Our Amount]
+VAR _inPack = [Pack Our Share In Pack %]
+VAR _overall = [Pack Our Overall Share %]
+RETURN
+    IF ( ISBLANK ( _cat ) || _cat <= 0, BLANK (),
+        IF ( COALESCE ( _our, 0 ) <= 0, "Not present",
+            IF ( _inPack < _overall * 0.5, "Under-indexed", "Present" ) ) )
+
+// what we would sell if we held our overall share in a pack where we are not present / under-indexed
+Pack Gap Amount =
+VAR _gapShare = MAX ( [Pack Our Overall Share %] - COALESCE ( [Pack Our Share In Pack %], 0 ), 0 )
+RETURN IF ( [Pack Presence Status] = "Present", 0, [Pack Category Amount] * _gapShare )
+
+Packs Not Present =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack'[Pack Size ml] ), [Pack Presence Status] = "Not present" ) )
+
+// =====================================================================
+// CHAIN CONTRIBUTION TO GROWTH  (internal Offtake, MT basis: Reliance Brand Counter excluded)
+// Read as the internal driver of growth next to the Nielsen share gain; internal NSV is not
+// Nielsen consumer offtake, so this is direction, not a split of the share change.
+// =====================================================================
+Chain NSV LY =
+CALCULATE ( [Total MT NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+
+Chain NSV Growth = [Total MT NSV] - [Chain NSV LY]
+
+Chain Growth % = DIVIDE ( [Chain NSV Growth], [Chain NSV LY] )
+
+Chain Share of NSV % =
+DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ) ) )
+
+Chain Share of Growth % =
+DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV Growth], ALL ( 'Chain Master'[Chain] ) ) )
+
+Chain Contribution To Growth pp =
+DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV LY], ALL ( 'Chain Master'[Chain] ) ) ) * 100
+
+// =====================================================================
+// PACK-WISE BRANDS  (table: 'Fact Nielsen Pack Brand')
+// =====================================================================
+Brand Pack Value Cr = SUM ( 'Fact Nielsen Pack Brand'[Value Cr] )
+
+Brand Share In Pack % =
+DIVIDE (
+    [Brand Pack Value Cr],
+    CALCULATE ( [Brand Pack Value Cr],
+        ALLEXCEPT ( 'Fact Nielsen Pack Brand', 'Fact Nielsen Pack Brand'[MonthStart],
+            'Fact Nielsen Pack Brand'[Nielsen Category], 'Fact Nielsen Pack Brand'[Pack Size ml] ) )
+)
+
+Brands Selling In Pack =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Brand] ), [Brand Pack Value Cr] > 0 ) )
+
+Packs Brand Sells =
+COUNTROWS ( FILTER ( VALUES ( 'Fact Nielsen Pack Brand'[Pack Size ml] ), [Brand Pack Value Cr] > 0 ) )
+
 
 
 ##############################################################################
-# STEP 06/15  --  SOURCE FILE: 05_TDP_Measures.dax
+# STEP 06/20  --  SOURCE FILE: 05_TDP_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -738,7 +841,7 @@ MS vs TDP Index = DIVIDE ( [Market Share %] * 100, [TDP] )
 
 
 ##############################################################################
-# STEP 07/15  --  SOURCE FILE: 06_DataQuality_Measures.dax
+# STEP 07/20  --  SOURCE FILE: 06_DataQuality_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -975,7 +1078,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 08/15  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
+# STEP 08/20  --  SOURCE FILE: 07_PrimaryAllocation_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1208,7 +1311,7 @@ CALCULATE (
 
 
 ##############################################################################
-# STEP 09/15  --  SOURCE FILE: 08_ForecastQC_Measures.dax
+# STEP 09/20  --  SOURCE FILE: 08_ForecastQC_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1281,7 +1384,7 @@ CALCULATE ( COUNTROWS ( 'Fact Offtake Sales' ),
 
 
 ##############################################################################
-# STEP 10/15  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
+# STEP 10/20  --  SOURCE FILE: 09_ArticleAllocation_Eligibility.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1449,7 +1552,7 @@ CALCULATE ( [Chain Allocated Primary NSV],
 
 
 ##############################################################################
-# STEP 11/15  --  SOURCE FILE: 10_SIS_Reconciliation.dax
+# STEP 11/20  --  SOURCE FILE: 10_SIS_Reconciliation.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1528,7 +1631,7 @@ Offtake Channel Coverage % =
 
 
 ##############################################################################
-# STEP 12/15  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
+# STEP 12/20  --  SOURCE FILE: 11_ExportDisplay_Measures.dax
 # TARGET: _Measures table
 ##############################################################################
 // =====================================================================
@@ -1634,7 +1737,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 13/15  --  SOURCE FILE: 12_TOT_Measures.dax
+# STEP 13/20  --  SOURCE FILE: 12_TOT_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'Fact Primary Article'[TOT Method] / [TOT Pass-on Value] blocks near the top, which are CALCULATED COLUMNS on Fact Primary Article (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -1830,7 +1933,7 @@ RETURN
 
 
 ##############################################################################
-# STEP 14/15  --  SOURCE FILE: 13_CM2_Measures.dax
+# STEP 14/20  --  SOURCE FILE: 13_CM2_Measures.dax
 # TARGET: _Measures table -- EXCEPT the commented-out 'PL Expense Input'[Resolved Chain] / [Resolved Brand] / [Resolved Category] / [Bad Brand Or Category] blocks near the top, which are CALCULATED COLUMNS on PL Expense Input (add via that table > New column), not measures.
 ##############################################################################
 // =====================================================================
@@ -2040,7 +2143,7 @@ RETURN SUMX ( FILTER ( _grouped, [RowCount] > 1 ), [RowCount] - 1 )
 
 
 ##############################################################################
-# STEP 15/15  --  SOURCE FILE: 14_SecondarySales_Measures.dax
+# STEP 15/20  --  SOURCE FILE: 14_SecondarySales_Measures.dax
 # TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)
 # NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar.
 ##############################################################################
@@ -2189,3 +2292,424 @@ RETURN
 VAR _st = [Sell-Through %]
 RETURN
     IF ( ISBLANK ( _st ), "–", FORMAT ( _st, "0.0%" ) )
+
+
+
+##############################################################################
+# STEP 16/20  --  SOURCE FILE: 16_PriceVolume_Measures.dax
+# TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// PRICE / VOLUME, REALISATION, ZONE PRICE INDEX, CATEGORY PRESENCE
+// Tables: 'Fact Offtake Sales' (units, NSV, MRP sales), 'Chain Master', 'Fact Nielsen'.
+// Offtake basis: MT only, so Reliance Brand Counter is left out (Primary is never touched).
+// value = units x ASP:  volume effect = ASP_base x change in units;
+//                       price / mix effect = units_now x change in ASP.  The two add up to the NSV change.
+// =====================================================================
+
+// ---------- INTERNAL MT OFFTAKE ----------
+MT Offtake Qty = CALCULATE ( [Total Offtake Qty], 'Chain Master'[Channel] = "MT" )
+MT MRP Sales   = CALCULATE ( [Total MRP Sales],   'Chain Master'[Channel] = "MT" )
+
+MT ASP = DIVIDE ( [Total MT NSV], [MT Offtake Qty] )
+
+// NSV as a share of MRP sales: how much of the shelf price we keep
+MT Realisation % = DIVIDE ( [Total MT NSV], [MT MRP Sales] )
+
+MT Offtake Qty PM = CALCULATE ( [MT Offtake Qty], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+MT ASP PM         = CALCULATE ( [MT ASP],         DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+
+MT Volume Effect MoM =
+IF ( ISBLANK ( [MT ASP PM] ), BLANK (), [MT ASP PM] * ( [MT Offtake Qty] - [MT Offtake Qty PM] ) )
+
+MT Price Mix Effect MoM =
+IF ( ISBLANK ( [MT ASP PM] ), BLANK (), [MT Offtake Qty] * ( [MT ASP] - [MT ASP PM] ) )
+
+MT Price Volume Check MoM =
+[MT Volume Effect MoM] + [MT Price Mix Effect MoM] - ( [Total MT NSV] - CALCULATE ( [Total MT NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )
+
+MT Volume Effect YoY =
+VAR _asp = CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+VAR _qty = CALCULATE ( [MT Offtake Qty], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _asp ), BLANK (), _asp * ( [MT Offtake Qty] - _qty ) )
+
+MT Price Mix Effect YoY =
+VAR _asp = CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _asp ), BLANK (), [MT Offtake Qty] * ( [MT ASP] - _asp ) )
+
+// zone (or chain / brand) ASP against the MT average, 100 = average
+Zone Price Index =
+DIVIDE ( [MT ASP], CALCULATE ( [MT ASP], ALL ( 'Fact Offtake Sales'[Zone] ) ) ) * 100
+
+Chain Price Index =
+DIVIDE ( [MT ASP], CALCULATE ( [MT ASP], ALL ( 'Chain Master'[Chain] ) ) ) * 100
+
+// ---------- NIELSEN (consumer offtake, IN URB MT) ----------
+// Fact Nielsen[Volume 000 L] and [Price Per Ml] are loaded when the drop file carries them.
+Nielsen Volume 000 L = SUM ( 'Fact Nielsen'[Volume 000 L] )
+
+// Rs per ml = Rs / ( thousand litres x 1000 x 1000 )
+Nielsen Price Per Ml = DIVIDE ( [Our Brand Sales], [Nielsen Volume 000 L] * 1000000 )
+
+Nielsen Volume Effect YoY =
+VAR _vol = CALCULATE ( [Nielsen Volume 000 L], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+VAR _ppml = CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _ppml ), BLANK (), ( [Nielsen Volume 000 L] - _vol ) * _ppml * 1000000 )
+
+Nielsen Price Mix Effect YoY =
+VAR _ppml = CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN IF ( ISBLANK ( _ppml ), BLANK (), [Nielsen Volume 000 L] * ( [Nielsen Price Per Ml] - _ppml ) * 1000000 )
+
+// ---------- CATEGORY PRESENCE (our own mix; Nielsen sizes only Facewash and Shampoo) ----------
+// A sub-category that earns a real share of our NSV in all chains but little in one chain is a
+// presence gap. Market size by category needs a Nielsen export for that category.
+Subcat Share In Chain % =
+DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )
+
+Subcat Share All Chains % =
+DIVIDE (
+    CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ) ),
+    CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ), ALL ( 'Fact Offtake Sales'[Sub-category] ) )
+)
+
+Subcat Presence Status =
+VAR _all = [Subcat Share All Chains %]
+VAR _in = COALESCE ( [Subcat Share In Chain %], 0 )
+RETURN
+    IF ( ISBLANK ( _all ) || _all < 0.02, BLANK (),
+        IF ( _in <= 0, "Absent", IF ( _in < _all * 0.6, "Under-weight", "Present" ) ) )
+
+Subcat Gap NSV =
+VAR _gap = MAX ( [Subcat Share All Chains %] - COALESCE ( [Subcat Share In Chain %], 0 ), 0 )
+RETURN IF ( [Subcat Presence Status] IN { "Absent", "Under-weight" },
+    _gap * CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )
+
+// ---------- CORPORATE-VISIT CITIES (tables: 'Store City Master', 'Visit City List') ----------
+// Needs 'Fact Offtake Sales'[Match Key] (calculated column, see 49_Store_City_Master.pq) related to 'Store City Master'[Match Key].
+Visit Stores = DISTINCTCOUNT ( 'Store City Master'[Store Key] )
+
+Visit City NSV =
+CALCULATE ( [Total MT NSV], 'Store City Master'[Visit Status] = "Considered" )
+
+Near Listed NSV =
+CALCULATE ( [Total MT NSV], 'Store City Master'[Visit Status] = "Near listed city" )
+
+// share of MT NSV that is attached to a store in the master (should be close to 100%)
+Visit Master Match % =
+DIVIDE (
+    CALCULATE ( [Total MT NSV], NOT ISBLANK ( 'Store City Master'[Store Key] ) ),
+    [Total MT NSV]
+)
+
+Visit City NSV MoM % =
+VAR _pm = CALCULATE ( [Visit City NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN DIVIDE ( [Visit City NSV] - _pm, _pm )
+
+// ---------- ONE STORE UNIVERSE (Executive Cockpit and Inventory & Supply Health use the same count) ----------
+// POS stores = distinct Store Code selling in the selected month(s). Chains in 'Store Universe Overrides' are taken from that table
+// instead: TENTATIVE counts are added, NA chains (Nykaa / FSN) are not counted.
+Universe POS Stores =
+CALCULATE (
+    DISTINCTCOUNT ( 'Fact Offtake Sales'[Store Code] ),
+    NOT ( 'Fact Offtake Sales'[Chain] IN VALUES ( 'Store Universe Overrides'[Offtake Chain] ) )
+)
+
+Universe Tentative Stores =
+CALCULATE ( SUM ( 'Store Universe Overrides'[Store Count] ), 'Store Universe Overrides'[Status] = "TENTATIVE" )
+
+Universe Stores = [Universe POS Stores] + COALESCE ( [Universe Tentative Stores], 0 )
+
+Universe Stores Note =
+"Includes ~" & FORMAT ( COALESCE ( [Universe Tentative Stores], 0 ), "#,0" ) & " tentative stores (Reliance Retail, More Retail); Nykaa / FSN is NA"
+
+// actual universe (stores in the maintained store master, Brand Counter counters left out) against the stores counted as available
+Universe Master Stores =
+CALCULATE (
+    DISTINCTCOUNT ( 'Store City Master'[Store Key] ),
+    NOT ( CONTAINSSTRING ( 'Store City Master'[Store Key], "|NO-CITY" ) ),
+    'Store City Master'[Chain Name] <> "Reliance Brand Counter"
+)
+
+Universe Availability % = DIVIDE ( [Universe Stores], [Universe Master Stores] )
+
+
+
+##############################################################################
+# STEP 17/20  --  SOURCE FILE: 17_Account_Share_Measures.dax
+# TARGET: _Measures table (needs queries 53-55 and Date Table)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// ACCOUNT (RETAILER) CATEGORY SHARE  (tables: 'Fact Account Category', 'Fact Account Category Geo', 'Fact Account Assortment')
+// Account sales = the chain's own category sales; our sales = Honasa sales in the same categories, Rs lakh without GST.
+// Reliance Retail and Reliance Brand Counter (the staffed counters) come from the Reliance file: gross sales as supplied, so compare shares, not rupees.
+// Never add Reliance Retail and Reliance Brand Counter together; they are two separate sets of stores.
+// Lulu and More Retail cover the categories and stores where we sell; More Retail months before Jun 26 are on a smaller scope:
+// read More Retail month on month only within Jun-Aug 26 (the Scope column says which scope a row is on).
+// For "Level" use "Category" (class level for More Retail) unless you want More Retail sub-classes.
+// =====================================================================
+Account Sales Lakh = CALCULATE ( SUM ( 'Fact Account Category'[Account Sales Rs L] ), 'Fact Account Category'[Level] = "Category" )
+Our Account Sales Lakh = CALCULATE ( SUM ( 'Fact Account Category'[Honasa Sales Rs L] ), 'Fact Account Category'[Level] = "Category" )
+
+Account Share % = DIVIDE ( [Our Account Sales Lakh], [Account Sales Lakh] )
+
+Account Sales MoM % =
+VAR _pm = CALCULATE ( [Account Sales Lakh], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN DIVIDE ( [Account Sales Lakh] - _pm, _pm )
+
+Our Account Sales MoM % =
+VAR _pm = CALCULATE ( [Our Account Sales Lakh], DATEADD ( 'Date Table'[Date], -1, MONTH ) )
+RETURN DIVIDE ( [Our Account Sales Lakh] - _pm, _pm )
+
+Account Share Change pp =
+( [Account Share %] - CALCULATE ( [Account Share %], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) ) * 100
+
+Account Face Wash Share % =
+CALCULATE ( [Account Share %], 'Fact Account Category'[Common Category] = "Face Wash & Cleanser" )
+
+// the category's weight in the chain's category sales, and our chain-wide share (all categories in the same chain and month)
+Account Category % Of Chain =
+DIVIDE ( [Account Sales Lakh], CALCULATE ( [Account Sales Lakh], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ) ) )
+
+Account Chain Share % =
+CALCULATE ( [Account Share %], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ) )
+
+Our Articles In Category = MAX ( 'Fact Account Assortment'[Articles] )
+
+// white space: category is 2% or more of the chain and our share is under 0.5%; low assortment: 3 or fewer articles and below the chain share
+// only categories that matter to us (at least 0.5% of our own sales across the chains, not "Other") are ever flagged: [Relevant For Us] = "No" gives a blank
+Account White Space Flag =
+VAR _rel = SELECTEDVALUE ( 'Fact Account Category'[Relevant For Us], "Yes" )
+VAR _pct = [Account Category % Of Chain]
+VAR _share = COALESCE ( [Account Share %], 0 )
+VAR _chain = [Account Chain Share %]
+VAR _art = [Our Articles In Category]
+RETURN
+    IF ( _rel = "No" || ISBLANK ( _pct ) || _pct < 0.02, BLANK (),
+        IF ( _share < 0.005, "White space",
+            IF ( NOT ISBLANK ( _art ) && _art <= 3 && _share < _chain, "Low assortment",
+                IF ( _share < _chain * 0.5, "Below chain average",
+                    IF ( _share >= _chain * 1.5, "Strong", BLANK () ) ) ) ) )
+
+// our share in the rest of our range (without Face Wash and Shampoo): the realistic target for a thin category
+Account Rest Of Range Share % =
+CALCULATE ( [Account Share %], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ),
+    NOT ( 'Fact Account Category'[Common Category] IN { "Face Wash & Cleanser", "Shampoo" } ) )
+
+// gap to that target, Rs lakh a month, for white space / low assortment / below average rows (Face Wash and Shampoo use the chain-wide share)
+Account Share Gap Lakh =
+VAR _c = SELECTEDVALUE ( 'Fact Account Category'[Common Category] )
+VAR _target = IF ( _c IN { "Face Wash & Cleanser", "Shampoo" }, [Account Chain Share %], [Account Rest Of Range Share %] )
+RETURN
+IF ( [Account White Space Flag] IN { "White space", "Low assortment", "Below chain average" },
+    MAX ( _target - COALESCE ( [Account Share %], 0 ), 0 ) * [Account Sales Lakh] )
+
+Account Scope Note = SELECTEDVALUE ( 'Fact Account Category'[Scope], "More than one scope selected" )
+
+// zone / state / city cuts (Lulu, More Retail and Reliance; Wellness Forever has category level only)
+Account Geo Sales Lakh = SUM ( 'Fact Account Category Geo'[Account Sales Rs L] )
+Our Geo Sales Lakh = SUM ( 'Fact Account Category Geo'[Honasa Sales Rs L] )
+Account Geo Share % = DIVIDE ( [Our Geo Sales Lakh], [Account Geo Sales Lakh] )
+
+
+
+##############################################################################
+# STEP 18/20  --  SOURCE FILE: 18_Nielsen_Brand_Cut_Measures.dax
+# TARGET: _Measures table (needs query 57 and Date Table)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// NIELSEN BRAND CUTS  (table: 'Fact Nielsen Brand Cut'; the Nielsen Cuts tab of the market-share report)
+// Use with Nielsen Category and Brand slicers and one month. WD, ND and SAH are percentage points; shares are decimals.
+// The "(Category)" row (Is Category Row = "Yes") holds the category value and price per ml; brand visuals should filter it out.
+// =====================================================================
+Cut Brand Value Cr = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Category Value Cr = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "Yes", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )
+Cut Value Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Value Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Volume Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Volume Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+// value share above volume share = the brand sells at a price above the category average
+Cut Value Less Volume Share pp = ( [Cut Value Share %] - [Cut Volume Share %] ) * 100
+
+Cut Brand Price Per Ml = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Price Per Ml] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Category Price Per Ml =
+CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Price Per Ml] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "Yes", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )
+// 100 = the category price per ml
+Cut Price Index = DIVIDE ( [Cut Brand Price Per Ml], [Cut Category Price Per Ml] ) * 100
+Cut Price Per Ml YoY % =
+VAR _ly = CALCULATE ( [Cut Brand Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN DIVIDE ( [Cut Brand Price Per Ml] - _ly, _ly )
+
+Cut WD % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[WD %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut ND % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[ND %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut WD Change pp = [Cut WD %] - CALCULATE ( [Cut WD %], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+// weighted above numeric distribution = in the larger stores first; the gap is the smaller stores still open
+Cut WD Less ND pp = [Cut WD %] - [Cut ND %]
+Cut Stores = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Stores] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Sales Per Store Rs = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Sales Per Store Rs] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut SAH % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[SAH %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+
+// share earned per point of weighted distribution (percentage points of share per WD point)
+Cut Share Per WD Point = DIVIDE ( [Cut Value Share %] * 100, [Cut WD %] )
+// ceiling for the distribution lever: where we are listed we hold SAH; at 95% WD the share would be about SAH x 0.95 (only when WD is below 95)
+Cut Share At 95 WD % = IF ( [Cut WD %] < 95, [Cut SAH %] / 100 * 0.95 )
+Cut Share Headroom pp = IF ( ISBLANK ( [Cut Share At 95 WD %] ), BLANK (), ( [Cut Share At 95 WD %] - [Cut Value Share %] ) * 100 )
+// rupee value of one share point in this category, Rs Cr a month
+Cut Value Of One Share Point Cr = DIVIDE ( [Cut Category Value Cr], 100 )
+
+
+
+##############################################################################
+# STEP 19/20  --  SOURCE FILE: 19_Dynamic_Drill_Measures.dax
+# TARGET: _Measures table (needs the core, price/volume measures and Date Table)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// DYNAMIC DRILL: measures that make one chart answer more than one question and let a tooltip / drill-through page show 3 heads at once.
+// Model NSV is in rupees (Total MT NSV); shown in Rs crore here. Works at any level of the Geography / Product / Chain / Time hierarchies.
+// Heads: SALES (value, MoM, YoY), MIX (share of the selection, share of growth), PRICE (ASP, realisation), REACH (stores selling).
+// =====================================================================
+Drill NSV Cr = DIVIDE ( [Total MT NSV], 10000000 )
+Drill Stores Selling = DISTINCTCOUNT ( 'Fact Offtake Sales'[Store Code] )
+
+// share of everything currently selected (the parent level when you drill down): 100% at the top, the slice of the parent one level down
+Drill Share Of Selection % = DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALLSELECTED () ) )
+
+// growth in rupees against the same month last year, and the part of the whole selection's growth this slice carries
+Drill YoY Change Cr = DIVIDE ( [Total MT NSV] - [Last Year Same Month NSV], 10000000 )
+Drill Share Of Growth % =
+VAR _all = CALCULATE ( [Total MT NSV] - [Last Year Same Month NSV], ALLSELECTED () )
+RETURN DIVIDE ( [Total MT NSV] - [Last Year Same Month NSV], _all )
+
+// one line per head, for tooltip pages and card visuals (text measures)
+Drill Head Sales =
+"NSV Rs " & FORMAT ( [Drill NSV Cr], "#,##0.00" ) & " Cr · MoM " & FORMAT ( [MoM Growth %], "+0.0%;-0.0%;0.0%" ) & " · YoY " & FORMAT ( [YoY Growth %], "+0.0%;-0.0%;0.0%" )
+Drill Head Mix =
+FORMAT ( [Drill Share Of Selection %], "0.0%" ) & " of the selection · carries " & FORMAT ( [Drill Share Of Growth %], "0%" ) & " of the YoY growth"
+Drill Head Price =
+"ASP Rs " & FORMAT ( [MT ASP], "#,##0.0" ) & " per unit · realisation " & FORMAT ( [MT Realisation %], "0%" ) & " of MRP"
+Drill Head Reach =
+FORMAT ( [Drill Stores Selling], "#,##0" ) & " stores selling · Rs " & FORMAT ( DIVIDE ( [Total MT NSV], [Drill Stores Selling] ) / 100000, "#,##0.00" ) & " L per store"
+
+// the verdict word on the tooltip: growing faster or slower than the selection as a whole
+Drill Pace Flag =
+VAR _ours = [YoY Growth %]
+VAR _all = CALCULATE ( [YoY Growth %], ALLSELECTED () )
+RETURN IF ( ISBLANK ( _ours ) || ISBLANK ( _all ), BLANK (), IF ( _ours >= _all, "Growing faster than the selection", "Growing slower than the selection" ) )
+
+
+
+##############################################################################
+# STEP 20/20  --  SOURCE FILE: 20_Store_Type_Pack_Measures.dax
+# TARGET: _Measures table (needs queries 58 and 59)
+# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar.
+##############################################################################
+// =====================================================================
+// STORE TYPE (LFL / NFL) and PACK SIZE measures. Tables: 'Fact Store Type' (query 58) and 'Fact Pack Size' (query 59).
+// Period of the store table = Apr-Aug FY27 against the same months last year, so these do not move with the Date slicer; the page title must say the period.
+// Rupees are shown in Rs crore. Every ratio uses DIVIDE.
+// =====================================================================
+
+// ---------- LFL / NFL ----------
+LFL NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "LFL" ), 10000000 )
+
+LFL NSV LY Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = "LFL" ), 10000000 )
+
+LFL Growth % = DIVIDE ( [LFL NSV Cr] - [LFL NSV LY Cr], [LFL NSV LY Cr] )
+
+NFL NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "NFL" ), 10000000 )
+
+New Stores NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[NFL Kind] = "New" ), 10000000 )
+
+Restarted Stores NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[NFL Kind] = "Restarted" ), 10000000 )
+
+New Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[NFL Kind] = "New" )
+Restarted Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[NFL Kind] = "Restarted" )
+
+No LY Store Data NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "No LY store data" ), 10000000 )
+
+Lost Stores LY NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = "Lost" ), 10000000 )
+
+Store Type NSV This Year Cr = DIVIDE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 10000000 )
+
+LFL Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = "LFL" )
+NFL Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = "NFL" )
+Lost Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = "Lost" )
+
+NFL Share Of NSV % = DIVIDE ( [NFL NSV Cr], [Store Type NSV This Year Cr] )
+
+// Same-store growth in rupees: how much of the growth the old stores gave (the rest comes from new stores)
+// Store-level growth rule: only stores with 3 or more months of sales last year (Growth Basis = "Enough history"). Use these on store lists and rankings.
+LFL NSV (3+ months) Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "LFL", 'Fact Store Type'[Growth Basis] = "Enough history" ), 10000000 )
+
+LFL NSV LY (3+ months) Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = "LFL", 'Fact Store Type'[Growth Basis] = "Enough history" ), 10000000 )
+
+LFL Growth % (3+ months) = DIVIDE ( [LFL NSV (3+ months) Cr] - [LFL NSV LY (3+ months) Cr], [LFL NSV LY (3+ months) Cr] )
+
+Store Growth % (3+ months) =
+    IF (
+        SELECTEDVALUE ( 'Fact Store Type'[Growth Basis] ) = "Thin history",
+        BLANK (),
+        DIVIDE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ) - SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ) )
+    )
+
+LFL Growth Cr = [LFL NSV Cr] - [LFL NSV LY Cr]
+
+Store Type Insight =
+    IF (
+        ISBLANK ( [LFL NSV LY Cr] ),
+        "No like-for-like base for this selection (Reliance Retail has no store-level last year)",
+        "Same stores " & FORMAT ( [LFL Growth %], "+0%;-0%" ) & " · " & FORMAT ( [New Stores], "#,0" ) & " new stores add Rs " & FORMAT ( [New Stores NSV Cr], "0.0" ) & " Cr, " & FORMAT ( [Restarted Stores], "#,0" ) & " restarted add Rs " & FORMAT ( [Restarted Stores NSV Cr], "0.0" ) & " Cr · "
+            & FORMAT ( [Lost Stores], "#,0" ) & " stores sold last year, nothing this year"
+    )
+
+// ---------- PACK SIZE ----------
+Pack NSV Cr = DIVIDE ( SUM ( 'Fact Pack Size'[NSV Rs] ), 10000000 )
+
+Pack Share % = DIVIDE ( [Pack NSV Cr], CALCULATE ( [Pack NSV Cr], ALL ( 'Fact Pack Size'[Pack] ) ) )
+
+Pack NSV Last Month Cr =
+    VAR _m = MAX ( 'Fact Pack Size'[MonthStart] )
+    RETURN CALCULATE ( [Pack NSV Cr], ALL ( 'Fact Pack Size'[MonthStart], 'Fact Pack Size'[Month] ), 'Fact Pack Size'[MonthStart] = EDATE ( _m, -1 ) )
+
+// Only meaningful when one month is selected; with the full period it shows blank rather than a wrong number
+Pack MoM % =
+    IF ( DISTINCTCOUNT ( 'Fact Pack Size'[MonthStart] ) = 1, DIVIDE ( [Pack NSV Cr] - [Pack NSV Last Month Cr], [Pack NSV Last Month Cr] ) )
+
+Pack Insight =
+    VAR _top = TOPN ( 1, VALUES ( 'Fact Pack Size'[Pack] ), [Pack NSV Cr], DESC )
+    RETURN "Biggest pack: " & MAXX ( _top, 'Fact Pack Size'[Pack] ) & " g/ml · " & FORMAT ( MAXX ( _top, [Pack Share %] ), "0%" ) & " of NSV"
+
+// ---------- SALES CUTS (zone, brand, sub-category) : table 'Fact Sales Cuts' (query 60) ----------
+Cut NSV Cr = DIVIDE ( SUM ( 'Fact Sales Cuts'[NSV Rs] ), 10000000 )
+
+Cut Share % =
+    DIVIDE ( [Cut NSV Cr], CALCULATE ( [Cut NSV Cr], ALLSELECTED ( 'Fact Sales Cuts'[Zone], 'Fact Sales Cuts'[Brand], 'Fact Sales Cuts'[Sub Category] ) ) )
+
+Cut LFL NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Sales Cuts'[NSV Rs] ), 'Fact Sales Cuts'[Store Type] = "LFL" ), 10000000 )
+
+Cut Last Month NSV Cr =
+    VAR _m = MAX ( 'Fact Sales Cuts'[MonthStart] )
+    RETURN CALCULATE ( [Cut NSV Cr], ALL ( 'Fact Sales Cuts'[MonthStart], 'Fact Sales Cuts'[Month] ), 'Fact Sales Cuts'[MonthStart] = EDATE ( _m, -1 ) )
+
+// Only meaningful for one month; blank for the full period rather than a wrong number
+Cut MoM % =
+    IF ( DISTINCTCOUNT ( 'Fact Sales Cuts'[MonthStart] ) = 1, DIVIDE ( [Cut NSV Cr] - [Cut Last Month NSV Cr], [Cut Last Month NSV Cr] ) )
+
+// ---------- IN-HOUSE DISTRIBUTION (not TDP) : table 'Fact Inhouse Distribution' (query 61). Always filter Level to one value. ----------
+Inhouse Stores Selling = SUM ( 'Fact Inhouse Distribution'[Stores Selling] )
+Inhouse SKUs Selling = SUM ( 'Fact Inhouse Distribution'[SKUs Selling] )
+Inhouse SKU Listings = SUM ( 'Fact Inhouse Distribution'[SKU Listings] )
+Inhouse SKUs Per Store = DIVIDE ( [Inhouse SKU Listings], [Inhouse Stores Selling] )
+Inhouse Store Reach % =
+    DIVIDE ( [Inhouse Stores Selling], SUM ( 'Fact Inhouse Distribution'[Stores In Master] ) )

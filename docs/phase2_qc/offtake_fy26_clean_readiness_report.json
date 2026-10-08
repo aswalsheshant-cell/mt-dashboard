@@ -1,0 +1,136 @@
+{
+  "run_id": "20261004T150031Z_733bb942",
+  "generated_at_utc": "2026-10-04T15:00:31.785020+00:00",
+  "git_commit": "22f0c40fd01016efaf49c27ea64fb70d7c059257",
+  "validator_version": "1.1.0",
+  "detected_grain": "Month x Chain x Store Code x Article",
+  "source_filename": "/tmp/claude-0/qc/contract2.csv",
+  "source_checksum_sha256": "efab42bb7273aefdb6f39e286efca52131743ec6feb20463d31e66346d8b046a",
+  "row_count": 2072432,
+  "date_range": {
+    "min": "Apr-25",
+    "max": "Mar-26"
+  },
+  "final_verdict": "READY_WITH_GOVERNED_EXCEPTIONS",
+  "hard_fail_count": 0,
+  "warning_count": 3,
+  "checks": [
+    {
+      "check": "required_columns",
+      "status": "PASS",
+      "missing_columns": []
+    },
+    {
+      "check": "month_coverage",
+      "status": "PASS",
+      "months_present": [
+        "Apr-25",
+        "May-25",
+        "Jun-25",
+        "Jul-25",
+        "Aug-25",
+        "Sep-25",
+        "Oct-25",
+        "Nov-25",
+        "Dec-25",
+        "Jan-26",
+        "Feb-26",
+        "Mar-26"
+      ],
+      "months_present_count": 12,
+      "months_expected": 12
+    },
+    {
+      "check": "period_window",
+      "status": "PASS",
+      "out_of_window_months": [],
+      "expected_window": "Apr-25 through Mar-26"
+    },
+    {
+      "check": "invalid_month_formats",
+      "status": "PASS",
+      "unparseable_month_row_count": 0
+    },
+    {
+      "check": "duplicate_grain",
+      "status": "WARN",
+      "duplicate_row_count": 42769,
+      "duplicate_group_count": 3345
+    },
+    {
+      "check": "store_identity_conflicts",
+      "status": "PASS",
+      "conflicts": []
+    },
+    {
+      "check": "duplicate_store_ids",
+      "status": "PASS",
+      "distinct_store_months": 110794,
+      "note": "cross-reference count; the actual identity-collision detector is store_identity_conflicts"
+    },
+    {
+      "check": "missing_identifiers",
+      "status": "WARN",
+      "missing_counts": {
+        "Store Code": 46920,
+        "Article": 1,
+        "Chain": 0
+      }
+    },
+    {
+      "check": "article_mapping_quality",
+      "status": "PASS",
+      "pct_populated": 100.0,
+      "blank_count": 1,
+      "total_rows": 2072432
+    },
+    {
+      "check": "unknown_master_values",
+      "status": "WARN",
+      "exceptions": {
+        "unknown_chain": [
+          "Nykaa FSN",
+          "Reliance Brand Counter",
+          "Sancus (RMT)",
+          "Vijetha"
+        ]
+      },
+      "note": "an unrecognized chain name is a governed business exception requiring review, not an automatic hard block and never silently mapped or dropped"
+    },
+    {
+      "check": "financial_values",
+      "status": "PASS",
+      "non_numeric_nsv_count": 0,
+      "non_numeric_units_count": 0,
+      "negative_nsv_count": 1514,
+      "negative_units_count": 1513,
+      "note": "negative values are not itself a failure -- returns/credit notes are real (see PR #167's TestNegativeValues precedent) -- reported for visibility, not blocked."
+    },
+    {
+      "check": "nan_infinity",
+      "status": "PASS",
+      "infinity_count": 0
+    },
+    {
+      "check": "missing_as_zero_treatment",
+      "status": "PASS",
+      "genuinely_missing_nsv_rows": 0,
+      "real_zero_nsv_rows": 509,
+      "note": "counted separately by design -- a missing row and a real zero must never be read as the same thing downstream"
+    },
+    {
+      "check": "source_total_reconciliation",
+      "status": "NOT_CHECKED",
+      "reason": "no control_total supplied -- never assumed to pass"
+    },
+    {
+      "check": "fy26_fy27_identity_continuity",
+      "status": "NOT_CHECKED",
+      "reason": "no FY27 reference frame supplied"
+    }
+  ],
+  "crosswalk_row_count": 0,
+  "cohort_counts": {},
+  "match_method_counts": {},
+  "dry_run": true
+}

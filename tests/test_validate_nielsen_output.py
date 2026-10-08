@@ -7,6 +7,7 @@ against a template that embedded Chart.js inline (~205KB). Once Chart.js was
 extracted to an external <script src="chart.umd.js"> reference, a correct
 build dropped to ~36KB and the old check started failing a working build.
 """
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -33,12 +34,21 @@ def _old_size_check(html: str) -> list[str]:
 
 
 def _build_real_output(tmp_path: Path) -> str:
+    # The builder refuses an ungoverned payload (tests/test_nielsen_publish_guard.py);
+    # data/nielsen_aug26.json is a SAMPLE, so it can no longer be built. This test
+    # checks the HTML structure of a build, not its data, so it builds from the
+    # July payload with the governance fields added, in a temp file only.
+    payload = json.loads((REPO_ROOT / "data" / "nielsen_jul26.json").read_text(encoding="utf-8"))
+    payload.update({"data_status": "GOVERNED", "source_reference": "test fixture",
+                    "validation_reference": "test fixture"})
+    src = tmp_path / "nielsen_fixture.json"
+    src.write_text(json.dumps(payload), encoding="utf-8")
     out = tmp_path / "nielsen_test.html"
     subprocess.run(
         [
             sys.executable,
             str(REPO_ROOT / "scripts" / "build_nielsen_dashboard.py"),
-            "--data", str(REPO_ROOT / "data" / "nielsen_aug26.json"),
+            "--data", str(src),
             "--out", str(out),
         ],
         check=True,

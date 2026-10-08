@@ -103,6 +103,66 @@
       ],
       "45_Fact_ClaimMaster.pq": [
         "# RENAME QUERY TO: Fact Claim Master"
+      ],
+      "47_Fact_Nielsen_Pack.pq": [
+        "# RENAME QUERY TO: Fact Nielsen Pack",
+        "# NOTE: Needs fnCombineFolder. Pack presence measures in DAX 04 read this table."
+      ],
+      "48_Nielsen_Deck_StateExposure.pq": [
+        "# RENAME QUERY TO: Nielsen Deck State Exposure",
+        "# NOTE: Seed table typed from the review deck; not a Nielsen workbook cut."
+      ],
+      "49_Store_City_Master.pq": [
+        "# RENAME QUERY TO: Store City Master",
+        "# NOTE: Seed table; add Store Key as a calculated column on Fact Offtake Sales and relate it (see the header comment)."
+      ],
+      "50_Visit_City_List.pq": [
+        "# RENAME QUERY TO: Visit City List",
+        "# NOTE: Seed table, one row per corporate-visit city."
+      ],
+      "51_Fact_Nielsen_Pack_Brand.pq": [
+        "# RENAME QUERY TO: Fact Nielsen Pack Brand",
+        "# NOTE: Needs fnCombineFolder; pack-wise brand measures in DAX 04 read this table."
+      ],
+      "52_Store_Universe_Overrides.pq": [
+        "# RENAME QUERY TO: Store Universe Overrides",
+        "# NOTE: Seed table; same file feeds dashboard/store_universe.js."
+      ],
+      "53_Fact_Account_Category.pq": [
+        "# RENAME QUERY TO: Fact Account Category",
+        "# NOTE: Seed table from SeedData\\Account; account-share measures are in DAX 17."
+      ],
+      "54_Fact_Account_Category_Geo.pq": [
+        "# RENAME QUERY TO: Fact Account Category Geo",
+        "# NOTE: Seed table from SeedData\\Account; account-share measures are in DAX 17."
+      ],
+      "55_Fact_Account_Assortment.pq": [
+        "# RENAME QUERY TO: Fact Account Assortment",
+        "# NOTE: Seed table from SeedData\\Account; account-share measures are in DAX 17."
+      ],
+      "56_Store_Key_Alias.pq": [
+        "# RENAME QUERY TO: Store Key Alias",
+        "# NOTE: Lookup for stores listed under more than one code; the Match Key formula for the fact is in the query header."
+      ],
+      "57_Fact_Nielsen_Brand_Cut.pq": [
+        "# RENAME QUERY TO: Fact Nielsen Brand Cut",
+        "# NOTE: Needs fnCombineFolder; copy SeedData\\Nielsen\\Nielsen_Brand_Cut_Monthly into RawDataFolders\\Nielsen_Brand_Cut_Monthly; measures in DAX 18."
+      ],
+      "58_Fact_Store_Type.pq": [
+        "# RENAME QUERY TO: Fact Store Type",
+        "# NOTE: Needs pRootFolder; copy SeedData\\Store_Cuts into RawDataFolders\\Store_Cuts; measures in DAX 20."
+      ],
+      "59_Fact_Pack_Size.pq": [
+        "# RENAME QUERY TO: Fact Pack Size",
+        "# NOTE: Needs pRootFolder; same Store_Cuts folder; relate MonthStart to Date Table; measures in DAX 20."
+],
+      "60_Fact_Sales_Cuts.pq": [
+        "# RENAME QUERY TO: Fact Sales Cuts",
+        "# NOTE: Needs pRootFolder; same Store_Cuts folder (sales_cuts_fy27.csv); relate MonthStart to Date Table; measures in DAX 20."
+      ],
+      "61_Fact_Inhouse_Distribution.pq": [
+        "# RENAME QUERY TO: Fact Inhouse Distribution",
+        "# NOTE: Needs pRootFolder; same Store_Cuts folder (inhouse_distribution_fy27.csv); filter Level on every visual; not TDP; measures in DAX 20."
       ]
     },
     "excluded": {
@@ -161,6 +221,26 @@
       "14_SecondarySales_Measures.dax": [
         "# TARGET: _Measures table (needs query 44 Fact Secondary Sales loaded first)",
         "# NOTE: measure names in this file are written as [Name] = ...; enter each as Name = ... (no brackets) in the New Measure bar."
+      ],
+      "16_PriceVolume_Measures.dax": [
+        "# TARGET: _Measures table (needs queries 11 Fact Offtake Sales, 13 Fact Nielsen, Chain Master, Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "17_Account_Share_Measures.dax": [
+        "# TARGET: _Measures table (needs queries 53-55 and Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "18_Nielsen_Brand_Cut_Measures.dax": [
+        "# TARGET: _Measures table (needs query 57 and Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "19_Dynamic_Drill_Measures.dax": [
+        "# TARGET: _Measures table (needs the core, price/volume measures and Date Table)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
+      ],
+      "20_Store_Type_Pack_Measures.dax": [
+        "# TARGET: _Measures table (needs queries 58 and 59)",
+        "# NOTE: measure names in this file are written as Name = ...; enter each in the New Measure bar."
       ]
     },
     "excluded": {
@@ -168,4 +248,3 @@
     }
   }
 }
-

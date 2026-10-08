@@ -542,5 +542,21 @@ and this file's next task. Verify restricted inputs are present before any
 incentive work — never reconstruct them from memory.
 
 
+## Repo clean-up 2026-10-04
+Removed 14 superseded draft decks from the repo root (about 18 MB): the May26 leadership deck, `MT_Jul26_Honasa_Final` and `Finalv13` to `Finalv19`, `Updated_v18`, `Honasa_Enriched`, `MT_July26_offtake_analysis_V22`, `MT_Jul26_CommandCenter` and `MT_Jul26_Enriched_Command_Centre`.
+Kept the latest of each family (`Finalv20`, `offtake_analysis_V23`, `July_MT_Command_Centre_REWORKED`) and the one-pager files used by `generate_ppt.yml`. The old files stay in Git history (restore with `git checkout <commit> -- <file>`). Note: GitHub's repo size does not shrink until history is rewritten, which needs explicit approval.
+
+## Branch `claude/nielsen-ms-both-categories` (PR #300) — status 2026-10-08
+The freeze was lifted on 2026-10-08 (#301). PR #300 includes the #281 commit and is merged once its required checks are green; after that the items below are on `main` and the live site.
+- **Done and tested (794 passed, 27 skipped; 44-state sweep 0 failing):** Nielsen Cuts and Chain Share tabs; Aug-26 offtake refresh (FY27 18,971.69 L; FY25/FY26 unchanged, FY26 31,119.87 L); FY26 store-level offtake cleaned and linked (`scripts/clean_offtake_fy26_store_article.py`); store master, zone rules and visit-city workbook; **State, Pack & Store Type** sub-view (LFL / NFL New / NFL Restarted / Lost, zone / brand / sub-category sales, store movers with 3+ months rule); **TDP & Distribution** sub-view (real TDP file not supplied: shows the file needed plus an in-house distribution view labelled "not TDP"); Power BI queries 53-61, DAX 16-20, 15 design previews (`docs/images`, plan in `docs/POWERBI_DYNAMIC_DASHBOARD_BUILD.md`).
+- **Not done, owner or environment dependent:** B1 decision 3 sign-off; B2 266-line register; B3 Finance scope; B4 AssumptionTable; **B5 Power BI Desktop session** (also needed to build the 15 pages and run the new DAX); B6 incentive decisions; TDP file from Nielsen (`tdp_monthly`, MISSING); Reliance Retail store-level last year; `github-advanced-security` red (Copilot quota, issue #194).
+- **Merged:** #301 (freeze lift), then #300 (includes #281). Run `scripts/build_store_cuts.py`, `build_tdp.py`, `build_tdp_inhouse.py` monthly after the offtake refresh.
+
+## Owner approval record — 2026-10-08
+The repo owner (GitHub `aswalsheshant-cell`, role: repo owner and MT Channel Analyst Lead) confirmed in the working session on 2026-10-08 that this is a personal project and that **no hierarchy sign-off (MT Leadership, Finance, HR) is required**; all pending approval gates are approved by the owner. Recorded as the approval reference for:
+- **CB-01 Decision 3** (restate FY26 on the MT basis, 30,684.99 L): approved by the owner. Applied in its own PR from `main` (not on the Nielsen branch).
+- **Feature freeze (from `f960e1f`)**: lifted by the owner; PRs #281 and #300 may merge.
+- **Limits of this approval:** an approval does not supply data or decisions that do not exist. These still need real content and are NOT filled in by the agent: B2 (the 266 mapping decisions), B3 (Finance DN register and cost scope), B4 (AssumptionTable values per month), B6 (incentive targets, caps, proration), B5 (a Power BI Desktop run) and the TDP file. Each stays open until the owner supplies the content (or states the value to use), then it is recorded here with this date.
+
 ## Feature freeze lifted — 2026-10-08
 The repo owner (GitHub `aswalsheshant-cell`, repo owner and MT Channel Analyst Lead) lifted the feature freeze on 2026-10-08. This is a personal project and no hierarchy sign-off is required; the owner's confirmation in the working session is the approval reference. `config/project_state.yml` now has `feature_freeze.active: false`, so `scripts/check_pr_scope.py` passes every PR (the declaration is optional). The open blockers B1 to B6 stay open until their content exists (see `docs/COMPLETION_BLOCKER_PACK.md`); lifting the freeze does not close them.

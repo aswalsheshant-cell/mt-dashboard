@@ -9,6 +9,7 @@ Usage:
 """
 
 import argparse
+import csv
 import json
 import sys
 from datetime import datetime
@@ -43,6 +44,16 @@ def validate_payload(data: dict) -> list[str]:
             if not (98.0 <= total <= 102.0):
                 warnings.append(f"{pack_key} share sum = {total:.1f}% (expected ~100%)")
 
+    # Shampoo block: its own sales / category must reproduce the share it reports
+    sh = data.get("shampoo")
+    if sh:
+        me = next((b for b in sh.get("brands", []) if b.get("n") == "Mamaearth"), None)
+        sales, cat = sh.get("mamaearth_sales_cr"), sh.get("category_cr")
+        if me and sales and cat and me.get("ms") is not None and abs(sales / cat * 100 - me["ms"]) > 0.2:
+            warnings.append(f"Shampoo share {me.get('ms')}% does not match sales/category ({sales / cat * 100:.2f}%)")
+        if sum((b.get("ms") or 0) for b in sh.get("brands", [])) > 100:
+            warnings.append("Shampoo brand shares sum above 100%")
+
     # Brand market share sum (rough check — should be < 100%)
     if "brands" in data:
         total_ms = sum(b.get("ms", 0) for b in data["brands"])
@@ -52,6 +63,30 @@ def validate_payload(data: dict) -> list[str]:
     return warnings
 
 
+REQUIRED_STATUS = "GOVERNED"
+REQUIRED_REFERENCES = ("source_reference", "validation_reference")
+
+
+def governance_errors(data: dict) -> list[str]:
+    """Blocking problems: a payload with any of these is never built or published.
+
+    Market share is published on a public page, so it must come from a real,
+    registered Nielsen extract. A sample/demo file, or one whose source and
+    validation are not recorded, fails closed (2026-10-01: data/nielsen_aug26.json
+    was a SAMPLE and was published as "August 2026").
+    """
+    errors = []
+    comment = str(data.get("_comment", ""))
+    if "sample" in comment.lower():
+        errors.append(f"payload is marked SAMPLE (_comment: {comment!r})")
+    if data.get("data_status") != REQUIRED_STATUS:
+        errors.append(f"data_status is {data.get('data_status')!r}, must be {REQUIRED_STATUS!r}")
+    for key in REQUIRED_REFERENCES:
+        if not str(data.get(key, "")).strip():
+            errors.append(f"{key} is missing (name the Nielsen report / the validation evidence)")
+    return errors
+
+
 def load_payload(data_path: Path) -> dict:
     if not data_path.exists():
         raise FileNotFoundError(f"Data file not found: {data_path}")
@@ -59,7 +94,81 @@ def load_payload(data_path: Path) -> dict:
         return json.load(f)
 
 
-def to_js_payload(data: dict) -> str:
+# -- Real Nielsen files in data/nielsen/ ---------------------------------------
+# Read straight from the files so the page and the files cannot drift apart.
+# A blank cell stays None (unknown); it is never turned into 0.
+
+FW_BRANDS_CSV = "FW_Jul26_Competitive_Landscape.csv"
+FW_TREND_CSV = "Mamaearth_FW_Monthly_Trend.csv"
+SH_PACK_CSV = "Shampoo_Jul26_PackSize_Analysis.csv"
+ACRONYMS = {"VLCC"}
+
+
+def _num(value):
+    value = (value or "").strip()
+    return float(value) if value else None
+
+
+def brand_label(name: str) -> str:
+    """HIMALAYA -> Himalaya, POND'S -> Pond's, CLEAN & CLEAR -> Clean & Clear."""
+    if name.strip().upper() in ACRONYMS:
+        return name.strip().upper()
+    return name.strip().title().replace("'S", "'s")
+
+
+def shampoo_pack_buckets(rows: list[dict]) -> list[dict]:
+    """Group base pack sizes into <100 / 100-180 / 180-200 / >200 ml by Jul 26 value."""
+    def bucket(size: float) -> str:
+        return "<100ml" if size < 100 else "100-180ml" if size < 180 else "180-200ml" if size <= 200 else ">200ml"
+    now, year_ago = {}, {}
+    for row in rows:
+        size = _num(row.get("BASEPACKSIZE"))
+        if size is None:
+            continue
+        key = bucket(size)
+        now[key] = now.get(key, 0.0) + (_num(row.get("Jul 26")) or 0.0)
+        year_ago[key] = year_ago.get(key, 0.0) + (_num(row.get("Jul 25")) or 0.0)
+    total = sum(now.values())
+    out = []
+    for key in ("<100ml", "100-180ml", "180-200ml", ">200ml"):
+        if key in now:
+            yoy = round((now[key] / year_ago[key] - 1) * 100, 1) if year_ago.get(key) else None
+            out.append({"sz": key, "val": round(now[key] / total * 100, 1), "yoy": yoy})
+    return out
+
+
+def load_extras(repo_root: Path) -> dict:
+    """Facewash brand shares (all brands), category NSV by month, Shampoo pack buckets."""
+    folder = Path(repo_root) / "data" / "nielsen"
+    extras: dict = {}
+
+    brands_path = folder / FW_BRANDS_CSV
+    if brands_path.is_file():
+        with brands_path.open(encoding="utf-8-sig", newline="") as handle:
+            extras["fw_all"] = [
+                {"n": brand_label(r["brand"]), "ms_py": _num(r.get("ms_Jul25")), "ms": _num(r.get("ms_Jul26")),
+                 "wd": _num(r.get("wd_jul26")), "stores": _num(r.get("stores_jul26")),
+                 "l3m": _num(r.get("l3m")), "lmat": _num(r.get("lmat"))}
+                for r in csv.DictReader(handle) if (r.get("brand") or "").strip()]
+
+    trend_path = folder / FW_TREND_CSV
+    if trend_path.is_file():
+        with trend_path.open(encoding="utf-8-sig", newline="") as handle:
+            extras["fw_cat_nsv"] = {r["month"].strip(): _num(r.get("category_nsv_cr"))
+                                    for r in csv.DictReader(handle) if (r.get("month") or "").strip()}
+
+    pack_path = folder / SH_PACK_CSV
+    if pack_path.is_file():
+        with pack_path.open(encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        extras["sh_pack_file"] = {"period": "Jul 2026", "source": SH_PACK_CSV,
+                                  "buckets": shampoo_pack_buckets(rows),
+                                  "top": [{"sz": r["BASEPACKSIZE"], "share": round(_num(r.get("ms_pct_jul26")) or 0, 1)}
+                                          for r in sorted(rows, key=lambda r: -(_num(r.get("Jul 26")) or 0))[:5]]}
+    return extras
+
+
+def to_js_payload(data: dict, extras: dict | None = None) -> str:
     """Serialize to compact JSON safe for inline JS injection."""
     # The JS array format uses single-char keys (n, nsv, ms, pp, yoy, stores, wd, pdo)
     # that the dashboard template expects — map from long-form JSON keys if present
@@ -90,6 +199,7 @@ def to_js_payload(data: dict) -> str:
             "budget": a.get("budget", "—"),
             "due":    a.get("due", ""),
             "desc":   a.get("desc", ""),
+            **({"check": a["check"]} if a.get("check") else {}),
         }
 
     def remap_gate(g: dict) -> dict:
@@ -97,6 +207,7 @@ def to_js_payload(data: dict) -> str:
             "date":   g.get("date", ""),
             "q":      g.get("q", ""),
             "impact": g.get("impact", ""),
+            **({"check": g["check"]} if g.get("check") else {}),
         }
 
     normalized = {
@@ -116,6 +227,35 @@ def to_js_payload(data: dict) -> str:
             "reporting_period": data.get("reporting_period", ""),
         },
     }
+    if extras is not None or "fw_all" in data:
+        extras = extras or {}
+        months = data["months"]
+        # A payload that carries its own detail (built from a Nielsen workbook) wins over the
+        # older stand-alone files in data/nielsen/, which are only the fallback.
+        cat = extras.get("fw_cat_nsv") or {}
+        normalized["FW_ALL"] = data.get("fw_all") or extras.get("fw_all", [])
+        normalized["FW_CAT_NSV"] = data.get("fw_cat_nsv") or [cat.get(m) for m in months]
+        normalized["SHAMPOO"] = data.get("shampoo")
+        normalized["SH_PACK_FILE"] = data.get("sh_pack_file") or extras.get("sh_pack_file")
+        normalized["FW_CAT_INFO"] = data.get("fw_cat")
+        normalized["FW_PACKS_ME"] = data.get("fw_packs_mamaearth")
+        normalized["FW_PREMIUM"] = data.get("fw_premium_mix")
+        normalized["FW_PACK_GAP"] = data.get("fw_pack_gap")
+        normalized["SH_PACK_GAP"] = data.get("sh_pack_gap")
+        normalized["CHAINS"] = data.get("chains")
+        normalized["DECK"] = data.get("deck")
+        normalized["PRICE_VOLUME"] = data.get("price_volume")
+        normalized["VISIT_CITIES"] = data.get("visit_cities")
+        normalized["ACCOUNT"] = data.get("account_share")
+        normalized["FW_PACK_BRAND"] = data.get("fw_pack_brand")
+        normalized["SH_PACK_BRAND"] = data.get("sh_pack_brand")
+        normalized["MARKET"] = data.get("market", "")
+        normalized["UNIT"] = data.get("unit", "")
+        normalized["GOV"] = {
+            "data_status": data.get("data_status", ""),
+            "source_reference": data.get("source_reference", ""),
+            "validation_reference": data.get("validation_reference", ""),
+        }
     return json.dumps(normalized, separators=(",", ":"), ensure_ascii=False)
 
 
@@ -126,6 +266,12 @@ def build(template_path: Path, data_path: Path, output_path: Path) -> None:
     print(f"[*] Template: {template_path}")
 
     data = load_payload(data_path)
+
+    blocking = governance_errors(data)
+    if blocking:
+        for e in blocking:
+            print(f"[x] {e}", file=sys.stderr)
+        raise SystemExit(f"Not built: {data_path.name} is not a governed Nielsen payload.")
 
     warnings = validate_payload(data)
     for w in warnings:
@@ -142,7 +288,7 @@ def build(template_path: Path, data_path: Path, output_path: Path) -> None:
             f"Re-generate the template from Nielsen_MS_Dashboard_Jul26.html."
         )
 
-    js_payload = to_js_payload(data)
+    js_payload = to_js_payload(data, load_extras(REPO_ROOT))
     output = template.replace(
         f"{PLACEHOLDER} {{}}",
         js_payload,
@@ -156,6 +302,23 @@ def build(template_path: Path, data_path: Path, output_path: Path) -> None:
     print(f"[✓] Built: {output_path} ({size_kb:.0f} KB)")
     if warnings:
         print(f"    {len(warnings)} warning(s) above — review before distributing")
+
+
+def emit_js(data_path: Path, out_path: Path) -> None:
+    """Write dashboard/nielsen.js (window.NIELSEN = payload) for the MT dashboard's Market Share view.
+
+    Same governance guard as build(): an ungoverned payload writes nothing.
+    """
+    data = load_payload(data_path)
+    blocking = governance_errors(data)
+    if blocking:
+        for e in blocking:
+            print(f"[x] {e}", file=sys.stderr)
+        raise SystemExit(f"Not written: {data_path.name} is not a governed Nielsen payload.")
+    data.pop("_comment", None)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text("window.NIELSEN=" + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
+    print(f"[✓] Wrote {out_path} ({out_path.stat().st_size // 1024} KB)")
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
@@ -176,7 +339,30 @@ def main() -> None:
         "--out", "-o", type=Path,
         help="Output path (default: dist/Nielsen_MS_Dashboard_<period>.html)"
     )
+    parser.add_argument(
+        "--check-only", action="store_true",
+        help="Only run the governance check (exit 2 if the payload may not be published)"
+    )
+    parser.add_argument(
+        "--emit-js", type=Path,
+        help="Also write window.NIELSEN data for the MT dashboard (e.g. dashboard/nielsen.js)"
+    )
+    parser.add_argument(
+        "--standalone", action="store_true",
+        help="Inline Chart.js so the single HTML file works when emailed or opened from Downloads (without it the page needs chart.umd.js beside it)"
+    )
     args = parser.parse_args()
+
+    if args.emit_js:
+        emit_js(args.data, args.emit_js)
+        return
+
+    if args.check_only:
+        errors = governance_errors(load_payload(args.data))
+        for e in errors:
+            print(f"[x] {e}", file=sys.stderr)
+        print(f"[{'x' if errors else '✓'}] governance check: {args.data}")
+        sys.exit(2 if errors else 0)
 
     if not args.out:
         period = args.data.stem.replace("nielsen_", "").upper()
@@ -184,6 +370,13 @@ def main() -> None:
 
     try:
         build(args.template, args.data, args.out)
+        if args.standalone:
+            lib = (REPO_ROOT / "dashboard" / "chart.umd.js").read_text(encoding="utf-8").replace("</script", "<\\/script")
+            html = args.out.read_text(encoding="utf-8")
+            if '<script src="chart.umd.js"></script>' not in html:
+                raise RuntimeError("no chart.umd.js reference to inline")
+            args.out.write_text(html.replace('<script src="chart.umd.js"></script>', "<script>" + lib + "</script>", 1), encoding="utf-8")
+            print("[✓] Chart.js inlined: the file is standalone")
     except Exception as e:
         print(f"[!] Build failed: {e}", file=sys.stderr)
         sys.exit(1)
