@@ -63,3 +63,9 @@ def test_the_script_refuses_when_the_article_files_do_not_tie(tmp_path):
 def test_mrp_is_labelled_not_restated(primary):
     p, _ = primary
     assert "NOT restated" in p["mrp_fy26_basis"] and p["mrp_fy26"] == p["fy26_all_channel"]["mrp_fy26"]
+
+
+def test_zones_follow_customer_code_mapping(primary):
+    """Chhattisgarh and Vidarbha sit in Central, not West; the Gujarat-tagged UP customer sits in North."""
+    z = {x["name"]: x["fy26"] for x in primary[0]["by_zone"]}
+    assert z["Central"] == 1877.87 and z["West"] == 7876.25 and z["North"] == 6043.97

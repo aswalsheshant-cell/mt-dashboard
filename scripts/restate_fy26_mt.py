@@ -19,8 +19,8 @@ What it does
 
 What it does not do
   `mrp_fy26` is NOT restated (the workbook MRP basis does not tie to the article-level MRP, so no exact MT split exists); it is labelled all-channel.
-  The zone split of the non-MT rows follows the article-level `Zone` column. The workbook and the article-level files assign West / Central / North
-  slightly differently (West +488 L, Central -421 L, North -66 L, a mapping difference, not a channel one), so the three restated zone figures carry that caveat.
+  Zones: MT by zone is taken from the article-level rows using the confirmed customer-code zone mapping (Chhattisgarh and Vidarbha -> Central, the
+  Gujarat-tagged UP customer -> North), not the older `Zone` tag in the files. The unrestated all-channel workbook zones stay in `fy26_all_channel`.
   The CM2 block is not changed (B3 owns it).
 
     python scripts/restate_fy26_mt.py [--data dashboard/data.js] [--check]
@@ -39,6 +39,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 DATA_JS = ROOT / "dashboard" / "data.js"
 ARTICLE_DIR = ROOT / "PowerBI" / "RawDataFolders" / "Primary_Article_Monthly"
+ZONE_MAP = ROOT / "PowerBI" / "SeedData" / "Mapping" / "CustomerCode_Zone_State_Mapping.csv"
 FY_TAG = "FY'25-26"
 TOL = 0.05                                  # Rs lakh
 MONTHS = ["Apr'25", "May'25", "Jun'25", "Jul'25", "Aug'25", "Sep'25", "Oct'25", "Nov'25", "Dec'25", "Jan'26", "Feb'26", "Mar'26"]
@@ -61,14 +62,23 @@ def write_data(path: Path, prefix: str, data) -> None:
     path.write_text(prefix + json.dumps(data, indent=1, ensure_ascii=False) + ";\n", encoding="utf-8")
 
 
+def mapped_zone(d: pd.DataFrame, mapping: Path = ZONE_MAP) -> pd.Series:
+    """Zone per customer code from the confirmed CustomerCode_Zone_State_Mapping (Chhattisgarh and Vidarbha -> Central, UP -> North).
+    The article files carry an older Zone tag (CG and Vidarbha in West, one UP customer in West); the mapping wins, the file tag is the fallback."""
+    m = pd.read_csv(mapping, dtype=str).drop_duplicates("Customer Code").set_index("Customer Code")["Zone"]
+    code = pd.to_numeric(d["Cust-SAP Code"], errors="coerce").astype("Int64").astype(str)
+    return code.map(m).fillna(d["Zone"]).map(lambda z: ZONE_NAME.get(z, z))
+
+
 def article_level(folder: Path = ARTICLE_DIR) -> pd.DataFrame:
     """FY'25-26 rows of the tracked article-level primary files, with a normalised MT / non-MT flag."""
     frames = []
     names = [f"primary_article_{m.split(chr(39))[0]}_{m.split(chr(39))[1]}.csv" for m in MONTHS]      # Apr_25 ... Mar_26
     for f in sorted(str(folder / n) for n in names if (folder / n).exists()):
-        d = pd.read_csv(f, low_memory=False, usecols=["FY", "Month", "Zone", "Chain name", "brand", "sale in lac", "Channel"])
+        d = pd.read_csv(f, low_memory=False, usecols=["FY", "Month", "Zone", "Cust-SAP Code", "Chain name", "brand", "sale in lac", "Channel"])
         frames.append(d[d["FY"] == FY_TAG])
     d = pd.concat(frames, ignore_index=True)
+    d["Zone"] = mapped_zone(d)
     d["is_mt"] = d["Channel"].astype(str).str.strip().str.upper().eq("MT")
     d["Chain name"] = d["Chain name"].astype(str).str.strip()
     return d
@@ -104,7 +114,8 @@ def restate(data: dict, art: pd.DataFrame) -> dict:
         monthly.append(r2(v - nm_month.get(mon, 0)))
 
     nm_zone = nm.assign(z=nm["Zone"].map(lambda z: ZONE_NAME.get(z, z))).groupby("z")["sale in lac"].sum()
-    zones = [{**z, "fy26": r2(z["fy26"] - nm_zone.get(z["name"], 0))} for z in snap["by_zone"]]
+    mt_zone = art[art["is_mt"]].assign(z=art["Zone"].map(lambda z: ZONE_NAME.get(z, z))).groupby("z")["sale in lac"].sum()
+    zones = [{**z, "fy26": r2(mt_zone.get(z["name"], 0))} for z in snap["by_zone"]]      # MT by mapped zone (CG, Vidarbha -> Central)
     nm_brand = nm.assign(b=nm["brand"].map(lambda b: BRAND_NAME.get(b, b))).groupby("b")["sale in lac"].sum()
     brands = [({**b, "fy26": r2((b["fy26"] or 0) - nm_brand.get(b["name"], 0))} if b["fy26"] is not None else dict(b)) for b in snap["by_brand"]]
 
@@ -144,7 +155,7 @@ def restate(data: dict, art: pd.DataFrame) -> dict:
     p["restatement"] = {"basis": "MT only", "decision": "CB-01 Decision 3 (B): restate FY26 on the MT basis", "approved": "repo owner (aswalsheshant-cell), 2026-10-08",
                         "all_channel_nsv_fy26": snap["nsv_fy26"], "mt_nsv_fy26": mt_total, "non_mt_nsv_fy26": non_mt["total"],
                         "source": "PowerBI/RawDataFolders/Primary_Article_Monthly (FY'25-26 rows), tied to detail_meta.channel_totals.FY26",
-                        "zone_caveat": "non-MT is allocated to zones by the article-level Zone column; the workbook and the article files differ for West, Central and North"}
+                        "zone_basis": "MT by zone from article-level rows via CustomerCode_Zone_State_Mapping (CG + Vidarbha in Central); fy26_all_channel keeps the workbook zones"}
     return {"mt_total": mt_total, "all_channel": snap["nsv_fy26"], "non_mt": non_mt["total"], "chains_removed": [c["name"] for c in removed]}
 
 
