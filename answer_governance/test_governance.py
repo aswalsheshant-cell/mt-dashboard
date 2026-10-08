@@ -320,7 +320,7 @@ class TestEvidenceBuilding:
 
     def test_primary_fy26_preagg(self, dash):
         g = build_evidence("primary", "FY", "FY26", dash)
-        assert g.value == 32900.36
+        assert g.value == 30684.99      # MT basis (CB-01 Decision 3, 2026-10-08); all-channel 32,900.36 is primary.fy26_all_channel
         assert g.status in (ConfidenceStatus.CONFIRMED, ConfidenceStatus.HIGH_CONFIDENCE)
 
     def test_offtake_q1_fy27(self, dash):
@@ -411,7 +411,8 @@ class TestPipelineIsolation:
         # three-measures table -- Primary starts FY26). Asserting its
         # absence is the honest invariant, not asserting a fabricated value.
         assert "nsv_fy25" not in dash["primary"]
-        assert dash["primary"]["nsv_fy26"] == 32900.36
+        assert dash["primary"]["nsv_fy26"] == 30684.99      # MT basis; the all-channel 32,900.36 stays in fy26_all_channel
+        assert dash["primary"]["fy26_all_channel"]["nsv_fy26"] == 32900.36
 
     def test_offtake_totals_unchanged(self, dash):
         # total_fy25 was never a valid key either (TD-05), for the same

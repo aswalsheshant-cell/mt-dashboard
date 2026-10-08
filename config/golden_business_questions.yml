@@ -103,13 +103,13 @@ questions:
     grain: "brand"
     formula: "sum(primary NSV) by brand, FY26"
     data_js_path: "primary.by_brand"
-    published_data_value: 27179.45
+    published_data_value: 25593.61
     unit: "INR Lakh"
     tolerance: 0.01
     comparison_layers:
       raw_data: "N/A"
       pipeline: "PASS"
-      published_data: "PASS - brand-level sum (27179.45+4938.41+634.43+104.38+31.45+0+7.69+4.55) reconciles EXACTLY to primary_nsv_fy26 baseline (32900.36), re-verified live this pass"
+      published_data: "PASS - brand-level sum (25593.61+4458.81+524.33+93.18+10.52+0+4.55) = 30685.00 reconciles to primary_nsv_fy26 baseline (30684.99, MT basis, restated 2026-10-08; the all-channel 32900.36 is kept as primary_nsv_fy26_all_channel)"
       power_bi_model: "BLOCKED_NO_LIVE_WORKSPACE_ACCESS"
       dashboard: "NOT_INDEPENDENTLY_VERIFIED_THIS_PASS"
     expected_if_missing: "n/a"

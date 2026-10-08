@@ -19,11 +19,21 @@
     {
       "key": "primary_nsv_fy26",
       "path": "primary.nsv_fy26",
+      "expected": 30684.99,
+      "unit": "INR Lakh",
+      "class": "frozen_history",
+      "tolerance": 0.01,
+      "why": "FY26 Primary on the MT basis (CB-01 Decision 3, approved by the repo owner 2026-10-08; restated by scripts/restate_fy26_mt.py). The all-channel figure 32,900.36 L (MT + EB2B + SIS) is kept as primary_nsv_fy26_all_channel. CLAUDE.md's Reliance safeguard is unchanged: no Reliance invoice is excluded.",
+      "owner": "MT Analytics"
+    },
+    {
+      "key": "primary_nsv_fy26_all_channel",
+      "path": "primary.fy26_all_channel.nsv_fy26",
       "expected": 32900.36,
       "unit": "INR Lakh",
       "class": "frozen_history",
       "tolerance": 0.01,
-      "why": "Gross Primary NSV baseline named in CLAUDE.md's Reliance safeguard.",
+      "why": "FY26 Primary, all channels (MT 30,684.99 + EB2B 1,965.20 + SIS 250.17): the certified gross baseline before the MT restatement. Kept as the reference.",
       "owner": "MT Analytics"
     },
     {

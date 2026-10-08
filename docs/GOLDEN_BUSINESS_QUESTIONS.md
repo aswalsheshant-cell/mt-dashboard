@@ -111,8 +111,8 @@ brand; Mamaearth is reported as the leadership-relevant instance.
 
 | Field | Value |
 |---|---|
-| PUBLISHED DATA (`primary.by_brand`, FY26) | Mamaearth **27179.45**, The Derma Co 4938.41, Aqualogica 634.43, BBlunt 104.38, Dr. Sheth's 31.45, Lumineve 0.00, Staze 7.69, Pure Origin 4.55 (INR Lakh) |
-| Sum check | 27179.45+4938.41+634.43+104.38+31.45+0+7.69+4.55 = **32,900.36** — matches `primary_nsv_fy26` baseline (`config/baselines.json`, Rs32,900.36L) **exactly** — verified in this pass, not assumed |
+| PUBLISHED DATA (`primary.by_brand`, FY26, MT basis since 2026-10-08) | Mamaearth **25593.61**, The Derma Co 4458.81, Aqualogica 524.33, BBlunt 93.18, Dr. Sheth's 10.52, Lumineve 0.00, Staze 0.00, Pure Origin 4.55 (INR Lakh); the all-channel figures (Mamaearth 27179.45 etc., total 32,900.36) are in `primary.fy26_all_channel` |
+| Sum check | 25593.61+4458.81+524.33+93.18+10.52+0+0+4.55 = **30,685.00**, matching the `primary_nsv_fy26` baseline (`config/baselines.json`, Rs30,684.99L, MT basis) to rounding (0.01 L); the all-channel sum 32,900.36 is the separate `primary_nsv_fy26_all_channel` baseline |
 | POWER BI MODEL | BLOCKED: NO_LIVE_WORKSPACE_ACCESS |
 | DASHBOARD | NOT_INDEPENDENTLY_VERIFIED_THIS_PASS |
 | Tolerance | Exact (frozen_history) |
