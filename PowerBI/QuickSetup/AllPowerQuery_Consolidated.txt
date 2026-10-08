@@ -7,14 +7,14 @@ Power BI's Advanced Editor holds exactly ONE query per paste. For each
 section below: New Blank Query > Home > Advanced Editor > paste that
 section's M code > OK > rename the query to the name shown > Close & Apply
 when done with all of them. Having ONE file open (this one) instead of
-29 separate files is the time-saving here.
+45 separate files is the time-saving here.
 
 *** NOT INCLUDED -- these source files are deliberately left out of this setup:
     - 46_Dim_PromoCalendar.pq: Not usable in Desktop yet: loads File.Contents("PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv") -- a relative path fixed to one month, not pRootFolder + the folder -- and its relationship notes name tables this model does not have (Dim_Brand, Dim_Calendar, Dim_Chain). Needs its own fix before it can be a setup step.
 
 
 ##############################################################################
-# STEP 01/29  --  SOURCE FILE: 00_Parameters.pq
+# STEP 01/45  --  SOURCE FILE: 00_Parameters.pq
 # RENAME QUERY TO: pRootFolder (Manage Parameters, NOT a Blank Query)
 # NOTE: Home > Transform data > Manage Parameters > New.
 ##############################################################################
@@ -43,7 +43,7 @@ when done with all of them. Having ONE file open (this one) instead of
 
 
 ##############################################################################
-# STEP 02/29  --  SOURCE FILE: 01_fnCombineFolder.pq
+# STEP 02/45  --  SOURCE FILE: 01_fnCombineFolder.pq
 # RENAME QUERY TO: fnCombineFolder
 # NOTE: Blank Query > Advanced Editor > paste > rename.
 ##############################################################################
@@ -127,7 +127,41 @@ in
 
 
 ##############################################################################
-# STEP 03/29  --  SOURCE FILE: 10_Fact_PrimarySales.pq
+# STEP 03/45  --  SOURCE FILE: 02_fnFYLabel.pq
+# RENAME QUERY TO: fnFYLabel
+# NOTE: Add before Fact Offtake Sales; its FY Year is derived from MonthStart.
+##############################################################################
+// =====================================================================
+// FUNCTION: fnFYLabel   (THE ONE FY RULE, Power Query side)
+// Returns the model's FY label ("25-26") for a date, Indian FY Apr-Mar:
+//   Apr-Dec of year Y -> "YY-(YY+1)"      e.g. Apr-26 -> "26-27"
+//   Jan-Mar of year Y -> "(YY-1)-YY"      e.g. Mar-26 -> "25-26"
+// Same text as 'Date Table'[FY Year] and Targets[FY Year], so a fact's own
+// [FY Year] column always agrees with the date slicer. Every fact query
+// DERIVES [FY Year] from its month column with this function instead of
+// copying whatever text the source file carried (FY'25-26 / FY26 / FY_24-25 /
+// 25-26 ...). No year is typed anywhere, so FY28+ works on its own.
+//
+// Usage:  each fnFYLabel([MonthStart])
+// =====================================================================
+let
+    fnFYLabel = (d as nullable date) as nullable text =>
+        if d = null then null
+        else
+            let
+                y = Date.Year(d),
+                m = Date.Month(d),
+                startYear = if m >= 4 then y else y - 1
+            in
+                Text.PadStart(Text.From(Number.Mod(startYear, 100)), 2, "0") & "-" &
+                Text.PadStart(Text.From(Number.Mod(startYear + 1, 100)), 2, "0")
+in
+    fnFYLabel
+
+
+
+##############################################################################
+# STEP 04/45  --  SOURCE FILE: 10_Fact_PrimarySales.pq
 # RENAME QUERY TO: Fact Primary Sales
 ##############################################################################
 // =====================================================================
@@ -193,7 +227,7 @@ in
 
 
 ##############################################################################
-# STEP 04/29  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
+# STEP 05/45  --  SOURCE FILE: 11_Fact_OfftakeSales.pq
 # RENAME QUERY TO: Fact Offtake Sales
 ##############################################################################
 // =====================================================================
@@ -210,8 +244,9 @@ in
 //   Sales Qty, MRP Sales Value, NSV, Per pc, With Tax, Margin, Revised Month,
 //   Month, Year, PPT Category
 //
-// Offtake is maintained MONTHLY (store x article). NSV = offtake net value
-// (rupees). This is the secondary/offtake validation base for the article
+// Offtake is maintained MONTHLY (store x article). Source NSV is in lakh;
+// convert it to the model's absolute-rupee contract at import. MRP Sales Value
+// already arrives in rupees. This is the secondary/offtake validation base for the article
 // eligibility gate (DAX 09) — no allocation logic changed here.
 // =====================================================================
 let
@@ -276,7 +311,13 @@ let
         {"SO Emp Code", type text}, {"Sales Person", type text}, {"PPT Category", type text}
     }),
 
-    Trimmed = Table.TransformColumns(Typed, {
+    // Source NSV is lakh (docs/DATA_LINEAGE.md); model currency is absolute rupees.
+    // Keep negative returns signed and nulls null. MRP Sales is already rupees.
+    Scaled = Table.TransformColumns(Typed, {
+        {"Offtake NSV", each if _ = null then null else _ * 100000, type number}
+    }),
+
+    Trimmed = Table.TransformColumns(Scaled, {
         {"Store Code", each Text.Trim(Text.From(_)), type text},
         {"Article Code", each Text.Trim(Text.From(_)), type text},
         {"EAN Code", each Text.Trim(Text.From(_)), type text},
@@ -284,8 +325,19 @@ let
         {"Brand", each Text.Trim(Text.From(_)), type text}
     }),
 
+    // The early FY27 CSVs call both Reliance streams "Reliance"; later files
+    // name the Brand Counter stream explicitly. Keep every row and map them to
+    // separate Chain Master members so MT excludes only the duplicate breakout.
+    AddGovernedChain = Table.AddColumn(Trimmed, "Governed Chain", each
+        if Text.Contains(Text.Lower([Chain] ?? ""), "reliance") then
+            if Text.Lower(Text.Trim([Store Type] ?? "")) = "brand counter"
+            then "Reliance Brand Counter" else "Reliance Retail"
+        else [Chain], type text),
+    RemoveOldChain = Table.RemoveColumns(AddGovernedChain, {"Chain"}),
+    RenameChain = Table.RenameColumns(RemoveOldChain, {{"Governed Chain", "Chain"}}),
+
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(Trimmed, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+    FixBrand = Table.ReplaceValue(RenameChain, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
 
     // constant audit column
     AddSource = Table.AddColumn(FixBrand, "Data Source Name", each "Chain Offtake Store Wise", type text),
@@ -296,27 +348,53 @@ let
         else if [Article Code] <> null and Text.Trim([Article Code]) <> "" then "CODE:" & [Article Code]
         else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
 
-    // period = "Month" (April'24 / Apr'24 text or a date). "Revised Month" kept
-    // as an alternate period column if you later prefer the adjusted month.
+    // Month has quoted labels, bare names and Excel serials across these CSVs.
+    // The monthly file name supplies a year for bare names; disagreement or
+    // missing period fails refresh rather than silently orphaning the row.
     AddMonthStart = Table.AddColumn(AddKey, "MonthStart", each
-        let v = [Month]
-        in  if v = null then null
-            else if Value.Is(v, type date) then Date.StartOfMonth(v)
-            else
-                let m = Text.Start(Text.BeforeDelimiter(Text.From(v), "'"), 3),
-                    yy = Text.AfterDelimiter(Text.From(v), "'"),
-                    mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-                in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
+        let
+            v = [Month],
+            label = if v = null then "" else Text.Trim(Text.From(v)),
+            serial = try Number.FromText(label) otherwise null,
+            labelMonth = if Text.Contains(label, "'") then
+                Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12],
+                    Text.Proper(Text.Start(label, 3)), null) else null,
+            labelYear = if labelMonth = null then null
+                else try Number.FromText(Text.Trim(Text.AfterDelimiter(label, "'"))) otherwise null,
+            fromLabel = if Value.Is(v, type date) then Date.StartOfMonth(v)
+                else if serial <> null then try Date.StartOfMonth(Date.From(serial)) otherwise null
+                else if labelMonth <> null and labelYear <> null then #date(2000 + labelYear, labelMonth, 1)
+                else null,
+            file = Text.From([Data Source File] ?? ""),
+            filePeriod = try Text.BetweenDelimiters(file, "offtake_store_article_", ".csv") otherwise null,
+            parts = if filePeriod = null then {} else Text.Split(filePeriod, "_"),
+            fileMonth = if List.Count(parts) = 2 then
+                Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12],
+                    Text.Proper(parts{0}), null) else null,
+            fileYear = if List.Count(parts) = 2 then try Number.FromText(parts{1}) otherwise null else null,
+            fromFile = if fileMonth <> null and fileYear <> null then #date(2000 + fileYear, fileMonth, 1) else null,
+            result = if fromLabel <> null then fromLabel else fromFile
+        in
+            if result = null then error Error.Record("OfftakeMonth", "Unparseable source month", [File=file, Month=label])
+            else if fromFile <> null and result <> fromFile then
+                error Error.Record("OfftakeMonth", "Source month disagrees with file name", [File=file, Month=label])
+            else result,
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null)
+    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null),
+
+    // Derive FY from the parsed month, as in the Date Table; do not trust the
+    // inconsistent source FY text after a month was recovered from the file.
+    FYNew = Table.AddColumn(Cleaned, "FY Year New", each fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    Cleaned
+    FYDerived
 
 
 
 ##############################################################################
-# STEP 05/29  --  SOURCE FILE: 12_Fact_PnL.pq
+# STEP 06/45  --  SOURCE FILE: 12_Fact_PnL.pq
 # RENAME QUERY TO: Fact P&L
 ##############################################################################
 // =====================================================================
@@ -346,7 +424,7 @@ in
 
 
 ##############################################################################
-# STEP 06/29  --  SOURCE FILE: 13_Fact_Nielsen.pq
+# STEP 07/45  --  SOURCE FILE: 13_Fact_Nielsen.pq
 # RENAME QUERY TO: Fact Nielsen Market Share
 ##############################################################################
 // =====================================================================
@@ -355,7 +433,10 @@ in
 // =====================================================================
 let
     Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Monthly"),
-    Typed = Table.TransformColumnTypes(Source, {
+    // Volume 000 L and Price Per Ml are optional (older drops lack them); add them as null when missing
+    WithOptional = List.Accumulate({"Volume 000 L", "Price Per Ml"}, Source,
+        (tbl, col) => if Table.HasColumns(tbl, col) then tbl else Table.AddColumn(tbl, col, each null, type number)),
+    Typed = Table.TransformColumnTypes(WithOptional, {
         {"Month", type text},
         {"FY Year", type text},
         {"Nielsen Category", type text},
@@ -365,7 +446,9 @@ let
         {"Our Brand Sales", type number},
         {"Value Market Share %", type number},
         {"Volume Market Share %", type number},
-        {"Data Source Name", type text}
+        {"Data Source Name", type text},
+        {"Volume 000 L", type number},
+        {"Price Per Ml", type number}
     }),
     AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
         let
@@ -381,7 +464,7 @@ in
 
 
 ##############################################################################
-# STEP 07/29  --  SOURCE FILE: 14_Fact_TDP.pq
+# STEP 08/45  --  SOURCE FILE: 14_Fact_TDP.pq
 # RENAME QUERY TO: Fact TDP
 ##############################################################################
 // =====================================================================
@@ -430,7 +513,7 @@ in
 
 
 ##############################################################################
-# STEP 08/29  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
+# STEP 09/45  --  SOURCE FILE: 15_Fact_PrimaryShipTo.pq
 # RENAME QUERY TO: Fact Primary ShipTo
 ##############################################################################
 // =====================================================================
@@ -515,7 +598,7 @@ in
 
 
 ##############################################################################
-# STEP 09/29  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
+# STEP 10/45  --  SOURCE FILE: 16_Fact_PrimaryArticle.pq
 # RENAME QUERY TO: Fact Primary Article
 ##############################################################################
 // =====================================================================
@@ -681,7 +764,7 @@ in
 
 
 ##############################################################################
-# STEP 10/29  --  SOURCE FILE: 20_Dim_Masters.pq
+# STEP 11/45  --  SOURCE FILE: 20_Dim_Masters.pq
 # RENAME QUERY TO: Chain Master, Brand Master, Category Master, Article Master, Zone State Master, Store Master, Nielsen Competitor Master
 # NOTE: SEVEN separate queries -- one per '---------- X Master ----------' block in the file below. Each block is its own complete `let...in` query; uncomment/copy ONE block at a time.
 ##############################################################################
@@ -741,7 +824,7 @@ in Typed
 
 
 ##############################################################################
-# STEP 11/29  --  SOURCE FILE: 21_ShipToMaster.pq
+# STEP 12/45  --  SOURCE FILE: 21_ShipToMaster.pq
 # RENAME QUERY TO: Ship-To Master
 ##############################################################################
 // =====================================================================
@@ -765,7 +848,7 @@ in
 
 
 ##############################################################################
-# STEP 12/29  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
+# STEP 13/45  --  SOURCE FILE: 22_CustomerCodeZoneMaster.pq
 # RENAME QUERY TO: Customer Code Zone Master
 ##############################################################################
 // =====================================================================
@@ -808,7 +891,7 @@ in
 
 
 ##############################################################################
-# STEP 13/29  --  SOURCE FILE: 24_ChannelMap.pq
+# STEP 14/45  --  SOURCE FILE: 24_ChannelMap.pq
 # RENAME QUERY TO: Channel Map Store, Channel Map Chain
 # NOTE: TWO separate queries -- one per block in the file below.
 ##############################################################################
@@ -845,7 +928,7 @@ in
 
 
 ##############################################################################
-# STEP 14/29  --  SOURCE FILE: 30_AssumptionTable.pq
+# STEP 15/45  --  SOURCE FILE: 30_AssumptionTable.pq
 # RENAME QUERY TO: Assumption Table
 ##############################################################################
 // =====================================================================
@@ -870,7 +953,7 @@ in
 
 
 ##############################################################################
-# STEP 15/29  --  SOURCE FILE: 31_Targets.pq
+# STEP 16/45  --  SOURCE FILE: 31_Targets.pq
 # RENAME QUERY TO: Targets
 ##############################################################################
 // =====================================================================
@@ -891,7 +974,7 @@ in
 
 
 ##############################################################################
-# STEP 16/29  --  SOURCE FILE: 32_StoreSOMapping.pq
+# STEP 17/45  --  SOURCE FILE: 32_StoreSOMapping.pq
 # RENAME QUERY TO: Store-SO Mapping
 ##############################################################################
 // =====================================================================
@@ -915,7 +998,7 @@ in
 
 
 ##############################################################################
-# STEP 17/29  --  SOURCE FILE: 33_ForecastOverride.pq
+# STEP 18/45  --  SOURCE FILE: 33_ForecastOverride.pq
 # RENAME QUERY TO: Forecast Override
 ##############################################################################
 // =====================================================================
@@ -940,7 +1023,7 @@ in
 
 
 ##############################################################################
-# STEP 18/29  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
+# STEP 19/45  --  SOURCE FILE: 34_PrimaryAllocationMap.pq
 # RENAME QUERY TO: Primary Allocation Map
 ##############################################################################
 // =====================================================================
@@ -975,7 +1058,7 @@ in
 
 
 ##############################################################################
-# STEP 19/29  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
+# STEP 20/45  --  SOURCE FILE: 35_PrimaryAllocationOverride.pq
 # RENAME QUERY TO: Primary Allocation Override
 ##############################################################################
 // =====================================================================
@@ -998,7 +1081,7 @@ in
 
 
 ##############################################################################
-# STEP 20/29  --  SOURCE FILE: 36_SalesTeamMapping.pq
+# STEP 21/45  --  SOURCE FILE: 36_SalesTeamMapping.pq
 # RENAME QUERY TO: Sales Team Mapping
 ##############################################################################
 // =====================================================================
@@ -1032,7 +1115,7 @@ in
 
 
 ##############################################################################
-# STEP 21/29  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
+# STEP 22/45  --  SOURCE FILE: 37_GST_Rate_QC_Table.pq
 # RENAME QUERY TO: GST Rate QC Table
 ##############################################################################
 // =====================================================================
@@ -1082,7 +1165,7 @@ in
 
 
 ##############################################################################
-# STEP 22/29  --  SOURCE FILE: 38_GST_Config.pq
+# STEP 23/45  --  SOURCE FILE: 38_GST_Config.pq
 # RENAME QUERY TO: GST Config
 ##############################################################################
 // =====================================================================
@@ -1114,7 +1197,7 @@ in
 
 
 ##############################################################################
-# STEP 23/29  --  SOURCE FILE: 39_PL_Expense_Input.pq
+# STEP 24/45  --  SOURCE FILE: 39_PL_Expense_Input.pq
 # RENAME QUERY TO: PL Expense Input
 ##############################################################################
 // =====================================================================
@@ -1219,7 +1302,7 @@ in
 
 
 ##############################################################################
-# STEP 24/29  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
+# STEP 25/45  --  SOURCE FILE: 40_CustCode_Chain_Map.pq
 # RENAME QUERY TO: CustCode Chain Map
 # NOTE: Add AFTER Fact Primary Article (query 16) -- depends on it.
 ##############################################################################
@@ -1251,7 +1334,7 @@ in
 
 
 ##############################################################################
-# STEP 25/29  --  SOURCE FILE: 41_DistContWeights.pq
+# STEP 26/45  --  SOURCE FILE: 41_DistContWeights.pq
 # RENAME QUERY TO: Dist Cont Weights
 ##############################################################################
 // =====================================================================
@@ -1469,7 +1552,7 @@ in
 
 
 ##############################################################################
-# STEP 26/29  --  SOURCE FILE: 42_PackSizeBuckets.pq
+# STEP 27/45  --  SOURCE FILE: 42_PackSizeBuckets.pq
 # RENAME QUERY TO: Pack Size Buckets
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1558,7 +1641,7 @@ in
 
 
 ##############################################################################
-# STEP 27/29  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
+# STEP 28/45  --  SOURCE FILE: 43_SecondarySalesEfficiency.pq
 # RENAME QUERY TO: Secondary Sales Efficiency
 # NOTE: Reads Fact Offtake Sales and Fact Primary Article -- add after both.
 ##############################################################################
@@ -1571,8 +1654,8 @@ in
 //
 // Columns:
 //   FY Year, Month, MonthStart, Chain, Brand
-//   Primary NSV      — Lakh, from Fact Primary Article (DIST-allocated)
-//   Offtake NSV      — Lakh, from Fact Offtake Sales
+//   Primary NSV      — Rupees, from Fact Primary Article (DIST-allocated)
+//   Offtake NSV      — Rupees, from Fact Offtake Sales (source lakh scaled at import)
 //   Sell-Through Pct — Offtake NSV / Primary NSV (null-safe, capped at 200%
 //                      to exclude months where primary = 0 but offtake > 0
 //                      due to pipeline stock; un-capped rows surfaced in
@@ -1581,7 +1664,7 @@ in
 //   Inventory Signal  — "Over-stocked" / "On-track" / "Under-liquidation"
 //                      thresholds: ≥ 120% over-stocked, 80–120% on-track,
 //                      < 80% under-liquidation (adjust in Assumption Table)
-//   Outlier Flag     — true when Primary NSV = 0 and Offtake NSV > 0
+//   Outlier Flag     — true when Primary NSV is missing/zero and Offtake NSV > 0
 //                      (pipeline / opening-stock liquidation — exclude from
 //                      efficiency KPIs, review in Distribution Gap page)
 //
@@ -1618,22 +1701,21 @@ let
 
     Expanded = Table.ExpandTableColumn(Joined, "Oft", {"Offtake NSV"}),
 
-    FillPrim = Table.ReplaceValue(Expanded, null, 0, Replacer.ReplaceValue, {"Primary NSV"}),
-    FillOft  = Table.ReplaceValue(FillPrim,  null, 0, Replacer.ReplaceValue, {"Offtake NSV"}),
-
     // ---- 4. Outlier flag: offtake from pipeline stock (Primary = 0) ----
-    AddOutlier = Table.AddColumn(FillOft, "Outlier Flag", each
-        [Primary NSV] = 0 and [Offtake NSV] > 0, type logical),
+    AddOutlier = Table.AddColumn(Expanded, "Outlier Flag", each
+        if [Offtake NSV] = null then false
+        else ([Primary NSV] = null or [Primary NSV] = 0) and [Offtake NSV] > 0,
+        type logical),
 
     // ---- 5. Sell-Through Pct (null when Primary=0 to avoid ÷0 distortion) ----
     AddST = Table.AddColumn(AddOutlier, "Sell-Through Pct", each
-        if [Primary NSV] = 0 then null
+        if [Primary NSV] = null or [Offtake NSV] = null or [Primary NSV] = 0 then null
         else Number.Round([Offtake NSV] / [Primary NSV] * 100, 1),
         type number),
 
     // ---- 6. Raw (uncapped) for outlier review ----
     AddSTRaw = Table.AddColumn(AddST, "Sell-Through Raw", each
-        if [Primary NSV] = 0 then null
+        if [Primary NSV] = null or [Offtake NSV] = null or [Primary NSV] = 0 then null
         else [Offtake NSV] / [Primary NSV] * 100,
         type number),
 
@@ -1655,7 +1737,8 @@ let
     //   Under-liquidation : ST < 80%   (slow sell-through = excess stock risk)
     //   No Primary        : Primary = 0 (outlier/pipeline — review separately)
     AddSignal = Table.AddColumn(AddGap, "Inventory Signal", each
-        if [Outlier Flag]               then "No Primary Data"
+        if [Offtake NSV] = null          then "No Offtake Data"
+        else if [Outlier Flag]          then "No Primary Data"
         else if [Sell-Through Pct] = null then "No Primary Data"
         else if [Sell-Through Pct] >= 120 then "Over-stocked"
         else if [Sell-Through Pct] >= 80  then "On-track"
@@ -1665,7 +1748,8 @@ let
     // ---- 10. Signal Sort (for consistent legend ordering) ----
     AddSignalSort = Table.AddColumn(AddSignal, "Signal Sort", each
         Record.FieldOrDefault(
-            [#"On-track"=1, #"Under-liquidation"=2, #"Over-stocked"=3, #"No Primary Data"=4],
+            [#"On-track"=1, #"Under-liquidation"=2, #"Over-stocked"=3,
+             #"No Primary Data"=4, #"No Offtake Data"=5],
             [Inventory Signal], 5),
         type number),
 
@@ -1692,7 +1776,7 @@ in
 
 
 ##############################################################################
-# STEP 28/29  --  SOURCE FILE: 44_Fact_SecondarySales.pq
+# STEP 29/45  --  SOURCE FILE: 44_Fact_SecondarySales.pq
 # RENAME QUERY TO: Fact Secondary Sales
 ##############################################################################
 // =====================================================================
@@ -1797,7 +1881,7 @@ in
 
 
 ##############################################################################
-# STEP 29/29  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
+# STEP 30/45  --  SOURCE FILE: 45_Fact_ClaimMaster.pq
 # RENAME QUERY TO: Fact Claim Master
 ##############################################################################
 // =====================================================================
@@ -1936,3 +2020,500 @@ in
 //     Final = Table.SelectColumns(WithMonth,
 //         {"Period","FY_Year","Quarter","Brand","Month_Label","Amount_Lakh"})
 // in  Final
+
+
+
+##############################################################################
+# STEP 31/45  --  SOURCE FILE: 47_Fact_Nielsen_Pack.pq
+# RENAME QUERY TO: Fact Nielsen Pack
+# NOTE: Needs fnCombineFolder. Pack presence measures in DAX 04 read this table.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Nielsen Pack  (grain = Month x Nielsen Category x Pack Size)
+// Source = RawDataFolders\Nielsen_Pack_Monthly
+// Written by scripts/build_nielsen_powerbi_seed.py from the Nielsen pack sheets
+// (Category x Basepack and Brand x Basepack, Mamaearth only).
+//   Category Value Cr / Our Value Cr   : pack value (Rs Crore), category and Mamaearth
+//   Category Volume L / Our Volume L   : pack volume in litres
+//   Category WD %                      : weighted distribution of the pack
+// Relate Date Table[MonthStart] -> [MonthStart]; Nielsen Category -> Category Master[Nielsen Category].
+// =====================================================================
+let
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Pack_Monthly"),
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Month", type text},
+        {"FY Year", type text},
+        {"Nielsen Category", type text},
+        {"Pack Size ml", type number},
+        {"Category Value Cr", type number},
+        {"Our Value Cr", type number},
+        {"Category Volume L", type number},
+        {"Our Volume L", type number},
+        {"Category WD %", type number},
+        {"Data Source Name", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.BetweenDelimiters([Month], "", "'"),
+            yy = Text.AfterDelimiter([Month], "'"),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart
+
+
+
+##############################################################################
+# STEP 32/45  --  SOURCE FILE: 48_Nielsen_Deck_StateExposure.pq
+# RENAME QUERY TO: Nielsen Deck State Exposure
+# NOTE: Seed table typed from the review deck; not a Nielsen workbook cut.
+##############################################################################
+// =====================================================================
+// QUERY: Nielsen Deck State Exposure  (state x chain exposure from MT_Review_Big3_v3_1.pptx)
+// Typed from the review deck (Nielsen Jun'26 state cut + internal MT sell-out). It is NOT in
+// the Aug-26 Nielsen workbooks, which carry IN URB MT only. Read it as the deck's own figures.
+// Source = SeedData\Masters\Nielsen_Deck_StateExposure.csv (blank = not applicable in the deck)
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Nielsen_Deck_StateExposure.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"State", type text},
+        {"Market FW Cr", type number}, {"Market SH Cr", type number},
+        {"ME Share FW %", type number}, {"ME Share SH %", type number},
+        {"Dmart FW %", type number}, {"Dmart SH %", type number},
+        {"Reliance FW %", type number}, {"Reliance SH %", type number},
+        {"Apollo FW %", type number}, {"Apollo SH %", type number},
+        {"Main Lever", type text}, {"Source", type text}, {"Period", type text}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 33/45  --  SOURCE FILE: 49_Store_City_Master.pq
+# RENAME QUERY TO: Store City Master
+# NOTE: Seed table; add Store Key as a calculated column on Fact Offtake Sales and relate it (see the header comment).
+##############################################################################
+// =====================================================================
+// QUERY: Store City Master  (grain = Store Key; one row per store)
+// Source = SeedData\Masters\Store_City_Master.csv, built by scripts/build_store_city_master.py from the
+// chain-wise store list workbook (Jan-Jun 26) plus stores that sold in later offtake months (Source column).
+// No employee, SO or ASE columns.
+//
+// One row per store. Store Key = standard chain name | site code (chain | store name or chain | city where there is no code).
+// Chain Name is ONE standard spelling per chain (scripts/visit_cities.py CHAIN_STANDARD); Chain (as in source) keeps the spelling in the file.
+// State is one standard spelling (State (as in source) keeps the original; State Note explains any change). City Final = master city,
+// or the offtake city where the master holds only a locality. Visit Status = Considered / Near listed city / Not considered /
+// City not available, against Visit_City_List.csv.
+// Relate Fact Offtake Sales to this table on [Match Key]: add a calculated column to the fact
+//   Match Key = UPPER ( TRIM ( 'Fact Offtake Sales'[Chain] ) ) & "|" & UPPER ( TRIM ( 'Fact Offtake Sales'[Store Code] ) )
+// (Match Key = chain as spelt in the offtake file, upper case | site code). Stores without a code have no Match Key.
+// A store listed under more than one code is ONE row here (Other Site Codes lists the other codes); the codes are in 56_Store_Key_Alias.pq, which gives the
+// Match Key formula to use on the fact so the sales of every code land on that one row.
+// Check the join with [Visit Master Match %] before using the city measures.
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Store_City_Master.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Store Key", type text}, {"Chain Name", type text}, {"Chain (as in source)", type text}, {"Site Code", type text}, {"Store Name", type text},
+        {"Zone", type text}, {"State", type text}, {"State (as in source)", type text}, {"State Note", type text},
+        {"City (store list)", type text}, {"City (offtake file)", type text}, {"City Final", type text}, {"City Source", type text},
+        {"Visit City", type text}, {"Visit Region", type text}, {"Visit Status", type text}, {"Nearest Listed City", type text},
+        {"Store Type", type text}, {"Match Key", type text}, {"Source", type text},
+        {"Other Site Codes", type text}, {"Merged Rows", Int64.Type}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 34/45  --  SOURCE FILE: 50_Visit_City_List.pq
+# RENAME QUERY TO: Visit City List
+# NOTE: Seed table, one row per corporate-visit city.
+##############################################################################
+// =====================================================================
+// QUERY: Visit City List  (the corporate-visit cities, one row per city)
+// Source = SeedData\Masters\Visit_City_List.csv: Region, City, aliases (Cochin = Kochi etc.) and the near-listed cities that roll up to it.
+// Relate Visit City List[City] -> Store City Master[Visit City] (1 to many).
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Visit_City_List.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Region", type text}, {"City", type text}, {"Beats Planned (rule)", type text},
+        {"Aliases", type text}, {"Near Listed (not on list)", type text}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 35/45  --  SOURCE FILE: 51_Fact_Nielsen_Pack_Brand.pq
+# RENAME QUERY TO: Fact Nielsen Pack Brand
+# NOTE: Needs fnCombineFolder; pack-wise brand measures in DAX 04 read this table.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Nielsen Pack Brand  (grain = Month x Nielsen Category x Pack Size x Brand)
+// Source = RawDataFolders\Nielsen_Pack_Brand_Monthly (copy the file from SeedData\Nielsen\Nielsen_Pack_Brand_Monthly)
+// Which brands sell which pack size: Nielsen Brand x Basepack, all brands in the sheet. Value in Rs Crore, volume in litres.
+// Relate Date Table[MonthStart] -> [MonthStart]; Brand -> Nielsen Competitor Master[Brand].
+// =====================================================================
+let
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Pack_Brand_Monthly"),
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Month", type text}, {"FY Year", type text}, {"Nielsen Category", type text}, {"Pack Size ml", type number},
+        {"Brand", type text}, {"Value Cr", type number}, {"Volume L", type number}, {"WD %", type number}, {"Data Source Name", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.BetweenDelimiters([Month], "", "'"),
+            yy = Text.AfterDelimiter([Month], "'"),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart
+
+
+
+##############################################################################
+# STEP 36/45  --  SOURCE FILE: 52_Store_Universe_Overrides.pq
+# RENAME QUERY TO: Store Universe Overrides
+# NOTE: Seed table; same file feeds dashboard/store_universe.js.
+##############################################################################
+// =====================================================================
+// QUERY: Store Universe Overrides  (chains whose offtake has no usable store codes)
+// Source = SeedData\Masters\Store_Universe_Overrides.csv (also feeds dashboard/store_universe.js)
+//   TENTATIVE = working estimate that is counted in the store universe (Reliance Retail ~1,000, More Retail ~400)
+//   NA        = not applicable, not counted (Nykaa / FSN is online)
+// [Offtake Chain] is the chain spelling in Fact Offtake Sales; the measures below use it to avoid double counting.
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Store_Universe_Overrides.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Chain", type text}, {"Offtake Chain", type text}, {"Store Count", Int64.Type}, {"Status", type text},
+        {"Note", type text}, {"Source", type text}, {"As Of", type text}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 37/45  --  SOURCE FILE: 53_Fact_Account_Category.pq
+# RENAME QUERY TO: Fact Account Category
+# NOTE: Seed table from SeedData\Account; account-share measures are in DAX 17.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Account Category  (grain = Chain x Month x Category (class level for More Retail; sub-class rows have Level = Sub-Class))
+// Source = SeedData\Account\Account_Category_Monthly.csv, built by scripts/build_account_share.py from the retailer-side files
+// (Lulu compiled monthly files, More MS, Wellness MS, Reliance BA store file). Value is Rs lakh without GST (Reliance: gross sales as supplied, compare shares only). Share % = our sales / the chain's own category sales.
+// Scope: Lulu and More Retail cover the categories and stores where Honasa sells; More Retail months before Jun 26 cover fewer categories
+// (see the Scope column), so compare More Retail only within Jun-Aug 26. Relate Date Table[MonthStart] -> [MonthStart]; Chain -> Chain Master[Chain].
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Account\Account_Category_Monthly.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Chain", type text},
+        {"Month", type text},
+        {"Category", type text},
+        {"Account Sales Rs L", type number},
+        {"Honasa Sales Rs L", type number},
+        {"Common Category", type text},
+        {"Share %", type number},
+        {"Source", type text},
+        {"Level", type text},
+        {"Scope", type text},
+        {"Relevant For Us", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.Start([Month], 3),
+            yy = Text.End([Month], 2),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart
+
+
+
+##############################################################################
+# STEP 38/45  --  SOURCE FILE: 54_Fact_Account_Category_Geo.pq
+# RENAME QUERY TO: Fact Account Category Geo
+# NOTE: Seed table from SeedData\Account; account-share measures are in DAX 17.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Account Category Geo  (grain = Chain x Month x Zone x State x City x Category; city is the store city for Lulu, the DC city for More Retail, the store city for Reliance Brand Counter)
+// Source = SeedData\Account\Account_Category_Geo.csv, built by scripts/build_account_share.py from the retailer-side files
+// (Lulu compiled monthly files, More MS, Reliance BA store file; Wellness Forever has no zone or state). Value is Rs lakh without GST (Reliance: gross sales as supplied). Share % = our sales / the chain's own category sales.
+// Scope: Lulu and More Retail cover the categories and stores where Honasa sells; More Retail months before Jun 26 cover fewer categories
+// (see the Scope column), so compare More Retail only within Jun-Aug 26. Relate Date Table[MonthStart] -> [MonthStart]; Chain -> Chain Master[Chain].
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Account\Account_Category_Geo.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Chain", type text},
+        {"Month", type text},
+        {"Zone", type text},
+        {"State", type text},
+        {"City", type text},
+        {"Category", type text},
+        {"Account Sales Rs L", type number},
+        {"Honasa Sales Rs L", type number},
+        {"Stores", type number},
+        {"Common Category", type text},
+        {"Share %", type number},
+        {"Source", type text},
+        {"Relevant For Us", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.Start([Month], 3),
+            yy = Text.End([Month], 2),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart
+
+
+
+##############################################################################
+# STEP 39/45  --  SOURCE FILE: 55_Fact_Account_Assortment.pq
+# RENAME QUERY TO: Fact Account Assortment
+# NOTE: Seed table from SeedData\Account; account-share measures are in DAX 17.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Account Assortment  (grain = Chain x Month x Category; our distinct articles: Lulu, More Retail and Reliance only)
+// Source = SeedData\Account\Account_Assortment.csv, built by scripts/build_account_share.py from the retailer-side files
+// (Lulu compiled monthly files, More MS, Reliance BA store file). Value is Rs lakh without GST. Share % = our sales / the chain's own category sales.
+// Scope: Lulu and More Retail cover the categories and stores where Honasa sells; More Retail months before Jun 26 cover fewer categories
+// (see the Scope column), so compare More Retail only within Jun-Aug 26. Relate Date Table[MonthStart] -> [MonthStart]; Chain -> Chain Master[Chain].
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Account\Account_Assortment.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Month", type text},
+        {"Category", type text},
+        {"Articles", type number},
+        {"Stores", type number},
+        {"Chain", type text},
+        {"Common Category", type text},
+        {"Relevant For Us", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.Start([Month], 3),
+            yy = Text.End([Month], 2),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart
+
+
+
+##############################################################################
+# STEP 40/45  --  SOURCE FILE: 56_Store_Key_Alias.pq
+# RENAME QUERY TO: Store Key Alias
+# NOTE: Lookup for stores listed under more than one code; the Match Key formula for the fact is in the query header.
+##############################################################################
+// =====================================================================
+// QUERY: Store Key Alias  (grain = one alias store key; stand-alone lookup table)
+// Source = SeedData\Masters\Store_Key_Aliases.csv, built by scripts/build_store_city_master.py.
+// Some stores are listed under more than one code (same chain + store name + city, for example a re-coded Apollo or B&N store). The store master keeps ONE row
+// per store (Store City Master[Store Key]) and the other codes are listed here, so a store counts once and its sales add up under one row.
+// To make the offtake follow, build the fact's Match Key through this table (replaces the formula in 49_Store_City_Master.pq):
+//   Match Key =
+//       VAR _k = UPPER ( TRIM ( 'Fact Offtake Sales'[Chain] ) ) & "|" & UPPER ( TRIM ( 'Fact Offtake Sales'[Store Code] ) )
+//       RETURN COALESCE ( LOOKUPVALUE ( 'Store Key Alias'[Store Match Key], 'Store Key Alias'[Alias Match Key], _k ), _k )
+// No relationship is needed. Stores with no code have no Match Key and are not in this table.
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Masters\Store_Key_Aliases.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    Typed = Table.TransformColumnTypes(Headers, {
+        {"Alias Store Key", type text}, {"Alias Match Key", type text}, {"Alias Site Code", type text},
+        {"Store Key", type text}, {"Store Match Key", type text}, {"Reason", type text}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 41/45  --  SOURCE FILE: 57_Fact_Nielsen_Brand_Cut.pq
+# RENAME QUERY TO: Fact Nielsen Brand Cut
+# NOTE: Needs fnCombineFolder; copy SeedData\Nielsen\Nielsen_Brand_Cut_Monthly into RawDataFolders\Nielsen_Brand_Cut_Monthly; measures in DAX 18.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Nielsen Brand Cut  (grain = Month x Nielsen Category x Brand; one "(Category)" row per month and category)
+// Source = RawDataFolders\Nielsen_Brand_Cut_Monthly (copy the file from SeedData\Nielsen\Nielsen_Brand_Cut_Monthly)
+// The brand cuts of the Nielsen Cuts tab: value, value and volume share, price per ml, weighted (WD) and numeric (ND) distribution, stores,
+// sales per store and share among stores that stock the brand (SAH). WD, ND and SAH are percentage points (89.5 = 89.5%); shares are decimals
+// (0.128 = 12.8%), as in Fact Nielsen. The "(Category)" row carries the category value and price per ml: Is Category Row = "Yes".
+// Relate Date Table[MonthStart] -> [MonthStart]; Brand -> Nielsen Competitor Master[Brand] (not for the "(Category)" row).
+// =====================================================================
+let
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Brand_Cut_Monthly"),
+    Typed = Table.TransformColumnTypes(Source, {
+        {"Month", type text}, {"FY Year", type text}, {"Nielsen Category", type text}, {"Brand", type text}, {"Is Category Row", type text}, {"Zone", type text},
+        {"Value Cr", type number}, {"Value Share %", type number}, {"Volume Share %", type number}, {"Price Per Ml", type number},
+        {"WD %", type number}, {"ND %", type number}, {"Stores", type number}, {"Sales Per Store Rs", type number}, {"SAH %", type number}, {"Data Source Name", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.BetweenDelimiters([Month], "", "'"),
+            yy = Text.AfterDelimiter([Month], "'"),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart
+
+
+
+##############################################################################
+# STEP 42/45  --  SOURCE FILE: 58_Fact_Store_Type.pq
+# RENAME QUERY TO: Fact Store Type
+# NOTE: Needs pRootFolder; copy SeedData\Store_Cuts into RawDataFolders\Store_Cuts; measures in DAX 20.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Store Type  (grain = one row per store: LFL / NFL / No LY store data / Lost)
+// Source = RawDataFolders\Store_Cuts (copy store_type_aug26.csv from SeedData\Store_Cuts; rebuild it each month with scripts/build_store_cuts.py)
+// LFL = sold this year and in the same months last year. NFL = no sales last year in those months. Lost = sold last year, nothing this year (State and Zone are "Not available").
+// NFL Kind: New = no sales anywhere last year; Restarted = sold last year in another month (Sep-Mar) so not a new store; "Not NFL" for the other types.
+// LY Months Sold = months (of Apr-Aug last year) the store had sales; Growth Basis = "Enough history" when 3 or more. Store-level growth is shown only for those stores.
+// "No LY store data" = Reliance Retail non-counter: last year came state-level only, so it is kept out of LFL. Brand Counter stores are not in this table (offtake rule).
+// NSV is in rupees. Relate Chain -> the chain dimension if you want chain slicers to cut it; State and Zone are text columns for direct use.
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\store_type_aug26.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    Typed = Table.TransformColumnTypes(Promoted, {
+        {"Store Key", type text}, {"Chain", type text}, {"State", type text}, {"Zone", type text}, {"Store Type", type text}, {"NFL Kind", type text}, {"LY Months Sold", Int64.Type}, {"Growth Basis", type text},
+        {"NSV This Year Rs", type number}, {"NSV Last Year Same Months Rs", type number}, {"Period", type text}
+    })
+in
+    Typed
+
+
+
+##############################################################################
+# STEP 43/45  --  SOURCE FILE: 59_Fact_Pack_Size.pq
+# RENAME QUERY TO: Fact Pack Size
+# NOTE: Needs pRootFolder; same Store_Cuts folder; relate MonthStart to Date Table; measures in DAX 20.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Pack Size  (grain = Month x Category x Pack size)
+// Source = RawDataFolders\Store_Cuts (copy pack_size_monthly_fy27.csv from SeedData\Store_Cuts; rebuild each month with scripts/build_store_cuts.py)
+// Pack = net weight in g / ml as in the offtake file ("Not stated" when blank). Last year's store file carries no pack, so pack YoY is not possible: use MoM.
+// NSV is in rupees. "Stores Selling" is per row: do not add it up across packs or months. Relate MonthStart -> Date Table[MonthStart].
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\pack_size_monthly_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    Typed = Table.TransformColumnTypes(Promoted, {
+        {"Month", type text}, {"FY Year", type text}, {"Category", type text}, {"Pack", type text}, {"NSV Rs", type number}, {"Stores Selling", type number}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.BetweenDelimiters([Month], "", "'"),
+            yy = Text.AfterDelimiter([Month], "'"),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date),
+    AddPackSort = Table.AddColumn(AddMonthStart, "Pack Sort", each try Number.FromText([Pack]) otherwise 99999, type number)
+in
+    AddPackSort
+
+
+
+##############################################################################
+# STEP 44/45  --  SOURCE FILE: 60_Fact_Sales_Cuts.pq
+# RENAME QUERY TO: Fact Sales Cuts
+# NOTE: Needs pRootFolder; same Store_Cuts folder (sales_cuts_fy27.csv); relate MonthStart to Date Table; measures in DAX 20.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Sales Cuts  (grain = Month x Zone x Brand x Sub Category x Store Type)
+// Source = RawDataFolders\Store_Cuts (copy sales_cuts_fy27.csv from SeedData\Store_Cuts; rebuild each month with scripts/build_store_cuts.py)
+// FY27 offtake NSV (Brand Counter left out) split by store type: LFL, NFL New, NFL Restarted, No LY store data. Last year has no brand or sub-category
+// in the store file, so there is no brand / sub-category YoY here; zone growth comes from the main offtake fact. NSV is in rupees.
+// "Stores Selling" is per row: do not add it up across rows. Relate MonthStart -> Date Table[MonthStart].
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\sales_cuts_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    Typed = Table.TransformColumnTypes(Promoted, {
+        {"Month", type text}, {"FY Year", type text}, {"Zone", type text}, {"Brand", type text}, {"Category", type text}, {"Sub Category", type text},
+        {"Store Type", type text}, {"NSV Rs", type number}, {"Stores Selling", type number}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.BetweenDelimiters([Month], "", "'"),
+            yy = Text.AfterDelimiter([Month], "'"),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart
+
+
+
+##############################################################################
+# STEP 45/45  --  SOURCE FILE: 61_Fact_Inhouse_Distribution.pq
+# RENAME QUERY TO: Fact Inhouse Distribution
+# NOTE: Needs pRootFolder; same Store_Cuts folder (inhouse_distribution_fy27.csv); filter Level on every visual; not TDP; measures in DAX 20.
+##############################################################################
+// =====================================================================
+// QUERY: Fact Inhouse Distribution  (grain = Month x Level x Name; Level = Total / Chain / State / Pack)
+// Source = RawDataFolders\Store_Cuts (copy inhouse_distribution_fy27.csv from SeedData\Store_Cuts; rebuild with scripts/build_tdp_inhouse.py)
+// FROM OUR OFFTAKE, NOT TDP: no ACV % and no weighted distribution. Stores Selling = stores with offtake in the month; SKU Listings = distinct store x SKU pairs
+// (in-house distribution points); SKUs per store = listings / stores. "Stores In Master" is blank for Pack and where the state name does not match the master.
+// Filter the Level column on every visual (Total, Chain, State or Pack), because the rows of different levels must not be added together.
+// NSV is in rupees. Relate MonthStart -> Date Table[MonthStart]. Replace with 'Fact TDP' (query 14) when the real TDP file arrives.
+// =====================================================================
+let
+    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\inhouse_distribution_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    Typed = Table.TransformColumnTypes(Promoted, {
+        {"Month", type text}, {"FY Year", type text}, {"Level", type text}, {"Name", type text}, {"Stores Selling", type number}, {"SKUs Selling", type number},
+        {"SKU Listings", type number}, {"Stores In Master", type number}, {"NSV Rs", type number}, {"Basis", type text}
+    }),
+    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+        let
+            m = Text.BetweenDelimiters([Month], "", "'"),
+            yy = Text.AfterDelimiter([Month], "'"),
+            monthNum = Record.FieldOrDefault(
+                [Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
+        in if monthNum = null then null else #date(2000 + Number.FromText(yy), monthNum, 1),
+        type date)
+in
+    AddMonthStart

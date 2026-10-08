@@ -1,0 +1,3 @@
+Severity,Check,Count,Examples
+WARN,state and zone taken from the offtake data for a store-list-only store,535,Apollo|26833; Apollo|27619; Apollo|25265; Apollo|15883; Apollo|18432; Apollo|11898
+WARN,no city for the store,209,Apna Mart|NO-CITY|Jharkhand; Apna Mart|NO-CITY|West Bengal; Apollo|17329; Apollo|11813; Apollo|17330; Apollo|10119

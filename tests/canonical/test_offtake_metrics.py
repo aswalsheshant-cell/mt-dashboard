@@ -9,7 +9,7 @@ TOLERANCE = 0.01
 
 
 def test_offtake_nsv_fy27_matches_certified_total(data):
-    assert abs(offtake.offtake_nsv(data, "FY27") - 19044.99) <= TOLERANCE
+    assert abs(offtake.offtake_nsv(data, "FY27") - 18971.69) <= TOLERANCE   # Aug-26 re-supplied (was 19044.99)
 
 
 def test_offtake_nsv_reconciles_to_its_own_monthly_series(data):
@@ -25,7 +25,7 @@ def test_offtake_nsv_unavailable_fy_is_not_available(data):
 
 
 def test_chain_offtake_nsv_real_value_when_fy_present(data):
-    assert abs(offtake.chain_offtake_nsv(data, "FY27", "DMart") - 7046.26) <= TOLERANCE
+    assert abs(offtake.chain_offtake_nsv(data, "FY27", "DMart") - 7017.13) <= TOLERANCE   # Aug-26 re-supplied (was 7046.26)
 
 
 def test_chain_offtake_nsv_ki_offtake_001_no_stale_fallback(data):

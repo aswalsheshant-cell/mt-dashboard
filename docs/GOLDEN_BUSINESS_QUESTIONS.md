@@ -63,7 +63,7 @@ zero, never invent an expected value.** Every BLOCKED row below states exactly w
 | Business definition | `OFFTAKE_NSV` — SUM of monthly chain-store-article extracts, RBC isolated |
 | Authoritative source | `offtake_block()`/`offtake_rebuild_block()` |
 | Grain | Month × Chain × Article |
-| PUBLISHED DATA | **`19044.99`** (`offtake.total_fy27`), months `['Apr-26'..'Aug-26']` |
+| PUBLISHED DATA | **`18971.69`** (`offtake.total_fy27`), months `['Apr-26'..'Aug-26']`. Restated 2026-10-04 from 19044.99 when the Aug-26 store-wise file was re-supplied (Reliance, Dmart, Apollo restated down; Vmm and V-Mart added); see `config/data_source_registry.yml` `offtake_aug26_storewise_refresh` |
 | RAW DATA | `docs/DATA_AVAILABILITY_MATRIX.md`: "Rs19,044.99L across 5 months; Jul'26 ex-RBC = Rs36.21 Cr, matches independently supplied Rs36.18 Cr benchmark" — real, external benchmark match already documented |
 | POWER BI MODEL | BLOCKED: NO_LIVE_WORKSPACE_ACCESS |
 | DASHBOARD | NOT_INDEPENDENTLY_VERIFIED_THIS_PASS |

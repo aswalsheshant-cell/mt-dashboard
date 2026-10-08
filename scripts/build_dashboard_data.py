@@ -1465,6 +1465,15 @@ def validate_offtake_partition(offtake, reliance_bc=None):
     return result
 
 
+def _store_alias_map():
+    """{ALIAS MATCH KEY: canonical Match Key} from PowerBI/SeedData/Masters/Store_Key_Aliases.csv: one store listed under two codes counts once."""
+    f = Path(__file__).resolve().parent.parent / "PowerBI" / "SeedData" / "Masters" / "Store_Key_Aliases.csv"
+    if not f.exists():
+        return {}
+    d = pd.read_csv(f, dtype=str).dropna(subset=["Alias Match Key", "Store Match Key"])
+    return dict(zip(d["Alias Match Key"], d["Store Match Key"]))
+
+
 def pos_store_block(site_sink, existing=None):
     """Real POS store counts per chain from the store x article offtake
     extracts' Site Code -- the chain's own store identity (see
@@ -1485,6 +1494,12 @@ def pos_store_block(site_sink, existing=None):
     (idempotent: a touched FY is fully recomputed, never added to)."""
     out = {k: v for k, v in (existing or {}).items() if k.startswith("fy")}
     by_fy = {}
+    _al = _store_alias_map()
+
+    def _canon(chain, code):
+        k = f"{str(chain).strip().upper()}|{str(code).strip().upper()}"
+        return _al.get(k, k).split("|", 1)[1]
+    site_sink = {ck: dict(e, sites={_canon(ck[0], c) for c in e["sites"]}) for ck, e in site_sink.items()}
     for (chain, mo), e in site_sink.items():
         tag = fy_tag_from_label(mo)
         if tag:
@@ -5337,6 +5352,7 @@ def load_dist_cont_weights(src):
     with the patch still applied on top of it).
     Returns 3-tuple (wdf, raw_sums, source_label) or (None, None, None)."""
     f = src / "Dist_primary_cont_based_on_secondary_MOM.xlsx"
+    wdf = raw_sums = None      # set below only on the fallback path; declared here so every return path sees them
     if f.exists():
         w = pd.read_excel(f, sheet_name="Dist Primary Conv to Chain Art", header=1)
         src_label = "xlsx"
@@ -6416,6 +6432,7 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
     # rows across chains by the secondary-derived cont%). Row-level, BEFORE
     # any grouping, so Customer x Article grain survives into everything
     # downstream (TOT%, CM2, detail_records, the Customer x Article table).
+    _wdf = _raw_sums = _alloc_src = None
     _wdf, _raw_sums, _alloc_src = load_dist_cont_weights(src)
     _offtake_brand_set, _offtake_ean_set = build_offtake_universe(src)
     df, alloc = allocate_dist_primary(

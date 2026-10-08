@@ -1,0 +1,37 @@
+// =====================================================================
+// NIELSEN BRAND CUTS  (table: 'Fact Nielsen Brand Cut'; the Nielsen Cuts tab of the market-share report)
+// Use with Nielsen Category and Brand slicers and one month. WD, ND and SAH are percentage points; shares are decimals.
+// The "(Category)" row (Is Category Row = "Yes") holds the category value and price per ml; brand visuals should filter it out.
+// =====================================================================
+Cut Brand Value Cr = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Category Value Cr = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "Yes", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )
+Cut Value Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Value Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Volume Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Volume Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+// value share above volume share = the brand sells at a price above the category average
+Cut Value Less Volume Share pp = ( [Cut Value Share %] - [Cut Volume Share %] ) * 100
+
+Cut Brand Price Per Ml = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Price Per Ml] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Category Price Per Ml =
+CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Price Per Ml] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "Yes", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )
+// 100 = the category price per ml
+Cut Price Index = DIVIDE ( [Cut Brand Price Per Ml], [Cut Category Price Per Ml] ) * 100
+Cut Price Per Ml YoY % =
+VAR _ly = CALCULATE ( [Cut Brand Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+RETURN DIVIDE ( [Cut Brand Price Per Ml] - _ly, _ly )
+
+Cut WD % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[WD %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut ND % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[ND %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut WD Change pp = [Cut WD %] - CALCULATE ( [Cut WD %], DATEADD ( 'Date Table'[Date], -12, MONTH ) )
+// weighted above numeric distribution = in the larger stores first; the gap is the smaller stores still open
+Cut WD Less ND pp = [Cut WD %] - [Cut ND %]
+Cut Stores = CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Stores] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut Sales Per Store Rs = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Sales Per Store Rs] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+Cut SAH % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[SAH %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = "No" )
+
+// share earned per point of weighted distribution (percentage points of share per WD point)
+Cut Share Per WD Point = DIVIDE ( [Cut Value Share %] * 100, [Cut WD %] )
+// ceiling for the distribution lever: where we are listed we hold SAH; at 95% WD the share would be about SAH x 0.95 (only when WD is below 95)
+Cut Share At 95 WD % = IF ( [Cut WD %] < 95, [Cut SAH %] / 100 * 0.95 )
+Cut Share Headroom pp = IF ( ISBLANK ( [Cut Share At 95 WD %] ), BLANK (), ( [Cut Share At 95 WD %] - [Cut Value Share %] ) * 100 )
+// rupee value of one share point in this category, Rs Cr a month
+Cut Value Of One Share Point Cr = DIVIDE ( [Cut Category Value Cr], 100 )

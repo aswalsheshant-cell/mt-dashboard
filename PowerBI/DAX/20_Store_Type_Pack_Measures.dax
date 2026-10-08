@@ -1,0 +1,109 @@
+// =====================================================================
+// STORE TYPE (LFL / NFL) and PACK SIZE measures. Tables: 'Fact Store Type' (query 58) and 'Fact Pack Size' (query 59).
+// Period of the store table = Apr-Aug FY27 against the same months last year, so these do not move with the Date slicer; the page title must say the period.
+// Rupees are shown in Rs crore. Every ratio uses DIVIDE.
+// =====================================================================
+
+// ---------- LFL / NFL ----------
+LFL NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "LFL" ), 10000000 )
+
+LFL NSV LY Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = "LFL" ), 10000000 )
+
+LFL Growth % = DIVIDE ( [LFL NSV Cr] - [LFL NSV LY Cr], [LFL NSV LY Cr] )
+
+NFL NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "NFL" ), 10000000 )
+
+New Stores NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[NFL Kind] = "New" ), 10000000 )
+
+Restarted Stores NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[NFL Kind] = "Restarted" ), 10000000 )
+
+New Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[NFL Kind] = "New" )
+Restarted Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[NFL Kind] = "Restarted" )
+
+No LY Store Data NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "No LY store data" ), 10000000 )
+
+Lost Stores LY NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = "Lost" ), 10000000 )
+
+Store Type NSV This Year Cr = DIVIDE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 10000000 )
+
+LFL Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = "LFL" )
+NFL Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = "NFL" )
+Lost Stores = CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = "Lost" )
+
+NFL Share Of NSV % = DIVIDE ( [NFL NSV Cr], [Store Type NSV This Year Cr] )
+
+// Same-store growth in rupees: how much of the growth the old stores gave (the rest comes from new stores)
+// Store-level growth rule: only stores with 3 or more months of sales last year (Growth Basis = "Enough history"). Use these on store lists and rankings.
+LFL NSV (3+ months) Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = "LFL", 'Fact Store Type'[Growth Basis] = "Enough history" ), 10000000 )
+
+LFL NSV LY (3+ months) Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = "LFL", 'Fact Store Type'[Growth Basis] = "Enough history" ), 10000000 )
+
+LFL Growth % (3+ months) = DIVIDE ( [LFL NSV (3+ months) Cr] - [LFL NSV LY (3+ months) Cr], [LFL NSV LY (3+ months) Cr] )
+
+Store Growth % (3+ months) =
+    IF (
+        SELECTEDVALUE ( 'Fact Store Type'[Growth Basis] ) = "Thin history",
+        BLANK (),
+        DIVIDE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ) - SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ) )
+    )
+
+LFL Growth Cr = [LFL NSV Cr] - [LFL NSV LY Cr]
+
+Store Type Insight =
+    IF (
+        ISBLANK ( [LFL NSV LY Cr] ),
+        "No like-for-like base for this selection (Reliance Retail has no store-level last year)",
+        "Same stores " & FORMAT ( [LFL Growth %], "+0%;-0%" ) & " · " & FORMAT ( [New Stores], "#,0" ) & " new stores add Rs " & FORMAT ( [New Stores NSV Cr], "0.0" ) & " Cr, " & FORMAT ( [Restarted Stores], "#,0" ) & " restarted add Rs " & FORMAT ( [Restarted Stores NSV Cr], "0.0" ) & " Cr · "
+            & FORMAT ( [Lost Stores], "#,0" ) & " stores sold last year, nothing this year"
+    )
+
+// ---------- PACK SIZE ----------
+Pack NSV Cr = DIVIDE ( SUM ( 'Fact Pack Size'[NSV Rs] ), 10000000 )
+
+Pack Share % = DIVIDE ( [Pack NSV Cr], CALCULATE ( [Pack NSV Cr], ALL ( 'Fact Pack Size'[Pack] ) ) )
+
+Pack NSV Last Month Cr =
+    VAR _m = MAX ( 'Fact Pack Size'[MonthStart] )
+    RETURN CALCULATE ( [Pack NSV Cr], ALL ( 'Fact Pack Size'[MonthStart], 'Fact Pack Size'[Month] ), 'Fact Pack Size'[MonthStart] = EDATE ( _m, -1 ) )
+
+// Only meaningful when one month is selected; with the full period it shows blank rather than a wrong number
+Pack MoM % =
+    IF ( DISTINCTCOUNT ( 'Fact Pack Size'[MonthStart] ) = 1, DIVIDE ( [Pack NSV Cr] - [Pack NSV Last Month Cr], [Pack NSV Last Month Cr] ) )
+
+Pack Insight =
+    VAR _top = TOPN ( 1, VALUES ( 'Fact Pack Size'[Pack] ), [Pack NSV Cr], DESC )
+    RETURN "Biggest pack: " & MAXX ( _top, 'Fact Pack Size'[Pack] ) & " g/ml · " & FORMAT ( MAXX ( _top, [Pack Share %] ), "0%" ) & " of NSV"
+
+// ---------- SALES CUTS (zone, brand, sub-category) : table 'Fact Sales Cuts' (query 60) ----------
+Cut NSV Cr = DIVIDE ( SUM ( 'Fact Sales Cuts'[NSV Rs] ), 10000000 )
+
+Cut Share % =
+    DIVIDE ( [Cut NSV Cr], CALCULATE ( [Cut NSV Cr], ALLSELECTED ( 'Fact Sales Cuts'[Zone], 'Fact Sales Cuts'[Brand], 'Fact Sales Cuts'[Sub Category] ) ) )
+
+Cut LFL NSV Cr =
+    DIVIDE ( CALCULATE ( SUM ( 'Fact Sales Cuts'[NSV Rs] ), 'Fact Sales Cuts'[Store Type] = "LFL" ), 10000000 )
+
+Cut Last Month NSV Cr =
+    VAR _m = MAX ( 'Fact Sales Cuts'[MonthStart] )
+    RETURN CALCULATE ( [Cut NSV Cr], ALL ( 'Fact Sales Cuts'[MonthStart], 'Fact Sales Cuts'[Month] ), 'Fact Sales Cuts'[MonthStart] = EDATE ( _m, -1 ) )
+
+// Only meaningful for one month; blank for the full period rather than a wrong number
+Cut MoM % =
+    IF ( DISTINCTCOUNT ( 'Fact Sales Cuts'[MonthStart] ) = 1, DIVIDE ( [Cut NSV Cr] - [Cut Last Month NSV Cr], [Cut Last Month NSV Cr] ) )
+
+// ---------- IN-HOUSE DISTRIBUTION (not TDP) : table 'Fact Inhouse Distribution' (query 61). Always filter Level to one value. ----------
+Inhouse Stores Selling = SUM ( 'Fact Inhouse Distribution'[Stores Selling] )
+Inhouse SKUs Selling = SUM ( 'Fact Inhouse Distribution'[SKUs Selling] )
+Inhouse SKU Listings = SUM ( 'Fact Inhouse Distribution'[SKU Listings] )
+Inhouse SKUs Per Store = DIVIDE ( [Inhouse SKU Listings], [Inhouse Stores Selling] )
+Inhouse Store Reach % =
+    DIVIDE ( [Inhouse Stores Selling], SUM ( 'Fact Inhouse Distribution'[Stores In Master] ) )

@@ -42,6 +42,9 @@ only in chat does not count.
    - `[Unmapped Chain Or Customer Rows]`
    - `[Total Expense Amount Loaded]` (expected ₹1,274.71 L)
 
+A script can run the DAX cases for you and fill the evidence file from the real results:
+see `B5_RUNNER.md` (the FY parser and the screenshots stay manual).
+
 DAX cases run in **DAX Studio** connected to the open model, or in Desktop's
 **DAX query view**. Run each `EVALUATE` block **on its own**. The case blocks
 are in `tests/powerbi/cm2_availability_cases.dax`.
@@ -81,7 +84,7 @@ are in `tests/powerbi/cm2_availability_cases.dax`.
 
 | | |
 |---|---|
-| Block | `// CASE 4`: two `EVALUATE`s (the chain table, then `Violations`). Both are scoped to FY27 (`'Date Table'[FY Year] = "2026-27"`) since the CM2 comparability fix: with no FY filter every CM2 is BLANK by design (Case 9). |
+| Block | `// CASE 4`: two `EVALUATE`s (the chain table, then `Violations`). Both are scoped to FY27 (`'Date Table'[FY Year] = "26-27"`) since the CM2 comparability fix: with no FY filter every CM2 is BLANK by design (Case 9). |
 | Expected (from the file) | Chains **with** expense: `ChainCM2 = NSV − ChainExpense`. Chains **without** expense: `ChainExpense` and `ChainCM2` both BLANK. The `Violations` query returns **0**. |
 | Record | The `Violations` value. From the chain table, spot-check one chain with expense (write NSV, expense, CM2) and one chain without (write that both are BLANK). |
 | PASS rule | PASS only if `Violations = 0` and the spot-checked chain with expense satisfies `ChainCM2 = NSV − ChainExpense`. |
@@ -100,7 +103,7 @@ are in `tests/powerbi/cm2_availability_cases.dax`.
 | | |
 |---|---|
 | Block | `// CASE 6` |
-| Expected (from the file) | The FY27 (`2026-27`) row carries FY27 expense only. The FY26 (`2025-26`) row has BLANK `Expense` and BLANK `CM2`, because every loaded row is FY27. |
+| Expected (from the file) | The FY27 (`26-27`) row carries FY27 expense only. The FY26 (`25-26`) row has BLANK `Expense` and BLANK `CM2`, because every loaded row is FY27. |
 | Cross-check | The FY27 `Expense` should equal the **mapped** part of the ₹1,274.71 L load: ₹1,274.71 L if step 0.5 shows 0 unmapped rows, otherwise ₹1,274.71 L minus the Case 3 `Unmapped` amount. |
 | Record | `Expense`, `TopChainExp` and `CM2` for each FY row shown. |
 | PASS rule | PASS only if FY26 `Expense` and `CM2` are BLANK **and** FY27 `Expense` equals the cross-check value (to ₹0.01 L). |
