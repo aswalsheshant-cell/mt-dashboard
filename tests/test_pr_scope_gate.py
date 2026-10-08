@@ -159,11 +159,14 @@ def test_workflow_is_read_only_and_pinned():
 def test_cli_exit_codes(tmp_path, monkeypatch):
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     body, changed = tmp_path / "b.txt", tmp_path / "c.txt"
+    state = tmp_path / "state.yml"      # a frozen state of its own: the real config/project_state.yml may have the freeze lifted
+    state.write_text(yaml.safe_dump({**STATE, "feature_freeze": {"active": True}}), encoding="utf-8")
+    args = ["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed), "--state-file", str(state)]
     changed.write_text("docs/x.md\n", encoding="utf-8")
     body.write_text("Freeze classification: HOUSEKEEPING", encoding="utf-8")
-    assert gate.main(["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed)]) == 0
+    assert gate.main(args) == 0
     body.write_text("no declaration", encoding="utf-8")
-    assert gate.main(["--title", "t", "--body-file", str(body), "--changed-files-file", str(changed)]) == 1
+    assert gate.main(args) == 1
 
 
 # ---- self-bypass (review of 034d7f1) ------------------------------------------
@@ -198,6 +201,11 @@ def test_workflow_runs_base_code_only():
     assert "ref:" not in wf, "the job must check out the base branch, never the PR head"
     assert "--state-file config/project_state.yml" in wf
     script = wf.split("run: |", 1)[1]
-    assert "git diff --name-only" in script
-    # nothing from the PR head is executed: only the base checkout's checker runs
-    assert "pr/head" in script and "checkout pr" not in script and "pip install -r" not in script
+    # changed files come from the API: a `git fetch` of the PR ref needs credentials that
+    # persist-credentials: false removed, and fails on a private repo (PR #284, 2026-10-01)
+    assert "pulls/${PR_NUMBER}/files" in script and "git fetch" not in script
+    # that endpoint needs pull-requests: read; contents: read alone returns HTTP 403 (run 36954765462)
+    assert "pull-requests: read" in wf.split("permissions:")[1].split("jobs:")[0]
+    assert "test -s" in script, "an empty file list must fail, not pass"
+    # nothing from the PR is executed: only the base checkout's checker runs
+    assert "checkout pr" not in script and "pip install -r" not in script

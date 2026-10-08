@@ -58,6 +58,10 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
+Main snapshot checked 2026-10-03: `84864ce4076164aee5cbc79493bb7f086743eb90`
+(#290 documentation merge). This identifies the repository state, not a live
+Power BI Desktop validation; B5 remains blocked pending retained evidence.
+
 `acd6e6b` — PR #266 merged 2026-09-30 (serializer test stub), after #265 `5ecb582`
 (project-state reconciliation; header and Primary trend labels follow the data).
 2026-09-29: #264 `5bedeeb` (Executive Cockpit portfolio-mix fix); #263 `f91116f` (B5 exit condition), #247 `eba446a`, #262
@@ -87,8 +91,8 @@ History: on 2026-09-27 the MT Channel Analyst Lead reported CM2 Case 1 and the F
 as PASS on `main` `6b49e3a`; no evidence was attached. #229 (`3aa6895`) then loaded 64
 real expense rows, so Case 1 ("no expense rows") no longer applies to the current model;
 it stays recorded as `PASS_REPORTED_EVIDENCE_NOT_RETAINED` and is not counted.
-Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–8 on the current
-model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0),
+Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–9 on the current
+model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0, Case 9 comparability: no-FY and FY26 CM2 BLANK, FY27 CM2 = NSV − expense; added with #287),
 plus the L3M/L6M rolling-average check (`Mismatches` = 0; added 2026-10-01, #273), recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
 `docs/evidence/B5_RUN_SHEET.md`. Needs one Power BI Desktop session on Windows.
 Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims (#267) and the rest of CM2 scope wait on Finance), B4, B5, B6.
@@ -298,7 +302,7 @@ CI, GitHub Pages deploy all success.
 
 | ID | Blocker | Class | Evidence | Owner | Next action / exit condition |
 |---|---|---|---|---|---|
-| CB-01 | FY27 zone rollup in `data.js` carries Rs 11.64 Cr eB2B + SIS (non-MT) primary; Nykaa (FSN) billed via eB2B | BLOCKED_INPUT + BLOCKED_HUMAN_DECISION | `scripts/mt_channel_reconciliation.py dashboard/data.js` → BLOCKED (exit 2); runs non-blocking in the Production Acceptance Gate by design. **Doc drift:** `docs/ISSUE_MT_CHANNEL_CONTAMINATION.md` says CLOSED — true for the July deck, not for the dashboard's zone rollup | MT Leadership (Nykaa treatment); MT Analytics (source file) | Supply full July-26 article-wise primary; decide Nykaa treatment; re-run check until exit 0, then make that CI step blocking |
+| CB-01 | FY27 zone rollup in `data.js` carried Rs 11.64 Cr eB2B + SIS (non-MT) primary; Nykaa (FSN) billed via eB2B. **2026-10-01: MT Leadership (DA) decided 1 = MT-only, 2 = A (Nykaa under eB2B), 3 = B (restate FY26). 1 and 2 applied to FY27 (zones MT-only; control exit 0); 3 waits for a signed approval reference.** | BLOCKED_HUMAN_DECISION (Decision 3 sign-off only) | `scripts/mt_channel_reconciliation.py dashboard/data.js` → BLOCKED (exit 2); runs non-blocking in the Production Acceptance Gate by design. **Doc drift:** `docs/ISSUE_MT_CHANNEL_CONTAMINATION.md` says CLOSED — true for the July deck, not for the dashboard's zone rollup | MT Leadership (Nykaa treatment); MT Analytics (source file) | Supply full July-26 article-wise primary; decide Nykaa treatment; re-run check until exit 0, then make that CI step blocking |
 | CB-02 | `scripts/test_json_serialization.py` cannot import `_cm2_provisional_state` | #159: MERGE_REQUIRED (owner approval). #158: BLOCKED_HUMAN_DECISION | Re-tested 2026-09-25 on `2f347e9`: #159 alone — `tests/` 368 passed (unchanged), own tests 10/10, file 16 failed/12 passed; #158 + #159 — file 28 passed, `scripts/` 427 passed, but `tests/` **1 failed**: #158 conflicts with main's `test_fm05_metadata_stripped.py::test_malformed_payload_falls_back_to_writing_unchanged` (main: write a malformed payload as-is; #158: refuse it). No data/config/Power BI change in any combination. Evidence on PR #158 | Repo owner | Approve #159; choose for #158: (1) adopt fail-closed and update the FM-05 test/register as a reviewed rule change, or (2) narrow #158 to keep write-as-is |
 | CB-03 | METock workbook QC | BLOCKED_INPUT | Workbook never supplied; scanner ready (`scripts/xlsx_qc.py --allowed`) | Workbook owner | Supply the `.xlsx` |
 | CB-04 | 9 open PRs share no history with `main`: #119, #129–#136 | BLOCKED_HUMAN_DECISION | `git merge-base` finds none (history rewritten after they opened, same as PR #14) | Repo owner | Per PR: close as superseded, or rebuild on `main` |
@@ -354,7 +358,7 @@ Certification blockers -- changes since 2026-09-25:
 
 Open, owned elsewhere:
 - **#229** MT Direct DN claims -- HOLD: code ready; data/business not (Nykaa/FSN, Tnsi, Jul/Aug completeness, MT_Spend, indirect claims, COGS/logistics).
-- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Case 1 now, 2-8 after #229 data); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows). **B5 exit condition is now FY parser + CM2 Cases 2–8 on the current model (2026-09-29); `BLOCKED_PENDING_DESKTOP_EVIDENCE` — see `docs/evidence/B5_RUN_SHEET.md`.**
+- **Power BI Desktop runs** (no DAX/M engine in CI): CM2 cases `tests/powerbi/cm2_availability_cases.dax` (Cases 2–9 on the current model; Case 1 is superseded); FY parser `tests/powerbi/pq39_fy_parser_cases.pq` (`Failures` = 0 rows). **B5 exit condition is now FY parser + CM2 Cases 2–9 on the current model (2026-09-29, Case 9 added 2026-10-02); `BLOCKED_PENDING_DESKTOP_EVIDENCE` — see `docs/evidence/B5_RUN_SHEET.md`.**
 - **Promo stack** (PQ 46 / DAX 15): excluded from QuickSetup -- reads tables no query builds and a one-month relative path; needs its own fix (owner decision).
 - **Not-shown metrics** (Stock days, OSA/OOS, Promo ROI): need a stock-on-hand feed, a store audit at >=60% coverage for the reporting months, and promo spend per promo -- business inputs.
 - **Three browser tests** (`test_sprint8_compliance_inventory.js`, `smoke_dashboard.js`, `test_smoke_dashboard_governed.js`) expect servers on ports 8000/8080 instead of `SWEEP_PORT`; they pass with those servers running.
@@ -410,8 +414,8 @@ Open PRs (11): #229 HOLD (MT Direct DN claims, needs data and business answers);
 #165, #168, #169, #170 (owner decision). Open issues (2): #120, #194.
 
 Manual, outside CI: Power BI Desktop runs of `tests/powerbi/cm2_availability_cases.dax`
-and `tests/powerbi/pq39_fy_parser_cases.pq` -- B5 now requires the FY parser plus CM2 Cases 2–8
-on the current model (2026-09-29), run per `docs/evidence/B5_RUN_SHEET.md`; `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+and `tests/powerbi/pq39_fy_parser_cases.pq` -- B5 now requires the FY parser plus CM2 Cases 2–9
+on the current model (2026-09-29; Case 9 added 2026-10-02), run per `docs/evidence/B5_RUN_SHEET.md`; `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
 Finance input: AssumptionTable Jun-Aug'26 rows (Required Business Inputs #7);
 the Assumption Coverage Gate reports `BLOCKED_FINANCE_INPUT` until they arrive.
 
@@ -536,3 +540,23 @@ is warranted or attempted.
 On resume: the SessionStart hook prints repo state, resources, asset presence
 and this file's next task. Verify restricted inputs are present before any
 incentive work — never reconstruct them from memory.
+
+
+## Repo clean-up 2026-10-04
+Removed 14 superseded draft decks from the repo root (about 18 MB): the May26 leadership deck, `MT_Jul26_Honasa_Final` and `Finalv13` to `Finalv19`, `Updated_v18`, `Honasa_Enriched`, `MT_July26_offtake_analysis_V22`, `MT_Jul26_CommandCenter` and `MT_Jul26_Enriched_Command_Centre`.
+Kept the latest of each family (`Finalv20`, `offtake_analysis_V23`, `July_MT_Command_Centre_REWORKED`) and the one-pager files used by `generate_ppt.yml`. The old files stay in Git history (restore with `git checkout <commit> -- <file>`). Note: GitHub's repo size does not shrink until history is rewritten, which needs explicit approval.
+
+## Branch `claude/nielsen-ms-both-categories` (PR #300) — status 2026-10-08
+The freeze was lifted on 2026-10-08 (#301). PR #300 includes the #281 commit and is merged once its required checks are green; after that the items below are on `main` and the live site.
+- **Done and tested (794 passed, 27 skipped; 44-state sweep 0 failing):** Nielsen Cuts and Chain Share tabs; Aug-26 offtake refresh (FY27 18,971.69 L; FY25/FY26 unchanged, FY26 31,119.87 L); FY26 store-level offtake cleaned and linked (`scripts/clean_offtake_fy26_store_article.py`); store master, zone rules and visit-city workbook; **State, Pack & Store Type** sub-view (LFL / NFL New / NFL Restarted / Lost, zone / brand / sub-category sales, store movers with 3+ months rule); **TDP & Distribution** sub-view (real TDP file not supplied: shows the file needed plus an in-house distribution view labelled "not TDP"); Power BI queries 53-61, DAX 16-20, 15 design previews (`docs/images`, plan in `docs/POWERBI_DYNAMIC_DASHBOARD_BUILD.md`).
+- **Not done, owner or environment dependent:** B1 decision 3 sign-off; B2 266-line register; B3 Finance scope; B4 AssumptionTable; **B5 Power BI Desktop session** (also needed to build the 15 pages and run the new DAX); B6 incentive decisions; TDP file from Nielsen (`tdp_monthly`, MISSING); Reliance Retail store-level last year; `github-advanced-security` red (Copilot quota, issue #194).
+- **Merged:** #301 (freeze lift), then #300 (includes #281). Run `scripts/build_store_cuts.py`, `build_tdp.py`, `build_tdp_inhouse.py` monthly after the offtake refresh.
+
+## Owner approval record — 2026-10-08
+The repo owner (GitHub `aswalsheshant-cell`, role: repo owner and MT Channel Analyst Lead) confirmed in the working session on 2026-10-08 that this is a personal project and that **no hierarchy sign-off (MT Leadership, Finance, HR) is required**; all pending approval gates are approved by the owner. Recorded as the approval reference for:
+- **CB-01 Decision 3** (restate FY26 on the MT basis, 30,684.99 L): approved by the owner. Applied in its own PR from `main` (not on the Nielsen branch).
+- **Feature freeze (from `f960e1f`)**: lifted by the owner; PRs #281 and #300 may merge.
+- **Limits of this approval:** an approval does not supply data or decisions that do not exist. These still need real content and are NOT filled in by the agent: B2 (the 266 mapping decisions), B3 (Finance DN register and cost scope), B4 (AssumptionTable values per month), B6 (incentive targets, caps, proration), B5 (a Power BI Desktop run) and the TDP file. Each stays open until the owner supplies the content (or states the value to use), then it is recorded here with this date.
+
+## Feature freeze lifted — 2026-10-08
+The repo owner (GitHub `aswalsheshant-cell`, repo owner and MT Channel Analyst Lead) lifted the feature freeze on 2026-10-08. This is a personal project and no hierarchy sign-off is required; the owner's confirmation in the working session is the approval reference. `config/project_state.yml` now has `feature_freeze.active: false`, so `scripts/check_pr_scope.py` passes every PR (the declaration is optional). The open blockers B1 to B6 stay open until their content exists (see `docs/COMPLETION_BLOCKER_PACK.md`); lifting the freeze does not close them.

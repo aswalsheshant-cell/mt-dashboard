@@ -12,8 +12,9 @@
 //   Sales Qty, MRP Sales Value, NSV, Per pc, With Tax, Margin, Revised Month,
 //   Month, Year, PPT Category
 //
-// Offtake is maintained MONTHLY (store x article). NSV = offtake net value
-// (rupees). This is the secondary/offtake validation base for the article
+// Offtake is maintained MONTHLY (store x article). Source NSV is in lakh;
+// convert it to the model's absolute-rupee contract at import. MRP Sales Value
+// already arrives in rupees. This is the secondary/offtake validation base for the article
 // eligibility gate (DAX 09) — no allocation logic changed here.
 // =====================================================================
 let
@@ -78,7 +79,13 @@ let
         {"SO Emp Code", type text}, {"Sales Person", type text}, {"PPT Category", type text}
     }),
 
-    Trimmed = Table.TransformColumns(Typed, {
+    // Source NSV is lakh (docs/DATA_LINEAGE.md); model currency is absolute rupees.
+    // Keep negative returns signed and nulls null. MRP Sales is already rupees.
+    Scaled = Table.TransformColumns(Typed, {
+        {"Offtake NSV", each if _ = null then null else _ * 100000, type number}
+    }),
+
+    Trimmed = Table.TransformColumns(Scaled, {
         {"Store Code", each Text.Trim(Text.From(_)), type text},
         {"Article Code", each Text.Trim(Text.From(_)), type text},
         {"EAN Code", each Text.Trim(Text.From(_)), type text},
@@ -86,8 +93,19 @@ let
         {"Brand", each Text.Trim(Text.From(_)), type text}
     }),
 
+    // The early FY27 CSVs call both Reliance streams "Reliance"; later files
+    // name the Brand Counter stream explicitly. Keep every row and map them to
+    // separate Chain Master members so MT excludes only the duplicate breakout.
+    AddGovernedChain = Table.AddColumn(Trimmed, "Governed Chain", each
+        if Text.Contains(Text.Lower([Chain] ?? ""), "reliance") then
+            if Text.Lower(Text.Trim([Store Type] ?? "")) = "brand counter"
+            then "Reliance Brand Counter" else "Reliance Retail"
+        else [Chain], type text),
+    RemoveOldChain = Table.RemoveColumns(AddGovernedChain, {"Chain"}),
+    RenameChain = Table.RenameColumns(RemoveOldChain, {{"Governed Chain", "Chain"}}),
+
     // brand spelling normalisation (keep in sync with Brand Master)
-    FixBrand = Table.ReplaceValue(Trimmed, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
+    FixBrand = Table.ReplaceValue(RenameChain, "BBLUNT", "BBlunt", Replacer.ReplaceText, {"Brand"}),
 
     // constant audit column
     AddSource = Table.AddColumn(FixBrand, "Data Source Name", each "Chain Offtake Store Wise", type text),
@@ -98,19 +116,46 @@ let
         else if [Article Code] <> null and Text.Trim([Article Code]) <> "" then "CODE:" & [Article Code]
         else "DESC:" & Text.Upper(Text.Trim(Text.From([Article Description]))), type text),
 
-    // period = "Month" (April'24 / Apr'24 text or a date). "Revised Month" kept
-    // as an alternate period column if you later prefer the adjusted month.
+    // Month has quoted labels, bare names and Excel serials across these CSVs.
+    // The monthly file name supplies a year for bare names; disagreement or
+    // missing period fails refresh rather than silently orphaning the row.
     AddMonthStart = Table.AddColumn(AddKey, "MonthStart", each
-        let v = [Month]
-        in  if v = null then null
-            else if Value.Is(v, type date) then Date.StartOfMonth(v)
-            else
-                let m = Text.Start(Text.BeforeDelimiter(Text.From(v), "'"), 3),
-                    yy = Text.AfterDelimiter(Text.From(v), "'"),
-                    mn = Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12], m, null)
-                in if mn = null or yy = "" then null else #date(2000 + Number.FromText(yy), mn, 1),
+        let
+            v = [Month],
+            label = if v = null then "" else Text.Trim(Text.From(v)),
+            serial = try Number.FromText(label) otherwise null,
+            labelMonth = if Text.Contains(label, "'") then
+                Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12],
+                    Text.Proper(Text.Start(label, 3)), null) else null,
+            labelYear = if labelMonth = null then null
+                else try Number.FromText(Text.Trim(Text.AfterDelimiter(label, "'"))) otherwise null,
+            fromLabel = if Value.Is(v, type date) then Date.StartOfMonth(v)
+                else if serial <> null then try Date.StartOfMonth(Date.From(serial)) otherwise null
+                else if labelMonth <> null and labelYear <> null then #date(2000 + labelYear, labelMonth, 1)
+                else null,
+            file = Text.From([Data Source File] ?? ""),
+            filePeriod = try Text.BetweenDelimiters(file, "offtake_store_article_", ".csv") otherwise null,
+            parts = if filePeriod = null then {} else Text.Split(filePeriod, "_"),
+            fileMonth = if List.Count(parts) = 2 then
+                Record.FieldOrDefault([Jan=1,Feb=2,Mar=3,Apr=4,May=5,Jun=6,Jul=7,Aug=8,Sep=9,Oct=10,Nov=11,Dec=12],
+                    Text.Proper(parts{0}), null) else null,
+            fileYear = if List.Count(parts) = 2 then try Number.FromText(parts{1}) otherwise null else null,
+            fromFile = if fileMonth <> null and fileYear <> null then #date(2000 + fileYear, fileMonth, 1) else null,
+            result = if fromLabel <> null then fromLabel else fromFile
+        in
+            if result = null then error Error.Record("OfftakeMonth", "Unparseable source month", [File=file, Month=label])
+            else if fromFile <> null and result <> fromFile then
+                error Error.Record("OfftakeMonth", "Source month disagrees with file name", [File=file, Month=label])
+            else result,
         type date),
 
-    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null)
+    Cleaned = Table.SelectRows(AddMonthStart, each [Offtake NSV] <> null or [Offtake Qty] <> null),
+
+    // Derive FY from the parsed month, as in the Date Table; do not trust the
+    // inconsistent source FY text after a month was recovered from the file.
+    FYNew = Table.AddColumn(Cleaned, "FY Year New", each fnFYLabel([MonthStart]), type text),
+    FYDropOld = Table.RemoveColumns(FYNew, {"FY Year"}),
+    FYDerived = Table.RenameColumns(FYDropOld, {{"FY Year New", "FY Year"}})
 in
-    Cleaned
+    FYDerived
+

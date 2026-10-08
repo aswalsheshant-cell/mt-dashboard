@@ -1,0 +1,291 @@
+{
+ "source": "MT_Review_Big3_v3_1.pptx (user-supplied deck, Nielsen Jun'26 toplines and snapshot + internal MT sell-out ex-FSN)",
+ "status": "TRANSCRIBED_FROM_DECK",
+ "note": "Typed from the deck's tables and charts. Not recomputed from a workbook in this repo, so read as the deck's own figures. State and account cuts are not in the Aug-26 Nielsen workbooks (those carry IN URB MT only).",
+ "period": "Jun 26",
+ "state_exposure": [
+  {
+   "state": "Maharashtra",
+   "mkt_fw": 423,
+   "mkt_sh": 543,
+   "me_fw": 5.6,
+   "me_sh": 1.6,
+   "dmart_fw": 78,
+   "dmart_sh": 75,
+   "rel_fw": 7,
+   "rel_sh": 17,
+   "apollo_fw": 4,
+   "apollo_sh": 4,
+   "lever": "Dmart"
+  },
+  {
+   "state": "Uttar Pradesh",
+   "mkt_fw": 423,
+   "mkt_sh": 330,
+   "me_fw": 6.4,
+   "me_sh": 2.3,
+   "dmart_fw": 1,
+   "dmart_sh": 1,
+   "rel_fw": 68,
+   "rel_sh": 83,
+   "apollo_fw": 9,
+   "apollo_sh": 5,
+   "lever": "Reliance"
+  },
+  {
+   "state": "West Bengal",
+   "mkt_fw": 257,
+   "mkt_sh": 213,
+   "me_fw": 4.8,
+   "me_sh": 2.5,
+   "dmart_fw": null,
+   "dmart_sh": null,
+   "rel_fw": 54,
+   "rel_sh": 74,
+   "apollo_fw": 26,
+   "apollo_sh": 15,
+   "lever": "Reliance + Apollo"
+  },
+  {
+   "state": "Delhi/NCR",
+   "mkt_fw": 246,
+   "mkt_sh": 263,
+   "me_fw": 7.8,
+   "me_sh": 1.6,
+   "dmart_fw": 21,
+   "dmart_sh": 13,
+   "rel_fw": 38,
+   "rel_sh": 57,
+   "apollo_fw": 18,
+   "apollo_sh": 12,
+   "lever": "Mixed; shampoo weak"
+  },
+  {
+   "state": "Bihar",
+   "mkt_fw": 168,
+   "mkt_sh": 130,
+   "me_fw": 4.9,
+   "me_sh": 2.1,
+   "dmart_fw": null,
+   "dmart_sh": null,
+   "rel_fw": 95,
+   "rel_sh": 99,
+   "apollo_fw": 1,
+   "apollo_sh": 1,
+   "lever": "Reliance only"
+  },
+  {
+   "state": "Punjab",
+   "mkt_fw": 166,
+   "mkt_sh": 186,
+   "me_fw": 5.2,
+   "me_sh": 1.5,
+   "dmart_fw": 49,
+   "dmart_sh": 33,
+   "rel_fw": 33,
+   "rel_sh": 52,
+   "apollo_fw": 7,
+   "apollo_sh": 5,
+   "lever": "Dmart + Reliance"
+  },
+  {
+   "state": "Gujarat",
+   "mkt_fw": 151,
+   "mkt_sh": 286,
+   "me_fw": 8.6,
+   "me_sh": 2.5,
+   "dmart_fw": 73,
+   "dmart_sh": 61,
+   "rel_fw": 21,
+   "rel_sh": 34,
+   "apollo_fw": 6,
+   "apollo_sh": 5,
+   "lever": "Dmart (model market)"
+  },
+  {
+   "state": "Karnataka",
+   "mkt_fw": 118,
+   "mkt_sh": 212,
+   "me_fw": 5.5,
+   "me_sh": 2.4,
+   "dmart_fw": 36,
+   "dmart_sh": 33,
+   "rel_fw": 20,
+   "rel_sh": 33,
+   "apollo_fw": 27,
+   "apollo_sh": 22,
+   "lever": "All three"
+  },
+  {
+   "state": "Telangana",
+   "mkt_fw": 64,
+   "mkt_sh": 123,
+   "me_fw": 9.1,
+   "me_sh": 3.3,
+   "dmart_fw": 45,
+   "dmart_sh": 44,
+   "rel_fw": 17,
+   "rel_sh": 25,
+   "apollo_fw": 19,
+   "apollo_sh": 16,
+   "lever": "All three (model)"
+  }
+ ],
+ "fair_share": {
+  "quarters_dmart": [
+   "Q1'24",
+   "Q2'24",
+   "Q3'24",
+   "Q4'24",
+   "Q1'25",
+   "Q2'25",
+   "Q3'25",
+   "Q4'25",
+   "Q1'27"
+  ],
+  "dmart_fw": [
+   12.5,
+   11.6,
+   11.2,
+   13.0,
+   17.1,
+   17.7,
+   17.9,
+   22.1,
+   25.9
+  ],
+  "dmart_sh": [
+   6.8,
+   6.8,
+   5.5,
+   5.4,
+   5.3,
+   5.9,
+   6.2,
+   5.9,
+   6.1
+  ],
+  "quarters_reliance": [
+   "Q1'24",
+   "Q2'24",
+   "Q3'24",
+   "Q4'24",
+   "Q1'25",
+   "Q2'25",
+   "Q3'25",
+   "Q4'25"
+  ],
+  "reliance_fw": [
+   10.2,
+   11.0,
+   10.8,
+   13.8,
+   14.7,
+   16.4,
+   14.7,
+   16.4
+  ],
+  "reliance_sh": [
+   4.7,
+   6.2,
+   6.4,
+   6.6,
+   6.6,
+   6.3,
+   7.8,
+   7.3
+  ],
+  "note": "Honasa value as % of the retailer's own category; Reliance at MRP, Dmart at NSV; quarters are fiscal"
+ },
+ "reliance_packs": {
+  "months": [
+   "Oct-25",
+   "Nov-25",
+   "Dec-25",
+   "Jan-26",
+   "Feb-26",
+   "Mar-26",
+   "Apr-26",
+   "May-26"
+  ],
+  "ml400_lakh": [
+   226.7,
+   222.6,
+   327.2,
+   338.4,
+   218.6,
+   220.0,
+   330.9,
+   352.7
+  ],
+  "ml650_lakh": [
+   51.4,
+   27.9,
+   32.7,
+   106.3,
+   45.6,
+   66.4,
+   61.4,
+   79.2
+  ]
+ },
+ "channel_share": {
+  "tdc_chemist": 1.4,
+  "tdc_gt": 0.9,
+  "tdc_mt": 0.64,
+  "tdc_mt_wd": 23.5
+ },
+ "claims": [
+  "MT is the fastest-growing facewash channel (+15% L3M vs GT flat) - deck, Nielsen Jun'26",
+  "Only Mamaearth and L'Oreal Paris are gaining premium shampoo share in MT - deck",
+  "Dmart shampoo category grew +11.5% (Rs 387 to 431 Cr) while our share of it fell 6.1% to 5.9% - deck",
+  "Sunscreen is 31-63% of Dmart and 19.5% of Reliance sales - deck",
+  "Cetaphil moved 0 to 1.1% of MT in 3 months; Simple 2.5%; TDC 0.5% with 23.5% WD - deck",
+  "Apollo delivered 35-46% of internal MT growth in KA / TN / TG - deck"
+ ],
+ "plays": [
+  {
+   "priority": "High",
+   "play": "Maharashtra x Dmart x Shampoo",
+   "evidence": "Share 1.6% of Rs 543 Cr; Dmart = 75% of our MH shampoo",
+   "action": "Rosemary/Lemon 250 state fills + Rosemary 600 shelf parity"
+  },
+  {
+   "priority": "High",
+   "play": "Reliance x Shampoo premiumisation",
+   "evidence": "400ml core Rs 17.9 Cr/6m; 650ml Rs 3.9 Cr and building",
+   "action": "Accelerate 650 conversion; scale Rosemary 650; protect 400 velocity. Add Lemon 600ml"
+  },
+  {
+   "priority": "High",
+   "play": "Pan-MT x TDC (Apollo first)",
+   "evidence": "TDC MT 0.5% vs chemist 1.4%; Cetaphil overtook in 3 months",
+   "action": "WD 23.5 to 50%: Dmart hero adds + Reliance velocity + Apollo hair"
+  },
+  {
+   "priority": "High",
+   "play": "UP x Reliance (+Apollo/Lulu) x FW",
+   "evidence": "Largest market Rs 423 Cr; share 6.4%, +165 bps and rising",
+   "action": "Sustain momentum; Apollo-UP rollout"
+  },
+  {
+   "priority": "Med",
+   "play": "Delhi x Reliance x Shampoo",
+   "evidence": "Share flat 1.6% of Rs 263 Cr; Reliance-Delhi at half its avg growth",
+   "action": "Named city program: audit + Rosemary / 650 push"
+  },
+  {
+   "priority": "Med",
+   "play": "WB / Bihar x Apollo x Both",
+   "evidence": "Share 4.8 / 4.9%; Reliance is 74-99% single-thread",
+   "action": "Build Apollo-East second engine"
+  },
+  {
+   "priority": "Med",
+   "play": "Karnataka x all three x Shampoo",
+   "evidence": "SH share 2.4% vs FW surge; Dmart-KA SH -10%",
+   "action": "Dmart-KA 250/600 fix; ride Apollo +377%"
+  }
+ ],
+ "headroom_cr_text": "approximately Rs 40-45 Cr across seven named state x account plays (Nielsen consumer-offtake sizing; overlaps internal NSV estimates, not additive)"
+}

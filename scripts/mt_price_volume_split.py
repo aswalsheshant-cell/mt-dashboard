@@ -87,8 +87,11 @@ class Agg:
         return self.nsv * 1e5 / self.mrp * 100 if self.mrp else 0.0
 
 
-def read_month(month: str):
-    """Returns (total, mt_total, by_zone, by_brand, rows, bad_qty) or None."""
+def read_month(month: str, by_chain=None):
+    """Returns (total, mt_total, by_zone, by_brand, rows, bad_qty) or None.
+
+    Pass a dict as by_chain to also collect {chain: Agg} on the same MT basis (used by build_nielsen_price_volume.py).
+    """
     path = os.path.join(OFFTAKE_DIR, f"offtake_store_article_{month}_26.csv")
     if not os.path.exists(path):
         return None
@@ -114,6 +117,8 @@ def read_month(month: str):
                 mt.add(u, n, m)
                 by_zone[canon_zone(r["Zone"])].add(u, n, m)
                 by_brand[(r.get("Brand") or "").strip()].add(u, n, m)
+                if by_chain is not None:
+                    by_chain.setdefault((r.get("Chain Name") or "").strip().upper(), Agg()).add(u, n, m)
     return total, mt, by_zone, by_brand, rows, bad_qty
 
 
