@@ -747,9 +747,63 @@ datasets:
       erroring, so a real regression in an environment that DOES have this
       source isn't masked by tests that can never pass without it.
 
+  nielsen_market_share_monthly:
+    business_name: "Nielsen Retail Intelligence -- Facewash and Shampoo market share, IN URB MT (Sales Value in Rs Crore)"
+    source_path: "data/nielsen/Nielsen_*_Aug26.csv (extracted from Nielson_FW_Report_Aug26.xlsb and Nielson_Shampoo_Report_Aug26.xlsb, which stay outside Git)"
+    source_type: "xlsb workbooks -> CSV via scripts/extract_nielsen_report.py"
+    grain: "market x fact x brand x month (snapshot); category / Mamaearth x base pack (pack sheets)"
+    date_min: "2023-08"
+    date_max: "2026-08"
+    financial_years: ["FY24", "FY25", "FY26", "FY27"]
+    important_columns: ["Markets", "Facts", "Products", "monthly columns Aug 23..Aug 26"]
+    business_owner: "MT leadership analytics (Nielsen pull)"
+    refresh_frequency: "Monthly, when the new Nielsen workbooks arrive"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/extract_nielsen_report.py -> scripts/build_nielsen_payload.py -> data/nielsen_<mon>26.json -> scripts/build_nielsen_dashboard.py"
+    downstream_outputs: ["Nielsen market-share dashboard (templates/dashboard_template.html)", "dashboard/nielsen.js -> MT dashboard Demand & S&OP > Market Share", "PowerBI/SeedData/Nielsen (scripts/build_nielsen_powerbi_seed.py), copied into RawDataFolders/Nielsen_Monthly and Nielsen_Pack_Monthly"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      Market is the workbook's own IN URB MT, not all-India and not the
+      internal MT offtake universe, so Nielsen share is not comparable to
+      internal Offtake_Monthly. Both categories are Aug 26. Mamaearth
+      Facewash 36-month value tie-out to Mamaearth_FW_Monthly_Trend.csv had
+      0 mismatches. Pack sheets: Facewash has value; Shampoo has volume only.
+      Replaces the May 2026 shampoo slide figures, which did not tie to the
+      workbook.
+
+  store_city_master:
+    business_name: "Store master with city details -- chain-wise store list Jan-Jun 26, plus stores added from the monthly offtake files"
+    source_path: "PowerBI/SeedData/Masters/Store_City_Master.csv (built by scripts/build_store_city_master.py from Final_Jan26_to_June26_chainwise_storelist.xlsb, which stays outside Git)"
+    source_type: "xlsb workbook -> CSV; offtake store x article CSVs for new stores"
+    grain: "one row per store (Store Key = chain + site code)"
+    financial_years: ["FY26", "FY27"]
+    primary_keys: ["Store Key"]
+    important_columns: ["Chain Name", "Site Code", "Store Name", "Zone", "State", "City Final", "Visit City", "Visit Status", "Nearest Listed City"]
+    business_owner: "MT leadership analytics (store master)"
+    refresh_frequency: "Monthly, or when new stores appear (Master_Gaps sheet of the city workbook lists them)"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/build_store_city_master.py -> scripts/build_visit_city_plan.py -> data/nielsen/Visit_Cities_<label>.json -> dashboards"
+    downstream_outputs: ["Nielsen dashboard Chains & Packs (visit cities)", "dashboard/nielsen.js", "PowerBI query 49 Store City Master, 50 Visit City List", "city beat workbook (not committed)"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      No employee, SO or ASE columns. City Final uses the master city when it is a city the offtake files also use,
+      else the offtake city (the store list holds localities for some chains, for example Frankros). Visit Status:
+      One row per store; one standard spelling per chain (scripts/visit_cities.py CHAIN_STANDARD) and per state; the build stops on any
+      QC error (Store_City_Master_QC.csv). Chain x city totals with no store code or name are not stores (workbook sheet Chain_City_Totals).
+      One store = one row: the same chain + store name + city under more than one code (a re-coded store, a case-only spelling) is merged, the other
+      codes are in "Other Site Codes" and Store_Key_Aliases.csv, and offtake sales follow the alias (scripts/visit_cities.py load_aliases). Where the name is
+      only the town and the retailer's own list holds more than one such store, they stay separate and the code goes into the name.
+      Considered (Thane and Navi Mumbai count as Mumbai, owner decision 2026-10-04) / Near listed city (Mohali, Panchkula, Ernakulam, Howrah -> nearest listed city) /
+      Not considered / City not available. About 61% of Apr-Aug NSV matches a store in the Jan-Jun file; the rest are new
+      stores added from the offtake files. Reliance (non-counter) has store names in Apr-Jun only; Jul-Aug is state level.
+
   offtake_fy26_store_article:
     business_name: "Offtake NSV -- FY26 (Apr'25-Mar'26) store x article grain, requested for Same-Store Growth"
-    source_path: null
+    source_path: "data/raw_drops/offtake_fy26/<Mon'YY>/<chain>.csv as supplied (Oct25_to_Mar26.zip, Apr25_to_Sept25.zip; ignored folder, outside Git) -> scripts/clean_offtake_fy26_store_article.py -> data/offtake_fy26/Store_Month_NSV_FY26.csv (tracked store x month aggregate) and local clean monthly files"
     source_type: "CSV expected, same shape as offtake_article_fy27_patch"
     grain: "month x store x article x chain (Month, Store Code, Article, Chain)"
     date_min: "2025-04"
@@ -759,12 +813,12 @@ datasets:
     important_columns: ["Units", "NSV", "Store Name", "State", "City"]
     business_owner: "whoever supplies the monthly Offtake_Monthly/offtake_store_article_*.csv drops (same ownership as offtake_article_fy27_patch)"
     refresh_frequency: "One-off backfill once supplied, then N/A (a single historical FY, not an ongoing monthly feed like FY27)"
-    validation_status: MISSING
+    validation_status: PARTIAL
     source_priority: SOURCE_OF_TRUTH
     fallback_source: null
     existing_pipeline: "scripts/store_history_readiness.py (classify_source() / validate_store_history() -- built and tested against synthetic fixtures only, not yet run against a real file)"
-    downstream_outputs: []
-    last_validated: "2026-09-21 (classify_source() confirms no candidate file anywhere in the repo resolves to SOURCE_AUTHENTICATED)"
+    downstream_outputs: ["data/offtake_fy26/Store_Month_NSV_FY26.csv", "data/qc/offtake_fy26_*.csv", "city workbook last-year columns (scripts/build_visit_city_plan.py)"]
+    last_validated: "2026-10-04 (files received; cleaned; every chain x month ties to the FY26 baseline; store_history_readiness.py verdict READY_WITH_GOVERNED_EXCEPTIONS, classify_source() = SOURCE_DUPLICATED at the contract grain because 46,920 rows (2.3%) have no store code: see notes)"
     modification_allowed: false
     notes: >
       Registered 2026-09-21 as part of Phase 2C/2D governance closeout
@@ -791,3 +845,151 @@ datasets:
       dashboard/Power BI change built on this source -- see
       docs/PHASE_2_EXECUTION_STATUS.md's "Phase 2C/2D terminal state" section
       for the full permitted/prohibited list.
+
+      UPDATE 2026-10-04 -- FILES RECEIVED (Apr'25-Mar'26, 12 months x up to 25 chain files, 2,190,950 rows). Not SOURCE_AUTHENTICATED yet: the owner
+      decides that. What was done (data/qc/offtake_fy26_QC.csv, scripts/clean_offtake_fy26_store_article.py, tests/test_clean_offtake_fy26.py):
+        * every chain x month NSV ties to data/raw_drops/_agg/offtake_fy26.json within 0.005 L (files 31,119.88 L vs baseline 31,119.87 L; Brand Counter by month
+          ties); so the files and the published FY26 baseline are the same data;
+        * six header layouts read by name; the Reliance file holds two stacked tables (Brand Counter block re-aligned, 292,293 rows);
+        * 2,022 B&N EANs and article codes had been turned into 8.90609E+12 by Excel: repaired from the same article code or name (2,021) and one row left;
+        * one spelling each of zone, state, city, store name (30-character truncations take the full name), and one brand / category / sub category / range /
+          name per EAN (this year's article master first); 118,518 repeated lines added into one row per month x chain x store x EAN (totals unchanged);
+        * 31,966 identical lines with a store identity (251.59 L, 0.7% of NSV) look like double loads but are in the published baseline, so they are ADDED INTO
+          one row, not removed; the list is in data/qc/offtake_fy26_duplicate_lines.csv (RMT-Sancus 175 L, More Retail 63 L, ...). OWNER DECISION 2026-10-04:
+          KEEP them; the FY26 baseline does not change (31,119.87 L). They stay added into one row and stay listed for audit;
+        * 4,174 negative NSV rows (-29.21 L, 4,049 of them RMT-Sancus) are credit notes and are kept;
+        * 46,920 rows (2.3%) have no store code (Reliance Retail non-counter is state-level, Arambagh, Ratnadeep, Vijetha, Nykaa FSN, some B&N / V-Mart / RMT):
+          they are keyed by name, city or state and cannot be matched store by store. That is the contract gap behind SOURCE_DUPLICATED.
+      RESOLVED 2026-10-04 (owner asked for a permanent fix): (1) last-year store keys are linked to this year's store master when chain + store name + state match
+      (new code) and merged with each other otherwise (data/offtake_fy26/Store_Key_Links_FY26.csv); the QC check "no chain + store name + city under two store keys"
+      is an ERROR in the cleaner, so it cannot come back; six pairs stay separate on purpose (this year's master holds them as different stores, a shared company
+      name). (2) Reliance Retail non-counter has NO store identity last year (state-level), so store-level last year does not exist; the city workbook compares it by
+      state (sheet Reliance_State_YoY) and the city YoY is like-for-like (only stores that have last-year sales).
+      Permitted use now: last-year columns in the city workbook (Excel, not committed). Same-Store Growth production calculation stays gated.
+
+  retailer_category_share_monthly:
+    business_name: "Retailer-side category sales (Lulu, More Retail, Wellness Forever, Reliance Retail, Reliance Brand Counter) -- chain's own category sales vs Honasa sales, Rs lakh"
+    source_path: "data/account_share/*.csv (built by scripts/build_account_share.py from Compiled_Monthly_Files_Jan_to_Aug26_Updated.xlsx, More_MS_Till_May26_version_1.xlsb, More_MS_Till_Aug26_Updated.xlsx, Wellness_MS_Jun-Aug26_Updated.xlsb, RIL_BA_Store_MS_-_Aug26.xlsb, which stay outside Git)"
+    source_type: "retailer-supplied xlsx/xlsb -> CSV"
+    grain: "chain x month x category (Lulu also state and city; More by DC city; Wellness category only)"
+    date_min: "2025-11"
+    date_max: "2026-08"
+    financial_years: ["FY26", "FY27"]
+    important_columns: ["Chain", "Month", "Category", "Common Category", "Account Sales Rs L", "Honasa Sales Rs L", "Share %", "Relevant For Us"]
+    business_owner: "MT leadership analytics (account share)"
+    refresh_frequency: "Monthly, when the retailer files arrive"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/build_account_share.py -> scripts/build_account_view.py -> data/account_share/Account_View.json -> scripts/build_nielsen_payload.py -> dashboards; PowerBI/SeedData/Account (scripts/build_nielsen_powerbi_seed.py)"
+    downstream_outputs: ["Nielsen dashboard 'Account Share & Plan' tab", "dashboard/nielsen.js -> MT dashboard Market Share card", "PowerBI queries 53-55 and DAX 17"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      Lulu and More cover only categories and stores where Honasa sells, so white space is read inside that scope; Wellness lists all
+      categories. More Retail has a scope break before and after Jun 26, so MoM uses Jun-Aug only (dashed lines on charts). Lulu has
+      store-level state and a city readable from the store name; More has DC city only; Wellness has none. Dmart and Reliance appear only as
+      quarterly figures typed from the review deck. Store_City_Corrections.csv (Lulu 9260 -> Thrissur) is applied in the store master build.
+      UniverseMT.csv supplied again is identical to the repo copy and has no city column.
+      Reliance (RIL_BA_Store_MS_-_Aug26.xlsb): RRL = Reliance's own category sales, HCL = Honasa, gross sales in Rs lakh as supplied (our NSV
+      is about 0.45 of it, so compare shares, not rupees). Sheet "Article MS Source" = Reliance stores outside the brand counters (Nov 25-Aug 26,
+      zone and state, no store or city) -> chain "Reliance Retail"; sheet "BA Store" = the staffed brand-counter stores (Jan-Aug 26, store, city) ->
+      chain "Reliance Brand Counter", counts only, kept apart and never added to Reliance Retail. "RRL Others" (categories outside the file's own
+      pivots) is left out, as the file does. Ties to the workbook's Aug26 Check sheet and TOP Category MS pivot are QC checks in the builder.
+      Our sales above the account's category (item classed differently, e.g. Reliance Perfume) keep their sales in the totals and have a blank share.
+      A category is flagged (white space, proven elsewhere) only when it is at least 0.5% of our own sales across the chains and not "Other"
+      (column Relevant For Us); the rest are shown for size only.
+
+  offtake_aug26_storewise_refresh:
+    business_name: "Aug-26 store-wise offtake (all accounts and Reliance Brand Counter), re-supplied -- replaces the earlier Aug-26 extract"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv (split by scripts/split_offtake_store_article_xlsb.py from Aug26_offtake_storewise.xlsb, sheets All Account and RBC, which stays outside Git). Committed on the owner's instruction 2026-10-04; its SHA-256 is re-pinned in config/restricted_source_policy.yml"
+    source_type: "xlsb workbook -> month CSV"
+    grain: "store x article, Aug-26"
+    date_min: "2026-08"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    important_columns: ["Chain Name", "Store Type", "Site Code", "Article", "NSV", "Sales Qty"]
+    business_owner: "MT leadership analytics (offtake)"
+    refresh_frequency: "Monthly"
+    validation_status: VALIDATED
+    source_priority: SOURCE_OF_TRUTH
+    existing_pipeline: "scripts/build_dashboard_data.py --offtake-patch -> dashboard/data.js (offtake block, FY27); store master and Nielsen chain / price-volume views rebuilt from the same CSV"
+    downstream_outputs: ["dashboard/data.js offtake FY27", "Store_City_Master.csv", "Nielsen chain contribution, pack presence, price and volume", "Power BI Offtake_Monthly"]
+    last_validated: "2026-10-04"
+    modification_allowed: false
+    notes: >
+      Compared with the earlier Aug-26 file: Reliance (non-counter) 1,188.52 -> 1,096.95 L, Dmart 1,417.87 -> 1,388.74, Apollo 734.22 -> 725.13
+      (restated), and two chains that were missing are now in: Vishal Mega Mart (Vmm) 41.52 L and V-Mart 14.97 L. Reliance Brand Counter 728.38 L is
+      unchanged and stays out of the offtake total (CLAUDE.md). Aug-26 offtake ex counters: 3,975.13 -> 3,901.83 L; FY27 total 19,044.99 -> 18,971.69 L.
+      FY25 and FY26 blocks are unchanged (31,119.87 L FY26). The source writes some chain names with a trailing space ("Reliance ", "Azorte "):
+      the loaders strip it.
+
+  store_cuts_lfl_pack:
+    business_name: "Offtake store cuts: state, pack size, LFL / NFL / lost stores (Apr-Aug FY27 vs same months FY26)"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_26.csv (restricted, outside Git) + data/offtake_fy26/Store_Month_NSV_FY26.csv + Store_Key_Links_FY26.csv -> scripts/build_store_cuts.py -> data/store_cuts_aug26.json and PowerBI/SeedData/Store_Cuts/*.csv"
+    source_type: "derived from two registered offtake sources"
+    grain: "store (type per store); month x category x pack (pack file)"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Store Key"]
+    important_columns: ["Store Type", "NSV This Year Rs", "NSV Last Year Same Months Rs", "Pack"]
+    business_owner: "MT Analytics (Channel Analyst Lead)"
+    refresh_frequency: "Monthly, after the offtake store x article file is refreshed"
+    validation_status: PASS
+    source_priority: DERIVED
+    fallback_source: null
+    existing_pipeline: "scripts/build_store_cuts.py; tests/test_store_cuts.py"
+    downstream_outputs: ["data/store_cuts_aug26.json", "dashboard/store_cuts.js", "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv", "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv", "PowerBI PQ 58-59, DAX 20"]
+    last_validated: "2026-10-04 (every chain, state, zone and pack split ties to FY27 Apr-Aug offtake 18,971.69 L; Brand Counter left out)"
+    modification_allowed: false
+    notes: >
+      LFL = sold this year and in the same months last year; NFL = no sales last year in those months; Lost = sold last year, nothing this year.
+      Reliance Retail non-counter has last-year sales at state level only, so it is "No LY store data" and is not in LFL. Pack size is FY27 only
+      (the FY26 store file has no pack). Shown in the web dashboard: Inventory & Supply Health > State, Pack & Store Type (dashboard/store_cuts.js).
+
+  tdp_monthly:
+    business_name: "TDP / ACV / distribution monthly (Total Distribution Points)"
+    source_path: "PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv (not supplied) -> scripts/build_tdp.py -> dashboard/tdp.js"
+    source_type: "CSV expected (Nielsen RMS or equivalent); template _TEMPLATE_TDP_Monthly.csv"
+    grain: "month x chain x state x article"
+    date_min: null
+    date_max: null
+    financial_years: []
+    primary_keys: ["Month", "Chain", "State", "Article Code"]
+    important_columns: ["ACV %", "AIC", "Numeric Distribution", "Weighted Distribution"]
+    business_owner: "MT Analytics (Channel Analyst Lead) to obtain from Nielsen / RKAM"
+    refresh_frequency: "Monthly"
+    validation_status: MISSING
+    source_priority: SOURCE_OF_TRUTH
+    fallback_source: null
+    existing_pipeline: "scripts/build_tdp.py; PowerBI/PowerQuery/14_Fact_TDP.pq; PowerBI/DAX/05_TDP_Measures.dax; tests/test_tdp.py (synthetic fixtures inside the test only)"
+    downstream_outputs: ["dashboard/tdp.js", "Inventory & Supply Health > TDP & Distribution", "PowerBI DAX 05"]
+    last_validated: "2026-10-04 (no file supplied: the dashboard shows NOT_SUPPLIED and the file needed; nothing estimated)"
+    modification_allowed: false
+    notes: >
+      Request wording: docs/NIELSEN_DATA_REQUEST.md section 1. Until a real file arrives the tab shows Nielsen weighted / numeric distribution
+      for face wash, labelled as a different measure from TDP.
+
+  tdp_inhouse_from_offtake:
+    business_name: "In-house distribution view from our offtake (stores selling, SKUs selling, SKU listings) - NOT TDP"
+    source_path: "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_<Mon>_26.csv (restricted, outside Git) + PowerBI/SeedData/Masters/Store_City_Master.csv -> scripts/build_tdp_inhouse.py -> dashboard/tdp_inhouse.js and PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv"
+    source_type: "derived from the registered offtake store x article file"
+    grain: "month x chain / state / pack (Level column)"
+    date_min: "2026-04"
+    date_max: "2026-08"
+    financial_years: ["FY27"]
+    primary_keys: ["Month", "Level", "Name"]
+    important_columns: ["Stores Selling", "SKUs Selling", "SKU Listings", "Stores In Master"]
+    business_owner: "MT Analytics (Channel Analyst Lead)"
+    refresh_frequency: "Monthly, after the offtake store x article file is refreshed"
+    validation_status: PASS
+    source_priority: DERIVED
+    fallback_source: null
+    existing_pipeline: "scripts/build_tdp_inhouse.py; tests/test_tdp_inhouse.py"
+    downstream_outputs: ["dashboard/tdp_inhouse.js", "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv", "Inventory & Supply Health > TDP & Distribution", "PowerBI PQ 61, DAX 20"]
+    last_validated: "2026-10-04 (every level ties to the FY27 Apr-Aug offtake total by month; Brand Counter left out)"
+    modification_allowed: false
+    notes: >
+      A stand-in until the real TDP file (tdp_monthly) arrives. It has no ACV % and no weighted distribution (those need each store's category sales),
+      so it is always labelled "From our offtake, not TDP". Store reach = stores selling / stores in the store master; the master also holds stores first seen
+      in the offtake files, so reach reads high. Reach and SKUs per store are blank for chains whose source has no store codes.

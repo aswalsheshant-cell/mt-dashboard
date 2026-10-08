@@ -480,13 +480,21 @@ class TestDataJSRegression:
             f"chain sum {chain_sum} != total {fp['nsv']}")
 
     def test_primary_fy27_zone_sum_matches_total(self, dash):
-        """Primary FY27 zone NSV sum must match total NSV."""
+        """Primary FY27 zones + non-MT must match total NSV; zones alone = MT.
+
+        B1 / CB-01 (MT Leadership, 2026-10-01): zone sales are MT accounts only.
+        eB2B / SIS stay in non_mt_by_zone and by_channel, so no rupee is lost.
+        """
         fp = dash.get("detail_meta", {}).get("fyx_primary", {}).get("FY27")
         if not fp:
             pytest.skip("No FY27 primary data")
         zone_sum = sum(z["nsv"] for z in fp["by_zone"])
-        assert abs(zone_sum - fp["nsv"]) < 0.5, (
-            f"zone sum {zone_sum} != total {fp['nsv']}")
+        non_mt = sum(v for z in fp.get("non_mt_by_zone", [])
+                     for k, v in z.items() if k != "name")
+        assert abs(zone_sum + non_mt - fp["nsv"]) < 0.5, (
+            f"zones {zone_sum} + non-MT {non_mt} != total {fp['nsv']}")
+        mt = next(c["nsv"] for c in fp["by_channel"] if c["name"] == "MT")
+        assert abs(zone_sum - mt) < 0.5, f"zone sum {zone_sum} != MT channel {mt}"
 
     def test_primary_fy27_monthly_sum_matches_total(self, dash):
         """Primary FY27 monthly sum must match total NSV."""

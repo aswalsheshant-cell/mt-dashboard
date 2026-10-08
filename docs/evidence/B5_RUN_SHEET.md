@@ -3,7 +3,8 @@
 **What this is.** The B5 exit condition from `docs/COMPLETION_BLOCKER_PACK.md`,
 turned into steps you can follow on the Windows machine. Owner decision
 2026-09-29: B5 is judged on the **current** model, meaning the FY parser plus
-CM2 Cases 2–8; owner decision 2026-10-01 added the L3M/L6M rolling-average
+CM2 Cases 2–9 (Case 9, the multi-FY comparability check, was added with the CM2
+fix, #287); owner decision 2026-10-01 added the L3M/L6M rolling-average
 check (step 9, #273) to the same session. The old CM2 Case 1 ("no expense rows") needed the model as it
 was before #229. #229 loaded real expense rows, so Case 1 no longer applies.
 
@@ -40,6 +41,9 @@ only in chat does not count.
 5. Note these two QC measures. Case 3 depends on the first one.
    - `[Unmapped Chain Or Customer Rows]`
    - `[Total Expense Amount Loaded]` (expected ₹1,274.71 L)
+
+A script can run the DAX cases for you and fill the evidence file from the real results:
+see `B5_RUNNER.md` (the FY parser and the screenshots stay manual).
 
 DAX cases run in **DAX Studio** connected to the open model, or in Desktop's
 **DAX query view**. Run each `EVALUATE` block **on its own**. The case blocks
@@ -80,7 +84,7 @@ are in `tests/powerbi/cm2_availability_cases.dax`.
 
 | | |
 |---|---|
-| Block | `// CASE 4`: two `EVALUATE`s (the chain table, then `Violations`) |
+| Block | `// CASE 4`: two `EVALUATE`s (the chain table, then `Violations`). Both are scoped to FY27 (`'Date Table'[FY Year] = "26-27"`) since the CM2 comparability fix: with no FY filter every CM2 is BLANK by design (Case 9). |
 | Expected (from the file) | Chains **with** expense: `ChainCM2 = NSV − ChainExpense`. Chains **without** expense: `ChainExpense` and `ChainCM2` both BLANK. The `Violations` query returns **0**. |
 | Record | The `Violations` value. From the chain table, spot-check one chain with expense (write NSV, expense, CM2) and one chain without (write that both are BLANK). |
 | PASS rule | PASS only if `Violations = 0` and the spot-checked chain with expense satisfies `ChainCM2 = NSV − ChainExpense`. |
@@ -99,7 +103,7 @@ are in `tests/powerbi/cm2_availability_cases.dax`.
 | | |
 |---|---|
 | Block | `// CASE 6` |
-| Expected (from the file) | The FY27 (`2026-27`) row carries FY27 expense only. The FY26 (`2025-26`) row has BLANK `Expense` and BLANK `CM2`, because every loaded row is FY27. |
+| Expected (from the file) | The FY27 (`26-27`) row carries FY27 expense only. The FY26 (`25-26`) row has BLANK `Expense` and BLANK `CM2`, because every loaded row is FY27. |
 | Cross-check | The FY27 `Expense` should equal the **mapped** part of the ₹1,274.71 L load: ₹1,274.71 L if step 0.5 shows 0 unmapped rows, otherwise ₹1,274.71 L minus the Case 3 `Unmapped` amount. |
 | Record | `Expense`, `TopChainExp` and `CM2` for each FY row shown. |
 | PASS rule | PASS only if FY26 `Expense` and `CM2` are BLANK **and** FY27 `Expense` equals the cross-check value (to ₹0.01 L). |
@@ -136,12 +140,25 @@ CI checks the formula only; this step checks the behaviour on the real model.
 | Record | CASE 1 `Months` and `Mismatches`; CASE 2 `FirstMonth`, `L3M`, `L6M`; CASE 3 `Month`, `L3M`, `Expected`; CASE 4 row count. |
 | PASS rule | PASS only if CASE 1 `Mismatches = 0` (or BLANK), CASE 2 both BLANK, and CASE 3 `L3M = Expected` (to 0.01). |
 
+## 10. CM2 Case 9 — comparability (added 2026-10-02, CM2 comparability fix)
+
+CM2 is withheld when the expense does not cover the same financial years as the
+NSV (`[CM2 Comparable]`). CI checks the measure structure only; this step checks
+the behaviour on the real model.
+
+| | |
+|---|---|
+| Block | `// CASE 9` (one `EVALUATE` returning three rows: No FY filter, FY27, FY26) |
+| Expected (from the file) | **No FY filter:** `Comparable = 0`; `ExpensePct`, `CM2`, `CM2Pct` all BLANK (`NSV` and `Expense` still show). **FY27:** `Comparable = 1`, `CM2 = NSV − Expense` exactly, `ExpensePct` and `CM2Pct` real numbers. **FY26:** `Comparable = 0`, `Expense` and `CM2` BLANK (never `CM2 = NSV`). |
+| Record | The three rows (all columns) |
+| PASS rule | PASS only if all three rows match the expected values above. Any CM2 number on the "No FY filter" or "FY26" row is a FAIL. |
+
 ---
 
 ## When B5 closes
 
 B5 is CLEARED only when all of these hold:
-- the evidence file is filled in for the FY parser, Cases 2, 4, 5, 6, 7 and 8, and the rolling-average step (9), every one PASS;
+- the evidence file is filled in for the FY parser, Cases 2, 4, 5, 6, 7, 8 and 9, and the rolling-average step (9), every one PASS;
 - Case 3 is PASS, or `NOT_EXERCISED` with the 0-row count recorded;
 - the screenshots are attached to the B5 PR.
 

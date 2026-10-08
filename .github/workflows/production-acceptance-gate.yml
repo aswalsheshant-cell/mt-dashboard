@@ -143,7 +143,7 @@ jobs:
         run: python3 scripts/ci_validate_datajs.py
 
   reconciliation:
-    name: "Gate: Reconciliation (informational)"
+    name: "Gate: Reconciliation (blocking)"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -151,19 +151,16 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         with:
           python-version: '3.11'
-      # NOT blocking: as of 2026-09-23 this check reports BLOCKED (exit 2) on
-      # the current, already-committed main data.js -- a real, already-known,
-      # unresolved business finding (eB2B/SIS non-MT primary sitting inside MT
-      # zone sales; see the script's own docstring and its "Business owner to
-      # decide" note), not something any given PR introduces. Making this
-      # blocking today would fail every PR permanently until that business
-      # decision is made. It runs and reports on every PR so the finding stays
-      # visible; continue-on-error keeps it from failing the gate. Flip
-      # continue-on-error off (and fold its result into the gate job's
-      # failure condition below) once the underlying business decision is
-      # made and this script reports clean on main.
-      - name: Run MT channel reconciliation (does not block the gate)
-        continue-on-error: true
+      # BLOCKING (release control): this check stops non-MT sales (eB2B / SIS,
+      # incl. Nykaa (FSN)) from sitting inside an MT zone total. It reported
+      # BLOCKED (exit 2) on main on 2026-09-23 -- CB-01 -- so it ran
+      # non-blocking until the business decided. MT Leadership decided on
+      # 2026-10-01 (MT-only zones, Nykaa (FSN) under eB2B) and #276 applied it:
+      # it exits 0 on main. Per the blocker-pack exit condition it is now a
+      # required part of the gate. A failure here is a financial-correctness
+      # defect in the PR (or in dashboard/data.js), never "known and
+      # unresolved"; do not add continue-on-error back.
+      - name: Run MT channel reconciliation (blocking)
         run: python3 scripts/mt_channel_reconciliation.py dashboard/data.js
 
   browser-regression:
@@ -233,9 +230,7 @@ jobs:
           echo "  - Dashboard Integrity:       ${{ needs.dashboard-integrity.result }}"
           echo "  - Release Validation:        ${{ needs.release-validation.result }}"
           echo "  - Browser Regression:        ${{ needs.browser-regression.result }}"
-          echo ""
-          echo "Informational (not blocking):"
-          echo "  - Reconciliation:            ${{ needs.reconciliation.result }}"
+          echo "  - MT Channel Reconciliation: ${{ needs.reconciliation.result }}"
           echo ""
 
           if [ "${{ needs.python-tests.result }}" != "success" ] || \
@@ -244,7 +239,8 @@ jobs:
              [ "${{ needs.schema-validation.result }}" != "success" ] || \
              [ "${{ needs.dashboard-integrity.result }}" != "success" ] || \
              [ "${{ needs.release-validation.result }}" != "success" ] || \
-             [ "${{ needs.browser-regression.result }}" != "success" ]; then
+             [ "${{ needs.browser-regression.result }}" != "success" ] || \
+             [ "${{ needs.reconciliation.result }}" != "success" ]; then
             echo "❌ PRODUCTION ACCEPTANCE GATE: FAIL"
             exit 1
           fi

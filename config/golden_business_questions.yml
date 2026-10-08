@@ -38,7 +38,7 @@ questions:
     grain: "month x chain x article"
     formula: "offtake.total_fy27"
     data_js_path: "offtake.total_fy27"
-    published_data_value: 19044.99
+    published_data_value: 18971.69   # Aug-26 re-supplied 2026-10-04 (was 19044.99): see config/data_source_registry.yml offtake_aug26_storewise_refresh
     unit: "INR Lakh"
     tolerance: 0.01
     comparison_layers:

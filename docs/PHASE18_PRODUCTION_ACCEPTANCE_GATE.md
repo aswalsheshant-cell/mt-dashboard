@@ -50,10 +50,10 @@ written to validate correctness — this wires up what already existed):
 | Gate: Schema/Data Validation | `scripts/validate_promo_schema.py --datajs dashboard/data.js` | Yes |
 | Gate: Dashboard Integrity | HTML brace/critical-function/`window.DASH` checks (mirrors `validate-promo-data.yml`) | Yes |
 | Gate: Release Validation | `scripts/ci_validate_datajs.py` | Yes |
-| Gate: Reconciliation (informational) | `scripts/mt_channel_reconciliation.py dashboard/data.js` | **No — see below** |
+| Gate: Reconciliation (blocking) | `scripts/mt_channel_reconciliation.py dashboard/data.js` | **Yes** (since 2026-10-02, see below) |
 | Gate: Browser Regression | Playwright `tests/e2e_v1.1.0_consolidation.spec.js` (mirrors `ui-smoke.yml`) | Yes |
 
-A final `gate` job (`if: always()`, `needs:` all 8) aggregates the 7 blocking
+A final `gate` job (`if: always()`, `needs:` all 8) aggregates the 8 blocking
 results into one job named **`Production Acceptance Gate`** — that single
 name is the only thing a future ruleset change would need to add.
 
@@ -62,26 +62,24 @@ elsewhere in this repo's workflows (CLAUDE.md's CI governance rule) — reused,
 not re-picked. YAML parses; the repo's own SHA-pin lint (from `validate.yml`)
 passes against this file.
 
-## The one deliberate exception: reconciliation is informational, not blocking
+## Reconciliation: was informational, now blocking (2026-10-02)
 
-`scripts/mt_channel_reconciliation.py dashboard/data.js` was tested directly
-against the branch's current, already-committed `dashboard/data.js` before
-being wired in. **It exits 2 (BLOCKED) today** — a real, already-known,
-unresolved business finding: eB2B/SIS non-MT primary (~Rs 11.64 Cr) sitting
-inside MT zone sales, and Nykaa (FSN, a B2C marketplace account that also
-carries eB2B billing) presented as an MT zone account. This is not something
-any given PR introduces — it is the current state of `main` itself, and the
-script's own docstring says a business owner still needs to decide how to
-treat the Nykaa (FSN) case.
+`scripts/mt_channel_reconciliation.py dashboard/data.js` checks that non-MT sales
+(eB2B, SIS, including Nykaa (FSN)) are not presented inside MT zone totals.
 
-Wiring this in as a blocking check today would make the gate fail
-permanently, on every PR, regardless of what the PR actually changes — the
-opposite of what a production gate is for. It runs on every PR
-(`continue-on-error: true`) so the finding stays visible, but its result is
-excluded from the final gate's pass/fail condition. Once the eB2B/SIS
-zone-contamination question is resolved and this script reports clean
-against `main`, flip `continue-on-error` off and add its result to the gate
-job's failure condition.
+**History.** When this gate was added (2026-09-23) the script exited 2 (BLOCKED) on
+`main` itself: about Rs 11.64 Cr of eB2B / SIS primary sat inside MT zone sales and
+Nykaa (FSN) was presented as an MT zone account (CB-01). That was an open business
+decision, not something a PR introduced, so the job ran with `continue-on-error: true`
+and was left out of the final gate's failure condition. Otherwise the gate would have
+failed every PR permanently.
+
+**Now.** MT Leadership decided CB-01 on 2026-10-01 (zones are MT-only; Nykaa (FSN)
+under eB2B) and #276 applied it, so the script exits 0 on `main`. Following the
+blocker-pack exit condition, `continue-on-error` is removed, the job is named
+`Gate: Reconciliation (blocking)`, and its result is part of the final gate's failure
+condition. `tests/test_reconciliation_gate_blocking.py` pins this. Do not add
+`continue-on-error` back: a failure here is a financial-correctness defect.
 
 ## Scope change worth naming: Browser Regression now runs on every PR
 

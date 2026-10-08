@@ -1,6 +1,7 @@
-"""B5 exit condition (owner decision 2026-09-29): FY parser + CM2 Cases 2-8 on
-the current model, with durable evidence; plus the L3M/L6M rolling-average
-check (step 9), owner decision 2026-10-01 (#273).
+"""B5 exit condition (owner decision 2026-09-29): FY parser + CM2 Cases 2-9 on
+the current model, with durable evidence (Case 9 = the multi-FY comparability
+check added with the CM2 fix, #287; evidence row 10); plus the L3M/L6M
+rolling-average check (step 9), owner decision 2026-10-01 (#273).
 
 Guards:
   * the run sheet covers every case it names, and those cases exist in the
@@ -44,12 +45,12 @@ def test_b5_section_has_no_superseded_case1_condition():
         assert stale not in b5, f"superseded B5 wording still present: {stale!r}"
     assert b5.count("**Exit condition.**") == 1, "B5 must state exactly one exit condition"
     row = next(l for l in PACK.read_text(encoding="utf-8").splitlines() if l.startswith("| B5 |"))
-    assert "Cases 2–8" in row and "BLOCKED_PENDING_DESKTOP_EVIDENCE" in row
+    assert "Cases 2–9" in row and "BLOCKED_PENDING_DESKTOP_EVIDENCE" in row
 
 
 def test_run_sheet_cases_exist_in_governed_files():
     sheet, dax = SHEET.read_text(encoding="utf-8"), DAX.read_text(encoding="utf-8")
-    for n in range(2, 9):
+    for n in range(2, 10):
         assert f"// CASE {n}" in dax, f"CASE {n} missing from the governed DAX file"
         assert f"CM2 Case {n}" in sheet, f"run sheet does not cover CM2 Case {n}"
     assert "Failures" in PQ.read_text(encoding="utf-8")
@@ -90,7 +91,7 @@ def test_evidence_template_has_required_fields():
     for field in ("git SHA", "Power BI Desktop version", "Model file", "Date run",
                   "| Expected |", "| Actual |", "| Result |", "Evidence reference"):
         assert field in t, f"template missing '{field}'"
-    for row in ("| 1 |", "| 2 |", "| 3 |", "| 4 |", "| 5 |", "| 6 |", "| 7a |", "| 7b |", "| 8 |", "| 9 |"):
+    for row in ("| 1 |", "| 2 |", "| 3 |", "| 4 |", "| 5 |", "| 6 |", "| 7a |", "| 7b |", "| 8 |", "| 9 |", "| 10 |"):
         assert row in t, f"template missing evidence row {row}"
 
 
@@ -106,8 +107,19 @@ def test_b5_not_cleared_without_evidence():
         return
     # evidence exists: every required row must be PASS (row 3 may be NOT_EXERCISED)
     latest = evidence[-1].read_text(encoding="utf-8")
-    for row in ("1", "2", "4", "5", "6", "7a", "7b", "8", "9"):
+    for row in ("1", "2", "4", "5", "6", "7a", "7b", "8", "9", "10"):
         line = re.search(rf"^\| {row} \|.*$", latest, re.M)
         assert line and "| PASS |" in line.group(0), f"{evidence[-1].name}: row {row} is not PASS"
     line3 = re.search(r"^\| 3 \|.*$", latest, re.M)
     assert line3 and ("| PASS |" in line3.group(0) or "NOT_EXERCISED" in line3.group(0))
+
+
+def test_no_stale_cases_2_to_8_wording_in_b5_docs():
+    """Case 9 exists (CM2 comparability, #287). Any doc that still says the B5
+    CM2 range is 2-8 would make a Desktop run skip it."""
+    cfg = (ROOT / "config/project_state.yml").read_text(encoding="utf-8")
+    for name, text in (("run sheet", SHEET.read_text(encoding="utf-8")),
+                       ("blocker pack", PACK.read_text(encoding="utf-8")),
+                       ("project state", STATE.read_text(encoding="utf-8")),
+                       ("project_state.yml", cfg)):
+        assert not re.search(r"Cases 2[–-]8\b", text), f"{name} still says 'Cases 2-8'"

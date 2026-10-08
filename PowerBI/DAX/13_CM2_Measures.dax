@@ -74,15 +74,36 @@ Total P&L Expense = [Total P&L Expense (Mapped)]   // headline KPI -- matches th
 // ---------- CM2 (overall / KPI cards) ----------
 // [Total Primary Article NSV] comes from DAX/12_TOT_Measures.dax (already
 // scoped to TOT-valid FY26/FY27 rows).
+// Comparability gate: CM2 only means something when the expense covers the same
+// financial years as the NSV it is subtracted from. 1 = every FY that has NSV in the
+// current filter also has mapped expense rows; 0 = at least one FY has NSV but no
+// expense rows (e.g. no FY filter: FY26 NSV + FY27-only expense). Missing expense is
+// NOT zero expense, so the margin is withheld (BLANK) rather than shown. Month-level
+// and single-FY selections with expense stay comparable and are unchanged.
+CM2 Comparable =
+VAR _missingFY =
+    COUNTROWS (
+        FILTER (
+            VALUES ( 'Date Table'[FY Year] ),
+            NOT ISBLANK ( [Total Primary Article NSV] ) && ISBLANK ( [Total P&L Expense] )
+        )
+    )
+RETURN IF ( _missingFY = 0, 1, 0 )
+
 Expense % of NSV =
-DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100
+VAR _cmp = [CM2 Comparable]
+RETURN IF ( _cmp = 0, BLANK (), DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100 )
 
 // Availability gate (FM-33): [Total P&L Expense] is BLANK when no mapped expense
 // row exists in the current filter context. CM2 is then BLANK (shown as "–"),
 // never NSV read as a 100% margin -- missing expense is not zero expense.
+// Also BLANK when [CM2 Comparable] = 0 (see above): this is CM2 on LOADED costs only,
+// not full contribution margin -- COGS/logistics, distributor claims, field force and
+// provisions are not in PL_Expense_Input yet.
 CM2 Value =
 VAR _exp = [Total P&L Expense]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 
 CM2 % =
 DIVIDE ( [CM2 Value], [Total Primary Article NSV] ) * 100
@@ -116,7 +137,8 @@ RETURN
 
 Chain-wise CM2 =   // BLANK for a chain with no mapped expense rows (not its NSV)
 VAR _exp = [Total P&L Expense (by Chain)]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 Chain-wise CM2 % = DIVIDE ( [Chain-wise CM2], [Total Primary Article NSV] ) * 100
 
 Total P&L Expense (by Brand) =
@@ -128,7 +150,8 @@ RETURN
 
 Brand-wise CM2 =   // BLANK for a brand with no mapped expense rows (not its NSV)
 VAR _exp = [Total P&L Expense (by Brand)]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 Brand-wise CM2 % = DIVIDE ( [Brand-wise CM2], [Total Primary Article NSV] ) * 100
 
 Total P&L Expense (by Category) =
@@ -140,7 +163,8 @@ RETURN
 
 Category-wise CM2 =   // BLANK for a category with no mapped expense rows (not its NSV)
 VAR _exp = [Total P&L Expense (by Category)]
-RETURN IF ( ISBLANK ( _exp ), BLANK (), [Total Primary Article NSV] - _exp )
+RETURN IF ( ISBLANK ( _exp ), BLANK (),
+    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )
 Category-wise CM2 % = DIVIDE ( [Category-wise CM2], [Total Primary Article NSV] ) * 100
 
 // ---------- EXPENSE HEAD-WISE BREAKUP ----------

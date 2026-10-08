@@ -503,13 +503,19 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     expect(pos, 'test premise: offtake.pos_stores must exist for the latest FY').toBeTruthy();
     const knownStoreChain = Object.entries(pos.by_chain).find(([, v]) => v.latest > 0);
     expect(knownStoreChain, 'test premise: pos_stores needs at least one chain with real stores').toBeTruthy();
+    // Owner overrides (dashboard/store_universe.js): Reliance Retail and More Retail have no usable store codes in the offtake file, so the
+    // Stores cell shows the working estimate as "~N (tentative)"; Nykaa / FSN (online) shows "NA". Those cells are not POS counts by design.
+    const overrides = await page.evaluate(() => (window.STORE_UNIVERSE && window.STORE_UNIVERSE.overrides) || {});
     for (const [name, ps] of Object.entries(pos.by_chain)) {
       const matchedRow = velocityRows.find(([n]) => n === name);
       if (!matchedRow) continue;
-      // Column order: Chain, Stores, Offtake (Cr), Growth %
+      const ov = Object.entries(overrides).find(([k]) => k.toLowerCase().replace(/[^a-z0-9]/g, '') === name.toLowerCase().replace(/[^a-z0-9]/g, ''));
+      if (ov && ov[1].status === 'TENTATIVE') { expect(matchedRow[2], `${name} shows its owner estimate`).toMatch(/^~[\d,]+ \(tentative\)/); continue; }
+      if (ov && ov[1].status === 'NA') { expect(matchedRow[2], `${name} is not applicable`).toMatch(/^NA/); continue; }
+      // Column order: Chain, In store master, Stores, Offtake (Cr), Growth %  ("In store master" was added next to Stores)
       const expected = ps.latest == null ? '–'
         : ps.latest.toLocaleString('en-IN') + (ps.no_site_pct > 0 ? '*' : '');
-      expect(matchedRow[1], `${name}'s Stores column must be its real POS store count (offtake.pos_stores), not SAP billing codes`)
+      expect(matchedRow[2], `${name}'s Stores column must be its real POS store count (offtake.pos_stores), not SAP billing codes`)
         .toBe(expected);
     }
     // No row may show a fabricated-looking negative/positive Growth % computed
@@ -524,7 +530,7 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     });
     if (currMonths.curr !== currMonths.prior) {
       for (const row of velocityRows) {
-        expect(row[3], `Growth % must be "–" (not a coverage-mismatch artifact) for ${row[0]} when FY windows differ`).toBe('–');
+        expect(row[4], `Growth % must be "–" (not a coverage-mismatch artifact) for ${row[0]} when FY windows differ`).toBe('–');
       }
     }
 
@@ -652,5 +658,26 @@ test.describe('v1.1.0 Navigation Consolidation E2E Suite', () => {
     expect(r.titles.length).toBeGreaterThan(0);
     for (const t of r.titles) expect(t, 'every chart sits in a titled card').not.toBe('');
     if (/No active alerts/.test(r.alerts)) expect(r.alerts).toContain('Feed generated');
+  });
+
+  // TC15: no open-PO source must read as "not available", never as an all-clear.
+  // computePORiskSummary() returned {breach_count:0, penalty_exposure:0, max_aging:0}
+  // when D.po is absent (it is, today), so the card said "0 POs at breach risk /
+  // Rs 0L penalty exposure"; and penalty was breaches x a hard-coded Rs 50L.
+  test('TC15 - Open PO SLA card says Not available when no PO source is loaded', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+    const r = await page.evaluate(async () => {
+      const W = ms => new Promise(res => setTimeout(res, ms));
+      F.FY = []; show('analytics'); await W(900);
+      const card = [...document.querySelectorAll('#tab-analytics .card')]
+        .find(c => /Open PO SLA/.test(c.innerText));
+      return { hasPo: !!(window.DASH.po && window.DASH.po.length), text: card ? card.innerText : null,
+               fn: computePORiskSummary.toString() };
+    });
+    expect(r.hasPo, 'test premise: no PO block in this build').toBe(false);
+    expect(r.text, 'the Open PO SLA card exists').not.toBeNull();
+    expect(r.text).toMatch(/Not available/);
+    expect(r.text, 'no all-clear zero').not.toMatch(/\b0 POs at breach risk|₹0L penalty|0 days/);
+    expect(r.fn, 'no hard-coded penalty per breach').not.toMatch(/\*\s*50\b/);
   });
 });
