@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0",
-  "suite_version": "1.4.0",
-  "installed_at": "2026-10-02T11:39:06Z",
+  "suite_version": "1.5.0",
+  "installed_at": "2026-10-01T21:43:55Z",
   "source": "/home/user/mt-dashboard/skill-suite",
   "target": "/home/user/mt-dashboard/.agents/skills",
   "target_key": "project-codex",
   "skills": {
     "modern-trade-sales-growth": {
-      "version": "1.1.1",
+      "version": "1.1.0",
       "sha256": {
-        "SKILL.md": "e97129be59545fa68a06827a85e648977620a6343be9496be8c5baa43049ce63",
+        "SKILL.md": "a55ef2936717853b489d8e9ebcba4b94e986c97b34539372fac9c5de8befc512",
         "references/exception-thresholds.md": "f3d99c9c106bfab524e51ffccfb0dbb9746911326d2b7d959ac7959ee0b0e3e6",
         "references/market-share.md": "775ca71f4501c3dbd091b926c1d937a5d32c1cd1a393c65b026ce97d3114e83d",
         "references/org-context.md": "3e2ca9a0926ba4c2fe6271d3f6511e0496395a72ff1c620a4d965233a8516726"
@@ -25,7 +25,7 @@
       }
     },
     "demand-inventory-planning": {
-      "version": "1.1.1",
+      "version": "1.1.0",
       "sha256": {
         "SKILL.md": "b2cd7b97a59c9c618635150e910931b3107bee35ed673931ac7a3bde2787e902"
       }
@@ -33,7 +33,7 @@
     "executive-commercial-storytelling": {
       "version": "1.1.0",
       "sha256": {
-        "SKILL.md": "caddd38d6aef9e90d720617708c52d5b3a239be54639a324c9b52cc2fcabbc07",
+        "SKILL.md": "e70e70a306636fb9b5a8f72002492dd0bfb83045eb82ecda11eb8e74c79eca52",
         "references/deck-automation.md": "34debb3c686ad85074370d495e1725d75a6721c74b523fbb52050880cf1a6cf5",
         "references/house-style.md": "0169831d450caaba69e10fbb231eff66b5920a79d497d05844a70039a5419788"
       }
@@ -122,6 +122,30 @@
         "references/q1-target-correlation.md": "4a3ea643958208c7b64886aad100d68665e30d0d61e0d26f252639ff88a1b24d",
         "references/source-provenance.json": "f99d801b8c6a602a99291b08df2c71c019b3699f5a4e43f77b968e6b610e8f44",
         "references/tracking-contract.md": "d1e57992a4517329d0a876b9ca88f3ea319832f050d4a390ac807656da97f71c"
+      }
+    },
+    "mt-dashboard-orchestrator": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "c8c12aedd0eaea2ef8a6f91ba8d19ed553d7a95c1dace67dc89791f4c6b2dfa2"
+      }
+    },
+    "data-freshness-coverage": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "51f9cca7d110a75099e51dd3a1e843215bf74ddfd7c58d4adef1b2059162bddb"
+      }
+    },
+    "source-lineage-reproducibility": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "4250e6c3d46214f247fa56de2dd202b9db245cd3c520b5c0b7ba841267d4b9b8"
+      }
+    },
+    "session-handoff-recovery": {
+      "version": "1.0.0",
+      "sha256": {
+        "SKILL.md": "ff561e878c913fca58feae354898d906d5148de496b8a11d67aa097dc5ddf8ca"
       }
     }
   }
