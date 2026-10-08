@@ -104,7 +104,7 @@ import json, os, sys
 
 PATH  = "dashboard/data.js"
 CHUNK = 1 << 18                  # 256 KB window
-FY26_BASELINE = 32900.36         # FY26 is a closed year: must never move
+FY26_BASELINE = 30684.99         # FY26 Primary on the MT basis (CB-01 Decision 3, 2026-10-08); all-channel 32,900.36 is primary.fy26_all_channel. A closed year: must never move
 DETAIL_FLOOR  = 40000            # anything at/below this means a truncated build
 
 failures, warnings = [], []

@@ -3,9 +3,9 @@
 Data Integrity Validation — CI gate for dashboard/data.js
 
 Assertions locked after the Aug-2026 canonical chain alignment release:
-  1.  Exactly 45 unique canonical chains in primary.by_chain
+  1.  Exactly 37 unique canonical MT chains in primary.by_chain (45 before the FY26 MT restatement of 2026-10-08, which moved the 8 non-MT chains out)
   2.  Exactly 6 zones in primary.by_zone (no Pan India)
-  3.  FY26 baseline sum = ₹32,900.36L ± 0.1 %
+  3.  FY26 baseline sum = ₹30,684.99L ± 0.1 % (MT basis; the all-channel ₹32,900.36L is kept in primary.fy26_all_channel)
   4.  FY27 Primary total > 0, read from detail_meta.fyx_primary.FY27.nsv
       (FY27 is article-level only; primary.by_chain has no fy27 key -- THE
       ONE FY RULE coverage split in CLAUDE.md)
@@ -34,8 +34,8 @@ from pathlib import Path
 
 # ── Constants locked at release ────────────────────────────────────────────────
 
-EXPECTED_CHAIN_COUNT    = 45
-EXPECTED_FY26_TOTAL_L   = 32_900.36   # Lakh — authoritative from pre-aggregated workbook
+EXPECTED_CHAIN_COUNT    = 37          # MT chains (CB-01 Decision 3, restated 2026-10-08; was 45 all-channel)
+EXPECTED_FY26_TOTAL_L   = 30_684.99   # Lakh — FY26 Primary on the MT basis (all-channel 32,900.36 = MT + EB2B 1,965.20 + SIS 250.17)
 FY26_TOLERANCE_PCT      = 0.1         # ± 0.1 %
 
 AUTHORISED_ZONES = frozenset({"Central", "East", "North", "South 1", "South 2", "West"})

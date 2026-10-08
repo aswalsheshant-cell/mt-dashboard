@@ -63,7 +63,7 @@ that applies STRICTLY to Offtake Sales only**. It must NEVER be applied to Prima
 
 ### Why This Matters
 - **Primary Sales** = Factory/depot billing to Reliance Retail accounts/distributors
-  - Reflects gross channel NSV (₹32,900.36L baseline)
+  - Reflects gross channel NSV (FY26 all-channel ₹32,900.36L, kept in `primary.fy26_all_channel`; the FY26 MT-basis figure is ₹30,684.99L since the 2026-10-08 restatement)
   - No "manned counter" billing streams exist at primary level
   - Filtering/deducting counter data here artificially suppresses gross NSV
   - **Action: Aggregate ALL Reliance invoices without exclusions**
@@ -82,7 +82,7 @@ scripts/build_dashboard_data.py:
 ```
 
 ### Baseline Protection
-- Gross Primary NSV = ₹32,900.36L (all Reliance invoices included)
+- Gross Primary NSV (all channels, all Reliance invoices included) = ₹32,900.36L; FY26 Primary on the MT basis = ₹30,684.99L (CB-01 Decision 3, restated 2026-10-08; only non-MT channels EB2B / SIS were removed, never Reliance)
 - Offtake deduplication never retroactively modifies this baseline
 - Counter isolation is a **read-only partition for operational reporting**, not a data reduction
 
@@ -162,7 +162,7 @@ Honasa ──PRIMARY──▶ chain DC / distributor ──DISTRIBUTOR SECONDARY
 
 | Measure | Comes from | Lives in | Reference figure |
 |---------|------------|----------|------------------|
-| **Primary** | SAP/ERP billing | `Primary_Article_Monthly/`, `Primary_ShipTo_Monthly/` | FY26 ₹32,900.36 L |
+| **Primary** | SAP/ERP billing | `Primary_Article_Monthly/`, `Primary_ShipTo_Monthly/` | FY26 ₹30,684.99 L (MT basis; all-channel ₹32,900.36 L) |
 | **Distributor Secondary** | Distributor DMS | `SecondarySales_Monthly/`, `data/raw_drops/Distributor_secondary_*` | FY25 ₹23,332.36 L |
 | **Offtake** | Chain POS | `Offtake_Monthly/` | FY26 ₹31,119.88 L |
 

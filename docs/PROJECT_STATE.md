@@ -560,3 +560,11 @@ The repo owner (GitHub `aswalsheshant-cell`, role: repo owner and MT Channel Ana
 
 ## Feature freeze lifted — 2026-10-08
 The repo owner (GitHub `aswalsheshant-cell`, repo owner and MT Channel Analyst Lead) lifted the feature freeze on 2026-10-08. This is a personal project and no hierarchy sign-off is required; the owner's confirmation in the working session is the approval reference. `config/project_state.yml` now has `feature_freeze.active: false`, so `scripts/check_pr_scope.py` passes every PR (the declaration is optional). The open blockers B1 to B6 stay open until their content exists (see `docs/COMPLETION_BLOCKER_PACK.md`); lifting the freeze does not close them.
+
+## CB-01 Decision 3 applied — FY26 Primary restated on the MT basis (2026-10-08)
+Approved by the repo owner (see "Owner approval record"). `scripts/restate_fy26_mt.py` patches ONLY the `primary` block of `dashboard/data.js` from the tracked article-level FY'25-26 files:
+- `primary.nsv_fy26` 32,900.36 L (all channels) -> **30,684.99 L (MT)**, tied to `detail_meta.channel_totals.FY26.MT`. The all-channel numbers are kept in `primary.fy26_all_channel`; the removed non-MT (2,215.37 L: EB2B 1,965.20 + SIS 250.17) is in `primary.non_mt_fy26`; `by_channel` is unchanged.
+- `monthly_fy26`, `by_zone`, `by_brand` restated; the 8 wholly non-MT chains (Nykaa (FSN), Shoppers Stop, Azorte, Eremedium, Lifestyle, Ascent Wellness, Broadway, Today's Basket) left `by_chain` (45 -> 37). Every dimension ties to 30,684.99 (+/- 0.1 L).
+- Not restated: `mrp_fy26` (labelled all-channel; no exact MT split); CM2 (B3 owns it); `dashboard/enriched_metrics.json` (a stale August sidecar, regenerate separately). Non-MT is allocated to zones by the article-level Zone column, which differs from the workbook for West, Central and North (mapping, not channel).
+- Pins updated: `config/baselines.json` (`primary_nsv_fy26` = 30,684.99; new `primary_nsv_fy26_all_channel` = 32,900.36), `tests/validate_data_integrity.py` (37 chains, 30,684.99), `answer_governance/test_governance.py`, `scripts/refresh_dashboard.sh`, golden question BQ-06, CLAUDE.md. FY25 and FY27 blocks, Offtake and every other block are unchanged. Regression test: `tests/test_fy26_mt_restatement.py`.
+- Still open for B1: make the `mt_channel_reconciliation.py` CI step blocking (separate PR).
