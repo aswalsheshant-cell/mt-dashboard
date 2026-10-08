@@ -61,7 +61,7 @@ known_debt:
   decision: I-2
 - path: PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv
   class: EMPLOYEE_RAW
-  sha256: aa9e683ead6d938feaa9ce9f217f091c05b5fb002ac8e6bf3af01de65e122462
+  sha256: 77faa873ffa9df4cec32c19065cbbb53669434a8ac4b1523e6a58834b1b214e5   # re-pinned 2026-10-04 on the owner's instruction: refreshed Aug-26 store-wise file (SO/ASE columns empty, no employee values)
   first_seen: '2026-10-01'
   decision: I-2
 - path: PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jul_26.csv

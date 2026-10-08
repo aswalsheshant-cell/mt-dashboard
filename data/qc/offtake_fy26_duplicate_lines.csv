@@ -1,0 +1,73 @@
+chain,folder,extra_lines,nsv_in_extra_lines
+Apollo,Aug'25,2,0.0025
+Apollo,Dec'25,2,0.0047
+Apollo,Feb'26,5,0.0095
+Apollo,Jan'26,5,0.0112
+Apollo,Jul'25,2,0.0037
+Apollo,Jun'25,1,0.0019
+Apollo,Mar'26,12,0.0461
+Apollo,Nov'25,1,0.0031
+B&N,Aug'25,117,0.3752
+B&N,Dec'25,59,0.1861
+B&N,Feb'26,76,0.2428
+B&N,Jan'26,75,0.2363
+B&N,Jul'25,50,0.1512
+B&N,Mar'26,106,0.3532
+B&N,Nov'25,100,0.304
+B&N,Oct'25,111,0.3322
+B&N,Sep'25,137,0.4159
+Guardian,Apr'25,1,0.0014
+Guardian,Dec'25,2,0.003
+Guardian,Feb'26,1,0.0023
+Guardian,Jan'26,3,0.006
+Guardian,Jul'25,1,0.0014
+Guardian,Jun'25,3,0.0027
+Guardian,Mar'26,17,0.0326
+Guardian,Oct'25,1,0.0014
+Guardian,Sep'25,1,0.0016
+Health & Glow,Feb'26,1346,5.3915
+More Retail,Apr'25,63,0.3392
+More Retail,Aug'25,782,4.8766
+More Retail,Dec'25,1152,6.5203
+More Retail,Feb'26,1153,6.3951
+More Retail,Jan'26,1167,6.6006
+More Retail,Jul'25,756,5.1371
+More Retail,Jun'25,699,4.5826
+More Retail,Mar'26,1171,6.7741
+More Retail,May'25,527,2.6762
+More Retail,Nov'25,1244,7.092
+More Retail,Oct'25,1088,6.1234
+More Retail,Sep'25,985,5.5589
+RMT-Sancus,Apr'25,2324,22.2684
+RMT-Sancus,Aug'25,1938,16.9779
+RMT-Sancus,Dec'25,438,5.3627
+RMT-Sancus,Feb'26,173,1.7827
+RMT-Sancus,Jan'26,265,2.9639
+RMT-Sancus,Jul'25,2850,25.5163
+RMT-Sancus,Jun'25,2179,21.6455
+RMT-Sancus,Mar'26,241,2.5692
+RMT-Sancus,May'25,2506,25.7651
+RMT-Sancus,Nov'25,239,2.7512
+RMT-Sancus,Oct'25,1517,15.3888
+RMT-Sancus,Sep'25,2234,32.3025
+Ratnadeep,Apr'25,16,0.3589
+Ratnadeep,Jun'25,29,0.8385
+Ratnadeep,May'25,12,0.3908
+SastaSundar,Aug'25,11,0.0198
+SastaSundar,Dec'25,7,0.0134
+SastaSundar,Feb'26,17,0.0287
+SastaSundar,Jan'26,13,0.021
+SastaSundar,Jul'25,5,0.0136
+SastaSundar,Jun'25,1,0.0076
+SastaSundar,Mar'26,23,0.0456
+SastaSundar,Nov'25,29,0.0502
+SastaSundar,Oct'25,11,0.0209
+SastaSundar,Sep'25,18,0.0352
+V-Mart,Nov'25,117,1.3711
+V-Mart,Oct'25,10,0.112
+WH-Smith,Aug'25,260,0.3055
+WH-Smith,Dec'25,348,0.4414
+WH-Smith,Feb'26,338,0.4425
+WH-Smith,Jan'26,254,0.3381
+WH-Smith,Jul'25,315,0.3859
+WH-Smith,Mar'26,204,0.2519

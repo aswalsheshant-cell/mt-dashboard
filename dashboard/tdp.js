@@ -1,0 +1,1 @@
+window.TDP={"status":"NOT_SUPPLIED","needed":"PowerBI/RawDataFolders/TDP_Monthly/TDP_<Mon>_<YY>.csv (template: _TEMPLATE_TDP_Monthly.csv)","columns":["Month","FY Year","Chain","Zone","State","Brand","Category","Sub-category","Pack Size","Article Code","Article Description","ACV %","AIC","Numeric Distribution","Weighted Distribution","Data Source Name"]};

@@ -383,6 +383,49 @@ field.
 
 **Important categories:** Facewash, Shampoo, Sunscreen, Face Serum (others as data allows).
 
+**Data now in the kit (Aug-26 update):** `SeedData/Nielsen/Nielsen_Monthly/nielsen_urban_mt_aug26.csv` (copy into `RawDataFolders/Nielsen_Monthly/` to load it)
+holds real Facewash and Shampoo history for market IN URB MT (Aug 23 to Aug 26); set the Zone slicer
+to `IN URB MT`. Facewash and Shampoo are both Aug 26, so Month selects the same period for both.
+
+**Added visuals on this page (Chains & Packs block):**
+- **Chain contribution** (bar): `Chain Master[Chain]` x `Chain Contribution To Growth pp`; table with
+  `Total MT NSV`, `Chain Share of NSV %`, `Chain Growth %`, `Chain Share of Growth %`. Top 6 chains by `Total MT NSV`.
+  Internal Offtake (Reliance Brand Counter excluded); read as direction next to the Nielsen share gain.
+- **Pack presence** (table): `Fact Nielsen Pack[Pack Size ml]` x `Pack Category Mix %`, `Pack Our Share In Pack %`,
+  `Pack Presence Status`, `Pack Gap Amount`; conditional colour on `Pack Presence Status`
+  (Not present red, Under-indexed amber, Present green). One table per `Nielsen Category`, value basis (Rs Cr); add `Pack Price Per Ml`, `Pack Volume Share %`,
+  `Pack Our Contribution %`. KPI cards: `Packs Not Present`, `Pack Gap Amount`.
+- **State x chain exposure** (table): `Nielsen Deck State Exposure` (typed from the review deck, Jun'26, not a workbook cut).
+
+**Nielsen brand cuts (Nielsen Cuts tab of the report; `DAX/18_Nielsen_Brand_Cut_Measures.dax`, table `Fact Nielsen Brand Cut`):** slicers Nielsen Category, Month; filter `Is Category Row` = No on brand visuals.
+- **Brand cut table:** `Brand` x `Cut Value Share %`, `Cut Value Less Volume Share pp`, `Cut Brand Price Per Ml`, `Cut Price Index`, `Cut Price Per Ml YoY %`, `Cut WD %`, `Cut WD Change pp`, `Cut ND %`, `Cut Stores`, `Cut Sales Per Store Rs`, `Cut Share Per WD Point`, `Cut SAH %`; Top N 10 on `Cut Value Share %`.
+- **Scatter:** x `Cut WD %`, y `Cut Value Share %`, bubble `Cut Brand Value Cr` (who earns more share per distribution point).
+- **KPI cards (Mamaearth):** `Cut Price Index`, `Cut WD Less ND pp`, `Cut Share At 95 WD %`, `Cut Share Headroom pp`, `Cut Value Of One Share Point Cr`.
+
+**Account share block (Aug-26 update; Lulu, More Retail, Wellness Forever, Reliance Retail, Reliance Brand Counter):** measures in `DAX/17_Account_Share_Measures.dax`, tables `Fact Account Category`, `Fact Account Category Geo`, `Fact Account Assortment`.
+- **Chain share MoM** (line): `Date Table[MonthStart]` x `Account Share %` per `Chain`; More Retail only from Jun 26 (see `Account Scope Note`).
+- **Account vs our sales** (clustered column): `Account Sales Lakh` and `Our Account Sales Lakh` by month, with `Account MoM %`.
+- **White space / low assortment** (table): `Account Category` x `Category % Of Chain`, `Account Share %`, `Our Articles`, `White Space Flag`, `Share Gap Lakh`.
+- **Top 5 categories by Zone and State** (bar, one per Chain): `Fact Account Category Geo[Zone/State]` x `Account Sales Lakh`, Top N 5 on `Account Sales Lakh`. Lulu, More and Reliance; Wellness has no state cut. Only categories with `Relevant For Us` = Yes are flagged.
+- **Facewash plan**: card `Face Wash Account Share %` per chain next to Nielsen `Market Share %`; plan levers are in the Nielsen dashboard tab.
+
+**Price & Volume block (same page or a page 9b):** measures in `DAX/16_PriceVolume_Measures.dax`.
+- **Market growth split** (table, Nielsen): `Nielsen Category` x Brand with `Nielsen Volume Effect YoY`, `Nielsen Price Mix Effect YoY`,
+  `Nielsen Price Per Ml`. Needs `Volume 000 L` and `Price Per Ml` in the Nielsen drop file (present in `nielsen_urban_mt_aug26.csv`).
+- **Our MT price / volume** (table by Month): `MT Offtake Qty`, `Total MT NSV`, `MT ASP`, `MT Realisation %`, `MT Volume Effect MoM`, `MT Price Mix Effect MoM`;
+  check card `MT Price Volume Check MoM` must be 0.
+- **Realisation ladder** (bar): `Chain Master[Chain]` x `MT Realisation %`, sorted high to low, with `Chain Price Index`.
+- **Zone price index** (table): `Zone` x `MT ASP`, `Zone Price Index`, `MT Realisation %`.
+- **Category presence** (matrix, chain x `Sub-category`): `Subcat Share In Chain %`, `Subcat Share All Chains %`, `Subcat Presence Status`, `Subcat Gap NSV`.
+  Nielsen sizes only Facewash and Shampoo; other categories need a Nielsen export in `Nielsen_Monthly` before their market size shows.
+
+**Visit cities and pack-wise brands (added):**
+- **Visit cities** (table): `Visit City List[Region]`, `[City]` x `Visit Stores`, `Visit City NSV`, `Visit City NSV MoM %`, `Near Listed NSV`. Slicer on `Store City Master[Visit Status]`
+  (Considered / Near listed city / Not considered / City not available). Navi Mumbai, Thane, Mohali, Panchkula, Ernakulam and Howrah are Near listed city,
+  with `Store City Master[Nearest Listed City]` showing where they roll up. Card: `Visit Master Match %`.
+- **Pack-wise brands** (matrix): rows `Fact Nielsen Pack Brand[Pack Size ml]`, columns `Brand`, value `Brand Share In Pack %`; Mamaearth highlighted, blank = not sold.
+
+
 ---
 
 ## Page 10 — TDP Distribution Analysis

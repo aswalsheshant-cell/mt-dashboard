@@ -7,8 +7,8 @@
 //
 // Columns:
 //   FY Year, Month, MonthStart, Chain, Brand
-//   Primary NSV      — Lakh, from Fact Primary Article (DIST-allocated)
-//   Offtake NSV      — Lakh, from Fact Offtake Sales
+//   Primary NSV      — Rupees, from Fact Primary Article (DIST-allocated)
+//   Offtake NSV      — Rupees, from Fact Offtake Sales (source lakh scaled at import)
 //   Sell-Through Pct — Offtake NSV / Primary NSV (null-safe, capped at 200%
 //                      to exclude months where primary = 0 but offtake > 0
 //                      due to pipeline stock; un-capped rows surfaced in
@@ -17,7 +17,7 @@
 //   Inventory Signal  — "Over-stocked" / "On-track" / "Under-liquidation"
 //                      thresholds: ≥ 120% over-stocked, 80–120% on-track,
 //                      < 80% under-liquidation (adjust in Assumption Table)
-//   Outlier Flag     — true when Primary NSV = 0 and Offtake NSV > 0
+//   Outlier Flag     — true when Primary NSV is missing/zero and Offtake NSV > 0
 //                      (pipeline / opening-stock liquidation — exclude from
 //                      efficiency KPIs, review in Distribution Gap page)
 //
@@ -54,22 +54,21 @@ let
 
     Expanded = Table.ExpandTableColumn(Joined, "Oft", {"Offtake NSV"}),
 
-    FillPrim = Table.ReplaceValue(Expanded, null, 0, Replacer.ReplaceValue, {"Primary NSV"}),
-    FillOft  = Table.ReplaceValue(FillPrim,  null, 0, Replacer.ReplaceValue, {"Offtake NSV"}),
-
     // ---- 4. Outlier flag: offtake from pipeline stock (Primary = 0) ----
-    AddOutlier = Table.AddColumn(FillOft, "Outlier Flag", each
-        [Primary NSV] = 0 and [Offtake NSV] > 0, type logical),
+    AddOutlier = Table.AddColumn(Expanded, "Outlier Flag", each
+        if [Offtake NSV] = null then false
+        else ([Primary NSV] = null or [Primary NSV] = 0) and [Offtake NSV] > 0,
+        type logical),
 
     // ---- 5. Sell-Through Pct (null when Primary=0 to avoid ÷0 distortion) ----
     AddST = Table.AddColumn(AddOutlier, "Sell-Through Pct", each
-        if [Primary NSV] = 0 then null
+        if [Primary NSV] = null or [Offtake NSV] = null or [Primary NSV] = 0 then null
         else Number.Round([Offtake NSV] / [Primary NSV] * 100, 1),
         type number),
 
     // ---- 6. Raw (uncapped) for outlier review ----
     AddSTRaw = Table.AddColumn(AddST, "Sell-Through Raw", each
-        if [Primary NSV] = 0 then null
+        if [Primary NSV] = null or [Offtake NSV] = null or [Primary NSV] = 0 then null
         else [Offtake NSV] / [Primary NSV] * 100,
         type number),
 
@@ -91,7 +90,8 @@ let
     //   Under-liquidation : ST < 80%   (slow sell-through = excess stock risk)
     //   No Primary        : Primary = 0 (outlier/pipeline — review separately)
     AddSignal = Table.AddColumn(AddGap, "Inventory Signal", each
-        if [Outlier Flag]               then "No Primary Data"
+        if [Offtake NSV] = null          then "No Offtake Data"
+        else if [Outlier Flag]          then "No Primary Data"
         else if [Sell-Through Pct] = null then "No Primary Data"
         else if [Sell-Through Pct] >= 120 then "Over-stocked"
         else if [Sell-Through Pct] >= 80  then "On-track"
@@ -101,7 +101,8 @@ let
     // ---- 10. Signal Sort (for consistent legend ordering) ----
     AddSignalSort = Table.AddColumn(AddSignal, "Signal Sort", each
         Record.FieldOrDefault(
-            [#"On-track"=1, #"Under-liquidation"=2, #"Over-stocked"=3, #"No Primary Data"=4],
+            [#"On-track"=1, #"Under-liquidation"=2, #"Over-stocked"=3,
+             #"No Primary Data"=4, #"No Offtake Data"=5],
             [Inventory Signal], 5),
         type number),
 
@@ -124,3 +125,4 @@ let
     })
 in
     Typed
+

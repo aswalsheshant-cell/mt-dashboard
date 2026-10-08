@@ -1,0 +1,56 @@
+Severity,Check,Count,Detail
+INFO,Reliance.csv Apr'25: Brand Counter block re-aligned (leading column and two extra fields),25301.0,
+INFO,Reliance.csv Aug'25: Brand Counter block re-aligned (leading column and two extra fields),22989.0,
+INFO,Reliance.csv Jul'25: Brand Counter block re-aligned (leading column and two extra fields),23300.0,
+INFO,Reliance.csv Jun'25: Brand Counter block re-aligned (leading column and two extra fields),23816.0,
+INFO,Reliance.csv May'25: Brand Counter block re-aligned (leading column and two extra fields),24617.0,
+INFO,Reliance.csv Sep'25: Brand Counter block re-aligned (leading column and two extra fields),20766.0,
+INFO,Reliance.csv Dec'25: Brand Counter block re-aligned (leading column and two extra fields),24357.0,
+INFO,Reliance.csv Feb'26: Brand Counter block re-aligned (leading column and two extra fields),26356.0,
+INFO,Reliance.csv Jan'26: Brand Counter block re-aligned (leading column and two extra fields),26611.0,
+INFO,Reliance.csv Mar'26: Brand Counter block re-aligned (leading column and two extra fields),24250.0,
+INFO,Reliance.csv Nov'25: Brand Counter block re-aligned (leading column and two extra fields),25233.0,
+INFO,Reliance.csv Oct'25: Brand Counter block re-aligned (leading column and two extra fields),24697.0,
+INFO,rows read,2190950.0,263 files
+PASS,every row has a numeric NSV,0.0,
+WARN,Month_Std tag disagrees with the folder (folder used),469.0,BEAUTY___NUTRIE.csv Aug'25 tag Aug'26
+WARN,state names not in the standard list (kept as written),3.0,Punjab/J&K/HP; Punjab/J&K/Hp; UP/UK
+INFO,rows whose store key was merged into the store master's one store (aliases),2274.0,
+INFO,"last-year store keys linked to this year's master store (same chain + name + city, new code) or merged with each other",5.0,5 to the master
+INFO,"chain article codes written in Excel scientific notation (digits lost): blanked, then taken from another row of the same chain and EAN",2022.0,
+INFO,EANs written in Excel scientific notation (digits lost) repaired from the same article code or article name,2021.0,of 2022
+PASS,EANs still not a real EAN after the repair (kept by article code),0.0,
+INFO,"rows with no EAN at all (kept, keyed by chain article code)",1.0,
+INFO,"EANs that had more than one Brand (one now: this year's article master, else most frequent)",0.0,
+INFO,"EANs that had more than one Category (one now: this year's article master, else most frequent)",0.0,
+INFO,"EANs that had more than one Sub_category (one now: this year's article master, else most frequent)",4.0,
+INFO,"EANs that had more than one Range (one now: this year's article master, else most frequent)",0.0,
+INFO,"EANs that had more than one Description as per Fountain (one now: this year's article master, else most frequent)",10.0,
+INFO,"EANs that had more than one Net Weight (one now: this year's article master, else most frequent)",555.0,
+INFO,rows still without a chain article code (the EAN identifies the product),52326.0,
+WARN,"identical lines with a store identity (suspected double loads): added into one row, NOT removed (they are in the FY26 baseline)",31966.0,251.59 L
+INFO,rows in -> rows out (one per month x chain x store x article),2190950.0,-> 2072426 (118524 repeated lines added into their row)
+PASS,one row per month x chain x store x EAN,0.0,
+PASS,one row per month x chain x store x article code where there is no EAN,0.0,
+PASS,one Zone per store,0.0,
+PASS,one State per store,0.0,
+PASS,one City per store,0.0,
+PASS,one Site Name per store,0.0,
+PASS,one store key per chain x site code,0.0,
+PASS,one Brand per EAN,0.0,
+PASS,one Category per EAN,0.0,
+PASS,one Sub_category per EAN,0.0,
+PASS,one Range per EAN,0.0,
+PASS,one Description as per Fountain per EAN,0.0,
+WARN,"one chain article code points to two EANs in the same month (source conflict: each EAN keeps its own row, nothing is merged)",2.0,Frank Ross Jun'25 P59205; Wellness Forever Sep'25 361168
+INFO,chain article codes that point to more than one EAN across the year (the chain re-coded a product; each EAN keeps its own row),33.0,
+PASS,Zone spelt one way (no capitals-only variants),0.0,
+PASS,State spelt one way (no capitals-only variants),0.0,
+PASS,City spelt one way (no capitals-only variants),0.0,
+PASS,input NSV = output NSV,0.0,35682.366831 vs 35682.366831
+PASS,input quantity = output quantity,0.0,
+PASS,every chain x month NSV ties to data/raw_drops/_agg/offtake_fy26.json (within 0.01 L),0.005,files 31119.88 L vs baseline 31119.80 L
+PASS,Brand Counter NSV by month ties to the baseline,0.0044,
+PASS,no chain x month with baseline sales is missing from the files,0.0,[]
+PASS,"no chain + store name + city under two store keys in last year, except where this year's store master holds them as different stores",0.0,
+INFO,"same chain + store name + city, different codes, kept separate because this year's store master holds them as different stores (a shared company name such as Baniya Ki Dukaan)",6.0,

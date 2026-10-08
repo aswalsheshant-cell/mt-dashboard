@@ -6,7 +6,7 @@
 <style>
 :root {
   --bg:#F8FAFC;--panel:#FFFFFF;--border:#E2E8F0;--text:#0F172A;--muted:#64748B;
-  --hdr:#1E3A5F;--accent:#2563EB;--accent-l:#EFF6FF;
+  --hdr:#1E3A5F;--accent:#2563EB;--accent-l:#EFF6FF;--teal:#0F766E;--teal-l:#F0FDFA;
   --green:#059669;--green-l:#ECFDF5;--amber:#D97706;--amber-l:#FFFBEB;
   --red:#DC2626;--red-l:#FEF2F2;--tab-h:#F1F5F9;
   --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
@@ -14,143 +14,150 @@
 @media(prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#0F172A;--panel:#1E293B;--border:#334155;--text:#F1F5F9;--muted:#94A3B8;
-    --accent-l:rgba(37,99,235,.18);--green-l:rgba(5,150,105,.18);
+    --accent-l:rgba(37,99,235,.18);--teal-l:rgba(15,118,110,.22);--green-l:rgba(5,150,105,.18);
     --amber-l:rgba(217,119,6,.18);--red-l:rgba(220,38,38,.18);--tab-h:#1E293B;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0F172A;--panel:#1E293B;--border:#334155;--text:#F1F5F9;--muted:#94A3B8;
-  --accent-l:rgba(37,99,235,.18);--green-l:rgba(5,150,105,.18);
+  --accent-l:rgba(37,99,235,.18);--teal-l:rgba(15,118,110,.22);--green-l:rgba(5,150,105,.18);
   --amber-l:rgba(217,119,6,.18);--red-l:rgba(220,38,38,.18);--tab-h:#1E293B;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
-
-/* ── PRINT ── */
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.45;min-height:100vh;}
 @media print{
   .hdr{background:#1E3A5F!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .tab-nav{display:none;}
-  .panel{display:block!important;padding:12px;}
+  .tab-nav,.seg,.theme-btn{display:none;}
+  .panel{display:block!important;padding:10px;}
   .panel + .panel{page-break-before:always;}
-  .theme-btn{display:none;}
-  .tbl-wrap{overflow-x:visible;}
-  canvas{max-width:100%;}
 }
 
-.hdr{background:var(--hdr);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.hdr-brand{font-family:'Syne',system-ui,sans-serif;font-size:19px;font-weight:800;letter-spacing:-.3px;}
+.hdr{background:var(--hdr);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.hdr-brand{font-family:'Syne',system-ui,sans-serif;font-size:17px;font-weight:800;letter-spacing:-.3px;}
 .hdr-brand em{color:#60A5FA;font-style:normal;}
-.hdr-sub{font-size:11px;opacity:.6;margin-top:2px;}
-.hdr-r{display:flex;align-items:center;gap:12px;}
-.hdr-meta{font-size:11px;opacity:.65;text-align:right;line-height:1.6;}
-.theme-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:5px 11px;border-radius:5px;font-size:12px;cursor:pointer;font-family:inherit;}
-.theme-btn:hover{background:rgba(255,255,255,.2);}
+.hdr-sub{font-size:11px;opacity:.65;margin-top:1px;}
+.hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.chip{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:600;background:rgba(255,255,255,.14);}
+.chip.ok{background:#059669;}.chip.bad{background:#DC2626;}
+.theme-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:4px 10px;border-radius:5px;font-size:12px;cursor:pointer;font-family:inherit;}
 
-.tab-nav{background:var(--panel);border-bottom:1px solid var(--border);display:flex;padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:10;box-shadow:var(--sh);}
-.tab-btn{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;font-weight:500;color:var(--muted);background:none;border:none;padding:11px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
+.tab-nav{background:var(--panel);border-bottom:1px solid var(--border);display:flex;padding:0 16px;overflow-x:auto;position:sticky;top:0;z-index:10;box-shadow:var(--sh);}
+.tab-btn{font-family:inherit;font-size:13px;font-weight:500;color:var(--muted);background:none;border:none;padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
 .tab-btn:hover{color:var(--text);background:var(--tab-h);}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
 
-.panel{display:none;padding:24px;max-width:1200px;margin:0 auto;}
+.panel{display:none;padding:14px 20px;max-width:1280px;margin:0 auto;}
 .panel.active{display:block;}
 
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
-@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:520px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
-.kpi{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--sh);}
-.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px;}
-.kpi-val{font-family:'Syne',system-ui,sans-serif;font-size:24px;font-weight:700;line-height:1;margin-bottom:3px;font-variant-numeric:tabular-nums;}
-.kpi-chg{font-size:11px;font-weight:500;}
-.up{color:var(--green);}.dn{color:var(--red);}.warn-c{color:var(--amber);}.mut{color:var(--muted);}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;background:var(--panel);}
+.seg button{font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;padding:6px 14px;cursor:pointer;}
+.seg button.on{background:var(--accent);color:#fff;}
+.note{font-size:11px;color:var(--muted);}
+.warnbox{background:var(--amber-l);border:1px solid var(--amber);border-radius:6px;padding:6px 10px;font-size:11px;margin-bottom:10px;}
 
-.cc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;box-shadow:var(--sh);margin-bottom:16px;}
-.cc-title{font-family:'Syne',system-ui,sans-serif;font-size:14px;font-weight:700;margin-bottom:3px;}
-.cc-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
-.cw{position:relative;}
+.ms-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start;}
+.ms-grid.v-fw,.ms-grid.v-sh{grid-template-columns:minmax(0,1fr);}
+.ms-grid.v-fw #blk-sh,.ms-grid.v-sh #blk-fw{display:none;}
+.only-fw,.only-sh{display:none;}
+.v-fw .only-fw,.v-sh .only-sh{display:block;}
+@media(max-width:900px){.ms-grid{grid-template-columns:minmax(0,1fr);}}
 
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
-@media(max-width:680px){.g2{grid-template-columns:1fr;}}
+.blk{min-width:0;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:var(--sh);padding:12px 14px;}
+.blk-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;}
+.blk-t{font-family:'Syne',system-ui,sans-serif;font-size:15px;font-weight:700;}
+.blk-p{font-size:11px;color:var(--muted);}
+.sub{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:10px 0 4px;}
 
-.ins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-@media(max-width:680px){.ins-grid{grid-template-columns:1fr;}}
-.ins{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;border-left:4px solid;}
-.ins.good{border-left-color:var(--green);}.ins.warn{border-left-color:var(--amber);}.ins.alert{border-left-color:var(--red);}
-.ins-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
-.ins.good .ins-tag{color:var(--green);}.ins.warn .ins-tag{color:var(--amber);}.ins.alert .ins-tag{color:var(--red);}
-.ins-txt{font-size:13px;font-weight:500;line-height:1.4;}
-.ins-meta{font-size:11px;color:var(--muted);margin-top:5px;}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
+.v-fw .kpis,.v-sh .kpis{grid-template-columns:repeat(8,minmax(0,1fr));}
+@media(max-width:1000px){.v-fw .kpis,.v-sh .kpis{grid-template-columns:repeat(4,minmax(0,1fr));}}
+@media(max-width:560px){.kpis,.v-fw .kpis,.v-sh .kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.kpi{border:1px solid var(--border);border-radius:6px;padding:6px 8px;background:var(--bg);}
+.kpi-l{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+.kpi-v{font-family:'Syne',system-ui,sans-serif;font-size:18px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;}
+.kpi-c{font-size:10.5px;font-weight:500;}
+.up{color:var(--green);}.dn{color:var(--red);}.mut{color:var(--muted);}
 
-.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);box-shadow:var(--sh);margin-bottom:16px;}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px;}
 .tbl{width:100%;border-collapse:collapse;background:var(--panel);font-variant-numeric:tabular-nums;}
-.tbl th{background:var(--hdr);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:right;white-space:nowrap;position:sticky;top:0;}
+.tbl th{background:var(--hdr);color:#fff;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:6px 8px;text-align:right;white-space:nowrap;}
 .tbl th:first-child{text-align:left;}
-.tbl td{padding:9px 12px;font-size:12px;text-align:right;border-bottom:1px solid var(--border);}
-.tbl td:first-child{text-align:left;font-weight:600;font-size:13px;}
+.tbl td{padding:5px 8px;font-size:12px;text-align:right;border-bottom:1px solid var(--border);}
+.tbl td:first-child{text-align:left;font-weight:600;}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tr.hl td{background:var(--accent-l);}
 .tbl tr.hl td:first-child{color:var(--accent);}
-.tbl tr:not(.hl):hover td{background:var(--tab-h);}
-.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:600;}
-.pill-up{background:var(--green-l);color:var(--green);}
-.pill-dn{background:var(--red-l);color:var(--red);}
-.pill-0{background:var(--amber-l);color:var(--amber);}
+.pill{display:inline-block;padding:0 6px;border-radius:99px;font-size:11px;font-weight:600;}
+.pill-up{background:var(--green-l);color:var(--green);}.pill-dn{background:var(--red-l);color:var(--red);}.pill-0{background:var(--amber-l);color:var(--amber);}
 
-.opp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
-@media(max-width:880px){.opp-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:480px){.opp-grid{grid-template-columns:1fr;}}
-.opp{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;box-shadow:var(--sh);}
-.opp-num{font-family:'Syne',system-ui,sans-serif;font-size:28px;font-weight:800;color:var(--accent);margin-bottom:3px;font-variant-numeric:tabular-nums;}
-.opp-lbl{font-size:13px;font-weight:600;margin-bottom:8px;}
-.opp-desc{font-size:12px;color:var(--muted);line-height:1.4;}
-.opp-budget{font-size:11px;color:var(--amber);font-weight:600;margin-top:8px;}
-.opp-time{font-size:11px;color:var(--muted);}
+.cw{position:relative;}
+.bridge-row{display:flex;align-items:center;gap:8px;padding:2px 0;}
+.bridge-brand{width:116px;font-size:11px;font-weight:600;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bridge-area{flex:1;display:flex;height:12px;}
+.bridge-half{flex:1;display:flex;}
+.bridge-half.l{justify-content:flex-end;}
+.bridge-bar{height:12px;min-width:2px;}
+.bridge-val{width:54px;font-size:11px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
 
-.tracker-phase{margin-bottom:20px;}
-.phase-hdr{padding:9px 16px;border-radius:6px 6px 0 0;font-family:'Syne',system-ui,sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
-.phase-aug{background:var(--accent);color:#fff;}
-.phase-sep{background:var(--amber);color:#fff;}
-.phase-gates{background:var(--hdr);color:#fff;}
+.pack-row{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12px;}
+.pack-size{width:88px;font-weight:600;flex-shrink:0;}
+.pack-bg{flex:1;background:var(--border);border-radius:3px;height:14px;overflow:hidden;}
+.pack-fill{height:100%;border-radius:3px;background:var(--accent);}
+.pack-val{width:96px;white-space:nowrap;line-height:1.25;text-align:right;font-variant-numeric:tabular-nums;}
+.pack-yoy{width:54px;text-align:right;font-size:11px;font-weight:600;}
+details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--accent);margin:8px 0 4px;}
+
+.ins-h{font-family:'Syne',system-ui,sans-serif;font-size:14px;font-weight:700;margin:14px 0 6px;}
+.ins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(max-width:1000px){.ins-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){.ins-grid{grid-template-columns:1fr;}}
+.ins{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:7px;padding:8px 11px;}
+.ins.good{border-left-color:var(--green);}.ins.warn{border-left-color:var(--amber);}.ins.alert{border-left-color:var(--red);}
+.ins-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.ins.good .ins-tag{color:var(--green);}.ins.warn .ins-tag{color:var(--amber);}.ins.alert .ins-tag{color:var(--red);}
+.ins-t{font-size:12.5px;font-weight:600;line-height:1.35;margin:2px 0;}
+.ins-x{font-size:11.5px;color:var(--muted);line-height:1.4;}
+.ins-a{font-size:11.5px;margin-top:3px;}
+.ins-a b{color:var(--accent);}
+
+.opp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+@media(max-width:1000px){.opp-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.opp-grid{grid-template-columns:1fr;}}
+.opp{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;box-shadow:var(--sh);}
+.opp-n{font-family:'Syne',system-ui,sans-serif;font-size:24px;font-weight:800;color:var(--accent);line-height:1.1;}
+.opp-l{font-size:12.5px;font-weight:600;margin:2px 0 4px;}
+.opp-d{font-size:11.5px;color:var(--muted);line-height:1.4;}
+.opp-s{font-size:11px;color:var(--amber);font-weight:600;margin-top:5px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+@media(max-width:800px){.g2{grid-template-columns:1fr;}}
+
+.tracker-phase{margin-bottom:12px;}
+.phase-hdr{padding:7px 14px;border-radius:6px 6px 0 0;font-family:'Syne',system-ui,sans-serif;font-size:13px;font-weight:700;display:flex;justify-content:space-between;color:#fff;}
+.phase-aug{background:var(--accent);}.phase-sep{background:var(--amber);}.phase-gates{background:var(--hdr);}
 .phase-hdr span{font-size:11px;font-weight:500;opacity:.85;}
 .tracker-items{border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;overflow:hidden;}
-.t-item{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--panel);}
+.t-item{display:flex;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--panel);}
 .t-item:last-child{border-bottom:none;}
-.t-item.done{opacity:.5;}
-.t-item.done .t-title{text-decoration:line-through;}
-.t-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);background:var(--bg);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .1s;user-select:none;}
+.t-item.done{opacity:.5;}.t-item.done .t-title{text-decoration:line-through;}
+.t-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--bg);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;}
 .t-check.checked{background:var(--green);border-color:var(--green);}
-.t-check.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700;}
-.t-body{flex:1;}
-.t-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.t-check.checked::after{content:'\2713';color:#fff;font-size:11px;font-weight:700;}
+.t-title{font-size:12.5px;font-weight:600;}
 .t-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;}
-.t-budget{color:var(--amber);font-weight:600;}
-.t-desc{font-size:12px;color:var(--muted);margin-top:3px;}
-.prog-wrap{margin-bottom:20px;}
-.prog-lbl{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
-.prog-bg{background:var(--border);border-radius:99px;height:8px;overflow:hidden;}
-.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#34D399);transition:width .4s ease;}
-.gate-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--panel);}
+.t-desc{font-size:11.5px;color:var(--muted);}
+.prog-bg{background:var(--border);border-radius:99px;height:7px;overflow:hidden;margin:4px 0 12px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),#34D399);}
+.gate-item{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--panel);}
 .gate-item:last-child{border-bottom:none;}
-.gate-date{font-family:'Syne',system-ui,sans-serif;font-size:13px;font-weight:700;color:var(--accent);min-width:54px;font-variant-numeric:tabular-nums;}
-.gate-q{font-size:13px;flex:1;}
-.gate-impact{font-size:11px;color:var(--green);font-weight:600;white-space:nowrap;}
-
-.s-title{font-family:'Syne',system-ui,sans-serif;font-size:16px;font-weight:700;margin-bottom:3px;}
-.s-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
-
-.pack-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
-.pack-row:last-child{border-bottom:none;}
-.pack-size{width:58px;font-size:12px;font-weight:600;flex-shrink:0;}
-.pack-bar-bg{flex:1;background:var(--border);border-radius:4px;height:18px;overflow:hidden;}
-.pack-bar-fill{height:100%;border-radius:4px;}
-.pack-val{width:90px;font-size:12px;font-variant-numeric:tabular-nums;text-align:right;flex-shrink:0;}
-.pack-yoy{width:52px;font-size:11px;font-weight:600;text-align:right;flex-shrink:0;}
-
-.bridge-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
-.bridge-row:last-child{border-bottom:none;}
-.bridge-brand{width:108px;font-size:12px;font-weight:600;flex-shrink:0;}
-.bridge-area{flex:1;display:flex;align-items:center;gap:8px;}
-.bridge-bar{height:18px;border-radius:3px;min-width:3px;}
-.bridge-val{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.gate-date{font-family:'Syne',system-ui,sans-serif;font-weight:700;color:var(--accent);min-width:50px;}
+.gate-q{flex:1;}.gate-i{font-size:11px;color:var(--green);font-weight:600;}
+.st{display:inline-block;font-size:9.5px;font-weight:700;border-radius:10px;padding:1px 7px;white-space:nowrap;vertical-align:middle;}
+.st.met,.st.ok{background:var(--green-l);color:var(--green);}.st.notmet{background:var(--red-l);color:var(--red);}.st.warn{background:var(--amber-l);color:var(--amber);}.st.na{background:var(--border);color:var(--muted);}
+.sec{margin-top:16px;}.sec h3{font-size:13px;margin:0 0 2px;}.sec .note{margin-bottom:6px;}
+.tbl td.l,.tbl th.l{text-align:left;}.tbl td.wrap{white-space:normal;max-width:260px;font-size:11px;color:var(--muted);}
+.kp3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0;}
+.foot{font-size:10.5px;color:var(--muted);margin-top:12px;border-top:1px solid var(--border);padding-top:8px;}
 </style>
 </head><body>
 <script src="chart.umd.js"></script>
@@ -158,616 +165,805 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color
 <div class="hdr">
   <div>
     <div class="hdr-brand">Mamaearth <em>Market Share</em></div>
-    <div class="hdr-sub">Nielsen Retail Intelligence · Urban MT India · Facewash &amp; Shampoo</div>
+    <div class="hdr-sub">Nielsen · Facewash &amp; Shampoo · <span id="hdr-periods"></span></div>
   </div>
   <div class="hdr-r">
-    <div class="hdr-meta">Jul 2026 · Urban MT India<br>Category: Facewash</div>
-    <button class="theme-btn" onclick="toggleTheme()">◑ Theme</button>
+    <span class="chip" id="gov-chip"></span>
+    <button class="theme-btn" onclick="toggleTheme()">&#9681; Theme</button>
+    <button class="theme-btn" onclick="downloadTables()" title="Every table on the open tab, as one CSV for Excel">&#8681; Tables (CSV)</button>
   </div>
 </div>
 
-<nav class="tab-nav" id="tabNav">
-  <button class="tab-btn active" onclick="showTab(0)">Overview</button>
-  <button class="tab-btn" onclick="showTab(1)">Market Share</button>
-  <button class="tab-btn" onclick="showTab(2)">Pack Size</button>
-  <button class="tab-btn" onclick="showTab(3)">Opportunity</button>
-  <button class="tab-btn" onclick="showTab(4)">90-Day Tracker</button>
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab(0)">Nielsen Cuts</button>
+  <button class="tab-btn" onclick="showTab(1)">Opportunity</button>
+  <button class="tab-btn" onclick="showTab(2)">90-Day Tracker</button>
+  <button class="tab-btn" onclick="showTab(3)">Chains &amp; Packs</button>
+  <button class="tab-btn" onclick="showTab(4)">Price &amp; Volume</button>
+  <button class="tab-btn" onclick="showTab(5)">Chain Share &amp; Plan</button>
 </nav>
 
-<!-- ══════════════════ TAB 0: OVERVIEW ══════════════════ -->
+<!-- ============ TAB 0: MARKET SHARE (Both | Facewash | Shampoo) ============ -->
 <div class="panel active" id="p0">
-  <div class="kpi-grid">
-    <div class="kpi">
-      <div class="kpi-lbl">Market Share</div>
-      <div class="kpi-val">11.2%</div>
-      <div class="kpi-chg up">▲ 2.4pp YoY</div>
+  <div class="bar">
+    <div class="seg" id="seg">
+      <button class="on" data-view="both">Both</button>
+      <button data-view="fw">Facewash</button>
+      <button data-view="sh">Shampoo</button>
     </div>
-    <div class="kpi">
-      <div class="kpi-lbl">NSV (₹ Cr)</div>
-      <div class="kpi-val">9.2</div>
-      <div class="kpi-chg up">▲ 47.7% YoY</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">WD %</div>
-      <div class="kpi-val">89.2</div>
-      <div class="kpi-chg up">▲ 10.1pp YoY</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">Stores Selling</div>
-      <div class="kpi-val">13,097</div>
-      <div class="kpi-chg up">▲ 32.3% YoY</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">Per Door Output</div>
-      <div class="kpi-val">7,025</div>
-      <div class="kpi-chg up">▲ 11.6% YoY</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">Rank</div>
-      <div class="kpi-val">#4</div>
-      <div class="kpi-chg warn-c">+1 vs. Jul 25</div>
-    </div>
+    <div class="note" id="period-note"></div>
   </div>
 
-  <div class="ins-grid">
-    <div class="ins good">
-      <div class="ins-tag">Strength</div>
-      <div class="ins-txt">Fastest-growing Top-5 brand at +47.7% YoY — 3× category growth of 15.8%</div>
-      <div class="ins-meta">Jul 26 vs. Jul 25</div>
-    </div>
-    <div class="ins warn">
-      <div class="ins-tag">Watch</div>
-      <div class="ins-txt">Share dipped 0.4pp MoM (11.6% → 11.2%) — seasonal or distribution softness</div>
-      <div class="ins-meta">Jun 26 → Jul 26</div>
-    </div>
-    <div class="ins alert">
-      <div class="ins-tag">Gap</div>
-      <div class="ins-txt">10.3pp WD gap vs. Himalaya (#1) — 7,279 stores to close</div>
-      <div class="ins-meta">89.2% vs 99.5%</div>
-    </div>
+  <div class="ms-grid v-both" id="ms-grid">
+
+    <section class="blk" id="blk-fw">
+      <div class="blk-h"><div class="blk-t">Facewash</div><div class="blk-p" id="fw-period"></div></div>
+      <div class="kpis" id="fw-kpis"></div>
+
+      <div class="sub">Brand scoreboard &middot; top 8</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Brand</th><th>Share</th><th>&Delta; pp YoY</th><th>NSV &#8377;Cr</th><th>WD %</th><th>&#8377;/store</th><th>Share/WD</th></tr></thead>
+        <tbody id="fw-tbody"></tbody>
+      </table></div>
+
+      <div class="sub">Share trend (Mamaearth)</div>
+      <div class="cw" style="height:170px"><canvas id="c-trend"></canvas></div>
+
+      <div class="sub">Share gain / loss vs last year (pp)</div>
+      <div id="bridge-wrap"></div>
+
+      <div class="only-fw">
+        <div class="sub">NSV &#8377;Cr (bars) &middot; weighted distribution % (line)</div>
+        <div class="cw" style="height:170px"><canvas id="c-nsvwd"></canvas></div>
+        <div class="sub">Facewash pack split <span class="note pk-basis-fw">&middot; source not confirmed</span></div>
+        <div id="fw-packs"></div>
+      </div>
+    </section>
+
+    <section class="blk" id="blk-sh">
+      <div class="blk-h"><div class="blk-t">Shampoo</div><div class="blk-p" id="sh-period"></div></div>
+      <div class="kpis" id="sh-kpis"></div>
+
+      <div class="sub">Brand scoreboard &middot; <span id="sh-n">listed brands</span></div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Brand</th><th id="sh-h-py">PY</th><th id="sh-h-pm">PM</th><th id="sh-h-now">Now</th><th>&Delta; bps YoY</th></tr></thead>
+        <tbody id="sh-tbody"></tbody>
+      </table></div>
+
+      <div class="sub">Share now (%)</div>
+      <div class="cw" style="height:190px"><canvas id="c-shbars"></canvas></div>
+
+      <div class="sub">Share gain / loss vs last year (bps)</div>
+      <div id="bridge-wrap-sh"></div>
+
+      <div class="only-sh">
+        <div class="sub">Pack structure <span class="note pk-basis-sh">&middot; Nielsen pack file, category level</span></div>
+        <div id="sh-packs"></div>
+      </div>
+    </section>
   </div>
 
-  <div class="g2">
-    <div class="cc">
-      <div class="cc-title">Market Share Trend (Apr 25–Jul 26)</div>
-      <div class="cc-sub">Monthly % share · Urban MT India Facewash</div>
-      <div class="cw"><canvas id="c-trend" height="200"></canvas></div>
+  <details id="both-packs" open><summary>Pack architecture, both categories: value contribution by pack</summary>
+    <div class="ms-grid" style="margin-top:6px">
+      <div class="blk"><div class="sub" style="margin-top:0">Facewash <span class="note pk-basis-fw">&middot; Nielsen pack file</span></div><div id="fw-packs-b"></div></div>
+      <div class="blk"><div class="sub" style="margin-top:0">Shampoo <span class="note pk-basis-sh">&middot; Nielsen pack file</span></div><div id="sh-packs-b"></div></div>
     </div>
-    <div class="cc">
-      <div class="cc-title">Competitive Position — Jul 26</div>
-      <div class="cc-sub">NSV ₹ Cr · Facewash · Urban MT</div>
-      <div class="cw"><canvas id="c-comp" height="200"></canvas></div>
-    </div>
+  </details>
+
+  <div class="blk-t" style="margin:18px 0 4px">All Nielsen cuts, Facewash and Shampoo <span class="note">&middot; brand, price, distribution, volume, pack and state, each with its basis</span></div>
+  <div class="sec" id="sec-bc"><h3>1. Brand cuts: price, distribution and productivity <span class="note">&middot; Nielsen, this month vs a year ago</span></h3>
+    <div class="note" id="bc-note"></div>
+    <div id="bc-fw"><div class="sub">Facewash &middot; brands by share</div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Brand</th><th>Share %</th><th>&Delta; pp YoY</th><th>Volume share %</th><th>&#8377; / ml</th><th>Price index</th><th>&#8377; / ml YoY %</th><th>WD %</th><th>&Delta; WD pp</th><th>ND %</th><th>Stores</th><th>&#8377; / store</th><th>Share / WD pt</th><th>SAH %</th></tr></thead><tbody id="bcf-tbody"></tbody></table></div></div>
+    <div id="bc-sh"><div class="sub">Shampoo &middot; brands by share</div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Brand</th><th>Share %</th><th>&Delta; bps YoY</th><th>Volume share %</th><th>&#8377; / ml</th><th>Price index</th><th>&#8377; / ml YoY %</th><th>WD %</th><th>&Delta; WD pp</th><th>ND %</th><th>Stores</th><th>&#8377; / store</th><th>Share / WD pt</th><th>SAH %</th></tr></thead><tbody id="bcs-tbody"></tbody></table></div></div>
   </div>
 
-  <div class="cc">
-    <div class="cc-title">NSV vs. Weighted Distribution — Monthly</div>
-    <div class="cc-sub">NSV ₹ Cr (bars) · WD% (line)</div>
-    <div class="cw"><canvas id="c-nsv-wd" height="160"></canvas></div>
+  <div class="sec" id="pv-n"><h3>2. Market: how much of the growth was volume and how much price <span class="note">&middot; Nielsen consumer offtake, this month vs a year ago</span></h3>
+    <div class="note" id="pv-n-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Category</th><th class="l">Brand</th><th>Value &#8377;Cr</th><th>Value YoY %</th><th>Volume YoY %</th><th>Price / ml YoY %</th><th>Volume effect &#8377;Cr</th><th>Price / mix effect &#8377;Cr</th><th class="l">Reads as</th></tr></thead><tbody id="pvn-tbody"></tbody></table></div>
   </div>
+
+  <div class="sec" id="sec-pk"><h3>3. Packs: where we are present and where not</h3>
+    <div class="note" id="pk-note"></div>
+    <div class="kp3" id="pk-kpis"></div>
+    <div class="sub">Facewash &middot; all packs: value, contribution and price</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="fwp-tbody"></tbody></table></div>
+    <div class="sub">Shampoo &middot; all packs: value, contribution and price</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Value &#8377;Cr</th><th>Contribution % (value)</th><th>Volume share %</th><th>&#8377; / ml</th><th>YoY %</th><th>ME &#8377;Cr</th><th>ME contribution %</th><th>Our share in pack %</th><th>Pack WD %</th><th class="l">Status</th><th>Gap &#8377;Cr / month</th></tr></thead><tbody id="shp-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="sec-pb"><h3>4. Pack-wise brands: who sells which pack <span class="note">&middot; Nielsen Brand x Basepack, brand share of each pack's value (%)</span></h3>
+    <div class="note" id="pb-note"></div>
+    <div id="pb-wrap"></div>
+  </div>
+
+  <div class="sec" id="deck-state"><h3>5. State x chain exposure <span class="note">&middot; Nielsen Jun'26 market and our share, from the review deck</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>State</th><th>Mkt FW &#8377;Cr</th><th>Mkt SH &#8377;Cr</th><th>ME share FW %</th><th>ME share SH %</th><th>Dmart % FW/SH</th><th>Reliance % FW/SH</th><th>Apollo % FW/SH</th><th class="l">Main lever</th></tr></thead><tbody id="st-tbody"></tbody></table></div>
+  </div>
+
+  <div class="ins-h">Key insights <span class="note" id="ins-note"></span></div>
+  <div class="ins-grid" id="ins-grid"></div>
+  <div class="foot" id="foot-ms"></div>
 </div>
 
-<!-- ══════════════════ TAB 1: MARKET SHARE ══════════════════ -->
+<!-- ============ TAB 1: OPPORTUNITY ============ -->
 <div class="panel" id="p1">
-  <div class="s-title">Competitive Market Share Analysis</div>
-  <div class="s-sub">Jul 2026 · Urban MT India · Facewash</div>
-
-  <div class="cc">
-    <div class="cc-title">Brand Market Share Breakdown</div>
-    <div class="cc-sub">% share by NSV · Jul 26</div>
-    <div class="cw"><canvas id="c-ms-bar" height="240"></canvas></div>
+  <div class="bar"><div class="blk-t">Sizing, monthly run-rate &middot; formulas shown</div>
+    <div class="note">Sizing, not a forecast. Cards overlap; do not add them up.</div></div>
+  <div class="opp-grid" id="opp-grid"></div>
+  <div class="g2">
+    <div class="blk"><div class="sub" style="margin-top:0">Weighted distribution vs per-store sales (Facewash, bubble = NSV)</div><div class="cw"><canvas id="c-scatter" height="220"></canvas></div></div>
+    <div class="blk"><div class="sub" style="margin-top:0">Stores selling (Mamaearth Facewash)</div><div class="cw"><canvas id="c-stores" height="220"></canvas></div></div>
   </div>
-
-  <div class="tbl-wrap">
-    <table class="tbl" id="comp-table">
-      <thead>
-        <tr>
-          <th>Brand</th>
-          <th>NSV (₹ Cr)</th>
-          <th>Mkt Share %</th>
-          <th>PP Chg YoY</th>
-          <th>NSV Growth YoY</th>
-          <th>Stores Selling</th>
-          <th>WD %</th>
-          <th>Per Door ₹</th>
-        </tr>
-      </thead>
-      <tbody id="comp-tbody"></tbody>
-    </table>
-  </div>
-
-  <div class="cc">
-    <div class="cc-title">Share Gain / Loss Bridge (Jul 25 → Jul 26)</div>
-    <div class="cc-sub">PP change in market share · YoY</div>
-    <div id="bridge-wrap"></div>
-  </div>
+  <div class="foot" id="foot-opp"></div>
 </div>
 
-<!-- ══════════════════ TAB 2: PACK SIZE ══════════════════ -->
+<!-- ============ TAB 2: 90-DAY TRACKER ============ -->
 <div class="panel" id="p2">
-  <div class="s-title">Pack Size Revenue Architecture</div>
-  <div class="s-sub">Category revenue distribution by pack · Urban MT · Jul 26</div>
-
-  <div class="g2">
-    <div class="cc">
-      <div class="cc-title">Facewash Pack Split</div>
-      <div class="cc-sub">% NSV contribution · Jul 26</div>
-      <div class="cw"><canvas id="c-fw-donut" height="220"></canvas></div>
-    </div>
-    <div class="cc">
-      <div class="cc-title">Shampoo Pack Split</div>
-      <div class="cc-sub">% NSV contribution · Jul 26</div>
-      <div class="cw"><canvas id="c-sh-donut" height="220"></canvas></div>
-    </div>
-  </div>
-
-  <div class="g2">
-    <div class="cc">
-      <div class="cc-title">Facewash — Pack Revenue Bars</div>
-      <div class="cc-sub">NSV ₹ Cr · Jul 26 vs. Jul 25</div>
-      <div id="fwPacks"></div>
-    </div>
-    <div class="cc">
-      <div class="cc-title">Shampoo — Pack Revenue Bars</div>
-      <div class="cc-sub">NSV ₹ Cr · Jul 26 vs. Jul 25</div>
-      <div id="shPacks"></div>
-    </div>
-  </div>
-
-  <div class="ins-grid">
-    <div class="ins good">
-      <div class="ins-tag">Pack Insight</div>
-      <div class="ins-txt">50–75ml mid-packs drive 38% of Facewash revenue — highest concentration</div>
-      <div class="ins-meta">Mamaearth FW category</div>
-    </div>
-    <div class="ins warn">
-      <div class="ins-tag">Gap</div>
-      <div class="ins-txt">100ml+ premium packs underweight at 12% vs. 22% category avg</div>
-      <div class="ins-meta">Opportunity: ₹1.8 Cr incremental</div>
-    </div>
-    <div class="ins good">
-      <div class="ins-tag">Shampoo</div>
-      <div class="ins-txt">180–200ml packs lead at 41% share — aligns with basket-size optimisation</div>
-      <div class="ins-meta">Key SKU for conversion</div>
-    </div>
-  </div>
+  <div class="bar"><div class="blk-t">90-Day Execution Tracker</div><div class="note" id="trk-note"></div></div>
+  <div class="note" style="display:flex;justify-content:space-between"><span>Overall progress</span><span id="prog-pct">0%</span></div>
+  <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="tracker-phase"><div class="phase-hdr phase-aug">Aug 2026 &mdash; Distribution &amp; OSA <span>Weeks 1&ndash;4</span></div><div class="tracker-items" id="aug-items"></div></div>
+  <div class="tracker-phase"><div class="phase-hdr phase-sep">Sep 2026 &mdash; Pack mix &amp; premium <span>Weeks 5&ndash;8</span></div><div class="tracker-items" id="sep-items"></div></div>
+  <div class="tracker-phase"><div class="phase-hdr phase-gates">Decision gates &amp; KPIs</div><div class="tracker-items" id="gate-items"></div></div>
 </div>
 
-<!-- ══════════════════ TAB 3: OPPORTUNITY ══════════════════ -->
+<!-- ============ TAB 3: CHAINS & PACKS ============ -->
 <div class="panel" id="p3">
-  <div class="s-title">Revenue Opportunity Matrix</div>
-  <div class="s-sub">Quantified growth levers for FY27 · Aug–Sep 2026 action window</div>
+  <div class="bar"><div class="blk-t">Chains, big packs and gaps <span class="note">&middot; our internal offtake (Nielsen cuts are in the Nielsen Cuts tab)</span></div><div class="note" id="cp-note"></div></div>
 
-  <div class="opp-grid">
-    <div class="opp">
-      <div class="opp-num">₹6.2 Cr</div>
-      <div class="opp-lbl">WD Gap Closure</div>
-      <div class="opp-desc">Reach Himalaya's 99.5% WD from current 89.2% — 7,279 stores × avg ₹850/store</div>
-      <div class="opp-budget">Budget: ₹0.8 Cr trade spend</div>
-      <div class="opp-time">Q2 FY27 · Aug–Sep 26</div>
-    </div>
-    <div class="opp">
-      <div class="opp-num">₹3.8 Cr</div>
-      <div class="opp-lbl">Per-Door Uplift</div>
-      <div class="opp-desc">Close 52% PDO gap vs. Himalaya (₹7,025 → ₹9,177) via OSA and planogram compliance</div>
-      <div class="opp-budget">Budget: ₹0.4 Cr activation</div>
-      <div class="opp-time">Q2–Q3 FY27</div>
-    </div>
-    <div class="opp">
-      <div class="opp-num">₹2.4 Cr</div>
-      <div class="opp-lbl">Premium Pack Mix</div>
-      <div class="opp-desc">Grow 100ml+ from 12% to 18% share — higher ASP, margin accretive</div>
-      <div class="opp-budget">Budget: ₹0.2 Cr display</div>
-      <div class="opp-time">Q3 FY27 · Oct 26</div>
-    </div>
-    <div class="opp">
-      <div class="opp-num">₹1.8 Cr</div>
-      <div class="opp-lbl">Shampoo Cross-sell</div>
-      <div class="opp-desc">Leverage 89.2% Facewash WD to push Shampoo into same shelf — dual-category listing</div>
-      <div class="opp-budget">Budget: ₹0.3 Cr bundling</div>
-      <div class="opp-time">Q2–Q3 FY27</div>
-    </div>
+  <div class="sec"><h3>1. Which chains carried the growth</h3>
+    <div class="note" id="ch-note"></div>
+    <div class="kp3" id="ch-kpis"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chain</th><th>NSV &#8377;L (this yr)</th><th>Share %</th><th>Last yr &#8377;L</th><th>Growth %</th><th>Share of total growth %</th><th>Mamaearth % of chain</th></tr></thead><tbody id="ch-tbody"></tbody></table></div>
+    <div class="sub">Share of total growth, top chains (pp of last year's base)</div><div id="ch-bridge"></div>
   </div>
 
-  <div class="g2">
-    <div class="cc">
-      <div class="cc-title">WD % vs. Per-Door Output — All Brands</div>
-      <div class="cc-sub">Bubble size = NSV · Jul 26</div>
-      <div class="cw"><canvas id="c-scatter" height="260"></canvas></div>
-    </div>
-    <div class="cc">
-      <div class="cc-title">Stores Selling Trend (Mamaearth)</div>
-      <div class="cc-sub">Apr 25 → Jul 26</div>
-      <div class="cw"><canvas id="c-stores" height="260"></canvas></div>
-    </div>
+  <div class="sec" id="sec-pm"><h3>2. Big packs by chain: sold or not sold <span class="note">&middot; Nielsen pack size vs where Mamaearth sells it (internal offtake Apr-Aug)</span></h3>
+    <div class="note" id="pm-note"></div>
+    <div id="pm-wrap"></div>
   </div>
+
+  <div class="sec"><h3>2b. Chain x range x pack: states still to fill <span class="note">&middot; internal offtake Apr-Aug, Mamaearth shampoo and face wash</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chain</th><th class="l">Category</th><th class="l">Range</th><th>Pack</th><th>NSV &#8377;L</th><th>States present</th><th class="l">States missing</th></tr></thead><tbody id="rp-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec"><h3>3. Categories strong elsewhere but thin in a chain <span class="note">&middot; our own sub-category mix, internal offtake</span></h3>
+    <div class="note" id="cg-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Chain</th><th class="l">Sub-category</th><th>Share of all-chain NSV %</th><th>Share in this chain %</th><th class="l">Status</th><th>Gap &#8377;L at all-chain mix</th></tr></thead><tbody id="cg-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="sec-vc"><h3>3b. Corporate-visit cities and the store master <span class="note">&middot; store master with city details, internal offtake Apr-Aug</span></h3>
+    <div class="note" id="vc-note"></div>
+    <div class="kp3" id="vc-kpis"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Region</th><th class="l">City</th><th>Beats</th><th>Stores</th><th>NSV Apr-Aug &#8377;L</th><th>Latest month &#8377;L</th><th>MoM %</th><th>Brand Counter &#8377;L</th><th>Near-listed &#8377;L</th></tr></thead><tbody id="vc-tbody"></tbody></table></div>
+    <div class="sub">Near-listed cities (third option): not on the visit list, next to a listed city</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">City</th><th class="l">Nearest listed city</th><th class="l">State</th><th>Stores</th><th>NSV Apr-Aug &#8377;L</th></tr></thead><tbody id="vn-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec"><h3>4. Named plays from the review deck</h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Priority</th><th class="l">Play</th><th class="l">Evidence</th><th class="l">Action</th></tr></thead><tbody id="pl-tbody"></tbody></table></div>
+    <div class="note" id="pl-note"></div>
+  </div>
+
+  <div class="sec"><h3>5. Deck figures checked against the Nielsen workbook</h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Deck figure</th><th>Deck</th><th>Workbook</th><th class="l">Result</th></tr></thead><tbody id="tie-tbody"></tbody></table></div>
+  </div>
+  <div class="foot" id="foot-cp"></div>
 </div>
 
-<!-- ══════════════════ TAB 4: 90-DAY TRACKER ══════════════════ -->
+<!-- ============ TAB 4: PRICE & VOLUME ============ -->
 <div class="panel" id="p4">
-  <div class="s-title">90-Day Execution Tracker</div>
-  <div class="s-sub">Aug–Oct 2026 · Owner: MT Leadership Team</div>
+  <div class="bar"><div class="blk-t">Price, volume and realisation</div><div class="note" id="pv-note"></div></div>
 
-  <div class="prog-wrap">
-    <div class="prog-lbl">
-      <span>Overall Progress</span>
-      <span id="prog-pct">0%</span>
-    </div>
-    <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="sec" id="pv-i"><h3>1. Our MT offtake: units, price per unit and realisation <span class="note">&middot; internal store x article files</span></h3>
+    <div class="note" id="pv-i-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Month</th><th>Units</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>Realisation % of MRP</th><th class="l">Change vs previous month</th><th>Volume effect &#8377;Cr</th><th>Price / mix effect &#8377;Cr</th></tr></thead><tbody id="pvi-tbody"></tbody></table></div>
   </div>
 
-  <div class="tracker-phase">
-    <div class="phase-hdr phase-aug">Aug 2026 — Distribution &amp; OSA Push <span>Weeks 1–4</span></div>
-    <div class="tracker-items" id="aug-items"></div>
+  <div class="sec" id="pv-l"><h3>2. Realisation ladder by chain <span class="note">&middot; NSV as % of MRP sales, Apr-Aug cumulative</span></h3>
+    <div class="note">Higher realisation means we keep more of the shelf price (less trade margin and discount). A low ASP index with low realisation is a value-pack, high-margin-to-trade chain.</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>ASP index</th><th>Realisation %</th><th class="l">Ladder</th></tr></thead><tbody id="pvl-tbody"></tbody></table></div>
   </div>
 
-  <div class="tracker-phase">
-    <div class="phase-hdr phase-sep">Sep 2026 — Pack Mix &amp; Premium Activation <span>Weeks 5–8</span></div>
-    <div class="tracker-items" id="sep-items"></div>
+  <div class="sec" id="pv-z"><h3>3. Zone price index <span class="note">&middot; zone ASP / MT ASP x 100</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Zone</th><th>NSV &#8377;Cr (latest month)</th><th>ASP &#8377;/unit</th><th>Price index (latest)</th><th>Realisation %</th><th>Price index (Apr-Aug)</th></tr></thead><tbody id="pvz-tbody"></tbody></table></div>
   </div>
 
-  <div class="tracker-phase">
-    <div class="phase-hdr phase-gates">Decision Gates &amp; KPIs</div>
-    <div class="tracker-items" id="gate-items"></div>
+  <div class="sec" id="pv-b"><h3>4. Brand price position <span class="note">&middot; Apr-Aug</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Brand</th><th>Units</th><th>NSV &#8377;Cr</th><th>ASP &#8377;/unit</th><th>Realisation %</th></tr></thead><tbody id="pvb-tbody"></tbody></table></div>
   </div>
+  <div class="foot" id="foot-pv"></div>
+</div>
+
+<!-- ============ TAB 5: ACCOUNT SHARE & FACEWASH PLAN ============ -->
+<div class="panel" id="p5">
+  <div class="bar"><div class="blk-t">Share inside Lulu, More, Wellness and Reliance: white space and the Facewash plan</div><div class="note" id="ac-note"></div></div>
+
+  <div class="sec" id="ac-s1"><h3>1. Our share of each chain's own category, after Nielsen <span class="note">&middot; account sales vs our sales, month on month</span></h3>
+    <div class="note" id="ac-s1-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th class="l">Month</th><th>Account sales &#8377;L</th><th>Our sales &#8377;L</th><th>Share %</th><th>Share chg pp MoM</th><th>Account MoM %</th><th>Our MoM %</th><th>Face wash share %</th><th class="l">Scope of the account file</th></tr></thead><tbody id="ac-tbody"></tbody></table></div>
+    <div class="g2"><div class="blk"><div class="sub" style="margin-top:0">Face wash &amp; cleanser: our share of the chain's category %</div><div class="cw" style="height:200px"><canvas id="c-ac-fw"></canvas></div></div>
+      <div class="blk"><div class="sub" style="margin-top:0">All categories: our share of the chain's category %</div><div class="cw" style="height:200px"><canvas id="c-ac-all"></canvas></div></div></div>
+    <div class="note" id="ac-chart-note"></div>
+  </div>
+
+  <div class="sec" id="ac-s2"><h3>2. Chains side by side: Face Wash and Shampoo <span class="note">&middot; account and ours together</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th class="l">Period</th><th>Face wash share %</th><th>Shampoo share %</th><th>Face wash: account &#8377;L</th><th>Face wash: ours &#8377;L</th><th class="l">Basis</th></tr></thead><tbody id="tg-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="deck-fair"><h3>2b. Dmart and Reliance, quarterly <span class="note">&middot; Honasa % of the chain's own category, from the review deck</span></h3>
+    <div class="note" id="fair-note"></div>
+    <div class="g2"><div class="blk"><div class="sub" style="margin-top:0">Facewash &middot; Honasa % of the chain's category</div><div class="cw" style="height:190px"><canvas id="c-fair-fw"></canvas></div></div>
+      <div class="blk"><div class="sub" style="margin-top:0">Shampoo &middot; Honasa % of the chain's category</div><div class="cw" style="height:190px"><canvas id="c-fair-sh"></canvas></div></div></div>
+  </div>
+
+
+  <div class="sec" id="ac-s3"><h3>3. Top 5 categories: account sales and ours <span class="note">&middot; chain, zone or state, latest month</span></h3>
+    <div class="bar" style="gap:8px;flex-wrap:wrap"><select id="t5-chain"></select><select id="t5-level"><option>Chain</option><option>Zone</option><option>State</option></select><select id="t5-name"></select></div>
+    <div class="note" id="t5-note"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Category</th><th class="l">Common category</th><th>Account sales &#8377;L</th><th>Our sales &#8377;L</th><th>Share %</th><th>% of the chain / zone</th><th>Account MoM %</th><th>Our MoM %</th></tr></thead><tbody id="t5-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="ac-s4"><h3>4. White space and low assortment <span class="note">&middot; last 3 months, per chain</span></h3>
+    <div class="note" id="fl-note"></div>
+    <div class="bar" style="gap:8px"><select id="fl-chain"></select><select id="fl-flag"><option>All flags</option><option>White space</option><option>Low assortment</option><option>Below chain average</option><option>Strong</option></select></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th class="l">Category</th><th class="l">Flag</th><th>% of chain's category</th><th>Account &#8377;L / month</th><th>Our &#8377;L / month</th><th>Our share %</th><th>Chain share %</th><th>Our articles</th><th>Gap &#8377;L / month</th></tr></thead><tbody id="fl-tbody"></tbody></table></div>
+    <div class="sub">Proven elsewhere: we hold 3% or more in one chain and under 1% in another</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Chain</th><th class="l">Category</th><th>Our share here %</th><th>Account L3M &#8377;L</th><th class="l">Best chain</th><th>Best share %</th><th>Gap at half the best share &#8377;L / month</th></tr></thead><tbody id="pe-tbody"></tbody></table></div>
+  </div>
+
+  <div class="sec" id="ac-s5"><h3>5. Plan to lift Facewash market share <span class="note">&middot; each lever has its evidence and an indicative size</span></h3>
+    <div class="kp3" id="fp-kpis"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">Lever</th><th class="l">Evidence</th><th class="l">Action</th><th>&#8377;Cr / month</th><th class="l">How it is sized</th><th class="l">Owner</th><th class="l">Timeline</th><th class="l">Gate</th></tr></thead><tbody id="fp-tbody"></tbody></table></div>
+    <div class="note" id="fp-note"></div>
+  </div>
+
+  <div class="sec" id="ac-s6"><h3>6. What each file carries: store, city, zone, state <span class="note">&middot; and the Lulu store-city check against the store master</span></h3>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="l">File</th><th class="l">Chain</th><th class="l">Months</th><th class="l">Store / city mapping</th><th class="l">Zone / state</th><th class="l">Articles</th><th class="l">Scope</th></tr></thead><tbody id="av-tbody"></tbody></table></div>
+    <div class="tbl-wrap" style="margin-top:8px"><table class="tbl"><thead><tr><th class="l">Lulu store</th><th class="l">Store name</th><th class="l">City (store name)</th><th class="l">City (store master)</th><th class="l">State</th><th class="l">Zone</th><th class="l">Check</th></tr></thead><tbody id="sm-tbody"></tbody></table></div>
+  </div>
+  <div class="foot" id="foot-ac"></div>
 </div>
 
 <script>
 /* ── DATA PAYLOAD (injected by build_nielsen_dashboard.py) ── */
 const DASHBOARD_DATA = /* __NIELSEN_DATA_PAYLOAD__ */ {};
-const {MONTHS,MS_,NSV_,WD_,STORES_,BRANDS,FW_PACKS,SH_PACKS,AUG_ACTIONS,SEP_ACTIONS,GATES}=DASHBOARD_DATA;
-const AC='#2563EB';const GREY='#94A3B8';const RED='#DC2626';const GREEN='#059669';const AMBER='#D97706';
+const {MONTHS,MS_,NSV_,WD_,STORES_,BRANDS,FW_PACKS,AUG_ACTIONS,SEP_ACTIONS,GATES}=DASHBOARD_DATA;
+const FW_ALL=DASHBOARD_DATA.FW_ALL||[], FW_CAT=DASHBOARD_DATA.FW_CAT_NSV||[], SH=DASHBOARD_DATA.SHAMPOO||null,
+      PACKF=DASHBOARD_DATA.SH_PACK_FILE||null, GOV=DASHBOARD_DATA.GOV||{}, META=DASHBOARD_DATA._meta||{},
+      FW_INFO=DASHBOARD_DATA.FW_CAT_INFO||null, FW_ME_PACKS=DASHBOARD_DATA.FW_PACKS_ME||null, FW_PREM=DASHBOARD_DATA.FW_PREMIUM||null,
+      MARKET=DASHBOARD_DATA.MARKET||'', UNIT=DASHBOARD_DATA.UNIT||'',
+      FW_GAP=DASHBOARD_DATA.FW_PACK_GAP||null, SH_GAP=DASHBOARD_DATA.SH_PACK_GAP||null, CHAINS=DASHBOARD_DATA.CHAINS||null, DECK=DASHBOARD_DATA.DECK||null, FW_PB=DASHBOARD_DATA.FW_PACK_BRAND||null, SH_PB=DASHBOARD_DATA.SH_PACK_BRAND||null, PV=DASHBOARD_DATA.PRICE_VOLUME||null, VC=DASHBOARD_DATA.VISIT_CITIES||null, ACCT=DASHBOARD_DATA.ACCOUNT||null;
+const AC='#2563EB',GREY='#94A3B8',RED='#DC2626',GREEN='#059669',AMBER='#D97706';
+const OWN=['Mamaearth','The Derma Co'];          // Honasa brands in the Facewash file
+Chart.defaults.animation=false;
+const charts=[];
 
-/* ── THEME ── */
-function toggleTheme(){
-  const r=document.documentElement;
-  const cur=r.getAttribute('data-theme');
-  r.setAttribute('data-theme',cur==='dark'?'light':'dark');
+/* ── safe formatting: missing is a dash, never NaN/undefined ── */
+const ok=v=>typeof v==='number'&&isFinite(v);
+const f1=(v,d=1)=>ok(v)?v.toFixed(d):'–';
+const sg=(v,d=1,u='')=>ok(v)?(v>0?'+':'')+v.toFixed(d)+u:'–';
+const n0=v=>ok(v)?Math.round(v).toLocaleString('en-IN'):'–';
+const cls=v=>!ok(v)||v===0?'mut':v>0?'up':'dn';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const el=id=>document.getElementById(id);
+function kpi(l,v,c,cc){return `<div class="kpi"><div class="kpi-l">${esc(l)}</div><div class="kpi-v">${v}</div><div class="kpi-c ${cc||'mut'}">${c||'&nbsp;'}</div></div>`;}
+
+/* ── theme + tabs + view switch ── */
+/* every table on the open tab as one CSV (title row, header, rows): opens in Excel */
+function downloadTables(){
+  const panel=document.querySelector('.panel.active');if(!panel)return;
+  const q=v=>'"'+String(v).replace(/\s+/g,' ').trim().replace(/"/g,'""')+'"';
+  const lines=[];
+  panel.querySelectorAll('table').forEach(t=>{
+    if(!t.offsetParent)return;                                   // hidden by the Facewash / Shampoo view
+    let title='';for(let n=t.closest('.tbl-wrap')||t;n&&!title;n=n.previousElementSibling){if(n.matches&&n.matches('.sub,h3,.blk-t,.blk-h'))title=n.textContent;}
+    lines.push(q(title||'Table'));
+    t.querySelectorAll('tr').forEach(r=>lines.push([...r.children].map(c=>q(c.innerText)).join(',')));
+    lines.push('');
+  });
+  const tab=(document.querySelector('.tab-btn.active')||{}).textContent||'tab';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='Nielsen_'+tab.replace(/[^A-Za-z0-9]+/g,'_')+'_'+(MONTHS[MONTHS.length-1]||'').replace(' ','')+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
 }
-
-/* ── TABS ── */
-const panels=Array.from(document.querySelectorAll('.panel'));
-const tabBtns=Array.from(document.querySelectorAll('.tab-btn'));
-const tabInited={};
-
+function toggleTheme(){const r=document.documentElement;r.setAttribute('data-theme',r.getAttribute('data-theme')==='dark'?'light':'dark');}
+const panels=[...document.querySelectorAll('.panel')],tabBtns=[...document.querySelectorAll('.tab-btn')],inited={};
 function showTab(i){
   panels.forEach((p,j)=>p.classList.toggle('active',i===j));
   tabBtns.forEach((b,j)=>b.classList.toggle('active',i===j));
-  if(!tabInited[i]){
-    tabInited[i]=true;
-    requestAnimationFrame(()=>initTabCharts(i));
+  if(!inited[i]){inited[i]=true;requestAnimationFrame(()=>{if(i===1)initOpportunity();});}
+  requestAnimationFrame(()=>charts.forEach(c=>c.resize()));
+}
+let view='both';
+function setView(v){
+  view=v;
+  el('ms-grid').className='ms-grid v-'+v;
+  document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  el('both-packs').style.display=v==='both'?'':'none';
+  if(el('bc-fw'))el('bc-fw').style.display=v==='sh'?'none':'';
+  if(el('bc-sh')&&SH)el('bc-sh').style.display=v==='fw'?'none':'';
+  buildInsights();
+  requestAnimationFrame(()=>charts.forEach(c=>c.resize()));
+}
+
+/* ── derived Facewash figures (all from the payload) ── */
+const last=MONTHS.length-1;
+function yearAgoIdx(){const p=String(MONTHS[last]||'').split(' ');if(p.length!==2)return -1;return MONTHS.indexOf(p[0]+' '+String(+p[1]-1).padStart(2,'0'));}
+const ya=yearAgoIdx();
+const me=BRANDS.find(b=>b.n==='Mamaearth')||{};
+const fw={
+  ms:MS_[last],msYA:ya>=0?MS_[ya]:null, nsv:NSV_[last], nsvYA:ya>=0?NSV_[ya]:null,
+  wd:WD_[last],wdYA:ya>=0?WD_[ya]:null, stores:STORES_[last],storesYA:ya>=0?STORES_[ya]:null,
+  cat:FW_CAT[last],catYA:ya>=0?FW_CAT[ya]:null
+};
+fw.dpp=ok(fw.ms)&&ok(fw.msYA)?fw.ms-fw.msYA:me.pp;               // share change, pp
+fw.nsvYoY=ok(me.yoy)?me.yoy:(ok(fw.nsv)&&ok(fw.nsvYA)&&fw.nsvYA>0?(fw.nsv/fw.nsvYA-1)*100:null);   // file value is unrounded
+fw.wdDpp=ok(fw.wd)&&ok(fw.wdYA)?fw.wd-fw.wdYA:null;
+fw.storesYoY=ok(fw.stores)&&ok(fw.storesYA)&&fw.storesYA>0?(fw.stores/fw.storesYA-1)*100:null;
+fw.pdo=ok(fw.nsv)&&ok(fw.stores)&&fw.stores>0?fw.nsv*1e7/fw.stores:null;
+fw.pdoYA=ok(fw.nsvYA)&&ok(fw.storesYA)&&fw.storesYA>0?fw.nsvYA*1e7/fw.storesYA:null;
+fw.pdoYoY=ok(fw.pdo)&&ok(fw.pdoYA)?(fw.pdo/fw.pdoYA-1)*100:null;
+fw.catYoY=ok(fw.cat)&&ok(fw.catYA)&&fw.catYA>0?(fw.cat/fw.catYA-1)*100:null;
+fw.ppValue=ok(fw.cat)?fw.cat/100:null;                           // Rs Cr of monthly sales per 1 pp of share
+function rankOf(list,key,name){const v=list.filter(b=>ok(b[key])).sort((a,b)=>b[key]-a[key]);const i=v.findIndex(b=>b.n===name);return i<0?null:i+1;}
+fw.rank=rankOf(FW_ALL,'ms','Mamaearth');fw.rankYA=rankOf(FW_ALL.map(b=>({n:b.n,ms_py:b.ms_py})),'ms_py','Mamaearth');
+const spd=b=>ok(b.ms)&&ok(b.wd)&&b.wd>0?b.ms/b.wd:null;           // share per point of weighted distribution
+const allByName=Object.fromEntries(FW_ALL.map(b=>[b.n,b]));
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z]/g,'');
+const ppFile=Object.fromEntries(BRANDS.filter(b=>ok(b.pp)).map(b=>[norm(b.n),b.pp]));
+function ppFor(b){return ok(ppFile[norm(b.n)])?ppFile[norm(b.n)]:(ok(b.ms)&&ok(b.ms_py)?b.ms-b.ms_py:null);}   // top 8: unrounded file value
+
+/* ── derived Shampoo figures ── */
+const shMe=SH?(SH.brands||[]).find(b=>b.n==='Mamaearth'):null;
+const sh=SH?{ms:shMe&&shMe.ms,bps:shMe&&shMe.yoy_bps,sales:SH.mamaearth_sales_cr,salesYoY:SH.mamaearth_sales_yoy_pct,salesMoM:SH.mamaearth_sales_mom_pct,
+  cat:SH.category_cr,catYoY:SH.category_yoy_pct,catMoM:SH.category_mom_pct,listed:(SH.brands||[]).reduce((a,b)=>a+(ok(b.ms)?b.ms:0),0)}:null;
+if(sh){sh.ppValue=ok(sh.cat)?sh.cat/100:null;sh.rank=rankOf(SH.brands||[],'ms','Mamaearth');
+  sh.wd=shMe&&shMe.wd;sh.wdPY=shMe&&shMe.wd_py;sh.nd=shMe&&shMe.nd;sh.stores=shMe&&shMe.stores;sh.pdo=shMe&&shMe.pdo;
+  sh.ppml=shMe&&shMe.ppml;sh.msVol=shMe&&shMe.ms_vol;sh.catPpml=SH.category_ppml;
+  sh.hasReach=ok(sh.wd)&&ok(sh.stores);
+  sh.sameMonth=!!(SH.month&&SH.month===MONTHS[last]);}
+
+/* pack gap KPI: category packs above 1% of value that we do not sell, and the monthly value gap */
+function gapKpi(G){if(!G||!G.rows)return '';const big=G.rows.filter(r=>r.cat_share>=1&&r.status==='Not present'),opp=G.rows.reduce((a,r)=>a+(r.opp_cr||0),0);
+  return kpi('Pack gap ₹Cr / month',f1(opp,2),big.length?big.length+' big pack'+(big.length>1?'s':'')+' not sold: '+big.slice(0,3).map(r=>r.size+' ml').join(', '):'no big pack missing',big.length?'dn':'mut');}
+/* ── scorecards ── */
+function buildKpis(){
+  el('fw-kpis').innerHTML=[
+    kpi('Share',f1(fw.ms)+'%',sg(fw.dpp,1,'pp YoY'),cls(fw.dpp)),
+    kpi('Rank',fw.rank?'#'+fw.rank:'–',fw.rank&&fw.rankYA?(fw.rank===fw.rankYA?'same as last yr':(fw.rank<fw.rankYA?'up from #'+fw.rankYA:'down from #'+fw.rankYA)):'',fw.rank&&fw.rankYA&&fw.rank<fw.rankYA?'up':'mut'),
+    kpi('NSV ₹Cr',f1(fw.nsv),sg(fw.nsvYoY,1,'% YoY'),cls(fw.nsvYoY)),
+    kpi('Category ₹Cr',f1(fw.cat),sg(fw.catYoY,1,'% YoY'),cls(fw.catYoY)),
+    kpi('WD %',f1(fw.wd),sg(fw.wdDpp,1,'pp YoY'),cls(fw.wdDpp)),
+    kpi('Stores selling',n0(fw.stores),sg(fw.storesYoY,1,'% YoY'),cls(fw.storesYoY)),
+    kpi('₹ per store',n0(fw.pdo),sg(fw.pdoYoY,0,'% YoY'),cls(fw.pdoYoY)),
+    kpi('1 pp share =',ok(fw.ppValue)?'₹'+f1(fw.ppValue,2)+' Cr':'–','per month','mut'),gapKpi(FW_GAP)].join('');
+  el('sh-kpis').innerHTML=sh?[
+    kpi('Share',f1(sh.ms)+'%',sg(sh.bps,0,' bps YoY'),cls(sh.bps)),
+    kpi('Position',sh.rank?'#'+sh.rank+' of '+(SH.brands||[]).length+' listed':'–','','mut'),
+    kpi('Sales ₹Cr',f1(sh.sales,2),sg(sh.salesYoY,1,'% YoY'),cls(sh.salesYoY)),
+    kpi('Category ₹Cr',f1(sh.cat,1),sg(sh.catYoY,1,'% YoY'),cls(sh.catYoY)),
+    kpi('Sales MoM',sg(sh.salesMoM,1,'%'),'category '+sg(sh.catMoM,1,'%'),cls(sh.salesMoM)),
+    kpi('WD %',sh.hasReach?f1(sh.wd):'–',sh.hasReach?sg(ok(sh.wdPY)?sh.wd-sh.wdPY:null,1,'pp YoY'):'no distribution data',sh.hasReach?cls(ok(sh.wdPY)?sh.wd-sh.wdPY:null):'mut'),
+    kpi('Stores selling',n0(sh.stores),ok(sh.nd)?'ND '+f1(sh.nd)+'%':'','mut'),
+    kpi('₹ per store',n0(sh.pdo),ok(sh.ppml)&&ok(sh.catPpml)?'₹/ml '+f1(sh.ppml,2)+' vs cat '+f1(sh.catPpml,2):'','mut'),
+    kpi('1 pp share =',ok(sh.ppValue)?'₹'+f1(sh.ppValue,2)+' Cr':'–','per month','mut'),gapKpi(SH_GAP)].join(''):'<div class="note">No Shampoo data in this payload.</div>';
+}
+
+/* ── tables ── */
+function buildFwTable(){
+  el('fw-tbody').innerHTML=BRANDS.map(b=>{
+    const s=spd({ms:b.ms,wd:b.wd});
+    return `<tr${b.n==='Mamaearth'?' class="hl"':''}><td>${esc(b.n)}</td><td>${f1(b.ms)}%</td>
+      <td><span class="pill ${b.pp>0?'pill-up':b.pp<0?'pill-dn':'pill-0'}">${sg(b.pp,1)}</span></td>
+      <td>${f1(b.nsv)}</td><td>${f1(b.wd)}</td><td>${n0(b.pdo)}</td><td>${ok(s)?s.toFixed(3):'–'}</td></tr>`;}).join('');
+}
+function buildShTable(){
+  if(!sh)return;
+  el('sh-h-py').textContent=SH.period_prev_year||'PY';el('sh-h-pm').textContent=SH.period_prev_month||'PM';el('sh-h-now').textContent=SH.period||'Now';
+  const rows=[...(SH.brands||[])].sort((a,c)=>(c.ms||0)-(a.ms||0)),top=rows.slice(0,10);if(!top.some(b=>b.n==='Mamaearth')){const m=rows.find(b=>b.n==='Mamaearth');if(m)top.push(m);}
+  el('sh-n').textContent='top '+top.length+' of '+rows.length+' listed brands';
+  el('sh-tbody').innerHTML=top.map(b=>`<tr${b.n==='Mamaearth'?' class="hl"':''}><td>${esc(b.n)}</td><td>${f1(b.ms_py)}</td><td>${f1(b.ms_pm)}</td><td>${ok(b.ms)?f1(b.ms)+'%':'–'}</td>
+    <td><span class="pill ${b.yoy_bps>0?'pill-up':b.yoy_bps<0?'pill-dn':'pill-0'}">${sg(b.yoy_bps,0)}</span></td></tr>`).join('');
+}
+
+/* ── bridge: gain / loss, centred bars ── */
+function bridge(id,rows,unit,fmt,minAbs){
+  const wrap=el(id);if(!wrap)return;
+  const all=rows.filter(r=>ok(r.d)).sort((a,b)=>b.d-a.d);
+  const v=all.filter(r=>Math.abs(r.d)>=(minAbs||0)||r.n==='Mamaearth'),hidden=all.length-v.length;
+  const m=Math.max(...all.map(r=>Math.abs(r.d)),0.0001);
+  wrap.innerHTML=v.map(r=>{const w=Math.round(Math.abs(r.d)/m*100),pos=r.d>=0,own=r.n==='Mamaearth',c=own?AC:pos?GREEN:RED;
+    return `<div class="bridge-row"><div class="bridge-brand" title="${esc(r.n)}" style="color:${own?'var(--accent)':'inherit'}">${esc(r.n)}</div>
+      <div class="bridge-area"><div class="bridge-half l">${pos?'':`<div class="bridge-bar" style="width:${w}%;background:${c}"></div>`}</div>
+      <div class="bridge-half">${pos?`<div class="bridge-bar" style="width:${w}%;background:${c}"></div>`:''}</div></div>
+      <div class="bridge-val" style="color:${c}">${fmt(r.d)}</div></div>`;}).join('')
+    +(hidden?`<div class="note" style="margin-top:3px">${hidden} more brand${hidden>1?'s':''} moved less than ${minAbs} ${unit}.</div>`:'')
+    ||'<div class="note">No brand has both years.</div>';
+}
+
+/* ── pack bars ── */
+function packBars(id,packs,note,mine){
+  const w=el(id);if(!w)return;
+  if(!packs||!packs.length){w.innerHTML='<div class="note">'+esc(note||'Not available')+'</div>';return;}
+  w.innerHTML=packs.map(p=>{const m=mine&&ok(mine[p.sz])?mine[p.sz]:null;
+    return `<div class="pack-row"><div class="pack-size">${esc(p.sz)}</div><div class="pack-bg"><div class="pack-fill" style="width:${Math.max(0,Math.min(100,p.val))}%${mine?';background:#94A3B8':''}"></div>${m!=null?`<div class="pack-fill" style="width:${Math.max(0,Math.min(100,m))}%;height:35%;margin-top:-6px;background:var(--accent)"></div>`:''}</div>
+    <div class="pack-val">${f1(p.val)}%${m!=null?' · '+f1(m)+'%':''}${p.amt!=null?'<br><span class="note">₹'+f1(p.amt,2)+' Cr</span>':''}</div><div class="pack-yoy ${cls(p.yoy)}">${sg(p.yoy,1,'%')}</div></div>`;}).join('')
+    +(mine?'<div class="note">Grey bar: category mix. Blue: Mamaearth mix (second figure).</div>':'');
+}
+
+/* ── charts ── */
+function cd(){const d=document.documentElement.getAttribute('data-theme')==='dark'||(!document.documentElement.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);
+  return{col:d?'#94A3B8':'#64748B',grid:d?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)',tick:d?'#64748B':'#94A3B8'};}
+function mk(id,cfg){const c=el(id);if(!c)return;charts.push(new Chart(c,cfg));}
+function initShare(){
+  const k=cd();
+  mk('c-trend',{type:'line',data:{labels:MONTHS,datasets:[{label:'Share %',data:MS_,borderColor:AC,backgroundColor:'rgba(37,99,235,.12)',fill:true,tension:.35,pointRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+'%'}}},
+      scales:{x:{grid:{display:false},ticks:{color:k.tick,maxRotation:45,font:{size:9}},border:{display:false}},y:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>v+'%'},border:{display:false}}}}});
+  mk('c-nsvwd',{type:'bar',data:{labels:MONTHS,datasets:[{type:'bar',label:'NSV ₹Cr',data:NSV_,backgroundColor:'rgba(37,99,235,.65)',borderRadius:2,yAxisID:'y'},
+    {type:'line',label:'WD %',data:WD_,borderColor:GREEN,backgroundColor:'transparent',tension:.35,pointRadius:2,yAxisID:'y2'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:k.col,boxWidth:10,font:{size:10}}},tooltip:{mode:'index',intersect:false}},
+      scales:{x:{grid:{display:false},ticks:{color:k.tick,maxRotation:45,font:{size:9}},border:{display:false}},y:{grid:{color:k.grid},ticks:{color:k.tick},border:{display:false}},
+        y2:{position:'right',suggestedMin:70,suggestedMax:100,grid:{display:false},ticks:{color:GREEN,callback:v=>v+'%'},border:{display:false}}}}});
+  if(SH){const b=[...(SH.brands||[])].sort((a,c)=>c.ms-a.ms);
+    mk('c-shbars',{type:'bar',data:{labels:b.map(x=>x.n),datasets:[{data:b.map(x=>x.ms),backgroundColor:b.map(x=>x.n==='Mamaearth'?AC:GREY),borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x.toFixed(1)+'%'}}},
+        scales:{x:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>v+'%'},border:{display:false}},y:{grid:{display:false},ticks:{color:k.tick,font:{size:10}},border:{display:false}}}}});}
+}
+function initOpportunity(){
+  const k=cd();
+  mk('c-scatter',{type:'bubble',data:{datasets:[{data:BRANDS.map(b=>({x:b.wd,y:b.pdo,r:Math.sqrt(Math.max(b.nsv,0))*3.2,brand:b.n})),
+    backgroundColor:BRANDS.map(b=>b.n==='Mamaearth'?'rgba(37,99,235,.7)':'rgba(148,163,184,.5)')}]},
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>[c.raw.brand,'WD: '+c.raw.x+'%','₹/store: '+n0(c.raw.y)]}}},
+      scales:{x:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>v+'%'},border:{display:false},title:{display:true,text:'Weighted distribution %',color:k.col}},
+        y:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>n0(v)},border:{display:false},title:{display:true,text:'₹ per store (monthly)',color:k.col}}}}});
+  mk('c-stores',{type:'line',data:{labels:MONTHS,datasets:[{data:STORES_,borderColor:GREEN,backgroundColor:'rgba(5,150,105,.1)',fill:true,tension:.35,pointRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>n0(c.parsed.y)+' stores'}}},
+      scales:{x:{grid:{display:false},ticks:{color:k.tick,maxRotation:45,font:{size:9}},border:{display:false}},y:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>n0(v)},border:{display:false}}}}});
+}
+
+/* ── Nielsen brand cuts: price, distribution and productivity, Facewash and Shampoo shown separately ── */
+function brandRows(list,catPpml,unit){
+  const rows=(list||[]).filter(b=>ok(b.ms)).sort((a,b)=>b.ms-a.ms);
+  const top=rows.slice(0,10);if(!top.some(b=>b.n==='Mamaearth')){const m=rows.find(b=>b.n==='Mamaearth');if(m)top.push(m);}
+  return top.map(b=>({b,idx:ok(b.ppml)&&ok(catPpml)&&catPpml>0?b.ppml/catPpml*100:null,pp:unit==='bps'?b.yoy_bps:ppFor(b),
+    ppy:ok(b.ppml)&&ok(b.ppml_py)&&b.ppml_py>0?(b.ppml/b.ppml_py-1)*100:null,dwd:ok(b.wd)&&ok(b.wd_py)?b.wd-b.wd_py:null,spw:spd(b)}));
+}
+function bcRow(x,unit){const b=x.b,own=b.n==='Mamaearth';
+  return `<tr${own?' style="font-weight:600"':''}><td class="l">${esc(b.n)}</td><td>${f1(b.ms)}</td><td class="${cls(x.pp)}">${sg(x.pp,unit==='bps'?0:1)}</td><td>${f1(b.ms_vol)}</td><td>${f1(b.ppml,2)}</td><td>${ok(x.idx)?Math.round(x.idx):'–'}</td><td class="${cls(x.ppy)}">${sg(x.ppy,1)}</td><td>${f1(b.wd)}</td><td class="${cls(x.dwd)}">${sg(x.dwd,1)}</td><td>${f1(b.nd)}</td><td>${n0(b.stores)}</td><td>${n0(b.pdo)}</td><td>${ok(x.spw)?x.spw.toFixed(3):'–'}</td><td>${f1(b.sah)}</td></tr>`;}
+function buildBrandCuts(){
+  const fcat=FW_INFO&&ok(FW_INFO.ppml)?FW_INFO.ppml:null,scat=SH&&ok(SH.category_ppml)?SH.category_ppml:null;
+  tbody('bcf-tbody',brandRows(FW_ALL,fcat,'pp'),x=>bcRow(x,'pp'));
+  tbody('bcs-tbody',SH?brandRows(SH.brands,scat,'bps'):[],x=>bcRow(x,'bps'));
+  el('bc-note').textContent='Price index = the brand\'s price per ml / the category\'s price per ml x 100 (100 = category average). WD = weighted distribution, ND = numeric distribution, SAH = share among the stores that stock the brand, Share / WD pt = share earned per point of weighted distribution. Top 10 brands by share plus Mamaearth; the full lists are in the brand scoreboards above.';
+  if(!SH)hide('bc-sh');
+}
+
+/* ── key insights: every number is computed from the payload ── */
+function ins(tag,title,text,action,kind,views){return{tag,title,text,action,kind,views};}
+function insightList(){
+  const L=[];
+  const both=FW_ALL.filter(b=>ok(b.ms)&&ok(b.ms_py)).map(b=>({n:b.n,d:ppFor(b)}));
+  const losers=[...both].sort((a,b)=>a.d-b.d).slice(0,3).filter(x=>x.d<0);
+  if(ok(fw.dpp)&&losers.length)
+    L.push(ins('Facewash','Share gain is coming out of the big names',`Mamaearth ${sg(fw.dpp,1,' pp')} YoY; the three biggest losers are ${losers.map(x=>esc(x.n)+' '+sg(x.d,1)).join(', ')}.`,
+      'Defend the shelf space won from these brands in the largest chains.','good',['both','fw']));
+  const top3=['Himalaya','Garnier',"Pond's"].map(n=>allByName[n]).filter(b=>b&&ok(b.ms)&&ok(b.ms_py));
+  if(top3.length===3){const d=top3.reduce((a,b)=>a+ppFor(b),0),s=top3.reduce((a,b)=>a+b.ms,0);
+    L.push(ins('Facewash','The top 3 hold '+f1(s)+'% and are all losing share',`Himalaya, Garnier and Pond's moved ${sg(d,1,' pp')} combined in a year.`,'Watch for price or promo responses from these three.',d<0?'warn':'info',['fw']));}
+  if(ok(fw.cat)&&ok(fw.catYA)&&ok(fw.nsv)&&ok(fw.nsvYA)&&fw.cat>fw.catYA){
+    const dm=fw.nsv-fw.nsvYA,dc=fw.cat-fw.catYA;
+    L.push(ins('Facewash','Mamaearth supplied '+f1(dm/dc*100,0)+'% of category growth',`NSV +₹${f1(dm)} Cr of the category's +₹${f1(dc)} Cr, from ${f1(fw.msYA)}% of last year's base.`,'Growth is share-led; keep the share gain going.','good',['fw']));}
+  if(ok(fw.ms)&&ok(fw.msYA)&&ok(fw.wd)&&ok(fw.wdYA)&&fw.ms>fw.msYA&&fw.wd>fw.wdYA){
+    const t=Math.log(fw.ms/fw.msYA),dist=Math.log(fw.wd/fw.wdYA)/t*100;
+    L.push(ins('Facewash','Share growth is mostly velocity, not reach',`Of the ${f1((fw.ms/fw.msYA-1)*100,0)}% share growth, about ${f1(dist,0)}% came from wider distribution (WD ${sg(fw.wdDpp,1,' pp')}) and about ${f1(100-dist,0)}% from more share per WD point.`,
+      'Keep range and OSA quality high; reach alone will not repeat this.','info',['both','fw']));}
+  const win=MS_.slice(-6).filter(ok);
+  if(win.length===6&&MS_.length>=8){
+    let big=null;for(let i=Math.max(1,MS_.length-12);i<MS_.length;i++){const d=MS_[i]-MS_[i-1];if(!big||Math.abs(d)>Math.abs(big.d))big={i,d};}
+    const lo=Math.min(...win),hi=Math.max(...win);
+    if(big&&big.d>1&&MS_.length-1-big.i>=3)
+      L.push(ins('Facewash','The year-on-year gain came in one step',`Share jumped ${sg(big.d,1,' pp')} in ${esc(MONTHS[big.i])} and has stayed between ${f1(lo)}% and ${f1(hi)}% for 6 months; ${esc(MONTHS[last])} is ${f1(fw.ms)}%.`,
+        'Find what changed in '+esc(MONTHS[big.i])+' (listing, price, range) and whether it can be repeated.',fw.ms<=lo?'warn':'info',['both','fw']));}
+  const stM=allByName['Mamaearth'],stH=allByName['Himalaya'];
+  if(stM&&stH&&ok(stM.stores)&&ok(stH.stores)&&ok(me.pdo)){
+    const him=BRANDS.find(b=>b.n==='Himalaya')||{},rk=rankOf(BRANDS,'pdo','Mamaearth');
+    const reach=(stH.stores/stM.stores-1)*100,prod=ok(him.pdo)?(him.pdo/me.pdo-1)*100:null;
+    L.push(ins('Facewash','Per-store sales rank #'+(rk||'–')+' of '+BRANDS.length+'; the store count is the bigger gap',`₹${n0(me.pdo)} per store vs Himalaya ₹${n0(him.pdo)} (${f1(prod,0)}% gap); ${n0(stM.stores)} stores vs ${n0(stH.stores)} (${f1(reach,0)}% gap, ${n0(stH.stores-stM.stores)} stores).`,
+      'Prioritise new-store listings over per-store push.','warn',['fw']));}
+  const sm=BRANDS.map(b=>({n:b.n,s:spd({ms:b.ms,wd:b.wd})})).filter(x=>ok(x.s)).sort((a,b)=>b.s-a.s),rkS=sm.findIndex(x=>x.n==='Mamaearth')+1;
+  if(rkS)L.push(ins('Facewash','Share per WD point: #'+rkS+' of '+sm.length,`Mamaearth ${sm[rkS-1].s.toFixed(3)} vs ${sm.slice(0,3).filter(x=>x.n!=='Mamaearth').map(x=>esc(x.n)+' '+x.s.toFixed(3)).join(', ')}. A distribution point earns less share here than at the leaders.`,'Compare shelf position and facings in the stores where share per point is lowest.','info',['fw']));
+  const dc=allByName['The Derma Co'];
+  if(dc&&ok(dc.ms)&&ok(fw.ms))
+    L.push(ins('Facewash','Honasa Facewash share: '+f1(fw.ms+dc.ms)+'%',`Mamaearth ${f1(fw.ms)}% + The Derma Co ${f1(dc.ms)}%${ok(dc.ms_py)&&ok(fw.msYA)?`, against ${f1(fw.msYA+dc.ms_py)}% a year ago`:''}. The Derma Co is Honasa's own brand, not a competitor.`,'Read the portfolio share, then check overlap between the two.','good',['both','fw']));
+  const ent=FW_ALL.filter(b=>!OWN.includes(b.n)&&ok(b.ms)&&ok(b.ms_py)&&b.ms-b.ms_py>=1).sort((a,b)=>(b.ms-b.ms_py)-(a.ms-a.ms_py));
+  if(ent.length)L.push(ins('Facewash','Skin-care brands are gaining',ent.map(b=>`${esc(b.n)} ${f1(b.ms_py)}→${f1(b.ms)}%`).join(', ')+' (each +1 pp or more).','Track these monthly; they overlap the same shoppers.','warn',['fw']));
+
+  if(FW_PREM&&ok(FW_PREM.mamaearth)&&ok(FW_PREM.category))
+    L.push(ins('Facewash','Premium packs (≥'+FW_PREM.min_ml+' ml) are '+f1(FW_PREM.mamaearth)+'% of Mamaearth value vs '+f1(FW_PREM.category)+'% for the category',`Pack-size mix from the Nielsen pack file; this is already ahead of the 18% premium-mix target in the tracker.`,'Reset the tracker target against this measure, or define premium differently.','info',['fw']));
+  const mA=allByName['Mamaearth']||{};
+  if(ok(mA.ms_vol)&&ok(mA.ms)&&mA.ms_vol!==mA.ms)
+    L.push(ins('Facewash','Value share '+f1(mA.ms)+'% vs volume share '+f1(mA.ms_vol)+'%',`Mamaearth sells at a ${mA.ms>mA.ms_vol?'higher':'lower'} price per ml than the category (₹${f1(mA.ppml,2)} vs ${FW_INFO&&ok(FW_INFO.ppml)?'₹'+f1(FW_INFO.ppml,2):'–'}).`,'Read price and volume together before judging share moves.','info',['fw']));
+  if(sh){
+    if(ok(sh.catYoY)&&sh.catYoY<0&&ok(sh.salesYoY)&&sh.salesYoY>0)
+      L.push(ins('Shampoo','Growth is share taken, not market lift',`Sales ${sg(sh.salesYoY,1,'%')} YoY and share ${sg(sh.bps,0,' bps')} to ${f1(sh.ms)}%, in a category that fell ${f1(Math.abs(sh.catYoY),1)}%.`,'Hold the listings that drove this; the category will not carry growth.','good',['both','sh']));
+    if(ok(sh.catYoY)&&sh.catYoY>=0&&ok(sh.salesYoY)&&ok(sh.sales)&&ok(sh.cat)){const g=sh.sales-sh.sales/(1+sh.salesYoY/100),cg=sh.cat-sh.cat/(1+sh.catYoY/100);
+      if(cg>0)L.push(ins('Shampoo','Mamaearth grew '+f1(sh.salesYoY,0)+'% in a category that grew '+f1(sh.catYoY,0)+'%',`Mamaearth added ₹${f1(g,2)} Cr of the category's ₹${f1(cg,1)} Cr gain (${f1(g/cg*100,0)}%) from a ${f1(sh.ms-(ok(sh.bps)?sh.bps/100:0))}% share base.`,'Keep the listings that drove this; the share gain is the story.','good',['both','sh']));}
+    if(ok(sh.ppValue))L.push(ins('Shampoo','Rank #'+(sh.rank||'–')+' in shampoo: each share point is worth ₹'+f1(sh.ppValue,2)+' Cr a month',`Mamaearth holds ${f1(sh.ms)}% of a ₹${f1(sh.cat,0)} Cr category.`,'Size a chain-wise shampoo target against this.','warn',['sh']));
+    const dn=(SH.brands||[]).filter(b=>b.yoy_bps<=-50),up=(SH.brands||[]).filter(b=>b.yoy_bps>=50&&b.n!=='Mamaearth');
+    if(dn.length)L.push(ins('Shampoo','Legacy leaders are ceding share',dn.map(b=>esc(b.n)+' '+sg(b.yoy_bps,0)).join(', ')+' bps'+(up.length?'; gaining: '+up.map(b=>esc(b.n)+' '+sg(b.yoy_bps,0)).join(', ')+' bps':'')+'.','Target the shoppers moving away from these brands.','info',['sh']));
+    if(PACKF&&PACKF.buckets&&PACKF.buckets.length){
+      const big=PACKF.buckets.find(b=>b.sz==='>200ml'),small=PACKF.buckets.filter(b=>b.sz!=='>200ml'&&ok(b.yoy));
+      if(big)L.push(ins('Shampoo','Large packs are '+f1(big.val,0)+'% of category pack '+(PACKF.basis||'value'),`Packs over 200 ml ${sg(big.yoy,1,'%')} YoY${small.length?'; the smaller buckets '+small.map(b=>b.sz+' '+sg(b.yoy,0,'%')).join(', '):''}${PACKF.top&&PACKF.top.length?'. Largest packs: '+PACKF.top.slice(0,3).map(p=>n0(parseFloat(p.sz))+' ml '+f1(p.share,0)+'%').join(', '):''}.`,
+        'Check Mamaearth’s own pack mix against this; the file is category level.','warn',['sh']));}
+    if(sh.hasReach){
+      const dv=allByName['Dove'];const bs=(SH.brands||[]).filter(b=>b.n!=='Mamaearth'&&ok(b.wd)&&ok(b.stores)).sort((a,b)=>b.ms-a.ms)[0];
+      L.push(ins('Shampoo','Reach is the gap: WD '+f1(sh.wd)+'%, '+n0(sh.stores)+' stores',`Mamaearth shampoo is in ${n0(sh.stores)} stores at ₹${n0(sh.pdo)} each${ok(sh.wdPY)?`; WD ${sg(sh.wd-sh.wdPY,1,' pp')} YoY`:''}${bs?`. ${esc(bs.n)} (largest) reaches ${f1(bs.wd)}% WD, ${n0(bs.stores)} stores`:''}.`,
+        'List shampoo in the facewash stores where it is missing, starting with the largest chains.','warn',['both','sh']));
+      if(ok(sh.msVol)&&ok(sh.ms))L.push(ins('Shampoo','Volume share '+f1(sh.msVol)+'% vs value share '+f1(sh.ms)+'%',`Mamaearth sells ₹${f1(sh.ppml,2)} per ml against ₹${f1(sh.catPpml,2)} for the category; the gap is price mix, not only volume.`,'Check whether the pack mix (mostly >200 ml) is the reason for the lower price per ml.','info',['sh']));}
+    else L.push(ins('Shampoo','Distribution cannot be sized','This payload has no shampoo weighted distribution, numeric distribution or store count.','Ask for the shampoo distribution cut with the next Nielsen pull.','alert',['sh']));
   }
-}
-
-/* ── CHART DEFAULTS ── */
-function isDark(){
-  const dt=document.documentElement.getAttribute('data-theme');
-  if(dt==='dark') return true;
-  if(dt==='light') return false;
-  return window.matchMedia('(prefers-color-scheme:dark)').matches;
-}
-function chartDefaults(){
-  const dark=isDark();
-  return{
-    color:dark?'#94A3B8':'#64748B',
-    gridColor:dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)',
-    tickColor:dark?'#64748B':'#94A3B8',
+  /* price, depth and headroom cuts, Facewash and Shampoo */
+  const cutIns=(name,list,catPpml,views,unit)=>{
+    const m=(list||[]).find(b=>b.n==='Mamaearth');if(!m)return;
+    if(ok(m.ppml)&&ok(catPpml)&&catPpml>0){const ix=m.ppml/catPpml*100,ch=ok(m.ppml_py)&&m.ppml_py>0?(m.ppml/m.ppml_py-1)*100:null;
+      L.push(ins(name,'Price position: index '+Math.round(ix)+' against the category',`Mamaearth ₹${f1(m.ppml,2)} per ml vs category ₹${f1(catPpml,2)}${ok(ch)?`; our price per ml moved ${sg(ch,1,'%')} YoY`:''}. ${ix>=110?'We are a premium brand here: the share is earned at a price above average.':ix<=90?'We price below the category; a price rise has room only if share holds.':'We sit close to the category price.'}`,
+        'Read price per ml next to the pack mix before any promo or price move.',ix>=110?'info':'info',views));}
+    if(ok(m.wd)&&ok(m.nd)){const gap=m.wd-m.nd;
+      L.push(ins(name,'We are in '+f1(m.wd,0)+'% of weighted distribution but '+f1(m.nd,0)+'% of stores',`The ${f1(gap,0)} point gap means we are in the larger stores first; the smaller stores are still open.`,'Use the distributor route for the smaller stores; keep the chain listings for the large ones.',gap>=15?'warn':'info',views));}
+    if(ok(m.sah)&&ok(m.ms)&&ok(m.wd)&&m.wd<95){const full=m.sah*0.95;
+      L.push(ins(name,'Where we are listed we hold '+f1(m.sah,1)+'%, overall '+f1(m.ms,1)+'%',`If the stores we are missing sold like the stores we are in, a 95% weighted distribution would give about ${f1(full,1)}% share (${sg(full-m.ms,1,' pp')}).`,'This is the ceiling for the distribution lever; the Facewash plan sizes it in rupees.',full>m.ms?'good':'info',views));}
+    const wdUp=(list||[]).filter(b=>ok(b.wd)&&ok(b.wd_py)&&b.n!=='Mamaearth').sort((a,b)=>(b.wd-b.wd_py)-(a.wd-a.wd_py))[0];
+    if(wdUp&&wdUp.wd-wdUp.wd_py>=2)L.push(ins(name,esc(wdUp.n)+' added '+f1(wdUp.wd-wdUp.wd_py,1)+' WD points in a year',`WD ${f1(wdUp.wd_py)}% → ${f1(wdUp.wd)}%${ok(wdUp.ms)&&ok(wdUp.ms_py)?`; its share ${f1(wdUp.ms_py)}% → ${f1(wdUp.ms)}%`:''}.`,'Check which chains it was listed in and whether it is taking our shelf.','warn',views));
+    const movers=(list||[]).filter(b=>b.n!=='Mamaearth'&&ok(b.ppml)&&ok(b.ppml_py)&&b.ppml_py>0&&b.ms>=2).map(b=>({n:b.n,c:(b.ppml/b.ppml_py-1)*100})).filter(x=>Math.abs(x.c)>=8).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c)).slice(0,3);
+    if(movers.length)L.push(ins(name,'Price per ml moved 8% or more: '+movers.map(x=>esc(x.n)+' '+sg(x.c,0,'%')).join(', '),'Brands with at least 2% share. A drop is a price cut, pack change or promo; a rise is a price rise or a move to bigger or premium packs.','Look at pack-wise brands below before reading this as a price war.','info',views));
   };
+  cutIns('Facewash',FW_ALL,FW_INFO&&FW_INFO.ppml,['fw'],'pp');
+  if(SH)cutIns('Shampoo',SH.brands,SH.category_ppml,['sh'],'bps');
+  if(sh&&ok(sh.ppValue)&&ok(fw.ppValue))
+    L.push(ins('Both','A shampoo share point is worth '+f1(sh.ppValue/fw.ppValue,1)+'× a facewash point',`₹${f1(sh.ppValue,2)} Cr vs ₹${f1(fw.ppValue,2)} Cr a month, while Mamaearth holds ${f1(fw.ms)}% of Facewash and ${f1(sh.ms)}% of Shampoo.`,(sh.sameMonth?'Weigh shampoo higher when choosing where to push; same market and month, so the ratio is comparable.':'Weigh shampoo higher when choosing where to push; read as indicative (different months and universes).'),'alert',['both']));
+  if(sh&&!sh.sameMonth)L.push(ins('Both','Periods differ',`Facewash is ${esc(MONTHS[last])}; Shampoo is ${esc(SH.period)} (${esc(SH.basis)}). Compare direction, not level.`,'Refresh Shampoo with the July pull.','info',['both']));
+  return L;
 }
-function baseOpts(extra={}){
-  const cd=chartDefaults();
-  return Object.assign({
-    responsive:true,maintainAspectRatio:true,
-    plugins:{legend:{display:false},tooltip:{callbacks:{}}},
-    scales:{
-      x:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor},border:{display:false}},
-      y:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor},border:{display:false}},
-    }
-  },extra);
-}
-
-/* ── OVERVIEW CHARTS ── */
-function initOverviewCharts(){
-  const cd=chartDefaults();
-
-  /* Trend line */
-  new Chart(document.getElementById('c-trend'),{
-    type:'line',
-    data:{
-      labels:MONTHS,
-      datasets:[{
-        label:'Market Share %',data:MS_,
-        borderColor:AC,backgroundColor:'rgba(37,99,235,.12)',
-        fill:true,tension:.4,pointRadius:3,pointBackgroundColor:AC,
-      }]
-    },
-    options:{...baseOpts(),scales:{
-      x:{grid:{display:false},ticks:{color:cd.tickColor,maxRotation:45,font:{size:10}},border:{display:false}},
-      y:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor,callback:v=>v+'%'},border:{display:false},suggestedMin:6,suggestedMax:14},
-    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+'%'}}}}
-  });
-
-  /* Comp bar */
-  const sorted=[...BRANDS].sort((a,b)=>b.nsv-a.nsv);
-  const colors=sorted.map(b=>b.n==='Mamaearth'?AC:GREY);
-  new Chart(document.getElementById('c-comp'),{
-    type:'bar',
-    data:{
-      labels:sorted.map(b=>b.n),
-      datasets:[{label:'NSV ₹ Cr',data:sorted.map(b=>b.nsv),backgroundColor:colors,borderRadius:3}]
-    },
-    options:{...baseOpts(),indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.parsed.x.toFixed(1)+' Cr'}}},
-      scales:{x:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor},border:{display:false}},
-              y:{grid:{display:false},ticks:{color:cd.tickColor,font:{size:11}},border:{display:false}}}}
-  });
-
-  /* NSV+WD combo */
-  new Chart(document.getElementById('c-nsv-wd'),{
-    type:'bar',
-    data:{
-      labels:MONTHS,
-      datasets:[
-        {type:'bar',label:'NSV ₹ Cr',data:NSV_,backgroundColor:'rgba(37,99,235,.65)',borderRadius:2,yAxisID:'y'},
-        {type:'line',label:'WD %',data:WD_,borderColor:GREEN,backgroundColor:'transparent',tension:.4,pointRadius:2,yAxisID:'y2'},
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{display:true,labels:{color:cd.color,boxWidth:10,font:{size:11}}},
-               tooltip:{mode:'index',intersect:false}},
-      scales:{
-        x:{grid:{display:false},ticks:{color:cd.tickColor,maxRotation:45,font:{size:9}},border:{display:false}},
-        y:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor,callback:v=>'₹'+v},border:{display:false},position:'left'},
-        y2:{grid:{display:false},ticks:{color:GREEN,callback:v=>v+'%'},border:{display:false},position:'right'},
-      }
-    }
-  });
+function buildInsights(){
+  const L=insightList().filter(i=>i.views.includes(view));
+  el('ins-grid').innerHTML=L.map(i=>`<div class="ins ${i.kind==='info'?'':i.kind}"><div class="ins-tag">${esc(i.tag)}</div><div class="ins-t">${i.title}</div><div class="ins-x">${i.text}</div><div class="ins-a"><b>Action:</b> ${i.action}</div></div>`).join('')||'<div class="note">No insights available for this payload.</div>';
+  el('ins-note').textContent='('+L.length+', computed from the data)';
 }
 
-/* ── MARKET SHARE CHARTS ── */
-function initMarketShareCharts(){
-  const cd=chartDefaults();
-  const sorted=[...BRANDS].sort((a,b)=>b.ms-a.ms);
-
-  new Chart(document.getElementById('c-ms-bar'),{
-    type:'bar',
-    data:{
-      labels:sorted.map(b=>b.n),
-      datasets:[{
-        label:'Market Share %',
-        data:sorted.map(b=>b.ms),
-        backgroundColor:sorted.map(b=>b.n==='Mamaearth'?AC:GREY),
-        borderRadius:4,
-      }]
-    },
-    options:{
-      ...baseOpts(),indexAxis:'y',
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x.toFixed(1)+'%'}}},
-      scales:{
-        x:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor,callback:v=>v+'%'},border:{display:false}},
-        y:{grid:{display:false},ticks:{color:cd.tickColor,font:{size:12}},border:{display:false}},
-      }
-    }
-  });
+/* ── opportunity cards (formulas shown) ── */
+function buildOpp(){
+  const stM=allByName['Mamaearth'],stH=allByName['Himalaya'],him=BRANDS.find(b=>b.n==='Himalaya')||{};
+  const cards=[];
+  if(stM&&stH&&ok(stM.stores)&&ok(stH.stores)&&ok(fw.pdo)){
+    const extra=stH.stores-stM.stores,ub=extra*fw.pdo/1e7;
+    cards.push(['₹'+f1(ub,1)+' Cr','Reach: match Himalaya’s store count',`${n0(extra)} more stores × ₹${n0(fw.pdo)} per store.`,`Upper bound. At half the per-store sales: ₹${f1(ub/2,1)} Cr.`]);}
+  if(ok(him.pdo)&&ok(fw.pdo)&&ok(fw.stores)){
+    const up=(him.pdo-fw.pdo)*fw.stores/1e7;
+    cards.push(['₹'+f1(up,1)+' Cr','Productivity: match Himalaya per store',`(₹${n0(him.pdo)} − ₹${n0(fw.pdo)}) × ${n0(fw.stores)} stores; a ${f1((him.pdo/fw.pdo-1)*100,0)}% gap.`,`If half the gap closes: ₹${f1(up/2,1)} Cr.`]);}
+  if(sh&&ok(sh.ppValue))cards.push(['₹'+f1(sh.ppValue,1)+' Cr','Shampoo: +1 pp of share',`${f1(sh.cat,0)} Cr category ÷ 100, ${esc(SH.period)} base.`,`+0.5 pp: ₹${f1(sh.ppValue/2,1)} Cr.`]);
+  if(sh&&sh.hasReach&&ok(sh.pdo)&&ok(fw.stores)&&fw.stores>sh.stores){const ex=fw.stores-sh.stores,ub=ex*sh.pdo/1e7;
+    cards.push(['₹'+f1(ub,1)+' Cr','Shampoo reach: match the facewash store count',`${n0(ex)} more stores × ₹${n0(sh.pdo)} per store.`,`Upper bound. At half the per-store sales: ₹${f1(ub/2,1)} Cr.`]);}
+  if(ok(fw.ppValue))cards.push(['₹'+f1(fw.ppValue,2)+' Cr','Facewash: +1 pp of share',`${f1(fw.cat,1)} Cr category ÷ 100, ${esc(MONTHS[last])} base.`,`+0.5 pp: ₹${f1(fw.ppValue/2,2)} Cr.`]);
+  el('opp-grid').innerHTML=cards.map(c=>`<div class="opp"><div class="opp-n">${c[0]}</div><div class="opp-l">${c[1]}</div><div class="opp-d">${c[2]}</div><div class="opp-s">${c[3]}</div></div>`).join('')||'<div class="note">Not enough data to size.</div>';
+  el('foot-opp').textContent='Monthly run-rate, not annualised; sized against the latest month in each category. Shampoo cross-sell sizing is not shown (no store-level overlap in the Nielsen file).';
 }
 
-/* ── PACK SIZE CHARTS ── */
-function initPackSizeCharts(){
-  /* FW donut */
-  new Chart(document.getElementById('c-fw-donut'),{
-    type:'doughnut',
-    data:{
-      labels:FW_PACKS.map(p=>p.sz),
-      datasets:[{data:FW_PACKS.map(p=>p.val),backgroundColor:FW_PACKS.map(p=>p.clr),borderWidth:0}]
-    },
-    options:{responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{display:true,position:'right',labels:{color:isDark()?'#94A3B8':'#64748B',font:{size:11}}},
-               tooltip:{callbacks:{label:c=>c.label+': '+c.parsed.toFixed(1)+'%'}}}}
-  });
-  /* SH donut */
-  new Chart(document.getElementById('c-sh-donut'),{
-    type:'doughnut',
-    data:{
-      labels:SH_PACKS.map(p=>p.sz),
-      datasets:[{data:SH_PACKS.map(p=>p.val),backgroundColor:SH_PACKS.map(p=>p.clr),borderWidth:0}]
-    },
-    options:{responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{display:true,position:'right',labels:{color:isDark()?'#94A3B8':'#64748B',font:{size:11}}},
-               tooltip:{callbacks:{label:c=>c.label+': '+c.parsed.toFixed(1)+'%'}}}}
-  });
+/* ── tracker ── */
+const STORE_KEY='ms-tracker-v1';let checks={};try{checks=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');}catch(e){}
+const CHK={fw_wd:()=>fw.wd,fw_nsv:()=>fw.nsv,fw_pdo:()=>fw.pdo,fw_wd_vs_garnier:()=>{const g=BRANDS.find(b=>b.n==='Garnier');return g&&ok(g.wd)&&ok(fw.wd)?fw.wd-g.wd:null;},
+  fw_premium_mix:()=>FW_PREM&&FW_PREM.mamaearth};
+function chip(a){const c=a.check;if(!c||!CHK[c.metric])return '';const v=CHK[c.metric]();if(!ok(v))return '<span class="st na">no data</span>';
+  const met=c.op==='>='?v>=c.target:c.op==='>'?v>c.target:false;
+  return `<span class="st ${met?'met':'notmet'}" title="${esc(c.label||'')}">${met?'Met':'Not yet'} · ${f1(v,v>=1000?0:1)} vs ${c.target}</span>`;}
+function trackerItems(id,list){el(id).innerHTML=(list||[]).map((a,i)=>{const k=id+'_'+i,c=!!checks[k];
+  return `<div class="t-item${c?' done':''}" id="ti-${k}"><div class="t-check${c?' checked':''}" onclick="toggleCheck('${k}')"></div><div><div class="t-title">${esc(a.title)} ${chip(a)}</div>
+  <div class="t-meta"><span>${esc(a.owner)}</span><span>${esc(a.budget)}</span><span>Due: ${esc(a.due)}</span></div><div class="t-desc">${esc(a.desc)}</div></div></div>`;}).join('');}
+function toggleCheck(k){checks[k]=!checks[k];try{localStorage.setItem(STORE_KEY,JSON.stringify(checks));}catch(e){}
+  const it=el('ti-'+k);it.classList.toggle('done',checks[k]);it.querySelector('.t-check').classList.toggle('checked',checks[k]);updateProg();}
+function updateProg(){const t=(AUG_ACTIONS||[]).length+(SEP_ACTIONS||[]).length,d=Object.values(checks).filter(Boolean).length,p=t?Math.round(d/t*100):0;
+  el('prog-pct').textContent=p+'%';el('prog-fill').style.width=p+'%';}
+
+/* ── Chains & Packs tab: every figure comes from the payload; missing blocks hide their section ── */
+function hide(id){const e=el(id);if(e)e.style.display='none';}
+function tbody(id,rows,cell){const e=el(id);if(!e)return;e.innerHTML=rows.map(cell).join('')||'<tr><td colspan="9" class="l">Not available in this payload.</td></tr>';}
+const pretty=s=>String(s||'').split(' ').map(w=>w.length<=3?w.toUpperCase():w.charAt(0)+w.slice(1).toLowerCase()).join(' ');
+const chipFor=s=>`<span class="st ${s==='Present'?'ok':s==='Under-indexed'||s==='Under-weight'?'warn':'notmet'}">${esc(s)}</span>`;
+function buildChains(){
+  const C=CHAINS&&CHAINS.contribution||[];
+  if(!C.length){hide('ch-tbody');el('ch-note').textContent='No chain data in this payload.';}
+  else{
+    const top=C.slice(0,6),tot=C.reduce((a,c)=>a+(c.ty||0),0),totLY=C.reduce((a,c)=>a+(c.ly||0),0),g=tot-totLY;
+    const top3=top.slice(0,3),sg3=top3.reduce((a,c)=>a+(ok(c.share_of_growth_pct)?c.share_of_growth_pct:0),0),shr6=top.reduce((a,c)=>a+(c.share_ty_pct||0),0);
+    el('ch-kpis').innerHTML=[kpi('Offtake NSV ₹L',n0(tot),'Apr-Aug this year, ex Brand Counter','mut'),kpi('Same months last year',n0(totLY),sg(totLY>0?(tot/totLY-1)*100:null,0,'% growth'),'up'),
+      kpi('Top 6 chains',f1(shr6,0)+'%','of NSV','mut'),kpi('Top 3 chains',f1(sg3,0)+'%','of total growth','mut')].join('');
+    el('ch-note').textContent=`Honasa internal offtake (chain level, ex Reliance Brand Counter), ${top.map(c=>c.Chain).slice(0,3).map(pretty).join(', ')} first. Internal NSV is not Nielsen consumer offtake, so read the link to share as direction, not a split of the ${sg(fw.dpp,1,' pp')} share gain.`;
+    tbody('ch-tbody',top,c=>`<tr><td>${esc(pretty(c.Chain))}</td><td>${n0(c.ty)}</td><td>${f1(c.share_ty_pct)}</td><td>${n0(c.ly)}</td><td><span class="pill ${c.growth_pct>0?'pill-up':c.growth_pct<0?'pill-dn':'pill-0'}">${sg(c.growth_pct,0)}</span></td><td>${f1(c.share_of_growth_pct,0)}</td><td>${ok(c.mamaearth_pct_of_chain)?f1(c.mamaearth_pct_of_chain,0):'–'}</td></tr>`);
+    bridge('ch-bridge',top.map(c=>({n:pretty(c.Chain),d:c.contrib_pp})),'pp',d=>sg(d,1),0);
+  }
+  if(DECK&&DECK.fair_share){const F=DECK.fair_share,k=cd();
+    const line=(id,labels,series)=>mk(id,{type:'line',data:{labels,datasets:series.map((s,i)=>({label:s[0],data:s[1],borderColor:i?GREY:AC,backgroundColor:'transparent',tension:.3,pointRadius:2}))},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:k.col,boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+'%'}}},
+        scales:{x:{grid:{display:false},ticks:{color:k.tick,font:{size:9}},border:{display:false}},y:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>v+'%'},border:{display:false}}}}});
+    line('c-fair-fw',F.quarters_dmart,[['Dmart',F.dmart_fw],['Reliance (to Q4\'25)',F.reliance_fw.concat([null])]]);
+    line('c-fair-sh',F.quarters_dmart,[['Dmart',F.dmart_sh],['Reliance (to Q4\'25)',F.reliance_sh.concat([null])]]);
+    el('fair-note').textContent=F.note+'. Dmart shampoo: our share slipped while the chain\'s category grew, so the gap is shelf capture, not demand.';
+  }else{hide('deck-fair');}
+  if(DECK&&DECK.state_exposure){
+    const two=(a,b)=>(ok(a)?a:'–')+' / '+(ok(b)?b:'–');
+    tbody('st-tbody',DECK.state_exposure,s=>`<tr><td>${esc(s.state)}</td><td>${n0(s.mkt_fw)}</td><td>${n0(s.mkt_sh)}</td><td>${f1(s.me_fw)}</td><td>${f1(s.me_sh)}</td><td>${two(s.dmart_fw,s.dmart_sh)}</td><td>${two(s.rel_fw,s.rel_sh)}</td><td>${two(s.apollo_fw,s.apollo_sh)}</td><td class="l">${esc(s.lever)}</td></tr>`);
+  }else{hide('deck-state');}
 }
-
-/* ── OPPORTUNITY CHARTS ── */
-function initOpportunityCharts(){
-  const cd=chartDefaults();
-
-  /* Scatter: WD vs PDO */
-  new Chart(document.getElementById('c-scatter'),{
-    type:'bubble',
-    data:{
-      datasets:[{
-        label:'Brands',
-        data:BRANDS.map(b=>({x:b.wd,y:b.pdo,r:Math.sqrt(b.nsv)*3.5,brand:b.n,me:b.n==='Mamaearth'})),
-        backgroundColor:BRANDS.map(b=>b.n==='Mamaearth'?'rgba(37,99,235,.7)':'rgba(148,163,184,.5)'),
-        borderColor:BRANDS.map(b=>b.n==='Mamaearth'?AC:'transparent'),
-        borderWidth:2,
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:true,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{
-          label:c=>{
-            const d=c.raw;
-            return[`${d.brand}`,`WD: ${d.x}%`,`PDO: ₹${d.y.toLocaleString()}`];
-          }
-        }}
-      },
-      scales:{
-        x:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor,callback:v=>v+'%'},border:{display:false},title:{display:true,text:'Weighted Distribution %',color:cd.color}},
-        y:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor,callback:v=>'₹'+v.toLocaleString()},border:{display:false},title:{display:true,text:'Per Door Output ₹',color:cd.color}},
-      }
-    }
-  });
-
-  /* Stores trend */
-  new Chart(document.getElementById('c-stores'),{
-    type:'line',
-    data:{
-      labels:MONTHS,
-      datasets:[{
-        label:'Stores Selling',data:STORES_,
-        borderColor:GREEN,backgroundColor:'rgba(5,150,105,.1)',
-        fill:true,tension:.4,pointRadius:3,pointBackgroundColor:GREEN,
-      }]
-    },
-    options:{...baseOpts(),
-      scales:{
-        x:{grid:{display:false},ticks:{color:cd.tickColor,maxRotation:45,font:{size:9}},border:{display:false}},
-        y:{grid:{color:cd.gridColor},ticks:{color:cd.tickColor,callback:v=>v.toLocaleString()},border:{display:false},suggestedMin:9000},
-      },
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toLocaleString()+' stores'}}}
-    }
-  });
+const yo=v=>!ok(v)?'–':Math.abs(v)>500?'new':sg(v,0,'%');
+function packRows(G){
+  const rows=(G&&G.rows||[]).slice().sort((a,b)=>b.cat_share-a.cat_share),main=rows.filter(r=>r.cat_share>=0.2),rest=rows.filter(r=>r.cat_share<0.2);
+  const out=main.map(r=>`<tr><td>${esc(r.size)}</td><td>${f1(r.cat_amount,2)}</td><td>${f1(r.cat_share,1)}</td><td>${f1(r.vol_share,1)}</td><td>${f1(r.price_ml,2)}</td><td>${yo(r.cat_yoy)}</td><td>${f1(r.me_amount,2)}</td><td>${f1(r.me_mix,1)}</td><td>${f1(r.me_share_in_pack,1)}</td><td>${ok(r.wd)?f1(r.wd,0):'–'}</td><td class="l">${chipFor(r.status)}</td><td>${r.opp_cr>0?f1(r.opp_cr,2):'–'}</td></tr>`);
+  if(rest.length){const sh=rest.reduce((a,r)=>a+r.cat_share,0),va=rest.reduce((a,r)=>a+r.cat_amount,0),np=rest.filter(r=>r.status!=='Present').length,op=rest.reduce((a,r)=>a+(r.opp_cr||0),0);
+    out.push(`<tr><td>${rest.length} small packs</td><td>${f1(va,2)}</td><td>${f1(sh,1)}</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td class="l">${np} not present</td><td>${f1(op,2)}</td></tr>`);}
+  return out;
 }
-
-/* ── INIT DISPATCH ── */
-function initTabCharts(i){
-  if(i===0) initOverviewCharts();
-  else if(i===1) initMarketShareCharts();
-  else if(i===2) initPackSizeCharts();
-  else if(i===3) initOpportunityCharts();
-  // tab 4 has no charts
+function buildPacks(){
+  if(!FW_GAP&&!SH_GAP){hide('pk-note');return;}
+  const sum=(G,s)=>G?G.rows.filter(r=>r.status===s).length:0,opp=G=>G?G.rows.reduce((a,r)=>a+(r.opp_cr||0),0):0,big=G=>G?G.rows.filter(r=>r.status!=='Present'&&r.cat_share>=1).sort((a,b)=>b.opp_cr-a.opp_cr)[0]:null;
+  const kp=[];
+  if(FW_GAP){const b=big(FW_GAP);kp.push(kpi('Facewash packs not present',String(sum(FW_GAP,'Not present')),'of '+FW_GAP.rows.length+' sold in the category','mut'),kpi('Facewash gap ₹Cr / month',f1(opp(FW_GAP),2),b?'biggest: '+b.size+' ml ('+f1(b.cat_share,1)+'% of value)':'','mut'));}
+  if(SH_GAP){const b=big(SH_GAP);kp.push(kpi('Shampoo packs not present',String(sum(SH_GAP,'Not present')),'of '+SH_GAP.rows.length+' sold in the category','mut'),kpi('Shampoo gap ₹Cr / month',f1(opp(SH_GAP),1),b?'biggest: '+b.size+' ml ('+f1(b.cat_share,1)+'% of value)':'','mut'));}
+  el('pk-kpis').innerHTML=kp.join('');
+  el('pk-note').textContent='Gap = category pack size x (our overall share - our share in that pack). It is what we would sell if we held our overall share in the pack. Not every pack is a fit for the brand (check that it is a format we can make, for example sachet or bulk sizes); read it as a list to check, not a target. '+(SH_GAP?SH_GAP.note:'')+' Contribution % is the pack\'s share of category value; ME contribution % is the pack\'s share of our own value.';
+  tbody('fwp-tbody',packRows(FW_GAP),x=>x);tbody('shp-tbody',packRows(SH_GAP),x=>x);
 }
-
-/* ── COMP TABLE ── */
-function buildCompTable(){
-  const tb=document.getElementById('comp-tbody');
-  BRANDS.forEach(b=>{
-    const me=b.n==='Mamaearth';
-    const ppCls=b.pp>0?'up':b.pp<0?'dn':'mut';
-    const yoyCls=b.yoy>0?'up':b.yoy<0?'dn':'mut';
-    const pillCls=b.pp>0?'pill-up':b.pp<0?'pill-dn':'pill-0';
-    tb.innerHTML+=`<tr${me?' class="hl"':''}>
-      <td>${b.n}</td>
-      <td>₹${b.nsv.toFixed(1)}</td>
-      <td>${b.ms.toFixed(1)}%</td>
-      <td><span class="pill ${pillCls}">${b.pp>0?'+':''}${b.pp.toFixed(1)}pp</span></td>
-      <td class="${yoyCls}">${b.yoy>0?'+':''}${b.yoy.toFixed(1)}%</td>
-      <td>${b.stores.toLocaleString()}</td>
-      <td>${b.wd.toFixed(1)}%</td>
-      <td>₹${b.pdo.toLocaleString()}</td>
-    </tr>`;
-  });
+function buildVisit(){
+  if(!VC||!VC.cities){hide('sec-vc');return;}
+  const C=VC.cities,mons=VC.months||[],last=mons.length?mons[mons.length-1].replace(/ \d+$/,''):'',prev=mons.length>1?mons[mons.length-2].replace(/ \d+$/,''):'';
+  const sc=(VC.stats&&VC.stats.status_counts)||{},cov=VC.coverage||{};
+  el('vc-kpis').innerHTML=[kpi('Listed cities with sales',String(C.filter(c=>c.Stores>0).length)+' of '+C.length,'','mut'),kpi('Stores in listed cities',n0(sc['Considered']),'Considered','mut'),
+    kpi('Near-listed stores',n0(sc['Near listed city']),'third option','mut'),kpi('In store master file',n0(cov.in_master_file)+' of '+n0(cov.stores_sold),f1(cov.nsv_in_master_pct,0)+'% of NSV','mut')].join('');
+  el('vc-note').textContent=(VC.note||'')+' Top 8 cities by NSV get 5 beats, others 3. Latest month '+(last||'–')+' vs '+(prev||'–')+'.';
+  tbody('vc-tbody',C.slice().sort((a,b)=>(b.NSV_total_exBC||0)-(a.NSV_total_exBC||0)),c=>{const a=c['NSV_'+last],b=c['NSV_'+prev];const mom=ok(a)&&ok(b)&&b>0?(a/b-1)*100:null;
+    return `<tr><td class="l">${esc(c.Region)}</td><td class="l">${esc(c.City)}${c.Top8?' <span class="st ok">top 8</span>':''}</td><td>${c.Beats}</td><td>${n0(c.Stores)}</td><td>${n0(c.NSV_total_exBC)}</td><td>${n0(a)}</td><td>${sg(mom,0)}</td><td>${n0(c.NSV_BC)}</td><td>${ok(c.Near_listed_NSV)&&c.Near_listed_NSV>0?n0(c.Near_listed_NSV):'–'}</td></tr>`;});
+  tbody('vn-tbody',(VC.stats&&VC.stats.near_listed)||[],n=>`<tr><td class="l">${esc(n.city)}</td><td class="l">${esc(n.nearest_listed)}</td><td class="l">${esc(n.state)}</td><td>${n0(n.stores)}</td><td>${n0(n.nsv_total)}</td></tr>`);
 }
-
-/* ── SHARE BRIDGE ── */
-function buildBridge(){
-  const wrap=document.getElementById('bridge-wrap');
-  const sorted=[...BRANDS].sort((a,b)=>b.pp-a.pp);
-  const maxAbs=Math.max(...sorted.map(b=>Math.abs(b.pp)));
-  sorted.forEach(b=>{
-    const me=b.n==='Mamaearth';
-    const pos=b.pp>=0;
-    const clr=me?AC:pos?GREEN:RED;
-    const w=Math.round(Math.abs(b.pp)/maxAbs*100);
-    const sign=b.pp>0?'+':'';
-    wrap.innerHTML+=`<div class="bridge-row">
-      <div class="bridge-brand" style="color:${me?'var(--accent)':'inherit'}">${b.n}</div>
-      <div class="bridge-area">
-        <div class="bridge-bar" style="width:${w}%;background:${clr}"></div>
-      </div>
-      <div class="bridge-val" style="color:${clr}">${sign}${b.pp.toFixed(1)}pp</div>
-    </div>`;
-  });
+function buildAccount(){
+  if(!ACCT||!ACCT.chains){['ac-s1','ac-s2','ac-s3','ac-s4','ac-s5','ac-s6'].forEach(hide);el('ac-note').textContent='Account share data is not in this payload.';return;}
+  const chains=Object.keys(ACCT.chains),k=cd();
+  el('ac-note').textContent='Monthly: Lulu, More Retail, Wellness Forever and Reliance (retailer files). Dmart: quarterly, from the review deck. Value Rs lakh; Reliance is gross sales as supplied, so compare shares, not rupees.';
+  tbody('ac-tbody',chains,n=>{const c=ACCT.chains[n];return `<tr><td class="l">${esc(n)}</td><td class="l">${esc(c.latest)}</td><td>${n0(c.account_latest)}</td><td>${n0(c.honasa_latest)}</td><td>${f1(c.share_latest,2)}</td><td>${sg(c.share_change_pp,2)}</td><td>${sg(c.account_mom_pct,1)}</td><td>${sg(c.honasa_mom_pct,1)}</td><td>${f1(c.fw_share_latest,1)}</td><td class="l wrap">${esc(c.scope)}</td></tr>`;});
+  el('ac-s1-note').textContent='Share = our sales / the chain\'s own category sales. Lulu and More cover the categories where we sell, so the share is a share of what the chain sells where we are present; Wellness lists every category. More Retail months before Jun 26 cover fewer categories and are not comparable with Jun-Aug: they are dashed on the charts and MoM uses Jun-Aug only. Reliance Retail is the Reliance stores outside the brand counters (RRL Others, the categories outside the file\'s own pivots, left out); Reliance Brand Counter is the staffed counter stores, kept apart and never added to Reliance Retail.';
+  const cols={'Lulu':'#2563EB','More Retail':'#D97706','Wellness Forever':'#059669','Reliance Retail':'#7C3AED','Reliance Brand Counter':'#DB2777'};
+  const allM=[...new Set(chains.flatMap(n=>ACCT.chains[n].series.map(s=>s.month)))].sort((a,b)=>{const m=x=>{const [mo,y]=x.split(' ');return +y*12+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mo);};return m(a)-m(b);});
+  const line=(id,key)=>mk(id,{type:'line',data:{labels:allM,datasets:chains.map(n=>{const by=Object.fromEntries(ACCT.chains[n].series.map(s=>[s.month,s]));
+      return {label:n,data:allM.map(m=>by[m]?by[m][key]:null),borderColor:cols[n]||GREY,backgroundColor:'transparent',tension:.25,pointRadius:2,spanGaps:true,
+        segment:{borderDash:ctx=>{const m=allM[ctx.p1DataIndex],s=by[m];return s&&!s.scope_ok?[5,4]:undefined;}}};})},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:k.col,boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'–':c.parsed.y.toFixed(1)+'%')}}},
+      scales:{x:{grid:{display:false},ticks:{color:k.tick,font:{size:9},maxRotation:45},border:{display:false}},y:{grid:{color:k.grid},ticks:{color:k.tick,callback:v=>v+'%'},border:{display:false}}}}});
+  line('c-ac-fw','fw_share');line('c-ac-all','share');
+  el('ac-chart-note').textContent='Dashed = More Retail months on the smaller (to May 26) scope. Face wash & cleanser groups Face Wash and Facial Cleanser (Lulu), Face Wash, Face Cleansers and Cleanser (Wellness), and the Facial Cleanser class (More).';
+  tbody('tg-tbody',ACCT.together||[],x=>`<tr><td class="l">${esc(x.chain)}</td><td class="l">${esc(x.period)}</td><td>${f1(x.fw_share,1)}</td><td>${f1(x.sh_share,1)}</td><td>${n0(x.fw_account)}</td><td>${n0(x.fw_honasa)}</td><td class="l wrap">${esc(x.basis)}: ${esc(x.scope)}</td></tr>`);
+  // top 5 selectors
+  const T=ACCT.top5||[],selC=el('t5-chain'),selL=el('t5-level'),selN=el('t5-name');
+  selC.innerHTML=chains.map(n=>`<option>${esc(n)}</option>`).join('');
+  const fillNames=()=>{const names=[...new Set(T.filter(x=>x.chain===selC.value&&x.level===selL.value).map(x=>x.name))];selN.innerHTML=names.map(n=>`<option>${esc(n)}</option>`).join('')||'<option>–</option>';drawT5();};
+  const drawT5=()=>{const rows=T.filter(x=>x.chain===selC.value&&x.level===selL.value&&x.name===selN.value);
+    el('t5-note').textContent=rows.length?`${selC.value} · ${selL.value==='Chain'?'whole chain':selL.value+' '+selN.value} · ${rows[0].month}. Account and our sales side by side; MoM is shown at chain level.`:`${selC.value} has no ${selL.value.toLowerCase()} cut in its file (Wellness Forever: category level only; More Retail: DC city, Jun-Aug).`;
+    tbody('t5-tbody',rows,x=>`<tr><td class="l">${esc(x.category)}</td><td class="l">${esc(x.common)}</td><td>${n0(x.account)}</td><td>${n0(x.honasa)}</td><td>${f1(x.share,2)}</td><td>${x.pct_of_geo!=null?f1(x.pct_of_geo,1):'–'}</td><td>${sg(x.account_mom,1)}</td><td>${sg(x.honasa_mom,1)}</td></tr>`.replace('<tr>',x.relevant===false?'<tr style="opacity:.55" title="Not a category for us: shown for size only, never flagged">':'<tr>'));};
+  selC.onchange=selL.onchange=fillNames;selN.onchange=drawT5;fillNames();
+  // flags
+  el('fl-note').textContent='White space: the category is 2% or more of the chain\'s category sales and our share is under 0.5%. Low assortment: 3 or fewer of our articles and share under the chain average. Below chain average: under half our chain-wide share. Strong: 1.5 times or more. Lulu and More only list categories where we sell; a category where we are absent from the whole account needs the account\'s full category report. Only categories that matter to us are flagged (at least '+f1((ACCT.rules||{}).relevant_min_pct_of_our_sales,1)+'% of our own sales across these chains). Not highlighted: '+((ACCT.not_highlighted||[]).map(x=>x.common+' ('+f1(x.our_pct,2)+'% of our sales)').join(', ')||'none')+'.';
+  const fc=el('fl-chain');fc.innerHTML='<option>All chains</option>'+chains.map(n=>`<option>${esc(n)}</option>`).join('');
+  const drawFl=()=>{const rows=(ACCT.flags||[]).filter(x=>(fc.value==='All chains'||x.chain===fc.value)&&(el('fl-flag').value==='All flags'||x.flag===el('fl-flag').value)).sort((a,b)=>(b.gap_l_month||0)-(a.gap_l_month||0));
+    tbody('fl-tbody',rows,x=>`<tr><td class="l">${esc(x.chain)}</td><td class="l">${esc(x.category)}</td><td class="l"><span class="st ${x.flag==='Strong'?'ok':x.flag==='White space'?'notmet':'warn'}">${esc(x.flag)}</span></td><td>${f1(x.pct_of_chain,1)}</td><td>${n0(x.account_avg_month)}</td><td>${f1(x.honasa_avg_month,1)}</td><td>${f1(x.share,2)}</td><td>${f1(x.chain_share,2)}</td><td>${x.articles!=null?x.articles:'–'}</td><td>${x.gap_l_month>0?f1(x.gap_l_month,1):'–'}</td></tr>`);};
+  fc.onchange=el('fl-flag').onchange=drawFl;drawFl();
+  tbody('pe-tbody',(ACCT.proven_elsewhere||[]).slice().sort((a,b)=>(b.gap_l_month||0)-(a.gap_l_month||0)),x=>`<tr><td class="l">${esc(x.chain)}</td><td class="l">${esc(x.common)}</td><td>${f1(x.share,2)}</td><td>${n0(x.account_l3m)}</td><td class="l">${esc(x.best_chain)}</td><td>${f1(x.best_share,1)}</td><td>${f1(x.gap_l_month,1)}</td></tr>`);
+  // plan
+  const P=ACCT.facewash_plan||{levers:[]};
+  const nz=P.nielsen||{};
+  el('fp-kpis').innerHTML=[kpi('Facewash share now',f1(nz.share,1)+'%',sg(nz.share_yoy_pp,1,' pp YoY'),'mut'),kpi('WD %',f1(nz.wd,1),'Nielsen, '+(MARKET||''),'mut'),kpi('Levers',String(P.levers.length),'with evidence and size','mut'),
+    kpi('Upper bound ₹Cr / month',f1(P.total_cr_month,2),ok(nz.category_cr)&&P.total_cr_month?'about +'+f1(P.total_cr_month/nz.category_cr*100,1)+' pp of share':'','mut')].join('');
+  tbody('fp-tbody',P.levers,x=>`<tr><td class="l"><b>${esc(x.lever)}</b></td><td class="l wrap">${esc(x.evidence)}</td><td class="l wrap">${esc(x.action)}</td><td>${f1(x.size_cr_month,2)}</td><td class="l wrap">${esc(x.method)}</td><td class="l">${esc(x.owner)}</td><td class="l">${esc(x.timeline)}</td><td class="l">${esc(x.kpi)}</td></tr>`);
+  el('fp-note').textContent=(P.note||'')+' Gate review: Nielsen share and WD each month; account share from the retailer files; pack listings from the offtake files.';
+  tbody('av-tbody',ACCT.availability||[],x=>`<tr><td class="l">${esc(x.file)}</td><td class="l">${esc(x.chain)}</td><td class="l wrap">${esc(x.months)}</td><td class="l wrap">${esc(x.store_city)}</td><td class="l">${esc(x.zone_state)}</td><td class="l wrap">${esc(x.articles)}</td><td class="l wrap">${esc(x.scope)}</td></tr>`);
+  tbody('sm-tbody',ACCT.store_map_check||[],x=>`<tr><td class="l">${esc(x['Store Code'])}</td><td class="l">${esc(x['Store Name'])}</td><td class="l">${esc(x['City (from store name)']||'–')}</td><td class="l">${esc(x['City (store master)']||'–')}</td><td class="l">${esc(x['State']||'–')}</td><td class="l">${esc(x['Zone']||'–')}</td><td class="l"><span class="st ${x.Check==='Same city'?'ok':x.Check&&x.Check.startsWith('Differs')?'notmet':'warn'}">${esc(x.Check||'')}</span></td></tr>`);
+  el('foot-ac').textContent='Sources: Compiled_Monthly_Files (Lulu), More_MS_Till_Aug26, Wellness_MS, RIL_BA_Store_MS (Reliance), the review deck (Dmart) and the Nielsen '+(MARKET||'')+' payload for the Facewash plan. No store or employee names are in this page.';
 }
-
-/* ── PACK BARS ── */
-function buildPackBars(containerId, packs, accent){
-  const wrap=document.getElementById(containerId);
-  const maxVal=Math.max(...packs.map(p=>p.val));
-  packs.forEach(p=>{
-    const w=Math.round(p.val/maxVal*100);
-    const yoyCls=p.yoy>0?'up':'dn';
-    wrap.innerHTML+=`<div class="pack-row">
-      <div class="pack-size">${p.sz}</div>
-      <div class="pack-bar-bg">
-        <div class="pack-bar-fill" style="width:${w}%;background:${p.clr}"></div>
-      </div>
-      <div class="pack-val">${p.val.toFixed(1)}%</div>
-      <div class="pack-yoy ${yoyCls}">${p.yoy>0?'+':''}${p.yoy.toFixed(1)}%</div>
-    </div>`;
-  });
+function buildPackBrand(){
+  if(!FW_PB&&!SH_PB){hide('sec-pb');return;}
+  const one=(PB,title)=>{if(!PB||!PB.packs)return '';
+    const cols=PB.brands.slice(0,9).map(b=>b.n);if(!cols.includes('Mamaearth'))cols.push('Mamaearth');
+    const rows=PB.packs.filter(p=>p.cat_share>=0.5);
+    const cell=(p,n)=>{const b=p.brands.find(x=>x.n===n);if(!b||!(b.value>0))return '<span class="st na">–</span>';
+      return `<span class="st ${n==='Mamaearth'?'ok':b.share_in_pack>=30?'warn':'na'}" title="₹${f1(b.value,2)} Cr">${f1(b.share_in_pack,0)}%</span>`;};
+    return `<div class="sub">${title} <span class="note">&middot; brands listed cover ${f1(PB.coverage_pct,0)}% of category value; blank = not sold in the pack</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Brands selling</th><th class="l">Leader</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(p=>`<tr><td>${esc(p.size)}</td><td>${f1(p.cat_share,1)}</td><td>${p.brands_selling}</td><td class="l">${esc(p.leader||'–')}</td>${cols.map(c=>`<td>${cell(p,c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <div class="note">Where each brand plays (packs sold, top packs): ${PB.brands.slice(0,10).map(b=>esc(b.n)+' '+b.packs+' packs ('+b.top_packs.slice(0,3).join(', ')+' ml)').join('; ')}.</div>`;};
+  el('pb-wrap').innerHTML=one(FW_PB,'Facewash')+one(SH_PB,'Shampoo');
+  el('pb-note').textContent='Read across a row to see who owns the pack and where Mamaearth stands; a pack with one or two brands is a niche or a gap nobody has filled. Blue = Mamaearth, amber = a brand holding 30% or more of the pack.';
 }
-
-/* ── TRACKER ── */
-const STORE_KEY='ms-tracker-v1';
-let checks={};
-try{checks=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');}catch(e){}
-
-function buildTrackerItems(containerId, actions){
-  const wrap=document.getElementById(containerId);
-  actions.forEach((a,i)=>{
-    const key=containerId+'_'+i;
-    const checked=!!checks[key];
-    wrap.innerHTML+=`<div class="t-item${checked?' done':''}" id="ti-${key}">
-      <div class="t-check${checked?' checked':''}" onclick="toggleCheck('${key}')"></div>
-      <div class="t-body">
-        <div class="t-title">${a.title}</div>
-        <div class="t-meta">
-          <span>${a.owner}</span>
-          <span class="t-budget">${a.budget}</span>
-          <span>Due: ${a.due}</span>
-        </div>
-        <div class="t-desc">${a.desc}</div>
-      </div>
-    </div>`;
-  });
+function buildPackMatrix(){
+  const P=(CHAINS&&CHAINS.pack_presence)||[],C=(CHAINS&&CHAINS.contribution||[]).slice(0,6).map(c=>c.Chain);
+  if(!P.length||!C.length||(!FW_GAP&&!SH_GAP)){hide('sec-pm');return;}
+  const mk1=(G,cat,title)=>{
+    if(!G)return '';
+    const rows=G.rows.filter(r=>r.cat_share>=1||r.me_amount>0&&r.cat_share>=0.3).sort((a,b)=>b.cat_share-a.cat_share);
+    const cell=(ch,size)=>{const x=P.find(p=>p.Chain===ch&&p.Category===cat&&p.Pack===String(size));
+      return x?`<span class="st ${x.States_in_chain>0&&x.States_present<x.States_in_chain?'warn':'ok'}">${n0(x.NSV_lakh)} L${x.States_in_chain>0?' &middot; '+x.States_present+'/'+x.States_in_chain:''}</span>`:'<span class="st notmet">Not sold</span>';};
+    return `<div class="sub">${title}</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pack (ml)</th><th>Category share %</th><th>Our share in pack %</th>${C.map(c=>`<th>${esc(pretty(c))}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.size)}</td><td>${f1(r.cat_share,1)}</td><td>${f1(r.me_share_in_pack,1)}</td>${C.map(c=>`<td>${cell(c,r.size)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;};
+  el('pm-wrap').innerHTML=mk1(FW_GAP,'Face wash','Facewash &middot; packs above 1% of category value, and any pack we sell')+mk1(SH_GAP,'Shampoo','Shampoo &middot; packs above 1% of category value, and any pack we sell');
+  el('pm-note').textContent='Each cell is the chain NSV (Rs lakh) and states where the pack sells out of the states the chain operates in (green = all states, amber = some states). Not sold = no Mamaearth sales of that pack in the chain Apr-Aug. A pack that is big in Nielsen and Not sold everywhere (for example Shampoo 1000 ml, Facewash 240 ml) is a pack we do not make or have not listed.';
 }
-
-function buildRoadmap(){
-  const wrap=document.getElementById('gate-items');
-  GATES.forEach(g=>{
-    wrap.innerHTML+=`<div class="gate-item">
-      <div class="gate-date">${g.date}</div>
-      <div class="gate-q">${g.q}</div>
-      <div class="gate-impact">${g.impact}</div>
-    </div>`;
-  });
+function buildPriceVolume(){
+  if(!PV){['pv-n','pv-i','pv-l','pv-z','pv-b'].forEach(hide);el('pv-note').textContent='Price and volume data is not in this payload.';return;}
+  const N=PV.nielsen||{},I=PV.internal||null,cap=pretty;
+  const rows=[];[['Facewash',N.facewash],['Shampoo',N.shampoo]].forEach(([c,a])=>(a||[]).forEach(r=>rows.push([c,r])));
+  tbody('pvn-tbody',rows,([c,r])=>`<tr><td class="l">${c}</td><td class="l">${esc(r.name)}</td><td>${f1(r.value_cr,2)}</td><td>${sg(r.value_yoy,1)}</td><td>${sg(r.volume_yoy,1)}</td><td>${sg(r.price_yoy,1)}</td><td>${sg(r.vol_effect_cr,2)}</td><td>${sg(r.price_effect_cr,2)}</td><td class="l">${esc(r.reads_as)}</td></tr>`);
+  const lines=rows.filter(([c,r])=>r.name==='Mamaearth').map(([c,r])=>`${c}: value ${sg(r.value_yoy,0,'%')} = volume ${sg(r.volume_yoy,0,'%')} and price per ml ${sg(r.price_yoy,0,'%')}`);
+  const cat=rows.filter(([c,r])=>r.name==='Category').map(([c,r])=>`${c} category price per ml ${sg(r.price_yoy,0,'%')}`);
+  el('pv-n-note').textContent=(lines.concat(cat).join('. ')||'')+'. Volume effect = last year price per ml x change in volume; price / mix effect = this year volume x change in price per ml. Price per ml changes with pack mix too, so a fall can mean more large packs, not a price cut.';
+  if(I){
+    el('pv-i-note').textContent=I.basis;
+    const steps=Object.fromEntries((I.steps||[]).map(s=>[s.to,s]));
+    tbody('pvi-tbody',I.monthly||[],m=>{const s=steps[m.month];return `<tr><td class="l">${esc(m.month)}</td><td>${n0(m.units)}</td><td>${f1(m.nsv_cr,2)}</td><td>${f1(m.asp,1)}</td><td>${f1(m.realisation_pct,1)}</td><td class="l">${s?esc(s.from+' to '+s.to+': '+sg(s.value_change_cr,2)+' Cr, '+s.reads_as):'–'}</td><td>${s?sg(s.volume_cr,2):'–'}</td><td>${s?sg(s.price_cr,2):'–'}</td></tr>`;});
+    const ladder=(I.chains||[]).slice().sort((a,b)=>b.realisation_pct-a.realisation_pct),mx=Math.max(...ladder.map(c=>c.realisation_pct),1);
+    tbody('pvl-tbody',ladder,c=>`<tr><td class="l">${esc(c.name)}</td><td>${f1(c.nsv_cr,2)}</td><td>${f1(c.asp,1)}</td><td>${n0(c.asp_index)}</td><td>${f1(c.realisation_pct,1)}</td><td class="l"><div style="background:var(--border);border-radius:3px;height:8px;width:160px"><div style="background:var(--accent);height:8px;border-radius:3px;width:${Math.round(c.realisation_pct/mx*100)}%"></div></div></td></tr>`);
+    const zc=Object.fromEntries((I.zones_cumulative||[]).map(z=>[z.name,z]));
+    tbody('pvz-tbody',I.zones_latest||[],z=>`<tr><td class="l">${esc(z.name)}</td><td>${f1(z.nsv_cr,2)}</td><td>${f1(z.asp,1)}</td><td>${n0(z.asp_index)}</td><td>${f1(z.realisation_pct,1)}</td><td>${zc[z.name]?n0(zc[z.name].asp_index):'–'}</td></tr>`);
+    tbody('pvb-tbody',I.brands||[],b=>`<tr><td class="l">${esc(b.name)}</td><td>${n0(b.units)}</td><td>${f1(b.nsv_cr,2)}</td><td>${f1(b.asp,1)}</td><td>${f1(b.realisation_pct,1)}</td></tr>`);
+    el('pv-note').textContent=`Our MT: ${I.months[0]} to ${I.months[I.months.length-1]}, value ${sg(I.span.value_change_cr,2)} Cr = volume ${sg(I.span.volume_cr,2)} + price / mix ${sg(I.span.price_cr,2)}.`;
+  }else{['pv-i','pv-l','pv-z','pv-b'].forEach(hide);}
+  el('foot-pv').textContent='Market block: Nielsen '+(MARKET||'')+', value and volume as reported. Internal blocks: Honasa MT offtake store x article files, NSV Rs lakh converted to Rs Cr; Reliance Brand Counter, discontinued brands and non-MT chains left out (offtake basis only). Realisation = NSV / MRP sales.';
 }
-
-function toggleCheck(key){
-  checks[key]=!checks[key];
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(checks));}catch(e){}
-  const item=document.getElementById('ti-'+key);
-  const chk=item.querySelector('.t-check');
-  item.classList.toggle('done',checks[key]);
-  chk.classList.toggle('checked',checks[key]);
-  updateProg();
+function buildChainPacks(){
+  const R=(CHAINS&&CHAINS.range_pack||[]).filter(r=>r.States_present<r.States_in_chain&&r.NSV_lakh>=5).sort((a,b)=>b.NSV_lakh-a.NSV_lakh).slice(0,30);
+  const cap=pretty;
+  tbody('rp-tbody',R,r=>`<tr><td>${esc(cap(r.Chain))}</td><td class="l">${esc(r.Category)}</td><td class="l">${esc(r.Range)}</td><td>${esc(r.Pack)}</td><td>${n0(r.NSV_lakh)}</td><td>${r.States_present} of ${r.States_in_chain}</td><td class="l wrap">${esc(r.Missing_states||'–')}</td></tr>`);
+  const G=(CHAINS&&CHAINS.category_gap||[]);
+  el('cg-note').textContent='Nielsen category size is loaded for Facewash and Shampoo only. For Sunscreen, Face Serum, Body Wash and the rest, drop a Nielsen export (month x category x brand, same layout as Nielsen_Monthly) and the same view can size the market. Until then: "Strong" here means the sub-category earns at least 2% of our NSV across all chains; "thin" means the chain sells under 60% of that weight. Market size by category is not in the repo, so this is our own mix, not the retailer\'s category size.';
+  tbody('cg-tbody',G.slice(0,25),r=>`<tr><td>${esc(cap(r.Chain))}</td><td class="l">${esc(r.Sub_category)}</td><td>${f1(r.Share_of_all_chain_NSV_pct)}</td><td>${f1(r.Share_in_this_chain_pct)}</td><td class="l">${chipFor(r.Status==='Absent'?'Not present':'Under-weight')}</td><td>${n0(r.Gap_NSV_lakh_at_all_chain_mix)}</td></tr>`);
 }
-
-function updateProg(){
-  const total=AUG_ACTIONS.length+SEP_ACTIONS.length;
-  const done=Object.values(checks).filter(Boolean).length;
-  const pct=Math.round((done/total)*100);
-  document.getElementById('prog-pct').textContent=pct+'%';
-  document.getElementById('prog-fill').style.width=pct+'%';
+function buildDeckBits(){
+  if(!DECK){hide('pl-tbody');el('pl-note').textContent='Review deck data not in this payload.';return;}
+  tbody('pl-tbody',DECK.plays||[],p=>`<tr><td class="l">${esc(p.priority)}</td><td class="l">${esc(p.play)}</td><td class="l wrap">${esc(p.evidence)}</td><td class="l wrap">${esc(p.action)}</td></tr>`);
+  el('pl-note').textContent='Deck sizing: '+(DECK.headroom_cr_text||'');
+  const ties=[];const j=MONTHS.indexOf('Jun 26'),jy=MONTHS.indexOf('Jun 25');
+  if(j>=0&&jy>=0){ties.push(['Facewash share, Jun 26 (%)',11.6,MS_[j]]);ties.push(['Facewash share gain YoY (bps)',310,ok(MS_[j])&&ok(MS_[jy])?(MS_[j]-MS_[jy])*100:null]);}
+  if(SH&&SH.months&&SH.series){const sj=SH.months.indexOf('Jun 26'),sy=SH.months.indexOf('Jun 25');
+    if(sj>=0&&sy>=0){ties.push(['Shampoo share, Jun 26 (%)',4.0,SH.series.ms[sj]]);ties.push(['Shampoo share gain YoY (bps)',166,ok(SH.series.ms[sj])&&ok(SH.series.ms[sy])?(SH.series.ms[sj]-SH.series.ms[sy])*100:null]);}}
+  tbody('tie-tbody',ties,t=>{const okk=ok(t[2])&&Math.abs(t[2]-t[1])<=Math.max(0.15*Math.abs(t[1]),0.06);
+    return `<tr><td class="l">${esc(t[0])}</td><td>${f1(t[1],t[1]>50?0:1)}</td><td>${f1(t[2],t[1]>50?0:1)}</td><td class="l"><span class="st ${okk?'ok':'notmet'}">${okk?'Ties':'Does not tie'}</span></td></tr>`;});
 }
-
-/* ── BOOT ── */
+/* ── boot ── */
 document.addEventListener('DOMContentLoaded',()=>{
-  buildCompTable();
-  buildBridge();
-  buildPackBars('fwPacks',FW_PACKS,AC);
-  buildPackBars('shPacks',SH_PACKS,GREEN);
-  buildTrackerItems('aug-items',AUG_ACTIONS);
-  buildTrackerItems('sep-items',SEP_ACTIONS);
-  buildRoadmap();
-  updateProg();
-  // Init tab 0 charts after DOM is painted (it's already visible)
-  tabInited[0]=true;
-  requestAnimationFrame(()=>initTabCharts(0));
+  const g=el('gov-chip');
+  if(GOV.data_status==='GOVERNED'){g.className='chip ok';g.textContent='Governed · '+(GOV.source_reference||'');}
+  else{g.className='chip bad';g.textContent='Provenance not confirmed · '+(GOV.data_status||'no status');}
+  el('hdr-periods').textContent='Facewash '+(MONTHS[last]||'–')+(SH?' · Shampoo '+SH.period:'');
+  el('fw-period').textContent=(MONTHS[last]||'')+' · vs '+(ya>=0?MONTHS[ya]:'last year');
+  el('sh-period').textContent=SH?SH.period+' · '+SH.basis:'';
+  el('period-note').textContent=SH&&!sh.sameMonth?'Different months: Facewash '+MONTHS[last]+', Shampoo '+SH.period+'. Compare direction, not level.':(MARKET?'Market: '+MARKET+(UNIT?' · '+UNIT:'')+'. Both categories are the same month.':'');
+  buildKpis();buildFwTable();buildShTable();buildBrandCuts();
+  bridge('bridge-wrap',FW_ALL.filter(b=>ok(b.ms)&&ok(b.ms_py)).map(b=>({n:b.n,d:ppFor(b)})),'pp',d=>sg(d,1),0.2);
+  if(SH)bridge('bridge-wrap-sh',(SH.brands||[]).map(b=>({n:b.n,d:b.yoy_bps})),'bps',d=>sg(d,0),0);
+  packBars('fw-packs',FW_PACKS,'Not available',FW_ME_PACKS);packBars('fw-packs-b',FW_PACKS,'Not available',FW_ME_PACKS);
+  // named pack sizes (the big ones show up individually); falls back to the size buckets for older payloads
+  const named=G=>{if(!G||!G.rows)return null;const rows=G.rows.filter(r=>r.cat_share>=1||(r.me_amount>0&&r.cat_share>=0.3)).sort((a,b)=>b.cat_share-a.cat_share);
+    return {packs:rows.map(r=>({sz:r.size+' ml',val:r.cat_share,yoy:r.cat_yoy,amt:r.cat_amount})),mine:Object.fromEntries(rows.map(r=>[r.size+' ml',r.me_mix]))};};
+  const nf=named(FW_GAP),ns=named(SH_GAP);
+  if(nf){packBars('fw-packs',nf.packs,'Not available',nf.mine);packBars('fw-packs-b',nf.packs,'Not available',nf.mine);}
+  const pk=PACKF&&PACKF.buckets,shMine=SH&&SH.mamaearth_packs;
+  if(ns){packBars('sh-packs',ns.packs,'No shampoo pack file in this build',ns.mine);packBars('sh-packs-b',ns.packs,'No shampoo pack file in this build',ns.mine);}
+  else{packBars('sh-packs',pk,'No shampoo pack file in this build',shMine);packBars('sh-packs-b',pk,'No shampoo pack file in this build',shMine);}
+  if(PACKF&&PACKF.basis)document.querySelectorAll('.pk-basis-sh').forEach(e=>e.textContent='· every big pack, contribution to '+PACKF.basis+'; grey = category, blue = Mamaearth\'s own mix');
+  document.querySelectorAll('.pk-basis-fw').forEach(e=>e.textContent=FW_ME_PACKS?'· every big pack, contribution to value; grey = category, blue = Mamaearth\'s own mix':'· source file not in the repo, unverified');
+  trackerItems('aug-items',AUG_ACTIONS);trackerItems('sep-items',SEP_ACTIONS);
+  el('gate-items').innerHTML=(GATES||[]).map(g=>`<div class="gate-item"><div class="gate-date">${esc(g.date)}</div><div class="gate-q">${esc(g.q)}</div><div class="gate-i">${esc(g.impact)}</div></div>`).join('');
+  el('trk-note').textContent='Targets and budgets are the team’s plan; check them against the Opportunity sizing.';
+  updateProg();buildOpp();buildChains();buildPacks();buildPackBrand();buildVisit();buildAccount();buildPackMatrix();buildChainPacks();buildPriceVolume();buildDeckBits();
+  el('cp-note').textContent=CHAINS?'Chain and pack figures: internal offtake Apr-Aug and Nielsen '+MARKET+'; deck figures are labelled.':'';
+  el('foot-cp').textContent='Internal offtake NSV is Rs lakh, ex Reliance Brand Counter (offtake basis only). Nielsen = consumer offtake in '+(MARKET||'the report market')+'. Deck figures are typed from MT_Review_Big3_v3_1.pptx (Nielsen Jun\'26 state cut) and are not in the Aug-26 workbooks.';
+  el('foot-ms').textContent=(MARKET?'Market '+MARKET+(UNIT?', '+UNIT:'')+'. ':'')+'Source: '+(GOV.source_reference||'Nielsen files in data/nielsen')+'. A blank source cell is shown as a dash, never zero.';
+  document.querySelectorAll('#seg button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+  initShare();setView('both');inited[0]=true;
 });
 </script>
 </body></html>
