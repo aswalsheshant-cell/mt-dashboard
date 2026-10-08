@@ -6,7 +6,6 @@ tests/nielsen_ms_browser.js, run from test_browser_switch_and_no_nan below.
 """
 import copy
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path

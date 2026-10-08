@@ -1,7 +1,6 @@
 """Aug-26 Nielsen payload: ties to the committed CSVs and builds a clean dashboard."""
 import csv
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
