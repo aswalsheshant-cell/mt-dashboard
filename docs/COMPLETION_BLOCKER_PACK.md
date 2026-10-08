@@ -33,7 +33,7 @@ rebuilt from current `main` if the need returns: #129, #130, #135, #136
 | # | Blocker | Owner | What we need | Exit condition |
 |---|---|---|---|---|
 | B1 | CB-01 — non-MT sales inside MT zone totals (₹11.64 Cr) | MT Leadership | Signed approval reference and owner name/role for proposed FY26 restatement; FY27 MT-only and Nykaa eB2B treatment already applied | Keep blocking MT channel reconciliation green; restate FY26 only in its own reviewed PR after formal approval |
-| B2 | #120 → #119 — historical Primary chain backfill | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
+| B2 | #120 — historical Primary chain backfill (#119 frozen evidence; fresh PR from `main`) | Business owner of the mapping | 266-line approval register returned, every line decided | Decisions reconcile to ₹9,455.1997 L with no material Pending; 16/16 months reconcile; total ₹51,481.65 L unchanged |
 | B3 | CM2 expense scope — MT Direct DN loaded by #229 (merged `3aa6895`, Jul/Aug PARTIAL); distributor claims #267 (HOLD; rebuild of #252, which is closed) and other cost heads not loaded | Finance + MT Leadership | Full Jul/Aug DN register; FY27 CM2 scope (indirect claims, field force, COGS, logistics); distributor-claim monthly timing and Direct DN overlap rule; Nykaa SS after B1 | Each in-scope head loaded from an approved source or named as not loaded; no quarterly claim spread to months without an approved basis; FY25/FY26 unchanged; all checks green |
 | B4 | Power BI P&L assumptions, Apr–Aug'26 (Apr/May present but unapproved; Jun–Aug missing) | Finance | Approved AssumptionTable rows | Assumption Coverage Gate passes (no `BLOCKED_FINANCE_INPUT`) |
 | B5 | Power BI Desktop runtime checks — `BLOCKED_PENDING_DESKTOP_EVIDENCE` | MT Channel Analyst Lead (Windows) | One Desktop session per `docs/evidence/B5_RUN_SHEET.md` | FY parser `Failures` = 0 rows; CM2 Cases 2–9 on the current model as expected (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0, Case 9 comparability: no-FY and FY26 CM2 BLANK, FY27 CM2 = NSV − expense); L3M/L6M rolling averages `Mismatches` = 0; durable evidence file |
@@ -178,58 +178,79 @@ Ask only if a month's source is re-issued or corrected.
 
 ---
 
-## B2 — #120 → #119: historical Primary chain backfill
+## B2 — #120: historical Primary chain backfill (#119 stays frozen evidence)
 
 **What happened.** PR #119 (frozen at `51487b6`) maps ₹9,455.1997 L (18.37% of
-₹51,481.65 L total Primary, Apr'25–Jul'26) to chains *provisionally*. Technical
-gate passed on 2026-09-10; the owner gate is open — all 266
-Distributor × Brand × Chain lines in the approval register are still blank.
+₹51,481.65 L total Primary, Apr'25–Jul'26) to chains *provisionally*. The technical
+gate passed on 2026-09-10. The owner gate is open: 0 of the 266
+Distributor × Brand × Chain lines are decided. **#119 is never rebased, merged or
+rewritten.** It stays frozen as evidence. The implementation will be a fresh PR
+from current `main` (issue #120, updated 2026-10-01).
 
-**Decision (mapping business owner).** Return
-`ProvisionalMapping_OwnerApproval_Apr25_Jul26.xlsx` with every line marked
+**Canonical register = REGENERATED (2026-10-01).** The original
+`ProvisionalMapping_OwnerApproval_Apr25_Jul26.xlsx` could not be recovered for a
+row-level check, so it is not claimed as verified.
+`ProvisionalMapping_OwnerApproval_Apr25_Jul26_REGENERATED.xlsx` (sheet
+`Approval Summary`) was rebuilt read-only from the frozen #119 method:
+- SHA-256 `c82a5bc5eb032ec57d7860118368e68fc82b7668751d81594f58f26693d22d40`;
+- 266 lines, ₹9,455.1997 L; 16/16 months reconcile;
+- `provisional_mapping_disposition.py` @ `51487b6` gives a diff of ₹0.0 L.
+
+If the original file turns up, compare it row by row (Distributor + Brand + Chain
++ Value_L): 266/266 keys, 0 missing, 0 extra, 0 changed values.
+
+**Decision (mapping business owner).** Mark every line in the regenerated register
 Approve / Reject / Amend (Amend = give the correct chain).
-
-**Make the review easy, not different.** The register already sent stays the
-record. If the owner wants help, give a read-only companion view generated from
-the same file: lines sorted by value (largest first, showing how many lines cover
-80% of ₹9,455.20 L), with distributor, brand, proposed chain, amount and evidence
-per line, and only three allowed answers — Approve / Reject / Amend. The
-`mapping-approval-governor` skill can group lines that share one rule, so the
-owner can approve a rule once instead of line by line; it never fills in an
-answer. Partial returns are accepted; only the open lines go back.
+- A companion workbook sorts lines by value (top 7 ≈ 50%, top 37 ≈ 80%, top 61 ≈ 90%)
+  and groups repeated patterns. It is a reading aid only and never fills in an answer.
+- A blank line is Pending, never approved. Partial returns are accepted; only the open
+  lines go back.
 
 **Exit condition.**
 - Returned file fingerprinted (SHA-256) and kept unchanged as evidence before
   processing.
-- `scripts/provisional_mapping_disposition.py` (on the #119 branch
-  `feat/historical-primary-chain-backfill`, not on `main`):
+- Return validation, then `scripts/provisional_mapping_disposition.py` (from the
+  frozen #119 commit; it is not on `main`):
   `Approved + Rejected + Amended + Pending = ₹9,455.1997 L`, with no material
-  Pending (unresolved lines go back alone, not the whole workbook).
-- All 16 months re-run; the `PROVISIONAL → GOVERNED + UNALLOCATED/REJECTED`
-  movement shown; total Primary stays ₹51,481.65 L.
-- Only then is #119 rebuilt against current `main` (it is far behind).
+  Pending.
+- **Fresh branch from current `main`** (#119 untouched):
+  - port only the still-valid #119 method;
+  - use `main`'s governed ShipToMaster / owner-approved overrides, not a parallel
+    mapping system;
+  - apply only Approve / Amend decisions; rejected rows fall back to the governed
+    hierarchy.
+- All 16 months re-run; the `PROVISIONAL → GOVERNED + REJECTED/UNALLOCATED`
+  movement shown; total Primary stays ₹51,481.65 L; draft PR, then stop.
 
 **Ready-to-send — mapping owner**
 
 > Subject: Approval needed — 266 provisional Distributor × Brand × Chain mappings (Apr'25–Jul'26)
 >
 > Hi,
-> ₹9,455.20 L of historical primary (18.4% of the total) is mapped to chains
-> provisionally. Please mark each of the 266 lines in the attached register as
-> Approve, Reject or Amend (for Amend, give the correct chain). A rejected line is
-> never silently moved to another chain; it falls back to the validated hierarchy.
-> Partial returns are fine — we will send back only the lines still open.
+> Please review the attached historical Primary chain mapping approval register
+> for Apr'25–Jul'26. There are 266 Distributor × Brand × Chain lines covering
+> ₹9,455.20 L that are technically validated but still provisional. Please mark
+> each line as Approve, Reject or Amend. For Amend, enter the correct chain and
+> corrected value if applicable. Partial review is fine; only unresolved lines
+> will be returned. No mapping will be treated as governed until your decision is
+> received.
 > Thanks
 
 **Agent prompt — once the register returns**
 
 > The #120 owner register has returned at <path>. Fingerprint it (SHA-256) and
-> store the hash before reading it. Run `scripts/provisional_mapping_disposition.py`
-> (from the #119 branch) and show Approved/Rejected/Amended/Pending against ₹9,455.1997 L. If material
-> Pending remains, list only those lines for resend and stop. If fully decided:
-> apply decisions once, re-run all 16 months, append the next baseline (never
-> overwrite), show the movement table, prove total Primary = ₹51,481.65 L, update
-> issue #120 and stop for approval before rebuilding #119 on current `main`.
+> store the hash before reading it.
+>
+> Run the return validation, then `scripts/provisional_mapping_disposition.py`
+> from the frozen #119 commit `51487b6` (read-only). Show
+> Approved/Rejected/Amended/Pending against ₹9,455.1997 L. If material Pending
+> remains, list only those lines for resend and stop.
+>
+> If fully decided: do NOT touch #119. On a fresh branch from current `main`,
+> port the still-valid method, use the governed ShipToMaster / overrides, apply
+> Approve / Amend only, re-run all 16 months, append the next baseline (never
+> overwrite), show the movement table and prove total Primary = ₹51,481.65 L.
+> Then update issue #120, open a draft PR and stop for approval.
 
 ---
 
