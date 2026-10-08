@@ -14,6 +14,15 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
+
+def _node_with_playwright():
+    """True when node and its 'playwright' package are both available (the Python-only CI job has node but not the npm packages; the Browser Regression job covers the UI there)."""
+    import shutil
+    import subprocess
+    if shutil.which("node") is None:
+        return False
+    return subprocess.run(["node", "-e", "require.resolve('playwright')"], cwd=ROOT, capture_output=True).returncode == 0
+
 sys.path.insert(0, str(ROOT / "scripts"))
 import build_nielsen_dashboard as bn  # noqa: E402
 from validate_nielsen_output import validate_nielsen_html  # noqa: E402
@@ -141,7 +150,7 @@ def test_the_old_unsupported_pack_split_is_not_shown_for_shampoo():
     assert "SH_PACKS" not in html
 
 
-@pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
+@pytest.mark.skipif(not _node_with_playwright(), reason="node or its playwright package not installed")
 def test_browser_switch_and_no_nan(built):
     result = subprocess.run(["node", str(ROOT / "tests" / "nielsen_ms_browser.js"), str(built)],
                             capture_output=True, text=True, cwd=ROOT, timeout=240)

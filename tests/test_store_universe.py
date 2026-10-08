@@ -8,6 +8,15 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
+
+def _node_with_playwright():
+    """True when node and its 'playwright' package are both available (the Python-only CI job has node but not the npm packages; the Browser Regression job covers the UI there)."""
+    import shutil
+    import subprocess
+    if shutil.which("node") is None:
+        return False
+    return subprocess.run(["node", "-e", "require.resolve('playwright')"], cwd=ROOT, capture_output=True).returncode == 0
+
 sys.path.insert(0, str(ROOT / "scripts"))
 import build_store_universe as bsu  # noqa: E402
 
@@ -49,7 +58,7 @@ def test_power_bi_measures_use_the_same_overrides():
     assert "Store Universe Overrides" in (ROOT / "PowerBI" / "PowerQuery" / "52_Store_Universe_Overrides.pq").read_text(encoding="utf-8")
 
 
-@pytest.mark.skipif(__import__("shutil").which("node") is None, reason="node not installed")
+@pytest.mark.skipif(not _node_with_playwright(), reason="node or its playwright package not installed")
 def test_both_tabs_show_the_same_universe_in_a_browser():
     import subprocess
     r = subprocess.run(["node", str(ROOT / "tests" / "store_universe_browser.js")], capture_output=True, text=True, cwd=ROOT, timeout=240)

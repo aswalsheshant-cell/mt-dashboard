@@ -9,6 +9,15 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
+
+def _node_with_playwright():
+    """True when node and its 'playwright' package are both available (the Python-only CI job has node but not the npm packages; the Browser Regression job covers the UI there)."""
+    import shutil
+    import subprocess
+    if shutil.which("node") is None:
+        return False
+    return subprocess.run(["node", "-e", "require.resolve('playwright')"], cwd=ROOT, capture_output=True).returncode == 0
+
 sys.path.insert(0, str(ROOT / "scripts"))
 import build_nielsen_dashboard as bn  # noqa: E402
 import extract_nielsen_report as ex  # noqa: E402
@@ -61,7 +70,7 @@ def test_extractor_keeps_only_needed_rows():
     assert [r[2] for r in ex.pack_rows(rows, brand_sheet=True)[1:]] == [1]
 
 
-@pytest.mark.skipif(shutil.which("node") is None, reason="node not installed")
+@pytest.mark.skipif(not _node_with_playwright(), reason="node or its playwright package not installed")
 def test_aug_dashboard_builds_and_passes_browser(tmp_path):
     out = tmp_path / "aug.html"
     bn.build(ROOT / "templates/dashboard_template.html", AUG, out)
