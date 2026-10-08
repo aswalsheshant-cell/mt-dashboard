@@ -208,7 +208,7 @@ def canon_zone(z):
          "north": "North", "west": "West", "east": "East", "central": "Central", "pan india": "Pan India"}
     return m.get(z.lower(), z)
 
-_CENTRAL_STATES = {"madhya pradesh", "mp", "chhattisgarh", "chattisgarh", "chattishgarh"}
+_CENTRAL_STATES = {"madhya pradesh", "mp", "chhattisgarh", "chattisgarh", "chattishgarh", "cg"}
 
 def zone_with_central_override(zone, state):
     """Apply the Central-state override on top of canon_zone().
@@ -6338,7 +6338,11 @@ def detail_records_real(src, max_rows=20000, output_dir=None):
             "Excel date serial); sample Month values: "
             f"{df['Month'].head(5).tolist() if 'Month' in df else 'N/A'}")
     df["_Brand"] = df["brand"].map(canon_brand)
-    df["_Zone"] = df["Zone"].map(canon_zone)
+    # Chhattisgarh/MP are Central (ZoneStateMaster). The article files label Chhattisgarh "CG"
+    # with Zone=West, so trust the source zone except for those states (same override the
+    # offtake path uses).
+    df["_Zone"] = ([zone_with_central_override(z, s) for z, s in zip(df["Zone"], df["State"])]
+                   if "State" in df.columns else df["Zone"].map(canon_zone))
     df["_State"] = (df["State"].map(canon_state).fillna("") if "State" in df.columns else "")
     _CHAN_MAP = {"mt": "MT", "eb2b": "EB2B", "sis": "SIS"}
     df["_Chan"] = df["Channel"].astype(str).str.strip().map(
