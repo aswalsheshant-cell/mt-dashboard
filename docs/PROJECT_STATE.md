@@ -541,3 +541,6 @@ On resume: the SessionStart hook prints repo state, resources, asset presence
 and this file's next task. Verify restricted inputs are present before any
 incentive work — never reconstruct them from memory.
 
+
+## Feature freeze lifted — 2026-10-08
+The repo owner (GitHub `aswalsheshant-cell`, repo owner and MT Channel Analyst Lead) lifted the feature freeze on 2026-10-08. This is a personal project and no hierarchy sign-off is required; the owner's confirmation in the working session is the approval reference. `config/project_state.yml` now has `feature_freeze.active: false`, so `scripts/check_pr_scope.py` passes every PR (the declaration is optional). The open blockers B1 to B6 stay open until their content exists (see `docs/COMPLETION_BLOCKER_PACK.md`); lifting the freeze does not close them.
