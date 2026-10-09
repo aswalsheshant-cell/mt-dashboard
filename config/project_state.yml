@@ -10,8 +10,8 @@
 # Terminal states: RESOLVED_AND_VALIDATED, BLOCKED_EXTERNAL_EVIDENCE,
 # BLOCKED_OWNER_DECISION, BLOCKED_ENVIRONMENT, DEFERRED_NON_BLOCKING_WITH_OWNER.
 
-as_of: "2026-10-03"
-main_snapshot: 84864ce4076164aee5cbc79493bb7f086743eb90   # main checked on 2026-10-03
+as_of: "2026-10-09"
+main_snapshot: 6ebbf936be21a1a182eea10825c744dac568aa88   # main checked on 2026-10-09 (PR #303 merge)
 
 # Feature freeze (docs/COMPLETION_BLOCKER_PACK.md). While active, every PR must
 # declare "Freeze classification: BLOCKER_FIX | CORRECTNESS_FIX | HOUSEKEEPING |
@@ -36,13 +36,11 @@ open_prs:
     reason: "#252 rebuilt on main (same 4 files; seed byte-identical). Formal Finance approval reference and seven alias decisions remain pending; do not merge."
 
 open_issues:
-  - number: 120
-    blocker: B2
   - number: 194
     blocker: CB-09
 
 # PRs that are merged. Current-state text must never call these open or HOLD.
-merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273, 274, 275, 276, 283, 284, 285, 286, 287, 288, 289, 290]
+merged_prs: [229, 247, 259, 260, 261, 262, 263, 264, 265, 266, 268, 269, 270, 271, 273, 274, 275, 276, 283, 284, 285, 286, 287, 288, 289, 290, 292, 293, 300, 302, 303]
 
 # PRs closed WITHOUT merging because another PR replaced them. The branch is kept
 # as evidence. Current-state text must never call these open or HOLD.
@@ -54,13 +52,15 @@ closed_superseded:
 
 blockers:
   B1:
-    state: BLOCKED_OWNER_DECISION
+    state: RESOLVED_AND_VALIDATED
     owner: MT Leadership
-    needs: "FY27 MT-only zones and blocking CI channel reconciliation are applied (#276). FY26 baseline restatement remains unapplied until MT Leadership supplies a full name/role and signed approval reference, then a separate reviewed PR."
+    needs: "RESOLVED — PR #302 merged (FY26 restatement to MT basis Rs 30,684.99 L). mt_channel_reconciliation.py exits 0; CI step blocking. All three CB-01 decisions applied."
+    resolved: "2026-10-09"
   B2:
-    state: BLOCKED_OWNER_DECISION
+    state: RESOLVED_AND_VALIDATED
     owner: Business owner of the mapping (issue #120)
-    needs: "266-line approval register (Approve/Reject/Amend) for the Rs 9,455.1997 L provisional bucket"
+    needs: "RESOLVED — PR #303 merged (109 owner-approved chain mappings, Rs 7,271.61 L applied; 157 pending fall back to governed hierarchy). Issue #120 closed. PR #119 stays frozen evidence."
+    resolved: "2026-10-09"
   B3:
     state: BLOCKED_EXTERNAL_EVIDENCE
     owner: Finance + MT Leadership
