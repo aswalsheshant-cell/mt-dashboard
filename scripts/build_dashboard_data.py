@@ -556,6 +556,9 @@ def load_primary_v2(src):
     # before returning so downstream allocation/aggregation doesn't drop rows.
     if "Chain Name" in df.columns:
         df["chain"] = df["Chain Name"].map(canon_chain)
+    if "Brand" in df.columns:
+        df["Brand"] = df["Brand"].map(canon_brand)
+        df["brand"] = df["Brand"]
     if "Zone" in df.columns:
         df["zone"] = df["Zone"].map(canon_zone)
     if "State" in df.columns:
@@ -600,7 +603,7 @@ def load_chain_allocation_weights(src):
             weights = {}
             for key, g in p.groupby([
                 p["Ship_To_Name"].astype(str).str.strip().str.lower(),
-                p["Brand"].map(canon_brand),
+                p["Brand"].map(canon_brand).str.lower(),
                 p["Month"].astype(str).str.strip().str.lower(),
             ]):
                 tot = g["Cont_Pct"].sum()
@@ -613,7 +616,7 @@ def load_chain_allocation_weights(src):
     s2 = s2.dropna(subset=["NSV"])
     s2["_key"] = list(zip(
         s2["Ship To Name"].astype(str).str.strip().str.lower(),
-        s2["Brand"].map(canon_brand),
+        s2["Brand"].map(canon_brand).str.lower(),
         s2["Month"].astype(str).str.strip().str.lower(),
     ))
     weights = {}
@@ -642,7 +645,7 @@ def apply_chain_allocation(df, weights):
     is_dist = df["_dist_flag"] == "Dist."
     df["_key"] = list(zip(
         df["_ship_to"].str.lower(),
-        df["Brand"].map(canon_brand),
+        df["Brand"].map(canon_brand).str.lower(),
         df["Month"].str.lower(),
     ))
     matched = is_dist & df["_key"].isin(weights)
@@ -7302,7 +7305,9 @@ def main():
         # Normalize columns that primary_block expects (chain, brand, zone, channel)
         if "chain" not in allocated.columns and "Chain Name" in allocated.columns:
             allocated["chain"] = allocated["Chain Name"].map(canon_chain)
-        if "brand" not in allocated.columns and "Brand" in allocated.columns:
+        if "Brand" in allocated.columns:
+            allocated["Brand"] = allocated["Brand"].map(canon_brand)
+        if "Brand" in allocated.columns:
             allocated["brand"] = allocated["Brand"].map(canon_brand)
         if "zone" not in allocated.columns and "Zone" in allocated.columns:
             allocated["zone"] = allocated["Zone"].map(canon_zone)

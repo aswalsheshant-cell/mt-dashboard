@@ -117,8 +117,27 @@ def apply_chain_allocation_enhanced(
     Guarantees:
         sum(allocated_nsv) == sum(original_dist_nsv)  (zero revenue leakage)
     """
+    # Normalize column names: the seed CSV from load_primary_v2() uses
+    # Direct/Distributor, Bill to customer, NSV, MRP value, Brand; the
+    # article-level files use PO Type, _CustName, _NSV, _MRP, brand.
+    _col_map = {
+        "Direct/Distributor": "PO Type",
+        "_ship_to": "_CustName",
+        "_dist_flag": "PO Type",
+    }
+    for old_col, new_col in _col_map.items():
+        if old_col in df_primary.columns and new_col not in df_primary.columns:
+            df_primary[new_col] = df_primary[old_col]
+    if "_CustName" not in df_primary.columns and "Bill to customer" in df_primary.columns:
+        df_primary["_CustName"] = df_primary["Bill to customer"].astype(str).str.strip()
+    if "_NSV" not in df_primary.columns and "NSV" in df_primary.columns:
+        df_primary["_NSV"] = df_primary["NSV"]
+    if "_MRP" not in df_primary.columns and "MRP value" in df_primary.columns:
+        df_primary["_MRP"] = df_primary["MRP value"]
+    if "brand" not in df_primary.columns and "Brand" in df_primary.columns:
+        df_primary["brand"] = df_primary["Brand"]
+
     if "PO Type" not in df_primary.columns:
-        # No allocation possible; add chain column if missing
         if "_Chain" not in df_primary.columns:
             df_primary["_Chain"] = df_primary.get("Chain Name", "Unknown")
         return df_primary, None
@@ -135,10 +154,11 @@ def apply_chain_allocation_enhanced(
     # Build dynamic offtake weights (Tier 2 fallback)
     dynamic_weights = compute_dynamic_offtake_weights(df_offtake) if df_offtake is not None else {}
 
-    # Normalize key columns for matching
+    # Normalize key columns for matching against weights_dict, which uses
+    # (ship_to.lower(), canon_brand, month.lower()) from load_chain_allocation_weights()
     df_dist["_st"] = df_dist["_CustName"].astype(str).str.strip().str.lower()
     df_dist["_bl"] = df_dist["brand"].astype(str).str.strip().str.lower()
-    df_dist["_pm"] = df_dist["Month"].astype(str).str.strip()
+    df_dist["_pm"] = df_dist["Month"].astype(str).str.strip().str.lower()
 
     allocated_rows = []
     tier1_count = 0
@@ -195,7 +215,10 @@ def apply_chain_allocation_enhanced(
                 if "zone" in split and split["zone"]:
                     new_row["Zone"] = split["zone"]
                 new_row["_NSV"] = nsv * split["weight"]
-                new_row["_MRP"] = row.get("_MRP", 0) * split["weight"] if pd.notna(row.get("_MRP")) else 0
+                new_row["NSV"] = nsv * split["weight"]
+                mrp = row.get("_MRP", 0)
+                new_row["_MRP"] = mrp * split["weight"] if pd.notna(mrp) else 0
+                new_row["MRP value"] = new_row["_MRP"]
                 new_row["_Qty"] = row.get("_Qty", 0) * split["weight"] if pd.notna(row.get("_Qty")) else 0
                 new_row["_TaxLOC"] = row.get("_TaxLOC", 0) * split["weight"] if pd.notna(row.get("_TaxLOC")) else 0
                 new_row["_allocation_tier"] = tier_used
@@ -209,8 +232,8 @@ def apply_chain_allocation_enhanced(
     df_allocated = pd.DataFrame(allocated_rows) if allocated_rows else df_dist.iloc[0:0].copy()
 
     # ---- RECONCILIATION: Check for revenue leakage ----
-    orig_sum = df_dist["_NSV"].sum()
-    alloc_sum = df_allocated["_NSV"].sum()
+    orig_sum = float(df_dist["_NSV"].sum())
+    alloc_sum = float(df_allocated["_NSV"].sum()) if not df_allocated.empty else 0.0
     variance = abs(orig_sum - alloc_sum)
 
     # Set _Chain on all rows
@@ -231,7 +254,7 @@ def apply_chain_allocation_enhanced(
         "tier2_rows": int(tier2_count),
         "tier3_rows": int(tier3_count),
         "total_dist_rows_processed": int(len(df_dist)),
-        "reconciliation_passed": variance < 0.01,
+        "reconciliation_passed": bool(variance < 0.01),
     }
 
     if not qc["reconciliation_passed"]:

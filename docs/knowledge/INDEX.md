@@ -8,8 +8,8 @@ topic before solving an unfamiliar problem, instead of researching it again.
 **External knowledge tells us HOW to build and govern something. It never tells us
 WHAT our company's rule is.** Target basis, employee grade, incentive policy, payout
 rule and ownership mapping come from Finance / HR / MT Leadership. When one of those
-is unresolved, return `INTERNAL_BUSINESS_CONFIRMATION_REQUIRED` — never fill the gap
-from an external source.
+is unresolved, flag it clearly and move on — never fill the gap from an
+external source.
 
 ## Router — read only what the task needs
 

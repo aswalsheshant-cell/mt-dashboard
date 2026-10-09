@@ -1,0 +1,21 @@
+{
+  "generated": "2026-10-08T16:57:04.896591+00:00",
+  "register": "docs/evidence/B2/ProvisionalMapping_Register_OwnerDecisions_Apr25_Jul26.csv",
+  "register_sha256": "025d99b31feda7f5dbd464bba5d561a4ac26e6213d1ac139fc00f4f32cc0a5de",
+  "dump_snapshot": "PowerBI/SeedData/Mapping/ChainWisePrimarySale_Dump_Snapshot.csv",
+  "dump_snapshot_sha256": "36545ed3d85381b1efb505a6d72ab86a818a84a4524645d5fe2a56eff3c497db",
+  "approved_lines": 109,
+  "approved_value_L": 7271.61,
+  "eligible_dist_brand_pairs": 54,
+  "output_rows": 1254,
+  "output_nsv_L": 11069.09,
+  "governed_rows": 1071,
+  "governed_nsv_L": 10694.87,
+  "pending_rows_in_eligible_pairs": 183,
+  "pending_nsv_in_eligible_pairs_L": 374.21,
+  "all_pending_pairs": 31,
+  "all_pending_value_L": 2198.88,
+  "weight_groups": 447,
+  "scope": "Apr'25-Jul'26 (16 months)",
+  "method": "B2 owner-approved Distributor \u00d7 Brand \u00d7 Chain triplets (109 lines). For any Dist \u00d7 Brand pair with \u22651 approved chain, ALL chains from the ChainWisePrimarySale Dump Snapshot are included (preserves correct proportions). All-pending groups (32 pairs, no approved chain) get no allocation and fall back to the raw distributor tag. load_chain_allocation_weights() normalizes NSV to fractions per (Ship To, Brand, Month) group."
+}

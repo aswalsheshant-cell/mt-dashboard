@@ -31,14 +31,14 @@ import build_dashboard_data as bdd  # noqa: E402
 from allocate_dist_enhanced import apply_chain_allocation_enhanced  # noqa: E402
 
 
-def test_load_chain_allocation_weights_falls_back_to_approved_patch():
-    """The comprehensive weights file doesn't exist in this repo -- verified
-    directly. The narrow, real, already-approved patch file does, and must
-    now actually be used instead of the loader silently returning None."""
-    assert not Path("PowerBI/SeedData/DIST/ChainAllocationWeights.csv").exists()
+def test_load_chain_allocation_weights_loads_governed_file():
+    """ChainAllocationWeights.csv (B2 governed weights from owner-approved
+    mapping lines) is the primary source. When it exists, the loader must
+    use it and produce valid, normalized weights."""
+    assert Path("PowerBI/SeedData/DIST/ChainAllocationWeights.csv").exists()
     weights = bdd.load_chain_allocation_weights(REPO_ROOT)
-    assert weights is not None, "should fall back to DistPrimaryContWeightsArticle.csv, not return None"
-    assert len(weights) > 0
+    assert weights is not None, "should load ChainAllocationWeights.csv"
+    assert len(weights) >= 447, f"expected >=447 weight groups from B2, got {len(weights)}"
     for key, splits in weights.items():
         total = sum(frac for _, frac in splits)
         assert total == pytest.approx(1.0, abs=1e-6), f"{key} splits sum to {total}, not 1.0"
