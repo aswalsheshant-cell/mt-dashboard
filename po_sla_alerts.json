@@ -1,0 +1,180 @@
+{
+  "generated_at": "2026-08-26T12:00:38.272862",
+  "report_date": "2026-08-26",
+  "report_title": "PO SLA Risk Alert Digest \u2014 July 2026 Operational Review",
+  "executive_summary": {
+    "total_open_pos": 50,
+    "total_breach_risk": 3,
+    "zones_on_track": 3,
+    "zones_requiring_action": 3,
+    "overall_status": "requires_action"
+  },
+  "zones_po_tracking": [
+    {
+      "zone_name": "West",
+      "open_pos": 12,
+      "breach_risk_count": 1,
+      "dc_fill_rate": 92.1,
+      "dc_fill_target": 95.0,
+      "dc_name": "Bhiwandi/Thane",
+      "transit_time_hours": 18,
+      "status": "monitor",
+      "priority": "yellow",
+      "actionable_items": [
+        "DMart appointment slot cycle: 36h (target: <24h)",
+        "Inspect 1 open order: SKU-MSV-0847 (Serums) \u2014 delayed since 2026-08-22"
+      ]
+    },
+    {
+      "zone_name": "South-1",
+      "open_pos": 8,
+      "breach_risk_count": 0,
+      "dc_fill_rate": 94.5,
+      "dc_fill_target": 95.0,
+      "dc_name": "Bangalore/Hosur",
+      "transit_time_hours": 24,
+      "status": "on_track",
+      "priority": "green",
+      "actionable_items": [
+        "Maintaining 94.5% fill rate (within 0.5% of target)",
+        "Apollo Pharmacy offtake continues strong at 1.18x primary ratio"
+      ]
+    },
+    {
+      "zone_name": "North",
+      "open_pos": 10,
+      "breach_risk_count": 1,
+      "dc_fill_rate": 88.9,
+      "dc_fill_target": 95.0,
+      "dc_name": "Faridabad",
+      "transit_time_hours": 22,
+      "status": "escalate",
+      "priority": "red",
+      "actionable_items": [
+        "6.1% gap vs. target: Faridabad DC cycle time 48h (need <36h)",
+        "Escalate 1 order: SKU-MAM-0612 (Cleansers) \u2014 breach since 2026-08-20",
+        "Tier-2 store prep pipeline: 8 pending orders for new DMart UP expansion"
+      ]
+    },
+    {
+      "zone_name": "South-2",
+      "open_pos": 7,
+      "breach_risk_count": 1,
+      "dc_fill_rate": 86.3,
+      "dc_fill_target": 95.0,
+      "dc_name": "Hyderabad",
+      "transit_time_hours": 26,
+      "status": "escalate",
+      "priority": "red",
+      "actionable_items": [
+        "8.7% gap vs. target: Hyderabad DC inefficiency (appointment slot contention)",
+        "Escalate 1 order: SKU-BLNT-0234 (Haircare) \u2014 delayed since 2026-08-19",
+        "Action: Hire temporary slot coordinator to reduce cycle from 60h to 36h"
+      ]
+    },
+    {
+      "zone_name": "East",
+      "open_pos": 4,
+      "breach_risk_count": 0,
+      "dc_fill_rate": 91.2,
+      "dc_fill_target": 95.0,
+      "dc_name": "Kolkata Hub",
+      "transit_time_hours": 32,
+      "status": "on_track",
+      "priority": "green",
+      "actionable_items": [
+        "Within 3.8% of target; festive pipeline seeding on track for Durga Puja",
+        "Early August dispatches locked: 4-day transit buffer active"
+      ]
+    },
+    {
+      "zone_name": "Central",
+      "open_pos": 3,
+      "breach_risk_count": 0,
+      "dc_fill_rate": 89.7,
+      "dc_fill_target": 95.0,
+      "dc_name": "Nagpur Hub",
+      "transit_time_hours": 28,
+      "status": "on_track",
+      "priority": "green",
+      "actionable_items": [
+        "5.3% gap manageable; high-margin growth on track",
+        "Standalone supermarket offtake strong with minimal trade spend"
+      ]
+    },
+    {
+      "zone_name": "Quick-Commerce & Institutional",
+      "open_pos": 6,
+      "breach_risk_count": 0,
+      "dc_fill_rate": 98.0,
+      "dc_fill_target": 97.0,
+      "dc_name": "National Network",
+      "transit_time_hours": 12,
+      "status": "optimal",
+      "priority": "green",
+      "actionable_items": [
+        "Exceeds target by 1.0%; 18x inventory turns maintained",
+        "98%+ OSA sustained on 30 hero SKUs across dark stores"
+      ]
+    }
+  ],
+  "forecast_accuracy": {
+    "current_month": {
+      "month": "July 2026",
+      "wmape": 12.4,
+      "wmape_target": 15.0,
+      "status": "on_track",
+      "improvement_vs_baseline": "32% better than FY26 baseline (18.2%)"
+    },
+    "next_month_target": {
+      "month": "August 2026",
+      "wmape_target": 10.0,
+      "priority_challenge": "Festival pre-stocking accuracy (high variance)",
+      "mitigation": "Daily POS-linked replenishment (QC hub model at 98% fill)"
+    },
+    "rolling_90day": {
+      "wmape_avg": 13.8,
+      "best_week": "Aug 1\u20137 (WMAPE: 9.2%)",
+      "worst_week": "Jul 22\u201328 (WMAPE: 16.1%)"
+    }
+  },
+  "strategic_alerts": [
+    {
+      "type": "operational",
+      "priority": "high",
+      "title": "North & South-2 DC Cycle Time Reduction",
+      "description": "Both zones running 48\u201360h appointment cycles vs. <36h target. Escalate to DC operations to hire temp slot coordinators.",
+      "deadline": "2026-08-31",
+      "owner": "Zone Commercial Lead"
+    },
+    {
+      "type": "supply_chain",
+      "priority": "high",
+      "title": "Pre-Diwali Inventory Buffer Build",
+      "description": "Initiate 8\u201310 days safety stock accumulation across all DCs starting Sept 1 (EOD deadline: Sept 15).",
+      "deadline": "2026-09-01",
+      "owner": "Supply Chain Manager"
+    },
+    {
+      "type": "forecast",
+      "priority": "medium",
+      "title": "Festival Forecast Bias Mitigation",
+      "description": "Implement daily POS-linked replenishment for QC hub model to reduce WMAPE from 12.4% to <10%.",
+      "deadline": "2026-08-30",
+      "owner": "Demand Planning Lead"
+    },
+    {
+      "type": "talent",
+      "priority": "medium",
+      "title": "BA Retention Bonus Release",
+      "description": "Release \u20b985L bonus pool for Q3\u2013Q4 BA retention (high turnover risk in North zone).",
+      "deadline": "2026-08-28",
+      "owner": "HR / Regional MD"
+    }
+  ],
+  "measurement_cadence": {
+    "weekly": "Primary + Secondary Tracker (NSV, Offtake, POS)",
+    "bi_weekly": "Account Scorecards (DMart, Reliance, Apollo, Spencer's)",
+    "monthly": "Commercial Steering Calls (Zone Commercial leads + Regional MDs)"
+  }
+}

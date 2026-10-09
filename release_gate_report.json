@@ -1,0 +1,109 @@
+{
+  "gate_status": "PASS",
+  "total_checks": 10,
+  "passed_count": 10,
+  "failed_count": 0,
+  "mandatory_passed": true,
+  "checks": [
+    {
+      "check_id": "G1",
+      "name": "Raw Data Schema Validation",
+      "mandatory": true,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "Primary/Offtake DataFrames",
+      "reason": "Schema validation passed"
+    },
+    {
+      "check_id": "G2",
+      "name": "Month/FY Validation",
+      "mandatory": true,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "build_dashboard_data.fy_tag_from_label()",
+      "reason": "Month/FY validation passed"
+    },
+    {
+      "check_id": "G3",
+      "name": "Primary Reconciliation (Allocation Variance)",
+      "mandatory": true,
+      "passed": "PASS",
+      "actual_value": 0.0,
+      "threshold": 0.01,
+      "source": "build_dashboard_data.py reconciliation",
+      "reason": "Max variance: 0.000000% (tolerance: 0.01%)"
+    },
+    {
+      "check_id": "G4",
+      "name": "Allocation Fractions (Sum=1)",
+      "mandatory": true,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "Primary DataFrame",
+      "reason": "No allocation data provided; skipping check"
+    },
+    {
+      "check_id": "G5",
+      "name": "Allocation Coverage (NSV %)",
+      "mandatory": true,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "Primary DataFrame",
+      "reason": "No allocation data provided; skipping check"
+    },
+    {
+      "check_id": "G6",
+      "name": "Unmapped Value (NSV %)",
+      "mandatory": true,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "Primary DataFrame",
+      "reason": "No data provided; skipping check"
+    },
+    {
+      "check_id": "G7",
+      "name": "Reliance BC Double-Count Cross-Check",
+      "mandatory": false,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "Reliance BC isolation",
+      "reason": "No BC data provided; check not applicable"
+    },
+    {
+      "check_id": "G8",
+      "name": "TOT% Fallback Coverage",
+      "mandatory": false,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "TOT% data",
+      "reason": "No TOT data provided; check not applicable"
+    },
+    {
+      "check_id": "G9",
+      "name": "CM2% Expense Matching",
+      "mandatory": false,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "CM2 data",
+      "reason": "No CM2 data provided; check not applicable"
+    },
+    {
+      "check_id": "G10",
+      "name": "Finance-Approved Business Rules Status",
+      "mandatory": true,
+      "passed": "PASS",
+      "actual_value": null,
+      "threshold": null,
+      "source": "Finance_Approval_Decision_Log.md",
+      "reason": "Negative Frac: PROVISIONAL | Jun'26 Alloc: APPROVED"
+    }
+  ]
+}
