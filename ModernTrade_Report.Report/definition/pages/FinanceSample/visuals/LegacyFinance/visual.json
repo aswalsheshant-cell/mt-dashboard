@@ -1,0 +1,107 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "LegacyFinance",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "z": 0,
+    "height": 220,
+    "width": 1400,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Chain"
+                    }
+                  },
+                  "Property": "Chain_Name"
+                }
+              },
+              "queryRef": "Dim_Chain.Chain_Name",
+              "nativeQueryRef": "Chain_Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim_Category"
+                    }
+                  },
+                  "Property": "Category_Name"
+                }
+              },
+              "queryRef": "Dim_Category.Category_Name",
+              "nativeQueryRef": "Category_Name"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "NSV_Jun26_Allocated"
+                }
+              },
+              "queryRef": "_Measures.NSV_Jun26_Allocated",
+              "nativeQueryRef": "NSV_Jun26_Allocated"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Contribution_Margin_INR"
+                }
+              },
+              "queryRef": "_Measures.Contribution_Margin_INR",
+              "nativeQueryRef": "Contribution_Margin_INR"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Cont_Margin_Pct"
+                }
+              },
+              "queryRef": "_Measures.Cont_Margin_Pct",
+              "nativeQueryRef": "Cont_Margin_Pct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Cont_Margin_Badge"
+                }
+              },
+              "queryRef": "_Measures.Cont_Margin_Badge",
+              "nativeQueryRef": "Cont_Margin_Badge"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

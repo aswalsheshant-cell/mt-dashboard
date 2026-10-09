@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "Bridge",
+  "position": {
+    "x": 20,
+    "y": 480,
+    "z": 0,
+    "height": 220,
+    "width": 1400,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Matched NSV"
+                }
+              },
+              "queryRef": "_Measures.CM2 Matched NSV",
+              "nativeQueryRef": "CM2 Matched NSV"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Matched Claim Gap"
+                }
+              },
+              "queryRef": "_Measures.CM2 Matched Claim Gap",
+              "nativeQueryRef": "CM2 Matched Claim Gap"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Matched Claim Gap Pct"
+                }
+              },
+              "queryRef": "_Measures.CM2 Matched Claim Gap Pct",
+              "nativeQueryRef": "CM2 Matched Claim Gap Pct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "CM2 Unallocated BA"
+                }
+              },
+              "queryRef": "_Measures.CM2 Unallocated BA",
+              "nativeQueryRef": "CM2 Unallocated BA"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

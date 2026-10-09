@@ -1,0 +1,197 @@
+table Fact_OfftakeSales
+
+	column Month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Month
+
+	column 'FY Year'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FY Year
+
+	column Chain
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain
+
+	column Zone
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Zone
+
+	column State
+		dataType: string
+		summarizeBy: none
+		sourceColumn: State
+
+	column City
+		dataType: string
+		summarizeBy: none
+		sourceColumn: City
+
+	column 'Store Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Code
+
+	column 'Store Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Name
+
+	column 'Store Type'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Type
+
+	column 'DC Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: DC Name
+
+	column Brand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand
+
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	column 'Sub-category'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Sub-category
+
+	column Range
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Range
+
+	column 'Pack Size'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Pack Size
+
+	column 'Article Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Code
+
+	column 'Article Code Alt'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Code Alt
+
+	column 'EAN Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: EAN Code
+
+	column 'Article Description'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Description
+
+	column 'Chain Article Description'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain Article Description
+
+	column 'Offtake Qty'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Offtake Qty
+
+	column 'Offtake NSV'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Offtake NSV
+
+	column 'MRP Sales'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: MRP Sales
+
+	column 'MRP Rate'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: MRP Rate
+
+	column Margin
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Margin
+
+	column 'SO Emp Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: SO Emp Code
+
+	column 'Sales Person'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Sales Person
+
+	column 'PPT Category'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PPT Category
+
+	column MonthStart
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+	column 'Article Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Key
+
+	column 'Data Source Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source Name
+
+	column 'Store Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Key
+
+	column 'Geography Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Geography Key
+
+	column 'Data Source File'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source File
+
+	column 'Refresh Date'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: Refresh Date
+
+	column 'Chain Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain Key
+
+	column 'Category Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category Key
+
+	column 'Brand Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand Key
+
+	partition Fact_OfftakeSales = m
+		mode: import
+		source = ```
+			qFact_OfftakeSales
+			```

@@ -1,0 +1,33 @@
+table Dim_Store
+
+	column 'Store Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Key
+		isKey
+
+	column 'Store Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Code
+
+	column 'Store Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Name
+
+	column Chain
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain
+
+	partition Dim_Store = m
+		mode: import
+		source = ```
+			let
+			    Combined = Table.Combine({Table.SelectColumns(qFact_PrimarySales, {"Store Key", "Store Code", "Store Name", "Chain"}),
+			        Table.SelectColumns(qFact_OfftakeSales, {"Store Key", "Store Code", "Store Name", "Chain"})}),
+			    Valid = Table.SelectRows(Combined, each Record.Field(_, "Store Key") <> null),
+			    Unique = fnDimension(Valid, "Store Key")
+			in Table.Distinct(Unique, {"Store Key"})
+			```

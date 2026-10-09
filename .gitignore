@@ -76,3 +76,7 @@ Massit*.csv
 employee_master*.csv
 incentive_working/
 logs/incentive_decision_audit.jsonl
+
+# Local governed Power BI aggregate and Desktop caches
+.local/cm2/
+**/.pbi/

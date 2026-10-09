@@ -1,0 +1,82 @@
+table Fact_Nielsen
+
+	column Month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Month
+
+	column 'FY Year'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FY Year
+
+	column 'Nielsen Category'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Nielsen Category
+
+	column Brand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand
+
+	column Zone
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Zone
+
+	column 'Market Value Sales'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Market Value Sales
+
+	column 'Our Brand Sales'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Our Brand Sales
+
+	column 'Value Market Share %'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Value Market Share %
+
+	column 'Volume Market Share %'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Volume Market Share %
+
+	column 'Data Source Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source Name
+
+	column MonthStart
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+	column 'Geography Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Geography Key
+
+	column 'Data Source File'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source File
+
+	column 'Refresh Date'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: Refresh Date
+
+	column 'Brand Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand Key
+
+	partition Fact_Nielsen = m
+		mode: import
+		source = ```
+			qFact_Nielsen
+			```

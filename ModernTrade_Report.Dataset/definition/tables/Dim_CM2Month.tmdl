@@ -1,0 +1,16 @@
+table Dim_CM2Month
+
+	column month
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: month
+
+	column fy
+		dataType: string
+		summarizeBy: none
+		sourceColumn: fy
+
+	partition Dim_CM2Month = m
+		mode: import
+		source = Table.Distinct(Table.SelectColumns(Fact_CM2, {"month", "fy"}))

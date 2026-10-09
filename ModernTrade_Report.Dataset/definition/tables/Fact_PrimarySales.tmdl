@@ -1,0 +1,167 @@
+table Fact_PrimarySales
+
+	column 'Week Start Date'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: Week Start Date
+
+	column Month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Month
+
+	column 'FY Year'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: FY Year
+
+	column Quarter
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Quarter
+
+	column Chain
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain
+
+	column Account
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Account
+
+	column Zone
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Zone
+
+	column State
+		dataType: string
+		summarizeBy: none
+		sourceColumn: State
+
+	column City
+		dataType: string
+		summarizeBy: none
+		sourceColumn: City
+
+	column 'Store Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Code
+
+	column 'Store Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Name
+
+	column Brand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand
+
+	column Category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category
+
+	column 'Sub-category'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Sub-category
+
+	column Range
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Range
+
+	column 'Pack Size'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Pack Size
+
+	column 'Article Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Code
+
+	column 'Article Description'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Description
+
+	column 'EAN Code'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: EAN Code
+
+	column 'Primary NSV'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Primary NSV
+
+	column 'Primary Qty'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: Primary Qty
+
+	column 'MRP Sales'
+		dataType: double
+		summarizeBy: none
+		sourceColumn: MRP Sales
+
+	column 'Data Source Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source Name
+
+	column MonthStart
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+	column 'Article Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Article Key
+
+	column 'Store Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Store Key
+
+	column 'Geography Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Geography Key
+
+	column 'Data Source File'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Data Source File
+
+	column 'Refresh Date'
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: Refresh Date
+
+	column 'Chain Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Chain Key
+
+	column 'Category Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Category Key
+
+	column 'Brand Key'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Brand Key
+
+	partition Fact_PrimarySales = m
+		mode: import
+		source = ```
+			qFact_PrimarySales
+			```
