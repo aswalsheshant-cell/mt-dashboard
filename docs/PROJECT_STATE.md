@@ -58,15 +58,14 @@ produces no payout while mandatory decisions are open.
 
 ## Last Validated Commit
 
-Main snapshot checked 2026-10-03: `84864ce4076164aee5cbc79493bb7f086743eb90`
-(#290 documentation merge). This identifies the repository state, not a live
-Power BI Desktop validation; B5 remains blocked pending retained evidence.
+Main snapshot checked 2026-10-09: `6ebbf93` (PR #303 merge — B2 resolved).
+B5 remains blocked pending retained evidence.
 
-`acd6e6b` — PR #266 merged 2026-09-30 (serializer test stub), after #265 `5ecb582`
-(project-state reconciliation; header and Primary trend labels follow the data).
-2026-09-29: #264 `5bedeeb` (Executive Cockpit portfolio-mix fix); #263 `f91116f` (B5 exit condition), #247 `eba446a`, #262
-`16eaa6e`; 2026-09-27: #261, #260, #259, #229 `3aa6895`. Each merged on the
-owner's direct approval with every required check green on its head.
+2026-10-09: #303 `6ebbf93` (B2: 109 owner-approved chain mappings applied);
+2026-10-08: #302 `f3ef0c2` (B1/CB-01 Decision 3: FY26 restated to MT basis).
+Earlier: #300 `bf64ffd` (Nielsen cuts, store cuts, TDP view, Power BI kit);
+#292 `f5237cd`, #293 `b856912`, #278 `f327e22`, #277 `32f4ef6`,
+#280 `6e0ae98`, #282 `fb62b0a`.
 Previous certification: `154b370`, 2026-09-26 (see "Final certification —
 2026-09-26" below; its "Open PRs" list is history, not current state).
 Current open PRs, issues and blocker states are machine-readable in
@@ -79,23 +78,28 @@ this file or the blocker pack contradicts it.
 
 ## Next Approved Task
 
-**Feature freeze from `f960e1f` (2026-09-27).** Only work that clears a blocker in
-`docs/COMPLETION_BLOCKER_PACK.md` (B1 CB-01, B2 #120/#119, B3 CM2 expense scope — #229 merged, distributor claims in #267, B4 AssumptionTable,
-B5 Power BI Desktop checks, B6 incentive decisions) or fixes a newly reproduced
-defect is merged. Closed as outside the certified scope (branches kept): #129, #130,
-#135, #136 (superseded by #243, #238, #240, #237) and #134, #165, #168, #169, #170.
-Open PRs held on blockers: #119 (frozen evidence, gated on #120) and #267 (HOLD: Finance; distributor-claim seed on current `main`). #252 was closed 2026-09-30 as superseded by #267 (not merged; branch kept). Open issues: #120, #194.
+**Blockers resolved: B1, B2.** Feature freeze lifted by owner on 2026-10-08.
 
-**B5 — `BLOCKED_PENDING_DESKTOP_EVIDENCE` (exit condition changed 2026-09-29, owner decision).**
-History: on 2026-09-27 the MT Channel Analyst Lead reported CM2 Case 1 and the FY parser
-as PASS on `main` `6b49e3a`; no evidence was attached. #229 (`3aa6895`) then loaded 64
-real expense rows, so Case 1 ("no expense rows") no longer applies to the current model;
-it stays recorded as `PASS_REPORTED_EVIDENCE_NOT_RETAINED` and is not counted.
-Current exit condition: FY parser `Failures` = 0 rows plus CM2 Cases 2–9 on the current
-model (Case 5 `Leak` = 0, Case 7 `BrandLeak` = `CategoryLeak` = 0, Case 8 `Violations` = 0, Case 9 comparability: no-FY and FY26 CM2 BLANK, FY27 CM2 = NSV − expense; added with #287),
-plus the L3M/L6M rolling-average check (`Mismatches` = 0; added 2026-10-01, #273), recorded in `docs/evidence/B5_powerbi_runtime_<date>.md` from the template, run per
-`docs/evidence/B5_RUN_SHEET.md`. Needs one Power BI Desktop session on Windows.
-Open: B1, B2, B3 (MT Direct DN claims live since #229, partial Jul/Aug; distributor claims (#267) and the rest of CM2 scope wait on Finance), B4, B5, B6.
+- **B1 RESOLVED** (2026-10-09): PR #302 restated FY26 Primary on MT basis (Rs 30,684.99 L).
+  `mt_channel_reconciliation.py` exits 0; CI step is blocking (no `continue-on-error`).
+  All three CB-01 decisions applied (MT-only views, Nykaa under eB2B, FY26 restatement).
+- **B2 RESOLVED** (2026-10-09): PR #303 applied 109 owner-approved chain mappings
+  (Rs 7,271.61 L, 77% of register). 157 pending lines fall back to governed hierarchy.
+  Issue #120 closed. PR #119 stays frozen evidence at `51487b6`.
+
+**Open blockers — all waiting on business inputs:**
+
+- **B3** — CM2 expense scope. MT Direct DN claims live (#229). Distributor claims
+  (#267) on HOLD pending Finance (full Jul/Aug DN register, FY27 CM2 scope).
+- **B4** — Power BI P&L assumptions. Finance must supply approved AssumptionTable
+  rows for Jun/Jul/Aug'26 and confirm Apr/May'26.
+- **B5** — `BLOCKED_PENDING_DESKTOP_EVIDENCE`. Needs one Power BI Desktop session
+  on Windows: FY parser + CM2 Cases 2–9 + L3M/L6M rolling averages per
+  `docs/evidence/B5_RUN_SHEET.md`.
+- **B6** — Incentive V1 business decisions. Decisions (a)–(e) + target basis,
+  C1–C6, caps, proration from MT Leadership, Finance, MT Ops, HR.
+
+Open PRs held on blockers: #119 (frozen evidence, B2 resolved but kept as evidence) and #267 (HOLD: Finance, B3 distributor claims). Open issues: #194.
 
 **Business input closure — the work is now waiting on people, not on data.**
 `incentive_working/target_scope_decision_pack.md` is the pack to send. Open items,
