@@ -40,7 +40,22 @@ let
     FixedNames = Table.TransformColumnNames(Source, each
         Text.Trim(Text.Replace(Text.Replace(Text.Replace(_, "#(lf)", " "), "#(cr)", " "), "  ", " "))),
 
-    Picked = Table.SelectColumns(FixedNames, {
+    // Apr'25-May'26 files call these columns "Chain name" and "MRP Rate"; Jun'26+
+    // files use "Chain name for Dashboard" and "MRP". Same meaning (checked:
+    // Qty x MRP = Total MRP sales on both). Without this, MissingField.UseNull
+    // left Chain Dash and Article MRP blank for 14 months.
+    fnAlias = (t as table, newName as text, oldName as text) as table =>
+        if not Table.HasColumns(t, oldName) then t
+        else if not Table.HasColumns(t, newName) then Table.RenameColumns(t, {{oldName, newName}})
+        else Table.RenameColumns(
+            Table.RemoveColumns(
+                Table.AddColumn(t, "__merged", each Record.Field(_, newName) ?? Record.Field(_, oldName)),
+                {newName, oldName}),
+            {{"__merged", newName}}),
+    AliasChain = fnAlias(FixedNames, "Chain name for Dashboard", "Chain name"),
+    AliasNames = fnAlias(AliasChain, "MRP", "MRP Rate"),
+
+    Picked = Table.SelectColumns(AliasNames, {
         "FY", "Month", "Channel", "Inv. Date", "Cust-SAP Code", "Ship To Name",
         "EAN No.", "net_content", "brand", "PPT Category",
         "category", "sub_category", "range", "Description", "MRP",
@@ -80,8 +95,15 @@ let
         {"Chain Dash", type text}, {"Zone", type text}, {"State", type text}
     }),
 
+    // Channel scope (parameter pPrimaryChannel). Spelling is folded first because the
+    // files hold both "EB2B" and "Eb2b". "MT" drops EB2B and SIS rows only; every MT chain,
+    // Reliance included, stays. "ALL" keeps everything.
+    ChannelNorm = Table.TransformColumns(Typed, {{"Channel", each Text.Upper(Text.Trim(Text.From(_ ?? ""))), type text}}),
+    ChannelScoped = if Text.Upper(pPrimaryChannel) = "ALL" then ChannelNorm
+        else Table.SelectRows(ChannelNorm, each [Channel] = Text.Upper(Text.Trim(pPrimaryChannel))),
+
     // MonthStart from "April'24"/"Apr'24" text, a date value, or an Excel serial
-    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+    AddMonthStart = Table.AddColumn(ChannelScoped, "MonthStart", each
         let v = [Month]
         in  if v = null then null
             else if Value.Is(v, type date) then Date.StartOfMonth(v)
@@ -145,8 +167,8 @@ let
           "Provisional Flag", each false, type logical),
         "Allocation Status", each "Direct", type text),
 
-    Combined = Table.Combine({Table.RemoveColumns(DirectWithGov, {"Is Dist"}),
-                              Table.RemoveColumns(DistSwap, {"Is Dist"})}),
+    // "Is Dist" stays: [Dist Allocation Coverage %] in DAX/07 filters on it.
+    Combined = Table.Combine({DirectWithGov, DistSwap}),
 
     // article key: EAN -> cleaned Description (the current format has no Article Code)
     AddKey = Table.AddColumn(Combined, "Article Key", each

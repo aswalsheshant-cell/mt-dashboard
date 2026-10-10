@@ -356,6 +356,14 @@ const crc = v => { if(v==null) return '–'; const av=Math.abs(v);
   const body = av<100 ? av.toLocaleString('en-IN',{maximumFractionDigits:1})+' L'
                       : (av/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' Cr';
   return (v<0 && !/^0( L)?$/.test(body) ? '-₹' : '₹')+body; };
+const crcTick = (v, _i, ticks) => {
+  if (v === 0) return '₹0';
+  if (ticks && ticks.some(t => Math.abs(t.value) >= 100)) {
+    const av = Math.abs(v);
+    return (v < 0 ? '-₹' : '₹') + (av / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Cr';
+  }
+  return crc(v);
+};
 const pct = v => v==null?'–':(v>0?'+':'')+v.toFixed(1)+'%';
 const num = v => v==null?'–':Math.round(v).toLocaleString('en-IN');
 // Deterministic, DOM-safe id fragment from an arbitrary label/value. Every form
@@ -566,7 +574,7 @@ function mkBar(id,labels,datasets,opts={},onClick){
     options:Object.assign({plugins:{legend:{display:datasets.length>1,position:'top'},
       ..._labelOpts(opts.money),
       tooltip:{callbacks:{label:c=>`${c.dataset.label?c.dataset.label+': ':''}${opts.money===false?num(c.parsed.y??c.parsed.x):crc(c.parsed.y??c.parsed.x)}`}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>opts.money===false?num(v):crc(v)}},
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:(v,i,t)=>opts.money===false?num(v):crcTick(v,i,t)}},
               x:{grid:{display:false}}}},_drillOpts(onClick),opts.cfg||{})}));
 }
 function mkBarH(id,labels,data,color,money=true,onClick){
@@ -575,7 +583,7 @@ function mkBarH(id,labels,data,color,money=true,onClick){
     options:Object.assign({indexAxis:'y',plugins:{legend:{display:false},
       ..._labelOpts(money),
       tooltip:{callbacks:{label:c=>money?crc(c.parsed.x):num(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>money?crc(v):num(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}},_drillOpts(onClick))}));
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:(v,i,t)=>money?crcTick(v,i,t):num(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}},_drillOpts(onClick))}));
 }
 function mkLine(id,labels,datasets,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'line',
@@ -584,7 +592,7 @@ function mkLine(id,labels,datasets,onClick){
     options:Object.assign({plugins:{legend:{position:'top'},
       ..._labelOpts(true),
       tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},x:{grid:{display:false}}}},_drillOpts(onClick))}));
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:crcTick}},x:{grid:{display:false}}}},_drillOpts(onClick))}));
 }
 function mkDonut(id,labels,data,money=true,onClick){
   charts.push(new Chart(document.getElementById(id),{type:'doughnut',
@@ -1219,7 +1227,7 @@ function renderStoreCuts(content){
   const top=st.slice(0,8),c1=chartInCard(content,'State cut: NSV by store type','LFL, new, restarted and no-last-year-data stores, top 8 states.');
   inventoryHealthState.charts.storecutsState=new Chart(c1,{type:'bar',data:{labels:top.map(r=>r.State),datasets:[
     {label:'LFL stores',data:top.map(r=>r.lfl_ty),backgroundColor:'#118DFF'},{label:'New stores',data:top.map(r=>r.new_ty),backgroundColor:'#E66C37'},{label:'Restarted stores',data:top.map(r=>r.restart_ty),backgroundColor:'#F2A65A'},{label:'No LY store data',data:top.map(r=>r.noly_ty),backgroundColor:'#C8C6C4'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>crc(v)}}}}});
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${crc(c.parsed.y)}`}}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:crcTick}}}}});
   const c2=chartInCard(content,'Pack size cut: share of NSV (g / ml)','Pack size is FY27 only; last year has no pack in the store file. MoM is Aug vs Jul.');
   inventoryHealthState.charts.storecutsPack=new Chart(c2,{type:'bar',data:{labels:pk.map(x=>x.pack),datasets:[{label:'Share of NSV %',data:pk.map(x=>x.share_pct),backgroundColor:'#118DFF'}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y}% of NSV · MoM ${pc(pk[c.dataIndex].mom_pct)}`}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
@@ -1267,7 +1275,7 @@ function renderNielsenShare(content,N){
   if(k&&N.months){const fwSer=N.ms||[],shSer=(sh.series&&sh.series.ms)||[],shMonths=sh.months||[];
     demandPlanningState.charts.nielsen=new Chart(k,{type:'line',data:{labels:N.months,datasets:[
       {label:'Facewash share %',data:fwSer,borderColor:'#2563EB',backgroundColor:'transparent',tension:.3,pointRadius:1.5},
-      {label:'Shampoo share %',data:N.months.map(m=>{const i=shMonths.indexOf(m);return i>=0&&ok(shSer[i])?shSer[i]:null;}),borderColor:'#059669',backgroundColor:'transparent',tension:.3,pointRadius:1.5}]},
+      {label:'Shampoo share %',data:N.months.map(m=>{const i=shMonths.indexOf(m);return i>=0&&ok(shSer[i])?shSer[i]:null;}),borderColor:'#059669',backgroundColor:'transparent',tension:.3,pointRadius:1.5,spanGaps:true}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f1(c.parsed.y)+'%'}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}});}
 }
 
@@ -2621,7 +2629,7 @@ function buildPnl(){
     mkBar('plBridge',top.map(c=>c.name),[
       {label:'Net NSV',data:top.map(c=>c.nsv),backgroundColor:C.teal,borderRadius:4,stack:'s'},
       {label:'MRP→NSV gap',data:top.map(c=>c.discount),backgroundColor:C.sand,borderRadius:4,stack:'s'}],
-      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}}}}},
+      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:crcTick}}}}},
       v=>drillTo('Chain',v));
     mkBarH('plDisc',top.map(c=>c.name),top.map(c=>c.discount_pct),C.red,false,v=>drillTo('Chain',v));
     // override tick formatting for percent chart
@@ -2637,7 +2645,7 @@ function buildPnl(){
     mkBar('cm2Chart',cm2ChartChains.map(c=>c.name),[
       {label:'CM2 Value',data:cm2ChartChains.map(c=>c.cm2_value),backgroundColor:C.teal,borderRadius:4,stack:'s'},
       {label:'Expense',data:cm2ChartChains.map(c=>c.expense),backgroundColor:C.red,borderRadius:4,stack:'s'}],
-      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}}}}},
+      {cfg:{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eee'},ticks:{callback:crcTick}}}}},
       v=>drillTo('Chain',v));
   }
   renderDrillChart('plDrill','Primary NSV',recFilter());
@@ -4339,7 +4347,7 @@ function expBarH(id,key,entries){
     data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
     options:{indexAxis:'y',onClick:(e,els)=>{if(els.length){F[key]=[normVal(key,labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.x)}}},
-      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>crc(v)}},y:{grid:{display:false},ticks:{autoSkip:false}}}}}));
+      scales:{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:crcTick}},y:{grid:{display:false},ticks:{autoSkip:false}}}}}));
 }
 function expDonut(id,key,entries){
   const labels=entries.map(e=>e[0]),data=entries.map(e=>e[1]);
@@ -4356,7 +4364,7 @@ function expLine(id,recs){
     data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:true,tension:.32,borderWidth:2.4,pointRadius:2}]},
     options:{onClick:(e,els)=>{if(els.length){F.Month=[String(labels[els[0].index])];onFilterChange();}},
       plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>crc(c.parsed.y)}}},
-      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>crc(v)}},x:{grid:{display:false}}}}}));
+      scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:crcTick}},x:{grid:{display:false}}}}}));
 }
 // ---- Configurable Explorer chart gallery: each card has a live METRIC
 // (NSV/MRP/Qty) + CHART-TYPE (Bar/Column/Line/Area/Donut/Pie) dropdown, keeps
@@ -4439,6 +4447,7 @@ function renderGal(id){
   const labels=e.map(x=>isMultiFyMonth?x[0].split(_GAL_MONTH_SEP).reverse().join(' '):x[0]);
   const data=e.map(x=>x[1]);
   const fmt=st.metric==='Qty'?(v=>qtyFmt(v)):(v=>crc(v));
+  const fmtTick=st.metric==='Qty'?(v=>qtyFmt(v)):crcTick;
   const isFilterDim=FILT.some(([k])=>k===dim);
   const onClick=isFilterDim?(ev,els)=>{if(els.length){F[dim]=[normVal(dim,monthOf(e[els[0].index][0]))];onFilterChange();}}:undefined;
   const t=st.type;
@@ -4450,14 +4459,14 @@ function renderGal(id){
   } else if(t==='line'||t==='area'){
     cfg={type:'line',data:{labels,datasets:[{data,borderColor:C.teal,backgroundColor:C.teal+'22',fill:t==='area',tension:.32,borderWidth:2.4,pointRadius:2}]},
       options:{onClick,plugins:{legend:{display:false},..._labelOpts(true),tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}},
-        scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},x:{grid:{display:false}}}}};
+        scales:{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:fmtTick}},x:{grid:{display:false}}}}};
   } else {
     const horiz=(t==='barh');
     cfg={type:'bar',data:{labels,datasets:[{data,backgroundColor:C.teal,borderRadius:4}]},
       options:{indexAxis:horiz?'y':'x',onClick,plugins:{legend:{display:false},..._labelOpts(true),
         tooltip:{callbacks:{label:c=>fmt(horiz?c.parsed.x:c.parsed.y)}}},
-        scales:horiz?{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:v=>fmt(v)}},y:{grid:{display:false},ticks:{autoSkip:false,font:{size:10}}}}
-                    :{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:v=>fmt(v)}},x:{grid:{display:false}}}}};
+        scales:horiz?{x:{beginAtZero:true,grid:{color:'#eee'},ticks:{maxTicksLimit:5,maxRotation:0,callback:fmtTick}},y:{grid:{display:false},ticks:{autoSkip:false,font:{size:10}}}}
+                    :{y:{beginAtZero:true,grid:{color:'#eee'},ticks:{callback:fmtTick}},x:{grid:{display:false}}}}};
   }
   expCharts.push(new Chart(document.getElementById(id),cfg));
 }

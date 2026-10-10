@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "fb19df36ee5e024203d7",
+  "position": {
+    "x": 520,
+    "y": 56,
+    "z": 0,
+    "height": 56,
+    "width": 240
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Zone State Master"
+                    }
+                  },
+                  "Property": "Zone"
+                }
+              },
+              "queryRef": "Zone State Master.Zone",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

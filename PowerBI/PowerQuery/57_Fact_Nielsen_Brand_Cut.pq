@@ -7,7 +7,7 @@
 // Relate Date Table[MonthStart] -> [MonthStart]; Brand -> Nielsen Competitor Master[Brand] (not for the "(Category)" row).
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Brand_Cut_Monthly"),
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Brand_Cut_Monthly", null, {"Month", "FY Year", "Nielsen Category", "Brand", "Is Category Row", "Zone", "Value Cr", "Value Share %", "Volume Share %", "Price Per Ml", "WD %", "ND %", "Stores", "Sales Per Store Rs", "SAH %", "Data Source Name"}),
     Typed = Table.TransformColumnTypes(Source, {
         {"Month", type text}, {"FY Year", type text}, {"Nielsen Category", type text}, {"Brand", type text}, {"Is Category Row", type text}, {"Zone", type text},
         {"Value Cr", type number}, {"Value Share %", type number}, {"Volume Share %", type number}, {"Price Per Ml", type number},

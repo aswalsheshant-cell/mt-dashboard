@@ -104,6 +104,9 @@
       "45_Fact_ClaimMaster.pq": [
         "# RENAME QUERY TO: Fact Claim Master"
       ],
+      "62_Fact_Secondary_TOT_Hierarchy.pq": [
+        "# RENAME QUERY TO: Fact Secondary TOT Hierarchy"
+      ],
       "47_Fact_Nielsen_Pack.pq": [
         "# RENAME QUERY TO: Fact Nielsen Pack",
         "# NOTE: Needs fnCombineFolder. Pack presence measures in DAX 04 read this table."

@@ -93,10 +93,29 @@ let
         {"Brand", each Text.Trim(Text.From(_)), type text}
     }),
 
+    // Chain spellings in the offtake CSVs that differ from Chain Master (case, spacing,
+    // short forms). Without this the rows have no Chain Master match and drop out of
+    // [Total MT NSV]. Each pair is lowercase alias -> Chain Master name. Checked against
+    // build_dashboard_data.py CHAIN_ALIASES for the same entity. FSN/Fsn maps to Nykaa (FSN),
+    // a Chain Master row with Channel EB2B (owner decision 2026-10-10), so it stays out of MT.
+    ChainAliases = {
+        {"dmart", "D-Mart"}, {"h&g", "Health & Glow"}, {"metro cnc", "Metro CNC"},
+        {"sancus(rmt)", "RMT-Sancus"}, {"vmm", "Vishal Mega Mart"}, {"spencer", "Spencers"},
+        {"frankros", "Frank Ross"}, {"arambagh", "Arambagh"}, {"ratnadeep", "Ratnadeep"},
+        {"ratandeep", "Ratnadeep"}, {"ratanadeep", "Ratnadeep"}, {"sasta sundar", "SastaSundar"},
+        {"ssl", "SastaSundar"}, {"beauty & nutrie", "B&N"}, {"wh-smith", "WH-Smith"},
+        {"shoppers stop", "Shoppers Stop"}, {"azorte", "Azorte"}, {"trends", "Trent"},
+        {"fsn", "Nykaa (FSN)"}
+    },
+    AliasChain = Table.TransformColumns(Trimmed, {{"Chain", each
+        let k = Text.Lower(Text.Trim(Text.From(_ ?? ""))),
+            hit = List.First(List.Select(ChainAliases, (a) => a{0} = k))
+        in if hit = null then _ else hit{1}, type text}}),
+
     // The early FY27 CSVs call both Reliance streams "Reliance"; later files
     // name the Brand Counter stream explicitly. Keep every row and map them to
     // separate Chain Master members so MT excludes only the duplicate breakout.
-    AddGovernedChain = Table.AddColumn(Trimmed, "Governed Chain", each
+    AddGovernedChain = Table.AddColumn(AliasChain, "Governed Chain", each
         if Text.Contains(Text.Lower([Chain] ?? ""), "reliance") then
             if Text.Lower(Text.Trim([Store Type] ?? "")) = "brand counter"
             then "Reliance Brand Counter" else "Reliance Retail"

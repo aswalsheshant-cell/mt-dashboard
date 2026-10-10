@@ -1,0 +1,144 @@
+-- DAX Studio validation queries. Rebuilt by scripts/build_desktop_validation.py.
+-- Connect DAX Studio to the open Power BI Desktop model. Select ONE query at a time and press F5.
+-- Expected values come from the raw files (PowerBI/reconciliation_expected.json). They are source-side, not Desktop results.
+-- FY labels follow fnFYLabel: 25-26 = Apr-25 to Mar-26, 26-27 = Apr-26 to Mar-27.
+
+-- ------------------------------------------------------------
+-- Q1. Row counts (tables that should have data must be above 0; empty watch folders show 0)
+-- Expected: Primary Article, Offtake, ShipTo, Secondary, Claim Master, Promo above 0. Primary Sales, Nielsen, TDP are 0 until their files arrive.
+-- ------------------------------------------------------------
+EVALUATE
+UNION(
+  ROW("Table", "Fact Primary Article", "Rows", COUNTROWS('Fact Primary Article')),
+  ROW("Table", "Fact Offtake Sales", "Rows", COUNTROWS('Fact Offtake Sales')),
+  ROW("Table", "Fact Primary ShipTo", "Rows", COUNTROWS('Fact Primary ShipTo')),
+  ROW("Table", "Fact Secondary Sales", "Rows", COUNTROWS('Fact Secondary Sales')),
+  ROW("Table", "Fact Claim Master", "Rows", COUNTROWS('Fact Claim Master')),
+  ROW("Table", "Dim Promo Calendar", "Rows", COUNTROWS('Dim Promo Calendar')),
+  ROW("Table", "Fact Primary Sales", "Rows", COUNTROWS('Fact Primary Sales')),
+  ROW("Table", "Fact Nielsen", "Rows", COUNTROWS('Fact Nielsen')),
+  ROW("Table", "Fact TDP", "Rows", COUNTROWS('Fact TDP'))
+)
+ORDER BY [Rows] DESC
+
+
+-- ------------------------------------------------------------
+-- Q2. Primary Article NSV by FY and Channel (Rs lakh)
+-- Expected: Default pPrimaryChannel = MT, so only MT rows load: FY 25-26 MT 30,684.99 and FY 26-27 (Apr-Aug) MT 21,075.63, with no EB2B or SIS rows. With pPrimaryChannel = ALL you would also see EB2B 1,965.20 and SIS 250.17 for FY 25-26 (total 32,900.36).
+-- ------------------------------------------------------------
+EVALUATE
+SUMMARIZECOLUMNS(
+  'Date Table'[FY Year],
+  'Fact Primary Article'[Channel],
+  "NSV Lakh", DIVIDE([Total Primary NSV], 100000)
+)
+ORDER BY 'Date Table'[FY Year], 'Fact Primary Article'[Channel]
+
+
+-- ------------------------------------------------------------
+-- Q3. FY 25-26 Primary NSV (Rs lakh)
+-- Expected: 30,684.99 with the default pPrimaryChannel = MT (the MT basis). It reads 32,900.36 only if the parameter is set to ALL.
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "FY26 Primary NSV Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26") / 100000
+)
+
+
+-- ------------------------------------------------------------
+-- Q4. Offtake Apr-Aug 2026, gross and MT split (Rs lakh)
+-- Expected: Gross [Total Offtake NSV] 21,553.85. [Total MT NSV] 17,936.36, [Total RBC NSV] 2,582.17 and EB2B 1,035.14 (Chain Master channel, after the alias step in query 11). FSN is EB2B (owner decision 2026-10-10), so MT + EB2B = 18,971.50, the dashboard figure ex Reliance Brand Counter (18,971.68). Chains with no Chain Master row: 0.18 L (Centro 0.18).
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Gross Offtake Lakh", CALCULATE([Total Offtake NSV], 'Date Table'[FY Year] = "26-27") / 100000,
+  "MT (ex RBC) Lakh", CALCULATE([Total MT NSV], 'Date Table'[FY Year] = "26-27") / 100000,
+  "RBC Lakh", CALCULATE([Total RBC NSV], 'Date Table'[FY Year] = "26-27") / 100000,
+  "EB2B Lakh", CALCULATE([Total Offtake NSV], 'Chain Master'[Channel] = "EB2B", 'Date Table'[FY Year] = "26-27") / 100000
+)
+
+
+-- ------------------------------------------------------------
+-- Q5. Offtake by month, gross and MT ex Reliance Brand Counter (Rs lakh)
+-- Expected: Gross: 2026-04 4,024.00; 2026-05 4,527.61; 2026-06 4,304.76; 2026-07 4,067.28; 2026-08 4,630.21. Dashboard ex RBC (data.js; [Total MT NSV] will be lower by the unmatched chains, see Q4): 2026-04 3,588.51; 2026-05 4,019.42; 2026-06 3,840.46; 2026-07 3,621.47; 2026-08 3,901.83
+-- ------------------------------------------------------------
+EVALUATE
+SUMMARIZECOLUMNS(
+  'Date Table'[MonthStart],
+  "Gross Offtake Lakh", DIVIDE([Total Offtake NSV], 100000),
+  "MT ex RBC Lakh", DIVIDE([Total MT NSV], 100000)
+)
+ORDER BY 'Date Table'[MonthStart]
+
+
+-- ------------------------------------------------------------
+-- Q6. Primary ShipTo NSV by FY (Rs lakh). Catches the double-load of overlapping snapshot files
+-- Expected: FY 24-25 23,325.30, FY 25-26 32,900.36, FY 26-27 9,955.63 (Apr-Jul only; the composite file has no Jun-26 and no Aug-26 rows). If FY 25-26 is near double (about 65,800), the two subset files are being loaded again.
+-- ------------------------------------------------------------
+EVALUATE
+SUMMARIZECOLUMNS(
+  'Date Table'[FY Year],
+  "ShipTo NSV Lakh", DIVIDE(SUM('Fact Primary ShipTo'[Primary NSV]), 100000)
+)
+ORDER BY 'Date Table'[FY Year]
+
+
+-- ------------------------------------------------------------
+-- Q6b. Promo sell-out table (Fact Secondary TOT Hierarchy), NSV by month (Rs lakh)
+-- Expected: 41671 rows. 2026-04 1,300.34; 2026-05 837.51; 2026-06 1,215.23; 2026-07 920.67; 2026-08 3,308.45. Total 7,582.20. 247 of 265 promo EANs find sell-out (the others have no Apr-Aug sell-out rows).
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Rows", COUNTROWS('Fact Secondary TOT Hierarchy'),
+  "Total NSV Lakh", SUM('Fact Secondary TOT Hierarchy'[NSV_Lakh]),
+  "Promoted NSV Lakh", [Actual Promoted NSV Lakh],
+  "Promoted SKU Breadth %", [Promoted SKU Breadth %]
+)
+
+
+-- ------------------------------------------------------------
+-- Q7. Primary Article rows with no Chain (header-spelling bug check)
+-- Expected: 0, or only rows that are genuinely unmapped distributor rows. A count in the tens of thousands means the Chain column is not being read.
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Rows with blank Chain", COUNTROWS(FILTER('Fact Primary Article', ISBLANK('Fact Primary Article'[Chain]))),
+  "Total rows", COUNTROWS('Fact Primary Article')
+)
+
+
+-- ------------------------------------------------------------
+-- Q8. Promo contribution placeholder check
+-- Expected: Minimum is blank or above -1,000,000,000. A value near -9.2e18 means the placeholder cleanup did not run.
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Min Chain_Contribution_Pct", MIN('Dim Promo Calendar'[Chain_Contribution_Pct]),
+  "Min Total_Contribution_Pct", MIN('Dim Promo Calendar'[Total_Contribution_Pct])
+)
+
+
+-- ------------------------------------------------------------
+-- Q9. Date table range
+-- Expected: Starts at or before Apr 2024 and runs past Aug 2026.
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Min Date", MIN('Date Table'[Date]),
+  "Max Date", MAX('Date Table'[Date]),
+  "Months", DISTINCTCOUNT('Date Table'[MonthStart])
+)
+
+
+-- ------------------------------------------------------------
+-- Q10. MoM Growth % by month (sanity)
+-- Expected: No blank or absurd values for months that have data. Months with no data stay blank, not zero.
+-- ------------------------------------------------------------
+EVALUATE
+SUMMARIZECOLUMNS(
+  'Date Table'[MonthStart],
+  "NSV", [NSV],
+  "MoM Growth %", [MoM Growth %]
+)
+ORDER BY 'Date Table'[MonthStart]
+

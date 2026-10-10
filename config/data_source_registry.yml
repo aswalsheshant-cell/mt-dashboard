@@ -141,10 +141,12 @@ datasets:
       sums to ~Rs38.72 Cr; Aug26_primary_detailed.csv (article-grain, the one
       the readiness gate consumes) sums to Rs36.58 Cr, corroborated three
       independent ways (chain_summary.csv, zone_summary.csv, metrics.json).
-      The ~Rs2.1 Cr gap between the two files is an UNRESOLVED SOURCE_CONFLICT
-      (see docs/DATA_LINEAGE.md) -- not picked as "whichever passes"; flagged,
-      not silently resolved. Use Aug26_primary_detailed.csv until the
-      discrepancy is explained.
+      The ~Rs2.1 Cr gap (Rs213.30L) is RECONCILED as of 2026-10-10 (see
+      docs/DATA_LINEAGE.md): MRN returns Rs116.50L + 350 cancelled-invoice
+      reversals Rs96.80L (MT only). The customer-grain file is gross of both.
+      Use Aug26_primary_detailed.csv (net). Owner confirmation of the source
+      choice is still welcome. Do not load the customer-grain file into
+      PowerBI/RawDataFolders/Primary_Article_Monthly (double count, wrong columns).
       "Chain name" (lowercase n) is a THIRD schema variant of the Primary
       file family -- added as an alias in scripts/aug26_data_readiness_gate.py
       PRIMARY_SCHEMA_ALIASES on 2026-09-13.

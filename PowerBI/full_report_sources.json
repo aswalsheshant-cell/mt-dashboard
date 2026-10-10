@@ -1,0 +1,2496 @@
+{
+  "generated": "2026-10-10",
+  "basis": "Source-side file inspection only. Not a Desktop refresh result.",
+  "required_periods": [
+    "2025-04",
+    "2025-05",
+    "2025-06",
+    "2025-07",
+    "2025-08",
+    "2025-09",
+    "2025-10",
+    "2025-11",
+    "2025-12",
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06",
+    "2026-07",
+    "2026-08"
+  ],
+  "required_period_ranges": [
+    "2025-04:2026-08"
+  ],
+  "required_fy_tags": [
+    "FY26",
+    "FY27"
+  ],
+  "status_summary": {
+    "NO_FILE_SOURCE": 2,
+    "TEMPLATE_ONLY": 2,
+    "INCOMPLETE_PERIODS": 12,
+    "DERIVED": 5,
+    "READY": 29,
+    "EMPTY": 2
+  },
+  "tables": [
+    {
+      "table": "Date Table",
+      "is_fact": false,
+      "pq_refs": [],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [],
+      "status": "NO_FILE_SOURCE"
+    },
+    {
+      "table": "Fact Primary Sales",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Primary_Weekly"
+      ],
+      "grain": "week/month x chain x brand",
+      "unit": "rupees",
+      "notes": "PQ 10; weekly drop folder",
+      "dependent_pages": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "6",
+        "7",
+        "8"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [],
+      "periods_covered": [],
+      "status": "TEMPLATE_ONLY"
+    },
+    {
+      "table": "Fact Offtake Sales",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Offtake_Monthly"
+      ],
+      "grain": "month x store x article",
+      "unit": "lakh in source, x100000 in PQ",
+      "notes": "PQ 11; docs/evidence/dashboard_unit_source_audit_2026-10-03.md",
+      "dependent_pages": [
+        "1",
+        "2",
+        "3",
+        "6",
+        "7",
+        "8"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Apr_26.csv",
+          "size_mb": 80.91,
+          "rows": 221797,
+          "columns": 37,
+          "periods": [
+            "2026-04"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Aug_26.csv",
+          "size_mb": 76.21,
+          "rows": 236353,
+          "columns": 34,
+          "periods": [
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jul_26.csv",
+          "size_mb": 70.12,
+          "rows": 221548,
+          "columns": 35,
+          "periods": [
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_Jun_26.csv",
+          "size_mb": 78.06,
+          "rows": 229460,
+          "columns": 39,
+          "periods": [
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Offtake_Monthly/offtake_store_article_May_26.csv",
+          "size_mb": 73.9,
+          "rows": 228280,
+          "columns": 35,
+          "periods": [
+            "2026-05"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact P&L",
+      "is_fact": true,
+      "pq_refs": [],
+      "grain": "month x chain",
+      "unit": "rupees",
+      "notes": "PQ 12",
+      "dependent_pages": [
+        "4"
+      ],
+      "derived_from": [
+        "Fact Offtake Sales"
+      ],
+      "warnings": [],
+      "files": [],
+      "status": "DERIVED"
+    },
+    {
+      "table": "Fact Nielsen",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Nielsen_Monthly"
+      ],
+      "grain": "month x brand x zone",
+      "unit": "rupees",
+      "notes": "PQ 13",
+      "dependent_pages": [
+        "9"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Monthly/nielsen_urban_mt_aug26.csv",
+          "size_mb": 0.2,
+          "rows": 1592,
+          "columns": 12,
+          "periods": [
+            "2023-08",
+            "2023-09",
+            "2023-10",
+            "2023-11",
+            "2023-12",
+            "2024-01",
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12",
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY24",
+            "FY25",
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2023-08",
+        "2023-09",
+        "2023-10",
+        "2023-11",
+        "2023-12",
+        "2024-01",
+        "2024-02",
+        "2024-03",
+        "2024-04",
+        "2024-05",
+        "2024-06",
+        "2024-07",
+        "2024-08",
+        "2024-09",
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [],
+      "status": "READY"
+    },
+    {
+      "table": "Fact TDP",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\TDP_Monthly"
+      ],
+      "grain": "month x brand x chain",
+      "unit": "count",
+      "notes": "PQ 14",
+      "dependent_pages": [
+        "10"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [],
+      "periods_covered": [],
+      "status": "TEMPLATE_ONLY"
+    },
+    {
+      "table": "Fact Primary ShipTo",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Primary_ShipTo_Monthly"
+      ],
+      "grain": "month x ship-to x chain x brand",
+      "unit": "rupees (PQ 15 ConvertFromLacs = false)",
+      "notes": "PQ 15; the two narrower snapshot files are subsets of the composite and are skipped",
+      "dependent_pages": [
+        "2B",
+        "3"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-25.csv",
+          "size_mb": 0.95,
+          "rows": 7883,
+          "columns": 12,
+          "periods": [
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12",
+            "2025-01",
+            "2025-02",
+            "2025-03"
+          ],
+          "fy_tags": [
+            "FY25"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY24-26_Composite.csv",
+          "size_mb": 2.29,
+          "rows": 18941,
+          "columns": 12,
+          "periods": [
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12",
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY25",
+            "FY26",
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv",
+          "size_mb": 1.33,
+          "rows": 11058,
+          "columns": 12,
+          "periods": [
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2024-04",
+        "2024-05",
+        "2024-06",
+        "2024-07",
+        "2024-08",
+        "2024-09",
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-07"
+      ],
+      "periods_missing_vs_required": [
+        "2026-06",
+        "2026-08"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact Primary Article",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Primary_Article_Monthly"
+      ],
+      "grain": "month x ship-to x article",
+      "unit": "rupees",
+      "notes": "PQ 16; docs/evidence/dashboard_unit_source_audit_2026-10-03.md",
+      "dependent_pages": [
+        "2B",
+        "7"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_25.csv",
+          "size_mb": 6.88,
+          "rows": 18621,
+          "columns": 35,
+          "periods": [
+            "2025-04"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Apr_26.csv",
+          "size_mb": 11.3,
+          "rows": 30757,
+          "columns": 35,
+          "periods": [
+            "2026-04"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_25.csv",
+          "size_mb": 4.93,
+          "rows": 13520,
+          "columns": 35,
+          "periods": [
+            "2025-08"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_26.csv",
+          "size_mb": 4.75,
+          "rows": 19070,
+          "columns": 25,
+          "periods": [
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Dec_25.csv",
+          "size_mb": 9.15,
+          "rows": 24642,
+          "columns": 35,
+          "periods": [
+            "2025-12"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Feb_26.csv",
+          "size_mb": 5.52,
+          "rows": 14844,
+          "columns": 35,
+          "periods": [
+            "2026-02"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jan_26.csv",
+          "size_mb": 12.18,
+          "rows": 33035,
+          "columns": 35,
+          "periods": [
+            "2026-01"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jul_25.csv",
+          "size_mb": 6.11,
+          "rows": 16643,
+          "columns": 35,
+          "periods": [
+            "2025-07"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jul_26.csv",
+          "size_mb": 6.91,
+          "rows": 31355,
+          "columns": 25,
+          "periods": [
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jun_25.csv",
+          "size_mb": 5.27,
+          "rows": 14634,
+          "columns": 35,
+          "periods": [
+            "2025-06"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Jun_26.csv",
+          "size_mb": 5.64,
+          "rows": 23192,
+          "columns": 25,
+          "periods": [
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Mar_26.csv",
+          "size_mb": 6.44,
+          "rows": 17365,
+          "columns": 35,
+          "periods": [
+            "2026-03"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_25.csv",
+          "size_mb": 6.06,
+          "rows": 16866,
+          "columns": 35,
+          "periods": [
+            "2025-05"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_May_26.csv",
+          "size_mb": 7.23,
+          "rows": 19399,
+          "columns": 35,
+          "periods": [
+            "2026-05"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Nov_25.csv",
+          "size_mb": 9.61,
+          "rows": 26232,
+          "columns": 35,
+          "periods": [
+            "2025-11"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Oct_25.csv",
+          "size_mb": 10.18,
+          "rows": 27912,
+          "columns": 35,
+          "periods": [
+            "2025-10"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Sep_25.csv",
+          "size_mb": 5.26,
+          "rows": 14674,
+          "columns": 35,
+          "periods": [
+            "2025-09"
+          ],
+          "fy_tags": [
+            "FY26"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [],
+      "status": "READY"
+    },
+    {
+      "table": "Chain Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChainMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "size_mb": 0.0,
+          "rows": 47,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Brand Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChainMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "size_mb": 0.0,
+          "rows": 47,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Category Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChainMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "size_mb": 0.0,
+          "rows": 47,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Article Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChainMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "size_mb": 0.0,
+          "rows": 47,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Zone State Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChainMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "size_mb": 0.0,
+          "rows": 47,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Store Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChainMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "size_mb": 0.0,
+          "rows": 47,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Nielsen Competitor Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChainMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChainMaster.csv",
+          "size_mb": 0.0,
+          "rows": 47,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Ship-To Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ShipToMaster.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ShipToMaster.csv",
+          "size_mb": 0.05,
+          "rows": 632,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Customer Code Zone Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Mapping\\CustomerCode_Zone_State_Mapping.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Mapping/CustomerCode_Zone_State_Mapping.csv",
+          "size_mb": 0.22,
+          "rows": 1512,
+          "columns": 12,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Channel Map Store",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChannelMap_Store.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChannelMap_Store.csv",
+          "size_mb": 0.0,
+          "rows": 0,
+          "columns": 3,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "EMPTY"
+    },
+    {
+      "table": "Channel Map Chain",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ChannelMap_Store.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ChannelMap_Store.csv",
+          "size_mb": 0.0,
+          "rows": 0,
+          "columns": 3,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "EMPTY"
+    },
+    {
+      "table": "Assumption Table",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\AssumptionTable.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/AssumptionTable.csv",
+          "size_mb": 0.0,
+          "rows": 4,
+          "columns": 11,
+          "periods": [
+            "2026-04",
+            "2026-05"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Targets",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Targets\\FY2627_Targets.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Targets/FY2627_Targets.csv",
+          "size_mb": 0.0,
+          "rows": 12,
+          "columns": 5,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08",
+            "2026-09",
+            "2026-10",
+            "2026-11",
+            "2026-12",
+            "2027-01",
+            "2027-02",
+            "2027-03"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08",
+        "2026-09",
+        "2026-10",
+        "2026-11",
+        "2026-12",
+        "2027-01",
+        "2027-02",
+        "2027-03"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Store SO Mapping",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Mapping\\Store_SO_Mapping.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Mapping/Store_SO_Mapping.csv",
+          "size_mb": 0.05,
+          "rows": 854,
+          "columns": 11,
+          "periods": [
+            "2026-04",
+            "2026-05"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Forecast Override",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\ForecastOverride.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/ForecastOverride.csv",
+          "size_mb": 0.0,
+          "rows": 2,
+          "columns": 8,
+          "periods": [
+            "2026-06",
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-06",
+        "2026-07"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Primary Allocation Map",
+      "is_fact": false,
+      "pq_refs": [],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [
+        "Fact Primary ShipTo"
+      ],
+      "warnings": [],
+      "files": [],
+      "status": "DERIVED"
+    },
+    {
+      "table": "Primary Allocation Override",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\PrimaryAllocationOverride.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/PrimaryAllocationOverride.csv",
+          "size_mb": 0.0,
+          "rows": 12,
+          "columns": 8,
+          "periods": [
+            "2025-11",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-11",
+        "2026-07",
+        "2026-08"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Sales Team Mapping",
+      "is_fact": false,
+      "pq_refs": [],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [],
+      "status": "NO_FILE_SOURCE"
+    },
+    {
+      "table": "GST Rate QC Table",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\GST_Rate_QC_Table.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/GST_Rate_QC_Table.csv",
+          "size_mb": 0.0,
+          "rows": 12,
+          "columns": 9,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "GST Config",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\GST_Config.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/GST_Config.csv",
+          "size_mb": 0.0,
+          "rows": 1,
+          "columns": 2,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "PL Expense Input",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\PL_Expense_Input.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/PL_Expense_Input.csv",
+          "size_mb": 0.01,
+          "rows": 67,
+          "columns": 17,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "CustCode Chain Map",
+      "is_fact": false,
+      "pq_refs": [],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [
+        "Fact Primary Article"
+      ],
+      "warnings": [],
+      "files": [],
+      "status": "DERIVED"
+    },
+    {
+      "table": "Dist Cont Weights",
+      "is_fact": false,
+      "pq_refs": [
+        "RawDataFolders\\Primary_ShipTo_Monthly\\Primary_ShipTo_FY25-26_to_May26.csv",
+        "SeedData\\Mapping\\DistCont_Patch_Approved_2026-07-04.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Primary_ShipTo_Monthly/Primary_ShipTo_FY25-26_to_May26.csv",
+          "size_mb": 1.33,
+          "rows": 11058,
+          "columns": 12,
+          "periods": [
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/SeedData/Mapping/DistCont_Patch_Approved_2026-07-04.csv",
+          "size_mb": 0.01,
+          "rows": 27,
+          "columns": 10,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-07"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Pack Size Buckets",
+      "is_fact": false,
+      "pq_refs": [],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [
+        "Fact Offtake Sales",
+        "Fact Primary Article"
+      ],
+      "warnings": [],
+      "files": [],
+      "status": "DERIVED"
+    },
+    {
+      "table": "Secondary Sales Efficiency",
+      "is_fact": false,
+      "pq_refs": [],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [
+        "Fact Offtake Sales",
+        "Fact Primary Article"
+      ],
+      "warnings": [],
+      "files": [],
+      "status": "DERIVED"
+    },
+    {
+      "table": "Fact Secondary Sales",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\SecondarySales_Monthly"
+      ],
+      "grain": "month x distributor/chain/brand",
+      "unit": "lakh",
+      "notes": "PQ 44",
+      "dependent_pages": [
+        "2",
+        "3"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Jul_Aug_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 12,
+          "columns": 5,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Q1_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 21,
+          "columns": 5,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Jul_Aug_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 33,
+          "columns": 5,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Q1_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 192,
+          "columns": 5,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Jul_Aug_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 23,
+          "columns": 7,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Q1_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 78,
+          "columns": 7,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv",
+          "size_mb": 7.15,
+          "rows": 41671,
+          "columns": 14,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Jul_2026.csv",
+          "size_mb": 4.51,
+          "rows": 28537,
+          "columns": 13,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact Claim Master",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\ClaimMaster_Quarterly"
+      ],
+      "grain": "quarter x chain/brand/distributor",
+      "unit": "lakh",
+      "notes": "PQ 45",
+      "dependent_pages": [
+        "4"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_brand_AprJun_2026.csv",
+          "size_mb": 0.0,
+          "rows": 5,
+          "columns": 8,
+          "periods": [],
+          "fy_tags": []
+        },
+        {
+          "file": "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_chain_AprJun_2026.csv",
+          "size_mb": 0.0,
+          "rows": 23,
+          "columns": 14,
+          "periods": [],
+          "fy_tags": []
+        },
+        {
+          "file": "PowerBI/RawDataFolders/ClaimMaster_Quarterly/claim_master_distributor_AprJun_2026.csv",
+          "size_mb": 0.0,
+          "rows": 19,
+          "columns": 9,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Fact Secondary TOT Hierarchy",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\SecondarySales_Monthly"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Jul_Aug_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 12,
+          "columns": 5,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Q1_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 21,
+          "columns": 5,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Jul_Aug_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 33,
+          "columns": 5,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Q1_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 192,
+          "columns": 5,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Jul_Aug_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 23,
+          "columns": 7,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Q1_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 78,
+          "columns": 7,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv",
+          "size_mb": 7.15,
+          "rows": 41671,
+          "columns": 14,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Jul_2026.csv",
+          "size_mb": 4.51,
+          "rows": 28537,
+          "columns": 13,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Dim Promo Calendar",
+      "is_fact": false,
+      "pq_refs": [
+        "RawDataFolders\\Promo_Calendar\\promo_mechanics_Sep_2026.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "6"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv",
+          "size_mb": 0.57,
+          "rows": 2613,
+          "columns": 18,
+          "periods": [
+            "2026-09"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-09"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Fact Nielsen Pack",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Nielsen_Pack_Monthly"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "9"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_aug26.csv",
+          "size_mb": 0.02,
+          "rows": 212,
+          "columns": 10,
+          "periods": [
+            "2025-08",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-08",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Nielsen Deck State Exposure",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\Nielsen_Deck_StateExposure.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/Nielsen_Deck_StateExposure.csv",
+          "size_mb": 0.0,
+          "rows": 9,
+          "columns": 14,
+          "periods": [
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-06"
+      ],
+      "status": "READY"
+    },
+    {
+      "table": "Store City Master",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\Store_City_Master.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/Store_City_Master.csv",
+          "size_mb": 2.88,
+          "rows": 12120,
+          "columns": 22,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Visit City List",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\Visit_City_List.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/Visit_City_List.csv",
+          "size_mb": 0.0,
+          "rows": 32,
+          "columns": 5,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Fact Nielsen Pack Brand",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Nielsen_Pack_Brand_Monthly"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "9"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Pack_Brand_Monthly/nielsen_pack_brand_urban_mt_aug26.csv",
+          "size_mb": 0.05,
+          "rows": 595,
+          "columns": 9,
+          "periods": [
+            "2025-08",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-08",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Store Universe Overrides",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\Store_Universe_Overrides.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/Store_Universe_Overrides.csv",
+          "size_mb": 0.0,
+          "rows": 3,
+          "columns": 7,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Fact Account Category",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Account\\Account_Category_Monthly.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "9"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Account/Account_Category_Monthly.csv",
+          "size_mb": 0.3,
+          "rows": 1887,
+          "columns": 11,
+          "periods": [
+            "2025-03",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY25",
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-03",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact Account Category Geo",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Account\\Account_Category_Geo.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "9"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Account/Account_Category_Geo.csv",
+          "size_mb": 6.95,
+          "rows": 54395,
+          "columns": 13,
+          "periods": [
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact Account Assortment",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Account\\Account_Assortment.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "9"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Account/Account_Assortment.csv",
+          "size_mb": 0.06,
+          "rows": 1022,
+          "columns": 7,
+          "periods": [
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Store Key Alias",
+      "is_fact": false,
+      "pq_refs": [
+        "SeedData\\Masters\\Store_Key_Aliases.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Masters/Store_Key_Aliases.csv",
+          "size_mb": 0.06,
+          "rows": 472,
+          "columns": 6,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Fact Nielsen Brand Cut",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\Nielsen_Brand_Cut_Monthly"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "9"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Brand_Cut_Monthly/nielsen_brand_cut_urban_mt_aug26.csv",
+          "size_mb": 0.23,
+          "rows": 1666,
+          "columns": 16,
+          "periods": [
+            "2023-08",
+            "2023-09",
+            "2023-10",
+            "2023-11",
+            "2023-12",
+            "2024-01",
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12",
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY24",
+            "FY25",
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2023-08",
+        "2023-09",
+        "2023-10",
+        "2023-11",
+        "2023-12",
+        "2024-01",
+        "2024-02",
+        "2024-03",
+        "2024-04",
+        "2024-05",
+        "2024-06",
+        "2024-07",
+        "2024-08",
+        "2024-09",
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [],
+      "status": "READY"
+    },
+    {
+      "table": "Fact Store Type",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Store_Cuts\\store_type_aug26.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "8"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv",
+          "size_mb": 1.19,
+          "rows": 12212,
+          "columns": 11,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
+      "periods_covered": [],
+      "status": "READY"
+    },
+    {
+      "table": "Fact Pack Size",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Store_Cuts\\pack_size_monthly_fy27.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "8"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv",
+          "size_mb": 0.02,
+          "rows": 491,
+          "columns": 6,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact Sales Cuts",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Store_Cuts\\sales_cuts_fy27.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "8"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/sales_cuts_fy27.csv",
+          "size_mb": 0.35,
+          "rows": 5617,
+          "columns": 9,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
+      "table": "Fact Inhouse Distribution",
+      "is_fact": true,
+      "pq_refs": [
+        "SeedData\\Store_Cuts\\inhouse_distribution_fy27.csv"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [
+        "10"
+      ],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv",
+          "size_mb": 0.04,
+          "rows": 508,
+          "columns": 10,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    }
+  ]
+}

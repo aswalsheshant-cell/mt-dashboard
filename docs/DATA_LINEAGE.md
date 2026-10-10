@@ -71,32 +71,31 @@ it does not net out the Rs116.50L of Aug'26 returns that Source A correctly
 subtracts.** This piece is closed: Source A's returns-netted treatment is
 correct; Source B under-nets by exactly this amount.
 
-**Piece 2 -- Rs96.80L (45.4% of the gap), isolated but not fully explained.**
+**Piece 2 -- Rs96.80L (45.4% of the gap), EXPLAINED (2026-10-10).**
 After matching on the returns treatment above, the entire remaining
-difference sits inside the **MT channel only** (confirmed: EB2B and SIS
-reconcile to zero variance, both value and row count). Source B has 350 more
-MT-channel rows (12,299) than Source A's MT `Sales`-only rows (11,949).
-Investigated and ruled out:
-- Not FOC invoices (Source A's FOC rows total Rs0.017L -- immaterial).
-- Not literal duplicate rows in Source B -- de-duplicating Source B's MT rows
-  on every shared dimension (customer/brand/zone/state/NSV/MRP/month)
-  over-removes (drops to 10,528 rows, Rs3,345.26L, undershooting Source A),
-  meaning many of the "duplicate-looking" rows are genuinely distinct
-  transactions that happen to share those dimensions and values --
-  coincidental, not a data defect, at customer grain with no invoice key.
-- **A real, separate data-quality bug found in Source B along the way**: its
-  `Direct/Distributor` column is **100% "Direct"** for every one of its
-  16,488 rows. Source A's equivalent field (`PO Type`) shows the MT channel
-  genuinely contains both `Direct` (Rs2,260.10L) and `Dist.` (Rs1,239.31L)
-  billing -- Source B's totals are in the right neighbourhood for MT overall
-  (consistent with including both), so the column isn't dropping distributor
-  rows, but the column itself cannot be trusted for a Direct-vs-Distributor
-  split. Registered as `BUG_MAPPING` in the exception register below.
-- Remaining Rs96.80L residual: not resolved to a specific row-level cause
-  with the columns available in these two aggregated extracts (neither file
-  carries a shared unique transaction key). Immaterial to the recommendation
-  below (2.7% of the Rs36.58 Cr total) -- flagged as `LOW` materiality, not
-  blocking.
+difference sits inside the **MT channel only** (EB2B and SIS reconcile to zero
+variance, both value and row count). Source B has 350 more MT-channel rows
+(12,299) than Source A's MT `Sales`-only rows (11,949).
+
+Cause: Source A's `Cancel Invoice` type holds 350 positive rows (+Rs96.80L,
+all MT) and 350 negative rows (-Rs96.80L), net zero. Source B carries the 350
+positive rows (the original invoice value) and not the 350 reversals. Check:
+Source A `Sales` Rs3,774.80L + `Cancel Invoice` positive legs Rs96.80L =
+Rs3,871.60L = Source B total, to the paisa. The row gap (350) matches the
+count of cancelled invoices (350).
+
+Full bridge (Rs lakh): Source B 3,871.60 - MRN returns 116.50 - cancelled
+invoice reversals 96.80 = Source A 3,658.30. Source B is gross of both
+returns and cancellations. Source A is net.
+
+Reproduce: group `PowerBI/RawDataFolders/Primary_Article_Monthly/primary_article_Aug_26.csv`
+by `MTD-Sale type` and sign of `Inv. Net value(LOC)`.
+
+Earlier work that ruled out FOC rows (Rs0.017L) and literal duplicates in
+Source B stands. The `Direct/Distributor` column in Source B is still 100%
+"Direct" and cannot be trusted (`BUG_MAPPING` below). Source B's `Channel`
+column also reads "MT" on every row; its real channel split is in `Chain Name`
+(MT, EB2B, SIS).
 
 **Recommendation: use Source A (`data/monthly/Aug26_primary_detailed.csv`,
 Rs36.58 Cr) as the Aug'26 Primary NSV.** It is invoice/article-line grain
@@ -107,11 +106,9 @@ three-way internal corroboration, and its `PO Type` field is verified
 reliable. Source B should not be used for the Aug'26 Primary total -- treat
 it as superseded for that purpose, not deleted (still useful for spot-checks
 outside MT channel, where it ties exactly). This does not require further
-data-owner escalation to proceed with ingestion; the residual Rs96.80L "how
-exactly are these 350 MT rows different" question stays open as a
-**non-blocking technical source discrepancy** (not formally called
-"immaterial" without a Finance-set threshold to measure that against, per
-the 2026-09-13 governance request).
+data-owner escalation to proceed with ingestion. Both pieces of the gap are
+now explained (2026-10-10), so no technical discrepancy remains open between
+the two files. Data-owner confirmation of the source choice is still welcome.
 
 **INGESTED 2026-09-13.** Schema-harmonized and production-ingested:
 `scripts/ingest_aug26_primary.py` maps the raw-SAP 53-column source to the
