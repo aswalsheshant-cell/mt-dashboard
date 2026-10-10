@@ -6225,6 +6225,16 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
+            "name": "RBC % of Total",
+            "expression": [
+              "DIVIDE (",
+              "        [Total RBC NSV],",
+              "        [Total MT NSV] + [Total RBC NSV]",
+              "    )"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
             "name": "Combined MT Total NSV",
             "expression": [
               "[Total MT NSV] + [Total RBC NSV]"
@@ -6249,17 +6259,29 @@
             "expression": [
               "[Total MT NSV]",
               "",
-              "// ---------- INDIAN FORMAT HELPERS (display measures) ----------",
-              "NSV (Cr) = DIVIDE ( [NSV], 10000000 )",
-              "NSV (Lacs) = DIVIDE ( [NSV], 100000 )",
+              "// ---------- INDIAN FORMAT HELPERS (display measures) ----------"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "NSV (Cr)",
+            "expression": [
+              "DIVIDE ( [NSV], 10000000 )"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "NSV (Lacs)",
+            "expression": [
+              "DIVIDE ( [NSV], 100000 )",
               "// Smart label: Cr if >= 1 Cr else Lacs"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "NSV Label",
             "expression": [
-              "[NSV]",
+              "VAR v = [NSV]",
               "RETURN",
               "    IF (",
               "        ABS ( v ) >= 10000000,",
@@ -6272,9 +6294,9 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR _lastDate",
+            "name": "Latest Month Sales",
             "expression": [
-              "MAX ( 'Date Table'[Date] )",
+              "VAR _lastDate = MAX ( 'Date Table'[Date] )",
               "RETURN CALCULATE ( [NSV], 'Date Table'[Date] <= _lastDate )",
               "// In a month-grain visual [NSV] already = the selected month; the explicit",
               "// \"latest month\" KPI for cards:"
@@ -6282,9 +6304,9 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR _lm",
+            "name": "Latest Month NSV",
             "expression": [
-              "CALCULATE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), ALL ( 'Date Table' ) )",
+              "VAR _lm = CALCULATE ( MAX ( 'Fact Offtake Sales'[MonthStart] ), ALL ( 'Date Table' ) )",
               "RETURN CALCULATE ( [NSV], 'Date Table'[MonthStart] = _lm )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
@@ -6292,23 +6314,15 @@
           {
             "name": "Previous Month NSV",
             "expression": [
-              "CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
-              "",
-              "MoM Growth % ="
+              "CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR cur",
+            "name": "MoM Growth %",
             "expression": [
-              "[NSV]"
-            ],
-            "description": "Source: 01_CoreMeasures.dax"
-          },
-          {
-            "name": "VAR prev",
-            "expression": [
-              "[Previous Month NSV]",
+              "VAR cur = [NSV]",
+              "VAR prev = [Previous Month NSV]",
               "RETURN DIVIDE ( cur - prev, prev )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
@@ -6316,9 +6330,13 @@
           {
             "name": "Last Year Same Month NSV",
             "expression": [
-              "CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
-              "",
-              "YoY Growth % =",
+              "CALCULATE ( [NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "YoY Growth %",
+            "expression": [
               "DIVIDE ( [NSV] - [Last Year Same Month NSV], [Last Year Same Month NSV] )",
               "",
               "// ---------- ROLLING AVERAGES ----------",
@@ -6329,9 +6347,9 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR _curMonth",
+            "name": "L3M Average Sales",
             "expression": [
-              "MAX ( 'Date Table'[MonthStart] )",
+              "VAR _curMonth = MAX ( 'Date Table'[MonthStart] )",
               "RETURN",
               "    CALCULATE (",
               "        AVERAGEX ( FILTER ( VALUES ( 'Date Table'[MonthStart] ), NOT ISBLANK ( [NSV] ) ), [NSV] ),",
@@ -6345,19 +6363,29 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR _curMonth",
+            "name": "L6M Average Sales",
             "expression": [
-              "MAX ( 'Date Table'[MonthStart] )",
+              "VAR _curMonth = MAX ( 'Date Table'[MonthStart] )",
               "RETURN",
               "    CALCULATE (",
               "        AVERAGEX ( FILTER ( VALUES ( 'Date Table'[MonthStart] ), NOT ISBLANK ( [NSV] ) ), [NSV] ),",
               "        DATESINPERIOD ( 'Date Table'[Date], EOMONTH ( _curMonth, -1 ), -6, MONTH )",
-              "    )",
+              "    )"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "Growth vs L3M %",
+            "expression": [
+              "DIVIDE ( [NSV] - [L3M Average Sales], [L3M Average Sales] )",
               "",
-              "Growth vs L3M % = DIVIDE ( [NSV] - [L3M Average Sales], [L3M Average Sales] )",
-              "",
-              "// ---------- CONTRIBUTION & RANK ----------",
-              "Contribution % =",
+              "// ---------- CONTRIBUTION & RANK ----------"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "Contribution %",
+            "expression": [
               "DIVIDE (",
               "    [NSV],",
               "    CALCULATE ( [NSV], ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Brand Master'[Brand] ),",
@@ -6374,15 +6402,15 @@
               "    RANKX ( ALLSELECTED ( 'Brand Master'[Brand] ), [NSV],, DESC )",
               ")",
               "",
-              "// ---------- CHAIN CONCENTRATION & TOP MOVERS ----------",
-              "Top 3 Concentration % ="
+              "// ---------- CHAIN CONCENTRATION & TOP MOVERS ----------"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR top3Total",
+            "name": "Top 3 Concentration %",
             "expression": [
-              "SUMX (",
+              "VAR top3Total =",
+              "    SUMX (",
               "        TOPN ( 3, ALLSELECTED ( 'Chain Master'[Chain] ), [Total MT NSV], DESC ),",
               "        [Total MT NSV]",
               "    )",
@@ -6418,25 +6446,31 @@
           {
             "name": "Primary vs Offtake Gap",
             "expression": [
-              "[Total Primary NSV] - [Total MT NSV]",
-              "Primary vs Offtake Gap % = DIVIDE ( [Total Primary NSV] - [Total MT NSV], [Total MT NSV] )",
+              "[Total Primary NSV] - [Total MT NSV]"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "Primary vs Offtake Gap %",
+            "expression": [
+              "DIVIDE ( [Total Primary NSV] - [Total MT NSV], [Total MT NSV] )",
               "",
               "// ---------- GROWTH ARROW (for tables / cards) ----------"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR g",
+            "name": "MoM Arrow",
             "expression": [
-              "[MoM Growth %]",
+              "VAR g = [MoM Growth %]",
               "RETURN IF ( ISBLANK ( g ), \"\", IF ( g >= 0, \"▲ \", \"▼ \" ) ) & FORMAT ( g, \"0.0%\" )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR g",
+            "name": "YoY Arrow",
             "expression": [
-              "[YoY Growth %]",
+              "VAR g = [YoY Growth %]",
               "RETURN IF ( ISBLANK ( g ), \"\", IF ( g >= 0, \"▲ \", \"▼ \" ) ) & FORMAT ( g, \"0.0%\" )",
               "",
               "// Conditional-format colour (use in \"Font color > fx > Field value\")"
@@ -6457,33 +6491,33 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR t",
+            "name": "Top Growing Chain",
             "expression": [
-              "TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], DESC )",
+              "VAR t = TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], DESC )",
               "RETURN CONCATENATEX ( t, 'Chain Master'[Chain], \", \" )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR t",
+            "name": "Top Declining Chain",
             "expression": [
-              "TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], ASC )",
+              "VAR t = TOPN ( 1, ALLSELECTED ( 'Chain Master'[Chain] ), [MoM Growth %], ASC )",
               "RETURN CONCATENATEX ( t, 'Chain Master'[Chain], \", \" )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR t",
+            "name": "Top Growing Brand",
             "expression": [
-              "TOPN ( 1, ALLSELECTED ( 'Brand Master'[Brand] ), [MoM Growth %], DESC )",
+              "VAR t = TOPN ( 1, ALLSELECTED ( 'Brand Master'[Brand] ), [MoM Growth %], DESC )",
               "RETURN CONCATENATEX ( t, 'Brand Master'[Brand], \", \" )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR t",
+            "name": "Top Growing Category",
             "expression": [
-              "TOPN ( 1, ALLSELECTED ( 'Category Master'[Category] ), [MoM Growth %], DESC )",
+              "VAR t = TOPN ( 1, ALLSELECTED ( 'Category Master'[Category] ), [MoM Growth %], DESC )",
               "RETURN CONCATENATEX ( t, 'Category Master'[Category], \", \" )",
               "",
               "// =====================================================================",
@@ -6496,9 +6530,14 @@
               "// page compares it to OFFTAKE, so these default to offtake. Swap",
               "// [Total MT NSV] for [Total Primary NSV] below to move the basis --",
               "// change it in \"Actual (Basis)\" only; everything else follows.",
-              "// =====================================================================",
-              "",
-              "Actual (Basis) = [Total MT NSV]",
+              "// ====================================================================="
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "Actual (Basis)",
+            "expression": [
+              "[Total MT NSV]",
               "",
               "// ---------- PERIOD TO DATE (only months that actually have actuals) ----------",
               "// The PTD window is DERIVED from where actuals exist, so it widens on its own",
@@ -6534,24 +6573,35 @@
               "        FILTER ( ALL ( 'Date Table' ), 'Date Table'[MonthStart] <= [Last Actual Month] )",
               "    )",
               "",
-              "// ---------- ACHIEVEMENT ----------",
-              "Achievement % = DIVIDE ( [Actual PTD], [Target PTD] )"
+              "// ---------- ACHIEVEMENT ----------"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "Achievement %",
+            "expression": [
+              "DIVIDE ( [Actual PTD], [Target PTD] )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
             "name": "Gap to Target",
             "expression": [
-              "[Actual PTD] - [Target PTD]",
-              "",
-              "Gap to Target % = DIVIDE ( [Gap to Target], [Target PTD] )"
+              "[Actual PTD] - [Target PTD]"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR _a",
+            "name": "Gap to Target %",
             "expression": [
-              "[Achievement %]",
+              "DIVIDE ( [Gap to Target], [Target PTD] )"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "Achievement Status",
+            "expression": [
+              "VAR _a = [Achievement %]",
               "    RETURN",
               "        SWITCH (",
               "            TRUE (),",
@@ -6610,33 +6660,15 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR _req",
+            "name": "Run Rate Status",
             "expression": [
-              "[Required Run Rate]"
-            ],
-            "description": "Source: 01_CoreMeasures.dax"
-          },
-          {
-            "name": "VAR _cur",
-            "expression": [
-              "[Current Run Rate]"
-            ],
-            "description": "Source: 01_CoreMeasures.dax"
-          },
-          {
-            "name": "VAR _ratio",
-            "expression": [
-              "DIVIDE ( _req, _cur )",
+              "VAR _req = [Required Run Rate]",
+              "    VAR _cur = [Current Run Rate]",
+              "    VAR _ratio = DIVIDE ( _req, _cur )",
               "    RETURN",
               "        SWITCH (",
-              "            TRUE (),"
-            ],
-            "description": "Source: 01_CoreMeasures.dax"
-          },
-          {
-            "name": "_cur",
-            "expression": [
-              "0 || ISBLANK ( _ratio ), \"No actuals\",",
+              "            TRUE (),",
+              "            _cur = 0 || ISBLANK ( _ratio ), \"No actuals\",",
               "            _ratio <= 1.00, \"Ahead\",",
               "            _ratio <= 1.05, \"On Track\",",
               "            _ratio <= 1.15, \"At Risk\",",
@@ -6665,9 +6697,16 @@
             "description": "Source: 01_CoreMeasures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "YoY % (Like-for-Like)",
             "expression": [
-              "SELECTEDVALUE ( 'Date Table'[Month] )",
+              "DIVIDE ( [Actual PTD] - [Actual LY Same Period], [Actual LY Same Period] )"
+            ],
+            "description": "Source: 01_CoreMeasures.dax"
+          },
+          {
+            "name": "_Assumption Available",
+            "expression": [
+              "VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )",
               "RETURN",
               "    NOT ISBLANK ( _m )",
               "        && CALCULATE ( COUNTROWS ( 'Assumption Table' ),",
@@ -6679,9 +6718,9 @@
             "description": "Source: 02_PnL_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "Assumption Status",
             "expression": [
-              "SELECTEDVALUE ( 'Date Table'[Month] )",
+              "VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )",
               "RETURN",
               "    SWITCH (",
               "        TRUE (),",
@@ -6697,36 +6736,17 @@
               "// context, preferring the most specific row, else the ALL row. Returns",
               "// BLANK() (not a hardcoded default) when the month itself has no row at",
               "// all -- MAX()/SUM() over an empty filtered table already returns BLANK(),",
-              "// so removing the old COALESCE(...,default) is the entire fix here.",
-              "_Assumption Gross Margin % ="
+              "// so removing the old COALESCE(...,default) is the entire fix here."
             ],
             "description": "Source: 02_PnL_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "_Assumption Gross Margin %",
             "expression": [
-              "SELECTEDVALUE ( 'Date Table'[Month] )"
-            ],
-            "description": "Source: 02_PnL_Measures.dax"
-          },
-          {
-            "name": "VAR _ch",
-            "expression": [
-              "SELECTEDVALUE ( 'Chain Master'[Chain], \"ALL\" )"
-            ],
-            "description": "Source: 02_PnL_Measures.dax"
-          },
-          {
-            "name": "VAR _br",
-            "expression": [
-              "SELECTEDVALUE ( 'Brand Master'[Brand], \"ALL\" )"
-            ],
-            "description": "Source: 02_PnL_Measures.dax"
-          },
-          {
-            "name": "VAR _cat",
-            "expression": [
-              "SELECTEDVALUE ( 'Category Master'[Category], \"ALL\" )",
+              "VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )",
+              "VAR _ch = SELECTEDVALUE ( 'Chain Master'[Chain], \"ALL\" )",
+              "VAR _br = SELECTEDVALUE ( 'Brand Master'[Brand], \"ALL\" )",
+              "VAR _cat = SELECTEDVALUE ( 'Category Master'[Category], \"ALL\" )",
               "RETURN",
               "    CALCULATE ( MAX ( 'Assumption Table'[Gross Margin %] ),",
               "        FILTER ( ALL ( 'Assumption Table' ),"
@@ -6734,9 +6754,9 @@
             "description": "Source: 02_PnL_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "_Assumption Trade Spend %",
             "expression": [
-              "SELECTEDVALUE ( 'Date Table'[Month] )",
+              "VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )",
               "RETURN",
               "    CALCULATE ( MAX ( 'Assumption Table'[Trade Spend %] ),",
               "        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )"
@@ -6744,9 +6764,9 @@
             "description": "Source: 02_PnL_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "_Assumption Visibility Spend",
             "expression": [
-              "SELECTEDVALUE ( 'Date Table'[Month] )",
+              "VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )",
               "RETURN",
               "    CALCULATE ( SUM ( 'Assumption Table'[Visibility Spend] ),",
               "        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )"
@@ -6754,9 +6774,9 @@
             "description": "Source: 02_PnL_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "_Assumption Scheme Spend",
             "expression": [
-              "SELECTEDVALUE ( 'Date Table'[Month] )",
+              "VAR _m = SELECTEDVALUE ( 'Date Table'[Month] )",
               "RETURN",
               "    CALCULATE ( SUM ( 'Assumption Table'[Scheme Spend] ),",
               "        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )",
@@ -6788,8 +6808,14 @@
           {
             "name": "Gross Margin",
             "expression": [
-              "IF ( [_Assumption Available], [NSV] * [_Assumption Gross Margin %], BLANK () )",
-              "Gross Margin % = DIVIDE ( [Gross Margin], [NSV] )"
+              "IF ( [_Assumption Available], [NSV] * [_Assumption Gross Margin %], BLANK () )"
+            ],
+            "description": "Source: 02_PnL_Measures.dax"
+          },
+          {
+            "name": "Gross Margin %",
+            "expression": [
+              "DIVIDE ( [Gross Margin], [NSV] )"
             ],
             "description": "Source: 02_PnL_Measures.dax"
           },
@@ -6817,17 +6843,28 @@
           {
             "name": "Total Spend",
             "expression": [
-              "IF ( [_Assumption Available], [Trade Spend] + [Visibility Spend] + [Scheme Spend], BLANK () )",
-              "",
-              "Spend % of NSV = DIVIDE ( [Total Spend], [NSV] )"
+              "IF ( [_Assumption Available], [Trade Spend] + [Visibility Spend] + [Scheme Spend], BLANK () )"
+            ],
+            "description": "Source: 02_PnL_Measures.dax"
+          },
+          {
+            "name": "Spend % of NSV",
+            "expression": [
+              "DIVIDE ( [Total Spend], [NSV] )"
             ],
             "description": "Source: 02_PnL_Measures.dax"
           },
           {
             "name": "Contribution Margin",
             "expression": [
-              "IF ( [_Assumption Available], [Gross Margin] - [Total Spend], BLANK () )",
-              "CM % = DIVIDE ( [Contribution Margin], [NSV] )",
+              "IF ( [_Assumption Available], [Gross Margin] - [Total Spend], BLANK () )"
+            ],
+            "description": "Source: 02_PnL_Measures.dax"
+          },
+          {
+            "name": "CM %",
+            "expression": [
+              "DIVIDE ( [Contribution Margin], [NSV] )",
               "",
               "// ---- ranking helper for the profitability page ----"
             ],
@@ -6847,16 +6884,10 @@
             "description": "Source: 02_PnL_Measures.dax"
           },
           {
-            "name": "VAR g",
+            "name": "Profitability Flag",
             "expression": [
-              "[MoM Growth %]"
-            ],
-            "description": "Source: 02_PnL_Measures.dax"
-          },
-          {
-            "name": "VAR cm",
-            "expression": [
-              "[CM %]",
+              "VAR g = [MoM Growth %]",
+              "VAR cm = [CM %]",
               "RETURN",
               "    SWITCH ( TRUE (),",
               "        ISBLANK ( cm ), \"ASSUMPTION_MISSING\",",
@@ -6871,21 +6902,38 @@
           {
             "name": "TY Target",
             "expression": [
-              "CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = \"26-27\" )",
-              "TY Target (Cr) = DIVIDE ( [TY Target], 10000000 )"
+              "CALCULATE ( SUM ( Targets[Target NSV] ), Targets[FY Year] = \"26-27\" )"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "TY Target (Cr)",
+            "expression": [
+              "DIVIDE ( [TY Target], 10000000 )"
             ],
             "description": "Source: 03_Forecast_Measures.dax"
           },
           {
             "name": "FY26 Actual Offtake",
             "expression": [
-              "CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = \"25-26\" )",
-              "FY26 Actual Offtake (Cr) = DIVIDE ( [FY26 Actual Offtake], 10000000 )",
+              "CALCULATE ( [Total Offtake NSV], 'Date Table'[FY Year] = \"25-26\" )"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "FY26 Actual Offtake (Cr)",
+            "expression": [
+              "DIVIDE ( [FY26 Actual Offtake], 10000000 )",
               "",
               "// ---------- Allocation key = dimension share of FY26 offtake ----------",
               "// Denominator is the FY26 offtake of the *whole* visible selection, so the",
-              "// shares across the axis sum to 1 and the target is fully distributed.",
-              "_FY26 Total Offtake (All Dims) =",
+              "// shares across the axis sum to 1 and the target is fully distributed."
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "_FY26 Total Offtake (All Dims)",
+            "expression": [
               "CALCULATE (",
               "    [FY26 Actual Offtake],",
               "    ALLSELECTED ( 'Chain Master'[Chain] ),",
@@ -6911,24 +6959,18 @@
             "name": "FY27 Forecast",
             "expression": [
               "SUMX (",
-              "    VALUES ( 'Date Table'[MonthStart] ),"
-            ],
-            "description": "Source: 03_Forecast_Measures.dax"
-          },
-          {
-            "name": "VAR _monthTarget",
-            "expression": [
-              "[TY Target]"
-            ],
-            "description": "Source: 03_Forecast_Measures.dax"
-          },
-          {
-            "name": "VAR _share",
-            "expression": [
-              "[FY26 Allocation Share]",
+              "    VALUES ( 'Date Table'[MonthStart] ),",
+              "    VAR _monthTarget = [TY Target]",
+              "    VAR _share = [FY26 Allocation Share]",
               "    RETURN _monthTarget * _share",
-              ")",
-              "FY27 Forecast (Cr) = DIVIDE ( [FY27 Forecast], 10000000 )",
+              ")"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "FY27 Forecast (Cr)",
+            "expression": [
+              "DIVIDE ( [FY27 Forecast], 10000000 )",
               "",
               "// Final Forecast keeps the old name used elsewhere, now target-driven."
             ],
@@ -6955,8 +6997,13 @@
               "        || NOT ( 'Fact Offtake Sales'[Brand]    IN VALUES ( 'Brand Master'[Brand] ) )",
               "        || NOT ( 'Fact Offtake Sales'[Category] IN VALUES ( 'Category Master'[Category] ) )",
               "    )",
-              ")",
-              "Forecast - Unmapped =",
+              ")"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast - Unmapped",
+            "expression": [
               "[TY Target] * DIVIDE ( [_FY26 Offtake Unmapped], [_FY26 Total Offtake (All Dims)] )",
               "",
               "// ---------- Sales-person ownership (via Sales Team Mapping x store offtake) ----------",
@@ -6968,30 +7015,34 @@
             "name": "SO FY26 Offtake",
             "expression": [
               "SUMX (",
-              "    'Sales Team Mapping',"
-            ],
-            "description": "Source: 03_Forecast_Measures.dax"
-          },
-          {
-            "name": "VAR _store",
-            "expression": [
-              "'Sales Team Mapping'[Store Code]"
-            ],
-            "description": "Source: 03_Forecast_Measures.dax"
-          },
-          {
-            "name": "VAR _w",
-            "expression": [
-              "'Sales Team Mapping'[Cont%]",
+              "    'Sales Team Mapping',",
+              "    VAR _store = 'Sales Team Mapping'[Store Code]",
+              "    VAR _w = 'Sales Team Mapping'[Cont%]",
               "    RETURN _w * CALCULATE ( [FY26 Actual Offtake],"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "SO Forecast (Owned Target)",
+            "expression": [
+              "[TY Target] * DIVIDE ( [SO FY26 Offtake],",
+              "    CALCULATE ( [SO FY26 Offtake], ALLSELECTED ( 'Sales Team Mapping'[Sales Person] ) ) )",
+              "",
+              "// ---------- Gap vs FY26 & required growth ----------"
             ],
             "description": "Source: 03_Forecast_Measures.dax"
           },
           {
             "name": "Gap vs FY26",
             "expression": [
-              "[FY27 Forecast] - [FY26 Actual Offtake]",
-              "Required Growth % = DIVIDE ( [FY27 Forecast] - [FY26 Actual Offtake], [FY26 Actual Offtake] )",
+              "[FY27 Forecast] - [FY26 Actual Offtake]"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Required Growth %",
+            "expression": [
+              "DIVIDE ( [FY27 Forecast] - [FY26 Actual Offtake], [FY26 Actual Offtake] )",
               "",
               "// ---------- Accuracy (once FY27 actuals start landing) ----------"
             ],
@@ -7014,9 +7065,20 @@
           {
             "name": "Forecast vs Actual",
             "expression": [
-              "[Actual NSV] - [Final Forecast]",
-              "Forecast vs Actual % = DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )",
-              "Forecast Accuracy % =",
+              "[Actual NSV] - [Final Forecast]"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast vs Actual %",
+            "expression": [
+              "DIVIDE ( [Actual NSV] - [Final Forecast], [Final Forecast] )"
+            ],
+            "description": "Source: 03_Forecast_Measures.dax"
+          },
+          {
+            "name": "Forecast Accuracy %",
+            "expression": [
               "IF ( [Has Actual],",
               "    1 - DIVIDE ( ABS ( [Actual NSV] - [Final Forecast] ), [Actual NSV] ),",
               "    BLANK () )",
@@ -7044,23 +7106,35 @@
             "expression": [
               "SUM ( 'Fact Nielsen'[Our Brand Sales] )",
               "",
-              "// Prefer supplied share %, else derive",
-              "Market Share % ="
+              "// Prefer supplied share %, else derive"
             ],
             "description": "Source: 04_Nielsen_Measures.dax"
           },
           {
-            "name": "VAR _supplied",
+            "name": "Market Share %",
             "expression": [
-              "AVERAGE ( 'Fact Nielsen'[Value Market Share %] )",
-              "RETURN COALESCE ( _supplied, DIVIDE ( [Our Brand Sales], [Market Value Sales] ) )",
-              "",
-              "Market Share Volume % = AVERAGE ( 'Fact Nielsen'[Volume Market Share %] )",
-              "",
-              "Prev Month Market Share % =",
-              "CALCULATE ( [Market Share %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
-              "",
-              "Last Year Market Share % =",
+              "VAR _supplied = AVERAGE ( 'Fact Nielsen'[Value Market Share %] )",
+              "RETURN COALESCE ( _supplied, DIVIDE ( [Our Brand Sales], [Market Value Sales] ) )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Market Share Volume %",
+            "expression": [
+              "AVERAGE ( 'Fact Nielsen'[Volume Market Share %] )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Prev Month Market Share %",
+            "expression": [
+              "CALCULATE ( [Market Share %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Last Year Market Share %",
+            "expression": [
               "CALCULATE ( [Market Share %], DATEADD ( 'Date Table'[Date], -12, MONTH ) )"
             ],
             "description": "Source: 04_Nielsen_Measures.dax"
@@ -7096,17 +7170,26 @@
             "description": "Source: 04_Nielsen_Measures.dax"
           },
           {
-            "name": "VAR b",
+            "name": "MS BPS Label",
             "expression": [
-              "[Market Share BPS Change]",
+              "VAR b = [Market Share BPS Change]",
               "RETURN IF ( ISBLANK ( b ), \"\", IF ( b >= 0, \"▲ +\", \"▼ \" ) ) & FORMAT ( b, \"0\" ) & \" bps\"",
               "",
-              "// category & competition movement",
-              "Category Value Growth % =",
+              "// category & competition movement"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Category Value Growth %",
+            "expression": [
               "DIVIDE ( [Market Value Sales] - CALCULATE ( [Market Value Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ),",
-              "         CALCULATE ( [Market Value Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )",
-              "",
-              "Our Brand Growth % =",
+              "         CALCULATE ( [Market Value Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Our Brand Growth %",
+            "expression": [
               "DIVIDE ( [Our Brand Sales] - CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ),",
               "         CALCULATE ( [Our Brand Sales], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) )",
               "",
@@ -7154,33 +7237,55 @@
           {
             "name": "Pack Price Per Ml",
             "expression": [
-              "DIVIDE ( [Pack Category Amount] * 10000000, [Pack Category Volume L] * 1000 )",
-              "",
-              "Pack Volume Share % =",
+              "DIVIDE ( [Pack Category Amount] * 10000000, [Pack Category Volume L] * 1000 )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Pack Volume Share %",
+            "expression": [
               "DIVIDE (",
               "    [Pack Category Volume L],",
               "    CALCULATE ( [Pack Category Volume L],",
               "        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )",
               ")",
               "",
-              "// the pack's share of Mamaearth's own value (our contribution)",
-              "Pack Our Contribution % =",
+              "// the pack's share of Mamaearth's own value (our contribution)"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Pack Our Contribution %",
+            "expression": [
               "DIVIDE (",
               "    [Pack Our Amount],",
               "    CALCULATE ( [Pack Our Amount],",
               "        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )",
-              ")",
-              "",
-              "Pack Category Mix % =",
+              ")"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Pack Category Mix %",
+            "expression": [
               "DIVIDE (",
               "    [Pack Category Amount],",
               "    CALCULATE ( [Pack Category Amount],",
               "        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) )",
-              ")",
-              "",
-              "Pack Our Share In Pack % = DIVIDE ( [Pack Our Amount], [Pack Category Amount] )",
-              "",
-              "Pack Our Overall Share % =",
+              ")"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Pack Our Share In Pack %",
+            "expression": [
+              "DIVIDE ( [Pack Our Amount], [Pack Category Amount] )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Pack Our Overall Share %",
+            "expression": [
               "DIVIDE (",
               "    CALCULATE ( [Pack Our Amount],",
               "        ALLEXCEPT ( 'Fact Nielsen Pack', 'Fact Nielsen Pack'[MonthStart], 'Fact Nielsen Pack'[Nielsen Category] ) ),",
@@ -7191,30 +7296,12 @@
             "description": "Source: 04_Nielsen_Measures.dax"
           },
           {
-            "name": "VAR _cat",
+            "name": "Pack Presence Status",
             "expression": [
-              "[Pack Category Amount]"
-            ],
-            "description": "Source: 04_Nielsen_Measures.dax"
-          },
-          {
-            "name": "VAR _our",
-            "expression": [
-              "[Pack Our Amount]"
-            ],
-            "description": "Source: 04_Nielsen_Measures.dax"
-          },
-          {
-            "name": "VAR _inPack",
-            "expression": [
-              "[Pack Our Share In Pack %]"
-            ],
-            "description": "Source: 04_Nielsen_Measures.dax"
-          },
-          {
-            "name": "VAR _overall",
-            "expression": [
-              "[Pack Our Overall Share %]",
+              "VAR _cat = [Pack Category Amount]",
+              "VAR _our = [Pack Our Amount]",
+              "VAR _inPack = [Pack Our Share In Pack %]",
+              "VAR _overall = [Pack Our Overall Share %]",
               "RETURN",
               "    IF ( ISBLANK ( _cat ) || _cat <= 0, BLANK (),",
               "        IF ( COALESCE ( _our, 0 ) <= 0, \"Not present\",",
@@ -7225,9 +7312,9 @@
             "description": "Source: 04_Nielsen_Measures.dax"
           },
           {
-            "name": "VAR _gapShare",
+            "name": "Pack Gap Amount",
             "expression": [
-              "MAX ( [Pack Our Overall Share %] - COALESCE ( [Pack Our Share In Pack %], 0 ), 0 )",
+              "VAR _gapShare = MAX ( [Pack Our Overall Share %] - COALESCE ( [Pack Our Share In Pack %], 0 ), 0 )",
               "RETURN IF ( [Pack Presence Status] = \"Present\", 0, [Pack Category Amount] * _gapShare )"
             ],
             "description": "Source: 04_Nielsen_Measures.dax"
@@ -7255,14 +7342,27 @@
           {
             "name": "Chain NSV Growth",
             "expression": [
-              "[Total MT NSV] - [Chain NSV LY]",
-              "",
-              "Chain Growth % = DIVIDE ( [Chain NSV Growth], [Chain NSV LY] )",
-              "",
-              "Chain Share of NSV % =",
-              "DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ) ) )",
-              "",
-              "Chain Share of Growth % =",
+              "[Total MT NSV] - [Chain NSV LY]"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Chain Growth %",
+            "expression": [
+              "DIVIDE ( [Chain NSV Growth], [Chain NSV LY] )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Chain Share of NSV %",
+            "expression": [
+              "DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ) ) )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Chain Share of Growth %",
+            "expression": [
               "DIVIDE ( [Chain NSV Growth], CALCULATE ( [Chain NSV Growth], ALL ( 'Chain Master'[Chain] ) ) )"
             ],
             "description": "Source: 04_Nielsen_Measures.dax"
@@ -7281,9 +7381,13 @@
           {
             "name": "Brand Pack Value Cr",
             "expression": [
-              "SUM ( 'Fact Nielsen Pack Brand'[Value Cr] )",
-              "",
-              "Brand Share In Pack % =",
+              "SUM ( 'Fact Nielsen Pack Brand'[Value Cr] )"
+            ],
+            "description": "Source: 04_Nielsen_Measures.dax"
+          },
+          {
+            "name": "Brand Share In Pack %",
+            "expression": [
               "DIVIDE (",
               "    [Brand Pack Value Cr],",
               "    CALCULATE ( [Brand Pack Value Cr],",
@@ -7310,8 +7414,14 @@
           {
             "name": "TDP",
             "expression": [
-              "SUM ( 'Fact TDP'[ACV %] )                 // e.g. 3 SKUs @50% ACV => 150",
-              "ACV % = AVERAGE ( 'Fact TDP'[ACV %] )            // average shelf reach of a SKU"
+              "SUM ( 'Fact TDP'[ACV %] )                 // e.g. 3 SKUs @50% ACV => 150"
+            ],
+            "description": "Source: 05_TDP_Measures.dax"
+          },
+          {
+            "name": "ACV %",
+            "expression": [
+              "AVERAGE ( 'Fact TDP'[ACV %] )            // average shelf reach of a SKU"
             ],
             "description": "Source: 05_TDP_Measures.dax"
           },
@@ -7371,11 +7481,27 @@
           {
             "name": "Last Year TDP",
             "expression": [
-              "CALCULATE ( [TDP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
-              "TDP MoM Growth % = DIVIDE ( [TDP] - [Prev Month TDP], [Prev Month TDP] )",
-              "TDP YoY Growth % = DIVIDE ( [TDP] - [Last Year TDP], [Last Year TDP] )",
-              "",
-              "TDP Contribution % =",
+              "CALCULATE ( [TDP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )"
+            ],
+            "description": "Source: 05_TDP_Measures.dax"
+          },
+          {
+            "name": "TDP MoM Growth %",
+            "expression": [
+              "DIVIDE ( [TDP] - [Prev Month TDP], [Prev Month TDP] )"
+            ],
+            "description": "Source: 05_TDP_Measures.dax"
+          },
+          {
+            "name": "TDP YoY Growth %",
+            "expression": [
+              "DIVIDE ( [TDP] - [Last Year TDP], [Last Year TDP] )"
+            ],
+            "description": "Source: 05_TDP_Measures.dax"
+          },
+          {
+            "name": "TDP Contribution %",
+            "expression": [
               "DIVIDE ( [TDP],",
               "    CALCULATE ( [TDP], ALLSELECTED ( 'Brand Master'[Brand] ), ALLSELECTED ( 'Article Master'[Article Code] ) ) )",
               "",
@@ -7393,16 +7519,10 @@
             "description": "Source: 05_TDP_Measures.dax"
           },
           {
-            "name": "VAR sg",
+            "name": "Growth Driver",
             "expression": [
-              "[MoM Growth %]"
-            ],
-            "description": "Source: 05_TDP_Measures.dax"
-          },
-          {
-            "name": "VAR tg",
-            "expression": [
-              "[TDP MoM Growth %]",
+              "VAR sg = [MoM Growth %]",
+              "VAR tg = [TDP MoM Growth %]",
               "RETURN",
               "    SWITCH ( TRUE (),",
               "        ISBLANK ( sg ), \"\",",
@@ -7432,30 +7552,12 @@
             "description": "Source: 05_TDP_Measures.dax"
           },
           {
-            "name": "VAR spt",
+            "name": "TDP Opportunity Quadrant",
             "expression": [
-              "[Sales per TDP]"
-            ],
-            "description": "Source: 05_TDP_Measures.dax"
-          },
-          {
-            "name": "VAR t",
-            "expression": [
-              "[TDP]"
-            ],
-            "description": "Source: 05_TDP_Measures.dax"
-          },
-          {
-            "name": "VAR medSPT",
-            "expression": [
-              "[_Median Sales per TDP]"
-            ],
-            "description": "Source: 05_TDP_Measures.dax"
-          },
-          {
-            "name": "VAR medTDP",
-            "expression": [
-              "[_Median TDP]",
+              "VAR spt = [Sales per TDP]",
+              "VAR t = [TDP]",
+              "VAR medSPT = [_Median Sales per TDP]",
+              "VAR medTDP = [_Median TDP]",
               "RETURN",
               "    SWITCH ( TRUE (),",
               "        t < medTDP && spt >= medSPT, \"Low TDP / High Velocity — EXPAND\",",
@@ -7600,46 +7702,28 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR _articlesWithSales",
+            "name": "Missing TDP",
             "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Article Code] ) )"
-            ],
-            "description": "Source: 06_DataQuality_Measures.dax"
-          },
-          {
-            "name": "VAR _articlesWithTDP",
-            "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Fact TDP'[Article Code] ) )",
+              "VAR _articlesWithSales = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Article Code] ) )",
+              "VAR _articlesWithTDP   = CALCULATE ( DISTINCTCOUNT ( 'Fact TDP'[Article Code] ) )",
               "RETURN _articlesWithSales - _articlesWithTDP"
             ],
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR _catsWithSales",
+            "name": "Missing Market Share",
             "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Category Master'[Nielsen Category] ) )"
-            ],
-            "description": "Source: 06_DataQuality_Measures.dax"
-          },
-          {
-            "name": "VAR _catsWithMS",
-            "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Fact Nielsen'[Nielsen Category] ) )",
+              "VAR _catsWithSales = CALCULATE ( DISTINCTCOUNT ( 'Category Master'[Nielsen Category] ) )",
+              "VAR _catsWithMS    = CALCULATE ( DISTINCTCOUNT ( 'Fact Nielsen'[Nielsen Category] ) )",
               "RETURN _catsWithSales - _catsWithMS"
             ],
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR _months",
+            "name": "Missing PnL Assumptions",
             "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Month] ) )"
-            ],
-            "description": "Source: 06_DataQuality_Measures.dax"
-          },
-          {
-            "name": "VAR _assumMonths",
-            "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Assumption Table'[Month] ) )",
+              "VAR _months = CALCULATE ( DISTINCTCOUNT ( 'Fact Offtake Sales'[Month] ) )",
+              "VAR _assumMonths = CALCULATE ( DISTINCTCOUNT ( 'Assumption Table'[Month] ) )",
               "RETURN MAX ( _months - _assumMonths, 0 )",
               "",
               "// ---- Overall health score (share of clean rows) ----"
@@ -7659,8 +7743,14 @@
               "[Missing Chain] + [Missing Zone] + [Missing State] + [Missing Brand]",
               "    + [Missing Category] + [Missing Article Code] + [Missing EAN]",
               "    + [Blank NSV Values] + [Negative Sales Values]",
-              "    + [Unmapped Chain] + [Unmapped Brand] + [Unmapped Category] + [Unmapped Zone]",
-              "Data Health % = 1 - DIVIDE ( [Total DQ Issues], [Total Fact Rows] )",
+              "    + [Unmapped Chain] + [Unmapped Brand] + [Unmapped Category] + [Unmapped Zone]"
+            ],
+            "description": "Source: 06_DataQuality_Measures.dax"
+          },
+          {
+            "name": "Data Health %",
+            "expression": [
+              "1 - DIVIDE ( [Total DQ Issues], [Total Fact Rows] )",
               "",
               "// =====================================================================",
               "// PRIMARY ARTICLE — DATA QUALITY CHECKS  (Fact Primary Article)",
@@ -7737,17 +7827,13 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR _distRows",
+            "name": "Primary Dist Coverage %",
             "expression": [
-              "CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),",
-              "        'Fact Primary Article'[Allocation Status] IN { \"Allocated\", \"Provisional\", \"Unmapped\" } )"
-            ],
-            "description": "Source: 06_DataQuality_Measures.dax"
-          },
-          {
-            "name": "VAR _mapped",
-            "expression": [
-              "CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),",
+              "VAR _distRows =",
+              "    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),",
+              "        'Fact Primary Article'[Allocation Status] IN { \"Allocated\", \"Provisional\", \"Unmapped\" } )",
+              "VAR _mapped =",
+              "    CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),",
               "        'Fact Primary Article'[Allocation Status] IN { \"Allocated\", \"Provisional\" } )",
               "RETURN DIVIDE ( _mapped, _distRows )",
               "",
@@ -7766,9 +7852,13 @@
           {
             "name": "Primary Article Total Rows",
             "expression": [
-              "COUNTROWS ( 'Fact Primary Article' )",
-              "",
-              "Primary Data Health % =",
+              "COUNTROWS ( 'Fact Primary Article' )"
+            ],
+            "description": "Source: 06_DataQuality_Measures.dax"
+          },
+          {
+            "name": "Primary Data Health %",
+            "expression": [
               "1 - DIVIDE ( [Primary Total DQ Issues], [Primary Article Total Rows] )",
               "",
               "// ---- Negative Frac QC (Source: ShipTo CSV correction/reversal entries) ----",
@@ -7805,9 +7895,9 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR _rows",
+            "name": "Primary Negative Frac Flag",
             "expression": [
-              "[Primary Negative Frac Rows]",
+              "VAR _rows = [Primary Negative Frac Rows]",
               "RETURN",
               "    IF ( _rows > 0,",
               "        \"⚠ \" & _rows & \" rows with negative allocated NSV (reversal entries in ShipTo CSV – Finance review required)\",",
@@ -7824,9 +7914,9 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR expectedCr",
+            "name": "Expected FY26 Offtake",
             "expression": [
-              "311.28  // ₹ Crore (43 chains, verified)",
+              "VAR expectedCr = 311.28  // ₹ Crore (43 chains, verified)",
               "RETURN expectedCr * 10000000  // Convert to base unit (smallest denomination)",
               "",
               "// Actual FY26 Offtake (from Power BI fact)"
@@ -7842,16 +7932,10 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR actual",
+            "name": "FY26 Offtake Variance",
             "expression": [
-              "[Actual FY26 Offtake] / 10000000  // Convert to Crore"
-            ],
-            "description": "Source: 06_DataQuality_Measures.dax"
-          },
-          {
-            "name": "VAR expected",
-            "expression": [
-              "[Expected FY26 Offtake] / 10000000",
+              "VAR actual = [Actual FY26 Offtake] / 10000000  // Convert to Crore",
+              "VAR expected = [Expected FY26 Offtake] / 10000000",
               "RETURN actual - expected",
               "",
               "// Status Flag: Green/Red"
@@ -7859,9 +7943,9 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR variance",
+            "name": "FY26 Status",
             "expression": [
-              "[FY26 Offtake Variance]",
+              "VAR variance = [FY26 Offtake Variance]",
               "RETURN",
               "    IF (",
               "        ABS ( variance ) < 0.05,",
@@ -7874,9 +7958,9 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR expectedCr",
+            "name": "Expected FY26 RBC",
             "expression": [
-              "45.62  // ₹ Crore (Reliance Brand Counter)",
+              "VAR expectedCr = 45.62  // ₹ Crore (Reliance Brand Counter)",
               "RETURN expectedCr * 10000000",
               "",
               "// Actual FY26 RBC"
@@ -7892,16 +7976,10 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR actual",
+            "name": "FY26 RBC Variance",
             "expression": [
-              "[Actual FY26 RBC] / 10000000"
-            ],
-            "description": "Source: 06_DataQuality_Measures.dax"
-          },
-          {
-            "name": "VAR expected",
-            "expression": [
-              "[Expected FY26 RBC] / 10000000",
+              "VAR actual = [Actual FY26 RBC] / 10000000",
+              "VAR expected = [Expected FY26 RBC] / 10000000",
               "RETURN actual - expected",
               "",
               "// RBC Status"
@@ -7909,9 +7987,9 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR variance",
+            "name": "FY26 RBC Status",
             "expression": [
-              "[FY26 RBC Variance]",
+              "VAR variance = [FY26 RBC Variance]",
               "RETURN",
               "    IF (",
               "        ABS ( variance ) < 0.01,",
@@ -7945,9 +8023,9 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR variance",
+            "name": "FY26 Combined Status",
             "expression": [
-              "[FY26 Combined Variance]",
+              "VAR variance = [FY26 Combined Variance]",
               "RETURN",
               "    IF (",
               "        ABS ( variance ) < 0.05,",
@@ -7958,9 +8036,28 @@
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
-            "name": "VAR _override",
+            "name": "Ship-to Primary NSV",
             "expression": [
-              "CALCULATE (",
+              "SUM ( 'Fact Primary ShipTo'[Primary NSV] )"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Ship-to Primary MRP",
+            "expression": [
+              "SUM ( 'Fact Primary ShipTo'[MRP Value] )",
+              "",
+              "// ---------- Allocation contribution % (dynamic, month-wise) ----------",
+              "// Override wins; else the secondary-derived map value; weighted by primary so",
+              "// it aggregates sensibly above a single Ship-To x Chain x Brand cell."
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Primary Allocation Cont%",
+            "expression": [
+              "VAR _override =",
+              "    CALCULATE (",
               "        MAX ( 'Primary Allocation Override'[Override Cont%] ),",
               "        FILTER (",
               "            'Primary Allocation Override',",
@@ -7973,14 +8070,9 @@
               "                && ( 'Primary Allocation Override'[Brand] = SELECTEDVALUE ( 'Brand Master'[Brand] )",
               "                    || 'Primary Allocation Override'[Brand] = \"ALL\" )",
               "        )",
-              "    )"
-            ],
-            "description": "Source: 07_PrimaryAllocation_Measures.dax"
-          },
-          {
-            "name": "VAR _mapWeighted",
-            "expression": [
-              "DIVIDE (",
+              "    )",
+              "VAR _mapWeighted =",
+              "    DIVIDE (",
               "        SUMX ( 'Primary Allocation Map', 'Primary Allocation Map'[Cont%] ),",
               "        COUNTROWS ( 'Primary Allocation Map' )",
               "    )",
@@ -8005,29 +8097,23 @@
               "// !! Do not place this on a report page while [Raw ShipTo Primary] still",
               "// falls back to [Ship-to Primary NSV] (today's mode) -- see the",
               "// DOUBLE-ALLOCATION LANDMINE note at the top of this file. Use",
-              "// [Ship-to Primary NSV] instead; that is what Page 2B actually uses today.",
-              "Allocated Primary (via Cont%) =",
+              "// [Ship-to Primary NSV] instead; that is what Page 2B actually uses today."
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Allocated Primary (via Cont%)",
+            "expression": [
               "SUMX (",
               "    SUMMARIZE (",
               "        'Primary Allocation Map',",
               "        'Primary Allocation Map'[Ship To Name],",
               "        'Primary Allocation Map'[Chain],",
               "        'Primary Allocation Map'[Brand]",
-              "    ),"
-            ],
-            "description": "Source: 07_PrimaryAllocation_Measures.dax"
-          },
-          {
-            "name": "VAR _cont",
-            "expression": [
-              "[Primary Allocation Cont%]"
-            ],
-            "description": "Source: 07_PrimaryAllocation_Measures.dax"
-          },
-          {
-            "name": "VAR _raw",
-            "expression": [
-              "CALCULATE (",
+              "    ),",
+              "    VAR _cont = [Primary Allocation Cont%]",
+              "    VAR _raw =",
+              "        CALCULATE (",
               "            [Raw ShipTo Primary],",
               "            ALL ( 'Chain Master'[Chain] )   // raw is at ship-to x brand (chain-agnostic)",
               "        )",
@@ -8052,37 +8138,29 @@
               "",
               "// ---------- Article inclusion: offtake this month OR previous month ----------",
               "// Primary can lead/lag secondary by a month, so an article counts as \"active\"",
-              "// if it had offtake in the selected month or the one before.",
-              "Article Has Offtake (Curr or Prev) ="
-            ],
-            "description": "Source: 07_PrimaryAllocation_Measures.dax"
-          },
-          {
-            "name": "VAR _curr",
-            "expression": [
-              "[Total Offtake NSV]"
-            ],
-            "description": "Source: 07_PrimaryAllocation_Measures.dax"
-          },
-          {
-            "name": "VAR _prev",
-            "expression": [
-              "CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
-              "RETURN IF ( ( COALESCE ( _curr, 0 ) <> 0 ) || ( COALESCE ( _prev, 0 ) <> 0 ), 1, 0 )",
-              "",
-              "// Primary restricted to active articles (current or previous-month offtake).",
-              "Ship-to Primary NSV (Active Articles) =",
-              "CALCULATE (",
-              "    [Ship-to Primary NSV],",
-              "    FILTER (",
-              "        VALUES ( 'Article Master'[Article Code] ),"
+              "// if it had offtake in the selected month or the one before."
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
           {
             "name": "Article Has Offtake (Curr or Prev)",
             "expression": [
-              "1",
+              "VAR _curr = [Total Offtake NSV]",
+              "VAR _prev = CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "RETURN IF ( ( COALESCE ( _curr, 0 ) <> 0 ) || ( COALESCE ( _prev, 0 ) <> 0 ), 1, 0 )",
+              "",
+              "// Primary restricted to active articles (current or previous-month offtake)."
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Ship-to Primary NSV (Active Articles)",
+            "expression": [
+              "CALCULATE (",
+              "    [Ship-to Primary NSV],",
+              "    FILTER (",
+              "        VALUES ( 'Article Master'[Article Code] ),",
+              "        [Article Has Offtake (Curr or Prev)] = 1",
               "    )",
               ")",
               "",
@@ -8093,8 +8171,13 @@
           {
             "name": "Allocated Primary vs Offtake Gap",
             "expression": [
-              "[Ship-to Primary NSV] - [Secondary Offtake NSV]",
-              "Allocated Primary vs Offtake Gap % =",
+              "[Ship-to Primary NSV] - [Secondary Offtake NSV]"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Allocated Primary vs Offtake Gap %",
+            "expression": [
               "DIVIDE ( [Ship-to Primary NSV] - [Secondary Offtake NSV], [Secondary Offtake NSV] )"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
@@ -8104,25 +8187,40 @@
             "expression": [
               "DIVIDE ( [Ship-to Primary NSV], [Secondary Offtake NSV] )",
               "",
-              "// ---------- MoM movement on allocated primary ----------",
-              "Ship-to Primary Prev Month = CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
-              "Ship-to Primary MoM % =",
-              "DIVIDE ( [Ship-to Primary NSV] - [Ship-to Primary Prev Month], [Ship-to Primary Prev Month] )",
-              "Ship-to Primary YoY % =",
+              "// ---------- MoM movement on allocated primary ----------"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Ship-to Primary Prev Month",
+            "expression": [
+              "CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Ship-to Primary MoM %",
+            "expression": [
+              "DIVIDE ( [Ship-to Primary NSV] - [Ship-to Primary Prev Month], [Ship-to Primary Prev Month] )"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Ship-to Primary YoY %",
+            "expression": [
               "DIVIDE (",
               "    [Ship-to Primary NSV] - CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) ),",
               "    CALCULATE ( [Ship-to Primary NSV], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
               ")",
               "",
-              "// ---------- Display helpers ----------",
-              "Ship-to Primary NSV Label ="
+              "// ---------- Display helpers ----------"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "Ship-to Primary NSV Label",
             "expression": [
-              "[Ship-to Primary NSV]",
+              "VAR v = [Ship-to Primary NSV]",
               "RETURN IF ( ABS ( v ) >= 10000000,",
               "    FORMAT ( DIVIDE ( v, 10000000 ), \"0.00\" ) & \" Cr\",",
               "    FORMAT ( DIVIDE ( v, 100000 ), \"0.0\" ) & \" L\" )"
@@ -8132,14 +8230,9 @@
           {
             "name": "Allocation Health Check",
             "expression": [
-              "// distributor rows whose Cont% across chains does not sum to ~100% in a month"
-            ],
-            "description": "Source: 07_PrimaryAllocation_Measures.dax"
-          },
-          {
-            "name": "VAR _bad",
-            "expression": [
-              "COUNTROWS (",
+              "// distributor rows whose Cont% across chains does not sum to ~100% in a month",
+              "VAR _bad =",
+              "    COUNTROWS (",
               "        FILTER (",
               "            SUMMARIZE (",
               "                'Primary Allocation Map',",
@@ -8161,31 +8254,48 @@
               "// approved DistCont patch.",
               "// =====================================================================",
               "",
-              "// --- NSV by allocation source ---",
-              "Dist NSV – Approved Patch =",
+              "// --- NSV by allocation source ---"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Dist NSV – Approved Patch",
+            "expression": [
               "CALCULATE (",
               "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
           {
-            "name": "VAR _total",
+            "name": "Dist NSV – ShipTo CSV",
             "expression": [
               "CALCULATE (",
-              "        SUM ( 'Fact Primary Article'[Primary NSV] ),"
+              "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
           {
-            "name": "VAR _covered",
+            "name": "Dist NSV – Provisional Fallback",
             "expression": [
               "CALCULATE (",
-              "        SUM ( 'Fact Primary Article'[Primary NSV] ),",
-              "        'Fact Primary Article'[Allocation Status] IN { \"Allocated\", \"Provisional\" }",
-              "    )",
-              "RETURN DIVIDE ( _covered, _total )",
-              "",
-              "// --- Provisional row flag (for Jun'26 disclosure) ---"
+              "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Dist NSV – Unmapped",
+            "expression": [
+              "CALCULATE (",
+              "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
+            ],
+            "description": "Source: 07_PrimaryAllocation_Measures.dax"
+          },
+          {
+            "name": "Dist Allocation Coverage %",
+            "expression": [
+              "VAR _total =",
+              "    CALCULATE (",
+              "        SUM ( 'Fact Primary Article'[Primary NSV] ),"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8236,9 +8346,20 @@
           {
             "name": "QC Variance",
             "expression": [
-              "[QC Dashboard Forecast Total] - [QC TY Target Total]",
-              "QC Variance % = DIVIDE ( [QC Variance], [QC TY Target Total] )",
-              "QC Tie-Out =",
+              "[QC Dashboard Forecast Total] - [QC TY Target Total]"
+            ],
+            "description": "Source: 08_ForecastQC_Measures.dax"
+          },
+          {
+            "name": "QC Variance %",
+            "expression": [
+              "DIVIDE ( [QC Variance], [QC TY Target Total] )"
+            ],
+            "description": "Source: 08_ForecastQC_Measures.dax"
+          },
+          {
+            "name": "QC Tie-Out",
+            "expression": [
               "IF ( ABS ( [QC Variance] ) < 1, \"OK - Matches TY Target\", \"Variance - investigate\" )",
               "",
               "// ---- Mapping coverage (FY26 offtake basis) ----"
@@ -8248,8 +8369,13 @@
           {
             "name": "QC Mapped Offtake",
             "expression": [
-              "[FY26 Actual Offtake] - [_FY26 Offtake Unmapped]",
-              "QC Mapping Coverage % =",
+              "[FY26 Actual Offtake] - [_FY26 Offtake Unmapped]"
+            ],
+            "description": "Source: 08_ForecastQC_Measures.dax"
+          },
+          {
+            "name": "QC Mapping Coverage %",
+            "expression": [
               "DIVIDE ( [QC Mapped Offtake], [FY26 Actual Offtake] )",
               "",
               "// SO coverage = offtake from stores that have a sales-person mapping"
@@ -8261,8 +8387,14 @@
             "expression": [
               "CALCULATE ( [FY26 Actual Offtake],",
               "    FILTER ( 'Fact Offtake Sales',",
-              "        'Fact Offtake Sales'[Store Code] IN VALUES ( 'Sales Team Mapping'[Store Code] ) ) )",
-              "QC SO Coverage % = DIVIDE ( [QC SO Mapped Offtake], [FY26 Actual Offtake] )",
+              "        'Fact Offtake Sales'[Store Code] IN VALUES ( 'Sales Team Mapping'[Store Code] ) ) )"
+            ],
+            "description": "Source: 08_ForecastQC_Measures.dax"
+          },
+          {
+            "name": "QC SO Coverage %",
+            "expression": [
+              "DIVIDE ( [QC SO Mapped Offtake], [FY26 Actual Offtake] )",
               "",
               "// ---- Unmapped counts / lists ----"
             ],
@@ -8310,16 +8442,10 @@
             "description": "Source: 08_ForecastQC_Measures.dax"
           },
           {
-            "name": "VAR _tgtMonths",
+            "name": "QC Missing Month Mapping",
             "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = \"26-27\" )"
-            ],
-            "description": "Source: 08_ForecastQC_Measures.dax"
-          },
-          {
-            "name": "VAR _dateMonths",
-            "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = \"26-27\" )",
+              "VAR _tgtMonths = CALCULATE ( DISTINCTCOUNT ( Targets[Month] ), Targets[FY Year] = \"26-27\" )",
+              "VAR _dateMonths = CALCULATE ( DISTINCTCOUNT ( 'Date Table'[Month] ), 'Date Table'[FY Year] = \"26-27\" )",
               "RETURN _dateMonths - _tgtMonths"
             ],
             "description": "Source: 08_ForecastQC_Measures.dax"
@@ -8343,49 +8469,66 @@
             "description": "Source: 08_ForecastQC_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "Offtake NSV (CBA, M)",
             "expression": [
-              "COALESCE ( [Offtake NSV (CBA, M)], 0 )"
+              "[Total Offtake NSV]   // current month, current C/B/A context"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
           {
-            "name": "VAR _m1",
+            "name": "Offtake NSV (CBA, M+1)",
             "expression": [
-              "COALESCE ( [Offtake NSV (CBA, M+1)], 0 )",
+              "CALCULATE ( [Total Offtake NSV], DATEADD ( 'Date Table'[Date], 1, MONTH ) )",
+              "",
+              "// brand-level evidence at the chain (to tell \"brand not listed\" from \"article not listed\")"
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "Offtake NSV (Chain-Brand, M or M+1)",
+            "expression": [
+              "CALCULATE (",
+              "    [Total Offtake NSV] + [Offtake NSV (CBA, M+1)],",
+              "    ALL ( 'Article Master'[Article Code] ), ALL ( 'Article Master'[EAN Code] )",
+              ")",
+              "",
+              "// first month this Chain x Brand x Article ever shows offtake (for new-article logic)"
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "First Offtake Month (CBA)",
+            "expression": [
+              "CALCULATE (",
+              "    MIN ( 'Fact Offtake Sales'[MonthStart] ),",
+              "    ALLEXCEPT ( 'Fact Offtake Sales',",
+              "        'Fact Offtake Sales'[Chain], 'Fact Offtake Sales'[Brand], 'Fact Offtake Sales'[Article Code] )",
+              ")",
+              "",
+              "// ---------- Eligibility ----------"
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "Article Eligible",
+            "expression": [
+              "VAR _m   = COALESCE ( [Offtake NSV (CBA, M)], 0 )",
+              "VAR _m1  = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )",
               "RETURN IF ( _m <> 0 || _m1 <> 0, 1, 0 )"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "Eligibility Status",
             "expression": [
-              "COALESCE ( [Offtake NSV (CBA, M)], 0 )"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "VAR _m1",
-            "expression": [
-              "COALESCE ( [Offtake NSV (CBA, M+1)], 0 )"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "VAR _brand",
-            "expression": [
-              "COALESCE ( [Offtake NSV (Chain-Brand, M or M+1)], 0 )",
+              "VAR _m   = COALESCE ( [Offtake NSV (CBA, M)], 0 )",
+              "VAR _m1  = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )",
+              "VAR _brand = COALESCE ( [Offtake NSV (Chain-Brand, M or M+1)], 0 )",
               "RETURN",
               "    SWITCH ( TRUE (),",
               "        _m  <> 0, \"Eligible\",                    // offtake in same month",
-              "        _m1 <> 0, \"Eligible due to TAT\",         // offtake only next month"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "_brand",
-            "expression": [
-              "0, \"Brand not listed\",          // chain has no offtake for this brand",
+              "        _m1 <> 0, \"Eligible due to TAT\",         // offtake only next month",
+              "        _brand = 0, \"Brand not listed\",          // chain has no offtake for this brand",
               "        \"Article not listed\"                     // brand listed at chain, this article not",
               "    )",
               "",
@@ -8396,30 +8539,12 @@
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "New Article Flag",
             "expression": [
-              "COALESCE ( [Offtake NSV (CBA, M)], 0 )"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "VAR _m1",
-            "expression": [
-              "COALESCE ( [Offtake NSV (CBA, M+1)], 0 )"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "VAR _first",
-            "expression": [
-              "[First Offtake Month (CBA)]"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "VAR _nextMonth",
-            "expression": [
-              "EOMONTH ( MAX ( 'Date Table'[MonthStart] ), 1 ) + 1",
+              "VAR _m  = COALESCE ( [Offtake NSV (CBA, M)], 0 )",
+              "VAR _m1 = COALESCE ( [Offtake NSV (CBA, M+1)], 0 )",
+              "VAR _first = [First Offtake Month (CBA)]",
+              "VAR _nextMonth = EOMONTH ( MAX ( 'Date Table'[MonthStart] ), 1 ) + 1",
               "RETURN IF ( _m = 0 && _m1 <> 0 && _first = _nextMonth, \"New Article - primary held 1 month prior\", \"\" )"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
@@ -8441,14 +8566,24 @@
               "",
               "// ---------- Article ratio among ELIGIBLE articles only ----------",
               "// Denominator = secondary of eligible articles in this Chain x Dist x Brand x Month,",
-              "// so eligible articles absorb the chain primary; blocked ones get nothing.",
-              "_Eligible Article Secondary (Chain-Brand) =",
+              "// so eligible articles absorb the chain primary; blocked ones get nothing."
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "_Eligible Article Secondary (Chain-Brand)",
+            "expression": [
               "CALCULATE (",
               "    [Total Offtake NSV] + [Offtake NSV (CBA, M+1)],",
               "    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ),",
               "    VALUES ( 'Chain Master'[Chain] ), VALUES ( 'Brand Master'[Brand] )",
-              ")",
-              "Article Allocation Ratio % =",
+              ")"
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "Article Allocation Ratio %",
+            "expression": [
               "IF ( [Article Eligible] = 1,",
               "    DIVIDE ( COALESCE ( [Offtake NSV (CBA, M)], 0 ) + COALESCE ( [Offtake NSV (CBA, M+1)], 0 ),",
               "             [_Eligible Article Secondary (Chain-Brand)] ),",
@@ -8482,9 +8617,9 @@
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
           {
-            "name": "VAR _hasEligible",
+            "name": "Blocked Primary NSV",
             "expression": [
-              "[_Eligible Article Secondary (Chain-Brand)]",
+              "VAR _hasEligible = [_Eligible Article Secondary (Chain-Brand)]",
               "RETURN IF ( COALESCE ( _hasEligible, 0 ) = 0, [Chain Allocated Primary NSV], 0 )"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
@@ -8492,28 +8627,10 @@
           {
             "name": "Allocation Status",
             "expression": [
-              "SWITCH ( TRUE (),"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "Article Eligible",
-            "expression": [
-              "1, \"Allocated\","
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "Eligibility Status",
-            "expression": [
-              "\"Brand not listed\",   \"Blocked - Brand Not Listed\","
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "Eligibility Status",
-            "expression": [
-              "\"Article not listed\", \"Blocked - Article Not Listed\",",
+              "SWITCH ( TRUE (),",
+              "    [Article Eligible] = 1, \"Allocated\",",
+              "    [Eligibility Status] = \"Brand not listed\",   \"Blocked - Brand Not Listed\",",
+              "    [Eligibility Status] = \"Article not listed\", \"Blocked - Article Not Listed\",",
               "    \"Blocked - No Offtake Evidence\" )"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
@@ -8521,34 +8638,21 @@
           {
             "name": "Exception Reason",
             "expression": [
-              "SWITCH ( TRUE (),"
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "Article Eligible",
-            "expression": [
-              "1, \"\","
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "Eligibility Status",
-            "expression": [
-              "\"Brand not listed\",   \"Brand has no offtake in this chain (M or M+1)\","
-            ],
-            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
-          },
-          {
-            "name": "Eligibility Status",
-            "expression": [
-              "\"Article not listed\", \"Article has no offtake in this chain (M or M+1)\",",
+              "SWITCH ( TRUE (),",
+              "    [Article Eligible] = 1, \"\",",
+              "    [Eligibility Status] = \"Brand not listed\",   \"Brand has no offtake in this chain (M or M+1)\",",
+              "    [Eligibility Status] = \"Article not listed\", \"Article has no offtake in this chain (M or M+1)\",",
               "    \"No secondary offtake found in M or M+1\" )",
               "",
               "// =====================================================================",
               "// QC — reconciliation separates VALID allocation from BLOCKED/UNALLOCATED",
-              "// =====================================================================",
-              "QC Orig Primary (Dist-Brand) =",
+              "// ====================================================================="
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "QC Orig Primary (Dist-Brand)",
+            "expression": [
               "CALCULATE ( [Ship-to Primary NSV],",
               "    ALLSELECTED ( 'Chain Master'[Chain] ), ALLSELECTED ( 'Article Master'[Article Code] ) )"
             ],
@@ -8590,14 +8694,30 @@
               "CALCULATE ( DISTINCTCOUNT ( 'Article Master'[Article Code] ),",
               "    FILTER ( VALUES ( 'Article Master'[Article Code] ), [Article Eligible] = 1 ) )",
               "// Renamed from \"QC Mapping Coverage %\" (2026-10-01): 08_ForecastQC_Measures.dax already uses",
-              "// that name for a different measure, so Power BI refused this one on install.",
-              "QC Allocated Coverage % =",
-              "DIVIDE ( [QC Allocated Primary Total], [QC Orig Primary (Dist-Brand)] )",
-              "QC Blocked Coverage % =",
+              "// that name for a different measure, so Power BI refused this one on install."
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "QC Allocated Coverage %",
+            "expression": [
+              "DIVIDE ( [QC Allocated Primary Total], [QC Orig Primary (Dist-Brand)] )"
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "QC Blocked Coverage %",
+            "expression": [
               "DIVIDE ( [QC Blocked Primary Total], [QC Orig Primary (Dist-Brand)] )",
               "",
-              "// ---------- Helpers for the New Article Tracker export ----------",
-              "Allowed Primary Month (date) = EOMONTH ( [First Offtake Month (CBA)], -1 ) + 1"
+              "// ---------- Helpers for the New Article Tracker export ----------"
+            ],
+            "description": "Source: 09_ArticleAllocation_Eligibility.dax"
+          },
+          {
+            "name": "Allowed Primary Month (date)",
+            "expression": [
+              "EOMONTH ( [First Offtake Month (CBA)], -1 ) + 1"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
@@ -8618,23 +8738,25 @@
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
           {
-            "name": "VAR _byStore",
+            "name": "Offtake Channel",
             "expression": [
-              "LOOKUPVALUE ( 'Channel Map Store'[Channel],",
-              "        'Channel Map Store'[Store Code], 'Fact Offtake Sales'[Store Code] )"
-            ],
-            "description": "Source: 10_SIS_Reconciliation.dax"
-          },
-          {
-            "name": "VAR _byChain",
-            "expression": [
-              "LOOKUPVALUE ( 'Channel Map Chain'[Channel],",
+              "VAR _byStore =",
+              "    LOOKUPVALUE ( 'Channel Map Store'[Channel],",
+              "        'Channel Map Store'[Store Code], 'Fact Offtake Sales'[Store Code] )",
+              "VAR _byChain =",
+              "    LOOKUPVALUE ( 'Channel Map Chain'[Channel],",
               "        'Channel Map Chain'[Chain], 'Fact Offtake Sales'[Chain] )",
               "RETURN COALESCE ( _byStore, _byChain, \"Unmapped\" )",
               "",
               "// ---------- Channel splits ----------",
-              "// PRIMARY (authoritative — explicit Channel from File 2 / Fact Primary Article)",
-              "Primary NSV (Article) = SUM ( 'Fact Primary Article'[Primary NSV] )"
+              "// PRIMARY (authoritative — explicit Channel from File 2 / Fact Primary Article)"
+            ],
+            "description": "Source: 10_SIS_Reconciliation.dax"
+          },
+          {
+            "name": "Primary NSV (Article)",
+            "expression": [
+              "SUM ( 'Fact Primary Article'[Primary NSV] )"
             ],
             "description": "Source: 10_SIS_Reconciliation.dax"
           },
@@ -8687,9 +8809,21 @@
             "expression": [
               "CALCULATE ( [Total Offtake NSV], 'Fact Offtake Sales'[Offtake Channel] = \"Unmapped\" )",
               "",
-              "// ---------- Display in Cr (Indian) ----------",
-              "Primary SIS (Cr) = DIVIDE ( [Primary SIS], 10000000 )",
-              "Offtake SIS (Cr) = DIVIDE ( [Offtake SIS], 10000000 )",
+              "// ---------- Display in Cr (Indian) ----------"
+            ],
+            "description": "Source: 10_SIS_Reconciliation.dax"
+          },
+          {
+            "name": "Primary SIS (Cr)",
+            "expression": [
+              "DIVIDE ( [Primary SIS], 10000000 )"
+            ],
+            "description": "Source: 10_SIS_Reconciliation.dax"
+          },
+          {
+            "name": "Offtake SIS (Cr)",
+            "expression": [
+              "DIVIDE ( [Offtake SIS], 10000000 )",
               "",
               "// ---------- SIS reconciliation ----------"
             ],
@@ -8698,9 +8832,21 @@
           {
             "name": "SIS Variance",
             "expression": [
-              "[Primary SIS] - [Offtake SIS]",
-              "SIS Variance (Cr) = DIVIDE ( [SIS Variance], 10000000 )",
-              "SIS Variance (Lacs) = DIVIDE ( [SIS Variance], 100000 )"
+              "[Primary SIS] - [Offtake SIS]"
+            ],
+            "description": "Source: 10_SIS_Reconciliation.dax"
+          },
+          {
+            "name": "SIS Variance (Cr)",
+            "expression": [
+              "DIVIDE ( [SIS Variance], 10000000 )"
+            ],
+            "description": "Source: 10_SIS_Reconciliation.dax"
+          },
+          {
+            "name": "SIS Variance (Lacs)",
+            "expression": [
+              "DIVIDE ( [SIS Variance], 100000 )"
             ],
             "description": "Source: 10_SIS_Reconciliation.dax"
           },
@@ -8709,8 +8855,13 @@
             "expression": [
               "IF ( ABS ( [SIS Variance] ) < 100000, \"OK (< Rs 1 L)\", \"Gap - investigate\" )",
               "",
-              "// Channel coverage: how much offtake resolved to a real channel (not Unmapped)",
-              "Offtake Channel Coverage % =",
+              "// Channel coverage: how much offtake resolved to a real channel (not Unmapped)"
+            ],
+            "description": "Source: 10_SIS_Reconciliation.dax"
+          },
+          {
+            "name": "Offtake Channel Coverage %",
+            "expression": [
               "1 - DIVIDE ( [Offtake Unmapped Channel], [Total Offtake NSV] )",
               "",
               "// Sanity note: Primary SIS must be sourced ONLY from File 2's explicit",
@@ -8728,9 +8879,9 @@
             "description": "Source: 10_SIS_Reconciliation.dax"
           },
           {
-            "name": "VAR v",
+            "name": "NSV Value Label",
             "expression": [
-              "[NSV]",
+              "VAR v = [NSV]",
               "RETURN",
               "    IF (",
               "        ABS ( v ) >= 10000000,",
@@ -8741,9 +8892,9 @@
             "description": "Source: 11_ExportDisplay_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "Total Primary NSV Value Label",
             "expression": [
-              "[Total Primary NSV]",
+              "VAR v = [Total Primary NSV]",
               "RETURN",
               "    IF (",
               "        ABS ( v ) >= 10000000,",
@@ -8754,9 +8905,9 @@
             "description": "Source: 11_ExportDisplay_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "Total Offtake NSV Value Label",
             "expression": [
-              "[Total Offtake NSV]",
+              "VAR v = [Total Offtake NSV]",
               "RETURN",
               "    IF (",
               "        ABS ( v ) >= 10000000,",
@@ -8767,9 +8918,9 @@
             "description": "Source: 11_ExportDisplay_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "Total MRP Sales Value Label",
             "expression": [
-              "[Total MRP Sales]",
+              "VAR v = [Total MRP Sales]",
               "RETURN",
               "    IF (",
               "        ABS ( v ) >= 10000000,",
@@ -8785,16 +8936,10 @@
             "description": "Source: 11_ExportDisplay_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "Total Offtake Qty Label",
             "expression": [
-              "[Total Offtake Qty]"
-            ],
-            "description": "Source: 11_ExportDisplay_Measures.dax"
-          },
-          {
-            "name": "VAR crv",
-            "expression": [
-              "DIVIDE ( v, 10000000 )",
+              "VAR v = [Total Offtake Qty]",
+              "VAR crv = DIVIDE ( v, 10000000 )",
               "RETURN",
               "    IF (",
               "        ABS ( crv ) >= 0.005,",
@@ -8805,16 +8950,10 @@
             "description": "Source: 11_ExportDisplay_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "Total Primary Qty Label",
             "expression": [
-              "[Total Primary Qty]"
-            ],
-            "description": "Source: 11_ExportDisplay_Measures.dax"
-          },
-          {
-            "name": "VAR crv",
-            "expression": [
-              "DIVIDE ( v, 10000000 )",
+              "VAR v = [Total Primary Qty]",
+              "VAR crv = DIVIDE ( v, 10000000 )",
               "RETURN",
               "    IF (",
               "        ABS ( crv ) >= 0.005,",
@@ -8919,28 +9058,29 @@
             "expression": [
               "CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ), 'Fact Primary Article'[TOT Method] <> \"invalid\" )",
               "",
-              "// ---------- TOT% AND PASS-ON VALUE ----------",
-              "On-Invoice Margin Pass-on Value =",
-              "SUM ( 'Fact Primary Article'[TOT Pass-on Value] )   // BLANK() rows (invalid) contribute nothing to SUM",
-              "",
-              "TOT % ="
+              "// ---------- TOT% AND PASS-ON VALUE ----------"
             ],
             "description": "Source: 12_TOT_Measures.dax"
           },
           {
-            "name": "VAR _mrp",
+            "name": "On-Invoice Margin Pass-on Value",
             "expression": [
-              "[Total Primary Article MRP]",
-              "RETURN IF ( _mrp = 0, BLANK(), DIVIDE ( [On-Invoice Margin Pass-on Value], _mrp ) )",
-              "",
-              "TOT % Label ="
+              "SUM ( 'Fact Primary Article'[TOT Pass-on Value] )   // BLANK() rows (invalid) contribute nothing to SUM"
             ],
             "description": "Source: 12_TOT_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "TOT %",
             "expression": [
-              "[TOT %]",
+              "VAR _mrp = [Total Primary Article MRP]",
+              "RETURN IF ( _mrp = 0, BLANK(), DIVIDE ( [On-Invoice Margin Pass-on Value], _mrp ) )"
+            ],
+            "description": "Source: 12_TOT_Measures.dax"
+          },
+          {
+            "name": "TOT % Label",
+            "expression": [
+              "VAR v = [TOT %]",
               "RETURN IF ( ISBLANK ( v ), \"–\", FORMAT ( v, \"0.0%\" ) )"
             ],
             "description": "Source: 12_TOT_Measures.dax"
@@ -8949,16 +9089,14 @@
             "name": "TOT Tax",
             "expression": [
               "// back-derived, consistent by construction with whichever tier drove Pass-on Value",
-              "[Total Primary Article MRP] - [Total Primary Article NSV] - [On-Invoice Margin Pass-on Value]",
-              "",
-              "On-Invoice Margin Pass-on Value Label ="
+              "[Total Primary Article MRP] - [Total Primary Article NSV] - [On-Invoice Margin Pass-on Value]"
             ],
             "description": "Source: 12_TOT_Measures.dax"
           },
           {
-            "name": "VAR v",
+            "name": "On-Invoice Margin Pass-on Value Label",
             "expression": [
-              "[On-Invoice Margin Pass-on Value]",
+              "VAR v = [On-Invoice Margin Pass-on Value]",
               "RETURN",
               "    IF ( ABS ( v ) >= 10000000,",
               "        \"₹\" & FORMAT ( DIVIDE ( v, 10000000 ), \"#,0.00\" ) & \" Cr\",",
@@ -8970,33 +9108,19 @@
             "description": "Source: 12_TOT_Measures.dax"
           },
           {
-            "name": "VAR _cur",
+            "name": "MoM TOT Delta pp",
             "expression": [
-              "[TOT %]"
+              "VAR _cur = [TOT %]",
+              "VAR _prev = CALCULATE ( [TOT %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), ( _cur - _prev ) * 100 )"
             ],
             "description": "Source: 12_TOT_Measures.dax"
           },
           {
-            "name": "VAR _prev",
+            "name": "Incremental Pass-on Impact",
             "expression": [
-              "CALCULATE ( [TOT %], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
-              "RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), ( _cur - _prev ) * 100 )",
-              "",
-              "Incremental Pass-on Impact ="
-            ],
-            "description": "Source: 12_TOT_Measures.dax"
-          },
-          {
-            "name": "VAR _cur",
-            "expression": [
-              "[On-Invoice Margin Pass-on Value]"
-            ],
-            "description": "Source: 12_TOT_Measures.dax"
-          },
-          {
-            "name": "VAR _prev",
-            "expression": [
-              "CALCULATE ( [On-Invoice Margin Pass-on Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "VAR _cur = [On-Invoice Margin Pass-on Value]",
+              "VAR _prev = CALCULATE ( [On-Invoice Margin Pass-on Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
               "RETURN IF ( ISBLANK ( _prev ), BLANK(), _cur - _prev )",
               "",
               "// ---------- TOT% SOURCE QC SUMMARY (same 6 metrics as the HTML dashboard's",
@@ -9063,9 +9187,9 @@
             "description": "Source: 12_TOT_Measures.dax"
           },
           {
-            "name": "VAR _fbPct",
+            "name": "TOT Status Banner",
             "expression": [
-              "[TOT Fallback Pct of MRP]",
+              "VAR _fbPct = [TOT Fallback Pct of MRP]",
               "RETURN",
               "    IF ( ISBLANK ( _fbPct ) || _fbPct < 0.05,",
               "        \"TOT% sourced from actual Primary file data — the GST rate table fallback was not needed.\",",
@@ -9099,14 +9223,28 @@
               "SUM ( 'PL Expense Input'[Expense Amount (INR Lakh)] )   // everything loaded, mapped or not",
               "",
               "// KEEPFILTERS: intersect with any filter already on [Resolved Chain] (e.g. the",
-              "// chain filter in Total P&L Expense (by Chain)) instead of replacing it.",
-              "Total P&L Expense (Mapped) =",
-              "CALCULATE ( [Total Expense Amount Loaded], KEEPFILTERS ( NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ) ) )",
-              "",
-              "Total P&L Expense (Unmapped) =",
-              "[Total Expense Amount Loaded] - [Total P&L Expense (Mapped)]",
-              "",
-              "Total P&L Expense = [Total P&L Expense (Mapped)]   // headline KPI -- matches the HTML dashboard's cm2D.total_expense",
+              "// chain filter in Total P&L Expense (by Chain)) instead of replacing it."
+            ],
+            "description": "Source: 13_CM2_Measures.dax"
+          },
+          {
+            "name": "Total P&L Expense (Mapped)",
+            "expression": [
+              "CALCULATE ( [Total Expense Amount Loaded], KEEPFILTERS ( NOT ISBLANK ( 'PL Expense Input'[Resolved Chain] ) ) )"
+            ],
+            "description": "Source: 13_CM2_Measures.dax"
+          },
+          {
+            "name": "Total P&L Expense (Unmapped)",
+            "expression": [
+              "[Total Expense Amount Loaded] - [Total P&L Expense (Mapped)]"
+            ],
+            "description": "Source: 13_CM2_Measures.dax"
+          },
+          {
+            "name": "Total P&L Expense",
+            "expression": [
+              "[Total P&L Expense (Mapped)]   // headline KPI -- matches the HTML dashboard's cm2D.total_expense",
               "",
               "// ---------- CM2 (overall / KPI cards) ----------",
               "// [Total Primary Article NSV] comes from DAX/12_TOT_Measures.dax (already",
@@ -9121,24 +9259,23 @@
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _missingFY",
+            "name": "CM2 Comparable",
             "expression": [
-              "COUNTROWS (",
+              "VAR _missingFY =",
+              "    COUNTROWS (",
               "        FILTER (",
               "            VALUES ( 'Date Table'[FY Year] ),",
               "            NOT ISBLANK ( [Total Primary Article NSV] ) && ISBLANK ( [Total P&L Expense] )",
               "        )",
               "    )",
-              "RETURN IF ( _missingFY = 0, 1, 0 )",
-              "",
-              "Expense % of NSV ="
+              "RETURN IF ( _missingFY = 0, 1, 0 )"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _cmp",
+            "name": "Expense % of NSV",
             "expression": [
-              "[CM2 Comparable]",
+              "VAR _cmp = [CM2 Comparable]",
               "RETURN IF ( _cmp = 0, BLANK (), DIVIDE ( [Total P&L Expense], [Total Primary Article NSV] ) * 100 )",
               "",
               "// Availability gate (FM-33): [Total P&L Expense] is BLANK when no mapped expense",
@@ -9151,13 +9288,17 @@
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _exp",
+            "name": "CM2 Value",
             "expression": [
-              "[Total P&L Expense]",
+              "VAR _exp = [Total P&L Expense]",
               "RETURN IF ( ISBLANK ( _exp ), BLANK (),",
-              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )",
-              "",
-              "CM2 % =",
+              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )"
+            ],
+            "description": "Source: 13_CM2_Measures.dax"
+          },
+          {
+            "name": "CM2 %",
+            "expression": [
               "DIVIDE ( [CM2 Value], [Total Primary Article NSV] ) * 100",
               "",
               "// ---------- MoM MOVEMENT (needs the Date Table -> PL Expense Input relationship) ----------"
@@ -9165,31 +9306,19 @@
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _cur",
+            "name": "MoM Expense Change",
             "expression": [
-              "[Total P&L Expense]"
-            ],
-            "description": "Source: 13_CM2_Measures.dax"
-          },
-          {
-            "name": "VAR _prev",
-            "expression": [
-              "CALCULATE ( [Total P&L Expense], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "VAR _cur = [Total P&L Expense]",
+              "VAR _prev = CALCULATE ( [Total P&L Expense], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
               "RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), _cur - _prev )"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _cur",
+            "name": "MoM CM2 Change",
             "expression": [
-              "[CM2 Value]"
-            ],
-            "description": "Source: 13_CM2_Measures.dax"
-          },
-          {
-            "name": "VAR _prev",
-            "expression": [
-              "CALCULATE ( [CM2 Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "VAR _cur = [CM2 Value]",
+              "VAR _prev = CALCULATE ( [CM2 Value], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
               "RETURN IF ( ISBLANK ( _cur ) || ISBLANK ( _prev ), BLANK(), _cur - _prev )",
               "",
               "// ---------- CHAIN / BRAND / CATEGORY-WISE CM2 ----------",
@@ -9200,81 +9329,91 @@
               "// Only the resolved-dimension column is filtered, and KEEPFILTERS intersects it",
               "// with the current context: Month/FY filters arriving through the Date Table",
               "// relationship stay active. (FILTER(ALL('PL Expense Input'), ...) cleared them,",
-              "// so one month's CM2 could deduct a chain's expense from every month -- FM-33.)",
-              "Total P&L Expense (by Chain) ="
+              "// so one month's CM2 could deduct a chain's expense from every month -- FM-33.)"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _chain",
+            "name": "Total P&L Expense (by Chain)",
             "expression": [
-              "SELECTEDVALUE ( 'Fact Primary Article'[Chain] )",
+              "VAR _chain = SELECTEDVALUE ( 'Fact Primary Article'[Chain] )",
               "RETURN",
               "    IF ( ISBLANK ( _chain ), [Total P&L Expense],",
               "        CALCULATE ( [Total P&L Expense], KEEPFILTERS ( TREATAS ( { _chain }, 'PL Expense Input'[Resolved Chain] ) ) )",
-              "    )",
-              "",
-              "Chain-wise CM2 =   // BLANK for a chain with no mapped expense rows (not its NSV)"
+              "    )"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _exp",
+            "name": "Chain-wise CM2",
             "expression": [
-              "[Total P&L Expense (by Chain)]",
+              "// BLANK for a chain with no mapped expense rows (not its NSV)",
+              "VAR _exp = [Total P&L Expense (by Chain)]",
               "RETURN IF ( ISBLANK ( _exp ), BLANK (),",
-              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )",
-              "Chain-wise CM2 % = DIVIDE ( [Chain-wise CM2], [Total Primary Article NSV] ) * 100",
-              "",
-              "Total P&L Expense (by Brand) ="
+              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _brand",
+            "name": "Chain-wise CM2 %",
             "expression": [
-              "SELECTEDVALUE ( 'Fact Primary Article'[Brand] )",
+              "DIVIDE ( [Chain-wise CM2], [Total Primary Article NSV] ) * 100"
+            ],
+            "description": "Source: 13_CM2_Measures.dax"
+          },
+          {
+            "name": "Total P&L Expense (by Brand)",
+            "expression": [
+              "VAR _brand = SELECTEDVALUE ( 'Fact Primary Article'[Brand] )",
               "RETURN",
               "    IF ( ISBLANK ( _brand ), [Total P&L Expense],",
               "        CALCULATE ( [Total P&L Expense], KEEPFILTERS ( TREATAS ( { _brand }, 'PL Expense Input'[Resolved Brand] ) ) )",
-              "    )",
-              "",
-              "Brand-wise CM2 =   // BLANK for a brand with no mapped expense rows (not its NSV)"
+              "    )"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _exp",
+            "name": "Brand-wise CM2",
             "expression": [
-              "[Total P&L Expense (by Brand)]",
+              "// BLANK for a brand with no mapped expense rows (not its NSV)",
+              "VAR _exp = [Total P&L Expense (by Brand)]",
               "RETURN IF ( ISBLANK ( _exp ), BLANK (),",
-              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )",
-              "Brand-wise CM2 % = DIVIDE ( [Brand-wise CM2], [Total Primary Article NSV] ) * 100",
-              "",
-              "Total P&L Expense (by Category) ="
+              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _cat",
+            "name": "Brand-wise CM2 %",
             "expression": [
-              "SELECTEDVALUE ( 'Fact Primary Article'[Category] )",
+              "DIVIDE ( [Brand-wise CM2], [Total Primary Article NSV] ) * 100"
+            ],
+            "description": "Source: 13_CM2_Measures.dax"
+          },
+          {
+            "name": "Total P&L Expense (by Category)",
+            "expression": [
+              "VAR _cat = SELECTEDVALUE ( 'Fact Primary Article'[Category] )",
               "RETURN",
               "    IF ( ISBLANK ( _cat ), [Total P&L Expense],",
               "        CALCULATE ( [Total P&L Expense], KEEPFILTERS ( TREATAS ( { _cat }, 'PL Expense Input'[Resolved Category] ) ) )",
-              "    )",
-              "",
-              "Category-wise CM2 =   // BLANK for a category with no mapped expense rows (not its NSV)"
+              "    )"
             ],
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _exp",
+            "name": "Category-wise CM2",
             "expression": [
-              "[Total P&L Expense (by Category)]",
+              "// BLANK for a category with no mapped expense rows (not its NSV)",
+              "VAR _exp = [Total P&L Expense (by Category)]",
               "RETURN IF ( ISBLANK ( _exp ), BLANK (),",
-              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )",
-              "Category-wise CM2 % = DIVIDE ( [Category-wise CM2], [Total Primary Article NSV] ) * 100",
+              "    IF ( [CM2 Comparable] = 0, BLANK (), [Total Primary Article NSV] - _exp ) )"
+            ],
+            "description": "Source: 13_CM2_Measures.dax"
+          },
+          {
+            "name": "Category-wise CM2 %",
+            "expression": [
+              "DIVIDE ( [Category-wise CM2], [Total Primary Article NSV] ) * 100",
               "",
               "// ---------- EXPENSE HEAD-WISE BREAKUP ----------",
               "// Drop 'PL Expense Input'[Expense Head] on a table/matrix row with this",
@@ -9323,9 +9462,10 @@
             "description": "Source: 13_CM2_Measures.dax"
           },
           {
-            "name": "VAR _grouped",
+            "name": "Duplicate Expense Rows",
             "expression": [
-              "SUMMARIZE (",
+              "VAR _grouped =",
+              "    SUMMARIZE (",
               "        'PL Expense Input',",
               "        'PL Expense Input'[Month], 'PL Expense Input'[FY], 'PL Expense Input'[Chain],",
               "        'PL Expense Input'[Customer Code], 'PL Expense Input'[Customer Name],",
@@ -9372,16 +9512,11 @@
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _cur",
+            "name": "Secondary NSV MoM Δ Lakh",
             "expression": [
-              "[Secondary NSV Lakh]"
-            ],
-            "description": "Source: 14_SecondarySales_Measures.dax"
-          },
-          {
-            "name": "VAR _prev",
-            "expression": [
-              "CALCULATE (",
+              "VAR _cur  = [Secondary NSV Lakh]",
+              "VAR _prev =",
+              "    CALCULATE (",
               "        [Secondary NSV Lakh],",
               "        DATEADD ( 'Date Table'[Date], -1, MONTH )",
               "    )",
@@ -9391,16 +9526,11 @@
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _cur",
+            "name": "Secondary NSV MoM % Δ",
             "expression": [
-              "[Secondary NSV Lakh]"
-            ],
-            "description": "Source: 14_SecondarySales_Measures.dax"
-          },
-          {
-            "name": "VAR _prev",
-            "expression": [
-              "CALCULATE (",
+              "VAR _cur  = [Secondary NSV Lakh]",
+              "VAR _prev =",
+              "    CALCULATE (",
               "        [Secondary NSV Lakh],",
               "        DATEADD ( 'Date Table'[Date], -1, MONTH )",
               "    )",
@@ -9416,34 +9546,28 @@
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _secondary",
+            "name": "Sell-Through %",
             "expression": [
-              "[Secondary NSV Lakh]"
-            ],
-            "description": "Source: 14_SecondarySales_Measures.dax"
-          },
-          {
-            "name": "VAR _primary",
-            "expression": [
-              "DIVIDE ( [Total Primary Article NSV], 100000 )  // model rupees -> lakh",
+              "VAR _secondary = [Secondary NSV Lakh]",
+              "VAR _primary   = DIVIDE ( [Total Primary Article NSV], 100000 )  // model rupees -> lakh",
               "RETURN",
               "    DIVIDE ( _secondary, _primary )"
             ],
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _raw",
+            "name": "Sell-Through % (Capped 200)",
             "expression": [
-              "[Sell-Through %]",
+              "VAR _raw = [Sell-Through %]",
               "RETURN",
               "    IF ( _raw > 2, 2, _raw )"
             ],
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _st",
+            "name": "Sell-Through Signal",
             "expression": [
-              "[Sell-Through %]",
+              "VAR _st = [Sell-Through %]",
               "RETURN",
               "    IF (",
               "        ISBLANK ( _st ), \"–\",",
@@ -9504,16 +9628,10 @@
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _claim",
+            "name": "Claim % of Secondary NSV",
             "expression": [
-              "SUM ( 'Fact Claim Master'[Amount_Lakh] )"
-            ],
-            "description": "Source: 14_SecondarySales_Measures.dax"
-          },
-          {
-            "name": "VAR _secondary",
-            "expression": [
-              "[Secondary NSV Lakh]",
+              "VAR _claim    = SUM ( 'Fact Claim Master'[Amount_Lakh] )",
+              "VAR _secondary = [Secondary NSV Lakh]",
               "RETURN",
               "    DIVIDE ( _claim, _secondary )",
               "",
@@ -9523,9 +9641,9 @@
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _val",
+            "name": "Secondary NSV Label",
             "expression": [
-              "[Secondary NSV Lakh]",
+              "VAR _val = [Secondary NSV Lakh]",
               "RETURN",
               "    IF (",
               "        ISBLANK ( _val ), \"–\",",
@@ -9538,9 +9656,9 @@
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
           {
-            "name": "VAR _st",
+            "name": "Sell-Through Label",
             "expression": [
-              "[Sell-Through %]",
+              "VAR _st = [Sell-Through %]",
               "RETURN",
               "    IF ( ISBLANK ( _st ), \"–\", FORMAT ( _st, \"0.0%\" ) )"
             ],
@@ -9589,19 +9707,15 @@
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR PromotedSKUs",
+            "name": "Promoted SKU Breadth %",
             "expression": [
-              "CALCULATE(",
+              "VAR PromotedSKUs =",
+              "    CALCULATE(",
               "        DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN]),",
               "        KEEPFILTERS(NOT(ISBLANK(Dim_PromoCalendar[EAN Code])))",
-              "    )"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR TotalSKUs",
-            "expression": [
-              "DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN])",
+              "    )",
+              "VAR TotalSKUs =",
+              "    DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN])",
               "RETURN",
               "    DIVIDE(PromotedSKUs, TotalSKUs, 0)",
               "",
@@ -9610,38 +9724,28 @@
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR WeightedDiscount",
+            "name": "Planned Promo Discount %",
             "expression": [
-              "SUMX(",
+              "VAR WeightedDiscount =",
+              "    SUMX(",
               "        Dim_PromoCalendar,",
               "        VALUE(Dim_PromoCalendar[Offer to consumer])",
-              "    )"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR OfferCount",
-            "expression": [
-              "COUNTROWS(Dim_PromoCalendar)",
+              "    )",
+              "VAR OfferCount = COUNTROWS(Dim_PromoCalendar)",
               "RETURN",
               "    DIVIDE(WeightedDiscount, OfferCount, 0)"
             ],
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR WeightedCompanyShare",
+            "name": "Planned Company Trade Spend %",
             "expression": [
-              "SUMX(",
+              "VAR WeightedCompanyShare =",
+              "    SUMX(",
               "        Dim_PromoCalendar,",
               "        Dim_PromoCalendar[ME_Contribution_Pct]",
-              "    )"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR OfferCount",
-            "expression": [
-              "COUNTROWS(Dim_PromoCalendar)",
+              "    )",
+              "VAR OfferCount = COUNTROWS(Dim_PromoCalendar)",
               "RETURN",
               "    DIVIDE(WeightedCompanyShare, OfferCount, 0)"
             ],
@@ -9651,21 +9755,10 @@
             "name": "Planned Trade Spend Value Lakh",
             "expression": [
               "SUMX(",
-              "    VALUES(Dim_PromoCalendar[EAN Code]),"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR EAN_NSV",
-            "expression": [
-              "CALCULATE([Actual Promoted NSV Lakh])"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR EAN_Company_Discount",
-            "expression": [
-              "CALCULATE(",
+              "    VALUES(Dim_PromoCalendar[EAN Code]),",
+              "    VAR EAN_NSV = CALCULATE([Actual Promoted NSV Lakh])",
+              "    VAR EAN_Company_Discount =",
+              "        CALCULATE(",
               "            AVERAGE(Dim_PromoCalendar[ME_Contribution_Pct])",
               "        )",
               "    RETURN",
@@ -9706,9 +9799,9 @@
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR VariancePct",
+            "name": "Promo Execution Status",
             "expression": [
-              "[Promo Spend Variance %]",
+              "VAR VariancePct = [Promo Spend Variance %]",
               "RETURN",
               "    SWITCH(",
               "        TRUE(),",
@@ -9723,9 +9816,9 @@
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR CurrentDate",
+            "name": "Historical Baseline Velocity Lakh",
             "expression": [
-              "MAX(Dim_Calendar[Date])",
+              "VAR CurrentDate = MAX(Dim_Calendar[Date])",
               "RETURN",
               "    CALCULATE(",
               "        AVERAGEX(",
@@ -9744,23 +9837,11 @@
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR Baseline",
+            "name": "Incremental Promo NSV Lakh",
             "expression": [
-              "[Historical Baseline Velocity Lakh]"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR Actuals",
-            "expression": [
-              "[Actual Promoted NSV Lakh]"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR Lift",
-            "expression": [
-              "Actuals - Baseline",
+              "VAR Baseline = [Historical Baseline Velocity Lakh]",
+              "VAR Actuals = [Actual Promoted NSV Lakh]",
+              "VAR Lift = Actuals - Baseline",
               "RETURN",
               "    IF(",
               "        ISBLANK(Actuals),",
@@ -9793,50 +9874,26 @@
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR BaseGrossMarginPct",
+            "name": "Promo Net Margin ROI",
             "expression": [
-              "0.40"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR IncrementalGrossProfit",
-            "expression": [
-              "[Incremental Promo NSV Lakh] * BaseGrossMarginPct"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR TotalPromoCost",
-            "expression": [
-              "[Actual Claim Expense Lakh]"
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "VAR NetGain",
-            "expression": [
-              "IncrementalGrossProfit - TotalPromoCost",
+              "VAR BaseGrossMarginPct = 0.40",
+              "VAR IncrementalGrossProfit = [Incremental Promo NSV Lakh] * BaseGrossMarginPct",
+              "VAR TotalPromoCost = [Actual Claim Expense Lakh]",
+              "VAR NetGain = IncrementalGrossProfit - TotalPromoCost",
               "RETURN",
               "    DIVIDE(NetGain, TotalPromoCost, 0)"
             ],
             "description": "Source: 15_Promo_Measures.dax"
           },
           {
-            "name": "VAR ROI",
+            "name": "Promo ROI Performance Band",
             "expression": [
-              "[Promo Trade Spend ROI]",
+              "VAR ROI = [Promo Trade Spend ROI]",
               "RETURN",
               "    SWITCH(",
               "        TRUE(),",
-              "        ISBLANK([Actual Promoted NSV Lakh]), \"No Activity\","
-            ],
-            "description": "Source: 15_Promo_Measures.dax"
-          },
-          {
-            "name": "Actual Claim Expense Lakh",
-            "expression": [
-              "0 && [Actual Promoted NSV Lakh] > 0, \"Self-Liquidating\",",
+              "        ISBLANK([Actual Promoted NSV Lakh]), \"No Activity\",",
+              "        [Actual Claim Expense Lakh] = 0 && [Actual Promoted NSV Lakh] > 0, \"Self-Liquidating\",",
               "        ROI >= 3.0, \"🟢 High ROI (≥3.0x)\",",
               "        ROI >= 1.5, \"🟡 Moderate ROI (1.5-3.0x)\",",
               "        ROI >= 1.0, \"🟠 Break-even (1.0-1.5x)\",",
@@ -9890,8 +9947,14 @@
             "expression": [
               "DIVIDE ( [Total MT NSV], [MT Offtake Qty] )",
               "",
-              "// NSV as a share of MRP sales: how much of the shelf price we keep",
-              "MT Realisation % = DIVIDE ( [Total MT NSV], [MT MRP Sales] )"
+              "// NSV as a share of MRP sales: how much of the shelf price we keep"
+            ],
+            "description": "Source: 16_PriceVolume_Measures.dax"
+          },
+          {
+            "name": "MT Realisation %",
+            "expression": [
+              "DIVIDE ( [Total MT NSV], [MT MRP Sales] )"
             ],
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
@@ -9931,24 +9994,18 @@
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
           {
-            "name": "VAR _asp",
+            "name": "MT Volume Effect YoY",
             "expression": [
-              "CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )"
-            ],
-            "description": "Source: 16_PriceVolume_Measures.dax"
-          },
-          {
-            "name": "VAR _qty",
-            "expression": [
-              "CALCULATE ( [MT Offtake Qty], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR _asp = CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR _qty = CALCULATE ( [MT Offtake Qty], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
               "RETURN IF ( ISBLANK ( _asp ), BLANK (), _asp * ( [MT Offtake Qty] - _qty ) )"
             ],
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
           {
-            "name": "VAR _asp",
+            "name": "MT Price Mix Effect YoY",
             "expression": [
-              "CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR _asp = CALCULATE ( [MT ASP], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
               "RETURN IF ( ISBLANK ( _asp ), BLANK (), [MT Offtake Qty] * ( [MT ASP] - _asp ) )",
               "",
               "// zone (or chain / brand) ASP against the MT average, 100 = average"
@@ -9989,33 +10046,36 @@
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
           {
-            "name": "VAR _vol",
+            "name": "Nielsen Volume Effect YoY",
             "expression": [
-              "CALCULATE ( [Nielsen Volume 000 L], DATEADD ( 'Date Table'[Date], -12, MONTH ) )"
-            ],
-            "description": "Source: 16_PriceVolume_Measures.dax"
-          },
-          {
-            "name": "VAR _ppml",
-            "expression": [
-              "CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR _vol = CALCULATE ( [Nielsen Volume 000 L], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR _ppml = CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
               "RETURN IF ( ISBLANK ( _ppml ), BLANK (), ( [Nielsen Volume 000 L] - _vol ) * _ppml * 1000000 )"
             ],
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
           {
-            "name": "VAR _ppml",
+            "name": "Nielsen Price Mix Effect YoY",
             "expression": [
-              "CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "VAR _ppml = CALCULATE ( [Nielsen Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
               "RETURN IF ( ISBLANK ( _ppml ), BLANK (), [Nielsen Volume 000 L] * ( [Nielsen Price Per Ml] - _ppml ) * 1000000 )",
               "",
               "// ---------- CATEGORY PRESENCE (our own mix; Nielsen sizes only Facewash and Shampoo) ----------",
               "// A sub-category that earns a real share of our NSV in all chains but little in one chain is a",
-              "// presence gap. Market size by category needs a Nielsen export for that category.",
-              "Subcat Share In Chain % =",
-              "DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )",
-              "",
-              "Subcat Share All Chains % =",
+              "// presence gap. Market size by category needs a Nielsen export for that category."
+            ],
+            "description": "Source: 16_PriceVolume_Measures.dax"
+          },
+          {
+            "name": "Subcat Share In Chain %",
+            "expression": [
+              "DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )"
+            ],
+            "description": "Source: 16_PriceVolume_Measures.dax"
+          },
+          {
+            "name": "Subcat Share All Chains %",
+            "expression": [
               "DIVIDE (",
               "    CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ) ),",
               "    CALCULATE ( [Total MT NSV], ALL ( 'Chain Master'[Chain] ), ALL ( 'Fact Offtake Sales'[Sub-category] ) )",
@@ -10024,16 +10084,10 @@
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
           {
-            "name": "VAR _all",
+            "name": "Subcat Presence Status",
             "expression": [
-              "[Subcat Share All Chains %]"
-            ],
-            "description": "Source: 16_PriceVolume_Measures.dax"
-          },
-          {
-            "name": "VAR _in",
-            "expression": [
-              "COALESCE ( [Subcat Share In Chain %], 0 )",
+              "VAR _all = [Subcat Share All Chains %]",
+              "VAR _in = COALESCE ( [Subcat Share In Chain %], 0 )",
               "RETURN",
               "    IF ( ISBLANK ( _all ) || _all < 0.02, BLANK (),",
               "        IF ( _in <= 0, \"Absent\", IF ( _in < _all * 0.6, \"Under-weight\", \"Present\" ) ) )"
@@ -10041,9 +10095,9 @@
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
           {
-            "name": "VAR _gap",
+            "name": "Subcat Gap NSV",
             "expression": [
-              "MAX ( [Subcat Share All Chains %] - COALESCE ( [Subcat Share In Chain %], 0 ), 0 )",
+              "VAR _gap = MAX ( [Subcat Share All Chains %] - COALESCE ( [Subcat Share In Chain %], 0 ), 0 )",
               "RETURN IF ( [Subcat Presence Status] IN { \"Absent\", \"Under-weight\" },",
               "    _gap * CALCULATE ( [Total MT NSV], ALL ( 'Fact Offtake Sales'[Sub-category] ) ) )",
               "",
@@ -10071,21 +10125,24 @@
             "expression": [
               "CALCULATE ( [Total MT NSV], 'Store City Master'[Visit Status] = \"Near listed city\" )",
               "",
-              "// share of MT NSV that is attached to a store in the master (should be close to 100%)",
-              "Visit Master Match % =",
-              "DIVIDE (",
-              "    CALCULATE ( [Total MT NSV], NOT ISBLANK ( 'Store City Master'[Store Key] ) ),",
-              "    [Total MT NSV]",
-              ")",
-              "",
-              "Visit City NSV MoM % ="
+              "// share of MT NSV that is attached to a store in the master (should be close to 100%)"
             ],
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
           {
-            "name": "VAR _pm",
+            "name": "Visit Master Match %",
             "expression": [
-              "CALCULATE ( [Visit City NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "DIVIDE (",
+              "    CALCULATE ( [Total MT NSV], NOT ISBLANK ( 'Store City Master'[Store Key] ) ),",
+              "    [Total MT NSV]",
+              ")"
+            ],
+            "description": "Source: 16_PriceVolume_Measures.dax"
+          },
+          {
+            "name": "Visit City NSV MoM %",
+            "expression": [
+              "VAR _pm = CALCULATE ( [Visit City NSV], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
               "RETURN DIVIDE ( [Visit City NSV] - _pm, _pm )",
               "",
               "// ---------- ONE STORE UNIVERSE (Executive Cockpit and Inventory & Supply Health use the same count) ----------",
@@ -10134,9 +10191,14 @@
               "    DISTINCTCOUNT ( 'Store City Master'[Store Key] ),",
               "    NOT ( CONTAINSSTRING ( 'Store City Master'[Store Key], \"|NO-CITY\" ) ),",
               "    'Store City Master'[Chain Name] <> \"Reliance Brand Counter\"",
-              ")",
-              "",
-              "Universe Availability % = DIVIDE ( [Universe Stores], [Universe Master Stores] )"
+              ")"
+            ],
+            "description": "Source: 16_PriceVolume_Measures.dax"
+          },
+          {
+            "name": "Universe Availability %",
+            "expression": [
+              "DIVIDE ( [Universe Stores], [Universe Master Stores] )"
             ],
             "description": "Source: 16_PriceVolume_Measures.dax"
           },
@@ -10150,28 +10212,29 @@
           {
             "name": "Our Account Sales Lakh",
             "expression": [
-              "CALCULATE ( SUM ( 'Fact Account Category'[Honasa Sales Rs L] ), 'Fact Account Category'[Level] = \"Category\" )",
-              "",
-              "Account Share % = DIVIDE ( [Our Account Sales Lakh], [Account Sales Lakh] )",
-              "",
-              "Account Sales MoM % ="
+              "CALCULATE ( SUM ( 'Fact Account Category'[Honasa Sales Rs L] ), 'Fact Account Category'[Level] = \"Category\" )"
             ],
             "description": "Source: 17_Account_Share_Measures.dax"
           },
           {
-            "name": "VAR _pm",
+            "name": "Account Share %",
             "expression": [
-              "CALCULATE ( [Account Sales Lakh], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
-              "RETURN DIVIDE ( [Account Sales Lakh] - _pm, _pm )",
-              "",
-              "Our Account Sales MoM % ="
+              "DIVIDE ( [Our Account Sales Lakh], [Account Sales Lakh] )"
             ],
             "description": "Source: 17_Account_Share_Measures.dax"
           },
           {
-            "name": "VAR _pm",
+            "name": "Account Sales MoM %",
             "expression": [
-              "CALCULATE ( [Our Account Sales Lakh], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "VAR _pm = CALCULATE ( [Account Sales Lakh], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
+              "RETURN DIVIDE ( [Account Sales Lakh] - _pm, _pm )"
+            ],
+            "description": "Source: 17_Account_Share_Measures.dax"
+          },
+          {
+            "name": "Our Account Sales MoM %",
+            "expression": [
+              "VAR _pm = CALCULATE ( [Our Account Sales Lakh], DATEADD ( 'Date Table'[Date], -1, MONTH ) )",
               "RETURN DIVIDE ( [Our Account Sales Lakh] - _pm, _pm )"
             ],
             "description": "Source: 17_Account_Share_Measures.dax"
@@ -10179,16 +10242,29 @@
           {
             "name": "Account Share Change pp",
             "expression": [
-              "( [Account Share %] - CALCULATE ( [Account Share %], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) ) * 100",
-              "",
-              "Account Face Wash Share % =",
+              "( [Account Share %] - CALCULATE ( [Account Share %], DATEADD ( 'Date Table'[Date], -1, MONTH ) ) ) * 100"
+            ],
+            "description": "Source: 17_Account_Share_Measures.dax"
+          },
+          {
+            "name": "Account Face Wash Share %",
+            "expression": [
               "CALCULATE ( [Account Share %], 'Fact Account Category'[Common Category] = \"Face Wash & Cleanser\" )",
               "",
-              "// the category's weight in the chain's category sales, and our chain-wide share (all categories in the same chain and month)",
-              "Account Category % Of Chain =",
-              "DIVIDE ( [Account Sales Lakh], CALCULATE ( [Account Sales Lakh], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ) ) )",
-              "",
-              "Account Chain Share % =",
+              "// the category's weight in the chain's category sales, and our chain-wide share (all categories in the same chain and month)"
+            ],
+            "description": "Source: 17_Account_Share_Measures.dax"
+          },
+          {
+            "name": "Account Category % Of Chain",
+            "expression": [
+              "DIVIDE ( [Account Sales Lakh], CALCULATE ( [Account Sales Lakh], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ) ) )"
+            ],
+            "description": "Source: 17_Account_Share_Measures.dax"
+          },
+          {
+            "name": "Account Chain Share %",
+            "expression": [
               "CALCULATE ( [Account Share %], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ) )"
             ],
             "description": "Source: 17_Account_Share_Measures.dax"
@@ -10204,37 +10280,13 @@
             "description": "Source: 17_Account_Share_Measures.dax"
           },
           {
-            "name": "VAR _rel",
+            "name": "Account White Space Flag",
             "expression": [
-              "SELECTEDVALUE ( 'Fact Account Category'[Relevant For Us], \"Yes\" )"
-            ],
-            "description": "Source: 17_Account_Share_Measures.dax"
-          },
-          {
-            "name": "VAR _pct",
-            "expression": [
-              "[Account Category % Of Chain]"
-            ],
-            "description": "Source: 17_Account_Share_Measures.dax"
-          },
-          {
-            "name": "VAR _share",
-            "expression": [
-              "COALESCE ( [Account Share %], 0 )"
-            ],
-            "description": "Source: 17_Account_Share_Measures.dax"
-          },
-          {
-            "name": "VAR _chain",
-            "expression": [
-              "[Account Chain Share %]"
-            ],
-            "description": "Source: 17_Account_Share_Measures.dax"
-          },
-          {
-            "name": "VAR _art",
-            "expression": [
-              "[Our Articles In Category]",
+              "VAR _rel = SELECTEDVALUE ( 'Fact Account Category'[Relevant For Us], \"Yes\" )",
+              "VAR _pct = [Account Category % Of Chain]",
+              "VAR _share = COALESCE ( [Account Share %], 0 )",
+              "VAR _chain = [Account Chain Share %]",
+              "VAR _art = [Our Articles In Category]",
               "RETURN",
               "    IF ( _rel = \"No\" || ISBLANK ( _pct ) || _pct < 0.02, BLANK (),",
               "        IF ( _share < 0.005, \"White space\",",
@@ -10242,8 +10294,13 @@
               "                IF ( _share < _chain * 0.5, \"Below chain average\",",
               "                    IF ( _share >= _chain * 1.5, \"Strong\", BLANK () ) ) ) ) )",
               "",
-              "// our share in the rest of our range (without Face Wash and Shampoo): the realistic target for a thin category",
-              "Account Rest Of Range Share % =",
+              "// our share in the rest of our range (without Face Wash and Shampoo): the realistic target for a thin category"
+            ],
+            "description": "Source: 17_Account_Share_Measures.dax"
+          },
+          {
+            "name": "Account Rest Of Range Share %",
+            "expression": [
               "CALCULATE ( [Account Share %], ALL ( 'Fact Account Category'[Category], 'Fact Account Category'[Common Category] ),",
               "    NOT ( 'Fact Account Category'[Common Category] IN { \"Face Wash & Cleanser\", \"Shampoo\" } ) )",
               "",
@@ -10252,16 +10309,10 @@
             "description": "Source: 17_Account_Share_Measures.dax"
           },
           {
-            "name": "VAR _c",
+            "name": "Account Share Gap Lakh",
             "expression": [
-              "SELECTEDVALUE ( 'Fact Account Category'[Common Category] )"
-            ],
-            "description": "Source: 17_Account_Share_Measures.dax"
-          },
-          {
-            "name": "VAR _target",
-            "expression": [
-              "IF ( _c IN { \"Face Wash & Cleanser\", \"Shampoo\" }, [Account Chain Share %], [Account Rest Of Range Share %] )",
+              "VAR _c = SELECTEDVALUE ( 'Fact Account Category'[Common Category] )",
+              "VAR _target = IF ( _c IN { \"Face Wash & Cleanser\", \"Shampoo\" }, [Account Chain Share %], [Account Rest Of Range Share %] )",
               "RETURN",
               "IF ( [Account White Space Flag] IN { \"White space\", \"Low assortment\", \"Below chain average\" },",
               "    MAX ( _target - COALESCE ( [Account Share %], 0 ), 0 ) * [Account Sales Lakh] )"
@@ -10287,8 +10338,14 @@
           {
             "name": "Our Geo Sales Lakh",
             "expression": [
-              "SUM ( 'Fact Account Category Geo'[Honasa Sales Rs L] )",
-              "Account Geo Share % = DIVIDE ( [Our Geo Sales Lakh], [Account Geo Sales Lakh] )"
+              "SUM ( 'Fact Account Category Geo'[Honasa Sales Rs L] )"
+            ],
+            "description": "Source: 17_Account_Share_Measures.dax"
+          },
+          {
+            "name": "Account Geo Share %",
+            "expression": [
+              "DIVIDE ( [Our Geo Sales Lakh], [Account Geo Sales Lakh] )"
             ],
             "description": "Source: 17_Account_Share_Measures.dax"
           },
@@ -10302,9 +10359,21 @@
           {
             "name": "Cut Category Value Cr",
             "expression": [
-              "CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"Yes\", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )",
-              "Cut Value Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Value Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )",
-              "Cut Volume Share % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Volume Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )",
+              "CALCULATE ( SUM ( 'Fact Nielsen Brand Cut'[Value Cr] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"Yes\", REMOVEFILTERS ( 'Fact Nielsen Brand Cut'[Brand] ) )"
+            ],
+            "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
+          },
+          {
+            "name": "Cut Value Share %",
+            "expression": [
+              "CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Value Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )"
+            ],
+            "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
+          },
+          {
+            "name": "Cut Volume Share %",
+            "expression": [
+              "CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Volume Share %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )",
               "// value share above volume share = the brand sells at a price above the category average"
             ],
             "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
@@ -10334,19 +10403,29 @@
           {
             "name": "Cut Price Index",
             "expression": [
-              "DIVIDE ( [Cut Brand Price Per Ml], [Cut Category Price Per Ml] ) * 100",
-              "Cut Price Per Ml YoY % ="
+              "DIVIDE ( [Cut Brand Price Per Ml], [Cut Category Price Per Ml] ) * 100"
             ],
             "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
           },
           {
-            "name": "VAR _ly",
+            "name": "Cut Price Per Ml YoY %",
             "expression": [
-              "CALCULATE ( [Cut Brand Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
-              "RETURN DIVIDE ( [Cut Brand Price Per Ml] - _ly, _ly )",
-              "",
-              "Cut WD % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[WD %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )",
-              "Cut ND % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[ND %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )"
+              "VAR _ly = CALCULATE ( [Cut Brand Price Per Ml], DATEADD ( 'Date Table'[Date], -12, MONTH ) )",
+              "RETURN DIVIDE ( [Cut Brand Price Per Ml] - _ly, _ly )"
+            ],
+            "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
+          },
+          {
+            "name": "Cut WD %",
+            "expression": [
+              "CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[WD %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )"
+            ],
+            "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
+          },
+          {
+            "name": "Cut ND %",
+            "expression": [
+              "CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[ND %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )"
             ],
             "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
           },
@@ -10375,8 +10454,14 @@
           {
             "name": "Cut Sales Per Store Rs",
             "expression": [
-              "CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Sales Per Store Rs] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )",
-              "Cut SAH % = CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[SAH %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )",
+              "CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[Sales Per Store Rs] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )"
+            ],
+            "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
+          },
+          {
+            "name": "Cut SAH %",
+            "expression": [
+              "CALCULATE ( AVERAGE ( 'Fact Nielsen Brand Cut'[SAH %] ), 'Fact Nielsen Brand Cut'[Is Category Row] = \"No\" )",
               "",
               "// share earned per point of weighted distribution (percentage points of share per WD point)"
             ],
@@ -10386,8 +10471,14 @@
             "name": "Cut Share Per WD Point",
             "expression": [
               "DIVIDE ( [Cut Value Share %] * 100, [Cut WD %] )",
-              "// ceiling for the distribution lever: where we are listed we hold SAH; at 95% WD the share would be about SAH x 0.95 (only when WD is below 95)",
-              "Cut Share At 95 WD % = IF ( [Cut WD %] < 95, [Cut SAH %] / 100 * 0.95 )"
+              "// ceiling for the distribution lever: where we are listed we hold SAH; at 95% WD the share would be about SAH x 0.95 (only when WD is below 95)"
+            ],
+            "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
+          },
+          {
+            "name": "Cut Share At 95 WD %",
+            "expression": [
+              "IF ( [Cut WD %] < 95, [Cut SAH %] / 100 * 0.95 )"
             ],
             "description": "Source: 18_Nielsen_Brand_Cut_Measures.dax"
           },
@@ -10418,8 +10509,14 @@
             "expression": [
               "DISTINCTCOUNT ( 'Fact Offtake Sales'[Store Code] )",
               "",
-              "// share of everything currently selected (the parent level when you drill down): 100% at the top, the slice of the parent one level down",
-              "Drill Share Of Selection % = DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALLSELECTED () ) )",
+              "// share of everything currently selected (the parent level when you drill down): 100% at the top, the slice of the parent one level down"
+            ],
+            "description": "Source: 19_Dynamic_Drill_Measures.dax"
+          },
+          {
+            "name": "Drill Share Of Selection %",
+            "expression": [
+              "DIVIDE ( [Total MT NSV], CALCULATE ( [Total MT NSV], ALLSELECTED () ) )",
               "",
               "// growth in rupees against the same month last year, and the part of the whole selection's growth this slice carries"
             ],
@@ -10428,15 +10525,14 @@
           {
             "name": "Drill YoY Change Cr",
             "expression": [
-              "DIVIDE ( [Total MT NSV] - [Last Year Same Month NSV], 10000000 )",
-              "Drill Share Of Growth % ="
+              "DIVIDE ( [Total MT NSV] - [Last Year Same Month NSV], 10000000 )"
             ],
             "description": "Source: 19_Dynamic_Drill_Measures.dax"
           },
           {
-            "name": "VAR _all",
+            "name": "Drill Share Of Growth %",
             "expression": [
-              "CALCULATE ( [Total MT NSV] - [Last Year Same Month NSV], ALLSELECTED () )",
+              "VAR _all = CALCULATE ( [Total MT NSV] - [Last Year Same Month NSV], ALLSELECTED () )",
               "RETURN DIVIDE ( [Total MT NSV] - [Last Year Same Month NSV], _all )",
               "",
               "// one line per head, for tooltip pages and card visuals (text measures)"
@@ -10474,16 +10570,10 @@
             "description": "Source: 19_Dynamic_Drill_Measures.dax"
           },
           {
-            "name": "VAR _ours",
+            "name": "Drill Pace Flag",
             "expression": [
-              "[YoY Growth %]"
-            ],
-            "description": "Source: 19_Dynamic_Drill_Measures.dax"
-          },
-          {
-            "name": "VAR _all",
-            "expression": [
-              "CALCULATE ( [YoY Growth %], ALLSELECTED () )",
+              "VAR _ours = [YoY Growth %]",
+              "VAR _all = CALCULATE ( [YoY Growth %], ALLSELECTED () )",
               "RETURN IF ( ISBLANK ( _ours ) || ISBLANK ( _all ), BLANK (), IF ( _ours >= _all, \"Growing faster than the selection\", \"Growing slower than the selection\" ) )"
             ],
             "description": "Source: 19_Dynamic_Drill_Measures.dax"
@@ -10498,9 +10588,14 @@
           {
             "name": "LFL NSV LY Cr",
             "expression": [
-              "DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = \"LFL\" ), 10000000 )",
-              "",
-              "LFL Growth % = DIVIDE ( [LFL NSV Cr] - [LFL NSV LY Cr], [LFL NSV LY Cr] )"
+              "DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = \"LFL\" ), 10000000 )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "LFL Growth %",
+            "expression": [
+              "DIVIDE ( [LFL NSV Cr] - [LFL NSV LY Cr], [LFL NSV LY Cr] )"
             ],
             "description": "Source: 20_Store_Type_Pack_Measures.dax"
           },
@@ -10577,22 +10672,45 @@
           {
             "name": "Lost Stores",
             "expression": [
-              "CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = \"Lost\" )",
-              "",
-              "NFL Share Of NSV % = DIVIDE ( [NFL NSV Cr], [Store Type NSV This Year Cr] )",
+              "CALCULATE ( DISTINCTCOUNT ( 'Fact Store Type'[Store Key] ), 'Fact Store Type'[Store Type] = \"Lost\" )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "NFL Share Of NSV %",
+            "expression": [
+              "DIVIDE ( [NFL NSV Cr], [Store Type NSV This Year Cr] )",
               "",
               "// Same-store growth in rupees: how much of the growth the old stores gave (the rest comes from new stores)",
-              "// Store-level growth rule: only stores with 3 or more months of sales last year (Growth Basis = \"Enough history\"). Use these on store lists and rankings.",
-              "LFL NSV (3+ months) Cr =",
-              "    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = \"LFL\", 'Fact Store Type'[Growth Basis] = \"Enough history\" ), 10000000 )",
-              "",
-              "LFL NSV LY (3+ months) Cr =",
-              "    DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = \"LFL\", 'Fact Store Type'[Growth Basis] = \"Enough history\" ), 10000000 )",
-              "",
-              "LFL Growth % (3+ months) = DIVIDE ( [LFL NSV (3+ months) Cr] - [LFL NSV LY (3+ months) Cr], [LFL NSV LY (3+ months) Cr] )",
-              "",
-              "Store Growth % (3+ months) =",
-              "    IF (",
+              "// Store-level growth rule: only stores with 3 or more months of sales last year (Growth Basis = \"Enough history\"). Use these on store lists and rankings."
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "LFL NSV (3+ months) Cr",
+            "expression": [
+              "DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ), 'Fact Store Type'[Store Type] = \"LFL\", 'Fact Store Type'[Growth Basis] = \"Enough history\" ), 10000000 )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "LFL NSV LY (3+ months) Cr",
+            "expression": [
+              "DIVIDE ( CALCULATE ( SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), 'Fact Store Type'[Store Type] = \"LFL\", 'Fact Store Type'[Growth Basis] = \"Enough history\" ), 10000000 )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "LFL Growth % (3+ months)",
+            "expression": [
+              "DIVIDE ( [LFL NSV (3+ months) Cr] - [LFL NSV LY (3+ months) Cr], [LFL NSV LY (3+ months) Cr] )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "Store Growth % (3+ months)",
+            "expression": [
+              "IF (",
               "        SELECTEDVALUE ( 'Fact Store Type'[Growth Basis] ) = \"Thin history\",",
               "        BLANK (),",
               "        DIVIDE ( SUM ( 'Fact Store Type'[NSV This Year Rs] ) - SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ), SUM ( 'Fact Store Type'[NSV Last Year Same Months Rs] ) )",
@@ -10624,28 +10742,38 @@
           {
             "name": "Pack NSV Cr",
             "expression": [
-              "DIVIDE ( SUM ( 'Fact Pack Size'[NSV Rs] ), 10000000 )",
-              "",
-              "Pack Share % = DIVIDE ( [Pack NSV Cr], CALCULATE ( [Pack NSV Cr], ALL ( 'Fact Pack Size'[Pack] ) ) )"
+              "DIVIDE ( SUM ( 'Fact Pack Size'[NSV Rs] ), 10000000 )"
             ],
             "description": "Source: 20_Store_Type_Pack_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "Pack Share %",
             "expression": [
-              "MAX ( 'Fact Pack Size'[MonthStart] )",
+              "DIVIDE ( [Pack NSV Cr], CALCULATE ( [Pack NSV Cr], ALL ( 'Fact Pack Size'[Pack] ) ) )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "Pack NSV Last Month Cr",
+            "expression": [
+              "VAR _m = MAX ( 'Fact Pack Size'[MonthStart] )",
               "    RETURN CALCULATE ( [Pack NSV Cr], ALL ( 'Fact Pack Size'[MonthStart], 'Fact Pack Size'[Month] ), 'Fact Pack Size'[MonthStart] = EDATE ( _m, -1 ) )",
               "",
-              "// Only meaningful when one month is selected; with the full period it shows blank rather than a wrong number",
-              "Pack MoM % =",
-              "    IF ( DISTINCTCOUNT ( 'Fact Pack Size'[MonthStart] ) = 1, DIVIDE ( [Pack NSV Cr] - [Pack NSV Last Month Cr], [Pack NSV Last Month Cr] ) )"
+              "// Only meaningful when one month is selected; with the full period it shows blank rather than a wrong number"
             ],
             "description": "Source: 20_Store_Type_Pack_Measures.dax"
           },
           {
-            "name": "VAR _top",
+            "name": "Pack MoM %",
             "expression": [
-              "TOPN ( 1, VALUES ( 'Fact Pack Size'[Pack] ), [Pack NSV Cr], DESC )",
+              "IF ( DISTINCTCOUNT ( 'Fact Pack Size'[MonthStart] ) = 1, DIVIDE ( [Pack NSV Cr] - [Pack NSV Last Month Cr], [Pack NSV Last Month Cr] ) )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "Pack Insight",
+            "expression": [
+              "VAR _top = TOPN ( 1, VALUES ( 'Fact Pack Size'[Pack] ), [Pack NSV Cr], DESC )",
               "    RETURN \"Biggest pack: \" & MAXX ( _top, 'Fact Pack Size'[Pack] ) & \" g/ml · \" & FORMAT ( MAXX ( _top, [Pack Share %] ), \"0%\" ) & \" of NSV\"",
               "",
               "// ---------- SALES CUTS (zone, brand, sub-category) : table 'Fact Sales Cuts' (query 60) ----------"
@@ -10655,10 +10783,14 @@
           {
             "name": "Cut NSV Cr",
             "expression": [
-              "DIVIDE ( SUM ( 'Fact Sales Cuts'[NSV Rs] ), 10000000 )",
-              "",
-              "Cut Share % =",
-              "    DIVIDE ( [Cut NSV Cr], CALCULATE ( [Cut NSV Cr], ALLSELECTED ( 'Fact Sales Cuts'[Zone], 'Fact Sales Cuts'[Brand], 'Fact Sales Cuts'[Sub Category] ) ) )"
+              "DIVIDE ( SUM ( 'Fact Sales Cuts'[NSV Rs] ), 10000000 )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "Cut Share %",
+            "expression": [
+              "DIVIDE ( [Cut NSV Cr], CALCULATE ( [Cut NSV Cr], ALLSELECTED ( 'Fact Sales Cuts'[Zone], 'Fact Sales Cuts'[Brand], 'Fact Sales Cuts'[Sub Category] ) ) )"
             ],
             "description": "Source: 20_Store_Type_Pack_Measures.dax"
           },
@@ -10670,14 +10802,19 @@
             "description": "Source: 20_Store_Type_Pack_Measures.dax"
           },
           {
-            "name": "VAR _m",
+            "name": "Cut Last Month NSV Cr",
             "expression": [
-              "MAX ( 'Fact Sales Cuts'[MonthStart] )",
+              "VAR _m = MAX ( 'Fact Sales Cuts'[MonthStart] )",
               "    RETURN CALCULATE ( [Cut NSV Cr], ALL ( 'Fact Sales Cuts'[MonthStart], 'Fact Sales Cuts'[Month] ), 'Fact Sales Cuts'[MonthStart] = EDATE ( _m, -1 ) )",
               "",
-              "// Only meaningful for one month; blank for the full period rather than a wrong number",
-              "Cut MoM % =",
-              "    IF ( DISTINCTCOUNT ( 'Fact Sales Cuts'[MonthStart] ) = 1, DIVIDE ( [Cut NSV Cr] - [Cut Last Month NSV Cr], [Cut Last Month NSV Cr] ) )",
+              "// Only meaningful for one month; blank for the full period rather than a wrong number"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "Cut MoM %",
+            "expression": [
+              "IF ( DISTINCTCOUNT ( 'Fact Sales Cuts'[MonthStart] ) = 1, DIVIDE ( [Cut NSV Cr] - [Cut Last Month NSV Cr], [Cut Last Month NSV Cr] ) )",
               "",
               "// ---------- IN-HOUSE DISTRIBUTION (not TDP) : table 'Fact Inhouse Distribution' (query 61). Always filter Level to one value. ----------"
             ],
@@ -10707,9 +10844,14 @@
           {
             "name": "Inhouse SKUs Per Store",
             "expression": [
-              "DIVIDE ( [Inhouse SKU Listings], [Inhouse Stores Selling] )",
-              "Inhouse Store Reach % =",
-              "    DIVIDE ( [Inhouse Stores Selling], SUM ( 'Fact Inhouse Distribution'[Stores In Master] ) )"
+              "DIVIDE ( [Inhouse SKU Listings], [Inhouse Stores Selling] )"
+            ],
+            "description": "Source: 20_Store_Type_Pack_Measures.dax"
+          },
+          {
+            "name": "Inhouse Store Reach %",
+            "expression": [
+              "DIVIDE ( [Inhouse Stores Selling], SUM ( 'Fact Inhouse Distribution'[Stores In Master] ) )"
             ],
             "description": "Source: 20_Store_Type_Pack_Measures.dax"
           }

@@ -439,10 +439,15 @@ def parse_dax_measures(dax_dir):
                     is_calc_col = True
 
                 # Detect measure: Name = expr  or  [Name] = expr
+                # A measure starts at column 0. Names may hold %, -, /, & and
+                # digits (e.g. "MoM Growth %"). VAR and RETURN lines are body
+                # lines of the measure above, never a new measure.
                 m = re.match(
-                    r"^(?:\[([^\]]+)\]|([A-Za-z_][A-Za-z0-9_ ]*?))\s*=\s*",
-                    trimmed,
+                    r"^(?:\[([^\]]+)\]|([A-Za-z_][^=()\[\]\n,]*(?:\([^()=\n]*\)[^=()\[\]\n,]*)*?))\s*=(?!=)\s*",
+                    line,
                 )
+                if m and re.match(r"^(VAR|RETURN)\b", line):
+                    m = None
                 if m and not calc_match:
                     is_new_measure = True
                     new_name = (m.group(1) or m.group(2)).strip()
