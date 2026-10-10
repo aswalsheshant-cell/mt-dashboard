@@ -1,0 +1,179 @@
+{
+  "generated": "2026-10-10",
+  "basis": "SOURCE-SIDE EXPECTED VALUES. Not Desktop-verified. Compare with live DAX in the same period, filters and units.",
+  "reference_baselines_lakh": {
+    "FY26 Primary (MT basis)": "30684.99",
+    "FY26 Primary (all channel)": "32900.36",
+    "FY26 Offtake": "31119.88",
+    "FY25 Distributor Secondary": "23332.36"
+  },
+  "offtake": {
+    "folder": "RawDataFolders/Offtake_Monthly",
+    "files": 5,
+    "rows": 1137438,
+    "sha256": {
+      "offtake_store_article_Apr_26.csv": "9f98d2df1d0e5ba399960b5e5a2983784993a7a0fb12e682cbc700d1f532d5af",
+      "offtake_store_article_Aug_26.csv": "77faa873ffa9df4cec32c19065cbbb53669434a8ac4b1523e6a58834b1b214e5",
+      "offtake_store_article_Jul_26.csv": "9786d5bb2587517fe66e9452923c1f2f6ab3c7e2ce62a66e249789717feb37fa",
+      "offtake_store_article_Jun_26.csv": "b4ad1179e0d4afb28094ac07918b92f6ff51d1f1dee7ffff24aca8c31fedd574",
+      "offtake_store_article_May_26.csv": "cdf7744e4dc31cce9f0158a5b91f88beef3d449f3de84da5255c9f424a9d253f"
+    },
+    "source_unit": "lakh",
+    "model_unit": "rupees",
+    "gross": {
+      "monthly_rupees": {
+        "2026-04": "272075436.2780102932700000",
+        "2026-05": "452760599.5741772084553382000",
+        "2026-06": "153628352.0978715313066300000"
+      },
+      "monthly_lakh": {
+        "2026-04": "2720.75",
+        "2026-05": "4527.61",
+        "2026-06": "1536.28"
+      },
+      "fy_lakh": {
+        "FY27": "8784.64"
+      },
+      "unparsed_month_labels": [
+        "46113.0",
+        "Aug",
+        "Jul",
+        "Jun"
+      ]
+    },
+    "governed_ex_reliance_brand_counter": {
+      "monthly_rupees": {
+        "2026-04": "272075436.2780102932700000",
+        "2026-05": "401942315.0105978460347532000",
+        "2026-06": "153628352.0978715313066300000"
+      },
+      "monthly_lakh": {
+        "2026-04": "2720.75",
+        "2026-05": "4019.42",
+        "2026-06": "1536.28"
+      },
+      "fy_lakh": {
+        "FY27": "8276.46"
+      },
+      "unparsed_month_labels": [
+        "46113.0",
+        "Aug",
+        "Jul",
+        "Jun"
+      ]
+    }
+  },
+  "primary_article": {
+    "folder": "RawDataFolders/Primary_Article_Monthly",
+    "files": 17,
+    "rows": 362761,
+    "sha256": {
+      "primary_article_Apr_25.csv": "bc6765d94666d0ca3cd411f6e6548567c9affe049b6bb6e339e7f3f74ef79ca2",
+      "primary_article_Apr_26.csv": "f63066b94456f0035e12a41027e16a78a452d90e0d5c6d21d30dd8a4a33e45a2",
+      "primary_article_Aug_25.csv": "1858da51b2301ec7ba732170a06a1439e4fb7bd3dc9692972372b86d508048eb",
+      "primary_article_Aug_26.csv": "959124f7ff39b82fce67595cff5559a5c1d297f5deb0aad7ef73287135f3b686",
+      "primary_article_Dec_25.csv": "54aa7a4b5ec4638bd8ff72a5262b0a18abdd96eda80e1013967b16559f3e7932",
+      "primary_article_Feb_26.csv": "0f0c35d417caf7e1d3f0972b2d8b8abd20fb068eb58cc8e7b81d5a3d587bb282",
+      "primary_article_Jan_26.csv": "525afd39a37cd867beab642d442c652bcddfe78a0add594ef82d5242504327a9",
+      "primary_article_Jul_25.csv": "008d706854ddf9ce2423d3ced2420853b2b5adea802c7531549e53b7b20f02b9",
+      "primary_article_Jul_26.csv": "497e55d2b362313efeede535d7b1b8e5402864587672368b11a615e21720545e",
+      "primary_article_Jun_25.csv": "82c395071f2e4a1e2607d624d5cbae854bab370d53496ffc78d0c969354a8e94",
+      "primary_article_Jun_26.csv": "1de0ad86e2a266606bec3ec8281b5720edd44525d09a277abe18aa6d516d121d",
+      "primary_article_Mar_26.csv": "e166173d4855de57161e20bd217469f8fbdf9cd1bb31535197ab5444f163bd1b",
+      "primary_article_May_25.csv": "f4c21fe8e489c15acccbb1403363d8f59c7161ae013e01bf385cea35711cad8c",
+      "primary_article_May_26.csv": "0c10f2d6b28bc8e10cdad72941e8273066635893205cd5041dc4714b2cac95c6",
+      "primary_article_Nov_25.csv": "b1a675fb1395c14f08553bd45a2f4136be53b664210ea79dd28a468f39ad15d9",
+      "primary_article_Oct_25.csv": "f3e739e277c19b2acb34e4d5bfd0830ab137e05c83fa1ca4b659fa7d67749331",
+      "primary_article_Sep_25.csv": "5a2a6ab49ceb4cb8d981cd145606e222bfb91cd1ff608086fdeaa11b91ed9b3d"
+    },
+    "source_unit": "rupees",
+    "model_unit": "rupees",
+    "gross": {
+      "monthly_rupees": {
+        "2025-04": "317459756.70",
+        "2025-05": "236689813.77",
+        "2025-06": "218263714.96",
+        "2025-07": "247290211.60",
+        "2025-08": "216238697.06",
+        "2025-09": "222375104.55",
+        "2025-10": "267488568.04",
+        "2025-11": "332933983.09",
+        "2025-12": "282061210.88",
+        "2026-01": "366540843.92",
+        "2026-02": "292494121.99",
+        "2026-03": "290199870.73",
+        "2026-04": "507685807.85",
+        "2026-05": "441573960.55",
+        "2026-06": "416737933.62",
+        "2026-07": "492130936.29",
+        "2026-08": "365830177.38"
+      },
+      "monthly_lakh": {
+        "2025-04": "3174.60",
+        "2025-05": "2366.90",
+        "2025-06": "2182.64",
+        "2025-07": "2472.90",
+        "2025-08": "2162.39",
+        "2025-09": "2223.75",
+        "2025-10": "2674.89",
+        "2025-11": "3329.34",
+        "2025-12": "2820.61",
+        "2026-01": "3665.41",
+        "2026-02": "2924.94",
+        "2026-03": "2902.00",
+        "2026-04": "5076.86",
+        "2026-05": "4415.74",
+        "2026-06": "4167.38",
+        "2026-07": "4921.31",
+        "2026-08": "3658.30"
+      },
+      "fy_lakh": {
+        "FY26": "32900.36",
+        "FY27": "22239.59"
+      },
+      "unparsed_month_labels": []
+    }
+  },
+  "primary_article_by_channel": {
+    "fy_channel_lakh": {
+      "FY26": {
+        "EB2B": "1965.20",
+        "MT": "30684.99",
+        "SIS": "250.17"
+      },
+      "FY27": {
+        "EB2B": "1080.68",
+        "MT": "21075.63",
+        "SIS": "83.28"
+      }
+    },
+    "note": "MT is the model's MT basis. 16_Fact_PrimaryArticle.pq does not filter Channel, so an unfiltered Power BI total includes EB2B and SIS. The source FY text is inconsistent (FY'25-26, FY'26-27, FY27), so FY must come from Month."
+  },
+  "secondary_chain": {
+    "folder": "RawDataFolders/SecondarySales_Monthly",
+    "files": [
+      "secondary_sales_chain_Jul_Aug_FY27.csv",
+      "secondary_sales_chain_Q1_FY27.csv"
+    ],
+    "source_unit": "lakh",
+    "monthly_lakh": {
+      "2026-04": "1299.44",
+      "2026-05": "838.99",
+      "2026-06": "1215.78",
+      "2026-07": "930.82",
+      "2026-08": "798.17"
+    },
+    "fy_lakh": {
+      "FY27": "5083.20"
+    },
+    "note": "Chain files only. FY25 distributor secondary is not in these folders (see docs/DATA_AVAILABILITY_MATRIX.md)."
+  },
+  "primary_shipto": {
+    "status": "NOT_RECONCILED",
+    "reason": "Three overlapping snapshots in Primary_ShipTo_Monthly (FY24-25, FY24-26 composite, FY25-26 to May26). Summing them double counts. Needs a dedupe rule before an expected value is stated."
+  },
+  "coverage_notes": [
+    "Offtake_Monthly holds Apr-26 onward only. The FY26 Offtake baseline (Rs 31,119.88 L) lives in dashboard/data.js, so the Power BI model cannot reproduce it from this folder.",
+    "Primary_Weekly has no data files (template only), so Fact Primary Sales has no source here. Primary comparisons use the Article feed."
+  ]
+}
