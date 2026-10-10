@@ -42,6 +42,7 @@ Checks after the fix: 52 tables, 47 relationships, 481 measures, 22 calculated c
 | D3 | `46_Dim_PromoCalendar.pq` uses a literal `PowerBI/RawDataFolders/...` path, not `pRootFolder`. | Use `pRootFolder & "\RawDataFolders\Promo_Calendar\..."`. | You |
 | D4 | Store Cuts and Nielsen queries read `RawDataFolders`, but the real files sit in `SeedData`. | Copy the files across (`SeedData\Store_Cuts` to `RawDataFolders\Store_Cuts`) or point the queries at the seed path. | You |
 | D5 | Source FY text is inconsistent (`FY'25-26`, `FY'26-27`, `FY27`) and Channel has a case variant (`Eb2b`). | FY must come from Month using `fnFYLabel`. Fold case on Channel. | Check in Desktop |
+| D7 | `Primary_Aug26_FY27.csv` (root of `RawDataFolders`) is Rs213.30L higher than the Aug-26 article file: MRN returns 116.50 + 350 cancelled invoices 96.80, all MT. EB2B and SIS tie once returns are excluded. | Leave it out of `Primary_Article_Monthly`. Reconciled in `docs/DATA_LINEAGE.md`. | Owner to confirm |
 | D6 | The HTML has 11 subviews (3 + 3 + 5). CLAUDE.md lists 9. `storecuts` and `tdp` came later. | Update CLAUDE.md wording when you next edit it. The page contract uses 11. | You |
 
 ## G1 Source coverage (window Apr-25 to Aug-26)
