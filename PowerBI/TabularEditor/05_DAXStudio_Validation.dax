@@ -1,0 +1,154 @@
+-- ============================================================
+-- MT Dashboard — DAX Studio Validation Queries
+-- Run in: DAX Studio (connect to your PBIX)
+--
+-- Run each query separately (select it, press F5).
+-- These verify data is flowing correctly after the build.
+-- ============================================================
+
+
+-- ────────────────────────────────────────────────────────────
+-- 1. Row counts per fact table
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+UNION(
+  ROW("Table", "Fact Primary Sales",     "Rows", COUNTROWS('Fact Primary Sales')),
+  ROW("Table", "Fact Offtake Sales",     "Rows", COUNTROWS('Fact Offtake Sales')),
+  ROW("Table", "Fact P&L",              "Rows", COUNTROWS('Fact P&L')),
+  ROW("Table", "Fact Primary Article",   "Rows", COUNTROWS('Fact Primary Article')),
+  ROW("Table", "Fact Primary ShipTo",    "Rows", COUNTROWS('Fact Primary ShipTo')),
+  ROW("Table", "Fact TDP",              "Rows", COUNTROWS('Fact TDP')),
+  ROW("Table", "Fact Nielsen",          "Rows", COUNTROWS('Fact Nielsen')),
+  ROW("Table", "Fact Nielsen Pack",     "Rows", COUNTROWS('Fact Nielsen Pack')),
+  ROW("Table", "Fact Nielsen Brand Cut", "Rows", COUNTROWS('Fact Nielsen Brand Cut')),
+  ROW("Table", "Fact Account Category",  "Rows", COUNTROWS('Fact Account Category'))
+)
+ORDER BY [Rows] DESC
+
+
+-- ────────────────────────────────────────────────────────────
+-- 2. Dimension table row counts
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+UNION(
+  ROW("Table", "Date Table",          "Rows", COUNTROWS('Date Table')),
+  ROW("Table", "Chain Master",        "Rows", COUNTROWS('Chain Master')),
+  ROW("Table", "Brand Master",        "Rows", COUNTROWS('Brand Master')),
+  ROW("Table", "Category Master",     "Rows", COUNTROWS('Category Master')),
+  ROW("Table", "Article Master",      "Rows", COUNTROWS('Article Master')),
+  ROW("Table", "Store Master",        "Rows", COUNTROWS('Store Master')),
+  ROW("Table", "Zone State Master",   "Rows", COUNTROWS('Zone State Master')),
+  ROW("Table", "Ship-To Master",      "Rows", COUNTROWS('Ship-To Master'))
+)
+ORDER BY [Table]
+
+
+-- ────────────────────────────────────────────────────────────
+-- 3. FY26 Primary NSV check
+-- Expected: ~30,684.99 L (MT basis, Rs Lakhs)
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+ROW(
+  "FY26 Primary NSV (Lakhs)",
+  CALCULATE(
+    [NSV Primary],
+    'Date Table'[FY Year] = "25-26"
+  ) / 100000
+)
+
+
+-- ────────────────────────────────────────────────────────────
+-- 4. FY26 Offtake NSV check
+-- Expected: ~31,119.88 L (Rs Lakhs)
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+ROW(
+  "FY26 Offtake NSV (Lakhs)",
+  CALCULATE(
+    [Offtake NSV],
+    'Date Table'[FY Year] = "25-26"
+  ) / 100000
+)
+
+
+-- ────────────────────────────────────────────────────────────
+-- 5. Chain count and list
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+ROW(
+  "Distinct Chains", DISTINCTCOUNT('Chain Master'[Chain])
+)
+
+EVALUATE
+SUMMARIZE(
+  'Chain Master',
+  'Chain Master'[Chain],
+  'Chain Master'[Account],
+  'Chain Master'[Chain Type]
+)
+ORDER BY 'Chain Master'[Chain]
+
+
+-- ────────────────────────────────────────────────────────────
+-- 6. Date Table range check
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+ROW(
+  "Min Date",  MIN('Date Table'[Date]),
+  "Max Date",  MAX('Date Table'[Date]),
+  "Months",    DISTINCTCOUNT('Date Table'[MonthStart]),
+  "FY Count",  DISTINCTCOUNT('Date Table'[FY Year])
+)
+
+
+-- ────────────────────────────────────────────────────────────
+-- 7. Primary NSV by FY (all FYs present)
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+ADDCOLUMNS(
+  VALUES('Date Table'[FY Year]),
+  "Primary NSV (Lakhs)",
+    CALCULATE([NSV Primary]) / 100000,
+  "Months",
+    DISTINCTCOUNT('Date Table'[MonthStart])
+)
+ORDER BY 'Date Table'[FY Year]
+
+
+-- ────────────────────────────────────────────────────────────
+-- 8. Brand-wise Primary NSV (top 10, current FY)
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+TOPN(
+  10,
+  ADDCOLUMNS(
+    VALUES('Brand Master'[Brand]),
+    "NSV (Lakhs)", CALCULATE([NSV Primary]) / 100000
+  ),
+  [NSV (Lakhs)], DESC
+)
+ORDER BY [NSV (Lakhs)] DESC
+
+
+-- ────────────────────────────────────────────────────────────
+-- 9. Unmapped chains check (should be 0 or documented)
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+FILTER(
+  ADDCOLUMNS(
+    VALUES('Fact Primary Article'[Chain]),
+    "Rows", CALCULATE(COUNTROWS('Fact Primary Article'))
+  ),
+  'Fact Primary Article'[Chain] = "Unmapped Chain"
+)
+
+
+-- ────────────────────────────────────────────────────────────
+-- 10. Store count check (Universe = 426 active MT stores)
+-- ────────────────────────────────────────────────────────────
+EVALUATE
+ROW(
+  "Store Master Rows",      COUNTROWS('Store Master'),
+  "Distinct Store Codes",   DISTINCTCOUNT('Store Master'[Store Code]),
+  "Distinct Chains",        DISTINCTCOUNT('Store Master'[Chain])
+)
