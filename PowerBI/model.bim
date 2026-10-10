@@ -359,11 +359,6 @@
             "sourceColumn": "City"
           },
           {
-            "name": "Store Code",
-            "dataType": "string",
-            "sourceColumn": "Store Code"
-          },
-          {
             "name": "Store Name",
             "dataType": "string",
             "sourceColumn": "Store Name"
@@ -1298,74 +1293,11 @@
             "sourceColumn": "Article Key"
           },
           {
-            "name": "Allocation Status",
-            "dataType": "string",
-            "sourceColumn": "Allocation Status"
-          },
-          {
-            "name": "Source Type",
-            "dataType": "string",
-            "sourceColumn": "Source Type"
-          },
-          {
-            "name": "Provisional Flag",
-            "dataType": "boolean",
-            "sourceColumn": "Provisional Flag"
-          },
-          {
-            "name": "Allocation Status",
-            "dataType": "string",
-            "sourceColumn": "Allocation Status",
-            "type": "calculated",
-            "expression": "\"Unmapped\" )",
-            "isDataTypeInferred": true
-          },
-          {
-            "name": "Provisional Flag",
-            "dataType": "boolean",
-            "sourceColumn": "Provisional Flag",
-            "type": "calculated",
-            "expression": "TRUE () )",
-            "isDataTypeInferred": true
-          },
-          {
-            "name": "Provisional Flag",
-            "dataType": "boolean",
-            "sourceColumn": "Provisional Flag",
-            "type": "calculated",
-            "expression": "TRUE () )",
-            "isDataTypeInferred": true
-          },
-          {
-            "name": "Source Type",
-            "dataType": "string",
-            "sourceColumn": "Source Type",
-            "type": "calculated",
-            "expression": "\"Approved Patch\"\n)\n\nDist NSV – ShipTo CSV =\nCALCULATE (\n    SUM ( 'Fact Primary Article'[Primary NSV] ),",
-            "isDataTypeInferred": true
-          },
-          {
-            "name": "Source Type",
-            "dataType": "string",
-            "sourceColumn": "Source Type",
-            "type": "calculated",
-            "expression": "\"ShipTo CSV\"\n)\n\nDist NSV – Provisional Fallback =\nCALCULATE (\n    SUM ( 'Fact Primary Article'[Primary NSV] ),",
-            "isDataTypeInferred": true
-          },
-          {
             "name": "Source Type",
             "dataType": "string",
             "sourceColumn": "Source Type",
             "type": "calculated",
             "expression": "\"Nearest-Month Fallback\"\n)\n\nDist NSV – Unmapped =\nCALCULATE (\n    SUM ( 'Fact Primary Article'[Primary NSV] ),",
-            "isDataTypeInferred": true
-          },
-          {
-            "name": "Allocation Status",
-            "dataType": "string",
-            "sourceColumn": "Allocation Status",
-            "type": "calculated",
-            "expression": "\"Unmapped\"\n)",
             "isDataTypeInferred": true
           },
           {
@@ -1588,22 +1520,9 @@
             "sourceColumn": "Primary Zone"
           },
           {
-            "name": "Channel",
-            "dataType": "string",
-            "sourceColumn": "Channel"
-          },
-          {
             "name": "Active",
             "dataType": "boolean",
             "sourceColumn": "Active"
-          },
-          {
-            "name": "Channel",
-            "dataType": "string",
-            "sourceColumn": "Channel",
-            "type": "calculated",
-            "expression": "\"MT\"\n    )\n\nTotal RBC NSV =\n    CALCULATE (",
-            "isDataTypeInferred": true
           },
           {
             "name": "Channel",
@@ -2611,11 +2530,6 @@
       {
         "name": "Assumption Table",
         "columns": [
-          {
-            "name": "Month",
-            "dataType": "string",
-            "sourceColumn": "Month"
-          },
           {
             "name": "Chain",
             "dataType": "string",
@@ -4234,11 +4148,6 @@
             "name": "NSV_Cr",
             "dataType": "double",
             "sourceColumn": "NSV_Cr"
-          },
-          {
-            "name": "Is_Provisional",
-            "dataType": "boolean",
-            "sourceColumn": "Is_Provisional"
           },
           {
             "name": "Data_Source",

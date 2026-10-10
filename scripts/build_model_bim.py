@@ -654,7 +654,11 @@ def build_table(name, columns, m_expression=None, is_calculated=False,
                 calc_dax=None, calc_cols=None):
     table = {"name": name, "columns": [], "measures": []}
 
+    seen_cols = set()
     for col_name in columns:
+        if col_name in seen_cols:  # a model cannot hold two columns with one name
+            continue
+        seen_cols.add(col_name)
         table["columns"].append(build_column_def(col_name))
 
     if is_calculated and calc_dax:
@@ -677,6 +681,9 @@ def build_table(name, columns, m_expression=None, is_calculated=False,
     # Add calculated columns
     if calc_cols:
         for cc in calc_cols:
+            # a calculated column replaces a same-named source column, and the
+            # same calculated column listed twice is kept once
+            table["columns"] = [c for c in table["columns"] if c["name"] != cc["name"]]
             table["columns"].append({
                 "name": cc["name"],
                 "dataType": infer_data_type(cc["name"]),
