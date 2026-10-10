@@ -6,7 +6,7 @@
 // Article / Pack-size level. This query just lands the per-SKU ACV %.
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\TDP_Monthly"),
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\TDP_Monthly", null, {"Month", "FY Year", "Chain", "Zone", "State", "Brand", "Category", "Sub-category", "Pack Size", "Article Code", "Article Description", "ACV %", "AIC", "Numeric Distribution", "Weighted Distribution", "Data Source Name"}),
     Typed = Table.TransformColumnTypes(Source, {
         {"Month", type text},
         {"FY Year", type text},

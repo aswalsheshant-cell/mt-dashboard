@@ -3,6 +3,8 @@
 Started 2026-10-10. Branch `claude/gallant-shannon-wou27y`. Update this file as each item moves.
 Everything below is source-side or static. Nothing is Desktop-verified.
 
+Static refresh check: `python scripts/check_pq_refresh_risks.py` (missing columns, bad values, unknown queries; it does not model joins, so a clean result is not proof of a clean refresh).
+
 Regenerate in this order: `powerbi_full_sources.py`, `reconcile_powerbi_full.py`, `build_model_bim.py`, `build_full_report_pages.py`, `generate_pbir_pages.py`.
 
 ## G0 Workspace safety
@@ -30,6 +32,8 @@ Do not restore, reset or clean until each deleted path is listed and someone con
 | M1 | `build_model_bim.py` read every `VAR x =` line as a new measure. | About 174 bogus "VAR ..." measures. Real measures such as `MoM Growth %`, `Latest Month NSV`, `L3M Average Sales` were dropped. The earlier count of 446 was wrong. | Measures start at column 0. VAR and RETURN are body lines. Names may hold %, -, and brackets like `Offtake NSV (CBA, M)`. Now 481 measures. |
 | M2 | Same generator kept the same column twice in 5 tables. | Tabular Editor would refuse the deploy. | One column per name. A calculated column replaces a same-named source column. |
 | M4 | Six calculated columns (`TOT Method`, `TOT Pass-on Value` on Fact Primary Article; `Resolved Chain/Brand/Category`, `Bad Brand Or Category` on PL Expense Input) exist only as commented blocks in the DAX files. 12 measures use them. | Those measures would error in the deployed model. | The generator now reads the commented blocks and adds the columns, using the repo's own text. Not tested in Desktop. |
+| M5 | Empty watch folders (Primary_Weekly, Nielsen x4, TDP) made `fnCombineFolder` return only 2 columns, so the next step failed with "column wasn't found" and stopped the whole refresh. | Refresh error in 6 queries. | `fnCombineFolder` takes an optional expected-column list and returns an empty table with those columns. The 6 queries pass their column lists. Not tested in Desktop. |
+| M6 | `46_Dim_PromoCalendar.pq` typed `Locations` as number, but the file holds text like "PAN India" (2,613 rows). | Conversion error rows at load. | Typed as text. No DAX uses the column. |
 | M3 | `15_Fact_PrimaryShipTo.pq` loaded all 3 files in `Primary_ShipTo_Monthly`. | Every row of the two narrow files is in the composite on Month, Ship To Name, Brand, NSV and MRP, and monthly NSV is identical (independent check). Their Chain labels differ from the composite's normalised names, so they are not byte-identical. Those months were counted twice. | The query skips the two subset files by name. New monthly files still load. Not tested in Desktop. |
 
 Checks after the fix: 52 tables, 47 relationships, 481 measures, 28 calculated columns, every `'Table'[Column]` used by a measure exists, no duplicate column names, every relationship column exists, every measure reference resolves except local SUMMARIZE aliases (`n`, `tot`, `RowCount`).

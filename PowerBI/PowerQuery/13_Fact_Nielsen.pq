@@ -3,7 +3,7 @@
 // Source = RawDataFolders\Nielsen_Monthly
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Monthly"),
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Monthly", null, {"Month", "FY Year", "Nielsen Category", "Brand", "Zone", "Market Value Sales", "Our Brand Sales", "Value Market Share %", "Volume Market Share %", "Data Source Name", "Volume 000 L", "Price Per Ml"}),
     // Volume 000 L and Price Per Ml are optional (older drops lack them); add them as null when missing
     WithOptional = List.Accumulate({"Volume 000 L", "Price Per Ml"}, Source,
         (tbl, col) => if Table.HasColumns(tbl, col) then tbl else Table.AddColumn(tbl, col, each null, type number)),

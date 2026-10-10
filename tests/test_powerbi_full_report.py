@@ -100,3 +100,10 @@ def test_store_cuts_queries_read_seeddata_not_rawdatafolders():
     for n in ("58_Fact_Store_Type", "59_Fact_Pack_Size", "60_Fact_Sales_Cuts", "61_Fact_Inhouse_Distribution"):
         pq = (PBI / "PowerQuery" / (n + ".pq")).read_text(encoding="utf-8")
         assert "\\SeedData\\Store_Cuts\\" in pq and "\\RawDataFolders\\Store_Cuts\\" not in pq, n
+
+
+def test_power_query_static_refresh_check_is_clean():
+    import subprocess
+    import sys
+    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "check_pq_refresh_risks.py")], capture_output=True, text=True)
+    assert r.returncode == 0, r.stdout

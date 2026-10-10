@@ -9,7 +9,7 @@
 // Relate Date Table[MonthStart] -> [MonthStart]; Nielsen Category -> Category Master[Nielsen Category].
 // =====================================================================
 let
-    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Pack_Monthly"),
+    Source = fnCombineFolder(pRootFolder & "\RawDataFolders\Nielsen_Pack_Monthly", null, {"Month", "FY Year", "Nielsen Category", "Pack Size ml", "Category Value Cr", "Our Value Cr", "Category Volume L", "Our Volume L", "Category WD %", "Data Source Name"}),
     Typed = Table.TransformColumnTypes(Source, {
         {"Month", type text},
         {"FY Year", type text},

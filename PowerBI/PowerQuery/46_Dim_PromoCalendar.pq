@@ -33,7 +33,7 @@ let
             {"ME_Contribution_Pct", type number},   // Mamaearth contribution %
             {"Chain_Contribution_Pct", type number}, // Chain contribution %
             {"Total_Contribution_Pct", type number}, // Total trade spend allocation %
-            {"Locations", type number},             // Number of store locations
+            {"Locations", type text},               // Location scope, e.g. "PAN India" or a list of cities
             {"From ", type date},                   // Promotion start date
             {"To", type date},                      // Promotion end date
             {"Promo_Type", type text}               // Promotion type classification
