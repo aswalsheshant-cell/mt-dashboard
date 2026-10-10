@@ -724,7 +724,6 @@ def build_table(name, columns, m_expression=None, is_calculated=False,
             table["columns"].append({
                 "name": cc["name"],
                 "dataType": infer_data_type(cc["name"]),
-                "sourceColumn": cc["name"],
                 "type": "calculated",
                 "expression": cc["expression"],
                 "isDataTypeInferred": True,

@@ -201,3 +201,45 @@ def test_offtake_alias_step_leaves_only_known_unmatched_chains():
     exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))
     unmatched = set(exp["offtake_chain_master_check"]["unmatched_chains_lakh"])
     assert unmatched <= {"FSN", "Fsn", "Centro"}, unmatched
+
+
+def test_model_follows_tabular_object_model_rules():
+    """Structure Tabular Editor checks on deploy: calculated columns carry no sourceColumn,
+    no name is used twice in a table, relationship column types agree, sort-by and
+    hierarchy columns exist, every table has a partition, no directed filter cycle."""
+    m = _model()
+    tables = {t["name"]: t for t in m["tables"]}
+    for t in m["tables"]:
+        objs = [c["name"] for c in t.get("columns", [])] + [x["name"] for x in t.get("measures", [])] \
+            + [h["name"] for h in t.get("hierarchies", [])]
+        assert len(objs) == len(set(objs)), t["name"]
+        assert t.get("partitions"), t["name"]
+        cols = {c["name"] for c in t.get("columns", [])}
+        for c in t.get("columns", []):
+            if c.get("type") == "calculated":
+                assert "sourceColumn" not in c, (t["name"], c["name"])
+            assert "dataType" in c
+            if "sortByColumn" in c:
+                assert c["sortByColumn"] in cols, (t["name"], c["name"])
+        for h in t.get("hierarchies", []):
+            assert all(l["column"] in cols for l in h.get("levels", [])), (t["name"], h["name"])
+    flow = collections.defaultdict(set)
+    for r in m["relationships"]:
+        a = {c["name"]: c for c in tables[r["fromTable"]]["columns"]}[r["fromColumn"]]
+        b = {c["name"]: c for c in tables[r["toTable"]]["columns"]}[r["toColumn"]]
+        assert a["dataType"] == b["dataType"], r["name"]
+        flow[r["toTable"]].add(r["fromTable"])
+
+    state = {}
+
+    def visit(u):
+        state[u] = 1
+        for w in flow[u]:
+            assert state.get(w) != 1, "filter cycle through %s" % w
+            if w not in state:
+                visit(w)
+        state[u] = 2
+
+    for u in list(flow):
+        if u not in state:
+            visit(u)

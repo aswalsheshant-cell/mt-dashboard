@@ -1438,7 +1438,6 @@
           {
             "name": "TOT Method",
             "dataType": "double",
-            "sourceColumn": "TOT Method",
             "type": "calculated",
             "expression": "VAR _mrp = 'Fact Primary Article'[Primary MRP]\nVAR _nsv = 'Fact Primary Article'[Primary NSV]\nVAR _avgTot = 'Fact Primary Article'[Avg TOT]\nVAR _tax = 'Fact Primary Article'[Primary Tax Amount]\nRETURN\n    IF ( ISBLANK ( _mrp ) || _mrp = 0, \"invalid\",\n        IF ( NOT ISBLANK ( _avgTot ) && _avgTot >= -1.5 && _avgTot <= 1.5, \"avg_tot\",\n            IF ( ISBLANK ( _nsv ), \"invalid\",\n                IF ( NOT ISBLANK ( _tax ), \"tax_calc\", \"gst_fallback\" )\n            )\n        )\n    )",
             "isDataTypeInferred": true
@@ -1446,7 +1445,6 @@
           {
             "name": "TOT Pass-on Value",
             "dataType": "double",
-            "sourceColumn": "TOT Pass-on Value",
             "type": "calculated",
             "expression": "VAR _method = 'Fact Primary Article'[TOT Method]\nVAR _mrp = 'Fact Primary Article'[Primary MRP]\nVAR _nsv = 'Fact Primary Article'[Primary NSV]\nVAR _avgTot = 'Fact Primary Article'[Avg TOT]\nVAR _tax = 'Fact Primary Article'[Primary Tax Amount]\nVAR _cat = 'Fact Primary Article'[Category]\nRETURN\n    SWITCH (\n        _method,\n        \"avg_tot\", _mrp * _avgTot,\n        \"tax_calc\", _mrp - _nsv - _tax,\n        \"gst_fallback\",\n            VAR _preRate = LOOKUPVALUE ( 'GST Rate QC Table'[Pre_GST_Rate_Pct], 'GST Rate QC Table'[Category], _cat )\n            VAR _postRate = LOOKUPVALUE ( 'GST Rate QC Table'[Post_GST_Rate_Pct], 'GST Rate QC Table'[Category], _cat )\n            VAR _effFromTxt = LOOKUPVALUE ( 'GST Rate QC Table'[Effective_From], 'GST Rate QC Table'[Category], _cat )\n            VAR _effFrom = IF ( TRIM ( COALESCE ( _effFromTxt, \"\" ) ) = \"\", BLANK(), DATEVALUE ( _effFromTxt ) )\n            VAR _cutover = COALESCE ( _effFrom, [GST Cutover Date] )\n            VAR _pre = COALESCE ( _preRate, 18 )\n            VAR _post = COALESCE ( _postRate, 18 )\n            VAR _rate = IF ( 'Fact Primary Article'[MonthStart] >= _cutover, _post, _pre )\n            RETURN _mrp - _nsv - ( _nsv * _rate / 100 ),\n        BLANK()\n    )",
             "isDataTypeInferred": true
@@ -3442,7 +3440,6 @@
           {
             "name": "Resolved Chain",
             "dataType": "string",
-            "sourceColumn": "Resolved Chain",
             "type": "calculated",
             "expression": "VAR _custCode = TRIM ( 'PL Expense Input'[Customer Code] )\nVAR _chainIn = TRIM ( 'PL Expense Input'[Chain] )\nVAR _viaCode = IF ( _custCode <> \"\", LOOKUPVALUE ( 'CustCode Chain Map'[Chain], 'CustCode Chain Map'[Customer Code], _custCode ) )\nVAR _viaChain = IF ( _chainIn <> \"\" && CONTAINS ( VALUES ( 'Fact Primary Article'[Chain] ), 'Fact Primary Article'[Chain], _chainIn ), _chainIn )\nRETURN COALESCE ( _viaCode, _viaChain )",
             "isDataTypeInferred": true
@@ -3450,7 +3447,6 @@
           {
             "name": "Resolved Brand",
             "dataType": "string",
-            "sourceColumn": "Resolved Brand",
             "type": "calculated",
             "expression": "VAR _brandIn = TRIM ( 'PL Expense Input'[Brand] )\nRETURN IF ( _brandIn = \"\", BLANK(),\n    IF ( CONTAINS ( VALUES ( 'Fact Primary Article'[Brand] ), 'Fact Primary Article'[Brand], _brandIn ), _brandIn, BLANK() ) )",
             "isDataTypeInferred": true
@@ -3458,7 +3454,6 @@
           {
             "name": "Resolved Category",
             "dataType": "string",
-            "sourceColumn": "Resolved Category",
             "type": "calculated",
             "expression": "VAR _catIn = TRIM ( 'PL Expense Input'[Category] )\nRETURN IF ( _catIn = \"\", BLANK(),\n    IF ( CONTAINS ( VALUES ( 'Fact Primary Article'[Category] ), 'Fact Primary Article'[Category], _catIn ), _catIn, BLANK() ) )",
             "isDataTypeInferred": true
@@ -3466,7 +3461,6 @@
           {
             "name": "Bad Brand Or Category",
             "dataType": "string",
-            "sourceColumn": "Bad Brand Or Category",
             "type": "calculated",
             "expression": "VAR _brandIn = TRIM ( 'PL Expense Input'[Brand] )\nVAR _catIn = TRIM ( 'PL Expense Input'[Category] )\nRETURN ( _brandIn <> \"\" && ISBLANK ( 'PL Expense Input'[Resolved Brand] ) )\n    || ( _catIn <> \"\" && ISBLANK ( 'PL Expense Input'[Resolved Category] ) )",
             "isDataTypeInferred": true
