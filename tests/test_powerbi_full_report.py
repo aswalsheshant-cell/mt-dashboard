@@ -107,3 +107,51 @@ def test_power_query_static_refresh_check_is_clean():
     import sys
     r = subprocess.run([sys.executable, str(ROOT / "scripts" / "check_pq_refresh_risks.py")], capture_output=True, text=True)
     assert r.returncode == 0, r.stdout
+
+
+CHART_TYPES = ("lineChart", "clusteredBarChart", "tableEx")
+
+
+def _chart_visuals():
+    base = PBI / "PBIR_Generated" / "definition" / "pages"
+    out = []
+    for f in base.rglob("visual.json"):
+        data = json.loads(f.read_text(encoding="utf-8"))
+        if data["visual"]["visualType"] in CHART_TYPES:
+            out.append((f, data))
+    return out
+
+
+def test_generated_charts_exist_and_reference_model_objects():
+    m = _model()
+    cols = {t["name"]: {c["name"] for c in t.get("columns", [])} for t in m["tables"]}
+    measures = {x["name"] for x in next(t for t in m["tables"] if t["name"] == "_Measures")["measures"]}
+    charts = _chart_visuals()
+    assert len(charts) >= 8
+    for f, data in charts:
+        for role in data["visual"]["query"]["queryState"].values():
+            assert role["projections"], f
+            for pr in role["projections"]:
+                if "Column" in pr["field"]:
+                    c = pr["field"]["Column"]
+                    assert c["Property"] in cols[c["Expression"]["SourceRef"]["Entity"]], f
+                else:
+                    c = pr["field"]["Measure"]
+                    assert c["Expression"]["SourceRef"]["Entity"] == "_Measures", f
+                    assert c["Property"] in measures, f
+
+
+def test_generated_visuals_do_not_overlap_and_stay_on_canvas():
+    base = PBI / "PBIR_Generated" / "definition" / "pages"
+    for page in base.glob("page_*"):
+        boxes = []
+        for f in (page / "visuals").glob("*/visual.json"):
+            b = json.loads(f.read_text(encoding="utf-8"))["position"]
+            assert b["x"] >= 0 and b["y"] >= 0, f
+            assert b["x"] + b["width"] <= 1280 and b["y"] + b["height"] <= 720, f
+            boxes.append((f, b))
+        for i, (fa, a) in enumerate(boxes):
+            for fb, b in boxes[i + 1:]:
+                apart = (a["x"] + a["width"] <= b["x"] or b["x"] + b["width"] <= a["x"]
+                         or a["y"] + a["height"] <= b["y"] or b["y"] + b["height"] <= a["y"])
+                assert apart, (fa, fb)

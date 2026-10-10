@@ -8,6 +8,11 @@ Each page gets: a title, a row of five global slicers, a visible status banner
 when the source is not READY, and up to 8 KPI cards from the page's measures.
 Pages without a source say so on the page. Missing data is never drawn as zero.
 
+Pages listed in CHARTS (1, 3, 6, 8) also get line/bar/table visuals taken from
+PowerBI/docs/PageLayouts.md, placed below the KPI cards. Every column and measure a
+chart uses is checked against model.bim; anything missing is skipped with a warning.
+The charts are new and have not been opened in Desktop.
+
 This is scaffolding written outside Desktop. It has not been opened in Desktop.
 Desktop is the authority: if it rejects or rewrites a file, trust Desktop.
 
@@ -87,6 +92,66 @@ def card(page_id, measure, home, box):
     }
 
 
+# page_id -> list of (visualType, key, category/columns, measures). Columns are
+# (table, column); measures are names in table "_Measures". Source: PageLayouts.md.
+MEASURES_TABLE = "_Measures"
+CHARTS = {
+    "1": [
+        ("lineChart", "monthly_nsv", [("Date Table", "Month")], ["NSV"]),
+        ("clusteredBarChart", "top_chains_nsv", [("Chain Master", "Chain")], ["NSV"]),
+    ],
+    "3": [
+        ("clusteredBarChart", "chain_nsv", [("Chain Master", "Chain")], ["NSV"]),
+        ("clusteredBarChart", "chain_mom", [("Chain Master", "Chain")], ["MoM Growth %"]),
+    ],
+    "6": [
+        ("clusteredBarChart", "brand_nsv", [("Brand Master", "Brand")], ["NSV"]),
+        ("clusteredBarChart", "category_nsv", [("Category Master", "Category")], ["NSV"]),
+    ],
+    "8": [
+        ("clusteredBarChart", "zone_nsv", [("Zone State Master", "Zone")], ["NSV"]),
+        ("tableEx", "zone_state_table", [("Zone State Master", "Zone"), ("Zone State Master", "State")],
+         ["NSV", "MoM Growth %", "YoY Growth %"]),
+    ],
+}
+
+
+def _col(table, column):
+    return {"field": {"Column": {"Expression": {"SourceRef": {"Entity": table}}, "Property": column}},
+            "queryRef": table + "." + column, "active": True}
+
+
+def _msr(name):
+    return {"field": {"Measure": {"Expression": {"SourceRef": {"Entity": MEASURES_TABLE}}, "Property": name}},
+            "queryRef": MEASURES_TABLE + "." + name}
+
+
+def chart(page_id, vtype, key, columns, measures, box):
+    cols = [_col(t, c) for t, c in columns]
+    msrs = [_msr(m) for m in measures]
+    if vtype == "tableEx":
+        state = {"Values": {"projections": cols + msrs}}
+    else:
+        state = {"Category": {"projections": cols[:1]}, "Y": {"projections": msrs}}
+    return {
+        "$schema": S_VISUAL, "name": vid(page_id, "chart:" + key), "position": box,
+        "visual": {"visualType": vtype, "query": {"queryState": state}, "drillFilterOtherVisuals": True},
+    }
+
+
+def valid_charts(page_id, columns_of, home_of):
+    """CHARTS specs for a page whose model references all exist; warn and skip the rest."""
+    ok = []
+    for vtype, key, columns, measures in CHARTS.get(page_id, []):
+        bad = ["%s[%s]" % (t, c) for t, c in columns if c not in columns_of.get(t, ())]
+        bad += ["[%s]" % m for m in measures if home_of.get(m) != MEASURES_TABLE]
+        if bad:
+            print("WARNING: page %s chart '%s' skipped, not in model.bim: %s" % (page_id, key, ", ".join(bad)))
+        else:
+            ok.append((vtype, key, columns, measures))
+    return ok
+
+
 def banner_text(p, period):
     if p["status"] == "READY":
         return None
@@ -101,7 +166,7 @@ def banner_text(p, period):
     return BANNER[p["status"]].format(detail=detail, period=period)
 
 
-def build_page(p, home_of, period):
+def build_page(p, home_of, period, columns_of=None):
     pid = p["page_id"]
     visuals = []
     visuals.append(textbox(pid, "title", "Page %s  |  %s" % (pid, p["name"]), pos(GUTTER, 8, W - 2 * GUTTER, 40), "20pt", True))
@@ -120,6 +185,18 @@ def build_page(p, home_of, period):
         r, c = divmod(i, 4)
         visuals.append(card(pid, m, home_of[m], pos(GUTTER + c * (cw + 12), y + r * (ch + 12), cw, ch)))
     y += ((len(cards) + 3) // 4) * (ch + 12) + 8
+    charts = valid_charts(pid, columns_of, home_of) if columns_of else []
+    if charts:
+        bottom = H - 56 - 8  # keep the footer clear
+        ch_h = bottom - y
+        if ch_h < 120:
+            print("WARNING: page %s charts skipped, only %dpx free below the cards" % (pid, ch_h))
+        else:
+            n_c = len(charts)
+            cw2 = (W - 2 * GUTTER - (n_c - 1) * 12) // n_c
+            for i, (vtype, key, columns, measures) in enumerate(charts):
+                visuals.append(chart(pid, vtype, key, columns, measures, pos(GUTTER + i * (cw2 + 12), y, cw2, ch_h)))
+            y = bottom + 8
     rest = len(p["measures"]) - len(cards)
     foot = "Build the remaining visuals from PowerBI/docs/PageLayouts.md (page %s)." % pid
     if p["origin"] == "proposed":
@@ -139,6 +216,7 @@ def main():
     contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
     model = json.loads(MODEL.read_text(encoding="utf-8"))["model"]
     home_of = {m["name"]: t["name"] for t in model["tables"] for m in t.get("measures", [])}
+    columns_of = {t["name"]: {c["name"] for c in t.get("columns", [])} for t in model["tables"]}
     period = "%s to %s" % tuple(contract["required_periods"])
 
     if OUT.parent.exists():
@@ -156,7 +234,7 @@ def main():
         (folder / "page.json").write_text(json.dumps({
             "$schema": S_PAGE, "name": name, "displayName": "%s %s" % (p["page_id"], p["name"]),
             "displayOption": "FitToPage", "height": H, "width": W}, indent=2) + "\n", encoding="utf-8")
-        for v in build_page(p, home_of, period):
+        for v in build_page(p, home_of, period, columns_of):
             d = folder / "visuals" / v["name"]
             d.mkdir(exist_ok=True)
             (d / "visual.json").write_text(json.dumps(v, indent=2) + "\n", encoding="utf-8")

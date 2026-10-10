@@ -133,6 +133,7 @@ Use this instead of pasting 46 queries by hand.
 4. Refresh. If a query fails, note the first failing query name and the exact error. Fix it at the Power Query step, not in a measure.
 5. Save As `.pbip` so Desktop writes the full TMDL. That replaces the small starter model.
 6. Check `docs/evidence/powerbi_full_ledger.md` for known source gaps before trusting a page.
+7. `python scripts/generate_pbir_pages.py` also writes line, bar and table charts on pages 1, 3, 6 and 8 (from `docs/PageLayouts.md`). These charts have not been opened in Desktop; Desktop is the authority if it rejects them.
 
 Pages: `python scripts/generate_pbir_pages.py` writes starter pages to `PowerBI/PBIR_Generated/definition/pages/`.
 Copy that folder into your report's `definition/pages/`. Use `--existing-pages-json` to keep your current pages first.
