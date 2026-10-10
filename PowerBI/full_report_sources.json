@@ -29,11 +29,11 @@
   ],
   "status_summary": {
     "NO_FILE_SOURCE": 2,
-    "TEMPLATE_ONLY": 3,
-    "INCOMPLETE_PERIODS": 9,
+    "TEMPLATE_ONLY": 2,
+    "INCOMPLETE_PERIODS": 12,
     "DERIVED": 5,
-    "READY": 27,
-    "EMPTY": 5
+    "READY": 29,
+    "EMPTY": 2
   },
   "tables": [
     {
@@ -208,9 +208,100 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
-      "periods_covered": [],
-      "status": "TEMPLATE_ONLY"
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Monthly/nielsen_urban_mt_aug26.csv",
+          "size_mb": 0.2,
+          "rows": 1592,
+          "columns": 12,
+          "periods": [
+            "2023-08",
+            "2023-09",
+            "2023-10",
+            "2023-11",
+            "2023-12",
+            "2024-01",
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12",
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY24",
+            "FY25",
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2023-08",
+        "2023-09",
+        "2023-10",
+        "2023-11",
+        "2023-12",
+        "2024-01",
+        "2024-02",
+        "2024-03",
+        "2024-04",
+        "2024-05",
+        "2024-06",
+        "2024-07",
+        "2024-08",
+        "2024-09",
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [],
+      "status": "READY"
     },
     {
       "table": "Fact TDP",
@@ -1493,6 +1584,155 @@
       "status": "READY"
     },
     {
+      "table": "Fact Secondary TOT Hierarchy",
+      "is_fact": true,
+      "pq_refs": [
+        "RawDataFolders\\SecondarySales_Monthly"
+      ],
+      "grain": "master/config",
+      "unit": "n/a",
+      "notes": "",
+      "dependent_pages": [],
+      "derived_from": [],
+      "warnings": [],
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Jul_Aug_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 12,
+          "columns": 5,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_brand_Q1_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 21,
+          "columns": 5,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Jul_Aug_FY27.csv",
+          "size_mb": 0.0,
+          "rows": 33,
+          "columns": 5,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_chain_Q1_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 192,
+          "columns": 5,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Jul_Aug_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 23,
+          "columns": 7,
+          "periods": [
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_distributor_Q1_FY27.csv",
+          "size_mb": 0.01,
+          "rows": 78,
+          "columns": 7,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Aug_2026.csv",
+          "size_mb": 7.15,
+          "rows": 41671,
+          "columns": 14,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        },
+        {
+          "file": "PowerBI/RawDataFolders/SecondarySales_Monthly/secondary_sales_tot_hierarchy_Apr_Jul_2026.csv",
+          "size_mb": 4.51,
+          "rows": 28537,
+          "columns": 13,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
+    },
+    {
       "table": "Dim Promo Calendar",
       "is_fact": false,
       "pq_refs": [
@@ -1539,9 +1779,44 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
-      "periods_covered": [],
-      "status": "EMPTY"
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Pack_Monthly/nielsen_pack_urban_mt_aug26.csv",
+          "size_mb": 0.02,
+          "rows": 212,
+          "columns": 10,
+          "periods": [
+            "2025-08",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-08",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07"
+      ],
+      "status": "INCOMPLETE_PERIODS"
     },
     {
       "table": "Nielsen Deck State Exposure",
@@ -1638,9 +1913,44 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
-      "periods_covered": [],
-      "status": "EMPTY"
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Pack_Brand_Monthly/nielsen_pack_brand_urban_mt_aug26.csv",
+          "size_mb": 0.05,
+          "rows": 595,
+          "columns": 9,
+          "periods": [
+            "2025-08",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2025-08",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07"
+      ],
+      "status": "INCOMPLETE_PERIODS"
     },
     {
       "table": "Store Universe Overrides",
@@ -1895,9 +2205,100 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
-      "periods_covered": [],
-      "status": "EMPTY"
+      "files": [
+        {
+          "file": "PowerBI/RawDataFolders/Nielsen_Brand_Cut_Monthly/nielsen_brand_cut_urban_mt_aug26.csv",
+          "size_mb": 0.23,
+          "rows": 1666,
+          "columns": 16,
+          "periods": [
+            "2023-08",
+            "2023-09",
+            "2023-10",
+            "2023-11",
+            "2023-12",
+            "2024-01",
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12",
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY24",
+            "FY25",
+            "FY26",
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2023-08",
+        "2023-09",
+        "2023-10",
+        "2023-11",
+        "2023-12",
+        "2024-01",
+        "2024-02",
+        "2024-03",
+        "2024-04",
+        "2024-05",
+        "2024-06",
+        "2024-07",
+        "2024-08",
+        "2024-09",
+        "2024-10",
+        "2024-11",
+        "2024-12",
+        "2025-01",
+        "2025-02",
+        "2025-03",
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [],
+      "status": "READY"
     },
     {
       "table": "Fact Store Type",

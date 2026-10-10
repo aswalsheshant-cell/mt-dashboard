@@ -8,10 +8,9 @@
   "html_tab_count": 11,
   "html_subview_count": 11,
   "status_counts": {
-    "MODEL_ERROR": 1,
     "NO_MODEL_SOURCE": 4,
     "NO_SOURCE": 5,
-    "PARTIAL": 10
+    "PARTIAL": 11
   },
   "tabs": [
     {
@@ -254,6 +253,9 @@
     "Fact Sales Cuts": [
       "21"
     ],
+    "Fact Secondary TOT Hierarchy": [
+      "19"
+    ],
     "Fact Store Type": [
       "21"
     ],
@@ -310,7 +312,6 @@
         "Fact TDP"
       ],
       "blocking_tables": [
-        "Fact Nielsen",
         "Fact TDP"
       ],
       "partial_tables": [
@@ -729,9 +730,7 @@
         "TDP Opportunity Quadrant"
       ],
       "measure_count": 10,
-      "layout_names_not_in_model": [
-        "Article"
-      ],
+      "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales",
         "Fact TDP"
@@ -926,14 +925,12 @@
         "Fact TDP"
       ],
       "blocking_tables": [
-        "Fact Nielsen",
-        "Fact Nielsen Brand Cut",
-        "Fact Nielsen Pack",
-        "Fact Nielsen Pack Brand",
         "Fact TDP"
       ],
       "partial_tables": [
         "Fact Account Category",
+        "Fact Nielsen Pack",
+        "Fact Nielsen Pack Brand",
         "Fact Offtake Sales"
       ],
       "slicers": [
@@ -997,7 +994,6 @@
         "Fact TDP"
       ],
       "blocking_tables": [
-        "Fact Nielsen",
         "Fact TDP"
       ],
       "partial_tables": [
@@ -1065,7 +1061,6 @@
         "Fact TDP"
       ],
       "blocking_tables": [
-        "Fact Nielsen",
         "Fact TDP"
       ],
       "partial_tables": [
@@ -1221,10 +1216,13 @@
       "layout_names_not_in_model": [],
       "fact_tables": [
         "Dim Promo Calendar",
-        "Fact Claim Master"
+        "Fact Claim Master",
+        "Fact Secondary TOT Hierarchy"
       ],
       "blocking_tables": [],
-      "partial_tables": [],
+      "partial_tables": [
+        "Fact Secondary TOT Hierarchy"
+      ],
       "slicers": [
         {
           "table": "Date Table",
@@ -1247,16 +1245,8 @@
           "column": "Category"
         }
       ],
-      "measures_with_missing_tables": {
-        "Dim_Calendar": [
-          "Historical Baseline Velocity Lakh"
-        ],
-        "Fact_Secondary_TOT_Hierarchy": [
-          "Actual NSV Lakh",
-          "Promoted SKU Breadth %"
-        ]
-      },
-      "status": "MODEL_ERROR",
+      "measures_with_missing_tables": {},
+      "status": "PARTIAL",
       "notes": [
         "No page in PageLayouts.md. New page proposed to cover this HTML view."
       ]

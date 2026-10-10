@@ -9,7 +9,7 @@ let
     // Step 1: Read source CSV from watch folder
     Source = Csv.Document(
         File.Contents(pRootFolder & "\RawDataFolders\Promo_Calendar\promo_mechanics_Sep_2026.csv"),
-        [Delimiter = ",", Columns = 18, Encoding = 65001, QuoteStyle = QuoteStyle.None]
+        [Delimiter = ",", Columns = 18, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
     ),
 
     // Step 2: Promote first row as headers
@@ -29,7 +29,7 @@ let
             {"Article Code", type text},            // Article/SKU code
             {"Description", type text},             // Full product description
             {"MRP", type number},                   // Maximum Retail Price (INR)
-            {"Offer to consumer", type any},        // Offer value/discount
+            {"Offer to consumer", type any},        // Offer value/discount, or text such as "BOGO"
             {"ME_Contribution_Pct", type number},   // Mamaearth contribution %
             {"Chain_Contribution_Pct", type number}, // Chain contribution %
             {"Total_Contribution_Pct", type number}, // Total trade spend allocation %
@@ -46,7 +46,9 @@ let
         TypedColumns,
         {
             {"Chain_Contribution_Pct", each if _ <> null and _ < -1000000000 then null else _, type number},
-            {"Total_Contribution_Pct", each if _ <> null and _ < -1000000000 then null else _, type number}
+            {"Total_Contribution_Pct", each if _ <> null and _ < -1000000000 then null else _, type number},
+            // the source writes EAN as a float string ("8904417322422.0"); drop the ".0" so it matches the sell-out EAN
+            {"EAN Code", each if _ = null then null else (if Text.EndsWith(Text.Trim(_), ".0") then Text.BeforeDelimiter(Text.Trim(_), ".", {0, RelativePosition.FromEnd}) else Text.Trim(_)), type text}
         }
     ),
 

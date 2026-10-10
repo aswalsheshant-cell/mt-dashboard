@@ -36,6 +36,7 @@ off_fy27_gov = off["governed_ex_reliance_brand_counter"]["fy_lakh"]["FY27"]
 pa_all = EXP["primary_article"]["gross"]["fy_lakh"]
 st = EXP["primary_shipto"]["fy_lakh"]
 chk = EXP["offtake_chain_master_check"]
+toth = EXP["secondary_tot_hierarchy"]
 mt_cm = chk["by_master_channel"]["MT"]
 rbc_cm = chk["by_master_channel"]["RBC"]
 eb_cm = chk["by_master_channel"].get("EB2B", "0")
@@ -103,6 +104,16 @@ SUMMARIZECOLUMNS(
   "ShipTo NSV Lakh", DIVIDE(SUM('Fact Primary ShipTo'[Primary NSV]), 100000)
 )
 ORDER BY 'Date Table'[FY Year]"""),
+    ("Q6b", "Promo sell-out table (Fact Secondary TOT Hierarchy), NSV by month (Rs lakh)",
+     "%d rows. " % toth["rows"] + "; ".join("%s %s" % (m, fmt(x)) for m, x in toth["monthly_lakh"].items()) + ". Total %s. %d of %d promo EANs find sell-out (the others have no Apr-Aug sell-out rows)." % (
+         fmt(toth["total_lakh"]), toth["promo_ean_found_in_sellout"], toth["promo_ean_count"]),
+     """EVALUATE
+ROW(
+  "Rows", COUNTROWS('Fact Secondary TOT Hierarchy'),
+  "Total NSV Lakh", SUM('Fact Secondary TOT Hierarchy'[NSV_Lakh]),
+  "Promoted NSV Lakh", [Actual Promoted NSV Lakh],
+  "Promoted SKU Breadth %", [Promoted SKU Breadth %]
+)"""),
     ("Q7", "Primary Article rows with no Chain (header-spelling bug check)",
      "0, or only rows that are genuinely unmapped distributor rows. A count in the tens of thousands means the Chain column is not being read.",
      """EVALUATE

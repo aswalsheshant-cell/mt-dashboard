@@ -208,7 +208,7 @@ Three of these are consolidated tabs with their own sub-view tab strip:
 - **Channel & Chain Performance** — Primary Sales, Category & Pack Mix, Reliance
   Brand Counter.
 - **Inventory & Supply Health** — Offtake Velocity, Demand-Supply Gap, Store
-  Coverage.
+  Coverage, State/Pack & Store Type (`storecuts`), TDP & Distribution (`tdp`).
 - **Demand & S&OP Planning** — Demand Forecast, Promotional Impact,
   Competitive Landscape / Market Share.
 

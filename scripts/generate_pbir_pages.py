@@ -202,6 +202,8 @@ def build_page(p, home_of, period, columns_of=None):
     if p["origin"] == "proposed":
         foot = "New page. No layout in PageLayouts.md. Source view: HTML tab '%s'%s." % (
             p["html_tab"], (", subview '%s'" % p["html_subviews"][0]) if p["html_subviews"] else "")
+    if pid == "2B":
+        foot += " Ship-to Primary here is all channels; Primary Article elsewhere is MT only (parameter pPrimaryChannel)."
     if rest > 0:
         foot += " %d more measures are listed in full_report_pages.json." % rest
     visuals.append(textbox(pid, "footer", foot, pos(GUTTER, min(y, H - 56), W - 2 * GUTTER, 40), "10pt"))

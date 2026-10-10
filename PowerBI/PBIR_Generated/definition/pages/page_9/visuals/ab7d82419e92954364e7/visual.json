@@ -18,7 +18,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "SOURCE NOT AVAILABLE: no data files for Fact Nielsen, Fact Nielsen Brand Cut, Fact Nielsen Pack, Fact Nielsen Pack Brand, Fact TDP. Values on this page are incomplete, not zero.",
+                    "value": "SOURCE NOT AVAILABLE: no data files for Fact TDP. Values on this page are incomplete, not zero.",
                     "textStyle": {
                       "fontSize": "12pt",
                       "fontWeight": "bold"

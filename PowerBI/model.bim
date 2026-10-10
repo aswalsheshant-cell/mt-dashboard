@@ -4639,6 +4639,164 @@
         ]
       },
       {
+        "name": "Fact Secondary TOT Hierarchy",
+        "columns": [
+          {
+            "name": "Source_Month",
+            "dataType": "string",
+            "sourceColumn": "Source_Month"
+          },
+          {
+            "name": "Month_Label",
+            "dataType": "string",
+            "sourceColumn": "Month_Label"
+          },
+          {
+            "name": "Distributor",
+            "dataType": "string",
+            "sourceColumn": "Distributor"
+          },
+          {
+            "name": "Dist_Monthly_Total",
+            "dataType": "double",
+            "sourceColumn": "Dist_Monthly_Total"
+          },
+          {
+            "name": "Chain",
+            "dataType": "string",
+            "sourceColumn": "Chain"
+          },
+          {
+            "name": "Chain_Monthly_Total",
+            "dataType": "double",
+            "sourceColumn": "Chain_Monthly_Total"
+          },
+          {
+            "name": "Chain_TOT_Pct",
+            "dataType": "double",
+            "sourceColumn": "Chain_TOT_Pct"
+          },
+          {
+            "name": "Brand",
+            "dataType": "string",
+            "sourceColumn": "Brand"
+          },
+          {
+            "name": "Brand_Monthly_Total",
+            "dataType": "double",
+            "sourceColumn": "Brand_Monthly_Total"
+          },
+          {
+            "name": "Brand_TOT_Pct",
+            "dataType": "double",
+            "sourceColumn": "Brand_TOT_Pct"
+          },
+          {
+            "name": "EAN",
+            "dataType": "string",
+            "sourceColumn": "EAN"
+          },
+          {
+            "name": "Article",
+            "dataType": "string",
+            "sourceColumn": "Article"
+          },
+          {
+            "name": "NSV_Value",
+            "dataType": "double",
+            "sourceColumn": "NSV_Value"
+          },
+          {
+            "name": "NSV_Lakh",
+            "dataType": "double",
+            "sourceColumn": "NSV_Lakh"
+          },
+          {
+            "name": "Data Source File",
+            "dataType": "string",
+            "sourceColumn": "Data Source File"
+          },
+          {
+            "name": "MonthStart",
+            "dataType": "dateTime",
+            "sourceColumn": "MonthStart"
+          }
+        ],
+        "measures": [],
+        "partitions": [
+          {
+            "name": "Fact Secondary TOT Hierarchy",
+            "source": {
+              "type": "m",
+              "expression": [
+                "// =====================================================================",
+                "// QUERY: Fact Secondary TOT Hierarchy   (article-grain distributor sell-out with TOT %)",
+                "// Grain: Source_Month x Distributor x Chain x Brand x EAN",
+                "//",
+                "// Source: PowerBI/RawDataFolders/SecondarySales_Monthly/",
+                "//         Files: secondary_sales_tot_hierarchy_*.csv ONLY",
+                "//                (today: secondary_sales_tot_hierarchy_Apr_Aug_2026.csv = Apr-Aug'26)",
+                "//",
+                "// Why the name filter: 44_Fact_SecondarySales.pq reads the distributor register",
+                "// files from the same folder, and these files repeat the same sales at article",
+                "// grain. Keeping them in their own table stops the same sales being counted twice.",
+                "// Promo measures (DAX/15_Promo_Measures.dax) read this table.",
+                "//",
+                "// Amounts: NSV_Value is rupees, NSV_Lakh is the same value in lakh.",
+                "// EAN arrives with a leading apostrophe (Excel text marker); it is removed.",
+                "//",
+                "// Refresh: a new period file named secondary_sales_tot_hierarchy_<period>.csv is",
+                "// picked up on Refresh. Do not leave two files that cover the same months.",
+                "// =====================================================================",
+                "let",
+                "    RequiredColumns = {\"Source_Month\", \"Month_Label\", \"Distributor\", \"Dist_Monthly_Total\",",
+                "                       \"Chain\", \"Chain_Monthly_Total\", \"Chain_TOT_Pct\", \"Brand\",",
+                "                       \"Brand_Monthly_Total\", \"Brand_TOT_Pct\", \"EAN\", \"Article\",",
+                "                       \"NSV_Value\", \"NSV_Lakh\"},",
+                "",
+                "    Files = Folder.Files(pRootFolder & \"\\RawDataFolders\\SecondarySales_Monthly\"),",
+                "    TotFiles = Table.SelectRows(Files, each",
+                "        Text.StartsWith(Text.Lower([Name]), \"secondary_sales_tot_hierarchy_\")",
+                "        and Text.Lower([Extension]) = \".csv\"),",
+                "",
+                "    Parsed = Table.AddColumn(TotFiles, \"Data\", each",
+                "        let",
+                "            t = Table.PromoteHeaders(",
+                "                    Csv.Document([Content], [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "                    [PromoteAllScalars=true]),",
+                "            // a renamed or missing header fails the refresh instead of loading blanks",
+                "            cols = Table.SelectColumns(t, RequiredColumns, MissingField.Error)",
+                "        in",
+                "            Table.AddColumn(cols, \"Data Source File\", (r) => [Name], type text)),",
+                "",
+                "    Source =",
+                "        if Table.RowCount(Parsed) = 0 then",
+                "            #table(RequiredColumns & {\"Data Source File\"}, {})",
+                "        else",
+                "            Table.Combine(Parsed[Data]),",
+                "",
+                "    Typed = Table.TransformColumnTypes(Source, {",
+                "        {\"Source_Month\", type text}, {\"Month_Label\", type text},",
+                "        {\"Distributor\", type text}, {\"Chain\", type text}, {\"Brand\", type text},",
+                "        {\"EAN\", type text}, {\"Article\", type text},",
+                "        {\"Dist_Monthly_Total\", type number}, {\"Chain_Monthly_Total\", type number},",
+                "        {\"Chain_TOT_Pct\", type number}, {\"Brand_Monthly_Total\", type number},",
+                "        {\"Brand_TOT_Pct\", type number}, {\"NSV_Value\", type number}, {\"NSV_Lakh\", type number}",
+                "    }),",
+                "",
+                "    CleanEAN = Table.TransformColumns(Typed, {{\"EAN\", each",
+                "        if _ = null then null else Text.Trim(Text.TrimStart(_, \"'\")), type text}}),",
+                "",
+                "    AddMonthStart = Table.AddColumn(CleanEAN, \"MonthStart\", each",
+                "        try Date.FromText([Source_Month] & \"-01\") otherwise null, type date)",
+                "in",
+                "    AddMonthStart"
+              ]
+            }
+          }
+        ]
+      },
+      {
         "name": "Dim Promo Calendar",
         "columns": [
           {
@@ -4708,7 +4866,7 @@
           },
           {
             "name": "Description",
-            "dataType": "double",
+            "dataType": "string",
             "sourceColumn": "Description"
           },
           {
@@ -4718,7 +4876,7 @@
           },
           {
             "name": "Offer to consumer",
-            "dataType": "double",
+            "dataType": "string",
             "sourceColumn": "Offer to consumer"
           },
           {
@@ -4738,7 +4896,7 @@
           },
           {
             "name": "Locations",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "Locations"
           },
           {
@@ -4770,7 +4928,7 @@
                 "    // Step 1: Read source CSV from watch folder",
                 "    Source = Csv.Document(",
                 "        File.Contents(pRootFolder & \"\\RawDataFolders\\Promo_Calendar\\promo_mechanics_Sep_2026.csv\"),",
-                "        [Delimiter = \",\", Columns = 18, Encoding = 65001, QuoteStyle = QuoteStyle.None]",
+                "        [Delimiter = \",\", Columns = 18, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]",
                 "    ),",
                 "",
                 "    // Step 2: Promote first row as headers",
@@ -4790,7 +4948,7 @@
                 "            {\"Article Code\", type text},            // Article/SKU code",
                 "            {\"Description\", type text},             // Full product description",
                 "            {\"MRP\", type number},                   // Maximum Retail Price (INR)",
-                "            {\"Offer to consumer\", type any},        // Offer value/discount",
+                "            {\"Offer to consumer\", type any},        // Offer value/discount, or text such as \"BOGO\"",
                 "            {\"ME_Contribution_Pct\", type number},   // Mamaearth contribution %",
                 "            {\"Chain_Contribution_Pct\", type number}, // Chain contribution %",
                 "            {\"Total_Contribution_Pct\", type number}, // Total trade spend allocation %",
@@ -4807,7 +4965,9 @@
                 "        TypedColumns,",
                 "        {",
                 "            {\"Chain_Contribution_Pct\", each if _ <> null and _ < -1000000000 then null else _, type number},",
-                "            {\"Total_Contribution_Pct\", each if _ <> null and _ < -1000000000 then null else _, type number}",
+                "            {\"Total_Contribution_Pct\", each if _ <> null and _ < -1000000000 then null else _, type number},",
+                "            // the source writes EAN as a float string (\"8904417322422.0\"); drop the \".0\" so it matches the sell-out EAN",
+                "            {\"EAN Code\", each if _ = null then null else (if Text.EndsWith(Text.Trim(_), \".0\") then Text.BeforeDelimiter(Text.Trim(_), \".\", {0, RelativePosition.FromEnd}) else Text.Trim(_)), type text}",
                 "        }",
                 "    ),",
                 "",
@@ -9926,7 +10086,7 @@
           {
             "name": "Actual NSV Lakh",
             "expression": [
-              "SUM(Fact_Secondary_TOT_Hierarchy[NSV_Lakh])"
+              "SUM('Fact Secondary TOT Hierarchy'[NSV_Lakh])"
             ],
             "description": "Source: 15_Promo_Measures.dax"
           },
@@ -9970,11 +10130,11 @@
             "expression": [
               "VAR PromotedSKUs =",
               "    CALCULATE(",
-              "        DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN]),",
+              "        DISTINCTCOUNT('Fact Secondary TOT Hierarchy'[EAN]),",
               "        KEEPFILTERS(NOT(ISBLANK('Dim Promo Calendar'[EAN Code])))",
               "    )",
               "VAR TotalSKUs =",
-              "    DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN])",
+              "    DISTINCTCOUNT('Fact Secondary TOT Hierarchy'[EAN])",
               "RETURN",
               "    DIVIDE(PromotedSKUs, TotalSKUs, 0)",
               "",
@@ -9987,12 +10147,16 @@
             "expression": [
               "VAR WeightedDiscount =",
               "    SUMX(",
-              "        Dim_PromoCalendar,",
-              "        VALUE('Dim Promo Calendar'[Offer to consumer])",
+              "        'Dim Promo Calendar',",
+              "        IFERROR(VALUE('Dim Promo Calendar'[Offer to consumer]), BLANK())  // text offers such as \"BOGO\" have no % discount",
               "    )",
-              "VAR OfferCount = COUNTROWS(Dim_PromoCalendar)",
+              "VAR OfferCount =",
+              "    COUNTX(",
+              "        'Dim Promo Calendar',",
+              "        IFERROR(VALUE('Dim Promo Calendar'[Offer to consumer]), BLANK())",
+              "    )",
               "RETURN",
-              "    DIVIDE(WeightedDiscount, OfferCount, 0)"
+              "    DIVIDE(WeightedDiscount, OfferCount)   // blank, not 0, when no row has a numeric offer"
             ],
             "description": "Source: 15_Promo_Measures.dax"
           },
@@ -10001,10 +10165,10 @@
             "expression": [
               "VAR WeightedCompanyShare =",
               "    SUMX(",
-              "        Dim_PromoCalendar,",
+              "        'Dim Promo Calendar',",
               "        'Dim Promo Calendar'[ME_Contribution_Pct]",
               "    )",
-              "VAR OfferCount = COUNTROWS(Dim_PromoCalendar)",
+              "VAR OfferCount = COUNTROWS('Dim Promo Calendar')",
               "RETURN",
               "    DIVIDE(WeightedCompanyShare, OfferCount, 0)"
             ],
@@ -10033,8 +10197,8 @@
             "expression": [
               "CALCULATE(",
               "    SUM('Fact Claim Master'[Amount_Lakh]),",
-              "    REMOVEFILTERS(Dim_PromoCalendar),",
-              "    REMOVEFILTERS(Fact_Secondary_TOT_Hierarchy)",
+              "    REMOVEFILTERS('Dim Promo Calendar'),",
+              "    REMOVEFILTERS('Fact Secondary TOT Hierarchy')",
               ")"
             ],
             "description": "Source: 15_Promo_Measures.dax"
@@ -10077,20 +10241,20 @@
           {
             "name": "Historical Baseline Velocity Lakh",
             "expression": [
-              "VAR CurrentDate = MAX(Dim_Calendar[Date])",
+              "VAR CurrentDate = MAX('Date Table'[Date])",
               "RETURN",
               "    CALCULATE(",
               "        AVERAGEX(",
-              "            VALUES(Dim_Calendar[Month_Label]),",
+              "            VALUES('Date Table'[Month]),",
               "            [Actual NSV Lakh]",
               "        ),",
               "        DATESINPERIOD(",
-              "            Dim_Calendar[Date],",
+              "            'Date Table'[Date],",
               "            EDATE(CurrentDate, -1),",
               "            -3,",
               "            MONTH",
               "        ),",
-              "        REMOVEFILTERS(Dim_PromoCalendar)",
+              "        REMOVEFILTERS('Dim Promo Calendar')",
               "    )"
             ],
             "description": "Source: 15_Promo_Measures.dax"
@@ -10163,14 +10327,15 @@
               "// USAGE NOTES:",
               "// ==============================================================================",
               "// 1. Relationships required:",
-              "//    - 'Dim Promo Calendar'[EAN Code] → Fact_Secondary_TOT_Hierarchy[EAN]",
-              "//    - 'Dim Promo Calendar'[Brand] → Dim_Brand[Brand_Name]",
-              "//    - Dim_Calendar[Date] → Fact_Secondary_TOT_Hierarchy[Source_Month]",
+              "//    - 'Dim Promo Calendar'[EAN Code] → 'Fact Secondary TOT Hierarchy'[EAN]",
+              "//    - 'Date Table'[MonthStart] → 'Fact Secondary TOT Hierarchy'[MonthStart]  (in model.bim)",
+              "//    - No Brand relationship is built. Brand names differ in case between the files; use the Brand slicer on the fact.",
+              "//    - The promo file is Sep-26 and the sell-out file is Apr-Aug-26, so \"promoted NSV\" means sell-out of EANs promoted in September.",
               "//",
               "// 2. Slicers recommended:",
-              "//    - Dim_Calendar[Month_Label] (Sep-26)",
-              "//    - Dim_Brand[Brand_Name]",
-              "//    - Dim_Chain[Chain_Name]",
+              "//    - 'Date Table'[Month] (Sep-26)",
+              "//    - 'Brand Master'[Brand]",
+              "//    - 'Chain Master'[Chain]",
               "//    - 'Dim Promo Calendar'[Promo_Type] (Consumer Promotion, etc.)",
               "//",
               "// 3. Conditional formatting:",
@@ -11493,6 +11658,24 @@
         "toTable": "Visit City List",
         "toColumn": "City",
         "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "rel_047",
+        "fromTable": "Fact Secondary TOT Hierarchy",
+        "fromColumn": "MonthStart",
+        "toTable": "Date Table",
+        "toColumn": "MonthStart",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "rel_048",
+        "fromTable": "Fact Secondary TOT Hierarchy",
+        "fromColumn": "EAN",
+        "toTable": "Dim Promo Calendar",
+        "toColumn": "EAN Code",
+        "crossFilteringBehavior": "oneDirection",
+        "fromCardinality": "many",
+        "toCardinality": "many"
       }
     ],
     "annotations": [

@@ -60,7 +60,13 @@ BOOL_PATTERNS = re.compile(
 )
 
 
+# Text columns whose names look numeric ("Offer to consumer" holds 0.25 and also "BOGO").
+STRING_COLUMNS = {"Description", "Locations", "Offer to consumer"}
+
+
 def infer_data_type(col_name):
+    if col_name in STRING_COLUMNS:
+        return "string"
     if re.search(r"FY Year|FY_Year", col_name):  # labels such as "25-26", not numbers
         return "string"
     if BOOL_PATTERNS.search(col_name):
@@ -336,6 +342,12 @@ KNOWN_COLUMNS = {
         "FY_Derived", "Distributor", "NSV_Lakh", "NSV_Cr",
         "Is_Provisional", "Data_Source",
     ],
+    "Fact Secondary TOT Hierarchy": [
+        "Source_Month", "Month_Label", "Distributor", "Dist_Monthly_Total",
+        "Chain", "Chain_Monthly_Total", "Chain_TOT_Pct", "Brand",
+        "Brand_Monthly_Total", "Brand_TOT_Pct", "EAN", "Article",
+        "NSV_Value", "NSV_Lakh", "Data Source File", "MonthStart",
+    ],
     "Fact Claim Master": [
         "Period", "FY_Year", "Quarter", "Chain", "Source_Chain",
         "Expense_Category", "Amount_Lakh",
@@ -573,6 +585,7 @@ PQ_TABLE_MAP = {
     "43_SecondarySalesEfficiency.pq": [("Secondary Sales Efficiency", "table")],
     "44_Fact_SecondarySales.pq": [("Fact Secondary Sales", "table")],
     "45_Fact_ClaimMaster.pq": [("Fact Claim Master", "table")],
+    "62_Fact_Secondary_TOT_Hierarchy.pq": [("Fact Secondary TOT Hierarchy", "table")],
     "46_Dim_PromoCalendar.pq": [("Dim Promo Calendar", "table")],
     "47_Fact_Nielsen_Pack.pq": [("Fact Nielsen Pack", "table")],
     "48_Nielsen_Deck_StateExposure.pq": [("Nielsen Deck State Exposure", "table")],
@@ -652,6 +665,9 @@ RELATIONSHIPS = [
     ("Nielsen Competitor Master", "Brand", "Fact Nielsen Brand Cut", "Brand"),
     # Store City Master / Visit City
     ("Visit City List", "City", "Store City Master", "Visit City"),
+    # Promo measures (DAX/15): sell-out by month, and promo EAN filtering the sell-out EAN
+    ("Date Table", "MonthStart", "Fact Secondary TOT Hierarchy", "MonthStart"),
+    ("Dim Promo Calendar", "EAN Code", "Fact Secondary TOT Hierarchy", "EAN", "many_to_many"),
 ]
 
 # ── Hierarchy definitions ─────────────────────────────────────────────
@@ -732,8 +748,8 @@ def build_table(name, columns, m_expression=None, is_calculated=False,
     return table
 
 
-def build_relationship(idx, dim_table, dim_col, fact_table, fact_col):
-    return {
+def build_relationship(idx, dim_table, dim_col, fact_table, fact_col, many_to_many=False):
+    rel = {
         "name": f"rel_{idx:03d}",
         "fromTable": fact_table,
         "fromColumn": fact_col,
@@ -741,6 +757,10 @@ def build_relationship(idx, dim_table, dim_col, fact_table, fact_col):
         "toColumn": dim_col,
         "crossFilteringBehavior": "oneDirection",
     }
+    if many_to_many:  # a promo EAN can sit on several rows on both sides
+        rel["fromCardinality"] = "many"
+        rel["toCardinality"] = "many"
+    return rel
 
 
 def build_hierarchy(name, levels):
@@ -873,9 +893,9 @@ def main():
 
     # Build relationships
     relationships = []
-    for i, (dim_t, dim_c, fact_t, fact_c) in enumerate(RELATIONSHIPS):
+    for i, (dim_t, dim_c, fact_t, fact_c, *extra) in enumerate(RELATIONSHIPS):
         if dim_t in tables_by_name and fact_t in tables_by_name:
-            relationships.append(build_relationship(i, dim_t, dim_c, fact_t, fact_c))
+            relationships.append(build_relationship(i, dim_t, dim_c, fact_t, fact_c, many_to_many=bool(extra and extra[0] == "many_to_many")))
         else:
             missing = dim_t if dim_t not in tables_by_name else fact_t
             print(f"  SKIP rel: {dim_t} → {fact_t} (missing: {missing})")

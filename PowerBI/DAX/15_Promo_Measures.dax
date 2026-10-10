@@ -1,14 +1,14 @@
 // ==============================================================================
 // 15_Promo_Measures.dax
 // Modern Trade Dashboard — Promotional Analytics & Trade Spend ROI Measures
-// Target Tables: Fact_Secondary_TOT_Hierarchy, Dim_PromoCalendar, Fact_ClaimMaster
+// Target Tables: 'Fact Secondary TOT Hierarchy', 'Dim Promo Calendar', 'Fact Claim Master'
 // Purpose: Measure planned promo mechanics vs actual sales & claim spend outcomes
 // ==============================================================================
 
 // --- SECTION 1: BASE ACTUALS & PROMO SCOPE ---
 
 [Actual NSV Lakh] =
-SUM(Fact_Secondary_TOT_Hierarchy[NSV_Lakh])
+SUM('Fact Secondary TOT Hierarchy'[NSV_Lakh])
 
 [Actual Promoted NSV Lakh] =
 CALCULATE(
@@ -32,11 +32,11 @@ DIVIDE(
 [Promoted SKU Breadth %] =
 VAR PromotedSKUs =
     CALCULATE(
-        DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN]),
+        DISTINCTCOUNT('Fact Secondary TOT Hierarchy'[EAN]),
         KEEPFILTERS(NOT(ISBLANK('Dim Promo Calendar'[EAN Code])))
     )
 VAR TotalSKUs =
-    DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN])
+    DISTINCTCOUNT('Fact Secondary TOT Hierarchy'[EAN])
 RETURN
     DIVIDE(PromotedSKUs, TotalSKUs, 0)
 
@@ -45,20 +45,24 @@ RETURN
 [Planned Promo Discount %] =
 VAR WeightedDiscount =
     SUMX(
-        Dim_PromoCalendar,
-        VALUE('Dim Promo Calendar'[Offer to consumer])
+        'Dim Promo Calendar',
+        IFERROR(VALUE('Dim Promo Calendar'[Offer to consumer]), BLANK())  // text offers such as "BOGO" have no % discount
     )
-VAR OfferCount = COUNTROWS(Dim_PromoCalendar)
+VAR OfferCount =
+    COUNTX(
+        'Dim Promo Calendar',
+        IFERROR(VALUE('Dim Promo Calendar'[Offer to consumer]), BLANK())
+    )
 RETURN
-    DIVIDE(WeightedDiscount, OfferCount, 0)
+    DIVIDE(WeightedDiscount, OfferCount)   // blank, not 0, when no row has a numeric offer
 
 [Planned Company Trade Spend %] =
 VAR WeightedCompanyShare =
     SUMX(
-        Dim_PromoCalendar,
+        'Dim Promo Calendar',
         'Dim Promo Calendar'[ME_Contribution_Pct]
     )
-VAR OfferCount = COUNTROWS(Dim_PromoCalendar)
+VAR OfferCount = COUNTROWS('Dim Promo Calendar')
 RETURN
     DIVIDE(WeightedCompanyShare, OfferCount, 0)
 
@@ -79,8 +83,8 @@ SUMX(
 [Actual Claim Expense Lakh] =
 CALCULATE(
     SUM('Fact Claim Master'[Amount_Lakh]),
-    REMOVEFILTERS(Dim_PromoCalendar),
-    REMOVEFILTERS(Fact_Secondary_TOT_Hierarchy)
+    REMOVEFILTERS('Dim Promo Calendar'),
+    REMOVEFILTERS('Fact Secondary TOT Hierarchy')
 )
 
 [Promo Spend Variance Lakh] =
@@ -107,20 +111,20 @@ RETURN
 // --- SECTION 4: INCREMENTAL LIFT & ROI ---
 
 [Historical Baseline Velocity Lakh] =
-VAR CurrentDate = MAX(Dim_Calendar[Date])
+VAR CurrentDate = MAX('Date Table'[Date])
 RETURN
     CALCULATE(
         AVERAGEX(
-            VALUES(Dim_Calendar[Month_Label]),
+            VALUES('Date Table'[Month]),
             [Actual NSV Lakh]
         ),
         DATESINPERIOD(
-            Dim_Calendar[Date],
+            'Date Table'[Date],
             EDATE(CurrentDate, -1),
             -3,
             MONTH
         ),
-        REMOVEFILTERS(Dim_PromoCalendar)
+        REMOVEFILTERS('Dim Promo Calendar')
     )
 
 [Incremental Promo NSV Lakh] =
@@ -173,14 +177,15 @@ RETURN
 // USAGE NOTES:
 // ==============================================================================
 // 1. Relationships required:
-//    - 'Dim Promo Calendar'[EAN Code] → Fact_Secondary_TOT_Hierarchy[EAN]
-//    - 'Dim Promo Calendar'[Brand] → Dim_Brand[Brand_Name]
-//    - Dim_Calendar[Date] → Fact_Secondary_TOT_Hierarchy[Source_Month]
+//    - 'Dim Promo Calendar'[EAN Code] → 'Fact Secondary TOT Hierarchy'[EAN]
+//    - 'Date Table'[MonthStart] → 'Fact Secondary TOT Hierarchy'[MonthStart]  (in model.bim)
+//    - No Brand relationship is built. Brand names differ in case between the files; use the Brand slicer on the fact.
+//    - The promo file is Sep-26 and the sell-out file is Apr-Aug-26, so "promoted NSV" means sell-out of EANs promoted in September.
 //
 // 2. Slicers recommended:
-//    - Dim_Calendar[Month_Label] (Sep-26)
-//    - Dim_Brand[Brand_Name]
-//    - Dim_Chain[Chain_Name]
+//    - 'Date Table'[Month] (Sep-26)
+//    - 'Brand Master'[Brand]
+//    - 'Chain Master'[Chain]
 //    - 'Dim Promo Calendar'[Promo_Type] (Consumer Promotion, etc.)
 //
 // 3. Conditional formatting:

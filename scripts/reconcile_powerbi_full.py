@@ -162,6 +162,23 @@ def primary_shipto_composite():
             "note": "Month 2026-06 has no rows in the composite file."}
 
 
+def secondary_tot_hierarchy():
+    """Expected rows and NSV by month for 62_Fact_Secondary_TOT_Hierarchy.pq, and how many promo EANs find sell-out."""
+    f = RAW / "SecondarySales_Monthly" / "secondary_sales_tot_hierarchy_Apr_Aug_2026.csv"
+    tot, eans, rows = defaultdict(Decimal), set(), 0
+    with open(f, newline="", encoding="utf-8-sig") as fh:
+        for r in csv.DictReader(fh):
+            rows += 1
+            tot[r["Source_Month"]] += Decimal(r["NSV_Lakh"] or 0)
+            eans.add(r["EAN"].strip().lstrip("'").strip())
+    pf = RAW / "Promo_Calendar" / "promo_mechanics_Sep_2026.csv"
+    with open(pf, newline="", encoding="utf-8-sig") as fh:
+        promo = {r["EAN Code"].strip().removesuffix(".0") for r in csv.DictReader(fh) if r["EAN Code"].strip()}
+    return {"file": f.name, "rows": rows, "monthly_lakh": {k: str(v.quantize(Decimal("0.01"))) for k, v in sorted(tot.items())},
+            "total_lakh": str(sum(tot.values()).quantize(Decimal("0.01"))), "distinct_ean": len(eans),
+            "promo_ean_count": len(promo), "promo_ean_found_in_sellout": len(promo & eans)}
+
+
 def secondary_chain():
     files = sorted((RAW / "SecondarySales_Monthly").glob("secondary_sales_chain_*.csv"))
     tot = defaultdict(Decimal)
@@ -194,6 +211,7 @@ def main():
         "primary_article": primary_article,
         "primary_article_by_channel": primary_article_by_channel(),
         "secondary_chain": secondary_chain(),
+        "secondary_tot_hierarchy": secondary_tot_hierarchy(),
         "primary_shipto": primary_shipto_composite(),
         "offtake_chain_master_check": offtake_chain_master_check(),
         "coverage_notes": [],

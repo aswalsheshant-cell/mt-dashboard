@@ -254,3 +254,47 @@ def test_primary_channel_filter_and_fsn_decision_are_wired():
     assert "Nykaa (FSN),Nykaa,Beauty Retail,South-2,EB2B,Yes" in master
     exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))
     assert "EB2B" in exp["offtake_chain_master_check"]["by_master_channel"]
+
+
+def test_promo_measures_use_only_tables_that_exist():
+    tables = {t["name"] for t in _model()["tables"]}
+    dax = (PBI / "DAX" / "15_Promo_Measures.dax").read_text(encoding="utf-8")
+    code = "\n".join(l for l in dax.splitlines() if not l.lstrip().startswith("//"))
+    assert not re.findall(r"\b(?:Dim|Fact)_[A-Za-z_]+\b", code)
+    assert {"Fact Secondary TOT Hierarchy", "Dim Promo Calendar", "Fact Claim Master"} <= tables
+
+
+def test_promo_page_is_not_a_model_error():
+    doc = json.loads((PBI / "full_report_pages.json").read_text(encoding="utf-8"))
+    page = next(p for p in doc["pages"] if p["page_id"] == "19")
+    assert page["status"] != "MODEL_ERROR" and not page["measures_with_missing_tables"]
+
+
+def test_promo_relationships_exist_and_ean_types_match():
+    m = _model()
+    rels = {(r["fromTable"], r["toTable"]) for r in m["relationships"]}
+    assert ("Fact Secondary TOT Hierarchy", "Date Table") in rels
+    assert ("Fact Secondary TOT Hierarchy", "Dim Promo Calendar") in rels
+
+
+def test_tot_hierarchy_expected_sum_matches_file_total():
+    exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))["secondary_tot_hierarchy"]
+    assert abs(sum(float(v) for v in exp["monthly_lakh"].values()) - float(exp["total_lakh"])) < 0.05
+    assert exp["promo_ean_found_in_sellout"] > 0
+
+
+def test_nielsen_watch_folders_hold_the_seed_files():
+    for d in ("Nielsen_Monthly", "Nielsen_Pack_Monthly", "Nielsen_Pack_Brand_Monthly", "Nielsen_Brand_Cut_Monthly"):
+        seed = sorted((PBI / "SeedData" / "Nielsen" / d).glob("*.csv"))
+        raw = {f.name for f in (PBI / "RawDataFolders" / d).glob("nielsen_*.csv")}
+        assert seed and {f.name for f in seed} <= raw, d
+
+
+def test_promo_query_reads_quoted_commas_and_text_offers_are_text():
+    pq = (PBI / "PowerQuery" / "46_Dim_PromoCalendar.pq").read_text(encoding="utf-8")
+    assert "QuoteStyle.Csv" in pq and "QuoteStyle.None" not in pq
+    promo = next(t for t in _model()["tables"] if t["name"] == "Dim Promo Calendar")
+    types = {c["name"]: c["dataType"] for c in promo["columns"]}
+    assert types["Offer to consumer"] == types["Description"] == types["Locations"] == "string"
+    dax = (PBI / "DAX" / "15_Promo_Measures.dax").read_text(encoding="utf-8")
+    assert "IFERROR(VALUE(" in dax

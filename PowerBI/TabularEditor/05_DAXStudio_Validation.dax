@@ -84,6 +84,19 @@ ORDER BY 'Date Table'[FY Year]
 
 
 -- ------------------------------------------------------------
+-- Q6b. Promo sell-out table (Fact Secondary TOT Hierarchy), NSV by month (Rs lakh)
+-- Expected: 41671 rows. 2026-04 1,300.34; 2026-05 837.51; 2026-06 1,215.23; 2026-07 920.67; 2026-08 3,308.45. Total 7,582.20. 247 of 265 promo EANs find sell-out (the others have no Apr-Aug sell-out rows).
+-- ------------------------------------------------------------
+EVALUATE
+ROW(
+  "Rows", COUNTROWS('Fact Secondary TOT Hierarchy'),
+  "Total NSV Lakh", SUM('Fact Secondary TOT Hierarchy'[NSV_Lakh]),
+  "Promoted NSV Lakh", [Actual Promoted NSV Lakh],
+  "Promoted SKU Breadth %", [Promoted SKU Breadth %]
+)
+
+
+-- ------------------------------------------------------------
 -- Q7. Primary Article rows with no Chain (header-spelling bug check)
 -- Expected: 0, or only rows that are genuinely unmapped distributor rows. A count in the tens of thousands means the Chain column is not being read.
 -- ------------------------------------------------------------

@@ -18,7 +18,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Build the remaining visuals from PowerBI/docs/PageLayouts.md (page 2B). 2 more measures are listed in full_report_pages.json.",
+                    "value": "Build the remaining visuals from PowerBI/docs/PageLayouts.md (page 2B). Ship-to Primary here is all channels; Primary Article elsewhere is MT only (parameter pPrimaryChannel). 2 more measures are listed in full_report_pages.json.",
                     "textStyle": {
                       "fontSize": "10pt"
                     }
