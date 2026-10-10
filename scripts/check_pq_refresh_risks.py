@@ -9,6 +9,8 @@ raise:
   DUPLICATE_COLUMN a step makes two columns with one name
   BAD_VALUE        a column typed number/date has values that will not convert
   UNKNOWN_QUERY    a step refers to a query that does not exist
+  PARTIAL_COLUMN   a column a step selects exists in some source files but not others,
+                   so UseNull would leave it blank for those files
   NO_SOURCE_FILE   File.Contents / Folder.Files points at nothing
 
 It stops following a query when it reaches a step it cannot model (joins, expands,
@@ -31,6 +33,12 @@ PBI = ROOT / "PowerBI"
 PQ = PBI / "PowerQuery"
 SKIP = ("_readme", "_template")
 MAX_ROWS = 300000
+
+# Gaps in the source files themselves. The query is fine; the data lacks the column.
+ACCEPTED_SOURCE_GAPS = {
+    ("11_Fact_OfftakeSales / Picked", "DC Name"): "offtake_store_article_Apr_26.csv has no DC Name column",
+    ("11_Fact_OfftakeSales / Picked", "SO/ASE Name"): "offtake_store_article_Apr_26.csv has no SO/ASE Name column",
+}
 
 
 # ---------- tiny M reader ----------
@@ -220,7 +228,9 @@ def follow(name, body, all_queries, findings):
     steps = steps_of(body)
     cols = None  # set of column names, or None when unknown
     files = []
+    file_hdrs = []
     fixed = False
+    aliased = False
     known = {n for n, _ in steps}
     for sname, expr in steps:
         head = expr.split("(", 1)[0].strip()
@@ -254,6 +264,7 @@ def follow(name, body, all_queries, findings):
                     return
                 files = fl
         if head == "fnCombineFolder" and files:
+            file_hdrs = [set(read_headers(f)) for f in files]
             hs = set()
             for f in files:
                 hs.update(read_headers(f))
@@ -265,6 +276,8 @@ def follow(name, body, all_queries, findings):
                 hs.update(read_headers(f))
             cols = set(hs)
             continue
+        if "fnAlias" in expr or "Table.RenameColumns" in expr and sname.startswith("Alias"):
+            aliased = True
         if head == "Table.TransformColumnNames":
             fixed = True
             if cols is not None:
@@ -276,6 +289,16 @@ def follow(name, body, all_queries, findings):
         parts = split_top(args)
 
         if head == "Table.SelectColumns" and len(parts) >= 2:
+            if file_hdrs and len(file_hdrs) > 1 and not aliased:
+                norm = [{normalise_name(h) if fixed else h for h in hs_} for hs_ in file_hdrs]
+                for col in strings(parts[1]):
+                    have = sum(col in h for h in norm)
+                    if 0 < have < len(norm) and (loc, col) in ACCEPTED_SOURCE_GAPS:
+                        continue
+                    if 0 < have < len(norm):
+                        findings.append(("PARTIAL_COLUMN", loc, "'%s' is in %d of %d source files; the others get blanks" % (col, have, len(norm))))
+                    elif have == 0 and len(parts) >= 3 and "UseNull" in parts[2]:
+                        findings.append(("PARTIAL_COLUMN", loc, "'%s' is in none of the %d source files; it will be all blanks" % (col, len(norm))))
             if not (len(parts) >= 3 and "MissingField" in parts[2]):
                 need(strings(parts[1]), "Table.SelectColumns")
             elif cols is not None and "UseNull" in parts[2]:
