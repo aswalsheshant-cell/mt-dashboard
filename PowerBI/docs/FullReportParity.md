@@ -48,15 +48,10 @@ Required window: 2025-04 to 2026-08. HTML tabs: 11. HTML subviews: 11 (CLAUDE.md
 
 Each is either a column/field written in backticks or a measure the layout expects but the model lacks. Check before building the visual.
 
-- Page 3: `DataModel.md`
-- Page 4: `Bad Brand Or Category`, `README.md`, `Resolved Brand`, `Resolved Category`, `Resolved Chain`, `TOT Method`, `TOT Pass-on Value`
-- Page 7: `Article`, `DataModel.md`
-- Page 8: `DataModel.md`
+- Page 4: `Bad Brand Or Category`, `Resolved Brand`, `Resolved Category`, `Resolved Chain`, `TOT Method`, `TOT Pass-on Value`
+- Page 7: `Article`
 - Page 9: `Account Category`, `Account MoM %`, `Category % Of Chain`, `Face Wash Account Share %`, `IN URB MT`, `Our Articles`, `Share Gap Lakh`, `White Space Flag`, `YoY`
-- Page 10: `DataModel.md`
-- Page 11: `RefreshGuide.md`
 - Page 12: `DQ Checks`
-- Page 18: `RefreshGuide.md`
 
 ## Status meaning
 

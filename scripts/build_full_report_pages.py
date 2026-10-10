@@ -248,7 +248,7 @@ def main():
             # Names in backticks that look like a measure but are not in model.bim.
             # Real drift between the layout text and the model shows up here.
             unmatched = sorted({c for c in candidates if c not in measures and c not in column_names
-                                and c not in tables and not re.search(r"[\[\]/▸×=(){}:<>]|^\d", c)
+                                and c not in tables and not re.search(r"[\[\]/▸×=(){}:<>]|^\d|\.(md|csv|json|pq|dax)$", c)
                                 and re.fullmatch(r"[A-Za-z][A-Za-z0-9 %&.\-']{2,45}", c)})
         facts = set()
         for m in used:

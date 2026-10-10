@@ -29,7 +29,7 @@ Do not restore, reset or clean until each deleted path is listed and someone con
 |---|---|---|---|
 | M1 | `build_model_bim.py` read every `VAR x =` line as a new measure. | About 174 bogus "VAR ..." measures. Real measures such as `MoM Growth %`, `Latest Month NSV`, `L3M Average Sales` were dropped. The earlier count of 446 was wrong. | Measures start at column 0. VAR and RETURN are body lines. Names may hold %, -, and brackets like `Offtake NSV (CBA, M)`. Now 481 measures. |
 | M2 | Same generator kept the same column twice in 5 tables. | Tabular Editor would refuse the deploy. | One column per name. A calculated column replaces a same-named source column. |
-| M3 | `15_Fact_PrimaryShipTo.pq` loaded all 3 files in `Primary_ShipTo_Monthly`. | The two narrow files are exact subsets of the composite (27 months compared, 0 difference). Those months were counted twice. | The query skips the two subset files by name. New monthly files still load. Not tested in Desktop. |
+| M3 | `15_Fact_PrimaryShipTo.pq` loaded all 3 files in `Primary_ShipTo_Monthly`. | Every row of the two narrow files is in the composite on Month, Ship To Name, Brand, NSV and MRP, and monthly NSV is identical (independent check). Their Chain labels differ from the composite's normalised names, so they are not byte-identical. Those months were counted twice. | The query skips the two subset files by name. New monthly files still load. Not tested in Desktop. |
 
 Checks after the fix: 52 tables, 47 relationships, 481 measures, 22 calculated columns, no duplicate column names, every relationship column exists, every measure reference resolves except local SUMMARIZE aliases (`n`, `tot`, `RowCount`).
 

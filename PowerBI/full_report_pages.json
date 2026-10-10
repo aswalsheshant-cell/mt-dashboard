@@ -474,9 +474,7 @@
         "Forecast vs Actual %"
       ],
       "measure_count": 12,
-      "layout_names_not_in_model": [
-        "DataModel.md"
-      ],
+      "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales",
         "Fact Primary Article"
@@ -549,7 +547,6 @@
       "measure_count": 25,
       "layout_names_not_in_model": [
         "Bad Brand Or Category",
-        "README.md",
         "Resolved Brand",
         "Resolved Category",
         "Resolved Chain",
@@ -734,8 +731,7 @@
       ],
       "measure_count": 10,
       "layout_names_not_in_model": [
-        "Article",
-        "DataModel.md"
+        "Article"
       ],
       "fact_tables": [
         "Fact Offtake Sales",
@@ -795,9 +791,7 @@
         "NSV"
       ],
       "measure_count": 4,
-      "layout_names_not_in_model": [
-        "DataModel.md"
-      ],
+      "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales"
       ],
@@ -997,9 +991,7 @@
         "TDP Opportunity Quadrant"
       ],
       "measure_count": 15,
-      "layout_names_not_in_model": [
-        "DataModel.md"
-      ],
+      "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Nielsen",
         "Fact Offtake Sales",
@@ -1066,9 +1058,7 @@
         "YoY Growth %"
       ],
       "measure_count": 17,
-      "layout_names_not_in_model": [
-        "RefreshGuide.md"
-      ],
+      "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Nielsen",
         "Fact Offtake Sales",
@@ -1167,9 +1157,7 @@
       "also_serves": [],
       "measures": [],
       "measure_count": 0,
-      "layout_names_not_in_model": [
-        "RefreshGuide.md"
-      ],
+      "layout_names_not_in_model": [],
       "fact_tables": [],
       "blocking_tables": [],
       "partial_tables": [],
