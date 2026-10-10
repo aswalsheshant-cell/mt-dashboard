@@ -59,7 +59,7 @@ Detail: `PowerBI/full_report_sources.json`.
 | Fact Secondary Sales | INCOMPLETE_PERIODS | Apr-26 to Aug-26 only. No page measure reads it directly. | none |
 | Fact Nielsen, Nielsen Pack, Pack Brand, Brand Cut | TEMPLATE_ONLY / EMPTY | Raw folders hold README or template only. Real Aug-26 files sit in `SeedData/Nielsen`. | 1, 9, 10, 11 |
 | Fact TDP | TEMPLATE_ONLY | No TDP monthly data. | 1, 7, 9, 10, 11 |
-| Fact Store Type, Pack Size, Sales Cuts, Inhouse Distribution | INCOMPLETE_PERIODS | Files found in `SeedData\Store_Cuts` after the path fix. They cover FY27 months only, so Apr-25 to Mar-26 is missing. | 21 |
+| Fact Store Type, Pack Size, Sales Cuts, Inhouse Distribution | READY / INCOMPLETE_PERIODS | Files found in `SeedData\Store_Cuts` after the path fix. Store Type is a single Aug-26 snapshot. The other three cover Apr-26 to Aug-26 only, so Apr-25 to Mar-26 is missing. | 21 |
 | Fact Account Category / Geo / Assortment | INCOMPLETE_PERIODS | Seed files start after Apr-25. | 9 |
 | Fact P&L | DERIVED | Built from Fact Offtake Sales, so it inherits the offtake gap. | 4 |
 | Dim Promo Calendar | READY, with warning | See D3. | 19 |
