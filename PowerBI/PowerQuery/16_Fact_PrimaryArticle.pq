@@ -160,8 +160,8 @@ let
           "Provisional Flag", each false, type logical),
         "Allocation Status", each "Direct", type text),
 
-    Combined = Table.Combine({Table.RemoveColumns(DirectWithGov, {"Is Dist"}),
-                              Table.RemoveColumns(DistSwap, {"Is Dist"})}),
+    // "Is Dist" stays: [Dist Allocation Coverage %] in DAX/07 filters on it.
+    Combined = Table.Combine({DirectWithGov, DistSwap}),
 
     // article key: EAN -> cleaned Description (the current format has no Article Code)
     AddKey = Table.AddColumn(Combined, "Article Key", each

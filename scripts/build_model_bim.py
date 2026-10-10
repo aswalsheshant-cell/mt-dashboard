@@ -61,6 +61,8 @@ BOOL_PATTERNS = re.compile(
 
 
 def infer_data_type(col_name):
+    if re.search(r"FY Year|FY_Year", col_name):  # labels such as "25-26", not numbers
+        return "string"
     if BOOL_PATTERNS.search(col_name):
         return "boolean"
     if DATE_PATTERNS.search(col_name):
@@ -197,7 +199,7 @@ KNOWN_COLUMNS = {
         "Primary NSV", "Primary Tax Amount", "Primary MRP", "Avg TOT",
         "MTD-Sale type", "PO Type", "Chain", "Zone", "State",
         "Article Key", "Allocation Status", "Source Type",
-        "Provisional Flag",
+        "Provisional Flag", "Is Dist",
     ],
     "Ship-To Master": [
         "Ship To Name", "Direct/Distributor", "Primary Chain", "Zone",
@@ -367,6 +369,9 @@ KNOWN_COLUMNS = {
 }
 
 
+# A measure definition at column 0: "Name =" where the name may hold %, -, digits, (..)
+MEASURE_START = r"^[A-Za-z_][^=()\[\]\n,]*(?:\([^()=\n]*\)[^=()\[\]\n,]*)*?\s*=(?!=)"
+
 # ── DAX file parser ──────────────────────────────────────────────────
 
 def parse_dax_measures(dax_dir):
@@ -432,8 +437,10 @@ def parse_dax_measures(dax_dir):
 
             if line is not None and not trimmed.startswith("//"):
                 # Detect calc column: 'Table'[Col] =
+                # Only at column 0: an indented 'Table'[Col] = "x" line is a filter
+                # inside a measure (CALCULATE argument), not a calculated column.
                 calc_match = re.match(
-                    r"^'([^']+)'\[([^\]]+)\]\s*=\s*(.*)", trimmed
+                    r"^'([^']+)'\[([^\]]+)\]\s*=\s*(.*)", line
                 )
                 if calc_match:
                     is_calc_col = True
@@ -474,7 +481,9 @@ def parse_dax_measures(dax_dir):
                 cc_lines = [rest] if rest.strip() else []
                 for j in range(i + 1, len(lines)):
                     nxt = lines[j].strip()
-                    if re.match(r"^(?:'[^']+'\[|[A-Za-z_]\w*\s*=|\[)", nxt):
+                    if re.match(r"^(?:'[^']+'\[|\[)", lines[j]) or (
+                            lines[j][:1].isalpha() and re.match(MEASURE_START, lines[j])
+                            and not re.match(r"^(VAR|RETURN)\b", lines[j])):
                         break
                     if nxt.startswith("//"):
                         break
@@ -891,12 +900,30 @@ def main():
                     c["sortByColumn"] = sort_col
                     break
 
+    # Shared expressions: the pRootFolder parameter and the two helper functions.
+    # Every fact query calls them, so a model without them cannot refresh.
+    def read_pq(name):
+        return (PBI_ROOT / "PowerQuery" / name).read_text(encoding="utf-8")
+
+    param_line = [l for l in read_pq("00_Parameters.pq").splitlines()
+                  if l.strip() and not l.lstrip().startswith("//")][-1].strip()
+    if args.pq_root:
+        param_line = re.sub(r'^"[^"]*"', lambda m: '"' + args.pq_root.replace("\\\\", "\\") + '"', param_line)
+    expressions = [{
+        "name": "pRootFolder", "kind": "m", "expression": param_line,
+        "annotations": [{"name": "PBI_ResultType", "value": "Text"}],
+    }]
+    for fname, fn in (("01_fnCombineFolder.pq", "fnCombineFolder"), ("02_fnFYLabel.pq", "fnFYLabel")):
+        body = "\n".join(l for l in read_pq(fname).splitlines() if not l.lstrip().startswith("//")).strip()
+        expressions.append({"name": fn, "kind": "m", "expression": body.split("\n")})
+
     # Assemble model.bim
     model_bim = {
         "name": "MT_Dashboard",
         "compatibilityLevel": 1567,
         "model": {
             "culture": "en-US",
+            "expressions": expressions,
             "tables": tables,
             "relationships": relationships,
             "annotations": [

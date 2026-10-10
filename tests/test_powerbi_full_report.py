@@ -174,3 +174,30 @@ def test_month_label_parser_reads_serials_and_short_forms():
     assert parse_period("Jun '26") == "2026-06"
     assert parse_period("Apr'26") == "2026-04"
     assert parse_period("Aug") is None  # no year: callers fall back to the file name
+
+
+def test_model_has_parameter_and_helper_functions():
+    names = {e["name"] for e in _model().get("expressions", [])}
+    assert {"pRootFolder", "fnCombineFolder", "fnFYLabel"} <= names
+
+
+def test_only_real_calculated_columns_exist():
+    got = {(t["name"], c["name"]) for t in _model()["tables"] for c in t["columns"] if c.get("type") == "calculated"}
+    assert ("Chain Master", "Channel") not in got  # a filter inside a measure, not a column
+    assert ("Fact Primary Article", "TOT Method") in got
+    for t, c in got:
+        expr = next(x for tt in _model()["tables"] if tt["name"] == t for x in tt["columns"] if x["name"] == c)["expression"]
+        assert "\n\n" not in expr and not re.search(r"(?m)^[A-Z][^=\n]*=\s*$", expr), (t, c)
+
+
+def test_fy_year_columns_are_text():
+    for t in _model()["tables"]:
+        for c in t["columns"]:
+            if c["name"] == "FY Year":
+                assert c["dataType"] == "string", t["name"]
+
+
+def test_offtake_alias_step_leaves_only_known_unmatched_chains():
+    exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))
+    unmatched = set(exp["offtake_chain_master_check"]["unmatched_chains_lakh"])
+    assert unmatched <= {"FSN", "Fsn", "Centro"}, unmatched

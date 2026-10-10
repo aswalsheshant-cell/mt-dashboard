@@ -48,7 +48,7 @@ ROW(
 
 -- ------------------------------------------------------------
 -- Q4. Offtake Apr-Aug 2026, gross and MT split (Rs lakh)
--- Expected: Gross [Total Offtake NSV] 21,553.85. Ex Reliance Brand Counter 18,971.68 (source rule: Chain 'Reliance' and Store Type 'Brand Counter'). [Total MT NSV] should match that; if it differs, the Chain Master Channel mapping is not the same split, so investigate.
+-- Expected: Gross [Total Offtake NSV] 21,553.85. [Total MT NSV] 17,936.36 and [Total RBC NSV] 2,582.17 (Chain Master channel, after the alias step in query 11). The dashboard figure ex Reliance Brand Counter is 18,971.68; the difference 1,035.33 L is chains with no Chain Master row (Centro 0.18, FSN 653.38, Fsn 381.77), ledger D10.
 -- ------------------------------------------------------------
 EVALUATE
 ROW(
@@ -60,7 +60,7 @@ ROW(
 
 -- ------------------------------------------------------------
 -- Q5. Offtake by month, gross and MT ex Reliance Brand Counter (Rs lakh)
--- Expected: Gross: 2026-04 4,024.00; 2026-05 4,527.61; 2026-06 4,304.76; 2026-07 4,067.28; 2026-08 4,630.21. Ex RBC (matches dashboard/data.js): 2026-04 3,588.51; 2026-05 4,019.42; 2026-06 3,840.46; 2026-07 3,621.47; 2026-08 3,901.83
+-- Expected: Gross: 2026-04 4,024.00; 2026-05 4,527.61; 2026-06 4,304.76; 2026-07 4,067.28; 2026-08 4,630.21. Dashboard ex RBC (data.js; [Total MT NSV] will be lower by the unmatched chains, see Q4): 2026-04 3,588.51; 2026-05 4,019.42; 2026-06 3,840.46; 2026-07 3,621.47; 2026-08 3,901.83
 -- ------------------------------------------------------------
 EVALUATE
 SUMMARIZECOLUMNS(
@@ -73,7 +73,7 @@ ORDER BY 'Date Table'[MonthStart]
 
 -- ------------------------------------------------------------
 -- Q6. Primary ShipTo NSV by FY (Rs lakh). Catches the double-load of overlapping snapshot files
--- Expected: FY 24-25 23,325.30, FY 25-26 32,900.36, FY 26-27 9,955.63. If FY 25-26 is near double (about 65,800), the two subset files are being loaded again.
+-- Expected: FY 24-25 23,325.30, FY 25-26 32,900.36, FY 26-27 9,955.63 (Apr-Jul only; the composite file has no Jun-26 and no Aug-26 rows). If FY 25-26 is near double (about 65,800), the two subset files are being loaded again.
 -- ------------------------------------------------------------
 EVALUATE
 SUMMARIZECOLUMNS(

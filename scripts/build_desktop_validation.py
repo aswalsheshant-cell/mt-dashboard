@@ -35,6 +35,11 @@ off_fy27 = off["gross"]["fy_lakh"]["FY27"]
 off_fy27_gov = off["governed_ex_reliance_brand_counter"]["fy_lakh"]["FY27"]
 pa_all = EXP["primary_article"]["gross"]["fy_lakh"]
 st = EXP["primary_shipto"]["fy_lakh"]
+chk = EXP["offtake_chain_master_check"]
+mt_cm = chk["by_master_channel"]["MT"]
+rbc_cm = chk["by_master_channel"]["RBC"]
+unm_tot = chk["unmatched_total_lakh"]
+unm = ", ".join("%s %s" % (k, fmt(v)) for k, v in chk["unmatched_chains_lakh"].items())
 
 CHECKS = [
     # id, title, expected text, DAX
@@ -71,7 +76,8 @@ ROW(
   "MT only Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26", 'Fact Primary Article'[Channel] = "MT") / 100000
 )"""),
     ("Q4", "Offtake Apr-Aug 2026, gross and MT split (Rs lakh)",
-     "Gross [Total Offtake NSV] %s. Ex Reliance Brand Counter %s (source rule: Chain 'Reliance' and Store Type 'Brand Counter'). [Total MT NSV] should match that; if it differs, the Chain Master Channel mapping is not the same split, so investigate." % (fmt(off_fy27), fmt(off_fy27_gov)),
+     "Gross [Total Offtake NSV] %s. [Total MT NSV] %s and [Total RBC NSV] %s (Chain Master channel, after the alias step in query 11). The dashboard figure ex Reliance Brand Counter is %s; the difference %s L is chains with no Chain Master row (%s), ledger D10." % (
+         fmt(off_fy27), fmt(mt_cm), fmt(rbc_cm), fmt(off_fy27_gov), fmt(unm_tot), unm),
      """EVALUATE
 ROW(
   "Gross Offtake Lakh", CALCULATE([Total Offtake NSV], 'Date Table'[FY Year] = "26-27") / 100000,
@@ -79,7 +85,7 @@ ROW(
   "RBC Lakh", CALCULATE([Total RBC NSV], 'Date Table'[FY Year] = "26-27") / 100000
 )"""),
     ("Q5", "Offtake by month, gross and MT ex Reliance Brand Counter (Rs lakh)",
-     "Gross: " + "; ".join("%s %s" % (m, fmt(v)) for m, v in sorted(off_m.items())) + ". Ex RBC (matches dashboard/data.js): " + "; ".join("%s %s" % (m, fmt(v)) for m, v in sorted(off_gm.items())),
+     "Gross: " + "; ".join("%s %s" % (m, fmt(v)) for m, v in sorted(off_m.items())) + ". Dashboard ex RBC (data.js; [Total MT NSV] will be lower by the unmatched chains, see Q4): " + "; ".join("%s %s" % (m, fmt(v)) for m, v in sorted(off_gm.items())),
      """EVALUATE
 SUMMARIZECOLUMNS(
   'Date Table'[MonthStart],
@@ -88,7 +94,7 @@ SUMMARIZECOLUMNS(
 )
 ORDER BY 'Date Table'[MonthStart]"""),
     ("Q6", "Primary ShipTo NSV by FY (Rs lakh). Catches the double-load of overlapping snapshot files",
-     "FY 24-25 %s, FY 25-26 %s, FY 26-27 %s. If FY 25-26 is near double (about 65,800), the two subset files are being loaded again." % (
+     "FY 24-25 %s, FY 25-26 %s, FY 26-27 %s (Apr-Jul only; the composite file has no Jun-26 and no Aug-26 rows). If FY 25-26 is near double (about 65,800), the two subset files are being loaded again." % (
          fmt(st["FY25"]), fmt(st["FY26"]), fmt(st["FY27"])),
      """EVALUATE
 SUMMARIZECOLUMNS(
@@ -165,9 +171,10 @@ def main():
           "## Steps (about 30 minutes)", "",
           "1. Pull branch `claude/gallant-shannon-wou27y`. Before anything else, run the two read-only commands in `docs/evidence/powerbi_full_ledger.md` and compare your 20 deletions with the ledger. Do not restore or clean.",
           "2. Install Tabular Editor 2 (free) and DAX Studio. Open Power BI Desktop with a blank report.",
-          "3. In Desktop: Transform data, Manage parameters, set `pRootFolder` to your local `PowerBI` folder (no trailing slash).",
-          "4. In Tabular Editor: File, Open, From File, `PowerBI/model.bim`. Model, Deploy, pick the open Desktop model. Accept the defaults.",
-          "5. In Desktop: Home, Refresh. If a query fails, copy the query name and the full error text, and send it. Do not edit measures to get around it.",
+          "3. Start Desktop with a blank report and keep it open. Find its local port: in Tabular Editor use File, Open, From DB, and pick the Power BI Desktop instance (a server like `localhost:5xxxx`).",
+          "4. In Tabular Editor: File, Open, From File, `PowerBI/model.bim`. Model, Deploy, choose that Desktop instance, and tick Deploy Model Structure, Deploy Connections and Deploy Shared Expressions. `model.bim` already carries the `pRootFolder` parameter and the two helper functions; you do not paste any query. If Tabular Editor shows an error, send the exact message.",
+          "4b. In Desktop: Transform data, Manage parameters, set `pRootFolder` to your local `PowerBI` folder, for example `C:\\Users\\you\\mt-dashboard\\PowerBI`. Spaces in the path are fine. No quotes and no trailing slash. The default is `C:\\MT-Dashboard`, which will not exist on your machine.",
+          "5. In Desktop: Home, Refresh. If a query fails, copy the query name and the full error text, and send it. Do not edit measures to get around it. If a query says it cannot find `#\"Some Name\"`, that is a query-to-query reference; send it as is.",
           "6. Save As `.pbip` (Power BI Project) so Desktop writes the full model files.",
           "7. In DAX Studio: connect to the model, open `PowerBI/TabularEditor/05_DAXStudio_Validation.dax`, run Q1 to Q10 one at a time.",
           "8. Record each result below. A mismatch is a finding. Do not adjust a measure until the cause is traced to a source file or query.",
@@ -182,7 +189,8 @@ def main():
            "- Primary Weekly, Nielsen and TDP raw folders are empty. Their tables refresh as empty. Pages that need them show an incomplete banner.",
            "- Offtake FY26 is not in `Offtake_Monthly` (it starts Apr-26), so the model cannot show the 31,119.88 L FY26 baseline. That figure lives in `dashboard/data.js`.",
            "- An unfiltered Primary total includes EB2B and SIS (ledger D1). Use the Channel = MT filter when comparing to the 30,684.99 L basis.",
-           "- Store Cuts files cover Apr-26 to Aug-26 only.", ""]
+           "- Store Cuts files cover Apr-26 to Aug-26 only.",
+           "- FSN/Fsn offtake (%s L) has no Chain Master row. Nykaa (FSN) bills eB2B, so whether it counts as MT is a business decision (ledger D10). [Total MT NSV] leaves it out until then." % fmt(unm_tot), ""]
     OUT_MD.write_text("\n".join(md), encoding="utf-8")
     print("wrote", OUT_DAX.relative_to(ROOT), "and", OUT_MD.relative_to(ROOT))
 

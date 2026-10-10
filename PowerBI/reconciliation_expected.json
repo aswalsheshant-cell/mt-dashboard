@@ -205,6 +205,21 @@
     },
     "note": "Month 2026-06 has no rows in the composite file."
   },
+  "offtake_chain_master_check": {
+    "fy": "FY27",
+    "unit": "lakh",
+    "by_master_channel": {
+      "MT": "17936.36",
+      "RBC": "2582.17"
+    },
+    "unmatched_chains_lakh": {
+      "Centro": "0.18",
+      "FSN": "653.38",
+      "Fsn": "381.77"
+    },
+    "unmatched_total_lakh": "1035.33",
+    "note": "MT here = Chain Master Channel 'MT' after the alias step, which is what [Total MT NSV] sums. Unmatched chains drop out of it."
+  },
   "coverage_notes": [
     "Offtake_Monthly holds Apr-26 onward only. The FY26 Offtake baseline (Rs 31,119.88 L) lives in dashboard/data.js, so the Power BI model cannot reproduce it from this folder.",
     "Primary_Weekly has no data files (template only), so Fact Primary Sales has no source here. Primary comparisons use the Article feed."

@@ -3,6 +3,104 @@
   "compatibilityLevel": 1567,
   "model": {
     "culture": "en-US",
+    "expressions": [
+      {
+        "name": "pRootFolder",
+        "kind": "m",
+        "expression": "\"C:\\MT-Dashboard\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ]
+      },
+      {
+        "name": "fnCombineFolder",
+        "kind": "m",
+        "expression": [
+          "let",
+          "    fnCombineFolder = (FolderPath as text, optional HeaderRow as nullable number, optional ExpectedColumns as nullable list) as table =>",
+          "        let",
+          "            Source = Folder.Files(FolderPath),",
+          "            HeaderIndex = if HeaderRow = null then 0 else Number.RoundDown(Number.From(HeaderRow)),",
+          "",
+          "            OnlyData = Table.SelectRows(",
+          "                Source,",
+          "                each ([Attributes]?[Hidden]? <> true)",
+          "                    and (Text.StartsWith([Name], \"_\") = false)",
+          "                    and (",
+          "                        Text.EndsWith(Text.Lower([Extension]), \".csv\")",
+          "                        or Text.EndsWith(Text.Lower([Extension]), \".xlsx\")",
+          "                        or Text.EndsWith(Text.Lower([Extension]), \".xlsb\")",
+          "                    )",
+          "            ),",
+          "",
+          "            AddParsed = Table.AddColumn(OnlyData, \"Parsed\", each",
+          "                let",
+          "                    ext = Text.Lower([Extension]),",
+          "                    bin = [Content],",
+          "                    asTable =",
+          "                        if ext = \".csv\" then",
+          "                            Csv.Document(bin, [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv])",
+          "                        else",
+          "                            let",
+          "                                wb = Excel.Workbook(bin, null, true),",
+          "                                firstSheet = wb{0}[Data]",
+          "                            in firstSheet,",
+          "                    promoted =",
+          "                        if HeaderIndex = 0 then",
+          "                            Table.PromoteHeaders(asTable, [PromoteAllScalars=true])",
+          "                        else",
+          "                            let",
+          "                                skipped = Table.Skip(asTable, HeaderIndex),",
+          "                                promotedHeaders = Table.PromoteHeaders(skipped, [PromoteAllScalars=true])",
+          "                            in",
+          "                                promotedHeaders",
+          "                in",
+          "                    promoted",
+          "            ),",
+          "",
+          "            AddMeta = Table.AddColumn(AddParsed, \"WithMeta\", each",
+          "                Table.AddColumn(",
+          "                    Table.AddColumn([Parsed], \"Data Source File\", (r) => [Name], type text),",
+          "                    \"Refresh Date\", (r) => DateTime.LocalNow(), type datetime",
+          "                )",
+          "            ),",
+          "",
+          "            Combined =",
+          "                if Table.RowCount(AddMeta) = 0 then",
+          "                    #table(",
+          "                        List.Combine({if ExpectedColumns = null then {} else ExpectedColumns, {\"Data Source File\",\"Refresh Date\"}}),",
+          "                        {})",
+          "                else",
+          "                    Table.Combine(AddMeta[WithMeta])",
+          "        in",
+          "            Combined",
+          "in",
+          "    fnCombineFolder"
+        ]
+      },
+      {
+        "name": "fnFYLabel",
+        "kind": "m",
+        "expression": [
+          "let",
+          "    fnFYLabel = (d as nullable date) as nullable text =>",
+          "        if d = null then null",
+          "        else",
+          "            let",
+          "                y = Date.Year(d),",
+          "                m = Date.Month(d),",
+          "                startYear = if m >= 4 then y else y - 1",
+          "            in",
+          "                Text.PadStart(Text.From(Number.Mod(startYear, 100)), 2, \"0\") & \"-\" &",
+          "                Text.PadStart(Text.From(Number.Mod(startYear + 1, 100)), 2, \"0\")",
+          "in",
+          "    fnFYLabel"
+        ]
+      }
+    ],
     "tables": [
       {
         "name": "Date Table",
@@ -40,7 +138,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -145,7 +243,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -335,7 +433,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -357,6 +455,11 @@
             "name": "City",
             "dataType": "string",
             "sourceColumn": "City"
+          },
+          {
+            "name": "Store Code",
+            "dataType": "string",
+            "sourceColumn": "Store Code"
           },
           {
             "name": "Store Name",
@@ -477,14 +580,6 @@
             "name": "Match Key",
             "dataType": "string",
             "sourceColumn": "Match Key"
-          },
-          {
-            "name": "Store Code",
-            "dataType": "string",
-            "sourceColumn": "Store Code",
-            "type": "calculated",
-            "expression": "_store )\n)\nSO Forecast (Owned Target) =",
-            "isDataTypeInferred": true
           }
         ],
         "measures": [],
@@ -589,10 +684,28 @@
                 "        {\"Brand\", each Text.Trim(Text.From(_)), type text}",
                 "    }),",
                 "",
+                "    // Chain spellings in the offtake CSVs that differ from Chain Master (case, spacing,",
+                "    // short forms). Without this the rows have no Chain Master match and drop out of",
+                "    // [Total MT NSV]. Each pair is lowercase alias -> Chain Master name. Checked against",
+                "    // build_dashboard_data.py CHAIN_ALIASES for the same entity. FSN/Fsn are NOT listed:",
+                "    // Nykaa (FSN) bills eB2B (CB-01), so its channel is a business decision.",
+                "    ChainAliases = {",
+                "        {\"dmart\", \"D-Mart\"}, {\"h&g\", \"Health & Glow\"}, {\"metro cnc\", \"Metro CNC\"},",
+                "        {\"sancus(rmt)\", \"RMT-Sancus\"}, {\"vmm\", \"Vishal Mega Mart\"}, {\"spencer\", \"Spencers\"},",
+                "        {\"frankros\", \"Frank Ross\"}, {\"arambagh\", \"Arambagh\"}, {\"ratnadeep\", \"Ratnadeep\"},",
+                "        {\"ratandeep\", \"Ratnadeep\"}, {\"ratanadeep\", \"Ratnadeep\"}, {\"sasta sundar\", \"SastaSundar\"},",
+                "        {\"ssl\", \"SastaSundar\"}, {\"beauty & nutrie\", \"B&N\"}, {\"wh-smith\", \"WH-Smith\"},",
+                "        {\"shoppers stop\", \"Shoppers Stop\"}, {\"azorte\", \"Azorte\"}, {\"trends\", \"Trent\"}",
+                "    },",
+                "    AliasChain = Table.TransformColumns(Trimmed, {{\"Chain\", each",
+                "        let k = Text.Lower(Text.Trim(Text.From(_ ?? \"\"))),",
+                "            hit = List.First(List.Select(ChainAliases, (a) => a{0} = k))",
+                "        in if hit = null then _ else hit{1}, type text}}),",
+                "",
                 "    // The early FY27 CSVs call both Reliance streams \"Reliance\"; later files",
                 "    // name the Brand Counter stream explicitly. Keep every row and map them to",
                 "    // separate Chain Master members so MT excludes only the duplicate breakout.",
-                "    AddGovernedChain = Table.AddColumn(Trimmed, \"Governed Chain\", each",
+                "    AddGovernedChain = Table.AddColumn(AliasChain, \"Governed Chain\", each",
                 "        if Text.Contains(Text.Lower([Chain] ?? \"\"), \"reliance\") then",
                 "            if Text.Lower(Text.Trim([Store Type] ?? \"\")) = \"brand counter\"",
                 "            then \"Reliance Brand Counter\" else \"Reliance Retail\"",
@@ -674,7 +787,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -758,7 +871,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -872,7 +985,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -1020,7 +1133,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -1184,7 +1297,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -1303,36 +1416,24 @@
             "sourceColumn": "Article Key"
           },
           {
-            "name": "Source Type",
+            "name": "Allocation Status",
             "dataType": "string",
-            "sourceColumn": "Source Type",
-            "type": "calculated",
-            "expression": "\"Nearest-Month Fallback\"\n)\n\nDist NSV – Unmapped =\nCALCULATE (\n    SUM ( 'Fact Primary Article'[Primary NSV] ),",
-            "isDataTypeInferred": true
+            "sourceColumn": "Allocation Status"
           },
           {
-            "name": "Is Dist",
-            "dataType": "boolean",
-            "sourceColumn": "Is Dist",
-            "type": "calculated",
-            "expression": "TRUE ()\n    )\nVAR _covered =\n    CALCULATE (\n        SUM ( 'Fact Primary Article'[Primary NSV] ),",
-            "isDataTypeInferred": true
+            "name": "Source Type",
+            "dataType": "string",
+            "sourceColumn": "Source Type"
           },
           {
             "name": "Provisional Flag",
             "dataType": "boolean",
-            "sourceColumn": "Provisional Flag",
-            "type": "calculated",
-            "expression": "TRUE ()\n    ) > 0,\n    \"⚠ Provisional allocation active – Finance approval pending\",\n    \"All allocations approved\"\n)",
-            "isDataTypeInferred": true
+            "sourceColumn": "Provisional Flag"
           },
           {
-            "name": "Allocation Status",
-            "dataType": "string",
-            "sourceColumn": "Allocation Status",
-            "type": "calculated",
-            "expression": "\"Unmapped\"\n)",
-            "isDataTypeInferred": true
+            "name": "Is Dist",
+            "dataType": "boolean",
+            "sourceColumn": "Is Dist"
           },
           {
             "name": "TOT Method",
@@ -1520,8 +1621,8 @@
                 "          \"Provisional Flag\", each false, type logical),",
                 "        \"Allocation Status\", each \"Direct\", type text),",
                 "",
-                "    Combined = Table.Combine({Table.RemoveColumns(DirectWithGov, {\"Is Dist\"}),",
-                "                              Table.RemoveColumns(DistSwap, {\"Is Dist\"})}),",
+                "    // \"Is Dist\" stays: [Dist Allocation Coverage %] in DAX/07 filters on it.",
+                "    Combined = Table.Combine({DirectWithGov, DistSwap}),",
                 "",
                 "    // article key: EAN -> cleaned Description (the current format has no Article Code)",
                 "    AddKey = Table.AddColumn(Combined, \"Article Key\", each",
@@ -1561,17 +1662,14 @@
             "sourceColumn": "Primary Zone"
           },
           {
+            "name": "Channel",
+            "dataType": "string",
+            "sourceColumn": "Channel"
+          },
+          {
             "name": "Active",
             "dataType": "boolean",
             "sourceColumn": "Active"
-          },
-          {
-            "name": "Channel",
-            "dataType": "string",
-            "sourceColumn": "Channel",
-            "type": "calculated",
-            "expression": "\"RBC\"\n    )\n\nRBC % of Total =\n    DIVIDE (",
-            "isDataTypeInferred": true
           }
         ],
         "measures": [],
@@ -2572,6 +2670,11 @@
         "name": "Assumption Table",
         "columns": [
           {
+            "name": "Month",
+            "dataType": "string",
+            "sourceColumn": "Month"
+          },
+          {
             "name": "Chain",
             "dataType": "string",
             "sourceColumn": "Chain"
@@ -2620,14 +2723,6 @@
             "name": "Remarks",
             "dataType": "string",
             "sourceColumn": "Remarks"
-          },
-          {
-            "name": "Month",
-            "dataType": "string",
-            "sourceColumn": "Month",
-            "type": "calculated",
-            "expression": "_m\n            && ( 'Assumption Table'[Chain] = _ch || 'Assumption Table'[Chain] = \"ALL\" )\n            && ( 'Assumption Table'[Brand] = _br || 'Assumption Table'[Brand] = \"ALL\" )\n            && ( 'Assumption Table'[Category] = _cat || 'Assumption Table'[Category] = \"ALL\" ) ) )\n\n_Assumption Trade Spend % =\nVAR _m = SELECTEDVALUE ( 'Date Table'[Month] )\nRETURN\n    CALCULATE ( MAX ( 'Assumption Table'[Trade Spend %] ),\n        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )\n\n_Assumption Visibility Spend =\nVAR _m = SELECTEDVALUE ( 'Date Table'[Month] )\nRETURN\n    CALCULATE ( SUM ( 'Assumption Table'[Visibility Spend] ),\n        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )\n\n_Assumption Scheme Spend =\nVAR _m = SELECTEDVALUE ( 'Date Table'[Month] )\nRETURN\n    CALCULATE ( SUM ( 'Assumption Table'[Scheme Spend] ),\n        FILTER ( ALL ( 'Assumption Table' ), 'Assumption Table'[Month] = _m ) )",
-            "isDataTypeInferred": true
           }
         ],
         "measures": [],
@@ -2675,7 +2770,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -2897,7 +2992,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -3971,7 +4066,7 @@
         "columns": [
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -4199,7 +4294,7 @@
           },
           {
             "name": "FY_Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY_Year"
           },
           {
@@ -4223,17 +4318,14 @@
             "sourceColumn": "NSV_Cr"
           },
           {
+            "name": "Is_Provisional",
+            "dataType": "boolean",
+            "sourceColumn": "Is_Provisional"
+          },
+          {
             "name": "Data_Source",
             "dataType": "string",
             "sourceColumn": "Data_Source"
-          },
-          {
-            "name": "Is_Provisional",
-            "dataType": "boolean",
-            "sourceColumn": "Is_Provisional",
-            "type": "calculated",
-            "expression": "FALSE()\n    ),",
-            "isDataTypeInferred": true
           }
         ],
         "measures": [],
@@ -4356,7 +4448,7 @@
           },
           {
             "name": "FY_Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY_Year"
           },
           {
@@ -4838,7 +4930,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -5224,7 +5316,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -5765,7 +5857,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -5980,7 +6072,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -6059,7 +6151,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -6149,7 +6241,7 @@
           },
           {
             "name": "FY Year",
-            "dataType": "int64",
+            "dataType": "string",
             "sourceColumn": "FY Year"
           },
           {
@@ -6295,7 +6387,9 @@
             "name": "Total MT NSV",
             "expression": [
               "CALCULATE (",
-              "        [Total Offtake NSV],"
+              "        [Total Offtake NSV],",
+              "        'Chain Master'[Channel] = \"MT\"",
+              "    )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
@@ -6303,7 +6397,9 @@
             "name": "Total RBC NSV",
             "expression": [
               "CALCULATE (",
-              "        [Total Offtake NSV],"
+              "        [Total Offtake NSV],",
+              "        'Chain Master'[Channel] = \"RBC\"",
+              "    )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
@@ -6775,7 +6871,10 @@
               "                <= EDATE ( [Last Actual Month], -12 )",
               "                && 'Date Table'[FY Year]",
               "                    = CALCULATE ( MAX ( 'Date Table'[FY Year] ),",
-              "                        FILTER ( ALL ( 'Date Table' ),"
+              "                        FILTER ( ALL ( 'Date Table' ),",
+              "                            'Date Table'[MonthStart] = EDATE ( [Last Actual Month], -12 ) ) )",
+              "        )",
+              "    )"
             ],
             "description": "Source: 01_CoreMeasures.dax"
           },
@@ -6832,7 +6931,11 @@
               "VAR _cat = SELECTEDVALUE ( 'Category Master'[Category], \"ALL\" )",
               "RETURN",
               "    CALCULATE ( MAX ( 'Assumption Table'[Gross Margin %] ),",
-              "        FILTER ( ALL ( 'Assumption Table' ),"
+              "        FILTER ( ALL ( 'Assumption Table' ),",
+              "            'Assumption Table'[Month] = _m",
+              "            && ( 'Assumption Table'[Chain] = _ch || 'Assumption Table'[Chain] = \"ALL\" )",
+              "            && ( 'Assumption Table'[Brand] = _br || 'Assumption Table'[Brand] = \"ALL\" )",
+              "            && ( 'Assumption Table'[Category] = _cat || 'Assumption Table'[Category] = \"ALL\" ) ) )"
             ],
             "description": "Source: 02_PnL_Measures.dax"
           },
@@ -7101,7 +7204,9 @@
               "    'Sales Team Mapping',",
               "    VAR _store = 'Sales Team Mapping'[Store Code]",
               "    VAR _w = 'Sales Team Mapping'[Cont%]",
-              "    RETURN _w * CALCULATE ( [FY26 Actual Offtake],"
+              "    RETURN _w * CALCULATE ( [FY26 Actual Offtake],",
+              "        'Fact Offtake Sales'[Store Code] = _store )",
+              ")"
             ],
             "description": "Source: 03_Forecast_Measures.dax"
           },
@@ -7891,21 +7996,30 @@
           {
             "name": "Primary Unmapped Dist",
             "expression": [
-              "CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),"
+              "CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),",
+              "    'Fact Primary Article'[Allocation Status] = \"Unmapped\" )",
+              "",
+              "// Provisional rows: Jun'26 nearest-month fallback, awaiting Finance approval"
             ],
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
             "name": "Primary Provisional Alloc",
             "expression": [
-              "CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),"
+              "CALCULATE ( COUNTROWS ( 'Fact Primary Article' ),",
+              "    'Fact Primary Article'[Provisional Flag] = TRUE () )",
+              "",
+              "// Provisional NSV value exposed for the finance review disclosure"
             ],
             "description": "Source: 06_DataQuality_Measures.dax"
           },
           {
             "name": "Primary Provisional NSV",
             "expression": [
-              "CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ),"
+              "CALCULATE ( SUM ( 'Fact Primary Article'[Primary NSV] ),",
+              "    'Fact Primary Article'[Provisional Flag] = TRUE () )",
+              "",
+              "// Coverage: share of Dist rows that received an approved allocation"
             ],
             "description": "Source: 06_DataQuality_Measures.dax"
           },
@@ -8010,7 +8124,11 @@
             "name": "Actual FY26 Offtake",
             "expression": [
               "CALCULATE (",
-              "    [Total MT NSV],"
+              "    [Total MT NSV],",
+              "    'Date Table'[FY Year] = \"25-26\"",
+              ")",
+              "",
+              "// Variance Alert (should be < ±0.05 Cr tolerance)"
             ],
             "description": "Source: 06_DataQuality_Measures.dax"
           },
@@ -8054,7 +8172,11 @@
             "name": "Actual FY26 RBC",
             "expression": [
               "CALCULATE (",
-              "    [Total RBC NSV],"
+              "    [Total RBC NSV],",
+              "    'Date Table'[FY Year] = \"25-26\"",
+              ")",
+              "",
+              "// RBC Variance"
             ],
             "description": "Source: 06_DataQuality_Measures.dax"
           },
@@ -8345,7 +8467,9 @@
             "name": "Dist NSV – Approved Patch",
             "expression": [
               "CALCULATE (",
-              "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
+              "    SUM ( 'Fact Primary Article'[Primary NSV] ),",
+              "    'Fact Primary Article'[Source Type] = \"Approved Patch\"",
+              ")"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8353,7 +8477,9 @@
             "name": "Dist NSV – ShipTo CSV",
             "expression": [
               "CALCULATE (",
-              "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
+              "    SUM ( 'Fact Primary Article'[Primary NSV] ),",
+              "    'Fact Primary Article'[Source Type] = \"ShipTo CSV\"",
+              ")"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8361,7 +8487,9 @@
             "name": "Dist NSV – Provisional Fallback",
             "expression": [
               "CALCULATE (",
-              "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
+              "    SUM ( 'Fact Primary Article'[Primary NSV] ),",
+              "    'Fact Primary Article'[Source Type] = \"Nearest-Month Fallback\"",
+              ")"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8369,7 +8497,11 @@
             "name": "Dist NSV – Unmapped",
             "expression": [
               "CALCULATE (",
-              "    SUM ( 'Fact Primary Article'[Primary NSV] ),"
+              "    SUM ( 'Fact Primary Article'[Primary NSV] ),",
+              "    'Fact Primary Article'[Allocation Status] = \"Unmapped\"",
+              ")",
+              "",
+              "// --- Coverage % (share of Dist NSV that has an approved allocation) ---"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8378,7 +8510,17 @@
             "expression": [
               "VAR _total =",
               "    CALCULATE (",
-              "        SUM ( 'Fact Primary Article'[Primary NSV] ),"
+              "        SUM ( 'Fact Primary Article'[Primary NSV] ),",
+              "        'Fact Primary Article'[Is Dist] = TRUE ()",
+              "    )",
+              "VAR _covered =",
+              "    CALCULATE (",
+              "        SUM ( 'Fact Primary Article'[Primary NSV] ),",
+              "        'Fact Primary Article'[Allocation Status] IN { \"Allocated\", \"Provisional\" }",
+              "    )",
+              "RETURN DIVIDE ( _covered, _total )",
+              "",
+              "// --- Provisional row flag (for Jun'26 disclosure) ---"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8387,7 +8529,14 @@
             "expression": [
               "IF (",
               "    CALCULATE (",
-              "        COUNTROWS ( 'Fact Primary Article' ),"
+              "        COUNTROWS ( 'Fact Primary Article' ),",
+              "        'Fact Primary Article'[Provisional Flag] = TRUE ()",
+              "    ) > 0,",
+              "    \"⚠ Provisional allocation active – Finance approval pending\",",
+              "    \"All allocations approved\"",
+              ")",
+              "",
+              "// --- Unmapped Dist rows count (QC threshold: target = 0) ---"
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8395,7 +8544,12 @@
             "name": "Unmapped Dist Rows",
             "expression": [
               "CALCULATE (",
-              "    COUNTROWS ( 'Fact Primary Article' ),"
+              "    COUNTROWS ( 'Fact Primary Article' ),",
+              "    'Fact Primary Article'[Allocation Status] = \"Unmapped\"",
+              ")",
+              "",
+              "// --- Is Dist flag (derived from PO Type; matches Query 16 logic) ---",
+              "// Exposed as a measure for use in filters where the column isn't available."
             ],
             "description": "Source: 07_PrimaryAllocation_Measures.dax"
           },
@@ -8808,7 +8962,8 @@
             "name": "First Offtake NSV",
             "expression": [
               "CALCULATE ( [Total Offtake NSV],",
-              "    FILTER ( ALL ( 'Date Table' ),"
+              "    FILTER ( ALL ( 'Date Table' ),",
+              "        'Date Table'[MonthStart] = [First Offtake Month (CBA)] ) )"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
@@ -8816,7 +8971,8 @@
             "name": "Primary NSV in Allowed Month",
             "expression": [
               "CALCULATE ( [Chain Allocated Primary NSV],",
-              "    FILTER ( ALL ( 'Date Table' ),"
+              "    FILTER ( ALL ( 'Date Table' ),",
+              "        'Date Table'[MonthStart] = [Allowed Primary Month (date)] ) )"
             ],
             "description": "Source: 09_ArticleAllocation_Eligibility.dax"
           },
@@ -9566,7 +9722,11 @@
             "expression": [
               "SUMX (",
               "    FILTER (",
-              "        'Fact Secondary Sales',"
+              "        'Fact Secondary Sales',",
+              "        'Fact Secondary Sales'[Is_Provisional] = FALSE()",
+              "    ),",
+              "    'Fact Secondary Sales'[NSV_Lakh]",
+              ")"
             ],
             "description": "Source: 14_SecondarySales_Measures.dax"
           },
@@ -9694,7 +9854,10 @@
             "name": "Q1 FY27 Secondary NSV Lakh",
             "expression": [
               "CALCULATE (",
-              "    [Secondary NSV Lakh],"
+              "    [Secondary NSV Lakh],",
+              "    'Date Table'[FY Year] = \"26-27\",",
+              "    'Date Table'[Quarter] = \"Q1\"",
+              ")"
             ],
             "description": "Source: 14_SecondarySales_Measures.dax"
           },

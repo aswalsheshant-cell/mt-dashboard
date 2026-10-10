@@ -111,6 +111,40 @@ def primary_article_by_channel():
             "note": "MT is the model's MT basis. 16_Fact_PrimaryArticle.pq does not filter Channel, so an unfiltered Power BI total includes EB2B and SIS. The source FY text is inconsistent (FY'25-26, FY'26-27, FY27), so FY must come from Month."}
 
 
+def offtake_chain_master_check():
+    """Which offtake chain names find a Chain Master row after the alias step in 11_Fact_OfftakeSales.pq.
+    The alias list is read from that query so the two cannot drift apart."""
+    import re
+    pq = (ROOT / "PowerBI" / "PowerQuery" / "11_Fact_OfftakeSales.pq").read_text(encoding="utf-8")
+    block = pq[pq.index("ChainAliases = {"): pq.index("AliasChain =")]
+    aliases = {a.lower(): b for a, b in re.findall(r'\{"([^"]+)",\s*"([^"]+)"\}', block)}
+    master = {r["Chain"].strip(): r["Channel"].strip() for r in csv.DictReader(
+        open(ROOT / "PowerBI" / "SeedData" / "Masters" / "ChainMaster.csv", encoding="utf-8-sig"))}
+    by = defaultdict(Decimal)   # (fy, channel or UNMATCHED:name) -> rupees-equivalent lakh*1e5 kept as lakh
+    for f in sorted((RAW / "Offtake_Monthly").glob("offtake_store_article_*.csv")):
+        fm = (periods_from_name(f.name) or [None])[0]
+        with open(f, newline="", encoding="utf-8-sig") as fh:
+            for r in csv.DictReader(fh):
+                p = parse_period(r["Month"]) or fm
+                if not p:
+                    continue
+                c = (r["Chain Name"] or "").strip()
+                c = aliases.get(c.lower(), c)
+                if "reliance" in c.lower():
+                    c = "Reliance Brand Counter" if (r["Store Type"] or "").strip().lower() == "brand counter" else "Reliance Retail"
+                key = master.get(c) or "UNMATCHED:" + c
+                by[(fy_tag(int(p[:4]), int(p[5:])), key)] += Decimal(r["NSV"] or 0)
+    out = defaultdict(dict)
+    for (fy, k), v in sorted(by.items()):
+        out[fy][k] = str(v.quantize(Decimal("0.01")))
+    fy = "FY27"
+    unmatched = {k[len("UNMATCHED:"):]: v for k, v in out[fy].items() if k.startswith("UNMATCHED:")}
+    return {"fy": fy, "unit": "lakh", "by_master_channel": {k: v for k, v in out[fy].items() if not k.startswith("UNMATCHED:")},
+            "unmatched_chains_lakh": unmatched,
+            "unmatched_total_lakh": str(sum(Decimal(v) for v in unmatched.values()).quantize(Decimal("0.01"))),
+            "note": "MT here = Chain Master Channel 'MT' after the alias step, which is what [Total MT NSV] sums. Unmatched chains drop out of it."}
+
+
 def primary_shipto_composite():
     """Composite file only. The other two ShipTo files are exact subsets of it (see ledger), and
     15_Fact_PrimaryShipTo.pq now skips them, so this is what the model should load."""
@@ -161,6 +195,7 @@ def main():
         "primary_article_by_channel": primary_article_by_channel(),
         "secondary_chain": secondary_chain(),
         "primary_shipto": primary_shipto_composite(),
+        "offtake_chain_master_check": offtake_chain_master_check(),
         "coverage_notes": [],
     }
     # Say plainly what these folders cannot prove.
