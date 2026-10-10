@@ -96,15 +96,16 @@ let
     // Chain spellings in the offtake CSVs that differ from Chain Master (case, spacing,
     // short forms). Without this the rows have no Chain Master match and drop out of
     // [Total MT NSV]. Each pair is lowercase alias -> Chain Master name. Checked against
-    // build_dashboard_data.py CHAIN_ALIASES for the same entity. FSN/Fsn are NOT listed:
-    // Nykaa (FSN) bills eB2B (CB-01), so its channel is a business decision.
+    // build_dashboard_data.py CHAIN_ALIASES for the same entity. FSN/Fsn maps to Nykaa (FSN),
+    // a Chain Master row with Channel EB2B (owner decision 2026-10-10), so it stays out of MT.
     ChainAliases = {
         {"dmart", "D-Mart"}, {"h&g", "Health & Glow"}, {"metro cnc", "Metro CNC"},
         {"sancus(rmt)", "RMT-Sancus"}, {"vmm", "Vishal Mega Mart"}, {"spencer", "Spencers"},
         {"frankros", "Frank Ross"}, {"arambagh", "Arambagh"}, {"ratnadeep", "Ratnadeep"},
         {"ratandeep", "Ratnadeep"}, {"ratanadeep", "Ratnadeep"}, {"sasta sundar", "SastaSundar"},
         {"ssl", "SastaSundar"}, {"beauty & nutrie", "B&N"}, {"wh-smith", "WH-Smith"},
-        {"shoppers stop", "Shoppers Stop"}, {"azorte", "Azorte"}, {"trends", "Trent"}
+        {"shoppers stop", "Shoppers Stop"}, {"azorte", "Azorte"}, {"trends", "Trent"},
+        {"fsn", "Nykaa (FSN)"}
     },
     AliasChain = Table.TransformColumns(Trimmed, {{"Chain", each
         let k = Text.Lower(Text.Trim(Text.From(_ ?? ""))),

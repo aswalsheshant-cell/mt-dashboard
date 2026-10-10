@@ -904,14 +904,20 @@ def main():
     def read_pq(name):
         return (PBI_ROOT / "PowerQuery" / name).read_text(encoding="utf-8")
 
-    param_line = [l for l in read_pq("00_Parameters.pq").splitlines()
-                  if l.strip() and not l.lstrip().startswith("//")][-1].strip()
-    if args.pq_root:
-        param_line = re.sub(r'^"[^"]*"', lambda m: '"' + args.pq_root.replace("\\\\", "\\") + '"', param_line)
-    expressions = [{
-        "name": "pRootFolder", "kind": "m", "expression": param_line,
-        "annotations": [{"name": "PBI_ResultType", "value": "Text"}],
-    }]
+    params, cur = [], None
+    for l in read_pq("00_Parameters.pq").splitlines():
+        h = re.match(r"//\s*-+\s*Parameter:\s*(\w+)", l)
+        if h:
+            cur = h.group(1)
+        elif cur and l.strip() and not l.lstrip().startswith("//") and "IsParameterQuery" in l:
+            params.append((cur, l.strip()))
+            cur = None
+    expressions = []
+    for pname, pline in params:
+        if args.pq_root and pname == "pRootFolder":
+            pline = re.sub(r'^"[^"]*"', lambda m: '"' + args.pq_root.replace("\\\\", "\\") + '"', pline)
+        expressions.append({"name": pname, "kind": "m", "expression": pline,
+                            "annotations": [{"name": "PBI_ResultType", "value": "Text"}]})
     for fname, fn in (("01_fnCombineFolder.pq", "fnCombineFolder"), ("02_fnFYLabel.pq", "fnFYLabel")):
         body = "\n".join(l for l in read_pq(fname).splitlines() if not l.lstrip().startswith("//")).strip()
         expressions.append({"name": fn, "kind": "m", "expression": body.split("\n")})

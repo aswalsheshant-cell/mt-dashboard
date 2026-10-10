@@ -24,7 +24,7 @@ ORDER BY [Rows] DESC
 
 -- ------------------------------------------------------------
 -- Q2. Primary Article NSV by FY and Channel (Rs lakh)
--- Expected: FY 25-26: MT 30,684.99, EB2B 1,965.20, SIS 250.17. Total 32,900.36. FY 26-27 (Apr-Aug): MT 21,075.63.
+-- Expected: Default pPrimaryChannel = MT, so only MT rows load: FY 25-26 MT 30,684.99 and FY 26-27 (Apr-Aug) MT 21,075.63, with no EB2B or SIS rows. With pPrimaryChannel = ALL you would also see EB2B 1,965.20 and SIS 250.17 for FY 25-26 (total 32,900.36).
 -- ------------------------------------------------------------
 EVALUATE
 SUMMARIZECOLUMNS(
@@ -36,25 +36,25 @@ ORDER BY 'Date Table'[FY Year], 'Fact Primary Article'[Channel]
 
 
 -- ------------------------------------------------------------
--- Q3. FY 25-26 Primary NSV, all channels and MT only (Rs lakh)
--- Expected: All channels 32,900.36. MT only 30,684.99. An unfiltered total equals the all-channel figure (ledger D1).
+-- Q3. FY 25-26 Primary NSV (Rs lakh)
+-- Expected: 30,684.99 with the default pPrimaryChannel = MT (the MT basis). It reads 32,900.36 only if the parameter is set to ALL.
 -- ------------------------------------------------------------
 EVALUATE
 ROW(
-  "All channels Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26") / 100000,
-  "MT only Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26", 'Fact Primary Article'[Channel] = "MT") / 100000
+  "FY26 Primary NSV Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26") / 100000
 )
 
 
 -- ------------------------------------------------------------
 -- Q4. Offtake Apr-Aug 2026, gross and MT split (Rs lakh)
--- Expected: Gross [Total Offtake NSV] 21,553.85. [Total MT NSV] 17,936.36 and [Total RBC NSV] 2,582.17 (Chain Master channel, after the alias step in query 11). The dashboard figure ex Reliance Brand Counter is 18,971.68; the difference 1,035.33 L is chains with no Chain Master row (Centro 0.18, FSN 653.38, Fsn 381.77), ledger D10.
+-- Expected: Gross [Total Offtake NSV] 21,553.85. [Total MT NSV] 17,936.36, [Total RBC NSV] 2,582.17 and EB2B 1,035.14 (Chain Master channel, after the alias step in query 11). FSN is EB2B (owner decision 2026-10-10), so MT + EB2B = 18,971.50, the dashboard figure ex Reliance Brand Counter (18,971.68). Chains with no Chain Master row: 0.18 L (Centro 0.18).
 -- ------------------------------------------------------------
 EVALUATE
 ROW(
   "Gross Offtake Lakh", CALCULATE([Total Offtake NSV], 'Date Table'[FY Year] = "26-27") / 100000,
   "MT (ex RBC) Lakh", CALCULATE([Total MT NSV], 'Date Table'[FY Year] = "26-27") / 100000,
-  "RBC Lakh", CALCULATE([Total RBC NSV], 'Date Table'[FY Year] = "26-27") / 100000
+  "RBC Lakh", CALCULATE([Total RBC NSV], 'Date Table'[FY Year] = "26-27") / 100000,
+  "EB2B Lakh", CALCULATE([Total Offtake NSV], 'Chain Master'[Channel] = "EB2B", 'Date Table'[FY Year] = "26-27") / 100000
 )
 
 

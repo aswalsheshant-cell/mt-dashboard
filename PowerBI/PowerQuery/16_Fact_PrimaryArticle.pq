@@ -95,8 +95,15 @@ let
         {"Chain Dash", type text}, {"Zone", type text}, {"State", type text}
     }),
 
+    // Channel scope (parameter pPrimaryChannel). Spelling is folded first because the
+    // files hold both "EB2B" and "Eb2b". "MT" drops EB2B and SIS rows only; every MT chain,
+    // Reliance included, stays. "ALL" keeps everything.
+    ChannelNorm = Table.TransformColumns(Typed, {{"Channel", each Text.Upper(Text.Trim(Text.From(_ ?? ""))), type text}}),
+    ChannelScoped = if Text.Upper(pPrimaryChannel) = "ALL" then ChannelNorm
+        else Table.SelectRows(ChannelNorm, each [Channel] = Text.Upper(Text.Trim(pPrimaryChannel))),
+
     // MonthStart from "April'24"/"Apr'24" text, a date value, or an Excel serial
-    AddMonthStart = Table.AddColumn(Typed, "MonthStart", each
+    AddMonthStart = Table.AddColumn(ChannelScoped, "MonthStart", each
         let v = [Month]
         in  if v = null then null
             else if Value.Is(v, type date) then Date.StartOfMonth(v)

@@ -209,15 +209,14 @@
     "fy": "FY27",
     "unit": "lakh",
     "by_master_channel": {
+      "EB2B": "1035.14",
       "MT": "17936.36",
       "RBC": "2582.17"
     },
     "unmatched_chains_lakh": {
-      "Centro": "0.18",
-      "FSN": "653.38",
-      "Fsn": "381.77"
+      "Centro": "0.18"
     },
-    "unmatched_total_lakh": "1035.33",
+    "unmatched_total_lakh": "0.18",
     "note": "MT here = Chain Master Channel 'MT' after the alias step, which is what [Total MT NSV] sums. Unmatched chains drop out of it."
   },
   "coverage_notes": [

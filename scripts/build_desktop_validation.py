@@ -38,6 +38,7 @@ st = EXP["primary_shipto"]["fy_lakh"]
 chk = EXP["offtake_chain_master_check"]
 mt_cm = chk["by_master_channel"]["MT"]
 rbc_cm = chk["by_master_channel"]["RBC"]
+eb_cm = chk["by_master_channel"].get("EB2B", "0")
 unm_tot = chk["unmatched_total_lakh"]
 unm = ", ".join("%s %s" % (k, fmt(v)) for k, v in chk["unmatched_chains_lakh"].items())
 
@@ -59,8 +60,8 @@ UNION(
 )
 ORDER BY [Rows] DESC"""),
     ("Q2", "Primary Article NSV by FY and Channel (Rs lakh)",
-     "FY 25-26: MT %s, EB2B %s, SIS %s. Total %s. FY 26-27 (Apr-Aug): MT %s." % (
-         fmt(ch["FY26"]["MT"]), fmt(ch["FY26"]["EB2B"]), fmt(ch["FY26"]["SIS"]), fmt(pa_all["FY26"]), fmt(ch["FY27"]["MT"])),
+     "Default pPrimaryChannel = MT, so only MT rows load: FY 25-26 MT %s and FY 26-27 (Apr-Aug) MT %s, with no EB2B or SIS rows. With pPrimaryChannel = ALL you would also see EB2B %s and SIS %s for FY 25-26 (total %s)." % (
+         fmt(ch["FY26"]["MT"]), fmt(ch["FY27"]["MT"]), fmt(ch["FY26"]["EB2B"]), fmt(ch["FY26"]["SIS"]), fmt(pa_all["FY26"])),
      """EVALUATE
 SUMMARIZECOLUMNS(
   'Date Table'[FY Year],
@@ -68,21 +69,21 @@ SUMMARIZECOLUMNS(
   "NSV Lakh", DIVIDE([Total Primary NSV], 100000)
 )
 ORDER BY 'Date Table'[FY Year], 'Fact Primary Article'[Channel]"""),
-    ("Q3", "FY 25-26 Primary NSV, all channels and MT only (Rs lakh)",
-     "All channels %s. MT only %s. An unfiltered total equals the all-channel figure (ledger D1)." % (fmt(pa_all["FY26"]), fmt(ch["FY26"]["MT"])),
+    ("Q3", "FY 25-26 Primary NSV (Rs lakh)",
+     "%s with the default pPrimaryChannel = MT (the MT basis). It reads %s only if the parameter is set to ALL." % (fmt(ch["FY26"]["MT"]), fmt(pa_all["FY26"])),
      """EVALUATE
 ROW(
-  "All channels Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26") / 100000,
-  "MT only Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26", 'Fact Primary Article'[Channel] = "MT") / 100000
+  "FY26 Primary NSV Lakh", CALCULATE([Total Primary NSV], 'Date Table'[FY Year] = "25-26") / 100000
 )"""),
     ("Q4", "Offtake Apr-Aug 2026, gross and MT split (Rs lakh)",
-     "Gross [Total Offtake NSV] %s. [Total MT NSV] %s and [Total RBC NSV] %s (Chain Master channel, after the alias step in query 11). The dashboard figure ex Reliance Brand Counter is %s; the difference %s L is chains with no Chain Master row (%s), ledger D10." % (
-         fmt(off_fy27), fmt(mt_cm), fmt(rbc_cm), fmt(off_fy27_gov), fmt(unm_tot), unm),
+     "Gross [Total Offtake NSV] %s. [Total MT NSV] %s, [Total RBC NSV] %s and EB2B %s (Chain Master channel, after the alias step in query 11). FSN is EB2B (owner decision 2026-10-10), so MT + EB2B = %s, the dashboard figure ex Reliance Brand Counter (%s). Chains with no Chain Master row: %s L (%s)." % (
+         fmt(off_fy27), fmt(mt_cm), fmt(rbc_cm), fmt(eb_cm), fmt(float(mt_cm) + float(eb_cm)), fmt(off_fy27_gov), fmt(unm_tot), unm or "none"),
      """EVALUATE
 ROW(
   "Gross Offtake Lakh", CALCULATE([Total Offtake NSV], 'Date Table'[FY Year] = "26-27") / 100000,
   "MT (ex RBC) Lakh", CALCULATE([Total MT NSV], 'Date Table'[FY Year] = "26-27") / 100000,
-  "RBC Lakh", CALCULATE([Total RBC NSV], 'Date Table'[FY Year] = "26-27") / 100000
+  "RBC Lakh", CALCULATE([Total RBC NSV], 'Date Table'[FY Year] = "26-27") / 100000,
+  "EB2B Lakh", CALCULATE([Total Offtake NSV], 'Chain Master'[Channel] = "EB2B", 'Date Table'[FY Year] = "26-27") / 100000
 )"""),
     ("Q5", "Offtake by month, gross and MT ex Reliance Brand Counter (Rs lakh)",
      "Gross: " + "; ".join("%s %s" % (m, fmt(v)) for m, v in sorted(off_m.items())) + ". Dashboard ex RBC (data.js; [Total MT NSV] will be lower by the unmatched chains, see Q4): " + "; ".join("%s %s" % (m, fmt(v)) for m, v in sorted(off_gm.items())),
@@ -173,7 +174,7 @@ def main():
           "2. Install Tabular Editor 2 (free) and DAX Studio. Open Power BI Desktop with a blank report.",
           "3. Start Desktop with a blank report and keep it open. Find its local port: in Tabular Editor use File, Open, From DB, and pick the Power BI Desktop instance (a server like `localhost:5xxxx`).",
           "4. In Tabular Editor: File, Open, From File, `PowerBI/model.bim`. Model, Deploy, choose that Desktop instance, and tick Deploy Model Structure, Deploy Connections and Deploy Shared Expressions. `model.bim` already carries the `pRootFolder` parameter and the two helper functions; you do not paste any query. If Tabular Editor shows an error, send the exact message.",
-          "4b. In Desktop: Transform data, Manage parameters, set `pRootFolder` to your local `PowerBI` folder, for example `C:\\Users\\you\\mt-dashboard\\PowerBI`. Spaces in the path are fine. No quotes and no trailing slash. The default is `C:\\MT-Dashboard`, which will not exist on your machine.",
+          "4b. In Desktop: Transform data, Manage parameters, set `pRootFolder` to your local `PowerBI` folder, for example `C:\\Users\\you\\mt-dashboard\\PowerBI`. Spaces in the path are fine. No quotes and no trailing slash. Leave `pPrimaryChannel` at `MT` (the MT basis); set it to `ALL` only to check the all-channel total. The default is `C:\\MT-Dashboard`, which will not exist on your machine.",
           "5. In Desktop: Home, Refresh. If a query fails, copy the query name and the full error text, and send it. Do not edit measures to get around it. If a query says it cannot find `#\"Some Name\"`, that is a query-to-query reference; send it as is.",
           "6. Save As `.pbip` (Power BI Project) so Desktop writes the full model files.",
           "7. In DAX Studio: connect to the model, open `PowerBI/TabularEditor/05_DAXStudio_Validation.dax`, run Q1 to Q10 one at a time.",
@@ -188,9 +189,9 @@ def main():
     md += ["", "## Known gaps that are not errors", "",
            "- Primary Weekly, Nielsen and TDP raw folders are empty. Their tables refresh as empty. Pages that need them show an incomplete banner.",
            "- Offtake FY26 is not in `Offtake_Monthly` (it starts Apr-26), so the model cannot show the 31,119.88 L FY26 baseline. That figure lives in `dashboard/data.js`.",
-           "- An unfiltered Primary total includes EB2B and SIS (ledger D1). Use the Channel = MT filter when comparing to the 30,684.99 L basis.",
+           "- Primary Article loads MT-channel rows only (parameter `pPrimaryChannel`, default MT). Set it to ALL to load EB2B and SIS as well; the total then reads 32,900.36 L. Primary ShipTo has no Channel column and is all channels (FY 25-26 32,900.36 L), so it will not equal Primary Article on the MT setting.",
            "- Store Cuts files cover Apr-26 to Aug-26 only.",
-           "- FSN/Fsn offtake (%s L) has no Chain Master row. Nykaa (FSN) bills eB2B, so whether it counts as MT is a business decision (ledger D10). [Total MT NSV] leaves it out until then." % fmt(unm_tot), ""]
+           "- FSN offtake maps to the Chain Master row `Nykaa (FSN)`, channel EB2B (owner decision 2026-10-10), so it is not in [Total MT NSV].", ""]
     OUT_MD.write_text("\n".join(md), encoding="utf-8")
     print("wrote", OUT_DAX.relative_to(ROOT), "and", OUT_MD.relative_to(ROOT))
 

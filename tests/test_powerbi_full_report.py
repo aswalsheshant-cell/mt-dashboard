@@ -200,7 +200,7 @@ def test_fy_year_columns_are_text():
 def test_offtake_alias_step_leaves_only_known_unmatched_chains():
     exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))
     unmatched = set(exp["offtake_chain_master_check"]["unmatched_chains_lakh"])
-    assert unmatched <= {"FSN", "Fsn", "Centro"}, unmatched
+    assert unmatched <= {"Centro"}, unmatched
 
 
 def test_model_follows_tabular_object_model_rules():
@@ -243,3 +243,14 @@ def test_model_follows_tabular_object_model_rules():
     for u in list(flow):
         if u not in state:
             visit(u)
+
+
+def test_primary_channel_filter_and_fsn_decision_are_wired():
+    names = {e["name"] for e in _model()["expressions"]}
+    assert "pPrimaryChannel" in names
+    pq = (PBI / "PowerQuery" / "16_Fact_PrimaryArticle.pq").read_text(encoding="utf-8")
+    assert "pPrimaryChannel" in pq and "Text.Upper" in pq
+    master = (PBI / "SeedData" / "Masters" / "ChainMaster.csv").read_text(encoding="utf-8")
+    assert "Nykaa (FSN),Nykaa,Beauty Retail,South-2,EB2B,Yes" in master
+    exp = json.loads((PBI / "reconciliation_expected.json").read_text(encoding="utf-8"))
+    assert "EB2B" in exp["offtake_chain_master_check"]["by_master_channel"]
