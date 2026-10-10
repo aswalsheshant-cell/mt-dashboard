@@ -29,18 +29,19 @@ Do not restore, reset or clean until each deleted path is listed and someone con
 |---|---|---|---|
 | M1 | `build_model_bim.py` read every `VAR x =` line as a new measure. | About 174 bogus "VAR ..." measures. Real measures such as `MoM Growth %`, `Latest Month NSV`, `L3M Average Sales` were dropped. The earlier count of 446 was wrong. | Measures start at column 0. VAR and RETURN are body lines. Names may hold %, -, and brackets like `Offtake NSV (CBA, M)`. Now 481 measures. |
 | M2 | Same generator kept the same column twice in 5 tables. | Tabular Editor would refuse the deploy. | One column per name. A calculated column replaces a same-named source column. |
+| M4 | Six calculated columns (`TOT Method`, `TOT Pass-on Value` on Fact Primary Article; `Resolved Chain/Brand/Category`, `Bad Brand Or Category` on PL Expense Input) exist only as commented blocks in the DAX files. 12 measures use them. | Those measures would error in the deployed model. | The generator now reads the commented blocks and adds the columns, using the repo's own text. Not tested in Desktop. |
 | M3 | `15_Fact_PrimaryShipTo.pq` loaded all 3 files in `Primary_ShipTo_Monthly`. | Every row of the two narrow files is in the composite on Month, Ship To Name, Brand, NSV and MRP, and monthly NSV is identical (independent check). Their Chain labels differ from the composite's normalised names, so they are not byte-identical. Those months were counted twice. | The query skips the two subset files by name. New monthly files still load. Not tested in Desktop. |
 
-Checks after the fix: 52 tables, 47 relationships, 481 measures, 22 calculated columns, no duplicate column names, every relationship column exists, every measure reference resolves except local SUMMARIZE aliases (`n`, `tot`, `RowCount`).
+Checks after the fix: 52 tables, 47 relationships, 481 measures, 28 calculated columns, every `'Table'[Column]` used by a measure exists, no duplicate column names, every relationship column exists, every measure reference resolves except local SUMMARIZE aliases (`n`, `tot`, `RowCount`).
 
 ## Defects found, not fixed (need your decision)
 
 | # | Finding | Proposed fix | Who decides |
 |---|---|---|---|
 | D1 | `16_Fact_PrimaryArticle.pq` does not filter Channel. An unfiltered FY26 total reads 32,900.36 L, not the MT basis 30,684.99 L. | Filter to Channel = MT in the query, or require a Channel slicer on Primary pages. Primary must never lose Reliance rows. | MT Leadership / you |
-| D2 | `DAX/15_Promo_Measures.dax` names tables that do not exist: `Dim_PromoCalendar` (use `Dim Promo Calendar`), `Fact_ClaimMaster` (use `Fact Claim Master`), `Dim_Calendar` (use `Date Table`), `Fact_Secondary_TOT_Hierarchy` (no table in the model). | The first three are plain renames. The fourth needs a new query on `secondary_sales_tot_hierarchy_Apr_Aug_2026.csv` or a different base table. | You |
-| D3 | `46_Dim_PromoCalendar.pq` uses a literal `PowerBI/RawDataFolders/...` path, not `pRootFolder`. | Use `pRootFolder & "\RawDataFolders\Promo_Calendar\..."`. | You |
-| D4 | Store Cuts and Nielsen queries read `RawDataFolders`, but the real files sit in `SeedData`. | Copy the files across (`SeedData\Store_Cuts` to `RawDataFolders\Store_Cuts`) or point the queries at the seed path. | You |
+| D2 | `DAX/15_Promo_Measures.dax`: `Dim_PromoCalendar` and `Fact_ClaimMaster` renamed to `'Dim Promo Calendar'` and `'Fact Claim Master'` (done). Still open: `Fact_Secondary_TOT_Hierarchy` (no table in the model) and `Dim_Calendar[Month_Label]` (Date Table has no such column). | Needs a new query on `secondary_sales_tot_hierarchy_Apr_Aug_2026.csv` and a choice of month column. | You |
+| D3 | `46_Dim_PromoCalendar.pq` now uses `pRootFolder` (fixed). | Done, not tested in Desktop. | Done |
+| D4 | Store Cuts queries 58 to 61 now read `SeedData\Store_Cuts` (fixed). Do not copy those store-level files into `RawDataFolders` (commit 35b29b5, restricted-source rule). Nielsen queries still read `RawDataFolders\Nielsen_*`; the Aug-26 files are in `SeedData\Nielsen`. | Decide: copy the Nielsen seed files into the watch folders, or add the seed path to those queries. | You |
 | D5 | Source FY text is inconsistent (`FY'25-26`, `FY'26-27`, `FY27`) and Channel has a case variant (`Eb2b`). | FY must come from Month using `fnFYLabel`. Fold case on Channel. | Check in Desktop |
 | D7 | `Primary_Aug26_FY27.csv` (root of `RawDataFolders`) is Rs213.30L higher than the Aug-26 article file: MRN returns 116.50 + 350 cancelled invoices 96.80, all MT. EB2B and SIS tie once returns are excluded. | Leave it out of `Primary_Article_Monthly`. Reconciled in `docs/DATA_LINEAGE.md`. | Owner to confirm |
 | D6 | The HTML has 11 subviews (3 + 3 + 5). CLAUDE.md lists 9. `storecuts` and `tdp` came later. | Update CLAUDE.md wording when you next edit it. The page contract uses 11. | You |
@@ -58,7 +59,7 @@ Detail: `PowerBI/full_report_sources.json`.
 | Fact Secondary Sales | INCOMPLETE_PERIODS | Apr-26 to Aug-26 only. No page measure reads it directly. | none |
 | Fact Nielsen, Nielsen Pack, Pack Brand, Brand Cut | TEMPLATE_ONLY / EMPTY | Raw folders hold README or template only. Real Aug-26 files sit in `SeedData/Nielsen`. | 1, 9, 10, 11 |
 | Fact TDP | TEMPLATE_ONLY | No TDP monthly data. | 1, 7, 9, 10, 11 |
-| Fact Store Type, Pack Size, Sales Cuts, Inhouse Distribution | MISSING | Queries read `RawDataFolders\Store_Cuts\*.csv`. Folder has a README only. | 21 |
+| Fact Store Type, Pack Size, Sales Cuts, Inhouse Distribution | INCOMPLETE_PERIODS | Files found in `SeedData\Store_Cuts` after the path fix. They cover FY27 months only, so Apr-25 to Mar-26 is missing. | 21 |
 | Fact Account Category / Geo / Assortment | INCOMPLETE_PERIODS | Seed files start after Apr-25. | 9 |
 | Fact P&L | DERIVED | Built from Fact Offtake Sales, so it inherits the offtake gap. | 4 |
 | Dim Promo Calendar | READY, with warning | See D3. | 19 |
@@ -83,7 +84,7 @@ Detail: `PowerBI/reconciliation_expected.json`.
 ## G2 Page contract
 
 Detail: `PowerBI/full_report_pages.json` and `PowerBI/docs/FullReportParity.md`.
-11 tabs and 11 subviews all map to a page. 20 pages: 14 from PageLayouts.md and 6 proposed. Page status today: 9 PARTIAL, 6 NO_SOURCE, 4 NO_MODEL_SOURCE, 1 MODEL_ERROR. No page is READY yet, so the report cannot be called complete.
+11 tabs and 11 subviews all map to a page. 20 pages: 14 from PageLayouts.md and 6 proposed. Page status today: 10 PARTIAL, 5 NO_SOURCE, 4 NO_MODEL_SOURCE, 1 MODEL_ERROR. No page is READY yet, so the report cannot be called complete.
 
 Generated page files are in `PowerBI/PBIR_Generated/`. They are scaffolding, written outside Desktop and not opened in it.
 

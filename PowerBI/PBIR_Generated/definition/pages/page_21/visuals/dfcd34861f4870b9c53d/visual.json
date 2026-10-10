@@ -18,7 +18,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "SOURCE NOT AVAILABLE: no data files for Fact Inhouse Distribution, Fact Pack Size, Fact Sales Cuts, Fact Store Type. Values on this page are incomplete, not zero.",
+                    "value": "PARTIAL DATA: Fact Inhouse Distribution, Fact Pack Size, Fact Sales Cuts do not cover every month in 2025-04 to 2026-08. Values cover the months that have data.",
                     "textStyle": {
                       "fontSize": "12pt",
                       "fontWeight": "bold"

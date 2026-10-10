@@ -13,14 +13,14 @@ SUM(Fact_Secondary_TOT_Hierarchy[NSV_Lakh])
 [Actual Promoted NSV Lakh] =
 CALCULATE(
     [Actual NSV Lakh],
-    KEEPFILTERS(NOT(ISBLANK(Dim_PromoCalendar[EAN Code])))
+    KEEPFILTERS(NOT(ISBLANK('Dim Promo Calendar'[EAN Code])))
 )
 
 [Baseline Non-Promoted NSV Lakh] =
 [Actual NSV Lakh] - [Actual Promoted NSV Lakh]
 
 [Active Promo Offer Count] =
-DISTINCTCOUNT(Dim_PromoCalendar[Promo_Key])
+DISTINCTCOUNT('Dim Promo Calendar'[Promo_Key])
 
 [Promoted NSV Share %] =
 DIVIDE(
@@ -33,7 +33,7 @@ DIVIDE(
 VAR PromotedSKUs =
     CALCULATE(
         DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN]),
-        KEEPFILTERS(NOT(ISBLANK(Dim_PromoCalendar[EAN Code])))
+        KEEPFILTERS(NOT(ISBLANK('Dim Promo Calendar'[EAN Code])))
     )
 VAR TotalSKUs =
     DISTINCTCOUNT(Fact_Secondary_TOT_Hierarchy[EAN])
@@ -46,7 +46,7 @@ RETURN
 VAR WeightedDiscount =
     SUMX(
         Dim_PromoCalendar,
-        VALUE(Dim_PromoCalendar[Offer to consumer])
+        VALUE('Dim Promo Calendar'[Offer to consumer])
     )
 VAR OfferCount = COUNTROWS(Dim_PromoCalendar)
 RETURN
@@ -56,7 +56,7 @@ RETURN
 VAR WeightedCompanyShare =
     SUMX(
         Dim_PromoCalendar,
-        Dim_PromoCalendar[ME_Contribution_Pct]
+        'Dim Promo Calendar'[ME_Contribution_Pct]
     )
 VAR OfferCount = COUNTROWS(Dim_PromoCalendar)
 RETURN
@@ -64,11 +64,11 @@ RETURN
 
 [Planned Trade Spend Value Lakh] =
 SUMX(
-    VALUES(Dim_PromoCalendar[EAN Code]),
+    VALUES('Dim Promo Calendar'[EAN Code]),
     VAR EAN_NSV = CALCULATE([Actual Promoted NSV Lakh])
     VAR EAN_Company_Discount =
         CALCULATE(
-            AVERAGE(Dim_PromoCalendar[ME_Contribution_Pct])
+            AVERAGE('Dim Promo Calendar'[ME_Contribution_Pct])
         )
     RETURN
         EAN_NSV * EAN_Company_Discount / 100
@@ -78,7 +78,7 @@ SUMX(
 
 [Actual Claim Expense Lakh] =
 CALCULATE(
-    SUM(Fact_ClaimMaster[Amount_Lakh]),
+    SUM('Fact Claim Master'[Amount_Lakh]),
     REMOVEFILTERS(Dim_PromoCalendar),
     REMOVEFILTERS(Fact_Secondary_TOT_Hierarchy)
 )
@@ -173,15 +173,15 @@ RETURN
 // USAGE NOTES:
 // ==============================================================================
 // 1. Relationships required:
-//    - Dim_PromoCalendar[EAN Code] → Fact_Secondary_TOT_Hierarchy[EAN]
-//    - Dim_PromoCalendar[Brand] → Dim_Brand[Brand_Name]
+//    - 'Dim Promo Calendar'[EAN Code] → Fact_Secondary_TOT_Hierarchy[EAN]
+//    - 'Dim Promo Calendar'[Brand] → Dim_Brand[Brand_Name]
 //    - Dim_Calendar[Date] → Fact_Secondary_TOT_Hierarchy[Source_Month]
 //
 // 2. Slicers recommended:
 //    - Dim_Calendar[Month_Label] (Sep-26)
 //    - Dim_Brand[Brand_Name]
 //    - Dim_Chain[Chain_Name]
-//    - Dim_PromoCalendar[Promo_Type] (Consumer Promotion, etc.)
+//    - 'Dim Promo Calendar'[Promo_Type] (Consumer Promotion, etc.)
 //
 // 3. Conditional formatting:
 //    - [Promo Spend Variance %]: <-15% = Red, -15% to +15% = Green, >15% = Amber

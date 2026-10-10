@@ -79,3 +79,24 @@ def test_generated_pbir_json_parses_and_cards_use_model_measures():
         if f.name == "visual.json" and data["visual"]["visualType"] == "card":
             prop = data["visual"]["query"]["queryState"]["Values"]["projections"][0]["field"]["Measure"]["Property"]
             assert prop in names, f
+
+
+def test_every_column_used_by_a_measure_exists():
+    m = _model()
+    cols = {t["name"]: {c["name"] for c in t.get("columns", [])} for t in m["tables"]}
+    measure_names = {x["name"] for t in m["tables"] for x in t.get("measures", [])}
+    missing = []
+    for t in m["tables"]:
+        for x in t.get("measures", []):
+            e = x["expression"]
+            e = "\n".join(e) if isinstance(e, list) else e
+            for tb, c in re.findall(r"'([^']+)'\[([^\]]+)\]", re.sub(r"//.*", "", e)):
+                if tb in cols and c not in cols[tb] and c not in measure_names:
+                    missing.append((x["name"], tb, c))
+    assert not missing, missing[:5]
+
+
+def test_store_cuts_queries_read_seeddata_not_rawdatafolders():
+    for n in ("58_Fact_Store_Type", "59_Fact_Pack_Size", "60_Fact_Sales_Cuts", "61_Fact_Inhouse_Distribution"):
+        pq = (PBI / "PowerQuery" / (n + ".pq")).read_text(encoding="utf-8")
+        assert "\\SeedData\\Store_Cuts\\" in pq and "\\RawDataFolders\\Store_Cuts\\" not in pq, n

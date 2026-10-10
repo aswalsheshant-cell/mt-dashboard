@@ -30,11 +30,10 @@
   "status_summary": {
     "NO_FILE_SOURCE": 2,
     "TEMPLATE_ONLY": 3,
-    "INCOMPLETE_PERIODS": 6,
+    "INCOMPLETE_PERIODS": 9,
     "DERIVED": 5,
-    "READY": 26,
-    "EMPTY": 5,
-    "MISSING": 4
+    "READY": 27,
+    "EMPTY": 5
   },
   "tables": [
     {
@@ -1506,9 +1505,7 @@
         "6"
       ],
       "derived_from": [],
-      "warnings": [
-        "Hard-coded path(s) without pRootFolder: RawDataFolders\\Promo_Calendar\\promo_mechanics_Sep_2026.csv. Will not resolve outside the repo root."
-      ],
+      "warnings": [],
       "files": [
         {
           "file": "PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv",
@@ -1906,7 +1903,7 @@
       "table": "Fact Store Type",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Store_Cuts\\store_type_aug26.csv"
+        "SeedData\\Store_Cuts\\store_type_aug26.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -1916,15 +1913,24 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/store_type_aug26.csv",
+          "size_mb": 1.19,
+          "rows": 12212,
+          "columns": 11,
+          "periods": [],
+          "fy_tags": []
+        }
+      ],
       "periods_covered": [],
-      "status": "MISSING"
+      "status": "READY"
     },
     {
       "table": "Fact Pack Size",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Store_Cuts\\pack_size_monthly_fy27.csv"
+        "SeedData\\Store_Cuts\\pack_size_monthly_fy27.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -1934,15 +1940,52 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
-      "periods_covered": [],
-      "status": "MISSING"
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/pack_size_monthly_fy27.csv",
+          "size_mb": 0.02,
+          "rows": 491,
+          "columns": 6,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
     },
     {
       "table": "Fact Sales Cuts",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Store_Cuts\\sales_cuts_fy27.csv"
+        "SeedData\\Store_Cuts\\sales_cuts_fy27.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -1952,15 +1995,52 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
-      "periods_covered": [],
-      "status": "MISSING"
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/sales_cuts_fy27.csv",
+          "size_mb": 0.35,
+          "rows": 5617,
+          "columns": 9,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
     },
     {
       "table": "Fact Inhouse Distribution",
       "is_fact": true,
       "pq_refs": [
-        "RawDataFolders\\Store_Cuts\\inhouse_distribution_fy27.csv"
+        "SeedData\\Store_Cuts\\inhouse_distribution_fy27.csv"
       ],
       "grain": "master/config",
       "unit": "n/a",
@@ -1970,9 +2050,46 @@
       ],
       "derived_from": [],
       "warnings": [],
-      "files": [],
-      "periods_covered": [],
-      "status": "MISSING"
+      "files": [
+        {
+          "file": "PowerBI/SeedData/Store_Cuts/inhouse_distribution_fy27.csv",
+          "size_mb": 0.04,
+          "rows": 508,
+          "columns": 10,
+          "periods": [
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08"
+          ],
+          "fy_tags": [
+            "FY27"
+          ]
+        }
+      ],
+      "periods_covered": [
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08"
+      ],
+      "periods_missing_vs_required": [
+        "2025-04",
+        "2025-05",
+        "2025-06",
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ],
+      "status": "INCOMPLETE_PERIODS"
     }
   ]
 }

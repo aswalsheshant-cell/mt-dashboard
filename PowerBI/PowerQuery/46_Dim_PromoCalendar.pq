@@ -8,7 +8,7 @@
 let
     // Step 1: Read source CSV from watch folder
     Source = Csv.Document(
-        File.Contents("PowerBI/RawDataFolders/Promo_Calendar/promo_mechanics_Sep_2026.csv"),
+        File.Contents(pRootFolder & "\RawDataFolders\Promo_Calendar\promo_mechanics_Sep_2026.csv"),
         [Delimiter = ",", Columns = 18, Encoding = 65001, QuoteStyle = QuoteStyle.None]
     ),
 

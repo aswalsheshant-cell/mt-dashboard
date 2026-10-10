@@ -18,7 +18,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "MODEL ERROR: measures on this page use tables that are not in the model: Dim_Calendar, Dim_PromoCalendar, Fact_ClaimMaster, Fact_Secondary_TOT_Hierarchy. Fix the DAX table names before trusting this page.",
+                    "value": "MODEL ERROR: measures on this page use tables that are not in the model: Dim_Calendar, Fact_Secondary_TOT_Hierarchy. Fix the DAX table names before trusting this page.",
                     "textStyle": {
                       "fontSize": "12pt",
                       "fontWeight": "bold"

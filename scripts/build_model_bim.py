@@ -494,6 +494,29 @@ def parse_dax_measures(dax_dir):
             elif current_name is not None and line is not None:
                 current_dax.append(line)
 
+    # Calculated columns that the DAX files keep as commented blocks
+    # ("// 'Table'[Col] = ..." ending at a bare "//" line or the first non-comment line).
+    # Measures depend on them, so the model needs them. Text is the repo's own.
+    have = {(c["table"], c["name"]) for c in calc_columns}
+    for f in sorted(dax_dir.glob("*.dax")):
+        lines = f.read_text(encoding="utf-8").split("\n")
+        i = 0
+        while i < len(lines):
+            m = re.match(r"^//\s*'([^']+)'\[([^\]]+)\]\s*=\s*(?:--.*)?$", lines[i].rstrip())
+            if m:
+                body = []
+                i += 1
+                while i < len(lines) and lines[i].startswith("//") and lines[i].strip() != "//":
+                    body.append(re.sub(r"^//\s?", "", lines[i]))
+                    i += 1
+                key = (m.group(1), m.group(2))
+                if key not in have and any(b.strip() for b in body):
+                    have.add(key)
+                    calc_columns.append({"table": key[0], "name": key[1],
+                                         "expression": "\n".join(body).strip(), "source": f.name})
+            else:
+                i += 1
+
     return measures, calc_table_dax, calc_columns
 
 

@@ -10,8 +10,8 @@
   "status_counts": {
     "MODEL_ERROR": 1,
     "NO_MODEL_SOURCE": 4,
-    "NO_SOURCE": 6,
-    "PARTIAL": 9
+    "NO_SOURCE": 5,
+    "PARTIAL": 10
   },
   "tabs": [
     {
@@ -195,8 +195,14 @@
     }
   ],
   "fact_table_to_pages": {
+    "Dim Promo Calendar": [
+      "19"
+    ],
     "Fact Account Category": [
       "9"
+    ],
+    "Fact Claim Master": [
+      "19"
     ],
     "Fact Inhouse Distribution": [
       "21"
@@ -545,14 +551,7 @@
         "Incremental Pass-on Impact"
       ],
       "measure_count": 25,
-      "layout_names_not_in_model": [
-        "Bad Brand Or Category",
-        "Resolved Brand",
-        "Resolved Category",
-        "Resolved Chain",
-        "TOT Method",
-        "TOT Pass-on Value"
-      ],
+      "layout_names_not_in_model": [],
       "fact_tables": [
         "Fact Offtake Sales",
         "Fact Primary Article"
@@ -1220,7 +1219,10 @@
       ],
       "measure_count": 19,
       "layout_names_not_in_model": [],
-      "fact_tables": [],
+      "fact_tables": [
+        "Dim Promo Calendar",
+        "Fact Claim Master"
+      ],
       "blocking_tables": [],
       "partial_tables": [],
       "slicers": [
@@ -1248,17 +1250,6 @@
       "measures_with_missing_tables": {
         "Dim_Calendar": [
           "Historical Baseline Velocity Lakh"
-        ],
-        "Dim_PromoCalendar": [
-          "Active Promo Offer Count",
-          "Actual Promoted NSV Lakh",
-          "Planned Company Trade Spend %",
-          "Planned Promo Discount %",
-          "Planned Trade Spend Value Lakh",
-          "Promoted SKU Breadth %"
-        ],
-        "Fact_ClaimMaster": [
-          "Actual Claim Expense Lakh"
         ],
         "Fact_Secondary_TOT_Hierarchy": [
           "Actual NSV Lakh",
@@ -1383,13 +1374,12 @@
         "Fact Sales Cuts",
         "Fact Store Type"
       ],
-      "blocking_tables": [
+      "blocking_tables": [],
+      "partial_tables": [
         "Fact Inhouse Distribution",
         "Fact Pack Size",
-        "Fact Sales Cuts",
-        "Fact Store Type"
+        "Fact Sales Cuts"
       ],
-      "partial_tables": [],
       "slicers": [
         {
           "table": "Date Table",
@@ -1413,7 +1403,7 @@
         }
       ],
       "measures_with_missing_tables": {},
-      "status": "NO_SOURCE",
+      "status": "PARTIAL",
       "notes": [
         "No page in PageLayouts.md. New page proposed to cover this HTML view."
       ]

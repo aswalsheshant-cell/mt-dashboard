@@ -2415,7 +2415,7 @@ in
 ##############################################################################
 // =====================================================================
 // QUERY: Fact Store Type  (grain = one row per store: LFL / NFL / No LY store data / Lost)
-// Source = RawDataFolders\Store_Cuts (copy store_type_aug26.csv from SeedData\Store_Cuts; rebuild it each month with scripts/build_store_cuts.py)
+// Source = SeedData\Store_Cuts\store_type_aug26.csv (store-level data stays in SeedData, not RawDataFolders, per the restricted-source rule; rebuild it each month with scripts/build_store_cuts.py)
 // LFL = sold this year and in the same months last year. NFL = no sales last year in those months. Lost = sold last year, nothing this year (State and Zone are "Not available").
 // NFL Kind: New = no sales anywhere last year; Restarted = sold last year in another month (Sep-Mar) so not a new store; "Not NFL" for the other types.
 // LY Months Sold = months (of Apr-Aug last year) the store had sales; Growth Basis = "Enough history" when 3 or more. Store-level growth is shown only for those stores.
@@ -2423,7 +2423,7 @@ in
 // NSV is in rupees. Relate Chain -> the chain dimension if you want chain slicers to cut it; State and Zone are text columns for direct use.
 // =====================================================================
 let
-    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\store_type_aug26.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Store_Cuts\store_type_aug26.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
     Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
     Typed = Table.TransformColumnTypes(Promoted, {
         {"Store Key", type text}, {"Chain", type text}, {"State", type text}, {"Zone", type text}, {"Store Type", type text}, {"NFL Kind", type text}, {"LY Months Sold", Int64.Type}, {"Growth Basis", type text},
@@ -2441,12 +2441,12 @@ in
 ##############################################################################
 // =====================================================================
 // QUERY: Fact Pack Size  (grain = Month x Category x Pack size)
-// Source = RawDataFolders\Store_Cuts (copy pack_size_monthly_fy27.csv from SeedData\Store_Cuts; rebuild each month with scripts/build_store_cuts.py)
+// Source = SeedData\Store_Cuts\pack_size_monthly_fy27.csv (store-level data stays in SeedData, not RawDataFolders, per the restricted-source rule; rebuild each month with scripts/build_store_cuts.py)
 // Pack = net weight in g / ml as in the offtake file ("Not stated" when blank). Last year's store file carries no pack, so pack YoY is not possible: use MoM.
 // NSV is in rupees. "Stores Selling" is per row: do not add it up across packs or months. Relate MonthStart -> Date Table[MonthStart].
 // =====================================================================
 let
-    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\pack_size_monthly_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Store_Cuts\pack_size_monthly_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
     Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
     Typed = Table.TransformColumnTypes(Promoted, {
         {"Month", type text}, {"FY Year", type text}, {"Category", type text}, {"Pack", type text}, {"NSV Rs", type number}, {"Stores Selling", type number}
@@ -2472,13 +2472,13 @@ in
 ##############################################################################
 // =====================================================================
 // QUERY: Fact Sales Cuts  (grain = Month x Zone x Brand x Sub Category x Store Type)
-// Source = RawDataFolders\Store_Cuts (copy sales_cuts_fy27.csv from SeedData\Store_Cuts; rebuild each month with scripts/build_store_cuts.py)
+// Source = SeedData\Store_Cuts\sales_cuts_fy27.csv (store-level data stays in SeedData, not RawDataFolders, per the restricted-source rule; rebuild each month with scripts/build_store_cuts.py)
 // FY27 offtake NSV (Brand Counter left out) split by store type: LFL, NFL New, NFL Restarted, No LY store data. Last year has no brand or sub-category
 // in the store file, so there is no brand / sub-category YoY here; zone growth comes from the main offtake fact. NSV is in rupees.
 // "Stores Selling" is per row: do not add it up across rows. Relate MonthStart -> Date Table[MonthStart].
 // =====================================================================
 let
-    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\sales_cuts_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Store_Cuts\sales_cuts_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
     Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
     Typed = Table.TransformColumnTypes(Promoted, {
         {"Month", type text}, {"FY Year", type text}, {"Zone", type text}, {"Brand", type text}, {"Category", type text}, {"Sub Category", type text},
@@ -2504,14 +2504,14 @@ in
 ##############################################################################
 // =====================================================================
 // QUERY: Fact Inhouse Distribution  (grain = Month x Level x Name; Level = Total / Chain / State / Pack)
-// Source = RawDataFolders\Store_Cuts (copy inhouse_distribution_fy27.csv from SeedData\Store_Cuts; rebuild with scripts/build_tdp_inhouse.py)
+// Source = SeedData\Store_Cuts\inhouse_distribution_fy27.csv (store-level data stays in SeedData, not RawDataFolders, per the restricted-source rule; rebuild with scripts/build_tdp_inhouse.py)
 // FROM OUR OFFTAKE, NOT TDP: no ACV % and no weighted distribution. Stores Selling = stores with offtake in the month; SKU Listings = distinct store x SKU pairs
 // (in-house distribution points); SKUs per store = listings / stores. "Stores In Master" is blank for Pack and where the state name does not match the master.
 // Filter the Level column on every visual (Total, Chain, State or Pack), because the rows of different levels must not be added together.
 // NSV is in rupees. Relate MonthStart -> Date Table[MonthStart]. Replace with 'Fact TDP' (query 14) when the real TDP file arrives.
 // =====================================================================
 let
-    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\inhouse_distribution_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Store_Cuts\inhouse_distribution_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
     Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
     Typed = Table.TransformColumnTypes(Promoted, {
         {"Month", type text}, {"FY Year", type text}, {"Level", type text}, {"Name", type text}, {"Stores Selling", type number}, {"SKUs Selling", type number},

@@ -1,13 +1,13 @@
 // =====================================================================
 // QUERY: Fact Inhouse Distribution  (grain = Month x Level x Name; Level = Total / Chain / State / Pack)
-// Source = RawDataFolders\Store_Cuts (copy inhouse_distribution_fy27.csv from SeedData\Store_Cuts; rebuild with scripts/build_tdp_inhouse.py)
+// Source = SeedData\Store_Cuts\inhouse_distribution_fy27.csv (store-level data stays in SeedData, not RawDataFolders, per the restricted-source rule; rebuild with scripts/build_tdp_inhouse.py)
 // FROM OUR OFFTAKE, NOT TDP: no ACV % and no weighted distribution. Stores Selling = stores with offtake in the month; SKU Listings = distinct store x SKU pairs
 // (in-house distribution points); SKUs per store = listings / stores. "Stores In Master" is blank for Pack and where the state name does not match the master.
 // Filter the Level column on every visual (Total, Chain, State or Pack), because the rows of different levels must not be added together.
 // NSV is in rupees. Relate MonthStart -> Date Table[MonthStart]. Replace with 'Fact TDP' (query 14) when the real TDP file arrives.
 // =====================================================================
 let
-    Source = Csv.Document(File.Contents(pRootFolder & "\RawDataFolders\Store_Cuts\inhouse_distribution_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+    Source = Csv.Document(File.Contents(pRootFolder & "\SeedData\Store_Cuts\inhouse_distribution_fy27.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
     Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
     Typed = Table.TransformColumnTypes(Promoted, {
         {"Month", type text}, {"FY Year", type text}, {"Level", type text}, {"Name", type text}, {"Stores Selling", type number}, {"SKUs Selling", type number},
