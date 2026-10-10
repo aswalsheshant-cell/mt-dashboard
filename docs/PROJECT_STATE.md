@@ -119,11 +119,13 @@ One bounded component per run: implement, validate, commit, stop.
 
 ## Power BI full report: in progress (2026-10-10, branch claude/gallant-shannon-wou27y)
 
-Static work is done. Nothing here is Desktop-verified, so B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
+Static work is done and pushed. Nothing here is Desktop-verified, so B5 stays `BLOCKED_PENDING_DESKTOP_EVIDENCE`.
 
-- Done: source coverage (`PowerBI/full_report_sources.json`), source-side expected values (`PowerBI/reconciliation_expected.json`), page contract for 11 tabs and 11 subviews (`PowerBI/full_report_pages.json`, `PowerBI/docs/FullReportParity.md`), starter pages (`PowerBI/PBIR_Generated/`), `model.bim` parser fixes (481 measures), duplicate ShipTo snapshot filter in `15_Fact_PrimaryShipTo.pq`.
-- Open defects and decisions: `docs/evidence/powerbi_full_ledger.md` (D1 to D6).
-- Next, on the Windows machine: compare the 20 local deletions, deploy `model.bim`, refresh, capture live DAX, run B5, publish a private draft.
+- Model: `PowerBI/model.bim` (53 tables, 49 relationships, 481 measures, 6 calculated columns, parameters `pRootFolder` and `pPrimaryChannel`). Rebuilt by `scripts/build_model_bim.py`.
+- Owner decisions applied 2026-10-10: Primary loads MT channel by default (`pPrimaryChannel`, `ALL` for every channel); FSN is eB2B (Chain Master row `Nykaa (FSN)`).
+- Page contract: 11 tabs and 11 subviews map to 20 pages (`PowerBI/full_report_pages.json`, `PowerBI/docs/FullReportParity.md`). Status: 11 PARTIAL, 5 NO_SOURCE, 4 NO_MODEL_SOURCE, 0 MODEL_ERROR. The 5 NO_SOURCE pages wait only on a TDP monthly file in `RawDataFolders/TDP_Monthly/`.
+- Open decisions and defects: `docs/evidence/powerbi_full_ledger.md` (D8 ShipTo `Cont%` scale, D11 ShipTo channel, D12 promo period overlap).
+- Next, on the Windows machine: follow `docs/evidence/POWERBI_DESKTOP_RUNBOOK.md` (compare the 20 local deletions, deploy `model.bim`, refresh, run the validation queries, run B5, publish a private draft).
 
 ## Completed Capabilities
 
